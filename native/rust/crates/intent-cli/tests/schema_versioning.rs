@@ -326,7 +326,10 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // alone: derived per-machine state has no wire or JSON form.
     // 25: level 3 (ST0076 WP-05, schema rung 29), four derived tables, the DDL
     // face alone for the same reason.
-    ("SCHEMA_DDL_VER", 25, 0xe0f1_c5e1_c5ca_b68f),
+    // 26: `edited_at` on `wb_item` and `wb_message` (issue 0525, schema rung
+    // 30). One field on two modelled types, so all three faces move for it, as
+    // they did for `Issue.reporter`.
+    ("SCHEMA_DDL_VER", 26, 0x9849_8519_fcf0_4cf7),
     // SDL and JSON move together, as they did for the AC kind: `AtStatus`
     // gained a `Fiat` variant and `AcceptanceTest` gained the optional record
     // beside it, so the wire contract now says an acceptance test can be closed
@@ -337,7 +340,8 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // carries those types and the DDL already stores them, so neither moves.
     // 17 -> 18 is the sixth item kind, `directive` (issue 0375). The board reads
     // gave `WbItemKind` an SDL face, so unlike `hold` the enum gains a member here.
-    ("SCHEMA_SDL_VER", 18, 0x78c1_005c_4abb_55b4),
+    // 18 -> 19 is `editedAt` on `WbItem` and `WbMessage` (issue 0525).
+    ("SCHEMA_SDL_VER", 19, 0xe0f4_1790_d2de_5e68),
     // Same change on the JSON face. 13 -> 14. 16 -> 17 is `status_legacy`.
     // **THE COORDINATION ENTITIES GET A PUBLISHED FACE (WP-14).** 17 -> 18, and
     // it is a ONE-face result: `board.schema.json` joins the JSON contract, so
@@ -351,7 +355,9 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // of the other two moves.
     // 20 -> 21 is the sixth item kind, `directive`, on `board.schema.json` (issue
     // 0375). The DDL stores the kind as text with no CHECK, so it does not move.
-    ("SCHEMA_JSON_VER", 21, 0x1c82_5f82_c2ea_c0f1),
+    // 21 -> 22 is `edited_at` on the board's item and message (issue 0525),
+    // omitted when null so an unedited board re-emits byte for byte.
+    ("SCHEMA_JSON_VER", 22, 0x1a65_a32a_6dbc_d1c3),
   ];
 
   let mut moved = Vec::new();

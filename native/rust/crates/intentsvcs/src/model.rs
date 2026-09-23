@@ -2376,6 +2376,11 @@ pub struct WbItem {
   /// non-null only on a migrated row.**
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub authored_at: Option<String>,
+  /// When `wb edit` last changed the text, read from the clock at the write;
+  /// `None` for text never edited (issue 0525). Its presence is the `(edited)`
+  /// mark, and it carries none of the old text.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub edited_at: Option<String>,
 }
 
 /// One entry in an inbox.
@@ -2402,6 +2407,11 @@ pub struct WbMessage {
   /// text and never read as a time.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub authored_at: Option<String>,
+  /// When `wb edit` last changed the body, read from the clock at the write;
+  /// `None` for a body never edited (issue 0525). Its presence is the
+  /// `(edited)` mark, and it carries none of the old body.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub edited_at: Option<String>,
 }
 
 /// How one row on a board differs between what the store holds and what a
@@ -2453,11 +2463,12 @@ impl BoardChanges {
 ///
 /// **A ROW IS ITS KEY, NOT ITS POSITION AND NOT ITS ID.** A node is its
 /// moniker, an item its (node, kind, seq), a message its (sender, recipient,
-/// recorded_at, body). board.json carries no id, so the restore that deleted
-/// every row and re-inserted the file renumbered and restamped rows nothing
-/// had changed, while the preview that compared threads and issues printed
-/// that nothing was overwritten. Keyed, an unchanged row is simply absent from
-/// this answer.
+/// recorded_at, body) and then, for the rows that leaves unpaired, its
+/// (sender, recipient, recorded_at): see `message_changes`. board.json
+/// carries no id, so the restore that deleted every row and re-inserted the
+/// file renumbered and restamped rows nothing had changed, while the preview
+/// that compared threads and issues printed that nothing was overwritten.
+/// Keyed, an unchanged row is simply absent from this answer.
 ///
 /// **THE MESSAGE KEY IS A MULTISET.** Two identical messages are two rows, so
 /// rows sharing a key pair up in order and the surplus on either side is added
@@ -2473,15 +2484,61 @@ pub fn board_changes(held: &[Board], offered: &[Board]) -> BoardChanges {
     items: row_changes(&held.items, &offered.items, |i| {
       (i.node.clone(), enum_str(&i.kind), i.seq)
     }),
-    messages: row_changes(&held.messages, &offered.messages, |m| {
-      (
-        m.sender.clone(),
-        m.recipient.clone(),
-        m.recorded_at.clone(),
-        m.body.clone(),
-      )
-    }),
+    messages: message_changes(&held.messages, &offered.messages),
   }
+}
+
+/// [`row_changes`] for messages, in two passes (issue 0525, from cc's restore
+/// note that vc filed).
+///
+/// **THE BODY IS IN THE FIRST KEY AND NOT THE SECOND.** The full key, body
+/// included, pairs the rows a restore leaves alone: identical messages pair up
+/// in order, so removing one of two twins removes exactly the surplus and moves
+/// nothing else. A body `wb edit message` changed on another clone then matches
+/// no held row, so the rows left over on both sides pair up again by sender,
+/// recipient and stamp, in order, as `Changed`. The row is updated in place
+/// and keeps its id, and with it its place in its inbox and its `#<n>`. Keyed
+/// by body alone, that edit was a removal and an addition, which re-inserted
+/// the row last and could renumber its minute.
+fn message_changes(held: &[&WbMessage], offered: &[&WbMessage]) -> Vec<RowChange> {
+  let full = |m: &WbMessage| {
+    (
+      m.sender.clone(),
+      m.recipient.clone(),
+      m.recorded_at.clone(),
+      m.body.clone(),
+    )
+  };
+  let without_body = |m: &WbMessage| (m.sender.clone(), m.recipient.clone(), m.recorded_at.clone());
+  let mut changes = Vec::new();
+  let (mut held_left, mut offered_left) = (Vec::new(), Vec::new());
+  for change in row_changes(held, offered, full) {
+    match change {
+      RowChange::Removed(h) => held_left.push(h),
+      RowChange::Added(o) => offered_left.push(o),
+      changed => changes.push(changed),
+    }
+  }
+  let held_rest: Vec<&WbMessage> = held_left.iter().map(|&h| held[h]).collect();
+  let offered_rest: Vec<&WbMessage> = offered_left.iter().map(|&o| offered[o]).collect();
+  for change in row_changes(&held_rest, &offered_rest, without_body) {
+    changes.push(match change {
+      RowChange::Removed(h) => RowChange::Removed(held_left[h]),
+      RowChange::Added(o) => RowChange::Added(offered_left[o]),
+      RowChange::Changed { held, offered } => RowChange::Changed {
+        held: held_left[held],
+        offered: offered_left[offered],
+      },
+    });
+  }
+  // The order `row_changes` answers in: removals, then changes by held row,
+  // then additions in offered order, which is the order a restore inserts.
+  changes.sort_by_key(|c| match *c {
+    RowChange::Removed(h) => (0, h),
+    RowChange::Changed { held, .. } => (1, held),
+    RowChange::Added(o) => (2, o),
+  });
+  changes
 }
 
 /// Pair rows by key, in order within a key, and name what differs.

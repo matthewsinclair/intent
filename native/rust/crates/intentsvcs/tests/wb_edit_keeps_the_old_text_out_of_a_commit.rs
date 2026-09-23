@@ -765,3 +765,63 @@ fn an_announce_whose_copies_cannot_be_told_apart_edits_the_addressed_copy_alone(
     "the announce's record is left as it was"
   );
 }
+
+#[test]
+fn an_edited_item_carries_the_mark_and_board_json_its_stamp() {
+  // Issue 0525: the edit's first case leaves no trace in the event log, so the
+  // board says the text changed -- in its row, its view and board.json --
+  // without saying what it said.
+  let fx = Fixture::new();
+  let mut f = board(&fx);
+  let seq = f.wb_add("cc", WbItemKind::Todo, OLD).expect("add");
+  let untouched = f
+    .wb_add("cc", WbItemKind::Todo, "a line nobody edits")
+    .expect("add");
+
+  f.wb_edit("cc", WbItemKind::Todo, seq, NEW).expect("edit");
+
+  let items = f.board("cc").expect("cc's board").items;
+  let edited = items
+    .iter()
+    .find(|i| i.seq == seq)
+    .expect("the edited item");
+  let other = items
+    .iter()
+    .find(|i| i.seq == untouched)
+    .expect("the other item");
+  assert!(
+    edited.edited_at.is_some() && other.edited_at.is_none(),
+    "{items:?}"
+  );
+  let view = fx.read("intent/whiteboard/cc/wip.md");
+  assert!(
+    view.contains(&format!("- {NEW} (edited)\n")) && view.contains("- a line nobody edits\n"),
+    "{view}"
+  );
+  assert!(
+    fx.read("intent/whiteboard/cc/board.json")
+      .contains("\"edited_at\""),
+    "board.json carries the stamp, so a rebuild keeps the mark"
+  );
+  assert_eq!(
+    files_holding(&fx, OLD),
+    Vec::<String>::new(),
+    "the mark carries none of the old text"
+  );
+}
+
+#[test]
+fn an_edited_message_carries_the_mark_in_its_heading() {
+  let fx = Fixture::new();
+  let mut f = two_nodes(&fx);
+  f.wb_ask("cc", "vc", OLD, None, false).expect("ask");
+  let anchor = first_anchor(&f);
+
+  f.wb_edit_message("cc", "vc", &anchor, NEW).expect("edit");
+
+  let inbox = fx.read("intent/whiteboard/vc/inbox.cc.md");
+  assert!(
+    inbox.contains(&format!("## ({anchor}) (edited)\n\n{NEW}\n")),
+    "{inbox}"
+  );
+}

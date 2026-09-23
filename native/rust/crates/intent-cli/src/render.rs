@@ -4305,7 +4305,12 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
             .join(", ")
         );
         for i in standing {
-          println!("  [{}] {} {}", item_kind_word(&i.kind), i.seq, i.text);
+          println!(
+            "  [{}] {} {}",
+            item_kind_word(&i.kind),
+            i.seq,
+            intentsvcs::views::edited_item_text(&i.text, i.edited_at.as_ref())
+          );
         }
       }
       // **THE PEERS COME AFTER THE BOARD AND ARE HEADERS, AND EACH SAYS WHAT IT
@@ -4717,16 +4722,23 @@ fn report_wb_board(
     .partition(|i| i.state == intentsvcs::model::WbItemState::Live);
   println!("items ({})", live.len());
   for i in &live {
-    println!("  [{}] {} {}", item_kind_word(&i.kind), i.seq, i.text);
+    println!(
+      "  [{}] {} {}",
+      item_kind_word(&i.kind),
+      i.seq,
+      intentsvcs::views::edited_item_text(&i.text, i.edited_at.as_ref())
+    );
   }
   println!("archived ({})", archived.len());
   println!("messages ({})", board.messages.len());
   for msg in &board.messages {
     println!(
-      "  {} -> {}{} {}",
+      "  {} -> {}{}{}{} {}",
       msg.sender,
       msg.recipient,
       if msg.fyi { " (fyi)" } else { "" },
+      intentsvcs::views::handled_mark(&msg.state),
+      intentsvcs::views::edited_mark(msg.edited_at.as_ref()),
       msg.body
     );
   }

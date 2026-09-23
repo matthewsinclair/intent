@@ -1,5 +1,5 @@
 -- INTENT_VER: 3.2.0
--- SCHEMA_DDL_VER: 25
+-- SCHEMA_DDL_VER: 26
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
 -- The durable source of truth for a project, not an index of its files.
@@ -680,7 +680,8 @@ CREATE TABLE IF NOT EXISTS wb_item (
   archived_at TEXT,
   recorded_at TEXT NOT NULL,
   authored_at TEXT,
-  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  edited_at TEXT
 );
 -- **`id` IS AN INTEGER PRIMARY KEY SO INSERTION ORDER IS RECOVERABLE**, which
 -- is not decoration: every row a migration inserts in one pass shares one
@@ -700,7 +701,8 @@ CREATE TABLE IF NOT EXISTS wb_message (
   handled_at TEXT,
   recorded_at TEXT NOT NULL,
   authored_at TEXT,
-  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  edited_at TEXT
 );
 CREATE INDEX IF NOT EXISTS wb_item_by_node ON wb_item (node, kind, seq);
 CREATE INDEX IF NOT EXISTS wb_message_by_recipient ON wb_message (recipient, id);

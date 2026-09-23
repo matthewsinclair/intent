@@ -1891,6 +1891,32 @@ pub const BOARD_SECTIONS: [(crate::model::WbItemKind, &str); 6] = [
   (crate::model::WbItemKind::Decision, "Decisions"),
 ];
 
+/// The mark an edited item or message carries wherever it renders (issue
+/// 0525), so the views and the CLI spell it once. It says that the text
+/// changed, and never what it said before.
+pub fn edited_mark(edited_at: Option<&String>) -> &'static str {
+  if edited_at.is_some() { " (edited)" } else { "" }
+}
+
+/// The mark a message its recipient has cleared carries, in its inbox heading
+/// and on the CLI's line under `--all` (issue 0531), spelled once for both.
+pub fn handled_mark(state: &crate::model::WbMessageState) -> &'static str {
+  if *state == crate::model::WbMessageState::Handled {
+    " (handled)"
+  } else {
+    ""
+  }
+}
+
+/// An item's text with [`edited_mark`] at the end of its FIRST line (ic's
+/// review of 0525). After the last line, the mark turned a closing fence into
+/// text, so everything below the item read as code, and on an item ending in a
+/// list it read as the last sub-bullet's. A one-line item is unchanged.
+pub fn edited_item_text(text: &str, edited_at: Option<&String>) -> String {
+  let end = text.find(['\r', '\n']).unwrap_or(text.len());
+  format!("{}{}{}", &text[..end], edited_mark(edited_at), &text[end..])
+}
+
 /// [`wb_board`] without the generated footer: the bytes the prose index splits.
 ///
 /// **ONE LAYOUT, TWO READERS.** The index takes a board's sections from the
@@ -1923,7 +1949,10 @@ pub fn wb_board_body(board: &crate::model::Board) -> String {
       continue;
     }
     for item in live {
-      out.push_str(&format!("- {}\n", item.text));
+      out.push_str(&format!(
+        "- {}\n",
+        edited_item_text(&item.text, item.edited_at.as_ref())
+      ));
     }
     out.push('\n');
   }
@@ -1987,9 +2016,8 @@ pub fn wb_inbox_body(
     if m.fyi {
       out.push_str(" FYI only -- no response needed.");
     }
-    if m.state == crate::model::WbMessageState::Handled {
-      out.push_str(" (handled)");
-    }
+    out.push_str(handled_mark(&m.state));
+    out.push_str(edited_mark(m.edited_at.as_ref()));
     out.push_str("\n\n");
     out.push_str(&m.body);
     out.push_str("\n\n");
@@ -2649,6 +2677,46 @@ mod tests {
         "# inbox: vc -> cc\n\n## (2026-09-12 19:02Z) claimed 2026-09-12 08:59Z (handled)\n\nthe order\n"
       ),
       "{out}"
+    );
+  }
+
+  #[test]
+  fn an_edited_item_and_an_edited_message_say_so_and_show_only_the_new_text() {
+    // Issue 0525: the mark is an edit's one trace on a board, and it names no
+    // old text. It sits where `(handled)` sits on a heading, and at the end of
+    // an item's first line.
+    let mut b = board();
+    b.items[0].edited_at = Some("2026-09-23T10:00:00.000Z".to_string());
+    b.messages[0].edited_at = Some("2026-09-23T10:00:01.000Z".to_string());
+    let board_view = wb_board(&b, &ctx());
+    assert!(
+      board_view.contains("- the decision (edited)\n"),
+      "{board_view}"
+    );
+    assert!(
+      board_view.contains("- the watch-out\n"),
+      "an item never edited carries no mark: {board_view}"
+    );
+    let inbox = wb_inbox("vc", "cc", &b.messages, &ctx());
+    assert!(
+      inbox.starts_with(
+        "# inbox: vc -> cc\n\n## (2026-09-12 19:02Z) (handled) (edited)\n\nthe order\n"
+      ),
+      "{inbox}"
+    );
+  }
+
+  #[test]
+  fn the_mark_on_a_multi_line_item_ends_its_first_line_and_leaves_a_closing_fence_alone() {
+    // ic's review of 0525: after the last line, `(edited)` turned a closing
+    // fence into text and every section below the item read as code.
+    let mut b = board();
+    b.items[0].text = "run this:\n```\ngit log -1\n```".to_string();
+    b.items[0].edited_at = Some("2026-09-23T10:00:00.000Z".to_string());
+    let board_view = wb_board(&b, &ctx());
+    assert!(
+      board_view.contains("- run this: (edited)\n```\ngit log -1\n```\n"),
+      "{board_view}"
     );
   }
 

@@ -521,6 +521,8 @@ fn populated() -> (Fixture, Vec<String>) {
     archived_at: None,
     recorded_at: stamp.clone(),
     authored_at: Some("2026-09-12 16:00Z".to_string()),
+    // Issue 0525: an edited row's mark crosses the round trip too.
+    edited_at: Some("2026-09-23T10:00:00.000Z".to_string()),
   });
   boards[0].messages.push(intentsvcs::model::WbMessage {
     sender: second,
@@ -532,6 +534,7 @@ fn populated() -> (Fixture, Vec<String>) {
     handled_at: None,
     recorded_at: stamp,
     authored_at: None,
+    edited_at: Some("2026-09-23T10:00:01.000Z".to_string()),
   });
   {
     let mut store = intentsvcs::store::Store::open(&fx.project().db_path()).expect("store");

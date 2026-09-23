@@ -170,12 +170,12 @@ The `# inbox: <sender> -> <recipient>` header restates the single-writer routing
 Each entry appended by `ask` / `announce`:
 
 ```
-## (YYYY-MM-DD HH:MMZ) [claimed <stamp>] [Re: <prior-anchor>] [FYI only -- no response needed.] [(handled)]
+## (YYYY-MM-DD HH:MMZ) [claimed <stamp>] [Re: <prior-anchor>] [FYI only -- no response needed.] [(handled)] [(edited)]
 
 <text>
 ```
 
-Required fields: the `## (YYYY-MM-DD HH:MMZ)` timestamp heading (minute granularity -- it doubles as the anchor a reply threads against) and the `<text>` body. Recommended / optional: `Re: <prior-anchor>` (present only when threading a reply to a prior entry's timestamp) and `FYI only -- no response needed.` (present only when no reply is expected; absent means the sender expects a reply). A reply is a new entry in the opposite-direction inbox (`<original-sender>/inbox.<you>.md`), carrying `Re:` the entry it answers. The renderer adds two markers nobody writes: `claimed <stamp>` on an entry `wb migrate` carried from a hand-authored inbox, which is the stamp the markdown claimed, verbatim and never parsed, and `(handled)` on an entry the recipient has cleared. Every `announce` is sent as FYI.
+Required fields: the `## (YYYY-MM-DD HH:MMZ)` timestamp heading (minute granularity -- it doubles as the anchor a reply threads against) and the `<text>` body. Recommended / optional: `Re: <prior-anchor>` (present only when threading a reply to a prior entry's timestamp) and `FYI only -- no response needed.` (present only when no reply is expected; absent means the sender expects a reply). A reply is a new entry in the opposite-direction inbox (`<original-sender>/inbox.<you>.md`), carrying `Re:` the entry it answers. The renderer adds three markers nobody writes: `claimed <stamp>` on an entry `wb migrate` carried from a hand-authored inbox, which is the stamp the markdown claimed, verbatim and never parsed, `(handled)` on an entry the recipient has cleared, and `(edited)` on an entry its sender changed with `wb edit message`. Every `announce` is sent as FYI.
 
 **THE SEPARATOR BETWEEN THOSE FIELDS IS NOT SIGNIFICANT -- one or more spaces, both legal.** This spec said three spaces until 2026-09-02, and **a corpus read found that NO heading carrying a `Re:` or `FYI` field had kept the documented spacing**: the pre-commit gate refuses unformatted markdown and the formatter collapses runs of spaces, so every node wrote the documented form and every one was rewritten on the way in. **A format nobody can write is not a format.** Nothing depends on the separator -- `whiteboard-clock-guard.sh` keys on the STAMP and mentions `Re:` only in prose, and `wb migrate`, the one tool that reads these fields, finds them by their `Re: ` and `FYI only` tokens -- so the spec moved rather than the files. **The existing headings are deliberately NOT rewritten**: a bulk byte-change across append-only surfaces to satisfy a cosmetic field nothing reads is the exact harm the `.prettierignore` exemption exists to prevent.
 
@@ -314,6 +314,8 @@ Use it for 1-to-all signals: a shared platform layer you are about to touch, a p
 **THE ALL-CLEAR IS SAID ONLY WHEN BOTH SEARCHES RAN AND FOUND NOTHING, AND IT SAYS WHAT WAS SEARCHED**: _no file under intent/ holds the old text, at HEAD or in the next commit_. A peer's committed item quoting the text, a copy `wb migrate` kept under `.history/pre-migration/`, a draft the edit could not match to the item, and another item that says the same thing all leave the text where a commit carries it, so the answer names each of them rather than assuming them away. The lines name what holds the text, not whose it is. When the new text contains the old text, every file holding the new text holds the old text as well, and the answer says so on a line of its own rather than shortening the lists. Outside `intent/`, and in commits before HEAD, nothing is searched.
 
 **THE ADDRESS IS YOUR OWN BOARD, OR A MESSAGE YOU SENT.** A peer's item is the peer's to edit, exactly as it is the peer's to archive, and a message is its sender's to edit.
+
+**AN EDITED ITEM OR MESSAGE SAYS SO, AND NEVER WHAT IT SAID.** It renders `(edited)` at the end of an item's first line, in the views, in `wb show` and in `wb pickup`; on a message, after `(handled)` in its inbox heading and after the route in `wb show` and `wb pickup`. `board.json` carries the stamp as `edited_at`, so a rebuild keeps the mark. An edit of an uncommitted draft leaves no trace in the event log, deliberately, so this mark is how a peer who acted on the text can tell that it changed.
 
 ### `touch`
 

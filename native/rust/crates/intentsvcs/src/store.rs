@@ -763,7 +763,8 @@ CREATE TABLE IF NOT EXISTS wb_item (
   archived_at TEXT,
   recorded_at TEXT NOT NULL,
   authored_at TEXT,
-  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  edited_at TEXT
 );
 -- **`id` IS AN INTEGER PRIMARY KEY SO INSERTION ORDER IS RECOVERABLE**, which
 -- is not decoration: every row a migration inserts in one pass shares one
@@ -783,7 +784,8 @@ CREATE TABLE IF NOT EXISTS wb_message (
   handled_at TEXT,
   recorded_at TEXT NOT NULL,
   authored_at TEXT,
-  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  edited_at TEXT
 );
 CREATE INDEX IF NOT EXISTS wb_item_by_node ON wb_item (node, kind, seq);
 CREATE INDEX IF NOT EXISTS wb_message_by_recipient ON wb_message (recipient, id);
@@ -811,7 +813,7 @@ CREATE INDEX IF NOT EXISTS wb_message_by_recipient ON wb_message (recipient, id)
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 29;
+pub const SCHEMA_VERSION: i32 = 30;
 
 /// FTS5 `secure-delete` on both search tables: a `DELETE` takes the row's terms
 /// out of the inverted index rather than writing a tombstone for them.
@@ -1850,6 +1852,64 @@ const MIGRATIONS: &[(i32, &str)] = &[(
     // start empty, which is the correct and only description of a store no
     // toolchain has run over.
     RESOLUTION_TABLES,
+  ),
+  (
+    30,
+    // 29 -> 30: `wb_item.edited_at` and `wb_message.edited_at` (0525), so an
+    // item or a message `wb edit` changed renders `(edited)`.
+    //
+    // **THE MARK IS THE ONE TRACE AN EDIT OF A DRAFT LEAVES**: 0523's first case
+    // amends the event in place, deliberately, so a peer who acted on what it
+    // read can see that the text changed without seeing what it said. No row
+    // was edited through a verb that recorded it before this rung, so the
+    // column starts null.
+    //
+    // **A REBUILD RATHER THAN `ALTER TABLE ADD COLUMN`, for rung 15's reason**
+    // (rung 25 tells it), with each table's index re-created after it. Each
+    // `SELECT` names only the columns the table had before, so it reads either
+    // shape.
+    "CREATE TABLE wb_item_rebuilt (
+       id INTEGER PRIMARY KEY,
+       node TEXT NOT NULL,
+       kind TEXT NOT NULL,
+       seq INTEGER NOT NULL,
+       text TEXT NOT NULL,
+       state TEXT NOT NULL,
+       archived_at TEXT,
+       recorded_at TEXT NOT NULL,
+       authored_at TEXT,
+       updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+       edited_at TEXT
+     );
+     INSERT INTO wb_item_rebuilt (id, node, kind, seq, text, state, archived_at, recorded_at,
+       authored_at, updated_at)
+       SELECT id, node, kind, seq, text, state, archived_at, recorded_at, authored_at, updated_at
+       FROM wb_item;
+     DROP TABLE wb_item;
+     ALTER TABLE wb_item_rebuilt RENAME TO wb_item;
+     CREATE TABLE wb_message_rebuilt (
+       id INTEGER PRIMARY KEY,
+       sender TEXT NOT NULL,
+       recipient TEXT NOT NULL,
+       body TEXT NOT NULL,
+       re TEXT,
+       fyi INTEGER NOT NULL DEFAULT 0,
+       state TEXT NOT NULL,
+       handled_at TEXT,
+       recorded_at TEXT NOT NULL,
+       authored_at TEXT,
+       updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+       edited_at TEXT
+     );
+     INSERT INTO wb_message_rebuilt (id, sender, recipient, body, re, fyi, state, handled_at,
+       recorded_at, authored_at, updated_at)
+       SELECT id, sender, recipient, body, re, fyi, state, handled_at, recorded_at, authored_at,
+         updated_at
+       FROM wb_message;
+     DROP TABLE wb_message;
+     ALTER TABLE wb_message_rebuilt RENAME TO wb_message;
+     CREATE INDEX IF NOT EXISTS wb_item_by_node ON wb_item (node, kind, seq);
+     CREATE INDEX IF NOT EXISTS wb_message_by_recipient ON wb_message (recipient, id);",
   ),
 ];
 
@@ -3057,6 +3117,10 @@ impl WbWrite<'_> {
   /// carries it, so a text that must not be committed is as present in an
   /// archived row as in a live one. The text already held moves nothing, which
   /// is what lets the verb report it unchanged.
+  ///
+  /// **A TEXT THAT MOVED STAMPS `edited_at`** (issue 0525), from the clock at
+  /// the write like every other stamp here, so the item renders `(edited)`
+  /// whichever of the edit's two cases carried it.
   pub fn set_item_text(
     &mut self,
     node: &str,
@@ -3065,7 +3129,8 @@ impl WbWrite<'_> {
     text: &str,
   ) -> Result<bool, StoreError> {
     let moved = self.tx.execute(
-      "UPDATE wb_item SET text = ?4, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') \
+      "UPDATE wb_item SET text = ?4, edited_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), \
+       updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') \
        WHERE node = ?1 AND kind = ?2 AND seq = ?3 AND text <> ?4",
       params![node, kind, seq, text],
     )?;
@@ -3074,12 +3139,14 @@ impl WbWrite<'_> {
   }
 
   /// Replace the body of each of these messages, handled or live, and say how
-  /// many moved (issue 0523). One edit of an announce names every copy.
+  /// many moved (issue 0523). One edit of an announce names every copy, and a
+  /// body that moved stamps `edited_at`, as [`Self::set_item_text`] does.
   pub fn set_message_body(&mut self, ids: &[i64], body: &str) -> Result<usize, StoreError> {
     let mut moved = 0;
     for id in ids {
       moved += self.tx.execute(
-        "UPDATE wb_message SET body = ?2, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') \
+        "UPDATE wb_message SET body = ?2, edited_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), \
+         updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') \
          WHERE id = ?1 AND body <> ?2",
         params![id, body],
       )?;
@@ -3245,15 +3312,18 @@ impl WbWrite<'_> {
         RowChange::Changed { held, offered } => {
           let m = now.messages[offered];
           self.moved += self.tx.execute(
-            "UPDATE wb_message SET re = ?2, fyi = ?3, state = ?4, handled_at = ?5, \
-             authored_at = ?6, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?1",
+            "UPDATE wb_message SET body = ?2, re = ?3, fyi = ?4, state = ?5, handled_at = ?6, \
+             authored_at = ?7, edited_at = ?8, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') \
+             WHERE id = ?1",
             params![
               message_ids[held],
+              m.body,
               m.re,
               i64::from(m.fyi),
               enum_str(&m.state),
               m.handled_at,
-              m.authored_at
+              m.authored_at,
+              m.edited_at
             ],
           )?;
         }
@@ -3271,14 +3341,16 @@ impl WbWrite<'_> {
           let i = now.items[offered];
           self.moved += self.tx.execute(
             "UPDATE wb_item SET text = ?2, state = ?3, archived_at = ?4, recorded_at = ?5, \
-             authored_at = ?6, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?1",
+             authored_at = ?6, edited_at = ?7, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') \
+             WHERE id = ?1",
             params![
               item_ids[held],
               i.text,
               enum_str(&i.state),
               i.archived_at,
               i.recorded_at,
-              i.authored_at
+              i.authored_at,
+              i.edited_at
             ],
           )?;
         }
@@ -3347,8 +3419,8 @@ impl WbWrite<'_> {
         let i = now.items[o];
         self.moved += self.tx.execute(
           "INSERT INTO wb_item (node, kind, seq, text, state, archived_at, recorded_at, \
-           authored_at, updated_at) \
-           VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+           authored_at, edited_at, updated_at) \
+           VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
           params![
             i.node,
             enum_str(&i.kind),
@@ -3358,6 +3430,7 @@ impl WbWrite<'_> {
             i.archived_at,
             i.recorded_at,
             i.authored_at,
+            i.edited_at,
           ],
         )?;
       }
@@ -3367,8 +3440,8 @@ impl WbWrite<'_> {
         let m = now.messages[o];
         self.moved += self.tx.execute(
           "INSERT INTO wb_message (sender, recipient, body, re, fyi, state, handled_at, \
-           recorded_at, authored_at, updated_at) \
-           VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+           recorded_at, authored_at, edited_at, updated_at) \
+           VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
           params![
             m.sender,
             m.recipient,
@@ -3379,6 +3452,7 @@ impl WbWrite<'_> {
             m.handled_at,
             m.recorded_at,
             m.authored_at,
+            m.edited_at,
           ],
         )?;
       }
@@ -5580,8 +5654,8 @@ impl Store {
 
   fn hydrate_items(conn: &rusqlite::Connection, node: &str) -> Result<Vec<WbItem>, StoreError> {
     let mut stmt = conn.prepare(
-      "SELECT node, kind, seq, text, state, archived_at, recorded_at, authored_at FROM wb_item \
-       WHERE node = ?1 ORDER BY id",
+      "SELECT node, kind, seq, text, state, archived_at, recorded_at, authored_at, edited_at \
+       FROM wb_item WHERE node = ?1 ORDER BY id",
     )?;
     let rows = stmt
       .query_map(params![node], |row| {
@@ -5594,13 +5668,14 @@ impl Store {
           row.get::<_, Option<String>>(5)?,
           row.get::<_, String>(6)?,
           row.get::<_, Option<String>>(7)?,
+          row.get::<_, Option<String>>(8)?,
         ))
       })?
       .collect::<Result<Vec<_>, _>>()?;
     rows
       .into_iter()
       .map(
-        |(node, kind, seq, text, state, archived_at, recorded_at, authored_at)| {
+        |(node, kind, seq, text, state, archived_at, recorded_at, authored_at, edited_at)| {
           Ok(WbItem {
             node,
             kind: enum_from(&kind)?,
@@ -5610,6 +5685,7 @@ impl Store {
             archived_at,
             recorded_at,
             authored_at,
+            edited_at,
           })
         },
       )
@@ -5621,8 +5697,8 @@ impl Store {
     recipient: &str,
   ) -> Result<Vec<WbMessage>, StoreError> {
     let mut stmt = conn.prepare(
-      "SELECT sender, recipient, body, re, fyi, state, handled_at, recorded_at, authored_at \
-       FROM wb_message WHERE recipient = ?1 ORDER BY id",
+      "SELECT sender, recipient, body, re, fyi, state, handled_at, recorded_at, authored_at, \
+       edited_at FROM wb_message WHERE recipient = ?1 ORDER BY id",
     )?;
     let rows = stmt
       .query_map(params![recipient], |row| {
@@ -5636,13 +5712,25 @@ impl Store {
           row.get::<_, Option<String>>(6)?,
           row.get::<_, String>(7)?,
           row.get::<_, Option<String>>(8)?,
+          row.get::<_, Option<String>>(9)?,
         ))
       })?
       .collect::<Result<Vec<_>, _>>()?;
     rows
       .into_iter()
       .map(
-        |(sender, recipient, body, re, fyi, state, handled_at, recorded_at, authored_at)| {
+        |(
+          sender,
+          recipient,
+          body,
+          re,
+          fyi,
+          state,
+          handled_at,
+          recorded_at,
+          authored_at,
+          edited_at,
+        )| {
           Ok(WbMessage {
             sender,
             recipient,
@@ -5653,6 +5741,7 @@ impl Store {
             handled_at,
             recorded_at,
             authored_at,
+            edited_at,
           })
         },
       )

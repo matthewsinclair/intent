@@ -463,3 +463,17 @@ fn a_message_you_sent_is_edited_by_its_heading_and_names_its_recipient() {
     "{shown}"
   );
 }
+
+#[test]
+fn wb_show_marks_an_edited_item() {
+  // Issue 0525: the CLI's own listing says so as well as the views do.
+  let dir = seeded();
+  ok(
+    dir.path(),
+    &["wb", "edit", "todo", "1", "a client owes", "--node", "cc"],
+  );
+
+  let shown = ok(dir.path(), &["wb", "show", "cc"]);
+
+  assert!(shown.contains("[todo] 1 a client owes (edited)"), "{shown}");
+}

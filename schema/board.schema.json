@@ -17,6 +17,13 @@
             "null"
           ]
         },
+        "edited_at": {
+          "description": "When `wb edit` last changed the text, read from the clock at the write;\n`None` for text never edited (issue 0525). Its presence is the `(edited)`\nmark, and it carries none of the old text.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "kind": {
           "$ref": "#/$defs/WbItemKind"
         },
@@ -82,6 +89,13 @@
         },
         "body": {
           "type": "string"
+        },
+        "edited_at": {
+          "description": "When `wb edit` last changed the body, read from the clock at the write;\n`None` for a body never edited (issue 0525). Its presence is the\n`(edited)` mark, and it carries none of the old body.",
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "fyi": {
           "description": "Set when the sender expects no reply.",
@@ -242,5 +256,5 @@
   "title": "Board",
   "type": "object",
   "x-intent-ver": "3.2.0",
-  "x-schema-json-ver": 21
+  "x-schema-json-ver": 22
 }

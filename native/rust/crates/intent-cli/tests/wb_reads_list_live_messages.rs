@@ -82,6 +82,15 @@ fn assert_default_and_all(dir: &Path, verb: &[&str]) {
     text.contains(HANDLED),
     "`--all` lists the handled message:\n{text}"
   );
+  // Issue 0531: the listing that shows handled messages says which they are.
+  assert!(
+    text.contains(&format!("vc -> cc (handled) {HANDLED}")),
+    "`--all` marks the handled message:\n{text}"
+  );
+  assert!(
+    text.contains(&format!("vc -> cc {LIVE}")),
+    "a live message carries no mark:\n{text}"
+  );
 }
 
 #[test]

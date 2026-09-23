@@ -4,7 +4,9 @@
 //!
 //! vc decision 22: the restore applies the DIFFERENCE by natural key -- a node
 //! by moniker, an item by (node, kind, seq), a message by (sender, recipient,
-//! recorded_at, body) counted as a multiset -- so an unchanged row keeps its id
+//! recorded_at, body) counted as a multiset, and then, for the messages that
+//! leaves unpaired, by (sender, recipient, recorded_at) in order (issue 0525)
+//! -- so an unchanged row keeps its id
 //! and `updated_at`, and the preview names every board difference beside the
 //! threads and issues, which is what makes the no-overwrite line true when it
 //! prints.
@@ -116,6 +118,40 @@ fn a_restore_updates_the_row_that_differs_and_leaves_the_rest() {
     [messages[0].clone(), messages[2].clone()],
     "one of two identical messages went, and nothing else moved"
   );
+}
+
+#[test]
+fn an_edited_body_is_updated_in_place_and_keeps_its_place() {
+  // Issue 0525, from cc's restore note: a body `wb edit message` changed on
+  // another clone arrives as a board whose message says something new. Keyed
+  // by its body alone it was removed and re-added, last, which could renumber
+  // `#<n>` in its minute. Now the row keeps its id and only its body moves,
+  // and the twins beside it stay as they were.
+  let fx = Fixture::new();
+  let mut boards = boards(&fx);
+  let path = fx.project().db_path();
+  let mut store = Store::open(&path).expect("store");
+  store.replace_boards(&boards).expect("seed");
+  let db = Connection::open(&path).expect("open");
+  let (_, messages) = rows(&db);
+
+  later();
+  boards[0].messages[2].body = "and again, edited".to_string();
+  boards[0].messages[2].edited_at = Some("2026-09-23T10:30:00.000Z".to_string());
+  store.replace_boards(&boards).expect("one edited body");
+
+  let (_, messages_after) = rows(&db);
+  assert_eq!(
+    messages_after.iter().map(|m| m.0).collect::<Vec<_>>(),
+    messages.iter().map(|m| m.0).collect::<Vec<_>>(),
+    "no message changed its id: {messages_after:?}"
+  );
+  assert_eq!(
+    (&messages_after[0], &messages_after[1]),
+    (&messages[0], &messages[1]),
+    "the twins did not move"
+  );
+  assert_eq!(messages_after[2].1, "and again, edited");
 }
 
 #[test]
