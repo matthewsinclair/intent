@@ -1,0 +1,15 @@
+{
+  "id": "01M36MY1TXWJ41YAX0V634XE7D",
+  "ts": "2026-09-23T08:08:23.645Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "**THE PROLIX CARRY, HELD BEFORE ITS FIRST WRITE, UNTIL hv CHOOSES A OR B FOR hv's PLACEHOLDERS AND vc GIVES THE DISPOSITIONS FOR Prolix cc's FOUR UNCARRIED UNITS AND vc's TWO COERCED PROSE LINES.** Rehearsed 08:01Z in a scratch clone (scratchpad/prolix-rehearsal, isolated HOME). wb migrate carries hv's four scaffold placeholders as live items instead of dropping them; Molt's hv board already holds the same four, carried at Molt ace5ffb. cc refuses on 3 units under ## Blocked on hv and 1 under ## Handed off. vc carries 34 items, with 2 lines of section prose coerced into items. Option A is a reader fix plus hv archiving Molt's four; option B is to carry and have hv archive. dc recommended A. The live Prolix is untouched."
+  }
+}

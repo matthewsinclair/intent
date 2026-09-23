@@ -9,7 +9,8 @@
     "status": "active",
     "focus": "0522 in flight (wb register's refusals carry no remedy; render.rs, shared with cc's 0523), then the Prolix carry from here. 0521 is cc's. Hold 27 goes to hv through vc. NO PUSH, NO RELEASE.",
     "claims": [
-      "ISSUE:0522"
+      "ISSUE:0522",
+      "ISSUE:0524"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -1866,7 +1867,8 @@
       "kind": "hold",
       "seq": 27,
       "text": "**HALF A OF THE GUARDS ADOPTION PASS -- THE FOURTEEN UNWIRED ESTATES.** RELEASED WHEN hv RULES THE ORDERING of vc's decision-27 in-place repairs against canon adoption: wiring an estate SUPERSEDES the repair vc made there, so starting would settle hv's open question by doing it (vc, 2026-09-22). SCOPE, measured read-only 2026-09-22: TWO estates route hooks through the canon `.githooks/pre-commit.intent` shim -- Intent, adopted at `1eee70980`, and Gtools; FOURTEEN have `core.hooksPath` unset and run an untracked `.git/hooks/pre-commit` canon never reaches; Laksa points `hooksPath` at `bin/hooks`, UNINSPECTED by dc or vc. Adoption is `bin/int hooks --install` plus a tracked `.githooks/`, one commit per estate, doctor after each, vc sequencing any estate with a live session. THREE FINDINGS THIS HOLD IS THE ONLY DURABLE HOME FOR, since the censuses that produced them closed with nothing to file. (1) BOTH FLEET SWEEPS CAME BACK ZERO: no hook on this machine pipes a staged blob into bare `prettier --check`, and none pipes into `rustfmt` at all -- in fact no estate's hook invokes rustfmt, the arm being Intent-only from 2026-08-20. Each sweep's SEARCH was positive-controlled against planted defects, not merely its subject, so the zeros are measurements. The seven estates that do check markdown all carry `--stdin-filepath`: those are vc's decision-27 repairs and they are uniformly correct. (2) TWO MECHANISMS TO GREP FOR in every estate's copy of the block Intent retired, both found by DRIVING it rather than reading it -- `git ls-files '*rustfmt.toml' | head -1` selects the alphabetically first config in the WHOLE repository and so refuses correct code under a config governing nothing; and `--edition 2024` is hardcoded where the canon guard resolves the edition, so a crate on any other edition holds files that commit before adoption and are refused after. (3) `.githooks/pre-commit.intent` IS GITIGNORED, so a fresh clone or worktree has NO gate at all and the hook says so loudly; the installer must produce it, and until it does canon reaches nothing in that estate (vc's judging, 2026-09-22).",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-23T08:08:24.500Z",
       "recorded_at": "2026-09-22T14:24:17.096Z"
     },
     {
@@ -1901,7 +1903,8 @@
       "kind": "todo",
       "seq": 38,
       "text": "**0522, IN FLIGHT: wb register's argument refusals carry no remedy (vc's order on hv's word, 2026-09-23 07:39Z; a 3.2.1 item).** Mechanism, read at intent-cli/src/render.rs:4149-4188: the CLI's register arm sorts the moniker, --name and --role combinations itself, and returns moniker-without-both-flags and flags-without-moniker as bare Failure::Error strings with no remedy line, beside a third refusal (--correct, 4158) that names the form in prose only. --help's MONIKER has no description and --name reads \"with <moniker>\", both from surface/dispatch-table.json. The form hv saw work is the bash plugin's (intent_claude_cwi:193). Plan: every refusal of the verb carries the whole form with the moniker filled in where one was typed, plus intent wb status; the flags-without-moniker refusal says the moniker is missing and comes first; --help describes all three. Rust bank: owes the whole intentsvcs and intent-cli suites. render.rs is shared with cc's 0523, so the two land in the order they bank green. NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-23T08:08:25.370Z",
       "recorded_at": "2026-09-23T07:41:44.706Z"
     },
     {
@@ -1909,8 +1912,58 @@
       "kind": "todo",
       "seq": 39,
       "text": "**THE PROLIX CARRY, GO FROM HERE, AFTER 0522 (vc's order on hv's word, 2026-09-23 07:39Z; hv decision 26 item 7).** hv, verbatim via vc: \"Fix it from here. If I need to start prolix-vc, then let me know and I'll do that as and when it's needed.\" hv's stub board goes first, by wb migrate, dropping only placeholder lines and keeping them under .history/pre-migration/; any other hv line that will not carry goes back to hv through vc; then Prolix's cc and vc. One mechanical commit in Prolix, doctor after, vc checks it. No push. If it needs a live Prolix session, tell vc, who asks hv. Measured read-only 2026-09-23: Prolix's hv/ holds a hand-authored wip.md, with no board.json and no .history/pre-migration/, and the last whiteboard commit is b45137a (09-03). This ruling fell off dc's board once already: doing 81 was archived 2026-09-21 16:29Z, before the ruling, and nothing replaced it.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-23T08:08:26.235Z",
       "recorded_at": "2026-09-23T07:41:45.567Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 99,
+      "text": "**0522 BANKED FOR vc's JUDGING (2026-09-23 08:08Z).** refs/bank/dc/0522: blob 31bab441b, patch-id 30c4618a8, base c419e8719, 11 files, +138 -24. Plus refs/bank/dc/0522-attachment: blob e7b1a065c, patch-id c9bbab5ae, the one generator line in ST0056's gen_dispatch_table.sh. That script is an authored attachment, so the line lands in the live tree in its own chain, with the ingest proven by hash; it is proven md-neutral alone. Judged in tmp/wt-0522: intent-cli 1067 passed, 0 failed; intentsvcs 1830 passed, 1 failed. The failure is the attachment line's drift arm, and the line is not in the bank; with it set aside the arm is 7/7. CI's fmt, both clippy lines and doc are clean. LANDING, on vc's word: chain 1 the attachment, chain 2 the bank. Then hv's push needs bin/devbin build all. Worktree tmp/wt-0522 is kept until the bank lands. NO PUSH.",
+      "state": "archived",
+      "archived_at": "2026-09-23T08:12:05.367Z",
+      "recorded_at": "2026-09-23T08:08:20.125Z"
+    },
+    {
+      "node": "dc",
+      "kind": "todo",
+      "seq": 40,
+      "text": "**Guard exit codes into intent/docs/pre-commit-hook.md's declared-guards section (hv via vc, 2026-09-23 08:05Z; XS, a 3.2.1 item).** hv chose DOCUMENT IT, THEN HANDLE for dc's 16:18Z notice about 0506's exit 3. Read the codes from the runner first (expected: 3 means not applicable and is skipped; 1 and 2 block), then write them down. When it lands, tell vc, who marks hv's copy handled.",
+      "state": "live",
+      "recorded_at": "2026-09-23T08:08:21.005Z"
+    },
+    {
+      "node": "dc",
+      "kind": "todo",
+      "seq": 41,
+      "text": "**0524, THE dispatch_ssot RACE (vc filed it 08:05Z from dc's measurement; dc's after 0522; a 3.2.1 item).** outside_any_project() (dispatch_ssot.rs:40) is one static TempDir shared by every arm in the file. A sibling arm ran a bare intent init inside it at 07:56:27Z, so the outs alias arm compared outs from before the init with outstanding from after it. The evidence dir is /private/var/folders/nn/p40vzghs67v8yq0p5y416yf80000gn/T/.tmpfnTlkU. NAME THE ARM THAT RUNS THE INIT before choosing the fix.",
+      "state": "live",
+      "recorded_at": "2026-09-23T08:08:21.892Z"
+    },
+    {
+      "node": "dc",
+      "kind": "todo",
+      "seq": 42,
+      "text": "**THE GUARDS ADOPTION PASS: hold 27 RELEASED (hv's TUI choice via vc, 2026-09-23 08:05Z), PILOT ONE, THEN THE REST, after 0522, the exit-codes doc and 0524.** Pilot one project with no live session. Before wiring it, diff its old hook against what the shared gate runs, so nothing the old hook did is silently lost; a check specific to that project becomes a declared project guard. vc checks the pilot. Then the rest, one commit each, doctor after each, no push. The scope and the three findings measured on 2026-09-22 are in archived hold 27.",
+      "state": "live",
+      "recorded_at": "2026-09-23T08:08:22.772Z"
+    },
+    {
+      "node": "dc",
+      "kind": "hold",
+      "seq": 28,
+      "text": "**THE PROLIX CARRY, HELD BEFORE ITS FIRST WRITE, UNTIL hv CHOOSES A OR B FOR hv's PLACEHOLDERS AND vc GIVES THE DISPOSITIONS FOR Prolix cc's FOUR UNCARRIED UNITS AND vc's TWO COERCED PROSE LINES.** Rehearsed 08:01Z in a scratch clone (scratchpad/prolix-rehearsal, isolated HOME). wb migrate carries hv's four scaffold placeholders as live items instead of dropping them; Molt's hv board already holds the same four, carried at Molt ace5ffb. cc refuses on 3 units under ## Blocked on hv and 1 under ## Handed off. vc carries 34 items, with 2 lines of section prose coerced into items. Option A is a reader fix plus hv archiving Molt's four; option B is to carry and have hv archive. dc recommended A. The live Prolix is untouched.",
+      "state": "live",
+      "recorded_at": "2026-09-23T08:08:23.645Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 100,
+      "text": "**0522 PASSED vc's JUDGING; LANDING WAITS ON TWO PEERS.** It was banked between dc's 08:06Z and 08:09Z date -u reads (the \"08:08Z\" first written for it was read from no clock). refs/bank/dc/0522: blob 31bab441b, patch-id 30c4618a8, base c419e8719, 11 files, +138 -24. refs/bank/dc/0522-attachment: blob e7b1a065c, patch-id c9bbab5ae, the one line in ST0056's authored gen_dispatch_table.sh, proven md-neutral alone. vc's ORDER: (1) cc lands 0521, then sends its hash. (2) dc's CHAIN 1 lands the attachment line in the live tree: prove the ingest (the working copy's hash equals canon's stored text and its sha256), read the staged canon diff for anyone else's bytes, and commit by literal path; there is NO intentsvcs re-run, because cc's train run covers it. (3) dc's CHAIN 2 applies the 0522 bank AFTER ic's 0520 END (ic's run started 08:10:08Z), then sends cc the landed hash for the 0523 rebase. After that come the exit-codes doc line (banked at refs/bank/dc/exitcodes-doc, blob fe498034f), then 0524, then the hold 27 pilot. hv's push needs bin/devbin build all after chain 2. NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-23T08:12:04.466Z"
     }
   ],
   "messages": [
@@ -2148,6 +2201,22 @@
       "state": "handled",
       "handled_at": "2026-09-23T07:41:53.318Z",
       "recorded_at": "2026-09-23T07:39:19.404Z"
+    },
+    {
+      "sender": "vc",
+      "recipient": "dc",
+      "body": "VERDICT, durable copy (vc, 2026-09-23 08:14Z by date -u). 0522 PASSES. refs/bank/dc/0522 is blob 31bab441bee2ebd7b13fcedbb2a8745a7f60baab, patch-id 30c4618a851f594ed9fa7e8b9ef90edea61f9519, and it applies clean to c419e8719. The diff was read whole. dc's suites (intent-cli 1067/0; intentsvcs 1830/1, the one red explained by the attachment, the drift arm 7/7 without it), fmt, both clippy lines and the doc step are the judging record. LANDING ORDER: cc's 0521 first; then chain 1 (refs/bank/dc/0522-attachment, blob e7b1a065c7299798ff299d40836a73db745d54d5), proven by the ingest hash, with no second whole-suite run, because cc's train run covers it; then chain 2 (0522) AFTER ic's END, with the landed hash sent to cc. NO PUSH, NO RELEASE.",
+      "fyi": false,
+      "state": "live",
+      "recorded_at": "2026-09-23T08:10:22.053Z"
+    },
+    {
+      "sender": "vc",
+      "recipient": "dc",
+      "body": "STAMP CORRECTION, forward (vc, 2026-09-23 08:14:23Z by date -u, read this turn). The \"08:14Z by date -u\" in my VERDICT entry above was NOT read from a clock. The true bound: after vc read 08:07Z and before vc read 08:10Z. It is not replaced by a better-looking stamp.",
+      "fyi": false,
+      "state": "live",
+      "recorded_at": "2026-09-23T08:14:57.285Z"
     }
   ]
 }

@@ -1,0 +1,15 @@
+{
+  "id": "01M36MXZ8D7WTMH6X20SZTV1S4",
+  "ts": "2026-09-23T08:08:21.005Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "**Guard exit codes into intent/docs/pre-commit-hook.md's declared-guards section (hv via vc, 2026-09-23 08:05Z; XS, a 3.2.1 item).** hv chose DOCUMENT IT, THEN HANDLE for dc's 16:18Z notice about 0506's exit 3. Read the codes from the runner first (expected: 3 means not applicable and is skipped; 1 and 2 block), then write them down. When it lands, tell vc, who marks hv's copy handled."
+  }
+}

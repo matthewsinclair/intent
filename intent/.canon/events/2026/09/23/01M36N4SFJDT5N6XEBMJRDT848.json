@@ -1,0 +1,15 @@
+{
+  "id": "01M36N4SFJDT5N6XEBMJRDT848",
+  "ts": "2026-09-23T08:12:04.467Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**0522 PASSED vc's JUDGING; LANDING WAITS ON TWO PEERS.** It was banked between dc's 08:06Z and 08:09Z date -u reads (the \"08:08Z\" first written for it was read from no clock). refs/bank/dc/0522: blob 31bab441b, patch-id 30c4618a8, base c419e8719, 11 files, +138 -24. refs/bank/dc/0522-attachment: blob e7b1a065c, patch-id c9bbab5ae, the one line in ST0056's authored gen_dispatch_table.sh, proven md-neutral alone. vc's ORDER: (1) cc lands 0521, then sends its hash. (2) dc's CHAIN 1 lands the attachment line in the live tree: prove the ingest (the working copy's hash equals canon's stored text and its sha256), read the staged canon diff for anyone else's bytes, and commit by literal path; there is NO intentsvcs re-run, because cc's train run covers it. (3) dc's CHAIN 2 applies the 0522 bank AFTER ic's 0520 END (ic's run started 08:10:08Z), then sends cc the landed hash for the 0523 rebase. After that come the exit-codes doc line (banked at refs/bank/dc/exitcodes-doc, blob fe498034f), then 0524, then the hold 27 pilot. hv's push needs bin/devbin build all after chain 2. NO PUSH."
+  }
+}

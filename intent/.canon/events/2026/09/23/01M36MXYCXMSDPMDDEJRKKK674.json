@@ -1,0 +1,15 @@
+{
+  "id": "01M36MXYCXMSDPMDDEJRKKK674",
+  "ts": "2026-09-23T08:08:20.125Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**0522 BANKED FOR vc's JUDGING (2026-09-23 08:08Z).** refs/bank/dc/0522: blob 31bab441b, patch-id 30c4618a8, base c419e8719, 11 files, +138 -24. Plus refs/bank/dc/0522-attachment: blob e7b1a065c, patch-id c9bbab5ae, the one generator line in ST0056's gen_dispatch_table.sh. That script is an authored attachment, so the line lands in the live tree in its own chain, with the ingest proven by hash; it is proven md-neutral alone. Judged in tmp/wt-0522: intent-cli 1067 passed, 0 failed; intentsvcs 1830 passed, 1 failed. The failure is the attachment line's drift arm, and the line is not in the bank; with it set aside the arm is 7/7. CI's fmt, both clippy lines and doc are clean. LANDING, on vc's word: chain 1 the attachment, chain 2 the bank. Then hv's push needs bin/devbin build all. Worktree tmp/wt-0522 is kept until the bank lands. NO PUSH."
+  }
+}

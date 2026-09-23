@@ -1,0 +1,15 @@
+{
+  "id": "01M36MY0ZMHKF2HS54WEZ8PT62",
+  "ts": "2026-09-23T08:08:22.772Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "**THE GUARDS ADOPTION PASS: hold 27 RELEASED (hv's TUI choice via vc, 2026-09-23 08:05Z), PILOT ONE, THEN THE REST, after 0522, the exit-codes doc and 0524.** Pilot one project with no live session. Before wiring it, diff its old hook against what the shared gate runs, so nothing the old hook did is silently lost; a check specific to that project becomes a declared project guard. vc checks the pilot. Then the rest, one commit each, doctor after each, no push. The scope and the three findings measured on 2026-09-22 are in archived hold 27."
+  }
+}

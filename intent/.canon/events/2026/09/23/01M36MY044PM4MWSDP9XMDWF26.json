@@ -1,0 +1,15 @@
+{
+  "id": "01M36MY044PM4MWSDP9XMDWF26",
+  "ts": "2026-09-23T08:08:21.892Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "**0524, THE dispatch_ssot RACE (vc filed it 08:05Z from dc's measurement; dc's after 0522; a 3.2.1 item).** outside_any_project() (dispatch_ssot.rs:40) is one static TempDir shared by every arm in the file. A sibling arm ran a bare intent init inside it at 07:56:27Z, so the outs alias arm compared outs from before the init with outstanding from after it. The evidence dir is /private/var/folders/nn/p40vzghs67v8yq0p5y416yf80000gn/T/.tmpfnTlkU. NAME THE ARM THAT RUNS THE INIT before choosing the fix."
+  }
+}
