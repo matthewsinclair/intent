@@ -1,0 +1,15 @@
+{
+  "id": "01M36SGGW43SYM2BY8D733375Z",
+  "ts": "2026-09-23T09:28:23.177Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0527"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "A brew upgrade deletes the keg the gate's install-root pointer names, so every gated commit is refused until intent bootstrap is re-run"
+  }
+}
