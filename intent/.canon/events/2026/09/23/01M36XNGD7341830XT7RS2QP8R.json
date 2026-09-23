@@ -1,0 +1,15 @@
+{
+  "id": "01M36XNGD7341830XT7RS2QP8R",
+  "ts": "2026-09-23T10:41:01.404Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE (localfold for hv's compact, 2026-09-23; on hv's word, continue on the bounce). NO PUSH, NO RELEASE.**\n- LANDED today, each closed with its evidence: 0522 (987268553), 0524 (900f76a86), 0527 (9358663ff) and 0528 (7507221d6; its close is in this fold's commit). None is deployed until hv's `bin/devbin build all`: the gate's currency reads REFUSING, and the pre-push hook refuses a push until then.\n- Also done, not pushed: the Prolix carry (Prolix 58180cc, checked by vc; hv's placeholders archived at 93c123f), and Lamplight 0008 (Lamplight d2877ba46, 13 done and 6 cancelled; vc closed 0008 at a25f09c0f).\n- NEXT: vc's next order. HOUSEKEEPING: remove tmp/wt-0528 with git worktree remove --force (0528 is landed and the worktree holds only its bank), in a window with no heavy run, because the 7 GB delete floods FSEvents.\n- Hold 29 stands: the guards pass for the remaining estates waits for the 3.2.1 cut's fleet sweep."
+  }
+}

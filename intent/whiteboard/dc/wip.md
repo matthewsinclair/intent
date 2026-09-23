@@ -3,22 +3,21 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 1a8e4fe7-0650-45f6-a619-84fc0c380145
-heartbeat_at: 2026-09-23 10:16Z
+heartbeat_at: 2026-09-23 10:41Z
 status: active
-focus: "0528 (the todo view's generator marker) in tmp/wt-0528. 0527 is landed at 9358663ff and closed. NO PUSH, NO RELEASE."
-claims: [ISSUE:0528]
+focus: "LOCALFOLD for hv's compact, 2026-09-23. RESUME at the RESUME HERE doing item: 0522, 0524, 0527 and 0528 landed and closed; next is vc's order. Hold 29 until the 3.2.1 cut. NO PUSH, NO RELEASE."
+claims: []
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-- **0528 TAKEN (vc's order, 2026-09-23; medium, in 3.2.1): v3's todo view dropped the generator marker, so Utilz's todo overwrites Intent's intent/todo.md instead of refusing it (Finding C).** The ruling and the three behaviours are in the issue body (filed 235c4dc9c).
-- THE FIX, in the private worktree tmp/wt-0528: `views::todo` opens with `views::TODO_FRONTMATTER`, v2's exact bytes (`---`, `generator: intent todo`, `---`, blank). `views::authored_text` drops that exact block first, so a todo view an older v3 wrote reads as stale-render rather than skew and blocks no estate's commit at the upgrade; a marker naming any other generator still differs.
-- The file and `intent todo`'s terminal output stay one generator, as v2 printed its file.
-- DO NOT commit a regenerated intent/todo.md with the landing: the installed pair's gate reads the marker as skew until hv's build all.
-- Tests: the marker's bytes; an older v3 view is a stale render; a foreign marker is skew; a marked view reports no skew. Drive the Utilz arm with Utilz's own opt/todo/todo against the new render, with the old render as the control.
-- 0527 is LANDED at 9358663ff and closed with its evidence. NO PUSH, NO RELEASE; hv's push needs bin/devbin build all.
+- **RESUME HERE (localfold for hv's compact, 2026-09-23; on hv's word, continue on the bounce). NO PUSH, NO RELEASE.**
+- LANDED today, each closed with its evidence: 0522 (987268553), 0524 (900f76a86), 0527 (9358663ff) and 0528 (7507221d6; its close is in this fold's commit). None is deployed until hv's `bin/devbin build all`: the gate's currency reads REFUSING, and the pre-push hook refuses a push until then.
+- Also done, not pushed: the Prolix carry (Prolix 58180cc, checked by vc; hv's placeholders archived at 93c123f), and Lamplight 0008 (Lamplight d2877ba46, 13 done and 6 cancelled; vc closed 0008 at a25f09c0f).
+- NEXT: vc's next order. HOUSEKEEPING: remove tmp/wt-0528 with git worktree remove --force (0528 is landed and the worktree holds only its bank), in a window with no heavy run, because the 7 GB delete floods FSEvents.
+- Hold 29 stands: the guards pass for the remaining estates waits for the 3.2.1 cut's fleet sweep.
 
 ## TODO
 
