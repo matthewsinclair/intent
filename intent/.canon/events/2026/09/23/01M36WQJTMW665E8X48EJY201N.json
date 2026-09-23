@@ -1,0 +1,15 @@
+{
+  "id": "01M36WQJTMW665E8X48EJY201N",
+  "ts": "2026-09-23T10:24:40.280Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0529"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "A message edited on one clone is removed and re-added by a restore on another, because the restore's natural key carries the body, so its place in the inbox and its #<n> move"
+  }
+}
