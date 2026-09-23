@@ -39,6 +39,8 @@ mod a_cold_warm_leaves_a_peers_write;
 mod a_create_refuses_a_child_id_that_is_taken;
 #[path = "a_create_refuses_a_key_that_is_taken.rs"]
 mod a_create_refuses_a_key_that_is_taken;
+#[path = "a_facade_catches_up_with_a_peers_commit.rs"]
+mod a_facade_catches_up_with_a_peers_commit;
 #[path = "a_mutation_does_not_duplicate_the_prose_index.rs"]
 mod a_mutation_does_not_duplicate_the_prose_index;
 #[path = "a_re_cite_keeps_what_it_was_not_given.rs"]

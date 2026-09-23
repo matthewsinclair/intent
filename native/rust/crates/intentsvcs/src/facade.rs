@@ -3524,6 +3524,9 @@ pub struct Facade {
   /// Notes from steps that failed after a write landed, held for a verb that
   /// returns no [`Outcome`] until [`Facade::take_notes`] hands them over.
   after_write: Vec<Note>,
+  /// This connection's `PRAGMA data_version` when `canon` was last read from
+  /// the store: what [`Facade::catch_up`] compares against (issue 0520).
+  seen: i64,
 }
 
 /// Each resolver as a search answer reads it: its language, its tool and its
@@ -3826,9 +3829,12 @@ impl Facade {
     if opening == Opening::RepairingIndex {
       store.recreate_index_tables().map_err(FacadeError::Store)?;
     }
+    // **READ BEFORE THE LOAD** (issue 0520), so a commit that lands while the
+    // canon is read moves the version past it and the next catch-up reloads.
+    let seen = store.data_version().map_err(FacadeError::Store)?;
     // The daily-driver path: answer from the store unless the tree moved.
     let canon = ingest::load_fresh(&project, &mut store)?;
-    let mut facade = Self::over(project, ctx, store, canon);
+    let mut facade = Self::over(project, ctx, store, canon, seen);
     if opening == Opening::RepairingIndex {
       facade.rederive_prose()?;
     }
@@ -3875,7 +3881,7 @@ impl Facade {
   /// A facade over a store and the canon read from it: the one place the
   /// struct is assembled, for both opens and for [`Facade::sync_plan`]'s
   /// shadow.
-  fn over(project: Project, ctx: FacadeContext, store: Store, canon: Canon) -> Self {
+  fn over(project: Project, ctx: FacadeContext, store: Store, canon: Canon, seen: i64) -> Self {
     let embedder = crate::embed::from_config(&project.config().embed);
     Self {
       project,
@@ -3885,6 +3891,7 @@ impl Facade {
       embedder,
       resolvers: carried(&crate::index::resolved::readers()),
       after_write: Vec::new(),
+      seen,
     }
   }
 
@@ -3893,8 +3900,44 @@ impl Facade {
   pub fn open_in_memory(project: Project, ctx: FacadeContext) -> Result<Self, FacadeError> {
     Self::readable(&project)?;
     let mut store = Store::open_in_memory().map_err(FacadeError::Store)?;
+    let seen = store.data_version().map_err(FacadeError::Store)?;
     let canon = ingest::load(&project, &mut store)?;
-    Ok(Self::over(project, ctx, store, canon))
+    Ok(Self::over(project, ctx, store, canon, seen))
+  }
+
+  /// Reload the canon if another connection has committed since it was read,
+  /// and say whether it did (issue 0520).
+  ///
+  /// **A FACADE ANSWERS FROM THE CANON IT LOADED, AND THAT COPY MOVES ONLY FOR
+  /// ITS OWN WRITES.** A verb's facade lives for one command, so that is the
+  /// store as it stood when the command began. The explorer's lives for the
+  /// whole session: a write from another terminal or node, intentd's ingest of a
+  /// hand edit and the explorer's own `/` commands, which run through a second
+  /// facade, all commit through other connections, and none of them reached the
+  /// explorer until it was restarted. `intent mcp` opens per request for the
+  /// same reason; a session cannot.
+  ///
+  /// **THE STORE SAYS WHETHER IT MOVED, SO NO WRITER HAS TO.**
+  /// [`Store::data_version`] moves when another connection commits and never
+  /// for this one's own writes (issue 0441), so when nothing moved this costs
+  /// one pragma read. The version is read BEFORE the reload, so a commit that
+  /// lands during it moves the version again and is caught next time.
+  ///
+  /// **NOT BEFORE A WRITE THAT IS TO BE JUDGED.** [`Store::commit_mutation`]'s
+  /// compare-and-swap refuses a write whose record moved since the canon was
+  /// read. Catching up first would make the record as it is now the write's
+  /// baseline, and wave through an edit made against the one the operator saw.
+  ///
+  /// It reloads through [`ingest::load_fresh`], the door [`Facade::open`] takes,
+  /// so a facade that caught up holds what a fresh open would.
+  pub fn catch_up(&mut self) -> Result<bool, FacadeError> {
+    let now = self.store.data_version().map_err(FacadeError::Store)?;
+    if now == self.seen {
+      return Ok(false);
+    }
+    self.canon = ingest::load_fresh(&self.project, &mut self.store)?;
+    self.seen = now;
+    Ok(true)
   }
 
   pub fn project(&self) -> &Project {
@@ -8449,11 +8492,13 @@ impl Facade {
     shadow
       .replace_file_index(&index)
       .map_err(FacadeError::Store)?;
+    let seen = shadow.data_version().map_err(FacadeError::Store)?;
     let mut shadow = Self::over(
       self.project.clone(),
       self.ctx.clone(),
       shadow,
       self.canon.clone(),
+      seen,
     );
     shadow.ingest_render(scope)
   }

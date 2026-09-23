@@ -219,6 +219,10 @@ pub struct App {
   /// Every addressable entity, for the omnibox's matcher. Handed in by the
   /// run loop at startup, because the app deliberately holds no facade.
   pub index: Vec<Entry>,
+  /// The store moved and [`App::index`] has not been re-read since, because a
+  /// query was typed when it did (issue 0520). Paid on the first idle pass
+  /// with the query cleared, so no dropdown ever changes under its pick.
+  pub index_owed: bool,
   /// What `/` offers. Handed in beside [`App::index`] and for the same
   /// reason: the `Go` half is DERIVED from the declared entity kinds, which
   /// is a fact about the schema and therefore not this module's to know.
@@ -271,6 +275,7 @@ impl App {
       page_rows: 0,
       omnibox: Omnibox::default(),
       index: Vec::new(),
+      index_owed: false,
       commands: Vec::new(),
       editing: None,
       keymap: keys::Keymap::default(),
@@ -1066,6 +1071,68 @@ impl App {
       Some(kept) => self.focus = Some(kept),
       None => self.point_at(n),
     }
+  }
+
+  /// The same view re-read because the store moved under it (issue 0520):
+  /// keep the cursor on the row it was on, found by the row's NAME.
+  ///
+  /// **BY NAME AND NOT BY POSITION, BECAUSE NOBODY PRESSED A KEY.**
+  /// [`App::refocus`] keeps the position, which is right after the operator's
+  /// own save. A write from elsewhere is different: a new issue or thread sorts
+  /// ABOVE the rows already listed, so the same position is a different entity
+  /// and Enter would open one the operator never chose. The name is the row's
+  /// identity (see [`Row::new`]), and where a view repeats a name the nearest
+  /// one wins. A row that is gone falls back to [`App::refocus`].
+  ///
+  /// **THE DETAIL PANE KEEPS ITS CURSOR ONLY WHILE IT STILL NAMES A ROW**,
+  /// because a criterion added or removed under it changes how many there are.
+  pub fn follow(&mut self, before: &[Row], after: &[Row]) {
+    let kept = self.focus.and_then(|focus| {
+      let name = &before.get(focus.index())?.name;
+      let (at, _) = after
+        .iter()
+        .enumerate()
+        .filter(|(_, row)| &row.name == name)
+        .min_by_key(|(at, _)| at.abs_diff(focus.index()))?;
+      Focus::first(after.len())?.at(at)
+    });
+    match kept {
+      Some(focus) => self.focus = Some(focus),
+      None => self.refocus(after.len()),
+    }
+    if let (Some(detail), Some(super::layout::Detail::Rows(rows))) = (
+      self.detail_focus,
+      self.focused_row(after).and_then(|row| row.detail.as_ref()),
+    ) {
+      self.detail_focus =
+        Focus::first(rows.len()).map(|first| first.at(detail.index()).unwrap_or(first));
+    }
+  }
+
+  /// Whether the loop may catch up with the store now (issue 0520).
+  ///
+  /// **NOT WHILE AN EDIT IS OPEN.** The store's compare-and-swap judges a
+  /// write against the record the edit started from, and a catch-up moves that
+  /// record: an edit made against what the operator saw would then overwrite a
+  /// change they never saw, rather than being refused.
+  pub fn may_catch_up(&self) -> bool {
+    self.editing.is_none() && !matches!(self.mode, Mode::Field | Mode::Embed)
+  }
+
+  /// Whether this view is re-read when the store moves under it.
+  ///
+  /// **EVERY VIEW BUT THE SEARCH PANE.** Its answer comes from a query that
+  /// reconciles and writes the index, and its freshness line (AC-21.1) says how
+  /// current that answer is. It is re-run when the operator enters it, and a
+  /// tick does not re-run it under them.
+  pub fn view_follows_the_store(&self) -> bool {
+    !matches!(self.stack.current(), View::Search { .. })
+  }
+
+  /// Whether the omnibox may take new entities now: only while no query is
+  /// typed, so the dropdown never changes under its pick.
+  pub fn may_reindex(&self) -> bool {
+    self.omnibox.buffer.is_empty()
   }
 
   /// The loop read the field: the edit is live, seeded with the RAW value.

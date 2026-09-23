@@ -59,6 +59,17 @@ pub trait Source: edit::Model {
     None
   }
 
+  /// Whether the store moved since the rows were last read, catching up with
+  /// it if it did (issue 0520).
+  ///
+  /// **ASKED ONLY WHILE NO EDIT IS OPEN** ([`App::may_catch_up`]), because a
+  /// catch-up moves the record the store judges an edit's write against. The
+  /// default never moves, which is the honest answer for a source with no
+  /// store.
+  fn moved(&mut self) -> Result<bool, Refused> {
+    Ok(false)
+  }
+
   /// Where the operator is: the open project's root, or the working directory
   /// when none is open (issue 0419). The projects list starts its
   /// cursor on the project nearest it. Default: nowhere, so the cursor starts
@@ -540,6 +551,50 @@ fn dropdown(app: &App) -> Vec<(String, layout::Ink)> {
   lines
 }
 
+/// How long the loop waits for a key before asking whether the store moved
+/// (issue 0520).
+///
+/// **IT BOUNDS HOW LONG A VIEW CAN LAG THE STORE, NOT WHAT ASKING COSTS**: when
+/// nothing moved the question is one pragma read, so the interval is chosen for
+/// the operator, who sees a write from anywhere else within half a second.
+const IDLE: std::time::Duration = std::time::Duration::from_millis(500);
+
+/// Re-read what is on screen if the store moved under it, and say whether the
+/// frame has anything new to show (issue 0520).
+///
+/// **IT CARRIES ANSWERS AND DECIDES NOTHING**: whether a catch-up may run,
+/// whether this view follows the store and whether the omnibox may take new
+/// entities are the app's questions, answered where no terminal is needed.
+pub fn follow_the_store(app: &mut App, source: &mut impl Source, rows: &mut Vec<Row>) -> bool {
+  if !app.may_catch_up() {
+    return false;
+  }
+  let news = match source.moved() {
+    Ok(false) => false,
+    Ok(true) => {
+      if app.view_follows_the_store() {
+        let before = std::mem::replace(rows, source.rows(app.stack.current()));
+        app.follow(&before, rows);
+      }
+      app.index_owed = true;
+      true
+    }
+    // **SAID ONCE RATHER THAN ON EVERY PASS**: a refusal repainted twice a
+    // second would be the only thing the info row could ever show.
+    Err(why) => {
+      let said = why.to_string();
+      let changed = app.notice != said;
+      app.notice = said;
+      changed
+    }
+  };
+  if app.index_owed && app.may_reindex() {
+    app.index = source.index();
+    app.index_owed = false;
+  }
+  news
+}
+
 /// Draw one frame inside a synchronised update (DEC 2026), so a terminal that
 /// implements it presents the frame whole rather than as it streams in. The
 /// end is sent even when the draw fails: a terminal told a frame has begun
@@ -609,10 +664,23 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
     })?;
     let mut lent_the_terminal = false;
 
+    // **A KEY, OR THE STORE MOVING UNDER THE VIEW, WHICHEVER COMES FIRST**
+    // (issue 0520). The loop blocked on the key alone, so a write from anywhere
+    // else reached the screen only when a keystroke changed the view -- and the
+    // view came from a facade that never caught up, so not even then. A wait
+    // that finds nothing new paints nothing.
+    let ev = loop {
+      if event::poll(IDLE)? {
+        break Some(event::read()?);
+      }
+      if follow_the_store(app, source, &mut rows) {
+        break None;
+      }
+    };
     // Only key presses move the machine. A resize repaints on the next pass
-    // because the loop re-reads the size every time rather than caching it.
-    let ev = event::read()?;
-    let Event::Key(key) = ev else { continue };
+    // because the loop re-reads the size every time rather than caching it,
+    // and so does a store that moved.
+    let Some(Event::Key(key)) = ev else { continue };
     if key.kind != event::KeyEventKind::Press {
       continue;
     }
@@ -1991,6 +2059,112 @@ mod tests {
       bytes.ends_with(END) && count(&bytes, BEGIN) == count(&bytes, END),
       "the frame was begun and never ended: {:?}",
       String::from_utf8_lossy(&bytes)
+    );
+  }
+
+  /// A store that moved once, whose next read carries what moved.
+  struct Moved {
+    rows: Vec<Row>,
+    pending: bool,
+    asked: usize,
+  }
+
+  impl edit::Model for Moved {
+    fn read(&mut self, _h: &Handoff) -> Result<String, Refused> {
+      Err(Refused::new("no edits here"))
+    }
+
+    fn write(&mut self, _h: &Handoff, _value: &str) -> Result<(), Refused> {
+      Err(Refused::new("no edits here"))
+    }
+
+    fn artefact(
+      &mut self,
+      _kind: &str,
+      _id: &str,
+      _name: &str,
+    ) -> Result<std::path::PathBuf, Refused> {
+      Err(Refused::new("no artefacts here"))
+    }
+  }
+
+  impl Source for Moved {
+    fn rows(&mut self, _view: &View) -> Vec<Row> {
+      self.rows.clone()
+    }
+
+    fn moved(&mut self) -> Result<bool, Refused> {
+      self.asked += 1;
+      Ok(std::mem::take(&mut self.pending))
+    }
+  }
+
+  fn issues(ids: &[&str]) -> Vec<Row> {
+    ids
+      .iter()
+      .map(|id| Row::new(*id, "an issue", "button"))
+      .collect()
+  }
+
+  /// Issue 0520: a write from anywhere else reaches the view on screen with no
+  /// key pressed, and the cursor stays on its row although the new one sorts
+  /// above it.
+  #[test]
+  fn a_store_that_moved_repaints_the_view_under_the_cursor() {
+    let mut rows = issues(&["0002", "0001"]);
+    let mut app = App::explore();
+    app.point_at(rows.len());
+    app.focus = app.focus.and_then(|f| f.at(1));
+    let mut source = Moved {
+      rows: issues(&["0003", "0002", "0001"]),
+      pending: true,
+      asked: 0,
+    };
+
+    assert!(
+      follow_the_store(&mut app, &mut source, &mut rows),
+      "the store moved and the frame was not told"
+    );
+    let screen = screen_for(&app, &rows, 80);
+    assert!(
+      screen.body.rows.iter().any(|line| line.contains("0003")),
+      "the row the move added is not on screen: {:?}",
+      screen.body.rows
+    );
+    assert_eq!(
+      app.focused_row(&rows).map(|row| row.name.as_str()),
+      Some("0001"),
+      "the refresh moved the cursor off the row the operator was on"
+    );
+  }
+
+  /// Issue 0520: the store is never asked under an open edit. It judges the
+  /// edit's write against the record the edit started from, and a catch-up
+  /// would move that record.
+  #[test]
+  fn an_open_edit_never_asks_whether_the_store_moved() {
+    let mut rows = issues(&["0001"]);
+    let mut app = App::explore();
+    app.point_at(rows.len());
+    app.begin_edit(
+      Handoff {
+        kind: "issue".into(),
+        id: "0001".into(),
+        field: "title".into(),
+      },
+      "an issue".into(),
+    );
+    app.mode = Mode::Field;
+    let mut source = Moved {
+      rows: issues(&["0002", "0001"]),
+      pending: true,
+      asked: 0,
+    };
+
+    assert!(!follow_the_store(&mut app, &mut source, &mut rows));
+    assert_eq!(
+      source.asked, 0,
+      "the store was asked, and caught up, under an open edit"
     );
   }
 }

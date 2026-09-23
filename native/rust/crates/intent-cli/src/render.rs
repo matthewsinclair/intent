@@ -6005,6 +6005,23 @@ struct Live {
   note: Option<String>,
 }
 
+impl Live {
+  /// Bring the facade up to the store before a read (issue 0520), refusing in
+  /// the facade's own words with its remedy.
+  ///
+  /// **BEFORE EVERY READ AND NEVER BEFORE A WRITE.** The explorer's facade
+  /// lives for the whole session, so without this every view, every address
+  /// and every edit's starting value came from the model as it stood at
+  /// launch. A write is the one call that must not catch up first: the store
+  /// judges it against the record the edit started from.
+  fn catch_up(&mut self) -> Result<bool, tui::edit::Refused> {
+    self.facade.catch_up().map_err(|e| {
+      let remedy = intentsvcs::remedy::Remedy::remedy(&e);
+      tui::edit::Refused::new(format!("{e} -- {remedy}"))
+    })
+  }
+}
+
 /// Which composer keymap the operator has declared.
 ///
 /// **ONE HOME, TWO CALLERS, AND THE SECOND IS WHY IT IS A FREE FUNCTION**: the
@@ -6039,6 +6056,16 @@ fn config_path() -> Result<std::path::PathBuf, tui::edit::Refused> {
 
 impl tui::run::Source for Live {
   fn rows(&mut self, view: &intentsvcs::nav::View) -> Vec<tui::layout::Row> {
+    // **A VIEW THAT CANNOT CATCH UP RENDERS AN ERROR ROW** (`tui-design.md`
+    // section 8), never the rows of a model it could not bring up to date.
+    if let Err(why) = self.catch_up() {
+      self.note = None;
+      return vec![tui::layout::Row::new(
+        "store",
+        format!("unavailable -- {why}"),
+        "label",
+      )];
+    }
     // **THE SEARCH ARM IS ANSWERED HERE RATHER THAN IN `rows_for` BECAUSE IT
     // PRODUCES TWO THINGS** -- the rows and what the reader must know about
     // them -- and `rows_for` is a pure map from a view to rows for every other
@@ -6084,6 +6111,10 @@ impl tui::run::Source for Live {
     self.note.clone()
   }
 
+  fn moved(&mut self) -> Result<bool, tui::edit::Refused> {
+    self.catch_up()
+  }
+
   /// The open project's root, which the projects list starts on.
   fn here(&mut self) -> Option<std::path::PathBuf> {
     Some(self.facade.project().root().to_path_buf())
@@ -6110,6 +6141,7 @@ impl tui::run::Source for Live {
 
   /// The one resolver, presence-probed against this store (`AC-06.12`).
   fn locate(&mut self, spelling: &str) -> Result<intentsvcs::nav::View, tui::edit::Refused> {
+    self.catch_up()?;
     match nav::land(spelling, |v| present(&self.facade, v)) {
       nav::Landing::At(view) => Ok(view),
       nav::Landing::Root(why) => {
@@ -6222,6 +6254,9 @@ impl tui::edit::Model for Live {
   /// fit one screen line and would hand `$EDITOR` a form of the operator's
   /// prose with every paragraph break already gone.
   fn read(&mut self, h: &tui::edit::Handoff) -> Result<String, tui::edit::Refused> {
+    // **THE EDIT STARTS FROM THE RECORD AS IT IS NOW** (issue 0520), which is
+    // then the record its write is judged against.
+    self.catch_up()?;
     let entity = match entity_json(&self.facade, &h.kind, &h.id) {
       Ok(Some(entity)) => entity,
       Ok(None) => {
