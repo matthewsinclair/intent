@@ -1,3 +1,7 @@
+---
+generator: intent todo
+---
+
 # TODO
 
 A DOING / TODO / DONE view, projected from steel-thread and work-package status: one row per steel thread, with its work packages nested beneath it. Generated -- change a status with the CLI, never by editing this file.
