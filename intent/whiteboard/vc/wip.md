@@ -13,39 +13,47 @@ claims: []
 
 ## DOING
 
-- RESUME (vc, 2026-09-23, after hv's third compact; rewritten at 13:39:57Z by date -u). Measure first: `intent outs`, `git log --oneline -15`, `intent --version`, `intent daemon status`, and ListAgents to ask cc, dc and ic where they stand.
+- RESUME (vc, 2026-09-23, after hv's third compact; rewritten at 14:14:35Z by date -u). Measure first: `intent outs`, `git log --oneline -15`, `intent --version`, `intent daemon status`, and ListAgents to ask cc, dc and ic where they stand.
 
-DEPLOYED (the pair c5cca7e26, from hv's build all of 12:05Z to 12:07Z): 0520 through 0528.
+DEPLOYED (the pair c5cca7e26): 0520 through 0528.
+LANDED, NOT DEPLOYED:
+- 0525, with 0529 and 0531, at d3b2250b6.
+- 0530 at 084b154b9.
+- 0532 at 2e588c7cd, closed at 02071ce4c. vc verified its patch-id 89d23af2d and its tree.
+- Rung 30 migrates every store on its first open by the new pair, and an older pair then refuses that store.
 
-LANDED AND CLOSED, NOT DEPLOYED until the second build all:
-- 0525, with 0529 and 0531, at d3b2250b6 (closed at 50f1f5c83).
-- 0530 at 084b154b9 (closed at 41b90a9c4).
-- Rung 30 migrates every estate's store the first time the new pair opens it, and an older pair then refuses that store. Tell hv at the second build all.
+hv decision 32: everything goes into 3.2.1. IN ORDER:
+(1) THE STACKED RUN (cc), since 14:03:11Z. Base ca936e6c4; stack tree d1179b26a, composed in 24 orders. The banks:
+- 0533 v2 98084d6681f5, then 0538 v2 358a9730c007 (ic), landed in that order. 0538 rewrites .githooks, so it lands only when every node says no commit is in flight.
+- 0534 d2008af6f (cc).
+- 0535 v3 3b8629117 (dc).
+- 0536-0537 9a4a47ebc282 (cc).
+vc asked cc to prove the tempfile move is lock-neutral: a clean tree after the build, and `cargo build --locked`.
+- MID-RUN: the base is green. The stack's Rust shows 3061 passed and 4 failed. All four fail in common/mod.rs:712 ("a shipped file grew a second `#[cfg(test)]`"), and the cause is 0535 v3's second test module in model.rs, the only bank that adds one.
+- vc's call, if END shows those four as the only stack-side reds: the other five PASS and land at their judged patch-ids. 0535's v4, with the module folded in, goes into the TAIL whole-suite run.
+(2) THE TAIL: one whole-suite judging run after the five land, and before the build all. It takes 0535 v4, with dc's 0539+0541 bank stacked on it, and:
+- 0539 and 0541 (dc), as one bank. 0539 is one predicate, "an older Intent rendered this view", for skew, foreign_bytes and organize's gate. Without it, the first thread write after the build warns "an edit to a generated file is gone" on every old-shaped multi-line board; dc measured it with `st new`. 0541 makes both register remedies print register_form.
+- 0540 (ic, low). The brew caveat covers every versioned-keg pointer and names `bootstrap --check`. It is a bin/.devbin edit, so the macOS bats are owed.
+- ic's C (the omnibox's index_owed), but only if it proves real.
+(3) ic's DOCS COMMIT lands last before the build, because every bank's hunk carries CHANGELOG context. It carries the CHANGELOG line fixes from ic's re-read (8 of 12 entries) and the SKILL.md wording.
+(4) THE SECOND BUILD ALL:
+- `intent daemon stop` FIRST, because intentd holds each store open and checks the schema only at open.
+- Then build all, verify the pair, `intent daemon start`, `intent app restart`, and doctor.
+- The MCP servers open the store per call and refuse a rung-30 store until their session restarts. Say so in the warning to every session.
+- Warn gtools-vc before (it backs up Gtools' store) and after. No commit lands while the build runs.
+- Whether vc or hv runs it is hv's call.
+(5) hv pushes. vc reads both CI workflows on both legs, which closes 0521.
+(6) The pre-cut pass: ic regenerates the reference set and re-reads the new entries, and dc re-drives known-defects.md.
+(7) The cut, in hv's terminal. ST0060 and ST0077 stay on hv's hold.
 
-hv decision 32: everything found goes into 3.2.1. OPEN, IN ORDER:
-(1) 0532 (dc) LANDED at 2e588c7cd on vc's PASS and CLOSED at 02071ce4c; NOT deployed until the second build all. vc verified the landed patch-id 89d23af2d equals the judged one and the landed tree equals the judged bank tree 199a11ece over its eight paths. The judging run: base 3014 and bank 3026 Rust tests passed with 0 failed (the +12 are exactly 0532's arms), bats 743 of 743 on both, red sets empty both ways, lints rc 0, rlib grep clean with controls.
-(2) 0533 and 0538 (ic), 0534, 0536 and 0537 (cc), and 0535 (dc) are each authored with no cargo while another node holds the box. Each node then takes a compile-and-own-arms loop in the heavy slot, in order of readiness, alphabetical on a tie. ONE stacked judging run then takes every bank, run by cc and including `bin/int macos app-test`. vc judges it from the END, and each bank lands at its judged patch-id. Compose the banks in both orders first: they share CHANGELOG's 3.2.1 section, dispatch-table.json and .md, and suite.rs's `mod` list.
-  - 0533 (ic) is built on vc's rulings: `intent bootstrap --check` on the shim's --where contract; a `Gate root:` line in `intent info`; install::gate_resolution rendered by every door, with upgrade --apply byte-identical.
-  - 0534 (cc) adds ` release` or ` dev` to the version line and leaves the value unchanged. It comes with riders 1 to 5; its tag drives run in a scratch clone inside cc's heavy window.
-  - 0535 (dc, high) was filed by vc between 13:17:20Z and 13:19:08Z by date -u, from gtools-dc's finding, and driven on Intent at 6a4d0fef9. A cold store's warm carries threads and issues and no board. The remedies it prints, `wb register` and then `wb migrate vc`, emptied every node's tracked board.json at rc 0 (10258 lines deleted). The fix has three parts:
-    - the cold warm carries boards;
-    - `wb migrate`, and `wb register` too if dc measures that path, refuses a node whose board.json on disk records it as migrated;
-    - the `wb` reads name `intent sync --to-store`.
-    A second symptom was added from gtools-vc and gtools-dc: on a cold store, doctor's remedy for inbox view skew, `sync --to-disk`, exits 0 and changes nothing.
-  - RULINGS MADE AFTER FILING, recorded here because they were given live:
-    - 0535 (dc): as dc proposed. (a) "Cold" counts wb_node rows, both in the unlocked check and under the lock. (b) One predicate, "board.json records migrated_at while the store holds no migrated node of that name", refuses wb migrate, wb register (both forms) and sync --to-disk before it writes, each naming sync --to-store. dc measured the missing half: `wb register` then `sync --to-disk` empties every board.json at rc 0. (c) The reads name sync --to-store. Plus vc's (d): doctor reports the lost-boards state, where the store has threads but no board and board.json records migrated nodes, as StoreStale naming sync --to-store, instead of skipping it as cold.
-    - 0536 and 0537 (cc) bank as ONE bank, because both rewrite critic::run's file loop. 0536 is mechanism (A): the runner reads the shebang from the held bytes and tests the same globs against the path with the dialect's extension appended, from one const table. The verdict names the `unasked` files; when none were asked it reads "no shell rule was asked of any of the N file(s) given", with exit 0. `.history/` gets no special case. macos's three SC2086 lines take directives with reasons. The population is 67, because `bin/*` is suffix-anchored, and cc corrects 0536's title at close. 0537 reads the index through `cat-file --batch`, and shellcheck judges the held bytes under the file's own name: the real path under --files, a same-named temp copy under --staged, NOT stdin. On stdin a shebang-less .bash gains SC2148; that is harmless today and would diverge silently the first time a rule claims a dialect-decided code.
-    - 0534 (cc): the marker is `[intent-source-kind:<kind>]`, read by install::embedded_marker. The function is emit_source_kind, with the consts SOURCE_KIND and SOURCE_KIND_MARKER.
-  - 0536 (cc, medium), filed from gtools-vc's finding. The shell rules' globs admit no extensionless script outside the top of bin/, and the run still prints ok. Intent has 67 such tracked scripts: 7 .githooks, 58 nested under bin/.devbin, and 2 .history archives. Linting them raises 3 CRITICAL findings in bin/.devbin/cmd/macos. The fix: an honest verdict, shebang-admitted shell files, and Intent's own findings fixed or exempted in the same change.
-  - 0537 (cc, medium), from gtools-vc. `critic --staged` takes its paths from the index and reads their bytes from the work tree. The fix reads the staged blob.
-  - 0538 (ic, medium), from gtools-vc, widened by vc. canon::chain_block has no else, so an absent carrier skips every gate in silence. Intent's own pre-commit carries a hand-written refusing form that canon does not write. The fix: one refusing form, from one home.
-(3) The second build all after the last landing, then `intent daemon restart`. Warn gtools-vc before and after, and no commit lands in any path while it runs.
-(4) hv pushes. vc reads both CI workflows on both legs, which closes 0521 (cc's).
-(5) The pre-cut pass. ic regenerates the reference set and re-reads every 3.2.1 entry, and dc re-drives known-defects.md whole on ic's brief.
-(6) The cut, in hv's terminal.
-ST0060 and ST0077 stay on hv's hold.
+OPEN WITH hv: a cutoff for findings reported after the stacked run started. vc recommends 3.2.2, unless the finding is data loss, security, or a defect in this release's own changes.
+FOLLOW-UP, not in 3.2.1 by vc's ruling: for an empty pointer, --where says UNUSABLE where --check says ABSENT, with the same rc and the same remedy. File it after the cut.
 
-AFTER THE CUT: todo 62, the fleet sweep, using dc's census of 23 estates with Intent. The questions it raises are vc's: Gtools' tracked carriers, Utilz's inline formatter checks, and the seven estates hold 29 does not name. `intent sync --to-disk` clears 0532's StaleRender boards, but run it only where doctor reads no counted ViewSkew first, because it discards a hand-edited view. Any estate with a fresh clone or worktree runs `intent sync --to-store` there before any `wb` verb until 0535 ships.
+AFTER THE CUT: todo 62, the fleet sweep, over dc's census of 23 estates:
+- `claude upgrade --apply` rewrites the four hook blocks in the 18 wired estates (0538).
+- `intent todo update`, then doctor. One commit per estate, and no push.
+- `sync --to-disk` clears 0532's StaleRender boards, but only where doctor reads no counted ViewSkew.
+- Until 0535 ships, run `sync --to-store` in any fresh clone or worktree before any wb verb.
 
 NO PUSH, NO RELEASE.
 

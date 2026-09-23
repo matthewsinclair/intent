@@ -1,0 +1,15 @@
+{
+  "id": "01M379SDX1R1XYXKWFV4PV53T3",
+  "ts": "2026-09-23T14:12:52.260Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0540"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "The brew caveat sends a machine to bootstrap only when the old keg is gone, so a deferred cleanup breaks the gate later"
+  }
+}

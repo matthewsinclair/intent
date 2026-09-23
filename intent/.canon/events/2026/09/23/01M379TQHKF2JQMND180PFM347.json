@@ -1,0 +1,15 @@
+{
+  "id": "01M379TQHKF2JQMND180PFM347",
+  "ts": "2026-09-23T14:13:34.903Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0541"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "Two wb remedies still name the bare roster form of wb register, which registers nothing on a generated board"
+  }
+}

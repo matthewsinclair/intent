@@ -1,0 +1,15 @@
+{
+  "id": "01M379SCVJZPTXKA1CGE8Y0FEV",
+  "ts": "2026-09-23T14:12:51.189Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0539"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "The first write that re-renders a board an older Intent rendered warns that an edit to a generated file is gone"
+  }
+}

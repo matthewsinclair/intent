@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 540,
+  "slug": "the-brew-caveat-sends-a-machine-to-bootstrap-onl",
+  "title": "The brew caveat sends a machine to bootstrap only when the old keg is gone, so a deferred cleanup breaks the gate later",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-23",
+  "reporter": "Matthew Sinclair",
+  "body": "Found by ic on 2026-09-23 while re-reading the 3.2.1 CHANGELOG entries. The caveat was added by 0527 (landed, in 3.2.1).\n\n**What happens.** The formula's caveat, written by `bin/.devbin/cmd/macos` (lines 1611 to 1622), tells a machine upgrading from 3.2.0 or earlier to run `intent bootstrap` if the pointer file \"names an Intent under Cellar/intent/ that is no longer installed\". Homebrew can leave the previous keg on disk after `brew upgrade`, when cleanup is deferred or switched off. The old keg then IS still installed, the reader concludes the caveat does not apply, and the pointer keeps naming a versioned keg. The next `brew cleanup` removes that keg, and every commit in a project with the gate installed is refused, which is 0527's original failure, arriving later and away from the upgrade that caused it.\n\n**What the fix has to do.** The caveat covers every pointer that names a versioned keg under `Cellar/intent/`, whether or not that keg is still on disk, and names `intent bootstrap --check` (0533), which reports a versioned-keg pointer, as the way to tell. It is a `bin/.devbin` edit, so the macOS bats are owed with it.\n"
+}

@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 541,
+  "slug": "two-wb-remedies-still-name-the-bare-roster-form",
+  "title": "Two wb remedies still name the bare roster form of wb register, which registers nothing on a generated board",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-23",
+  "reporter": "Matthew Sinclair",
+  "body": "Found by ic on 2026-09-23 while re-reading 0522's CHANGELOG entry, and measured by dc against 0535's bank, which leaves both texts as they are.\n\n**What happens.** 0522's entry says every remedy that sends someone to register a node prints the same form, `model::register_form`, with `--name` and `--role`. Two still print the bare roster form:\n- `WbNodeNotRegistered` (facade.rs:2431): \"... put on the board by `intent wb register`, which reads the roster from each node's own `wip.md` header\";\n- `intent wb status` with no nodes (render.rs:4636): \"remedy: `intent wb register` reads the roster from each node's own `wip.md` header\".\n\nOn a generated board there is no hand-authored header for the roster form to read. So in a project that has no `board.json` yet, which is where these two remedies are reached once 0535 puts its own refusal in front of them for a clone that lacks its boards, the named remedy registers nothing.\n\n**What the fix has to do.** Both print `model::register_form(..)` as the remedy, and keep the roster form as the second door, for a board whose `wip.md` is still hand-authored. The arms drive both texts in a project with no `board.json`.\n"
+}
