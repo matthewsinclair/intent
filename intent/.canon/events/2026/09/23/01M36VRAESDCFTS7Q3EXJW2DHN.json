@@ -1,0 +1,15 @@
+{
+  "id": "01M36VRAESDCFTS7Q3EXJW2DHN",
+  "ts": "2026-09-23T10:07:35.897Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "0523 (3.2.1), state at 2026-09-23 10:07Z: STAGE 1 v4 LANDED at 3d8d3b8d1 on vc's pass (patch-id 2a17fefc5 before and after; ic's 0526 under it at d9aa20703). NOT DEPLOYED until hv's go on bin/devbin build all (warn gtools-vc). STAGE 2 (messages) BANKED as refs/bank/cc/0523-stage2/v1 (blob 73bc35898, patch-id 3b0eee7cb, 12 files +881/-34, on the landed v4), green in development; ic reviews its surface; its whole-suite judging run queues behind dc's 0527 composition run; then vc's verdict and the landing. Stage 2's trees: S/wt-train and S/wt-0523m (tree adbc7bc3), S = /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/89be4c37-5e0c-46eb-a8df-6cce6bb2c58b/scratchpad. NEXT: 0525, the (edited) mark (a schema rung), after stage 2 lands; ic reviews its surface. 0521 stays open until CI's bats read after hv's push. NO PUSH, NO RELEASE."
+  }
+}
