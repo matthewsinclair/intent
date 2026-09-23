@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # sharedtarget.lib -- may this build enter the SHARED artefact path?
 #
 # AC-11.6 / AT-11.6. `native/rust/target/release/` is shared by every node in

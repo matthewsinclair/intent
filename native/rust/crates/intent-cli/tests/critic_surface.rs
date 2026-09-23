@@ -887,6 +887,45 @@ fn a_script_is_reached_by_its_shebang_and_a_file_nothing_asked_is_named() {
   );
 }
 
+/// Issue 0544: a sourced library carries no shebang, and its `# shellcheck
+/// shell=` directive is how it declares its dialect, so it is reached through
+/// that. The control is the same library without the directive, which no glob
+/// and no declaration reaches, and which is named as asked nothing.
+#[test]
+fn a_sourced_library_is_reached_by_its_shellcheck_directive() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let root = dir.path();
+  let rules = planted_rules(root, &[("IN-SH-TEST-951", &["**/*.sh"])]);
+  std::fs::create_dir_all(root.join("lib")).expect("mkdir");
+  std::fs::write(
+    root.join("lib/declared.lib"),
+    "# shellcheck shell=bash\necho PLANTED\n",
+  )
+  .expect("write");
+  std::fs::write(root.join("lib/bare.lib"), "# a library\necho PLANTED\n").expect("write");
+  let o = crate::common::intent()
+    .args([
+      "critic",
+      "shell",
+      "--rules",
+      rules.to_str().expect("utf-8 path"),
+      "--files",
+      "lib/declared.lib",
+      "--files",
+      "lib/bare.lib",
+      "--format",
+      "json",
+    ])
+    .current_dir(root)
+    .output()
+    .expect("run the v3 binary");
+  assert_eq!(o.status.code(), Some(1), "{}{}", out(&o), err(&o));
+  let v: serde_json::Value = serde_json::from_str(&out(&o)).expect("json");
+  assert_eq!(v["findings"][0]["file"], "lib/declared.lib", "{v}");
+  assert_eq!(v["findings"].as_array().map(Vec::len), Some(1), "{v}");
+  assert_eq!(v["unasked"], serde_json::json!(["lib/bare.lib"]), "{v}");
+}
+
 /// Issue 0537: `--staged` judges the bytes the INDEX holds, in the three cases
 /// gtools-vc drove on Gtools -- planted in the index only, planted in the work
 /// tree only, and staged but gone from the work tree.

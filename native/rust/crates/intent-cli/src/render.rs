@@ -11410,6 +11410,9 @@ fn print_notes(notes: &[Note], subject: &str) {
       Note::UnsyncedUnknown => eprintln!(
         "note: the index could not be read, so whether this thread's attachments carry uncommitted bytes is UNKNOWN"
       ),
+      Note::EditUnsearched => eprintln!(
+        "note: this project is not a git repository, so neither HEAD nor the next commit was searched for the old text"
+      ),
       Note::HeldByV2Bucket {
         thread,
         dir,

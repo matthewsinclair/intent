@@ -137,8 +137,16 @@ fn an_edit_says_where_the_old_text_went_and_the_board_reads_the_new() {
   );
 
   assert!(said.contains("ok: cc todo 1 edited"), "{said}");
+  // Issue 0545: this project has no git, so neither search ran, and the answer
+  // says so instead of an all-clear it never measured.
   assert!(
-    said.contains("no file under intent/ holds the old text, at HEAD or in the next commit"),
+    said.contains(
+      "note: this project is not a git repository, so neither HEAD nor the next commit was searched for the old text"
+    ),
+    "{said}"
+  );
+  assert!(
+    !said.contains("no file under intent/ holds the old text"),
     "{said}"
   );
   let shown = ok(dir.path(), &["wb", "show", "cc"]);

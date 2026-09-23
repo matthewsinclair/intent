@@ -3228,6 +3228,12 @@ pub enum Note {
   /// most needs to tell apart, and collapsing them prints a clean bill of
   /// health nobody earned.
   UnsyncedUnknown,
+  /// **`wb edit`'S TWO SEARCHES COULD NOT BE ASKED**: the project is not a git
+  /// repository, so it has no HEAD and no next commit to search for the old
+  /// text (issue 0545). Its own variant for [`Note::UnsyncedUnknown`]'s reason:
+  /// an empty answer printed "no file under intent/ holds the old text" over
+  /// two searches that never ran.
+  EditUnsearched,
   /// The thread this verb just declared is NOT realised: a v2 status bucket
   /// still holds its files, so every write skips its views and `organize` /
   /// `hydrate` refuse it (issue 0209). The strings are project-relative paths.
@@ -3557,6 +3563,7 @@ pub fn notes_json(notes: &[Note]) -> serde_json::Value {
         "kind": "fiat-closed-sole-cover", "criteria": acs,
       }),
       Note::UnsyncedUnknown => serde_json::json!({ "kind": "unsynced-unknown" }),
+      Note::EditUnsearched => serde_json::json!({ "kind": "edit-unsearched" }),
       Note::OverwroteForeignBytes(paths) => serde_json::json!({
         "kind": "overwrote-foreign-bytes", "paths": paths,
       }),
@@ -8785,6 +8792,12 @@ impl Facade {
   /// and a failure withholds the claim rather than making it: `None` is
   /// unmeasured, never empty.
   fn scan_next_commit(&mut self, old: &str) -> Option<NextCommit> {
+    // Outside a repository neither search can run, and the answer says so
+    // rather than reading their empty lists as a clean one (issue 0545).
+    if !crate::gitstate::is_work_tree(self.project.root()) {
+      self.after_write.push(Note::EditUnsearched);
+      return None;
+    }
     match self.text_in_next_commit(old) {
       Ok(held) => Some(held),
       Err(cause) => {

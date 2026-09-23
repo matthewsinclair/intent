@@ -791,7 +791,7 @@ pub fn applies_to_file(globs: &[String], file: &Path) -> bool {
   })
 }
 
-/// Interpreters whose `#!` line makes a file one of a language's wherever it
+/// Dialects whose declaration makes a file one of a language's wherever it
 /// sits, and the extensions each one stands for (issue 0536, vc's ruling (A)).
 ///
 /// **BEING A SHELL FILE IS A FACT ABOUT THE FILE, NOT A CHOICE EACH RULE MAKES.**
@@ -805,7 +805,14 @@ pub fn applies_to_file(globs: &[String], file: &Path) -> bool {
 /// `.bash`) reaches bash and sh scripts and never a zsh one. Bash stands for
 /// `.sh` as well as `.bash` because that is the name bash scripts conventionally
 /// carry, and the rules already read it that way. No rule file names a shebang.
-const SHEBANG_DIALECTS: &[(&str, &str, &[&str])] = &[
+///
+/// **A FILE DECLARES ITS DIALECT BY ITS SHEBANG OR BY A `# shellcheck shell=`
+/// DIRECTIVE, AND THIS ONE TABLE SERVES BOTH** (issue 0544). A bash library that
+/// is sourced rather than run carries no shebang, so the shebang route left the
+/// tracked `bin/.devbin/cmd/shared/*.lib` asked nothing; the directive is how
+/// such a file tells shellcheck its dialect, and [`declared_dialect`] takes the
+/// same declaration.
+const DIALECTS: &[(&str, &str, &[&str])] = &[
   ("shell", "sh", &["sh"]),
   ("shell", "bash", &["bash", "sh"]),
   ("shell", "zsh", &["zsh"]),
@@ -827,19 +834,45 @@ fn shebang_interpreter(text: &str) -> Option<&str> {
     .and_then(|w| w.rsplit('/').next())
 }
 
+/// The dialect a `# shellcheck shell=<dialect>` directive names, read where
+/// shellcheck reads one: in the comment block at the top of the file, before
+/// the first command (issue 0544). `None` when that block names no shell.
+fn directive_dialect(text: &str) -> Option<&str> {
+  text
+    .lines()
+    .map(str::trim_start)
+    .take_while(|l| l.is_empty() || l.starts_with('#'))
+    .find_map(|l| {
+      let rest = l
+        .trim_start_matches('#')
+        .trim_start()
+        .strip_prefix("shellcheck")?;
+      rest
+        .split_whitespace()
+        .find_map(|w| w.strip_prefix("shell="))
+    })
+}
+
+/// The dialect a file declares: its `# shellcheck shell=` directive where it
+/// has one, because shellcheck gives that precedence over the shebang, and
+/// otherwise the interpreter its shebang names.
+fn declared_dialect(text: &str) -> Option<&str> {
+  directive_dialect(text).or_else(|| shebang_interpreter(text))
+}
+
 /// Does this rule reach this file? By its `applies_to` globs, or, for a file
-/// whose shebang names one of the language's interpreters, by the same globs
-/// tested with that interpreter's extensions appended ([`SHEBANG_DIALECTS`]).
-/// The shebang is read from the bytes the run judges, so under `--staged` it is
-/// the staged file's.
+/// that declares one of the language's dialects by its shebang or its
+/// `# shellcheck shell=` directive, by the same globs tested with that
+/// dialect's extensions appended ([`DIALECTS`]). The declaration is read from
+/// the bytes the run judges, so under `--staged` it is the staged file's.
 fn admits(globs: &[String], path: &Path, text: &str, lang: &str) -> bool {
   if applies_to_file(globs, path) {
     return true;
   }
-  let Some(interpreter) = shebang_interpreter(text) else {
+  let Some(interpreter) = declared_dialect(text) else {
     return false;
   };
-  SHEBANG_DIALECTS
+  DIALECTS
     .iter()
     .filter(|(l, i, _)| *l == lang && *i == interpreter)
     .flat_map(|(_, _, extensions)| extensions.iter())
@@ -1707,6 +1740,39 @@ mod tests {
     assert_eq!(shebang_interpreter(""), None);
   }
 
+  /// Issue 0544: a file with no shebang declares its dialect by a
+  /// `# shellcheck shell=` directive in its top comment block, which is where
+  /// shellcheck reads one, and the directive outranks a shebang as it does
+  /// there.
+  #[test]
+  fn a_shellcheck_directive_declares_the_dialect_of_a_file_with_no_shebang() {
+    assert_eq!(
+      declared_dialect("# shellcheck shell=bash\nx=1\n"),
+      Some("bash")
+    );
+    assert_eq!(
+      declared_dialect("# lib -- what it is\n#\n# shellcheck shell=sh disable=SC2034\nx=1\n"),
+      Some("sh"),
+      "the directive sits anywhere in the top comment block, among other directives"
+    );
+    assert_eq!(
+      declared_dialect("#!/usr/bin/env bash\n# shellcheck shell=sh\n"),
+      Some("sh"),
+      "the directive outranks the shebang"
+    );
+    assert_eq!(
+      declared_dialect("#!/usr/bin/env bash\necho\n"),
+      Some("bash")
+    );
+    // THE CONTROLS: after the first command, and a top block that names none.
+    assert_eq!(
+      declared_dialect("x=1\n# shellcheck shell=bash\n"),
+      None,
+      "a directive after the first command declares nothing"
+    );
+    assert_eq!(declared_dialect("# a plain comment\nx=1\n"), None);
+  }
+
   /// Issue 0536, vc's ruling (A): a script meets each rule's OWN globs under
   /// its dialect's extension, so the dialect every rule declares still holds.
   /// The glob lists are the shipped shell rules' own.
@@ -1753,6 +1819,17 @@ mod tests {
     assert!(
       admits(&quote, Path::new("x/plant.sh"), "echo\n", "shell"),
       "a file its name admits is unchanged"
+    );
+    // Issue 0544: a sourced library declares its dialect by its directive.
+    let lib = Path::new("bin/.devbin/cmd/shared/clone.lib");
+    let directive = "# shellcheck shell=bash\nx=1\n";
+    assert!(
+      admits(&quote, lib, directive, "shell"),
+      "a .lib with the directive"
+    );
+    assert!(
+      !admits(&zsh_only, lib, directive, "shell"),
+      "and its dialect still holds"
     );
   }
 
