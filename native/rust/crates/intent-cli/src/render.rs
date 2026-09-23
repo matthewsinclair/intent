@@ -4309,7 +4309,10 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
             "  [{}] {} {}",
             item_kind_word(&i.kind),
             i.seq,
-            intentsvcs::views::edited_item_text(&i.text, i.edited_at.as_ref())
+            intentsvcs::views::item_lines(
+              &intentsvcs::views::edited_item_text(&i.text, i.edited_at.as_ref()),
+              ITEM_CONTINUATION
+            )
           );
         }
       }
@@ -4726,7 +4729,10 @@ fn report_wb_board(
       "  [{}] {} {}",
       item_kind_word(&i.kind),
       i.seq,
-      intentsvcs::views::edited_item_text(&i.text, i.edited_at.as_ref())
+      intentsvcs::views::item_lines(
+        &intentsvcs::views::edited_item_text(&i.text, i.edited_at.as_ref()),
+        ITEM_CONTINUATION
+      )
     );
   }
   println!("archived ({})", archived.len());
@@ -4966,6 +4972,12 @@ fn read_this(text: &str) -> &'static str {
 fn first_line(text: &str) -> &str {
   text.lines().next().unwrap_or_default()
 }
+
+/// How far `wb show` and `wb pickup` set a board item's continuation lines
+/// in: past the two spaces its own line starts with, so every line after the
+/// first reads as the item's rather than as text attached to nothing (issue
+/// 0532). A one-line item prints exactly as it did.
+const ITEM_CONTINUATION: &str = "    ";
 
 fn item_kind_word(k: &intentsvcs::model::WbItemKind) -> &'static str {
   match k {

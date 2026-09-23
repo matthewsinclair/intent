@@ -253,3 +253,83 @@ fn a_registered_unmigrated_board_is_an_advisory_naming_the_migration_and_never_s
     advisories[0].detail
   );
 }
+
+/// Issue 0532: `cc`'s board holding one multi-line item, projected, and the
+/// view it rendered.
+fn a_board_with_a_multi_line_item(fx: &Fixture) -> String {
+  {
+    let mut f = fx.facade_on_disk();
+    f.wb_register("cc", "Control Claude", "control")
+      .expect("register cc");
+    f.wb_add("cc", WbItemKind::Doing, "run this:\n```\ngit log -1\n```")
+      .expect("a multi-line item");
+    f.sync_to_disk(&intentsvcs::sync::Scope::All)
+      .expect("project the views");
+  }
+  let board = fx.read("intent/whiteboard/cc/wip.md");
+  assert!(
+    board.contains("- run this:\n  ```\n  git log -1\n  ```\n"),
+    "precondition: the item's lines are set in under it: {board}"
+  );
+  board
+}
+
+/// **A BOARD AN OLDER INTENT WROTE IS A STALE RENDER, AND THE VERB ITS FINDING
+/// NAMES CLEARS IT** (issue 0532). Before 0532 a multi-line item's lines after
+/// its first sat at column 0. Nobody edited such a board, so reading it as skew
+/// would refuse commits in every estate holding one, the day it upgrades.
+#[test]
+fn a_board_rendered_before_0532_is_an_uncounted_stale_render_that_sync_clears() {
+  let fx = Fixture::new();
+  let board = a_board_with_a_multi_line_item(&fx);
+  let older = intentsvcs::views::board_before_0532(&board);
+  assert_ne!(
+    older, board,
+    "the older shape must differ, or this proves nothing"
+  );
+  std::fs::write(fx.path("intent/whiteboard/cc/wip.md"), &older).expect("the older render");
+
+  let findings = whiteboard_findings(&fx);
+  let about: Vec<&Finding> = findings
+    .iter()
+    .filter(|f| f.file == "intent/whiteboard/cc/wip.md")
+    .collect();
+  assert!(
+    about.len() == 1
+      && about[0].class == FindingClass::StaleRender
+      && !about[0].class.is_actionable(),
+    "an older Intent's board is one uncounted stale render, never skew: {findings:?}"
+  );
+  let said = about[0].to_string();
+  assert!(
+    said.contains("0532") && said.contains("`intent sync --to-disk`"),
+    "the finding names its issue and the verb that clears it: {said}"
+  );
+
+  fx.facade_on_disk()
+    .sync_to_disk(&intentsvcs::sync::Scope::All)
+    .expect("the named verb runs");
+  assert_eq!(
+    fx.read("intent/whiteboard/cc/wip.md"),
+    board,
+    "and rewrites the board as this binary renders it"
+  );
+  let after = whiteboard_findings(&fx);
+  assert!(after.is_empty(), "so the finding clears: {after:?}");
+}
+
+#[test]
+fn a_hand_edit_in_a_board_rendered_before_0532_is_still_skew() {
+  let fx = Fixture::new();
+  let board = a_board_with_a_multi_line_item(&fx);
+  let edited = intentsvcs::views::board_before_0532(&board).replacen("git log -1", "git log -2", 1);
+  std::fs::write(fx.path("intent/whiteboard/cc/wip.md"), &edited).expect("an edited older render");
+
+  let findings = whiteboard_findings(&fx);
+  assert!(
+    findings
+      .iter()
+      .any(|f| f.file == "intent/whiteboard/cc/wip.md" && f.class == FindingClass::ViewSkew),
+    "an edit inside the older shape is still an edit: {findings:?}"
+  );
+}

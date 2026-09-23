@@ -499,6 +499,103 @@ fn a_peers_committed_copy_of_the_text_is_named_at_head() {
   );
 }
 
+/// A multi-line item's texts (issue 0532). A board view sets every line after
+/// the first in under the item's `- `, so no stretch of the view is the raw
+/// text: the scans find it by the view's own spelling.
+const OLD_LINES: &str =
+  "client ACME-4471 owes the renewal:\n- the invoice\n- the countersigned order";
+const MID_LINES: &str = "client ACME-4471 still owes:\n- the countersigned order";
+const NEW_LINES: &str = "a client owes the renewal:\n- the paperwork";
+
+#[test]
+fn a_peers_committed_multi_line_item_is_named_at_head_in_its_board_view() {
+  let fx = Fixture::new();
+  let mut f = board(&fx);
+  f.wb_register("vc", "Validation Claude", "validation")
+    .expect("register vc");
+  f.wb_add("vc", WbItemKind::Todo, OLD_LINES)
+    .expect("vc's copy");
+  fx.git_commit_all();
+  assert!(
+    !fx.read("intent/whiteboard/vc/wip.md").contains(OLD_LINES),
+    "the view sets the item's lines in, or this arm proves nothing"
+  );
+  let seq = f
+    .wb_add("cc", WbItemKind::Todo, OLD_LINES)
+    .expect("cc's draft");
+
+  let edited = f
+    .wb_edit("cc", WbItemKind::Todo, seq, NEW_LINES)
+    .expect("edit");
+
+  let WbEdit::Amended { still_at_head, .. } = &edited else {
+    panic!("cc's own draft is still amended: {edited:?}");
+  };
+  assert!(
+    still_at_head.contains(&"intent/whiteboard/vc/wip.md".to_string())
+      && still_at_head.contains(&"intent/whiteboard/vc/board.json".to_string()),
+    "the peer's committed board view is named by the spelling it prints: {still_at_head:?}"
+  );
+}
+
+#[test]
+fn a_re_edited_multi_line_items_board_view_is_named_at_head() {
+  // Since 0525 the `(edited)` mark ends an item's FIRST line, so the view of a
+  // multi-line item edited once holds neither its raw text nor its plainly
+  // indented one (vc, reading 0525 as banked).
+  let fx = Fixture::new();
+  let mut f = board(&fx);
+  let seq = f.wb_add("cc", WbItemKind::Todo, OLD_LINES).expect("add");
+  fx.git_commit_all();
+  f.wb_edit("cc", WbItemKind::Todo, seq, MID_LINES)
+    .expect("the first edit");
+  fx.git_commit_all();
+  assert!(
+    fx.read("intent/whiteboard/cc/wip.md")
+      .contains("- client ACME-4471 still owes: (edited)\n  - the countersigned order\n"),
+    "precondition: the committed view carries the mark inside the text"
+  );
+
+  let edited = f
+    .wb_edit("cc", WbItemKind::Todo, seq, NEW_LINES)
+    .expect("the second edit");
+
+  let WbEdit::Recorded { still_at_head, .. } = &edited else {
+    panic!("a committed item's edit is recorded: {edited:?}");
+  };
+  assert!(
+    still_at_head.contains(&"intent/whiteboard/cc/wip.md".to_string()),
+    "the committed view holding the text being replaced is named: {still_at_head:?}"
+  );
+}
+
+#[test]
+fn a_staged_board_view_of_a_multi_line_item_is_named_as_the_next_commit_would_carry_it() {
+  let fx = Fixture::new();
+  let mut f = board(&fx);
+  let seq = f.wb_add("cc", WbItemKind::Todo, OLD_LINES).expect("add");
+  fx.git(&["add", "--", "intent/whiteboard/cc/wip.md"]);
+  f.take_notes();
+
+  let edited = f
+    .wb_edit("cc", WbItemKind::Todo, seq, NEW_LINES)
+    .expect("edit");
+
+  let WbEdit::Amended {
+    next_commit: Some(next),
+    ..
+  } = &edited
+  else {
+    panic!("an uncommitted draft is amended, and the scan ran: {edited:?}");
+  };
+  assert!(
+    next
+      .would
+      .contains(&"intent/whiteboard/cc/wip.md".to_string()),
+    "the index still holds the view with the old text, so the next commit would carry it: {next:?}"
+  );
+}
+
 // STAGE 2: MESSAGES (issue 0523). A message is addressed by its recipient and
 // the stamp its inbox heading shows, and its correction is keyed by the event
 // that sent it (ic's review).

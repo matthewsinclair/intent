@@ -918,6 +918,39 @@ pub fn differs_only_in_renderer_owned_text(on_disk: &str, rendered: &str) -> boo
     )
 }
 
+/// A board view as an Intent before issue 0532 rendered the same board: this
+/// render with [`ITEM_INDENT`] taken off every line that starts with it.
+///
+/// **EXACT, AND ONLY BECAUSE THE BOARD RENDER INDENTS NO OTHER LINE.** The
+/// header, the title, the headings, each item's `- ` line, the empty sentinel
+/// and the footer all start at column 0, so the lines this takes the indent off
+/// are an item's continuation lines and nothing else, and the result is the
+/// older renderer's bytes. `board_lines_outside_an_item_start_at_column_0` in
+/// this file's tests asserts that invariant: a render change that indents
+/// anything else fails there, instead of silently widening what
+/// [`board_rendered_before_0532`] excuses.
+pub fn board_before_0532(rendered: &str) -> String {
+  rendered
+    .split_inclusive('\n')
+    .map(|line| line.strip_prefix(ITEM_INDENT).unwrap_or(line))
+    .collect()
+}
+
+/// Does this board view differ from its render ONLY in the shape an Intent
+/// before issue 0532 wrote multi-line items in, with text the renderer owns
+/// free to differ as well?
+///
+/// **ASKED BEFORE SKEW IS DECIDED, FOR 0528's REASON.** Indenting an item's
+/// continuation lines changed the render of every board holding a multi-line
+/// item, in every estate, and with `doctor` on the pre-commit gate (0308) a
+/// skew there refuses the estate's commits until each such board is
+/// re-rendered. Nobody edited those boards: an older Intent wrote them. Any
+/// other difference, a one-byte edit anywhere included, still differs.
+pub fn board_rendered_before_0532(on_disk: &str, rendered: &str) -> bool {
+  let before = board_before_0532(rendered);
+  before != rendered && (on_disk == before || differs_only_in_renderer_owned_text(on_disk, &before))
+}
+
 /// Whether a generated view differs from its render only as a formatter
 /// leaves it: a run of blank lines collapsed to one, or single-asterisk
 /// emphasis rewritten with underscores (issue 0378).
@@ -1917,6 +1950,31 @@ pub fn edited_item_text(text: &str, edited_at: Option<&String>) -> String {
   format!("{}{}{}", &text[..end], edited_mark(edited_at), &text[end..])
 }
 
+/// How far a board view sets an item's continuation lines in: the width of
+/// its `- `, which is what keeps them inside the list item (issue 0532).
+pub const ITEM_INDENT: &str = "  ";
+
+/// An item's text with every line after its first set in by `indent`, so a
+/// multi-line item stays ONE item wherever it is printed (issue 0532).
+///
+/// **AT COLUMN 0 A CONTINUATION LINE LEFT ITS LIST ITEM.** A sub-bullet read as
+/// a sibling item, and a fenced block's closing fence, outside the item, opened
+/// a new block that ran to the end of the board, so every section below it
+/// rendered as code. An empty line stays empty, so no trailing whitespace is
+/// left for a formatter to strip; a one-line text comes back unchanged.
+pub fn item_lines(text: &str, indent: &str) -> String {
+  let mut lines = text.split('\n');
+  let mut out = lines.next().unwrap_or_default().to_string();
+  for line in lines {
+    out.push('\n');
+    if !line.is_empty() {
+      out.push_str(indent);
+      out.push_str(line);
+    }
+  }
+  out
+}
+
 /// [`wb_board`] without the generated footer: the bytes the prose index splits.
 ///
 /// **ONE LAYOUT, TWO READERS.** The index takes a board's sections from the
@@ -1951,7 +2009,10 @@ pub fn wb_board_body(board: &crate::model::Board) -> String {
     for item in live {
       out.push_str(&format!(
         "- {}\n",
-        edited_item_text(&item.text, item.edited_at.as_ref())
+        item_lines(
+          &edited_item_text(&item.text, item.edited_at.as_ref()),
+          ITEM_INDENT
+        )
       ));
     }
     out.push('\n');
@@ -2244,6 +2305,8 @@ pub fn skew(
   for view in render_all(project, canon, ctx) {
     let rel = project.relative(&view.path);
     let owner = undeclared_owner(project, &view.path, canon, realised);
+    let board_node =
+      whiteboard_owner(project, &view.path).filter(|node| project.wb_board_view(node) == view.path);
     // **A REGISTERED, UNMIGRATED BOARD IS NOT A GENERATED VIEW AND IS NEVER
     // COMPARED AGAINST ONE** (issue 0412). Its markdown stays hand-authored and
     // authoritative until `wb migrate` carries it, the projection writes nothing
@@ -2292,6 +2355,25 @@ pub fn skew(
             "rendered by Intent v{} and this binary renders v{} -- only text the renderer owns differs: its footer, or the Acceptance paragraph it writes",
             declared_version(&on_disk).unwrap_or("<none>"),
             declared_version(&view.content).unwrap_or("<none>"),
+          ),
+        ));
+      }
+      // **A BOARD AN OLDER INTENT WROTE IS STALE, NOT SKEWED** (issue 0532),
+      // asked here for the footer question's reason: an estate whose boards
+      // hold a multi-line item would otherwise be refused commits the day it
+      // upgrades. Asked of a node's board and of no other view, so an
+      // indentation change anywhere else still reads as the hand edit it may be.
+      Ok(on_disk)
+        if board_node.is_some() && board_rendered_before_0532(&on_disk, &view.content) =>
+      {
+        findings.push(Finding::new(
+          &rel,
+          FindingClass::StaleRender,
+          format!(
+            "rendered before issue 0532, by Intent v{} (this binary renders v{}) -- only the indentation of a multi-line item's continuation lines differs, and any text the renderer owns; `{}`'s next board write re-renders it, and `intent sync --to-disk` re-renders every board at once",
+            declared_version(&on_disk).unwrap_or("<none>"),
+            declared_version(&view.content).unwrap_or("<none>"),
+            board_node.as_deref().unwrap_or_default(),
           ),
         ));
       }
@@ -2715,8 +2797,159 @@ mod tests {
     b.items[0].edited_at = Some("2026-09-23T10:00:00.000Z".to_string());
     let board_view = wb_board(&b, &ctx());
     assert!(
-      board_view.contains("- run this: (edited)\n```\ngit log -1\n```\n"),
+      board_view.contains("- run this: (edited)\n  ```\n  git log -1\n  ```\n"),
       "{board_view}"
+    );
+  }
+
+  /// One live doing item for each shape an item's text can take (issue 0532),
+  /// every other one edited, so the `(edited)` mark rides the arms too.
+  fn board_with_every_item_shape() -> crate::model::Board {
+    let shapes = [
+      "one line",
+      "two steps:\n- first\n- second",
+      "run this:\n```\ngit log -1\n```",
+      "a paragraph\n\nand another after a blank line",
+      "a line\n   \nwith a whitespace-only line in it",
+      "a line\n  that was already indented",
+      "carriage returns\r\nend these lines\r\n",
+      "a trailing newline\n",
+    ];
+    let mut b = board();
+    let template = b.items[2].clone();
+    for (n, text) in shapes.iter().enumerate() {
+      let mut item = template.clone();
+      item.seq = 10 + n as u32;
+      item.text = (*text).to_string();
+      item.edited_at = (n % 2 == 1).then(|| "2026-09-23T10:00:00.000Z".to_string());
+      b.items.push(item);
+    }
+    b
+  }
+
+  #[test]
+  fn an_items_continuation_lines_stay_inside_it() {
+    // Issue 0532: at column 0 a continuation line left its list item, so a
+    // sub-bullet read as a sibling and a fence swallowed the rest of the board.
+    assert_eq!(item_lines("one line", ITEM_INDENT), "one line");
+    assert_eq!(
+      item_lines("two steps:\n- first\n- second", ITEM_INDENT),
+      "two steps:\n  - first\n  - second"
+    );
+    assert_eq!(
+      item_lines("run this:\n```\ngit log -1\n```", ITEM_INDENT),
+      "run this:\n  ```\n  git log -1\n  ```"
+    );
+    assert_eq!(
+      item_lines("a paragraph\n\nand another", ITEM_INDENT),
+      "a paragraph\n\n  and another",
+      "an empty line stays empty, leaving no trailing whitespace for a formatter"
+    );
+    assert_eq!(
+      item_lines("a trailing newline\n", ITEM_INDENT),
+      "a trailing newline\n"
+    );
+    let view = wb_board(&board(), &ctx());
+    assert!(
+      view.contains("- the renderers\n") && view.contains("- held until the pair is rebuilt\n"),
+      "a one-line item renders as it always did: {view}"
+    );
+  }
+
+  #[test]
+  fn board_lines_outside_an_item_start_at_column_0() {
+    // vc's rider on 0532: `board_before_0532` is exact only while the render
+    // indents nothing but an item's continuation lines. So: every section,
+    // every header field, an empty section and the footer, with one-line items
+    // only -- any indented line here is one indented outside an item.
+    let mut peer = board();
+    peer.node.session_id = Some("0f3c9a1e-5b2d-4c1e-9d7a-2e8f6b4a1c3d".to_string());
+    let mut hv = peer.clone();
+    hv.node.moniker = crate::model::HYPERVISOR.to_string();
+    let mut directive = hv.items[0].clone();
+    directive.kind = crate::model::WbItemKind::Directive;
+    directive.text = "the standing directive".to_string();
+    hv.items.push(directive);
+    for b in [&peer, &hv] {
+      let out = wb_board(b, &ctx());
+      assert!(
+        out.contains(EMPTY_ITEMS)
+          && out.contains(BANNER_MARKER)
+          && out.contains("session_id: 0f3c"),
+        "the fixture must render an empty section, the footer and every header field: {out}"
+      );
+      let indented: Vec<&str> = out.lines().filter(|l| l.starts_with([' ', '\t'])).collect();
+      assert!(
+        indented.is_empty(),
+        "a line outside an item's continuation is indented: {indented:?}\n{out}"
+      );
+    }
+    assert!(
+      wb_board(&hv, &ctx()).contains("## Standing directives\n\n- the standing directive\n"),
+      "hv's board carries the one section no other board does"
+    );
+  }
+
+  #[test]
+  fn the_shape_before_0532_is_what_the_older_renderer_wrote() {
+    // The doctor arm rests on this: taking the indent back off a render gives
+    // the older render of the same board byte for byte, for every shape an
+    // item's text takes, `(edited)` mark included. The older render is the
+    // one-line formula every item was written with before 0532.
+    let b = board_with_every_item_shape();
+    let now = wb_board(&b, &ctx());
+    let mut older = now.clone();
+    for item in b
+      .items
+      .iter()
+      .filter(|i| i.state == crate::model::WbItemState::Live)
+    {
+      let text = edited_item_text(&item.text, item.edited_at.as_ref());
+      older = older.replacen(
+        &format!("- {}\n", item_lines(&text, ITEM_INDENT)),
+        &format!("- {text}\n"),
+        1,
+      );
+    }
+    assert_ne!(
+      older, now,
+      "the fixture must hold a multi-line item, or this proves nothing"
+    );
+    assert_eq!(board_before_0532(&now), older);
+  }
+
+  #[test]
+  fn a_board_the_older_renderer_wrote_is_excused_and_nothing_else_is() {
+    let b = board_with_every_item_shape();
+    let now = wb_board(&b, &ctx());
+    let older = board_before_0532(&now);
+    assert!(
+      board_rendered_before_0532(&older, &now),
+      "the older render is a stale render"
+    );
+    let older_footer = board_before_0532(&wb_board(
+      &b,
+      &RenderContext {
+        version: "2.9.9-test",
+        todo_watermark: None,
+      },
+    ));
+    assert!(
+      board_rendered_before_0532(&older_footer, &now),
+      "and so is the older render under an older footer"
+    );
+    assert!(
+      !board_rendered_before_0532(&older.replacen("git log -1", "git log -2", 1), &now),
+      "a hand edit in an older-shaped board still differs"
+    );
+    assert!(
+      !board_rendered_before_0532(&now.replacen("\n  - first", "\n   - first", 1), &now),
+      "an indentation that is neither shape still differs"
+    );
+    let one_line = wb_board(&board(), &ctx());
+    assert!(
+      !board_rendered_before_0532(&one_line, &one_line),
+      "a board holding no multi-line item has no older shape"
     );
   }
 

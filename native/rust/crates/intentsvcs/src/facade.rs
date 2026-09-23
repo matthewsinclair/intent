@@ -398,10 +398,18 @@ fn event_file_write(
   Ok((path, body))
 }
 
-/// The two spellings a text takes in the files that carry it (issue 0523):
-/// raw, as a `.md` file holds it, and escaped the way serde writes a JSON
-/// string, as a `.json` file holds it.
-fn text_spellings(text: &str) -> Result<[String; 2], FacadeError> {
+/// The spellings a text takes in the files that carry it (issue 0523): raw,
+/// as a `.md` file holds it; escaped the way serde writes a JSON string, as a
+/// `.json` file holds it; and as a board view prints an item (issue 0532), its
+/// continuation lines set in under the `- `, once as written and once with the
+/// `(edited)` mark an edited item carries after its first line.
+///
+/// **THE BOARD SPELLINGS COME FROM THE RENDERER'S OWN FUNCTIONS**, so a
+/// multi-line item's `wip.md` is named for as long as the view prints it that
+/// way. Without them, an indented board holds neither the raw text nor the
+/// escaped one, and since 0525 a re-edited multi-line item's view did not hold
+/// its raw text either: the mark sits inside it.
+fn text_spellings(text: &str) -> Result<[String; 4], FacadeError> {
   let quoted = serde_json::to_string(text).map_err(|e| FacadeError::EntityUnserialisable {
     form: "item text".to_string(),
     why: e.to_string(),
@@ -414,12 +422,22 @@ fn text_spellings(text: &str) -> Result<[String; 2], FacadeError> {
     .and_then(|q| q.strip_suffix('"'))
     .unwrap_or(&quoted)
     .to_string();
-  Ok([text.to_string(), escaped])
+  // Any stamp marks it: the mark says that the text changed, never when.
+  let edited = String::new();
+  Ok([
+    text.to_string(),
+    escaped,
+    views::item_lines(text, views::ITEM_INDENT),
+    views::item_lines(
+      &views::edited_item_text(text, Some(&edited)),
+      views::ITEM_INDENT,
+    ),
+  ])
 }
 
-/// Does `bytes` hold either spelling? Searched in process and never by line
+/// Does `bytes` hold any spelling? Searched in process and never by line
 /// (ic's review): a text may span lines, which a line-based search cannot see.
-fn holds_text(bytes: &[u8], spellings: &[String; 2]) -> bool {
+fn holds_text(bytes: &[u8], spellings: &[String]) -> bool {
   spellings
     .iter()
     .any(|s| !s.is_empty() && bytes.windows(s.len()).any(|w| w == s.as_bytes()))
@@ -8764,7 +8782,7 @@ impl Facade {
       return Ok(Vec::new());
     }
     let spellings = text_spellings(old)?;
-    let [raw, escaped] = &spellings;
+    let [raw, escaped, ..] = &spellings;
     let line = raw
       .lines()
       .filter(|l| !l.is_empty())
