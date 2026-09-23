@@ -13,45 +13,48 @@ claims: []
 
 ## DOING
 
-- RESUME (vc, 2026-09-23, after hv's third compact; rewritten at 14:14:35Z by date -u). Measure first: `intent outs`, `git log --oneline -15`, `intent --version`, `intent daemon status`, and ListAgents to ask cc, dc and ic where they stand.
+- RESUME (vc, 2026-09-23, after hv's third compact; rewritten at 14:35:49Z by date -u). Measure first: `intent outs`, `git log --oneline -15`, `intent --version`, `intent daemon status`, and ListAgents to ask cc, dc and ic where they stand.
 
-DEPLOYED (the pair c5cca7e26): 0520 through 0528.
-LANDED, NOT DEPLOYED:
+DEPLOYED (pair c5cca7e26): 0520 through 0528.
+LANDED, NOT DEPLOYED. vc verified every landed patch-id against its judged id:
 - 0525, with 0529 and 0531, at d3b2250b6.
 - 0530 at 084b154b9.
-- 0532 at 2e588c7cd, closed at 02071ce4c. vc verified its patch-id 89d23af2d and its tree.
-- Rung 30 migrates every store on its first open by the new pair, and an older pair then refuses that store.
+- 0532 at 2e588c7cd.
+- 0534 at 6fd9268ff (d2008af6f400).
+- 0536-0537 at 434d8573a (9a4a47ebc282).
+- 0533 at f7c62b94d (98084d6681f5).
+- 0538 at 00fc875a7 (358a9730c007). It stays OPEN until its tune lands.
+HEAD equals the judged five-bank tree ed0a8e75 over all 32 banked paths. Rung 30 migrates every store on its first open by the new pair, and an older pair then refuses that store. 0538's refusing pre-commit block is live in main from 00fc875a7.
 
 hv decision 32: everything goes into 3.2.1. IN ORDER:
-(1) THE STACKED RUN (cc), since 14:03:11Z. Base ca936e6c4; stack tree d1179b26a, composed in 24 orders. The banks:
-- 0533 v2 98084d6681f5, then 0538 v2 358a9730c007 (ic), landed in that order. 0538 rewrites .githooks, so it lands only when every node says no commit is in flight.
-- 0534 d2008af6f (cc).
-- 0535 v3 3b8629117 (dc).
-- 0536-0537 9a4a47ebc282 (cc).
-vc asked cc to prove the tempfile move is lock-neutral: a clean tree after the build, and `cargo build --locked`.
-- MID-RUN: the base is green. The stack's Rust shows 3061 passed and 4 failed. All four fail in common/mod.rs:712 ("a shipped file grew a second `#[cfg(test)]`"), and the cause is 0535 v3's second test module in model.rs, the only bank that adds one.
-- vc's call, if END shows those four as the only stack-side reds: the other five PASS and land at their judged patch-ids. 0535's v4, with the module folded in, goes into the TAIL whole-suite run.
-(2) THE TAIL: one whole-suite judging run after the five land, and before the build all. It takes 0535 v4, with dc's 0539+0541 bank stacked on it, and:
-- 0539 and 0541 (dc), as one bank. 0539 is one predicate, "an older Intent rendered this view", for skew, foreign_bytes and organize's gate. Without it, the first thread write after the build warns "an edit to a generated file is gone" on every old-shaped multi-line board; dc measured it with `st new`. 0541 makes both register remedies print register_form.
-- 0540 (ic, low). The brew caveat covers every versioned-keg pointer and names `bootstrap --check`. It is a bin/.devbin edit, so the macOS bats are owed.
-- ic's C (the omnibox's index_owed), but only if it proves real.
-(3) ic's DOCS COMMIT lands last before the build, because every bank's hunk carries CHANGELOG context. It carries the CHANGELOG line fixes from ic's re-read (8 of 12 entries) and the SKILL.md wording.
+(1) THE TAIL, run by dc: one whole-suite judging run on HEAD. Its five banks:
+- 0535 v4 0ff92bd81 (dc).
+- 0539-0541 v1 99d3908bd (dc), on v4. 0539 is one "an older Intent rendered this view" predicate for skew, foreign_bytes and organize; 0541 is register_form in both remedies; 0532's note loses "issue 0532".
+- 0540 v1 56aa13ee2 (ic): the brew caveat.
+- dtable v1 839cf19db524 (ic): one when_to_use sentence.
+- The 0538 tune (ic): post-pull warns only in a checkout that holds a store.
+The tail waits on ic's tune loop, which started at 14:35:03Z. vc warns gtools-vc at its START and judges from its END.
+(2) ic's DOCS COMMIT lands last: refs/bank/ic/precut/apply_precut.py, which rewrites 9 CHANGELOG lines and 2 SKILL.md lines and refuses unless each old string is found once.
+(3) cc drafts docs/releases/3.2.1/RELEASE_NOTES.md. The cut reads only CHANGELOG's `## [3.2.1]` section, so the notes page is the reasoning. Its Upgrading section leads with rung 30's one-way step, then the MCP servers refusing until a session restart, then the daemon: stop it before upgrading and start it after.
 (4) THE SECOND BUILD ALL:
-- `intent daemon stop` FIRST, because intentd holds each store open and checks the schema only at open.
-- Then build all, verify the pair, `intent daemon start`, `intent app restart`, and doctor.
-- The MCP servers open the store per call and refuse a rung-30 store until their session restarts. Say so in the warning to every session.
-- Warn gtools-vc before (it backs up Gtools' store) and after. No commit lands while the build runs.
-- Whether vc or hv runs it is hv's call.
-(5) hv pushes. vc reads both CI workflows on both legs, which closes 0521.
-(6) The pre-cut pass: ic regenerates the reference set and re-reads the new entries, and dc re-drives known-defects.md.
+- `intent daemon stop` FIRST, then build all, then verify the pair, then `intent daemon start`, `intent app restart`, and doctor.
+- Warn every session and gtools-vc before and after, including the MCP refusal note. gtools-vc backs up Gtools' store first.
+- No commit lands while it runs. Whether vc or hv runs it is hv's call.
+(5) hv pushes. vc reads both CI workflows on both legs, which closes 0521 (cc's claim).
+(6) The pre-cut pass: ic regenerates the reference set, and dc re-drives known-defects.md.
 (7) The cut, in hv's terminal. ST0060 and ST0077 stay on hv's hold.
 
-OPEN WITH hv: a cutoff for findings reported after the stacked run started. vc recommends 3.2.2, unless the finding is data loss, security, or a defect in this release's own changes.
-FOLLOW-UP, not in 3.2.1 by vc's ruling: for an empty pointer, --where says UNUSABLE where --check says ABSENT, with the same rc and the same remedy. File it after the cut.
+OPEN WITH hv:
+- Who runs the build all.
+- A cutoff for findings reported after the stacked run started. vc recommends 3.2.2, unless the finding is data loss, security, or a defect in this release's own changes.
+- 0542 (low, filed by vc from dc's finding) waits on that ruling: the scan has no pattern for issue ids in shipped literals.
+FOLLOW-UPS after the cut:
+- For an empty pointer, --where says UNUSABLE where --check says ABSENT.
+- ic's C (the omnibox's index_owed) is still unverified.
 
-AFTER THE CUT: todo 62, the fleet sweep, over dc's census of 23 estates:
-- `claude upgrade --apply` rewrites the four hook blocks in the 18 wired estates (0538).
-- `intent todo update`, then doctor. One commit per estate, and no push.
+AFTER THE CUT: todo 62, the fleet sweep over dc's census of 23 estates:
+- `claude upgrade --apply` rewrites the hook blocks in the 18 wired estates.
+- Then `intent todo update` and doctor. One commit per estate, and no push.
 - `sync --to-disk` clears 0532's StaleRender boards, but only where doctor reads no counted ViewSkew.
 - Until 0535 ships, run `sync --to-store` in any fresh clone or worktree before any wb verb.
 
