@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 544,
+  "slug": "the-shell-critic-asks-nothing-of-a-sourced-bash",
+  "title": "The shell critic asks nothing of a sourced bash library with no shebang, so the release machinery's seven .lib files are never linted",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-09-23",
+  "reporter": "Matthew Sinclair",
+  "body": "Found by cc on 2026-09-23 while verifying the 3.2.1 release notes against the landed tree. It is measured, not inferred.\n\n**What happens.** 0536 made the shell critic reach a script by its shebang as well as by the rules' globs. A sourced bash library carries neither. The seven tracked `.lib` files under `bin/.devbin/cmd/shared/` (artefact, clone, currency, measure, releasebuild, runtime, sharedtarget) have no `#!` line, and no shell rule's glob matches `.lib`. So the gate asks no rule of them, ever. 0536's honest verdict now names such a file as unasked rather than calling it clean, but nothing lints it. These libraries are the release and currency machinery the cut itself runs through.\n\nSix of the seven open with `# shellcheck shell=bash`, which is shellcheck's own declaration of a file's dialect.\n\n**What the fix has to do.**\n- The runner reads `# shellcheck shell=<dialect>` as a dialect marker beside the shebang, in 0536's one table, with no rule file changed.\n- The seventh library gains the directive in the same change.\n- Whatever the newly reached libraries raise is fixed, or exempted with a stated reason, in the same change, so the gate does not start refusing the next commit that touches them.\n- It is a `bin/.devbin` edit, so the macOS bats are owed.\n"
+}

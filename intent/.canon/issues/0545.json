@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 545,
+  "slug": "wb-edit-in-a-project-without-git-prints-that-no",
+  "title": "wb edit in a project without git prints that no file holds the old text, though neither search ran",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-23",
+  "reporter": "Matthew Sinclair",
+  "body": "Found by cc on 2026-09-23 while verifying the 3.2.1 release notes against the landed tree.\n\n**What happens.** `intent wb edit` (0523) reports whether any file under `intent/` still holds an edited item's old text: at HEAD, and in what the next commit would carry. In a project that is not a git repository, neither search can run. The answer still prints the all-clear, \"no file under intent/ holds the old text, at HEAD or in the next commit\" (facade.rs:8779-8783 and 8815-8819; render.rs:4496-4501), and `wb_edit_door.rs` asserts that sentence in a project with no git. So the verdict claims a search that never ran. It is true only vacuously, and it reads exactly like a clean result.\n\n**What the fix has to do.** Where the project is not a git repository, the answer says the two searches did not run and why, and claims nothing about HEAD or the next commit. The arm in `wb_edit_door.rs` asserts that wording in place of the all-clear. A project with git reads exactly as before.\n"
+}

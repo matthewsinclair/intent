@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- RESUME (vc, 2026-09-23, after hv's third compact; rewritten at 14:40:08Z by date -u). Measure first: `intent outs`, `git log --oneline -15`, `intent --version`, `intent daemon status`, and ListAgents to ask cc, dc and ic where they stand.
+- RESUME (vc, 2026-09-23, after hv's third compact; rewritten at 14:53:25Z by date -u). Measure first: `intent outs`, `git log --oneline -15`, `intent --version`, `intent daemon status`, and ListAgents to ask cc, dc and ic where they stand.
 
 DEPLOYED (pair c5cca7e26): 0520 through 0528.
 LANDED, NOT DEPLOYED. vc verified every landed patch-id against its judged id:
@@ -35,6 +35,7 @@ hv decision 32: everything goes into 3.2.1. IN ORDER:
 - The 0538 tune (ic): post-pull warns only in a checkout that holds a store.
 dc's HEAVY START was 14:37:41Z, over the stack tree cf898d342, with app-test on the bank side. gtools-vc is holding. vc judges from the END.
 (1b) 0543 (ic, medium): 0520's omnibox index goes stale when a key-driven read consumes the store's moved signal first. So `/st new X` shows X in the list and the omnibox cannot find it. ic read every link in the code and drives it in a pty after the tail. The fix is one recorded moved signal that survives any read. It is a defect in this release's own change, so it is IN under decision 32 and under vc's cutoff recommendation alike. It needs its own loop and a small whole-suite run after the tail.
+(1c) 0544 (cc, medium) and 0545 (cc, low), from cc's check of the release notes, ONE bank of cc's. 0544: the critic reads `# shellcheck shell=<dialect>` beside the shebang, so the seven shebang-less bin/.devbin .lib files are linted; the seventh gains the directive; macOS bats are owed. 0545: in a project without git, wb edit's answer says its searches did not run instead of printing the all-clear. It rides dc's 0543 judging run as a two-bank stack.
 (2) ic's DOCS COMMIT lands last: refs/bank/ic/precut/apply_precut.py, which rewrites 9 CHANGELOG lines and 2 SKILL.md lines and refuses unless each old string is found once.
 (3) cc drafts docs/releases/3.2.1/RELEASE_NOTES.md. The cut reads only CHANGELOG's `## [3.2.1]` section, so the notes page is the reasoning. Its Upgrading section leads with rung 30's one-way step, then the MCP servers refusing until a session restart, then the daemon: stop it before upgrading and start it after.
 (4) THE SECOND BUILD ALL:

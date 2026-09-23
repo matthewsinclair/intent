@@ -1,0 +1,15 @@
+{
+  "id": "01M37C3KDG3JEB69ARVGQG9STY",
+  "ts": "2026-09-23T14:53:22.739Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0544"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "The shell critic asks nothing of a sourced bash library with no shebang, so the release machinery's seven .lib files are never linted"
+  }
+}
