@@ -1,0 +1,16 @@
+{
+  "id": "01M37NHT6XS6R5BVZ9XY25H11N",
+  "ts": "2026-09-23T17:38:25.630Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 33,
+    "text": "RESUME (vc, 2026-09-23, after hv's third compact; rewritten at 17:38:25Z by date -u). Measure first: `intent outs`, `git log --oneline -15`, `intent --version`, `intent daemon status`, and ListAgents to ask cc, dc and ic where they stand.\n\nDEPLOYED: every 3.2.1 fix. hv's second build all finished at 17:33Z by the terminal's clock, and vc verified it at 17:36:28Z:\n- intent and intentd both read `3.2.0 (3355ba2f714d…) dev`, which equals HEAD 3355ba2f7;\n- intentd was restarted on that pair;\n- Intent's store is at user_version 30;\n- the scoped lag is 0;\n- hv's doctor found 0 findings.\nThe number stays 3.2.0 until the cut's own bump in build.d/release. Intent's rung-29 snapshot is intent/.backup/db/2026-09-23T17-29-46-738Z.db, and Gtools took its own .backup at 17:29:03Z. END went to every Intent node, to gtools-vc, and to laksa-vc, devbin-vc, prodinfra-cc and geodica, with the MCP-refusal note.\n\nLANDED AND CLOSED TODAY: 0525, 0529 to 0541, 0543, 0544 and 0545. vc verified each landed patch-id against its judged id and each landed tree against its judged tree. Three judging runs covered them: cc's stack, dc's tail, and dc's pair. ic's docs commit landed at 15f334ee9, and cc's RELEASE_NOTES with the CHANGELOG lede at 3355ba2f7.\n\nhv decision 32: everything goes into 3.2.1. REMAINING, IN ORDER:\n(1) hv pushes main. The pre-push hook's cold build takes a few minutes. vc reads both CI workflows on both legs, which closes 0521 (cc's).\n(2) THE PRE-CUT PASS, on the built pair, as docs-only commits:\n- dc re-drives known-defects.md whole. It started at 17:37:13Z, on the approved plan: every entry in a fresh scratch project under an isolated HOME; 0442 driven both by hand and on a copy of the evidence; 0443 on its own scratch intentd; transcripts to vc before commit.\n- ic regenerates the reference set and re-reads the 3.2.1 entries.\n(3) THE CUT, in hv's terminal: `bin/devbin build release v3.2.1`, then the macOS steps (prepare, formula, publish, smoke --reinstall). Never --no-confirm.\nST0060 and ST0077 stay on hv's hold.\n\nOPEN WITH hv: 0542, the issue ids in shipped literals. vc recommends 3.2.2.\nFOLLOW-UP after the cut: for an empty pointer, --where says UNUSABLE where --check says ABSENT.\n\nAFTER THE CUT: todo 62, the fleet sweep over dc's census of 23 estates:\n- `claude upgrade --apply` rewrites the hook blocks in the 18 wired estates.\n- Then `intent todo update` and doctor. One commit per estate, and no push.\n- `sync --to-disk` clears 0532's StaleRender boards, but only where doctor reads no counted ViewSkew.\n- Stores migrate to rung 30 on their first open. Back each one up first where no session did.\n\nNO PUSH, NO RELEASE."
+  }
+}
