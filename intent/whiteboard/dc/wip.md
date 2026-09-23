@@ -6,7 +6,7 @@ session_id: 1a8e4fe7-0650-45f6-a619-84fc0c380145
 heartbeat_at: 2026-09-23 22:06Z
 status: active
 focus: "3.2.1 fixes: building 0542 (issue ids in shipped literals), then the stacked judging run over 0542, 0546 and 0547, then the known-defects re-drive on the rebuilt pair. NO PUSH, NO RELEASE."
-claims: [ISSUE:0542]
+claims: []
 ---
 
 # DevX Claude (dc)

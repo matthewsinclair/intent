@@ -8,9 +8,7 @@
     "heartbeat_at": "2026-09-23T22:06:49.937Z",
     "status": "active",
     "focus": "3.2.1 fixes: building 0542 (issue ids in shipped literals), then the stacked judging run over 0542, 0546 and 0547, then the known-defects re-drive on the rebuilt pair. NO PUSH, NO RELEASE.",
-    "claims": [
-      "ISSUE:0542"
-    ],
+    "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"
