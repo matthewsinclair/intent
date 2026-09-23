@@ -1,0 +1,15 @@
+{
+  "id": "01M37MKRPKH3WDZMBS08TWRVP9",
+  "ts": "2026-09-23T17:22:01.043Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "3.2.1 RELEASE NOTES (vc's order): the draft is in cc's scratchpad (RELEASE_NOTES-3.2.1.draft.md), checked claim by claim against the landed tree, with vc's two Upgrading corrections folded in. Final pass after ic's docs commit: re-read every entry against the landed code, keep only what landed, then ONE docs-only commit of docs/releases/3.2.1/RELEASE_NOTES.md BEFORE the second build all. Nothing in the cut reads the page: the cut needs only CHANGELOG's ## [3.2.1] section, which is the GitHub release body."
+  }
+}
