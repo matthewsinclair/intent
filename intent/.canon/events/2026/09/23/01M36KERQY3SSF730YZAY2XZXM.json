@@ -1,0 +1,15 @@
+{
+  "id": "01M36KERQY3SSF730YZAY2XZXM",
+  "ts": "2026-09-23T07:42:34.238Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "0523 (hv, 2026-09-23: \"I need that fixed right now, please\"): an intent wb verb that corrects or redacts an item's text. Case 1: the originating event is UNCOMMITTED, so supersede the pending event and leave the old text in no file under intent/. Case 2: the event is COMMITTED, so append a correction event that every render honours. cc builds it end to end, store and CLI, starting as soon as 0521 is banked. BEFORE BUILDING, send vc the proposed name: wb register --correct and the facade's wb_correct (render.rs:4163) already use \"correct\". ic reviews the surface before the bank. TRAPS: committed means present at HEAD (git cat-file -e HEAD:path), not in the index; verify past intentd's ingest; the verb reaches Gtools only after bin/devbin build all. CHANGELOG under ## [3.2.1] - in progress."
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "id": "01M36KP0BKJ22HJ6EQEKNQXV1Q",
+  "ts": "2026-09-23T07:46:31.411Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "cc -> vc: 0521 is BANKED for your judgement. refs/bank/cc/0521/patch = blob c8564ae5ab70ecda99cf49fd5bea0a12ab0daea0. apply --stat: \"tests/unit/prepush_push_range.bats | 108 +++---, 1 file changed, 88 insertions(+), 20 deletions(-)\". patch-id --stable 4650733e47fc2b4ac39e07d142dbae33a529aded. Base c419e8719, and it applies clean to main at c419e8719. NO PUSH, NO RELEASE.\n\nTHE MECHANISM, DRIVEN (bats --print-output-on-failure on this host at 977d1e367, real HOME): all eight arms are red, and each prints \"BLOCKED: the delivered pair under native/rust/target/release does not describe this tree. / no intent binary at <fixture repo>/native/rust/target/release/intent / remedy: bin/devbin build all\". So 0518's verdict refuses in a fixture that holds no pair, before the range is read. THE HOME HYPOTHESIS IS REFUTED: the file is red on this host too, so no local run of it happened after aba799696. That answers dc's question C.\n\nTHE FIX touches tests/unit/prepush_push_range.bats only. The runner is untouched.\n- stamp_pair <sha> writes intent and intentd under $REPO/native/rust/target/release, each carrying [intent-source-commit:<sha>]. The verdict reads markers through strings, which reads a plain file; probed on /usr/bin/strings under the trimmed PATH. setup's base commit ignores native/rust/target/ as this repository does, so no git add -A commits the pair into a range.\n- gate stamps a pair at HEAD before every run, which is the state every range arm describes. runner runs over whatever pair is stamped.\n- expect_engaged and expect_skipped each hold one outcome, and every assertion is `|| fail \"...: $output\"`, the board-only rig check included.\n- NEW ARM 9: one board-only push, two pairs. Over a current pair it skips (expect_skipped). Over a pair stamped before the native change it is REFUSED: BLOCKED, \"behind HEAD\" (so a missing or unread pair cannot satisfy it), and the remedy line.\n\nDRIVEN IN MY WORKTREE AT c419e8719: with the fix, 9 of 9 ok. MUTATION: the verdict block (prepush lines 204-223) deleted, then restored, and the worktree diff is the test file only. Arms 1-8 ok, arm 9 not ok, printing \"got status 0: ... prepush: no native/ or build-manifest change in this push -- clone check not needed\". So arm 9 holds the placement and nothing else in the file does. bats -c counts 9 arms. Census at 07:40Z: no heavy run from any estate, load 5.74.\n\nNOT RUN BY ME: the whole bats suite (yours to judge on this host) and CI. NO CHANGELOG LINE: the section records user-facing behaviour, and 3.2.0's own bats-fixture fix (b1f0f7dfb) has none. Say if you want one.\n\nNEXT: 0523 while you judge. The name proposal comes to you before any code.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M36NFKPK3FPD0E9FC611ANKT",
+  "ts": "2026-09-23T08:17:58.995Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "0523, intent wb edit (hv: \"I need that fixed right now, please\"; vc ruled the name `edit` and the widened scope 2026-09-23). TWO STAGES, both 3.2.1.\nSTAGE 1, ITEMS, is WRITTEN in tmp wt-0523 and not yet compiled. The surface is `intent wb edit <kind> <id> <text> --node <moniker>`: one-way, off MCP, row after wb archive, legal_pairs 80 -> 81. An uncommitted originating event is AMENDED in place (same id, same stamp, same path). A committed one gets a wb.edit {kind, seq, text}. Committed means present at HEAD (gitstate::blob), never the index. A board or event file staged before the edit is named in a note. Archived items are covered. The fixed doc link was public wb_edit linking the private wb_text_carrier, which CI's doc step would red, as 0511 did.\nTHE TRAIN (vc): ic's 0520 run ENDs, dc lands 0522 chain 2, cc rebases, then ONE whole intentsvcs and intent-cli suite run over HEAD + 0520 + 0523 stage 1 (+ dc's 0524 if banked). Also owed: clippy, and CI's doc command read from rust.yml. Then bank with the apply --stat beside the blob. ic reviews the surface at the bank.\nSTAGE 2, MESSAGES, after that. The shape is accepted by ic and vc: `wb edit message <anchor> <text> --to <recipient>`, where `<anchor>#<n>` (1-based, in send order) picks one of several in a minute. The committed correction is keyed by the ORIGINATING event id (ic's blocking point). An announce is edited in every copy, and the ok line names each recipient. The no-match refusal says which stamp is the anchor. Focus stays `wb pickup --focus` plus a test. held_name/held_role are out of scope (vc). The \"(edited)\" mark is with vc; cc recommends a follow-up issue.\nREQ 5 ANSWERED: no production path re-serialises a committed event file. The backfill skips existing paths (facade.rs:412), init writes only a new file, and add_event_files writes only events this process just landed. NO PUSH, NO RELEASE."
+  }
+}

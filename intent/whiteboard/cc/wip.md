@@ -3,21 +3,25 @@ node: cc
 name: Control Claude
 role: control
 session_id: 89be4c37-5e0c-46eb-a8df-6cce6bb2c58b
-heartbeat_at: 2026-09-23 07:10Z
+heartbeat_at: 2026-09-23 08:18Z
 status: active
-focus: "Holding, day closed: nothing claimed, running or banked; pair cd79407eb current; CI doc-step fix cd79407eb awaits a green CI run after hv's push. NO PUSH, NO RELEASE."
-claims: []
+focus: "0523 wb edit: stage 1 (items) written, waiting on the train run after ic's END and dc's 0522; stage 2 (messages) shape accepted. 0521 landed 38db27487, open until CI's bats run on hv's next push. NO PUSH, NO RELEASE."
+claims: [ISSUE:0521, ISSUE:0523]
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-- RESUME HERE (cc, EOD fold, 2026-09-22 21:13Z; hv: "enough for today, we'll fix the rest tomorrow"). STATE: nothing claimed, running or banked. 0518 and 0516 CLOSED. Pair names cd79407eb = HEAD, currency ok, so every landing is deployed and a push is not blocked. OPEN FOR TOMORROW: CI run 35783294587 on 5fdc731f7 went RED both legs at the doc step -- cc's 0511 (a08880cd1) put a public intra-doc link to the private moved_claims in renumber.rs:80; dc fixed it at cd79407eb and CI's doc command gives rc 0 locally, but NO CI RUN HAS PROVED IT GREEN YET (needs hv's push). LESSON, in shared memory: a bank touching an intra-doc link owes CI's doc step before PASS. ON RESUME: /in-session, read vc's inbox, hold for vc. NO PUSH, NO RELEASE.
+- 0523, intent wb edit (hv: "I need that fixed right now, please"; vc ruled the name `edit` and the widened scope 2026-09-23). TWO STAGES, both 3.2.1.
+STAGE 1, ITEMS, is WRITTEN in tmp wt-0523 and not yet compiled. The surface is `intent wb edit <kind> <id> <text> --node <moniker>`: one-way, off MCP, row after wb archive, legal_pairs 80 -> 81. An uncommitted originating event is AMENDED in place (same id, same stamp, same path). A committed one gets a wb.edit {kind, seq, text}. Committed means present at HEAD (gitstate::blob), never the index. A board or event file staged before the edit is named in a note. Archived items are covered. The fixed doc link was public wb_edit linking the private wb_text_carrier, which CI's doc step would red, as 0511 did.
+THE TRAIN (vc): ic's 0520 run ENDs, dc lands 0522 chain 2, cc rebases, then ONE whole intentsvcs and intent-cli suite run over HEAD + 0520 + 0523 stage 1 (+ dc's 0524 if banked). Also owed: clippy, and CI's doc command read from rust.yml. Then bank with the apply --stat beside the blob. ic reviews the surface at the bank.
+STAGE 2, MESSAGES, after that. The shape is accepted by ic and vc: `wb edit message <anchor> <text> --to <recipient>`, where `<anchor>#<n>` (1-based, in send order) picks one of several in a minute. The committed correction is keyed by the ORIGINATING event id (ic's blocking point). An announce is edited in every copy, and the ok line names each recipient. The no-match refusal says which stamp is the anchor. Focus stays `wb pickup --focus` plus a test. held_name/held_role are out of scope (vc). The "(edited)" mark is with vc; cc recommends a follow-up issue.
+REQ 5 ANSWERED: no production path re-serialises a committed event file. The backfill skips existing paths (facade.rs:412), init writes only a new file, and add_event_files writes only events this process just landed. NO PUSH, NO RELEASE.
 
 ## TODO
 
-_(none)_
+- 0521 is LANDED at 38db27487 (vc PASS; landed patch-id 4650733e4 = judged; gate rc 0, currency ok). What remains: the issue stays OPEN until CI's Intent Tests workflow reads green on BOTH legs after hv's next push. That workflow runs the whole bats suite and is the judge of record. When hv pushes, read the tests.yml run on that HEAD; if it reds, make it speak first. Then close 0521 on vc's word. NO PUSH, NO RELEASE.
 
 ## Holds
 
