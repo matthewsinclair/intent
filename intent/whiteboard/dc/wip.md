@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 1a8e4fe7-0650-45f6-a619-84fc0c380145
-heartbeat_at: 2026-09-23 07:41Z
+heartbeat_at: 2026-09-23 08:49Z
 status: active
-focus: "0522 in flight (wb register's refusals carry no remedy; render.rs, shared with cc's 0523), then the Prolix carry from here. 0521 is cc's. Hold 27 goes to hv through vc. NO PUSH, NO RELEASE."
+focus: "LOCALFOLD for hv's compact, 2026-09-23. RESUME at the RESUME HERE doing item: close 0522 and 0524 with their evidence, then the Prolix carry (GO). The guards pass for the remaining estates is held until the 3.2.1 cut. NO PUSH, NO RELEASE."
 claims: [ISSUE:0522, ISSUE:0524]
 ---
 
@@ -13,17 +13,27 @@ claims: [ISSUE:0522, ISSUE:0524]
 
 ## DOING
 
-- **0522 PASSED vc's JUDGING; LANDING WAITS ON TWO PEERS.** It was banked between dc's 08:06Z and 08:09Z date -u reads (the "08:08Z" first written for it was read from no clock). refs/bank/dc/0522: blob 31bab441b, patch-id 30c4618a8, base c419e8719, 11 files, +138 -24. refs/bank/dc/0522-attachment: blob e7b1a065c, patch-id c9bbab5ae, the one line in ST0056's authored gen_dispatch_table.sh, proven md-neutral alone. vc's ORDER: (1) cc lands 0521, then sends its hash. (2) dc's CHAIN 1 lands the attachment line in the live tree: prove the ingest (the working copy's hash equals canon's stored text and its sha256), read the staged canon diff for anyone else's bytes, and commit by literal path; there is NO intentsvcs re-run, because cc's train run covers it. (3) dc's CHAIN 2 applies the 0522 bank AFTER ic's 0520 END (ic's run started 08:10:08Z), then sends cc the landed hash for the 0523 rebase. After that come the exit-codes doc line (banked at refs/bank/dc/exitcodes-doc, blob fe498034f), then 0524, then the hold 27 pilot. hv's push needs bin/devbin build all after chain 2. NO PUSH.
+- **RESUME HERE (localfold before hv's compact, 2026-09-23; on hv's word, continue on the bounce). NO PUSH, NO RELEASE.**
+(1) CLOSE ISSUES 0522 AND 0524 WITH THEIR EVIDENCE, on vc's word; vc's filing is committed at aec0c3721.
+- 0522 landed at 987268553, its attachment line at b8321e77c, judged patch-id 30c4618a8. The run: dc's whole suites in tmp/wt-0522 (intent-cli 1067 passed, 0 failed; intentsvcs 1830 passed, 1 failed, the attachment drift, 7/7 without it) and cc's train.
+- 0524 landed at 900f76a86, judged patch-id 2f475e2c1. The run: cc's train at 08:30:14Z and 08:39:53Z, and dc's 19/19 with both static dirs empty. It landed inside cc's crossed chain: cc's 08:47:56Z START reached dc after the commit. The paths were disjoint, and cc was told.
+(2) THE PROLIX CARRY, GO (vc's word on hv's TUI choice, after 08:46:28Z).
+- hv's board: carry it as it is. vc then archives the four placeholder items under hv's pen, in Prolix and in Molt.
+- Prolix cc: wb migrate cc --drop-uncarried. Then re-add the three `## Blocked on hv` asks as HOLDS, each "released when hv rules on <its topic>". The fourth unit (deleteAccount, d5d8bb5 and 33ab906) stays dropped.
+- Prolix vc: carry it, then archive the two coerced section-intro items (the hold from wip.md:23 and the watchout from :84).
+- The procedure is archived doing 81: git status first, never wb status first; hash the rendered boards before and after; check wb show against each file; read doctor whole. One mechanical commit in Prolix by literal paths, doctor after, vc checks it. No push. The rehearsal clone is scratchpad/prolix-rehearsal.
+(3) HOUSEKEEPING: remove the worktree tmp/wt-0522 with git worktree remove --force; 0522 and 0524 are both landed. hv's push needs bin/devbin build all: 0520, 0522 and 0524 moved native/rust, and the gate reads currency REFUSING.
 
 ## TODO
 
-- **Guard exit codes into intent/docs/pre-commit-hook.md's declared-guards section (hv via vc, 2026-09-23 08:05Z; XS, a 3.2.1 item).** hv chose DOCUMENT IT, THEN HANDLE for dc's 16:18Z notice about 0506's exit 3. Read the codes from the runner first (expected: 3 means not applicable and is skipped; 1 and 2 block), then write them down. When it lands, tell vc, who marks hv's copy handled.
-- **0524, THE dispatch_ssot RACE (vc filed it 08:05Z from dc's measurement; dc's after 0522; a 3.2.1 item).** outside_any_project() (dispatch_ssot.rs:40) is one static TempDir shared by every arm in the file. A sibling arm ran a bare intent init inside it at 07:56:27Z, so the outs alias arm compared outs from before the init with outstanding from after it. The evidence dir is /private/var/folders/nn/p40vzghs67v8yq0p5y416yf80000gn/T/.tmpfnTlkU. NAME THE ARM THAT RUNS THE INIT before choosing the fix.
-- **THE GUARDS ADOPTION PASS: hold 27 RELEASED (hv's TUI choice via vc, 2026-09-23 08:05Z), PILOT ONE, THEN THE REST, after 0522, the exit-codes doc and 0524.** Pilot one project with no live session. Before wiring it, diff its old hook against what the shared gate runs, so nothing the old hook did is silently lost; a check specific to that project becomes a declared project guard. vc checks the pilot. Then the rest, one commit each, doctor after each, no push. The scope and the three findings measured on 2026-09-22 are in archived hold 27.
+_(none)_
 
 ## Holds
 
-- **THE PROLIX CARRY, HELD BEFORE ITS FIRST WRITE, UNTIL hv CHOOSES A OR B FOR hv's PLACEHOLDERS AND vc GIVES THE DISPOSITIONS FOR Prolix cc's FOUR UNCARRIED UNITS AND vc's TWO COERCED PROSE LINES.** Rehearsed 08:01Z in a scratch clone (scratchpad/prolix-rehearsal, isolated HOME). wb migrate carries hv's four scaffold placeholders as live items instead of dropping them; Molt's hv board already holds the same four, carried at Molt ace5ffb. cc refuses on 3 units under ## Blocked on hv and 1 under ## Handed off. vc carries 34 items, with 2 lines of section prose coerced into items. Option A is a reader fix plus hv archiving Molt's four; option B is to carry and have hv archive. dc recommended A. The live Prolix is untouched.
+- **THE GUARDS ADOPTION PASS FOR THE REMAINING ESTATES IS HELD UNTIL THE 3.2.1 CUT'S FLEET SWEEP (hv's ruling via vc, 2026-09-23).** The recipe runs intent claude upgrade --apply, so each estate's hooks wiring rides that sweep, one commit per estate for both. The pilot, MicroGPTEx 80d4c13, passed vc's check.
+THE RECIPE: git config core.hooksPath .githooks; then intent claude upgrade --apply, which writes the four chain blocks (tracked) and the four .intent carriers; add .githooks/*.intent to .gitignore; declare formatters wherever the old hook checked any; red-control with staged probes; commit by path; run doctor.
+THE ESTATES: Molt and Prolix take the recipe unchanged, because their hook is byte-identical to MicroGPTEx's. Anvil, Baize, Cdtempl, Courses and Riffle share a chain-block-only hook and need no formatter declaration. Prodinfra, Conflab and Lamplight each get their own diff first. vc sequences Devbin, Laksa and Gtools.
+KNOWN LIMIT: core.hooksPath is per clone, so a fresh clone runs no hook until it is set, and only doctor --verbose's uncounted advisory says so.
 
 ## Watch-outs
 

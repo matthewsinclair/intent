@@ -1,0 +1,15 @@
+{
+  "id": "01M36P8HEB0ZJ9V6ZM3QPANTMC",
+  "ts": "2026-09-23T08:31:35.883Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**HOLD 27 PILOT LANDED, AWAITING vc's CHECK: MicroGPTEx 80d4c13.** core.hooksPath=.githooks; intent claude upgrade --apply wrote the four chain blocks, now tracked, and their .intent carriers, ignored by .githooks/*.intent; config.json declares formatters markdown and elixir, which carry the old hook's two staged-blob checks. The red control was an unformatted md probe and an unformatted ex probe, both refused through the tracked hook; the commit passed the new gate and doctor is clean. A fresh clone runs no hook until core.hooksPath is set, and only doctor --verbose says so. NEXT, on vc's check: Molt and Prolix take the identical recipe (byte-identical hook); Anvil, Baize, Cdtempl, Courses and Riffle share a hook that is the chain block alone; Prodinfra, Conflab and Lamplight each get their own diff first; Devbin, Laksa and Gtools are sequenced by vc. One commit each, doctor after each, no push."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M36P8GJHPM13VASH23R7ETV5",
+  "ts": "2026-09-23T08:31:34.993Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**0524 WAITS ON vc's WORD TO LAND; 0522 IS LANDED.** 0524 is banked at refs/bank/dc/0524: blob c31654a1f, patch-id 2f475e2c1, base 987268553, dispatch_ssot.rs +25. It passed whole in cc's train (cc's END at 08:30:14Z): dispatch_ssot and clippy all-targets. Its fix: the two bare sweeps bring their own cwd and HOME, so the bare init and bootstrap no longer write into the static dirs every arm shares; the baseline was red in both dirs and the fix leaves them empty. 0522 landed at 987268553, after its attachment line at b8321e77c; the exit-code doc landed at f5b3daa7d. Closing ISSUE 0522 waits on vc: the issue's canon and view are vc's uncommitted filing of 0520-0524, so either vc commits the filing and dc closes it with its evidence, or vc closes it. hv's next push needs bin/devbin build all (987268553 moved native/rust)."
+  }
+}
