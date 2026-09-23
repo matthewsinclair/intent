@@ -4212,7 +4212,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
     }
     Some(("status", m)) => {
       let f = open()?;
-      let boards = f.boards().map_err(fail)?;
+      let boards = f.wb_status().map_err(fail)?;
       report_wb_status(&boards, m.get_flag("json"))
     }
     Some(("show", m)) => {

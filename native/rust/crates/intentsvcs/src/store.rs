@@ -4320,18 +4320,42 @@ impl Store {
   /// So the check and the rebuild are one step, under the write lock
   /// (`IMMEDIATE`): a store that holds anything by the time the lock is held
   /// was warmed or written by someone else, and is left exactly as it is.
-  pub fn warm_if_cold(&mut self, threads: &[Thread], issues: &[Issue]) -> Result<bool, StoreError> {
-    let tx = Self::write_tx(&mut self.conn)?;
-    let held: i64 = tx.query_row(
-      "SELECT (SELECT count(*) FROM threads) + (SELECT count(*) FROM issues)",
+  ///
+  /// **THE BOARDS ARE WARMED IN THE SAME TRANSACTION** (issue 0535). Before
+  /// this, only an unscoped `sync --to-store` carried `board.json` into a store,
+  /// so every fresh clone opened holding every thread and issue and no
+  /// whiteboard, and the remedies it printed ended in an empty board written
+  /// over each file. The Ingest arm's reason for carrying no board is that
+  /// intentd's pass must not outvote a store holding a board write whose
+  /// extract has not landed. That reason cannot apply here, because this store
+  /// holds nothing.
+  ///
+  /// **AND A NODE ROW MAKES A STORE WARM, AS A THREAD OR AN ISSUE DOES.** An
+  /// estate with boards and no thread or issue would otherwise read cold at
+  /// every open. Each of those warms would restore the disk's boards over the
+  /// store's, reverting a board write whose file had not landed: 0216's shape,
+  /// on the one table this warm now writes.
+  pub fn warm_if_cold(
+    &mut self,
+    threads: &[Thread],
+    issues: &[Issue],
+    boards: &[Board],
+  ) -> Result<bool, StoreError> {
+    let mut w = WbWrite {
+      tx: Self::write_tx(&mut self.conn)?,
+      moved: 0,
+    };
+    let held: i64 = w.tx.query_row(
+      "SELECT (SELECT count(*) FROM threads) + (SELECT count(*) FROM issues) + (SELECT count(*) FROM wb_node)",
       [],
       |row| row.get(0),
     )?;
     if held > 0 {
       return Ok(false);
     }
-    Self::replace_estate(&tx, threads, issues)?;
-    tx.commit()?;
+    Self::replace_estate(&w.tx, threads, issues)?;
+    w.restore(boards)?;
+    w.tx.commit()?;
     Ok(true)
   }
 

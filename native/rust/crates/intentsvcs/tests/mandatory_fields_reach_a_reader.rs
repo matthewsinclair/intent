@@ -292,6 +292,9 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // call and cannot be carried to a reader as one.
     | FacadeError::WbHeaderIncomplete { .. }
     | FacadeError::WbNotMigrated { .. }
+    // Issue 0535: the call supplied everything, and what is missing is a board
+    // the store has not taken in from disk, which `sync --to-store` carries.
+    | FacadeError::WbBoardsNotInTheStore { .. }
     // A kind another verb owns: the caller supplied everything, and the remedy
     // is a different VERB rather than a field they left out.
     | FacadeError::WbKindHasItsOwnVerb { .. }

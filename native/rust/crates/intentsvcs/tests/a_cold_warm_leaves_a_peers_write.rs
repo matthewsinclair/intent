@@ -25,7 +25,7 @@ fn a_cold_warm_from_a_stale_disk_leaves_a_record_a_peer_wrote_first() {
     .expect("the peer lands its first record");
 
   let warmed = warmer
-    .warm_if_cold(&[], &[])
+    .warm_if_cold(&[], &[], &[])
     .expect("the warm runs against the stale disk canon, which holds nothing");
 
   let (_, issues) = warmer.load_canon().expect("read the store");

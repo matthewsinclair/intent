@@ -372,24 +372,9 @@ pub fn read(project: &Project) -> Result<Canon, IngestError> {
     }
   }
 
-  // **A BOARD FILE IS READ WHERE IT SITS, AND AN ABSENT ONE IS NOT A FINDING.**
-  // Every node directory predates the model by months and most will hold only
-  // markdown until the cutover, so "no board.json here" is the normal case
-  // rather than a defect -- the same reading `.intentfiles`' absence gets.
-  // Bytes that ARE there are parsed strictly, because a malformed board is a
-  // real refusal and silently skipping it is how a restore quietly empties a
-  // table.
-  for node in project.board_nodes()? {
-    let path = project.board_json(&node);
-    match serde_json::from_str::<crate::model::Board>(&read_to_string(&path)?) {
-      Ok(board) => canon.boards.push(board),
-      Err(e) => findings.push(Finding::new(
-        project.relative(&path),
-        FindingClass::SchemaInvalid,
-        format!("not a board: {e}"),
-      )),
-    }
-  }
+  let (boards, mut unread) = boards_on_disk(project)?;
+  canon.boards = boards;
+  findings.append(&mut unread);
 
   if findings.is_empty() {
     // **DERIVED FROM THE ASSEMBLED CANON, NOT ACCUMULATED DURING THE WALK.**
@@ -401,6 +386,38 @@ pub fn read(project: &Project) -> Result<Canon, IngestError> {
   } else {
     Err(Refusal::new(findings).into())
   }
+}
+
+/// Every `board.json` on disk, with a finding for each file that is not a board.
+///
+/// **A BOARD FILE IS READ WHERE IT SITS, AND AN ABSENT ONE IS NOT A FINDING.**
+/// Every node directory predates the model by months and most will hold only
+/// markdown until the cutover, so "no board.json here" is the normal case
+/// rather than a defect -- the same reading `.intentfiles`' absence gets.
+/// Bytes that ARE there are parsed strictly, because a malformed board is a
+/// real refusal and silently skipping it is how a restore quietly empties a
+/// table.
+///
+/// **ONE READER FOR THE EXTRACT'S BOARDS**: [`read`] takes them from here, and
+/// so do the refusals that ask whether a store has taken them (issue 0535).
+/// The two therefore read the same files the same way.
+pub(crate) fn boards_on_disk(
+  project: &Project,
+) -> Result<(Vec<crate::model::Board>, Vec<Finding>), IngestError> {
+  let mut boards = Vec::new();
+  let mut findings = Vec::new();
+  for node in project.board_nodes()? {
+    let path = project.board_json(&node);
+    match serde_json::from_str::<crate::model::Board>(&read_to_string(&path)?) {
+      Ok(board) => boards.push(board),
+      Err(e) => findings.push(Finding::new(
+        project.relative(&path),
+        FindingClass::SchemaInvalid,
+        format!("not a board: {e}"),
+      )),
+    }
+  }
+  Ok((boards, findings))
 }
 
 /// **Run a load-from-canon with its outcome recorded ON the store** -- the one
@@ -717,16 +734,22 @@ pub fn load_fresh(project: &Project, store: &mut Store) -> Result<Canon, IngestE
   // the files" is a reported finding with a named remedy. That is the trade
   // hv is making, made explicit rather than assumed.
   let (threads, issues) = store.load_canon()?;
-  if !threads.is_empty() || !issues.is_empty() {
+  // **THE STORE'S BOARDS, NOT NONE.** This is the open nearly every command
+  // pays, and a model with no boards is one whose next thread mutation
+  // re-derives the index without them and whose corpus survey leaves
+  // `board.json` in as a file.
+  //
+  // **AND A BOARD IS CONTENT, SO IT MAKES THE STORE WARM** (issue 0535). An
+  // estate whose store holds boards and no thread or issue would otherwise take
+  // the cold path at every open. That is the same line `Store::warm_if_cold`
+  // draws under the lock.
+  let boards = store.hydrate_boards()?;
+  if !threads.is_empty() || !issues.is_empty() || !boards.is_empty() {
     return Ok(Canon {
       threads,
       issues,
       sections: read_sections(project, store)?,
-      // **THE STORE'S BOARDS, NOT NONE.** This is the open nearly every command
-      // pays, and a model with no boards is one whose next thread mutation
-      // re-derives the index without them and whose corpus survey leaves
-      // `board.json` in as a file.
-      boards: store.hydrate_boards()?,
+      boards,
     });
   }
 
@@ -1127,7 +1150,7 @@ fn resync_inner(
     // carry the peer's write yet -- and the rest of this pass, which exists to
     // warm, has nothing left to do.
     Load::WarmIfCold => {
-      if !store.warm_if_cold(&canon.threads, &canon.issues)? {
+      if !store.warm_if_cold(&canon.threads, &canon.issues, &canon.boards)? {
         let (threads, issues) = store.load_canon()?;
         return Ok(Canon {
           threads,
@@ -1138,8 +1161,11 @@ fn resync_inner(
       }
     }
   }
-  // **ONLY AN UNSCOPED `Restore` CARRIES BOARDS FROM DISK INTO THE STORE.**
-  // Two separate narrowings, and they have different reasons.
+  // **ONLY AN UNSCOPED `Restore` CARRIES BOARDS FROM DISK INTO THE STORE HERE.**
+  // The one other door is a cold warm, which carries them inside
+  // `Store::warm_if_cold`'s transaction, because a store holding nothing has no
+  // board write to revert (issue 0535). Two separate narrowings keep every
+  // other load off them, and they have different reasons.
   //
   // A THREAD SCOPE NAMES NO BOARD, so a scoped run leaves the whiteboard tables
   // as the store holds them -- the rule issues already follow one field over,

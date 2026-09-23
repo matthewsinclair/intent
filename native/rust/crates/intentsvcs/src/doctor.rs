@@ -1419,8 +1419,33 @@ fn db_checks(canon: &Canon, project: &Project, out: &mut Vec<Finding>) {
   // comparison a restore already applies, so this arm and the write cannot
   // disagree about what differs. A store holding no board row is cold for the
   // reason given below, and is skipped on the same terms.
+  //
+  // **EXCEPT A STORE THAT HOLDS THE ESTATE AND NOT ITS BOARDS, WHICH IS NOT
+  // COLD** (issue 0535). A cold warm carries the boards now, so a store holding
+  // threads, issues or nodes and not the migrated board a `board.json` records
+  // was warmed by an Intent before 0535, or took `wb register` over a board it
+  // never held. Every write that renders boards refuses that state, so it is
+  // named here before anyone runs one, in this arm's class and with the
+  // refusal's own remedy. A node named here is left out of the stale-board
+  // finding below, whose remedy is a re-render: that is the write that empties
+  // this board.
+  let lacking = crate::model::boards_the_store_lacks(&held_boards, &canon.boards);
+  if !lacking.is_empty() && (!held_boards.is_empty() || !is_empty_snapshot(&on_disk)) {
+    out.push(Finding::new(
+      "intent/.cache/intent.db",
+      FindingClass::StoreStale,
+      format!(
+        "the runtime store does not hold the migrated board that board.json on disk records for {} -- {}",
+        lacking.join(", "),
+        crate::facade::BOARDS_NOT_IN_THE_STORE_REMEDY
+      ),
+    ));
+  }
   if !held_boards.is_empty() {
-    let stale = stale_boards(&held_boards, &canon.boards);
+    let stale: Vec<String> = stale_boards(&held_boards, &canon.boards)
+      .into_iter()
+      .filter(|node| !lacking.contains(node))
+      .collect();
     if !stale.is_empty() {
       out.push(Finding::new(
         "intent/.cache/intent.db",

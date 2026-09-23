@@ -2458,6 +2458,41 @@ impl BoardChanges {
   }
 }
 
+/// The nodes whose `board.json` on disk records a migrated board that the store
+/// does not hold as a migrated node, sorted (issue 0535).
+///
+/// **A MIGRATED `board.json` IS AN EXTRACT, SO ITS ROWS WERE IN SOME STORE.**
+/// Its `migrated_at` says the rows it was written from held that node's board,
+/// so a store holding no migrated node of that name has not taken the board in.
+/// The live case is a fresh clone whose store an Intent before 0535 warmed with
+/// the threads and issues and no whiteboard. From such a store, `wb register`
+/// then `sync --to-disk` writes an empty board over the file, and `wb migrate`
+/// reads the rendered `wip.md` as though it were hand-authored and does the
+/// same. So each of them refuses, and the reads name `sync --to-store`, which
+/// carries the files in.
+///
+/// **A NODE THE STORE HOLDS UNMIGRATED STILL COUNTS**, because that is the state
+/// `wb register` leaves: an empty row beside a file that records a board. A
+/// `board.json` recording no migration belongs to a node still in its markdown
+/// era, and says nothing about the store.
+///
+/// **PURE**, so doctor, the refusals and the reads ask one question and cannot
+/// disagree about its answer.
+pub fn boards_the_store_lacks(held: &[Board], on_disk: &[Board]) -> Vec<String> {
+  let migrated: std::collections::BTreeSet<&str> = held
+    .iter()
+    .filter(|b| b.node.migrated_at.is_some())
+    .map(|b| b.node.moniker.as_str())
+    .collect();
+  let lacking: std::collections::BTreeSet<&str> = on_disk
+    .iter()
+    .filter(|b| b.node.migrated_at.is_some())
+    .map(|b| b.node.moniker.as_str())
+    .filter(|moniker| !migrated.contains(moniker))
+    .collect();
+  lacking.into_iter().map(str::to_string).collect()
+}
+
 /// The difference between the boards the store holds and the boards a restore
 /// offers, by natural key (vc decision 22, issue 0414).
 ///
@@ -2718,5 +2753,62 @@ mod claim_address_tests {
     assert!(is_claim_address("ST0079/01"));
     assert!(!is_claim_address("ST0079/1"));
     assert!(!is_claim_address("ST0079/WP-01"));
+  }
+
+  /// **NESTED IN THIS MODULE, NOT A SECOND TEST MODULE** (issue 0535). A
+  /// shipped file carries one test module, at its end: intent-cli's scan for
+  /// shipped strings cuts each file at its first test attribute and asserts
+  /// there is only one, so a second would drop shipped code from that scan.
+  mod boards_the_store_lacks {
+    use crate::model::{BOARD_SCHEMA, Board, WbNode, WbNodeStatus, boards_the_store_lacks};
+
+    fn board(moniker: &str, migrated: bool) -> Board {
+      Board {
+        schema: BOARD_SCHEMA.to_string(),
+        node: WbNode {
+          moniker: moniker.to_string(),
+          name: format!("{moniker} Claude"),
+          role: "worker".to_string(),
+          session_id: None,
+          heartbeat_at: "2026-09-23T13:00:00.000Z".to_string(),
+          status: WbNodeStatus::Active,
+          focus: String::new(),
+          claims: Vec::new(),
+          recorded_at: "2026-09-23T13:00:00.000Z".to_string(),
+          authored_at: None,
+          migrated_at: migrated.then(|| "2026-09-13T11:03:59.755Z".to_string()),
+        },
+        items: Vec::new(),
+        messages: Vec::new(),
+      }
+    }
+
+    #[test]
+    fn a_migrated_board_on_disk_is_lacking_until_the_store_holds_it_migrated() {
+      let on_disk = [
+        board("cc", true),
+        board("dc", true),
+        board("ic", true),
+        board("vc", false),
+      ];
+      // cc: absent from the store, the fresh clone. dc: held unmigrated, the
+      // state `wb register` leaves. ic: held migrated, taken in. vc: its file
+      // records no migration, so it is a markdown-era node and never lacking.
+      let held = [board("dc", false), board("ic", true)];
+      assert_eq!(
+        boards_the_store_lacks(&held, &on_disk),
+        vec!["cc".to_string(), "dc".to_string()]
+      );
+      assert_eq!(
+        boards_the_store_lacks(&on_disk, &on_disk),
+        Vec::<String>::new(),
+        "a store holding every board the disk records lacks none"
+      );
+      assert_eq!(
+        boards_the_store_lacks(&[], &[]),
+        Vec::<String>::new(),
+        "a project with no whiteboard lacks nothing"
+      );
+    }
   }
 }

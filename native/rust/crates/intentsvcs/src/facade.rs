@@ -2009,6 +2009,20 @@ pub enum FacadeError {
   /// A board write on a node whose board is still its hand-authored markdown.
   #[error("`{node}` is registered and not migrated, so its board is still the markdown on disk")]
   WbNotMigrated { node: String },
+  /// A `board.json` on disk records a migrated board that this store does not
+  /// hold (issue 0535), by [`crate::model::boards_the_store_lacks`].
+  ///
+  /// **REFUSED BEFORE ANYTHING IS WRITTEN, BY EVERY VERB THAT WOULD RENDER OVER
+  /// ONE OF THOSE FILES, AND NAMED BY THE READS.** Driven on a fresh clone,
+  /// `wb register` then `sync --to-disk` wrote an empty board over every
+  /// node's file at rc 0, and `wb migrate` read the rendered `wip.md` as
+  /// hand-authored and did the same: 10258 lines of five boards, deleted with
+  /// every step saying ok.
+  #[error(
+    "board.json on disk records a migrated board that this store does not hold, for {}",
+    .nodes.join(", ")
+  )]
+  WbBoardsNotInTheStore { nodes: Vec<String> },
   /// A moniker already registered, named again with other values.
   #[error("`{node}` is registered as `{held_name}` ({held_role}), not `{name}` ({role})")]
   WbRegisteredDifferently {
@@ -2495,6 +2509,9 @@ impl crate::remedy::Remedy for FacadeError {
       Self::WbNotMigrated { node } => format!(
         "`intent wb migrate {node}` carries its hand-authored board into the model first. A board write renders the board from the store, so writing before the carry would replace the markdown with a render of a board that holds none of it"
       ),
+      Self::WbBoardsNotInTheStore { .. } => {
+        format!("nothing was written. {BOARDS_NOT_IN_THE_STORE_REMEDY}")
+      }
       Self::WbKindHasItsOwnVerb { kind, verb } => format!(
         "`{verb}` writes a `{kind}`. One door per kind is deliberate: what a decision is FOR is stated once, beside the verb that writes one"
       ),
@@ -3328,6 +3345,11 @@ const RERENDER_REMEDY: &str = "the change is safe in the store -- do NOT retry i
 /// for organize here, and that ruling is true of thread and issue views and
 /// false of boards. Naming only the right command would leave the wrong one
 /// looking untested.
+/// The remedy for a `board.json` recording a migrated board that the store
+/// does not hold (issue 0535): the refusal's, and doctor's for the same state,
+/// so the two cannot name different doors.
+pub(crate) const BOARDS_NOT_IN_THE_STORE_REMEDY: &str = "`intent sync --to-store` carries each board.json into this store with everything it holds: its items, archived ones included, and its messages with their handled state. Until then `wb register`, `wb migrate` and `sync --to-disk` are refused, because each would write an empty board over one of these files. The usual cause is a store that an older Intent warmed, which took the threads and issues and no board";
+
 pub(crate) const BOARD_RERENDER_REMEDY: &str = "the row is safe in the store and the TREE is behind it -- do NOT retry the write. Clear the filesystem cause, then run `intent wb touch --node <you>`: a board's views are landed by a board write and by nothing else. NOT `intent organize`, which renders no board, and NOT `intent st sync`, which rewrites a thread's views only -- either one reports a clean run and leaves the board stale";
 
 /// The remedy when git could not say, after a board edit landed, what the
@@ -7199,6 +7221,11 @@ impl Facade {
   /// separate deliberate act at a cutover, and reading a thin board file as a
   /// half-finished migration would get both of them wrong.
   pub fn register_roster(&mut self) -> Result<usize, FacadeError> {
+    // **A RENDERED HEADER IS NOT A ROSTER TO REGISTER FROM** (issue 0535). Where
+    // a migrated `board.json` sits beside it and this store has not taken the
+    // board in, each node would be born unmigrated and empty, and the next
+    // `sync --to-disk` would write every empty board over its file.
+    self.refuse_if_the_store_lacks_any()?;
     let mut nodes = Vec::new();
     let Ok(entries) = std::fs::read_dir(self.project.whiteboard_dir()) else {
       return Ok(0);
@@ -7320,6 +7347,11 @@ impl Facade {
         held_role: held.node.role,
       });
     }
+    // **A NODE WHOSE MIGRATED `board.json` THIS STORE HAS NOT TAKEN IN IS NOT
+    // REGISTERED AGAIN** (issue 0535). Its `wip.md` is a render, so the node
+    // would be born unmigrated and empty beside a file that records a board,
+    // and the next `sync --to-disk` writes that empty board over it.
+    self.refuse_if_the_store_lacks(moniker)?;
     // **A NODE WITH A HAND-AUTHORED BOARD IS NEITHER BORN MIGRATED NOR
     // RENDERED.** Its row is not the board while markdown stands beside it:
     // `wb migrate` carries that, and until then every board write refuses
@@ -7596,7 +7628,62 @@ impl Facade {
     Ok(())
   }
 
+  /// The nodes whose migrated `board.json` this store has not taken in (issue
+  /// 0535), read through the one reader a restore uses.
+  ///
+  /// **A FILE THAT IS NOT A BOARD IS NO ANSWER HERE, AND IT IS NOT LOST.** Every
+  /// read of the extract refuses it by name, and doctor reports it. Refusing
+  /// here as well would stop `sync --to-disk` writing the store's board over it,
+  /// which is its repair.
+  fn boards_the_store_lacks(&self) -> Result<Vec<String>, FacadeError> {
+    let (on_disk, _not_boards) =
+      ingest::boards_on_disk(&self.project).map_err(FacadeError::Ingest)?;
+    Ok(crate::model::boards_the_store_lacks(
+      &self.boards()?,
+      &on_disk,
+    ))
+  }
+
+  /// Refuse when `node`'s migrated `board.json` is one this store has not
+  /// taken in, naming every such node (issue 0535).
+  fn refuse_if_the_store_lacks(&self, node: &str) -> Result<(), FacadeError> {
+    let nodes = self.boards_the_store_lacks()?;
+    if nodes.iter().any(|n| n == node) {
+      return Err(FacadeError::WbBoardsNotInTheStore { nodes });
+    }
+    Ok(())
+  }
+
+  /// Refuse when ANY migrated `board.json` is one this store has not taken in:
+  /// the gate of every verb that renders every board (issue 0535).
+  fn refuse_if_the_store_lacks_any(&self) -> Result<(), FacadeError> {
+    let nodes = self.boards_the_store_lacks()?;
+    if nodes.is_empty() {
+      return Ok(());
+    }
+    Err(FacadeError::WbBoardsNotInTheStore { nodes })
+  }
+
+  /// The roster `wb status` answers with: every registered node's board.
+  ///
+  /// **AN EMPTY ROSTER BESIDE A MIGRATED `board.json` IS REFUSED, NOT PRINTED**
+  /// (issue 0535). "No nodes are registered" sent a fresh clone to `wb
+  /// register`, and from there `sync --to-disk` or `wb migrate` wrote empty
+  /// boards over every file. What that store lacks is the boards on disk, and
+  /// the refusal names the verb that carries them in.
+  pub fn wb_status(&self) -> Result<Vec<Board>, FacadeError> {
+    let boards = self.boards()?;
+    if boards.is_empty() {
+      self.refuse_if_the_store_lacks_any()?;
+    }
+    Ok(boards)
+  }
+
   /// Refuse a moniker the roster does not carry, with the roster named.
+  ///
+  /// **A MONIKER WHOSE MIGRATED `board.json` THE STORE HAS NOT TAKEN IN IS
+  /// REFUSED FOR THAT REASON** (issue 0535), because registering it is the step
+  /// that leads to its board being emptied.
   fn require_registered(&self, node: &str) -> Result<(), FacadeError> {
     if self
       .store
@@ -7605,6 +7692,7 @@ impl Facade {
     {
       return Ok(());
     }
+    self.refuse_if_the_store_lacks(node)?;
     let known = self.store.wb_monikers().map_err(FacadeError::Store)?;
     Err(FacadeError::WbNodeNotRegistered {
       node: node.to_string(),
@@ -7632,6 +7720,10 @@ impl Facade {
     {
       return Ok(());
     }
+    // **A NODE `wb register` LEFT UNMIGRATED BESIDE A MIGRATED `board.json`
+    // NAMES `sync --to-store`, NOT `wb migrate`** (issue 0535). The migrate
+    // would read the rendered `wip.md` as hand-authored and empty every board.
+    self.refuse_if_the_store_lacks(node)?;
     Err(FacadeError::WbNotMigrated {
       node: node.to_string(),
     })
@@ -7919,6 +8011,11 @@ impl Facade {
     node: &str,
     drop_uncarried: bool,
   ) -> Result<WbMigration, FacadeError> {
+    // **A MIGRATED `board.json` IS NOT A BOARD TO CARRY** (issue 0535). Its
+    // `wip.md` is a render of rows this store has not taken in, and a carry
+    // reads it as hand-authored, then lands every board: driven, it emptied
+    // all five of a fresh clone's boards and kept ten of one node's items.
+    self.refuse_if_the_store_lacks_any()?;
     self.require_registered(node)?;
     let standing = self.board(node)?;
     if !standing.items.is_empty() || !standing.messages.is_empty() {
@@ -9068,26 +9165,33 @@ impl Facade {
   /// shape would let a typo look like a quiet colleague.
   pub fn board(&self, node: &str) -> Result<Board, FacadeError> {
     let boards = self.boards()?;
-    boards
-      .iter()
-      .find(|b| b.node.moniker == node)
-      .cloned()
-      .ok_or_else(|| FacadeError::WbNodeNotRegistered {
-        node: node.to_string(),
-        known: if boards.is_empty() {
-          "no nodes at all".to_string()
-        } else {
-          boards
-            .iter()
-            .map(|b| b.node.moniker.clone())
-            .collect::<Vec<_>>()
-            .join(", ")
-        },
-      })
+    if let Some(board) = boards.iter().find(|b| b.node.moniker == node) {
+      return Ok(board.clone());
+    }
+    // A board on disk that this store has not taken in is not a question about
+    // somebody who is not here (issue 0535), and its refusal says so.
+    self.refuse_if_the_store_lacks(node)?;
+    Err(FacadeError::WbNodeNotRegistered {
+      node: node.to_string(),
+      known: if boards.is_empty() {
+        "no nodes at all".to_string()
+      } else {
+        boards
+          .iter()
+          .map(|b| b.node.moniker.clone())
+          .collect::<Vec<_>>()
+          .join(", ")
+      },
+    })
   }
 
   pub fn sync_to_disk(&mut self, scope: &SyncScope) -> Result<usize, FacadeError> {
     self.refuse_if_the_last_ingest_was_refused()?;
+    // **THE PROJECTION WRITES EVERY BOARD UNDER ANY SCOPE**, so a store that
+    // has not taken in a migrated `board.json` would write that node's empty
+    // row over it: every board, emptied at rc 0, after a `wb register` in a
+    // fresh clone (issue 0535).
+    self.refuse_if_the_store_lacks_any()?;
     let (threads, issues) = self.store.load_canon().map_err(FacadeError::Store)?;
     let sections = self.store.doc_sections().map_err(FacadeError::Store)?;
     let boards = self.store.hydrate_boards().map_err(FacadeError::Store)?;

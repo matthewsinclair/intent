@@ -1294,7 +1294,7 @@ pub fn serve(
     // PATHS in it -- an agent deciding whether to trust a search needs to know
     // which files are not in the index, and a count cannot answer that.
     "wb status" => Ok(json!(
-      f.boards()?
+      f.wb_status()?
         .iter()
         .map(|b| json!({
           "node": b.node,

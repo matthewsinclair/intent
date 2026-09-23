@@ -1217,6 +1217,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::WbSendersNotRegistered { .. } => "WbSendersNotRegistered",
     FacadeError::WbHeaderIncomplete { .. } => "WbHeaderIncomplete",
     FacadeError::WbNotMigrated { .. } => "WbNotMigrated",
+    FacadeError::WbBoardsNotInTheStore { .. } => "WbBoardsNotInTheStore",
     FacadeError::WbKindHasItsOwnVerb { .. } => "WbKindHasItsOwnVerb",
     FacadeError::WbDirectiveOffHv { .. } => "WbDirectiveOffHv",
     FacadeError::WbDirectivesOnAnotherBoard { .. } => "WbDirectivesOnAnotherBoard",
@@ -1340,6 +1341,7 @@ const ALL_VARIANTS: &[&str] = &[
   "WbSendersNotRegistered",
   "WbHeaderIncomplete",
   "WbNotMigrated",
+  "WbBoardsNotInTheStore",
   "WbKindHasItsOwnVerb",
   "WbDirectiveOffHv",
   "WbDirectivesOnAnotherBoard",
@@ -1381,6 +1383,12 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   // `wb_migrate_carries_a_board.rs`, which drives each.
   "WbUncarried",
   "WbSnapshotInTheWay",
+  // **PROVOKED WHERE A STORE LACKS THE BOARDS ON DISK** (issue 0535). It needs
+  // a migrated `board.json` beside a store that has not taken it in, the state
+  // a fresh clone's store was left in before 0535. `a_fresh_clone_takes_its_boards.rs`
+  // builds that store and drives this refusal from every door that raises it,
+  // and building one here would be a second copy of that fixture.
+  "WbBoardsNotInTheStore",
   // **PROVOKED WHERE A RESOLUTION IS STORED.** A target no resolved row names is
   // refused only when resolved targets end the same way, so it needs indexed
   // source and a resolution run joined to it: intent-cli's

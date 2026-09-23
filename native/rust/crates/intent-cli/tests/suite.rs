@@ -35,6 +35,8 @@ mod at_new_takes_no_status;
 #[path = "common/mod.rs"]
 mod common;
 
+#[path = "a_clone_without_its_boards_names_sync_to_store.rs"]
+mod a_clone_without_its_boards_names_sync_to_store;
 #[path = "a_close_names_what_the_next_organize_removes.rs"]
 mod a_close_names_what_the_next_organize_removes;
 #[path = "a_creating_verb_names_what_it_overwrote.rs"]
