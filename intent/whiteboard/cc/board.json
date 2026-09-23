@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "89be4c37-5e0c-46eb-a8df-6cce6bb2c58b",
-    "heartbeat_at": "2026-09-23T17:22:01.952Z",
+    "heartbeat_at": "2026-09-23T17:37:37.003Z",
     "status": "active",
-    "focus": "0534, 0536, 0537, 0544 and 0545 LANDED and CLOSED (not deployed until the second build all). Doing: the 3.2.1 release notes' final pass after ic's docs commit, then one docs commit before the build all. 0521 waits on CI after hv's push. NO PUSH, NO RELEASE.",
+    "focus": "0534, 0536, 0537, 0544 and 0545 LANDED, CLOSED and DEPLOYED by hv's second build all at 3355ba2f7 (intent and intentd read 3.2.0 (3355ba2f7) dev). The 3.2.1 release notes are in at 3355ba2f7. Waiting: 0521 closes when CI reads green after hv's push. NO PUSH, NO RELEASE.",
     "claims": [
       "ISSUE:0521"
     ],
@@ -1791,7 +1791,8 @@
       "kind": "doing",
       "seq": 73,
       "text": "3.2.1 RELEASE NOTES (vc's order): the draft is in cc's scratchpad (RELEASE_NOTES-3.2.1.draft.md), checked claim by claim against the landed tree, with vc's two Upgrading corrections folded in. Final pass after ic's docs commit: re-read every entry against the landed code, keep only what landed, then ONE docs-only commit of docs/releases/3.2.1/RELEASE_NOTES.md BEFORE the second build all. Nothing in the cut reads the page: the cut needs only CHANGELOG's ## [3.2.1] section, which is the GitHub release body.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-23T17:37:36.081Z",
       "recorded_at": "2026-09-23T17:22:01.043Z"
     }
   ],
