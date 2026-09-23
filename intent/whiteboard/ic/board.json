@@ -9,8 +9,7 @@
     "status": "active",
     "focus": "LOCALFOLD for hv's compact, 2026-09-23. 0530 landed (084b154b9) and closed; 0532 review sent to dc (PASS). After the bounce: dc's 0532 judging run, then 0533 in its own worktree on vc's rulings (announce HEAVY START and END; cc's 0534 waits on it), then the reference set after the last landing and hv's second build all. NO PUSH, NO RELEASE.",
     "claims": [
-      "ISSUE:0538",
-      "ISSUE:0540"
+      "ISSUE:0543"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -2270,8 +2269,26 @@
       "kind": "doing",
       "seq": 107,
       "text": "LANDED (ic, 2026-09-23): 0533 v2 at f7c62b94d and 0538 v2 at 00fc875a7, each at its judged patch-id (98084d6681f5, 358a9730c007), on vc's PASS of cc's stacked run. 0533 is CLOSED with its landing record. 0538 stays OPEN until its tune lands. Neither is deployed until hv's second build all. Since 00fc875a7 the refusing pre-commit block is live in main. TAIL, all riding dc's tail run: (1) the 0538 tune, refs/bank/ic/0538-tune/draft, drafted on 0538 v2 (post-pull blocks warn only where intent/.cache/intent.db sits under the checkout's top level, vc's rule), whose own loop runs on the landed 0538 when the slot is free; (2) the D-table bank, apply_dtable.py, cut now that 0533 and 0534 are in; (3) 0540 v1, patch-id 56aa13ee2f4b, re-checked on the new HEAD. LAST, after the tail and before the build all: the docs commit, apply_precut.py (refs/bank/ic/precut/). Then hv's second build all (warn gtools-vc before and after, intent daemon restart), then the pre-cut reference pass (todo 42), and check candidate C (0520's omnibox index_owed). NO PUSH, NO RELEASE.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-23T17:02:50.669Z",
       "recorded_at": "2026-09-23T14:33:02.709Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 49,
+      "text": "0543 (ic, medium, in 3.2.1; vc's order, 2026-09-23): 0520's omnibox index goes stale when a key-driven read catches a store change before the idle tick. The fix is WRITTEN, no cargo yet, in tmp/wt-ic-0543 on 2643a0d30. Live records catch_up's true on any path, and moved() hands it over once, so follow_the_store sets index_owed and may_reindex still holds a typed query. Live::over is the one constructor. There are two arms in render.rs's tests: a /-command's thread is found in the omnibox, and an outside write a navigation read caught still reindexes. The first tick in the first arm is the control. AT THE SLOT, after dc's tail END: (1) the pty drive on the PRE-FIX binary (tmp/wt-ic-0533's target, scratch project, isolated HOME, drive0543/run_drive.sh); if it does not reproduce, tell vc before building; (2) apply the fix, build, arms, fmt, both clippy lines, doc, then bank; (3) one small whole-suite judging run for 0543 alone, before the docs commit.",
+      "state": "archived",
+      "archived_at": "2026-09-23T17:02:51.561Z",
+      "recorded_at": "2026-09-23T14:46:02.519Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 108,
+      "text": "(ic, 2026-09-23) LANDED AND CLOSED, each at its judged patch-id and none deployed until hv's second build all: 0533 at f7c62b94d; 0538 as v2 at 00fc875a7 plus the post-pull tune at efd73baa1; 0540 at 5411b6bd6; and the D correction to wb edit's when_to_use at 3be665d61. IN FLIGHT: 0543 v1 (refs/bank/ic/0543/v1, patch-id 7bcf7bf4ae7c). It was reproduced on the pre-fix binary in a pty with a control, fixed on the post-fix one, and its arms fail when the fix is mutated out. It is in dc's pair judging run with cc's 0544-0545 (d2e74c897bd1); it then lands on vc's word and closes. LAST before the build all: the docs commit, refs/bank/ic/precut/apply_precut.py, carrying vc's ruled CHANGELOG fixes, 0543's sentence on 0520's line, the 0505 pair and SKILL.md's D. Then hv's second build all (warn gtools-vc before and after, then intent daemon restart), then the pre-cut reference pass (todo 42). NO PUSH, NO RELEASE.",
+      "state": "live",
+      "recorded_at": "2026-09-23T17:02:52.497Z"
     }
   ],
   "messages": [

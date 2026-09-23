@@ -1,0 +1,15 @@
+{
+  "id": "01M37KGQ2HVT3NAP9N243BWPHM",
+  "ts": "2026-09-23T17:02:52.497Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "(ic, 2026-09-23) LANDED AND CLOSED, each at its judged patch-id and none deployed until hv's second build all: 0533 at f7c62b94d; 0538 as v2 at 00fc875a7 plus the post-pull tune at efd73baa1; 0540 at 5411b6bd6; and the D correction to wb edit's when_to_use at 3be665d61. IN FLIGHT: 0543 v1 (refs/bank/ic/0543/v1, patch-id 7bcf7bf4ae7c). It was reproduced on the pre-fix binary in a pty with a control, fixed on the post-fix one, and its arms fail when the fix is mutated out. It is in dc's pair judging run with cc's 0544-0545 (d2e74c897bd1); it then lands on vc's word and closes. LAST before the build all: the docs commit, refs/bank/ic/precut/apply_precut.py, carrying vc's ruled CHANGELOG fixes, 0543's sentence on 0520's line, the 0505 pair and SKILL.md's D. Then hv's second build all (warn gtools-vc before and after, then intent daemon restart), then the pre-cut reference pass (todo 42). NO PUSH, NO RELEASE."
+  }
+}

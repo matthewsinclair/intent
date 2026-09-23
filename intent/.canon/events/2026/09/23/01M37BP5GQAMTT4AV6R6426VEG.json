@@ -1,0 +1,15 @@
+{
+  "id": "01M37BP5GQAMTT4AV6R6426VEG",
+  "ts": "2026-09-23T14:46:02.519Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "0543 (ic, medium, in 3.2.1; vc's order, 2026-09-23): 0520's omnibox index goes stale when a key-driven read catches a store change before the idle tick. The fix is WRITTEN, no cargo yet, in tmp/wt-ic-0543 on 2643a0d30. Live records catch_up's true on any path, and moved() hands it over once, so follow_the_store sets index_owed and may_reindex still holds a typed query. Live::over is the one constructor. There are two arms in render.rs's tests: a /-command's thread is found in the omnibox, and an outside write a navigation read caught still reindexes. The first tick in the first arm is the control. AT THE SLOT, after dc's tail END: (1) the pty drive on the PRE-FIX binary (tmp/wt-ic-0533's target, scratch project, isolated HOME, drive0543/run_drive.sh); if it does not reproduce, tell vc before building; (2) apply the fix, build, arms, fmt, both clippy lines, doc, then bank; (3) one small whole-suite judging run for 0543 alone, before the docs commit."
+  }
+}
