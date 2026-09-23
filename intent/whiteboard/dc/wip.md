@@ -3,26 +3,22 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 1a8e4fe7-0650-45f6-a619-84fc0c380145
-heartbeat_at: 2026-09-23 08:49Z
+heartbeat_at: 2026-09-23 09:08Z
 status: active
-focus: "LOCALFOLD for hv's compact, 2026-09-23. RESUME at the RESUME HERE doing item: close 0522 and 0524 with their evidence, then the Prolix carry (GO). The guards pass for the remaining estates is held until the 3.2.1 cut. NO PUSH, NO RELEASE."
-claims: [ISSUE:0522, ISSUE:0524]
+focus: "0522 and 0524 CLOSED, their evidence in their bodies. NEXT: the Prolix carry (GO), doing 104, then removing tmp/wt-0522. The guards pass for the remaining estates is held until the 3.2.1 cut. NO PUSH, NO RELEASE."
+claims: []
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-- **RESUME HERE (localfold before hv's compact, 2026-09-23; on hv's word, continue on the bounce). NO PUSH, NO RELEASE.**
-(1) CLOSE ISSUES 0522 AND 0524 WITH THEIR EVIDENCE, on vc's word; vc's filing is committed at aec0c3721.
-- 0522 landed at 987268553, its attachment line at b8321e77c, judged patch-id 30c4618a8. The run: dc's whole suites in tmp/wt-0522 (intent-cli 1067 passed, 0 failed; intentsvcs 1830 passed, 1 failed, the attachment drift, 7/7 without it) and cc's train.
-- 0524 landed at 900f76a86, judged patch-id 2f475e2c1. The run: cc's train at 08:30:14Z and 08:39:53Z, and dc's 19/19 with both static dirs empty. It landed inside cc's crossed chain: cc's 08:47:56Z START reached dc after the commit. The paths were disjoint, and cc was told.
-(2) THE PROLIX CARRY, GO (vc's word on hv's TUI choice, after 08:46:28Z).
+- **THE PROLIX CARRY, GO (vc's word on hv's TUI choice, 2026-09-23). NO PUSH, NO RELEASE.** 0522 and 0524 are CLOSED with their evidence in their bodies, which frees this item to be the next unit.
 - hv's board: carry it as it is. vc then archives the four placeholder items under hv's pen, in Prolix and in Molt.
 - Prolix cc: wb migrate cc --drop-uncarried. Then re-add the three `## Blocked on hv` asks as HOLDS, each "released when hv rules on <its topic>". The fourth unit (deleteAccount, d5d8bb5 and 33ab906) stays dropped.
 - Prolix vc: carry it, then archive the two coerced section-intro items (the hold from wip.md:23 and the watchout from :84).
-- The procedure is archived doing 81: git status first, never wb status first; hash the rendered boards before and after; check wb show against each file; read doctor whole. One mechanical commit in Prolix by literal paths, doctor after, vc checks it. No push. The rehearsal clone is scratchpad/prolix-rehearsal.
-(3) HOUSEKEEPING: remove the worktree tmp/wt-0522 with git worktree remove --force; 0522 and 0524 are both landed. hv's push needs bin/devbin build all: 0520, 0522 and 0524 moved native/rust, and the gate reads currency REFUSING.
+- The procedure is archived doing 81: git status first, never wb status first; hash the rendered boards before and after; argument-free wb register, then wb migrate hv, cc and vc; check wb show against each file; read doctor whole. One mechanical commit in Prolix by literal paths, doctor after, vc checks it. No push. The rehearsal clone is scratchpad/prolix-rehearsal.
+- THEN HOUSEKEEPING: remove the worktree tmp/wt-0522 with git worktree remove --force, since 0522 and 0524 are both landed. hv's push needs bin/devbin build all: 0520, 0522 and 0524 moved native/rust, and the gate reads currency REFUSING.
 
 ## TODO
 
