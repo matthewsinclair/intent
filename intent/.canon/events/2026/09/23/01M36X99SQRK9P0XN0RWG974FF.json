@@ -1,0 +1,15 @@
+{
+  "id": "01M36X99SQRK9P0XN0RWG974FF",
+  "ts": "2026-09-23T10:34:20.855Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "0530 BANKED, unjudged (2026-09-23): refs/bank/ic/0530/on-1ac4079f2, blob 6890365f4, patch-id b4e176144, 5 files +79 -10 -- register id help on wb claim/unclaim carrying model::CLAIM_ADDRESS_FORMS, mcp.rs deriving the claim-address description, the skill's three stale claim statements, one Fixed line, and the drift arm mcp::tests::every_door_naming_the_claim_forms_names_the_one_home. NEXT: one judging run over 0530 and cc's 0525+0529 (shared: CHANGELOG.md, SKILL.md), whoever banks last runs it; drive the composition both orders first; drive wb claim --help on the built binary; land on vc's word in the agreed order. Worktree tmp/wt-ic-0530."
+  }
+}

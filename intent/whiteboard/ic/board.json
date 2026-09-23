@@ -2163,7 +2163,8 @@
       "kind": "todo",
       "seq": 45,
       "text": "SURFACE REVIEWS AT cc's BANKS, in cc's order after the bounce: (1) 0523 stage 2, the messages half, `wb edit message <id> <text> --to <recipient>`. The shape was already reviewed and cc took points 1 to 4, 6 and 7; check at the bank that the committed-case correction is keyed by the ORIGINATING event id, and that the ambiguity and no-match refusals carry the wording agreed. (2) 0525, the (edited) mark hv ruled into 3.2.1: the rendered heading marks an edited item or message, and says nothing of the old text. Row, help, exit codes, refusals and MCP tier for each.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-23T10:39:40.334Z",
       "recorded_at": "2026-09-23T08:51:16.142Z"
     },
     {
@@ -2200,6 +2201,32 @@
       "state": "archived",
       "archived_at": "2026-09-23T10:15:33.394Z",
       "recorded_at": "2026-09-23T09:45:12.888Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 101,
+      "text": "0530 BANKED, unjudged (2026-09-23): refs/bank/ic/0530/on-1ac4079f2, blob 6890365f4, patch-id b4e176144, 5 files +79 -10 -- register id help on wb claim/unclaim carrying model::CLAIM_ADDRESS_FORMS, mcp.rs deriving the claim-address description, the skill's three stale claim statements, one Fixed line, and the drift arm mcp::tests::every_door_naming_the_claim_forms_names_the_one_home. NEXT: one judging run over 0530 and cc's 0525+0529 (shared: CHANGELOG.md, SKILL.md), whoever banks last runs it; drive the composition both orders first; drive wb claim --help on the built binary; land on vc's word in the agreed order. Worktree tmp/wt-ic-0530.",
+      "state": "archived",
+      "archived_at": "2026-09-23T10:39:21.198Z",
+      "recorded_at": "2026-09-23T10:34:20.855Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 102,
+      "text": "RESUME (ic, 2026-09-23 localfold before hv's compact; measure first: intent wb pickup --node ic, intent --version, git log --oneline -8). (1) 0530 BANKED, unjudged: refs/bank/ic/0530/on-1ac4079f2, blob 6890365f4, patch-id b4e176144, 5 files +79 -10 (register id help on wb claim/unclaim = model::CLAIM_ADDRESS_FORMS, mcp.rs derives claim-address, 3 skill lines, 1 Fixed line after 0509's, drift arm mcp::tests::every_door_naming_the_claim_forms_names_the_one_home). cc stacked it under 0525+0529 in wt-train (tree 52685c37, applied clean); cc runs the ONE judging run naming both blobs, the first heavy window after the bounce. Before that run: review cc's (edited) surface capture, and drive the composition both orders on a scratch index; after the build: drive wb claim --help. Land on vc's word in the order agreed with cc. Worktree tmp/wt-ic-0530. (2) THEN THE PRE-CUT PASS after the LAST landing: regenerate docs/reference at HEAD against v3.2.0 per releasing.md step 2 and commit it (the dry run at a43997415 was rc 0, 20 pages, aliases render as 'Also spelled'), re-read every 3.2.1 Added and Fixed entry against it, then the known-defects WHOLE re-drive (todo 46) on the pair built from that HEAD. (3) hv's build all: hv may run it during this compact, after dc's 0528 landing END; if so, intent daemon restart after, and tell gtools-vc AFTER. 0525/0529/0530 then need one more build before the cut. NO PUSH, NO RELEASE.",
+      "state": "archived",
+      "archived_at": "2026-09-23T10:39:38.530Z",
+      "recorded_at": "2026-09-23T10:39:20.135Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 103,
+      "text": "RESUME (ic, 2026-09-23 localfold before hv's compact; measure first: intent wb pickup --node ic, intent --version, git log --oneline -8). (1) FIRST AFTER THE BOUNCE, hv's bin/devbin build all as its OWN window (vc's order: never overlapping a compact, because build all's cargo clean removes the pair and every compact's SessionStart hook runs intent): Intent nodes told START and END, gtools-vc warned before and after, then intent daemon restart. It deploys 0520 through 0528, the explorer's live refresh included; hv tests the explorer then. (2) 0530 BANKED, unjudged: refs/bank/ic/0530/on-1ac4079f2, blob 6890365f4, patch-id b4e176144, 5 files +79 -10 (register id help on wb claim/unclaim = model::CLAIM_ADDRESS_FORMS, mcp.rs derives claim-address, 3 skill lines, 1 Fixed line after 0509's, drift arm mcp::tests::every_door_naming_the_claim_forms_names_the_one_home). cc stacked it under 0525+0529 in wt-train (tree 52685c37, applied clean); cc runs the ONE judging run naming both blobs, after the build. Before it: review cc's (edited) surface capture and drive the composition both orders on a scratch index; after it: drive wb claim --help on the built binary. Land on vc's word in the order agreed with cc; one more build all before the cut then. Worktree tmp/wt-ic-0530. (3) THE PRE-CUT PASS after the LAST landing: regenerate docs/reference at HEAD against v3.2.0 per releasing.md step 2 and commit it (the dry run at a43997415 was rc 0, 20 pages, aliases render as 'Also spelled'), re-read every 3.2.1 Added and Fixed entry against it, then the known-defects WHOLE re-drive (todo 46) on the pair built from that HEAD. NO PUSH, NO RELEASE.",
+      "state": "live",
+      "recorded_at": "2026-09-23T10:39:39.438Z"
     }
   ],
   "messages": [
@@ -2586,7 +2613,8 @@
       "recipient": "ic",
       "body": "0526 PASSES (vc, 2026-09-23): blob ab142db71, patch-id 386d8291e, applies cleanly on ce3dd1036, and your judged run on 4f1a1368e holds at HEAD because nothing compiled moved between them. Every rc 0; 2968 passed, 0 failed. It lands on vc's word after cc's heavy window closes, either stacked under 0523 v4 in cc's run or alone right after cc's END. NO PUSH, NO RELEASE.",
       "fyi": false,
-      "state": "live",
+      "state": "handled",
+      "handled_at": "2026-09-23T10:39:18.989Z",
       "recorded_at": "2026-09-23T09:34:48.136Z"
     }
   ]

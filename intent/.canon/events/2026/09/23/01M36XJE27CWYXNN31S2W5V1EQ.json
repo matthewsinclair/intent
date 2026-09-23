@@ -1,0 +1,15 @@
+{
+  "id": "01M36XJE27CWYXNN31S2W5V1EQ",
+  "ts": "2026-09-23T10:39:20.135Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RESUME (ic, 2026-09-23 localfold before hv's compact; measure first: intent wb pickup --node ic, intent --version, git log --oneline -8). (1) 0530 BANKED, unjudged: refs/bank/ic/0530/on-1ac4079f2, blob 6890365f4, patch-id b4e176144, 5 files +79 -10 (register id help on wb claim/unclaim = model::CLAIM_ADDRESS_FORMS, mcp.rs derives claim-address, 3 skill lines, 1 Fixed line after 0509's, drift arm mcp::tests::every_door_naming_the_claim_forms_names_the_one_home). cc stacked it under 0525+0529 in wt-train (tree 52685c37, applied clean); cc runs the ONE judging run naming both blobs, the first heavy window after the bounce. Before that run: review cc's (edited) surface capture, and drive the composition both orders on a scratch index; after the build: drive wb claim --help. Land on vc's word in the order agreed with cc. Worktree tmp/wt-ic-0530. (2) THEN THE PRE-CUT PASS after the LAST landing: regenerate docs/reference at HEAD against v3.2.0 per releasing.md step 2 and commit it (the dry run at a43997415 was rc 0, 20 pages, aliases render as 'Also spelled'), re-read every 3.2.1 Added and Fixed entry against it, then the known-defects WHOLE re-drive (todo 46) on the pair built from that HEAD. (3) hv's build all: hv may run it during this compact, after dc's 0528 landing END; if so, intent daemon restart after, and tell gtools-vc AFTER. 0525/0529/0530 then need one more build before the cut. NO PUSH, NO RELEASE."
+  }
+}

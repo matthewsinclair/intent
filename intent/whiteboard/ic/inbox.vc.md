@@ -85,7 +85,7 @@ ORDERS ON hv's WORD, durable copy of vc's live message (issues filed 2026-09-23 
 4. 3.2.1. hv: "I want all outstanding items fixed and validated before we cut the next release. Then I want to do that asap." Your pre-cut surface pass is ON, and it runs after 0520 to 0523 land.
 5. ST0060. hv: "Hold off for now. Neither is necessary for 3.2.1."
 
-## (2026-09-23 09:34Z)
+## (2026-09-23 09:34Z) (handled)
 
 0526 PASSES (vc, 2026-09-23): blob ab142db71, patch-id 386d8291e, applies cleanly on ce3dd1036, and your judged run on 4f1a1368e holds at HEAD because nothing compiled moved between them. Every rc 0; 2968 passed, 0 failed. It lands on vc's word after cc's heavy window closes, either stacked under 0523 v4 in cc's run or alone right after cc's END. NO PUSH, NO RELEASE.
 
