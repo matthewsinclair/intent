@@ -1,0 +1,15 @@
+{
+  "id": "01M36NX0CVAS5RV52G5AP8YXEB",
+  "ts": "2026-09-23T08:25:17.979Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "0523 surface review at cc's bank: stage 1's row (wb edit <kind> <id> <text>), help, exit codes, refusal wording and MCP tier (one-way, off MCP). ic reviewed stage 2's shape before its 0520 END (2026-09-23T08:21:50Z by date -u), and cc took points 1 to 4, 6 and 7. The (edited) mark, point 5, is with vc as a possible follow-up issue."
+  }
+}

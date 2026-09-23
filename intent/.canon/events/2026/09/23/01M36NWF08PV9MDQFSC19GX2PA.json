@@ -1,0 +1,15 @@
+{
+  "id": "01M36NWF08PV9MDQFSC19GX2PA",
+  "ts": "2026-09-23T08:25:00.168Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "0520 (the explorer does not refresh): BUILT, JUDGED AND BANKED, awaiting the train. The mechanism, the shape, the driven evidence and the declared no-daemon limit are in 0520's body. Judged alone in tmp/wt-ic-0520 at c419e8719: builds rc 0, workspace tests green but for dispatch_ssot's alias arm (dc's shared-tempdir race; rc 0 alone), CI's clippy pair, doc and fmt rc 0, pty drives (1) to (5) all as expected. Banked as refs/bank/ic/0520/judged-c419e8719 (blob c8a0c7c39), rebased onto dc's 0522 at 987268553 as refs/bank/ic/0520/on-987268553 (blob 5933ef69e, 7 files, +397 -6), patch-id 637bede65 both. NEXT: cc's train run judges HEAD plus 0520 plus 0523 stage 1, then 0520 lands FIRST on vc's word, then 0523 stage 1. Both worktrees (tmp/wt-ic-0520, tmp/wt-ic-0520r) stay until 0520 lands."
+  }
+}

@@ -3,10 +3,10 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 211a090e-f16e-484b-bd74-7a58ce1c75e7
-heartbeat_at: 2026-09-23 07:16Z
+heartbeat_at: 2026-09-23 08:51Z
 status: active
-focus: "HOLDING FOR ORDERS, 2026-09-23. Start of day measured and synced to vc at 07:14Z: pair 099088acd = HEAD and pushed, intentd restarted by the host reboot, outs reads 0 open. CI rust is green on 4aa026a3c; CI Intent Tests is RED on both legs, 8 arms in prepush_push_range.bats, on dc's and cc's paths and not yet routed. ic's plan is in vc's inbox. NO PUSH, NO RELEASE."
-claims: []
+focus: "LOCALFOLD before hv's compact, 2026-09-23. ON THE BOUNCE, in order: 0526 (XS, ic's; bank for vc); the surface reviews of 0523 stage 2 and 0525 at cc's banks; then the 3.2.1 pre-cut surface pass once 0523 lands. 0520 is CLOSED: landed at 89015b037, NOT DEPLOYED until hv's bin/devbin build all after the train. NO PUSH, NO RELEASE."
+claims: [ISSUE:0526]
 ---
 
 # Interface Claude (ic)
@@ -17,7 +17,9 @@ _(none)_
 
 ## TODO
 
-_(none)_
+- 3.2.1 PRE-CUT SURFACE PASS (vc's order on hv's word), after 0520, 0521, 0522 and 0523 land: every Added and Fixed entry has its dispatch row, help, MCP row per exposed_on_mcp, its reference page regenerated against the v3.2.0 baseline (decision 25(3)), and the intent llm output.
+- 0526 IS ic's (vc, 2026-09-23, on hv's word; XS, a 3.2.1 item): the empty-contract refusal at contract.rs:596 names `intent ac new` but never the satisfy step, so following it leads to a second refusal. laksa-vc met it upgrading Laksa. Read the issue body first, then build the remedy that names every step in order, bank it on the HEAD of the day, and send vc the bank with its apply --stat beside the blob hash. It owes intentsvcs's whole suite plus intent-cli's, and CI's doc and clippy lines if it touches a doc link.
+- SURFACE REVIEWS AT cc's BANKS, in cc's order after the bounce: (1) 0523 stage 2, the messages half, `wb edit message <id> <text> --to <recipient>`. The shape was already reviewed and cc took points 1 to 4, 6 and 7; check at the bank that the committed-case correction is keyed by the ORIGINATING event id, and that the ambiguity and no-match refusals carry the wording agreed. (2) 0525, the (edited) mark hv ruled into 3.2.1: the rendered heading marks an edited item or message, and says nothing of the old text. Row, help, exit codes, refusals and MCP tier for each.
 
 ## Holds
 

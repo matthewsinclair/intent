@@ -1,0 +1,15 @@
+{
+  "id": "01M36NWGP5ARAXCWE5758D6YFZ",
+  "ts": "2026-09-23T08:25:01.893Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "3.2.1 PRE-CUT SURFACE PASS (vc's order on hv's word), after 0520, 0521, 0522 and 0523 land: every Added and Fixed entry has its dispatch row, help, MCP row per exposed_on_mcp, its reference page regenerated against the v3.2.0 baseline (decision 25(3)), and the intent llm output."
+  }
+}

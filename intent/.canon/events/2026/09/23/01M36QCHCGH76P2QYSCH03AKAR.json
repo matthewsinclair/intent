@@ -1,0 +1,15 @@
+{
+  "id": "01M36QCHCGH76P2QYSCH03AKAR",
+  "ts": "2026-09-23T08:51:16.142Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "SURFACE REVIEWS AT cc's BANKS, in cc's order after the bounce: (1) 0523 stage 2, the messages half, `wb edit message <id> <text> --to <recipient>`. The shape was already reviewed and cc took points 1 to 4, 6 and 7; check at the bank that the committed-case correction is keyed by the ORIGINATING event id, and that the ambiguity and no-match refusals carry the wording agreed. (2) 0525, the (edited) mark hv ruled into 3.2.1: the rendered heading marks an edited item or message, and says nothing of the old text. Row, help, exit codes, refusals and MCP tier for each."
+  }
+}
