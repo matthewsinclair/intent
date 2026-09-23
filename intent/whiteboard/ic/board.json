@@ -5,11 +5,12 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "211a090e-f16e-484b-bd74-7a58ce1c75e7",
-    "heartbeat_at": "2026-09-23T12:56:39.557Z",
+    "heartbeat_at": "2026-09-23T13:08:03.186Z",
     "status": "active",
     "focus": "LOCALFOLD for hv's compact, 2026-09-23. 0530 landed (084b154b9) and closed; 0532 review sent to dc (PASS). After the bounce: dc's 0532 judging run, then 0533 in its own worktree on vc's rulings (announce HEAVY START and END; cc's 0534 waits on it), then the reference set after the last landing and hv's second build all. NO PUSH, NO RELEASE.",
     "claims": [
-      "ISSUE:0533"
+      "ISSUE:0538",
+      "ISSUE:0540"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -2225,7 +2226,8 @@
       "kind": "doing",
       "seq": 103,
       "text": "RESUME (ic, 2026-09-23, localfold for hv's compact; measure first: intent wb pickup --node ic, intent --version, git log --oneline -8, then ListAgents to ask cc, dc and vc where they stand). NOTHING OF ic's IS RUNNING, and no heavy run was started. DONE, do not redo: 0530 LANDED at 084b154b9 on cc's 0525 (d3b2250b6), landed patch-id b4e176144 equal to the judged one, main equal to the judged tree 074c8da3d over the 24 banked files; CLOSED at 41b90a9c4. It is not deployed until hv's second build all. Also done: ic's 0532 surface review, sent to dc between 12:52:38Z and 12:56:37Z by date -u: PASS, driven on dc's binary (pandoc reads every heading of the Conflab shape; the CLI sets lines in four spaces, hv's standing block included; doctor reads the older shape as an uncounted note, a one-byte control as counted ViewSkew, and sync --to-disk restores it byte-identical), with three minor notes: (a) a fifth unindented marked spelling in facade text_spellings, (b) \"and\" for \"with\" in the doctor note, (c) the guards pass must prettier-ignore generated board views. NEXT, IN ORDER: (1) dc's 0532 judging run, which is dc's, and ic lands nothing under native/rust while it runs. (2) 0533 on vc's rulings (todo 48), in its own worktree tmp/wt-ic-0533 with an in-tree target, AFTER dc's run ENDs; announce HEAVY START and END to cc, dc and vc, because cc's 0534 compile waits for ic's END. The design notes are banked at refs/bank/ic/0533/design-notes (blob in the fold commit message); no 0533 code exists yet. (3) THE PRE-CUT PASS, after the LAST landing and hv's second build all: ic keeps todo 42 (regenerate docs/reference at HEAD against v3.2.0 per releasing.md step 2 and commit it; re-read every 3.2.1 Added and Fixed entry against it). dc re-drives docs/known-defects.md WHOLE on ic's brief (dc banked it at refs/bank/dc/kd/brief-ic.md) and commits it straight after ic's reference-set commit, so tell dc when that lands. hv's second build all follows the last 3.2.1 landing: tell hv when, and warn gtools-vc before and after. What binds a build all, per vc: one heavy run at a time; no commit in any path while it runs; intent daemon restart after it. NO PUSH, NO RELEASE.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-23T13:29:56.864Z",
       "recorded_at": "2026-09-23T10:39:39.438Z"
     },
     {
@@ -2235,6 +2237,41 @@
       "text": "0533 (vc routed it to ic, 2026-09-23; in the 3.2.1 cut under hv's ruling): nothing in Intent answers where the gate's install root resolves, so Molt copies the shim's resolution to check it. RULED by vc (2026-09-23, all four parts accepted, with two riders). (1) `intent bootstrap --check` is the machine door. It is read-only and follows the shim's --where exit contract exactly: rc 0 when the gate can run, rc 1 when it cannot. A versioned-keg brew pointer is a note at rc 0 (0527's residue). RIDER: the DIFFERENT-install state prints both roots, the pointer's root: and a this binary: line. (2) A `Gate root:` line in `intent info` is the human door, rendered from the same answer. (3) HIGHLANDER: one pure function, install::gate_resolution(home) (the name is free in the index, checked 12:32Z), rendered by every door: --check, the info line, and upgrade --apply's warnings and divergence note. RIDER: the move out of render.rs preserves behaviour, so upgrade --apply's output stays byte-identical and its existing arms stay green WITHOUT edits. (4) A dispatch row with help, the regenerated dispatch-table.md, a CHANGELOG Added line, and arms on planted pointers for every state, the note included. MCP follows the row's recoverability; a read-only row is offered. BUILD AFTER the stacked run, in its own worktree with an in-tree target (cargo clean -p every workspace member if you clone a target). Expect a CHANGELOG tail conflict with cc's and dc's banks, and rebase onto whatever has landed. Size S.",
       "state": "live",
       "recorded_at": "2026-09-23T12:27:03.601Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 104,
+      "text": "0533 (ic, 2026-09-23): WRITTEN in tmp/wt-ic-0533 at base 6a4d0fef9, no cargo run yet, nothing banked or committed. What it is: install::gate_resolution (one answer: pointer, state, this_binary, divergent, versioned_keg) rendered by bootstrap --check (the shim's --where labels and exit contract, --force refused, --quiet keeps the rc), a Gate root: line in intent info, and claude upgrade's warnings and divergence note (byte-identical, upgrade_command.rs unedited). Also: the dispatch row flag and the regenerated .md, a CHANGELOG Added line at the Added tail, one sentence each in intent/docs/pre-commit-hook.md and docs/install.md, and arms in install.rs's unit tests and bootstrap_door.rs. ORDER (vc, 2026-09-23): dc's 0532 judging run, then cc's 0534 loop, then ic's 0533 loop (compile, own arms, fmt, both clippy lines, doc) under HEAVY START and END. Then bank and send the ref, blob, patch-id and apply --stat to cc and vc. ONE stacked judging run (cc's) takes 0533, 0534 and 0535; each bank lands at its judged patch-id in the order ic, cc and dc agree. Then the second build all (hv's) and the pre-cut pass (todo 42). NO PUSH, NO RELEASE.",
+      "state": "archived",
+      "archived_at": "2026-09-23T13:52:36.064Z",
+      "recorded_at": "2026-09-23T13:29:50.144Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 105,
+      "text": "0533 and 0538 (ic, 2026-09-23): BOTH BANKED GREEN, nothing landed, nothing committed. 0533 v2 = refs/bank/ic/0533/v2 (blob 5ca418f1da78, patch-id 98084d6681f5, 9 files +641 -56, base ca936e6c4; supersedes v1 with vc's ruling (a): an empty pointer's ABSENT says so). 0538 v1 = refs/bank/ic/0538/v1 (blob 56377ab61f54, patch-id 47c9d0dc742d, 12 files +551 -109), STACKED ON 0533 v2: pre-commit's chain block refuses without a runnable carrier, post-pull blocks warn and exit 0 (a failing post-checkout fails git checkout, switch and worktree add, measured on git 2.55.0), claude upgrade rewrites an existing block in place and names a hook it must hold (vc's check), and Intent's four .githooks blocks carry canon's bytes under a drift arm. Fleet census at 13:36Z: 73 hooks in 19 estates, 71 old canonical blocks, no project line inside any block. Both loops were green (own arms, fmt, both clippy lines, doc). NEXT: cc's ONE stacked judging run (0533, 0534, 0535, 0536, 0537, 0538), vc judges from the END; then land 0533 v2 and then 0538 v1 at their judged patch-ids, in the order agreed with cc and dc, and close both issues; then hv's second build all (tell hv, warn gtools-vc before and after, intent daemon restart); then the pre-cut pass (todo 42). Worktrees tmp/wt-ic-0533 (warm target) and tmp/wt-ic-0538 stay until landing. NO PUSH, NO RELEASE.",
+      "state": "archived",
+      "archived_at": "2026-09-23T14:33:00.421Z",
+      "recorded_at": "2026-09-23T13:52:34.800Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 106,
+      "text": "PRE-CUT TAIL (ic, 2026-09-23), nothing landed. (1) 0540, the brew caveat: refs/bank/ic/0540/v1 (patch-id 56aa13ee2f4b, bin/.devbin/cmd/macos plus its macOS bats arm, 23/23). It rides the tail's whole-suite run; re-check its patch-id on the HEAD after cc's 0536-0537 lands (it already applies on top). (2) The docs commit lands LAST, after the tail and before the build all: refs/bank/ic/precut/apply_precut.py, a re-runnable script of vc's ruled CHANGELOG fixes (outs 1a and 1b, 0523, 0532, 0528, 0526, 0530, 0527 with 0540's clause, 0520) and SKILL.md's D. It is proven on the expected stack; two points await vc's ruling (the 0523 body qualifier, and the table's when_to_use copy). (3) After cc's stacked run END: check candidate C, 0520's omnibox index_owed, and file it only if it is real.",
+      "state": "archived",
+      "archived_at": "2026-09-23T14:33:01.528Z",
+      "recorded_at": "2026-09-23T14:16:02.965Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 107,
+      "text": "LANDED (ic, 2026-09-23): 0533 v2 at f7c62b94d and 0538 v2 at 00fc875a7, each at its judged patch-id (98084d6681f5, 358a9730c007), on vc's PASS of cc's stacked run. 0533 is CLOSED with its landing record. 0538 stays OPEN until its tune lands. Neither is deployed until hv's second build all. Since 00fc875a7 the refusing pre-commit block is live in main. TAIL, all riding dc's tail run: (1) the 0538 tune, refs/bank/ic/0538-tune/draft, drafted on 0538 v2 (post-pull blocks warn only where intent/.cache/intent.db sits under the checkout's top level, vc's rule), whose own loop runs on the landed 0538 when the slot is free; (2) the D-table bank, apply_dtable.py, cut now that 0533 and 0534 are in; (3) 0540 v1, patch-id 56aa13ee2f4b, re-checked on the new HEAD. LAST, after the tail and before the build all: the docs commit, apply_precut.py (refs/bank/ic/precut/). Then hv's second build all (warn gtools-vc before and after, intent daemon restart), then the pre-cut reference pass (todo 42), and check candidate C (0520's omnibox index_owed). NO PUSH, NO RELEASE.",
+      "state": "live",
+      "recorded_at": "2026-09-23T14:33:02.709Z"
     }
   ],
   "messages": [

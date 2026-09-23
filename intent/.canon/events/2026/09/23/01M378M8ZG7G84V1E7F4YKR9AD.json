@@ -1,0 +1,15 @@
+{
+  "id": "01M378M8ZG7G84V1E7F4YKR9AD",
+  "ts": "2026-09-23T13:52:34.800Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "0533 and 0538 (ic, 2026-09-23): BOTH BANKED GREEN, nothing landed, nothing committed. 0533 v2 = refs/bank/ic/0533/v2 (blob 5ca418f1da78, patch-id 98084d6681f5, 9 files +641 -56, base ca936e6c4; supersedes v1 with vc's ruling (a): an empty pointer's ABSENT says so). 0538 v1 = refs/bank/ic/0538/v1 (blob 56377ab61f54, patch-id 47c9d0dc742d, 12 files +551 -109), STACKED ON 0533 v2: pre-commit's chain block refuses without a runnable carrier, post-pull blocks warn and exit 0 (a failing post-checkout fails git checkout, switch and worktree add, measured on git 2.55.0), claude upgrade rewrites an existing block in place and names a hook it must hold (vc's check), and Intent's four .githooks blocks carry canon's bytes under a drift arm. Fleet census at 13:36Z: 73 hooks in 19 estates, 71 old canonical blocks, no project line inside any block. Both loops were green (own arms, fmt, both clippy lines, doc). NEXT: cc's ONE stacked judging run (0533, 0534, 0535, 0536, 0537, 0538), vc judges from the END; then land 0533 v2 and then 0538 v1 at their judged patch-ids, in the order agreed with cc and dc, and close both issues; then hv's second build all (tell hv, warn gtools-vc before and after, intent daemon restart); then the pre-cut pass (todo 42). Worktrees tmp/wt-ic-0533 (warm target) and tmp/wt-ic-0538 stay until landing. NO PUSH, NO RELEASE."
+  }
+}

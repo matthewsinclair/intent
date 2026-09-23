@@ -1,0 +1,15 @@
+{
+  "id": "01M37AYBZNXG85R4W3Z1WJKEPQ",
+  "ts": "2026-09-23T14:33:02.709Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "LANDED (ic, 2026-09-23): 0533 v2 at f7c62b94d and 0538 v2 at 00fc875a7, each at its judged patch-id (98084d6681f5, 358a9730c007), on vc's PASS of cc's stacked run. 0533 is CLOSED with its landing record. 0538 stays OPEN until its tune lands. Neither is deployed until hv's second build all. Since 00fc875a7 the refusing pre-commit block is live in main. TAIL, all riding dc's tail run: (1) the 0538 tune, refs/bank/ic/0538-tune/draft, drafted on 0538 v2 (post-pull blocks warn only where intent/.cache/intent.db sits under the checkout's top level, vc's rule), whose own loop runs on the landed 0538 when the slot is free; (2) the D-table bank, apply_dtable.py, cut now that 0533 and 0534 are in; (3) 0540 v1, patch-id 56aa13ee2f4b, re-checked on the new HEAD. LAST, after the tail and before the build all: the docs commit, apply_precut.py (refs/bank/ic/precut/). Then hv's second build all (warn gtools-vc before and after, intent daemon restart), then the pre-cut reference pass (todo 42), and check candidate C (0520's omnibox index_owed). NO PUSH, NO RELEASE."
+  }
+}

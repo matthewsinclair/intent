@@ -3,17 +3,17 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 211a090e-f16e-484b-bd74-7a58ce1c75e7
-heartbeat_at: 2026-09-23 12:56Z
+heartbeat_at: 2026-09-23 13:08Z
 status: active
 focus: "LOCALFOLD for hv's compact, 2026-09-23. 0530 landed (084b154b9) and closed; 0532 review sent to dc (PASS). After the bounce: dc's 0532 judging run, then 0533 in its own worktree on vc's rulings (announce HEAVY START and END; cc's 0534 waits on it), then the reference set after the last landing and hv's second build all. NO PUSH, NO RELEASE."
-claims: [ISSUE:0533]
+claims: [ISSUE:0538, ISSUE:0540]
 ---
 
 # Interface Claude (ic)
 
 ## DOING
 
-- RESUME (ic, 2026-09-23, localfold for hv's compact; measure first: intent wb pickup --node ic, intent --version, git log --oneline -8, then ListAgents to ask cc, dc and vc where they stand). NOTHING OF ic's IS RUNNING, and no heavy run was started. DONE, do not redo: 0530 LANDED at 084b154b9 on cc's 0525 (d3b2250b6), landed patch-id b4e176144 equal to the judged one, main equal to the judged tree 074c8da3d over the 24 banked files; CLOSED at 41b90a9c4. It is not deployed until hv's second build all. Also done: ic's 0532 surface review, sent to dc between 12:52:38Z and 12:56:37Z by date -u: PASS, driven on dc's binary (pandoc reads every heading of the Conflab shape; the CLI sets lines in four spaces, hv's standing block included; doctor reads the older shape as an uncounted note, a one-byte control as counted ViewSkew, and sync --to-disk restores it byte-identical), with three minor notes: (a) a fifth unindented marked spelling in facade text_spellings, (b) "and" for "with" in the doctor note, (c) the guards pass must prettier-ignore generated board views. NEXT, IN ORDER: (1) dc's 0532 judging run, which is dc's, and ic lands nothing under native/rust while it runs. (2) 0533 on vc's rulings (todo 48), in its own worktree tmp/wt-ic-0533 with an in-tree target, AFTER dc's run ENDs; announce HEAVY START and END to cc, dc and vc, because cc's 0534 compile waits for ic's END. The design notes are banked at refs/bank/ic/0533/design-notes (blob in the fold commit message); no 0533 code exists yet. (3) THE PRE-CUT PASS, after the LAST landing and hv's second build all: ic keeps todo 42 (regenerate docs/reference at HEAD against v3.2.0 per releasing.md step 2 and commit it; re-read every 3.2.1 Added and Fixed entry against it). dc re-drives docs/known-defects.md WHOLE on ic's brief (dc banked it at refs/bank/dc/kd/brief-ic.md) and commits it straight after ic's reference-set commit, so tell dc when that lands. hv's second build all follows the last 3.2.1 landing: tell hv when, and warn gtools-vc before and after. What binds a build all, per vc: one heavy run at a time; no commit in any path while it runs; intent daemon restart after it. NO PUSH, NO RELEASE.
+- LANDED (ic, 2026-09-23): 0533 v2 at f7c62b94d and 0538 v2 at 00fc875a7, each at its judged patch-id (98084d6681f5, 358a9730c007), on vc's PASS of cc's stacked run. 0533 is CLOSED with its landing record. 0538 stays OPEN until its tune lands. Neither is deployed until hv's second build all. Since 00fc875a7 the refusing pre-commit block is live in main. TAIL, all riding dc's tail run: (1) the 0538 tune, refs/bank/ic/0538-tune/draft, drafted on 0538 v2 (post-pull blocks warn only where intent/.cache/intent.db sits under the checkout's top level, vc's rule), whose own loop runs on the landed 0538 when the slot is free; (2) the D-table bank, apply_dtable.py, cut now that 0533 and 0534 are in; (3) 0540 v1, patch-id 56aa13ee2f4b, re-checked on the new HEAD. LAST, after the tail and before the build all: the docs commit, apply_precut.py (refs/bank/ic/precut/). Then hv's second build all (warn gtools-vc before and after, intent daemon restart), then the pre-cut reference pass (todo 42), and check candidate C (0520's omnibox index_owed). NO PUSH, NO RELEASE.
 
 ## TODO
 

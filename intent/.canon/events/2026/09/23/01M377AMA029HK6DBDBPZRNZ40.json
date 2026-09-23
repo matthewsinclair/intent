@@ -1,0 +1,15 @@
+{
+  "id": "01M377AMA029HK6DBDBPZRNZ40",
+  "ts": "2026-09-23T13:29:50.144Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "0533 (ic, 2026-09-23): WRITTEN in tmp/wt-ic-0533 at base 6a4d0fef9, no cargo run yet, nothing banked or committed. What it is: install::gate_resolution (one answer: pointer, state, this_binary, divergent, versioned_keg) rendered by bootstrap --check (the shim's --where labels and exit contract, --force refused, --quiet keeps the rc), a Gate root: line in intent info, and claude upgrade's warnings and divergence note (byte-identical, upgrade_command.rs unedited). Also: the dispatch row flag and the regenerated .md, a CHANGELOG Added line at the Added tail, one sentence each in intent/docs/pre-commit-hook.md and docs/install.md, and arms in install.rs's unit tests and bootstrap_door.rs. ORDER (vc, 2026-09-23): dc's 0532 judging run, then cc's 0534 loop, then ic's 0533 loop (compile, own arms, fmt, both clippy lines, doc) under HEAVY START and END. Then bank and send the ref, blob, patch-id and apply --stat to cc and vc. ONE stacked judging run (cc's) takes 0533, 0534 and 0535; each bank lands at its judged patch-id in the order ic, cc and dc agree. Then the second build all (hv's) and the pre-cut pass (todo 42). NO PUSH, NO RELEASE."
+  }
+}
