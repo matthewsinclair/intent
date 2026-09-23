@@ -3,17 +3,17 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 1a8e4fe7-0650-45f6-a619-84fc0c380145
-heartbeat_at: 2026-09-23 17:57Z
+heartbeat_at: 2026-09-23 22:06Z
 status: active
-focus: "dc's 3.2.1 pre-cut work is done. The known-defects page is re-driven and committed at 3629e097d, and every dc bank has landed and closed. Waiting on hv's push, CI and the cut. Hold 29: the guards adoption pass rides the cut's fleet sweep. NO PUSH, NO RELEASE."
-claims: []
+focus: "3.2.1 fixes: building 0542 (issue ids in shipped literals), then the stacked judging run over 0542, 0546 and 0547, then the known-defects re-drive on the rebuilt pair. NO PUSH, NO RELEASE."
+claims: [ISSUE:0542]
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-_(none)_
+- **0542 FOR 3.2.1, THEN THE STACKED JUDGING RUN, THEN THE KNOWN-DEFECTS RE-DRIVE (vc's 21:46Z assignment, on hv's go at 22:03Z).** (1) 0542: no_pm_state_in_output learns an issue id in a shipped literal, keeping its tolerance for comments; each literal it then finds says its cause in words; any deliberate exception is declared with its reason. Banked on refs/bank/dc/0542, with the CHANGELOG entry sent to vc as text. (2) Once 0542, 0546 (cc) and 0547 (ic) are all banked: compose them in more than one order and compare by write-tree; cargo build -p intentd first; whole intentsvcs, intent-cli and intentd suites plus the whole bats suite on base and stack; red sets diffed both ways; on the stack, fmt, both clippy lines, doc and the rlib grep; app-test on the stack side; HEAVY START and END to every node. (3) After the landings and the rebuild: re-drive docs/known-defects.md whole against the new pair from refs/bank/dc/kd/drive.sh.
 
 ## TODO
 
