@@ -4389,12 +4389,12 @@ Register a node from its arguments, or the roster from each node's own board hea
 
 - **v2:** new-surface
 - **Arguments:**
-  - `moniker` (node, arity `0..1`)
+  - `moniker` (node, arity `0..1`) -- The node's handle, eg `dc`: its routing key and the name of its board's directory. With no moniker and no flags, the roster is read from each node's own board header
 - **Flags:**
-  - `--name` (string) -- The node's display name, with `<moniker>`
+  - `--name` (string) -- The node's display name, eg "DevX Claude" -- not its session name; given with `<moniker>`
     - **disposition:** keep
     - **exposed on mcp:** false
-  - `--role` (string) -- The node's role, with `<moniker>`
+  - `--role` (string) -- The node's role, one word, eg `worker` -- not its moniker; given with `<moniker>`
     - **disposition:** keep
     - **exposed on mcp:** false
   - `--correct` (bool) -- Change a registered node's name and role to `--name` and `--role`, keeping its board
@@ -4404,7 +4404,7 @@ Register a node from its arguments, or the roster from each node's own board hea
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
-- **when to use:** USE IT once per project, to put the participants into the model so a board has somewhere to live. DO NOT USE IT to migrate a board: it registers WHO the nodes are and carries no items and no messages, and the markdown beside it stays hand-authored and authoritative. The header form is idempotent by moniker: a second run adds nothing and changes nothing, an edited header included. Name one node from its arguments -- `wb register <moniker> --name <display> --role <role>` -- where no hand-written header exists, which is every node that joins once boards are generated views: the same values again write nothing, and different values for a moniker already registered are refused. DO NOT USE IT to rename one node as another: `--correct` fixes the name and role of a node that IS this moniker, never creates one, and keeps its board, items and messages.
+- **when to use:** USE IT once per project, to put the participants into the model so a board has somewhere to live. DO NOT USE IT to migrate a board: it registers WHO the nodes are and carries no items and no messages, and the markdown beside it stays hand-authored and authoritative. The header form is idempotent by moniker: a second run adds nothing and changes nothing, an edited header included. Name one node from its arguments -- `wb register <moniker> --name "<display name>" --role <role>` -- where no hand-written header exists, which is every node that joins once boards are generated views: the same values again write nothing, and different values for a moniker already registered are refused. DO NOT USE IT to rename one node as another: `--correct` fixes the name and role of a node that IS this moniker, never creates one, and keeps its board, items and messages.
 - **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. ST0069's own design.md says of itself that it is the SEARCH leg and that the coordination model keeps its inherited design in ST0056's cancelled work package, so that is the document cited here. The roster is authored configuration a human wrote; this registers it rather than inventing it.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.7

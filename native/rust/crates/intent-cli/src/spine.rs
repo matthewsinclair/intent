@@ -629,6 +629,9 @@ fn positionals(mut cmd: Command, entry: &Entry) -> Command {
     // has no instance of and which fails loudly rather than quietly if it ever
     // gains one.
     let mut a = Arg::new(arg.name.clone()).value_name(arg.name.to_uppercase());
+    if let Some(help) = &arg.help {
+      a = a.help(help.clone());
+    }
     a = match &arg.required_unless {
       Some(flag) => a.required_unless_present(flag.clone()),
       None => a.required(arg.required()),

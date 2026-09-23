@@ -4,6 +4,10 @@
 //! the board it names keeps its items, and the refusal of a plain re-register
 //! with other values names it with both values. Until it, a node registered
 //! wrong could be repaired only by a hand `DELETE` on `wb_node`.
+//!
+//! Issue 0522 lives here too, because it is the same verb's refusals: every one
+//! of them prints the whole form that works, and `--help` says what the
+//! moniker, `--name` and `--role` are.
 
 use std::path::Path;
 
@@ -148,7 +152,7 @@ fn correct_never_creates_a_node() {
     "a correction of an unregistered moniker is refused: {text}"
   );
   assert!(
-    text.contains("intent wb register zz"),
+    text.contains(&intentsvcs::model::register_form("zz")),
     "the refusal names plain register: {text}"
   );
   let status = ok(dir.path(), &["wb", "status"]);
@@ -156,4 +160,63 @@ fn correct_never_creates_a_node() {
     !status.contains("zz"),
     "the correction created a node:\n{status}"
   );
+}
+
+/// Issue 0522: every refusal of the verb's arguments names the whole command
+/// that works, with the moniker filled in where one was typed, and names
+/// `intent wb status` for the nodes that exist. hv met two refusals in Gtools
+/// that named only the flags, and could not get from either one to the form.
+#[test]
+fn every_register_refusal_names_the_whole_form() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  ok(dir.path(), &["init", "wbrefuse"]);
+  let form = intentsvcs::model::register_form;
+  for (args, shown) in [
+    (vec!["wb", "register", "dc", "--role", "dc"], form("dc")),
+    (
+      vec!["wb", "register", "--name", "dc", "--role", "dc"],
+      form("<moniker>"),
+    ),
+    (
+      vec!["wb", "register", "dc", "--correct"],
+      format!("{} --correct", form("dc")),
+    ),
+  ] {
+    let (refused, code) = run(dir.path(), &args);
+    assert_ne!(code, 0, "{args:?} is refused: {refused}");
+    for expected in [
+      format!("remedy: `{shown}`"),
+      "`intent wb status`".to_string(),
+    ] {
+      assert!(
+        refused.contains(&expected),
+        "{args:?} does not print {expected}: {refused}"
+      );
+    }
+  }
+
+  let (no_moniker, _) = run(
+    dir.path(),
+    &["wb", "register", "--name", "dc", "--role", "dc"],
+  );
+  assert!(
+    no_moniker.contains("no moniker was given: the moniker comes first, as a positional"),
+    "the refusal does not say the moniker is missing and where it goes: {no_moniker}"
+  );
+}
+
+/// Issue 0522: `wb register --help` says what the moniker, `--name` and `--role`
+/// are, each with an example, where it printed `[MONIKER]` with nothing beside it.
+#[test]
+fn register_help_says_what_each_part_is() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let help = ok(dir.path(), &["wb", "register", "--help"]);
+  // clap wraps help to a width, so the examples are read with the wrap undone.
+  let flat = help.split_whitespace().collect::<Vec<_>>().join(" ");
+  for shown in ["handle, eg `dc`", "eg \"DevX Claude\"", "eg `worker`"] {
+    assert!(
+      flat.contains(shown),
+      "`wb register --help` does not show {shown}:\n{help}"
+    );
+  }
 }

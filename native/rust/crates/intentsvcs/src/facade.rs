@@ -2210,7 +2210,7 @@ impl crate::remedy::Remedy for FacadeError {
         "nothing was carried. Register each sender that is a node on this project -- {} -- then re-run `intent wb migrate {node}`; an inbox from a node that is not on this project moves out of `intent/whiteboard/{node}/` first",
         senders
           .iter()
-          .map(|s| format!("`intent wb register {s} --name <name> --role <role>`"))
+          .map(|s| format!("`{}`", crate::model::register_form(s)))
           .collect::<Vec<_>>()
           .join(", ")
       ),
@@ -2238,7 +2238,8 @@ impl crate::remedy::Remedy for FacadeError {
         "if the header is right, register with its values: `intent wb register {node} --name \"{header_name}\" --role {header_role}`. If the arguments are right, correct `name:` and `role:` in {file} first, then register again"
       ),
       Self::WbCorrectUnregistered { node } => format!(
-        "`--correct` changes a node that exists and never creates one: `intent wb register {node} --name <display name> --role <role>` registers it"
+        "`--correct` changes a node that exists and never creates one: `{}` registers it",
+        crate::model::register_form(node)
       ),
       Self::WbNotMigrated { node } => format!(
         "`intent wb migrate {node}` carries its hand-authored board into the model first. A board write renders the board from the store, so writing before the carry would replace the markdown with a render of a board that holds none of it"

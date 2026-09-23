@@ -196,8 +196,10 @@ fn an_absent_node_is_refused_and_told_where_to_register_it() {
     text.contains("'zz' is not on this board"),
     "the refusal does not name the node that was asked for: {text}"
   );
+  // Issue 0522: in the form every register remedy prints, so this bash door
+  // and the Rust ones cannot drift apart while this test passes.
   assert!(
-    text.contains("intent wb register zz"),
+    text.contains(&intentsvcs::model::register_form("zz")),
     "the refusal does not name the command that creates one: {text}"
   );
   // Issue 0413: the remedy shows what a display name and a role look like, so

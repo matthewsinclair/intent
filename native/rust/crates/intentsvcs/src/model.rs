@@ -2342,6 +2342,19 @@ pub struct WbNode {
   pub migrated_at: Option<String>,
 }
 
+/// The whole `wb register` command for `moniker`, as a remedy tells the user to
+/// type it; a refusal with no moniker to fill in passes `<moniker>`.
+///
+/// **ONE HOME FOR THE FORM EVERY REMEDY SENDS SOMEONE TO** (issue 0522). hv met
+/// two `wb register` refusals that named the flags and never the command, and
+/// could not get from either one to the form that works, while the remedies
+/// that did name it spelled its placeholders two ways. `intent claude start`
+/// prints the same form from `intent_claude_cwi`, a bash door that cannot call
+/// this, and `claude_cwi_door.rs` holds that copy to this one.
+pub fn register_form(moniker: &str) -> String {
+  format!("intent wb register {moniker} --name \"<display name>\" --role <role>")
+}
+
 /// One line of a node's board.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, SimpleObject)]
 #[serde(deny_unknown_fields)]

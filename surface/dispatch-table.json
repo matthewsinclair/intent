@@ -8995,20 +8995,27 @@
         {
           "path": "wb register",
           "help": "Register a node from its arguments, or the roster from each node's own board header",
-          "when_to_use": "USE IT once per project, to put the participants into the model so a board has somewhere to live. DO NOT USE IT to migrate a board: it registers WHO the nodes are and carries no items and no messages, and the markdown beside it stays hand-authored and authoritative. The header form is idempotent by moniker: a second run adds nothing and changes nothing, an edited header included. Name one node from its arguments -- `wb register <moniker> --name <display> --role <role>` -- where no hand-written header exists, which is every node that joins once boards are generated views: the same values again write nothing, and different values for a moniker already registered are refused. DO NOT USE IT to rename one node as another: `--correct` fixes the name and role of a node that IS this moniker, never creates one, and keeps its board, items and messages.",
-          "args": [{ "name": "moniker", "type": "node", "arity": "0..1" }],
+          "when_to_use": "USE IT once per project, to put the participants into the model so a board has somewhere to live. DO NOT USE IT to migrate a board: it registers WHO the nodes are and carries no items and no messages, and the markdown beside it stays hand-authored and authoritative. The header form is idempotent by moniker: a second run adds nothing and changes nothing, an edited header included. Name one node from its arguments -- `wb register <moniker> --name \"<display name>\" --role <role>` -- where no hand-written header exists, which is every node that joins once boards are generated views: the same values again write nothing, and different values for a moniker already registered are refused. DO NOT USE IT to rename one node as another: `--correct` fixes the name and role of a node that IS this moniker, never creates one, and keeps its board, items and messages.",
+          "args": [
+            {
+              "name": "moniker",
+              "type": "node",
+              "arity": "0..1",
+              "help": "The node's handle, eg `dc`: its routing key and the name of its board's directory. With no moniker and no flags, the roster is read from each node's own board header"
+            }
+          ],
           "flags": [
             {
               "spellings": ["--name"],
               "type": "string",
-              "help": "The node's display name, with `<moniker>`",
+              "help": "The node's display name, eg \"DevX Claude\" -- not its session name; given with `<moniker>`",
               "disposition": "keep",
               "exposed_on_mcp": false
             },
             {
               "spellings": ["--role"],
               "type": "string",
-              "help": "The node's role, with `<moniker>`",
+              "help": "The node's role, one word, eg `worker` -- not its moniker; given with `<moniker>`",
               "disposition": "keep",
               "exposed_on_mcp": false
             },
@@ -10492,6 +10499,7 @@
       "declaration": [
         "arity",
         "default",
+        "help",
         "name",
         "required_unless",
         "type",

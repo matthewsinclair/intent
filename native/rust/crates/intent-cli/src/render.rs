@@ -4134,6 +4134,17 @@ fn search_ask(m: &ArgMatches) -> Result<intentsvcs::search::SearchQuery, Failure
   Ok(ask)
 }
 
+/// A `wb register` refusal: what was wrong, then the whole command that works
+/// (issue 0522). hv met refusals that named the flags and never the command,
+/// and could not get from either one to the form, so every refusal of the verb
+/// prints it, with the moniker filled in where one was typed.
+fn register_refusal(problem: &str, moniker: Option<&String>, tail: &str) -> Failure {
+  let form = intentsvcs::model::register_form(moniker.map_or("<moniker>", String::as_str));
+  Failure::Error(format!(
+    "error: {problem}\n  remedy: `{form}{tail}`, eg `--name \"DevX Claude\" --role worker`; `intent wb status` lists the nodes already registered"
+  ))
+}
+
 /// `intent index status` and `intent index rebuild` -- AC-19.6.
 ///
 /// **THE TWO VERBS DIFFER IN ONE THING AND IT IS WORTH SAYING ONCE: `status`
@@ -4150,14 +4161,15 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
   match m.subcommand() {
     Some(("register", m)) => {
       let mut f = open()?;
+      let moniker = m.get_one::<String>("moniker");
       let name = m.get_one::<String>("name");
       let role = m.get_one::<String>("role");
       if m.get_flag("correct") {
-        let (Some(moniker), Some(name), Some(role)) = (m.get_one::<String>("moniker"), name, role)
-        else {
-          return Err(Failure::Error(
-            "error: `--correct` changes one named node: `wb register <moniker> --name <display> --role <role> --correct`"
-              .to_string(),
+        let (Some(moniker), Some(name), Some(role)) = (moniker, name, role) else {
+          return Err(register_refusal(
+            "`--correct` changes one named node, so it needs a moniker, `--name` and `--role`",
+            moniker,
+            " --correct",
           ));
         };
         let moved = f.wb_correct(moniker, name, role).map_err(fail)?;
@@ -4169,21 +4181,23 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
         }
         return Ok(());
       }
-      let registered = match (m.get_one::<String>("moniker"), name, role) {
+      let registered = match (moniker, name, role) {
         (Some(moniker), Some(name), Some(role)) => {
           f.wb_register(moniker, name, role).map_err(fail)?
         }
         (Some(_), _, _) => {
-          return Err(Failure::Error(
-            "error: a node named on the command line needs both `--name <display>` and `--role <role>`"
-              .to_string(),
+          return Err(register_refusal(
+            "a node named on the command line needs both `--name` and `--role`",
+            moniker,
+            "",
           ));
         }
         (None, None, None) => f.register_roster().map_err(fail)?,
         (None, _, _) => {
-          return Err(Failure::Error(
-            "error: `--name` and `--role` describe the node named as `<moniker>`; with no moniker, `wb register` reads every node's own header"
-              .to_string(),
+          return Err(register_refusal(
+            "`--name` and `--role` describe one node, and no moniker was given: the moniker comes first, as a positional. With no arguments at all, `wb register` reads every node's own board header",
+            None,
+            "",
           ));
         }
       };

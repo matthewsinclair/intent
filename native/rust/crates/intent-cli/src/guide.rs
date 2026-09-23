@@ -841,6 +841,7 @@ mod tests {
       name: "x".to_string(),
       kind: "string".to_string(),
       arity: arity.to_string(),
+      help: None,
       values: vec![],
       default: None,
       value_help: Default::default(),

@@ -360,6 +360,12 @@ pub struct Arg {
   pub kind: String,
   #[serde(default)]
   pub arity: String,
+  /// What the slot is, printed beside it by `--help` (issue 0522). `wb
+  /// register --help` showed `[MONIKER]` with nothing beside it, so the one
+  /// argument that says which node was the one nobody explained. A slot with
+  /// no help renders bare, as every slot did before this field.
+  #[serde(default)]
+  pub help: Option<String>,
   /// For a `subcommand`-kind arg: the verbs that fill the slot.
   ///
   /// This is how the table expresses the surface's THIRD level -- `intent
@@ -1326,6 +1332,7 @@ mod tests {
       name: "command".to_string(),
       kind: kind.to_string(),
       arity: "0..1".to_string(),
+      help: None,
       values: values.iter().map(|v| v.to_string()).collect(),
       default: Some(default.to_string()),
       value_help: Default::default(),
@@ -1549,6 +1556,7 @@ mod tests {
       name: "x".to_string(),
       kind: "string".to_string(),
       arity: arity.to_string(),
+      help: None,
       values: vec![],
       default: None,
       value_help: Default::default(),
