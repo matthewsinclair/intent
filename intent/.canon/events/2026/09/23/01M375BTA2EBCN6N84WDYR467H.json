@@ -1,0 +1,15 @@
+{
+  "id": "01M375BTA2EBCN6N84WDYR467H",
+  "ts": "2026-09-23T12:55:31.906Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "0532 (vc's order on hv's ruling \"all of it into 3.2.1\"; claimed ISSUE:0532). BANKED refs/bank/dc/0532/v1, blob 60e20ebfc, patch-id c10efbc0d, 8 files +613/-12; applies clean on the landed pair 084b154b9 (0525 at d3b2250b6, 0530 at 084b154b9); composition driven in three orders with a control; vc READ the blob. Dev loop green in tmp/wt-0532 (fmt, clippy both lines, doc, 16 new arms). NEXT: ic's surface review, then the judging run vc approved (base 084b154b9, bank HEAD + 0532, whole Rust suites and whole bats suite both sides, red sets both ways, rlib grep with a control), START and END to cc, ic and vc; then landing on vc's word and the close (draft in scratchpad w0532/close_draft.md). Heavy order after dc's END: ic's 0533, then cc's 0534. NO PUSH, NO RELEASE."
+  }
+}

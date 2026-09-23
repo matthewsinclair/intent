@@ -1,0 +1,15 @@
+{
+  "id": "01M373HD2QNZNT46MTN2RMBZA6",
+  "ts": "2026-09-23T12:23:38.377Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "KNOWN-DEFECTS RE-DRIVE (vc's pre-cut split, 2026-09-23; ic's brief banked verbatim at refs/bank/dc/kd/brief-ic.md). WHEN the last 3.2.1 landing is in, the second bin/devbin build all has ended, and intent --version prints intent 3.2.0 (<that HEAD>): re-drive docs/known-defects.md WHOLE on the installed pair only, each entry in a fresh scratch project under an isolated HOME (the daemon entry with its own scratch intentd, 0442 on a copy of its evidence store), starting from cc's banked drive at refs/bank/cc/kd/drive-log. Replace every transcript verbatim. An entry that no longer reproduces leaves the page, its commit naming the release that fixed it (0063's entry is driven against 0526's remedy, which ships in 3.2.1). Title v3.2.1; the pin sentence keeps the PRE-bump string exactly as the pair prints it. Commit with or straight after ic's reference-set commit and BEFORE step 3; nothing commits during a build all. Ask ic before bending the method. NO PUSH, NO RELEASE."
+  }
+}
