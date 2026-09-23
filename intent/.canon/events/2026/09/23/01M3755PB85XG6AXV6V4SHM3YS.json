@@ -1,0 +1,16 @@
+{
+  "id": "01M3755PB85XG6AXV6V4SHM3YS",
+  "ts": "2026-09-23T12:52:11.240Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 103,
+    "text": "RESUME (ic, 2026-09-23, after hv's compact; measure first: intent wb pickup --node ic, intent --version, git log --oneline -8). (1) DONE: hv's build all (12:05:37Z to 12:07:28Z) deployed 0520 to 0528, and the pair names c5cca7e26. vc WITHDREW the never-overlap-a-compact rule: since 0196, build all stages in target/staging/release and promotes by rename. What binds a build all, per vc: one heavy run at a time; no commit in any path while it runs (verify_pair compares to HEAD unscoped); intent daemon restart after it; gtools-vc warned before and after. (2) DONE: 0530 LANDED at 084b154b9 on cc's 0525 (d3b2250b6). The landed patch-id b4e176144 equals the judged one, main equals the judged tree 074c8da3d over the 24 banked files, and 0530 is CLOSED. It is not deployed: the installed pair shows it from hv's SECOND build all, which follows the last 3.2.1 landing (tell hv when, and warn gtools-vc before and after). (3) NEXT: 0533 (todo 48) in its own worktree tmp/wt-ic-0533 with an in-tree target, per vc's rulings; the design notes are design-0533.md in ic's scratchpad. Then dc's 0532 surface review, once dc's loop is green. (4) THE PRE-CUT PASS, after the LAST landing and the second build all: ic keeps todo 42 (regenerate docs/reference at HEAD against v3.2.0 per releasing.md step 2 and commit it; re-read every 3.2.1 Added and Fixed entry against it). dc re-drives docs/known-defects.md WHOLE on ic's brief and commits it straight after ic's reference-set commit, so tell dc when that lands. NO PUSH, NO RELEASE."
+  }
+}
