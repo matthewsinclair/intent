@@ -59,8 +59,10 @@ pub trait Source: edit::Model {
     None
   }
 
-  /// Whether the store moved since the rows were last read, catching up with
-  /// it if it did (issue 0520).
+  /// Whether the store moved since this was last asked, catching up with it
+  /// if it did (issue 0520). A change that a read caught first counts: the
+  /// omnibox is rebuilt on this answer, and a read that kept it to itself left
+  /// the omnibox behind the screen (issue 0543).
   ///
   /// **ASKED ONLY WHILE NO EDIT IS OPEN** ([`App::may_catch_up`]), because a
   /// catch-up moves the record the store judges an edit's write against. The

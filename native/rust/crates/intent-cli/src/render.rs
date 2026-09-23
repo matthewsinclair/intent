@@ -5834,13 +5834,11 @@ fn explore_here(address: Option<&str>) -> Result<tui::run::Exit, Failure> {
   // Nothing has been taken, drawn or written at that point, so there is nothing
   // to report and no failure to name.
   let mut live = match tui::progress::while_loading(|| -> Result<Live, Failure> {
-    Ok(Live {
-      facade: open()?,
-      declaration: intentsvcs::form::Loaded::load()
+    Ok(Live::over(
+      open()?,
+      intentsvcs::form::Loaded::load()
         .map_err(|e| Failure::Error(format!("error: the form declaration would not load: {e}")))?,
-      table: crate::dispatch::table(),
-      note: None,
-    })
+    ))
   }) {
     tui::progress::Outcome::Cancelled => return Ok(tui::run::Exit::Quit),
     tui::progress::Outcome::Done(loaded) => loaded?,
@@ -6155,9 +6153,34 @@ struct Live {
   /// must describe the rows on their screen, so it is taken from the SAME
   /// answer those rows were built from.
   note: Option<String>,
+  /// Whether a catch-up found the store moved since [`tui::run::Source::moved`]
+  /// last answered (issue 0543).
+  ///
+  /// **EVERY READ CATCHES UP, AND THE FIRST ONE TO FIND A CHANGE USED TO KEEP
+  /// IT TO ITSELF.** `rows` catches up before every read, so a key-driven read
+  /// -- the unconditional re-read after a `/` command or an editor, or any
+  /// navigation -- took the change and dropped the answer, and the idle tick
+  /// then asked `moved` and heard that nothing had moved. The omnibox is
+  /// rebuilt only on that answer, so it kept the entities from before: a thread
+  /// made with `/st new` was on screen and could not be found by name. So the
+  /// answer is recorded on whichever path catches up, and handed over once.
+  moved_unasked: bool,
 }
 
 impl Live {
+  /// The explorer's source over one facade, with nothing read yet: the one
+  /// place its fields are set, so a field added later cannot be missed by a
+  /// second construction.
+  fn over(facade: Facade, declaration: intentsvcs::form::Loaded) -> Self {
+    Self {
+      facade,
+      declaration,
+      table: crate::dispatch::table(),
+      note: None,
+      moved_unasked: false,
+    }
+  }
+
   /// Bring the facade up to the store before a read (issue 0520), refusing in
   /// the facade's own words with its remedy.
   ///
@@ -6167,10 +6190,12 @@ impl Live {
   /// launch. A write is the one call that must not catch up first: the store
   /// judges it against the record the edit started from.
   fn catch_up(&mut self) -> Result<bool, tui::edit::Refused> {
-    self.facade.catch_up().map_err(|e| {
+    let moved = self.facade.catch_up().map_err(|e| {
       let remedy = intentsvcs::remedy::Remedy::remedy(&e);
       tui::edit::Refused::new(format!("{e} -- {remedy}"))
-    })
+    })?;
+    self.moved_unasked |= moved;
+    Ok(moved)
   }
 }
 
@@ -6264,7 +6289,8 @@ impl tui::run::Source for Live {
   }
 
   fn moved(&mut self) -> Result<bool, tui::edit::Refused> {
-    self.catch_up()
+    self.catch_up()?;
+    Ok(std::mem::take(&mut self.moved_unasked))
   }
 
   /// The open project's root, which the projects list starts on.
@@ -15002,12 +15028,8 @@ mod tests {
     );
   }
 
-  /// **AN ITEM THAT WILL NOT LOAD RENDERS AN ERROR ROW, NEVER A FORM OF EMPTY
-  /// VALUES** (F27 of the 2026-09-15 tui-design audit; `tui-design.md` section
-  /// 8). A thread id with no thread behind it is the load failure a fresh project
-  /// can produce.
-  #[test]
-  fn an_item_that_will_not_load_renders_an_error_row_rather_than_empty_values() {
+  /// A fresh project in a temporary directory, for the explorer's arms.
+  fn fresh_project() -> tempfile::TempDir {
     let dir = tempfile::tempdir().expect("tempdir");
     intentsvcs::init::init(
       dir.path(),
@@ -15016,17 +15038,108 @@ mod tests {
       env!("CARGO_PKG_VERSION"),
     )
     .expect("a fresh project initialises");
-    let project = intentsvcs::project::Project::open(dir.path()).expect("the fresh project opens");
+    dir
+  }
+
+  /// A facade over the project at `root`, through the one door, `engine`,
+  /// which `cli_routing` holds to be this crate's only construction of it.
+  /// Each call is its own connection to the store, as a `/` command's own
+  /// dispatch, or another node, has.
+  fn facade_at(root: &std::path::Path) -> Facade {
+    let project = intentsvcs::project::Project::open(root).expect("the fresh project opens");
     let ctx = FacadeContext {
       principal: "local".to_string(),
       project_id: project.config().project_id.clone().unwrap_or_default(),
       version: env!("CARGO_PKG_VERSION").to_string(),
     };
-    // Through the one door, `engine`, which `cli_routing` holds to be this
-    // crate's only construction of the facade.
     let Ok(facade) = engine(project, ctx, StoreNeed::Shared) else {
       panic!("the engine refused a fresh project");
     };
+    facade
+  }
+
+  /// The explorer's own source over the project at `root`, as `explore_here`
+  /// builds it.
+  fn live_at(root: &std::path::Path) -> Live {
+    Live::over(
+      facade_at(root),
+      intentsvcs::form::Loaded::load().expect("the shipped form declaration loads"),
+    )
+  }
+
+  /// **ISSUE 0543: WHAT A `/` COMMAND MADE CAN BE FOUND IN THE OMNIBOX.** The
+  /// command's dispatch writes through its own connection, and the loop re-reads
+  /// the view straight after it, before any idle tick. That read caught the
+  /// change and kept it, the tick heard that nothing had moved, and the omnibox
+  /// could not find the thread the operator had just made. The first tick is
+  /// the control: with nothing written, nothing is news.
+  #[test]
+  fn a_slash_commands_new_thread_is_found_in_the_omnibox() {
+    use crate::tui::run::{Source, follow_the_store};
+    let dir = fresh_project();
+    let mut live = live_at(dir.path());
+    let mut app = crate::tui::app::App::explore();
+    let mut rows = live.rows(app.stack.current());
+    app.index = live.index();
+    assert!(
+      !follow_the_store(&mut app, &mut live, &mut rows),
+      "nothing was written, so nothing is news"
+    );
+
+    let id = facade_at(dir.path())
+      .st_new("Zebra crossing")
+      .expect("the command's own connection makes a thread");
+    rows = live.rows(app.stack.current());
+    assert!(
+      follow_the_store(&mut app, &mut live, &mut rows),
+      "the change the re-read caught is still news to the idle tick"
+    );
+    let found = crate::tui::omnibox::matches(&app.index, "Zebra", 9);
+    assert!(
+      found.iter().any(|m| app.index[m.entry].id == id),
+      "the omnibox must find {id}, which the command just made: {:?}",
+      app.index.iter().map(|e| &e.id).collect::<Vec<_>>()
+    );
+  }
+
+  /// **ISSUE 0543: AN OUTSIDE WRITE THAT A NAVIGATION READ CAUGHT STILL
+  /// REINDEXES.** Another node writes, and a key moves the view before the idle
+  /// tick asks; that read catches up first, and the tick must still rebuild the
+  /// omnibox.
+  #[test]
+  fn an_outside_write_a_navigation_read_caught_still_reindexes() {
+    use crate::tui::run::{Source, follow_the_store};
+    let dir = fresh_project();
+    let mut live = live_at(dir.path());
+    let mut app = crate::tui::app::App::explore();
+    let mut rows = live.rows(app.stack.current());
+    app.index = live.index();
+
+    let id = facade_at(dir.path())
+      .st_new("Another node's thread")
+      .expect("another connection makes a thread");
+    live.rows(&intentsvcs::nav::View::Collection {
+      kind: "thread".to_string(),
+    });
+    assert!(
+      follow_the_store(&mut app, &mut live, &mut rows),
+      "the change the navigation read caught is still news to the idle tick"
+    );
+    assert!(
+      app.index.iter().any(|e| e.id == id),
+      "the omnibox must hold {id}: {:?}",
+      app.index.iter().map(|e| &e.id).collect::<Vec<_>>()
+    );
+  }
+
+  /// **AN ITEM THAT WILL NOT LOAD RENDERS AN ERROR ROW, NEVER A FORM OF EMPTY
+  /// VALUES** (F27 of the 2026-09-15 tui-design audit; `tui-design.md` section
+  /// 8). A thread id with no thread behind it is the load failure a fresh project
+  /// can produce.
+  #[test]
+  fn an_item_that_will_not_load_renders_an_error_row_rather_than_empty_values() {
+    let dir = fresh_project();
+    let facade = facade_at(dir.path());
     let loaded = intentsvcs::form::Loaded::load().expect("the shipped form declaration loads");
     let view = intentsvcs::nav::View::Item {
       kind: "thread".to_string(),
