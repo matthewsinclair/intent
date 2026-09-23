@@ -1,5 +1,5 @@
 ---
-description: "Multi-session coordination through `intent wb`: per-node boards and single-writer inboxes in the store, claim ST scopes, broadcast, heartbeat, release"
+description: "Multi-session coordination through `intent wb`: per-node boards and single-writer inboxes in the store, claim threads, work packages and issues, broadcast, heartbeat, release"
 chains_to: []
 ---
 
@@ -48,7 +48,7 @@ Intent's own roster names the validation node, in the human's words: _the workst
 | Broadcast to every peer                              | `intent wb announce <body>`         |
 | Record what you are doing, or a watch-out, or a hold | `intent wb add <kind> <text>`       |
 | Record a cross-node decision                         | `intent wb decide <text>`           |
-| Take or drop a thread                                | `intent wb claim` / `unclaim <id>`  |
+| Take or drop a claim                                 | `intent wb claim` / `unclaim <id>`  |
 | Retire one of your own items                         | `intent wb archive <kind> <seq>`    |
 | Change or redact your item or a message you sent     | `intent wb edit <kind> <id> <text>` |
 | Mark one sender's messages handled                   | `intent wb clear <sender>`          |
@@ -283,7 +283,7 @@ Use it for 1-to-all signals: a shared platform layer you are about to touch, a p
 
 ### `claim <id>` / `unclaim <id>`
 
-`intent wb claim <STxxxx> --node <you>`, and `unclaim` to drop it. It takes a work package as well as a thread.
+`intent wb claim <id> --node <you>`, and `unclaim` to drop it. It takes a thread as `ST0000`, a work package as `ST0000/01`, or an issue as `ISSUE:0000`.
 
 **Before you claim, look at who else does.** `intent wb status --json` carries every node's claims, and `intent wb show <node>` prints one node's; if an active peer already holds it, stop and surface the overlap for the hypervisor to arbitrate rather than claiming alongside them.
 

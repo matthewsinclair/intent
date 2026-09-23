@@ -245,13 +245,17 @@ fn schema(entry: &Entry) -> Result<Value, Undeclarable> {
       // an issue, which they do not; leaving `wb claim` on it would have told an
       // agent the door refuses a form it accepts. An undeclared type is refused
       // at line 272, so a surface row naming this cannot half-land.
+      // **THE FORMS ARE `model::CLAIM_ADDRESS_FORMS`, NOT A COPY OF THEM**
+      // (issue 0530). This description restated the sentence in its own words,
+      // a third door 0519's one home did not reach.
       "claim-address" => {
         prop.insert("type".into(), json!("string"));
         prop.insert(
           "description".into(),
-          json!(
-            "what a board can claim: a steel thread as ST0000, a work package as ST0000/01, or an issue as ISSUE:0000"
-          ),
+          json!(format!(
+            "what a board can claim: {}",
+            intentsvcs::model::CLAIM_ADDRESS_FORMS
+          )),
         );
       }
       "ac-id" => {
@@ -2028,6 +2032,70 @@ mod tests {
       green.description.contains("ONE-WAY"),
       "the one-way mutation must SAY one-way to the surface with less context: {:?}",
       green.description
+    );
+  }
+
+  /// **EVERY DOOR THAT NAMES THE CLAIM FORMS NAMES THEIR ONE HOME,
+  /// `model::CLAIM_ADDRESS_FORMS`** (issue 0530). 0519 gave the sentence one
+  /// home for the two refusal doors, and the doors it did not reach went
+  /// stale or blank: this schema's `claim-address` description restated it in
+  /// its own words, the register gave `wb claim`'s and `wb unclaim`'s `id` no
+  /// help at all, so `--help` printed a bare `<ID>`, and the whiteboard skill
+  /// still said a claim takes a thread or a work package. The schema now
+  /// derives the sentence. The register and the skill hold a copy, which is
+  /// legitimate only because this arm holds each one byte-equal to the
+  /// constant, and the row explaining the verb must name every form.
+  #[test]
+  fn every_door_naming_the_claim_forms_names_the_one_home() {
+    let forms = intentsvcs::model::CLAIM_ADDRESS_FORMS;
+    let table = dispatch::table();
+    let mut helped: Vec<&str> = Vec::new();
+    for entry in dispatch::shipped_entries(&table) {
+      for arg in entry.args.iter().filter(|a| a.kind == "claim-address") {
+        let help = arg.help.as_deref().unwrap_or("");
+        assert!(
+          help.contains(forms),
+          "`{}`'s `{}` help must carry the one-home sentence: {help:?}",
+          entry.path,
+          arg.name
+        );
+        helped.push(&entry.path);
+      }
+    }
+    assert!(
+      helped.contains(&"wb claim") && helped.contains(&"wb unclaim"),
+      "both claim verbs take a claim-address, so both were held: {helped:?}"
+    );
+
+    let claim = dispatch::entry(&table, "wb claim").expect("wb claim is a row");
+    let when = claim.when_to_use.as_deref().unwrap_or("");
+    for form in forms.split('`').skip(1).step_by(2) {
+      assert!(
+        when.contains(&format!("`{form}`")),
+        "wb claim's when_to_use must name `{form}`: {when}"
+      );
+    }
+
+    let tool = all()
+      .into_iter()
+      .find(|t| t.path == "wb claim")
+      .expect("wb claim is offered on MCP");
+    let described = tool.input_schema["properties"]["id"]["description"]
+      .as_str()
+      .unwrap_or("");
+    assert!(
+      described.contains(forms),
+      "the schema's claim-address description derives the one-home sentence: {described:?}"
+    );
+
+    let skill = std::fs::read_to_string(concat!(
+      env!("CARGO_MANIFEST_DIR"),
+      "/../../../../intent/plugins/claude/skills/in-whiteboard/SKILL.md"
+    ))
+    .expect("the whiteboard skill is in the tree");
+    assert!(
+      skill.contains(forms),
+      "the whiteboard skill must name the claim forms as their one home says them"
     );
   }
 

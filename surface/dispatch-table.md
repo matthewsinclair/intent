@@ -4349,7 +4349,7 @@ Add a steel thread, work package or issue to the acting node's claims
 
 - **v2:** new-surface
 - **Arguments:**
-  - `id` (claim-address, arity `1`)
+  - `id` (claim-address, arity `1`) -- What to claim: a thread as `ST0000`, a work package as `ST0000/01`, or an issue as `ISSUE:0000`
 - **Flags:**
   - `--node` (string) -- The moniker of the node writing
     - **disposition:** keep
@@ -4371,7 +4371,7 @@ Drop a steel thread, work package or issue from the acting node's claims
 
 - **v2:** new-surface
 - **Arguments:**
-  - `id` (claim-address, arity `1`)
+  - `id` (claim-address, arity `1`) -- What to drop: a thread as `ST0000`, a work package as `ST0000/01`, or an issue as `ISSUE:0000`
 - **Flags:**
   - `--node` (string) -- The moniker of the node writing
     - **disposition:** keep
