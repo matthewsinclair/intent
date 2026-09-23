@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 89be4c37-5e0c-46eb-a8df-6cce6bb2c58b
-heartbeat_at: 2026-09-23 18:13Z
+heartbeat_at: 2026-09-23 22:04Z
 status: active
 focus: "0521 CLOSED on vc's word: CI green in both workflows on both legs at hv's push 9dac092ea. cc holds no open item. IN THE CUT'S HOLD on vc's terms until the v3.2.1 tag exists: no wb write, no commit, no /in-session. NO PUSH, NO RELEASE."
 claims: []
