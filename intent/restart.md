@@ -7,7 +7,7 @@
 - Measure the binary, never trust a line: `command -v intent && readlink "$(command -v intent)"`, `intent --version`, `intent info | sed -n 's/^ *INTENT_HOME: *//p'`.
 - The frozen v2 checkout is `~/Devel/prj/_Archive/Intentv2`, branch `v2-maintenance`, never written; `~/Devel/prj/Intentv2` does not exist.
 - A build is the delivery: `bin/devbin build all` verifies the pair as a set and the PATH symlinks point into this tree; a bare `cargo build --release` is not the door. Templates are NOT compiled in: every `lib/templates/` file is read from the install root at run time, so an edit there is live on save.
-- During a rebuild no estate on this machine has `intent` and commits block; the rebuilding node announces the start and the end.
+- A rebuild never leaves an estate without `intent`: `build all` builds in `target/staging/release` and promotes the verified pair by rename (0196), so it may overlap a compact, and the running daemon keeps the old code until `intent daemon restart`. `bin/devbin fullcycle` is what removes `native/rust/target`. The rebuilding node announces the start and the end.
 - The marker is provenance, not identity, and answers for the compiled half only.
 - A general policy stated after a specific ruling does not vacate it: `config`, `ext` and `learn` ship declared-and-unbuilt (hv, 2026-08-31).
 - Strike "not in this one", "defer" and "after the tag" as a class; they are the scarcity move wearing a release number.
