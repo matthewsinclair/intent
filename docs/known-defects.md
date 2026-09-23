@@ -1,6 +1,6 @@
-# Known defects in v3.1.0
+# Known defects in v3.2.1
 
-**Every defect on this page has been run against the build v3.1.0 is cut from.** Not inferred from our issue register: driven against that build before its version stamp moved, when `intent --version` printed `intent 3.0.3 (b9491a1f24b48762225f6377dcf36e0099f99d47)`, each in a fresh scratch project under an isolated `HOME`. Where a claim could not be driven it is not on the page, and the last sections say what that leaves out.
+**Every defect on this page has been run against the build v3.2.1 is cut from.** Not inferred from our issue register: driven against that build before its version stamp moved, when `intent --version` printed `intent 3.2.0 (3355ba2f714d63d532b3455aa7970196d87535ec) dev`, each in a fresh scratch project under an isolated `HOME`. Where a claim could not be driven it is not on the page, and the last sections say what that leaves out.
 
 **A defect is on this page if you can hit it by following the documentation correctly.** Something that only bites a maintainer editing the register, or a team sharing one checkout, is recorded against the issue rather than here.
 
@@ -10,23 +10,44 @@
 
 ## The search index
 
-**The store's FTS5 index for the source half can go malformed, so a search on an affected term fails** (`intent#0442`, closed on a repair and a detector with its cause unreproduced). The damage is a document the index still holds with no row in its content table. Its cause is not reproduced: eight deliberate attempts across two corpora did not produce it. What this release adds is that `intent doctor` sees it. Driven on a store damaged the same way by hand, one row deleted from the source index's content table while the index keeps its document:
+**The store's FTS5 index for the source half can go malformed, so a search on an affected term fails** (`intent#0442`, closed on a repair and a detector with its cause unreproduced). The damage is a document the index still holds with no row in its content table. Its cause is not reproduced: no deliberate attempt to produce it has succeeded. What `intent doctor` does, since v3.1.0, is see it. Driven on a store damaged the same way by hand, one row deleted from the source index's content table while the index keeps its document:
 
 ```
   $ intent doctor
+  advisory: 1 note(s) not shown and not counted -- `intent doctor --verbose` reads them
+  surface: `index rebuild` withholds --corpus pending a decision on whether it ships -- it is declared and deliberately not built
   search-index: src_sections -- both index probes are dirty: the index-side probe and fts5's own check both object (on both of two readings), not counted in the verdict
     remedy: `intent index rebuild` re-indexes the tree (its store write runs FTS5's own rebuild)
-    orphaned: 1 docid(s) the index holds with no content row: 5
+    orphaned: 1 docid(s) the index holds with no content row: 1
     fts5 check: malformed inverted index for FTS5 table main.src_sections
     shadow tables disagree: 1 docsize row(s) with no content row, 0 content row(s) with no docsize row
   doctor: 0 finding(s) across 0 thread(s), 0 issue(s), 2 view(s), 10 file(s) -- 1 advisory(ies), not counted -- search index DAMAGED in src_sections, not counted; `intent index rebuild` repairs it
 ```
 
-It exits 0. The search index is shown and not counted, so it never moves `doctor`'s exit code, and the summary line carries it under `--quiet` too. **Run `intent index rebuild`**: it rewrites the index in one pass, the entities were never affected, and `doctor` then reads `search index: no orphaned document and fts5's check clean, from two probes that share one blind spot (both read the index's segments)`. That last clause is deliberate: both readings go through the index's own segments, so a clean pair is not two independent witnesses.
+It exits 0. The search index is shown and not counted, so it never moves `doctor`'s exit code, and the summary line carries it under `--quiet` too. **Run `intent index rebuild`**: it rewrites the index in one pass, the entities were never affected, and `doctor` then reads `search index: no orphaned document and fts5's check clean, from two probes that share one blind spot (both read the index's segments)`. That last clause is deliberate: both readings go through the index's own segments, so a clean pair is not two independent witnesses. The entry was also driven on a copy of the damage that actually happened, the store kept as evidence for `intent#0442`, where the same probes name its orphaned document and fts5's own `checksum mismatch`, and `intent index rebuild` clears it the same way.
 
-**In a project a running `intentd` watches, a plain `intent search` can miss a file written a moment ago, and its answer still says the index is complete.** A search in this process skips its own reconcile when a daemon is watching the project (since issue 0443), and relies on the daemon's watcher to have indexed the change. Until the watcher has, the file is not in the answer, and `intent search --json` reports `"complete": true` with the `reconciled_at` of the last whole reconcile. Driven on 3.1.0 under an isolated `HOME`, with `intent daemon start`, then `intent --daemon st list` to open the project: a file written just before each search was missing from every one of five immediate searches. The same search with the daemon stopped reconciles first and finds it. How long the watcher takes depends on the machine's load, and this page does not put a number on it. CI saw the same race: the Ubuntu leg of the push run for 3.1.0's tag failed on it once, and its re-run was green.
+**In a project a running `intentd` watches, a plain `intent search` can miss a file written a moment ago.** A search in this process skips its own reconcile when a daemon is watching the project (since issue 0443), and relies on the daemon's watcher to have indexed the change. Until the watcher has, the file is not in the answer. The answer says so: `intent search --json` reports `"reconciled": false`, where a search that reconciled first reports `"reconciled": true`, and it reports `"complete": true` either way. Driven under an isolated `HOME`, with `intent daemon start`, then `intent --daemon st list` to open the project, and a file written just before each search:
 
-**To search a tree you have just changed, stop the daemon first** (`intent daemon stop`), or search again once the watcher has caught up.
+```
+  $ intent search KDPROBE1 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
+  {"hits":["src/probe1.rs"],"complete":true,"reconciled":false,"reconciled_at":"2026-09-23T17:40:35.728Z"}
+  $ intent search KDPROBE2 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-09-23T17:40:35.728Z"}
+  $ intent search KDPROBE3 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-09-23T17:40:35.728Z"}
+  $ intent search KDPROBE4 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-09-23T17:40:35.728Z"}
+  $ intent search KDPROBE5 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-09-23T17:40:35.728Z"}
+  $ intent daemon stop
+  ok: intentd stopped
+  $ intent search KDPROBE5 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled}'
+  {"hits":["src/probe5.rs"],"complete":true,"reconciled":true}
+```
+
+The same search with the daemon stopped reconciles first and finds the file. How long the watcher takes depends on the machine's load, and this page does not put a number on it. CI saw the same race: the Ubuntu leg of the push run for 3.1.0's tag failed on it once, and its re-run was green.
+
+**To search a tree you have just changed, stop the daemon first** (`intent daemon stop`), or search again once the watcher has caught up. An answer that reads `"reconciled": false` did not look at the tree before it answered.
 
 ## A stray directory disables the whole project
 
@@ -34,7 +55,7 @@ It exits 0. The search index is shown and not counted, so it never moves `doctor
 
 ```
   $ intent st list
-  error: this project has not been migrated to Intent v3 -- it declares Intent 3.0.3, and 1 steel thread carries v2 canon this binary cannot read (ST0099)
+  error: this project has not been migrated to Intent v3 -- it declares Intent 3.2.0, and 1 steel thread carries v2 canon this binary cannot read (ST0099)
     remedy: run `intent upgrade` to migrate this project to Intent v3
 ```
 
@@ -58,20 +79,11 @@ None of the body is shown. `intent wp --help` describes the verb as `Show work p
 
 ## Criteria and tests
 
-**A work package or thread whose criteria are all descoped or withdrawn cannot be marked done, and the refusal's `remedy:` line does not say how to close it** (`intent#0063`). Give a work package one criterion, withdraw it, and `intent wp done` refuses at exit 1 with:
-
-```
-  error: ST0001/01 is not ready to close -- gate: ST0001/01 BLOCKED -- all 1 in-scope AC(s) are descoped or withdrawn; nothing is left to verify. Add one with `intent ac new`, bring one back with `intent ac rescope` or `intent ac reinstate`, or cancel the unit with `intent st cancel` or `intent wp cancel`.
-    remedy: satisfy or formally descope the remaining criteria, then close again
-```
-
-The diagnosis names the routes that work, and the `remedy:` line under it still speaks of remaining criteria, of which there are none. **Follow the diagnosis**: add a criterion with `intent ac new`, bring one back with `intent ac rescope` or `intent ac reinstate`, or run `intent wp cancel <ST>/<NN> --reason <text>`. A thread in the same state gets the same refusal from `intent st done`, and there `intent st cancel` is the route. The thread-level exemption is not one: `acceptance: exempt` is fixed when a thread is authored, and `intent set intent:///threads/ST0001 acceptance exempt` refuses with `` `acceptance` cannot be set on `intent:///threads/ST0001`: the close-gate exemption, fixed when the thread is authored and moved by nothing afterwards ``.
-
 **A test-backed criterion cannot carry a note, and the refusal sends you round a loop** (`intent#0211`). On a test-backed criterion that is not yet satisfied, `intent ac edit <ST> <AC> --note <text>` refuses at exit 1:
 
 ```
   error: `note` cannot be set on `intent:///threads/ST0001/ac/AC-01.3`: AC-01.3 is computed, and only an unsatisfied criterion carries a note -- a computed row keeps its own record, so move it with `intent ac unsatisfy|rescope|reinstate` first
-    remedy: go to the door the refusal names: a lifecycle verb for a field a state machine owns, and the member's own address for a collection
+    remedy: go to the door the refusal names: a lifecycle verb for a field a state machine owns, the member's own address for a collection, and the list's own verbs for a list that has them
 ```
 
 The criterion is unsatisfied (`ac show` prints `satisfied: no`), and none of the three verbs moves it: `ac unsatisfy` refuses with `AC-01.3 is test-backed, so its satisfaction is computed from covering green acceptance tests and cannot be set directly`, and `ac rescope` and `ac reinstate` each answer `ok: AC-01.3 already computed` and change nothing. Put the note on the covering test row instead: `intent at edit <ST> <AT> --note <text>` writes it.
@@ -95,18 +107,6 @@ Two controls make it sharp. Remove the file from the worktree and the gate flips
 
 **The citation check stops at close, with nothing saying so** (`intent#0267`). Close a thread on an honest citation, then remove the id from the cited file: `at lint` answers `lint: ST0001 ok -- 1 of 1 AT row(s) examined and conforming`, `ac gate` still answers `PASS`, and `doctor` does not mention it. The exemption is deliberate -- retrofitting id labels into a finished thread is archaeology -- and the defect is that nothing distinguishes _checked and true_ from _true at close, unchecked since_: the lint line calls the row `examined`. **The file-existence arm is not exempt**: delete the cited file and the same closed thread reports `AT-01.1 cites a file that does not exist: tests/a.rs` at exit 1. So a closed thread's coverage is checked for presence and not for content, and reads identically either way.
 
-## Editing
-
-**Addressing an issue by its URL in `intent edit` refuses with a bare `a` glued onto a vowel-initial noun** (`intent#0081`). The kind form, `intent edit issue 0001`, now refuses before reaching it and names the verb that corrects an issue. The address form still reaches it, exit 1:
-
-```
-  $ intent edit intent:///issues/0001
-  error: `issue` is not something that can be realised to disk: issue 0001's only file is its generated view, which is rendered from the store rather than authored -- `intent issues edit 0001` corrects the record it is rendered from
-    remedy: address an ARTEFACT instead -- a steel thread. A `issue` has no files of its own, so there is nothing for realisation to create; if you meant the thread that carries it, address the thread.
-```
-
-The refusal is telling you the right thing, and `intent issues edit 0001` is the verb; `` A `issue` `` is the article bug, because this message builds the article by hand rather than asking the noun for it.
-
 ## Syncing
 
 **Text appended to a generated view after its `_Generated by Intent v..._` banner is discarded by `sync --to-store`, which reports that it overwrote nothing** (`intent#0192`). Exit 0:
@@ -124,7 +124,7 @@ The refusal is telling you the right thing, and `intent issues edit 0001` is the
 
 ## The rule critics
 
-**`severity_min` in `.intent_critic.yml` is honoured by the pre-commit gate and ignored by the runner you would test with** (`intent#0288`). You will meet this file: `intent claude upgrade --apply` seeds it into a project when it is absent, and the critic's own refusal routes you to it. With `severity_min: critical` in the file and a shell file carrying a warning-level finding, `intent critic shell --files src/w.sh` still reports `[WARNING] IN-SH-CODE-002` at exit 1, while committing the same file through the installed gate passes at exit 0 (`intent critic gate: 1 of 1 declared language(s) enforced (shell).`). The runner takes its severity from the command line alone and falls back to the `warning` default, so raising the floor in the file changes what the gate reports and nothing about the run you made to check it. Pass `--severity-min <lvl>` explicitly when you want the runner to answer the same question as the gate; with `--severity-min critical` the same run answers `ok: no shell findings at severity >= critical across 1 file(s)`.
+**`severity_min` in `.intent_critic.yml` is honoured by the pre-commit gate and ignored by the runner you would test with** (`intent#0288`). You will meet this file: `intent claude upgrade --apply` seeds it into a project when it is absent, and the critic's own refusal routes you to it. With `severity_min: critical` in the file and a shell file carrying a warning-level finding, `intent critic shell --files src/w.sh` still reports `[WARNING] IN-SH-CODE-002` at exit 1, while committing the same file through the installed gate passes at exit 0 (`intent critic gate: 1 of 1 declared language(s) enforced (shell), 0 rule(s) disabled by this project.`). The runner takes its severity from the command line alone and falls back to the `warning` default, so raising the floor in the file changes what the gate reports and nothing about the run you made to check it. Pass `--severity-min <lvl>` explicitly when you want the runner to answer the same question as the gate; with `--severity-min critical` the same run answers `ok: no shell findings at severity >= critical across 1 file(s)`.
 
 ## Declared and not implemented
 
@@ -146,6 +146,6 @@ If you hit something not listed, that is the gap rather than a surprise. The reg
 
 ## Reading this against your own build
 
-`intent --version` names the build you are on, and the sha it prints is the commit the binary was built at; a release carries its tag's commit.
+`intent --version` names the build you are on. The sha it prints is the commit the binary was built at, and the word after it says which kind of build that is: `release` for a published release, which carries its tag's commit, and `dev` for a build of the tree between releases, which is the kind this page was driven on.
 
-**The register itself cannot tell you which build a row describes** (`intent#0191`). An issue carries no field naming the version it was broken or fixed in -- `intent issues show <id> --json` has `body`, `created`, `number`, `reporter`, `schema`, `severity`, `slug`, `status` and `title` and nothing about a build -- so `intent issues list` cannot separate rows about a published build from rows about `main`. This page is that partition for v3.1.0, drawn by driving each row. **If you find an issue that seems to describe your version, check here before believing it.**
+**The register itself cannot tell you which build a row describes** (`intent#0191`). An issue carries no field naming the version it was broken or fixed in -- `intent issues show <id> --json` has `body`, `created`, `number`, `reporter`, `schema`, `severity`, `slug`, `status` and `title` and nothing about a build -- so `intent issues list` cannot separate rows about a published build from rows about `main`. This page is that partition for v3.2.1, drawn by driving each row. **If you find an issue that seems to describe your version, check here before believing it.**
