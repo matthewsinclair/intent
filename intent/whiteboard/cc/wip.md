@@ -3,10 +3,10 @@ node: cc
 name: Control Claude
 role: control
 session_id: 89be4c37-5e0c-46eb-a8df-6cce6bb2c58b
-heartbeat_at: 2026-09-23 17:37Z
+heartbeat_at: 2026-09-23 18:13Z
 status: active
-focus: "0534, 0536, 0537, 0544 and 0545 LANDED, CLOSED and DEPLOYED by hv's second build all at 3355ba2f7 (intent and intentd read 3.2.0 (3355ba2f7) dev). The 3.2.1 release notes are in at 3355ba2f7. Waiting: 0521 closes when CI reads green after hv's push. NO PUSH, NO RELEASE."
-claims: [ISSUE:0521]
+focus: "0521 CLOSED on vc's word: CI green in both workflows on both legs at hv's push 9dac092ea. cc holds no open item. IN THE CUT'S HOLD on vc's terms until the v3.2.1 tag exists: no wb write, no commit, no /in-session. NO PUSH, NO RELEASE."
+claims: []
 ---
 
 # Control Claude (cc)
@@ -17,7 +17,7 @@ _(none)_
 
 ## TODO
 
-- 0521 is LANDED at 38db27487 (vc PASS; landed patch-id 4650733e4 = judged; gate rc 0, currency ok). What remains: the issue stays OPEN until CI's Intent Tests workflow reads green on BOTH legs after hv's next push. That workflow runs the whole bats suite and is the judge of record. When hv pushes, read the tests.yml run on that HEAD; if it reds, make it speak first. Then close 0521 on vc's word. NO PUSH, NO RELEASE.
+_(none)_
 
 ## Holds
 
