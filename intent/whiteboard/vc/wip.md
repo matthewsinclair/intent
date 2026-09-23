@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 302a2f4f-f054-4037-a411-d4f6d7b7df7e
-heartbeat_at: 2026-09-23 12:56Z
+heartbeat_at: 2026-09-23 13:07Z
 status: active
 focus: "LOCALFOLDED for hv's compact. 0525, 0529, 0530 and 0531 are landed and closed, not deployed. Next: dc's 0532 judging run, ic's 0533, cc's 0534, the second build all, hv's push, CI, the pre-cut pass, the cut. NO PUSH, NO RELEASE."
 claims: []
@@ -13,36 +13,31 @@ claims: []
 
 ## DOING
 
-- RESUME (vc, 2026-09-23, localfold before hv's third compact). Measure first: `intent outs`, `git log --oneline -15`, `intent --version`, `intent daemon status`, and ListAgents to ask cc, dc and ic where they stand.
+- RESUME (vc, 2026-09-23, after hv's third compact; rewritten at 13:19:08Z by date -u). Measure first: `intent outs`, `git log --oneline -15`, `intent --version`, `intent daemon status`, and ListAgents to ask cc, dc and ic where they stand.
 
 DEPLOYED (the pair c5cca7e26, from hv's build all of 12:05Z to 12:07Z): 0520 through 0528.
 
 LANDED AND CLOSED, NOT DEPLOYED until the second build all:
 - 0525, with 0529 and 0531, at d3b2250b6 (closed at 50f1f5c83).
 - 0530 at 084b154b9 (closed at 41b90a9c4).
-- vc passed cc's stacked run. Its base was 9a5d8276b. Rust passed 3007 on the baseline and 3014 on the bank. Bats passed 743 of 743 on both. The red sets are empty in both directions, and the extra 7 are exactly the new arms.
-- Both landed patch-ids equal the judged ones (d35a403d5, b4e176144), and HEAD equals the judged tree 074c8da3d over the 24 banked files.
 - Rung 30 migrates every estate's store the first time the new pair opens it, and an older pair then refuses that store. Tell hv at the second build all.
 
 hv decision 32: everything found goes into 3.2.1. OPEN, IN ORDER:
-(1) 0532 (dc), banked at refs/bank/dc/0532/v1: blob 60e20ebfc, patch-id c10efbc0d, 8 files +613/-12. vc has READ it and it is sound. Its judging run is approved on cc's terms: baseline HEAD, the whole Rust suites and then the whole bats suite, red sets diffed both ways, `cargo clean -p` for the workspace members, and the rlib grep with a control. It starts once ic's surface review raises nothing blocking, and vc judges from the END.
-(2) 0533 (ic), built after dc's run:
-  - `intent bootstrap --check`, with the shim's --where contract: rc 0 when the gate can run, rc 1 when it cannot. The different-install state prints both roots, and a versioned-keg pointer is a note at rc 0.
-  - A `Gate root:` line in `intent info`.
-  - install::gate_resolution, the one service function that --check, info and upgrade --apply all render. upgrade --apply's output stays byte-identical, and its arms stay unedited.
-(3) 0534 (cc), built after ic's loop. The version LINE gains ` release` or ` dev`, and the VALUE and its marker do not change. Riders:
-  - one sibling function, with its own env var and an [intent-build-kind:...] marker
-  - release driven before the cut in a scratch clone: a lightweight tag, an annotated tag, a dirty tree, one commit past the tag, and no tag
-  - `bin/int macos app-test` in its judging run, with the worktree's own INTENT_MACOS_STATE_DIR
-  - every line consumer driven on the built pair
-  - a Fixed line, and the dispatch-table row updated.
-(4) The second build all after the last landing, then `intent daemon restart`. Warn gtools-vc before and after, and no commit lands in any path while it runs.
-(5) hv pushes. vc reads both CI workflows on both legs, which closes 0521 (cc's).
-(6) The pre-cut pass. ic regenerates the reference set and re-reads every 3.2.1 entry, and dc re-drives known-defects.md whole on ic's brief.
-(7) The cut, in hv's terminal.
+(1) 0532 (dc). Its judging run has been in flight since dc's HEAVY START at 13:12:14Z. It runs on v2: refs/bank/dc/0532/v2, blob 2c6442c07, patch-id 89d23af2d, 8 files +613/-12. vc verified that it applies cleanly on HEAD 6a4d0fef9 and that v1 to v2 is ic's note (b) alone. The base is HEAD 6a4d0fef9. vc judges from the END.
+(2) 0533 (ic), 0534 (cc) and 0535 (dc) are each authored with no cargo while another node holds the box. Each node then takes a compile-and-own-arms loop in the heavy slot, in order of readiness, alphabetical on a tie. ONE stacked judging run then takes all three banks, run by cc and including `bin/int macos app-test`. vc judges it from the END, and each bank lands at its judged patch-id. Compose the banks in both orders first: they share CHANGELOG's 3.2.1 section, dispatch-table.json and .md, and suite.rs's `mod` list.
+  - 0533 (ic) is built on vc's rulings: `intent bootstrap --check` on the shim's --where contract; a `Gate root:` line in `intent info`; install::gate_resolution rendered by every door, with upgrade --apply byte-identical.
+  - 0534 (cc) adds ` release` or ` dev` to the version line and leaves the value unchanged. It comes with riders 1 to 5; its tag drives run in a scratch clone inside cc's heavy window.
+  - 0535 (dc, high) was filed by vc between 13:17:20Z and 13:19:08Z by date -u, from gtools-dc's finding, and driven on Intent at 6a4d0fef9. A cold store's warm carries threads and issues and no board. The remedies it prints, `wb register` and then `wb migrate vc`, emptied every node's tracked board.json at rc 0 (10258 lines deleted). The fix has three parts:
+    - the cold warm carries boards;
+    - `wb migrate`, and `wb register` too if dc measures that path, refuses a node whose board.json on disk records it as migrated;
+    - the `wb` reads name `intent sync --to-store`.
+(3) The second build all after the last landing, then `intent daemon restart`. Warn gtools-vc before and after, and no commit lands in any path while it runs.
+(4) hv pushes. vc reads both CI workflows on both legs, which closes 0521 (cc's).
+(5) The pre-cut pass. ic regenerates the reference set and re-reads every 3.2.1 entry, and dc re-drives known-defects.md whole on ic's brief.
+(6) The cut, in hv's terminal.
 ST0060 and ST0077 stay on hv's hold.
 
-AFTER THE CUT: todo 62, the fleet sweep, using dc's census of 23 estates with Intent. The questions it raises are vc's: Gtools' tracked carriers, Utilz's inline formatter checks, and the seven estates hold 29 does not name. `intent sync --to-disk` clears 0532's StaleRender boards, but run it only where doctor reads no counted ViewSkew first, because it discards a hand-edited view.
+AFTER THE CUT: todo 62, the fleet sweep, using dc's census of 23 estates with Intent. The questions it raises are vc's: Gtools' tracked carriers, Utilz's inline formatter checks, and the seven estates hold 29 does not name. `intent sync --to-disk` clears 0532's StaleRender boards, but run it only where doctor reads no counted ViewSkew first, because it discards a hand-edited view. Any estate with a fresh clone or worktree runs `intent sync --to-store` there before any `wb` verb until 0535 ships.
 
 NO PUSH, NO RELEASE.
 

@@ -1,0 +1,15 @@
+{
+  "id": "01M376MAWJ2DCQRCT6R1F0C402",
+  "ts": "2026-09-23T13:17:39.607Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0535"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "A fresh clone's store holds no whiteboard, and the remedies it prints end in wb migrate emptying every node's board.json"
+  }
+}
