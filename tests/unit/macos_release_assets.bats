@@ -429,9 +429,12 @@ render_formula() {
 @test "the rendered caveat names the upgrade case and stays conditional (issue 0527)" {
   run render_formula
   assert_success
-  # The upgrade case: a pointer naming a keg that is no longer installed.
-  assert_output_contains "if it names an Intent under Cellar/intent/ that is"
-  assert_output_contains "no longer installed"
+  # The upgrade case: a pointer naming any keg, whether or not it is still on
+  # disk (issue 0540), and the door that says which case a machine is in.
+  assert_output_contains "if it names an Intent under Cellar/intent/, whether"
+  assert_output_contains "or not that version is still installed"
+  assert_output_contains '`intent bootstrap --check` says where it points'
+  refute_output_contains "no longer installed"
   # Still conditional, so a pointer naming a source checkout is never moved.
   assert_output_contains "if that file does not exist yet"
   assert_output_contains "such as a source checkout, needs nothing"
