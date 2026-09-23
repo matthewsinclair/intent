@@ -64,9 +64,19 @@ HEAVY RUN START -- vc judges 0516 at 2026-09-22T19:30:09Z by date -u: the whole 
 
 HEAVY RUN END -- vc releases the box at 2026-09-22T19:33:11Z by date -u. 0516 PASSES: intentd and intent-cli whole suites, baseline and bank both cargo-rc=0, 1118 passed 0 failed in each, 0 red in either, newest source mtime unchanged across both runs; the ingest-counting daemon arms did not flake under the backstop. No timing claimed.
 
-## (2026-09-22 21:14Z) FYI only -- no response needed.
+## (2026-09-22 21:14Z) FYI only -- no response needed. (handled)
 
 EOD CALL FROM hv -- every node LOCALFOLD AGGRESSIVELY NOW: bank anything unlanded to refs/bank, commit your own board render by path (git add <paths> && git commit --only <paths>), handle and clear your inboxes, archive finished doing items, keep holds whose condition stands, record your resume state, then SendMessage vc 'folded' with your last commit sha. vc runs GLOBALFOLD after all three report. OUTSTANDING FOR TOMORROW, recorded by vc: cd79407eb (dc's rustdoc fix for 0511's private intra-doc link, which reddened CI run 35783294587 on 5fdc731f7 at the doc step on both legs) is COMMITTED and NOT PUSHED; it moves native/rust, so hv's push needs dvb build all first, and CI's test step has never run on today's changes. NO PUSH, NO RELEASE.
+
+## (2026-09-23 07:39Z) (handled)
+
+ORDERS ON hv's WORD, durable copy of vc's live message (issues filed 2026-09-23 07:37Z by date -u). NO PUSH, NO RELEASE.
+1. 0522, wb register's refusals carry no remedy: GO, yours, now. The source is render.rs:4176-4188. It is a Rust bank, so it owes the whole intentsvcs and intent-cli suites. It shares render.rs with cc's 0523, so the two land in the order they bank green.
+2. The Prolix carry: GO, from here. hv: "Fix it from here. If I need to start prolix-vc, then let me know and I'll do that as and when it's needed." Your plan E stands: hv's stub board first by wb migrate, placeholder lines only dropped and kept under .history/pre-migration/, any other hv line back to hv through vc; then Prolix's cc and vc. One mechanical commit, doctor after, vc checks it. No push.
+3. 0521, the Intent Tests red: cc's, on hv's word. Stand down on it.
+4. Hold 27: vc is putting it to hv with context, options and a recommendation. It stays held.
+5. Your board plan D is fine.
+6. 3.2.1. hv: "I want all outstanding items fixed and validated before we cut the next release. Then I want to do that asap."
 
 ---
 

@@ -1,0 +1,15 @@
+{
+  "id": "01M36KD8C26QH1K7Z2QRV180BG",
+  "ts": "2026-09-23T07:41:44.706Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "**0522, IN FLIGHT: wb register's argument refusals carry no remedy (vc's order on hv's word, 2026-09-23 07:39Z; a 3.2.1 item).** Mechanism, read at intent-cli/src/render.rs:4149-4188: the CLI's register arm sorts the moniker, --name and --role combinations itself, and returns moniker-without-both-flags and flags-without-moniker as bare Failure::Error strings with no remedy line, beside a third refusal (--correct, 4158) that names the form in prose only. --help's MONIKER has no description and --name reads \"with <moniker>\", both from surface/dispatch-table.json. The form hv saw work is the bash plugin's (intent_claude_cwi:193). Plan: every refusal of the verb carries the whole form with the moniker filled in where one was typed, plus intent wb status; the flags-without-moniker refusal says the moniker is missing and comes first; --help describes all three. Rust bank: owes the whole intentsvcs and intent-cli suites. render.rs is shared with cc's 0523, so the two land in the order they bank green. NO PUSH."
+  }
+}

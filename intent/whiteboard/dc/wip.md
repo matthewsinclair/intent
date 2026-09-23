@@ -3,10 +3,10 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 1a8e4fe7-0650-45f6-a619-84fc0c380145
-heartbeat_at: 2026-09-23 07:10Z
+heartbeat_at: 2026-09-23 07:41Z
 status: active
-focus: "HOLDING for 2026-09-23. Start at todo 37: cd79407eb (the CI doc-link fix) waits on hv's push, then read the rust CI run, test step included. Hold 27 waits on hv. No claims, no worktrees, nothing running. NO PUSH, NO RELEASE."
-claims: []
+focus: "0522 in flight (wb register's refusals carry no remedy; render.rs, shared with cc's 0523), then the Prolix carry from here. 0521 is cc's. Hold 27 goes to hv through vc. NO PUSH, NO RELEASE."
+claims: [ISSUE:0522]
 ---
 
 # DevX Claude (dc)
@@ -17,7 +17,8 @@ _(none)_
 
 ## TODO
 
-- **RESUME HERE (2026-09-23): CI GREEN IS NOT YET SHOWN.** Run 35783294587 on 5fdc731f7 went red at the rust doc step on both legs, caused by renumber.rs:80 from 0511 (a private moved_claims linked from public doc). It is fixed at cd79407eb, NOT PUSHED; the push is hv's. The doc step now passes locally across the whole workspace (RUSTDOCFLAGS=-Dwarnings, --keep-going). CI's TEST step has NOT run on any push since, so the workspace test is unmeasured on CI. NEXT: after hv pushes, read the rust run on that HEAD, both legs, test step included. If it reds, make it speak first (|| fail with output) before any theory. 0516's intentd backstop is DEPLOYED (pair 5fdc731f7 carries intentd-backstop); daemons started before 21:52 local run the old code until restarted.
+- **0522, IN FLIGHT: wb register's argument refusals carry no remedy (vc's order on hv's word, 2026-09-23 07:39Z; a 3.2.1 item).** Mechanism, read at intent-cli/src/render.rs:4149-4188: the CLI's register arm sorts the moniker, --name and --role combinations itself, and returns moniker-without-both-flags and flags-without-moniker as bare Failure::Error strings with no remedy line, beside a third refusal (--correct, 4158) that names the form in prose only. --help's MONIKER has no description and --name reads "with <moniker>", both from surface/dispatch-table.json. The form hv saw work is the bash plugin's (intent_claude_cwi:193). Plan: every refusal of the verb carries the whole form with the moniker filled in where one was typed, plus intent wb status; the flags-without-moniker refusal says the moniker is missing and comes first; --help describes all three. Rust bank: owes the whole intentsvcs and intent-cli suites. render.rs is shared with cc's 0523, so the two land in the order they bank green. NO PUSH.
+- **THE PROLIX CARRY, GO FROM HERE, AFTER 0522 (vc's order on hv's word, 2026-09-23 07:39Z; hv decision 26 item 7).** hv, verbatim via vc: "Fix it from here. If I need to start prolix-vc, then let me know and I'll do that as and when it's needed." hv's stub board goes first, by wb migrate, dropping only placeholder lines and keeping them under .history/pre-migration/; any other hv line that will not carry goes back to hv through vc; then Prolix's cc and vc. One mechanical commit in Prolix, doctor after, vc checks it. No push. If it needs a live Prolix session, tell vc, who asks hv. Measured read-only 2026-09-23: Prolix's hv/ holds a hand-authored wip.md, with no board.json and no .history/pre-migration/, and the last whiteboard commit is b45137a (09-03). This ruling fell off dc's board once already: doing 81 was archived 2026-09-21 16:29Z, before the ruling, and nothing replaced it.
 
 ## Holds
 

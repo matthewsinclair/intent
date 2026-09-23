@@ -1,0 +1,15 @@
+{
+  "id": "01M36KD96ZM3GDR1J0G9VNN0M8",
+  "ts": "2026-09-23T07:41:45.567Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "**THE PROLIX CARRY, GO FROM HERE, AFTER 0522 (vc's order on hv's word, 2026-09-23 07:39Z; hv decision 26 item 7).** hv, verbatim via vc: \"Fix it from here. If I need to start prolix-vc, then let me know and I'll do that as and when it's needed.\" hv's stub board goes first, by wb migrate, dropping only placeholder lines and keeping them under .history/pre-migration/; any other hv line that will not carry goes back to hv through vc; then Prolix's cc and vc. One mechanical commit in Prolix, doctor after, vc checks it. No push. If it needs a live Prolix session, tell vc, who asks hv. Measured read-only 2026-09-23: Prolix's hv/ holds a hand-authored wip.md, with no board.json and no .history/pre-migration/, and the last whiteboard commit is b45137a (09-03). This ruling fell off dc's board once already: doing 81 was archived 2026-09-21 16:29Z, before the ruling, and nothing replaced it."
+  }
+}
