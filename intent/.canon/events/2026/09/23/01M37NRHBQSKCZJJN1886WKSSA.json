@@ -1,0 +1,15 @@
+{
+  "id": "01M37NRHBQSKCZJJN1886WKSSA",
+  "ts": "2026-09-23T17:42:05.943Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "(ic, 2026-09-23) STANDING BY FOR THE 3.2.1 CUT. ic's part is complete. Every bank is landed at its judged patch-id, closed, and DEPLOYED by hv's second build all (pair 3355ba2f7, verified by vc): 0533, 0538 (v2 and the tune), 0540, 0543, the D correction, and the docs commit (15f334ee9). The pre-cut pass is done: the reference set is at 0e49a6691 (HEAD against v3.2.0); every issue closed since the tag is named in 3.2.1 or accounted for; and the llm guide carries the new surface. NEXT: dc's known-defects commit, then vc's call on the cut, which hv fires (releasing.md steps 3 and 4). tmp/wt-ic-0533 (warm target) is kept until the cut. NO PUSH, NO RELEASE."
+  }
+}

@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "211a090e-f16e-484b-bd74-7a58ce1c75e7",
-    "heartbeat_at": "2026-09-23T13:08:03.186Z",
+    "heartbeat_at": "2026-09-23T17:42:06.798Z",
     "status": "active",
-    "focus": "LOCALFOLD for hv's compact, 2026-09-23. 0530 landed (084b154b9) and closed; 0532 review sent to dc (PASS). After the bounce: dc's 0532 judging run, then 0533 in its own worktree on vc's rulings (announce HEAVY START and END; cc's 0534 waits on it), then the reference set after the last landing and hv's second build all. NO PUSH, NO RELEASE.",
+    "focus": "Standing by for the 3.2.1 cut: every ic bank is landed, closed and deployed (hv's second build all at 3355ba2f7); the reference set is at 0e49a6691; the pre-cut pass is done. NO PUSH, NO RELEASE.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -2134,7 +2134,8 @@
       "kind": "todo",
       "seq": 42,
       "text": "3.2.1 PRE-CUT SURFACE PASS (vc's order on hv's word), after 0520, 0521, 0522 and 0523 land: every Added and Fixed entry has its dispatch row, help, MCP row per exposed_on_mcp, its reference page regenerated against the v3.2.0 baseline (decision 25(3)), and the intent llm output.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-23T17:42:04.177Z",
       "recorded_at": "2026-09-23T08:25:01.893Z"
     },
     {
@@ -2294,8 +2295,17 @@
       "kind": "doing",
       "seq": 109,
       "text": "(ic, 2026-09-23) 3.2.1 train, ic's part: every bank LANDED at its judged patch-id and CLOSED: 0533 (f7c62b94d), 0538 (00fc875a7 plus efd73baa1), 0540 (5411b6bd6), 0543 (b4d70a039), and the D correction (3be665d61). None is deployed until hv's second build all. NOW: the docs commit (apply_precut.py) in this chain, then cc's release notes, then hv's second build all (warn gtools-vc before and after, then intent daemon restart), then the pre-cut reference pass (todo 42), and after it dc's known-defects re-drive. NO PUSH, NO RELEASE.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-23T17:42:05.054Z",
       "recorded_at": "2026-09-23T17:23:53.724Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 110,
+      "text": "(ic, 2026-09-23) STANDING BY FOR THE 3.2.1 CUT. ic's part is complete. Every bank is landed at its judged patch-id, closed, and DEPLOYED by hv's second build all (pair 3355ba2f7, verified by vc): 0533, 0538 (v2 and the tune), 0540, 0543, the D correction, and the docs commit (15f334ee9). The pre-cut pass is done: the reference set is at 0e49a6691 (HEAD against v3.2.0); every issue closed since the tag is named in 3.2.1 or accounted for; and the llm guide carries the new surface. NEXT: dc's known-defects commit, then vc's call on the cut, which hv fires (releasing.md steps 3 and 4). tmp/wt-ic-0533 (warm target) is kept until the cut. NO PUSH, NO RELEASE.",
+      "state": "live",
+      "recorded_at": "2026-09-23T17:42:05.943Z"
     }
   ],
   "messages": [

@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 211a090e-f16e-484b-bd74-7a58ce1c75e7
-heartbeat_at: 2026-09-23 13:08Z
+heartbeat_at: 2026-09-23 17:42Z
 status: active
-focus: "LOCALFOLD for hv's compact, 2026-09-23. 0530 landed (084b154b9) and closed; 0532 review sent to dc (PASS). After the bounce: dc's 0532 judging run, then 0533 in its own worktree on vc's rulings (announce HEAVY START and END; cc's 0534 waits on it), then the reference set after the last landing and hv's second build all. NO PUSH, NO RELEASE."
+focus: "Standing by for the 3.2.1 cut: every ic bank is landed, closed and deployed (hv's second build all at 3355ba2f7); the reference set is at 0e49a6691; the pre-cut pass is done. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -13,11 +13,10 @@ claims: []
 
 ## DOING
 
-- (ic, 2026-09-23) 3.2.1 train, ic's part: every bank LANDED at its judged patch-id and CLOSED: 0533 (f7c62b94d), 0538 (00fc875a7 plus efd73baa1), 0540 (5411b6bd6), 0543 (b4d70a039), and the D correction (3be665d61). None is deployed until hv's second build all. NOW: the docs commit (apply_precut.py) in this chain, then cc's release notes, then hv's second build all (warn gtools-vc before and after, then intent daemon restart), then the pre-cut reference pass (todo 42), and after it dc's known-defects re-drive. NO PUSH, NO RELEASE.
+- (ic, 2026-09-23) STANDING BY FOR THE 3.2.1 CUT. ic's part is complete. Every bank is landed at its judged patch-id, closed, and DEPLOYED by hv's second build all (pair 3355ba2f7, verified by vc): 0533, 0538 (v2 and the tune), 0540, 0543, the D correction, and the docs commit (15f334ee9). The pre-cut pass is done: the reference set is at 0e49a6691 (HEAD against v3.2.0); every issue closed since the tag is named in 3.2.1 or accounted for; and the llm guide carries the new surface. NEXT: dc's known-defects commit, then vc's call on the cut, which hv fires (releasing.md steps 3 and 4). tmp/wt-ic-0533 (warm target) is kept until the cut. NO PUSH, NO RELEASE.
 
 ## TODO
 
-- 3.2.1 PRE-CUT SURFACE PASS (vc's order on hv's word), after 0520, 0521, 0522 and 0523 land: every Added and Fixed entry has its dispatch row, help, MCP row per exposed_on_mcp, its reference page regenerated against the v3.2.0 baseline (decision 25(3)), and the intent llm output.
 - 0533 (vc routed it to ic, 2026-09-23; in the 3.2.1 cut under hv's ruling): nothing in Intent answers where the gate's install root resolves, so Molt copies the shim's resolution to check it. RULED by vc (2026-09-23, all four parts accepted, with two riders). (1) `intent bootstrap --check` is the machine door. It is read-only and follows the shim's --where exit contract exactly: rc 0 when the gate can run, rc 1 when it cannot. A versioned-keg brew pointer is a note at rc 0 (0527's residue). RIDER: the DIFFERENT-install state prints both roots, the pointer's root: and a this binary: line. (2) A `Gate root:` line in `intent info` is the human door, rendered from the same answer. (3) HIGHLANDER: one pure function, install::gate_resolution(home) (the name is free in the index, checked 12:32Z), rendered by every door: --check, the info line, and upgrade --apply's warnings and divergence note. RIDER: the move out of render.rs preserves behaviour, so upgrade --apply's output stays byte-identical and its existing arms stay green WITHOUT edits. (4) A dispatch row with help, the regenerated dispatch-table.md, a CHANGELOG Added line, and arms on planted pointers for every state, the note included. MCP follows the row's recoverability; a read-only row is offered. BUILD AFTER the stacked run, in its own worktree with an in-tree target (cargo clean -p every workspace member if you clone a target). Expect a CHANGELOG tail conflict with cc's and dc's banks, and rebase onto whatever has landed. Size S.
 
 ## Holds
