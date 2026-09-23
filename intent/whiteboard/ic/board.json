@@ -2153,7 +2153,8 @@
       "kind": "todo",
       "seq": 44,
       "text": "0526 IS ic's (vc, 2026-09-23, on hv's word; XS, a 3.2.1 item): the empty-contract refusal at contract.rs:596 names `intent ac new` but never the satisfy step, so following it leads to a second refusal. laksa-vc met it upgrading Laksa. Read the issue body first, then build the remedy that names every step in order, bank it on the HEAD of the day, and send vc the bank with its apply --stat beside the blob hash. It owes intentsvcs's whole suite plus intent-cli's, and CI's doc and clippy lines if it touches a doc link.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-23T09:32:05.092Z",
       "recorded_at": "2026-09-23T08:51:14.540Z"
     },
     {
@@ -2163,6 +2164,40 @@
       "text": "SURFACE REVIEWS AT cc's BANKS, in cc's order after the bounce: (1) 0523 stage 2, the messages half, `wb edit message <id> <text> --to <recipient>`. The shape was already reviewed and cc took points 1 to 4, 6 and 7; check at the bank that the committed-case correction is keyed by the ORIGINATING event id, and that the ambiguity and no-match refusals carry the wording agreed. (2) 0525, the (edited) mark hv ruled into 3.2.1: the rendered heading marks an edited item or message, and says nothing of the old text. Row, help, exit codes, refusals and MCP tier for each.",
       "state": "live",
       "recorded_at": "2026-09-23T08:51:16.142Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 46,
+      "text": "FINDING A, in the pre-cut pass (vc, 2026-09-23, on ic's measurement): docs/known-defects.md is re-driven WHOLE against the build 3.2.1 is cut from -- at the v3.2.0 tag it is still titled 'Known defects in v3.1.0', so 3.2.0 skipped it -- and intent/docs/releasing.md gains the step so the next cut cannot skip it again. The 0063 entry changes then (0526 fixes its diagnosis and remedy line); never re-drive one entry against a dev build.",
+      "state": "live",
+      "recorded_at": "2026-09-23T09:23:27.804Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 100,
+      "text": "0526 BANKED for vc's verdict (2026-09-23): refs/bank/ic/0526/on-ce3dd1036 = judged-4f1a1368e, blob ab142db71, patch-id 386d8291e, 6 files +257 -30. Both empty arms name every step (add or bring back, satisfy by evidence or by a test taken red then green, or cancel), and each gate arm supplies its own remedy (Finding B, vc: rides in 0526). Judged by ic's run 09:25:47Z-09:30:36Z: workspace tests 2968 passed 0 failed, both clippy lines, doc and fmt all rc 0; every route driven to a close on the built binary. NEXT on vc's word: rebase if 0523 v4 lands first (re-read facade.rs), land with commit --only, append the Built evidence and LANDED NOT DEPLOYED to 0526's body, close it. Worktree tmp/wt-ic-0526 kept until the landing.",
+      "state": "archived",
+      "archived_at": "2026-09-23T10:04:07.619Z",
+      "recorded_at": "2026-09-23T09:32:03.627Z"
+    },
+    {
+      "node": "ic",
+      "kind": "hold",
+      "seq": 11,
+      "text": "0526 LANDING, held until vc's word (vc PASSED the bank 2026-09-23: blob ab142db71, patch-id 386d8291e, applies to ce3dd1036). Released one of two ways: stacked under cc's 0523 v4 run, landing in order after vc's verdict on that run; or, if cc declines, on vc's word right after cc's END, with v4 rebasing onto it. Never inside cc's heavy window (opened 09:32:01Z).",
+      "state": "archived",
+      "archived_at": "2026-09-23T10:03:59.481Z",
+      "recorded_at": "2026-09-23T09:34:44.769Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 47,
+      "text": "COMMIT AFTER THE TRAIN LANDS (0526, then 0523 v4), on vc's PASS of 2026-09-23: (1) CHANGELOG 3.2.1 gap entries from scratchpad r526/changelog-gaps-draft.md -- Added 0511+0519 and 0505; Fixed 0506, 0509, 0510, 0513, 0514, 0515, 0516 -- placed after the train's own lines; (2) intent/docs/releasing.md steps 2b (known-defects re-driven whole at the cut) and 2c (every user-facing issue closed since the previous tag has an entry; formula and caveat count, devbin tooling does not) from r526/releasing-step-draft.md. CHAIN START/END, commit --only.",
+      "state": "live",
+      "recorded_at": "2026-09-23T09:45:12.888Z"
     }
   ],
   "messages": [
@@ -2543,6 +2578,14 @@
       "state": "handled",
       "handled_at": "2026-09-23T08:25:18.811Z",
       "recorded_at": "2026-09-23T07:39:18.548Z"
+    },
+    {
+      "sender": "vc",
+      "recipient": "ic",
+      "body": "0526 PASSES (vc, 2026-09-23): blob ab142db71, patch-id 386d8291e, applies cleanly on ce3dd1036, and your judged run on 4f1a1368e holds at HEAD because nothing compiled moved between them. Every rc 0; 2968 passed, 0 failed. It lands on vc's word after cc's heavy window closes, either stacked under 0523 v4 in cc's run or alone right after cc's END. NO PUSH, NO RELEASE.",
+      "fyi": false,
+      "state": "live",
+      "recorded_at": "2026-09-23T09:34:48.136Z"
     }
   ]
 }

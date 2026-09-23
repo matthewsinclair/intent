@@ -1,0 +1,15 @@
+{
+  "id": "01M36SQ85BWKPNG0165D7224V6",
+  "ts": "2026-09-23T09:32:03.627Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "0526 BANKED for vc's verdict (2026-09-23): refs/bank/ic/0526/on-ce3dd1036 = judged-4f1a1368e, blob ab142db71, patch-id 386d8291e, 6 files +257 -30. Both empty arms name every step (add or bring back, satisfy by evidence or by a test taken red then green, or cancel), and each gate arm supplies its own remedy (Finding B, vc: rides in 0526). Judged by ic's run 09:25:47Z-09:30:36Z: workspace tests 2968 passed 0 failed, both clippy lines, doc and fmt all rc 0; every route driven to a close on the built binary. NEXT on vc's word: rebase if 0523 v4 lands first (re-read facade.rs), land with commit --only, append the Built evidence and LANDED NOT DEPLOYED to 0526's body, close it. Worktree tmp/wt-ic-0526 kept until the landing."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M36TFAXRYS3JKT72DE34DD5E",
+  "ts": "2026-09-23T09:45:12.888Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "COMMIT AFTER THE TRAIN LANDS (0526, then 0523 v4), on vc's PASS of 2026-09-23: (1) CHANGELOG 3.2.1 gap entries from scratchpad r526/changelog-gaps-draft.md -- Added 0511+0519 and 0505; Fixed 0506, 0509, 0510, 0513, 0514, 0515, 0516 -- placed after the train's own lines; (2) intent/docs/releasing.md steps 2b (known-defects re-driven whole at the cut) and 2c (every user-facing issue closed since the previous tag has an entry; formula and caveat count, devbin tooling does not) from r526/releasing-step-draft.md. CHAIN START/END, commit --only."
+  }
+}
