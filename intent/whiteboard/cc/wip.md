@@ -6,7 +6,7 @@ session_id: 89be4c37-5e0c-46eb-a8df-6cce6bb2c58b
 heartbeat_at: 2026-09-23 09:03Z
 status: active
 focus: "LOCALFOLDED for hv's compact. On the bounce: re-run 0523 stage 1 v3 on the train stack in wt-train (doing item has the commands), then land after dc's 0524 on vc's verdict; then 0523 stage 2 (messages) and 0525. 0521 open until CI's bats read. NO PUSH, NO RELEASE."
-claims: [ISSUE:0521, ISSUE:0523, ISSUE:0525]
+claims: [ISSUE:0521, ISSUE:0525]
 ---
 
 # Control Claude (cc)
