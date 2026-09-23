@@ -242,3 +242,91 @@ fn a_same_version_footer_reworded_by_an_older_renderer_is_a_stale_render() {
     );
   }
 }
+
+/// Every view rendered for one sample thread, and the todo view's text.
+fn rendered_todo(fx: &Fixture) -> String {
+  fx.write_thread(&sample_thread("ST0001"));
+  let project = fx.project();
+  let canon = intentsvcs::ingest::read(&project).expect("canon reads");
+  intentsvcs::views::write_all(&project, &canon, &ctx()).expect("the views render");
+  fx.read("intent/todo.md")
+}
+
+/// Doctor's findings that name the todo view.
+fn about_the_todo_view(fx: &Fixture) -> Vec<intentsvcs::finding::Finding> {
+  intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None, intentsvcs::doctor::Scope::All)
+    .findings
+    .into_iter()
+    .filter(|f| f.to_string().contains("todo.md"))
+    .collect()
+}
+
+/// **ISSUE `0528`: THE TODO VIEW OPENS WITH THE GENERATOR MARKER v2 WROTE.** A
+/// tool that keeps a todo.md of its own tells Intent's view apart by it --
+/// Utilz's `todo` refuses a file whose frontmatter names another generator and
+/// rewrites one with none -- so the bytes are the contract. They are spelled
+/// out here rather than read from the constant, which could not disagree with
+/// itself.
+#[test]
+fn the_todo_view_opens_with_the_generator_marker_v2_wrote() {
+  let fx = Fixture::new();
+  let todo = rendered_todo(&fx);
+  assert!(
+    todo.starts_with("---\ngenerator: intent todo\n---\n\n# TODO\n"),
+    "the todo view does not open with v2's generator marker: {todo}"
+  );
+}
+
+/// **ISSUE `0528`, THE UPGRADE: A TODO VIEW AN OLDER v3 WROTE CARRIES NO
+/// MARKER, AND THAT IS A STALE RENDER, NOT SKEW.** Every estate's committed
+/// todo.md lacks it until something rewrites the view, and skew would block
+/// every commit in every one of them at the upgrade.
+#[test]
+fn a_todo_view_an_older_v3_wrote_without_the_marker_is_a_stale_render() {
+  let fx = Fixture::new();
+  let rendered = rendered_todo(&fx);
+  let older = rendered
+    .strip_prefix(intentsvcs::views::TODO_FRONTMATTER)
+    .expect("the render carries the marker, or this arm is about nothing");
+  fx.write_file("intent/todo.md", older);
+
+  let about = about_the_todo_view(&fx);
+  assert!(
+    about.iter().any(|f| f.class == FindingClass::StaleRender),
+    "a todo view an older v3 wrote is a stale render: {about:?}"
+  );
+  assert!(
+    !about.iter().any(|f| f.class.is_actionable()),
+    "and nothing about it blocks the pre-commit gate: {about:?}"
+  );
+}
+
+/// **AND THE MASK REACHES NO FURTHER: A MARKER NAMING ANOTHER GENERATOR IS
+/// SKEW.** Only the renderer's own bytes are dropped, so a marker somebody
+/// rewrote -- or a foreign tool's file in the view's place -- still differs.
+#[test]
+fn a_todo_view_whose_marker_names_another_generator_is_skew() {
+  let fx = Fixture::new();
+  let rendered = rendered_todo(&fx);
+  let foreign = rendered.replacen("generator: intent todo", "generator: utilz todo", 1);
+  assert_ne!(foreign, rendered, "the fixture must rewrite the marker");
+  fx.write_file("intent/todo.md", &foreign);
+
+  let about = about_the_todo_view(&fx);
+  assert!(
+    about.iter().any(|f| f.class == FindingClass::ViewSkew),
+    "a marker naming another generator was masked as the renderer's own: {about:?}"
+  );
+}
+
+/// **ISSUE `0528`: A TODO VIEW CARRYING THE MARKER REPORTS NO SKEW.**
+#[test]
+fn doctor_reports_nothing_about_a_todo_view_carrying_the_marker() {
+  let fx = Fixture::new();
+  rendered_todo(&fx);
+  let about = about_the_todo_view(&fx);
+  assert!(
+    about.is_empty(),
+    "a freshly rendered todo view carries a finding: {about:?}"
+  );
+}

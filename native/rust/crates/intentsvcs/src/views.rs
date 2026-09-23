@@ -839,6 +839,18 @@ const RENDERER_OWNED_LINES: &[&str] = &[
   "Acceptance Criteria for this work package are RENDERED into `",
 ];
 
+/// The frontmatter that opens `intent/todo.md`: its generator marker, byte for
+/// byte as v2's `intent todo` wrote it (issue `0528`).
+///
+/// **IT IS A CONTRACT WITH ANOTHER TOOL, NOT DECORATION.** Utilz's `todo` keeps
+/// a todo.md of its own and refuses to overwrite one whose leading frontmatter
+/// names another generator, and it takes a file with no frontmatter for its own
+/// pre-marker format and rewrites it. v2 stamped this view with the marker for
+/// exactly that guard; v3 dropped it at the port, so Utilz's `todo add` run
+/// beside Intent's view overwrote it. The bytes are v2's, so a guard written
+/// against v2 reads v3 unchanged.
+pub const TODO_FRONTMATTER: &str = "---\ngenerator: intent todo\n---\n\n";
+
 /// A view's text with the parts its RENDERER owns masked, or `None` when it
 /// carries no banner and so did not come from this renderer at all.
 ///
@@ -848,10 +860,17 @@ const RENDERER_OWNED_LINES: &[&str] = &[
 /// `RENDERER_OWNED_LINES` line. Kept byte for byte: every other line before
 /// the banner, and everything after the banner's line, which is the author's.
 ///
+/// **THE TODO VIEW'S GENERATOR MARKER IS DROPPED FIRST, AND ONLY AS THE
+/// RENDERER'S OWN BYTES** (issue `0528`). A todo view an older v3 wrote has no
+/// marker, so without this every one of them would read as skew after an
+/// upgrade and block its estate's commits. A marker naming any other generator
+/// is not [`TODO_FRONTMATTER`], so it stays in the text and still differs.
+///
 /// **ONE HOME FOR "WHAT A HAND EDIT COULD HAVE TOUCHED"**, asked by
 /// [`differs_only_in_renderer_owned_text`] and by the egest's empty-estate
 /// guard, which measures whether the AUTHORED text of a face would shrink.
 pub fn authored_text(text: &str) -> Option<String> {
+  let text = text.strip_prefix(TODO_FRONTMATTER).unwrap_or(text);
   let at = text.rfind(BANNER_MARKER)?;
   let mut out = String::with_capacity(text.len());
   for line in text[..at].split_inclusive('\n') {
@@ -1565,6 +1584,7 @@ pub fn todo(threads: &[Thread], ctx: &RenderContext<'_>) -> String {
   let buckets = todo_buckets(threads, ctx);
 
   let mut out = String::new();
+  out.push_str(TODO_FRONTMATTER);
   out.push_str("# TODO\n\n");
   out.push_str("A DOING / TODO / DONE view, projected from steel-thread and work-package status: one row per steel thread, with its work packages nested beneath it. Generated -- change a status with the CLI, never by editing this file.\n\n");
   out.push_str(&bucket("DOING", &buckets.doing));
