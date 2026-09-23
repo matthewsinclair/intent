@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "89be4c37-5e0c-46eb-a8df-6cce6bb2c58b",
-    "heartbeat_at": "2026-09-23T09:03:30.586Z",
+    "heartbeat_at": "2026-09-23T10:39:47.575Z",
     "status": "active",
-    "focus": "LOCALFOLDED for hv's compact. On the bounce: re-run 0523 stage 1 v3 on the train stack in wt-train (doing item has the commands), then land after dc's 0524 on vc's verdict; then 0523 stage 2 (messages) and 0525. 0521 open until CI's bats read. NO PUSH, NO RELEASE.",
+    "focus": "LOCALFOLDED for hv's compact. After the bounce, per vc: hv's build all, daemon restart, then 0525+0529 pins, the rung-30 drive and ONE stacked run with ic's 0530. 0523 closed and not deployed. NO PUSH, NO RELEASE.",
     "claims": [
       "ISSUE:0521",
       "ISSUE:0525"
@@ -1738,8 +1738,17 @@
       "kind": "doing",
       "seq": 68,
       "text": "0523 (3.2.1), state at 2026-09-23 10:07Z: STAGE 1 v4 LANDED at 3d8d3b8d1 on vc's pass (patch-id 2a17fefc5 before and after; ic's 0526 under it at d9aa20703). NOT DEPLOYED until hv's go on bin/devbin build all (warn gtools-vc). STAGE 2 (messages) BANKED as refs/bank/cc/0523-stage2/v1 (blob 73bc35898, patch-id 3b0eee7cb, 12 files +881/-34, on the landed v4), green in development; ic reviews its surface; its whole-suite judging run queues behind dc's 0527 composition run; then vc's verdict and the landing. Stage 2's trees: S/wt-train and S/wt-0523m (tree adbc7bc3), S = /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/89be4c37-5e0c-46eb-a8df-6cce6bb2c58b/scratchpad. NEXT: 0525, the (edited) mark (a schema rung), after stage 2 lands; ic reviews its surface. 0521 stays open until CI's bats read after hv's push. NO PUSH, NO RELEASE.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-23T10:39:45.668Z",
       "recorded_at": "2026-09-23T10:07:35.897Z"
+    },
+    {
+      "node": "cc",
+      "kind": "doing",
+      "seq": 69,
+      "text": "RESUME HERE (cc localfold before hv's compact, 2026-09-23 10:39Z; hv via vc: localfold and compact now, continue after the bounce). Full resume: S/resume_0525.txt, S = /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/89be4c37-5e0c-46eb-a8df-6cce6bb2c58b/scratchpad. 0523 is CLOSED (stage 1 3d8d3b8d1, stage 2 d336abd8d, close a43997415), not deployed. 0525 plus 0529 (vc: 0529 rides 0525) are WRITTEN and COMPILE (build rc 0 at 10:38:20Z) but are NOT PINNED and NOT TESTED; the work-in-progress bank is refs/bank/cc/0525/wip-on-8364b5056 (blob 7c5a48741, patch-id 5908aed24, 12 files +354/-40, on the landed stage 2's build inputs). S/wt-train holds stage 2 + 0525 + ic's 0530 (tree 52685c37). AFTER THE BOUNCE, IN vc's ORDER: hv's bin/devbin build all in its own window, then intent daemon restart; then mine: re-check the bank on the HEAD holding dc's 0528; bless the faces and re-pin schema_versioning (JSON 22, DDL 26, SDL 19) and store_schema_version (v30), each with a comment; the targeted arms; vc's rung-30 drive on copies of Intent's and Gtools' stores (S/mig_drive.sh, v29 control S/bin-v29/intent); ic reviews the (edited) surface; bank; then ONE stacked judging run over ic's 0530 (refs/bank/ic/0530/on-1ac4079f2, blob 6890365f4, patch-id b4e176144) plus 0525, both blobs named in the START; vc's verdict and landing order. 0521 stays open until CI's bats after hv's push. NO PUSH, NO RELEASE.",
+      "state": "live",
+      "recorded_at": "2026-09-23T10:39:46.609Z"
     }
   ],
   "messages": [
