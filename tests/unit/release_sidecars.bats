@@ -507,3 +507,18 @@ view_diff() {
   run grep -c 'refusing to classify a view whose change could not be read' "$RELEASE"
   assert_output "1"
 }
+
+@test "the pair is built at the tag after the tag is made and before the push is confirmed (0546)" {
+  # prepush_push_range.bats drives pair_at_tag through the pre-push runner; this
+  # holds where the script calls it. Before the tag, the pair would name the
+  # commit under the tag only by luck; after the confirmation, the push it exists
+  # for has already been refused.
+  local tag_at pair_at push_at
+  tag_at="$(grep -n 'git tag "\$TAG")' "$RELEASE" | head -1 | cut -d: -f1)"
+  pair_at="$(grep -n 'PAIR_VERDICT="\$(pair_at_tag)"' "$RELEASE" | head -1 | cut -d: -f1)"
+  push_at="$(grep -n 'confirm "\$PUSH_PROMPT"' "$RELEASE" | head -1 | cut -d: -f1)"
+  [ -n "$tag_at" ] && [ -n "$pair_at" ] && [ -n "$push_at" ] ||
+    fail "a landmark is missing: tag at '$tag_at', pair_at_tag at '$pair_at', push confirmation at '$push_at'"
+  [ "$tag_at" -lt "$pair_at" ] && [ "$pair_at" -lt "$push_at" ] ||
+    fail "expected tag < pair_at_tag < push confirmation; got $tag_at, $pair_at, $push_at"
+}

@@ -14,14 +14,18 @@
 # intent_version, the schema faces regenerated, native/rust/Cargo.lock through
 # cargo, AGENTS.md and CLAUDE.md rendered by a CLI built at the target version,
 # and the generated views re-rendered with footer-only changes folded in),
-# commit, tag, push to both remotes, and GitHub release publication. Every sidecar is stamped BEFORE the
+# commit, tag, the delivered pair built at the tag (`bin/devbin build all`, so
+# the pre-push check passes the release's own push -- issue 0546), push to both
+# remotes, and GitHub release publication. Every sidecar is stamped BEFORE the
 # commit, so the tag describes a self-consistent tree -- there is no post-tag
 # wrap to remember.
 #
 # Single repo, two remotes (local Dropbox + upstream GitHub).
 #
 # THIS COMMAND OWNS THE TAG AND THE RELEASE OBJECT, AND NOTHING ELSE (D43). It
-# does not build, sign, notarise or upload a native binary, and it does not
+# builds the local pair at the tag only because its own push is refused over any
+# other pair (issue 0546); it does not sign, notarise, stage or upload a native
+# binary, and it does not
 # touch the Homebrew tap: `int macos prepare` owns the artefacts and
 # `int macos publish` owns the assets on the object this creates. No command
 # owns two of the three. What it DOES own for v3 is the version those artefacts
@@ -44,7 +48,7 @@
 #   --dry-run            Run the pre-flight gates, then print every write step
 #                        (version set, CHANGELOG date, config stamp, schema
 #                        faces, lock, stamp CLI, canon, views, commit, tag,
-#                        push, release) instead of performing it.
+#                        the pair at the tag, push, release) instead of performing it.
 #   --no-confirm         Skip the interactive confirmation before the push.
 #   --skip-tests         Skip the pre-flight doctor, bats and cargo test gates
 #                        (re-run mode).
@@ -251,6 +255,47 @@ confirm() {
   reply="${reply//[$'\t\r\n ']/}"
   case "$reply" in
     [yY]|[yY][eE][sS]) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+# **THE PAIR IS BUILT AT THE TAG BEFORE THE PUSH, BECAUSE THE PUSH IS REFUSED
+# OVER ANY OTHER PAIR (issue 0546).** 0518 made the pre-push runner refuse a
+# push while the delivered pair under native/rust/target/release is behind HEAD
+# in the build-input scope. The release commit changes native/rust/Cargo.toml
+# and Cargo.lock, which are in that scope, and nothing else here rebuilds the
+# pair, so every cut since 0518 would stop at its own push with the commit and
+# the tag made and nothing published. The build was step 4's first command anyway.
+#
+# **THE VERDICT IS THE PRE-PUSH RUNNER'S OWN, TAKEN FROM THE SAME LIBRARIES.**
+# `build all` exits 0 without promoting anything when the build-input tree is
+# dirty -- it builds into target/private/release instead -- so its exit code
+# cannot say that the pair the hook will read is current.
+# `artefact_currency_verdict` can, and it is the function the hook calls, so
+# this refuses exactly when the push would be refused, and says so before the
+# confirmation rather than after it.
+#
+# The build's own output goes to stderr, so the caller can capture the one
+# verdict line this prints on stdout. Returns 0 on `ok` or `warn:` (the hook
+# passes both) and 1 on anything else, the build's own failure included.
+pair_at_tag() {
+  local shared="$PROJECT_ROOT/bin/.devbin/cmd/shared" lib verdict
+  if ! (cd "$PROJECT_ROOT" && ./bin/devbin build all) >&2; then
+    printf 'refuse:bin/devbin build all failed -- its output is above\n'
+    return 1
+  fi
+  for lib in artefact sharedtarget currency; do
+    [ -r "$shared/$lib.lib" ] || {
+      printf 'refuse:cannot read %s, so the pair built at the tag cannot be checked\n' "$shared/$lib.lib"
+      return 1
+    }
+    # shellcheck disable=SC1090
+    . "$shared/$lib.lib"
+  done
+  verdict="$(artefact_currency_verdict "$PROJECT_ROOT/native/rust/target/release" "$PROJECT_ROOT")"
+  printf '%s\n' "$verdict"
+  case "$verdict" in
+    ok | warn:*) return 0 ;;
     *) return 1 ;;
   esac
 }
@@ -643,10 +688,10 @@ $frozen_list"
   log_info "gh CLI authenticated"
 
   # A LIVE intentd REFUSES THE CUT HERE, BEFORE ANYTHING IS STAMPED (issue 0468;
-  # vc's ruling, 2026-09-19). The ground is the binary swap: the cut is followed
-  # at the tag by `bin/devbin build all`, which replaces the pair in
-  # native/rust/target/release that a running intentd executes, so the daemon
-  # is stopped before the cut and started once that build has landed. It used
+  # vc's ruling, 2026-09-19). The ground is the binary swap: the cut runs
+  # `bin/devbin build all` at the tag itself (issue 0546), which replaces the pair
+  # in native/rust/target/release that a running intentd executes, so the daemon
+  # is stopped before the cut and started once the release has finished. It used
   # to say the stamp step's `sync --to-disk` refused beside a watching daemon;
   # issue 0500 removed that refusal, and the swap is the reason that remains.
   # This script never stops or starts the daemon itself: intentd's restart is
@@ -657,7 +702,7 @@ $frozen_list"
 $daemon_json"
   case "$daemon_json" in
     *'"state":"live"'*)
-      abort "intentd is running, and the \`bin/devbin build all\` that follows this cut at the tag replaces the binary it executes. Nothing has been stamped. Run \`intent daemon stop\`, re-run this release, then \`intent daemon start\` once \`bin/devbin build all\` at the tag has finished." ;;
+      abort "intentd is running, and the \`bin/devbin build all\` this cut runs at the tag replaces the binary it executes. Nothing has been stamped. Run \`intent daemon stop\`, re-run this release, then \`intent daemon start\` once the release has finished." ;;
   esac
   log_info "no intentd is running"
 
@@ -1401,6 +1446,24 @@ if [ "$TAG_EXISTS" = "false" ]; then
     (cd "$PROJECT_ROOT" && git tag "$TAG") || abort "git tag $TAG failed -- the release commit is on local main, untagged and unpushed. Do not re-run this release: it cannot resume past its own commit, and a re-run would try to cut a further version on top of it. Finish by hand, in order: \`git -C '$PROJECT_ROOT' tag $TAG\`; \`git -C '$PROJECT_ROOT' push local main $TAG\`; \`git -C '$PROJECT_ROOT' push upstream main $TAG\`; write the notes with \`sed -n '/^## \[$TARGET\]/,/^## \[/p' '$PROJECT_ROOT/CHANGELOG.md' | sed '\$d' > /tmp/notes-$TAG.md\`; \`gh release create $TAG --title 'Intent v$TARGET' --notes-file /tmp/notes-$TAG.md\` (\`gh release edit\` with the same flags if $TAG already has a release)"
     log_info "created tag $TAG"
   fi
+fi
+
+# --------------------------------------------------------------------
+# The pair, at the tag (issue 0546)
+# --------------------------------------------------------------------
+log_step "pair at $TAG"
+
+if [ "$DRY_RUN" = "true" ]; then
+  log_dry "would run 'bin/devbin build all' at $TAG, then refuse unless the pre-push check's currency verdict passes the pair it built"
+else
+  if ! PAIR_VERDICT="$(pair_at_tag)"; then
+    abort "the pair built at $TAG does not pass the pre-push check, so the push would be refused: ${PAIR_VERDICT#refuse:}
+The release commit and tag $TAG exist locally and nothing is pushed. Do not re-run this release: it cannot resume past its own commit. Finish by hand, in order: fix what the line above names, then \`bin/devbin build all\` at $TAG until it promotes the pair; \`git -C '$PROJECT_ROOT' push local main $TAG\`; \`git -C '$PROJECT_ROOT' push upstream main $TAG\`; write the notes with \`sed -n '/^## \[$TARGET\]/,/^## \[/p' '$PROJECT_ROOT/CHANGELOG.md' | sed '\$d' > /tmp/notes-$TAG.md\`; \`gh release create $TAG --title 'Intent v$TARGET' --notes-file /tmp/notes-$TAG.md\`"
+  fi
+  case "$PAIR_VERDICT" in
+    warn:*) log_warn "the pair at $TAG passes the pre-push check with a warning: ${PAIR_VERDICT#warn:}" ;;
+  esac
+  log_info "the pair under native/rust/target/release is built at $TAG and passes the pre-push check"
 fi
 
 # --------------------------------------------------------------------
