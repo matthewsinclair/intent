@@ -53,6 +53,17 @@
 # cry-wolf arriving through a different door, so the board-only and already-level
 # cases are as load-bearing as the regression -- they are what keeps the fix from
 # being "make it always check", which would pass tests 1, 2, 5 and be useless.
+#
+# AND SINCE 0518 EVERY ARM RUNS OVER A DELIVERED PAIR, WHICH THIS FIXTURE STAMPS.
+# The runner takes `artefact_currency_verdict` BEFORE the path trigger, because a
+# whiteboard-only push over a stale pair is exactly as stale -- 0518's judged
+# placement, kept by hv's ruling on issue 0521. A fixture repo holding no pair
+# is therefore refused before the range is read. Measured as 0521: every arm red
+# on both CI legs and on this host, each printing `no intent binary at
+# <repo>/native/rust/target/release/intent` -- and CI showed none of that,
+# because no assertion here printed the runner's output. So `gate` stamps a pair
+# the verdict passes before every run, every assertion carries `$output`, and
+# the last arm holds the placement itself.
 
 load "../lib/test_helper.bash"
 
@@ -70,9 +81,30 @@ ZERO="0000000000000000000000000000000000000000"
 # back the lever. A private directory holding ONE link, `bash`, is what joins,
 # and `setup` asserts the floor the same way it asserts the lever.
 
+# THE PAIR, AS THE CURRENCY VERDICT READS IT. The verdict takes each binary's
+# `[intent-source-commit:<sha>]` marker through `strings`, which reads a plain
+# file as readily as a binary, so two small files carrying the marker are a pair
+# to it and no build is needed. They sit where the real pair does, and `setup`
+# ignores `native/rust/target/` as this repository does, so no `git add -A` in
+# an arm commits them into a range.
+stamp_pair() {
+  local dir="$REPO/native/rust/target/release" b
+  mkdir -p "$dir"
+  for b in intent intentd; do
+    printf '[intent-source-commit:%s]\n' "$1" >"$dir/$b"
+  done
+}
+
 # Run the runner the way git's pre-push hook does: ref pairs on stdin, no argv.
-# Pass "" for stdin to exercise the by-hand path.
+# Pass "" for stdin to exercise the by-hand path. `runner` runs over whatever
+# pair is stamped; `gate` stamps one at HEAD first, which is the state every
+# range arm describes.
 gate() {
+  stamp_pair "$(at HEAD)"
+  runner "$1"
+}
+
+runner() {
   local stdin_content="$1"
   if [ -z "$stdin_content" ]; then
     env -i HOME="$HOME" PATH="$TRIMMED_PATH" DEVBIN_NAME=int \
@@ -90,6 +122,22 @@ gate() {
 
 refpair() { printf 'refs/heads/main %s refs/heads/main %s' "$1" "$2"; }
 at() { git -C "$REPO" rev-parse "$1"; }
+
+# EVERY ASSERTION CARRIES THE RUNNER'S OWN WORDS. 0521 went red on CI with none
+# of them, and the one line that named the cause had to be fetched by running
+# the file again here. Each outcome is asserted in one place, so no arm can
+# state it without printing what the runner said.
+expect_engaged() {
+  [ "$status" -ne 0 ] || fail "expected the gate to ENGAGE, got status 0: $output"
+  [[ "$output" == *"cargo not on PATH"* ]] ||
+    fail "expected the build half, dying 'cargo not on PATH'; got status $status: $output"
+}
+
+expect_skipped() {
+  [ "$status" -eq 0 ] || fail "expected the gate to SKIP, got status $status: $output"
+  [[ "$output" == *"no native/ or build-manifest change"* ]] ||
+    fail "expected 'no native/ or build-manifest change'; got status $status: $output"
+}
 
 setup() {
   TEST_TEMP_DIR="$(cd "$(mktemp -d "${TMPDIR:-/tmp}/intent-prepush-XXXXXX")" && pwd)"
@@ -123,6 +171,7 @@ setup() {
   git -C "$REPO" config user.name t
   mkdir -p "$REPO/native/rust" "$REPO/intent/whiteboard"
   printf 'base\n' >"$REPO/README.md"
+  printf 'native/rust/target/\n' >"$REPO/.gitignore"
   git -C "$REPO" add -A
   git -C "$REPO" commit -qm base
   git -C "$REPO" remote add local "$TEST_TEMP_DIR/local.git"
@@ -160,8 +209,7 @@ seed_pushed_to_upstream_only() {
   # THE REGRESSION. The old computation saw an empty range here and exited 0.
   seed_pushed_to_upstream_only
   run gate "$(refpair "$(at HEAD)" "$(at local/main)")"
-  [ "$status" -ne 0 ]
-  [[ "$output" == *"cargo not on PATH"* ]]
+  expect_engaged
 }
 
 @test "the answer follows each remote's own position, not the tracked remote's" {
@@ -177,18 +225,15 @@ seed_pushed_to_upstream_only() {
   # that consults `@{upstream}` cannot produce two answers here at all.
   seed_pushed_to_upstream_only
   run gate "$(refpair "$(at HEAD)" "$(at local/main)")"
-  [ "$status" -ne 0 ]
-  [[ "$output" == *"cargo not on PATH"* ]]
+  expect_engaged
   run gate "$(refpair "$(at HEAD)" "$(at upstream/main)")"
-  [ "$status" -eq 0 ]
-  [[ "$output" == *"no native/ or build-manifest change"* ]]
+  expect_skipped
 }
 
 @test "a push to a remote already level is skipped" {
   seed_pushed_to_upstream_only
   run gate "$(refpair "$(at HEAD)" "$(at upstream/main)")"
-  [ "$status" -eq 0 ]
-  [[ "$output" == *"no native/ or build-manifest change"* ]]
+  expect_skipped
 }
 
 @test "a board-only push is skipped even when the remote is behind" {
@@ -199,24 +244,22 @@ seed_pushed_to_upstream_only() {
   printf 'note\n' >"$REPO/intent/whiteboard/note.md"
   git -C "$REPO" add -A
   git -C "$REPO" commit -qm "board only"
-  [ -n "$(git -C "$REPO" diff --name-only "$prev"...HEAD)" ]
+  [ -n "$(git -C "$REPO" diff --name-only "$prev"...HEAD)" ] ||
+    fail "rig did not reach the measured state: the board-only range is empty"
   run gate "$(refpair "$(at HEAD)" "$prev")"
-  [ "$status" -eq 0 ]
-  [[ "$output" == *"no native/ or build-manifest change"* ]]
+  expect_skipped
 }
 
 @test "a push creating a new ref on the remote is gated" {
   # Every commit is arriving and there is no bounded range to compute, so the
   # gate pays for the check rather than guessing a narrow one.
   run gate "$(refpair "$(at HEAD)" "$ZERO")"
-  [ "$status" -ne 0 ]
-  [[ "$output" == *"cargo not on PATH"* ]]
+  expect_engaged
 }
 
 @test "deleting a ref is skipped -- no tree is pushed" {
   run gate "$(refpair "$ZERO" "$(at local/main)")"
-  [ "$status" -eq 0 ]
-  [[ "$output" == *"no native/ or build-manifest change"* ]]
+  expect_skipped
 }
 
 @test "run by hand it answers for the remote that is furthest behind" {
@@ -225,14 +268,39 @@ seed_pushed_to_upstream_only() {
   # by-hand path from reintroducing the same under-report wearing another name.
   seed_pushed_to_upstream_only
   run gate ""
-  [ "$status" -ne 0 ]
-  [[ "$output" == *"cargo not on PATH"* ]]
+  expect_engaged
 }
 
 @test "run by hand with no remotes at all, it checks rather than guesses" {
   git -C "$REPO" remote remove local
   git -C "$REPO" remote remove upstream
   run gate ""
-  [ "$status" -ne 0 ]
-  [[ "$output" == *"cargo not on PATH"* ]]
+  expect_engaged
+}
+
+@test "a stale pair is refused before the path trigger, on a push that would skip" {
+  # 0518's own property, and the placement hv's ruling on 0521 keeps. ONE push,
+  # two pairs: over a current pair this board-only push skips, and over a pair
+  # built before the native change it is refused -- so the pair is the only thing
+  # that moved the answer. Put the verdict after the path trigger, or take it
+  # out, and the second run exits 0 like the first.
+  seed_pushed_to_upstream_only
+  local before_native
+  before_native="$(at HEAD~1)"
+  printf 'note\n' >"$REPO/intent/whiteboard/note.md"
+  git -C "$REPO" add -A
+  git -C "$REPO" commit -qm "board only"
+
+  run gate "$(refpair "$(at HEAD)" "$(at upstream/main)")"
+  expect_skipped
+
+  stamp_pair "$before_native"
+  run runner "$(refpair "$(at HEAD)" "$(at upstream/main)")"
+  [ "$status" -ne 0 ] || fail "expected the stale pair to be REFUSED, got status 0: $output"
+  [[ "$output" == *"BLOCKED: the delivered pair"* ]] ||
+    fail "expected the currency refusal; got status $status: $output"
+  [[ "$output" == *"behind HEAD"* ]] ||
+    fail "expected the pair named as BEHIND, not missing or unread; got status $status: $output"
+  [[ "$output" == *"remedy: bin/devbin build all"* ]] ||
+    fail "expected the rebuild remedy; got status $status: $output"
 }
