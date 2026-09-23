@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- RESUME (vc, 2026-09-23, after hv's third compact; rewritten at 14:35:49Z by date -u). Measure first: `intent outs`, `git log --oneline -15`, `intent --version`, `intent daemon status`, and ListAgents to ask cc, dc and ic where they stand.
+- RESUME (vc, 2026-09-23, after hv's third compact; rewritten at 14:40:08Z by date -u). Measure first: `intent outs`, `git log --oneline -15`, `intent --version`, `intent daemon status`, and ListAgents to ask cc, dc and ic where they stand.
 
 DEPLOYED (pair c5cca7e26): 0520 through 0528.
 LANDED, NOT DEPLOYED. vc verified every landed patch-id against its judged id:
@@ -33,7 +33,8 @@ hv decision 32: everything goes into 3.2.1. IN ORDER:
 - 0540 v1 56aa13ee2 (ic): the brew caveat.
 - dtable v1 839cf19db524 (ic): one when_to_use sentence.
 - The 0538 tune (ic): post-pull warns only in a checkout that holds a store.
-The tail waits on ic's tune loop, which started at 14:35:03Z. vc warns gtools-vc at its START and judges from its END.
+dc's HEAVY START was 14:37:41Z, over the stack tree cf898d342, with app-test on the bank side. gtools-vc is holding. vc judges from the END.
+(1b) 0543 (ic, medium): 0520's omnibox index goes stale when a key-driven read consumes the store's moved signal first. So `/st new X` shows X in the list and the omnibox cannot find it. ic read every link in the code and drives it in a pty after the tail. The fix is one recorded moved signal that survives any read. It is a defect in this release's own change, so it is IN under decision 32 and under vc's cutoff recommendation alike. It needs its own loop and a small whole-suite run after the tail.
 (2) ic's DOCS COMMIT lands last: refs/bank/ic/precut/apply_precut.py, which rewrites 9 CHANGELOG lines and 2 SKILL.md lines and refuses unless each old string is found once.
 (3) cc drafts docs/releases/3.2.1/RELEASE_NOTES.md. The cut reads only CHANGELOG's `## [3.2.1]` section, so the notes page is the reasoning. Its Upgrading section leads with rung 30's one-way step, then the MCP servers refusing until a session restart, then the daemon: stop it before upgrading and start it after.
 (4) THE SECOND BUILD ALL:
@@ -50,7 +51,7 @@ OPEN WITH hv:
 - 0542 (low, filed by vc from dc's finding) waits on that ruling: the scan has no pattern for issue ids in shipped literals.
 FOLLOW-UPS after the cut:
 - For an empty pointer, --where says UNUSABLE where --check says ABSENT.
-- ic's C (the omnibox's index_owed) is still unverified.
+- (moved into 3.2.1: ic's C is filed as 0543, see (1b))
 
 AFTER THE CUT: todo 62, the fleet sweep over dc's census of 23 estates:
 - `claude upgrade --apply` rewrites the hook blocks in the 18 wired estates.
