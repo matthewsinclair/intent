@@ -16,7 +16,8 @@ use intentsvcs::address;
 use intentsvcs::contract::Scope;
 use intentsvcs::daemon;
 use intentsvcs::facade::{
-  EventFilter, Exported, Facade, FacadeContext, FacadeError, ListEdit, Note, Outcome,
+  EventFilter, Exported, Facade, FacadeContext, FacadeError, ListEdit, NextCommit, Note, Outcome,
+  WbEdit,
 };
 use intentsvcs::launchagent;
 use intentsvcs::macapp;
@@ -4394,13 +4395,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       // driven). `enum_arg` reads the roster the table declares, so the
       // vocabulary has one home and this match cannot outlive it.
       let kind = wb_item_kind(enum_arg(m, "wb archive", "kind")?.as_str())?;
-      let seq: u32 = arg(m, "seq")?.parse().map_err(|_| {
-        Failure::Error(
-          "error: `seq` is the item's number on the board\n  remedy: `intent wb show <node>` \
-             prints each item as `[kind] seq text`"
-            .to_string(),
-        )
-      })?;
+      let seq = item_seq(m, "seq")?;
       let mut f = open()?;
       // **WHAT MOVED, NOT WHAT WAS ASKED FOR.** Archiving something already
       // archived, or a number no item carries, moves nothing -- and saying
@@ -4416,6 +4411,86 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
           format!("has no live {word} {seq}")
         }
       );
+      Ok(())
+    }
+    Some(("edit", m)) => {
+      let me = acting_node(m)?;
+      let kind = wb_item_kind(enum_arg(m, "wb edit", "kind")?.as_str())?;
+      let seq = item_seq(m, "id")?;
+      let text = arg(m, "text")?;
+      let mut f = open()?;
+      let edited = f.wb_edit(&me, kind, seq, &text).map_err(fail)?;
+      print_notes(&f.take_notes(), &me);
+      let word = item_kind_word(&kind);
+      // **IT SAYS WHERE THE OLD TEXT IS, BECAUSE THAT IS WHAT THE VERB IS FOR**
+      // (issue 0523), and what it says is what HEAD and the next commit were
+      // searched and found to hold under `intent/`, never what the case
+      // implies. The all-clear is said only when both searches ran and came
+      // back empty, and it says what was searched (vc's ruling on v4).
+      let (how, still_at_head, next_commit, new_holds_old) = match edited {
+        WbEdit::Unchanged => {
+          println!("ok: {me} {word} {seq} unchanged -- it already reads that");
+          return Ok(());
+        }
+        WbEdit::Amended {
+          event,
+          still_at_head,
+          next_commit,
+          new_holds_old,
+        } => (
+          format!("in its uncommitted event {event}"),
+          still_at_head,
+          next_commit,
+          new_holds_old,
+        ),
+        WbEdit::Recorded {
+          event,
+          still_at_head,
+          next_commit,
+          new_holds_old,
+        } => (
+          format!("as event {event}"),
+          still_at_head,
+          next_commit,
+          new_holds_old,
+        ),
+      };
+      // `None` is a scan that could not run, and its note has been printed:
+      // unmeasured, so nothing is claimed.
+      let all_clear =
+        still_at_head.is_empty() && next_commit.as_ref().is_some_and(NextCommit::is_empty);
+      if all_clear {
+        println!(
+          "ok: {me} {word} {seq} edited {how}, and no file under intent/ holds the old text, at HEAD or in the next commit"
+        );
+      } else {
+        println!("ok: {me} {word} {seq} edited {how}");
+      }
+      if !still_at_head.is_empty() {
+        println!(
+          "  HEAD already carries the old text in {}, which git history keeps",
+          still_at_head.join(", ")
+        );
+      }
+      let next_commit = next_commit.unwrap_or_default();
+      if !next_commit.would.is_empty() {
+        println!(
+          "  the next commit would carry the old text in {}",
+          next_commit.would.join(", ")
+        );
+      }
+      if !next_commit.could.is_empty() {
+        println!(
+          "  the next commit could carry the old text in {}",
+          next_commit.could.join(", ")
+        );
+      }
+      // The lists stay whole; this says why they are long (vc's ruling on v4).
+      if new_holds_old && !next_commit.is_empty() {
+        println!(
+          "  the new text contains the old text, so every file holding the new text also holds the old text"
+        );
+      }
       Ok(())
     }
     Some(("claim", m)) => {
@@ -4660,6 +4735,18 @@ pub(crate) fn wb_item_kind(wire: &str) -> Result<intentsvcs::model::WbItemKind, 
       "error: the table declares `{other}` as an item kind and this build has no arm for it"
     ))),
   }
+}
+
+/// An item's number on its board, from the positional that carries it: `seq`
+/// on `wb archive`, `id` on `wb edit`, which is named for what a message will
+/// be addressed by as well.
+fn item_seq(m: &ArgMatches, positional: &str) -> Result<u32, Failure> {
+  arg(m, positional)?.parse().map_err(|_| {
+    Failure::Error(format!(
+      "error: `{positional}` is the item's number on the board\n  remedy: `intent wb show <node>` \
+         prints each item as `[kind] seq text`"
+    ))
+  })
 }
 
 /// What one `wb migrate` carried, and what it would not carry.
@@ -11097,6 +11184,20 @@ fn print_notes(notes: &[Note], subject: &str) {
         }
         eprintln!(
           "  remedy: `intent st hydrate {subject}` writes them back from the store, and `--keep` closes without unlisting"
+        );
+      }
+      // **THE INDEX IS WHAT A PLAIN `git commit` CARRIES**, and a commit a gate
+      // refused leaves its paths staged. The verb does not stage, because the
+      // index is the operator's.
+      Note::StagedBeforeTheEdit(paths) => {
+        eprintln!(
+          "warning: these were staged before the edit, so the index may still hold the text it replaced:"
+        );
+        for path in paths {
+          eprintln!("  {path}");
+        }
+        eprintln!(
+          "  remedy: `git add <path>` stages the corrected file, and `git restore --staged <path>` unstages it"
         );
       }
       Note::StepFailedAfterWrite {

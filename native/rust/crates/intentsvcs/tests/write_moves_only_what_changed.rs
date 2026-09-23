@@ -341,6 +341,16 @@ const COVERED_ELSEWHERE: &[(&str, &str)] = &[
      not happen, which is why it returns whether it moved rather than assuming.",
   ),
   (
+    "wb edit",
+    "intentsvcs/tests/wb_edit_keeps_the_old_text_out_of_a_commit.rs -- every arm drives the verb \
+     in a real repository and asserts WHICH files hold the old text afterwards: none in the \
+     working tree when a draft is amended, the committed event left byte for byte when one is \
+     corrected, and exactly the paths HEAD still holds. **What it writes is ONE COLUMN ON ONE ROW \
+     and the event that records it**, rewritten in place when that event is a draft, so `did the \
+     projected estate move` is the wrong observable here too; what it can be wrong about is where \
+     the old text survives, which is what those arms hold.",
+  ),
+  (
     "wb touch",
     "intentsvcs/tests/openness.rs -- `the_round_trip_carries_every_table_that_claims_a_file_form` \
      and `re_emitting_the_extract_reproduces_it_byte_for_byte` carry `wb_node.heartbeat_at` through \

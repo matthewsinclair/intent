@@ -8781,6 +8781,50 @@
           "note": "**THE STATE CHANGE IS THE SCHEDULE** (vc, 2026-09-12, on cc's finding that a roll had no source population). AC-14.6 forbids a SECOND ACT after a fact is stated -- the fold, the sweep, the run somebody has to remember -- rather than the statement itself; handled and done are facts only the node can state. So an item leaves the live count the moment it is stated, deterministically, with no timer and nothing swept, and `wb clear` is the same transition for a message. **IT TAKES A KIND AS WELL AS A `seq` BECAUSE `seq` ALONE IS AMBIGUOUS**: items are numbered within (node, kind), so a node can hold a `doing` 1 and a `decision` 1 at once, and the pair is what `wb show` already prints. **ONE VERB FOR ONE TRANSITION, READING TWO WAYS BY DESIGN** -- done for work, retirement for a decision or a watch-out; two verbs on one state change is where they drift. This reading is recorded for hv to overrule with a line."
         },
         {
+          "path": "wb edit",
+          "help": "Change the text of one of the acting node's items, live or archived",
+          "when_to_use": "USE IT to correct what one of your own items says, or to take out text that must not be committed -- a client identifier, a secret, a name. Where no commit holds the event carrying the old text, that event is rewritten in place; where a commit holds it, a new event records the change and git history keeps the old text, which is the repository's to publish or rewrite and never this verb's. The answer names, each on a line of its own, every file under `intent/` that HEAD already carries the old text in -- a board committed without its event file, or a peer's committed item quoting the text, included -- and every file the next commit would carry it in (staged) or could carry it in (unstaged or untracked), whoever wrote the text there, all read rather than assumed. It says no file under `intent/` holds the old text, at HEAD or in the next commit, only when both searches ran and found nothing, and when the new text contains the old text it says so, because every file holding the new text then holds the old text as well. It also names any file that was staged before the edit, because a plain `git commit` carries what the index holds rather than what is on disk. DO NOT USE IT on another node's item, which is that node's to edit, or on a message, which is not an item. The same text again changes nothing.",
+          "args": [
+            {
+              "name": "kind",
+              "type": "enum",
+              "arity": "1",
+              "values": ["doing", "todo", "decision", "watchout", "hold", "directive"],
+              "help": "The item's kind: the section of the board it sits in"
+            },
+            {
+              "name": "id",
+              "type": "string",
+              "arity": "1",
+              "help": "The item's number within its kind, as `intent wb show <node>` prints it"
+            },
+            {
+              "name": "text",
+              "type": "string",
+              "arity": "1",
+              "help": "The item's new text, whole"
+            }
+          ],
+          "v2": "new-surface",
+          "basis": "Issue 0523 (hv, 2026-09-23: \"I need that fixed right now, please\"), requested by gtools-vc on Gtools hv's ruling after Gtools' identifier gate refused a board whose item text and originating event file both carried client identifiers. There is no v2 antecedent.",
+          "target": { "state": "new-surface" },
+          "disposition": "new-surface",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate",
+          "recoverability": "one-way",
+          "flags": [
+            {
+              "spellings": ["--node"],
+              "type": "string",
+              "help": "The moniker of the node writing",
+              "disposition": "keep",
+              "exposed_on_mcp": false
+            }
+          ],
+          "facade": "wb_edit",
+          "note": "**ONE-WAY IN BOTH OF ITS CASES, AND OFF MCP FOR THE REASON EVERY TEXT-WRITING `wb` VERB IS.** Amending an uncommitted event discards the old text for good, which is the point of it, and recording a committed one appends an event that never leaves the log; either way nothing the tool holds can put the prior state back, and `wb add`, `wb decide`, `wb ask`, `wb announce` and `wb migrate` are `one-way` and withheld on the same reading. **\"COMMITTED\" IS PRESENT AT HEAD, NEVER THE INDEX**: a commit a gate refused leaves its paths staged, and a staged event is still a draft that can be amended. **THE NAME IS `edit`, NOT `correct`**, because `wb register --correct` already names a node's name and role; `edit` is the verb `ac edit`, `at edit` and `issues edit` use for changing a stored record's text."
+        },
+        {
           "path": "wb pickup",
           "help": "Start a session: mark this node active, then its board and its peers' state",
           "when_to_use": "USE IT at the start of a session -- it marks the acting node active, stamps its heartbeat, records the session and focus you name, then prints its board -- the messages still live listed, the handled ones counted in one line that names `--all` -- then `hv`'s live directives, watch-outs and decisions in full (absent when you are `hv` or there is no `hv` board), then every peer's header state with a count, by kind, of the live items it does not show. `--all` lists every message, handled included; it is for reaching the archive, not for starting a session. DO NOT USE IT to read somebody else's board: a peer comes back as its header and those counts, and `wb show <node>` is the door for one whole board. An unnamed session or focus keeps what the board already holds; `wb touch` is the verb that only stamps the heartbeat.",
@@ -10374,8 +10418,8 @@
     {
       "disposition": "new-surface",
       "target_state": "new-surface",
-      "n": 80,
-      "census_note": "80 since 2026-09-21: `outstanding`, one table of the outstanding threads, work packages and issues (ST0079); 79 since 2026-09-21: `st relate` and `st unrelate`, the only doors to a thread's `related` links (issue 0460); 77 since 2026-09-18: `st renumber` and `issues renumber`, the verbs that move a thread or an issue to a free id after two clones minted the same one (ST0078 WP-02); 75 since 2026-09-17: `index resolve`, the verb that runs each language's toolchain over the project and stores the references that join a written one (ST0076 WP-05, vc decision 25); 74 since 2026-09-14: `st detach`, the verb that removes an attachment's record from the store and canon and leaves its file on disk (issue 0394); 73 earlier the same day: `wp gate`, the work package's own close-gate verdict (issue 0310); 72 earlier the same day: `daemon logs`, the verb Intent.app's Console tails, printing intentd's recent log lines and following them with `--follow` (ST0075 WP-01 AC-01.1); 71 since 2026-09-13: `discover`, the verb that finds Intent projects under a directory and registers the ones this build can serve (ST0074 WP-03 AC-03.3); 70 since 2026-09-12: `wb migrate`, the verb that carries a hand-authored board into the model (ST0069 WP-14 AC-14.9); 69 earlier the same day: `wb add`, the door the generated view would otherwise have closed (ST0069 WP-14); 68 earlier the same day: `wb archive` (ST0069 WP-14 AC-14.6, vc's ruling that the state change IS the schedule); 67 earlier the same day: `wb pickup`, `wb touch` and `wb release`, the lifecycle half of the `wb` family (ST0069 WP-14); 64 earlier the same day: `wb decide`, `wb claim` and `wb unclaim`, the item half of the `wb` family (ST0069 WP-14); 61 earlier the same day: `wb ask`, `wb announce` and `wb clear`, the message half of the `wb` family (ST0069 WP-14 AC-14.5); 58 earlier the same day: `wb status` and `wb show`, the read half of the `wb` family (ST0069 WP-14 AC-14.7); 56 earlier the same day: the `wb` family and `wb register` (the same criterion); 54 earlier the same day: the `index` family and its two verbs (`index`, `index status`, `index rebuild`, ST0069 WP-19 AC-19.6); 51 since 2026-09-11 with `set` (issues 0154 + 0185, vc's option (1)); 50 before it, with `ac show` (issue 0168, vc's option (a)).",
+      "n": 81,
+      "census_note": "81 since 2026-09-23: `wb edit`, the door that changes an item's text and keeps the old text out of any commit that does not hold it yet (issue 0523); 80 since 2026-09-21: `outstanding`, one table of the outstanding threads, work packages and issues (ST0079); 79 since 2026-09-21: `st relate` and `st unrelate`, the only doors to a thread's `related` links (issue 0460); 77 since 2026-09-18: `st renumber` and `issues renumber`, the verbs that move a thread or an issue to a free id after two clones minted the same one (ST0078 WP-02); 75 since 2026-09-17: `index resolve`, the verb that runs each language's toolchain over the project and stores the references that join a written one (ST0076 WP-05, vc decision 25); 74 since 2026-09-14: `st detach`, the verb that removes an attachment's record from the store and canon and leaves its file on disk (issue 0394); 73 earlier the same day: `wp gate`, the work package's own close-gate verdict (issue 0310); 72 earlier the same day: `daemon logs`, the verb Intent.app's Console tails, printing intentd's recent log lines and following them with `--follow` (ST0075 WP-01 AC-01.1); 71 since 2026-09-13: `discover`, the verb that finds Intent projects under a directory and registers the ones this build can serve (ST0074 WP-03 AC-03.3); 70 since 2026-09-12: `wb migrate`, the verb that carries a hand-authored board into the model (ST0069 WP-14 AC-14.9); 69 earlier the same day: `wb add`, the door the generated view would otherwise have closed (ST0069 WP-14); 68 earlier the same day: `wb archive` (ST0069 WP-14 AC-14.6, vc's ruling that the state change IS the schedule); 67 earlier the same day: `wb pickup`, `wb touch` and `wb release`, the lifecycle half of the `wb` family (ST0069 WP-14); 64 earlier the same day: `wb decide`, `wb claim` and `wb unclaim`, the item half of the `wb` family (ST0069 WP-14); 61 earlier the same day: `wb ask`, `wb announce` and `wb clear`, the message half of the `wb` family (ST0069 WP-14 AC-14.5); 58 earlier the same day: `wb status` and `wb show`, the read half of the `wb` family (ST0069 WP-14 AC-14.7); 56 earlier the same day: the `wb` family and `wb register` (the same criterion); 54 earlier the same day: the `index` family and its two verbs (`index`, `index status`, `index rebuild`, ST0069 WP-19 AC-19.6); 51 since 2026-09-11 with `set` (issues 0154 + 0185, vc's option (1)); 50 before it, with `ac show` (issue 0168, vc's option (a)).",
       "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
     },
     {
@@ -10736,6 +10780,7 @@
       "wb announce",
       "wb add",
       "wb archive",
+      "wb edit",
       "wb pickup",
       "wb touch",
       "wb release",
@@ -10899,6 +10944,7 @@
       "wb announce",
       "wb add",
       "wb archive",
+      "wb edit",
       "wb pickup",
       "wb touch",
       "wb release",
@@ -11071,6 +11117,7 @@
       "wb announce",
       "wb add",
       "wb archive",
+      "wb edit",
       "wb pickup",
       "wb touch",
       "wb release",

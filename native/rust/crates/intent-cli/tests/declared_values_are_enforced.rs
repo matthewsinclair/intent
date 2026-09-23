@@ -129,6 +129,16 @@ const DECLARED: &[Slot] = &[
     disposition: Disposition::Enforced,
   },
   Slot {
+    // Same enforcement as `wb archive`, through the same `enum_arg` reading the
+    // same table (issue 0523). Its set is `wb archive`'s WHOLE, `decision`
+    // included: a decision's text is edited here and by no other verb.
+    path: "wb edit",
+    arg: "kind",
+    lead: &[],
+    trail: &["1", "the new text", "--node", "cc"],
+    disposition: Disposition::Enforced,
+  },
+  Slot {
     path: "st show",
     arg: "file",
     lead: &["ST0001"],

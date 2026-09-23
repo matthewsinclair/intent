@@ -130,6 +130,16 @@ const DECLARED: &[(&str, &str, Why)] = &[
   ),
   (
     "intent-cli/src/render.rs",
+    "wb edit",
+    Why::NotARoster(
+      "`wb archive`'s shape exactly (issue 0523): the LOOKUP KEY \
+     `enum_arg(m, \"wb edit\", \"kind\")` uses to find the row's declared kinds, and the literal \
+     that names the row back in the refusal. It goes when the spine applies an enum positional's \
+     `values` itself.",
+    ),
+  ),
+  (
+    "intent-cli/src/render.rs",
     "st show",
     Why::NotARoster(
       "`wb archive`'s shape at BOTH of its sites (issue 0398): the LOOKUP KEY \

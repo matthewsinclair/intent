@@ -39,22 +39,23 @@ Intent's own roster names the validation node, in the human's words: _the workst
 
 **EVERY ONE OF THESE IS A COMMAND, AND `intent wb` IS THE ONLY DOOR.** They read and write the coordination model in the store; the files under `intent/whiteboard/` are rendered views of it. Every verb that writes as a node takes `--node <moniker>` to name the node acting; `status`, `show <node>` and `register` do not, and `migrate` names the board it carries as a positional.
 
-| What you want                                        | The verb                           |
-| ---------------------------------------------------- | ---------------------------------- |
-| Start a session                                      | `intent wb pickup`                 |
-| See where every node stands                          | `intent wb status`                 |
-| Read one node's whole board                          | `intent wb show <node>`            |
-| Message one node                                     | `intent wb ask <node> <body>`      |
-| Broadcast to every peer                              | `intent wb announce <body>`        |
-| Record what you are doing, or a watch-out, or a hold | `intent wb add <kind> <text>`      |
-| Record a cross-node decision                         | `intent wb decide <text>`          |
-| Take or drop a thread                                | `intent wb claim` / `unclaim <id>` |
-| Retire one of your own items                         | `intent wb archive <kind> <seq>`   |
-| Mark one sender's messages handled                   | `intent wb clear <sender>`         |
-| Say you are still alive                              | `intent wb touch`                  |
-| End a session                                        | `intent wb release`                |
-| Put the project's nodes on the board                 | `intent wb register`               |
-| Carry a hand-authored board into the store           | `intent wb migrate <node>`         |
+| What you want                                        | The verb                            |
+| ---------------------------------------------------- | ----------------------------------- |
+| Start a session                                      | `intent wb pickup`                  |
+| See where every node stands                          | `intent wb status`                  |
+| Read one node's whole board                          | `intent wb show <node>`             |
+| Message one node                                     | `intent wb ask <node> <body>`       |
+| Broadcast to every peer                              | `intent wb announce <body>`         |
+| Record what you are doing, or a watch-out, or a hold | `intent wb add <kind> <text>`       |
+| Record a cross-node decision                         | `intent wb decide <text>`           |
+| Take or drop a thread                                | `intent wb claim` / `unclaim <id>`  |
+| Retire one of your own items                         | `intent wb archive <kind> <seq>`    |
+| Change or redact what one of your own items says     | `intent wb edit <kind> <id> <text>` |
+| Mark one sender's messages handled                   | `intent wb clear <sender>`          |
+| Say you are still alive                              | `intent wb touch`                   |
+| End a session                                        | `intent wb release`                 |
+| Put the project's nodes on the board                 | `intent wb register`                |
+| Carry a hand-authored board into the store           | `intent wb migrate <node>`          |
 
 `intent wb ask` also takes `--re <anchor>` to thread a reply and `--fyi` to say no reply is expected. `pickup`, `status` and `show` take `--json`. `pickup` and `show` also take `--all`, which lists the handled messages a default read only counts. `pickup` also takes `--focus <line>`, which records what the node is on in its header and is the only way to set `focus:` on a generated board, and `--session <id>`, which records the session id; without `--session` it records the `CLAUDE_CODE_SESSION_ID` the process runs with.
 
@@ -301,6 +302,16 @@ Use it for 1-to-all signals: a shared platform layer you are about to touch, a p
 **It takes a KIND as well as a `seq` because `seq` alone is ambiguous**: items are numbered within (node, kind), so you can hold a `doing` 1 and a `decision` 1 at once.
 
 **AND THE STATE CHANGE IS THE SCHEDULE.** There is no fold to remember, no sweep, no timer: an item leaves the live count the moment you state that it is finished with, because handled and done are facts only you can state. What the verb cannot judge is whether it IS finished with -- see the fold rules below, and in particular the one about rulings.
+
+### `edit <kind> <id> <text>`
+
+`intent wb edit <doing|todo|decision|watchout|hold|directive> <id> "<text>" --node <you>` -- one item of your own, live or archived, gets new text; `<id>` is the item's number, as `wb show` prints it.
+
+**WHERE THE OLD TEXT GOES IS THE POINT, AND THE ANSWER SAYS WHICH.** If no commit holds the event that carries it, that event is amended in place. If a commit holds it, a `wb.edit` event records the change and git history keeps the old text: rewriting history is the repository's decision, never this verb's. Either way the answer names, each on a line of its own, every file under `intent/` that HEAD already carries the old text in, every staged file the next commit would carry it in, and every unstaged or untracked file the next commit could carry it in, all read rather than assumed. Committed means present at HEAD -- a file you staged is not committed, and the verb names any board or event file staged before the edit, because a plain `git commit` carries the index, not the disk. `git add` restages the corrected file.
+
+**THE ALL-CLEAR IS SAID ONLY WHEN BOTH SEARCHES RAN AND FOUND NOTHING, AND IT SAYS WHAT WAS SEARCHED**: _no file under intent/ holds the old text, at HEAD or in the next commit_. A peer's committed item quoting the text, a copy `wb migrate` kept under `.history/pre-migration/`, a draft the edit could not match to the item, and another item that says the same thing all leave the text where a commit carries it, so the answer names each of them rather than assuming them away. The lines name what holds the text, not whose it is. When the new text contains the old text, every file holding the new text holds the old text as well, and the answer says so on a line of its own rather than shortening the lists. Outside `intent/`, and in commits before HEAD, nothing is searched.
+
+**THE ADDRESS IS YOUR OWN BOARD.** A peer's item is the peer's to edit, exactly as it is the peer's to archive.
 
 ### `touch`
 

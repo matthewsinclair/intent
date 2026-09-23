@@ -276,6 +276,9 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // left out of the call.
     | FacadeError::WbItemsFull { .. }
     | FacadeError::WbClaimMalformed { .. }
+    // Issue 0523: an edit names a kind and a number the board does not carry.
+    // Every field was supplied, and the remedy is a number the board does hold.
+    | FacadeError::WbNoSuchItem { .. }
     | FacadeError::WbAlreadyCarried { .. }
     | FacadeError::WbSendersNotRegistered { .. }
     // Issue 0424's refusal: the call takes no fields at all. What is missing is

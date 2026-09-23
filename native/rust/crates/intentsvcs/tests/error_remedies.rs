@@ -249,6 +249,17 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .expect_err("a correction never creates a node"),
   ));
   out.push((
+    "an edit of an item the board does not carry",
+    facade
+      .wb_edit(
+        "cc",
+        intentsvcs::model::WbItemKind::Hold,
+        999,
+        "the new text",
+      )
+      .expect_err("an edit never creates an item"),
+  ));
+  out.push((
     "a claim that is not an address",
     facade
       .wb_claim("cc", "the whole of ST0069")
@@ -1192,6 +1203,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::WbBodyOverBound { .. } => "WbBodyOverBound",
     FacadeError::WbInboxFull { .. } => "WbInboxFull",
     FacadeError::WbItemsFull { .. } => "WbItemsFull",
+    FacadeError::WbNoSuchItem { .. } => "WbNoSuchItem",
     FacadeError::WbClaimMalformed { .. } => "WbClaimMalformed",
     FacadeError::WbAlreadyCarried { .. } => "WbAlreadyCarried",
     FacadeError::WbSendersNotRegistered { .. } => "WbSendersNotRegistered",
@@ -1313,6 +1325,7 @@ const ALL_VARIANTS: &[&str] = &[
   "WbBodyOverBound",
   "WbInboxFull",
   "WbItemsFull",
+  "WbNoSuchItem",
   "WbClaimMalformed",
   "WbAlreadyCarried",
   "WbSendersNotRegistered",

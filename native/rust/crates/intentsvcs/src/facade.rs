@@ -398,6 +398,33 @@ fn event_file_write(
   Ok((path, body))
 }
 
+/// The two spellings a text takes in the files that carry it (issue 0523):
+/// raw, as a `.md` file holds it, and escaped the way serde writes a JSON
+/// string, as a `.json` file holds it.
+fn text_spellings(text: &str) -> Result<[String; 2], FacadeError> {
+  let quoted = serde_json::to_string(text).map_err(|e| FacadeError::EntityUnserialisable {
+    form: "item text".to_string(),
+    why: e.to_string(),
+  })?;
+  // Exactly one delimiter off each end: a text that ends in `"` serialises
+  // to `...\""`, and trimming every trailing quote would strip the escaped
+  // one too.
+  let escaped = quoted
+    .strip_prefix('"')
+    .and_then(|q| q.strip_suffix('"'))
+    .unwrap_or(&quoted)
+    .to_string();
+  Ok([text.to_string(), escaped])
+}
+
+/// Does `bytes` hold either spelling? Searched in process and never by line
+/// (ic's review): a text may span lines, which a line-based search cannot see.
+fn holds_text(bytes: &[u8], spellings: &[String; 2]) -> bool {
+  spellings
+    .iter()
+    .any(|s| !s.is_empty() && bytes.windows(s.len()).any(|w| w == s.as_bytes()))
+}
+
 /// Write a committed file for every PROJECT event the store holds and the tree
 /// lacks, and return how many were written (ST0078 P1's backfill, AC-01.4).
 ///
@@ -1834,6 +1861,17 @@ pub enum FacadeError {
     live: usize,
     bound: usize,
   },
+  /// A board address no item carries (issue 0523).
+  ///
+  /// **THE ADDRESS IS THE ACTING NODE'S OWN**, so another node's item is not a
+  /// separate refusal: `--node` names whose board the kind and number are read
+  /// on, and a number that board does not carry is this.
+  #[error("`{node}` has no `{kind}` {seq}")]
+  WbNoSuchItem {
+    node: String,
+    kind: String,
+    seq: u32,
+  },
   /// A claim that is not a steel thread or work package address.
   #[error("`{claim}` is not a steel thread or work package address")]
   WbClaimMalformed { claim: String },
@@ -2046,6 +2084,69 @@ pub struct WbMigration {
   pub offered: usize,
 }
 
+/// What `wb edit` did to one item's text (issue 0523): which record now
+/// carries the new text, every file HEAD holds the old text in, and every file
+/// the next commit would or could carry holding it.
+///
+/// **BOTH LISTS ARE MEASURED, NOT INFERRED, AND BOTH COVER ALL OF `intent/`**
+/// (ic's reviews, and vc's rulings on v3 and v4). `still_at_head` reads every
+/// file HEAD holds under `intent/`, so a board committed without its event
+/// file and a peer's committed copy of the same text are both found; each
+/// path it names is one git history keeps, and rewriting that history is the
+/// repository's business. `next_commit` is read AFTER the write, from every
+/// file under `intent/` that differs from HEAD, work tree and index alike.
+/// The answer may say no file under `intent/` holds the old text only when
+/// both are empty: a carrier the edit could not find, a copy `wb migrate`
+/// kept, and another item or node saying the same thing all leave the text
+/// there, and each is named rather than assumed away. Commits before HEAD, and
+/// anything outside `intent/`, are not searched, and the store's directory is
+/// left out of both by rule (D34). `next_commit` is `None` when its scan could
+/// not run, and a note says why. `new_holds_old` says the new text contains
+/// the old one, so every file holding the new text holds the old text too
+/// (vc's ruling on v4): the lists stay whole, and this is why they are long on
+/// an edit that only adds to what an item said.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum WbEdit {
+  /// The item already read that text: nothing moved and nothing is recorded.
+  Unchanged,
+  /// No commit held the event carrying the old text, so it was amended in
+  /// place, keeping its id and stamp.
+  Amended {
+    event: String,
+    still_at_head: Vec<String>,
+    next_commit: Option<NextCommit>,
+    new_holds_old: bool,
+  },
+  /// A commit held the event carrying the old text, or no event carried it,
+  /// so a `wb.edit` event records the new text.
+  Recorded {
+    event: String,
+    still_at_head: Vec<String>,
+    next_commit: Option<NextCommit>,
+    new_holds_old: bool,
+  },
+}
+
+/// The files under `intent/` the next commit would or could carry that still
+/// hold an edit's old text, project-relative and sorted (issue 0523).
+///
+/// **"WOULD" IS THE INDEX AND "COULD" IS THE WORK TREE** (ic's review of v4):
+/// a plain `git commit` carries the index, so a staged file holding the old
+/// text would reach the next commit, and an unstaged or untracked one could,
+/// once it is staged. A file whose index holds it is named once, as `would`.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct NextCommit {
+  pub would: Vec<String>,
+  pub could: Vec<String>,
+}
+
+impl NextCommit {
+  /// Does nothing the next commit might carry hold the old text?
+  pub fn is_empty(&self) -> bool {
+    self.would.is_empty() && self.could.is_empty()
+  }
+}
+
 impl WbMigration {
   /// Did everything the source offered end up on one side or the other?
   ///
@@ -2208,6 +2309,9 @@ impl crate::remedy::Remedy for FacadeError {
       ),
       Self::WbItemsFull { node, kind, .. } => format!(
         "`intent wb archive --node {node} {kind} <seq>` moves one to archived: the state change IS the archival, the row is never deleted, and what it said stays readable after it stops counting"
+      ),
+      Self::WbNoSuchItem { node, .. } => format!(
+        "`intent wb show {node}` prints each live item as `[kind] seq text`. An archived item keeps its number, and `intent/whiteboard/{node}/board.json` lists every item with it. An item on another node's board is edited by that node"
       ),
       Self::WbAlreadyCarried { node, .. } => format!(
         "read what is there first -- `intent wb show {node}` -- because this refuses rather than guessing whether those rows are an earlier carry or work written since. A board carried by mistake is emptied by rebuilding the store from canon; one carrying real work is already past the markdown era and needs no migration"
@@ -3012,6 +3116,15 @@ pub enum Note {
   /// itself removes nothing, so this is the moment the operator can still
   /// decide otherwise.
   DehydratesOnNextOrganize(Vec<String>),
+  /// A board edit rewrote files that were already STAGED, so the index may
+  /// still hold the text the edit replaced (issue 0523). Project-relative.
+  ///
+  /// **THE INDEX IS NOT A FILE UNDER `intent/`, AND A COMMIT CARRIES IT ALL THE
+  /// SAME.** A commit a gate refused leaves its paths staged, which is the very
+  /// case the verb exists for, and a plain `git commit` afterwards would carry
+  /// the staged bytes rather than the corrected ones. The verb does not stage:
+  /// the index is the operator's, so this names the paths and the command.
+  StagedBeforeTheEdit(Vec<String>),
   /// A unit closed while its objective was still unwritten (issue 0337). It
   /// carries the address `intent set` takes for that unit.
   UnwrittenObjective(String),
@@ -3075,6 +3188,14 @@ const RERENDER_REMEDY: &str = "the change is safe in the store -- do NOT retry i
 /// false of boards. Naming only the right command would leave the wrong one
 /// looking untested.
 pub(crate) const BOARD_RERENDER_REMEDY: &str = "the row is safe in the store and the TREE is behind it -- do NOT retry the write. Clear the filesystem cause, then run `intent wb touch --node <you>`: a board's views are landed by a board write and by nothing else. NOT `intent organize`, which renders no board, and NOT `intent st sync`, which rewrites a thread's views only -- either one reports a clean run and leaves the board stale";
+
+/// The remedy when git could not say, after a board edit landed, what the
+/// index holds staged (issue 0523).
+const STAGED_UNKNOWN_REMEDY: &str = "the edit is safe in the store and on disk -- do NOT retry it. Before committing, run `git diff --cached --name-only`: a board file or event file staged before the edit still carries the text it replaced, and `git add <path>` stages the correction";
+
+/// The remedy when an edit landed and what the next commit would carry could
+/// not be read.
+const UNCOMMITTED_UNKNOWN_REMEDY: &str = "the edit is safe in the store and on disk -- do NOT retry it. Nothing was measured, so nothing is claimed: before committing, search the files `git status -- intent/` lists for the old text, because any that still holds it can go into the next commit";
 
 /// The remedy when a landed write's views are on disk and the file index was not told.
 const UNINDEXED_REMEDY: &str = "do not retry the write: the store holds it and its views are on disk. The file index was not told about them, so `intent sync --to-disk` records them; until then the daemon can read them back as an edit";
@@ -3275,6 +3396,9 @@ pub fn notes_json(notes: &[Note]) -> serde_json::Value {
       }),
       Note::DehydratesOnNextOrganize(paths) => serde_json::json!({
         "kind": "dehydrates-on-next-organize", "paths": paths,
+      }),
+      Note::StagedBeforeTheEdit(paths) => serde_json::json!({
+        "kind": "staged-before-the-edit", "paths": paths,
       }),
       Note::UnwrittenObjective(unit) => serde_json::json!({
         "kind": "unwritten-objective", "unit": unit,
@@ -8042,6 +8166,327 @@ impl Facade {
       .map_err(FacadeError::Store)?;
     self.land_board_write_noting()?;
     Ok(moved)
+  }
+
+  /// Change the text of one of the acting node's items, live or archived, and
+  /// say which record now carries it (issue 0523).
+  ///
+  /// **TWO CASES, DECIDED BY WHETHER A COMMIT HOLDS THE OLD TEXT, AND GIT IS
+  /// ASKED RATHER THAN THE INDEX.** The event carrying the item's current text
+  /// is found (by `wb_text_carrier`). When no commit holds that event's
+  /// file, it is a local draft of history: it is amended in place, keeping its
+  /// id and stamp, so the draft carries none of the old text into a commit --
+  /// appending a correction beside it would carry the old text into the commit
+  /// being cleaned. When a commit holds it, it is history and is left alone,
+  /// and a `wb.edit` event records the new text. "Committed" is present at HEAD:
+  /// a staged file is in the index and is NOT committed, which is exactly the
+  /// state a commit refused by a gate leaves behind.
+  ///
+  /// **A DRAFT IS AMENDED EVEN WHEN HEAD ALREADY HOLDS THE OLD TEXT ELSEWHERE**
+  /// (ic's review): a board committed without its event file puts the text at
+  /// HEAD while its event is still a draft. Recording beside the draft would
+  /// carry the text into the next commit as well, which is the commit a gate
+  /// refuses; amending keeps that commit clean, and the answer names what HEAD
+  /// already holds instead of claiming nothing does.
+  ///
+  /// **THE DIRECTIVE RULE AND THE BODY BOUND ARE `wb add`'s**, so an edit
+  /// cannot put on a board what adding could not. The same text again moves
+  /// nothing and records nothing. Messages are not items.
+  ///
+  /// **WHAT THE ANSWER CLAIMS IS MEASURED AFTER THE WRITE, NOT INFERRED FROM
+  /// THE CASE** (vc's review of v3). Every file under `intent/` that the next
+  /// commit would carry is searched for the old text, and only an empty answer
+  /// licenses saying it reaches no commit. A carrier the rules could not find,
+  /// a copy `wb migrate` kept, and another item saying the same thing each
+  /// leave the text in such a file, and each is named instead of assumed away.
+  pub fn wb_edit(
+    &mut self,
+    node: &str,
+    kind: WbItemKind,
+    seq: u32,
+    text: &str,
+  ) -> Result<WbEdit, FacadeError> {
+    self.require_migrated(node)?;
+    if kind == WbItemKind::Directive && node != crate::model::HYPERVISOR {
+      return Err(FacadeError::WbDirectiveOffHv {
+        node: node.to_string(),
+      });
+    }
+    self.check_body_bound(node, text)?;
+    let wire = crate::model::enum_str(&kind);
+    let Some((held, recorded_at)) = self
+      .store
+      .wb_item_text(node, &wire, seq)
+      .map_err(FacadeError::Store)?
+    else {
+      return Err(FacadeError::WbNoSuchItem {
+        node: node.to_string(),
+        kind: wire,
+        seq,
+      });
+    };
+    if held == text {
+      return Ok(WbEdit::Unchanged);
+    }
+    let carrier = self.wb_text_carrier(node, &wire, seq, &held, &recorded_at)?;
+    let committed = match &carrier {
+      Some(event) => self.event_committed(event)?,
+      None => false,
+    };
+    let dir = self.project.whiteboard_dir().join(node);
+    // Asked before the write, so a git that cannot answer refuses the edit
+    // rather than letting it land with a claim nobody measured.
+    let still_at_head = self.text_at_head(&held)?;
+    let new_holds_old = text.contains(held.as_str());
+    let mut rewritten = vec![
+      self.project.relative(&dir.join("board.json")),
+      self.project.relative(&dir.join("wip.md")),
+    ];
+    let mut edited = match carrier {
+      Some(mut draft) if !committed => {
+        draft.payload["text"] = json!(text);
+        self
+          .store
+          .wb_amend(&draft, |w| w.set_item_text(node, &wire, seq, text))
+          .map_err(FacadeError::Store)?;
+        let (path, _) = event_file_write(&self.project, &draft)?;
+        rewritten.push(self.project.relative(&path));
+        WbEdit::Amended {
+          event: draft.id,
+          still_at_head,
+          next_commit: None,
+          new_holds_old,
+        }
+      }
+      _ => {
+        let event = self.wb_event(
+          "wb.edit",
+          node,
+          json!({ "kind": wire, "seq": seq, "text": text }),
+        );
+        self
+          .store
+          .wb_write(&event, |w| w.set_item_text(node, &wire, seq, text))
+          .map_err(FacadeError::Store)?;
+        WbEdit::Recorded {
+          event: event.id,
+          still_at_head,
+          next_commit: None,
+          new_holds_old,
+        }
+      }
+    };
+    self.land_board_write_noting()?;
+    self.note_staged(&rewritten);
+    let scanned = self.scan_next_commit(&held);
+    if let WbEdit::Amended { next_commit, .. } | WbEdit::Recorded { next_commit, .. } = &mut edited
+    {
+      *next_commit = scanned;
+    }
+    Ok(edited)
+  }
+
+  /// Name any of `rewritten` that was staged before an edit, as a note.
+  ///
+  /// **ASKED AFTER THE WRITE, SO A FAILURE HERE IS A NOTE AND NOT THE VERB'S
+  /// ERROR**: the edit has landed, and an error would send the caller to retry
+  /// it (vc, ruled 2026-09-14).
+  fn note_staged(&mut self, rewritten: &[String]) {
+    match crate::gitstate::staged(self.project.root(), rewritten) {
+      Ok(staged) if !staged.is_empty() => {
+        self.after_write.push(Note::StagedBeforeTheEdit(staged));
+      }
+      Ok(_) => {}
+      Err(cause) => self.after_write.push(Note::after_write(
+        "asking git what is staged",
+        &FacadeError::Git(cause),
+        STAGED_UNKNOWN_REMEDY,
+      )),
+    }
+  }
+
+  /// The files under `intent/` the next commit would or could carry holding
+  /// `old`, or `None` with a note when that could not be read (issue 0523).
+  ///
+  /// **ASKED AFTER THE WRITE, FOR THE SAME REASON AS [`Self::note_staged`]**,
+  /// and a failure withholds the claim rather than making it: `None` is
+  /// unmeasured, never empty.
+  fn scan_next_commit(&mut self, old: &str) -> Option<NextCommit> {
+    match self.text_in_next_commit(old) {
+      Ok(held) => Some(held),
+      Err(cause) => {
+        self.after_write.push(Note::after_write(
+          "reading what the next commit could carry",
+          &cause,
+          UNCOMMITTED_UNKNOWN_REMEDY,
+        ));
+        None
+      }
+    }
+  }
+
+  /// The event that carries an item's CURRENT text, if any does (issue 0523).
+  ///
+  /// **THE NEWEST `wb.edit` FOR THE ITEM, OR ELSE THE ONE THAT CREATED IT.** A
+  /// `wb.edit` names its item by kind and number, so that match is exact.
+  ///
+  /// **THE CREATOR LIES BETWEEN THE ITEM'S OWN STAMP AND THE NEXT ITEM'S**
+  /// (vc's hold on v2, and the millisecond miss in v3). A creation event
+  /// carries the item's kind and text and not its number, which the store
+  /// assigns inside the write, so text alone would also match a LATER item
+  /// that says the same thing -- and amending that one's draft would rewrite
+  /// another item's record. Items of one kind are written one transaction at a
+  /// time, each row stamped before its event, so an item's creator is stamped
+  /// at or after the item and before the next item of its kind, and a later
+  /// item's creator at or after that later item. It is taken only when exactly
+  /// one of this node's `wb.add` or `wb.decide` events with this kind and text
+  /// lies in that window; none or several is no carrier, the edit is recorded
+  /// rather than guessed, and the scan after the write names any file a miss
+  /// left holding the old text. The window is bounded by stamps, never by the
+  /// first instant after the item: at millisecond precision an earlier
+  /// transaction can share the item's instant while its creator lands in the
+  /// next one. An item carried by `wb migrate` has no creation event, and
+  /// neither has one written before board verbs recorded events: neither has
+  /// a carrier, and that is an answer rather than an error.
+  fn wb_text_carrier(
+    &self,
+    node: &str,
+    kind: &str,
+    seq: u32,
+    held: &str,
+    recorded_at: &str,
+  ) -> Result<Option<Envelope>, FacadeError> {
+    let events = self
+      .store
+      .wb_text_events(node)
+      .map_err(FacadeError::Store)?;
+    let same_item =
+      |e: &&Envelope| e.op == "wb.edit" && e.payload["kind"] == kind && e.payload["seq"] == seq;
+    if let Some(latest) = events.iter().rev().find(same_item) {
+      return Ok((latest.payload["text"] == held).then(|| latest.clone()));
+    }
+    let next = self
+      .store
+      .wb_next_item_stamp(node, kind, seq)
+      .map_err(FacadeError::Store)?;
+    let mut created = events.into_iter().filter(|e| {
+      (e.op == "wb.add" || e.op == "wb.decide")
+        && e.payload["kind"] == kind
+        && e.payload["text"] == held
+        && e.ts.as_str() >= recorded_at
+        && next.as_deref().is_none_or(|n| e.ts.as_str() < n)
+    });
+    Ok(match (created.next(), created.next()) {
+      (Some(creator), None) => Some(creator),
+      _ => None,
+    })
+  }
+
+  /// Does a commit hold this event's file? Present at HEAD, never the index.
+  ///
+  /// Outside a work tree nothing is committed, so an event there is a draft.
+  fn event_committed(&self, event: &Envelope) -> Result<bool, FacadeError> {
+    let root = self.project.root();
+    if !crate::gitstate::is_work_tree(root) {
+      return Ok(false);
+    }
+    let (path, _) = event_file_write(&self.project, event)?;
+    Ok(crate::gitstate::blob(root, "HEAD", &self.project.relative(&path))?.is_some())
+  }
+
+  /// Every file HEAD holds under `intent/` that still carries `old`,
+  /// project-relative and sorted (issue 0523, widened on ic's review of v4).
+  ///
+  /// **`git grep` NARROWS AND THE BYTES DECIDE.** The prefilter asks HEAD for
+  /// the text's longest line and for its JSON spelling, which every file
+  /// holding either spelling contains, so it can only name too many; each file
+  /// it names is then read from HEAD and searched in process ([`holds_text`]),
+  /// so a text spanning lines is found whole. Outside a work tree, or before
+  /// the first commit, HEAD holds nothing.
+  fn text_at_head(&self, old: &str) -> Result<Vec<String>, FacadeError> {
+    let root = self.project.root();
+    if old.is_empty() || !crate::gitstate::is_work_tree(root) || !crate::gitstate::has_head(root) {
+      return Ok(Vec::new());
+    }
+    let spellings = text_spellings(old)?;
+    let [raw, escaped] = &spellings;
+    let line = raw
+      .lines()
+      .filter(|l| !l.is_empty())
+      .max_by_key(|l| l.len())
+      .unwrap_or(raw);
+    let under = self.project.relative(&self.project.intent_dir());
+    let mut held = Vec::new();
+    for path in crate::gitstate::grep_head(root, &under, &[line, escaped])? {
+      if !self.in_store(&path)
+        && let Some(bytes) = crate::gitstate::blob(root, "HEAD", &path)?
+        && holds_text(&bytes, &spellings)
+      {
+        held.push(path);
+      }
+    }
+    held.sort();
+    held.dedup();
+    Ok(held)
+  }
+
+  /// Every file under `intent/` the next commit would or could carry holding
+  /// `old` (issue 0523): a staged file's index bytes, which a plain `git
+  /// commit` carries, and the work-tree bytes of every file that differs from
+  /// HEAD or is untracked, which a commit carries once they are staged.
+  ///
+  /// **IT NAMES WHAT HOLDS THE TEXT, NEVER WHOSE THE TEXT IS** (vc's ruling on
+  /// v4): another item that says the same thing is named too, because the
+  /// text is in the next commit whoever wrote it. Outside a work tree nothing
+  /// is committed.
+  fn text_in_next_commit(&self, old: &str) -> Result<NextCommit, FacadeError> {
+    let root = self.project.root();
+    if old.is_empty() || !crate::gitstate::is_work_tree(root) {
+      return Ok(NextCommit::default());
+    }
+    let spellings = text_spellings(old)?;
+    let under = self.project.relative(&self.project.intent_dir());
+    let mut next = NextCommit::default();
+    for path in crate::gitstate::staged(root, std::slice::from_ref(&under))? {
+      if !self.in_store(&path)
+        && let Some(bytes) = crate::gitstate::blob(root, "", &path)?
+        && holds_text(&bytes, &spellings)
+      {
+        next.would.push(path);
+      }
+    }
+    for path in crate::gitstate::uncommitted(root, &under)? {
+      if self.in_store(&path) || next.would.contains(&path) {
+        continue;
+      }
+      let bytes = match std::fs::read(root.join(&path)) {
+        Ok(bytes) => bytes,
+        // Deleted from the work tree: a commit of the work tree carries none.
+        Err(source) if source.kind() == std::io::ErrorKind::NotFound => continue,
+        Err(source) => return Err(FacadeError::Ingest(IngestError::Io { path, source })),
+      };
+      if holds_text(&bytes, &spellings) {
+        next.could.push(path);
+      }
+    }
+    next.would.sort();
+    next.would.dedup();
+    next.could.sort();
+    next.could.dedup();
+    Ok(next)
+  }
+
+  /// Is `path`, project-relative, inside the store's directory? It is left out
+  /// of every search for an old text by rule, whatever the ignore file says:
+  /// no commit carries it (D34), and SQLite keeps freed pages until they are
+  /// reused, so a byte search of it would measure the storage engine rather
+  /// than the edit.
+  fn in_store(&self, path: &str) -> bool {
+    self
+      .project
+      .db_path()
+      .parent()
+      .is_some_and(|dir| path.starts_with(&format!("{}/", self.project.relative(dir))))
   }
 
   /// Add one claim to the acting node's own board, and say whether it moved.

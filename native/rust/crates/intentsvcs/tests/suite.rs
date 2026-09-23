@@ -473,6 +473,8 @@ mod view_determinism;
 mod view_skew_check;
 #[path = "wb_archive_frees_the_bound.rs"]
 mod wb_archive_frees_the_bound;
+#[path = "wb_edit_keeps_the_old_text_out_of_a_commit.rs"]
+mod wb_edit_keeps_the_old_text_out_of_a_commit;
 #[path = "wb_migrate_carries_a_board.rs"]
 mod wb_migrate_carries_a_board;
 #[path = "wb_pickup_states_the_session.rs"]

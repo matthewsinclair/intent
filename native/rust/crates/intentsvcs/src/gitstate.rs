@@ -104,6 +104,16 @@ pub fn is_work_tree(root: &Path) -> bool {
     .unwrap_or(false)
 }
 
+/// Does the work tree at `root` have a HEAD commit? An unborn branch has
+/// none, and a question asked of HEAD there has no answer to give.
+pub fn has_head(root: &Path) -> bool {
+  Command::new("git")
+    .args(["rev-parse", "--verify", "--quiet", "HEAD"])
+    .current_dir(root)
+    .output()
+    .is_ok_and(|out| out.status.success())
+}
+
 /// How far `HEAD` is behind its upstream, or `None` when the branch tracks
 /// none (a detached `HEAD` included). **It reads what the last fetch left and
 /// fetches nothing**, so it answers for the upstream this clone has seen.
@@ -206,7 +216,130 @@ pub fn is_tracked(root: &Path, path: &str) -> Result<bool, GitStateError> {
   run(root, &["ls-files", "-z", "--", path]).map(|out| !out.is_empty())
 }
 
+/// Which of `paths` the index holds staged changes for -- bytes that differ
+/// from HEAD's -- relative to the project root. Outside a work tree nothing is
+/// staged.
+pub fn staged(root: &Path, paths: &[String]) -> Result<Vec<String>, GitStateError> {
+  if paths.is_empty() || !is_work_tree(root) {
+    return Ok(Vec::new());
+  }
+  let mut args = vec!["diff", "--cached", "--name-only", "--relative", "-z", "--"];
+  args.extend(paths.iter().map(String::as_str));
+  let out = run(root, &args)?;
+  Ok(
+    out
+      .split(|b| *b == 0)
+      .filter(|r| !r.is_empty())
+      .map(|r| String::from_utf8_lossy(r).to_string())
+      .collect(),
+  )
+}
+
+/// The files under `prefix` whose WORK TREE bytes HEAD does not already hold,
+/// relative to the project root (issue 0523): untracked files git does not
+/// ignore, and tracked ones that differ from HEAD. Before a first commit
+/// nothing is held, so that is everything in the index as well. Outside a work
+/// tree nothing is committed and nothing is listed. The index's own bytes are
+/// [`staged`]'s question, not this one's.
+pub fn uncommitted(root: &Path, prefix: &str) -> Result<Vec<String>, GitStateError> {
+  if !is_work_tree(root) {
+    return Ok(Vec::new());
+  }
+  let untracked = run(
+    root,
+    &[
+      "ls-files",
+      "--others",
+      "--exclude-standard",
+      "-z",
+      "--",
+      prefix,
+    ],
+  )?;
+  let tracked = if has_head(root) {
+    run(
+      root,
+      &[
+        "diff",
+        "HEAD",
+        "--name-only",
+        "--relative",
+        "-z",
+        "--",
+        prefix,
+      ],
+    )?
+  } else {
+    run(root, &["ls-files", "--cached", "-z", "--", prefix])?
+  };
+  let mut paths: Vec<String> = untracked
+    .split(|b| *b == 0)
+    .chain(tracked.split(|b| *b == 0))
+    .filter(|r| !r.is_empty())
+    .map(|r| String::from_utf8_lossy(r).to_string())
+    .collect();
+  paths.sort();
+  paths.dedup();
+  Ok(paths)
+}
+
+/// The files under `prefix` that HEAD holds a line of any of `patterns` in,
+/// relative to the project root (issue 0523). The patterns are fixed strings.
+///
+/// **A PREFILTER, NEVER THE JUDGE.** `git grep` matches within one line, so a
+/// caller looking for a text that spans lines reads each file it names. No
+/// work tree, no HEAD, and no match are all an empty answer. A failure names
+/// the command WITHOUT its patterns, which may be the very text being removed.
+pub fn grep_head(
+  root: &Path,
+  prefix: &str,
+  patterns: &[&str],
+) -> Result<Vec<String>, GitStateError> {
+  if patterns.is_empty() || !is_work_tree(root) || !has_head(root) {
+    return Ok(Vec::new());
+  }
+  let mut args = vec!["grep", "-l", "-z", "-F"];
+  for pattern in patterns {
+    args.extend(["-e", pattern]);
+  }
+  args.extend(["HEAD", "--", prefix]);
+  let shown = format!("grep -l -z -F -e <pattern>... HEAD -- {prefix}");
+  let out = Command::new("git")
+    .args(&args)
+    .current_dir(root)
+    .output()
+    .map_err(|source| GitStateError::Spawn {
+      args: shown.clone(),
+      source,
+    })?;
+  match out.status.code() {
+    Some(0) => {}
+    // `git grep` exits 1 when nothing matched, which is an answer.
+    Some(1) => return Ok(Vec::new()),
+    code => {
+      return Err(GitStateError::Refused {
+        args: shown,
+        code: code.unwrap_or(-1),
+        stderr: String::from_utf8_lossy(&out.stderr).trim().to_string(),
+      });
+    }
+  }
+  Ok(
+    out
+      .stdout
+      .split(|b| *b == 0)
+      .filter(|r| !r.is_empty())
+      .map(|r| {
+        let named = String::from_utf8_lossy(r);
+        named.strip_prefix("HEAD:").unwrap_or(&named).to_string()
+      })
+      .collect(),
+  )
+}
+
 /// The bytes a commit holds at `path`, or `None` when it holds nothing there.
+/// An empty `rev` reads the index instead, the bytes a plain `git commit`
+/// would carry.
 pub fn blob(root: &Path, rev: &str, path: &str) -> Result<Option<Vec<u8>>, GitStateError> {
   // `./` makes the path relative to the project root rather than to the
   // repository's top level, which is how every other path here is spelled.

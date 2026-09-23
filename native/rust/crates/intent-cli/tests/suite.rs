@@ -304,6 +304,8 @@ mod verbosity_flags;
 mod version_spellings_agree;
 #[path = "view_single_writer.rs"]
 mod view_single_writer;
+#[path = "wb_edit_door.rs"]
+mod wb_edit_door;
 #[path = "wb_migrate_names_its_kept_copies.rs"]
 mod wb_migrate_names_its_kept_copies;
 #[path = "wb_migrate_reports_the_restamp.rs"]

@@ -3035,6 +3035,30 @@ impl WbWrite<'_> {
     Ok(moved > 0)
   }
 
+  /// Replace one item's text, live or archived, and say whether it moved
+  /// (issue 0523).
+  ///
+  /// **THE ADDRESS IS THE ONE [`Self::archive_item`] TAKES, AND THE STATE IS
+  /// NOT PART OF IT.** An archived row keeps its text and its board still
+  /// carries it, so a text that must not be committed is as present in an
+  /// archived row as in a live one. The text already held moves nothing, which
+  /// is what lets the verb report it unchanged.
+  pub fn set_item_text(
+    &mut self,
+    node: &str,
+    kind: &str,
+    seq: u32,
+    text: &str,
+  ) -> Result<bool, StoreError> {
+    let moved = self.tx.execute(
+      "UPDATE wb_item SET text = ?4, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') \
+       WHERE node = ?1 AND kind = ?2 AND seq = ?3 AND text <> ?4",
+      params![node, kind, seq, text],
+    )?;
+    self.moved += moved;
+    Ok(moved > 0)
+  }
+
   /// Append one item to a node's board, and say which `seq` it was given.
   ///
   /// **`seq` IS ASSIGNED BY THE SERVICE AND NEVER BY A CALLER.** It is the
@@ -5348,10 +5372,21 @@ impl Store {
   }
 
   pub fn events(&self) -> Result<Vec<Envelope>, StoreError> {
-    let mut stmt = self.conn.prepare(
-      "SELECT id, ts, principal, project_id, op, subject_type, subject_id, payload FROM event_log ORDER BY id",
-    )?;
-    let rows = stmt.query_map([], |row| {
+    self.envelopes("ORDER BY id", [])
+  }
+
+  /// The log's rows as envelopes, narrowed and ordered by `clause`: the one
+  /// place a row becomes an [`Envelope`] again, for [`Self::events`] and
+  /// [`Self::wb_text_events`].
+  fn envelopes(
+    &self,
+    clause: &str,
+    params: impl rusqlite::Params,
+  ) -> Result<Vec<Envelope>, StoreError> {
+    let mut stmt = self.conn.prepare(&format!(
+      "SELECT id, ts, principal, project_id, op, subject_type, subject_id, payload FROM event_log {clause}"
+    ))?;
+    let rows = stmt.query_map(params, |row| {
       Ok((
         row.get::<_, String>(0)?,
         row.get::<_, String>(1)?,
@@ -5622,6 +5657,99 @@ impl Store {
       self.landed_events.borrow_mut().push(landed);
     }
     Ok(out)
+  }
+
+  /// Run one whiteboard verb's writes and record them by AMENDING the event
+  /// that already carries what they replace, rather than appending one (issue
+  /// 0523, case 1).
+  ///
+  /// **THE ONE ACT THAT REWRITES A RECORD, AND ITS LICENCE IS THE CALLER'S.**
+  /// An event file is written once and never rewritten because a COMMITTED
+  /// event is history. One no commit holds yet has published nothing: it is a
+  /// local draft of history, and appending a correction beside it would carry
+  /// the text being withdrawn into the very commit that must not hold it. So
+  /// the caller establishes that no commit holds `amended`'s file, and this
+  /// keeps the event's id and stamp and replaces its payload.
+  ///
+  /// **THE ROWS AND THE AMENDED EVENT SHARE ONE TRANSACTION**, as
+  /// [`Self::wb_write`]'s rows and event do, and a write that moved no row
+  /// amends nothing. The amended envelope joins the landed events carrying the
+  /// stamp the log holds, so the act's file is rewritten in the write set that
+  /// lands its views.
+  pub fn wb_amend<T>(
+    &mut self,
+    amended: &Envelope,
+    write: impl FnOnce(&mut WbWrite<'_>) -> Result<T, StoreError>,
+  ) -> Result<T, StoreError> {
+    let mut w = WbWrite {
+      tx: Self::write_tx(&mut self.conn)?,
+      moved: 0,
+    };
+    let out = write(&mut w)?;
+    if w.moved > 0 {
+      // `RETURNING` through `query_row`, so an id the log does not hold is an
+      // error rather than a silent no-op amendment.
+      let ts: String = w.tx.query_row(
+        "UPDATE event_log SET payload = ?2 WHERE id = ?1 RETURNING ts",
+        params![amended.id, serde_json::to_string(&amended.payload)?],
+        |row| row.get(0),
+      )?;
+      w.tx.commit()?;
+      self.landed_events.borrow_mut().push(Envelope {
+        ts,
+        ..amended.clone()
+      });
+    }
+    Ok(out)
+  }
+
+  /// One item's text and its `recorded_at`, by its board address, live or
+  /// archived; `None` when no item has that address.
+  pub fn wb_item_text(
+    &self,
+    node: &str,
+    kind: &str,
+    seq: u32,
+  ) -> Result<Option<(String, String)>, StoreError> {
+    let mut stmt = self.conn.prepare(
+      "SELECT text, recorded_at FROM wb_item WHERE node = ?1 AND kind = ?2 AND seq = ?3",
+    )?;
+    let mut rows = stmt.query(params![node, kind, seq])?;
+    match rows.next()? {
+      Some(row) => Ok(Some((row.get(0)?, row.get(1)?))),
+      None => Ok(None),
+    }
+  }
+
+  /// The events that can carry the text of a node's items -- its `wb.add`,
+  /// `wb.decide` and `wb.edit` -- oldest first (issue 0523).
+  pub fn wb_text_events(&self, node: &str) -> Result<Vec<Envelope>, StoreError> {
+    self.envelopes(
+      "WHERE subject_type = 'node' AND subject_id = ?1 \
+       AND op IN ('wb.add', 'wb.decide', 'wb.edit') ORDER BY id",
+      params![node],
+    )
+  }
+
+  /// The stamp of the item written next after `seq` among one node's items of
+  /// `kind`, live or archived, or `None` when none has been (issue 0523).
+  /// Items of one kind are numbered in the order they are written, so this is
+  /// the next write of that kind on that board.
+  pub fn wb_next_item_stamp(
+    &self,
+    node: &str,
+    kind: &str,
+    seq: u32,
+  ) -> Result<Option<String>, StoreError> {
+    let mut stmt = self.conn.prepare(
+      "SELECT recorded_at FROM wb_item WHERE node = ?1 AND kind = ?2 AND seq > ?3 \
+       ORDER BY seq LIMIT 1",
+    )?;
+    let mut rows = stmt.query(params![node, kind, seq])?;
+    match rows.next()? {
+      Some(row) => Ok(Some(row.get(0)?)),
+      None => Ok(None),
+    }
   }
 
   /// Is this node's board the model's, rather than its markdown on disk?

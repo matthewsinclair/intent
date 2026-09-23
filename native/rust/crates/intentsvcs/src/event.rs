@@ -191,6 +191,7 @@ pub const KNOWN_OPS: &[&str] = &[
   "wb.clear",
   "wb.correct",
   "wb.decide",
+  "wb.edit",
   "wb.migrate",
   "wb.pickup",
   "wb.register",
