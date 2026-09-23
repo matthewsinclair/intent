@@ -1455,6 +1455,7 @@ for i in $(seq 0 $((FAMILY_COUNT - 1))); do
     "- **v2:** \(.v2 | cell)",
     (if (.args | length) > 0 then ("- **Arguments:**\n" + (.args | map(
        "  - `\(.name)` (\(.type), arity `\(.arity)`)" +
+       (if .help then " -- \(.help)" else "" end) +
        (if .default then ", default `\(.default)`" else "" end) +
        (if .values then " -- one of: " + (.values | map("`" + . + "`") | join(", ")) else "" end) +
        (if .note then "\n    - " + .note else "" end)
