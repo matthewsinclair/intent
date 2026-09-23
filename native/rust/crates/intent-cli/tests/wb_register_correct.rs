@@ -220,3 +220,38 @@ fn register_help_says_what_each_part_is() {
     );
   }
 }
+
+/// Issue 0541: 0522 made every remedy that sends someone to register a node
+/// print the whole form, and two still named the bare `intent wb register`.
+/// That reads a roster from hand-authored headers, and a project with no board
+/// has none, so the bare form registered nothing. Both are driven in a project
+/// with no `board.json` at all: the empty roster, and a node that is not on it.
+#[test]
+fn an_empty_roster_and_an_unregistered_node_name_the_whole_form() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  ok(dir.path(), &["init", "wbempty"]);
+  assert!(
+    !dir.path().join("intent/whiteboard").exists()
+      || std::fs::read_dir(dir.path().join("intent/whiteboard"))
+        .expect("read the whiteboard")
+        .filter_map(Result::ok)
+        .all(|e| !e.path().join("board.json").exists()),
+    "precondition: the project holds no board.json"
+  );
+
+  let text = ok(dir.path(), &["wb", "status"]);
+  assert!(
+    text.contains(&intentsvcs::model::register_form("<moniker>")),
+    "wb status names the whole form for a roster with no node:\n{text}"
+  );
+
+  let (text, code) = run(dir.path(), &["wb", "show", "zz"]);
+  assert_ne!(
+    code, 0,
+    "wb show refuses a node that is not registered: {text}"
+  );
+  assert!(
+    text.contains(&intentsvcs::model::register_form("zz")),
+    "the refusal names the whole form, with the moniker that was typed:\n{text}"
+  );
+}

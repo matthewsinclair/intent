@@ -2442,7 +2442,10 @@ impl crate::remedy::Remedy for FacadeError {
       ),
       Self::StructuralTierNotAsked => "drop the tier filter or add `structural` to it; the lexical and semantic tiers answer a text query".to_string(),
       Self::SqlDidNotRun { .. } => "the words above are SQLite's own -- `intent schema` publishes the tables and columns this store holds".to_string(),
-      Self::WbNodeNotRegistered { .. } => "check the spelling against the roster above; a node that is genuinely missing is put on the board by `intent wb register`, which reads the roster from each node's own `wip.md` header".to_string(),
+      Self::WbNodeNotRegistered { node, .. } => format!(
+        "check the spelling against the roster above; a node that is genuinely missing is put on the board by `{}`, or, where each node's board is still a hand-authored `wip.md`, by `intent wb register` with no arguments, which reads the roster from those headers",
+        crate::model::register_form(node)
+      ),
       Self::WbBodyOverBound { bound, .. } => format!(
         "say it in {bound} bytes or fewer, or put the long form in the artefact it is about and leave a pointer here. A board carries the pointer; the account belongs where it will still be read next week"
       ),
@@ -17275,17 +17278,20 @@ impl Facade {
     Ok(
       candidates
         .into_iter()
-        // **A VIEW AN OLDER INTENT RENDERED IS NOT A HAND EDIT** (issue 0309's
-        // predicate, the one doctor asks, widened by 0446). Only text the
-        // renderer owns differs, so nobody's work is under it. Issue 0385: the
-        // first write after an upgrade warned for every such view.
+        // **A VIEW AN OLDER INTENT RENDERED IS NOT A HAND EDIT**, by the one
+        // predicate doctor asks (issue 0539): text the renderer owns (0309,
+        // widened by 0446), or a node's board in the shape before 0532. Nobody's
+        // work is under either. Issue 0385: the first write after an upgrade
+        // warned for every such view, and 0539 found that again for boards.
         .filter(|(path, disk)| {
           before.get(path).is_some_and(|prior| {
             prior != disk
-              && !views::differs_only_in_renderer_owned_text(
+              && views::rendered_by_an_older_intent(
+                views::node_board_view(&self.project, path).is_some(),
                 &String::from_utf8_lossy(disk),
                 &String::from_utf8_lossy(prior),
               )
+              .is_none()
           })
         })
         .map(|(path, _)| self.project.relative(&path))

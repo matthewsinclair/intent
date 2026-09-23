@@ -1488,8 +1488,8 @@ impl Plan {
 /// undeclared thread's views with no owner: nothing re-rendered them and
 /// nothing removed them. 0446 measured 65 such refusals across four estates,
 /// none a hand edit. The question is asked through
-/// [`crate::views::differs_only_in_renderer_owned_text`], the one predicate
-/// doctor (0309) and the overwrite check (0385) already ask. **Fail-safe by construction rather than by discipline:**
+/// [`crate::views::rendered_by_an_older_intent`], the one predicate doctor
+/// (0309) and the overwrite check (0385) ask as well (issue 0539). **Fail-safe by construction rather than by discipline:**
 /// the only way to remove a view is to have proved first that the store can
 /// reproduce it exactly, so a hand edit cannot be destroyed by an operator who
 /// forgot to check.
@@ -1513,11 +1513,18 @@ pub fn gate(step: &Step) -> Result<(), OrganizeError> {
   }
 }
 
-/// Whether two byte strings are one view but for text its renderer owns.
-/// Asked only where both sides are text, since what the renderer owns is prose.
+/// Whether two byte strings are one view that an older Intent rendered, by
+/// [`crate::views::rendered_by_an_older_intent`], the one predicate doctor and
+/// the write path ask (issue 0539). Asked only where both sides are text, since
+/// what the renderer owns is prose.
+///
+/// **`board` IS `false` BY CONSTRUCTION**: a removal here is of a thread's or an
+/// issue's view, never a node's board, so what is left is text the renderer owns.
 fn only_renderer_owned_text_moved(on_disk: &[u8], carried: &[u8]) -> bool {
   match (std::str::from_utf8(on_disk), std::str::from_utf8(carried)) {
-    (Ok(disk), Ok(rendered)) => crate::views::differs_only_in_renderer_owned_text(disk, rendered),
+    (Ok(disk), Ok(rendered)) => {
+      crate::views::rendered_by_an_older_intent(false, disk, rendered).is_some()
+    }
     _ => false,
   }
 }

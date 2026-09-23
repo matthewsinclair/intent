@@ -302,8 +302,12 @@ fn a_board_rendered_before_0532_is_an_uncounted_stale_render_that_sync_clears() 
   );
   let said = about[0].to_string();
   assert!(
-    said.contains("0532") && said.contains("`intent sync --to-disk`"),
-    "the finding names its issue and the verb that clears it: {said}"
+    said.contains("continuation lines") && said.contains("`intent sync --to-disk`"),
+    "the finding says what differs and names the verb that clears it: {said}"
+  );
+  assert!(
+    !said.contains("0532"),
+    "and it names no issue of Intent's own, which a reader in another estate cannot see: {said}"
   );
 
   fx.facade_on_disk()

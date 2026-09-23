@@ -156,3 +156,39 @@ fn wb_show_and_wb_pickup_print_an_items_lines_under_it() {
     );
   }
 }
+
+/// Issue 0539: a thread write over a board an older Intent wrote names no lost
+/// edit, and a hand edit in that board is still named. Before 0539 the write's
+/// foreign-bytes check asked only about text the renderer owns, so `st new`
+/// warned that an edit to the board was gone when nobody had made one.
+#[test]
+fn a_thread_write_over_an_older_board_warns_only_of_a_hand_edit() {
+  const WARNING: &str = "overwrote bytes that were not the store's render";
+  let write_over = |shape: &dyn Fn(&str) -> String| -> (String, String) {
+    let dir = seeded();
+    let view = dir.path().join("intent/whiteboard/cc/wip.md");
+    let now = board_view(dir.path());
+    std::fs::write(&view, shape(&now)).expect("write the board as it was left");
+    let (text, code) = run(dir.path(), &["st", "new", "a thread"]);
+    assert_eq!(code, 0, "st new: {text}");
+    (text, board_view(dir.path()))
+  };
+
+  let (text, after) = write_over(&|now: &str| intentsvcs::views::board_before_0532(now));
+  assert!(
+    !text.contains(WARNING),
+    "a board an older Intent wrote holds no edit to lose:\n{text}"
+  );
+  assert!(
+    !after.contains("\n- first"),
+    "the write re-rendered the board in today's shape:\n{after}"
+  );
+
+  let (text, _) = write_over(&|now: &str| {
+    intentsvcs::views::board_before_0532(now).replacen("git log -1", "git log -2", 1)
+  });
+  assert!(
+    text.contains(WARNING) && text.contains("intent/whiteboard/cc/wip.md"),
+    "control: a hand edit in the older shape is still named:\n{text}"
+  );
+}

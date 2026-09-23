@@ -951,6 +951,50 @@ pub fn board_rendered_before_0532(on_disk: &str, rendered: &str) -> bool {
   before != rendered && (on_disk == before || differs_only_in_renderer_owned_text(on_disk, &before))
 }
 
+/// What an older Intent rendered, where a view differs from today's render.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum OlderRender {
+  /// Only text the renderer owns differs (issues 0309, 0446 and 0528).
+  RendererOwnedText,
+  /// A node's board view in the shape before issue 0532, with any text the
+  /// renderer owns differing besides.
+  BoardBefore0532,
+}
+
+/// **DID AN OLDER INTENT RENDER THIS VIEW?** Doctor's skew, a write's
+/// foreign-bytes check and organize's removal gate each ask this of a view that
+/// differs from today's render (issue 0539).
+///
+/// Before this, all three asked [`differs_only_in_renderer_owned_text`], and
+/// only doctor also asked [`board_rendered_before_0532`]. So after 0532, the
+/// first thread write over a board an older Intent wrote warned that an edit to
+/// a generated file was gone, on a board nobody had edited: 0385's false alarm
+/// again, one door over. With one predicate, a shape an older Intent wrote is
+/// excused by every door or by none.
+///
+/// **`board` IS THE CALLER'S TO SAY**, because only the caller knows what the
+/// view is. Doctor and the write path ask `node_board_view`. Organize's gate
+/// removes thread and issue views only, never a node's board, so it passes
+/// `false`. The 0532 shape is asked of a node's board and of no other view,
+/// because the invariant that makes it exact holds there alone (see
+/// [`board_before_0532`]).
+pub fn rendered_by_an_older_intent(
+  board: bool,
+  on_disk: &str,
+  rendered: &str,
+) -> Option<OlderRender> {
+  if differs_only_in_renderer_owned_text(on_disk, rendered) {
+    return Some(OlderRender::RendererOwnedText);
+  }
+  (board && board_rendered_before_0532(on_disk, rendered)).then_some(OlderRender::BoardBefore0532)
+}
+
+/// The node whose board view `path` is, when it is one: its `wip.md`, never
+/// an inbox view or its `board.json`.
+pub(crate) fn node_board_view(project: &Project, path: &std::path::Path) -> Option<String> {
+  whiteboard_owner(project, path).filter(|node| project.wb_board_view(node) == path)
+}
+
 /// Whether a generated view differs from its render only as a formatter
 /// leaves it: a run of blank lines collapsed to one, or single-asterisk
 /// emphasis rewritten with underscores (issue 0378).
@@ -2305,8 +2349,7 @@ pub fn skew(
   for view in render_all(project, canon, ctx) {
     let rel = project.relative(&view.path);
     let owner = undeclared_owner(project, &view.path, canon, realised);
-    let board_node =
-      whiteboard_owner(project, &view.path).filter(|node| project.wb_board_view(node) == view.path);
+    let board_node = node_board_view(project, &view.path);
     // **A REGISTERED, UNMIGRATED BOARD IS NOT A GENERATED VIEW AND IS NEVER
     // COMPARED AGAINST ONE** (issue 0412). Its markdown stays hand-authored and
     // authoritative until `wb migrate` carries it, the projection writes nothing
@@ -2347,7 +2390,10 @@ pub fn skew(
       // the skew arm would leave a label on a blocking finding, and with
       // `doctor` on the pre-commit gate (issue `0308`) that is a commit outage
       // in every estate on the day it upgrades.
-      Ok(on_disk) if differs_only_in_renderer_owned_text(&on_disk, &view.content) => {
+      Ok(on_disk)
+        if rendered_by_an_older_intent(board_node.is_some(), &on_disk, &view.content)
+          == Some(OlderRender::RendererOwnedText) =>
+      {
         findings.push(Finding::new(
           &rel,
           FindingClass::StaleRender,
@@ -2364,13 +2410,14 @@ pub fn skew(
       // upgrades. Asked of a node's board and of no other view, so an
       // indentation change anywhere else still reads as the hand edit it may be.
       Ok(on_disk)
-        if board_node.is_some() && board_rendered_before_0532(&on_disk, &view.content) =>
+        if rendered_by_an_older_intent(board_node.is_some(), &on_disk, &view.content)
+          == Some(OlderRender::BoardBefore0532) =>
       {
         findings.push(Finding::new(
           &rel,
           FindingClass::StaleRender,
           format!(
-            "rendered before issue 0532, by Intent v{} (this binary renders v{}) -- only the indentation of a multi-line item's continuation lines differs, and any text the renderer owns; `{}`'s next board write re-renders it, and `intent sync --to-disk` re-renders every board at once",
+            "rendered by an older Intent (v{}; this binary renders v{}) -- only the indentation of a multi-line item's continuation lines differs, and any text the renderer owns; `{}`'s next board write re-renders it, and `intent sync --to-disk` re-renders every board at once",
             declared_version(&on_disk).unwrap_or("<none>"),
             declared_version(&view.content).unwrap_or("<none>"),
             board_node.as_deref().unwrap_or_default(),
@@ -2950,6 +2997,44 @@ mod tests {
     assert!(
       !board_rendered_before_0532(&one_line, &one_line),
       "a board holding no multi-line item has no older shape"
+    );
+  }
+
+  /// Issue 0539: doctor, a write and organize's gate ask one question, and
+  /// the 0532 shape answers it only for a view its caller says is a board.
+  #[test]
+  fn the_one_older_render_question_excuses_the_0532_shape_on_a_board_and_nowhere_else() {
+    let b = board_with_every_item_shape();
+    let now = wb_board(&b, &ctx());
+    let older = board_before_0532(&now);
+    assert_eq!(
+      rendered_by_an_older_intent(true, &older, &now),
+      Some(OlderRender::BoardBefore0532),
+      "a node's board in the older shape"
+    );
+    assert_eq!(
+      rendered_by_an_older_intent(false, &older, &now),
+      None,
+      "the same bytes in any other view are an edit"
+    );
+    let older_footer = wb_board(
+      &b,
+      &RenderContext {
+        version: "2.9.9-test",
+        todo_watermark: None,
+      },
+    );
+    for board in [true, false] {
+      assert_eq!(
+        rendered_by_an_older_intent(board, &older_footer, &now),
+        Some(OlderRender::RendererOwnedText),
+        "text the renderer owns is excused in every view, board {board}"
+      );
+    }
+    assert_eq!(
+      rendered_by_an_older_intent(true, &older.replacen("git log -1", "git log -2", 1), &now),
+      None,
+      "a hand edit in an older-shaped board is not an older render"
     );
   }
 

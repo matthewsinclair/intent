@@ -4633,8 +4633,10 @@ fn report_wb_status(boards: &[intentsvcs::model::Board], json: bool) -> Result<(
   }
   if boards.is_empty() {
     println!(
-      "no nodes are registered\n  remedy: `intent wb register` reads the roster from each node's \
-       own `wip.md` header"
+      "no nodes are registered\n  remedy: `{}` registers one; where each node's board is still a \
+       hand-authored `wip.md`, `intent wb register` with no arguments reads the roster from those \
+       headers",
+      intentsvcs::model::register_form("<moniker>")
     );
     return Ok(());
   }
