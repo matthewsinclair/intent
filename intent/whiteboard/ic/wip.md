@@ -6,7 +6,7 @@ session_id: 211a090e-f16e-484b-bd74-7a58ce1c75e7
 heartbeat_at: 2026-09-23 09:02Z
 status: active
 focus: "LOCALFOLD before hv's compact, 2026-09-23. ON THE BOUNCE, in order: 0526 (XS, ic's; bank for vc); the surface reviews of 0523 stage 2 and 0525 at cc's banks; then the 3.2.1 pre-cut surface pass once 0523 lands. 0520 is CLOSED: landed at 89015b037, NOT DEPLOYED until hv's bin/devbin build all after the train. NO PUSH, NO RELEASE."
-claims: [ISSUE:0526]
+claims: [ISSUE:0526, ISSUE:0530]
 ---
 
 # Interface Claude (ic)
@@ -20,7 +20,6 @@ _(none)_
 - 3.2.1 PRE-CUT SURFACE PASS (vc's order on hv's word), after 0520, 0521, 0522 and 0523 land: every Added and Fixed entry has its dispatch row, help, MCP row per exposed_on_mcp, its reference page regenerated against the v3.2.0 baseline (decision 25(3)), and the intent llm output.
 - SURFACE REVIEWS AT cc's BANKS, in cc's order after the bounce: (1) 0523 stage 2, the messages half, `wb edit message <id> <text> --to <recipient>`. The shape was already reviewed and cc took points 1 to 4, 6 and 7; check at the bank that the committed-case correction is keyed by the ORIGINATING event id, and that the ambiguity and no-match refusals carry the wording agreed. (2) 0525, the (edited) mark hv ruled into 3.2.1: the rendered heading marks an edited item or message, and says nothing of the old text. Row, help, exit codes, refusals and MCP tier for each.
 - FINDING A, in the pre-cut pass (vc, 2026-09-23, on ic's measurement): docs/known-defects.md is re-driven WHOLE against the build 3.2.1 is cut from -- at the v3.2.0 tag it is still titled 'Known defects in v3.1.0', so 3.2.0 skipped it -- and intent/docs/releasing.md gains the step so the next cut cannot skip it again. The 0063 entry changes then (0526 fixes its diagnosis and remedy line); never re-drive one entry against a dev build.
-- COMMIT AFTER THE TRAIN LANDS (0526, then 0523 v4), on vc's PASS of 2026-09-23: (1) CHANGELOG 3.2.1 gap entries from scratchpad r526/changelog-gaps-draft.md -- Added 0511+0519 and 0505; Fixed 0506, 0509, 0510, 0513, 0514, 0515, 0516 -- placed after the train's own lines; (2) intent/docs/releasing.md steps 2b (known-defects re-driven whole at the cut) and 2c (every user-facing issue closed since the previous tag has an entry; formula and caveat count, devbin tooling does not) from r526/releasing-step-draft.md. CHAIN START/END, commit --only.
 
 ## Holds
 

@@ -1,0 +1,15 @@
+{
+  "id": "01M36X08RBG5RD0K916SV4EQ03",
+  "ts": "2026-09-23T10:29:24.880Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0530"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "wb claim and wb unclaim print a bare <ID> in --help, and the claim forms are said from a second home on MCP and not at all in the whiteboard skill"
+  }
+}
