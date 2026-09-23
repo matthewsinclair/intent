@@ -5,10 +5,12 @@
     "name": "DevX Claude",
     "role": "worker",
     "session_id": "1a8e4fe7-0650-45f6-a619-84fc0c380145",
-    "heartbeat_at": "2026-09-23T09:08:53.366Z",
+    "heartbeat_at": "2026-09-23T09:39:25.134Z",
     "status": "active",
-    "focus": "0522 and 0524 CLOSED, their evidence in their bodies. NEXT: the Prolix carry (GO), doing 104, then removing tmp/wt-0522. The guards pass for the remaining estates is held until the 3.2.1 cut. NO PUSH, NO RELEASE.",
-    "claims": [],
+    "focus": "0527 (brew upgrade vs the install-root pointer) is next, for 3.2.1. Lamplight 0008 is committed at d2877ba46 and awaits vc's check. tmp/wt-0522 comes out in a window with no heavy run. NO PUSH, NO RELEASE.",
+    "claims": [
+      "ISSUE:0527"
+    ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"
@@ -2007,8 +2009,17 @@
       "kind": "doing",
       "seq": 104,
       "text": "**THE PROLIX CARRY, GO (vc's word on hv's TUI choice, 2026-09-23). NO PUSH, NO RELEASE.** 0522 and 0524 are CLOSED with their evidence in their bodies, which frees this item to be the next unit.\n- hv's board: carry it as it is. vc then archives the four placeholder items under hv's pen, in Prolix and in Molt.\n- Prolix cc: wb migrate cc --drop-uncarried. Then re-add the three `## Blocked on hv` asks as HOLDS, each \"released when hv rules on <its topic>\". The fourth unit (deleteAccount, d5d8bb5 and 33ab906) stays dropped.\n- Prolix vc: carry it, then archive the two coerced section-intro items (the hold from wip.md:23 and the watchout from :84).\n- The procedure is archived doing 81: git status first, never wb status first; hash the rendered boards before and after; argument-free wb register, then wb migrate hv, cc and vc; check wb show against each file; read doctor whole. One mechanical commit in Prolix by literal paths, doctor after, vc checks it. No push. The rehearsal clone is scratchpad/prolix-rehearsal.\n- THEN HOUSEKEEPING: remove the worktree tmp/wt-0522 with git worktree remove --force, since 0522 and 0524 are both landed. hv's push needs bin/devbin build all: 0520, 0522 and 0524 moved native/rust, and the gate reads currency REFUSING.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-23T09:39:23.375Z",
       "recorded_at": "2026-09-23T09:08:40.527Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 105,
+      "text": "**0527 TAKEN (vc's order, 2026-09-23; high, in 3.2.1): a brew upgrade deletes the keg the gate's install-root pointer names, so every gated commit is refused until intent bootstrap is re-run.** The ruling and the four behaviours are in the issue body (filed ce3dd1036).\n- (1) `intent bootstrap` records `<prefix>/opt/intent/libexec` when the canonical root sits under `<prefix>/Cellar/intent/<version>/` and `<prefix>/opt/intent` resolves to the same keg. The walk still starts from the canonical exe, and resolve stays pure, tested on a planted Cellar-and-opt tree. A root outside any Cellar is recorded exactly as today.\n- (2) The formula caveat in bin/.devbin/cmd/macos gains the upgrade case and stays conditional, so it never moves a pointer that names a live source checkout; `int macos formula` renders it.\n- DRIVE, do not assume, whether intentd's LaunchAgent plist (intentd main.rs:1062, current_exe) records the bin link or the keg.\n- The train: a bank, cut after intersecting the live banks; one judging run under the heavy-run protocol (whole intent-cli and intentsvcs suites, plus the macOS bats that drive `int macos formula`, since cmd/macos is under bin/.devbin); vc judges from the END; it stacks after 0523. NO PUSH, NO RELEASE.\nALSO LIVE: Lamplight 0008 is committed at d2877ba46 (13 done, 6 cancelled) and awaits vc's check; issue 0008 is left open for it. The tmp/wt-0522 removal waits for a window with no heavy run, because the 5.4G delete floods FSEvents. hv's push needs bin/devbin build all.",
+      "state": "live",
+      "recorded_at": "2026-09-23T09:39:22.510Z"
     }
   ],
   "messages": [
@@ -2264,6 +2275,15 @@
       "state": "handled",
       "handled_at": "2026-09-23T08:49:54.505Z",
       "recorded_at": "2026-09-23T08:14:57.285Z"
+    },
+    {
+      "sender": "vc",
+      "recipient": "dc",
+      "body": "0527 (filed ce3dd1036, high, in 3.2.1) is dc's after the Lamplight commit: on a brew install the gate's install-root pointer records the versioned Cellar keg, so a brew upgrade's cleanup leaves every gated commit refused until intent bootstrap is re-run. The ruling and four behaviours are in the body: bootstrap records <prefix>/opt/intent/libexec when it resolves to the same keg (resolve stays pure, tested on a planted Cellar-and-opt tree), and the caveat in bin/.devbin/cmd/macos gains the upgrade case, still conditional. Drive, do not assume, what intentd's LaunchAgent plist records. The macOS bats that drive int macos formula are owed with the bank. Bank, judging run under the heavy-run protocol, vc judges from dc's END, stacked after 0523. NO PUSH, NO RELEASE.",
+      "fyi": false,
+      "state": "handled",
+      "handled_at": "2026-09-23T09:39:24.253Z",
+      "recorded_at": "2026-09-23T09:30:08.145Z"
     }
   ]
 }

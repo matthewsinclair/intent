@@ -1,0 +1,15 @@
+{
+  "id": "01M36T4MREKBPK26NH3R62VH2C",
+  "ts": "2026-09-23T09:39:22.510Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**0527 TAKEN (vc's order, 2026-09-23; high, in 3.2.1): a brew upgrade deletes the keg the gate's install-root pointer names, so every gated commit is refused until intent bootstrap is re-run.** The ruling and the four behaviours are in the issue body (filed ce3dd1036).\n- (1) `intent bootstrap` records `<prefix>/opt/intent/libexec` when the canonical root sits under `<prefix>/Cellar/intent/<version>/` and `<prefix>/opt/intent` resolves to the same keg. The walk still starts from the canonical exe, and resolve stays pure, tested on a planted Cellar-and-opt tree. A root outside any Cellar is recorded exactly as today.\n- (2) The formula caveat in bin/.devbin/cmd/macos gains the upgrade case and stays conditional, so it never moves a pointer that names a live source checkout; `int macos formula` renders it.\n- DRIVE, do not assume, whether intentd's LaunchAgent plist (intentd main.rs:1062, current_exe) records the bin link or the keg.\n- The train: a bank, cut after intersecting the live banks; one judging run under the heavy-run protocol (whole intent-cli and intentsvcs suites, plus the macOS bats that drive `int macos formula`, since cmd/macos is under bin/.devbin); vc judges from the END; it stacks after 0523. NO PUSH, NO RELEASE.\nALSO LIVE: Lamplight 0008 is committed at d2877ba46 (13 done, 6 cancelled) and awaits vc's check; issue 0008 is left open for it. The tmp/wt-0522 removal waits for a window with no heavy run, because the 5.4G delete floods FSEvents. hv's push needs bin/devbin build all."
+  }
+}

@@ -3,22 +3,22 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 1a8e4fe7-0650-45f6-a619-84fc0c380145
-heartbeat_at: 2026-09-23 09:08Z
+heartbeat_at: 2026-09-23 09:39Z
 status: active
-focus: "0522 and 0524 CLOSED, their evidence in their bodies. NEXT: the Prolix carry (GO), doing 104, then removing tmp/wt-0522. The guards pass for the remaining estates is held until the 3.2.1 cut. NO PUSH, NO RELEASE."
-claims: []
+focus: "0527 (brew upgrade vs the install-root pointer) is next, for 3.2.1. Lamplight 0008 is committed at d2877ba46 and awaits vc's check. tmp/wt-0522 comes out in a window with no heavy run. NO PUSH, NO RELEASE."
+claims: [ISSUE:0527]
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-- **THE PROLIX CARRY, GO (vc's word on hv's TUI choice, 2026-09-23). NO PUSH, NO RELEASE.** 0522 and 0524 are CLOSED with their evidence in their bodies, which frees this item to be the next unit.
-- hv's board: carry it as it is. vc then archives the four placeholder items under hv's pen, in Prolix and in Molt.
-- Prolix cc: wb migrate cc --drop-uncarried. Then re-add the three `## Blocked on hv` asks as HOLDS, each "released when hv rules on <its topic>". The fourth unit (deleteAccount, d5d8bb5 and 33ab906) stays dropped.
-- Prolix vc: carry it, then archive the two coerced section-intro items (the hold from wip.md:23 and the watchout from :84).
-- The procedure is archived doing 81: git status first, never wb status first; hash the rendered boards before and after; argument-free wb register, then wb migrate hv, cc and vc; check wb show against each file; read doctor whole. One mechanical commit in Prolix by literal paths, doctor after, vc checks it. No push. The rehearsal clone is scratchpad/prolix-rehearsal.
-- THEN HOUSEKEEPING: remove the worktree tmp/wt-0522 with git worktree remove --force, since 0522 and 0524 are both landed. hv's push needs bin/devbin build all: 0520, 0522 and 0524 moved native/rust, and the gate reads currency REFUSING.
+- **0527 TAKEN (vc's order, 2026-09-23; high, in 3.2.1): a brew upgrade deletes the keg the gate's install-root pointer names, so every gated commit is refused until intent bootstrap is re-run.** The ruling and the four behaviours are in the issue body (filed ce3dd1036).
+- (1) `intent bootstrap` records `<prefix>/opt/intent/libexec` when the canonical root sits under `<prefix>/Cellar/intent/<version>/` and `<prefix>/opt/intent` resolves to the same keg. The walk still starts from the canonical exe, and resolve stays pure, tested on a planted Cellar-and-opt tree. A root outside any Cellar is recorded exactly as today.
+- (2) The formula caveat in bin/.devbin/cmd/macos gains the upgrade case and stays conditional, so it never moves a pointer that names a live source checkout; `int macos formula` renders it.
+- DRIVE, do not assume, whether intentd's LaunchAgent plist (intentd main.rs:1062, current_exe) records the bin link or the keg.
+- The train: a bank, cut after intersecting the live banks; one judging run under the heavy-run protocol (whole intent-cli and intentsvcs suites, plus the macOS bats that drive `int macos formula`, since cmd/macos is under bin/.devbin); vc judges from the END; it stacks after 0523. NO PUSH, NO RELEASE.
+ALSO LIVE: Lamplight 0008 is committed at d2877ba46 (13 done, 6 cancelled) and awaits vc's check; issue 0008 is left open for it. The tmp/wt-0522 removal waits for a window with no heavy run, because the 5.4G delete floods FSEvents. hv's push needs bin/devbin build all.
 
 ## TODO
 
