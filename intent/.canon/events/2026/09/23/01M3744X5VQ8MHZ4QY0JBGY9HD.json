@@ -1,0 +1,15 @@
+{
+  "id": "01M3744X5VQ8MHZ4QY0JBGY9HD",
+  "ts": "2026-09-23T12:34:16.891Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "0525 (with 0529 and 0531) IS IN ITS ONE STACKED JUDGING RUN, started 12:33Z (S/judge_run.sh, logs S/judge/, S = /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/89be4c37-5e0c-46eb-a8df-6cce6bb2c58b/scratchpad). Base 9a5d8276b + ic's 0530 (refs/bank/ic/0530/on-1ac4079f2, blob 6890365f4, patch-id b4e176144) + cc's bank refs/bank/cc/0525/on-9a5d8276b (blob d0780963e, patch-id d35a403d5, 21 files +451/-60); tree 074c8da3d in either order, confirmed by ic. Scope, vc's: the whole Rust suites, then the whole bats suite, on the baseline (wt-0525) and the bank (wt-train), with the red sets diffed by name both ways. In the bank: the faces blessed and the pins set (JSON 22, DDL 26, SDL 19, store v30); ic's review, with F1 (the mark ends an item's first line) and F4 (the wording); 0531 (a handled message says so on the CLI line under --all); and the doc fix (a public doc linked the private message_changes). vc accepted the rung-30 drive on copies of Intent's and Gtools' stores as evidence. NEXT: the END to vc, dc and ic with the red-set diff; vc's verdict; the landing, patch-id checked before and after (message S/0525_commit_msg.txt plus the judged line), in the order cc and ic agree; 0525, 0529 and 0531 close when it lands; dc builds 0532 on top. NO PUSH, NO RELEASE."
+  }
+}

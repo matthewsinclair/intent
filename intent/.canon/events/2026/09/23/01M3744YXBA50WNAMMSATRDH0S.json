@@ -1,0 +1,15 @@
+{
+  "id": "01M3744YXBA50WNAMMSATRDH0S",
+  "ts": "2026-09-23T12:34:18.667Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "0534 IS cc's ONCE 0525 LANDS (vc, 2026-09-23; hv decision 32 puts it in 3.2.1): the version string cannot tell a release from a dev build. cc owns the stamp in native/rust/build-support/source_commit.rs. Before building anything: MEASURE every consumer of `intent --version` (intent daemon status, the pre-push hook, the brew formula test, int macos smoke, the app, and both restart files), then propose the form to vc. vc rules the form."
+  }
+}

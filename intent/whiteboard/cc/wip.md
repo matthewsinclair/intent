@@ -3,21 +3,22 @@ node: cc
 name: Control Claude
 role: control
 session_id: 89be4c37-5e0c-46eb-a8df-6cce6bb2c58b
-heartbeat_at: 2026-09-23 10:39Z
+heartbeat_at: 2026-09-23 12:34Z
 status: active
-focus: "LOCALFOLDED for hv's compact. After the bounce, per vc: hv's build all, daemon restart, then 0525+0529 pins, the rung-30 drive and ONE stacked run with ic's 0530. 0523 closed and not deployed. NO PUSH, NO RELEASE."
-claims: [ISSUE:0521, ISSUE:0525]
+focus: "0525 with 0529 and 0531: the one stacked judging run with ic's 0530 has been in flight since 12:33Z; next are vc's verdict and the landing, then 0534 (the version stamp: measure its consumers and propose the form to vc). NO PUSH, NO RELEASE."
+claims: [ISSUE:0521, ISSUE:0525, ISSUE:0529, ISSUE:0531]
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-- RESUME HERE (cc localfold before hv's compact, 2026-09-23 10:39Z; hv via vc: localfold and compact now, continue after the bounce). Full resume: S/resume_0525.txt, S = /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/89be4c37-5e0c-46eb-a8df-6cce6bb2c58b/scratchpad. 0523 is CLOSED (stage 1 3d8d3b8d1, stage 2 d336abd8d, close a43997415), not deployed. 0525 plus 0529 (vc: 0529 rides 0525) are WRITTEN and COMPILE (build rc 0 at 10:38:20Z) but are NOT PINNED and NOT TESTED; the work-in-progress bank is refs/bank/cc/0525/wip-on-8364b5056 (blob 7c5a48741, patch-id 5908aed24, 12 files +354/-40, on the landed stage 2's build inputs). S/wt-train holds stage 2 + 0525 + ic's 0530 (tree 52685c37). AFTER THE BOUNCE, IN vc's ORDER: hv's bin/devbin build all in its own window, then intent daemon restart; then mine: re-check the bank on the HEAD holding dc's 0528; bless the faces and re-pin schema_versioning (JSON 22, DDL 26, SDL 19) and store_schema_version (v30), each with a comment; the targeted arms; vc's rung-30 drive on copies of Intent's and Gtools' stores (S/mig_drive.sh, v29 control S/bin-v29/intent); ic reviews the (edited) surface; bank; then ONE stacked judging run over ic's 0530 (refs/bank/ic/0530/on-1ac4079f2, blob 6890365f4, patch-id b4e176144) plus 0525, both blobs named in the START; vc's verdict and landing order. 0521 stays open until CI's bats after hv's push. NO PUSH, NO RELEASE.
+- 0525 (with 0529 and 0531) IS IN ITS ONE STACKED JUDGING RUN, started 12:33Z (S/judge_run.sh, logs S/judge/, S = /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/89be4c37-5e0c-46eb-a8df-6cce6bb2c58b/scratchpad). Base 9a5d8276b + ic's 0530 (refs/bank/ic/0530/on-1ac4079f2, blob 6890365f4, patch-id b4e176144) + cc's bank refs/bank/cc/0525/on-9a5d8276b (blob d0780963e, patch-id d35a403d5, 21 files +451/-60); tree 074c8da3d in either order, confirmed by ic. Scope, vc's: the whole Rust suites, then the whole bats suite, on the baseline (wt-0525) and the bank (wt-train), with the red sets diffed by name both ways. In the bank: the faces blessed and the pins set (JSON 22, DDL 26, SDL 19, store v30); ic's review, with F1 (the mark ends an item's first line) and F4 (the wording); 0531 (a handled message says so on the CLI line under --all); and the doc fix (a public doc linked the private message_changes). vc accepted the rung-30 drive on copies of Intent's and Gtools' stores as evidence. NEXT: the END to vc, dc and ic with the red-set diff; vc's verdict; the landing, patch-id checked before and after (message S/0525_commit_msg.txt plus the judged line), in the order cc and ic agree; 0525, 0529 and 0531 close when it lands; dc builds 0532 on top. NO PUSH, NO RELEASE.
 
 ## TODO
 
 - 0521 is LANDED at 38db27487 (vc PASS; landed patch-id 4650733e4 = judged; gate rc 0, currency ok). What remains: the issue stays OPEN until CI's Intent Tests workflow reads green on BOTH legs after hv's next push. That workflow runs the whole bats suite and is the judge of record. When hv pushes, read the tests.yml run on that HEAD; if it reds, make it speak first. Then close 0521 on vc's word. NO PUSH, NO RELEASE.
+- 0534 IS cc's ONCE 0525 LANDS (vc, 2026-09-23; hv decision 32 puts it in 3.2.1): the version string cannot tell a release from a dev build. cc owns the stamp in native/rust/build-support/source_commit.rs. Before building anything: MEASURE every consumer of `intent --version` (intent daemon status, the pre-push hook, the brew formula test, int macos smoke, the app, and both restart files), then propose the form to vc. vc rules the form.
 
 ## Holds
 
