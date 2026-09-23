@@ -1,0 +1,15 @@
+{
+  "id": "01M37N02KY96Z9HTMTVCN8WBXQ",
+  "ts": "2026-09-23T17:28:44.415Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**NEXT: the known-defects re-drive (todo 44) in the 3.2.1 pre-cut pass, on the built pair. Plan approved by vc, 2026-09-23. NO PUSH, NO RELEASE.**\n- THE GATE: hv's second `bin/devbin build all` has ended, and `intent --version` names that HEAD, trailing word included. The last landing is in: cc's release notes at 3355ba2f7. 0542 waits on hv's cutoff ruling.\n- THE DRIVE: refs/bank/dc/kd/drive.sh, 17 entries. Each runs in a fresh scratch project under an isolated HOME, with no XDG, Claude or Intent variables.\n- 0442: by hand for the page's transcript, plus vc's control on a `.backup` copy of the real damage. The page says so in one sentence, and both transcripts are banked.\n- 0443: written fresh, since cc and ic hold no banked drive. It uses a short /tmp HOME for the socket and its own scratch intentd. It leaves only if the miss is gone as well as the envelope half (ic's reading).\n- 0063: driven against 0526's remedy, which ships in 3.2.1.\n- THE PAGE: title v3.2.1, and the pin sentence quotes the pre-bump string exactly as the pair prints it. Transcripts are replaced verbatim. Leavers are named by `merge-base --is-ancestor`, and the prose carries no counts.\n- THE COMMIT: the page alone, by literal path, with or after ic's reference-set commit, before step 3, and never during a build all."
+  }
+}

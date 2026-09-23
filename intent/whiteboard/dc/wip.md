@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 1a8e4fe7-0650-45f6-a619-84fc0c380145
-heartbeat_at: 2026-09-23 15:00Z
+heartbeat_at: 2026-09-23 17:48Z
 status: active
-focus: "0535, 0539 and 0541 landed and closed. Next: the 0543 + 0544/0545 judging run on my pair, then the known-defects re-drive after the second build all. Hold 29. NO PUSH, NO RELEASE."
+focus: "dc's 3.2.1 pre-cut work is done. The known-defects page is re-driven and committed at 3629e097d, and every dc bank has landed and closed. Waiting on hv's push, CI and the cut. Hold 29: the guards adoption pass rides the cut's fleet sweep. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -13,22 +13,18 @@ claims: []
 
 ## DOING
 
-- **0535, 0539 and 0541 are LANDED and CLOSED on vc's PASS of the tail (2026-09-23), and not deployed until hv's second `bin/devbin build all`. NO PUSH, NO RELEASE.**
-- Landed: 0535 v4 at 77e837b68 (patch-id 0ff92bd81) and 0539+0541 at a713eeb1f (patch-id 99d3908bd). Each read the same patch-id on its blob, its staged paths and its landed commit. Over their twenty paths, HEAD equals the tail's judged tree cf898d342.
-- NEXT: the second judging run, on my tail pair (tmp/wt-0535 and tmp/wt-tail-base). It covers ic's 0543 plus cc's 0544/0545 bank, both orders composed before START. The terms are as for the tail: whole suites and whole bats on both sides, the macOS bats and app-test, red sets, lints and the rlib grep. It starts once both are banked.
-- After the last judging run: remove tmp/wt-0535 and tmp/wt-tail-base, cd'ing out first.
-- Then todo 44, the known-defects re-drive, after the last 3.2.1 landing and the second build all.
+_(none)_
 
 ## TODO
 
-- KNOWN-DEFECTS RE-DRIVE (vc's pre-cut split, 2026-09-23; ic's brief banked verbatim at refs/bank/dc/kd/brief-ic.md). WHEN the last 3.2.1 landing is in, the second bin/devbin build all has ended, and intent --version prints intent 3.2.0 (<that HEAD>): re-drive docs/known-defects.md WHOLE on the installed pair only, each entry in a fresh scratch project under an isolated HOME (the daemon entry with its own scratch intentd, 0442 on a copy of its evidence store), starting from cc's banked drive at refs/bank/cc/kd/drive-log. Replace every transcript verbatim. An entry that no longer reproduces leaves the page, its commit naming the release that fixed it (0063's entry is driven against 0526's remedy, which ships in 3.2.1). Title v3.2.1; the pin sentence keeps the PRE-bump string exactly as the pair prints it. Commit with or straight after ic's reference-set commit and BEFORE step 3; nothing commits during a build all. Ask ic before bending the method. NO PUSH, NO RELEASE.
+_(none)_
 
 ## Holds
 
 - **THE GUARDS ADOPTION PASS FOR THE REMAINING ESTATES IS HELD UNTIL THE 3.2.1 CUT'S FLEET SWEEP (hv's ruling via vc, 2026-09-23).** The recipe runs intent claude upgrade --apply, so each estate's hooks wiring rides that sweep, one commit per estate for both. The pilot, MicroGPTEx 80d4c13, passed vc's check.
-THE RECIPE: git config core.hooksPath .githooks; then intent claude upgrade --apply, which writes the four chain blocks (tracked) and the four .intent carriers; add .githooks/*.intent to .gitignore; declare formatters wherever the old hook checked any; red-control with staged probes; commit by path; run doctor.
-THE ESTATES: Molt and Prolix take the recipe unchanged, because their hook is byte-identical to MicroGPTEx's. Anvil, Baize, Cdtempl, Courses and Riffle share a chain-block-only hook and need no formatter declaration. Prodinfra, Conflab and Lamplight each get their own diff first. vc sequences Devbin, Laksa and Gtools.
-KNOWN LIMIT: core.hooksPath is per clone, so a fresh clone runs no hook until it is set, and only doctor --verbose's uncounted advisory says so.
+  THE RECIPE: git config core.hooksPath .githooks; then intent claude upgrade --apply, which writes the four chain blocks (tracked) and the four .intent carriers; add .githooks/*.intent to .gitignore; declare formatters wherever the old hook checked any; red-control with staged probes; commit by path; run doctor.
+  THE ESTATES: Molt and Prolix take the recipe unchanged, because their hook is byte-identical to MicroGPTEx's. Anvil, Baize, Cdtempl, Courses and Riffle share a chain-block-only hook and need no formatter declaration. Prodinfra, Conflab and Lamplight each get their own diff first. vc sequences Devbin, Laksa and Gtools.
+  KNOWN LIMIT: core.hooksPath is per clone, so a fresh clone runs no hook until it is set, and only doctor --verbose's uncounted advisory says so.
 
 ## Watch-outs
 

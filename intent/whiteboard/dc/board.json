@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "worker",
     "session_id": "1a8e4fe7-0650-45f6-a619-84fc0c380145",
-    "heartbeat_at": "2026-09-23T15:00:07.335Z",
+    "heartbeat_at": "2026-09-23T17:48:30.000Z",
     "status": "active",
-    "focus": "0535, 0539 and 0541 landed and closed. Next: the 0543 + 0544/0545 judging run on my pair, then the known-defects re-drive after the second build all. Hold 29. NO PUSH, NO RELEASE.",
+    "focus": "dc's 3.2.1 pre-cut work is done. The known-defects page is re-driven and committed at 3629e097d, and every dc bank has landed and closed. Waiting on hv's push, CI and the cut. Hold 29: the guards adoption pass rides the cut's fleet sweep. NO PUSH, NO RELEASE.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -2052,7 +2052,8 @@
       "kind": "todo",
       "seq": 44,
       "text": "KNOWN-DEFECTS RE-DRIVE (vc's pre-cut split, 2026-09-23; ic's brief banked verbatim at refs/bank/dc/kd/brief-ic.md). WHEN the last 3.2.1 landing is in, the second bin/devbin build all has ended, and intent --version prints intent 3.2.0 (<that HEAD>): re-drive docs/known-defects.md WHOLE on the installed pair only, each entry in a fresh scratch project under an isolated HOME (the daemon entry with its own scratch intentd, 0442 on a copy of its evidence store), starting from cc's banked drive at refs/bank/cc/kd/drive-log. Replace every transcript verbatim. An entry that no longer reproduces leaves the page, its commit naming the release that fixed it (0063's entry is driven against 0526's remedy, which ships in 3.2.1). Title v3.2.1; the pin sentence keeps the PRE-bump string exactly as the pair prints it. Commit with or straight after ic's reference-set commit and BEFORE step 3; nothing commits during a build all. Ask ic before bending the method. NO PUSH, NO RELEASE.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-23T17:48:29.069Z",
       "recorded_at": "2026-09-23T12:23:38.377Z"
     },
     {
@@ -2105,8 +2106,18 @@
       "kind": "doing",
       "seq": 113,
       "text": "**0535, 0539 and 0541 are LANDED and CLOSED on vc's PASS of the tail (2026-09-23), and not deployed until hv's second `bin/devbin build all`. NO PUSH, NO RELEASE.**\n- Landed: 0535 v4 at 77e837b68 (patch-id 0ff92bd81) and 0539+0541 at a713eeb1f (patch-id 99d3908bd). Each read the same patch-id on its blob, its staged paths and its landed commit. Over their twenty paths, HEAD equals the tail's judged tree cf898d342.\n- NEXT: the second judging run, on my tail pair (tmp/wt-0535 and tmp/wt-tail-base). It covers ic's 0543 plus cc's 0544/0545 bank, both orders composed before START. The terms are as for the tail: whole suites and whole bats on both sides, the macOS bats and app-test, red sets, lints and the rlib grep. It starts once both are banked.\n- After the last judging run: remove tmp/wt-0535 and tmp/wt-tail-base, cd'ing out first.\n- Then todo 44, the known-defects re-drive, after the last 3.2.1 landing and the second build all.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-23T17:28:43.311Z",
       "recorded_at": "2026-09-23T15:00:05.854Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 114,
+      "text": "**NEXT: the known-defects re-drive (todo 44) in the 3.2.1 pre-cut pass, on the built pair. Plan approved by vc, 2026-09-23. NO PUSH, NO RELEASE.**\n- THE GATE: hv's second `bin/devbin build all` has ended, and `intent --version` names that HEAD, trailing word included. The last landing is in: cc's release notes at 3355ba2f7. 0542 waits on hv's cutoff ruling.\n- THE DRIVE: refs/bank/dc/kd/drive.sh, 17 entries. Each runs in a fresh scratch project under an isolated HOME, with no XDG, Claude or Intent variables.\n- 0442: by hand for the page's transcript, plus vc's control on a `.backup` copy of the real damage. The page says so in one sentence, and both transcripts are banked.\n- 0443: written fresh, since cc and ic hold no banked drive. It uses a short /tmp HOME for the socket and its own scratch intentd. It leaves only if the miss is gone as well as the envelope half (ic's reading).\n- 0063: driven against 0526's remedy, which ships in 3.2.1.\n- THE PAGE: title v3.2.1, and the pin sentence quotes the pre-bump string exactly as the pair prints it. Transcripts are replaced verbatim. Leavers are named by `merge-base --is-ancestor`, and the prose carries no counts.\n- THE COMMIT: the page alone, by literal path, with or after ic's reference-set commit, before step 3, and never during a build all.",
+      "state": "archived",
+      "archived_at": "2026-09-23T17:48:28.183Z",
+      "recorded_at": "2026-09-23T17:28:44.415Z"
     }
   ],
   "messages": [
