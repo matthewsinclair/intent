@@ -37,6 +37,13 @@ use intent_cli::{dispatch, render};
 /// reader checking for the guard finds one and stops. The remedy is therefore a
 /// shared helper rather than a third correct call site: a future invocation that
 /// forgets `.current_dir` is the same defect again.
+///
+/// **SHARED BY EVERY ARM, SO IT IS FOR COMMANDS THAT ONLY READ** (issue 0524).
+/// It is one directory for the whole run, so a command that WRITES changes what
+/// every arm after it sees: a bare `init` made it a project mid-run, and the
+/// alias arm then compared `outs` from before that with `outstanding` from after
+/// it. An arm that runs a command able to write brings a directory of its own,
+/// as the two bare sweeps below do.
 fn outside_any_project() -> &'static std::path::Path {
   static DIR: std::sync::OnceLock<tempfile::TempDir> = std::sync::OnceLock::new();
   DIR
@@ -64,6 +71,10 @@ fn outside_any_project() -> &'static std::path::Path {
 /// Measured with a decoy `HOME`, which is also how it was found: `~/.intent/home`
 /// on this machine spent the evening pointing at a deleted worktree because a
 /// test binary had published one.
+///
+/// **SHARED THE SAME WAY, SO THE SAME RULE HOLDS** (issue 0524): an arm that runs
+/// a command able to write under `HOME`, a bare `bootstrap` among them, brings a
+/// `HOME` of its own.
 fn fixture_home() -> &'static std::path::Path {
   static DIR: std::sync::OnceLock<tempfile::TempDir> = std::sync::OnceLock::new();
   DIR
@@ -208,10 +219,14 @@ fn every_added_command_in_the_table_reaches_the_surface() {
 #[test]
 fn no_unbuilt_command_leaks_intents_own_project_state() {
   let dir = tempfile::tempdir().expect("tempdir");
+  // A bare `bootstrap` writes per-user state under `HOME`, so this sweep brings
+  // its own rather than writing into the shared `fixture_home()` (issue 0524).
+  let home = tempfile::tempdir().expect("tempdir");
   let run = |args: &[&str]| {
     let out = intent_cmd()
       .args(args)
       .current_dir(dir.path())
+      .env("HOME", home.path())
       .stdin(testkit::lifeline_for(args))
       .output()
       .expect("run the v3 binary");
@@ -523,8 +538,18 @@ fn an_unbuilt_leaf_does_not_send_the_reader_to_an_empty_help() {
     }
     // BARE, so it reaches the dispatcher rather than clap's help -- which is
     // precisely why this site, and not the `--help` ones, did the writing.
+    // **SO EACH ONE WRITES SOMEWHERE OF ITS OWN** (issue 0524): a bare `init`
+    // makes a project in its cwd and a bare `bootstrap` writes under `HOME`.
+    // Run in the shared `outside_any_project()`, the `init` made that directory
+    // a project while the alias arm was reading it.
+    let (cwd, home) = (
+      tempfile::tempdir().expect("tempdir"),
+      tempfile::tempdir().expect("tempdir"),
+    );
     let out = intent_cmd()
       .arg(&family.name)
+      .current_dir(cwd.path())
+      .env("HOME", home.path())
       .output()
       .expect("run the v3 binary");
     // **A REFUSAL IS AN EXIT CODE AND A LINE ON STDERR, NOT A FORM OF WORDS.**
