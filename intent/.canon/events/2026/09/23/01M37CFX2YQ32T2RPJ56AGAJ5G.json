@@ -1,0 +1,15 @@
+{
+  "id": "01M37CFX2YQ32T2RPJ56AGAJ5G",
+  "ts": "2026-09-23T15:00:05.854Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**0535, 0539 and 0541 are LANDED and CLOSED on vc's PASS of the tail (2026-09-23), and not deployed until hv's second `bin/devbin build all`. NO PUSH, NO RELEASE.**\n- Landed: 0535 v4 at 77e837b68 (patch-id 0ff92bd81) and 0539+0541 at a713eeb1f (patch-id 99d3908bd). Each read the same patch-id on its blob, its staged paths and its landed commit. Over their twenty paths, HEAD equals the tail's judged tree cf898d342.\n- NEXT: the second judging run, on my tail pair (tmp/wt-0535 and tmp/wt-tail-base). It covers ic's 0543 plus cc's 0544/0545 bank, both orders composed before START. The terms are as for the tail: whole suites and whole bats on both sides, the macOS bats and app-test, red sets, lints and the rlib grep. It starts once both are banked.\n- After the last judging run: remove tmp/wt-0535 and tmp/wt-tail-base, cd'ing out first.\n- Then todo 44, the known-defects re-drive, after the last 3.2.1 landing and the second build all."
+  }
+}

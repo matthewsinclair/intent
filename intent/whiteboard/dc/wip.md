@@ -3,24 +3,21 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 1a8e4fe7-0650-45f6-a619-84fc0c380145
-heartbeat_at: 2026-09-23 13:36Z
+heartbeat_at: 2026-09-23 15:00Z
 status: active
-focus: "0532 landed at 2e588c7cd and closed. Building 0535 (vc's rulings a to d) in tmp/wt-0535 for cc's stacked run; the known-defects re-drive follows the second build all. Hold 29. NO PUSH, NO RELEASE."
-claims: [ISSUE:0535]
+focus: "0535, 0539 and 0541 landed and closed. Next: the 0543 + 0544/0545 judging run on my pair, then the known-defects re-drive after the second build all. Hold 29. NO PUSH, NO RELEASE."
+claims: []
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-- **0532 LANDED at 2e588c7cd on vc's PASS and CLOSED (patch-id 89d23af2d on the blob, the staged paths and the landed commit); not deployed until hv's second build all. NOW: 0535, ruled by vc under hv's decision 32 (2026-09-23). NO PUSH, NO RELEASE.**
-- THE DEFECT: a fresh clone's store holds no whiteboard, and the remedies it prints end in `wb migrate` or `sync --to-disk` emptying every board.json. dc's drive (refs/bank/dc/0535/measured.txt): `wb register` writes nothing, but `sync --to-disk` after it empties every board.json at rc 0, naming no board.
-- (a) The cold warm carries the boards under the same write lock. "Cold" counts wb_node rows, in load_fresh's unlocked check and in warm_if_cold's check under the lock.
-- (b) One predicate refuses three verbs before they write, each naming `sync --to-store`: `wb migrate <node>`, `wb register` (both forms, for that node) and `sync --to-disk`. The predicate is: the node's board.json on disk records migrated_at, and the store holds no migrated node of that name.
-- (c) The wb reads name `sync --to-store` when the store holds no node and board.json files sit on disk.
-- (d) doctor.rs:1421 skips a store holding no board row as cold. After (a), a store holding threads but no board, beside board.json files recording migrated nodes, is the lost-boards state, reported as StoreStale naming `sync --to-store`.
-- DRIVE vc's second symptom: a skewed inbox on a cold store, then `sync --to-disk`, then doctor.
-- PLAN: write it in tmp/wt-0535 on HEAD, with no cargo, while cc's 0534 and ic's 0533 loops hold the box. Then take a compile-and-own-arms loop in the heavy slot by readiness, and bank it for cc's stacked run of six banks (0533, 0534, 0535, 0536, 0537, 0538).
+- **0535, 0539 and 0541 are LANDED and CLOSED on vc's PASS of the tail (2026-09-23), and not deployed until hv's second `bin/devbin build all`. NO PUSH, NO RELEASE.**
+- Landed: 0535 v4 at 77e837b68 (patch-id 0ff92bd81) and 0539+0541 at a713eeb1f (patch-id 99d3908bd). Each read the same patch-id on its blob, its staged paths and its landed commit. Over their twenty paths, HEAD equals the tail's judged tree cf898d342.
+- NEXT: the second judging run, on my tail pair (tmp/wt-0535 and tmp/wt-tail-base). It covers ic's 0543 plus cc's 0544/0545 bank, both orders composed before START. The terms are as for the tail: whole suites and whole bats on both sides, the macOS bats and app-test, red sets, lints and the rlib grep. It starts once both are banked.
+- After the last judging run: remove tmp/wt-0535 and tmp/wt-tail-base, cd'ing out first.
+- Then todo 44, the known-defects re-drive, after the last 3.2.1 landing and the second build all.
 
 ## TODO
 

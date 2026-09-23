@@ -1,0 +1,15 @@
+{
+  "id": "01M37ACZ4Y9YY24PMX7X4VR6PR",
+  "ts": "2026-09-23T14:23:32.510Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**0535 v4, and the 0539+0541 bank stacked on it, for the TAIL whole-suite run (vc's ruling, 2026-09-23). NO PUSH, NO RELEASE.**\n- 0535 v4: refs/bank/dc/0535/v4 (blob 9a90bfd89, patch-id 0ff92bd81). It is v3 with its unit test folded into model.rs's one test module (cc's stacked run found the second `#[cfg(test)]`), and with \"issue 0535\" dropped from the shipped remedy under hv's no-PM-state rule. That second change is flagged to vc. v4 does not land from cc's run.\n- 0539: one predicate, `views::rendered_by_an_older_intent`, asked by skew, foreign_bytes and organize's gate, so a thread write over a board an older Intent wrote no longer warns of a lost edit.\n- 0541: WbNodeNotRegistered's remedy and `wb status`'s empty roster print `register_form`, with the bare form kept for hand-authored headers.\n- Written in tmp/wt-0535 on top of v4 (7 files, +190/-18), with no cargo yet. Next: HEAVY START, the w0535/dev2.sh loop (the four scanner arms included), bank_0539.sh v1, and END to vc and cc.\n- Then: the tail run once cc's two banks and ic's two land. Land on vc's word, and close 0535, 0539 and 0541 from their drafts. After the last landing and the second build all, the known-defects re-drive (todo 44)."
+  }
+}
