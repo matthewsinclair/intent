@@ -5050,6 +5050,15 @@
             },
             {
               "spellings": [
+                "--check"
+              ],
+              "type": "bool",
+              "help": "Report where this machine's pre-commit gate resolves and whether it can run, writing nothing; exits 1 when it cannot",
+              "disposition": "keep",
+              "disposition_basis": "Added 2026-09-23 for issue 0533, on vc's ruling of that day. Nothing in Intent answered where the gate's install root resolves, so a consumer that needed to know copied the project shim's resolution into its own tooling. This is the machine door for that answer: read-only, with the shim's `--where` labels, state tokens and exit contract (0 when the gate can run, 1 when it cannot). It needs no project and no installed carrier. A pointer naming a versioned Homebrew keg is a note at rc 0, and a pointer naming a different install from this binary's prints both roots. `--force` with it is refused, since a check writes nothing. The row stays off MCP: `exposed_on_mcp` is the row's, and the row is `mutate` and `one-way`."
+            },
+            {
+              "spellings": [
                 "--help",
                 "-h"
               ],

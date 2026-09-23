@@ -193,28 +193,38 @@ const BREW_FORMULA: &str = "intent";
 /// handed, so a planted Cellar-and-opt tree drives every arm. `root` is taken
 /// as [`resolve`] returns it, already canonical.
 pub fn stable_root(root: &Path) -> PathBuf {
-  for keg in root.ancestors() {
-    let (Some(formula), Some(cellar)) = (keg.parent(), keg.parent().and_then(Path::parent)) else {
-      break;
-    };
-    if formula.file_name() != Some(std::ffi::OsStr::new(BREW_FORMULA))
-      || cellar.file_name() != Some(std::ffi::OsStr::new("Cellar"))
-    {
-      continue;
-    }
-    let Some(prefix) = cellar.parent() else {
-      break;
-    };
-    let opt = prefix.join("opt").join(BREW_FORMULA);
-    if canonical(&opt) != keg {
-      break;
-    }
-    return match root.strip_prefix(keg) {
-      Ok(rest) if !rest.as_os_str().is_empty() => opt.join(rest),
-      _ => opt,
-    };
+  let Some(keg) = brew_keg(root) else {
+    return root.to_path_buf();
+  };
+  // `<prefix>/Cellar/intent/<version>`: the prefix is three levels up.
+  let Some(prefix) = keg.ancestors().nth(3) else {
+    return root.to_path_buf();
+  };
+  let opt = prefix.join("opt").join(BREW_FORMULA);
+  if canonical(&opt) != keg {
+    return root.to_path_buf();
   }
-  root.to_path_buf()
+  match root.strip_prefix(keg) {
+    Ok(rest) if !rest.as_os_str().is_empty() => opt.join(rest),
+    _ => opt,
+  }
+}
+
+/// The versioned keg `root` sits in, when it sits in one of this formula's:
+/// `<prefix>/Cellar/intent/<version>`.
+///
+/// **READ FROM THE PATH AS SPELLED, NEVER CANONICALISED.** `opt`'s path to a
+/// keg resolves to that keg, so a canonical reading would call the stable path
+/// [`stable_root`] records a versioned one. [`stable_root`] asks this of a root
+/// [`resolve`] already canonicalised; [`gate_resolution_at`] asks it of the
+/// pointer's line exactly as it was written.
+fn brew_keg(root: &Path) -> Option<&Path> {
+  root.ancestors().find(|keg| {
+    let formula = keg.parent();
+    formula.and_then(Path::file_name) == Some(std::ffi::OsStr::new(BREW_FORMULA))
+      && formula.and_then(Path::parent).and_then(Path::file_name)
+        == Some(std::ffi::OsStr::new("Cellar"))
+  })
 }
 
 /// Whether two paths name the same install: compared by what they resolve to,
@@ -560,14 +570,87 @@ pub enum PointerState {
   Resolves { root: PathBuf },
 }
 
-/// [`PointerState`] for this machine.
-pub fn pointer_state() -> PointerState {
-  match crate::userstate::home_pointer() {
-    Ok(p) => pointer_state_at(&p),
-    // An unlocatable per-user directory and an absent pointer inside one are
-    // the same answer to the question asked -- the shim finds nothing either
-    // way, and the remedy is the same.
-    Err(_) => PointerState::Absent,
+/// Where this machine's pre-commit gate resolves, and how that answer stands
+/// against the binary asking (issue `0533`).
+///
+/// **ONE ANSWER, AND EVERY DOOR RENDERS IT** (vc's ruling, 2026-09-23).
+/// `intent bootstrap --check`, the `Gate root:` line in `intent info`, and
+/// `intent claude upgrade`'s warnings and divergence note each render this
+/// value and none re-derives any part of it. Until it existed nothing in Intent
+/// answered the question, so a consumer that needed it copied the shim's
+/// resolution into its own tooling, a second reading of one file kept in step
+/// by hand.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct GateResolution {
+  /// The file the shim reads. `None` when there is no per-user directory to
+  /// hold one, which leaves the shim nothing to read either.
+  pub pointer: Option<PathBuf>,
+  /// What that file answers today.
+  pub state: PointerState,
+  /// This binary's own install root, when it has one.
+  pub this_binary: Option<PathBuf>,
+  /// The pointer names an install other than `this_binary`'s. Compared as
+  /// installs, never as strings: on a Homebrew install the pointer names the
+  /// `opt` link and [`home`] answers the keg it links (issue `0527`).
+  pub divergent: bool,
+  /// The pointer names a versioned Homebrew keg, which the next `brew upgrade`
+  /// deletes. A `bootstrap` from 3.2.0 or earlier recorded one (issue `0527`).
+  pub versioned_keg: bool,
+  /// The pointer file exists and names nothing. The gate reads that as absent,
+  /// as it reads a missing file, and `bootstrap --check` says which it was
+  /// (vc's ruling, 2026-09-23), so the two causes stay apart without a state.
+  pub empty_pointer: bool,
+}
+
+impl GateResolution {
+  /// Whether the gate can run: the pointer names an install. The shim's
+  /// `--where` exits 0 on exactly this state and 1 on every other.
+  pub fn can_run(&self) -> bool {
+    matches!(self.state, PointerState::Resolves { .. })
+  }
+
+  /// The gate body the shim execs, when the pointer names an install.
+  pub fn gate(&self) -> Option<PathBuf> {
+    match &self.state {
+      PointerState::Resolves { root } => Some(gate_script(root)),
+      PointerState::Absent | PointerState::Unusable { .. } => None,
+    }
+  }
+}
+
+/// [`GateResolution`] for this machine, against `this_binary`: the root
+/// [`home`] resolved, or `None` when it resolved none. A binary outside any
+/// install can still say where the gate resolves, because the gate never asks
+/// the binary.
+pub fn gate_resolution(this_binary: Option<&Path>) -> GateResolution {
+  // An unlocatable per-user directory and an absent pointer inside one are the
+  // same answer to the question asked -- the shim finds nothing either way, and
+  // the remedy is the same.
+  let pointer = crate::userstate::home_pointer().ok();
+  gate_resolution_at(pointer.as_deref(), this_binary)
+}
+
+/// The half with both paths handed in, so every state is drivable against a
+/// planted pointer -- the split [`pointer_state_at`] makes for the state alone.
+pub fn gate_resolution_at(pointer: Option<&Path>, this_binary: Option<&Path>) -> GateResolution {
+  let state = pointer.map_or(PointerState::Absent, pointer_state_at);
+  let (divergent, versioned_keg) = match &state {
+    PointerState::Resolves { root } => (
+      this_binary.is_some_and(|binary| !same_install(root, binary)),
+      brew_keg(root).is_some(),
+    ),
+    PointerState::Absent | PointerState::Unusable { .. } => (false, false),
+  };
+  let empty_pointer = matches!(state, PointerState::Absent)
+    && pointer
+      .is_some_and(|p| std::fs::read_to_string(p).is_ok_and(|text| first_line(&text).is_empty()));
+  GateResolution {
+    pointer: pointer.map(Path::to_path_buf),
+    state,
+    this_binary: this_binary.map(Path::to_path_buf),
+    divergent,
+    versioned_keg,
+    empty_pointer,
   }
 }
 
@@ -582,7 +665,7 @@ pub fn pointer_state_at(pointer: &Path) -> PointerState {
   let Ok(text) = std::fs::read_to_string(pointer) else {
     return PointerState::Absent;
   };
-  let first = text.lines().next().unwrap_or_default().trim();
+  let first = first_line(&text);
   if first.is_empty() {
     return PointerState::Absent;
   }
@@ -596,12 +679,23 @@ pub fn pointer_state_at(pointer: &Path) -> PointerState {
   }
 }
 
+/// The pointer's one line, as the shim reads it with `head -n 1`, trimmed.
+fn first_line(text: &str) -> &str {
+  text.lines().next().unwrap_or_default().trim()
+}
+
 /// Where a shipped hook script lives, given the install root.
 pub fn hook_script(home: &Path, name: &str) -> PathBuf {
   home
     .join(MARKER)
     .join(".claude/scripts")
     .join(format!("{name}.sh"))
+}
+
+/// The pre-commit gate body, given the install root: the path the project shim
+/// execs, which its `--where` prints as `gate:`.
+pub fn gate_script(root: &Path) -> PathBuf {
+  root.join(MARKER).join("hooks/pre-commit.sh")
 }
 
 /// Where the MAAC whiteboard launcher lives, given the install root.
@@ -1239,5 +1333,119 @@ mod tests {
       pointer_state_at(&pointer),
       PointerState::Unusable { .. }
     ));
+  }
+
+  /// **THE TWO STATES THE GATE CANNOT RUN IN, AND THE ONE WITH NOWHERE TO LOOK**
+  /// (issue `0533`). Each is `can_run` false, which is `--where`'s rc 1, and
+  /// none has a gate to name or a root to compare.
+  #[test]
+  fn a_gate_that_cannot_run_is_said_to_and_names_no_gate() {
+    let dir = tmp("gate-cannot");
+    let binary = dir.path().join("binary");
+    install_at(&binary);
+    let empty = dir.path().join("empty");
+    std::fs::write(&empty, "\n").unwrap();
+    let elsewhere = dir.path().join("not-an-install");
+    std::fs::create_dir_all(&elsewhere).unwrap();
+    let unusable = dir.path().join("unusable");
+    std::fs::write(&unusable, format!("{}\n", elsewhere.display())).unwrap();
+
+    for (pointer, state, empty_pointer) in [
+      (Some(dir.path().join("absent")), PointerState::Absent, false),
+      (Some(empty), PointerState::Absent, true),
+      (
+        Some(unusable),
+        PointerState::Unusable {
+          root: elsewhere.display().to_string(),
+        },
+        false,
+      ),
+      (None, PointerState::Absent, false),
+    ] {
+      let gate = gate_resolution_at(pointer.as_deref(), Some(binary.as_path()));
+      assert_eq!(gate.state, state, "{pointer:?}");
+      assert_eq!(gate.empty_pointer, empty_pointer, "{pointer:?}");
+      assert_eq!(gate.pointer, pointer);
+      assert!(!gate.can_run(), "{pointer:?}");
+      assert_eq!(gate.gate(), None, "{pointer:?}");
+      assert!(!gate.divergent && !gate.versioned_keg, "{gate:?}");
+    }
+  }
+
+  /// **ONE INSTALL, TWO SPELLINGS, NO NOTE; TWO INSTALLS, THE NOTE** (issue
+  /// `0533`). The control for the divergent arm is the same pointer read by a
+  /// binary of the same install through a link, which a textual comparison
+  /// would call a second install.
+  #[test]
+  fn a_gate_in_another_install_runs_and_is_divergent() {
+    let dir = tmp("gate-divergent");
+    let base = canonical(dir.path());
+    let root = base.join("root");
+    install_at(&root);
+    let other = base.join("other");
+    install_at(&other);
+    let alias = base.join("alias");
+    std::os::unix::fs::symlink(&root, &alias).unwrap();
+    let pointer = base.join("home");
+    std::fs::write(&pointer, format!("{}\n", root.display())).unwrap();
+
+    let same = gate_resolution_at(Some(pointer.as_path()), Some(alias.as_path()));
+    assert!(same.can_run());
+    assert!(!same.divergent, "one install, two spellings: {same:?}");
+    assert_eq!(
+      same.gate(),
+      Some(root.join("lib/templates/hooks/pre-commit.sh"))
+    );
+
+    let divergent = gate_resolution_at(Some(pointer.as_path()), Some(other.as_path()));
+    assert!(
+      divergent.can_run(),
+      "a different install still runs the gate"
+    );
+    assert!(divergent.divergent, "{divergent:?}");
+    assert_eq!(divergent.this_binary, Some(other));
+
+    let unknown = gate_resolution_at(Some(pointer.as_path()), None);
+    assert!(unknown.can_run());
+    assert!(
+      !unknown.divergent,
+      "a binary with no install has nothing to differ from: {unknown:?}"
+    );
+  }
+
+  /// **A POINTER NAMING A VERSIONED KEG RUNS TODAY AND IS NOTED** (issues
+  /// `0527` and `0533`). It names a directory `brew upgrade` deletes, whether
+  /// `opt` still links it or has moved on. The control is `opt`'s spelling of
+  /// the same keg, which resolves to it and must not be noted.
+  #[test]
+  fn a_pointer_naming_a_versioned_keg_is_noted_and_its_opt_link_is_not() {
+    let dir = tmp("gate-keg");
+    let prefix = canonical(dir.path());
+    plant_keg(&prefix, "9.9.9");
+    let keg = prefix.join("Cellar/intent/9.9.9/libexec");
+    let binary = resolve(&prefix.join("bin/intent")).unwrap();
+    let pointer = prefix.join("share/intent/home");
+
+    std::fs::create_dir_all(pointer.parent().unwrap()).unwrap();
+    std::fs::write(&pointer, format!("{}\n", keg.display())).unwrap();
+    let versioned = gate_resolution_at(Some(pointer.as_path()), Some(binary.as_path()));
+    assert!(versioned.can_run(), "the keg is there today: {versioned:?}");
+    assert!(versioned.versioned_keg, "{versioned:?}");
+    assert!(!versioned.divergent, "{versioned:?}");
+
+    let opt = stable_root(&binary);
+    std::fs::write(&pointer, format!("{}\n", opt.display())).unwrap();
+    let stable = gate_resolution_at(Some(pointer.as_path()), Some(binary.as_path()));
+    assert!(stable.can_run());
+    assert!(
+      !stable.versioned_keg,
+      "the opt link survives an upgrade: {stable:?}"
+    );
+    assert!(!stable.divergent, "{stable:?}");
+
+    plant_keg(&prefix, "9.9.10");
+    std::fs::write(&pointer, format!("{}\n", keg.display())).unwrap();
+    let behind = gate_resolution_at(Some(pointer.as_path()), Some(binary.as_path()));
+    assert!(behind.versioned_keg, "opt has moved on: {behind:?}");
   }
 }

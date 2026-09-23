@@ -2378,9 +2378,9 @@ First-time setup: create global Intent configuration
 - Runs OUTSIDE a project by design (measured: exit 0). It is one of the global commands.
 - Its own usage block says `Usage: intent_bootstrap [OPTIONS]` and `Initial setup for Intent v2.0.0` -- it names the underlying script rather than the `intent bootstrap` the user typed, and the version is nine minors stale. Both retire when help is generated from this table.
 
-| command     | args | flags                             | help                                                 | disposition |
-| ----------- | ---- | --------------------------------- | ---------------------------------------------------- | ----------- |
-| `bootstrap` | --   | --force/-f, --quiet/-q, --help/-h | First-time setup: create global Intent configuration | keep        |
+| command     | args | flags                                      | help                                                 | disposition |
+| ----------- | ---- | ------------------------------------------ | ---------------------------------------------------- | ----------- |
+| `bootstrap` | --   | --force/-f, --quiet/-q, --check, --help/-h | First-time setup: create global Intent configuration | keep        |
 
 ### `bootstrap`
 
@@ -2393,6 +2393,9 @@ First-time setup: create global Intent configuration
   - `--quiet`, `-q` (bool) -- Suppress informational output
     - **disposition:** keep
     - **disposition basis:** hv RULED IT SHIPS, D55, 2026-08-20; vc ruled the VALUE `keep`, 2026-08-20, refusing a fourth value cc proposed. cc's objection was that the family is unimplemented so neither `pending` nor `keep` is true -- and it asks this field about the wrong subject. `disposition` is a claim about a FLAG: under `keep` the table says the flag is kept and the spine keeps it, which is AGREEMENT. What disagrees with reality is the COMMAND, which already has its own honest report (`is a known command that is not implemented yet`). `pending` would be the only one of the two that states something FALSE to a user, asserting a decision is pending after hv has made it. Before extending a vocabulary, check whether the field is being asked about the right subject.
+  - `--check` (bool) -- Report where this machine's pre-commit gate resolves and whether it can run, writing nothing; exits 1 when it cannot
+    - **disposition:** keep
+    - **disposition basis:** Added 2026-09-23 for issue 0533, on vc's ruling of that day. Nothing in Intent answered where the gate's install root resolves, so a consumer that needed to know copied the project shim's resolution into its own tooling. This is the machine door for that answer: read-only, with the shim's `--where` labels, state tokens and exit contract (0 when the gate can run, 1 when it cannot). It needs no project and no installed carrier. A pointer naming a versioned Homebrew keg is a note at rc 0, and a pointer naming a different install from this binary's prints both roots. `--force` with it is refused, since a check writes nothing. The row stays off MCP: `exposed_on_mcp` is the row's, and the row is `mutate` and `one-way`.
   - `--help`, `-h` (bool) -- Print the usage block
     - **disposition:** intrinsic
     - **disposition basis:** `intrinsic` is a ratified value in this table's own `flag_dispositions` vocabulary; read the gloss there rather than reproducing it here. Row-specific: clap supplies these spellings and `spine.rs:145-151` already skips them. The spine gets this right by matching on the spelling, which is the inference-from-name that EXP-05 exists to replace with a declaration.

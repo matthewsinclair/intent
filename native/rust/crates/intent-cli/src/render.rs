@@ -8569,6 +8569,11 @@ fn bootstrap(m: &ArgMatches) -> Result<(), Failure> {
   let force = given(m, "force");
   let quiet = given(m, "quiet");
 
+  // **`--check` BRANCHES BEFORE `run`, BECAUSE `run` WRITES** (issue `0533`).
+  if given(m, "check") {
+    return bootstrap_check(force, quiet);
+  }
+
   let report = intentsvcs::bootstrap::run(force).map_err(|e| Failure::Error(Remedy::render(&e)))?;
 
   // **`--quiet` SUPPRESSES THE REPORT, NEVER THE WORK, AND NEVER A FAILURE.**
@@ -8630,6 +8635,88 @@ fn report_author(author: Option<&str>) {
   match author {
     Some(a) => println!("  author: {a}"),
     None => println!("  author is unset -- $USER names nobody in this environment"),
+  }
+}
+
+/// `intent bootstrap --check`: where this machine's pre-commit gate resolves,
+/// and whether it can run, with nothing written (issue `0533`).
+///
+/// **THE PROJECT SHIM'S `--where`, ANSWERED BY THE BINARY.** The labels and the
+/// state tokens are the shim's, and so is the exit contract: 0 when the gate
+/// can run and 1 when it cannot, with the verdict already on stdout. `--where`
+/// needs a project with the carrier installed; this needs only the machine,
+/// which is all the pointer describes.
+///
+/// **ONE READING DIFFERS, AND IT FOLLOWS THE SHIM'S OWN GATE PATH.** An empty
+/// pointer file is `ABSENT` here, as it is when the shim refuses a commit, where
+/// `--where` prints it as `UNUSABLE` with an `<empty>` root. Both exit 1.
+///
+/// **`--force` IS REFUSED, NOT IGNORED.** A check writes nothing, so there is
+/// nothing to force, and a flag accepted and then dropped reads as honoured.
+/// `--quiet` prints nothing and leaves the verdict in the exit code.
+fn bootstrap_check(force: bool, quiet: bool) -> Result<(), Failure> {
+  if force {
+    return Err(Failure::Error(
+      "error: `--check` writes nothing, so it has nothing for `--force` to force\n  \
+       remedy: `intent bootstrap --check` reads where the gate resolves; `intent bootstrap --force` sets this machine up again"
+        .to_string(),
+    ));
+  }
+  // A binary outside every install can still say where the gate resolves,
+  // because the gate never asks the binary. It cannot say whether the gate is
+  // its own, and the report says that rather than leaving it out.
+  let this_binary = intentsvcs::install::home();
+  let gate = intentsvcs::install::gate_resolution(this_binary.as_deref().ok());
+  if !quiet {
+    report_gate_check(&gate);
+    if let Err(e) = &this_binary {
+      println!(
+        "note: this binary is in no install ({e}), so whether the gate is its own cannot be said."
+      );
+    }
+  }
+  if gate.can_run() {
+    Ok(())
+  } else {
+    Err(Failure::Verdict)
+  }
+}
+
+/// What `bootstrap --check` prints: the shim's lines, then each note the same
+/// answer carries.
+fn report_gate_check(gate: &intentsvcs::install::GateResolution) {
+  match &gate.pointer {
+    Some(pointer) => println!("pointer:  {}", pointer.display()),
+    None => println!("pointer:  <none -- $HOME is not set, so there is no per-user directory>"),
+  }
+  match &gate.state {
+    intentsvcs::install::PointerState::Absent if gate.empty_pointer => {
+      println!("state:    ABSENT (the pointer file exists and is empty)")
+    }
+    intentsvcs::install::PointerState::Absent => println!("state:    ABSENT"),
+    intentsvcs::install::PointerState::Unusable { root } => {
+      println!("root:     {root}");
+      println!("state:    UNUSABLE (no lib/templates under that root)");
+    }
+    intentsvcs::install::PointerState::Resolves { root } => {
+      println!("root:     {}", root.display());
+      println!("state:    OK");
+    }
+  }
+  if let Some(script) = gate.gate() {
+    println!("gate:     {}", script.display());
+  }
+  report_pointer_divergence(Some(gate));
+  // **A NOTE, NOT A FAILURE: THE GATE RUNS TODAY** (issues `0527`, `0533`).
+  // What it names is a directory the next upgrade deletes.
+  if gate.versioned_keg {
+    println!(
+      "note: the install pointer names a versioned Homebrew keg, which the next `brew upgrade` deletes."
+    );
+    println!("  every commit in a gated project then refuses until the pointer is recorded again.");
+    println!(
+      "  remedy: intent bootstrap -- on a Homebrew install it records the opt link, which an upgrade keeps"
+    );
   }
 }
 
@@ -10454,6 +10541,13 @@ fn info() -> Result<(), Failure> {
     Ok(exe) => println!("  Executable:      {}", exe.display()),
     Err(e) => println!("  Executable:      <unknown: {e}>"),
   }
+  // **WHERE THE PRE-COMMIT GATE RESOLVES, WHICH `INTENT_HOME` IS NOT** (issue
+  // `0533`): that line is this binary's install, and the gate runs from
+  // whatever the machine's install pointer names. The answer is the one
+  // `bootstrap --check` prints. It is PRINTED AND NEVER JUDGED here: the
+  // pointer is machine state, so it must not reach the exit decision below.
+  let gate = intentsvcs::install::gate_resolution(install.as_deref().ok());
+  println!("  Gate root:       {}", gate_root(&gate));
   println!();
 
   info_project(cwd.as_deref().ok());
@@ -10468,6 +10562,36 @@ fn info() -> Result<(), Failure> {
       "error: cannot read the working directory: {e}"
     ))),
     _ => Ok(()),
+  }
+}
+
+/// The value of `intent info`'s `Gate root:` line: the root the pointer names,
+/// with what the same answer says about it, or why there is none (issue `0533`).
+fn gate_root(gate: &intentsvcs::install::GateResolution) -> String {
+  match &gate.state {
+    intentsvcs::install::PointerState::Absent if gate.empty_pointer => {
+      "<none> -- the install pointer is empty, so every gated commit refuses; remedy: intent bootstrap"
+        .to_string()
+    }
+    intentsvcs::install::PointerState::Absent => {
+      "<none> -- no install pointer, so every gated commit refuses; remedy: intent bootstrap"
+        .to_string()
+    }
+    intentsvcs::install::PointerState::Unusable { root } => format!(
+      "<unusable> {root} is not an install, so every gated commit refuses; remedy: intent bootstrap"
+    ),
+    intentsvcs::install::PointerState::Resolves { root } => {
+      let mut line = root.display().to_string();
+      if gate.divergent {
+        line.push_str(" (a different install from INTENT_HOME)");
+      }
+      if gate.versioned_keg {
+        line.push_str(
+          " (a versioned Homebrew keg, which the next brew upgrade deletes; remedy: intent bootstrap)",
+        );
+      }
+      line
+    }
   }
 }
 
@@ -11520,7 +11644,10 @@ fn claude_cwi(m: &ArgMatches) -> Result<(), Failure> {
 /// a verb that does that on a bare invocation is one nobody can explore safely.
 fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
   let mut f = open()?;
-  let home = intentsvcs::install::home().map_err(|e| Failure::Error(e.render()))?;
+  // Resolved here, ahead of the facade, so a binary outside any install is
+  // refused with the install's own remedy, as it always was. What the gate
+  // report needs of this root arrives in `applied.gate` (issue `0533`).
+  intentsvcs::install::home().map_err(|e| Failure::Error(e.render()))?;
   let hooks = intentsvcs::canon::hooks_dir(f.project().root());
   // **ONE COMPUTATION, TWO RENDERINGS** (issue `0115`). The dry run used to
   // print canon's ROSTER -- every file canon covers, headed "would apply" --
@@ -11611,7 +11738,7 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
     // report that the guards about to run belong to a different tree. On
     // 2026-09-19 a scratch worktree held that pointer and a dry `claude
     // upgrade` had nothing to say about it.
-    report_pointer_divergence(&applied.gate_pointer, &home);
+    report_pointer_divergence(applied.gate.as_ref());
     return Ok(());
   }
   println!(
@@ -11641,7 +11768,7 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
   // caused. Failing here would break a fleet sweep on a condition the sweep
   // cannot fix per-project -- so this reports at the volume of the consequence
   // and leaves the exit code to describe the write.
-  match &applied.gate_pointer {
+  match applied.gate.as_ref().map(|gate| &gate.state) {
     None | Some(intentsvcs::install::PointerState::Resolves { .. }) => {}
     Some(intentsvcs::install::PointerState::Absent) => {
       println!(
@@ -11669,7 +11796,7 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
     }
   }
 
-  report_pointer_divergence(&applied.gate_pointer, &home);
+  report_pointer_divergence(applied.gate.as_ref());
   Ok(())
 }
 
@@ -11680,24 +11807,28 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
 /// installed one install's shim to run another install's guards, which is the
 /// moving-route hazard that produced the shim in the first place.
 ///
-/// **ONE FUNCTION BECAUSE IT HAS TWO CALLERS NOW** (issue `0492`). The dry run
-/// reports this as well as the apply, and the note is a description of the
+/// **ONE FUNCTION BECAUSE IT HAS MORE THAN ONE CALLER** (issue `0492`). The dry
+/// run reports this as well as the apply, and the note is a description of the
 /// machine rather than of what was written -- so the alternative was the same
 /// four lines in two branches of one function, which is the shape that drifts
-/// first.
+/// first. `bootstrap --check` is the third (issue `0533`).
 ///
 /// **COMPARED AS INSTALLS, NOT AS STRINGS** (issue `0527`). On a Homebrew
-/// install the pointer names the `opt` link and `home` is the keg it links, so
-/// a textual comparison would report every brew machine as running two installs.
-fn report_pointer_divergence(
-  gate_pointer: &Option<intentsvcs::install::PointerState>,
-  home: &std::path::Path,
-) {
-  if let Some(intentsvcs::install::PointerState::Resolves { root }) = gate_pointer
-    && !intentsvcs::install::same_install(root, home)
+/// install the pointer names the `opt` link and this binary's root is the keg
+/// it links, so a textual comparison would report every brew machine as
+/// running two installs.
+///
+/// **AND DECIDED ONCE, IN THE SERVICE** (issue `0533`). `divergent` is the
+/// comparison [`intentsvcs::install::gate_resolution`] made; this prints it,
+/// for `claude upgrade` and for `bootstrap --check` alike.
+fn report_pointer_divergence(gate: Option<&intentsvcs::install::GateResolution>) {
+  if let Some(gate) = gate
+    && gate.divergent
+    && let (Some(this_binary), intentsvcs::install::PointerState::Resolves { root }) =
+      (&gate.this_binary, &gate.state)
   {
     println!("note: the gate will run from a DIFFERENT install than this binary.");
-    println!("  this binary:      {}", home.display());
+    println!("  this binary:      {}", this_binary.display());
     println!("  install pointer:  {}", root.display());
     println!("  neither is wrong, but the guards that run are the second one's.");
   }

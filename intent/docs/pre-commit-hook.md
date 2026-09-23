@@ -17,6 +17,8 @@ The same run installs three post-pull carriers, `post-merge.intent`, `post-check
 .git/hooks/pre-commit.intent --where
 ```
 
+`intent bootstrap --check` gives the same answer from the binary, with the same labels and the same exit code (0 when the gate can run, 1 when it cannot), and needs no project. It also says when the gate runs from a different install from the `intent` you ran, and when the pointer names a versioned Homebrew keg that the next `brew upgrade` deletes. `intent info` shows the same answer on its `Gate root:` line.
+
 Git hooks are not versioned; every fresh clone needs `intent claude upgrade --apply` once.
 
 Manual install of the same two parts:
@@ -194,7 +196,7 @@ The hook itself exits only `0` or `1`.
 
 - **Hook not running**: check `ls -la .git/hooks/pre-commit .git/hooks/pre-commit.intent` — both must exist and be executable. Git skips a missing hook silently and a non-executable one with only a `hint:` line, and the chain block skips a non-executable `pre-commit.intent` without a word.
 
-- **"cannot locate the Intent install" from `pre-commit (intent shim)`**: `~/.local/share/intent/home` is absent or empty. Run `intent bootstrap`, then re-commit. `.git/hooks/pre-commit.intent --where` shows what the carrier resolves.
+- **"cannot locate the Intent install" from `pre-commit (intent shim)`**: `~/.local/share/intent/home` is absent or empty. Run `intent bootstrap`, then re-commit. `.git/hooks/pre-commit.intent --where` shows what the carrier resolves, and `intent bootstrap --check` answers the same from any directory.
 
 - **"'intent' CLI is not runnable, and this IS an Intent project"**: install Intent, or add the directory holding the `intent` executable to PATH in your shell rc. The message names which state it found (no `intent` on PATH, a dangling link, a directory, or a file without the executable bit) and the remedy for it. **The hook REFUSES the commit rather than skipping** (hv, 2026-08-27): reaching that message means `intent/.config/config.json` is present, so the project declared the gate, and a declared gate that cannot run is a failure rather than a repo it does not apply to. It fails open only for a repo that is _not_ an Intent project, which is tested separately and first. `git commit --no-verify` bypasses one commit if you need to land work before fixing the install.
 

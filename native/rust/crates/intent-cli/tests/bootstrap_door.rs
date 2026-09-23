@@ -271,3 +271,233 @@ fn a_scratch_root_does_not_silently_replace_a_real_one() {
   // `intentsvcs`, which need no filesystem and are the same everywhere.
   let _ = (candidate_is_scratch, existing_is_scratch);
 }
+
+// ---- `--check` (issue `0533`) ----
+//
+// Every arm below takes a fresh `tempfile` HOME rather than `fixture`'s fixed
+// path, because the first of them asserts that the HOME it was handed is still
+// empty afterwards, and a fixed path is shared with any other run of this file.
+
+/// Plant the install pointer the shim reads, naming `root`.
+fn plant_pointer(home: &Path, root: &Path) -> PathBuf {
+  let pointer = home.join(".local/share/intent/home");
+  std::fs::create_dir_all(pointer.parent().expect("a parent")).expect("mkdir");
+  std::fs::write(&pointer, format!("{}\n", root.display())).expect("plant the pointer");
+  pointer
+}
+
+/// A directory that is an install by the marker the shim tests.
+fn an_install(at: &Path) -> PathBuf {
+  std::fs::create_dir_all(at.join(intentsvcs::install::MARKER)).expect("mkdir");
+  at.to_path_buf()
+}
+
+/// **NO POINTER: THE GATE CANNOT RUN, SO THE CHECK EXITS 1, AND IT WRITES
+/// NOTHING.** `--check` shares a verb with the one command that writes the
+/// pointer, so the HOME it was handed empty must still be empty: a check that
+/// wrote the pointer would pass every later arm and be the defect itself.
+#[test]
+fn check_with_no_pointer_exits_1_and_writes_nothing() {
+  let home = tempfile::tempdir().expect("fixture home");
+  let (stdout, stderr, code) = run(home.path(), &["--check"], Some("matts"));
+  assert_eq!(code, 1, "stdout={stdout}\nstderr={stderr}");
+  assert_eq!(stderr, "", "the verdict is on stdout, as --where's is");
+  let pointer = home.path().join(".local/share/intent/home");
+  assert!(
+    stdout.contains(&format!("pointer:  {}", pointer.display())),
+    "{stdout}"
+  );
+  assert!(stdout.contains("state:    ABSENT"), "{stdout}");
+  assert_eq!(
+    std::fs::read_dir(home.path()).expect("read HOME").count(),
+    0,
+    "--check wrote under HOME"
+  );
+}
+
+/// **AN EMPTY POINTER IS ABSENT TO THE GATE, AND `--check` SAYS WHICH ABSENT
+/// IT IS** (vc's ruling, 2026-09-23): the file exists and names nothing.
+#[test]
+fn check_on_an_empty_pointer_says_it_is_empty() {
+  let home = tempfile::tempdir().expect("fixture home");
+  let pointer = home.path().join(".local/share/intent/home");
+  std::fs::create_dir_all(pointer.parent().expect("a parent")).expect("mkdir");
+  std::fs::write(&pointer, "\n").expect("an empty pointer");
+
+  let (stdout, stderr, code) = run(home.path(), &["--check"], Some("matts"));
+  assert_eq!(code, 1, "stdout={stdout}\nstderr={stderr}");
+  assert!(
+    stdout.contains("state:    ABSENT (the pointer file exists and is empty)"),
+    "{stdout}"
+  );
+}
+
+/// **A POINTER NAMING NO INSTALL: EXIT 1, AND THE PATH QUOTED BACK**, as the
+/// shim quotes it. The pointer is left exactly as found: repairing it is the
+/// installer's job, never a check's.
+#[test]
+fn check_on_a_pointer_naming_no_install_exits_1_and_names_it() {
+  let home = tempfile::tempdir().expect("fixture home");
+  let elsewhere = home.path().join("not-an-install");
+  std::fs::create_dir_all(&elsewhere).expect("mkdir");
+  let pointer = plant_pointer(home.path(), &elsewhere);
+
+  let (stdout, stderr, code) = run(home.path(), &["--check"], Some("matts"));
+  assert_eq!(code, 1, "stdout={stdout}\nstderr={stderr}");
+  assert!(
+    stdout.contains(&format!("root:     {}", elsewhere.display())),
+    "{stdout}"
+  );
+  assert!(
+    stdout.contains("state:    UNUSABLE (no lib/templates under that root)"),
+    "{stdout}"
+  );
+  assert!(!stdout.contains("gate:"), "no gate to name: {stdout}");
+  assert_eq!(
+    std::fs::read_to_string(&pointer).expect("the pointer"),
+    format!("{}\n", elsewhere.display()),
+    "--check must not repair the pointer"
+  );
+}
+
+/// **THE POINTER NAMES THIS BINARY'S OWN INSTALL: EXIT 0 AND THE GATE NAMED.**
+/// No note: the control for the next arm.
+#[test]
+fn check_on_this_install_exits_0_and_names_the_gate() {
+  let home = tempfile::tempdir().expect("fixture home");
+  let own = intentsvcs::install::home().expect("this binary's own install root");
+  plant_pointer(home.path(), &own);
+
+  let (stdout, stderr, code) = run(home.path(), &["--check"], Some("matts"));
+  assert_eq!(code, 0, "stdout={stdout}\nstderr={stderr}");
+  assert!(stdout.contains("state:    OK"), "{stdout}");
+  assert!(
+    stdout.contains(&format!(
+      "gate:     {}",
+      intentsvcs::install::gate_script(&own).display()
+    )),
+    "{stdout}"
+  );
+  assert!(!stdout.contains("this binary:"), "{stdout}");
+  assert!(!stdout.contains("note:"), "{stdout}");
+}
+
+/// **ANOTHER INSTALL: THE GATE RUNS, AND BOTH ROOTS ARE PRINTED** (vc's rider,
+/// 2026-09-23): the pointer's under `root:`, this binary's under `this binary:`.
+#[test]
+fn check_on_another_install_exits_0_and_prints_both_roots() {
+  let home = tempfile::tempdir().expect("fixture home");
+  let other = an_install(&home.path().join("another-install"));
+  plant_pointer(home.path(), &other);
+  let own = intentsvcs::install::home().expect("this binary's own install root");
+
+  let (stdout, stderr, code) = run(home.path(), &["--check"], Some("matts"));
+  assert_eq!(code, 0, "stdout={stdout}\nstderr={stderr}");
+  assert!(
+    stdout.contains(&format!("root:     {}", other.display())),
+    "{stdout}"
+  );
+  assert!(
+    stdout.contains("note: the gate will run from a DIFFERENT install than this binary."),
+    "{stdout}"
+  );
+  assert!(
+    stdout.contains(&format!("  this binary:      {}", own.display())),
+    "{stdout}"
+  );
+  assert!(!stdout.contains("versioned Homebrew keg"), "{stdout}");
+}
+
+/// **A VERSIONED HOMEBREW KEG IS A NOTE AT RC 0** (issues `0527` and `0533`).
+/// The gate runs today, and the directory it runs from is the one the next
+/// `brew upgrade` deletes.
+#[test]
+fn check_on_a_versioned_keg_notes_it_and_exits_0() {
+  let home = tempfile::tempdir().expect("fixture home");
+  let keg = an_install(&home.path().join("brew/Cellar/intent/9.9.9/libexec"));
+  plant_pointer(home.path(), &keg);
+
+  let (stdout, stderr, code) = run(home.path(), &["--check"], Some("matts"));
+  assert_eq!(code, 0, "stdout={stdout}\nstderr={stderr}");
+  assert!(stdout.contains("state:    OK"), "{stdout}");
+  assert!(
+    stdout.contains("note: the install pointer names a versioned Homebrew keg"),
+    "{stdout}"
+  );
+}
+
+/// **`--quiet` PRINTS NOTHING AND LEAVES THE VERDICT IN THE EXIT CODE**, both
+/// ways.
+#[test]
+fn check_quiet_prints_nothing_and_keeps_the_exit_code() {
+  let home = tempfile::tempdir().expect("fixture home");
+  let (stdout, _, code) = run(home.path(), &["--check", "--quiet"], Some("matts"));
+  assert_eq!((stdout.as_str(), code), ("", 1));
+
+  let own = intentsvcs::install::home().expect("this binary's own install root");
+  plant_pointer(home.path(), &own);
+  let (stdout, _, code) = run(home.path(), &["--check", "--quiet"], Some("matts"));
+  assert_eq!((stdout.as_str(), code), ("", 0));
+}
+
+/// **`--force` WITH `--check` IS REFUSED, AND NOTHING IS WRITTEN.** A check
+/// has nothing to force, and a flag accepted and dropped reads as honoured.
+#[test]
+fn check_with_force_is_refused_and_writes_nothing() {
+  let home = tempfile::tempdir().expect("fixture home");
+  let (stdout, stderr, code) = run(home.path(), &["--check", "--force"], Some("matts"));
+  assert_eq!(code, 1, "stdout={stdout}\nstderr={stderr}");
+  assert!(stderr.contains("`--check` writes nothing"), "{stderr}");
+  assert_eq!(stdout, "");
+  assert_eq!(
+    std::fs::read_dir(home.path()).expect("read HOME").count(),
+    0,
+    "a refused --check wrote under HOME"
+  );
+}
+
+/// **`intent info` PRINTS THE SAME ANSWER ON ITS `Gate root:` LINE, AND ITS
+/// `INTENT_HOME:` LINE AND EXIT CODE ARE AS THEY WERE** (issue `0533`). The
+/// second run is the gate that cannot run, which must not reach the exit code.
+#[test]
+fn info_prints_the_gate_root_and_keeps_its_line_and_code() {
+  let home = tempfile::tempdir().expect("fixture home");
+  let other = an_install(&home.path().join("another-install"));
+  let pointer = plant_pointer(home.path(), &other);
+  let own = intentsvcs::install::home().expect("this binary's own install root");
+  let info = || {
+    let out = crate::common::intent()
+      .arg("info")
+      .env("HOME", home.path())
+      .current_dir(home.path())
+      .output()
+      .expect("run intent info");
+    (
+      String::from_utf8_lossy(&out.stdout).into_owned(),
+      out.status.code(),
+    )
+  };
+
+  let (stdout, code) = info();
+  assert_eq!(code, Some(0), "{stdout}");
+  assert!(
+    stdout.contains(&format!(
+      "  Gate root:       {} (a different install from INTENT_HOME)\n",
+      other.display()
+    )),
+    "{stdout}"
+  );
+  assert!(
+    stdout.contains(&format!("  INTENT_HOME:     {}\n", own.display())),
+    "the line the pre-commit gate parses: {stdout}"
+  );
+
+  std::fs::remove_file(&pointer).expect("remove the pointer");
+  let (stdout, code) = info();
+  assert_eq!(
+    code,
+    Some(0),
+    "a gate that cannot run is not info's failure: {stdout}"
+  );
+  assert!(stdout.contains("  Gate root:       <none> -- "), "{stdout}");
+}

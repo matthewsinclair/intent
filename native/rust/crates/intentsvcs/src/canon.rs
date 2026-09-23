@@ -217,8 +217,9 @@ pub struct Applied {
   /// (issue `0143`) and `.mcp.json` (AC-24.1) under `--skip-settings`. Not
   /// `preserved`: nothing here was read, so nothing can be said about whose it is.
   pub skipped: Vec<PathBuf>,
-  /// The machine's install pointer as it stood when the carrier was installed;
-  /// `None` when no carrier was installed at all.
+  /// Where the machine's gate resolved when the carrier was installed, against
+  /// the install this run's templates came from; `None` when no carrier was
+  /// installed at all.
   ///
   /// **A GATE THAT WAS WRITTEN IS NOT A GATE THAT CAN RUN**, and those are
   /// different claims made by the same line of output. The carrier is a shim:
@@ -227,7 +228,7 @@ pub struct Applied {
   /// installed a gate which refuses every commit -- correctly, and without
   /// anything at install time having said so. Recorded here so the caller can
   /// say it at the only moment the operator is looking.
-  pub gate_pointer: Option<crate::install::PointerState>,
+  pub gate: Option<crate::install::GateResolution>,
 }
 
 #[derive(Debug)]
@@ -725,7 +726,7 @@ fn install_carrier(
   // become canonical from a machine whose pointer is temporarily wrong, and
   // refusing to install would leave it with no gate at all, which is the state
   // this whole change exists to end.
-  applied.gate_pointer = Some(crate::install::pointer_state());
+  applied.gate = Some(crate::install::gate_resolution(Some(home)));
   if report {
     return Ok(());
   }
