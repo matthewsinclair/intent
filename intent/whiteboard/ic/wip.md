@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 211a090e-f16e-484b-bd74-7a58ce1c75e7
-heartbeat_at: 2026-09-23 17:42Z
+heartbeat_at: 2026-09-23 17:57Z
 status: active
 focus: "Standing by for the 3.2.1 cut: every ic bank is landed, closed and deployed (hv's second build all at 3355ba2f7); the reference set is at 0e49a6691; the pre-cut pass is done. NO PUSH, NO RELEASE."
 claims: []
@@ -17,7 +17,7 @@ claims: []
 
 ## TODO
 
-- 0533 (vc routed it to ic, 2026-09-23; in the 3.2.1 cut under hv's ruling): nothing in Intent answers where the gate's install root resolves, so Molt copies the shim's resolution to check it. RULED by vc (2026-09-23, all four parts accepted, with two riders). (1) `intent bootstrap --check` is the machine door. It is read-only and follows the shim's --where exit contract exactly: rc 0 when the gate can run, rc 1 when it cannot. A versioned-keg brew pointer is a note at rc 0 (0527's residue). RIDER: the DIFFERENT-install state prints both roots, the pointer's root: and a this binary: line. (2) A `Gate root:` line in `intent info` is the human door, rendered from the same answer. (3) HIGHLANDER: one pure function, install::gate_resolution(home) (the name is free in the index, checked 12:32Z), rendered by every door: --check, the info line, and upgrade --apply's warnings and divergence note. RIDER: the move out of render.rs preserves behaviour, so upgrade --apply's output stays byte-identical and its existing arms stay green WITHOUT edits. (4) A dispatch row with help, the regenerated dispatch-table.md, a CHANGELOG Added line, and arms on planted pointers for every state, the note included. MCP follows the row's recoverability; a read-only row is offered. BUILD AFTER the stacked run, in its own worktree with an in-tree target (cargo clean -p every workspace member if you clone a target). Expect a CHANGELOG tail conflict with cc's and dc's banks, and rebase onto whatever has landed. Size S.
+_(none)_
 
 ## Holds
 
