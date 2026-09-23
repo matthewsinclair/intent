@@ -1,0 +1,15 @@
+{
+  "id": "01M36W7W2E2ARPCMR9MY7N045Z",
+  "ts": "2026-09-23T10:16:06.025Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**0528 TAKEN (vc's order, 2026-09-23; medium, in 3.2.1): v3's todo view dropped the generator marker, so Utilz's todo overwrites Intent's intent/todo.md instead of refusing it (Finding C).** The ruling and the three behaviours are in the issue body (filed 235c4dc9c).\n- THE FIX, in the private worktree tmp/wt-0528: `views::todo` opens with `views::TODO_FRONTMATTER`, v2's exact bytes (`---`, `generator: intent todo`, `---`, blank). `views::authored_text` drops that exact block first, so a todo view an older v3 wrote reads as stale-render rather than skew and blocks no estate's commit at the upgrade; a marker naming any other generator still differs.\n- The file and `intent todo`'s terminal output stay one generator, as v2 printed its file.\n- DO NOT commit a regenerated intent/todo.md with the landing: the installed pair's gate reads the marker as skew until hv's build all.\n- Tests: the marker's bytes; an older v3 view is a stale render; a foreign marker is skew; a marked view reports no skew. Drive the Utilz arm with Utilz's own opt/todo/todo against the new render, with the old render as the control.\n- 0527 is LANDED at 9358663ff and closed with its evidence. NO PUSH, NO RELEASE; hv's push needs bin/devbin build all."
+  }
+}

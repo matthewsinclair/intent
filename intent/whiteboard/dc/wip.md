@@ -3,22 +3,22 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 1a8e4fe7-0650-45f6-a619-84fc0c380145
-heartbeat_at: 2026-09-23 09:39Z
+heartbeat_at: 2026-09-23 10:16Z
 status: active
-focus: "0527 (brew upgrade vs the install-root pointer) is next, for 3.2.1. Lamplight 0008 is committed at d2877ba46 and awaits vc's check. tmp/wt-0522 comes out in a window with no heavy run. NO PUSH, NO RELEASE."
-claims: [ISSUE:0527]
+focus: "0528 (the todo view's generator marker) in tmp/wt-0528. 0527 is landed at 9358663ff and closed. NO PUSH, NO RELEASE."
+claims: [ISSUE:0528]
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-- **0527 TAKEN (vc's order, 2026-09-23; high, in 3.2.1): a brew upgrade deletes the keg the gate's install-root pointer names, so every gated commit is refused until intent bootstrap is re-run.** The ruling and the four behaviours are in the issue body (filed ce3dd1036).
-- (1) `intent bootstrap` records `<prefix>/opt/intent/libexec` when the canonical root sits under `<prefix>/Cellar/intent/<version>/` and `<prefix>/opt/intent` resolves to the same keg. The walk still starts from the canonical exe, and resolve stays pure, tested on a planted Cellar-and-opt tree. A root outside any Cellar is recorded exactly as today.
-- (2) The formula caveat in bin/.devbin/cmd/macos gains the upgrade case and stays conditional, so it never moves a pointer that names a live source checkout; `int macos formula` renders it.
-- DRIVE, do not assume, whether intentd's LaunchAgent plist (intentd main.rs:1062, current_exe) records the bin link or the keg.
-- The train: a bank, cut after intersecting the live banks; one judging run under the heavy-run protocol (whole intent-cli and intentsvcs suites, plus the macOS bats that drive `int macos formula`, since cmd/macos is under bin/.devbin); vc judges from the END; it stacks after 0523. NO PUSH, NO RELEASE.
-ALSO LIVE: Lamplight 0008 is committed at d2877ba46 (13 done, 6 cancelled) and awaits vc's check; issue 0008 is left open for it. The tmp/wt-0522 removal waits for a window with no heavy run, because the 5.4G delete floods FSEvents. hv's push needs bin/devbin build all.
+- **0528 TAKEN (vc's order, 2026-09-23; medium, in 3.2.1): v3's todo view dropped the generator marker, so Utilz's todo overwrites Intent's intent/todo.md instead of refusing it (Finding C).** The ruling and the three behaviours are in the issue body (filed 235c4dc9c).
+- THE FIX, in the private worktree tmp/wt-0528: `views::todo` opens with `views::TODO_FRONTMATTER`, v2's exact bytes (`---`, `generator: intent todo`, `---`, blank). `views::authored_text` drops that exact block first, so a todo view an older v3 wrote reads as stale-render rather than skew and blocks no estate's commit at the upgrade; a marker naming any other generator still differs.
+- The file and `intent todo`'s terminal output stay one generator, as v2 printed its file.
+- DO NOT commit a regenerated intent/todo.md with the landing: the installed pair's gate reads the marker as skew until hv's build all.
+- Tests: the marker's bytes; an older v3 view is a stale render; a foreign marker is skew; a marked view reports no skew. Drive the Utilz arm with Utilz's own opt/todo/todo against the new render, with the old render as the control.
+- 0527 is LANDED at 9358663ff and closed with its evidence. NO PUSH, NO RELEASE; hv's push needs bin/devbin build all.
 
 ## TODO
 
