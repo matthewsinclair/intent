@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 547,
+  "slug": "the-hook-shim-s-where-names-an-empty-install-poi",
+  "title": "The hook shim's --where names an empty install pointer UNUSABLE, where its own gate path and bootstrap --check name it ABSENT",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-23",
+  "reporter": "Matthew Sinclair",
+  "body": "Noted by vc on 2026-09-23 and held as a follow-up until hv's ruling put everything found into 3.2.1. Read from source at 3dd2c6619.\n\n**What happens.** An empty pointer file, `~/.local/share/intent/home` present with nothing in it, gets two names from the same install:\n\n- The shim's own commit path (`lib/templates/hooks/pre-commit-shim.sh`, FAILURE 1) treats absent and empty as ONE state on purpose. Both mean `intent bootstrap` has not run, and both have one remedy.\n- `intent bootstrap --check` follows that path and prints `state:    ABSENT (the pointer file exists and is empty)`.\n- The shim's `--where` prints `root:     <empty>` and `state:    UNUSABLE (no lib/templates under that root)`.\n\nBoth exit 1 and both point at `intent bootstrap`, so only the word differs, and the word is what a reader acts on. UNUSABLE sends them looking for a broken root when no root was ever named. `bootstrap_check`'s doc comment in `render.rs` records the divergence (\"ONE READING DIFFERS\") rather than removing it.\n\n**What the fix has to do.**\n\n- The shim's `--where` names an empty pointer the way its own gate path and `bootstrap --check` do: ABSENT, saying the file exists and is empty.\n- UNUSABLE stays for a pointer that names a root with no `lib/templates` under it.\n- The doc comment in `render.rs` loses the paragraph about the difference.\n- A test drives `--where` and `bootstrap --check` over the same empty pointer and asserts the same state.\n- Intent's own installed carrier is regenerated with `intent claude upgrade --apply` before the cut, because the release preflight refuses a canon write.\n"
+}

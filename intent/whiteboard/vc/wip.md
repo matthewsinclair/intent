@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 302a2f4f-f054-4037-a411-d4f6d7b7df7e
-heartbeat_at: 2026-09-23 13:07Z
+heartbeat_at: 2026-09-23 21:47Z
 status: active
-focus: "LOCALFOLDED for hv's compact. 0525, 0529, 0530 and 0531 are landed and closed, not deployed. Next: dc's 0532 judging run, ic's 0533, cc's 0534, the second build all, hv's push, CI, the pre-cut pass, the cut. NO PUSH, NO RELEASE."
+focus: "3.2.1: three fixes before the cut on hv's everything-in ruling -- 0542 (dc), 0546 (cc), 0547 (ic), one stacked judging run, then the rebuild, the push, CI, the hold and the cut. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -13,34 +13,34 @@ claims: []
 
 ## DOING
 
-- RESUME (vc, 2026-09-23, after hv's third compact; rewritten at 17:38:25Z by date -u). Measure first: `intent outs`, `git log --oneline -15`, `intent --version`, `intent daemon status`, and ListAgents to ask cc, dc and ic where they stand. (edited)
+- RESUME (vc, 2026-09-23, rewritten at 21:46Z by date -u). Measure first: `intent outs`, `git log --oneline -15`, `intent --version`, `intent daemon status`, and ListAgents. cc, dc and ic run as new sessions that hv restarted (ListAgents at 21:46Z). (edited)
 
-  DEPLOYED: every 3.2.1 fix. hv's second build all finished at 17:33Z by the terminal's clock, and vc verified it at 17:36:28Z:
-  - intent and intentd both read `3.2.0 (3355ba2f714d…) dev`, which equals HEAD 3355ba2f7;
-  - intentd was restarted on that pair;
-  - Intent's store is at user_version 30;
-  - the scoped lag is 0;
-  - hv's doctor found 0 findings.
-  The number stays 3.2.0 until the cut's own bump in build.d/release. Intent's rung-29 snapshot is intent/.backup/db/2026-09-23T17-29-46-738Z.db, and Gtools took its own .backup at 17:29:03Z. END went to every Intent node, to gtools-vc, and to laksa-vc, devbin-vc, prodinfra-cc and geodica, with the MCP-refusal note.
+  STATE: hv pushed main at 9dac092ea (17:57:11Z) and rebuilt the pair there: intent, intentd and the daemon all name 9dac092ea. CI is green on both workflows and both legs:
+  - rust, run 35899129244;
+  - Intent Tests, run 35899129295: 743/743 ok on each leg, with push-range arms 410 to 418 ok on both.
+  0521 is closed at f3b520634.
 
-  LANDED AND CLOSED TODAY: 0525, 0529 to 0541, 0543, 0544 and 0545. vc verified each landed patch-id against its judged id and each landed tree against its judged tree. Three judging runs covered them: cc's stack, dc's tail, and dc's pair. ic's docs commit landed at 15f334ee9, and cc's RELEASE_NOTES with the CHANGELOG lede at 3355ba2f7.
+  hv's RULING, read by vc at 21:45Z: everything that can go into 3.2.1 goes in, unless there is a clear reason not to.
+  IN, one bank each, then one stacked judging run:
+  - 0542 (dc): the scan reads issue ids in shipped literals, and each literal says its cause in words.
+  - 0546 (cc): the release step's push is refused by 0518's pre-push check. Its version bump changes native/rust and it never rebuilds the pair (vc measured this in a scratch clone). It is a bin/.devbin change, so macOS bats and app-test are owed. Until it lands, the workaround is `bin/devbin build all` in a second terminal at the push prompt.
+  - 0547 (ic): the shim's --where names an empty pointer UNUSABLE, where its gate path and bootstrap --check say ABSENT. It is a lib/templates change, so it is built in a detached worktree. Intent's own carrier is regenerated with `claude upgrade --apply` before the cut.
+  OUT, each with its reason:
+  - ST0060 and ST0077: unstarted features, on hv's hold of today.
+  - Gtools' wb correction verb: a new verb whose requirement hv has not ruled on.
+  - The fleet sweep, the guards pass, and the 3.2.1 app into /Applications: each comes after the cut by nature. The app install is hv's hand, because vc's session is refused the /Applications write.
 
-  hv decision 32: everything goes into 3.2.1. REMAINING, IN ORDER:
-  (1) hv pushes main. The pre-push hook's cold build takes a few minutes. vc reads both CI workflows on both legs, which closes 0521 (cc's).
-  (2) THE PRE-CUT PASS, on the built pair, as docs-only commits:
-  - dc re-drives known-defects.md whole. It started at 17:37:13Z, on the approved plan: every entry in a fresh scratch project under an isolated HOME; 0442 driven both by hand and on a copy of the evidence; 0443 on its own scratch intentd; transcripts to vc before commit.
-  - ic regenerates the reference set and re-reads the 3.2.1 entries.
-  (3) THE CUT, in hv's terminal: `bin/devbin build release v3.2.1`, then the macOS steps (prepare, formula, publish, smoke --reinstall). Never --no-confirm.
-  ST0060 and ST0077 stay on hv's hold.
+  ORDER:
+  (1) The three banks.
+  (2) dc's stacked judging run, with HEAVY START and END. vc judges from END.
+  (3) Land each bank at its judged patch-id and close its issue. vc's one docs commit carries the 0542 and 0547 CHANGELOG entries.
+  (4) The rebuild: daemon stop, build all, verify, daemon start, app restart, doctor.
+  (5) ic regenerates Intent's carrier and re-runs reference_current_check.sh. dc re-drives known-defects WHOLE on the new pair.
+  (6) hv pushes, and vc reads CI on both legs.
+  (7) THE HOLD, on ic's terms: every node commits its board, then no wb write, no commit and no /in-session until the tag exists.
+  (8) THE CUT, in hv's terminal: `intent daemon stop`; `bin/devbin build release v3.2.1 --dry-run`, then the real run, never --no-confirm; then prepare, formula, publish, smoke --reinstall, brew unlink and pin, daemon restart.
 
-  OPEN WITH hv: 0542, the issue ids in shipped literals. vc recommends 3.2.2.
-  FOLLOW-UP after the cut: for an empty pointer, --where says UNUSABLE where --check says ABSENT.
-
-  AFTER THE CUT: todo 62, the fleet sweep over dc's census of 23 estates:
-  - `claude upgrade --apply` rewrites the hook blocks in the 18 wired estates.
-  - Then `intent todo update` and doctor. One commit per estate, and no push.
-  - `sync --to-disk` clears 0532's StaleRender boards, but only where doctor reads no counted ViewSkew.
-  - Stores migrate to rung 30 on their first open. Back each one up first where no session did.
+  AFTER THE CUT: lift the hold; todo 62, the fleet sweep; the 3.2.1 app into /Applications by hv's hand.
 
   NO PUSH, NO RELEASE.
 

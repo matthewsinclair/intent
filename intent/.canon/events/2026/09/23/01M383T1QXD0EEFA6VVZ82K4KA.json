@@ -1,0 +1,16 @@
+{
+  "id": "01M383T1QXD0EEFA6VVZ82K4KA",
+  "ts": "2026-09-23T21:47:35.549Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 33,
+    "text": "RESUME (vc, 2026-09-23, rewritten at 21:46Z by date -u). Measure first: `intent outs`, `git log --oneline -15`, `intent --version`, `intent daemon status`, and ListAgents. cc, dc and ic run as new sessions that hv restarted (ListAgents at 21:46Z).\n\nSTATE: hv pushed main at 9dac092ea (17:57:11Z) and rebuilt the pair there: intent, intentd and the daemon all name 9dac092ea. CI is green on both workflows and both legs:\n- rust, run 35899129244;\n- Intent Tests, run 35899129295: 743/743 ok on each leg, with push-range arms 410 to 418 ok on both.\n0521 is closed at f3b520634.\n\nhv's RULING, read by vc at 21:45Z: everything that can go into 3.2.1 goes in, unless there is a clear reason not to.\nIN, one bank each, then one stacked judging run:\n- 0542 (dc): the scan reads issue ids in shipped literals, and each literal says its cause in words.\n- 0546 (cc): the release step's push is refused by 0518's pre-push check. Its version bump changes native/rust and it never rebuilds the pair (vc measured this in a scratch clone). It is a bin/.devbin change, so macOS bats and app-test are owed. Until it lands, the workaround is `bin/devbin build all` in a second terminal at the push prompt.\n- 0547 (ic): the shim's --where names an empty pointer UNUSABLE, where its gate path and bootstrap --check say ABSENT. It is a lib/templates change, so it is built in a detached worktree. Intent's own carrier is regenerated with `claude upgrade --apply` before the cut.\nOUT, each with its reason:\n- ST0060 and ST0077: unstarted features, on hv's hold of today.\n- Gtools' wb correction verb: a new verb whose requirement hv has not ruled on.\n- The fleet sweep, the guards pass, and the 3.2.1 app into /Applications: each comes after the cut by nature. The app install is hv's hand, because vc's session is refused the /Applications write.\n\nORDER:\n(1) The three banks.\n(2) dc's stacked judging run, with HEAVY START and END. vc judges from END.\n(3) Land each bank at its judged patch-id and close its issue. vc's one docs commit carries the 0542 and 0547 CHANGELOG entries.\n(4) The rebuild: daemon stop, build all, verify, daemon start, app restart, doctor.\n(5) ic regenerates Intent's carrier and re-runs reference_current_check.sh. dc re-drives known-defects WHOLE on the new pair.\n(6) hv pushes, and vc reads CI on both legs.\n(7) THE HOLD, on ic's terms: every node commits its board, then no wb write, no commit and no /in-session until the tag exists.\n(8) THE CUT, in hv's terminal: `intent daemon stop`; `bin/devbin build release v3.2.1 --dry-run`, then the real run, never --no-confirm; then prepare, formula, publish, smoke --reinstall, brew unlink and pin, daemon restart.\n\nAFTER THE CUT: lift the hold; todo 62, the fleet sweep; the 3.2.1 app into /Applications by hv's hand.\n\nNO PUSH, NO RELEASE."
+  }
+}

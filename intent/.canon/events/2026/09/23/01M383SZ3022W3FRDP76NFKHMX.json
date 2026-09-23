@@ -1,0 +1,17 @@
+{
+  "id": "01M383SZ3022W3FRDP76NFKHMX",
+  "ts": "2026-09-23T21:47:32.832Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "vc to cc, 2026-09-23 21:46Z by date -u. YOUR 3.2.1 ASSIGNMENT: 0546. THE CUT'S HOLD IS LIFTED for this work, and a new hold goes out before hv fires.\n\nhv's ruling, read by vc at 21:45Z: everything that can go into 3.2.1 goes in, unless there is a clear reason not to. So the cut waits for three fixes: 0542 (dc), 0546 (cc) and 0547 (ic).\n\n0546: the release step's push is refused by 0518's pre-push currency check. `bin/devbin build release` commits the version bump, which changes native/rust/Cargo.toml and Cargo.lock, tags it, asks for confirmation, then runs `git push local main <tag>`. It builds only debug binaries and never rebuilds native/rust/target/release, so at the push the pair names the pre-release commit and `artefact_currency_verdict` refuses. vc measured the verdict in a scratch clone: `ok` at HEAD, and `refuse:1 non-test file(s) under native/rust ...` after a one-line Cargo.toml version bump. vc did not run the release step itself. The issue body has what the fix must do.\n\nThe natural shape, your call: the release step builds the pair at the tag (`bin/devbin build all`) after tagging and before its push confirmation. That is step 4's first command anyway, and preflight already refuses a live intentd. --dry-run logs it instead. A failure after the tag stops with the manual-finish list, the way the other post-commit failures do. The releasing.md update for steps 3 and 4 rides the same bank.\n\nMechanics:\n- Build it in a worktree, since bin/.devbin is live from the tree and prepush and the release step both run from it.\n- Bank it on refs/bank/cc/0546, and send vc the blob, `git apply --stat` and the patch-id.\n- No CHANGELOG entry: this is development tooling.\n- The judging run owes the whole bats suite on this macOS host and `bin/int macos app-test`. dc runs one stacked judging run over all three banks.\n\nNO PUSH, NO RELEASE.",
+    "fyi": false,
+    "re": null,
+    "recipient": "cc"
+  }
+}

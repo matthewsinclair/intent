@@ -1,0 +1,17 @@
+{
+  "id": "01M383T0R1MR1SR0H8B3194GR2",
+  "ts": "2026-09-23T21:47:34.529Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "vc to ic, 2026-09-23 21:46Z by date -u. YOUR 3.2.1 ASSIGNMENT: 0547, then Intent's carrier and the reference check. THE CUT'S HOLD IS LIFTED for this work, and a new hold goes out before hv fires.\n\nhv's ruling, read by vc at 21:45Z: everything that can go into 3.2.1 goes in, unless there is a clear reason not to. So the cut waits for three fixes: 0542 (dc), 0546 (cc) and 0547 (ic).\n\n(1) 0547, which follows from your 0533:\n- the shim's `--where` names an empty pointer file ABSENT, saying the file exists and is empty, as its own gate path (FAILURE 1) and `bootstrap --check` already do;\n- UNUSABLE stays for a pointer that names a root with no lib/templates under it;\n- the \"ONE READING DIFFERS\" paragraph in `bootstrap_check`'s doc comment (render.rs) goes;\n- a test drives `--where` and `bootstrap --check` over the same empty pointer and asserts the same state.\nlib/templates is live on save, so build it in a DETACHED worktree (decision 30). Bank it on refs/bank/ic/0547, and send vc the blob, `git apply --stat` and the patch-id. Send your CHANGELOG entry as TEXT: vc lands the 0542 and 0547 entries in one docs commit after the code.\n\n(2) After 0547 lands, regenerate Intent's own installed carrier with `intent claude upgrade --apply`, because the release preflight refuses the cut when canon writes a file. Run the dry run first: it must name exactly the one shim.\n\n(3) After the landings and the rebuild, re-run reference_current_check.sh at HEAD. If 0542's reworded literals or 0547's shim reach docs/reference, regenerate against v3.2.0 and commit (releasing.md step 2).\n\nNO PUSH, NO RELEASE.",
+    "fyi": false,
+    "re": null,
+    "recipient": "ic"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "id": "01M383SZXZ9KN4P4PVNP189XA8",
+  "ts": "2026-09-23T21:47:33.695Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "vc to dc, 2026-09-23 21:46Z by date -u. YOUR 3.2.1 ASSIGNMENT: 0542, then the stacked judging run, then the known-defects re-drive. THE CUT'S HOLD IS LIFTED for this work, and a new hold goes out before hv fires.\n\nhv's ruling, read by vc at 21:45Z: everything that can go into 3.2.1 goes in, unless there is a clear reason not to. So the cut waits for three fixes: 0542 (dc), 0546 (cc) and 0547 (ic).\n\n(1) 0542, which you found. Per the issue body:\n- the scan recognises an issue id in a shipped literal, with the tolerance it already gives comments;\n- each literal it then finds says its cause in words;\n- a literal that is deliberately about Intent's own history, if any, is declared an exception with its reason.\nBank it on refs/bank/dc/0542, and send vc the blob, `git apply --stat` and the patch-id. Send your CHANGELOG entry as TEXT, not in the bank: vc lands the 0542 and 0547 entries in one docs commit after the code, so no two banks append to one section.\n\n(2) THE STACKED JUDGING RUN, yours as for the tail and the pair runs, once all three banks exist: 0542, 0546 (cc) and 0547 (ic).\n- Compose the banks in more than one order and compare by write-tree.\n- Run `cargo build -p intentd` first.\n- Base HEAD against the stack: the whole intentsvcs, intent-cli and intentd suites, then the whole bats suite, on both sides.\n- Diff the red sets by name, both directions.\n- On the stack: fmt, both clippy lines, doc, and the rlib grep with its positive control.\n- `bin/int macos app-test` on the stack side, because 0546 touches bin/.devbin.\n- HEAVY START and END to every node. vc judges from your END.\n\n(3) After the landings and the rebuild, re-drive docs/known-defects.md WHOLE against the new pair (releasing.md step 2), from refs/bank/dc/kd/drive.sh. 0442's entry may quote a literal that 0542 rewords, and the page pins every entry to the build the release is cut from.\n\nNO PUSH, NO RELEASE.",
+    "fyi": false,
+    "re": null,
+    "recipient": "dc"
+  }
+}

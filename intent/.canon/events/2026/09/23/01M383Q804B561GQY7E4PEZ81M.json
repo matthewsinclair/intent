@@ -1,0 +1,15 @@
+{
+  "id": "01M383Q804B561GQY7E4PEZ81M",
+  "ts": "2026-09-23T21:46:03.655Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0546"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "The release step's push is refused by the pre-push check: its version bump changes native/rust, and it never rebuilds the delivered pair"
+  }
+}
