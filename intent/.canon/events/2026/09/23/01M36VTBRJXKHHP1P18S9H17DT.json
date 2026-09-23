@@ -1,0 +1,15 @@
+{
+  "id": "01M36VTBRJXKHHP1P18S9H17DT",
+  "ts": "2026-09-23T10:08:42.770Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RESUME (vc, 2026-09-23, after the compact; replaces doing 31). THE 3.2.1 TRAIN, LANDED ON MAIN AND NOT DEPLOYED (the pair is 099088acd; a push refuses until bin/devbin build all): 0520, 0521 (open until CI's bats read green on both legs), 0522, 0524, 0526 (d9aa20703), 0523 stage 1 v4 (3d8d3b8d1). IN FLIGHT, in this order: (1) dc's 0527 composition run, then 0527 lands on vc's word (standalone PASS, blob 25ff8d61c, patch-id d07ae2434); (2) ic commits todo 47 (the CHANGELOG gap entries, releasing.md 2b and 2c as nested bullets), already passed; (3) cc rebases 0523 stage 2 (bank v1 73bc35898, patch-id 3b0eee7cb, diff read by vc) onto that HEAD, runs, vc judges; (4) 0525 (cc) and 0528 (dc, Finding C: the todo view's generator marker). THEN: build all on hv's go (warn gtools-vc before and after), hv pushes, vc reads both CI workflows on both legs, ic's pre-cut pass, and the cut in hv's terminal. AFTER THE CUT: the fleet sweep in estates that already have Intent (hv decision 31). Decision 28's ten rulings are executed (Conflab ee56317f to 9dc530e7, Baize 8e19343, Finding C filed as 0528); do not redo them. NO PUSH, NO RELEASE."
+  }
+}

@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 302a2f4f-f054-4037-a411-d4f6d7b7df7e
-heartbeat_at: 2026-09-23 09:21Z
+heartbeat_at: 2026-09-23 10:08Z
 status: active
-focus: "3.2.1 train: 0520, 0521, 0522, 0524 landed, not deployed; 0523 stage 1 v3 banked, awaiting cc's re-run and vc's verdict; then build all on hv's go (warn gtools-vc). NO PUSH, NO RELEASE."
+focus: "3.2.1 train: 0526 and 0523 v4 landed (not deployed); 0527 in its composition run, then ic's CHANGELOG entries, 0523 stage 2, 0525, 0528; then build all on hv's go. Decision 28 executed. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -13,23 +13,7 @@ claims: []
 
 ## DOING
 
-- RESUME (vc, 2026-09-23 localfold before a compact, replaces doing 29). Measure first: `intent outs`, `git log --oneline -12`, `intent --version`. This item says where each line of work stood at the fold.
-
-THE 3.2.1 TRAIN. hv: "I want all outstanding items fixed and validated before we cut the next release. Then I want to do that asap."
-- LANDED, NOT DEPLOYED (the pair names 099088acd, so a push refuses until `bin/devbin build all`): 0521 at 38db27487, OPEN until CI's bats run reads green on both legs after the next push (cc todo 37); 0522 at 987268553; 0520 at 89015b037; the guard exit-code doc line at f5b3daa7d. At the fold, dc was landing 0524 (refs/bank/dc/0524, patch-id 2f475e2c1) onto aec0c3721 on vc's word.
-- 0523 STAGE 1: v2 was HELD by vc on one source-read finding. wb_text_carrier could match a carrier-less item (migrated, or written before board events) to a LATER draft wb.add with the same kind and text, and amend that event. v3 IS BANKED: refs/bank/cc/0523-stage1/v3, blob 36776c993, patch-id 5c04d79c2, base 987268553, 18 files, +1125 -30. The creator is now the ONE matching event in the first instant at or after the row's stamp, across the whole log, with no tie-break; none or several means Recorded. It has the planted arm (a migrated item plus a later draft in the same words, asserting Recorded and the later wb.add byte-identical). cc's re-run of both suites on 987268553 + 0520 + 0524 + v3 is FIRST on its bounce: JUDGE v3 from that END, reading its diff against v2's facade.rs and store.rs. ic's witness drives passed v2 on cases A, N and R, and under a watching intentd (no revert, positive-controlled), and v3 leaves case 1 unchanged. Stage 2 takes the same rule for message_origin.
-- AFTER 0523 STAGE 1: stage 2 (messages addressed `message <anchor>#<n>`, plus a focus test) and 0525 (the (edited) mark, hv: in 3.2.1) are cc's; 0526 (the empty-contract remedy, XS) is ic's.
-- THEN: build all on hv's go, warning gtools-vc BEFORE and AFTER it (gtools-vc asked); hv pushes; vc reads both workflows on both legs; ic's pre-cut surface pass; the cut, in hv's terminal.
-
-RULED TODAY, NOT YET EXECUTED:
-- Prolix carry, GO to dc: hv's board carried as it is, then VC archives the four placeholder items on hv's board in Prolix AND in Molt, under hv's pen. Prolix cc: --drop-uncarried plus three holds "released when hv rules". Prolix vc: two coerced prose lines archived.
-- Lamplight: its 19 WIP work packages under 14 closed threads, fixed by vc from here. Done where the record shows the work landed, cancelled with a note otherwise. One commit, no push.
-- Fleet upgrade sweep: RIGHT AFTER the 3.2.1 cut. Hold 27's remaining wiring rides it (the MicroGPTEx pilot, 80d4c13, passed).
-- ANSWERED by hv, 2026-09-23 (hv's board decision): NO project that lacks Intent gets it. "Every estate on the latest" means the estates that already have Intent; Cards/Design and cfg/Gtools-geodica stay without it. Do not raise it again.
-
-STILL OWED BY vc: hv decision 28's ten Conflab and Baize rulings (0503 and 0504 are closed, so the dating is unblocked), and the Finding C census. At the globalfold: restart.md gains ic's machine-census form and the 0518 lesson (a runner change under bin/ owes the test file that drives it: 0518 was judged by a two-sided drive and never ran prepush_push_range.bats, which reds on every machine); wip.md's TODO drops the done push, the rust CI read and the intentd restart.
-
-ON RECORD: vc's "08:14Z by date -u" on the 0521 and 0522 verdicts and on the ic box message was read from no clock. The true bound is 08:07Z to 08:10Z, and it was corrected forward in cc's and dc's inboxes. NO PUSH, NO RELEASE.
+- RESUME (vc, 2026-09-23, after the compact; replaces doing 31). THE 3.2.1 TRAIN, LANDED ON MAIN AND NOT DEPLOYED (the pair is 099088acd; a push refuses until bin/devbin build all): 0520, 0521 (open until CI's bats read green on both legs), 0522, 0524, 0526 (d9aa20703), 0523 stage 1 v4 (3d8d3b8d1). IN FLIGHT, in this order: (1) dc's 0527 composition run, then 0527 lands on vc's word (standalone PASS, blob 25ff8d61c, patch-id d07ae2434); (2) ic commits todo 47 (the CHANGELOG gap entries, releasing.md 2b and 2c as nested bullets), already passed; (3) cc rebases 0523 stage 2 (bank v1 73bc35898, patch-id 3b0eee7cb, diff read by vc) onto that HEAD, runs, vc judges; (4) 0525 (cc) and 0528 (dc, Finding C: the todo view's generator marker). THEN: build all on hv's go (warn gtools-vc before and after), hv pushes, vc reads both CI workflows on both legs, ic's pre-cut pass, and the cut in hv's terminal. AFTER THE CUT: the fleet sweep in estates that already have Intent (hv decision 31). Decision 28's ten rulings are executed (Conflab ee56317f to 9dc530e7, Baize 8e19343, Finding C filed as 0528); do not redo them. NO PUSH, NO RELEASE.
 
 ## TODO
 
