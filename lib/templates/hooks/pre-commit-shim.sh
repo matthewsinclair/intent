@@ -71,8 +71,15 @@ _where() {
     return 1
   fi
   _r="$(head -n 1 "$_home_file" 2>/dev/null || true)"
-  echo "root:     ${_r:-<empty>}"
-  if [ -n "$_r" ] && [ -d "$_r/lib/templates" ]; then
+  # An empty pointer is ABSENT, as FAILURE 1 below and `intent bootstrap
+  # --check` both name it: no root was ever written, so UNUSABLE would send
+  # the reader looking for a broken root that does not exist.
+  if [ -z "$_r" ]; then
+    echo "state:    ABSENT (the pointer file exists and is empty)"
+    return 1
+  fi
+  echo "root:     ${_r}"
+  if [ -d "$_r/lib/templates" ]; then
     echo "state:    OK"
     echo "gate:     ${_r}/lib/templates/hooks/pre-commit.sh"
     return 0

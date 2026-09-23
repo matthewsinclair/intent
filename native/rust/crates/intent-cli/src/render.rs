@@ -8675,10 +8675,6 @@ fn report_author(author: Option<&str>) {
 /// needs a project with the carrier installed; this needs only the machine,
 /// which is all the pointer describes.
 ///
-/// **ONE READING DIFFERS, AND IT FOLLOWS THE SHIM'S OWN GATE PATH.** An empty
-/// pointer file is `ABSENT` here, as it is when the shim refuses a commit, where
-/// `--where` prints it as `UNUSABLE` with an `<empty>` root. Both exit 1.
-///
 /// **`--force` IS REFUSED, NOT IGNORED.** A check writes nothing, so there is
 /// nothing to force, and a flag accepted and then dropped reads as honoured.
 /// `--quiet` prints nothing and leaves the verdict in the exit code.

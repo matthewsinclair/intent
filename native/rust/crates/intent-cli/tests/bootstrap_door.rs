@@ -317,19 +317,38 @@ fn check_with_no_pointer_exits_1_and_writes_nothing() {
 
 /// **AN EMPTY POINTER IS ABSENT TO THE GATE, AND `--check` SAYS WHICH ABSENT
 /// IT IS** (vc's ruling, 2026-09-23): the file exists and names nothing.
+///
+/// **AND THE SHIM'S `--where` NAMES IT THE SAME WAY** (issue `0547`). It used
+/// to print `UNUSABLE` with an `<empty>` root, which sends a reader looking for
+/// a broken root that was never written. Both forms of empty are driven: no
+/// bytes at all, and the lone newline a truncated write leaves.
 #[test]
 fn check_on_an_empty_pointer_says_it_is_empty() {
-  let home = tempfile::tempdir().expect("fixture home");
-  let pointer = home.path().join(".local/share/intent/home");
-  std::fs::create_dir_all(pointer.parent().expect("a parent")).expect("mkdir");
-  std::fs::write(&pointer, "\n").expect("an empty pointer");
+  const EMPTY: &str = "state:    ABSENT (the pointer file exists and is empty)";
+  let shim = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+    .join("../../../../lib/templates/hooks/pre-commit-shim.sh");
+  for bytes in ["", "\n"] {
+    let home = tempfile::tempdir().expect("fixture home");
+    let pointer = home.path().join(".local/share/intent/home");
+    std::fs::create_dir_all(pointer.parent().expect("a parent")).expect("mkdir");
+    std::fs::write(&pointer, bytes).expect("an empty pointer");
 
-  let (stdout, stderr, code) = run(home.path(), &["--check"], Some("matts"));
-  assert_eq!(code, 1, "stdout={stdout}\nstderr={stderr}");
-  assert!(
-    stdout.contains("state:    ABSENT (the pointer file exists and is empty)"),
-    "{stdout}"
-  );
+    let (stdout, stderr, code) = run(home.path(), &["--check"], Some("matts"));
+    assert_eq!(code, 1, "{bytes:?}: stdout={stdout}\nstderr={stderr}");
+    assert!(stdout.contains(EMPTY), "{bytes:?}: {stdout}");
+
+    let out = std::process::Command::new("bash")
+      .arg(&shim)
+      .arg("--where")
+      .env("HOME", home.path())
+      .env_remove("XDG_DATA_HOME")
+      .output()
+      .expect("run the shim's --where");
+    let where_ = String::from_utf8_lossy(&out.stdout);
+    assert_eq!(out.status.code(), Some(1), "{bytes:?}: {where_}");
+    assert!(where_.contains(EMPTY), "{bytes:?}: --where said {where_}");
+    assert!(!where_.contains("UNUSABLE"), "{bytes:?}: {where_}");
+  }
 }
 
 /// **A POINTER NAMING NO INSTALL: EXIT 1, AND THE PATH QUOTED BACK**, as the
