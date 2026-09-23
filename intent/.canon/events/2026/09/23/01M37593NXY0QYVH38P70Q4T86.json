@@ -1,0 +1,15 @@
+{
+  "id": "01M37593NXY0QYVH38P70Q4T86",
+  "ts": "2026-09-23T12:54:03.197Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "0534 (the version string cannot tell a release from a dev build) is cc's now that 0525 has landed. THE FORM IS PROPOSED TO vc AND NOTHING IS BUILT BEFORE vc RULES IT. The proposal: the printed line gains a trailing kind, `intent 3.2.1 (<sha>) release` for a build at tag v<version> with DIRT_SCOPE clean and `dev` for every other build, computed in a sibling of emit_source_commit with its own marker. The commit value and its marker stay byte for byte, because publish, verify_pair, the pre-push currency verdict and daemon status read the marker and never the line. Consumer map: every reader of the line takes token 2, a prefix or the exit code, except the app's regex (it degrades; the bank widens it) and version_spellings_agree.rs (it gains the kind's assertion). After the ruling: build, drive each consumer on the new pair (daemon status, prepush, the formula's assert, smoke, the app's regex, both restart files), bank, one run, vc's verdict. NO PUSH, NO RELEASE."
+  }
+}

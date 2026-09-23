@@ -3,22 +3,21 @@ node: cc
 name: Control Claude
 role: control
 session_id: 89be4c37-5e0c-46eb-a8df-6cce6bb2c58b
-heartbeat_at: 2026-09-23 12:34Z
+heartbeat_at: 2026-09-23 12:54Z
 status: active
-focus: "0525 with 0529 and 0531: the one stacked judging run with ic's 0530 has been in flight since 12:33Z; next are vc's verdict and the landing, then 0534 (the version stamp: measure its consumers and propose the form to vc). NO PUSH, NO RELEASE."
-claims: [ISSUE:0521, ISSUE:0525, ISSUE:0529, ISSUE:0531]
+focus: "0525, 0529 and 0531 landed at d3b2250b6 and closed (0530 landed at 084b154b9 by ic); not deployed until the second build all. Now 0534: the form is proposed to vc and nothing is built before the ruling. Then 0521's CI read after hv's push. NO PUSH, NO RELEASE."
+claims: [ISSUE:0521, ISSUE:0534]
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-- 0525 (with 0529 and 0531) IS IN ITS ONE STACKED JUDGING RUN, started 12:33Z (S/judge_run.sh, logs S/judge/, S = /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/89be4c37-5e0c-46eb-a8df-6cce6bb2c58b/scratchpad). Base 9a5d8276b + ic's 0530 (refs/bank/ic/0530/on-1ac4079f2, blob 6890365f4, patch-id b4e176144) + cc's bank refs/bank/cc/0525/on-9a5d8276b (blob d0780963e, patch-id d35a403d5, 21 files +451/-60); tree 074c8da3d in either order, confirmed by ic. Scope, vc's: the whole Rust suites, then the whole bats suite, on the baseline (wt-0525) and the bank (wt-train), with the red sets diffed by name both ways. In the bank: the faces blessed and the pins set (JSON 22, DDL 26, SDL 19, store v30); ic's review, with F1 (the mark ends an item's first line) and F4 (the wording); 0531 (a handled message says so on the CLI line under --all); and the doc fix (a public doc linked the private message_changes). vc accepted the rung-30 drive on copies of Intent's and Gtools' stores as evidence. NEXT: the END to vc, dc and ic with the red-set diff; vc's verdict; the landing, patch-id checked before and after (message S/0525_commit_msg.txt plus the judged line), in the order cc and ic agree; 0525, 0529 and 0531 close when it lands; dc builds 0532 on top. NO PUSH, NO RELEASE.
+- 0534 (the version string cannot tell a release from a dev build) is cc's now that 0525 has landed. THE FORM IS PROPOSED TO vc AND NOTHING IS BUILT BEFORE vc RULES IT. The proposal: the printed line gains a trailing kind, `intent 3.2.1 (<sha>) release` for a build at tag v<version> with DIRT_SCOPE clean and `dev` for every other build, computed in a sibling of emit_source_commit with its own marker. The commit value and its marker stay byte for byte, because publish, verify_pair, the pre-push currency verdict and daemon status read the marker and never the line. Consumer map: every reader of the line takes token 2, a prefix or the exit code, except the app's regex (it degrades; the bank widens it) and version_spellings_agree.rs (it gains the kind's assertion). After the ruling: build, drive each consumer on the new pair (daemon status, prepush, the formula's assert, smoke, the app's regex, both restart files), bank, one run, vc's verdict. NO PUSH, NO RELEASE.
 
 ## TODO
 
 - 0521 is LANDED at 38db27487 (vc PASS; landed patch-id 4650733e4 = judged; gate rc 0, currency ok). What remains: the issue stays OPEN until CI's Intent Tests workflow reads green on BOTH legs after hv's next push. That workflow runs the whole bats suite and is the judge of record. When hv pushes, read the tests.yml run on that HEAD; if it reds, make it speak first. Then close 0521 on vc's word. NO PUSH, NO RELEASE.
-- 0534 IS cc's ONCE 0525 LANDS (vc, 2026-09-23; hv decision 32 puts it in 3.2.1): the version string cannot tell a release from a dev build. cc owns the stamp in native/rust/build-support/source_commit.rs. Before building anything: MEASURE every consumer of `intent --version` (intent daemon status, the pre-push hook, the brew formula test, int macos smoke, the app, and both restart files), then propose the form to vc. vc rules the form.
 
 ## Holds
 
