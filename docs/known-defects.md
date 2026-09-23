@@ -1,6 +1,6 @@
 # Known defects in v3.2.1
 
-**Every defect on this page has been run against the build v3.2.1 is cut from.** Not inferred from our issue register: driven against that build before its version stamp moved, when `intent --version` printed `intent 3.2.0 (3355ba2f714d63d532b3455aa7970196d87535ec) dev`, each in a fresh scratch project under an isolated `HOME`. Where a claim could not be driven it is not on the page, and the last sections say what that leaves out.
+**Every defect on this page has been run against the build v3.2.1 is cut from.** Not inferred from our issue register: driven against that build before its version stamp moved, when `intent --version` printed `intent 3.2.0 (86ff9c66120df4a3ede85e56f7cd9341e9e5dce2) dev`, each in a fresh scratch project under an isolated `HOME`. Where a claim could not be driven it is not on the page, and the last sections say what that leaves out.
 
 **A defect is on this page if you can hit it by following the documentation correctly.** Something that only bites a maintainer editing the register, or a team sharing one checkout, is recorded against the issue rather than here.
 
