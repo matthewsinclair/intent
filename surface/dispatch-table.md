@@ -3815,12 +3815,16 @@ Print the Intent version
 - **stderr:** --
 - **Defects observed in v2:**
   - INV-08 at `intent version --zzz` succeeds silently at exit 0
-- **Target:** `corrected` -- ratified: hv 2026-08-14 bounce (the `corrected` class); forced -- clap rejects unrecognised arguments by default -- behaviour: Unknown arguments refused, exit 1 per INV-02. The version string itself gains a baked GIT_HASH.
+- **Target:** `corrected` -- ratified: hv 2026-08-14 bounce (the `corrected` class); forced -- clap rejects unrecognised arguments by default -- behaviour: Unknown arguments refused, exit 1 per INV-02. The version string itself gains a baked GIT_HASH, and ends in the build's kind: `release` for a clean build of a commit tagged `v<version>`, `dev` for every other build (issue 0534).
 - **rulings:**
   - `0.state`: ratified
   - `0.authority`: hv
   - `0.date`: 2026-08-14
   - `0.record`: parity.md
+  - `1.state`: ratified
+  - `1.authority`: vc
+  - `1.date`: 2026-09-23
+  - `1.record`: issue 0534
 - **MCP:** not exposed -- read-only
 
 ## Family: `daemon`

@@ -4,11 +4,26 @@ import XCTest
 
 /// The menu's identity row, rendered from `intent version`. **WHAT THESE PIN IS
 /// THE SWIFT SIDE'S RENDERING OF THE SHAPES IT KNOWS**, written here as
-/// literals copied from spine.rs's `"{version} ({SOURCE_COMMIT})"`. They cannot
-/// see a change to that line on the Rust side: a shape this build does not
-/// recognise is shown verbatim by design, so such a change surfaces as a long
-/// row in the menu rather than as a red here.
+/// literals copied from spine.rs's `"{version} ({SOURCE_COMMIT}) {SOURCE_KIND}"`,
+/// and from the kind-less line an `intent` before 3.2.1 prints, which the app
+/// still meets. They cannot see a change to that line on the Rust side: a shape
+/// this build does not recognise is shown verbatim by design, so such a change
+/// surfaces as a long row in the menu rather than as a red here.
 final class VersionServiceTests: XCTestCase {
+  /// **THE KIND SURVIVES THE SHORTENING** (issue 0534). It is the word that says
+  /// whether the `intent` the app drives is the release or a dev build.
+  func testAReleaseBuildKeepsItsKind() {
+    XCTAssertEqual(
+      VersionService.menuTitle("intent 3.2.1 (8a48430ee9b8dceeb5ecebb83a678941bc44848a) release\n"),
+      "intent 3.2.1 (8a48430e) release")
+  }
+
+  func testADirtyDevBuildKeepsItsMarkerAndItsKind() {
+    XCTAssertEqual(
+      VersionService.menuTitle("intent 3.2.1 (dirty-8a48430ee9b8dceeb5ecebb83a678941bc44848a) dev\n"),
+      "intent 3.2.1 (dirty-8a48430e) dev")
+  }
+
   func testACleanBuildShortensItsShaToTheFirstEight() {
     XCTAssertEqual(
       VersionService.menuTitle("intent 3.0.1 (8a48430ee9b8dceeb5ecebb83a678941bc44848a)\n"),
@@ -32,6 +47,7 @@ final class VersionServiceTests: XCTestCase {
   /// is rendered as given.
   func testAnUnknownCommitIsRenderedAsGiven() {
     XCTAssertEqual(VersionService.menuTitle("intent 3.0.1 (unknown)\n"), "intent 3.0.1 (unknown)")
+    XCTAssertEqual(VersionService.menuTitle("intent 3.2.1 (unknown) dev\n"), "intent 3.2.1 (unknown) dev")
   }
 
   /// A shape this build does not recognise is shown verbatim, never parsed into

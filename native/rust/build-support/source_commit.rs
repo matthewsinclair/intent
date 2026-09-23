@@ -235,7 +235,7 @@ fn git(args: &[&str]) -> Option<String> {
 /// crate's static becomes `env!("INTENT_SOURCE_COMMIT_MARKER")` -- still a
 /// `&'static str` literal in rodata, so `#[used]` behaves exactly as before.
 ///
-/// `INTENT_SOURCE_COMMIT` stays: `intent-cli/src/lib.rs:26` exposes the bare
+/// `INTENT_SOURCE_COMMIT` stays: `intent-cli/src/lib.rs` exposes the bare
 /// value as `pub const SOURCE_COMMIT`, which is a real consumer and not a
 /// duplicate of this one.
 fn emit_source_commit() {
@@ -308,7 +308,74 @@ fn emit_source_commit() {
   let version = std::env::var("CARGO_PKG_VERSION").unwrap_or_else(|_| "unknown".to_string());
   println!("cargo:rustc-env=INTENT_SOURCE_VERSION_MARKER=[intent-source-version:{version}]");
 
+  // The kind reads the value above, so the dirt is asked once (issue 0534).
+  emit_source_kind(&value, &version);
+
   emit_rerun_triggers();
+}
+
+/// Emits `INTENT_SOURCE_KIND` and `INTENT_SOURCE_KIND_MARKER`: whether this
+/// artefact is a `release` or a `dev` build (issue `0534`).
+///
+/// **A RELEASE IS A CLEAN BUILD OF A COMMIT THAT CARRIES THIS VERSION'S TAG, AND
+/// EVERY OTHER BUILD IS `dev`.** Until this, a brew-installed release and a
+/// dev-tree build printed one shape, `intent 3.2.0 (<sha>)`, so telling them
+/// apart meant knowing which sha a tag names. The release verb tags
+/// `v<version>`, and the release artefacts are built at that tag by a build
+/// that cleans the packages first, so this script runs there and sees the tag.
+///
+/// **`unknown` AND `dirty-<sha>` ARE ALWAYS `dev`, AND GIT IS NOT ASKED FOR TAGS
+/// ON THEIR BEHALF.** A build that cannot name its commit, or whose inputs are
+/// not that commit, is not the release whatever a tag says.
+///
+/// **THE TAGS ARE READ WITH `tag --points-at`, NOT `describe --exact-match`.**
+/// This repository's release tags are lightweight, and `describe` without
+/// `--tags` sees annotated tags only; `--points-at` lists both kinds.
+///
+/// **IT NAMES THE SOURCE, NOT CARGO'S PROFILE.** A debug build at the tag says
+/// `release` as well, because its source is the release's.
+///
+/// **A WORD AFTER THE LINE, AND NOTHING THAT NAMES THE COMMIT MOVES.** Every
+/// reader that asks which build this is reads `[intent-source-commit:...]`, or
+/// the version token after the name, and neither changes. The kind's own marker
+/// takes the `intent-source-` prefix so that `install::embedded_marker`, the one
+/// reader of these markers, reads it with the key `kind`.
+///
+/// **IT IS AS FRESH AS THIS SCRIPT'S LAST RUN, LIKE THE COMMIT.** A tag made
+/// after an incremental build moves no watched file, so that binary keeps
+/// saying `dev` until a build that cleans the packages: the kind can understate
+/// a release, and it cannot claim one for bytes the tag does not name.
+fn emit_source_kind(commit: &str, version: &str) {
+  let tags = if is_commit(commit) {
+    git(&["tag", "--points-at", commit]).unwrap_or_else(|| {
+      println!(
+        "cargo:warning=git could not list the tags at {commit}, so this build says `dev` -- issue 0534"
+      );
+      String::new()
+    })
+  } else {
+    String::new()
+  };
+  let kind = source_kind(commit, &tags, version);
+  println!("cargo:rustc-env=INTENT_SOURCE_KIND={kind}");
+  println!("cargo:rustc-env=INTENT_SOURCE_KIND_MARKER=[intent-source-kind:{kind}]");
+}
+
+/// `release` when `commit` is a clean sha and `tags_at_commit`, one tag per
+/// line, holds exactly `v<version>`, and `dev` otherwise. Pure, so the decision
+/// is driven without a repository (`build_support` in `version_spellings_agree.rs`).
+fn source_kind(commit: &str, tags_at_commit: &str, version: &str) -> &'static str {
+  let tag = format!("v{version}");
+  if is_commit(commit) && tags_at_commit.lines().any(|t| t == tag) {
+    "release"
+  } else {
+    "dev"
+  }
+}
+
+/// A sha as `rev-parse` prints one. `unknown` and `dirty-<sha>` are not.
+fn is_commit(value: &str) -> bool {
+  !value.is_empty() && value.bytes().all(|b| b.is_ascii_hexdigit())
 }
 
 /// Re-run this script whenever a file in the scope the marker claims changes

@@ -302,10 +302,15 @@ pub fn build(table: &Table) -> Command {
     // carries its dirt INSIDE the value (`dirty-<sha>`, or `unknown` when git
     // could not answer), so this line cannot report a dirty build as a clean
     // one by dropping a second field nobody reads.
+    //
+    // THE KIND IS A WORD AFTER THE BUILD, `release` or `dev` (issue 0534):
+    // the commit alone could not say whether this is the tagged release or a
+    // dev-tree build. It comes last so the tokens before it do not move.
     .version(format!(
-      "{} ({})",
+      "{} ({}) {}",
       env!("CARGO_PKG_VERSION"),
-      crate::SOURCE_COMMIT
+      crate::SOURCE_COMMIT,
+      crate::SOURCE_KIND
     ))
     // FROM THE TABLE, like every other help string on the surface (EXP-08).
     // This was the ONE `.about("...")` literal in the CLI: every family, entry,

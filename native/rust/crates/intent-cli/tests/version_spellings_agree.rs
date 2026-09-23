@@ -151,3 +151,74 @@ fn an_unknown_argument_is_refused_rather_than_accepted_in_silence() {
     stdout(&out)
   );
 }
+
+/// Issue 0534: the line says what KIND of build it is, as a word after the
+/// build marker, and a build that cannot name a clean commit is never `release`.
+///
+/// Asserted against the values `build.rs` embedded rather than a literal:
+/// which kind is right depends on whether this ran at a `v<version>` tag, so a
+/// literal would test where the suite happened to run. The decision itself is
+/// driven row by row in `build_support` below.
+#[test]
+fn the_version_line_ends_in_its_kind_and_a_release_names_a_clean_commit() {
+  let printed = stdout(&run(&["version"]));
+  let commit = env!("INTENT_SOURCE_COMMIT");
+  let kind = env!("INTENT_SOURCE_KIND");
+
+  assert_eq!(
+    printed,
+    format!("intent {} ({commit}) {kind}\n", env!("CARGO_PKG_VERSION")),
+    "the line is the version, the build marker and then the kind"
+  );
+  assert!(
+    kind == "release" || kind == "dev",
+    "the kind is `release` or `dev`, and this build says {kind:?}"
+  );
+  assert!(
+    kind == "dev" || !(commit == "unknown" || commit.starts_with("dirty-")),
+    "a `release` must name a clean commit, and this build names {commit:?}"
+  );
+}
+
+/// The decision, compiled from its one home -- the file both `build.rs` scripts
+/// `include!` -- so these rows drive the code that stamps the binary rather
+/// than a copy of it. The test sits inside the module because the function is
+/// private there, as it is in the build scripts. The git half (the tags at the
+/// commit) needs a repository at a tag, and was driven in a scratch clone
+/// (issue 0534).
+#[allow(
+  dead_code,
+  reason = "the emitters run in build.rs; this module drives the pure decision"
+)]
+mod build_support {
+  include!("../../../build-support/source_commit.rs");
+
+  #[test]
+  fn only_a_clean_commit_carrying_this_versions_tag_is_a_release() {
+    let sha1 = "8a48430ee9b8dceeb5ecebb83a678941bc44848a";
+    let sha256 = "8a48430ee9b8dceeb5ecebb83a678941bc44848a8a48430ee9b8dceeb5ecebb8";
+    let dirty = format!("dirty-{sha1}");
+
+    assert_eq!(source_kind(sha1, "v3.2.1", "3.2.1"), "release");
+    assert_eq!(source_kind(sha256, "v3.2.1", "3.2.1"), "release");
+    assert_eq!(
+      source_kind(sha1, "latest\nv3.2.1\nv3.2.1-notes", "3.2.1"),
+      "release",
+      "the tag is one line among several"
+    );
+
+    assert_eq!(source_kind(sha1, "", "3.2.1"), "dev", "no tag");
+    assert_eq!(
+      source_kind(sha1, "v3.2.0", "3.2.1"),
+      "dev",
+      "another version's tag"
+    );
+    assert_eq!(
+      source_kind(sha1, "v3.2.10\nv3.2.1-rc1\n3.2.1", "3.2.1"),
+      "dev",
+      "tags that only start with `v3.2.1`, or leave out its `v`"
+    );
+    assert_eq!(source_kind(&dirty, "v3.2.1", "3.2.1"), "dev", "dirty");
+    assert_eq!(source_kind("unknown", "v3.2.1", "3.2.1"), "dev", "unknown");
+  }
+}

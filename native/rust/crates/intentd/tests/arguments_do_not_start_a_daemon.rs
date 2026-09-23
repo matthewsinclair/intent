@@ -202,6 +202,16 @@ fn version_still_answers_and_serves_nothing() {
      Every binary here reports the same CARGO_PKG_VERSION, so the version says which LINE and \
      only the commit says which BUILD: {out}"
   );
+  // Issue 0534: and whether that build is the release, as the word after it.
+  assert_eq!(
+    out.trim_end(),
+    format!(
+      "intentd {} ({build}) {}",
+      env!("CARGO_PKG_VERSION"),
+      env!("INTENT_SOURCE_KIND")
+    ),
+    "`--version` must end in the build's kind, `release` or `dev`"
+  );
   assert!(!published(&home), "`--version` served");
 
   let _ = std::fs::remove_dir_all(&home);

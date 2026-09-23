@@ -82,6 +82,11 @@ pub fn dispatch(argv: Vec<String>) -> Outcome {
 /// a verdict's scope in the verdict line rather than in a footnote).
 pub const SOURCE_COMMIT: &str = env!("INTENT_SOURCE_COMMIT");
 
+/// Whether this binary is a `release` or a `dev` build, embedded by `build.rs`
+/// beside the commit (issue 0534). `release` only for a clean build of a commit
+/// tagged `v<version>`, so `dirty-<sha>` and `unknown` are always `dev`.
+pub const SOURCE_KIND: &str = env!("INTENT_SOURCE_KIND");
+
 /// The string `self_provenance_check.sh` greps out of the ARTEFACT.
 ///
 /// SELF-DELIMITING, and that is not cosmetic. Rodata packs string literals with
@@ -111,3 +116,9 @@ static SOURCE_COMMIT_MARKER: &str = env!("INTENT_SOURCE_COMMIT_MARKER");
 /// every one of them captures.
 #[used]
 static SOURCE_VERSION_MARKER: &str = env!("INTENT_SOURCE_VERSION_MARKER");
+/// The artefact's KIND, `[intent-source-kind:release]` or `...:dev]`, for a
+/// reader holding only the file (issue 0534). A third marker for the same
+/// reason as the second: widening the commit marker would change what every
+/// parser of it captures.
+#[used]
+static SOURCE_KIND_MARKER: &str = env!("INTENT_SOURCE_KIND_MARKER");

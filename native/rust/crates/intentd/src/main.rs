@@ -67,6 +67,10 @@ use registry::Registry;
 // by a tool with only the file. Two readers, two mechanisms, one value.
 pub(crate) const SOURCE_COMMIT: &str = env!("INTENT_SOURCE_COMMIT");
 
+/// `release` or `dev`, embedded by `build.rs` beside the commit (issue 0534),
+/// and printed by `--version` after it, as `intent --version` prints it.
+pub(crate) const SOURCE_KIND: &str = env!("INTENT_SOURCE_KIND");
+
 /// The string `int macos publish` and `self_provenance_check.sh` grep out of the
 /// ARTEFACT.
 ///
@@ -97,6 +101,11 @@ static SOURCE_COMMIT_MARKER: &str = env!("INTENT_SOURCE_COMMIT_MARKER");
 /// every one of them captures.
 #[used]
 static SOURCE_VERSION_MARKER: &str = env!("INTENT_SOURCE_VERSION_MARKER");
+/// The artefact's KIND, `[intent-source-kind:release]` or `...:dev]`, for a
+/// reader holding only the file (issue 0534), separate from the commit marker
+/// for the same reason as the version's.
+#[used]
+static SOURCE_KIND_MARKER: &str = env!("INTENT_SOURCE_KIND_MARKER");
 
 /// How long a connection may stay silent before its task is dropped.
 ///
@@ -188,7 +197,12 @@ async fn main() -> ExitCode {
   // than the commit it was recorded under, and an operator diagnosing a daemon
   // asks the daemon.
   if std::env::args().any(|arg| arg == "--version" || arg == "-V") {
-    println!("intentd {} ({})", env!("CARGO_PKG_VERSION"), SOURCE_COMMIT);
+    println!(
+      "intentd {} ({}) {}",
+      env!("CARGO_PKG_VERSION"),
+      SOURCE_COMMIT,
+      SOURCE_KIND
+    );
     return ExitCode::SUCCESS;
   }
 

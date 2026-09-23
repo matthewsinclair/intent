@@ -68,20 +68,23 @@ final class VersionService {
     if next != state { state = next }
   }
 
-  /// `intent version` prints `intent <version> (<commit>)`, where the commit is
-  /// a full sha, `dirty-<sha>`, or `unknown` (spine.rs). A full sha, SHA-1 or
-  /// SHA-256, is shortened to its FIRST eight characters and a `dirty-` marker
-  /// is KEPT, so a dirty build never reads as a clean one. Any other shape is
-  /// rendered as the CLI printed it rather than guessed at; empty output is
-  /// nil. Pure and `nonisolated`, like Health.decode, so its tests run off the
-  /// main actor.
+  /// `intent version` prints `intent <version> (<commit>) <kind>`, where the
+  /// commit is a full sha, `dirty-<sha>`, or `unknown`, and the kind is
+  /// `release` or `dev` (spine.rs, issue 0534). A full sha, SHA-1 or SHA-256, is
+  /// shortened to its FIRST eight characters, a `dirty-` marker is KEPT so a
+  /// dirty build never reads as a clean one, and the kind is kept after it. A
+  /// line with no kind, as an `intent` before 3.2.1 prints, reads the same way
+  /// without one. Any other shape is rendered as the CLI printed it rather than
+  /// guessed at; empty output is nil. Pure and `nonisolated`, like
+  /// Health.decode, so its tests run off the main actor.
   nonisolated static func menuTitle(_ output: String) -> String? {
     let line = output.split(whereSeparator: \.isNewline).first.map(String.init) ?? ""
     let trimmed = line.trimmingCharacters(in: .whitespaces)
     guard !trimmed.isEmpty else { return nil }
-    let shape = /^(\S+) (\S+) \((dirty-)?([0-9a-f]{64}|[0-9a-f]{40})\)$/
+    let shape = /^(\S+) (\S+) \((dirty-)?([0-9a-f]{64}|[0-9a-f]{40})\)( release| dev)?$/
     guard let match = trimmed.wholeMatch(of: shape) else { return trimmed }
     let dirty = match.output.3 ?? ""
-    return "\(match.output.1) \(match.output.2) (\(dirty)\(match.output.4.prefix(8)))"
+    let kind = match.output.5 ?? ""
+    return "\(match.output.1) \(match.output.2) (\(dirty)\(match.output.4.prefix(8)))\(kind)"
   }
 }
