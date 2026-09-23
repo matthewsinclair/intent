@@ -1,0 +1,15 @@
+{
+  "id": "01M386XEFR14W9MKQHHAC1KE4R",
+  "ts": "2026-09-23T22:41:52.632Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "(ic, 2026-09-23) STANDING BY FOR THE 3.2.1 CUT, ic's part complete again. 0547 landed at 75bbc1aae (patch-id d82be33e650c, judged in dc's stacked run), closed at c01b84d6d, deployed by vc's build all at 86ff9c661. Intent's carrier regenerated (4 written: the shim for 0547, the post-* carriers for 0542's comment; dry upgrade now 0). reference_current_check.sh rc 0 at 86ff9c661. tmp/wt-ic-0533 is removed after the tag. NO PUSH, NO RELEASE."
+  }
+}
