@@ -11699,6 +11699,15 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
       rel(root, p)
     );
   }
+  // **A HOOK WHOSE CHAIN BLOCK CANON COULD NOT REWRITE IS NAMED, WITH WHY**
+  // (issue `0538`): it keeps the block it had, which may be one that passes a
+  // commit in silence, and a count alone would never say which hook that is.
+  for (p, why) in &applied.blocks_held {
+    println!(
+      "held: {} -- {why}; its chain block was not rewritten, so it may still say nothing when its carrier is missing",
+      rel(root, p)
+    );
+  }
   // Named, like every other disposition: a skipped file must not read as one
   // canon forgot (issue `0143`).
   for p in &applied.skipped {
@@ -11721,7 +11730,7 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
       applied.written.len(),
       applied.unchanged.len(),
       applied.preserved.len(),
-      applied.held.len(),
+      applied.held.len() + applied.blocks_held.len(),
       applied.skipped.len()
     );
     // **THE `CANNOT RUN` WARNINGS BELOW STAY ON THE APPLY PATH AND THE
@@ -11746,7 +11755,7 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
     applied.written.len(),
     applied.unchanged.len(),
     applied.preserved.len(),
-    applied.held.len(),
+    applied.held.len() + applied.blocks_held.len(),
     applied.skipped.len()
   );
   // hv's ruling 17 (2026-09-15): `intent organize --apply` stays the one door for stale views, and this report names it.

@@ -15,6 +15,12 @@
 //! either tree ever wrote -- and the result was not an error. It was a commit
 //! at rc=0, in a project whose every report said the gate was wired.
 //!
+//! **AND THE BLOCK STAYED SILENT UNTIL ISSUE `0538`.** Installing the carrier
+//! made the absent case rarer and left it passing: the carrier is gitignored, so
+//! a clone or a worktree reached through `core.hooksPath` has the block and not
+//! the carrier. The block now refuses there, and the arms at the end of this
+//! file drive every way it can find no carrier to call.
+//!
 //! Baize is the measured instance: `intent_version` 3.0.0, canon present, fully
 //! ported, whiteboard nodes at work, and a gate running nothing.
 //!
@@ -79,52 +85,188 @@ fn hooks_dir(fx: &crate::common::Fixture) -> std::path::PathBuf {
   hooks
 }
 
+/// Write `hook`'s chain block under `preamble` into `hooks`, executable, and
+/// return its path.
+fn write_hook(hooks: &Path, hook: &str, preamble: &str) -> std::path::PathBuf {
+  let path = hooks.join(hook);
+  std::fs::write(
+    &path,
+    canon::insert_chain_block(hook, preamble).expect("a hook with no block gets one"),
+  )
+  .expect("write hook");
+  std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o755)).expect("chmod");
+  path
+}
+
+/// Run a hook under bash in `cwd`: its exit code and its stderr.
+fn run_hook(hook: &Path, cwd: &Path) -> (Option<i32>, String) {
+  let out = std::process::Command::new("bash")
+    .arg(hook)
+    .current_dir(cwd)
+    .output()
+    .expect("run the hook");
+  (
+    out.status.code(),
+    String::from_utf8_lossy(&out.stderr).into_owned(),
+  )
+}
+
 /// **THE ARM THAT MAKES EVERY OTHER ARM MEAN SOMETHING.**
 ///
-/// It drives the chain block as a shell program with no carrier beside it and
-/// shows the outcome is success and silence. Without this, the rest of the file
-/// reads as "we write one more file"; with it, the file being written is the
-/// difference between a gate and a decoration.
+/// It drives the chain block as a shell program with no carrier beside it. It
+/// was the negative control for the fail-open, and asserted the commit PASSED
+/// in silence, until issue `0538` gave the block its refusal: the premise
+/// changed, as this arm said it would. The commit is now refused, and the
+/// refusal names what is missing and the remedy.
 ///
 /// **Deliberately independent of `apply`.** It executes the block canon emits,
-/// so it stays true about the fail-open even if `apply` is rewritten -- and it
-/// would still pass on the code as it stood before this change, which is what a
-/// negative control is for.
+/// so it stays true about the block even if `apply` is rewritten.
 #[test]
-fn the_block_alone_passes_every_commit_in_silence() {
+fn the_block_alone_refuses_the_commit_and_says_why() {
   let fx = crate::common::Fixture::new();
   fx.git_init();
   let hooks = hooks_dir(&fx);
-
-  let hook = hooks.join("pre-commit");
-  std::fs::write(
-    &hook,
-    canon::insert_chain_block("pre-commit", "").expect("an empty hook is written whole"),
-  )
-  .expect("write hook");
-  std::fs::set_permissions(&hook, std::fs::Permissions::from_mode(0o755)).expect("chmod");
-
+  let hook = write_hook(&hooks, "pre-commit", "");
   assert!(
     !hooks.join("pre-commit.intent").exists(),
-    "the control requires the carrier to be absent"
+    "the arm requires the carrier to be absent"
   );
 
-  let out = std::process::Command::new("bash")
-    .arg(&hook)
-    .current_dir(fx.root())
-    .output()
-    .expect("run the hook");
+  let (code, stderr) = run_hook(&hook, fx.root());
+  assert_eq!(code, Some(1), "no carrier must refuse the commit: {stderr}");
+  assert!(stderr.contains("pre-commit: GATE ABSENT"), "{stderr}");
+  assert!(
+    stderr.contains("pre-commit.intent"),
+    "the missing path is named: {stderr}"
+  );
+  assert!(
+    stderr.contains("remedy: intent claude upgrade --apply"),
+    "{stderr}"
+  );
+}
 
+/// **A CARRIER GIT CANNOT EXECUTE IS REFUSED BY NAME** (issue `0538`): present,
+/// so not absent, and no more able to run the gate.
+#[test]
+fn a_carrier_without_its_execute_bit_is_refused_by_name() {
+  let fx = crate::common::Fixture::new();
+  fx.git_init();
+  let hooks = hooks_dir(&fx);
+  let hook = write_hook(&hooks, "pre-commit", "");
+  let carrier = hooks.join("pre-commit.intent");
+  std::fs::write(&carrier, "#!/bin/sh\nexit 0\n").expect("plant the carrier");
+  std::fs::set_permissions(&carrier, std::fs::Permissions::from_mode(0o644)).expect("chmod 644");
+
+  let (code, stderr) = run_hook(&hook, fx.root());
+  assert_eq!(code, Some(1), "{stderr}");
   assert!(
-    out.status.success(),
-    "the chain block with no carrier must be shown to PASS -- that is the defect \
-     being closed, and if this ever fails the premise of this file has changed"
+    stderr.contains("pre-commit: GATE NOT EXECUTABLE"),
+    "{stderr}"
   );
-  assert!(
-    out.stderr.is_empty(),
-    "and to pass SILENTLY: a warning would at least be a symptom. got: {}",
-    String::from_utf8_lossy(&out.stderr)
+}
+
+/// **A FAILED HOOKS LOOKUP IS REFUSED TOO, UNDER `set -e`** (issue `0538`).
+/// Run outside any repository, `git rev-parse` fails. The block's assignment
+/// used to abort a `set -e` hook right there, at rc 128 with nothing printed;
+/// it now falls through to the refusal, which speaks.
+#[test]
+fn a_failed_hooks_lookup_is_refused_under_set_e() {
+  let hooks = tempfile::tempdir().expect("hooks");
+  let outside = tempfile::tempdir().expect("a directory in no repository");
+  let hook = write_hook(
+    hooks.path(),
+    "pre-commit",
+    "#!/usr/bin/env bash\nset -euo pipefail\n",
   );
+
+  let (code, stderr) = run_hook(&hook, outside.path());
+  assert_eq!(code, Some(1), "{stderr}");
+  assert!(stderr.contains("pre-commit: GATE ABSENT"), "{stderr}");
+}
+
+/// **A CARRIER THAT RUNS DECIDES THE COMMIT**, its exit code passed through
+/// untouched: the control for the refusals above.
+#[test]
+fn a_carrier_that_runs_passes_its_code_through() {
+  let fx = crate::common::Fixture::new();
+  fx.git_init();
+  let hooks = hooks_dir(&fx);
+  let hook = write_hook(&hooks, "pre-commit", "");
+  let carrier = hooks.join("pre-commit.intent");
+  for (body, expected) in [("exit 0", Some(0)), ("exit 3", Some(3))] {
+    std::fs::write(&carrier, format!("#!/bin/sh\n{body}\n")).expect("plant the carrier");
+    std::fs::set_permissions(&carrier, std::fs::Permissions::from_mode(0o755)).expect("chmod");
+    let (code, stderr) = run_hook(&hook, fx.root());
+    assert_eq!(code, expected, "{body}: {stderr}");
+    assert!(!stderr.contains("GATE"), "{body}: {stderr}");
+  }
+}
+
+/// **A POST-PULL HOOK WARNS AND EXITS 0** (issue `0538`). Git has already
+/// changed the tree when it runs, and a `post-checkout` that exits non-zero
+/// becomes the exit code of `git checkout` and of `git worktree add`. So a
+/// missing carrier is said, and nothing is refused.
+#[test]
+fn a_post_pull_hook_without_its_carrier_warns_and_exits_0() {
+  let fx = crate::common::Fixture::new();
+  fx.git_init();
+  let hooks = hooks_dir(&fx);
+  for name in canon::POST_PULL_HOOKS {
+    let hook = write_hook(&hooks, name, "#!/usr/bin/env bash\nset -euo pipefail\n");
+    let (code, stderr) = run_hook(&hook, fx.root());
+    assert_eq!(code, Some(0), "{name}: {stderr}");
+    assert!(
+      stderr.contains(&format!(
+        "{name}: Intent's store was NOT brought up to date"
+      )),
+      "{name}: {stderr}"
+    );
+  }
+}
+
+/// The lines of `text` from its chain block's opener through its end marker,
+/// each found at the start of a line: prose may name a marker mid-sentence, as
+/// `intent/docs/pre-commit-hook.md` does above its manual-install block.
+fn block_of(text: &str) -> String {
+  let lines: Vec<&str> = text.split_inclusive('\n').collect();
+  let start = lines
+    .iter()
+    .position(|l| l.starts_with("# intent-chain-block:start"))
+    .expect("a chain block opener at the start of a line");
+  let end = start
+    + lines[start..]
+      .iter()
+      .position(|l| l.trim_end() == "# intent-chain-block:end")
+      .expect("a chain block end marker");
+  lines[start..=end].concat()
+}
+
+/// **INTENT'S OWN HOOKS CARRY CANON'S BLOCK, BYTE FOR BYTE** (issue `0538`).
+///
+/// `.githooks/pre-commit` carried a refusing form canon never wrote, so the
+/// estate that ships the gate protected itself and shipped every other estate
+/// the silent block. The copies are legitimate only while this holds them to the
+/// one home, and the manual install in `intent/docs/pre-commit-hook.md` is held
+/// the same way.
+#[test]
+fn intents_own_hooks_carry_canons_block() {
+  let repo = testkit::repo_root();
+  let canon_block = |hook: &str| block_of(&canon::insert_chain_block(hook, "").expect("a block"));
+  let mut copies = vec![("pre-commit", repo.join(".githooks/pre-commit"))];
+  for name in canon::POST_PULL_HOOKS {
+    copies.push((name, repo.join(".githooks").join(name)));
+  }
+  copies.push(("pre-commit", repo.join("intent/docs/pre-commit-hook.md")));
+  for (hook, path) in copies {
+    let text =
+      std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+    assert_eq!(
+      block_of(&text),
+      canon_block(hook),
+      "{} does not carry canon's {hook} block",
+      path.display()
+    );
+  }
 }
 
 /// The carrier lands, executable, and its bytes are the install root's own.
@@ -422,5 +564,36 @@ fn report_mode_answers_what_apply_would_do_and_writes_nothing() {
   assert!(
     !clean.unchanged.is_empty(),
     "a clean report must name what it found canonical, not return nothing: {clean:?}"
+  );
+}
+
+/// **A HOOK WHOSE BLOCK CANON CANNOT REWRITE IS HELD WITH ITS REASON, NEVER
+/// REPORTED `unchanged`** (issue `0538`, vc's check). `insert_chain_block`
+/// answers `None` for it and for canon's own block alike; only one of them is
+/// canonical, and the other keeps a block that may still pass in silence.
+#[test]
+fn a_hook_canon_cannot_rewrite_is_held_with_its_reason() {
+  let fx = crate::common::Fixture::new();
+  fx.git_init();
+  let hooks = hooks_dir(&fx);
+  let hook = hooks.join("pre-commit");
+  let block = "# intent-chain-block:start (generated by intent claude upgrade)\n_intent_chain=x\n# intent-chain-block:end\n";
+  let doubled = format!("#!/usr/bin/env bash\n{block}{block}");
+  std::fs::write(&hook, &doubled).expect("plant a doubled hook");
+
+  let applied = apply(&fx, &hooks);
+  assert_eq!(
+    applied.blocks_held,
+    vec![(hook.clone(), canon::BlockHeld::Doubled)],
+    "{applied:?}"
+  );
+  assert!(
+    !applied.unchanged.contains(&hook),
+    "a held hook is not canonical: {applied:?}"
+  );
+  assert_eq!(
+    std::fs::read_to_string(&hook).expect("the hook"),
+    doubled,
+    "its bytes are left as they were"
   );
 }

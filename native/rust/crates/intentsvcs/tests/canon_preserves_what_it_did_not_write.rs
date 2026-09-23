@@ -26,7 +26,7 @@
 //! arm that separates "preserved because we were careful" from "preserved
 //! because nothing was there to lose".
 
-use intentsvcs::canon::{carry_user_block, insert_chain_block};
+use intentsvcs::canon::{BlockHeld, carry_user_block, chain_block_held, insert_chain_block};
 
 /// A consumer hook whose own guards Intent canon has never heard of, with a
 /// header comment between the preamble and the first real command.
@@ -77,12 +77,19 @@ fn a_regenerator_would_fail_this() {
     }
   }
 
-  // And nothing beyond the block was invented.
+  // And nothing beyond the block was invented. The block's own length is read
+  // from what canon emits for an empty hook, less its shebang and blank line,
+  // rather than pinned: it was 6 lines until issue `0538` gave it an `else`.
+  let block = insert_chain_block("pre-commit", "")
+    .expect("an empty hook is written whole")
+    .lines()
+    .count()
+    - 2;
   let added = produced.len() - original.len();
   assert!(
-    added <= 7,
-    "the edit added {added} lines; the chain block is 6 plus a blank. Anything more \
-     means content was synthesised into a consumer's hook.\n--- got ---\n{out}"
+    added <= block + 1,
+    "the edit added {added} lines; the chain block is {block} plus a blank. Anything \
+     more means content was synthesised into a consumer's hook.\n--- got ---\n{out}"
   );
 }
 
@@ -106,10 +113,29 @@ fi
 
 bash \"$(dirname \"$0\")/live-doc-budget.sh\" || exit 1
 ";
+  // **SINCE ISSUE `0538` A RECOGNISED BLOCK IS ALSO BROUGHT TO CANON'S FORM**,
+  // and this one is the form before it: the block comes back once, where it
+  // was, and the project's own line after it is untouched.
+  let out = insert_chain_block("pre-commit", already).expect("the old block is rewritten");
+  assert_eq!(
+    out.matches("# intent-chain-block:start").count(),
+    1,
+    "a block below the top was not recognised, so a second one was inserted and \
+     the chain would run twice:\n{out}"
+  );
   assert!(
-    insert_chain_block("pre-commit", already).is_none(),
-    "a block below the top was not recognised, so a second one would be inserted and \
-     the chain would run twice"
+    out.starts_with("#!/usr/bin/env bash\nset -euo pipefail\n\n# intent-chain-block:start"),
+    "the block moved:\n{out}"
+  );
+  assert!(
+    out.ends_with(
+      "# intent-chain-block:end\n\nbash \"$(dirname \"$0\")/live-doc-budget.sh\" || exit 1\n"
+    ),
+    "the project's own line did not survive byte for byte:\n{out}"
+  );
+  assert!(
+    insert_chain_block("pre-commit", &out).is_none(),
+    "the rewritten hook must read as canonical on the next pass:\n{out}"
   );
 }
 
@@ -177,11 +203,54 @@ fi
 
 #[test]
 fn the_marker_the_estate_actually_carries_is_recognised() {
-  assert!(
-    insert_chain_block("pre-commit", ESTATE_HOOK).is_none(),
+  // Recognised, and since issue `0538` rewritten, because this is the block
+  // before it: one block comes back, in place, under the estate's own preamble.
+  let out = insert_chain_block("pre-commit", ESTATE_HOOK).expect("the old block is rewritten");
+  assert_eq!(
+    out.matches("# intent-chain-block:start").count(),
+    1,
     "a real, already-chained consumer hook read as UNCHAINED. `--apply` therefore \
      writes a second block, `pre-commit.intent` runs twice on every commit, and the \
-     NEXT pass reports `0 written` -- certifying the doubled state as canonical."
+     NEXT pass reports `0 written` -- certifying the doubled state as canonical:\n{out}"
+  );
+  assert!(
+    out.starts_with("#!/usr/bin/env bash\nset -u\n\n# intent-chain-block:start"),
+    "{out}"
+  );
+  assert!(insert_chain_block("pre-commit", &out).is_none(), "{out}");
+}
+
+/// **TWO BLOCKS ARE A HUMAN'S TO REPAIR, AS THE RETIRED MARKER IS** (issue
+/// `0538`). Rewriting one of two live invocations in place would leave the
+/// doubled chain running twice and read as converged.
+#[test]
+fn a_hook_with_two_blocks_is_left_alone() {
+  let doubled = format!(
+    "{ESTATE_HOOK}{}",
+    &ESTATE_HOOK["#!/usr/bin/env bash\nset -u\n".len()..]
+  );
+  assert_eq!(doubled.matches("# intent-chain-block:start").count(), 2);
+  assert!(
+    insert_chain_block("pre-commit", &doubled).is_none(),
+    "a doubled hook was rewritten:\n{doubled}"
+  );
+  assert_eq!(chain_block_held(&doubled), Some(BlockHeld::Doubled));
+}
+
+/// **AN OPENER WITH NO END MARKER LEAVES NO BOUND TO REWRITE WITHIN** (issue
+/// `0538`), so the hook is left as it is rather than rewritten to its end.
+#[test]
+fn an_unclosed_block_is_left_alone() {
+  let unclosed = ESTATE_HOOK.replace("# intent-chain-block:end\n", "");
+  assert!(
+    insert_chain_block("pre-commit", &unclosed).is_none(),
+    "an unclosed block was rewritten:\n{unclosed}"
+  );
+  assert_eq!(chain_block_held(&unclosed), Some(BlockHeld::Unclosed));
+  assert_eq!(
+    chain_block_held(ESTATE_HOOK),
+    None,
+    "the control: one closed block is rewritable"
   );
 }
 
@@ -198,6 +267,11 @@ fn a_hook_carrying_the_retired_marker_gets_no_further_block() {
   assert!(
     insert_chain_block("pre-commit", &doubled).is_none(),
     "a hook carrying the retired marker was not recognised, so a third block would land"
+  );
+  assert_eq!(
+    chain_block_held(&doubled),
+    Some(BlockHeld::RetiredMarker),
+    "and the reason it is left alone is named (issue `0538`)"
   );
 }
 

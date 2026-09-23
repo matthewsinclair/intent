@@ -27,11 +27,17 @@
 //! regenerator writes the guards it knows about and drops the rest, silently,
 //! in a file nobody reads until a guard stops firing.
 //!
-//! So: markers present -> return untouched. Markers absent -> stream the file
-//! line by line, insert after the shebang/`set -*` preamble, and preserve every
-//! other line verbatim including the ones this code cannot interpret. That is
-//! v2's `canon_insert_chain_block` behaviour, matched deliberately rather than
-//! reinvented.
+//! So: markers absent -> stream the file line by line, insert after the
+//! shebang/`set -*` preamble, and preserve every other line verbatim including
+//! the ones this code cannot interpret. That is v2's `canon_insert_chain_block`
+//! behaviour, matched deliberately rather than reinvented. Markers present ->
+//! the lines BETWEEN them are canon's and are brought to canon's block, and
+//! every line outside them passes through byte for byte (issue `0538`). Until
+//! then a block already present was returned untouched, so a changed block
+//! could never reach an estate that was already wired. Measured before that
+//! changed, 2026-09-23: in 19 estates every block was canon's own, byte for
+//! byte, or Intent's hand-written refusing form, and no project line sat
+//! between the markers. A consumer's own guards run OUTSIDE the block.
 //!
 //! # Why templates are read rather than embedded
 //!
@@ -217,6 +223,10 @@ pub struct Applied {
   /// (issue `0143`) and `.mcp.json` (AC-24.1) under `--skip-settings`. Not
   /// `preserved`: nothing here was read, so nothing can be said about whose it is.
   pub skipped: Vec<PathBuf>,
+  /// Hooks whose chain block this run could not bring to canon's, each with the
+  /// reason (issue `0538`); their bytes were not touched. Not `held`: `--force`
+  /// overwrites nothing here, because what each needs is a human's repair.
+  pub blocks_held: Vec<(PathBuf, BlockHeld)>,
   /// Where the machine's gate resolved when the carrier was installed, against
   /// the install this run's templates came from; `None` when no carrier was
   /// installed at all.
@@ -264,22 +274,62 @@ impl std::fmt::Display for CanonError {
 pub const POST_PULL_HOOKS: [&str; 3] = ["post-merge", "post-checkout", "post-rewrite"];
 
 /// The chain block for `hook`, verbatim. Emitted rather than templated because
-/// it is four lines and a template file would put its only copy behind a path
-/// lookup that can fail at exactly the moment the hook matters.
+/// a template file would put its only copy behind a path lookup that can fail
+/// at exactly the moment the hook matters.
 ///
 /// **ONE BLOCK FOR EVERY HOOK, NAMED BY THE HOOK IT SITS IN.** Each calls its
 /// own `<hook>.intent` carrier with git's arguments. A post-pull carrier always
 /// exits 0, so the `|| exit $?` that makes the pre-commit gate refuse costs
 /// those hooks nothing.
+///
+/// **AND IT SAYS SO WHEN THERE IS NO CARRIER TO CALL** (issue `0538`). The
+/// block had no `else`, so an absent carrier, one git cannot execute, or a
+/// failed `git rev-parse` skipped the gate and printed nothing: the silent pass
+/// [`install_carrier`] exists to end, still reachable, because the carrier is
+/// gitignored and a clone or worktree reached through `core.hooksPath` gets the
+/// hook without it. The gate now REFUSES there, as the shim does (hv ruling 4).
+/// The hooks path is read with `|| :` so that a failed `git rev-parse` falls
+/// through to that refusal: in a hook under `set -e`, as Intent's own are, the
+/// bare assignment aborted the hook first, at rc 128 with nothing printed.
+///
+/// **A POST-PULL HOOK WARNS AND EXITS 0.** It runs after git has changed the
+/// tree, so there is nothing left to refuse, and a `post-checkout` that exits
+/// non-zero becomes the exit code of `git checkout`, `git switch` and `git
+/// worktree add` (measured on git 2.55.0, 2026-09-23). Refusing would report as
+/// failed a checkout that happened, in every fresh worktree of such an estate.
 fn chain_block(hook: &str) -> String {
-  format!(
-    "{CHAIN_START}\n\
-     _intent_chain=\"$(git rev-parse --git-path hooks 2>/dev/null)/{hook}.intent\"\n\
-     if [ -x \"$_intent_chain\" ]; then\n\
-     \x20 \"$_intent_chain\" \"$@\" || exit $?\n\
-     fi\n\
-     {CHAIN_END}\n"
-  )
+  let say = |text: &str| format!("  echo \"{hook}: {text}\" >&2");
+  let otherwise = if POST_PULL_HOOKS.contains(&hook) {
+    vec![
+      "else".to_string(),
+      say("Intent's store was NOT brought up to date: no executable carrier at $_intent_chain"),
+      say("  remedy: intent claude upgrade --apply, then intent sync --apply"),
+    ]
+  } else {
+    vec![
+      "elif [ -e \"$_intent_chain\" ]; then".to_string(),
+      say("GATE NOT EXECUTABLE -- the Intent gate did NOT run: no guard, no critic, no doctor."),
+      say("  the carrier has no execute bit: $_intent_chain"),
+      say("  remedy: intent claude upgrade --apply"),
+      "  exit 1".to_string(),
+      "else".to_string(),
+      say("GATE ABSENT -- the Intent gate did NOT run: no guard, no critic, no doctor."),
+      say("  this hook declares a gate it cannot find: $_intent_chain"),
+      say("  the carrier is gitignored, so no clone or worktree receives it."),
+      say("  remedy: intent claude upgrade --apply"),
+      "  exit 1".to_string(),
+    ]
+  };
+  let mut lines = vec![
+    CHAIN_START.to_string(),
+    format!("_intent_chain=\"$(git rev-parse --git-path hooks 2>/dev/null || :)/{hook}.intent\""),
+    "if [ -x \"$_intent_chain\" ]; then".to_string(),
+    "  \"$_intent_chain\" \"$@\" || exit $?".to_string(),
+  ];
+  lines.extend(otherwise);
+  lines.push("fi".to_string());
+  lines.push(CHAIN_END.to_string());
+  lines.join("\n") + "\n"
 }
 
 /// The lines of a pre-commit hook that lie OUTSIDE its chain block, each with
@@ -308,17 +358,18 @@ pub fn lines_outside_chain_block(text: &str) -> Vec<(usize, &str)> {
   out
 }
 
-/// Insert `hook`'s chain block into that hook's existing text.
+/// Insert `hook`'s chain block into that hook's existing text, or bring a block
+/// already there to canon's form.
 ///
-/// **RETURNS `None` WHEN THE BLOCK IS ALREADY THERE**, so the caller writes
+/// **RETURNS `None` WHEN CANON'S BLOCK IS ALREADY THERE**, so the caller writes
 /// nothing and the file's mtime does not move. Idempotence is a property of
 /// this function rather than of the caller remembering to check.
 ///
-/// Everything not the inserted block is passed through byte for byte. See the
-/// module header for why that is a requirement and not a convenience.
+/// Everything not the block is passed through byte for byte. See the module
+/// header for why that is a requirement and not a convenience.
 pub fn insert_chain_block(hook: &str, existing: &str) -> Option<String> {
   if existing.lines().any(opens_chain_block) {
-    return None;
+    return rewrite_chain_block(existing, &chain_block(hook));
   }
 
   // An empty or absent hook gets a shebang and the block, which is the whole
@@ -358,6 +409,73 @@ pub fn insert_chain_block(hook: &str, existing: &str) -> Option<String> {
     out.push_str(&chain_block(hook));
   }
   Some(out)
+}
+
+/// Bring the one chain block in `existing` to `block`, in place (issue
+/// `0538`): the lines from its opener to its end marker are replaced, and
+/// every other byte is kept, its line endings included.
+///
+/// **`None` WHEN THE BLOCK IS ALREADY `block`, AND WHEN [`chain_block_held`]
+/// SAYS IT CANNOT BE REWRITTEN SAFELY.** The caller tells the two apart by
+/// asking that function, which is the one place the decision is made.
+fn rewrite_chain_block(existing: &str, block: &str) -> Option<String> {
+  if chain_block_held(existing).is_some() {
+    return None;
+  }
+  let lines: Vec<&str> = existing.split_inclusive('\n').collect();
+  let start = lines.iter().position(|line| opens_chain_block(line))?;
+  let end = (start..lines.len()).find(|&i| lines[i].trim() == CHAIN_END)?;
+  if lines[start..=end].concat() == block {
+    return None;
+  }
+  let mut out = lines[..start].concat();
+  out.push_str(block);
+  out.push_str(&lines[end + 1..].concat());
+  Some(out)
+}
+
+/// Why the chain block already in a hook cannot be rewritten in place (issue
+/// `0538`). The hook is left exactly as it is, so the block in it may still be
+/// one that passes a commit it cannot gate; `claude upgrade` names the hook and
+/// the reason, because this is the one case that keeps an old block.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BlockHeld {
+  /// Two openers: the hook was doubled, and deleting one of two live
+  /// invocations is a human's call.
+  Doubled,
+  /// The retired `# >>> intent-chain-block >>>` marker, which only that
+  /// doubling ever left behind.
+  RetiredMarker,
+  /// An opener with no end marker, so there is no bound to rewrite within.
+  Unclosed,
+}
+
+impl std::fmt::Display for BlockHeld {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    f.write_str(match self {
+      Self::Doubled => "it carries two chain blocks, and one is a human's to delete",
+      Self::RetiredMarker => {
+        "it carries the retired `# >>> intent-chain-block >>>` marker, left by a doubling a human has to repair"
+      }
+      Self::Unclosed => "its chain block has no `# intent-chain-block:end`, so there is no bound to rewrite within",
+    })
+  }
+}
+
+/// Whether the chain block in `existing` is one this code must leave alone,
+/// and why. `None` for a hook with no block, or with one block it can rewrite.
+pub fn chain_block_held(existing: &str) -> Option<BlockHeld> {
+  let openers: Vec<&str> = existing.lines().filter(|l| opens_chain_block(l)).collect();
+  if openers.iter().any(|l| l.trim() == LEGACY_CHAIN_START) {
+    return Some(BlockHeld::RetiredMarker);
+  }
+  if openers.len() > 1 {
+    return Some(BlockHeld::Doubled);
+  }
+  let mut after_opener = existing.lines().skip_while(|l| !opens_chain_block(l));
+  let opened = after_opener.next().is_some();
+  let closed = after_opener.any(|l| l.trim() == CHAIN_END);
+  (opened && !closed).then_some(BlockHeld::Unclosed)
 }
 
 /// Read a canon template out of the install home.
@@ -624,39 +742,56 @@ pub fn apply(
     install_carrier(home, hooks, opts.report, &mut applied)?;
 
     // The chain block. See the module header: region-edited, never regenerated.
-    let hook = hooks.join("pre-commit");
-    let existing = std::fs::read_to_string(&hook).unwrap_or_default();
-    match insert_chain_block("pre-commit", &existing) {
-      None => applied.unchanged.push(hook.clone()),
-      Some(updated) => write_if_changed(&hook, &updated, opts.report, &mut applied)?,
-    }
-    // **OUTSIDE THE MATCH, SO IT RUNS ON THE ALREADY-BLOCKED PATH TOO.** It
-    // used to sit in the `Some` arm only, which left the one state nothing
-    // would ever repair: a hook carrying a correct chain block that git will
-    // not execute. That is the same silent skip the carrier half closes,
-    // one file up -- and `insert_chain_block` returning `None` is exactly the
-    // "already correct" report that made it invisible.
-    if !opts.report {
-      make_executable(&hook)?;
-    }
+    chain_hook(
+      &hooks.join("pre-commit"),
+      "pre-commit",
+      opts.report,
+      &mut applied,
+    )?;
 
     // 5. The store after a pull (ST0078 WP-03): the same two halves, carrier
     //    first, for each hook that follows a change git makes to the tree.
     for name in POST_PULL_HOOKS {
       install_post_pull_carrier(home, hooks, name, opts.report, &mut applied)?;
-      let hook = hooks.join(name);
-      let existing = std::fs::read_to_string(&hook).unwrap_or_default();
-      match insert_chain_block(name, &existing) {
-        None => applied.unchanged.push(hook.clone()),
-        Some(updated) => write_if_changed(&hook, &updated, opts.report, &mut applied)?,
-      }
-      if !opts.report {
-        make_executable(&hook)?;
-      }
+      chain_hook(&hooks.join(name), name, opts.report, &mut applied)?;
     }
   }
 
   Ok(applied)
+}
+
+/// Bring one hook's chain block to canon's, and the hook to executable: the
+/// one path for the gate and every post-pull hook alike.
+///
+/// **A HOOK WHOSE BLOCK CANNOT BE REWRITTEN IS HELD, WITH ITS REASON, AND IS
+/// NEVER REPORTED `unchanged`** (issue `0538`). [`insert_chain_block`] answers
+/// `None` both for canon's block and for one it must leave alone, and only the
+/// first is canonical. The second keeps whatever block it had, so it is the one
+/// case that can still pass a commit in silence, and it is named.
+fn chain_hook(
+  hook: &Path,
+  name: &str,
+  report: bool,
+  applied: &mut Applied,
+) -> Result<(), CanonError> {
+  let existing = std::fs::read_to_string(hook).unwrap_or_default();
+  match insert_chain_block(name, &existing) {
+    Some(updated) => write_if_changed(hook, &updated, report, applied)?,
+    None => match chain_block_held(&existing) {
+      Some(why) => applied.blocks_held.push((hook.to_path_buf(), why)),
+      None => applied.unchanged.push(hook.to_path_buf()),
+    },
+  }
+  // **OUTSIDE THE MATCH, SO IT RUNS ON THE ALREADY-BLOCKED PATH TOO.** It
+  // used to sit in the `Some` arm only, which left the one state nothing
+  // would ever repair: a hook carrying a correct chain block that git will
+  // not execute. That is the same silent skip the carrier half closes,
+  // one file up -- and `insert_chain_block` returning `None` is exactly the
+  // "already correct" report that made it invisible.
+  if !report {
+    make_executable(hook)?;
+  }
+  Ok(())
 }
 
 /// Install `hooks/post-pull.sh` as `<hooks>/<hook>.intent`, the carrier the

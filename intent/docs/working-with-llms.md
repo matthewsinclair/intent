@@ -213,7 +213,7 @@ Why no `PostToolUse` hook by default: it would fire on every `Write|Edit` during
 
 The primary critic cadence is the git `pre-commit` hook, and `intent claude upgrade --apply` installs it in two parts in the hooks directory git names (`git rev-parse --git-path hooks`, so `core.hooksPath` is honoured):
 
-- `pre-commit` gains a marked chain block (`# intent-chain-block:start` … `:end`) that runs `pre-commit.intent`. An existing hook keeps every other line; the block is inserted after its shebang and `set` preamble, and a hook already carrying the block is left alone.
+- `pre-commit` gains a marked chain block (`# intent-chain-block:start` … `:end`) that runs `pre-commit.intent`. An existing hook keeps every other line; the block is inserted after its shebang and `set` preamble, and a block already there is brought to the current form in place. Without a runnable `pre-commit.intent` the block refuses the commit and names the path.
 - `pre-commit.intent` is a shim. It reads the install root from `~/.local/share/intent/home` and execs that install's gate, `lib/templates/hooks/pre-commit.sh`. When the pointer is absent or names something that is not an install, it refuses the commit rather than skipping.
 - The same run installs `post-merge`, `post-checkout` and `post-rewrite` blocks, each with a carrier from `lib/templates/hooks/post-pull.sh`, which runs `intent sync --apply` after a pull, a checkout or a rewrite.
 
