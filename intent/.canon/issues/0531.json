@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 531,
+  "slug": "wb-show-all-and-wb-pickup-all-print-a-handled-me",
+  "title": "wb show --all and wb pickup --all print a handled message with no (handled), so the one listing meant to show handled messages cannot say which they are",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-23",
+  "reporter": "Matthew Sinclair",
+  "body": "Seen (cc's surface capture for 0525 and ic's review of it, F5, 2026-09-23): with `--all`, `intent wb show` and `intent wb pickup` list every message, handled ones included, and print a handled message's line exactly as a live one's, eg `cc -> ic please review the client numbers`. The inbox view's heading says `(handled)` and the JSON carries `state`, but the one CLI listing whose job is to show the handled messages cannot say which they are. With 0525 the line carries `(edited)` and still no `(handled)`. The stage 2 binary, which has no 0525, prints the same line, so it predates 0525.\n\nExpected: a handled message's CLI line carries `(handled)`, in the order the inbox view's heading uses: after any `(fyi)` and before `(edited)`. The mark is spelled once, beside `edited_mark` in `intentsvcs::views`, for the view and the CLI both.\n\nRuling (vc under hv's pen, 2026-09-23, on ic's review): it rides 0525's bank under its own number, because it is the same format argument in the same line.\n\nRouting: cc builds it in 0525's bank, and vc judges.\n"
+}

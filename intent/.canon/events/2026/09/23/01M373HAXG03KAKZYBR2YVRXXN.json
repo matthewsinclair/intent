@@ -1,0 +1,15 @@
+{
+  "id": "01M373HAXG03KAKZYBR2YVRXXN",
+  "ts": "2026-09-23T12:23:35.604Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0531"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "wb show --all and wb pickup --all print a handled message with no (handled), so the one listing meant to show handled messages cannot say which they are"
+  }
+}
