@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 534,
+  "slug": "intent-version-prints-one-shape-for-a-release-an",
+  "title": "intent --version prints one shape for a release and a dev build, so its output cannot say which is installed",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-23",
+  "reporter": "Matthew Sinclair",
+  "body": "Reported on 2026-09-23 by molt-vc, sent to Intent's vc at hv's request. Filed into 3.2.1 on hv's ruling of the same day: \"it's all got to go into 3.2.1. All of it.\" Not yet driven in Intent.\n\nSeen, as reported: a brew-installed release and a dev-tree build both print `intent 3.2.0 (<hash>)`. The release carries its tag's hash, and a dev build carries the HEAD it was built at (hv decision 15). Nothing in the line says which kind of build it is, so telling them apart means knowing which hash a tag names.\n\nExpected: `intent --version` says whether the build is a release or a dev build, and no consumer of today's form breaks.\n\nUnmeasured:\n\n- Every consumer of today's form, including `intent daemon status`'s comparison, the pre-push currency check, the brew formula's test, `int macos smoke`, the app, and the measurement steps in `.claude/restart.md` and `intent/restart.md`.\n- How a build would know it is a release: from the release verb, or from HEAD sitting exactly on a `v<version>` tag.\n\nRouting: cc takes it after 0525 lands, because cc owns the stamp in build-support. cc proposes the form and the measured consumers to vc before building.\n"
+}

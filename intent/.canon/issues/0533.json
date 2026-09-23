@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 533,
+  "slug": "nothing-in-intent-answers-where-the-gate-s-insta",
+  "title": "Nothing in Intent answers where the gate's install root resolves, so a consumer copies the shim's resolution to check it",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-23",
+  "reporter": "Matthew Sinclair",
+  "body": "Reported on 2026-09-23 by molt-vc, sent to Intent's vc at hv's request. Filed into 3.2.1 on hv's ruling of the same day: \"it's all got to go into 3.2.1. All of it.\" Not yet driven in Intent.\n\nSeen, as reported:\n\n- Molt checks that its gate will run by copying the shim's resolution. It reads the home pointer under XDG_DATA_HOME, checks that `lib/templates` is under it, and on a brew install checks that its realpath matches `opt/intent/libexec`.\n- The shim's `--where` answers for one project only. `intent info` reports the running binary's own install root, not the root the pointer names. The two can differ, and the gate follows the pointer.\n\nExpected: one supported query, such as an `intent info` line or `intent bootstrap --check`. It reports the home pointer, what the pointer resolves to, whether `lib/templates` is under it, and whether it is the running binary's own install. A consumer then asks Intent instead of copying its resolution.\n\nUnmeasured: whether `info` or `bootstrap --check` fits the existing surface, and whether `install::same_install` and `install::stable_root` (0527) already carry the comparison.\n\nRouting: ic proposes the surface to vc before building.\n"
+}

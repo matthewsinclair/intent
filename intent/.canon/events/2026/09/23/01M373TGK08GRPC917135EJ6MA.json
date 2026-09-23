@@ -1,0 +1,15 @@
+{
+  "id": "01M373TGK08GRPC917135EJ6MA",
+  "ts": "2026-09-23T12:28:36.320Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-23, hv first-hand in prose, answering vc's question on ic's F3; wording vc's) EVERYTHING FOUND GOES INTO 3.2.1. hv, verbatim: \"Yes, it's all got to go into 3.2.1. All of it.\" So F3, filed as 0532, is in the cut and dc builds it. Board views indent a multi-line item's continuation lines, and doctor reads the old shape as an uncounted StaleRender, so no estate's commits are refused while its boards wait for a re-render. It joins 0525, 0529, 0530 and 0531. VC READS \"ALL OF IT\" TO TAKE IN molt-vc's TWO ITEMS AS WELL. vc had carried them as post-3.2.1 backlog on its own classification and never on hv's: 0533 (ic: a supported query for where the gate's install root resolves) and 0534 (cc: `intent --version` says whether it is a release or a dev build). A finding made before the cut is fixed before the cut. WHAT THE RULING DOES NOT REACH, on vc's reading: ST0060 and ST0077, which hv put on hold by name on 2026-09-23 and did not lift."
+  }
+}

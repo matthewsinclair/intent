@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 302a2f4f-f054-4037-a411-d4f6d7b7df7e
-heartbeat_at: 2026-09-23 12:13Z
+heartbeat_at: 2026-09-23 12:28Z
 status: active
-focus: "Pair and daemon at c5cca7e26 (HEAD) since 12:09Z, so 0520 to 0528 are deployed. Next: cc's 0525+0529 pins and rung-30 drive, then ONE stacked run with ic's 0530; vc judges; second build all; hv's push; CI; ic's pre-cut pass; the cut. NO PUSH, NO RELEASE."
+focus: "hv decision 32: everything found goes into 3.2.1. cc's stack (0525+0529+0531, with 0530) to judge; then 0532 (dc), 0533 (ic), 0534 (cc); second build all; hv's push; CI; pre-cut pass; the cut. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -15,27 +15,30 @@ claims: []
 
 - RESUME (vc, 2026-09-23 after hv's second compact; replaces the localfold text). Measure first: `intent outs`, `git log --oneline -15`, `intent --version`, `intent daemon status`, and ListAgents to ask cc, dc and ic where they stand.
 
-DEPLOYED: build all ran 12:05:37Z to 12:07:28Z (staged, then promoted) and vc restarted intentd at 12:09:49Z. intent and intentd both name c5cca7e26 and doctor reports 0 findings. So 0520, 0521, 0522, 0523 (both stages), 0524, 0526, 0527 and 0528 run on this machine. 0521 stays open until CI's bats run reads green on both legs after hv's push.
+DEPLOYED: hv's build all ran 12:05:36Z to 12:07:28Z (staged, then promoted). intentd was restarted at 12:09:49Z (vc), 12:10:10Z (ic) and 12:19:50Z (hv, with the app), all on c5cca7e26, and doctor reports 0 findings. So 0520 through 0528 run on this machine. 0521 stays open until CI's bats run reads green on both legs after hv's push.
+
+hv decision 32 (2026-09-23): everything found goes into 3.2.1. THE CUT NOW HOLDS:
+- cc's stack: 0525 with F1 (the mark at the end of an item's first line) and F4 (wording), plus 0529 and 0531 (a handled message's CLI line says handled). ic's 0530 is stacked with it.
+- 0532 (F3, dc): continuation lines indented in board views, doctor reading the old shape as StaleRender, and 0523's scans learning the indented spelling. dc builds it on top of cc's re-banked stack, and it lands after it.
+- 0533 (ic): a supported query for where the gate's install root resolves. ic proposes the surface to vc first.
+- 0534 (cc, after 0525 lands): --version says release or dev. cc proposes the form and every consumer to vc first.
+ST0060 and ST0077 stay on hv's hold.
 
 NEXT, IN ORDER:
-(1) cc: re-check refs/bank/cc/0525 on HEAD, bless the faces, re-pin (JSON 22, DDL 26, SDL 19, store v30), run the targeted arms, then the rung-30 drive on COPIES of Intent's and Gtools' stores. The drive reports row counts before and after, the first command's result, doctor's verdict, and every board.json and view byte-identical after a re-render. ic reviews the (edited) surface, then cc re-banks. Then ONE stacked judging run over 0525+0529 and ic's 0530 (refs/bank/ic/0530/on-1ac4079f2, blob 6890365f4, patch-id b4e176144), with both blobs named in the START and the whole machine censused first. vc judges from the END, and the banks land in the order cc and ic agree.
-(2) A second build all for 0525, 0529 and 0530, then `intent daemon restart`. Warn gtools-vc before and after. No commit may land mid-build (decision 15).
-(3) hv pushes. vc reads both CI workflows on both legs, which closes 0521.
-(4) ic's pre-cut pass: regenerate the reference set at the final HEAD, re-read every 3.2.1 entry against it, and re-drive known-defects.md whole.
-(5) The cut, in hv's terminal.
+(1) cc's ONE judging run over the stack (0525+0529+0531 and 0530). Before it: the rung-30 drive on COPIES of Intent's and Gtools' stores, once, on the final binary. The drive reports row counts before and after, the first command's result, doctor's verdict, and every board.json and view byte-identical after a re-render, with a wb edit in a third copy as the positive control. The START names the base, each blob with its patch-id and `git apply --stat`, and the worktree's tree. It runs the whole intentsvcs, intent-cli and intentd suites, then the whole bats suite, baseline and bank, with red sets diffed by name. vc judges from the END, and the banks land in the order cc and ic agree.
+(2) 0532, 0533 and 0534, each banked and judged in its own run after the stack lands, or stacked when their files meet. ic reviews each surface.
+(3) The second build all after the last landing, then `intent daemon restart`. Warn gtools-vc before and after. No commit in any path while it runs, because verify_pair compares the pair to HEAD unscoped.
+(4) hv pushes. vc reads both CI workflows on both legs, which closes 0521.
+(5) The pre-cut pass after the last landing. ic regenerates the reference set and re-reads every 3.2.1 entry. dc re-drives known-defects.md whole, on ic's brief.
+(6) The cut, in hv's terminal.
 
-dc, ordered at 12:11Z: remove tmp/wt-0528 before the stacked run, and send a read-only census, for todo 62, of every estate that already has Intent.
-
-CORRECTED 2026-09-23: build all never removes the shared pair. Since 0196 (e3b4febe1) it builds in target/staging/release and promotes by rename. vc's "never inside a compact" rule had no mechanism behind it. `bin/devbin fullcycle` is the command that removes native/rust/target.
-
-AFTER THE CUT: todo 62 (the fleet sweep, with `intent todo update` for 0528's marker) and todo 63 (post-3.2.1 backlog).
+AFTER THE CUT: todo 62 (the fleet sweep). Its input is dc's census of 23 estates with Intent (dc's scratchpad census.tsv). The questions it raises are vc's: Gtools' tracked carriers, Utilz's inline formatter checks with none declared, and the seven estates hold 29 does not name.
 
 NO PUSH, NO RELEASE.
 
 ## TODO
 
 - FLEET SWEEP, right after the 3.2.1 cut (hv's ruling of 2026-09-23), in every estate that ALREADY has Intent (hv decision 31: nothing is installed where Intent is absent): intent claude upgrade --apply, then intent todo update (so 0528's generator marker reaches every todo view, the sleeping estates included, where no write would re-render it and Utilz's todo guard stays blind), then intent doctor, one commit per estate, no push. Hold 27's remaining guard wiring rides the same pass. Each project's own vc does its estate where one is running; the rest are done from here.
-- POST-3.2.1 BACKLOG, not in the cut (from molt-vc, 2026-09-23, sent at hv's request): (1) a SUPPORTED QUERY for the gate's resolved install root. Molt copies the shim's resolution to check it: the pointer under XDG_DATA_HOME, lib/templates under it, and on brew a realpath match with opt/intent/libexec. The shim's --where answers per project only, and intent info reports the running binary's root, not the pointer's. An intent info line or intent bootstrap --check reporting the pointer and whether it resolves would let Molt ask Intent instead. (2) An observation: the version string cannot tell a release from a dev build (both print 'intent 3.2.0 (<hash>)'). File each as its own issue or thread after the cut, if hv wants them.
 
 ## Holds
 
