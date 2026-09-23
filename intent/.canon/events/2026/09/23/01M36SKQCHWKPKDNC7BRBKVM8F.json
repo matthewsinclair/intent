@@ -1,0 +1,17 @@
+{
+  "id": "01M36SKQCHWKPKDNC7BRBKVM8F",
+  "ts": "2026-09-23T09:30:08.145Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "0527 (filed ce3dd1036, high, in 3.2.1) is dc's after the Lamplight commit: on a brew install the gate's install-root pointer records the versioned Cellar keg, so a brew upgrade's cleanup leaves every gated commit refused until intent bootstrap is re-run. The ruling and four behaviours are in the body: bootstrap records <prefix>/opt/intent/libexec when it resolves to the same keg (resolve stays pure, tested on a planted Cellar-and-opt tree), and the caveat in bin/.devbin/cmd/macos gains the upgrade case, still conditional. Drive, do not assume, what intentd's LaunchAgent plist records. The macOS bats that drive int macos formula are owed with the bank. Bank, judging run under the heavy-run protocol, vc judges from dc's END, stacked after 0523. NO PUSH, NO RELEASE.",
+    "fyi": false,
+    "re": null,
+    "recipient": "dc"
+  }
+}
