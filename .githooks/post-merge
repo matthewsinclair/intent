@@ -4,7 +4,7 @@
 _intent_chain="$(git rev-parse --git-path hooks 2>/dev/null || :)/post-merge.intent"
 if [ -x "$_intent_chain" ]; then
   "$_intent_chain" "$@" || exit $?
-else
+elif [ -f "$(git rev-parse --show-toplevel 2>/dev/null || :)/intent/.cache/intent.db" ]; then
   echo "post-merge: Intent's store was NOT brought up to date: no executable carrier at $_intent_chain" >&2
   echo "post-merge:   remedy: intent claude upgrade --apply, then intent sync --apply" >&2
 fi

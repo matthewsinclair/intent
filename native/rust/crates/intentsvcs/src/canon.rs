@@ -297,11 +297,21 @@ pub const POST_PULL_HOOKS: [&str; 3] = ["post-merge", "post-checkout", "post-rew
 /// non-zero becomes the exit code of `git checkout`, `git switch` and `git
 /// worktree add` (measured on git 2.55.0, 2026-09-23). Refusing would report as
 /// failed a checkout that happened, in every fresh worktree of such an estate.
+///
+/// **AND IT WARNS ONLY WHERE THERE IS A STORE TO BE BEHIND** (vc's ruling,
+/// 2026-09-23): `intent/.cache/intent.db` under the checkout's top level. With
+/// no store there is nothing to bring up to date, and the first `intent`
+/// command there builds one, so silence loses nothing. That is every judging
+/// worktree a node makes, and two lines on each `git worktree add` in them
+/// would teach a reader to skip the warning. The path is the default
+/// `intent_dir`'s, which every estate on this machine uses (18 configs read,
+/// 2026-09-23); a project that moves `intent_dir` gets the silence.
 fn chain_block(hook: &str) -> String {
   let say = |text: &str| format!("  echo \"{hook}: {text}\" >&2");
   let otherwise = if POST_PULL_HOOKS.contains(&hook) {
     vec![
-      "else".to_string(),
+      "elif [ -f \"$(git rev-parse --show-toplevel 2>/dev/null || :)/intent/.cache/intent.db\" ]; then"
+        .to_string(),
       say("Intent's store was NOT brought up to date: no executable carrier at $_intent_chain"),
       say("  remedy: intent claude upgrade --apply, then intent sync --apply"),
     ]

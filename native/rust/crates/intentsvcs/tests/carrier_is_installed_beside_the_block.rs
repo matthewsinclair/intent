@@ -202,23 +202,51 @@ fn a_carrier_that_runs_passes_its_code_through() {
   }
 }
 
-/// **A POST-PULL HOOK WARNS AND EXITS 0** (issue `0538`). Git has already
-/// changed the tree when it runs, and a `post-checkout` that exits non-zero
-/// becomes the exit code of `git checkout` and of `git worktree add`. So a
-/// missing carrier is said, and nothing is refused.
+/// **A POST-PULL HOOK WITHOUT ITS CARRIER WARNS WHERE THERE IS A STORE, IS
+/// SILENT WHERE THERE IS NONE, AND EXITS 0 EITHER WAY** (issue `0538`, vc's
+/// ruling of 2026-09-23). Git has already changed the tree when it runs, and a
+/// `post-checkout` that exits non-zero becomes the exit code of `git checkout`
+/// and of `git worktree add`, so nothing is refused. With no store there is
+/// nothing to bring up to date, which is every fresh judging worktree. The
+/// third pass is the control: a carrier that is there runs, and nothing warns.
 #[test]
-fn a_post_pull_hook_without_its_carrier_warns_and_exits_0() {
+fn a_post_pull_hook_warns_only_where_there_is_a_store() {
   let fx = crate::common::Fixture::new();
   fx.git_init();
   let hooks = hooks_dir(&fx);
+  let store = fx.root().join("intent/.cache/intent.db");
+  assert!(!store.exists(), "the first pass requires no store");
   for name in canon::POST_PULL_HOOKS {
     let hook = write_hook(&hooks, name, "#!/usr/bin/env bash\nset -euo pipefail\n");
     let (code, stderr) = run_hook(&hook, fx.root());
+    assert_eq!(
+      (code, stderr.as_str()),
+      (Some(0), ""),
+      "{name}: no store, so nothing to say"
+    );
+  }
+
+  std::fs::create_dir_all(store.parent().expect("a parent")).expect("mkdir .cache");
+  std::fs::write(&store, b"").expect("a store");
+  for name in canon::POST_PULL_HOOKS {
+    let (code, stderr) = run_hook(&hooks.join(name), fx.root());
     assert_eq!(code, Some(0), "{name}: {stderr}");
     assert!(
       stderr.contains(&format!(
         "{name}: Intent's store was NOT brought up to date"
       )),
+      "{name}: {stderr}"
+    );
+  }
+
+  for name in canon::POST_PULL_HOOKS {
+    let carrier = hooks.join(format!("{name}.intent"));
+    std::fs::write(&carrier, "#!/bin/sh\necho carrier-ran >&2\n").expect("plant the carrier");
+    std::fs::set_permissions(&carrier, std::fs::Permissions::from_mode(0o755)).expect("chmod");
+    let (code, stderr) = run_hook(&hooks.join(name), fx.root());
+    assert_eq!(code, Some(0), "{name}: {stderr}");
+    assert!(
+      stderr.contains("carrier-ran") && !stderr.contains("NOT brought up to date"),
       "{name}: {stderr}"
     );
   }
