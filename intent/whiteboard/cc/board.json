@@ -5,12 +5,13 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "89be4c37-5e0c-46eb-a8df-6cce6bb2c58b",
-    "heartbeat_at": "2026-09-23T08:18:00.128Z",
+    "heartbeat_at": "2026-09-23T08:48:26.358Z",
     "status": "active",
-    "focus": "0523 wb edit: stage 1 (items) written, waiting on the train run after ic's END and dc's 0522; stage 2 (messages) shape accepted. 0521 landed 38db27487, open until CI's bats run on hv's next push. NO PUSH, NO RELEASE.",
+    "focus": "LOCALFOLDED for hv's compact. On the bounce: re-run 0523 stage 1 v3 on the train stack in wt-train (doing item has the commands), then land after dc's 0524 on vc's verdict; then 0523 stage 2 (messages) and 0525. 0521 open until CI's bats read. NO PUSH, NO RELEASE.",
     "claims": [
       "ISSUE:0521",
-      "ISSUE:0523"
+      "ISSUE:0523",
+      "ISSUE:0525"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -1720,8 +1721,17 @@
       "kind": "doing",
       "seq": 66,
       "text": "0523, intent wb edit (hv: \"I need that fixed right now, please\"; vc ruled the name `edit` and the widened scope 2026-09-23). TWO STAGES, both 3.2.1.\nSTAGE 1, ITEMS, is WRITTEN in tmp wt-0523 and not yet compiled. The surface is `intent wb edit <kind> <id> <text> --node <moniker>`: one-way, off MCP, row after wb archive, legal_pairs 80 -> 81. An uncommitted originating event is AMENDED in place (same id, same stamp, same path). A committed one gets a wb.edit {kind, seq, text}. Committed means present at HEAD (gitstate::blob), never the index. A board or event file staged before the edit is named in a note. Archived items are covered. The fixed doc link was public wb_edit linking the private wb_text_carrier, which CI's doc step would red, as 0511 did.\nTHE TRAIN (vc): ic's 0520 run ENDs, dc lands 0522 chain 2, cc rebases, then ONE whole intentsvcs and intent-cli suite run over HEAD + 0520 + 0523 stage 1 (+ dc's 0524 if banked). Also owed: clippy, and CI's doc command read from rust.yml. Then bank with the apply --stat beside the blob. ic reviews the surface at the bank.\nSTAGE 2, MESSAGES, after that. The shape is accepted by ic and vc: `wb edit message <anchor> <text> --to <recipient>`, where `<anchor>#<n>` (1-based, in send order) picks one of several in a minute. The committed correction is keyed by the ORIGINATING event id (ic's blocking point). An announce is edited in every copy, and the ok line names each recipient. The no-match refusal says which stamp is the anchor. Focus stays `wb pickup --focus` plus a test. held_name/held_role are out of scope (vc). The \"(edited)\" mark is with vc; cc recommends a follow-up issue.\nREQ 5 ANSWERED: no production path re-serialises a committed event file. The backfill skips existing paths (facade.rs:412), init writes only a new file, and add_event_files writes only events this process just landed. NO PUSH, NO RELEASE.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-23T08:48:23.438Z",
       "recorded_at": "2026-09-23T08:17:58.995Z"
+    },
+    {
+      "node": "cc",
+      "kind": "doing",
+      "seq": 67,
+      "text": "RESUME HERE (cc localfold before hv's compact, 2026-09-23; hv: \"localfold+compact now, and then continue on the bounce\"). Scratch dir S = /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/89be4c37-5e0c-46eb-a8df-6cce6bb2c58b/scratchpad.\n0523 STAGE 1 IS BANKED AS v3, NOT YET RE-RUN. refs/bank/cc/0523-stage1/v3 is blob 36776c993ffc0cf3eb1dbacaf2c67a2f59ab853b, patch-id 5c04d79c2599aa0ca60e66c27c76b0648e3ee205, base 987268553; apply --stat read from the command: 18 files changed, 1125 insertions(+), 30 deletions(-). v1 (refs/bank/cc/0523-stage1/patch) and v2 (.../v2) are spent and KEPT. v3 closes vc's hold on v2: an item with no creator of its own could borrow a LATER item's draft wb.add with the same kind and text and rewrite ITS record. Now the creator must be the one matching event in the first instant at or after the row's stamp, across the whole log (store.events_at_first_instant); none or several means no carrier, so Recorded. The new arm a_carrier_less_item_never_borrows_a_later_items_creator holds it. Source is S/wt-0523r.\nFIRST ON THE BOUNCE: S/wt-train already holds 987268553 + ic 0520 + dc 0524 + v3 staged (22 files, 1547 insertions and 36 deletions), and its warm target is in-tree. Census the machine, announce HEAVY START to vc, dc and ic, then in native/rust, with CARGO_TARGET_DIR in-tree, CARGO_HOME=/Users/matts/.cargo and HOME=S/home-train, run exactly train-run2's lines: fmt --check; build -p intentd; test --workspace --no-fail-fast; clippy --workspace --all-targets -- -D warnings; clippy -p intentsvcs -p intent-cli --lib -- -D clippy::unwrap_used -D clippy::expect_used -D clippy::panic; RUSTDOCFLAGS=-Dwarnings doc --no-deps --document-private-items. Logs go to S/train-run3. Report END with every rc and the stat READ from the command. vc gives the verdict, then land v3 by literal paths AFTER dc's 0524 lands, with the patch-id checked before the commit. The prepared message is S/0523s1_commit_msg.txt: update its blob and patch-id to v3's and say vc judged it only after vc says so.\n0523 STAGE 2 (MESSAGES) IS IN S/wt-0523m, ON v2, UNCOMPILED. It has the store (MessageRow, set_message_body, wb_messages_between, wb_text_events widened to ask/announce), board_stamp pub(crate), the facade (wb_edit_message, announce_copies, note_staged, message_origin, message_address, WbNoSuchMessage, WbMessageAmbiguous, WbMessageEdit), the CLI arm with --to and edit_forms, the table row (kind += message, --to, arg help), six facade arms, and error_remedies. STILL OWED: rebase onto v3; apply vc's first-instant rule to message_origin too, because the same borrow flaw exists for a carried message; mandatory_fields entries; CLI arms for --to refused on an item and required for message; CHANGELOG and skill lines for messages; then a run and ic's review. ic accepted the shape with points 1-7, and the blocking one (key a correction by its originating event) is built.\nTHEN 0525, filed for cc by vc on hv's \"Yes, in 3.2.1, own issue\": the (edited) mark, after stage 2, with ic reviewing the surface.\nMain was aec0c3721 at 08:46Z (0520 landed at 89015b037); dc lands 0524 next. NO PUSH, NO RELEASE.",
+      "state": "live",
+      "recorded_at": "2026-09-23T08:48:24.414Z"
     }
   ],
   "messages": [
