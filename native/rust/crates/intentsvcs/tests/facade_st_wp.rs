@@ -11,6 +11,7 @@ use crate::common::{Fixture, sample_thread};
 use intentsvcs::contract::Scope;
 use intentsvcs::facade::{FacadeError, ListEdit};
 use intentsvcs::model::{AtStatus, TShirt, ThreadStatus, WpStatus};
+use intentsvcs::remedy::Remedy;
 
 #[test]
 fn st_new_creates_canon_and_every_view() {
@@ -128,6 +129,39 @@ fn closing_is_gated() {
     facade.st_show("ST0056").unwrap().status,
     ThreadStatus::Wip,
     "a refused close changes nothing"
+  );
+}
+
+/// **A refused close carries the remedy of the gate arm that refused it**
+/// (issue 0526). One fixed remedy sat under every block, so closing a thread
+/// with no criteria printed "satisfy or formally descope the remaining
+/// criteria" beneath a gate line saying it had none.
+#[test]
+fn an_empty_contracts_refusal_carries_its_own_remedy() {
+  let fx = Fixture::new();
+  let mut facade = fx.facade();
+  let id = facade.st_new("a thread with no criteria").expect("st new");
+  facade.st_start(&id).expect("st start");
+
+  let err = facade.st_done(&id).expect_err("an empty contract blocks");
+  let FacadeError::GateBlocked {
+    verdict, remedy, ..
+  } = &err
+  else {
+    panic!("expected GateBlocked, got: {err}");
+  };
+  assert!(
+    verdict.contains("zero acceptance criteria"),
+    "got: {verdict}"
+  );
+  assert!(
+    !remedy.contains("remaining criteria"),
+    "the remedy speaks of criteria the thread does not have: {remedy}"
+  );
+  assert!(
+    err.render().contains(&format!("remedy: {remedy}")),
+    "the rendered refusal prints the arm's remedy: {}",
+    err.render()
   );
 }
 

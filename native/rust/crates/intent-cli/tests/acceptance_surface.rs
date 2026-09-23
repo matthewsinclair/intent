@@ -228,7 +228,7 @@ fn ac_status_leads_with_the_verdict_when_the_detail_is_a_diagnosis() {
 
   assert_eq!(
     stdout(&run(dir.path(), &["ac", "status", "ST0001"])),
-    "ac: BLOCKED -- the thread has zero acceptance criteria (empty contract). Define ACs with `intent ac new`, or cancel the unit with `intent st cancel` or `intent wp cancel`.",
+    "ac: BLOCKED -- the thread has zero acceptance criteria (empty contract). Add one with `intent ac new`, then satisfy it: a non-test criterion with `intent ac satisfy --evidence <ref> <STID> <ACID>`, a test-backed one by covering it with `intent at new` and taking that test to red, then green, with `intent at red` and `intent at green`. Or cancel the unit with `intent st cancel` or `intent wp cancel`.",
     "nothing trails the full stop"
   );
 }

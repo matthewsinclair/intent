@@ -422,6 +422,17 @@ pub enum Verdict {
     /// off-scope, and the exempt escape's sibling), where the refusal IS the
     /// whole story and there is no set to name.
     unsatisfied: Vec<String>,
+    /// What a refused close should do next, **supplied by the ARM that
+    /// blocked**, and printed as the `remedy:` line under `st done` and `wp
+    /// done`.
+    ///
+    /// One fixed remedy used to sit under every block, and it was right only
+    /// for the tally arm: under an empty contract it said to satisfy "the
+    /// remaining criteria" beneath a gate line saying there were none (issue
+    /// 0526). The facade cannot tell the arms apart by the line and must not
+    /// try, which is [`Detail`]'s rule for the same reason, so the arm that
+    /// knows why it blocked says what to do about it.
+    remedy: String,
   },
 }
 
@@ -460,10 +471,11 @@ impl Detail {
 impl Verdict {
   /// A block with nothing to enumerate. All four are diagnoses: they say what
   /// is wrong rather than how far along it is.
-  fn blocked(detail: impl Into<String>) -> Self {
+  fn blocked(detail: impl Into<String>, remedy: impl Into<String>) -> Self {
     Self::Blocked {
       detail: Detail::Diagnosis(detail.into()),
       unsatisfied: Vec::new(),
+      remedy: remedy.into(),
     }
   }
 
@@ -540,6 +552,35 @@ impl Verdict {
   }
 }
 
+/// The rest of the way out of a contract with nothing in scope, named by both
+/// arms that refuse one, after their own first step (issue 0526).
+///
+/// **A criterion is not satisfied by being added or brought back.** `ac new`
+/// writes its kind's entry state, and `ac rescope` and `ac reinstate` return a
+/// criterion to that state rather than to whatever it held before it left
+/// scope: unsatisfied for a non-test criterion, computed from its covering
+/// tests for a test-backed one. So a refusal that stopped at the first step
+/// led straight to a second refusal. laksa-vc met it closing three work
+/// packages under threads that predate criteria, and closed them by satisfying
+/// the new criterion by named evidence, the step no refusal had named.
+const THEN_SATISFY_OR_CANCEL: &str = "then satisfy it: a non-test criterion with `intent ac satisfy --evidence <ref> <STID> <ACID>`, a test-backed one by covering it with `intent at new` and taking that test to red, then green, with `intent at red` and `intent at green`. Or cancel the unit with `intent st cancel` or `intent wp cancel`.";
+
+/// The tally arm's remedy: criteria are in scope and not all of them hold.
+///
+/// It was `GateBlocked`'s one fixed remedy, printed under every block, until
+/// issue 0526 found it under an empty contract, naming criteria that did not
+/// exist. Public because the facade's remedy census builds a `GateBlocked`
+/// carrying it.
+pub const SATISFY_THE_REMAINING: &str =
+  "satisfy or formally descope the remaining criteria, then close again";
+
+/// The remedy for a work package that does not exist, **one sentence for one
+/// cause reached by two doors**: a verb naming the package (`NoSuchWorkPackage`)
+/// and the gate asked about it at WP scope.
+pub fn see_the_work_packages(st: &str) -> String {
+  format!("run `intent wp list {st}` to see its work packages")
+}
+
 /// Run the close gate over a thread at a scope.
 ///
 /// Reproduces `cmd_ac_gate` (`bin/intent_acceptance:973`) verdict for verdict.
@@ -560,10 +601,13 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
   if let Scope::WorkPackage(seq) = scope
     && !thread.wps.iter().any(|w| w.seq == seq)
   {
-    return Verdict::blocked(format!(
-      "WP-{seq:02} does not exist in {} (nothing to evaluate)",
-      thread.id
-    ));
+    return Verdict::blocked(
+      format!(
+        "WP-{seq:02} does not exist in {} (nothing to evaluate)",
+        thread.id
+      ),
+      see_the_work_packages(&thread.id),
+    );
   }
 
   // **A CANCELLED WORK PACKAGE IS AN ANNOUNCED EXEMPTION, WHICH IS WHY IT IS
@@ -593,7 +637,10 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
   let thread_total = thread.criteria.len();
   if thread_total == 0 {
     return Verdict::blocked(
-      "the thread has zero acceptance criteria (empty contract). Define ACs with `intent ac new`, or cancel the unit with `intent st cancel` or `intent wp cancel`.",
+      format!(
+        "the thread has zero acceptance criteria (empty contract). Add one with `intent ac new`, {THEN_SATISFY_OR_CANCEL}"
+      ),
+      "add a criterion and satisfy it, in the order the gate names, then close again -- or cancel the unit",
     );
   }
 
@@ -622,12 +669,15 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
   // which.
   let report = contract_report(thread, wanted.as_deref(), refs);
   if !report.findings.is_empty() {
-    return Verdict::blocked(format!(
-      "{} acceptance test contract finding(s) over {} row(s): {}",
-      report.findings.len(),
-      report.rows,
-      report.findings.join("; ")
-    ));
+    return Verdict::blocked(
+      format!(
+        "{} acceptance test contract finding(s) over {} row(s): {}",
+        report.findings.len(),
+        report.rows,
+        report.findings.join("; ")
+      ),
+      "correct each row the gate names, or the test file it cites, then close again -- `intent at lint <STID>` lists every finding, and `intent at edit <STID> <ATID>` re-cites a row",
+    );
   }
 
   let in_scope: Vec<&Criterion> = thread
@@ -686,9 +736,12 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
     // THE EXEMPTION** (issue 0400): it is fixed when a thread is authored and
     // no verb writes it afterwards, so it names the routes that exist -- a
     // criterion added or brought back, or the unit cancelled.
-    return Verdict::blocked(format!(
-      "all {total} in-scope AC(s) are descoped or withdrawn; nothing is left to verify. Add one with `intent ac new`, bring one back with `intent ac rescope` or `intent ac reinstate`, or cancel the unit with `intent st cancel` or `intent wp cancel`."
-    ));
+    return Verdict::blocked(
+      format!(
+        "all {total} in-scope AC(s) are descoped or withdrawn; nothing is left to verify. Add one with `intent ac new` or bring one back with `intent ac rescope` or `intent ac reinstate`, {THEN_SATISFY_OR_CANCEL}"
+      ),
+      "add a criterion or bring one back and satisfy it, in the order the gate names, then close again -- or cancel the unit",
+    );
   }
 
   // The only two arms that report a COUNT rather than a diagnosis, and so the
@@ -727,6 +780,7 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
     Verdict::Blocked {
       detail: tally,
       unsatisfied: unsatisfied.iter().map(|id| (*id).to_string()).collect(),
+      remedy: SATISFY_THE_REMAINING.to_string(),
     }
   }
 }
@@ -1143,6 +1197,137 @@ mod tests {
         .contains("acceptance: exempt"),
       "no verb writes the exemption, so the refusal never names it (issue 0400)"
     );
+  }
+
+  /// **Both empty arms name every step out, in order** (issue 0526). They named
+  /// `ac new` and stopped, and a criterion is not satisfied by being added, so
+  /// following either one led to a second refusal. Each step is looked for
+  /// AFTER the one before it, because a route whose steps are all present in
+  /// the wrong order is still the wrong route.
+  #[test]
+  fn an_empty_scope_names_every_step_out_in_order() {
+    let emptied = thread(
+      vec![ac(
+        "AC-03.1",
+        AcKind::NonTest,
+        AcState::Withdrawn {
+          reason: "r".to_string(),
+          by: None,
+        },
+      )],
+      vec![],
+    );
+    let lines = [
+      (
+        "an empty contract",
+        gate(&thread(vec![], vec![]), Scope::Thread, &AllResolve).line("ST0056"),
+      ),
+      (
+        "an emptied contract",
+        gate(&emptied, Scope::Thread, &AllResolve).line("ST0056"),
+      ),
+    ];
+    for (what, line) in lines {
+      let mut from = 0;
+      for step in [
+        "`intent ac new`",
+        "`intent ac satisfy --evidence <ref> <STID> <ACID>`",
+        "`intent at new`",
+        "`intent at red`",
+        "`intent at green`",
+        "`intent st cancel`",
+        "`intent wp cancel`",
+      ] {
+        let found = line[from..].find(step);
+        assert!(
+          found.is_some(),
+          "{what}: {step} is missing, or out of order, in: {line}"
+        );
+        from += found.unwrap_or(0) + step.len();
+      }
+    }
+  }
+
+  /// **Each blocking arm carries its own remedy, and only the tally arm
+  /// carries the tally's** (issue 0526). One fixed remedy sat under every
+  /// block, so an empty contract's refusal said to satisfy "the remaining
+  /// criteria" beneath a gate line saying there were none.
+  #[test]
+  fn each_blocking_arm_carries_its_own_remedy() {
+    let withdrawn = AcState::Withdrawn {
+      reason: "r".to_string(),
+      by: None,
+    };
+    let arms = [
+      (
+        "tally",
+        gate(
+          &thread(
+            vec![ac(
+              "AC-01.1",
+              AcKind::NonTest,
+              AcState::Unsatisfied { note: None },
+            )],
+            vec![],
+          ),
+          Scope::Thread,
+          &AllResolve,
+        ),
+      ),
+      (
+        "missing work package",
+        gate(
+          &thread(vec![computed("AC-01.1")], vec![]),
+          Scope::WorkPackage(99),
+          &AllResolve,
+        ),
+      ),
+      (
+        "empty contract",
+        gate(&thread(vec![], vec![]), Scope::Thread, &AllResolve),
+      ),
+      (
+        "test contract finding",
+        gate(
+          &thread(
+            vec![computed("AC-01.1")],
+            vec![at("AT-01.1", "AC-09.9", AtStatus::Green)],
+          ),
+          Scope::Thread,
+          &AllResolve,
+        ),
+      ),
+      (
+        "emptied contract",
+        gate(
+          &thread(vec![ac("AC-01.1", AcKind::NonTest, withdrawn)], vec![]),
+          Scope::Thread,
+          &AllResolve,
+        ),
+      ),
+    ];
+    let mut remedies = Vec::new();
+    for (what, verdict) in &arms {
+      let Verdict::Blocked { remedy, .. } = verdict else {
+        unreachable!("{what} must block: {verdict:?}")
+      };
+      let tally = *what == "tally";
+      assert_eq!(
+        remedy == SATISFY_THE_REMAINING,
+        tally,
+        "{what} carries the tally's remedy if and only if it is the tally: {remedy}"
+      );
+      remedies.push(remedy.clone());
+    }
+    assert_eq!(
+      remedies[1],
+      see_the_work_packages("ST0056"),
+      "a missing work package gets the sentence NoSuchWorkPackage gives"
+    );
+    let count = remedies.len();
+    remedies.sort();
+    remedies.dedup();
+    assert_eq!(count, remedies.len(), "no two arms share a remedy");
   }
 
   #[test]

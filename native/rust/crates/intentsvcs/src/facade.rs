@@ -1174,7 +1174,13 @@ pub enum FacadeError {
     offered: Vec<String>,
   },
   #[error("{scope} is not ready to close -- {verdict}")]
-  GateBlocked { scope: String, verdict: String },
+  GateBlocked {
+    scope: String,
+    verdict: String,
+    /// The remedy of the gate arm that blocked (issue 0526), carried because
+    /// only the verdict knows which arm that was.
+    remedy: String,
+  },
   #[error(
     "{ac} is test-backed, so its satisfaction is computed from covering green acceptance tests and cannot be set directly"
   )]
@@ -2401,9 +2407,7 @@ impl crate::remedy::Remedy for FacadeError {
       Self::ThreadExists { id } => {
         format!("pick a different id, or work on the existing one with `intent st show {id}`")
       }
-      Self::NoSuchWorkPackage { st, .. } => {
-        format!("run `intent wp list {st}` to see its work packages")
-      }
+      Self::NoSuchWorkPackage { st, .. } => contract::see_the_work_packages(st),
       Self::NoSuchCriterion { st, .. } => {
         format!("run `intent ac list {st}` to see the criteria in its contract")
       }
@@ -2432,9 +2436,10 @@ impl crate::remedy::Remedy for FacadeError {
            would have eaten. To add a new one, `intent at list {st}` shows which ids are taken"
         )
       }
-      Self::GateBlocked { .. } => {
-        "satisfy or formally descope the remaining criteria, then close again".to_string()
-      }
+      // **THE ARM THAT BLOCKED SAYS WHAT TO DO, NOT THIS VARIANT** (issue
+      // 0526). A fixed remedy here spoke of "the remaining criteria" under an
+      // empty contract, beneath a gate line saying there were none.
+      Self::GateBlocked { remedy, .. } => remedy.clone(),
       Self::ComputedSatisfaction { ac } => format!(
         // **`at set` NEVER EXISTED IN v3.** The family is
         // list/lint/green/red/na/new/edit, and every one of those verbs takes
@@ -12113,13 +12118,14 @@ impl Facade {
       return Ok(());
     }
     let verdict = self.gate(thread, scope)?;
-    if verdict.is_pass() {
-      return Ok(());
+    match &verdict {
+      Verdict::Pass { .. } | Verdict::Exempt { .. } => Ok(()),
+      Verdict::Blocked { remedy, .. } => Err(FacadeError::GateBlocked {
+        scope: label.to_string(),
+        verdict: verdict.line(label),
+        remedy: remedy.clone(),
+      }),
     }
-    Err(FacadeError::GateBlocked {
-      scope: label.to_string(),
-      verdict: verdict.line(label),
-    })
   }
 
   /// Refuse a transition the ratified machine does not have.
@@ -17434,6 +17440,7 @@ mod tests {
       FacadeError::GateBlocked {
         scope: "ST0056".to_string(),
         verdict: "x".to_string(),
+        remedy: contract::SATISFY_THE_REMAINING.to_string(),
       },
       FacadeError::ComputedSatisfaction {
         ac: "AC-03.1".to_string(),
