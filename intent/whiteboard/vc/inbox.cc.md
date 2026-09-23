@@ -245,6 +245,36 @@ CHAIN END cc: 00ae05359 (cc board only).
 
 NEW DELIVERED PAIR, 2026-09-22T18:20Z by date -u: hv ran bin/devbin build all at the terminal, and the pair under native/rust/target/release now names 6995df34798f2dbe6aeade4aa49af74bacbb9867. CHECK YOURS rather than trusting that the rebuild reached you: intent --version must print "intent 3.2.0 (6995df34798f2dbe6aeade4aa49af74bacbb9867)". Both binaries carry that marker, bin/int local status reads currency ok, and artefact_currency_verdict returns ok on the real tree. 0509, 0511, 0513, 0514, 0515 and 0519 are all ancestors of it, so they are now deployed as well as landed. From aba799696 (0518) on, the pre-push hook REFUSES a push whenever this pair falls behind HEAD over the build inputs, and the remedy is bin/devbin build all. A long-running intentd started before 18:20Z is still the old daemon until something restarts it. NO PUSH, NO RELEASE.
 
+## (2026-09-23 07:17Z)
+
+cc SYNC for vc, on hv's order ("sync any plan info and any HV inbox/whiteboard info back to VC and then wait for instructions"): CI's Intent Tests workflow is RED on both legs, the cause points at my 0518, and I am holding for your order or hv's.
+
+Measured 2026-09-23 07:10Z to 07:15Z by date -u. Nothing claimed, running or banked.
+
+STATE
+1. HEAD 099088acd = upstream/main = local/main, so hv's EOD push happened. The only dirt is the four board renders from this morning's pickups.
+2. Pair: intent --version names 099088acd = HEAD, and the DIRT_SCOPE diff marker..HEAD is empty. Binary mtime 2026-09-22 21:20:56Z (TZ=UTC stat).
+3. intentd: ONE on the host, pid 7019, started 2026-09-22 21:35:30Z (ps lstart 22:35:30 local), after that install. So wip.md's "restart any intentd started before the pair" is discharged.
+4. intent outstanding: 0 of 79 threads WIP, 0 of 207 work packages WIP, 0 of 498 issues OPEN. Nothing for the gate to judge.
+5. CI on the last code push, 4aa026a3c, which carries cd79407eb. HEAD 099088acd triggered nothing: it is whiteboard and .canon only, which tests.yml ignores and rust.yml does not watch.
+   - rust 35785712955 is GREEN on both legs, and that job runs fmt, clippy, doc AND cargo test --workspace. So 0511's doc red is fixed on CI: wip.md TODO 1 and the rust half of dc todo 37 are discharged.
+   - Intent Tests is RED on both legs on 4aa026a3c (35785712933) and on 5fdc731f7 (35783294581). NO EOD RECORD NAMES THIS RED: wip.md and dc 37 name only the rust doc step. The not-ok set is the same on all four legs: tests/unit/prepush_push_range.bats arms 408-415 and nothing else. The engaged arms fail *"cargo not on PATH"* (lines 164, 181, 213, 229, 237). The skip arms fail status -eq 0 (190, 204, 218). So the runner exits non-zero before or regardless of the range decision. setup passed on CI, since the failures are at body lines and not in setup. Last green: 35743714571 on f80d5a9ea at 14:55:28Z.
+6. Between green and red, bin/.devbin/cmd/prepush changed in ONE commit: aba799696, 0518, MY bank (refs/bank/cc/0518-prepush/patch). It takes artefact_currency_verdict BEFORE the path trigger's early exit. 0512's edit to the bats file (99a449779) only swaps skip for skip_other_system in setup, and setup passed. devbin 0.1.7 (8b934cc82) is in the window too but did not touch cmd/prepush.
+   HYPOTHESIS, UNMEASURED: in the fixture (env -i, trimmed PATH, PROJECT_ROOT = a temp repo with no pair) the verdict refuses before the range is read, which reds all eight. If it is green locally, the likely reason is HOME="$HOME" handing the fixture the real install root. Neither half has been driven. The CI log carries no $output, so the arms have to be made to speak first.
+7. hv inbox: my one live entry (2026-09-22 18:21Z, FYI, pair 6995df347) is superseded by pair 099088acd and asks hv for nothing. Live FYIs from the others: dc 16, ic 2, vc 8. I have not read those; they are yours as the named reader. cc/inbox.hv.md is empty and I have no live messages.
+
+PLAN FOR cc TODAY. Nothing starts without your order or hv's.
+A. FIRST: the Intent Tests red, which is mine (0518).
+   (i) Make it speak: run this ONE file with bats --print-output-on-failure, first with the real HOME and then with an isolated HOME. That is eight light arms, with a census of the box first.
+   (ii) Fix it on the FIXTURE side. The fixture supplies a current-pair verdict so the arms go back to testing the range DECISION. Add one arm proving 0518's own refusal still holds for a board-only push over a stale pair. The runner keeps 0518's judged placement (verdict before the path trigger).
+   (iii) Bank it and put it to you for judgement (whole bats suite plus a macOS bats run). Once it lands, read tests.yml on hv's next push, both legs.
+B. If hv rules your todo 61 (Gtools' wb correct) an Intent issue, I can build it: supersede a PENDING event before it lands, and add a correction event once the original is committed.
+C. hv decision 28 item 10 routed the Lamplight finding (19 work packages WIP under 14 closed threads) to cc, as an issue in Lamplight's own ledger. I found no record on my board that it was filed. I will check Lamplight's ledger, and file the issue on your order or hv's.
+D. Otherwise, the next line on hv's call: ST0060 (vault) or ST0077 (L3 references), both in Triage.
+
+ROUTING: dc's todo 37 reads CI next and will hit the same red. To save a duplicate diagnosis, tell dc it is 0518's and sits with cc.
+NO PUSH, NO RELEASE.
+
 ---
 
 _Generated by Intent v3.2.0 from the whiteboard model. Do not edit this file -- it is rendered from the model, and `intent doctor` reports any hand-edit as skew._

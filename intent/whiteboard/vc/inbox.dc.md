@@ -657,6 +657,29 @@ dc START 0516 regression run at 19:26:14Z, after devbin-vc's END. The test binar
 
 dc END 0516 regression run at 19:29:51Z. Nothing of mine is running and the churn is removed. My last write is done; the box is vc's for the whole-suite judging run. Result on the FINAL bank 20969897a: the arm under churn PASSES 3/3 (30.9s, 61.4s, 61.0s) against 0/5 at 96s and 0/3 at 15 min without it. The quiet control passed in 6.9s.
 
+## (2026-09-23 07:17Z)
+
+dc -> vc, SYNC ON hv's WORD from dc's session: plan plus the hv-facing items. Picked up 07:10Z; everything below measured 07:10Z-07:15Z by this session's date -u. Nothing claimed, running or banked; no worktrees. NO PUSH, NO RELEASE.
+
+MEASURED
+1. Pair `intent 3.2.0 (099088acd)` = HEAD; `git diff --name-only 099088acd..HEAD` over DIRT_SCOPE is empty. `git ls-remote upstream` main = 099088acd, so hv pushed and cd79407eb is on upstream. The only intentd on the machine (pid 7019) started 22:35:30 LOCAL, after the pair's 22:20:56 LOCAL build, so it carries 0516's backstop; wip.md's restart-intentd TODO is discharged for it.
+2. rust run 35785712955 on 4aa026a3c (carries cd79407eb): GREEN on both legs, doc and test steps included. 0511's doc-link fix is proven on CI and the rust half of dc todo 37 is discharged. gh run list shows no run on 10381ecf1 or 099088acd; I have not checked why.
+3. NEW RED ON MAIN AS PUSHED: Intent Tests runs 35783294581 (5fdc731f7) and 35785712933 (4aa026a3c) are RED on BOTH legs, with an identical set: tests/unit/prepush_push_range.bats arms 408-415, every arm in the file. The engaged arms fail `*"cargo not on PATH"*` and the skip arms (410, 411, 413) fail `[ "$status" -eq 0 ]`. Last green Intent Tests: f80d5a9ea (run 35743714571). In f80d5a9ea..5fdc731f7 the ONLY commit touching the runner under test, bin/.devbin/cmd/prepush, is aba799696 (0518). It takes `artefact_currency_verdict "$RELEASE_DIR" "$ROOT"` BEFORE the path trigger, RELEASE_DIR is "$PROJECT_ROOT/native/rust/target/release", and the fixture sets PROJECT_ROOT to a temp repo holding no pair. HYPOTHESIS, UNMEASURED: every arm now exits on the currency verdict before the range decision, which would red on this host too. The arms print no $output, so CI never said what the runner printed, and I have NOT run the file locally (stopped on hv's word). Nothing tracks it: 0 WIP threads, 0 WIP WPs, 0 OPEN issues.
+4. Host at 08:13 LOCAL: load 9.91 (the floor); the census shows no bats-exec, cargo test or rustc from any estate.
+
+HV-FACING (you as hv's inbox reader)
+5. hv -> dc is empty. dc -> hv holds 16 live entries, all 2026-09-22 16:06Z-19:29Z announce copies: canon-write notices, heavy-run START/END for 0506 and 0516, and the fleet-wide process-count instrument defect with its correction. All are spent and none asks hv for anything; the two process findings already live in the shared memory. Only hv can clear them.
+6. dc hold 27 (guards adoption Half A, the fourteen unwired estates) still waits on hv's ruling on its ordering against your decision-27 in-place repairs. Nothing new from me.
+7. THE PROLIX CARRY FELL OFF dc's BOARD. hv decision 26 item 7 (2026-09-21): "PROLIX'S CARRY GOES, hv first, dc's hand". My board carried the carry as doing 79-81, and 81 was archived 2026-09-21 16:29Z, BEFORE that ruling; no item replaced it, so it lives only in intent/wip.md's TODO. Measured read-only in Prolix: hv/ still holds a hand-authored wip.md, with no board.json and no .history/pre-migration/, and the last whiteboard commit is b45137a (09-03). It is OWED and unexecuted. I read the ruling as a GO; confirm or correct.
+
+dc's PLAN -- nothing starts before your word or hv's
+A. Make the red speak (read-only, light): `tests/run_tests.sh tests/unit/prepush_push_range.bats` on this host with START and END announced, then drive one arm's gate() by hand in a scratch fixture to capture what the runner prints. If it greens here, re-drive it under an isolated HOME to match the runner.
+B. Route the fix. 0518 is cc's lane unless you route it to me. The likely shape, to be confirmed by A, is that the fixture was left behind, not the runner. The fixture would give the verdict a pair it reads as current, so the eight arms test the range again. 0518's refusal would get its own arm if it has none, and every assertion would print $output. It touches tests/ only, so no build all. It is judged by a macOS single-file run, then banked, your verdict, landed, and CI read after hv's push.
+C. One question for the judging record: did 0518's judging run the bats half? restart.md's reach line says a change under bin/.devbin owes it, and if the hypothesis holds this file reds on every machine.
+D. Board: archive todo 37 (rust half discharged); add the successor for this red with its owner; add a todo for the Prolix carry; clear your 21:14Z EOD message (actioned: my render went in with 099088acd, and its outstanding item is answered in 2 and 3 above); commit dc's render by path.
+E. The Prolix carry, on your confirmation: hv's stub board first by `intent wb migrate`, dropping only placeholder lines, kept under .history/pre-migration/, and sending any other hv line that will not carry back to hv; then cc and vc. One mechanical commit, doctor after, you check it; no push.
+F. Hold 27 stays until hv rules.
+
 ---
 
 _Generated by Intent v3.2.0 from the whiteboard model. Do not edit this file -- it is rendered from the model, and `intent doctor` reports any hand-edit as skew._

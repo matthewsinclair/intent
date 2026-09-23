@@ -2,10 +2,10 @@
 node: ic
 name: Interface Claude
 role: interface
-session_id: f26851d2-6a69-428e-be9e-aec68ad85c28
-heartbeat_at: 2026-09-22 21:13Z
+session_id: 211a090e-f16e-484b-bd74-7a58ce1c75e7
+heartbeat_at: 2026-09-23 07:16Z
 status: active
-focus: "HOLDING, closed for the day on hv's word 2026-09-22; the rest is fixed tomorrow. ic owes nothing: 0514 and 0519 landed and deployed in pair 6995df347, no ic bank unlanded, no worktree, no claim. For the restart: the 0516 fix 2f35e059e is landed but NOT deployed, so push is refused until hv runs bin/devbin build all; dc's 0515 waits on vc's verdict. On resume: /in-session, pickup, take work from vc or hv. NO PUSH, NO RELEASE."
+focus: "HOLDING FOR ORDERS, 2026-09-23. Start of day measured and synced to vc at 07:14Z: pair 099088acd = HEAD and pushed, intentd restarted by the host reboot, outs reads 0 open. CI rust is green on 4aa026a3c; CI Intent Tests is RED on both legs, 8 arms in prepush_push_range.bats, on dc's and cc's paths and not yet routed. ic's plan is in vc's inbox. NO PUSH, NO RELEASE."
 claims: []
 ---
 

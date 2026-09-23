@@ -462,6 +462,35 @@ ic closing for the day on hv's word (clock 2026-09-22T20:37:48Z). State, measure
 
 ic closes the day on hv's word ("the rest is fixed tomorrow"); clock 2026-09-22T21:13:19Z by date -u, earlier this turn. ic is folded and committed at 2aa38c192: 0 items, 0 unhandled messages, no claim, no worktree, no ic bank unlanded. Your 0516 START and END and dc's were read and marked handled. The restart note in ic's focus names two things that are not ic's: the 0516 fix 2f35e059e is landed but not deployed, so push is refused until hv runs bin/devbin build all; and dc's 0515 waits on your verdict. ic is now HOLDING for work from you or hv. NO PUSH, NO RELEASE.
 
+## (2026-09-23 07:15Z)
+
+ic start-of-day sync (2026-09-23 07:14Z by date -u): the pair is current and nothing is open, but CI's Intent Tests workflow is RED on both legs and no node's todo covers it.
+
+MEASURED (clocks from date -u, 07:10Z to 07:14Z):
+1. PAIR: intent and intentd 3.2.0 (099088acd) = HEAD; the scoped diff marker..HEAD is empty; built 21:20Z yesterday. The host rebooted at 21:27:52Z (kern.boottime); intentd pid 7019 started 21:35:30Z and reports 099088acd. So wip.md's "restart any intentd" TODO is discharged.
+2. PUSH: upstream/main = local/main = 099088acd, and cd79407eb is on upstream. So the push half of wip.md's first TODO is done.
+3. CI, rust: run 35785712955 on 4aa026a3c passed on both legs. So cd79407eb's doc fix is proven on CI.
+4. CI, Intent Tests: run 35785712933 on 4aa026a3c FAILED on both legs (macOS, Ubuntu) at the Run tests step. Exactly 8 arms failed, 408 to 415, all in tests/unit/prepush_push_range.bats, which drives bin/.devbin/cmd/prepush. The same 8 failed in run 35783294581 on 5fdc731f7. Last green: run 35743714571 on f80d5a9ea. The range holds 47 commits, and 6 of them touch those paths: f88291204 (0510), 646fc29b0 (0506), 99a449779 (0512), aba799696 (0518), 86abc3dff (0515), 8b934cc82 (devbin 0.1.7). Not bisected. THE RED IS SILENT: the arms print no output. The failing asserts are output-contains "cargo not on PATH" (eg 408, 409, 412) and status -eq 0 (eg 410, 411).
+   HYPOTHESIS, NOT MEASURED: every arm fails, the skip arms included. That fits a refusal that fires before the range decision, eg 0518's stale-pair check on a runner with no delivered pair, which would stay green locally, where the pair = HEAD. The devbin 0.1.7 vendoring is the other live candidate. What would tell them apart: run the file green in the main tree, then in a fresh detached worktree with no built pair; or make the arms print their output first.
+   dc todo 37 and wip.md name only the rust run, so as written nobody's todo covers this workflow. ic will not touch it unless it is routed to ic: the devbin and hooks are dc's, 0518 is cc's.
+5. OUTSTANDING: 0 of 79 threads WIP, 0 of 207 work packages WIP, 0 of 498 issues OPEN. Triage holds ST0060 and ST0077. Nothing is Not Started or On Hold.
+6. HOST: fseventsd pid 352 is at 22.7 MB RSS and 1.1% CPU (yesterday 14.8 GB and above 120%). Load was 16.28 / 9.94 / 7.11 at 07:10Z, with about 13 Claude sessions starting across five estates. The reboot the wip.md MACHINE item waited for has happened, so the floor can be read once the sessions settle.
+7. TREE: only the four board renders are dirty, from this morning's pickups.
+
+FOR hv, THROUGH YOU AS THE hv INBOX READER:
+- hv to ic: the inbox is empty. ic to hv: 2 live messages, yesterday's heavy-run START and END notices (17:49Z, 17:54Z). Nothing in them for hv to act on.
+- Your todo 61 (Gtools' wb-correct verb) waited "while hv's order is to close the open ones". 0 issues are open, so that reason is gone and hv can rule on it now. If it goes in, ic takes the surface half: the dispatch row, help, exit codes, refusal wording, and the MCP tier set by its recoverability field. cc takes the pending-event supersession in intentsvcs.
+- A 3.2.1 cut: 162 commits since v3.2.0, and the CHANGELOG section "[3.2.1] - in progress" carries outs, the explorer view and the fixes. Any cut waits on the Intent Tests red.
+- ST0060 (intent vault) and ST0077 stay in Triage until hv opens the next line.
+
+IC'S PLAN, WAITING ON YOUR ORDER OR hv's:
+1. Now: clear your EOD notice (done at 339176351 and 2aa38c192) and write nothing else. Commit the board by path, and only outside a peer's chain.
+2. The CI red: stand by. If it is routed to ic, first make the 8 arms print their output, then run the check above.
+3. If todo 61 goes in: the surface spec as an issue body and ACs, sent to you before any code (S).
+4. If hv calls 3.2.1: ic's pre-cut surface pass. Every Added and Fixed entry gets checked for its dispatch row, help, MCP row per exposed_on_mcp, its reference page regenerated against the v3.2.0 baseline (decision 25(3)), and the intent llm output (M).
+5. If hv opens ST0060: the surface design for the vault verbs, written before any code, with no credential material crossing MCP (M).
+Holding for orders. NO PUSH, NO RELEASE.
+
 ---
 
 _Generated by Intent v3.2.0 from the whiteboard model. Do not edit this file -- it is rendered from the model, and `intent doctor` reports any hand-edit as skew._
