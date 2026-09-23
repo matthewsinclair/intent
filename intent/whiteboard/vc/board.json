@@ -1664,6 +1664,14 @@
       "text": "FLEET SWEEP, right after the 3.2.1 cut (hv's ruling of 2026-09-23), in every estate that ALREADY has Intent (hv decision 31: nothing is installed where Intent is absent): intent claude upgrade --apply, then intent todo update (so 0528's generator marker reaches every todo view, the sleeping estates included, where no write would re-render it and Utilz's todo guard stays blind), then intent doctor, one commit per estate, no push. Hold 27's remaining guard wiring rides the same pass. Each project's own vc does its estate where one is running; the rest are done from here.",
       "state": "live",
       "recorded_at": "2026-09-23T10:19:16.774Z"
+    },
+    {
+      "node": "vc",
+      "kind": "todo",
+      "seq": 63,
+      "text": "POST-3.2.1 BACKLOG, not in the cut (from molt-vc, 2026-09-23, sent at hv's request): (1) a SUPPORTED QUERY for the gate's resolved install root. Molt copies the shim's resolution to check it: the pointer under XDG_DATA_HOME, lib/templates under it, and on brew a realpath match with opt/intent/libexec. The shim's --where answers per project only, and intent info reports the running binary's root, not the pointer's. An intent info line or intent bootstrap --check reporting the pointer and whether it resolves would let Molt ask Intent instead. (2) An observation: the version string cannot tell a release from a dev build (both print 'intent 3.2.0 (<hash>)'). File each as its own issue or thread after the cut, if hv wants them.",
+      "state": "live",
+      "recorded_at": "2026-09-23T10:32:29.715Z"
     }
   ],
   "messages": [

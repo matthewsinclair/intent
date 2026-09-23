@@ -1,0 +1,15 @@
+{
+  "id": "01M36X5X8K3Z7TPHVXGKDE7765",
+  "ts": "2026-09-23T10:32:29.715Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "POST-3.2.1 BACKLOG, not in the cut (from molt-vc, 2026-09-23, sent at hv's request): (1) a SUPPORTED QUERY for the gate's resolved install root. Molt copies the shim's resolution to check it: the pointer under XDG_DATA_HOME, lib/templates under it, and on brew a realpath match with opt/intent/libexec. The shim's --where answers per project only, and intent info reports the running binary's root, not the pointer's. An intent info line or intent bootstrap --check reporting the pointer and whether it resolves would let Molt ask Intent instead. (2) An observation: the version string cannot tell a release from a dev build (both print 'intent 3.2.0 (<hash>)'). File each as its own issue or thread after the cut, if hv wants them."
+  }
+}
