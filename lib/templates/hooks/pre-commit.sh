@@ -84,7 +84,7 @@ cd "$PROJECT_ROOT" || exit 0
 # mentions it. That is the defect being fixed, one line lower. The runner
 # answers applicability, per guard, and exits 0 in silence when nothing applies.
 #
-# Resolution is a RUNTIME question, answered the way issue 0016 answered it for
+# Resolution is a RUNTIME question, answered the way it was already answered for
 # the Claude Code hooks: ask the CLI where it lives rather than substituting an
 # absolute path at install time. `sed` rather than `awk $2` so a home directory
 # containing spaces still resolves.
@@ -101,7 +101,7 @@ wb_info_out="$(intent info 2>&1)"; wb_info_rc=$?
 # which would print the line twice, and without GNU's `T`, which BSD sed lacks.
 INTENT_HOME_RESOLVED="$(printf '%s\n' "$wb_info_out" | sed -n '/^ *INTENT_HOME:/ { s/^ *INTENT_HOME: *//; s/ *$//; p; }' | head -1)"
 
-# THE ABSENCES, KEPT APART. Issue 0042 was absences 1 and 3 collapsed into one
+# THE ABSENCES, KEPT APART. A defect once collapsed absences 1 and 3 into one
 # `else`: when the RESOLVER fails every guard is missing at once, so the loop
 # printed one benign-looking "not found" per guard and enforced nothing -- mild
 # warnings read as small holes when the truth was that the gate was not
@@ -222,10 +222,10 @@ if [ ! -d "$GUARD_HOME" ]; then
   # one with no marking that it is old.
   echo "  which guards were owed is unknown -- the roster lives in the install this could not find." >&2
   echo "  the guards are fine; the tool that finds them is what did not answer." >&2
-  echo "  check \`intent info\` -- a binary running outside its own install tree, or a v3 binary shadowing a v2 install on PATH, are the known causes (issues 0036/0043)." >&2
+  echo "  check \`intent info\` -- a binary running outside its own install tree, or a v3 binary shadowing a v2 install on PATH, are the known causes." >&2
   # Deliberately fail-open, and this is a considered call rather than an
   # oversight. A gate that blocks every commit the moment `intent` is shadowed
-  # is issue 0043 rebuilt on the git side, and 0043 is a hard publication hold
+  # is a tool that refuses everything, rebuilt on the git side, and that is a hard publication hold
   # precisely because a tool that refuses everything is worse than one that
   # says so. A guard that must be bypassed is a guard nobody keeps.
 elif [ ! -f "$GUARD_RUNNER" ]; then
@@ -463,7 +463,7 @@ fi
 # run (only the agnostic checklist applies upstream of this hook).
 
 # **TWO ROUTES REACH AN EMPTY `LANGS` HERE, AND BOTH USED TO BE SILENT**
-# (issue 0242): `jq` is not installed, or the array is empty. Each left the
+# `jq` is not installed, or the array is empty. Each left the
 # dispatch loop unentered, `UNENFORCED` empty, and the digest below suppressed
 # -- so the gate ran no critic and said nothing about it, which is
 # indistinguishable from a gate that enforced everything.
@@ -542,7 +542,7 @@ AGGREGATE=0
 # digest below can NAME them -- see the summary block after the loop.
 UNENFORCED=()
 # Rules the PROJECT disabled in `.intent_critic.yml`, summed across languages
-# (issue 0510, ruled by hv 2026-09-22). A COUNT and not the ids, matching what
+# (ruled by hv 2026-09-22). A COUNT and not the ids, matching what
 # the critic itself prints: the ids are in the project's own committed file and
 # the JSON carries them, so a second copy here would be a second home.
 DISABLED_RULES=0
@@ -557,7 +557,7 @@ if [ "${#LANGS[@]}" -gt 0 ]; then
     # prose classification (its single registry). A prose / on-demand discipline
     # (author, content) returns a clean exit 0 no-op, so it neither blocks nor
     # prints a spurious "fail-open" line -- the gate needs no language knowledge
-    # of its own, and cannot drift from the CLI (issue 0003).
+    # of its own, and cannot drift from the CLI.
     # Capture output so we can surface findings only when present.
     out="$(intent critic "$lang" --staged --severity-min "$SEVERITY" --format text 2>&1)"
     rc=$?
@@ -572,7 +572,7 @@ if [ "${#LANGS[@]}" -gt 0 ]; then
     #
     # 3 BLOCKS AND 2 FAILS OPEN, AND THE DIFFERENCE IS WHETHER ANYONE CAN ACT.
     # An invocation error means the gate is broken; blocking every commit until
-    # someone fixes the gate is issue 0043 rebuilt on the git side, and a guard
+    # someone fixes the gate is the refuse-everything gate rebuilt on the git side, and a guard
     # that must be bypassed is a guard nobody keeps. A refusal is the opposite:
     # the project ARMED a rule, the tool is not here, and there are two ordinary
     # remedies the developer owns -- install the tool, or disarm the rule. **A
@@ -580,7 +580,7 @@ if [ "${#LANGS[@]}" -gt 0 ]; then
     case "$rc" in
       0)
         # **THE CRITIC'S DISABLED CENSUS WAS ALREADY IN `$out` HERE AND THIS ARM
-        # THREW IT AWAY** (issue 0510, hv 2026-09-22). `CriticReport::exit_code`
+        # THREW IT AWAY** (hv 2026-09-22). `CriticReport::exit_code`
         # returns 0 for a project with a non-empty `disabled` and no findings --
         # deliberately, because the opt-out is the project's own committed
         # decision (critic.rs:336-341, and that ruling is NOT reopened here).
@@ -595,7 +595,7 @@ if [ "${#LANGS[@]}" -gt 0 ]; then
         #
         # Parsed from the critic's own line rather than re-derived, so the gate
         # keeps no language knowledge of its own and cannot drift from the CLI
-        # (issue 0003, the same argument as the `intent critic` call above).
+        # (the same argument as the `intent critic` call above).
         disabled_here="$(printf '%s\n' "$out" | sed -n 's/^[[:space:]]*\([0-9][0-9]*\) rule(s) disabled by .*/\1/p' | head -1)"
         [ -n "$disabled_here" ] && DISABLED_RULES=$((DISABLED_RULES + disabled_here))
         ;;
@@ -624,7 +624,7 @@ if [ "${#LANGS[@]}" -gt 0 ]; then
         # live consumer in every project that installs this hook.
         #
         # **THE FAIL-OPEN IS UNCHANGED AND IS A RULING, NOT AN OVERSIGHT.** A
-        # gate that blocks the moment `intent` is shadowed is issue 0043 rebuilt
+        # gate that blocks the moment `intent` is shadowed is the refuse-everything gate rebuilt
         # on the git side. What changes is only what the gate CLAIMS.
         #
         # **AND IT STATES THE CONSEQUENCE FOR THE COMMIT, NOT THE FATE OF THE
@@ -654,7 +654,7 @@ fi
 # makes the line impossible to skim past on the day it changes.
 #
 # **AND THE REASONING ABOVE WAS APPLIED ONE LEVEL TOO LOW UNTIL 2026-09-05**
-# (issue 0242). It distinguishes `1 of 5` from `5 of 5` and distinguished
+# It distinguishes `1 of 5` from `5 of 5` and distinguished
 # neither from `0 of 0` -- **which is the case it was written for.** The block
 # was guarded on `UNENFORCED` being non-empty, and an empty `LANGS` produces an
 # empty `UNENFORCED`, so the one state the denominator exists to expose was the
@@ -678,7 +678,7 @@ elif [ "${#UNENFORCED[@]}" -gt 0 ]; then
   echo "  the commit is NOT blocked by this -- the gate fails open on its own breakage by design." >&2
   echo "  nothing else reports this, so if it persists the gate is not protecting what you think it is." >&2
 else
-  # The disabled count rides the ENFORCED line and only that one (issue 0510).
+  # The disabled count rides the ENFORCED line and only that one.
   # The two arms above already say a critic did not run or went unenforced, and
   # a reader of either is not being told rules were enforced -- this line is the
   # one that makes that claim, so it is the one that owes its denominator.
@@ -689,7 +689,7 @@ fi
 #
 # **NOTHING BETWEEN A WORK-PACKAGE CLOSE AND THE RELEASE PREFLIGHT EVER ASKED
 # WHETHER THE ESTATE STILL AGREES WITH THE STORE** (hv, 2026-09-12, ruled in
-# prose; issue 0308). The guards read the commit and the critics read the code.
+# prose). The guards read the commit and the critics read the code.
 # Neither reads the estate, so findings accumulated and every commit passed over
 # them.
 #
@@ -707,7 +707,7 @@ fi
 # **1 IS FINDINGS; ANY OTHER NON-ZERO IS THIS GATE'S OWN BREAKAGE AND FAILS
 # OPEN**, which is the ruling the critic arm above already carries. A binary
 # that does not have the verb answers clap's unrecognised-subcommand code, and
-# refusing every commit because the tool is merely older is issue 0043 rebuilt
+# refusing every commit because the tool is merely older is the refuse-everything gate rebuilt
 # one more time on the git side.
 #
 # **THE OUTPUT IS CAPTURED WITHOUT A PIPE BEFORE `$?` IS READ**, for the reason

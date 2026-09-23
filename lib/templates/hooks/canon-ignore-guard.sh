@@ -109,7 +109,7 @@ done <<< "$ignore_files"
 # file is not "ignored" for add purposes, and reading it that way would report a
 # clean tree while the rule that orphans every FUTURE artefact sits there.
 #
-# **BOTH HALVES READ ONE DOCUMENT: THE STAGED ONE** (issue 0392). The
+# **BOTH HALVES READ ONE DOCUMENT: THE STAGED ONE**. The
 # attribution above comes from the INDEX, and `check-ignore` reads the rules of
 # whatever work tree it is pointed at -- by default the checkout's. Those differ
 # whenever an ignore file is staged and then edited again, which on a shared

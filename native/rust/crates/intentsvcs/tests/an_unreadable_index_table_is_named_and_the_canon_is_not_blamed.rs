@@ -72,7 +72,7 @@ fn the_open_names_the_table_and_does_not_blame_the_canon() {
   // (issue 0453). `intent backup` still opens through this read, so it is not
   // offered.
   assert!(
-    remedy.contains("Run `intent index rebuild`") && remedy.contains("issue 0453"),
+    remedy.contains("Run `intent index rebuild`"),
     "the remedy names the verb that repairs it: {remedy}"
   );
   assert!(

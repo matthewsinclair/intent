@@ -27,7 +27,7 @@
 #                                          one -- an edit or a deletion -- is
 #                                          a loss.
 #
-# The second subject was `intent/events.jsonl` until issue 0458: events were
+# The second subject was once `intent/events.jsonl`, until events were
 # destroyed there 2026-08-19, by `intent upgrade` emitting an empty log over a
 # populated one -- and it wrote no event for its own run, so the operation that
 # destroyed the record left no trace in it. That arrived while the guard

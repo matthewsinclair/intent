@@ -18,7 +18,7 @@
           ]
         },
         "edited_at": {
-          "description": "When `wb edit` last changed the text, read from the clock at the write;\n`None` for text never edited (issue 0525). Its presence is the `(edited)`\nmark, and it carries none of the old text.",
+          "description": "When `wb edit` last changed the text, read from the clock at the write;\n`None` for text never edited. Its presence is the `(edited)`\nmark, and it carries none of the old text.",
           "type": [
             "string",
             "null"
@@ -91,7 +91,7 @@
           "type": "string"
         },
         "edited_at": {
-          "description": "When `wb edit` last changed the body, read from the clock at the write;\n`None` for a body never edited (issue 0525). Its presence is the\n`(edited)` mark, and it carries none of the old body.",
+          "description": "When `wb edit` last changed the body, read from the clock at the write;\n`None` for a body never edited. Its presence is the\n`(edited)` mark, and it carries none of the old body.",
           "type": [
             "string",
             "null"

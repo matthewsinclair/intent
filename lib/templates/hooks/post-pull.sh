@@ -74,7 +74,7 @@ if [ ! -f intent/.config/config.json ]; then
 fi
 
 # A fresh checkout -- `git worktree add`, or a clone that carries hooks --
-# passes the null object id as the previous HEAD (issue 0483). There is no
+# passes the null object id as the previous HEAD. There is no
 # store here yet, so the pass would BUILD one, from scratch, in what is usually
 # a throwaway tree, and on a large estate that costs minutes and a store the
 # size of the project's history. The first `intent` verb builds it when it is

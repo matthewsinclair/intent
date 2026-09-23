@@ -126,7 +126,7 @@ if [ "$CHECK_ONLY" = "1" ]; then
   fi
 
   # Guard 2: every acceptance criterion is satisfied, by the thread's own close
-  # gate. Issue 0335: v3 renders info.md from the model and it carries no
+  # gate. v3 renders info.md from the model and it carries no
   # `- [ ]` checkboxes, so counting them could never fire.
   ST_ID="$(basename "$TCA_DIR")"
   if ! command -v intent >/dev/null 2>&1; then

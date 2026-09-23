@@ -313,7 +313,7 @@ impl Pair {
         "both index probes are dirty: the index-side probe and fts5's own check both object"
       }
       Self::OrphansOnly => {
-        "the index-side probe is dirty while fts5's own check passes -- the shape of issue 0442"
+        "the index-side probe is dirty while fts5's own check passes, and fts5's own check does not look for an indexed document with no content row"
       }
       Self::StructureOnly => {
         "fts5's own check objects to the segments while the index-side probe is clean: every document the index holds has a content row"

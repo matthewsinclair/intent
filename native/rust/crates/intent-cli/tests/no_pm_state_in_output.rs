@@ -170,6 +170,17 @@ fn identifier_at(b: &[u8], i: usize, decisions: Decisions) -> Option<usize> {
   if decisions == Decisions::Counted && b[i] == b'D' && digits(i + 1, 2) && ends(i + 3) {
     return Some(i + 3);
   }
+  // `issue 0442`, `(issues 0453 and 0447)` -- a pointer into Intent's own
+  // issue ledger, which a reader in another project cannot open (issue 0542).
+  // Only the prose form is counted. `ISSUE:0000` is the address a reader writes
+  // into their own manifest and claims, so it names their own project the way
+  // `ST0000` does, and a bare four-digit number is too common to mean anything.
+  for word in [&b"issue "[..], b"Issue ", b"issues ", b"Issues "] {
+    let n = word.len();
+    if b[i..].starts_with(word) && digits(i + n, 4) && ends(i + n + 4) {
+      return Some(i + n + 4);
+    }
+  }
   None
 }
 
@@ -300,8 +311,22 @@ fn every_declared_commands_help_carries_no_pm_state() {
 /// No error, remedy, refusal or worked example names Intent's own state.
 #[test]
 fn no_shipped_string_literal_carries_pm_state() {
+  // The build scripts count too: a `cargo:warning` is printed to whoever builds
+  // Intent from source, and whoever that is works in another project.
+  let build_support = Path::new(env!("CARGO_MANIFEST_DIR"))
+    .join("../../build-support")
+    .canonicalize()
+    .expect("build-support beside the crates");
+  let mut sources = shipped_sources();
+  let before = sources.len();
+  crate::common::collect_rs(&build_support, &mut sources);
+  assert!(
+    sources.len() > before,
+    "precondition: build-support has source at {}",
+    build_support.display()
+  );
   let mut offenders = Vec::new();
-  for file in shipped_sources() {
+  for file in sources {
     let code = std::fs::read_to_string(&file).expect("read shipped source");
     let shown = file
       .strip_prefix(repo_root())
@@ -467,6 +492,17 @@ fn the_rule_keys_on_referent_and_not_on_shape() {
   assert_eq!(pm_identifiers("see ST0056", anywhere), vec!["ST0056"]);
   assert_eq!(pm_identifiers("covers AC-02.8", anywhere), vec!["AC-02.8"]);
   assert_eq!(pm_identifiers("covers AT-00.8", anywhere), vec!["AT-00.8"]);
+  assert_eq!(
+    pm_identifiers("the shape of issue 0442", anywhere),
+    vec!["issue 0442"]
+  );
+  assert_eq!(
+    pm_identifiers("Issues 0453 and 0447 hold it", anywhere),
+    vec!["Issues 0453"]
+  );
+  // The reader's own issue address, and a number that is only a number.
+  assert!(pm_identifiers("claim an issue as `ISSUE:0000`", anywhere).is_empty());
+  assert!(pm_identifiers("an issue 04421 digits long, an issue 042", anywhere).is_empty());
 
   // (b) the reader's own project, which must stay green. This is the case a
   // regex over the identifier's SHAPE cannot get right, and getting it wrong in
@@ -735,7 +771,7 @@ fn citations_in_at(path: &str, text: &str, real: &BTreeSet<String>) -> Vec<Strin
         // Referent: a four-digit thread id is a citation only if it resolves.
         real.contains(id)
       } else {
-        // `WP-nn`, `AC-n.n`, `AT-n.n` -- no thread context, so nothing to
+        // `WP-nn`, `AC-n.n`, `AT-n.n`, `issue nnnn` -- no thread context, so nothing to
         // resolve against and nothing it can be but a citation, EXCEPT in a
         // file whose subject is the shape of an acceptance record, or where the
         // register itself demands the file name the row that cites it.

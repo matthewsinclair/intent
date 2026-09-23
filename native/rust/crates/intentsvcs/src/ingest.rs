@@ -153,7 +153,7 @@ pub fn unreadable_index_remedy(
     None => format!("There is no snapshot of this store in {snapshot_dir}"),
   };
   format!(
-    "the committed canon is intact and is not at fault -- the store's `{table}` search-index table could not be read. Run `intent index rebuild`: it drops and recreates the two derived search-index tables and fills them again from the store's records and the tree, so nothing authored is lost, and it refuses rather than touch any other table (issue 0453). If it refuses too: {snapshot}. Do NOT delete the store to get past this: it is the source of truth, and the committed extract may be older than it"
+    "the committed canon is intact and is not at fault -- the store's `{table}` search-index table could not be read. Run `intent index rebuild`: it drops and recreates the two derived search-index tables and fills them again from the store's records and the tree, so nothing authored is lost, and it refuses rather than touch any other table. If it refuses too: {snapshot}. Do NOT delete the store to get past this: it is the source of truth, and the committed extract may be older than it"
   )
 }
 

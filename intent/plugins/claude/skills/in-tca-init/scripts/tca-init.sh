@@ -102,7 +102,7 @@ fi
 
 # ---- Create the work packages ----
 #
-# Issue 0335: through `intent wp new`, so the store registers each one. This
+# Through `intent wp new`, so the store registers each one. This
 # used to `mkdir` WP/NN and write info.md by hand, which v3 never reads: the
 # directories existed and no work package did. The body goes through `intent
 # set`, and socrates.md stays the auditor's working file beside the realised view.

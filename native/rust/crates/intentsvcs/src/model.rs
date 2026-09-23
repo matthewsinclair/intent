@@ -2377,7 +2377,7 @@ pub struct WbItem {
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub authored_at: Option<String>,
   /// When `wb edit` last changed the text, read from the clock at the write;
-  /// `None` for text never edited (issue 0525). Its presence is the `(edited)`
+  /// `None` for text never edited. Its presence is the `(edited)`
   /// mark, and it carries none of the old text.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub edited_at: Option<String>,
@@ -2408,7 +2408,7 @@ pub struct WbMessage {
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub authored_at: Option<String>,
   /// When `wb edit` last changed the body, read from the clock at the write;
-  /// `None` for a body never edited (issue 0525). Its presence is the
+  /// `None` for a body never edited. Its presence is the
   /// `(edited)` mark, and it carries none of the old body.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub edited_at: Option<String>,

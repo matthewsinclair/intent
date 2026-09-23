@@ -2,9 +2,9 @@
 #
 # staged-format-guard.sh -- THE STAGED BYTES ARE FORMATTED. IT NEVER WRITES.
 #
-# WHAT IT IS FOR (issue 0505). Ten scripts across the fleet carried one
+# WHAT IT IS FOR. Ten scripts across the fleet carried one
 # contract with no home: run the formatter over the WORKTREE, `git add` the
-# result, and commit bytes nobody staged (issue 0498's mechanism). They were
+# result, and commit bytes nobody staged. They were
 # rewritten by hand on 2026-09-21 to check the staged bytes and refuse, which
 # left ten copies of one contract, each in an untracked hook. An untracked hook
 # is not cloned and neither is `core.hooksPath`, so a fresh clone of any of them
@@ -34,7 +34,7 @@
 # -- which is why this guard classifies itself instead of being settled by the
 # loop before dispatch.
 #
-# THE INTERIM IS OVER AND THE PROSE LINE IS GONE (issue 0506, landed). This
+# THE INTERIM IS OVER AND THE PROSE LINE IS GONE. This
 # guard used to PRINT `not applicable -- <config> declares no formatters.` and
 # exit 0, because the runner read only two answers from a guard it dispatched
 # and its SKIPPED class was unreachable from inside one. The printed line

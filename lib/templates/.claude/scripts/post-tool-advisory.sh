@@ -33,7 +33,7 @@
 #   - Exit 0 always.
 #   - The findings are printed as JSON, `hookSpecificOutput.additionalContext`,
 #     as `post-tool-symbol-context.sh` prints its answer. PLAIN STDOUT NEVER
-#     REACHES THE MODEL, and until issue 0478 this hook printed plain stdout.
+#     REACHES THE MODEL, and this hook once printed plain stdout.
 #     Driven 2026-09-19 with a headless session, the hook wired by hand: the
 #     hook fired and printed the critic's findings at exit 0, and the model,
 #     asked to quote any hook context it received, answered NONE. The same

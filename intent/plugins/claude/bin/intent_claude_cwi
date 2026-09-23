@@ -121,7 +121,7 @@ board, `status` to see who is there, `show <node>` to read one whole board.
 EOF
 }
 
-# THE header-block reader (issue 0012). One key from a wip.md's leading block.
+# THE header-block reader. One key from a wip.md's leading block.
 #
 # The block is a line-oriented `key: value` record and NOT YAML, which is a
 # ruling rather than an accident -- see "The header block is NOT YAML" in the

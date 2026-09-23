@@ -349,7 +349,7 @@ fn emit_source_kind(commit: &str, version: &str) {
   let tags = if is_commit(commit) {
     git(&["tag", "--points-at", commit]).unwrap_or_else(|| {
       println!(
-        "cargo:warning=git could not list the tags at {commit}, so this build says `dev` -- issue 0534"
+        "cargo:warning=git could not list the tags at {commit}, so this build says `dev` even where a release tag names this commit"
       );
       String::new()
     })
@@ -408,7 +408,7 @@ fn is_commit(value: &str) -> bool {
 fn emit_rerun_triggers() {
   let fallback = |why: &str| {
     println!(
-      "cargo:warning=provenance trigger fell back to cargo's package default ({why}), so `--version` can lag a change outside this crate -- issue 0285"
+      "cargo:warning=provenance trigger fell back to cargo's package default ({why}), so `--version` can lag a change outside this crate"
     );
   };
   let Some(top) = git(&["rev-parse", "--show-toplevel"]) else {

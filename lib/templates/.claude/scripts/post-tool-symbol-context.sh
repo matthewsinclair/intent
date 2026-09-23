@@ -6,7 +6,7 @@
 #   After a search whose pattern is one symbol, append what the index knows
 #   about that symbol: where it is defined and where its name occurs, as source
 #   spans. The search is the Grep tool, or a Bash command that runs exactly one
-#   `grep`, `rg` or `git grep` (issue 0427). The search has already run and its
+#   `grep`, `rg` or `git grep`. The search has already run and its
 #   result stands; this only ever ADDS.
 #
 # Status:
@@ -16,7 +16,7 @@
 #   so it is the project's decision rather than one taken on its behalf by an
 #   upgrade.
 #
-# WHY BASH TOO (issue 0427). Measured across this project's session transcripts
+# WHY BASH TOO. Measured across this project's session transcripts
 # on 2026-09-16: 3 Grep tool calls against 520 `git grep`s run through Bash and
 # thousands of plain `grep` and `rg` commands. A hook that answers only the Grep
 # tool almost never runs.
@@ -41,7 +41,7 @@
 #   - Exit 0 ALWAYS. It never blocks, never replaces, and its worst outcome is
 #     saying nothing.
 #   - The answer is printed as JSON, `hookSpecificOutput.additionalContext`.
-#     PLAIN STDOUT NEVER REACHES THE MODEL, and until issue 0427 this hook
+#     PLAIN STDOUT NEVER REACHES THE MODEL, and this hook once
 #     printed plain stdout. Driven 2026-09-16 with a headless session: a
 #     PostToolUse hook that printed a nonce at exit 0 FIRED (its marker file was
 #     written) and the model reported seeing nothing; the same nonce as

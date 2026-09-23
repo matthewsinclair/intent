@@ -30,7 +30,7 @@
 # Adding one is a line in the array below and it reaches every consumer with no
 # reinstall, no version bump and nothing to remember.
 #
-# THE ABSENCES MUST STAY APART (issue 0042, one level up).
+# THE ABSENCES MUST STAY APART, one level up from the hook that first collapsed them.
 # The hook already distinguished "the resolver did not answer" (ALL guards
 # missing) from "one guard file is missing" (one hole), because collapsing them
 # printed one benign "not found" per guard while the gate was in fact not
@@ -83,12 +83,12 @@ GUARDS=(
   #
   # The event-log subject is the per-event layout (Intent 3.1.0): one committed
   # file per event under `intent/.canon/events/`, written once and never
-  # rewritten or deleted. It replaced `intent/events.jsonl` (issue 0458), a
+  # rewritten or deleted. It replaced `intent/events.jsonl`, a
   # file no verb writes since 0457. `.history/**` is untouched, every node
   # folds into it daily, and it is where the first loss happened.
   'intent|append-only-guard.sh|a write where an append was meant is UNCHECKED'
   # THE APPLICABILITY IS THE CONFIG FILE AND THE REAL TEST IS INSIDE THE GUARD
-  # (issue 0505), for the reason the append-only row above states about itself:
+  # for the reason the append-only row above states about itself:
   # `applies-when` is a PATH test, and what makes this guard relevant is a
   # DECLARATION -- `"formatters"` in that same config. Every Intent project has
   # the file, so the row dispatches the guard everywhere and the guard reports
@@ -103,7 +103,7 @@ GUARDS=(
 # ---- THE ROSTER ROW'S SHAPE HAS ONE HOME, AND THESE TWO FUNCTIONS ARE IT ----
 #
 # A row is `applies-when|guard|unchecked-prose` with an OPTIONAL fourth field,
-# `self`, declaring that the guard settles its own applicability (issue 0515).
+# `self`, declaring that the guard settles its own applicability.
 # Both loops below need to read it and neither may spell the split itself: the
 # prose field used to be `${g_rest#*|}`, which takes the REST OF THE LINE, so a
 # fourth field would have landed silently inside the prose in one loop and been
@@ -143,7 +143,7 @@ roster_self() {  # roster_self "<guard>|<prose>[|<flag>]"
 # are in.
 GUARD_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# ---- THE PROJECT'S OWN GUARDS (issue 0426) ----
+# ---- THE PROJECT'S OWN GUARDS ----
 #
 # `.git/hooks/` is untracked in every repository, and so is the `core.hooksPath`
 # line in `.git/config` that points git at a tracked hooks directory. A guard a
@@ -261,7 +261,7 @@ if [ "${1:-}" = "--list-guards" ]; then
       # board and no canon has no hole where the canon guard would be.
       #
       # **AND THE OTHER KIND OF NOT-APPLICABLE NOW HAS A WORD HERE TOO, ONE
-      # ARM DOWN** (issue 0515, closing what 0506 could not). A guard whose
+      # ARM DOWN**. A guard whose
       # applicability is a DECLARATION rather than a path cannot be asked
       # without being RUN, and this arm returns before any dispatch on purpose:
       # the header above records what it cost the last time a read-only report
@@ -281,7 +281,7 @@ if [ "${1:-}" = "--list-guards" ]; then
     fi
     printf '%s\t%s\t%s\t%s\t%s\n' "$g_name" "$GUARD_HOME/$g_name" "$g_when" "$g_state" "intent"
   done
-  # THE 5TH COLUMN SAYS WHOSE GUARD IT IS (issue 0426). Appended rather than
+  # THE 5TH COLUMN SAYS WHOSE GUARD IT IS. Appended rather than
   # inserted, so a reader that SPLITS the row keeps its first four fields -- but a
   # bash `read` of four names hands the fourth the rest of the line, so every
   # such reader must name the fifth (`int hooks` does).
@@ -387,7 +387,7 @@ done
 # owes nothing.
 #
 # **THAT SENTENCE WAS FALSE BETWEEN 2026-09-22 AND THIS COMMIT, AND THE REPAIR
-# IS WHAT MAKES IT TRUE AGAIN RATHER THAN A REWORDING OF IT** (issue 0506).
+# IS WHAT MAKES IT TRUE AGAIN RATHER THAN A REWORDING OF IT**.
 # When `staged-format-guard.sh` landed, the not-applicable population split
 # across two counters: guards this runner settled BEFORE dispatch, counted in
 # SKIPPED, and guards that settled it THEMSELVES after dispatch, counted in RAN.

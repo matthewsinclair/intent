@@ -127,5 +127,5 @@ The green is read off a plan line, an ok count and an exit status that had to ag
 ## Further Reading
 
 - Intent cutover runbook, 2026-08-26 (`intent/whiteboard/vc/cutover-runbook.md`): the instances, and the memory that a precision figure is a claim about the corpus.
-- Devbin issue 0018 and its addendum: a verdict scoped to the world it was measured in.
+- A verdict is scoped to the world it was measured in: a control that fired on one tree or corpus has not fired on any other.
 - IN-AG-NO-SILENT-001: the production-code face of the same principle -- a failure that produces no signal is not a success.
