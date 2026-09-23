@@ -25,7 +25,7 @@ RULED TODAY, NOT YET EXECUTED:
 - Prolix carry, GO to dc: hv's board carried as it is, then VC archives the four placeholder items on hv's board in Prolix AND in Molt, under hv's pen. Prolix cc: --drop-uncarried plus three holds "released when hv rules". Prolix vc: two coerced prose lines archived.
 - Lamplight: its 19 WIP work packages under 14 closed threads, fixed by vc from here. Done where the record shows the work landed, cancelled with a note otherwise. One commit, no push.
 - Fleet upgrade sweep: RIGHT AFTER the 3.2.1 cut. Hold 27's remaining wiring rides it (the MicroGPTEx pilot, 80d4c13, passed).
-- Open question for hv: Cards/Design and cfg/Gtools-geodica have no Intent. Adopt, or leave (vc recommends leave).
+- ANSWERED by hv, 2026-09-23 (hv's board decision): NO project that lacks Intent gets it. "Every estate on the latest" means the estates that already have Intent; Cards/Design and cfg/Gtools-geodica stay without it. Do not raise it again.
 
 STILL OWED BY vc: hv decision 28's ten Conflab and Baize rulings (0503 and 0504 are closed, so the dating is unblocked), and the Finding C census. At the globalfold: restart.md gains ic's machine-census form and the 0518 lesson (a runner change under bin/ owes the test file that drives it: 0518 was judged by a two-sided drive and never ran prepush_push_range.bats, which reds on every machine); wip.md's TODO drops the done push, the rust CI read and the intentd restart.
 

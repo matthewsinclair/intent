@@ -1,0 +1,15 @@
+{
+  "id": "01M36R0ZE7WFP8ZZGH69MT7H1Q",
+  "ts": "2026-09-23T09:02:25.223Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-23, hv first-hand in prose, answering a question laksa-dc raised and vc relayed) NO PROJECT THAT LACKS INTENT GETS IT INSTALLED. hv, verbatim: \"no, they should not. There's no reason to do that at all. I never asked for projects that do not currently have intent to have it installed.\" So hv's \"I want every estate on the latest for BOTH intent and devbin, no exceptions\" means every estate that ALREADY has Intent (and, for devbin, every estate that already has devbin). Cards/Design and cfg/Gtools-geodica stay without Intent. The fleet sweep that runs right after the 3.2.1 cut upgrades what is there and installs nothing new. vc's error, on record: the question followed from hv's own words and should have been answered under the pen, not relayed."
+  }
+}
