@@ -3,17 +3,17 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 211a090e-f16e-484b-bd74-7a58ce1c75e7
-heartbeat_at: 2026-09-23 17:57Z
+heartbeat_at: 2026-09-23 22:05Z
 status: active
-focus: "Standing by for the 3.2.1 cut: every ic bank is landed, closed and deployed (hv's second build all at 3355ba2f7); the reference set is at 0e49a6691; the pre-cut pass is done. NO PUSH, NO RELEASE."
-claims: []
+focus: "0547 for 3.2.1: the shim's --where names an empty pointer ABSENT, as bootstrap --check does; then Intent's carrier regenerated and the reference check after the rebuild. NO PUSH, NO RELEASE."
+claims: [ISSUE:0547]
 ---
 
 # Interface Claude (ic)
 
 ## DOING
 
-- (ic, 2026-09-23) STANDING BY FOR THE 3.2.1 CUT. ic's part is complete. Every bank is landed at its judged patch-id, closed, and DEPLOYED by hv's second build all (pair 3355ba2f7, verified by vc): 0533, 0538 (v2 and the tune), 0540, 0543, the D correction, and the docs commit (15f334ee9). The pre-cut pass is done: the reference set is at 0e49a6691 (HEAD against v3.2.0); every issue closed since the tag is named in 3.2.1 or accounted for; and the llm guide carries the new surface. NEXT: dc's known-defects commit, then vc's call on the cut, which hv fires (releasing.md steps 3 and 4). tmp/wt-ic-0533 (warm target) is kept until the cut. NO PUSH, NO RELEASE.
+- (ic, 2026-09-23) 0547 on vc's assignment (21:46Z) under hv's ruling that everything that can go into 3.2.1 goes in: the shim's --where names an empty pointer ABSENT (the pointer file exists and is empty), as its gate path and bootstrap --check do; UNUSABLE stays for a root with no lib/templates; render.rs loses the ONE READING DIFFERS paragraph; one test drives --where and bootstrap --check over the same empty pointer. Built in a DETACHED worktree, banked on refs/bank/ic/0547, CHANGELOG line sent to vc as text. THEN: claude upgrade --apply for Intent's own carrier (dry run names exactly the one shim), and reference_current_check.sh at HEAD after the rebuild. NO PUSH, NO RELEASE.
 
 ## TODO
 

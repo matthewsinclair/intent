@@ -1,0 +1,15 @@
+{
+  "id": "01M384TSCWJQTN9QSMK4EW4N7P",
+  "ts": "2026-09-23T22:05:28.348Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "(ic, 2026-09-23) 0547 on vc's assignment (21:46Z) under hv's ruling that everything that can go into 3.2.1 goes in: the shim's --where names an empty pointer ABSENT (the pointer file exists and is empty), as its gate path and bootstrap --check do; UNUSABLE stays for a root with no lib/templates; render.rs loses the ONE READING DIFFERS paragraph; one test drives --where and bootstrap --check over the same empty pointer. Built in a DETACHED worktree, banked on refs/bank/ic/0547, CHANGELOG line sent to vc as text. THEN: claude upgrade --apply for Intent's own carrier (dry run names exactly the one shim), and reference_current_check.sh at HEAD after the rebuild. NO PUSH, NO RELEASE."
+  }
+}
