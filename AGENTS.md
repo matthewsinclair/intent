@@ -84,7 +84,7 @@ intent st list      # list steel threads
 - Follow Rust conventions enforced by `cargo fmt`.
 - Follow Swift conventions enforced by `swift format`.
 - Shell scripts: 2-space indentation, POSIX-compliant where practical.
-- Markdown: no manual line wrapping; verblock frontmatter on persistent docs.
+- Markdown: no manual line wrapping; verblock frontmatter on hand-authored persistent docs such as `intent/wip.md` (generated views such as a thread's `info.md` carry none).
 - See `usage-rules.md` for the terse "DO / NEVER" contract.
 - See `intent/docs/working-with-llms.md` in the Intent source repository (https://github.com/matthewsinclair/intent) for the canon tech note on the LLM-facing layout and how hooks + critics + skills compose.
 
@@ -146,7 +146,7 @@ intent claude rules validate    # schema check
 
 ## Session Hooks
 
-`.claude/settings.json` wires Claude Code lifecycle hooks: **SessionStart** (inject context + `/in-session` reminder), **UserPromptSubmit** (strict gate -- block first prompt until `/in-session` runs), **Stop** (remind `/in-finish` at wrap-up). Full architecture: `intent/docs/working-with-llms.md#session-hook-architecture` in the Intent source repository (https://github.com/matthewsinclair/intent).
+`.claude/settings.json`, once `intent claude upgrade --apply` has written it, wires Claude Code lifecycle hooks: **SessionStart** (inject context + `/in-session` reminder), **UserPromptSubmit** (strict gate -- block first prompt until `/in-session` runs), **Stop** (remind `/in-finish` at wrap-up). Full architecture: `intent/docs/working-with-llms.md#session-hook-architecture` in the Intent source repository (https://github.com/matthewsinclair/intent).
 
 ## Socrates vs Diogenes FAQ
 
@@ -163,7 +163,7 @@ They have never been the same agent. FAQ + forensic detail: `intent/docs/working
 2. Make changes.
 3. Run the suite again; confirm no regressions.
 4. Add new tests for new functionality.
-5. Before commit, the pre-commit critic gate checks staged files for `CRITICAL` + `WARNING` findings. See `intent/docs/pre-commit-hook.md` in the Intent source repository (https://github.com/matthewsinclair/intent).
+5. Before commit, the pre-commit gate (installed by `intent claude upgrade --apply`) runs the shipped guards, checks staged files with `intent critic <lang>` for `CRITICAL` + `WARNING` findings, and runs `intent doctor`; a finding, a refusing guard or a doctor exit 1 refuses the commit. See `intent/docs/pre-commit-hook.md` in the Intent source repository (https://github.com/matthewsinclair/intent).
 
 ## Commit Guidelines
 
@@ -191,7 +191,7 @@ In this project:
 
 - `intent/llm/MODULES.md` -- OPTIONAL module registry (Highlander enforcement). To check for prior art, ask the index first: `intent search --kind def <name>` answers whether a thing with that name already exists anywhere in the tree, and the answer carries the index's own freshness. When it says the index is not complete for the paths that matter, fall back to grep. Where the project keeps a registry, `intent modules find <name>` searches that as well. `intent init` does not create a registry, so for most projects the index is the whole answer.
 - `CLAUDE.md` -- Claude-specific overlay.
-- `usage-rules.md` -- DO / NEVER contract for this project.
+- `usage-rules.md` -- DO / NEVER contract for this project (seeded by `intent claude upgrade --apply` when absent; `intent init` does not create it).
 
 ---
 
