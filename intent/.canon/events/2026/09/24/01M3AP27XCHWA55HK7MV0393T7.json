@@ -1,0 +1,16 @@
+{
+  "id": "01M3AP27XCHWA55HK7MV0393T7",
+  "ts": "2026-09-24T21:45:07.244Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 33,
+    "text": "RESUME (vc, the day's third localfold, on hv's order after 21:15Z, 2026-09-24). Measure first: `git log --oneline -12`, `intent --version` (pair e2f5ce4b3), `git rev-list --count upstream/main..HEAD` (0 once hv's push is in), ListAgents. The ledger is scratchpad bank-ledger.md.\n\nSTATE: hv RULED \"in\" (decision 60). The whole 3.2.1 fix set is LANDED, closed where fully fixed, and BUILT: build all 20:54:24Z-20:56:15Z rc 0, pair e2f5ce4b3, intentd restarted. ic's stacked final-tree run PASSED (a206bfeaa4c7: 3097 Rust tests / 0 failed, bats 747/747). The docs after the build (root files 9421f0961, reference cd71cbe8a, help.png b026a00fd, known-defects e0ed87d8a) moved no scoped path. The CHANGELOG and release notes are at 76b9ca084. The tree was clean at 47c9c8a1d (72 ahead). Open issues are 26 (0554 and 0559 open in part). hv's standing order: NO NEW ISSUE FILES before the cut; findings go to vc's after-the-line list (the ledger).\n\nNEXT, in order:\n1. hv pushed (local + upstream). Read EVERY CI job from its logs.\n2. On all-green: the cut's HOLD to every live session: intent-cc/dc/ic, devbin-vc (HOLD on; its combined suite ENDED 21:44:41Z, rc 1 on one devbin arm it is investigating light; nothing heavy until the tag), gtools-vc, laksa-vc, lamplight-vc. Stop intentd first.\n3. hv's terminal: `bin/devbin build release v3.2.1`, then at the tag `dvb build all`, `int macos prepare`, `formula`, `publish`, `smoke --reinstall`. hv pushes tap README 5f71f19 (tmp/tap-intent) BEFORE `publish`. Read the gate lines off hv's terminal.\n4. Afterwards: brew unlink and pin; send the v3.2.1 tag to devbin-vc; todo 62's fleet sweep; hv's stabilisation-line directive.\n\nAFTER THE LINE: the ledger list (subagents read, 0584 check, 0554(a), 0559's st-edit route, commands.md \"Retired\" help/organize, dc's (11) and (12), int/devbin help, yml comments, Devbin vendored, seven weak rule links)."
+  }
+}
