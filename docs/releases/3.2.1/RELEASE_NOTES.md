@@ -68,6 +68,14 @@
 
 **Smaller corrections**: `intent wb show --all` and `intent wb pickup --all` mark a handled message's line `(handled)` (issue 0531); `intent wb claim --help` and `intent wb unclaim --help` name the three forms an `<id>` can take (issue 0530); `intent wb migrate` labels its `.history` count as documents carried and names each pre-migration copy it keeps (issue 0499); `intent organize`'s digest of unclaimed paths no longer changes when the project is moved or cloned (issue 0509); the MCP `organize` tool reports project-relative paths (issue 0513); and `intent edit` on an issue's address names `intent issues show` and `intent set ... body --from` (issue 0514).
 
+**A project made by Intent 3.0 is told that git tracks its store, and how to stop it** (issue 0551). Intent 3.0's `init` wrote no `.gitignore`, so a project's first commit took `intent/.cache/intent.db`, and the ignore rule a later run writes does not take it back out of the index. `intent upgrade` now prints the command that does, `git rm --cached intent/.cache/intent.db`, and `intent doctor` reports a tracked store until it is run.
+
+**A pull no longer deletes a teammate's whiteboard message, and a teammate's edit to a thread's Objective or Context survives the pull** (issues 0554, 0556 and 0559). The hooks' pass after a pull rewrote each pulled board file and each edited thread cover from this clone's store, and said nothing. A pulled board the store holds differently is now kept and named, with `intent sync --to-store` to carry it, and board writes refuse until it is carried; a pulled cover edit is taken into the store and the thread named. `intent doctor` names `intent sync --to-store` for a hand edit it can carry. `docs/concepts/working-in-a-team.md` walks through both.
+
+**`intent doctor` says what a broken pre-commit gate does to a commit, and the verb that repairs it** (issue 0570). It said commits were going through ungated and that nothing repaired the gate; most broken states in fact refuse every commit, and `intent claude upgrade --apply` or `intent bootstrap` repairs each one.
+
+**`.intent_critic.yml` is seeded as valid YAML** (issue 0564), **the explorer's `/help`, its address handling and `intent app status` are corrected** (issues 0550, 0552, 0553 and 0560), and **the pull-request workflow no longer runs a pull request's description as code** (issue 0585).
+
 ## Upgrading
 
 The order matters, because the first command the new version runs in a project migrates its store.
@@ -97,3 +105,5 @@ The order matters, because the first command the new version runs in a project m
 **Some views re-render on their next write.** A board or a `todo.md` an older Intent wrote is reported by `intent doctor` as a stale render that blocks no commit, until the next write re-renders it; `intent todo update` rewrites `todo.md` at once.
 
 **A script that matches `intent --version` whole now meets a trailing `release` or `dev`.** Anything reading the version token or the commit in the parentheses reads them as before.
+
+**In a project first made with Intent 3.0, read `intent upgrade`'s output for an `untrack:` line.** If it prints one, run the `git rm --cached` command it names and commit it with the upgrade, so the store leaves the index and stays on disk.
