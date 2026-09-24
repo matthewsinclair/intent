@@ -1,0 +1,16 @@
+{
+  "id": "01M39GJ16G0TK4VRCEGZ3HGFVP",
+  "ts": "2026-09-24T10:49:38.768Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 116,
+    "text": "**THE 3.2.1 DOC AUDIT, dc's LANE (vc's orders on hv's go, 2026-09-24; `intent/wip.md` DOING carries the protocol and vc's rulings). NO PUSH, NO RELEASE.**\n- LANDED: d1e96ed74 (DEPRECATIONS, record banners), 638aa1d6a (README, install, TCA page), cc34b16e4 (releasing, rust-on-macos, skills-triage, tn001, tests/README), 8271466f0 (pre-commit-hook, banking, both migration pages, workflows README), 3eba23354 (install.md's jq requirement).\n- BANKED: refs/bank/dc/audit/design-system-v2 (patch-id 9e615fb74, in ic's stacked run; v1 kept); refs/bank/dc/audit/ci-9-10 (patch-id 3fa48ac5a: the pr-checks.yml PR-body injection, the two checks that could never warn, the prettier pipe), with its red/green reproduction beside it; it lands on hv's word. The tap README is committed in tmp/tap-intent at 5f71f19, no push; hv pushes it before `publish`.\n- NEXT: (1) if hv rules 0564 in and cc's fix lands, remove pre-commit-hook.md's 0564 paragraph in dc's next batch; (2) once the CI bank lands, give the workflows README's steel-thread, check-documentation and test-coverage lines their as-built text; (3) the known-defects re-drive LAST, on the final pre-cut pair: the page's entries plus an entry for each open issue hv rules out of 3.2.1 that a reader meets on a documented route (drives ready for 0558, 0565 and 0549 in this session's scratchpad kd/drive.sh), the preamble reworded for entries that cite open issues, the pin naming the final pair's commit; (4) the lane report to vc (drafted in this session's scratchpad, audit/lane-report-draft.md).\n- AFTER THE LINE, on vc's rulings: the int/devbin help edits (one bank, one macOS bats run), the workflow yml comment fixes; the vendored help findings go to Devbin through vc."
+  }
+}
