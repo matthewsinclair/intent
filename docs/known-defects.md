@@ -1,12 +1,33 @@
 # Known defects in v3.2.1
 
-**Every defect on this page has been run against the build v3.2.1 is cut from.** Not inferred from our issue register: driven against that build before its version stamp moved, when `intent --version` printed `intent 3.2.0 (86ff9c66120df4a3ede85e56f7cd9341e9e5dce2) dev`, each in a fresh scratch project under an isolated `HOME`. Where a claim could not be driven it is not on the page, and the last sections say what that leaves out.
+**Every defect on this page has been run against the build v3.2.1 is cut from.** Not inferred from our issue register: driven against that build before its version stamp moved, when `intent --version` printed `intent 3.2.0 (e2f5ce4b3201417247fcca9ebc17848f967d0e38) dev`, each in a fresh scratch project under an isolated `HOME`. Where a claim could not be driven it is not on the page, and the last sections say what that leaves out.
 
 **A defect is on this page if you can hit it by following the documentation correctly.** Something that only bites a maintainer editing the register, or a team sharing one checkout, is recorded against the issue rather than here.
 
-**An issue being closed in our register does not mean the defect is gone from your build.** Every issue this page cites is closed in the register, and each entry below still reproduces on this build.
+**An issue's status in our register does not tell you whether the defect is in your build.** Some issues this page cites are closed in the register and some are open, and each entry below reproduces on this build whichever it is.
 
 **The page is re-driven whole at every release, and an entry that no longer reproduces leaves it.** A page titled for one release lists what a reader of that release has. What each release fixed is in `CHANGELOG.md`, and an entry that left names the release that fixed it in the commit that removed it.
+
+## Setting up a project
+
+**`intent init` points you at `--help` for notes that `--help` does not carry** (`intent#0558`). A fresh `intent init` exits 0 and ends its list of the files it wrote with:
+
+```
+    (3 embedded template(s) deliberately not written -- run with --help for the family notes)
+```
+
+`intent init --help | grep -i family` prints nothing and exits 1: the help has no family notes, so the pointer leads nowhere. The project is initialised; only the pointer is wrong.
+
+**`intent claude upgrade --apply` calls a seed yours when it is byte for byte what the upgrade wrote** (`intent#0565`). On a fresh project the first run writes `.mcp.json`, and the second reports it as the project's own:
+
+```
+  $ intent claude upgrade --apply | grep -F .mcp.json
+  written: .mcp.json
+  $ intent claude upgrade --apply | grep -F .mcp.json
+  preserved: .mcp.json (yours, not canon's)
+```
+
+`cmp` against `lib/templates/_mcp.json` in the install (`intent info` prints its path as `INTENT_HOME`) exits 0: nobody touched the file. `preserved` is right that the run left it alone, since `.mcp.json` is seeded only when it is absent, and wrong that it is yours. **Read `preserved:` as "left as it was"**, and compare the file with the install's template when you need to know whether it differs.
 
 ## The search index
 
@@ -30,15 +51,15 @@ It exits 0. The search index is shown and not counted, so it never moves `doctor
 
 ```
   $ intent search KDPROBE1 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":["src/probe1.rs"],"complete":true,"reconciled":false,"reconciled_at":"2026-09-23T17:40:35.728Z"}
+  {"hits":["src/probe1.rs"],"complete":true,"reconciled":false,"reconciled_at":"2026-09-24T20:57:20.211Z"}
   $ intent search KDPROBE2 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-09-23T17:40:35.728Z"}
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-09-24T20:57:20.211Z"}
   $ intent search KDPROBE3 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-09-23T17:40:35.728Z"}
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-09-24T20:57:20.211Z"}
   $ intent search KDPROBE4 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-09-23T17:40:35.728Z"}
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-09-24T20:57:20.211Z"}
   $ intent search KDPROBE5 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-09-23T17:40:35.728Z"}
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-09-24T20:57:20.211Z"}
   $ intent daemon stop
   ok: intentd stopped
   $ intent search KDPROBE5 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled}'
@@ -49,9 +70,20 @@ The same search with the daemon stopped reconciles first and finds the file. How
 
 **To search a tree you have just changed, stop the daemon first** (`intent daemon stop`), or search again once the watcher has caught up. An answer that reads `"reconciled": false` did not look at the tree before it answered.
 
+**A search answer carries every file its symbol resolution has gone stale on, on every query** (`intent#0549`). In a Rust project with a resolution recorded by `intent index resolve --lang rust`, edit some source files and rebuild the index: a search that finds one of them and a search that finds nothing both carry every one.
+
+```
+  $ intent search f1 --json | jq -c '.index.resolution.rust | {state, stale}'
+  {"state":"stale","stale":["src/f1.rs","src/f2.rs","src/f3.rs","src/f4.rs","src/f5.rs","src/f6.rs","src/f7.rs","src/f8.rs"]}
+  $ intent search nosuchname --json | jq -c '.index.resolution.rust | {state, stale}'
+  {"state":"stale","stale":["src/f1.rs","src/f2.rs","src/f3.rs","src/f4.rs","src/f5.rs","src/f6.rs","src/f7.rs","src/f8.rs"]}
+```
+
+The list holds every stale file and rides every answer, whatever the answer holds. That is the `--json` answer, driven here. The `intent_search` tool that `intent mcp` serves answers in the same envelope, which the build's own tests hold the two to; `intent mcp` was not driven for this page, so that half is read from those tests.
+
 ## A stray directory disables the whole project
 
-**An `STnnnn` directory anywhere under `intent/st/` that holds a thread's files is picked up as a thread, and one it cannot read stops every command** (`intent#0011`). A staging copy at `intent/st/staging/ST0099/` holding `info.md` and `acceptance.md`, copied from a thread this build rendered, is enough. What you get is not a duplicate row in a listing, it is:
+**An `STnnnn` directory anywhere under `intent/st/` that holds a thread's files is picked up as a thread, and one it cannot read stops commands that have nothing to do with it** (`intent#0011`). A staging copy at `intent/st/staging/ST0099/` holding `info.md` and `acceptance.md`, copied from a thread this build rendered, is enough. What you get is not a duplicate row in a listing, it is:
 
 ```
   $ intent st list
@@ -59,7 +91,7 @@ The same search with the daemon stopped reconciles first and finds the file. How
     remedy: run `intent upgrade` to migrate this project to Intent v3
 ```
 
-at exit 1 on every verb, including ones that have nothing to do with the stray thread; `intent doctor` reports it as `residue: unmigrated` and exits 4, the code for an estate it could not judge. The remedy is misleading: the project is fine and one directory is not. Keep working copies of threads outside `intent/st/`.
+at exit 1. `intent issues list` and `intent todo`, which have nothing to do with the stray thread, stop at the same wall at exit 1, and `intent doctor` reports it as `residue: unmigrated` and exits 4, the code for an estate it could not judge. The remedy is misleading: the project is fine and one directory is not. Keep working copies of threads outside `intent/st/`.
 
 **A second route reaches the same wall.** A thread placed under an `_inbox/` status directory produces the identical stop (`intent#0066`). Two different stray-directory shapes, one symptom, and in both cases the message names a thread the operator never created.
 
