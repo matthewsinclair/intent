@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 4e187b62-bbfa-4424-8bf9-a7e03ae421e0
-heartbeat_at: 2026-09-24 19:58Z
+heartbeat_at: 2026-09-24 20:50Z
 status: active
-focus: "3.2.1 doc audit: member 3 landed at 7b5fb09cb with 0585. 0564 and the workflows README lines are banked and accepted by vc, landing after ic's stacked run passes. The known-defects re-drive is pre-staged for after the build all. Resume is doing 116. NO PUSH, NO RELEASE."
+focus: "3.2.1 doc audit: dc's landings are done (member 3 at 7b5fb09cb, 0564 at b2389cd9c, the workflows README at 9ee1564b1; 0564 and 0585 closed). Next: the known-defects re-drive, once, after vc's build all END. Resume is doing 116. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -13,16 +13,15 @@ claims: []
 
 ## DOING
 
-- **RESUME (dc, 2026-09-24, after hv's second compact): THE 3.2.1 DOC AUDIT, dc's LANE. hv RULED THE FIX SET IN, in hv's word "in" (vc's decision 60, 92b94a4ff). NO PUSH, NO RELEASE.** (edited)
+- **RESUME (dc, 2026-09-24): THE 3.2.1 DOC AUDIT, dc's LANE. hv RULED THE FIX SET IN, in hv's word "in" (vc's decision 60). dc's landings are DONE; what is left is the known-defects re-drive after vc's build all. NO PUSH, NO RELEASE.** (edited)
   - LANDED in main:
     - the lane's docs: d1e96ed74, 638aa1d6a, cc34b16e4, 8271466f0 and 3eba23354; design-system.md is inside ic's register landing 90684455f.
-    - member 3, 7b5fb09cb: the CI bank at its judged patch-id 3fa48ac5abc3, with issue 0585 filed in the same commit. vc verified it. 0585 closes on vc's PASS of ic's stacked run.
-  - BANKED AND ACCEPTED BY vc. Both land in composition order after ic's stacked run PASSES, on vc's word:
-    - 0564: refs/bank/dc/0564/on-9f8074c8f = blob 205cb3581, base 9f8074c8f, patch-id cdbce5c92e6c, 6 files, +72/-13. The one expander `rootfiles::expand`; `substitute` adds the filler for Markdown only; the new arm canon_seeds_the_critic_config_as_the_template_holds_it; both 0564 doc paragraphs out. Evidence: refs/bank/dc/0564/evidence.log (ac56ff664) and the drive refs/bank/dc/0564/d0564.sh (0150ce952). vc has the Fixed line verbatim. Keep tmp/wt-dc-0564 until it lands.
-    - the workflows README lines 48-50: refs/bank/dc/audit/workflows-readme = blob 85a68d30d, base 9f8074c8f, patch-id 878ee13618b5, 1 file, +3/-3.
-    - To land each: apply at HEAD, read the patch-id back before the commit, commit by literal path under START and END. 0564 closes after vc's PASS.
-  - OTHER BANKS: tap-readme (81eb855bd; the tap commit 5f71f19 waits for hv to push it before `publish`), ledger.md (778811be8), lane-report-draft.md (1bec79574).
-  - NEXT AFTER THE BUILD ALL: the known-defects re-drive, pre-staged. The script is refs/bank/dc/kd/drive-v3.sh (373f453f2): drive-v2 plus the registry pass naming 0558, 0565 and 0549. The checklist, with each entry's expected result, the preamble draft and where the three new entries go, is refs/bank/dc/kd/prestage.md (24f182e75). Run it only when `intent --version` names the final HEAD, outside any heavy run. Then the page edits, the commit under START and END, and the lane report to vc from the draft.
+    - member 3, 7b5fb09cb: the CI bank at its judged patch-id 3fa48ac5abc3, with issue 0585 filed in the same commit.
+    - 0564, b2389cd9c: at its judged patch-id cdbce5c92e6c (recomputed from the commit), on vc's PASS of ic's stacked final-tree run (composed patch-id a206bfeaa4c7, 20:42Z).
+    - the workflows README lines, 9ee1564b1: at its judged patch-id 878ee13618b5.
+    - CLOSED: 0564 at 9ea20e7aa and 0585 at 2e325db05, each body naming its fix commit and vc's PASS. tmp/wt-dc-0564 is removed; every file in it equalled main.
+  - NEXT, AFTER vc's BUILD ALL END: the known-defects re-drive, once. The script is refs/bank/dc/kd/drive-v3.sh (373f453f2), and the working copy is scratchpad/kd/drive.sh. The checklist is refs/bank/dc/kd/prestage.md (24f182e75). vc accepted both, and the line-7 draft as written. Run it only when `intent --version` names the final HEAD and no heavy run is on the machine. Then the page edits (each transcript replaced whole, line 3's pin, line 7, the three new entries), the commit under START and END on vc's word, and the lane report to vc from refs/bank/dc/audit/lane-report-draft.md (1bec79574).
+  - OTHER BANKS: tap-readme (81eb855bd; the tap commit 5f71f19 waits for hv to push it before `publish`) and ledger.md (778811be8).
   - STANDING (vc, from hv): no new issue files until the cut unless a finding blocks the release. Any other finding goes to vc as a message, with its evidence.
   - AFTER THE LINE: the int/devbin help edits (one bank, one macOS bats run) and the yml comment fixes. The vendored help findings go to Devbin through vc. Hold 29 stands for the fleet sweep.
 
