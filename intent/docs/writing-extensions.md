@@ -1,6 +1,6 @@
 # Writing Intent Extensions
 
-User extensions let you add subagents, skills, or rule packs to Intent without forking it. Extensions are content-only — no executable code is loaded. This document is the authoring guide.
+User extensions are Intent's declared route for adding subagents, skills, or rule packs without forking it. In this build the route is declared and not built (below): an extension changes nothing. Extensions are content-only — no executable code is loaded. This document is the authoring guide.
 
 ## What is an extension?
 
@@ -8,13 +8,13 @@ An extension is a self-contained directory at `~/.local/share/intent/ext/<name>/
 
 **`ext` is declared and not built.** `intent ext` and its subcommands `list`, `show`, `validate` and `new` are listed by `intent --help` and `intent ext --help`, and every one refuses at exit 2 with ``error: `ext` is a known command that is not implemented yet``. No command in this build reads `~/.local/share/intent/ext/`: rules, skills and subagents resolve from the install's canon only, and `intent claude rules validate` says so on stderr (`note: extension rule packs were NOT validated ...`). `$INTENT_EXT_DIR` and `$INTENT_EXT_DISABLE` are read by nothing. The layout and manifest below are what `intent/plugins/claude/ext-schema/extension.schema.json` defines; nothing in this build validates against it.
 
-## When to build an extension
+## When an extension would apply
 
-Build an extension when you want to:
+Nothing in this build reads an extension. The route is meant for when you want to:
 
 - Add a subagent or skill that is only useful in your projects, your organisation, or a specific domain.
 - Override a canon subagent or skill with your own version without forking Intent.
-- Ship a rule pack (eg language-specific patterns that Intent does not cover) that a Critic subagent can consume.
+- Ship a rule pack (eg language-specific patterns that Intent does not cover) that a Critic subagent could consume.
 
 If you want the change to be part of Intent itself, open an issue or PR against the canon repository rather than writing an extension.
 
@@ -48,9 +48,9 @@ See `intent/plugins/claude/ext-schema/extension.schema.json` for the full JSON S
 
 Recommended fields:
 
-- `description` — under 280 chars.
+- `description` — at most 280 characters.
 - `author`, `license`, `homepage`.
-- `intent_compat: { min, max }` — version bounds for the Intent versions this extension supports. `max` accepts `2.x` / `3.x` style ranges.
+- `intent_compat: { min, max }` — version bounds for the Intent versions this extension supports. `min` (`MAJOR.MINOR.PATCH`) is required whenever `intent_compat` is present; `max` also accepts `2.x` / `3.x` style ranges.
 - `contributes: { subagents: [...], skills: [...], rules: [...] }` — array of `{ name, path }` objects declaring each contributed item.
 - `checksums` — optional per-file SHA for tamper detection (currently informational; enforcement is future work, not yet scheduled).
 
@@ -58,9 +58,7 @@ Unknown top-level keys are rejected by the schema. If you need new metadata, ope
 
 ## Commands
 
-`intent ext --help` lists `list`, `show <name>`, `validate [<name>]` and `new <name> --subagent | --skill | --rule-pack`. Each refuses at exit 2 in this build: ``error: `ext` is a known command that is not implemented yet``.
-
-See `intent ext --help` for full usage.
+`intent ext --help` lists `list`, `show`, `validate` and `new`; each verb's own `--help` gives its arguments (`show <NAME>`, `validate [NAME]`, `new <NAME> --subagent | --skill | --rule-pack`). Each refuses at exit 2 in this build: ``error: `ext` is a known command that is not implemented yet``.
 
 ## Install
 

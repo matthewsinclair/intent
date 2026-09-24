@@ -79,7 +79,7 @@ Rules applied: N agnostic, N language-specific.
 
 Parse-stable properties of the code critics (critic-elixir, critic-rust, critic-swift, critic-lua, critic-shell). `critic-prose` differs: it prints every severity section with `(none)` when empty, and follows `Summary:` with `Rules applied: N agnostic, N prose, N <discipline>.`, `Target files reviewed: N.` and `Config: .intent_critic.yml (present|absent).`
 
-- Every finding begins with a leading `- ` and names a rule id matching `^IN-[A-Z]{2}-[A-Z0-9-]+-[0-9]{3}$` followed by `(<slug>)` in parentheses.
+- Every rule finding begins with a leading `- ` and names a rule id matching `^IN-[A-Z]{2}-[A-Z0-9-]+-[0-9]{3}$` followed by `(<slug>)` in parentheses. The two handoff advisories below are the exception: they begin `- (test-spec-missing)` or `- (architectural-review)` and carry no rule id.
 - Severity headers are uppercase bareword lines (`CRITICAL`, `WARNING`, `RECOMMENDATION`, `STYLE`).
 - Sections with zero findings are omitted from the body.
 - The `Summary:` line always appears, always at the end, always lists every severity (critical, warning, recommendation, style) in descending order with `N <severity>` counts. Counts include severities filtered out of the body.
@@ -87,7 +87,7 @@ Parse-stable properties of the code critics (critic-elixir, critic-rust, critic-
 
 If there are no violations at all, the heading still appears, followed by `Summary: 0 critical, 0 warning, 0 recommendation, 0 style.` and the `Rules applied:` line. Absence of findings is a first-class outcome, not an error.
 
-Every finding cites exactly one rule. Where two rules would both fire on the same line, the Critic names the more specific (usually the language-specific rule concretising an agnostic one) and cross-references the related id in the description.
+Every rule finding cites exactly one rule. Where two rules would both fire on the same line, the Critic names the more specific (usually the language-specific rule concretising an agnostic one) and cross-references the related id in the description.
 
 ## `.intent_critic.yml` schema
 
@@ -110,29 +110,31 @@ severity_min: warning
 | `show_all`               | Shorthand for `severity_min: style`.                                                | `false`   |
 | `post_tool_use_advisory` | Opt-in PostToolUse critic advisory, run by `intent claude hook post-tool-advisory`. | `false`   |
 
-Who reads which key: the headless runner (`intent critic`) reads only `disabled`; the pre-commit gate reads `severity_min`, falling back to `style` when `show_all: true` is set and `severity_min` is not, and passes it as `--severity-min`; the critic subagents honour `severity_min` and `show_all`; `post_tool_use_advisory` is read only by the `post-tool-advisory` hook body, which ships in the Intent install (`lib/templates/.claude/scripts/post-tool-advisory.sh`) and runs through `intent claude hook post-tool-advisory` once the project adds that stanza to its own `.claude/settings.local.json`.
+Who reads which key: the headless runner (`intent critic`) reads only `disabled`; the pre-commit gate reads `severity_min`, falling back to `style` when `show_all: true` is set and `severity_min` is not, and passes it as `--severity-min`; the critic subagents honour `disabled`, `severity_min` and `show_all`; `post_tool_use_advisory` is read only by the `post-tool-advisory` hook body, which ships in the Intent install (`lib/templates/.claude/scripts/post-tool-advisory.sh`) and runs through `intent claude hook post-tool-advisory` once the project adds that stanza to its own `.claude/settings.local.json`.
 
 The install template is `lib/templates/_intent_critic.yml`; `intent claude upgrade --apply` seeds it only when the project has no `.intent_critic.yml`, and overwrites an existing one only with `--force`. A worked sample with example `disabled:` entries lives at `intent/plugins/claude/rules/_schema/sample-intent-critic.yml`.
 
 Behaviour under edge conditions:
 
 - **Absent file**: apply defaults silently. No warning, no indicator.
-- **Malformed YAML**: print one top-of-report warning line (`(warning: .intent_critic.yml is malformed; using defaults)`) and proceed with defaults. Never hard-fail on parse errors.
+- **Malformed YAML**: the critic subagents print one top-of-report warning line (`(warning: .intent_critic.yml is malformed; using defaults)`) and proceed with defaults. The headless runner and the pre-commit gate parse no YAML: the runner reads only the `disabled:` list (an inline `[A, B]` or a block of `- ID` lines) and the gate reads only a `severity_min:` line and a `show_all: true` line, so neither warns. Never hard-fail on parse errors.
 - **Unknown rule id in `disabled`**: tolerated silently — rule ids vanish from the pack as rules are renamed or retired, and a hard failure on stale config is disproportionate.
 
 ## Headless runner (`intent critic`)
 
-The same rule library is also enforceable without an LLM round-trip via `intent critic <lang>`. The runner parses each rule's YAML frontmatter, extracts the Greppable proxy fenced bash block from the Detection section, and applies the grep regex to target files. Except at exit 2, where the refusal on stderr is the whole output, text output opens with a census line (`critic: <lang> -- <asked> of <total> rule(s) ASKED of this run; <armed> armed in total.`), then, where they apply, lines counting the rules disabled by `.intent_critic.yml`, naming staged files skipped because they sit under the rule library, naming the files asked nothing (no rule the run put reaches them, or they are not text), and naming declared, undeclared, unrunnable, partly-run, out-of-context, tool-declined and tool-absent rules, then either `ok: no <lang> findings at severity >= <min> across <n> file(s)` (exit 0 only, where `<n>` counts the files some rule was asked of), `no <lang> rule was asked of any of the <n> file(s) given` (exit 0, when nothing was asked of any file) or findings grouped as `== CRITICAL (<n>) ==` with `[CRITICAL] <id> at <file>:<line>` and `  > <line>`. It is not the subagent report format. A parallel `--format json` is available for CI. The JSON document is `{language, asked, armed, total, findings: [{rule, severity, file, line, text}], census: [{rule, arming, disposition, by}], refused: [...], disabled: [...], skipped_library: [...], files_asked, unasked: [...]}` on stdout. `arming` is `armed|declared|unrunnable|undeclared`; `disposition` is `ran|not-run:tool-absent|not-run:out-of-context|not-run:tool-declined|n-a`. A rule reaches a file by its `applies_to` globs, and a file whose shebang, or whose `# shellcheck shell=` directive, names sh, bash or zsh is a shell file wherever it sits: it is tested against each shell rule's own globs as though it carried that shell's extension, so a rule scoped to `**/*.zsh` still reaches only zsh scripts. Under `--staged` each file is judged by the blob the index holds for it, not by the work tree's copy, and a tool that reads files is handed that blob under the file's own name; `--files` reads the named files from disk.
+The same rule library is also enforceable without an LLM round-trip via `intent critic <lang>`. The runner parses each rule's YAML frontmatter, extracts the Greppable proxy fenced bash block from the Detection section, and applies the grep regex to target files. Except at exit 2, where the refusal on stderr is the whole output, text output opens with a census line (`critic: <lang> -- <asked> of <total> rule(s) ASKED of this run; <armed> armed in total. A clean result covers what was ASKED and says nothing about the rest.`), then, where they apply, lines counting the rules disabled by `.intent_critic.yml`, naming staged files skipped because they sit under the rule library, naming the files asked nothing (no rule the run put reaches them, or they are not text), a line counting the rules that could not be armed (declared, undeclared, unrunnable), and lines naming the undeclared, unrunnable, partly-run, out-of-context, tool-declined and tool-absent rules, then either `ok: no <lang> findings at severity >= <min> across <n> file(s)` (exit 0 only, where `<n>` counts the files some rule was asked of), `no <lang> rule was asked of any of the <n> file(s) given` (exit 0, when nothing was asked of any file) or findings grouped as `== CRITICAL (<n>) ==` with `[CRITICAL] <id> at <file>:<line>` and `  > <line>`. It is not the subagent report format. A parallel `--format json` is available for CI. The JSON document is `{language, asked, armed, total, findings: [{rule, severity, file, line, text}], census: [{rule, arming, disposition, by}], refused: [...], disabled: [...], skipped_library: [...], files_asked, unasked: [...]}` on stdout. `arming` is `armed|declared|unrunnable|undeclared`; `disposition` is `ran|not-run:tool-absent|not-run:out-of-context|not-run:tool-declined|n-a`. A rule reaches a file by its `applies_to` globs, and a file whose shebang, or whose `# shellcheck shell=` directive, names sh, bash or zsh is a shell file wherever it sits: it is tested against each shell rule's own globs as though it carried that shell's extension, so a rule scoped to `**/*.zsh` still reaches only zsh scripts. Under `--staged` each file is judged by the blob the index holds for it, not by the work tree's copy, and a tool that reads files is handed that blob under the file's own name; `--files` reads the named files from disk.
 
 ```
-intent critic <lang> [--files <path> ...] [--staged] [--severity-min <level>] [--format text|json] [--rules <dir>]
+intent critic <lang> [--files <path>]... [--staged] [--severity-min <level>] [--format text|json] [--rules <dir>]
 ```
+
+`--files` takes one path and repeats: `--files a.sh --files b.sh`.
 
 `intent critic --languages` prints the headless roster (elixir, rust, swift, lua, shell). `intent critic author` and `intent critic content` exit 0 and print nothing: prose has no headless runner. Any other language (including `prose` and `agnostic`) is refused at exit 2.
 
 Use cases:
 
-- **Pre-commit gate** (ST0035/WP-06): `intent critic <lang> --staged --severity-min warning` on the staged file list. Blocks the commit on findings at or above the threshold. Runs in well under a second on a typical staged slice.
+- **Pre-commit gate** (ST0035/WP-06): `intent critic <lang> --staged --severity-min <threshold> --format text` for each declared language, where the threshold is `.intent_critic.yml`'s `severity_min` (default `warning`). Blocks the commit on exit 1 or 3; any other code leaves that language unenforced and fails open.
 - **CI gate**: the same invocation from a GitHub Actions step or equivalent.
 - **Fast local sanity check**: `intent critic elixir --files lib/foo.ex` while iterating, before asking the LLM subagent for the fuller review.
 
@@ -145,7 +147,7 @@ Exit codes:
 | `2`  | The runner could not answer: no language given, an unknown language, a bad `--severity-min` or `--format`, `--rules` not a directory, an unreadable file, `git` unavailable for `--staged`, a rule whose proxy pattern will not compile or whose `severity` this build does not know, or an empty rule library for the language. The gate fails open on it. |
 | `3`  | Refused: a rule armed on an external tool (`critic_tool`, eg shellcheck) whose tool is not on this machine. The gate blocks on it.                                                                                                                                                                                                                          |
 
-**Mechanical subset only**: only rules that publish a Greppable proxy block, or name an external tool with `critic_tool:` (shellcheck per-file; clippy is `workspace` context and not run per file), are runnable by the headless runner. Rules whose Detection is purely prose (eg "any function body longer than 50 lines") are not run, and the census names them on every run: `declared` when the rule says `No greppable proxy is authoritative`, `undeclared` when it says nothing. The LLM subagent (`Task(subagent_type="critic-<lang>")`) remains the canonical path for those.
+**Mechanical subset only**: only rules that publish a Greppable proxy block, or name an external tool with `critic_tool:` (shellcheck per-file; clippy is `workspace` context and not run per file), are runnable by the headless runner. Rules whose Detection is purely prose (eg "any function body longer than 50 lines") are not run, and every run accounts for them: the text output counts `declared` rules (the Detection says `No greppable proxy is authoritative`) and names `undeclared` ones (it says nothing); `--format json` lists every rule with its `arming`. The LLM subagent (`Task(subagent_type="critic-<lang>")`) remains the canonical path for those.
 
 **Strict-proxy contract** (ST0039, v2.11.3+): the runner accepts only proxy lines of the form `grep [-r|-n|-E|-rn|-rE|-nE|-rnE|--include=GLOB ...] '<pattern>' [<path>...]` — single grep invocation, no pipes, no `xargs`, no `-L` / `-v` / `-B` / `-A` flags, no awk/sed. Multi-line proxy blocks are accepted as a union of simple lines. A rule whose every proxy line falls outside the contract is census `unrunnable`: it is listed on stdout as `critic: <lang> -- UNRUNNABLE proxy, present but outside the runner contract: <ids>` and in JSON `refused`, and does not change the exit code. Only the single-quoted pattern is used. The line's flags and path arguments are discarded, every pattern runs as an extended regex, and it is applied to each `--files`/`--staged` file that the rule's `applies_to` admits. Globs match suffix-anchored, so `lib/**/*.ex` matches `apps/x/lib/foo.ex`, and a rule with no `applies_to` applies to every file. Rules whose detection cannot be expressed as a simple grep (inverse semantics, filter pipelines, awk state machines, cross-file or callsite-scope reasoning) ship with no Greppable proxy block at all and apply only via `/in-review`.
 
@@ -182,7 +184,7 @@ RECOMMENDATION
 
 The Critic never invokes `diogenes` itself — the handoff is an advisory the user acts on. Absence of a spec is not a rule violation; it is a handoff opportunity.
 
-Note: the `diogenes` subagent as implemented in v2.9.0 is Elixir-specialised. The Critic-side handoff pattern is deliberately language-agnostic — generalising `diogenes` across Rust, Swift, and Lua test stacks is a separate concern for a future steel thread.
+Note: the `diogenes` subagent is Elixir-specialised. The Critic-side handoff pattern is deliberately language-agnostic — generalising `diogenes` across Rust, Swift, and Lua test stacks is a separate concern for a future steel thread.
 
 ## Architectural escalation (Socrates)
 
@@ -197,11 +199,9 @@ RECOMMENDATION
 
 Same constraint: recommend, never invoke. Reserve the advisory for genuinely cross-cutting cases; do not tag every finding with it.
 
-## Operational note: subagent registration freezes per session
+## Operational note: when a new subagent becomes visible
 
-Claude Code reads the subagent registry once at session start. Subagents installed mid-session — including the Critic family on a fresh upgrade — are not visible to `Task()` until the next session starts. After running `intent claude subagents install critic-elixir` (or any other Critic), close the current Claude Code session and start a new one before invoking the Critic; otherwise the `Task(subagent_type="critic-elixir", ...)` call resolves to "subagent not found".
-
-This is a Claude Code constraint, not an Intent behaviour. The registration freeze applies equally to canon subagents, extension subagents, and any subagent installed by hand.
+Claude Code watches `~/.claude/agents/`, and a subagent that `intent claude subagents install critic-elixir` (or any other Critic) writes there is picked up within a few seconds, with no restart. The exception is the first install on a machine: when the install creates `~/.claude/agents/` itself, the running session is not watching it, so start a new Claude Code session before invoking the Critic. This is Claude Code's behaviour, not Intent's, and it applies equally to canon subagents and to any subagent installed by hand.
 
 ## Verification
 
@@ -228,7 +228,7 @@ Interpreting the report:
 ## Non-goals
 
 - **No autofix.** Critics report only. They never modify source files.
-- **No external lint shelling.** Critics never call `credo`, `cargo clippy`, `swiftlint`, `luacheck`, `shellcheck`, or any other tool. Rules can reference external tool lints in their Detection prose, but the Critic enforces by reading the rule and applying the heuristic — not by running the tool.
+- **No external lint shelling in the subagents.** The critic subagents never call `credo`, `cargo clippy`, `swiftlint`, `luacheck`, `shellcheck`, or any other tool; they enforce by reading the rule and applying its heuristic. The headless runner is the one exception: it runs a rule's `critic_tool` (shellcheck, per file), as described above.
 - **No test execution.** Critics are static reviewers.
 - **No rule authoring from inside the Critic.** New or amended rules go into `rules/<lang>/` via a normal edit, validated by `intent claude rules validate`.
 - **No caching across invocations.** Every run re-reads the rule library to keep detections aligned with the current state of the rules.

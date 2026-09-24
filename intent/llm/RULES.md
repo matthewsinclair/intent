@@ -11,11 +11,13 @@ Every Intent project enforces these. Full rule files at `intent/plugins/claude/r
 - **Thin Coordinator** (`IN-AG-THIN-COORD-001`) -- coordinators parse to call to render; business logic lives elsewhere.
 - **No Silent Errors** (`IN-AG-NO-SILENT-001`) -- every failure surfaces; rescue-and-swallow is forbidden.
 
+The agnostic pack also carries the procedural rules `IN-AG-RED-CONTROL-001` (a control is only a control if it can go red) and `IN-AG-FIAT-001` (fiat close is the human's verb); `intent claude rules list --lang agnostic` enumerates it.
+
 The terse DO / NEVER summary lives in `usage-rules.md` at the project root. Language-specific concretisations live at `intent/plugins/claude/rules/<lang>/`; `intent claude rules list --lang <lang>` enumerates a pack and `intent lang list` names the packs a project can declare.
 
 ## Intent dev rules
 
-These extend the canon for Intent itself (a Rust workspace at `native/rust/`, plus the shell assets under `lib/templates/`). Each one concretises one of the agnostic principles for this codebase.
+These extend the canon for Intent itself (a Rust workspace at `native/rust/`, the Swift menubar app at `native/macos/`, the shell assets under `lib/templates/`, and the shell dev tooling under `bin/`). Each one concretises one of the agnostic principles for this codebase.
 
 1. **Module Highlander check** (concretises `IN-AG-HIGHLANDER-001`) -- before creating any new module, helper, or template, consult `intent/llm/MODULES.md`. If a row already covers the concern, extend the existing module instead of creating a new one.
 2. **Register before you code** (concretises `IN-AG-HIGHLANDER-001`) -- when a genuinely new module is required, add the row to `MODULES.md` first, then create the file. The registry is canonical, not retrospective.
@@ -26,10 +28,10 @@ These extend the canon for Intent itself (a Rust workspace at `native/rust/`, pl
 
 ## Bash environment constraints
 
-- macOS bash 3.x compatibility -- no `declare -A`, no `${VAR^}` case modifiers, no `mapfile` / `readarray`. Use explicit alternatives.
+- macOS bash 3.x compatibility for the shell assets under `lib/templates/`, which run on any machine's `/bin/bash` (held by `tests/unit/templates_bash32.bats`) -- no `declare -A`, no `${VAR^}` case modifiers, no `mapfile` / `readarray`. Use explicit alternatives. The dev tooling under `bin/.devbin/` requires bash 5 and is outside this rule.
 - BSD `mktemp` differs from GNU `mktemp` -- prefer `mktemp -d` with no template, or pass an absolute template path with at least three `X`s.
 - `set -euo pipefail` is the default; helpers that legitimately tolerate non-zero exits use `|| true` explicitly so the intent is visible.
-- 2-space indentation in all bash scripts. No tabs anywhere in tracked files.
+- 2-space indentation in all bash scripts. No tab indentation in tracked files Intent authors; a literal tab used as a field delimiter, TSV data, and Xcode-generated project files are the exceptions.
 
 ## Markdown discipline
 

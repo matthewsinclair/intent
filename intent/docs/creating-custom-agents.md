@@ -1,6 +1,6 @@
 ---
-verblock: "11 Sep 2026:v1.2: synced to Intent 3.0.1 as built (doc audit)"
-intent_version: 3.0.1
+verblock: "24 Sep 2026:v1.3: synced to Intent 3.2.1 as built (3.2.1 doc audit)"
+intent_version: 3.2.1
 ---
 
 # Creating Custom Intent Agents
@@ -62,7 +62,7 @@ cd intent/plugins/claude/subagents/your-agent-name/
 
 Create the main agent file with YAML frontmatter and system prompt:
 
-```markdown
+````markdown
 ---
 name: your-agent-name
 description: Brief one-line description of your agent's purpose and expertise
@@ -116,32 +116,33 @@ When working within Intent projects:
 ## Example Usage Patterns
 
 ### Basic Pattern
+
 ```
-
 Task(
-description="Short description of task",
-prompt="Detailed instructions for the agent including context and requirements",
-subagent_type="your-agent-name"
+  description="Short description of task",
+  prompt="Detailed instructions for the agent including context and requirements",
+  subagent_type="your-agent-name"
 )
-
 ```
 
 ### Complex Workflow
+
 [Describe how this agent fits into larger workflows]
 
 ## Quality Standards
 
 Ensure your responses:
+
 - [Quality standard 1]
 - [Quality standard 2]
 - [Output format requirements]
-```
+````
 
-**Required YAML Fields:**
+**Frontmatter** (Claude Code reads it; Intent does not -- `intent claude subagents install` copies `agent.md` as it is):
 
-- `name`: Must match directory name
-- `description`: One-line summary (used in agent listings)
-- `tools`: Array of Claude Code tools this agent can access
+- `name` (required): the id `Task(subagent_type=...)` uses. Keep it equal to the directory name, which is the name `intent claude subagents` knows the agent by; nothing checks that the two agree.
+- `description` (required): when Claude should delegate to this agent.
+- `tools` (optional): a comma-separated list of Claude Code tools, eg `Bash, Read, Grep`. Omitted, the agent inherits every tool available to subagents.
 
 **Available Tools:**
 
@@ -152,7 +153,8 @@ Ensure your responses:
 - `Grep`: Search file contents
 - `WebFetch`: Fetch web content
 - `Glob`: Find files by pattern
-- `LS`: List directory contents
+
+Claude Code's full tool list: https://code.claude.com/docs/en/sub-agents.
 
 ### 3. Create Metadata File (`metadata.json`)
 
@@ -323,9 +325,11 @@ Always evaluate:
 
 **Installation Fails**
 
-- Verify name consistency between the directory and the `name:` in agent.md's frontmatter
-- Check YAML frontmatter syntax in agent.md
-- Ensure tools list is valid
+- `no source for this name in this install`: `agent.md` is not at `<install>/intent/plugins/claude/subagents/<name>/`, where `<install>` is the tree the running `intent` binary belongs to (a source checkout's root).
+- `already installed`: add `--force` to overwrite it (the checksum of a locally changed copy is reported).
+- A name may use only letters, digits, `-` and `_`.
+
+Frontmatter mistakes do not fail the install -- Intent copies `agent.md` without reading it; Claude Code reports them when it loads the agent.
 
 **Agent Doesn't Respond Properly**
 
@@ -361,7 +365,7 @@ To update an existing agent:
 
 1. Modify `agent.md` and/or `metadata.json`
 2. Update version number in `metadata.json`
-3. Reinstall: `intent claude subagents install your-agent-name --force`
+3. Reinstall: `intent claude subagents sync` brings every installed subagent up to its canon copy and holds one you edited locally (`--dry-run` previews; `--force` takes the canon copy and reports the checksum of what it discarded). `intent claude subagents install your-agent-name --force` overwrites a single agent outright.
 4. Test updated functionality
 
 ## Sharing Agents
@@ -375,27 +379,9 @@ To share agents with others:
 
 ## Advanced Features
 
-### Custom Slash Commands
+### Slash Commands
 
-Agents can implement custom slash commands for specialized workflows:
-
-```markdown
-## Custom Commands
-
-This agent supports these slash commands:
-
-### /security-scan
-
-Performs comprehensive security scan of specified files or directories.
-
-Usage: `/security-scan path/to/code`
-
-### /compliance-check
-
-Evaluates code against specific compliance standards.
-
-Usage: `/compliance-check --standard=SOC2 path/to/files`
-```
+A subagent cannot define a slash command: Claude Code reads only its frontmatter and system prompt. A workflow you want to invoke as `/name` is a skill -- `intent/plugins/claude/skills/<slug>/SKILL.md`, installed with `intent claude skills install <slug>`.
 
 ### Multi-Agent Workflows
 
@@ -407,13 +393,13 @@ Design agents to work together in complex workflows:
 This agent works well with:
 
 - `intent` agent for project structure
-- `code-reviewer` agent for general code quality
-- `documentation` agent for security documentation
+- `critic-<lang>` for rule-library review
+- `socrates` for architectural decisions
 ```
 
 ## References
 
-- [Claude Code Sub-Agents](https://docs.anthropic.com/en/docs/claude-code/sub-agents)
+- [Claude Code Sub-Agents](https://code.claude.com/docs/en/sub-agents)
 - [Intent Commands Reference](../../README.md#commands)
 - [Agent Examples](../plugins/claude/subagents/)
 

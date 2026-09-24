@@ -47,7 +47,7 @@ intent/plugins/claude/rules/
 └── content/{craft,style}/<slug>/RULE.md
 ```
 
-Agnostic rules omit example files and cite `concretised_by:` language-specific rules. Elixir rules have runnable `.exs` examples. Rust / Swift / Lua / Shell rules are textual-only — examples are fenced code blocks inside `RULE.md`. See `_schema/CI-LIMITATIONS.md` for the rationale.
+Agnostic rules omit example files and cite `concretised_by:` language-specific rules. Elixir `code` and `test` rules have runnable `.exs` examples; the Elixir framework categories (`ash`, `phoenix`, `lv`) and Rust / Swift / Lua / Shell rules are textual-only — examples are fenced code blocks inside `RULE.md`. See `_schema/CI-LIMITATIONS.md` for the rationale.
 
 ## Rule ID scheme
 
@@ -99,16 +99,16 @@ applies_when:
 ---
 ```
 
-| Field          | Purpose                                                                                                        |
-| -------------- | -------------------------------------------------------------------------------------------------------------- |
-| `id`           | Stable identifier. Format above.                                                                               |
-| `title`        | Human-readable one-line name. Matches the H1 heading.                                                          |
-| `language`     | One of `agnostic`, `elixir`, `rust`, `swift`, `lua`, `shell`, `prose`, `author`, `content`.                    |
-| `category`     | Kebab-case. Matches the directory under `<lang>/`.                                                             |
-| `severity`     | `critical`, `warning`, `recommendation`, or `style`.                                                           |
-| `summary`      | One or two sentences. Printed with the whole file by `intent claude rules show <id>`; `list` does not show it. |
-| `principles`   | Short-name principles this rule embodies.                                                                      |
-| `applies_when` | Natural-language circumstances under which the rule fires.                                                     |
+| Field          | Purpose                                                                                                                                                                                     |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`           | Stable identifier. Format above.                                                                                                                                                            |
+| `title`        | Human-readable one-line name. Matches the H1 heading.                                                                                                                                       |
+| `language`     | One of `agnostic`, `elixir`, `rust`, `swift`, `lua`, `shell`, `prose`, `author`, `content`.                                                                                                 |
+| `category`     | Kebab-case. For a language pack it matches the directory under `<lang>/`; agnostic rules sit directly at `agnostic/<slug>/`, so theirs (`architecture`, `test`, `fiat`) names no directory. |
+| `severity`     | `critical`, `warning`, `recommendation`, or `style`.                                                                                                                                        |
+| `summary`      | One or two sentences. Printed with the whole file by `intent claude rules show <id>`; `list` does not show it.                                                                              |
+| `principles`   | Short-name principles this rule embodies.                                                                                                                                                   |
+| `applies_when` | Natural-language circumstances under which the rule fires.                                                                                                                                  |
 
 ### Common optional frontmatter
 
@@ -178,14 +178,14 @@ When you author a new language-specific rule, check first whether an agnostic ru
 3. **Copy the exemplar.** `intent/plugins/claude/rules/elixir/test/strong-assertions/` is the canonical full-form example (frontmatter + sections + runnable examples). For agnostic rules, copy any directory under `rules/agnostic/`.
 4. **Fill the frontmatter** per the schema above.
 5. **Write the H2 sections.** Be substantive in `## When This Does Not Apply` — this is what prevents Critic noise.
-6. **Author examples.** Elixir rules get runnable `good_test.exs` / `bad_test.exs` (or `good.exs` / `bad.exs` for code rules). Rust / Swift / Lua / Shell rules embed examples inline as fenced code blocks.
+6. **Author examples.** Elixir `test` rules get runnable `good_test.exs` / `bad_test.exs`, and Elixir `code` rules `good.exs` / `bad.exs`. Elixir `ash` / `phoenix` / `lv` rules and Rust / Swift / Lua / Shell rules embed examples inline as fenced code blocks.
 7. **Validate.** `intent claude rules validate <id>` checks the frontmatter: declared and required keys, id shape, duplicate ids, cited ids, attribution rows. It does not check sections or run examples.
 8. **Wire it up.** If a skill should reference the new rule, add the ID to the skill's `rules:` frontmatter list. If a Critic loads it automatically (every Critic auto-loads its language pack), no further wiring is needed.
 9. **Attribution.** If the rule borrows from `elixir-test-critic`, set `upstream_id:` and add a row to `_attribution/elixir-test-critic.md`. See attribution policy below.
 
 ### Two-space indentation everywhere
 
-Two-space indentation is mandatory in the rule library, regardless of the target language's ecosystem default. All fenced code blocks (Rust, Swift, Lua, YAML, JSON, Bash) and all runnable `.exs` files use two spaces. The check `grep -nE '^    [^ ]' <rule-dir>/RULE.md` should return nothing — four leading spaces on a non-comment line is a violation.
+Two-space indentation is mandatory in the rule library, regardless of the target language's ecosystem default. All fenced code blocks (Rust, Swift, Lua, YAML, JSON, Bash) and all runnable `.exs` files use two spaces per level. No grep proves it: a line nested two levels deep legitimately starts with four spaces, so `grep -nE '^    [^ ]'` also matches correct code; check that each level adds two spaces.
 
 ### The runnable-example contract (Elixir)
 
@@ -195,7 +195,7 @@ Critics work statically — they read the source and apply the Detection heurist
 
 ### Textual examples (Rust / Swift / Lua / Shell)
 
-These languages are textual-only in v2.9.0. Examples live as fenced code blocks inside `## Bad` and `## Good` sections of `RULE.md`. No sibling `good.rs` / `bad.swift` files. Runnable examples for these languages are a future-work item — they would require a Rust / Swift / Lua / Shell CI environment in the Intent repo.
+These languages are textual-only. Examples live as fenced code blocks inside `## Bad` and `## Good` sections of `RULE.md`. No sibling `good.rs` / `bad.swift` files. Runnable examples for these languages are a future-work item — they would require a Rust / Swift / Lua / Shell CI environment in the Intent repo.
 
 ## Validation
 
@@ -234,7 +234,7 @@ Skills cite rules by ID. The rule file owns the prose; the skill is a thin point
 
 The skill says "here are the rules that apply when this skill is loaded; read the RULE.md file when the situation matches". The skill never restates a rule's prose — that would create a Highlander violation between the skill and the rule.
 
-`tests/unit/rule_reference_skills.bats` checks that each rule-pointer skill (`in-elixir-essentials`, `in-elixir-testing`, `in-ash-ecto-essentials`, `in-phoenix-liveview`, `in-standards`) cites every rule id of its pack, and `tests/unit/highlander_audit.bats` checks a proxy for restated rule prose over those skills: they carry no fenced code blocks and stay thin.
+`tests/unit/rule_reference_skills.bats` checks that each rule-pointer skill (`in-elixir-essentials`, `in-elixir-testing`, `in-ash-ecto-essentials`, `in-phoenix-liveview`, `in-standards`) cites a fixed list of rule ids written into the test -- for `in-standards` the Highlander, PFIC, Thin Coordinator and No Silent Errors ids only -- so a rule added to a pack is caught only when that list is edited; and `tests/unit/highlander_audit.bats` checks a proxy for restated rule prose over those skills: they carry no fenced code blocks and stay thin.
 
 ## How Critics consume rules
 
@@ -259,7 +259,7 @@ Extension rule packs at `~/.local/share/intent/ext/<name>/rules/<lang>/<category
 
 ## Attribution policy
 
-Intent's rule schema is intentionally compatible with [`iautom8things/elixir-test-critic`](https://github.com/iautom8things/elixir-test-critic) (MIT, copyright 2026 Manuel Zubieta), pinned at commit `1d9aa40700dab7370b4abd338ce11b922e914b14`. Upstream rules drop into Intent's discovery unchanged.
+Intent's rule schema is intentionally compatible with [`iautom8things/elixir-test-critic`](https://github.com/iautom8things/elixir-test-critic) (MIT, copyright 2026 Manuel Zubieta), pinned at commit `1d9aa40700dab7370b4abd338ce11b922e914b14`. Upstream rules are not part of Intent's discovery: `critic-elixir` loads them itself when the upstream plugin is installed under `~/.claude/plugins/elixir-test-critic/`, deduped by `upstream_id`, and a copied upstream rule keeps an `ETC-*` id that `intent claude rules validate` refuses.
 
 Tiers of borrowing:
 

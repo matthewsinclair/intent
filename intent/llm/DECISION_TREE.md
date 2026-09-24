@@ -2,6 +2,7 @@
 
 > Use this tree when you're about to write new code for Intent.
 > Always cross-reference MODULES.md -- if a module already owns that concern, put the code there.
+> This is Intent's own chart, for its Rust workspace: `intent init` writes no decision tree, and a project that keeps one keeps it for its own stack.
 
 ## Intent Decision Tree
 
@@ -15,6 +16,7 @@
 **Is it a new top-level command or flag (like `intent foo`)?**
 
 - Add the row to `surface/dispatch-table.json` -- the command surface's single source; its `help` text is the help
+- Regenerate the view `surface/dispatch-table.md` with `intent/st/ST0056/parity/tools/gen_dispatch_table.sh`; never hand-edit it
 - Add the arm in `native/rust/crates/intent-cli/src/render.rs`; a family with no arm refuses at exit 2 as not implemented
 - Put the behaviour in `intentsvcs`
 
@@ -60,7 +62,7 @@
 
 - `intent/plugins/claude/rules/elixir/<category>/<slug>/RULE.md`
 - Categories: `code`, `test`, `ash`, `phoenix`, `lv`
-- Must include runnable `good_test.exs` + `bad_test.exs` (test rules) or `good.exs` + `bad.exs` (code rules)
+- `test` rules include runnable `good_test.exs` + `bad_test.exs` and `code` rules `good.exs` + `bad.exs`; `ash`, `phoenix` and `lv` rules carry textual examples as fenced blocks in `RULE.md`
 
 **Is it Rust / Swift / Lua / Shell-specific?**
 
