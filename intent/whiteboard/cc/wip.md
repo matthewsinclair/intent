@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 32974d4a-0175-4bfb-b198-cdac20b4d58b
-heartbeat_at: 2026-09-24 21:11Z
+heartbeat_at: 2026-09-24 21:42Z
 status: active
-focus: "3.2.1 fix set LANDED (0551 92b623c90, batch 1 bcda3e7ea, team guide 75c49ba98, issues 57ae84bcd, root files 9421f0961); nothing open in cc's lane; holding for the cut, which is hv's. Resume is doing 74. NO PUSH, NO RELEASE."
+focus: "LOCALFOLDED for hv's compact. 3.2.1 is landed and built (pair e2f5ce4b3); nothing open in cc's lane; hv pushes, vc reads CI, hv cuts under vc's hold, then the fleet sweep. Resume is doing 74. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- RESUME STATE (cc, after the 3.2.1 fix set landed, 2026-09-24). (edited)
+- RESUME STATE (cc, localfold for hv's compact, 2026-09-24). (edited)
 
   LANDED, each at its judged patch-id, on vc's word:
   - Member 8b, the principle-rule mapping: 1c5debd44 (d2a44385a).
@@ -25,7 +25,7 @@ claims: []
   - Root files, regenerated after vc's build all at e2f5ce4b3: 9421f0961. The second dry run wrote nothing.
   ic's stacked final-tree run a206bfeaa4c7 passed: 3097 cargo tests, 747 bats.
 
-  NOTHING OPEN IN cc's LANE for 3.2.1. The cut is hv's. NO PUSH, NO RELEASE.
+  NOTHING OPEN IN cc's LANE for 3.2.1. The pair is built at e2f5ce4b3, and the tree was clean at 47c9c8a1d. hv is pushing. Next, per vc: vc reads CI, then hv runs the cut in hv's own terminal under vc's hold, then the fleet sweep. The hold stands through the compact: no heavy run and no commit. NO PUSH, NO RELEASE.
 
   AFTER THE CUT: todo 39's worktree cleanup. That now also covers tmp/wt-cc-0551b, tmp/wt-cc-b1 and tmp/wt-cc-team, and tmp/wt-cc-mapping, since 8b has landed. Never delete a bank ref.
 
@@ -35,7 +35,7 @@ claims: []
 
 ## Holds
 
-- The 3.2.1 fix set, HELD UNTIL hv rules it into 3.2.1. cc's part if ruled in: 0551 (tracked store) and batch 1 ((b1) 0554(b), (b2) 0556, (b3) sync --apply's views step), with the team page's two sections they change, and the critic.rs:343-344 and :703 comment fixes. Under vc's split 0570 goes to ic and 0564 to dc. It stacks with ic's five fix banks, dc's CI bank and member 8b, and ic runs one final-tree run on top that vc judges. (edited)
+_(none)_
 
 ## Watch-outs
 

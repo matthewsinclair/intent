@@ -1,0 +1,16 @@
+{
+  "id": "01M3ANWZC5QRJVS9YKTXG7PZWV",
+  "ts": "2026-09-24T21:42:14.661Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 74,
+    "text": "RESUME STATE (cc, localfold for hv's compact, 2026-09-24).\n\nLANDED, each at its judged patch-id, on vc's word:\n- Member 8b, the principle-rule mapping: 1c5debd44 (d2a44385a).\n- Issue scopes for 0551, 0554, 0556 and 0559: 81db513b3.\n- 0551, a store git tracks is named: 92b623c90 (35abdd9ba86a).\n- Batch 1, 0554 (b), 0556 and 0559's hooks path: bcda3e7ea (83af2a20e007).\n- Team guide v2: 75c49ba98 (a7a22fc69400).\n- Issues: 0551 and 0556 closed; 0554 and 0559 open, each with a line saying what shipped and what remains after the line: 57ae84bcd.\n- Root files, regenerated after vc's build all at e2f5ce4b3: 9421f0961. The second dry run wrote nothing.\nic's stacked final-tree run a206bfeaa4c7 passed: 3097 cargo tests, 747 bats.\n\nNOTHING OPEN IN cc's LANE for 3.2.1. The pair is built at e2f5ce4b3, and the tree was clean at 47c9c8a1d. hv is pushing. Next, per vc: vc reads CI, then hv runs the cut in hv's own terminal under vc's hold, then the fleet sweep. The hold stands through the compact: no heavy run and no commit. NO PUSH, NO RELEASE.\n\nAFTER THE CUT: todo 39's worktree cleanup. That now also covers tmp/wt-cc-0551b, tmp/wt-cc-b1 and tmp/wt-cc-team, and tmp/wt-cc-mapping, since 8b has landed. Never delete a bank ref."
+  }
+}
