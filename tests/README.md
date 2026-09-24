@@ -2,7 +2,7 @@
 
 ## Overview
 
-This directory contains Intent's bats suite, written with [Bats](https://github.com/bats-core/bats-core) (Bash Automated Testing System). The Rust suites live under each crate's `tests/` in `native/rust/crates/` and run with `cargo test --workspace --no-fail-fast` (see `.github/workflows/README.md`).
+This directory contains Intent's bats suite, written with [Bats](https://github.com/bats-core/bats-core) (Bash Automated Testing System). The Rust suites live under each crate's `tests/` in `native/rust/crates/` and run from `native/rust` with `cargo test --workspace --no-fail-fast` (see `.github/workflows/README.md`).
 
 ## Directory Structure
 
@@ -31,6 +31,8 @@ git clone https://github.com/bats-core/bats-core.git
 cd bats-core
 ./install.sh /usr/local
 ```
+
+Arms that drive an external tool call `require_tool`, which fails the arm when the tool is not on PATH rather than skipping it. `grep -hoE '^[[:space:]]*require_tool [a-z-]+' tests/unit/*.bats | awk '{print $2}' | sort -u` lists the tools, and several suites also use `jq`. To waive one deliberately, set `INTENT_ALLOW_MISSING_<TOOL>=1` (eg `INTENT_ALLOW_MISSING_PRETTIER=1`); the arm then prints `WAIVED` rather than passing silently.
 
 ## Running Tests
 
@@ -90,6 +92,10 @@ load "../lib/test_helper.bash"
 - `assert_file_not_exists "path"` - Checks a file does not exist
 - `assert_directory_exists "path"` - Checks if directory exists
 - `assert_file_contains "file" "text"` - Checks if file contains text
+- `fail "message"` - Prints the message and fails the arm
+- `require_tool <tool> "<subject>"` - Fails the arm unless `<tool>` is on PATH; `INTENT_ALLOW_MISSING_<TOOL>=1` waives it
+- `skip_no_witness "<what is missing>"` / `skip_other_system "<system>"` - Tagged skips: nothing in the corpus can witness the claim, or this machine is not the system the arm describes
+- `build_no_tool_path <dir> <tool>` - Builds a PATH in `<dir>` that resolves everything except `<tool>`, checked both ways
 
 ## Test Categories
 
@@ -120,4 +126,4 @@ Tests run automatically via GitHub Actions on:
 - Every pull request targeting `main`
 - Both Ubuntu and macOS environments
 
-A push or pull request whose changed paths are all under `intent/whiteboard/**` does not trigger the suite. Each leg builds the release binaries before running `tests/run_tests.sh`. See `.github/workflows/tests.yml` for the CI configuration.
+A push or pull request whose changed paths all fall under `intent/whiteboard/**` or `intent/.canon/**` does not trigger the suite. A newer push to the same ref cancels the run it supersedes. Each leg builds the release binaries before running `tests/run_tests.sh`. See `.github/workflows/tests.yml` for the CI configuration.

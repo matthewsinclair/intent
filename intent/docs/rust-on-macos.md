@@ -49,7 +49,7 @@ Two concrete casualties, both mine:
 
 1. **Reduce the binary count.** Done in Intent (see above), and correct regardless of any OS setting: validation cost scales with the number of test binaries, not the number of tests.
 2. **System Settings -> Privacy & Security -> Developer Tools**, add the app that spawns the build (iTerm, VSCode, Terminal, Emacs). **UNVERIFIED AS OF THIS NOTE.** The exemption is evaluated against the responsible process, so an already-running app will not pick it up -- the app must be restarted before any measurement means anything. It also governs whether unsigned code is BLOCKED, which is not obviously the same as whether it is ASSESSED, and only a measurement settles that.
-3. Prune stale generations (`cargo clean`) and mark target dirs `.noindex` -- a large target tree also feeds Spotlight.
+3. Prune stale generations (`cargo clean`) and keep target dirs out of Spotlight with a `.metadata_never_index` file inside each, the marker `bin/devbin clean` places on every target dir it walks (`native/rust/target` already has one) -- a large target tree also feeds Spotlight. In Intent, a bare `cargo clean` in `native/rust` also deletes `target/release`, the pair every session on this machine runs through `~/.local/bin/intent` and `~/.local/bin/intentd`. Prune only while nobody is using it, and rebuild the pair with `bin/devbin build all` straight after.
 
 ## The instrument, if you need to re-measure
 
@@ -66,7 +66,7 @@ time "$B" --list >/dev/null 2>&1   # first
 time "$B" --list >/dev/null 2>&1   # second
 
 # 3. which daemon is actually consuming CPU during the slow exec
-ps -Ao time,comm | grep -E 'syspolicyd|XProtect|amfid|trustd'   # before and after
+ps -Ao time,comm | grep -E 'syspolicyd|XProtect|amfid|/trustd$|mds_stores'   # before and after
 ```
 
 ## Not measured, not claimed

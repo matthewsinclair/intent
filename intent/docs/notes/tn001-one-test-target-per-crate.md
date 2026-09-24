@@ -1,10 +1,10 @@
 ---
-verblock: "09 Sep 2026:v1.0: vc - The ruling is now enforced rather than read: library rules, a workspace tripwire, and the crate this note looked straight at and did not see"
+verblock: "24 Sep 2026:v1.1: Matthew Sinclair - Updated in the 3.2.1 doc audit"
 ---
 
 # TN001 -- One test target per crate: the ruling Intent made and did not apply
 
-**Status: RULED (hv, 2026-08-27, estate-wide). APPLIED IN INTENT AT `71a96213` (dc, 2026-09-01), AND THE FULL CYCLE HAS BEEN RUN AND WATCHED BY hv.** Every figure below carries the command that regenerates it, because a technote is read at boot and a figure in one goes stale silently.
+**Status: RULED (hv, 2026-08-27, estate-wide). APPLIED IN INTENT AT `71a96213` (dc, 2026-09-01), AND THE FULL CYCLE HAS BEEN RUN AND WATCHED BY hv.** Every live figure below is given as the command that regenerates it, never as a number, and every historical figure is dated -- because a technote is read at boot and a figure in one goes stale silently.
 
 _This line read "APPLICATION IN FLIGHT" through v0.4 and was true when written. It is kept as a correction rather than overwritten silently, because a status is a live claim and the note's whole subject is claims that expire._
 
@@ -41,7 +41,7 @@ cargo test --manifest-path native/rust/Cargo.toml --workspace --no-run 2>&1 | gr
 
 **THE GATE STATES ITS OWN POPULATION ON EVERY PATH INCLUDING PASSES** -- `N crate(s) with tests/, M in breach (pruned: ...)` -- which is what makes it citable at all rather than merely available. Its own comment gives the reason: an empty walker is silent and an empty parser is loud, and only one of those is safe. **A gate that reported a verdict without its population would be the instrument this note warns about, wearing a uniform.**
 
-**ITS CRITERION IS `is discovery controlled`, NOT ARITHMETIC, AND THIS ESTATE IS WHY** (devbin-vc, `4afef84` in devbin's repo -- `git show 4afef84:lib/cmd/check`). An earlier version made more than one declared target a breach. **`intent-cli` and `intentd` each declare more than one DELIBERATELY, for the reasons this note gives below -- so the literal rule reddened the estate that authored the ruling.** Declared blocks now pass at any count with the count reported. The one refusal left is the genuinely silent case: **discovery off, nothing declared, `.rs` files sitting in `tests/` -- compiled by nobody and run in no suite.**
+**ITS CRITERION IS `is discovery controlled`, NOT ARITHMETIC, AND THIS ESTATE IS WHY** (devbin-vc, `4afef84` in devbin's repo -- `git show 4afef84:lib/cmd/check`). An earlier version made more than one declared target a breach. **`intent-cli` and `intentd` each declare more than one DELIBERATELY, for the reasons this note gives below -- so the literal rule reddened the estate that authored the ruling.** Declared blocks now pass at any count with the count reported. Among crates that declare `autotests = false`, the one refusal left is the genuinely silent case: **discovery off, nothing declared, `.rs` files sitting in `tests/` -- compiled by nobody and run in no suite.** A crate with discovery on still breaches as soon as `tests/` holds more than one `.rs` file.
 
 **THE LAMPLIGHT ROW IN v0.1 AND v0.2 OF THIS NOTE WAS WRONG** (corrected by lamplight-vc, measured with this note's own instrument). **Lamplight's only crate with test files was consolidated on 2026-08-27 with no orphans**, so every crate that had tests was done, and the row reported a small fraction. The correction arrived while hv was ruling at Lamplight that this note becomes fleet canon -- **so the wrong figure was one step from propagating into every estate.**
 
@@ -113,7 +113,7 @@ debug = "line-tables-only"
 
 **So on an estate still running `v3.0.0`, a row's cited file cannot be retargeted by any verb.** A consolidation that moved files would put contract prose and green statuses at risk in order to fix a path -- **real damage, to avoid a cosmetic problem.** From `v3.0.1`, `intent at edit --file` retargets a row, and a move still costs one retarget per citation it stales.
 
-**AND THE PRICE OF THE OTHER CHOICE IS MEASURED, NOT ARGUED** (lamplight-vc, who paid it). Lamplight consolidated by MOVING every file from `tests/*.rs` into `tests/main/*.rs`. **That staled AT citations across several threads -- ST0290, ST0286, ST0264, ST0315 and ST0351 -- undetected for five days.** It compounds with Intent issue `0015`, under which **a GREEN AT whose citation does not resolve still holds a gate up**.
+**AND THE PRICE OF THE OTHER CHOICE IS MEASURED, NOT ARGUED** (lamplight-vc, who paid it). Lamplight consolidated by MOVING every file from `tests/*.rs` into `tests/main/*.rs`. **That staled AT citations across several threads -- ST0290, ST0286, ST0264, ST0315 and ST0351 -- undetected for five days.** It compounds with the check Intent added for issue `0015`: `intent ac gate` refuses a green or red AT whose cited file does not exist, so a move blocks the gate of every thread citing a moved file until each row is retargeted.
 
 **IT ALSO MANUFACTURED A FALSE FINDING, WHICH IS THE MORE USEFUL HALF.** On 2026-08-27 Lamplight filed that `ST0264`'s `AT-16.4` cited a file _"GENUINELY absent -- a real finding"_. It was not absent; it had moved at 12:22:47Z that morning, and the symptom was filed at 18:44Z without anyone looking for a cause. **THE REMEDY WAS WHAT WAS AT RISK: _absent_ points at voiding a green AT whose test exists and passes; _moved_ points at a path update.** Retracted by its author.
 
@@ -144,9 +144,9 @@ A census that counts files and reports targets will be right for every unconsoli
 
    The instruction generalised Intent's own layout from a small sample of estates that happened to agree. **Before filing, look for the notes tree you already have.**
 
-5. **If you own no Rust, check the PATH before you change the declaration.** Some estates declare `rust` in `intent/.config/config.json` while owning none -- Baize, whose only `Cargo.toml` files are dependency NIFs, and Gtools, which has **no** `Cargo.toml` anywhere.
+5. **If you own no Rust, check the PATH before you change the declaration.** Some estates declared `rust` in `intent/.config/config.json` while owning none -- as of 2026-09-01, Baize, whose only `Cargo.toml` files were dependency NIFs, and Gtools, which had **no** `Cargo.toml` anywhere (it gained a crate on 2026-09-15).
 
-   **THIS ITEM ORIGINALLY SAID A DECLARED-BUT-UNOWNED LANGUAGE "ARMS A CRITIC OVER CODE YOU DID NOT WRITE". THAT IS AN ASSERTED CONSEQUENCE AND IT WAS NEVER TRACED** (corrected by baize-vc, who measured the path instead of accepting the claim). In Baize it does not hold, and structurally rather than by luck: `.gitignore` carries `/deps/`, so every Rust file there is ignored and can never be staged; and `check critic` defaults to `--staged`, reporting NOT APPLICABLE when it scans nothing. **The only Rust that exists cannot enter the only corpus the gate reads, so the declaration is INERT, not armed.** Gtools is inert for a simpler reason still -- no crates at all. **One asserted hazard, and no live instance in either estate.**
+   **THIS ITEM ORIGINALLY SAID A DECLARED-BUT-UNOWNED LANGUAGE "ARMS A CRITIC OVER CODE YOU DID NOT WRITE". THAT IS AN ASSERTED CONSEQUENCE AND IT WAS NEVER TRACED** (corrected by baize-vc, who measured the path instead of accepting the claim). In Baize it does not hold, and structurally rather than by luck: `.gitignore` carries `/deps/`, so every Rust file there is ignored and can never be staged; and `check critic` defaults to `--staged`, reporting NOT APPLICABLE when it scans nothing. **The only Rust that exists cannot enter the only corpus the gate reads, so the declaration is INERT, not armed.** Gtools was inert on 2026-09-01 for a simpler reason still -- no crates at all. **One asserted hazard, and no live instance in either estate.**
 
    **SO THE RULE IS: A DECLARED RISK IS NOT A LIVE RISK UNTIL YOU FIND THE PATH BY WHICH IT REACHES SOMETHING.** That is this note's own orphan-guard argument pointed the other way -- an instrument reading green is not evidence until something makes it go red, and a hazard read off a config is not a hazard until something makes it bite. **Do not churn a config against a standing ruling to remove an exposure you have not measured.**
 
@@ -160,11 +160,11 @@ A census that counts files and reports targets will be right for every unconsoli
 
 **THE CRITIC HOSTS THE DOCTRINE; A TEST HOSTS THE ENFORCEMENT. That split is measured, not stylistic.**
 
-`IN-RS-TEST-003` (one declared test target per crate) and `IN-RS-TEST-004` (trim debuginfo, never fail fast) are in the rule library, `applies_to: **/Cargo.toml`. **The critic runner does reach a manifest** -- driven: `staged_files()` applies no extension filter, `run()` reads whatever it is handed, `applies_to` is a general glob, and an absent `applies_to` means universal. No tool change was needed.
+`IN-RS-TEST-003` (one declared test target per crate) and `IN-RS-TEST-004` (trim debuginfo, never fail fast) are in the rule library, `applies_to: **/Cargo.toml`. **The critic runner does reach a manifest** -- driven: `staged_subjects()` applies no extension filter, `run()` reads whatever it is handed, `applies_to` is a general glob, and an absent `applies_to` means universal. No tool change was needed.
 
 **BOTH RULES ARE NEVERTHELESS DECLARED UNANSWERABLE IN THE HEADLESS GATE, AND THE REASON IS THE POINT.** Every violation here is an ABSENCE -- a manifest that does not carry a key -- and the runner matches only positively. **The one positive token was driven and rejected rather than waived:** in this repository's manifests `debug = true` occurs only inside the comment at the workspace root explaining what the cargo default is. A proxy on it would warn on the manifest that implements the rule, in the sentence documenting the remedy. **A rule that cannot fire is worse than an absent rule, because it reads as coverage** -- so both declare the limit and the census counts them as asked-of-nothing rather than reporting a green over a question never put.
 
-**THE MECHANICAL ARM IS `test_target_topology_guard.rs`**, a workspace-level test that walks every crate manifest with comments stripped and asserts: a crate holding `tests/*.rs` declares `autotests = false` AND a `[[test]]` target; and `autotests = false` never stands without one. It asserts its own population before asserting the property. Driven red on each assertion, each restored to green.
+**THE MECHANICAL ARM IS `test_target_topology_guard.rs` (`native/rust/crates/intentsvcs/tests/`, a member of that crate's suite)**, a workspace-level test that walks every crate manifest with comments stripped and asserts: a crate holding `tests/*.rs` declares `autotests = false` AND a `[[test]]` target; and `autotests = false` never stands without one. It asserts its own population before asserting the property. Driven red on each assertion, each restored to green.
 
 ### The window the four parts never covered
 
@@ -182,7 +182,7 @@ Stated in part 4 as something to add "in the same commit as `autotests = false`"
 
 **THE CHARACTERISTIC RISK OF THIS CHANGE IS FLAKINESS, AND N CLEAN RUNS CANNOT DETECT FLAKINESS.** Merged targets are threads in one process where they were separate processes, so anything sharing process state stops failing cleanly and starts failing sometimes. That is the whole cost, and it is the one thing a green run does not speak to.
 
-Intent shipped two claims on clean-run evidence and both were wrong:
+Intent shipped two claims on clean-run evidence on 2026-09-01 and both were wrong:
 
 | claim                                        | evidence offered                          | what it was worth                      |
 | -------------------------------------------- | ----------------------------------------- | -------------------------------------- |
@@ -197,7 +197,7 @@ So: **before claiming a consolidation is safe, run the suite in a loop under ful
 
 `dual_path_conformance.rs` and `daemon_subscriptions.rs` keep their own `[[test]]` targets: one mutates process cwd, the other drives a per-process file-watch stream. **Both are asking for something a shared process cannot give, so isolation restores an isolation they always had.**
 
-**`daemon_address.rs` is the one that looks identical and is not.** It fails intermittently under contention too, and isolating it would go green immediately -- but its failure is a REAL race in the product's socket-binding path, which the added concurrency merely exposed. **Isolating it lowers the concurrency until the window stops being hit: the failure disappears and the race does not.** That is the denominator attack, and an estate that reaches for isolation whenever a merged suite goes red will quietly convert every product race it surfaces into a green.
+**`daemon_address.rs` was the one that looked identical and was not.** It failed intermittently under contention too, and isolating it would have gone green immediately. But its failure was a REAL race in the product, which the added concurrency merely exposed: a forked child inherited the daemon lock's descriptor, so the holder's own close did not release the lock (fixed at `3fc1d152`, 2026-09-01; the file stays in the suite). **Isolating it would have lowered the concurrency until the window stopped being hit: the failure disappears and the race does not.** That is the denominator attack, and an estate that reaches for isolation whenever a merged suite goes red will quietly convert every product race it surfaces into a green.
 
 **The discriminator: does the test need isolation, or does the PRODUCT need fixing?** Ask what the test is asserting. A test asserting something about the process it runs in wants its own process. A test asserting something about the product wants the product fixed.
 
@@ -232,7 +232,7 @@ cargo test --manifest-path native/rust/Cargo.toml --workspace --no-run 2>&1 | gr
 
 ### The figure that reframes the whole exercise
 
-hv ran the full cycle from a total clean, watched:
+hv ran the full cycle from a total clean on 2026-09-01, watched:
 
 |                                        |                              |
 | -------------------------------------- | ---------------------------- |
@@ -258,6 +258,8 @@ hv ran the full cycle from a total clean, watched:
 An instance happened in front of hv during this very job: dc's `cargo check` held the lock, hv's test run queued behind it, and hv reported that _"the rust tests look like they're hanging."_ They were not. dc killed theirs and hv's proceeded.
 
 **So the fork is a rational response to an invisible wait, and a prohibition on `CARGO_TARGET_DIR` only holds if the wait is made visible. That pairing is the recommendation; either half alone fails.**
+
+Devbin now ships both halves: `bin/devbin check targetdir` flags a per-node target tree, and devbin's gate runner prints a heartbeat to a terminal when a gate has gone quiet. A bare `cargo` run outside devbin still waits in silence.
 
 ## Provenance
 
