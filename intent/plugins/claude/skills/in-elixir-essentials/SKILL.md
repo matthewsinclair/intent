@@ -41,13 +41,13 @@ These are not yet first-class rules in the library; treat them as mandatory styl
 
 ### 3. Check Usage Rules for framework behaviour
 
-If the task touches a framework, consult the framework's Usage Rules:
+If the task touches a framework, consult the framework's Usage Rules. A framework's rules live at `deps/<dep>/usage-rules.md`, in `deps/<dep>/usage-rules/*.md`, or in both, wherever its package ships them, so look in both places before concluding a dep has none:
 
 - `deps/ash/usage-rules.md`
 - `deps/ash_postgres/usage-rules.md`
-- `deps/phoenix_live_view/usage-rules.md`
+- `deps/phoenix/usage-rules/liveview.md` -- LiveView's rules ship in Phoenix's package, beside `deps/phoenix/usage-rules/{ecto,elixir,html,phoenix}.md`
 - Any other `deps/*/usage-rules.md` or `deps/*/AGENTS.md` relevant to the task
-- Topical sub-rules: the `deps/*/usage-rules/*.md` folders that v1.x deps ship alongside the single file (eg `deps/usage_rules/usage-rules/{elixir,otp}.md`). Read these too, not just the top-level `usage-rules.md`.
+- Topical sub-rules: the `deps/*/usage-rules/*.md` folders a dep ships beside its single file or instead of one (eg `deps/usage_rules/usage-rules/{elixir,otp}.md`). Read these too, not just a top-level `usage-rules.md`.
 
 ## Red Flags
 

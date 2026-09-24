@@ -40,7 +40,7 @@ Not yet first-class rules:
 
 ### 5. Check Phoenix / LiveView Usage Rules
 
-Read `deps/phoenix_live_view/usage-rules.md` for the upstream authoritative contract. Anything the rules above do not cover defaults to upstream Usage Rules.
+Read `deps/phoenix/usage-rules/liveview.md` for the upstream authoritative contract. LiveView's rules ship in Phoenix's package, and the same directory holds `html.md` for HEEx and `phoenix.md` for Phoenix itself. A framework's rules live at `deps/<dep>/usage-rules.md`, in `deps/<dep>/usage-rules/*.md`, or in both, wherever its package ships them. Anything the rules above do not cover defaults to upstream Usage Rules.
 
 ## Red Flags
 
