@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: ba4c99b8-b828-4603-9871-50eb86fc3a5b
-heartbeat_at: 2026-09-24 21:12Z
+heartbeat_at: 2026-09-24 21:44Z
 status: active
-focus: "3.2.1 lane LANDED: fixes, 0570, skills, explorer docs, reference and shots are all in; the stacked run passed. Next is the cut's hold, then the fleet hook-wiring census and the released keg's bootstrap --check. NO PUSH, NO RELEASE."
+focus: "LOCALFOLDED for hv's compact. The ic lane is complete: 3.2.1 is landed and built at e2f5ce4b3, and doing 119 holds every sha. hv is pushing; the CI read and the cut come next. The cut's hold stands: no wb write, commit or /in-session until the v3.2.1 tag exists. After it: the fleet hook-wiring census and the released keg's bootstrap --check. NO PUSH, NO RELEASE."
 claims: []
 ---
 
