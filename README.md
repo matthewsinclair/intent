@@ -12,11 +12,11 @@ The Homebrew build is for macOS on Apple silicon; anywhere else, [build from sou
 
 ## What it is
 
-A CLI, written in Rust, that manages a small set of durable objects inside your repository. A machine-level daemon, `intentd`, and a macOS menubar app ship beside it; the CLI does its work in-process and needs neither, except `intent graphql`, which only a running `intentd` answers.
+A CLI, written in Rust, that manages a small set of durable objects inside your repository. A machine-level daemon, `intentd`, and a macOS menubar app ship beside it; the CLI does its work in-process and needs neither, except `intent graphql`, which only a running `intentd` answers, and `intent browse`, which opens a page a running `intentd` serves.
 
-A **steel thread** is one intention followed end to end. It breaks into **work packages**, and it states **acceptance criteria** — the conditions that decide whether the intention was met. Each criterion is backed by an **acceptance test**, so whether a thread is satisfied is computed rather than asserted.
+A **steel thread** is one intention followed end to end. It breaks into **work packages**, and it states **acceptance criteria** — the conditions that decide whether the intention was met. Each criterion is either backed by **acceptance tests**, whose status decides it, or satisfied by named evidence, so whether a thread is satisfied is computed from those records rather than asserted.
 
-Around that sits the machinery that makes it survive contact with a real project: a store that is the single source of truth, generated views so nothing is maintained twice, a rule library your coding agents can be held to, per-language critics that check work against those rules, and commit-time gates that refuse changes contradicting what the project said it was doing.
+Around that sits the machinery that makes it survive contact with a real project: a store that is the single source of truth, generated views so nothing is maintained twice, a rule library your coding agents can be held to, per-language critics that check work against those rules, and commit-time gates that refuse changes breaking the rules the project declared.
 
 ## Why it exists
 
@@ -37,7 +37,7 @@ Around that sits the machinery that makes it survive contact with a real project
 Then record why it exists and what would make it done:
 
 ```
-  $ intent st edit ST0001
+  $ intent set ST0001 objective "Users stay signed in across a server restart"
   $ intent ac new ST0001 AC-01.1 --text "Sessions survive a server restart"
   $ intent st show ST0001
 ```
@@ -66,24 +66,24 @@ For the surface of a build you actually have in front of you, ask that build: `i
 ├── bin/               # devbin, the development launcher (bin/int is its alias)
 ├── docs/              # Public documentation (docs/v2/ is the frozen v2 archive)
 ├── surface/           # The dispatch register the command reference is generated from
-├── lib/templates/     # Single source for all generated content
+├── lib/templates/     # Templates: root files, init's starter content, hooks and guards
 └── intent/            # This project's own Intent artefacts
     ├── .canon/        # The committed extract of the store: threads, issues and events
     ├── .cache/        # This machine's store (intent.db); not committed
     ├── .config/       # Per-project config and metadata
     ├── st/            # Steel threads (info.md and acceptance.md are generated views)
     ├── docs/          # Internal authoring canon
-    ├── llm/           # Module registry and code-placement flowchart
+    ├── llm/           # Module registry, code-placement flowchart, project rules and architecture
     └── plugins/       # Rules, skills and subagents
 ```
 
 **Intent is built with Intent**, so `intent/` here is both the tool's own working record and a worked example of what the tool produces.
 
-**Note on `intent/st/`:** `info.md` and `acceptance.md` are rendered from the store and each says so in the file. Edit them through the CLI: a hand-edit never reaches the store, `intent doctor` reports it as view-skew, and the next render overwrites it. `design.md`, `impl.md` and `tasks.md` are prose you write; `intent st attach <ID> design.md --from <file>` records one in the store, and `intent st edit <ID> design` opens it once it is attached.
+**Note on `intent/st/`:** `info.md` and `acceptance.md` are rendered from the store and each says so in the file. Change them through the CLI: `intent doctor` reports a hand-edit as view-skew, and the next render overwrites it. Write a thread's objective and context with `intent set <ID> objective` and `intent set <ID> context`. `design.md`, `impl.md` and `tasks.md` are prose you write; `intent st attach <ID> design.md --from <file>` records one in the store, and `intent st edit <ID> design` opens it once it is attached.
 
 ## Working with coding agents
 
-Intent's LLM-facing surface — the three root config files, the session hooks, the skills, the subagents, the rule library and the per-language critics — is explained end to end in [`intent/docs/working-with-llms.md`](./intent/docs/working-with-llms.md). That is the canonical narrative, and it is where the reasoning behind the layout lives.
+Intent's LLM-facing surface — the root config files (`AGENTS.md`, `CLAUDE.md`, `usage-rules.md`), the session hooks, the skills, the subagents, the rule library and the per-language critics — is explained end to end in [`intent/docs/working-with-llms.md`](./intent/docs/working-with-llms.md). That is the canonical narrative, and it is where the reasoning behind the layout lives.
 
 ## Contributing
 
@@ -92,7 +92,7 @@ Create a steel thread for the change, record what you are trying to achieve and 
 ## Getting help
 
 - [Documentation](./docs/index.md) — install, getting started, concepts, command reference, migration
-- [`intent doctor`](./docs/install.md#verifying-an-install) — findings about the **project** you are standing in. It does not check the support tree (the only part of the install it reads is the hook templates it compares the project's pre-commit gate against); `intent claude rules list` is the check that the support tree arrived
+- [`intent doctor`](./docs/install.md#verifying-an-install) — findings about the **project** you are standing in. It does not check the support tree (the only parts of the install it reads are the templates it compares the project's root files and pre-commit gate against); `intent claude rules list` is the check that the support tree arrived
 - [GitHub Issues](https://github.com/matthewsinclair/intent/issues) — bug reports
 
 ## License

@@ -1,7 +1,5 @@
 ---
 title: "Total Codebase Audit -- Forensic Process Tech Note"
-version: "v4.0"
-date: "2026-04-23"
 author: "Intent Project"
 ---
 
@@ -19,7 +17,7 @@ See also: ST0026 (Steel Thread Zero) for the prevention framework that stops the
 
 # Purpose
 
-A reproducible, language-agnostic process for performing a **total forensic audit** of an entire codebase against a defined set of coding rules. Designed to be executed by Claude Code with Socrates-style sub-agents, producing a prioritized remediation backlog.
+A reproducible, language-agnostic process for performing a **total forensic audit** of an entire codebase against a defined set of coding rules. Designed to be executed by Claude Code with the `critic-<lang>` subagents, producing a prioritized remediation backlog.
 
 It has been run on a single-app Elixir project, an umbrella Elixir project, and a polyglot Elixir+Rust+Swift+Lua project (Appendix D). It can be reproduced on:
 
@@ -39,7 +37,7 @@ The audit follows a 5-phase pipeline:
 
 ```
 Phase 0: Provisioning   -> Steel thread + work packages + rules
-Phase 1: Component Audit -> One Socrates sub-agent per WP (parallelizable)
+Phase 1: Component Audit -> One critic-<lang> dispatch per WP per language (parallelizable)
 Phase 2: Synthesis       -> Cross-component deduplication + prioritization
 Phase 3: Review          -> Human review + priority agreement
 Phase 4: Remediation     -> Batched fixes with compile/test gates
@@ -63,6 +61,8 @@ Why it matters — four failure modes that manifest together:
 - **Acceptance-criteria collision**: the feedback report becomes a single acceptance criterion that blocks the entire steel thread's close-out.
 
 Reference: the Lamplight ST0121/WP/24 incident (commits 75706c18 → 98616a0c, 2026-04-08). A 24-hour window existed where every top-level session doc lied about the steel thread state — `wip.md`, `intent/restart.md`, `.claude/restart.md`, and `impl.md` all claimed ST0121 was complete before `feedback-report.md` existed. A full doc-reconciliation commit was required to repair the damage.
+
+**If you have already started wrong** (the audit is a WP inside the audited thread): provision the dedicated thread (`intent st new "TCA: <scope>" --start`, then `/in-tca-init` against it), copy each captured report into the matching new `WP/NN/socrates.md` and record it with `intent st attach`, then cancel the misplaced WP with `intent wp cancel <ST>/<NN> --reason "<why>"`.
 
 ### Invariant 2: Work packages are flat
 
@@ -89,7 +89,7 @@ The flat layout used to repair the Lamplight ST0121/WP/24 state (phase-numbered 
 
 ### Invariant 3: The last work package is the synthesis WP
 
-Create the synthesis WP with `intent wp new` after every component WP, so it takes the highest number. Stating it as an invariant gives the provisioning guards something explicit to check for and makes the expected layout unambiguous for operators reviewing the structure mid-audit.
+Create the synthesis WP with `intent wp new` after every component WP, so it takes the highest number; `tca-init.sh` does this by construction, titling its last WP `Cross-Component Synthesis`. No guard checks it afterwards, and `intent wp new` always numbers after the highest existing WP, so a WP added later lands after the synthesis WP.
 
 ### Invariant 4: Rank components by later-pain impact, not raw violation count
 
@@ -101,14 +101,14 @@ The audit is only as good as its rules. Intent v2.9.0 introduced a first-class r
 
 ### Rule packs by ecosystem
 
-| Ecosystem | Rule packs to load                                                                                          |
-| --------- | ----------------------------------------------------------------------------------------------------------- |
-| Elixir    | `agnostic` + `elixir/code` + `elixir/test` (+ `elixir/ash`, `elixir/phoenix`, `elixir/lv` per dependencies) |
-| Rust      | `agnostic` + `rust/code` + `rust/test`                                                                      |
-| Swift     | `agnostic` + `swift/code` + `swift/test`                                                                    |
-| Lua       | `agnostic` + `lua/code` + `lua/test`                                                                        |
-| Shell     | `agnostic` + `shell/code`                                                                                   |
-| Polyglot  | Union of the above per ecosystem; `agnostic` loads once                                                     |
+| Ecosystem | Rule packs to load                                                                                                                                                   |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Elixir    | `agnostic` + `elixir/code` + `elixir/test` (+ `elixir/ash`, `elixir/phoenix`, `elixir/lv`, loaded on every `review` and gated by each rule's `applies_to` path glob) |
+| Rust      | `agnostic` + `rust/code` + `rust/test`                                                                                                                               |
+| Swift     | `agnostic` + `swift/code` + `swift/test`                                                                                                                             |
+| Lua       | `agnostic` + `lua/code` + `lua/test`                                                                                                                                 |
+| Shell     | `agnostic` + `shell/code`                                                                                                                                            |
+| Polyglot  | Union of the above per ecosystem; `agnostic` loads once                                                                                                              |
 
 Enumerate the actual rule IDs to be enforced for this audit:
 
@@ -247,6 +247,8 @@ WP-04: shared/protos/ (Protobuf)
 WP-05: infra/ (Terraform/YAML)
 ```
 
+Only a language that `intent critic --languages` lists has a critic to dispatch; a WP in any other language (TypeScript, Protobuf and Terraform here) has none, so audit it by hand or leave it out.
+
 ### File Discovery
 
 Use glob patterns to enumerate files per component:
@@ -275,7 +277,7 @@ WP-04 (LiveViews):   IN-EX-LV-003 (thin LiveViews), IN-EX-CODE-003 (@impl), IN-E
 
 ## 0.5 Pre-Filter Mechanical Rules
 
-Before dispatching critics, run grep-based pre-filtering for mechanical rules that can be detected without semantic analysis. Critics will catch the same violations, but pre-filtering gives Phase 0 ground truth that any disagreement between mechanical hits and critic findings is signal worth investigating.
+Before dispatching critics, run grep-based pre-filtering for mechanical rules that can be detected without semantic analysis. Critics catch the same violations where a rule covers them (debug artifacts have none, so for those the pre-filter is the only check), but pre-filtering gives Phase 0 ground truth that any disagreement between mechanical hits and critic findings is signal worth investigating.
 
 ```bash
 # Debug artifacts (Elixir)
@@ -302,7 +304,9 @@ intent wp new ST{NNNN} "<Component name>"          # once per component, in orde
 intent wp new ST{NNNN} "Cross-Component Synthesis" # always last
 ```
 
-`info.md` (the thread's and each WP's) and `acceptance.md` are generated views rendered from the store: do not edit them by hand, because `intent doctor` reports a hand edit as view skew and `intent sync --to-disk` discards it. Write their prose with `intent set` (below) and mint acceptance criteria with `intent ac new`. `intent st done` refuses while the thread has no criteria or any criterion is unsatisfied. `intent wp done` checks only a work package's own criteria (those numbered for it, `AC-<NN>.n`): a WP with none closes without a contract check once the thread has any criterion, while a thread with no criteria at all refuses it too, and a WP whose own criteria are all descoped or withdrawn is refused. Give each component WP its own criteria if its close should mean anything. The audit's own documents are files you write into the thread directory and then record in the store with `intent st attach ST{NNNN} <file> --from intent/st/ST{NNNN}/<file>`; until they are attached, `intent organize --verbose` lists them as unclaimed:
+If you provision with `/in-tca-init`, its `tca-init.sh --tca-dir intent/st/ST{NNNN} --wp-count N --project <name>` registers WP/01..WP/NN itself (`intent wp new`), titling them `Component NN` and the last `Cross-Component Synthesis`, seeds each body with `intent set`, and creates an empty `socrates.md` beside each view; it sets no objective. Do not run `intent wp new` after it (it would number after the synthesis WP): name each component with `intent set intent:///threads/ST{NNNN}/wp/{NN} title "<name>"`, then write its objective and body as below.
+
+`info.md` (the thread's and each WP's) and `acceptance.md` are generated views rendered from the store: do not edit them by hand, because `intent doctor` reports a hand edit as view skew and `intent sync --to-disk` discards it. Write their prose with `intent set` (below) and mint acceptance criteria with `intent ac new`. `intent st done` refuses while the thread has no criteria or any criterion is unsatisfied. It also refuses while any work package is still open (Not Started or WIP), the synthesis WP included: close each with `intent wp start` then `intent wp done` (`wp done` refuses a WP that was never started), or drop one with `intent wp cancel ST{NNNN}/{NN} --reason "<why>"`. `intent wp done` checks only a work package's own criteria (those numbered for it, `AC-<NN>.n`): a WP with none closes without a contract check once the thread has any criterion, while a thread with no criteria at all refuses it too, and a WP whose own criteria are all descoped or withdrawn is refused. Give each component WP its own criteria if its close should mean anything. The audit's own documents are files you write into the thread directory and then record in the store with `intent st attach ST{NNNN} <file> --from intent/st/ST{NNNN}/<file>`; until they are attached, `intent organize --verbose` counts them as unclaimed, one line per directory (`unclaimed: <dir>/ (<n> file(s))`):
 
 ```
 intent/st/ST{NNNN}/
@@ -323,6 +327,8 @@ intent/st/ST{NNNN}/
         ├── info.md
         └── socrates.md
 ```
+
+Head design.md's rule-pack section `## The rule set`: `/in-tca-finish` refuses a design.md that lacks the literal lowercase `rule set` (or `Rule <N>` / `R<N>`), and `## Rule Set` does not match.
 
 ### WP body template
 
@@ -356,14 +362,14 @@ Special focus: `IN-<LANG>-<CAT>-NNN` ({reason}), `IN-<LANG>-<CAT>-MMM` ({reason}
 
 ### Cross-WP Highlander Dependency Encoding
 
-> **Lesson from umbrella audit**: Don't wait until synthesis (Phase 2) to think about cross-WP duplication. Encode suspected cross-WP Highlander dependencies at provisioning time in each WP's body and `socrates.md`.
+> **Lesson from umbrella audit**: Don't wait until synthesis (Phase 2) to think about cross-WP duplication. Encode suspected cross-WP Highlander dependencies at provisioning time in each WP's body.
 
 For each WP, identify 2-4 other WPs that might contain overlapping logic. Record these as:
 
 1. **In the WP body** (rendered into its `info.md`): A "Cross-WP Highlander Dependencies" section listing which WPs and what logic might overlap
-2. **In `socrates.md`**: A "Cross-WP Highlander Check" section in the prompt, instructing the auditor to flag "cross-WP Highlander suspects" even if the duplicate isn't confirmed yet
+2. **In `socrates.md`, after the audit**: the wrapper's "Cross-WP Highlander notes" section (§1.1), under the verbatim critic report. Leave `socrates.md` empty until then: `tca-progress.sh` counts any non-empty `socrates.md` as Complete, and `tca-init.sh` refuses to re-run over one.
 
-This way, the per-WP auditor records suspects that the synthesis WP can cross-reference. Without this, cross-WP violations are invisible until Phase 2 and much harder to find retroactively.
+This way, the audit wrapper records suspects that the synthesis WP can cross-reference; the critic sees only its own WP's files. Without this, cross-WP violations are invisible until Phase 2 and much harder to find retroactively.
 
 Example from an umbrella audit WP-08:
 
@@ -398,7 +404,7 @@ Some WPs warrant checks that go beyond the coding rules -- structural/architectu
 - **Shared library dependency violations**: A shared UI library (like `llclient`) must not reference domain structs from the core app. This isn't a coding rule per se, but a structural violation that breaks the dependency graph.
 - **Layer violations**: If a resource module contains formatting logic, or a web component contains database queries, that's an architectural boundary violation.
 
-Encode these as first-class concerns in the relevant WP's `socrates.md`, separate from the numbered rules.
+Encode these as first-class concerns in the relevant WP's body (`intent set ... body`), separate from the rule IDs, and record what each check found in the wrapper's notes in `socrates.md`; the critic enforces only the rule library.
 
 # Phase 1: Component Audit
 
@@ -421,6 +427,8 @@ Task(subagent_type="critic-<lang>", prompt="test-check <test_file1> <test_file2>
 ```
 
 `<lang>` is the WP's language per `info.md`. Polyglot WPs run one dispatch per language. The critic auto-loads the right rule packs (agnostic + language code/test + framework subdirs) and honours `.intent_critic.yml` from the audited project root.
+
+At the default `severity_min: warning` a critic lists only CRITICAL and WARNING findings; RECOMMENDATION and STYLE are only counted in `Summary:`, so P2b and P3 have nothing to classify. For a TCA, dispatch `review --all-severities <files>`. Setting `severity_min: style` or `show_all: true` in `.intent_critic.yml` does the same, but also lowers the pre-commit gate's threshold to style.
 
 ### Capturing the report
 
@@ -450,7 +458,7 @@ Pre-v2.9.0, every TCA invented a per-audit R-numbered rule list and embedded a l
 - Rule IDs are stable across audits — `IN-EX-CODE-006` means the same thing on every project.
 - The output format is the critic contract (parse-stable, severity-grouped); synthesis reads it without per-audit parsing.
 - The Detection heuristic lives in each `RULE.md` — the critic reads it, no need to embed "what to check" prose in the prompt.
-- "Do NOT invent violations" is built into the critic contract; every finding cites a rule ID that resolves to a real RULE.md.
+- Every rule finding cites an IN-* ID and slug that resolves to a real RULE.md; the critics' own handoff advisories (`test-spec-missing`, `architectural-review`, at RECOMMENDATION) are the only findings without one.
 - Per-project carve-outs live in `.intent_critic.yml`, not in per-audit prompt mods.
 
 The lesson from prior audits — "include a 'What to check' description, not just the rule name" — is now satisfied structurally: every IN-\* ID in a critic report resolves to its full RULE.md.
@@ -459,13 +467,13 @@ The lesson from prior audits — "include a 'What to check' description, not jus
 
 Critic dispatch is mechanical — match each language the audited project declares to its critic. Languages are declared in `intent/.config/config.json`, not detected from files present: `jq -r '(.languages // []) | .[]' intent/.config/config.json` lists them, and `intent lang init <lang>` declares one.
 
-| Declared language | Critic to dispatch | Rule packs auto-loaded                                           |
-| ----------------- | ------------------ | ---------------------------------------------------------------- |
-| `elixir`          | `critic-elixir`    | agnostic + elixir/code + elixir/test (+ ash/phoenix/lv per deps) |
-| `rust`            | `critic-rust`      | agnostic + rust/code + rust/test                                 |
-| `swift`           | `critic-swift`     | agnostic + swift/code + swift/test                               |
-| `lua`             | `critic-lua`       | agnostic + lua/code + lua/test                                   |
-| `shell`           | `critic-shell`     | agnostic + shell/code                                            |
+| Declared language | Critic to dispatch | Rule packs auto-loaded                                                                        |
+| ----------------- | ------------------ | --------------------------------------------------------------------------------------------- |
+| `elixir`          | `critic-elixir`    | agnostic + elixir/code + ash + phoenix + lv (`review`); agnostic + elixir/test (`test-check`) |
+| `rust`            | `critic-rust`      | agnostic + rust/code + rust/test                                                              |
+| `swift`           | `critic-swift`     | agnostic + swift/code + swift/test                                                            |
+| `lua`             | `critic-lua`       | agnostic + lua/code + lua/test                                                                |
+| `shell`           | `critic-shell`     | agnostic + shell/code                                                                         |
 
 Polyglot projects dispatch one critic per language per WP. For pre-audit reconnaissance (component boundary discovery), `Explore` agent is still the right tool — but the audit itself goes through critics, not free-form sub-agents.
 
@@ -493,7 +501,7 @@ The critic dispatch runs autonomously. It will:
 ### After Each WP
 
 1. **Record it in the store**: `intent st attach ST{NNNN} WP/{NN}/socrates.md --from intent/st/ST{NNNN}/WP/{NN}/socrates.md`, then `intent wp done ST{NNNN}/{NN}`. Without these the store's WP status never moves.
-2. **Commit immediately**: `git add WP/{NN}/socrates.md && git commit`
+2. **Commit immediately**: `git add intent/st/ST{NNNN}/WP/{NN}/socrates.md && git commit`
 3. **Log the summary** in your running tally
 4. **Move to the next WP**
 
@@ -501,13 +509,13 @@ The critic dispatch runs autonomously. It will:
 
 Context exhaustion is the primary risk. Mitigations:
 
-| Risk             | Mitigation                                                    |
-| ---------------- | ------------------------------------------------------------- |
-| Context overflow | `/compact` before each WP                                     |
-| Lost work        | Commit after every WP (never batch)                           |
-| Critic not found | Restart session before audit if critics installed mid-session |
-| Session crash    | Keep a running log outside the session                        |
-| WP too large     | Split WPs with >60 files into sub-WPs                         |
+| Risk             | Mitigation                                                                                                                                                           |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Context overflow | `/compact` before each WP                                                                                                                                            |
+| Lost work        | Commit after every WP (never batch)                                                                                                                                  |
+| Critic not found | Restart session before audit if critics installed mid-session                                                                                                        |
+| Session crash    | Keep a running log outside the session                                                                                                                               |
+| WP too large     | Split a WP with >60 files into flat WPs at provisioning (never sub-WPs: `intent wp` refuses a nested specifier, and a WP added later numbers after the synthesis WP) |
 
 ### Parallelization
 
@@ -522,7 +530,7 @@ Task(subagent_type="critic-elixir", prompt="review <WP-08 files>")
 
 **Do NOT parallelize** WPs that share files or have overlapping scope -- cross-WP violations will be missed or double-counted.
 
-# Phase 2: Synthesis (WP-15)
+# Phase 2: Synthesis (the last WP)
 
 After all component audits are complete, synthesize findings into a single prioritized document.
 
@@ -554,7 +562,7 @@ Count findings per IN-\* rule ID across all WPs:
 ...
 ```
 
-The IN-\* IDs come straight from the critic reports. Sort by count descending. This reveals **systemic issues** (rules violated everywhere) vs **localized issues** (one bad module). Each ID resolves to `intent/plugins/claude/rules/<lang>/<cat>/<slug>/RULE.md` for the Detection heuristic and the canonical fix pattern.
+The IN-\* IDs come straight from the critic reports. Sort by count descending. This reveals **systemic issues** (rules violated everywhere) vs **localized issues** (one bad module). Each ID resolves to a RULE.md holding the Detection heuristic and the canonical fix pattern: `intent claude rules show <id>` prints it and names its source path (`.../rules/<lang>/<cat>/<slug>/RULE.md`, or `.../rules/agnostic/<slug>/RULE.md` for an `IN-AG-*` rule).
 
 ## 2.3 Cross-Cutting Deduplication
 
@@ -590,6 +598,8 @@ Cluster violations by **root cause and fix**, not by rule number:
 
 > **Important**: Use all five tiers consistently. The P2a/P2b split matters because mechanical fixes (add @impl, add SAFETY comments) are grep-fixable in bulk, while refactoring (extract thick coordinator) requires careful design.
 
+Default tier by critic severity: CRITICAL -> P0, WARNING -> P1 (Highlander) or P2a (mechanical), RECOMMENDATION -> P2b, STYLE -> P3. A finding on `IN-AG-HIGHLANDER-001` (critical) or on a rule in its `concretised_by:` list is always P1. `/in-tca-synthesize` applies this mapping.
+
 ### P0: Bugs & Crash Risks
 
 Violations that cause incorrect behavior or crashes in production:
@@ -598,7 +608,7 @@ Violations that cause incorrect behavior or crashes in production:
 - Wrong key type on struct access (silent no-op)
 - Missing serving_mode dispatch (wrong data source)
 - `String.to_atom` on user input (atom exhaustion)
-- Non-exhaustive `with` clauses on fallible calls (`IN-EX-CODE-004`)
+- Non-exhaustive `with` clauses on fallible calls (no rule: `IN-EX-CODE-004` flags nested `case` and over-long `else` blocks, not a missing one)
 - Missing error returns from fallible functions (`IN-EX-CODE-002`)
 - Debug artifacts (`IO.inspect`, `dbg`) in production paths (Phase 0.5 pre-filter; no rule)
 
@@ -700,7 +710,7 @@ mix test test/specific_file_test.exs
 mix compile --warnings-as-errors && mix test && mix credo --strict
 
 # Rust equivalent
-cargo test --failed  # (if using nextest)
+cargo test <name-filter>  # cargo has no --failed; re-run a failing test by name
 cargo check && cargo test && cargo clippy -- -D warnings
 ```
 
@@ -731,12 +741,12 @@ swiftlint lint --strict
 
 After remediation, add enforcement:
 
-| Mechanism       | Elixir                   | Rust              | Swift           |
-| --------------- | ------------------------ | ----------------- | --------------- |
-| Linter          | Credo custom checks      | Clippy lints      | SwiftLint rules |
-| CI gate         | `mix credo --strict`     | `cargo clippy -D` | `swiftlint`     |
-| Pre-commit hook | `mix compile --warnings` | `cargo check`     | `swift build`   |
-| Code review     | Checklist from rule set  | Same              | Same            |
+| Mechanism       | Elixir                             | Rust                          | Swift           |
+| --------------- | ---------------------------------- | ----------------------------- | --------------- |
+| Linter          | Credo custom checks                | Clippy lints                  | SwiftLint rules |
+| CI gate         | `mix credo --strict`               | `cargo clippy -- -D warnings` | `swiftlint`     |
+| Pre-commit hook | `mix compile --warnings-as-errors` | `cargo check`                 | `swift build`   |
+| Code review     | Checklist from rule set            | Same                          | Same            |
 
 # Appendix A: Scaling Considerations
 
@@ -818,24 +828,26 @@ For a new project audit, use `/in-tca-init` or follow this manual checklist:
 - [ ] Calculate effective file counts using weight table
 - [ ] Identify Ash DSL resources, emission/struct files, dead stubs
 - [ ] Map files into 8-15 WPs (12-20 effective files each)
-- [ ] Create the steel thread with `intent st new "TCA: <scope>" --start`; write design.md and tasks.md into its directory; mint acceptance criteria with `intent ac new`
-- [ ] Create each WP with `intent wp new`, synthesis last; write each WP's objective and body with `intent set` (§0.3)
+- [ ] Create the steel thread with `intent st new "TCA: <scope>" --start`; write design.md and tasks.md into its directory; mint acceptance criteria with `intent ac new`; record design.md and tasks.md with `intent st attach ST{NNNN} <file> --from intent/st/ST{NNNN}/<file>`
+- [ ] Create each WP with `intent wp new`, synthesis last; write each WP's objective and body with `intent set` (§0.3; skip the `intent wp new` part if `/in-tca-init` ran)
 - [ ] Run Phase 0.5 pre-filtering (grep for IN-EX-CODE-002 / -003 / debug artifacts)
 - [ ] Verify file manifests (all listed files exist)
 - [ ] Confirm critics are registered (restart session if any installed mid-session)
 - [ ] For each WP (`/in-tca-audit`):
   - [ ] Run `/compact` first
+  - [ ] `intent wp start ST{NNNN}/{NN}` before the dispatch
   - [ ] Dispatch `Task(subagent_type="critic-<lang>", prompt="review <files>")` (+ `test-check` for test files)
   - [ ] Capture critic report verbatim into WP/{NN}/socrates.md with the wrapper header
+  - [ ] `intent st attach ST{NNNN} WP/{NN}/socrates.md --from intent/st/ST{NNNN}/WP/{NN}/socrates.md`, then `intent wp done ST{NNNN}/{NN}`
   - [ ] Commit socrates.md immediately after completion
 - [ ] Write synthesis WP (`/in-tca-synthesize`): cluster by root cause across IN-\* IDs, 5-tier priority
 - [ ] Review with project owner (`/in-tca-remediate` for execution)
 - [ ] Execute remediation batches in main conversation with verification gates
-- [ ] Wrap up (`/in-tca-finish`): feedback report, ST doc updates
+- [ ] Wrap up (`/in-tca-finish`): write `feedback-report.md` with `tca-report.sh --tca-dir intent/st/ST{NNNN} -o intent/st/ST{NNNN}/feedback-report.md` and replace every `[Fill in` placeholder; satisfy the criteria; `tca-report.sh --check-only` must pass (it needs WP/, a design.md containing `rule set`, the report with no placeholder, and runs `intent ac gate ST{NNNN}` itself, refusing while BLOCKED); close every WP, then `intent st done ST{NNNN}`; update the ST docs.
 
 # Appendix D: Reference Implementations
 
-> **Note on rule numbering**: The examples below use the historical R1-R15 numbering from pre-v2.9.0 audits, preserved as written. Rule mappings are roughly: R1↔IN-EX-CODE-001 (typed access), R5↔IN-EX-CODE-001 (multi-clause), R6↔IN-AG-HIGHLANDER-001 / IN-EX-CODE-006, R11↔IN-EX-CODE-003 (@impl), R12↔IN-EX-CODE-002 (tagged tuples). New audits should cite IN-\* IDs throughout per Phase 0.1.
+> **Note on rule numbering**: The examples below use the historical R1-R15 numbering from pre-v2.9.0 audits, preserved as written. Rule mappings are roughly: R5↔IN-EX-CODE-001 (multi-clause), R6↔IN-AG-HIGHLANDER-001 / IN-EX-CODE-006, R11↔IN-EX-CODE-003 (@impl), R12↔IN-EX-CODE-002 (tagged tuples); R1 (typed data access), R9 (exhaustive `with` clauses) and R15 (debug artifacts) have no IN-* rule. New audits should cite IN-\* IDs throughout per Phase 0.1.
 
 ## Example A -- Single-App Elixir
 
@@ -964,8 +976,8 @@ The violations found in both audits were preventable. See **Intent ST0026 (Steel
 
 1. **Rules from commit one** -> CLAUDE.md template with rules baked in
 2. **Canonical module registry** -> MODULES.md with ownership declarations
-3. **Archetype templates** -> pre-wired thin coordinators
-4. **Automated enforcement** -> custom Credo checks for mechanical rules
+3. **Archetype templates** -> pre-wired thin coordinators (v3 ships no archetype templates)
+4. **Automated enforcement** -> custom Credo checks for mechanical rules (v3 ships no Credo checks; its automated enforcement is the pre-commit critic gate, `intent critic <lang> --staged`)
 5. **Decision tree** -> "where does this go?" flowchart
 6. **Memory injection** -> session knowledge carried into every session (v3 ships no command for this; v2's `intent claude prime` is not carried over)
 7. **Periodic health checks** -> `intent critic <lang>` (headless rule-library runner) for drift detection
