@@ -77,8 +77,9 @@ esac
 command -v intent >/dev/null 2>&1 || exit 0
 
 # `|| true` and `2>/dev/null` discard the critic's exit status and stderr on
-# purpose: this advisory must never block, so a critic that breaks (2) or
-# refuses (3) prints nothing here and `[ -z "$findings" ]` exits.
+# purpose: this advisory must never block. A critic that breaks (2) prints
+# nothing on stdout, so `[ -z "$findings" ]` exits; one that refuses (3) still
+# prints its census, which is passed on, and so does a clean run.
 findings="$(intent critic "$lang" --files "$file_path" --severity-min warning --format text 2>/dev/null || true)"
 [ -z "$findings" ] && exit 0
 

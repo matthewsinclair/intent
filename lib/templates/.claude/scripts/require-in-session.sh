@@ -12,11 +12,12 @@
 #   - Invoked by `.claude/settings.json` UserPromptSubmit hook.
 #   - Receives Claude Code UserPromptSubmit event JSON on stdin (includes
 #     session_id and prompt text).
-#   - Pass-through (exit 0) when:
+#   - Pass-through (exit 0) when EITHER:
 #       a) the prompt is a slash command (starts with `/`) -- so the user
 #          can run `/in-session`, `/help`, `/compact`, etc. without being
-#          blocked by the gate, AND
-#       b) when the per-session sentinel exists.
+#          blocked by the gate. The prompt is read with jq; without jq on
+#          PATH no prompt is recognised as a slash command -- OR
+#       b) the per-session sentinel exists.
 #   - Block (exit 2 + stderr message) when the sentinel is absent AND the
 #     prompt is not a slash command.
 #   - Stderr is surfaced to the user by Claude Code.

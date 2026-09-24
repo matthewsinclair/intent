@@ -79,7 +79,7 @@
 # live ones; with the exclude, exactly the live boards. An archive replays an
 # old header verbatim, so covering it would refuse the protocol's own
 # housekeeping over a historical record, and the harm this guard exists to
-# prevent (`ws list` rendering `ic''s`) does not exist there. The control goes
+# prevent (`fm_get` rendering `ic''s`) does not exist there. The control goes
 # where the harm is. (The same trap, same direction, bit the clock guard's port:
 # see its `WB_PATHS` comment.)
 #
@@ -156,17 +156,16 @@
 # the escape check above: a failure produced by something competent, with no
 # natural corrective, in the false-clean direction.
 #
-# THE USUAL AUTHOR IS THE FORMATTER, NOT A NODE. prettier formats the block as
+# THE USUAL AUTHOR WAS THE FORMATTER, NOT A NODE. prettier formats the block as
 # YAML frontmatter, and a bracketed flow sequence longer than printWidth is
-# broken across lines. It reached a commit two ways until 2026-09-21: a gate
-# that ran `prettier --write` and re-staged BEFORE its guards (devbin's
-# `gate_markdown`, where Laksa found this) handed the guards bytes nobody
-# staged. THAT WAY IS CLOSED -- hv's decision 27 killed the re-staging
-# formatters across the fleet, and each of them now judges the staged bytes and
-# refuses rather than writing. What remains is the other way: a gate that only
-# runs `prettier --check` (Intent's own) refuses the long line, and the
-# `prettier --write` a node runs to clear that refusal is what detaches the
-# value. The bytes this guard reads are still the formatter's.
+# broken across lines. It reached commits two ways: a gate that ran
+# `prettier --write` and re-staged BEFORE its guards (devbin's `gate_markdown`,
+# where Laksa found this; closed by hv's decision 27, 2026-09-21), and the
+# `prettier --write` a node ran to clear a `prettier --check` refusal. In v3
+# neither reaches a board: `intent wb` renders the header one line per key, and
+# canon's `.prettierignore` carries `intent/whiteboard/*/wip.md`, so the gate
+# does not check it. A detached value now means another writer -- a hand edit,
+# or a formatter run where that exclusion is missing.
 #
 # MEASURED in Laksa, not inherited (2026-09-12, prettier 3.9.6, printWidth at
 # its default 80):
@@ -408,17 +407,17 @@ if [ "$detached_count" -gt 0 ]; then
 
   The header block is one line per key. `fm_get` reads everything after the
   first `: ` on the KEY's line, so a value sitting on its own line reads as
-  EMPTY and `ws list` prints nothing for that key. Run-verified 2026-09-12:
+  EMPTY. Run-verified 2026-09-12 (through the since-retired `ws list`):
   a board with four claims detached rendered `claims=`, every other field
   perfect. The value does not degrade, it disappears -- a node claiming four
   work packages reads as a node claiming none.
 
-  YOU PROBABLY DID NOT WRITE THIS. prettier formats this block as YAML, and a
-  bracketed `claims:` list longer than its printWidth is broken across lines --
-  by the `prettier --write` run to clear a `--check` refusal. Measured at
-  printWidth 80: 80 chars survives, 81 breaks. A QUOTED value such as `focus:`
-  is never broken however long, because a quoted scalar is not a breakable
-  construct.
+  Intent's whiteboard verbs render this block one line per key, and canon's
+  .prettierignore keeps prettier off it. Where that exclusion is missing,
+  prettier formats the block as YAML and breaks a bracketed `claims:` list
+  longer than its printWidth across lines. Measured at printWidth 80: 80 chars
+  survives, 81 breaks. A QUOTED value such as `focus:` is never broken however
+  long, because a quoted scalar is not a breakable construct.
 
   SO SHORTEN THE VALUE; DO NOT JUST REJOIN IT. A rejoined line over printWidth
   is refused again at the next commit, and the `prettier --write` that clears

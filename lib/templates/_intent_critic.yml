@@ -7,15 +7,17 @@
 #
 # Full schema and behaviour notes: intent/docs/critics.md in the Intent
 # source repository (https://github.com/matthewsinclair/intent). A worked
-# example with disabled rules and reasons ships in the Intent install
-# (rules/_schema/sample-intent-critic.yml).
+# example with disabled rules and reasons, sample-intent-critic.yml, sits
+# beside the rule schema in the same repository.
 
-# Minimum severity to emit in the report body AND to block commits on.
-# Valid values: critical | warning | recommendation | style.
-# Default: warning (body shows CRITICAL + WARNING; Summary counts all severities).
-# Read by the pre-commit gate, which passes it as --severity-min. A direct
-# `intent critic <lang>` run and the PostToolUse advisory do not read it;
-# pass --severity-min instead.
+# Minimum severity to report and to block commits on.
+# Valid values: critical | warning | recommendation | style. Default: warning.
+# Read by the pre-commit gate, which passes it to `intent critic` as
+# --severity-min (so CRITICAL + WARNING block by default), and by the
+# critic-<lang> subagents, which render findings at or above it and count every
+# severity in their `Summary:` line. `show_all: true` stands for `style` when
+# `severity_min` is absent. A direct `intent critic <lang>` run and the
+# PostToolUse advisory do not read it; pass --severity-min instead.
 severity_min: warning
 
 # Rule IDs to suppress entirely for this project. Each entry should be

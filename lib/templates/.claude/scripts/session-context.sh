@@ -5,7 +5,8 @@
 # Purpose:
 #   Emit Intent project context as a system-reminder to Claude Code so every
 #   session knows which project, branch, and active steel thread it is
-#   resuming.
+#   resuming. The thread is the first line of `intent/wip.md` that begins
+#   `**ST<digits>`; a wip.md with no such line yields no `WIP:` line.
 #
 # Contract:
 #   - Invoked by `.claude/settings.json` SessionStart hook.

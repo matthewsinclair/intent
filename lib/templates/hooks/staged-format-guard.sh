@@ -83,20 +83,19 @@ note() { printf '%s: %s\n' "$NAME" "$*" >&2; }
 
 # ---- THE DECLARATION ----
 #
-# AN ESTATE THAT DECLARES NOTHING IS NAMED, NOT SILENT (vc, 2026-09-22). The
-# first spelling exited 0 without a word when the key was absent, which is the
-# all-clear a reader believes: the roster counts the guard as having RUN, and
-# nothing on the screen distinguishes "checked everything and found it clean"
-# from "checked nothing at all". An instrument may fail toward a warning a
-# reader discards; it may never fail toward an all-clear.
+# AN ESTATE THAT DECLARES NOTHING ANSWERS 3, NOT 0 (vc, 2026-09-22; issue
+# 0506). The first spelling exited 0 without a word when the key was absent,
+# which is the all-clear a reader believes: the roster counted the guard as
+# having RUN. Exit 3 puts it in the runner's `skipped (not applicable)` tally
+# instead. The guard itself prints nothing on any of its three exit-3 paths: no
+# config, no `formatters` key, an empty list.
 #
 # A declaration that cannot be READ is a third fact and it blocks, because a
 # tracked declaration the gate cannot parse is a broken tree, and a commit
 # passing over it is the silent loss this guard exists to end.
 #
-# The missing CONFIG is the one silent exit, and it stays silent because the
-# roster's own applies-when names that file: reaching here without it means the
-# guard was dispatched by something other than the roster.
+# A missing CONFIG means the guard was dispatched by something other than the
+# roster, whose applies-when names that file.
 [ -f "$CONFIG" ] || exit 3
 if ! grep -q '"formatters"' "$CONFIG" 2>/dev/null; then
   exit 3

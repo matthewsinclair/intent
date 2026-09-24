@@ -65,13 +65,13 @@ intent claude rules validate
 - `UserPromptSubmit` (strict) — blocks the first prompt until `/in-session` runs in the conversation.
 - `Stop` — reminds to run `/in-finish` on wrap.
 
-The PostToolUse critic advisory is off by default and not wired by `.claude/settings.json`: set `post_tool_use_advisory: true` in `.intent_critic.yml` and add a `PostToolUse` stanza (matcher `Write|Edit|MultiEdit`) running `intent claude hook post-tool-advisory` to your own `.claude/settings.local.json`.
+The PostToolUse critic advisory is off by default and not wired by `.claude/settings.json`: set `post_tool_use_advisory: true` in `.intent_critic.yml` and add a `PostToolUse` stanza (matcher `Write|Edit|MultiEdit`) running `intent claude hook post-tool-advisory` to your own `.claude/settings.local.json`. A second opt-in hook, `intent claude hook post-tool-symbol-context` (matcher `Grep|Bash`), appends what Intent's index knows about a single-symbol search; it is off by default for the same reason.
 
 Hooks are applied to this project by `intent claude upgrade --apply`. Never edit `.claude/settings.json` hook stanzas directly — re-apply the template instead.
 
 ## Critics and pre-commit
 
-The pre-commit hook runs `intent critic <lang>` on staged files for each language declared in `intent/.config/config.json`. Severity threshold and disabled rules configured via `.intent_critic.yml` at project root:
+The pre-commit hook runs the shipped guards, then `intent critic <lang>` on staged files for each language declared in `intent/.config/config.json`, then `intent doctor`; a refusing guard or a doctor exit 1 blocks the commit as findings do. Severity threshold and disabled rules configured via `.intent_critic.yml` at project root:
 
 ```yaml
 severity_min: warning # critical | warning | recommendation | style

@@ -336,10 +336,10 @@ for g_entry in "${GUARDS[@]}"; do
     #
     # 3 IS FREE AND THE OTHERS ARE NOT: 1 is BLOCKED, 2 is the shell's own error
     # (a `bash` that cannot run the file), and 0 already means ran-and-passed.
-    # Censused before it was claimed: no shipped guard can reach 3 today --
-    # every `exit` in the roster is a literal 0 or 1 except
-    # `staged-format-guard.sh`'s `exit "$REFUSE"`, and `REFUSE` is only ever
-    # assigned 0 or 1. So nothing silently changes meaning under this.
+    # Censused before 3 was claimed: every `exit` in the roster was then a
+    # literal 0 or 1, or `staged-format-guard.sh`'s `exit "$REFUSE"` (only ever
+    # 0 or 1), so nothing silently changed meaning. `staged-format-guard.sh` now
+    # exits 3 by design when no formatter is declared.
     #
     # **THE ONE PLACE IT CAN BITE IS A PROJECT-DECLARED GUARD, AND IT IS NAMED
     # RATHER THAN HIDDEN.** The loop below runs guards this runner did not ship
@@ -379,12 +379,12 @@ done
 # a runner that was never dispatched prints nothing too. That is the sentence
 # this whole mechanism was built to delete, arriving on the success path.
 #
-# A COUNT, NOT A LIST, and the distinction is the one refused a hundred lines
-# up. Listing which guards were skipped means reciting a roster the reader
-# cannot check; saying HOW MANY ran answers the only question silence leaves
-# open -- did anything happen. `skipped` is the not-applicable population and is
-# a normal, healthy number: a project with no canon skips the canon guard and
-# owes nothing.
+# A COUNT, NOT A LIST, and the distinction is the one `pre-commit.sh` draws in
+# its absence-1 branch (NO LIST OF SKIPPED GUARDS). Listing which guards were
+# skipped means reciting a roster the reader cannot check; saying HOW MANY ran
+# answers the only question silence leaves open -- did anything happen.
+# `skipped` is the not-applicable population and is a normal, healthy number: a
+# project with no canon skips the canon guard and owes nothing.
 #
 # **THAT SENTENCE WAS FALSE BETWEEN 2026-09-22 AND THIS COMMIT, AND THE REPAIR
 # IS WHAT MAKES IT TRUE AGAIN RATHER THAN A REWORDING OF IT**.

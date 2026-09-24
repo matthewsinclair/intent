@@ -39,7 +39,7 @@
 # not exist, which `check-ignore` is happy to answer for.
 #
 # Exit codes: 0 clean, not applicable, or inherited-only; 1 this commit adds a
-# rule that reaches canon.
+# rule that reaches canon, or the staged ignore rules could not be built to check.
 
 set -u
 
@@ -198,8 +198,8 @@ printf '%s' "$blocking_rules" | sort -u | while IFS= read -r rule; do
   printf '%s' "$blocking_counts" | awk -F'\t' -v r="$rule" '$1==r{print "      " $2}' | head -3 >&2
 done
 echo "" >&2
-echo "  ${CANON_DIR}/ is the ONE dot directory under intent/ that must be committed." >&2
-echo "  Its siblings -- .cache/, .backup/ -- are all local, so a rule" >&2
+echo "  ${CANON_DIR}/ must be committed: it holds the entire steel thread and issue estate." >&2
+echo "  Its per-machine siblings -- .cache/, .backup/ -- are gitignored, so a rule" >&2
 echo "  like 'intent/.*/' looks tidy and correct and would silently un-commit the" >&2
 echo "  entire steel thread and issue estate (D29: a gitignored path is never canon)." >&2
 echo "" >&2

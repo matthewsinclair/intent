@@ -125,9 +125,10 @@
 #
 #   PORT 3 -- CHECK B ACCEPTS EITHER ISO SEPARATOR. The original requires `T`
 #     in `heartbeat_at`, so `heartbeat_at: 2026-08-14 14:43` (space separator,
-#     no Z) slips through unchecked. Both separators are in live use on Intent's
-#     own board today. The separator is not this guard's business; the missing
-#     `Z` is, and it must be caught under either spelling.
+#     no Z) slips through unchecked. Both separators were in live use on
+#     Intent's own board when this was ported; `intent wb` now renders the space
+#     form. The separator is not this guard's business; the missing `Z` is, and
+#     it must be caught under either spelling.
 #
 #   PORT 4 -- `LC_ALL=C` for check C's comparison. `[[ a < b ]]` uses the
 #     locale's collation order; ISO stamps compare correctly under C and are not
@@ -280,14 +281,15 @@ added_lines="$(git diff --cached --unified=0 -- "${WB_PATHS[@]}" 2>/dev/null |
 #     extending scope afterwards on my own initiative is how a guard grows reach
 #     nobody sanctioned. FILED, NOT FIXED.
 #
-#     AND THE COUNT UNDERSTATES IT, WHICH IS THE REASON TO READ THIS TWICE:
-#     **the unscanned form correlates with the highest-authority content on the
-#     board.** All of Intent's are on the `hv` node -- the rulings record --
-#     and on Lamplight the hv node uses ONLY this form, so that estate's rulings
-#     are entirely unscanned. Separate estates arrived at it independently, and it is
-#     not coincidence: a dated `###` heading is the NATURAL shape for a rulings
-#     record, and it is the one shape this guard does not read. Whoever weighs
-#     widening should weigh that rather than the count.
+#     AND HOW RARE IT LOOKS UNDERSTATES IT, WHICH IS THE REASON TO READ THIS
+#     TWICE: **the unscanned form correlates with the highest-authority content
+#     on the board.** When measured, all of Intent's were on the `hv` node --
+#     the rulings record -- and on Lamplight the hv node uses ONLY this form, so
+#     that estate's rulings are entirely unscanned. Separate estates arrived at
+#     it independently, and it is not coincidence: a dated `###` heading is the
+#     NATURAL shape for a rulings record, and it is the one shape this guard
+#     does not read. Whoever weighs widening should weigh that rather than how
+#     rare the form is.
 #
 #     vc's response was to change what they WRITE rather than ask this to grow --
 #     recording hv's rulings as date-first bullets from now on. That is the
@@ -298,15 +300,15 @@ added_lines="$(git diff --cached --unified=0 -- "${WB_PATHS[@]}" 2>/dev/null |
 #     PORT 2 hazard, blocking a report. Chosen, not inherited.
 #   - AN AUTHOR-FIRST STAMP, eg `- **(hv, 2026-08-26) ...`. This one IS a
 #     protocol stamp in a variant field order, not a different kind of line, so
-#     it is the weakest of the exclusions. ALL of them are on Intent's `ic`
-#     node, and no other estate has any -- a local convention rather than a
-#     protocol variant, which is why it is filed rather than fixed. None is
-#     future-dated, so nothing is being missed that would block today. The node
-#     attribution matters here and vc corrected mine: "Intent's board" was wrong
-#     and "ic's board" is checkable. FILED, NOT FIXED, on the same reasoning: hv ruled
-#     a shape and widening the matcher afterwards on my own initiative is how a
-#     guard acquires reach nobody sanctioned. Found by devbin-vc's broader
-#     predicate.
+#     it is the weakest of the exclusions. When measured, ALL of them were on
+#     Intent's `ic` node, and no other estate had any -- a local convention
+#     rather than a protocol variant, which is why it is filed rather than
+#     fixed. None is future-dated, so nothing is being missed that would block
+#     today. The node attribution matters here and vc corrected mine: "Intent's
+#     board" was wrong and "ic's board" is checkable. FILED, NOT FIXED, on the
+#     same reasoning: hv ruled a shape and widening the matcher afterwards on my
+#     own initiative is how a guard acquires reach nobody sanctioned. Found by
+#     devbin-vc's broader predicate.
 #
 # AND ONE FORM THAT IS CORRECTLY IGNORED RATHER THAN MISSED, which is the
 # evidence FOR requiring the parenthesis: a dated bullet with no opening

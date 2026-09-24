@@ -3,11 +3,14 @@
 # pre-commit.sh -- Intent critic gate
 #
 # Purpose:
-#   Run `intent critic <lang> --staged --severity-min <sev>` for each
-#   language declared in `intent/.config/config.json`, block the commit on
-#   findings at or above the configured severity threshold, fail open when
-#   the critic answers a code the gate does not recognise (its own breakage),
-#   and refuse when the `intent` CLI cannot be run in an Intent project.
+#   Run the guard roster (`pre-commit-guards.sh`), then
+#   `intent critic <lang> --staged --severity-min <sev>` for each language
+#   declared in `intent/.config/config.json`, then `intent doctor`. Block the
+#   commit when a guard refuses, on findings at or above the configured
+#   severity threshold, on a critic refusal (exit 3), or when doctor exits 1;
+#   fail open when the critic or doctor answers a code the gate does not
+#   recognise (its own breakage); and refuse when the `intent` CLI cannot be
+#   run in an Intent project.
 #
 # Install:
 #   Not copied into a project. `intent claude upgrade --apply` writes the
@@ -25,9 +28,11 @@
 #   `git commit --no-verify` bypasses the hook. Use sparingly.
 #
 # Exit codes:
-#   0  no findings at or above threshold (commit proceeds)
-#   1  findings at or above threshold (commit blocked)
-#   2+ reserved; hook itself always exits 0 or 1 after aggregating
+#   0  the commit proceeds
+#   1  the commit is blocked: a guard refused, the `intent` CLI is not runnable
+#      in an Intent project, a critic found issues at or above the threshold or
+#      refused (its exit 3), or `intent doctor` exited 1
+#   the hook exits nothing else
 
 # Don't set -e: we need exit codes to propagate through variables.
 set -u
@@ -63,9 +68,11 @@ cd "$PROJECT_ROOT" || exit 0
 # THE ROSTER IS NOT HERE, AND THAT IS THE POINT. This file is no longer copied
 # into a project: the carrier `.git/hooks/pre-commit.intent` is the shim
 # (`pre-commit-shim.sh`), which execs this file live from the install root. The
-# roster is read live from the same install, in `pre-commit-guards.sh`. Anything
-# a consumer holds a frozen copy of cannot be updated by shipping canon, so the
-# roster must not be something they hold.
+# roster is read live from the install `intent info` names (INTENT_HOME, below)
+# -- the running binary's own, which can differ from the root the shim exec'd
+# this file from (`intent info` marks that on its `Gate root:` line) -- in
+# `pre-commit-guards.sh`. Anything a consumer holds a frozen copy of cannot be
+# updated by shipping canon, so the roster must not be something they hold.
 #
 # It used to be, and the comment here claimed otherwise in those words --
 # "this is also what makes a new guard propagate without touching a consumer's
@@ -580,13 +587,14 @@ if [ "${#LANGS[@]}" -gt 0 ]; then
     case "$rc" in
       0)
         # **THE CRITIC'S DISABLED CENSUS WAS ALREADY IN `$out` HERE AND THIS ARM
-        # THREW IT AWAY** (hv 2026-09-22). `CriticReport::exit_code`
+        # THREW IT AWAY** (hv 2026-09-22). `critic::Report::exit_code`
         # returns 0 for a project with a non-empty `disabled` and no findings --
         # deliberately, because the opt-out is the project's own committed
-        # decision (critic.rs:336-341, and that ruling is NOT reopened here).
-        # The critic then prints the count precisely so "a run the project
-        # disabled wholesale" cannot read "as a clean pass over rules it never
-        # put" (render.rs:13491). Discarding `$out` on success deleted that
+        # decision (that function's doc comment in `intentsvcs/src/critic.rs`,
+        # and that ruling is NOT reopened here). The critic then prints the
+        # count precisely so "a run the project disabled wholesale" cannot read
+        # "as a clean pass over rules it never put" (`render_critic_text` in
+        # `intent-cli/src/render.rs`). Discarding `$out` on success deleted that
         # sentence before the one person who acts on it, at the one checkpoint
         # every commit passes. **A DENOMINATOR NOBODY PRINTS IS A DENOMINATOR
         # NOBODY CHECKS**, which is why the count below is printed ALWAYS and
@@ -706,9 +714,9 @@ fi
 #
 # **1 IS FINDINGS; ANY OTHER NON-ZERO IS THIS GATE'S OWN BREAKAGE AND FAILS
 # OPEN**, which is the ruling the critic arm above already carries. A binary
-# that does not have the verb answers clap's unrecognised-subcommand code, and
-# refusing every commit because the tool is merely older is the refuse-everything gate rebuilt
-# one more time on the git side.
+# that does not have the verb exits 1 -- an unknown subcommand is a usage error
+# on this surface (spine.rs's exit table) -- which this arm cannot tell from
+# findings, so for that case it would refuse rather than fail open.
 #
 # **THE OUTPUT IS CAPTURED WITHOUT A PIPE BEFORE `$?` IS READ**, for the reason
 # stated at the top of this file: `intent doctor | tail` answers `tail`'s exit
