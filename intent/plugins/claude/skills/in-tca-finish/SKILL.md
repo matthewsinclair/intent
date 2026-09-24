@@ -86,7 +86,7 @@ The pre-flight guard refuses while any `[Fill in` placeholder remains, including
 
 ### 5. Close the acceptance contract
 
-`info.md` and `acceptance.md` are generated views, so tick nothing by hand. List the contract with `intent ac list STXXXX`, satisfy each non-test AC with `intent ac satisfy STXXXX AC-NN --evidence <ref>` (eg `--evidence feedback-report.md`), turn each covering test green with `intent at green STXXXX AT-NN`, then run `intent ac gate STXXXX` -- it exits non-zero with `BLOCKED` while any AC is unsatisfied.
+`info.md` and `acceptance.md` are generated views, so tick nothing by hand. List the contract with `intent ac list STXXXX`, satisfy each non-test AC with `intent ac satisfy STXXXX AC-NN --evidence <ref>` (eg `--evidence feedback-report.md`), turn each covering test green with `intent at green STXXXX AT-NN` (a row goes green only from `red`, so a test not yet recorded failing takes `intent at red STXXXX AT-NN` first), then run `intent ac gate STXXXX` -- it exits non-zero with `BLOCKED` while any AC is unsatisfied.
 
 ### 6. Pre-flight guard
 
@@ -122,7 +122,6 @@ Only after the pre-flight guard has passed in step 6, run `/in-finish` for stand
 
 - Update `intent/wip.md`
 - Update `intent/restart.md`
-- Update `.claude/restart.md`
 
 ## Important Notes
 

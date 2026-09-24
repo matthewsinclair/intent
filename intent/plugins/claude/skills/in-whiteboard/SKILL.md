@@ -11,7 +11,7 @@ Coordinator for multiple Claude Code sessions -- and the human -- running concur
 
 ## Nodes
 
-A node is a participant. The 2-letter moniker is the routing key, the handle, and the name of its rendered directory. Nodes are **per-project configuration**: the project declares its roster (monikers, display names, roles) in its hand-authored `intent/whiteboard/README.md`, and `intent wb register` is what puts that declaration on the board. No roster is baked into this skill -- `intent wb status` is how you find out who the nodes are.
+A node is a participant. The 2-letter moniker is the routing key, the handle, and the name of its rendered directory. Nodes are **per-project configuration**: the project declares its roster (monikers, display names, roles) in its hand-authored `intent/whiteboard/README.md`, and `intent wb register` puts each node on the board, from its own arguments or from each hand-authored board's header; it never reads the README. No roster is baked into this skill -- `intent wb status` is how you find out who the nodes are.
 
 A project that wants the human in the loop gives them a node, conventionally `hv` (the **hypervisor**): the human who adjudicates scope, sequences work, owns releases, and is where escalations land. The human is addressed as `hv` in all protocol language, never by name. The hypervisor node is human-driven -- it is read like any other node, but the human maintains it (or has it maintained on their behalf) rather than running `pickup` on a heartbeat.
 
@@ -229,7 +229,7 @@ Why all of them. **A alone does not catch the local-clock error**: an unmarked `
 
 Two things the guard deliberately does not do. It **never auto-corrects** -- a guard that silently fixes the stamp hides the class from the node that needs to learn its clock was wrong; it prints the right value so the fix is a copy-paste. And **check C never blocks on pre-existing breakage**, only on stamps the current commit adds, because a guard that must be bypassed to work is a guard nobody keeps.
 
-**It does not close the class, and you should not read a green as proof that it has.** A fabricated stamp that carries a `Z`, lands in the past, and still increases monotonically passes all three checks. Smaller target, not an empty one -- which is the whole reason the rule above is stated as a rule and not as "the hook will catch it".
+**It does not close the class, and you should not read a green as proof that it has.** A fabricated stamp that carries a `Z`, lands in the past, and still increases monotonically passes every check above. Smaller target, not an empty one -- which is the whole reason the rule above is stated as a rule and not as "the hook will catch it".
 
 ## Node-identity discovery
 

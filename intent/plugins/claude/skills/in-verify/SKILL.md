@@ -50,9 +50,9 @@ A task is done when:
 
 If the steel thread carries an `acceptance.md`, "done" is bound to it:
 
-- Write Acceptance Tests **red-first** and witness them RED before building to green -- a green that never went red proves nothing. **The CLI does not enforce this**: `intent at green` accepts a row at any status, so red-first is held by the verifier witnessing RED, not by the tool.
+- Write Acceptance Tests **red-first** and witness them RED before building to green -- a green that never went red proves nothing. **The CLI enforces the order and cannot enforce the witnessing**: `intent at green` refuses a row that is not `red`, so `intent at red` records the failing run first, but only the verifier can say the RED was real.
 - A test-backed AC is satisfied by a green covering AT; a non-test AC by `intent ac satisfy`. The close-gate computes the verdict -- `intent ac status <id>` (or `intent ac gate`) -- never a hand-ticked box.
-- **The AT row has an enforced grammar.** Cite the test **file**, backticked and repo-relative (`` `tests/unit/foo.bats` ``) -- not a test name, not `path::name`. Then put the AT's own id inside the test it names, because that is the link the tool can check from both ends. A `(non-test)` row carries prose and `status: n/a`, records a doc or eyeball check, and never satisfies anything. Run `intent at lint <id>` before you claim coverage, and fix each row it names by hand with `intent at edit <id> <AT-id>`.
+- **The AT row is checked by the tool.** Cite the test **file**, repo-relative, with `--file` (`intent at new <id> <AT-id> --covers <AC-id> --file tests/unit/foo.bats`) -- not a test name, not `path::name`. Then put the AT's own id inside the test it names, because that is the link the tool can check from both ends. A non-test row (`--kind non-test --prose <text>`) records a doc or eyeball check, is set with `intent at na`, and never satisfies anything. Run `intent at lint <id>` before you claim coverage, and fix each row it names by hand with `intent at edit <id> <AT-id>`.
 
 See the AC/AT five-step in `working-with-llms.md` (D11).
 

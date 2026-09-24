@@ -5,7 +5,7 @@ chains_to: ["in-tca-audit"]
 
 # TCA Init
 
-> **Invariant (load-bearing)**: A TCA is always its own dedicated steel thread. NEVER provision a TCA as a work package inside the audited ST. See `intent/docs/total-codebase-audit.md` section 0.0 for the four failure modes this rule prevents. The `tca-init.sh` script enforces this with a provisioning guard and will refuse to run against a path that looks like it is inside an existing work package.
+> **Invariant (load-bearing)**: A TCA is always its own dedicated steel thread. NEVER provision a TCA as a work package inside the audited ST. See `intent/docs/total-codebase-audit.md` section 0.0 for the failure modes this rule prevents. The `tca-init.sh` script enforces this with a provisioning guard and will refuse to run against a path that looks like it is inside an existing work package.
 
 Provisions a Total Codebase Audit: creates the steel thread and its work packages through the CLI, defines the rule set, maps the codebase into components, and writes each WP's scope, file list and rule focus into the store with `intent set`.
 
@@ -25,7 +25,7 @@ Ask the user:
 
 ### 2. Select the rule packs
 
-A TCA enforces Intent's rule library. There is no per-audit invented rule numbering -- every cited rule has a stable `IN-*` ID, served by the installed Intent tool via `intent claude rules show <id>` (`intent claude rules list` to enumerate). The schema lives in `intent/docs/rules.md` at the Intent install.
+A TCA enforces Intent's rule library. There is no per-audit invented rule numbering -- every cited rule has a stable `IN-*` ID, served by the installed Intent tool via `intent claude rules show <id>` (`intent claude rules list` to enumerate). The schema is `intent/plugins/claude/rules/_schema/rule-schema.md`, which ships with the installed tool.
 
 Default rule packs by ecosystem:
 
