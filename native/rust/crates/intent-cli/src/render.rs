@@ -9525,7 +9525,13 @@ fn app_start() -> Result<(), Failure> {
 /// `start` and `restart` say the same thing when a launch does not register in
 /// time (issue 0423).
 fn app_fail(e: macapp::AppError) -> Failure {
-  Failure::Error(format!("error: {e}\n  remedy: {}", e.remedy()))
+  Failure::Error(app_message(&e))
+}
+
+/// An app error and its remedy, in the one shape every `intent app` verb
+/// prints, whichever exit code it goes out with.
+fn app_message(e: &macapp::AppError) -> String {
+  format!("error: {e}\n  remedy: {}", e.remedy())
 }
 
 fn app_stop() -> Result<(), Failure> {
@@ -9589,7 +9595,10 @@ fn app_restart() -> Result<(), Failure> {
 fn app_status() -> Result<(), Failure> {
   match macapp::status() {
     macapp::State::Running { pid, bundle } => {
-      println!("ok: Intent.app is running (pid {pid}) from {}", bundle.display());
+      println!(
+        "ok: Intent.app is running (pid {pid}) from {}",
+        bundle.display()
+      );
       Ok(())
     }
     macapp::State::Installed { bundle } => {
@@ -9600,9 +9609,12 @@ fn app_status() -> Result<(), Failure> {
       println!("  remedy: `intent app start`");
       Err(Failure::Verdict)
     }
-    macapp::State::NotInstalled => Err(Failure::Unavailable(
-      "Intent.app is not built or installed on this machine -- `bin/devbin macos app-build` builds it, `bin/devbin macos app-install` installs it to /Applications".to_string(),
-    )),
+    // **THE REMEDY IS macapp's, WHICH KNOWS WHICH INSTALL THIS IS** (issue
+    // 0560): this arm sent every machine to `bin/devbin`, which only a source
+    // tree has, where `app start` already sends a release install to its zip.
+    macapp::State::NotInstalled => Err(Failure::Unavailable(app_message(
+      &macapp::AppError::NotInstalled,
+    ))),
   }
 }
 
