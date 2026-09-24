@@ -138,7 +138,10 @@ jobs:
         # tool. Without it the install would appear to succeed and the prettier
         # arms would fail later in the job with `prettier is not on PATH`, which
         # reads as the defect being fixed here rather than as a broken fix.
+        # pipefail, because the step shell is bash -e without it: the pipeline's
+        # status would be tee's, and a missing prettier would pass.
         run: |
+          set -o pipefail
           npm install -g prettier@3
           prettier --version | tee -a "$GITHUB_STEP_SUMMARY"
 

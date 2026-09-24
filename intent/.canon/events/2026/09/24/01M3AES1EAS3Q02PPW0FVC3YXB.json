@@ -1,0 +1,15 @@
+{
+  "id": "01M3AES1EAS3Q02PPW0FVC3YXB",
+  "ts": "2026-09-24T19:37:45.677Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0585"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "pr-checks.yml substitutes a pull request's description into a shell script, so the description runs as code, and three CI steps pass when their own command fails"
+  }
+}
