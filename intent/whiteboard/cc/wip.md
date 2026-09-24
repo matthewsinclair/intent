@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 32974d4a-0175-4bfb-b198-cdac20b4d58b
-heartbeat_at: 2026-09-24 21:42Z
+heartbeat_at: 2026-09-24 21:50Z
 status: active
 focus: "LOCALFOLDED for hv's compact. 3.2.1 is landed and built (pair e2f5ce4b3); nothing open in cc's lane; hv pushes, vc reads CI, hv cuts under vc's hold, then the fleet sweep. Resume is doing 74. NO PUSH, NO RELEASE."
 claims: []
