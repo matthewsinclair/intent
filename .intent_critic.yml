@@ -2,12 +2,12 @@
 #
 # Consumers:
 #   - intent critic <lang>             (headless runner, pre-commit gate)
-#   - .claude/scripts/post-tool-advisory.sh (opt-in PostToolUse advisory)
+#   - intent claude hook post-tool-advisory (opt-in PostToolUse advisory; the body ships in the Intent install)
 #   - critic-<lang> subagents          (LLM review via Task(...))
 #
 # Full schema and behaviour notes: intent/docs/critics.md at the Intent
 # install. A worked example with disabled rules and reasons ships there
-# too (rules/_schema/sample-intent-critic.yml).
+# too (intent/plugins/claude/rules/_schema/sample-intent-critic.yml).
 
 # Minimum severity to report and to block commits on. Read by the pre-commit
 # gate, which passes it to `intent critic` as --severity-min; `intent critic`
