@@ -643,3 +643,201 @@ fn a_tracked_hooks_directory_with_no_hooks_path_is_reported_and_setting_it_clear
     "the control: with the path set, git runs it and there is nothing to say: {found:?}"
   );
 }
+
+// # Each state says what happens to a commit, and names the verb that repairs it
+//
+// Issue 0570, driven on the pair at 4c687eaad before these arms were written:
+// with the carrier removed a commit is REFUSED ("GATE ABSENT") and `intent
+// claude upgrade --apply` writes the carrier back; a carrier naming no runner
+// lets every commit through and the same verb replaces it; and a shim whose
+// pointer is absent refuses every commit until `intent bootstrap` records one.
+// The class remedy said commits go through ungated and that no verb repairs
+// any of it, and both were false for two states of three.
+
+use intentsvcs::doctor::{GateAt, gate_not_running_detail};
+use intentsvcs::install::PointerState;
+
+const CARRIER: &str = ".git/hooks/pre-commit.intent";
+
+fn at<'a>(shape: Option<CarrierShape>, pointer: &'a PointerState) -> GateAt<'a> {
+  GateAt {
+    carrier: CARRIER,
+    shape,
+    pointer,
+    gate_body: true,
+    own_install: None,
+  }
+}
+
+fn resolves() -> PointerState {
+  PointerState::Resolves {
+    root: "/opt/intent".into(),
+  }
+}
+
+fn detail(state: GateState, at: GateAt<'_>) -> String {
+  gate_not_running_detail(&state, at).expect("a gate-not-running state has a detail")
+}
+
+#[test]
+fn a_missing_carrier_says_the_commit_is_refused_and_names_upgrade() {
+  let p = resolves();
+  let d = detail(GateState::ChainCallsAMissingCarrier, at(None, &p));
+  assert!(
+    d.contains("REFUSED"),
+    "the chain refuses the commit (GATE ABSENT): {d}"
+  );
+  assert!(
+    d.contains("intent claude upgrade --apply"),
+    "that verb writes the carrier back: {d}"
+  );
+  assert!(
+    !d.contains("skipped"),
+    "no guard is skipped: the commit does not happen: {d}"
+  );
+}
+
+#[test]
+fn a_carrier_that_runs_no_guards_lets_commits_through_and_names_upgrade() {
+  let p = resolves();
+  let d = detail(
+    GateState::CarrierRunsNoGuards,
+    at(Some(CarrierShape::Monolithic), &p),
+  );
+  assert!(
+    d.contains("goes through"),
+    "this is the one ungated state: {d}"
+  );
+  assert!(
+    d.contains("intent claude upgrade --apply"),
+    "it replaces the carrier with the shim: {d}"
+  );
+  assert!(
+    !d.contains("intent bootstrap"),
+    "the pointer resolves, so nothing more is owed: {d}"
+  );
+}
+
+#[test]
+fn replacing_a_runnerless_carrier_with_no_pointer_also_owes_bootstrap() {
+  let p = PointerState::Absent;
+  let d = detail(
+    GateState::CarrierRunsNoGuards,
+    at(Some(CarrierShape::Monolithic), &p),
+  );
+  assert!(d.contains("intent claude upgrade --apply"), "{d}");
+  assert!(
+    d.contains("intent bootstrap"),
+    "the shim that verb installs refuses every commit until the pointer names an install: {d}"
+  );
+}
+
+#[test]
+fn a_shim_with_no_pointer_refuses_every_commit_until_bootstrap() {
+  let p = PointerState::Absent;
+  let d = detail(
+    GateState::NoResolvableInstall,
+    at(Some(CarrierShape::Shim), &p),
+  );
+  assert!(
+    d.contains("REFUSED"),
+    "the shim refuses rather than skipping: {d}"
+  );
+  assert!(d.contains("intent bootstrap"), "{d}");
+}
+
+#[test]
+fn a_shim_whose_pointer_names_no_install_says_where_it_points() {
+  let p = PointerState::Unusable {
+    root: "/gone/intent".into(),
+  };
+  let d = detail(
+    GateState::NoResolvableInstall,
+    at(Some(CarrierShape::Shim), &p),
+  );
+  assert!(
+    d.contains("/gone/intent"),
+    "the stale line is the fault, so it is quoted: {d}"
+  );
+  assert!(
+    d.contains("REFUSED") && d.contains("intent bootstrap"),
+    "{d}"
+  );
+}
+
+#[test]
+fn a_pointer_naming_an_install_without_its_gate_owes_a_reinstall() {
+  let p = resolves();
+  let mut a = at(Some(CarrierShape::Shim), &p);
+  a.gate_body = false;
+  let d = detail(GateState::NoResolvableInstall, a);
+  assert!(
+    d.contains("REFUSED"),
+    "the shim refuses an install with no gate body: {d}"
+  );
+  assert!(d.contains("/opt/intent") && d.contains("reinstall"), "{d}");
+}
+
+#[test]
+fn a_monolithic_carrier_on_a_binary_outside_any_install_carries_that_error() {
+  let p = resolves();
+  let mut a = at(Some(CarrierShape::Monolithic), &p);
+  a.own_install = Some("cannot locate the install -- reinstall Intent");
+  let d = detail(GateState::NoResolvableInstall, a);
+  assert!(
+    d.contains("cannot locate the install -- reinstall Intent"),
+    "the install error is carried, not dropped: {d}"
+  );
+  assert!(
+    d.contains("goes through"),
+    "its roster is empty, so nothing is enforced: {d}"
+  );
+}
+
+#[test]
+fn states_that_are_not_a_gate_not_running_have_no_detail() {
+  let p = resolves();
+  for state in [
+    GateState::NotInstalled,
+    GateState::Current,
+    GateState::BehindTheTemplate {
+      carrier: 1,
+      template: 2,
+    },
+  ] {
+    assert_eq!(
+      gate_not_running_detail(&state, at(None, &p)),
+      None,
+      "{state:?}"
+    );
+  }
+}
+
+#[test]
+fn the_class_remedy_no_longer_says_that_nothing_repairs_the_gate() {
+  let r = FindingClass::GateNotRunning.remedy();
+  assert!(
+    !r.contains("NO VERB"),
+    "two of the three states have a verb: {r}"
+  );
+  assert!(
+    !r.contains("going through ungated"),
+    "most states refuse the commit: {r}"
+  );
+}
+
+#[test]
+fn a_shim_with_no_pointer_read_by_a_binary_outside_any_install_carries_its_error() {
+  let p = PointerState::Absent;
+  let mut a = at(Some(CarrierShape::Shim), &p);
+  a.own_install = Some("cannot locate the install -- reinstall Intent");
+  let d = detail(GateState::NoResolvableInstall, a);
+  assert!(
+    d.contains("intent bootstrap"),
+    "bootstrap from a complete install repairs it: {d}"
+  );
+  assert!(
+    d.contains("cannot locate the install -- reinstall Intent"),
+    "and bootstrap from THIS binary fails, so its own error and remedy are carried: {d}"
+  );
+}

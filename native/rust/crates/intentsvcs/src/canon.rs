@@ -839,9 +839,11 @@ fn install_post_pull_carrier(
 /// Install the pre-commit shim as `<hooks>/pre-commit.intent` -- the carrier.
 ///
 /// **THE ORDER MATTERS AND ITS ABSENCE WAS THE DEFECT.** The chain block this
-/// module writes is `if [ -x "$_intent_chain" ]; then ... fi` with no `else`,
-/// so a project whose carrier was never installed passes every commit at rc=0
-/// while every report anyone reads says the gate is wired. Until this function
+/// module wrote was `if [ -x "$_intent_chain" ]; then ... fi` with no `else`,
+/// so a project whose carrier was never installed passed every commit at rc=0
+/// while every report anyone read said the gate was wired. [`chain_block`] now
+/// refuses such a commit ("GATE ABSENT"), and this function is the repair
+/// that refusal names (issue 0570 drove both). Until this function
 /// existed, [`apply`] wrote that block **and nothing in either tree wrote the
 /// carrier** -- so the one verb whose job is wiring the gate produced, by
 /// itself, a project running zero guards and saying nothing. Baize is the

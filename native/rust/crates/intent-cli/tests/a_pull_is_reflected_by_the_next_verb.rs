@@ -60,6 +60,11 @@ impl Team {
     team.git(&team.dir, &["clone", "-q", "origin.git", "bob"]);
     let bob = team.bob();
     team.intent_ok(&bob, &["claude", "upgrade", "--apply", "--skip-settings"]);
+    // The shim that verb installs refuses every commit until the install
+    // pointer names an install, and the post-merge hook's doctor line says so
+    // (issue 0570), which is a finding the arms below would read as the pull's
+    // own output. So this HOME records one, as a bootstrapped machine does.
+    team.intent_ok(&bob, &["bootstrap"]);
     let listed = team.intent(&bob, &["st", "list", "--status", "all"]);
     assert!(
       listed.said.contains("ST0001"),

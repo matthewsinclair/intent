@@ -1944,6 +1944,91 @@ pub fn gate_state(
   GateState::Current
 }
 
+/// What [`gate_not_running_detail`] reads beside the state, as one struct for
+/// the reason [`GateTemplates`] is one: the shown path and three facts about
+/// the machine are easy to transpose as bare arguments.
+#[derive(Debug, Clone, Copy)]
+pub struct GateAt<'a> {
+  /// The carrier's path as the finding shows it.
+  pub carrier: &'a str,
+  /// The carrier's shape, when there is a carrier.
+  pub shape: Option<CarrierShape>,
+  /// What the install pointer the shim reads answers.
+  pub pointer: &'a crate::install::PointerState,
+  /// The root the pointer names carries `lib/templates/hooks/pre-commit.sh`,
+  /// the gate body the shim execs.
+  pub gate_body: bool,
+  /// When this binary belongs to no install: that error with its remedy.
+  pub own_install: Option<&'a str>,
+}
+
+/// What a gate-not-running finding says, per state (issue 0570): what happens
+/// to a commit -- REFUSED, or through with no guard run -- and the verb that
+/// repairs it. `None` for a state that is not a gate-not-running.
+///
+/// **THE CONSEQUENCE IS THE HALF THAT WAS WRONG MOST OFTEN.** A missing carrier
+/// and every pointer fault REFUSE the commit, because the chain block and the
+/// shim both refuse rather than skip; only a carrier that runs no guards, and a
+/// monolithic carrier whose install cannot be found, let a commit through.
+pub fn gate_not_running_detail(state: &GateState, at: GateAt<'_>) -> Option<String> {
+  use crate::install::PointerState;
+  const UPGRADE: &str = "`intent claude upgrade --apply`";
+  let pointer_fault = match at.pointer {
+    PointerState::Resolves { .. } => None,
+    PointerState::Absent => Some("this machine has no install pointer recorded".to_string()),
+    PointerState::Unusable { root } => Some(format!(
+      "the install pointer names `{root}`, which is not an Intent install"
+    )),
+  };
+  Some(match state {
+    GateState::ChainCallsAMissingCarrier => format!(
+      "the pre-commit chain calls `{}` and no such file exists, so every commit is REFUSED (\"GATE ABSENT\") until it does -- {UPGRADE} writes it",
+      at.carrier
+    ),
+    GateState::CarrierRunsNoGuards => {
+      let then = pointer_fault.map_or_else(String::new, |fault| {
+        format!(
+          ", and because {fault}, the shim it installs refuses every commit until `intent bootstrap` records one"
+        )
+      });
+      format!(
+        "the hook carrier is present and names no guard runner at all, so every commit goes through with no guard run -- this is the Baize state, in which every surface reports health while nothing is enforced. {UPGRADE} replaces it with the shim{then}"
+      )
+    }
+    GateState::NoResolvableInstall => match (at.shape, at.pointer, pointer_fault) {
+      (Some(CarrierShape::Monolithic), _, _) => {
+        let why = at.own_install.map_or_else(
+          || "the install this binary belongs to has no `lib/templates/hooks/pre-commit.sh` -- reinstall Intent".to_string(),
+          |e| format!("this binary resolves no install: {e}"),
+        );
+        format!(
+          "the hook carrier reads its guard roster live out of the install `intent info` names, and finds none, so every commit goes through with no guard run; {why}, then {UPGRADE} replaces this carrier with the shim"
+        )
+      }
+      (_, _, Some(fault)) => {
+        let this = at.own_install.map_or_else(String::new, |e| {
+          format!("; this binary cannot be the one: {e}")
+        });
+        format!(
+          "the hook carrier is the shim, which runs the gate of the install its pointer names, and {fault}, so every commit is REFUSED until `intent bootstrap` is run from a complete Intent install{this}"
+        )
+      }
+      (_, PointerState::Resolves { root }, None) if !at.gate_body => format!(
+        "the install pointer names `{}`, which has no `lib/templates/hooks/pre-commit.sh`, so every commit is REFUSED by the shim -- reinstall Intent there, or run `intent bootstrap` from a complete install",
+        root.display()
+      ),
+      (_, PointerState::Resolves { root }, None) => format!(
+        "the install pointer names `{}`, whose gate runs, and which has no `lib/templates/hooks/pre-commit-shim.sh` to say whether this carrier is current -- reinstall Intent there",
+        root.display()
+      ),
+      (_, PointerState::Absent | PointerState::Unusable { .. }, None) => return None,
+    },
+    GateState::NotInstalled | GateState::BehindTheTemplate { .. } | GateState::Current => {
+      return None;
+    }
+  })
+}
+
 /// The root files canon writes, compared with what the running Intent's
 /// templates would write (issue `0496`).
 ///
@@ -2082,16 +2167,27 @@ fn upgrade_door(root: &std::path::Path, path: &std::path::Path) -> &'static str 
 /// measured against. A limit recorded only in prose is one that stops being
 /// true without anyone noticing.
 ///
-/// # No verb repairs any of it, and the findings say so
+/// # Each state names what happens to a commit and the verb that repairs it
 ///
-/// No v3 code path writes the carrier. `intent claude upgrade --apply` writes
-/// canon and region-edits the chain block; vc drove its dry run to confirm the
-/// carrier is not on its list. **So this check makes the rot VISIBLE, not
-/// fixable** -- which is a good finding, where saying nothing is how Baize got
-/// where it is. The one thing it must not do is offer a command that does not
-/// work: `bin/devbin hooks` already prints `dispatcher STALE` and then names a
-/// remedy that vc measured does not write the carrier, and running a remedy
-/// that changes nothing reads as repair.
+/// **THIS SECTION SAID "NO VERB REPAIRS ANY OF IT" UNTIL ISSUE 0570, AND BOTH
+/// HALVES OF THE FINDING IT PRODUCED HAD STOPPED BEING TRUE.** `canon::install_carrier`
+/// now writes the carrier, so `intent claude upgrade --apply` repairs a missing
+/// one and replaces one that runs no guards; and the chain block refuses a
+/// commit whose carrier is missing, so "commits are going through ungated" was
+/// true of one state in three. Driven on the pair at `4c687eaad`: the missing
+/// carrier refused the commit and the verb wrote it back. So the detail is per
+/// state, from [`gate_not_running_detail`], and the one thing it still must
+/// not do is offer a command that does not work -- running a remedy that
+/// changes nothing reads as repair.
+///
+/// **THE SHIM'S TEMPLATE IS READ FROM THE ROOT THE SHIM EXECS**, which is the
+/// root the install pointer names ([`crate::install::gate_resolution`]), not
+/// the root this binary belongs to. They differ whenever doctor runs from a
+/// binary other than the one the pointer names, and reading the binary's own
+/// root reported a gate that runs every guard as one that cannot run (0570's
+/// drive, a copy of the pair outside any install). A MONOLITHIC carrier reads
+/// its roster through `intent info`'s `INTENT_HOME`, which is this binary's
+/// root, so its template still comes from there.
 fn hook_findings(project: &Project) -> Vec<Finding> {
   let root = project.root();
   // `--git-path hooks` rather than `config core.hooksPath` or a literal
@@ -2129,39 +2225,67 @@ fn hook_findings(project: &Project) -> Vec<Finding> {
   // body is the second half of 0105: `install_carrier` writes the SHIM to this
   // path, so `template != carrier` was permanently true for a shim estate and it
   // reported `BehindTheTemplate` forever.
-  let home = crate::install::home().ok();
-  let read_template = |name: &str| {
-    home
-      .as_ref()
-      .and_then(|h| std::fs::read_to_string(h.join("lib/templates/hooks").join(name)).ok())
+  // **THE INSTALL ERROR IS CARRIED, NOT DROPPED**: a binary outside any install
+  // is the reason a monolithic carrier's roster is empty, and its remedy is the
+  // one the finding has to name.
+  let home = crate::install::home();
+  let own_install = home
+    .as_ref()
+    .err()
+    .map(|e| format!("{e} -- {}", crate::remedy::Remedy::remedy(e)));
+  let gate = crate::install::gate_resolution(home.as_deref().ok());
+  let gate_root = match &gate.state {
+    crate::install::PointerState::Resolves { root } => Some(root.as_path()),
+    crate::install::PointerState::Absent | crate::install::PointerState::Unusable { .. } => None,
   };
-  let gate_template = read_template("pre-commit.sh");
-  let shim_template = read_template("pre-commit-shim.sh");
+  // A template that is absent is a state `gate_state` judges; one that is
+  // present and unreadable is a fault, and it is said rather than read as
+  // absent.
+  let mut unreadable = Vec::new();
+  let mut read_template = |root: Option<&std::path::Path>, name: &str| {
+    let path = root?.join("lib/templates/hooks").join(name);
+    match std::fs::read_to_string(&path) {
+      Ok(text) => Some(text),
+      Err(e) if e.kind() == std::io::ErrorKind::NotFound => None,
+      Err(e) => {
+        unreadable.push(format!("cannot read `{}`: {e}", path.display()));
+        None
+      }
+    }
+  };
+  let gate_template = read_template(home.as_deref().ok(), "pre-commit.sh");
+  let shim_template = read_template(gate_root, "pre-commit-shim.sh");
+  let gate_body = gate.gate().is_some_and(|p| p.is_file());
   let templates = GateTemplates {
     gate: gate_template.as_deref(),
     shim: shim_template.as_deref(),
   };
 
-  let mut findings = match gate_state(carrier.as_deref(), chain.as_deref(), templates) {
+  let carrier_shown = shown(&carrier_path);
+  let state = gate_state(carrier.as_deref(), chain.as_deref(), templates);
+  let at = GateAt {
+    carrier: &carrier_shown,
+    shape: carrier.as_deref().map(carrier_shape),
+    pointer: &gate.state,
+    gate_body,
+    own_install: own_install.as_deref(),
+  };
+  let mut findings = match state {
     GateState::NotInstalled | GateState::Current => Vec::new(),
-    GateState::ChainCallsAMissingCarrier => vec![Finding::new(
-      shown(&chain_path),
-      FindingClass::GateNotRunning,
-      format!(
-        "the pre-commit chain calls `{}` and no such file exists, so every guard it would have run is silently skipped on every commit",
-        shown(&carrier_path)
-      ),
-    )],
-    GateState::CarrierRunsNoGuards => vec![Finding::new(
-      shown(&carrier_path),
-      FindingClass::GateNotRunning,
-      "the hook carrier is present and names no guard runner at all, so it executes no guards -- this is the Baize state, in which every surface reports health while nothing is enforced".to_string(),
-    )],
-    GateState::NoResolvableInstall => vec![Finding::new(
-      shown(&carrier_path),
-      FindingClass::GateNotRunning,
-      "the hook carrier reads its guard roster live out of the Intent install and this machine cannot resolve one, so the carrier runs and finds no guards to run".to_string(),
-    )],
+    GateState::ChainCallsAMissingCarrier
+    | GateState::CarrierRunsNoGuards
+    | GateState::NoResolvableInstall => {
+      let file = if state == GateState::ChainCallsAMissingCarrier {
+        shown(&chain_path)
+      } else {
+        carrier_shown.clone()
+      };
+      let mut detail = gate_not_running_detail(&state, at).unwrap_or_default();
+      for fault in &unreadable {
+        detail.push_str(&format!("; {fault}"));
+      }
+      vec![Finding::new(file, FindingClass::GateNotRunning, detail)]
+    }
     GateState::BehindTheTemplate { carrier, template } => vec![Finding::new(
       shown(&carrier_path),
       FindingClass::Advisory,

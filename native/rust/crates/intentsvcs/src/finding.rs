@@ -639,19 +639,18 @@ impl FindingClass {
       // Beside `BackupStale`, and for the same reason: both are a protection the
       // operator believes they have and does not.
       //
-      // **THE REMEDY WORDING IS dc's, MATCHED RATHER THAN RE-AUTHORED**
-      // (`bin/.devbin/cmd/hooks`, ruled 2026-08-27, authority vc). One fact
-      // about the estate reported by two tools in two phrasings is the same
-      // drift this codebase calls Highlander everywhere else, and the fact here
-      // is unusually easy to phrase almost-right: `intent claude upgrade
-      // --apply` region-edits the chain and never writes the carrier, so **a
-      // detector that names it hands the operator a command which does not
-      // repair what it just reported** -- they run it, see no error, and the
-      // true finding becomes a false reassurance.
+      // **THE REMEDY IS PER STATE, SO IT LIVES IN THE DETAIL** (issue 0570).
+      // This string said commits go through ungated and that no verb repairs
+      // the gate, on the premise that `intent claude upgrade --apply` never
+      // writes the carrier. `canon::install_carrier` writes it now, and the
+      // chain refuses a commit whose carrier is missing, so both halves were
+      // false for two states of three. One class string cannot name a
+      // per-state verb -- the 0106 lesson below -- so
+      // `doctor::gate_not_running_detail` does, and this says where to look.
       Self::GateNotRunning => (
         8,
         "gate-not-running",
-        "the pre-commit gate is installed and cannot execute, so commits are going through ungated and an unwired guard does not fail -- it reports nothing, which is indistinguishable from passing. NO VERB CURRENTLY REPAIRS THIS, and naming one would be worse than naming none: installing the carrier is an OPEN ITEM -- report it, do not improvise a fix across the fleet. The detail above names which of the three ways it is broken",
+        "the pre-commit gate is installed and does not run its guards. The detail above says what that does to a commit -- REFUSED, or through with no guard run -- and names the verb that repairs this state",
       ),
       // Outside the verdict altogether: a state, not an obligation. It sorts last
       // so the totals line ends with what nobody has to act on.
