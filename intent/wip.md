@@ -31,7 +31,7 @@ The protocol is the 2026-09-11 audit's (`intent/history/20260911-doc-audit.md`),
 12. **Commit your own lane's paths by literal path** in one call (`git add <paths> && git commit --only <paths>`), with chain START and END on the live channel. A fix in another lane's file goes to its owner.
 13. **Account for coverage**: send vc your lane's file inventory before you edit, and at the end report every file with its disposition (clean, edited, deleted or exempt). A file missing from the report is a silent skip.
 14. **NO PUSH, NO RELEASE.**
-15. **A docs commit can red the shell half** (ic's judging run, 2026-09-24): the gate runs no bats, and bats guards scan skills, rules, templates and checked docs. Run the bats files that scan what you touched before committing, and the last heavy run before the `build all` sits on the final tree, every docs commit included.
+15. **A docs commit can red the shell half** (ic's judging run, 2026-09-24): the gate runs no bats, and bats guards scan skills, rules, templates and checked docs. Run the bats files and the Rust arms that scan what you touched before committing (`no_pm_state_in_output` and `exit_code_consumers` read the installed payload at run time), and the last heavy run before the `build all` sits on the final tree, every docs commit included.
 
 **The lanes:**
 
