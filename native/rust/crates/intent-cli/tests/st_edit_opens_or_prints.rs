@@ -10,8 +10,9 @@
 //! # The regression this file was asked to carry, which it now carries
 //!
 //! The change was specified as owing one test: `$EDITOR "$(intent st edit
-//! ST0001 info)"` must still return the path, because it is in
-//! `docs/getting-started.md`.
+//! ST0001 info)"` must still return the path, because it was v2's documented
+//! form (`docs/getting-started.md` carried it until 46f254484) and a script
+//! may still spell it.
 //!
 //! **THIS SECTION SAID THAT INVOCATION DOES NOT WORK AND HAS NOT SINCE
 //! `c4709d3f`. THAT WAS TRUE WHEN WRITTEN AND IS NOW FALSE**, and the thing
@@ -25,8 +26,8 @@
 //! route around `info`.
 //!
 //! **So the owed regression is written, as `the_documented_command_substitution
-//! _still_returns_the_covers_path`.** It drives the getting-started form
-//! directly rather than a proxy for it.
+//! _still_returns_the_covers_path`.** It drives that form directly rather
+//! than a proxy for it.
 //!
 //! # `design` is still the right vehicle for the arms below, for a NEW reason
 //!
@@ -183,18 +184,18 @@ fn a_captured_stdout_still_receives_the_path_and_opens_nothing() {
   );
 }
 
-/// **THE REGRESSION THE RULING OWED, DRIVEN AS THE DOCUMENTATION SPELLS IT.**
+/// **THE REGRESSION THE RULING OWED, DRIVEN AS v2's DOCUMENTATION SPELLED IT.**
 ///
-/// `docs/getting-started.md` carries `$EDITOR "$(intent st edit ST0001 info)"`,
-/// and command substitution makes stdout a PIPE -- which is the whole reason
+/// `$EDITOR "$(intent st edit ST0001 info)"` was the documented form until
+/// 46f254484, and command substitution makes stdout a PIPE -- which is the whole reason
 /// the TTY default is safe for an existing output contract. This drives that
 /// exact shape: captured stdout, no `--path`, and the cover's path comes back.
 ///
 /// **IT IS ABOUT `info` SPECIFICALLY AND NOT ABOUT THE PIPE BRANCH IN
 /// GENERAL.** The arms above already prove a piped stdout receives a path;
 /// what this adds is that the COVER is reachable, which is the half that was
-/// refused before hv's 2026-08-29 ruling and the half the documentation
-/// depends on. A green here on `design` would prove the branch and miss the
+/// refused before hv's 2026-08-29 ruling and the half a script spelling that
+/// form depends on. A green here on `design` would prove the branch and miss the
 /// regression.
 #[test]
 fn the_documented_command_substitution_still_returns_the_covers_path() {
@@ -213,7 +214,7 @@ fn the_documented_command_substitution_still_returns_the_covers_path() {
       .join("intent/st/ST0001/info.md")
       .display()
       .to_string(),
-    "getting-started substitutes this into $EDITOR, so it must be the cover's path and \n            nothing else"
+    "a script substitutes this into $EDITOR, so it must be the cover's path and \n            nothing else"
   );
 }
 

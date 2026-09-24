@@ -420,11 +420,27 @@ pub fn freshness_note(answer: &intentsvcs::search::SearchAnswer) -> Option<Strin
   }
   let stale = answer.index.stale.len();
   let skipped = answer.index.gaps().count();
-  Some(match (stale, skipped) {
-    (0, n) => format!("{n} path(s) in scope were not indexed -- this answer is partial"),
-    (n, 0) => format!("{n} file(s) changed since they were indexed -- their hits carry no line"),
-    (n, m) => format!("{n} file(s) moved on and {m} were not indexed -- this answer is partial"),
-  })
+  let mut notes: Vec<String> = match (stale, skipped) {
+    (0, 0) => Vec::new(),
+    (0, n) => vec![format!(
+      "{n} path(s) in scope were not indexed -- this answer is partial"
+    )],
+    (n, 0) => vec![format!(
+      "{n} file(s) changed since they were indexed -- their hits carry no line"
+    )],
+    (n, m) => vec![format!(
+      "{n} file(s) moved on and {m} were not indexed -- this answer is partial"
+    )],
+  };
+  // Issue 0548: the terminal's words for a language this answer could not see.
+  notes.extend(
+    answer
+      .index
+      .unindexed
+      .iter()
+      .map(intentsvcs::search::Unindexed::words),
+  );
+  Some(notes.join("; "))
 }
 
 /// Where Enter on a hit lands, when it lands inside the model (AC-21.2).

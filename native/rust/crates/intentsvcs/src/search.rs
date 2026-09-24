@@ -431,6 +431,10 @@ pub struct IndexFreshness {
   pub skipped: Vec<Skipped>,
   /// Paths whose indexed bytes no longer match the disk.
   pub stale: Vec<String>,
+  /// Each language a structural answer could not see, and why (issue 0548).
+  /// Empty for a question the lexical tier answered, which read every file's
+  /// text whether or not a grammar could parse it.
+  pub unindexed: Vec<Unindexed>,
   /// Each language whose level 3 is not current, keyed as `index_file.lang`
   /// spells it (ST0076 WP-07, AC-07.1), and empty when every language that
   /// resolves is current.
@@ -444,15 +448,15 @@ pub struct IndexFreshness {
 }
 
 /// **`complete` IS COMPUTED AT SERIALISATION AND IS NOT A FIELD.** It is
-/// [`IndexFreshness::complete`] over `skipped` and `stale`, and holding it as a field beside
-/// the two lists that determine it would be a second home for one fact whose
+/// [`IndexFreshness::complete`] over `skipped`, `stale` and `unindexed`, and holding it as a
+/// field beside the lists that determine it would be a second home for one fact whose
 /// failure mode is the flag saying complete while the lists say otherwise.
 /// This is the whole reason `IndexFreshness` writes its own `Serialize` rather
 /// than deriving one.
 impl Serialize for IndexFreshness {
   fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
     use serde::ser::SerializeStruct;
-    let fields = 6 + usize::from(self.reconciled_at.is_some());
+    let fields = 7 + usize::from(self.reconciled_at.is_some());
     let mut out = serializer.serialize_struct("IndexFreshness", fields)?;
     out.serialize_field("complete", &self.complete())?;
     out.serialize_field("reconciled", &self.reconciled)?;
@@ -462,6 +466,7 @@ impl Serialize for IndexFreshness {
     out.serialize_field("corpora", &self.corpora)?;
     out.serialize_field("skipped", &self.skipped)?;
     out.serialize_field("stale", &self.stale)?;
+    out.serialize_field("unindexed", &self.unindexed)?;
     out.serialize_field("resolution", &self.resolution)?;
     out.end()
   }
@@ -486,6 +491,10 @@ impl<'de> Deserialize<'de> for IndexFreshness {
       corpora: BTreeMap<String, CorpusState>,
       skipped: Vec<Skipped>,
       stale: Vec<String>,
+      // A daemon built before issue 0548 sends no list, and its answer reads
+      // as it did then.
+      #[serde(default)]
+      unindexed: Vec<Unindexed>,
       #[serde(default)]
       resolution: BTreeMap<String, ResolutionState>,
     }
@@ -496,6 +505,7 @@ impl<'de> Deserialize<'de> for IndexFreshness {
       corpora: carried.corpora,
       skipped: carried.skipped,
       stale: carried.stale,
+      unindexed: carried.unindexed,
       resolution: carried.resolution,
     })
   }
@@ -511,12 +521,14 @@ impl IndexFreshness {
       corpora,
       skipped: Vec::new(),
       stale: Vec::new(),
+      unindexed: Vec::new(),
       resolution: BTreeMap::new(),
     }
   }
 
   /// Whether this index answered the whole question it was asked: nothing is
-  /// stale and no skip left a gap.
+  /// stale, no skip left a gap, and no language the question needed symbols
+  /// from was one the index could not see (issue 0548).
   ///
   /// **A SKIP BY POLICY IS NOT INCOMPLETENESS** (issue 0430). Every whole-tree
   /// query on this repository answered `complete: false` for its binaries and
@@ -524,7 +536,7 @@ impl IndexFreshness {
   /// sends a reader of `complete: false` to grep -- so the flag sent every
   /// query to grep while meaning nothing.
   pub fn complete(&self) -> bool {
-    self.stale.is_empty() && self.gaps().next().is_none()
+    self.stale.is_empty() && self.gaps().next().is_none() && self.unindexed.is_empty()
   }
 
   /// The skips that make this answer partial.
@@ -571,6 +583,13 @@ impl IndexFreshness {
     });
   }
 
+  /// Record a language a structural answer could not see (issue 0548).
+  pub fn mark_unindexed(&mut self, unindexed: Unindexed) {
+    if !self.unindexed.contains(&unindexed) {
+      self.unindexed.push(unindexed);
+    }
+  }
+
   /// **AN INDEX THAT HOLDS NOTHING IS NOT A COMPLETE INDEX.** Without this an
   /// unpopulated store answers every query the way a genuine miss does --
   /// exit 0, zero hits -- which is the confident wrong answer AC-19.3 forbids,
@@ -606,6 +625,126 @@ impl Skipped {
   /// nobody here decided is never reported as whole.
   pub fn leaves_a_gap(&self) -> bool {
     SkipReason::parse(&self.reason).is_none_or(SkipReason::leaves_a_gap)
+  }
+}
+
+/// A language a structural answer could not see, and why (issue 0548).
+///
+/// **A FILE NO GRAMMAR PARSES IS A GAP IN A STRUCTURAL ANSWER, NOT AN EMPTY
+/// FILE.** A def, outline or context question finds nothing in it, and until
+/// this the answer said `complete` over that nothing -- so a reader told to fall
+/// back to grep only when the index is not complete never did, and read "no
+/// definition" as the answer, which is also how a Highlander check concludes
+/// that a name is free.
+///
+/// `lang` is `None` for an outline of a file the index gives no language: it
+/// knows a language only by a file's extension
+/// ([`crate::index::corpus::lang_of`]), so a script without one is unparsed
+/// whatever it is written in.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Unindexed {
+  pub lang: Option<String>,
+  /// [`crate::index::symbols::Readiness`]'s spelling for a build with no
+  /// working grammar, [`Unindexed::NOT_DECLARED`], or
+  /// [`Unindexed::NO_LANGUAGE`].
+  pub reason: String,
+}
+
+impl Unindexed {
+  /// A file whose extension names no language the index parses.
+  pub const NO_LANGUAGE: &'static str = "no-language";
+  /// A language this build has a grammar for and the project does not declare:
+  /// the reconcile extracts symbols for declared languages only.
+  pub const NOT_DECLARED: &'static str = "not-declared";
+
+  /// What a reader is owed, in the one wording every face prints.
+  pub fn words(&self) -> String {
+    match &self.lang {
+      Some(lang) => format!(
+        "the index names no symbols in {lang} ({}), nor in any file without an extension, so a definition there is not in this answer -- search those files as text",
+        self.reason
+      ),
+      None => "the index names no symbols in this file: it knows a language only by a file's extension, and this one names none it parses -- read the file".to_string(),
+    }
+  }
+}
+
+/// Why the index names no symbols in `lang`'s files, or `None` when it does.
+fn blind_to(lang: &str, declared: &[String]) -> Option<String> {
+  use crate::index::symbols::{Readiness, readiness};
+  match readiness(lang) {
+    Readiness::Ready if declared.iter().any(|d| d == lang) => None,
+    Readiness::Ready => Some(Unindexed::NOT_DECLARED.to_string()),
+    other => Some(other.as_str().to_string()),
+  }
+}
+
+/// The languages a structural answer could not see (issue 0548, on the rule
+/// vc ruled on 2026-09-24 and recorded in the issue).
+///
+/// A language counts when the index names no symbols in it and EITHER the
+/// project declares it OR the index holds a file of it within the answer's
+/// path. **THE DECLARED HALF IS WHAT REACHES A SCRIPT WITHOUT AN EXTENSION**:
+/// the index gives such a file no language, so no file of the language is ever
+/// held for it, and a project that writes its shell that way -- Devbin's `lib/`
+/// and `cmd/`, this repository's `bin/` and `.githooks/` -- would otherwise
+/// answer complete over every one. The declared half reads only the names the
+/// index gives files, so `author` and `content`, disciplines rather than source
+/// languages, never count. A `--lang` filter that leaves a language out drops
+/// it from both halves.
+pub fn unindexed_for<'a>(
+  declared: &[String],
+  held: impl IntoIterator<Item = (&'a str, &'a str)>,
+  ask: &SearchQuery,
+) -> Vec<Unindexed> {
+  let mut langs: BTreeSet<String> = declared
+    .iter()
+    .filter(|lang| crate::critic::HEADLESS_LANGUAGES.contains(&lang.as_str()))
+    .cloned()
+    .collect();
+  langs.extend(
+    held
+      .into_iter()
+      .filter(|(path, _)| {
+        ask
+          .path
+          .as_deref()
+          .is_none_or(|glob| glob_matches(glob, path))
+      })
+      .map(|(_, lang)| lang.to_string()),
+  );
+  langs
+    .into_iter()
+    .filter(|lang| ask.langs.is_empty() || ask.langs.contains(lang))
+    .filter_map(|lang| {
+      blind_to(&lang, declared).map(|reason| Unindexed {
+        lang: Some(lang),
+        reason,
+      })
+    })
+    .collect()
+}
+
+/// Why an outline of `path` names no symbols, or `None` when the index parses
+/// it (issue 0548, vc's outline rule): the file has no language the index
+/// parses, or one it names no symbols in. **AN EMPTY OUTLINE OF AN UNPARSED
+/// FILE IS NOT AN ANSWER.** A `--lang` filter that leaves the file out asks
+/// nothing of it, and a file with no language is left out by any.
+pub fn unindexed_outline(path: &str, declared: &[String], ask: &SearchQuery) -> Option<Unindexed> {
+  let lang = crate::index::corpus::lang_of(std::path::Path::new(path));
+  if !ask.langs.is_empty() && !lang.is_some_and(|lang| ask.langs.iter().any(|asked| asked == lang))
+  {
+    return None;
+  }
+  match lang {
+    None => Some(Unindexed {
+      lang: None,
+      reason: Unindexed::NO_LANGUAGE.to_string(),
+    }),
+    Some(lang) => blind_to(lang, declared).map(|reason| Unindexed {
+      lang: Some(lang.to_string()),
+      reason,
+    }),
   }
 }
 
@@ -1025,6 +1164,24 @@ impl SearchQuery {
     !self.subkinds.is_empty() || self.container.is_some() || self.target.is_some()
   }
 
+  /// Whether only the structural tier can answer what these filters keep: the
+  /// lexical tier was not asked, the filters list symbols, or every kind asked
+  /// is a symbol's (issue 0548). **A TEXT QUESTION WHOSE LEXICAL TIER RAN HAS
+  /// READ EVERY FILE'S TEXT**, a script no grammar parses included, so a
+  /// language the structural tier cannot see leaves it whole. Marking it
+  /// otherwise would send every text query in a project that declares shell to
+  /// grep, which is 0430's meaningless flag again.
+  pub fn needs_symbols(&self) -> bool {
+    Tier::Structural.asked(&self.tiers)
+      && (!Tier::Lexical.asked(&self.tiers)
+        || self.lists_symbols()
+        || (!self.kinds.is_empty()
+          && self
+            .kinds
+            .iter()
+            .all(|kind| matches!(kind, HitKind::Def | HitKind::Ref))))
+  }
+
   pub fn keeps(&self, hit: &Hit) -> bool {
     if !self.kinds.is_empty() && !self.kinds.contains(&hit.kind) {
       return false;
@@ -1354,6 +1511,85 @@ mod tests {
     freshness.mark_stale("intent/wip.md");
     assert!(!freshness.complete(), "a stale path means incomplete");
     assert_eq!(freshness.stale, vec!["intent/wip.md".to_string()]);
+  }
+
+  /// Issue 0548: a language a structural answer could not see makes it
+  /// incomplete, the list crosses the wire, and an envelope from a daemon built
+  /// before the list existed still reads.
+  #[test]
+  fn a_language_the_answer_could_not_see_makes_it_incomplete() {
+    let mut freshness = IndexFreshness::new(BTreeMap::new());
+    freshness.mark_unindexed(Unindexed {
+      lang: Some("shell".to_string()),
+      reason: "no-grammar".to_string(),
+    });
+    assert!(!freshness.complete());
+    let wire = serde_json::to_string(&freshness).expect("serialise");
+    let back: IndexFreshness = serde_json::from_str(&wire).expect("deserialise");
+    assert_eq!(back.unindexed, freshness.unindexed);
+    assert!(!back.complete());
+    let older = r#"{"complete":true,"reconciled":false,"corpora":{},"skipped":[],"stale":[],"resolution":{}}"#;
+    let read: IndexFreshness = serde_json::from_str(older).expect("an envelope from before 0548");
+    assert!(read.unindexed.is_empty() && read.complete());
+  }
+
+  /// Issue 0548's rule as vc ruled it: a language counts when it is declared or
+  /// held in the question's path, never when it is a discipline, and never
+  /// when `--lang` leaves it out; an outline is judged by its own file.
+  #[cfg(feature = "lang-rust")]
+  #[test]
+  fn the_languages_a_structural_answer_cannot_see_follow_the_ruling() {
+    let declared = ["rust", "shell", "author", "content"]
+      .map(String::from)
+      .to_vec();
+    let every = SearchQuery::default();
+    let langs =
+      |found: Vec<Unindexed>| -> Vec<String> { found.into_iter().filter_map(|u| u.lang).collect() };
+    assert_eq!(
+      langs(unindexed_for(&declared, [], &every)),
+      ["shell"],
+      "declared shell counts with no file of it held, because its scripts may \
+       carry no extension; author and content never count"
+    );
+    let held = [("tools/gen.lua", "lua"), ("src/lib.rs", "rust")];
+    assert_eq!(
+      langs(unindexed_for(&declared, held, &every)),
+      ["lua", "shell"],
+      "a lua file the project does not declare is parsed by nothing"
+    );
+    let under_src = SearchQuery {
+      path: Some("src/**".to_string()),
+      ..SearchQuery::default()
+    };
+    assert_eq!(
+      langs(unindexed_for(&declared, held, &under_src)),
+      ["shell"],
+      "a held file outside the path is out of the question; the declared half \
+       has no path to judge"
+    );
+    let rust_only = SearchQuery {
+      langs: vec!["rust".to_string()],
+      ..SearchQuery::default()
+    };
+    assert!(
+      unindexed_for(&declared, held, &rust_only).is_empty(),
+      "`--lang rust` leaves both halves out"
+    );
+
+    assert_eq!(
+      unindexed_outline("lib/install", &declared, &every).map(|u| u.reason),
+      Some(Unindexed::NO_LANGUAGE.to_string())
+    );
+    assert_eq!(
+      unindexed_outline("lib/install", &declared, &rust_only),
+      None,
+      "a file with no language is left out by any `--lang`"
+    );
+    assert_eq!(
+      unindexed_outline("hooks/pre.sh", &declared, &every).and_then(|u| u.lang),
+      Some("shell".to_string())
+    );
+    assert_eq!(unindexed_outline("src/lib.rs", &declared, &every), None);
   }
 
   /// Issue 0430: a skip by policy is listed and leaves the answer whole; a

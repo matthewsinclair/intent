@@ -2208,9 +2208,10 @@ fn open_url(url: &str) -> Result<(), Failure> {
 /// caller can write down.
 ///
 /// **THE DEFAULT BRANCH IS WHAT PRESERVES v2's CONTRACT, NOT A COMPROMISE OF
-/// IT.** `$EDITOR "$(intent st edit ST0001 info)"` is in
-/// `docs/getting-started.md`, and command substitution makes stdout a PIPE --
-/// so the documented invocation takes the print branch and is unaffected. The
+/// IT.** `$EDITOR "$(intent st edit ST0001 info)"` was v2's documented form
+/// (`docs/getting-started.md` carried it until 46f254484), and command
+/// substitution makes stdout a PIPE -- so that invocation takes the print
+/// branch and is unaffected. The
 /// premise that a default launch must break that contract is true of
 /// launch-by-default and false of this, which is the whole reason this shape
 /// exists rather than a `--editor`-only one.
@@ -4006,6 +4007,10 @@ fn report_search(m: &ArgMatches, answer: &intentsvcs::search::SearchAnswer) -> R
         "note: {} was not indexed -- {}",
         skipped.path, skipped.reason
       );
+    }
+    // Issue 0548: a language a structural answer could not see.
+    for unindexed in &answer.index.unindexed {
+      eprintln!("note: {}", unindexed.words());
     }
   }
   // Issue 0484: an answer that did not reconcile first says so, because its

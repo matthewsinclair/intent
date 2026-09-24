@@ -4982,6 +4982,11 @@ impl Facade {
       Vec::new()
     };
     let structural = self.structural_hits(symbols, ask, &level_three, &mut index)?;
+    // Issue 0548: a question only the structural tier answers names the
+    // languages it could not see.
+    if ask.needs_symbols() {
+      self.mark_unindexed(&mut index, ask)?;
+    }
     // Issue 0356: a semantic tier asked for BY NAME that cannot answer says why,
     // rather than leaving an absent group to be read as "found nothing".
     let (semantic, unanswered) = if Tier::Semantic.asked(&ask.tiers) {
@@ -5254,6 +5259,24 @@ impl Facade {
     self.store.index_lang(path).ok().flatten()
   }
 
+  /// Issue 0548: mark the languages a structural answer could not see. The
+  /// rule is [`crate::search::unindexed_for`]'s; this reads the declaration
+  /// and the rows it judges.
+  fn mark_unindexed(
+    &self,
+    index: &mut crate::search::IndexFreshness,
+    ask: &crate::search::SearchQuery,
+  ) -> Result<(), FacadeError> {
+    let rows = self.store.index_files().map_err(FacadeError::Store)?;
+    let held = rows
+      .iter()
+      .filter_map(|row| row.lang.as_deref().map(|lang| (row.path.as_str(), lang)));
+    for unindexed in crate::search::unindexed_for(&self.project.config().languages, held, ask) {
+      index.mark_unindexed(unindexed);
+    }
+    Ok(())
+  }
+
   /// Every corpus the index holds, with how its freshness is decided and how
   /// many files it covers.
   ///
@@ -5433,7 +5456,7 @@ impl Facade {
       .into_iter()
       .filter(|s| refs || s.kind == crate::index::symbols::SymbolKind::Def)
       .collect();
-    self.structural_answer(path, symbols, &narrowing)
+    self.structural_answer(path, symbols, &narrowing, Some(path))
   }
 
   /// `intent search --context <name>` -- a definition and its name-matched
@@ -5457,7 +5480,7 @@ impl Facade {
     ask: &crate::search::SearchQuery,
   ) -> Result<crate::search::SearchAnswer, FacadeError> {
     let symbols = self.store.symbols_named(name).map_err(FacadeError::Store)?;
-    self.structural_answer(name, symbols, ask)
+    self.structural_answer(name, symbols, ask, None)
   }
 
   /// `intent search --subkind <subkind>` or `--in <container>` with nothing
@@ -5496,7 +5519,7 @@ impl Facade {
     if let Some(container) = &ask.container {
       asked.push(format!("in {container}"));
     }
-    self.structural_answer(&asked.join(", "), symbols, ask)
+    self.structural_answer(&asked.join(", "), symbols, ask, None)
   }
 
   /// The envelope for a question only the structural tier answers.
@@ -5505,11 +5528,16 @@ impl Facade {
   /// WP-04). A tier filter that leaves the structural tier out is refused
   /// rather than ignored: answering would hand back a tier nobody asked for,
   /// and an empty answer would claim a search ran that this door cannot run.
+  ///
+  /// `outlined` is the file an outline asks about. Issue 0548: an outline is
+  /// judged by that file's own language, and every other door by the languages
+  /// its whole question could reach.
   fn structural_answer(
     &self,
     query: &str,
     symbols: Vec<crate::index::symbols::Symbol>,
     ask: &crate::search::SearchQuery,
+    outlined: Option<&str>,
   ) -> Result<crate::search::SearchAnswer, FacadeError> {
     use crate::search::{IndexFreshness, SearchAnswer, Tier, TierGroup};
     if !Tier::Structural.asked(&ask.tiers) {
@@ -5524,6 +5552,15 @@ impl Facade {
     index.reconciled_at = self.store.reconciled_at().map_err(FacadeError::Store)?;
     index.resolution = level_three.states.clone();
     let hits = self.structural_hits(symbols, ask, &level_three, &mut index)?;
+    match outlined {
+      Some(path) => {
+        let declared = &self.project.config().languages;
+        if let Some(unindexed) = crate::search::unindexed_outline(path, declared, ask) {
+          index.mark_unindexed(unindexed);
+        }
+      }
+      None => self.mark_unindexed(&mut index, ask)?,
+    }
     let mut groups = vec![TierGroup {
       tier: Tier::Structural,
       hits,

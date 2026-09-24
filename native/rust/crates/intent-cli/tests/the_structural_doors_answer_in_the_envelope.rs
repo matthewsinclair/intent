@@ -167,3 +167,125 @@ fn the_tool_and_json_answer_the_same_outline() {
   let from_mcp: serde_json::Value = serde_json::from_str(text).expect("JSON");
   assert_eq!(from_cli, from_mcp, "the two faces answer differently");
 }
+
+/// Issue 0548's script: bash with no extension, which is how Devbin ships every
+/// command under `lib/` and `cmd/`, so the index gives it no language at all.
+const SCRIPT: &str =
+  "#!/usr/bin/env bash\nset -euo pipefail\n\nvendored_paths() {\n  echo lib\n}\n";
+
+/// A project that declares shell, whose grammar this build does not carry, and
+/// rust, whose grammar it does.
+fn unparsed_estate() -> tempfile::TempDir {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let root = dir.path();
+  let (_, err, code) = run(&["init", "unparsed-script-fixture"], root);
+  assert_eq!(code, 0, "fixture init failed: {err}");
+  for lang in ["rust", "shell"] {
+    let (_, err, code) = run(&["lang", "init", lang], root);
+    assert_eq!(code, 0, "fixture lang init {lang} failed: {err}");
+  }
+  std::fs::create_dir_all(root.join("lib")).expect("mkdir lib");
+  std::fs::write(root.join("lib/tool"), SCRIPT).expect("write the fixture script");
+  std::fs::create_dir_all(root.join("src")).expect("mkdir src");
+  std::fs::write(root.join("src/lib.rs"), SOURCE).expect("write the fixture source");
+  let (_, err, code) = run(&["index", "rebuild"], root);
+  assert_eq!(code, 0, "fixture index failed: {err}");
+  dir
+}
+
+fn envelope(args: &[&str], root: &Path) -> serde_json::Value {
+  let (out, err, code) = run(args, root);
+  assert_eq!(code, 0, "{args:?} failed: {err}");
+  serde_json::from_str(&out).expect("the envelope is JSON")
+}
+
+/// Issue 0548: **A STRUCTURAL ANSWER THAT COULD NOT SEE A DECLARED LANGUAGE
+/// SAYS SO.** The script defines `vendored_paths` and no grammar names a symbol
+/// in it, so a def query over its directory answering `complete` sent the
+/// reader's grep fallback nowhere. The same words as a TEXT question read the
+/// script's text, so that answer is whole.
+#[test]
+fn a_def_query_over_an_unparsed_script_is_incomplete_and_names_the_language() {
+  let dir = unparsed_estate();
+  let root = dir.path();
+  let def = [
+    "search",
+    "vendored_paths",
+    "--kind",
+    "def",
+    "--path",
+    "lib/**",
+  ];
+
+  let answer = envelope(&[&def[..], &["--json"]].concat(), root);
+  assert_eq!(answer["index"]["complete"], false, "{answer}");
+  assert!(
+    answer["index"]["unindexed"]
+      .as_array()
+      .is_some_and(|langs| langs.iter().any(|u| u["lang"] == "shell")),
+    "the envelope names the language it could not see: {answer}"
+  );
+
+  let (_, err, code) = run(&def, root);
+  assert_eq!(code, 0, "{err}");
+  assert!(
+    err.contains("shell"),
+    "the terminal names it too, on stderr: {err:?}"
+  );
+
+  let answer = envelope(&["search", "vendored_paths", "--json"], root);
+  assert_eq!(
+    answer["index"]["complete"], true,
+    "a text question read the script: {answer}"
+  );
+  assert!(
+    answer["groups"][0]["hits"]
+      .as_array()
+      .is_some_and(|hits| hits.iter().any(|h| h["path"] == "lib/tool")),
+    "and found it: {answer}"
+  );
+}
+
+/// Issue 0548: **AN EMPTY OUTLINE OF A FILE THE INDEX CANNOT PARSE IS NOT AN
+/// ANSWER**, and the envelope says which of the two reasons it is.
+#[test]
+fn an_outline_of_a_file_the_index_cannot_parse_is_incomplete_and_says_why() {
+  let dir = unparsed_estate();
+  let answer = envelope(&["search", "--outline", "lib/tool", "--json"], dir.path());
+  assert_eq!(answer["index"]["complete"], false, "{answer}");
+  assert_eq!(
+    answer["index"]["unindexed"][0]["reason"], "no-language",
+    "a file with no extension has no language the index parses: {answer}"
+  );
+}
+
+/// Issue 0548's boundary: **A QUESTION THAT CANNOT REACH THE UNPARSED LANGUAGE
+/// IS STILL WHOLE**, or `complete` would mean nothing in every project that
+/// declares shell.
+#[cfg(feature = "lang-rust")]
+#[test]
+fn a_structural_answer_that_leaves_the_unparsed_language_out_stays_complete() {
+  let dir = unparsed_estate();
+  let root = dir.path();
+  let answer = envelope(&["search", "--outline", "src/lib.rs", "--json"], root);
+  assert_eq!(
+    answer["index"]["complete"], true,
+    "an outline of a parsed file: {answer}"
+  );
+  let answer = envelope(
+    &[
+      "search",
+      "parse_disabled",
+      "--kind",
+      "def",
+      "--lang",
+      "rust",
+      "--json",
+    ],
+    root,
+  );
+  assert_eq!(
+    answer["index"]["complete"], true,
+    "`--lang rust` asks nothing of shell: {answer}"
+  );
+}
