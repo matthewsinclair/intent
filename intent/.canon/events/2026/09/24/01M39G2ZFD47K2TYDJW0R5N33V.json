@@ -1,0 +1,15 @@
+{
+  "id": "01M39G2ZFD47K2TYDJW0R5N33V",
+  "ts": "2026-09-24T10:41:25.485Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "(ic, 2026-09-24) 3.2.1 DOC AUDIT LANE, on hv's go via vc (orders in intent/wip.md DOING). LANDED: 860d21ab1, docs/explorer.md with 11 shots and the generator pair gen_explorer_shots.sh / explorer_shots.py (ST0056's canon in the same commit); 93977ae24, seven canon skill corrections. IN FLIGHT: the ONE register landing in tmp/wt-ic-reg, base 638aa1d6a: 74 register fields, dispatch-table.md regenerated, agent-guide.spec.md, four guide.rs strings, the rules-validate note in render.rs, the wb_register_correct pin; dc's design-system bank applied (patch-id df879409). It stacks on 0548 (ruled in): rebase once 0548 lands, add cc's two register items, then ONE heavy run (rust.yml's lines and the bats half) and bank. Fix patches waiting on hv, in this session's scratchpad fixes/: 0550, 0552, 0553, 0560, 0567; dc's CI bank joins if hv rules it in. AFTER THE LANDING: build all, dc's known-defects re-drive, my reference regeneration (gen_reference.sh:266's stale stamp with it), the explorer shots re-taken. UNCOMMITTED in main: in-essentials:59 (vc's info.md line), awaiting cc's in-standards:18 wording. NO PUSH, NO RELEASE."
+  }
+}

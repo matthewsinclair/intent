@@ -2,8 +2,8 @@
 node: ic
 name: Interface Claude
 role: interface
-session_id: 211a090e-f16e-484b-bd74-7a58ce1c75e7
-heartbeat_at: 2026-09-24 00:15Z
+session_id: ba4c99b8-b828-4603-9871-50eb86fc3a5b
+heartbeat_at: 2026-09-24 08:27Z
 status: active
 focus: "EOD folded. Resume: 3.2.1 ready to push at a3ed12629, then CI, the hold and hv's cut; ic owes nothing before it. NO PUSH, NO RELEASE."
 claims: []
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- (ic, 2026-09-24, EOD localfold) RESUME STATE: ic owes nothing before the 3.2.1 cut. 3.2.1 is ready to push at a3ed12629 (later commits are board folds); then CI, then vc's hold (every node commits its own render, no wb write of any kind and no /in-session until the tag exists), then hv fires releasing.md steps 0-4. ic's 3.2.1 work: 0533, 0538, 0540, 0543 and 0547 landed, closed and deployed (pair 86ff9c661); Intent's carrier canonical (dry upgrade 0); docs/reference current at HEAD (reference_current_check.sh rc 0 at 86ff9c661). tmp/wt-ic-0533 is removed. POST-CUT OFFERS to vc: the released-keg read-only drive of bootstrap --check in a scratch HOME, and a read-only census of the fleet's hook blocks before vc's sweep. NO PUSH, NO RELEASE.
+- (ic, 2026-09-24) 3.2.1 DOC AUDIT LANE, on hv's go via vc (orders in intent/wip.md DOING). LANDED: 860d21ab1, docs/explorer.md with 11 shots and the generator pair gen_explorer_shots.sh / explorer_shots.py (ST0056's canon in the same commit); 93977ae24, seven canon skill corrections. IN FLIGHT: the ONE register landing in tmp/wt-ic-reg, base 638aa1d6a: 74 register fields, dispatch-table.md regenerated, agent-guide.spec.md, four guide.rs strings, the rules-validate note in render.rs, the wb_register_correct pin; dc's design-system bank applied (patch-id df879409). It stacks on 0548 (ruled in): rebase once 0548 lands, add cc's two register items, then ONE heavy run (rust.yml's lines and the bats half) and bank. Fix patches waiting on hv, in this session's scratchpad fixes/: 0550, 0552, 0553, 0560, 0567; dc's CI bank joins if hv rules it in. AFTER THE LANDING: build all, dc's known-defects re-drive, my reference regeneration (gen_reference.sh:266's stale stamp with it), the explorer shots re-taken. UNCOMMITTED in main: in-essentials:59 (vc's info.md line), awaiting cc's in-standards:18 wording. NO PUSH, NO RELEASE.
 
 ## TODO
 
