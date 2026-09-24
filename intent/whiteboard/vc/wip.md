@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 302a2f4f-f054-4037-a411-d4f6d7b7df7e
-heartbeat_at: 2026-09-23 21:47Z
-status: active
-focus: "3.2.1: three fixes before the cut on hv's everything-in ruling -- 0542 (dc), 0546 (cc), 0547 (ic), one stacked judging run, then the rebuild, the push, CI, the hold and the cut. NO PUSH, NO RELEASE."
+heartbeat_at: 2026-09-24 00:17Z
+status: paused
+focus: "EOD 2026-09-24: 3.2.1 is ready -- hv's push, CI on both legs, the hold, then the cut. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -13,34 +13,19 @@ claims: []
 
 ## DOING
 
-- RESUME (vc, 2026-09-23, rewritten at 21:46Z by date -u). Measure first: `intent outs`, `git log --oneline -15`, `intent --version`, `intent daemon status`, and ListAgents. cc, dc and ic run as new sessions that hv restarted (ListAgents at 21:46Z). (edited)
+- RESUME (vc, 2026-09-24, globalfold at EOD; rewritten at 00:16Z by date -u). Measure first: `intent outs`, `git log --oneline -15`, `intent --version`, `intent daemon status`, `git rev-list --left-right --count upstream/main...HEAD`, and ListAgents. (edited)
 
-  STATE: hv pushed main at 9dac092ea (17:57:11Z) and rebuilt the pair there: intent, intentd and the daemon all name 9dac092ea. CI is green on both workflows and both legs:
-  - rust, run 35899129244;
-  - Intent Tests, run 35899129295: 743/743 ok on each leg, with push-range arms 410 to 418 ok on both.
-  0521 is closed at f3b520634.
+  3.2.1 IS READY TO PUSH AND CUT. Every fix hv ruled in is landed at its judged patch-id, closed, and deployed:
+  - 0542 at aecd492b3;
+  - 0546 at f5e110b75;
+  - 0547 at 75bbc1aae.
+  They were judged in dc's stacked run (PASS; stack tree 1d75bc228, and HEAD equals it on all 31 banked paths). vc rebuilt the pair at 86ff9c661, where intent, intentd and the daemon all name it and doctor reads 0 findings. The reference set is current (ic, rc 0), known-defects is re-driven whole and pinned at 05d60173b, Intent's carriers are canonical, and `intent outs` reads 0 open. Commits since 86ff9c661 are docs and boards only.
 
-  hv's RULING, read by vc at 21:45Z: everything that can go into 3.2.1 goes in, unless there is a clear reason not to.
-  IN, one bank each, then one stacked judging run:
-  - 0542 (dc): the scan reads issue ids in shipped literals, and each literal says its cause in words.
-  - 0546 (cc): the release step's push is refused by 0518's pre-push check. Its version bump changes native/rust and it never rebuilds the pair (vc measured this in a scratch clone). It is a bin/.devbin change, so macOS bats and app-test are owed. Until it lands, the workaround is `bin/devbin build all` in a second terminal at the push prompt.
-  - 0547 (ic): the shim's --where names an empty pointer UNUSABLE, where its gate path and bootstrap --check say ABSENT. It is a lib/templates change, so it is built in a detached worktree. Intent's own carrier is regenerated with `claude upgrade --apply` before the cut.
-  OUT, each with its reason:
-  - ST0060 and ST0077: unstarted features, on hv's hold of today.
-  - Gtools' wb correction verb: a new verb whose requirement hv has not ruled on.
-  - The fleet sweep, the guards pass, and the 3.2.1 app into /Applications: each comes after the cut by nature. The app install is hv's hand, because vc's session is refused the /Applications write.
-
-  ORDER:
-  (1) The three banks.
-  (2) dc's stacked judging run, with HEAVY START and END. vc judges from END.
-  (3) Land each bank at its judged patch-id and close its issue. vc's one docs commit carries the 0542 and 0547 CHANGELOG entries.
-  (4) The rebuild: daemon stop, build all, verify, daemon start, app restart, doctor.
-  (5) ic regenerates Intent's carrier and re-runs reference_current_check.sh. dc re-drives known-defects WHOLE on the new pair.
-  (6) hv pushes, and vc reads CI on both legs.
-  (7) THE HOLD, on ic's terms: every node commits its board, then no wb write, no commit and no /in-session until the tag exists.
-  (8) THE CUT, in hv's terminal: `intent daemon stop`; `bin/devbin build release v3.2.1 --dry-run`, then the real run, never --no-confirm; then prepare, formula, publish, smoke --reinstall, brew unlink and pin, daemon restart.
-
-  AFTER THE CUT: lift the hold; todo 62, the fleet sweep; the 3.2.1 app into /Applications by hv's hand.
+  NEXT, the order in `intent/wip.md` TODO:
+  (1) hv pushes main, and vc reads both workflows on both legs, from the job logs.
+  (2) The cut's hold (intent/restart.md): every node commits its board, then no wb write, no commit and no /in-session until the tag exists.
+  (3) The cut in hv's terminal. The release step now builds the pair at the tag itself (0546).
+  (4) After the cut: lift the hold, then todo 62, the fleet sweep, and the app into /Applications by hv's hand.
 
   NO PUSH, NO RELEASE.
 

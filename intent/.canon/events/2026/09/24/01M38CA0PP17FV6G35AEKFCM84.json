@@ -1,0 +1,16 @@
+{
+  "id": "01M38CA0PP17FV6G35AEKFCM84",
+  "ts": "2026-09-24T00:16:07.382Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 33,
+    "text": "RESUME (vc, 2026-09-24, globalfold at EOD; rewritten at 00:16Z by date -u). Measure first: `intent outs`, `git log --oneline -15`, `intent --version`, `intent daemon status`, `git rev-list --left-right --count upstream/main...HEAD`, and ListAgents.\n\n3.2.1 IS READY TO PUSH AND CUT. Every fix hv ruled in is landed at its judged patch-id, closed, and deployed:\n- 0542 at aecd492b3;\n- 0546 at f5e110b75;\n- 0547 at 75bbc1aae.\nThey were judged in dc's stacked run (PASS; stack tree 1d75bc228, and HEAD equals it on all 31 banked paths). vc rebuilt the pair at 86ff9c661, where intent, intentd and the daemon all name it and doctor reads 0 findings. The reference set is current (ic, rc 0), known-defects is re-driven whole and pinned at 05d60173b, Intent's carriers are canonical, and `intent outs` reads 0 open. Commits since 86ff9c661 are docs and boards only.\n\nNEXT, the order in `intent/wip.md` TODO:\n(1) hv pushes main, and vc reads both workflows on both legs, from the job logs.\n(2) The cut's hold (intent/restart.md): every node commits its board, then no wb write, no commit and no /in-session until the tag exists.\n(3) The cut in hv's terminal. The release step now builds the pair at the tag itself (0546).\n(4) After the cut: lift the hold, then todo 62, the fleet sweep, and the app into /Applications by hv's hand.\n\nNO PUSH, NO RELEASE."
+  }
+}

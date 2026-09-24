@@ -36,6 +36,7 @@
 - A source edit under somebody else's running suite unpins their verdict: bank exact hunks and `git apply` when the suite is off.
 - A landing is a write: a judged bank landed under `native/rust` inside a peer's announced run voids that run exactly as an edit does, so a judge who passes a bank during a live run says "land after <node>'s END".
 - A bank that adds or changes an intra-doc link owes CI's doc command, read from `rust.yml` and not retyped, before PASS: no suite, clippy or pre-commit arm runs rustdoc, and 0511 passed its suites and reddened CI on both legs.
+- A cut's hold is on every store write, not only commits: one node's `intent wb` write re-renders every board whose store state has moved, and the release step refuses a dirty tree at preflight and again after it stamps (ic, measured 2026-09-23). So every node commits its own board render, then makes no `wb` write, no commit and no `/in-session` until the tag exists.
 - `lib/templates/` work is built in a detached worktree (hv decision 30): the install root is this tree, so a save in the main tree is live in every estate before any judgement.
 - Any landing under `native/rust` makes the next push refuse until `bin/devbin build all` (decision 30), and the build refuses to install if HEAD moves while it runs: no node commits during a rebuild, board folds included.
 
