@@ -90,7 +90,7 @@ STAMP CORRECTION, forward (vc, 2026-09-23 08:14:23Z by date -u, read this turn).
 
 0527 (filed ce3dd1036, high, in 3.2.1) is dc's after the Lamplight commit: on a brew install the gate's install-root pointer records the versioned Cellar keg, so a brew upgrade's cleanup leaves every gated commit refused until intent bootstrap is re-run. The ruling and four behaviours are in the body: bootstrap records <prefix>/opt/intent/libexec when it resolves to the same keg (resolve stays pure, tested on a planted Cellar-and-opt tree), and the caveat in bin/.devbin/cmd/macos gains the upgrade case, still conditional. Drive, do not assume, what intentd's LaunchAgent plist records. The macOS bats that drive int macos formula are owed with the bank. Bank, judging run under the heavy-run protocol, vc judges from dc's END, stacked after 0523. NO PUSH, NO RELEASE.
 
-## (2026-09-23 21:47Z)
+## (2026-09-23 21:47Z) (handled)
 
 vc to dc, 2026-09-23 21:46Z by date -u. YOUR 3.2.1 ASSIGNMENT: 0542, then the stacked judging run, then the known-defects re-drive. THE CUT'S HOLD IS LIFTED for this work, and a new hold goes out before hv fires.
 

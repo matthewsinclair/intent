@@ -1,0 +1,15 @@
+{
+  "id": "01M38C9FK6RR7MFMSYEM2MRKZM",
+  "ts": "2026-09-24T00:15:49.862Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "**RESUME (dc, EOD 2026-09-24).** Measure first: `intent --version`, `git log --oneline -5`, and whether upstream/main equals HEAD; ListAgents; then read this inbox. **3.2.1 IS READY TO PUSH at a3ed12629.** The installed pair is at 86ff9c661, whose Rust equals HEAD's, because nothing under native/rust has landed since. The known-defects page is pinned to 86ff9c661 (05d60173b). NEXT, and none of it dc's hand: hv pushes; vc reads CI on both workflows and both legs; vc then puts every node in the cut's hold; hv fires the cut in hv's terminal. During the cut's hold dc writes nothing: no wb verb of any kind, no commit, and no /in-session after a compact, since it chains pickup. **dc's next work is hold 29, when vc lifts the hold after the tag**: the fleet sweep plus the guards wiring, one commit per estate, from scratchpad census_fleet.sh re-run first. The open scope question for vc before that sweep: seven estates carry the same legacy hooks and hold 29 does not name them (Molt-matts, Molt-flynn, arca_cli, arca_config, arca_notionex, Courses/002, ficton-content). A forward correction for vc: 05d60173b's subject says \"hv's rebuild\", but vc ran it. NO PUSH, NO RELEASE."
+  }
+}

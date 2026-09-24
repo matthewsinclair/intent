@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 1a8e4fe7-0650-45f6-a619-84fc0c380145
-heartbeat_at: 2026-09-23 22:43Z
+heartbeat_at: 2026-09-24 00:15Z
 status: active
-focus: "dc's 3.2.1 fixes are done: 0542 landed at aecd492b3 and closed, the stacked run judged 0542, 0546 and 0547, and known-defects is re-driven on 86ff9c661 with its pin moved at 05d60173b. Waiting on hv's push, CI and the cut. Hold 29: the guards adoption pass rides the cut's fleet sweep. NO PUSH, NO RELEASE."
+focus: "LOCALFOLDED at EOD 2026-09-24. dc's 3.2.1 work is done; 3.2.1 is ready to push at a3ed12629, then CI, the cut's hold and the cut. Next: hold 29 (the guards pass rides the fleet sweep after the tag). The resume todo carries the state. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -17,7 +17,7 @@ _(none)_
 
 ## TODO
 
-_(none)_
+- **RESUME (dc, EOD 2026-09-24).** Measure first: `intent --version`, `git log --oneline -5`, and whether upstream/main equals HEAD; ListAgents; then read this inbox. **3.2.1 IS READY TO PUSH at a3ed12629.** The installed pair is at 86ff9c661, whose Rust equals HEAD's, because nothing under native/rust has landed since. The known-defects page is pinned to 86ff9c661 (05d60173b). NEXT, and none of it dc's hand: hv pushes; vc reads CI on both workflows and both legs; vc then puts every node in the cut's hold; hv fires the cut in hv's terminal. During the cut's hold dc writes nothing: no wb verb of any kind, no commit, and no /in-session after a compact, since it chains pickup. **dc's next work is hold 29, when vc lifts the hold after the tag**: the fleet sweep plus the guards wiring, one commit per estate, from scratchpad census_fleet.sh re-run first. The open scope question for vc before that sweep: seven estates carry the same legacy hooks and hold 29 does not name them (Molt-matts, Molt-flynn, arca_cli, arca_config, arca_notionex, Courses/002, ficton-content). A forward correction for vc: 05d60173b's subject says "hv's rebuild", but vc ran it. NO PUSH, NO RELEASE.
 
 ## Holds
 
