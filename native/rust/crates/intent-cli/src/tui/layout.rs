@@ -1076,10 +1076,19 @@ fn clip(s: &str, w: usize) -> String {
   out
 }
 
+/// A row that only names: a `label` with no value, as `/help`'s section
+/// headings are. It runs the width of the column rather than aligning a value
+/// (issue 0550): measured in, the longest heading set the name column for
+/// every row and pushed each meaning to the far right, clipped.
+fn is_heading(r: &Row) -> bool {
+  r.kind == "label" && r.value.is_empty()
+}
+
 /// Lay `rows` out at `width` into the BODY column.
 pub fn plan(rows: &[Row], width: usize) -> Plan {
   let longest = rows
     .iter()
+    .filter(|r| !is_heading(r))
     .map(|r| r.title.chars().count())
     .max()
     .unwrap_or(0);
@@ -1107,8 +1116,8 @@ pub fn plan(rows: &[Row], width: usize) -> Plan {
       lines.push(line);
       continue;
     }
-    let name = clip(&r.title, name_width);
-    let pad = name_width - name.chars().count();
+    let name = clip(&r.title, if is_heading(r) { width } else { name_width });
+    let pad = name_width.saturating_sub(name.chars().count());
     let value = clip(&r.value, value_width);
     // Trailing space is decoration; the line ends where its content does.
     let mut line = String::with_capacity(width);
@@ -1404,6 +1413,29 @@ mod tests {
       scroll_to(None, height),
       0,
       "a view with no cursor did not start at the top"
+    );
+  }
+
+  /// Issue 0550: a heading neither sets the name column nor is clipped to it.
+  #[test]
+  fn a_heading_neither_sets_the_name_column_nor_is_clipped_to_it() {
+    let heading = "intent commands -- run one with /<name>, /help <name> for its own page";
+    let rows = vec![
+      Row::new(heading, "", "label"),
+      Row::new("Tab", "cross between the fields and the pane", "label"),
+      Row::new("Ctrl-a", "to the start of the line", "label"),
+    ];
+    let plan = plan(&rows, 100);
+    assert_eq!(
+      plan.value_col,
+      "Ctrl-a".chars().count() + GAP,
+      "a heading set the name column"
+    );
+    assert_eq!(plan.rows[0], heading, "the heading was clipped");
+    assert!(
+      plan.rows[1].ends_with("cross between the fields and the pane"),
+      "a meaning was clipped: {}",
+      plan.rows[1]
     );
   }
 
