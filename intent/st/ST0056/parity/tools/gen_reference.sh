@@ -263,7 +263,7 @@ def verb_section($base; $has_base):
   + [ (.help // "_The register records no description for this verb._") ]
   + (if asserts_precondition then
        ["",
-        "**That description asserts a precondition, and nothing checks it.** The register has no structural home for refusals, so a refusal can only be stated as prose in a help string -- which is a contract nothing verifies and nothing updates when the behaviour moves. One of the four such strings in the surface is measured false. See issue `0142`; treat this line as a description, not a guarantee."]
+        "**That description asserts a precondition, and nothing checks it.** The register has no structural home for refusals, so a refusal can only be stated as prose in a help string -- which is a contract nothing verifies and nothing updates when the behaviour moves. Treat this line as a description, not a guarantee."]
      else [] end)
   + ["", "```", (usage_line), "```", ""]
   + (if (.aliases // []) | length > 0 then
@@ -308,7 +308,7 @@ read -r -d '' JQ_PAGE <<'JQEOF' || true
        "" ]
      + [ "**No exit codes are listed per command.** The register's per-command exit tables are measurements of _v2_, and v3 does not reproduce them everywhere, so they are not published here as v3's contract. Every command follows the one surface-wide contract on the [index](index.md#exit-codes).", "" ]
      + (if $preconditions > 0 then
-          [ "**Descriptions on this page that assert a precondition are flagged inline below.** Refusals have no declared home in the register, so they can only be stated as prose in a help string. The detector that finds them is a regex over English and is therefore a floor, not a ceiling: a precondition phrased without one of its words is invisible to it. Issue `0142`.", "" ]
+          [ "**Descriptions on this page that assert a precondition are flagged inline below.** Refusals have no declared home in the register, so they can only be stated as prose in a help string. The detector that finds them is a regex over English and is therefore a floor, not a ceiling: a precondition phrased without one of its words is invisible to it.", "" ]
         else [] end)
      + [ "## The commands", "",
          "| Command | What it does | In " + (if $has_base then $baseline else "release" end) + " | Reads or writes | Undo |",
