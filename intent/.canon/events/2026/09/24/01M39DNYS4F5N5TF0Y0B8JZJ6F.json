@@ -1,0 +1,15 @@
+{
+  "id": "01M39DNYS4F5N5TF0Y0B8JZJ6F",
+  "ts": "2026-09-24T09:59:21.641Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0550"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "the explorer's /help takes its name column from its longest section heading, so every meaning starts far right and is cut at ordinary widths"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 562,
+  "slug": "the-gate-s-shim-and-the-rust-side-resolve-a-rela",
+  "title": "the gate's shim and the Rust side resolve a relative XDG_DATA_HOME differently, so bootstrap says OK while every gated commit is refused",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-24",
+  "reporter": "Matthew Sinclair",
+  "body": "Found by dc on 2026-09-24 in the 3.2.1 doc audit, on the pair at `4c687eaad`.\n\nSeen: the gate's shim reads `${XDG_DATA_HOME:-$HOME/.local/share}/intent/home` as given (`pre-commit-shim.sh:59`), while the Rust side ignores a relative `XDG_DATA_HOME` (`userstate.rs:127-130`). With `XDG_DATA_HOME=reldata`, `intent bootstrap` writes the default path and `--check` says OK, while the shim's `--where` reads \"pointer: reldata/intent/home, state: ABSENT\" and every gated commit is refused.\n\nExpected: the two resolvers of one path agree.\n\nDisposition: vc, 2026-09-24 -- filed for after the stabilisation line: it needs an `XDG_DATA_HOME` the XDG spec already calls invalid. `docs/install.md` states the shim's behaviour.\n"
+}

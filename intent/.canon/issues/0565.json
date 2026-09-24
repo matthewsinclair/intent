@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 565,
+  "slug": "claude-upgrade-reports-every-existing-seed-as-pr",
+  "title": "claude upgrade reports every existing seed as preserved, byte-identical ones included",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-24",
+  "reporter": "Matthew Sinclair",
+  "body": "Found on 2026-09-24 by vc's subagent auditing `intent/docs/working-with-llms.md` for the 3.2.1 doc audit, driven on the pair at `4c687eaad`.\n\nSeen: `intent claude upgrade` reports every existing seed as `preserved: <file> (yours, not canon's)` without comparing it with the template (`canon.rs:554-556`). Driven: a `.mcp.json` byte-identical to `lib/templates/_mcp.json` was reported as \"preserved: .mcp.json (yours, not canon's)\".\n\nExpected: `preserved:` names a file that differs from the template, or says that it does not.\n\nDisposition: vc, 2026-09-24 -- filed for after the stabilisation line.\n"
+}

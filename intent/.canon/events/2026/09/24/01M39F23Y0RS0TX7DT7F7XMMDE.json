@@ -1,0 +1,15 @@
+{
+  "id": "01M39F23Y0RS0TX7DT7F7XMMDE",
+  "ts": "2026-09-24T10:23:28.823Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0564"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "claude upgrade seeds .intent_critic.yml through the Markdown filler, so a new project's seed is invalid YAML"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M39E8FR573FZWHQ74K84CHZR",
+  "ts": "2026-09-24T10:09:28.844Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0556"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "doctor's view-skew finding on a hand edit the store can carry back names only the discarding sync --to-disk"
+  }
+}

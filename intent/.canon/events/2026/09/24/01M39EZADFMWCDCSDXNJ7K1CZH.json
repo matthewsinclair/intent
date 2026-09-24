@@ -1,0 +1,15 @@
+{
+  "id": "01M39EZADFMWCDCSDXNJ7K1CZH",
+  "ts": "2026-09-24T10:21:57.047Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0561"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "intent bootstrap --check reports OK for an install whose gate cannot run"
+  }
+}

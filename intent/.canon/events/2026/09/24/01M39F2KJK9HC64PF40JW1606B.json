@@ -1,0 +1,15 @@
+{
+  "id": "01M39F2KJK9HC64PF40JW1606B",
+  "ts": "2026-09-24T10:23:44.930Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0566"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "intent fc's unlisting note names a --keep flag fc refuses, and the .intentfiles header omits fc among the verbs that unlist"
+  }
+}

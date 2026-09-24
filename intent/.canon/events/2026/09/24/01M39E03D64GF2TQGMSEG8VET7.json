@@ -1,0 +1,15 @@
+{
+  "id": "01M39E03D64GF2TQGMSEG8VET7",
+  "ts": "2026-09-24T10:04:54.061Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0555"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "a work-package id collision between two clones plans only taking a side, where a thread or issue collision plans a renumber"
+  }
+}

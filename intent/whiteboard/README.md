@@ -2,7 +2,7 @@
 
 Live coordination channel for concurrent Claude Code sessions -- and the human -- working on Intent itself. Each participant is a **node** (a workstream) with its own directory under `intent/whiteboard/`. Every file has exactly one writer; that single-writer rule is what keeps the board contention-free and cleansable. `intent/wip.md` stays the post-session snapshot; the whiteboard is the live channel.
 
-The full protocol lives in the `/in-whiteboard` skill (pickup / ask / announce / decide / claim / clear / archive / touch / release / status). A node joins by `intent wb register`, its board and inboxes render from that row, and the session launch is `intent claude start <node>`. The file-era `intent claude ws` family (ST0047: scaffold, list, archive, hygiene) is gone, retired by ST0069 AC-14.12. This file is the protocol pointer plus the Intent roster.
+The verbs are `intent wb`'s, and `intent wb --help` lists them; the protocol, and the judgement each verb cannot carry, live in the `/in-whiteboard` skill. A node joins by `intent wb register`, its board and inboxes render from that row, and the session launch is `intent claude start <node>`. The file-era `intent claude ws` family (ST0047: scaffold, list, archive, hygiene) is gone, retired by ST0069 AC-14.12. This file is the protocol pointer plus the Intent roster.
 
 ## Provenance
 
@@ -12,13 +12,13 @@ The whiteboard process was pioneered **by convention in Lamplight** (`../Lamplig
 
 `hv` is **Workstream Zero** -- the always-present human node.
 
-| Node | Name              | Scope (Intent)                                                                                                                      |
-| ---- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `hv` | Hypervisor        | Workstream Zero: adjudicates scope, sequences work, owns releases plus commits-to-main; standing directives plus escalation landing |
-| `cc` | Control Claude    | the engine: `native/rust/crates/`, `intent/plugins/`, `lib/templates/`, the rule library, and skills; ST/WP execution               |
-| `vc` | Validation Claude | independent check (correct / complete / consistent / faithful to hv's ask); advisory; the bats suite plus critic discipline         |
-| `ic` | Interface Claude  | the dispatch-table SSOT and everything rendered from it: command surface, help, voice, exit codes, MCP tool list, `intent llm`      |
-| `dc` | DevX Claude       | dev-x and build environment, so that `cc` concentrates on functionality for the CLI / daemon (hv's words, 2026-08-15)               |
+| Node | Name              | Scope (Intent)                                                                                                                                                                                               |
+| ---- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `hv` | Hypervisor        | Workstream Zero: adjudicates scope, sequences work, owns releases plus commits-to-main; standing directives plus escalation landing                                                                          |
+| `cc` | Control Claude    | the engine: `native/rust/crates/`, `intent/plugins/`, `lib/templates/`, the rule library, and skills; ST/WP execution                                                                                        |
+| `vc` | Validation Claude | independent check (correct / complete / consistent / faithful to hv's ask); reads hv's inbox; holds hv's delegated pen and directs the lanes under it (hv decision 4); the bats suite plus critic discipline |
+| `ic` | Interface Claude  | the dispatch-table SSOT and everything rendered from it: command surface, help, voice, exit codes, MCP tool list, `intent llm`                                                                               |
+| `dc` | DevX Claude       | dev-x and build environment, so that `cc` concentrates on functionality for the CLI / daemon (hv's words, 2026-08-15)                                                                                        |
 
 **THE hv INBOX'S READER IS `vc`, AND NAMING ONE IS NOW REQUIRED BY THE PROTOCOL RATHER THAN OPTIONAL HERE.** hv's own statement of it, 2026-08-19: _the workstreams can write in the hv channel FOR me, but I need that stuff surfaced TO me by vc._ So `hv/inbox.<node>.md` stays the durable write surface every node uses, and **`vc` is obliged to monitor it and surface its contents to hv in the live channel.** A node's escalation is not delivered when the write returns; it is delivered when vc has surfaced it.
 
@@ -39,11 +39,11 @@ intent/whiteboard/
     board.json              # the node's row, rendered from the store
     wip.md                  # the node's board, rendered from the store (single-writer = the node, through `intent wb`)
     inbox.<sender>.md       # messages FROM <sender>, rendered (single-writer = the sender)
-    .history/YYYYMMDD/      # the hand-authored era's archives; nothing writes here now
+    .history/               # the hand-authored era's archives, and the pre-migration copies `intent wb migrate` keeps
 ```
 
 - `<node>/wip.md` -- changed only by `<node>` acting through `intent wb --node <node>`; a hand edit is skew and `intent doctor` reports it.
-- `<node>/inbox.<sender>.md` -- appended only by `<sender>` through `intent wb ask` or `announce`; read and cleared only by `<node>` (the owner), with `intent wb clear`.
+- `<node>/inbox.<sender>.md` -- written only by `<sender>`: appended through `intent wb ask` or `announce`, and a sent message's body changed through `intent wb edit message`; read and cleared only by `<node>` (the owner), with `intent wb clear`.
 
 ## The board's header block is NOT YAML
 

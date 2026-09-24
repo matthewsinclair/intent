@@ -1,0 +1,15 @@
+{
+  "id": "01M39F1WTC9FXJNYMFG4DK3HP4",
+  "ts": "2026-09-24T10:23:21.426Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0563"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "the session gate and the pre-commit critics depend on jq, and without it the gate locks out /in-session and the critics disarm in silence"
+  }
+}

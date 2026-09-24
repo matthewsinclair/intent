@@ -1,0 +1,15 @@
+{
+  "id": "01M39F6PCJY0XAXNV1RZCY4F5A",
+  "ts": "2026-09-24T10:25:58.803Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0574"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "no guard checks what the register renders into docs/reference, so internal notes reached user-facing help and MCP descriptions"
+  }
+}

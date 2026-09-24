@@ -1,0 +1,15 @@
+{
+  "id": "01M39F34N39N9QBSSG3PBXTK9T",
+  "ts": "2026-09-24T10:24:02.220Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0568"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "intent sync --to-store folds a thread's body into its context when it carries a cover edit back, compounding on each carry"
+  }
+}

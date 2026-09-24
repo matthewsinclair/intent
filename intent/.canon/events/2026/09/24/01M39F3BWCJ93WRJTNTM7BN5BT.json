@@ -1,0 +1,15 @@
+{
+  "id": "01M39F3BWCJ93WRJTNTM7BN5BT",
+  "ts": "2026-09-24T10:24:09.617Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0569"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "with no intentd running, intent sync --to-store carries no hand edit to a cover, because nothing records the cover as touched"
+  }
+}

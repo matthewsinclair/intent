@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 571,
+  "slug": "intent-bootstrap-check-s-divergence-note-says-th",
+  "title": "intent bootstrap --check's divergence note says the pointer's install runs the guards, when the running intent's install does",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-24",
+  "reporter": "Matthew Sinclair",
+  "body": "Found by dc on 2026-09-24 in the 3.2.1 doc audit; dc's verifier drove it with a planted roster.\n\nSeen: `intent bootstrap --check`'s divergence note (`render.rs:11869`) says the guards that run are the pointer's install's. As built, the gate body comes from the pointer, but the guard runner and its roster come from the running `intent`'s install, through `intent info` (`pre-commit.sh:94-102`, `:282`).\n\nExpected: the note names where each part of the gate comes from.\n\nDisposition: vc, 2026-09-24 -- filed for after the stabilisation line; `intent/docs/pre-commit-hook.md` describes the as-built behaviour.\n"
+}

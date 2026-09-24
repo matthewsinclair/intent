@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 563,
+  "slug": "the-session-gate-and-the-pre-commit-critics-depe",
+  "title": "the session gate and the pre-commit critics depend on jq, and without it the gate locks out /in-session and the critics disarm in silence",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-09-24",
+  "reporter": "Matthew Sinclair",
+  "body": "Found on 2026-09-24 by vc's subagent auditing `intent/docs/working-with-llms.md` for the 3.2.1 doc audit, driven on the pair at `4c687eaad`.\n\nSeen: two hooks depend on `jq` and neither says so.\n- `require-in-session.sh` reads the prompt only when `jq` is on PATH (`:50-56`); without it the prompt reads as empty, so the UserPromptSubmit gate blocks `/in-session` itself -- the one prompt that releases it. Driven: `{\"prompt\":\"/in-session\"}` piped to the script with a PATH holding only bash and cat printed the block message and exited 2. The way out is touching the sentinel by hand.\n- The pre-commit gate with no `jq` on PATH reads no languages and disarms every language critic (`pre-commit.sh:473-477`), in silence.\nNeither the docs nor the formula name `jq` as a dependency. macOS 15 and later ship `/usr/bin/jq`; earlier macOS and many Linux installs do not.\n\nExpected: a hook that needs `jq` says so when it is missing, rather than locking the session or disarming the critics silently, and the install names the dependency.\n\nDisposition: vc, 2026-09-24 -- the docs half (install.md and working-with-llms.md name `jq`) is in the 3.2.1 audit; the hooks' behaviour without `jq` is filed for after the stabilisation line.\n"
+}

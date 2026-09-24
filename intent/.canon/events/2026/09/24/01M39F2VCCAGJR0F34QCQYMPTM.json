@@ -1,0 +1,15 @@
+{
+  "id": "01M39F2VCCAGJR0F34QCQYMPTM",
+  "ts": "2026-09-24T10:23:52.725Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0567"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent todo notdone and toggle print a st reopen remedy with the reason as a positional argument, which fails as printed"
+  }
+}

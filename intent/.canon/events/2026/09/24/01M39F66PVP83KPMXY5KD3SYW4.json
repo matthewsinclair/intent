@@ -1,0 +1,15 @@
+{
+  "id": "01M39F66PVP83KPMXY5KD3SYW4",
+  "ts": "2026-09-24T10:25:42.878Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0572"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "the staged-format guard reports a file its Elixir or Markdown formatter cannot parse as not formatted, where Rust says it could not be checked"
+  }
+}

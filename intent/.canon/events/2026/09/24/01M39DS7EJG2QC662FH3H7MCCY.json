@@ -1,0 +1,15 @@
+{
+  "id": "01M39DS7EJG2QC662FH3H7MCCY",
+  "ts": "2026-09-24T10:01:08.823Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0551"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "a project v3.0.x initialised keeps its store tracked in git after upgrade, and nothing says so"
+  }
+}

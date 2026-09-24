@@ -1,0 +1,15 @@
+{
+  "id": "01M39DZVWGC7PFNYA3712AAXG3",
+  "ts": "2026-09-24T10:04:46.358Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0554"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "a pull brings a teammate's board files but not their rows into the store, and the printed remedy for the skew it causes discards the teammate's message"
+  }
+}

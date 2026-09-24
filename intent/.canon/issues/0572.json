@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 572,
+  "slug": "the-staged-format-guard-reports-a-file-its-elixi",
+  "title": "the staged-format guard reports a file its Elixir or Markdown formatter cannot parse as not formatted, where Rust says it could not be checked",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-24",
+  "reporter": "Matthew Sinclair",
+  "body": "Found by dc on 2026-09-24 in the 3.2.1 doc audit, driven in a scratch project on the pair at `4c687eaad`.\n\nSeen: the staged-format guard reports an Elixir or Markdown file its formatter cannot parse as \"not formatted\" (`staged-format-guard.sh:204-206`, `:229-231`). Only Rust keeps its \"could not be checked\" line (`:332-341`), although the file's header claims that distinction for every formatter. Driven: an unclosed `(` in a staged `.ex` was refused as \"elixir is not formatted\".\n\nExpected: a file the formatter cannot parse is reported as unchecked, for every formatter the guard runs.\n\nDisposition: vc, 2026-09-24 -- filed for after the stabilisation line; the commit is still refused, and `intent/docs/pre-commit-hook.md` describes the as-built wording.\n"
+}

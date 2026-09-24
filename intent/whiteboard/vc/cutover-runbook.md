@@ -1,5 +1,7 @@
 # The canonical Intent v3 config/setup -- TARGET STATE
 
+> **A record, not current guidance.** This is the target state of the v3 cutover of 2026-08-26, which completed on 2026-08-28. A project's configuration today comes from `intent claude upgrade --apply`, and `docs/install.md` describes it.
+
 **Owner: vc. Definitive as of 2026-08-26 14:05Z. This is the target state every project is configured to. hv: _"No correspondence will be entered into."_ hv was AFK ~11:00Z-11:50Z and is present since; vc holds the pen with authority over intent-{cc,dc,ic} and devbin-{vc,cc} and, since ~11:58Z, hv's first-hand push grant for `Intent` and `homebrew-intent`. Rulings made under that delegation are marked as such and hv can overrule any of them; hv's own first-hand rulings are on hv's board with their menus.**
 
 ## Scope

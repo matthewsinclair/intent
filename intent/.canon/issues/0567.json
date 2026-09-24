@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 567,
+  "slug": "intent-todo-notdone-and-toggle-print-a-st-reopen",
+  "title": "intent todo notdone and toggle print a st reopen remedy with the reason as a positional argument, which fails as printed",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-09-24",
+  "reporter": "Matthew Sinclair",
+  "body": "Found by ic on 2026-09-24 in the 3.2.1 doc audit's register sweep, driven on the pair at `4c687eaad`; vc read the format string and `intent st reopen --help` at HEAD.\n\nSeen: `intent todo notdone ST0001` and `intent todo toggle ST0001` both refuse, correctly, with the remedy \"run `intent st reopen ST0001 \"<reason>\"` (or `intent wp reopen`), which records the reason on the thread and in the event log\". Run exactly as printed, it fails: `intent st reopen ST0001 \"the capture callback regressed\"` gives \"error: unexpected argument 'the capture callback regressed' found\". The verb takes the reason as a flag, `intent st reopen <ID> --reason <text>`, and `intent wp reopen <SPEC> --reason <text>` the same way. The string is `render.rs:8297-8298`, its only copy.\n\nExpected: the remedy prints `intent st reopen <ID> --reason \"<reason>\"`.\n\nDisposition: hv's, asked on 2026-09-24: a remedy that misdirects, inside the shipping-grade test of hv decision 33 (1), and a one-string fix.\n"
+}

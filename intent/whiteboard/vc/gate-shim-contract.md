@@ -1,5 +1,7 @@
 # The gate shim -- resolution contract
 
+> **A record, not current guidance.** This contract was written in August 2026, before the gate shim's code existed. The gate as built is described in `intent/docs/pre-commit-hook.md`.
+
 **Status:** contract, written before any code, on hv's plan (R1+R2). Implementation is cc's.
 
 ## The defect this closes

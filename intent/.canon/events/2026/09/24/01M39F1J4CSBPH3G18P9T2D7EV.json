@@ -1,0 +1,15 @@
+{
+  "id": "01M39F1J4CSBPH3G18P9T2D7EV",
+  "ts": "2026-09-24T10:23:10.481Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0562"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "the gate's shim and the Rust side resolve a relative XDG_DATA_HOME differently, so bootstrap says OK while every gated commit is refused"
+  }
+}

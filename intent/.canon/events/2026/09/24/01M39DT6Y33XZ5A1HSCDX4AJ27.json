@@ -1,0 +1,15 @@
+{
+  "id": "01M39DT6Y33XZ5A1HSCDX4AJ27",
+  "ts": "2026-09-24T10:01:41.066Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0552"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent explore with an address it cannot open lands at the top and wipes the reason before the first frame"
+  }
+}

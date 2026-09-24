@@ -1,0 +1,15 @@
+{
+  "id": "01M39E7MJZ227BM63RN48EHHA3",
+  "ts": "2026-09-24T10:09:01.030Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.edit",
+  "subject": {
+    "type": "issue",
+    "id": "0553"
+  },
+  "payload": {
+    "bytes": 1288,
+    "title": "the explorer refuses a valid work-package address: its zero-padded item matches no row, because rows are named by the bare sequence"
+  }
+}

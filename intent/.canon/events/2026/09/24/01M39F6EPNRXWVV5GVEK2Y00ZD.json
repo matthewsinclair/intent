@@ -1,0 +1,15 @@
+{
+  "id": "01M39F6EPNRXWVV5GVEK2Y00ZD",
+  "ts": "2026-09-24T10:25:50.811Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0573"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "three register rows declare an effect their verb does not have: export writes while declared read, ingest writes nothing while declared mutate, and todo"
+  }
+}
