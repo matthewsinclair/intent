@@ -557,16 +557,25 @@ fn seed_if_absent(
   }
   // Every seed goes through the one token expander, so a template that gains a
   // `[[TOKEN]]` renders it rather than shipping it literally (issue 0336: the
-  // seeded `usage-rules.md` carried `[[PROJECT_NAME]]`). A template with no
-  // tokens comes back unchanged.
+  // seeded `usage-rules.md` carried `[[PROJECT_NAME]]`). Only a Markdown seed
+  // also gets the empty-section placeholder, which reads a `#` line as a heading:
+  // in `.intent_critic.yml` that line is a comment, and the placeholder written
+  // after it made the seed invalid YAML (issue 0564). So a template in any other
+  // format, and a Markdown one with no token and no empty section, is written as
+  // its bytes stand.
   let Template {
     home,
     rel,
     cfg,
     ctx,
   } = template;
-  let body = crate::rootfiles::substitute(&self::template(home, rel)?, cfg, ctx)
-    .map_err(|e| CanonError::RootFile(format!("{rel}: {e:?}")))?;
+  let text = self::template(home, rel)?;
+  let body = if rel.ends_with(".md") {
+    crate::rootfiles::substitute(&text, cfg, ctx)
+  } else {
+    crate::rootfiles::expand(&text, cfg, ctx)
+  }
+  .map_err(|e| CanonError::RootFile(format!("{rel}: {e:?}")))?;
   write_if_changed(dest, &body, report, applied)
 }
 

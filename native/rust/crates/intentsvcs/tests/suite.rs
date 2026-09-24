@@ -129,6 +129,8 @@ mod canon_relocation_roundtrip;
 mod canon_resolver_singularity;
 #[path = "canon_round_trip.rs"]
 mod canon_round_trip;
+#[path = "canon_seeds_the_critic_config_as_the_template_holds_it.rs"]
+mod canon_seeds_the_critic_config_as_the_template_holds_it;
 #[path = "canon_seeds_the_mcp_declaration_once.rs"]
 mod canon_seeds_the_mcp_declaration_once;
 #[path = "canon_seeds_usage_rules_with_the_project_name.rs"]

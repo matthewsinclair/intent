@@ -63,8 +63,6 @@ disabled: []
 post_tool_use_advisory: false
 ```
 
-**The seed as written is not valid YAML to a strict reader** (`intent#0564`). It carries a filler line, `_Not configured for this project._`, under each of the template's comment lines, so a YAML parser reads the whole file as that one string. Intent's gate and the PostToolUse advisory read the file line by line and find the three keys either way. Before relying on any YAML tool, or on the critic subagents, to read it, delete those filler lines or copy the template over it: `lib/templates/_intent_critic.yml` under the install root, the path `intent info` prints as `INTENT_HOME`.
-
 `severity_min: warning` blocks on CRITICAL + WARNING findings and lets RECOMMENDATION + STYLE through. Tune per project; see `intent/docs/critics.md` for the full schema.
 
 ## Opt-out (per-commit)

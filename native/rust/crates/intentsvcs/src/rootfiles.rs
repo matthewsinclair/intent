@@ -134,14 +134,26 @@ pub fn template_path(home: &Path, name: &str) -> PathBuf {
     .join(format!("_{name}"))
 }
 
-/// Expand one template. Pure: every input is an argument.
+/// Expand one template's blocks and tokens. Pure: every input is an argument.
 ///
 /// Blocks are resolved before tokens, so a token inside a dropped block is
-/// never substituted and never has to be substitutable.
-pub fn substitute(template: &str, cfg: &Config, ctx: &RenderContext<'_>) -> Result<String, Fault> {
+/// never substituted and never has to be substitutable. This is the one
+/// expander: [`substitute`] is this plus a Markdown rule, so a template in any
+/// other format is expanded here and nowhere else.
+pub fn expand(template: &str, cfg: &Config, ctx: &RenderContext<'_>) -> Result<String, Fault> {
   let kept = resolve_blocks(template, &cfg.languages)?;
-  let expanded = expand_tokens(&kept, cfg, ctx)?;
-  Ok(fill_empty_sections(&expanded))
+  expand_tokens(&kept, cfg, ctx)
+}
+
+/// Expand one MARKDOWN template: [`expand`], then a placeholder under every
+/// heading that rendered to nothing (AC-07.5).
+///
+/// **THE PLACEHOLDER IS A MARKDOWN RULE, AND ONLY A MARKDOWN FILE GETS IT.** It
+/// reads a line that starts with `#` as a heading, which in YAML is a comment:
+/// run over `.intent_critic.yml` it wrote a placeholder after the template's
+/// comment lines, and a strict YAML reader refused the seed (issue 0564).
+pub fn substitute(template: &str, cfg: &Config, ctx: &RenderContext<'_>) -> Result<String, Fault> {
+  Ok(fill_empty_sections(&expand(template, cfg, ctx)?))
 }
 
 /// The line a section gets when nothing rendered into it.

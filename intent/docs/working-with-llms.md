@@ -391,8 +391,6 @@ Both read the rule library the installed tool serves from `intent/plugins/claude
 
 Lives at the project root. `intent claude upgrade --apply` seeds it from `lib/templates/_intent_critic.yml` when absent and leaves it alone afterwards, unless `--force` is given.
 
-**As built, the seed is not valid YAML** (issue 0564): a Markdown filler line, `_Not configured for this project._`, is written after the template's `#` comment lines, by `--force` over an existing file as well, so a YAML parser rejects or misreads the file, and deleting those lines, or copying `lib/templates/_intent_critic.yml` from the install over it, restores it.
-
 ```yaml
 disabled:
   - IN-EX-TEST-003 # reason: our DB-backed suites share a sandbox and run serially
