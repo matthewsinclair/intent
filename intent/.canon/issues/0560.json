@@ -3,9 +3,10 @@
   "number": 560,
   "slug": "intent-app-status-tells-a-user-with-no-app-to-ru",
   "title": "intent app status tells a user with no app to run bin/devbin, which only Intent's own development tree has",
-  "status": "open",
+  "status": "closed",
   "severity": "medium",
   "created": "2026-09-24",
+  "closed": "2026-09-24",
   "reporter": "Matthew Sinclair",
-  "body": "Found by dc on 2026-09-24 in the 3.2.1 doc audit, on the pair at `4c687eaad`.\n\nSeen: `intent app status` with no app installed prints \"Intent.app is not built or installed on this machine -- `bin/devbin macos app-build` builds it, `bin/devbin macos app-install` installs it to /Applications\" (`render.rs:9599-9601`). A Homebrew user has no `bin/devbin`: that is Intent's own development tooling. `docs/install.md`'s route is to download `Intent.app.zip` from the release. `app start` and `app restart` may share the text; dc did not check them.\n\nExpected: the remedy names the route a user of the installed build can take.\n\nDisposition: hv's, asked on 2026-09-24: a remedy that misdirects, inside the shipping-grade test of hv decision 33 (1), and a one-string fix.\n"
+  "body": "Found by dc on 2026-09-24 in the 3.2.1 doc audit, on the pair at `4c687eaad`.\n\nSeen: `intent app status` with no app installed prints \"Intent.app is not built or installed on this machine -- `bin/devbin macos app-build` builds it, `bin/devbin macos app-install` installs it to /Applications\" (`render.rs:9599-9601`). A Homebrew user has no `bin/devbin`: that is Intent's own development tooling. `docs/install.md`'s route is to download `Intent.app.zip` from the release. `app start` and `app restart` may share the text; dc did not check them.\n\nExpected: the remedy names the route a user of the installed build can take.\n\nDisposition: hv's, asked on 2026-09-24: a remedy that misdirects, inside the shipping-grade test of hv decision 33 (1), and a one-string fix.\n\n\nFixed at `9f8074c8f`, landed on 2026-09-24 on vc's word; ships in 3.2.1.\n"
 }
