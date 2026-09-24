@@ -11,6 +11,7 @@ summary: >
 principles:
   - honest-data
   - no-silent-errors
+  - highlander
 applies_when:
   - "Writing any Lua module that will be loaded alongside other modules"
   - "Embedding Lua inside a host application (game engine, Neovim, Redis)"

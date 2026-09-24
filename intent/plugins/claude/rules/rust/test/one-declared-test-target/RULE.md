@@ -11,6 +11,7 @@ summary: >
   all its dependencies.
 principles:
   - build-cost
+  - highlander
 applies_when:
   - "Adding the first file under a crate's `tests/` directory"
   - "Standing up a new crate that will carry integration tests"

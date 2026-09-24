@@ -9,8 +9,7 @@ summary: >
   borrows (`&T`, `&mut T`, `&[T]`, `&str`) and move semantics; clone only
   when a new owned value is genuinely required.
 principles:
-  - pfic
-  - no-silent-errors
+  - highlander
 applies_when:
   - "Function signatures that take `Vec<T>` or `String` when a slice or `&str` would do"
   - "`.clone()` calls inside hot paths, loops, or trait impls"

@@ -11,6 +11,7 @@ summary: >
 principles:
   - public-interface
   - no-silent-errors
+  - highlander
 applies_when:
   - "Writing a new Lua module that other files will require"
   - "Refactoring a global-heavy file into a proper module"
@@ -23,6 +24,7 @@ does_not_apply_when:
 references:
   - IN-AG-HIGHLANDER-001
   - IN-LU-CODE-001
+  - IN-AG-NO-SILENT-001
 related_rules:
   - IN-LU-CODE-001
 aliases: []

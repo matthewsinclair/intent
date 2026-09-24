@@ -11,6 +11,7 @@ summary: >
   expected ordinary table access.
 principles:
   - public-interface
+  - highlander
 applies_when:
   - "Installing `__index`, `__newindex`, `__call`, `__add`, `__eq`, `__tostring`, or other metamethods"
   - "Using metatables to implement inheritance, proxies, or lazy fields"

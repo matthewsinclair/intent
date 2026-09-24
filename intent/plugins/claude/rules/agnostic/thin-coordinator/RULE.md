@@ -28,6 +28,7 @@ related_rules:
 concretised_by:
   - IN-EX-PHX-001
   - IN-EX-LV-003
+  - IN-EX-ASH-001
 aliases: []
 status: active
 version: 1

@@ -10,6 +10,7 @@ summary: >
   integration tests against the public API only.
 principles:
   - public-interface
+  - highlander
 applies_when:
   - "Writing a unit test that calls a `pub(crate)` or private function"
   - "Adding regression tests alongside a fix"

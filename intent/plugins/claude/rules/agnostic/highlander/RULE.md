@@ -25,9 +25,16 @@ related_rules:
 concretised_by:
   - IN-EX-CODE-006
   - IN-EX-TEST-007
+  - IN-EX-TEST-001
   - IN-RS-CODE-002
+  - IN-RS-TEST-001
+  - IN-RS-TEST-002
+  - IN-RS-TEST-003
   - IN-SW-CODE-004
+  - IN-SW-TEST-001
   - IN-LU-CODE-005
+  - IN-LU-CODE-001
+  - IN-LU-CODE-003
   - IN-SH-CODE-006
 aliases: []
 status: active

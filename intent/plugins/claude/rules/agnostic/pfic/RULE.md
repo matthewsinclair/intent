@@ -27,10 +27,11 @@ related_rules:
   - IN-AG-NO-SILENT-001
 concretised_by:
   - IN-EX-CODE-004
-  - IN-EX-PHX-001
   - IN-RS-CODE-003
+  - IN-RS-CODE-005
   - IN-SW-CODE-001
   - IN-LU-CODE-002
+  - IN-LU-CODE-006
 aliases: []
 status: active
 version: 1

@@ -12,6 +12,7 @@ summary: >
 principles:
   - pattern-matching
   - no-silent-errors
+  - pfic
 applies_when:
   - "Composing two or more `{:ok, _}` / `{:error, _}` functions in sequence"
   - "Replacing nested `case` blocks where each inner branch handles `{:error, _}`"

@@ -9,7 +9,6 @@ summary: >
   and completion handlers. Structured concurrency carries cancellation,
   error propagation, and type information that GCD strips away.
 principles:
-  - pfic
   - no-silent-errors
 applies_when:
   - "New asynchronous code on Swift 5.5+ (deployable to iOS 13+ / macOS 10.15+)"

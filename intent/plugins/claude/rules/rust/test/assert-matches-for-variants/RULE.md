@@ -12,6 +12,7 @@ summary: >
 principles:
   - honest-data
   - public-interface
+  - highlander
 applies_when:
   - "Asserting on a `Result<T, E>` where `T` or `E` is a complex struct"
   - "Asserting on an `Option<T>` where `T` has many fields"

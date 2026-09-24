@@ -11,6 +11,7 @@ summary: >
   site, because consolidation makes a bare run report strictly less than before.
 principles:
   - build-cost
+  - no-silent-errors
 applies_when:
   - "Standing up a cargo workspace"
   - "Consolidating test targets under IN-RS-TEST-003"

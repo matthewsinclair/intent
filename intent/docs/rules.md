@@ -107,19 +107,19 @@ applies_when:
 | `category`     | Kebab-case. For a language pack it matches the directory under `<lang>/`; agnostic rules sit directly at `agnostic/<slug>/`, so theirs (`architecture`, `test`, `fiat`) names no directory. |
 | `severity`     | `critical`, `warning`, `recommendation`, or `style`.                                                                                                                                        |
 | `summary`      | One or two sentences. Printed with the whole file by `intent claude rules show <id>`; `list` does not show it.                                                                              |
-| `principles`   | Short-name principles this rule embodies.                                                                                                                                                   |
+| `principles`   | Short-name principles this rule embodies. A rule citing an agnostic rule in `references:` names its principle here too.                                                                     |
 | `applies_when` | Natural-language circumstances under which the rule fires.                                                                                                                                  |
 
 ### Common optional frontmatter
 
-| Field            | Purpose                                                                                                                                                                                       |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `applies_to`     | Glob patterns that narrow the file set. Used by Critics for file-level gating.                                                                                                                |
-| `references`     | Other rule IDs this rule depends on (typically the agnostic rule it concretises).                                                                                                             |
-| `concretised_by` | Required on a PATTERN agnostic rule; lists ≥2 language-specific rules that demonstrate it. A PROCEDURAL agnostic rule carries none and discharges the same obligation through `applies_when`. |
-| `upstream_id`    | Slug of the upstream `elixir-test-critic` rule this borrows from. See attribution.                                                                                                            |
-| `aliases`        | Previous slugs. Lets a rule rename without changing its ID.                                                                                                                                   |
-| `status`         | `active` (default), `draft`, `deprecated`. Critics skip non-active rules.                                                                                                                     |
+| Field            | Purpose                                                                                                                                                                                                                 |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `applies_to`     | Glob patterns that narrow the file set. Used by Critics for file-level gating.                                                                                                                                          |
+| `references`     | Other rule IDs this rule depends on (typically the agnostic rule it concretises).                                                                                                                                       |
+| `concretised_by` | Required on a PATTERN agnostic rule; lists every language-specific rule whose `references:` cite it, and at least 2. A PROCEDURAL agnostic rule carries none and discharges the same obligation through `applies_when`. |
+| `upstream_id`    | Slug of the upstream `elixir-test-critic` rule this borrows from. See attribution.                                                                                                                                      |
+| `aliases`        | Previous slugs. Lets a rule rename without changing its ID.                                                                                                                                                             |
+| `status`         | `active` (default), `draft`, `deprecated`. Critics skip non-active rules.                                                                                                                                               |
 
 The full field reference, including every optional field and its consumer, lives at `_schema/rule-schema.md`.
 
@@ -162,14 +162,14 @@ IN-AG-HIGHLANDER-001  "There can be only one"
 
 Every agnostic rule must be pinned to something concrete — this prevents agnostic rules from drifting into vague wisdom — and **which concrete thing depends on what kind of rule it is.**
 
-- A **pattern** agnostic rule governs a code shape, and pins itself with at least two `concretised_by:` language rules that demonstrate it.
+- A **pattern** agnostic rule governs a code shape, and pins itself with `concretised_by:`, which lists every language rule that cites it in `references:`, and at least two.
 - A **procedural** agnostic rule governs an ACTION rather than a code shape, so there is no language-specific spelling of it to point at. **It discharges the same obligation through `applies_when`, which must name the SITUATIONS the rule fires in — never virtues.** _Do not fabricate authority_ is vague wisdom; _any moment a row is blocking you and closing it would unblock you_ is a situation a reader can recognise they are standing in.
 
 **THIS IS AN EXCEPTION IN FORM, NOT A HOLE:** a procedural rule with an empty or aspirational `applies_when` has failed the requirement exactly as a pattern rule with no `concretised_by:` would. `IN-AG-RED-CONTROL-001` and `IN-AG-FIAT-001` are the procedural members today.
 
 Language rules cite the agnostic rule via `references:`. Together they form a small graph that skills and Critics walk.
 
-When you author a new language-specific rule, check first whether an agnostic rule already covers the principle. If yes, set `references:` to the agnostic rule and add your new rule's ID to the agnostic rule's `concretised_by:`. If no agnostic rule exists, consider whether the principle is genuinely cross-language — if so, author the agnostic rule first.
+When you author a new language-specific rule, check first whether an agnostic rule already covers the principle. If yes, set `references:` to the agnostic rule, name its principle in `principles:`, and add your new rule's ID to the agnostic rule's `concretised_by:`. If no agnostic rule exists, consider whether the principle is genuinely cross-language — if so, author the agnostic rule first.
 
 ## Authoring a new rule
 

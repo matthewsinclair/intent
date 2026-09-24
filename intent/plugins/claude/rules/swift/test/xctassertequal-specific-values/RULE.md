@@ -11,6 +11,7 @@ summary: >
 principles:
   - honest-data
   - public-interface
+  - highlander
 applies_when:
   - "Any XCTest assertion on a return value or computed property"
   - "Tests that currently rely on `XCTAssertNotNil`, `XCTAssertTrue(!= nil)`, or type checks"

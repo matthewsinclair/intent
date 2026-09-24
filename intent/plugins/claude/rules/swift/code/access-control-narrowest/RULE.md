@@ -10,6 +10,7 @@ summary: >
   access. Never use `public` as a shortcut to make linking succeed.
 principles:
   - public-interface
+  - highlander
 applies_when:
   - "Declaring any type, method, property, or initialiser"
   - "Exposing helpers across files or modules"

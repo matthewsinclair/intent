@@ -12,6 +12,7 @@ summary: >
 principles:
   - honest-data
   - public-interface
+  - highlander
 applies_when:
   - "Any ExUnit test asserting on a return value of a fallible function"
   - "Assertions on struct fields, map values, or list contents"
