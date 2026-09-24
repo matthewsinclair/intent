@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 582,
+  "slug": "the-critic-subagents-never-read-a-rule-s-status",
+  "title": "the critic subagents never read a rule's status, so a draft or deprecated rule would be applied by /in-review",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-24",
+  "reporter": "Matthew Sinclair",
+  "body": "Found by cc on 2026-09-24 in the 3.2.1 doc audit's rules pass.\n\nSeen: the critic subagents never read a rule's `status:`, so a `draft` or `deprecated` rule would be applied by `/in-review` exactly as an `active` one is; only the headless runner arms `active` rules alone. Every shipped rule is `active` today, so nothing is misapplied now. The critic contract (`intent/plugins/claude/rules/_schema/critic-contract.md`) now says so, rather than claiming a filter.\n\nExpected: the subagents and the headless runner honour `status:` the same way.\n\nDisposition: vc, 2026-09-24 -- low, a latent gap, filed for after the stabilisation line.\n"
+}

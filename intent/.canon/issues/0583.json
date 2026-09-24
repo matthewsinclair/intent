@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 583,
+  "slug": "intent-claude-rules-validate-s-help-says-it-chec",
+  "title": "intent claude rules validate's help says it checks required sections, and it checks frontmatter only",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-24",
+  "reporter": "Matthew Sinclair",
+  "body": "Found by cc on 2026-09-24 in the 3.2.1 doc audit's rules pass.\n\nSeen: `intent claude rules validate --help` says it will \"Validate frontmatter and required sections\" (`surface/dispatch-table.json`); `validate` checks frontmatter only (`rules.rs:764-860`), and no section is required by it. It was found after the audit's register landing (90684455f), so it waits for the next register batch.\n\nExpected: the help says what `validate` checks.\n\nDisposition: vc, 2026-09-24 -- low, filed for after the stabilisation line.\n"
+}

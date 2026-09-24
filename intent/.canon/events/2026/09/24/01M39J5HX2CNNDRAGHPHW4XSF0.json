@@ -1,0 +1,15 @@
+{
+  "id": "01M39J5HX2CNNDRAGHPHW4XSF0",
+  "ts": "2026-09-24T11:17:47.045Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0581"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "the shell critic's census says no rule was asked while it reports findings, when shellcheck declines a file in the run"
+  }
+}

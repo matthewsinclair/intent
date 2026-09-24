@@ -1,0 +1,15 @@
+{
+  "id": "01M39J5YXHD6VP33WTC4S4BZ4A",
+  "ts": "2026-09-24T11:18:00.373Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0583"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "intent claude rules validate's help says it checks required sections, and it checks frontmatter only"
+  }
+}
