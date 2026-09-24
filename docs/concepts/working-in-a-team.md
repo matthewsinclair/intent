@@ -368,14 +368,28 @@ Two people who change different fields of one thread conflict on neighbouring li
 
 ## Commit the views with what they were rendered from
 
-**A view committed without the change it renders from fails the gate on every other clone.** The commit gate `claude upgrade --apply` installs runs `doctor`, and refuses a commit whose views disagree with the store. Here a view was edited by hand and committed without a sync:
+**A view committed without the change it renders from fails the gate on every other clone.** The commit gate `claude upgrade --apply` installs runs `doctor`, and refuses a commit whose views disagree with the store. Here Bob edited a thread's Objective in `info.md` by hand and committed without a sync:
 
 ```
-  intent/st/ST0006/info.md -- generated view differs from the model (867 bytes on disk, 836 rendered, first difference at byte 120): ...
+  intent/st/ST0006/info.md -- generated view differs from the model (847 bytes on disk, 836 rendered, first difference at byte 120) in its Objective or Context, which a hand edit changes and the store carries back -- `intent sync --to-store` carries the edit into the store and keeps it; `intent sync --to-disk` would regenerate the cover from the store and discard it
   intent doctor: the estate disagrees with the store -- commit refused.
 ```
 
-**Write a thread's objective and context with `intent set`, not by editing `info.md`.** A hand edit in the file survives only until Intent renders it again, and `intent sync --apply`, which the hooks run after a pull, a checkout or a rebase, renders it again. Until then `intent doctor` reports it, as above.
+The Objective and the Context are the two sections of `info.md` the store takes back, so the finding names the verb that keeps the edit. Run it, and the commit passes:
+
+```
+  $ intent sync --to-store
+  note: no thread the store already holds differs on disk, so this restore overwrites nothing (a thread the extract has and the store does not is an ADD and is not examined here)
+  ok: store rewritten from the canon extract; nothing the store already held was overwritten
+  $ intent st show ST0006
+  ST0006: Bob's next
+  status: WIP
+  created: 2026-09-24
+  objective:
+    Edited by hand and not synced.
+```
+
+**Write a thread's objective and context with `intent set`, not by editing `info.md`.** The hooks' `intent sync --apply` after a pull, a checkout or a rebase takes a hand edit to either section into the store, but any other Intent write that renders the cover first writes the store's version over it, with a warning. An edit anywhere else in `info.md` is not carried at all.
 
 The same holds for anything generated from one store state: commit it together. A commit that carries a whiteboard board without that node's inbox views leaves views on `main` that no longer match their model, and a fresh clone's `intent doctor` counts them.
 
@@ -398,7 +412,7 @@ Both clones print those same six lines; the store's total under them differs, be
 
 ### A project made with Intent 3.0
 
-**A project made with Intent 3.0 has its history only in the store that made it, and may have committed that store.** Intent 3.0's `init` wrote no `.gitignore`, so the first `git add -A` took `intent/.cache/intent.db` with everything else. Run `intent upgrade` once on that clone. It backfills an event file for the history the store holds and writes the ignore lines, but it does not untrack a store git already tracks, and nothing says so (issue 0551). Untrack it in the same commit:
+**A project made with Intent 3.0 has its history only in the store that made it, and may have committed that store.** Intent 3.0's `init` wrote no `.gitignore`, so the first `git add -A` took `intent/.cache/intent.db` with everything else. Run `intent upgrade` once on that clone. It backfills an event file for the history the store holds and writes the ignore lines. An ignore line does not untrack a file git already tracks, so the upgrade names the command that does, and `intent doctor` reports a tracked store until it runs:
 
 ```
   $ git ls-files intent/.cache
@@ -408,6 +422,7 @@ Both clones print those same six lines; the store's total under them differs, be
   not carried into the model: prose, shipped content and wip/restart are not modelled and are unchanged on disk
   already migrated: 1 thread(s) had committed canon and were re-emitted from it rather than converted -- their content is unchanged
   backfilled: 3 event file(s) under intent/.canon/events/ for the history this store held -- commit them and it travels with the project
+  untrack: git tracks intent/.cache/intent.db, and the ignore rule this upgrade wrote does not untrack it -- run `git rm --cached intent/.cache/intent.db` and commit that with this upgrade, or every commit carries this machine's store
   ok: this project is now Intent ... -- commit the canon and the generated views
   $ git rm -q --cached intent/.cache/intent.db
   $ git status --short --untracked-files=all
@@ -418,9 +433,9 @@ Both clones print those same six lines; the store's total under them differs, be
    M intent/st/steel_threads.md
    M intent/todo.md
   ?? .gitignore
-  ?? intent/.canon/events/2026/09/24/01M39ENVTJA4Z8H4VVVSE1BJRB.json
-  ?? intent/.canon/events/2026/09/24/01M39ENVV58W3293P2VSARTE1X.json
-  ?? intent/.canon/events/2026/09/24/01M39ENVVNMW2JYY79BXSG8F77.json
+  ?? intent/.canon/events/2026/09/24/01M3AJ0G88RKV13NJFS3RQPVJ3.json
+  ?? intent/.canon/events/2026/09/24/01M3AJ0G8G8F3KRWQJZAS3AB76.json
+  ?? intent/.canon/events/2026/09/24/01M3AJ0G8QJN22K1WP6G4211F6.json
 ```
 
 Commit all of it. Left tracked, the store rides in every teammate's next commit, and their pulls collide on it. A second `intent upgrade` backfills nothing and leaves the tree as the first run left it, and `git ls-files intent/.cache` then lists nothing.
@@ -453,8 +468,8 @@ A whiteboard's boards are committed files, and they travel like the rest of the 
   $ git pull
   intent (post-merge): took 2 event file(s) from the files into the store
   $ intent wb status
-  error: board.json on disk records a migrated board that this store does not hold, for al
-    remedy: nothing was written. `intent sync --to-store` carries each board.json into this store with everything it holds: ...
+  error: board.json on disk holds a board this store does not, for al: a migrated board the store never took in, or a change that reached the file from outside the store, most often a pull
+    remedy: nothing was written. `intent sync --to-store` carries each board.json into this store with everything it holds, OVER what the store holds for that node: ...
   $ intent sync --to-store
   warning: replacing the store from the extract OVERWRITES:
     board al: node on disk only, would be ADDED
@@ -462,13 +477,16 @@ A whiteboard's boards are committed files, and they travel like the rest of the 
   ok: store replaced from the canon extract, taking the 2 difference(s) listed above
 ```
 
-The same holds for everything a board carries, messages included. Bob's node sent Alice's a message, and Alice's pull brought it; her store held it only after the same step:
+The same holds for everything a board carries, messages included, and for a board your store already holds. Bob's node sent Alice's a message, and Alice's pull brought it. Until her store took it in, her own board write refused rather than render her store's older board over the file:
 
 ```
+  $ intent wb pickup --node al
+  error: board.json on disk holds a board this store does not, for al, bo: a migrated board the store never took in, or a change that reached the file from outside the store, most often a pull
+    remedy: nothing was written. `intent sync --to-store` carries each board.json into this store with everything it holds, OVER what the store holds for that node: ...
   $ intent sync --to-store
   warning: replacing the store from the extract OVERWRITES:
     board bo: node on disk only, would be ADDED
-    board al: message from bo recorded 2026-09-24T10:16:49.308Z on disk only, would be ADDED
+    board al: message from bo recorded 2026-09-24T20:34:17.598Z on disk only, would be ADDED
   ok: store replaced from the canon extract, taking the 2 difference(s) listed above
   $ intent wb pickup --node al
   ...
@@ -476,7 +494,7 @@ The same holds for everything a board carries, messages included. Bob's node sen
     bo -> al Can I take the release checklist?
 ```
 
-**Run `intent sync --to-store` after pulling a teammate's board, and read its warning.** It replaces the store from the files on disk and lists each difference it takes before it takes it. It also reads back any hand-edited `info.md`, which is one more reason to write objectives and contexts with `intent set`. Carrying boards on a pull the way threads are carried is issue 0554.
+**Run `intent sync --to-store` after pulling a teammate's board, and read its warning.** It replaces the store from the files on disk and lists each difference it takes before it takes it. When the same pull changes a thread too, the hook's own pass leaves the pulled board as it is and names it on its `left:` line with the same verb. A checkout of an older commit puts an older board on disk the same way; carrying that one rolls your store's board back, and the refusal names the other way out, which keeps the store's. Carrying boards on a pull the way threads are carried is issue 0554.
 
 ## Check the merge in CI
 
