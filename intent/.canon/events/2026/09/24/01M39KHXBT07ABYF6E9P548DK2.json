@@ -1,0 +1,15 @@
+{
+  "id": "01M39KHXBT07ABYF6E9P548DK2",
+  "ts": "2026-09-24T11:42:00.570Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "After the cut: remove cc's leftover worktrees under tmp/ (wt-cc-*), each checked against a landed bank first; never delete a bank ref."
+  }
+}

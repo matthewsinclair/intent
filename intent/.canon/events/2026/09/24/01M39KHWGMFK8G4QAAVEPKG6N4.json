@@ -1,0 +1,15 @@
+{
+  "id": "01M39KHWGMFK8G4QAAVEPKG6N4",
+  "ts": "2026-09-24T11:41:59.700Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "0551 (tracked store), batch 1 (0554(b), 0556 and (b3)), 0564 (malformed .intent_critic.yml seed), 0570 (gate-not-running wording) and the critic.rs comment fixes, together with the team page's two sections that 0551 and batch 1 change -- HELD UNTIL hv rules them into 3.2.1. If ruled in, they stack with ic's five fix banks and dc's CI bank for one more final-tree run on top of HEAD."
+  }
+}

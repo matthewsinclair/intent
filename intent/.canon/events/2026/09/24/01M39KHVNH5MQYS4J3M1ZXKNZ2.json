@@ -1,0 +1,15 @@
+{
+  "id": "01M39KHVNH5MQYS4J3M1ZXKNZ2",
+  "ts": "2026-09-24T11:41:58.834Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "Root AGENTS.md and CLAUDE.md regenerate AFTER vc's build all, because lib/templates/llm is embedded in the binary. The steps: a dry `intent claude upgrade` that should name only those two files, then apply and commit, then a second dry run that should write nothing."
+  }
+}

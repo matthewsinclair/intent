@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 32974d4a-0175-4bfb-b198-cdac20b4d58b
-heartbeat_at: 2026-09-24 10:42Z
+heartbeat_at: 2026-09-24 11:41Z
 status: active
-focus: "3.2.1 doc audit, cc's lane: 0548 banked (v2, patch-id 3d8ebca06) and judged green, landing on vc's word; team guide, intent/docs and intent/llm landing now; next the templates bank and, on hv's ruling, 0551, bank 1 and 0564 as one stack. NO PUSH, NO RELEASE."
+focus: "3.2.1 doc audit, cc's lane: report accepted by vc. 0548, the team guide, intent/docs, intent/llm, the two lane files, templates v3 (450bcc0f8) and the rules audit (e2b6b33f7) all landed at their judged patch-ids. Next: the root AGENTS.md and CLAUDE.md after vc's build all, and the hv-dependent stack if ruled in. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -13,15 +13,15 @@ claims: []
 
 ## DOING
 
-_(none)_
+- Root AGENTS.md and CLAUDE.md regenerate AFTER vc's build all, because lib/templates/llm is embedded in the binary. The steps: a dry `intent claude upgrade` that should name only those two files, then apply and commit, then a second dry run that should write nothing.
 
 ## TODO
 
-_(none)_
+- After the cut: remove cc's leftover worktrees under tmp/ (wt-cc-*), each checked against a landed bank first; never delete a bank ref.
 
 ## Holds
 
-_(none)_
+- 0551 (tracked store), batch 1 (0554(b), 0556 and (b3)), 0564 (malformed .intent_critic.yml seed), 0570 (gate-not-running wording) and the critic.rs comment fixes, together with the team page's two sections that 0551 and batch 1 change -- HELD UNTIL hv rules them into 3.2.1. If ruled in, they stack with ic's five fix banks and dc's CI bank for one more final-tree run on top of HEAD.
 
 ## Watch-outs
 
