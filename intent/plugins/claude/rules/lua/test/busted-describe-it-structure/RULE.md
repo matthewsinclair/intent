@@ -113,7 +113,7 @@ Failures surface with the `describe` path, the `it` name, and a diff. Setup can 
 
 ## Further Reading
 
-- busted documentation (<https://olivinelabs.com/busted/>)
+- busted documentation (<https://lunarmodules.github.io/busted/>)
 - `luaunit` docs — similar BDD structure if busted is unavailable (<https://github.com/bluebird75/luaunit>)
 - Lua Style Guide — Testing (<https://github.com/Olivine-Labs/lua-style-guide>)
 - IN-EX-TEST-001 — Elixir strong-assertion discipline mirrors this rule's intent

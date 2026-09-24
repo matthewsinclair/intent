@@ -121,8 +121,8 @@ EOF
 }
 
 # ====================================================================
-# First-non-empty-line invariant — the validator checks this, but pin it
-# directly here too so a regression is obvious.
+# First-non-empty-line invariant — `intent claude rules validate` does not
+# check it, so this file is the one place it is pinned.
 # ====================================================================
 
 first_nonempty_line() {

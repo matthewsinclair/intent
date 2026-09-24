@@ -12,7 +12,7 @@ principles:
   - pfic
   - no-silent-errors
 applies_when:
-  - "New asynchronous code on Swift 5.5+ / iOS 15+ / macOS 12+"
+  - "New asynchronous code on Swift 5.5+ (deployable to iOS 13+ / macOS 10.15+)"
   - "Refactoring completion-handler APIs to produce readable call sites"
   - "Coordinating concurrent work that shares state (use `actor`)"
 applies_to:
@@ -49,7 +49,7 @@ Swift's structured concurrency (SE-0296, `async`/`await` + `Task` + `actor`) giv
 
 Static signals:
 
-- Function signatures with `@escaping` closure parameters on iOS 15+ / macOS 12+ targets.
+- Function signatures with `@escaping` closure parameters on targets that can adopt Swift concurrency (iOS 13+ / macOS 10.15+).
 - `DispatchQueue.global().async { }` / `DispatchQueue.main.async { }` blocks containing business logic (not just UI updates).
 - Shared mutable state protected by `DispatchQueue` "sync queues" — these are actors-in-disguise.
 - `dispatch_semaphore` or `DispatchGroup` used to aggregate parallel work — `async let` and `TaskGroup` replace both.
@@ -103,21 +103,23 @@ actor UserCache {
 }
 
 // Fan-out with async let.
-let (alice, bob) = try await (loadUser(id: 1), loadUser(id: 2))
+async let alice = loadUser(id: 1)
+async let bob = loadUser(id: 2)
+let users = try await (alice, bob)
 ```
 
 Types tell the truth. `actor` guarantees data-race safety. `async let` parallelises without a `DispatchGroup`.
 
 ## When This Applies
 
-- Any new async API on platforms supporting Swift 5.5+ concurrency.
+- Any new async API on platforms that can deploy Swift concurrency.
 - Any function that waits on network, disk, cross-process IPC, or time.
 - Any shared mutable state in a concurrent program — `actor` replaces manual sync queues and locks.
 - Cancellation-aware workflows: `Task` cancellation propagates automatically to child `async let` calls and `TaskGroup` children.
 
 ## When This Does Not Apply
 
-- Deployment targets that cannot adopt Swift concurrency (pre-iOS 15, pre-macOS 12). Backport via `AsyncCompat` shims if supported; otherwise stay on GCD.
+- Deployment targets older than iOS 13 / macOS 10.15, which cannot adopt Swift concurrency: stay on GCD.
 - Objective-C interop points that emit callbacks — wrap with `withCheckedContinuation` / `withCheckedThrowingContinuation` at the boundary, then work in `async` internally.
 - Real-time audio / video dispatch where GCD's QoS classes and priority inheritance are specifically tuned for the workload.
 

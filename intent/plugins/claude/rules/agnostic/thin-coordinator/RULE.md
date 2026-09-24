@@ -142,7 +142,6 @@ Heuristic: if removing the transport layer and calling the function from a test 
 ## Further Reading
 
 - Martin Fowler, "Presentation Domain Data Layering" — the classical layered architecture that this rule concretises.
-- Chris Keathley, "Idiomatic Phoenix" (talk, 2023) — argues for controllers as "pass-through" to contexts as a hard rule.
 - Intent `IN-AG-PFIC-001` — Thin Coordinator follows from PFIC: if the domain is pure, coordination is what's left.
 - Intent `IN-AG-HIGHLANDER-001` — duplicated business logic across three coordinators is the symptom; Thin Coordinator is the cure.
 - Concretising rules: `IN-EX-PHX-001` (Phoenix thin controllers), `IN-EX-LV-003` (LiveView thin handlers).

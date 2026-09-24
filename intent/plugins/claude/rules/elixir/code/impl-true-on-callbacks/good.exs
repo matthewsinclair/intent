@@ -1,8 +1,9 @@
 # EXPECTED: passes
 #   Demonstrates the GOOD pattern for IN-EX-CODE-003 (impl-true-on-callbacks):
 #   every GenServer callback is annotated with `@impl true`. A typo in the
-#   callback name would now fail at compile time rather than silently
-#   dispatching to a custom function.
+#   callback name now draws a compile-time warning (an error under
+#   --warnings-as-errors) rather than silently dispatching to a custom
+#   function.
 Mix.install([])
 
 defmodule ImplTrueOnCallbacks.GoodExample do

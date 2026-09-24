@@ -113,6 +113,4 @@ Absence is expressed in the type. `if let` is the only way to reach inside, so f
 ## Further Reading
 
 - The Swift Programming Language, "Optionals" (<https://docs.swift.org/swift-book/documentation/the-swift-programming-language/thebasics/#Optionals>)
-- Swift API Design Guidelines, "Use type information to establish expected behaviour"
-- Mike Ash, "Friday Q&A — Why Optional?" (<https://www.mikeash.com/pyblog/friday-qa-2015-04-17-lets-build-swifts-optional-type.html>)
 - IN-AG-NO-SILENT-001 — sentinels are silent-error machines

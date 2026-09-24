@@ -19,7 +19,7 @@ applies_to:
   - "**/*.zsh"
 does_not_apply_when:
   - "Interactive zsh startup (`.zshrc`) where strict modes break unrelated behaviours"
-  - "Zsh-emulation-in-bash mode (`emulate sh`) where `set -e` is already active"
+  - "Scripts that run under `emulate sh` and set their strict options in sh form (`set -eu`) -- emulation turns none of them on"
 tags:
   - shell
   - zsh
@@ -100,13 +100,13 @@ Explicit zsh strict mode. Script fails loudly on any step. Required args checked
 ## When This Does Not Apply
 
 - Interactive `.zshrc` — users want tolerant startup behaviour; one failing theme line shouldn't leave them at a broken prompt.
-- `emulate sh` / `emulate bash` contexts where the emulation mode already manages relevant options.
+- Scripts that run under `emulate sh` and set their strict options in sh form (`set -eu`) -- emulation turns none of them on, so the `set` line is what arms them.
 - Scripts explicitly targeting both shells that set `set -e` and document the accepted behavioural differences.
 
 ## Further Reading
 
 - Zsh manual — `setopt` (<https://zsh.sourceforge.io/Doc/Release/Options.html>)
-- Zsh migration guide — differences from bash (<https://zsh.sourceforge.io/FAQ/zshfaq03.html>)
+- Z-Shell FAQ, Chapter 2 "How does zsh differ from...?" (<https://zsh.sourceforge.io/FAQ/zshfaq02.html>)
 - IN-SH-CODE-003 — bash equivalent (`set -euo pipefail`) with rationale
 - IN-SH-CODE-005 — no-silent-exit-codes applies across both shells
 - IN-AG-NO-SILENT-001 — agnostic principle this concretises

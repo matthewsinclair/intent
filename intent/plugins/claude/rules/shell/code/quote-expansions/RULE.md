@@ -43,7 +43,7 @@ version: 1
 
 # Always quote variable expansions
 
-Unquoted `$var` is word-splitting plus pathname expansion. Every time. In both bash and zsh.
+Unquoted `$var` is word-splitting plus pathname expansion in bash, every time, and in zsh under `sh` or `ksh` emulation. Quote it in both.
 
 ## Problem
 

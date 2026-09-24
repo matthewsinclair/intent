@@ -115,7 +115,7 @@ Adding an SMS handler is one new struct and one new `impl`. No `match` arm, no r
 
 ## Further Reading
 
-- The Rust Programming Language, ch. 17 "Object-Oriented Programming Features of Rust" (<https://doc.rust-lang.org/book/ch17-00-oop.html>)
-- Rust API Guidelines, "Types are predictable" (<https://rust-lang.github.io/api-guidelines/>)
-- "Casey Muratori on Hierarchies vs. Flatness" — arguments for enums over traits (the contrary view is legitimate for closed data)
+- The Rust Programming Language, ch. 18 "Object Oriented Programming Features" (<https://doc.rust-lang.org/book/ch18-00-oop.html>)
+- Rust API Guidelines, "Predictability" (<https://rust-lang.github.io/api-guidelines/predictability.html>)
+- Casey Muratori, _"Clean" Code, Horrible Performance_ (<https://www.computerenhance.com/p/clean-code-horrible-performance>) — arguments for enums and switches over polymorphic hierarchies (the contrary view is legitimate for closed data)
 - IN-AG-PFIC-001 -- Pure Function, Impure Coordination; traits are not replacements for pattern matching, they are a different tool

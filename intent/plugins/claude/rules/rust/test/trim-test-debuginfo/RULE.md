@@ -58,7 +58,7 @@ Static signals:
 
 **AND THE CALL-SITE HALF IS NOT A RUST POPULATION AT ALL.** `--no-fail-fast` lives in CI YAML, shell scripts and Makefiles, which `critic-rust` never sees. That half belongs to whoever reviews the pipeline, and saying so is more useful than a rule that cannot reach it.
 
-Apply via the `critic-rust` subagent during `/in-review`; the mechanical arm is a workspace guard, not the headless gate.
+Apply via the `critic-rust` subagent during `/in-review`. No mechanical arm enforces this rule: the workspace guard `test_target_topology_guard.rs` asserts only `IN-RS-TEST-003`'s `autotests` / `[[test]]` property.
 
 ## Bad
 

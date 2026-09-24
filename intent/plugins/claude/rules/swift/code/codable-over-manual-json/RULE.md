@@ -107,8 +107,7 @@ func parse(data: Data) throws -> User {
 
 ## Further Reading
 
-- The Swift Programming Language, "Encoding and Decoding Custom Types" (<https://docs.swift.org/swift-book/documentation/the-swift-programming-language/>)
 - Apple Developer: "Encoding and Decoding Custom Types" (<https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types>)
 - SE-0166 "Swift Archival & Serialization" (<https://github.com/swiftlang/swift-evolution/blob/main/proposals/0166-swift-archival-serialization.md>)
-- Hacking with Swift, "How to parse JSON using Codable" (<https://www.hackingwithswift.com/articles/119/codable-cheat-sheet>)
+- Hacking with Swift, "Codable cheat sheet" (<https://www.hackingwithswift.com/articles/119/codable-cheat-sheet>)
 - IN-AG-NO-SILENT-001 — dictionary casting silently maps every misconfiguration to `nil`

@@ -153,5 +153,5 @@ Library callers can `match err { ConfigError::Io(_) => ..., ConfigError::Parse(_
 - `thiserror` crate docs (<https://docs.rs/thiserror>)
 - `anyhow` crate docs (<https://docs.rs/anyhow>)
 - "Error Handling in Rust" — BurntSushi (<https://blog.burntsushi.net/rust-error-handling/>)
-- Rust API Guidelines, "Error types" (<https://rust-lang.github.io/api-guidelines/dependability.html#error-types-are-meaningful-and-well-behaved-c-good-err>)
+- Rust API Guidelines, "Error types" (<https://rust-lang.github.io/api-guidelines/interoperability.html#error-types-are-meaningful-and-well-behaved-c-good-err>)
 - IN-RS-CODE-001 — `Result` over panic is the foundation this rule builds on

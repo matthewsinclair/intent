@@ -39,9 +39,9 @@ Every `public` is a contract you will have to keep. Every `private` is a rename 
 
 ## Problem
 
-Swift has five access levels (`private`, `fileprivate`, `internal`, `package`, `public`) because each one buys a different scope of commitment. `private` means "this symbol can change freely". `public` means "breaking this symbol breaks every downstream consumer". Authors who default to `public` — usually because a test or sample app could not see the symbol otherwise — leak every internal helper into the API, where it has to be maintained as part of the contract.
+Swift has six access levels (`private`, `fileprivate`, `internal`, `package`, `public`, `open`) because each one buys a different scope of commitment. `private` means "this symbol can change freely". `public` means "breaking this symbol breaks every downstream consumer". Authors who default to `public` — usually because a test or sample app could not see the symbol otherwise — leak every internal helper into the API, where it has to be maintained as part of the contract.
 
-The Swift default is `internal`, which is reasonable for an app target but too wide for a library. Library crates should reach for `public` deliberately; everything else stays `internal` or tighter. And `private` (same file) versus `fileprivate` (same file, different scope): the distinction is real, and sloppy `fileprivate` usage hides helpers that should live in their owning type.
+The Swift default is `internal`, which is reasonable for an app target but too wide for a library. Library crates should reach for `public` deliberately; everything else stays `internal` or tighter. And `private` (the enclosing declaration and its same-file extensions) versus `fileprivate` (the whole file): the distinction is real, and sloppy `fileprivate` usage hides helpers that should live in their owning type.
 
 ## Detection
 

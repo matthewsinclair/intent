@@ -58,11 +58,7 @@ This is a judgement read, not a pattern match. The critic reads the page as a sc
 ```markdown
 # Welcome
 
-Thank you for taking the time to visit our website today. We are a company that
-was founded some years ago with a mission, and over the course of that time we
-have grown considerably and learned a great deal about our customers and their
-needs, which brings us to the product we would like to tell you about, which
-after all this preamble is a project management tool.
+Thank you for taking the time to visit our website today. We are a company that was founded some years ago with a mission, and over the course of that time we have grown considerably and learned a great deal about our customers and their needs, which brings us to the product we would like to tell you about, which after all this preamble is a project management tool.
 ```
 
 ## Good

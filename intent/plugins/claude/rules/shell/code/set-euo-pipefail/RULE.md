@@ -109,12 +109,12 @@ Any failure aborts the script immediately. Missing `$1` fails loudly with a mess
 
 - `.bashrc` / `.bash_profile` / interactive shell startup: strict modes break tab-completion handlers, prompt customisations, and unrelated interactive behaviours.
 - Legacy scripts where retrofit would unearth a backlog of unset-var usage. Document the decision, file a ticket, migrate incrementally.
-- Bash 3.x compatibility constraints (macOS default). `-o pipefail` has known edge cases in bash 3.x on some corner inputs;
+- Bash 3.x compatibility constraints (macOS default). `-o pipefail` has known edge cases in bash 3.x on some corner inputs.
 
 ## Further Reading
 
 - "Unofficial Bash Strict Mode" (Aaron Maxwell) (<http://redsymbol.net/articles/unofficial-bash-strict-mode/>)
-- Google Shell Style Guide — Error Handling (<https://google.github.io/styleguide/shellguide.html>)
+- Google Shell Style Guide — Checking Return Values (<https://google.github.io/styleguide/shellguide.html#checking-return-values>)
 - ShellCheck wiki SC2148 (<https://www.shellcheck.net/wiki/SC2148>)
 - IN-SH-CODE-004 — zsh equivalent (`setopt err_exit no_unset pipe_fail`)
 - IN-SH-CODE-005 — no-silent-exit-codes is the complementary discipline for explicitly-checked failures

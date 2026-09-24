@@ -43,7 +43,7 @@ The verb exists because the alternative is worse. Requirements over-cook -- an a
 
 **And the pressure to use it is strongest exactly where it is most damaging.** You meet `fc` when a row is red, the fix is expensive, and closing it would let you report the work finished. That is the moment the verb looks most reasonable and the moment its use is least defensible.
 
-## This is a contract, not a wall, and the difference is the whole rule
+### This is a contract, not a wall, and the difference is the whole rule
 
 **You share the human's uid and their shell.** Harness allowlists do not close this: `intent wp` was measured allowlisted in a sibling estate, so its close verbs ran with no prompt at all, and anything built on the existing verbs inherits every such allowlist. There is no permission boundary between you and this command on the machine you are running on.
 

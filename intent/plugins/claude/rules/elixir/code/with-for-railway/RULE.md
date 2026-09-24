@@ -57,7 +57,7 @@ Failure modes without `with`:
 Signals:
 
 - Three or more nested `case` blocks in a function body, each branching on `{:ok, _}` / `{:error, _}`.
-- An `else -> error` forwarder at the inner end of a `case`.
+- An `error -> error` forwarder at the inner end of a `case`.
 - A function body with "step 1 / step 2 / step 3" comments indicating sequential operations.
 - `with ... else` blocks with more than two clauses, often remapping the same `{:error, _}` into a normalised form.
 
@@ -149,4 +149,4 @@ A good test: "does this function compose two or more `{:ok, _}` / `{:error, _}` 
 - [Intent `IN-AG-NO-SILENT-001`](../../../agnostic/no-silent-errors/RULE.md) — `with` is the Elixir mechanism that makes no-silent-errors ergonomic.
 - [Intent `IN-EX-CODE-002` tagged-tuple-returns](../tagged-tuple-returns/RULE.md) — `with` only works if the steps return tagged tuples.
 - [Elixir docs — `with`](https://hexdocs.pm/elixir/Kernel.SpecialForms.html#with/1) — language reference.
-- [José Valim — "Complex `else` clauses in `with`"](https://hexdocs.pm/elixir/anti-patterns.html#complex-else-clauses-in-with) — the canonical anti-pattern this rule points away from.
+- [José Valim — "Complex `else` clauses in `with`"](https://hexdocs.pm/elixir/code-anti-patterns.html#complex-else-clauses-in-with) — the canonical anti-pattern this rule points away from.

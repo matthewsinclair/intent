@@ -12,7 +12,7 @@ Fixed segments separated by hyphens:
 | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `IN-`    | Prefix. Fixed. Distinguishes Intent rules from `ETC-*` (elixir-test-critic) when both are loaded.                                                                     |
 | `<LANG>` | Language code. One of: `AG` (agnostic), `EX` (elixir), `RS` (rust), `SW` (swift), `LU` (lua), `SH` (shell — bash + zsh), `PR` (prose), `AU` (author), `CO` (content). |
-| `<CAT>`  | Category code. Short abbreviation in uppercase (`CODE`, `TEST`, `ASH`, `PHX`, `LV`, `ARCH`, `MOCK`).                                                                  |
+| `<CAT>`  | Category code. Short abbreviation in uppercase (`CODE`, `TEST`, `ASH`, `PHX`, `LV`).                                                                                  |
 | `<NNN>`  | Zero-padded 3-digit sequence, starting at `001`. Scope: unique within a `<LANG>-<CAT>` prefix.                                                                        |
 
 ## Examples
@@ -23,7 +23,7 @@ Fixed segments separated by hyphens:
 | `IN-EX-CODE-001`       | Intent / Elixir / code category / #001                   |
 | `IN-EX-TEST-001`       | Intent / Elixir / test category / #001                   |
 | `IN-EX-ASH-002`        | Intent / Elixir / Ash category / #002                    |
-| `IN-EX-PHX-003`        | Intent / Elixir / Phoenix category / #003                |
+| `IN-EX-PHX-001`        | Intent / Elixir / Phoenix category / #001                |
 | `IN-EX-LV-001`         | Intent / Elixir / LiveView category / #001               |
 | `IN-RS-CODE-001`       | Intent / Rust / code / #001                              |
 | `IN-RS-TEST-002`       | Intent / Rust / test / #002                              |
@@ -48,29 +48,27 @@ Why two letters: short enough to read inline in Critic reports; distinct enough 
 
 Why not `EL` for Elixir: `EX` matches the `.ex` / `.exs` file extensions and reads as "Elixir" in context.
 
-Why not `BA`/`ZS` for bash/zsh separately: most shell rules (quoting discipline, `$()` over backticks, no-parse-`ls`, no `eval` on untrusted input) apply identically to both. Splitting into two language codes would force Highlander violations for every shared rule. Shell-dialect divergence is real (`set -e` vs `setopt err_exit`, 0- vs 1-based array indexing, word-splitting defaults) and is handled by splitting THAT concern into two separate `IN-SH-*` rules with distinct slugs, tagged `bash-specific` or `zsh-specific`. The language code stays `SH`.
+Why not `BA`/`ZS` for bash/zsh separately: most shell rules (quoting discipline, no-parse-`ls`, never discarding exit codes, one helper per concern) apply identically to both. Splitting into two language codes would force Highlander violations for every shared rule. Shell-dialect divergence is real (`set -e` vs `setopt err_exit`, 0- vs 1-based array indexing, word-splitting defaults) and is handled by splitting THAT concern into two separate `IN-SH-*` rules with distinct slugs, tagged `bash-specific` or `zsh-specific`. The language code stays `SH`.
 
 ## Category codes
 
 Upper-case short slug. Categories are established per-language as the pack grows. Some are shared conventions:
 
-| Code          | Meaning                                      | Typical languages       |
-| ------------- | -------------------------------------------- | ----------------------- |
-| `CODE`        | Production code rules                        | all                     |
-| `TEST`        | Test rules                                   | all                     |
-| `ARCH`        | Architecture-level principles                | agnostic                |
-| `ASH`         | Ash framework                                | elixir                  |
-| `PHX`         | Phoenix framework                            | elixir                  |
-| `LV`          | LiveView                                     | elixir                  |
-| `MOCK`        | Mocking / test doubles                       | elixir (future: others) |
-| `HIGHLANDER`  | Highlander rule                              | agnostic                |
-| `PFIC`        | Pure Function / Impure Coordination          | agnostic                |
-| `THIN-COORD`  | Thin Coordinator                             | agnostic                |
-| `RED-CONTROL` | A control is only a control if it can go red | agnostic                |
-| `NO-SILENT`   | No Silent Errors                             | agnostic                |
-| `FIAT`        | Fiat close is the human's verb               | agnostic                |
-| `STYLE`       | Mechanical prose rules                       | prose, author, content  |
-| `CRAFT`       | Judgment prose rules                         | author, content         |
+| Code          | Meaning                                      | Typical languages      |
+| ------------- | -------------------------------------------- | ---------------------- |
+| `CODE`        | Production code rules                        | all                    |
+| `TEST`        | Test rules                                   | all                    |
+| `ASH`         | Ash framework                                | elixir                 |
+| `PHX`         | Phoenix framework                            | elixir                 |
+| `LV`          | LiveView                                     | elixir                 |
+| `HIGHLANDER`  | Highlander rule                              | agnostic               |
+| `PFIC`        | Pure Function / Impure Coordination          | agnostic               |
+| `THIN-COORD`  | Thin Coordinator                             | agnostic               |
+| `RED-CONTROL` | A control is only a control if it can go red | agnostic               |
+| `NO-SILENT`   | No Silent Errors                             | agnostic               |
+| `FIAT`        | Fiat close is the human's verb               | agnostic               |
+| `STYLE`       | Mechanical prose rules                       | prose, author, content |
+| `CRAFT`       | Judgment prose rules                         | author, content        |
 
 Categories are not strictly hierarchical. A rule fits one `<LANG>-<CAT>` bucket; that bucket is what appears in its ID.
 
@@ -100,7 +98,7 @@ Current capacity per bucket: 999 rules. If any bucket reaches 900, treat it as a
 - Migration of rules that fit the new code (with `aliases:` for old IDs in each moved rule).
 - Schema-level review.
 
-Four-digit suffixes (`IN-EX-CODE-1000`) are forbidden in v2.9.0. Re-category before hitting the ceiling.
+Four-digit suffixes (`IN-EX-CODE-1000`) are forbidden: `intent claude rules validate` requires a three-digit tail. Re-category before hitting the ceiling.
 
 ## Renames (allowed)
 
@@ -141,13 +139,13 @@ Upstream (`elixir-test-critic`) uses `ETC-<CAT>-<NNN>` — a two-segment scheme 
 
 Intent's scheme has the language code because Intent covers agnostic, Elixir, Rust, Swift, Lua, shell and the prose packs. The cost of the extra segment is worth the clarity when rules from several sources appear in one report.
 
-When Intent ports an upstream principle, the Intent rule stores the upstream slug in `upstream_id:`. The IDs are not mechanically convertible — Intent assigns its own sequence. Planned allocations for v2.9.0 (WP05 authors the actual rules):
+When Intent ports an upstream principle, the Intent rule stores the upstream slug in `upstream_id:`. The IDs are not mechanically convertible — Intent assigns its own sequence. Shipped upstream-derived rules:
 
 | Intent ID        | Upstream `upstream_id` | Upstream ID    | Upstream path                 |
 | ---------------- | ---------------------- | -------------- | ----------------------------- |
 | `IN-EX-TEST-002` | `no-process-sleep`     | `ETC-CORE-005` | `rules/core/no-process-sleep` |
-| `IN-EX-TEST-003` | `async-by-default`     | `ETC-CORE-*`   | `rules/core/async-by-default` |
-| `IN-EX-TEST-004` | `start-supervised`     | `ETC-CORE-*`   | `rules/core/start-supervised` |
+| `IN-EX-TEST-003` | `async-by-default`     | `ETC-CORE-001` | `rules/core/async-by-default` |
+| `IN-EX-TEST-004` | `start-supervised`     | `ETC-CORE-006` | `rules/core/start-supervised` |
 
 `IN-EX-TEST-001` (strong-assertions) is Intent-original — no upstream counterpart (upstream's `test-shape-not-values` is telemetry-scoped, not a general strong-assertions rule).
 
@@ -155,7 +153,7 @@ See `attribution-policy.md` for the attribution discipline.
 
 ## Validation
 
-The `intent claude rules validate` tool (spec in WP02) checks:
+The `intent claude rules validate` tool checks:
 
 - ID starts `IN-`, ends in a three-digit number, and has at least two segments of uppercase letters or digits between. No language-code list is checked.
 - IDs are unique across the entire library (no two rules share a full ID, even across language packs).
@@ -163,14 +161,14 @@ The `intent claude rules validate` tool (spec in WP02) checks:
 
 ## Do / Don't
 
-| Do                                                  | Don't                                           |
-| --------------------------------------------------- | ----------------------------------------------- |
-| `IN-EX-TEST-042`                                    | `in-ex-test-42` (case, padding)                 |
-| `IN-EX-CODE-001`                                    | `IN-EX-CODE001` (missing hyphen)                |
-| `IN-EX-CODE-001` after rename                       | `IN-EX-CODE-010` to "make room"                 |
-| Reuse `IN-EX-TEST-003` after removing by `aliases:` | Reassign `IN-EX-TEST-003` to a different rule   |
-| `IN-RS-CODE-001`                                    | `IN-RUST-CODE-001` (language code is 2 letters) |
-| `IN-EX-PHX-001` for Phoenix                         | `IN-EX-PHOENIX-001`                             |
+| Do                                                                | Don't                                           |
+| ----------------------------------------------------------------- | ----------------------------------------------- |
+| `IN-EX-TEST-042`                                                  | `in-ex-test-42` (case, padding)                 |
+| `IN-EX-CODE-001`                                                  | `IN-EX-CODE001` (missing hyphen)                |
+| `IN-EX-CODE-001` after rename                                     | `IN-EX-CODE-010` to "make room"                 |
+| Keep `IN-EX-TEST-003` after a slug rename, old slug in `aliases:` | Reassign `IN-EX-TEST-003` to a different rule   |
+| `IN-RS-CODE-001`                                                  | `IN-RUST-CODE-001` (language code is 2 letters) |
+| `IN-EX-PHX-001` for Phoenix                                       | `IN-EX-PHOENIX-001`                             |
 
 ## Evolution
 
@@ -182,5 +180,6 @@ Adding a new language requires:
 - At least one seed rule in the new pack — subsequent rules copy from it.
 - `language` enum in `rules/_schema/rule-schema.md` extended; the codes table here updated.
 - The language added to `LANGUAGES` in `native/rust/crates/intentsvcs/src/rules.rs` -- the canon-enumeration allowlist, which `intent lang init` also derives its accepted languages from. Without it the pack is invisible to `intent claude rules list` and anything else that enumerates canon. The v3 validator (`intent claude rules validate`) checks an id's shape and keeps no list of language codes, so it needs no change. (In v2 this step was the validator regex in `intent_claude_rules` plus `LANG_SUBDIRS` in `rules_lib.sh`, both removed with the v2 shell.)
+- If the pack gets a headless critic, add it to `HEADLESS_LANGUAGES` in `native/rust/crates/intentsvcs/src/critic.rs`. If it is declarable but has none (as `author` and `content`), the `critic` handler in `native/rust/crates/intent-cli/src/render.rs` must treat it as a clean no-op, or `intent critic` refuses it at exit 2 and the pre-commit gate reports it UNENFORCED. If it is composed into other packs rather than declared (as `agnostic` and `prose`), add it to `NON_DECLARABLE` in `rules.rs`.
 
-Adding a new category code within an existing language: lighter process. Add the category code to the `rule-schema.md` category table and start numbering from `001`.
+Adding a new category code within an existing language: lighter process. Add the category code to the Category codes table above and start numbering from `001`.

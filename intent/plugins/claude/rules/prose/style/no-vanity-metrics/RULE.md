@@ -74,5 +74,5 @@ This week: chapters 3-6 drafted (size: L). Chapter 4 needs a second pass.
 
 ## Further Reading
 
-- The project's `CLAUDE.md` -- T-shirt sizing and the no-vanity-metrics rule.
+- The project's `CLAUDE.md`, where it states a sizing rule (Intent's says "T-shirt sizing only"); the canon `CLAUDE.md` carries no vanity-metric rule, so this rule is its home.
 - IN-PR-STYLE-001 -- the sibling house-style rule.

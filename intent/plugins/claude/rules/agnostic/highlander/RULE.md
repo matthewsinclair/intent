@@ -57,7 +57,7 @@ Look for modules, functions, or configuration blocks with overlapping responsibi
 - Two modules whose names are near-synonyms (`Utils.Email` and `Validators.Email`; `http_client.py` and `api_client.py`).
 - A function in module `A` and a near-identical function in module `C`, each called from different coordinators.
 - The same regex, format string, or constant repeated verbatim in three or more files.
-- A new PR that adds a helper function whose doctoring reads like the doctoring of an existing helper.
+- A new PR that adds a helper function whose docstring reads like the docstring of an existing helper.
 
 Structural signal: the project's module registry (Intent's `MODULES.md`, a module manifest in other ecosystems) has no entry for the new concern, yet the concern is being implemented.
 
@@ -65,7 +65,7 @@ Language-specific detection heuristics live in the concretising rules.
 
 ## Bad
 
-Textual (agnostic tier — see `concretised_by:` for runnable examples):
+Textual (agnostic tier — see `concretised_by:` for language-specific examples, runnable for the Elixir ones):
 
 ```
 # Module A

@@ -101,7 +101,7 @@ end
 
 ## When This Does Not Apply
 
-- **Testing `start_link` directly.** If the test's subject _is_ the start sequence (`assert {:error, :already_started} = MyServer.start_link(name: :dup)`), you need the raw call result.
+- **Testing `start_link` directly.** If the test's subject _is_ the start sequence (`assert {:error, {:already_started, _pid}} = MyServer.start_link(name: :dup)`), you need the raw call result.
 - **Testing name-registration conflicts.** When you deliberately start two processes under the same name to test the conflict, `start_supervised` can interfere.
 - **Short-lived Tasks.** A `Task.async/1` + `Task.await/1` whose lifetime is scoped to a single test line does not need supervision; it terminates before the next line.
 

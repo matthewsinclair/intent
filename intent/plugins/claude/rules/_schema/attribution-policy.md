@@ -52,7 +52,7 @@ Any case where Intent reproduces or adapts upstream content at paragraph scale o
 - RULE.md body: prefaced with the full MIT notice inline (not just a link).
 - The portion that's derived is clearly marked.
 
-The reference-and-recommend design (see the reference-and-recommend design note) is explicitly to avoid Tier 3: Intent rewrites in its own voice, never copies upstream prose.
+The reference-and-recommend design is explicitly to avoid Tier 3: Intent rewrites in its own voice, never copies upstream prose.
 
 If a future rule crosses into Tier 3, add the full MIT notice to its RULE.md and update this policy with the rule ID.
 
@@ -84,7 +84,7 @@ A 404 means the slug is wrong (typo, or upstream uses a different directory layo
 When **not** to set it:
 
 - The rule is language-agnostic (lives in `rules/agnostic/`). Agnostic rules predate upstream.
-- The rule is Rust / Swift / Lua. Upstream is Elixir-only.
+- The rule is in any pack but `elixir` (rust, swift, lua, shell, prose, author, content). Upstream is Elixir-only.
 - The rule is Intent-specific Elixir guidance with no upstream counterpart (eg Ash-specific rules that upstream doesn't cover).
 - Topical overlap without principle borrow.
 
@@ -109,13 +109,11 @@ Single canonical file: `intent/plugins/claude/rules/_attribution/elixir-test-cri
 
 ## Rules derived from upstream principles
 
-| Intent rule    | Upstream slug    | What was borrowed                                  |
-| -------------- | ---------------- | -------------------------------------------------- |
-| IN-EX-TEST-002 | no-process-sleep | Principle `assert-not-sleep` + Detection heuristic |
-| IN-EX-TEST-003 | async-by-default | Principle (safe concurrency by default)            |
-| IN-EX-TEST-004 | start-supervised | Principle (test-supervised process lifecycle)      |
-
-Rows above are illustrative — WP05 authors the actual Intent rules and populates `_attribution/elixir-test-critic.md` with the final table. IDs shown are the planned allocations.
+| Intent rule      | Upstream slug      | Upstream path                         | What was borrowed                                                       |
+| ---------------- | ------------------ | ------------------------------------- | ----------------------------------------------------------------------- |
+| `IN-EX-TEST-002` | `no-process-sleep` | `rules/core/no-process-sleep/RULE.md` | Principle (never sleep for synchronisation) + Detection signals         |
+| `IN-EX-TEST-003` | `async-by-default` | `rules/core/async-by-default/RULE.md` | Principle (async by default, opt out deliberately) + Detection signal   |
+| `IN-EX-TEST-004` | `start-supervised` | `rules/core/start-supervised/RULE.md` | Principle (supervise processes for per-test cleanup) + Detection signal |
 
 ## Substantially derived rules
 
@@ -123,9 +121,7 @@ _No rows._
 
 ## Schema compatibility
 
-Intent's rule schema (see `_schema/rule-schema.md`) adopts the frontmatter shape of
-this upstream verbatim, with Intent-specific optional field extensions that upstream
-tools ignore. Rules from upstream can be dropped into Intent's discovery unchanged.
+Intent's rule schema (see `_schema/rule-schema.md`) adopts upstream's frontmatter shape plus Intent fields. Upstream rules do not drop into Intent's discovery unchanged: they carry no `language:` and their `ETC-` ids fail the id check.
 
 ## Re-pinning
 
@@ -140,7 +136,7 @@ Re-pinning to a new upstream commit requires a new ST. Process:
 
 ## Re-pinning discipline
 
-The pinned commit is frozen for v2.9.0. Re-pinning is a future-ST concern because:
+The pinned commit is frozen. Re-pinning is a future-ST concern because:
 
 - Changed upstream rule slugs break every `upstream_id:` that references them.
 - Changed upstream principles mean Intent rules that borrowed may need rewriting.
@@ -150,7 +146,7 @@ Re-pinning is not a bug fix. It's a scope-bearing change.
 
 ## When upstream removes a rule
 
-If upstream removes a rule between pins, Intent rules with the now-dangling `upstream_id:` keep the field but carry a `_attribution_note:` in this file noting the removal. The Intent rule stands on its own; the attribution remains historical.
+If upstream removes a rule between pins, Intent rules with the now-dangling `upstream_id:` keep the field, and `_attribution/elixir-test-critic.md` lists the removal in its "Dangling upstream references" table. The Intent rule stands on its own; the attribution remains historical.
 
 ## When upstream re-slugs a rule
 
@@ -166,7 +162,7 @@ Before committing a new Intent rule:
 4. Cite the upstream rule in the new rule's "Further Reading" section.
 5. Verify the rule is Tier 2 (principle borrow) and not Tier 3 (substantial copy). If Tier 3, include the full MIT notice inline in the rule body and flag in the attribution table.
 
-`intent claude rules validate` (WP02) enforces: every rule with `upstream_id:` set has a matching row in the attribution file.
+`intent claude rules validate` enforces: every rule whose `upstream_id:` is set (and not `null`) has a row in an `_attribution/*.md` table whose first two cells are its backticked id and the same backticked slug.
 
 ## What to do on a rule deletion
 

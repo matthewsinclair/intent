@@ -5,7 +5,7 @@
 #   `handle_call/3`, `handle_cast/2`, `handle_info/2`, etc. Elixir runs the
 #   code fine — runtime exit is 0 per the schema exit-code contract. The
 #   antipattern is that a one-letter typo in a callback name would silently
-#   dispatch to a custom function rather than failing at compile time.
+#   dispatch to a custom function rather than drawing a compile-time warning.
 Mix.install([])
 
 defmodule ImplTrueOnCallbacks.BadExample do

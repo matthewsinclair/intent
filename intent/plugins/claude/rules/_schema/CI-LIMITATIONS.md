@@ -1,30 +1,30 @@
 # CI Limitations for Runnable Examples
 
-Intent's rule library supports runnable good / bad examples for some languages and textual-only examples for others. This document records which is which in v2.9.0, why, and what it means for rule authoring and validation.
+Intent's rule library supports runnable good / bad examples for some languages and textual-only examples for others. This document records which is which, why, and what it means for rule authoring and validation.
 
-## Runnable-examples matrix (v2.9.0)
+## Runnable-examples matrix
 
-| Language                 | Runnable examples | File convention                                                                  | Validator                                                                                                    |
-| ------------------------ | :---------------: | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| Elixir                   |        Yes        | `good_test.exs`, `bad_test.exs` (test rules); `good.exs`, `bad.exs` (code rules) | none; `intent claude rules validate` checks frontmatter only. Run `elixir <rule-dir>/good_test.exs` by hand. |
-| Shell                    |       Mixed       | Optional `good.sh` / `bad.sh` where feasible; fenced blocks otherwise            | none                                                                                                         |
-| Agnostic                 |        N/A        | No examples; `concretised_by:` language-specific rules                           | —                                                                                                            |
-| Rust                     |   Textual only    | Fenced code blocks in `## Bad` / `## Good` sections of RULE.md                   | Syntax review only                                                                                           |
-| Swift                    |   Textual only    | Fenced code blocks in `## Bad` / `## Good` sections of RULE.md                   | Syntax review only                                                                                           |
-| Lua                      |   Textual only    | Fenced code blocks in `## Bad` / `## Good` sections of RULE.md                   | Syntax review only                                                                                           |
-| Prose / Author / Content |   Textual only    | Fenced `markdown` blocks in `## Bad` / `## Good` of RULE.md                      | none                                                                                                         |
+| Language                 | Runnable examples | File convention                                                                                             | Validator                                                                                                                                    |
+| ------------------------ | :---------------: | ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Elixir                   |        Yes        | `good_test.exs`, `bad_test.exs` (test rules); `good.exs`, `bad.exs` (code rules)                            | `tests/unit/rule_pack_elixir_runnable.bats` (CI) runs each under standalone `elixir`; `intent claude rules validate` checks frontmatter only |
+| Shell                    |   Textual only    | Fenced code blocks in `## Bad` / `## Good` sections of RULE.md                                              | Syntax review only                                                                                                                           |
+| Agnostic                 |        N/A        | No examples; a pattern rule cites `concretised_by:` language-specific rules, a procedural rule carries none | —                                                                                                                                            |
+| Rust                     |   Textual only    | Fenced code blocks in `## Bad` / `## Good` sections of RULE.md                                              | Syntax review only                                                                                                                           |
+| Swift                    |   Textual only    | Fenced code blocks in `## Bad` / `## Good` sections of RULE.md                                              | Syntax review only                                                                                                                           |
+| Lua                      |   Textual only    | Fenced code blocks in `## Bad` / `## Good` sections of RULE.md                                              | Syntax review only                                                                                                                           |
+| Prose / Author / Content |   Textual only    | Fenced `markdown` blocks in `## Bad` / `## Good` of RULE.md                                                 | none                                                                                                                                         |
 
 ## Why Elixir is runnable and the others are not
 
-Intent runs on macOS. Elixir (via Homebrew) is a first-class development dependency — Intent itself uses Elixir subagents, Credo checks, and Elixir rule authoring.
+Elixir is a development dependency of Intent: CI installs it because the bats suite runs the Elixir rule examples and the autopsy skill's `autopsy.exs`.
 
-Rust, Swift, and Lua are in-scope languages for Critic subagents. Intent itself is written in Rust, but the rule validator runs no examples in any language, and Swift / Lua toolchains are not dev dependencies. Requiring them:
+Rust, Swift, and Lua are in-scope languages for Critic subagents. Intent itself is written in Rust and builds a Swift macOS app, but nothing runs Rust, Swift or Lua rule examples, and Lua is not a dev dependency. Requiring runnable examples for them:
 
 - Adds to the local-setup burden for Intent contributors.
 - Complicates CI (which would need additional language runtimes).
 - Locks Intent to specific Rust editions / Swift versions / Lua dialects, creating version drift maintenance.
 
-For v2.9.0, the cost-benefit falls on "textual examples are enough". Critic subagents perform Detection against real project files at invocation time; the rule's good / bad serve as teaching examples for Claude and human readers, not as validation fixtures.
+The cost-benefit falls on "textual examples are enough". Critic subagents perform Detection against real project files at invocation time; the rule's good / bad serve as teaching examples for Claude and human readers, not as validation fixtures.
 
 ## What textual-only means in practice
 
@@ -76,11 +76,11 @@ The Critic subagent reads RULE.md, extracts the Detection heuristic, and applies
 Runnable examples for Rust / Swift / Lua would require:
 
 1. **Tooling dependencies**: Rust (`cargo test`), Swift (`swift test`), Lua (`busted` or `luaunit`) available in Intent's dev environment and CI.
-2. **Per-language validator glue**: extending `intent claude rules validate` to dispatch to the right runner for non-Elixir languages.
+2. **Per-language runner glue**: a runner per language, as `tests/unit/rule_pack_elixir_runnable.bats` is for Elixir (`intent claude rules validate` runs no examples).
 3. **File conventions**: agreeing on `good.rs` / `bad.rs` structures that run in isolation (probably as `#[test]` modules or cargo-managed small crates).
 4. **CI environment**: GitHub Actions workflows per language, with cache / toolchain setup.
 
-This is a future-ST concern. For v2.9.0 the textual-only convention is stable; upgrading to runnable does not require re-authoring existing rule content — only adding sibling files and validator plumbing.
+This is a future-ST concern. The textual-only convention is stable; upgrading to runnable does not require re-authoring existing rule content — only adding sibling files and validator plumbing.
 
 ## Consequences for rule authors
 
@@ -93,8 +93,8 @@ If you are authoring a Rust / Swift / Lua rule:
 If you are authoring an Elixir rule:
 
 - Your good / bad `.exs` files must exit 0 when run (upstream convention — see `rule-schema.md` "Exit code contract").
-- Run them locally before committing: `mix test good_test.exs && mix test bad_test.exs`.
-- No validator or CI job runs them; running them before committing is the author's job.
+- Run them locally before committing: `elixir <rule-dir>/good_test.exs && elixir <rule-dir>/bad_test.exs` (`good.exs` / `bad.exs` for code rules). `mix test` cannot run them.
+- CI runs them: `tests/unit/rule_pack_elixir_runnable.bats` executes every listed rule's examples under standalone `elixir` and checks the `# EXPECTED: passes` first line. Add a new rule's slug to its `runnable_code_rules` / `runnable_test_rules` list, or its examples never run.
 
 ## Consequences for Critics
 

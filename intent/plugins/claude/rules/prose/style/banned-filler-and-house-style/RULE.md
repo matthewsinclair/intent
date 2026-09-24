@@ -81,5 +81,5 @@ The earlier framing was off -- here is the correction.
 
 ## Further Reading
 
-- The project's `CLAUDE.md` house-style section -- the authoritative banned-words list for the project.
+- The project's own house-style list, where it keeps one (Intent's canon `CLAUDE.md` seeds none); this rule's Detection list is what the critic applies.
 - IN-PR-STYLE-004 -- the mechanical trope pass, the sibling mechanical-tell rule.

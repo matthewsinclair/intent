@@ -58,7 +58,7 @@ These Intent rules borrow principle and/or Detection heuristic from upstream rul
 
 Voice, runnable examples, and section structure are Intent's. Upstream is credited by slug in each rule's "Further Reading" section.
 
-The `intent claude rules validate` tool (WP02) enforces the invariant that every rule with `upstream_id:` set has a matching row here.
+The `intent claude rules validate` tool enforces the invariant that every rule with `upstream_id:` set has a matching row here.
 
 Per `../_schema/attribution-policy.md`:
 
@@ -67,7 +67,7 @@ Per `../_schema/attribution-policy.md`:
 
 ## Substantially derived rules
 
-The reference-and-recommend integration design (see the reference-and-recommend design note) explicitly avoids Tier 3 by rewriting upstream content in Intent's voice. If a future rule crosses into Tier 3, add a row here and inline the full MIT notice above into that rule's `RULE.md` body.
+The reference-and-recommend integration design explicitly avoids Tier 3 by rewriting upstream content in Intent's voice. If a future rule crosses into Tier 3, add a row here and inline the full MIT notice above into that rule's `RULE.md` body.
 
 | Intent rule | Upstream slug | What was copied | MIT notice location |
 | ----------- | ------------- | --------------- | ------------------- |
@@ -81,10 +81,10 @@ Intent's rule schema (see `../_schema/rule-schema.md`) adopts upstream's frontma
 - `upstream_id:` — pointer to source slug
 - `language:` -- REQUIRED, not optional; one of `agnostic`, `elixir`, `rust`, `swift`, `lua`, `shell`, `prose`, `author`, `content`
 - `applies_to:` — machine-readable glob patterns
-- `references:`, `related_rules:`, `concretised_by:`, `conflicts_with:` — Intent cross-references
+- `references:`, `concretised_by:`, `conflicts_with:` — Intent cross-references (`related_rules:` is upstream's own field, which Intent shares)
 - `aliases:` -- previous slugs, kept as a record for readers; nothing resolves them (`intent claude rules show` matches the id only)
 
-Upstream rules can be dropped into Intent's discovery unchanged. The reverse (Intent → upstream) requires stripping Intent-specific fields — out of scope for v2.9.0 since Intent does not publish rules upstream.
+Upstream rules do not drop into Intent's discovery unchanged. An upstream rule has no `language:` (required here), its `ETC-` id fails `intent claude rules validate`'s id check, and its `related_rules:` cite `ETC-` ids no Intent rule declares; porting one means rewriting it as an Intent rule, as the three above were. Intent does not publish rules upstream.
 
 Upstream uses `## When This Applies` / `## When This Does Not Apply` for Markdown section headings; Intent adopts the same wording verbatim for compatibility.
 

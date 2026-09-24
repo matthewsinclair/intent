@@ -119,7 +119,7 @@ Callers use `?` to propagate or `match` to handle. The API surface tells the tru
 
 ## Further Reading
 
-- Rust API Guidelines, "Error types are meaningful" (<https://rust-lang.github.io/api-guidelines/dependability.html>)
+- Rust API Guidelines, "Error types are meaningful and well-behaved" (C-GOOD-ERR) (<https://rust-lang.github.io/api-guidelines/interoperability.html#error-types-are-meaningful-and-well-behaved-c-good-err>)
 - Clippy lints: `clippy::unwrap_used`, `clippy::expect_used`, `clippy::panic`
 - The Rust Programming Language, ch. 9 "Error Handling" (<https://doc.rust-lang.org/book/ch09-00-error-handling.html>)
 - IN-RS-CODE-004 — error type selection (`thiserror` for libraries, `anyhow` for binaries)

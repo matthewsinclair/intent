@@ -1,31 +1,40 @@
 # Sample .intent_critic.yml — copy to the project root and edit as needed.
 #
 # Read by: the headless `intent critic <lang>` (`disabled` only); the
-# pre-commit gate (`severity_min`, passed as --severity-min); the critic
-# subagents (critic-elixir, critic-rust, critic-swift, critic-lua,
-# critic-shell, critic-prose: `disabled`, `severity_min`, `show_all`); and
-# post-tool-advisory.sh (`post_tool_use_advisory`). Absence is silent. Only
-# the subagents warn on malformed YAML.
+# pre-commit gate (`severity_min`, passed as --severity-min, and `show_all`
+# when `severity_min` is absent); the critic subagents (critic-elixir,
+# critic-rust, critic-swift, critic-lua, critic-shell, critic-prose:
+# `disabled`, `severity_min`, `show_all`); and the opt-in PostToolUse hook
+# `intent claude hook post-tool-advisory` (`post_tool_use_advisory`). Absence
+# is silent. Only the subagents warn on malformed YAML.
 #
 # Schema (all keys optional):
 #
 #   disabled:        list of rule IDs to suppress entirely for this project.
 #                    Add a trailing `# reason: ...` comment on each entry so
-#                    future readers see why the rule was opted out. Keep the
-#                    `disabled:` line itself bare: the headless runner reads
-#                    a block list only when nothing follows the colon.
+#                    future readers see why the rule was opted out. A trailing
+#                    comment on the `disabled:` line is fine; the headless
+#                    runner reads the block list below it.
 #
 #   severity_min:    minimum severity rendered in the report body. One of
 #                    `critical` | `warning` | `recommendation` | `style`.
 #                    Default: `warning` (body shows CRITICAL + WARNING; the
-#                    `Summary:` line still counts every severity).
+#                    subagents' `Summary:` line still counts every severity).
+#                    The pre-commit gate passes it as --severity-min, so it is
+#                    also the threshold a commit blocks on; the headless
+#                    runner reports nothing below it.
 #
 #   show_all:        shorthand for `severity_min: style`, honoured by the
-#                    critic subagents only. The pre-commit gate ignores it.
+#                    critic subagents and the pre-commit gate (an explicit
+#                    `severity_min` wins).
 #
-#   post_tool_use_advisory: `true` makes .claude/scripts/post-tool-advisory.sh
-#                    run `intent critic <lang> --files <edited-file>` after
-#                    each edit. Default: false.
+#   post_tool_use_advisory: `true` lets the opt-in PostToolUse hook
+#                    (`intent claude hook post-tool-advisory`, wired by your
+#                    own .claude/settings.local.json stanza) run
+#                    `intent critic <lang> --files <edited-file>
+#                    --severity-min warning` after each Write, Edit or
+#                    MultiEdit of a .ex, .exs, .rs, .swift, .lua, .sh, .bash
+#                    or .zsh file. Default: false.
 
 disabled:
   - IN-EX-CODE-003 # reason: <why this project opts out>

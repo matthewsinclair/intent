@@ -153,7 +153,7 @@ The distinguishing question: **would an operator, reading only the code, know wh
 
 ## Further Reading
 
-- Joe Armstrong, "Making reliable distributed systems in the presence of software errors" (1993 thesis) — the origin of "let it crash" and the discipline that silent errors are worse than crashes.
+- Joe Armstrong, "Making reliable distributed systems in the presence of software errors" (PhD thesis, 2003; <https://erlang.org/download/armstrong_thesis_2003.pdf>) — the origin of "let it crash" and the discipline that silent errors are worse than crashes.
 - Rob Pike, "Errors are values" — the Go community's framing; error paths are data, not exceptions.
 - Intent `IN-AG-PFIC-001` — pure cores return tagged results; coordinators must handle both arms.
 - Intent `IN-AG-THIN-COORD-001` — coordinators are where domain errors are translated to transport errors; a coordinator that swallows the error arm is also violating Thin Coordinator.

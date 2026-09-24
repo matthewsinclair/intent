@@ -123,6 +123,6 @@ Globs expand directly in the shell with full filename integrity. `find -print0` 
 ## Further Reading
 
 - BashFAQ #1: "How can I read a file (data stream, variable) line-by-line (and/or field-by-field)?" (<https://mywiki.wooledge.org/BashFAQ/001>)
-- BashPitfalls #1: "for i in $(ls \*.mp3)" (<https://mywiki.wooledge.org/BashPitfalls#pf1>)
+- BashPitfalls #1: "for f in $(ls \*.mp3)" (<https://mywiki.wooledge.org/BashPitfalls#pf1>)
 - ShellCheck SC2012 (<https://www.shellcheck.net/wiki/SC2012>)
-- Google Shell Style Guide — File names in loops (<https://google.github.io/styleguide/shellguide.html>)
+- Google Shell Style Guide — Wildcard Expansion of Filenames (<https://google.github.io/styleguide/shellguide.html#wildcard-expansion-of-filenames>)

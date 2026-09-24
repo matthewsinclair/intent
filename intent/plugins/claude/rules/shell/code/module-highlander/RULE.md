@@ -44,7 +44,7 @@ There can be only one `error()`. Copies drift.
 
 Shell scripts accumulate by copy-paste. A new dispatcher command needs `error()`, so the author copies the four-line function from a sibling. Six months later, one copy prints to `stderr` with a prefix, another prints without, a third exits with `1`, a fourth exits with the `$?` it received. The behaviour of "what does `error()` do in script X?" depends on which script and which era of authoring, and nobody notices until the error messages start looking inconsistent in production.
 
-The remedy is the Highlander Rule applied at the shell layer: one helper function per concern, one location, every script sources it. Intent's own dev tooling does this with `bin/.devbin/lib/helpers`, which `bin/devbin` sources before it dispatches. Any new `error()` / `get_version()` / `ensure_intent_home()` function has a canonical home, and scripts that need it source it.
+The remedy is the Highlander Rule applied at the shell layer: one helper function per concern, one location, every script sources it. Intent's own dev tooling does this with `bin/.devbin/lib/helpers`, which `bin/devbin` sources before it dispatches. Any new `die()` / `warn()` / `read_version()`-style helper has a canonical home, and scripts that need it source it.
 
 The secondary benefit: changes to the helper propagate to every caller at once. No more "fix this bug in four different scripts".
 
@@ -120,4 +120,3 @@ fi
 - IN-AG-HIGHLANDER-001 — the agnostic principle this concretises
 - IN-EX-CODE-006 — Elixir module-Highlander counterpart (same logic, different language)
 - Intent's `bin/.devbin/lib/helpers` is a worked example of this pattern in practice
-- Google Shell Style Guide — Shared Functions (<https://google.github.io/styleguide/shellguide.html>)

@@ -47,6 +47,7 @@ Instances across estates, each caught only after it had been read as a green:
 The class was already written down on the board that found it, and the note stopped none of them. It has to be a STEP performed before a green is trusted, not a catalogue entry.
 
 The sharp edge is that red-first discipline, done correctly, emits the vulnerable shapes first: before the fix exists you write the assertion that the bad path fails and the assertion that the bad output is absent, and both are satisfied by a script that produces no output at all.
+
 Why this cannot be left to diligence, measured rather than argued: the instrument built to catch this class -- written by a node that had spent the day cataloguing it, with the rule in front of it -- shipped defects in one day, and **every one failed in the direction of looking clean**: a directory of threads never looked at; a give-up before the fallback that would have found the source; projects emitting no rows at all while exiting 0; a nonexistent path returning 0 with "nothing to account for". Not one produced a false alarm. That distribution is not chance. A check that wrongly reports trouble is investigated within minutes, because someone is blocked and comes looking; a check that wrongly reports calm is adopted, then relied on, and the longer it survives the more it is trusted. The selection pressure runs one way, so the surviving population of controls in any codebase is enriched for exactly the failure nobody sees. Diligence is what the asymmetry defeats; a step in the procedure is what survives it.
 
 The mirror image is the same question asked the other way: a control that encodes an expectation which is simply false fails when it should pass, and a working instrument is held back while its author debugs correct code. A control disconnected from its subject ships a false green; a control asserting something untrue discards a true result. Before trusting either verdict, ask what would make this control go red, and whether that is the same thing as the subject being wrong.
@@ -101,7 +102,7 @@ bats tests/unit/ > "$out" 2>&1; rc=$?
 grep -E '^1\.\.[0-9]+$' "$out"; grep -c '^ok ' "$out"; grep -c '^not ok ' "$out"; echo "rc=$rc"
 
 # COULD it have failed: plant the finding and assert it SURVIVES; stash the fix and list which tests went red
-git stash; bats tests/unit/gate_critic.bats; git stash pop     # the tests that stayed green are not controls
+git stash; bats tests/unit/<the suite that guards the fix>.bats; git stash pop     # the tests that stayed green are not controls
 
 # a grep for absence, positive-controlled first with a phrase known to be present in the same source
 grep -c 'FOURTEEN handlers' canon.json      # 1 -- the instrument can see this source
@@ -126,6 +127,6 @@ The green is read off a plan line, an ok count and an exit status that had to ag
 
 ## Further Reading
 
-- Intent cutover runbook, 2026-08-26 (`intent/whiteboard/vc/cutover-runbook.md`): the instances, and the memory that a precision figure is a claim about the corpus.
+- Intent cutover runbook as it stood at `0db3d7bb7` (2026-08-26; `intent/whiteboard/vc/cutover-runbook.md`): the instances, folded out of the live file on 2026-08-27.
 - A verdict is scoped to the world it was measured in: a control that fired on one tree or corpus has not fired on any other.
 - IN-AG-NO-SILENT-001: the production-code face of the same principle -- a failure that produces no signal is not a success.

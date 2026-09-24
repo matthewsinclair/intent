@@ -49,7 +49,6 @@ Static signals:
 - `if let` chains 2+ deep where each binding is "fail the whole function if absent".
 - Functions whose body is more than 50% defensive nesting.
 - `else { return nil }` or `else { throw ... }` at the tail of an `if let` block — this is literally what `guard` was designed for.
-- SwiftLint rule `early_exit` enforces the guard preference.
 
 **No greppable proxy is authoritative for this rule.** Its signals are about structure -- which scope, which code path, which call shape -- that a single line match cannot see without also firing on the forms this rule allows, so the headless runner declares it rather than guessing. The `critic-swift` subagent applies it by reading.
 
@@ -108,5 +107,4 @@ Preconditions up front; the work reads linearly at the same indentation level as
 
 - The Swift Programming Language, "Control Flow — Early Exit" (<https://docs.swift.org/swift-book/documentation/the-swift-programming-language/controlflow/#Early-Exit>)
 - Swift API Design Guidelines, "Clarity at the point of use" (<https://www.swift.org/documentation/api-design-guidelines/>)
-- SwiftLint rule: `early_exit`
 - IN-SW-CODE-002 — optionals over sentinels is the other half of this story

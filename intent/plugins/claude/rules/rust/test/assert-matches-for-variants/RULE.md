@@ -45,7 +45,7 @@ Assert on the variant and the fields that matter. `assert_eq!` with a 20-line li
 
 `assert_eq!(result, Ok(User { id: 1, name: "Alice".into(), email: "alice@test".into(), created_at: Utc::now(), roles: vec![] }))` fails when anyone adds a field to `User`, even a field the test does not care about. Because `assert_eq!` requires structural equality, every test becomes a magnet for irrelevant edits — and worse, because `Utc::now()` changes per run, the test cannot even be expressed this way without time mocking.
 
-The honest shape is: "assert the variant is `Ok` and that `id == 1` and `name == "Alice"`". That is what `assert_matches!` (from `std::assert_matches` in nightly, or the widely used `assert_matches` crate) was designed for.
+The honest shape is: "assert the variant is `Ok` and that `id == 1` and `name == "Alice"`". That is what `assert_matches!` (`std::assert_matches` where the toolchain has it stable, or the widely used `assert_matches` crate before that) was designed for.
 
 ## Detection
 
@@ -114,6 +114,6 @@ The assertions name exactly what the test cares about. New fields do not break t
 ## Further Reading
 
 - `assert_matches` crate (<https://docs.rs/assert_matches>)
-- `std::assert_matches!` RFC (<https://github.com/rust-lang/rust/issues/82775>)
+- `std::assert_matches!` tracking issue, closed as completed (<https://github.com/rust-lang/rust/issues/82775>)
 - IN-EX-TEST-001 — Elixir equivalent (strong assertions against concrete values)
 - IN-AG-HIGHLANDER-001 — one source of truth for assertion shape; do not repeat test shape everywhere

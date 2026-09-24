@@ -127,4 +127,4 @@ A good test: "if I add a new struct to handle, is it one new clause or a refacto
 
 - [Intent `IN-AG-PFIC-001`](../../../agnostic/pfic/RULE.md) — pattern matching is what turns a coordinator-style conditional chain into a pure-core dispatch.
 - [Elixir docs — Pattern matching](https://hexdocs.pm/elixir/pattern-matching.html) — the language reference for what is matchable.
-- [José Valim — "Elixir anti-patterns"](https://hexdocs.pm/elixir/anti-patterns.html) — "complex else clauses in with" touches the same nerve as this rule from the `with` side.
+- [Elixir docs — "Code-related anti-patterns"](https://hexdocs.pm/elixir/code-anti-patterns.html#complex-else-clauses-in-with) — "Complex `else` clauses in `with`" touches the same nerve as this rule from the `with` side.

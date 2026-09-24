@@ -55,16 +55,13 @@ A judgement read against the stated or evident audience. The critic asks:
 ## Bad
 
 ```markdown
-Our solution facilitates the optimisation of cross-functional operational
-workflows through the utilisation of an integrated platform architecture that
-leverages synergistic capabilities to maximise stakeholder value realisation.
+Our solution facilitates the optimisation of cross-functional operational workflows through the utilisation of an integrated platform architecture that leverages synergistic capabilities to maximise stakeholder value realisation.
 ```
 
 ## Good
 
 ```markdown
-Our tool helps teams work together in one place. Fewer tools to juggle, less
-time lost switching between them, more done.
+Our tool helps teams work together in one place. Fewer tools to juggle, less time lost switching between them, more done.
 ```
 
 ## When This Applies

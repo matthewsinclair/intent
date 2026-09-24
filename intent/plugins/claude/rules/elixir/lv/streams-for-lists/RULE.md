@@ -121,7 +121,7 @@ Only the new item crosses the wire. The parent `<ul>` needs `id` and `phx-update
 - Chat logs, activity feeds, event streams.
 - Paginated search results that stream additional pages.
 - Admin tables with live updates from PubSub.
-- Any list that could realistically exceed 50 items and receives updates.
+- Any list that could realistically grow past ~20 items and receives updates.
 
 ## When This Does Not Apply
 
@@ -134,5 +134,5 @@ A good test: "if this list had 1000 items and gained one, what would go over the
 ## Further Reading
 
 - [Phoenix.LiveView — streams](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#stream/4) — the language reference, including `stream_config` for limits and sort ordering.
-- [Phoenix.LiveView — `phx-update="stream"`](https://hexdocs.pm/phoenix_live_view/bindings.html#phx-update) — the template-side contract.
-- [Chris McCord — "Streams in LiveView"](https://www.phoenixframework.org/blog/phoenix-liveview-streams) — the design intent behind streams.
+- [Phoenix.LiveView — `phx-update="stream"`](https://hexdocs.pm/phoenix_live_view/bindings.html#dom-patching) — the template-side contract.
+- [Phoenix blog — "Phoenix 1.7.0 released: Built-in Tailwind, Verified Routes, LiveView Streams, and what's next"](https://www.phoenixframework.org/blog/phoenix-1.7-final-released) — the release that introduced streams.

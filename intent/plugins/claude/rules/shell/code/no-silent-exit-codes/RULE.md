@@ -147,8 +147,8 @@ Every command's failure is either propagated (via `set -euo pipefail`), delibera
 
 ## Further Reading
 
-- BashFAQ #105: "I'm trying to use `set -e` and it's biting me" (<https://mywiki.wooledge.org/BashFAQ/105>)
+- BashFAQ #105: "Why doesn't set -e (or set -o errexit, or trap ERR) do what I expected?" (<https://mywiki.wooledge.org/BashFAQ/105>)
 - ShellCheck SC2015 (<https://www.shellcheck.net/wiki/SC2015>), SC2164
-- Google Shell Style Guide — Error Handling (<https://google.github.io/styleguide/shellguide.html>)
+- Google Shell Style Guide — Checking Return Values (<https://google.github.io/styleguide/shellguide.html#checking-return-values>)
 - IN-SH-CODE-003, IN-SH-CODE-004 — strict-mode rules that make this rule easier to enforce
 - IN-AG-NO-SILENT-001 — agnostic principle concretising here

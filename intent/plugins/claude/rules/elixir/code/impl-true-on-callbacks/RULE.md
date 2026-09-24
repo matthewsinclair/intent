@@ -3,7 +3,7 @@ id: IN-EX-CODE-003
 language: elixir
 category: code
 severity: warning
-title: "@impl true on behaviour callbacks"
+title: "`@impl true` on behaviour callbacks"
 summary: >
   Every function that implements a behaviour callback must be annotated with
   `@impl true`. The annotation catches typos in the callback name at compile
@@ -34,13 +34,13 @@ version: 1
 
 # `@impl true` on behaviour callbacks
 
-An unannotated callback is a bug waiting to happen. `handel_event/3` (one-letter typo) compiles cleanly, silently fails to dispatch, and you spend ten minutes staring at a LiveView that does nothing when the user clicks. `@impl true` turns the typo into a compile-time error and makes the callback obvious to the next reader.
+An unannotated callback is a bug waiting to happen. `handel_event/3` (one-letter typo) compiles cleanly, silently fails to dispatch, and you spend ten minutes staring at a LiveView that does nothing when the user clicks. `@impl true` turns the typo into a compile-time warning (an error under `--warnings-as-errors`) and makes the callback obvious to the next reader.
 
 ## Problem
 
 Failure modes when callbacks are unannotated:
 
-1. **Typo compiles.** Elixir does not know `handel_event/3` was meant to be `handle_event/3`. The compiler accepts it as a custom function; the behaviour's dispatch never finds it; the user sees a silent no-op. With `@impl true`, the compiler emits `warning: got "@impl true" for function handel_event/3 but no behaviour specifies this callback` and you know immediately.
+1. **Typo compiles.** Elixir does not know `handel_event/3` was meant to be `handle_event/3`. The compiler accepts it as a custom function; the behaviour's dispatch never finds it; the user sees a silent no-op. With `@impl true`, the compiler emits `warning: got "@impl true" for function handel_event/3 but no behaviour specifies such callback` and you know immediately.
 2. **Reader cannot tell callbacks from helpers.** In a 400-line LiveView with `handle_event`, `handle_info`, `apply_action`, `load_posts`, `normalise_filters`, a reader cannot tell which are callbacks and which are custom without chasing behaviour documentation. `@impl true` is a visual landmark.
 3. **Behaviour changes go unnoticed.** When a library renames a callback or deprecates one, `@impl true` is the signal. Without it, you might be implementing a dead callback for years.
 
@@ -87,7 +87,7 @@ defmodule MyServer do
 end
 ```
 
-A typo now fails at compile time: `got "@impl true" for function handle_cal/3 but no behaviour specifies this callback`.
+A typo now warns at compile time (and fails the build under `--warnings-as-errors`): `got "@impl true" for function handle_cal/3 but no behaviour specifies such callback`.
 
 For multiple behaviours in one module, use `@impl BehaviourName` to disambiguate:
 

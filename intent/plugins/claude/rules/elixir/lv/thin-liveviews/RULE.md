@@ -47,7 +47,7 @@ Failure modes when LiveViews fatten:
 2. **Untestable via LiveViewTest.** Business logic inside `handle_event/3` can only be tested by simulating the event. The same logic as a domain function is testable by calling it directly, with real inputs and real expected outputs.
 3. **Assign explosion.** LiveViews that do aggregation queries (`total_spend`, `active_users_by_role`, etc.) end up with 20 assigns because every stat lives in the view. The socket is carrying the data model instead of rendering it.
 
-The discipline is identical to controllers: parse the event, call the domain, update assigns from the result, render. If the handler is more than five lines, it is doing too much.
+The discipline is identical to controllers: parse the event, call the domain, update assigns from the result, render. If the handler is more than ~10 lines, it is doing too much.
 
 ## Detection
 
@@ -123,4 +123,3 @@ A good test: "could a mix task trigger this behaviour without going through a We
 - [Intent `IN-AG-THIN-COORD-001`](../../../agnostic/thin-coordinator/RULE.md) — the agnostic principle.
 - [Intent `IN-EX-PHX-001` thin-controllers](../../phoenix/thin-controllers/RULE.md) — the controller-layer equivalent.
 - [Intent `IN-EX-LV-001` two-phase-mount](../two-phase-mount/RULE.md) — the related LiveView-lifecycle rule.
-- [Chris McCord — "Rethinking server-rendered apps"](https://www.phoenixframework.org/blog/the-road-to-live-view-1.0) — the LiveView-as-coordinator design intent.

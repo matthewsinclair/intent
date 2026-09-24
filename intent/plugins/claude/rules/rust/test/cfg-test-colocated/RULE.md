@@ -129,5 +129,4 @@ Private helpers stay private. Unit tests reach them via `use super::*;`. Integra
 ## Further Reading
 
 - The Rust Programming Language, ch. 11 "Writing Automated Tests" (<https://doc.rust-lang.org/book/ch11-00-testing.html>)
-- Rust API Guidelines, "Unit tests live in the same file" (<https://rust-lang.github.io/api-guidelines/>)
 - IN-RS-TEST-002 — use `assert_matches!` to test variants rather than `assert_eq!` on long literals
