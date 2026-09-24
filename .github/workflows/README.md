@@ -45,9 +45,9 @@ No concurrency group: every run completes.
 
 **Jobs**:
 
-- `validate-steel-thread`: builds the v3 `intent` binary, takes the first `ST####` in the PR description and runs `intent st show` on it. A referenced thread that does not exist fails the job; a description with no reference passes with a suggestion to add one.
-- `check-documentation`: warns when the diff against `origin/main` touches a path under `bin/` or `native/` and no path ending `.md` or containing `usr/` or `doc/`. Never fails.
-- `test-coverage`: warns when the diff against `origin/main` touches a path under `bin/` or `native/` and no path containing `tests/`. Never fails.
+- `validate-steel-thread`: builds the v3 `intent` binary, takes the first `ST####` in the PR description and runs `intent st show` on it. A referenced thread that does not exist fails the job; a description with no reference passes with a suggestion to add one. The description reaches the step as an environment variable and is read only as text, so nothing written in it runs.
+- `check-documentation`: warns when the diff against `origin/main` touches a path under `bin/` or `native/` and no path ending `.md` or containing `usr/` or `doc/`. The job fetches the full history so that `origin/main` is there, and it fails only when that diff cannot be taken.
+- `test-coverage`: warns when the diff against `origin/main` touches a path under `bin/` or `native/` and no path containing `tests/`. Like `check-documentation`, it fetches the full history and fails only when that diff cannot be taken.
 - `commit-message-check`: warns for each commit subject in `origin/main..HEAD` shorter than 10 or longer than 72 characters. Never fails.
 - `pr-size-check`: reports additions plus deletions, warns above 1000 changed lines and notes above 500. Never fails.
 - `doctor-on-the-merge-result`: builds the v3 `intent` binary and runs `intent doctor` on the pull request's merge result (`refs/pull/<n>/merge`), from a depth-1 checkout under a runner HOME that holds no Intent state, so the store loads from the committed canon as a collaborator's clone would. Doctor's exit code is the verdict: a counted finding fails the job. It is the merge-result twin of the pre-commit gate's doctor arm, which judges only the author's own tree. Unlike the gate's arm, which refuses only on exit 1 and lets any other exit through as UNENFORCED, this job fails on any non-zero exit, including 4 (an estate doctor cannot judge).
