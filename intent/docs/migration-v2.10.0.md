@@ -113,6 +113,8 @@ If your tooling uses the `intent` CLI rather than path-probes, you are unaffecte
 
 ## Recovery from interrupted migration
 
+> **Historical: this recovery is for a v2 upgrade.** A v2 `intent upgrade` prints a link to this section; Intent v3 performs none of these steps and refuses a project in this state. To move a v2 project to v3, see [Migrating from v2](../../docs/migrating-from-v2.md).
+
 If `intent upgrade` failed mid-relocation, you may see a sentinel file. The migration writes it before any irreversible work and removes it on success. Its presence indicates the migration was interrupted.
 
 The sentinel may be at one of two paths depending on how far the migration progressed:
@@ -174,7 +176,7 @@ intent upgrade
 
 **Case 3: Both `.intent/` and `intent/.config/` present, both contain files.**
 
-The migration aborted during `mv` mid-stream. This should not happen with the atomic `mv` path; it can only happen if EXDEV fallback was active and the `cp -a` succeeded but the post-`cp` `rm` failed (e.g., permission change mid-copy, or out-of-disk).
+The migration aborted during `mv` mid-stream. This should not happen with the atomic `mv` path; it can only happen if EXDEV fallback was active and the `cp -a` succeeded but the post-`cp` `rm` failed (eg a permission change mid-copy, or out of disk).
 
 Both directories may have valid content. Compare them carefully:
 

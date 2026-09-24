@@ -6,7 +6,9 @@ This directory holds the workflows GitHub runs for the Intent project: the bats 
 
 ### 1. Intent Tests (`tests.yml`)
 
-**Triggers**: push to `main` and pull requests targeting `main`, except when every changed path is under `intent/whiteboard/**` (`paths-ignore`).
+**Triggers**: push to `main` and pull requests targeting `main`, except when every changed path is under `intent/whiteboard/**` or `intent/.canon/**` (`paths-ignore`).
+
+**Concurrency**: a newer run of the same workflow for the same event and ref cancels the one in progress.
 
 **What it does**:
 
@@ -16,9 +18,9 @@ This directory holds the workflows GitHub runs for the Intent project: the bats 
 
 **Jobs**:
 
-- `test-linux` (Test on Ubuntu): installs bats-core v1.12.0 from its GitHub release tarball and jq from apt, clones the bats libraries into `tests/lib`, builds `-p intent-cli -p intentd` in release mode, then runs `tests/run_tests.sh`
-- `test-macos` (Test on macOS): the same, with bats-core, jq and shellcheck from Homebrew
-- `shellcheck` (Shell Script Analysis): runs `shellcheck` on `bin/devbin`, `bin/int`, and every file under `bin/.devbin/cmd/` and `lib/templates/hooks/` that `file` reports as a shell script; findings never fail the job.
+- `test-linux` (Test on Ubuntu): installs bats-core v1.12.0 from its GitHub source archive and jq from apt, puts `bin/` and `native/rust/target/release` on PATH, sets a CI git identity, clones the bats libraries into `tests/lib`, installs the stable Rust toolchain (rustfmt, clippy), Erlang/OTP 29 and Elixir 1.20 (`erlef/setup-beam`) and prettier 3 (npm), blanks the XDG_* variables, builds the pair, then runs `tests/run_tests.sh`.
+- `test-macos` (Test on macOS): the same, with bats-core, jq, shellcheck and bash from Homebrew; Homebrew's bash goes first on PATH because devbin's handlers refuse macOS's `/bin/bash` 3.2
+- `shellcheck` (Shell Script Analysis): runs `shellcheck` on `bin/devbin`, `bin/int`, and every file under `bin/.devbin/cmd/` and `lib/templates/hooks/` that `file` reports as a shell script; findings never fail the job. The sourced libraries under `bin/.devbin/cmd/shared/` carry no shebang, so `file` reports them as text and they are not checked.
 - `test-summary` (Test Summary): runs after `test-linux` and `test-macos` whatever their result, and fails unless both succeeded. It does not wait on `shellcheck`.
 
 `tests/run_tests.sh` with no argument runs every `.bats` file under `tests/` (excluding `tests/lib/`) in one `bats` invocation and exits non-zero if any test fails, so a failing test fails the job.
@@ -27,15 +29,19 @@ This directory holds the workflows GitHub runs for the Intent project: the bats 
 
 **Triggers**: push to `main` and pull requests, only when a changed path is under `native/rust/**`, `schema/**` or `surface/**`, or is `rust.yml` itself.
 
+**Concurrency**: a newer run of the same workflow for the same event and ref cancels the one in progress.
+
 **Job** `rust`, on a `macos-latest` and `ubuntu-latest` matrix with `fail-fast: false`, working in `native/rust`:
 
 - Installs the stable toolchain with rustfmt and clippy, restores the cargo cache, and records `rustc --version` and `cargo --version` to the job summary
 - Installs shellcheck (macOS only) and `prettier@3` (both legs); the test suite needs both on PATH
-- Runs `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, IN-RS-CODE-001's own step `cargo clippy -p intentsvcs -p intent-cli --lib -- -D clippy::unwrap_used -D clippy::expect_used -D clippy::panic` (the library targets only, never `--all-targets`), `cargo doc --no-deps --document-private-items` under `RUSTDOCFLAGS=-D warnings` so every intra-doc link must resolve (issue 0451; the same command as devbin's `doc` gate, which `tests/unit/devbin_rust_gates.bats` holds them to), and `cargo test --workspace --no-fail-fast`
+- Runs `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, IN-RS-CODE-001's own step `cargo clippy -p intentsvcs -p intent-cli --lib -- -D clippy::unwrap_used -D clippy::expect_used -D clippy::panic` (the library targets only, never `--all-targets`), `cargo doc --no-deps --document-private-items` under `RUSTDOCFLAGS=-Dwarnings` so every intra-doc link must resolve (issue 0451; the same command as devbin's `doc` gate, which `tests/unit/devbin_rust_gates.bats` holds them to), and `cargo test --workspace --no-fail-fast`
 
 ### 3. PR Checks (`pr-checks.yml`)
 
 **Triggers**: pull request events `opened`, `synchronize` and `reopened`.
+
+No concurrency group: every run completes.
 
 **Jobs**:
 
@@ -44,7 +50,7 @@ This directory holds the workflows GitHub runs for the Intent project: the bats 
 - `test-coverage`: warns when the diff against `origin/main` touches a path under `bin/` or `native/` and no path containing `tests/`. Never fails.
 - `commit-message-check`: warns for each commit subject in `origin/main..HEAD` shorter than 10 or longer than 72 characters. Never fails.
 - `pr-size-check`: reports additions plus deletions, warns above 1000 changed lines and notes above 500. Never fails.
-- `doctor-on-the-merge-result`: builds the v3 `intent` binary and runs `intent doctor` on the pull request's merge result (`refs/pull/<n>/merge`), in a fresh clone under the runner's empty `HOME`, so the store loads from the committed canon as a collaborator's clone would. Doctor's exit code is the verdict: a counted finding fails the job. It is the merge-result twin of the pre-commit gate's doctor arm, which judges only the author's own tree.
+- `doctor-on-the-merge-result`: builds the v3 `intent` binary and runs `intent doctor` on the pull request's merge result (`refs/pull/<n>/merge`), from a depth-1 checkout under a runner HOME that holds no Intent state, so the store loads from the committed canon as a collaborator's clone would. Doctor's exit code is the verdict: a counted finding fails the job. It is the merge-result twin of the pre-commit gate's doctor arm, which judges only the author's own tree. Unlike the gate's arm, which refuses only on exit 1 and lets any other exit through as UNENFORCED, this job fails on any non-zero exit, including 4 (an estate doctor cannot judge).
 
 ## Local Testing
 
@@ -65,20 +71,22 @@ cd native/rust
 cargo fmt --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo clippy -p intentsvcs -p intent-cli --lib -- -D clippy::unwrap_used -D clippy::expect_used -D clippy::panic
-RUSTDOCFLAGS='-D warnings' cargo doc --no-deps --document-private-items
+RUSTDOCFLAGS=-Dwarnings cargo doc --no-deps --document-private-items
 cargo test --workspace --no-fail-fast
 ```
 
-Suites that commit through the pre-commit hook (eg `pre_commit_hook.bats`) also need an `intent` on PATH, because the hook refuses a commit in an Intent project when it cannot run `intent`. The Rust tests need `shellcheck` and `prettier` on PATH.
+In a checkout other sessions share, build the pair with `bin/devbin build all` instead: it redirects a dirty build to `native/rust/target/private/release`, and otherwise builds in `native/rust/target/staging/release`, verifies the pair and only then moves it into `native/rust/target/release`.
+
+Suites that commit through the pre-commit hook (eg `pre_commit_hook.bats`) also need an `intent` on PATH, because the hook refuses a commit in an Intent project when it cannot run `intent`. The Rust tests need `shellcheck` and `prettier` on PATH. The bats suite also needs prettier, rustfmt, elixir and npx on PATH (CI installs jq as well), and on macOS a bash of version 5 or later ahead of `/bin/bash`: an arm whose tool is missing fails rather than skips. `INTENT_ALLOW_MISSING_<TOOL>=1` (eg `INTENT_ALLOW_MISSING_ELIXIR=1`) waives one deliberately.
 
 ## Workflow Maintenance
 
 ### Dependencies
 
-- **GitHub Actions**: `actions/checkout@v4`, `dtolnay/rust-toolchain@stable`, `Swatinem/rust-cache@v2`
-- **Bats**: bats-core v1.12.0 built from its release tarball on Ubuntu; Homebrew's `bats-core` on macOS
+- **GitHub Actions**: `actions/checkout@v4`, `dtolnay/rust-toolchain@stable`, `Swatinem/rust-cache@v2`, `erlef/setup-beam@v1`
+- **Bats**: bats-core v1.12.0 installed with its own `install.sh` from the GitHub source archive on Ubuntu; Homebrew's `bats-core` on macOS
 - **Bats libraries**: bats-support, bats-assert and bats-file, cloned from GitHub into `tests/lib` if not present, retrying a failed clone
-- **Tools**: jq on both bats legs; shellcheck installed on macOS (Ubuntu runners ship it); prettier 3 installed from npm for `rust.yml`
+- **Tools**: jq on both bats legs; shellcheck installed on macOS (Ubuntu runners ship it); prettier 3 from npm on every leg of both `tests.yml` and `rust.yml`; Erlang/OTP 29 and Elixir 1.20 on both bats legs; Homebrew's bash on the macOS bats leg
 
 ### Test Environments
 

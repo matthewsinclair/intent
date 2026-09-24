@@ -10,10 +10,11 @@ A bank is the change as a patch, `git diff --binary` against the commit it was m
 
 That shape is the whole point:
 
-- It lives in `.git`, so it survives a worktree's removal, a scratch directory's cleanup and a reboot.
+- It lives in `.git`, so it survives a worktree's removal, a scratch directory's cleanup and a reboot. It lives in this repository's `.git` only. A clone does not fetch `refs/bank/*`, so a bank is lost with that `.git`, and another clone gets it only by fetching or pushing it by name.
 - It is not a branch and not a commit, so it never appears in `git branch`, `git status` or `git log`, and `git log --all` keeps working over it (measured 2026-09-15).
-- It is never pushed unless somebody names it, because `git push` moves branches and tags.
+- It is not sent by `git push`, `git push --all` or `git push --tags`, which move branches and tags. `git push --mirror` does send it, and so does a remote configured with `mirror = true` or a push refspec covering `refs/*`.
 - It carries no index state and no stash state, so it touches nothing a peer's commit gate reads.
+- A bank keeps no reflog. Git logs `refs/heads/`, `refs/remotes/`, `refs/notes/` and `HEAD`, not `refs/bank/`, and deleting a ref deletes any reflog it had. So `git update-ref -d` on a bank leaves only an unreachable blob. `git fsck --unreachable` still finds it until `git gc` prunes it, after `gc.pruneExpire` (two weeks by default) or at once with `--prune=now`. Delete a bank only after the landing that carries its patch-id.
 
 `git for-each-ref refs/bank/` lists them, each with its object type `blob`. A repository that has run `git gc` holds most of them in `.git/packed-refs` rather than as loose files under `.git/refs/bank/`; both forms are the same ref.
 
@@ -25,13 +26,12 @@ In the private worktree where the change was built, with `<base>` the commit it 
 
 ```
 git add -A
-git diff --cached --binary <base> > change.patch
-git update-ref refs/bank/<node>/<topic>/<name> $(git hash-object -w change.patch)
+git update-ref refs/bank/<node>/<topic>/<name> "$(git diff --cached --binary <base> | git hash-object -w --stdin)"
 git cat-file -p refs/bank/<node>/<topic>/<name> | git apply -R --check
 git cat-file -p refs/bank/<node>/<topic>/<name> | git patch-id --stable
 ```
 
-The fourth line proves the bank equals the tree it was taken from, because a patch that reverses cleanly is the patch of exactly that tree. The fifth line is the id the change is judged by.
+The third line checks that the bank reverses cleanly on the tree it was taken from, so every change it carries is in that tree. It cannot see a change the tree holds and the bank lacks, such as a file `git add -A` skipped as ignored. For equality, apply the bank to `<base>` in a scratch index (`git read-tree <base>`, then `git apply --cached`, both under `GIT_INDEX_FILE`) and compare `git write-tree` with the real index's. The fourth line is the id the change is judged by.
 
 To read, list and apply one:
 
@@ -58,7 +58,7 @@ Each of these was tried and each lost work or nearly did.
 A bank is judged, by a whole-suite run in a private worktree and by a read of the diff, at one `git patch-id --stable`. The commit that lands must give the same id, read back from the applied tree before the commit is made.
 
 - **A gate refusal is re-banked and re-judged before any commit, formatting included.** On 2026-09-17 two lines were recomposed at the gate and the landed id differed from the judged one; on 2026-09-18 a `rustfmt` refusal changed the id and the landing went in before the new id was judged. In both cases the difference had to be proved harmless afterwards, per file, which is the expensive direction. Fix it in the worktree, bank again, hand over the new id.
-- **Format-check with the gate's edition before banking.** Intent's own gate runs `rustfmt --edition 2024 --check`; the 2021 edition disagrees with it on import order, so a 2021 check passes files the gate refuses.
+- **Format-check with the gate's edition before banking.** Intent's own gate checks Rust with `staged-format-guard.sh`, which runs `rustfmt --check` under the edition `native/rust/rustfmt.toml` declares (2024). The 2021 edition disagrees with it on import order, so a 2021 check passes files the gate refuses. Run `rustfmt --check` on the files where they sit, or pass `--edition 2024`.
 - **When main moves after the run, the run stands for the bank only if the move is invisible to it.** Bank the diff against the new base and read the bank's path list: it must be exactly the change's own paths. A path main moved that also appears in the bank means landing it would undo main's change in that file, so apply the bank three-way onto the new base and run again. Applying the bank onto the new base and matching the tree hash proves only that the blob applies; the path list is the check that carries the claim.
 
 ## The rules around it
