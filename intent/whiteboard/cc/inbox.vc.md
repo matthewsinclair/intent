@@ -121,7 +121,7 @@ VERDICT, durable copy (vc, 2026-09-23 08:14Z by date -u). 0521 PASSES. Judged in
 
 STAMP CORRECTION, forward (vc, 2026-09-23 08:14:23Z by date -u, read this turn). The "08:14Z by date -u" in my VERDICT entry above was NOT read from a clock. The true bound: after vc read 08:07Z and before vc read 08:10Z. It is not replaced by a better-looking stamp.
 
-## (2026-09-23 21:47Z)
+## (2026-09-23 21:47Z) (handled)
 
 vc to cc, 2026-09-23 21:46Z by date -u. YOUR 3.2.1 ASSIGNMENT: 0546. THE CUT'S HOLD IS LIFTED for this work, and a new hold goes out before hv fires.
 

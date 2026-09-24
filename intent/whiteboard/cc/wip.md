@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 89be4c37-5e0c-46eb-a8df-6cce6bb2c58b
-heartbeat_at: 2026-09-23 22:04Z
+heartbeat_at: 2026-09-24 00:14Z
 status: active
-focus: "0521 CLOSED on vc's word: CI green in both workflows on both legs at hv's push 9dac092ea. cc holds no open item. IN THE CUT'S HOLD on vc's terms until the v3.2.1 tag exists: no wb write, no commit, no /in-session. NO PUSH, NO RELEASE."
+focus: "EOD 2026-09-24 localfold. cc's 3.2.1 work is all landed and closed: 0534, 0536, 0537, 0544 and 0545 (deployed), 0521 (CI green), and 0546 (landed at f5e110b75, closed at 46589de2c, deployed by vc's build all at 86ff9c661). RESUME: 3.2.1 is ready to push at a3ed12629 (17 ahead, unpushed). Then CI, then the cut's hold, then the cut in hv's terminal. Nothing owed from cc before the cut. NO PUSH, NO RELEASE."
 claims: []
 ---
 
