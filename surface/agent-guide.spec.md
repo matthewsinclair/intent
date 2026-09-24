@@ -32,7 +32,7 @@ Every **shipped** row appears. The renderer iterates `dispatch::shipped_entries(
 
 Not the projection a human help screen wants. An agent needs the safety constraint before the description, and the call before the routing. Ruled by D45 (hv, 2026-08-16): _"the CLI is the precise surface and the MCP layer is the imprecise one. A skill drives `intent` directly."_
 
-1. **safety** -- `read_or_mutate`, declared over the WHOLE entry, so `todo list` is a mutation because it generates `todo.md` when absent. A mutation also says whether the surface can put the estate back: reversible, idempotent, or ONE-WAY. **An unrecognised value renders AS ITSELF**, never folded into `read` or `mutate`: defaulting to `read` would present an unclassified command as safe to call unattended, and defaulting to `mutate` would hide the defect.
+1. **safety** -- `read_or_mutate`, declared over the WHOLE entry, so a command is a mutation if any invocation of it, under any flag, can change durable state. A mutation also says whether the surface can put the estate back: reversible, idempotent, or ONE-WAY. **An unrecognised value renders AS ITSELF**, never folded into `read` or `mutate`: defaulting to `read` would present an unclassified command as safe to call unattended, and defaulting to `mutate` would hide the defect.
 2. **call** -- the path and its positional arguments. `<x>` is required, `[x]` optional, `...` repeatable. A `subcommand` slot is rendered only on a LEAF row, using `spine.rs`'s own discriminator: a family's verbs are sibling entries, while a leaf's slot values become real subcommands.
 3. **does** -- what the command is for.
 4. **flags** -- the `keep` set only, which is `Flag::ships()`. Omitted when the command takes none.
@@ -58,7 +58,7 @@ The per-row answer is `keep`, exactly `Flag::ships()`. `intrinsic` flags ship an
 
 **Selected by ID, with the text read from the table.** The selection is authored, because `invariants` conflates two kinds of claim and nothing in the schema separates them: INV-01..04 are v3's contract, while the later invariants include measurements of v2 defects being corrected. **Rendering them all would tell an agent that v3 writes failures to stdout.** A cited invariant that vanishes from the table REFUSES the render rather than dropping a fact an agent parses exit codes on.
 
-The guide renders INV-04 (the exit-code contract), INV-01 (results on stdout, failures on stderr with an `error:` prefix), INV-02 (a usage error exits `1`), INV-03 (the plain not-in-a-project refusal), and `--help`. **The exit-code contract is the one an agent gets wrong by omission.** It must decide whether a command SUCCEEDED: `1` means the command ran and the answer is no, and `2` means this build could not answer at all and never carries a verdict about the agent's work. Run `intent llm guide` for the contract's exact wording; this spec does not restate it.
+The guide renders INV-04 (the exit-code contract), INV-01 (results on stdout, failures on stderr with an `error:` prefix), INV-02 (a usage error exits `1`, and `2` in `intent critic`), INV-03 (the plain not-in-a-project refusal), and `--help`. **The exit-code contract is the one an agent gets wrong by omission.** It must decide whether a command SUCCEEDED: `1` means the command ran and the answer is no, and `2` means this build could not answer at all and never carries a verdict about the agent's work. Run `intent llm guide` for the contract's exact wording; this spec does not restate it.
 
 ## The authored half
 

@@ -1,7 +1,7 @@
 {
   "schema": "intent/dispatch-table@3.0-draft",
   "root_help": "Intent: steel threads, work packages and the acceptance contract",
-  "mcp_instructions": "This server answers from Intent's index of the project, which parses source files with tree-sitter. To find code by name, ask the index before grep: call intent_search with kind=def and query=<name> for where a name is defined, with outline=<file> for a file's symbols and their spans, or with context=<name> for a definition and the places its name is called. Narrow any of these with subkind, the language's own word for what a symbol is (struct, method, defp, call, use), and with in=<name> for the module, impl, trait or type it sits in. With no query, subkind and in are the question on their own: subkind=method with in=<type> lists that type's methods. Every symbol hit carries its subkind, container, qualifier and level. Level 1 is read from the file's syntax and matched by name, never resolved to the definition it names, and level 2 is read from the file's syntax with the qualifier it was written with, a Rust path as written or an Elixir module with the file's own aliases and `__MODULE__` expanded, still never resolved to the definition it names; in Rust, scoped calls such as Type::f(..), uses of a type and names inside a macro are references, and in Elixir, remote calls such as Repo.get(..) with their module, captures such as &Mod.fun/2, pipes, and use, import, require and alias are. What is not: in Rust, inside a macro invocation a name the tokens do not show as a call or a path is an occurrence of the name rather than a use, and its qualifier is only the one segment before it; a name in a nested use list such as use a::{b::C} has no use row; and a name passed as a value outside a macro, such as map(f), is not a reference; in Elixir, nothing import or use brings in is applied, so a call to an imported function, Kernel's included, is a level-1 reference with no module; and a call through a module held in a variable, such as mod.fun(..), has no qualifier; Swift files give definitions only. Level 3 is resolved to the definition it names by the language's own toolchain, once a person has run intent index resolve, which runs the project's build: a reference whose key joins exactly one resolved row carries level 3 with target, target_path and target_line, and one joining several keeps its syntax level and lists them as candidates. target=<target> asks for the references resolved to one definition, spelled exactly as a hit's target prints it (a callable Rust target ends in (), an Elixir one in its /arity); it narrows the other questions, with no query it lists them, and it never lists a call only the toolchain sees, which intent index status counts as unmatched. A target no resolved row names is refused with the resolved targets that end the same way, and otherwise the empty answer's note says a target nothing references and a misspelt one read the same. Every answer's index.resolution names each language whose level 3 is not current, by state: missing (its toolchain is not where Intent can run it, so only what an earlier run stored answers at level 3), failed (its last resolution run failed, so only what an earlier run stored answers at level 3), stale (the files it lists changed since they were resolved, so their references answer at their syntax level until the next run) or unresolved (no resolution run has stored its references here, so they answer at their syntax level), which is named only where the index holds the file the language's reader finds a project by, such as a Cargo.toml. Every hit carries its path and a span with start and end lines, and every answer carries the index's freshness: when it says complete: false, grep the paths it names. Grep stays the tool for what the index leaves out, for a regex and for every literal occurrence. A client that lists this server's tools by name only must load a tool's schema before calling it: in Claude Code, with this server registered as intent, that is ToolSearch with select:mcp__intent__intent_search.",
+  "mcp_instructions": "This server answers from Intent's index of the project, which parses source files with tree-sitter. To find code by name, ask the index before grep: call intent_search with kind=def and query=<name> for where a name is defined, with outline=<file> for a file's symbols and their spans, or with context=<name> for a definition and the places its name is called. Narrow any of these with subkind, the language's own word for what a symbol is (struct, method, defp, call, use), and with in=<name> for the module, impl, trait or type it sits in. With no query, subkind and in are the question on their own: subkind=method with in=<type> lists that type's methods. Every symbol hit carries its subkind, container, qualifier and level. Level 1 is read from the file's syntax and matched by name, never resolved to the definition it names, and level 2 is read from the file's syntax with the qualifier it was written with, a Rust path as written or an Elixir module with the file's own aliases and `__MODULE__` expanded, still never resolved to the definition it names; in Rust, scoped calls such as Type::f(..), uses of a type and names inside a macro are references, and in Elixir, remote calls such as Repo.get(..) with their module, captures such as &Mod.fun/2, pipes, and use, import, require and alias are. What is not: in Rust, inside a macro invocation a name the tokens do not show as a call or a path is an occurrence of the name rather than a use, and its qualifier is only the one segment before it; a name in a nested use list such as use a::{b::C} has no use row; and a name passed as a value outside a macro, such as map(f), is not a reference; in Elixir, nothing import or use brings in is applied, so a call to an imported function, Kernel's included, is a level-1 reference with no module; and a call through a module held in a variable, such as mod.fun(..), has no qualifier; Swift files give definitions only. Level 3 is resolved to the definition it names by the language's own toolchain, once a person has run intent index resolve, which runs the project's build: a reference whose key joins exactly one resolved row carries level 3 with target, target_path and target_line, and one joining several keeps its syntax level and lists them as candidates. target=<target> asks for the references resolved to one definition, spelled exactly as a hit's target prints it (a callable Rust target ends in (), an Elixir one in its /arity); it narrows the other questions, with no query it lists them, and it never lists a call only the toolchain sees, which intent index status counts as unmatched. A target no resolved row names is refused with the resolved targets that end the same way, and otherwise the empty answer's note says a target nothing references and a misspelt one read the same. Every answer's index.resolution names each language whose level 3 is not current, by state: missing (its toolchain is not where Intent can run it, so only what an earlier run stored answers at level 3), failed (its last resolution run failed, so only what an earlier run stored answers at level 3), stale (the files it lists changed since they were resolved, so their references answer at their syntax level until the next run) or unresolved (no resolution run has stored its references here, so they answer at their syntax level), which is named only where the index holds the file the language's reader finds a project by, such as a Cargo.toml. Every hit carries its path and a span with start and end lines, and every answer carries the index's freshness: when it says complete: false, grep the paths it names. The index knows a file's language only by its extension, so a script without one has no symbols whatever it is written in, and it names symbols only in the languages the project declares and this build can parse (intent index status shows each declared language's grammar). A def, outline, context or filter question that could reach a language it names no symbols in answers complete: false and names that language under index.unindexed; grep for those. Grep stays the tool for what the index leaves out, for a regex and for every literal occurrence. A client that lists this server's tools by name only must load a tool's schema before calling it: in Claude Code, with this server registered as intent, that is ToolSearch with select:mcp__intent__intent_search.",
   "measured_at": "9ec1656",
   "measured_on": "2026-08-14",
   "measured_by": "ic",
@@ -135,7 +135,7 @@
     },
     {
       "id": "INV-02",
-      "title": "Usage errors exit 1, NOT clap's default 2",
+      "title": "Usage errors exit 1, except in `intent critic`, which exits 2",
       "rule": "A missing required argument, an unknown option, or an unknown subcommand exits 1.",
       "v2": "bin/intent_helpers:7-11 -- `error()` is `echo >&2; exit 1`, and it is the only failure exit in the shipped surface bar `intent critic`",
       "evidence_class": {
@@ -186,8 +186,8 @@
     },
     {
       "id": "INV-04",
-      "title": "Exit codes observed in the shipped surface are 0, 1, 2 and 3",
-      "rule": "0 success. 1 the command RAN and the answer is no -- findings, a refused verb, a blocked gate, a usage error (INV-02). 2 this build could not answer at all, and it carries no verdict about the work -- a declared command that is not implemented yet, `intent critic` rejecting an invocation it cannot act on or finding no rule library, a `--daemon` that cannot be reached; the shipped pre-commit gate fails OPEN on it. 3 REFUSED -- a rule the project armed could not be enforced here (`intent critic`); the gate BLOCKS on it. `intent claude hook` propagates the hook's own code by design. The codes are `EXIT_UNAVAILABLE` and `EXIT_REFUSED` in `native/rust/crates/intent-cli/src/spine.rs`.",
+      "title": "Exit codes are 0, 1, 2, 3 and 4",
+      "rule": "0 success. 1 the command RAN and the answer is no -- findings, a refused verb, a blocked gate, a usage error. 2 this build could not answer at all, and it carries no verdict about the work -- a declared command that is not implemented yet, `intent critic` rejecting an invocation it cannot act on or finding no rule library, a `--daemon` that cannot be reached; the shipped pre-commit gate fails OPEN on it. 3 REFUSED -- a rule the project armed could not be enforced here (`intent critic`); the gate BLOCKS on it. 4 the estate could not be judged -- `intent doctor` could not read the project it was asked about, so nothing it printed is a verdict; the gate fails open on it. `intent claude hook` propagates the hook's own code by design.",
       "v2": "bin/intent_critic: `:89` error_out and `:95` no-args-help both exit 2 (usage); `:335` clean exits 0; `:348` FINDINGS PRESENT exits 1; `:334` and `:347` CRITIC_REFUSED exit 3. Read directly 2026-08-20.",
       "corrected_2026_08_20": "**THIS ROW HAD `intent critic`'s EXIT 2 EXACTLY BACKWARDS AND WOULD HAVE SHIPPED A PERMANENT SILENT GATE BYPASS** (dc, who found it reading the contract before building the v3 critic, and refused to build to it; ic verified at zero hops and reworded). The row said _2 only from `intent critic` (findings-present)_, citing `:89,95` -- **but those two lines are the USAGE paths, findings-present is `exit 1` at `:348`, and exit 3 has two live sites the row did not mention at all.** The harm is specific and it is in `lib/templates/hooks/pre-commit.sh:350-369`: `1` blocks, `3` blocks, and `*)` -- where 2 lands -- prints `invocation error; fail-open` and never sets `AGGREGATE`. **A v3 critic built to the old wording would have exited 2 on every finding, the gate would have failed open every time, and the commit would have proceeded unchecked -- here and in every consumer project through one symlink -- while the binary remained CONFORMANT TO THIS TABLE.** A gate bypass that passes its own surface check. **AND THE EVIDENCE CLAUSE IS THE LESSON: `measured across 108 probes` could establish that exit 2 OCCURS and can never establish what it MEANS**, which needs the branch that produces it read. A count of occurrences reported as a semantics -- the same shape as `1 refused` standing for 423 files, and the first instance that would have propagated into a BUILD rather than into a report.",
       "why_2_is_correct_for_critic": "**`intent critic` exiting 2 on a USAGE error is deliberate and right, and it is NOT an exception grudgingly tolerated** (ic ruling, 2026-08-20, on dc's question of whether it is a v2 defect worth a `corrected` row). The gate states the principle itself at `pre-commit.sh:349`: _a gate should fail open on its own breakage and closed on yours._ **A critic that cannot parse its own invocation is the gate's breakage, not the developer's code**, so fail-open is the correct disposition and 2 is the code that produces it. `guide.rs` already teaches the same reading -- _2 means this build cannot answer the question at all_. So v3 keeps it: 0 clean, 1 findings, 2 usage, 3 refused.",
@@ -396,7 +396,7 @@
               "name": "title",
               "type": "string",
               "arity": "1",
-              "note": "Exactly one title. A surplus positional is refused as a usage error -- `unexpected argument`, exit 1 (INV-02). v2 kept the first positional and silently discarded the rest."
+              "note": "Exactly one title; quote it if it has spaces. A second positional is refused as a usage error, exit 1."
             }
           ],
           "flags": [
@@ -610,7 +610,7 @@
               ],
               "type": "string",
               "value": "<text>",
-              "help": "Why it is being cancelled -- required by the machine's guard",
+              "help": "Why it is being cancelled. Required: without it the command is refused, and it is recorded as the reason for the new state",
               "disposition": "keep"
             },
             {
@@ -713,7 +713,7 @@
               ],
               "type": "string",
               "value": "<text>",
-              "help": "Why it is being held -- required by the machine's guard",
+              "help": "Why it is being held. Required: without it the command is refused, and it is recorded as the reason for the new state",
               "disposition": "keep"
             }
           ],
@@ -771,7 +771,7 @@
               ],
               "type": "string",
               "value": "<text>",
-              "help": "Why it is being reopened -- required by the machine's guard",
+              "help": "Why it is being reopened. Required: without it the command is refused, and it is recorded as the reason for the new state",
               "disposition": "keep"
             }
           ],
@@ -805,7 +805,7 @@
               ],
               "type": "string",
               "value": "<text>",
-              "help": "Why it is being reinstated -- required by the machine's guard",
+              "help": "Why it is being reinstated. Required: without it the command is refused, and it is recorded as the reason for the new state",
               "disposition": "keep"
             }
           ],
@@ -1051,7 +1051,7 @@
         },
         {
           "path": "st edit",
-          "help": "Print the path to a steel thread file, realising the thread if it is not on disk",
+          "help": "Open a steel thread file, realising the thread if it is not on disk: in $VISUAL or $EDITOR on a terminal, and as a printed path when stdout is not one",
           "args": [
             {
               "name": "id",
@@ -1070,7 +1070,7 @@
                 "tasks",
                 "acceptance"
               ],
-              "note": "NO `all` -- unlike `show`. Asymmetry is deliberate and correct: there is no single path for `all`."
+              "note": "Which file. Unlike `st show`, `all` is refused, because it has no single path."
             }
           ],
           "flags": [
@@ -1114,7 +1114,7 @@
           "target": {
             "state": "deviate",
             "note": "**CORRECTED 2026-08-22 (vc, under hv's pen; reported by ic).** Declared `read` while `Facade::edit` calls `hydrate` -- so it realised the thread's views and appended `STEELTHREAD:<id>` to the TRACKED `.intentfiles`. The help said `Print the absolute path to a steel thread file`, which no operator reads as `and realise the thread`. **A true declaration with false help is half a fix**: the declaration is what the MCP surface and the readers trust, the help is what the human trusts. Both changed, with the ordering fix that stops the FILENAME-only refusal writing before it refuses.",
-            "behaviour": "**TTY-AWARE, WITH AN EXPLICIT SPELLING FOR EACH BRANCH.** v3 opens the file in $VISUAL or $EDITOR when stdout is a terminal, and prints the path when stdout is a pipe or a file. `--editor` forces the open and `--path` forces the print, whatever stdout is; the two together are refused. **THE v2 CONTRACT IS PRESERVED WHERE IT IS ACTUALLY USED**: `$EDITOR \"$(intent st edit ST0001 info)\"` is in `docs/getting-started.md`, and command substitution makes stdout a PIPE, so that invocation still receives the path and is covered by a test. The name stops being a misnomer on a terminal and keeps its documented behaviour everywhere a script can see.",
+            "behaviour": "**TTY-AWARE, WITH AN EXPLICIT SPELLING FOR EACH BRANCH.** v3 opens the file in $VISUAL or $EDITOR when stdout is a terminal, and prints the path when stdout is a pipe or a file. `--editor` forces the open and `--path` forces the print, whatever stdout is; the two together are refused. **THE v2 CONTRACT IS PRESERVED WHERE IT IS ACTUALLY USED**: `$EDITOR \"$(intent st edit ST0001 info)\"` was the documented form until 46f254484, and command substitution makes stdout a PIPE, so that invocation still receives the path and is covered by a test. The name stops being a misnomer on a terminal and keeps its documented behaviour everywhere a script can see.",
             "ratification": "hv, 2026-08-29, live in vc's session, hv's own selection from three options -- SUPERSEDING two earlier rulings on this question. **The first two were a coordination defect rather than hv changing their mind**: hv chose the TTY form in cc's session, vc then put four options to hv of which NONE was that form, and the result was reported as a ruling. The cause was a false premise -- that a default launch necessarily breaks the documented output contract, which is true of launch-by-default and false of the TTY form. vc returned it to hv with the omission named rather than quietly adding a fifth option.",
             "why_deviate_and_not_corrected": "`corrected` is a v2 behaviour that is simply WRONG and is fixed; `deviate` is a design consequence of v3. v2's pure emit-path was not a defect -- it was a deliberate, documented, working contract, and the register's own note calls the NAME a historical misnomer the docs work around, not the behaviour a bug. So this is a design change with hv's ratification on the row, which is what `deviate` requires, and it is NOT ratified by class membership."
           },
@@ -1356,7 +1356,7 @@
         },
         {
           "path": "st sync",
-          "help": "Synchronize steel_threads.md with individual ST files",
+          "help": "Print the steel thread index; with `--write`, write it and each thread's projection to disk",
           "args": [],
           "flags": [
             {
@@ -1364,7 +1364,7 @@
                 "--write"
               ],
               "type": "bool",
-              "help": "Write the index; without it the command is a dry run",
+              "help": "Write the index and each thread's projection to disk; without it, print the index and write nothing",
               "disposition": "keep"
             },
             {
@@ -1897,7 +1897,7 @@
               ],
               "type": "string",
               "value": "<text>",
-              "help": "Why it is being reopened -- required by the machine's guard",
+              "help": "Why it is being reopened. Required: without it the command is refused, and it is recorded as the reason for the new state",
               "disposition": "keep"
             }
           ],
@@ -1931,7 +1931,7 @@
               ],
               "type": "string",
               "value": "<text>",
-              "help": "Why -- required by the machine's guard",
+              "help": "Why it is being cancelled. Required: without it the command is refused, and it is recorded as the reason for the new state",
               "disposition": "keep"
             }
           ],
@@ -1965,7 +1965,7 @@
               ],
               "type": "string",
               "value": "<text>",
-              "help": "Why -- required by the machine's guard",
+              "help": "Why it is being reinstated. Required: without it the command is refused, and it is recorded as the reason for the new state",
               "disposition": "keep"
             }
           ],
@@ -2281,7 +2281,7 @@
               "name": "stid",
               "type": "st-id[/NN]",
               "arity": "1",
-              "note": "the optional `/NN` narrows to one WP group"
+              "note": "The thread whose criteria to list, eg `ST0000`. A work-package suffix such as `ST0000/02` is not read as a filter: it is taken as a thread id and refused."
             }
           ],
           "flags": [],
@@ -3234,7 +3234,7 @@
                 "--note"
               ],
               "type": "string",
-              "help": "Why the row is in this state -- carried onto the row as its note; absent, an existing note is kept",
+              "help": "Why the row is in this state, kept as its note. A row that already has a note keeps it: the new text must extend it or the command refuses (`at edit --note` replaces a note). Absent, the note is unchanged",
               "value": "<text>",
               "disposition": "keep"
             }
@@ -3315,7 +3315,7 @@
                 "--note"
               ],
               "type": "string",
-              "help": "Why the row is in this state -- carried onto the row as its note; absent, an existing note is kept",
+              "help": "Why the row is in this state, kept as its note. A row that already has a note keeps it: the new text must extend it or the command refuses (`at edit --note` replaces a note). Absent, the note is unchanged",
               "value": "<text>",
               "disposition": "keep"
             }
@@ -3391,7 +3391,7 @@
                 "--note"
               ],
               "type": "string",
-              "help": "Why the row is in this state -- carried onto the row as its note; absent, an existing note is kept",
+              "help": "Why the row is in this state, kept as its note. A row that already has a note keeps it: the new text must extend it or the command refuses (`at edit --note` replaces a note). Absent, the note is unchanged",
               "value": "<text>",
               "disposition": "keep"
             }
@@ -3517,7 +3517,7 @@
                 "--note"
               ],
               "type": "string",
-              "help": "Why the row is in this state -- carried onto the row as its note; absent, an existing note is kept",
+              "help": "A note for the new row: why it starts in this state",
               "value": "<text>",
               "disposition": "keep"
             }
@@ -3609,7 +3609,7 @@
                 "--note"
               ],
               "type": "string",
-              "help": "Replace the row's note outright -- the deliberate door; `at green/red/na --note` only EXTENDS",
+              "help": "Replace the row's note outright; `at green`, `at red` and `at na` can only extend a note with their `--note`",
               "value": "<text>",
               "disposition": "keep"
             }
@@ -4270,7 +4270,7 @@
       "entries": [
         {
           "path": "todo",
-          "help": "Show intent/todo.md (generates it if absent)",
+          "help": "Show the DOING / TODO / DONE view of threads and work packages, as intent/todo.md holds it; writes nothing, and `intent todo update` writes the file",
           "args": [
             {
               "name": "command",
@@ -4361,7 +4361,7 @@
         },
         {
           "path": "todo list",
-          "help": "Show intent/todo.md (generates it if absent)",
+          "help": "Show the DOING / TODO / DONE view of threads and work packages, as intent/todo.md holds it; writes nothing, and `intent todo update` writes the file",
           "args": [],
           "flags": [
             {
@@ -4529,7 +4529,7 @@
         },
         {
           "path": "todo notdone",
-          "help": "Reopen a thread/WP to WIP, then regenerate",
+          "help": "Refused in this build: a reopen must record its reason -- use `intent st reopen <id> --reason <text>` or `intent wp reopen <spec> --reason <text>`",
           "args": [
             {
               "name": "specifier",
@@ -4574,7 +4574,7 @@
         },
         {
           "path": "todo toggle",
-          "help": "Flip done/not-done, then regenerate",
+          "help": "Refused in this build: close with `intent todo done <spec>`, and reopen with `intent st reopen` or `intent wp reopen` and a `--reason`",
           "args": [
             {
               "name": "specifier",
@@ -4704,7 +4704,7 @@
     },
     {
       "name": "config",
-      "help": "Display the resolved project configuration",
+      "help": "Display the resolved project configuration -- not implemented in this build (exits 2)",
       "v2_source": "bin/intent_config",
       "v2_help_file": null,
       "owner_wp": "WP-06",
@@ -4715,13 +4715,13 @@
       "entries": [
         {
           "path": "config",
-          "help": "Display the resolved project configuration",
+          "help": "Display the resolved project configuration -- not implemented in this build (exits 2)",
           "args": [
             {
               "name": "command",
               "type": "subcommand",
               "arity": "0..1",
-              "note": "`0..1` with no `default`: bare `config` is its own action rather than a default verb, unlike `issues` and `todo`, which declare `default: list`. **`config` is declared and not built in this release** (hv, 2026-08-31): every `intent config` invocation, bare or with a verb, answers exit 2, `a known command that is not implemented yet`."
+              "note": "Optional: `get` or `set`; bare `intent config` is its own action, not a default verb. Not implemented in this build: every `intent config` invocation exits 2 with `a known command that is not implemented yet`."
             }
           ],
           "flags": [],
@@ -4832,13 +4832,13 @@
         },
         {
           "path": "config get",
-          "help": "Print one configuration value",
+          "help": "Print one configuration value -- not implemented in this build (exits 2)",
           "args": [
             {
               "name": "key",
               "type": "config-key",
               "arity": "1",
-              "note": "A dotted path addressing a nested value, eg `backup.retain.daily`. **`config` is declared and not built in this release** (hv, 2026-08-31): `intent config get` answers exit 2, `a known command that is not implemented yet`."
+              "note": "A dotted path to a nested value, eg `backup.retain.daily`. Not implemented in this build: `intent config get` exits 2 with `a known command that is not implemented yet`."
             }
           ],
           "flags": [],
@@ -4858,7 +4858,7 @@
         },
         {
           "path": "config set",
-          "help": "Set one configuration value",
+          "help": "Set one configuration value -- not implemented in this build (exits 2)",
           "args": [
             {
               "name": "key",
@@ -6024,7 +6024,7 @@
                 "validate"
               ],
                  "value_help": {
-                   "list": "List all rules across canon and extensions",
+                   "list": "List every rule in the canon rule library",
                    "show": "Print a rule's Markdown body",
                    "validate": "Validate frontmatter and required sections"
                  }
@@ -6175,7 +6175,7 @@
                 "--force"
               ],
               "type": "bool",
-              "help": "Overwrite user-edited canon files (CLAUDE.md without the marker, .claude/settings.json without Intent's hook door, and .intent_critic.yml)",
+              "help": "Overwrite canon files that were edited here: a CLAUDE.md without Intent's marker, a .claude/settings.json whose hooks do not run through `intent claude hook`, and .intent_critic.yml",
               "disposition": "keep",
               "measured_late_and_the_reason_is_the_finding": "**ADDED BY ic 2026-08-23 ON cc's REPORT, CITATION VERIFIED EXACTLY.** `intent/plugins/claude/bin/intent_claude_upgrade:116` is the `--force)` parse arm and `:72` is its own `--help` line, both as cc cited them. **This row is the case where the obvious explanation fails: the flag is in the command's OWN file, in the SAME `case` idiom every correctly-declared row uses, and the census still missed it.** So _a flag reached through a sourced library is invisible to a per-command scan_ is true and is not sufficient. **AND ic NEARLY REPORTED cc's CITATION AS FABRICATED: I looked for `bin/intent_claude_upgrade`, found it absent from this repo AND from the frozen v2 checkout, and was one step from saying so. The file is at `intent/plugins/claude/bin/`.** My check was scoped to the wrong directory and produced a confident absence -- the same shape as the scan defect this row records, committed while verifying it, and it would have accused a peer."
             },
@@ -6947,7 +6947,7 @@
         },
         {
           "path": "llm guide",
-          "help": "Render the agent guide: the command reference generated from this table, plus the authored prose",
+          "help": "Print the agent guide: every command this build ships, with what it does and whether it writes, then Intent's workflows and conventions",
           "args": [],
           "flags": [],
           "v2": "new-surface",
@@ -6982,7 +6982,7 @@
       "entries": [
         {
           "path": "learn",
-          "help": "Capture project-specific learnings for future LLM sessions",
+          "help": "Capture project-specific learnings for future LLM sessions -- not implemented in this build (exits 2)",
           "args": [
             {
               "name": "description",
@@ -7367,7 +7367,7 @@
     },
     {
       "name": "ext",
-      "help": "Manage Intent user extensions at ~/.local/share/intent/ext/<name>/",
+      "help": "Manage Intent user extensions -- not implemented in this build; nothing reads ~/.local/share/intent/ext/",
       "v2_source": "bin/intent_ext",
       "v2_help_file": null,
       "owner_wp": "WP-06",
@@ -7379,7 +7379,7 @@
       "entries": [
         {
           "path": "ext",
-          "help": "Manage Intent user extensions",
+          "help": "Manage Intent user extensions -- not implemented in this build (exits 2)",
           "args": [
             {
               "name": "command",
@@ -7426,7 +7426,7 @@
         },
         {
           "path": "ext list",
-          "help": "List installed extensions",
+          "help": "List installed extensions -- not implemented in this build (exits 2)",
           "args": [],
           "flags": [],
           "v2": "bin/intent_ext list arm",
@@ -7457,7 +7457,7 @@
         },
         {
           "path": "ext show",
-          "help": "Show manifest + contributions for one extension",
+          "help": "Show manifest + contributions for one extension -- not implemented in this build (exits 2)",
           "args": [
             {
               "name": "name",
@@ -7498,7 +7498,7 @@
         },
         {
           "path": "ext validate",
-          "help": "Validate extension manifests",
+          "help": "Validate extension manifests -- not implemented in this build (exits 2)",
           "args": [
             {
               "name": "name",
@@ -7546,7 +7546,7 @@
         },
         {
           "path": "ext new",
-          "help": "Scaffold a new extension",
+          "help": "Scaffold a new extension -- not implemented in this build (exits 2)",
           "args": [
             {
               "name": "name",
@@ -8414,7 +8414,8 @@
               ],
               "type": "string",
               "value": "<n>",
-              "help": "How many of the most recent lines to print, from both logs merged in time order (default 40)",
+              "help": "How many of the most recent lines to print, from both logs merged in time order",
+              "default": "40",
               "disposition": "keep"
             },
             {
@@ -8764,7 +8765,7 @@
         {
           "path": "wb archive",
           "help": "Move one of the acting node's live items to archived",
-          "when_to_use": "USE IT to state that an item is finished with: for a `doing` or `todo` item that is what DONE means, and for a `decision` or `watchout` it is retirement, and for a `hold` it means the condition was met and the work moved on. For a `directive`, which only `hv`'s board carries, it is `hv` retiring one that is spent, and a fold never does it. The item leaves the live count in that write, which is how a board that refuses a write starts accepting again. DO NOT USE IT expecting a deletion: the row keeps its number and its text and stays readable, it just stops counting. It reports what MOVED, so archiving something already archived says so.",
+          "when_to_use": "USE IT to state that an item is finished with: for a `doing` or `todo` item that is what DONE means, and for a `decision` or `watchout` it is retirement, and for a `hold` it means the condition was met and the work moved on. For a `directive`, which only `hv`'s board carries, it is `hv` retiring one that is spent. The item leaves the live count in that write, which is how a board that refuses a write starts accepting again. DO NOT USE IT expecting a deletion: the row keeps its number and its text and stays readable, it just stops counting. It reports what MOVED, so archiving something already archived says so.",
           "args": [
             {
               "name": "kind",
@@ -8849,7 +8850,7 @@
         {
           "path": "wb pickup",
           "help": "Start a session: mark this node active, then its board and its peers' state",
-          "when_to_use": "USE IT at the start of a session -- it marks the acting node active, stamps its heartbeat, records the session and focus you name, then prints its board -- the messages still live listed, the handled ones counted in one line that names `--all` -- then `hv`'s live directives, watch-outs and decisions in full (absent when you are `hv` or there is no `hv` board), then every peer's header state with a count, by kind, of the live items it does not show. `--all` lists every message, handled included; it is for reaching the archive, not for starting a session. DO NOT USE IT to read somebody else's board: a peer comes back as its header and those counts, and `wb show <node>` is the door for one whole board. An unnamed session or focus keeps what the board already holds; `wb touch` is the verb that only stamps the heartbeat.",
+          "when_to_use": "USE IT at the start of a session -- it marks the acting node active, stamps its heartbeat, records the session and focus you name, then prints its board -- the messages still live listed, the handled ones counted in one line that names `--all` -- then `hv`'s live directives, watch-outs and decisions in full (absent when you are `hv` or there is no `hv` board), then every peer's header state with a count, by kind, of the live items it does not show. `--all` lists every message, handled included; it is for reaching the archive, not for starting a session. DO NOT USE IT to read somebody else's board: a peer comes back as its header and those counts, and `wb show <node>` reads one whole board. An unnamed session or focus keeps what the board already holds; `wb touch` is the verb that only stamps the heartbeat.",
           "args": [],
           "v2": "new-surface",
           "basis": "ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. The `intent wb` family covers the `/in-whiteboard` verbs, `pickup` among them; there is no v2 antecedent.",
@@ -8983,7 +8984,7 @@
         {
           "path": "wb claim",
           "help": "Add a steel thread, work package or issue to the acting node's claims",
-          "when_to_use": "USE IT to say which work this node has the pen on, so a peer reading the board at pickup can see the lane before starting something that collides. DO NOT USE IT for free text: a claim names something the board can point at, so it takes `ST0000`, `ST0000/01` or `ISSUE:0000` and refuses anything else. THE ISSUE FORM IS THE MANIFEST'S OWN SPELLING, the one `organize --default` writes into `intent/.intentfiles`, and it exists because `claims:` was otherwise EMPTY BY CONSTRUCTION for the work that fills the time between releases -- silent precisely where two concurrent sessions would collide (hv, decision 29). It is idempotent and reports what MOVED, so re-asserting your own lane at pickup is the normal case rather than an error.",
+          "when_to_use": "USE IT to say which work this node has the pen on, so a peer reading the board at pickup can see the lane before starting something that collides. DO NOT USE IT for free text: a claim names something the board can point at, so it takes `ST0000`, `ST0000/01` or `ISSUE:0000` and refuses anything else. The issue form is the one `organize --default` writes into `intent/.intentfiles`, so issue work can be claimed like a thread. It is idempotent and reports what MOVED, so re-asserting your own lane at pickup is the normal case rather than an error.",
           "args": [{ "name": "id", "type": "claim-address", "arity": "1", "help": "What to claim: a thread as `ST0000`, a work package as `ST0000/01`, or an issue as `ISSUE:0000`" }],
           "v2": "new-surface",
           "basis": "ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. The `intent wb` family covers the `/in-whiteboard` verbs, `claim` among them; there is no v2 antecedent.",
@@ -9067,14 +9068,14 @@
               "name": "moniker",
               "type": "node",
               "arity": "0..1",
-              "help": "The node's handle, eg `dc`: its routing key and the name of its board's directory. With no moniker and no flags, the roster is read from each node's own board header"
+              "help": "The node's handle, eg `qa`: its routing key and the name of its board's directory. With no moniker and no flags, the roster is read from each node's own board header"
             }
           ],
           "flags": [
             {
               "spellings": ["--name"],
               "type": "string",
-              "help": "The node's display name, eg \"DevX Claude\" -- not its session name; given with `<moniker>`",
+              "help": "The node's display name, eg \"QA Claude\" -- not its session name; given with `<moniker>`",
               "disposition": "keep",
               "exposed_on_mcp": false
             },
@@ -9297,13 +9298,13 @@
       "path": "search",
       "serving_op": "Search",
       "help": "Find where a name is defined, what a file holds or where a name is called, or search the text of the whole project, with hits grouped by tier and the index's freshness; or run one read-only SQL statement over this store's published schema",
-      "when_to_use": "USE IT FIRST for a code lookup by name, instead of a grep, a glob and several reads: where a function, type or module is defined (`kind` def with the name as `query`), a file's symbols and their line spans (`outline`), or a definition and the places its name is called (`context`). Narrow any of them with `subkind`, the language's own word for what a symbol is (struct, method, defp, call, use), and `in`, the module, impl, trait or type it sits in. With no `query`, `subkind` and `in` are the question on their own: `subkind` method with `in` a type lists that type's methods. Every symbol hit carries its `subkind`, `container`, `qualifier` and `level`. Level 1 is read from the file's syntax and matched by name, never resolved to the definition it names, and level 2 is read from the file's syntax with the qualifier it was written with, a Rust path as written or an Elixir module with the file's own aliases and `__MODULE__` expanded, still never resolved to the definition it names; in Rust, scoped calls, uses of a type and names inside a macro are references, and in Elixir, remote calls with their module, captures, pipes, and use, import, require and alias are. What is not: in Rust, inside a macro invocation a name the tokens do not show as a call or a path is an occurrence of the name rather than a use, and its qualifier is only the one segment before it; a name in a nested use list such as use a::{b::C} has no use row; and a name passed as a value outside a macro, such as map(f), is not a reference; in Elixir, nothing import or use brings in is applied, so a call to an imported function, Kernel's included, is a level-1 reference with no module; and a call through a module held in a variable, such as mod.fun(..), has no qualifier; Swift files give definitions only. Level 3 is resolved to the definition it names by the language's own toolchain, once a person has run `intent index resolve`, which runs the project's build: a reference whose key joins exactly one resolved row carries `level` 3 with `target`, `target_path` and `target_line`, and one joining several keeps its syntax level and lists them as `candidates`. `target` asks for the references resolved to one definition, spelled exactly as a hit's `target` prints it (a callable Rust target ends in `()`, an Elixir one in its `/arity`); it narrows every other question, with no `query` it lists them, and it never lists a call only the toolchain sees, which `intent index status` counts as unmatched. A target no resolved row names is refused with the resolved targets that end the same way, and otherwise its empty answer says a target nothing references and a misspelt one read the same. Every answer's `index.resolution` names each language whose level 3 is not current, by `state`: `missing` (its toolchain is not where Intent can run it, so only what an earlier run stored answers at level 3), `failed` (its last resolution run failed, so only what an earlier run stored answers at level 3), `stale` (the files it lists changed since they were resolved, so their references answer at their syntax level until the next run) or `unresolved` (no resolution run has stored its references here, so they answer at their syntax level), which is named only where the index holds the file the language's reader finds a project by, such as a `Cargo.toml`. USE IT ALSO when the question is WHERE IS THIS WRITTEN across the whole project -- steel threads, work packages, issues, the docs tree and the source, ranked. DO NOT USE IT when you already know the path: read the file. DO NOT USE IT for a regex or for every literal occurrence: grep is exact, always fresh and needs no index. AND WHEN THE ANSWER SAYS `complete: false`, TRUST GREP OVER IT FOR THE PATHS IT NAMES: a binary file or a symlink is listed under `skipped` and leaves the answer complete, so `complete: false` means text the index has not read.",
+      "when_to_use": "USE IT FIRST for a code lookup by name, instead of a grep, a glob and several reads: where a function, type or module is defined (`kind` def with the name as `query`), a file's symbols and their line spans (`outline`), or a definition and the places its name is called (`context`). Narrow any of them with `subkind`, the language's own word for what a symbol is (struct, method, defp, call, use), and `in`, the module, impl, trait or type it sits in. With no `query`, `subkind` and `in` are the question on their own: `subkind` method with `in` a type lists that type's methods. Every symbol hit carries its `subkind`, `container`, `qualifier` and `level`. Level 1 is read from the file's syntax and matched by name, never resolved to the definition it names, and level 2 is read from the file's syntax with the qualifier it was written with, a Rust path as written or an Elixir module with the file's own aliases and `__MODULE__` expanded, still never resolved to the definition it names; in Rust, scoped calls, uses of a type and names inside a macro are references, and in Elixir, remote calls with their module, captures, pipes, and use, import, require and alias are. What is not: in Rust, inside a macro invocation a name the tokens do not show as a call or a path is an occurrence of the name rather than a use, and its qualifier is only the one segment before it; a name in a nested use list such as use a::{b::C} has no use row; and a name passed as a value outside a macro, such as map(f), is not a reference; in Elixir, nothing import or use brings in is applied, so a call to an imported function, Kernel's included, is a level-1 reference with no module; and a call through a module held in a variable, such as mod.fun(..), has no qualifier; Swift files give definitions only. Level 3 is resolved to the definition it names by the language's own toolchain, once a person has run `intent index resolve`, which runs the project's build: a reference whose key joins exactly one resolved row carries `level` 3 with `target`, `target_path` and `target_line`, and one joining several keeps its syntax level and lists them as `candidates`. `target` asks for the references resolved to one definition, spelled exactly as a hit's `target` prints it (a callable Rust target ends in `()`, an Elixir one in its `/arity`); it narrows every other question, with no `query` it lists them, and it never lists a call only the toolchain sees, which `intent index status` counts as unmatched. A target no resolved row names is refused with the resolved targets that end the same way, and otherwise its empty answer says a target nothing references and a misspelt one read the same. Every answer's `index.resolution` names each language whose level 3 is not current, by `state`: `missing` (its toolchain is not where Intent can run it, so only what an earlier run stored answers at level 3), `failed` (its last resolution run failed, so only what an earlier run stored answers at level 3), `stale` (the files it lists changed since they were resolved, so their references answer at their syntax level until the next run) or `unresolved` (no resolution run has stored its references here, so they answer at their syntax level), which is named only where the index holds the file the language's reader finds a project by, such as a `Cargo.toml`. USE IT ALSO when the question is WHERE IS THIS WRITTEN across the whole project -- steel threads, work packages, issues, the docs tree and the source, ranked. DO NOT USE IT when you already know the path: read the file. DO NOT USE IT for a regex or for every literal occurrence: grep is exact, always fresh and needs no index. AND WHEN THE ANSWER SAYS `complete: false`, TRUST GREP OVER IT FOR WHAT IT NAMES: a binary file or a symlink is listed under `skipped` and leaves the answer complete, so `complete: false` means text the index has not read, or, for a `def`, `outline`, `context` or filter question, a language whose symbols the index does not hold, listed under `index.unindexed`. The index parses a file by its extension, so a script without one has no symbols.",
       "args": [
         {
           "name": "query",
           "type": "string",
           "arity": "0..1",
-          "note": "Added by cc at build time (2026-08-14): the row declared no args, so the spine built a command that refused `intent search foo` with `unexpected argument`. A command specified to take a query needs somewhere to put it."
+          "note": "The name or text to search for. Leave it out when `--outline`, `--context` or `--sql` asks the question instead, or to list what `--subkind`, `--in` or `--target` match on their own."
         }
       ],
       "v2": "new-surface",
@@ -9435,7 +9436,7 @@
           "name": "id",
           "type": "string",
           "arity": "0..n",
-          "note": "RULED by hv 2026-08-19, requested by vc as the highest-value thing left in the estate. Both directions were WHOLE-ESTATE ONLY, so on a shared board the routine act of landing your own thread reads every other node's uncommitted files -- measured happening twice in one day by the node holding the pen and warning the others, across thirteen estate-wide restores in one session. dc's framing is why it is structural rather than an ergonomics complaint: a workflow whose correct form requires an operation only safe for one actor is a single-writer bottleneck wearing a per-node procedure's clothes; and vc's half is why care cannot fix it -- staying off the estate protects a node from WRITING, and the hazard is a READ THAT WRITES. **NO IDS MEANS THE WHOLE ESTATE, which keeps every existing invocation meaning exactly what it meant** -- a fresh clone, a full regeneration and the migrator all want the estate and should not have to name 57 threads to say so. **IT NAMES WHICH THREADS TAKE THEIR VALUE FROM THE SOURCE, NOT WHICH ONES GET READ**: on `--to-store` the run ends in a whole-store rebuild, so a scope that narrowed the READ would hand the rebuild a shortened set and delete every thread it did not name -- a worse defect than the one being fixed, and silent, since the node that ran it was saving its own work. An id that matches no thread REFUSES rather than succeeding over an empty selection, because a typo would otherwise be indistinguishable from a completed sync."
+          "note": "Steel thread ids that take their value from the source, eg `ST0000`. With none, the whole estate does. The ids choose what is taken, not what is read. An id that matches no thread is refused rather than syncing nothing."
         }
       ],
       "flags": [
@@ -9452,7 +9453,7 @@
             "--to-store"
           ],
           "type": "bool",
-          "help": "Read the committed extract into the store, through the API gate",
+          "help": "Read the committed extract into the store -- every thread, or only the ids named",
           "disposition": "keep",
           "disposition_basis": "RULED `keep` by ic, 2026-08-15, on the boundary declared at `boundary_ruled` below. It was `pending` on the ground that `sync --to-store` and `ingest` might be spellings of one act; they are not, and the flag ships. cc had already implemented it and stopped rather than let the code answer the open question -- which was right, and is the reason this row is ruled rather than discovered."
         },
@@ -9518,7 +9519,7 @@
           "type": "string",
           "arity": "0..1",
           "values_note": "One of the committed filenames under schema/, eg ddl.sql. Omitted, every face is printed with a `== <name> ==` banner between them so the output stays machine-splittable. Added by cc at build time (2026-08-14) alongside the search query arg.",
-          "note": "AC-06.5 requires what this prints to be byte-identical to the committed files, which is only checkable per-face; a single blob would have to be re-split by the test to compare."
+          "note": "Which face to print, by its file name under `schema/`, eg `ddl.sql`; the output is byte-identical to that file. Omitted, every face is printed."
         }
       ],
       "v2": "new-surface",
@@ -9556,6 +9557,7 @@
           ],
           "type": "string",
           "value": "<fmt>",
+          "help": "Output format: `json`, the default, prints the whole estate as one JSON document; `md` writes readable files under intent/.backup/text/<timestamp>/; `yaml` is refused",
           "disposition": "keep"
         }
       ],
@@ -9598,7 +9600,7 @@
           "type": "string",
           "arity": "0..1",
           "values_note": "A directory of markdown to read. GIVEN, that tree is ingested -- the v2 migrator's case, where the tree belongs to another project. OMITTED, this project's own markdown is ingested -- the recovery case, where you are already standing in it.",
-          "note": "DECLARED BY ic 2026-08-15, CLOSING `input_selector_gap` below, on cc's ruling of the one part that was theirs. **The gap was that `intent ingest` had no way to say WHAT to ingest** -- measured against the built binary, `Usage: intent ingest [OPTIONS]`, one bool and no positional. I sketched the shape but did not declare it, because the arity turns on whether the recovery case DEFAULTS or REFUSES, and that is a build-time behaviour call. **cc ruled it defaults, 2026-08-15: _a migrator invoked on another tree names it; a user recovering their own estate is standing in it_** -- which is the argument from where the user's feet are rather than from symmetry, and it is right. `0..1` accordingly. cc wires it.",
+          "note": "The root of the Intent project to check, the directory holding `intent/`. Omitted, the current project is checked.",
           "not_the_flag": "This is NOT a replacement for `--from-md` and does not settle it. A bool cannot carry a path, so the arg is owed whichever way the flag question goes -- which is why it was filed as a separate finding rather than as an argument for dropping the flag."
         }
       ],
@@ -9772,7 +9774,7 @@
     },
     {
       "path": "edit",
-      "help": "Print the path to open for an artefact, realising it first so the path exists",
+      "help": "Open an artefact's file, realising it first so the path exists: in $VISUAL or $EDITOR on a terminal, and as a printed path when stdout is not one (`--path` prints, `--editor` opens)",
       "args": [
         {
           "name": "kind",
@@ -9782,13 +9784,13 @@
             "st",
             "wp"
           ],
-          "note": "**THE KIND RESOLVES AN AMBIGUITY THE TOOL ALREADY REPORTS, rather than being new syntax for its own sake.** Measured 2026-08-29: `intent edit 1` refuses with `1 names both a steel thread and an issue`. AC-17.6. **ARITY 0..1 SINCE 2026-08-31, ON hv's RULING, AND THE COST WAS STATED BEFORE IT WAS TAKEN.** `intent edit intent:///threads/ST0056` names the kind IN the address, so demanding it separately asks the caller for information the argument already carries -- which is what forced `ST0064`'s menubar app to parse the kind out of a URL in Swift, the second resolver `AC-01.5` forbids. **vc recommended an `--address` OPTION instead and hv chose this, having read the trade in as many words: the verb parses its own positionals rather than declaring them.** The rule the verb owns is small and closed: IF THE FIRST POSITIONAL IS AN ADDRESS, IT IS THE WHOLE ADDRESS, and the next positional is the FILE. The risk is the next argument added to this verb, and it is named in `render.rs` beside the parse. **`issue` LEFT THIS ROSTER WITH ISSUE 0334** (vc's reading of 2026-09-14, standing under hv's rulings of 2026-09-15, item 15): an issue carries no file this verb opens -- its one file is a view rendered from the store -- so `edit issue <id>` is refused at the parse, naming `intent issues edit <id>`. `browse` keeps `issue`, and the address form still reaches the facade's own refusal."
+          "note": "Optional: `st` or `wp`, the kind of the id that follows, as in `intent edit st 56`. Leave it out when the first argument is a whole `intent://` address, where the next argument is the file, or when the only argument is an id this project resolves; a bare number that names both a thread and an issue is refused until you name the kind. `issue` is refused: an issue has no file to open, and `intent issues edit <id>` changes one."
         },
         {
           "name": "id",
           "type": "address-or-id",
           "arity": "0..1",
-          "note": "An operator's spelling resolves to the id -- `56`, `ST0056`, `st56`, `ST56` all name one thread (AC-06.12). `address::promote` stays the one door, so a typo is a USAGE error naming both forms and never a not-found. **ARITY 0..1 SINCE 2026-08-31**: it is absent when the first positional is a whole address. It is NOT optional in meaning -- a bare kind with no id is refused in the renderer, because clap cannot express _required unless the previous positional was an address_."
+          "note": "The id to open. With `st`, `0`, `ST0000`, `st0` and `ST0` all name one thread; with `wp`, the work package is `<thread>/<NN>`, as in `ST0000/03`. An id that does not parse is refused with the form to use, never reported as not found. It is left out only when the first argument is a whole `intent://` address; a kind with no id is refused."
         },
         {
           "name": "file",
@@ -9802,7 +9804,7 @@
             "tasks",
             "acceptance"
           ],
-          "note": "**SURVIVES THE SHAPE CHANGE, AND IT IS WHAT `--path` AND `--editor` OPERATE ON.** NO `all` -- there is no single path for it. The TUI and the browser edit the MODEL and never a file, so this argument is meaningful only under the two file-shaped modes; under the other two it is the artefact the pane would open. Carried unchanged from `st edit`, which this verb absorbs."
+          "note": "Which file: `info` (the default), `design`, `impl`, `tasks` or `acceptance`. `all` is refused, because it has no single path. It is the file `--path` prints and `--editor` opens."
         }
       ],
       "flags": [
@@ -9860,6 +9862,7 @@
           ],
           "type": "string",
           "value": "<op>",
+          "help": "Show only events with exactly this op, eg `wp.done`",
           "disposition": "keep"
         },
         {
@@ -9868,6 +9871,7 @@
           ],
           "type": "string",
           "value": "<id>",
+          "help": "Show only events about this subject, eg `ST0000/01`",
           "disposition": "keep"
         },
         {
@@ -9876,6 +9880,7 @@
           ],
           "type": "string",
           "value": "<n>",
+          "help": "Show only the most recent n matching events",
           "disposition": "keep"
         },
         {
@@ -9884,6 +9889,7 @@
           ],
           "type": "string",
           "value": "<fmt>",
+          "help": "`json` for one JSON document; otherwise one line per event",
           "disposition": "keep",
           "exposed_on_mcp": false,
           "note": "narrowed off MCP as terminal-channel: it selects table-vs-json terminal rendering, and the MCP tool always answers structured JSON"
@@ -9909,13 +9915,13 @@
           "name": "target",
           "type": "st-id|wp-spec",
           "arity": "1",
-          "note": "The thread or work package, spelled with the EXISTING address forms -- `ST0001` or `ST0001/01`, `parse_wp_specifier`'s grammar. No new address form is minted for this verb: a third spelling existing for one verb would be the only place in the tool a caller addresses an entity that way."
+          "note": "The thread (`ST0000`) or work package (`ST0000/01`) to close on authority."
         },
         {
           "name": "child",
           "type": "ac-id|at-id",
           "arity": "0..1",
-          "note": "Present to close a criterion or an acceptance test, as `ac satisfy` and `at edit` already spell it. ABSENT means the target itself, and AC-00.3 cascade then reaches its open children. Both child kinds are wired: `fn fc` in `native/rust/crates/intent-cli/src/render.rs` routes an `AC-` child to `ac_fc` and an `AT-` child to `at_fc`."
+          "note": "Optional: a criterion (`AC-...`) or an acceptance test (`AT-...`) on the target, to close that row alone. Omitted, the target itself is closed, and its open children close with it."
         }
       ],
       "flags": [
@@ -10041,13 +10047,13 @@
             "wp",
             "issue"
           ],
-          "note": "**THE KIND RESOLVES AN AMBIGUITY THE TOOL ALREADY REPORTS, rather than being new syntax for its own sake.** Measured 2026-08-29: `intent edit 1` refuses with `1 names both a steel thread and an issue`. AC-17.6."
+          "note": "What kind of id follows: `st`, `wp` or `issue`. It is required, because a bare number can name both a thread and an issue."
         },
         {
           "name": "id",
           "type": "address-or-id",
           "arity": "1",
-          "note": "An operator's spelling resolves to the id -- `56`, `ST0056`, `st56`, `ST56` all name one thread (AC-06.12). `address::promote` stays the one door, so a typo is a USAGE error naming both forms and never a not-found."
+          "note": "The id to open. With `st`, `0`, `ST0000`, `st0` and `ST0` all name one thread; with `wp`, `<thread>/<NN>`; with `issue`, its number. An id that does not parse is refused with the form to use, never reported as not found."
         }
       ],
       "flags": [],
@@ -10072,7 +10078,7 @@
           "name": "address",
           "type": "address-or-id",
           "arity": "0..1",
-          "note": "**OPTIONAL, AND IT IS ONE CALL TO `address::promote` RATHER THAN A SECOND RESOLVER.** `promote` tests for the `intent://` scheme itself and delegates to `address::parse`, else asks `model::normalise_id` -- so both spellings hv named reach the estate's existing one door and nothing dispatches between them. Same `address-or-id` type `edit` and `browse` already declare; the only difference is the arity. **A `/thread/ST0056` PATH SPELLING WAS CONSIDERED AND REFUSED**: `nav::View::parse` validates nothing (`/banana` parses as a collection), so accepting it would need new validation against `nav::kinds`, and that new validation would be the second resolver the no-address ruling was right to fear. **`intent explore 56` OPENS AT ROOT AND SAYS WHY**: untagged digits that are not exactly four are `IdError::Ambiguous`, which is the ambiguity `AC-17.6` exists to record. `ST0056`, `st56` and `ST56` resolve; `0142` is issue 142. Preferring threads for a short bare seq was rejected as a SECOND IDENTITY RULE inferring from spelling -- the class `promote`'s own doc says this table exists to kill."
+          "note": "Optional. Where to open: an `intent://` address, or an id. A thread can be named `ST0000`, `ST0` or `st0`. A bare number, such as `4`, opens the one thread or issue in this project with that number; when a thread and an issue share it, `s4` or `i4` names the one you mean. A number that names both or neither, or anything else it cannot read, opens at the top instead. Omitted, it opens at the top."
         }
       ],
       "v2": "new-surface",
@@ -10110,7 +10116,9 @@
             "--depth"
           ],
           "type": "string",
-          "help": "How many directory levels below fromdir to search (default 4)",
+          "help": "How many directory levels below the start directory to search",
+          "value": "<n>",
+          "default": "4",
           "disposition": "keep"
         }
       ],
@@ -10158,7 +10166,7 @@
           "name": "query",
           "type": "string",
           "arity": "1",
-          "note": "The document, verbatim. Validated by the schema in intentd, never by the CLI: `EmptyMutation` ships, so a mutation document is refused inside the answer's `errors` on the spec's own channel, and the CLI does not read the document at all."
+          "note": "The GraphQL document, passed to intentd verbatim; the CLI does not read it. The schema is read-only, so a mutation is refused in the answer's `errors`."
         }
       ],
       "v2": "new-surface",
@@ -10194,13 +10202,13 @@
           "name": "address",
           "type": "address-or-id",
           "arity": "1",
-          "note": "Resolved by `address_of`, the parser `edit` and `browse` already use: an `intent://` address, or an id the project's ladder resolves. No new address form is minted for this verb."
+          "note": "The entity to write: an `intent://` address, or an id this project resolves."
         },
         {
           "name": "field",
           "type": "string",
           "arity": "1",
-          "note": "A field of the addressed entity's schema. Which fields may be written is `Facade::set`'s answer and is not restated here: an unknown or unsettable one is refused by name, with the verb that does write it."
+          "note": "A field of the addressed entity. A field it does not have, or one another verb writes, is refused by name, together with the verb that does write it."
         },
         {
           "name": "value",

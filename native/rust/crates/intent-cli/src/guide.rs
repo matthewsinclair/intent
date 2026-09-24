@@ -105,8 +105,9 @@ pub fn render(table: &Table) -> Result<String, Failure> {
 
 const HOW_TO_READ: &str = "\
 The command reference below is generated from the dispatch table compiled into \
-this binary, so it lists exactly what this build ships -- no more, and nothing \
-missing. Each command carries, in this order:
+this binary, so it lists every command this build ships -- no more, and nothing \
+missing -- and a command declared but not built in this release says so in its \
+`does` line. Each command carries, in this order:
 
 - **safety** -- `mutate` if invoking it can change durable state, `read` if not. A mutation also says whether this surface can put the estate back: **reversible** (another command undoes it), **idempotent** (running it again is the same state), or **ONE-WAY** (nothing here undoes it). Treat one-way as needing a human.
 - **call** -- the path and its positional arguments. `<x>` is required, `[x]` optional, `...` repeatable.
@@ -151,7 +152,7 @@ fn surface_wide(table: &Table) -> Result<String, Failure> {
 
 - **{}** ({}). `0` is success. `1` means the command RAN and the answer is no -- a refused verb, a blocked gate, a usage error. **`2` means this build cannot answer the question at all, and it NEVER carries a verdict about your work** -- which is exactly why the shipped pre-commit gate fails open on it. The two you will meet most often are a command that is declared but not implemented yet, which says `{UNWIRED_PHRASE}` on stderr, and `intent critic` rejecting an invocation it cannot act on, such as a language it does not know. **That is not a closed list, and this sentence deliberately no longer offers one**: what makes a `2` a `2` is the tool being unable to answer, not membership of an enumeration -- an OS call failing, a flag whose feature is unbuilt, and a `--daemon` that cannot be reached are all the same fact about the tool. **Never read `2` as a verdict about your code, and never read `1` as a broken run.**
 - **{}** ({}). Results go to stdout; failures go to stderr with a lowercase `error: ` prefix. Nothing is banner-wrapped.
-- **{}** ({}). A usage error -- an unknown flag, a missing argument -- exits `1`, not clap's default of 2.
+- **{}** ({}). A usage error -- an unknown flag, a missing argument -- exits `1`; `intent critic`'s own usage errors exit `2`, so the gate that runs it fails open on them.
 - **{}** ({}). A command that needs to be inside an Intent project says so plainly when it is not, rather than half-working.
 - **`--help` works on every command**, at every level, and is not listed per row below. clap supplies it to all of them, while only some rows declare it -- so a per-row rendering would under-report it.
 
@@ -451,7 +452,7 @@ Change state through the verbs -- `st`, `wp`, `ac`, `at`, `issues` -- and let th
 
 **Bare `--to-store`, with no thread named, replaces the WHOLE store**, including durable history that cannot be rebuilt from the files. **Naming threads scopes it**: only those are taken from the extract and every other thread keeps the store's value. Repairing one object with the bare form is how **a remedy whose blast radius exceeds the fault it repairs** gets reached for.
 
-**Authored markdown has NO path into the store in this build**, and that is worth knowing BEFORE planning a repair around one. `intent sync` reads the JSON extract and opens no markdown at all. `intent ingest --from-md` does read markdown, including a v2 estate's, and reports what it found -- it tells you an estate PARSES, and it writes nothing.
+**Authored markdown has NO path into the store in this build**, and that is worth knowing BEFORE planning a repair around one. `intent sync` reads the JSON extract and opens no markdown at all. `intent ingest` does read markdown, including a v2 estate's, and reports what it found -- it tells you an estate PARSES, and it writes nothing.
 
 ### Gate semantics: an exit code is a verdict about a particular thing
 
@@ -460,6 +461,7 @@ Read the codes as verdicts about DIFFERENT SUBJECTS rather than as degrees of ba
 - **`1` -- the tool ran and the answer is no.** Your code, your criteria, or your arguments. Act on it.
 - **`2` -- this build could not answer at all.** The tool is unavailable; nothing has been said about your work. **The shipped pre-commit gate fails OPEN on `2`**, deliberately, because a check that could not run must not block a commit it never examined.
 - **`3` -- a rule this project armed could not be enforced.** Not a flavour of `1`: `1` says the answer is no, `3` says part of the question went unanswered. **The gate BLOCKS on `3`**, because a rule that silently goes unenforced is the failure a gate exists to prevent.
+- **`4` -- the estate could not be judged.** `intent doctor` could not read the project it was asked about, so nothing it printed is a verdict. **The gate fails OPEN on `4`**, as it does on `2`: a check that could not look must not block a commit it never examined.
 
 **So a passing gate is a claim about what RAN, and no more than that.** A skipped check says so in its own line, and that line is not decoration: an instrument that cannot report its own blindness is worse than no instrument, because it converts an unknown into a green.
 ";

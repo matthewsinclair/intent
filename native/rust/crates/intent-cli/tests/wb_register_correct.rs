@@ -213,7 +213,7 @@ fn register_help_says_what_each_part_is() {
   let help = ok(dir.path(), &["wb", "register", "--help"]);
   // clap wraps help to a width, so the examples are read with the wrap undone.
   let flat = help.split_whitespace().collect::<Vec<_>>().join(" ");
-  for shown in ["handle, eg `dc`", "eg \"DevX Claude\"", "eg `worker`"] {
+  for shown in ["handle, eg `qa`", "eg \"QA Claude\"", "eg `worker`"] {
     assert!(
       flat.contains(shown),
       "`wb register --help` does not show {shown}:\n{help}"

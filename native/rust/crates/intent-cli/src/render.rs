@@ -12574,7 +12574,7 @@ fn rules_validate(m: &ArgMatches) -> Result<(), Failure> {
   // the note and the behaviour cannot disagree.
   if intentsvcs::userstate::ext_base().is_none() {
     eprintln!(
-      "note: extension rule packs were NOT validated. `userstate::ext_base()` answers `None`, so `ext_packs()` returns an empty list by construction and no pack under `~/.local/share/intent/ext` is reached -- see that function for why it is held. Two arms of `tests/unit/rule_validator.bats` need it -- `rules validate passes the ext valid-ext fixture rule` and `rules validate detects duplicate ids across files`, which builds its duplicates inside a temporary ext directory."
+      "note: extension rule packs were NOT validated: extensions are not built in this release, so nothing under `~/.local/share/intent/ext` is read."
     );
   }
 

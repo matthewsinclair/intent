@@ -1,6 +1,6 @@
 # Intent — design system
 
-**This is the design specification for `intent.laksa.io`.** `/design` at Laksa reads it, and laksa-{vc,cc} implement it as a Laksa custom theme (`theme/theme.yaml`, `theme/layout.liquid`, `assets/`) in `../Sites/intent`. `../Sites/appendix3` is the working reference for the theme structure. Intent.app's Console also takes §3's dark tokens and §4's mono family, typed by hand in `native/macos/Intent/Intent/Utilities/Theme.swift`; change a dark token here first, then there.
+**This is the design specification for `intent.laksa.io`.** `/design` at Laksa reads it, and laksa-{vc,cc} implement it as a Laksa custom theme (`theme/theme.yaml`, `theme/layout.liquid`, `assets/`) in `../Sites/intent`. `../Sites/appendix3` is the working reference for the theme structure. Intent.app's Console also takes §3's dark tokens and §4's mono family, typed by hand in `native/macos/Intent/Intent/Utilities/Theme.swift`; change a dark token here first, then there. The explorer TUI takes the same semantic set, translated to the sixteen ANSI colours, in `native/rust/crates/intent-cli/src/tui/draw.rs` (`fn style`), so a change to what a semantic colour means lands there too. intentd's web face (`native/rust/crates/intentd/src/shell.html`) is not built to these tokens: it has its own palette, with a gold accent where §3 has steel, and system font stacks, and takes only the mark from this directory.
 
 **It specifies a one-page site.** Intent's documentation lives in this repository at [`docs/`](../) and the site links to it rather than reproducing it. Sections marked _docs shell_ apply only if the documentation is later hosted; everything else is needed for the one page.
 
@@ -12,17 +12,17 @@
 
 **The semantic palette is taken from the CLI's own output vocabulary rather than invented for the site.** Intent v3 emits line prefixes, all lowercase, all colon-terminated, no banners and no unicode decoration.
 
-| Prefix     | What it means                                    |
-| ---------- | ------------------------------------------------ |
-| `error:`   | The operation did not happen                     |
-| `warning:` | It happened, and something about it needs saying |
-| `ok:`      | The operation happened                           |
-| `created:` | A new artefact exists                            |
-| `residue:` | State left behind that nothing owns              |
-| `note:`    | Context the operator wants and did not ask for   |
-| `done:`    | A sequence finished                              |
+| Prefix     | What it means                                                                 |
+| ---------- | ----------------------------------------------------------------------------- |
+| `error:`   | The operation did not happen                                                  |
+| `warning:` | It happened, and something about it needs saying                              |
+| `ok:`      | The operation happened                                                        |
+| `created:` | A new artefact exists                                                         |
+| `residue:` | An artefact the tool refused, named with where and why; it blocks until fixed |
+| `note:`    | Context the operator wants and did not ask for                                |
+| `done:`    | A sequence finished                                                           |
 
-**That vocabulary is the site's semantic colour system.** A callout is not a "tip" or an "info box" -- it is a `note:`, and it is styled as one. Where the page shows a failure the tool prints as `error:`, it renders in the colour the terminal uses. A reader who has used the tool for ten minutes already knows what the colours mean.
+**That vocabulary is the site's semantic colour system.** A callout is not a "tip" or an "info box" -- it is a `note:`, and it is styled as one. Where the page shows a failure the tool prints as `error:`, it renders in `--error`. The CLI prints its prefixes uncoloured, so what a reader of the tool already knows is the words; the colours are the terminal convention, which the explorer (`intent explore`) also follows for the same states: green for done, yellow for in flight, red for blocked.
 
 ### This list is CURATED, and an earlier draft of this section implied it was not
 
@@ -36,13 +36,15 @@
 
 **The table carries no per-prefix counts, because independent measurements of the same corpus disagreed within the hour** -- not because anyone measured wrongly, but because sessions are committing into the corpus. **A count without a commit beside it describes a tree that no longer exists.**
 
-The corpus is the CLI crate and the services crate it renders through. `gate:` and `ac:` lines are composed in `native/rust/crates/intentsvcs/src/contract.rs`, so a grep of the CLI crate alone never sees them. Re-derive it if you need it, and pin it:
+The corpus is the CLI crate and the services crate it renders through. The `gate:` verdict lines and `ac:` tally lines are composed in `native/rust/crates/intentsvcs/src/contract.rs`, so a grep of the CLI crate alone misses them; it finds only the CLI's own `gate:` line in `intent bootstrap --check` and the `ac:` rows of `intent ac list`. Re-derive it if you need it, and pin it:
 
 ```
   $ git rev-parse --short HEAD
   $ grep -rhoE '"[a-z][a-z_-]*: ' native/rust/crates/intent-cli/src native/rust/crates/intentsvcs/src --include='*.rs' \
       | sed 's/^"//; s/: $//' | sort | uniq -c | sort -rn
 ```
+
+The grep sees a prefix only where a string literal opens with it, so a prefix composed at run time is missed or undercounted: `intent claude upgrade`'s `written:` never appears, because `claude_upgrade` prints `{wrote}:`, and `residue:` counts once although every actionable finding line leads with it (`FindingClass::lead` in `native/rust/crates/intentsvcs/src/finding.rs`).
 
 **The paths are the full ones deliberately.** An earlier draft cited the corpus as `intent-cli/src`, which is not a directory anyone can change into, and both reviewers had to guess candidate paths before they could check the table at all. **A corpus you cannot `cd` to is one nobody re-runs, which is how a table stops being reproducible without anyone editing it.**
 
@@ -128,6 +130,8 @@ Near-monochrome ground and ink, one accent, and the semantic set from §1. Lift 
 ```
 
 **Define every colour on bare `:root` first and redefine only what changes inside the media query.** A token whose only definition lives in a media block vanishes in the other mode. Redefine the same tokens again under `:root[data-theme="dark"]` if a toggle is built, so the toggle wins in both directions.
+
+`--ink-faint` is under §9's 4.5:1 floor in both modes (3.3:1 on light `--bg`, 4.1:1 on dark), so it is for marks nobody needs to read, such as the prompt sigil or a hover border, and never for text or figure labels.
 
 ### DECISION A, RULED — the accent is steel, and the accent cannot be red
 
@@ -223,7 +227,7 @@ _(docs shell)_ A hosted docs set adds a left nav — static above `900px`, a dis
 
 ### 6.1 Header
 
-Mono, `--t-sm`, on a hairline. Left: the wordmark. Right: `docs` and `github`. No hamburger — three items fit at every width. Whether the mark sits beside the wordmark is Decision C (§11). Nav links are `--ink-muted` going to `--ink` on hover, **and are not underlined**; the underline is reserved for prose links so it keeps meaning something.
+Mono, `--t-sm`, on a hairline. Left: the wordmark. Right: `docs`, `github` and the author's mark. No hamburger — they fit at every width. Whether the mark sits beside the wordmark is Decision C (§11). Nav links are `--ink-muted` going to `--ink` on hover, **and are not underlined**; the underline is reserved for prose links so it keeps meaning something.
 
 ### 6.2 The terminal block — the one component that carries the whole voice
 
@@ -237,7 +241,7 @@ Mono, `--t-sm`, on a hairline. Left: the wordmark. Right: `docs` and `github`. N
 Each rule below closes a real failure:
 
 1. **The prompt character is not selectable and is not copied.** A copy control copies the command without the `$`. A reader who pastes `$ intent ...` and gets `command not found` was failed by the page.
-2. **Output is styled by its prefix**, using the semantic tokens. The colour comes from the prefix, so it cannot disagree with the terminal.
+2. **Output is styled by its prefix**, using the semantic tokens. The colour comes from the prefix, so it cannot disagree with the word the tool printed.
 3. **Never truncate a sample in a way that removes a caveat.** This is `intent/st/ST0056/output-contracts.md`'s finding applied to the page: _the reader's view is not the author's string_. A sample that cuts a `warning:` line to fit is the same defect class as an instrument that emits its caveat into a comment. If a sample is too long, show less of the **start**, or show it whole and let it scroll.
 4. **No typing animation.** It delays the information, it cannot be copied mid-run, and it is the most common silly affordance on tool sites.
 
@@ -287,7 +291,7 @@ Mono headers at `--t-sm` in `--ink-muted` on a `--rule` bottom border. Rules bet
 
 The site is a single scroll. The copy below is a **draft to design against**, reconciled against the shipped command surface before launch.
 
-**1. Header.** Wordmark, `docs`, `github`.
+**1. Header.** Wordmark, `docs`, `github`, the author's mark.
 
 **2. One sentence saying what Intent is**, in prose, about fifteen words. Not a tagline with the verb missing. Then one paragraph, then the install line.
 
@@ -317,7 +321,7 @@ The site is a single scroll. The copy below is a **draft to design against**, re
 
 > ### Written for the way you actually work now
 >
-> Intent generates the context files coding agents read — `AGENTS.md` for the tool-agnostic contract, `CLAUDE.md` for Claude Code — from the project's real state rather than from a file someone remembered to update. It ships a rule library agents can be held to, per-language critics that check work against those rules, and commit-time gates that refuse changes contradicting what the project said it was doing.
+> Intent generates the context files coding agents read — `AGENTS.md` for the tool-agnostic contract, `CLAUDE.md` for Claude Code — from its templates and the project's own configuration: its name, its author and the languages it declares. It ships a rule library agents can be held to, per-language critics that check work against those rules, and commit-time gates that refuse changes breaking the rules the project declared.
 >
 > The point is not that an agent reads your docs. It is that the docs are generated from something that cannot silently drift.
 
@@ -342,7 +346,7 @@ This list is checkable. A review can run it.
 - Animated gradients, mesh backgrounds, glow effects
 - Custom cursors, cursor followers
 - Floating chat widgets, feedback tabs, "was this helpful" thumbs
-- Cookie banners (there are no cookies; see §9)
+- Cookie banners (there are no cookies)
 - Third-party analytics, fonts, embeds, or scripts of any kind
 - Logo walls, testimonials, star counts as decoration
 - Carousels
@@ -442,7 +446,7 @@ The site inherits Intent's house style, which is enforced in this repository. Th
 
 ## 12. What this document is not
 
-**It is not ratified, and the decisions in §11 other than A are open.** A theme has been built against it: `../Sites/intent/theme/layout.liquid` carries §3's tokens in both modes and §4's font stacks, and Intent.app's Console carries §3's dark set and §4's mono family (`Theme.swift`), and `intent.laksa.io` serves it. Every claim is a design intention rather than a measurement — with the exceptions of §7's reconciliation, which names the verbs that check the copy, and §1's prefix list, which names words the tool really emits -- though **the selection among them is a choice, stated as one in §1, and the counts an earlier draft carried are withdrawn as unreproducible against a moving corpus.**
+**It is not ratified, and the decisions in §11 other than A are open.** A theme has been built against it: `../Sites/intent/theme/layout.liquid` carries §3's tokens in both modes and §4's font stacks (the webfont files are not in the theme yet, so the site renders in the stacks' fallbacks), and Intent.app's Console carries §3's dark `--bg`, `--ink`, `--ink-muted`, `--accent`, `--warning` and `--error` and §4's mono family (`Theme.swift`), and `intent.laksa.io` serves it. Every claim is a design intention rather than a measurement — with the exceptions of §7's reconciliation, which names the verbs that check the copy, and §1's prefix list, which names words the tool really emits -- though **the selection among them is a choice, stated as one in §1, and the counts an earlier draft carried are withdrawn as unreproducible against a moving corpus.**
 
 ---
 
