@@ -8,6 +8,8 @@ draft: false
 word_count: 1608
 ---
 
+> Historical: part of the Intent v2 blog series, written about the v2 Bash implementation; its commands, paths and figures are v2's. Current documentation: [`docs/index.md`](../../index.md).
+
 > **Editor's note (v2.5.0):** Backlog.md integration was removed in Intent v2.5.0.
 
 # Next Steps and Future Work: The Evolution of Intent

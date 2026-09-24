@@ -2,6 +2,8 @@
 verblock: "17 Feb 2026:v0.1: matts - Initial version"
 ---
 
+> Historical: the upgrade guide for Intent v2.4.0, written for the v2 Bash implementation. To bring a v2 project to v3, see [`docs/migrating-from-v2.md`](../../../migrating-from-v2.md).
+
 # Intent Upgrade Guide: 2.4.0
 
 This guide covers upgrading Intent-managed Elixir projects from v2.3.x to v2.4.0. Version 2.4.0 introduces:

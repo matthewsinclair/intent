@@ -1,3 +1,5 @@
+> Historical: the CLAUDE.md of an example project in the Intent v2.0.0 layout. It is not guidance for this repository or for a current Intent project.
+
 # . Project Guidelines
 
 This is an Intent v2.0.0 project (formerly STP).

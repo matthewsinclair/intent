@@ -8,6 +8,8 @@ draft: false
 word_count: 1507
 ---
 
+> Historical: part of the Intent v2 blog series, written about the v2 Bash implementation; its commands, paths and figures are v2's. Current documentation: [`docs/index.md`](../../index.md).
+
 # The Motivation for Intent: Why Intention Matters in LLM-Assisted Development
 
 LLMs like Claude have changed how we write code, debug systems, and design solutions. But a hard problem remains: how do we make sure these tools understand not just what we want to build, but why we want to build it?

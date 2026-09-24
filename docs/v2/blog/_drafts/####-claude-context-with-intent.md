@@ -6,6 +6,8 @@ draft: true
 word_count: 1700
 ---
 
+> Historical: an unpublished draft in the Intent v2 blog series, written about the v2 Bash implementation; its commands, paths and figures are v2's. Current documentation: [`docs/index.md`](../../../index.md).
+
 > **Editor's note.** This post supersedes an earlier v2.1.0 piece that described the original sub-agent installation system. Backlog.md integration was removed in v2.5.0. The `intent agents` namespace was repurposed in v2.10.0 to manage the project's `AGENTS.md` file at the root. Claude Code sub-agent installation moved to `intent claude subagents install`. The v2.10 line also added session hooks, a rule library, a pre-commit critic gate, and the three-file canonical LLM config that this post covers. v2.11.0 (ST0037) replaced filesystem-marker language detection with an explicit `languages` config field. What follows is the architecture as of v2.11.0.
 
 # Pre-loading Claude with Intent context

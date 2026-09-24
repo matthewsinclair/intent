@@ -1,3 +1,5 @@
+> Historical: part of the Intent v2 blog series, written about the v2 Bash implementation; its commands, paths and figures are v2's. Current documentation: [`docs/index.md`](../../index.md).
+
 # Intent Blog Series
 
 A comprehensive blog series explaining the Intent methodology, from philosophy to practical implementation.

@@ -1,6 +1,6 @@
 ---
-verblock: "19 Sep 2026:v0.7: Matthew Sinclair - Updated for Intent v3.1.0"
-intent_version: 3.1.0
+verblock: "24 Sep 2026:v0.8: Matthew Sinclair - Updated for Intent v3.2.1"
+intent_version: 3.2.1
 ---
 
 # Intent Deprecations
@@ -8,6 +8,30 @@ intent_version: 3.1.0
 This document tracks features, files, and functionality that have been deprecated in Intent (formerly STP).
 
 Each entry's migration path is written for the version it names. To bring a v2 project to v3, see [Migrating from v2](docs/migrating-from-v2.md).
+
+## September 2026 (v3.1.0): `intent claude rules index`, and `intent at new --status`
+
+### What was deprecated
+
+`intent claude rules index`, which wrote an index of the rule library, together with its generator and its template. And the `--status` option of `intent at new`.
+
+### Why it was deprecated
+
+Nothing in v3 read the index the verb wrote, so the verb, its generator and its template were deleted, and `intent claude rules` now only reads: `list`, `show` and `validate`. A create that could name a status could name `green`, which minted a passing acceptance test that nobody had seen fail.
+
+### Migration path
+
+- Remove calls to `intent claude rules index` from your scripts. There is no replacement, because nothing reads an index.
+- Drop `--status` from `intent at new`. A new test row starts at `to-write` and a new non-test row at `n/a`. `intent at red` and then `intent at green` move a test row on, because green is reachable only from red.
+
+### Impact
+
+- `intent claude rules index` refuses at exit 2 with a message saying it was retired.
+- `intent at new` with `--status` refuses at exit 1, naming the unexpected argument.
+
+### Version deprecated
+
+Intent version 3.1.0.
 
 ## September 2026 (v3.0.2): `intent claude ws`, and the `~/.intent/` directory
 

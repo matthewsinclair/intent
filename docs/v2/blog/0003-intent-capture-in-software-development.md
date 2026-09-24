@@ -8,6 +8,8 @@ draft: false
 word_count: 2156
 ---
 
+> Historical: part of the Intent v2 blog series, written about the v2 Bash implementation; its commands, paths and figures are v2's. Current documentation: [`docs/index.md`](../../index.md).
+
 # Intent Capture in Software Development: Bridging the Gap
 
 We've explored [why intention matters](./0000-motivation-for-intent.md) and how [steel threads](./0002-the-steel-thread-methodology.md) provide a framework for preserving it. Now we turn to the critical skill that makes it all work: intent capture. How do we extract, document, and preserve the intentions that drive great software?

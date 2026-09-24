@@ -6,6 +6,8 @@ draft: true
 word_count: 1800
 ---
 
+> Historical: an unpublished draft in the Intent v2 blog series, written about the v2 Bash implementation; its commands, paths and figures are v2's. Current documentation: [`docs/index.md`](../../../index.md).
+
 > **Status.** Draft. The first subagent pass is captured below; continuous validation since v2.10.0 runs through the pre-commit critic gate. Move out of `_drafts/` when ready to publish.
 
 # Critic-shell on Intent's own bash
