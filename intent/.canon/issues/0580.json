@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 580,
+  "slug": "intent-at-edit-kind-resets-a-row-to-to-write-and",
+  "title": "intent at edit --kind resets a row to to-write and drops its verdict in silence, where its help says it refuses a status the new kind cannot hold",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-09-24",
+  "reporter": "Matthew Sinclair",
+  "body": "Found on 2026-09-24 by vc's working-with-llms subagent in the 3.2.1 doc audit, and driven by vc in a scratch project on the pair at `4c687eaad`.\n\nSeen: a non-test acceptance test at `n/a` (after `intent at na`), re-kinded with `intent at edit ST0001 AT-01.1 --kind test`, exits 0 with \"ok: AT-01.1 re-cited\", and `intent at list` then shows the row at `to-write`: its verdict is gone, and nothing said so. `intent at edit --help` describes `--kind` as \"Re-kind the row: test or non-test -- refused if the row's status cannot hold it\". A test row cannot hold `n/a`, and the edit was not refused; the row was restarted at the new kind's entry state.\n\nExpected: re-kinding a row that holds a verdict either refuses, as the help says, or says that it reset the verdict and to what.\n\nDisposition: vc, 2026-09-24 -- filed for after the stabilisation line. `docs/concepts/criteria-and-tests.md` and `intent/docs/working-with-llms.md` state the as-built behaviour.\n"
+}

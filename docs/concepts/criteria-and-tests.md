@@ -81,7 +81,7 @@ A criterion with nothing behind it is a promise. An acceptance test is what make
 
 **Take a test through `red` before `green`, and the tool holds you to it.** `at green` is declared only from `red` and refuses a row that is still `to-write`; `at red` is accepted from any status, so a test that stops passing goes back to `red` and earns `green` again. A test that went straight from `to-write` to `green` would never have been observed failing, so nothing would have demonstrated it can fail — which is the difference between a test and a decoration.
 
-**`to-write` is a state you can leave and cannot return to.** The status verbs are `at green`, `at red` and `at na`, and none of them spells `to-write` — a test enters there when `at new` creates it, and no command walks it back. That is recorded rather than fixed: inventing a verb so the diagram looks symmetrical is how a surface grows commands nobody asked for.
+**No status verb returns a row to `to-write`.** The status verbs are `at green`, `at red` and `at na`, and none of them spells `to-write` — a test enters there when `at new` creates it. The one other way in is a change of kind: `at edit --kind` restarts a row at its new kind's entry state, `to-write`, and its verdict goes with it. That is recorded rather than fixed: inventing a verb so the diagram looks symmetrical is how a surface grows commands nobody asked for.
 
 So the way out of a row that has stopped being true is not a status change. **It is to write the artefact the row was owed.** A row is not stuck because its status is wrong; it is stuck because it is now claiming something that is not yet the case, and the repair is to make it the case.
 
