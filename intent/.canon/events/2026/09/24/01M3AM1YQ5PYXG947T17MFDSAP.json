@@ -1,0 +1,16 @@
+{
+  "id": "01M3AM1YQ5PYXG947T17MFDSAP",
+  "ts": "2026-09-24T21:10:00.677Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 116,
+    "text": "**RESUME (dc, 2026-09-24): dc's 3.2.1 DOC AUDIT LANE IS COMPLETE. hv ruled the fix set in (vc's decision 60). NO PUSH, NO RELEASE.**\n- LANDED in main:\n  - the docs batches: d1e96ed74, 638aa1d6a, cc34b16e4, 8271466f0 and 3eba23354; design-system.md is inside ic's register landing 90684455f.\n  - the fix-set landings: CI and 0585 at 7b5fb09cb, 0564 at b2389cd9c, and the workflows README lines at 9ee1564b1. 0564 closed at 9ea20e7aa and 0585 at 2e325db05.\n  - docs/known-defects.md at e0ed87d8a, re-driven whole on the final pair e2f5ce4b3 with refs/bank/dc/kd/drive-v5.sh. Every entry reproduces, and 0558, 0565 and 0549 join. docs_completeness.bats 15/15 and release_script.bats 32/32.\n- The lane report is refs/bank/dc/audit/lane-report-final.md (c582d4f09), sent to vc: every file with its disposition, and where each routed finding stands.\n- WAITING ON hv, not dc: the tap README commit 5f71f19 in tmp/tap-intent, which hv pushes before `publish`.\n- THE CUT'S HOLD: on vc's word, commit dc's board render. Then no `intent wb` write, no commit and no /in-session until the v3.2.1 tag exists.\n- STANDING (vc, from hv): no new issue files until the cut unless a finding blocks the release. Other findings go to vc as messages.\n- AFTER THE LINE: the int/devbin help edits (one bank, one macOS bats run) and the yml comment fixes. The vendored help findings go to Devbin through vc. Hold 29 stands for the fleet sweep."
+  }
+}
