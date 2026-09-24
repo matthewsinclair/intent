@@ -1,0 +1,15 @@
+{
+  "id": "01M39GEA6VVQ9Y92T4GGX7EY4R",
+  "ts": "2026-09-24T10:47:36.927Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0577"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "the hook timeouts in the settings template are read as seconds, so 3000 means fifty minutes where milliseconds were meant"
+  }
+}

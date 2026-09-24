@@ -18,19 +18,19 @@ The usual fix is a context file: `AGENTS.md`, `CLAUDE.md`, a `.cursorrules`. **T
   $ intent agents sync
 ```
 
-This regenerates `AGENTS.md` at your repository root from the project's actual state — its declared languages, its installed skills and subagents, its rules. **Do not hand-edit it; the next sync overwrites you.**
+This regenerates `AGENTS.md` at your repository root from Intent's template and the project's configuration: its name, its author and its declared languages, each language adding its toolchain's commands. **Do not hand-edit it; the next sync overwrites you.**
 
-Three files make up the contract, and the split is deliberate:
+The contract is split across these files, and the split is deliberate:
 
-| File             | What it is                                             | Who writes it                                                                                          |
-| ---------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
-| `AGENTS.md`      | The tool-agnostic contract. Read first by any agent    | `intent init`, then `intent agents sync`                                                               |
-| `CLAUDE.md`      | A Claude Code overlay, adding what is Claude-specific  | `intent init`, then `intent claude upgrade --apply`, keeping what you write between its `user` markers |
-| `usage-rules.md` | Terse DO / NEVER rules, an Elixir-community convention | Seeded by `intent claude upgrade --apply` when absent, then yours                                      |
+| File             | What it is                                                   | Who writes it                                                                                          |
+| ---------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| `AGENTS.md`      | The tool-agnostic contract, for agents that read `AGENTS.md` | `intent init`, then `intent agents sync` or `intent claude upgrade --apply`                            |
+| `CLAUDE.md`      | A Claude Code overlay, adding what is Claude-specific        | `intent init`, then `intent claude upgrade --apply`, keeping what you write between its `user` markers |
+| `usage-rules.md` | Terse DO / NEVER rules, an Elixir-community convention       | Seeded by `intent claude upgrade --apply` when absent, then yours                                      |
 
-`intent claude upgrade` reports what it would write and changes nothing until you pass `--apply`. With `--apply` it also writes `.intent_critic.yml`, the pre-commit gate and the three post-pull hooks (`post-merge`, `post-checkout`, `post-rewrite`, which run `intent sync --apply` for you), and it wires the Claude Code harness, session hooks in `.claude/settings.json` and the MCP server in `.mcp.json`, unless you pass `--skip-settings`, which leaves both alone. **A `CLAUDE.md` you wrote yourself, without the generated footer, is held back** rather than overwritten; `--force` overwrites it.
+`intent claude upgrade` reports what it would write and changes nothing until you pass `--apply`. With `--apply` it also writes `.intent_critic.yml`, the pre-commit gate and the post-pull hooks (`post-merge`, `post-checkout`, `post-rewrite`, which run `intent sync --apply` for you), and it wires the Claude Code harness, session hooks in `.claude/settings.json` and the MCP server in `.mcp.json`, unless you pass `--skip-settings`, which leaves both alone. **A `CLAUDE.md` you wrote yourself, without the generated footer, is held back** rather than overwritten; `--force` overwrites it.
 
-**One index is stated twice, on purpose.** `CLAUDE.md` and `AGENTS.md` both carry the short index of the four agnostic rules, because `AGENTS.md` is not a file Claude Code reads. The rule bodies have one home, the rule library, and the two indexes are held identical by a test rather than by care.
+**One index is stated twice, on purpose.** `CLAUDE.md` and `AGENTS.md` both carry the short index of the agnostic principles, because `AGENTS.md` is not a file Claude Code reads. The rule bodies have one home, the rule library, and the two indexes are held identical by a test rather than by care.
 
 `intent agents validate` checks that `AGENTS.md` is present and carries its required sections.
 
@@ -45,7 +45,7 @@ Rules are first-class objects, not prose in a context file. They are versioned, 
   $ intent claude rules show IN-AG-HIGHLANDER-001
 ```
 
-Four agnostic rules underpin the language packs: **Highlander** (one canonical home per concern), **PFIC** (Pure Function, Impure Coordination: a deterministic core, with I/O at the boundary), **Thin Coordinator** (parse, call, render — logic lives elsewhere), and **No Silent Errors**. Each language pack concretises them.
+The agnostic principles the language packs concretise are **Highlander** (one canonical home per concern), **PFIC** (Pure Function, Impure Coordination: a deterministic core, with I/O at the boundary), **Thin Coordinator** (parse, call, render — logic lives elsewhere), and **No Silent Errors**. `intent claude rules list --lang agnostic` lists the whole agnostic pack.
 
 Which packs load is driven by what the project declares:
 
@@ -67,7 +67,7 @@ A critic reads the rule library at invocation and applies it to files you name, 
   $ intent critic rust --staged
 ```
 
-Every run opens by saying how many of the language's rules it could apply and which it could not, so a clean result is read against what was asked.
+Every run opens by saying how many of the language's rules it could apply and how many it could not, naming each rule it could have run and did not, so a clean result is read against what was asked.
 
 Inside Claude Code the same critics are subagents:
 
@@ -77,13 +77,13 @@ Inside Claude Code the same critics are subagents:
 
 **Critics read the library rather than embedding it**, so a rule fixed once is fixed for every critic that applies it — including the headless runner the commit gate uses.
 
-**One limit worth knowing before you rely on them.** The headless runner honours only rules whose detection is a simple, greppable pattern. A rule whose real check needs judgement is not silently approximated by a weaker grep — the runner refuses it and says so. **A mechanical check standing in for a judgement it cannot make is worse than no check**, because it reports clean.
+**One limit worth knowing before you rely on them.** The headless runner honours only rules whose detection is a greppable pattern or a named tool it can run, such as `shellcheck` or `clippy`, and it names a tool-armed rule it did not run. A rule whose real check needs judgement is not silently approximated by a weaker grep — the runner refuses it and says so. **A mechanical check standing in for a judgement it cannot make is worse than no check**, because it reports clean.
 
 **Deeper:** [`intent/docs/critics.md`](../intent/docs/critics.md) — the critic contract and how to write one.
 
 ## The commit gate
 
-`intent claude upgrade --apply` installs a pre-commit gate. It runs the critics for your declared languages over the staged files, and four guards, each only where its subject exists: a whiteboard timestamp that did not come from a clock, a whiteboard header written as escaped YAML, an ignore rule that would hide `intent/.canon/`, and lines removed from an append-only path.
+`intent claude upgrade --apply` installs a pre-commit gate. It runs the critics for your declared languages over the staged files, and the guards on Intent's roster, each only where its subject exists: a whiteboard timestamp that did not come from a clock, a whiteboard header written as escaped YAML, an ignore rule that would hide `intent/.canon/`, lines removed from an append-only path, and staged files that do not match the formatters the project declares. It also runs `intent doctor`, refusing a commit whose views disagree with the store, and any guards the project declares under `guards` in `intent/.config/config.json`.
 
 **They are backstops on specific failures, not a review.** Passing them means you did not do one of a short list of known-bad things. The guard bodies are read from the installed tool at commit time, through the install pointer `intent bootstrap` records, so a fixed guard reaches your project as soon as the Intent on this machine carries it, without reinstalling the hook.
 
@@ -98,7 +98,7 @@ For Claude Code, Intent installs procedural skills — a session bootstrap that 
   $ intent claude skills sync
 ```
 
-**Never hand-copy a skill into `.claude/skills/`.** They are tracked by checksum and a hand-placed copy diverges silently.
+**Never hand-copy a skill into `~/.claude/skills/`**, where Intent installs them. They are tracked by checksum: `intent claude skills sync` names a copy it did not write, and holds a skill modified since it was installed, rather than overwriting either.
 
 **Deeper:** [`intent/docs/creating-custom-agents.md`](../intent/docs/creating-custom-agents.md) for project-specific agents. User extensions at `~/.local/share/intent/ext/` are declared and not built: `intent ext` answers every subcommand with _a known command that is not implemented yet_.
 
@@ -108,7 +108,7 @@ When more than one agent works the same checkout, the index, the stash and the r
 
 ## What this buys, and what it does not
 
-**It buys a context file that cannot silently drift**, because it is generated from something that would have to change first, and rules with one home that three consumers read.
+**It buys a context file that does not silently drift**, because it is generated from something that would have to change first and `intent doctor` says when it is behind, and rules with one home that three consumers read.
 
 **It does not buy correctness.** An agent with perfect context can still write bad code. The claim is narrower and worth stating plainly: the agent is working from what the project actually says about itself, rather than from what somebody wrote down once and nobody has checked since.
 

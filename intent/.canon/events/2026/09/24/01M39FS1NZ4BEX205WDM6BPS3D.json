@@ -1,0 +1,15 @@
+{
+  "id": "01M39FS1NZ4BEX205WDM6BPS3D",
+  "ts": "2026-09-24T10:36:00.066Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0575"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "intent claude rules validate reports a false duplicate id when a canon rule is named by a relative path"
+  }
+}

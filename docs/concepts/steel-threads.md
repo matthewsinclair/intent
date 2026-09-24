@@ -28,14 +28,14 @@ The practical test: if you cannot state the acceptance criteria without them con
 
 Six states, and the transitions between them are the only way to move.
 
-| State         | Meaning                                     |
-| ------------- | ------------------------------------------- |
-| `triage`      | Proposed. Entry state for every new thread  |
-| `not-started` | Accepted, not begun                         |
-| `wip`         | In flight                                   |
-| `hold`        | Paused, with a reason recorded              |
-| `completed`   | Done, and the gate passed                   |
-| `cancelled`   | Not going to happen, with a reason recorded |
+| State         | Meaning                                                         |
+| ------------- | --------------------------------------------------------------- |
+| `triage`      | Proposed. Entry state for every new thread                      |
+| `not-started` | Accepted, not begun                                             |
+| `wip`         | In flight                                                       |
+| `hold`        | Paused, with a reason recorded                                  |
+| `completed`   | Done: the gate passed, or a person fiat-closed it with a reason |
+| `cancelled`   | Not going to happen, with a reason recorded                     |
 
 ```
   (none) --> triage --> not-started --> wip --> completed
@@ -49,7 +49,7 @@ Six states, and the transitions between them are the only way to move.
 
 **Every transition out of the happy path records a reason.** `st hold`, `st cancel`, `st reopen` and `st reinstate` all require one, as do `wp cancel`, `wp reopen` and `wp reinstate` — because a thread that stopped, restarted, or came back from cancelled is exactly the case where a future reader most needs to know why, and it is exactly the case where nobody remembers.
 
-**`st done` is guarded by `ac gate`.** A thread cannot be completed while a criterion in scope is unsatisfied. This is the single most important constraint in the model: **there is no way to make a thread look done that does not involve making it done.**
+**`st done` is guarded by `ac gate`.** A thread cannot be completed through `st done` while a criterion in scope is unsatisfied, and this is the single most important constraint in the model. **The one other route to `completed` is a fiat close, `intent fc`**, which a person makes with a reason. The close is recorded as fiat and the thread renders with a marker saying so, so a thread closed that way never reads as one that passed its gate.
 
 A cancelled thread reinstates to `not-started`, not to whatever it was before. Cancelling is a decision; undoing it means deciding again from the beginning rather than restoring a state that a cancellation already invalidated.
 
@@ -57,12 +57,12 @@ A cancelled thread reinstates to `not-started`, not to whatever it was before. C
 
 **Work packages are the units that get done.** They exist so a thread in flight can report where it actually is, and they carry no reasoning of their own — the reasoning is the thread's.
 
-| State         | Meaning                         |
-| ------------- | ------------------------------- |
-| `not-started` | Created, not begun              |
-| `wip`         | In flight                       |
-| `done`        | Delivered, and the gate passed  |
-| `cancelled`   | Dropped, with a reason recorded |
+| State         | Meaning                                                              |
+| ------------- | -------------------------------------------------------------------- |
+| `not-started` | Created, not begun                                                   |
+| `wip`         | In flight                                                            |
+| `done`        | Delivered: the gate passed, or a person fiat-closed it with a reason |
+| `cancelled`   | Dropped, with a reason recorded                                      |
 
 ```
   (none) --> not-started --> wip --> done
@@ -95,7 +95,7 @@ The interim workaround was to mark the package done and write a note, which put 
   $ intent st list --status wip
   $ intent st show ST0001
   $ intent wp list ST0001
-  $ intent todo                    # flat DOING / TODO / DONE across everything
+  $ intent todo                    # DOING / TODO / DONE across everything, packages under their threads
 ```
 
 `intent todo` is **generated from real ST and WP status**, not hand-maintained. It is a projection, and regenerating it with `intent todo update` cannot disagree with the threads because there is nothing in it that is not derived from them.

@@ -1,14 +1,16 @@
 # Criteria and tests
 
-**This is where Intent differs from a task tracker, and it is the whole argument.** A criterion's state is computed from evidence rather than asserted by a person.
+**This is where Intent differs from a task tracker, and it is the whole argument.** A criterion's state comes from evidence on the record, a test's result or evidence a person names, rather than from a status someone typed.
 
 ## A criterion is a condition, not a restatement of the work
 
 "Implement the cache" is a work package. "Evicts oldest entries under memory pressure rather than failing writes" is a criterion — it names a condition that is either true or not, and someone can check.
 
 ```
-  $ intent ac new ST0001 AC-01.1 --text "Evicts oldest entries under memory pressure rather than failing writes"
+  $ intent ac new ST0001 AC-01.1 --kind test --text "Evicts oldest entries under memory pressure rather than failing writes"
 ```
+
+**`--kind` defaults to `non-test`**, so a criterion meant to be decided by a test says `--kind test`, as this one does.
 
 Ids are caller-assigned, and **the id's shape is load-bearing**: `AC-<wp>.<n>` ties a criterion to the work package that satisfies it, and `wp done` is gated on exactly the criteria in its own group. `AC-00.*` are thread-level. `st done` is gated on all of them.
 
@@ -24,6 +26,7 @@ Ids are caller-assigned, and **the id's shape is load-bearing**: `AC-<wp>.<n>` t
 **A non-test criterion enters at `unsatisfied` and is satisfied by evidence**, because there is no test to compute from:
 
 ```
+  $ intent ac new ST0001 AC-02.9 --text "Refuses over-quota requests rather than queueing them"
   $ intent ac satisfy ST0001 AC-02.9 --evidence "Reviewed against the upstream rate-limit contract, 2026-08-29"
 ```
 
@@ -33,7 +36,7 @@ Ids are caller-assigned, and **the id's shape is load-bearing**: `AC-<wp>.<n>` t
 
 ## Criterion states
 
-Six states. Four carry a payload, and the payload is the point — a state change without its reason is a state change nobody can audit.
+Six states, and every one but `computed` carries a payload. The payload is the point — a state change without its reason is a state change nobody can audit.
 
 | State         | Payload            | Meaning                                       |
 | ------------- | ------------------ | --------------------------------------------- |
@@ -89,7 +92,7 @@ So the way out of a row that has stopped being true is not a status change. **It
   lint: ST0001 ok -- 0 of 1 AT row(s) examined and conforming; 1 not examined (1 awaiting a verdict)
 ```
 
-Move that same row to `green` or `red` and the citation becomes a claim, so the linter and the gate both refuse it:
+Move a row to `green` or `red` and the citation becomes a claim. A cited file that does not exist is refused by `at red` and `at green` themselves; a file that exists without the row's id is refused by the linter and the gate. Here `AT-03.1` cites `tests/unrelated.rs`, which exists but was written for something else:
 
 ```
   $ intent at lint ST0001
@@ -112,7 +115,7 @@ A `non-test` acceptance test cites what was read rather than a file:
   $ intent at new ST0001 AT-02.9 --covers AC-02.9 --kind non-test --prose "Reviewed the rate-limit design against the upstream contract"
 ```
 
-`--covers` takes one or more criterion ids. **One test can cover several criteria and one criterion can be covered by several tests**; the relation is many-to-many, and a criterion is satisfied when every test covering it is green.
+`--covers` takes one or more criterion ids. **One test can cover several criteria and one criterion can be covered by several tests**; the relation is many-to-many. A test-backed criterion is satisfied when every test covering it is green; a non-test criterion is satisfied by its evidence, whatever covers it.
 
 ## The gate
 
@@ -122,9 +125,9 @@ A `non-test` acceptance test cites what was read rather than a file:
 
 `ac gate` reports `PASS` or `BLOCKED` and exits non-zero when blocked. It is built for a pre-commit hook or CI, not for reading.
 
-**It is also the guard on `st done` and `wp done`**, which is what makes the model bite. Closing something means passing the gate; there is no path around it that does not involve satisfying what was asked.
+**It is also the guard on `st done` and `wp done`**, which is what makes the model bite. Closing something through those verbs means passing the gate. The one route around it is a fiat close, `intent fc`, which a person makes with a reason, and which leaves the criterion in scope as `fiat`, visibly closed unmet.
 
-**What is in scope is the part worth understanding.** `computed`, `unsatisfied`, `satisfied` and `fiat` are in scope. `descoped` and `withdrawn` are not — they stopped being asked for. So withdrawing a criterion genuinely removes it from the denominator, which is why `ac withdraw` requires a reason and records who did it: **it is the one operation that makes a gate easier to pass, and it leaves a trail saying so.**
+**What is in scope is the part worth understanding.** `computed`, `unsatisfied`, `satisfied` and `fiat` are in scope. `descoped` and `withdrawn` are not — they stopped being asked for. So withdrawing or descoping a criterion genuinely removes it from the denominator: `ac withdraw` requires a reason, `ac descope` records where the criterion went, and the event record names who did either. **They are the operations that make a gate easier to pass, and they leave a trail saying so.**
 
 ---
 

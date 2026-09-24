@@ -17,8 +17,8 @@ Every recurring failure Intent is built against has the same shape. A comment an
 
 So Intent is arranged so the second home does not exist:
 
-- **A criterion's state is computed from its tests**, not typed by a person, so it cannot disagree with them.
-- **`AGENTS.md` is generated from project state**, not written, so the file your agent reads cannot drift from the project.
+- **A test-backed criterion's state is computed from its tests**, not typed by a person, so it cannot disagree with them; a criterion no test can decide carries the evidence someone named for it, on the record.
+- **`AGENTS.md` is generated from the templates and the project's configuration**, not written, and `intent doctor` says when it is behind, so the file your agent reads does not quietly drift from the project.
 - **The views on disk are generated from the store**, not edited, so there is one authority and everything else is a projection of it.
 - **Rules live in one library** that critics, gates and agents all read, so "what the project requires" has one answer.
 

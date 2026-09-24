@@ -16,13 +16,13 @@ v3 inverts it. Objects live in a store with a real schema, and the Markdown you 
 
 **The store is not in git; the canon extracts are.** That is the split that makes the design workable in a team: the database is truth on the machine that holds it, and what reaches your colleagues is the JSON extract, which has a schema and diffs sensibly; a fresh clone builds its store from the extracts on the first verb. **`intent init` writes the ignore lines** for the store and the backups (`intent/.cache/`, `intent/.backup/`). [Working in a team](working-in-a-team.md) is the whole two-clone story.
 
-**After a `git pull`, `intent sync --apply` brings the store up to the pulled canon**, and the `post-merge`, `post-checkout` and `post-rewrite` hooks that `intent claude upgrade --apply` wires into each clone run it for you. They print one line when the store changed and nothing when it did not. It takes the files only where they say something your store did not write, so it never reverts your own unpushed work. Where a hook did not run, a default `intent doctor` shows `store-stale`. A bare `intent sync` prints what `--apply` would do and writes nothing. `intent sync --to-store` is the restore, and after a pull it is almost never what you meant.
+**After a `git pull`, `intent sync --apply` brings the store up to the pulled canon**, and the `post-merge`, `post-checkout` and `post-rewrite` hooks that `intent claude upgrade --apply` wires into each clone run it for you. They print one line when the store changed and nothing when it did not. It takes a file into the store only where the file says something your store did not write, so work you did through the verbs is never reverted. **A hand edit to a generated view is not such work**: `sync --apply` regenerates the view over it, and the hooks run `sync --apply` after every pull, switch and rebase. Where a hook did not run, a default `intent doctor` shows `store-stale`. A bare `intent sync` prints what `--apply` would do and writes nothing. `intent sync --to-store` is the restore, and after a pull it is almost never what you meant.
 
 ## The generated views carry a banner and it means what it says
 
-Files under `intent/st/<ID>/` are **generated**. A hand edit is lost at the next render, and `intent doctor` reports it as view skew until then. **The one exception is the thread cover, `info.md`:** its `## Objective` and `## Context` sections are carried back into the store. Everything else in it is rendered.
+The views under `intent/st/<ID>/`, the thread cover `info.md` and `acceptance.md`, are **generated**. A hand edit to one is lost at the next render, and `intent doctor` reports it as view skew until then. The cover's `## Objective` and `## Context` are carried back into the store only in some cases, so do not rely on it: write them with `intent set`. **An attachment, such as a thread's `design.md`, is not a view.** It is yours, and an edit to it is kept.
 
-If you want to change a thread, use a verb: `intent set <address> <field> <value>` writes a thread's title or prose. If you want to change something no verb reaches, edit the canon extract and sync it back:
+If you want to change a thread, use a verb: `intent set <address> <field> <value>` writes a thread's title or prose. If you want to change something no verb reaches, edit the canon extract and sync it back, having first settled any hand edit to that thread's `info.md` with `intent set`, because the scoped `--to-store` also reads the cover back:
 
 ```
   $ $EDITOR intent/.canon/st/ST0001.json
@@ -56,7 +56,7 @@ Some things have no file projection at all, deliberately:
 
 ## Disk is sparse and that is not a bug
 
-**A thread's files are realised on demand.** A thread can exist in the store with no directory on disk at all, and most attachments a store knows about name a path that does not exist. That is the design working: the projection is created when someone asks for it.
+**A thread's files are realised on demand.** A thread can exist in the store with no directory on disk at all, and an attachment the store knows about can name a path that does not exist on disk. That is the design working: the projection is created when someone asks for it.
 
 The practical consequence is worth stating because it looks alarming from the outside: **counting store records whose file is missing measures nothing useful.** It cannot separate "stale after a rename" from "never realised", and those are different facts. If you write a tool against the store, say what your denominator is before you report a number.
 

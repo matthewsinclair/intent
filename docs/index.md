@@ -16,6 +16,8 @@ Intent gives it a place to live that ages with the code instead of away from it.
 | ----------------------------------------------- | ---------------------------------------------------- |
 | Get it installed                                | [Installation](install.md)                           |
 | See it work on a real project                   | [Getting started](getting-started.md)                |
+| Browse a project from the terminal              | [The explorer](explorer.md)                          |
+| Use it with a team, on git and GitHub           | [Working in a team](concepts/working-in-a-team.md)   |
 | Understand the model before you commit to it    | [Concepts](concepts/)                                |
 | Wire it into your coding agent                  | [Working with coding agents](working-with-agents.md) |
 | Run more than one session in one checkout       | [Banking work](banking.md)                           |
@@ -25,11 +27,11 @@ Intent gives it a place to live that ages with the code instead of away from it.
 
 ## What it actually is
 
-A CLI, written in Rust, that manages a small set of durable objects inside your repository. It ships with `intentd`, an optional daemon the CLI can hand work to, and on macOS with Intent.app, a menu bar companion.
+A CLI, written in Rust, that manages a small set of durable objects inside your repository. A machine-level daemon, `intentd`, and a macOS menubar app ship beside it; the CLI does its work in-process and needs neither, except `intent graphql`, which only a running `intentd` answers, and `intent browse`, which opens a page a running `intentd` serves.
 
-**A steel thread** is one intention followed end to end — what you are trying to achieve and why it matters. It breaks into **work packages**, the units of work that get done. It states **acceptance criteria**, which are the conditions that decide whether the intention was met. Each criterion is backed by an **acceptance test**, so Intent can compute whether a thread is satisfied rather than asking you to assert it.
+**A steel thread** is one intention followed end to end — what you are trying to achieve and why it matters. It breaks into **work packages**, the units of work that get done. It states **acceptance criteria**, which are the conditions that decide whether the intention was met. A criterion a test can decide is backed by **acceptance tests** and satisfied only when they pass; one no test can decide is satisfied by evidence a person names on the record. Either way Intent computes whether a thread is satisfied from what is recorded, rather than from a box someone ticked.
 
-Around that sits the machinery that makes it survive contact with real projects: a store that is the single source of truth, generated views so nothing is hand-maintained twice, a rule library your coding agents can be held to, per-language critics that check work against those rules, and commit-time gates that refuse changes contradicting what the project said it was doing.
+Around that sits the machinery that makes it survive contact with real projects: a store that is the single source of truth, generated views so nothing is hand-maintained twice, a rule library your coding agents can be held to, per-language critics that check work against those rules, and commit-time gates that refuse changes breaking the rules the project declared.
 
 ## Why it exists
 
@@ -39,7 +41,7 @@ Around that sits the machinery that makes it survive contact with real projects:
 
 **And an AI coding agent cannot reconstruct any of it.** It reads what the code does and builds confidently on assumptions you would have rejected in one sentence, because the sentence was never written down anywhere it could read. Giving an agent more context each session does not fix this; the context has to come from something that cannot silently drift.
 
-Intent's answer is to make the reasoning a tracked object with a state the tool computes. A criterion is either satisfied by a test that runs, or it is not, and the difference is visible without anyone remembering to look.
+Intent's answer is to make the reasoning a tracked object with a state the tool computes. A test-backed criterion is satisfied by a test that runs, or it is not, and a criterion no test can decide carries the evidence someone named for it, so the difference is visible without anyone remembering to look.
 
 ## What this documentation covers
 

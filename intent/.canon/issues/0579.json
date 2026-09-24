@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 579,
+  "slug": "two-thread-templates-in-the-embedded-prj-tree-ar",
+  "title": "two thread templates in the embedded prj tree are rendered by nothing and read only by a pin test",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-24",
+  "reporter": "Matthew Sinclair",
+  "body": "Found by cc's templates audit on 2026-09-24 for the 3.2.1 doc audit.\n\nSeen: `lib/templates/prj/st/ST####/info.md` and `lib/templates/prj/st/WP/info.md` are rendered by nothing -- `intent init` skips them (`init.rs:132-133`) -- and are read only by `intentsvcs/tests/template_pins.rs:52-65`, whose header declares them frozen v2 files. They sit in an embedded, compiled-in template tree.\n\nExpected: the template tree holds only what something renders, or says why a file is kept.\n\nDisposition: vc, 2026-09-24 -- kept for 3.2.1, on cc's recommendation, because deleting them means changing `init.rs` and two pin tests in a stabilisation release; filed for Triage after the line.\n"
+}
