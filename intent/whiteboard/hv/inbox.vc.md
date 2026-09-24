@@ -4,11 +4,11 @@
 
 Your rule, verbatim: _THERE IS NO NEW WORK TO BE DONE. We are working on these items and these items ONLY._ The list is P1 data loss (17), P2 wrong docs (5), P3 commands that report wrongly (21), P4 advertised-not-built (12), P5 rough edges (29), P6 to close on your word (8). You cut from the bottom. The previous entry is verbatim at `vc/.history/20260911/hv-inbox-vc-prelist-0914Z.md`.
 
-## (2026-09-21 18:35Z) FYI only -- no response needed.
+## (2026-09-21 18:35Z) FYI only -- no response needed. (handled)
 
 vc to hv, 2026-09-21, the items that wait on you after the 3.2.0 line closed, gathered from every lane at your word. PUSHES: Intent main at the lean's hash, its rust workflow's doc step judging 850918a73; Prodinfra, ahead with the fleet sweep's commits; Riffle (carry 02d1a8e, HEAD 6199610), Baize (carry 167327f) and arca_config (carry 64fb262), each ahead of every remote; Conflab a0fc931c and arca_cli c99e21c; Molt is already level. CARRIES: Prolix, you first, dc's hand on your board, never --drop-uncarried on your rows. RULINGS: Conflab's escalations now sit as Holds "until hv rules:" (cc's twelve decisions, ic's four calls, the 0011 record); Baize's boards hold the same shape, ic's question on ST0016 AC-01.2's rationale (98/96/92 written, 98/95/92 built after paper-200 went to 95, unruled since 2026-08-10) and Baize vc's fourteen, Held-16 due among them; Riffle, arca_config and arca_cli have no whiteboard README, so their rosters are yours to declare (vc: none owed); Lamplight's pre-commit hook re-stages Markdown from the working tree, 0498's whole mechanism, XS there, its inbox guard unread; 0501's mechanism, the release gate naming or running CI's doc step; hold 18, the guards adoption pass, whose hook fix's owner is yours to name. UPGRADES: Conflab's and arca_cli's root files and hook carriers are 3.1.0's; the 3.2.0 Intent.app into /Applications here, 3.0.3 runs there. STALE, for its owner's fold: arca_config cc's todo naming three unpushed commits, all now ancestors of upstream. NEXT-LINE, not built: cc trims restart.md's home-pointer line; the seal test's vendored pin; ST0060 and ST0077 in triage.
 
-## (2026-09-22 10:25Z) FYI only -- no response needed.
+## (2026-09-22 10:25Z) FYI only -- no response needed. (handled)
 
 vc to hv, 2026-09-22 10:25Z, the items that wait on hv after the estate-wide fold-and-compact cycle, gathered from all three lanes' own words this morning and re-measured rather than relayed. THIS SUPERSEDES THE 2026-09-21 18:35Z ENTRY, which is stale in five places: 0501 landed, ST0079 closed, Molt is no longer level, the arca estates are at `~/Devel/prj/Arca/` and not beside the others, and hold 18's shape and size have both changed.
 
@@ -24,7 +24,7 @@ OWED BY dc, NEITHER GATED ON hv NOR ON 0505. Prolix's whiteboard carry, decision
 
 WAITING ON NOBODY HERE. The fleet CI pass still waits on devbin-vc's 0.1.6 sweep, which has not arrived. 0501's `rust.yml` half stays unjudged until hv pushes upstream, and that run is the only thing dc still owes on 0501. cc holds nothing pushable of its own and everything it landed today is already inside Intent's +30. cc also offers, labelled unreconciled, that `refs/bank/cc/` carries 66 topics across 189 refs while its board says 31 stand: harmless where they are, and cc will reconcile topic by topic against the tree if the synthesis wants a bank ledger.
 
-## (2026-09-22 10:38Z) FYI only -- no response needed.
+## (2026-09-22 10:38Z) FYI only -- no response needed. (handled)
 
 CORRECTION, FORWARD, TO vc's ENTRY OF 2026-09-22 10:25Z. Three claims in it are wrong and the third is the one that matters. Each clock below is attached to the claim it belongs to rather than to this message, which is the distinction dc found this morning and which the 10:25Z entry got wrong: `restart.md:94` asks for the clock of the STATE's reading, and a single stamp at the top of a message cannot carry three claims measured at three moments.
 
@@ -42,23 +42,23 @@ THE FINDING UNDER IT IS WORTH MORE THAN THE ATTRIBUTION AND IS FOR hv WHOEVER RA
 
 NOTHING ELSE IN THE 10:25Z ENTRY IS WITHDRAWN. The five items waiting on hv, the owed-by-vc list, Prolix's carry and the hold-18 census all stand as written.
 
-## (2026-09-22 17:43Z) FYI only -- no response needed.
+## (2026-09-22 17:43Z) FYI only -- no response needed. (handled)
 
 HEAVY RUN START -- vc takes the box for 0515's whole bats suite, baseline and banked side by side in tmp/wt-vc-0515-base and tmp/wt-vc-0515-bank at 79c1491cab0826413afa4f0d9a08a9318d92f1b7, 2026-09-22T17:43:19Z by date -u. Bats only, no cargo, no build. Machine census before start: Devbin 4, Lamplight 18, Utilz 16 heavy processes, none of Intent's, so this is a DELTA judged by red sets by name and no timing is claimed. cc, ic: no cargo test until END please. END follows.
 
-## (2026-09-22 17:48Z) FYI only -- no response needed.
+## (2026-09-22 17:48Z) FYI only -- no response needed. (handled)
 
 HEAVY RUN END -- vc releases the box, 2026-09-22T17:48:33Z by date -u. 0515 PASSES on the whole bats suite: baseline 725 ok 10 not ok of 735, banked 730 ok 10 not ok of 740, red sets IDENTICAL BY NAME both directions (the ten known per-file rules-validate worktree arms), delta exactly +5 ok = dc's five new arms. NEXT ON THE BOX, in order: ic (build and bank the facade remedy fix, then 0519), then dc (0516's file-event run), then cc's rebuild, which also needs hv's go. Each announces START and END and censuses the machine.
 
-## (2026-09-22 19:30Z) FYI only -- no response needed.
+## (2026-09-22 19:30Z) FYI only -- no response needed. (handled)
 
 HEAVY RUN START -- vc judges 0516 at 2026-09-22T19:30:09Z by date -u: the whole intentd and intent-cli suites, BASELINE in the main tree (HEAD, native/rust clean), then BANK in tmp/wt-0516 (native/rust identical to HEAD plus watch.rs at patch-id 6499ea0aa), run in sequence, red sets diffed by name. Cargo only. NOBODY WRITES OR LANDS ANYTHING UNDER native/rust UNTIL MY END -- a landing is a write and voids the run. END follows.
 
-## (2026-09-22 19:33Z) FYI only -- no response needed.
+## (2026-09-22 19:33Z) FYI only -- no response needed. (handled)
 
 HEAVY RUN END -- vc releases the box at 2026-09-22T19:33:11Z by date -u. 0516 PASSES: intentd and intent-cli whole suites, baseline and bank both cargo-rc=0, 1118 passed 0 failed in each, 0 red in either, newest source mtime unchanged across both runs; the ingest-counting daemon arms did not flake under the backstop. No timing claimed.
 
-## (2026-09-22 21:14Z) FYI only -- no response needed.
+## (2026-09-22 21:14Z) FYI only -- no response needed. (handled)
 
 EOD CALL FROM hv -- every node LOCALFOLD AGGRESSIVELY NOW: bank anything unlanded to refs/bank, commit your own board render by path (git add <paths> && git commit --only <paths>), handle and clear your inboxes, archive finished doing items, keep holds whose condition stands, record your resume state, then SendMessage vc 'folded' with your last commit sha. vc runs GLOBALFOLD after all three report. OUTSTANDING FOR TOMORROW, recorded by vc: cd79407eb (dc's rustdoc fix for 0511's private intra-doc link, which reddened CI run 35783294587 on 5fdc731f7 at the doc step on both legs) is COMMITTED and NOT PUSHED; it moves native/rust, so hv's push needs dvb build all first, and CI's test step has never run on today's changes. NO PUSH, NO RELEASE.
 

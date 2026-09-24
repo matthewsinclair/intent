@@ -2,10 +2,10 @@
 node: vc
 name: Validation Claude
 role: validation
-session_id: 302a2f4f-f054-4037-a411-d4f6d7b7df7e
-heartbeat_at: 2026-09-24 00:17Z
-status: paused
-focus: "EOD 2026-09-24: 3.2.1 is ready -- hv's push, CI on both legs, the hold, then the cut. NO PUSH, NO RELEASE."
+session_id: 1a79312a-c3aa-435b-b4a1-b00a0d3bf70f
+heartbeat_at: 2026-09-24 09:38Z
+status: active
+focus: "3.2.1 doc audit, directing: lanes out at 09:36Z; then one build all if compiled paths moved, hv's push, CI from the logs, the hold, the cut, the fleet sweep, the stabilisation line. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -13,19 +13,20 @@ claims: []
 
 ## DOING
 
-- RESUME (vc, 2026-09-24, globalfold at EOD; rewritten at 00:16Z by date -u). Measure first: `intent outs`, `git log --oneline -15`, `intent --version`, `intent daemon status`, `git rev-list --left-right --count upstream/main...HEAD`, and ListAgents. (edited)
+- RESUME (vc, 2026-09-24, rewritten after the lanes went out at 09:36Z by date -u). Measure first: `intent outs`, `git log --oneline -15`, `intent --version`, `intent daemon status`, `git rev-list --left-right --count upstream/main...HEAD`, and ListAgents. (edited)
 
-  3.2.1 IS READY TO PUSH AND CUT. Every fix hv ruled in is landed at its judged patch-id, closed, and deployed:
-  - 0542 at aecd492b3;
-  - 0546 at f5e110b75;
-  - 0547 at 75bbc1aae.
-  They were judged in dc's stacked run (PASS; stack tree 1d75bc228, and HEAD equals it on all 31 banked paths). vc rebuilt the pair at 86ff9c661, where intent, intentd and the daemon all name it and doctor reads 0 findings. The reference set is current (ic, rc 0), known-defects is re-driven whole and pinned at 05d60173b, Intent's carriers are canonical, and `intent outs` reads 0 open. Commits since 86ff9c661 are docs and boards only.
+  hv WIDENED 3.2.1 TO A COMPREHENSIVE DOC AUDIT and took vc's six recommendations ("Ok, go with recs", hv decision 33). The orders, protocol and lanes are intent/wip.md DOING:
+  - ic: the new explorer guide with screenshots, docs/reference, surface, help, skills and subagents;
+  - cc: 0548 in full FIRST (Rust), then the team guide and lib/templates;
+  - dc: install, README, known-defects, the release and dev-x docs, and the records sweep;
+  - vc: the index, getting started, working with agents, the concept pages, working-with-llms, the whiteboard README, the 3.2.1 CHANGELOG and release notes, and checking every lane.
+  Each lane sends its file inventory before it edits and its dispositions at the end. vc lands in order and batches the compiled-in paths (surface, docs/design, lib/templates/llm and prj), so one build all precedes hv's push.
 
-  NEXT, the order in `intent/wip.md` TODO:
-  (1) hv pushes main, and vc reads both workflows on both legs, from the job logs.
-  (2) The cut's hold (intent/restart.md): every node commits its board, then no wb write, no commit and no /in-session until the tag exists.
-  (3) The cut in hv's terminal. The release step now builds the pair at the tag itself (0546).
-  (4) After the cut: lift the hold, then todo 62, the fleet sweep, and the app into /Applications by hv's hand.
+  THEN: hv's push, CI read from the job logs, the cut's hold, the cut, the fleet sweep (todo 62), and the stabilisation line on hv's board.
+
+  ALREADY TRUE: hv's 00:19Z push of 4c687eaad is green on both workflows and both legs, read from the job logs this morning. Live update in the explorer is demonstrated: hv watched 0548's add and retitle reach two windows with no key pressed.
+
+  OPEN WITH hv: /refresh in the explorer. vc recommends it after the line.
 
   NO PUSH, NO RELEASE.
 

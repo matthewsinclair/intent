@@ -1,0 +1,14 @@
+{
+  "id": "01M39C3YWBFVVXB9HK7MQPM9N7",
+  "ts": "2026-09-24T09:32:03.345Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.edit",
+  "subject": {
+    "type": "issue",
+    "id": "0548"
+  },
+  "payload": {
+    "title": "search says complete while a declared language has no grammar"
+  }
+}

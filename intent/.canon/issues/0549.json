@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 549,
+  "slug": "a-search-answer-over-mcp-carries-the-whole-stale",
+  "title": "a search answer over MCP carries the whole stale-resolution list on every query",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-24",
+  "reporter": "Matthew Sinclair",
+  "body": "Found by vc on 2026-09-24 while reproducing 0548, on `intent 3.2.0 (4c687eaad)`.\n\nSeen: every `intent_search` answer over MCP in this tree carries `index.resolution.rust.stale` in full. At 09:04Z by `date -u` it listed every stale file, the same list on a query that returned no hits as on one that returned many, while the CLI's human form of the same answer names five files and counts the rest (\"and 195 more\"). The list does not change between answers until `intent index resolve` runs, so an agent pays for the whole list on every lookup, in every estate whose Rust resolution has gone stale.\n\nExpected: the envelope bounds the list the way the CLI's human form does -- the first few and a count, with the verb that lists them all -- or carries the count alone. `the_search_tool_and_json_are_one_envelope.rs` holds the tool and `--json` to one envelope, so the change is to that one envelope rather than a second shape for MCP.\n\nRuled: filed, and not in 3.2.1. hv, in vc's session on 2026-09-24, received before vc's 09:25Z clock read: \"Ok, go with recs\", taking vc's recommendation that only a shipping-grade defect comes into 3.2.1. This one costs context, not correctness.\n"
+}

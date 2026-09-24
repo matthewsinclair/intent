@@ -1,0 +1,15 @@
+{
+  "id": "01M39CED9PEZ4HC71A0H5CBR25",
+  "ts": "2026-09-24T09:37:45.787Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0549"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "a search answer over MCP carries the whole stale-resolution list on every query"
+  }
+}

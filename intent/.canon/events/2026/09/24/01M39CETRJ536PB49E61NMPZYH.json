@@ -1,0 +1,15 @@
+{
+  "id": "01M39CETRJ536PB49E61NMPZYH",
+  "ts": "2026-09-24T09:37:59.570Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-24, hv first-hand in vc's session, received before vc's 09:25Z clock read, taking all six of vc's recommendations: \"Ok, go with recs.\") THE 3.2.1 DOC AUDIT: SIX RULINGS, wording vc's, authority hv's. hv's aim, verbatim: \"The amin for today is to get the release cut, shipped, and active fleet wide, and then draw a line under new development for a while as the release stabilises. Note: we need to a thorough doc audit as the docs are all woefully out of date now and need a comprehensvive update. I want that doc update part of this release too. I particularly want a new doc section on the explorer TUI complete with screenshots, and I want a section (or whole doc) on 'using Intent in a team' (ie multi-user usage with git/github).\" NOTHING IS CUT BEFORE THE DOCS LAND. (1) A defect the audit finds is filed as an issue and the doc describes the as-built behaviour; only a shipping-grade defect (a broken install, data loss, a remedy that misdirects) comes into 3.2.1, named to hv first. This narrows decision 32's \"all of it\" for findings made during the audit. 0548 is the first case under that test, although devbin-vc found it and the audit did not: search answers \"complete\" while a declared language has no grammar, so its code half rides 3.2.1. 0549, the MCP envelope's stale-path list, is filed and does not. (2) The team guide is docs/concepts/working-in-a-team.md, extended into a GitHub walkthrough, re-driven with two clones of a scratch origin and promoted into the docs index's Start here, rather than a second page. (3) The explorer's screenshots are rendered from a pty through pyte to SVG and PNG, ic's method, with the generator committed so they regenerate at each cut. (4) The audit's scope is this repository, its skills, subagents and templates included; the fleet's own docs are out. (5) The stabilisation line goes on this board once the fleet sweep is done, and decision 28's Conflab and Baize record repair runs after the sweep. (6) Every register edit batches into ONE landing late in the audit, so the rebuild, the known-defects re-drive and the reference regeneration are paid once. The orders, protocol and lanes are in intent/wip.md DOING."
+  }
+}
