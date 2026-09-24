@@ -2,8 +2,8 @@
 node: dc
 name: DevX Claude
 role: worker
-session_id: 1a8e4fe7-0650-45f6-a619-84fc0c380145
-heartbeat_at: 2026-09-24 00:15Z
+session_id: 4e187b62-bbfa-4424-8bf9-a7e03ae421e0
+heartbeat_at: 2026-09-24 08:27Z
 status: active
 focus: "LOCALFOLDED at EOD 2026-09-24. dc's 3.2.1 work is done; 3.2.1 is ready to push at a3ed12629, then CI, the cut's hold and the cut. Next: hold 29 (the guards pass rides the fleet sweep after the tag). The resume todo carries the state. NO PUSH, NO RELEASE."
 claims: []
@@ -13,18 +13,23 @@ claims: []
 
 ## DOING
 
-_(none)_
+- **THE 3.2.1 DOC AUDIT, dc's LANE (vc's orders on hv's go, 2026-09-24; `intent/wip.md` DOING at b5781bd73 carries the protocol, the lanes and vc's rulings on dc's inventory). NO PUSH, NO RELEASE.**
+  - FILES: README.md, DEPRECATIONS.md, LICENSE.md; docs/{install,known-defects,migrating-from-v2,banking}.md; docs/design/design-system.md (compiled in, so it is held for vc's batch); intent/docs/{releasing,pre-commit-hook,rust-on-macos,migration-v2.10.0,skills-triage,total-codebase-audit}.md, notes/** and exemplars/**; the help of bin/int and bin/.devbin/cmd/** (the vendored bin/devbin and bin/.devbin/lib/** are audited and never edited here, with findings to vc for the Devbin estate); .github/workflows; tests/README.md; the comments of native/macos/Intent/project.yml; the Homebrew tap's README (committed in the tap, no push); and the records sweep in rule 6, which includes .archive, intent/eng/tpd, intent/analysis and intent/autopsy.
+  - ORDER: the pages that document commands first, each driven by its own $ lines under a short /tmp HOME, and any 3.2.1-grade defect named to vc at once. ic sends one line for releasing.md step 2. docs/known-defects.md is re-driven LAST, on the pair from the final pre-cut build all, with the version and build commit elided as `...`.
+  - METHOD: every deletion is named to vc before it lands; line citers are checked per file; prettier and critic-prose review run before each commit; each commit has its own START and END. The verifiers' reports are audit/report-*.md in this session's scratchpad (4e187b62), under the brief audit/brief.md there.
 
 ## TODO
 
-- **RESUME (dc, EOD 2026-09-24).** Measure first: `intent --version`, `git log --oneline -5`, and whether upstream/main equals HEAD; ListAgents; then read this inbox. **3.2.1 IS READY TO PUSH at a3ed12629.** The installed pair is at 86ff9c661, whose Rust equals HEAD's, because nothing under native/rust has landed since. The known-defects page is pinned to 86ff9c661 (05d60173b). NEXT, and none of it dc's hand: hv pushes; vc reads CI on both workflows and both legs; vc then puts every node in the cut's hold; hv fires the cut in hv's terminal. During the cut's hold dc writes nothing: no wb verb of any kind, no commit, and no /in-session after a compact, since it chains pickup. **dc's next work is hold 29, when vc lifts the hold after the tag**: the fleet sweep plus the guards wiring, one commit per estate, from scratchpad census_fleet.sh re-run first. The open scope question for vc before that sweep: seven estates carry the same legacy hooks and hold 29 does not name them (Molt-matts, Molt-flynn, arca_cli, arca_config, arca_notionex, Courses/002, ficton-content). A forward correction for vc: 05d60173b's subject says "hv's rebuild", but vc ran it. NO PUSH, NO RELEASE.
+_(none)_
 
 ## Holds
 
-- **THE GUARDS ADOPTION PASS FOR THE REMAINING ESTATES IS HELD UNTIL THE 3.2.1 CUT'S FLEET SWEEP (hv's ruling via vc, 2026-09-23).** The recipe runs intent claude upgrade --apply, so each estate's hooks wiring rides that sweep, one commit per estate for both. The pilot, MicroGPTEx 80d4c13, passed vc's check.
+- **THE GUARDS ADOPTION PASS FOR THE REMAINING ESTATES IS HELD UNTIL THE 3.2.1 CUT'S FLEET SWEEP (hv's ruling via vc, 2026-09-23).** The recipe runs intent claude upgrade --apply, so each estate's hooks wiring rides that sweep, one commit per estate for both. The pilot, MicroGPTEx 80d4c13, passed vc's check. (edited)
   THE RECIPE: git config core.hooksPath .githooks; then intent claude upgrade --apply, which writes the four chain blocks (tracked) and the four .intent carriers; add .githooks/*.intent to .gitignore; declare formatters wherever the old hook checked any; red-control with staged probes; commit by path; run doctor.
   THE ESTATES: Molt and Prolix take the recipe unchanged, because their hook is byte-identical to MicroGPTEx's. Anvil, Baize, Cdtempl, Courses and Riffle share a chain-block-only hook and need no formatter declaration. Prodinfra, Conflab and Lamplight each get their own diff first. vc sequences Devbin, Laksa and Gtools.
   KNOWN LIMIT: core.hooksPath is per clone, so a fresh clone runs no hook until it is set, and only doctor --verbose's uncounted advisory says so.
+  RIDER (ic's note (c), 2026-09-23, restated here on 2026-09-24 from archived doing 110 so it is not buried): prettier 3.9.8 rewrites the generated board and inbox views in both shapes, so wherever the recipe declares a markdown formatter in an estate that has a whiteboard, the same commit adds the prettier-ignore lines for `intent/whiteboard/*/wip.md` and `intent/whiteboard/*/inbox.*.md`, as Intent's own .prettierignore does.
+  SCOPE: the seven estates this hold does not name (Molt-matts, Molt-flynn, arca_cli, arca_config, arca_notionex, Courses/002, ficton-content) are ruled by vc on a measurement of which carry Intent (intent/wip.md, AFTER THE CUT).
 
 ## Watch-outs
 

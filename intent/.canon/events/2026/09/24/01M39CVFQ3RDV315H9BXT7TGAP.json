@@ -1,0 +1,16 @@
+{
+  "id": "01M39CVFQ3RDV315H9BXT7TGAP",
+  "ts": "2026-09-24T09:44:54.244Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 29,
+    "text": "**THE GUARDS ADOPTION PASS FOR THE REMAINING ESTATES IS HELD UNTIL THE 3.2.1 CUT'S FLEET SWEEP (hv's ruling via vc, 2026-09-23).** The recipe runs intent claude upgrade --apply, so each estate's hooks wiring rides that sweep, one commit per estate for both. The pilot, MicroGPTEx 80d4c13, passed vc's check.\nTHE RECIPE: git config core.hooksPath .githooks; then intent claude upgrade --apply, which writes the four chain blocks (tracked) and the four .intent carriers; add .githooks/*.intent to .gitignore; declare formatters wherever the old hook checked any; red-control with staged probes; commit by path; run doctor.\nTHE ESTATES: Molt and Prolix take the recipe unchanged, because their hook is byte-identical to MicroGPTEx's. Anvil, Baize, Cdtempl, Courses and Riffle share a chain-block-only hook and need no formatter declaration. Prodinfra, Conflab and Lamplight each get their own diff first. vc sequences Devbin, Laksa and Gtools.\nKNOWN LIMIT: core.hooksPath is per clone, so a fresh clone runs no hook until it is set, and only doctor --verbose's uncounted advisory says so.\nRIDER (ic's note (c), 2026-09-23, restated here on 2026-09-24 from archived doing 110 so it is not buried): prettier 3.9.8 rewrites the generated board and inbox views in both shapes, so wherever the recipe declares a markdown formatter in an estate that has a whiteboard, the same commit adds the prettier-ignore lines for `intent/whiteboard/*/wip.md` and `intent/whiteboard/*/inbox.*.md`, as Intent's own .prettierignore does.\nSCOPE: the seven estates this hold does not name (Molt-matts, Molt-flynn, arca_cli, arca_config, arca_notionex, Courses/002, ficton-content) are ruled by vc on a measurement of which carry Intent (intent/wip.md, AFTER THE CUT)."
+  }
+}
