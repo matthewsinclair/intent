@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "1a79312a-c3aa-435b-b4a1-b00a0d3bf70f",
-    "heartbeat_at": "2026-09-24T19:16:58.838Z",
+    "heartbeat_at": "2026-09-24T19:27:46.613Z",
     "status": "active",
-    "focus": "LOCALFOLDED at 19:16Z for hv's second compact. The fix set waits on hv's explicit ruling (go with recs or build without); the banks outside it are judged; the machine is released to devbin until the ruling; resume is doing 33. NO PUSH, NO RELEASE.",
+    "focus": "post-compact: holding for hv's fix-set ruling in words (go with recs / build without)",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -1683,6 +1683,14 @@
       "state": "live",
       "recorded_at": "2026-09-23T10:43:48.572Z",
       "edited_at": "2026-09-24T19:16:35.229Z"
+    },
+    {
+      "node": "vc",
+      "kind": "decision",
+      "seq": 60,
+      "text": "(2026-09-24, hv verbatim: \"in\", answering vc's in/out question at about 19:36Z) THE FIX SET GOES INTO 3.2.1: 0551, 0564, 0570 and cc's batch 1 (0554(b), 0556, sync --apply's views step), with ic's 0550, 0552, 0553, 0560, 0567 and the explorer guide. Each fix is banked and judged by vc; ic runs the one stacked final-tree run; they land in composition order; vc writes every CHANGELOG line in one commit; then vc's one build all.",
+      "state": "live",
+      "recorded_at": "2026-09-24T19:46:25.907Z"
     }
   ],
   "messages": [

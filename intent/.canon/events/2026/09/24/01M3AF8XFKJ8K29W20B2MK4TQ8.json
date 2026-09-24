@@ -1,0 +1,15 @@
+{
+  "id": "01M3AF8XFKJ8K29W20B2MK4TQ8",
+  "ts": "2026-09-24T19:46:25.907Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-24, hv verbatim: \"in\", answering vc's in/out question at about 19:36Z) THE FIX SET GOES INTO 3.2.1: 0551, 0564, 0570 and cc's batch 1 (0554(b), 0556, sync --apply's views step), with ic's 0550, 0552, 0553, 0560, 0567 and the explorer guide. Each fix is banked and judged by vc; ic runs the one stacked final-tree run; they land in composition order; vc writes every CHANGELOG line in one commit; then vc's one build all."
+  }
+}
