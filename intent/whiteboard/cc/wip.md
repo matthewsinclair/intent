@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 32974d4a-0175-4bfb-b198-cdac20b4d58b
-heartbeat_at: 2026-09-24 11:41Z
+heartbeat_at: 2026-09-24 17:48Z
 status: active
-focus: "3.2.1 doc audit, cc's lane: report accepted by vc. 0548, the team guide, intent/docs, intent/llm, the two lane files, templates v3 (450bcc0f8) and the rules audit (e2b6b33f7) all landed at their judged patch-ids. Next: the root AGENTS.md and CLAUDE.md after vc's build all, and the hv-dependent stack if ruled in. NO PUSH, NO RELEASE."
+focus: "LOCALFOLDED for hv's /compact, at vc's order. Resume state is doing 74: every cc landing is in at its judged patch-id, the 0551 draft and three fold snapshots are banked, the fix set waits on hv, and the root files follow vc's build all. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -13,11 +13,37 @@ claims: []
 
 ## DOING
 
-- Root AGENTS.md and CLAUDE.md regenerate AFTER vc's build all, because lib/templates/llm is embedded in the binary. The steps: a dry `intent claude upgrade` that should name only those two files, then apply and commit, then a second dry run that should write nothing.
+- RESUME STATE (cc, localfold on 2026-09-24 for hv's /compact). (edited)
+
+  LANDED, each at its judged patch-id:
+  - 0548: code 73bc232df (3d8ebca06), CHANGELOG line 556e34374, issue closed 19dd2b71b.
+  - The team guide, intent/docs and intent/llm: 7dc62eb34.
+  - .claude/agents/elixir.md and the root .intent_critic.yml: adf7d1096.
+  - Templates v3: 450bcc0f8 (8f064805a).
+  - Rules audit: e2b6b33f7 (cb89c12f2).
+  - Board: 8512644c0.
+  The final-tree run on d66b3c1c2 was green on run 2: every CI line rc 0, cargo 3077/0/5, bats 747/747. vc ACCEPTED the lane report.
+
+  BANKED, NOT LANDED:
+  - The 0551 draft, unbuilt and unjudged: refs/bank/cc/0551/draft-unbuilt-on-cc34b16e4 (blob c253f5a1f, patch-id 076114ec7). It applies to HEAD.
+  - Fold snapshots of three older worktrees whose diffs are only partly on main: refs/bank/cc/fold-20260924/wt-0523b-on-e1d784dbc, wt-0523m-on-987268553 and wt-train-on-ca936e6c4.
+  - Templates v1 and v2 are superseded and never land.
+
+  WAITS ON hv: the fix set.
+  - cc's 0551, 0564, 0570 (size S; the design is in 0570's own body) and batch 1 (0554(b), 0556, (b3)).
+  - ic's five fix banks and dc's CI bank.
+  - If ruled in: build each red-first on HEAD in its own worktree, driving 0570's NoResolvableInstall remedy first. Re-cut and re-drive the team page's two sections for 0551 and batch 1. Then one final-tree heavy run on top, and land on vc's word.
+
+  NEXT AFTER vc's BUILD ALL, in the main tree:
+  - A dry `intent claude upgrade`, which should name only AGENTS.md and CLAUDE.md.
+  - Then --apply, and commit those two by path.
+  - Then a second dry run, which should write nothing. The release pre-flight refuses anything outside the sidecar list.
+
+  AFTER THE CUT: todo 39. NO PUSH, NO RELEASE.
 
 ## TODO
 
-- After the cut: remove cc's leftover worktrees under tmp/ (wt-cc-*), each checked against a landed bank first; never delete a bank ref.
+- After the cut: remove cc's leftover worktrees -- tmp/wt-cc-{0548,0551,final,rules,tpl}, the older scratchpad worktrees of session 89be4c37 (wt-0521, wt-0523, wt-0523b, wt-0523m, wt-0523r, wt-0525, wt-critic, wt-f1f2, wt-train) and ../Intent-wt-0546 -- each checked against a landed or banked patch-id first (every one was, at the 2026-09-24 fold), then `git worktree prune` for the three registrations whose directories are already gone. Never delete a bank ref. (edited)
 
 ## Holds
 

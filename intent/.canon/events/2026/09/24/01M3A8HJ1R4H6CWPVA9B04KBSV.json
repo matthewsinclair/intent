@@ -1,0 +1,16 @@
+{
+  "id": "01M3A8HJ1R4H6CWPVA9B04KBSV",
+  "ts": "2026-09-24T17:48:49.081Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 74,
+    "text": "RESUME STATE (cc, localfold on 2026-09-24 for hv's /compact).\n\nLANDED, each at its judged patch-id:\n- 0548: code 73bc232df (3d8ebca06), CHANGELOG line 556e34374, issue closed 19dd2b71b.\n- The team guide, intent/docs and intent/llm: 7dc62eb34.\n- .claude/agents/elixir.md and the root .intent_critic.yml: adf7d1096.\n- Templates v3: 450bcc0f8 (8f064805a).\n- Rules audit: e2b6b33f7 (cb89c12f2).\n- Board: 8512644c0.\nThe final-tree run on d66b3c1c2 was green on run 2: every CI line rc 0, cargo 3077/0/5, bats 747/747. vc ACCEPTED the lane report.\n\nBANKED, NOT LANDED:\n- The 0551 draft, unbuilt and unjudged: refs/bank/cc/0551/draft-unbuilt-on-cc34b16e4 (blob c253f5a1f, patch-id 076114ec7). It applies to HEAD.\n- Fold snapshots of three older worktrees whose diffs are only partly on main: refs/bank/cc/fold-20260924/wt-0523b-on-e1d784dbc, wt-0523m-on-987268553 and wt-train-on-ca936e6c4.\n- Templates v1 and v2 are superseded and never land.\n\nWAITS ON hv: the fix set.\n- cc's 0551, 0564, 0570 (size S; the design is in 0570's own body) and batch 1 (0554(b), 0556, (b3)).\n- ic's five fix banks and dc's CI bank.\n- If ruled in: build each red-first on HEAD in its own worktree, driving 0570's NoResolvableInstall remedy first. Re-cut and re-drive the team page's two sections for 0551 and batch 1. Then one final-tree heavy run on top, and land on vc's word.\n\nNEXT AFTER vc's BUILD ALL, in the main tree:\n- A dry `intent claude upgrade`, which should name only AGENTS.md and CLAUDE.md.\n- Then --apply, and commit those two by path.\n- Then a second dry run, which should write nothing. The release pre-flight refuses anything outside the sidecar list.\n\nAFTER THE CUT: todo 39. NO PUSH, NO RELEASE."
+  }
+}
