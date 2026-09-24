@@ -15,6 +15,8 @@ This is the supported path. The formula installs the CLI (`intent`), the daemon 
 
 **The formula is macOS on Apple silicon only.** It declares `depends_on arch: :arm64` and `depends_on :macos`, and no Intel or Linux binary is built. Anywhere else, build [from source](#from-source).
 
+**Intent's hooks need `jq` on `PATH`.** macOS 15 and later ship it at `/usr/bin/jq`; on an earlier macOS, or on Linux, install it (`brew install jq`, or your distribution's package). Without it the Claude Code session gate cannot read your prompt, so it blocks every prompt, `/in-session` included, and the pre-commit gate cannot read the project's declared languages, so it runs no language critic and says so on every commit.
+
 **The CLI does not need the daemon.** Every `intent` command does its work in-process unless you pass `--daemon`, with two exceptions: `intent graphql` is answered only by a running `intentd`, and `intent browse` (like `intent edit --browser`) opens a page that a running `intentd` serves. Neither starts one for you. If you want `intentd` running, `intent daemon start` starts it, and `intent daemon status` and `intent daemon stop` do what they say. `intent daemon start --at-login` also enrols it to start at login, as a LaunchAgent at `~/Library/LaunchAgents/com.matthewsinclair.intentd.plist`, and `intent daemon stop --at-login` removes that enrolment. The formula also declares a Homebrew service, so `brew services start matthewsinclair/intent/intent` keeps `intentd` running under launchd instead; its stdout and stderr go to `intentd.log` under Homebrew's `var/log`.
 
 ## The menubar app
