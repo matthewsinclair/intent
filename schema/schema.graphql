@@ -1,4 +1,4 @@
-# INTENT_VER: 3.2.0
+# INTENT_VER: 3.2.1
 # SCHEMA_SDL_VER: 19
 
 enum AcKind {

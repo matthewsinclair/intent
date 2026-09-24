@@ -255,6 +255,6 @@
   ],
   "title": "Board",
   "type": "object",
-  "x-intent-ver": "3.2.0",
+  "x-intent-ver": "3.2.1",
   "x-schema-json-ver": 22
 }

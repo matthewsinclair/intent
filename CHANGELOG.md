@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.2.1] - in progress
+## [3.2.1] - 2026-09-24
 
 **v3.2.1 answers "what is open?" with one command, lets a node correct what it wrote on a board, and closes a run of places where Intent's own checks passed over work they never examined.** `intent outstanding` lists every open thread, work package and issue in one table, `intent wb edit` changes the text of a board item or a sent message, and a board can claim an issue; beside them is a sweep of repairs, from a `brew upgrade` no longer leaving every gated commit refused to the pre-commit chain block refusing a commit it cannot gate. The documentation was re-measured page by page against this release: it gains a guide to the explorer, and the team guide becomes a walkthrough of a team working on GitHub. **Upgrading migrates each project's store to schema 30, and v3.2.0 cannot open it afterwards -- read the [release notes](docs/releases/3.2.1/RELEASE_NOTES.md) before the first command.**
 
