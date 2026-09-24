@@ -634,9 +634,7 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
   let mut borrowed = Borrowed::take(real::Crossterm)?;
   let mut term = Terminal::new(CrosstermBackend::new(io::stdout()))?;
 
-  let mut rows = source.rows(app.stack.current());
-  let note = source.note(app.stack.current());
-  arrive(app, &rows, source.here().as_deref(), note);
+  let mut rows = first_read(app, source);
   app.index = source.index();
   app.commands = super::commands::vocabulary(&crate::spine::surface());
   app.keymap = source.keymap();
@@ -940,6 +938,25 @@ pub fn arrive(app: &mut App, rows: &[Row], here: Option<&std::path::Path>, note:
   if let Some(at) = here.and_then(|here| views::nearest_project(rows, here)) {
     app.focus = app.focus.and_then(|f| f.at(at));
   }
+}
+
+/// The first read, before the loop draws anything: the view's rows, then the
+/// arrival with the view's own note -- or, when it has none, the notice the
+/// caller set before the terminal was taken (issue 0552).
+///
+/// **THE FIRST ARRIVAL WIPED WHAT `explore` HAD JUST SAID.** It lands at the
+/// root when an address cannot be opened and says why on the info row, and
+/// `arrive` set the root's own note, which is none, over it before any frame
+/// was drawn: 0435's class, a notice set and cleared unseen. The notice that
+/// the project registry was not updated went the same way.
+pub fn first_read(app: &mut App, source: &mut impl Source) -> Vec<Row> {
+  let rows = source.rows(app.stack.current());
+  let said = std::mem::take(&mut app.notice);
+  let note = source
+    .note(app.stack.current())
+    .or_else(|| (!said.is_empty()).then_some(said));
+  arrive(app, &rows, source.here().as_deref(), note);
+  rows
 }
 
 /// Why [`run`] ended.
@@ -2099,6 +2116,25 @@ mod tests {
       self.asked += 1;
       Ok(std::mem::take(&mut self.pending))
     }
+  }
+
+  /// Issue 0552: the reason `explore` gives for landing at the root is on the
+  /// first frame, not wiped by the first arrival before anything was drawn.
+  #[test]
+  fn a_reason_given_before_the_first_frame_is_on_it() {
+    let mut app = App::explore().saying("`nosuch` is neither an address nor an artefact id");
+    let mut source = Moved {
+      rows: issues(&["0002", "0001"]),
+      pending: false,
+      asked: 0,
+    };
+    let rows = first_read(&mut app, &mut source);
+    let screen = screen_for(&app, &rows, 100);
+    assert!(
+      screen.hint.contains("`nosuch`"),
+      "the reason is not on the first frame: {}",
+      screen.hint
+    );
   }
 
   fn issues(ids: &[&str]) -> Vec<Row> {
