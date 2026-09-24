@@ -5456,6 +5456,17 @@ fn upgrade() -> Result<(), Failure> {
       done.events_backfilled
     );
   }
+  // Issue 0551: the ignore rule this run wrote does not untrack a store git
+  // already tracks, so the one command that does is named beside the commit.
+  match &done.store_tracking {
+    intentsvcs::facade::StoreTracking::Tracked(path) => eprintln!(
+      "untrack: git tracks {path}, and the ignore rule this upgrade wrote does not untrack it -- run `git rm --cached {path}` and commit that with this upgrade, or every commit carries this machine's store"
+    ),
+    intentsvcs::facade::StoreTracking::Unasked(cause) => eprintln!(
+      "note: git was not asked whether it tracks the store: {cause} -- `git ls-files intent/.cache` answers it"
+    ),
+    intentsvcs::facade::StoreTracking::Untracked => {}
+  }
   // Issue 0459: the empty single-file log an earlier upgrade left, removed or
   // named with why it stays.
   match &done.event_log_leftover {

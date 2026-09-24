@@ -651,3 +651,61 @@ fn a_hook_canon_cannot_rewrite_is_named_with_its_reason() {
     "a held hook is left byte for byte"
   );
 }
+
+/// `git` in `root`, asserted to succeed.
+fn git(root: &std::path::Path, args: &[&str]) {
+  let ok = std::process::Command::new("git")
+    .args(args)
+    .current_dir(root)
+    .stdin(testkit::lifeline_for(args))
+    .status()
+    .expect("run git")
+    .success();
+  assert!(ok, "git {args:?} failed at {}", root.display());
+}
+
+/// Issue 0551: **A STORE GIT TRACKS IS NAMED, BY THE UPGRADE AND BY DOCTOR.**
+/// Intent 3.0's `init` wrote no `.gitignore`, so its projects committed the
+/// store; the rule a later run writes leaves it in the index, and until now
+/// nothing said so. The fixture commits the store by force, which is the index
+/// state such a project has.
+#[test]
+fn a_store_git_tracks_is_named_until_it_is_untracked() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let root = dir.path();
+  let (_, err, code) = run(&["init", "tracked-store-fixture"], root);
+  assert_eq!(code, 0, "init: {err}");
+  let (_, err, code) = run(&["st", "new", "A thread"], root);
+  assert_eq!(code, 0, "st new: {err}");
+  git_ready(root);
+  git(root, &["add", "-f", "intent/.cache/intent.db"]);
+  git(
+    root,
+    &["commit", "-q", "-m", "the store, as 3.0 committed it"],
+  );
+
+  let (_, err, code) = run(&["upgrade"], root);
+  assert_eq!(code, 0, "upgrade: {err}");
+  assert!(
+    err.contains("git rm --cached intent/.cache/intent.db"),
+    "the upgrade names the command that untracks the store: {err}"
+  );
+  let (out, err, _) = run(&["doctor"], root);
+  let said = format!("{out}{err}");
+  assert!(
+    said.contains("store-tracked") && said.contains("git rm --cached intent/.cache/intent.db"),
+    "a default doctor shows it, with the command: {said}"
+  );
+
+  git(root, &["rm", "-q", "--cached", "intent/.cache/intent.db"]);
+  git(root, &["add", "-A"]);
+  git(
+    root,
+    &["commit", "-q", "-m", "the upgrade, the store untracked"],
+  );
+  let (out, err, _) = run(&["doctor"], root);
+  assert!(
+    !format!("{out}{err}").contains("store-tracked"),
+    "an untracked store is not named: {out}{err}"
+  );
+}

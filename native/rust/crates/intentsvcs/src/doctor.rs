@@ -611,6 +611,9 @@ fn examine(
   // gate an operator most wants reported, and putting this inside would skip it
   // on precisely those estates.
   report.findings.extend(hook_findings(project));
+  // Beside the gate and for its reason: whether git tracks the store is a fact
+  // about the repository, and a store that will not open is still tracked.
+  report.findings.extend(store_tracked_finding(project));
   // Beside the gate and for its reason: a root file behind its template is not
   // a property of the store, and an estate whose canon will not read still has
   // a `CLAUDE.md` worth comparing (issue `0496`).
@@ -2398,6 +2401,37 @@ fn listing(lines: &[(usize, String)]) -> String {
   match lines.len().saturating_sub(3) {
     0 => shown.join(", "),
     more => format!("{} and {more} more", shown.join(", ")),
+  }
+}
+
+/// The store, when git tracks it (issue 0551): one finding naming the path, whose
+/// class carries the command that takes it out of the index. A git that could
+/// not be asked is said so, as the upgrade says it, never read as untracked.
+///
+/// **NOT [`is_tracked`] BELOW**, whose `false` covers a git it could not ask:
+/// that suits its callers' hook paths, which may sit outside the work tree, and
+/// would hide exactly the answer this finding exists to give.
+fn store_tracked_finding(project: &Project) -> Option<Finding> {
+  match crate::facade::store_tracking(project) {
+    crate::facade::StoreTracking::Untracked => None,
+    // **THE COMMAND IS IN THE DETAIL, NOT THE CLASS REMEDY**: every class
+    // remedy is held off naming `rm` or the store file
+    // (`no_remedy_proposes_an_operation_wider_than_the_fault`), and this one
+    // takes the path out of the index only, which is exactly this fault's width.
+    crate::facade::StoreTracking::Tracked(path) => Some(Finding::new(
+      path.clone(),
+      FindingClass::StoreTracked,
+      format!(
+        "git tracks the store, so every commit carries this machine's copy of it and a teammate's pull collides with it -- `.gitignore` keeps out a file git does not track yet, and does not untrack one it already does; `git rm --cached {path}` untracks it and leaves the file on disk"
+      ),
+    )),
+    crate::facade::StoreTracking::Unasked(cause) => Some(Finding::new(
+      project.relative(&project.db_path()),
+      FindingClass::Advisory,
+      format!(
+        "git was not asked whether it tracks the store: {cause} -- `git ls-files intent/.cache` answers it"
+      ),
+    )),
   }
 }
 

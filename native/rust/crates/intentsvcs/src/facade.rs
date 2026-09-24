@@ -220,6 +220,44 @@ pub struct Upgraded {
   /// What this run did with the `intent/events.jsonl` an earlier v3 upgrade
   /// left in the tree (issue 0459), or `None` when there was none.
   pub event_log_leftover: Option<EventLogLeftover>,
+  /// Whether git tracks the store, as this run found it once it had landed
+  /// (issue 0551).
+  ///
+  /// **THE IGNORE RULE THIS RUN WRITES DOES NOT UNTRACK A STORE GIT ALREADY
+  /// TRACKS**, and taking it out of the index is the operator's commit to make,
+  /// so the door names the command rather than leaving the store to ride in
+  /// every commit.
+  pub store_tracking: StoreTracking,
+}
+
+/// Whether git tracks a project's store (issue 0551).
+///
+/// **THREE ANSWERS, BECAUSE A GIT THAT CANNOT BE ASKED IS NOT A STORE THAT IS
+/// UNTRACKED.** The question is asked after the migration has landed, so a
+/// failure is reported beside the other post-landing refusals rather than
+/// returned: an error then would say the upgrade was not made when it was.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum StoreTracking {
+  /// Git does not track it, or this is not a work tree.
+  Untracked,
+  /// Git tracks it, at this project-relative path.
+  Tracked(String),
+  /// Git could not be asked, and why.
+  Unasked(String),
+}
+
+/// Whether git tracks `project`'s store: the one answer the upgrade and
+/// `doctor` both report (issue 0551). Asked through
+/// [`crate::gitstate::is_tracked`], whose error is kept as
+/// [`StoreTracking::Unasked`] rather than read as untracked, as
+/// `remove_event_log_leftover` does for the same reason (issue 0459).
+pub fn store_tracking(project: &Project) -> StoreTracking {
+  let store = project.relative(&project.db_path());
+  match crate::gitstate::is_tracked(project.root(), &store) {
+    Ok(true) => StoreTracking::Tracked(store),
+    Ok(false) => StoreTracking::Untracked,
+    Err(cause) => StoreTracking::Unasked(cause.to_string()),
+  }
 }
 
 /// The single-file event log an earlier v3 upgrade left behind, and what this
@@ -4497,7 +4535,9 @@ impl Facade {
             )],
           ),
         };
+        let store_tracking = store_tracking(project);
         Ok(Upgraded {
+          store_tracking,
           dehydrated,
           dehydrate_refused,
           pruned,

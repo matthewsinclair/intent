@@ -149,6 +149,20 @@ pub enum FindingClass {
   /// DEFAULT, BECAUSE THE DEFECT WAS A DOCTOR READING 0** while `CLAUDE.md` was
   /// behind (driven 2026-09-21), and a line only `--verbose` prints restates it.
   RootFileBehind,
+  /// Git tracks the store (issue `0551`).
+  ///
+  /// **AN IGNORE RULE DOES NOT UNTRACK A FILE GIT ALREADY TRACKS.** Intent 3.0's
+  /// `init` wrote no `.gitignore`, so a project it made could commit
+  /// `intent/.cache/intent.db` with its first `git add -A`, and the rule a
+  /// later `init` or upgrade writes leaves it in the index. From then on every
+  /// commit carries one machine's store and every teammate's pull collides
+  /// with it, while the store is what D34 says never enters history.
+  ///
+  /// **SHOWN AND NOT COUNTED, FOR `RootFileBehind`'s REASON.** The estate that
+  /// carries it upgraded into it rather than did anything, and a counted class
+  /// would refuse every commit in it on the day it upgrades. The remedy is one
+  /// command in the next commit, and the upgrade names it too.
+  StoreTracked,
   /// An ATTACHMENT on disk differs from the bytes canon records for it.
   ///
   /// **Not [`FindingClass::ViewSkew`], and the difference is what the operator
@@ -528,6 +542,11 @@ impl FindingClass {
         "root-file-behind",
         "run `intent claude upgrade --apply --skip-settings` -- or `intent claude upgrade --apply` for `.claude/settings.json` and `.mcp.json`, which `--skip-settings` leaves alone. Either run rewrites the file from the installed templates, so a hand edit in it is overwritten; `intent claude upgrade` without `--apply` lists what it would write. Not counted: a newer Intent reads every project behind until this runs there",
       ),
+      Self::StoreTracked => (
+        6,
+        "store-tracked",
+        "run the git command the finding names and commit it: it takes the store out of the index and leaves your copy on disk, and the ignore rule keeps it out from then on. Not counted: a project made by Intent 3.0 carries this from its first commit rather than from anything done since",
+      ),
       // **THE FIRST INSTRUCTION IS TO COPY THE FILE ASIDE, AND THAT IS NOT
       // padding.** Unlike `ViewSkew` above, neither side here is derivable:
       // both are authored bytes, and whichever one loses is gone. So the first
@@ -782,6 +801,7 @@ impl FindingClass {
         | Self::BackupStale
         | Self::StoreStale
         | Self::RootFileBehind
+        | Self::StoreTracked
     )
   }
 
@@ -802,7 +822,11 @@ impl FindingClass {
   /// tree, and its detail still says so. One advisory line is the cost of never
   /// again answering `no steel thread` after a pull.
   pub fn is_shown_by_default(&self) -> bool {
-    self.is_actionable() || matches!(self, Self::StoreStale | Self::RootFileBehind)
+    self.is_actionable()
+      || matches!(
+        self,
+        Self::StoreStale | Self::RootFileBehind | Self::StoreTracked
+      )
   }
 
   /// The word a report leads with for this class.
