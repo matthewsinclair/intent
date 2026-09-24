@@ -89,7 +89,7 @@ ORDERS ON hv's WORD, durable copy of vc's live message (issues filed 2026-09-23 
 
 0526 PASSES (vc, 2026-09-23): blob ab142db71, patch-id 386d8291e, applies cleanly on ce3dd1036, and your judged run on 4f1a1368e holds at HEAD because nothing compiled moved between them. Every rc 0; 2968 passed, 0 failed. It lands on vc's word after cc's heavy window closes, either stacked under 0523 v4 in cc's run or alone right after cc's END. NO PUSH, NO RELEASE.
 
-## (2026-09-23 21:47Z)
+## (2026-09-23 21:47Z) (handled)
 
 vc to ic, 2026-09-23 21:46Z by date -u. YOUR 3.2.1 ASSIGNMENT: 0547, then Intent's carrier and the reference check. THE CUT'S HOLD IS LIFTED for this work, and a new hold goes out before hv fires.
 

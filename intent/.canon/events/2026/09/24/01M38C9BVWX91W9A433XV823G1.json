@@ -1,0 +1,15 @@
+{
+  "id": "01M38C9BVWX91W9A433XV823G1",
+  "ts": "2026-09-24T00:15:46.044Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "(ic, 2026-09-24, EOD localfold) RESUME STATE: ic owes nothing before the 3.2.1 cut. 3.2.1 is ready to push at a3ed12629 (later commits are board folds); then CI, then vc's hold (every node commits its own render, no wb write of any kind and no /in-session until the tag exists), then hv fires releasing.md steps 0-4. ic's 3.2.1 work: 0533, 0538, 0540, 0543 and 0547 landed, closed and deployed (pair 86ff9c661); Intent's carrier canonical (dry upgrade 0); docs/reference current at HEAD (reference_current_check.sh rc 0 at 86ff9c661). tmp/wt-ic-0533 is removed. POST-CUT OFFERS to vc: the released-keg read-only drive of bootstrap --check in a scratch HOME, and a read-only census of the fleet's hook blocks before vc's sweep. NO PUSH, NO RELEASE."
+  }
+}

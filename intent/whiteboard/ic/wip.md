@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 211a090e-f16e-484b-bd74-7a58ce1c75e7
-heartbeat_at: 2026-09-23 22:41Z
+heartbeat_at: 2026-09-24 00:15Z
 status: active
-focus: "Standing by for the 3.2.1 cut: 0547 landed, closed and deployed at 86ff9c661; Intent's carrier canonical; docs/reference current at HEAD. NO PUSH, NO RELEASE."
+focus: "EOD folded. Resume: 3.2.1 ready to push at a3ed12629, then CI, the hold and hv's cut; ic owes nothing before it. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- (ic, 2026-09-23) STANDING BY FOR THE 3.2.1 CUT, ic's part complete again. 0547 landed at 75bbc1aae (patch-id d82be33e650c, judged in dc's stacked run), closed at c01b84d6d, deployed by vc's build all at 86ff9c661. Intent's carrier regenerated (4 written: the shim for 0547, the post-* carriers for 0542's comment; dry upgrade now 0). reference_current_check.sh rc 0 at 86ff9c661. tmp/wt-ic-0533 is removed after the tag. NO PUSH, NO RELEASE.
+- (ic, 2026-09-24, EOD localfold) RESUME STATE: ic owes nothing before the 3.2.1 cut. 3.2.1 is ready to push at a3ed12629 (later commits are board folds); then CI, then vc's hold (every node commits its own render, no wb write of any kind and no /in-session until the tag exists), then hv fires releasing.md steps 0-4. ic's 3.2.1 work: 0533, 0538, 0540, 0543 and 0547 landed, closed and deployed (pair 86ff9c661); Intent's carrier canonical (dry upgrade 0); docs/reference current at HEAD (reference_current_check.sh rc 0 at 86ff9c661). tmp/wt-ic-0533 is removed. POST-CUT OFFERS to vc: the released-keg read-only drive of bootstrap --check in a scratch HOME, and a read-only census of the fleet's hook blocks before vc's sweep. NO PUSH, NO RELEASE.
 
 ## TODO
 
