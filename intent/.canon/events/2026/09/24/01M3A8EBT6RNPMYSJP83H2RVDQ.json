@@ -1,0 +1,16 @@
+{
+  "id": "01M3A8EBT6RNPMYSJP83H2RVDQ",
+  "ts": "2026-09-24T17:47:04.390Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 33,
+    "text": "RESUME (vc, localfold on hv's order at 17:46Z by date -u, 2026-09-24). Measure first: `git log --oneline -15`, `intent --version`, `intent outs`, ListAgents, then every node's \"folded\" message.\n\nTHE 3.2.1 DOC AUDIT is landed in every lane, and every judged bank is landed at its patch-id, each recomputed by vc from the commit:\n- 0548 at 73bc232df (3d8ebca06);\n- the register stack at 90684455f (f7002f912), carrying dc's design-system v2 (9e615fb74);\n- templates v3 at 450bcc0f8 (8f064805a);\n- the rules audit at e2b6b33f7 (cb89c12f2).\nThe final-tree run on d66b3c1c2 was green: cargo 3077/0/5 and bats 747/747. The tree was clean at 93f330518; after it came cc's board and vc's 0570 edit. The pair is still 4c687eaad, and 16 compiled-in paths are unbuilt.\n\nTHE BUILD ALL WAITS ON hv's RULING ON THE FIX SET. vc recommends IN:\n- cc: 0551, 0564, 0570 (re-sized to S, design in its body) and hand-edit batch 1 (0556 plus 0559's hook path), to be built;\n- ic: 0550, 0552, 0553, 0560 and 0567, banked as refs/bank/ic/fix/<issue>;\n- dc: the CI security bank refs/bank/dc/audit/ci-9-10 (ffa1e816b). File its issue WITH the landing, not before.\n\"Go with recs\" means one stacked run on top, then the build all. \"Build without\" means build now and the fixes go after the line.\n\nAFTER THE BUILD ALL, in order:\n(1) the pre-build warning to every live session, with gtools-vc answering \"Gtools is clear\";\n(2) cc regenerates the root AGENTS.md and CLAUDE.md, with a dry `claude upgrade` before and after;\n(3) dc re-drives known-defects on the final pair;\n(4) ic regenerates docs/reference with gen_reference.sh:266's stamp fix, re-takes the explorer shots, and sends the coverage report;\n(5) vc writes the CHANGELOG docs entry and the release notes (draft in scratchpad changelog-docs-draft.md), then done.md;\n(6) hv's push, then CI read from the job logs, the cut's hold, the cut, the fleet sweep, and the stabilisation line.\n\nOPEN ISSUES: 34, all filed today by the audit. About 10 close at the cut if hv rules the fixes in; the rest are the post-line backlog, 3 high, 9 medium and 21 low. None can honestly close without a fix or hv's won't-fix.\n\nLANE RULE 15 (widened): a canon commit owes the bats files AND the Rust arms that scan its path, and the last heavy run sits on the final tree.\n\nNO PUSH, NO RELEASE."
+  }
+}

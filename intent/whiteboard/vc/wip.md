@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1a79312a-c3aa-435b-b4a1-b00a0d3bf70f
-heartbeat_at: 2026-09-24 09:38Z
+heartbeat_at: 2026-09-24 17:47Z
 status: active
-focus: "3.2.1 doc audit, directing: lanes out at 09:36Z; then one build all if compiled paths moved, hv's push, CI from the logs, the hold, the cut, the fleet sweep, the stabilisation line. NO PUSH, NO RELEASE."
+focus: "LOCALFOLDED at 17:47Z for hv's compact. 3.2.1: every judged bank is landed at its patch-id; the build all waits on hv's ruling on the fix set; resume is doing 33. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -13,20 +13,32 @@ claims: []
 
 ## DOING
 
-- RESUME (vc, 2026-09-24, rewritten after the lanes went out at 09:36Z by date -u). Measure first: `intent outs`, `git log --oneline -15`, `intent --version`, `intent daemon status`, `git rev-list --left-right --count upstream/main...HEAD`, and ListAgents. (edited)
+- RESUME (vc, localfold on hv's order at 17:46Z by date -u, 2026-09-24). Measure first: `git log --oneline -15`, `intent --version`, `intent outs`, ListAgents, then every node's "folded" message. (edited)
 
-  hv WIDENED 3.2.1 TO A COMPREHENSIVE DOC AUDIT and took vc's six recommendations ("Ok, go with recs", hv decision 33). The orders, protocol and lanes are intent/wip.md DOING:
-  - ic: the new explorer guide with screenshots, docs/reference, surface, help, skills and subagents;
-  - cc: 0548 in full FIRST (Rust), then the team guide and lib/templates;
-  - dc: install, README, known-defects, the release and dev-x docs, and the records sweep;
-  - vc: the index, getting started, working with agents, the concept pages, working-with-llms, the whiteboard README, the 3.2.1 CHANGELOG and release notes, and checking every lane.
-  Each lane sends its file inventory before it edits and its dispositions at the end. vc lands in order and batches the compiled-in paths (surface, docs/design, lib/templates/llm and prj), so one build all precedes hv's push.
+  THE 3.2.1 DOC AUDIT is landed in every lane, and every judged bank is landed at its patch-id, each recomputed by vc from the commit:
+  - 0548 at 73bc232df (3d8ebca06);
+  - the register stack at 90684455f (f7002f912), carrying dc's design-system v2 (9e615fb74);
+  - templates v3 at 450bcc0f8 (8f064805a);
+  - the rules audit at e2b6b33f7 (cb89c12f2).
+  The final-tree run on d66b3c1c2 was green: cargo 3077/0/5 and bats 747/747. The tree was clean at 93f330518; after it came cc's board and vc's 0570 edit. The pair is still 4c687eaad, and 16 compiled-in paths are unbuilt.
 
-  THEN: hv's push, CI read from the job logs, the cut's hold, the cut, the fleet sweep (todo 62), and the stabilisation line on hv's board.
+  THE BUILD ALL WAITS ON hv's RULING ON THE FIX SET. vc recommends IN:
+  - cc: 0551, 0564, 0570 (re-sized to S, design in its body) and hand-edit batch 1 (0556 plus 0559's hook path), to be built;
+  - ic: 0550, 0552, 0553, 0560 and 0567, banked as refs/bank/ic/fix/<issue>;
+  - dc: the CI security bank refs/bank/dc/audit/ci-9-10 (ffa1e816b). File its issue WITH the landing, not before.
+  "Go with recs" means one stacked run on top, then the build all. "Build without" means build now and the fixes go after the line.
 
-  ALREADY TRUE: hv's 00:19Z push of 4c687eaad is green on both workflows and both legs, read from the job logs this morning. Live update in the explorer is demonstrated: hv watched 0548's add and retitle reach two windows with no key pressed.
+  AFTER THE BUILD ALL, in order:
+  (1) the pre-build warning to every live session, with gtools-vc answering "Gtools is clear";
+  (2) cc regenerates the root AGENTS.md and CLAUDE.md, with a dry `claude upgrade` before and after;
+  (3) dc re-drives known-defects on the final pair;
+  (4) ic regenerates docs/reference with gen_reference.sh:266's stamp fix, re-takes the explorer shots, and sends the coverage report;
+  (5) vc writes the CHANGELOG docs entry and the release notes (draft in scratchpad changelog-docs-draft.md), then done.md;
+  (6) hv's push, then CI read from the job logs, the cut's hold, the cut, the fleet sweep, and the stabilisation line.
 
-  OPEN WITH hv: /refresh in the explorer. vc recommends it after the line.
+  OPEN ISSUES: 34, all filed today by the audit. About 10 close at the cut if hv rules the fixes in; the rest are the post-line backlog, 3 high, 9 medium and 21 low. None can honestly close without a fix or hv's won't-fix.
+
+  LANE RULE 15 (widened): a canon commit owes the bats files AND the Rust arms that scan its path, and the last heavy run sits on the final tree.
 
   NO PUSH, NO RELEASE.
 
