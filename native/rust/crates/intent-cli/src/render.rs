@@ -8300,7 +8300,7 @@ fn todo(m: &ArgMatches) -> Result<(), Failure> {
         spec
       };
       Err(format!(
-        "error: `todo {verb}` reopens finished work, and a reopen must record why it happened\n  remedy: run `intent st reopen {target} \"<reason>\"` (or `intent wp reopen`), which records the reason on the thread and in the event log"
+        "error: `todo {verb}` reopens finished work, and a reopen must record why it happened\n  remedy: run `intent st reopen {target} --reason \"<reason>\"` (or `intent wp reopen <spec> --reason \"<reason>\"`), which records the reason on the thread and in the event log"
       )
       .into())
     }
