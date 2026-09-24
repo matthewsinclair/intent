@@ -552,11 +552,17 @@ pub fn view_for(entity: &Entity) -> Option<View> {
     // names. The view is the one the `wps` descent already renders and the one
     // its rows already door into, so nothing new is reachable that was not
     // reachable by hand -- what changes is that the ADDRESS now lands on it.
+    //
+    // **THE ITEM IS THE BARE SEQUENCE THE `wps` ROWS ARE NAMED BY** (issue
+    // 0553). An address carries it zero-padded, `wp/02`, and `02` matched no row
+    // named `2`, so a work package that exists opened as an error. Parsed rather
+    // than interpolated, as `address::view_path_of` does; a spelling that is not
+    // a number passes through, and the view says it names nothing.
     Entity::Wp { thread, wp } => Some(View::Child {
       kind: "thread".to_string(),
       id: thread.to_string(),
       field: "wps".to_string(),
-      item: wp.to_string(),
+      item: wp.parse::<u32>().map_or_else(|_| wp.to_string(), |seq| seq.to_string()),
     }),
     // A criterion, a test and an attachment are ROWS INSIDE a collection this
     // surface renders, not items with views of their own.

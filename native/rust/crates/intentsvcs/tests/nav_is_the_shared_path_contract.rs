@@ -475,3 +475,23 @@ fn an_item_view_round_trips_to_the_entity_it_came_from() {
     None
   );
 }
+
+/// Issue 0553: `intent:///threads/ST0001/wp/02` names work package 2, and the
+/// `wps` rows are named by the bare sequence, so the view carries `2` rather
+/// than the zero-padded spelling the address was written in.
+#[test]
+fn a_zero_padded_wp_address_lands_on_the_row_its_descent_names() {
+  let view = intentsvcs::nav::view_for(&Entity::Wp {
+    thread: "ST0001".to_string(),
+    wp: "02".to_string(),
+  });
+  assert_eq!(
+    view,
+    Some(View::Child {
+      kind: "thread".to_string(),
+      id: "ST0001".to_string(),
+      field: "wps".to_string(),
+      item: "2".to_string(),
+    })
+  );
+}
