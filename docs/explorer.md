@@ -24,9 +24,10 @@ To open somewhere other than the top, give it an id or a full address:
 ```
   $ intent explore ST0001
   $ intent explore intent:///issues/0001
+  $ intent explore intent:///threads/ST0001/wp/02
 ```
 
-A thread can be named `ST0001`, `ST1` or `st1`. A bare number, such as `4`, opens the one thread or issue in the project with that number; when a thread and an issue share it, say which you mean with `s4` or `i4`. A number that names both or neither, or an address it cannot open, leaves you at the top instead.
+A thread can be named `ST0001`, `ST1` or `st1`. A bare number, such as `4`, opens the one thread or issue in the project with that number; when a thread and an issue share it, say which you mean with `s4` or `i4`. A number that names both or neither, or an address it cannot open, leaves you at the top instead, and the status row says why.
 
 **Outside a project, `intent explore` opens the list of projects this machine knows.** It adds each project it opens to that list, and `intent discover <dir>` adds every project under a directory.
 
