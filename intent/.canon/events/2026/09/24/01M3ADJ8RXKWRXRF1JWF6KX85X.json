@@ -1,0 +1,16 @@
+{
+  "id": "01M3ADJ8RXKWRXRF1JWF6KX85X",
+  "ts": "2026-09-24T19:16:35.229Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 33,
+    "text": "RESUME (vc, the day's second localfold, on hv's order at 19:16Z by date -u, 2026-09-24). Measure first: `git log --oneline -12`, `intent --version`, ListAgents, then every node's \"folded\" message.\n\nTHE FIX SET STILL WAITS ON hv's EXPLICIT RULING: \"go with recs\" or \"build without\". After the first compact hv wrote \"Finish booting and then coordinate the other Claudes here to get shit done\"; that names neither option, and vc's attempt to record it on hv's board as the ruling was REFUSED by the permission check. Ask hv again, in words, first thing.\n\nIF hv RULES IN, the split (every node has it and has prepared read-only):\n- cc: 0551 (gitstate.rs:212's Result for doctor and upgrade; doctor.rs:2291's callers left alone and named in the report), batch 1 ((b1) 0554(b), (b2) 0556, (b3) sync --apply's views step leaves a carriable view and reports it as left) and the team page's two sections (working-in-a-team.md:378 and :399-426). The scope goes into 0554's, 0556's and 0559's bodies as cc's first write.\n- ic: 0570, driving both pointer states first; InstallError's remedies, not `intent bootstrap`; 0570's body corrected first. ic also runs the stacked final-tree run: PATH filtered as CI has it, `command -v` for every tool and the toolchain versions at the log head.\n- dc: 0564, per its accepted plan; it carries pre-commit-hook.md:66 and working-with-llms.md:394.\n\nTHE COMPOSITION, in landing order:\n1 ic fixes 0550, 0552, 0553, 0560 and 0567;\n2 ic explorer-docs (22548f54b62a; lands only with 0552 and 0553);\n2b ic skills-usage-rules (3bfeb33878c5);\n3 dc ci-9-10 (3fa48ac5a; its issue is filed with the landing);\n4 dc 0564;\n5 ic 0570;\n6 cc 0551;\n7 cc batch 1;\n8 cc team page;\n8b cc rules mapping (d2a44385a32b; issue 0584);\n9 a vc docs bank, only if batch 1 needs one.\nvc has judged 2, 2b and 8b this session; 1 and 3 were banked before. All of them apply at 12fd44738.\n\nLANDED this session: c48f8e872, the doc audit's CHANGELOG and release-notes entries, with issue 0584. Owed at landing: ic's skills line (Fixed), cc's rules-mapping line (Changed), and each fix's Fixed line from its owner. The release notes' Upgrading note on a committed 3.0.x store depends on 0551.\n\nTHE MACHINE is released to devbin until hv rules: one run at a time, START and END to vc. devbin's full suite (2) started at 18:55:04Z. From hv's ruling, devbin's run in progress finishes and nothing new starts until Intent's build all END. Intent's worktree builds start at the ruling. The stacked run and the build all wait for devbin's END. Tell devbin-vc the moment hv rules.\n\nAFTER THE BUILD ALL the order is unchanged: the pre-build warning (Gtools answers \"Gtools is clear\"); cc's root files; dc's known-defects re-drive; ic's reference regeneration, shots and coverage report; vc's Fixed lines and done.md; then hv's push, CI, the hold, the cut, the sweep and the line.\n\nNO PUSH, NO RELEASE."
+  }
+}

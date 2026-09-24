@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1a79312a-c3aa-435b-b4a1-b00a0d3bf70f
-heartbeat_at: 2026-09-24 18:00Z
+heartbeat_at: 2026-09-24 19:16Z
 status: active
-focus: "LOCALFOLDED at 17:47Z for hv's compact. 3.2.1: every judged bank is landed at its patch-id; the build all waits on hv's ruling on the fix set; resume is doing 33. NO PUSH, NO RELEASE."
+focus: "LOCALFOLDED at 19:16Z for hv's second compact. The fix set waits on hv's explicit ruling (go with recs or build without); the banks outside it are judged; the machine is released to devbin until the ruling; resume is doing 33. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -13,32 +13,34 @@ claims: []
 
 ## DOING
 
-- RESUME (vc, localfold on hv's order at 17:46Z by date -u, 2026-09-24). Measure first: `git log --oneline -15`, `intent --version`, `intent outs`, ListAgents, then every node's "folded" message. (edited)
+- RESUME (vc, the day's second localfold, on hv's order at 19:16Z by date -u, 2026-09-24). Measure first: `git log --oneline -12`, `intent --version`, ListAgents, then every node's "folded" message. (edited)
 
-  THE 3.2.1 DOC AUDIT is landed in every lane, and every judged bank is landed at its patch-id, each recomputed by vc from the commit:
-  - 0548 at 73bc232df (3d8ebca06);
-  - the register stack at 90684455f (f7002f912), carrying dc's design-system v2 (9e615fb74);
-  - templates v3 at 450bcc0f8 (8f064805a);
-  - the rules audit at e2b6b33f7 (cb89c12f2).
-  The final-tree run on d66b3c1c2 was green: cargo 3077/0/5 and bats 747/747. The tree was clean at 93f330518; after it came cc's board and vc's 0570 edit. The pair is still 4c687eaad, and 16 compiled-in paths are unbuilt.
+  THE FIX SET STILL WAITS ON hv's EXPLICIT RULING: "go with recs" or "build without". After the first compact hv wrote "Finish booting and then coordinate the other Claudes here to get shit done"; that names neither option, and vc's attempt to record it on hv's board as the ruling was REFUSED by the permission check. Ask hv again, in words, first thing.
 
-  THE BUILD ALL WAITS ON hv's RULING ON THE FIX SET. vc recommends IN:
-  - cc: 0551, 0564, 0570 (re-sized to S, design in its body) and hand-edit batch 1 (0556 plus 0559's hook path), to be built;
-  - ic: 0550, 0552, 0553, 0560 and 0567, banked as refs/bank/ic/fix/<issue>;
-  - dc: the CI security bank refs/bank/dc/audit/ci-9-10 (ffa1e816b). File its issue WITH the landing, not before.
-  "Go with recs" means one stacked run on top, then the build all. "Build without" means build now and the fixes go after the line.
+  IF hv RULES IN, the split (every node has it and has prepared read-only):
+  - cc: 0551 (gitstate.rs:212's Result for doctor and upgrade; doctor.rs:2291's callers left alone and named in the report), batch 1 ((b1) 0554(b), (b2) 0556, (b3) sync --apply's views step leaves a carriable view and reports it as left) and the team page's two sections (working-in-a-team.md:378 and :399-426). The scope goes into 0554's, 0556's and 0559's bodies as cc's first write.
+  - ic: 0570, driving both pointer states first; InstallError's remedies, not `intent bootstrap`; 0570's body corrected first. ic also runs the stacked final-tree run: PATH filtered as CI has it, `command -v` for every tool and the toolchain versions at the log head.
+  - dc: 0564, per its accepted plan; it carries pre-commit-hook.md:66 and working-with-llms.md:394.
 
-  AFTER THE BUILD ALL, in order:
-  (1) the pre-build warning to every live session, with gtools-vc answering "Gtools is clear";
-  (2) cc regenerates the root AGENTS.md and CLAUDE.md, with a dry `claude upgrade` before and after;
-  (3) dc re-drives known-defects on the final pair;
-  (4) ic regenerates docs/reference with gen_reference.sh:266's stamp fix, re-takes the explorer shots, and sends the coverage report;
-  (5) vc writes the CHANGELOG docs entry and the release notes (draft in scratchpad changelog-docs-draft.md), then done.md;
-  (6) hv's push, then CI read from the job logs, the cut's hold, the cut, the fleet sweep, and the stabilisation line.
+  THE COMPOSITION, in landing order:
+  1 ic fixes 0550, 0552, 0553, 0560 and 0567;
+  2 ic explorer-docs (22548f54b62a; lands only with 0552 and 0553);
+  2b ic skills-usage-rules (3bfeb33878c5);
+  3 dc ci-9-10 (3fa48ac5a; its issue is filed with the landing);
+  4 dc 0564;
+  5 ic 0570;
+  6 cc 0551;
+  7 cc batch 1;
+  8 cc team page;
+  8b cc rules mapping (d2a44385a32b; issue 0584);
+  9 a vc docs bank, only if batch 1 needs one.
+  vc has judged 2, 2b and 8b this session; 1 and 3 were banked before. All of them apply at 12fd44738.
 
-  OPEN ISSUES: 34, all filed today by the audit. About 10 close at the cut if hv rules the fixes in; the rest are the post-line backlog, 3 high, 9 medium and 21 low. None can honestly close without a fix or hv's won't-fix.
+  LANDED this session: c48f8e872, the doc audit's CHANGELOG and release-notes entries, with issue 0584. Owed at landing: ic's skills line (Fixed), cc's rules-mapping line (Changed), and each fix's Fixed line from its owner. The release notes' Upgrading note on a committed 3.0.x store depends on 0551.
 
-  LANE RULE 15 (widened): a canon commit owes the bats files AND the Rust arms that scan its path, and the last heavy run sits on the final tree.
+  THE MACHINE is released to devbin until hv rules: one run at a time, START and END to vc. devbin's full suite (2) started at 18:55:04Z. From hv's ruling, devbin's run in progress finishes and nothing new starts until Intent's build all END. Intent's worktree builds start at the ruling. The stacked run and the build all wait for devbin's END. Tell devbin-vc the moment hv rules.
+
+  AFTER THE BUILD ALL the order is unchanged: the pre-build warning (Gtools answers "Gtools is clear"); cc's root files; dc's known-defects re-drive; ic's reference regeneration, shots and coverage report; vc's Fixed lines and done.md; then hv's push, CI, the hold, the cut, the sweep and the line.
 
   NO PUSH, NO RELEASE.
 
