@@ -419,8 +419,8 @@ pub enum Decision {
   Decline,
 }
 
-/// Why a step was not run.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+/// Why a step was not run, or not run over every file.
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LeftBecause {
   /// A person was asked and said no.
   Declined,
@@ -428,6 +428,11 @@ pub enum LeftBecause {
   NeedsAPerson,
   /// It reads the merged canon and a canon conflict before it was left.
   Waits,
+  /// It ran, and left these files as they are: each holds a change the store
+  /// can take in, which rewriting it from the store would have discarded
+  /// (issues 0554 (b), 0556 and the hooks' path in 0559's family). Paths are
+  /// project-relative.
+  Kept(Vec<String>),
 }
 
 /// A step that was not run, and why.
@@ -449,26 +454,45 @@ pub fn left_line(left: &[Left]) -> Option<String> {
   let named: Vec<String> = left
     .iter()
     .map(|l| {
-      let why = match l.because {
-        LeftBecause::Declined => "declined",
-        LeftBecause::NeedsAPerson => l.step.recoverability.as_str(),
-        LeftBecause::Waits => "waits on the conflicts",
+      let why = match &l.because {
+        LeftBecause::Declined => "declined".to_string(),
+        LeftBecause::NeedsAPerson => l.step.recoverability.as_str().to_string(),
+        LeftBecause::Waits => "waits on the conflicts".to_string(),
+        LeftBecause::Kept(paths) => format!("kept {}", paths.join(", ")),
       };
       format!("{} ({why})", l.step.name())
     })
     .collect();
-  let reversible_only = left
+  let unrun: Vec<&Left> = left
     .iter()
-    .all(|l| l.step.recoverability != Recoverability::NonReversible);
-  let finish = if reversible_only {
-    "run `intent sync --apply` on a terminal, or with `--yes`"
-  } else {
-    "run `intent sync --apply` on a terminal; `--yes` answers the reversible steps and never a non-reversible one"
-  };
+    .filter(|l| !matches!(l.because, LeftBecause::Kept(_)))
+    .collect();
+  let mut finish = Vec::new();
+  if !unrun.is_empty() {
+    let reversible_only = unrun
+      .iter()
+      .all(|l| l.step.recoverability != Recoverability::NonReversible);
+    finish.push(if reversible_only {
+      "run `intent sync --apply` on a terminal, or with `--yes`"
+    } else {
+      "run `intent sync --apply` on a terminal; `--yes` answers the reversible steps and never a non-reversible one"
+    });
+  }
+  // **THE CHOICE IS NAMED, NOT MADE FOR THE READER** (vc, 2026-09-24). A kept
+  // file is usually what a pull brought, and then carrying it is right; a
+  // checkout of an older commit puts bytes on disk the store never wrote too,
+  // and carrying those rolls the store back. So the line says which version
+  // wins rather than calling the verb a repair.
+  if unrun.len() < left.len() {
+    finish.push(
+      "each kept file holds a change the store does not, and rewriting it from the store would have discarded it: `intent sync --to-store` carries the files' version into the store, over the store's; to keep the store's instead, delete the kept files and run `intent sync --to-disk`, which re-creates them from it",
+    );
+  }
   Some(format!(
-    "{} step(s): {} -- {finish}",
+    "{} step(s): {} -- {}",
     left.len(),
-    named.join(", ")
+    named.join(", "),
+    finish.join("; ")
   ))
 }
 

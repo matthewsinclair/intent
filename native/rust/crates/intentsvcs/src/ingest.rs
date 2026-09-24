@@ -420,6 +420,43 @@ pub(crate) fn boards_on_disk(
   Ok((boards, findings))
 }
 
+/// The nodes whose `board.json` has moved since the store last recorded it:
+/// its bytes on disk no longer match the sha the file index holds for it
+/// (issue 0554 (b)). The input `model::boards_ahead_of_the_store` takes to tell
+/// a board a pull brought from one the store has moved past.
+///
+/// **A FILE THE INDEX HAS NO ROW FOR IS NOT MOVED**, because nothing says where
+/// the store left it, and **AN ABSENT FILE IS NOT MOVED**, because there are no
+/// bytes to carry. An unreadable one is an error, never a quiet "not moved".
+pub(crate) fn boards_moved_on_disk(
+  project: &Project,
+  index: &[sync::FileEntry],
+) -> Result<std::collections::BTreeSet<String>, IngestError> {
+  let recorded: std::collections::HashMap<&str, &str> = index
+    .iter()
+    .map(|e| (e.path.as_str(), e.sha256.as_str()))
+    .collect();
+  let mut moved = std::collections::BTreeSet::new();
+  for node in project.board_nodes()? {
+    let path = project.board_json(&node);
+    let rel = project.relative(&path);
+    let Some(sha) = recorded.get(rel.as_str()) else {
+      continue;
+    };
+    if !path.exists() {
+      continue;
+    }
+    let now = sync::entry_for(project.root(), &path, &[]).map_err(|e| IngestError::Io {
+      path: rel.clone(),
+      source: std::io::Error::other(e.to_string()),
+    })?;
+    if now.sha256 != *sha {
+      moved.insert(node);
+    }
+  }
+  Ok(moved)
+}
+
 /// **Run a load-from-canon with its outcome recorded ON the store** -- the one
 /// home of that recording (AC-03.13).
 ///
@@ -1080,6 +1117,21 @@ fn resync_inner(
   }
 
   let canon = read(project)?;
+  // **A BOARD AHEAD OF THE STORE STAYS AHEAD** (issue 0554 (b)). Only a
+  // Restore carries boards, so on every other load a board.json a pull
+  // brought is not taken in -- and writing this scan into the index below
+  // would record its new bytes as the store's, so the next check would read
+  // the file as where the store left it and a board write would render over
+  // it. Decided here, against the index as it stood before this pass, and
+  // those files keep their previous rows.
+  let ahead: Vec<String> = match load {
+    Load::Restore => Vec::new(),
+    _ => crate::model::boards_ahead_of_the_store(
+      &store.hydrate_boards()?,
+      &canon.boards,
+      &boards_moved_on_disk(project, &previous)?,
+    ),
+  };
   let mut canon = match scope.named() {
     None => canon,
     Some(named) => compose_scoped(project, store, canon, named)?,
@@ -1114,6 +1166,21 @@ fn resync_inner(
   if !findings.is_empty() {
     return Err(Refusal::new(findings).into());
   }
+  // **WHAT THE COVERS CARRIED, KEPT APART FROM THE THREAD THEY CAME IN ON**
+  // (the hooks' path in issue 0559's family). The daemon's arm below decides
+  // each thread by its canon FILE, and a cover edit moves no canon file, so
+  // the held thread won and the carried Objective was discarded -- then the
+  // projection rewrote the cover from the store, and a hand edit that this
+  // pass had just read back was gone with no line naming it. The carried
+  // sections are laid over whichever thread wins instead.
+  let carried: Vec<(String, String, String)> = canon
+    .threads
+    .iter()
+    .filter(|t| {
+      scope.selects(&t.id) && touched.contains(project.relative(&project.info_view(&t.id)).as_str())
+    })
+    .map(|t| (t.id.clone(), t.objective.clone(), t.context.clone()))
+    .collect();
 
   match load {
     Load::Restore => store.rebuild(&canon.threads, &canon.issues)?,
@@ -1131,7 +1198,7 @@ fn resync_inner(
       let disk_threads = std::mem::take(&mut canon.threads);
       let disk_issues = std::mem::take(&mut canon.issues);
       let (threads, issues) = store.rebuild_deciding(|held_threads, held_issues, index| {
-        decide_estate(
+        let (mut threads, issues) = decide_estate(
           project,
           scope,
           disk_threads,
@@ -1140,7 +1207,14 @@ fn resync_inner(
           held_issues,
           &read_now,
           &Recorded::from_index(&index),
-        )
+        );
+        for (id, objective, context) in &carried {
+          if let Some(thread) = threads.iter_mut().find(|t| &t.id == id) {
+            thread.objective.clone_from(objective);
+            thread.context.clone_from(context);
+          }
+        }
+        (threads, issues)
       })?;
       canon.threads = threads;
       canon.issues = issues;
@@ -1214,6 +1288,22 @@ fn resync_inner(
   // anything. That is the safe direction of a check whose whole job is to
   // notice change.
   if scope.named().is_none() {
+    let whiteboard = project.whiteboard_dir();
+    let in_ahead = |path: &str| {
+      project
+        .root()
+        .join(path)
+        .strip_prefix(&whiteboard)
+        .ok()
+        .and_then(|rest| rest.components().next())
+        .and_then(|node| node.as_os_str().to_str())
+        .is_some_and(|node| ahead.iter().any(|a| a == node))
+    };
+    let entries: Vec<sync::FileEntry> = entries
+      .into_iter()
+      .filter(|e| !in_ahead(&e.path))
+      .chain(previous.iter().filter(|e| in_ahead(&e.path)).cloned())
+      .collect();
     store.replace_file_index(&entries)?;
   }
 

@@ -685,6 +685,33 @@ pub fn info_read_back(
   }
 }
 
+/// Whether `disk`, a thread's cover, differs from its render only in the
+/// sections `intent sync --to-store` carries back, and does differ there.
+///
+/// **ONE ANSWER FOR THE TWO PLACES THAT MUST AGREE ON IT**: `doctor`'s skew
+/// finding names the verb that keeps such an edit (issue 0556), and `sync
+/// --apply`'s views step leaves such a cover rather than rewriting it (the
+/// hooks' path in 0559's family). A second reading of "carriable" in either
+/// would let the finding promise to keep an edit the hook had already
+/// discarded. It asks [`info_read_back`], the carry's own reader, so it cannot
+/// call carriable what the carry would refuse.
+pub fn carriable_cover(thread: &Thread, ctx: &RenderContext<'_>, disk: &str) -> bool {
+  info_read_back(thread, ctx, disk)
+    .is_ok_and(|carried| carried.objective != thread.objective || carried.context != thread.context)
+}
+
+/// The thread whose cover (`info.md`) `path` is, when it is one.
+pub fn cover_thread<'a>(
+  project: &Project,
+  canon: &'a Canon,
+  path: &std::path::Path,
+) -> Option<&'a Thread> {
+  canon
+    .threads
+    .iter()
+    .find(|t| project.info_view(&t.id) == path)
+}
+
 /// The regions of a rendered `info.md` whose bytes belong to the AUTHOR.
 ///
 /// **THE GENERATED FRAME IS REMOVED RATHER THAN COMPARED, AND THAT IS THE
@@ -2421,6 +2448,28 @@ pub fn skew(
             declared_version(&on_disk).unwrap_or("<none>"),
             declared_version(&view.content).unwrap_or("<none>"),
             board_node.as_deref().unwrap_or_default(),
+          ),
+        ));
+      }
+      // **A HAND EDIT THE STORE CAN CARRY BACK IS NAMED WITH THE VERB THAT
+      // KEEPS IT** (issue 0556). The arm below names only regeneration, which
+      // discards the edit, and its finding is counted, so the next commit was
+      // refused with discarding as the only way out named.
+      // A formatter's rewrite is not asked: it changes the same sections, is
+      // no author's edit, and the arm below names the formatter (issue 0378).
+      Ok(on_disk)
+        if !differs_as_a_formatter_would(&on_disk, &view.content)
+          && cover_thread(project, canon, &view.path)
+            .is_some_and(|thread| carriable_cover(thread, ctx, &on_disk)) =>
+      {
+        findings.push(Finding::new(
+          &rel,
+          FindingClass::ViewSkew,
+          format!(
+            "generated view differs from the model ({} bytes on disk, {} rendered, first difference at byte {}) in its Objective or Context, which a hand edit changes and the store carries back -- `intent sync --to-store` carries the edit into the store and keeps it; `intent sync --to-disk` would regenerate the cover from the store and discard it",
+            on_disk.len(),
+            view.content.len(),
+            first_difference(&on_disk, &view.content),
           ),
         ));
       }

@@ -113,3 +113,66 @@ fn the_remedy_printed_for_a_closed_threads_stale_view_clears_the_finding() {
     "running the printed remedy did not clear the finding:\n{after}"
   );
 }
+
+/// Issue 0556: **A HAND EDIT THE STORE CAN CARRY BACK IS NAMED WITH THE VERB
+/// THAT KEEPS IT.** A thread's `## Objective` is one of the two sections
+/// `intent sync --to-store` carries into the store, yet the finding named only
+/// `intent sync --to-disk`, which regenerates the cover and discards the edit.
+/// The command is read out of the finding and run, as above, and the edit must
+/// then be in the store.
+#[test]
+fn a_carriable_cover_edit_names_the_verb_that_keeps_it() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let root = dir.path();
+  step(root, &["init", "probe"]);
+  step(root, &["st", "new", "A thread with a hand-typed objective"]);
+  step(root, &["st", "start", "ST0001"]);
+  step(root, &["organize", "--apply"]);
+
+  let cover = root.join("intent/st/ST0001/info.md");
+  let text = std::fs::read_to_string(&cover).expect("the started thread's cover is on disk");
+  let from = text
+    .find("## Objective\n\n")
+    .expect("the cover has an Objective")
+    + "## Objective\n\n".len();
+  let to = text
+    .find("## Context\n\n")
+    .expect("the cover has a Context");
+  let edited = format!(
+    "{}Typed by hand into the cover.\n\n{}",
+    &text[..from],
+    &text[to..]
+  );
+  std::fs::write(&cover, edited).expect("the hand edit");
+
+  let (_, before) = intent(root, &["doctor"]);
+  let line = before
+    .lines()
+    .find(|l| l.contains("st/ST0001/info.md") && l.contains("differs from the model"))
+    .unwrap_or_else(|| panic!("the edited cover was not reported at all:\n{before}"));
+  let command = line
+    .split('`')
+    .find(|span| span.starts_with("intent "))
+    .unwrap_or_else(|| panic!("the finding names no command: {line}"));
+  assert_eq!(
+    command, "intent sync --to-store",
+    "the first command named keeps the edit: {line}"
+  );
+  assert!(
+    line.contains("keeps"),
+    "the finding says the edit is kept: {line}"
+  );
+
+  let args: Vec<&str> = command.split_whitespace().skip(1).collect();
+  step(root, &args);
+  let (_, shown) = intent(root, &["st", "show", "ST0001"]);
+  assert!(
+    shown.contains("Typed by hand into the cover."),
+    "the named verb carried the edit into the store:\n{shown}"
+  );
+  let (_, after) = intent(root, &["doctor"]);
+  assert!(
+    !after.contains("st/ST0001/info.md"),
+    "running the printed remedy did not clear the finding:\n{after}"
+  );
+}

@@ -1432,13 +1432,33 @@ fn db_checks(canon: &Canon, project: &Project, out: &mut Vec<Finding>) {
   // refusal's own remedy. A node named here is left out of the stale-board
   // finding below, whose remedy is a re-render: that is the write that empties
   // this board.
-  let lacking = crate::model::boards_the_store_lacks(&held_boards, &canon.boards);
+  //
+  // **AND A BOARD THE STORE HOLDS DIFFERENTLY FROM A FILE THAT MOVED IS NAMED
+  // THE SAME WAY** (issue 0554 (b)): a pull brought it, and the stale-board
+  // finding's re-render is the write that would discard it.
+  let moved = match store
+    .file_index()
+    .map_err(|e| e.to_string())
+    .and_then(|index| {
+      crate::ingest::boards_moved_on_disk(project, &index).map_err(|e| e.to_string())
+    }) {
+    Ok(moved) => moved,
+    Err(cause) => {
+      out.push(Finding::new(
+        "intent/.cache/intent.db",
+        FindingClass::Advisory,
+        format!("whether a board.json moved since the store recorded it was not read: {cause}"),
+      ));
+      std::collections::BTreeSet::new()
+    }
+  };
+  let lacking = crate::model::boards_ahead_of_the_store(&held_boards, &canon.boards, &moved);
   if !lacking.is_empty() && (!held_boards.is_empty() || !is_empty_snapshot(&on_disk)) {
     out.push(Finding::new(
       "intent/.cache/intent.db",
       FindingClass::StoreStale,
       format!(
-        "the runtime store does not hold the migrated board that board.json on disk records for {} -- {}",
+        "board.json on disk records a migrated board the runtime store does not hold, or holds differently from a file that changed after the store last wrote it, for {} -- {}",
         lacking.join(", "),
         crate::facade::BOARDS_NOT_IN_THE_STORE_REMEDY
       ),

@@ -428,3 +428,209 @@ fn find_row<'a>(value: &'a serde_json::Value, path: &str) -> Option<&'a serde_js
     _ => None,
   }
 }
+
+/// Issue 0554 (b): **A BOARD A PULL BRINGS AHEAD OF THE STORE IS KEPT, NAMED,
+/// AND CARRIED BY THE VERB NAMED.** The hooks never take board rows into the
+/// store (0216), and their pass used to write the store's board over the
+/// pulled `board.json`: the teammate's message was deleted from the file with
+/// no line saying so, and the remedy then named would have finished the loss.
+/// Now the file is left, the hook's `left:` line names it and the verb, every
+/// board write refuses until it runs, and running it puts the message on the
+/// board.
+#[test]
+fn a_pulled_board_is_kept_and_named_until_it_is_carried() {
+  let team = Team::new();
+  let (alice, bob) = (team.alice(), team.bob());
+  team.intent_ok(
+    &bob,
+    &[
+      "wb",
+      "register",
+      "bo",
+      "--name",
+      "Bob's agent",
+      "--role",
+      "worker",
+    ],
+  );
+  team.commit(&bob, "wb: bo");
+  team.git(&bob, &["push", "-q"]);
+
+  team.git(&alice, &["pull", "-q"]);
+  team.intent_ok(&alice, &["sync", "--to-store"]);
+  team.intent_ok(
+    &alice,
+    &[
+      "wb",
+      "register",
+      "al",
+      "--name",
+      "Alice's agent",
+      "--role",
+      "worker",
+    ],
+  );
+  team.intent_ok(
+    &alice,
+    &[
+      "wb",
+      "ask",
+      "bo",
+      "The onboarding guide is yours",
+      "--node",
+      "al",
+    ],
+  );
+  // A thread change rides with the message, so the pull's pass runs the ingest
+  // whose projection wrote the store's board over the file (driven).
+  team.intent_ok(&alice, &["st", "new", "Release checklist"]);
+  team.commit(&alice, "wb: al asks bo");
+  team.git(&alice, &["push", "-q"]);
+
+  let pulled = team.git(&bob, &["pull", "-q"]);
+  let board = bob.join("intent/whiteboard/bo/board.json");
+  assert!(
+    std::fs::read_to_string(&board)
+      .expect("Bob's board.json is on disk")
+      .contains("The onboarding guide is yours"),
+    "the pull's pass wrote the store's board over the pulled message: {}",
+    pulled.said
+  );
+  let left = pulled
+    .said
+    .lines()
+    .find(|l| l.starts_with("intent (post-merge): left:"))
+    .unwrap_or_else(|| panic!("the hook named nothing it left: {}", pulled.said));
+  assert!(
+    left.contains("intent/whiteboard/bo/board.json") && left.contains("intent sync --to-store"),
+    "the left line names the pulled board and the verb that carries it: {left}"
+  );
+
+  let pickup = team.intent(&bob, &["wb", "pickup", "--node", "bo"]);
+  assert_ne!(
+    pickup.code, 0,
+    "a board write rendered over the pulled board: {}",
+    pickup.said
+  );
+  assert!(
+    pickup.said.contains("intent sync --to-store"),
+    "{}",
+    pickup.said
+  );
+  let doctor = team.intent(&bob, &["doctor"]);
+  assert!(
+    !doctor.said.contains("--to-disk` regenerates it"),
+    "doctor names the discarding verb for the pulled board: {}",
+    doctor.said
+  );
+
+  team.intent_ok(&bob, &["sync", "--to-store"]);
+  let shown = team.intent(&bob, &["wb", "show", "bo"]);
+  assert!(
+    shown.said.contains("The onboarding guide is yours"),
+    "the named verb took the pulled message onto the board: {}",
+    shown.said
+  );
+  team.intent_ok(&bob, &["wb", "pickup", "--node", "bo"]);
+}
+
+/// The control for the arm above (vc, 2026-09-24): **A BOARD THIS CLONE WROTE
+/// ITSELF IS NEVER KEPT OR NAMED BY A PULL.** Its file is where the store left
+/// it, so a pull that brings nothing for it leaves the store's board as the
+/// newer one, and carrying the file would roll it back.
+#[test]
+fn a_board_this_clone_wrote_is_not_kept_by_a_pull() {
+  let team = Team::new();
+  let bob = team.bob();
+  team.intent_ok(
+    &bob,
+    &[
+      "wb",
+      "register",
+      "bo",
+      "--name",
+      "Bob's agent",
+      "--role",
+      "worker",
+    ],
+  );
+  team.intent_ok(
+    &bob,
+    &[
+      "wb",
+      "add",
+      "todo",
+      "Read the onboarding guide",
+      "--node",
+      "bo",
+    ],
+  );
+
+  team.alice_pushes("Release checklist");
+  let pulled = team.git(&bob, &["pull", "-q"]);
+  assert!(
+    !pulled.said.contains("left:") && !pulled.said.contains("whiteboard"),
+    "a pull named a board this clone wrote: {}",
+    pulled.said
+  );
+  team.intent_ok(&bob, &["wb", "pickup", "--node", "bo"]);
+}
+
+/// The hooks' path in issue 0559's family: **A PULL CARRIES A HAND EDIT TO A
+/// COVER INTO THE STORE, AND NEVER DISCARDS IT.** The hook's ingest read the
+/// edited Objective back and then kept the store's copy of the thread, because
+/// a cover edit moves no canon file, so the projection rewrote the cover from
+/// the store and the edit was gone with no line naming it. Now the pull takes
+/// it, as it takes a pulled thread.
+#[test]
+fn a_pull_carries_a_hand_edited_cover_into_the_store() {
+  let team = Team::new();
+  let (alice, bob) = (team.alice(), team.bob());
+  team.intent_ok(&alice, &["st", "start", "ST0001"]);
+  team.intent_ok(&alice, &["organize", "--apply"]);
+  team.commit(&alice, "ST0001 started");
+  team.git(&alice, &["push", "-q"]);
+  team.git(&bob, &["pull", "-q"]);
+
+  let cover = bob.join("intent/st/ST0001/info.md");
+  let text = std::fs::read_to_string(&cover).expect("the pulled cover is on disk");
+  let from = text
+    .find("## Objective\n\n")
+    .expect("the cover has an Objective")
+    + "## Objective\n\n".len();
+  let to = text
+    .find("## Context\n\n")
+    .expect("the cover has a Context");
+  std::fs::write(
+    &cover,
+    format!(
+      "{}Typed by hand before the pull.\n\n{}",
+      &text[..from],
+      &text[to..]
+    ),
+  )
+  .expect("the hand edit");
+
+  team.alice_pushes("Release checklist");
+  let pulled = team.git(&bob, &["pull", "-q"]);
+  assert!(
+    std::fs::read_to_string(&cover)
+      .expect("the cover is still on disk")
+      .contains("Typed by hand before the pull."),
+    "the pull's views step discarded the hand edit: {}",
+    pulled.said
+  );
+  assert!(
+    pulled.said.contains(
+      "intent (post-merge): took 2 change(s) from the files into the store: ST0001, ST0002"
+    ),
+    "the pull names the cover's thread among what it took: {}",
+    pulled.said
+  );
+  let shown = team.intent(&bob, &["st", "show", "ST0001"]);
+  assert!(
+    shown.said.contains("Typed by hand before the pull."),
+    "the pull carried the edit into the store: {}",
+    shown.said
+  );
+}

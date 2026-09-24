@@ -2458,8 +2458,10 @@ impl BoardChanges {
   }
 }
 
-/// The nodes whose `board.json` on disk records a migrated board that the store
-/// does not hold as a migrated node, sorted (issue 0535).
+/// The nodes whose `board.json` on disk is AHEAD of the store, sorted: it
+/// records a migrated board the store does not hold as a migrated node (issue
+/// 0535), or one the store holds differently from a file that has moved since
+/// the store last wrote or read it (`moved`, issue 0554 (b)).
 ///
 /// **A MIGRATED `board.json` IS AN EXTRACT, SO ITS ROWS WERE IN SOME STORE.**
 /// Its `migrated_at` says the rows it was written from held that node's board,
@@ -2476,21 +2478,40 @@ impl BoardChanges {
 /// `board.json` recording no migration belongs to a node still in its markdown
 /// era, and says nothing about the store.
 ///
-/// **PURE**, so doctor, the refusals and the reads ask one question and cannot
-/// disagree about its answer.
-pub fn boards_the_store_lacks(held: &[Board], on_disk: &[Board]) -> Vec<String> {
-  let migrated: std::collections::BTreeSet<&str> = held
+/// **A BOARD THE STORE HOLDS DIFFERENTLY IS AHEAD ONLY WHEN ITS FILE MOVED**
+/// (vc, 2026-09-24). A difference alone is true in both directions: after this
+/// clone's own board write, before its render lands, the STORE is newer, and
+/// carrying the file then would roll the store back -- the loss issue 0216
+/// guards against. The store records the bytes of every board.json it writes
+/// or reads, so a file whose bytes no longer match that record came from
+/// outside the store's own writes: a pull, most often. A file with no record
+/// is not counted as moved.
+///
+/// **PURE**, so doctor, the refusals, the reads and the ingest ask one
+/// question and cannot disagree about its answer.
+pub fn boards_ahead_of_the_store(
+  held: &[Board],
+  on_disk: &[Board],
+  moved: &std::collections::BTreeSet<String>,
+) -> Vec<String> {
+  let migrated: std::collections::BTreeMap<&str, &Board> = held
     .iter()
     .filter(|b| b.node.migrated_at.is_some())
-    .map(|b| b.node.moniker.as_str())
+    .map(|b| (b.node.moniker.as_str(), b))
     .collect();
-  let lacking: std::collections::BTreeSet<&str> = on_disk
+  let ahead: std::collections::BTreeSet<&str> = on_disk
     .iter()
     .filter(|b| b.node.migrated_at.is_some())
+    .filter(|b| match migrated.get(b.node.moniker.as_str()) {
+      None => true,
+      Some(held) => {
+        moved.contains(&b.node.moniker)
+          && !board_changes(std::slice::from_ref(*held), std::slice::from_ref(*b)).is_empty()
+      }
+    })
     .map(|b| b.node.moniker.as_str())
-    .filter(|moniker| !migrated.contains(moniker))
     .collect();
-  lacking.into_iter().map(str::to_string).collect()
+  ahead.into_iter().map(str::to_string).collect()
 }
 
 /// The difference between the boards the store holds and the boards a restore
@@ -2759,8 +2780,12 @@ mod claim_address_tests {
   /// shipped file carries one test module, at its end: intent-cli's scan for
   /// shipped strings cuts each file at its first test attribute and asserts
   /// there is only one, so a second would drop shipped code from that scan.
-  mod boards_the_store_lacks {
-    use crate::model::{BOARD_SCHEMA, Board, WbNode, WbNodeStatus, boards_the_store_lacks};
+  mod boards_ahead_of_the_store {
+    use crate::model::{BOARD_SCHEMA, Board, WbNode, WbNodeStatus, boards_ahead_of_the_store};
+
+    fn none_moved() -> std::collections::BTreeSet<String> {
+      std::collections::BTreeSet::new()
+    }
 
     fn board(moniker: &str, migrated: bool) -> Board {
       Board {
@@ -2796,18 +2821,45 @@ mod claim_address_tests {
       // records no migration, so it is a markdown-era node and never lacking.
       let held = [board("dc", false), board("ic", true)];
       assert_eq!(
-        boards_the_store_lacks(&held, &on_disk),
+        boards_ahead_of_the_store(&held, &on_disk, &none_moved()),
         vec!["cc".to_string(), "dc".to_string()]
       );
       assert_eq!(
-        boards_the_store_lacks(&on_disk, &on_disk),
+        boards_ahead_of_the_store(&on_disk, &on_disk, &none_moved()),
         Vec::<String>::new(),
         "a store holding every board the disk records lacks none"
       );
       assert_eq!(
-        boards_the_store_lacks(&[], &[]),
+        boards_ahead_of_the_store(&[], &[], &none_moved()),
         Vec::<String>::new(),
         "a project with no whiteboard lacks nothing"
+      );
+    }
+
+    /// Issue 0554 (b): **A BOARD THE STORE HOLDS DIFFERENTLY IS AHEAD ONLY
+    /// WHEN ITS FILE MOVED.** The same difference with an unmoved file is the
+    /// store being newer, which carrying the file would roll back.
+    #[test]
+    fn a_board_held_differently_is_ahead_only_when_its_file_moved() {
+      let held = [board("al", true)];
+      let mut pulled = board("al", true);
+      pulled.node.focus = "written on the other clone".to_string();
+      let on_disk = [pulled];
+      let moved: std::collections::BTreeSet<String> = ["al".to_string()].into();
+      assert_eq!(
+        boards_ahead_of_the_store(&held, &on_disk, &moved),
+        vec!["al".to_string()],
+        "a file that moved since the store wrote it, holding a different board"
+      );
+      assert_eq!(
+        boards_ahead_of_the_store(&held, &on_disk, &none_moved()),
+        Vec::<String>::new(),
+        "the same difference with the file where the store left it: the store is newer"
+      );
+      assert_eq!(
+        boards_ahead_of_the_store(&held, &held, &moved),
+        Vec::<String>::new(),
+        "a file that moved and holds the same board is not ahead"
       );
     }
   }

@@ -2047,8 +2047,10 @@ pub enum FacadeError {
   /// A board write on a node whose board is still its hand-authored markdown.
   #[error("`{node}` is registered and not migrated, so its board is still the markdown on disk")]
   WbNotMigrated { node: String },
-  /// A `board.json` on disk records a migrated board that this store does not
-  /// hold (issue 0535), by [`crate::model::boards_the_store_lacks`].
+  /// A `board.json` on disk is ahead of this store: it records a migrated board
+  /// the store does not hold (issue 0535), or one the store holds differently
+  /// from a file that moved since the store last wrote it (issue 0554 (b)), by
+  /// [`crate::model::boards_ahead_of_the_store`].
   ///
   /// **REFUSED BEFORE ANYTHING IS WRITTEN, BY EVERY VERB THAT WOULD RENDER OVER
   /// ONE OF THOSE FILES, AND NAMED BY THE READS.** Driven on a fresh clone,
@@ -2057,7 +2059,7 @@ pub enum FacadeError {
   /// hand-authored and did the same: 10258 lines of five boards, deleted with
   /// every step saying ok.
   #[error(
-    "board.json on disk records a migrated board that this store does not hold, for {}",
+    "board.json on disk holds a board this store does not, for {}: a migrated board the store never took in, or a change that reached the file from outside the store, most often a pull",
     .nodes.join(", ")
   )]
   WbBoardsNotInTheStore { nodes: Vec<String> },
@@ -3392,10 +3394,15 @@ const RERENDER_REMEDY: &str = "the change is safe in the store -- do NOT retry i
 /// for organize here, and that ruling is true of thread and issue views and
 /// false of boards. Naming only the right command would leave the wrong one
 /// looking untested.
-/// The remedy for a `board.json` recording a migrated board that the store
-/// does not hold (issue 0535): the refusal's, and doctor's for the same state,
-/// so the two cannot name different doors.
-pub(crate) const BOARDS_NOT_IN_THE_STORE_REMEDY: &str = "`intent sync --to-store` carries each board.json into this store with everything it holds: its items, archived ones included, and its messages with their handled state. Until then `wb register`, `wb migrate` and `sync --to-disk` are refused, because each would write an empty board over one of these files. The usual cause is a store that an older Intent warmed, which took the threads and issues and no board";
+/// The remedy for a `board.json` ahead of the store (issues 0535 and 0554
+/// (b)): the refusal's, the hooks' and doctor's for the same state, so none of
+/// them can name a different door.
+///
+/// **IT NAMES WHICH VERSION WINS, NOT JUST THE VERB** (vc, 2026-09-24). A
+/// file bytes reached from outside the store is usually a teammate's write a
+/// pull brought, and carrying it is right; a checkout of an older commit puts
+/// bytes there too, and carrying those rolls the store's board back.
+pub(crate) const BOARDS_NOT_IN_THE_STORE_REMEDY: &str = "`intent sync --to-store` carries each board.json into this store with everything it holds, OVER what the store holds for that node: its items, archived ones included, and its messages with their handled state. After a pull that is your teammates' writes; after checking out an older commit it is that commit's older board, and carrying it rolls this store's board back. To keep the store's board instead, delete that node's board.json and run `intent sync --to-disk`, which re-creates it from the store and discards the file's version. Until one of them runs, every board write, `wb register` and `wb migrate` are refused, because each would write the store's board over one of these files. A store an older Intent warmed, which took the threads and issues and no board, is the other usual cause";
 
 pub(crate) const BOARD_RERENDER_REMEDY: &str = "the row is safe in the store and the TREE is behind it -- do NOT retry the write. Clear the filesystem cause, then run `intent wb touch --node <you>`: a board's views are landed by a board write and by nothing else. NOT `intent organize`, which renders no board, and NOT `intent st sync`, which rewrites a thread's views only -- either one reports a clean run and leaves the board stale";
 
@@ -3948,6 +3955,11 @@ pub struct Ingested {
   /// The ids of the committed event files this pass took into the store
   /// (ST0078 P1), which the store did not hold.
   pub events: Vec<String>,
+  /// The whiteboard files this pass left as they are, project-relative: each
+  /// is a board.json ahead of the store, or a view beside it, which the
+  /// projection would have rewritten from the store and so discarded (issue
+  /// 0554 (b)). The hooks name them on their `left:` line.
+  pub kept: Vec<String>,
 }
 
 /// What `intent sync --apply` did (ST0078 WP-05).
@@ -7723,11 +7735,26 @@ impl Facade {
   /// here as well would stop `sync --to-disk` writing the store's board over it,
   /// which is its repair.
   fn boards_the_store_lacks(&self) -> Result<Vec<String>, FacadeError> {
+    self.boards_ahead(true)
+  }
+
+  /// The boards on disk ahead of this store, counting a board the store holds
+  /// differently only when `moved` asks for it (issue 0554 (b)). Without it
+  /// the answer is 0535's alone: a migrated board the store never took in.
+  fn boards_ahead(&self, moved: bool) -> Result<Vec<String>, FacadeError> {
     let (on_disk, _not_boards) =
       ingest::boards_on_disk(&self.project).map_err(FacadeError::Ingest)?;
-    Ok(crate::model::boards_the_store_lacks(
+    let moved = match moved {
+      true => {
+        let index = self.store.file_index().map_err(FacadeError::Store)?;
+        ingest::boards_moved_on_disk(&self.project, &index).map_err(FacadeError::Ingest)?
+      }
+      false => std::collections::BTreeSet::new(),
+    };
+    Ok(crate::model::boards_ahead_of_the_store(
       &self.boards()?,
       &on_disk,
+      &moved,
     ))
   }
 
@@ -7800,6 +7827,11 @@ impl Facade {
   /// the migration are the two board writes that do not ask this.
   fn require_migrated(&self, node: &str) -> Result<(), FacadeError> {
     self.require_registered(node)?;
+    // **EVERY BOARD WRITE RENDERS EVERY BOARD** (`land_board_write`), so a
+    // board.json ahead of the store -- a teammate's message a pull brought --
+    // would be rewritten from the store by an unrelated `wb pickup` (issue 0554
+    // (b), driven). Refused before the store is written, naming the carry.
+    self.refuse_if_the_store_lacks_any()?;
     if self
       .store
       .wb_node_migrated(node)
@@ -9284,7 +9316,15 @@ impl Facade {
     // has not taken in a migrated `board.json` would write that node's empty
     // row over it: every board, emptied at rc 0, after a `wb register` in a
     // fresh clone (issue 0535).
-    self.refuse_if_the_store_lacks_any()?;
+    //
+    // **A BOARD THE STORE HOLDS DIFFERENTLY IS NOT REFUSED HERE** (issue 0554
+    // (b)): the egest's own guard (0260) refuses writing over a canon file that
+    // moved, with the remedy that keeps the store's version -- delete the file,
+    // then this verb re-creates it -- and a refusal here would shadow that.
+    let nodes = self.boards_ahead(false)?;
+    if !nodes.is_empty() {
+      return Err(FacadeError::WbBoardsNotInTheStore { nodes });
+    }
     let (threads, issues) = self.store.load_canon().map_err(FacadeError::Store)?;
     let sections = self.store.doc_sections().map_err(FacadeError::Store)?;
     let boards = self.store.hydrate_boards().map_err(FacadeError::Store)?;
@@ -9726,6 +9766,12 @@ impl Facade {
         (Action::Ingest { .. }, _) => {
           self.write_views_from_store(&unmerged_views)?;
           let ingested = self.ingest_from_disk(scope)?;
+          if !ingested.kept.is_empty() {
+            applied.left.push(Left {
+              step: step.clone(),
+              because: LeftBecause::Kept(ingested.kept.clone()),
+            });
+          }
           let said = crate::sync::ingested(&ingested.taken, &ingested.events);
           applied.taken = ingested.taken;
           applied.events.extend(ingested.events);
@@ -10139,6 +10185,35 @@ impl Facade {
       projection: Projection { set, canon_files },
       taken,
     } = render;
+    // **A BOARD AHEAD OF THE STORE IS NOT PROJECTED OVER** (issue 0554 (b)).
+    // This pass never carries boards (0216), so writing the store's board here
+    // deleted a pulled teammate's message from the file with no line saying
+    // so, and the view beside it then read as a hand edit. Its files are left,
+    // unrecorded so they stay ahead, and named; `sync --to-store` carries them.
+    let ahead = self.boards_the_store_lacks()?;
+    let whiteboard = self.project.whiteboard_dir();
+    let is_ahead = |path: &std::path::Path| {
+      path
+        .strip_prefix(&whiteboard)
+        .ok()
+        .and_then(|rest| rest.components().next())
+        .and_then(|node| node.as_os_str().to_str())
+        .is_some_and(|node| ahead.iter().any(|a| a == node))
+    };
+    let mut kept: Vec<String> = Vec::new();
+    let mut narrowed = WriteSet::new();
+    for (path, content) in set.writes() {
+      if is_ahead(path) {
+        kept.push(self.project.relative(path));
+      } else {
+        narrowed.add_bytes(path.to_path_buf(), content.to_vec());
+      }
+    }
+    let set = narrowed;
+    let canon_files: Vec<(std::path::PathBuf, String)> = canon_files
+      .into_iter()
+      .filter(|(path, _)| !is_ahead(path))
+      .collect();
     // **THE COMMITTED EVENT FILES LAND UNDER THE SAME HOLD AS THE CANON**
     // (ST0078 P1), read here, before it, because a read needs no lock. The
     // render never touched them (see `ingest::resync_inner`), and the insert
@@ -10179,6 +10254,7 @@ impl Facade {
           threads,
           taken,
           events,
+          kept,
         })
       })
   }
