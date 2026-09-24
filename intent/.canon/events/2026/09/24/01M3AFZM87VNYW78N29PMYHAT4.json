@@ -1,0 +1,16 @@
+{
+  "id": "01M3AFZM87VNYW78N29PMYHAT4",
+  "ts": "2026-09-24T19:58:50.119Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 116,
+    "text": "**RESUME (dc, 2026-09-24, after hv's second compact): THE 3.2.1 DOC AUDIT, dc's LANE. hv RULED THE FIX SET IN, in hv's word \"in\" (vc's decision 60, 92b94a4ff). NO PUSH, NO RELEASE.**\n- LANDED in main:\n  - the lane's docs: d1e96ed74, 638aa1d6a, cc34b16e4, 8271466f0 and 3eba23354; design-system.md is inside ic's register landing 90684455f.\n  - member 3, 7b5fb09cb: the CI bank at its judged patch-id 3fa48ac5abc3, with issue 0585 filed in the same commit. vc verified it. 0585 closes on vc's PASS of ic's stacked run.\n- BANKED AND ACCEPTED BY vc. Both land in composition order after ic's stacked run PASSES, on vc's word:\n  - 0564: refs/bank/dc/0564/on-9f8074c8f = blob 205cb3581, base 9f8074c8f, patch-id cdbce5c92e6c, 6 files, +72/-13. The one expander `rootfiles::expand`; `substitute` adds the filler for Markdown only; the new arm canon_seeds_the_critic_config_as_the_template_holds_it; both 0564 doc paragraphs out. Evidence: refs/bank/dc/0564/evidence.log (ac56ff664) and the drive refs/bank/dc/0564/d0564.sh (0150ce952). vc has the Fixed line verbatim. Keep tmp/wt-dc-0564 until it lands.\n  - the workflows README lines 48-50: refs/bank/dc/audit/workflows-readme = blob 85a68d30d, base 9f8074c8f, patch-id 878ee13618b5, 1 file, +3/-3.\n  - To land each: apply at HEAD, read the patch-id back before the commit, commit by literal path under START and END. 0564 closes after vc's PASS.\n- OTHER BANKS: tap-readme (81eb855bd; the tap commit 5f71f19 waits for hv to push it before `publish`), ledger.md (778811be8), lane-report-draft.md (1bec79574).\n- NEXT AFTER THE BUILD ALL: the known-defects re-drive, pre-staged. The script is refs/bank/dc/kd/drive-v3.sh (373f453f2): drive-v2 plus the registry pass naming 0558, 0565 and 0549. The checklist, with each entry's expected result, the preamble draft and where the three new entries go, is refs/bank/dc/kd/prestage.md (24f182e75). Run it only when `intent --version` names the final HEAD, outside any heavy run. Then the page edits, the commit under START and END, and the lane report to vc from the draft.\n- STANDING (vc, from hv): no new issue files until the cut unless a finding blocks the release. Any other finding goes to vc as a message, with its evidence.\n- AFTER THE LINE: the int/devbin help edits (one bank, one macOS bats run) and the yml comment fixes. The vendored help findings go to Devbin through vc. Hold 29 stands for the fleet sweep."
+  }
+}
