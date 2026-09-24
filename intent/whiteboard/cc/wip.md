@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 32974d4a-0175-4bfb-b198-cdac20b4d58b
-heartbeat_at: 2026-09-24 17:48Z
+heartbeat_at: 2026-09-24 19:17Z
 status: active
-focus: "LOCALFOLDED for hv's /compact, at vc's order. Resume state is doing 74: every cc landing is in at its judged patch-id, the 0551 draft and three fold snapshots are banked, the fix set waits on hv, and the root files follow vc's build all. NO PUSH, NO RELEASE."
+focus: "LOCALFOLDED for hv's compact, at vc's order. Resume state is doing 74: member 8b is banked and accepted, the 0551 draft is banked unbuilt, the fix set waits on hv's ruling in words, and the root files wait on vc's build all. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- RESUME STATE (cc, localfold on 2026-09-24 for hv's /compact). (edited)
+- RESUME STATE (cc, localfold for hv's second compact of 2026-09-24). (edited)
 
   LANDED, each at its judged patch-id:
   - 0548: code 73bc232df (3d8ebca06), CHANGELOG line 556e34374, issue closed 19dd2b71b.
@@ -21,33 +21,35 @@ claims: []
   - .claude/agents/elixir.md and the root .intent_critic.yml: adf7d1096.
   - Templates v3: 450bcc0f8 (8f064805a).
   - Rules audit: e2b6b33f7 (cb89c12f2).
-  - Board: 8512644c0.
-  The final-tree run on d66b3c1c2 was green on run 2: every CI line rc 0, cargo 3077/0/5, bats 747/747. vc ACCEPTED the lane report.
+  The final-tree run on d66b3c1c2 was green: cargo 3077/0/5, bats 747/747. vc ACCEPTED the lane report.
 
-  BANKED, NOT LANDED:
-  - The 0551 draft, unbuilt and unjudged: refs/bank/cc/0551/draft-unbuilt-on-cc34b16e4 (blob c253f5a1f, patch-id 076114ec7). It applies to HEAD.
-  - Fold snapshots of three older worktrees whose diffs are only partly on main: refs/bank/cc/fold-20260924/wt-0523b-on-e1d784dbc, wt-0523m-on-987268553 and wt-train-on-ca936e6c4.
-  - Templates v1 and v2 are superseded and never land.
+  BANKED:
+  - Member 8b, the principle-rule mapping, JUDGED AND ACCEPTED by vc; it lands on vc's word with the stack: refs/bank/cc/0584/member-8b-on-00fd19045, blob 1866684ee5a408cfd88f45833de5bda12c436b1b, patch-id d2a44385a32bf31a9a5773ffcc10d448081c376e, 19 files. `references:` is the home of record, `concretised_by:` its exact inverse, and `principles:` names the principle of each agnostic rule a rule references; issue 0584 is the check gap. vc has its CHANGELOG line (Changed) and the lane-report miss.
+  - The 0551 draft, UNBUILT AND UNJUDGED: refs/bank/cc/0551/draft-unbuilt-on-cc34b16e4, blob c253f5a1f, patch-id 076114ec7. It applies at c48f8e872.
+  - Fold snapshots: refs/bank/cc/fold-20260924/wt-0523b-on-e1d784dbc, wt-0523m-on-987268553 and wt-train-on-ca936e6c4.
 
-  WAITS ON hv: the fix set.
-  - cc's 0551, 0564, 0570 (size S; the design is in 0570's own body) and batch 1 (0554(b), 0556, (b3)).
-  - ic's five fix banks and dc's CI bank.
-  - If ruled in: build each red-first on HEAD in its own worktree, driving 0570's NoResolvableInstall remedy first. Re-cut and re-drive the team page's two sections for 0551 and batch 1. Then one final-tree heavy run on top, and land on vc's word.
+  WAITS ON hv: the fix set (hold 28). hv has still not ruled in words. vc's split if it is ruled in: cc takes 0551, batch 1 and the team page; ic takes 0570 with cc's code read (`intent bootstrap` is not the no-install remedy) and runs the stacked final-tree run; dc takes 0564; vc judges and writes every CHANGELOG line.
 
-  NEXT AFTER vc's BUILD ALL, in the main tree:
-  - A dry `intent claude upgrade`, which should name only AGENTS.md and CLAUDE.md.
-  - Then --apply, and commit those two by path.
-  - Then a second dry run, which should write nothing. The release pre-flight refuses anything outside the sidecar list.
+  cc's NEXT UNITS IF hv RULES IN, in order:
+  1. The scopes into the issue bodies FIRST. Batch 1 into 0554, 0556 and 0559: (b1) 0554(b), a board view pulled ahead of the store names `sync --to-store`; (b2) 0556, a cover edit the store can carry names `--to-store` and keeps the edit; (b3) sync --apply's views step leaves a view it could carry and reports it as left. 0551's into 0551: the tracked-store finding and the upgrade both use gitstate::is_tracked's Result, and doctor says when it could not ask git; doctor.rs's bool is_tracked and its callers at :2191 and :2206 stay and are named in the bank report.
+  2. 0551, red-first on HEAD in a fresh worktree, from the draft.
+  3. Batch 1, red-first, one predicate for "carriable" serving doctor's skew() and sync's views step.
+  4. The team page's two sections (working-in-a-team.md:378 and :399-426), re-cut and re-driven.
+  Each bank goes to vc with blob, patch-id, logs and a one-line Fixed entry.
 
-  AFTER THE CUT: todo 39. NO PUSH, NO RELEASE.
+  NEXT AFTER vc's BUILD ALL, in the main tree: a dry `intent claude upgrade`, which should name only AGENTS.md and CLAUDE.md; then `--apply`, committed by path; then a second dry run that writes nothing.
+
+  WORKTREES KEPT: tmp/wt-cc-mapping, until member 8b lands. Every other cc worktree is todo 39's, for after the cut.
+
+  NO PUSH, NO RELEASE.
 
 ## TODO
 
-- After the cut: remove cc's leftover worktrees -- tmp/wt-cc-{0548,0551,final,rules,tpl}, the older scratchpad worktrees of session 89be4c37 (wt-0521, wt-0523, wt-0523b, wt-0523m, wt-0523r, wt-0525, wt-critic, wt-f1f2, wt-train) and ../Intent-wt-0546 -- each checked against a landed or banked patch-id first (every one was, at the 2026-09-24 fold), then `git worktree prune` for the three registrations whose directories are already gone. Never delete a bank ref. (edited)
+- After the cut: remove cc's leftover worktrees -- tmp/wt-cc-{0548,0551,final,rules,tpl}, tmp/wt-cc-mapping once member 8b has landed, the older scratchpad worktrees of session 89be4c37 (wt-0521, wt-0523, wt-0523b, wt-0523m, wt-0523r, wt-0525, wt-critic, wt-f1f2, wt-train) and ../Intent-wt-0546 -- each checked against a landed or banked patch-id first (every one was, at the 2026-09-24 fold), then `git worktree prune` for the three registrations whose directories are already gone. Never delete a bank ref. (edited)
 
 ## Holds
 
-- 0551 (tracked store), batch 1 (0554(b), 0556 and (b3)), 0564 (malformed .intent_critic.yml seed), 0570 (gate-not-running wording) and the critic.rs comment fixes, together with the team page's two sections that 0551 and batch 1 change -- HELD UNTIL hv rules them into 3.2.1. If ruled in, they stack with ic's five fix banks and dc's CI bank for one more final-tree run on top of HEAD.
+- The 3.2.1 fix set, HELD UNTIL hv rules it into 3.2.1. cc's part if ruled in: 0551 (tracked store) and batch 1 ((b1) 0554(b), (b2) 0556, (b3) sync --apply's views step), with the team page's two sections they change, and the critic.rs:343-344 and :703 comment fixes. Under vc's split 0570 goes to ic and 0564 to dc. It stacks with ic's five fix banks, dc's CI bank and member 8b, and ic runs one final-tree run on top that vc judges. (edited)
 
 ## Watch-outs
 

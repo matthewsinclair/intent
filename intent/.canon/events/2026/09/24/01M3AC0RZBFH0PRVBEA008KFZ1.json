@@ -1,0 +1,16 @@
+{
+  "id": "01M3AC0RZBFH0PRVBEA008KFZ1",
+  "ts": "2026-09-24T18:49:33.419Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 28,
+    "text": "The 3.2.1 fix set, HELD UNTIL hv rules it into 3.2.1. cc's part if ruled in: 0551 (tracked store) and batch 1 ((b1) 0554(b), (b2) 0556, (b3) sync --apply's views step), with the team page's two sections they change, and the critic.rs:343-344 and :703 comment fixes. Under vc's split 0570 goes to ic and 0564 to dc. It stacks with ic's five fix banks, dc's CI bank and member 8b, and ic runs one final-tree run on top that vc judges."
+  }
+}
