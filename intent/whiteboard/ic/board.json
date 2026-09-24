@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "ba4c99b8-b828-4603-9871-50eb86fc3a5b",
-    "heartbeat_at": "2026-09-24T19:21:26.362Z",
+    "heartbeat_at": "2026-09-24T21:12:13.382Z",
     "status": "active",
-    "focus": "LOCALFOLDED for hv's compact. Resume is the one live doing item: seven banks (the five fixes, explorer-docs 22548f54, skills-usage-rules 3bfeb338), the fix set waiting on hv, 0570 and then the stacked run if hv rules in, the steps after the build all, the two worktrees. NO PUSH, NO RELEASE.",
+    "focus": "3.2.1 lane LANDED: fixes, 0570, skills, explorer docs, reference and shots are all in; the stacked run passed. Next is the cut's hold, then the fleet hook-wiring census and the released keg's bootstrap --check. NO PUSH, NO RELEASE.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -2377,8 +2377,17 @@
       "kind": "doing",
       "seq": 118,
       "text": "RESUME STATE (ic, localfold for hv's compact, 2026-09-24 19:21Z by date -u). NO PUSH, NO RELEASE.\nBANKED, every one applying at 74d7ec311: refs/bank/ic/fix/0550 (blob d30af1249, patch-id bfcf35a1: layout.rs heading rows); fix/0552 (f1da4ec94 / 4ee9e057: run.rs first_read keeps explore's landing reason); fix/0553 (418063035 / c86c5d80: nav.rs view_for takes the bare wp sequence); fix/0560 (d10e8ddfb / 4199aa2f: app status takes macapp's own remedy); fix/0567 (6f5b48d4e / 2168a575: the todo reopen remedy names --reason); audit/explorer-docs (b53d4238e / 22548f54, member 2: the wp/02 example and \"the status row says why\", driven red on the installed pair and green on the fixed build; lands only beside 0552 and 0553; vc accepted); audit/skills-usage-rules (eae70e2c6 / 3bfeb338, member 2b: three skills name deps/phoenix/usage-rules/liveview.md, measured in all six Phoenix estates; vc accepted).\nWAITS ON hv: the fix set (0550, 0552, 0553, 0560, 0567). hv has not ruled in words.\nCOMPOSITION, vc's landing order: 1 the five fixes; 2 explorer-docs; 2b skills-usage-rules; 3 dc's audit/ci-9-10; 4 dc's 0564; 5 ic's 0570; 6 cc's 0551; 7 cc's batch 1; 8 cc's team-page docs, with cc's 8b; 9 a vc docs bank only if batch 1 needs one.\nNEXT IF hv RULES IN: (i) 0570. Drive first: scratchpad drafts/drive-0570.sh under /tmp/ic70 takes each gate state (A chain calls a missing carrier; B carrier runs no guards; C1 doctor's binary outside any install; C2 the install resolves with no hook templates) with the pointer good AND bad, and drives each named remedy. Then correct 0570's body where the drive contradicts it: the stale comments are finding.rs:637-648 (not canon.rs), doctor.rs:2085-2095 and canon.rs:831-836; C2's remedy is to reinstall. Then build red-first on HEAD in its own worktree: a pure text function, the InstallError and io errors carried instead of .ok(), and the pointer read through gate_resolution; nothing past that. apply --check it on top of members 1-4 before banking. (ii) The stacked final-tree run: drafts/compose-final.sh, then drafts/judge-final.sh. It runs the CI lines as spelled, with XDG_* set empty, every PATH directory holding intent or intentd dropped (the pair is linked from ~/.local/bin AND ~/bin), and the bats half refused unless bare intent is the worktree's target/release/intent. The log head carries the toolchain versions and a tool table, and census and START/END go around it. drafts/check-stack.sh checks a bank on top of the members before it.\nAFTER THE BUILD ALL: (a) rewrite gen_reference.sh:266's stale stamp; regenerate both halves at HEAD against `git describe --tags --abbrev=0`; confirm reference_current_check.sh exits 0; commit docs/reference, gen_reference.sh and intent/.canon/st/ST0056.json together. (b) Re-take the shots: gen_explorer_shots.sh --python <scratchpad>/venv/bin/python, with /tmp/intent-demo absent first; the /help shot changes with 0550. (c) explorer.md needs no further edit, because member 2 carries it. (d) Send vc the coverage report, including the skills pass's miss.\nWORKTREES KEPT until landing: tmp/wt-ic-docs (= members 1 and 2, index tree d6f0016bf) and tmp/wt-ic-skills (= 2b on 00fd19045). Scratchpad: /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/ba4c99b8-b828-4603-9871-50eb86fc3a5b/scratchpad.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-24T21:12:12.418Z",
       "recorded_at": "2026-09-24T19:21:23.063Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 119,
+      "text": "IC's 3.2.1 LANE IS LANDED (2026-09-24, on vc's word). NO PUSH, NO RELEASE.\nLANDED: skills 2b 080bb940a; fixes 0550 cc66abfbd, 0552 3f584ccea, 0553 c667bdfb3, 0560 9f8074c8f, 0567 b76359d39; explorer docs f13f90022; 0570 ecb8f52eb. All six issues are CLOSED, naming their fix commits (6ed738c11, bc5b8600b). After vc's build all at e2f5ce4b3: docs/reference regenerated with gen_reference.sh's count-and-issue stamp removed, at cd71cbe8a, with ST0056's canon; the /help shot re-taken at b026a00fd. The stacked final-tree run PASSED (composed patch-id a206bfeaa4c7: 3097 cargo tests, 747 bats, fmt, clippy, doc, dispatch table, precommit). The coverage report went to vc.\nNEXT: the cut's hold. Once this board is committed, no wb write, no commit and no /in-session until the v3.2.1 tag exists. After the cut: the read-only census of the fleet's hook wiring, then a drive of the released keg's bootstrap --check.\nAFTER THE LINE (vc's list): a per-file read of the 9 subagents against as-built behaviour.\nNo worktrees are left; the drive and judge logs are in this session's scratchpad (drive-0570/, final/run1/).",
+      "state": "live",
+      "recorded_at": "2026-09-24T21:12:11.486Z"
     }
   ],
   "messages": [

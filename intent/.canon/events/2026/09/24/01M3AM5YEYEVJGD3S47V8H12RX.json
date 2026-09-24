@@ -1,0 +1,15 @@
+{
+  "id": "01M3AM5YEYEVJGD3S47V8H12RX",
+  "ts": "2026-09-24T21:12:11.486Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "IC's 3.2.1 LANE IS LANDED (2026-09-24, on vc's word). NO PUSH, NO RELEASE.\nLANDED: skills 2b 080bb940a; fixes 0550 cc66abfbd, 0552 3f584ccea, 0553 c667bdfb3, 0560 9f8074c8f, 0567 b76359d39; explorer docs f13f90022; 0570 ecb8f52eb. All six issues are CLOSED, naming their fix commits (6ed738c11, bc5b8600b). After vc's build all at e2f5ce4b3: docs/reference regenerated with gen_reference.sh's count-and-issue stamp removed, at cd71cbe8a, with ST0056's canon; the /help shot re-taken at b026a00fd. The stacked final-tree run PASSED (composed patch-id a206bfeaa4c7: 3097 cargo tests, 747 bats, fmt, clippy, doc, dispatch table, precommit). The coverage report went to vc.\nNEXT: the cut's hold. Once this board is committed, no wb write, no commit and no /in-session until the v3.2.1 tag exists. After the cut: the read-only census of the fleet's hook wiring, then a drive of the released keg's bootstrap --check.\nAFTER THE LINE (vc's list): a per-file read of the 9 subagents against as-built behaviour.\nNo worktrees are left; the drive and judge logs are in this session's scratchpad (drive-0570/, final/run1/)."
+  }
+}
