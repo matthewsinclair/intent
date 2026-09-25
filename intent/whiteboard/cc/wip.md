@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 32974d4a-0175-4bfb-b198-cdac20b4d58b
-heartbeat_at: 2026-09-24 21:50Z
+heartbeat_at: 2026-09-25 11:33Z
 status: active
-focus: "LOCALFOLDED for hv's compact. 3.2.1 is landed and built (pair e2f5ce4b3); nothing open in cc's lane; hv pushes, vc reads CI, hv cuts under vc's hold, then the fleet sweep. Resume is doing 74. NO PUSH, NO RELEASE."
+focus: "LOCALFOLDED for hv's compact. 3.2.2 lane complete: 4 landed; 0554a, 0555 and tostore banked for vc's whole-suite judge on 67f222f76. Idle unless vc sends work. Resume is doing 74. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -13,21 +13,22 @@ claims: []
 
 ## DOING
 
-- RESUME STATE (cc, localfold for hv's compact, 2026-09-24). (edited)
+- RESUME STATE (cc, localfold for hv's compact, 2026-09-25). 3.2.2 LANE COMPLETE (vc decision 61: every open issue ships in one patch, 3.2.2). (edited)
 
   LANDED, each at its judged patch-id, on vc's word:
-  - Member 8b, the principle-rule mapping: 1c5debd44 (d2a44385a).
-  - Issue scopes for 0551, 0554, 0556 and 0559: 81db513b3.
-  - 0551, a store git tracks is named: 92b623c90 (35abdd9ba86a).
-  - Batch 1, 0554 (b), 0556 and 0559's hooks path: bcda3e7ea (83af2a20e007).
-  - Team guide v2: 75c49ba98 (a7a22fc69400).
-  - Issues: 0551 and 0556 closed; 0554 and 0559 open, each with a line saying what shipped and what remains after the line: 57ae84bcd.
-  - Root files, regenerated after vc's build all at e2f5ce4b3: 9421f0961. The second dry run wrote nothing.
-  ic's stacked final-tree run a206bfeaa4c7 passed: 3097 cargo tests, 747 bats.
+  - 0568, a carry no longer folds the body into Context: 4e4d4cf47.
+  - 0559, a write refuses over a carriable cover edit and names `intent sync --to-store <ID>`; hydrate records what it wrote: ae03538fc.
+  - doctor (i)(ii), the stale-render verb per view and one line per directory in -v: 231c0bf44.
+  - 0580, `at edit --kind` says when it resets a status; help updated: abf066599.
+  CHANGELOG lines by vc at 394941865.
 
-  NOTHING OPEN IN cc's LANE for 3.2.1. The pair is built at e2f5ce4b3, and the tree was clean at 47c9c8a1d. hv is pushing. Next, per vc: vc reads CI, then hv runs the cut in hv's own terminal under vc's hold, then the fleet sweep. The hold stands through the compact: no heavy run and no commit. NO PUSH, NO RELEASE.
+  BANKED on 67f222f76, stacked in this order, awaiting vc's one whole-suite judge (running on 67f222f76 at the fold):
+  - refs/bank/cc/322/0554a, blob a42837bec9df3383e8447de0577e90713e0160b3, patch-id a47f51c37aec19e867bce87a4908e5bfaf92e08f: a pull takes a teammate's board when its file moved FORWARD and the store is still; both-moved and an older checkout are kept and named (vc ruling (b)).
+  - refs/bank/cc/322/0555, blob 6cfbbbe769f635344d61f0550f395e8aa8cf74b5, patch-id 03eb791c23ed092bc8729d6df4000abc80f32ae2: a work package both clones minted is renumbered; its claims follow; any other change still takes a side.
+  - refs/bank/cc/322/tostore, blob 4407e6d14004fece8fa594f0f6c7c9a07eb59f88, patch-id f7711e2e523aacc646e44e166859e355a79a967e: `sync --to-store` names a carried cover edit instead of "overwrites nothing".
+  Worktree: tmp/wt-cc-322, detached at 53ce49fe7 (the three as local wip commits), with an in-tree target. Drivers are in the session scratchpad, 322/drive-*.sh.
 
-  AFTER THE CUT: todo 39's worktree cleanup. That now also covers tmp/wt-cc-0551b, tmp/wt-cc-b1 and tmp/wt-cc-team, and tmp/wt-cc-mapping, since 8b has landed. Never delete a bank ref.
+  IDLE unless vc sends work. NO PUSH, NO RELEASE. After the cut: todo 39's worktree cleanup, which now includes tmp/wt-cc-322. Never delete a bank ref.
 
 ## TODO
 
