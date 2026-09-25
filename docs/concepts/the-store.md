@@ -68,6 +68,31 @@ The practical consequence is worth stating because it looks alarming from the ou
 
 Backups land in `intent/.backup/`. **That directory must be in `.gitignore` and never tracked** — a backup in git is a second copy of everything, diverging from the first, forever.
 
+### Scheduled backups
+
+A project's `intent/.config/config.json` carries a `backup` block, and every key in it is optional:
+
+```
+  "backup": {
+    "enabled": true,
+    "schedule": "daily",
+    "keep": 14
+  }
+```
+
+- **`schedule`** is `hourly`, `daily`, `weekly`, or a whole number of hours or days such as `12h` or `7d`. The default is `daily`.
+- **`enabled: false`** stops scheduled backups. `intent backup` still takes one when you run it, and `intent doctor` still reports a stale one. There is no `off` value for `schedule`.
+- **`keep`** keeps the newest N snapshots and removes the rest. It must be at least 1.
+- **`retain`** is the default rule when `keep` is absent: `{"daily": 7, "weekly": 4, "monthly": 12}` keeps the newest snapshot of each of the last 7 days, 4 weeks and 12 months. Set one of `keep` or `retain`. If you set both, `keep` decides and `intent doctor` says that `retain` is ignored.
+
+**A scheduled backup is taken when `intent explore` opens the project, and by intentd for every project it holds open.** Before the explorer draws, it checks whether a backup is due and, if so, takes it, printing `intent: taking the scheduled backup of <project>` while it works. Other commands do not take scheduled backups.
+
+**A backup is due once the newest one is nine tenths of the schedule old**, so `daily` means once in each day's use, not exactly every 24 hours. Opening the explorer at 09:00 each morning takes a backup each morning, even when yesterday's finished at 09:05.
+
+**The schedule is shared and the backups are not.** `config.json` is committed, so every clone follows the same schedule; `intent/.backup/` is per machine, so each machine decides for itself whether its own copy is due.
+
+**A backup that is due and fails never goes unreported, and the explorer still opens.** The failure is printed as a `warning:` with its remedy, shown on the explorer's info line, and recorded in the store, where `intent doctor` reports it until a backup succeeds. A `schedule` the tool cannot read is reported the same way, and no scheduled backup is taken until it is corrected.
+
 ---
 
 Back to [Concepts](index.md), or on to the [command reference](../reference/).

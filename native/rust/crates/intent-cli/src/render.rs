@@ -5841,6 +5841,43 @@ fn enter(root: &Path) -> Result<(), Failure> {
   })
 }
 
+/// Take this project's scheduled backup if one is due, before the explorer
+/// opens, returning what the info row should say.
+///
+/// **THE EXPLORER OPENS WHATEVER HAPPENS HERE** (ST0080). A backup that is due
+/// and fails, or a schedule that cannot be read, is said on stderr with its
+/// remedy and returned for the info row; a failed snapshot is also already a
+/// row `doctor` reports. Not due and turned off say nothing. A backup taken
+/// says only the wait line, so the info row stays free for the operator's own
+/// request.
+fn scheduled_backup(facade: &Facade) -> Option<String> {
+  let project = facade.project();
+  let name = project.directory_name().unwrap_or_default();
+  let schedule = &project.config().backup.schedule;
+  match intentsvcs::backup::if_due(project, facade.store(), || {
+    eprintln!("intent: taking the scheduled backup of {name} (backup.schedule: {schedule})");
+  }) {
+    Ok(intentsvcs::backup::Ran::Took(_))
+    | Ok(intentsvcs::backup::Ran::NotYet)
+    | Ok(intentsvcs::backup::Ran::Disabled) => None,
+    Ok(intentsvcs::backup::Ran::Unschedulable(value)) => {
+      let why = format!(
+        "no scheduled backup is being taken: backup.schedule is {value:?}, which is not one of {}",
+        intentsvcs::backup::SCHEDULE_FORMS
+      );
+      let remedy = "correct backup.schedule in intent/.config/config.json";
+      eprintln!("warning: {why}\n  remedy: {remedy}");
+      Some(format!("{why} -- {remedy}"))
+    }
+    Err(e) => {
+      let why = format!("the scheduled backup of {name} did not complete: {e}");
+      let remedy = intentsvcs::remedy::Remedy::remedy(&e);
+      eprintln!("warning: {why}\n  remedy: {remedy}");
+      Some(format!("{why} -- {remedy}"))
+    }
+  }
+}
+
 /// One project's explorer, until the operator quits or chooses another project.
 fn explore_here(address: Option<&str>) -> Result<tui::run::Exit, Failure> {
   // **THE INDICATOR WRAPS THE SLOW WORK, WHICH IS ALL OF IT.** Measured across
@@ -5864,6 +5901,12 @@ fn explore_here(address: Option<&str>) -> Result<tui::run::Exit, Failure> {
     tui::progress::Outcome::Done(loaded) => loaded?,
   };
   let session = editor_session();
+  // **THE SCHEDULED BACKUP, AFTER THE LOAD AND BEFORE THE TERMINAL** (ST0080).
+  // Not inside `while_loading`: that abandons its thread on `Esc`, and a
+  // snapshot is a write. What it has to say goes on stderr now, where it stays
+  // in the scrollback, and on the info row below, which is what the operator
+  // reads once the explorer has drawn over stderr.
+  let backup = scheduled_backup(&live.facade);
   // **THE ADDRESS IS RESOLVED BEFORE THE TERMINAL IS TAKEN**, so a spelling
   // this tool cannot read is reported on the info row of a screen the operator
   // can read, rather than behind a raw-mode switch.
@@ -5919,6 +5962,11 @@ fn explore_here(address: Option<&str>) -> Result<tui::run::Exit, Failure> {
   };
   if let Err(why) = registered {
     app = app.saying(format!("the project registry was not updated: {why}"));
+  }
+  // Last, so it is the notice that shows: a backup of the store that did not
+  // happen outranks every other thing the info row could say at open.
+  if let Some(why) = backup {
+    app = app.saying(why);
   }
   app = app.in_project(project);
   tui::run::run(&mut app, &mut live, session)

@@ -289,9 +289,9 @@ pub struct BackupConfig {
   pub enabled: bool,
   /// How often a snapshot is expected. Default `daily`.
   ///
-  /// **A word rather than a number, because that is ic's ratified surface**
-  /// (D35, hv, 2026-08-15; `surface/dispatch-table.md` `keys.1`). The vocabulary
-  /// is CLOSED -- `hourly`, `daily`, `weekly` -- so a value outside it is
+  /// **A word or a whole-number duration, and nothing else** (D35, hv,
+  /// 2026-08-15; widened by ST0080; `surface/dispatch-table.md` `keys.1`):
+  /// `hourly`, `daily`, `weekly`, `<N>h` or `<N>d`. A value outside that is
   /// reported rather than rounded to the nearest plausible period. Read it only
   /// through [`crate::backup::schedule`], which is what enforces that.
   #[serde(default = "default_backup_schedule")]
@@ -307,8 +307,42 @@ pub struct BackupConfig {
   /// **The fix for one half of this block silently broke the other half**, and
   /// nothing failed, because the values it fell back to were the ones the
   /// tests asserted.
-  #[serde(default)]
-  pub retain: RetainConfig,
+  ///
+  /// **`None` WHEN THE FILE HAS NO `retain` BLOCK, SO A BLOCK THAT IS SET CAN BE
+  /// TOLD FROM ONE THAT IS DEFAULTED.** The tiers apply their defaults either
+  /// way; the distinction exists for `doctor`, which names a config that sets
+  /// `retain` beside [`keep`](Self::keep) because `keep` then decides alone.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub retain: Option<RetainConfig>,
+  /// `keys.5`, absent by default. **When it is set it is the WHOLE pruning
+  /// rule**: the newest N good snapshots are kept and `retain` is not read
+  /// (ST0080, vc under hv's go, 2026-09-25). One rule, never two beside each
+  /// other, so no snapshot is ever held by one and removed by the other.
+  ///
+  /// **AT LEAST 1, REFUSED ON READ OTHERWISE.** A retain tier of 0 disables
+  /// one tier while the others still hold snapshots; a keep of 0 would remove
+  /// the snapshot the same cycle had just written, which nobody means.
+  #[serde(
+    default,
+    skip_serializing_if = "Option::is_none",
+    deserialize_with = "at_least_one"
+  )]
+  pub keep: Option<u32>,
+}
+
+/// `backup.keep` as written, refusing 0 by name rather than by serde's
+/// generic "expected a nonzero" wording, which names no key.
+fn at_least_one<'de, D>(de: D) -> Result<Option<u32>, D::Error>
+where
+  D: serde::Deserializer<'de>,
+{
+  match Option::<u32>::deserialize(de)? {
+    Some(0) => Err(serde::de::Error::custom(
+      "backup.keep must be at least 1: a keep of 0 would remove the snapshot just taken \
+       -- remove the key to prune by `backup.retain` instead",
+    )),
+    other => Ok(other),
+  }
 }
 
 fn default_backup_enabled() -> bool {
@@ -324,7 +358,8 @@ impl Default for BackupConfig {
     Self {
       enabled: default_backup_enabled(),
       schedule: default_backup_schedule(),
-      retain: RetainConfig::default(),
+      retain: None,
+      keep: None,
     }
   }
 }

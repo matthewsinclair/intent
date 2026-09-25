@@ -39,6 +39,8 @@ mod a_cold_warm_leaves_a_peers_write;
 mod a_create_refuses_a_child_id_that_is_taken;
 #[path = "a_create_refuses_a_key_that_is_taken.rs"]
 mod a_create_refuses_a_key_that_is_taken;
+#[path = "a_due_backup_is_taken_by_whichever_door_asks.rs"]
+mod a_due_backup_is_taken_by_whichever_door_asks;
 #[path = "a_facade_catches_up_with_a_peers_commit.rs"]
 mod a_facade_catches_up_with_a_peers_commit;
 #[path = "a_fresh_clone_takes_its_boards.rs"]

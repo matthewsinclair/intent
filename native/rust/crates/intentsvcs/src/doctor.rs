@@ -2617,14 +2617,32 @@ fn backup_findings(project: &Project, store: &crate::store::Store) -> Vec<Findin
         // instrument's difficulty would leave the operator with the
         // impression that the mechanism runs and cannot be assessed.
         format!(
-          "backup.schedule is {value:?}, which is not one of hourly, daily, weekly \
+          "backup.schedule is {value:?}, which is not one of {} \
            -- no scheduled backup is being taken, and the newest snapshot's age \
-           cannot be judged, until it is corrected"
+           cannot be judged, until it is corrected",
+          crate::backup::SCHEDULE_FORMS
         ),
       ));
       None
     }
   };
+
+  // **`keep` DECIDES ALONE, SO A `retain` BESIDE IT IS READ AND NOT
+  // HONOURED** (ST0080). Named rather than refused: the tiers look configured
+  // and prune nothing, which is exactly the setting-that-reads-as-honoured this
+  // subsystem keeps refusing to leave silent.
+  let backup = &project.config().backup;
+  if let (Some(keep), Some(_)) = (backup.keep, backup.retain) {
+    findings.push(Finding::new(
+      where_.clone(),
+      FindingClass::UnhonourableSetting,
+      format!(
+        "backup.keep is {keep} and backup.retain is also set: keep prunes to the newest \
+         {keep} snapshot(s) on its own and retain is ignored -- remove whichever you did \
+         not mean"
+      ),
+    ));
+  }
 
   match age {
     // **Never is its own message, not a very large number.** "no restorable

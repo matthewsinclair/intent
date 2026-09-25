@@ -329,7 +329,8 @@ pub enum FindingClass {
   /// zero**, which is why it blocks rather than carries.
   RetiredSetting,
   /// A setting whose value is well-formed and which the DATA cannot honour --
-  /// today, only `todo.window_hours` finer than the resolution of `completed`.
+  /// `todo.window_hours` finer than the resolution of `completed`, and a
+  /// `backup.retain` block beside a `backup.keep` that decides alone.
   ///
   /// **Distinct from [`RetiredSetting`](Self::RetiredSetting), which is a key
   /// v3 no longer reads at all.** This key is read, and the value is refused:

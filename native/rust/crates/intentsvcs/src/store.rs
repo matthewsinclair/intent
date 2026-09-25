@@ -5358,6 +5358,24 @@ impl Store {
     Ok(rows.collect::<Result<Vec<_>, _>>()?)
   }
 
+  /// Every good snapshot but the newest `keep`, oldest first -- `backup.keep`'s
+  /// rule. Failed attempts are never returned: they have no file, and they are
+  /// the record `doctor` reads.
+  pub fn snapshots_beyond_newest(&self, keep: u32) -> Result<Vec<(i64, String)>, StoreError> {
+    let mut stmt = self.conn.prepare(
+      "SELECT id, path FROM snapshots
+        WHERE outcome = 'ok' AND path IS NOT NULL
+          AND id NOT IN (
+            SELECT id FROM snapshots
+             WHERE outcome = 'ok' AND path IS NOT NULL
+             ORDER BY taken_at DESC, id DESC LIMIT ?1
+          )
+        ORDER BY taken_at, id",
+    )?;
+    let rows = stmt.query_map(params![keep], |row| Ok((row.get(0)?, row.get(1)?)))?;
+    Ok(rows.collect::<Result<Vec<_>, _>>()?)
+  }
+
   /// Drop a snapshot's row, once its file is gone.
   ///
   /// Deleted rather than marked, because this row's whole subject is a file

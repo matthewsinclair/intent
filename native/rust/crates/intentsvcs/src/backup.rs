@@ -134,11 +134,40 @@ impl Retention {
   /// rather than silently becoming the default, which is the same direction
   /// `config set` takes on an uncoercible value.
   pub fn from_project(project: &Project) -> Self {
-    let retain = project.config().backup.retain;
+    let retain = project.config().backup.retain.unwrap_or_default();
     Self {
       daily: retain.daily,
       weekly: retain.weekly,
       monthly: retain.monthly,
+    }
+  }
+}
+
+/// Which rule prunes this project's snapshots: `backup.keep` when it is set,
+/// the `backup.retain` tiers when it is not.
+///
+/// **ONE RULE AT A TIME, NEVER BOTH** (ST0080). Two rules applied together
+/// would hold a snapshot by one and remove it by the other, and which won
+/// would be an accident of order. A config that sets both is named by
+/// `doctor` rather than refused, because every verb reads config and a
+/// pruning preference is not worth taking the tool down over.
+///
+/// **THE FLAT COUNT IS THE OPERATOR'S TRADE TO MAKE.** [`Retention`] says why
+/// the tiers are the default: `keep: 20` on an hourly schedule holds less
+/// than a day. A project that sets `keep` has chosen that.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Pruning {
+  /// Keep the newest N good snapshots.
+  Newest(u32),
+  /// Keep what the daily, weekly and monthly tiers hold.
+  Tiers(Retention),
+}
+
+impl Pruning {
+  pub fn from_project(project: &Project) -> Self {
+    match project.config().backup.keep {
+      Some(n) => Self::Newest(n),
+      None => Self::Tiers(Retention::from_project(project)),
     }
   }
 }
@@ -172,6 +201,12 @@ pub enum Schedule {
   Unrecognised(String),
 }
 
+/// The forms `backup.schedule` accepts, as every reporter of an unreadable
+/// schedule names them. One sentence in one place, because `doctor`, intentd
+/// and `intent explore` all say it and three copies drift.
+pub const SCHEDULE_FORMS: &str =
+  "hourly, daily, weekly, or a whole number of hours or days such as 12h or 7d";
+
 /// Read the configured backup schedule.
 ///
 /// **What this replaced is the reason it exists.** The period used to be
@@ -181,13 +216,43 @@ pub enum Schedule {
 /// against a number none of them could name, find, or change. The ratified key
 /// is `backup.schedule` (D35, hv, 2026-08-15), and 24 is now the declared
 /// default of a declared key rather than a literal at the end of a chain.
+///
+/// **THE THREE WORDS KEEP THEIR MEANINGS AND DURATIONS ARE ADDED BESIDE THEM**
+/// (ST0080): `<N>h` and `<N>d` with N a whole number of at least 1. Anything
+/// else -- `0h`, `1.5d`, `2w`, `monthly`, `off` -- is carried as
+/// [`Schedule::Unrecognised`]. **There is no `off`**: `backup.enabled: false`
+/// is the one switch that stops scheduled backups, and a second spelling of
+/// it here could say off while the other said daily.
 pub fn schedule(project: &Project) -> Schedule {
-  match project.config().backup.schedule.as_str() {
-    "hourly" => Schedule::Hours(1),
-    "daily" => Schedule::Hours(24),
-    "weekly" => Schedule::Hours(168),
-    other => Schedule::Unrecognised(other.to_string()),
+  parse_schedule(&project.config().backup.schedule)
+}
+
+/// [`schedule`]'s reading of one value, apart from the project that holds it.
+pub fn parse_schedule(value: &str) -> Schedule {
+  let hours = match value {
+    "hourly" => Some(1),
+    "daily" => Some(24),
+    "weekly" => Some(168),
+    _ => duration_hours(value),
+  };
+  match hours {
+    Some(hours) => Schedule::Hours(hours),
+    None => Schedule::Unrecognised(value.to_string()),
   }
+}
+
+/// `<N>h` or `<N>d` as hours; `None` for anything else, including N of 0, a
+/// sign, a fraction or a period too long to count in hours.
+fn duration_hours(value: &str) -> Option<u32> {
+  let (digits, per) = value
+    .strip_suffix('h')
+    .map(|n| (n, 1))
+    .or_else(|| value.strip_suffix('d').map(|n| (n, 24)))?;
+  if digits.is_empty() || !digits.bytes().all(|b| b.is_ascii_digit()) {
+    return None;
+  }
+  let n: u32 = digits.parse().ok()?;
+  (n >= 1).then_some(n)?.checked_mul(per)
 }
 
 /// Where snapshots live for this project.
@@ -275,7 +340,29 @@ pub fn prune(
   let expired = store
     .expired_snapshots(retention.daily, retention.weekly, retention.monthly)
     .map_err(BackupError::Record)?;
+  remove(project, store, expired)
+}
 
+/// Remove every good snapshot but the newest `keep` -- `backup.keep`'s rule,
+/// with [`prune`]'s confinement.
+pub fn prune_newest(
+  project: &Project,
+  store: &Store,
+  keep: u32,
+) -> Result<Vec<PathBuf>, BackupError> {
+  let expired = store
+    .snapshots_beyond_newest(keep)
+    .map_err(BackupError::Record)?;
+  remove(project, store, expired)
+}
+
+/// Delete the files of expired snapshot rows and forget the rows, confined to
+/// [`SNAPSHOT_DIR`] whichever rule chose them.
+fn remove(
+  project: &Project,
+  store: &Store,
+  expired: Vec<(i64, String)>,
+) -> Result<Vec<PathBuf>, BackupError> {
   let dir = snapshot_dir(project);
   let mut removed = Vec::new();
   for (id, rel) in expired {
@@ -344,8 +431,64 @@ pub struct Cycle {
 /// when the caller is a daemon nobody is watching.
 pub fn cycle(project: &Project, store: &Store) -> Result<Cycle, BackupError> {
   let written = take(project, store)?;
-  let removed = prune(project, store, Retention::from_project(project))?;
+  let removed = match Pruning::from_project(project) {
+    Pruning::Newest(keep) => prune_newest(project, store, keep)?,
+    Pruning::Tiers(retention) => prune(project, store, retention)?,
+  };
   Ok(Cycle { written, removed })
+}
+
+/// Take a scheduled backup if one is due -- [`due`] then [`cycle`], as ONE
+/// call, so every door that honours `backup.schedule` composes them the same
+/// way (ST0080).
+///
+/// **THE DOORS ARE intentd's SWEEP AND `intent explore`.** intentd reaches only
+/// the projects it holds open, so a project worked through the in-process CLI
+/// was never backed up on its schedule -- Lamplight's newest snapshot was 433h
+/// old against `daily`. `explore` is the door hv named; a session hook was
+/// considered and left out, because hooks run `intent` in every Claude session
+/// and a snapshot is seconds of writing in front of each one.
+///
+/// **A CALLER MUST NOT RUN THIS WHERE IT CAN BE ABANDONED.** A snapshot is a
+/// write: a thread given up on mid-`VACUUM INTO` leaves a partial file and an
+/// attempt row with no outcome. `explore`'s loader abandons its thread on
+/// `Esc`, which is right for its reads, so `explore` calls this after the load
+/// and not inside it.
+///
+/// **`before_taking` RUNS ONLY WHEN A BACKUP IS DUE, JUST BEFORE IT STARTS**,
+/// so a door with a person in front of it can say why the next few seconds
+/// are a wait. The daemon has nobody to tell and passes `|| {}`.
+///
+/// A failed snapshot is `Err`, and [`take`] has already recorded it as failed,
+/// so `doctor` reports it whether or not the caller says anything.
+pub fn if_due(
+  project: &Project,
+  store: &Store,
+  before_taking: impl FnOnce(),
+) -> Result<Ran, BackupError> {
+  Ok(match due(project, store)? {
+    Due::Now => {
+      before_taking();
+      Ran::Took(cycle(project, store)?)
+    }
+    Due::NotYet => Ran::NotYet,
+    Due::Disabled => Ran::Disabled,
+    Due::Unschedulable(value) => Ran::Unschedulable(value),
+  })
+}
+
+/// What [`if_due`] did.
+#[derive(Debug)]
+pub enum Ran {
+  /// A backup was due and was taken; the cycle's outcome.
+  Took(Cycle),
+  /// The newest good snapshot is younger than the period allows for.
+  NotYet,
+  /// `backup.enabled` is false.
+  Disabled,
+  /// `backup.schedule` could not be read, so nothing is being taken. Carries
+  /// the value as written.
+  Unschedulable(String),
 }
 
 /// Whether a scheduled backup should run now.
@@ -391,6 +534,14 @@ pub fn due(project: &Project, store: &Store) -> Result<Due, BackupError> {
     Schedule::Unrecognised(value) => return Ok(Due::Unschedulable(value)),
   };
 
+  // **DUE AT NINE TENTHS OF THE PERIOD, NOT AT THE PERIOD** (ST0080, vc under
+  // hv's go, 2026-09-25). A door opened by habit rather than by a timer would
+  // otherwise miss by minutes: `explore` opened at 09:00 each day after a
+  // 09:05 snapshot finds 23.9h against 24h, and `daily` becomes every other
+  // day. So "daily" means "once in each day's use", never "exactly 24h". The
+  // daemon backs up at most a tenth early, which costs nothing; `doctor`'s
+  // staleness check keeps its own grace and does not read this.
+  let every = every * DUE_AT;
   match store
     .hours_since_last_good_snapshot()
     .map_err(BackupError::Record)?
@@ -404,6 +555,9 @@ pub fn due(project: &Project, store: &Store) -> Result<Due, BackupError> {
     Some(_) => Ok(Due::NotYet),
   }
 }
+
+/// The fraction of the configured period after which a backup is due.
+pub const DUE_AT: f64 = 0.9;
 
 /// The answer [`due`] gives.
 ///

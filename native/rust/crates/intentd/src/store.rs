@@ -711,51 +711,32 @@ fn ingest(facade: &mut Facade, root: &Path) {
 /// *never only in a log nobody reads*, and it is the reason this function can
 /// print without that being the whole of its reporting.
 fn consider_backup(facade: &mut Facade, root: &Path, said_why_it_is_not_backing_up: &mut bool) {
-  match intentsvcs::backup::due(facade.project(), facade.store()) {
-    Ok(intentsvcs::backup::Due::Now) => {
-      match intentsvcs::backup::cycle(facade.project(), facade.store()) {
-        Ok(ran) => {
-          let project = facade.project();
-          logln!(
-            "intentd: backed up `{}` to {}{}",
-            root.display(),
-            project.relative(&ran.written),
-            match ran.removed.len() {
-              0 => String::new(),
-              n => format!(" ({n} expired snapshot(s) removed)"),
-            }
-          );
+  // **`if_due` IS THE COMPOSITION, SO THE DAEMON HOLDS NONE OF IT** (ST0080).
+  // Until `intent explore` became a second door, this function called `due`
+  // and then `cycle` itself; two doors composing the same pair is two
+  // implementations that agree today.
+  match intentsvcs::backup::if_due(facade.project(), facade.store(), || {}) {
+    Ok(intentsvcs::backup::Ran::Took(ran)) => {
+      let project = facade.project();
+      logln!(
+        "intentd: backed up `{}` to {}{}",
+        root.display(),
+        project.relative(&ran.written),
+        match ran.removed.len() {
+          0 => String::new(),
+          n => format!(" ({n} expired snapshot(s) removed)"),
         }
-        Err(e) => elogln!(
-          "warning: intentd: the scheduled backup of `{}` failed: {}\n  remedy: {}",
-          root.display(),
-          e,
-          e.remedy()
-        ),
-      }
-      // The prose index's check runs here, on the sweep, and not on each
-      // watcher refresh: it holds the writer lock for about 330 ms.
-      match facade.index_repair_prose() {
-        Ok(None) => {}
-        Ok(Some(repair)) => elogln!(
-          "note: intentd: checking `{}`'s index: {}",
-          root.display(),
-          repair.sentence()
-        ),
-        Err(e) => elogln!(
-          "warning: intentd: could not check `{}`'s prose index: {e}\n  remedy: `intent doctor` reads it, and `intent index rebuild` rebuilds it.",
-          root.display()
-        ),
-      }
+      );
+      check_prose_index(facade, root);
     }
-    Ok(intentsvcs::backup::Due::NotYet) => {}
+    Ok(intentsvcs::backup::Ran::NotYet) => {}
     // **ANNOUNCED, NOT SILENT, THOUGH IT IS NOT AN ERROR.** The operator asked
     // for this, so there is no remedy to offer and none is offered. What the
     // line buys is the answer to *why is my daemon not backing this up*
     // WITHOUT having to go and read a config file to find out -- and the
     // sentence deliberately says what remains true, because the setting stops
     // the sweep and stops nothing else.
-    Ok(intentsvcs::backup::Due::Disabled) => {
+    Ok(intentsvcs::backup::Ran::Disabled) => {
       if !*said_why_it_is_not_backing_up {
         *said_why_it_is_not_backing_up = true;
         logln!(
@@ -767,23 +748,47 @@ fn consider_backup(facade: &mut Facade, root: &Path, said_why_it_is_not_backing_
     // **SAID ONCE, NOT ONCE A SWEEP.** See the flag's declaration on the store
     // thread; and `doctor` is what an operator actually meets, which reports
     // the same setting from the same config with the remedy attached.
-    Ok(intentsvcs::backup::Due::Unschedulable(value)) => {
+    Ok(intentsvcs::backup::Ran::Unschedulable(value)) => {
       if !*said_why_it_is_not_backing_up {
         *said_why_it_is_not_backing_up = true;
         elogln!(
-          "warning: intentd: `{}` is NOT being backed up: backup.schedule is {value:?}, which is not one of hourly, daily, weekly\n  remedy: correct backup.schedule in the project's config.json. `intent doctor` reports this too, with the estate's other findings.",
-          root.display()
+          "warning: intentd: `{}` is NOT being backed up: backup.schedule is {value:?}, which is not one of {}\n  remedy: correct backup.schedule in the project's config.json. `intent doctor` reports this too, with the estate's other findings.",
+          root.display(),
+          intentsvcs::backup::SCHEDULE_FORMS
         );
       }
     }
-    // The store could not be asked whether a backup was due. Reported rather
-    // than retried silently: the sweep comes round again, and a reader of this
-    // log needs to know the decision was not made rather than made as `no`.
-    Err(e) => elogln!(
-      "warning: intentd: could not tell whether `{}` is due a backup: {}\n  remedy: {}",
+    // A due backup that failed, or a store that could not say whether one was
+    // due. The error names which, and a failed snapshot is already recorded as
+    // failed for `doctor`. Reported rather than retried silently: the sweep
+    // comes round again, and a reader of this log needs to know.
+    Err(e) => {
+      elogln!(
+        "warning: intentd: the scheduled backup of `{}` did not complete: {}\n  remedy: {}",
+        root.display(),
+        e,
+        e.remedy()
+      );
+      // A backup that keeps failing must not also stop the index check that
+      // rides the same sweep.
+      check_prose_index(facade, root);
+    }
+  }
+}
+
+/// The prose index's check, which rides a due backup's sweep rather than each
+/// watcher refresh: it holds the writer lock for about 330 ms.
+fn check_prose_index(facade: &mut Facade, root: &Path) {
+  match facade.index_repair_prose() {
+    Ok(None) => {}
+    Ok(Some(repair)) => elogln!(
+      "note: intentd: checking `{}`'s index: {}",
       root.display(),
-      e,
-      e.remedy()
+      repair.sentence()
+    ),
+    Err(e) => elogln!(
+      "warning: intentd: could not check `{}`'s prose index: {e}\n  remedy: `intent doctor` reads it, and `intent index rebuild` rebuilds it.",
+      root.display()
     ),
   }
 }
