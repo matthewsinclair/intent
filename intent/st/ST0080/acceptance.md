@@ -13,7 +13,23 @@ title: Scheduled store backups that actually fire
 
 ## Acceptance Criteria
 
+### ST-level
+
+- AC-00.1 A project's backup.schedule fires for a project intentd never opens: intent explore takes a due backup after its load and before the terminal is taken, through backup::if_due, the one composition intentd's sweep also calls, and announces the wait on stderr first. -- satisfied: yes (computed)
+- AC-00.2 backup.schedule accepts hourly, daily and weekly with their meanings unchanged, and <N>h or <N>d with N a whole number of at least 1; any other value, off included, is carried as written and reported, never rounded, and backup.enabled: false stays the one off switch. -- satisfied: yes (computed)
+- AC-00.3 A backup is due once the newest good snapshot is nine tenths of the period old, so daily means once in each day's use and a once-a-morning explore gets a daily backup. -- satisfied: yes (computed)
+- AC-00.4 backup.keep: N, when set, is the whole pruning rule and keeps the newest N good snapshots; a keep of 0 is refused when the config is read, naming the key; and intent doctor names a config that also sets backup.retain, which keep leaves unread. -- satisfied: yes (computed)
+- AC-00.5 A due backup that fails, or a backup.schedule that cannot be read, is never silent and the explorer still opens: it is printed on stderr as a warning with its remedy, shown on the explorer's info row, and a failed snapshot is recorded where intent doctor reports it. -- satisfied: yes (computed)
+
 ## Acceptance Tests
+
+### ST-level
+
+- AT-00.1 `native/rust/crates/intentsvcs/tests/a_due_backup_is_taken_by_whichever_door_asks.rs` -- covers AC-00.1 -- status: green -- Driven in a pty through pyte on 2026-09-25 in a fresh init project under a short HOME: due, not due and a bad schedule; the due case took one snapshot after printing the wait line, and the explorer drew.
+- AT-00.2 `native/rust/crates/intentsvcs/tests/a_due_backup_is_taken_by_whichever_door_asks.rs` -- covers AC-00.2 -- status: green
+- AT-00.3 `native/rust/crates/intentsvcs/tests/a_due_backup_is_taken_by_whichever_door_asks.rs` -- covers AC-00.3 -- status: green
+- AT-00.4 `native/rust/crates/intentsvcs/tests/a_due_backup_is_taken_by_whichever_door_asks.rs` -- covers AC-00.4 -- status: green
+- AT-00.5 `native/rust/crates/intentsvcs/tests/a_due_backup_is_taken_by_whichever_door_asks.rs` -- covers AC-00.5 -- status: green -- Driven in a pty through pyte on 2026-09-25 in a fresh init project under a short HOME: due, not due and a bad schedule; the bad-schedule case warned on stderr with its remedy, named it on the info row, took nothing, and the explorer opened.
 
 ---
 
