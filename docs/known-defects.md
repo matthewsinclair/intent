@@ -1,65 +1,28 @@
-# Known defects in v3.2.1
+# Known defects in v3.2.2
 
-**Every defect on this page has been run against the build v3.2.1 is cut from.** Not inferred from our issue register: driven against that build before its version stamp moved, when `intent --version` printed `intent 3.2.0 (e2f5ce4b3201417247fcca9ebc17848f967d0e38) dev`, each in a fresh scratch project under an isolated `HOME`. Where a claim could not be driven it is not on the page, and the last sections say what that leaves out.
+**Every defect on this page has been run against the build v3.2.2 is cut from.** Not inferred from our issue register: driven against that build before its version stamp moved, when `intent --version` printed `intent 3.2.1 (4948804861f6b431d3747ae69c7ec8119e871ccf) dev`, each in a fresh scratch project under an isolated `HOME`. Where a claim could not be driven it is not on the page, and the last sections say what that leaves out.
 
 **A defect is on this page if you can hit it by following the documentation correctly.** Something that only bites a maintainer editing the register, or a team sharing one checkout, is recorded against the issue rather than here.
 
-**An issue's status in our register does not tell you whether the defect is in your build.** Some issues this page cites are closed in the register and some are open, and each entry below reproduces on this build whichever it is.
+**An issue's status in our register does not tell you whether the defect is in your build.** Every issue this page cites is closed in the register, and each entry below reproduces on this build all the same.
 
 **The page is re-driven whole at every release, and an entry that no longer reproduces leaves it.** A page titled for one release lists what a reader of that release has. What each release fixed is in `CHANGELOG.md`, and an entry that left names the release that fixed it in the commit that removed it.
 
-## Setting up a project
-
-**`intent init` points you at `--help` for notes that `--help` does not carry** (`intent#0558`). A fresh `intent init` exits 0 and ends its list of the files it wrote with:
-
-```
-    (3 embedded template(s) deliberately not written -- run with --help for the family notes)
-```
-
-`intent init --help | grep -i family` prints nothing and exits 1: the help has no family notes, so the pointer leads nowhere. The project is initialised; only the pointer is wrong.
-
-**`intent claude upgrade --apply` calls a seed yours when it is byte for byte what the upgrade wrote** (`intent#0565`). On a fresh project the first run writes `.mcp.json`, and the second reports it as the project's own:
-
-```
-  $ intent claude upgrade --apply | grep -F .mcp.json
-  written: .mcp.json
-  $ intent claude upgrade --apply | grep -F .mcp.json
-  preserved: .mcp.json (yours, not canon's)
-```
-
-`cmp` against `lib/templates/_mcp.json` in the install (`intent info` prints its path as `INTENT_HOME`) exits 0: nobody touched the file. `preserved` is right that the run left it alone, since `.mcp.json` is seeded only when it is absent, and wrong that it is yours. **Read `preserved:` as "left as it was"**, and compare the file with the install's template when you need to know whether it differs.
-
 ## The search index
-
-**The store's FTS5 index for the source half can go malformed, so a search on an affected term fails** (`intent#0442`, closed on a repair and a detector with its cause unreproduced). The damage is a document the index still holds with no row in its content table. Its cause is not reproduced: no deliberate attempt to produce it has succeeded. What `intent doctor` does, since v3.1.0, is see it. Driven on a store damaged the same way by hand, one row deleted from the source index's content table while the index keeps its document:
-
-```
-  $ intent doctor
-  advisory: 1 note(s) not shown and not counted -- `intent doctor --verbose` reads them
-  surface: `index rebuild` withholds --corpus pending a decision on whether it ships -- it is declared and deliberately not built
-  search-index: src_sections -- both index probes are dirty: the index-side probe and fts5's own check both object (on both of two readings), not counted in the verdict
-    remedy: `intent index rebuild` re-indexes the tree (its store write runs FTS5's own rebuild)
-    orphaned: 1 docid(s) the index holds with no content row: 1
-    fts5 check: malformed inverted index for FTS5 table main.src_sections
-    shadow tables disagree: 1 docsize row(s) with no content row, 0 content row(s) with no docsize row
-  doctor: 0 finding(s) across 0 thread(s), 0 issue(s), 2 view(s), 10 file(s) -- 1 advisory(ies), not counted -- search index DAMAGED in src_sections, not counted; `intent index rebuild` repairs it
-```
-
-It exits 0. The search index is shown and not counted, so it never moves `doctor`'s exit code, and the summary line carries it under `--quiet` too. **Run `intent index rebuild`**: it rewrites the index in one pass, the entities were never affected, and `doctor` then reads `search index: no orphaned document and fts5's check clean, from two probes that share one blind spot (both read the index's segments)`. That last clause is deliberate: both readings go through the index's own segments, so a clean pair is not two independent witnesses. The entry was also driven on a copy of the damage that actually happened, the store kept as evidence for `intent#0442`, where the same probes name its orphaned document and fts5's own `checksum mismatch`, and `intent index rebuild` clears it the same way.
 
 **In a project a running `intentd` watches, a plain `intent search` can miss a file written a moment ago.** A search in this process skips its own reconcile when a daemon is watching the project (since issue 0443), and relies on the daemon's watcher to have indexed the change. Until the watcher has, the file is not in the answer. The answer says so: `intent search --json` reports `"reconciled": false`, where a search that reconciled first reports `"reconciled": true`, and it reports `"complete": true` either way. Driven under an isolated `HOME`, with `intent daemon start`, then `intent --daemon st list` to open the project, and a file written just before each search:
 
 ```
   $ intent search KDPROBE1 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":["src/probe1.rs"],"complete":true,"reconciled":false,"reconciled_at":"2026-09-24T20:57:20.211Z"}
+  {"hits":["src/probe1.rs"],"complete":true,"reconciled":false,"reconciled_at":"2026-09-25T13:10:02.781Z"}
   $ intent search KDPROBE2 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-09-24T20:57:20.211Z"}
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-09-25T13:10:02.781Z"}
   $ intent search KDPROBE3 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-09-24T20:57:20.211Z"}
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-09-25T13:10:02.781Z"}
   $ intent search KDPROBE4 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-09-24T20:57:20.211Z"}
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-09-25T13:10:02.781Z"}
   $ intent search KDPROBE5 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-09-24T20:57:20.211Z"}
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-09-25T13:10:02.781Z"}
   $ intent daemon stop
   ok: intentd stopped
   $ intent search KDPROBE5 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled}'
@@ -70,24 +33,13 @@ The same search with the daemon stopped reconciles first and finds the file. How
 
 **To search a tree you have just changed, stop the daemon first** (`intent daemon stop`), or search again once the watcher has caught up. An answer that reads `"reconciled": false` did not look at the tree before it answered.
 
-**A search answer carries every file its symbol resolution has gone stale on, on every query** (`intent#0549`). In a Rust project with a resolution recorded by `intent index resolve --lang rust`, edit some source files and rebuild the index: a search that finds one of them and a search that finds nothing both carry every one.
-
-```
-  $ intent search f1 --json | jq -c '.index.resolution.rust | {state, stale}'
-  {"state":"stale","stale":["src/f1.rs","src/f2.rs","src/f3.rs","src/f4.rs","src/f5.rs","src/f6.rs","src/f7.rs","src/f8.rs"]}
-  $ intent search nosuchname --json | jq -c '.index.resolution.rust | {state, stale}'
-  {"state":"stale","stale":["src/f1.rs","src/f2.rs","src/f3.rs","src/f4.rs","src/f5.rs","src/f6.rs","src/f7.rs","src/f8.rs"]}
-```
-
-The list holds every stale file and rides every answer, whatever the answer holds. That is the `--json` answer, driven here. The `intent_search` tool that `intent mcp` serves answers in the same envelope, which the build's own tests hold the two to; `intent mcp` was not driven for this page, so that half is read from those tests.
-
 ## A stray directory disables the whole project
 
 **An `STnnnn` directory anywhere under `intent/st/` that holds a thread's files is picked up as a thread, and one it cannot read stops commands that have nothing to do with it** (`intent#0011`). A staging copy at `intent/st/staging/ST0099/` holding `info.md` and `acceptance.md`, copied from a thread this build rendered, is enough. What you get is not a duplicate row in a listing, it is:
 
 ```
   $ intent st list
-  error: this project has not been migrated to Intent v3 -- it declares Intent 3.2.0, and 1 steel thread carries v2 canon this binary cannot read (ST0099)
+  error: this project has not been migrated to Intent v3 -- it declares Intent 3.2.1, and 1 steel thread carries v2 canon this binary cannot read (ST0099)
     remedy: run `intent upgrade` to migrate this project to Intent v3
 ```
 
@@ -111,15 +63,6 @@ None of the body is shown. `intent wp --help` describes the verb as `Show work p
 
 ## Criteria and tests
 
-**A test-backed criterion cannot carry a note, and the refusal sends you round a loop** (`intent#0211`). On a test-backed criterion that is not yet satisfied, `intent ac edit <ST> <AC> --note <text>` refuses at exit 1:
-
-```
-  error: `note` cannot be set on `intent:///threads/ST0001/ac/AC-01.3`: AC-01.3 is computed, and only an unsatisfied criterion carries a note -- a computed row keeps its own record, so move it with `intent ac unsatisfy|rescope|reinstate` first
-    remedy: go to the door the refusal names: a lifecycle verb for a field a state machine owns, the member's own address for a collection, and the list's own verbs for a list that has them
-```
-
-The criterion is unsatisfied (`ac show` prints `satisfied: no`), and none of the three verbs moves it: `ac unsatisfy` refuses with `AC-01.3 is test-backed, so its satisfaction is computed from covering green acceptance tests and cannot be set directly`, and `ac rescope` and `ac reinstate` each answer `ok: AC-01.3 already computed` and change nothing. Put the note on the covering test row instead: `intent at edit <ST> <AT> --note <text>` writes it.
-
 **The close gate passes a test row that cites no file** (`intent#0213`, and `intent#0229`, a second row for the same code site filed from an independent report). Create an AT with the default `--kind test` and no `--file`, take it red and then green, and both of these exit 0:
 
 ```
@@ -138,21 +81,6 @@ The criterion is unsatisfied (`ac show` prints `satisfied: no`), and none of the
 Two controls make it sharp. Remove the file from the worktree and the gate flips to `gate: ST0001 BLOCKED -- 1 acceptance test contract finding(s) over 1 row(s): AT-01.1 cites a file that does not exist: tests/probe.rs`, so the gate is genuinely reading the tree and the PASS was not indifference. And **the verdict names no tree**, so two people running the identical command in the same repository can get different answers with nothing in either output to explain the difference. Commit the cited files before reading a gate result as a claim about the project; on a shared checkout a PASS is a statement about one person's disk.
 
 **The citation check stops at close, with nothing saying so** (`intent#0267`). Close a thread on an honest citation, then remove the id from the cited file: `at lint` answers `lint: ST0001 ok -- 1 of 1 AT row(s) examined and conforming`, `ac gate` still answers `PASS`, and `doctor` does not mention it. The exemption is deliberate -- retrofitting id labels into a finished thread is archaeology -- and the defect is that nothing distinguishes _checked and true_ from _true at close, unchecked since_: the lint line calls the row `examined`. **The file-existence arm is not exempt**: delete the cited file and the same closed thread reports `AT-01.1 cites a file that does not exist: tests/a.rs` at exit 1. So a closed thread's coverage is checked for presence and not for content, and reads identically either way.
-
-## Syncing
-
-**Text appended to a generated view after its `_Generated by Intent v..._` banner is discarded by `sync --to-store`, which reports that it overwrote nothing** (`intent#0192`). Exit 0:
-
-```
-  $ printf '\n## Hand Added\n\nTEXT\n' >> intent/st/ST0001/info.md
-  $ intent sync --to-store
-  note: no thread the store already holds differs on disk, so this restore overwrites nothing (a thread the extract has and the store does not is an ADD and is not examined here)
-  ok: store rewritten from the canon extract; nothing the store already held was overwritten
-  $ grep -c TEXT intent/st/ST0001/info.md
-  0
-```
-
-`intent doctor` run before the sync reports the appended text as `view-skew` at exit 1; run after it, it reports nothing, because the view has been regenerated. **Run `intent doctor` before `sync --to-store`, and put prose in `## Objective` or `## Context`, the two sections that round-trip, or write it with `intent set`.**
 
 ## The rule critics
 
@@ -174,10 +102,12 @@ Listed in `--help` and refusing when called, exit codes as shown.
 
 **This is the driven set, not the whole register.** Every entry was driven in a fresh scratch project under an isolated `HOME`. Conditions that setup cannot create are not covered: several sessions sharing one checkout, and surfaces not driven for this page -- `intent fc`, `intent mcp`, `intent graphql`, `intent explore`, `intent browse` and the menubar app. Defects that need those conditions are not described here, because an undriven defect is a guess.
 
+**A damaged search index is repaired by the refresh that finds it** (`intent#0442`). A search that has changed files to refresh rebuilds the damaged index in the same write and says so in a `note:` line. A search with nothing to refresh leaves the damage where it is, and `intent doctor` reports it with `intent index rebuild` as the repair.
+
 If you hit something not listed, that is the gap rather than a surprise. The register is the fuller record, and `intent doctor` reports on your own project.
 
 ## Reading this against your own build
 
 `intent --version` names the build you are on. The sha it prints is the commit the binary was built at, and the word after it says which kind of build that is: `release` for a published release, which carries its tag's commit, and `dev` for a build of the tree between releases, which is the kind this page was driven on.
 
-**The register itself cannot tell you which build a row describes** (`intent#0191`). An issue carries no field naming the version it was broken or fixed in -- `intent issues show <id> --json` has `body`, `created`, `number`, `reporter`, `schema`, `severity`, `slug`, `status` and `title` and nothing about a build -- so `intent issues list` cannot separate rows about a published build from rows about `main`. This page is that partition for v3.2.1, drawn by driving each row. **If you find an issue that seems to describe your version, check here before believing it.**
+**The register itself cannot tell you which build a row describes** (`intent#0191`). An issue carries no field naming the version it was broken or fixed in -- `intent issues show <id> --json` has `body`, `created`, `number`, `reporter`, `schema`, `severity`, `slug`, `status` and `title` and nothing about a build -- so `intent issues list` cannot separate rows about a published build from rows about `main`. This page is that partition for v3.2.2, drawn by driving each row. **If you find an issue that seems to describe your version, check here before believing it.**
