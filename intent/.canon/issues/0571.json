@@ -3,9 +3,10 @@
   "number": 571,
   "slug": "intent-bootstrap-check-s-divergence-note-says-th",
   "title": "intent bootstrap --check's divergence note says the pointer's install runs the guards, when the running intent's install does",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-09-24",
+  "closed": "2026-09-25",
   "reporter": "Matthew Sinclair",
-  "body": "Found by dc on 2026-09-24 in the 3.2.1 doc audit; dc's verifier drove it with a planted roster.\n\nSeen: `intent bootstrap --check`'s divergence note (`render.rs:11869`) says the guards that run are the pointer's install's. As built, the gate body comes from the pointer, but the guard runner and its roster come from the running `intent`'s install, through `intent info` (`pre-commit.sh:94-102`, `:282`).\n\nExpected: the note names where each part of the gate comes from.\n\nDisposition: vc, 2026-09-24 -- filed for after the stabilisation line; `intent/docs/pre-commit-hook.md` describes the as-built behaviour.\n"
+  "body": "Found by dc on 2026-09-24 in the 3.2.1 doc audit; dc's verifier drove it with a planted roster.\n\nSeen: `intent bootstrap --check`'s divergence note (`render.rs:11869`) says the guards that run are the pointer's install's. As built, the gate body comes from the pointer, but the guard runner and its roster come from the running `intent`'s install, through `intent info` (`pre-commit.sh:94-102`, `:282`).\n\nExpected: the note names where each part of the gate comes from.\n\nDisposition: vc, 2026-09-24 -- filed for after the stabilisation line; `intent/docs/pre-commit-hook.md` describes the as-built behaviour.\n\n\nFixed in 3.2.2 by `c5df59a6b` (vc, 2026-09-25): the commit message names the bank, its patch-id and the judge.\n"
 }

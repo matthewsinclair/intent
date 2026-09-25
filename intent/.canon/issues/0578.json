@@ -3,9 +3,10 @@
   "number": 578,
   "slug": "the-opt-in-post-tool-advisory-hands-the-model-a",
   "title": "the opt-in post-tool advisory hands the model a clean critic run's output, because its empty-output test never fires",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-09-24",
+  "closed": "2026-09-25",
   "reporter": "Matthew Sinclair",
-  "body": "Found by cc's templates audit on 2026-09-24 for the 3.2.1 doc audit; measured by cc.\n\nSeen: `lib/templates/.claude/scripts/post-tool-advisory.sh:82-83` tests `[ -z \"$findings\" ]` to stay quiet on a clean run, and that test never fires, because `intent critic` always prints its census -- a clean run prints three lines at rc 0. So with the opt-in advisory switched on, every Write or Edit hands the model a clean run's output.\n\nExpected: a clean critic run adds nothing to the model's context.\n\nDisposition: vc, 2026-09-24 -- low, filed for after the stabilisation line; the advisory is opt-in.\n"
+  "body": "Found by cc's templates audit on 2026-09-24 for the 3.2.1 doc audit; measured by cc.\n\nSeen: `lib/templates/.claude/scripts/post-tool-advisory.sh:82-83` tests `[ -z \"$findings\" ]` to stay quiet on a clean run, and that test never fires, because `intent critic` always prints its census -- a clean run prints three lines at rc 0. So with the opt-in advisory switched on, every Write or Edit hands the model a clean run's output.\n\nExpected: a clean critic run adds nothing to the model's context.\n\nDisposition: vc, 2026-09-24 -- low, filed for after the stabilisation line; the advisory is opt-in.\n\n\nFixed in 3.2.2 by `4e0c13b05`, `82e5a67cc`, `eb55024d9` (vc, 2026-09-25): the commit message names the bank, its patch-id and the judge.\n"
 }

@@ -3,9 +3,10 @@
   "number": 558,
   "slug": "intent-init-points-at-help-for-the-family-notes",
   "title": "intent init points at --help for the family notes of the templates it did not write, and --help has none",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-09-24",
+  "closed": "2026-09-25",
   "reporter": "Matthew Sinclair",
-  "body": "Found on 2026-09-24 by vc's subagent driving `docs/getting-started.md` for the 3.2.1 doc audit, on the pair at `4c687eaad`.\n\nSeen: `intent init` ends its listing with \"(3 embedded template(s) deliberately not written -- run with --help for the family notes)\" (`render.rs:8528-8533`), and `intent init --help` prints no family notes. The per-template reasons exist -- `skipped: Vec<(&str, &str)>` at `init.rs:146-148` -- and nothing prints them, so the pointer sends the reader to a page that does not hold what it promises.\n\nExpected: the reasons are printed where the pointer says, or the pointer names where they are.\n\nDisposition: vc, 2026-09-24 -- filed for after the stabilisation line; outside the shipping-grade test of hv decision 33 (1).\n"
+  "body": "Found on 2026-09-24 by vc's subagent driving `docs/getting-started.md` for the 3.2.1 doc audit, on the pair at `4c687eaad`.\n\nSeen: `intent init` ends its listing with \"(3 embedded template(s) deliberately not written -- run with --help for the family notes)\" (`render.rs:8528-8533`), and `intent init --help` prints no family notes. The per-template reasons exist -- `skipped: Vec<(&str, &str)>` at `init.rs:146-148` -- and nothing prints them, so the pointer sends the reader to a page that does not hold what it promises.\n\nExpected: the reasons are printed where the pointer says, or the pointer names where they are.\n\nDisposition: vc, 2026-09-24 -- filed for after the stabilisation line; outside the shipping-grade test of hv decision 33 (1).\n\n\nFixed in 3.2.2 by `45d09ea10` (vc, 2026-09-25): the commit message names the bank, its patch-id and the judge.\n"
 }

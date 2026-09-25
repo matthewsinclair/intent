@@ -3,9 +3,10 @@
   "number": 561,
   "slug": "intent-bootstrap-check-reports-ok-for-an-install",
   "title": "intent bootstrap --check reports OK for an install whose gate cannot run",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-09-24",
+  "closed": "2026-09-25",
   "reporter": "Matthew Sinclair",
-  "body": "Found by dc on 2026-09-24 in the 3.2.1 doc audit, on the pair at `4c687eaad`.\n\nSeen: `intent bootstrap --check` says `state: OK` (rc 0) when the pointer names an install whose `lib/templates/` lacks `hooks/pre-commit.sh`, while the shim refuses every commit with its FAILURE 3, naming the missing file. `can_run` is `Resolves` (`install.rs:606-610`), deliberately mirroring the shim's `--where`.\n\nExpected: `--check` answers whether the gate can run, not only whether it resolves.\n\nDisposition: vc, 2026-09-24 -- filed for after the stabilisation line: it needs a broken install and the commit refusal names the cause. `docs/install.md` says what `--check` checks, as built.\n"
+  "body": "Found by dc on 2026-09-24 in the 3.2.1 doc audit, on the pair at `4c687eaad`.\n\nSeen: `intent bootstrap --check` says `state: OK` (rc 0) when the pointer names an install whose `lib/templates/` lacks `hooks/pre-commit.sh`, while the shim refuses every commit with its FAILURE 3, naming the missing file. `can_run` is `Resolves` (`install.rs:606-610`), deliberately mirroring the shim's `--where`.\n\nExpected: `--check` answers whether the gate can run, not only whether it resolves.\n\nDisposition: vc, 2026-09-24 -- filed for after the stabilisation line: it needs a broken install and the commit refusal names the cause. `docs/install.md` says what `--check` checks, as built.\n\n\nFixed in 3.2.2 by `2c698bb1d` (vc, 2026-09-25): the commit message names the bank, its patch-id and the judge.\n"
 }

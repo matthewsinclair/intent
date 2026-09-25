@@ -3,9 +3,10 @@
   "number": 581,
   "slug": "the-shell-critic-s-census-says-no-rule-was-asked",
   "title": "the shell critic's census says no rule was asked while it reports findings, when shellcheck declines a file in the run",
-  "status": "open",
+  "status": "closed",
   "severity": "medium",
   "created": "2026-09-24",
+  "closed": "2026-09-25",
   "reporter": "Matthew Sinclair",
-  "body": "Found by cc on 2026-09-24 in the 3.2.1 doc audit's rules pass, driven on the pair at `4c687eaad`.\n\nSeen: `intent critic shell` printed \"0 of 6 rule(s) ASKED\" while reporting CRITICAL and WARNING findings from IN-SH-CODE-001 and IN-SH-CODE-002, on a run that included a `.zsh` file shellcheck declines. The decline rewrites the whole rule's disposition (`critic.rs:1484-1489`), so the census understates what ran -- the false-clean direction for a line a reader uses to judge a clean result.\n\nExpected: the census counts the rules that ran on the files they ran on, and names the files a tool declined, separately.\n\nDisposition: vc, 2026-09-24 -- filed for after the stabilisation line.\n"
+  "body": "Found by cc on 2026-09-24 in the 3.2.1 doc audit's rules pass, driven on the pair at `4c687eaad`.\n\nSeen: `intent critic shell` printed \"0 of 6 rule(s) ASKED\" while reporting CRITICAL and WARNING findings from IN-SH-CODE-001 and IN-SH-CODE-002, on a run that included a `.zsh` file shellcheck declines. The decline rewrites the whole rule's disposition (`critic.rs:1484-1489`), so the census understates what ran -- the false-clean direction for a line a reader uses to judge a clean result.\n\nExpected: the census counts the rules that ran on the files they ran on, and names the files a tool declined, separately.\n\nDisposition: vc, 2026-09-24 -- filed for after the stabilisation line.\n\n\nFixed in 3.2.2 by `1ecf8b418` (vc, 2026-09-25): the commit message names the bank, its patch-id and the judge.\n"
 }

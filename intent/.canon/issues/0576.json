@@ -3,9 +3,10 @@
   "number": 576,
   "slug": "the-stop-hook-prints-its-in-finish-reminder-as-p",
   "title": "the Stop hook prints its /in-finish reminder as plain stdout, which Claude Code may send only to its debug log",
-  "status": "open",
+  "status": "closed",
   "severity": "medium",
   "created": "2026-09-24",
+  "closed": "2026-09-25",
   "reporter": "Matthew Sinclair",
-  "body": "Found by cc's templates audit on 2026-09-24 for the 3.2.1 doc audit. It rests on Claude Code's hooks documentation (code.claude.com/docs/en/hooks, fetched by cc's auditor that day), and it has NOT been driven in a running Claude Code session.\n\nSeen: `lib/templates/.claude/scripts/session-finish.sh`, the Stop hook, prints its `/in-finish` reminder as plain stdout. Per the hooks page, a Stop hook's stdout goes to the debug log only, and a hook reaches the user through `systemMessage` in JSON output. So the reminder that `_AGENTS.md`, `_CLAUDE.md` and `_usage-rules.md` promise may reach nobody. cc's session has never seen its text.\n\nExpected: the Stop hook's reminder reaches the person or agent it is written for, or the templates stop promising it.\n\nDisposition: vc, 2026-09-24 -- filed for after the stabilisation line. The fix changes a hook's output contract in every estate the moment the template is saved, and the evidence it needs first is one real session showing where a Stop hook's stdout goes.\n"
+  "body": "Found by cc's templates audit on 2026-09-24 for the 3.2.1 doc audit. It rests on Claude Code's hooks documentation (code.claude.com/docs/en/hooks, fetched by cc's auditor that day), and it has NOT been driven in a running Claude Code session.\n\nSeen: `lib/templates/.claude/scripts/session-finish.sh`, the Stop hook, prints its `/in-finish` reminder as plain stdout. Per the hooks page, a Stop hook's stdout goes to the debug log only, and a hook reaches the user through `systemMessage` in JSON output. So the reminder that `_AGENTS.md`, `_CLAUDE.md` and `_usage-rules.md` promise may reach nobody. cc's session has never seen its text.\n\nExpected: the Stop hook's reminder reaches the person or agent it is written for, or the templates stop promising it.\n\nDisposition: vc, 2026-09-24 -- filed for after the stabilisation line. The fix changes a hook's output contract in every estate the moment the template is saved, and the evidence it needs first is one real session showing where a Stop hook's stdout goes.\n\n\nFixed in 3.2.2 by `a6fc65d18`, `82e5a67cc`, `eb55024d9` (vc, 2026-09-25): the commit message names the bank, its patch-id and the judge.\n"
 }
