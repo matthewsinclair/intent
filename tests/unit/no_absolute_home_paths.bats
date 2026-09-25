@@ -53,7 +53,7 @@ HOME_PATH_RE='(/Users/[a-z]|/home/[a-z])'
   # "Override per hook with the `timeout` field in seconds"). Issue 0577: the template
   # carried 3000, 2000 and 3000, written as milliseconds and read as 50, 33 and 50
   # minutes. A cap above a minute is not what any of these hooks means.
-  command -v jq >/dev/null || skip "jq not on PATH"
+  require_tool jq "the timeout bound, which is read with jq," || return 1
   run jq -r '[.. | objects | select(has("timeout")) | .timeout | select(. > 60)] | length' \
     "$INTENT_HOME/lib/templates/.claude/settings.json"
   assert_success

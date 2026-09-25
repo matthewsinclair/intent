@@ -166,7 +166,7 @@ no_jq_path() {
 
 @test "with jq, a plain prompt's block does not mention jq" {
   setup_gate
-  command -v jq >/dev/null || skip "jq not on PATH"
+  require_tool jq "the jq-present block's wording" || return 1
   run --separate-stderr env CLAUDE_CODE_SESSION_ID="$GATE_SESSION_ID" \
     bash "$SCRIPT" <<< '{"prompt":"hello"}'
   [ "$status" -eq 2 ]

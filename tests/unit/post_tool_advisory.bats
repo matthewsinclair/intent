@@ -9,7 +9,7 @@ load "../lib/test_helper.bash"
 SCRIPT="${INTENT_PROJECT_ROOT}/lib/templates/.claude/scripts/post-tool-advisory.sh"
 
 setup() {
-  command -v jq >/dev/null || skip "jq not on PATH"
+  require_tool jq "the advisory, which reads its payload with jq," || return 1
   ADV_PROJECT="$BATS_TEST_TMPDIR/proj"
   ADV_BIN="$BATS_TEST_TMPDIR/bin"
   mkdir -p "$ADV_PROJECT" "$ADV_BIN"

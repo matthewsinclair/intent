@@ -18,7 +18,7 @@ fin_repo() {
 }
 
 @test "a dirty tree gets the counted reminder as a JSON systemMessage" {
-  command -v jq >/dev/null || skip "jq not on PATH"
+  require_tool jq "the systemMessage, which is parsed with jq," || return 1
   fin_repo
   printf 'y\n' > "$FIN_DIR/dirty.txt"
   run --separate-stderr env -u GIT_DIR -u GIT_INDEX_FILE -u GIT_WORK_TREE CLAUDE_PROJECT_DIR="$FIN_DIR" bash "$SCRIPT" < /dev/null
@@ -36,7 +36,7 @@ fin_repo() {
 }
 
 @test "outside a git tree the plain reminder is a JSON systemMessage too" {
-  command -v jq >/dev/null || skip "jq not on PATH"
+  require_tool jq "the systemMessage, which is parsed with jq," || return 1
   mkdir -p "$BATS_TEST_TMPDIR/nogit"
   run --separate-stderr env -u GIT_DIR -u GIT_INDEX_FILE -u GIT_WORK_TREE GIT_CEILING_DIRECTORIES="$BATS_TEST_TMPDIR" CLAUDE_PROJECT_DIR="$BATS_TEST_TMPDIR/nogit" bash "$SCRIPT" < /dev/null
   [ "$status" -eq 0 ]
