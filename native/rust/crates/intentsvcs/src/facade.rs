@@ -9966,10 +9966,14 @@ impl Facade {
         }
         (Action::Reindex { .. }, _) => {
           let refreshed = self.index_refresh(None)?;
-          format!(
+          let brought = format!(
             "index: brought {} file(s) up to date",
             refreshed.updated.len() + refreshed.removed.len()
-          )
+          );
+          match refreshed.repaired {
+            Some(repair) => format!("{brought}; {}", repair.sentence()),
+            None => brought,
+          }
         }
         (Action::Behind { .. } | Action::Unowned { .. } | Action::Doctor, _) => continue,
       };
@@ -11821,7 +11825,7 @@ impl Facade {
       .store
       .apply_index_changes(&upserts, &change.removed)
       .map_err(FacadeError::Store)?;
-    self
+    let repaired = self
       .store
       .replace_sections_for(&touched, &content.prose, &content.source)
       .map_err(FacadeError::Store)?;
@@ -11834,7 +11838,19 @@ impl Facade {
     Ok(crate::index::Refreshed {
       updated: upserts.into_iter().map(|r| r.path).collect(),
       removed: change.removed,
+      repaired,
     })
+  }
+
+  /// Check the prose half of the search index and rebuild it if fts5 objects:
+  /// the scheduled half of the repair a scoped refresh runs on `src_sections`
+  /// (see `store::repair_if_damaged`), for the table whose check is too dear
+  /// to run on every refresh.
+  pub fn index_repair_prose(&mut self) -> Result<Option<crate::index::IndexRepair>, FacadeError> {
+    self
+      .store
+      .repair_search_table("doc_sections")
+      .map_err(FacadeError::Store)
   }
 
   /// Bring the whole index up to date IN ORDER TO ANSWER a search.
@@ -11844,15 +11860,22 @@ impl Facade {
   /// read verb is not a failed update from the reader's side -- it is a search
   /// that cannot be answered, and "could not update the runtime store" sends
   /// them to look at a write they did not ask for. Every search door that
-  /// reconciles first calls this, so the sentence has one home.
-  pub fn index_refresh_for_search(&mut self, query: &str) -> Result<(), FacadeError> {
-    self.index_refresh(None).map(|_| ()).map_err(|e| match e {
-      FacadeError::Store(cause) => FacadeError::SearchUnanswerable {
-        query: query.to_string(),
-        cause,
-      },
-      other => other,
-    })
+  /// reconciles first calls this, so the sentence has one home. It hands back
+  /// the repair the refresh ran, if any, for the door to print.
+  pub fn index_refresh_for_search(
+    &mut self,
+    query: &str,
+  ) -> Result<Option<crate::index::IndexRepair>, FacadeError> {
+    self
+      .index_refresh(None)
+      .map(|r| r.repaired)
+      .map_err(|e| match e {
+        FacadeError::Store(cause) => FacadeError::SearchUnanswerable {
+          query: query.to_string(),
+          cause,
+        },
+        other => other,
+      })
   }
 
   /// The paths whose refresh would bring the whole index up to date: the
@@ -12065,7 +12088,10 @@ impl Facade {
       // contract): joined against an index that did not catch up, an edit made
       // before the tool's read would drop as moved and never be retraced.
       let traced = traced.and_then(|trace| match self.index_refresh(None) {
-        Ok(_) => Ok(trace),
+        Ok(refreshed) => {
+          outcome.repaired = outcome.repaired.take().or(refreshed.repaired);
+          Ok(trace)
+        }
         Err(e) => Err(Unresolved::Failed {
           path: None,
           line: None,

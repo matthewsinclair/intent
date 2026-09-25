@@ -1269,7 +1269,7 @@ pub fn serve(
       // answer a different shape from `--json` for the same question.
       // Issue 0372: reconcile first, as the CLI's in-process path does, so a
       // daemonless answer is not a confident subset of a tree that has moved.
-      f.index_refresh(None)?;
+      let repaired = f.index_refresh(None)?.repaired;
       let mut answer = f.search_all(query, &ask)?;
       answer.index.mark_reconciled();
       // The AC-06.4 distinction travels, and it is now READ OFF THE ENVELOPE
@@ -1285,6 +1285,10 @@ pub fn serve(
       let mut envelope = search_json(path, &answer)?;
       if let (Some(object), Some(note)) = (envelope.as_object_mut(), note) {
         object.insert("note".to_string(), json!(note));
+      }
+      // A repair the reconcile ran travels beside the answer it preceded.
+      if let (Some(object), Some(repair)) = (envelope.as_object_mut(), repaired) {
+        object.insert("repaired".to_string(), json!(repair.sentence()));
       }
       Ok(envelope)
     }

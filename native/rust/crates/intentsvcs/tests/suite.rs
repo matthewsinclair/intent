@@ -53,6 +53,8 @@ mod a_resolved_reference_joins_a_written_one;
 mod a_retire_reaches_the_consumer;
 #[path = "a_scheduled_backup_is_the_same_call.rs"]
 mod a_scheduled_backup_is_the_same_call;
+#[path = "a_scoped_refresh_repairs_an_index_its_delete_damaged.rs"]
+mod a_scoped_refresh_repairs_an_index_its_delete_damaged;
 #[path = "a_search_names_what_it_could_not_answer.rs"]
 mod a_search_names_what_it_could_not_answer;
 #[path = "a_stale_store_does_not_overwrite_committed_canon.rs"]

@@ -433,6 +433,10 @@ pub struct Outcome {
   /// Language to why, for the languages a run over every declared language
   /// found nothing to resolve in. Their records are left as they were.
   pub not_applicable: BTreeMap<String, String>,
+  /// The search table this run's refresh found damaged and rebuilt, if any --
+  /// see [`crate::index::IndexRepair`].
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub repaired: Option<crate::index::IndexRepair>,
 }
 
 /// Decide what a run stores.

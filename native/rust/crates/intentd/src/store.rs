@@ -657,12 +657,26 @@ impl std::task::Wake for ThreadWaker {
 /// is the daemonless query's case and not this one: a watch batch names its
 /// paths, and each piece of the build at open names one directory.
 fn refresh_index(facade: &mut Facade, under: &[PathBuf]) {
-  if let Err(error) = facade.index_refresh(Some(under)) {
+  let named = || -> String {
     let named: Vec<String> = under.iter().map(|p| p.display().to_string()).collect();
-    elogln!(
+    named.join("`, `")
+  };
+  match facade.index_refresh(Some(under)) {
+    // A repair is a fault that happened, so it is logged even though the
+    // refresh succeeded.
+    Ok(refreshed) => {
+      if let Some(repair) = refreshed.repaired {
+        elogln!(
+          "note: intentd: refreshing the index under `{}`: {}",
+          named(),
+          repair.sentence()
+        );
+      }
+    }
+    Err(error) => elogln!(
       "warning: intentd: could not refresh the index under `{}`: {error}\n  remedy: files under those paths may not be reaching `intent search`. Run `intent index rebuild` to catch it up.",
-      named.join("`, `")
-    );
+      named()
+    ),
   }
 }
 
@@ -717,6 +731,20 @@ fn consider_backup(facade: &mut Facade, root: &Path, said_why_it_is_not_backing_
           root.display(),
           e,
           e.remedy()
+        ),
+      }
+      // The prose index's check runs here, on the sweep, and not on each
+      // watcher refresh: it holds the writer lock for about 330 ms.
+      match facade.index_repair_prose() {
+        Ok(None) => {}
+        Ok(Some(repair)) => elogln!(
+          "note: intentd: checking `{}`'s index: {}",
+          root.display(),
+          repair.sentence()
+        ),
+        Err(e) => elogln!(
+          "warning: intentd: could not check `{}`'s prose index: {e}\n  remedy: `intent doctor` reads it, and `intent index rebuild` rebuilds it.",
+          root.display()
         ),
       }
     }

@@ -57,6 +57,69 @@ pub struct Refreshed {
   pub updated: Vec<String>,
   /// Paths that have left the index.
   pub removed: Vec<String>,
+  /// The search table this pass found damaged after its delete and rebuilt in
+  /// the same write, or `None` when fts5's check passed or nothing was deleted.
+  pub repaired: Option<IndexRepair>,
+}
+
+/// A search table a scoped refresh found damaged and rebuilt in its own write.
+///
+/// **CARRIED TO EVERY DOOR THAT REFRESHES, NEVER SWALLOWED**
+/// (`IN-AG-NO-SILENT-001`): a repair that ran is a fault that happened, and each
+/// door says so in its own output. See `store::repair_if_damaged` for why a
+/// secure delete can leave the table damaged.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+pub struct IndexRepair {
+  /// The FTS5 table that was rebuilt.
+  pub table: String,
+  /// What the probes found before the rebuild, as `doctor` phrases it.
+  pub found: String,
+  /// The docids the index held with no content row before the rebuild.
+  pub orphaned: Vec<i64>,
+  /// What fts5's check still objected to after the rebuild, or `None` when the
+  /// rebuild cleared it.
+  pub remaining: Option<String>,
+}
+
+impl IndexRepair {
+  pub fn new(found: &crate::doctor::SearchIndexReading, remaining: Option<String>) -> Self {
+    Self {
+      table: found.table.clone(),
+      found: found.found(),
+      orphaned: match &found.orphaned {
+        crate::doctor::Orphans::Docids(docs) => docs.clone(),
+        crate::doctor::Orphans::Unreadable(_) => Vec::new(),
+      },
+      remaining,
+    }
+  }
+
+  /// The one sentence every door prints for this repair.
+  pub fn sentence(&self) -> String {
+    let orphaned = match self.orphaned.as_slice() {
+      [] => String::new(),
+      docs => format!(
+        " (orphaned docid(s): {})",
+        docs
+          .iter()
+          .map(i64::to_string)
+          .collect::<Vec<_>>()
+          .join(", ")
+      ),
+    };
+    let head = format!(
+      "the search index's `{}` was damaged -- {}{orphaned}",
+      self.table, self.found
+    );
+    match &self.remaining {
+      None => {
+        format!("{head}; it was rebuilt in the write that found it, and fts5's check now passes")
+      }
+      Some(still) => format!(
+        "{head}; it was rebuilt in the write that found it and fts5's check still objects ({still}) -- run `intent index rebuild`"
+      ),
+    }
+  }
 }
 
 impl Refreshed {

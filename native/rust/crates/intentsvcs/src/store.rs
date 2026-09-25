@@ -2372,6 +2372,114 @@ fn section_from(row: &rusqlite::Row<'_>) -> rusqlite::Result<DocSection> {
   })
 }
 
+/// fts5's own check of one search table: what it objected to, or `None` for
+/// its single `ok`. The per-table `PRAGMA integrity_check(<table>)` is a read
+/// (SQLite 3.44 on), where the `'integrity-check'` command is an `INSERT`.
+///
+/// **A CHECK THAT CANNOT RUN IS AN OBJECTION**: on a damaged index the error is
+/// the damage speaking, so it is carried as the finding, never as clean.
+fn fts5_objection(conn: &rusqlite::Connection, table: &str) -> Option<String> {
+  conn
+    .prepare(&format!("PRAGMA main.integrity_check({table})"))
+    .and_then(|mut stmt| {
+      stmt
+        .query_map([], |row| row.get::<_, String>(0))?
+        .collect::<Result<Vec<_>, _>>()
+    })
+    .map_or_else(
+      |e| Some(e.to_string()),
+      |lines| match lines.as_slice() {
+        [only] if only == "ok" => None,
+        _ => Some(lines.join("; ")),
+      },
+    )
+}
+
+/// The three probes `doctor` reports, read on one FTS5 table -- see
+/// [`Store::read_search_index`], which reads both tables through this, and
+/// [`repair_if_damaged`], which reads the damaged one before it repairs it.
+fn read_one_search_table(
+  tx: &rusqlite::Connection,
+  table: &str,
+) -> Result<crate::doctor::SearchIndexReading, StoreError> {
+  let vocab = format!("temp.doctor_{table}_instances");
+  tx.execute_batch(&format!(
+    "DROP TABLE IF EXISTS {vocab};
+     CREATE VIRTUAL TABLE {vocab} USING fts5vocab(main, {table}, instance);"
+  ))?;
+  let orphaned = tx
+    .prepare(&format!(
+      "SELECT DISTINCT doc FROM {vocab}
+        WHERE doc NOT IN (SELECT id FROM main.{table}_content) ORDER BY doc"
+    ))
+    .and_then(|mut stmt| {
+      stmt
+        .query_map([], |row| row.get::<_, i64>(0))?
+        .collect::<Result<Vec<_>, _>>()
+    })
+    .map_or_else(
+      |e| crate::doctor::Orphans::Unreadable(e.to_string()),
+      crate::doctor::Orphans::Docids,
+    );
+  tx.execute(&format!("DROP TABLE {vocab}"), [])?;
+  let structure = fts5_objection(tx, table);
+  let count =
+    |sql: String| -> Result<i64, StoreError> { Ok(tx.query_row(&sql, [], |row| row.get(0))?) };
+  Ok(crate::doctor::SearchIndexReading {
+    table: table.to_string(),
+    orphaned,
+    structure,
+    docsize_without_content: count(format!(
+      "SELECT count(*) FROM main.{table}_docsize
+        WHERE id NOT IN (SELECT id FROM main.{table}_content)"
+    ))?,
+    content_without_docsize: count(format!(
+      "SELECT count(*) FROM main.{table}_content
+        WHERE id NOT IN (SELECT id FROM main.{table}_docsize)"
+    ))?,
+  })
+}
+
+/// Check one search table after a scoped delete, and rebuild it in the same
+/// write when fts5's own check objects (hv, 3.2.2).
+///
+/// **WHY A SCOPED DELETE CAN LEAVE A TABLE DAMAGED, AS A SOURCE READING AND
+/// NOT A REPRODUCTION.** Both search tables carry FTS5 `secure-delete` (schema
+/// 26, issue 0355), so a `DELETE` edits the index pages in place rather than
+/// writing a tombstone. In the bundled SQLite 3.53.2, `fts5FlushSecureDelete`
+/// looks each deleted term's rowid up in the segments and returns `SQLITE_OK`
+/// when the lookup MISSES; the flush then drops the delete key, so that term's
+/// entry stays in the index with no content row behind it and no tombstone to
+/// hide it. Measured on Intent's own store on 2026-09-25: docid 882, an earlier
+/// `views.rs`, kept 25 whole terms after its scoped delete, every one of them
+/// a high-frequency term, and fts5's check read a checksum mismatch. 1,600
+/// scoped delete-and-reinsert cycles on a copy of that store, under 3.53.2 and
+/// 3.54.0, did not reproduce it, so the cause inside FTS5 cannot be fixed here
+/// and this is the repair Intent owns instead.
+///
+/// **`src_sections` IN THE REFRESH, AND ONLY AFTER A DELETE THAT REMOVED A
+/// ROW.** An insert cannot orphan anything. The check costs about 80 ms on this
+/// repository's `src_sections`; `doc_sections`' costs about 330 ms, which is
+/// past what a watcher's refresh should hold the writer lock for, so intentd
+/// runs it beside the scheduled backup through [`Store::repair_search_table`].
+fn repair_if_damaged(
+  tx: &rusqlite::Connection,
+  table: &str,
+) -> Result<Option<crate::index::IndexRepair>, StoreError> {
+  if fts5_objection(tx, table).is_none() {
+    return Ok(None);
+  }
+  let found = read_one_search_table(tx, table)?;
+  tx.execute(
+    &format!("INSERT INTO {table}({table}) VALUES('rebuild')"),
+    [],
+  )?;
+  Ok(Some(crate::index::IndexRepair::new(
+    &found,
+    fts5_objection(tx, table),
+  )))
+}
+
 /// Load `paths` into the connection's scratch table `temp.gone`, emptied
 /// first, so a scoped delete is ONE statement per table (issue 0393).
 ///
@@ -5138,58 +5246,10 @@ impl Store {
     // disagree about one index. Deferred, so it takes no writer lock; the temp
     // table is created inside it and never touches the store's file.
     let tx = self.conn.unchecked_transaction()?;
-    let mut readings = Vec::new();
-    for table in ["src_sections", "doc_sections"] {
-      let vocab = format!("temp.doctor_{table}_instances");
-      tx.execute_batch(&format!(
-        "DROP TABLE IF EXISTS {vocab};
-         CREATE VIRTUAL TABLE {vocab} USING fts5vocab(main, {table}, instance);"
-      ))?;
-      let orphaned = tx
-        .prepare(&format!(
-          "SELECT DISTINCT doc FROM {vocab}
-            WHERE doc NOT IN (SELECT id FROM main.{table}_content) ORDER BY doc"
-        ))
-        .and_then(|mut stmt| {
-          stmt
-            .query_map([], |row| row.get::<_, i64>(0))?
-            .collect::<Result<Vec<_>, _>>()
-        })
-        .map_or_else(
-          |e| crate::doctor::Orphans::Unreadable(e.to_string()),
-          crate::doctor::Orphans::Docids,
-        );
-      tx.execute(&format!("DROP TABLE {vocab}"), [])?;
-      let structure = tx
-        .prepare(&format!("PRAGMA main.integrity_check({table})"))
-        .and_then(|mut stmt| {
-          stmt
-            .query_map([], |row| row.get::<_, String>(0))?
-            .collect::<Result<Vec<_>, _>>()
-        })
-        .map_or_else(
-          |e| Some(e.to_string()),
-          |lines| match lines.as_slice() {
-            [only] if only == "ok" => None,
-            _ => Some(lines.join("; ")),
-          },
-        );
-      let count =
-        |sql: String| -> Result<i64, StoreError> { Ok(tx.query_row(&sql, [], |row| row.get(0))?) };
-      readings.push(crate::doctor::SearchIndexReading {
-        table: table.to_string(),
-        orphaned,
-        structure,
-        docsize_without_content: count(format!(
-          "SELECT count(*) FROM main.{table}_docsize
-            WHERE id NOT IN (SELECT id FROM main.{table}_content)"
-        ))?,
-        content_without_docsize: count(format!(
-          "SELECT count(*) FROM main.{table}_content
-            WHERE id NOT IN (SELECT id FROM main.{table}_docsize)"
-        ))?,
-      });
-    }
+    let readings = ["src_sections", "doc_sections"]
+      .into_iter()
+      .map(|table| read_one_search_table(&tx, table))
+      .collect::<Result<Vec<_>, _>>()?;
     tx.commit()?;
     Ok(readings)
   }
@@ -6140,6 +6200,11 @@ impl Store {
   /// scoped delete is the whole corpus, so every refresh re-read every section
   /// in the project. Both tables carry FTS5 `secure-delete` (schema 26), so the
   /// scoped delete writes none of the tombstones the rebuild cleared.
+  ///
+  /// **AND IT CHECKS `src_sections` AFTER A DELETE, REBUILDING IT WHEN FTS5
+  /// OBJECTS** -- see [`repair_if_damaged`] for why a secure delete can leave
+  /// the index damaged. The repair is returned, never swallowed, so every door
+  /// that refreshes can say it ran.
   // Issue 0355: as built 2026-09-14, a one-file refresh spent 717 ms here
   // rebuilding both tables.
   pub fn replace_sections_for(
@@ -6147,14 +6212,14 @@ impl Store {
     paths: &[String],
     prose: &[DocSection],
     source: &[crate::index::source::Section],
-  ) -> Result<(), StoreError> {
+  ) -> Result<Option<crate::index::IndexRepair>, StoreError> {
     let tx = Self::write_tx(&mut self.conn)?;
     stage_gone(&tx, paths)?;
     tx.execute(
       "DELETE FROM doc_sections WHERE owner_type = ?1 AND file IN (SELECT path FROM temp.gone)",
       params![crate::prose::FILE_OWNER],
     )?;
-    tx.execute(
+    let deleted = tx.execute(
       "DELETE FROM src_sections WHERE path IN (SELECT path FROM temp.gone)",
       [],
     )?;
@@ -6164,8 +6229,26 @@ impl Store {
     for s in source {
       insert_src_section(&tx, s)?;
     }
+    let repaired = match deleted {
+      0 => None,
+      _ => repair_if_damaged(&tx, "src_sections")?,
+    };
     tx.commit()?;
-    Ok(())
+    Ok(repaired)
+  }
+
+  /// Check one search table and rebuild it when fts5's check objects, in one
+  /// write: [`repair_if_damaged`] on its own, for the door that runs it outside
+  /// a refresh -- intentd's scheduled sweep, for `doc_sections`, whose check is
+  /// too dear for every watcher refresh.
+  pub fn repair_search_table(
+    &mut self,
+    table: &str,
+  ) -> Result<Option<crate::index::IndexRepair>, StoreError> {
+    let tx = Self::write_tx(&mut self.conn)?;
+    let repaired = repair_if_damaged(&tx, table)?;
+    tx.commit()?;
+    Ok(repaired)
   }
 
   /// Every row the index holds, in path order.

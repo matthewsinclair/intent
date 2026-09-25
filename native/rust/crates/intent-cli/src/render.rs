@@ -3903,8 +3903,9 @@ fn search(m: &ArgMatches) -> Result<(), Failure> {
       // an unanswerable watching question is decided, and why it is the
       // opposite of `sync`'s.
       let reconciled = a_search_here_reconciles(f.project().root()) && !m.get_flag("no-reconcile");
-      if reconciled {
-        f.index_refresh_for_search(&query).map_err(fail)?;
+      // A search that repaired the index on its way says so, whatever it finds.
+      if reconciled && let Some(repair) = f.index_refresh_for_search(&query).map_err(fail)? {
+        eprintln!("note: {}", repair.sentence());
       }
       let mut answer = f.search_all(&query, &ask).map_err(fail)?;
       // Issue 0484: the envelope says whether this answer reconciled first, so
@@ -5070,6 +5071,9 @@ fn report_resolved(
   }
   for (lang, why) in &outcome.not_applicable {
     println!("resolution: {lang}  not applicable  {why}");
+  }
+  if let Some(repair) = &outcome.repaired {
+    eprintln!("note: {}", repair.sentence());
   }
   if unresolved.is_empty() {
     return Ok(());
@@ -6282,23 +6286,34 @@ impl tui::run::Source for Live {
       let refreshed = if reconciled {
         self.facade.index_refresh_for_search(query)
       } else {
-        Ok(())
+        Ok(None)
       };
-      let answer = match refreshed {
-        Ok(()) => self
-          .facade
-          .search_all(query, &intentsvcs::search::SearchQuery::default())
-          .map(|mut answer| {
-            if reconciled {
-              answer.index.mark_reconciled();
-            }
-            answer
-          }),
-        Err(why) => Err(why),
+      let (answer, repaired) = match refreshed {
+        Ok(repaired) => (
+          self
+            .facade
+            .search_all(query, &intentsvcs::search::SearchQuery::default())
+            .map(|mut answer| {
+              if reconciled {
+                answer.index.mark_reconciled();
+              }
+              answer
+            }),
+          repaired,
+        ),
+        Err(why) => (Err(why), None),
       };
       return match answer {
         Ok(answer) => {
-          self.note = tui::views::freshness_note(&answer);
+          // The pane's one note line carries a repair the refresh ran ahead of
+          // what the answer itself owes the reader.
+          self.note = [
+            repaired.map(|r| r.sentence()),
+            tui::views::freshness_note(&answer),
+          ]
+          .into_iter()
+          .flatten()
+          .reduce(|a, b| format!("{a}; {b}"));
           tui::views::search_rows(&answer)
         }
         Err(why) => {
