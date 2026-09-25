@@ -63,6 +63,8 @@ mod a_skewed_views_printed_remedy_clears_it;
 mod a_stale_store_shows_on_a_default_doctor_run;
 #[path = "a_tool_description_comes_from_its_row.rs"]
 mod a_tool_description_comes_from_its_row;
+#[path = "a_write_keeps_a_cover_edit_it_could_carry.rs"]
+mod a_write_keeps_a_cover_edit_it_could_carry;
 #[path = "a_write_names_the_view_it_rewrote.rs"]
 mod a_write_names_the_view_it_rewrote;
 #[path = "ac_new_refuses_what_it_used_to_replace.rs"]

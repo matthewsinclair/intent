@@ -1183,6 +1183,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::EgestFromStaleStore { .. } => "EgestFromStaleStore",
     FacadeError::IngestOutpacedByWrites { .. } => "IngestOutpacedByWrites",
     FacadeError::WriteWouldEmptyAnAuthoredBody { .. } => "WriteWouldEmptyAnAuthoredBody",
+    FacadeError::CoverEditNotCarried { .. } => "CoverEditNotCarried",
     FacadeError::Realise(_) => "Realise",
     FacadeError::Organize(_) => "Organize",
     FacadeError::Intentfiles(_) => "Intentfiles",
@@ -1325,6 +1326,7 @@ const ALL_VARIANTS: &[&str] = &[
   "EgestFromStaleStore",
   "IngestOutpacedByWrites",
   "WriteWouldEmptyAnAuthoredBody",
+  "CoverEditNotCarried",
   "Realise",
   "Install",
   "RootFile",
@@ -1519,6 +1521,12 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   // remedy, and both controls. **The citation goes red if that file stops
   // provoking it**, which is the only thing that makes an exemption a cover.
   "WriteWouldEmptyAnAuthoredBody",
+  // The same class again (issue 0559): a cover on disk carrying a hand edit
+  // the open facade's store has not taken, which is a file edit between two
+  // calls. Driven through the CLI in
+  // `intent-cli/tests/a_write_keeps_a_cover_edit_it_could_carry.rs`, which
+  // runs the printed remedy and re-runs the refused verb.
+  "CoverEditNotCarried",
   // The same class as the one above: canon on disk that moved after the open
   // facade's store was warmed, which is a file edit between two calls. Driven
   // in `a_stale_store_does_not_overwrite_committed_canon.rs`, which asserts the

@@ -1943,6 +1943,12 @@ pub enum FacadeError {
     "this would replace the authored body of {subject} with nothing -- {had} byte(s) on disk, none in what is being written"
   )]
   WriteWouldEmptyAnAuthoredBody { subject: String, had: usize },
+  /// A write would render a thread's cover over a hand edit to its Objective
+  /// or Context that the store has not taken yet and can (issue 0559).
+  #[error(
+    "{path} carries a hand edit to {id}'s Objective or Context that the store has not taken, and this write would render the cover over it"
+  )]
+  CoverEditNotCarried { id: String, path: String },
   /// The Intent install could not be located, so a template-reading verb has
   /// nothing to read. Added for [`Facade::agents_generate`] -- a facade gap
   /// closed on vc's 2026-08-30 ruling (c) -- and a NEW variant rather than a
@@ -3174,6 +3180,9 @@ impl crate::remedy::Remedy for FacadeError {
       Self::EgestFromRefusedIngest { .. } => {
         "fix what the ingest refused and run `intent sync --to-store` again -- a load that succeeds clears this. Your canon holds authored work the store has never taken, so writing the store over it now is the loss, not the repair".to_string()
       }
+      Self::CoverEditNotCarried { id, .. } => format!(
+        "run `intent sync --to-store {id}` to carry the edit into the store, then run this verb again -- the file is intact until you do; `intent set {id} objective|context` writes either section directly"
+      ),
       Self::WriteWouldEmptyAnAuthoredBody { .. } => {
         "the prose on disk has never reached the store, so this write would destroy it rather than record it. Run `intent sync --to-store` to take the authored body in, confirm it arrived, then run this verb again -- the file is intact until you do".to_string()
       }
@@ -6917,6 +6926,11 @@ impl Facade {
       .filter(|p| run.hydrated.contains(p) || run.rewritten.contains(p))
       .cloned()
       .collect();
+    // **WHAT THIS RUN WROTE IS RECORDED AS THE STORE'S OWN RENDER** (issue
+    // 0559), as every other projection's is. A cover `intent st edit` realised
+    // had no recorded bytes, so a hand edit to it was never `touched`, and
+    // neither `sync --to-store` nor intentd carried it back.
+    self.record_landed(&[], &wrote)?;
     // **A FILE THE RUN COULD NOT WRITE IS A REFUSAL, NOT A QUIET GAP** (issue
     // 0338 (i)). The run refuses by path a step it holds no bytes for -- an
     // opaque attachment whose sidecar was never loaded -- and this door dropped
@@ -17017,6 +17031,33 @@ impl Facade {
         return Err(FacadeError::WriteWouldEmptyAnAuthoredBody {
           subject: format!("issue {:04}", issue.number),
           had: on_disk.body.len(),
+        });
+      }
+    }
+
+    // **A HAND EDIT THE STORE CAN CARRY IS NEVER RENDERED OVER BY A WRITE**
+    // (issue 0559). Asked before the store moves, for the reason the guard
+    // above is: once this write lands, its projection replaces the cover, and
+    // the edit is recoverable only from git -- which a fresh project does not
+    // have. The predicate is `views::carriable_cover`, the one doctor's finding
+    // and `sync --apply`'s views step already ask, so the three cannot
+    // disagree about which edits are kept. An edit it cannot carry is not
+    // refused here: the write goes ahead and its note names what it overwrote.
+    let ctx = self.render_ctx()?;
+    for thread in self
+      .canon
+      .threads
+      .iter()
+      .filter(|t| changed_thread_ids.contains(&t.id))
+    {
+      let cover = self.project.info_view(&thread.id);
+      let Ok(on_disk) = std::fs::read_to_string(&cover) else {
+        continue;
+      };
+      if views::carriable_cover(thread, &ctx, &on_disk) {
+        return Err(FacadeError::CoverEditNotCarried {
+          id: thread.id.clone(),
+          path: self.project.relative(&cover),
         });
       }
     }

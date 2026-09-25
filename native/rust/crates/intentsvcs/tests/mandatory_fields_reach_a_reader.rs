@@ -158,6 +158,7 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     | FacadeError::EgestFromStaleStore { .. }
     | FacadeError::IngestOutpacedByWrites { .. }
     | FacadeError::WriteWouldEmptyAnAuthoredBody { .. }
+    | FacadeError::CoverEditNotCarried { .. }
     | FacadeError::Organize(_)
     | FacadeError::Intentfiles(_)
     | FacadeError::ManifestUnreadable { .. }

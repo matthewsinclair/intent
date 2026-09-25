@@ -56,7 +56,7 @@ intent claude skills uninstall in-elixir-essentials
 
 Each steel thread's record lives in the store; `intent/st/<ID>/` is its realised tree, and its views are GENERATED.
 
-- `info.md` -- the cover, a generated view. Write its `## Objective` and `## Context` with `intent set <ID> objective|context --from <file>`: a hand edit to those two sections is carried back into the store only in some cases, and the next Intent command that renders the file can replace it. `intent st edit <ID>` opens the file; it is not a writer.
+- `info.md` -- the cover, a generated view. Write its `## Objective` and `## Context` with `intent set <ID> objective|context --from <file>`, the direct route. A hand edit to those two sections is kept too: after editing, run `intent sync --to-store <ID>` to carry it into the store, and until then an Intent command that would render the file over it refuses and names that step. `intent st edit <ID>` opens the file; it is not a writer, and a hand edit anywhere else in the cover is overwritten by the next render.
 - `acceptance.md` -- changed with `intent ac` / `intent at`.
 - `WP/<NN>/info.md` -- changed with `intent set intent:///threads/<ID>/wp/<NN> objective|body --from <file>` and the `intent wp` verbs.
 - `design.md`, `impl.md`, `tasks.md` -- optional ATTACHMENTS: a thread carries one once `intent st attach <ID> <name>.md --from <file>` records it, or once `intent sync --to-store` or a running intentd takes in a file you put in the thread's directory, and from then on the file on disk is its authoring surface.

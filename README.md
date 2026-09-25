@@ -79,7 +79,7 @@ For the surface of a build you actually have in front of you, ask that build: `i
 
 **Intent is built with Intent**, so `intent/` here is both the tool's own working record and a worked example of what the tool produces.
 
-**Note on `intent/st/`:** `info.md` and `acceptance.md` are rendered from the store and each says so in the file. Change them through the CLI: `intent doctor` reports a hand-edit as view-skew, and the next render overwrites it. Write a thread's objective and context with `intent set <ID> objective` and `intent set <ID> context`. `design.md`, `impl.md` and `tasks.md` are prose you write; `intent st attach <ID> design.md --from <file>` records one in the store, and `intent st edit <ID> design` opens it once it is attached.
+**Note on `intent/st/`:** `info.md` and `acceptance.md` are rendered from the store and each says so in the file. Write a thread's objective and context with `intent set <ID> objective` and `intent set <ID> context`. You can also type those two sections into `info.md` and then run `intent sync --to-store <ID>`, which carries them into the store: until you do, an Intent command that would render the file over your edit refuses and names that step, and a running `intentd` carries the edit on its own. A hand edit anywhere else in the file is reported by `intent doctor` as view-skew, and the next render overwrites it. `design.md`, `impl.md` and `tasks.md` are prose you write; `intent st attach <ID> design.md --from <file>` records one in the store, and `intent st edit <ID> design` opens it once it is attached.
 
 ## Working with coding agents
 
