@@ -31,7 +31,7 @@
 #         "hooks": [
 #           { "type": "command",
 #             "command": "intent claude hook post-tool-symbol-context",
-#             "timeout": 5000 }
+#             "timeout": 30 }
 #         ]
 #       }
 #     ]

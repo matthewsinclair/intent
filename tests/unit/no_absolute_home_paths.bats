@@ -48,6 +48,21 @@ HOME_PATH_RE='(/Users/[a-z]|/home/[a-z])'
   assert_success
 }
 
+@test "every hook timeout in the settings template is in seconds, as Claude Code reads it" {
+  # Claude Code reads a hook's `timeout` in SECONDS (code.claude.com/docs/en/hooks-guide,
+  # "Override per hook with the `timeout` field in seconds"). Issue 0577: the template
+  # carried 3000, 2000 and 3000, written as milliseconds and read as 50, 33 and 50
+  # minutes. A cap above a minute is not what any of these hooks means.
+  command -v jq >/dev/null || skip "jq not on PATH"
+  run jq -r '[.. | objects | select(has("timeout")) | .timeout | select(. > 60)] | length' \
+    "$INTENT_HOME/lib/templates/.claude/settings.json"
+  assert_success
+  assert_output "0"
+  run jq -r '[.. | objects | select(has("timeout"))] | length' \
+    "$INTENT_HOME/lib/templates/.claude/settings.json"
+  [ "$output" -gt 0 ] || fail "no timeout found, so the bound above examined nothing"
+}
+
 @test "a scaffolded project's hooks are portable and actually run" {
   project_dir=$(create_test_project "Hook Portability")
   cd "$project_dir"

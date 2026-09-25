@@ -319,7 +319,7 @@ Ship shape (strict-gate default):
           {
             "type": "command",
             "command": "intent claude hook session-context",
-            "timeout": 3000
+            "timeout": 30
           }
         ]
       }
@@ -331,7 +331,7 @@ Ship shape (strict-gate default):
           {
             "type": "command",
             "command": "intent claude hook require-in-session",
-            "timeout": 2000
+            "timeout": 30
           }
         ]
       }
@@ -343,7 +343,7 @@ Ship shape (strict-gate default):
           {
             "type": "command",
             "command": "intent claude hook session-finish",
-            "timeout": 3000
+            "timeout": 30
           }
         ]
       }
