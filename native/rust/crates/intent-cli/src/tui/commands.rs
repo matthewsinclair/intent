@@ -907,6 +907,9 @@ mod tests {
   #[test]
   fn acts_that_are_not_places_and_every_address_spelling_are_not_view_words() {
     let v = vocabulary(&crate::spine::surface());
+    let address = intentsvcs::address::promote("ST0000")
+      .expect("ST0000 is an address")
+      .to_url();
     for word in [
       "quit",
       "back",
@@ -919,7 +922,7 @@ mod tests {
       "ST0000",
       "st0",
       "ST0056/01",
-      "intent:///threads/ST0000",
+      address.as_str(),
       "0572",
     ] {
       assert_eq!(start_view(&v, word), Start::NotAView, "`{word}`");
