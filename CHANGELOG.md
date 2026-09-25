@@ -42,6 +42,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **For a project below v2.9.0, `intent upgrade`'s remedy names the v2.11.14 hop it needs.**
 - **`intent ac edit --note` on a computed criterion names the route that reaches a note**, `intent set <AC> kind non-test`.
 - **Migrating from v2 no longer refiles the first line of v2's acceptance preamble as residue.** Two later lines of that preamble, which carry ids of Intent's own, still refile.
+- **A search-index refresh that leaves `src_sections` damaged repairs it in the same write and says so on its own output**, and `intentd` checks `doc_sections` the same way beside each scheduled backup. Reading SQLite 3.53.2's source, FTS5's secure-delete drops a delete whose rowid lookup misses (`fts5FlushSecureDelete` returns OK on a miss), which leaves that term's entry behind with no content row. This is a source reading; it was not reproduced in 1600 cycles.
+- **`intent doctor`'s hook-carrier advisory names `intent claude upgrade --apply --skip-settings`**, which copies the carrier again; it said nothing re-copies it.
 
 ## [3.2.1] - 2026-09-24
 
