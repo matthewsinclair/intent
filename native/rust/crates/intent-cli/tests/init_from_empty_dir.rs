@@ -235,6 +235,25 @@ fn init_lang_declares_a_repeated_name_once() {
   );
 }
 
+/// **THE REASONS FOR EACH TEMPLATE `init` DID NOT WRITE ARE PRINTED WHERE THE
+/// COUNT IS** (issue 0558). The line pointed at `--help` for "the family notes",
+/// and `--help` carries none, so the pointer led nowhere. Every skipped
+/// template's name and reason now follow the count.
+#[test]
+fn init_prints_why_each_template_was_not_written() {
+  let dir = empty_dir();
+  let (out, err, code) = run(&["init", "p"], dir.path());
+  assert_eq!(code, 0, "init refused: {out}{err}");
+  assert!(
+    !out.contains("--help"),
+    "the listing still points at --help: {out}"
+  );
+  assert!(
+    out.contains("llm/_usage-rules.md -- user-owned; the canon installer seeds it"),
+    "a skipped template's reason is not printed: {out}"
+  );
+}
+
 /// An undeclarable name refuses BEFORE anything is written, so "nothing was
 /// created" is true when the refusal says it.
 #[test]

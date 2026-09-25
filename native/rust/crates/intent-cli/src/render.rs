@@ -8563,12 +8563,17 @@ fn init(a: &ArgMatches) -> Result<(), Failure> {
   // **THE SKIPPED SET IS PRINTED, because a short file list is otherwise
   // indistinguishable from a truncated one.** Each line is a decision with a
   // reason, which is the difference between "init wrote four files" and "init
-  // wrote four of fourteen and you cannot tell which ten are missing".
+  // wrote four of fourteen and you cannot tell which ten are missing". The
+  // reasons are printed here (issue 0558): the line used to send the reader to
+  // `--help`, which never carried them.
   if !made.skipped.is_empty() {
     println!(
-      "  ({} embedded template(s) deliberately not written -- run with --help for the family notes)",
+      "  ({} embedded template(s) deliberately not written:)",
       made.skipped.len()
     );
+    for (name, why) in &made.skipped {
+      println!("    {name} -- {why}");
+    }
   }
   if made.languages.is_empty() {
     return Ok(());
