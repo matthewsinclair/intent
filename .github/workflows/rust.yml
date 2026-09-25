@@ -26,6 +26,9 @@ name: rust
 on:
   push:
     branches: [main]
+    # A release tag runs both legs whatever it touches: GitHub does not evaluate
+    # path filters for a tag push.
+    tags: ["v[0-9]*", "[0-9]*"]
     paths:
       - "native/rust/**"
       - "schema/**"
@@ -37,6 +40,7 @@ on:
       - "schema/**"
       - "surface/**"
       - ".github/workflows/rust.yml"
+  workflow_dispatch:
 
 # SUPERSEDED RUNS ARE CANCELLED (hv's ruling of 2026-09-21, devbin#0108: every
 # repository cancels superseded runs on push). This file carried no concurrency
@@ -55,7 +59,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-latest]
+        # macOS RUNS ONLY FOR A RELEASE TAG OR BY HAND (hv, fleet decision 30,
+        # restated 2026-09-25): a push to main or a pull request runs Linux alone.
+        # Keyed on the ref's type, never a tag's spelling, so the tags filter
+        # above stays the one place a release form is written.
+        os: ${{ fromJSON((github.ref_type == 'tag' || github.event_name == 'workflow_dispatch') && '["macos-latest", "ubuntu-latest"]' || '["ubuntu-latest"]') }}
     runs-on: ${{ matrix.os }}
     # The suite points HOME at fixture directories, and Intent resolves its
     # per-user paths from the XDG_* variables before HOME. GitHub's Linux

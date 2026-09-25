@@ -3,6 +3,9 @@ name: Intent Tests
 on:
   push:
     branches: [main]
+    # A release tag runs every job whatever it touches: GitHub does not
+    # evaluate path filters for a tag push.
+    tags: ["v[0-9]*", "[0-9]*"]
     # IGNORE-LIST, DELIBERATELY, NOT AN ALLOW-LIST. `paths-ignore` fails safe:
     # forget an entry and the suite still runs. `paths:` fails SILENT -- forget
     # an entry and the suite stops running while reporting nothing, which is the
@@ -41,6 +44,7 @@ on:
       # a node actually does. Justified by what no job READS, not by a hit rate:
       # no job here opens either tree, and that stays true as habits change.
       - "intent/.canon/**"
+  workflow_dispatch:
 
 # SUPERSEDED RUNS ARE CANCELLED (hv's ruling of 2026-09-21, devbin#0108: every
 # repository cancels superseded runs on push, not only the ones with macOS
@@ -282,6 +286,10 @@ jobs:
 
   test-macos:
     name: Test on macOS
+    # ONLY FOR A RELEASE TAG OR BY HAND (hv, fleet decision 30, restated
+    # 2026-09-25): a push to main or a pull request runs Linux alone. Keyed on
+    # the ref's type, never a tag's spelling.
+    if: ${{ github.ref_type == 'tag' || github.event_name == 'workflow_dispatch' }}
     runs-on: macos-latest
     # The suite points HOME at fixture directories, and Intent resolves its
     # per-user paths from the XDG_* variables before HOME. GitHub's Linux
@@ -542,7 +550,7 @@ jobs:
           echo "Check individual job results above for details."
 
           # Check job results
-          if [ "${{ needs.test-linux.result }}" == "success" ] && [ "${{ needs.test-macos.result }}" == "success" ]; then
+          if [ "${{ needs.test-linux.result }}" == "success" ] && { [ "${{ needs.test-macos.result }}" == "success" ] || { [ "${{ needs.test-macos.result }}" == "skipped" ] && [ "${{ github.ref_type }}" != "tag" ] && [ "${{ github.event_name }}" != "workflow_dispatch" ]; }; }; then
             echo "✅ All tests passed!"
           else
             echo "❌ Some tests failed. Please review the logs."
