@@ -120,7 +120,7 @@ Why the multi-category code set: `ash`, `phoenix`, `lv` are framework specialisa
 
 Every `agnostic` rule, plus `elixir` rules with category `test` -- ExUnit-oriented rules (`IN-EX-TEST-*`).
 
-For each selected id, run `intent claude rules show <id>` and apply its `## Detection` section.
+For each selected id, run `intent claude rules show <id>` and apply its `## Detection` section. **Apply only a rule whose frontmatter `status:` is `active`, or absent, which means `active`**: `rules show` prints the frontmatter, and a `draft` or `deprecated` rule is skipped, exactly as the headless runner (`intent critic`) skips it. Name each skipped id on one line at the top of the report (`(note: <id> is <status>; not applied)`).
 
 ### Unreadable rules
 

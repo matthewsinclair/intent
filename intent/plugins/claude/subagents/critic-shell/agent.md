@@ -102,7 +102,7 @@ Select rules from the `category` column:
 - Every `agnostic` rule `intent claude rules list --lang agnostic` names -- skip any whose Detection does not map to shell (Thin Coordinator rarely triggers).
 - `shell` rules with category `code` -- every `IN-SH-CODE-*` rule. (`code` is the only shell mode in this version; shell-test rules would appear as category `test` if they ship later.)
 
-For each selected id, run `intent claude rules show <id>` and apply its `## Detection` section. If a `show` call fails or a rule lacks a `## Detection` section, log a one-line warning at the top of the report and continue; one broken rule must not kill the whole report.
+For each selected id, run `intent claude rules show <id>` and apply its `## Detection` section. **Apply only a rule whose frontmatter `status:` is `active`, or absent, which means `active`**: `rules show` prints the frontmatter, and a `draft` or `deprecated` rule is skipped, exactly as the headless runner (`intent critic`) skips it. Name each skipped id on one line at the top of the report (`(note: <id> is <status>; not applied)`). If a `show` call fails or a rule lacks a `## Detection` section, log a one-line warning at the top of the report and continue; one broken rule must not kill the whole report.
 
 ## Operational conventions
 

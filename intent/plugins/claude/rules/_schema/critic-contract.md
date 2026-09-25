@@ -65,7 +65,7 @@ Intent IDs and upstream slugs do not collide: Intent rules live in the `IN-*` na
 After loading, the Critic applies optional filters:
 
 - `.intent_critic.yml` project config (see below): disabled rules dropped from the active set.
-- `status:` filter: the headless runner (`intent critic`) arms only `active` rules. The critic subagents select rules by category and do not read `status:`; every shipped rule is `active`, so the two do not differ today.
+- `status:` filter: only `active` rules are applied, and an absent `status:` means `active`. The headless runner (`intent critic`) arms only those, and the critic subagents read `status:` from `rules show` and skip a `draft` or `deprecated` rule, naming it at the top of the report.
 
 ## Rule content interpretation
 
