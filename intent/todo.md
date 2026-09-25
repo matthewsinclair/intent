@@ -8,13 +8,12 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 
 ## DOING
 
-_(none)_
+- [-] ST0080: Scheduled store backups that actually fire
 
 ## TODO
 
 - [?] ST0060: Add 'intent vault' as a way for intent projects to manage local credentials
 - [?] ST0077: Level 3 stores the references only the toolchain sees, and a roster of the targets it defines
-- [?] ST0080: Scheduled store backups that actually fire
 
 ## DONE:2026-09-10T00:00:51Z
 

@@ -8,7 +8,9 @@
     "heartbeat_at": "2026-09-25T11:38:37.288Z",
     "status": "active",
     "focus": "LOCALFOLDED for hv's compact. 3.2.2 ic lane: 0581, 0584 and explore-view are landed; nine fixes are parked on refs/ic/stack in tmp/wt-ic-322, unbanked; 0579 is unbuilt. Resume from doing 119. NO PUSH, NO RELEASE.",
-    "claims": [],
+    "claims": [
+      "ST0080"
+    ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"
