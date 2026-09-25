@@ -21,6 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **The Stop hook's `/in-finish` reminder is a `systemMessage`** (issue 0576), which Claude Code documents as shown in the transcript, rather than plain stdout, which Claude Code does not document as reaching anyone for a Stop hook.
 - **The hook timeouts in the Claude Code settings template are in seconds, as Claude Code reads them** (issue 0577). 3000 and 2000 were read as 50 and 33 minutes; each is now 30. A project takes the template at its next `intent claude upgrade --apply`.
 - **The opt-in PostToolUse critic advisory speaks only when the critic reports findings** (issue 0578). It handed the model a clean run's census on every edit; it now keys on the critic's exit status.
+- **A CLI write no longer renders a thread's cover over a hand edit to its Objective or Context that the store can carry** (issue 0559). It refuses first and names `intent sync --to-store <ID>`, and a cover `intent st edit` realised is now carried by that command, so the README's route of typing into the cover keeps what you typed. A hand edit to any other part of a cover is still rendered over, with a warning; `intent set <ID> objective|context` remains the direct route.
+- **`intent doctor`'s stale-render advisory names the verb that clears each view.** `intent sync --to-disk` re-renders a view `.intentfiles` realises, and `intent sync --apply` removes one it does not; `doctor -v` lists a directory's run of them on one line naming every file, rather than one line per view.
+- **`intent at edit --kind` says when it resets a row's status** (issue 0580). A status the new kind cannot hold is reset to that kind's entry state, as before, but the verb now names the row, the status it dropped and the one it set, and its help says so.
 
 ## [3.2.1] - 2026-09-24
 
