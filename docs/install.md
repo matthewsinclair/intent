@@ -99,7 +99,7 @@ If a command fails with an error naming a path rather than an argument, this tab
 
 **The first command of a newer build to open a project's store migrates it in place, and nothing migrates it back.** An older build then refuses that store and says it was written by a newer Intent. If you might need to go back, take `intent backup` with the older build first. No restore verb ships: `intent backup --list` names the snapshots, under `intent/.backup/db/`, and each is a copy you recover from by hand.
 
-**Views an older build rendered report as `stale-render` in `intent doctor --verbose`;** a default `intent doctor` run counts them only as advisory notes it does not show. This is advisory and does not block a commit, and `intent sync --to-disk` brings the views up to date.
+**Views an older build rendered report as `stale-render` in `intent doctor --verbose`;** a default `intent doctor` run counts them only as advisory notes it does not show. This is advisory and does not block a commit. Each view's line names the verb that clears it: `intent sync --to-disk` re-renders a view `.intentfiles` realises, and `intent sync --apply` removes one it does not, which the store still holds.
 
 **From v3.2.0 or earlier, run `intent bootstrap` once after the upgrade.** Those builds recorded the versioned keg, `<prefix>/Cellar/intent/<version>/libexec`, as the install pointer, and `brew upgrade` deletes that keg, so until you run it every commit in a project with the gate installed is refused, and the refusal names the command. From v3.2.1, `intent bootstrap` records `<prefix>/opt/intent/libexec`, Homebrew's link to whichever version is current, so later upgrades need nothing. `intent bootstrap --check` says whether the pointer still names a versioned keg.
 

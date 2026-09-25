@@ -2458,11 +2458,27 @@ pub fn skew(
         if rendered_by_an_older_intent(board_node.is_some(), &on_disk, &view.content)
           == Some(OlderRender::RendererOwnedText) =>
       {
+        // **THE VERB DEPENDS ON WHETHER `.intentfiles` REALISES THE VIEW**, the
+        // question the skew arm below asks for the same reason. `sync --to-disk`
+        // re-renders a realised view and leaves an unrealised one as it found
+        // it, so naming it for every view sent the operator to a verb that
+        // repaired nothing; `sync --apply` is the one that clears an
+        // unrealised view, and it does so by removing it.
+        //
+        // **NO ID IN IT, so every view one verb clears in one directory reads
+        // the same**, and `doctor -v` lists them on one line rather than one
+        // line each (`finding::members_by_directory`).
+        let clears = match &owner {
+          Some(Undeclared::Thread(_)) | Some(Undeclared::Issue(_)) => {
+            "not realised by `.intentfiles`, so no sync re-renders it: `intent sync --apply` removes it, and the store keeps the record"
+          }
+          Some(Undeclared::Board(_)) | None => "`intent sync --to-disk` re-renders it",
+        };
         findings.push(Finding::new(
           &rel,
           FindingClass::StaleRender,
           format!(
-            "rendered by Intent v{} and this binary renders v{} -- only text the renderer owns differs: its footer, or the Acceptance paragraph it writes",
+            "rendered by Intent v{} and this binary renders v{} -- {clears}",
             declared_version(&on_disk).unwrap_or("<none>"),
             declared_version(&view.content).unwrap_or("<none>"),
           ),

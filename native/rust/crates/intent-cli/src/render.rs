@@ -7794,6 +7794,21 @@ fn print_grouped<'a>(findings: impl Iterator<Item = &'a intentsvcs::finding::Fin
       }
     );
     println!("  remedy: {}", class.remedy());
+    if class.lists_members_by_directory() {
+      for dir in intentsvcs::finding::members_by_directory(group.iter().copied()) {
+        match dir.names.as_slice() {
+          [one] => println!("  {}{one} -- {}", dir.directory, dir.detail),
+          names => println!(
+            "  {} -- {} views: {} -- {}",
+            dir.directory,
+            names.len(),
+            dir.detail,
+            names.join(", ")
+          ),
+        }
+      }
+      continue;
+    }
     for finding in group {
       println!("  {}", finding.where_and_what());
     }

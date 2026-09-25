@@ -535,7 +535,7 @@ impl FindingClass {
       Self::StaleRender => (
         6,
         "stale-render",
-        "these views were rendered by an older Intent and differ only in text the renderer owns -- the footer, or the Acceptance paragraph it writes -- so `intent sync --to-disk` brings them up to date, and there is no hand edit to lose",
+        "each view's line names the verb that clears it: `intent sync --to-disk` re-renders a view `.intentfiles` realises, and `intent sync --apply` removes one it does not, which the store still holds in full. Only text the renderer owns differs -- the footer, or the Acceptance paragraph it writes -- so there is no hand edit to lose",
       ),
       Self::RootFileBehind => (
         6,
@@ -829,6 +829,16 @@ impl FindingClass {
       )
   }
 
+  /// Whether a report lists this class's members by directory, one line per
+  /// directory and detail, rather than one line each.
+  ///
+  /// **ONLY WHERE MEMBERS COME IN RUNS THAT SAY THE SAME THING.** A stale render
+  /// arrives for every view an upgrade touched, and the fleet's first read of
+  /// one was 62 near-identical lines.
+  pub fn lists_members_by_directory(&self) -> bool {
+    matches!(self, Self::StaleRender)
+  }
+
   /// The word a report leads with for this class.
   ///
   /// **IT ASKS THE SAME QUESTION THE VERDICT ASKS, AND THAT IS THE WHOLE
@@ -878,6 +888,48 @@ pub struct Finding {
   /// Human-actionable detail. Names the specific thing -- the unknown field,
   /// the duplicate id -- never just restates the class.
   pub detail: String,
+}
+
+/// One directory's members of a class that share one detail, for a reader
+/// who should see every member named without a line each.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DirectoryGroup {
+  /// The directory, project-relative, with its trailing `/`.
+  pub directory: String,
+  /// The detail every member carries.
+  pub detail: String,
+  /// Each member's file name within `directory`, in report order.
+  pub names: Vec<String>,
+}
+
+/// Group findings by their directory and detail, in first-appearance order.
+///
+/// **EVERY MEMBER STAYS NAMED; ONLY THE REPEATED DETAIL GOES** (vc, relaying
+/// hv's reaction to 62 near-identical stale-render lines). A group is a
+/// directory whose members say the same thing, so it prints once with its
+/// file names; `--json` keeps the per-file list.
+pub fn members_by_directory<'a>(
+  findings: impl IntoIterator<Item = &'a Finding>,
+) -> Vec<DirectoryGroup> {
+  let mut groups: Vec<DirectoryGroup> = Vec::new();
+  for finding in findings {
+    let (directory, name) = match finding.file.rsplit_once('/') {
+      Some((dir, name)) => (format!("{dir}/"), name.to_string()),
+      None => (String::new(), finding.file.clone()),
+    };
+    match groups
+      .iter_mut()
+      .find(|g| g.directory == directory && g.detail == finding.detail)
+    {
+      Some(group) => group.names.push(name),
+      None => groups.push(DirectoryGroup {
+        directory,
+        detail: finding.detail.clone(),
+        names: vec![name],
+      }),
+    }
+  }
+  groups
 }
 
 impl Finding {

@@ -59,6 +59,8 @@ mod a_pull_is_repaired_by_one_command;
 mod a_search_by_target_asks_one_question;
 #[path = "a_skewed_views_printed_remedy_clears_it.rs"]
 mod a_skewed_views_printed_remedy_clears_it;
+#[path = "a_stale_render_names_the_verb_that_clears_it.rs"]
+mod a_stale_render_names_the_verb_that_clears_it;
 #[path = "a_stale_store_shows_on_a_default_doctor_run.rs"]
 mod a_stale_store_shows_on_a_default_doctor_run;
 #[path = "a_tool_description_comes_from_its_row.rs"]
