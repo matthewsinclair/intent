@@ -499,8 +499,9 @@ fn value<'a>(name: &str, cfg: &'a Config, ctx: &RenderContext<'a>) -> Option<&'a
     // stamped at, and `upgrade` moves one without touching the other. Every
     // other generated banner in this binary reads `ctx.version`, so taking a
     // second source here is how the root files come to disagree with the views
-    // about which Intent produced them.
-    "INTENT_VERSION" => Some(ctx.version),
+    // about which Intent produced them. The token feeds only the footer, so it
+    // takes the footer's major-only form from the views' one home.
+    "INTENT_VERSION" => Some(crate::views::banner_version(ctx.version)),
     _ => None,
   }
 }

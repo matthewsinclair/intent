@@ -361,7 +361,12 @@ pub fn init(
       .replace("[[PROJECT_NAME]]", project_name)
       .replace("[[AUTHOR]]", author)
       .replace("[[DATE]]", &stamp)
-      .replace("[[INTENT_VERSION]]", intent_version)
+      // The token feeds only the footer, so it takes the footer's form from
+      // the one home `rootfiles::render` also reads.
+      .replace(
+        "[[INTENT_VERSION]]",
+        crate::views::banner_version(intent_version),
+      )
   };
 
   let mut written = Vec::new();
