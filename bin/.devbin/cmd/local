@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 #
 # devbin: summary = The v3 install on THIS machine -- bindings, build, install, reversal
-#
+# devbin: args = <status|build|install|use|uninstall>
 # bin/devbin local <status|build|install|use|uninstall>
 #   status             every `intent` binding, PATH order, plus pair currency and store health
 #   build              the guarded release build, the same path as `build all`
 #   install --yes      symlink `intent`/`intentd` in $INTENT_LOCAL_BINDIR (default ~/.local/bin)
-#   use [dev|prod] [--yes]  switch which BUILD answers `intent`; bare reports
-#   uninstall          remove the symlinks `install` made; the way back
+#   use [dev|prod] [--yes]  switch which build answers `intent`: dev unlinks and
+#                      pins the brew formula and links this checkout's pair into
+#                      $INTENT_LOCAL_BINDIR (--yes when no formula is installed);
+#                      prod unpins and relinks the formula; bare reports
+#   uninstall          remove the links into this checkout's pair; the way back
 #
 # `install` without --yes verifies the pair, prints what it would do and
 # refuses. `use dev` needs --yes only when no brew formula is installed. The
@@ -257,7 +260,7 @@ EOF
       printf '    currency REFUSING (target/release) -- %s\n' "${verdict#refuse:}"
       case "$verdict" in
         "refuse:${ARTEFACT_CURRENCY_UNREAD}"*) printf '    an actor on the exec path would refuse to run this pair.\n' ;;
-        *) printf '    an actor on the exec path would refuse to run this pair. `int build all` rebuilds it.\n' ;;
+        *) printf '    an actor on the exec path would refuse to run this pair. `bin/devbin build all` rebuilds it.\n' ;;
       esac
       ;;
     *)
@@ -369,7 +372,7 @@ cmd_install() {
   printf '    UNDER THEIR OWN NAMES. This minted `intent3`/`intentd3` while the fleet\n'
   printf '    was v2 and shadowing `intent` would have changed every project at once.\n'
   printf '    That is over: the estate is on v3 and the only v2 checkout left is\n'
-  printf '    frozen and off the port list. The way back is `int local use prod`.\n'
+  printf '    frozen and off the port list. The way back is `bin/devbin local use prod`.\n'
   printf '\n'
   printf '    SYMLINKS, NOT COPIES, and that is CORRECTNESS rather than convenience.\n'
   printf '    `claude hook` finds its scripts by walking current_exe() ancestors for\n'
@@ -390,13 +393,13 @@ cmd_install() {
   for pair in $PAIR; do
     src="$RELEASE_DIR/${pair%%:*}"
     dst="$BINDIR/${pair##*:}"
-    [ -f "$src" ] || die "missing $src -- run 'int local build' first"
+    [ -f "$src" ] || die "missing $src -- run 'bin/devbin local build' first"
     [ ! -e "$dst" ] || [ -L "$dst" ] ||
       die "$dst exists and is not a symlink -- refusing to replace a real file"
     ln -sfn "$src" "$dst" || die "could not link $dst"
     printf '    linked %s\n' "$dst"
   done
-  step "done -- the way back is 'int local uninstall'"
+  step "done -- the way back is 'bin/devbin local uninstall'"
   cmd_status
 }
 
@@ -560,7 +563,7 @@ cmd_use() {
     for pair in $PAIR; do
       src="$RELEASE_DIR/${pair%%:*}"
       dst="$BINDIR/${pair%%:*}"
-      [ -f "$src" ] || die "missing $src -- run 'int local build' first"
+      [ -f "$src" ] || die "missing $src -- run 'bin/devbin local build' first"
       [ ! -e "$dst" ] || [ -L "$dst" ] ||
         die "$dst exists and is not a symlink -- refusing to replace a real file"
       ln -sfn "$src" "$dst" || die "could not link $dst"
@@ -574,7 +577,7 @@ cmd_use() {
   got="$(use_flavour)"
   printf '    %s\n' "$got"
   [ "$got" = "$want" ] ||
-    die "asked for $want and PATH resolves to $got -- the switch did NOT take. Run 'int local status' to see every binding in precedence order."
+    die "asked for $want and PATH resolves to $got -- the switch did NOT take. Run 'bin/devbin local status' to see every binding in precedence order."
   verify_hook_door
 
   # A dev switch is only as good as the artefacts it switched to, and the pair is
@@ -596,7 +599,7 @@ cmd_use() {
     dev) back=prod ;;
     prod) back=dev ;;
   esac
-  step "done -- the way back is 'int local use $back'"
+  step "done -- the way back is 'bin/devbin local use $back'"
 }
 
 cmd_uninstall() {
@@ -604,10 +607,16 @@ cmd_uninstall() {
   step "removing the v3 bindings this command made"
   for pair in $PAIR; do
     dst="$BINDIR/${pair##*:}"
-    if [ -L "$dst" ]; then
+    # **ONLY A LINK INTO THIS CHECKOUT'S PAIR IS OURS.** `install` and `use dev`
+    # link to "$RELEASE_DIR/<name>"; a symlink named `intent` that points
+    # anywhere else -- another checkout, a keg, a v2 tree -- was not made here,
+    # and removing it on the strength of its name alone was the defect.
+    if [ -L "$dst" ] && [ "$(readlink "$dst")" = "$RELEASE_DIR/${pair%%:*}" ]; then
       rm -f "$dst" || die "could not remove $dst"
       printf '    removed %s\n' "$dst"
       removed=$((removed + 1))
+    elif [ -L "$dst" ]; then
+      warn "$dst points at $(readlink "$dst"), not this checkout's pair -- left alone, this command did not make it"
     elif [ -e "$dst" ]; then
       warn "$dst is not a symlink -- left alone, this command did not make it"
     fi
@@ -623,7 +632,7 @@ cmd_uninstall() {
 
 case "${1:-}" in
   ""|-h|--help)
-    sed -n '5,10p' "${BASH_SOURCE[0]}" | sed -e 's/^# //' -e 's/^#$//'
+    sed -n '5,13p' "${BASH_SOURCE[0]}" | sed -e 's/^# //' -e 's/^#$//'
     exit 0
     ;;
   status) cmd_status ;;

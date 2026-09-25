@@ -54,7 +54,7 @@ if [ "$want" = debug ]; then
   # node's commit. The guard's own header calls this the estate's oldest
   # instrument defect and records meeting it before; this was another.
   [ -x "$dbg" ] || die "no debug binary at $dbg -- run \`cargo build -p intent-cli --manifest-path native/rust/Cargo.toml\`"
-  printf 'int cli: --debug, so NO coherence guard (a debug build has no pair to check)\n' >&2
+  printf 'bin/devbin cli: --debug, so NO coherence guard (a debug build has no pair to check)\n' >&2
   exec "$dbg" "$@"
 fi
 
@@ -64,7 +64,7 @@ if [ ! -x "$rel" ]; then
   # NOT a silent `cargo build`. The old verb built debug here and then ran it,
   # which is how you end up holding a debug binary you never asked for. The
   # remedy is one command and it is the one that produces a COHERENT set.
-  die "no release binary at $rel -- run \`int local build\` (it forces a coherent pair and verifies it; a bare \`cargo build --release\` does not)"
+  die "no release binary at $rel -- run \`bin/devbin local build\` (it forces a coherent pair and verifies it; a bare \`cargo build --release\` does not)"
 fi
 
 # HARD DEPENDENCY, ON PURPOSE. A wrapper that drops its own guard when a file
@@ -90,7 +90,7 @@ done
 # WORDS. Adding `sharedtarget` to the loop above fixes today; this assertion is
 # what stops the next edit of that list from regressing in silence.
 if [ -z "${SHARED_TARGET_DIRT_SCOPES+x}" ] || [ "${#SHARED_TARGET_DIRT_SCOPES[@]}" -eq 0 ]; then
-  die "SHARED_TARGET_DIRT_SCOPES is undeclared after sourcing -- this wrapper failed to bring its own precondition, and that is a defect HERE and not a fact about the binary. remedy: check the source list above includes every lib the verdict needs; \`int local build\` cannot clear this."
+  die "SHARED_TARGET_DIRT_SCOPES is undeclared after sourcing -- this wrapper failed to bring its own precondition, and that is a defect HERE and not a fact about the binary. remedy: check the source list above includes every lib the verdict needs; \`bin/devbin local build\` cannot clear this."
 fi
 
 verdict="$(artefact_currency_verdict "$release_dir" "$PROJECT_ROOT")"
@@ -111,7 +111,7 @@ case "$verdict" in
     # read the pair, whose refusal above already names its own remedy.
     case "$verdict" in
       "refuse:${ARTEFACT_CURRENCY_UNREAD}"*) ;;
-      *) printf "  remedy: run 'int local build' -- it rebuilds and verifies the SET.\n" >&2 ;;
+      *) printf "  remedy: run 'bin/devbin local build' -- it rebuilds and verifies the SET.\n" >&2 ;;
     esac
     exit 1
     ;;

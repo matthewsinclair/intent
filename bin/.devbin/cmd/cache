@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # devbin: summary = Report build-cache staleness cargo's own freshness check cannot see
-#
+# devbin: args = [--clean]
 # bin/devbin cache          -- REPORT whether native/rust/target/debug/deps
 #                              carries artefacts naming a target root the
 #                              workspace no longer occupies. Exit 0 when none
@@ -10,7 +10,7 @@
 #                              then remove the WHOLE native/rust/target (every
 #                              profile, not just the stale files). A clean
 #                              cache exits 0 without asking or removing.
-#                              Any other argument is ignored.
+#                              --help prints this; any other argument is ignored.
 #
 # THE CLASS, in cc's words after it cost them an hour: **a build cache
 # can be stale in a way its own freshness check cannot see.** Every freshness
@@ -47,6 +47,14 @@
 set -euo pipefail
 : "${DEVBIN_LIB:?run me through the devbin dispatcher}"
 . "$DEVBIN_LIB/helpers"
+
+# `--help` prints the usage block above and runs nothing; it ran the report.
+case "${1:-}" in
+  -h | --help)
+    awk 'NR < 5 { next } /^#$/ || !/^#/ { exit } { sub(/^# ?/, ""); print }' "${BASH_SOURCE[0]}"
+    exit 0
+    ;;
+esac
 
 WORKSPACE="${PROJECT_ROOT:?}/native/rust"
 TARGET="$WORKSPACE/target"
@@ -145,7 +153,7 @@ fi
 printf '\n  This is LATENT rather than broken: a tree in this state builds and tests\n'
 printf '  green. The tell when it does bite is a test that passes in isolation and\n'
 printf '  fails in the suite -- a conclusion, not flakiness.\n'
-printf '\n  Fix: int cache --clean   (or `cargo clean` from native/rust)\n'
+printf '\n  Fix: bin/devbin cache --clean   (or `cargo clean` from native/rust)\n'
 
 if [ "${1:-}" != "--clean" ]; then
   exit 1

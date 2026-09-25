@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
-# devbin: summary = Sign, notarise and publish the macOS release (CLI pair + Intent.app) with the Geodica Developer ID
-#
-# bin/devbin macos <subcommand>  -- run `int macos` with no arguments for the list.
+# devbin: summary = Sign, notarise and publish the macOS release (CLI pair + Intent.app) with the Geodica Developer ID; smoke the installed keg; build, run, test and install the menubar app
+# devbin: args = <subcommand>
+# bin/devbin macos <subcommand>  -- run `bin/devbin macos` with no arguments for the list.
 #
 # THE SUBCOMMAND LIST LIVES IN usage() AT THE FOOT OF THIS FILE, not here, and it
 # moved for a reason worth keeping. The help used to be `sed -n '5,15p'` of this
@@ -317,7 +317,7 @@ fi
 present() { [ -n "$1" ] && printf 'PRESENT' || printf 'MISSING'; }
 
 require_identity() {
-  [ -n "$IDENTITY" ] || die "no Developer ID Application identity in the keychain -- run: int macos doctor"
+  [ -n "$IDENTITY" ] || die "no Developer ID Application identity in the keychain -- run: bin/devbin macos doctor"
 }
 
 require_binaries() {
@@ -325,7 +325,7 @@ require_binaries() {
   for b in $BINARIES; do
     [ -f "$RELEASE_DIR/$b" ] || missing="$missing $b"
   done
-  [ -z "$missing" ] || die "missing release binaries:$missing -- run 'int build all' first (it already defaults to --release; passing it again is refused by cargo)"
+  [ -z "$missing" ] || die "missing release binaries:$missing -- run 'bin/devbin build all' first (it already defaults to --release; passing it again is refused by cargo)"
 }
 
 # require_staged -- every subcommand after `stage` acts on the staged copies, so
@@ -339,7 +339,7 @@ require_staged() {
   done
   [ -f "$STAGE_DIR/$SUPPORT_ASSET" ] || missing="$missing $SUPPORT_ASSET"
   [ -f "$STAGE_DIR/$APP_ASSET" ] || missing="$missing $APP_ASSET"
-  [ -z "$missing" ] || die "nothing staged:$missing -- run 'int macos stage' first (it copies the build output into $STAGE_DIR, where a peer's cargo build cannot reach it)"
+  [ -z "$missing" ] || die "nothing staged:$missing -- run 'bin/devbin macos stage' first (it copies the build output into $STAGE_DIR, where a peer's cargo build cannot reach it)"
 }
 
 # is_binary_artefact <file> <triple> -- is this staged file one of the Mach-O
@@ -737,7 +737,7 @@ cmd_doctor() {
   printf '    APPLE_ID %s   APPLE_APP_PASSWORD %s   APPLE_TEAM_ID %s\n' \
     "$(present "$APPLE_ID")" "$(present "$APPLE_APP_PASSWORD")" "$(present "$APPLE_TEAM_ID")"
   if [ -z "$APPLE_ID" ] || [ -z "$APPLE_APP_PASSWORD" ] || [ -z "$APPLE_TEAM_ID" ]; then
-    printf '    notarisation is UNAVAILABLE until these exist -- run: int macos store-creds\n'
+    printf '    notarisation is UNAVAILABLE until these exist -- run: bin/devbin macos store-creds\n'
     printf '    (signing does NOT need them and works now)\n'
   fi
 
@@ -763,7 +763,7 @@ cmd_doctor() {
     team="$(codesign -dv "$RELEASE_DIR/$b" 2>&1 | sed -n 's/^TeamIdentifier=//p')"
     case "$team" in
       "" ) desc="UNSIGNED" ;;
-      "not set" ) desc="ad-hoc (linker) -- not Developer ID; run: int macos sign" ;;
+      "not set" ) desc="ad-hoc (linker) -- not Developer ID; run: bin/devbin macos sign" ;;
       * ) desc="Developer ID ($team)" ;;
     esac
     printf '    %-8s %s\n' "$b" "$desc"
@@ -816,7 +816,7 @@ cmd_sign() {
   printf '  Both STAGED binaries carry a Developer ID signature, and the hardened\n'
   printf '  runtime flag was read back off each one rather than assumed from the\n'
   printf '  request. Signing rewrote their bytes, so any earlier checksum is stale.\n'
-  printf '  NEXT: int macos notarize   (needs the notary credentials)\n'
+  printf '  NEXT: bin/devbin macos notarize   (needs the notary credentials)\n'
 }
 
 cmd_notarize() {
@@ -825,14 +825,14 @@ cmd_notarize() {
   local triple
   triple="$(host_triple)"
   [ -n "$APPLE_ID" ] && [ -n "$APPLE_APP_PASSWORD" ] && [ -n "$APPLE_TEAM_ID" ] ||
-    die "notary credentials missing -- run: int macos store-creds (see: int macos doctor)"
+    die "notary credentials missing -- run: bin/devbin macos store-creds (see: bin/devbin macos doctor)"
 
   # Refuse to submit an unsigned or ad-hoc binary. notarytool would reject it
   # anyway, minutes later, with a less useful message -- and a gate that fails
   # early beats one that fails after a round trip to Apple.
   for b in $BINARIES; do
     codesign -dv "$STAGE_DIR/$b-$triple" 2>&1 | grep -q 'TeamIdentifier=not set' &&
-      die "$b-$triple is not Developer ID signed -- run 'int macos sign' first"
+      die "$b-$triple is not Developer ID signed -- run 'bin/devbin macos sign' first"
   done
 
   local staging payload zip
@@ -1225,7 +1225,7 @@ $drift
   # not even reliably true, since an ad-hoc signature IS a signature and
   # `codesign --verify --strict` returns 0 over one.
   printf '  Nothing here has signed these -- they carry whatever the linker applied.\n'
-  printf '  NEXT: int macos sign\n'
+  printf '  NEXT: bin/devbin macos sign\n'
 }
 
 # cmd_checksum -- prove every staged artefact, and only then hash it.
@@ -1295,7 +1295,7 @@ cmd_checksum() {
   done
   if [ "$rc" -ne 0 ]; then
     rm -f "$sums"
-    die "refusing to checksum -- a staged artefact is not signed AND notarised. Run: int macos sign && int macos notarize (the staged binaries are left alone; only the checksum claim is withdrawn)"
+    die "refusing to checksum -- a staged artefact is not signed AND notarised. Run: bin/devbin macos sign && bin/devbin macos notarize (the staged binaries are left alone; only the checksum claim is withdrawn)"
   fi
   printf '    %-34s not a Mach-O -- nothing to sign, nothing to notarise\n' "$SUPPORT_ASSET"
 
@@ -1304,7 +1304,7 @@ cmd_checksum() {
   step "proving $APP_ASSET before it is hashed"
   app_zip_verify "$STAGE_DIR/$APP_ASSET" || {
     rm -f "$sums"
-    die "refusing to checksum -- $APP_ASSET does not unpack to a stapled bundle Gatekeeper accepts. Run: int macos prepare"
+    die "refusing to checksum -- $APP_ASSET does not unpack to a stapled bundle Gatekeeper accepts. Run: bin/devbin macos prepare"
   }
 
   # Hashed from the CLASSIFIED set, never from a glob. The old form globbed
@@ -1373,7 +1373,7 @@ cmd_prepare() {
   # was asserting over an artefact some of its words do not apply to.
   printf 'prepare: app-sign, app-notarize, stage, sign, notarize and checksum ran in\n'
   printf '  one pass; each step reported above what it did and did not cover.\n'
-  printf '  NEXT: int macos formula\n'
+  printf '  NEXT: bin/devbin macos formula\n'
 }
 
 # cmd_formula -- emit the Homebrew formula from the staged artefacts.
@@ -1433,7 +1433,7 @@ cmd_prepare() {
 # "create it" -- it is "prove the artefacts and it will be written for you".
 require_sums() {
   [ -f "$STAGE_DIR/SHA256SUMS.txt" ] ||
-    die "no proven artefacts to describe -- run 'int macos prepare' first (SHA256SUMS.txt is written only by 'checksum', and only for artefacts it has proven signed AND notarised)"
+    die "no proven artefacts to describe -- run 'bin/devbin macos prepare' first (SHA256SUMS.txt is written only by 'checksum', and only for artefacts it has proven signed AND notarised)"
 }
 
 # staged_version -- the version the SHIPPING binary reports.
@@ -1512,7 +1512,7 @@ cmd_formula() {
   sha_daemon="$(awk -v f="intentd-$triple" '$2 == f { print $1 }' "$sums")"
   sha_support="$(awk -v f="$SUPPORT_ASSET" '$2 == f { print $1 }' "$sums")"
   [ -n "$sha_cli" ] && [ -n "$sha_daemon" ] && [ -n "$sha_support" ] ||
-    die "$sums does not carry a hash for all three artefacts -- re-run 'int macos prepare'"
+    die "$sums does not carry a hash for all three artefacts -- re-run 'bin/devbin macos prepare'"
 
   cat <<FORMULA
 class Intent < Formula
@@ -1735,9 +1735,9 @@ cmd_publish() {
     die "refusing to publish '$version' -- this is a development build, not a release.
        A formula in the tap is not a document, it is an INSTALLER: whatever it
        names is what 'brew install intent' puts on a stranger's machine. Printing
-       one is harmless and 'int macos formula' will still do it.
+       one is harmless and 'bin/devbin macos formula' will still do it.
        Set a real version in native/rust/Cargo.toml, rebuild, and re-run
-       'int macos prepare' so the staged binary reports it."
+       'bin/devbin macos prepare' so the staged binary reports it."
   fi
 
   # Refuse to republish. Overwriting the assets of a release a formula already
@@ -1802,7 +1802,7 @@ cmd_publish() {
   # match the thing being published, not the thing being worked on.
   local prov_commit prov_clean tag_commit
   [ -f "$PROVENANCE_FILE" ] ||
-    die "no provenance record at $PROVENANCE_FILE -- run 'int macos stage' (or 'prepare'), which writes it. Refusing to publish bytes whose source commit was never recorded."
+    die "no provenance record at $PROVENANCE_FILE -- run 'bin/devbin macos stage' (or 'prepare'), which writes it. Refusing to publish bytes whose source commit was never recorded."
   prov_commit="$(sed -n 's/^commit: //p' "$PROVENANCE_FILE" | head -1)"
   prov_clean="$(sed -n 's/^checkout_clean: //p' "$PROVENANCE_FILE" | head -1)"
   # EVERY REFUSAL NAMES THE SUBJECT IT MEASURED, and this one did not. It read
@@ -1899,7 +1899,7 @@ $(printf '%s\n' "$artefact_blockers" | sed 's/^/       /')
   [ "$vrc" -eq 0 ] ||
     die "refusing to publish: the release notes assert both binaries are Developer ID
        signed and notarised, and that could not be established on these bytes just
-       now. Nothing has been uploaded. Re-run 'int macos prepare' -- and note that
+       now. Nothing has been uploaded. Re-run 'bin/devbin macos prepare' -- and note that
        signing REWRITES a binary, so a re-sign after 'checksum' leaves hashes that
        describe bytes no longer on disk."
 
@@ -1957,7 +1957,7 @@ $(printf '%s\n' "$artefact_blockers" | sed 's/^/       /')
     # a MISMATCH, which is the right outcome reached for the wrong reason and
     # names the wrong fix; say what is actually wrong.
     [ -n "$want" ] ||
-      die "$name was uploaded but SHA256SUMS.txt carries no hash for it -- re-run 'int macos prepare' and publish a fresh tag."
+      die "$name was uploaded but SHA256SUMS.txt carries no hash for it -- re-run 'bin/devbin macos prepare' and publish a fresh tag."
     curl -fsSL -o "$tmp/$name" "https://github.com/$REPO/releases/download/$tag/$name" ||
       die "could not download the artefact we just published: $name"
     got="$(shasum -a 256 "$tmp/$name" | awk '{ print $1 }')"
@@ -1973,7 +1973,7 @@ $(printf '%s\n' "$artefact_blockers" | sed 's/^/       /')
   if [ "$rc" -ne 0 ]; then
     die "the bytes GitHub serves do not hash to what we published as their checksum.
        The release $tag is left in place and NO FORMULA HAS BEEN PUSHED, so nothing
-       installs these bytes. Delete the release, re-run 'int macos prepare', and
+       installs these bytes. Delete the release, re-run 'bin/devbin macos prepare', and
        publish again."
   fi
 
@@ -1987,7 +1987,7 @@ $(printf '%s\n' "$artefact_blockers" | sed 's/^/       /')
   git -C "$work/tap" add Formula/intent.rb
   git -C "$work/tap" commit -q -m "intent $version
 
-Generated by 'int macos publish' from artefacts proven signed and notarised,
+Generated by 'bin/devbin macos publish' from artefacts proven signed and notarised,
 and re-downloaded from the published release to confirm the hashes describe the
 bytes a user actually receives.
 
@@ -2342,7 +2342,7 @@ cmd_store_creds() {
       die "could not write $k to the keychain"
   done
   ok
-  printf '  Stored. Verify with: int macos doctor\n'
+  printf '  Stored. Verify with: bin/devbin macos doctor\n'
 }
 
 # =============================================================================
@@ -2541,7 +2541,7 @@ cmd_app_doctor() {
     if command -v "$t" >/dev/null 2>&1; then printf '  %-14s %s\n' "$t" "$(command -v "$t")"
     else printf '  %-14s MISSING\n' "$t"; ok=0; fi
   done
-  printf '  %-14s %s\n' "assets" "$( [ -d "$APP_ASSETS/AppIcon.appiconset" ] && echo present || echo 'absent (run: int macos app-icons)' )"
+  printf '  %-14s %s\n' "assets" "$( [ -d "$APP_ASSETS/AppIcon.appiconset" ] && echo present || echo 'absent (run: bin/devbin macos app-icons)' )"
   [ "$ok" = 1 ] || die "toolchain incomplete -- see MISSING above"
 }
 
@@ -2555,7 +2555,7 @@ cmd_app_build() {
     *) die "app-build: unknown config '$1' (debug|release)" ;; esac
   app_require_xcode
   app_generate_if_stale
-  [ -d "$APP_ASSETS/AppIcon.appiconset" ] || die "no icon asset -- run: int macos app-icons"
+  [ -d "$APP_ASSETS/AppIcon.appiconset" ] || die "no icon asset -- run: bin/devbin macos app-icons"
   mkdir -p "$APP_STATE_DIR"
   app_stamps
   printf -- '-> xcodebuild -scheme Intent -configuration %s  (%s build %s, %s, tree %s)\n' \
@@ -2654,9 +2654,9 @@ cmd_app_verify() {
   esac
   case "$config" in
     dist) bundle="$(app_dist)"
-      [ -d "$bundle" ] || die "no distributable bundle at $bundle -- run: int macos app-sign" ;;
+      [ -d "$bundle" ] || die "no distributable bundle at $bundle -- run: bin/devbin macos app-sign" ;;
     *) bundle="$(app_bundle "$config")"
-      [ -d "$bundle" ] || die "no $config bundle at $bundle -- run: int macos app-build $config" ;;
+      [ -d "$bundle" ] || die "no $config bundle at $bundle -- run: bin/devbin macos app-build $config" ;;
   esac
   plist="$bundle/Contents/Info.plist"; exe="$bundle/Contents/MacOS/$(app_executable_name "$bundle")"
   printf 'bundle:  %s\n' "$bundle"
@@ -2667,7 +2667,7 @@ cmd_app_verify() {
   printf 'LSUIElement: true\n'
   v="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$plist" 2>/dev/null || echo dev)"
   printf 'version: %s (commit %s)\n' "$v" "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$plist" 2>/dev/null || echo '?')"
-  [ "$v" != "dev" ] || printf '  note: built from inside Xcode (stamps are defaults) -- run int macos app-build for a stamped bundle\n'
+  [ "$v" != "dev" ] || printf '  note: built from inside Xcode (stamps are defaults) -- run bin/devbin macos app-build for a stamped bundle\n'
   [ "$config" = "dist" ] || return 0
   app_signature_readback "$bundle"
   app_verify_notarised "$bundle"
@@ -2798,7 +2798,7 @@ app_verify_notarised() {
   if xcrun stapler validate "$bundle" >/dev/null 2>&1; then
     printf '    %-34s %s\n' "stapled ticket" "present, validates"
   else
-    printf '    %-34s %s\n' "stapled ticket" "NONE -- run: int macos app-notarize"
+    printf '    %-34s %s\n' "stapled ticket" "NONE -- run: bin/devbin macos app-notarize"
     rc=1
   fi
   t="$(mktemp -d)"
@@ -2833,14 +2833,14 @@ app_verify_notarised() {
 app_asset_blockers() {
   local bundle="$1" want="$2" got
   if [ ! -d "$bundle" ]; then
-    printf 'no signed bundle at %s -- run: int macos prepare (it runs app-sign and app-notarize first)\n' "$bundle"
+    printf 'no signed bundle at %s -- run: bin/devbin macos prepare (it runs app-sign and app-notarize first)\n' "$bundle"
     return 0
   fi
   xcrun stapler validate "$bundle" >/dev/null 2>&1 ||
-    printf 'no valid stapled ticket on %s -- run: int macos prepare (app-notarize staples it)\n' "$bundle"
+    printf 'no valid stapled ticket on %s -- run: bin/devbin macos prepare (app-notarize staples it)\n' "$bundle"
   got="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$bundle/Contents/Info.plist" 2>/dev/null)" || got=""
   [ "$got" = "$want" ] ||
-    printf 'the bundle reports version %s and the staged CLI reports %s -- it was built from another tree; run: int macos prepare at the tag\n' "${got:-<unreadable>}" "$want"
+    printf 'the bundle reports version %s and the staged CLI reports %s -- it was built from another tree; run: bin/devbin macos prepare at the tag\n' "${got:-<unreadable>}" "$want"
   return 0
 }
 
@@ -2900,7 +2900,7 @@ cmd_app_sign() {
   ok
   printf '  The staged bundle is Developer ID signed, and its identifier, team and\n'
   printf '  hardened runtime were read back off it rather than assumed.\n'
-  printf '  NEXT: int macos app-notarize   (needs the notary credentials)\n'
+  printf '  NEXT: bin/devbin macos app-notarize   (needs the notary credentials)\n'
 }
 
 # --- app-notarize: submit the signed bundle, wait, staple, check ----------------
@@ -2908,9 +2908,9 @@ cmd_app_notarize() {
   require_identity
   local dist staging zip out status id
   dist="$(app_dist)"
-  [ -d "$dist" ] || die "no signed bundle at $dist -- run: int macos app-sign"
+  [ -d "$dist" ] || die "no signed bundle at $dist -- run: bin/devbin macos app-sign"
   [ -n "$APPLE_ID" ] && [ -n "$APPLE_APP_PASSWORD" ] && [ -n "$APPLE_TEAM_ID" ] ||
-    die "notary credentials missing -- run: int macos store-creds (see: int macos doctor)"
+    die "notary credentials missing -- run: bin/devbin macos store-creds (see: bin/devbin macos doctor)"
   # Refuse an unsigned or build-signed bundle here rather than minutes later at
   # Apple, with a less useful message.
   step "checking the bundle is the signed one"
@@ -2957,10 +2957,15 @@ SUBCOMMANDS="doctor stage sign notarize verify checksum prepare formula publish 
 
 usage() {
   cat <<'USAGE'
-bin/devbin macos <subcommand>        (int macos <subcommand>)
+bin/devbin macos <subcommand>
+
+  Every macos invocation, --help included, reads the notary credentials and
+  signing identity from the login Keychain at load (read-only; nothing is
+  printed).
 
   THE PIPELINE, in order, after `bin/devbin build release` has cut and tagged
-  the release and `bin/devbin build all` has built the pair at the tag. Every
+  the release (it builds the pair at the tag itself, with `bin/devbin build
+  all`). Every
   step after `stage` acts on the staged copies in native/rust/target/dist --
   never on target/release, which every session in this clone shares and any
   `cargo build --release` will overwrite underneath you.
@@ -2999,8 +3004,11 @@ bin/devbin macos <subcommand>        (int macos <subcommand>)
                that already carries assets, a missing tag, a checkout that was
                dirty at stage, a stage not taken at the tag, and binaries whose
                embedded source commit is not the tag's -- tagging is the
-               release cut's job, not this one's.
-               `--dry-run` runs every check and publishes nothing.
+               release cut's job, not this one's. It also refuses bytes that
+               no longer prove signed and notarised from a quarantined copy.
+               `--dry-run` runs every check that needs no upload and
+               publishes nothing; the re-download check needs the upload, so
+               it does not run.
   smoke        Assert the INSTALLED KEG, which is the only subject that has been
                through the network hop. Reads -x back off both binaries, checks
                every install-root path v3 resolves is present, that the rule
@@ -3029,14 +3037,17 @@ bin/devbin macos <subcommand>        (int macos <subcommand>)
   app-build    xcodegen-if-stale + xcodebuild (Debug default; app-build release
                for Release). Unsigned; products land off the synced tree so
                synced xattrs cannot break a later codesign
-  app-run      Build Debug and exec the built binary directly (never open, which
-               can launch the installed copy); quits any running copy first
+  app-run      Build Debug, quit any running copy, and launch the built binary
+               directly in the background (never open, which can launch the
+               installed copy); prints the log stream command
   app-test     xcodebuild test -- the IntentTests target
   app-install  Build Release, install to /Applications, register intent://,
                launch. An unsigned dev build, never the distributable
   app-verify   [debug|release|dist] (Debug default). Checks on a bundle:
-               executable present, LSUIElement set, Info.plist stamps are the
-               built ones. `app-verify dist` adds the signature read back
+               executable present, LSUIElement set; prints the Info.plist
+               version stamps and names a bundle stamped with Xcode's dev
+               defaults (a note, not a failure). `app-verify dist` adds the
+               signature read back
                off the bytes, the stapled ticket, and
                Gatekeeper on a quarantined copy
   app-sign     Build Release, stage a copy off the shared build products, and

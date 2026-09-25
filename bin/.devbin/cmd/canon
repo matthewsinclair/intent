@@ -5,6 +5,8 @@
 # bin/devbin canon    -- REPORT canon issues (intent/.canon/issues/*.json) that
 #                        disagree between disk and git, by MEMBERSHIP in both
 #                        directions and by CONTENT for every file in both.
+#                        Exit 0 when disk and git agree, 1 on any divergence
+#                        or a usage error, 2 when a control fails.
 #
 # THE CLASS, in cc's words, and the wording decides the remedy: **filing an issue
 # writes the store and the disk atomically and correctly. Git is a separate,
@@ -116,7 +118,7 @@ die_control() {
 
 case "${1:-}" in
   -h | --help | help)
-    sed -n '5,7p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+    sed -n '5,9p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
     exit 0
     ;;
   "") ;;

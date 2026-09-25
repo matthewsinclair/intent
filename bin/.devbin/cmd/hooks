@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # devbin: summary = Report which git hooks are wired to which guards (bare form reports)
-#
+# devbin: args = [--install]
 # bin/devbin hooks            -- REPORT the wiring state of this clone's git
 #                                hooks (pre-commit, pre-push, post-commit and
 #                                the pre-commit.intent gate). Exit 0 when all
@@ -68,14 +68,19 @@
 # WHAT IS STILL IRREDUCIBLE: one config command per clone. Git will not adopt
 # tracked hooks on its own; that is a deliberate security property, not an
 # oversight, and a hook that ran on clone would be remote code execution. So
-# `--install` sets `core.hooksPath`, and the `bin/int` dispatcher SAYS when it
-# is unset. **It says and does not self-heal** (hv, 2026-08-20) -- the clock
-# guard's rule, for the clock guard's reason: something that silently repairs a
-# thing hides the class from the person who needs to learn it.
+# `--install` sets `core.hooksPath`.
 #
 set -euo pipefail
 : "${DEVBIN_LIB:?run me through the devbin dispatcher}"
 . "$DEVBIN_LIB/helpers"
+
+# `--help` prints the usage block above and runs nothing; it ran the report.
+case "${1:-}" in
+  -h | --help)
+    awk 'NR < 5 { next } /^#$/ || !/^#/ { exit } { sub(/^# ?/, ""); print }' "${BASH_SOURCE[0]}"
+    exit 0
+    ;;
+esac
 
 ROOT="${PROJECT_ROOT:?}"
 DO_INSTALL=0
@@ -641,9 +646,9 @@ if [ "$DO_INSTALL" -eq 0 ]; then
       upgrade_apply_scope '  '
     fi
     if [ "$rc" -ne 0 ] && [ "$GATE_ABSENT" -eq 0 ]; then
-      printf '  the RUNNERS are unwired: run `int hooks --install`.\n'
+      printf '  the RUNNERS are unwired: run `bin/devbin hooks --install`.\n'
     elif [ "$GATE_ABSENT" -eq 1 ]; then
-      printf '  and if any runner above is not WIRED, `int hooks --install` as well.\n'
+      printf '  and if any runner above is not WIRED, `bin/devbin hooks --install` as well.\n'
     fi
     printf '  An unwired guard does not fail; it reports nothing, and reporting\n'
     printf '  nothing is indistinguishable from passing.\n'

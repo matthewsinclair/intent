@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # devbin: summary = Clone what you are about to push and build it (post-move check)
-#
+# devbin: args = [--force] [<remote-name> <remote-url>]
 # bin/devbin prepush [--force] [<remote-name> <remote-url>] -- clone THIS
 # repository at HEAD into a temp dir and build it, to check that the artefact a
 # stranger receives is coherent. Invoked by .githooks/pre-push (the tracked
@@ -55,6 +55,14 @@
 set -euo pipefail
 : "${DEVBIN_LIB:?run me through the devbin dispatcher}"
 . "$DEVBIN_LIB/helpers"
+
+# `--help` prints the usage block above and runs nothing; it ran the push check, which clones HEAD and may build it.
+case "${1:-}" in
+  -h | --help)
+    awk 'NR < 5 { next } /^#$/ || !/^#/ { exit } { sub(/^# ?/, ""); print }' "${BASH_SOURCE[0]}"
+    exit 0
+    ;;
+esac
 # The single-writer clone, shared with `int suite` and `int hosting`. Extracted
 # from HERE 2026-08-22 (dc): it was the general answer to "which revision does
 # this figure describe" and had only this consumer from 2026-08-15, because it

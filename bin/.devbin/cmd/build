@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # devbin: summary = Build this project's artefacts, and cut its releases
-#
+# devbin: args = <all|cli|daemon|release> ...
 # bin/devbin build <all|cli|daemon|release> ...
 #
 #   all      [--debug] [cargo opts]  intent + intentd, release profile by default
@@ -9,12 +9,15 @@
 #   daemon   [--debug] [cargo opts]  the intentd daemon binary (cargo -p intentd)
 #   release  <--patch|--minor|--major|vX.Y.Z> [flags]  cut, tag and publish
 #
-# `all` without --debug is the guarded release build: a dirty tree builds into
-# native/rust/target/private/release; a clean one is verified and then promoted
-# into native/rust/target/release. `cli` and `daemon` refuse a release build of
-# one binary unless CARGO_TARGET_DIR is set. Extra arguments, --help included,
-# go to cargo; `release` answers its own --help. Each arm is a handler under
-# cmd/build.d/, and this file answers only bare, -h/--help and unknown targets.
+# `all` without --debug is the guarded release build: a tree with uncommitted
+# changes under its build inputs (native/rust, surface, docs/design,
+# lib/templates) builds into native/rust/target/private/release; a clean one is
+# verified and then promoted into native/rust/target/release. `cli` and `daemon`
+# refuse a release build of one binary unless CARGO_TARGET_DIR is set. Extra
+# arguments reach cargo as given only with --debug: without it `all` cleans and
+# verifies the pair around them, so --help is no way to reach cargo's help.
+# `release` answers its own --help. Each arm is a handler under cmd/build.d/,
+# and this file answers only bare, -h/--help and unknown targets.
 #
 # `all` means all BINARIES and pointedly not `release`: one arm compiles a
 # binary and the other publishes a release, and no one wants both in one pass.
@@ -25,7 +28,7 @@ set -euo pipefail
 
 case "${1:-}" in
   ""|-h|--help)
-    sed -n '5,20p' "${BASH_SOURCE[0]}" | sed -e 's/^# //' -e 's/^#$//'
+    sed -n '5,23p' "${BASH_SOURCE[0]}" | sed -e 's/^# //' -e 's/^#$//'
     exit 0
     ;;
   *)

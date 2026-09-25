@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # devbin: summary = Report which tree a run's verdict actually describes
-#
+# devbin: args = [<run> | --stamp | --value | --exec <cmd...>]
 # bin/devbin measured                 -- the current referent, and what each
 #                                        gate's most recent run describes.
 # bin/devbin measured <run>           -- one named run (its .out or .errors path).

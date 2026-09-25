@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # devbin: summary = Run this repo's local commit gates (ST0056 apparatus guards)
-#
+# devbin: args = [--all | --list-guards]
 # bin/devbin precommit [--all | --list-guards] -- run the guards that protect
 # THIS repository's apparatus. Invoked by .githooks/pre-commit (the tracked
 # hooks directory core.hooksPath points at) as `bin/int precommit "$@"`, after
@@ -43,6 +43,14 @@
 set -euo pipefail
 : "${DEVBIN_LIB:?run me through the devbin dispatcher}"
 . "$DEVBIN_LIB/helpers"
+
+# `--help` prints the usage block above and runs nothing; it ran the gate, every guard.
+case "${1:-}" in
+  -h | --help)
+    awk 'NR < 5 { next } /^#$/ || !/^#/ { exit } { sub(/^# ?/, ""); print }' "${BASH_SOURCE[0]}"
+    exit 0
+    ;;
+esac
 
 # THE GUARD ROSTER -- declared ONCE here and consumed TWICE: the run labels its
 # steps from these names, and `--list-guards` prints them for `int hooks`.
@@ -91,7 +99,7 @@ G_VOCAB="class vocabulary: a claimed parity class is one parity.md names"
 G_RATIFIED="ratification provenance: a ratified row names authority, date and record"
 G_RESIDUE="residue classes: migration.md matches what Phase A can actually emit"
 G_STALEAT="stale AT rows: a to-write row whose cited test already exists"
-G_SELFPROV="self-provenance: a vendored tree agrees with its COMMITTED record (gates), and each binary names its own source commit (REPORTS -- enforcement is at \`int macos publish\`)"
+G_SELFPROV="self-provenance: a vendored tree agrees with its COMMITTED record (gates), and each binary names its own source commit (REPORTS -- enforcement is at \`bin/devbin macos publish\`)"
 G_CANONCOMMIT="canon currency: a commit carrying canon does not name bytes absent from that commit (ST0057 AC-03.6)"
 G_GUARDHOME='guard home: a self-hosted tree runs ITS OWN guards, not the ones $INTENT_HOME points at'
 G_SHAREDBUILD='shared build: a rebuild into the SHARED artefact path is refused when native/rust is dirty'

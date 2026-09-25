@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 #
-# devbin: summary = Report which devbin-owned files this project has locally patched
+# devbin: summary = Report which devbin-owned files this project has locally patched, against the install manifest (it shadows devbin's own vendor)
 #
 # bin/devbin vendor  -- REPORT the divergence between the vendored files
 #                       (bin/devbin and bin/.devbin/lib/) and the checksums in
 #                       bin/.devbin/manifest.sha256. Takes no
-#                       arguments. Exit 1 when a listed file is missing or no
-#                       file matches; local patches and unlisted files are
-#                       reported at exit 0.
+#                       arguments, and refuses any it is given: `--help`
+#                       prints this block. Exit 1 when a listed file is
+#                       missing or no file matches; local patches and unlisted
+#                       files are reported at exit 0.
 #
 # THIS SHADOWS DEVBIN'S OWN `vendor`. A project handler shadows totally, so
 # devbin's built-in (lib/cmd/vendor, which compares the vendored bytes with the
@@ -64,6 +65,16 @@ OWNED_ROOTS="lib"
 
 # shellcheck source=lib/helpers
 . "${DEVBIN_LIB:?}/helpers"
+
+# Arguments are refused, not ignored: an ignored `--help` ran the report.
+case "${1:-}" in
+  -h | --help | help)
+    sed -n '5,11p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+    exit 0
+    ;;
+  "") ;;
+  *) die "unknown argument: $1 (this command takes none)" ;;
+esac
 
 [ -f "$MANIFEST" ] ||
   die "no manifest at $MANIFEST -- this tree was not installed by devbin, so there is nothing to compare against"

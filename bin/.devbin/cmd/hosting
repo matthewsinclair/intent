@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 #
 # devbin: summary = Which commands are actually HOSTED, at a named revision
-#
-# int hosting [--include-mutating] [verb...] -- drive each command against a
-# binary BUILT IN THE SAME ACT, inside a single-writer clone of HEAD.
+# devbin: args = [--include-mutating] [verb...]
+# bin/devbin hosting [--include-mutating] [verb...] -- clone HEAD, build its
+# release pair in the clone, and drive each verb there against that binary.
+# With no verbs it drives a fixed read-only list, and --include-mutating adds
+# the mutating list; named verbs are driven as given, mutating or not. It exits
+# 0 whatever the verbs answered.
 #
 # READING A `Target:` DISPOSITION ANSWERS A DIFFERENT QUESTION THAN A SWEEP
 # ASKS, and both diagonals are occupied: `fileindex` carries a RATIFIED AND
@@ -73,7 +76,7 @@ for a in "$@"; do
   case "$a" in
     --include-mutating) INCLUDE_MUTATING=1 ;;
     -h | --help)
-      sed -n '5,7p' "${BASH_SOURCE[0]}" | sed -e 's/^# //' -e 's/^#$//'
+      sed -n '5,10p' "${BASH_SOURCE[0]}" | sed -e 's/^# //' -e 's/^#$//'
       exit 0
       ;;
     *) VERBS+=("$a") ;;

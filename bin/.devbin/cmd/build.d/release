@@ -7,10 +7,12 @@
 # Cuts an Intent release in one invocation: pre-flight checks (clean tree, the
 # published schema faces carry VERSION, on main, both remotes configured and not
 # frozen, contract_check.sh reported but not gating, docs/reference describes
-# HEAD, `intent doctor`, the bats suite, `cargo test --workspace` in a private
-# worktree, gh authenticated), a canon-spill check before anything is stamped,
-# version bump, CHANGELOG date finalisation, sidecar sync (VERSION and
-# native/rust/Cargo.toml through `bin/devbin version set`, config.json
+# HEAD, no intentd running, `intent doctor`, the bats suite, the rust gate in a
+# private worktree at HEAD (cargo build -p intentd, the check format, clippy,
+# panics and doc twins, then cargo test --workspace --no-fail-fast), gh
+# authenticated), a canon-spill check before anything is stamped, version set
+# (VERSION and native/rust/Cargo.toml through `bin/devbin version set`),
+# CHANGELOG date finalisation, then the rest of the sidecar sync (config.json
 # intent_version, the schema faces regenerated, native/rust/Cargo.lock through
 # cargo, AGENTS.md and CLAUDE.md rendered by a CLI built at the target version,
 # and the generated views re-rendered with footer-only changes folded in),
@@ -26,8 +28,8 @@
 # builds the local pair at the tag only because its own push is refused over any
 # other pair (issue 0546); it does not sign, notarise, stage or upload a native
 # binary, and it does not
-# touch the Homebrew tap: `int macos prepare` owns the artefacts and
-# `int macos publish` owns the assets on the object this creates. No command
+# touch the Homebrew tap: `bin/devbin macos prepare` owns the artefacts and
+# `bin/devbin macos publish` owns the assets on the object this creates. No command
 # owns two of the three. What it DOES own for v3 is the version those artefacts
 # will report -- `native/rust/Cargo.toml` carries `[workspace.package] version`
 # and the binary compiles its own version string from it, so a tag cut without
@@ -50,16 +52,20 @@
 #                        faces, lock, stamp CLI, canon, views, commit, tag,
 #                        the pair at the tag, push, release) instead of performing it.
 #   --no-confirm         Skip the interactive confirmation before the push.
-#   --skip-tests         Skip the pre-flight doctor, bats and cargo test gates
-#                        (re-run mode).
+#   --skip-tests         Skip the pre-flight doctor, bats and rust gates (cargo
+#                        build, the four check twins, cargo test); every other
+#                        pre-flight check still runs (re-run mode).
 #   --allow-stale-date   Accept a CHANGELOG date that is not today.
 #   --allow-stale-reference
 #                        Cut even though docs/reference does not describe HEAD;
 #                        the diff is kept and named in the output.
 #   --help, -h           Print this help and exit.
 #
-# The binary it drives is native/rust/target/release/intent, resolved by path:
-# build the release pair first with `bin/devbin build all`.
+# It drives two binaries, both resolved by path: native/rust/target/release/intent
+# for the pre-flight and the canon-spill check (build the release pair first
+# with `bin/devbin build all`), and native/rust/target/debug/intent, which it
+# builds at the target version for the stamp steps. At the tag it rebuilds the
+# release pair itself.
 #
 # Examples:
 #   bin/devbin build release --dry-run --patch
@@ -68,7 +74,9 @@
 #
 # Exit codes:
 #   0  success (or dry-run completed)
-#   1  pre-flight, validation or sidecar-step refusal
+#   1  any refusal or failure: pre-flight, validation, a sidecar step, or a step
+#      after the release commit (tag, pair at the tag, push, GitHub release);
+#      those print what to finish by hand and must not be re-run
 #   2  confirmation declined at the push, or no terminal to ask on (the tag
 #      already exists locally)
 
@@ -1047,7 +1055,7 @@ if [ "$NEEDS_DATE_REWRITE" = "true" ]; then
     log_dry "would rewrite '## [$TARGET] - $UNDATED_PLACEHOLDER' to '## [$TARGET] - $TODAY' in CHANGELOG.md"
   else
     # Keep any trailing parenthesised note that follows the placeholder
-    # (e.g. " - in progress (ST0035 + ST0036)" -> " - $TODAY (ST0035 + ST0036)").
+    # (eg " - in progress (ST0035 + ST0036)" -> " - $TODAY (ST0035 + ST0036)").
     sed -i.bak -E "s|^(## \[$TARGET\]) - $UNDATED_PLACEHOLDER(.*)$|\1 - $TODAY\2|" "$PROJECT_ROOT/CHANGELOG.md"
     rm -f "$PROJECT_ROOT/CHANGELOG.md.bak"
     # No silent success: the sed above is derived from UNDATED_PLACEHOLDER, but

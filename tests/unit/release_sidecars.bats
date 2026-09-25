@@ -111,7 +111,7 @@ RELEASE="${INTENT_RELEASE_SCRIPT:-${INTENT_HOME}/bin/.devbin/cmd/build.d/release
   # midnight and aborts the pre-flight date gate. This bit v2.17.4.
   run grep -F 'in progress' "$RELEASE"
   assert_success
-  run bash -c "sed -n '1,40p' '$RELEASE' | grep -F 'NOT with a hand-typed date'"
+  run bash -c "sed -n '1,/^set -u$/p' '$RELEASE' | grep -F 'NOT with a hand-typed date'"
   assert_success
 }
 

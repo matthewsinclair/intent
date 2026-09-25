@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 #
 # devbin: summary = Run the test suite against HEAD in a single-writer clone
-#
+# devbin: args = [--with-build] [test-path]
 # bin/devbin suite [--with-build] [test-path] -- clone HEAD into a temp dir and
 # run `tests/run_tests.sh [test-path]` there, so the figure NAMES A REVISION BY
 # CONSTRUCTION. `--with-build` runs a debug `cargo build` in the clone first.
 # Uncommitted work is not measured. Exit 0 on a green suite; exit 1 on a red
-# suite, or when the runner never emitted a TAP plan.
+# suite, or when the runner never emitted a TAP plan. The clone has no build
+# output and --with-build builds debug only, so export INTENT_BIN (eg to this
+# checkout's native/rust/target/release/intent) for the bats to drive a binary.
 #
 # WHY THIS EXISTS, AND IT IS AN ADVISORY RETIRED RATHER THAN A CONVENIENCE.
 # A suite run over the live tree measures whatever the tree happened to be
@@ -62,7 +64,7 @@ for a in "$@"; do
   case "$a" in
     --with-build) WITH_BUILD=1 ;;
     -h | --help)
-      sed -n '5,10p' "${BASH_SOURCE[0]}" | sed -e 's/^# //' -e 's/^#$//'
+      sed -n '5,12p' "${BASH_SOURCE[0]}" | sed -e 's/^# //' -e 's/^#$//'
       exit 0
       ;;
     *) TEST_PATH="$a" ;;
@@ -87,7 +89,7 @@ if [ "$WITH_BUILD" -eq 1 ]; then
   step "suite: cold-building the clone (debug profile -- the suite reads native/rust/target/release/intent, which this does not produce)"
   workspace="$(clone_workspace "$TMP/clone")"
   ( cd "$workspace" && cargo build --workspace --bins ) ||
-    die "the pushed repository does not build -- run 'int prepush --force' for the full diagnosis"
+    die "the pushed repository does not build -- run 'bin/devbin prepush --force' for the full diagnosis"
 fi
 
 step "suite: running tests/run_tests.sh inside the clone"

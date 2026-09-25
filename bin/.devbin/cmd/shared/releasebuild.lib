@@ -287,12 +287,12 @@ verify_pair() {
 refuse_single_package_release() {
   local verb="$1"
   [ -z "${CARGO_TARGET_DIR:-}" ] || return 0
-  die "int build $verb builds ONE binary, and a release build of one binary would land in the
+  die "bin/devbin build $verb builds ONE binary, and a release build of one binary would land in the
        SHARED target that other sessions invoke. The pair is the unit every
        guard reads -- intent and intentd must name the same commit -- and a
        single-package build splits it the moment HEAD moves.
 
-       For a release pair:   int build all       (or: int local build)
-       For this one crate:   int build $verb --debug
-       Into your own dir:    CARGO_TARGET_DIR=<dir> int build $verb"
+       For a release pair:   bin/devbin build all       (or: bin/devbin local build)
+       For this one crate:   bin/devbin build $verb --debug
+       Into your own dir:    CARGO_TARGET_DIR=<dir> bin/devbin build $verb"
 }
