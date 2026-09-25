@@ -125,12 +125,6 @@ const DESTINATIONS: &[(&str, Destination)] = &[
     "llm/_usage-rules.md",
     NotByInit("user-owned; the canon installer seeds it"),
   ),
-  // **THE STEEL-THREAD TEMPLATES ARE v2's VIEW RENDERER AND v3 HAS ANOTHER.**
-  // Under D02 these files are GENERATED VIEWS of canon; the generator reads
-  // canon and owns their shape. Laying down a template copy at init would be a
-  // second source for a view, which is the defect this thread exists to remove.
-  ("prj/st/ST####/info.md", NotByInit("a generated view (D02)")),
-  ("prj/st/WP/info.md", NotByInit("a generated view (D02)")),
 ];
 
 /// What `init` created.

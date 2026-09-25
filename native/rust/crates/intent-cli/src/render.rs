@@ -2910,7 +2910,7 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
       let mut f = open()?;
       // S, not M, and it is not a taste call. v2's `wp new` takes no scope
       // flag at all, so every work package it creates carries whatever
-      // `lib/templates/prj/st/WP/info.md` seeds -- and that template says
+      // `lib/templates/prj/st/WP/info.md` seeded at `0b1b3b5b` -- and it says
       // `scope: Small`. A different default writes different canon for the
       // same command, which is a parity break hiding in a value rather than
       // in an output.
