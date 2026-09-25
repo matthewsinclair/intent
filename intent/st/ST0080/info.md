@@ -1,9 +1,9 @@
 ---
 st_id: ST0080
 title: Scheduled store backups that actually fire
-status: WIP
+status: Completed
 created: 2026-09-25
-completed:
+completed: 2026-09-25
 ---
 
 # ST0080: Scheduled store backups that actually fire
