@@ -2192,7 +2192,9 @@ cmd_smoke() {
   # standing inside the source tree proves nothing about a stranger's machine.
   step "INTENT_HOME resolves onto libexec, from outside any checkout"
   tmp="$(mktemp -d)"
-  out="$( (cd "$tmp" && "$bin_intent" info 2>&1 || true) | awk '/INTENT_HOME/ { print $2 }' || true)"
+  # Keyed on the field, not the word: `intent info`'s `Gate root:` line can name
+  # INTENT_HOME too, and a pattern match printed both values on 3.2.1's keg.
+  out="$( (cd "$tmp" && "$bin_intent" info 2>&1 || true) | awk '$1 == "INTENT_HOME:" { print $2; exit }' || true)"
   if [ "$out" = "$libexec" ]; then
     smoke_ok "INTENT_HOME -> libexec"
   else
