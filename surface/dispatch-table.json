@@ -9195,7 +9195,7 @@
           "help": "Walk the index scope and rewrite what the index holds, then report it",
           "args": [],
           "v2": "new-surface",
-          "basis": "ST0069 design.md: `intent index rebuild [--corpus canon|source]`.",
+          "basis": "ST0069 design.md: `intent index rebuild [--corpus canon|source]`. `--corpus` was declared pending and never built, and hv dropped it on 2026-09-25: a whole rebuild takes seconds, so a per-corpus one buys nothing, and the verb always rebuilds every corpus.",
           "owner_wp": "WP-19",
           "acceptance": "AC-19.6",
           "target": { "state": "new-surface" },
@@ -9211,14 +9211,6 @@
               "help": "Emit as JSON instead of prose",
               "disposition": "keep",
               "exposed_on_mcp": false
-            },
-            {
-              "spellings": ["--corpus"],
-              "type": "string",
-              "value": "<canon|source>",
-              "help": "Rebuild one corpus instead of all of them",
-              "disposition": "pending",
-              "note": "The design's usage block carries it and the facade door does not take it yet -- cc's `index_rebuild` walks the whole scope. PENDING, so it does not ship: a flag accepted and then ignored answers a narrower question than the operator asked, silently."
             }
           ],
           "facade": "index_rebuild",

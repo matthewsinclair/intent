@@ -4481,12 +4481,12 @@ The search index: what it holds, rebuilding it, and resolving its references
 - NEW SURFACE with no v2 antecedent: v2 had no index. Declared as a FAMILY rather than as two root rows, because two root paths sharing a prefix make the prefix itself ambiguous -- `intent index` refused with `index is ambiguous under intent, it matches index rebuild, index status` before this moved (ic, driven, 2026-09-12).
 - `status` READS the rows and never walks the tree; `rebuild` walks. A status that surveyed the tree would describe the world rather than the index, which is the question nobody asked (cc, 2972e4df9).
 
-| command         | args      | flags                           | help                                                                                                               | disposition |
-| --------------- | --------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ----------- |
-| `index`         | <command> | --                              | The search index: what it holds, rebuilding it, and resolving its references                                       | new-surface |
-| `index status`  | --        | --json                          | Report what the search index holds by corpus, and every path it will not hold with the reason                      | new-surface |
-| `index rebuild` | --        | --json, --corpus <canon/source> | Walk the index scope and rewrite what the index holds, then report it                                              | new-surface |
-| `index resolve` | --        | --json, --lang <lang>, --full   | Resolve references to the definitions they name with each language's own toolchain, and report each language's run | new-surface |
+| command         | args      | flags                         | help                                                                                                               | disposition |
+| --------------- | --------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------ | ----------- |
+| `index`         | <command> | --                            | The search index: what it holds, rebuilding it, and resolving its references                                       | new-surface |
+| `index status`  | --        | --json                        | Report what the search index holds by corpus, and every path it will not hold with the reason                      | new-surface |
+| `index rebuild` | --        | --json                        | Walk the index scope and rewrite what the index holds, then report it                                              | new-surface |
+| `index resolve` | --        | --json, --lang <lang>, --full | Resolve references to the definitions they name with each language's own toolchain, and report each language's run | new-surface |
 
 ### `index`
 
@@ -4531,14 +4531,11 @@ Walk the index scope and rewrite what the index holds, then report it
   - `--json` (bool) -- Emit as JSON instead of prose
     - **disposition:** keep
     - **exposed on mcp:** false
-  - `--corpus` `<canon|source>` (string) -- Rebuild one corpus instead of all of them
-    - The design's usage block carries it and the facade door does not take it yet -- cc's `index_rebuild` walks the whole scope. PENDING, so it does not ship: a flag accepted and then ignored answers a narrower question than the operator asked, silently.
-    - **disposition:** pending
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **MCP note:** WITHHELD AND THE QUESTION RECORDED, as `daemon status` records its own. It is idempotent and it is not read-only: it rewrites every row of the index, which is work an agent should not start unasked in a session where another surface is reading it. A candidate for exposure on a ruling rather than on the observation that it is safe to repeat.
-- **basis:** ST0069 design.md: `intent index rebuild [--corpus canon|source]`.
+- **basis:** ST0069 design.md: `intent index rebuild [--corpus canon|source]`. `--corpus` was declared pending and never built, and hv dropped it on 2026-09-25: a whole rebuild takes seconds, so a per-corpus one buys nothing, and the verb always rebuilds every corpus.
 - **owner wp:** WP-19
 - **acceptance:** AC-19.6
 - **recoverability:** idempotent
