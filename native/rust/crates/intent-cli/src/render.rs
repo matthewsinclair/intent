@@ -14000,16 +14000,15 @@ fn render_critic_text(report: &intentsvcs::critic::Report, files: usize, severit
   // other two not-run lines and NOT as a refusal -- see
   // `Disposition::ToolDeclined` for why a per-file decline must not take the
   // exit code an absent tool takes. The FILES are named: a reader told that a
-  // rule did not run on part of a staged set cannot act on it.
+  // rule did not run on part of a staged set cannot act on it. **Read from the
+  // row, not the disposition** (issue 0581): a rule that read the other files
+  // `Ran` and is counted in the headline, and its declined files are still
+  // named here.
   let mut declined: Vec<String> = report
     .census
     .iter()
-    .filter_map(|r| match &r.disposition {
-      Disposition::ToolDeclined { tool, files } => {
-        Some(format!("{}({tool}: {})", r.rule_id, files.join(" ")))
-      }
-      _ => None,
-    })
+    .filter(|r| !r.declined.is_empty())
+    .map(|r| format!("{}({}: {})", r.rule_id, r.by, r.declined.join(" ")))
     .collect();
   declined.sort_unstable();
   if !declined.is_empty() {
@@ -14386,6 +14385,7 @@ fn render_critic_json(report: &intentsvcs::critic::Report) {
         "arming": r.arming.as_str(),
         "disposition": r.disposition.as_str(),
         "by": r.by,
+        "declined": r.declined,
       })
     })
     .collect();

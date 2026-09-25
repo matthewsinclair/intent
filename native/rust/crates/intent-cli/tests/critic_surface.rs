@@ -538,6 +538,104 @@ fn a_file_shellcheck_declines_is_reported_not_counted_as_asked() {
   );
 }
 
+/// **A DECLINE IS A PROPERTY OF ONE FILE, SO IT MUST NOT UNCOUNT THE RULE FOR
+/// THE REST** (issue 0581). One `.zsh` file in a run rewrote the whole rule's
+/// disposition, so a run that reported shellcheck findings on a `.sh` file
+/// headlined "0 of 6 rule(s) ASKED" -- the false-clean direction, on the line a
+/// reader uses to judge a clean result.
+///
+/// **THE `.sh` RUN ALONE IS THE CONTROL**: the mixed run must headline exactly
+/// what it headlines, and name the `.zsh` file, and only that file, as
+/// declined.
+#[test]
+fn a_decline_on_one_file_leaves_the_rule_asked_of_the_others() {
+  let have_shellcheck = Command::new("shellcheck")
+    .arg("--version")
+    .output()
+    .is_ok_and(|o| o.status.success());
+  if !have_shellcheck {
+    // The machine without the tool is held by the arm above, at exit 3.
+    return;
+  }
+  let dir = tempfile::tempdir().expect("tempdir");
+  let body = "for f in $(ls *.txt); do\n  echo \"$f\"\ndone\n";
+  let zsh = dir.path().join("probe.zsh");
+  let sh = dir.path().join("control.sh");
+  std::fs::write(&zsh, format!("#!/usr/bin/env zsh\n{body}")).expect("write zsh");
+  std::fs::write(&sh, format!("#!/usr/bin/env bash\n{body}")).expect("write sh");
+
+  let headline = |o: &std::process::Output| {
+    out(o)
+      .lines()
+      .find(|l| l.contains("rule(s) ASKED"))
+      .map(str::to_string)
+      .unwrap_or_default()
+  };
+  let control = critic(&["shell", "--files", sh.to_str().unwrap()]);
+  let mixed = critic(&[
+    "shell",
+    "--files",
+    sh.to_str().unwrap(),
+    "--files",
+    zsh.to_str().unwrap(),
+  ]);
+
+  assert!(
+    !headline(&control).is_empty()
+      && headline(&control).contains(" -- ")
+      && !headline(&control).contains("-- 0 of "),
+    "the control must ask something, or the equality below compares two zeroes: {}",
+    out(&control)
+  );
+  assert_eq!(
+    headline(&mixed),
+    headline(&control),
+    "a .zsh file in the run must not uncount the rules that ran on the .sh file.\nmixed: {}\ncontrol: {}",
+    out(&mixed),
+    out(&control)
+  );
+  let declined_line = out(&mixed)
+    .lines()
+    .find(|l| l.contains("DECLINED to read"))
+    .map(str::to_string)
+    .unwrap_or_default();
+  assert!(
+    declined_line.contains("probe.zsh") && !declined_line.contains("control.sh"),
+    "the declined file, and only it, is named: {}",
+    out(&mixed)
+  );
+
+  let json = critic(&[
+    "shell",
+    "--format",
+    "json",
+    "--files",
+    sh.to_str().unwrap(),
+    "--files",
+    zsh.to_str().unwrap(),
+  ]);
+  let doc: serde_json::Value = serde_json::from_str(&out(&json)).expect("critic json");
+  let rows = doc["census"].as_array().expect("census rows");
+  let shellchecked: Vec<&serde_json::Value> =
+    rows.iter().filter(|r| r["by"] == "shellcheck").collect();
+  assert!(
+    !shellchecked.is_empty(),
+    "no shellcheck-armed row: {}",
+    out(&json)
+  );
+  for r in shellchecked {
+    assert_eq!(r["disposition"], "ran", "{r}");
+    let files: Vec<&str> = r["declined"]
+      .as_array()
+      .map(|a| a.iter().filter_map(|v| v.as_str()).collect())
+      .unwrap_or_default();
+    assert!(
+      files.len() == 1 && files[0].ends_with("probe.zsh"),
+      "the JSON row names the declined file beside a `ran` disposition: {r}"
+    );
+  }
+}
+
 /// **THE DIVERGENCE STILL OPEN, PINNED TO TODAY'S BEHAVIOUR AND NOT/// **THE DIVERGENCE STILL OPEN, PINNED TO TODAY'S BEHAVIOUR AND NOT
 /// ENDORSED, AND THE ONE THAT CLOSED.**
 ///

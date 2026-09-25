@@ -190,12 +190,16 @@ pub enum Disposition {
   /// would BLOCK every commit carrying a `.zsh` file in every project declaring
   /// shell -- a gate outage in answer to a reporting defect. It follows the
   /// unrunnable-proxy ruling instead: reported in the census, never a refusal.
-  ToolDeclined {
-    tool: String,
-    /// The files it declined, named because a reader who is told a rule did not
-    /// run on "some of" a staged set cannot act on it.
-    files: Vec<String>,
-  },
+  ///
+  /// **AND IT IS THE RULE'S DISPOSITION ONLY WHEN THE TOOL DECLINED EVERY FILE
+  /// THE RULE APPLIES TO** (issue 0581). A decline is a property of one file,
+  /// and when it rewrote the whole rule, one `.zsh` file in a run uncounted
+  /// every shellcheck rule that had read the `.sh` files beside it: the census
+  /// said "0 of 6 rule(s) ASKED" over the findings those rules reported. A rule
+  /// that read some files and was declined on others `Ran`, and the files it
+  /// was declined on are named on its row, in [`CensusRow::declined`], either
+  /// way.
+  ToolDeclined,
   /// Nothing to run; the arming axis already said why.
   NotApplicable,
 }
@@ -206,7 +210,7 @@ impl Disposition {
       Self::Ran => "ran",
       Self::ToolAbsent(_) => "not-run:tool-absent",
       Self::OutOfContext(_) => "not-run:out-of-context",
-      Self::ToolDeclined { .. } => "not-run:tool-declined",
+      Self::ToolDeclined => "not-run:tool-declined",
       Self::NotApplicable => "n-a",
     }
   }
@@ -220,6 +224,10 @@ pub struct CensusRow {
   pub disposition: Disposition,
   /// What would answer it -- `grep`, a tool name, or nothing.
   pub by: String,
+  /// The files the rule's tool declined to read, sorted as given. Named because
+  /// a reader told a rule did not run on "some of" a staged set cannot act on
+  /// it. Non-empty beside `Ran` when the tool read the rest (issue 0581).
+  pub declined: Vec<String>,
 }
 
 /// One match. Carries the rule that produced it, because a finding without its
@@ -1404,6 +1412,7 @@ pub fn run(
       continue;
     };
     let (arming, mut disposition, by, patterns, partly_refused) = classify(&body);
+    let mut declined: Vec<String> = Vec::new();
 
     // A mixed block ran its simple lines, and its refused ones are reported as
     // well rather than dropped (issue 0328).
@@ -1459,7 +1468,7 @@ pub fn run(
       match by.as_str() {
         "shellcheck" => {
           if severity.clears(severity_min) {
-            let mut declined = Vec::new();
+            let mut read_any = false;
             for t in &applicable {
               // Under `--staged` the tool reads a same-named copy of the staged
               // bytes, never the work tree's file (issue 0537).
@@ -1474,6 +1483,7 @@ pub fn run(
               if refused_file {
                 declined.push(t.path.display().to_string());
               } else {
+                read_any = true;
                 asked.insert(t.path.clone());
               }
             }
@@ -1481,11 +1491,11 @@ pub fn run(
             // `classify` decides a disposition from the RULE alone, before any
             // file is known, and a decline is a property of the file -- so a
             // disposition that is never revisited can only report the intent.
-            if !declined.is_empty() {
-              disposition = Disposition::ToolDeclined {
-                tool: by.clone(),
-                files: declined,
-              };
+            // **AND ONLY A RULE THAT READ NOTHING IS NOT ASKED** (issue 0581):
+            // a rule that read one file of two was asked, and says which file
+            // it was declined on.
+            if !declined.is_empty() && !read_any {
+              disposition = Disposition::ToolDeclined;
             }
           }
         }
@@ -1571,6 +1581,7 @@ pub fn run(
       arming,
       disposition,
       by,
+      declined,
     });
   }
 
@@ -2066,6 +2077,7 @@ mod tests {
         arming: Arming::Armed,
         disposition: Disposition::ToolAbsent("shellcheck".into()),
         by: "shellcheck".into(),
+        declined: Vec::new(),
       }],
       ..base.clone()
     };
@@ -2085,6 +2097,7 @@ mod tests {
         arming: Arming::Unrunnable,
         disposition: Disposition::NotApplicable,
         by: "-".into(),
+        declined: Vec::new(),
       }],
       ..base.clone()
     };
@@ -2103,6 +2116,7 @@ mod tests {
         arming: Arming::Armed,
         disposition: Disposition::OutOfContext("clippy".into()),
         by: "clippy".into(),
+        declined: Vec::new(),
       }],
       ..base
     };
@@ -2138,6 +2152,7 @@ mod tests {
         arming: Arming::Armed,
         disposition: Disposition::Ran,
         by: "grep".into(),
+        declined: Vec::new(),
       }],
       refused: Vec::new(),
       disabled: Vec::new(),
@@ -2179,6 +2194,7 @@ mod tests {
         arming: Arming::Armed,
         disposition: Disposition::ToolAbsent("shellcheck".into()),
         by: "shellcheck".into(),
+        declined: Vec::new(),
       }],
       ..base.clone()
     };
@@ -2193,6 +2209,7 @@ mod tests {
         arming: Arming::Armed,
         disposition: Disposition::ToolAbsent("shellcheck".into()),
         by: "shellcheck".into(),
+        declined: Vec::new(),
       }],
       ..base
     };
