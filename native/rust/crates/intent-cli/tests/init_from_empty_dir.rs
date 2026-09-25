@@ -169,8 +169,8 @@ fn a_flag_whose_subsystem_is_unimplemented_refuses_rather_than_ignoring() {
   }
 }
 
-/// `init --lang` creates the project AND declares the languages, through the
-/// same code `lang init` runs (issue `0187`). Both separators the table
+/// `init --lang` creates the project AND declares the languages (issue
+/// `0187`). Both separators the table
 /// declares are exercised, and the declaration is read back from the config
 /// rather than trusted from stdout.
 #[test]
@@ -187,6 +187,51 @@ fn init_lang_declares_the_languages_in_the_project_it_creates() {
     config["languages"],
     serde_json::json!(["rust", "shell"]),
     "the languages did not reach the config: {out}"
+  );
+}
+
+/// **THE AGENT CONTRACT `init --lang` WRITES NAMES THE LANGUAGES IT DECLARED**
+/// (issue 0557). `init` rendered `AGENTS.md` and the languages were declared
+/// afterwards, so the contract said "None declared" beside a config that
+/// declared two, and only `intent agents sync` put it right.
+#[test]
+fn init_lang_writes_an_agent_contract_that_names_the_languages() {
+  let dir = empty_dir();
+  let (out, err, code) = run(&["init", "p", "--lang", "rust,shell"], dir.path());
+  assert_eq!(code, 0, "init --lang refused: {out}{err}");
+  let agents =
+    std::fs::read_to_string(dir.path().join("AGENTS.md")).expect("init wrote no AGENTS.md");
+  assert!(
+    !agents.contains("None declared"),
+    "AGENTS.md says no language is declared, beside a config that declares two:\n{agents}"
+  );
+  assert!(
+    agents.contains("Bats testing framework"),
+    "AGENTS.md does not carry the shell block the declared language selects:\n{agents}"
+  );
+  for line in [
+    "declared: rust",
+    "declared: shell",
+    "Summary: 2 language(s) declared; 0 error(s).",
+  ] {
+    assert!(out.contains(line), "the report lost `{line}`: {out}");
+  }
+}
+
+/// A name given twice is declared once and reported as `lang init` reports it.
+#[test]
+fn init_lang_declares_a_repeated_name_once() {
+  let dir = empty_dir();
+  let (out, err, code) = run(&["init", "p", "--lang", "rust,rust"], dir.path());
+  assert_eq!(code, 0, "init --lang refused: {out}{err}");
+  let config: serde_json::Value = serde_json::from_str(
+    &std::fs::read_to_string(dir.path().join("intent/.config/config.json")).expect("no config"),
+  )
+  .expect("config is json");
+  assert_eq!(config["languages"], serde_json::json!(["rust"]));
+  assert!(
+    out.contains("declared: rust") && out.contains("ok: rust already declared (no change)"),
+    "the repeated name was not reported as lang init reports it: {out}"
   );
 }
 

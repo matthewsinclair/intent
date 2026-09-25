@@ -58,7 +58,7 @@ Then declare which languages the project is in:
   ok: AGENTS.md updated at project root.
 ```
 
-**You can also declare them as you initialise: `intent init --lang rust,shell`** creates the project and then declares both, through the same code `lang init` runs. An undeclarable name refuses before anything is written, and the refusal says nothing was created. `intent lang list` names the languages you can declare. `init --lang` writes `AGENTS.md` before it declares the languages, so run `intent agents sync` after it too.
+**You can also declare them as you initialise: `intent init --lang rust,shell`** creates the project with both already declared, so the `AGENTS.md` it writes names them and no `agents sync` is needed. An undeclarable name refuses before anything is written, and the refusal says nothing was created. `intent lang list` names the languages you can declare.
 
 `AGENTS.md` is **generated from the templates and the project's configuration**: `intent init` writes the first one and `intent agents sync` regenerates it. Do not hand-edit it; the next sync will overwrite you. `intent doctor` says, as an uncounted advisory, when it is behind.
 

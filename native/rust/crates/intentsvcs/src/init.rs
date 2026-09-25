@@ -146,6 +146,10 @@ pub struct Initialised {
   /// Embedded templates deliberately not written, with reasons. Reported so a
   /// short file count reads as a decision rather than as a shortfall.
   pub skipped: Vec<(&'static str, &'static str)>,
+  /// Each language asked for, in the order asked, with `true` where this run
+  /// declared it and `false` where an earlier name in the same list already
+  /// had. Empty when none was asked for.
+  pub languages: Vec<(String, bool)>,
 }
 
 /// Why `init` did not initialise.
@@ -174,6 +178,9 @@ pub enum InitError {
   /// are compiled into this binary, so a fault here is a defect in the build
   /// and not something an operator can fix in their project.
   Render(&'static str, crate::rootfiles::Fault),
+  /// A language this build cannot serve was asked for. Refused before
+  /// anything is written, as `intent init --lang` checks it too.
+  Undeclarable(Vec<String>),
 }
 
 impl std::fmt::Display for InitError {
@@ -210,6 +217,11 @@ impl std::fmt::Display for InitError {
         f,
         "the embedded template for {name} would not expand: {fault}\n  remedy: this is a defect in the build, not in your project -- the template is compiled into this binary"
       ),
+      Self::Undeclarable(langs) => write!(
+        f,
+        "not a language this build can serve: {}\n  remedy: run `intent lang list` for the languages you can declare. Nothing has been written.",
+        langs.join(", ")
+      ),
     }
   }
 }
@@ -229,7 +241,47 @@ pub fn init(
   author: &str,
   intent_version: &str,
 ) -> Result<Initialised, InitError> {
+  init_with_languages(root, project_name, author, intent_version, &[])
+}
+
+/// [`init`], declaring `languages` in the config it writes.
+///
+/// **THE LANGUAGES GO INTO THE FIRST WRITE OF THE CONFIG, BECAUSE THE ROOT
+/// FILES ARE RENDERED FROM IT.** `intent init --lang` used to create the project
+/// and declare the languages afterwards, so the `AGENTS.md` this function
+/// renders said "None declared" beside a config that declared them (issue
+/// 0557). Declaring them here puts them in the config before the generated root
+/// files read it.
+pub fn init_with_languages(
+  root: &Path,
+  project_name: &str,
+  author: &str,
+  intent_version: &str,
+  languages: &[String],
+) -> Result<Initialised, InitError> {
   let config = root.join("intent/.config/config.json");
+  let undeclarable: Vec<String> = languages
+    .iter()
+    .filter(|l| !crate::rules::is_declarable(l))
+    .cloned()
+    .collect();
+  if !undeclarable.is_empty() {
+    return Err(InitError::Undeclarable(undeclarable));
+  }
+  // In the order asked, each name once: the same rule `Config::declare_language`
+  // applies to `intent lang init`, so a repeated name is reported as already
+  // declared rather than written twice.
+  let mut declared: Vec<String> = Vec::new();
+  let mut outcomes: Vec<(String, bool)> = Vec::new();
+  for lang in languages {
+    let first = !declared.contains(lang);
+    if first {
+      declared.push(lang.clone());
+    }
+    outcomes.push((lang.clone(), first));
+  }
+  let languages_json = serde_json::to_string(&declared)
+    .map_err(|e| InitError::Io(config.clone(), std::io::Error::other(e)))?;
   if config.exists() {
     return Err(InitError::AlreadyAProject(config));
   }
@@ -344,7 +396,7 @@ pub fn init(
   write(
     &config,
     &format!(
-      "{{\n  \"intent_version\": {intent_version:?},\n  \"project_name\": {project_name:?},\n  \"author\": {author:?},\n  \"project_id\": {project_id:?},\n  \"created\": {stamp:?},\n  \"intent_dir\": \"intent\",\n  \"languages\": [],\n  \"backup\": {{\n    \"schedule\": {backup_schedule:?}\n  }}\n}}\n"
+      "{{\n  \"intent_version\": {intent_version:?},\n  \"project_name\": {project_name:?},\n  \"author\": {author:?},\n  \"project_id\": {project_id:?},\n  \"created\": {stamp:?},\n  \"intent_dir\": \"intent\",\n  \"languages\": {languages_json},\n  \"backup\": {{\n    \"schedule\": {backup_schedule:?}\n  }}\n}}\n"
     ),
   )?;
 
@@ -501,6 +553,7 @@ pub fn init(
     config,
     written,
     skipped,
+    languages: outcomes,
   })
 }
 

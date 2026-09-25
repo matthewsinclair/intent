@@ -8459,8 +8459,10 @@ fn todo_done(a: &ArgMatches) -> Result<(), Failure> {
 /// Its remedy also said "the project is created either way", which was never
 /// true: the refusal returns before anything is written. The languages are now
 /// checked BEFORE the project is created, so an undeclarable name still leaves
-/// nothing behind, and they are then declared through [`declare_languages`],
-/// the same code `intent lang init` runs.
+/// nothing behind, and they are then declared by the library's
+/// `init_with_languages` in the config's first write, so the root files it
+/// renders name them (issue 0557). The lines it prints are
+/// [`report_declarations`]'s, the ones `intent lang init` prints.
 fn init(a: &ArgMatches) -> Result<(), Failure> {
   let langs = init_langs(a)?;
 
@@ -8518,16 +8520,22 @@ fn init(a: &ArgMatches) -> Result<(), Failure> {
   // build defect, and an IO or store failure is the environment -- so splitting
   // by variant is what makes both halves true rather than moving the error one
   // number to the left.
+  // **THE LANGUAGES ARE DECLARED BY `init` ITSELF, IN THE CONFIG'S FIRST
+  // WRITE** (issue 0557). They were declared after `init` returned, so the
+  // `AGENTS.md` it had already rendered said "None declared" beside a config
+  // that declared them.
   let made =
-    intentsvcs::init::init(&cwd, &name, author, env!("CARGO_PKG_VERSION")).map_err(|e| {
+    intentsvcs::init::init_with_languages(&cwd, &name, author, env!("CARGO_PKG_VERSION"), &langs)
+      .map_err(|e| {
       let message = format!("error: {e}");
       match e {
-        // BOTH REFUSALS TAKE THE REFUSAL'S CODE. `WouldOverwrite` is the same
-        // kind of no as `AlreadyAProject` -- a verb declining a job it could
-        // have done -- and `guide.rs` says that is a 1. The variants below are
-        // the tool unable to act at all, which is the 2.
+        // THE REFUSALS TAKE THE REFUSAL'S CODE. `WouldOverwrite` and
+        // `Undeclarable` are the same kind of no as `AlreadyAProject` -- a verb
+        // declining a job it could have done -- and `guide.rs` says that is a 1.
+        // The variants below are the tool unable to act at all, which is the 2.
         intentsvcs::init::InitError::AlreadyAProject(_)
-        | intentsvcs::init::InitError::WouldOverwrite(_) => Failure::Error(message),
+        | intentsvcs::init::InitError::WouldOverwrite(_)
+        | intentsvcs::init::InitError::Undeclarable(_) => Failure::Error(message),
         _ => Failure::Unavailable(message),
       }
     })?;
@@ -8562,12 +8570,11 @@ fn init(a: &ArgMatches) -> Result<(), Failure> {
       made.skipped.len()
     );
   }
-  if langs.is_empty() {
+  if made.languages.is_empty() {
     return Ok(());
   }
   println!();
-  let project = Project::open(&made.root).map_err(|e| Failure::Error(format!("error: {e}")))?;
-  declare_languages(&project, &langs)
+  report_declarations(&made.languages, 0)
 }
 
 /// `init --lang <list>`, parsed and checked BEFORE anything is written.
@@ -9263,19 +9270,14 @@ fn declare_languages(project: &Project, langs: &[String]) -> Result<(), Failure>
   let mut config = project.config().clone();
 
   let mut failed = 0usize;
-  let mut declared = 0usize;
+  let mut outcomes: Vec<(String, bool)> = Vec::new();
   for lang in langs {
     if !intentsvcs::rules::is_declarable(lang) {
       eprintln!("{}", unknown_language(lang));
       failed += 1;
       continue;
     }
-    if config.declare_language(lang) {
-      println!("declared: {lang}");
-    } else {
-      println!("ok: {lang} already declared (no change)");
-    }
-    declared += 1;
+    outcomes.push((lang.clone(), config.declare_language(lang)));
   }
 
   // **WRITTEN ONCE, AFTER THE LOOP, AND ONLY IF SOMETHING CHANGED.** A write per
@@ -9284,8 +9286,25 @@ fn declare_languages(project: &Project, langs: &[String]) -> Result<(), Failure>
   intentsvcs::project::write_config(project.root(), &config)
     .map_err(|e| Failure::Error(e.render()))?;
 
+  report_declarations(&outcomes, failed)
+}
+
+/// The lines `intent lang init` and `intent init --lang` print for what they
+/// declared: one per name asked for, then the summary. `true` beside a name
+/// means this run declared it.
+fn report_declarations(outcomes: &[(String, bool)], failed: usize) -> Result<(), Failure> {
+  for (lang, newly) in outcomes {
+    if *newly {
+      println!("declared: {lang}");
+    } else {
+      println!("ok: {lang} already declared (no change)");
+    }
+  }
   println!();
-  println!("Summary: {declared} language(s) declared; {failed} error(s).");
+  println!(
+    "Summary: {} language(s) declared; {failed} error(s).",
+    outcomes.len()
+  );
   if failed > 0 {
     return Err(Failure::Verdict);
   }
