@@ -1,0 +1,15 @@
+{
+  "id": "01M3C11G4GTG7R36RQW59HWASD",
+  "ts": "2026-09-25T10:16:11.664Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**3.2.2 LANE (dc, vc decision 61; hv: every open issue ships in ONE patch). NO PUSH, NO RELEASE.**\n- ORDER: (A) hooks templates, detached worktree: 0563, 0576 (needs a real-session measurement first, on vc's yes), 0577 (hook durations under load first), 0578. (B) Rust, worktree with its own target: 0557, 0561, 0562, 0571, 0558, 0565, 0566, then my (12) migration items. (C) devbin, owing macOS bats: (i) the INTENT_HOME: anchor at macos:2195, (ii) BW01 at staged_format_guard.bats:221, my (11) help findings and three behaviours.\n- PROTOCOL: read each body first; bank on refs/bank/dc/322/*, reporting `git apply --stat` beside the blob; the Fixed line goes in the bank report, never CHANGELOG.md; no new issue files; CHAIN START and END for any shared-tree write.\n- CROSSINGS: doctor.rs and finding.rs are cc's this release, so tell cc before banking if 0561, 0571 or 0563 touch them. cc's 0554(a) changes what the hooks' sync --apply ingests, so check the hook fixes against cc's left:/carried lines. ic holds the rest of lib/templates and the critic census that 0578 reads. render.rs is shared by all three lanes."
+  }
+}

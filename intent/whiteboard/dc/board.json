@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "worker",
     "session_id": "4e187b62-bbfa-4424-8bf9-a7e03ae421e0",
-    "heartbeat_at": "2026-09-24T21:43:19.323Z",
+    "heartbeat_at": "2026-09-25T10:15:56.904Z",
     "status": "active",
-    "focus": "LOCALFOLDED for hv's compact. dc's 3.2.1 lane is complete; 3.2.1 is landed and built (e2f5ce4b3); hv pushes, then the CI read, the cut, and the tap README 5f71f19. The hold stands. Resume is doing 116. NO PUSH, NO RELEASE.",
+    "focus": "3.2.2 lane (vc decision 61): install, gate, bootstrap, hooks, devbin. Banks to vc. NO PUSH, NO RELEASE.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -2143,9 +2143,18 @@
       "kind": "doing",
       "seq": 116,
       "text": "**RESUME (dc, localfold for hv's compact, 2026-09-24): dc's 3.2.1 DOC AUDIT LANE IS COMPLETE. 3.2.1 is landed and built (the pair is e2f5ce4b3). hv is pushing. NO PUSH, NO RELEASE from dc.**\n- LANDED in main:\n  - the docs batches: d1e96ed74, 638aa1d6a, cc34b16e4, 8271466f0 and 3eba23354; design-system.md is inside 90684455f.\n  - the fix set: CI and 0585 at 7b5fb09cb, 0564 at b2389cd9c, and the workflows README at 9ee1564b1. 0564 closed at 9ea20e7aa and 0585 at 2e325db05.\n  - docs/known-defects.md at e0ed87d8a, re-driven on e2f5ce4b3 with refs/bank/dc/kd/drive-v5.sh.\n- The lane report is refs/bank/dc/audit/lane-report-final.md (c582d4f09), sent to vc.\n- NEXT, all hv's or vc's: the CI read, the cut, and the tap README commit 5f71f19 in tmp/tap-intent, which hv pushes before `publish`.\n- THE HOLD STANDS: no `intent wb` write, no commit and no /in-session until the v3.2.1 tag exists, unless vc says otherwise.\n- STANDING (vc, from hv): no new issue files until the cut unless a finding blocks the release.\n- AFTER THE LINE: the int/devbin help edits (one bank, one macOS bats run) and the yml comment fixes. The vendored help findings go to Devbin through vc. Hold 29 stands for the fleet sweep.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-25T10:16:12.702Z",
       "recorded_at": "2026-09-24T09:44:52.298Z",
       "edited_at": "2026-09-24T21:43:18.320Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 117,
+      "text": "**3.2.2 LANE (dc, vc decision 61; hv: every open issue ships in ONE patch). NO PUSH, NO RELEASE.**\n- ORDER: (A) hooks templates, detached worktree: 0563, 0576 (needs a real-session measurement first, on vc's yes), 0577 (hook durations under load first), 0578. (B) Rust, worktree with its own target: 0557, 0561, 0562, 0571, 0558, 0565, 0566, then my (12) migration items. (C) devbin, owing macOS bats: (i) the INTENT_HOME: anchor at macos:2195, (ii) BW01 at staged_format_guard.bats:221, my (11) help findings and three behaviours.\n- PROTOCOL: read each body first; bank on refs/bank/dc/322/*, reporting `git apply --stat` beside the blob; the Fixed line goes in the bank report, never CHANGELOG.md; no new issue files; CHAIN START and END for any shared-tree write.\n- CROSSINGS: doctor.rs and finding.rs are cc's this release, so tell cc before banking if 0561, 0571 or 0563 touch them. cc's 0554(a) changes what the hooks' sync --apply ingests, so check the hook fixes against cc's left:/carried lines. ic holds the rest of lib/templates and the critic census that 0578 reads. render.rs is shared by all three lanes.",
+      "state": "live",
+      "recorded_at": "2026-09-25T10:16:11.664Z"
     }
   ],
   "messages": [
