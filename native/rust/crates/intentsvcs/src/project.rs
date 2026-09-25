@@ -1129,7 +1129,10 @@ impl crate::remedy::Remedy for ProjectError {
       Self::NotFound(_) => {
         "run `intent init` here, or change to a directory inside an Intent project".to_string()
       }
-      Self::PreV210(_) => "bring it to v2.19.0 with Intent v2.19.0 first (the v2.19.0 release: https://github.com/matthewsinclair/intent/releases/tag/v2.19.0, then its `intent upgrade`), then run `intent upgrade` with v3".to_string(),
+      // v2.19.0's own `intent upgrade` refuses a project below v2.9.0, and a
+      // pre-v2.10 project can be anything from v2.0 up, so the remedy names the
+      // extra hop rather than sending that part of its population to a refusal.
+      Self::PreV210(_) => "bring it to v2.19.0 with Intent v2.19.0 first (the v2.19.0 release: https://github.com/matthewsinclair/intent/releases/tag/v2.19.0, then its `intent upgrade`), then run `intent upgrade` with v3. v2.19.0's `intent upgrade` refuses a project below v2.9.0: take one of those to v2.11.14 with that release's `intent upgrade` (the v2.11.14 tag) before v2.19.0".to_string(),
       Self::Io { path, .. } => {
         format!("check that {path} exists and that this user can read it")
       }
@@ -2345,6 +2348,20 @@ impl Project {
 #[cfg(test)]
 mod tests {
   use super::*;
+
+  /// **THE PRE-v2.10 REMEDY NAMES THE HOP BELOW v2.9.0.** v2.19.0's own
+  /// `intent upgrade` refuses a project below v2.9.0 ("the upgrade floor is
+  /// v2.9.0"), and a project with `.intent/config.json` can be any v2 from 2.0
+  /// up, so a remedy naming v2.19.0 alone sent that part of its population to a
+  /// refusal. Driven with v2.19.0 on a v2.8.0 project before this changed.
+  #[test]
+  fn the_pre_v2_10_remedy_names_the_route_below_the_v2_9_floor() {
+    let remedy = crate::remedy::Remedy::remedy(&ProjectError::PreV210("p".to_string()));
+    assert!(
+      remedy.contains("below v2.9.0") && remedy.contains("v2.11.14"),
+      "the remedy sends a project below v2.9.0 to v2.19.0's refusal: {remedy}"
+    );
+  }
 
   /// hv's ruling (2026-08-19): `intent edit` refuses a generated view and
   /// names the authoring surface instead. Detection is not prevention -- the
