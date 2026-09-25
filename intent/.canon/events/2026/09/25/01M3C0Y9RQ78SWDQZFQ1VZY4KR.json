@@ -1,0 +1,15 @@
+{
+  "id": "01M3C0Y9RQ78SWDQZFQ1VZY4KR",
+  "ts": "2026-09-25T10:14:26.839Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-25, hv first-hand in prose, answering vc's proposal to fix the 26 open issues as 3.2.2) ONE RELEASE FOR EVERYTHING OPEN. hv, verbatim: \"I am really trying to minimise the number of patch releases so do whatever is necessary to get this done and done in the fewest releases possible.\" So all 26 open issues AND the cheap after-the-line items ship in ONE patch, 3.2.2, in three lanes by area (cc the store's writes, dc install/gate/hooks/devbin, ic critics/rules/register/templates), banked and judged by vc, one stacked whole-suite run, CI, then the cut. The fleet sweep moves to after 3.2.2, so it runs once. No new issue files still holds: a finding goes to vc's list, and joins 3.2.2 if cheap."
+  }
+}

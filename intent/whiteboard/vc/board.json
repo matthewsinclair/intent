@@ -1691,6 +1691,14 @@
       "text": "(2026-09-24, hv verbatim: \"in\", answering vc's in/out question at about 19:36Z) THE FIX SET GOES INTO 3.2.1: 0551, 0564, 0570 and cc's batch 1 (0554(b), 0556, sync --apply's views step), with ic's 0550, 0552, 0553, 0560, 0567 and the explorer guide. Each fix is banked and judged by vc; ic runs the one stacked final-tree run; they land in composition order; vc writes every CHANGELOG line in one commit; then vc's one build all.",
       "state": "live",
       "recorded_at": "2026-09-24T19:46:25.907Z"
+    },
+    {
+      "node": "vc",
+      "kind": "decision",
+      "seq": 61,
+      "text": "(2026-09-25, hv first-hand in prose, answering vc's proposal to fix the 26 open issues as 3.2.2) ONE RELEASE FOR EVERYTHING OPEN. hv, verbatim: \"I am really trying to minimise the number of patch releases so do whatever is necessary to get this done and done in the fewest releases possible.\" So all 26 open issues AND the cheap after-the-line items ship in ONE patch, 3.2.2, in three lanes by area (cc the store's writes, dc install/gate/hooks/devbin, ic critics/rules/register/templates), banked and judged by vc, one stacked whole-suite run, CI, then the cut. The fleet sweep moves to after 3.2.2, so it runs once. No new issue files still holds: a finding goes to vc's list, and joins 3.2.2 if cheap.",
+      "state": "live",
+      "recorded_at": "2026-09-25T10:14:26.839Z"
     }
   ],
   "messages": [
