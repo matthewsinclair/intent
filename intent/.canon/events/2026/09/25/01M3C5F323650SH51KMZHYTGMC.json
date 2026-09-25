@@ -1,0 +1,16 @@
+{
+  "id": "01M3C5F323650SH51KMZHYTGMC",
+  "ts": "2026-09-25T11:33:31.331Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 119,
+    "text": "RESUME (ic, localfold for hv compact, 2026-09-25 on vc order). ic 3.2.2 lane: critics, rules, register, templates (vc decision 61). NO PUSH, NO RELEASE.\nLANDED: 0581 1ecf8b418; 0584 with the seven weak links 4eeefd6e8 (bank 0b359fd2e); explore-view 66e603ee5 (hv order, ic committed it; bank refs/bank/ic/explore-view, patch-id f0b9ccded113; vc wrote the Added line at 67f222f76).\nPARKED, NOT BANKED: worktree tmp/wt-ic-322 (in-tree target), ref refs/ic/stack = 70f28bf55 on 66e603ee5, one worktree-local commit each: 0575, 0583, 0582, 0572, 0573, 0574, (ii) commands.md Retired via gen_reference.sh, 0549, (iii) the five subagent fixes plus full-trope-diagnosis. The four reds from run jstack2 are FIXED in the stack (0573 roster in write_moves_only_what_changed.rs, 0549 every_face envelope pin, 0572 AT-00.17 citations) except (ii) attachment drift, which vc judges on main after intentd ingests gen_reference.sh and ST0056.json commits with it.\nNOT BUILT: 0579 (waited on dc 0558, now landed at e90e75019).\nFIRST AFTER THE BOUNCE: MAIN IS RED FROM explore-view (66e603ee5), on intentsvcs address_resolution_single_home::no_second_resolver_exists, which flags the test literal \"intent:///threads/ST0000\" at intent-cli/src/tui/commands.rs:922 (acts_that_are_not_places_and_every_address_spelling_are_not_view_words) for spelling the scheme by hand; my run was intent-cli only and did not include it. Bank an explore-fix that builds that address through the address module (or as the arm allows), judged with the WHOLE intentsvcs suite plus intent-cli; it lands before the rest of the stack.\nNEXT: rebase refs/ic/stack past 67f222f76; build 0579; after devbin-vc suite, run scratchpad judge-cli-first.sh (INTENT_BIN set; bats judged by not-ok count) over the stack; bank each fix separately with apply --stat; report 0573 MCP descriptions before/after (mcp-tools.sh; before in mcp-before.json).\nAFTER THE LAST LANDING: regenerate docs/reference (gen_reference.sh), then the stacked final-tree run."
+  }
+}
