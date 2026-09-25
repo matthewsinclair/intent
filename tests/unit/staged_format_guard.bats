@@ -218,9 +218,10 @@ formatted_rust() { printf 'fn main() {\n    let x = 1;\n    println!("{}", x);\n
   unformatted_rust > main.rs
   git add main.rs
 
-  # Through a shell: `command` is a builtin, so `env` could not exec it and the
-  # 127 that answered said nothing about rustfmt (BW01).
-  run env PATH=/usr/bin:/bin sh -c 'command -v rustfmt'
+  # Through bash: `command` is a builtin, so `env` could not exec it and the
+  # 127 that answered said nothing about rustfmt (BW01). Not `sh`: dash, which
+  # is Ubuntu's sh, answers 127 for a missing name, where bash answers 1.
+  run env PATH=/usr/bin:/bin bash -c 'command -v rustfmt'
   [ "$status" -eq 1 ]
 
   run env PATH=/usr/bin:/bin bash "$GUARD"
