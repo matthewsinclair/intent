@@ -5,7 +5,7 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "32974d4a-0175-4bfb-b198-cdac20b4d58b",
-    "heartbeat_at": "2026-09-25T11:38:34.970Z",
+    "heartbeat_at": "2026-09-25T16:12:44.250Z",
     "status": "active",
     "focus": "LOCALFOLDED for hv's compact. 3.2.2 lane complete: 4 landed; 0554a, 0555 and tostore banked for vc's whole-suite judge on 67f222f76. Idle unless vc sends work. Resume is doing 74. NO PUSH, NO RELEASE.",
     "claims": [],
@@ -1798,10 +1798,10 @@
       "node": "cc",
       "kind": "doing",
       "seq": 74,
-      "text": "RESUME STATE (cc, localfold for hv's compact, 2026-09-25). 3.2.2 LANE COMPLETE (vc decision 61: every open issue ships in one patch, 3.2.2).\n\nLANDED, each at its judged patch-id, on vc's word:\n- 0568, a carry no longer folds the body into Context: 4e4d4cf47.\n- 0559, a write refuses over a carriable cover edit and names `intent sync --to-store <ID>`; hydrate records what it wrote: ae03538fc.\n- doctor (i)(ii), the stale-render verb per view and one line per directory in -v: 231c0bf44.\n- 0580, `at edit --kind` says when it resets a status; help updated: abf066599.\nCHANGELOG lines by vc at 394941865.\n\nBANKED on 67f222f76, stacked in this order, awaiting vc's one whole-suite judge (running on 67f222f76 at the fold):\n- refs/bank/cc/322/0554a, blob a42837bec9df3383e8447de0577e90713e0160b3, patch-id a47f51c37aec19e867bce87a4908e5bfaf92e08f: a pull takes a teammate's board when its file moved FORWARD and the store is still; both-moved and an older checkout are kept and named (vc ruling (b)).\n- refs/bank/cc/322/0555, blob 6cfbbbe769f635344d61f0550f395e8aa8cf74b5, patch-id 03eb791c23ed092bc8729d6df4000abc80f32ae2: a work package both clones minted is renumbered; its claims follow; any other change still takes a side.\n- refs/bank/cc/322/tostore, blob 4407e6d14004fece8fa594f0f6c7c9a07eb59f88, patch-id f7711e2e523aacc646e44e166859e355a79a967e: `sync --to-store` names a carried cover edit instead of \"overwrites nothing\".\nWorktree: tmp/wt-cc-322, detached at 53ce49fe7 (the three as local wip commits), with an in-tree target. Drivers are in the session scratchpad, 322/drive-*.sh.\n\nIDLE unless vc sends work. NO PUSH, NO RELEASE. After the cut: todo 39's worktree cleanup, which now includes tmp/wt-cc-322. Never delete a bank ref.",
+      "text": "RESUME STATE (cc, localfold for hv's compact, 2026-09-25 after the v3.2.2 cut). IDLE: no claim, no worktree, nothing in flight; wait for vc. v3.2.2 IS CUT, PUBLISHED AND SMOKED (installed pair `intent 3.2.2 (658a89022) release`, brew unlinked and pinned). cc's last three landings before the cut: the doctor carrier advisory naming `intent claude upgrade --apply --skip-settings` (2a2e804db), the search-index self-repair (3e22bf0a3: a scoped refresh that deletes src_sections rows runs fts5's check in the same write and rebuilds on an objection; intentd checks doc_sections beside each scheduled backup; reported at every door; the SQLite cause is a SOURCE READING, fts5FlushSecureDelete returning OK on a miss, never reproduced), and the 3.2.2 release notes (494880486, CHANGELOG corrected in the same commit). WORTH KEEPING: doc_sections damage is also healed by every ingest or mutation (write_doc_sections ends in FTS5 'rebuild'), so the backup check covers an idle project only; doctor's orphan probe reads NO docid for a planted doc_sections orphan, only fts5's check objects. Todo 39 is done: all 20 cc worktrees removed and 3 stale entries pruned with vc's go; `git worktree list` holds main plus dc's three. The bank refs under refs/bank/cc/322/ stay. NO PUSH, NO RELEASE unless vc orders.",
       "state": "live",
       "recorded_at": "2026-09-24T11:41:58.834Z",
-      "edited_at": "2026-09-25T11:33:27.754Z"
+      "edited_at": "2026-09-25T16:12:42.233Z"
     },
     {
       "node": "cc",
@@ -1818,7 +1818,8 @@
       "kind": "todo",
       "seq": 39,
       "text": "After the cut: remove cc's leftover worktrees -- tmp/wt-cc-{0548,0551,final,rules,tpl}, tmp/wt-cc-mapping once member 8b has landed, the older scratchpad worktrees of session 89be4c37 (wt-0521, wt-0523, wt-0523b, wt-0523m, wt-0523r, wt-0525, wt-critic, wt-f1f2, wt-train) and ../Intent-wt-0546 -- each checked against a landed or banked patch-id first (every one was, at the 2026-09-24 fold), then `git worktree prune` for the three registrations whose directories are already gone. Never delete a bank ref.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-25T16:12:43.312Z",
       "recorded_at": "2026-09-24T11:42:00.570Z",
       "edited_at": "2026-09-24T18:49:34.529Z"
     }

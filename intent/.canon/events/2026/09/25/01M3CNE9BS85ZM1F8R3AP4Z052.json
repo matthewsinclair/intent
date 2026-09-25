@@ -1,0 +1,16 @@
+{
+  "id": "01M3CNE9BS85ZM1F8R3AP4Z052",
+  "ts": "2026-09-25T16:12:42.233Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 74,
+    "text": "RESUME STATE (cc, localfold for hv's compact, 2026-09-25 after the v3.2.2 cut). IDLE: no claim, no worktree, nothing in flight; wait for vc. v3.2.2 IS CUT, PUBLISHED AND SMOKED (installed pair `intent 3.2.2 (658a89022) release`, brew unlinked and pinned). cc's last three landings before the cut: the doctor carrier advisory naming `intent claude upgrade --apply --skip-settings` (2a2e804db), the search-index self-repair (3e22bf0a3: a scoped refresh that deletes src_sections rows runs fts5's check in the same write and rebuilds on an objection; intentd checks doc_sections beside each scheduled backup; reported at every door; the SQLite cause is a SOURCE READING, fts5FlushSecureDelete returning OK on a miss, never reproduced), and the 3.2.2 release notes (494880486, CHANGELOG corrected in the same commit). WORTH KEEPING: doc_sections damage is also healed by every ingest or mutation (write_doc_sections ends in FTS5 'rebuild'), so the backup check covers an idle project only; doctor's orphan probe reads NO docid for a planted doc_sections orphan, only fts5's check objects. Todo 39 is done: all 20 cc worktrees removed and 3 stale entries pruned with vc's go; `git worktree list` holds main plus dc's three. The bank refs under refs/bank/cc/322/ stay. NO PUSH, NO RELEASE unless vc orders."
+  }
+}
