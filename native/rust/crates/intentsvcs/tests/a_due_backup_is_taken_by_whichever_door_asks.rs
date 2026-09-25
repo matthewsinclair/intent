@@ -8,6 +8,21 @@
 //! rule when set, and a due backup that fails being an error that is already
 //! recorded rather than a quiet nothing.
 //!
+//! The ST0080 acceptance rows these arms are, by id:
+//!
+//! - AT-00.1: `a_due_backup_is_taken_and_announced_before_it_starts`, and the
+//!   pty drive of `intent explore` recorded on the row.
+//! - AT-00.2: `the_three_words_keep_their_periods_and_durations_are_read_beside_them`
+//!   and `a_duration_schedule_is_honoured_like_a_word`.
+//! - AT-00.3: `a_daily_backup_is_due_at_nine_tenths_of_a_day_and_not_before`.
+//! - AT-00.4: `keep_prunes_to_the_newest_n_and_keeps_the_one_just_taken`,
+//!   `keep_decides_alone_beside_retain_and_doctor_names_the_pair`,
+//!   `without_keep_the_tiers_decide_and_nothing_is_named` and
+//!   `a_keep_of_zero_is_refused_when_the_config_is_read`.
+//! - AT-00.5: `a_due_backup_that_fails_is_an_error_that_doctor_can_already_see`,
+//!   `a_backup_that_is_not_taken_says_why_and_announces_nothing`, and the pty
+//!   drive recorded on the row.
+//!
 //! **Ages are written by SQLite against its own clock**, inside the INSERT
 //! that records the row, so no test asks what time it is -- the same way the
 //! store's own interval is computed.
