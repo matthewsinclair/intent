@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.3] - in progress
+
+### Added
+
+- **`backup.keep: N` keeps the newest N snapshots**, in place of the `retain` tiers, and `intent doctor` names a config that sets both. `backup.schedule` also accepts whole-number durations such as `12h` and `7d`, and a backup is due at nine tenths of its period, so `daily` means once in each day's use rather than every 24 hours to the minute.
+
+### Fixed
+
+- **`backup.schedule` fires for a project `intentd` never opens** (ST0080). The schedule was honoured only by `intentd`'s sweep, which reaches only the projects it holds open, so a project used through the CLI alone could go weeks without a snapshot while its config read `daily`. `intent explore` now takes a due backup before it opens. A due backup that fails, or a schedule that cannot be read, is reported on stderr, on the explorer's info row and by `intent doctor`, and the explorer still opens.
+
 ## [3.2.2] - 2026-09-25
 
 ### Added
