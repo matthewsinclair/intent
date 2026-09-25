@@ -678,3 +678,104 @@ fn a_pull_carries_a_hand_edited_cover_into_the_store() {
     shown.said
   );
 }
+
+/// Both clones mint work package 01 on ST0001, and Bob pulls Alice's.
+fn two_clones_mint_one_work_package(team: &Team, bob_also: &[&[&str]]) -> Ran {
+  let (alice, bob) = (team.alice(), team.bob());
+  team.intent_ok(&alice, &["wp", "new", "ST0001", "Alice's package"]);
+  team.commit(&alice, "Alice's package");
+  team.git(&alice, &["push", "-q"]);
+  team.intent_ok(&bob, &["wp", "new", "ST0001", "Bob's package"]);
+  for args in bob_also {
+    team.intent_ok(&bob, args);
+  }
+  team.commit(&bob, "Bob's package");
+  team.git_with_path(&bob, &["pull", "-q", "--no-rebase"], &team.path())
+}
+
+/// Issue 0555: **A WORK PACKAGE BOTH CLONES MINTED IS RENUMBERED, NOT A SIDE
+/// TO TAKE.** The collision reached the plan as a thread both sides changed,
+/// whose only offer was taking a side, which drops one person's package. The
+/// plan now reads the merge's three versions, sees two packages minted under
+/// one seq, and moves this clone's to the next free one.
+#[test]
+fn a_work_package_both_clones_minted_is_renumbered() {
+  let team = Team::new();
+  let bob = team.bob();
+  // Bob's node claims his package, and the claim must follow it (vc's
+  // condition on the build: a claim names a package as `<thread>/<NN>`).
+  let pulled = two_clones_mint_one_work_package(
+    &team,
+    &[
+      &[
+        "wb",
+        "register",
+        "bo",
+        "--name",
+        "Bob's agent",
+        "--role",
+        "worker",
+      ],
+      &["wb", "claim", "ST0001/01", "--node", "bo"],
+    ],
+  );
+  assert_ne!(pulled.code, 0, "the pull did not conflict: {}", pulled.said);
+
+  let plan = team.intent(&bob, &["sync"]);
+  assert!(
+    plan
+      .said
+      .contains("both sides minted work package ST0001/01: this clone's moves to ST0001/02"),
+    "{}",
+    plan.said
+  );
+  assert!(!plan.said.contains("take a side"), "{}", plan.said);
+
+  team.intent_ok(&bob, &["sync", "--apply", "--yes"]);
+  team.git(&bob, &["commit", "-q", "--no-verify", "--no-edit"]);
+  let listed = team.intent(&bob, &["wp", "list", "ST0001"]);
+  for (seq, title) in [("01", "Alice's package"), ("02", "Bob's package")] {
+    assert!(
+      listed
+        .said
+        .lines()
+        .any(|l| l.contains(seq) && l.contains(title)),
+      "WP {seq} is not {title}: {}",
+      listed.said
+    );
+  }
+  let shown = team.intent(&bob, &["wb", "show", "bo"]);
+  let claims = shown
+    .said
+    .lines()
+    .find(|l| l.trim_start().starts_with("claims"))
+    .unwrap_or_else(|| panic!("no claims line: {}", shown.said));
+  assert!(
+    claims.contains("ST0001/02") && !claims.contains("ST0001/01"),
+    "Bob's claim did not follow his package: {claims}"
+  );
+  let status = team.git(&bob, &["status", "--porcelain"]);
+  assert!(
+    status.said.trim().is_empty(),
+    "the merge left: {}",
+    status.said
+  );
+}
+
+/// The control, and the limit the CHANGELOG states: **A THREAD WHOSE OTHER
+/// FIELDS MOVED TOO STILL TAKES A SIDE.** Bob retitled ST0001 as well as adding
+/// a package, so the thread is not only packages minted twice.
+#[test]
+fn a_thread_changed_beyond_its_work_packages_still_takes_a_side() {
+  let team = Team::new();
+  let bob = team.bob();
+  let pulled = two_clones_mint_one_work_package(
+    &team,
+    &[&["set", "ST0001", "title", "Onboarding guide, retitled"]],
+  );
+  assert_ne!(pulled.code, 0, "the pull did not conflict: {}", pulled.said);
+
+  let plan = team.intent(&bob, &["sync"]);
+  assert!(plan.said.contains("take a side"), "{}", plan.said);
+  assert!(!plan.said.contains("work package"), "{}", plan.said);
+}

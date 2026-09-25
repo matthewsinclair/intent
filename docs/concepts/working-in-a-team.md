@@ -8,7 +8,7 @@ The page walks one project from its first push to GitHub through the pull reques
 
 - Commit the canon, the event files and the generated views together, and never the store.
 - Let the git hooks run `intent sync --apply` after a pull, a checkout or a rebase. After a `git reset`, run it yourself before your next write.
-- When two people mint the same thread or issue id, `intent sync --apply --yes` in the middle of the merge renumbers yours. A work package minted twice is redone after the pull.
+- When two people mint the same thread, issue or work package id, `intent sync --apply --yes` in the middle of the merge renumbers yours.
 - Resolve a conflict in a canon JSON file by hand, `git add` it, then run `intent sync --apply --yes`. Never merge a generated view by hand.
 - Write a thread's objective and context with `intent set`, not by editing `info.md`.
 - Upgrade Intent together, and run `intent doctor` on the merge result in CI as a required check.
@@ -305,36 +305,35 @@ Issues are numbered the way threads are, so two people who each add one before p
   0003    | OPEN        | medium      | Install page has a typo
 ```
 
-### A work package minted twice: redo yours after the pull
+### A work package minted twice: yours is renumbered
 
-**There is no renumber for a work package**, so two people who each add one to the same thread before pulling are left with a choice between sides. The conflict lands in the thread's canon file and its views, and `intent sync` plans only the non-reversible step:
+Two people who each add a work package to the same thread before pulling both get the next number. The conflict lands in the thread's canon file, and `intent sync` reads the merge's three versions of it: when adding work packages is all either side did, it plans a renumber of yours rather than a choice between sides:
 
 ```
-  $ git pull --no-rebase
+  $ git pull
   CONFLICT (content): Merge conflict in intent/.canon/st/ST0001.json
-  CONFLICT (add/add): Merge conflict in intent/st/ST0001/WP/02/info.md
-  CONFLICT (content): Merge conflict in intent/st/ST0001/info.md
   CONFLICT (content): Merge conflict in intent/todo.md
-  $ intent sync
+  $ intent sync --apply --yes
   ...
-    1. take a side (non-reversible): both sides changed intent/.canon/st/ST0001.json: a person chooses ours or theirs, and it is staged -- or resolve it by hand and `git add` it
+    1. renumber (reversible): both sides minted work package ST0001/01: this clone's moves to ST0001/02 and the pulled one keeps ST0001/01, both staged
+  ...
+  ok: work package(s) of ST0001 both sides minted: this clone's moved (ST0001/01 -> ST0001/02), the pulled side's kept theirs, staged
+  ok: regenerated and staged 1 view(s): intent/todo.md
+  $ git commit --no-edit
+  $ intent wp list ST0001
+  WP   | Title                                           | Scope       | Status
+  -----|-------------------------------------------------|-------------|------------------------------
+  01   | Record a walkthrough                            | S           | Not Started
+  02   | Add screenshots                                 | S           | Not Started
 ```
 
-Taking one side drops the other person's work package. The route that loses nothing is to abandon the merge, drop your commit, take the pull and add yours again, which gives it the next free number:
+A whiteboard claim on your package, `ST0001/01`, moves with it. **When either side changed anything else on the thread as well** -- its title, a criterion, an attachment -- the plan offers only taking a side, which drops the other person's work package. The route that loses nothing then is to abandon the merge, drop your commit, take the pull and add yours again:
 
 ```
   $ git merge --abort
   $ git reset --hard origin/main
   $ intent sync --apply
-  ok: took 1 change(s) from the files into the store: ST0001; and 1 event file(s)
   $ intent wp new ST0001 "Add screenshots"
-  created: ST0001/03
-  $ intent wp list ST0001
-  WP   | Title                                           | Scope       | Status
-  -----|-------------------------------------------------|-------------|------------------------------
-  01   | Write the guide                                 | S           | Not Started
-  02   | Record a walkthrough                            | S           | Not Started
-  03   | Add screenshots                                 | S           | Not Started
 ```
 
 `git reset --hard` runs no hook, which is why `intent sync --apply` follows it.

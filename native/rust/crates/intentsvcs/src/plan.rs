@@ -71,6 +71,10 @@ impl Recoverability {
 pub enum Minted {
   Thread,
   Issue,
+  /// A work package, named `<thread>/<NN>` (issue 0555). It is a row inside
+  /// its thread's canon file rather than a file, so git sees a thread both
+  /// sides changed, and [`work_packages_minted_twice`] tells the two apart.
+  WorkPackage,
 }
 
 /// Which side of a merge a person chose.
@@ -306,6 +310,7 @@ impl Step {
         match minted {
           Minted::Thread => "steel thread",
           Minted::Issue => "issue",
+          Minted::WorkPackage => "work package",
         }
       ),
       Action::TakeSide { path } => format!(
@@ -494,6 +499,73 @@ pub fn left_line(left: &[Left]) -> Option<String> {
     named.join(", "),
     finish.join("; ")
   ))
+}
+
+/// A thread both sides changed only by adding work packages, some under the same
+/// seq: the thread as the merge should leave it, and this clone's seqs that
+/// move, each with where it moves to (issue 0555).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct WorkPackagesMintedTwice {
+  pub merged: crate::model::Thread,
+  pub moves: Vec<(u32, u32)>,
+}
+
+/// Whether a thread both sides changed is a work package both sides minted,
+/// from its three versions: the merge base, this clone's, and the pulled one.
+///
+/// **ONLY WHEN ADDING WORK PACKAGES IS ALL EITHER SIDE DID** -- each side, with
+/// its added packages taken out, is exactly the base -- **AND SOME SEQ WAS
+/// ADDED ON BOTH.** Anything else changed on the thread, by either side, is a
+/// person's choice, and `None` leaves the take-a-side step to ask for it.
+///
+/// **PURE.** The pulled side keeps its seqs; this clone's colliding packages
+/// move past the highest seq either side holds, in seq order, and its other
+/// added packages keep theirs.
+pub fn work_packages_minted_twice(
+  base: &crate::model::Thread,
+  ours: &crate::model::Thread,
+  theirs: &crate::model::Thread,
+) -> Option<WorkPackagesMintedTwice> {
+  let in_base = |seq: u32| base.wps.iter().any(|wp| wp.seq == seq);
+  let without_added = |t: &crate::model::Thread| {
+    let mut t = t.clone();
+    t.wps.retain(|wp| in_base(wp.seq));
+    t
+  };
+  if without_added(ours) != *base || without_added(theirs) != *base {
+    return None;
+  }
+  let added = |t: &crate::model::Thread| -> Vec<crate::model::WorkPackage> {
+    t.wps
+      .iter()
+      .filter(|wp| !in_base(wp.seq))
+      .cloned()
+      .collect()
+  };
+  let (ours_added, theirs_added) = (added(ours), added(theirs));
+  let collides = |seq: u32| theirs_added.iter().any(|wp| wp.seq == seq);
+  if !ours_added.iter().any(|wp| collides(wp.seq)) {
+    return None;
+  }
+  let mut next = ours
+    .wps
+    .iter()
+    .chain(theirs.wps.iter())
+    .map(|wp| wp.seq)
+    .max()
+    .unwrap_or(0);
+  let mut merged = theirs.clone();
+  let mut moves = Vec::new();
+  for mut wp in ours_added {
+    if collides(wp.seq) {
+      next += 1;
+      moves.push((wp.seq, next));
+      wp.seq = next;
+    }
+    merged.wps.push(wp);
+  }
+  merged.wps.sort_by_key(|wp| wp.seq);
+  Some(WorkPackagesMintedTwice { merged, moves })
 }
 
 /// The unmerged paths of a merge, sorted by who resolves them and how.

@@ -9605,7 +9605,7 @@ impl Facade {
     use crate::plan::Step;
     let root = self.project.root();
     let mut steps = Vec::new();
-    let conflicts = if crate::gitstate::is_work_tree(root) {
+    let mut conflicts = if crate::gitstate::is_work_tree(root) {
       // **NOT WHILE A MERGE IS IN PROGRESS**: mid-pull the upstream's commits
       // are the ones being merged, and telling a person to pull them in the
       // middle of their pull is the one wrong thing to say.
@@ -9628,6 +9628,25 @@ impl Facade {
       minted.push(to.clone());
       steps.push(Step::renumber(*kind, from.clone(), to));
     }
+    // **A WORK PACKAGE BOTH SIDES MINTED IS A THREAD BOTH SIDES CHANGED** to
+    // git, so it arrives here as a side to take; the three versions tell the
+    // two apart, and a renumber replaces the choice (issue 0555).
+    let mut sides = Vec::new();
+    for path in std::mem::take(&mut conflicts.take_sides) {
+      match self.work_packages_minted_twice_at(&path)? {
+        Some((id, found)) => {
+          for (from, to) in found.moves {
+            steps.push(Step::renumber(
+              crate::plan::Minted::WorkPackage,
+              format!("{id}/{from:02}"),
+              format!("{id}/{to:02}"),
+            ));
+          }
+        }
+        None => sides.push(path),
+      }
+    }
+    conflicts.take_sides = sides;
     for path in &conflicts.take_sides {
       steps.push(Step::take_side(path.clone()));
     }
@@ -9737,6 +9756,18 @@ impl Facade {
     })
   }
 
+  /// Why [`Facade::next_free_id`] mints no work package seq: its new seq comes
+  /// from the merge's own three versions (issue 0555), which the tree cannot
+  /// answer for, and the plan asks them itself.
+  fn no_minted_work_package() -> FacadeError {
+    FacadeError::SyncDiskStep {
+      step: "mint a work package's seq".to_string(),
+      source: std::io::Error::other(
+        "a work package both sides minted takes its seq from the merge's versions, not from the tree",
+      ),
+    }
+  }
+
   /// The next id free in the store AND the tree, past every one in `taken`.
   ///
   /// **THE TREE IS ASKED AS WELL AS THE STORE** (ic, measured building P2):
@@ -9766,6 +9797,7 @@ impl Facade {
     };
     let stem = |name: &str| name.split('.').next().unwrap_or_default().to_string();
     let highest = match kind {
+      Minted::WorkPackage => return Err(Self::no_minted_work_package()),
       Minted::Thread => {
         let mut seen: Vec<u32> = self
           .canon
@@ -9801,6 +9833,7 @@ impl Facade {
     Ok(match kind {
       Minted::Thread => crate::model::thread_id(highest + 1),
       Minted::Issue => crate::model::issue_id(highest + 1),
+      Minted::WorkPackage => return Err(Self::no_minted_work_package()),
     })
   }
 
@@ -10041,6 +10074,147 @@ impl Facade {
     Ok((written, unrendered))
   }
 
+  /// Whether the thread canon file at `path`, which both sides changed, is a
+  /// work package both sides minted, read from the merge's three versions:
+  /// `:1` the base, `:2` this clone's, `:3` the pulled one (issue 0555). `None`
+  /// for any other path, or when a version is missing or is not a thread.
+  fn work_packages_minted_twice_at(
+    &self,
+    path: &str,
+  ) -> Result<Option<(String, crate::plan::WorkPackagesMintedTwice)>, FacadeError> {
+    let canon_st = format!("{}/", self.project.relative(&self.project.canon_st_dir()));
+    let Some(id) = path
+      .strip_prefix(&canon_st)
+      .and_then(|rest| rest.strip_suffix(".json"))
+      .filter(|id| crate::model::thread_seq(id).is_some())
+    else {
+      return Ok(None);
+    };
+    let root = self.project.root();
+    let mut versions = Vec::new();
+    for stage in [":1", ":2", ":3"] {
+      let Some(bytes) = crate::gitstate::blob(root, stage, path)? else {
+        return Ok(None);
+      };
+      let Ok(thread) = serde_json::from_slice::<Thread>(&bytes) else {
+        return Ok(None);
+      };
+      versions.push(thread);
+    }
+    Ok(
+      crate::plan::work_packages_minted_twice(&versions[0], &versions[1], &versions[2])
+        .map(|found| (id.to_string(), found)),
+    )
+  }
+
+  /// Renumber this clone's work package `from` to `to`, mid-merge (issue 0555):
+  /// the thread lands as the pulled side's with this clone's added packages on
+  /// it, the colliding ones moved, and this clone's claims on them follow.
+  ///
+  /// **ONE PASS MOVES EVERY COLLIDING PACKAGE OF THE THREAD**, because the
+  /// merged thread is one record; a later step for the same thread finds its
+  /// canon file resolved and says so.
+  fn renumber_work_package_in_merge(
+    &mut self,
+    from: &str,
+    to: &str,
+  ) -> Result<String, FacadeError> {
+    let root = self.project.root().to_path_buf();
+    let Some((id, _)) = from.split_once('/') else {
+      return Err(FacadeError::NoSuchThread {
+        id: from.to_string(),
+      });
+    };
+    let id = id.to_string();
+    let path = self.project.relative(&self.project.thread_json(&id));
+    if !crate::gitstate::unmerged(&root)?
+      .iter()
+      .any(|u| u.path == path)
+    {
+      return Ok(format!(
+        "work package {from}: moved to {to} with the others of {id}"
+      ));
+    }
+    let Some((_, found)) = self.work_packages_minted_twice_at(&path)? else {
+      return Err(FacadeError::SyncDiskStep {
+        step: format!("renumber work package {from}"),
+        source: std::io::Error::other(
+          "the merge no longer shows both sides minting it -- run `intent sync` again for a fresh plan",
+        ),
+      });
+    };
+    // The act's event file is this renumber's to stage, like the canon file;
+    // it is the one the write adds under the events directory.
+    let events_before = Project::files_in(&self.project.events_dir());
+    let mut next = self.canon.clone();
+    match next.threads.iter_mut().find(|t| t.id == id) {
+      Some(thread) => *thread = found.merged.clone(),
+      None => return Err(FacadeError::NoSuchThread { id }),
+    }
+    let (claims, _) = crate::renumber::work_package_claims(&self.canon.boards, &id, &found.moves);
+    let moves: Vec<String> = found
+      .moves
+      .iter()
+      .map(|(f, t)| format!("{id}/{f:02} -> {id}/{t:02}"))
+      .collect();
+    let applied = self.apply(
+      "wp.renumber",
+      Subject {
+        kind: "wp".to_string(),
+        id: id.clone(),
+      },
+      json!({ "moves": moves, "mid_merge": true }),
+      next,
+    )?;
+    let mut notes = Outcome::Moved.with_overwrites(applied).notes().to_vec();
+    if !claims.is_empty() {
+      let mark = self.after_write.len();
+      for (node, list) in &claims {
+        let event = self.wb_event("wp.renumber", node, json!({ "moves": moves }));
+        self
+          .store
+          .wb_write(&event, |w| w.set_claims(node, list))
+          .map_err(FacadeError::Store)?;
+      }
+      self.land_board_write_noting()?;
+      notes.extend(self.after_write.drain(mark..));
+    }
+    self.after_write.extend(notes);
+    let mut staged = vec![path];
+    let events = self.project.events_dir();
+    staged.extend(
+      Project::files_in(&events)
+        .into_iter()
+        .filter(|file| !events_before.contains(file))
+        .map(|file| self.project.relative(&events.join(file))),
+    );
+    for (node, _) in &claims {
+      for view in [
+        self.project.board_json(node),
+        self.project.wb_board_view(node),
+      ] {
+        if view.exists() {
+          staged.push(self.project.relative(&view));
+        }
+      }
+    }
+    for (_, seq) in &found.moves {
+      let dir = self
+        .project
+        .thread_dir(&id)
+        .join("WP")
+        .join(format!("{seq:02}"));
+      for file in Project::files_in(&dir) {
+        staged.push(self.project.relative(&dir.join(file)));
+      }
+    }
+    crate::gitstate::stage(&root, &staged)?;
+    Ok(format!(
+      "work package(s) of {id} both sides minted: this clone's moved ({}), the pulled side's kept theirs, staged",
+      moves.join(", ")
+    ))
+  }
+
   /// Renumber an id both sides minted, in the middle of the merge (AC-05.2).
   ///
   /// **NOT THE PLAIN VERB, AND ic MEASURED WHY** building P2: mid-merge the old
@@ -10069,6 +10243,7 @@ impl Facade {
     let rel = |p: std::path::PathBuf| project.relative(&p);
     // The old id's paths, and where this clone's files under each go.
     let (prefixes, sigil, model) = match minted {
+      Minted::WorkPackage => return self.renumber_work_package_in_merge(from, to),
       Minted::Thread => {
         let model = crate::renumber::thread(&self.canon, from, to).ok_or_else(|| {
           FacadeError::NoSuchThread {
@@ -10183,11 +10358,13 @@ impl Facade {
       match minted {
         Minted::Thread => "st.renumber",
         Minted::Issue => "issues.renumber",
+        Minted::WorkPackage => "wp.renumber",
       },
       Subject {
         kind: match minted {
           Minted::Thread => "thread",
           Minted::Issue => "issue",
+          Minted::WorkPackage => "wp",
         }
         .to_string(),
         id: to.to_string(),

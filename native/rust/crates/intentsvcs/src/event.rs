@@ -175,6 +175,9 @@ pub const KNOWN_OPS: &[&str] = &[
   "wp.fc",
   "wp.new",
   "wp.reinstate",
+  // Issue 0555: this clone's work package moved mid-merge, off a seq the
+  // pulled side minted too.
+  "wp.renumber",
   "wp.reopen",
   "wp.rescope",
   "wp.set",
