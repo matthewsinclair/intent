@@ -1,4 +1,9 @@
-* linguist-vendored
+# GitHub's language bar (Linguist) labels the repository by bytes per language.
+# Until 2026-09-25 this file opened with `* linguist-vendored`, from the 2023
+# first commit, which took every file out of that count except the one HTML
+# page intentd serves -- so a Rust project read as 100% HTML.
+#
+# The Elixir files are the rule library's examples (intent/plugins/claude/rules/
+# elixir/), not Intent's own code.
 *.ex linguist-vendored=true
 *.exs linguist-vendored=true
-*.html linguist-vendored=false
