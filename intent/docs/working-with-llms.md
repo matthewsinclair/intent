@@ -659,7 +659,7 @@ Fix order (by preference):
 
 ### `intent claude upgrade --apply` holds back a hand-edited file
 
-Symptom: `intent claude upgrade --apply` reports `held: CLAUDE.md -- hand-authored, no generated marker; --force overwrites`, or `preserved:` for `usage-rules.md`, `.intent_critic.yml` or `.mcp.json`. **`preserved:` is not a sign of a hand edit**: as built it is printed for every one of those seeds that exists, without comparing it with the template, so a file canon wrote and nobody touched reads `preserved: … (yours, not canon's)` too (issue 0565).
+Symptom: `intent claude upgrade --apply` reports `held: CLAUDE.md -- hand-authored, no generated marker; --force overwrites`, or `preserved:` for `usage-rules.md`, `.intent_critic.yml` or `.mcp.json`. `preserved:` names a seed that differs from what canon would write; one that still matches its template is reported `unchanged`.
 
 This is by design. Intent does not clobber human-curated content silently. A `CLAUDE.md` without the generated footer is held, and so is a `.claude/settings.json` that is not Intent's; `usage-rules.md`, `.intent_critic.yml` and `.mcp.json` are seeded only when absent. A generated `CLAUDE.md` is regenerated on every apply, and whatever sits between its `<!-- user:start -->` and `<!-- user:end -->` markers is carried across. Three paths for a held `CLAUDE.md`:
 

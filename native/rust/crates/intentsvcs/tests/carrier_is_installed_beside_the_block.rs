@@ -585,8 +585,7 @@ fn report_mode_answers_what_apply_would_do_and_writes_nothing() {
     clean.written.is_empty(),
     "on a canonical tree the report must say nothing would be written: {clean:?}"
   );
-  // Seeded user-owned files read as `preserved` from here on, so the count
-  // that matters is that the clean report EXAMINED the tree rather than
+  // The count that matters is that the clean report EXAMINED the tree rather than
   // returning an empty verdict: an empty `written` from a report that looked
   // at nothing would pass the assertion above.
   assert!(

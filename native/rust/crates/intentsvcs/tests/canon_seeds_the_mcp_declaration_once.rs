@@ -114,6 +114,31 @@ fn present_it_is_preserved_byte_for_byte_even_under_force() {
   );
 }
 
+/// **A SEED BYTE-IDENTICAL TO ITS TEMPLATE IS `unchanged`, NOT "yours"**
+/// (issue 0565). `preserved` was reported for every existing seed without
+/// reading it, so the file canon itself had just written was called the
+/// project's own on the next run. The control is the somebody's-own arm above:
+/// a file that differs is still preserved.
+#[test]
+fn a_seed_identical_to_its_template_is_unchanged_not_preserved() {
+  let fx = crate::common::Fixture::new();
+  let hooks = hooks_dir(&fx);
+  let path = fx.root().join(".mcp.json");
+  apply(&fx, &hooks, canon::Options::default());
+  assert!(path.exists(), "the first run seeded nothing");
+
+  let again = apply(&fx, &hooks, canon::Options::default());
+  assert!(
+    again.unchanged.iter().any(|p| p == &path),
+    "a seed identical to its template was not reported unchanged: {again:?}"
+  );
+  assert!(
+    !again.preserved.iter().any(|p| p == &path),
+    "a seed identical to its template was reported as the project's own: {:?}",
+    again.preserved
+  );
+}
+
 #[test]
 fn skip_settings_declines_it_and_reports_it_skipped() {
   let fx = crate::common::Fixture::new();

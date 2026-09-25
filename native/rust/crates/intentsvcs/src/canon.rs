@@ -551,10 +551,6 @@ fn seed_if_absent(
   report: bool,
   applied: &mut Applied,
 ) -> Result<(), CanonError> {
-  if dest.exists() && !force {
-    applied.preserved.push(dest.to_path_buf());
-    return Ok(());
-  }
   // Every seed goes through the one token expander, so a template that gains a
   // `[[TOKEN]]` renders it rather than shipping it literally (issue 0336: the
   // seeded `usage-rules.md` carried `[[PROJECT_NAME]]`). Only a Markdown seed
@@ -576,6 +572,18 @@ fn seed_if_absent(
     crate::rootfiles::expand(&text, cfg, ctx)
   }
   .map_err(|e| CanonError::RootFile(format!("{rel}: {e:?}")))?;
+  // **`preserved` NAMES A FILE THAT DIFFERS FROM WHAT CANON WOULD SEED** (issue
+  // 0565). An existing file was reported as "yours, not canon's" without being
+  // read, so a seed byte-identical to its template was called the project's
+  // own. It is compared with the rendered seed first, and one that matches is
+  // `unchanged`, as a generated file that matches is.
+  if dest.exists() && !force {
+    match std::fs::read_to_string(dest) {
+      Ok(current) if current == body => applied.unchanged.push(dest.to_path_buf()),
+      _ => applied.preserved.push(dest.to_path_buf()),
+    }
+    return Ok(());
+  }
   write_if_changed(dest, &body, report, applied)
 }
 
