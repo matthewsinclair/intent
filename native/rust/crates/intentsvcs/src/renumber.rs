@@ -111,7 +111,7 @@ pub fn issue(canon: &Canon, old: u32, new: u32) -> Option<Renumbered> {
 
 /// The boards' claims with work package `seq`s moved as `moves` says, and each
 /// node whose claims moved with its whole new list (issue 0555). A claim names
-/// a package as `<thread>/<NN>`, which [`moved_claims`] matches whole.
+/// a package as `<thread>/<NN>`, which `moved_claims` matches whole.
 pub fn work_package_claims(
   boards: &[Board],
   thread: &str,

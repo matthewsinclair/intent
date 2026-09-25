@@ -189,7 +189,7 @@ pub struct ResolutionState {
   /// What the tool said, for a run that stored nothing.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub detail: Option<String>,
-  /// The first [`STALE_NAMED`] files whose resolved rows no longer describe
+  /// The first `STALE_NAMED` files whose resolved rows no longer describe
   /// the bytes the index holds, in path order. A reference in one keeps its
   /// syntax level.
   ///

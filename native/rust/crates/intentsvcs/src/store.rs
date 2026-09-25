@@ -6202,7 +6202,7 @@ impl Store {
   /// scoped delete writes none of the tombstones the rebuild cleared.
   ///
   /// **AND IT CHECKS `src_sections` AFTER A DELETE, REBUILDING IT WHEN FTS5
-  /// OBJECTS** -- see [`repair_if_damaged`] for why a secure delete can leave
+  /// OBJECTS** -- see `repair_if_damaged` for why a secure delete can leave
   /// the index damaged. The repair is returned, never swallowed, so every door
   /// that refreshes can say it ran.
   // Issue 0355: as built 2026-09-14, a one-file refresh spent 717 ms here
@@ -6238,7 +6238,7 @@ impl Store {
   }
 
   /// Check one search table and rebuild it when fts5's check objects, in one
-  /// write: [`repair_if_damaged`] on its own, for the door that runs it outside
+  /// write: `repair_if_damaged` on its own, for the door that runs it outside
   /// a refresh -- intentd's scheduled sweep, for `doc_sections`, whose check is
   /// too dear for every watcher refresh.
   pub fn repair_search_table(
