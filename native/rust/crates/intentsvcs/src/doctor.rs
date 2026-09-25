@@ -1955,8 +1955,8 @@ pub fn gate_state(
   let Some(template) = template else {
     return GateState::NoResolvableInstall;
   };
-  // **BYTES, NOT A VERSION.** The carrier is an untracked per-machine copy
-  // taken at install time, so the only thing that says whether it is the
+  // **BYTES, NOT A VERSION.** The carrier is an untracked per-machine copy,
+  // taken again by each `claude upgrade --apply`, so the only thing that says whether it is the
   // current one is whether it IS the current one.
   if template != carrier {
     return GateState::BehindTheTemplate {
@@ -2313,7 +2313,7 @@ fn hook_findings(project: &Project) -> Vec<Finding> {
       shown(&carrier_path),
       FindingClass::Advisory,
       format!(
-        "the hook carrier is {carrier} byte(s) and the template in the resolved install is {template} -- the carrier is a copy taken at install time and nothing re-copies it, so the guards it runs are the generation it was installed with. Reported and NOT counted: measured across the fleet this is true of every estate, and a finding that is permanently true everywhere is one nobody reads"
+        "the hook carrier is {carrier} byte(s) and the template in the resolved install is {template} -- the carrier is a copy of that template, so the guards it runs are the generation it was last copied from, and `intent claude upgrade --apply --skip-settings` copies it again. Reported and NOT counted: an estate reads behind from the day its install moves until that run reaches it, which the fleet sweep does for every estate at once"
       ),
     )],
   };

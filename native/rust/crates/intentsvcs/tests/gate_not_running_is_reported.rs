@@ -171,7 +171,7 @@ fn a_carrier_older_than_its_template_is_reported_and_not_counted() {
       carrier: WIRED.len(),
       template: older.len()
     },
-    "the carrier is a copy taken at install time and nothing re-copies it"
+    "the carrier is a copy of its template, and an older copy runs the older guards until `intent claude upgrade --apply` copies it again"
   );
   assert_eq!(
     gate_state(Some(WIRED), None, gate_only(WIRED)),
