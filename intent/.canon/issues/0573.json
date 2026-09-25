@@ -3,9 +3,10 @@
   "number": 573,
   "slug": "three-register-rows-declare-an-effect-their-verb",
   "title": "three register rows declare an effect their verb does not have: export writes while declared read, ingest writes nothing while declared mutate, and todo",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-09-24",
+  "closed": "2026-09-25",
   "reporter": "Matthew Sinclair",
-  "body": "Found by ic on 2026-09-24 in the 3.2.1 doc audit's register sweep.\n\nSeen: three rows in `surface/dispatch-table.json` declare an effect the verb does not have. `intent export --format md` writes `intent/.backup/text/<stamp>/` yet is declared `read`; `intent ingest` writes nothing yet is declared `mutate` and one-way; and `intent todo`'s read/mutate declaration disagrees with what it does. A row's declared recoverability decides whether the verb is offered on the MCP tier, and `intent_export` is an MCP tool today.\n\nExpected: each row declares the effect its verb has.\n\nDisposition: vc, 2026-09-24 -- filed for after the stabilisation line: correcting a declaration moves recoverability and with it MCP exposure, which is a surface change rather than text. The docs say what `export` and `ingest` actually do.\n"
+  "body": "Found by ic on 2026-09-24 in the 3.2.1 doc audit's register sweep.\n\nSeen: three rows in `surface/dispatch-table.json` declare an effect the verb does not have. `intent export --format md` writes `intent/.backup/text/<stamp>/` yet is declared `read`; `intent ingest` writes nothing yet is declared `mutate` and one-way; and `intent todo`'s read/mutate declaration disagrees with what it does. A row's declared recoverability decides whether the verb is offered on the MCP tier, and `intent_export` is an MCP tool today.\n\nExpected: each row declares the effect its verb has.\n\nDisposition: vc, 2026-09-24 -- filed for after the stabilisation line: correcting a declaration moves recoverability and with it MCP exposure, which is a surface change rather than text. The docs say what `export` and `ingest` actually do.\n\n\nFixed in 3.2.2 by `e36f38c86` (vc, 2026-09-25): the commit message names the bank, its patch-id and the judge.\n"
 }

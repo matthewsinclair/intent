@@ -3,9 +3,10 @@
   "number": 575,
   "slug": "intent-claude-rules-validate-reports-a-false-dup",
   "title": "intent claude rules validate reports a false duplicate id when a canon rule is named by a relative path",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-09-24",
+  "closed": "2026-09-25",
   "reporter": "Matthew Sinclair",
-  "body": "Found by cc's auditor on 2026-09-24 in the 3.2.1 doc audit of `intent/docs/rules.md`, on the pair at `4c687eaad`; cc confirmed it.\n\nSeen: `intent claude rules validate <relative path to a canon RULE.md>` reports a false duplicate id -- \"1 error(s), 0 warning(s) across 1 rule(s)\", exit 1 -- while the same rule named by id, or by absolute path, reads \"1 ok\". `rules.rs:249-253` compares `Path::new(name)` with the corpus's absolute paths without canonicalising, so the rule is added as a second document carrying the same id, and the duplicate check (`rules.rs:821-830`) fires on it.\n\nExpected: a rule named by a relative path validates as the same rule it names.\n\nDisposition: vc, 2026-09-24 -- filed for after the stabilisation line.\n"
+  "body": "Found by cc's auditor on 2026-09-24 in the 3.2.1 doc audit of `intent/docs/rules.md`, on the pair at `4c687eaad`; cc confirmed it.\n\nSeen: `intent claude rules validate <relative path to a canon RULE.md>` reports a false duplicate id -- \"1 error(s), 0 warning(s) across 1 rule(s)\", exit 1 -- while the same rule named by id, or by absolute path, reads \"1 ok\". `rules.rs:249-253` compares `Path::new(name)` with the corpus's absolute paths without canonicalising, so the rule is added as a second document carrying the same id, and the duplicate check (`rules.rs:821-830`) fires on it.\n\nExpected: a rule named by a relative path validates as the same rule it names.\n\nDisposition: vc, 2026-09-24 -- filed for after the stabilisation line.\n\n\nFixed in 3.2.2 by `fe42ef653` (vc, 2026-09-25): the commit message names the bank, its patch-id and the judge.\n"
 }

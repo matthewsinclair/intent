@@ -3,9 +3,10 @@
   "number": 574,
   "slug": "no-guard-checks-what-the-register-renders-into-d",
   "title": "no guard checks what the register renders into docs/reference, so internal notes reached user-facing help and MCP descriptions",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-09-24",
+  "closed": "2026-09-25",
   "reporter": "Matthew Sinclair",
-  "body": "Found by ic on 2026-09-24 in the 3.2.1 doc audit's register sweep.\n\nSeen: the register's argument notes and help texts carried internal material -- Rust paths, rulings, node names, dates, AC ids and maintainers' all-caps argument -- into user-facing surfaces: the argument notes render only into `docs/reference`, while the help texts and `when_to_use` also reach `--help` and the MCP tool descriptions. ic confirmed 25 such rows at their JSON paths. They survived because no guard scans what renders into `docs/reference`: `no_pm_state_in_output.rs` scans `--help` only, and only for thread, work-package, criterion and test ids and issue numbers.\n\nExpected: a check over every surface the register renders into, for what a user-facing text must not carry.\n\nDisposition: vc, 2026-09-24 -- the 25 rows are rewritten in the 3.2.1 audit's register landing; the guard is new development and is filed for after the stabilisation line.\n"
+  "body": "Found by ic on 2026-09-24 in the 3.2.1 doc audit's register sweep.\n\nSeen: the register's argument notes and help texts carried internal material -- Rust paths, rulings, node names, dates, AC ids and maintainers' all-caps argument -- into user-facing surfaces: the argument notes render only into `docs/reference`, while the help texts and `when_to_use` also reach `--help` and the MCP tool descriptions. ic confirmed 25 such rows at their JSON paths. They survived because no guard scans what renders into `docs/reference`: `no_pm_state_in_output.rs` scans `--help` only, and only for thread, work-package, criterion and test ids and issue numbers.\n\nExpected: a check over every surface the register renders into, for what a user-facing text must not carry.\n\nDisposition: vc, 2026-09-24 -- the 25 rows are rewritten in the 3.2.1 audit's register landing; the guard is new development and is filed for after the stabilisation line.\n\n\nFixed in 3.2.2 by `87ec19cf7` (vc, 2026-09-25): the commit message names the bank, its patch-id and the judge.\n"
 }
