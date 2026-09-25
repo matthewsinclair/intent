@@ -227,6 +227,9 @@ pub struct App {
   /// reason: the `Go` half is DERIVED from the declared entity kinds, which
   /// is a fact about the schema and therefore not this module's to know.
   pub commands: Vec<Command>,
+  /// The view `intent explore <view>` named, opened by [`App::open_start`] once
+  /// the vocabulary is loaded.
+  pub start: Option<String>,
   /// The in-place edit in flight, while the mode is FIELD.
   pub editing: Option<FieldEdit>,
   /// Which composer keymap is in force: `explorer.editing.mode`, handed in
@@ -277,6 +280,7 @@ impl App {
       index: Vec::new(),
       index_owed: false,
       commands: Vec::new(),
+      start: None,
       editing: None,
       keymap: keys::Keymap::default(),
       vi_normal: false,
@@ -313,6 +317,141 @@ impl App {
       kind: kind.into(),
       id: id.into(),
     })
+  }
+
+  /// Run the palette command at `at` with `argument`: **THE ONE REALISER OF A
+  /// COMMAND**, called by the palette's Enter and by `intent explore <view>`
+  /// (hv, 2026-09-25), so opening the explorer at `/issues` and typing `/issues`
+  /// in it cannot drift apart.
+  pub fn run_command(&mut self, at: usize, argument: String) -> Step {
+    match self.commands[at].act.clone() {
+      Act::Quit => Step::Quit,
+      // **THE PROJECTS LIST IS A VIEW LIKE ANY OTHER LIST** (issue 0418),
+      // and already being on it is not a push, for `/threads`' reason.
+      Act::Projects => {
+        if self.stack.current() != &View::Projects {
+          self.push(View::Projects);
+        }
+        Step::Continue
+      }
+      Act::Back => {
+        self.pop_view();
+        Step::Continue
+      }
+      // **NO ARGUMENT OPENS THE VIEW; AN ARGUMENT READS ONE VALUE.**
+      // hv's own shape: `/settings` shows them in the body, and
+      // `/settings editing.mode` says what that one is. The read is a
+      // `Step` because the value is on disk and this module holds no
+      // reader -- the same rule that makes `Land` a step.
+      // **`/help` AND `/help st` ARE THE SAME ACT WITH AND WITHOUT AN
+      // ARGUMENT**, which is why the argument is not a second command:
+      // the page is the same view at two depths, so Backspace walks back
+      // up it the way it walks back up anything else.
+      Act::Help => {
+        self.push(View::Help {
+          of: (!argument.is_empty()).then_some(argument),
+        });
+        Step::Continue
+      }
+      Act::Settings if argument.is_empty() => {
+        self.push(View::Settings);
+        Step::Continue
+      }
+      Act::Settings => Step::ShowSetting(argument),
+      // **A SEARCH IS A PUSH, NOT A LEND** (AC-21.1). It is pure state:
+      // the view carries the query, the rows are read where every other
+      // view's rows are read, and the whole act is driven without a
+      // terminal -- which is the half `Step::Run` can never be.
+      //
+      // An EMPTY query pushes the pane anyway rather than refusing: the
+      // pane with nothing in it is a truthful screen, and the operator is
+      // one keystroke from the omnibox.
+      Act::Search => {
+        self.push(View::Search { query: argument });
+        Step::Continue
+      }
+      // **NO ARGUMENT OPENS THE COLLECTION; AN ARGUMENT RUNS ITS VERB**
+      // (hv, 2026-09-13). `/issues add <title>` worked while `issues` was
+      // a roster entry, and taking the name for the view must not take
+      // that away. A collection with no verb refuses an argument on the
+      // info row, since running something the operator did not name is
+      // worse than saying no.
+      //
+      // **ALREADY THERE IS NOT A PUSH.** `intent explore` roots at the
+      // threads list, so `/threads` at the root would stack the view on
+      // itself and the trail would read `/thread  <  /thread`.
+      Act::Collection { kind, .. } if argument.is_empty() => {
+        let view = View::Collection { kind };
+        if self.stack.current() != &view {
+          self.push(view);
+        }
+        Step::Continue
+      }
+      Act::Collection {
+        cli: Some(verb), ..
+      } => Step::Run(argv_for(&verb, &argument)),
+      Act::Collection { cli: None, .. } => {
+        self.notice = format!(
+          "`/{}` opens the list and takes no argument",
+          self.commands[at].name
+        );
+        Step::Continue
+      }
+      // **THE TABLE `intent outs` PRINTS, AS A VIEW** (ST0079 `AC-01.1`):
+      // a push for `/search`'s reason, and already being there is not a
+      // push, for `/threads`'. **AN ARGUMENT IS REFUSED, NEVER GUESSED AT**
+      // (`AC-01.4`): the view is the bare verb, and running it narrowed
+      // by something the operator did not name is worse than saying no.
+      Act::Outstanding if argument.is_empty() => {
+        if self.stack.current() != &View::Outstanding {
+          self.push(View::Outstanding);
+        }
+        Step::Continue
+      }
+      Act::Outstanding => {
+        self.notice = format!(
+          "`/{}` opens the table and takes no argument",
+          self.commands[at].name
+        );
+        Step::Continue
+      }
+      // **THE ARGV IS SPLIT HERE AND RUN THERE**, for the reason every
+      // other act splits that way: turning a buffer into `["intent",
+      // "st", "list"]` is a pure function of what was typed and is
+      // driven without a terminal; lending the screen to a command that
+      // prints is a side effect and is not.
+      Act::Cli(verb) => Step::Run(argv_for(&verb, &argument)),
+    }
+  }
+
+  /// Open the view `intent explore <view>` named, once the vocabulary is
+  /// loaded. A word that names two views is refused on the info row with the
+  /// choices, never guessed; the run loop calls this after it fills
+  /// [`App::commands`], which is the only point both are known.
+  pub fn open_start(&mut self) {
+    let Some(word) = self.start.take() else {
+      return;
+    };
+    match commands::start_view(&self.commands, &word) {
+      commands::Start::At(at) => {
+        let _ = self.run_command(at, String::new());
+      }
+      commands::Start::Ambiguous(names) => {
+        self.notice = format!(
+          "`{word}` names more than one view: {} -- `intent explore <view>` takes one",
+          names.join(", ")
+        );
+      }
+      commands::Start::NotAView => {
+        self.notice = format!("`{word}` is not a view the explorer opens");
+      }
+    }
+  }
+
+  /// `intent explore <view>`: open at that view once the run starts.
+  pub fn starting_at(mut self, word: impl Into<String>) -> Self {
+    self.start = Some(word.into());
+    self
   }
 
   /// Step on until the cursor is off a boundary row.
@@ -610,104 +749,7 @@ impl App {
           let Some(at) = picked else {
             return Step::Continue;
           };
-          return match self.commands[at].act.clone() {
-            Act::Quit => Step::Quit,
-            // **THE PROJECTS LIST IS A VIEW LIKE ANY OTHER LIST** (issue 0418),
-            // and already being on it is not a push, for `/threads`' reason.
-            Act::Projects => {
-              if self.stack.current() != &View::Projects {
-                self.push(View::Projects);
-              }
-              Step::Continue
-            }
-            Act::Back => {
-              self.pop_view();
-              Step::Continue
-            }
-            // **NO ARGUMENT OPENS THE VIEW; AN ARGUMENT READS ONE VALUE.**
-            // hv's own shape: `/settings` shows them in the body, and
-            // `/settings editing.mode` says what that one is. The read is a
-            // `Step` because the value is on disk and this module holds no
-            // reader -- the same rule that makes `Land` a step.
-            // **`/help` AND `/help st` ARE THE SAME ACT WITH AND WITHOUT AN
-            // ARGUMENT**, which is why the argument is not a second command:
-            // the page is the same view at two depths, so Backspace walks back
-            // up it the way it walks back up anything else.
-            Act::Help => {
-              self.push(View::Help {
-                of: (!argument.is_empty()).then_some(argument),
-              });
-              Step::Continue
-            }
-            Act::Settings if argument.is_empty() => {
-              self.push(View::Settings);
-              Step::Continue
-            }
-            Act::Settings => Step::ShowSetting(argument),
-            // **A SEARCH IS A PUSH, NOT A LEND** (AC-21.1). It is pure state:
-            // the view carries the query, the rows are read where every other
-            // view's rows are read, and the whole act is driven without a
-            // terminal -- which is the half `Step::Run` can never be.
-            //
-            // An EMPTY query pushes the pane anyway rather than refusing: the
-            // pane with nothing in it is a truthful screen, and the operator is
-            // one keystroke from the omnibox.
-            Act::Search => {
-              self.push(View::Search { query: argument });
-              Step::Continue
-            }
-            // **NO ARGUMENT OPENS THE COLLECTION; AN ARGUMENT RUNS ITS VERB**
-            // (hv, 2026-09-13). `/issues add <title>` worked while `issues` was
-            // a roster entry, and taking the name for the view must not take
-            // that away. A collection with no verb refuses an argument on the
-            // info row, since running something the operator did not name is
-            // worse than saying no.
-            //
-            // **ALREADY THERE IS NOT A PUSH.** `intent explore` roots at the
-            // threads list, so `/threads` at the root would stack the view on
-            // itself and the trail would read `/thread  <  /thread`.
-            Act::Collection { kind, .. } if argument.is_empty() => {
-              let view = View::Collection { kind };
-              if self.stack.current() != &view {
-                self.push(view);
-              }
-              Step::Continue
-            }
-            Act::Collection {
-              cli: Some(verb), ..
-            } => Step::Run(argv_for(&verb, &argument)),
-            Act::Collection { cli: None, .. } => {
-              self.notice = format!(
-                "`/{}` opens the list and takes no argument",
-                self.commands[at].name
-              );
-              Step::Continue
-            }
-            // **THE TABLE `intent outs` PRINTS, AS A VIEW** (ST0079 `AC-01.1`):
-            // a push for `/search`'s reason, and already being there is not a
-            // push, for `/threads`'. **AN ARGUMENT IS REFUSED, NEVER GUESSED AT**
-            // (`AC-01.4`): the view is the bare verb, and running it narrowed
-            // by something the operator did not name is worse than saying no.
-            Act::Outstanding if argument.is_empty() => {
-              if self.stack.current() != &View::Outstanding {
-                self.push(View::Outstanding);
-              }
-              Step::Continue
-            }
-            Act::Outstanding => {
-              self.notice = format!(
-                "`/{}` opens the table and takes no argument",
-                self.commands[at].name
-              );
-              Step::Continue
-            }
-            // **THE ARGV IS SPLIT HERE AND RUN THERE**, for the reason every
-            // other act splits that way: turning a buffer into `["intent",
-            // "st", "list"]` is a pure function of what was typed and is
-            // driven without a terminal; lending the screen to a command that
-            // prints is a side effect and is not.
-            Act::Cli(verb) => Step::Run(argv_for(&verb, &argument)),
-          };
+          return self.run_command(at, argument);
         }
         "Esc" | "Cancel" | "/" => {
           self.omnibox.clear();
@@ -2632,6 +2674,66 @@ mod tests {
       "the arrow moved the BODY cursor behind the palette -- the silent defect hv drove into"
     );
     assert_eq!(app.mode, Mode::Menu, "moving the pick left the palette");
+  }
+
+  /// **`intent explore <view>` AND TYPING `/<view>` REACH THE SAME STATE**
+  /// (hv, 2026-09-25). The claim is that both go through [`App::run_command`];
+  /// this holds it for every place rather than trusting the comment: the same
+  /// stack, the same mode, the same notice.
+  #[test]
+  fn opening_at_a_view_is_the_state_typing_its_command_reaches() {
+    for place in [
+      "threads",
+      "issues",
+      "projects",
+      "outstanding",
+      "help",
+      "settings",
+      "search",
+    ] {
+      let mut started = App::explore().starting_at(place);
+      started.commands = commands::vocabulary(&crate::spine::surface());
+      started.open_start();
+
+      let mut typed = App::explore();
+      typed.commands = commands::vocabulary(&crate::spine::surface());
+      typed.on_key(key(KeyCode::Char('/')), &[]);
+      for c in place.chars() {
+        typed.on_key(key(KeyCode::Char(c)), &[]);
+      }
+      typed.on_key(key(KeyCode::Enter), &[]);
+
+      assert_eq!(
+        started.stack, typed.stack,
+        "`{place}`: the two routes left different stacks"
+      );
+      assert_eq!(started.mode, typed.mode, "`{place}`");
+      assert_eq!(started.notice, typed.notice, "`{place}`");
+    }
+    // THE CONTROL: the start really moved somewhere, so the equality above is
+    // not two untouched roots compared.
+    let mut issues = App::explore().starting_at("issues");
+    issues.commands = commands::vocabulary(&crate::spine::surface());
+    issues.open_start();
+    assert_ne!(
+      issues.stack,
+      App::explore().stack,
+      "`issues` opened nothing"
+    );
+  }
+
+  /// A word naming two places opens at the root and SAYS SO, with both named.
+  #[test]
+  fn a_start_word_naming_two_views_is_said_on_the_info_row() {
+    let mut app = App::explore().starting_at("se");
+    app.commands = commands::vocabulary(&crate::spine::surface());
+    app.open_start();
+    assert_eq!(app.stack, App::explore().stack, "nothing is guessed");
+    assert!(
+      app.notice.contains("settings") && app.notice.contains("search"),
+      "{}",
+      app.notice
+    );
   }
 
   /// Erasing back past the sigil leaves the palette, which is why MENU needs

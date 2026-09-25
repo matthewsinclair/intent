@@ -19,6 +19,16 @@ Run it from inside a project:
 
 It opens at the top of the project, on its threads, newest first. The header names the view on the left and the project on the right. The box at the bottom is where you type. The status row under it shows the mode you are in (`OMNI`, `MENU` or `EDIT`), where you are in the list, and the keys that act here.
 
+To open at one of the explorer's views, name it as you would type its command:
+
+```
+  $ intent explore issues
+  $ intent explore outstanding
+  $ intent explore projects
+```
+
+The views are `threads`, `issues`, `projects`, `outstanding`, `help`, `settings` and `search`. The start of a name is enough when only one view starts that way, so `intent explore outs` opens `outstanding`. The explorer opens exactly as if you had typed `/issues` into it, so Backspace takes you back to the top. When the start fits two views, such as `se` for `settings` and `search`, it opens at the top and the status row names both.
+
 To open somewhere other than the top, give it an id or a full address:
 
 ```

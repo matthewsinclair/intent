@@ -294,6 +294,63 @@ fn acts() -> Vec<Command> {
   ]
 }
 
+/// Where `intent explore <view>` opens (hv, 2026-09-25).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Start {
+  /// The command at this index of the vocabulary.
+  At(usize),
+  /// A prefix of more than one view: refused with the choices, never guessed.
+  Ambiguous(Vec<String>),
+  /// Not a view the explorer opens, so the word is an address instead.
+  NotAView,
+}
+
+/// Is this act a PLACE the explorer can open at? `quit`, `back` and a lent
+/// `intent` verb are not: the first two have nowhere to go on a fresh stack,
+/// and a verb run before the first frame would print over a screen nobody has
+/// seen yet. Written as a match with no wildcard, so a new act has to say
+/// which it is.
+fn is_place(act: &Act) -> bool {
+  match act {
+    Act::Projects
+    | Act::Help
+    | Act::Settings
+    | Act::Search
+    | Act::Collection { .. }
+    | Act::Outstanding => true,
+    Act::Quit | Act::Back | Act::Cli(_) => false,
+  }
+}
+
+/// Resolve the word `intent explore <view>` was given against the palette's
+/// own places: an exact name, or the one place whose name it starts, so
+/// `outs` opens `/outstanding` as typing `/outs` does.
+///
+/// **PURE, AND OVER THE SAME VOCABULARY THE PALETTE SEARCHES**, so the words
+/// the command line accepts are the palette's words and nothing else.
+pub fn start_view(commands: &[Command], word: &str) -> Start {
+  let word = word.strip_prefix(SIGIL).unwrap_or(word);
+  if word.is_empty() {
+    return Start::NotAView;
+  }
+  let places = || {
+    commands
+      .iter()
+      .enumerate()
+      .filter(|(_, c)| is_place(&c.act))
+  };
+  if let Some((at, _)) = places().find(|(_, c)| c.name == word) {
+    return Start::At(at);
+  }
+  let started: Vec<(usize, &Command)> =
+    places().filter(|(_, c)| c.name.starts_with(word)).collect();
+  match started.as_slice() {
+    [] => Start::NotAView,
+    [(at, _)] => Start::At(*at),
+    many => Start::Ambiguous(many.iter().map(|(_, c)| c.name.clone()).collect()),
+  }
+}
+
 /// Does `/{name} ...` reach `intent {name}`?
 ///
 /// **TWO SOURCES AND ONE ANSWER.** A roster entry runs its verb, and so does a
@@ -799,5 +856,73 @@ mod tests {
       !runs_cli("explore"),
       "`runs_cli` says `explore` is runnable from the palette, so it is not discriminating"
     );
+  }
+
+  /// `intent explore <view>` (hv, 2026-09-25): the words it takes are the
+  /// palette's places, an exact name or a unique prefix of one.
+  #[test]
+  fn a_view_word_names_one_place_by_name_or_by_a_unique_prefix() {
+    let v = vocabulary(&crate::spine::surface());
+    let name_of = |w: &str| match start_view(&v, w) {
+      Start::At(at) => v[at].name.clone(),
+      other => panic!("`{w}` did not name one place: {other:?}"),
+    };
+    for place in [
+      "threads",
+      "issues",
+      "projects",
+      "outstanding",
+      "help",
+      "settings",
+      "search",
+    ] {
+      assert_eq!(name_of(place), place, "every place opens by its own name");
+      assert_eq!(
+        name_of(&format!("/{place}")),
+        place,
+        "and as the palette spells it"
+      );
+    }
+    assert_eq!(
+      name_of("outs"),
+      "outstanding",
+      "`outs` is how `/outstanding` starts"
+    );
+    assert_eq!(name_of("thread"), "threads");
+  }
+
+  /// **A PREFIX OF TWO PLACES IS REFUSED WITH BOTH NAMED, NEVER GUESSED.**
+  #[test]
+  fn a_prefix_of_two_places_is_refused_naming_both() {
+    let v = vocabulary(&crate::spine::surface());
+    assert_eq!(
+      start_view(&v, "se"),
+      Start::Ambiguous(vec!["settings".to_string(), "search".to_string()])
+    );
+  }
+
+  /// Leaving, going back and a lent verb are not places, and no spelling of an
+  /// id or an address is a view word -- which is why `intent explore` can try
+  /// a view first and an address after it.
+  #[test]
+  fn acts_that_are_not_places_and_every_address_spelling_are_not_view_words() {
+    let v = vocabulary(&crate::spine::surface());
+    for word in [
+      "quit",
+      "back",
+      "st",
+      "doctor",
+      "",
+      "4",
+      "s4",
+      "i4",
+      "ST0000",
+      "st0",
+      "ST0056/01",
+      "intent:///threads/ST0000",
+      "0572",
+    ] {
+      assert_eq!(start_view(&v, word), Start::NotAView, "`{word}`");
+    }
   }
 }

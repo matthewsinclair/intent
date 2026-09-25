@@ -634,9 +634,12 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
   let mut borrowed = Borrowed::take(real::Crossterm)?;
   let mut term = Terminal::new(CrosstermBackend::new(io::stdout()))?;
 
+  // **THE VOCABULARY FIRST, THEN THE VIEW `intent explore <view>` NAMED, THEN
+  // THE FIRST READ**, so the first frame is that view's rows and not the root's.
+  app.commands = super::commands::vocabulary(&crate::spine::surface());
+  app.open_start();
   let mut rows = first_read(app, source);
   app.index = source.index();
-  app.commands = super::commands::vocabulary(&crate::spine::surface());
   app.keymap = source.keymap();
 
   let mut exit = Exit::Quit;

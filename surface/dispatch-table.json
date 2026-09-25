@@ -10064,13 +10064,13 @@
     },
     {
       "path": "explore",
-      "help": "Open the TUI at the top of the model, or near an address if one is given",
+      "help": "Open the TUI at the top of the model, at a view such as `issues`, or near an address if one is given",
       "args": [
         {
           "name": "address",
           "type": "address-or-id",
           "arity": "0..1",
-          "note": "Optional. Where to open: an `intent://` address, or an id. A thread can be named `ST0000`, `ST0` or `st0`. A bare number, such as `4`, opens the one thread or issue in this project with that number; when a thread and an issue share it, `s4` or `i4` names the one you mean. A number that names both or neither, or anything else it cannot read, opens at the top instead. Omitted, it opens at the top."
+          "note": "Optional. Where to open: a view, an `intent://` address, or an id. A view is one of the explorer's own places, spelt as its `/` command: `threads`, `issues`, `projects`, `outstanding`, `help`, `settings` or `search`, or the start of one, so `outs` opens `outstanding`; it opens exactly as typing that command would, and a start that fits two views opens at the top and names both. A thread can be named `ST0000`, `ST0` or `st0`. A bare number, such as `4`, opens the one thread or issue in this project with that number; when a thread and an issue share it, `s4` or `i4` names the one you mean. A number that names both or neither, or anything else it cannot read, opens at the top instead. Omitted, it opens at the top."
         }
       ],
       "v2": "new-surface",

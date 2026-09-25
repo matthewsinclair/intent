@@ -5885,8 +5885,20 @@ fn explore_here(address: Option<&str>) -> Result<tui::run::Exit, Failure> {
       intentsvcs::projects::add(&path, &[root], intentsvcs::projects::AddedBy::Explore)
         .map_err(|e| format!("{e} -- {}", intentsvcs::remedy::Remedy::remedy(&e)))
     });
+  // **A VIEW WORD OPENS THE EXPLORER THERE, AS TYPING `/<view>` WOULD** (hv,
+  // 2026-09-25): `intent explore issues`, `intent explore outs`. It is checked
+  // before the address resolver because no id is spelt like one -- ids carry a
+  // digit, a view name never does -- and a word naming two views is refused on
+  // the info row by the same resolver, never guessed.
+  let names_a_view = |word: &str| {
+    !matches!(
+      tui::commands::start_view(&tui::commands::vocabulary(&crate::spine::surface()), word),
+      tui::commands::Start::NotAView
+    )
+  };
   let mut app = match address {
     None => tui::app::App::explore(),
+    Some(word) if names_a_view(word) => tui::app::App::explore().starting_at(word),
     Some(spelling) => match nav::land(spelling, |v| present(&live.facade, v)) {
       nav::Landing::At(view) => tui::app::App::rooted_at(view),
       // **ROOT PLUS THE REASON.** hv ruled the fallback; vc ruled that *opens
