@@ -122,7 +122,7 @@ If a target test file lacks an adjacent specification document (eg `tests/parser
 RECOMMENDATION
 - (test-spec-missing) tests/parser_tests.rs:1
   No adjacent spec file (tests/parser_tests.spec.md).
-  Run `Task(subagent_type="diogenes", prompt="specify tests/parser_tests.rs")` for Socratic spec generation; re-run critic-rust test-check afterward.
+  Run `Task(subagent_type="diogenes", prompt="specify tests for src/parser.rs")`, naming the module this test file tests -- diogenes specifies a module, not a test file -- for Socratic spec generation; re-run critic-rust test-check afterward.
 ```
 
 critic-rust never invokes `diogenes` itself. The handoff is a recommendation the user acts on. Absence of a spec file is not a rule violation per se - it is an opportunity for a handoff. Note: the Diogenes subagent as currently implemented is Elixir-specialised; the critic-side handoff is language-agnostic by design, and cross-language generalisation of Diogenes itself is out of scope here.

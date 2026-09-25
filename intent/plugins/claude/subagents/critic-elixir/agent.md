@@ -140,7 +140,7 @@ If a target test file in `test/` lacks an adjacent specification document (eg `t
 RECOMMENDATION
 - (test-spec-missing) test/accounts_test.exs:1
   No adjacent spec file (test/accounts_test.spec.md).
-  Run `Task(subagent_type="diogenes", prompt="specify test/accounts_test.exs")` for Socratic spec generation; re-run critic-elixir test-check afterward.
+  Run `Task(subagent_type="diogenes", prompt="specify tests for lib/my_app/accounts.ex")`, naming the module this test file tests -- diogenes specifies a module, not a test file -- for Socratic spec generation; re-run critic-elixir test-check afterward.
 ```
 
 critic-elixir never invokes `diogenes` itself. The handoff is a recommendation the user acts on. Absence of a spec file is not a rule violation per se -- it is an opportunity for a handoff.

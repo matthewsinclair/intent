@@ -22,7 +22,7 @@ Intent is a project management framework that captures the "why" behind code thr
 - `intent st list` - List in-progress steel threads (`--status all` for every thread)
 - `intent st show <id>` - Display steel thread details
 - `intent st start <id>` - Mark steel thread as WIP
-- `intent st done <id>` - Mark steel thread as complete; refuses while its acceptance contract is empty or unsatisfied
+- `intent st done <id>` - Mark steel thread as complete; refuses while its acceptance contract is empty or unsatisfied, or while any of its work packages is still open
 - `intent ac new <STID> <ACID> --text "..."` - Define an acceptance criterion; `st done` / `wp done` refuse a thread with an empty acceptance contract
 
 ### Work Package Commands
@@ -53,7 +53,7 @@ Intent is a project management framework that captures the "why" behind code thr
 3. **Getting Help**:
    - Use `intent help` for command reference
    - Run `intent doctor` if things seem broken
-   - Check documentation in intent/docs/
+   - Check the project's own documentation, where it keeps any (`intent init` creates no `intent/docs/`)
 
 ## Best Practices
 

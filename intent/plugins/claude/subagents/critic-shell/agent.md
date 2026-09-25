@@ -22,8 +22,8 @@ Example: `Task(subagent_type="critic-shell", prompt="review scripts/deploy.sh li
 
 1. Enumerate rules via the CLI (see Rule discovery details): `intent claude rules list --lang shell` and `--lang agnostic`, then `intent claude rules show <id>`. Note each rule's `id`, `severity`, `applies_to` glob, and the content of its `## Detection` section.
 2. Detect dialect. For each target file:
-   - Read the shebang. `#!/bin/bash` or `#!/usr/bin/env bash` -> bash dialect. `#!/bin/zsh` or `#!/usr/bin/env zsh` -> zsh dialect. No shebang -> treat as bash.
-   - Use the dialect to decide which rules apply. Rules tagged `bash-specific` apply only to bash dialect; rules tagged `zsh-specific` apply only to zsh. Shared rules (most of them) apply to both.
+   - Decide which rules reach a file in the order the headless critic (`intent critic shell`) uses. A rule whose `applies_to` glob matches the file name applies to it (eg `**/*.zsh`). For a file no glob matches, a `# shellcheck shell=<dialect>` directive names its dialect, and failing that its shebang does (`#!/bin/bash`, `#!/usr/bin/env zsh`); the file is then read as though it carried that dialect's extension. A file with no matching glob, no directive and no shebang is reached by no shell rule.
+   - Tags such as `bash-specific` and `zsh-specific` describe a rule for its reader; they do not decide which files it applies to.
 3. Apply Detection. For each applicable rule, apply the Detection heuristic from `## Detection` to the target file(s). The heuristic is prose -- interpret it as a human reviewer would. Common forms:
    - Grep for a pattern (`\.unwrap\(\)` for Rust, unquoted `$var` for shell).
    - Structural check (function defined multiple times across files).
@@ -81,7 +81,7 @@ If there are no violations at all: emit the heading, then `Summary: 0 critical, 
 ### What critic-shell does NOT do
 
 - No autofix. Critics report; they never rewrite.
-- No external tool invocation. Do not call `shellcheck`; the rules already reference shellcheck IDs where relevant, but enforcement is by reading rules and applying their Detection sections.
+- No external tool invocation. Do not call `shellcheck`. Some rules carry `critic_tool: shellcheck`, and the headless critic enforces those by running it; this subagent applies every rule, those included, by reading its `## Detection` section.
 - No test execution. Shell tests (`bats`) are runnable; critic-shell is a static reviewer.
 - No rule authoring. New rules go in `rules/shell/` via a normal edit, not by the critic.
 

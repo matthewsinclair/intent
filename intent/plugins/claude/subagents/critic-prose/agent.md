@@ -54,7 +54,7 @@ Default `review` never runs the craft tier. When you finish a `review`, add one 
 
 ### Two-form detrope
 
-detrope has two forms, and critic-prose wires both without ever forking the trope knowledge -- the single home is `intent/plugins/claude/skills/in-detrope/data/trope-catalog.md`.
+detrope has two forms, and critic-prose wires both without ever forking the trope knowledge -- the single home is the `in-detrope` skill's trope catalogue, `data/trope-catalog.md`, which an installed Intent keeps at `~/.claude/skills/in-detrope/data/trope-catalog.md`.
 
 - **Mechanical (default, in `review`).** Rule `IN-PR-STYLE-004` (mechanical-trope-pass, in the shared prose base) is applied like any other style rule: read the catalogue, take the `**Regex**:` line from each trope whose frontmatter says `detection: automated`, and `grep -iE` the target (drop the PCRE `(?i)` prefix -- `-i` covers it). A hit is a candidate; confirm the document is not itself about AI and the text is not a verbatim quote before reporting it.
 - **Full LLM (on instruction, handoff only).** The full contextual + stylometric pass -- trope density, the non-automated tells, cadence and voice -- is the discipline's full-trope-diagnosis craft rule (author: `IN-AU-CRAFT-003`; content has no full-trope craft rule, so the handoff points at `/in-detrope` directly). critic-prose does NOT run it and does NOT invoke the skill. It emits a handoff recommendation (the diogenes pattern):

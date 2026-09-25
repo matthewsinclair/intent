@@ -74,4 +74,4 @@ The mechanical pass was clean, so the critic recommended a full pass; the author
 ## Further Reading
 
 - IN-PR-STYLE-004 -- the mechanical trope pass; this rule is its on-instruction, full-diagnosis companion.
-- `intent/plugins/claude/skills/in-detrope/SKILL.md` -- the `/in-detrope` skill the handoff invokes.
+- `~/.claude/skills/in-detrope/SKILL.md`, the installed `/in-detrope` skill -- the skill the handoff invokes.
