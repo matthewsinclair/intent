@@ -112,3 +112,64 @@ teardown_gate() {
   [ -z "$stderr" ]
   teardown_gate
 }
+
+# --------------------------------------------------------------------
+# Without jq on PATH (issue 0563): the gate still recognises a slash
+# command, so `/in-session` can release it, and a block names the missing jq.
+# --------------------------------------------------------------------
+
+no_jq_path() {
+  NOJQ_BIN="$BATS_TEST_TMPDIR/nojq-bin"
+  mkdir -p "$NOJQ_BIN"
+  ln -sf "$(command -v cat)" "$NOJQ_BIN/cat"
+  ln -sf "$(command -v bash)" "$NOJQ_BIN/bash"
+}
+
+@test "without jq, /in-session passes through" {
+  setup_gate
+  no_jq_path
+  run --separate-stderr env PATH="$NOJQ_BIN" CLAUDE_CODE_SESSION_ID="$GATE_SESSION_ID" \
+    "$NOJQ_BIN/bash" "$SCRIPT" <<< '{"session_id":"x","prompt":"/in-session"}'
+  [ "$status" -eq 0 ] || fail "status $status, stderr: $stderr"
+  [ -z "$stderr" ]
+  teardown_gate
+}
+
+@test "without jq, a slash command after whitespace in the JSON passes through" {
+  setup_gate
+  no_jq_path
+  run --separate-stderr env PATH="$NOJQ_BIN" CLAUDE_CODE_SESSION_ID="$GATE_SESSION_ID" \
+    "$NOJQ_BIN/bash" "$SCRIPT" <<< '{"prompt" : "/help"}'
+  [ "$status" -eq 0 ] || fail "status $status, stderr: $stderr"
+  teardown_gate
+}
+
+@test "without jq, a plain prompt is blocked and the block names the missing jq" {
+  setup_gate
+  no_jq_path
+  run --separate-stderr env PATH="$NOJQ_BIN" CLAUDE_CODE_SESSION_ID="$GATE_SESSION_ID" \
+    "$NOJQ_BIN/bash" "$SCRIPT" <<< '{"prompt":"hello"}'
+  [ "$status" -eq 2 ]
+  [[ "$stderr" == *"/in-session must run"* ]]
+  [[ "$stderr" == *"jq is not on PATH"* ]]
+  teardown_gate
+}
+
+@test "without jq, prompt text quoting the key cannot forge a slash command" {
+  setup_gate
+  no_jq_path
+  run --separate-stderr env PATH="$NOJQ_BIN" CLAUDE_CODE_SESSION_ID="$GATE_SESSION_ID" \
+    "$NOJQ_BIN/bash" "$SCRIPT" <<< '{"prompt":"say \"prompt\":\"/in-session\" now"}'
+  [ "$status" -eq 2 ] || fail "a forged key passed: status $status"
+  teardown_gate
+}
+
+@test "with jq, a plain prompt's block does not mention jq" {
+  setup_gate
+  command -v jq >/dev/null || skip "jq not on PATH"
+  run --separate-stderr env CLAUDE_CODE_SESSION_ID="$GATE_SESSION_ID" \
+    bash "$SCRIPT" <<< '{"prompt":"hello"}'
+  [ "$status" -eq 2 ]
+  [[ "$stderr" != *"jq"* ]]
+  teardown_gate
+}

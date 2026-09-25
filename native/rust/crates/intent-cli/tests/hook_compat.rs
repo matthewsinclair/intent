@@ -346,12 +346,6 @@ fn the_gates_block_code_is_the_scripts_own_and_reaches_the_caller() {
 /// stdin cannot produce both.
 #[test]
 fn stdin_reaches_the_script_unread() {
-  if Command::new("jq").arg("--version").output().is_err() {
-    eprintln!(
-      "SKIPPED the stdin fidelity probe: jq is absent, and the gate parses the payload with it"
-    );
-    return;
-  }
   let fx = fixture();
 
   let empty = run_door(&v3(), "require-in-session", fx.path(), b"");

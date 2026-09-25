@@ -15,8 +15,9 @@
 #   - Pass-through (exit 0) when EITHER:
 #       a) the prompt is a slash command (starts with `/`) -- so the user
 #          can run `/in-session`, `/help`, `/compact`, etc. without being
-#          blocked by the gate. The prompt is read with jq; without jq on
-#          PATH no prompt is recognised as a slash command -- OR
+#          blocked by the gate. The prompt is read with jq when jq is on
+#          PATH, and from the raw payload when it is not, so a machine
+#          without jq can still run `/in-session` (issue 0563) -- OR
 #       b) the per-session sentinel exists.
 #   - Block (exit 2 + stderr message) when the sentinel is absent AND the
 #     prompt is not a slash command.
@@ -50,8 +51,19 @@ fi
 # passthrough below).
 session_id="${CLAUDE_CODE_SESSION_ID:-unknown}"
 prompt=""
-if [ -n "$payload" ] && command -v jq >/dev/null 2>&1; then
+jq_absent=""
+command -v jq >/dev/null 2>&1 || jq_absent=1
+if [ -n "$payload" ] && [ -z "$jq_absent" ]; then
   prompt="$(printf '%s' "$payload" | jq -r '.prompt // empty' 2>/dev/null || true)"
+elif [ -n "$payload" ]; then
+  # Without jq the one question this gate asks of the payload -- does the
+  # prompt open with `/` -- is answered from the raw JSON. A quote inside a
+  # string value arrives escaped (`\"prompt\"`), which this pattern cannot
+  # match, so prompt text cannot forge the key.
+  slash_re='"prompt"[[:space:]]*:[[:space:]]*"(/|\\/)'
+  if [[ "$payload" =~ $slash_re ]]; then
+    prompt="/"
+  fi
 fi
 
 case "$prompt" in
@@ -69,4 +81,7 @@ Intent project: /in-session must run before your first prompt.
 Run /in-session now -- it loads project coding standards and releases this gate.
 (Expected sentinel: ${sentinel})
 EOM
+if [ -n "$jq_absent" ]; then
+  printf '%s\n' "note: jq is not on PATH. This gate works without it; the opt-in post-tool hooks do nothing without it and the pre-commit gate runs no language critic (docs/install.md)." >&2
+fi
 exit 2
