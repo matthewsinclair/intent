@@ -620,7 +620,7 @@ fn at_edit_repairs_a_mis_migrated_kind_and_cannot_recreate_the_disagreement() {
     before.status
   );
 
-  facade
+  let repaired = facade
     .at_edit(
       "ST0001",
       "AT-03.2",
@@ -631,6 +631,15 @@ fn at_edit_repairs_a_mis_migrated_kind_and_cannot_recreate_the_disagreement() {
       Some(AtKind::NonTest),
     )
     .expect("re-kinding a mis-migrated row to the kind its status already implies is the repair");
+  // The repair keeps the status, so there is no reset to report (issue 0580).
+  assert!(
+    !repaired
+      .notes()
+      .iter()
+      .any(|n| matches!(n, intentsvcs::facade::Note::StatusResetByRekind { .. })),
+    "a re-kind that keeps the status reports no reset: {:?}",
+    repaired.notes()
+  );
 
   let after = row(&facade);
   assert_eq!(after.kind, AtKind::NonTest);
@@ -650,7 +659,7 @@ fn at_edit_repairs_a_mis_migrated_kind_and_cannot_recreate_the_disagreement() {
   // refused -- a refusal that sent the caller to a verdict the row could not
   // take. The repaired AT-03.2 flipped back to a test lands `to-write`, never
   // the test/`n-a` pair it was repaired out of.
-  facade
+  let reset = facade
     .at_edit(
       "ST0001",
       "AT-03.2",
@@ -661,6 +670,18 @@ fn at_edit_repairs_a_mis_migrated_kind_and_cannot_recreate_the_disagreement() {
       Some(AtKind::Test),
     )
     .expect("a re-kind re-enters the status rather than refusing");
+  // **AND IT SAYS SO** (issue 0580): the verdict went, at exit 0, with nothing
+  // naming it. The note names the row, the old status and the new one.
+  assert_eq!(
+    reset.notes(),
+    &[intentsvcs::facade::Note::StatusResetByRekind {
+      row: "ST0001 AT-03.2".to_string(),
+      kind: "test".to_string(),
+      from: "n/a".to_string(),
+      to: "to-write".to_string(),
+    }],
+    "the reset is reported"
+  );
   let back = row(&facade);
   assert_eq!(back.kind, AtKind::Test);
   assert_eq!(

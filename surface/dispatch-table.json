@@ -3590,7 +3590,7 @@
                 "--kind"
               ],
               "type": "string",
-              "help": "Re-kind the row: test or non-test -- refused if the row's status cannot hold it",
+              "help": "Re-kind the row: test or non-test -- a status the new kind cannot hold is reset to that kind's entry state, and the verb says so",
               "value": "<test|non-test>",
               "disposition": "keep"
             },

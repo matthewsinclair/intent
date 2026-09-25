@@ -1692,7 +1692,7 @@ Re-cite an acceptance test; a field you do not name is a field it does not chang
     - **disposition:** keep
   - `--prose` `<text>` (string) -- What was read or eyeballed (non-test rows)
     - **disposition:** keep
-  - `--kind` `<test|non-test>` (string) -- Re-kind the row: test or non-test -- refused if the row's status cannot hold it
+  - `--kind` `<test|non-test>` (string) -- Re-kind the row: test or non-test -- a status the new kind cannot hold is reset to that kind's entry state, and the verb says so
     - **disposition:** keep
   - `--covers` `<ac-id>` (string) -- The AC id(s) this test covers, replacing the current set; repeatable
     - **arity:** 1..n

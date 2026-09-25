@@ -11413,6 +11413,16 @@ fn print_notes(notes: &[Note], subject: &str) {
       // The remedy names git rather than a sync verb, because the loss is not
       // recoverable from the store: the store holds what it rendered, and what
       // was overwritten is precisely what it did not.
+      Note::StatusResetByRekind {
+        row,
+        kind,
+        from,
+        to,
+      } => {
+        eprintln!(
+          "note: {row}'s status {from} does not hold for a {kind} row, so re-kinding it reset its status to {to} -- the verdict it held is gone, and `intent at green`, `red` or `na` records one the row's kind can hold"
+        );
+      }
       Note::OverwroteForeignBytes(paths) => {
         eprintln!(
           "warning: overwrote bytes that were not the store's render -- an edit to a generated file is gone:"

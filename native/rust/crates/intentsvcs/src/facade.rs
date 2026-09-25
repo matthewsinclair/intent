@@ -3317,6 +3317,16 @@ pub enum Note {
   /// missing is the record of it, and a refusal would make the correct act
   /// unavailable to anyone who had ever typed in a generated file.
   OverwroteForeignBytes(Vec<String>),
+  /// `at edit --kind` re-kinded a row whose status the new kind cannot hold,
+  /// so the status re-entered at that kind's entry state (vc, 2026-09-14) and
+  /// the verdict it held is gone (issue 0580). `row` is `<ST> <AT>`, `kind` the
+  /// new kind's wire form, and `from` / `to` the statuses as printed.
+  StatusResetByRekind {
+    row: String,
+    kind: String,
+    from: String,
+    to: String,
+  },
   /// Closing this artefact UNLISTS it, and these are the paths the next
   /// `organize --apply` will remove because of that. Project-relative.
   ///
@@ -3620,6 +3630,9 @@ pub fn notes_json(notes: &[Note]) -> serde_json::Value {
       Note::EditUnsearched => serde_json::json!({ "kind": "edit-unsearched" }),
       Note::OverwroteForeignBytes(paths) => serde_json::json!({
         "kind": "overwrote-foreign-bytes", "paths": paths,
+      }),
+      Note::StatusResetByRekind { row, kind, from, to } => serde_json::json!({
+        "kind": "status-reset-by-rekind", "row": row, "to_kind": kind, "from": from, "to": to,
       }),
       Note::DehydratesOnNextOrganize(paths) => serde_json::json!({
         "kind": "dehydrates-on-next-organize", "paths": paths,
@@ -14263,8 +14276,20 @@ impl Facade {
     //
     // Only a caller who NAMED `--kind` moves the status: a row already carrying
     // the disagreement is left as it is under a `--note` or `--covers` edit.
+    //
+    // **AND IT SAYS SO** (issue 0580). The reset dropped a verdict at exit 0
+    // with "re-cited" and nothing else, so the row's old status and its new
+    // one travel as a note.
+    let mut reset = None;
     if kind.is_some() && !row.status.permitted_for(row.kind) {
+      let from = row.status;
       row.status = AtStatus::entry(row.kind);
+      reset = Some(Note::StatusResetByRekind {
+        row: format!("{st} {at}"),
+        kind: crate::model::enum_str(&row.kind),
+        from: from.display().to_string(),
+        to: row.status.display().to_string(),
+      });
     }
     Self::refuse_a_file_written_onto_a_non_test_row(st, existing, &row)?;
     if &row == existing {
@@ -14287,7 +14312,13 @@ impl Facade {
         json!({ "via": "edit" }),
         next,
       )
-      .map(|foreign| Outcome::Moved.with_overwrites(foreign))
+      .map(|foreign| {
+        let moved = match reset {
+          Some(note) => Outcome::MovedWith { notes: vec![note] },
+          None => Outcome::Moved,
+        };
+        moved.with_overwrites(foreign)
+      })
   }
 
   /// **A WRITE THAT PUTS A `file` ON A NON-TEST ROW IS REFUSED** (0146), and
