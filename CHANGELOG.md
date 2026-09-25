@@ -44,6 +44,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Migrating from v2 no longer refiles the first line of v2's acceptance preamble as residue.** Two later lines of that preamble, which carry ids of Intent's own, still refile.
 - **A search-index refresh that leaves `src_sections` damaged repairs it in the same write and says so on its own output**, and `intentd` checks `doc_sections` the same way beside each scheduled backup. Reading SQLite 3.53.2's source, FTS5's secure-delete drops a delete whose rowid lookup misses (`fts5FlushSecureDelete` returns OK on a miss), which leaves that term's entry behind with no content row. This is a source reading; it was not reproduced in 1600 cycles.
 - **`intent doctor`'s hook-carrier advisory names `intent claude upgrade --apply --skip-settings`**, which copies the carrier again; it said nothing re-copies it.
+- **`intent claude rules validate` no longer reports a false duplicate id when a canon rule is named by a relative path** (issue 0575), and its help says what it checks: frontmatter keys, ids, citations and principle links (issue 0583).
+- **The critic subagents read a rule's status and skip a draft or deprecated rule** (issue 0582).
+- **The staged-format guard reports a file its Elixir or Markdown formatter cannot parse as not checked**, rather than as not formatted (issue 0572).
+- **`intent todo` and `intent todo list` are declared reads and `intent export` a reversible write** (issue 0573), so their MCP descriptions say what they do.
+- **A search answer caps its stale-resolution list and says how many more there are**, naming `intent index status` to list them all (issue 0549).
+- **The reference no longer lists the retired `help` and `organize` among the live commands.**
+- **The subagents' instructions match the tool**: critic-shell's dialect order, the trope catalogue path, the intent agent's `st done` and docs lines, and the diogenes handoff.
 
 ## [3.2.1] - 2026-09-24
 
