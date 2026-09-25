@@ -10,7 +10,7 @@ summary: >
   when elision fails or when the relationship between references matters
   to the reader.
 principles:
-  - pfic
+  - clarity
 applies_when:
   - "Function signatures with reference parameters or reference return types"
   - "Struct definitions embedding references"
@@ -21,8 +21,7 @@ does_not_apply_when:
   - "Signatures where elision would pick the wrong lifetime (rare — the compiler rejects these)"
   - "Struct types genuinely parameterised over lifetimes"
   - "Cases where the relationship between multiple input references needs to be visible to readers"
-references:
-  - IN-AG-PFIC-001
+references: []
 related_rules: []
 aliases: []
 tags:

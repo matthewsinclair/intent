@@ -169,7 +169,7 @@ Every agnostic rule must be pinned to something concrete — this prevents agnos
 
 Language rules cite the agnostic rule via `references:`. Together they form a small graph that skills and Critics walk.
 
-When you author a new language-specific rule, check first whether an agnostic rule already covers the principle. If yes, set `references:` to the agnostic rule, name its principle in `principles:`, and add your new rule's ID to the agnostic rule's `concretised_by:`. If no agnostic rule exists, consider whether the principle is genuinely cross-language — if so, author the agnostic rule first.
+When you author a new language-specific rule, check first whether an agnostic rule already covers the principle. If yes, set `references:` to the agnostic rule, name its principle in `principles:`, and add your new rule's ID to the agnostic rule's `concretised_by:`. `intent claude rules validate` refuses the rule, naming the file to edit, while any of the three disagrees; `references:` is the home of record, and the short-name is the principle's directory (`highlander` for `IN-AG-HIGHLANDER-001`). If no agnostic rule exists, consider whether the principle is genuinely cross-language — if so, author the agnostic rule first.
 
 ## Authoring a new rule
 
@@ -179,7 +179,7 @@ When you author a new language-specific rule, check first whether an agnostic ru
 4. **Fill the frontmatter** per the schema above.
 5. **Write the H2 sections.** Be substantive in `## When This Does Not Apply` — this is what prevents Critic noise.
 6. **Author examples.** Elixir `test` rules get runnable `good_test.exs` / `bad_test.exs`, and Elixir `code` rules `good.exs` / `bad.exs`. Elixir `ash` / `phoenix` / `lv` rules and Rust / Swift / Lua / Shell rules embed examples inline as fenced code blocks.
-7. **Validate.** `intent claude rules validate <id>` checks the frontmatter: declared and required keys, id shape, duplicate ids, cited ids, attribution rows. It does not check sections or run examples.
+7. **Validate.** `intent claude rules validate <id>` checks the frontmatter: declared and required keys, id shape, duplicate ids, cited ids, attribution rows, and that the three fields linking a principle to its rules agree -- a rule's `references:`, the pattern principle's `concretised_by:`, and the principle's short-name in the rule's `principles:`. It does not check sections or run examples.
 8. **Wire it up.** If a skill should reference the new rule, add the ID to the skill's `rules:` frontmatter list. If a Critic loads it automatically (every Critic auto-loads its language pack), no further wiring is needed.
 9. **Attribution.** If the rule borrows from `elixir-test-critic`, set `upstream_id:` and add a row to `_attribution/elixir-test-critic.md`. See attribution policy below.
 

@@ -10,7 +10,6 @@ summary: >
   access. Never use `public` as a shortcut to make linking succeed.
 principles:
   - public-interface
-  - highlander
 applies_when:
   - "Declaring any type, method, property, or initialiser"
   - "Exposing helpers across files or modules"
@@ -21,8 +20,7 @@ does_not_apply_when:
   - "Symbols that are genuinely part of a library's documented public API"
   - "`@testable import` usage where internal symbols are the test surface"
   - "Protocol requirements that must match the protocol's visibility"
-references:
-  - IN-AG-HIGHLANDER-001
+references: []
 related_rules:
   - IN-SW-CODE-001
 aliases: []

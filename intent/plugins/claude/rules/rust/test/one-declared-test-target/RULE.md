@@ -11,7 +11,6 @@ summary: >
   all its dependencies.
 principles:
   - build-cost
-  - highlander
 applies_when:
   - "Adding the first file under a crate's `tests/` directory"
   - "Standing up a new crate that will carry integration tests"
@@ -21,8 +20,7 @@ applies_to:
 does_not_apply_when:
   - "A crate whose tests are entirely inline `#[cfg(test)] mod tests` in `src/` -- there is no `tests/` directory and nothing to declare"
   - "A test file that genuinely needs its own process (mutating process cwd, binding a fixed port, driving a per-process watch stream) -- it keeps its own `[[test]]` with the reason recorded at the declaration"
-references:
-  - IN-AG-HIGHLANDER-001
+references: []
 related_rules:
   - IN-RS-TEST-001
   - IN-RS-TEST-004

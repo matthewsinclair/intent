@@ -28,7 +28,6 @@ related_rules:
 concretised_by:
   - IN-EX-CODE-004
   - IN-RS-CODE-003
-  - IN-RS-CODE-005
   - IN-SW-CODE-001
   - IN-LU-CODE-002
   - IN-LU-CODE-006
@@ -130,4 +129,4 @@ The rule does not mean "no side effects anywhere." It means "side effects live a
 - José Valim, "Mocks and Explicit Contracts" — argues for behaviour parameterisation over test doubles, a direct consequence of pure-core discipline.
 - Intent `IN-AG-THIN-COORD-001` — coordinators stay thin, which follows directly from pushing logic into a pure core.
 - Intent `IN-AG-NO-SILENT-001` — pure functions should be total or explicitly fallible; coordinators must not swallow the `{:error, _}` tuples a pure core emits.
-- Concretising rules: `IN-EX-CODE-004` (Elixir `with`-railway), `IN-EX-PHX-001` (Phoenix thin controllers), `IN-RS-CODE-003` (Rust traits over enums for behaviour), `IN-SW-CODE-001` (Swift guard over nested if), `IN-LU-CODE-002` (Lua tables as structs).
+- Concretising rules: `IN-EX-CODE-004` (Elixir `with`-railway), `IN-RS-CODE-003` (Rust traits over enums for behaviour), `IN-SW-CODE-001` (Swift guard over nested if), `IN-LU-CODE-002` (Lua tables as structs).

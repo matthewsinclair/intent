@@ -319,12 +319,12 @@ Anti-bloat invariant: every field should have a named consumer; one with none is
 | `category`            |      ✓       |              ✓              |                 ✓                 |                --                 |
 | `severity`            |      ✓       |              ✓              |            ✓ (filter)             | ✓ (filter; unknown value refused) |
 | `summary`             |      ✓       |             --              |                --                 |                --                 |
-| `principles`          |      ✓       |             --              |                 ✓                 |                --                 |
+| `principles`          |      ✓       |   ✓ (validate: agreement)   |                 ✓                 |                --                 |
 | `applies_when`        |      ✓       |             --              |                 ✓                 |                --                 |
 | `upstream_id`         |      --      |    ✓ (attribution check)    |        ✓ (upstream dedupe)        |                --                 |
 | `applies_to`          |      --      |             --              |          ✓ (file filter)          |          ✓ (file filter)          |
-| `references`          |      ✓       |    ✓ (validate resolves)    |                 ✓                 |                --                 |
-| `concretised_by`      |      ✓       |    ✓ (validate resolves)    |                --                 |                --                 |
+| `references`          |      ✓       |   ✓ (resolves, agreement)   |                 ✓                 |                --                 |
+| `concretised_by`      |      ✓       |   ✓ (resolves, agreement)   |                --                 |                --                 |
 | `aliases`             |      ✓       |             --              |                --                 |                --                 |
 | `tags`                |      --      |             --              | ✓ (`critic-shell` dialect filter) |                --                 |
 | `related_rules`       |      ✓       |    ✓ (validate resolves)    |                --                 |                --                 |

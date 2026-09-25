@@ -11,7 +11,6 @@ summary: >
   expected ordinary table access.
 principles:
   - public-interface
-  - highlander
 applies_when:
   - "Installing `__index`, `__newindex`, `__call`, `__add`, `__eq`, `__tostring`, or other metamethods"
   - "Using metatables to implement inheritance, proxies, or lazy fields"
@@ -21,8 +20,7 @@ applies_to:
 does_not_apply_when:
   - "Idiomatic uses in frameworks (Love2D `Object`, OO via metatable chains in Defold) where the pattern is the convention"
   - "Operator overloading for domain types (vectors, currency) where the overload is the point"
-references:
-  - IN-AG-HIGHLANDER-001
+references: []
 related_rules:
   - IN-LU-CODE-002
 aliases: []

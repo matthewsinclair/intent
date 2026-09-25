@@ -856,7 +856,88 @@ pub fn check(docs: &[RuleDoc], schema: &Schema, attributions: &[(String, String)
       );
     }
   }
+  findings.extend(linkage(docs));
   findings
+}
+
+/// **THE THREE FIELDS THAT LINK A PRINCIPLE TO ITS RULES MUST AGREE** (issue
+/// 0584). Resolving each cited id, which [`check`] does, said nothing about
+/// whether the fields agree with each other, and the TCA readers treat a
+/// principle's `concretised_by:` as exhaustive when they rank findings.
+///
+/// `references:` is the home of record. A PATTERN principle -- an agnostic rule
+/// carrying `concretised_by:` -- lists exactly the rules that reference it, and
+/// a rule names in `principles:` the short-name of every pattern principle it
+/// references, and only those. The short-name is the principle's directory, as
+/// `highlander` is `IN-AG-HIGHLANDER-001`'s. A PROCEDURAL agnostic rule
+/// carries no `concretised_by:`, so its short-name binds nothing: `honest-data`
+/// is a principle eleven rules name, and none of them owes a reference for it.
+///
+/// Every disagreement is reported on the file a fix would edit.
+fn linkage(docs: &[RuleDoc]) -> Vec<Finding> {
+  let id_of = |d: &RuleDoc| d.front.scalars.get("id").cloned().unwrap_or_default();
+  let list = |d: &RuleDoc, key: &str| d.front.lists.get(key).cloned().unwrap_or_default();
+  let is_agnostic =
+    |d: &RuleDoc| d.front.scalars.get("language").map(String::as_str) == Some("agnostic");
+
+  // (id, short-name, concretised_by, path) of every pattern principle.
+  let patterns: Vec<(String, String, Vec<String>, &PathBuf)> = docs
+    .iter()
+    .filter(|d| is_agnostic(d) && d.front.lists.contains_key("concretised_by"))
+    .filter_map(|d| {
+      let slug = d.path.parent()?.file_name()?.to_str()?.to_string();
+      Some((id_of(d), slug, list(d, "concretised_by"), &d.path))
+    })
+    .collect();
+
+  let mut out = Vec::new();
+  for d in docs.iter().filter(|d| !is_agnostic(d)) {
+    let id = id_of(d);
+    let refs = list(d, "references");
+    let names = list(d, "principles");
+    for (pid, slug, listed, ppath) in &patterns {
+      let cites = refs.contains(pid);
+      let is_listed = listed.contains(&id);
+      let named = names.contains(slug);
+      if cites && !is_listed {
+        out.push(Finding {
+          path: (*ppath).clone(),
+          level: Level::Error,
+          message: format!(
+            "`{id}` cites `{pid}` in `references:` and is missing from its `concretised_by:`"
+          ),
+        });
+      }
+      if is_listed && !cites {
+        out.push(Finding {
+          path: d.path.clone(),
+          level: Level::Error,
+          message: format!(
+            "`{pid}` lists `{id}` in `concretised_by:`, and `{id}` does not cite it in `references:`"
+          ),
+        });
+      }
+      if cites && !named {
+        out.push(Finding {
+          path: d.path.clone(),
+          level: Level::Error,
+          message: format!(
+            "`{id}` cites `{pid}` and does not name its principle `{slug}` in `principles:`"
+          ),
+        });
+      }
+      if named && !cites {
+        out.push(Finding {
+          path: d.path.clone(),
+          level: Level::Error,
+          message: format!(
+            "`{id}` names the principle `{slug}` in `principles:` and does not cite `{pid}` in `references:`"
+          ),
+        });
+      }
+    }
+  }
+  out
 }
 
 #[cfg(test)]
@@ -1026,6 +1107,119 @@ mod validate_tests {
       block.lists["references"],
       vec!["A".to_string(), "B".to_string()]
     );
+  }
+
+  /// A pattern principle and one language rule, linked in all three fields.
+  /// Each arm below breaks exactly one field of this pair.
+  fn linked(principle_list: &str, references: &str, principles: &str) -> Vec<RuleDoc> {
+    vec![
+      doc(
+        "agnostic/highlander/RULE.md",
+        &format!(
+          "---\nid: IN-AG-HIGHLANDER-001\ntitle: P\nlanguage: agnostic\nprinciples: [highlander]\nconcretised_by: [{principle_list}]\n---\n"
+        ),
+      ),
+      doc(
+        "rust/code/owner/RULE.md",
+        &format!(
+          "---\nid: IN-RS-CODE-002\ntitle: L\nlanguage: rust\nprinciples: [{principles}]\nreferences: [{references}]\n---\n"
+        ),
+      ),
+      doc(
+        "rust/code/other/RULE.md",
+        "---\nid: IN-RS-CODE-009\ntitle: L\nlanguage: rust\nprinciples: [clarity]\nreferences: []\n---\n",
+      ),
+    ]
+  }
+
+  fn linkage_schema() -> Schema {
+    let mut s = schema();
+    s.optional.extend(
+      ["principles", "concretised_by"]
+        .iter()
+        .map(|k| k.to_string()),
+    );
+    s
+  }
+
+  /// **THE THREE FIELDS THAT LINK A PRINCIPLE TO ITS RULES MUST AGREE**
+  /// (issue 0584). `references:` is the home of record; a pattern rule's
+  /// `concretised_by:` is its exact inverse, and a rule names in `principles:`
+  /// the short-name of every pattern principle it references -- that
+  /// principle's directory, as `highlander` is `IN-AG-HIGHLANDER-001`'s. Each
+  /// id resolved, so the old check passed every one of these.
+  #[test]
+  fn the_three_link_fields_must_agree_and_each_disagreement_is_named() {
+    let agree = linked("IN-RS-CODE-002", "IN-AG-HIGHLANDER-001", "highlander");
+    assert!(
+      check(&agree, &linkage_schema(), &[]).is_empty(),
+      "THE CONTROL: a pair linked in all three fields is clean: {:?}",
+      check(&agree, &linkage_schema(), &[])
+    );
+
+    let arms = [
+      (
+        "cited, missing from the principle's list",
+        linked("IN-RS-CODE-009", "IN-AG-HIGHLANDER-001", "highlander"),
+        "IN-RS-CODE-002",
+      ),
+      (
+        "listed by the principle, citing nothing",
+        linked(
+          "IN-RS-CODE-002, IN-RS-CODE-009",
+          "IN-AG-HIGHLANDER-001",
+          "highlander",
+        ),
+        "IN-RS-CODE-009",
+      ),
+      (
+        "cited, short-name missing from principles",
+        linked("IN-RS-CODE-002", "IN-AG-HIGHLANDER-001", "clarity"),
+        "`highlander`",
+      ),
+    ];
+    for (what, docs, names) in &arms {
+      let f = check(docs, &linkage_schema(), &[]);
+      assert!(
+        !f.is_empty() && f.iter().all(|x| x.level == Level::Error),
+        "{what}: must be an error: {f:?}"
+      );
+      assert!(
+        f.iter().any(|x| x.message.contains(names)),
+        "{what}: the finding names {names}: {f:?}"
+      );
+    }
+    // The fourth: a short-name nothing backs.
+    let mut unbacked = linked("IN-RS-CODE-002", "IN-AG-HIGHLANDER-001", "highlander");
+    unbacked[2] = doc(
+      "rust/code/other/RULE.md",
+      "---\nid: IN-RS-CODE-009\ntitle: L\nlanguage: rust\nprinciples: [clarity, highlander]\nreferences: []\n---\n",
+    );
+    let f = check(&unbacked, &linkage_schema(), &[]);
+    assert!(
+      f.iter().any(
+        |x| x.path == Path::new("rust/code/other/RULE.md") && x.message.contains("`highlander`")
+      ),
+      "a short-name no reference backs is named on its rule: {f:?}"
+    );
+  }
+
+  /// **A PROCEDURAL AGNOSTIC RULE CARRIES NO `concretised_by:`, AND A SHORT-NAME
+  /// SHARED WITH ONE IS NOT A LINK.** `honest-data` names `IN-AG-FIAT-001`'s
+  /// principle and eleven rules carry it; none of them owes a reference.
+  #[test]
+  fn a_short_name_that_is_not_a_pattern_principle_needs_no_link() {
+    let docs = vec![
+      doc(
+        "agnostic/fiat/RULE.md",
+        "---\nid: IN-AG-FIAT-001\ntitle: P\nlanguage: agnostic\nprinciples: [honest-data]\n---\n",
+      ),
+      doc(
+        "rust/code/owner/RULE.md",
+        "---\nid: IN-RS-CODE-002\ntitle: L\nlanguage: rust\nprinciples: [honest-data, fiat]\nreferences: []\n---\n",
+      ),
+    ];
+    assert!(check(&docs, &linkage_schema(), &[]).is_empty());
   }
 
   #[test]
