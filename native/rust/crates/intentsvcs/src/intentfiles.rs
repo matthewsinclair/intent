@@ -505,7 +505,7 @@ const DEFAULT_HEADER: &str = "\
 # `--default` over a file that already exists changes nothing without `--force`.
 #
 # Many writers, one meaning. `st start`, `st resume` and `st reopen` add the id;
-# `st done`, `st cancel`, `st hold` and `st triage` remove it; `st new` and
+# `st done`, `st cancel`, `st hold`, `st triage` and `fc` remove it; `st new` and
 # `st reinstate` do neither; `st hydrate` / `st dehydrate` do it directly; and a
 # human may edit it by hand. All of those are ordinary writers; none is
 # privileged. The op decides, not the status it lands on -- `st triage` removes

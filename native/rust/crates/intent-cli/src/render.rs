@@ -11479,7 +11479,9 @@ fn print_notes(notes: &[Note], subject: &str) {
           eprintln!("  {path}");
         }
         eprintln!(
-          "  remedy: `intent st hydrate {subject}` writes them back from the store, and `--keep` closes without unlisting"
+          // The flag is named with the verbs that take it: `fc` shares this
+          // note and has no `--keep` (issue 0566).
+          "  remedy: `intent st hydrate {subject}` writes them back from the store, and `st done --keep` or `st cancel --keep` closes without unlisting"
         );
       }
       // **THE INDEX IS WHAT A PLAIN `git commit` CARRIES**, and a commit a gate
