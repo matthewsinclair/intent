@@ -4351,12 +4351,12 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate",
+          "read_or_mutate": "read",
+          "read_or_mutate_correction": "CORRECTED 2026-09-25 (issue 0573). Was `mutate` and `idempotent`, carried from v2, whose bare `todo` and `todo list` generated intent/todo.md when it was absent (`bin/intent_todo:246`); the `mcp_review` on this row records that v2 behaviour. Measured on the v3 binary: with intent/todo.md absent, stale or current, bare `todo`, `todo list` and `todo --json` leave it exactly as found, and `todo update` is the only writer -- as this row's own help says.",
           "mcp_review": {
             "counterintuitive": "Bare `intent todo` is the default read of the whole tool and it inherits `list`'s generate-on-absent write.",
             "grounded_in": "bin/intent_todo:380 (`COMMAND=\"${1:-list}\"`) -- bare `todo` IS `todo list`"
           },
-          "recoverability": "idempotent",
           "facade": "todo_buckets"
         },
         {
@@ -4411,12 +4411,12 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate",
+          "read_or_mutate": "read",
+          "read_or_mutate_correction": "CORRECTED 2026-09-25 (issue 0573). Was `mutate` and `idempotent`, carried from v2, whose bare `todo` and `todo list` generated intent/todo.md when it was absent (`bin/intent_todo:246`); the `mcp_review` on this row records that v2 behaviour. Measured on the v3 binary: with intent/todo.md absent, stale or current, bare `todo`, `todo list` and `todo --json` leave it exactly as found, and `todo update` is the only writer -- as this row's own help says.",
           "mcp_review": {
             "counterintuitive": "`list` is THE read verb of this table and this one writes a file the first time it is called. It is also the worst shape for a bug: it reads on every run after the first, so the mutation is invisible in testing and appears on a fresh clone.",
             "grounded_in": "bin/intent_todo:384-393 -- the else branch calls generate(), which does `mv \"$tmp\" \"$TODO_FILE\"` at :246"
           },
-          "recoverability": "idempotent",
           "facade": "todo_buckets"
         },
         {
@@ -9563,12 +9563,13 @@
       },
       "disposition": "new-surface",
       "exposed_on_mcp": true,
-      "read_or_mutate": "read",
+      "read_or_mutate": "mutate",
+      "recoverability": "reversible",
       "mcp_review": {
         "counterintuitive": "`export` sounds like it produces a FILE and it does not -- it writes the document to STDOUT, so `intent export > estate.json` is the SHELL creating the file, not the command. Under this table's own definition the row is a `read`: `read` means no invocation of the entry, UNDER ANY FLAG, changes durable state, and this entry declares exactly one flag (`--format`, which chooses a projection) and zero arguments. Quantifying over the flag set is the whole test, and there is one flag to quantify over.",
         "grounded_in": "This row's own `flags` and `args`, plus `render.rs`'s `export()`, which calls the facade and `print!`s the result."
       },
-      "read_or_mutate_correction": "CORRECTED 2026-08-16 (ic). Was `mutate`. Found by cc while building the renderer and deferred here rather than resolved there, because the table is ic's -- `render.rs:1215` states the case in full. **The old defence was reasoned about a command that does not exist as declared**: it justified `mutate` by working-tree clobbering, which requires an output path this row has never carried. Sound reasoning, wrong subject. Two independent routes agree on `read`, which is why this is a correction rather than a preference: (1) the definition quantifies over EVERY flag, and the only flag selects a format rather than a destination; (2) `schema` is structurally the same command -- one flag, a face printed to stdout, zero destinations -- and is declared `read`, so counting shell redirection as mutation would make `schema` a mutation too and leave the table disagreeing with itself about one shape. **The MUTATE lean does not preserve the old value.** The lean governs UNCERTAINTY -- it is the tie-break when the answer is genuinely unclear -- and nothing is unclear once the flag set is read; treating a lean as a floor would make the field unfalsifiable in one direction. The cost of leaving it wrong is the failure the agent guide exists to prevent: an agent reading `mutate` treats `intent export` as capable of clobbering its working tree, and either avoids the command or copies files defensively before calling it. That is a capability the tool does not have and a workaround built against a phantom.",
+      "read_or_mutate_correction": "CORRECTED AGAIN 2026-09-25 (issue 0573), back to `mutate`. `--format md` realises the whole estate as files under intent/.backup/text/<stamp>/ -- measured: 5 files for a one-thread project -- so a flag does change durable state, and the 2026-08-16 reading below, and this row's `mcp_review`, describe a command that printed to stdout under every flag, which this one no longer is. `reversible`: each run adds a new stamped directory and overwrites nothing, so deleting that directory undoes it. THE 2026-08-16 RECORD, kept: CORRECTED 2026-08-16 (ic). Was `mutate`. Found by cc while building the renderer and deferred here rather than resolved there, because the table is ic's -- `render.rs:1215` states the case in full. **The old defence was reasoned about a command that does not exist as declared**: it justified `mutate` by working-tree clobbering, which requires an output path this row has never carried. Sound reasoning, wrong subject. Two independent routes agree on `read`, which is why this is a correction rather than a preference: (1) the definition quantifies over EVERY flag, and the only flag selects a format rather than a destination; (2) `schema` is structurally the same command -- one flag, a face printed to stdout, zero destinations -- and is declared `read`, so counting shell redirection as mutation would make `schema` a mutation too and leave the table disagreeing with itself about one shape. **The MUTATE lean does not preserve the old value.** The lean governs UNCERTAINTY -- it is the tie-break when the answer is genuinely unclear -- and nothing is unclear once the flag set is read; treating a lean as a floor would make the field unfalsifiable in one direction. The cost of leaving it wrong is the failure the agent guide exists to prevent: an agent reading `mutate` treats `intent export` as capable of clobbering its working tree, and either avoids the command or copies files defensively before calling it. That is a capability the tool does not have and a workaround built against a phantom.",
       "facade": "export"
     },
     {
@@ -9606,14 +9607,14 @@
       },
       "disposition": "new-surface",
       "exposed_on_mcp": false,
-      "read_or_mutate": "mutate",
+      "read_or_mutate": "read",
+      "read_or_mutate_correction": "CORRECTED 2026-09-25 (issue 0573). Was `mutate` and `one-way`. `ingest` checks that an estate's markdown would migrate and writes nothing, as its help says; `upgrade` is the verb that migrates. Measured on the v3 binary: the project tree is byte-identical before and after. `exposed_on_mcp` stays false: the row has no facade door, and an exposed row with none is refused.",
       "mcp_review": {
         "uncertain": [
           "exposed_on_mcp"
         ],
         "why_uncertain": "The recovery path and the v2 migrator behind one verb. Both are operations a human decides to run after something went wrong; neither is a task step. Closed on the strength of what it is FOR rather than what it costs."
-      },
-      "recoverability": "one-way"
+      }
     },
     {
       "path": "backup",

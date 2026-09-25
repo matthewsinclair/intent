@@ -322,6 +322,13 @@ fn shipped_mutators() -> Vec<String> {
 /// unproven one.
 const COVERED_ELSEWHERE: &[(&str, &str)] = &[
   (
+    "export",
+    "intent-cli/tests/export_md_accepted.rs -- `the_realisation_is_written_under_backup_text` drives \
+     `--format md` and asserts the files it realises under `intent/.backup/text/<stamp>/`. \
+     Reclassified `mutate` in 3.2.2 (issue 0573): the JSON form prints to stdout and writes \
+     nothing, and the md form writes that tree.",
+  ),
+  (
     "wb add",
     "intentsvcs/tests/error_remedies.rs -- `provoked_errors` drives the door this verb shares with \
      `wb_decide`, `wb_add_item`, to its per-kind bound and asserts the next write is REFUSED. \
@@ -726,18 +733,10 @@ const MUTATE_BUT_WRITES_NOTHING: &[(&str, &str)] = &[
   // `at lint` LEFT THIS ROSTER ON 2026-09-11 BY BEING RECLASSIFIED (0139): its
   // `mutate` rested only on `--fix`, which the arm refused, and retiring the
   // flag made the row `read`. It is no longer a shipped mutator.
-  (
-    "ingest",
-    "intent-cli/tests/cli_write_moves_only_what_changed.rs -- Phase A reads and writes nothing INCLUDING no store, driven from a storeless start rather than inherited. Its paired control is `todo list` in the same run and the same condition, which DOES materialise one -- so the store observation is not stuck-false.",
-  ),
-  (
-    "todo",
-    "intent-cli/tests/cli_write_moves_only_what_changed.rs -- `--help` says `Show intent/todo.md (generates it if absent)`; driven with the file ABSENT it prints the view at rc=0 and does not create it. The verb that generates it is `todo update`, which IS driven in this file.",
-  ),
-  (
-    "todo list",
-    "intent-cli/tests/cli_write_moves_only_what_changed.rs -- same documented write, same absence of it. It does materialise intent/.cache/intent.db, which is a write neither obvious observable can see: `did any file appear` trips on pure reads that do the same thing, and the tracked tree is blind to it because .cache is gitignored (D29). Observed and reported there, deliberately not pinned.",
-  ),
+  // `ingest`, `todo` AND `todo list` LEFT THIS ROSTER IN 3.2.2 BY BEING
+  // RECLASSIFIED `read` (issue 0573), which is the population defect this key
+  // was written to name, fixed at its source: each was measured writing nothing,
+  // and the register now says so.
   (
     "todo notdone",
     "intent-cli/tests/cli_write_moves_only_what_changed.rs -- rc=1 in EVERY state driven: a triage thread, a wip thread, a not-started WP, and a genuinely Completed thread. A reopen must record why it happened and this verb cannot carry a reason, so it routes to `st reopen` and never writes. Unreachable including in the one state it nominally serves -- which is why the refusal is not a fixture problem.",
