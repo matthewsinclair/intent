@@ -1,0 +1,16 @@
+{
+  "id": "01M3C5RZ7Q4KK55R6XX258B3KT",
+  "ts": "2026-09-25T11:38:55.095Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 33,
+    "text": "RESUME (vc, localfold for hv compact, 2026-09-25 ~11:40Z). Measure first: git log --oneline -15, intent --version, git rev-list --count upstream/main..HEAD, ListAgents. Ledger: scratchpad bank-ledger.md.\n\nSTATE: v3.2.1 is CUT and PUBLISHED (tag 227e68235, 4 assets, tap live; brew unlinked+pinned; Intent.app 3.2.1 in /Applications). Post-cut on hv rulings: e0212004d (62 unrealised views removed), c44cebb86 (index rebuild --corpus dropped), 70e26ecc5 + e8f689006 (footer names the major only, one-time re-render). hv pushed through e8f689006; CI green (3098/0/5, bats 748). DECISION 61 (hv): every open issue plus cheap list items ship in ONE patch, 3.2.2; the fleet sweep moves to after it.\n\n3.2.2 LANDED on main, each at its judged patch-id, CHANGELOG ## [3.2.2] - in progress kept by vc alone (last e9ba6938e): cc 0568 0559 doctor 0580 0554 0555 tostore; dc 0563 0577 0578 0576 A-fix A-fix2 0557 0558 0561 0562 0571 0565 0566 m1 m3 m4 m5 c1-smoke c2-bw01 c3-help; ic 0581 0584 explore-view (66e603ee5, hv order, under Added). 19 of 26 issues fixed; the store still shows 26 OPEN because none is closed yet.\n\nMAIN IS RED on ONE arm: intentsvcs address_resolution_single_home::no_second_resolver_exists at intent-cli/src/tui/commands.rs:922 (explore-view test literal spells intent:// by hand). ic owns the fix, FIRST after the bounce, judged with WHOLE intentsvcs + intent-cli.\n\nNEXT, in order: (1) ic explore-fix, land. (2) close the 19 landed issues, each body naming its fix commit (cc lane closes cc and dc issues? assign). (3) ic stack on refs/ic/stack 70f28bf55 (0575 0583 0582 0572 0573 0574 0579 0549 (ii) (iii) + four known reds fixed) after devbin-vc END of its 30-min 0.1.8 suite (started ~11:34Z); (ii) lands with ST0056.json after intentd ingests gen_reference.sh. (4) ic docs/reference regeneration, vc one re-render check, ic stacked final-tree run. (5) rebuild, CI, cut 3.2.2 under the hold (known-defects re-drive: 0549 entry retires), then the fleet sweep. JUDGING RULES learned today: WHOLE suites of every crate for any payload/lib/templates change; armed_tool_preconditions for any bats change; bats under INTENT_BIN at the build under test, count not-ok from TAP; land each bank through its own GIT_INDEX_FILE and then restore the tree. AFTER THE LINE: M2 removable v2 source (dc)."
+  }
+}
