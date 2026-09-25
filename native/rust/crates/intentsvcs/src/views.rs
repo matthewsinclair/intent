@@ -671,10 +671,21 @@ pub fn info_read_back(
     };
     match INFO_ROUND_TRIP_SECTIONS.contains(&heading.as_str()) {
       true => {
-        let value = undo_section_body(got_body);
         match heading.as_str() {
-          "Objective" => carried.objective = value,
-          "Context" => carried.context = value,
+          "Objective" => carried.objective = undo_section_body(got_body),
+          // **THE BODY'S TEXT BEFORE ITS FIRST HEADING RENDERS STRAIGHT AFTER
+          // CONTEXT'S OWN, SO IT ARRIVES IN THIS REGION, AND IT IS THE BODY'S**
+          // (issue 0568). Read whole, the region folded the body into
+          // `context` on every carry, and the next render showed it twice. It
+          // is taken off the end before the rest is carried; an edit to it is
+          // authored text this door cannot take, so it refuses.
+          "Context" => match got_body.trim_end().strip_suffix(body_lead(&thread.body)) {
+            Some(context) => carried.context = undo_section_body(context),
+            None => refused.push(
+              "the body's text under ## Context, before its first heading (authored, but not carried)"
+                .to_string(),
+            ),
+          },
           other => refused.push(format!(
             "## {other} (declared round-trippable, but nothing carries it)"
           )),
@@ -695,6 +706,20 @@ pub fn info_read_back(
     true => Ok(carried),
     false => Err(refused),
   }
+}
+
+/// The text a thread's `body` carries before its first `## ` heading, as
+/// [`info`] renders it: after `## Context`'s own text, inside that region.
+///
+/// Empty when the body opens with a heading, which every body carried from a
+/// v2 cover does; `intent set <ID> body` is what writes one that does not.
+fn body_lead(body: &str) -> &str {
+  let body = body.trim_end();
+  let end = match body.starts_with("## ") {
+    true => 0,
+    false => body.find("\n## ").unwrap_or(body.len()),
+  };
+  body[..end].trim_start_matches('\n').trim_end()
 }
 
 /// Whether `disk`, a thread's cover, differs from its render only in the

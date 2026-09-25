@@ -450,3 +450,61 @@ fn both_covers_name_the_verbs_that_write_a_contract_row() {
     );
   }
 }
+
+/// A body whose text opens before any heading of its own, as `intent set <ID>
+/// body` writes one, followed by a section it does carry.
+fn a_thread_whose_body_opens_without_a_heading() -> intentsvcs::model::Thread {
+  let mut thread = sample_thread("ST0056");
+  thread.body = "A body set by the verb\n\n## Notes\n\nKept under its own heading.".to_string();
+  thread
+}
+
+/// Issue 0568: the body's text before its first heading renders straight after
+/// Context's own, in the same region, and a carry read it as part of Context --
+/// the body folded into `context`, once per carry.
+#[test]
+fn success_a_context_edit_carries_without_the_body_that_follows_it() {
+  let thread = a_thread_whose_body_opens_without_a_heading();
+  let rendered = views::info(&thread, &ctx());
+  let edited = rendered.replace(&thread.context, "Why: upstream limit.");
+  assert_ne!(edited, rendered);
+
+  let got = views::info_read_back(&thread, &ctx(), &edited).expect("a Context edit is carried");
+
+  assert_eq!(got.context, "Why: upstream limit.");
+  assert_eq!(got.objective, thread.objective);
+}
+
+/// The control for the arm above: unedited, the same thread reads back to its
+/// own context, so the carry is a no-op however many times it runs.
+#[test]
+fn success_an_unedited_cover_with_a_headingless_body_reads_back_unchanged() {
+  let thread = a_thread_whose_body_opens_without_a_heading();
+  let rendered = views::info(&thread, &ctx());
+
+  let got = views::info_read_back(&thread, &ctx(), &rendered).expect("an unedited render");
+
+  assert_eq!(got.context, thread.context);
+  assert!(!views::carriable_cover(&thread, &ctx(), &rendered));
+}
+
+/// An edit to that body text is authored text the cover cannot carry, so it
+/// refuses by name rather than folding it into Context or dropping it.
+#[test]
+fn failure_an_edit_to_the_body_text_under_context_refuses() {
+  let thread = a_thread_whose_body_opens_without_a_heading();
+  let rendered = views::info(&thread, &ctx());
+  let edited = rendered.replace("A body set by the verb", "A body edited by hand");
+  assert_ne!(edited, rendered);
+
+  let refused = views::info_read_back(&thread, &ctx(), &edited)
+    .expect_err("the body's text is not carried by a cover");
+
+  assert_eq!(
+    refused,
+    vec![
+      "the body's text under ## Context, before its first heading (authored, but not carried)"
+        .to_string()
+    ]
+  );
+}
