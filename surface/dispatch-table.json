@@ -6026,7 +6026,7 @@
                  "value_help": {
                    "list": "List every rule in the canon rule library",
                    "show": "Print a rule's Markdown body",
-                   "validate": "Validate frontmatter and required sections"
+                   "validate": "Validate frontmatter: keys, ids, citations and principle links"
                  }
             },
             {
