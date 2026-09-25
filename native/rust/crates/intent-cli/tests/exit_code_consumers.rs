@@ -133,9 +133,9 @@ const CONSUMERS: &[(&str, &str, Policy)] = &[
        CONTRACT rather than a hedge (AC-24.4). This is a PostToolUse hook: the grep it follows has already \
        answered, so the only thing a non-zero `intent` can cost is this hook's addition. **An empty or \
        unreadable answer therefore appends NOTHING and exits 0**, which is the same outcome the freshness \
-       rule produces for a stale index -- one silence, reached two ways, and neither of them blocks. The \
-       hedge `post-tool-advisory.sh` is faulted for above is a discard whose CONDITION expired; this one has \
-       no condition to expire, because a hook that may never block cannot act on an exit code. What it owes \
+       rule produces for a stale index -- one silence, reached two ways, and neither of them blocks. Unlike \
+       `post-tool-advisory.sh` above, it has no clean-versus-findings distinction to read from a status, so \
+       the discard costs it nothing. What it owes \
        in exchange is that `intent search` prints its envelope on stdout and its diagnoses elsewhere, so a \
        discarded stderr never removes part of the answer.",
     ),
@@ -144,11 +144,11 @@ const CONSUMERS: &[(&str, &str, Policy)] = &[
     ".claude/scripts/post-tool-advisory.sh",
     "critic",
     Policy::Invokes(
-      "`|| true` plus `2>/dev/null`: the status is discarded and so is stderr. **The hedge outlived the \
-       condition it hedged for** -- its comment says the `|| true` exists because `intent critic` had not \
-       landed yet. Under v3 the advisory is permanently silent with no indication, and the redirect will \
-       keep hiding real errors once `critic` is built. Latent rather than live: it is wired into neither \
-       shipped `settings.json`.",
+      "the status decides whether the hook SPEAKS and never whether the tool call proceeds: 0 is a clean \
+       run and adds nothing (issue 0578 -- the census made every clean run non-empty, so an empty-output \
+       test never fired), 1 and 3 pass the critic's text on as `additionalContext`, and 2 prints nothing on \
+       stdout and adds nothing. An EXIT trap ends every path at 0, so no code can block. stderr is \
+       discarded. Opt-in: it is wired into neither shipped `settings.json`.",
     ),
   ),
   (
@@ -366,9 +366,7 @@ fn every_shipped_consumer_is_declared() {
 /// **The mirror: a roster row for something that is no longer there.**
 ///
 /// A stale declaration is worse than a missing one, because it reads as
-/// coverage. `post-tool-advisory.sh`'s own `|| true` is the cautionary case in
-/// this very file -- a hedge that outlived its condition and now hides errors
-/// it was never meant to hide.
+/// coverage.
 #[test]
 fn no_roster_row_describes_a_consumer_that_is_gone() {
   let found = found();

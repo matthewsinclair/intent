@@ -76,11 +76,16 @@ esac
 
 command -v intent >/dev/null 2>&1 || exit 0
 
-# `|| true` and `2>/dev/null` discard the critic's exit status and stderr on
-# purpose: this advisory must never block. A critic that breaks (2) prints
-# nothing on stdout, so `[ -z "$findings" ]` exits; one that refuses (3) still
-# prints its census, which is passed on, and so does a clean run.
-findings="$(intent critic "$lang" --files "$file_path" --severity-min warning --format text 2>/dev/null || true)"
+# The critic's exit status decides whether this hook speaks, and nothing it
+# returns can block: the EXIT trap above ends every path at 0. Exit 0 is a clean
+# run, which says nothing here -- the critic always prints its census, so an
+# empty-output test never fired and every clean edit handed the model three
+# lines of nothing (issue 0578). Findings (1) and a refusal (3) are passed on;
+# a runner that could not answer (2) prints nothing on stdout and exits below.
+# stderr is discarded because the model is not the reader for it.
+findings="$(intent critic "$lang" --files "$file_path" --severity-min warning --format text 2>/dev/null)"
+critic_rc=$?
+[ "$critic_rc" -eq 0 ] && exit 0
 [ -z "$findings" ] && exit 0
 
 jq -n --arg context "$(printf 'Intent critic advisory (%s, %s):\n%s' "$lang" "$file_path" "$findings")" \
