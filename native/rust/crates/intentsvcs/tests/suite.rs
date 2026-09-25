@@ -299,6 +299,8 @@ mod migrate_hooks_continuity;
 mod migrate_refusal;
 #[path = "migrate_v2_project.rs"]
 mod migrate_v2_project;
+#[path = "migration_dirty_check_reads_content.rs"]
+mod migration_dirty_check_reads_content;
 #[path = "migrator_determinism.rs"]
 mod migrator_determinism;
 #[path = "migrator_population_is_canon.rs"]

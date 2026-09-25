@@ -1475,8 +1475,8 @@ pub enum TreeState {
 /// [`uncommitted`]: a file the index has never heard of is the one least likely
 /// to be in any commit and the likeliest to be swept into the next one.
 pub fn tree_state(root: &Path) -> TreeState {
-  // **A REPOSITORY WITH NO COMMITS IS STILL A REPOSITORY, AND `diff-index`
-  // CANNOT SAY SO.** It resolves `HEAD`, which does not exist until the first
+  // **A REPOSITORY WITH NO COMMITS IS STILL A REPOSITORY, AND A DIFF AGAINST
+  // `HEAD` CANNOT SAY SO.** It resolves `HEAD`, which does not exist until the first
   // commit, so it exits non-zero on a freshly `git init`ed tree -- exactly the
   // same signal as "there is no git here at all". Conflating the two made this
   // function answer `NoWorkTree` for a repo that plainly has a work tree, and
@@ -1493,7 +1493,25 @@ pub fn tree_state(root: &Path) -> TreeState {
   // reports it. An empty repo therefore reads as Dirty, which is the honest
   // answer -- a migration there is unprotected in precisely the way this
   // precondition exists to prevent.
-  let changed = match git_paths(root, &["diff-index", "--name-only", "-z", "HEAD"]) {
+  //
+  // **PORCELAIN `diff`, NOT `diff-index`, BECAUSE A STAT CHANGE IS NOT A CHANGE.**
+  // `diff-index` compares the index's cached stat data and reports every file
+  // whose mtime or inode moved, so a tree `git status` called clean listed 25
+  // "uncommitted" paths. `diff` refreshes that data in memory and compares
+  // content; `--no-optional-locks` keeps the refresh from writing the index,
+  // and `--no-renames` keeps a rename's source path in the list.
+  let changed = match git_paths(
+    root,
+    &[
+      "--no-optional-locks",
+      "diff",
+      "--no-renames",
+      "--name-only",
+      "-z",
+      "HEAD",
+      "--",
+    ],
+  ) {
     Some(changed) => changed,
     None if is_work_tree(root) => Vec::new(),
     None => return TreeState::NoWorkTree,
