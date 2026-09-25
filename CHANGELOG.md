@@ -24,6 +24,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **A CLI write no longer renders a thread's cover over a hand edit to its Objective or Context that the store can carry** (issue 0559). It refuses first and names `intent sync --to-store <ID>`, and a cover `intent st edit` realised is now carried by that command, so the README's route of typing into the cover keeps what you typed. A hand edit to any other part of a cover is still rendered over, with a warning; `intent set <ID> objective|context` remains the direct route.
 - **`intent doctor`'s stale-render advisory names the verb that clears each view.** `intent sync --to-disk` re-renders a view `.intentfiles` realises, and `intent sync --apply` removes one it does not; `doctor -v` lists a directory's run of them on one line naming every file, rather than one line per view.
 - **`intent at edit --kind` says when it resets a row's status** (issue 0580). A status the new kind cannot hold is reset to that kind's entry state, as before, but the verb now names the row, the status it dropped and the one it set, and its help says so.
+- **`intent init --lang` writes an `AGENTS.md` that names the languages it declared** (issue 0557). It rendered the file before it wrote the languages into the config.
+- **`intent init` says why it did not write each template it skipped** (issue 0558), rather than pointing at `--help`.
+- **`intent bootstrap --check` and the gate shim's `--where` answer `NO GATE`, and exit 1, for an install that has no gate script** (issue 0561); they reported one whose gate could not run as OK.
+- **The pre-commit gate's shim ignores a relative `XDG_DATA_HOME`, as `intent bootstrap` does** (issue 0562), so the two read the same install pointer.
+- **`intent bootstrap --check`'s divergence note names where each part of the gate comes from** (issue 0571).
+- **`intent claude upgrade` reports a seed identical to its template as unchanged rather than preserved** (issue 0565).
+- **The note a fiat close prints names `st done --keep` and `st cancel --keep`** (issue 0566), not a flag `intent fc` refuses, and the `.intentfiles` header names `fc`.
+- **`intent upgrade`'s clean-tree check lists only files whose content changed**, not files whose only change is stat data.
+- **For a project below v2.9.0, `intent upgrade`'s remedy names the v2.11.14 hop it needs.**
+- **`intent ac edit --note` on a computed criterion names the route that reaches a note**, `intent set <AC> kind non-test`.
+- **Migrating from v2 no longer refiles the first line of v2's acceptance preamble as residue.** Two later lines of that preamble, which carry ids of Intent's own, still refile.
 
 ## [3.2.1] - 2026-09-24
 
