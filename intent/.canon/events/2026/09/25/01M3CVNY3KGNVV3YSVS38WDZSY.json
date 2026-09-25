@@ -1,0 +1,15 @@
+{
+  "id": "01M3CVNY3KGNVV3YSVS38WDZSY",
+  "ts": "2026-09-25T18:01:44.307Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "RESUME (ic, localfold for hv compact, 2026-09-25 on vc order). ic's lane is EMPTY: the 3.2.2 lane shipped in v3.2.2, and ST0080 (scheduled store backups that fire from intent explore) is DONE at da5c067c4 for 3.2.3, with the code at f6b4344e9, the test ids at 8ab777aa7 and docs/reference regenerated against v3.2.2 at f314a07cd. HOLD for the 3.2.3 cut; no worktree is open. OWED IF IT LANDS: Lamplight's related backup comment, which never arrived; after the cut it goes to 3.2.4 or later, as a new thread or issue, not into the closed ST0080. NO PUSH, NO RELEASE."
+  }
+}

@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: ba4c99b8-b828-4603-9871-50eb86fc3a5b
-heartbeat_at: 2026-09-25 11:38Z
+heartbeat_at: 2026-09-25 18:01Z
 status: active
-focus: "LOCALFOLDED for hv's compact. 3.2.2 ic lane: 0581, 0584 and explore-view are landed; nine fixes are parked on refs/ic/stack in tmp/wt-ic-322, unbanked; 0579 is unbuilt. Resume from doing 119. NO PUSH, NO RELEASE."
+focus: "LOCALFOLDED for hv's compact. ic's lane is empty: ST0080 done for 3.2.3; holding for the 3.2.3 cut. Resume from the one TODO. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -13,17 +13,11 @@ claims: []
 
 ## DOING
 
-- RESUME (ic, localfold for hv compact, 2026-09-25 on vc order). ic 3.2.2 lane: critics, rules, register, templates (vc decision 61). NO PUSH, NO RELEASE. (edited)
-  LANDED: 0581 1ecf8b418; 0584 with the seven weak links 4eeefd6e8 (bank 0b359fd2e); explore-view 66e603ee5 (hv order, ic committed it; bank refs/bank/ic/explore-view, patch-id f0b9ccded113; vc wrote the Added line at 67f222f76).
-  PARKED, NOT BANKED: worktree tmp/wt-ic-322 (in-tree target), ref refs/ic/stack = 70f28bf55 on 66e603ee5, one worktree-local commit each: 0575, 0583, 0582, 0572, 0573, 0574, (ii) commands.md Retired via gen_reference.sh, 0549, (iii) the five subagent fixes plus full-trope-diagnosis. The four reds from run jstack2 are FIXED in the stack (0573 roster in write_moves_only_what_changed.rs, 0549 every_face envelope pin, 0572 AT-00.17 citations) except (ii) attachment drift, which vc judges on main after intentd ingests gen_reference.sh and ST0056.json commits with it.
-  NOT BUILT: 0579 (waited on dc 0558, now landed at e90e75019).
-  FIRST AFTER THE BOUNCE: MAIN IS RED FROM explore-view (66e603ee5), on intentsvcs address_resolution_single_home::no_second_resolver_exists, which flags the test literal "intent:///threads/ST0000" at intent-cli/src/tui/commands.rs:922 (acts_that_are_not_places_and_every_address_spelling_are_not_view_words) for spelling the scheme by hand; my run was intent-cli only and did not include it. Bank an explore-fix that builds that address through the address module (or as the arm allows), judged with the WHOLE intentsvcs suite plus intent-cli; it lands before the rest of the stack.
-  NEXT: rebase refs/ic/stack past 67f222f76; build 0579; after devbin-vc suite, run scratchpad judge-cli-first.sh (INTENT_BIN set; bats judged by not-ok count) over the stack; bank each fix separately with apply --stat; report 0573 MCP descriptions before/after (mcp-tools.sh; before in mcp-before.json).
-  AFTER THE LAST LANDING: regenerate docs/reference (gen_reference.sh), then the stacked final-tree run.
+_(none)_
 
 ## TODO
 
-_(none)_
+- RESUME (ic, localfold for hv compact, 2026-09-25 on vc order). ic's lane is EMPTY: the 3.2.2 lane shipped in v3.2.2, and ST0080 (scheduled store backups that fire from intent explore) is DONE at da5c067c4 for 3.2.3, with the code at f6b4344e9, the test ids at 8ab777aa7 and docs/reference regenerated against v3.2.2 at f314a07cd. HOLD for the 3.2.3 cut; no worktree is open. OWED IF IT LANDS: Lamplight's related backup comment, which never arrived; after the cut it goes to 3.2.4 or later, as a new thread or issue, not into the closed ST0080. NO PUSH, NO RELEASE.
 
 ## Holds
 
