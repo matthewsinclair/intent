@@ -427,6 +427,17 @@ fn check_on_another_install_exits_0_and_prints_both_roots() {
     stdout.contains(&format!("  this binary:      {}", own.display())),
     "{stdout}"
   );
+  // Each part of the gate named with its source (issue 0571): the body is the
+  // pointer's install's, the guard runner and roster the running `intent`'s.
+  assert!(
+    stdout.contains("The gate body comes from the install pointer's install;")
+      && stdout.contains("the guard runner and its roster come from the `intent` a commit runs"),
+    "{stdout}"
+  );
+  assert!(
+    !stdout.contains("the guards that run are the second one's"),
+    "{stdout}"
+  );
   assert!(!stdout.contains("versioned Homebrew keg"), "{stdout}");
 }
 

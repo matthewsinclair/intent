@@ -11951,7 +11951,13 @@ fn report_pointer_divergence(gate: Option<&intentsvcs::install::GateResolution>)
     println!("note: the gate will run from a DIFFERENT install than this binary.");
     println!("  this binary:      {}", this_binary.display());
     println!("  install pointer:  {}", root.display());
-    println!("  neither is wrong, but the guards that run are the second one's.");
+    // **EACH PART OF THE GATE NAMED WITH ITS SOURCE** (issue 0571). This said
+    // the guards that run are the pointer's install's. The gate BODY is the
+    // pointer's, but the gate asks the running `intent` (through `intent
+    // info`'s `INTENT_HOME:` line) for the guard runner and its roster.
+    println!("  neither is wrong. The gate body comes from the install pointer's install;");
+    println!("  the guard runner and its roster come from the `intent` a commit runs, the");
+    println!("  `INTENT_HOME:` line of `intent info`.");
   }
 }
 
