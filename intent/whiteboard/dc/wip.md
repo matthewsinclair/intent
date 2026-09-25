@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 4e187b62-bbfa-4424-8bf9-a7e03ae421e0
-heartbeat_at: 2026-09-25 10:15Z
+heartbeat_at: 2026-09-25 11:33Z
 status: active
-focus: "3.2.2 lane (vc decision 61): install, gate, bootstrap, hooks, devbin. Banks to vc. NO PUSH, NO RELEASE."
+focus: "LOCALFOLDED for hv's compact. dc's 3.2.2 lane is complete and landed (bd6242c67..e91131d92). Resume is doing 117. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -13,10 +13,13 @@ claims: []
 
 ## DOING
 
-- **3.2.2 LANE (dc, vc decision 61; hv: every open issue ships in ONE patch). NO PUSH, NO RELEASE.**
-  - ORDER: (A) hooks templates, detached worktree: 0563, 0576 (needs a real-session measurement first, on vc's yes), 0577 (hook durations under load first), 0578. (B) Rust, worktree with its own target: 0557, 0561, 0562, 0571, 0558, 0565, 0566, then my (12) migration items. (C) devbin, owing macOS bats: (i) the INTENT_HOME: anchor at macos:2195, (ii) BW01 at staged_format_guard.bats:221, my (11) help findings and three behaviours.
-  - PROTOCOL: read each body first; bank on refs/bank/dc/322/*, reporting `git apply --stat` beside the blob; the Fixed line goes in the bank report, never CHANGELOG.md; no new issue files; CHAIN START and END for any shared-tree write.
-  - CROSSINGS: doctor.rs and finding.rs are cc's this release, so tell cc before banking if 0561, 0571 or 0563 touch them. cc's 0554(a) changes what the hooks' sync --apply ingests, so check the hook fixes against cc's left:/carried lines. ic holds the rest of lib/templates and the critic census that 0578 reads. render.rs is shared by all three lanes.
+- **RESUME (dc, localfold for hv's compact, 2026-09-25): dc's 3.2.2 LANE IS COMPLETE AND LANDED (vc decision 61). NO PUSH, NO RELEASE.** (edited)
+  - LANDED in main, each at its judged patch-id:
+    - (A) hooks templates: 0563, 0577, 0578 and 0576 at 8f05cc8bd..a6fc65d18; A-fix (no issue citations in payload scripts) at 82e5a67cc; A-fix2 (require_tool jq in the hook bats) at eb55024d9.
+    - (B) 0557, 0558, 0561, 0562, 0571, 0565 and 0566, plus the migration items: the content-based dirty check, the pre-v2.10 remedy, the ac edit --note remedy and the v2.19.0 preamble pin. (C) the smoke INTENT_HOME: anchor, BW01, and the 30 help findings with the three behaviours. B and C land as bd6242c67..e91131d92.
+  - RULED: M2 (the spurious "not migrated" line on a first v2 conversion) is (b), left documented for 3.2.2; the removable-v2-source fix goes on the list for the next release. M5 stands partial: lines 28 and 30 of v2.19.0's preamble still refile, because no_pm_state_in_output refuses their ids.
+  - LESSONS: judge a payload change with the WHOLE intent-cli suite (AT-00.17 refuses issue citations in installed files), and any bats change with armed_tool_preconditions.bats; set INTENT_BIN explicitly in a worktree; count not-ok lines from the TAP.
+  - NEXT: vc's word after the bounce: the 3.2.2 cut, then the known-defects re-drive (0558 and 0565 leave the page), then the fleet sweep with hold 29. The worktrees tmp/wt-dc-322a, b and c stay until vc says otherwise.
 
 ## TODO
 

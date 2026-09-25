@@ -1,0 +1,16 @@
+{
+  "id": "01M3C5ER8P0TBYCFHT41EKENCB",
+  "ts": "2026-09-25T11:33:20.278Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 117,
+    "text": "**RESUME (dc, localfold for hv's compact, 2026-09-25): dc's 3.2.2 LANE IS COMPLETE AND LANDED (vc decision 61). NO PUSH, NO RELEASE.**\n- LANDED in main, each at its judged patch-id:\n  - (A) hooks templates: 0563, 0577, 0578 and 0576 at 8f05cc8bd..a6fc65d18; A-fix (no issue citations in payload scripts) at 82e5a67cc; A-fix2 (require_tool jq in the hook bats) at eb55024d9.\n  - (B) 0557, 0558, 0561, 0562, 0571, 0565 and 0566, plus the migration items: the content-based dirty check, the pre-v2.10 remedy, the ac edit --note remedy and the v2.19.0 preamble pin. (C) the smoke INTENT_HOME: anchor, BW01, and the 30 help findings with the three behaviours. B and C land as bd6242c67..e91131d92.\n- RULED: M2 (the spurious \"not migrated\" line on a first v2 conversion) is (b), left documented for 3.2.2; the removable-v2-source fix goes on the list for the next release. M5 stands partial: lines 28 and 30 of v2.19.0's preamble still refile, because no_pm_state_in_output refuses their ids.\n- LESSONS: judge a payload change with the WHOLE intent-cli suite (AT-00.17 refuses issue citations in installed files), and any bats change with armed_tool_preconditions.bats; set INTENT_BIN explicitly in a worktree; count not-ok lines from the TAP.\n- NEXT: vc's word after the bounce: the 3.2.2 cut, then the known-defects re-drive (0558 and 0565 leave the page), then the fleet sweep with hold 29. The worktrees tmp/wt-dc-322a, b and c stay until vc says otherwise."
+  }
+}
