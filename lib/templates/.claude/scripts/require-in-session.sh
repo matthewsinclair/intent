@@ -17,7 +17,7 @@
 #          can run `/in-session`, `/help`, `/compact`, etc. without being
 #          blocked by the gate. The prompt is read with jq when jq is on
 #          PATH, and from the raw payload when it is not, so a machine
-#          without jq can still run `/in-session` (issue 0563) -- OR
+#          without jq can still run `/in-session` -- OR
 #       b) the per-session sentinel exists.
 #   - Block (exit 2 + stderr message) when the sentinel is absent AND the
 #     prompt is not a slash command.

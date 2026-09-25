@@ -16,7 +16,7 @@
 #     Plain stdout is added to context only for UserPromptSubmit,
 #     UserPromptExpansion, SessionStart and PostModelSwitch, and the docs do not
 #     say where a Stop hook's plain stdout goes, so the reminder this hook
-#     printed as plain text may have reached nobody (issue 0576).
+#     printed as plain text may have reached nobody.
 #   - EXIT 0 ALWAYS, AND NEVER 2. This is a hard contract, not a default --
 #     see below.
 #
