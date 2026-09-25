@@ -12,7 +12,7 @@ The page walks one project from its first push to GitHub through the pull reques
 - Resolve a conflict in a canon JSON file by hand, `git add` it, then run `intent sync --apply --yes`. Never merge a generated view by hand.
 - Write a thread's objective and context with `intent set`, not by editing `info.md`.
 - Upgrade Intent together, and run `intent doctor` on the merge result in CI as a required check.
-- After pulling a teammate's whiteboard, run `intent sync --to-store` before any `intent wb` verb.
+- A pull takes a teammate's whiteboard into your store through the same hook; if your own board moved too, the hook names it and `intent sync --to-store` is the step.
 
 ## What travels and what does not
 
@@ -120,7 +120,7 @@ A rebase merge replays the branch's commits onto `main` and reads the same way: 
 
 ## After a pull
 
-**`intent sync --apply` is the command after a pull, and the hooks run it for you.** A pull that brings a teammate's whiteboard needs one more step, [below](#the-whiteboard-across-clones). Bob's first pull brings all three merges. It prints nothing, because his store is still empty and the next verb builds it from the canon the pull brought:
+**`intent sync --apply` is the command after a pull, and the hooks run it for you.** It takes a pulled teammate's whiteboard as well, [below](#the-whiteboard-across-clones). Bob's first pull brings all three merges. It prints nothing, because his store is still empty and the next verb builds it from the canon the pull brought:
 
 ```
   $ git pull
@@ -462,39 +462,20 @@ A read verb such as `intent st show ST0002` still answers, from what the store h
 
 ## The whiteboard across clones
 
-A whiteboard's boards are committed files, and they travel like the rest of the canon. **A pull does not take them into your store**, so after pulling a teammate's board every `intent wb` verb refuses and names the step:
+A whiteboard's boards are committed files, and they travel like the rest of the canon. **The hook's `intent sync --apply` takes a pulled board into your store** when the file is the only side that moved: its bytes changed since your store last wrote or read it, and your store's own copy has not changed since. It names each board it takes on its `took` line:
 
 ```
   $ git pull
-  intent (post-merge): took 2 event file(s) from the files into the store
-  $ intent wb status
-  error: board.json on disk holds a board this store does not, for al: a migrated board the store never took in, or a change that reached the file from outside the store, most often a pull
-    remedy: nothing was written. `intent sync --to-store` carries each board.json into this store with everything it holds, OVER what the store holds for that node: ...
-  $ intent sync --to-store
-  warning: replacing the store from the extract OVERWRITES:
-    board al: node on disk only, would be ADDED
-    board al: [todo] 1 on disk only, would be ADDED
-  ok: store replaced from the canon extract, taking the 2 difference(s) listed above
-```
-
-The same holds for everything a board carries, messages included, and for a board your store already holds. Bob's node sent Alice's a message, and Alice's pull brought it. Until her store took it in, her own board write refused rather than render her store's older board over the file:
-
-```
-  $ intent wb pickup --node al
-  error: board.json on disk holds a board this store does not, for al, bo: a migrated board the store never took in, or a change that reached the file from outside the store, most often a pull
-    remedy: nothing was written. `intent sync --to-store` carries each board.json into this store with everything it holds, OVER what the store holds for that node: ...
-  $ intent sync --to-store
-  warning: replacing the store from the extract OVERWRITES:
-    board bo: node on disk only, would be ADDED
-    board al: message from bo recorded 2026-09-24T20:34:17.598Z on disk only, would be ADDED
-  ok: store replaced from the canon extract, taking the 2 difference(s) listed above
+  intent (post-merge): took 2 change(s) from the files into the store: board al, board bo; and 2 event file(s)
   $ intent wb pickup --node al
   ...
   messages (1)
     bo -> al Can I take the release checklist?
 ```
 
-**Run `intent sync --to-store` after pulling a teammate's board, and read its warning.** It replaces the store from the files on disk and lists each difference it takes before it takes it. When the same pull changes a thread too, the hook's own pass leaves the pulled board as it is and names it on its `left:` line with the same verb. A checkout of an older commit puts an older board on disk the same way; carrying that one rolls your store's board back, and the refusal names the other way out, which keeps the store's. Carrying boards on a pull the way threads are carried is issue 0554.
+**When both sides moved, the board is left and named.** A board your store changed and has not yet written to its file, meeting a pulled file, has two newer sides, and neither overwrites the other. The hook names it on its `left:` line, every `intent wb` verb refuses until it is resolved, and `intent sync --to-store` is the step: it replaces the store's board from the file and lists each difference before it takes it.
+
+**A checkout of an older commit is not taken.** It moves a board file as a pull does, but backwards: your store's board is newer than the file. The hook leaves it and names it on its `left:` line, and every `intent wb` verb refuses and names both ways out: `intent sync --to-store` takes the older board over the store's, and deleting the file and running `intent sync --to-disk` keeps the store's. Checking the newer commit out again puts back the file your store matches.
 
 ## Check the merge in CI
 

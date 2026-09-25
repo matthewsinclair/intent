@@ -429,16 +429,15 @@ fn find_row<'a>(value: &'a serde_json::Value, path: &str) -> Option<&'a serde_js
   }
 }
 
-/// Issue 0554 (b): **A BOARD A PULL BRINGS AHEAD OF THE STORE IS KEPT, NAMED,
-/// AND CARRIED BY THE VERB NAMED.** The hooks never take board rows into the
-/// store (0216), and their pass used to write the store's board over the
-/// pulled `board.json`: the teammate's message was deleted from the file with
-/// no line saying so, and the remedy then named would have finished the loss.
-/// Now the file is left, the hook's `left:` line names it and the verb, every
-/// board write refuses until it runs, and running it puts the message on the
-/// board.
+/// Issue 0554: **A BOARD A PULL BRINGS IS TAKEN INTO THE STORE BY THE PULL'S
+/// OWN PASS.** The hooks' pass used to write the store's board over the pulled
+/// `board.json`, deleting the teammate's message from the file with no line
+/// saying so (0554 (b), 3.2.1); 3.2.1 kept the file and named it, and every
+/// board verb then refused until `intent sync --to-store`. Now the pass takes
+/// the board -- its file is the only side that moved, since this clone's store
+/// has not written it since -- and says so on its `took` line (0554 (a)).
 #[test]
-fn a_pulled_board_is_kept_and_named_until_it_is_carried() {
+fn a_pulled_board_is_taken_into_the_store_by_the_pull() {
   let team = Team::new();
   let (alice, bob) = (team.alice(), team.bob());
   team.intent_ok(
@@ -496,42 +495,87 @@ fn a_pulled_board_is_kept_and_named_until_it_is_carried() {
     "the pull's pass wrote the store's board over the pulled message: {}",
     pulled.said
   );
-  let left = pulled
+  assert!(
+    !pulled.said.contains("left:"),
+    "the pull left the board it could take: {}",
+    pulled.said
+  );
+  let took = pulled
     .said
     .lines()
-    .find(|l| l.starts_with("intent (post-merge): left:"))
-    .unwrap_or_else(|| panic!("the hook named nothing it left: {}", pulled.said));
+    .find(|l| l.contains("from the files into the store"))
+    .unwrap_or_else(|| panic!("the hook named nothing it took: {}", pulled.said));
   assert!(
-    left.contains("intent/whiteboard/bo/board.json") && left.contains("intent sync --to-store"),
-    "the left line names the pulled board and the verb that carries it: {left}"
+    took.contains("board bo"),
+    "the took line names the board: {took}"
   );
 
-  let pickup = team.intent(&bob, &["wb", "pickup", "--node", "bo"]);
-  assert_ne!(
-    pickup.code, 0,
-    "a board write rendered over the pulled board: {}",
-    pickup.said
+  let shown = team.intent(&bob, &["wb", "show", "bo"]);
+  assert!(
+    shown.said.contains("The onboarding guide is yours"),
+    "the pull took the message onto the board: {}",
+    shown.said
   );
+  team.intent_ok(&bob, &["wb", "pickup", "--node", "bo"]);
+  let doctor = team.intent(&bob, &["doctor"]);
+  assert_eq!(doctor.code, 0, "{}", doctor.said);
+}
+
+/// Issue 0554 (a), the arm vc ruled on 2026-09-25: **A CHECKOUT OF AN OLDER
+/// COMMIT IS NOT A PULL.** It moves `board.json` as a pull does, but backwards,
+/// so the hook's pass leaves the board rather than taking it, and every board
+/// write refuses naming the way out, as 3.2.1 shipped. A checkout that moves
+/// only a board plans no ingest, so the hook prints nothing, as in 3.2.1. Taken, it would
+/// roll every node's board back on a branch switch in a shared tree.
+#[test]
+fn a_checkout_of_an_older_board_is_left_and_named() {
+  let team = Team::new();
+  let bob = team.bob();
+  team.intent_ok(
+    &bob,
+    &[
+      "wb",
+      "register",
+      "bo",
+      "--name",
+      "Bob's agent",
+      "--role",
+      "worker",
+    ],
+  );
+  team.commit(&bob, "wb: bo");
+  team.intent_ok(
+    &bob,
+    &[
+      "wb",
+      "add",
+      "todo",
+      "Read the onboarding guide",
+      "--node",
+      "bo",
+    ],
+  );
+  team.commit(&bob, "wb: bo reads the guide");
+
+  let checked_out = team.git(&bob, &["checkout", "-q", "HEAD~1"]);
+  assert!(
+    !checked_out.said.contains("board bo"),
+    "the older board was taken: {}",
+    checked_out.said
+  );
+  let pickup = team.intent(&bob, &["wb", "pickup", "--node", "bo"]);
+  assert_ne!(pickup.code, 0, "{}", pickup.said);
   assert!(
     pickup.said.contains("intent sync --to-store"),
     "{}",
     pickup.said
   );
-  let doctor = team.intent(&bob, &["doctor"]);
-  assert!(
-    !doctor.said.contains("--to-disk` regenerates it"),
-    "doctor names the discarding verb for the pulled board: {}",
-    doctor.said
-  );
-
-  team.intent_ok(&bob, &["sync", "--to-store"]);
   let shown = team.intent(&bob, &["wb", "show", "bo"]);
   assert!(
-    shown.said.contains("The onboarding guide is yours"),
-    "the named verb took the pulled message onto the board: {}",
+    shown.said.contains("Read the onboarding guide"),
+    "the store's newer board was rolled back: {}",
     shown.said
   );
-  team.intent_ok(&bob, &["wb", "pickup", "--node", "bo"]);
 }
 
 /// The control for the arm above (vc, 2026-09-24): **A BOARD THIS CLONE WROTE

@@ -359,6 +359,54 @@ pub fn blob(root: &Path, rev: &str, path: &str) -> Result<Option<Vec<u8>>, GitSt
   run(root, &["cat-file", "blob", &spec]).map(Some)
 }
 
+/// How far back [`moved_forward`] looks along a file's history for the bytes
+/// the store recorded. A pull moves a board by one merge, so its previous
+/// version is a few commits back; a record further back than this is answered
+/// "not forward", which keeps the board and names it rather than guessing.
+pub const FORWARD_DEPTH: usize = 64;
+
+/// Whether the bytes at `path` moved FORWARD from the ones whose SHA-256 is
+/// `recorded` (issue 0554 (a)): the working tree holds exactly `HEAD`'s version,
+/// and `recorded` is one of the file's earlier versions in `HEAD`'s history,
+/// within [`FORWARD_DEPTH`] of them.
+///
+/// **A PULL AND AN OLDER CHECKOUT BOTH MOVE THE FILE, AND ONLY THE HISTORY TELLS
+/// THEM APART.** After a pull, what the store last wrote is an ancestor of what
+/// is on disk. After a checkout of an older commit, it is a descendant, so it is
+/// not in `HEAD`'s history at all. A file that differs from `HEAD` was moved by
+/// something other than git, and is not forward either.
+pub fn moved_forward(root: &Path, path: &str, recorded: &str) -> Result<bool, GitStateError> {
+  let Some(head) = blob(root, "HEAD", path)? else {
+    return Ok(false);
+  };
+  if std::fs::read(root.join(path)).ok().as_deref() != Some(head.as_slice()) {
+    return Ok(false);
+  }
+  let depth = FORWARD_DEPTH.to_string();
+  let spec = format!("./{path}");
+  let log = run(
+    root,
+    &[
+      "log",
+      "--full-history",
+      "--format=%H",
+      "-n",
+      &depth,
+      "HEAD",
+      "--",
+      &spec,
+    ],
+  )?;
+  for rev in String::from_utf8_lossy(&log).lines() {
+    if let Some(bytes) = blob(root, rev, path)?
+      && crate::model::sha256_hex(&bytes) == recorded
+    {
+      return Ok(true);
+    }
+  }
+  Ok(false)
+}
+
 /// Stage exactly `paths`, removals included (`git add -A -- <paths>`).
 ///
 /// **THE ONLY GIT WRITE `intent sync` MAKES.** The caller names the files it

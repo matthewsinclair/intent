@@ -2498,6 +2498,18 @@ impl Held<'_> {
     insert_absent_events(&self.tx, events)
   }
 
+  /// Replace the whiteboard tables with `boards` under the held lock -- the
+  /// write [`Store::replace_boards`] makes in a transaction of its own (issue
+  /// 0554 (a)). The restore is a diff, so a row it leaves alone keeps its id.
+  pub fn restore_boards(self, boards: &[Board]) -> Result<Self, StoreError> {
+    let mut w = WbWrite {
+      tx: self.tx,
+      moved: 0,
+    };
+    w.restore(boards)?;
+    Ok(Self { tx: w.tx })
+  }
+
   /// Commit what was recorded and let the next writer in.
   pub fn release(self) -> Result<(), StoreError> {
     self.tx.commit()?;

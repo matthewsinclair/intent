@@ -7785,6 +7785,103 @@ impl Facade {
     ))
   }
 
+  /// Take into the store each board a pull brought that the store has not
+  /// moved past, and name the nodes it took (issue 0554 (a)).
+  ///
+  /// **BOTH SIDES ARE ASKED, AND ONLY ONE MAY HAVE MOVED.** A board is ahead
+  /// when its `board.json` moved since the file index recorded it and the
+  /// store holds it differently ([`crate::model::boards_ahead_of_the_store`]).
+  /// That alone is true after a pull AND after this clone's own board write
+  /// whose render has not landed -- the shape issue 0216 records, where taking
+  /// the file reverts the write. So a board is taken only when the store's own
+  /// render of it still hashes to the recorded bytes: the store has not moved
+  /// since it last wrote or read that file, and the file is the only side that
+  /// did. `board.json` carries every field of every row the store keeps but
+  /// the rows' `updated_at` and their integer ids, and the restore is a diff,
+  /// so a row the carry leaves alone keeps both. A board both sides moved is
+  /// left, kept and named, as before.
+  ///
+  /// **`sync --apply` ALONE CALLS THIS.** intentd's pass never carries boards
+  /// (0216), so the carry has one writer, under the lock, and a store that
+  /// moved since the question was asked is left to the next run.
+  pub fn carry_pulled_boards(&mut self) -> Result<Vec<String>, FacadeError> {
+    let baseline = self.store.data_version().map_err(FacadeError::Store)?;
+    let (carried, next) = self.pulled_boards()?;
+    if carried.is_empty() {
+      return Ok(carried);
+    }
+    let paths: Vec<std::path::PathBuf> = carried
+      .iter()
+      .map(|node| self.project.board_json(node))
+      .collect();
+    let entries = ingest::canon_file_entries(&self.project, &paths).map_err(FacadeError::Ingest)?;
+    let Some(lock) = self
+      .store
+      .hold_unless_moved(baseline)
+      .map_err(FacadeError::Store)?
+    else {
+      return Ok(Vec::new());
+    };
+    let lock = lock.restore_boards(&next).map_err(FacadeError::Store)?;
+    lock
+      .record_file_entries(&entries)
+      .map_err(FacadeError::Store)?;
+    lock.release().map_err(FacadeError::Store)?;
+    Ok(carried)
+  }
+
+  /// [`Facade::carry_pulled_boards`]'s question, asked without writing: the
+  /// nodes it would take, and the boards the store would then hold. The plan
+  /// asks it too, so a pull that brings only a board plans the step that
+  /// takes it.
+  fn pulled_boards(&self) -> Result<(Vec<String>, Vec<Board>), FacadeError> {
+    let held = self.boards()?;
+    let (on_disk, _not_boards) =
+      ingest::boards_on_disk(&self.project).map_err(FacadeError::Ingest)?;
+    let index = self.store.file_index().map_err(FacadeError::Store)?;
+    let moved = ingest::boards_moved_on_disk(&self.project, &index).map_err(FacadeError::Ingest)?;
+    let recorded: std::collections::HashMap<&str, &str> = index
+      .iter()
+      .map(|e| (e.path.as_str(), e.sha256.as_str()))
+      .collect();
+    let mut carried = Vec::new();
+    for node in crate::model::boards_ahead_of_the_store(&held, &on_disk, &moved) {
+      let still = match held.iter().find(|b| b.node.moniker == node) {
+        None => true,
+        Some(board) => {
+          let render =
+            to_canonical_json(board).map_err(|e| FacadeError::Store(StoreError::Serde(e)))?;
+          let rel = self.project.relative(&self.project.board_json(&node));
+          match recorded.get(rel.as_str()) {
+            Some(sha) if *sha == crate::model::sha256_hex(render.as_bytes()) => {
+              // **AND THE FILE MOVED FORWARD** (vc, 2026-09-25): a pull, not a
+              // checkout of an older commit, which 3.2.1 keeps and names with
+              // both ways out -- taken, it would roll every node's board back
+              // on a branch switch in a shared tree.
+              crate::gitstate::is_work_tree(self.project.root())
+                && crate::gitstate::moved_forward(self.project.root(), &rel, sha)
+                  .map_err(FacadeError::Git)?
+            }
+            _ => false,
+          }
+        }
+      };
+      if still {
+        carried.push(node);
+      }
+    }
+    let mut next: Vec<Board> = held
+      .into_iter()
+      .filter(|b| !carried.contains(&b.node.moniker))
+      .collect();
+    next.extend(
+      on_disk
+        .into_iter()
+        .filter(|b| carried.contains(&b.node.moniker)),
+    );
+    Ok((carried, next))
+  }
+
   /// Refuse when `node`'s migrated `board.json` is one this store has not
   /// taken in, naming every such node (issue 0535).
   fn refuse_if_the_store_lacks(&self, node: &str) -> Result<(), FacadeError> {
@@ -9551,7 +9648,18 @@ impl Facade {
     } else {
       let render = self.shadow_ingest(scope)?;
       let views = self.organize_preview_over(&render.canon)?;
-      steps.push(Step::ingest(render.taken));
+      // **A PULLED BOARD THE APPLY WILL TAKE IS PART OF THE STEP** (issue 0554
+      // (a)), or a pull that brings only a board plans nothing to take and the
+      // apply never reaches the carry.
+      let mut taken = render.taken;
+      taken.extend(
+        self
+          .pulled_boards()?
+          .0
+          .into_iter()
+          .map(|node| format!("board {node}")),
+      );
+      steps.push(Step::ingest(taken));
       if !conflicts.views.is_empty() {
         steps.push(Step::resolve_views(conflicts.views.clone()));
       }
@@ -9792,7 +9900,11 @@ impl Facade {
         (Action::Renumber { minted, from, to }, _) => self.renumber_in_merge(*minted, from, to)?,
         (Action::Ingest { .. }, _) => {
           self.write_views_from_store(&unmerged_views)?;
-          let ingested = self.ingest_from_disk(scope)?;
+          let boards = self.carry_pulled_boards()?;
+          let mut ingested = self.ingest_from_disk(scope)?;
+          ingested
+            .taken
+            .extend(boards.iter().map(|node| format!("board {node}")));
           if !ingested.kept.is_empty() {
             applied.left.push(Left {
               step: step.clone(),

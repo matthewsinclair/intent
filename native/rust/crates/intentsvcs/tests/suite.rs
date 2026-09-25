@@ -403,6 +403,8 @@ mod root_files_generated;
 #[path = "schema_faces_drift.rs"]
 mod schema_faces_drift;
 
+#[path = "a_pulled_board_is_taken_only_when_the_store_is_still.rs"]
+mod a_pulled_board_is_taken_only_when_the_store_is_still;
 #[path = "skills_sync.rs"]
 mod skills_sync;
 #[path = "status_gate_states_what_it_observed.rs"]
