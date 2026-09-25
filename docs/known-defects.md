@@ -1,6 +1,6 @@
-# Known defects in v3.2.2
+# Known defects in v3.2.3
 
-**Every defect on this page has been run against the build v3.2.2 is cut from.** Not inferred from our issue register: driven against that build before its version stamp moved, when `intent --version` printed `intent 3.2.1 (4948804861f6b431d3747ae69c7ec8119e871ccf) dev`, each in a fresh scratch project under an isolated `HOME`. Where a claim could not be driven it is not on the page, and the last sections say what that leaves out.
+**Every defect on this page has been run against the build v3.2.3 is cut from.** Not inferred from our issue register: driven against that build before its version stamp moved, when `intent --version` printed `intent 3.2.2 (33d4752671cb4950ea585ff22f1ccc3f914461a3) dev`, each in a fresh scratch project under an isolated `HOME`. Where a claim could not be driven it is not on the page, and the last sections say what that leaves out.
 
 **A defect is on this page if you can hit it by following the documentation correctly.** Something that only bites a maintainer editing the register, or a team sharing one checkout, is recorded against the issue rather than here.
 
@@ -14,15 +14,15 @@
 
 ```
   $ intent search KDPROBE1 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":["src/probe1.rs"],"complete":true,"reconciled":false,"reconciled_at":"2026-09-25T13:10:02.781Z"}
+  {"hits":["src/probe1.rs"],"complete":true,"reconciled":false,"reconciled_at":"2026-09-25T23:11:51.675Z"}
   $ intent search KDPROBE2 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-09-25T13:10:02.781Z"}
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-09-25T23:11:51.675Z"}
   $ intent search KDPROBE3 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-09-25T13:10:02.781Z"}
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-09-25T23:11:51.675Z"}
   $ intent search KDPROBE4 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-09-25T13:10:02.781Z"}
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-09-25T23:11:51.675Z"}
   $ intent search KDPROBE5 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-09-25T13:10:02.781Z"}
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-09-25T23:11:51.675Z"}
   $ intent daemon stop
   ok: intentd stopped
   $ intent search KDPROBE5 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled}'
@@ -39,7 +39,7 @@ The same search with the daemon stopped reconciles first and finds the file. How
 
 ```
   $ intent st list
-  error: this project has not been migrated to Intent v3 -- it declares Intent 3.2.1, and 1 steel thread carries v2 canon this binary cannot read (ST0099)
+  error: this project has not been migrated to Intent v3 -- it declares Intent 3.2.2, and 1 steel thread carries v2 canon this binary cannot read (ST0099)
     remedy: run `intent upgrade` to migrate this project to Intent v3
 ```
 
