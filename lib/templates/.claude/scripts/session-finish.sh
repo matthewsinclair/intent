@@ -10,7 +10,13 @@
 #   - Invoked by `.claude/settings.json` Stop hook, via `intent claude hook
 #     session-finish`.
 #   - Receives Claude Code Stop event JSON on stdin (unused).
-#   - Writes to stdout.
+#   - Writes one JSON object to stdout, `{"systemMessage": "<reminder>"}`.
+#     Claude Code shows a hook's `systemMessage` in the transcript
+#     (code.claude.com/docs/en/hooks-guide: "Message shown in transcript").
+#     Plain stdout is added to context only for UserPromptSubmit,
+#     UserPromptExpansion, SessionStart and PostModelSwitch, and the docs do not
+#     say where a Stop hook's plain stdout goes, so the reminder this hook
+#     printed as plain text may have reached nobody (issue 0576).
 #   - EXIT 0 ALWAYS, AND NEVER 2. This is a hard contract, not a default --
 #     see below.
 #
@@ -59,10 +65,12 @@ if [ -n "$dirty_count" ] && [ "$dirty_count" = "0" ]; then
   exit 0
 fi
 
+# Built with printf rather than jq, which this hook must not depend on: the
+# message is fixed text and a count of digits, so nothing in it needs escaping.
 if [ -n "$dirty_count" ]; then
-  printf 'Session wrap-up reminder: %s uncommitted path(s). Run /in-finish to update ST docs, intent/wip.md, and prepare a clean commit.\n' "$dirty_count"
+  printf '{"systemMessage":"Session wrap-up reminder: %s uncommitted path(s). Run /in-finish to update ST docs, intent/wip.md, and prepare a clean commit."}\n' "$dirty_count"
 else
-  printf 'Session wrap-up reminder: run /in-finish to update ST docs, intent/wip.md, and prepare a clean commit.\n'
+  printf '{"systemMessage":"Session wrap-up reminder: run /in-finish to update ST docs, intent/wip.md, and prepare a clean commit."}\n'
 fi
 
 exit 0
