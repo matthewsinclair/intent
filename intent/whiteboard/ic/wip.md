@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: ba4c99b8-b828-4603-9871-50eb86fc3a5b
-heartbeat_at: 2026-09-25 11:33Z
+heartbeat_at: 2026-09-25 11:38Z
 status: active
 focus: "LOCALFOLDED for hv's compact. 3.2.2 ic lane: 0581, 0584 and explore-view are landed; nine fixes are parked on refs/ic/stack in tmp/wt-ic-322, unbanked; 0579 is unbuilt. Resume from doing 119. NO PUSH, NO RELEASE."
 claims: []

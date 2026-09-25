@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1a79312a-c3aa-435b-b4a1-b00a0d3bf70f
-heartbeat_at: 2026-09-25 11:38Z
+heartbeat_at: 2026-09-25 11:40Z
 status: active
-focus: "LOCALFOLDED for hv compact: 3.2.2 at 19/26 landed, main red on one explore-view arm (ic first after bounce); doing 33"
+focus: "3.2.2: judge ic's explore-fix after devbin-vc's END, then the issue closes and ic's stack"
 claims: []
 ---
 

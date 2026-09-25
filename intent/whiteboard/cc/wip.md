@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 32974d4a-0175-4bfb-b198-cdac20b4d58b
-heartbeat_at: 2026-09-25 11:33Z
+heartbeat_at: 2026-09-25 11:38Z
 status: active
 focus: "LOCALFOLDED for hv's compact. 3.2.2 lane complete: 4 landed; 0554a, 0555 and tostore banked for vc's whole-suite judge on 67f222f76. Idle unless vc sends work. Resume is doing 74. NO PUSH, NO RELEASE."
 claims: []
