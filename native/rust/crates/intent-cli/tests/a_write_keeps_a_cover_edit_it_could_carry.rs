@@ -103,3 +103,28 @@ fn an_edit_the_cover_cannot_carry_is_overwritten_with_the_warning() {
     "the overwrite is named:\n{out}"
   );
 }
+
+/// The remedy's own preview: **`sync --to-store` NAMES THE COVER EDIT IT
+/// CARRIES.** It compared only canon files against the store, so while it
+/// carried a hand-typed Objective over the store's it printed that it
+/// overwrote nothing.
+#[test]
+fn the_restore_names_the_cover_edit_it_carries() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let root = dir.path();
+  step(root, &["init", "probe"]);
+  step(root, &["st", "new", "A thread with a reason to exist"]);
+  step(root, &["st", "edit", "ST0001"]);
+  type_an_objective(root, "Typed by hand into the cover.");
+
+  let (ok, said) = intent(root, &["sync", "--to-store", "ST0001"]);
+  assert!(ok, "{said}");
+  assert!(!said.contains("overwrites nothing"), "{said}");
+  assert!(
+    said.contains("OVERWRITES")
+      && said.contains("ST0001: intent/st/ST0001/info.md carries an edit"),
+    "the carried edit is named: {said}"
+  );
+  let (_, shown) = intent(root, &["st", "show", "ST0001"]);
+  assert!(shown.contains("Typed by hand into the cover."), "{shown}");
+}

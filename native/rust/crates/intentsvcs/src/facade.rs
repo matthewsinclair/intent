@@ -10857,6 +10857,29 @@ impl Facade {
         None => out.push(format!("{}: absent from disk, would be DELETED", thread.id)),
       }
     }
+    // **A COVER EDIT IS AN OVERWRITE TOO, AND IT LIVES IN NO CANON FILE**, so
+    // the comparison above never saw one and the verb said it overwrote
+    // nothing while it carried an Objective over the store's. Named by the
+    // carry's own two tests: the file moved since the store recorded it, and
+    // `views::carriable_cover` says the edit is one the read-back takes.
+    let index = self.store.file_index().map_err(FacadeError::Store)?;
+    let ctx = self.render_ctx()?;
+    for thread in &stored_threads {
+      let cover = self.project.info_view(&thread.id);
+      let Ok(disk) = std::fs::read_to_string(&cover) else {
+        continue;
+      };
+      let rel = self.project.relative(&cover);
+      let moved = index
+        .iter()
+        .any(|e| e.path == rel && e.sha256 != crate::model::sha256_hex(disk.as_bytes()));
+      if moved && views::carriable_cover(thread, &ctx, &disk) {
+        out.push(format!(
+          "{}: {rel} carries an edit to its Objective or Context, which REPLACES the store's",
+          thread.id
+        ));
+      }
+    }
     for issue in &stored_issues {
       match on_disk.issues.iter().find(|i| i.number == issue.number) {
         Some(same) if same == issue => {}
