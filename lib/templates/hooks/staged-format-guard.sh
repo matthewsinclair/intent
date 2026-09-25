@@ -197,14 +197,24 @@ check_markdown() {
     UNENFORCED="$UNENFORCED markdown(prettier)"
     return 0
   fi
-  local f bad=""
+  local f rc err bad="" unmeasured=""
   for f in "${STAGED[@]}"; do
     CHECKED=$((CHECKED + 1))
-    git show ":$f" 2>/dev/null | prettier --stdin-filepath "$f" --check >/dev/null 2>&1 \
-      || bad="$bad
+    # prettier's exit code says which: 1 is "not formatted", 2 is
+    # an error -- a config it cannot read, a file it cannot parse -- and an
+    # error is not a verdict on the file's formatting.
+    err="$(git show ":$f" 2>/dev/null | prettier --stdin-filepath "$f" --check 2>&1 >/dev/null)" && rc=0 || rc=$?
+    if [ "$rc" -eq 1 ]; then
+      bad="$bad
       $f"
+    elif [ "$rc" -ne 0 ]; then
+      CHECKED=$((CHECKED - 1))
+      unmeasured="$unmeasured
+      $f: $(printf '%s' "$err" | head -1)"
+    fi
   done
   [ -n "$bad" ] && refuse_files "markdown" "$bad" "prettier --write <the files listed above>"
+  [ -n "$unmeasured" ] && unmeasured_files "markdown" "$unmeasured"
   return 0
 }
 
@@ -219,19 +229,33 @@ check_elixir() {
     UNENFORCED="$UNENFORCED elixir(mix)"
     return 0
   fi
-  local f probe bad=""
+  local f probe err bad="" unmeasured=""
   for f in "${STAGED[@]}"; do
     CHECKED=$((CHECKED + 1))
     probe="$(dirname "$f")/.staged-check-$$.$(basename "$f")"
     PROBES="$PROBES
 $probe"
     if git show ":$f" > "$probe" 2>/dev/null; then
-      mix format --check-formatted "$probe" >/dev/null 2>&1 || bad="$bad
-      $f"
+      # mix exits 1 for an unformatted file AND for one it cannot parse, so the
+      # exit code cannot say which. Its own `--check-formatted`
+      # line names the unformatted case; anything else is an error, reported
+      # as not checked, with its first line.
+      if ! err="$(mix format --check-formatted "$probe" 2>&1 >/dev/null)"; then
+        case "$err" in
+          *--check-formatted*) bad="$bad
+      $f" ;;
+          *)
+            CHECKED=$((CHECKED - 1))
+            err="${err//$(basename "$probe")/$(basename "$f")}"
+            unmeasured="$unmeasured
+      $f: $(printf '%s' "$err" | grep -v '^mix format failed for file' | head -1)" ;;
+        esac
+      fi
     fi
     rm -f "$probe"
   done
   [ -n "$bad" ] && refuse_files "elixir" "$bad" "mix format <the files listed above>"
+  [ -n "$unmeasured" ] && unmeasured_files "elixir" "$unmeasured"
   return 0
 }
 
@@ -332,6 +356,8 @@ $errfile"
     # named beside it: a single variable printed after the loop showed the
     # operator the LAST file's stderr, which was empty whenever that file passed.
     if [ -n "$err" ]; then
+      # Not checked, so not counted in the `ok --` line's checked files.
+      CHECKED=$((CHECKED - 1))
       unmeasured="$unmeasured
       $f: $(printf '%s' "$err" | head -1)"
     elif [ "$rc" -ne 0 ]; then

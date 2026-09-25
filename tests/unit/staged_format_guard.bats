@@ -253,6 +253,47 @@ formatted_rust() { printf 'fn main() {\n    let x = 1;\n    println!("{}", x);\n
   [[ "$output" == *"prettier --write"* ]]
 }
 
+# ISSUE 0572: A FILE THE FORMATTER COULD NOT CHECK IS NOT A FILE IT FOUND
+# UNFORMATTED, for every formatter and not only Rust. prettier says which by its
+# exit code (1 unformatted, 2 an error), and mix exits 1 for both, so its own
+# `--check-formatted` line is what names an unformatted file. Read as "not
+# formatted", an unclosed `(` was refused with `mix format` as the remedy, and
+# that remedy fails on the same parse error.
+@test "a staged Elixir file mix cannot parse is reported as not checked, never as not formatted" {
+  require_tool mix "whether an unparseable Elixir file is told apart from an unformatted one"
+  scratch_repo '"elixir"'
+  printf 'defmodule A do\n  def f(x) do\n    (x\n  end\nend\n' > bad.ex
+  git add bad.ex
+  run bash "$GUARD"
+  [[ "$output" != *"elixir is not formatted"* ]]
+  [[ "$output" == *"could not be checked"* ]]
+  [[ "$output" == *"bad.ex"* ]]
+
+  # THE CONTROL: an unformatted file that parses is still refused as such.
+  printf 'defmodule A do\ndef f(x),   do: x\nend\n' > ugly.ex
+  git rm -q --cached bad.ex
+  rm bad.ex
+  git add ugly.ex
+  run bash "$GUARD"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"elixir is not formatted"* ]]
+  [[ "$output" == *"ugly.ex"* ]]
+}
+
+@test "a staged Markdown file prettier cannot check is reported as not checked, never as not formatted" {
+  require_tool prettier "whether a Markdown file prettier errors on is told apart from an unformatted one"
+  scratch_repo '"markdown"'
+  printf '{ "semi": \n' > .prettierrc
+  printf '# Title\n' > doc.md
+  git add doc.md
+  run bash "$GUARD"
+  [[ "$output" != *"markdown is not formatted"* ]]
+  [[ "$output" == *"could not be checked"* ]]
+  [[ "$output" == *"doc.md"* ]]
+  # A file not checked is not counted as checked in the all-clear line.
+  [[ "$output" == *"ok -- 0 staged file(s) checked"* ]]
+}
+
 # The probe path, which only runs when the staged blob differs from the
 # worktree. A lone `.rs` in a scratch directory cannot resolve `mod common;`,
 # and rustfmt then exits non-zero -- which an arm reading the exit code alone
