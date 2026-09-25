@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1a79312a-c3aa-435b-b4a1-b00a0d3bf70f
-heartbeat_at: 2026-09-25 11:40Z
+heartbeat_at: 2026-09-25 15:54Z
 status: active
-focus: "3.2.2: judge ic's explore-fix after devbin-vc's END, then the issue closes and ic's stack"
+focus: "3.2.2 cut, published and swept across all 22 estates; idle for hv's next order"
 claims: []
 ---
 
@@ -25,7 +25,7 @@ claims: []
 
 ## TODO
 
-- FLEET SWEEP, right after the 3.2.1 cut (hv's ruling of 2026-09-23), in every estate that ALREADY has Intent (hv decision 31: nothing is installed where Intent is absent): intent claude upgrade --apply, then intent todo update (so 0528's generator marker reaches every todo view, the sleeping estates included, where no write would re-render it and Utilz's todo guard stays blind), then intent doctor, one commit per estate, no push. Hold 27's remaining guard wiring rides the same pass. Each project's own vc does its estate where one is running; the rest are done from here.
+_(none)_
 
 ## Holds
 
