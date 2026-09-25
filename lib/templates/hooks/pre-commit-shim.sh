@@ -26,7 +26,7 @@
 #
 # ---- HOW THE ROOT IS FOUND, AND WHAT IS DELIBERATELY NOT TRIED ----
 #
-# One line in `$XDG_DATA_HOME/intent/home` (default `~/.local/share/intent/home`), written by `intent bootstrap` from `install::home()`.
+# One line in `$XDG_DATA_HOME/intent/home` (default `~/.local/share/intent/home`, and the default when the variable is not an absolute path), written by `intent bootstrap` from `install::home()`.
 # The source of the answer publishes its own cache; nothing else computes it.
 #
 # **`$INTENT_HOME` IS NOT READ FROM THE ENVIRONMENT, AND THAT IS NOT AN
@@ -56,7 +56,15 @@
 
 set -u
 
-_home_file="${XDG_DATA_HOME:-${HOME}/.local/share}/intent/home"
+# A value that is not an absolute path is ignored, as the XDG specification
+# says and as `userstate::Dirs::resolve` reads it. Reading it as given sent a
+# relative `XDG_DATA_HOME` here to a pointer `intent bootstrap` never wrote,
+# while `bootstrap --check` said OK.
+case "${XDG_DATA_HOME:-}" in
+  /*) _data_home="$XDG_DATA_HOME" ;;
+  *) _data_home="${HOME}/.local/share" ;;
+esac
+_home_file="${_data_home}/intent/home"
 _self="pre-commit (intent shim)"
 
 # `--where` answers what this shim resolved and exits, without running a gate.

@@ -166,6 +166,25 @@ GATE
   refute_output_contains "state:    OK"
 }
 
+@test "a relative XDG_DATA_HOME is ignored, as intent bootstrap ignores it (issue 0562)" {
+  make_install "${TEST_TEMP_DIR}/install"
+  echo "${TEST_TEMP_DIR}/install" > "${FAKE_HOME}/.local/share/intent/home"
+  cd "$TEST_TEMP_DIR"
+  HOME="${FAKE_HOME}" XDG_DATA_HOME=reldata run bash "$SHIM" --where
+  assert_success
+  assert_output_contains "pointer:  ${FAKE_HOME}/.local/share/intent/home"
+  assert_output_contains "state:    OK"
+}
+
+@test "an absolute XDG_DATA_HOME is still read" {
+  make_install "${TEST_TEMP_DIR}/install"
+  mkdir -p "${TEST_TEMP_DIR}/xdg/intent"
+  echo "${TEST_TEMP_DIR}/install" > "${TEST_TEMP_DIR}/xdg/intent/home"
+  HOME="${FAKE_HOME}" XDG_DATA_HOME="${TEST_TEMP_DIR}/xdg" run bash "$SHIM" --where
+  assert_success
+  assert_output_contains "pointer:  ${TEST_TEMP_DIR}/xdg/intent/home"
+}
+
 @test "--where on a broken pointer reports UNUSABLE and exits non-zero" {
   mkdir -p "${TEST_TEMP_DIR}/not-an-install"
   echo "${TEST_TEMP_DIR}/not-an-install" > "${FAKE_HOME}/.local/share/intent/home"
