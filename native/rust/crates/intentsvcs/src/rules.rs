@@ -246,9 +246,18 @@ impl Library {
     // A subject naming a file OUTSIDE the library still gets validated, and it
     // joins the corpus rather than replacing it -- that is how `rules validate
     // <a fixture>` can report a duplicate id against the shipped rules.
+    //
+    // **A PATH IS THE FILE IT NAMES, HOWEVER IT IS SPELLED** (issue 0575). The
+    // corpus holds absolute paths, so a canon rule named by a relative one
+    // compared unequal, joined the corpus a second time and reported itself as
+    // a duplicate id. Both sides are resolved before they are compared.
+    let same_file = |a: &Path, b: &Path| match (a.canonicalize(), b.canonicalize()) {
+      (Ok(a), Ok(b)) => a == b,
+      _ => a == b,
+    };
     if let Some(name) = subject {
       let path = Path::new(name);
-      if path.is_file() && !docs.iter().any(|d| d.path == path) {
+      if path.is_file() && !docs.iter().any(|d| same_file(&d.path, path)) {
         docs.push(self.doc(path, Provenance::Canon)?);
       }
     }
@@ -262,7 +271,9 @@ impl Library {
     };
     let selected: Vec<&RuleDoc> = docs
       .iter()
-      .filter(|d| d.path == Path::new(name) || d.front.scalars.get("id").is_some_and(|i| i == name))
+      .filter(|d| {
+        same_file(&d.path, Path::new(name)) || d.front.scalars.get("id").is_some_and(|i| i == name)
+      })
       .collect();
     let paths: Vec<&PathBuf> = selected.iter().map(|d| &d.path).collect();
     Ok((

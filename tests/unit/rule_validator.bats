@@ -96,6 +96,17 @@ EXEMPLAR_RULE="${INTENT_PROJECT_ROOT}/intent/plugins/claude/rules/elixir/test/st
   refute_output_contains "does not resolve"
 }
 
+# Issue 0575: a canon rule named by a RELATIVE path is the rule it names. The
+# path was compared with the corpus's absolute paths as written, so the rule
+# joined the corpus a second time and reported itself as a duplicate id.
+@test "rules validate reads a canon rule named by a relative path as that rule" {
+  cd "$INTENT_PROJECT_ROOT"
+  run run_intent claude rules validate "intent/plugins/claude/rules/elixir/test/strong-assertions/RULE.md"
+  assert_success
+  assert_output_contains "1 ok"
+  refute_output_contains "is declared by"
+}
+
 # ====================================================================
 # Error messages for bad inputs
 # ====================================================================
