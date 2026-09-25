@@ -155,7 +155,7 @@ fn a_stale_file_keeps_its_syntax_level_and_each_state_is_named() {
   );
   assert_eq!(
     answer["index"]["resolution"],
-    json!({"rust": {"state": STALE, "tool": "fixture-analyzer", "stale": ["src/two.rs"]}}),
+    json!({"rust": {"state": STALE, "tool": "fixture-analyzer", "stale": ["src/two.rs"], "stale_total": 1}}),
     "{answer}"
   );
   let stale_words = format!(
@@ -196,6 +196,7 @@ fn a_stale_file_keeps_its_syntax_level_and_each_state_is_named() {
       "line": 3,
       "detail": "the build script panicked",
       "stale": ["src/two.rs"],
+      "stale_total": 1,
     }),
     "{answer}"
   );

@@ -189,10 +189,23 @@ pub struct ResolutionState {
   /// What the tool said, for a run that stored nothing.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub detail: Option<String>,
-  /// The files whose resolved rows no longer describe the bytes the index
-  /// holds, in path order. A reference in one keeps its syntax level.
+  /// The first [`STALE_NAMED`] files whose resolved rows no longer describe
+  /// the bytes the index holds, in path order. A reference in one keeps its
+  /// syntax level.
+  ///
+  /// **BOUNDED, WITH THE TOTAL BESIDE IT** (issue 0549). Every answer carried
+  /// the whole list, and it does not change between answers until `intent
+  /// index resolve` runs, so an agent paid for every stale file on every
+  /// lookup. `intent index status` lists them all.
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub stale: Vec<String>,
+  /// How many files are stale in all, of which `stale` names the first few.
+  #[serde(default, skip_serializing_if = "is_zero")]
+  pub stale_total: usize,
+}
+
+fn is_zero(n: &usize) -> bool {
+  *n == 0
 }
 
 impl ResolutionState {
@@ -217,8 +230,15 @@ impl ResolutionState {
       path: run.path.clone(),
       line: run.line,
       detail: run.detail.clone(),
-      stale: run.stale.clone(),
+      stale: run.stale.iter().take(STALE_NAMED).cloned().collect(),
+      stale_total: run.stale.len(),
     })
+  }
+
+  /// How many files are stale. A peer that sent the whole list and no total
+  /// is read as the list's length.
+  pub fn stale_count(&self) -> usize {
+    self.stale_total.max(self.stale.len())
   }
 }
 
@@ -288,6 +308,7 @@ pub fn resolution_states(
         line: None,
         detail: None,
         stale: Vec::new(),
+        stale_total: 0,
       },
     );
   }
@@ -366,10 +387,13 @@ pub fn resolution_words(lang: &str, state: &ResolutionState) -> String {
       .take(STALE_NAMED)
       .map(String::as_str)
       .collect();
-    let more = state.stale.len() - named.len();
+    let more = state.stale_count() - named.len();
     facts.push(match more {
       0 => format!("stale: {}", named.join(", ")),
-      more => format!("stale: {} and {more} more", named.join(", ")),
+      more => format!(
+        "stale: {} and {more} more -- `intent index status` lists them all",
+        named.join(", ")
+      ),
     });
   }
   let mut words = format!(
@@ -1834,6 +1858,34 @@ mod tests {
         resolution_phrase(resolved::STALE)
       )
     );
+
+    // **THE ENVELOPE BOUNDS THE LIST THE WAY THE WORDS DO** (issue 0549). Every
+    // answer carried every stale file, so an agent paid for the whole list on
+    // each lookup while the human form named five and counted the rest. It now
+    // carries the first five and the total, and names the verb that lists them.
+    let many: Vec<String> = (0..8).map(|i| format!("src/f{i}.rs")).collect();
+    let many_refs: Vec<&str> = many.iter().map(String::as_str).collect();
+    let bounded = ResolutionState::of(&run(resolved::CURRENT, &many_refs)).expect("stale");
+    assert_eq!(
+      bounded.stale,
+      many[..STALE_NAMED].to_vec(),
+      "the first five, in path order"
+    );
+    assert_eq!(bounded.stale_total, 8, "and the whole count");
+    let json = serde_json::to_value(&bounded).expect("serialises");
+    assert_eq!(json["stale"].as_array().map(Vec::len), Some(STALE_NAMED));
+    assert_eq!(json["stale_total"], 8);
+    assert!(
+      resolution_words("rust", &bounded).ends_with(
+        "stale: src/f0.rs, src/f1.rs, src/f2.rs, src/f3.rs, src/f4.rs and 3 more -- `intent index status` lists them all"
+      ),
+      "{}",
+      resolution_words("rust", &bounded)
+    );
+    // A peer that sends the whole list and no total still reads as its length.
+    let older: ResolutionState =
+      serde_json::from_str(r#"{"state":"stale","stale":["a","b"]}"#).expect("reads");
+    assert_eq!(older.stale_count(), 2);
 
     let runs = BTreeMap::from([
       ("rust".to_string(), run(resolved::CURRENT, &[])),
