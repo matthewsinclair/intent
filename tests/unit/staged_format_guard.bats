@@ -218,8 +218,10 @@ formatted_rust() { printf 'fn main() {\n    let x = 1;\n    println!("{}", x);\n
   unformatted_rust > main.rs
   git add main.rs
 
-  run env PATH=/usr/bin:/bin command -v rustfmt
-  [ "$status" -ne 0 ]
+  # Through a shell: `command` is a builtin, so `env` could not exec it and the
+  # 127 that answered said nothing about rustfmt (BW01).
+  run env PATH=/usr/bin:/bin sh -c 'command -v rustfmt'
+  [ "$status" -eq 1 ]
 
   run env PATH=/usr/bin:/bin bash "$GUARD"
   [ "$status" -eq 0 ]
