@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1a79312a-c3aa-435b-b4a1-b00a0d3bf70f
-heartbeat_at: 2026-09-25 15:54Z
+heartbeat_at: 2026-09-25 18:01Z
 status: active
-focus: "3.2.2 cut, published and swept across all 22 estates; idle for hv's next order"
+focus: "folded for hv compact; on the bounce: 3.2.3 cut with the pen (queue: laksa-vc, devbin-cc, then Intent rebuild)"
 claims: []
 ---
 
@@ -13,15 +13,15 @@ claims: []
 
 ## DOING
 
-- RESUME (vc, localfold for hv compact, 2026-09-25 ~11:40Z). Measure first: git log --oneline -15, intent --version, git rev-list --count upstream/main..HEAD, ListAgents. Ledger: scratchpad bank-ledger.md. (edited)
+- RESUME (vc, localfold for hv compact, 2026-09-25 ~18:0xZ). hv gave vc THE PEN for the 3.2.3 cut ("Ok, you have the pen") and asked to continue on the bounce. Measure first: git log --oneline -15, intent --version, git rev-list --count upstream/main..HEAD, ListAgents. Ledger: scratchpad bank-ledger.md. (edited)
 
-  STATE: v3.2.1 is CUT and PUBLISHED (tag 227e68235, 4 assets, tap live; brew unlinked+pinned; Intent.app 3.2.1 in /Applications). Post-cut on hv rulings: e0212004d (62 unrealised views removed), c44cebb86 (index rebuild --corpus dropped), 70e26ecc5 + e8f689006 (footer names the major only, one-time re-render). hv pushed through e8f689006; CI green (3098/0/5, bats 748). DECISION 61 (hv): every open issue plus cheap list items ship in ONE patch, 3.2.2; the fleet sweep moves to after it.
+  STATE: v3.2.2 CUT, PUBLISHED, SMOKED (tag 658a89022); fleet sweep DONE across 22 estates (no pushes); Gtools/Laksa/Lamplight/Devbin all on 3.2.2. intent.laksa.io live with the 3.2 content (47d1e46) and the version header v3.2.2 from db/release.json (eda6ea1), both pushed by hv. 3.2.3 CONTENT IS ALL ON MAIN, UNPUSHED (~14 commits): ST0080 scheduled backups (f6b4344e9, judged by vc with every rust.yml line: svcs 1949/0, cli 1136/0, d 53/0; ST0080 DONE da5c067c4), CHANGELOG ## [3.2.3] - in progress (e7be8d9a1), reference vs v3.2.2 (f314a07cd, check ok), release notes docs/releases/3.2.3 (87a81d6e5), releasing.md step 5 = site db/release.json (e4518c446), .gitattributes language fix (7fd61f516).
 
-  3.2.2 LANDED on main, each at its judged patch-id, CHANGELOG ## [3.2.2] - in progress kept by vc alone (last e9ba6938e): cc 0568 0559 doctor 0580 0554 0555 tostore; dc 0563 0577 0578 0576 A-fix A-fix2 0557 0558 0561 0562 0571 0565 0566 m1 m3 m4 m5 c1-smoke c2-bw01 c3-help; ic 0581 0584 explore-view (66e603ee5, hv order, under Added). 19 of 26 issues fixed; the store still shows 26 OPEN because none is closed yet.
+  BOX QUEUE: laksa-vc three windows from 17:55Z (~30-45 min) -> devbin-cc 3-min dormancy run (FORWARD laksa END to devbin-cc and devbin-vc; I dropped forwards once today) -> Intent.
 
-  MAIN IS RED on ONE arm: intentsvcs address_resolution_single_home::no_second_resolver_exists at intent-cli/src/tui/commands.rs:922 (explore-view test literal spells intent:// by hand). ic owns the fix, FIRST after the bounce, judged with WHOLE intentsvcs + intent-cli.
+  NEXT, in order: (1) on devbin-cc END: bin/devbin build all at main HEAD, intent daemon restart, send dc the pair sha. (2) dc re-drives docs/known-defects.md WHOLE for v3.2.3 (drive-v6.sh), vc lands. (3) vc runs EVERY rust.yml run line (fmt, workspace clippy, lib clippy, RUSTDOCFLAGS=-Dwarnings cargo doc, tests) + reference_current_check + claude upgrade dry (0 writes) + doctor. (4) hv pushes main; vc reads every CI job. (5) HOLD to all sessions; hv cuts: intent daemon stop; bin/devbin build release v3.2.3; bin/int macos prepare/formula/publish/smoke --reinstall; brew unlink+pin; intent daemon start. (6) releasing.md step 5: write Sites/intent/db/release.json 3.2.3, commit, hv runs bin/devbin sites gitpush --sites=intent; vc fetches and checks. LIFT. No fleet sweep needed (no template change); restart daemons/sessions.
 
-  NEXT, in order: (1) ic explore-fix, land. (2) close the 19 landed issues, each body naming its fix commit (cc lane closes cc and dc issues? assign). (3) ic stack on refs/ic/stack 70f28bf55 (0575 0583 0582 0572 0573 0574 0579 0549 (ii) (iii) + four known reds fixed) after devbin-vc END of its 30-min 0.1.8 suite (started ~11:34Z); (ii) lands with ST0056.json after intentd ingests gen_reference.sh. (4) ic docs/reference regeneration, vc one re-render check, ic stacked final-tree run. (5) rebuild, CI, cut 3.2.2 under the hold (known-defects re-drive: 0549 entry retires), then the fleet sweep. JUDGING RULES learned today: WHOLE suites of every crate for any payload/lib/templates change; armed_tool_preconditions for any bats change; bats under INTENT_BIN at the build under test, count not-ok from TAP; land each bank through its own GIT_INDEX_FILE and then restore the tree. AFTER THE LINE: M2 removable v2 source (dc).
+  OPEN: Lamplight backup comment never arrived (folds into ST0080 follow-up). AFTER THE LINE: gen_explorer_shots.sh stamps demo created=today (pin the date). Lessons saved today: run every rust.yml line before calling push-ready; estate writes go through its vc.
 
 ## TODO
 

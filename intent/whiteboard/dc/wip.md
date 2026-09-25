@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 4e187b62-bbfa-4424-8bf9-a7e03ae421e0
-heartbeat_at: 2026-09-25 11:38Z
+heartbeat_at: 2026-09-25 18:01Z
 status: active
-focus: "LOCALFOLDED for hv's compact. dc's 3.2.2 lane is complete and landed (bd6242c67..e91131d92). Resume is doing 117. NO PUSH, NO RELEASE."
+focus: "LOCALFOLDED for hv's compact round. 3.2.2 is cut and dc's lane is closed. Resume is doing 117: the 3.2.3 known-defects re-drive, on vc's build sha. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -13,13 +13,10 @@ claims: []
 
 ## DOING
 
-- **RESUME (dc, localfold for hv's compact, 2026-09-25): dc's 3.2.2 LANE IS COMPLETE AND LANDED (vc decision 61). NO PUSH, NO RELEASE.** (edited)
-  - LANDED in main, each at its judged patch-id:
-    - (A) hooks templates: 0563, 0577, 0578 and 0576 at 8f05cc8bd..a6fc65d18; A-fix (no issue citations in payload scripts) at 82e5a67cc; A-fix2 (require_tool jq in the hook bats) at eb55024d9.
-    - (B) 0557, 0558, 0561, 0562, 0571, 0565 and 0566, plus the migration items: the content-based dirty check, the pre-v2.10 remedy, the ac edit --note remedy and the v2.19.0 preamble pin. (C) the smoke INTENT_HOME: anchor, BW01, and the 30 help findings with the three behaviours. B and C land as bd6242c67..e91131d92.
-  - RULED: M2 (the spurious "not migrated" line on a first v2 conversion) is (b), left documented for 3.2.2; the removable-v2-source fix goes on the list for the next release. M5 stands partial: lines 28 and 30 of v2.19.0's preamble still refile, because no_pm_state_in_output refuses their ids.
-  - LESSONS: judge a payload change with the WHOLE intent-cli suite (AT-00.17 refuses issue citations in installed files), and any bats change with armed_tool_preconditions.bats; set INTENT_BIN explicitly in a worktree; count not-ok lines from the TAP.
-  - NEXT: vc's word after the bounce: the 3.2.2 cut, then the known-defects re-drive (0558 and 0565 leave the page), then the fleet sweep with hold 29. The worktrees tmp/wt-dc-322a, b and c stay until vc says otherwise.
+- **RESUME (dc, localfold for hv's compact round, 2026-09-25): 3.2.2 IS CUT AND PUBLISHED (658a89022), AND dc'S LANE IS CLOSED. NEXT: THE 3.2.3 CUT'S KNOWN-DEFECTS RE-DRIVE (vc's order). NO PUSH, NO RELEASE.** (edited)
+      - 3.2.2, all landed: the A, B and C lanes (8f05cc8bd..e91131d92 with A-fix 82e5a67cc and A-fix2 eb55024d9); the known-defects page at 4fc52b79a, patch-id c380f5f8f1a5, in which 0558, 0565, 0549, 0211 and 0192 re-drove as fixed and 0442 moved to one line in the section on what the page does not cover; ci-dash (patch-id b7d7b20136de, bats -c rather than sh -c in the absent-rustfmt control, because dash answers 127), landed by vc after CI run 36142986652 went red on Ubuntu.
+      - NEXT, after the bounce: retitle docs/known-defects.md for v3.2.3 and re-drive it whole against the pair vc rebuilds from main. vc sends the build sha, and the page quotes that pair's --version line verbatim. Start from refs/bank/dc/kd/drive-v6.sh (c4b7a09f3; set S= to the new session's scratchpad) and diff every entry against refs/bank/dc/kd/drive-3.2.2.log (f29a12286), not only the ones a fix names. Single CLI commands only, and a short /tmp HOME for the daemon entry. Bank the page on refs/bank/dc/323/kd with its stat and quote each changed entry's re-driven lines.
+      - STANDING: the M2 removable-v2-source fix is for a later release; hold 29 rides the fleet sweep; the worktrees tmp/wt-dc-322a, b and c stay until vc says otherwise.
 
 ## TODO
 
