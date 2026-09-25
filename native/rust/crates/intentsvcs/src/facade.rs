@@ -14065,13 +14065,26 @@ impl Facade {
     let existing = self.criterion(st, ac)?.clone();
     if note.is_some() && !matches!(existing.state, AcState::Unsatisfied { .. }) {
       let state = existing.state.name();
-      return Err(FacadeError::FieldNotWritable {
-        url: format!("intent:///threads/{st}/ac/{ac}"),
-        field: "note".to_string(),
-        why: format!(
+      let url = format!("intent:///threads/{st}/ac/{ac}");
+      // **A COMPUTED ROW HAS ITS OWN ROUTE.** Its satisfaction comes from its
+      // covering acceptance tests, so `ac unsatisfy` refuses it too; naming
+      // that verb sent the reader to a second refusal. Re-kinding it to
+      // non-test is the route that reaches a note.
+      let why = if matches!(existing.state, AcState::Computed {}) {
+        format!(
+          "{ac} is computed from its covering acceptance tests, so it carries no note -- \
+           `intent set {url} kind non-test` makes it a criterion that does"
+        )
+      } else {
+        format!(
           "{ac} is {state}, and only an unsatisfied criterion carries a note -- a {state} row \
            keeps its own record, so move it with `intent ac unsatisfy|rescope|reinstate` first"
-        ),
+        )
+      };
+      return Err(FacadeError::FieldNotWritable {
+        url,
+        field: "note".to_string(),
+        why,
       });
     }
     let mut row = existing.clone();

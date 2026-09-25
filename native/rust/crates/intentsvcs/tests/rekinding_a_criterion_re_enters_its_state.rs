@@ -97,3 +97,43 @@ fn a_descoped_criterion_keeps_its_state_across_a_flip() {
   let row = criterion(&facade, "AC-03.9");
   assert_eq!((row.kind, row.state), (AcKind::NonTest, before.state));
 }
+
+/// **A NOTE ON A COMPUTED ROW IS REFUSED WITH THE ROUTE THAT REACHES ONE.** The
+/// refusal named `intent ac unsatisfy`, which refuses a test-backed row too, so
+/// following it met a second refusal. It names the re-kind now, and this arm
+/// follows it to the note.
+#[test]
+fn a_note_on_a_computed_row_names_the_re_kind_and_the_re_kind_reaches_the_note() {
+  let fx = Fixture::new();
+  fx.write_thread(&sample_thread("ST0001"));
+  let mut facade = fx.facade();
+  assert_eq!(
+    criterion(&facade, "AC-03.1").state,
+    AcState::Computed {},
+    "the fixture moved"
+  );
+
+  let refusal = facade
+    .ac_edit(
+      "ST0001",
+      "AC-03.1",
+      None,
+      Some("why it is open".to_string()),
+    )
+    .expect_err("a computed row carries no note");
+  let text = intentsvcs::remedy::Remedy::render(&refusal);
+  assert!(
+    text.contains("kind non-test") && !text.contains("ac unsatisfy"),
+    "the refusal does not name the route that works: {text}"
+  );
+
+  set_kind(&mut facade, "AC-03.1", "non-test").expect("the named route is settable");
+  facade
+    .ac_edit(
+      "ST0001",
+      "AC-03.1",
+      None,
+      Some("why it is open".to_string()),
+    )
+    .expect("after the re-kind the note is accepted");
+}
