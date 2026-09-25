@@ -603,10 +603,16 @@ pub struct GateResolution {
 }
 
 impl GateResolution {
-  /// Whether the gate can run: the pointer names an install. The shim's
-  /// `--where` exits 0 on exactly this state and 1 on every other.
+  /// Whether the gate can run: the pointer names an install AND that install
+  /// holds the gate body. The shim's `--where` exits 0 on exactly this and 1
+  /// on everything else.
+  ///
+  /// **RESOLVING IS NOT RUNNING** (issue 0561). This answered `Resolves` alone,
+  /// so `bootstrap --check` said OK for an install whose
+  /// `lib/templates/hooks/pre-commit.sh` was gone while the shim refused every
+  /// commit with its FAILURE 3, naming that file.
   pub fn can_run(&self) -> bool {
-    matches!(self.state, PointerState::Resolves { .. })
+    self.gate().is_some_and(|gate| gate.is_file())
   }
 
   /// The gate body the shim execs, when the pointer names an install.
@@ -767,6 +773,8 @@ mod tests {
   /// A tree shaped like an install, plus one that is not.
   fn install_at(root: &Path) {
     std::fs::create_dir_all(root.join(MARKER).join(".claude/scripts")).unwrap();
+    std::fs::create_dir_all(root.join(MARKER).join("hooks")).unwrap();
+    std::fs::write(gate_script(root), "#!/usr/bin/env bash\n").unwrap();
   }
 
   /// **THE CLASSIFIER, BOTH WAYS, WITH NO FILESYSTEM** (issue `0492`).
@@ -1370,6 +1378,38 @@ mod tests {
       assert_eq!(gate.gate(), None, "{pointer:?}");
       assert!(!gate.divergent && !gate.versioned_keg, "{gate:?}");
     }
+  }
+
+  /// **AN INSTALL WITHOUT ITS GATE BODY RESOLVES AND CANNOT RUN** (issue
+  /// `0561`). The shim refuses every commit in this state with its FAILURE 3,
+  /// so `can_run` answering from the pointer alone said OK for a gate that
+  /// never runs. The control is the same install with the body restored.
+  #[test]
+  fn an_install_without_its_gate_body_resolves_and_cannot_run() {
+    let dir = tmp("gate-no-body");
+    let base = canonical(dir.path());
+    let root = base.join("root");
+    install_at(&root);
+    std::fs::remove_file(gate_script(&root)).unwrap();
+    let pointer = base.join("home");
+    std::fs::write(&pointer, format!("{}\n", root.display())).unwrap();
+
+    let gate = gate_resolution_at(Some(pointer.as_path()), Some(root.as_path()));
+    assert!(
+      matches!(gate.state, PointerState::Resolves { .. }),
+      "{gate:?}"
+    );
+    assert!(
+      !gate.can_run(),
+      "no gate body, and can_run said yes: {gate:?}"
+    );
+
+    install_at(&root);
+    let gate = gate_resolution_at(Some(pointer.as_path()), Some(root.as_path()));
+    assert!(
+      gate.can_run(),
+      "the control: the body is back and can_run said no: {gate:?}"
+    );
   }
 
   /// **ONE INSTALL, TWO SPELLINGS, NO NOTE; TWO INSTALLS, THE NOTE** (issue

@@ -8767,7 +8767,15 @@ fn report_gate_check(gate: &intentsvcs::install::GateResolution) {
     }
     intentsvcs::install::PointerState::Resolves { root } => {
       println!("root:     {}", root.display());
-      println!("state:    OK");
+      if gate.can_run() {
+        println!("state:    OK");
+      } else {
+        // The root is an install and its gate body is gone: the shim's
+        // FAILURE 3 (issue 0561).
+        println!(
+          "state:    NO GATE (lib/templates/hooks/pre-commit.sh is missing under that root)"
+        );
+      }
     }
   }
   if let Some(script) = gate.gate() {

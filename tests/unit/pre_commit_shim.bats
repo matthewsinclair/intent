@@ -155,6 +155,17 @@ GATE
   refute_output_contains "REAL GATE RAN"
 }
 
+@test "--where on an install with no gate body reports NO GATE and exits non-zero (issue 0561)" {
+  # The commit itself is refused with FAILURE 3 in this state, so an OK here
+  # would say the gate runs while every commit is refused.
+  mkdir -p "${TEST_TEMP_DIR}/install/lib/templates/hooks"
+  echo "${TEST_TEMP_DIR}/install" > "${FAKE_HOME}/.local/share/intent/home"
+  HOME="${FAKE_HOME}" run bash "$SHIM" --where
+  assert_failure
+  assert_output_contains "NO GATE"
+  refute_output_contains "state:    OK"
+}
+
 @test "--where on a broken pointer reports UNUSABLE and exits non-zero" {
   mkdir -p "${TEST_TEMP_DIR}/not-an-install"
   echo "${TEST_TEMP_DIR}/not-an-install" > "${FAKE_HOME}/.local/share/intent/home"

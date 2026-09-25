@@ -288,7 +288,10 @@ fn plant_pointer(home: &Path, root: &Path) -> PathBuf {
 
 /// A directory that is an install by the marker the shim tests.
 fn an_install(at: &Path) -> PathBuf {
-  std::fs::create_dir_all(at.join(intentsvcs::install::MARKER)).expect("mkdir");
+  let hooks = at.join(intentsvcs::install::MARKER).join("hooks");
+  std::fs::create_dir_all(&hooks).expect("mkdir");
+  std::fs::write(hooks.join("pre-commit.sh"), "#!/usr/bin/env bash\n")
+    .expect("write the gate body");
   at.to_path_buf()
 }
 
@@ -425,6 +428,27 @@ fn check_on_another_install_exits_0_and_prints_both_roots() {
     "{stdout}"
   );
   assert!(!stdout.contains("versioned Homebrew keg"), "{stdout}");
+}
+
+/// **AN INSTALL WITHOUT ITS GATE BODY: NO GATE, RC 1** (issue `0561`). The
+/// shim refuses every commit in this state with its FAILURE 3, so `--check`
+/// answering OK and 0 said the gate runs when it never does.
+#[test]
+fn check_on_an_install_without_its_gate_body_says_no_gate_and_exits_1() {
+  let home = tempfile::tempdir().expect("fixture home");
+  let broken = an_install(&home.path().join("broken-install"));
+  std::fs::remove_file(
+    broken
+      .join(intentsvcs::install::MARKER)
+      .join("hooks/pre-commit.sh"),
+  )
+  .expect("remove the gate body");
+  plant_pointer(home.path(), &broken);
+
+  let (stdout, stderr, code) = run(home.path(), &["--check"], Some("matts"));
+  assert_eq!(code, 1, "stdout={stdout}\nstderr={stderr}");
+  assert!(stdout.contains("state:    NO GATE"), "{stdout}");
+  assert!(!stdout.contains("state:    OK"), "{stdout}");
 }
 
 /// **A VERSIONED HOMEBREW KEG IS A NOTE AT RC 0** (issues `0527` and `0533`).

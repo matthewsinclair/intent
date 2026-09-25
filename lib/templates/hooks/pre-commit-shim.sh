@@ -79,10 +79,18 @@ _where() {
     return 1
   fi
   echo "root:     ${_r}"
-  if [ -d "$_r/lib/templates" ]; then
+  # OK only when the gate body is there: an install without it is FAILURE 3
+  # below, and `--where` answering OK for it said the gate would run while
+  # every commit was refused.
+  if [ -f "$_r/lib/templates/hooks/pre-commit.sh" ]; then
     echo "state:    OK"
     echo "gate:     ${_r}/lib/templates/hooks/pre-commit.sh"
     return 0
+  fi
+  if [ -d "$_r/lib/templates" ]; then
+    echo "state:    NO GATE (lib/templates/hooks/pre-commit.sh is missing under that root)"
+    echo "gate:     ${_r}/lib/templates/hooks/pre-commit.sh"
+    return 1
   fi
   echo "state:    UNUSABLE (no lib/templates under that root)"
   return 1
