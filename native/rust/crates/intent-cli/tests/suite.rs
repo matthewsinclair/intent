@@ -222,6 +222,8 @@ mod organize_verbosity;
 mod plugin_surface;
 #[path = "prefix_resolution.rs"]
 mod prefix_resolution;
+#[path = "register_text_carries_no_maintainer_notes.rs"]
+mod register_text_carries_no_maintainer_notes;
 #[path = "remedies_are_reachable.rs"]
 mod remedies_are_reachable;
 #[path = "retired_commands.rs"]
