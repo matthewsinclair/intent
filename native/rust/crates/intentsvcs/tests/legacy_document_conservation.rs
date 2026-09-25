@@ -364,7 +364,9 @@ fn a_migrated_thread_in_two_places_is_loaded_once_and_does_not_block() {
 /// is prose nobody knows is gone.
 #[test]
 fn the_acceptance_preambles_authored_lines_reach_the_thread_and_the_boilerplate_does_not() {
-  const BOILERPLATE_ONE: &str = "> Canonical acceptance contract for ST####. Acceptance Criteria (AC) are the ratified completeness boundary; Acceptance Tests (AT) are the small red-to-green tests that prove them. Real test code lives in the suite (paths cited below); this file is the contract plus the AC-to-AT coverage map plus live status. info.md / WP info.md reference this file and never restate ACs (one home).";
+  // As v2 wrote it: `st new` put the thread's id where the template says
+  // `ST####`, so the line to subtract carries the id.
+  const BOILERPLATE_ONE: &str = "> Canonical acceptance contract for ST0001. Acceptance Criteria (AC) are the ratified completeness boundary; Acceptance Tests (AT) are the small red-to-green tests that prove them. Real test code lives in the suite (paths cited below); this file is the contract plus the AC-to-AT coverage map plus live status. info.md / WP info.md reference this file and never restate ACs (one home).";
   const BOILERPLATE_TWO: &str = "> Done = every AC is covered by a GREEN AT, or (for a non-test AC) its named evidence is satisfied, AND the AC set is the ratified full boundary. Done is read from this map, never from a hand-ticked box.";
   const DRIFTED: &str = "> AT status vocabulary: to-write (red-first) | red | green | n/a (non-test: doc / eyeball / gate).";
   const AUTHORED: &str = "> STATUS: PROPOSED. ACs await hv ratification (the open-gate).";

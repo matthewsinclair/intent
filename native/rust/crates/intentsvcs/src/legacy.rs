@@ -54,11 +54,14 @@ const WP_TEMPLATE_SUBST_REV: &str = "27c4ec98";
 /// v2's ACCEPTANCE template, pinned like the other two (WP-02, AC-02.1).
 ///
 /// **ONE REVISION, WHICH IS vc's CONDITION 3 HELD RATHER THAN EXTENDED** (ruled
-/// 2026-09-12). The drop set has to be exactly one template version or it
+/// 2026-09-12). **It is v2.19.0's, the release every migrated project comes
+/// from.** It was `684183330`, a v3 commit that had already edited this
+/// template, so v2.19.0's own lines matched nothing and were refiled onto every
+/// cover as authored. The drop set has to be exactly one template version or it
 /// becomes a function of which Intent happened to be on the machine, so the same
 /// estate migrated twice would lose different lines with nothing recording why.
 const AC_TEMPLATE_PATH: &str = "lib/templates/prj/st/ST####/acceptance.md";
-const AC_TEMPLATE_REV: &str = "684183330";
+const AC_TEMPLATE_REV: &str = "v2.19.0";
 
 /// What the migration decided about one section, and why.
 ///
@@ -1522,7 +1525,13 @@ fn acceptance(
   // is precisely the LOST-PROSE shape `Thread::preamble` was minted to close for
   // `info.md`, still open one file over.
   let (_, acceptance_body) = frontmatter(&text);
-  let authored_preamble = authored_acceptance_preamble(&preamble(acceptance_body), &rel, out);
+  // The thread's id, for the template's `ST####` placeholder: v2 substituted it
+  // when it created the file, so the lines to subtract carry the id.
+  let id = dir
+    .file_name()
+    .map(|n| n.to_string_lossy().into_owned())
+    .unwrap_or_default();
+  let authored_preamble = authored_acceptance_preamble(&preamble(acceptance_body), &id, &rel, out);
   let mut criteria = Vec::new();
   let mut tests = Vec::new();
   // The three quantities the reconciliation below closes over. Counted where
@@ -3090,8 +3099,11 @@ fn wp_template_sections(seq: u32) -> Vec<(String, String)> {
 /// exemption to a file rather than to the id class, which its own doc names as
 /// the hole to avoid.
 ///
-/// **The cost is one line, in the sanctioned direction**: a thread whose
-/// preamble carries that sentence verbatim keeps it, exactly as a line that
+/// **AND THE `Exemption (ST0048): ...` LINE IS ABSENT FOR THE SAME REASON**:
+/// v2.19.0's wording names a thread of Intent's own.
+///
+/// **The cost is two lines, in the sanctioned direction**: a thread whose
+/// preamble carries either sentence verbatim keeps it, exactly as a line that
 /// drifted from this revision is kept. Carrying an instruction line costs a
 /// reader one deletion; the alternative was weakening a guard that is doing its
 /// job.
@@ -3123,7 +3135,6 @@ title: "[Title] -- acceptance contract"
 > ```
 >
 >
-> Exemption: the close-gate is fail-by-default -- a unit with an empty or missing contract is refused. A unit that is deliberately AC-free (eg a pure content / authorial task) declares `acceptance: exempt` in the frontmatter above; the gate then passes and announces the exemption. Omit it (the default) and the contract is enforced. Never inferred from emptiness; always declared.
 "#;
 
 /// The authored half of a v2 `acceptance.md` preamble, with both halves recorded.
@@ -3168,12 +3179,14 @@ fn join_preamble(info: &str, acceptance: &str) -> String {
   }
 }
 
-fn authored_acceptance_preamble(found: &str, rel: &str, out: &mut Scan) -> String {
+fn authored_acceptance_preamble(found: &str, id: &str, rel: &str, out: &mut Scan) -> String {
   if found.trim().is_empty() {
     return String::new();
   }
   let (_, template_body) = frontmatter(AC_TEMPLATE_V2_PREAMBLE);
-  let template = preamble(template_body);
+  // v2 wrote the thread's id where the template says `ST####`, so the lines are
+  // compared as v2 wrote them, not as the template spells them.
+  let template = preamble(template_body).replace("ST####", id);
   let boilerplate: std::collections::BTreeSet<&str> =
     template.lines().filter(|l| !l.trim().is_empty()).collect();
 
