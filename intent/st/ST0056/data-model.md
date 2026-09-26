@@ -474,11 +474,11 @@ One file is a whole readable board, so rendering one needs no join across nodes.
 
 The coordination entities, **modelled and in the store from ST0069 WP-14**, inside the `board` envelope above. `intent wb register` is how a roster gets there: it reads `moniker`, `name` and `role` from each node's own `wip.md` header and writes one `wb_node` row per participant, idempotent by moniker, with no items and no messages. **Registering is not migrating.** The markdown beside the registered rows stays hand-authored and authoritative, and `wip.md` and `inbox.<sender>.md` are not yet the generated views D02 describes -- switching them is a later package, and until it lands a thin registered board is configuration rather than a half-finished migration. As built (2026-09-13), that package has landed: `intent wb migrate` carries a node's board and inboxes into rows and stamps `migrated_at`, every board write on an unmigrated node refuses (`WbNotMigrated`), a migrated node's `wip.md` and inboxes are rendered from its rows, and `wb register <moniker> --name <display> --role <role>` registers one node from its arguments (`facade.rs:5338-5350`, `:5538`, `render.rs:3853-3872`). Durable form is committed JSON canon per D01, one `board.json` per node.
 
-| Entity       | Fields                                                                                                                                                          |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `wb_node`    | `moniker` (PK), `name`, `role`, `session_id?`, `heartbeat_at`, `status` (`active · paused`), `focus`, `claims[]`, `recorded_at`, `authored_at?`, `migrated_at?` |
-| `wb_item`    | `node`, `kind` (`doing · todo · decision · watchout · hold`), `seq`, `text`, `state` (`live · archived`), `archived_at?`, `recorded_at`, `authored_at?`         |
-| `wb_message` | `sender`, `recipient`, `body`, `re?` (prior anchor), `fyi` (bool), `state` (`live · handled`), `handled_at?`, `recorded_at`, `authored_at?`                     |
+| Entity       | Fields                                                                                                                                                                |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `wb_node`    | `moniker` (PK), `name`, `role`, `session_id?`, `heartbeat_at`, `status` (`active · paused`), `focus`, `claims[]`, `recorded_at`, `authored_at?`, `migrated_at?`       |
+| `wb_item`    | `node`, `kind` (`doing · todo · decision · watchout · hold`), `seq`, `text`, `state` (`live · archived`), `archived_at?`, `recorded_at`, `authored_at?`, `edited_at?` |
+| `wb_message` | `sender`, `recipient`, `body`, `re?` (prior anchor), `fyi` (bool), `state` (`live · handled`), `handled_at?`, `recorded_at`, `authored_at?`, `edited_at?`             |
 
 The properties that are the point of modelling these rather than parsing them (D30):
 
