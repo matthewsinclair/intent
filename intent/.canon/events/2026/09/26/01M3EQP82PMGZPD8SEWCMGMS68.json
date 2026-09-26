@@ -1,0 +1,15 @@
+{
+  "id": "01M3EQP82PMGZPD8SEWCMGMS68",
+  "ts": "2026-09-26T11:30:29.082Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0586"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "data-model.md has no contract row for WbItem.edited_at or WbMessage.edited_at"
+  }
+}
