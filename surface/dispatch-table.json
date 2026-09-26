@@ -4814,7 +4814,7 @@
                   "type": "integer",
                   "default": null,
                   "meaning": "When set, the whole pruning rule: keep the newest N good snapshots, and do not read `backup.retain`.",
-                  "note": "ONE RULE, NEVER TWO. Absent means the `retain` tiers decide; set means `keep` decides alone, and `doctor` names a config that sets both, because the tiers then look configured and prune nothing. AT LEAST 1: a keep of 0 would remove the snapshot the same cycle had just taken, so it is refused when the config is read. A flat count is the operator's trade: `keep: 20` on an hourly schedule holds less than a day, which is why the tiers are the default."
+                  "note": "ONE RULE, NEVER TWO. Absent means the `retain` tiers decide; set means `keep` decides alone, and `doctor` names a config that sets both, because the tiers then look configured and prune nothing. AT LEAST 1: a keep of 0 would remove the snapshot the same cycle had just taken, so it is refused when the config is read. A flat count is the operator's trade: `keep: 20` on an hourly schedule holds less than a day, which is why the tiers are the default. Each snapshot is a full copy of the store, so disk use scales with the store's size times the snapshots kept, and a project with a large store may want a smaller keep."
                 }
               ],
               "deliberately_not_keys": [
