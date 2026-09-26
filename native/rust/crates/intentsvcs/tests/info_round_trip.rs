@@ -508,3 +508,59 @@ fn failure_an_edit_to_the_body_text_under_context_refuses() {
     ]
   );
 }
+
+/// A thread whose Objective and Context each carry an H2 line of their own, the
+/// shape Gtools' ST0011 stored (issue 0588): `## Started, P0 (hv, 25 Sep 2026)`
+/// inside its Context.
+fn a_thread_whose_fields_carry_their_own_h2() -> intentsvcs::model::Thread {
+  let mut thread = sample_thread("ST0056");
+  thread.objective = "Ship it.\n\n## Why now\n\nBecause hv asked.".to_string();
+  thread.context =
+    "Opened by the plan.\n\n## Started, P0 (hv, 25 Sep 2026)\n\nThe work began.".to_string();
+  thread
+}
+
+/// Issue 0588: the read-back split the cover at every H2, so a field carrying
+/// one read back as the text before it.
+#[test]
+fn success_a_field_carrying_its_own_h2_reads_back_whole() {
+  let thread = a_thread_whose_fields_carry_their_own_h2();
+  let rendered = views::info(&thread, &ctx());
+
+  let got =
+    views::info_read_back(&thread, &ctx(), &rendered).expect("an unedited render must read back");
+
+  assert_eq!(got.objective, thread.objective);
+  assert_eq!(got.context, thread.context);
+}
+
+/// The false `CoverEditNotCarried`: an unedited cover whose Context carries an
+/// H2 read as a hand edit, and every write that changed the thread refused,
+/// the author's own `set` of a corrected Context included.
+#[test]
+fn invariant_an_unedited_cover_whose_field_carries_an_h2_is_not_carriable() {
+  let thread = a_thread_whose_fields_carry_their_own_h2();
+  let rendered = views::info(&thread, &ctx());
+
+  assert!(!views::carriable_cover(&thread, &ctx(), &rendered));
+}
+
+/// An edit below a field's own H2 is part of that field and is carried whole,
+/// rather than read as an edit to a section nobody authored.
+#[test]
+fn success_an_edit_below_a_fields_own_h2_is_carried_whole() {
+  let thread = a_thread_whose_fields_carry_their_own_h2();
+  let rendered = views::info(&thread, &ctx());
+  let edited = rendered.replace("The work began.", "The work began, edited by hand.");
+
+  assert_ne!(edited, rendered);
+
+  let got =
+    views::info_read_back(&thread, &ctx(), &edited).expect("a Context edit is in the allow-list");
+
+  assert_eq!(
+    got.context,
+    "Opened by the plan.\n\n## Started, P0 (hv, 25 Sep 2026)\n\nThe work began, edited by hand."
+  );
+  assert_eq!(got.objective, thread.objective);
+}

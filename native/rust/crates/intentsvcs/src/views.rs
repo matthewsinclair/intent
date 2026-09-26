@@ -536,17 +536,34 @@ pub struct InfoReadBack {
 /// Line-anchored on `## `, matching [`carries_heading`] exactly rather than
 /// approximately -- two ways of deciding what a heading is would be two
 /// answers the day a body quotes one.
-fn regions(text: &str) -> Vec<(Option<String>, String)> {
+///
+/// **EXCEPT A HEADING LINE THE SECTION'S OWN STORED FIELD CARRIES** (issue
+/// 0588). `own(section)` names the H2 lines the model's field for that section
+/// holds, and inside that section each is read as the field's text, as many
+/// times as the field holds it, rather than as the next section. Split at every
+/// H2, a Context carrying `## Started, P0` read back as the text before it: an
+/// unedited cover looked like a hand edit, and the carry would have cut the
+/// field there. A heading the field does NOT hold still starts a region, so a
+/// section typed in by hand still refuses as one.
+fn regions<'a>(text: &str, own: impl Fn(&str) -> Vec<&'a str>) -> Vec<(Option<String>, String)> {
   let mut out: Vec<(Option<String>, String)> = Vec::new();
   let mut heading: Option<String> = None;
+  let mut held: Vec<&str> = Vec::new();
   let mut buf = String::new();
   for line in text.lines() {
-    match line.strip_prefix("## ") {
-      Some(h) => {
+    let owned = held.iter().position(|h| *h == line.trim_end());
+    match (line.strip_prefix("## "), owned) {
+      (Some(_), Some(at)) => {
+        held.remove(at);
+        buf.push_str(line);
+        buf.push('\n');
+      }
+      (Some(h), None) => {
         out.push((heading.take(), std::mem::take(&mut buf)));
         heading = Some(h.trim().to_string());
+        held = own(h.trim());
       }
-      None => {
+      (None, _) => {
         buf.push_str(line);
         buf.push('\n');
       }
@@ -819,7 +836,19 @@ fn authored_regions(thread: &Thread, text: &str) -> Vec<(Option<String>, String)
     Some(at) => &text[..at],
     None => text,
   };
-  regions(trunk)
+  let own = |section: &str| {
+    let field = match section {
+      "Objective" => thread.objective.as_str(),
+      "Context" => thread.context.as_str(),
+      _ => "",
+    };
+    field
+      .lines()
+      .filter(|l| l.starts_with("## "))
+      .map(str::trim_end)
+      .collect()
+  };
+  regions(trunk, own)
     .into_iter()
     .filter(|(heading, _)| match heading {
       None => true,

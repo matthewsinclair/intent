@@ -128,3 +128,51 @@ fn the_restore_names_the_cover_edit_it_carries() {
   let (_, shown) = intent(root, &["st", "show", "ST0001"]);
   assert!(shown.contains("Typed by hand into the cover."), "{shown}");
 }
+
+/// Issue 0588, the Gtools unblock: a stored Context carrying its own H2 read
+/// back short, so its unedited cover looked like a hand edit and the author's
+/// own `set` of the corrected, demoted text was refused. It now goes through.
+#[test]
+fn a_set_goes_through_over_a_cover_whose_context_carries_an_h2() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let root = dir.path();
+  step(root, &["init", "probe"]);
+  step(root, &["st", "new", "A thread whose Context has a heading"]);
+  let with_h2 = root.join("with-h2.md");
+  std::fs::write(
+    &with_h2,
+    "Opened by the plan.\n\n## Started, P0\n\nThe work began.\n",
+  )
+  .expect("the file");
+  step(
+    root,
+    &[
+      "set",
+      "ST0001",
+      "context",
+      "--from",
+      with_h2.to_str().expect("utf-8"),
+    ],
+  );
+  step(root, &["st", "edit", "ST0001"]);
+
+  let demoted = root.join("demoted.md");
+  std::fs::write(
+    &demoted,
+    "Opened by the plan.\n\n### Started, P0\n\nThe work began.\n",
+  )
+  .expect("the file");
+  step(
+    root,
+    &[
+      "set",
+      "ST0001",
+      "context",
+      "--from",
+      demoted.to_str().expect("utf-8"),
+    ],
+  );
+
+  let cover = std::fs::read_to_string(root.join("intent/st/ST0001/info.md")).expect("the cover");
+  assert!(cover.contains("### Started, P0"), "{cover}");
+}
