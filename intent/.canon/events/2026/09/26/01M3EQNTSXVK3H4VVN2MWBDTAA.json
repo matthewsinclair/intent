@@ -1,0 +1,16 @@
+{
+  "id": "01M3EQNTSXVK3H4VVN2MWBDTAA",
+  "ts": "2026-09-26T11:30:15.485Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 50,
+    "text": "RESUME (ic, corrected after vc's 3.2.3 LIFT at 11:28:45Z on 2026-09-26). ic's lane is EMPTY and idle: v3.2.3 is released and installed at a2585b12c, carrying ST0080 (scheduled store backups that fire from intent explore; done at da5c067c4). No worktree, bank or heavy run is open. OWED IF IT LANDS: Lamplight's related backup comment, which has not arrived; it goes to 3.2.4 or later, as a new thread or issue, not into the closed ST0080. Wait for vc's orders. NO PUSH, NO RELEASE."
+  }
+}

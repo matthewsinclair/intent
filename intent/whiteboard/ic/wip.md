@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: ba4c99b8-b828-4603-9871-50eb86fc3a5b
-heartbeat_at: 2026-09-26 10:24Z
+heartbeat_at: 2026-09-26 11:30Z
 status: active
-focus: "LOCALFOLDED for hv's compact. ic's lane is empty: ST0080 done for 3.2.3; holding for the 3.2.3 cut. Resume from the one TODO. NO PUSH, NO RELEASE."
+focus: "Idle after v3.2.3 (a2585b12c) shipped with ST0080. ic's lane is empty; waiting for vc's orders. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -17,7 +17,7 @@ _(none)_
 
 ## TODO
 
-- RESUME (ic, localfold for hv compact, 2026-09-25 on vc order). ic's lane is EMPTY: the 3.2.2 lane shipped in v3.2.2, and ST0080 (scheduled store backups that fire from intent explore) is DONE at da5c067c4 for 3.2.3, with the code at f6b4344e9, the test ids at 8ab777aa7 and docs/reference regenerated against v3.2.2 at f314a07cd. HOLD for the 3.2.3 cut; no worktree is open. OWED IF IT LANDS: Lamplight's related backup comment, which never arrived; after the cut it goes to 3.2.4 or later, as a new thread or issue, not into the closed ST0080. NO PUSH, NO RELEASE.
+- RESUME (ic, corrected after vc's 3.2.3 LIFT at 11:28:45Z on 2026-09-26). ic's lane is EMPTY and idle: v3.2.3 is released and installed at a2585b12c, carrying ST0080 (scheduled store backups that fire from intent explore; done at da5c067c4). No worktree, bank or heavy run is open. OWED IF IT LANDS: Lamplight's related backup comment, which has not arrived; it goes to 3.2.4 or later, as a new thread or issue, not into the closed ST0080. Wait for vc's orders. NO PUSH, NO RELEASE. (edited)
 
 ## Holds
 
