@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: ba4c99b8-b828-4603-9871-50eb86fc3a5b
-heartbeat_at: 2026-09-26 11:34Z
+heartbeat_at: 2026-09-26 15:51Z
 status: active
-focus: "LOCALFOLDED for hv's compact; lane empty after v3.2.3; resume from todo 50."
+focus: "LOCALFOLDED for hv's compact; idle, 0587 closed; resume from todo 50."
 claims: []
 ---
 
@@ -17,7 +17,7 @@ _(none)_
 
 ## TODO
 
-- RESUME (ic localfold for hv's compact, 2026-09-26 on vc's order). ic's lane is EMPTY: v3.2.3 shipped at a2585b12c with ST0080 (scheduled backups from intent explore). No worktree, bank or heavy run is open. OWED ONLY IF IT LANDS: Lamplight's backup comment, filed for 3.2.4 or later as a new thread or issue, never into the closed ST0080. On the bounce: /in-session, then wait for vc. NO PUSH, NO RELEASE. (edited)
+- RESUME (ic localfold for hv's compact, 2026-09-26 on vc's order). ic is IDLE: 0587 (backup.keep's note says each snapshot is a full copy of the store) is fixed at d4662f4aa and closed at 7fc0491a0. No worktree, bank or heavy run is open. On the bounce: /in-session, then wait for vc. NO PUSH, NO RELEASE. (edited)
 
 ## Holds
 

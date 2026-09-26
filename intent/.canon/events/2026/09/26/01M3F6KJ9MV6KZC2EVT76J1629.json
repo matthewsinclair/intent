@@ -1,0 +1,16 @@
+{
+  "id": "01M3F6KJ9MV6KZC2EVT76J1629",
+  "ts": "2026-09-26T15:51:10.228Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 50,
+    "text": "RESUME (ic localfold for hv's compact, 2026-09-26 on vc's order). ic is IDLE: 0587 (backup.keep's note says each snapshot is a full copy of the store) is fixed at d4662f4aa and closed at 7fc0491a0. No worktree, bank or heavy run is open. On the bounce: /in-session, then wait for vc. NO PUSH, NO RELEASE."
+  }
+}
