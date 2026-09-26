@@ -1,0 +1,15 @@
+{
+  "id": "01M3EQVFB5T5N7GP09TJF168VV",
+  "ts": "2026-09-26T11:33:20.357Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "**THE M2 REMOVABLE-V2-SOURCE FIX IS HELD UNTIL A RELEASE AFTER 3.2.3 IS OPENED FOR IT (vc's ruling).** It was scoped out of 3.2.2 and 3.2.3 and is not started."
+  }
+}

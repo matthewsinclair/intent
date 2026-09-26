@@ -1,0 +1,15 @@
+{
+  "id": "01M3EQVG9JV3KRPEBMM80HN0B9",
+  "ts": "2026-09-26T11:33:21.330Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME (dc, localfold for hv's compact, 2026-09-26): dc'S LANE IS EMPTY. 3.2.3 IS RELEASED (a2585b12c) AND LIFTED. NO PUSH, NO RELEASE.**\n- The 3.2.3 known-defects re-drive landed as a9695e74f (patch-id 66a50702f099); every entry reproduced. The next cut's re-drive starts from refs/bank/dc/323/drive.sh (a00da3f2e) and diffs against refs/bank/dc/323/drive-3.2.3.log (e469fa33b).\n- The worktrees wt-dc-322a, b and c are removed; their staged content was all on main.\n- NEXT: wait for vc's next order. The standing holds are the two below."
+  }
+}

@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 4e187b62-bbfa-4424-8bf9-a7e03ae421e0
-heartbeat_at: 2026-09-26 10:24Z
+heartbeat_at: 2026-09-26 11:33Z
 status: active
-focus: "idle: 3.2.3 known-defects re-drive landed (a9695e74f); dc lane empty; wt-dc-322a/b/c removed after the 3.2.3 LIFT"
+focus: "idle: lane empty after 3.2.3; folded for compact"
 claims: []
 ---
 
@@ -13,7 +13,10 @@ claims: []
 
 ## DOING
 
-_(none)_
+- **RESUME (dc, localfold for hv's compact, 2026-09-26): dc'S LANE IS EMPTY. 3.2.3 IS RELEASED (a2585b12c) AND LIFTED. NO PUSH, NO RELEASE.**
+  - The 3.2.3 known-defects re-drive landed as a9695e74f (patch-id 66a50702f099); every entry reproduced. The next cut's re-drive starts from refs/bank/dc/323/drive.sh (a00da3f2e) and diffs against refs/bank/dc/323/drive-3.2.3.log (e469fa33b).
+  - The worktrees wt-dc-322a, b and c are removed; their staged content was all on main.
+  - NEXT: wait for vc's next order. The standing holds are the two below.
 
 ## TODO
 
@@ -21,12 +24,12 @@ _(none)_
 
 ## Holds
 
-- **THE GUARDS ADOPTION PASS FOR THE REMAINING ESTATES IS HELD UNTIL THE 3.2.1 CUT'S FLEET SWEEP (hv's ruling via vc, 2026-09-23).** The recipe runs intent claude upgrade --apply, so each estate's hooks wiring rides that sweep, one commit per estate for both. The pilot, MicroGPTEx 80d4c13, passed vc's check. (edited)
-  THE RECIPE: git config core.hooksPath .githooks; then intent claude upgrade --apply, which writes the four chain blocks (tracked) and the four .intent carriers; add .githooks/*.intent to .gitignore; declare formatters wherever the old hook checked any; red-control with staged probes; commit by path; run doctor.
-  THE ESTATES: Molt and Prolix take the recipe unchanged, because their hook is byte-identical to MicroGPTEx's. Anvil, Baize, Cdtempl, Courses and Riffle share a chain-block-only hook and need no formatter declaration. Prodinfra, Conflab and Lamplight each get their own diff first. vc sequences Devbin, Laksa and Gtools.
-  KNOWN LIMIT: core.hooksPath is per clone, so a fresh clone runs no hook until it is set, and only doctor --verbose's uncounted advisory says so.
-  RIDER (ic's note (c), 2026-09-23, restated here on 2026-09-24 from archived doing 110 so it is not buried): prettier 3.9.8 rewrites the generated board and inbox views in both shapes, so wherever the recipe declares a markdown formatter in an estate that has a whiteboard, the same commit adds the prettier-ignore lines for `intent/whiteboard/*/wip.md` and `intent/whiteboard/*/inbox.*.md`, as Intent's own .prettierignore does.
-  SCOPE: the seven estates this hold does not name (Molt-matts, Molt-flynn, arca_cli, arca_config, arca_notionex, Courses/002, ficton-content) are ruled by vc on a measurement of which carry Intent (intent/wip.md, AFTER THE CUT).
+- **THE GUARDS ADOPTION PASS FOR THE REMAINING ESTATES IS HELD UNTIL THE DEVBIN FLEET SWEEP (hv's ruling via vc; condition restated 2026-09-26).** The recipe runs intent claude upgrade --apply, so each estate's hooks wiring rides that sweep, one commit per estate. Pilot: MicroGPTEx 80d4c13, which passed vc's check. (edited)
+  THE RECIPE: git config core.hooksPath .githooks; intent claude upgrade --apply (writes the four chain blocks, tracked, and the four .intent carriers); add .githooks/*.intent to .gitignore; declare formatters wherever the old hook checked any; red-control with staged probes; commit by path; run doctor.
+  THE ESTATES: Molt and Prolix take the recipe unchanged, because their hook is byte-identical to MicroGPTEx's. Anvil, Baize, Cdtempl, Courses and Riffle share a hook with only the chain block and need no formatter declaration. Prodinfra, Conflab and Lamplight each get their own diff first. vc sequences Devbin, Laksa and Gtools. vc rules the seven unnamed estates on a measurement of which carry Intent.
+  RIDER: wherever the recipe declares a markdown formatter in an estate with a whiteboard, the same commit adds prettier-ignore lines for intent/whiteboard/*/wip.md and intent/whiteboard/*/inbox.*.md (prettier 3.9.8 rewrites the generated views).
+  KNOWN LIMIT: core.hooksPath is per clone, so a fresh clone runs no hook until it is set.
+- **THE M2 REMOVABLE-V2-SOURCE FIX IS HELD UNTIL A RELEASE AFTER 3.2.3 IS OPENED FOR IT (vc's ruling).** It was scoped out of 3.2.2 and 3.2.3 and is not started.
 
 ## Watch-outs
 
