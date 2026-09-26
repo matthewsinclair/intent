@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 32974d4a-0175-4bfb-b198-cdac20b4d58b
-heartbeat_at: 2026-09-26 15:51Z
+heartbeat_at: 2026-09-26 15:54Z
 status: active
 focus: "FOLDED for hv's compact; idle, 0588 done and banked, no worktree; resume is the one doing item; no writes until vc's LIFT."
 claims: []
