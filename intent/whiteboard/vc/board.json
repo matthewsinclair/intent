@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "1a79312a-c3aa-435b-b4a1-b00a0d3bf70f",
-    "heartbeat_at": "2026-09-25T18:06:36.802Z",
+    "heartbeat_at": "2026-09-26T11:58:29.467Z",
     "status": "active",
-    "focus": "folded for hv compact; on the bounce: 3.2.3 cut with the pen (queue: laksa-vc, devbin-cc, then Intent rebuild)",
+    "focus": "folded after the v3.2.3 cut; holding for hv (0588, the line, the push)",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -1681,7 +1681,8 @@
       "kind": "doing",
       "seq": 33,
       "text": "RESUME (vc, localfold for hv compact, 2026-09-25 ~18:0xZ). hv gave vc THE PEN for the 3.2.3 cut (\"Ok, you have the pen\") and asked to continue on the bounce. Measure first: git log --oneline -15, intent --version, git rev-list --count upstream/main..HEAD, ListAgents. Ledger: scratchpad bank-ledger.md.\n\nSTATE: v3.2.2 CUT, PUBLISHED, SMOKED (tag 658a89022); fleet sweep DONE across 22 estates (no pushes); Gtools/Laksa/Lamplight/Devbin all on 3.2.2. intent.laksa.io live with the 3.2 content (47d1e46) and the version header v3.2.2 from db/release.json (eda6ea1), both pushed by hv. 3.2.3 CONTENT IS ALL ON MAIN, UNPUSHED (~14 commits): ST0080 scheduled backups (f6b4344e9, judged by vc with every rust.yml line: svcs 1949/0, cli 1136/0, d 53/0; ST0080 DONE da5c067c4), CHANGELOG ## [3.2.3] - in progress (e7be8d9a1), reference vs v3.2.2 (f314a07cd, check ok), release notes docs/releases/3.2.3 (87a81d6e5), releasing.md step 5 = site db/release.json (e4518c446), .gitattributes language fix (7fd61f516).\n\nBOX QUEUE: laksa-vc three windows from 17:55Z (~30-45 min) -> devbin-cc 3-min dormancy run (FORWARD laksa END to devbin-cc and devbin-vc; I dropped forwards once today) -> Intent.\n\nNEXT, in order: (1) on devbin-cc END: bin/devbin build all at main HEAD, intent daemon restart, send dc the pair sha. (2) dc re-drives docs/known-defects.md WHOLE for v3.2.3 (drive-v6.sh), vc lands. (3) vc runs EVERY rust.yml run line (fmt, workspace clippy, lib clippy, RUSTDOCFLAGS=-Dwarnings cargo doc, tests) + reference_current_check + claude upgrade dry (0 writes) + doctor. (4) hv pushes main; vc reads every CI job. (5) HOLD to all sessions; hv cuts: intent daemon stop; bin/devbin build release v3.2.3; bin/int macos prepare/formula/publish/smoke --reinstall; brew unlink+pin; intent daemon start. (6) releasing.md step 5: write Sites/intent/db/release.json 3.2.3, commit, hv runs bin/devbin sites gitpush --sites=intent; vc fetches and checks. LIFT. No fleet sweep needed (no template change); restart daemons/sessions.\n\nOPEN: Lamplight backup comment never arrived (folds into ST0080 follow-up). AFTER THE LINE: gen_explorer_shots.sh stamps demo created=today (pin the date). Lessons saved today: run every rust.yml line before calling push-ready; estate writes go through its vc.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-26T11:58:24.287Z",
       "recorded_at": "2026-09-23T10:43:48.572Z",
       "edited_at": "2026-09-25T18:01:32.376Z"
     },
@@ -1690,7 +1691,8 @@
       "kind": "decision",
       "seq": 60,
       "text": "(2026-09-24, hv verbatim: \"in\", answering vc's in/out question at about 19:36Z) THE FIX SET GOES INTO 3.2.1: 0551, 0564, 0570 and cc's batch 1 (0554(b), 0556, sync --apply's views step), with ic's 0550, 0552, 0553, 0560, 0567 and the explorer guide. Each fix is banked and judged by vc; ic runs the one stacked final-tree run; they land in composition order; vc writes every CHANGELOG line in one commit; then vc's one build all.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-26T11:58:25.265Z",
       "recorded_at": "2026-09-24T19:46:25.907Z"
     },
     {
@@ -1698,8 +1700,17 @@
       "kind": "decision",
       "seq": 61,
       "text": "(2026-09-25, hv first-hand in prose, answering vc's proposal to fix the 26 open issues as 3.2.2) ONE RELEASE FOR EVERYTHING OPEN. hv, verbatim: \"I am really trying to minimise the number of patch releases so do whatever is necessary to get this done and done in the fewest releases possible.\" So all 26 open issues AND the cheap after-the-line items ship in ONE patch, 3.2.2, in three lanes by area (cc the store's writes, dc install/gate/hooks/devbin, ic critics/rules/register/templates), banked and judged by vc, one stacked whole-suite run, CI, then the cut. The fleet sweep moves to after 3.2.2, so it runs once. No new issue files still holds: a finding goes to vc's list, and joins 3.2.2 if cheap.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-26T11:58:26.867Z",
       "recorded_at": "2026-09-25T10:14:26.839Z"
+    },
+    {
+      "node": "vc",
+      "kind": "doing",
+      "seq": 34,
+      "text": "RESUME (vc, localfold for hv compact, 2026-09-26 ~11:5xZ). v3.2.3 SHIPPED: tag a2585b12c, installed, brew pinned, intentd on 3.2.3, doctor 0, tag CI green on both legs (macOS included), intent.laksa.io shows v3.2.3 (Sites 2d3f3d7, laksa-vc read it live). Devbin 0.1.8 released; its fleet sweep has vc's yes for this tree (hold 11) and resumes after the compact. Every estate FOLDED and holding for hv: Intent cc ae807cf64, dc f6e8d4ebd, ic 03a72e054; Devbin cc df2c739, vc c350f3a; Laksa cc fa483b190, ic eab6ec42f, dc bd7544b53, vc c69a321f0; Gtools cc 448ecdf, ic 9256557, dc bc6c529+8661a0b, vc 887a084; Lamplight vc bdbfa8d59 (took 0577's settings.json on hv's word, 1ef50d6b5). OPEN FOR hv: 0588 (H2 inside Objective/Context breaks the cover read-back; misdirecting remedy) -- 3.2.4 now or queue; the stabilisation line; main's post-tag commits unpushed. OWED AFTER COMPACT: lamplight-vc's backup control after 13:32Z; laksa-vc's guards run and gtools ic's WP-03 checks each need a box slot from vc; gtools' ST0011 attach via the H3 workaround. The TODO is intent/wip.md.",
+      "state": "live",
+      "recorded_at": "2026-09-26T11:58:28.461Z"
     }
   ],
   "messages": [

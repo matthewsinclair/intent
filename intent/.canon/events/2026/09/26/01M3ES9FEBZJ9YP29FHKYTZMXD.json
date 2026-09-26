@@ -1,0 +1,15 @@
+{
+  "id": "01M3ES9FEBZJ9YP29FHKYTZMXD",
+  "ts": "2026-09-26T11:58:28.461Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RESUME (vc, localfold for hv compact, 2026-09-26 ~11:5xZ). v3.2.3 SHIPPED: tag a2585b12c, installed, brew pinned, intentd on 3.2.3, doctor 0, tag CI green on both legs (macOS included), intent.laksa.io shows v3.2.3 (Sites 2d3f3d7, laksa-vc read it live). Devbin 0.1.8 released; its fleet sweep has vc's yes for this tree (hold 11) and resumes after the compact. Every estate FOLDED and holding for hv: Intent cc ae807cf64, dc f6e8d4ebd, ic 03a72e054; Devbin cc df2c739, vc c350f3a; Laksa cc fa483b190, ic eab6ec42f, dc bd7544b53, vc c69a321f0; Gtools cc 448ecdf, ic 9256557, dc bc6c529+8661a0b, vc 887a084; Lamplight vc bdbfa8d59 (took 0577's settings.json on hv's word, 1ef50d6b5). OPEN FOR hv: 0588 (H2 inside Objective/Context breaks the cover read-back; misdirecting remedy) -- 3.2.4 now or queue; the stabilisation line; main's post-tag commits unpushed. OWED AFTER COMPACT: lamplight-vc's backup control after 13:32Z; laksa-vc's guards run and gtools ic's WP-03 checks each need a box slot from vc; gtools' ST0011 attach via the H3 workaround. The TODO is intent/wip.md."
+  }
+}
