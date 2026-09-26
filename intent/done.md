@@ -1,11 +1,18 @@
 ---
-verblock: "21 Sep 2026:v0.25: vc - the evening: intent outs landed and built, the fleet's re-staging formatters killed, the entry point leaned"
-intent_version: 3.2.0
+verblock: "26 Sep 2026:v0.26: vc - v3.2.3 cut, every open issue closed, the fleet box queue"
+intent_version: 3.2.3
 ---
 
 NOTE: This file is the terse DONE ledger, newest first. Older entries roll into `./history/YYYYMM-done.md` month-by-month; verbose per-release narratives live at `./history/<version>.md`. DOING/TODO work lives in `./wip.md`.
 
 # Done
+
+## 2026-09-26 -- v3.2.3 cut and installed, every open issue closed, the fleet coordinated on one machine
+
+- **v3.2.3 IS CUT** at a2585b12c by hv's hand: it ships ST0080, scheduled backups that actually fire (`backup::if_due`, taken by `intent explore` at open and by intentd's sweep), plus `backup.keep`. Tag CI is green on both legs, macOS included. It is published, brew-pinned and smoked, and intent.laksa.io's header reads v3.2.3 (Sites 2d3f3d7). lamplight-vc proved the fix where it was first seen: a daily backup, 18 days late under 3.2.2, was taken at 13:36:27Z once it came due.
+- **INTENT'S OPEN ISSUES ARE ALL CLOSED**: 0586 (data-model.md's board `edited_at` rows; contract_check 2 findings to 0, a220f9d09), 0587 (beside `backup.keep`: each snapshot copies the whole store, d4662f4aa), and 0588 (an H2 inside a thread's Objective or Context no longer reads as a hand edit; it had refused every write to Gtools' ST0011. Fixed at 62932b631 and judged at 3151/0 plus 235 devbin-touching bats on 0.1.8). Main is pushed and the dev pair rebuilt at 701c4d98b by hv.
+- **THE BOX WAS RUN AS ONE QUEUE ACROSS INTENT, DEVBIN, LAKSA, GTOOLS, LAMPLIGHT, COURSES AND GEODICA** under vc's pen, with a START and END for each heavy run. Two crossed bookings (08:43Z and 08:44Z) were resolved without an overlap. hv ruled that geodica's showreel renders need not queue behind the suites, and they ran alongside with no timing red.
+- **THIS LEDGER WAS NOT KEPT FROM 2026-09-22 TO 2026-09-25** (3.2.1 and 3.2.2); that record is `CHANGELOG.md` and `docs/releases/`.
 
 ## 2026-09-21 (evening) -- `intent outs` landed and built, the fleet's re-staging formatters killed, the entry point leaned
 

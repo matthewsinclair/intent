@@ -3,8 +3,8 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1a79312a-c3aa-435b-b4a1-b00a0d3bf70f
-heartbeat_at: 2026-09-26 15:54Z
-status: active
+heartbeat_at: 2026-09-26 17:18Z
+status: paused
 focus: "folded; close-out done; holding for hv (push, 3.2.4, billing)"
 claims: []
 ---
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- RESUME (vc, localfold 2026-09-26 ~15:55Z, hv's second round). Close-out DONE: Intent has 0 open threads, WPs and issues (0586 a220f9d09/caf1b250f, 0587 d4662f4aa/7fc0491a0, 0588 62932b631/bebdc2a73, judged 3151/0 plus 17 devbin bats 235 ok). v3.2.3 installed; main is ahead of upstream. Every estate folded: Intent cc 851eba6d6, ic ac940082d, dc c67a7f419; Gtools cc e90d56f, ic f6df7cc, dc bdbb2fd, vc 6d2c0f3; Laksa cc 22daceb23, ic fa0cca5b5, dc 6eee706f1, vc 6be87aee3; Devbin and Lamplight via devbin-vc. devbin-vc collects the fleet state for hv. WAITING ON hv: push main; 3.2.4 (0588 plus 0587, which Gtools ST0011 needs); GitHub billing; the stabilisation line. After the compact: gtools asks for WP-01's suite slot; dc hold 29 stands (11 estates have no hooksPath). The TODO is intent/wip.md.
+- RESUME (vc, globalfold at EOD 2026-09-26 ~17:18Z). Intent has 0 open threads, WPs and issues; main is pushed; the dev pair is at 701c4d98b and carries 0588's fix; the brew release is v3.2.3. Every Intent node is finished and released (cc 9df89d1cc, dc 44b9ac0ab, ic 4ac03f0d3). Gtools finished (vc babf983a), Devbin and Lamplight closed by hv, Laksa and Courses finishing. WAITING ON hv: 3.2.4 (ships 0588 and 0587 to brew and the fleet), GitHub Actions billing, the stabilisation line; the rest is intent/wip.md. Tomorrow: Gtools' WP-04 slot, Courses' re-driven findings to file, and dc holds 29 and 30.
 
 ## TODO
 
