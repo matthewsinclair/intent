@@ -38,11 +38,93 @@ fi
 # options remain. A project that replaces `test` with its own script is saying
 # its gates are different, so inheriting mix/credo/rust from the built-in would
 # synthesise an `all` that calls the project's handler with options it has never
-# heard of. Devbin's own bin/.devbin/cmd/test is exactly this case.
+# heard of. Devbin's own bin/.devbin/cmd/test is exactly this case. A
+# command-level `run:` shadows the same way since issue 0128 (builtin_options),
+# so the displacement asks project_owns_command, not this.
 has_project_handler() {
   is_handler "$DEVBIN_DIR/cmd/$1" && return 0
   [ -n "$(cfg_get "commands.$1.handler")" ] && return 0
   return 1
+}
+
+# command_env_refusal <command> -- print the refusal this environment earns the
+# command, or return non-zero when it may run (issue 0132).
+#
+# The catalogue declares which built-in refuses which environment
+# (_DEVBIN_BUILTIN_REFUSALS in lib/builtins); this reads the environment against
+# it. A PROJECT HANDLER is never refused: D2 makes it a total shadow, and it is
+# the documented way to do what the refusal stops.
+command_env_refusal() {
+  local cmd="$1" row var val why
+  has_project_handler "$cmd" && return 1
+  row="$(builtin_env_refusal "$cmd")" || return 1
+  IFS=$'\t' read -r var val why <<<"$row"
+  [ "${!var:-}" = "$val" ] || return 1
+  printf '%s refuses %s=%s -- %s.\n       What must run there belongs in a project handler at bin/.devbin/cmd/%s,\n       which replaces %s entirely -- never behind a flag.' \
+    "$cmd" "$var" "$val" "$why" "$cmd" "$cmd"
+}
+
+# project_owns_command <command> -- true when the PROJECT supplies what runs for
+# <command>: a handler of its own (a file, or a mapped `handler:`), or a
+# command-level `run:`. These are the first three tiers command_origin reports.
+#
+# ONE PREDICATE, TWO READERS (issue 0113). Doctor's shadow report asks whether a
+# project has taken a built-in over, and help asks whether devbin's shipped page
+# may speak for a command -- the same question, because a page describing
+# devbin's implementation is false wherever the project's runs instead (Intent's
+# own `vendor`, measured 2026-09-23). Doctor spelled it inline until then, and
+# help would have been the second copy.
+project_owns_command() {
+  has_project_handler "$1" && return 0
+  cfg_has "commands.$1.run"
+}
+
+# project_tier <command> -- WHICH of the project's tiers supplies <command>, as
+# one word: handler (a file at bin/.devbin/cmd/<command>), mapped (a
+# `commands.<command>.handler`), run (a command-level `commands.<command>.run`),
+# or none.
+#
+# THE TIERS ARE DECIDED ABOVE AND ONLY NAMED HERE (issue 0128). Whether the
+# project owns the command is project_owns_command's answer and whether a handler
+# supplies it is has_project_handler's, so a stricter handler test moves this
+# with it. Until 0128 help's command_origin spelled the same three tiers out by
+# hand, in the same order, and nothing kept the copies in step.
+project_tier() {
+  if has_project_handler "$1"; then
+    if is_handler "$DEVBIN_DIR/cmd/$1"; then printf 'handler\n'; else printf 'mapped\n'; fi
+  elif project_owns_command "$1"; then
+    printf 'run\n'
+  else
+    printf 'none\n'
+  fi
+  return 0
+}
+
+# command_tier <command> -- what `bin/devbin <command>` runs with no argument,
+# as one word: the project's tier when it owns the command (project_tier), else
+# devbin's -- devbin (its own handler, lib/cmd/<command>), catalogue (the
+# catalogue's command line), options (nothing runs a bare <command>, but it has
+# active options, so it prints their usage and exits 1), or none (nothing runs
+# it: report_unrunnable, exit 3).
+#
+# THE ORDER run_command WALKS, STATED ONCE (issue 0128). run_command dispatches
+# on it, help's command_origin labels it, and doctor's _command_runnable asks
+# whether it is `none`. Each of the three spelled the order itself until 0128.
+command_tier() {
+  local t
+  t="$(project_tier "$1")"
+  if [ "$t" != none ]; then
+    printf '%s\n' "$t"
+  elif is_handler "$DEVBIN_LIB/cmd/$1"; then
+    printf 'devbin\n'
+  elif builtin_has_default_run "$1" 2>/dev/null; then
+    printf 'catalogue\n'
+  elif [ -n "$(command_options "$1")" ]; then
+    printf 'options\n'
+  else
+    printf 'none\n'
+  fi
+  return 0
 }
 
 # _builtin_lang <command> <option> -- the language a built-in option belongs to,
@@ -100,22 +182,30 @@ option_active() {
   local cmd="$1" opt="$2" lang
   is_false_word "$(cfg_get "commands.$cmd.options.$opt.enabled" true)" && return 1
   option_declared "$cmd" "$opt" && return 0
-  # Past this point the option can only be a built-in, and a project handler
-  # displaces the whole built-in option set (see has_project_handler).
-  has_project_handler "$cmd" && return 1
+  # Past this point the option can only be a built-in, and a command the
+  # project owns displaces the whole built-in option set (see builtin_options).
+  project_owns_command "$cmd" && return 1
   lang="$(_builtin_lang "$cmd" "$opt")" || return 1
   project_speaks "$lang"
 }
 
 # builtin_options <command> -- the built-in options devbin ships for a command,
-# in catalogue order. Empty when a project handler has displaced them.
+# in catalogue order. Empty when the project owns the command.
 #
 # The displacement rule stays HERE rather than in the catalogue: which options a
 # project can see is resolution, and lib/builtins is data with no opinion about
 # who is asking.
+#
+# A COMMAND-LEVEL `run:` DISPLACES THEM AS A HANDLER DOES (issue 0128). D2 made
+# a handler's shadow total so that `all` never hands the project's code options
+# it has never heard of, and a `run:` line is the same shadow written in config:
+# `bin/devbin <cmd> <word>` already handed every word to the line. Only `all`
+# still swept devbin's own arms, so in a project whose `commands.clean.run`
+# decides what is removed, `clean all` ran devbin's removal instead. One
+# predicate now answers for both shapes.
 builtin_options() {
   local cmd="$1"
-  has_project_handler "$cmd" && return 0
+  project_owns_command "$cmd" && return 0
   builtin_options_for "$cmd"
   return 0
 }
@@ -131,17 +221,23 @@ builtin_options() {
 option_unavailable_reason() {
   local cmd="$1" opt="$2" lang
   option_active "$cmd" "$opt" && return 1
-  # A project handler OWNS its option set (AC-04.4), so devbin has no opinion
-  # about which options it accepts and must not declare one unavailable. Without
-  # this, `demo test shell` against a project handler was refused with "this
-  # project does not declare the 'shell' language" -- in a project whose config
-  # declares exactly that language. The option was inactive for the right reason
-  # (total shadowing) and reported with the wrong one.
-  has_project_handler "$cmd" && return 1
+  # A command the project owns OWNS its option set -- a handler (AC-04.4), or a
+  # command-level `run:` (issue 0128) -- so devbin has no opinion about which
+  # options it accepts and must not declare one unavailable. Without this, `demo
+  # test shell` against a project handler was refused with "this project does
+  # not declare the 'shell' language" -- in a project whose config declares
+  # exactly that language. The option was inactive for the right reason (total
+  # shadowing) and reported with the wrong one.
+  #
+  # A SWITCH CONFIG SET IS SAID FIRST, whoever owns the command: `enabled:
+  # false` is the project's own word about this option, and the refusal names
+  # it the same way wherever the option came from (issue 0128; under a command
+  # the project owned this said only that the option was not active).
   if is_false_word "$(cfg_get "commands.$cmd.options.$opt.enabled" true)"; then
-    printf 'it is disabled in %s\n' "${DEVBIN_DIR:-bin/.devbin}/config.yaml"
+    printf 'it is disabled in %s\n' "$(devbin_dir_shown)/config.yaml"
     return 0
   fi
+  project_owns_command "$cmd" && return 1
   lang="$(_builtin_lang "$cmd" "$opt")" || return 1
   # TEST THE ABSENCE BEFORE ASSERTING IT (issue 0062). This used to print the
   # language sentence on the strength of option_active having already failed --
@@ -155,6 +251,25 @@ option_unavailable_reason() {
   return 0
 }
 
+# devbin_dir_shown -- this project's bin/.devbin as a reader should see it:
+# relative to the project root, which is where every remedy is typed from.
+#
+# DEVBIN_DIR IS ABSOLUTE (bin/devbin sets it so), and the reasons below printed
+# `${DEVBIN_DIR:-bin/.devbin}/config.yaml`: a /private/var/... path in a fixture
+# and a home path in an estate, whose fallback -- the one relative spelling --
+# never ran (issue 0128). Since 0113 the same text follows every shipped page,
+# where `bin/.devbin/config.yaml` says the same in a fraction of the width.
+#
+# Relative only where DEVBIN_DIR really sits under a PROJECT_ROOT that is set:
+# stripping an empty root would take the leading slash alone and print a path
+# that names nothing, so anywhere else the absolute path is the honest answer.
+devbin_dir_shown() {
+  case "$DEVBIN_DIR" in
+    "${PROJECT_ROOT:-/nonexistent/}"/*) printf '%s\n' "${DEVBIN_DIR#"$PROJECT_ROOT"/}" ;;
+    *) printf '%s\n' "$DEVBIN_DIR" ;;
+  esac
+}
+
 # language_absence_reason <language> -- the ONE sentence for a command or option
 # refused because project.languages does not declare its language.
 #
@@ -166,7 +281,7 @@ option_unavailable_reason() {
 # print it from here, because two spellings of one refusal drift.
 language_absence_reason() {
   printf "this project does not declare the '%s' language in project.languages (%s)\n" \
-    "$1" "${DEVBIN_DIR:-bin/.devbin}/config.yaml"
+    "$1" "$(devbin_dir_shown)/config.yaml"
 }
 
 # exec_handler <handler> [args...] -- descend the sub-handler chain and exec.
@@ -191,6 +306,34 @@ exec_handler() {
   exec "$handler" "$@"
 }
 
+# _options_switched_off <command> -- the command's options that config switches
+# off with `enabled: false`, space-separated in candidate order; empty when
+# config switches none off (issue 0136).
+_options_switched_off() {
+  local cmd="$1" opt off=""
+  while IFS= read -r opt; do
+    [ -n "$opt" ] || continue
+    if is_false_word "$(cfg_get "commands.$cmd.options.$opt.enabled" true)"; then
+      off="$off $opt"
+    fi
+  done <<EOF
+$(command_option_candidates "$cmd")
+EOF
+  printf '%s' "${off# }"
+}
+
+# nonexec_handler_hint <command> -- when a file sits at the project's
+# cmd/<command> without its executable bit, the sentence that says so, with the
+# fix doctor already gives; non-zero when there is no such file (issue 0136).
+# Such a file is not a handler (is_handler), so the command reads as unfilled,
+# and both refusals told a project holding the file to add it.
+nonexec_handler_hint() {
+  local f="$DEVBIN_DIR/cmd/$1"
+  [ -f "$f" ] && [ ! -x "$f" ] || return 1
+  printf '%s is there but not executable, so it is not a handler -- fix: chmod +x %s\n' \
+    "${f#"$PROJECT_ROOT"/}" "${f#"$PROJECT_ROOT"/}"
+}
+
 # command_unavailable_reason <command> -- why a command is not available here,
 # or non-zero when it is available (or genuinely unknown).
 #
@@ -199,15 +342,45 @@ exec_handler() {
 # indistinguishable from a typo. That got sharper when command rows gained
 # languages -- `iex` in a shell project is not unknown, it is Elixir's.
 command_unavailable_reason() {
-  local cmd="$1" lang
+  local cmd="$1" lang off n_off n_all hint
   command_active "$cmd" && return 1
   if is_false_word "$(cfg_get "commands.$cmd.enabled" true)"; then
-    printf 'it is disabled in %s\n' "${DEVBIN_DIR:-bin/.devbin}/config.yaml"
+    printf 'it is disabled in %s\n' "$(devbin_dir_shown)/config.yaml"
     return 0
   fi
   is_builtin_command "$cmd" || return 1
   lang="$(builtin_command_lang "$cmd" 2>/dev/null)" || return 1
+  # SWITCHED-OFF OPTIONS ARE NAMED AS SWITCHED OFF (issue 0136). A command with
+  # options is active only while one survives, and when config's `enabled:
+  # false` took the last one, the branches below each named something else: an
+  # opt-in enabled in config was told it had not been enabled, and `test` in a
+  # project declaring rust, with test.rust switched off, was told to declare
+  # project.languages. Asked only where the command's own language is spoken:
+  # `db` in a project without elixir is off for that reason first.
+  off=""
+  if [ "$lang" = opt-in ] || project_speaks "$lang"; then
+    off="$(_options_switched_off "$cmd")"
+  fi
+  if [ -n "$off" ]; then
+    n_off="$(word_count "$off")"
+    n_all="$(word_count "$(command_option_candidates "$cmd" | tr '\n' ' ')")"
+    if [ "$n_off" -eq "$n_all" ]; then
+      printf 'every option it offers is switched off (enabled: false in %s): %s\n' \
+        "$(devbin_dir_shown)/config.yaml" "${off// /, }"
+    else
+      printf 'every option it offers is inactive here: %s switched off (enabled: false in %s), and the rest need a language this project does not declare\n' \
+        "${off// /, }" "$(devbin_dir_shown)/config.yaml"
+    fi
+    return 0
+  fi
   if [ "$lang" = opt-in ]; then
+    # A file at cmd/<name> without its executable bit is not a handler, so the
+    # command reads as unfilled -- and the project that wrote the file was told
+    # it had not enabled the command (issue 0136).
+    if hint="$(nonexec_handler_hint "$cmd")"; then
+      printf '%s\n' "$hint"
+      return 0
+    fi
     printf "devbin ships it but this project has not enabled it (set commands.%s.enabled: true)\n" "$cmd"
     return 0
   fi
@@ -229,7 +402,7 @@ command_unavailable_reason() {
     # belongs here and not in the help renderer.
     if [ -n "$(builtin_options "$cmd")" ] || [ -n "$(cfg_list "commands.$cmd.options")" ]; then
       printf 'every option it offers is inactive here, so it would run nothing (declare project.languages in %s, or commands.%s.run)\n' \
-        "${DEVBIN_DIR:-bin/.devbin}/config.yaml" "$cmd"
+        "$(devbin_dir_shown)/config.yaml" "$cmd"
       return 0
     fi
     return 1
@@ -284,6 +457,48 @@ EOF
   return 0
 }
 
+# option_in_all <command> <option> -- true unless <option> is kept out of
+# `<command> all`: config's in_all, or the catalogue's default when config is
+# silent, since devbin ships `db reset` outside `all` (issue 0132).
+option_in_all() {
+  ! is_false_word "$(cfg_get "commands.$1.options.$2.in_all" "$(builtin_option_in_all "$1" "$2")")"
+}
+
+# all_partition <command> <run-var> <skipped-var> -- WHAT `<command> all`
+# SWEEPS, stated once (issue 0134): the command's active options, in
+# command_options' order, split into those it runs and those in_all keeps out,
+# each set into its variable as a space-led list. run_all sweeps the first and
+# reports the second, and fullcycle asks, before a cycle removes anything,
+# whether the first is empty, so a build `all` would run nothing of is refused
+# before the clean rather than after it. run_all spelled the selection inline
+# until then, and fullcycle's first cut was a second copy of it.
+#
+# Its locals carry their own prefix, since the two variables are a caller's
+# names reached through bash's dynamic scope: every caller declares both local
+# and names neither _ap_run nor _ap_skip (run_all, fullcycle's phase check).
+all_partition() {
+  local _ap_opt
+  local -n _ap_run="$2" _ap_skip="$3"
+  _ap_run=""
+  _ap_skip=""
+  for _ap_opt in $(command_options "$1"); do
+    if option_in_all "$1" "$_ap_opt"; then
+      _ap_run="$_ap_run $_ap_opt"
+    else
+      _ap_skip="$_ap_skip $_ap_opt"
+    fi
+  done
+  return 0
+}
+
+# all_excluded_why <skipped> -- the sentence for an `all` whose every option is
+# kept out of it, <skipped> being all_partition's space-led list. run_all's
+# refusal prints it, and so does fullcycle's refusal of a phase that would run
+# nothing, so the two say it one way.
+all_excluded_why() {
+  printf 'every option it offers is excluded from all:%s\n' "$1"
+}
+
 # command_active <command> -- true when the command should exist at all.
 #
 # A command whose options are ALL inactive is itself inactive: it does not
@@ -293,10 +508,9 @@ EOF
 command_active() {
   local cmd="$1" lang
   is_false_word "$(cfg_get "commands.$cmd.enabled" true)" && return 1
-  # A project handler is always active: its presence IS the declaration.
-  has_project_handler "$cmd" && return 0
-  # A config-declared `run:` activates the command, and this test sits AHEAD of
-  # the option check below rather than after it. Behind it, the catalogue's
+  # A command the project owns is always active: a handler's presence IS the
+  # declaration, and so is a config-declared `run:`. The `run:` half sits AHEAD
+  # of the option check below rather than after it. Behind it, the catalogue's
   # option list silently overruled config: a project declaring
   #
   #   commands:
@@ -308,8 +522,9 @@ command_active() {
   # below returned 1 before anything looked at the `run:` config plainly
   # declared. Found by WP-07's help tests, and it is the fourth sighting of one
   # rule: config is more specific than anything devbin ships and sits ahead of
-  # it at every level.
-  cfg_has "commands.$cmd.run" && return 0
+  # it at every level. One predicate, project_owns_command, answers both halves
+  # (issue 0128): this function spelled the pair out itself.
+  project_owns_command "$cmd" && return 0
   # A command with options is active only while at least one survives. A `test`
   # that exists but can run nothing would offer an empty `all` and report
   # success for having run zero gates -- the false green the sealed gates exist
@@ -328,7 +543,7 @@ command_active() {
   #
   # A command with no catalogue row stays active -- `which`, `macos` and the
   # other shared-optional names are language-agnostic and gated on enablement
-  # instead, which is WP-18's second activation axis and not yet built.
+  # instead, which is WP-18's second activation axis, built just below.
   lang="$(builtin_command_lang "$cmd" 2>/dev/null)" || return 0
   # THE SECOND ACTIVATION AXIS (WP-18). D11 scopes a built-in by LANGUAGE, which
   # is the wrong test for `which`, `macos`, `precommit`, `publish` and
@@ -483,6 +698,277 @@ option_partition_gap() {
   return 0
 }
 
+# route_word_at <command> [<arg>...] -- the position, from 1, of the argument
+# the dispatcher's route is decided by, or 0 when there is none. THE ONE
+# READING OF IT (issue 0128): arg_route asks its questions of that word, and
+# bin/devbin takes the same one out of the argv, so the two cannot pick
+# different words. Under a command-level run: it is the first argument that is
+# not one of devbin's gate flags (is_gate_flag) -- or is, and names a declared
+# option, since config accepts `--purge:` as an option key and naming it asks
+# for it -- and 0 when every argument is a bare gate flag; everywhere else it
+# is the first argument, whatever it is spelled.
+route_word_at() {
+  local cmd="$1" i=0 a
+  shift
+  [ $# -gt 0 ] || { printf '0\n'; return 0; }
+  if [ "$(project_tier "$cmd")" != run ]; then
+    printf '1\n'
+    return 0
+  fi
+  for a in "$@"; do
+    i=$((i + 1))
+    if ! is_gate_flag "$a" || option_declared "$cmd" "$a"; then
+      printf '%s\n' "$i"
+      return 0
+    fi
+  done
+  printf '0\n'
+  return 0
+}
+
+# arg_route <command> [<word>] -- how bin/devbin dispatches `<command> [<word>
+# ...]`, as one word. THE DISPATCH ORDER FOR AN ARGUMENT LIST, stated once (issue
+# 0128): bin/devbin acts on it, and option_leaf, which help and check's fmt arms
+# and dormancy ask (0135), is built on it.
+#
+#   all       devbin's sweep over the active options (D8, run_all), and its
+#             refusal over a command-level run: with none (exit 1)
+#   inactive  an option devbin deactivated here (exit 2); option_unavailable_reason
+#             says why, when it can
+#   option    a config-declared option, run by run_option
+#   handler   the project's handler, handed the whole argument list (D2)
+#   command   run_command, handed the whole argument list
+#
+# `all` IS devbin's WHERE THERE ARE OPTIONS TO SWEEP, AND devbin REFUSES IT OVER
+# A COMMAND-LEVEL run: WITH NONE (hv, 2026-09-24, option (b)). Config-declared
+# options compose with a project handler (each dispatches INTO it), so a handler
+# command with declared options keeps the sweep, and a sub-handler named all
+# cannot thin it out (AC-04.13). Over no options, `all` goes on as an ordinary
+# word to two shapes: a total shadow owns its whole argument list (D2, AC-04.4)
+# -- `which all` and `docs all` are real corpus invocations whose meaning lives
+# in the handler (WP-10) -- and a built-in devbin ships with no options answers
+# for itself, in its program (server, iex, cli, repl) or in its own refusal. The
+# catalogue's `iex -S mix` is the one catalogue line an option-less command
+# ships, and it is one of those programs. A command-level run: is the shape
+# refused, because devbin runs that line, and `all` added to it is a new
+# command the project never wrote: `commands.test.run: cargo test` made `test
+# all` run `cargo test all`, a name filter that matched nothing, so no test ran
+# and it exited 0. run_all's zero-options refusal answers it, exit 1, as it did
+# before 0128, and names the bare command.
+#
+# OVER A run: LINE, `all` IS FOUND PAST devbin's GATE FLAGS TOO (hv, 2026-09-24).
+# `test --purge all` reached run_command, which handed the line `all` by word
+# order: unsealed as `--purge all`, the flag passed on and said (0122), and
+# sealed as `all` alone, once the flag was lifted -- the same false green. So
+# under project_tier `run`, the route word (route_word_at) is the first word
+# that is not a gate flag, or names a declared option, and every question
+# below is asked of it -- `all`, a
+# declared option, a deactivated one -- and bin/devbin takes that word out and
+# keeps the flags. `rq --purge one` over a run: line with a declared option
+# ran the line, unsealed, where `rq one --purge` ran the option's own run:
+# sealed (hv, 2026-09-24: fixed with the `all` case). Elsewhere the word is
+# still only the first: a handler owns its whole argument list, and devbin's
+# own commands read their flags themselves.
+arg_route() {
+  local cmd="$1" word tier at
+  at="$(route_word_at "$@")"
+  if [ "$at" -gt 0 ]; then
+    shift
+    word="${!at}"
+    tier="$(project_tier "$cmd")"
+    if [ "$word" = all ]; then
+      if [ -n "$(command_options "$cmd")" ] || [ "$tier" = run ]; then
+        printf 'all\n'
+        return 0
+      fi
+    fi
+    # A declared option routes through run_option so the declarative and
+    # handler shapes stay one path; a declared option config switched off is
+    # refused with the same explanation an undeclared one gets.
+    if option_declared "$cmd" "$word"; then
+      if option_active "$cmd" "$word"; then printf 'option\n'; else printf 'inactive\n'; fi
+      return 0
+    fi
+    # Before handing an unrecognised word on, check whether devbin itself
+    # deactivated it: falling through would report a shipped built-in as an
+    # unknown option, which reads as a typo rather than as configuration (D11).
+    if option_unavailable_reason "$cmd" "$word" >/dev/null; then
+      printf 'inactive\n'
+      return 0
+    fi
+  fi
+  # A PROJECT handler shadows totally (D2, AC-04.4), so it is the only thing
+  # resolved by the dispatcher itself. Everything else -- config's own `run:`,
+  # devbin's own lib/cmd handler, the catalogue default -- is run_command's, in
+  # command_tier's order.
+  if has_project_handler "$cmd"; then printf 'handler\n'; else printf 'command\n'; fi
+  return 0
+}
+
+# option_run_tier <command> <option> -- what run_option runs for <option>, as
+# one word: handler or mapped (the project's handler, handed <option> first),
+# option-run (config's `commands.<command>.options.<option>.run`), run (the
+# command-level `run:`, handed <option> first), catalogue (devbin's handler for
+# <command>, running the catalogue's row), unrunnable (a catalogue row whose
+# devbin handler is missing from this install: exit 3), or declared-unrunnable
+# (none of these: a config error, exit 1).
+#
+# run_option DISPATCHES ON IT and option_leaf builds on it, so run_option's
+# order is stated once (issue 0128). run_option's own comment says why the steps
+# stand in this order.
+option_run_tier() {
+  local cmd="$1" opt="$2"
+  if has_project_handler "$cmd"; then
+    project_tier "$cmd"
+  elif cfg_has "commands.$cmd.options.$opt.run"; then
+    printf 'option-run\n'
+  elif project_owns_command "$cmd"; then
+    printf 'run\n'
+  elif builtin_option_run "$cmd" "$opt" >/dev/null 2>&1; then
+    if resolve_handler "$cmd" >/dev/null 2>&1; then printf 'catalogue\n'; else printf 'unrunnable\n'; fi
+  else
+    printf 'declared-unrunnable\n'
+  fi
+  return 0
+}
+
+# option_seal <command> <option> <suffix-var> <grammar-var> -- how <option>
+# is sealed when it runs, into the two named variables: the log suffix, empty
+# when the option is declared unsealed, and the grammar. Returns 1 when the
+# suffix cannot be resolved.
+#
+# ONE STATEMENT OF AN OPTION'S SEAL, WHICHEVER TIER RUNS IT (issue 0135).
+# run_option's own line spelled it for the option-run tier, and gatecmd's
+# run_builtin_gate for the catalogue's, and dormancy, which runs `test rust`'s
+# line itself, fixed RUST and cargo and so sealed differently from `test rust`
+# wherever config said otherwise. This chooses what config says by tier, and
+# option_seal_from (lib/runlog) does the rest, the one statement of the
+# fallback to the row and the reading of `-`, which gatecmd asks directly.
+# Per option_run_tier:
+#
+# - option-run: config's `log:` and `grammar:`, else the catalogue's row. A
+#   `run:` replaces an option's COMMAND LINE, not what the option IS: where the
+#   catalogue declares it a sealed gate -- `test.swift` is suffix SWIFT, grammar
+#   xcodebuild -- an override silent about `log:` and `grammar:` inherits both,
+#   because a project pointing a gate at its own build has not asked to stop
+#   sealing. Without that, overriding a catalogue gate's line demoted it to a
+#   bare exec that wrote no verdict at all (ST0002 WP-08). A project's own
+#   option, with no row, keeps `log:` opt-in, so an interactive option is not
+#   teed.
+# - every other tier: the catalogue's row alone. devbin's own handler runs a
+#   catalogue option, and config's `log:` beside no `run:` is read by nothing
+#   (issue 0133: doctor names it).
+#
+# The two variables are the caller's names, handed on to option_seal_from.
+option_seal() {
+  local _os_tier _os_s="" _os_g=""
+  _os_tier="$(option_run_tier "$1" "$2")" || return 1
+  if [ "$_os_tier" = option-run ]; then
+    _os_s="$(cfg_get "commands.$1.options.$2.log")"
+    _os_g="$(cfg_get "commands.$1.options.$2.grammar")"
+  fi
+  option_seal_from "$1" "$2" "$_os_s" "$_os_g" "$3" "$4"
+}
+
+# option_leaf <command> <word> -- what `bin/devbin <command> <word> ...` runs, as
+# one word: arg_route's route, followed to its end.
+#
+#   all, inactive   the route is the answer, and an inactive command is
+#                   `inactive` before any route
+#   option          option_run_tier's word
+#   handler         handler or mapped (project_tier), or sub-handler when the
+#                   handler has a `.d/<word>` beside it, since exec_handler
+#                   descends into it (D3), or unrunnable when the handler does
+#                   not resolve
+#   command         command_tier's word -- run, devbin, options or none, with its
+#                   catalogue line as catalogue-line -- except that devbin's own
+#                   handler handed one of its catalogue options is `catalogue`,
+#                   as run_option names the same run, and one of its own `.d/`
+#                   sub-handlers is devbin-sub-handler
+#
+# ONE QUESTION FOR EVERY READER THAT MUST KNOW WHAT RUNS (issue 0128). help's
+# option_origin and fmt_arm_state ask it, and dormancy's _dormancy_declared,
+# which walked two tiers of its own until issue 0135. It asks what the
+# dispatcher, run_option and run_command ask -- command_active, arg_route,
+# resolve_handler, option_run_tier and command_tier -- and repeats two tests
+# the runners make for themselves: exec_handler's descent into a `.d/<word>`
+# sub-handler (D3), and whether devbin's own handler was handed one of its
+# catalogue options. Those two are where it could name a run the dispatcher
+# does not make, and the funnel arm in dispatch.bats holds a row for each.
+option_leaf() {
+  local cmd="$1" word="$2" route handler tier
+  # The dispatcher refuses an inactive command before it routes anything, exit
+  # 2 (bin/devbin), so that is this word's answer too.
+  command_active "$cmd" || {
+    printf 'inactive\n'
+    return 0
+  }
+  route="$(arg_route "$cmd" "$word")" || return 1
+  case "$route" in
+    option)
+      option_run_tier "$cmd" "$word"
+      ;;
+    handler)
+      # resolve_handler dies on a mapped handler that is not executable, and the
+      # dispatcher's handler route dies with it (rc 1): nothing runs, so that is
+      # the answer, and its message is the dispatcher's to print, not this one's.
+      if ! handler="$(resolve_handler "$cmd" 2>/dev/null)"; then
+        printf 'unrunnable\n'
+      elif is_handler "$handler.d/$word"; then
+        printf 'sub-handler\n'
+      else
+        project_tier "$cmd"
+      fi
+      ;;
+    command)
+      tier="$(command_tier "$cmd")" || return 1
+      case "$tier" in
+        devbin)
+          # exec_handler descends devbin's own handler by the same rule as a
+          # project's (D3), so a word naming lib/cmd/<cmd>.d/<word> runs that.
+          if is_handler "$DEVBIN_LIB/cmd/$cmd.d/$word"; then
+            printf 'devbin-sub-handler\n'
+          elif builtin_option_run "$cmd" "$word" >/dev/null 2>&1; then
+            printf 'catalogue\n'
+          else
+            printf 'devbin\n'
+          fi
+          ;;
+        catalogue) printf 'catalogue-line\n' ;;
+        *) printf '%s\n' "$tier" ;;
+      esac
+      ;;
+    *)
+      printf '%s\n' "$route"
+      ;;
+  esac
+  return 0
+}
+
+# fmt_arm_state <lang> -- how `check format` may treat <lang>'s fmt arm, as one
+# word: builtin (devbin's catalogue governs the arm, so the gate derives the
+# check from it, or passes over a language the catalogue has no check for),
+# overridden (the project runs `fmt <lang>` -- config's own run: for it, a
+# command-level run:, or a handler owning fmt -- so no check can be derived),
+# or disabled (config switched the arm off, and the gate skips it, saying so).
+#
+# A DECISION, SO IT LIVES HERE, WHERE IT CAN BE ASKED AND TESTED (issue 0128).
+# bin/devbin used to decide it inline, from option_active and the option's own
+# run:, and could not see the project owning fmt whole. Every answer
+# option_leaf can give maps by name, and anything else -- an empty answer from a
+# failed ask included -- is a failure rather than a default, because a state
+# guessed here is a check the gate runs or skips on the strength of nothing.
+fmt_arm_state() {
+  local leaf
+  leaf="$(option_leaf fmt "$1")" || return 1
+  case "$leaf" in
+    inactive) printf 'disabled\n' ;;
+    option-run | run | handler | mapped | sub-handler) printf 'overridden\n' ;;
+    catalogue | devbin | devbin-sub-handler | catalogue-line | options | none | unrunnable | declared-unrunnable) printf 'builtin\n' ;;
+    *) return 1 ;;
+  esac
+}
+
 # run_all <command> [args...] -- the synthesised `all` (D8).
 #
 # Runs every active option in declared order and DOES NOT STOP at the first
@@ -493,7 +979,13 @@ run_all() {
   local cmd="$1"
   shift
   local opt failed="" skipped="" rc=0 ledger="" label path srr why disagreed=""
-  local executed=0 offered="" inactive="" ran="" gap=""
+  local executed=0 offered="" inactive="" ran="" gap="" torun=""
+  # Read by _run_line's bare branch and by run_option's run tier, which see this
+  # local because bash scopes it to every call made from here: inside `all` a
+  # wrapper flag was typed for the sealed options, so an unsealed one drops it
+  # (issue 0122), and a line handed a declared option returns rather than
+  # replacing the process the loop is running in (issue 0128).
+  local _run_all_active=yes
   init_colors auto
   # THE DENOMINATOR, taken before anything is filtered (issue 0063). Inactive
   # is asked of option_active on EACH CANDIDATE, never derived as candidates
@@ -509,15 +1001,23 @@ run_all() {
   # having done nothing, which is the exact false green the sealed gates exist
   # to prevent, arrived at from the other side.
   #
-  # The way in: a config-declared `run:` activates a command on its own (see
-  # command_active), so a command with a `run:` and no active options lands
-  # here. A project HANDLER with none cannot -- since WP-10 the dispatcher
-  # hands `all` to an option-less total shadow verbatim (D2) before run_all is
-  # ever reached. A handler WITH config-declared options keeps the sweep and
-  # can still land here only through in_all exclusions, which the skip report
-  # below covers.
+  # THE DISPATCHER COMES HERE WITH NONE FOR ONE SHAPE (issue 0128, hv's option
+  # (b) of 2026-09-24): a command the project owns by a command-level run:, with
+  # no option to run, none declared or every declared one switched off.
+  # arg_route hands `all` over no options to a project handler or a built-in
+  # devbin ships, which answer for themselves, and sends a run: line here,
+  # because added to the line `all` would be a new command. So the refusal names
+  # the bare command, which runs the line. Any other caller meets the same
+  # guard, and it stays because an `all` that ran nothing must never read as a
+  # pass whoever asked for it. A command WITH options can still execute none of
+  # them, through in_all exclusions, which the executed-nothing refusal at the
+  # end of this function covers.
   if [ -z "$(command_options "$cmd")" ]; then
-    warn "'$DEVBIN_INVOKE $cmd all' has no options to run"
+    if [ "$(project_tier "$cmd")" = run ]; then
+      warn "'$DEVBIN_INVOKE $cmd all' has no options to run: commands.$cmd.run in $(devbin_dir_shown)/config.yaml owns $cmd here, and '$DEVBIN_INVOKE $cmd' runs it"
+    else
+      warn "'$DEVBIN_INVOKE $cmd all' has no options to run"
+    fi
     print_option_count "$cmd" "" "$offered" "$inactive" ""
     return 1
   fi
@@ -537,11 +1037,8 @@ run_all() {
     DEVBIN_SEAL_LEDGER_RUN="$(run_identity)"
     export DEVBIN_SEAL_LEDGER_RUN
   fi
-  for opt in $(command_options "$cmd"); do
-    if is_false_word "$(cfg_get "commands.$cmd.options.$opt.in_all" true)"; then
-      skipped="$skipped $opt"
-      continue
-    fi
+  all_partition "$cmd" torun skipped
+  for opt in $torun; do
     executed=$((executed + 1))
     ran="$ran $opt"
     if ! run_option "$cmd" "$opt" "$@"; then
@@ -624,7 +1121,7 @@ run_all() {
   if [ "$executed" -eq 0 ]; then
     printf '\n%sREFUSING A VERDICT -- %s %s all executed nothing:%s\n' \
       "${red:-}" "$DEVBIN_INVOKE" "$cmd" "${reset:-}"
-    printf '  every option it offers is excluded from all:%s\n' "$skipped"
+    printf '  %s\n' "$(all_excluded_why "$skipped")"
     printf '  %sa run that examined nothing is not a pass. Name an option directly.%s\n' \
       "${dim:-}" "${reset:-}"
     rc=1
@@ -661,20 +1158,32 @@ run_all() {
 #      are different
 #   2. config's own `run:` for this option -- more specific than anything devbin
 #      ships, and the whole point of the declarative shape
-#   3. the BUILT-IN library, for an option the catalogue actually knows
-#   4. otherwise the option is declared but unrunnable, which is a config error
+#   3. a command-level `run:` -- the same total shadow as step 1, written in
+#      config: the option is handed to the command's line as its first word
+#      (issue 0128)
+#   4. the BUILT-IN library, for an option the catalogue actually knows
+#   5. otherwise the option is declared but unrunnable, which is a config error
 #
-# Steps 2 and 3 are in that order deliberately. resolve_handler returns built-in
+# Steps 2 and 4 are in that order deliberately. resolve_handler returns built-in
 # handlers as well as project ones, so calling it first would let lib/cmd/check
 # swallow an option the project declared -- and lib/cmd/check would then report
 # it as unknown, which is both wrong and confusing, since config plainly
 # declares it.
 run_option() {
-  local cmd="$1" opt="$2" handler run log_suffix grammar run_key
-  local -a words
+  local cmd="$1" opt="$2" handler run log_suffix grammar run_key tier how
   shift 2
 
-  if has_project_handler "$cmd"; then
+  # THE ORDER IS option_run_tier's (issue 0128), and each branch below acts on
+  # its answer rather than testing the tiers itself, so no reader asking the
+  # same function through option_leaf can describe an order this function does
+  # not take. REPORT AND RETURN on a failure to answer, never exit: run_all
+  # calls this in a loop.
+  tier="$(option_run_tier "$cmd" "$opt")" || {
+    warn "devbin defect: option_run_tier gave no answer for '$cmd $opt'"
+    return 1
+  }
+
+  if [ "$tier" = handler ] || [ "$tier" = mapped ]; then
     handler="$(resolve_handler "$cmd")" || {
       warn "no runnable handler for '$cmd'"
       return 1
@@ -697,7 +1206,7 @@ run_option() {
   # the catalogue's own command line and ran that instead, silently. It carries
   # no words, so it is refused below exactly as a line of spaces is.
   run_key="commands.$cmd.options.$opt.run"
-  if cfg_has "$run_key"; then
+  if [ "$tier" = option-run ]; then
     run="$(cfg_get "$run_key")"
     # A declared `log:` makes this a sealed GATE, run through exactly the same
     # runner a built-in option uses. Without it the two halves of one surface
@@ -711,97 +1220,56 @@ run_option() {
     # the process is not meant to exit. `log:` is the existing declarative
     # signal for "this produces a verdict" -- it was in the schema and validated
     # from WP-03 and simply had nothing reading it.
-    log_suffix="$(cfg_get "commands.$cmd.options.$opt.log")"
-    grammar="$(cfg_get "commands.$cmd.options.$opt.grammar")"
-
-    # A config `run:` replaces an option's COMMAND LINE. It does not replace
-    # what the option IS. Where the catalogue declares this option a sealed gate
-    # -- `test.swift` is suffix SWIFT, grammar xcodebuild -- an override silent
-    # about `log:` and `grammar:` INHERITS both from the row, because a project
-    # pointing a gate at its own build has not asked to stop sealing.
+    # THE SEAL IS option_seal's, stated once for this option whichever tier
+    # runs it (issue 0135): config's `log:` and `grammar:`, else the catalogue's
+    # row, each through the one reading of `-` (0065, 0066). Its comment keeps
+    # why an override silent about them inherits the row's.
     #
-    # Without this, overriding a catalogue gate's command line silently demoted
-    # it to a bare exec: it ran, it failed, it exited non-zero, and it wrote no
-    # verdict file at all. Not an empty `.errors` meaning green -- no seal to
-    # read. In a project that reads seals rather than exit codes that is the
-    # worst available failure, and the correct exit code is precisely what hides
-    # it (ST0002 WP-08, the first project to arm swift).
-    #
-    # The fallback reaches only options the CATALOGUE knows. A project's own
-    # invention -- Lamplight's `build cli` -- has no row, so `log:` stays opt-in
-    # there exactly as documented, and an interactive option is still not teed.
-    if [ -z "$log_suffix" ]; then
-      log_suffix="$(builtin_option_suffix "$cmd" "$opt" 2>/dev/null || true)"
-    fi
-    # RESOLVED BEFORE THE SEAL DECISION BELOW, never after it (issue 0065). That
-    # test read the RAW declaration, so any non-empty value sealed -- `log: "-"`
-    # under the suffix `-` -- and the decline sentinel was honoured only on the
-    # catalogue's value, in a mapping that lived here. gate_log_suffix prints
-    # nothing for a decline from either source, which is what the test reads.
-    #
-    # A resolution that FAILS must not reach that test as a decline: an empty
-    # suffix runs the option bare, the silent demotion described above. REPORT
-    # AND RETURN rather than exit, as at the end of this function, because run_all
-    # calls this in a loop.
-    if ! log_suffix="$(gate_log_suffix "$opt" "$log_suffix")"; then
+    # A resolution that FAILS must not reach the seal decision below as a
+    # decline: an empty suffix runs the option bare, the silent demotion. REPORT
+    # AND RETURN rather than exit, as at the end of this function, because
+    # run_all calls this in a loop.
+    if ! option_seal "$cmd" "$opt" log_suffix grammar; then
       warn "cannot resolve commands.$cmd.options.$opt.log -- not running '$cmd $opt' unsealed"
       return 1
     fi
-    if [ -z "$grammar" ]; then
-      grammar="$(builtin_option_grammar "$cmd" "$opt" 2>/dev/null || true)"
-    fi
-    # `-` from EITHER source means generic (issue 0066), through gate_grammar. It
-    # was read on the catalogue's value alone, and a project writing
-    # `grammar: "-"` got `unknown grammar '-'` -- 0065's mistake one key over.
-    grammar="$(gate_grammar "$grammar")"
 
-    if [ -n "$log_suffix" ]; then
-      # In a SUBSHELL at the project root. A declared `run:` is a project
-      # command -- `mix test`, `cargo build` -- so it belongs at the root the
-      # way every corpus runner ran it, rather than wherever the caller happened
-      # to be standing. run_builtin_gate already cd'd for the shipped options;
-      # doing it here too is what makes the two halves one rig. The subshell
-      # keeps the directory change from leaking into the next option of an
-      # `all`.
-      (
-        cd "$PROJECT_ROOT" || die "cannot enter $PROJECT_ROOT"
-        # THE WORDS ARE TAKEN HERE, INSIDE THE cd, because every one of them is
-        # a glob pattern and the directory decides what it matches (issue 0082).
-        # Refusing here also refuses BEFORE run_gate opens a log, so a line with
-        # no words in it leaves no seal claiming a run.
-        run_words words "$run_key" "$run" || exit 1
-        # Wrapper flags out of the tool's argv, purge pair to run_gate (one
-        # parser for every gate path -- see gate_split_args in lib/runlog).
-        gate_split_args "$@"
-        run_gate --label "$cmd $opt" \
-          --suffix "$log_suffix" \
-          --grammar "$grammar" \
-          --out-dir "$(gate_out_dir "$cmd")" \
-          --source "config key $run_key, split into words by run_words, each a glob pattern (never eval'd)" \
-          ${DEVBIN_GATE_FLAGS[@]+"${DEVBIN_GATE_FLAGS[@]}"} \
-          -- "${words[@]}" ${DEVBIN_GATE_ARGS[@]+"${DEVBIN_GATE_ARGS[@]}"}
-      )
-      return $?
-    fi
-    # Split by run_words, deliberately NOT eval'd. Word splitting is what is
-    # wanted -- `run:` is a command line -- but eval would additionally
-    # re-interpret quotes, substitutions and redirections in a config file,
-    # which turns a declarative field into an execution surface for anything
-    # that can write it.
-    #
-    # The cost is that the declarative form cannot express an argument
-    # containing spaces: `run: mix test --only "a b"` splits into four words.
-    # That is the D1 boundary showing up in practice -- a command line that
-    # needs real quoting needs a handler.
-    (
-      cd "$PROJECT_ROOT" || die "cannot enter $PROJECT_ROOT"
-      run_words words "$run_key" "$run" || exit 1
-      "${words[@]}" "$@"
-    )
+    # Run by the one runner every config and catalogue line goes through
+    # (issue 0128), in a subshell at the project root, sealed or bare. RETURN,
+    # never exec, as this branch always has: named directly or inside `all`,
+    # an option's own line comes back to its caller.
+    _run_line "$cmd $opt" "$cmd" "$run_key" "$run" "$log_suffix" "$grammar" return "$@"
     return $?
   fi
 
-  if builtin_option_run "$cmd" "$opt" >/dev/null 2>&1; then
+  # A COMMAND-LEVEL `run:` OWNS A DECLARED OPTION THAT HAS NO LINE OF ITS OWN
+  # (issue 0128), as a project handler owns every option in step 1. The option
+  # is handed to the command's line as its first word, exactly as an undeclared
+  # word is, so declaring an option never moves what runs it. Until 0128 a
+  # declared built-in name here fell through to step 4 and ran devbin's own
+  # gate under a command the project had replaced.
+  if [ "$tier" = run ]; then
+    # Sealed as the command is -- `commands.<cmd>.log` and `.grammar` -- under
+    # the command's suffix with the option's own name joined to it, as the
+    # catalogue names DBMIGRATE: every option an `all` hands to one line would
+    # otherwise seal under one suffix, and the run would spread across the
+    # prefixes the name-collision fallback invents (issue 0045's pattern).
+    if ! log_suffix="$(gate_log_suffix "$cmd" "$(cfg_get "commands.$cmd.log")")"; then
+      warn "cannot resolve commands.$cmd.log -- not running '$cmd $opt' unsealed"
+      return 1
+    fi
+    [ -z "$log_suffix" ] || log_suffix="$log_suffix$(upper_snake "$opt")"
+    # EXEC when the option is named directly, as an undeclared word handed to
+    # the same line is (run_command): a launcher has to BE the process the
+    # terminal talks to. Inside `all` it returns, because the loop goes on.
+    how='exec'
+    [ "${_run_all_active:-}" != yes ] || how='return'
+    _run_line "$cmd $opt" "$cmd" "commands.$cmd.run" "$(cfg_get "commands.$cmd.run")" \
+      "$log_suffix" "$(gate_grammar "$(cfg_get "commands.$cmd.grammar")")" "$how" "$opt" "$@"
+    return $?
+  fi
+
+  if [ "$tier" = catalogue ] || [ "$tier" = unrunnable ]; then
     if handler="$(resolve_handler "$cmd")"; then
       "$handler" "$opt" "$@"
       return $?
@@ -815,9 +1283,10 @@ run_option() {
     return 3
   fi
 
-  warn "'$cmd $opt' is declared but has no run: and no handler"
+  warn "$(option_unrunnable_why "$cmd" "$opt")"
   return 1
 }
+
 
 # run_command <command> [args...] -- run a command that takes no option.
 #
@@ -830,15 +1299,18 @@ run_option() {
 # the commands that have a `run:` and no options, which is why the gap surfaced
 # with them rather than earlier.
 #
-# Resolution order is run_option's, one level up. A project handler is absent by
-# construction: the dispatcher exec's one before reaching here.
+# Resolution order is run_option's, one level up, and command_tier states it
+# (issue 0128). A project handler is absent by construction: the dispatcher
+# exec's one before reaching here.
 #
 #   1. config's own `run:` for this command -- more specific than anything
 #      devbin ships, and the whole point of the declarative shape
 #   2. devbin's OWN handler at lib/cmd/<command>, for a command with real logic
 #      rather than a command line (`server` picking between two of them)
 #   3. the catalogue's default command line, for a command devbin ships one for
-#   4. otherwise nothing runs it, which is the not-yet case
+#   4. otherwise its options, if it has any: usage, exit 1
+#   5. otherwise nothing runs it: report_unrunnable refuses, exit 3, and says
+#      what would (issue 0117 retired the not-yet wording here)
 #
 # Steps 1 and 2 are in that order deliberately, and the dispatcher used to have
 # them the other way round -- it resolved lib/cmd/<command> itself, so devbin's
@@ -847,89 +1319,150 @@ run_option() {
 # here only because no lib/cmd handler existed for a command a project would
 # also declare.
 #
-# EXEC rather than a subshell when no `log:` is declared. A command with a
-# command line and no option is a LAUNCHER -- `iex`, `server`, `repl` -- and a
-# launcher has to BE the process the terminal is talking to. Beneath the
-# dispatcher there is a shell between the user and the REPL: Ctrl-C lands on the
-# wrapper, job control names the wrapper, and the REPL's idea of its own
-# terminal is one process removed. The dispatcher already exec's project
-# handlers for exactly this reason; this makes the declarative path agree with
-# the handler path instead of quietly differing from it.
+# The line itself is run by _run_line, which says why it EXECs.
 run_command() {
-  local cmd="$1" run log_suffix opts run_key declared=no
-  local -a words
+  local cmd="$1" tier run="" run_key="" opts log_suffix
   shift
 
-  # Declared is `cfg_has`, as at option level and for the same reason (issue
-  # 0082): `run: ""` is declared everywhere else in devbin, and reading it as
-  # absent here ran devbin's own handler or the catalogue's line instead.
-  run_key="commands.$cmd.run"
-  if cfg_has "$run_key"; then
-    declared=yes
-    run="$(cfg_get "$run_key")"
-  else
-    # devbin's own handler, before the catalogue's flat command line: a command
-    # marked @builtin has logic a single command line cannot express.
-    if is_handler "${DEVBIN_LIB:-}/cmd/$cmd"; then
+  # THE ORDER IS command_tier's (issue 0128), and this function acts on its
+  # answer rather than walking the tiers itself: help's command_origin and
+  # doctor's _command_runnable ask the same function, so none of the three can
+  # describe an order the others do not take.
+  tier="$(command_tier "$cmd")" || die "devbin defect: command_tier gave no answer for '$cmd'"
+  case "$tier" in
+    run)
+      # Declared is `cfg_has`, as at option level and for the same reason (issue
+      # 0082): `run: ""` is declared everywhere else in devbin, and reading it as
+      # absent here ran devbin's own handler or the catalogue's line instead.
+      run_key="commands.$cmd.run"
+      run="$(cfg_get "$run_key")"
+      ;;
+    devbin)
+      # devbin's own handler, before the catalogue's flat command line: a command
+      # marked @builtin has logic a single command line cannot express.
       export DEVBIN_COMMAND="$cmd"
       # Same descent as a project handler: one resolution rule at every level
       # (D3), whoever supplied the handler.
       exec_handler "$DEVBIN_LIB/cmd/$cmd" "$@"
-    fi
-    run="$(builtin_command_run "$cmd" 2>/dev/null || true)"
-    # `-` and `@builtin` both mean the catalogue ships no runnable command line
-    # here: `-` because devbin defaults nothing (D18 tier 4), `@builtin` because
-    # the handler above was meant to have taken it and is missing.
-    if is_no_default "$run" || [ "$run" = @builtin ]; then run=""; fi
-    # The catalogue's row, named for the refusal below: a line with no words in
-    # it is devbin's own packaging error here, not a project's config error, and
-    # the message has to say which.
-    run_key="the catalogue's command line for '$cmd'"
-  fi
+      ;;
+    catalogue)
+      run="$(builtin_command_run "$cmd")"
+      # The catalogue's row, named for the refusal below: a line with no words in
+      # it is devbin's own packaging error here, not a project's config error, and
+      # the message has to say which.
+      run_key="the catalogue's command line for '$cmd'"
+      ;;
+    options)
+      # A command that HAS options but no command line of its own is asking what
+      # its options are, not to be told it is unbuilt (AC-04.13). It comes after
+      # the run resolution, which is what keeps a surface running: `server` has a
+      # command line and no options, so it never lands here.
+      opts="$(command_options "$cmd" | tr '\n' ' ')"
+      printf 'usage: %s %s <%s|all>\n' "$DEVBIN_INVOKE" "$cmd" \
+        "$(printf '%s' "$opts" | sed 's/ *$//; s/ /|/g')"
+      # ASKING for usage succeeded; being unable to run because no option was
+      # named did not. Exit 1, the usage-error code in devbin's own contract.
+      #
+      # Both cases returned 0, and Laksa's authored help says why that is wrong in
+      # the words of someone who was bitten by it: "BARE `laksa test` EXITS 2, NOT
+      # 0. It used to print this help and exit 0, which is the worst possible
+      # answer from a test command: every wrapper, CI step and `&&` chain read
+      # 'the tests passed' from a run that executed no test at all." Surfaced by
+      # WP-07's migration audit, which is what that audit is for -- the prose
+      # carried a ruling, and dropping the prose would have dropped the ruling.
+      case "${1:-}" in
+        -h | --help) return 0 ;;
+      esac
+      return 1
+      ;;
+    none)
+      # The single refusal site for commands. It lived in bin/devbin until this
+      # function existed; keeping a copy there as well would be two answers to one
+      # question, and they would drift the moment either grew a nuance.
+      report_unrunnable "$DEVBIN_INVOKE $cmd" "$cmd" || exit 3
+      ;;
+    *)
+      # A project handler never arrives here: the dispatcher execs it with the
+      # whole argument list (arg_route's `handler`). Saying so beats running
+      # something else in its place.
+      die "devbin defect: run_command reached for '$cmd', which the project's $tier supplies"
+      ;;
+  esac
+  # Sealed when `commands.<cmd>.log` names a suffix, resolved before the seal
+  # decision as run_option resolves its own and for the same reason (issue
+  # 0065): a declined `log:` has to reach the runner empty, or `log: "-"`
+  # seals a gate named `-`.
+  log_suffix="$(gate_log_suffix "$cmd" "$(cfg_get "commands.$cmd.log")")" ||
+    die "cannot resolve commands.$cmd.log -- refusing to run '$cmd' unsealed"
+  _run_line "$cmd" "$cmd" "$run_key" "$run" "$log_suffix" \
+    "$(gate_grammar "$(cfg_get "commands.$cmd.grammar")")" exec "$@"
+}
 
-  if [ "$declared" = yes ] || [ -n "$run" ]; then
-    log_suffix="$(cfg_get "commands.$cmd.log")"
-    # Resolved before the seal decision, as run_option does and for the same
-    # reason (issue 0065): a declined `log:` has to reach the test below empty,
-    # or `log: "-"` seals a gate named `-`.
-    log_suffix="$(gate_log_suffix "$cmd" "$log_suffix")" ||
-      die "cannot resolve commands.$cmd.log -- refusing to run '$cmd' unsealed"
-    if [ -n "$log_suffix" ]; then
-      # A command-level gate seals on the terms an option-level one does (D19),
-      # including the subshell at the project root -- it has to RETURN so the
-      # seal gets written, so this is the one path here that does not exec.
-      # THIS COMMENT ASSERTED THAT PARITY TWICE WHEN THE CODE DID NOT HAVE IT.
-      # The source line was missing until issue 0085, and the wrapper flags were
-      # handed to the tool as arguments until issue 0087. So the parity is held
-      # by arms rather than by this sentence: runlog.bats compares the two
-      # seals with their keys removed, and dispatch.bats refuses any run_gate
-      # span that forwards a raw argv.
-      (
-        cd "$PROJECT_ROOT" || die "cannot enter $PROJECT_ROOT"
-        # Inside the cd, since each word is a glob pattern matched there, and
-        # before run_gate opens a log (issue 0082).
-        run_words words "$run_key" "$run" || exit 1
-        # Wrapper flags out of the tool's argv, to run_gate (issue 0087: this
-        # site forwarded "$@" whole, so `--purge` ran as a tool argument).
-        gate_split_args "$@"
-        # The suffix is passed AS RESOLVED. Resolving it again here was the
-        # half of 0065 the first cut missed: harmless for every name in use,
-        # and a refusal for a command named `0`, whose resolved suffix `0` is
-        # itself a decline.
-        run_gate --label "$cmd" \
-          --suffix "$log_suffix" \
-          --grammar "$(gate_grammar "$(cfg_get "commands.$cmd.grammar")")" \
-          --out-dir "$(gate_out_dir "$cmd")" \
-          --source "config key $run_key, split into words by run_words, each a glob pattern (never eval'd)" \
-          ${DEVBIN_GATE_FLAGS[@]+"${DEVBIN_GATE_FLAGS[@]}"} \
-          -- "${words[@]}" ${DEVBIN_GATE_ARGS[@]+"${DEVBIN_GATE_ARGS[@]}"}
-      )
-      return $?
-    fi
+# _run_line <label> <cmd> <run_key> <line> <suffix> <grammar> <how> [args...] --
+# run one config or catalogue command line. THE ONE RUNNER (issue 0128) for an
+# option's own `run:`, a command's own line, and a declared option handed to its
+# command's line: until 0128 run_option and run_command each carried their own
+# copy of the sealed and the bare runs, and 0087 and 0122 were each a fix that
+# reached one copy and not the other. Every caller resolves what it seals under
+# -- <suffix> through gate_log_suffix, empty to run bare -- and its <grammar>
+# through gate_grammar; this runs the line. <cmd> names the gate's out-dir, and
+# <label> names the run in its seal and its notes.
+#
+# The line is split into words by run_words at the project root and never
+# eval'd (D1, issue 0082): each word is a glob pattern matched there. The words
+# are taken inside the cd and before run_gate opens a log, so a line with no
+# words in it leaves no seal claiming a run.
+#
+# <how> is `exec` or `return`, and matters only when the line runs bare. A
+# command with a command line and no option is a LAUNCHER -- `iex`, `server`,
+# `repl` -- and a launcher has to BE the process the terminal is talking to.
+# Beneath the dispatcher there is a shell between the user and the REPL: Ctrl-C
+# lands on the wrapper, job control names the wrapper, and the REPL's idea of
+# its own terminal is one process removed. So run_command execs, as the
+# dispatcher execs a project handler. `return` is for a caller that must come
+# back: an option's own line, and anything inside `all`'s loop, where replacing
+# the process would abandon every option after this one.
+_run_line() {
+  local label="$1" cmd="$2" run_key="$3" run="$4" suffix="$5" grammar="$6" how="$7"
+  local -a words
+  shift 7
+  if [ -n "$suffix" ]; then
+    # A sealed run seals on the same terms at option and command level (D19),
+    # including the subshell at the project root -- it has to RETURN so the
+    # seal gets written, so this is the one path here that does not exec.
+    # THIS COMMENT ASSERTED THAT PARITY TWICE WHEN THE CODE DID NOT HAVE IT.
+    # The source line was missing until issue 0085, and the wrapper flags were
+    # handed to the tool as arguments until issue 0087. So the parity is held
+    # by arms rather than by this sentence: runlog.bats compares the two
+    # seals with their keys removed, and dispatch.bats refuses any run_gate
+    # span that forwards a raw argv.
+    (
+      cd "$PROJECT_ROOT" || die "cannot enter $PROJECT_ROOT"
+      run_words words "$run_key" "$run" || exit 1
+      # Wrapper flags out of the tool's argv, to run_gate (one parser for every
+      # gate path -- see gate_split_args in lib/runlog).
+      gate_split_args "$@"
+      # The suffix is passed AS RESOLVED. Resolving it again here was the half
+      # of 0065 the first cut missed: harmless for every name in use, and a
+      # refusal for a command named `0`, whose resolved suffix `0` is itself a
+      # decline.
+      run_gate --label "$label" \
+        --suffix "$suffix" \
+        --grammar "$grammar" \
+        --out-dir "$(gate_out_dir "$cmd")" \
+        --source "config key $run_key, split into words by run_words, each a glob pattern (never eval'd)" \
+        ${DEVBIN_GATE_FLAGS[@]+"${DEVBIN_GATE_FLAGS[@]}"} \
+        -- "${words[@]}" ${DEVBIN_GATE_ARGS[@]+"${DEVBIN_GATE_ARGS[@]}"}
+    )
+    return $?
+  fi
+  if [ "$how" = exec ]; then
     cd "$PROJECT_ROOT" || die "cannot enter $PROJECT_ROOT"
-    # Split by run_words, deliberately not eval'd -- the same D1 boundary
-    # run_option holds, and the same glob rule (issue 0082).
     run_words words "$run_key" "$run" || return 1
+    # Never inside `all` (the caller says so), so the argv reaches the tool
+    # whole, with a word for any flag devbin did not act on (issue 0122).
+    gate_split_args "$@"
+    gate_flags_unsealed "$label" passed
     exec "${words[@]}" "$@"
     # Reached only if exec could not replace the process at all. Without this
     # line `exec` is silently doing control-flow duty as well as its own job:
@@ -937,35 +1470,33 @@ run_command() {
     # both wrong and a confusing thing to debug.
     die "could not exec: $run"
   fi
+  # In a subshell at the project root, so the directory change does not leak
+  # into the next option of an `all`. devbin's wrapper flags act on a seal, and
+  # this run has none: inside `all` they were typed for the sealed options
+  # beside this one, so they are dropped; named directly they may be the tool's
+  # own, so they pass through. Either way the person is told (issue 0122).
+  # `_run_all_active` is run_all's local, visible here by bash's dynamic scope.
+  (
+    cd "$PROJECT_ROOT" || die "cannot enter $PROJECT_ROOT"
+    run_words words "$run_key" "$run" || exit 1
+    gate_split_args "$@"
+    if [ "${_run_all_active:-}" = yes ]; then
+      gate_flags_unsealed "$label" dropped
+      set -- ${DEVBIN_GATE_ARGS[@]+"${DEVBIN_GATE_ARGS[@]}"}
+    else
+      gate_flags_unsealed "$label" passed
+    fi
+    "${words[@]}" "$@"
+  )
+}
 
-  # A command that HAS options but no command line of its own is asking what
-  # its options are, not to be told it is unbuilt (AC-04.13). This sits AFTER
-  # the run resolution above, which is what keeps a surface running: `server`
-  # has a command line and no options, so it never reaches here.
-  opts="$(command_options "$cmd" | tr '\n' ' ')"
-  if [ -n "${opts// /}" ]; then
-    printf 'usage: %s %s <%s|all>\n' "$DEVBIN_INVOKE" "$cmd" \
-      "$(printf '%s' "$opts" | sed 's/ *$//; s/ /|/g')"
-    # ASKING for usage succeeded; being unable to run because no option was
-    # named did not. Exit 1, the usage-error code in devbin's own contract.
-    #
-    # Both cases returned 0, and Laksa's authored help says why that is wrong in
-    # the words of someone who was bitten by it: "BARE `laksa test` EXITS 2, NOT
-    # 0. It used to print this help and exit 0, which is the worst possible
-    # answer from a test command: every wrapper, CI step and `&&` chain read
-    # 'the tests passed' from a run that executed no test at all." Surfaced by
-    # WP-07's migration audit, which is what that audit is for -- the prose
-    # carried a ruling, and dropping the prose would have dropped the ruling.
-    case "${1:-}" in
-      -h | --help) return 0 ;;
-    esac
-    return 1
-  fi
-
-  # The single refusal site for commands. It lived in bin/devbin until this
-  # function existed; keeping a copy there as well would be two answers to one
-  # question, and they would drift the moment either grew a nuance.
-  report_unrunnable "$DEVBIN_INVOKE $cmd" "$cmd" || exit 3
+# option_unrunnable_why <command> <option> -- the sentence for a declared
+# option with nothing to run it: no run: of its own, no handler, and no
+# catalogue row. run_option warns it, and fullcycle's phase check gives it as
+# its reason before a cycle removes anything (issue 0134), so the two say it
+# one way.
+option_unrunnable_why() {
+  printf "'%s %s' is declared but has no run: and no handler\n" "$1" "$2"
 }
 
 # unrunnable_why <command> [<option>] -- why something devbin knows resolves to
@@ -999,22 +1530,33 @@ run_command() {
 # install of `db` that devbin "ships the name only"; dispatch.bats's older arm
 # over `db all` caught it, and this function's own new arms, all over @builtin
 # rows, could not have.
+#
+# EVERY CALLER PASSES A NAME THE CATALOGUE CARRIES: command_origin asks only of
+# a built-in; run_command reaches its refusal only for a known, active command
+# with no run, handler or options, which only a built-in can be; run_option
+# refuses only after finding the option's row. Issue 0117 deleted two branches
+# no caller reached, a failed lookup and a name-only OPTION. An option
+# therefore always means the handler is missing, and only a command's own row
+# can say `-`.
+#
+# AND A NAME THAT IS NOT ONE IS A DEVBIN DEFECT, SAID IN THIS FILE'S WORDS
+# (cc's review of 0117). With no branch for it, the failed lookup ended its
+# caller under errexit with no word -- help, which calls this bare -- or, inside
+# report_unrunnable's printf, printed an empty reason under the refusal.
 unrunnable_why() {
   local cmd="$1" opt="${2:-}" run
-  if ! run="$(builtin_option_run "$cmd" "$opt" 2>/dev/null)"; then
-    run=""
-  elif [ -n "$opt" ]; then
-    run=@builtin
+  if ! run="$(builtin_option_run "$cmd" "$opt")"; then
+    printf "devbin defect: devbin's catalogue has no row for '%s', yet something asked why it cannot run\n" \
+      "$cmd${opt:+ $opt}"
+    return 0
   fi
+  [ -z "$opt" ] || run=@builtin
   if [ "$run" = @builtin ]; then
     printf "devbin's handler for '%s' is missing from this install -- %s doctor names what else is missing\n" \
       "$cmd" "$DEVBIN_INVOKE"
-  elif [ -n "$opt" ]; then
-    printf 'devbin ships the name only -- declare commands.%s.options.%s.run or add %s/cmd/%s\n' \
-      "$cmd" "$opt" "${DEVBIN_DIR#"$PROJECT_ROOT"/}" "$cmd"
-  else
+  elif ! nonexec_handler_hint "$cmd"; then
     printf 'devbin ships the name only -- declare commands.%s.run or add %s/cmd/%s\n' \
-      "$cmd" "${DEVBIN_DIR#"$PROJECT_ROOT"/}" "$cmd"
+      "$cmd" "$(devbin_dir_shown)" "$cmd"
   fi
 }
 
@@ -1114,12 +1656,26 @@ _framework_option_lang() {
 # Public because both the dispatcher (to refuse) and help (to say what the flag
 # applies to) need the same answer, and two derivations of one fact drift.
 framework_option_consumers() {
-  local pair rest i v
+  local pair rest i v c tier
+  local -a _consumers
   for pair in $_DEVBIN_FRAMEWORK_OPTIONS; do
     case "$pair" in
       "$1":*)
         rest="${pair#*:}"
-        printf '%s\n' "${rest#*:}" | tr ',' '\n'
+        IFS=, read -ra _consumers <<<"${rest#*:}"
+        for c in "${_consumers[@]}"; do
+          # DEVBIN'S OWN CONSUMER READS THE FLAG THROUGH devbin's IMPLEMENTATION,
+          # or through a project HANDLER, which may read the canonical export
+          # (D20) -- Baize, Conflab, Laksa and Lamplight each run `server` from
+          # one. A command-level `run:` is neither: it is a line devbin execs as
+          # written, so nothing devbin knows reads the flag there, and it counts
+          # only when the project names it below (issue 0128). Before 0128,
+          # `server --iex` over `commands.server.run: mix myserver` was accepted,
+          # exported, and ran the line unchanged at exit 0.
+          tier="$(project_tier "$c")" || return 1
+          [ "$tier" = run ] && continue
+          printf '%s\n' "$c"
+        done
         ;;
     esac
   done

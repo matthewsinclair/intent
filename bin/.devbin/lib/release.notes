@@ -458,6 +458,7 @@ _notes_releases_state() {
 _notes_releases_versions() {
   local dir="$1/$_NOTES_RELEASES_DIR" listing f name found="" strays=""
   [ -d "$dir" ] || return 0
+  # find-walk: -maxdepth 1 -- the releases directory's own files; it never enters one
   if ! listing="$(find "$dir" -mindepth 1 -maxdepth 1 -name '*.md')"; then
     warn "release notes: cannot list $_NOTES_RELEASES_DIR/"
     return 1

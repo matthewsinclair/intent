@@ -207,11 +207,13 @@ install:
 # is no command list to maintain here and none anywhere else. What this section
 # supplies is the wording around it.
 #
-# `devbin help <cmd>` is AUTHORED, and does not come from this file at all: it
-# is markdown at bin/.devbin/help/<cmd>.md, with sub-topics at
+# `devbin help <cmd>` is AUTHORED, and does not come from this file at all. The
+# project's own page is markdown at bin/.devbin/help/<cmd>.md, with sub-topics at
 # bin/.devbin/help/<cmd>.d/<sub>.md resolving by the same rule the handlers use
-# (D3). Absent a file, help generates an answer from the summary, the options
-# and where the command resolved from -- never an empty page.
+# (D3), and it answers first. For a built-in the project does not own, devbin's
+# shipped page answers next, from the vendored runtime, followed by what resolves
+# in this project. Absent both, help generates an answer from the summary, the
+# options and where the command resolved from -- never an empty page.
 
 help:
   # Optional. Completes the first line: `<project name> -- <tagline>`.
@@ -368,6 +370,19 @@ commands:
   # option -- with `log:` the command becomes a sealed gate and does not exec,
   # because a gate has to return for its verdict to be written. Omit `log:` for
   # anything long-running or interactive.
+  #
+  # A command-level `run:` OWNS THE COMMAND, as a handler in cmd/ does (issue
+  # 0128). devbin's built-in options for it stop applying, and only options
+  # declared here remain; one declared with no `run:` of its own is handed to
+  # this line as its first word, as any other word is. With no option to run
+  # -- none declared, or every declared one switched off -- `all` is refused,
+  # exit 1, naming the bare command: added to the line it would be a new
+  # command. And `--iex`, which devbin's own server reads, is not counted as
+  # read by a line devbin runs as written, unless `options.iex.commands` lists
+  # the command, which says the line reads DEVBIN_OPT_IEX itself. Not counted,
+  # the command is treated as any that does not read the flag: with nothing
+  # else here reading it, `--iex` reaches the line as an ordinary argument,
+  # and with something else reading it, the flag is refused there, exit 2.
   server:
     enabled: true
     # `summary`, `group` and `args` are what help renders. Each has ONE source,
@@ -383,9 +398,9 @@ commands:
     # there is no precedence question between those two to get wrong.
     summary: Phoenix dev server
     group: Surfaces
-    # Optional. The usage hint in help's left column: `server [--iex]`. It is
-    # prose, not a parser -- devbin never interprets it.
-    args: "[--iex]"
+    # Optional. The usage hint in help's left column: `server [<arg>...]`. It
+    # is prose, not a parser -- devbin never interprets it.
+    args: "[<arg>...]"
     # EVERY `run:` IS SPLIT INTO WORDS AND NEVER `eval`'d, AND EVERY WORD IS A
     # GLOB PATTERN matched in the directory the command runs from -- the project
     # root, or for release.notes.run the root it answers about. `bats opt/*/test`
@@ -430,6 +445,12 @@ commands:
         # launcher rather than a gate -- `server` and `iex` are long-running and
         # never exit, so teeing them would buffer the output you are watching
         # and seal nothing.
+        #
+        # `log:` IS READ ONLY BESIDE A `run:` -- the option's own, or, on a
+        # command, the command's own line. Anywhere else a handler runs the
+        # command, devbin's or the project's, and seals as it seals, so a
+        # `log:` there is read by nothing, and `bin/devbin doctor` fails it
+        # (issue 0133).
         #
         # DECLINING A SEAL. An override of a CATALOGUE gate's `run:` that says
         # nothing about `log:` inherits the row's suffix and grammar, and an
@@ -536,7 +557,7 @@ release:
     - check all
     - test all
   # ci:                      # undeclared: CI is not consulted
-  #   query: bin/ci-state    # run as `<query> <sha>`: first line `<verdict>[TAB<detail>]`, verdict green, failed, pending, none or unknown
+  #   query: bin/ci-state    # run as `<query> <sha>` with DEVBIN_RELEASE_TAG set (read it as ${DEVBIN_RELEASE_TAG:-}; unset, every run on the sha): the tag's runs only, `none` until one exists; first line `<verdict>[TAB<detail>]`, verdict green, failed, pending, none or unknown
   #   wait: 20m              # how long the post-release verdict waits on pending or none
   object: local              # local | ci | none -- who makes the release object
   title: "{tag}"             # object: local only. {tag} and {version} expand.

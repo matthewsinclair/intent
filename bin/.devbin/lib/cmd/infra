@@ -66,6 +66,11 @@ set -euo pipefail
 # the verb exists -- reported by lamplight-dc, who found `profiles` only by
 # already knowing to look.
 #
+# THE REFERENCE'S PATH IS $(lib_rel), NOT SPELLED (issue 0121). It read
+# bin/.devbin/lib/infra.reference.yaml, which is right in every estate and names
+# nothing in devbin's own checkout, where lib/ runs in place -- the defect 0112
+# fixed in `devbin devbin`, in a second handler.
+#
 # The lines below carry NO BACKTICKS on purpose. This heredoc is unquoted so
 # the dispatcher's name renders, which makes a backtick live command
 # substitution: the first draft of this change put `.d/` in the help text, and
@@ -84,8 +89,9 @@ usage: ${DEVBIN_INVOKE:-bin/devbin} infra <verb> [--profile <path>]
 The profile is searched for in this order, and a miss names every path:
   --profile <path>, \$DEVBIN_INFRA_PROFILE, <project root>/infra.yaml, ~/.config/devbin/infra.yaml
 
-The annotated worked example is VENDORED INTO THIS PROJECT -- read it, copy it:
-  bin/.devbin/lib/infra.reference.yaml
+The annotated worked example ships in devbin's runtime, in this project -- read
+it, copy it:
+  $(lib_rel)/infra.reference.yaml
 USAGE
 }
 
@@ -122,7 +128,7 @@ infra_validate_profile || die "infra: the PROFILE is malformed. Nothing was chec
 case "$verb" in
   show)
     printf 'profile: %s\n' "$profile"
-    printf 'name:    %s\n' "$(cfg_get name 2>/dev/null || printf '(unnamed)')"
+    printf 'name:    %s\n' "$(cfg_get name '(unnamed)')"
     printf 'domains:\n'
     for h in $(cfg_list domains); do
       printf '  %-16s %s\n' "$h" "$(cfg_get "domains.$h.name")"
@@ -161,6 +167,9 @@ case "$verb" in
        records, and there is deliberately no fallback to the system resolver --
        a cached TTL reads as a configured one, which is the false green this
        command exists to refuse."
+    # And the budget and the pause, once, before any domain is asked about: a
+    # malformed one fails quietly per query (lib/infra.dns says how).
+    infra_dns_assert_knobs "infra check"
 
     while IFS="$(printf '\t')" read -r handle fqdn; do
       [ -n "${fqdn:-}" ] || continue
@@ -169,6 +178,6 @@ case "$verb" in
 $(infra_domain_pairs)
 EOF
     infra_check_consistency
-    infra_check_report "$profile" "$(cfg_get name 2>/dev/null || printf '(unnamed)')"
+    infra_check_report "$profile" "$(cfg_get name '(unnamed)')"
     ;;
 esac

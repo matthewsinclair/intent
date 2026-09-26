@@ -25,7 +25,7 @@ set -euo pipefail
 # shellcheck source=lib/gatecmd
 . "${DEVBIN_LIB:?run me through bin/devbin}/gatecmd"
 
-# THE LOCAL DEV LIFECYCLE, AND IT REFUSES PROD.
+# THE LOCAL DEV LIFECYCLE, AND IT REFUSES PROD -- BUT NOT HERE ANY MORE.
 #
 # `db reset` drops the database. Of the four projects only Laksa guarded this,
 # and its wording is the right one: these commands ARE the local dev database
@@ -33,13 +33,13 @@ set -euo pipefail
 # use. Shipping `db reset` to four projects without the guard would be shipping
 # a footgun three of them do not currently have.
 #
-# A project that genuinely needs a production database operation writes a
-# handler, which shadows this file totally (D2) -- deliberately a bigger and
-# more visible step than passing a flag.
-if [ "${MIX_ENV:-dev}" = prod ]; then
-  die "db refuses MIX_ENV=prod -- these commands are the LOCAL dev database lifecycle
-       'db reset' drops the database. If a production operation is really wanted,
-       it belongs in a project handler at bin/.devbin/cmd/db, not behind a flag."
-fi
-
+# THE REFUSAL MOVED TO THE CATALOGUE AND THE DISPATCHER (issue 0132). Checked
+# here, it guarded only the lines devbin ships, since a line the project
+# declares runs through run_option or run_command and never reaches this file:
+# `setup.run: mix ash.setup` ran under MIX_ENV=prod, sealed, exit 0. It is now a
+# row in lib/builtins' _DEVBIN_BUILTIN_REFUSALS, which bin/devbin asks before
+# ANY db path runs. A project that genuinely needs a production database
+# operation still writes a handler, which shadows this file totally (D2) and is
+# the one thing the refusal lets past -- deliberately a bigger and more visible
+# step than passing a flag.
 run_builtin_gate db "$@"

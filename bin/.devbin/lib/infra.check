@@ -17,10 +17,12 @@
 # Both are wrong and only one of them is loud. So an unmeasured domain leaves
 # the OK count, enters its own section, and takes the exit code with it.
 #
-# EXIT CODES. 0 all measured and matching; 1 drift; 2 something could not be
-# measured. Two beats one when both are present, because a drift red is already
-# visible AND actionable in the output, while an unmeasured domain is the one a
-# scripted caller would otherwise bank as covered.
+# EXIT CODES. 0 all measured and matching; 1 drift, or something could not be
+# measured. Both are a failure and the REPORT ranks them: the unmeasured prints
+# first, because a drift red is already visible AND actionable in the output,
+# while an unmeasured domain is the one a scripted caller would otherwise bank
+# as covered. Unmeasured exited 2 until issue 0126, and 2 is the dispatcher's
+# answer for a command that is unknown or inactive.
 #
 # WHAT IS DELIBERATELY NOT CHECKED, and it is the decision that unblocked this
 # work. `mail: google` does NOT assert a particular MX value. The STANDARD --
@@ -35,8 +37,14 @@
 # the same `mail:` value must carry the same MX form as every other. That fires
 # on the audited defect -- three different Google MX forms across eleven domains
 # -- asserts no vendor value, and at N=1 REPORTS ITSELF AS A BLIND SPOT rather
-# than going quiet. Same for SPF across domains sharing a sender. The result is
-# a check leg with zero confidently-wrong assertions anywhere in it.
+# than going quiet. The result is a check leg with zero confidently-wrong
+# assertions anywhere in it.
+#
+# MX FORMS ARE THE ONE THING COMPARED ACROSS DOMAINS. This paragraph said "Same
+# for SPF across domains sharing a sender" until issue 0143, and nothing ever
+# did it: `_IC_SENDER_SPF` collected each sender's DKIM answer per domain and no
+# line in the tree read it. 0143 removed the collector rather than carry a dead
+# write through the rewrite of the sender pair.
 
 [ -n "${_DEVBIN_INFRA_CHECK_LOADED:-}" ] && return 0
 _DEVBIN_INFRA_CHECK_LOADED=1
@@ -81,8 +89,8 @@ _ic_manual() { _IC_MANUAL="$_IC_MANUAL$1	$2	$(_ic_flat "$3")
 # reporting "no MX, no SPF, no DMARC" for a domain nobody could reach is a
 # verdict about an estate that was never read.
 infra_check_domain() {
-  local handle="$1" fqdn="$2" ns mail ttl want_dmarc policy rua
-  local mx spf dmarc_txt sender sel spf_rec n k v
+  local handle="$1" fqdn="$2" ns mail ttl want_dmarc policy rua sp
+  local mx spf dmarc_txt sender spf_rec n k v
 
   # `manual:` first, so a domain that turns out to be unreachable still has its
   # unverifiable expectations named. They are not contingent on the network.
@@ -93,8 +101,11 @@ infra_check_domain() {
 $(infra_manual_keys "$handle")
 EOF
 
+  # On rc 1 the reader prints what it OBSERVED where the nameserver would be,
+  # and that sentence is the reason given here. lib/infra.dns owns its words,
+  # so `init` says the same thing about the same failure (issue 0142).
   if ! ns="$(infra_dns_authority "$fqdn")"; then
-    _ic_error "$fqdn" "authority" "no authoritative nameserver answered -- NOTHING about this domain was checked"
+    _ic_error "$fqdn" "authority" "$ns -- NOTHING about this domain was checked"
     return 0
   fi
 
@@ -159,6 +170,7 @@ EOF
   else
     policy="$(infra_effective "$handle" dmarc.policy || true)"
     rua="$(infra_effective "$handle" dmarc.rua || true)"
+    sp="$(infra_effective "$handle" dmarc.sp || true)"
     if ! dmarc_txt="$(infra_dns_dmarc "$ns" "$fqdn")"; then
       _ic_error "$fqdn" "dmarc" "_dmarc TXT could not be read from $ns"
     else
@@ -175,11 +187,14 @@ EOF
         fi
       else
         _ic_ok
-        _ic_dmarc_fields "$fqdn" "$policy" "$rua" "$(printf '%s' "$dmarc_txt" | cut -f2-)"
+        _ic_dmarc_fields "$fqdn" "$policy" "$rua" "$sp" "$(printf '%s' "$dmarc_txt" | cut -f2-)"
         _ic_ttl_check "$fqdn" "dmarc" "$ttl" "$dmarc_txt"
       fi
     fi
   fi
+
+  # --- wildcards (issue 0143) --------------------------------------------------
+  _ic_wildcard "$ns" "$fqdn" "$handle" "$ttl"
 }
 
 # _ic_ttl_check <fqdn> <facet> <declared> <records> -- the CONFIGURED ttl,
@@ -203,7 +218,6 @@ EOF
 # The mechanism that replaces the deleted STANDARD. Forms are collected here and
 # compared once, after every domain has been read, by infra_check_consistency.
 _IC_MXFORM=""
-_IC_SENDER_SPF=""
 
 _ic_mx_form() {
   local fqdn="$1" mail="$2" form
@@ -212,57 +226,144 @@ _ic_mx_form() {
 "
 }
 
-# _ic_sender_pair <ns> <fqdn> <sender> <spf record> -- the matched pair.
-_ic_sender_pair() {
-  local ns="$1" fqdn="$2" sender="$3" spf="$4" inc sel typ want got
-  inc="$(cfg_get "senders.$sender.spf_include" 2>/dev/null || true)"
-  sel="$(cfg_get "senders.$sender.dkim.name" 2>/dev/null || true)"
-  typ="$(cfg_get "senders.$sender.dkim.type" 2>/dev/null || true)"
-  want="$(cfg_get "senders.$sender.dkim.value" 2>/dev/null || true)"
+# _ic_rdata_set <type> <records> -- an RRset's rdata as a SET: one record per
+# line, sorted, a CNAME target in lower case without its root dot, since DNS
+# compares a name that way. <records> are `<ttl><TAB><rdata>` lines, as the
+# readers print them; a declared value goes in as `-<TAB><value>`, so the two
+# sides of every comparison are made by this one function. Pure.
+#
+# ONE COMPARISON FOR EVERY RECORD DECLARED BY VALUE (issue 0143): a DKIM
+# record's value and a wildcard's. No stage fails on an empty set, so a failure
+# here is a fault for the caller to name, never an absence.
+_ic_rdata_set() {
+  printf '%s\n' "$2" | cut -f2- | awk -v t="$1" 'NF {
+    if (t == "CNAME") { $0 = tolower($0); sub(/\.$/, "") }
+    print }' | LC_ALL=C sort
+}
 
-  # SPF half.
-  local has_spf=0
+# _ic_rdata_shown <separator> <set> -- a set from _ic_rdata_set on one line,
+# its records split by <separator>, for a report row. Pure.
+_ic_rdata_shown() {
+  printf '%s\n' "$2" | awk -v sep="$1" 'NR > 1 { printf "%s", sep } { printf "%s", $0 }'
+}
+
+# _ic_sender_pair <ns> <fqdn> <sender> <spf record> -- the matched pair, for
+# EVERY DKIM record the sender declares (issue 0143).
+#
+# THE SPF HALF IS JUDGED ONCE, FIRST, from the SPF record the caller already
+# read. It returned early on a DKIM read that failed until 0143, and that hid a
+# MEASURED fault -- an SPF record lacking the include -- behind an unmeasured
+# one. Then each record is read on the authoritative server, by its declared
+# type (CNAME when none is declared), and judged alone:
+#
+#   read failed           COULD NOT MEASURE for that record, and the next is read
+#   absent, include there HALF PAIR, naming that record
+#   present, include there held, and its `value`, where declared, compared
+#
+# One record, the only kind before 0143, prints what it always did, with three
+# exceptions that are fixes: an SPF drift is no longer hidden by a DKIM read
+# that failed, a TXT record is compared joined, and a declared value is compared
+# whole with every record at the name, where it was searched for as a substring
+# of the first one listed -- so a profile declaring part of a key, or the tail
+# of a target, drifts where it held.
+_ic_sender_pair() {
+  local ns="$1" fqdn="$2" sender="$3" spf="$4" inc p sel typ want got live wset shown n has_spf=0
+  inc="$(cfg_get "senders.$sender.spf_include" 2>/dev/null || true)"
   if [ -n "$inc" ]; then
     case "$spf" in *"include:$inc"*) has_spf=1 ;; esac
   fi
-
-  # DKIM half.
-  local has_dkim=0
-  if [ -n "$sel" ]; then
-    if ! got="$(infra_dns_read "$ns" "$sel.$fqdn" "${typ:-CNAME}")"; then
-      _ic_error "$fqdn" "dkim:$sender" "$sel.$fqdn could not be read"
-      return 0
-    fi
-    if [ -n "$got" ]; then has_dkim=1; fi
-    _IC_SENDER_SPF="$_IC_SENDER_SPF$sender	$fqdn	$(printf '%s' "$got" | cut -f2- | head -1)
-"
-  fi
-
   if [ -n "$inc" ] && [ "$has_spf" -eq 0 ]; then
     _ic_drift "$fqdn" "spf:$sender" "declares sender \`$sender\` and its SPF does NOT include $inc"
   fi
-  if [ "$has_spf" -eq 1 ] && [ "$has_dkim" -eq 0 ]; then
-    # THE HALF PAIR. Stated at full strength because its consequence is not
-    # obvious from the field names.
-    _ic_drift "$fqdn" "pair:$sender" "SPF authorises \`$sender\` but there is NO DKIM record at $sel.$fqdn -- HALF PAIR: this domain's own legitimate mail is indistinguishable from a forgery of it"
-  fi
-  if [ "$has_spf" -eq 1 ] && [ "$has_dkim" -eq 1 ]; then
-    _ic_ok
-    if [ -n "$want" ] && [ -n "${got:-}" ]; then
-      case "$(printf '%s' "$got" | cut -f2- | head -1)" in
-        *"$want"*) ;;
-        *) _ic_drift "$fqdn" "dkim:$sender" "DKIM at $sel.$fqdn does not carry the declared value" ;;
-      esac
+
+  for p in $(infra_sender_dkim_records "$sender"); do
+    sel="$(cfg_get "senders.$sender.$p.name" 2>/dev/null || true)"
+    typ="$(cfg_get "senders.$sender.$p.type" 2>/dev/null || true)"
+    want="$(cfg_get "senders.$sender.$p.value" 2>/dev/null || true)"
+    # Validation refuses a record with no name before any read, so this is a
+    # broken invariant, and it is said rather than skipped.
+    if [ -z "$sel" ]; then
+      _ic_error "$fqdn" "dkim:$sender" "the DKIM record senders.$sender.$p has no name, so it was not read"
+      continue
     fi
-  fi
+    # A TXT record is read JOINED, as a resolver sees it: a 2048-bit key is
+    # always several strings, and compared raw it never carries its own value.
+    if ! got="$(infra_dns_rrset "$ns" "$sel.$fqdn" "${typ:-CNAME}")"; then
+      _ic_error "$fqdn" "dkim:$sender" "$sel.$fqdn could not be read"
+      continue
+    fi
+    if [ -z "$got" ]; then
+      if [ "$has_spf" -eq 1 ]; then
+        # THE HALF PAIR. Stated at full strength because its consequence is not
+        # obvious from the field names.
+        _ic_drift "$fqdn" "pair:$sender" "SPF authorises \`$sender\` but there is NO DKIM record at $sel.$fqdn -- HALF PAIR: this domain's own legitimate mail is indistinguishable from a forgery of it"
+      fi
+      continue
+    fi
+    [ "$has_spf" -eq 1 ] || continue
+    _ic_ok
+    [ -n "$want" ] || continue
+    # THE WHOLE SET AGAINST THE ONE DECLARED VALUE (issue 0143). The first
+    # record the server listed was searched for the value as a substring, so a
+    # second record at the selector, or a target the value was only the tail
+    # of, held -- in whichever order the server chose.
+    # Both sides, and the line that would show the live one, are made before
+    # any verdict: a comparison that could not be made is a fault in the
+    # instrument, never drift in the estate.
+    if ! live="$(_ic_rdata_set "${typ:-CNAME}" "$got")" ||
+      ! wset="$(_ic_rdata_set "${typ:-CNAME}" "-	$want")" ||
+      ! shown="$(_ic_rdata_shown ' | ' "$live")"; then
+      _ic_error "$fqdn" "dkim:$sender" "$sel.$fqdn was read and could not be compared"
+      continue
+    fi
+    [ "$live" != "$wset" ] || continue
+    n="$(printf '%s\n' "$live" | awk 'END { print NR }')"
+    if [ "$n" -gt 1 ]; then
+      _ic_drift "$fqdn" "dkim:$sender" "DKIM at $sel.$fqdn carries $n records, $shown, where the profile declares one: $want"
+    else
+      _ic_drift "$fqdn" "dkim:$sender" "DKIM at $sel.$fqdn does not carry the declared value"
+    fi
+  done
+  return 0
 }
 
+# _ic_dmarc_fields <fqdn> <policy> <rua> <sp> <record> -- the declared tags
+# against the live record's.
+#
+# A DECLARED POLICY IS COMPARED EVEN WHEN THE RECORD CARRIES NO p= (issue 0143).
+# The comparison ran only when there was a live p= to compare with, so a
+# profile declaring `policy: reject` against `v=DMARC1; rua=...` printed "0
+# drift" at rc 0: a declared value never compared, the class 0143 is about.
+#
+# sp= IS COMPARED AS p= IS, and when the record carries none the value compared
+# is p=, because RFC 7489 (section 6.3) makes an absent sp= mean the subdomain
+# policy IS p=. The line says which value it compared and where it came from.
+# An undeclared sp asserts nothing, so a profile written before 0143 reads as
+# it did.
 _ic_dmarc_fields() {
-  local fqdn="$1" policy="$2" rua="$3" rec="$4" got_p got_rua
+  local fqdn="$1" policy="$2" rua="$3" sp="$4" rec="$5" got_p got_rua got_sp
   got_p="$(infra_dmarc_tag "$rec" p)"
   got_rua="$(infra_dmarc_tag "$rec" rua)"
-  if [ -n "$policy" ] && [ -n "$got_p" ] && [ "$policy" != "$got_p" ]; then
-    _ic_drift "$fqdn" "dmarc.p" "live policy is p=$got_p, profile declares $policy"
+  got_sp="$(infra_dmarc_tag "$rec" sp)"
+  if [ -n "$policy" ]; then
+    if [ -z "$got_p" ]; then
+      _ic_drift "$fqdn" "dmarc.p" "the record carries NO p= tag, profile declares $policy -- RFC 7489 requires one"
+    elif [ "$policy" != "$got_p" ]; then
+      _ic_drift "$fqdn" "dmarc.p" "live policy is p=$got_p, profile declares $policy"
+    fi
+  fi
+  if [ -n "$sp" ]; then
+    if [ -n "$got_sp" ]; then
+      if [ "$sp" != "$got_sp" ]; then
+        _ic_drift "$fqdn" "dmarc.sp" "live subdomain policy is sp=$got_sp, profile declares $sp"
+      fi
+    elif [ -n "$got_p" ]; then
+      if [ "$sp" != "$got_p" ]; then
+        _ic_drift "$fqdn" "dmarc.sp" "live subdomain policy is p=$got_p -- the record carries no sp=, so p= applies -- profile declares $sp"
+      fi
+    else
+      _ic_drift "$fqdn" "dmarc.sp" "the record carries neither sp= nor p=, profile declares $sp"
+    fi
   fi
   if [ -n "$rua" ]; then
     case "$got_rua" in
@@ -278,6 +379,87 @@ _ic_dmarc_fields() {
     quarantine | reject) ;;
     *) _ic_blind "$fqdn" "dmarc.enforcement" "p=$got_p publishes a preference and enforces nothing -- a forged message is delivered and merely reported" ;;
   esac
+  # The same for an EXPLICIT sp=, whether or not the profile declares one. An
+  # absent sp= follows p=, which the line above already names.
+  case "$got_sp" in
+    "" | quarantine | reject) ;;
+    *) _ic_blind "$fqdn" "dmarc.sp.enforce" "sp=$got_sp: forged mail from a SUBDOMAIN is delivered and merely reported" ;;
+  esac
+}
+
+# _ic_wildcard <ns> <fqdn> <handle> <ttl> -- the declared wildcard RRsets, read
+# at `*.<fqdn>` on the authoritative server (issue 0143).
+#
+# A query naming the wildcard's own owner is answered with the wildcard's own
+# RRset (RFC 4592), so this reads exactly what the zone publishes there, and
+# nothing that a wildcard synthesizes for any other name. Each of `a`, `aaaa`
+# and `txt` is one value or `none`, inherited per leaf through infra_effective:
+#
+#   a value     the live RRset of that type is EXACTLY that one record: an
+#               extra address sends every name that does not exist somewhere
+#               nobody declared, so it is drift, and the ttl is checked
+#   `none`      the live RRset of that type is empty -- a verified ABSENCE,
+#               where `dmarc: none` is an opt-out that is never verified
+#
+# A CNAME AT THE WILDCARD ANSWERS FOR EVERY TYPE, so it contradicts every
+# `none` without being an A, AAAA or TXT record itself: once any type is
+# declared `none`, the CNAME is asked for too. A declared VALUE needs no such
+# question, since a CNAME shares its node with nothing and the read of that
+# type comes back empty on its own.
+#
+# THE APEX IS UNTOUCHED. A wildcard answers only for names that do not exist,
+# and the apex always does, so every read above -- MX, SPF, DMARC, DKIM -- asks
+# what it asked before.
+_ic_wildcard() {
+  local ns="$1" fqdn="$2" handle="$3" ttl="$4" t T want got live wset shown sep nones="" cn
+  for t in a aaaa txt; do
+    want="$(infra_effective "$handle" "wildcard.$t" || true)"
+    [ -n "$want" ] || continue
+    case "$t" in
+      a) T=A ;;
+      aaaa) T=AAAA ;;
+      txt) T=TXT ;;
+    esac
+    if ! got="$(infra_dns_rrset "$ns" "*.$fqdn" "$T")"; then
+      _ic_error "$fqdn" "wildcard.$t" "*.$fqdn $T could not be read from $ns"
+      continue
+    fi
+    # No stage fails on an empty RRset, so a pipeline that fails is a fault,
+    # never an absence: `none` holding on a read nobody finished is the lie
+    # this function exists not to tell.
+    # Compared as a set, one record per line; SHOWN on one line, a TXT set
+    # split with ` | ` since its records hold spaces of their own.
+    sep=' '
+    [ "$T" != TXT ] || sep=' | '
+    if ! live="$(_ic_rdata_set "$T" "$got")" ||
+      ! wset="$(_ic_rdata_set "$T" "-	$want")" ||
+      ! shown="$(_ic_rdata_shown "$sep" "$live")"; then
+      _ic_error "$fqdn" "wildcard.$t" "*.$fqdn $T was read and could not be compared"
+      continue
+    fi
+    if [ "$want" = none ]; then
+      nones="$nones $T"
+      if [ -z "$live" ]; then
+        _ic_ok
+      else
+        _ic_drift "$fqdn" "wildcard.$t" "declares NO wildcard $T and *.$fqdn carries $shown"
+      fi
+    elif [ -z "$live" ]; then
+      _ic_drift "$fqdn" "wildcard.$t" "declares wildcard $T $want and *.$fqdn carries NO $T record"
+    elif [ "$live" = "$wset" ]; then
+      _ic_ok
+      _ic_ttl_check "$fqdn" "wildcard.$t" "$ttl" "$got"
+    else
+      _ic_drift "$fqdn" "wildcard.$t" "wildcard $T at *.$fqdn is $shown, profile declares $want"
+    fi
+  done
+  [ -n "$nones" ] || return 0
+  if ! cn="$(infra_dns_read "$ns" "*.$fqdn" CNAME)"; then
+    _ic_error "$fqdn" "wildcard" "*.$fqdn CNAME could not be read from $ns"
+  elif [ -n "$cn" ]; then
+    _ic_drift "$fqdn" "wildcard" "*.$fqdn is a CNAME to $(printf '%s' "$cn" | cut -f2- | head -1), which answers for every type -- the profile declares no wildcard${nones}"
+  fi
+  return 0
 }
 
 # infra_check_consistency -- the cross-domain pass, run ONCE after every domain.
@@ -324,17 +506,23 @@ infra_check_report() {
   printf 'infra check: %s (%s)\n' "$name" "$profile"
   printf '  %s assertion(s) held, %s drift, %s NOT MEASURED\n\n' "$_IC_OK" "$nd" "$ne"
 
+  # BOTH ARE A FAILURE, exit 1, and the REPORT is what ranks them: what could
+  # not be measured prints first, above the drift. Unmeasured exited 2 until
+  # issue 0126, and 2 is the dispatcher's answer for a command that is unknown
+  # or inactive, so a caller could not tell "infra is not set up here" from "a
+  # DNS read failed". A gate that examined nothing is promoted to FAILED rather
+  # than given a code of its own, and this follows it.
   if [ "$ne" -gt 0 ]; then
     printf 'COULD NOT MEASURE (%s) -- these are gaps in the INSTRUMENT, not verdicts:\n' "$ne"
     printf '%s' "$_IC_ERROR" | awk -F'\t' 'NF>=3 {printf "  %-26s %-18s %s\n", $1, $2, $3}'
     printf '\n'
-    rc=2
+    rc=1
   fi
   if [ "$nd" -gt 0 ]; then
     printf 'DRIFT (%s):\n' "$nd"
     printf '%s' "$_IC_DRIFT" | awk -F'\t' 'NF>=3 {printf "  %-26s %-18s %s\n", $1, $2, $3}'
     printf '\n'
-    [ "$rc" -eq 0 ] && rc=1
+    rc=1
   fi
 
   # BOTH BLOCKS PRINT ON A GREEN RUN, and that is the point of them. A green
@@ -354,7 +542,7 @@ infra_check_report() {
   else
     printf '  (none)\n'
   fi
-  printf '\nThis run covered DNS and mail records only. Fly runtime is WP-07 and\n'
-  printf 'was not examined; Workspace routing is not machine-checkable at all.\n'
+  printf '\nThis run covered DNS and mail records only. The Fly runtime (devbin'\''s ST0006,\n'
+  printf 'not built) was not examined; Workspace routing is not machine-checkable at all.\n'
   return $rc
 }

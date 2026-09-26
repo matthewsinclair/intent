@@ -41,6 +41,8 @@ set -euo pipefail
 . "$DEVBIN_LIB/builtins"
 # shellcheck source=lib/runlog
 . "$DEVBIN_LIB/runlog"
+# shellcheck source=lib/resolve
+. "$DEVBIN_LIB/resolve"
 
 _dormancy_usage() {
   printf 'usage: %s dormancy\n\n' "${DEVBIN_INVOKE:-bin/devbin}"
@@ -49,31 +51,139 @@ _dormancy_usage() {
   printf '  Costs two builds. It is a verb you run, not a gate that runs itself.\n'
 }
 
-# _dormancy_declared -- the command line this project runs for `test rust`.
+# _dormancy_load_config -- the project's config, in this process.
 #
-# Config first and the catalogue second, which is the order every other
-# resolution in this tree uses: config is more specific than anything devbin
-# ships. Reading only the catalogue would report a default the project has
-# overridden, which is a true sentence about devbin and a false one about here.
 # THE CONFIG CACHE DOES NOT CROSS INTO A HANDLER. A built-in handler is a
 # SEPARATE PROCESS -- doctor says the same thing in its own header -- so the
 # dispatcher's `cfg_load` is not in scope here and the accessors would answer
 # empty for every key. Answering empty is the dangerous shape rather than a
 # loud one: it would silently fall through to the catalogue default and report
 # a delta about `cargo test` in a project that runs something else entirely.
+#
+# A LOAD THAT FAILS IS REFUSED, NEVER SWALLOWED (critic-shell on 0135 v2c;
+# vc's ruling). This returned 0 over a missing or unparseable config, and
+# since 0135 option_leaf's refusals and option_seal's seal both read the
+# config: the empty cache made option_leaf answer inactive, and dormancy
+# refused blaming project.languages, when the config was what could not be
+# read. No config is refused as the dispatcher refuses it (bin/devbin: "no
+# config at ..."), since only an install tree runs without one, and dormancy
+# does not run there. cfg_load's own error stays on stderr, above the refusal.
+# Through the dispatcher neither is reached -- bin/devbin loads the same file
+# first and stops -- so this answers a direct invocation.
 _dormancy_load_config() {
-  [ -n "${DEVBIN_DIR:-}" ] || return 0
-  [ -f "$DEVBIN_DIR/config.yaml" ] || return 0
-  cfg_load "$DEVBIN_DIR/config.yaml" >/dev/null 2>&1 || return 0
+  local cfg="${DEVBIN_DIR:?run me through bin/devbin}/config.yaml"
+  [ -f "$cfg" ] ||
+    die "dormancy: no config at $(devbin_dir_shown)/config.yaml (try: ${DEVBIN_INVOKE:-bin/devbin} install) -- nothing was measured"
+  cfg_load "$cfg" >/dev/null ||
+    die "dormancy: could not load $(devbin_dir_shown)/config.yaml (the error above says why) -- nothing was measured"
+}
+
+# _dormancy_declared <words-var> <source-var> -- the command line `test rust`
+# runs in this project, split into <words-var> by run_words, and where it came
+# from into <source-var>. Refuses, naming why, when `test rust` does not run a
+# line dormancy can run itself (issue 0135).
+#
+# WHAT RUNS `test rust` IS option_leaf's ANSWER (issue 0128), the dispatcher's
+# own, not a reading of the one key. This read commands.test.options.rust.run,
+# else the catalogue, and never asked what runs `test rust`: beside a project
+# `test` handler it printed `cargo test` and the handler ran both legs; with
+# `test rust` switched off it printed `cargo test` and both legs were refused.
+# It was the sixth copy of the order 0128 stated once. So:
+#
+# - inactive is refused in the dispatcher's words, the option's reason or the
+#   command's;
+# - a project handler, file or mapped, or a sub-handler of one, runs `test rust`
+#   itself, so there is no line to print or extend;
+# - a command-level run: is handed `rust` as its first word, a line the project
+#   wrote for every test option rather than a cargo test line;
+# - a config line is declared by cfg_has, 0082's rule, so `run: ""` is a line
+#   with no words and refused as run_words refuses it, where `[ -n ]` read it as
+#   undeclared and printed the catalogue's;
+# - the catalogue's line, as devbin's own gate runs it;
+# - unrunnable and declared-unrunnable in unrunnable_why's and
+#   option_unrunnable_why's words, as run_option refuses them;
+# - and any other answer is not a line dormancy can run itself, and is named.
+_dormancy_declared() {
+  local -n _dd_words="$1" _dd_src="$2"
+  local why run key leaf
+  _dormancy_load_config
+  leaf="$(option_leaf test rust)" || die "dormancy: devbin could not tell what runs 'test rust' here"
+  case "$leaf" in
+    inactive)
+      # The command first, as the dispatcher refuses it (bin/devbin): a test
+      # switched off is named as test, not as its option.
+      if ! command_active test; then
+        why="$(command_unavailable_reason test)" ||
+          die "dormancy: 'test' is not available here, and devbin could not tell why"
+        die "dormancy: '${DEVBIN_INVOKE:-bin/devbin} test' is not available here: $why"
+      fi
+      why="$(option_unavailable_reason test rust)" ||
+        die "dormancy: 'test rust' does not run here, and devbin could not tell why"
+      die "dormancy: 'test rust' does not run here: $why"
+      ;;
+    handler | mapped | sub-handler)
+      die "dormancy: a test handler of this project's own runs 'test rust', so there is no declared line
+       to run with --all-features; dormancy would measure a line nothing runs."
+      ;;
+    run)
+      die "dormancy: commands.test.run runs 'test rust', handed 'rust' as its first word; that is the
+       project's line for every test option, not a cargo test line with an --all-features form."
+      ;;
+    option-run)
+      key="commands.test.options.rust.run"
+      run="$(cfg_get "$key")"
+      _dd_src="$key in $(devbin_dir_shown)/config.yaml"
+      ;;
+    catalogue)
+      key="the catalogue's command line for 'test rust'"
+      run="$(builtin_option_run test rust)" || die "dormancy: devbin's catalogue has no line for 'test rust'"
+      _dd_src="devbin's catalogue"
+      ;;
+    # `options` is the dispatcher's answer when devbin's own test handler is
+    # missing from the install: test rust is then a word handed to a command
+    # with nothing to run it, so unrunnable_why's reason is the true one.
+    unrunnable | options) die "dormancy: 'test rust' does not run here: $(unrunnable_why test rust)" ;;
+    declared-unrunnable) die "dormancy: 'test rust' does not run here: $(option_unrunnable_why test rust)" ;;
+    *) die "dormancy: 'test rust' runs as '$leaf' here, not a command line of its own dormancy can run" ;;
+  esac
+  # Split at the project root, where its words are glob patterns matched, as
+  # every declared line is (issue 0082); run_words names the key it refuses.
+  local -a _dd_tmp=()
+  cd "$PROJECT_ROOT" || die "cannot enter $PROJECT_ROOT"
+  run_words _dd_tmp "$key" "$run" || exit 1
+  _dd_words=("${_dd_tmp[@]}")
+}
+
+# _dormancy_maximum <declared-var> <maximum-var> -- the declared words with
+# --all-features where cargo reads it: before the first `--`, since every word
+# after it goes to the test binaries, which reject the flag (issue 0135). It
+# was appended to the line, so `cargo test -- --test-threads=1` became a line
+# whose flag never reached cargo, and the leg failed with no trailer.
+_dormancy_maximum() {
+  local -n _dm_in="$1" _dm_out="$2"
+  local _dm_w _dm_done=0
+  _dm_out=()
+  for _dm_w in "${_dm_in[@]}"; do
+    if [ "$_dm_done" = 0 ] && [ "$_dm_w" = -- ]; then
+      _dm_out+=(--all-features)
+      _dm_done=1
+    fi
+    _dm_out+=("$_dm_w")
+  done
+  [ "$_dm_done" = 1 ] || _dm_out+=(--all-features)
   return 0
 }
 
-_dormancy_declared() {
-  local run
-  _dormancy_load_config
-  run="$(cfg_get "commands.test.options.rust.run")"
-  [ -n "$run" ] || run="$(builtin_option_run test rust)" || return 1
-  printf '%s' "$run"
+# _dormancy_passes_all_features <words-var> -- true when the words cargo reads,
+# those before the first `--`, already pass --all-features.
+_dormancy_passes_all_features() {
+  local -n _dp_in="$1"
+  local _dp_w
+  for _dp_w in "${_dp_in[@]}"; do
+    [ "$_dp_w" != -- ] || return 1
+    [ "$_dp_w" != --all-features ] || return 0
+  done
+  return 1
 }
 
 # _dormancy_count <output> -- tests EXECUTED in a captured cargo run.
@@ -87,22 +197,50 @@ _dormancy_count() {
   printf '%s\n' "$1" | awk "$(count_for rust)" 2>/dev/null || true
 }
 
-# _dormancy_leg <label> <extra-args...> -- run one leg and echo its output.
+# _dormancy_leg <which> <source> <words-var> <suffix> <grammar> -- run one leg,
+# the words in the array named <words-var>, sealed, and echo its output. The
+# words are handed by name, never as this function's own argv: dormancy takes
+# no user argv, and a run_gate call forwarding "$@" reads as a gate handing a
+# user's wrapper flags to its tool (issue 0087's source arm).
 #
-# RUNLOG_WITNESS_RUN=1 IS LOAD-BEARING AND IS NOT TIDINESS. Both legs are
-# ordinary `test rust` gates, so both seal a RUST pair -- and without this the
-# second one would re-point LATEST_RUST at a run made to answer a question about
+# RUN THROUGH run_gate ITSELF, NOT THROUGH `test rust` (issue 0135). The legs
+# ran `bin/devbin test rust`, a gate, and a gate promotes a run that executed
+# no test to FAILED: over a suite wholly behind features the declared leg
+# exited 1 and dormancy read INCONCLUSIVE -- the one case this command exists
+# to find. The legs are a MEASUREMENT, so a zero is a count: each is sealed as
+# `test rust` is sealed, under tmp/test/ with option_seal's suffix and grammar
+# (vc's ruling: a fixed RUST and cargo sealed differently wherever config
+# said otherwise), with --allow-empty given to run_gate and never to cargo.
+#
+# RUNLOG_WITNESS_RUN=1 IS LOAD-BEARING AND IS NOT TIDINESS. Without it the
+# second leg would re-point LATEST_RUST at a run made to answer a question about
 # feature flags. `LATEST_RUST` means "the newest DELIBERATE full run of this
 # gate", and a dormancy probe is not one. The dated pair is still written, so
 # either leg stays quotable by name.
 _dormancy_leg() {
-  local launcher="$1"
-  shift
-  RUNLOG_WITNESS_RUN=1 "$launcher" test rust "$@" 2>&1
+  local which="$1" src="$2" suffix="$4" grammar="$5" how="split into words by run_words, each a glob pattern (never eval'd)"
+  local -n _dl_words="$3"
+  [ "$which" = declared ] || how="$how, with --all-features placed where cargo reads it"
+  # A WITNESS RUN MINTS ITS OWN ID UNLESS ITS PARENT IS ONE (bin/devbin's
+  # boundary, hv 2026-09-16). The legs were child `bin/devbin test rust` runs,
+  # which crossed it; run here, in dormancy's own process, they kept its id, and
+  # a parent `all` named a leg's seal as one of its failed gates (critic-shell
+  # on 0135). So each leg runs in a subshell under an id of its own.
+  (
+    if [ "${DEVBIN_RUN_WITNESS:-}" != 1 ]; then
+      DEVBIN_RUN_ID="$(run_id_mint)"
+    fi
+    export DEVBIN_RUN_ID DEVBIN_RUN_WITNESS=1 RUNLOG_WITNESS_RUN=1
+    run_gate --label "dormancy $which" --suffix "$suffix" --grammar "$grammar" \
+      --out-dir "$(gate_out_dir test)" --allow-empty \
+      --source "dormancy's $which leg -- $src, $how" \
+      -- "${_dl_words[@]}" 2>&1
+  )
 }
 
 cmd_dormancy() {
-  local arg declared launcher out_dec out_max rc_dec=0 rc_max=0 n_dec n_max delta
+  local arg declared maximum src="" out_dec out_max rc_dec=0 rc_max=0 n_dec n_max delta suffix grammar
+  local -a words=() maxwords=()
 
   for arg in "$@"; do
     case "$arg" in
@@ -120,17 +258,18 @@ cmd_dormancy() {
   # does not declare the 'rust' language`. The handler is still executable on
   # its own path, as the clean suite demonstrates, and a verb that ran two cargo
   # builds in a project with no cargo would be a worse answer than a refusal.
-  case " ${DEVBIN_LANGUAGES:-} " in
+  # ONE LANGUAGE A LINE: the dispatcher exports project_languages' output, so a
+  # project declaring rust and another language held `rust<LF>shell`, and this
+  # pattern, spaces round `rust`, refused it as not declaring rust (found by
+  # 0135's arms; older than 0135). The newlines are read as spaces.
+  local langs="${DEVBIN_LANGUAGES:-}"
+  case " ${langs//$'\n'/ } " in
     *" rust "*) ;;
     *) die "dormancy: this project does not declare rust, and --all-features is a cargo idea." ;;
   esac
 
-  launcher="$PROJECT_ROOT/bin/devbin"
-  [ -x "$launcher" ] ||
-    die "dormancy: no launcher at $launcher -- it drives devbin's own verbs and cannot find it."
-
-  declared="$(_dormancy_declared)" ||
-    die "dormancy: this project declares no rust test invocation to compare against."
+  _dormancy_declared words src
+  declared="${words[*]}"
 
   # REFUSING AN UNDEFINED COMPARISON RATHER THAN FORMING ONE. `--all-features`
   # is cargo's flag. Appending it to a project's own script produces a command
@@ -146,29 +285,38 @@ cmd_dormancy() {
        Nothing is wrong here; the comparison is simply undefined."
       ;;
   esac
-  case "$declared" in
-    *--all-features*)
-      printf 'dormancy: the declared invocation ALREADY passes --all-features.\n'
-      printf '  declared: %s\n\n' "$declared"
-      printf '  It is its own maximum, so the delta is zero BY CONSTRUCTION and\n'
-      printf '  measuring it would prove nothing. No tests are dormant behind a\n'
-      printf '  feature flag in this project.\n'
-      return 0
-      ;;
-  esac
+  if _dormancy_passes_all_features words; then
+    printf 'dormancy: the declared invocation ALREADY passes --all-features.\n'
+    printf '  declared: %s\n\n' "$declared"
+    printf '  It is its own maximum, so the delta is zero BY CONSTRUCTION and\n'
+    printf '  measuring it would prove nothing. No tests are dormant behind a\n'
+    printf '  feature flag in this project.\n'
+    return 0
+  fi
+  _dormancy_maximum words maxwords
+  maximum="${maxwords[*]}"
+  # SEALED AS `test rust` IS, OR NOT AT ALL (issue 0135). option_seal is the
+  # one statement of the seal; a line declared unsealed, `log: "-"`, is refused:
+  # each leg runs through run_gate, which seals nothing without a suffix, and
+  # sealing it under another name would be the divergence this reads option_seal
+  # to remove. (The count is read from each leg's output, not from its seal.)
+  option_seal test rust suffix grammar ||
+    die "dormancy: cannot resolve how 'test rust' is sealed -- no leg was run"
+  [ -n "$suffix" ] ||
+    die "dormancy: commands.test.options.rust.log declares 'test rust' unsealed, and dormancy seals each leg as test rust is sealed -- no leg was run"
 
   printf 'devbin dormancy -- rust\n\n'
-  printf '  declared  %s\n' "$declared"
-  printf '  maximum   %s --all-features\n\n' "$declared"
+  printf '  declared  %s    (%s)\n' "$declared" "$src"
+  printf '  maximum   %s\n\n' "$maximum"
   printf '  Two full runs. Neither re-points LATEST_RUST: a probe about feature\n'
   printf '  flags is not this gate%s current verdict.\n\n' "'s"
 
   printf '  --- leg 1 of 2: the declared invocation ---\n'
-  out_dec="$(_dormancy_leg "$launcher")" || rc_dec=$?
+  out_dec="$(_dormancy_leg declared "$src" words "$suffix" "$grammar")" || rc_dec=$?
   printf '%s\n' "$out_dec"
 
   printf '\n  --- leg 2 of 2: the same invocation with --all-features ---\n'
-  out_max="$(_dormancy_leg "$launcher" --all-features)" || rc_max=$?
+  out_max="$(_dormancy_leg maximum "$src" maxwords "$suffix" "$grammar")" || rc_max=$?
   printf '%s\n' "$out_max"
 
   n_dec="$(_dormancy_count "$out_dec")"

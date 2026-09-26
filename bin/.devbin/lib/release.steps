@@ -36,7 +36,8 @@
 #   release_bound <name> <value>                 a bound's override; the default unless a whole number
 #   release_wait <seconds> <keep> <cutoff-state> <reader>...
 #                                                ask, bounded, until the answer leaves <keep>
-#   release_ci_verdict <sha> <query-word>...     step 11's reader: the project's ci.query, parsed
+#   release_ci_verdict <sha> <tag> <query-word>...
+#                                                step 11's reader: the project's ci.query, parsed
 #
 # Every reader prints ONE line, `<state><TAB><detail>`, and returns 0 when it
 # answered, whatever the answer. The states are D38's: `already` (the
@@ -917,15 +918,33 @@ release_wait() {
   printf '%s\n' "$answer"
 }
 
-# release_ci_verdict <sha> <query-word>... -- the project's ci.query asked about
-# <sha>, as one line: `<verdict><TAB><detail>`, the verdict one of green,
-# failed, pending, none or unknown (D40).
+# release_ci_verdict <sha> <tag> <query-word>... -- the project's ci.query asked
+# about the release: <sha>, the release commit, and <tag>, the release tag, as
+# one line: `<verdict><TAB><detail>`, the verdict one of green, failed,
+# pending, none or unknown (D40).
 #
 # THE CONTRACT A QUERY KEEPS: it is run as `<query-word>... <sha>`, the sha
-# appended as notes.run receives its verb and version, with no stdin, and its
-# first line of output is `<verdict>[<TAB><detail>]`, the detail naming the run
-# (an id or a url) or the reason. That is Utilz's install_ci_state shape, with
-# the core's own verdict words rather than gh's conclusion words.
+# appended as notes.run receives its verb and version, with the release tag in
+# its environment as DEVBIN_RELEASE_TAG, and no stdin; its first line of
+# output is `<verdict>[<TAB><detail>]`, the detail naming the run (an id or a
+# url) or the reason. That is Utilz's install_ci_state shape, with the core's
+# own verdict words rather than gh's conclusion words.
+#
+# A QUERY THAT READS DEVBIN_RELEASE_TAG ANSWERS FOR THAT TAG'S RUNS ONLY, and
+# `none` until one exists (issue 0149). A release pushes the release commit to
+# its branch and pushes the tag, and CI may run a workflow for each, on that
+# one sha. Asked about the sha alone, a query read every run on it, and Gtools'
+# v0.4.0 cut ended green on the branch push's run (36155136723, which skips the
+# macOS job) before the tag's run (36156500018, which carries it) existed. The
+# tag is the release's identity, so its runs are the verdict.
+#
+# THE TAG TRAVELS IN THE ENVIRONMENT, NOT AS AN ARGUMENT (vc's ruling): the
+# fleet's queries, Gtools' and Utilz's tools/ci-state, refuse any argument but
+# the sha, so a second one would have failed every cut of theirs at step 11,
+# after the tag, the push and the release object. A query that does not read
+# DEVBIN_RELEASE_TAG keeps its old verdict, every run on the sha, and nothing
+# here can tell it from one that reads it: that is the declared limit, and the
+# release note of issue 0149 asks each such estate to read the tag.
 #
 # IT NEVER GUESSES: a query that exits non-zero, prints nothing, or prints a
 # first word that is not a verdict is `unknown`, carrying what it said -- a
@@ -933,8 +952,8 @@ release_wait() {
 # measured. It is bounded by its caller, release_wait, and its scratch is that
 # wait's (RELEASE_WAIT_DIR), so a query killed at its bound leaves none behind.
 release_ci_verdict() {
-  local sha="$1" dir="${RELEASE_WAIT_DIR:-}" own=no rc=0 line verdict detail
-  shift
+  local sha="$1" tag="$2" dir="${RELEASE_WAIT_DIR:-}" own=no rc=0 line verdict detail
+  shift 2
   if [ -z "$dir" ]; then
     dir="$(mktemp -d "${TMPDIR:-/tmp}/devbin-ci.XXXXXX")" || {
       printf 'unknown\tno scratch directory to ask the query in\n'
@@ -942,7 +961,7 @@ release_ci_verdict() {
     }
     own=yes
   fi
-  "$@" "$sha" >"$dir/ci.out" 2>"$dir/ci.err" </dev/null || rc=$?
+  DEVBIN_RELEASE_TAG="$tag" "$@" "$sha" >"$dir/ci.out" 2>"$dir/ci.err" </dev/null || rc=$?
   line="$(head -n 1 "$dir/ci.out")"
   if [ "$rc" -ne 0 ]; then
     detail="$(head -n 1 "$dir/ci.err")"

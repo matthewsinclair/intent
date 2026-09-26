@@ -176,6 +176,18 @@ BODY
 # invented from somebody's $HOME -- which is what the removed default did, in
 # every one of the fourteen estates that vendor this file.
 #
+# A PROJECT THAT DECLARES `install.prefix` GETS IT, which is what the reference
+# has always promised. It never did until issue 0125: install_prefix_configured
+# reads the config cache, the dispatcher's cache does not cross into a
+# handler's process, and nothing here loaded one, so every project answered
+# empty whatever it declared. The config is read here, where the one question
+# is asked, the way doctor and upgrade read theirs.
+#
+# A CONFIG THAT CANNOT BE READ EMITS THE FUNCTION ANYWAY, and says so on
+# stderr. This runs from a shell rc, and a shell that will not start is a worse
+# answer than a `dvb` without its fallback; saying nothing would make the
+# missing fallback look like a project that declared none.
+#
 # rc 0 WITH EMPTY OUTPUT, SAID OUT LOUD, because the value travels through two
 # nested command substitutions on its way into the sed below. An rc raised in
 # there is swallowed without `inherit_errexit` (issue 0060) and the emptiness
@@ -183,6 +195,12 @@ BODY
 _shell_init_prefix() {
   if [ "$(manifest_field "$PROJECT_ROOT" kind 2>/dev/null || true)" = install ]; then
     printf '%s\n' "$PROJECT_ROOT"
+    return 0
+  fi
+  [ -f "${DEVBIN_DIR:-}/config.yaml" ] || return 0
+  if ! cfg_load "$DEVBIN_DIR/config.yaml" >/dev/null; then
+    printf 'devbin shell-init: %s/config.yaml could not be read (above), so dvb has no machine-install fallback from it\n' \
+      "$DEVBIN_DIR" >&2
     return 0
   fi
   install_prefix_configured || return 0
@@ -226,9 +244,21 @@ cmd_shell_init() {
         *) die "shell-init zsh: unknown option '$2' (try: --autoload)" ;;
       esac
       ;;
-    "" | -h | --help)
-      _shell_init_usage
-      [ -n "${1:-}" ] || return 2
+    -h | --help) _shell_init_usage ;;
+    "")
+      # NAMING NO SHELL IS A USAGE ERROR, so it exits 1, as every bare command
+      # that needs an option does. It exited 2 until issue 0119, and 2 is the
+      # dispatcher's answer for a command that is unknown or inactive, which
+      # this one is not.
+      #
+      # AND THE USAGE GOES TO STDERR, because a shell rc evals this command's
+      # stdout and the usage carries runnable examples: an eval, an export and
+      # a cd. Measured on 2026-09-23, an eval of the bare output ran none of
+      # them only because the `<zsh>` on the usage's first line does not parse,
+      # which fails the whole eval. That was luck, not a property; this is the
+      # property.
+      _shell_init_usage >&2
+      return 1
       ;;
     *)
       # Named, not guessed at: an unknown shell gets the list rather than a

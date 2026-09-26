@@ -333,15 +333,23 @@ cut_summary() {
   printf '%s\n' "${CUT_ROWS[@]}"
 }
 
-# cut_fail <n> <detail> [rc] -- step <n> FAILED: its row, the table so far, and
-# what this run did that another machine can see, then exit <rc> (1, or 2 when
-# nobody could be asked, AC-5.3).
+# cut_fail <n> <detail> -- step <n> FAILED: its row, the table so far, and what
+# this run did that another machine can see, then exit 1.
+#
+# EXIT 1 WHEN NOBODY COULD BE ASKED, TOO (issue 0130). Step 6 passed 2 here, as
+# ST0007's AC-5.3 asked, so that "declined" and "could not ask" were different
+# codes -- and 2 is the dispatcher's code for an unknown or inactive command, so
+# a script running `release` without `--yes` read the same code as one running
+# it where `release` is not enabled. A new refusal takes a new code, never a
+# spare one, and this is not a new refusal: fullcycle and clean already exit 1
+# when nobody is there to ask. The row's detail carries the difference, which is
+# where W4 wanted it: only a person at a terminal can decline.
 cut_fail() {
   cut_row "$1" FAILED "$2"
   cut_summary
   printf '\nrelease: stopped at step %s (%s). %s. Fix what the row names, then run again.\n' \
     "$1" "${_RELEASE_STEP_NAMES[$(($1 - 1))]}" "$(cut_outward)"
-  exit "${3:-1}"
+  exit 1
 }
 
 # cut_outward -- what this run has done that is not local and reversible, as a
@@ -458,6 +466,10 @@ cut_run() {
   local derived gates out written="" have n
   local -a refusals=()
 
+  # THE TAG REACHES ci.query ALONE (issue 0149): one exported from outside,
+  # to try a query by hand, would reach every gate and after: command, and a
+  # gate exercising the query would read a stale tag (critic-shell on 0149 v2).
+  unset DEVBIN_RELEASE_TAG
   cfg_validate || die "release: $DEVBIN_DIR/config.yaml does not validate (above)"
   select_notes
   tpl="$(cfg_release_get tag)"
@@ -792,7 +804,7 @@ cut_run() {
         cut_row 6 "done" "confirmed: $(printf '%s; ' "${left[@]}" | sed 's/; $//')"
         ;;
       1) cut_fail 6 "declined at the prompt" ;;
-      *) cut_fail 6 "nobody to ask: no terminal, and --yes was not given" 2 ;;
+      *) cut_fail 6 "nobody to ask: no terminal, and --yes was not given" ;;
     esac
   fi
 
@@ -980,13 +992,16 @@ cut_run() {
   # --- step 11: the CI verdict (D40) ---------------------------------------
   # Fail forward: CI does not gate the release, it reports on it. The project's
   # ci.query is asked about the RELEASE COMMIT, the tagged commit and never
-  # HEAD, while it answers pending or none, up to ci.wait. Only green is 0: a
-  # cut that could not confirm green must not exit as though it had.
+  # HEAD, with the RELEASE TAG in its environment, whose runs are the verdict
+  # (issue 0149), while it answers pending or none, up to ci.wait. Only green is
+  # 0: a cut that could not confirm green must not exit as though it had. The
+  # rows say what the query answered: the core cannot see whether it read the
+  # tag.
   local verdict_failed=""
   if ! cfg_release_declared ci.query; then
     cut_row 11 skipped "no ci.query declared"
   elif [ "$dry_run" = 1 ]; then
-    cut_row 11 would "ask ci.query about ${commit:0:12} for up to $(cfg_release_get ci.wait) (ci.wait)"
+    cut_row 11 would "ask ci.query about $tag (${commit:0:12}) for up to $(cfg_release_get ci.wait) (ci.wait)"
   else
     local query ci_wait ci_secs
     local -a qw=()
@@ -994,16 +1009,22 @@ cut_run() {
     ci_wait="$(cfg_release_get ci.wait)"
     run_words qw release.ci.query "$query" 2>/dev/null || cut_fail 11 "ci.query holds no words"
     ci_secs="$(release_seconds "$ci_wait" 2>&1)" || cut_fail 11 "$(one_line "$ci_secs")"
-    answer="$(release_wait "$ci_secs" "pending none" unknown release_ci_verdict "$commit" "${qw[@]}")"
+    answer="$(release_wait "$ci_secs" "pending none" unknown release_ci_verdict "$commit" "$tag" "${qw[@]}")"
     case "${answer%%$'\t'*}" in
-      green) cut_row 11 "done" "green on ${commit:0:12}: ${answer#*$'\t'}" ;;
+      green) cut_row 11 "done" "ci.query answers green for $tag (${commit:0:12}): ${answer#*$'\t'}" ;;
       pending | none)
         verdict_failed=yes
-        cut_row 11 FAILED "no verdict within $ci_wait (ci.wait) on ${commit:0:12}; last: ${answer%%$'\t'*}, ${answer#*$'\t'}"
+        cut_row 11 FAILED "ci.query gave no verdict within $ci_wait (ci.wait) for $tag (${commit:0:12}); last: ${answer%%$'\t'*}, ${answer#*$'\t'}"
+        ;;
+      # unknown is no answer: the query exited non-zero, was cut off, printed
+      # nothing or printed what is not a verdict, or said it could not tell.
+      unknown)
+        verdict_failed=yes
+        cut_row 11 FAILED "no verdict from ci.query for $tag (${commit:0:12}): ${answer#*$'\t'}"
         ;;
       *)
         verdict_failed=yes
-        cut_row 11 FAILED "${answer%%$'\t'*} on ${commit:0:12}: ${answer#*$'\t'}"
+        cut_row 11 FAILED "ci.query answers ${answer%%$'\t'*} for $tag (${commit:0:12}): ${answer#*$'\t'}"
         ;;
     esac
   fi
@@ -1237,9 +1258,12 @@ case "$verb" in
     # through ask_person, which answers only inside a gate: the gate says
     # whether ITS stdin was a person's terminal (DEVBIN_GATE_TTY, 0088), and
     # hands everything inside it </dev/null. The generic grammar passes the
-    # cut's own exit through, so 1 (a step failed), 2 (nobody to ask) and 3
-    # (a step not built) reach the caller as they are. A dry run executes no
-    # write, so it has no verdict to seal, as fullcycle's has none.
+    # cut's own exit through, so 1 -- a step failed, step 6 with nobody to ask
+    # among them since issue 0130 -- reaches the caller as it is. No step exits
+    # 2 or 3 (the header says so for 3, and this comment said otherwise until
+    # issue 0118). A dry run makes no release, so it has no verdict of its own
+    # to seal, as fullcycle's has none -- though the gates it runs still seal
+    # theirs.
     if [ "$dry_run" = 1 ]; then
       cut_run
     else

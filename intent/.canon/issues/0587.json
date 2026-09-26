@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 587,
+  "slug": "docs-backup-snapshots-copy-the-whole-store-so-da",
+  "title": "docs: backup snapshots copy the whole store, so daily backups of a large store add up; say so beside backup.keep",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-26",
+  "reporter": "Matthew Sinclair",
+  "body": "Lamplight, reported by lamplight-vc on 2026-09-26 after the v3.2.3 upgrade (ST0080's comment owed to 3.2.4 or later). Its snapshots grew from 32 MB (2026-09-07) to 297 MB (2026-09-25), and the live intent/.cache/intent.db is 385 MB. Each snapshot is a faithful copy of the store, so under a daily schedule with the default retention the disk cost scales with store size times the retained count. The docs next to backup.keep should say that, so a project with a large store can pick a smaller keep. An observation, not a defect in the backup itself."
+}

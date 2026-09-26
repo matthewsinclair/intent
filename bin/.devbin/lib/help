@@ -18,7 +18,9 @@
 #   generated at the TOP    -- what exists, what group it is in, one line each.
 #                              A fact about the registry, so deriving it is
 #                              free and hand-writing it is a drift source.
-#   authored at the LEAF    -- `help <cmd>` long-form from help/<cmd>.md. Prose
+#   authored at the LEAF    -- `help <cmd>` long-form from the project's own
+#                              help/<cmd>.md, else from the page devbin ships
+#                              for its built-in at lib/pages/<cmd>.md. Prose
 #                              worth writing is worth writing once, by a human,
 #                              and no generator was ever going to produce the
 #                              corpus's "prod HERE MEANS THE INSTALLED BINARIES"
@@ -261,67 +263,77 @@ EOF
 # invisible from the listing alone, and the resolution order has been got wrong
 # three times in this codebase precisely because nothing displayed it.
 command_origin() {
-  local cmd="$1" mapped
-  if is_handler "$DEVBIN_DIR/cmd/$cmd"; then
-    printf 'project handler %s\n' "${DEVBIN_DIR#"$PROJECT_ROOT"/}/cmd/$cmd"
-    return 0
-  fi
-  mapped="$(cfg_get "commands.$cmd.handler")"
-  if [ -n "$mapped" ]; then
-    printf 'project handler %s (mapped)\n' "$mapped"
-    return 0
-  fi
-  if cfg_has "commands.$cmd.run"; then
-    printf 'config commands.%s.run\n' "$cmd"
-    return 0
-  fi
-  if is_handler "${DEVBIN_LIB:-}/cmd/$cmd"; then
-    printf 'devbin lib/cmd/%s\n' "$cmd"
-    return 0
-  fi
-  if builtin_has_default_run "$cmd" 2>/dev/null; then
-    printf 'devbin catalogue\n'
-    return 0
-  fi
-  if [ -n "$(command_options "$cmd")" ]; then
-    printf 'its options\n'
-    return 0
-  fi
-  # D18 tier 4, and worth its own sentence rather than being lumped in with a
-  # broken declaration below. `build` reaching here is the design working: four
-  # projects have four disjoint target lists, so devbin ships the NAME and the
-  # project says what it runs. Reporting that as "unrunnable" reads as a defect.
-  # The sentence itself lives in unrunnable_why (lib/resolve), because the
-  # dispatcher's refusal says it too and the two drifted once (issue 0111).
-  if is_builtin_command "$cmd"; then
-    unrunnable_why "$cmd"
-    return 0
-  fi
-  printf 'nothing -- declared but unrunnable\n'
+  local cmd="$1" tier
+  # THE ORDER IS command_tier's (issue 0128): this function spelled the three
+  # project tiers and devbin's four out by hand, in the same order as
+  # run_command, and nothing kept the copies in step. It labels the answer now.
+  tier="$(command_tier "$cmd")" || die "devbin defect: command_tier gave no answer for '$cmd'"
+  case "$tier" in
+    handler) printf 'project handler %s\n' "$(devbin_dir_shown)/cmd/$cmd" ;;
+    mapped) printf 'project handler %s (mapped)\n' "$(cfg_get "commands.$cmd.handler")" ;;
+    run) printf 'config commands.%s.run\n' "$cmd" ;;
+    devbin) printf 'devbin lib/cmd/%s\n' "$cmd" ;;
+    catalogue) printf 'devbin catalogue\n' ;;
+    options) printf 'its options\n' ;;
+    *)
+      # D18 tier 4, and worth its own sentence rather than being lumped in with
+      # a broken declaration. `build` reaching here is the design working: four
+      # projects have four disjoint target lists, so devbin ships the NAME and
+      # the project says what it runs. Reporting that as "unrunnable" reads as a
+      # defect. The sentence itself lives in unrunnable_why (lib/resolve),
+      # because the dispatcher's refusal says it too and the two drifted once
+      # (issue 0111).
+      if is_builtin_command "$cmd"; then
+        unrunnable_why "$cmd"
+      else
+        printf 'nothing -- declared but unrunnable\n'
+      fi
+      ;;
+  esac
   return 0
 }
 
 # option_origin <command> <option> -- the same question one level down.
 option_origin() {
-  local cmd="$1" opt="$2" handler
-  if has_project_handler "$cmd"; then
-    handler="$(resolve_handler "$cmd" 2>/dev/null)" || handler=""
-    if [ -n "$handler" ] && is_handler "$handler.d/$opt"; then
-      printf 'project sub-handler %s\n' "${handler#"$PROJECT_ROOT"/}.d/$opt"
-    else
-      printf 'project handler %s\n' "${handler#"$PROJECT_ROOT"/}"
-    fi
-    return 0
-  fi
-  if cfg_has "commands.$cmd.options.$opt.run"; then
-    printf 'config commands.%s.options.%s.run\n' "$cmd" "$opt"
-    return 0
-  fi
-  if builtin_option_run "$cmd" "$opt" >/dev/null 2>&1; then
-    printf 'devbin catalogue\n'
-    return 0
-  fi
-  printf 'nothing -- declared but unrunnable\n'
+  local cmd="$1" opt="$2" handler leaf
+  # WHAT RUNS IS option_leaf's ANSWER (issue 0128), the dispatch followed to its
+  # end, so this can no longer name a run the dispatcher does not make. Until
+  # 0128 it asked has_project_handler and the option's own `run:` itself and
+  # never saw a command-level `run:`: under one, a declared built-in option was
+  # labelled `devbin catalogue` while `all` ran devbin's gate and a direct
+  # `<cmd> <opt>` ran the project's line. A declared option is handed to the
+  # project's handler itself (run_option), and only an undeclared word descends
+  # into its `.d/` sub-handler (exec_handler, D3), so the two are told apart.
+  leaf="$(option_leaf "$cmd" "$opt")" || die "devbin defect: option_leaf gave no answer for '$cmd $opt'"
+  case "$leaf" in
+    sub-handler | handler | mapped)
+      # Caught, not trusted: resolve_handler dies on a mapped handler that is not
+      # executable, and inside a command substitution that ends the substitution
+      # rather than `help --why`.
+      handler="$(resolve_handler "$cmd" 2>/dev/null)" || handler=""
+      if [ "$leaf" = sub-handler ]; then
+        printf 'project sub-handler %s\n' "${handler#"$PROJECT_ROOT"/}.d/$opt"
+      else
+        printf 'project handler %s\n' "${handler#"$PROJECT_ROOT"/}"
+      fi
+      ;;
+    option-run) printf 'config commands.%s.options.%s.run\n' "$cmd" "$opt" ;;
+    run) printf 'config commands.%s.run\n' "$cmd" ;;
+    catalogue) printf 'devbin catalogue\n' ;;
+    devbin-sub-handler) printf 'devbin lib/cmd/%s.d/%s\n' "$cmd" "$opt" ;;
+    *)
+      # A catalogue option is always served through devbin's handler for its
+      # command, whatever its run column says (see unrunnable_why), so an option
+      # with a row that reached none of the answers above has lost that handler.
+      # This says what the refusal says, in its words (issue 0117: it said
+      # `devbin catalogue`).
+      if builtin_option_run "$cmd" "$opt" >/dev/null 2>&1; then
+        unrunnable_why "$cmd" "$opt"
+      else
+        printf 'nothing -- declared but unrunnable\n'
+      fi
+      ;;
+  esac
   return 0
 }
 
@@ -391,7 +403,14 @@ _print_shared_options() {
     fi
     [ -z "$shown" ] && printf '\nShared options (after the command):\n'
     shown=yes
-    _print_row '  ' "$left" "$(cfg_get "options.$name.summary")"
+    # An option devbin owns keeps devbin's summary until the project writes its
+    # own (issue 0136): declaring options.iex.commands, which is how a project
+    # handler becomes a reader, blanked --iex's line.
+    summary="$(cfg_get "options.$name.summary")"
+    if [ -z "$summary" ] && ! summary="$(framework_option_summary "$name")"; then
+      summary=""
+    fi
+    _print_row '  ' "$left" "$summary"
   done
   for name in $(framework_options); do
     _shared_option_in_config "$name" && continue
@@ -412,10 +431,19 @@ _print_shared_options() {
 # Config's commands and options are walked as well as the catalogue's: `all`'s
 # count line promises that `help --why` names every inactive option, and an
 # option a project declared and switched off is one of them.
+#
+# NARROWED TO ONE COMMAND when one is named (issue 0113). The trailer after a
+# shipped page lists that command's options that are NOT offered here, with
+# their reasons, because _print_command lists active options only: a page
+# describing devbin's options would otherwise leave a disabled one reading as
+# offered, with nothing but its absence to say otherwise (vc's R1). The same
+# walk, narrowed, rather than a second list. A narrowed walk that finds nothing
+# says nothing, since "everything is offered" is a claim about the catalogue.
 _print_unavailable() {
-  local cmd opt reason shown="" seen=" "
+  local only="${1:-}" cmd opt reason shown="" seen=" "
   while IFS= read -r cmd; do
     [ -n "$cmd" ] || continue
+    [ -z "$only" ] || [ "$cmd" = "$only" ] || continue
     case "$seen" in *" $cmd "*) continue ;; esac
     seen="$seen$cmd "
     if reason="$(command_unavailable_reason "$cmd")"; then
@@ -439,7 +467,7 @@ EOF
 $(builtin_commands)
 $(cfg_list commands)
 EOF
-  [ -z "$shown" ] && printf '\nEverything devbin ships is offered here.\n'
+  [ -n "$only" ] || [ -n "$shown" ] || printf '\nEverything devbin ships is offered here.\n'
   return 0
 }
 
@@ -465,7 +493,7 @@ print_help() {
   if [ -z "$cmds" ]; then
     printf '\nNo commands are active in this project.\n'
     printf 'Declare one in %s, or drop a handler into %s/cmd/.\n' \
-      "${DEVBIN_DIR:-bin/.devbin}/config.yaml" "${DEVBIN_DIR:-bin/.devbin}"
+      "$(devbin_dir_shown)/config.yaml" "$(devbin_dir_shown)"
     return 0
   fi
 
@@ -519,15 +547,16 @@ EOF
 
 # --- authored detail ---------------------------------------------------------
 
-# help_file <command> [sub...] -- the authored markdown for a topic, or nothing.
+# _help_walk <root> <command> [sub...] -- the page for a topic under ONE root,
+# or nothing.
 #
-# Descends `help/<cmd>.d/<sub>.md` by the SAME rule exec_handler descends
+# Descends `<root>/<cmd>.d/<sub>.md` by the SAME rule exec_handler descends
 # `cmd/<cmd>.d/<sub>` (D3), so `help test mix` finds authored prose for a
 # sub-topic exactly where `test mix` finds its handler. A word with no file
 # behind it stops the descent, and the nearest enclosing topic answers.
-help_file() {
-  local base="${DEVBIN_DIR:-}/help/$1"
-  shift
+_help_walk() {
+  local base="$1/$2"
+  shift 2
   while [ $# -gt 0 ] && [ -f "$base.d/$1.md" ]; do
     base="$base.d/$1"
     shift
@@ -537,9 +566,48 @@ help_file() {
   return 0
 }
 
+# help_file <command> [sub...] -- the page that answers a topic, and whose it
+# is: `project<TAB><path>` or `devbin<TAB><path>`, or nothing.
+#
+# TWO ROOTS, THE PROJECT'S FIRST (issue 0113). The project's help/ is the
+# project's (D5) and answers first, with the whole descent, so a project page
+# for a command also answers its sub-topics even where devbin ships a deeper
+# one. Devbin's pages for its built-ins ship at lib/pages/, inside the vendored
+# runtime, so every estate has them without writing them. Until 0113 they lived
+# only in devbin's own help/, which no install writes, and every estate got the
+# stub for every built-in -- 203 of 272 probes across 16 estates, measured
+# 2026-09-23.
+#
+# DEVBIN'S PAGE ANSWERS ONLY WHERE DEVBIN'S IMPLEMENTATION RUNS. A command the
+# project owns runs the project's code, and a page describing devbin's would be
+# false there, so it gets the generated answer, which names its true origin.
+#
+# IT SAYS WHY IT RETURNED NOTHING (issue 0128): 2 when devbin's page is withheld
+# because the project owns the command, 1 when no root holds a page. print_topic
+# says different things for the two, and it used to ask project_owns_command a
+# second time to find out which had happened.
+#
+# OWNERSHIP IS DECIDED PER COMMAND, NEVER PER OPTION, and that is a limit of
+# this rule rather than a feature of it. A shipped lib/pages/<cmd>.d/<opt>.md
+# would answer `help <cmd> <opt>` in a project that overrides that one option
+# with `commands.<cmd>.options.<opt>.run`, so the page would describe code that
+# does not run there, and only the trailer's `from:` line would say so. No
+# sub-page ships today; whoever ships the first one decides per option first.
+help_file() {
+  local file
+  if file="$(_help_walk "$DEVBIN_DIR/help" "$@")"; then
+    printf 'project\t%s\n' "$file"
+    return 0
+  fi
+  project_owns_command "$1" && return 2
+  file="$(_help_walk "$DEVBIN_LIB/pages" "$@")" || return 1
+  printf 'devbin\t%s\n' "$file"
+  return 0
+}
+
 # print_topic <command> [sub...] -- authored long-form, or a generated answer.
 print_topic() {
-  local cmd="$1" file reason opt count=0 args
+  local cmd="$1" file reason opt count=0 args why=0
   if ! is_command "$cmd"; then
     # Inactive is not unknown, and saying so is D11's whole point one more time.
     # `devbin help iex` in a shell project should explain itself, not imply the
@@ -552,8 +620,23 @@ print_topic() {
     return 2
   fi
 
-  if file="$(help_file "$@")"; then
-    cat "$file"
+  file="$(help_file "$@")" || why=$?
+  if [ "$why" -eq 0 ]; then
+    # A page that cannot be read is a failure, and it must end the answer here:
+    # errexit is off in a caller's `if`, `&&` or `||`, so without the return an
+    # unreadable page printed nothing, then the whole trailer, and exited 0
+    # (issue 0128).
+    cat -- "${file#*$'\t'}" || return
+    # A SHIPPED page is devbin's and generic by construction, so what it cannot
+    # know follows it (issue 0113): the command as it resolves HERE -- its
+    # origin, every active option with its own, and the options not offered,
+    # with why. A project's own page is the project's whole answer and stands
+    # alone, as it always has.
+    if [ "${file%%$'\t'*}" = devbin ]; then
+      printf '\nIn this project:\n'
+      _print_command "$cmd" yes
+      _print_unavailable "$cmd"
+    fi
     return 0
   fi
 
@@ -574,8 +657,18 @@ print_topic() {
 $(command_options "$cmd")
 EOF
   [ "$count" -ge 1 ] && _print_row '  ' 'all' 'every option above, one pass'
-  printf '\nNo authored detail yet. Write it at %s/help/%s.md\n' \
-    "${DEVBIN_DIR#"$PROJECT_ROOT"/}" "$cmd"
+  # A BUILT-IN DEVBIN RUNS AND SHIPS NO PAGE FOR is not the project's to
+  # document, and until 0113 this line told every estate to write devbin's page
+  # for it. Devbin's pages for those are issue 0115. A command the project owns,
+  # or one devbin does not ship, is the project's, and the pointer to its own
+  # help/ stays. help_file's status says which of the first two this is (0128).
+  if [ "$why" -eq 1 ] && is_builtin_command "$cmd"; then
+    printf '\nNo authored detail yet: devbin ships no page for %s. %s help --why says what is and is not offered here.\n' \
+      "$cmd" "$DEVBIN_INVOKE"
+  else
+    printf '\nNo authored detail yet. Write it at %s/help/%s.md\n' \
+      "$(devbin_dir_shown)" "$cmd"
+  fi
   return 0
 }
 

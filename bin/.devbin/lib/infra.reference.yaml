@@ -23,7 +23,8 @@
 #   yes   two-space indent, nested maps, `key: value`, scalar sequences
 #         (`- item`), `#` comments, quoted scalars, blank lines, `---`
 #   no    tabs, odd or jumped indent, duplicate keys, anchors/aliases (& *),
-#         block scalars (| >), flow collections ({ [), sequences of maps
+#         block scalars (| >), flow collections ({ [), sequences of maps, a
+#         key indented under a key that already has a value
 #
 # EVERYTHING BELOW IS BLOCK FORM, AND THAT IS A CONSTRAINT RATHER THAN A STYLE.
 # `dmarc: { policy: none }` and `senders: [mailersend]` are refused at parse
@@ -49,6 +50,15 @@
 # An earlier form of the rule read `could devbin discover it? then it does not
 # belong`, which also deletes `ttl`, every SPF include and the DMARC policy.
 # Discoverability was never the discriminator. Being checkable is.
+#
+# EVERY KEY IN A PROFILE IS ONE THIS FILE SHOWS, AND ANY OTHER IS REFUSED --
+# before a single record is read, naming the key and the file. A key written
+# where nothing reads it, like `dmarc: none` under `defaults:`, is refused the
+# same way. Until issue 0143 such a key parsed and was simply never read, and a
+# profile declaring a DMARC sp=, a second DKIM key and a wildcard checked green
+# against a zone carrying none of them. A key written with NO value is refused
+# too, wherever it is written: the reader cannot see it at all, so it is not an
+# empty entry but an absent one.
 
 # The schema version, so a later shape can be told from this one. `infra init`
 # writes 1; nothing reads it yet, so a profile without it is not refused.
@@ -89,24 +99,58 @@ defaults:
 
 # --- senders: a matched pair, declared once ---------------------------------
 #
-# A third-party sender is a matched pair of an SPF include and a DKIM record,
-# AND THE PAIR IS THE UNIT. Naming it once means a domain cannot acquire half of
-# it -- SPF authorising a sender with no DKIM to match makes that domain's own
-# legitimate mail bit-for-bit indistinguishable from a forgery of it, and it is
-# silent until the first message flows.
+# A third-party sender is a matched pair of an SPF include and its DKIM
+# records, AND THE PAIR IS THE UNIT. Naming it once means a domain cannot
+# acquire half of it -- SPF authorising a sender with no DKIM to match makes
+# that domain's own legitimate mail bit-for-bit indistinguishable from a
+# forgery of it, and it is silent until the first message flows.
 #
 # THE VALUES LIVE HERE, IN YOUR PROFILE, AND NEVER IN DEVBIN. devbin ships the
 # pair's SHAPE and never its contents: a vendor's published include is often
 # account-specific, so a shipped value is a confidently-wrong assertion -- a
 # check whose target was never the right target. Measured on a real estate,
 # where two domains on one vendor account carried disjoint includes.
+#
+# ONE DKIM RECORD OR SEVERAL. A sender publishing one record writes its fields
+# directly under `dkim:`, as `newsletter` does below. A sender publishing more
+# writes each under a label of your choosing, as `mailersend` does: it moved on
+# 2026-09-08 from one record to two, ms1 and ms2, and rotates between them. A
+# domain naming the sender must then carry EVERY record it declares, and check
+# asks for each on the domain's own nameserver and names each one missing as a
+# HALF PAIR. Each record takes the same three fields in both forms: `name` (the
+# name under the domain), `type` (CNAME when not given) and `value` (optional,
+# compared when given). The value is compared WHOLE with every record at that
+# name, so a second record there is drift, and so is a target the value is only
+# part of. A CNAME target is compared as a name, ignoring case and the root
+# dot; a TXT record as a resolver sees it, its strings joined. Refused before
+# anything is read: the two forms in one sender,
+# a label spelled `name`, `type` or `value`, two records naming one selector,
+# and a record with no name.
+#
+# check cannot tell a sender declared with FEWER records than its vendor
+# publishes: a DKIM selector cannot be listed from DNS, and devbin ships no
+# vendor table. Declaring every record is the profile's job.
+#
+# A sender is declared once per profile, so two domains at different stages of
+# a vendor's move need two senders with the same spf_include.
 senders:
+  newsletter:
+    spf_include: _spf.newsletter.example
+    dkim:
+      name: nl1._domainkey
+      type: CNAME
+      value: nl1._domainkey.newsletter.example
   mailersend:
     spf_include: _spf.mailersend.net
     dkim:
-      name: mlsend2._domainkey
-      type: CNAME
-      value: mlsend2._domainkey.mailersend.net
+      ms1:
+        name: ms1._domainkey
+        type: CNAME
+        value: ms1._domainkey.mailersend.net
+      ms2:
+        name: ms2._domainkey
+        type: CNAME
+        value: ms2._domainkey.mailersend.net
 
 # --- domains: a map from HANDLE to a block carrying name: --------------------
 #
@@ -125,6 +169,37 @@ domains:
     name: partner.example
     senders:
       - mailersend
+      - newsletter
+    # sp: THE POLICY FOR SUBDOMAINS, the _dmarc record's sp= tag, beside the
+    # policy it would otherwise follow. It is compared with the live sp=, or,
+    # when the record carries none, with its p=: an absent sp= means the
+    # subdomain policy IS p= (RFC 7489), and the drift line says which value it
+    # compared. Undeclared, nothing about sp= is asserted.
+    #
+    # INHERITED PER KEY, like every field under `defaults:`. A domain that
+    # overrides `policy` alone keeps the defaults' `sp` -- the record's own rule,
+    # an absent sp= following p=, is NOT the profile's. An `sp` with no policy in
+    # force is refused, since only the policy asserts that the record exists.
+    # `policy` and `sp` take none, quarantine or reject.
+    dmarc:
+      sp: reject
+    # wildcard: THE RECORDS AT `*.<domain>`, read on the domain's own
+    # nameserver: `a`, `aaaa` and `txt`, each ONE value, compared as the whole
+    # set of that type, so an extra address, or a second TXT record, is drift.
+    # Two addresses written in one value are refused before anything is read.
+    # An address is written as dig prints it; a TXT is compared with its
+    # strings joined; the ttl is checked. Inherited per key from `defaults:`
+    # like the rest.
+    #
+    # A wildcard answers only for names that do not exist. The apex always
+    # exists, so no check at the apex changes. A DKIM record's name can be one
+    # that does not exist, though: with no `_domainkey` name under the domain, a
+    # wildcard TXT answers for a missing TXT-type DKIM record, which then reads
+    # as present. A CNAME-type record is not affected.
+    wildcard:
+      a: 192.0.2.10
+      aaaa: 2001:db8::10
+      txt: "v=spf1 -all"
 
   legacy:
     name: legacy.example
@@ -135,11 +210,19 @@ domains:
     # forged, will never generate a report saying so, and looks identical to a
     # domain that is simply quiet.
     dmarc: none
+    # `none` HERE IS A VERIFIED ABSENCE, NOT AN OPT-OUT: check reads each type
+    # at `*.legacy.example` and goes red on any record there, and on a CNAME
+    # there, which answers for every type. Where `dmarc: none` is named on every
+    # run and never checked, this is checked on every run.
+    wildcard:
+      a: none
+      aaaa: none
+      txt: none
 
 # --- runtime: omitted entirely by an estate that does not use Fly ------------
 #
 # No command reads this block yet: `check` covers DNS and mail only, and the
-# Fly runtime leg is ST0006, not built.
+# Fly runtime leg is devbin's ST0006, not built.
 runtime:
   fly:
     example-app:

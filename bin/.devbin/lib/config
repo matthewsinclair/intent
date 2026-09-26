@@ -22,7 +22,8 @@
 #                        single/double quoted scalars, blank lines, `---`
 #   Rejected             tabs, odd or jumped indent, duplicate keys,
 #                        anchors/aliases (& *), block scalars (| >),
-#                        flow collections ({ [), sequences of maps
+#                        flow collections ({ [), sequences of maps,
+#                        a key nested under a key that has a value
 #
 # Public API:
 #   cfg_load <file>          parse + validate; caches into _DEVBIN_CFG
@@ -107,6 +108,15 @@ BEGIN { maxlevel = -1 }
   if (indent % 2 != 0) err("indent must be a multiple of 2 spaces, got " indent)
   level = indent / 2
   if (level > maxlevel + 1) err("indent jumps from level " maxlevel " to " level)
+  # A LINE THAT CARRIED A VALUE HAS NOTHING UNDER IT (issue 0143). A key
+  # indented under one parsed to BOTH rows -- `dmarc: none` with `policy:
+  # reject` beneath it, and the reader that took the value never saw the key --
+  # and under a sequence item its path had an empty segment no accessor
+  # reaches. A sequence item under a scalar KEY keeps the refusal it already
+  # had, the duplicate-key one below, which names the same fault; one under a
+  # sequence ITEM has no such refusal, and flattened to `a..0`.
+  if (leafpath != "" && level > leaflevel && (leafseq || substr(line, indent + 1, 2) != "- ")) err("`" leafpath "` already has a value, so nothing can be nested under it")
+  leafpath = ""
 
   body = substr(line, indent + 1)
 
@@ -129,6 +139,7 @@ BEGIN { maxlevel = -1 }
     full = path "." idx
     printf("%s\t%s\n", full, unquote(val))
     maxlevel = level
+    leafpath = full; leaflevel = level; leafseq = 1
     next
   }
 
@@ -164,6 +175,7 @@ BEGIN { maxlevel = -1 }
   if (full in seen || full in opened) err("duplicate key `" full "`")
   seen[full] = 1
   printf("%s\t%s\n", full, unquote(v))
+  leafpath = full; leaflevel = level; leafseq = 0
 }
 END { if (bad) exit 1 }
 AWK
@@ -372,9 +384,11 @@ _cfg_path_known() {
       ;;
     install)
       # install.prefix -- where `devbin install` PUBLISHES to when run inside
-      # devbin's own source tree (ST0005, D32). Meaningless in a consumer, and
-      # harmless there: a project that sets it is describing a publish it will
-      # never perform.
+      # devbin's own source tree (ST0005, D32). In a consumer it publishes
+      # nothing, and its one reader is `shell-init`, which bakes it into `dvb`
+      # as the machine-install fallback. This said the key was meaningless in a
+      # consumer until issue 0125 made shell-init read it, as the reference had
+      # promised all along.
       #
       # ADDED IN THE SAME CHANGE AS THE READER, deliberately. `project.referent`
       # was readable by the runtime and unknown to this function for two days --

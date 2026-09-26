@@ -25,6 +25,10 @@ set -euo pipefail
 . "$DEVBIN_LIB/runlog"
 # shellcheck source=lib/config
 . "$DEVBIN_LIB/config"
+# shellcheck source=lib/builtins
+. "$DEVBIN_LIB/builtins"
+# shellcheck source=lib/resolve
+. "$DEVBIN_LIB/resolve"
 
 # THE CONFIG CACHE DOES NOT CROSS INTO A HANDLER -- a built-in handler is a
 # separate process, so the dispatcher's `cfg_load` is not in scope here and
@@ -97,16 +101,150 @@ _fullcycle_usage() {
 # two run the same tests: an option marked `in_all: false` is kept out of this
 # cycle as it is kept out of `all`, and reported as skipped, and a `test`
 # handler that declares no options receives `all` and decides for itself. It
-# mirrors `build all` beside it. Where `all` runs a project's options, the
+# mirrors the build phase beside it. Where `all` runs a project's options, the
 # phase's rc is `all`'s, 1 on any failure, where `test rust` passed cargo's own
 # code through; a handler that receives `all` still returns its own.
+#
+# THE BUILD AND TEST PHASES ARE WHAT THOSE COMMANDS RUN HERE (issue 0134), from
+# _fullcycle_phase_for: `all` where there are options to sweep or a handler to
+# hand it to, and the bare command over a command-level run:, whose `all` is
+# refused (hv's option (b)). The list is still a list: a command with nothing
+# behind it gives no phase, and cmd_fullcycle's guard refuses the cycle before
+# anything is removed, so the list never runs short.
 _fullcycle_phases() {
   printf '%s\n' "clean rust"
-  printf '%s\n' "build all"
-  printf '%s\n' "test all"
+  _fullcycle_phase_for build
+  _fullcycle_phase_for test
 }
 
-# _fullcycle_can_rebuild <launcher> -- true when this project HAS a build verb.
+# _fullcycle_phase_check <command> -- whether <command> gives the cycle a phase
+# that will run: a `none<TAB><why, and what would make it run>` line for each
+# thing that stops it, and a `phase<TAB><words after the launcher>` line, which
+# names a phase only when no `none` line is printed beside it
+# (_fullcycle_phase_for). It ASKS AND RUNS NOTHING (issue 0134): the question
+# was once `build --help`, run, so a dry run ran a project's build line, and a
+# build whose tool refuses --help was refused as no build at all.
+#
+# WHO RUNS IT IS lib/resolve's ANSWER, NOT THIS FUNCTION'S (issue 0128):
+# arg_route says where `<command> all` goes and command_tier what the bare
+# command runs, and this maps their answers to words. `all` sweeps options
+# (run_all) or is handed to a project handler, a total shadow (D2); over a
+# command-level run: with no option to run it is refused (hv's option (b)), so
+# the phase is the bare command, which runs the line.
+#
+# AND "WILL RUN", NOT "A TIER EXISTS" (critic-shell on 0134 v1). v1 chose by
+# which tier was there, and three configs passed its guard, let the clean
+# remove the trees, and then refused at the build phase, each knowable from
+# the config alone: a run: line with no words, a mapped handler that does not
+# resolve, and options that are every one kept out of `all`. So each is asked
+# as the dispatcher would ask it -- run_words, resolve_handler, all_partition
+# -- and refused in the dispatcher's own words where it has some. What `all`
+# sweeps is all_partition's answer, run_all's own selection. A project's
+# own command line, or an option's, that runs and fails is a failing build,
+# as any other is, and is not read here; one that cannot run at all is.
+_fullcycle_phase_check() {
+  local cmd="$1" why run skipped route tier opt line_asked=0
+  if ! command_active "$cmd"; then
+    why="$(command_unavailable_reason "$cmd")" || why="it is not a command in this project"
+    printf 'none\t%s\n' "$why"
+    return 0
+  fi
+  if has_project_handler "$cmd" && ! why="$( (resolve_handler "$cmd" >/dev/null) 2>&1)"; then
+    printf 'none\t%s\n' "${why#"$DEVBIN_NAME: "}"
+    return 0
+  fi
+  route="$(arg_route "$cmd" all)" || return 1
+  case "$route" in
+    all)
+      if [ -z "$(command_options "$cmd")" ]; then
+        _fullcycle_line_why "commands.$cmd.run" || return 0
+        printf 'phase\t%s\n' "$cmd"
+        return 0
+      fi
+      all_partition "$cmd" run skipped
+      if [ -z "$run" ]; then
+        printf 'none\t%s\n' "$(all_excluded_why "$skipped")"
+        return 0
+      fi
+      # EACH OPTION `all` RUNS, ASKED WHETHER IT CAN (critic-shell on 0134
+      # v2 and v2c): one declared with nothing to run it, one whose devbin
+      # handler is missing, and one whose own run: -- or the command-level
+      # run: it is handed to -- holds no words, each refuses inside `all`,
+      # after the clean. run_all carries on past it and the phase still fails,
+      # so ONE such option is enough, and every one is named, a line each, so a
+      # project sees them all at once (vc's ruling). The command-level line is
+      # one line whichever options it serves, so it is named once.
+      for opt in $run; do
+        tier="$(option_run_tier "$cmd" "$opt")" || return 1
+        case "$tier" in
+          declared-unrunnable)
+            printf 'none\t%s\n' "$(option_unrunnable_why "$cmd" "$opt")"
+            ;;
+          unrunnable)
+            printf 'none\t%s\n' "$(unrunnable_why "$cmd" "$opt")"
+            ;;
+          option-run)
+            _fullcycle_line_why "commands.$cmd.options.$opt.run" || :
+            ;;
+          run)
+            if [ "$line_asked" = 0 ]; then
+              _fullcycle_line_why "commands.$cmd.run" || :
+            fi
+            line_asked=1
+            ;;
+        esac
+      done
+      printf 'phase\t%s all\n' "$cmd"
+      ;;
+    handler) printf 'phase\t%s all\n' "$cmd" ;;
+    inactive)
+      # An option named `all` that config switched off: the dispatcher
+      # refuses `<command> all` for it, in option_unavailable_reason's words.
+      # With no answer from it the check fails rather than word it itself,
+      # and the cycle refuses, having removed nothing (vc's ruling: a copy of
+      # the dispatcher's own fallback is drift nothing could test).
+      if ! why="$(option_unavailable_reason "$cmd" all)"; then
+        warn "could not tell why $cmd all is inactive -- nothing was removed"
+        return 1
+      fi
+      printf 'none\t%s\n' "$why"
+      ;;
+    *)
+      tier="$(command_tier "$cmd")" || return 1
+      case "$tier" in
+        devbin | catalogue) printf 'phase\t%s all\n' "$cmd" ;;
+        *) printf 'none\t%s\n' "$(unrunnable_why "$cmd")" ;;
+      esac
+      ;;
+  esac
+  return 0
+}
+
+# _fullcycle_line_why <key> -- 0 when the command line at <key> holds words;
+# otherwise print a `none` line with run_words' own refusal and return 1.
+_fullcycle_line_why() {
+  local why
+  why="$(run_words _fullcycle_words "$1" "$(cfg_get "$1")" 2>&1)" && return 0
+  printf 'none\t%s\n' "${why#"$DEVBIN_NAME: "}"
+  return 1
+}
+
+# _fullcycle_phase_for <command> -- the phase's words, or nothing: nothing
+# whenever the check printed any `none` line, whatever its order.
+_fullcycle_phase_for() {
+  local r out="" l
+  r="$(_fullcycle_phase_check "$1")" || return 1
+  while IFS= read -r l; do
+    case "$l" in
+      none$'\t'*) return 0 ;;
+      phase$'\t'*) out="${l#*$'\t'}" ;;
+    esac
+  done <<<"$r"
+  [ -z "$out" ] || printf '%s\n' "$out"
+  return 0
+}
+
+# _fullcycle_can_rebuild -- true when this project HAS a build phase.
 #
 # A NECESSARY CONDITION AND NOT A SUFFICIENT ONE, and the name used to promise
 # more than it delivers. The property that matters is "can restore the release
@@ -136,8 +274,30 @@ _fullcycle_phases() {
 # (issue 0048); it is the refusal to let an empty-set green read as a measured
 # one, which is the same discipline this project's own test harness applies to
 # itself when it prints CONTROL IS VACUOUS, NOT RUN.
+#
+# AND IT ASKS; IT DOES NOT RUN (issue 0134). It ran `build --help`, before the
+# dry-run branch, and a `commands.build.run` line takes --help as one more
+# argument: a script that ignored it built, under a DRY RUN that says nothing
+# is executed. A build whose tool refuses --help was refused as no build, and a
+# lone `commands.build.run` passed, so the cycle removed the trees and then
+# stopped at `build all`, which had no options to run. The build phase is now
+# what `build` runs here, and this asks only whether there is one.
 _fullcycle_can_rebuild() {
-  "$1" build --help >/dev/null 2>&1
+  [ -n "$(_fullcycle_phase_for build)" ]
+}
+
+# _fullcycle_no_phase_why <command> -- why <command> gives the cycle no phase,
+# a line for each thing that stops it, and what would give it one:
+# _fullcycle_phase_check's reasons, which are the dispatcher's own wording
+# wherever the dispatcher has one, as `bin/devbin <command>` would refuse it.
+# A third wording here would drift from both.
+_fullcycle_no_phase_why() {
+  local r l
+  r="$(_fullcycle_phase_check "$1")" || return 1
+  while IFS= read -r l; do
+    case "$l" in none$'\t'*) printf '%s\n' "${l#*$'\t'}" ;; esac
+  done <<<"$r"
+  return 0
 }
 
 # _fullcycle_path_links -- PATH symlinks that CURRENTLY RESOLVE into this tree,
@@ -155,11 +315,12 @@ _fullcycle_can_rebuild() {
 # links that resolved at the start are recorded, which is the honest scope: the
 # cycle answers for what IT broke, not for what it found broken.
 _fullcycle_path_links() {
-  local p f want="${1:-live}" pat
+  local p pr f want="${1:-live}" found root bpat pbpat rc=0
   local -a elements=()
   IFS=: read -r -a elements <<<"$PATH"
 
-  # `find` NARROWS, the `case` below DECIDES, and that split is the whole point.
+  # `find` NARROWS, _fullcycle_link_in_tree DECIDES, and that split is the
+  # whole point.
   #
   # This scanned every entry in PATH and forked `readlink` once per SYMLINK, so
   # its cost was a property of the OPERATOR'S ENVIRONMENT rather than of the
@@ -171,30 +332,126 @@ _fullcycle_path_links() {
   # instant, which is why this was fast for everyone who measured it and slow
   # for the person running the suite. Issue 0057.
   #
-  # `-lname` glob-matches the WHOLE pattern where the `case` below has a literal
-  # left half, so a PROJECT_ROOT carrying `[`, `*` or `?` would match
-  # differently. Escaping those stops it UNDER-matching -- the dangerous
-  # direction, an at-risk binary silently not found -- and re-testing every
-  # candidate with the unchanged `case` makes an over-match harmless. Behaviour
-  # cannot move; only the fork count does.
-  pat="$(printf '%s' "$PROJECT_ROOT" | sed 's/[][*?]/\\&/g')"
+  # A LINK IS WATCHED BY WHERE IT RESOLVES, NOT BY HOW ITS TEXT IS SPELLED
+  # (issue 0134). This kept a link only when its text began with PROJECT_ROOT,
+  # so a relative link, and one spelled through /tmp while the root is the
+  # physical /private/tmp, were never watched: a cycle darkened three links
+  # into target/release and named one. So find now narrows to a link whose text
+  # holds the root's directory name, logical or physical, as a whole name, and
+  # each candidate is decided by where it resolves. Only the candidates are
+  # resolved, so 0057's cost holds, except for a project whose directory name
+  # is one many links hold, such as bin, which pays a resolution for each. In a
+  # PATH directory inside the project every link is a candidate, since a
+  # relative link there need name nothing. THE STATED LIMIT: a link outside
+  # the project that reaches it only through another linked directory, with
+  # the project's name nowhere in its text, is not watched.
+  #
+  # `-lname` glob-matches the whole pattern, so a root carrying `[`, `*` or `?`
+  # would match differently. Escaping those stops it UNDER-matching -- the
+  # dangerous direction, an at-risk binary silently not found -- and the
+  # decision on each candidate makes an over-match harmless.
+  physical_dir "$PROJECT_ROOT" root || root="$PROJECT_ROOT"
+  bpat="$(printf '%s' "${PROJECT_ROOT##*/}" | sed 's/[][*?]/\\&/g')"
+  pbpat="$(printf '%s' "${root##*/}" | sed 's/[][*?]/\\&/g')"
 
   for p in "${elements[@]}"; do
     [ -n "$p" ] || continue
     [ -d "$p" ] || continue
+    # A DIRECTORY PATH CANNOT SEARCH RESOLVES NOTHING, so no link in it is live
+    # and there is nothing to watch. A directory PATH can search and find cannot
+    # list, mode 0111, is the case below: its links resolve, unseen.
+    [ -x "$p" ] || continue
+    # READ WHOLE, WITH ITS STATUS (issue 0139). A PATH directory find could not
+    # read was a directory with no links in it, so a link there went unwatched
+    # and a cycle that darkened it said nothing. find's own error names the
+    # directory; the caller hears 1 and says the watch is incomplete.
+    #
+    # -H: A PATH ENTRY THAT IS ITSELF A LINK TO A DIRECTORY IS SEARCHED AS THAT
+    # DIRECTORY (issue 0134, critic-shell's W4(i) on 0139). Under find's default
+    # it was listed as the one link it is, and every link inside it went
+    # unwatched.
+    physical_dir "$p" pr || pr="$p"
+    case "$pr/" in
+      "$root"/*)
+        # find-walk: -maxdepth 1 -- a PATH directory's own entries; it never enters one
+        found="$(find -H "$p" -mindepth 1 -maxdepth 1 -type l)" || rc=1
+        ;;
+      *)
+        # find-walk: -maxdepth 1 -- a PATH directory's own entries; it never enters one
+        found="$(find -H "$p" -mindepth 1 -maxdepth 1 -type l \
+          \( -lname "*/$bpat/*" -o -lname "$bpat/*" \
+          -o -lname "*/$pbpat/*" -o -lname "$pbpat/*" \))" || rc=1
+        ;;
+    esac
     while IFS= read -r f; do
       [ -n "$f" ] || continue
       [ -L "$f" ] || continue
-      case "$(readlink "$f")" in "$PROJECT_ROOT"/*) ;; *) continue ;; esac
+      _fullcycle_link_in_tree "$f" "$root" || continue
       # -e follows the link: true means it resolves today.
       if [ -e "$f" ]; then
         [ "$want" = live ] && printf '%s\n' "$f"
       else
         [ "$want" = dead ] && printf '%s\n' "$f"
       fi
-    done < <(find "$p" -maxdepth 1 -type l -lname "$pat/*" 2>/dev/null)
+    done <<<"$found"
   done
-  return 0
+  return "$rc"
+}
+
+# _fullcycle_link_in_tree <link> <root> -- true when <link> resolves under
+# <root>, the project's physical path. A link that resolves is read through
+# real_path, the one home for where a path resolves (clean's scan asks it
+# too). A dangling link is followed as far as its links go, each step through
+# link_step, and the deepest directory on the way that exists is read
+# physically, so a link already dark before the run is placed by where it
+# would resolve, as a live one is.
+#
+# NOT CASE-FOLDED. On a disk that folds case, a link spelled with other
+# letters than the project's directory resolves into it and is not watched:
+# find's -lname matches case, and the physical path keeps the case typed.
+# clean's scan shares it.
+_fullcycle_link_in_tree() {
+  local l="$1" root="$2" e d rest="" pd n=0
+  if [ -e "$l" ]; then
+    real_path "$l" e
+  else
+    e="$l"
+    while [ -L "$e" ]; do
+      n=$((n + 1))
+      if [ "$n" -gt 40 ] || ! e="$(link_step "$e")"; then
+        warn "cannot tell which file $l is a symbolic link to"
+        return 1
+      fi
+    done
+    d="$e"
+    while [ ! -d "$d" ]; do
+      # A `..` BENEATH A NAME THAT IS NOT THERE CANNOT BE READ AS TEXT: the
+      # kernel reads it after the name, which may be a link, so the path is
+      # not placed at all (critic-shell on 0134 v1: t/../../x read as in the
+      # tree, and outside it once t existed). Only the report of links already
+      # dark before the run reads this branch.
+      [ "${d##*/}" != .. ] || return 1
+      case "$d" in
+        */*)
+          rest="/${d##*/}$rest"
+          d="${d%/*}"
+          [ -n "$d" ] || d=/
+          ;;
+        *)
+          # A GUARD, NOT A PATH: every path this walk takes keeps the PATH
+          # entry it was found in, an existing directory, as its prefix, so
+          # it stops there first. Without this arm a path with no `/` would
+          # loop for ever, since ${d%/*} would not change it.
+          rest="/$d$rest"
+          d=.
+          ;;
+      esac
+    done
+    physical_dir "$d" pd || return 1
+    if [ "$pd" = / ]; then e="$rest"; else e="$pd$rest"; fi
+  fi
+  case "$e/" in "$root"/*) return 0 ;; esac
+  return 1
 }
 
 _fullcycle_header() {
@@ -237,13 +494,16 @@ _fullcycle_header() {
   # REPORTED, NOT FAILED. The cycle answers for what it broke; this is a fact
   # about the tree it found, and failing on it would make an estate red for
   # somebody else's clean.
+  local dead
+  dead="$(_fullcycle_path_links dead)" ||
+    printf '    A PATH directory could not be read (the error above names it), so a link already dangling there is not listed.\n'
   while IFS= read -r link; do
     [ -n "$link" ] || continue
     [ "$predark" -eq 0 ] &&
       printf '    ALREADY DANGLING BEFORE THIS RUN (not caused by it, and nothing else reports it):\n'
     predark=$((predark + 1))
     printf '      %s -> %s\n' "$link" "$(readlink "$link")"
-  done < <(_fullcycle_path_links dead)
+  done <<<"$dead"
 }
 
 # _fullcycle_run <force> -- the real cycle. Wrapped by run_gate, so its output
@@ -252,9 +512,11 @@ _fullcycle_header() {
 # has, and a silent 35 minutes is indistinguishable from a hang.
 # _fullcycle_rebuild_remedy -- the ONE rebuild remedy line. Two branches print it
 # (the loop's failed-build warning and the link check after a failed clean), and
-# 0071 exists because two remedies for one state had drifted apart.
+# 0071 exists because two remedies for one state had drifted apart. It names
+# the build phase this project runs (issue 0134): it named `build all`, which is
+# refused over a lone `commands.build.run` -- the very build that had failed.
 _fullcycle_rebuild_remedy() {
-  printf '    Rebuild before doing anything else: %s build all\n' "${DEVBIN_INVOKE:-bin/devbin}"
+  printf '    Rebuild before doing anything else: %s %s\n' "${DEVBIN_INVOKE:-bin/devbin}" "$(_fullcycle_phase_for build)"
 }
 
 _fullcycle_launcher() {
@@ -292,8 +554,15 @@ _fullcycle_launcher() {
 # on the command line, the phase is reached only after that y. So the command
 # is the same either way, and `--force` decides only whether the question is
 # asked (_fullcycle_confirm).
+#
+# AND `--refuse-partial`, SINCE 0131: a clean whose scan could not read the whole
+# project removes what it found and exits 1, and this cycle stops at the first
+# phase that fails -- so it stopped before the rebuild with the trees gone, and
+# a PATH binary resolving into one went dark (the critic's review of 0131,
+# driven). With the flag the clean refuses a partial scan before it removes
+# anything, and the cycle stops with every tree where it was.
 _fullcycle_clean_flags() {
-  printf '%s' "--force-blocked --force"
+  printf '%s' "--force-blocked --force --refuse-partial"
 }
 
 # _fullcycle_clean_phase -- the clean phase, as the phase list spells it.
@@ -368,8 +637,157 @@ _fullcycle_consent_notice() {
   return 0
 }
 
+# _fullcycle_tree_gone <path> -- 0 when <path> is known not to exist, 1 when a
+# directory on the way cannot be searched, and 3 when a link on the way cannot
+# be followed, by this walk or by the kernel (2 is the dispatcher's code).
+# `[ -e ]` fails alike for a path that is not there and for one out of reach,
+# so the path is resolved a name at a time, each link replaced where it stands
+# by the path link_step reads from it, up to 40 links, and it is gone only when
+# a directory that can be searched says a name in it is not there, or a name
+# that must be a directory is not one; a trailing slash leaves an empty last
+# part, which asks that of the name before it. It asked of the directory
+# holding the tree, through one link at most, and a chain of two into a
+# mode-000 directory read as gone at rc 0, and a parent never made as out of
+# reach (critic-shell on 0139, its fifth pass); it then split a link's content
+# itself, a newline in it ended the split, and a tree beneath one read as gone
+# at rc 0 (the same pass, on v2h). The split is by parameter expansion, which
+# keeps a newline in a name.
+_fullcycle_tree_gone() {
+  local p="$1" cur next s i j hops=0
+  local -a parts=()
+  while :; do
+    case "$p" in /*) cur=/ ;; *) cur=. ;; esac
+    parts=()
+    s="$p"
+    while :; do
+      case "$s" in
+        */*)
+          parts+=("${s%%/*}")
+          s="${s#*/}"
+          ;;
+        *)
+          parts+=("$s")
+          break
+          ;;
+      esac
+    done
+    for ((i = 0; i < ${#parts[@]}; i++)); do
+      [ -n "${parts[i]}" ] || continue
+      if [ "$cur" = / ]; then next="/${parts[i]}"; else next="$cur/${parts[i]}"; fi
+      if [ -L "$next" ]; then
+        hops=$((hops + 1))
+        [ "$hops" -le 40 ] || return 3
+        p="$(link_step "$next")" || return 3
+        for ((j = i + 1; j < ${#parts[@]}; j++)); do
+          p="$p/${parts[j]}"
+        done
+        continue 2
+      elif [ -e "$next" ]; then
+        if [ "$i" -lt $((${#parts[@]} - 1)) ] && [ ! -d "$next" ]; then
+          return 0
+        fi
+        cur="$next"
+      elif [ -d "$cur" ] && [ -x "$cur" ]; then
+        return 0
+      else
+        return 1
+      fi
+    done
+    # Every name was there: the kernel stopped where this walk did not, as at
+    # a chain of links longer than it follows, or the tree came back between.
+    return 3
+  done
+}
+
+# _fullcycle_profile_built <tree> <profile> -- true when the artefact check
+# reads <tree>'s <profile>, debug or release, as built: the one statement of
+# what it compares, asked by the check and by _fullcycle_kept_release alike
+# (vc's ruling on 0148 v2e). It reads <tree>/<profile> only: a triple's
+# profile, target/<triple>/release, is not read, as it never was.
+_fullcycle_profile_built() {
+  dir_has_binary "$1/$2"
+}
+
+# _fullcycle_kept_release <array> [<tree>...] -- into <array>, each build tree
+# the artefact check will examine whose release/ still holds a binary once the
+# clean has run (issue 0148, critic-shell on v2d). Asked of the trees, after the clean,
+# rather than predicted before it: the clean removes a tree only beside a
+# Cargo.toml, outside .git, node_modules and .direnv, and never a crate built
+# in place, and a project's own clean line removes what it removes, so no
+# model of it here could stay true. A release binary a tree kept through the
+# clean may be the last cycle's, so the check does not count it as this
+# one's. A walk that cannot read everything returns 1, having listed what it
+# found: a tree beneath the hole may have kept its release artefacts unseen,
+# and the check reads the hole as one (critic-shell on 0148 v2e: a project's
+# own clean line left a stale tree under a directory at mode 000, and a build
+# that opened it passed at rc 0 when this walk's status was dropped).
+_fullcycle_kept_release() {
+  local -n _fkr_out="$1"
+  local _fkr_trees _fkr_t _fkr_rc=0
+  _fkr_out=()
+  _fkr_trees="$(cargo_target_dirs "${@:2}")" || _fkr_rc=1
+  while IFS= read -r _fkr_t; do
+    [ -n "$_fkr_t" ] || continue
+    ! _fullcycle_profile_built "$_fkr_t" release || _fkr_out+=("$_fkr_t")
+  done <<<"$_fkr_trees"
+  return "$_fkr_rc"
+}
+
+# _fullcycle_kept_fix <tree> -- what to do about a tree that kept its release
+# artefacts through the clean, as one line (vc's rulings on 0148 v2e). A tree
+# the clean does not recognise as cargo's is said to be one: it may not be a
+# build tree at all. Whether it does is asked of the clean's own question,
+# _clean_has_markers, never a second answer to it (critic-shell on 0148 v2f:
+# a copy called a tree marked by .fingerprint unrecognised). The tree
+# CARGO_TARGET_DIR names with no Cargo.toml beside it, as for a crate nested
+# below the project root, is one the clean never removes, so unsetting the
+# variable, and building beside the manifest, is the remedy both this cycle
+# and check targetdir accept; beside one already, unsetting changes nothing.
+# "Beside" is the clean's own test, on the path as given (`${d%/*}/Cargo.toml`
+# in _clean_scan), not one resolved through a link, which answered otherwise
+# for a target reached through one (critic-shell on 0148 v2g). The marker
+# question is asked only where its answer is used, so the clean's own warning
+# for a tree it cannot read is not printed over a remedy that did not need it.
+_fullcycle_kept_fix() {
+  local marked=0 t="${1%/}"
+  if [ -n "${CARGO_TARGET_DIR:-}" ] && [ "$1" -ef "$CARGO_TARGET_DIR" ] && [ ! -f "${t%/*}/Cargo.toml" ]; then
+    printf '%s\n' "Unset CARGO_TARGET_DIR, so cargo builds beside its manifest, where the clean removes the tree, or remove it."
+    return 0
+  fi
+  _clean_has_markers "$1" target cargo || marked=$?
+  if [ "$marked" -eq 1 ]; then
+    printf '%s\n' "It is not a tree the clean recognises as cargo's, carrying no cargo marker: remove it if it is a build tree, or move what it holds."
+  else
+    printf '%s\n' "Remove it, or build into a tree clean rust removes (${DEVBIN_INVOKE:-bin/devbin} clean rust --dry-run lists them)."
+  fi
+}
+
+# _fullcycle_tree_why <tree> <why-var> <fix-var> -- why the artefact check
+# could not judge a build tree at <tree>, into <why-var>, and the remedy into
+# <fix-var>; <why-var> empty when it can (issues 0148, 0150). A value is judged
+# first (cargo_target_dir_why), then its place (cargo_tree_outside_why).
+_fullcycle_tree_why() {
+  local -n _ftw_why="$2" _ftw_fix="$3"
+  _ftw_fix="Set it to an absolute path inside the project, or unset it"
+  _ftw_why="$(cargo_target_dir_why "$1")"
+  [ -z "$_ftw_why" ] || return 0
+  _ftw_why="$(cargo_tree_outside_why "$1" "$PROJECT_ROOT")"
+  _ftw_fix="Point it at a tree inside the project that clean rust removes (${DEVBIN_INVOKE:-bin/devbin} clean rust --dry-run lists them), or unset it"
+}
+
+# _fullcycle_refuse_tree <subject> <why> <fix> -- the refusal of a build tree
+# the check could not judge, before anything is shown, asked or removed.
+_fullcycle_refuse_tree() {
+  printf 'fullcycle: REFUSING -- %s %s,\n' "$1" "$2" >&2
+  printf '  so the artefact check could not judge the tree this cycle builds. Nothing was removed.\n' >&2
+  printf '  %s;\n' "$3" >&2
+  printf '  %s check targetdir holds the wider rule.\n' "${DEVBIN_INVOKE:-bin/devbin}" >&2
+}
+
 _fullcycle_run() {
   local force="$1" waited="${2:-0}" launcher phase rc=0 prc start elapsed cleaned=0 rebuilt="" link broken=0 restore_cmd
+  local -a kept=() cargo_trees=("${@:3}")
+  local kept_partial=0
   local -a restore_words
   local -a pass=()
   # ALWAYS `--force-blocked`, NEVER `--force` UNASKED (issue 0047, hv: option 3).
@@ -407,13 +825,20 @@ _fullcycle_run() {
   _fullcycle_header
   # THE BEFORE-HALF, taken before anything is removed.
   local -a atrisk=()
+  local live watch_partial=0
+  live="$(_fullcycle_path_links live)" || watch_partial=1
   while IFS= read -r link; do
     [ -n "$link" ] && atrisk+=("$link")
-  done < <(_fullcycle_path_links live)
+  done <<<"$live"
   # REPORTED IN BOTH DIRECTIONS. Printing only the non-zero case made a cycle
   # that watched nothing look exactly like one that watched everything, which
   # is the defect this verb exists to prevent, committed by the verb itself.
-  if [ "${#atrisk[@]}" -gt 0 ]; then
+  # And a walk with a hole in it names the directories it read (issue 0139):
+  # "no PATH symlink resolves into this tree" is a claim it cannot make.
+  if [ "$watch_partial" = 1 ]; then
+    printf '    watching: %s PATH symlink(s) resolving into this tree, in the PATH directories it could read.\n' "${#atrisk[@]}"
+    printf '    A PATH directory could not be read (the error above names it): a link in it is NOT watched.\n'
+  elif [ "${#atrisk[@]}" -gt 0 ]; then
     printf '    watching: %s PATH symlink(s) resolving into this tree\n' "${#atrisk[@]}"
   else
     printf '    watching: NOTHING -- no PATH symlink resolves into this tree.\n'
@@ -457,7 +882,10 @@ _fullcycle_run() {
     # reset is written because no test could reach one.
     if [ "$prc" -eq 0 ]; then
       case "$phase" in
-        clean*) cleaned=1 ;;
+        clean*)
+          cleaned=1
+          _fullcycle_kept_release kept ${cargo_trees[@]+"${cargo_trees[@]}"} || kept_partial=1
+          ;;
         build*) rebuilt="$phase" ;;
       esac
     else
@@ -653,22 +1081,93 @@ _fullcycle_run() {
   # mean something: the toolchain demonstrably rebuilt SOMETHING and did not
   # rebuild release. A tree with neither is a failed build, already red above.
   if [ "$cleaned" = 1 ] && [ "$rc" -eq 0 ]; then
-    local tdir compared=0 lost=0 looked=0
+    local tdir tdirs sub unlisted gone compared=0 lost=0 looked=0 found=0 walk_partial=0 tree_partial=0 kept_found=0
     local -a seen=()
+    # READ WHOLE, WITH ITS STATUS (issue 0139). Through a process substitution
+    # a walk that could not read everything was a shorter list, and the check
+    # below passed over the trees it never saw.
+    tdirs="$(cargo_target_dirs ${cargo_trees[@]+"${cargo_trees[@]}"})" || walk_partial=1
     while IFS= read -r tdir; do
       [ -n "$tdir" ] || continue
+      found=$((found + 1))
+      # A TREE OR PROFILE THAT CANNOT BE LISTED IS NOT AN EMPTY ONE (critic-shell
+      # on 0139). _fullcycle_profile_built reads a profile through a glob,
+      # which expands to nothing over a directory it cannot open, and the walk
+      # prunes at target/ and never opens it: a mode-000 target/ read as a tree
+      # with no binaries, INCONCLUSIVE at rc 0 -- a green cycle over the very
+      # signature this check exists for -- and an unlistable release/ beside a
+      # readable debug/ read as release artefacts lost. Such a tree is named,
+      # not compared, and the walk is partial. The tree itself is only passed
+      # through, to debug/ and release/ by name, so it needs search alone --
+      # asking read of it too refused a target/ at 0111 whose profiles could be
+      # read (critic-shell on 0139 v2) -- while each profile is listed, so it
+      # needs both.
+      #
+      # AND A TREE IS COUNTED EXAMINED ONLY WHEN IT WAS (critic-shell on 0139
+      # v2e): one named here as unsearchable or unlistable was also listed as
+      # examined, beside INCOMPLETE saying it was not. A tree that is gone -- one
+      # the walk found and something removed, or a CARGO_TARGET_DIR the build
+      # never made -- is named as gone, holds no profile to compare, and is no
+      # hole in the walk. Search is asked before existence, so a tree that goes
+      # between the two tests is named as gone and not as unsearchable. And it
+      # is gone only when _fullcycle_tree_gone can say so: `[ -e ]` fails for a
+      # tree out of reach as for one that is not there, and one out of reach
+      # may be there, so it is named out of reach and the check is incomplete
+      # (critic-shell on 0139 v2f: it read as absent, and a link to one was
+      # dropped unsaid, INCONCLUSIVE at rc 0 both times).
+      unlisted=0
+      if [ ! -x "$tdir" ]; then
+        if [ -e "$tdir" ]; then
+          warn "cannot search $tdir -- this tree's profiles were not compared"
+          unlisted=1
+        else
+          gone=0
+          _fullcycle_tree_gone "$tdir" || gone=$?
+          case "$gone" in
+            0)
+              warn "$tdir does not exist -- no profile of it was compared"
+              continue
+              ;;
+            3) warn "cannot tell where $tdir leads -- a link on the way cannot be followed exactly, so this tree's profiles were not compared" ;;
+            *) warn "cannot reach $tdir -- a directory on the way cannot be searched, so this tree's profiles were not compared" ;;
+          esac
+          unlisted=1
+        fi
+      else
+        for sub in "$tdir/debug" "$tdir/release"; do
+          if [ -e "$sub" ] && { [ ! -r "$sub" ] || [ ! -x "$sub" ]; }; then
+            warn "cannot list $sub -- this tree's profiles were not compared"
+            unlisted=1
+          fi
+        done
+      fi
+      # A TREE THAT KEPT ITS RELEASE ARTEFACTS THROUGH THE CLEAN is not
+      # compared: they may be the last cycle's (_fullcycle_kept_release).
+      if [ "$unlisted" = 1 ]; then
+        tree_partial=1
+        continue
+      else
+        for sub in ${kept[@]+"${kept[@]}"}; do
+          if [ "$sub" -ef "$tdir" ]; then
+            warn "$sub kept release artefacts through the clean, so they may be the last cycle's -- this tree's profiles were not compared.
+       $(_fullcycle_kept_fix "$sub")"
+            kept_found=1
+            continue 2
+          fi
+        done
+      fi
       looked=$((looked + 1))
       seen+=("$tdir")
-      if dir_has_binary "$tdir/debug" && ! dir_has_binary "$tdir/release"; then
+      if _fullcycle_profile_built "$tdir" debug && ! _fullcycle_profile_built "$tdir" release; then
         [ "$lost" -eq 0 ] &&
           printf '\n    THE BUILD TREE CAME BACK WITHOUT ITS RELEASE ARTEFACTS.\n'
         lost=$((lost + 1))
         compared=1
         printf '      %s -- debug/ has binaries, release/ has none\n' "$tdir"
-      elif dir_has_binary "$tdir/release"; then
+      elif _fullcycle_profile_built "$tdir" release; then
         compared=1
       fi
-    done < <(cargo_target_dirs)
+    done <<<"$tdirs"
 
     # NAME THE POPULATION, ALWAYS. "Compared 1 tree and it was fine" and
     # "found no tree to compare" are the exact distinction this issue exists to
@@ -679,24 +1178,55 @@ _fullcycle_run() {
       printf '      %s\n' "${seen[@]}"
       printf '    Dependency trees are not examined -- deps/, _build/, node_modules/,\n'
       printf '    .venv/ are somebody else'"'"'s crates and this cycle did not build them.\n'
+      [ "$found" -eq "$looked" ] ||
+        printf '    %d more not examined, each named above.\n' "$((found - looked))"
+    elif [ "$found" -gt 0 ]; then
+      printf '\n    artefact check: NO cargo build tree could be examined (%d, each named above).\n' "$found"
     else
       printf '\n    artefact check: NO cargo build tree found under this project.\n'
     fi
 
     if [ "$lost" -gt 0 ]; then
-      printf '    The clean removed release/ and this cycle did not put it back.\n'
+      # WHAT IS TRUE, AND NOTHING ABOUT THE CLEAN (issue 0134). This said the
+      # clean removed release/, and `cleaned` means only that the clean phase
+      # passed: over a project with no tree to remove, a dev build made debug/
+      # and the sentence claimed a removal that never happened.
+      printf '    release/ holds no binary after this cycle while debug/ does.\n'
       printf '    Nothing on PATH had to resolve into this tree for that to be true --\n'
       printf '    which is the case the PATH-symlink check cannot see at all.\n'
       rc=1
-    elif [ "$compared" -eq 0 ]; then
-      # SAY IT RATHER THAN PASS OVER IT. No tree carried a binary in either
+    elif [ "$compared" -eq 0 ] && [ "$walk_partial" = 0 ] && [ "$tree_partial" = 0 ] &&
+      [ "$kept_found" = 0 ] && [ "$kept_partial" = 0 ]; then
+      # SAY IT RATHER THAN PASS OVER IT. Only over a walk that read everything:
+      # "no tree holds a binary" is a claim about every tree, and over a partial
+      # walk the INCOMPLETE verdict below is the true one (the 0139 v2 arm).
+      # No tree carried a binary in either
       # profile, so there was nothing to compare and this cycle asserts nothing
       # about artefacts. An unremarked silence here would rebuild precisely the
       # defect the whole block replaces -- a cycle that measured nothing and one
       # that measured everything emitting the same quiet rc=0.
-      printf '\n    ARTEFACT CHECK INCONCLUSIVE -- no cargo build tree under this\n'
-      printf '    project holds a binary in either profile, so there is nothing to\n'
-      printf '    compare. This cycle makes NO claim about release artefacts.\n'
+      printf '\n    ARTEFACT CHECK INCONCLUSIVE -- no cargo build tree this cycle examined\n'
+      printf '    holds a binary in either profile, so there is nothing to compare. This\n'
+      printf '    cycle makes NO claim about release artefacts.\n'
+    fi
+
+    # A WALK WITH A HOLE IN IT FAILS THE CYCLE (issue 0139). A tree beneath what
+    # find could not read may never have been examined, and a tree it found
+    # whose profiles could not be listed was not, so the check above cannot say
+    # the rebuild put release/ back: it is incomplete, and a green over it is
+    # the false one this check exists to stop. Each cause is said for itself,
+    # and only when it holds (critic-shell on 0139 v2e).
+    if [ "$walk_partial" = 1 ] || [ "$tree_partial" = 1 ] || [ "$kept_found" = 1 ] || [ "$kept_partial" = 1 ]; then
+      printf '\n    ARTEFACT CHECK INCOMPLETE -- this cycle cannot claim its release artefacts.\n'
+      [ "$walk_partial" = 0 ] ||
+        printf '    The walk for build trees could not read everything, so a tree beneath\n    what it could not read may not have been examined (the errors above name it).\n'
+      [ "$tree_partial" = 0 ] ||
+        printf '    A build tree could not be reached or searched, or its debug/ or\n    release/ listed, so that tree was not examined (the lines above name each).\n'
+      [ "$kept_found" = 0 ] ||
+        printf '    A build tree kept release artefacts through the clean, so they may be\n    the last cycle'"'"'s and that tree was not compared (the lines above name each).\n'
+      [ "$kept_partial" = 0 ] ||
+        printf '    The walk after the clean could not read everything, so a tree that kept\n    release artefacts through it may have gone unseen (the errors above name it).\n'
+      rc=1
     fi
   fi
 
@@ -735,6 +1265,15 @@ _fullcycle_run() {
     fi
   fi
 
+  # A WATCH WITH A HOLE IN IT CANNOT SAY THE CYCLE DARKENED NOTHING (issue
+  # 0139): a link in a PATH directory find could not read was never watched.
+  # Reddens a green cycle, as a dark link does; a failed phase keeps its rc.
+  if [ "$watch_partial" = 1 ]; then
+    printf '\n    PATH WATCH INCOMPLETE -- a PATH directory could not be read, so a link\n'
+    printf '    in it that this cycle darkened would not have been reported above.\n'
+    [ "$rc" -ne 0 ] || rc=1
+  fi
+
   printf '\n    FULLCYCLE FINISHED -- rc=%d\n' "$rc"
   return "$rc"
 }
@@ -766,6 +1305,67 @@ cmd_fullcycle() {
   cd "$PROJECT_ROOT" || die "cannot enter $PROJECT_ROOT"
   launcher="$(_fullcycle_launcher)"
 
+  # A CARGO_TARGET_DIR THE ARTEFACT CHECK CANNOT EXAMINE IS REFUSED BEFORE
+  # ANYTHING IS SHOWN, ASKED OR REMOVED (issue 0148; vc's ruling). A relative
+  # value let a build run from a crate's directory build a tree the check never
+  # looked at, and a value holding a newline was read as two paths: either way
+  # the check passed over release artefacts lost, INCONCLUSIVE at rc 0. An empty
+  # one is refused by cargo only after the clean. cargo_target_dir_why says
+  # which; it is a configuration fact, not a run outcome, so it is refused here,
+  # as 0134 refuses a phase that cannot run. check targetdir holds the wider
+  # rule (any value not the shared tree). The artefact check is reached only
+  # from here (_fullcycle_run, through this function's run_gate), so it carries
+  # no defence of its own. The value is shown as printf %q quotes it, so an
+  # empty value, leading spaces or a byte that is not printable can be seen.
+  # And a tree outside the project, which the clean does not remove, is refused
+  # too: its release artefacts may be the last cycle's (cargo_tree_outside_why).
+  #
+  # AND WHEREVER ELSE CARGO IS TOLD TO BUILD (issue 0150). CARGO_TARGET_DIR
+  # decides the tree over CARGO_BUILD_TARGET_DIR, and either over any config
+  # (measured, cargo 1.98.1), so the one in force is judged as a value. With
+  # neither set, cargo is asked where each crate builds whose directory, or one
+  # above it, or CARGO_HOME, holds a config naming target-dir or include
+  # (cargo_build_dirs), and each answer is judged the same way. A crate with no
+  # such config builds into its workspace's own target, which the walk finds,
+  # and cargo is not run. The trees cargo named are handed to the check.
+  local tdir_var="" tdir_why tdir_fix i
+  # shellcheck disable=SC2034 # cargo_roots is filled by cargo_build_dirs through a name reference; the cycle judges trees, not roots
+  local -a cargo_crates=() cargo_trees=() cargo_roots=()
+  tdir_var="$(cargo_env_carrier)"
+  if [ -n "$tdir_var" ]; then
+    _fullcycle_tree_why "${!tdir_var}" tdir_why tdir_fix
+    if [ -n "$tdir_why" ]; then
+      _fullcycle_refuse_tree "$tdir_var=$(printf '%q' "${!tdir_var}")" "$tdir_why" "$tdir_fix"
+      return 1
+    fi
+  else
+    # A WALK WITH A HOLE IN IT (status 2) IS THE HOLE'S TO ANSWER FOR, not a
+    # refusal of 0150's (vc's ruling): a project with no carrier anywhere is
+    # not refused for it here. Proceeding is safe because of what runs next,
+    # in this order. devbin's own clean runs with --refuse-partial, which
+    # decides at its scan, before anything is removed or marked
+    # (lib/cmd/clean, "A PARTIAL SCAN IS REFUSED BEFORE ANYTHING IS DONE"), so
+    # over the same hole the cycle stops at the clean with every tree in place.
+    # A project's own clean line may ignore that flag; then the walk after the
+    # clean meets the hole and fails the cycle (_fullcycle_kept_release's
+    # status, kept_partial), and so does the check's own walk. Both are held by
+    # arms.
+    i=0
+    cargo_build_dirs cargo_crates cargo_trees cargo_roots || i=$?
+    if [ "$i" -eq 1 ]; then
+      printf 'fullcycle: REFUSING -- where cargo builds could not be known (the error above says why), so the artefact check could not judge the tree this cycle builds. Nothing was removed.\n' >&2
+      return 1
+    fi
+    for i in ${cargo_trees[@]+"${!cargo_trees[@]}"}; do
+      _fullcycle_tree_why "${cargo_trees[i]}" tdir_why tdir_fix
+      if [ -n "$tdir_why" ]; then
+        _fullcycle_refuse_tree "cargo builds $(printf '%q' "${cargo_crates[i]}") into $(printf '%q' "${cargo_trees[i]}"), which" "$tdir_why" \
+          "Point its build.target-dir at a tree inside the project that clean rust removes (${DEVBIN_INVOKE:-bin/devbin} clean rust --dry-run lists them), or remove it"
+        return 1
+      fi
+    done
+  fi
+
   # FAIL CLOSED WHEN THE CYCLE CANNOT PUT BACK WHAT IT TAKES AWAY.
   #
   # `clean rust` removes `target/` including `release/`, and `cargo test` builds
@@ -774,14 +1374,19 @@ cmd_fullcycle() {
   # resolves through -- so the cost is not a slow next build, it is every
   # whiteboard guard on the machine going dark until somebody rebuilds by hand.
   #
-  # REFUSING IS THE SAFE DIRECTION AND SKIPPING IS NOT, so the probe's failure
-  # is treated as "cannot rebuild" rather than "no rebuild needed". A project
+  # REFUSING IS THE SAFE DIRECTION AND SKIPPING IS NOT, so no build phase is
+  # treated as "cannot rebuild" rather than "no rebuild needed". A project
   # that genuinely wants clean-then-test has two honest verbs for it and does
   # not need this one.
-  if ! _fullcycle_can_rebuild "$launcher"; then
-    printf 'fullcycle: REFUSING -- this project has no build command, so the cycle cannot rebuild what it deletes.\n' >&2
+  if ! _fullcycle_can_rebuild; then
+    printf 'fullcycle: REFUSING -- this project has no build phase the cycle can run, so it cannot rebuild what it deletes.\n' >&2
     printf '  clean rust removes target/ INCLUDING release/, and cargo test builds debug binaries only.\n' >&2
     printf '  Anything on PATH resolving through target/release/ would stop resolving and stay broken.\n' >&2
+    # `|| :` IS SAFE HERE AND ONLY HERE: this path is already a refusal, and a
+    # check that cannot say why has already warned so, so nothing is
+    # swallowed; the refusal goes on to its end rather than stop in the
+    # pipeline. Do not copy it where a failure would otherwise be heard.
+    { _fullcycle_no_phase_why build || :; } | sed 's/^/  build: /' >&2
     # WHAT TO RUN INSTEAD IS READ FROM THE PHASE LIST, less its build (issue
     # 0083). This sentence named `clean rust` and `test rust` itself, a second
     # copy of the list that would have gone on offering `test rust` after the
@@ -792,6 +1397,14 @@ cmd_fullcycle() {
       printf '    %s %s\n' "${DEVBIN_INVOKE:-bin/devbin}" "$phase" >&2
     done < <(_fullcycle_phases)
     printf '  or declare a build command this project can rebuild through.\n' >&2
+    return 1
+  fi
+  # AND A CYCLE WITH NO TEST PHASE IS NOT ONE (issue 0134). `test all` was run
+  # whatever stood behind test, so a project with nothing there removed its
+  # trees, rebuilt, and then failed at a command that does not resolve.
+  if [ -z "$(_fullcycle_phase_for test)" ]; then
+    printf 'fullcycle: REFUSING -- nothing runs test in this project, so the cycle has no test phase. Nothing was removed.\n' >&2
+    { _fullcycle_no_phase_why test || :; } | sed 's/^/  test: /' >&2
     return 1
   fi
 
@@ -864,7 +1477,7 @@ cmd_fullcycle() {
   run_gate --label fullcycle --suffix FULLCYC --grammar generic \
     --out-dir "$(gate_out_dir fullcycle)" \
     --source "devbin's own full cycle -- _fullcycle_run in this process, not a command line" \
-    -- _fullcycle_run "$force" "$_FULLCYCLE_WAITED"
+    -- _fullcycle_run "$force" "$_FULLCYCLE_WAITED" ${cargo_trees[@]+"${cargo_trees[@]}"}
 }
 
 cmd_fullcycle "$@"

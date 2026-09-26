@@ -129,7 +129,7 @@ _clean_validate_path() {
 _clean_live_binaries() {
   local dir="$1" real p pr f base found sub
 
-  real="$(_clean_realpath "$dir")"
+  real_path "$dir" real
 
   # THE OUTPUT IS DEDUPED, AND THE DUPLICATE WAS A MISCOUNT RATHER THAN NOISE.
   # Branch (b) walks debug/, release/ and the tree root, takes each executable's
@@ -155,49 +155,40 @@ _clean_live_binaries() {
   while IFS= read -r p; do
     [ -n "$p" ] || continue
     [ -d "$p" ] || continue
-    pr="$(_clean_realpath "$p")"
-    case "$pr/" in "$real"/*) printf '%s (PATH entry) -> %s\n' "$p" "$pr" ;; esac
+    real_path "$p" pr
+    case "$pr/" in "$real"/*) printf '%s (PATH entry) -> %s\n' "$(_clean_shown "$p")" "$(_clean_shown "$pr")" ;; esac
   done < <(_clean_path_elements)
 
   # (b) A BINARY IN THE TREE THAT PATH RESOLVES TO. This is the shape that
   # actually happened, via a symlink from an ordinary bin directory.
-  for sub in "$dir"/debug "$dir"/release "$dir"; do
+  #
+  # EVERY debug/ AND release/ WITHIN TWO LEVELS OF THE TOP (the critic's sixth
+  # pass): the tree's own, a per-node directory's such as target/cc's or a
+  # target triple's, and a triple's inside a per-node directory. A target whose
+  # only output is per-node is a tree (issue 0131), and a link into
+  # target/cc/debug went dark under --force unsaid; a triple's was missed
+  # before 0131 too.
+  #
+  # AN ANSWER THAT IS A PATH IS READ, RELATIVE OR NOT: a command found through
+  # a relative PATH entry, the Rails ./bin idiom, is answered relative, and
+  # every such answer was skipped. It is read from the current directory,
+  # which _clean_run makes the project root, as the lookup was. An answer that
+  # names no path, a builtin's or a function's, names nothing in the tree.
+  for sub in "$dir"/debug "$dir"/release "$dir"/*/debug "$dir"/*/release \
+    "$dir"/*/*/debug "$dir"/*/*/release "$dir"; do
     [ -d "$sub" ] || continue
     for f in "$sub"/*; do
       [ -f "$f" ] || continue
       [ -x "$f" ] || continue
-      base="$(basename "$f")"
+      base="${f##*/}"
       found="$(command -v "$base" 2>/dev/null)" || continue
       [ -n "$found" ] || continue
-      case "$found" in /*) ;; *) continue ;; esac
-      pr="$(_clean_realpath "$found")"
-      case "$pr/" in "$real"/*) printf '%s -> %s\n' "$found" "$pr" ;; esac
+      case "$found" in */*) ;; *) continue ;; esac
+      real_path "$found" pr
+      case "$pr/" in "$real"/*) printf '%s -> %s\n' "$(_clean_shown "$found")" "$(_clean_shown "$pr")" ;; esac
     done
   done
   } | awk '!seen[$0]++'
-  return 0
-}
-
-# _clean_realpath <path> -- absolute, symlinks resolved.
-#
-# The chain of links is walked by follow_links in lib/helpers, the one walk
-# (issue 0084), which this function used to carry a copy of; what it adds is the
-# directory's physical spelling. A link follow_links cannot follow exactly, one
-# whose target's name ends in a newline, it names on stderr, and the path is then
-# compared as given.
-_clean_realpath() {
-  local p="$1" f d
-  [ -e "$p" ] || {
-    printf '%s\n' "$p"
-    return 0
-  }
-  if [ -d "$p" ]; then
-    (cd "$p" 2>/dev/null && pwd -P) || printf '%s\n' "$p"
-    return 0
-  fi
-  f="$(follow_links "$p")" || f="$p"
-  d="$(cd "$(dirname "$f")" 2>/dev/null && pwd -P)" || d="$(dirname "$p")"
-  printf '%s/%s\n' "$d" "$(basename "$f")"
   return 0
 }
 
@@ -205,8 +196,15 @@ _clean_realpath() {
 # Enumeration and classification
 # ---------------------------------------------------------------------------
 
-# _clean_roots <name> -- every candidate build-tree root under PROJECT_ROOT,
-# deduplicated, with nested ones dropped. Found BY MARKER AS WELL AS BY NAME.
+# _clean_roots <name> <markers> <manifest> <roots-var> <inplace-var> -- every
+# candidate build-tree root under PROJECT_ROOT, deduplicated, with nested ones
+# dropped, appended to the array named <roots-var>; and to <inplace-var>, every
+# candidate that is a crate itself (below). Found BY MARKER AS WELL AS BY NAME.
+# Returns 3, having set what it did find, when the scan is partial -- find exited
+# non-zero, which says only that it could not do all it was asked, or the walk
+# met a directory it could read but not search, or grep could not read a tag --
+# and 1 on a failure of this function's own, a candidate outside the root or a
+# sort that failed, which is a devbin defect.
 #
 # NO -maxdepth. A depth-limited sweep missed 22.6 GB on the day this was
 # specified, including a 10 GB tree inside a git worktree -- and devbin's own
@@ -222,52 +220,211 @@ _clean_realpath() {
 # sweeper THAT is the worse direction: a false positive is loud and refusable,
 # a false negative is a 10 GB tree that appears in no output at all.
 #
-# So the markers are searched directly -- one cheap pass per marker rather than
-# stat-ing every directory in the tree -- and unioned with the name match.
+# So the markers are searched directly and unioned with the name match.
+#
+# ONE find, AND IT PRUNES AT EVERY CANDIDATE FOUND BY NAME (the critic's reviews
+# of 0131). There were three passes, one by name and one per marker, and the
+# marker passes walked inside every target tree -- where a cargo build running
+# beside this one creates and deletes incremental/ directories as it goes, and
+# find exits non-zero on an entry that vanished between listing and reading it:
+# 156 of 161 dry runs over a build in progress read as PARTIAL (driven). A tree
+# inside a tree found by name is part of it (_clean_drop_nested would drop it),
+# so nothing is lost by not walking there, and one unreadable directory is
+# named once rather than once per pass. A tree found by its MARKER has no name
+# to prune on and is walked in full, so an unreadable directory inside one does
+# make the scan partial. -ignore_readdir_race covers the race everywhere: GNU
+# find and BSD find both take it, and a directory that cannot be read still
+# fails the walk. -mindepth 1 keeps the name test off the project root itself,
+# which a project checked out as `target` had pruned whole, examining nothing
+# beneath it (the critic's third review of 0131).
+#
+# CARGO'S MARKERS, SEARCHED FOR CARGO'S ARM ONLY, AND ONLY CARGO'S (issue 0131).
+# CACHEDIR.TAG is a cross-tool convention, and pytest, mypy and others write the
+# same signature line, so a tag counts only when it names cargo as its writer
+# (_clean_cargo_tag). The union ran for every arm, which listed each cargo tree
+# as a name-alike under `clean elixir` and `clean swift`; `_build` and `.build`
+# carry no marker of their own, so their arms are found by name alone. The arm
+# says which it is, in <markers>: `cargo`, or `none`.
+#
+# A DIRECTORY find CANNOT READ MAKES THE SCAN PARTIAL, AND THE CALLER IS TOLD
+# (issue 0131). find ran with its errors sent to /dev/null, in a pipeline its
+# caller read through a process substitution, so a tree beneath a directory it
+# could not read was never listed and nothing could know. find's output is now
+# taken whole with its status, as issue 0127 does for the vendored set, and its
+# own error stays on stderr to name the path. So does grep's, for a tag it
+# cannot read, since that tag might have been the tree's only marker -- unless a
+# .rustc_info.json beside it already makes the tree cargo's, and then the tag is
+# not read at all, so one tree gets one verdict however it was found (the
+# critic's third review of 0131: found by its tag it read as PARTIAL, found by
+# its name it passed with grep's error printed over the result).
+#
+# EVERY PATH IS CARRIED WHOLE, NUL-DELIMITED, AND NEVER LEAVES AN ARRAY (issue
+# 0141). find's output was read a line at a time and the scan's result carried
+# as TAB-joined text, so a directory whose name held a newline became two paths
+# -- the second, spelled by the subtree beneath it, a real build tree OUTSIDE
+# the project -- and a name ending in a TAB lost it, so the tree classified was
+# out<TAB> and the tree listed was the source directory out/. Both were listed
+# for removal (driven). find's status is read by `wait` on the process
+# substitution that carries its output, which bash has allowed since 4.4.
+#
+# NOTHING OUTSIDE PROJECT_ROOT IS EVER A CANDIDATE, AND THAT DOES NOT REST ON
+# PARSING ALONE (issue 0141). A path not strictly beneath PROJECT_ROOT, as find
+# printed it, is a devbin defect: the run stops before acting on a list that
+# produced one. -H follows PROJECT_ROOT itself when it is a link -- under find's
+# default -P a linked root was not descended at all, and the scan examined
+# nothing at exit 0 (the critic's fourth pass; the dispatcher's `cd -P` makes a
+# root physical, a caller setting PROJECT_ROOT directly may not) -- and below it
+# find follows no link, so every path it prints is the physical one.
+#
+# A DIRECTORY NAMED LIKE A TREE THAT HOLDS ITS OWN MANIFEST IS A CRATE, AND IS
+# WALKED, NOT PRUNED (the critic's fourth pass). The name test pruned at it, so
+# a crate whose directory is named target hid its own build tree, and was then
+# set aside as built in place with no build output in it at all. The prune now
+# asks for the manifest first (-exec test), so such a crate is walked like any
+# other directory, and "built in place" below is only ever a candidate found by
+# a marker.
+#
+# A DIRECTORY HOLDING ITS OWN MANIFEST IS NEVER A BUILD TREE (issue 0141).
+# `cargo build --target-dir .` writes .rustc_info.json and cargo's tag into the
+# crate itself, so the crate became a candidate: a workspace member was listed
+# for removal, sources and all, because its parent's Cargo.toml sat beside it;
+# and at the project root, every real tree beneath was dropped as nested and
+# never listed. Such a directory, and the project root itself, goes to
+# <inplace-var> BEFORE the nesting test, so the trees beneath it are still found.
 #
 # THE LIMIT, STATED RATHER THAN LEFT TO BE DISCOVERED: a build tree redirected
 # OUTSIDE PROJECT_ROOT is not reachable from here and is not reported. This
 # command walks one project; it is not a machine sweep.
 _clean_roots() {
-  local name="$1" f
-  {
-    find "$PROJECT_ROOT" \
-      \( -name .git -o -name node_modules -o -name .direnv \) -prune -o \
-      -type d -name "$name" -prune -print 2>/dev/null
-    for f in CACHEDIR.TAG .rustc_info.json; do
-      find "$PROJECT_ROOT" \
-        \( -name .git -o -name node_modules -o -name .direnv \) -prune -o \
-        -type f -name "$f" -print 2>/dev/null |
-        while IFS= read -r m; do dirname "$m"; done
-    done
-  } | sort -u | _clean_drop_nested
-  return 0
+  local name="$1" markers="$2" manifest="$3" root="${PROJECT_ROOT%/}" line t d rc=0
+  # The arrays behind <roots-var> and <inplace-var> are the caller's, reached by
+  # NAME through bash's dynamic scope, so no local here may share a name with
+  # one a caller passes: it would shadow the caller's array, and the appends
+  # below would land in it instead.
+  local -n _cr_roots="$4" _cr_inplace="$5"
+  local -a marks=() cands=() keep=() sorted=() crates=()
+  # WHAT THE WALK RUNS IS /bin/sh, NAMED WHOLE, AND NOTHING FOUND THROUGH PATH
+  # (the critic's fifth and sixth passes). find looks -exec's utility up
+  # through PATH, and a project's own bin/test first on PATH -- direnv's
+  # `PATH_add bin` puts it there -- was run by the dry run that promises to
+  # change nothing, once per directory named like the tree: exiting 1 it
+  # stopped every prune by name, exiting 0 it pruned crates again, and find
+  # exited 0 either way. The `[` is /bin/sh's own; /bin/test would serve as
+  # well, and is absent where /bin holds only sh, as on NixOS.
+  #
+  # AND A DIRECTORY THE WALK CAN READ BUT NOT SEARCH MAKES THE SCAN PARTIAL:
+  # macOS's find passes over one, mode r--, printing nothing beneath it, no
+  # error, and exiting 0, so a tree beneath it went unseen and unsaid (the
+  # critic's sixth pass on 0131). This walk carried its own clause for it until
+  # issue 0145 gave every walk that descends one detector, find_walk, which
+  # names such a directory and fails; its status is this walk's, below.
+  [ "$markers" != cargo ] || marks=(-o -type f \( -name CACHEDIR.TAG -o -name .rustc_info.json \) -print0)
+  # shellcheck disable=SC2016 # the $1 and $2 in the -exec programs are /bin/sh's own
+  while IFS= read -r -d '' line; do
+    case "${line##*/}" in
+      CACHEDIR.TAG)
+        # A marker that needs no read makes the tree cargo's without the tag, so
+        # the candidate is added here and the tag is not read: reading it could
+        # add only an error (_clean_marked_without_read).
+        if _clean_marked_without_read "${line%/*}"; then
+          cands+=("${line%/*}")
+          continue
+        fi
+        t=0
+        _clean_cargo_tag "$line" || t=$?
+        # 0 is cargo's and 1 another tool's; 3 is grep unable to read it, which
+        # says neither.
+        [ "$t" -le 1 ] || rc=3
+        [ "$t" -eq 0 ] || continue
+        cands+=("${line%/*}")
+        ;;
+      .rustc_info.json) cands+=("${line%/*}") ;;
+      *) cands+=("$line") ;;
+    esac
+    # find-status: read by `wait "$!"` below, on this process substitution (issue 0139's scan)
+  done < <(find_walk -H "$PROJECT_ROOT" -mindepth 1 -ignore_readdir_race \
+    \( -name .git -o -name node_modules -o -name .direnv \) -prune -o \
+    -type d -name "$name" -exec /bin/sh -c '[ ! -f "$1/$2" ]' sh {} "$manifest" \; -prune -print0 ${marks[@]+"${marks[@]}"})
+  # find's status, read here because the loop above holds the only process
+  # substitution in this function and runs nothing in the background: any `&`
+  # job or process substitution added to the loop's body, or to anything it
+  # calls, replaces $! and loses find's status, and the scan then reads as
+  # complete (the critic's fourth pass). Any non-zero from find_walk is a
+  # partial scan, since its status says only that it could not do all it was
+  # asked -- a directory it could not read or could not search, each named; a
+  # find refusing its own arguments reads the same, and its error names why.
+  wait "$!" || rc=3
+  for d in "${cands[@]}"; do
+    if [ "$d" = "$root" ] || [ -f "$d/$manifest" ]; then
+      crates+=("$d")
+      continue
+    fi
+    case "$d" in
+      "$root"/?*) keep+=("$d") ;;
+      *)
+        warn "clean: $(_clean_shown "$d") is not beneath $(_clean_shown "$root") -- a devbin defect, so nothing from this scan is acted on"
+        return 1
+        ;;
+    esac
+  done
+  if [ "${#keep[@]}" -gt 0 ]; then
+    mapfile -d '' -t sorted < <(printf '%s\0' "${keep[@]}" | LC_ALL=C sort -z -u)
+    wait "$!" || return 1
+  fi
+  _clean_drop_nested sorted _cr_roots
+  if [ "${#crates[@]}" -gt 0 ]; then
+    mapfile -d '' -t sorted < <(printf '%s\0' "${crates[@]}" | LC_ALL=C sort -z -u)
+    wait "$!" || return 1
+    _cr_inplace+=("${sorted[@]}")
+  fi
+  return "$rc"
 }
 
-# _clean_drop_nested -- read sorted paths, print only the outermost.
+# _clean_drop_nested <in-var> <out-var> -- of the paths in the array <in-var>,
+# sorted in the C locale, append only the outermost to the array <out-var>.
+# Arrays in and out (issue 0141): the paths are never joined into text, so no
+# character a name can hold can split one.
 #
-# A parent sorts before its own children, so one pass suffices. Without this a
-# marker inside an already-matched tree reports a second root inside the first,
-# and the removal loop would then try to delete a directory its predecessor
-# has already taken.
+# A PATH IS NESTED WHEN IT LIES UNDER ANY ROOT ALREADY KEPT, NOT ONLY THE LAST
+# (issue 0137). A parent sorts before its own children, and this compared each
+# path with the last root it kept as if nothing could sort between the two. But
+# `.` and `-` sort below `/`, so `target.bak` and `target-old` sort between
+# `target` and `target/cc`: `target/cc` was then tested against the sibling,
+# kept, and reported as a tree of its own -- skipped and marked, and then
+# removed with `target` all the same.
+#
+# Without this a marker inside an already-matched tree reports a second root
+# inside the first, and the removal loop would then try to delete a directory
+# its predecessor has already taken.
 _clean_drop_nested() {
-  local keep="" d
-  while IFS= read -r d; do
+  local -n _cdn_in="$1" _cdn_out="$2"
+  local d k
+  for d in "${_cdn_in[@]}"; do
     [ -n "$d" ] || continue
-    if [ -n "$keep" ]; then
-      case "$d/" in "$keep"/*) continue ;; esac
-    fi
-    keep="$d"
-    printf '%s\n' "$d"
+    for k in "${_cdn_out[@]}"; do
+      case "$d/" in "$k"/*) continue 2 ;; esac
+    done
+    _cdn_out+=("$d")
   done
   return 0
 }
 
-# _clean_scan <name> <manifest> -- classify every root. Prints, TAB-separated:
+# _clean_scan <name> <manifest> <markers> <removable> <nomanifest> <notbuild>
+# <unread> <inplace> -- classify every root into the caller's arrays, named by
+# the last five arguments:
 #
-#   removable    <dir>   markers present AND a sibling manifest to rebuild from
-#   no-manifest  <dir>   built here, but nothing beside it can regenerate it
-#   not-build    <dir>   named like a build tree and carrying no build markers
+#   removable    markers present AND a sibling manifest to rebuild from
+#   nomanifest   built here, but nothing beside it can regenerate it
+#   notbuild     named like a build tree and carrying no build markers
+#   unread       a candidate that could not be read, so it is not classified
+#   inplace      a crate holding a build's markers in itself (_clean_roots)
+#
+# Returns 3, having classified all it could, when the scan was partial: find
+# could not read a directory, or grep a tag, or a candidate could not be read
+# (issue 0131); and 1, at once, when _clean_roots failed some other way.
+#
+# IN THIS SHELL, INTO ARRAYS (issue 0141). The result was TAB-joined text, read
+# back with `IFS=$'\t' read`, which strips a TAB that ends a name.
 #
 # EVERY REJECTION IS EMITTED, WHICH IS THE WHOLE POINT OF THE THREE STATUSES.
 # A skipped tree that prints nothing is indistinguishable from a tree that was
@@ -283,77 +440,82 @@ _clean_drop_nested() {
 # MECHANISM rather than by a name test, which would be a predicate narrower
 # than the defect all over again.
 _clean_scan() {
-  local name="$1" manifest="$2" d parent
-  while IFS= read -r d; do
-    [ -n "$d" ] || continue
-    parent="$(dirname "$d")"
-    if ! _clean_has_markers "$d" "$name"; then
-      printf 'not-build\t%s\n' "$d"
-    elif [ -f "$parent/$manifest" ]; then
-      printf 'removable\t%s\n' "$d"
-    else
-      printf 'no-manifest\t%s\n' "$d"
-    fi
-  done < <(_clean_roots "$name")
-  return 0
-}
-
-# _clean_has_markers <dir> <name> -- does this directory carry build output?
-#
-# For cargo the markers are written by the tool itself and are reliable in a
-# redirected target dir too. For _build and .build the toolchain writes no
-# comparable tag, so the directory NAME carries that half and the manifest test
-# carries the rest.
-_clean_has_markers() {
-  local d="$1" name="$2"
-  case "$name" in
-    target)
-      [ -f "$d/CACHEDIR.TAG" ] ||
-        [ -f "$d/.rustc_info.json" ] ||
-        [ -d "$d/debug/.fingerprint" ] ||
-        [ -d "$d/release/.fingerprint" ]
-      ;;
-    *)
-      [ "$(basename "$d")" = "$name" ]
-      ;;
+  local name="$1" manifest="$2" markers="$3" d m rc=0 rrc=0
+  local -n _cs_rm="$4" _cs_nm="$5" _cs_nb="$6" _cs_ur="$7" _cs_ip="$8"
+  local -a roots=()
+  _clean_roots "$name" "$markers" "$manifest" roots _cs_ip || rrc=$?
+  case "$rrc" in
+    0) ;;
+    3) rc=3 ;;
+    *) return 1 ;;
   esac
+  for d in "${roots[@]}"; do
+    # A candidate that vanished since the walk -- another session's clean, or
+    # cargo's -- is not there to classify, and is no partial scan (the critic's
+    # fourth pass), as the walk itself ignores an entry that vanishes.
+    [ -e "$d" ] || continue
+    m=0
+    _clean_has_markers "$d" "$name" "$markers" || m=$?
+    case "$m" in
+      0)
+        if [ -f "${d%/*}/$manifest" ]; then
+          _cs_rm+=("$d")
+        else
+          _cs_nm+=("$d")
+        fi
+        ;;
+      3)
+        # Not read, so neither a tree nor not one: listed as unread, and the
+        # scan is partial.
+        _cs_ur+=("$d")
+        rc=3
+        ;;
+      *) _cs_nb+=("$d") ;;
+    esac
+  done
+  return "$rc"
 }
 
 # ---------------------------------------------------------------------------
 # Peer discipline, marking, confirmation, removal
 # ---------------------------------------------------------------------------
 
-# _clean_peer_dirs <dir> -- per-node subdirectories inside a build tree.
-#
-# Several sessions share one working tree and therefore one target/. Where they
-# use CARGO_TARGET_DIR=target/<node> they each own a subdirectory, and one
-# node's cache was 33 GB in Intent on the day this was specified. Removing the
-# parent takes all of them, so they are NAMED before the prompt: whoever is
-# mid-build deserves to see their own moniker in the list.
-_clean_peer_dirs() {
-  local dir="$1" sub base
-  for sub in "$dir"/*/; do
-    [ -d "$sub" ] || continue
-    base="$(basename "$sub")"
-    case "$base" in
-      debug | release | package | doc | tmp | CACHEDIR.TAG) continue ;;
-      *[!a-z0-9-]*) continue ;;
-    esac
-    printf '%s\n' "$base"
-  done
-  return 0
-}
-
-# _clean_mark <dir> -- place the Spotlight marker if it is missing.
+# _clean_mark <dir> <dry> -- place the Spotlight marker if it is missing, or
+# with <dry> 1, say that a real run would.
 #
 # On the same walk, deliberately. A separate marking pass is a second
 # enumeration that can disagree with the first.
+#
+# A DRY RUN WRITES NOTHING HERE (issue 0131). It placed the marker like a real
+# run, so the preview that promises to change nothing created a file in every
+# skipped tree. The decision lives here, beside the write, and <dry> is
+# REQUIRED, so no caller -- a new one written the old way included -- can reach
+# the write without passing through it.
+#
+# A MARKER THAT CANNOT BE WRITTEN IS SAID. The write was `2>/dev/null ||
+# return 0`, so a skipped tree on a read-only mount, or owned by someone else,
+# was left for Spotlight to index while the dry run had said it would be
+# marked. The shell's error names the file; the line after it says what was
+# not done. It is not a failure of the clean, which removed nothing wrongly.
 _clean_mark() {
-  local dir="$1"
+  local dir="$1" dry="${2:?_clean_mark: <dry> is required -- a devbin defect}"
   [ -d "$dir" ] || return 0
   [ -e "$dir/$_CLEAN_NEVER_INDEX" ] && return 0
-  : >"$dir/$_CLEAN_NEVER_INDEX" 2>/dev/null || return 0
-  printf '    marked   %s/%s\n' "$dir" "$_CLEAN_NEVER_INDEX"
+  if [ "$dry" = 1 ]; then
+    # THE PREVIEW SAYS WHAT THE REAL RUN WILL DO, not what it would try (the
+    # critic's review of 0131): a tree the real run cannot mark is said here.
+    if [ -w "$dir" ]; then
+      printf '    would mark %s/%s\n' "$(_clean_shown "$dir")" "$_CLEAN_NEVER_INDEX"
+    else
+      printf '    could not mark %s -- it is not writable, so a real run will not either\n' "$(_clean_shown "$dir")"
+    fi
+    return 0
+  fi
+  if ! : >"$dir/$_CLEAN_NEVER_INDEX"; then
+    warn "could not mark $(_clean_shown "$dir") -- Spotlight may go on indexing it"
+    return 0
+  fi
+  printf '    marked   %s/%s\n' "$(_clean_shown "$dir")" "$_CLEAN_NEVER_INDEX"
   return 0
 }
 
@@ -391,14 +553,70 @@ _clean_confirm() {
   esac
 }
 
-# _clean_run <label> <name> <manifest> [args...] -- the whole body of one arm.
+# _clean_partial <partial> -- when <partial> is 1, say that the scan could not
+# read everything. Prints nothing otherwise, and always returns 0: the caller
+# returns <partial> itself, so a partial run exits 1.
 #
-# One body for all three languages: they differ only in the directory name and
-# the manifest that proves rebuildability, and writing this three times is the
-# duplication this project exists to remove.
+# IT SAYS NOTHING OF WHAT HAPPENS NEXT, only that the run exits 1. It said "what
+# was found is handled as asked", which printed directly above a refusal said
+# the opposite of the line under it (the critic's third review of 0131), and a
+# `refusing` mode kept out of three of the refusals still reached the fourth,
+# the no-tty one (its fourth). A line true of every outcome has no mode to
+# forget.
+#
+# A PARTIAL CLEAN IS NOT A CLEAN (issue 0131, vc's ruling). What the scan found
+# is still acted on as asked, since removing what it saw is the safe direction,
+# but a zero would let `clean && build` build on trees nobody looked at: 0056's
+# rule, that a scan which could not read everything exits non-zero. find's and
+# grep's own errors, above, name each path. install and upgrade refuse outright
+# over a partial vendored list (issue 0127), because vendoring or retiring from
+# half a list is not safe; this acts first, because removing half is.
+_clean_partial() {
+  [ "$1" = 1 ] || return 0
+  warn "THE SCAN WAS PARTIAL: something under $(_clean_shown "$PROJECT_ROOT") could not be read (the errors above name it), so a build tree beneath it may not have been seen."
+  warn "  Make that path readable, or move it out of the project, and run again. This run exits 1, whatever it does with what it found."
+  return 0
+}
+
+# _clean_verdict <nblocked> <force_blocked> <force> -- what a real run does with
+# the trees it would remove, as one word: refuse-path, ask or remove. Pure.
+#
+# ONE DECISION, READ BY BOTH RUNS (the critic's fourth pass on 0131). "A real run
+# would refuse over PATH" was tested at three sites -- the blocked branch, the
+# choice of partial note, and the dry run's last line -- and fullcycle's own
+# header warns against exactly that shape: one predicate in two places, failing
+# in opposite directions. A partial scan under --refuse-partial is decided at
+# the scan, before anything is listed, and never reaches here.
+_clean_verdict() {
+  if [ "$1" -gt 0 ] && [ "$2" = 0 ]; then
+    printf 'refuse-path\n'
+  elif [ "$3" = 0 ]; then
+    printf 'ask\n'
+  else
+    printf 'remove\n'
+  fi
+}
+
+# _clean_run <label> <name> <manifest> <markers> [args...] -- the whole body of
+# one arm.
+#
+# One body for all three languages. They differ in the directory name, the
+# manifest that proves rebuildability, and whether the toolchain marks its own
+# trees: <markers> is `cargo` for the one that does, whose markers are searched
+# for and whose release/ note is printed, and `none` for the two that do not.
+# Each arm says which, once, where the body used to ask three times whether its
+# directory was named `target` (the critic's review of 0131). Writing the body
+# three times is the duplication this project exists to remove.
 _clean_run() {
-  local label="$1" name="$2" manifest="$3"
-  shift 3
+  local label="$1" name="$2" manifest="$3" markers="$4"
+  # A POLICY THAT IS NOT ONE IS A DEVBIN DEFECT, said before `shift 4` takes the
+  # user's first flag for it: an arm written the old way, with three words, had
+  # its --force read as the policy and run (the critic's review of 0131).
+  case "$markers" in
+    cargo | none) ;;
+    *) die "clean $label: _clean_run's <markers> must be cargo or none, not '$markers' -- a devbin defect" ;;
+  esac
+  shift 4
 
   # TWO CONSENTS, TWO FLAGS (issue 0047, hv's ruling: option 3, the split).
   #
@@ -421,13 +639,14 @@ _clean_run() {
   #
   # The spelling follows `fullcycle --dry-run`, which is in this tree already.
   # A second word for one idea in one runtime is how a reader learns to guess.
-  local force=0 force_blocked=0 dry=0 arg
+  local force=0 force_blocked=0 dry=0 refuse_partial=0 arg
   for arg in "$@"; do
     case "$arg" in
       --dry-run) dry=1 ;;
       --force) force=1 ; force_blocked=1 ;;
       --force-blocked) force_blocked=1 ;;
-      *) die "clean $label: unknown argument '$arg' (only --dry-run, --force and --force-blocked are accepted)" ;;
+      --refuse-partial) refuse_partial=1 ;;
+      *) die "clean $label: unknown argument '$arg' (only --dry-run, --force, --force-blocked and --refuse-partial are accepted)" ;;
     esac
   done
 
@@ -437,19 +656,48 @@ _clean_run() {
   # a refusal raised inside the scan itself cannot stop the run.
   _clean_validate_path
 
-  # ONE SCAN, THREE OUTCOMES, ALL THREE PRINTED. The rejected sets are the
+  # ONE SCAN, FIVE OUTCOMES, ALL OF THEM PRINTED. The rejected sets are the
   # denominator: a skipped tree that prints nothing cannot be told from a tree
   # that was never there, and the caller reads the silence as coverage.
-  local -a dirs=() nomanifest=() notbuild=()
-  local d status
-  while IFS=$'\t' read -r status d; do
-    [ -n "$d" ] || continue
-    case "$status" in
-      removable) dirs+=("$d") ;;
-      no-manifest) nomanifest+=("$d") ;;
-      not-build) notbuild+=("$d") ;;
-    esac
-  done < <(_clean_scan "$name" "$manifest")
+  #
+  # IN THIS SHELL, INTO ARRAYS, WITH ITS STATUS (issues 0131 and 0141). Read
+  # through a process substitution, a scan that could not read everything was
+  # indistinguishable from one that read it all; carried as TAB-joined text, a
+  # name ending in a TAB was listed, and would have been removed, as another
+  # directory.
+  #
+  # 3 IS A PARTIAL SCAN AND ANYTHING ELSE IS A DEFECT (the critic's review of
+  # 0131), and a defect stops the run before it acts on any of the scan.
+  local -a dirs=() nomanifest=() notbuild=() unread=() inplace=()
+  local d scan_rc=0 partial=0
+  _clean_scan "$name" "$manifest" "$markers" dirs nomanifest notbuild unread inplace || scan_rc=$?
+  case "$scan_rc" in
+    0) ;;
+    3) partial=1 ;;
+    *) die "clean $label: the scan failed (status $scan_rc) -- a devbin defect; nothing was removed" ;;
+  esac
+
+  # --refuse-partial: A PARTIAL SCAN IS REFUSED BEFORE ANYTHING IS DONE, the
+  # marks included (the critic's review of 0131). fullcycle passes it. Its clean
+  # phase used to read a partial clean's exit 1 as a failed clean and stop before
+  # the rebuild, having removed the trees -- a PATH binary resolving into one
+  # went dark, where the clean before 0131 exited 0 and the cycle rebuilt. So the
+  # cycle's clean refuses a partial scan outright, as issue 0127 has install and
+  # upgrade do.
+  #
+  # A DRY RUN SAYS SO HERE, AT ONCE, AND STOPS, as the real run does (the
+  # critic's third review of 0131). It went on to print the marks it would place,
+  # and that what was found is handled as asked, and only then said that a real
+  # run would refuse: one decision, made in one place, for both runs.
+  if [ "$partial" = 1 ] && [ "$refuse_partial" = 1 ]; then
+    _clean_partial 1
+    if [ "$dry" = 1 ]; then
+      printf '  --dry-run: nothing was removed or marked.\n'
+      printf '  A real run would REFUSE: the scan is partial, and --refuse-partial was given.\n'
+      return 1
+    fi
+    die "refusing, as --refuse-partial asks: the scan is partial, and nothing was removed or marked"
+  fi
 
   # BUILT HERE, NOTHING BESIDE IT TO REBUILD FROM. Never removed -- a tree whose
   # manifest is gone is not a cache, it may be the only copy. Reported with its
@@ -458,30 +706,64 @@ _clean_run() {
   if [ "${#nomanifest[@]}" -gt 0 ]; then
     warn "${#nomanifest[@]} build tree(s) with NO $manifest beside them -- SKIPPED, not removed:"
     for d in "${nomanifest[@]}"; do
-      printf '    skipped  %-8s %s (no sibling %s)\n' "$(_clean_size "$d")" "$d" "$manifest"
-      _clean_mark "$d"
+      printf '    skipped  %-8s %s (no sibling %s)\n' "$(_clean_size "$d")" "$(_clean_shown "$d")" "$manifest"
+      _clean_mark "$d" "$dry"
     done
     printf '    A build tree whose manifest is gone cannot be regenerated, and a\n'
     printf '    redirected build dir has no manifest beside it either. Look before\n'
     printf '    removing these by hand.\n\n'
   fi
 
+  # A CRATE HOLDING A BUILD'S MARKERS IN ITSELF (issue 0141): built with
+  # `--target-dir .` or `CARGO_TARGET_DIR=.`, or the project root. It is the
+  # crate, sources and all, so it is never removed or marked; the trees beneath
+  # it are still scanned (_clean_roots). No size: it would be the whole crate's.
+  if [ "${#inplace[@]}" -gt 0 ]; then
+    local inoun=directories why
+    [ "${#inplace[@]}" -eq 1 ] && inoun=directory
+    warn "${#inplace[@]} $inoun holding a build's markers in itself -- built in place, not removed:"
+    for d in "${inplace[@]}"; do
+      why="holds its own $manifest"
+      [ "$d" != "${PROJECT_ROOT%/}" ] || why="the project root"
+      printf '    in place %s (%s)\n' "$(_clean_shown "$d")" "$why"
+    done
+    printf '    A build that wrote into the directory it builds mixed its output with\n'
+    printf '    the sources, so there is no tree to remove. Remove that output by hand.\n\n'
+  fi
+
   # NAMED LIKE A BUILD TREE, CARRYING NO BUILD OUTPUT. Xcode's PIF caches under
   # *.noindex are the measured case. Reported so the rejection is visible rather
   # than being a silent name test.
   if [ "${#notbuild[@]}" -gt 0 ]; then
-    printf '    %s director(y|ies) named like a build tree with no build markers -- not touched:\n' "${#notbuild[@]}"
+    local noun=directories
+    [ "${#notbuild[@]}" -eq 1 ] && noun=directory
+    printf '    %s %s named like a build tree with no build markers -- not touched:\n' "${#notbuild[@]}" "$noun"
     for d in "${notbuild[@]}"; do
-      printf '    ignored  %-8s %s\n' "$(_clean_size "$d")" "$d"
+      printf '    ignored  %-8s %s\n' "$(_clean_size "$d")" "$(_clean_shown "$d")"
+    done
+    printf '\n'
+  fi
+
+  # A CANDIDATE THAT COULD NOT BE READ (the critic's third review of 0131): not a
+  # tree, and not one, so listed apart and never touched, and the scan is
+  # partial. _clean_has_markers has named what it could not read.
+  if [ "${#unread[@]}" -gt 0 ]; then
+    local unoun=directories
+    [ "${#unread[@]}" -eq 1 ] && unoun=directory
+    printf '    %s candidate %s could not be read -- not classified, not touched:\n' "${#unread[@]}" "$unoun"
+    for d in "${unread[@]}"; do
+      printf '    unread   %-8s %s\n' "$(_clean_size "$d")" "$(_clean_shown "$d")"
     done
     printf '\n'
   fi
 
   # A DETERMINATE ZERO REPORTS AND PASSES. Nothing to remove is a fact about the
   # project, not a run that went wrong -- the same rule check format follows.
+  # A zero over a partial scan is not determinate, and exits 1.
   if [ "${#dirs[@]}" -eq 0 ]; then
     printf '    no removable %s/ trees (%s alongside a %s)\n' "$name" "$name" "$manifest"
-    return 0
+    _clean_partial "$partial"
+    return "$partial"
   fi
 
   # THE LIVE-PATH REFUSAL, BEFORE ANYTHING IS REMOVED AND BEFORE THE PROMPT.
@@ -489,8 +771,18 @@ _clean_run() {
   local live
   for d in "${dirs[@]}"; do
     live="$(_clean_live_binaries "$d")"
-    [ -n "$live" ] && blocked+=("$d"$'\n'"$live")
+    [ -n "$live" ] && blocked+=("$(_clean_shown "$d")"$'\n'"$live")
   done
+
+  local verdict
+  verdict="$(_clean_verdict "${#blocked[@]}" "$force_blocked" "$force")"
+  # KNOWN BEFORE ANYTHING READS IT (the critic's sixth pass): the PATH
+  # refusal below reads it two ways, and an unknown word printed "a real run
+  # would PROCEED" there before a later reader died.
+  case "$verdict" in
+    refuse-path | ask | remove) ;;
+    *) die "clean $label: an unknown verdict '$verdict' -- a devbin defect; nothing was removed" ;;
+  esac
 
   if [ "${#blocked[@]}" -gt 0 ]; then
     local b
@@ -498,7 +790,7 @@ _clean_run() {
       warn "PATH resolves into ${b%%$'\n'*}:"
       printf '%s\n' "${b#*$'\n'}" | sed 's/^/      /'
     done
-    if [ "$force_blocked" = 0 ]; then
+    if [ "$verdict" = refuse-path ]; then
       # A DRY RUN REPORTS THE REFUSAL RATHER THAN PERFORMING IT. Dying here
       # would make `--dry-run` unable to answer the one question it exists for
       # on exactly the trees where the answer matters most -- and it would exit
@@ -508,6 +800,7 @@ _clean_run() {
         warn "  --force-blocked accepts THAT risk alone and still asks before removing."
         warn "  --force accepts it and skips the asking."
       else
+        _clean_partial "$partial"
         die "refusing: removing these trees would darken the binaries listed above, machine-wide.
        Rebuild and re-point them first, or pass --force to proceed knowing what goes dark.
        --force-blocked accepts THIS risk alone and still asks before removing."
@@ -520,75 +813,99 @@ _clean_run() {
   fi
 
   printf '  %s: %s %s tree(s)\n\n' "$label" "${#dirs[@]}" "$name"
-  local peers peer total_note=""
+  local peer total_note=""
+  local -a peers=()
   for d in "${dirs[@]}"; do
-    printf '    %-8s %s\n' "$(_clean_size "$d")" "$d"
-    peers="$(_clean_peer_dirs "$d")"
-    if [ -n "$peers" ]; then
+    printf '    %-8s %s\n' "$(_clean_size "$d")" "$(_clean_shown "$d")"
+    peers=()
+    _clean_peer_dirs "$d" peers
+    if [ "${#peers[@]}" -gt 0 ]; then
       # NAME THE PEERS AND WHOSE THEY ARE. Removing the parent takes every
       # node's cache with it, and a moniker in a list is what lets someone
       # mid-build recognise their own.
-      while IFS= read -r peer; do
-        [ -n "$peer" ] || continue
-        printf '             per-node: %s/%s (%s)\n' "$d" "$peer" "$(_clean_size "$d/$peer")"
-      done <<<"$peers"
+      for peer in "${peers[@]}"; do
+        printf '             per-node: %s (%s)\n' "$(_clean_shown "$d/$peer")" "$(_clean_size "$d/$peer")"
+      done
       total_note="yes"
     fi
   done
 
   if [ -n "$total_note" ]; then
     printf '\n'
-    warn "THIS TREE IS SHARED. The per-node directories above belong to other sessions;"
-    warn "removing the parent costs each of them a full rebuild. Announce it first."
+    warn "THIS TREE IS SHARED. The per-node directories above are target dirs of their own --"
+    warn "another session's CARGO_TARGET_DIR, or a tool's -- and removing the parent costs"
+    warn "each of them a full rebuild. Announce it first."
   fi
 
-  printf '\n  This takes release/ as well as debug/ -- that is what makes it a release\n'
-  printf '  verb rather than a cache sweep. The next build is cold.\n\n'
+  # CARGO'S ARM ONLY (issue 0131). `_build` and `.build` have no release/, and
+  # the elixir and swift arms printed this about trees that do not have one.
+  if [ "$markers" = cargo ]; then
+    printf '\n  This takes release/ as well as debug/ -- that is what makes it a release\n'
+    printf '  verb rather than a cache sweep. The next build is cold.\n\n'
+  else
+    printf '\n'
+  fi
 
-  # THE PREVIEW STOPS HERE, HAVING PRINTED EVERYTHING AND CHANGED NOTHING, and
-  # it names which of the three states a real run would reach. A dry run that
-  # said only "nothing was removed" would answer the easy half of the question
-  # and leave the asked half -- would this have worked? -- unanswered.
+  # SAID BEFORE ANYTHING IS ASKED OR REMOVED, so the consent is given knowing
+  # the list is partial.
+  _clean_partial "$partial"
+
+  # THE PREVIEW STOPS HERE, HAVING PRINTED EVERYTHING AND CHANGED NOTHING OUTSIDE
+  # tmp/clean/, where the gate keeps every run's log, and it names which of the
+  # three states a real run would reach. A dry run that said only "nothing was
+  # removed" would answer the easy half of the question and leave the asked half
+  # -- would this have worked? -- unanswered. A partial scan under
+  # --refuse-partial never reaches here: it stopped at the scan, above.
   if [ "$dry" = 1 ]; then
     printf '  --dry-run: nothing was removed.\n'
-    if [ "${#blocked[@]}" -gt 0 ] && [ "$force_blocked" = 0 ]; then
-      printf '  A real run would REFUSE: PATH resolves into the tree(s) above.\n'
-    elif [ "$force" = 0 ]; then
-      printf '  A real run would ask on the tty before removing %s tree(s), and refuse without one.\n' \
-        "${#dirs[@]}"
-    else
-      printf '  A real run would remove %s tree(s) without asking.\n' "${#dirs[@]}"
-    fi
-    return 0
+    case "$verdict" in
+      refuse-path) printf '  A real run would REFUSE: PATH resolves into the tree(s) above.\n' ;;
+      ask)
+        printf '  A real run would ask on the tty before removing %s tree(s), and refuse without one.\n' \
+          "${#dirs[@]}"
+        ;;
+      remove) printf '  A real run would remove %s tree(s) without asking.\n' "${#dirs[@]}" ;;
+    esac
+    return "$partial"
   fi
 
-  if [ "$force" = 0 ]; then
-    _clean_confirm "${#dirs[@]}" "$name tree(s)" || return 0
-  else
-    printf '  --force: no confirmation asked.\n'
-  fi
+  # ONLY ask AND remove GO ON TO THE REMOVAL (the critic's fifth pass). This
+  # keyed on --force; keyed on the verdict with an else, any word but `ask`
+  # would remove without asking, so the PATH refusal's die would have had
+  # nothing behind it. Any other verdict here, the refusal included, is a
+  # devbin defect and removes nothing -- and so is a reader missing an arm,
+  # which without this default fell through to the removal (mutant M9).
+  case "$verdict" in
+    ask) _clean_confirm "${#dirs[@]}" "$name tree(s)" || return "$partial" ;;
+    remove) printf '  --force: no confirmation asked.\n' ;;
+    *) die "clean $label: verdict '$verdict' reached the removal -- a devbin defect; nothing was removed" ;;
+  esac
 
   local removed=0
   for d in "${dirs[@]}"; do
-    rm -rf "$d" || die "could not remove $d"
-    printf '    removed  %s\n' "$d"
+    rm -rf "$d" || die "could not remove $(_clean_shown "$d")"
+    printf '    removed  %s\n' "$(_clean_shown "$d")"
     removed=$((removed + 1))
   done
   printf '\n  %s %s tree(s) removed.\n' "$removed" "$name"
-  return 0
+  [ "$partial" = 0 ] || printf '  The scan was partial (above), so this run exits 1.\n'
+  return "$partial"
 }
 
 # ---------------------------------------------------------------------------
 # The arms
 # ---------------------------------------------------------------------------
 
-builtin_clean_rust() { _clean_run rust target Cargo.toml "$@"; }
+builtin_clean_rust() { _clean_run rust target Cargo.toml cargo "$@"; }
 
-# `deps/` IS LEFT ALONE, DELIBERATELY. It is a download, not a build product:
-# removing it costs a network fetch rather than a recompile, and a fetch is the
-# one part of a rebuild that can fail while offline.
-builtin_clean_elixir() { _clean_run elixir _build mix.exs "$@"; }
+# THE SOURCES UNDER `deps/` ARE LEFT ALONE, DELIBERATELY. They are a download,
+# not a build product: removing them costs a network fetch rather than a
+# recompile, and a fetch is the one part of a rebuild that can fail while
+# offline. A dependency's own `_build`, beside its mix.exs under deps/, IS
+# removed, as a build product like any other; this comment and the catalogue
+# said "deps/ is left alone" until issue 0131.
+builtin_clean_elixir() { _clean_run elixir _build mix.exs none "$@"; }
 
-builtin_clean_swift() { _clean_run swift .build Package.swift "$@"; }
+builtin_clean_swift() { _clean_run swift .build Package.swift none "$@"; }
 
 run_builtin_gate clean "$@"

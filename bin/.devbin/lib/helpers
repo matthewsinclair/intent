@@ -395,6 +395,53 @@ run_words() {
 # written out wherever it happens to be needed (issue 0082).
 warn_no_words() { warn "$1 holds no words, so there is no command to run"; }
 
+# link_step <link> -- print the path <link> names, one step: its content, and a
+# relative content joined to the link's directory as written. Returns 1 when
+# the content cannot be read back exactly, so a walk of links never takes a
+# step to a name the link does not hold; find's own error, if it has one, is
+# left on stderr. THE ONE STEP OF EVERY WALK OF A CHAIN OF LINKS: follow_links'
+# and fullcycle's _fullcycle_tree_gone (critic-shell on 0139, its fifth pass: a
+# second walk, without this, split a content holding a newline and looked up
+# the wrong name). Its two refusals before the size check, a readlink that
+# fails and an empty content, are each held by the other and by the check; a
+# caller reaches it only through a name that is a link (-L), so neither is
+# reachable alone, and neither has an arm of its own.
+#
+# - PLAIN `readlink`, NO FLAGS. `readlink -f` and `realpath` also resolve every
+#   directory on the way, and they are not the same program on BSD and GNU.
+#   Plain readlink printed the same bytes on both for an absolute target, a
+#   relative one, `..`, a space, a leading dash, a dangling link and a loop
+#   (measured 2026-09-17: macOS's readlink and GNU coreutils 9.12).
+# - A CONTENT IT CANNOT READ BACK EXACTLY IS REFUSED: one ending in a newline.
+#   The command substitution strips every trailing newline, whichever readlink
+#   printed it -- BSD's prints one fewer than GNU's (measured 2026-09-25) -- and
+#   the length left, in bytes, is checked against the link's own size, which
+#   find -size reads without following the link. A sentinel that kept the
+#   newlines GNU's readlink prints let such a content through whole, and every
+#   caller's own command substitution then stripped it: a tree read as gone at
+#   rc 0 (critic-shell on 0139, its sixth pass). A newline inside a content is
+#   read exactly, and is kept.
+# - A PATH NOT OPENING WITH / IS GIVEN TO find AS ./path, so find never reads a
+#   link named -x, ! or ( as an option or an expression.
+# - A RELATIVE CONTENT IS JOINED TO ITS LINK'S DIRECTORY AS WRITTEN, and never
+#   tidied: when `a` is itself a link, the kernel reads the `..` in `a/../t`
+#   after following `a`, so a tidied `t` can name a different file.
+link_step() {
+  local p="$1" t n s
+  t="$(readlink -- "$p")" || return 1
+  [ -n "$t" ] || return 1
+  n="$(LC_ALL=C && printf '%s' "${#t}")"
+  case "$p" in /*) ;; *) p="./$p" ;; esac
+  # find-walk: -prune at the start point -- it asks of one link and enters nothing
+  s="$(find "$p" -prune -size "${n}c" -print)" || return 1
+  [ -n "$s" ] || return 1
+  case "$t" in
+    /*) ;;
+    *) case "$1" in */*) t="${1%/*}/$t" ;; esac ;;
+  esac
+  printf '%s\n' "$t"
+}
+
 # follow_links <path> -- print the path of the file <path> names: <path> itself
 # when it is not a symbolic link, otherwise the end of its chain of links.
 # Refuses, naming <path>, a link that leads to no file and a link it cannot
@@ -403,24 +450,17 @@ warn_no_words() { warn "$1 holds no words, so there is no command to run"; }
 # THE ONE WALK OF A CHAIN OF LINKS: stage_beside's, so that every writer that
 # replaces a file writes through a link to it (issue 0084), and clean's real
 # path. bin/devbin keeps a walk of its own, because it runs before this file can
-# be found and must parse under bash 3.2.
+# be found and must parse under bash 3.2. fullcycle's _fullcycle_tree_gone walks
+# a path that may not resolve, a name at a time, to say whether it is gone, and
+# its _fullcycle_link_in_tree follows a dangling link as far as its links go,
+# to place it; each takes each step of a link through link_step, as this does.
 #
-# - PLAIN `readlink`, NO FLAGS. `readlink -f` and `realpath` also resolve every
-#   directory on the way, and they are not the same program on BSD and GNU.
-#   Plain readlink printed the same bytes on both for an absolute target, a
-#   relative one, `..`, a space, a leading dash, a dangling link and a loop
-#   (measured 2026-09-17: macOS's readlink and GNU coreutils 9.12).
-# - A RELATIVE TARGET IS JOINED TO ITS LINK'S DIRECTORY AS WRITTEN, and never
-#   tidied: when `a` is itself a link, the kernel reads the `..` in `a/../t`
-#   after following `a`, so a tidied `t` can name a different file.
 # - A LINK THAT LEADS TO NO FILE IS REFUSED, dangling or in a loop alike. Writing
 #   through it would create a file nobody put there, and replacing it would
 #   throw the link away.
-# - ONE TARGET CANNOT BE READ BACK EXACTLY: a name ending in a newline, which
-#   BSD's readlink prints with one newline fewer than GNU's, and whose remaining
-#   newlines a command substitution strips. So the end of the walk must be the
-#   file the kernel reaches (`-ef`), and the walk is bounded, since a misread
-#   name can lead back into the chain. A correct walk never meets the bound,
+# - EACH STEP IS link_step's, which refuses a link whose content it cannot read
+#   back exactly. The end of the walk must still be the file the kernel reaches
+#   (`-ef`), and the walk is bounded. A correct walk never meets the bound,
 #   because the link was reachable: macOS follows 32 links (measured) and Linux
 #   documents 40.
 follow_links() {
@@ -431,14 +471,10 @@ follow_links() {
   fi
   while [ -L "$p" ]; do
     n=$((n + 1))
-    if [ "$n" -gt 40 ] || ! t="$(readlink -- "$p")"; then
+    if [ "$n" -gt 40 ] || ! t="$(link_step "$p")"; then
       warn "cannot tell which file $path is a symbolic link to"
       return 1
     fi
-    case "$t" in
-      /*) ;;
-      *) case "$p" in */*) t="${p%/*}/$t" ;; esac ;;
-    esac
     p="$t"
   done
   if [ "$n" -gt 0 ] && ! [ "$path" -ef "$p" ]; then
@@ -446,6 +482,85 @@ follow_links() {
     return 1
   fi
   printf '%s\n' "$p"
+}
+
+# real_path <path> <out-var> -- <path>, absolute and with symlinks resolved,
+# into the variable <out-var>. A relative <path> is read from the current
+# directory, which each caller makes the project root.
+#
+# ONE HOME FOR WHERE A PATH RESOLVES (issue 0134): clean's scan for PATH
+# binaries in a tree it is about to remove, and fullcycle's PATH watch, which
+# compared a link's text with the project's path and so never watched a
+# relative link, or one spelled through /tmp while the root is /private/tmp.
+# It was clean's own until then.
+#
+# The chain of links is walked by follow_links, the one walk (issue 0084), which
+# this function used to carry a copy of; what it adds is the directory's
+# physical spelling. A link follow_links cannot follow exactly, one
+# whose target's name ends in a newline, it names on stderr, and the path is then
+# compared as given.
+#
+# THE ANSWER IS SET, NOT PRINTED, AND pwd -P's IS READ PAST A SENTINEL (issue
+# 0141, the critic's fourth pass). Read back through $(...), a path whose name
+# ended in a newline lost it: a tree named out<LF> was compared as out/, its
+# neighbour, so its own PATH links went unlisted and unrefused, and a PATH entry
+# in out/bin was blamed on it.
+real_path() {
+  local p="$1" f d fd
+  local -n _crp_out="$2"
+  if [ ! -e "$p" ]; then
+    _crp_out="$p"
+    return 0
+  fi
+  if [ -d "$p" ]; then
+    physical_dir "$p" _crp_out || _crp_out="$p"
+    return 0
+  fi
+  f="$(follow_links "$p")" || f="$p"
+  case "$f" in
+    */*) fd="${f%/*}" ;;
+    *) fd=. ;;
+  esac
+  [ -n "$fd" ] || fd=/
+  physical_dir "$fd" d || d="$fd"
+  _crp_out="$d/${f##*/}"
+  return 0
+}
+
+# physical_dir <dir> <out-var> -- the physical path of <dir>, or 1 when it
+# cannot be entered.
+#
+# PHYSICAL, AND FROM WHERE THE PATH SAYS (the critic's fifth pass). bash's plain
+# cd is logical: it tidies a/../b as text, where the kernel reads the `..` only
+# after following a -- follow_links keeps a/../t untidied for exactly that
+# reason, and a logical cd undid it, so a PATH link through lnk/.. into the
+# tree went unlisted beside a directory of the tidied name. And cd reads a bare
+# relative operand through an exported CDPATH before the current directory,
+# and a lone `-` as the directory it last left, printing either: a relative
+# PATH entry was read as a directory it does not name. So a relative path is
+# spelled from ./, and cd reads it from the current directory, which each
+# caller makes the project root, as a lookup made there would, and prints
+# nothing. pwd -P's answer is read past a sentinel, so a name ending in a
+# newline keeps it (issue 0141).
+#
+# AND A LEADING // IS SPELLED /: pwd -P keeps it, as POSIX lets it, and it
+# names / on the systems devbin runs on. Trees and PATH entries are compared as
+# prefixes, so a root entered as //... missed every link into its trees, and a
+# PATH entry spelled from // was never the tree's (the critic's sixth pass).
+#
+# Its locals carry its own prefix, since <out-var> is a caller's name reached
+# through bash's dynamic scope, and a local of the same name would take it.
+physical_dir() {
+  local _cpd_dir="$1" _cpd_d
+  local -n _cpd_res="$2"
+  case "$_cpd_dir" in
+    /*) ;;
+    *) _cpd_dir="./$_cpd_dir" ;;
+  esac
+  _cpd_d="$(cd -P -- "$_cpd_dir" 2>/dev/null && pwd -P && printf .)" || return 1
+  _cpd_d="${_cpd_d%$'\n.'}"
+  case "$_cpd_d" in //*) _cpd_d="${_cpd_d#/}" ;; esac
+  _cpd_res="$_cpd_d"
 }
 
 # stage_beside <file> <command> [args...] -- write what <command> prints into a
@@ -728,7 +843,583 @@ sha256_stdin() {
   sha256_run | cut -d' ' -f1
 }
 
-# cargo_target_dirs -- every cargo build tree under this project, discovered.
+# ---------------------------------------------------------------------------
+# What makes a directory a cargo build tree, as clean classifies one (moved
+# here unchanged from lib/cmd/clean, issue 0148: fullcycle asks the same
+# question of a tree that kept its release artefacts, and a second answer to
+# it drifted -- critic-shell on 0148 v2f). The names keep clean's prefix,
+# since the bodies moved byte for byte, and so do their comments: "this
+# command" in them is clean, and the "no literal 2" is clean's rule for its
+# handler's statuses, which the scan in contract.bats no longer reaches here
+# (clean.bats' own arms still go red on it).
+# ---------------------------------------------------------------------------
+
+# _clean_shown <path> -- a path as this command prints it: as it is, or quoted
+# for the shell when it holds any byte that is not printable ASCII (issue 0141).
+# A newline in a listed name printed as two lines, the second looking like a
+# tree of its own, in the very list a person reads before answering y; and a
+# format character such as U+202E, which [[:cntrl:]] does not match, can make
+# one name display as another (the critic's fourth pass). The class is read in
+# the C locale, so every byte of a multibyte character counts.
+_clean_shown() {
+  local LC_ALL=C
+  case "$1" in
+    *[![:print:]]*) printf '%q' "$1" ;;
+    *) printf '%s' "$1" ;;
+  esac
+}
+
+# _clean_marked_without_read <dir> -- does <dir> carry a cargo marker that needs
+# no read: a .rustc_info.json that is a regular file and no link, as find's
+# -type f takes it, or a .fingerprint directory under debug/ or release/?
+#
+# ONE HOME FOR THE QUESTION (the critic's fourth pass on 0131). The walk and the
+# classification each decided it, and disagreed: the walk skipped a tag only
+# beside .rustc_info.json and classification beside a .fingerprint too, so a
+# tree with an unreadable tag and a .fingerprint was a tree when found by name
+# and PARTIAL when found by its tag; and the walk's [ -f ] followed a link that
+# find's -type f does not, so a tag beside a symlinked .rustc_info.json was
+# skipped for a candidate no other line would add.
+_clean_marked_without_read() {
+  { [ -f "$1/.rustc_info.json" ] && [ ! -L "$1/.rustc_info.json" ]; } ||
+    [ -d "$1/debug/.fingerprint" ] || [ -d "$1/release/.fingerprint" ]
+}
+
+# _clean_cargo_tag <file> -- is this CACHEDIR.TAG cargo's? 0 yes; 1 no, or no
+# such file; 3 when grep could not read it, which says neither, so the caller
+# counts the scan as partial and grep's own error names the file (issue 0131).
+# 3 and not grep's own 2: 3 is this file's code for a read it could not make,
+# and 2 is the dispatcher's.
+#
+# Cargo's second line names it, and the WHOLE LINE is matched: "# This file is
+# a cache directory tag created by cargo." Read off cargo 1.98.1's own output,
+# and off the target trees of two estates, on 2026-09-23 -- pytest's says
+# "created by pytest" on the same line. So a line carrying cargo's sentence
+# inside other text is not cargo's, and nor is one naming another tool.
+#
+# A SYMLINK IS NO TAG, as find's -type f already says in _clean_roots: were it
+# followed here, a tag the scan never read would be read, and one that could not
+# be would make no partial scan (the critic's review of 0131).
+_clean_cargo_tag() {
+  local rc=0
+  [ -f "$1" ] && [ ! -L "$1" ] || return 1
+  grep -qxF -- '# This file is a cache directory tag created by cargo.' "$1" || rc=$?
+  if [ "$rc" -gt 1 ]; then
+    # One that vanished between the test and the read is no tag, not an
+    # unreadable one (the critic's fourth pass).
+    [ -e "$1" ] || return 1
+    return 3
+  fi
+  return "$rc"
+}
+
+# _clean_has_markers <dir> <name> <markers> -- does this directory carry build
+# output? 0 yes; 1 no; 3 when it could not be read -- the directory itself, or
+# the one tag that could have said yes -- which says neither. 3 and not 2: 2 is
+# the dispatcher's code, and a handler under lib/cmd answers no literal 2.
+#
+# For cargo the markers are written by the tool itself and are reliable in a
+# redirected target dir too. For _build and .build the toolchain writes no
+# comparable tag, so the directory NAME carries that half and the manifest test
+# carries the rest.
+#
+# A TREE FOUND BY NAME IS READ HERE AND NOWHERE ELSE, since the walk prunes at it
+# (_clean_roots), so a directory or a tag that cannot be read is this function's
+# to report: 3, and the scan counts as partial. The four marker tests are file
+# tests, false on "permission denied", so a mode-000 target/ holding every marker
+# cargo writes was listed as unmarked at exit 0 with no word at all (the
+# critic's third review of 0131).
+#
+# THE MARKERS THAT NEED NO READ COME FIRST. Beside .rustc_info.json or a
+# .fingerprint directory, a tag grep cannot read says nothing more, and reading
+# it anyway printed grep's error over a passing result.
+#
+# A TREE HOLDING ONLY PER-NODE TARGET DIRS IS A BUILD TREE (the critic's third
+# review of 0131, with cargo 1.98.1). After `CARGO_TARGET_DIR=target/cc cargo
+# build`, target/ holds cc/ and nothing of cargo's at its own root, so it was
+# listed as unmarked -- on an estate where every session builds that way -- and
+# the trees inside it went unlisted, since the walk does not look inside a tree
+# found by name. Its per-node directories are what mark it (_clean_peer_dirs).
+_clean_has_markers() {
+  local d="$1" name="$2" markers="$3" t=0 sub
+  local -a peers=()
+  # EVERY ARM, NOT CARGO'S ALONE (the critic's fourth pass): a mode-000 _build/
+  # was listed as removable at size ?, and --force then died on it, after
+  # removing whatever sorted before it.
+  if [ ! -r "$d" ] || [ ! -x "$d" ]; then
+    warn "cannot read $(_clean_shown "$d"): it may be a build tree, and it is not classified"
+    return 3
+  fi
+  if [ "$markers" = cargo ]; then
+    _clean_marked_without_read "$d" && return 0
+    _clean_cargo_tag "$d/CACHEDIR.TAG" || t=$?
+    [ "$t" -ne 0 ] || return 0
+    _clean_peer_dirs "$d" peers
+    [ "${#peers[@]}" -eq 0 ] || return 0
+    [ "$t" -ne 3 ] || return 3
+    # NOTHING MARKS IT -- UNLESS A DIRECTORY THAT COULD HOLD A MARKER COULD NOT
+    # BE SEARCHED (the critic's fourth pass). Each test above is false on
+    # "permission denied", so a target/ whose only marker is debug/.fingerprint,
+    # with debug/ unsearchable, read as unmarked at exit 0: that is "could not
+    # tell", said as such. SEARCH permission, not read: every marker test inside
+    # a directory needs only that (the critic's fifth pass), so a search-only
+    # directory is looked in, and one that cannot be searched is not.
+    for sub in "$d"/*/; do
+      [ -d "$sub" ] || continue
+      if [ ! -x "$sub" ]; then
+        warn "cannot search $(_clean_shown "${sub%/}"): a marker in it could not be looked for, so $(_clean_shown "$d") is not classified"
+        return 3
+      fi
+    done
+    return 1
+  fi
+  [ "${d##*/}" = "$name" ]
+}
+
+# _clean_peer_dirs <dir> -- per-node subdirectories inside a build tree.
+#
+# Several sessions share one working tree and therefore one target/. Where they
+# use CARGO_TARGET_DIR=target/<node> they each own a subdirectory, and one
+# node's cache was 33 GB in Intent on the day this was specified. Removing the
+# parent takes all of them, so they are NAMED before the prompt: whoever is
+# mid-build deserves to see their own moniker in the list.
+#
+# A PER-NODE DIRECTORY IS A CARGO TARGET DIR OF ITS OWN, AND .rustc_info.json IS
+# WHAT SAYS SO (issue 0131). This listed every lower-case subdirectory, so the
+# SHARED warning fired on Mix's _build/dev, SwiftPM's .build/<triple> and
+# cargo's own target/<triple> -- on nearly every project, which teaches a reader
+# to skip the one case it exists for. Measured with cargo 1.98.1 on 2026-09-23:
+# a nested CARGO_TARGET_DIR carries CACHEDIR.TAG, .rustc_info.json and
+# debug/.fingerprint; a --target triple directory carries the first and last
+# and NOT .rustc_info.json, which cargo writes at a target dir's root only. So
+# the test is that file. Mix's and SwiftPM's layouts never carry it, so the
+# same test answers for their arms without naming them. A nested target dir
+# need not be a session's: any tool that points CARGO_TARGET_DIR inside target/
+# makes one, and removing the parent costs it a rebuild all the same.
+#
+# THE LIMIT, MEASURED THE SAME DAY: a nested target dir built with
+# CARGO_CACHE_RUSTC_INFO=0 has no .rustc_info.json, and its root then reads
+# exactly as a triple directory's does, CACHEDIR.TAG and debug/ and nothing
+# else. It is not named here and the SHARED warning does not fire for it;
+# nothing on disk tells the two apart.
+#
+# The names go into the array <out-var>, whole (issue 0141): printed one per
+# line and read back, a name holding a newline was two names.
+_clean_peer_dirs() {
+  local dir="$1" sub
+  local -n _cpd_out="$2"
+  for sub in "$dir"/*/; do
+    [ -f "$sub.rustc_info.json" ] || continue
+    sub="${sub%/}"
+    _cpd_out+=("${sub##*/}")
+  done
+  return 0
+}
+
+# cargo_target_dir_why <value> -- why the artefact check cannot examine a
+# CARGO_TARGET_DIR of <value>, as one line; nothing when it can (issue 0148).
+# cargo reads a relative value from the directory it runs in, which a caller
+# cannot know, `./target` included; a value holding a newline is read a line at
+# a time, as two paths; cargo refuses an empty one; and `/`, or any run of
+# slashes alone, names no tree the check can read (critic-shell on 0148 v2).
+# Only an absolute value below the root can be examined. check targetdir
+# refuses an empty value in these words too. Pure: fullcycle refuses on its
+# answer before anything is removed, and asks cargo_tree_outside_why next.
+# It judges a value, whichever carrier it came from: fullcycle asks it of
+# CARGO_TARGET_DIR, of CARGO_BUILD_TARGET_DIR, and of each tree cargo names
+# for a config (issue 0150).
+cargo_target_dir_why() {
+  case "$1" in
+    '') printf '%s\n' "is empty, and cargo refuses an empty target directory" ;;
+    *$'\n'*) printf '%s\n' "holds a newline, and the artefact check reads build trees a line at a time" ;;
+    /*[!/]*) ;;
+    /*) printf '%s\n' "is the filesystem root, which the artefact check cannot examine as a build tree" ;;
+    *) printf '%s\n' "is relative, and cargo reads it from the directory it runs in, which fullcycle cannot know" ;;
+  esac
+}
+
+# cargo_tree_outside_why <tree> <root> -- why a build tree at <tree>, an
+# absolute path cargo_target_dir_why passed, cannot be read as this cycle's:
+# nothing when it lies beneath <root> (issue 0148, vc's ruling). Reads the
+# filesystem and writes nothing.
+#
+# A TREE OUTSIDE THE PROJECT IS NOT REMOVED BY THE CLEAN, which is
+# project-scoped, so the artefact check read the last cycle's release
+# artefacts in it as this cycle's: a debug-only build passed at rc 0, the very
+# signature the check exists for. That is older than 0148 -- cargo_target_dirs
+# has returned CARGO_TARGET_DIR since 0139. Judging artefacts newer than the
+# cycle's start does not replace it: cargo leaves a fresh release binary's
+# mtime as it was (measured, cargo 1.98.1), so a no-op build would read as lost.
+#
+# OUTSIDE IS NEVER SWEPT; INSIDE IS NOT PROMISED. This refuses only what the
+# clean can never remove. Whether it removed a tree inside the project is read
+# after it has run, from the tree itself (_fullcycle_kept_release), since the
+# clean removes a tree only beside a Cargo.toml and outside .git, node_modules
+# and .direnv, and a prediction of that here was a second model of the clean,
+# and wrong (critic-shell on 0148 v2d).
+#
+# PLACED AS IT RESOLVES, by identity. The tree need not exist before the
+# build, so its longest existing ancestor is resolved by physical_dir and the
+# rest appended; a link inside the project to a directory outside it is not
+# followed by the clean's find, so a tree beneath one is outside. Containment
+# is asked with -ef up the resolved ancestor, not by comparing text: /var and
+# /private/var name one directory on macOS, and APFS ignores case, so a value
+# spelled either way was refused though it is the project's. The rest may hold
+# no `.` or `..`, since where those land beneath a directory that does not
+# exist yet cannot be read. <root> itself is no tree the clean removes either.
+cargo_tree_outside_why() {
+  local t="$1" root="$2" pa x shown rc=0
+  # AN ABSOLUTE PATH ONLY: the walk up below strips a component at a time and
+  # never ends on a path with no leading /, so a relative one hung here
+  # (mutant T1 on 0148 v2h, spinning 11 minutes). Every caller refuses a
+  # relative value first; this refuses it too, at once.
+  case "$t" in
+    /*) ;;
+    *)
+      printf -v shown '%q' "$t"
+      printf '%s\n' "cannot be placed: $shown is not an absolute path"
+      return 0
+      ;;
+  esac
+  while [[ "$t" == *//* ]]; do t="${t//\/\//\/}"; done
+  t="${t%/}"
+  cargo_place "$t" pa || rc=$?
+  case "$rc" in
+    2)
+      printf '%s\n' "names . or .. beneath a directory that does not exist yet, so where it lands cannot be known"
+      return 0
+      ;;
+    1)
+      printf -v shown '%q' "$pa"
+      printf '%s\n' "cannot be placed: $shown cannot be entered, so where it resolves cannot be known"
+      return 0
+      ;;
+  esac
+  if [ "$pa" -ef "$root" ]; then
+    printf '%s\n' "is the project root, which the clean does not remove, and the release artefacts left there would read as this cycle's"
+    return 0
+  fi
+  x="$pa"
+  while :; do
+    [ "$x" -ef "$root" ] && return 0
+    _path_parent x || break
+  done
+  if [ "$pa" = "$t" ]; then
+    printf '%s\n' "is outside the project, which the clean does not reach, and the release artefacts left there would read as this cycle's"
+  else
+    printf -v shown '%q' "$pa"
+    printf '%s\n' "resolves to $shown, outside the project, which the clean does not reach, and the release artefacts left there would read as this cycle's"
+  fi
+}
+
+# cargo_place <path> <out-var> -- <path>, absolute, placed as it resolves, into
+# <out-var>: its longest existing ancestor resolved by physical_dir, the rest
+# appended as written (issue 0150; cargo_tree_outside_why's until then). The
+# one statement of where a tree devbin did not make lands: the path need not
+# exist, as a build tree before its build does not. 1 when the ancestor cannot
+# be entered, <out-var> then holding it; 3, at once, when <path> is not
+# absolute; 2 when the rest names . or ..,
+# since where those land beneath a directory that does not exist yet cannot be
+# read. A `..` in the existing part is the kernel's, and is resolved with it,
+# so cargo's `native/cli/../../target` is placed at the project's target.
+cargo_place() {
+  local _cp_t="$1" _cp_a _cp_rest="" _cp_pa
+  local -n _cp_out="$2"
+  # An absolute path only, returning 3 at once for any other: the walk up
+  # below never ends on one with no leading / (mutant T1 on 0148 v2h).
+  case "$_cp_t" in
+    /*) ;;
+    *)
+      _cp_out="$_cp_t"
+      return 3
+      ;;
+  esac
+  _cp_a="$_cp_t"
+  while [ -n "$_cp_a" ] && [ ! -e "$_cp_a" ] && [ ! -L "$_cp_a" ]; do
+    _cp_rest="${_cp_a##*/}${_cp_rest:+/$_cp_rest}"
+    _cp_a="${_cp_a%/*}"
+  done
+  [ -n "$_cp_a" ] || _cp_a=/
+  case "/$_cp_rest/" in
+    */./* | */../*)
+      _cp_out="$_cp_t"
+      return 2
+      ;;
+  esac
+  if ! physical_dir "$_cp_a" _cp_pa; then
+    _cp_out="$_cp_a"
+    return 1
+  fi
+  _cp_out="${_cp_pa%/}${_cp_rest:+/$_cp_rest}"
+  [ -n "$_cp_out" ] || _cp_out=/
+}
+
+# _path_parent <var> -- the directory above the absolute path in <var>, into
+# it; 1 at /. The one step every walk up a path takes (issue 0150).
+_path_parent() {
+  local -n _pp_p="$1"
+  [ "$_pp_p" != / ] || return 1
+  _pp_p="${_pp_p%/*}"
+  [ -n "$_pp_p" ] || _pp_p=/
+}
+
+# cargo_home_dir -- CARGO_HOME, or cargo's default, ~/.cargo, with no trailing
+# slash: the one statement of where the machine's cargo config lives (issue
+# 0150).
+cargo_home_dir() {
+  local h="${CARGO_HOME:-$HOME/.cargo}"
+  printf '%s\n' "${h%/}"
+}
+
+# cargo_env_carrier -- the name of the environment variable that decides
+# cargo's build tree, set at all, empty included: CARGO_TARGET_DIR, which cargo
+# puts first, or else CARGO_BUILD_TARGET_DIR; nothing when neither is set
+# (measured, cargo 1.98.1). The one statement of their precedence (issue 0150).
+cargo_env_carrier() {
+  if [ -n "${CARGO_TARGET_DIR+x}" ]; then
+    printf 'CARGO_TARGET_DIR\n'
+  elif [ -n "${CARGO_BUILD_TARGET_DIR+x}" ]; then
+    printf 'CARGO_BUILD_TARGET_DIR\n'
+  fi
+}
+
+# cargo_walk <find expression> -- find_walk over this project with the prunes
+# every cargo walk shares: somebody else's crates and trees, never this
+# project's (issue 0150; cargo_target_dirs' walk until then). find_walk's
+# status.
+cargo_walk() {
+  # find-status: returned to the caller, and each caller reads it.
+  find_walk "${PROJECT_ROOT:-.}" -ignore_readdir_race \
+    \( -name .git -o -name node_modules -o -name .direnv \
+       -o -name deps -o -name _build -o -name .venv \) -prune -o "$@"
+}
+
+# cargo_carrier_present <dir> -- 0 when a cargo config that could move the
+# build tree of the crate in <dir> is present: a .cargo/config.toml or
+# .cargo/config naming target-dir in <dir> or any directory above it, or a
+# config.toml or config naming it in CARGO_HOME (issue 0150, vc's ruling).
+#
+# PRESENCE ONLY: it asks whether a file names the key, never what the key
+# sets, so cargo stays the one resolver (cargo_build_dir): it decides WHETHER
+# cargo is asked, never WHERE the tree is (vc's ruling). The match is safe
+# because every spelling of the key holds the literal `target-dir`: dotted as
+# build.target-dir, under a [build] table, or quoted. It fails open: a file
+# that cannot be read is present, for cargo to answer, and a comment naming
+# the key only asks cargo, which then answers the default. A file naming
+# `include` opens it too, since the file it includes may name the key. With
+# none present, cargo builds a crate into its workspace's own target, which
+# the walk finds, and nothing asks cargo: a project with no carrier is
+# untouched by 0150, and needs no cargo. The environment's two carriers are the caller's to read, since
+# either decides the tree over any config.
+cargo_carrier_present() {
+  cargo_config_above "$1" && return 0
+  cargo_config_in_home && return 0
+  return 1
+}
+
+# cargo_config_above <dir> [--not-home] -- 0 when a .cargo/config.toml or
+# .cargo/config naming target-dir or include sits in <dir> or any directory
+# above it: the gate's walk up, CARGO_HOME aside. With --not-home, CARGO_HOME's
+# own config files are passed over where the walk meets them, as ~/.cargo is
+# met from beneath $HOME: cargo reads that file once, as the machine's
+# (critic-shell on 0150 v2c: with TMPDIR under $HOME the probe gave up, and a
+# machine-wide fork failed). A directory that cannot be placed is 0, failing
+# open.
+cargo_config_above() {
+  local d f h
+  physical_dir "$1" d || return 0
+  h="$(cargo_home_dir)"
+  while :; do
+    for f in "${d%/}/.cargo/config.toml" "${d%/}/.cargo/config"; do
+      if [ "${2:-}" = --not-home ] && { [ "$f" -ef "$h/config.toml" ] || [ "$f" -ef "$h/config" ]; }; then
+        continue
+      fi
+      _cargo_names_target_dir "$f" && return 0
+    done
+    _path_parent d || break
+  done
+  return 1
+}
+
+# cargo_config_in_home -- 0 when CARGO_HOME holds a config naming target-dir
+# or include.
+cargo_config_in_home() {
+  local f h
+  h="$(cargo_home_dir)"
+  for f in "$h/config.toml" "$h/config"; do
+    _cargo_names_target_dir "$f" && return 0
+  done
+  return 1
+}
+
+# _cargo_names_target_dir <file> -- 0 when <file> exists and names target-dir,
+# or includes another config, which may (cargo's stable `include`, critic-shell
+# on 0150 v1: an included file built into /tmp while the gate stayed shut), or
+# cannot be read.
+_cargo_names_target_dir() {
+  local rc=0
+  [ -e "$1" ] || [ -L "$1" ] || return 1
+  grep -q -e 'target-dir' -e 'include' -- "$1" 2>/dev/null || rc=$?
+  # 1 is a file read whole without the key; anything else is not read whole,
+  # and cargo, asked, names why in its own words, so grep's are not shown.
+  [ "$rc" -ne 1 ]
+}
+
+# cargo_build_dir <dir> <tree-var> <root-var> -- where cargo builds the crate
+# in <dir>, into <tree-var>, and its workspace's root, whose own target is the
+# tree when nothing moves it, into <root-var>; asked of cargo run in <dir>,
+# where `cd <dir> && cargo build` runs it, the config found from there
+# included (issue 0150). Each path comes back as cargo wrote it, byte for
+# byte: jq writes the two NUL-terminated and they are read with `read -d ''`,
+# where @tsv escaped a backslash, a tab and a newline, and a crate at `a\b`
+# was read at `a\\b` (critic-shell on 0150 v1). CARGO_TARGET_DIR and
+# CARGO_BUILD_TARGET_DIR are removed from cargo's environment, so the answer is
+# the configs' alone: either variable is its caller's to judge, as a value.
+# `--offline --no-deps` reads no network and resolves no dependency, and
+# leaves Cargo.lock as it was (measured across the fleet's 36 locks); colour
+# is off, so the error line quoted is plain. Fails naming cargo's own first
+# error line, or jq's absence. Its scratch directory is removed on every
+# return; an interrupt while cargo runs leaves it in TMPDIR, named
+# devbin-cargo.*.
+cargo_build_dir() {
+  local _cbd_d="$1" _cbd_s _cbd_rc=0 _cbd_line
+  local -n _cbd_tree="$2" _cbd_root="$3"
+  _cbd_tree="" _cbd_root=""
+  if ! command -v jq >/dev/null 2>&1; then
+    warn "jq is not on PATH, so cargo's answer for where $_cbd_d builds cannot be read"
+    return 1
+  fi
+  _cbd_s="$(mktemp -d "${TMPDIR:-/tmp}/devbin-cargo.XXXXXX")" || {
+    warn "cannot ask cargo where $_cbd_d builds: no scratch directory"
+    return 1
+  }
+  (
+    unset CARGO_TARGET_DIR CARGO_BUILD_TARGET_DIR
+    cd -- "$_cbd_d" && CARGO_TERM_COLOR=never cargo metadata --offline --no-deps --format-version 1
+  ) >"$_cbd_s/out" 2>"$_cbd_s/err" || _cbd_rc=$?
+  if [ "$_cbd_rc" -ne 0 ]; then
+    _cbd_line="$(grep -m 1 '^error' "$_cbd_s/err")" || _cbd_line="$(grep -m 1 . "$_cbd_s/err")" || _cbd_line="it exited $_cbd_rc"
+    rm -rf "$_cbd_s"
+    warn "cargo cannot say where $_cbd_d builds: $_cbd_line"
+    return 1
+  fi
+  if ! jq -j '(.target_directory // ""), "\u0000", (.workspace_root // ""), "\u0000"' "$_cbd_s/out" >"$_cbd_s/fields"; then
+    rm -rf "$_cbd_s"
+    warn "jq could not read cargo's answer for where $_cbd_d builds (its error is above)"
+    return 1
+  fi
+  { IFS= read -r -d '' _cbd_tree && IFS= read -r -d '' _cbd_root; } <"$_cbd_s/fields" || _cbd_rc=1
+  rm -rf "$_cbd_s"
+  if [ "$_cbd_rc" -ne 0 ] || [ -z "$_cbd_tree" ] || [ -z "$_cbd_root" ]; then
+    warn "cargo named no build directory for $_cbd_d"
+    return 1
+  fi
+}
+
+# cargo_build_dirs <crates> <trees> <roots> -- into the three arrays, one entry
+# each per crate under this project with a carrier present
+# (cargo_carrier_present): its directory, the tree cargo_build_dir names, and
+# its workspace's root; nothing for a crate with none. Parallel arrays, never
+# one delimited string, since a path may hold any byte but NUL. 1 when cargo is
+# not on PATH or cannot answer, named on stderr: where a crate's tree is cannot
+# then be known. 2 when the walk could not read everything, having asked about
+# every crate it did find: a crate beneath the hole is unseen, which is the
+# hole's to answer for, not a carrier's -- the walks after it fail a cycle over
+# it (issue 0139) -- so a project with no carrier anywhere is not refused
+# for it.
+# Each crate with a carrier is asked, a template's included: one cargo cannot
+# read is refused in cargo's words, declared (vc's ruling on 0150). With a
+# fourth array named, each .cargo/config.toml or .cargo/config the walk met
+# that names target-dir or include is put in it, so a caller can tell a
+# config beneath the project whose crates the walk never reached (critic-shell
+# on 0150 v2c).
+cargo_build_dirs() {
+  local -n _cbds_c="$1" _cbds_t="$2" _cbds_r="$3"
+  local _cbds_m _cbds_d _cbds_tree _cbds_root _cbds_rc=0 _cbds_cfgname="${4:-}"
+  local -a _cbds_list=() _cbds_met=()
+  _cbds_c=() _cbds_t=() _cbds_r=()
+  # NUL-separated, read whole with its status (critic-shell on 0150 v2: read
+  # a line at a time, a crate directory whose name ends in a newline split,
+  # its config unseen, and the cycle read INCONCLUSIVE at rc 0).
+  # find-status: read by `wait "$!"` below, on this process substitution.
+  # A config is one directly in a .cargo directory, never one beneath it, as
+  # a project-local CARGO_HOME's .cargo/git/db/<repo>/config is not; a manifest
+  # or a config may be a link, which cargo follows (critic-shell on 0150 v2d).
+  mapfile -d '' -t _cbds_list < <(cargo_walk -name target \( -type d -o -type l \) -prune -o \
+    \( -name Cargo.toml \( -type f -o -type l \) -print0 \) -o \
+    \( \( -path '*/.cargo/config.toml' -o -path '*/.cargo/config' \) \( -type f -o -type l \) -print0 \))
+  if ! wait "$!"; then
+    warn "could not read the whole project for its crates (the error above names it), so a crate beneath what it could not read was not asked about"
+    _cbds_rc=2
+  fi
+  for _cbds_m in ${_cbds_list[@]+"${_cbds_list[@]}"}; do
+    [ -n "$_cbds_m" ] || continue
+    case "$_cbds_m" in
+      */.cargo/config.toml | */.cargo/config)
+        ! _cargo_names_target_dir "$_cbds_m" || _cbds_met+=("$_cbds_m")
+        continue
+        ;;
+    esac
+    _cbds_d="${_cbds_m%/*}"
+    cargo_carrier_present "$_cbds_d" || continue
+    if ! command -v cargo >/dev/null 2>&1; then
+      warn "cargo is not on PATH, so where $_cbds_d builds cannot be known: a cargo config there names target-dir or include"
+      return 1
+    fi
+    cargo_build_dir "$_cbds_d" _cbds_tree _cbds_root || return 1
+    _cbds_c+=("$_cbds_d")
+    _cbds_t+=("$_cbds_tree")
+    _cbds_r+=("$_cbds_root")
+  done
+  if [ -n "$_cbds_cfgname" ]; then
+    local -n _cbds_cfgs="$_cbds_cfgname"
+    _cbds_cfgs=(${_cbds_met[@]+"${_cbds_met[@]}"})
+  fi
+  return "$_cbds_rc"
+}
+
+# cargo_home_build_dir <tree-var> -- where the machine's cargo config alone
+# sends a crate's build tree, into <tree-var>; empty when it moves nothing
+# (issue 0150, vc's ruling). Asked of cargo in an empty scratch directory
+# holding a throwaway crate, where no config but CARGO_HOME's applies, so the
+# answer is the home config's, in whatever spelling it takes: sed read only
+# `target-dir = "..."` and passed over a dotted key, a comment and the legacy
+# file name (critic-shell on 0150 v1). 1, named, when cargo cannot say.
+cargo_home_build_dir() {
+  local -n _chb_out="$1"
+  local _chb_s _chb_p _chb_tree _chb_root _chb_rc=0
+  _chb_out=""
+  _chb_s="$(mktemp -d "${TMPDIR:-/tmp}/devbin-cargohome.XXXXXX")" || {
+    warn "cannot ask cargo about the machine's config: no scratch directory"
+    return 1
+  }
+  if ! { mkdir -p "$_chb_s/probe/src" &&
+    printf '[package]\nname = "probe"\nversion = "0.0.0"\nedition = "2021"\n' >"$_chb_s/probe/Cargo.toml" &&
+    : >"$_chb_s/probe/src/main.rs"; }; then
+    rm -rf "$_chb_s"
+    warn "cannot ask cargo about the machine's config: the probe crate could not be written in $_chb_s"
+    return 1
+  fi
+  # THE PROBE HEARS EVERY CONFIG ABOVE IT, not CARGO_HOME's alone, so one
+  # above the scratch directory makes its answer no measure of the machine's
+  # (critic-shell on 0150 v2: with TMPDIR inside the project, the project's own
+  # fork was reported as the machine's and not failed). Then nothing is said
+  # to be the machine's.
+  if cargo_config_above "$_chb_s/probe" --not-home; then
+    rm -rf "$_chb_s"
+    return 0
+  fi
+  cargo_build_dir "$_chb_s/probe" _chb_tree _chb_root || _chb_rc=1
+  if [ "$_chb_rc" -eq 0 ] && physical_dir "$_chb_s/probe" _chb_p && [ "$_chb_tree" != "$_chb_p/target" ] &&
+    [ "$_chb_tree" != "$_chb_root/target" ]; then
+    _chb_out="$_chb_tree"
+  fi
+  rm -rf "$_chb_s"
+  return "$_chb_rc"
+}
+
+# cargo_target_dirs [<tree>...] -- every cargo build tree under this project,
+# discovered, and each <tree> named (issue 0150: what cargo said it builds into).
 #
 # NOT `$PROJECT_ROOT/target`, WHICH IS THE ASSUMPTION THIS FUNCTION EXISTS TO
 # REPLACE. A cargo tree sits at the WORKSPACE root, and a workspace is very
@@ -748,8 +1439,8 @@ sha256_stdin() {
 # cargo has stamped it yet. Sharing one function would force one of those two
 # risk postures onto the other.
 #
-# CARGO_TARGET_DIR wins outright when set: cargo writes there and nowhere else,
-# so a discovered tree would be a stale one.
+# The variable cargo_env_carrier names wins outright when set: cargo writes
+# there and nowhere else, so a discovered tree would be a stale one.
 #
 # DEPENDENCY TREES ARE PRUNED, AND THE POPULATION IS THE POINT (laksa/dc,
 # 2026-09-02). Laksa carries five Cargo.toml files and exactly one is its own:
@@ -768,16 +1459,335 @@ sha256_stdin() {
 # Note what does NOT need pruning: a crate with no `target/` at all -- which is
 # all four of Laksa's -- is invisible here by construction, because this
 # discovers BUILD TREES and never crates. There is nothing to skip.
+#
+# A WALK THAT CANNOT READ EVERYTHING RETURNS 1, having printed what it did find,
+# with find's own error left on stderr to name the path (issue 0139). It sent
+# that error to /dev/null in a pipeline ending `; return 0`: under errexit the
+# failed pipeline ended its caller with no word, and read through a process
+# substitution it was simply a shorter list, so a tree beneath an unreadable
+# directory was never checked for its release binaries and nothing said so.
 cargo_target_dirs() {
-  if [ -n "${CARGO_TARGET_DIR:-}" ]; then
-    printf '%s\n' "${CARGO_TARGET_DIR%/}"
+  local found sorted t k kept="" rc=0
+  local -a dirs=()
+  # A SET CARGO_TARGET_DIR, OR ELSE CARGO_BUILD_TARGET_DIR, IS RETURNED AS IT
+  # IS, UNCHECKED: either decides cargo's tree over any config (measured, cargo
+  # 1.98.1: CARGO_TARGET_DIR over CARGO_BUILD_TARGET_DIR over build.target-dir).
+  # cargo_target_dir_why and cargo_tree_outside_why say which values can be
+  # examined, and fullcycle, the one caller, refuses the rest before this is
+  # reached. A new caller asks them first.
+  t="$(cargo_env_carrier)"
+  if [ -n "$t" ]; then
+    printf '%s\n' "${!t%/}"
     return 0
   fi
-  find "${PROJECT_ROOT:-.}" \
-    \( -name .git -o -name node_modules -o -name .direnv \
-       -o -name deps -o -name _build -o -name .venv \) -prune -o \
-    -type d -name target -prune -print 2>/dev/null | sort
-  return 0
+  # -ignore_readdir_race: a build running beside the cycle creates and deletes
+  # as it goes, and an entry that vanished mid-walk failed it -- 1 in 6 cycles
+  # read ARTEFACT CHECK INCOMPLETE with a writer beside it (critic-shell on 0139).
+  #
+  # A target THAT IS A LINK IS A TREE TOO (critic-shell on 0139 v2e): under
+  # find's default -P a link is -type l and never -type d, so a target/ reached
+  # through one was never listed, and the cycle read "NO cargo build tree" and
+  # INCONCLUSIVE at rc 0 over a debug/ with no release/ beside it. Links are
+  # listed with the directories. A link naming a file is no tree and is
+  # dropped; one naming nothing, or naming what cannot be reached, is kept, so
+  # the check names it as gone or as out of reach rather than passing over it
+  # unsaid (critic-shell on 0139 v2f). A directory named by two paths -- a link
+  # beside the tree it names -- is one tree, kept once under the first path in
+  # the C locale's order, so it is not examined and reported twice. What this
+  # walk does NOT do, declared: it never enters a directory that is itself a
+  # link (find's default -P), so a tree beneath one is not seen, since following
+  # such links risks loops and walks outside the project; and it reads paths a
+  # line at a time, so a path holding a newline is not one path.
+  found="$(cargo_walk -name target \( -type d -o -type l \) -prune -print)" || rc=1
+  # AND THE TREES CARGO NAMED (issue 0150): a crate whose config moves its tree
+  # builds where the walk may not look, as `out` rather than `target`.
+  [ "$#" -eq 0 ] || found="${found:+$found$'\n'}$(printf '%s\n' "$@")"
+  [ -z "$found" ] || sorted="$(printf '%s\n' "$found" | LC_ALL=C sort)" || rc=1
+  while IFS= read -r t; do
+    [ -n "$t" ] || continue
+    if [ -d "$t" ]; then
+      for k in "${dirs[@]}"; do
+        [ "$t" -ef "$k" ] && continue 2
+      done
+      dirs+=("$t")
+    elif [ -e "$t" ]; then
+      continue
+    fi
+    kept+="$t"$'\n'
+  done <<<"${sorted:-}"
+  printf '%s' "$kept"
+  return "$rc"
+}
+
+# find_walk [-H|-L|-P] <path>... [global options] <expression> -- find, with a
+# directory it can list but not search named and pruned, and its status raised
+# (issue 0145). Prints what find prints, on stdout, untouched. Returns find's
+# status, or 1 when any such directory was met, each named on stderr:
+#
+#   cannot search <dir> -- nothing beneath it was looked at
+#
+# THE CLASS. macOS's find passes over a directory it can list but not search,
+# mode 0444 or 0644, below its start point: it prints nothing beneath it, says
+# nothing, and exits 0, so every walk that descends read the tree beneath one
+# as absent at rc 0. GNU find lists the names beneath it and cannot open what
+# they name, so a walk that goes on to read them fails later and less clearly.
+# One clause, asked of the running user as clean asked it, prunes such a
+# directory under both finds and records it, so the two give one verdict (vc's
+# ruling). A directory find cannot read at all keeps find's own error and
+# status, and is not named twice.
+#
+# - THE CLAUSE comes after the start paths and any leading global options
+#   (-maxdepth, -mindepth, -ignore_readdir_race, -xdev, -mount), before the
+#   caller's expression, which it wraps in parentheses. It is false either way,
+#   so the caller's expression still sees that directory itself (a walk for
+#   directories named target still finds one at 0644); it only never looks
+#   beneath it.
+# - THE CALLER'S OWN PRUNE IS ASKED FIRST (critic-shell on 0145 v1): an
+#   expression opening `\( ... \) -prune -o`, the idiom every caller uses, has
+#   that group lifted ahead of the clause, as clean's own clause sat after its
+#   prune, so a directory the caller never meant to enter is never examined:
+#   a .git at 0644 failed clean's walk, and with it fullcycle's clean. A prune
+#   spelled any other way is evaluated after the clause. The group is found by
+#   counting the `(` and `)` words, so one given as a value, as in `-name '('`,
+#   leaves it unlifted: the walk then examines what it prunes, and says so.
+# - THE EXEC IS NARROWED to a directory missing an x bit that the running user
+#   does not own with u+x set, read from $EUID and never from an `id` found
+#   through PATH: only the owner bits apply to the owner, so the
+#   0700 and 0750 directories of an ordinary tree run none. Without the owner
+#   test every such directory cost one /bin/sh, and the fleet census walk over
+#   this machine's roots ran 3.3 times as long (critic-shell's measure).
+# - WHAT IT RUNS IS /bin/sh, NAMED WHOLE, and nothing found through PATH, as
+#   clean's walk named it (0131): a project's own bin/test first on PATH was
+#   run by a walk that promised to change nothing. Where /bin/sh cannot be run
+#   the walk refuses at status 2, naming it, before find starts: BSD find
+#   reports each failed exec and still exits 0, with the hole silent beneath.
+# - A GLOBAL -mindepth ABOVE 1 IS REFUSED at status 2: find does not evaluate
+#   the clause above that depth, so a directory there would be entered
+#   unexamined. -mindepth 1 leaves out only the start paths, and find reports
+#   a start path it cannot search itself.
+# - A DECLARED LIMIT (vc's ruling): the clause reads mode bits, so a directory
+#   whose ACL denies the running user search, its mode bits allowing it, is not
+#   asked about, and BSD find passes over what is beneath it silently, as
+#   before. clean's page says so. Probing each directory's ACL would cost a
+#   process per directory, which the owner pre-filter exists to avoid.
+# - THE RECORDS reach this function on fd 3, NUL-terminated, through a process
+#   substitution read by mapfile, and find's status by `wait "$!"`, the idiom
+#   find_list and clean's walk use; `$(...)` drops NUL bytes and ran two
+#   records together. find's own stdout goes to the caller through a saved
+#   descriptor.
+# - A WALK BOUNDED BY -maxdepth never enters a directory at that depth, so what
+#   one hides is nothing it asked for: such a record is dropped when every
+#   start path it lies under puts it at or beyond -maxdepth, and kept when any
+#   would have entered it. Each directory is named once, however many start
+#   paths reached it or however many slashes spell it.
+# - FIND'S STATUS IS READ WITHOUT ERREXIT'S ABORT, so a find that failed on one
+#   directory still has every unsearchable one named after it.
+# - The expression must carry -print or -print0, since the clause's -exec
+#   suppresses find's implicit -print; otherwise status 2, naming it.
+#
+# find_list is built on this: find_walk, sorted, read into an array. The locals
+# carry their own prefix, as find_list's do.
+find_walk() {
+  local -a _fw_pre=() _fw_paths=() _fw_glob=() _fw_expr=() _fw_marks=() _fw_prune=()
+  local _fw_rc _fw_d _fw_p _fw_rel _fw_max="" _fw_fd _fw_act=0 _fw_a _fw_in _fw_dn _fw_pn
+  local _fw_i _fw_n
+  local -A _fw_said=()
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      -H | -L | -P)
+        _fw_pre+=("$1")
+        shift
+        ;;
+      *) break ;;
+    esac
+  done
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      -* | '(' | '!') break ;;
+      *)
+        _fw_paths+=("$1")
+        shift
+        ;;
+    esac
+  done
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      -maxdepth | -mindepth)
+        if [ "$#" -lt 2 ]; then
+          warn "find_walk: $1 names no depth"
+          return 2
+        fi
+        ;;&
+      -maxdepth)
+        _fw_max="$2"
+        _fw_glob+=("$1" "$2")
+        shift 2
+        ;;
+      -mindepth)
+        # A value that is not a number is find's to refuse.
+        if [[ "${2:-}" =~ ^[0-9]+$ ]] && [ "$((10#$2))" -gt 1 ]; then
+          warn "find_walk: -mindepth $2 leaves the directories above depth $2 unexamined, so a hole there would go unseen"
+          return 2
+        fi
+        _fw_glob+=("$1" "$2")
+        shift 2
+        ;;
+      -ignore_readdir_race | -noignore_readdir_race | -xdev | -mount)
+        _fw_glob+=("$1")
+        shift
+        ;;
+      *) break ;;
+    esac
+  done
+  _fw_expr=("$@")
+  # The caller's leading `\( ... \) -prune -o`, lifted ahead of the clause.
+  if [ "${_fw_expr[0]:-}" = "(" ]; then
+    _fw_n=0
+    for ((_fw_i = 0; _fw_i < ${#_fw_expr[@]}; _fw_i++)); do
+      case "${_fw_expr[_fw_i]}" in
+        "(") _fw_n=$((_fw_n + 1)) ;;
+        ")") _fw_n=$((_fw_n - 1)) ;;
+      esac
+      [ "$_fw_n" -gt 0 ] || break
+    done
+    if [ "${_fw_expr[_fw_i + 1]:-}" = -prune ] && [ "${_fw_expr[_fw_i + 2]:-}" = -o ]; then
+      _fw_prune=("${_fw_expr[@]:0:_fw_i+3}")
+      _fw_expr=("${_fw_expr[@]:_fw_i+3}")
+    fi
+  fi
+  for _fw_a in "${_fw_expr[@]}"; do
+    case "$_fw_a" in -print | -print0) _fw_act=1 ;; esac
+  done
+  if [ "$_fw_act" = 0 ]; then
+    warn "find_walk: the find expression names no -print or -print0, so nothing it finds would be printed"
+    return 2
+  fi
+  if [ ! -x /bin/sh ]; then
+    warn "find_walk: /bin/sh cannot be run, and a directory that can be listed but not searched is found by running it -- nothing was walked"
+    return 2
+  fi
+  exec {_fw_fd}>&1
+  # shellcheck disable=SC2016 # the $1 in the -exec program is /bin/sh's own
+  mapfile -d '' -t _fw_marks < <(
+    # find-walk: this is find_walk, the one find that carries the clause itself
+    # find-status: read by `wait "$!"` below, on this process substitution
+    find ${_fw_pre[@]+"${_fw_pre[@]}"} "${_fw_paths[@]}" ${_fw_glob[@]+"${_fw_glob[@]}"} \
+      ${_fw_prune[@]+"${_fw_prune[@]}"} \
+      \( -type d ! -perm -111 ! \( -user "$EUID" -perm -u+x \) \
+      -exec /bin/sh -c '[ -r "$1" ] && [ ! -x "$1" ] && printf "%s\0" "$1" >&3' sh {} \; -prune -false \) -o \
+      \( "${_fw_expr[@]}" \) 3>&1 >&"$_fw_fd"
+  )
+  _fw_rc=0
+  wait "$!" || _fw_rc=$?
+  exec {_fw_fd}>&-
+  for _fw_d in "${_fw_marks[@]}"; do
+    # Named once, however many start paths or spellings reached it.
+    _fw_dn="$_fw_d"
+    _find_walk_tidy _fw_dn
+    [ -z "${_fw_said[$_fw_dn]:-}" ] || continue
+    if [ -n "$_fw_max" ]; then
+      # A HOLE WHEN ANY START PATH IT LIES UNDER WOULD HAVE ENTERED IT: under
+      # one start it may sit at -maxdepth, never entered, and under another
+      # above it, a walk that meant to look beneath it.
+      #
+      # DEPTH IS READ FROM THE PATHS AS SPELLED, SO BOTH ARE READ ONE WAY (vc's
+      # ruling): every run of / as one, and a trailing / dropped. Both finds
+      # print `a/x` under a start spelled `a/` and `a//x` under `a//`
+      # (measured on Darwin 27 and GNU findutils), and a start `.` prints `./x`.
+      _fw_in=0
+      for _fw_p in "${_fw_paths[@]}"; do
+        _fw_pn="$_fw_p"
+        _find_walk_tidy _fw_pn
+        if [ "$_fw_dn" = "$_fw_pn" ]; then
+          _fw_rel=""
+        else
+          case "$_fw_dn" in
+            "${_fw_pn%/}"/*) _fw_rel="${_fw_dn#"${_fw_pn%/}"}" ;;
+            *) continue ;;
+          esac
+        fi
+        _fw_rel="${_fw_rel//[!\/]/}"
+        [ "${#_fw_rel}" -ge "$_fw_max" ] || _fw_in=1
+      done
+      [ "$_fw_in" = 1 ] || continue
+    fi
+    _fw_said[$_fw_dn]=1
+    case "$_fw_d" in
+      *[![:print:]]*) printf -v _fw_d '%q' "$_fw_d" ;;
+    esac
+    warn "cannot search $_fw_d -- nothing beneath it was looked at"
+    _fw_rc=1
+  done
+  return "$_fw_rc"
+}
+
+# _find_walk_tidy <var> -- the path in <var> with every run of / as one and a
+# trailing / dropped, / itself kept: how find_walk reads a depth, and the one
+# place its paths are tidied. It is spelling only, by design: real_path and
+# physical_dir resolve a path through the filesystem, need it to exist and
+# follow its links, which a depth count must not; and link_step keeps a link's
+# text untidied on purpose, since the kernel reads a `..` after the name
+# before it.
+_find_walk_tidy() {
+  local -n _fwt_p="$1"
+  while [[ "$_fwt_p" == *//* ]]; do
+    _fwt_p="${_fwt_p//\/\//\/}"
+  done
+  [ "$_fwt_p" = / ] || _fwt_p="${_fwt_p%/}"
+}
+
+# find_list <array> <find operands and expression> -- find_walk, sorted, read
+# into an array (issue 0145): every path find prints, read whole into the
+# named array in the C locale's order, and find_walk's status
+# (issue 0139): 0 when find read everything, and its failure otherwise, with
+# find's own error on stderr naming what it could not read. The expression ends
+# in -print0, so a name holding a newline is one path; a name it cannot fill,
+# bar an integer array, or an expression ending otherwise, is refused at status
+# 2. The array holds what find did list either way: a caller that acts may act
+# on it and say the list was partial, where a gate refuses.
+#
+# ONE IDIOM FOR A LIST READ WHOLE (critic-shell on 0139). 0139's first version
+# wrote the list through a temporary file twice, in check's Swift gate and in
+# dmarc parse. Here the status is taken by `wait` on the process substitution,
+# as release_dirt and clean's walk take theirs, and there is no file to remove.
+# The locals are prefixed because the caller names the array: a local of the
+# same name would shadow it.
+find_list() {
+  # THE NAME AND THE EXPRESSION ARE ASKED BEFORE ANYTHING IS BOUND (critic-shell
+  # on 0139 v2), as run_words asks (issue 0082): a name that is not a name makes
+  # `local -n` fail and execution fall through, and this function's own binds
+  # to itself, so either way the caller's array stays empty and a gate passes
+  # over nothing; an expression that does not end in -print0 hands back every
+  # path as one element. Each is a programming error, so the status is 2. The
+  # expression test reads its LAST WORD only (critic-shell on 0139 v2e): one
+  # ending in -print0 passes whatever its other actions, and one ending
+  # otherwise is refused, sound or not. It catches the caller who forgot
+  # -print0; it does not parse find's grammar.
+  if ! is_identifier "${1:-}"; then
+    warn "find_list: '${1:-}' is not a shell variable name, so there is no array to fill"
+    return 2
+  fi
+  if [ "$1" = _fl_out ]; then
+    warn "find_list: cannot fill an array named '$1' -- it is find_list's own name"
+    return 2
+  fi
+  if [ "${!#}" != -print0 ]; then
+    warn "find_list: the find expression must end in -print0, or its paths cannot be told apart"
+    return 2
+  fi
+  local -n _fl_out="$1"
+  # MAPFILE'S OWN FAILURE IS NOT FIND'S (critic-shell on 0139 v2e): a target it
+  # cannot fill, an associative array, was refused only by the writer's
+  # SIGPIPE, a status this function never read. The writer is reaped and the
+  # caller told, at 2. An integer array is declared rather than closed, as
+  # run_words declares it: bash's arithmetic on a path abandons the caller.
+  # find-status: read by `wait "$!"` below, on this process substitution
+  if ! mapfile -d '' -t _fl_out < <(set -o pipefail; find_walk "${@:2}" | LC_ALL=C sort -z); then
+    wait "$!"
+    warn "find_list: could not fill '$1' with the paths find printed"
+    return 2
+  fi
+  wait "$!"
 }
 
 # dir_has_binary <dir> -- true when <dir> holds at least one executable FILE at
@@ -1003,15 +2013,65 @@ platform_identity() {
 #
 # The paths go in ALONGSIDE the contents so a moved or missing file changes the
 # digest rather than hiding inside a concatenation.
+#
+# A RUNTIME IT CANNOT READ WHOLE HAS NO DIGEST: it returns 1, printing
+# nothing, and says what it could not read (issue 0139). The listing's errors
+# went to /dev/null, so a directory find could not read left its files out, and
+# a file cat could not read, the launcher's error discarded too, went in as its
+# path alone: either way the value named a different runtime, and nothing said
+# why. find's own error names a directory, and a file is named here. The sort
+# is left as it was, since a new order would change every install's digest.
+#
+# -H FOLLOWS A LIB DIRECTORY THAT IS A SYMLINK, AT THE START POINT ONLY
+# (critic-shell on 0139). find's default -P read such a libdir as the link
+# itself, listed nothing, and the runtime digested as its launcher alone
+# (2ebbc476af34, measured) at rc 0; fleet's `[ -d ]` guard lets that libdir
+# through. A trailing slash on the operand would follow it as well, and would
+# move every install's digest, since the strip below is spelled against $libdir.
 runtime_digest() {
-  local launcher="$1" libdir="$2" f
-  {
-    cat "$launcher" 2>/dev/null
-    find "$libdir" -type f 2>/dev/null | sort | while IFS= read -r f; do
-      printf '%s\n' "${f#"$libdir"/}"
-      cat "$f"
-    done
-  } | sha256_stdin | cut -c1-12
+  local launcher="$1" libdir="$2" f files digest
+  # A LIB THAT IS NOT A DIRECTORY IS NO RUNTIME (critic-shell on 0139 v2): a
+  # link naming nothing was followed by -H to nothing, listed nothing, and
+  # digested as the launcher alone, at rc 0.
+  [ -d "$libdir" ] || {
+    warn "runtime digest: $libdir is not a directory"
+    return 1
+  }
+  files="$(find_walk -H "$libdir" -type f -print)" || return 1
+  [ -r "$launcher" ] || {
+    warn "runtime digest: cannot read $launcher"
+    return 1
+  }
+  while IFS= read -r f; do
+    [ -z "$f" ] || [ -r "$f" ] || {
+      warn "runtime digest: cannot read $f"
+      return 1
+    }
+  done <<<"$files"
+  # EVERY READ READS ITS OWN STATUS, AND THE DIGEST IS PRINTED ONLY WHOLE
+  # (critic-shell on 0139 v2). The test above is a moment before the reads, so
+  # a file removed or locked between the two was digested as absent: rc 0 and
+  # the digest of a runtime that is not the one on disk, or, at the last file,
+  # rc 1 with a digest printed anyway. The bytes digested are unchanged, so no
+  # install's digest moves. A link inside lib is neither followed nor digested
+  # -- -H follows the start point only -- and none is ever vendored, since
+  # vendored_paths lists regular files: declared, not closed (critic-shell on
+  # 0139 v2e).
+  digest="$(
+    set -o pipefail
+    {
+      cat "$launcher" || exit 1
+      printf '%s\n' "$files" | sort | while IFS= read -r f; do
+        [ -n "$f" ] || continue
+        printf '%s\n' "${f#"$libdir"/}"
+        cat "$f" || exit 1
+      done
+    } | sha256_stdin | cut -c1-12
+  )" || {
+    warn "runtime digest: the runtime could not be digested whole (any error above names what failed)"
+    return 1
+  }
+  printf '%s\n' "$digest"
 }
 
 # version_identity [root] -- the ONE renderer for `<name> <version> (<tree>)`.
@@ -1033,6 +2093,10 @@ runtime_digest() {
 # every line-oriented reader that consumes it.
 version_identity() {
   local root="${1:-${PROJECT_ROOT:-.}}"
+  # A runtime find could not read whole reads UNREADABLE (issue 0139), never an
+  # empty digest a reader would take for a value.
+  local digest
+  digest="$(runtime_digest "$root/bin/devbin" "${DEVBIN_LIB:-$root/lib}")" || digest=UNREADABLE
   # shellcheck disable=SC2119  # the bare call IS the point: version-file role.
   # This directive travelled here WITH the call. It used to sit in bin/devbin
   # above the printf that moved into this function, and leaving it behind is
@@ -1050,8 +2114,7 @@ version_identity() {
   # one, and would not find it -- a wrong mechanism in a provenance line is
   # actionable in the wrong direction. Rename it if the git object was meant.
   printf '%s %s (%s, runtime %s)\n' "${DEVBIN_NAME:-devbin}" "$(read_version)" \
-    "$(git_head_identity "$root")" \
-    "$(runtime_digest "$root/bin/devbin" "${DEVBIN_LIB:-$root/lib}")"
+    "$(git_head_identity "$root")" "$digest"
 }
 
 git_head_identity() {
@@ -1502,6 +2565,21 @@ manifest_field() {
 manifest_version() { manifest_field "$1" devbin_version; }
 manifest_source_commit() { manifest_field "$1" source_commit; }
 
+# lib_rel -- where devbin's runtime lives, relative to the project root.
+#
+# DERIVED FROM DEVBIN_LIB, NEVER SPELLED (issue 0112). The overview and the
+# templates listing named bin/.devbin/lib/ outright, which is right in every
+# estate and wrong in the devbin checkout, where D12 runs lib/ in place -- so in
+# the one tree that explains devbin, `devbin devbin` pointed at two paths that
+# did not exist, beneath a line announcing that this was the checkout.
+#
+# MOVED HERE FROM lib/cmd/devbin (issue 0121), when `infra --help` turned out to
+# spell the same path outright for its reference file. Two handlers need it, and
+# a second copy of a one-line derivation is how the first defect comes back.
+lib_rel() {
+  printf '%s' "${DEVBIN_LIB#"$PROJECT_ROOT"/}"
+}
+
 # home_relative <path> -- <path> with a leading $HOME written as `~`.
 # home_expand <value> -- the inverse: `~` and `~/<rest>` expanded against $HOME.
 #
@@ -1779,13 +2857,28 @@ EOF
   return 0
 }
 
+# is_yes_answer <reply> -- true when <reply> is a yes: y or yes, in any case.
+#
+# THE ONE ANSWER SET FOR EVERY QUESTION devbin ASKS A PERSON (issue 0134).
+# ask_person took y or Y and devbin_offer_upgrade took y, Y, yes and YES, so a
+# person who answered yes to fullcycle was told the cycle was declined, and one
+# who answered Yes to the upgrade offer was told the same.
+is_yes_answer() {
+  case "${1,,}" in
+    y | yes) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 # ask_person <question> -- ask a person at the terminal a yes/no question, from
 # inside a gate. Prints `<question> [y/N] ` and reads the answer from /dev/tty.
-#   0  the answer was y
+#   0  the answer was a yes: y or yes, in any case (is_yes_answer)
 #   1  any other answer, end of input included
 #   2  nobody to ask: no readable /dev/tty, or the gate's stdin was not a terminal
 # The caller says what each means for it; 2 is never folded into 1, because
-# "declined" and "could not ask" are different answers (ST0007 AC-5.3 exits 2).
+# "declined" and "could not ask" are different answers. Every caller now exits
+# 1 for both and says which in its message: release exited 2 for the second,
+# as ST0007 AC-5.3 asked, until issue 0130 gave 2 back to the dispatcher.
 #
 # THE ONE HOME FOR THE QUESTION (issue 0089; hv, option B): clean, fullcycle
 # and the release core's first-push confirmation all ask through here, so the
@@ -1814,10 +2907,7 @@ ask_person() {
   fi
   printf '%s [y/N] ' "$1"
   IFS= read -r reply </dev/tty || reply=""
-  case "$reply" in
-    y | Y) return 0 ;;
-    *) return 1 ;;
-  esac
+  is_yes_answer "$reply" || return 1
 }
 
 # devbin_offer_upgrade <projroot> -- ask, on a real terminal, whether to
@@ -1884,14 +2974,11 @@ devbin_offer_upgrade() {
   # early `return 0` here made the no-answer case indistinguishable from the
   # offer never having been made, which is the state a pty-at-EOF test sees.
   IFS= read -r reply </dev/tty || reply=""
-  case "$reply" in
-    y | Y | yes | YES) ;;
-    *)
-      printf 'Left as it is. Run: %s upgrade\n' \
-        "${DEVBIN_INVOKE:-bin/devbin}" >&2
-      return 0
-      ;;
-  esac
+  if ! is_yes_answer "$reply"; then
+    printf 'Left as it is. Run: %s upgrade\n' \
+      "${DEVBIN_INVOKE:-bin/devbin}" >&2
+    return 0
+  fi
   printf '\n' >&2
   # Runs the real verb rather than reimplementing it: upgrade owns what an
   # upgrade is, including every refusal it makes about edited files.
@@ -2079,6 +3166,16 @@ devbin_update_notice() {
   dir="${TMPDIR:-/tmp}"
   stamp="$dir/$base"
   # -mtime is POSIX; -newermt is GNU-only and this fleet runs on macOS.
+  #
+  # find's errors go to /dev/null HERE ON PURPOSE, one of two finds in lib/ that
+  # may (issue 0139); the other is lib/install's seam check, which reads find's
+  # status and answers UNREADABLE. This said "the one" until critic-shell's
+  # review of 0139. It asks only whether today's notice was already shown, and
+  # a find that fails answers "not shown", which re-runs a check that prints at
+  # most one line: the failure costs a repeat, never a wrong verdict, and an
+  # error printed before every command would cost more than the notice is worth.
+  # find-walk: -maxdepth 1 -- one stamp file in one directory; it never enters one
+  # find-status: dropped -- a failure here only repeats the daily update check.
   if [ -f "$stamp" ] && [ -n "$(find "$dir" -maxdepth 1 -name "$base" -mtime -1 2>/dev/null)" ]; then
     return 0
   fi

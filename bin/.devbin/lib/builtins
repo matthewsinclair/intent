@@ -126,7 +126,7 @@ fmt.rust         rust    generic     FMTRS      -         cargo fmt | Format Rus
 fmt.swift        swift   generic     FMTSWIFT   -         @builtin | Format Swift sources in place
 fmt.md           any     generic     FMTMD      -         @builtin | Format Markdown -- root only unless given paths
 clean.rust       rust    generic     CLEANRS    -         @builtin | Remove cargo target/ trees, release included
-clean.elixir     elixir  generic     CLEANEX    -         @builtin | Remove _build/ trees. deps/ is left alone
+clean.elixir     elixir  generic     CLEANEX    -         @builtin | Remove _build/ trees; the sources under deps/ stay
 clean.swift      swift   generic     CLEANSW    -         @builtin | Remove Swift .build/ trees
 "
 
@@ -156,6 +156,31 @@ unset _bi_name _bi_rest
 # exists in two of four projects and both implementations are bespoke contract
 # checks with nothing in common but the name -- D18 tier 4, in miniature. A
 # project that wants it declares it, which is one line and cannot be wrong.
+
+# THE OPTIONS devbin SHIPS OUTSIDE `all` (issue 0132), as `<command>.<option>`.
+# Each still runs by name, and a project brings one back into `all` with
+# `in_all: true`: config wins, and this is only the default config's silence
+# gets. `db reset` drops the database, and until 0132 `db all` ran it between
+# setup and seed and then reported "all db options passed".
+#
+# BESIDE THE TABLE RATHER THAN A COLUMN IN IT, because one row in thirty-odd
+# carries it and a column would reshape every row and every positional reader.
+# builtins.bats holds each entry to a real option row, so a rename cannot leave
+# one naming nothing.
+_DEVBIN_BUILTIN_NOT_IN_ALL="db.reset"
+
+# THE ENVIRONMENTS A BUILT-IN REFUSES (issue 0132), one row per command, tab-free:
+#   <command>  <variable>  <value refused>  <why, to the end of the line>
+# The dispatcher asks before it runs anything of the command's -- devbin's line
+# or one the project declared, an option, `all` or the command line -- because
+# the refusal is about where the command points, not about whose line it runs.
+# Until 0132 db's lived inside lib/cmd/db, which only devbin's own lines reach,
+# so `setup.run: mix ash.setup` ran under MIX_ENV=prod. A project HANDLER is the
+# one way past it: D2 makes a handler a total shadow, and writing one is the
+# bigger, more visible step a production operation is meant to take.
+_DEVBIN_BUILTIN_REFUSALS="
+db  MIX_ENV  prod  these commands are the LOCAL dev database lifecycle, and 'db reset' drops the database
+"
 
 # _builtin_row <command> [option] -- print the catalogue row, or return 1.
 #
@@ -321,13 +346,45 @@ builtin_command_summary() { builtin_option_summary "$1" ""; }
 builtin_command_group() { builtin_option_group "$1" ""; }
 
 # builtin_has_default_run <command> [option] -- true when the catalogue ships a
-# command line, false when the row carries `-` (D18 tier 4) or does not exist.
+# command line, false when the row carries `-` (D18 tier 4) or `@builtin`, or
+# does not exist.
 #
 # `-` and "absent" are deliberately the same answer to a caller deciding what to
 # run: neither gives it a command line. They differ only to help, which still
 # wants the summary from a `-` row.
+#
+# `@builtin` IS NOT A COMMAND LINE EITHER, and until issue 0117 this counted it
+# as one. It names devbin's own handler, which run_command consults BEFORE the
+# catalogue, so by the time anyone asks this question the handler has already
+# been found absent -- and run_command then treats `@builtin` exactly as it
+# treats `-`. Counting it here is what let `help --why` say `devbin catalogue`
+# for a command the dispatcher refuses, and doctor bless it as runnable.
 builtin_has_default_run() {
   local run
   run="$(builtin_option_run "$1" "${2:-}")" || return 1
-  [ -n "$run" ] && ! is_no_default "$run"
+  [ -n "$run" ] && ! is_no_default "$run" && [ "$run" != @builtin ]
+}
+
+# builtin_option_in_all <command> <option> -- `true` or `false`: whether `all`
+# runs this option when config says nothing about it (issue 0132).
+builtin_option_in_all() {
+  case " $_DEVBIN_BUILTIN_NOT_IN_ALL " in
+    *" $1.$2 "*) printf 'false\n' ;;
+    *) printf 'true\n' ;;
+  esac
+}
+
+# builtin_env_refusal <command> -- the command's refusal row as
+# `<variable>TAB<value>TAB<why>`, or non-zero when it refuses no environment.
+# Data only: whether THIS environment matches is the dispatcher's question.
+builtin_env_refusal() {
+  local name var val why
+  while read -r name var val why; do
+    [ "$name" = "$1" ] || continue
+    printf '%s\t%s\t%s\n' "$var" "$val" "$why"
+    return 0
+  done <<EOF
+$_DEVBIN_BUILTIN_REFUSALS
+EOF
+  return 1
 }

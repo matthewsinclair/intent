@@ -49,6 +49,61 @@ _DEVBIN_INFRA_DNS_LOADED=1
 : "${DEVBIN_INFRA_DNS_TIMEOUT:=3}"
 : "${DEVBIN_INFRA_DNS_TRIES:=2}"
 
+# The authority read's pause, in seconds, before it asks its question again
+# after an EMPTY answer (issue 0142, and infra_dns_authority below). A knob
+# beside the budget so an arm can set it to 0.
+#
+# ONE SECOND BECAUSE OF RFC 9520, section 3.2: a resolver MUST cache a failed
+# resolution -- a SERVFAIL, the kind where the zone's servers could not be
+# reached or would not answer -- for at least one second, and answers a repeat
+# of the question from that cache without asking anyone, so a re-ask sooner can
+# only hear the same failure. A resolver may keep one for longer -- up to five
+# minutes -- and then every attempt is answered from its cache; the statuses
+# the unmeasured line prints show that, and FOR A SERVFAIL this is the knob to
+# raise.
+#
+# NOT FOR AN EMPTY NOERROR OR AN NXDOMAIN. Those are not failures to resolve
+# but negative answers, which RFC 2308 has a resolver cache for the zone's
+# negative TTL -- often minutes. One served from that cache outlasts any pause
+# this command could afford per domain, so raising the knob will not turn it
+# into an answer; the statuses say which of the two a run met.
+: "${DEVBIN_INFRA_DNS_RETRY_PAUSE:=1}"
+
+# THREE ATTEMPTS, AND NOT A KNOB. A pause apart, the third lands two seconds
+# after the first, past that one-second floor even when the second landed on
+# it. A fourth would add a pause for every domain that genuinely has no NS
+# record, on every run, to ask again a name the resolver has already answered
+# empty three times over two seconds.
+_DEVBIN_INFRA_DNS_ATTEMPTS=3
+
+# infra_dns_assert_knobs <command> -- refuse a malformed budget or pause, ONCE
+# per run, beside infra_dns_have_tool and for the same reason: it is a property
+# of the run, not of any domain. Called bare, never inside $(...), so its die
+# ends the command rather than a subshell.
+#
+# EACH IS A WHOLE NUMBER, AND THE REASON IS WHAT A BAD ONE DOES QUIETLY. A pause
+# that `sleep` cannot parse fails every pause, so the retries run back to back
+# into the resolver's cache of the failure -- issue 0142's defect, brought back
+# by one typo while the line still says the question was asked again. A budget
+# `dig` cannot parse makes it exit 10 on every query, so every domain in the
+# run reads unmeasured over a resolver nobody contacted. 0 passes: it is the
+# pause an arm wants, and dig rounds a zero budget up to one by itself.
+#
+# AND BELOW 100000, because a whole number is not enough: dig 9.10.6 cannot
+# parse `+time=4294967296` either, and exits 10 on it just the same. Five
+# digits is past any budget or pause a run could want (a day is 86400 s)
+# and short of every overflow. An EMPTY knob never reaches here: the `:=`
+# defaults above give it the default, which the page says.
+infra_dns_assert_knobs() {
+  local k v
+  for k in DEVBIN_INFRA_DNS_TIMEOUT DEVBIN_INFRA_DNS_TRIES DEVBIN_INFRA_DNS_RETRY_PAUSE; do
+    v="${!k-}"
+    case "$v" in
+      '' | *[!0-9]* | ??????*) die "$1: $k must be a whole number below 100000, got '$v'. Nothing was measured." ;;
+    esac
+  done
+}
+
 # infra_dns_have_tool -- is there a resolver at all?
 #
 # Checked ONCE by the caller and reported as a hard failure, never per-domain:
@@ -56,18 +111,135 @@ _DEVBIN_INFRA_DNS_LOADED=1
 # buries the one line that matters.
 infra_dns_have_tool() { command -v dig >/dev/null 2>&1; }
 
-# infra_dns_authority <fqdn> -- one authoritative nameserver, or rc 1.
+# _idns_ask [@<ns>] <name> <type> -- THE dig invocation, the only one: both
+# readers ask through it, so the flags the two parsers below depend on are
+# written once. `+comments` is what carries the header status and `+answer`
+# the rows, and a reader asking without either would read every reply as
+# empty -- which, for the authority read, is every domain unmeasured.
+#
+# stdout is dig's reply and the return is dig's exit. dig's stderr is kept for
+# ONE case: an exit other than 0 and 9 means dig could not run the query at
+# all, and then the last line printed is `dig exit <n>: <its first non-empty
+# stderr line>`, tabs made spaces since init keeps it in a tab-separated row.
+# It starts on a line of its own, so a reply that ended without a newline
+# cannot run into it. Only the authority read reports it; the record read's
+# callers name the facet that could not be read and drop the why. Exit 9 is
+# no reply after the budget, which says all there is to say; on 0 the stderr
+# is dig's chatter and is dropped.
+_idns_ask() {
+  local err rc=0 why=""
+  { err="$(dig +noall +comments +answer +time="$DEVBIN_INFRA_DNS_TIMEOUT" \
+             +tries="$DEVBIN_INFRA_DNS_TRIES" "$@" 2>&1 >&3 3>&-)" || rc=$?; } 3>&1
+  case "$rc" in
+    0 | 9) ;;
+    *)
+      while IFS= read -r why; do
+        [ -z "$why" ] || break
+      done <<<"$err"
+      why="${why//$'\t'/ }"
+      printf '\ndig exit %s%s\n' "$rc" "${why:+: $why}"
+      ;;
+  esac
+  return "$rc"
+}
+
+# _idns_status <reply> -- the header status of a `+comments` reply, or empty
+# when the reply carries none. Pure.
+_idns_status() {
+  # sed quits at the first header itself: no `| head` after it (0031).
+  printf '%s\n' "$1" | sed -n '/->>HEADER<<-/{s/.*->>HEADER<<-.*status: \([A-Z]*\).*/\1/p;q;}'
+}
+
+# _idns_rows <type> -- `<ttl><TAB><rdata>` for each answer row of <type> in the
+# `+comments` reply on stdin. Pure. Answer rows only: `dig +comments` prefixes
+# every non-record line with `;`.
+_idns_rows() {
+  awk -v t="$1" '
+    /^;/ { next }
+    NF >= 5 && $4 == t { ttl = $2; $1 = ""; $2 = ""; $3 = ""; $4 = "";
+                         sub(/^[[:space:]]+/, ""); printf "%s\t%s\n", ttl, $0 }
+  '
+}
+
+# infra_dns_authority <fqdn> -- one authoritative nameserver and rc 0, or rc 1
+# with what was OBSERVED printed in its place.
 #
 # Read from the delegation rather than declared. A domain with no NS at all is
 # rc 1 (COULD NOT MEASURE) rather than an empty answer: every later read for
 # that domain depends on this one, so a caller that treated it as "nothing
 # there" would go on to report every record as missing.
+#
+# THIS IS THE ONE QUESTION PUT TO THE MACHINE'S RESOLVER, with no @server:
+# until it is answered there is no authoritative server to address. So when it
+# fails, the failure is the resolver's, and the sentence printed on rc 1 says
+# so -- what came back, on how many attempts, and that devbin asked no
+# authoritative nameserver. Until issue 0142 both callers said "no
+# authoritative nameserver answered", which blamed servers devbin had not
+# asked. (The resolver may well have asked them; the sentence says only what
+# devbin did and saw.)
+#
+# AN EMPTY ANSWER IS NOT TAKEN AS FINAL. dig's +tries repeats only a query that
+# got NO reply; an empty reply -- NOERROR with no record in it, NXDOMAIN,
+# SERVFAIL -- is a reply, so dig hands it back as final. At Prodinfra on
+# 2026-09-24 six runs each listed one to three live domains as unmeasured on
+# one such answer, and every one of them answered moments later. So when an
+# answer holds no NS record the question is asked again, after
+# DEVBIN_INFRA_DNS_RETRY_PAUSE seconds, and the domain is unmeasured only when
+# every attempt came back without one.
+#
+# A QUERY `dig` COULD NOT COMPLETE IS NOT ASKED AGAIN HERE. Its exit 9 means no
+# reply after DEVBIN_INFRA_DNS_TRIES sends of DEVBIN_INFRA_DNS_TIMEOUT seconds
+# each, so dig has done the retrying already, and a re-ask would multiply that
+# for every domain on a machine whose resolver is down -- the stall the
+# per-query budget exists to prevent. Such an attempt has no header status, so
+# it reads `no reply`. Any other exit is dig unable to run the query at all --
+# a malformed option, say -- and reads as _idns_ask words it, with dig's own
+# first line of complaint; that is not asked again either, since nothing about
+# it changes in a second.
+#
+# `+comments` IS WHAT MAKES THE STATUS READABLE. The read was `+short` until
+# 0142, which prints the records and drops the header, so an empty NOERROR and
+# a SERVFAIL were the same nothing.
 infra_dns_authority() {
-  local fqdn="$1" ns
-  ns="$(dig +short +time="$DEVBIN_INFRA_DNS_TIMEOUT" +tries="$DEVBIN_INFRA_DNS_TRIES" \
-        NS "$fqdn" 2>/dev/null | grep -E '^[A-Za-z0-9]' | LC_ALL=C sort | head -1)" || return 1
-  [ -n "$ns" ] || return 1
-  printf '%s\n' "$ns"
+  local fqdn="$1" raw rc ns st seen="" n=0
+  while [ "$n" -lt "$_DEVBIN_INFRA_DNS_ATTEMPTS" ]; do
+    [ "$n" -eq 0 ] || sleep "$DEVBIN_INFRA_DNS_RETRY_PAUSE"
+    n=$((n + 1))
+    rc=0
+    raw="$(_idns_ask "$fqdn" NS)" || rc=$?
+    case "$rc" in
+      0) ;;
+      9) seen="$seen${seen:+, }no reply"; break ;;
+      *) seen="$seen${seen:+, }${raw##*$'\n'}"; break ;;
+    esac
+    # The sorted first, so a run names the same nameserver whatever order the
+    # resolver lists them in. No `| head -1` after the sort: under pipefail
+    # head's early exit hands sort a SIGPIPE on a long enough answer, and the
+    # status is the pipeline's (0031).
+    ns="$(printf '%s\n' "$raw" | _idns_rows NS | cut -f2 | LC_ALL=C sort)"
+    ns="${ns%%$'\n'*}"
+    if [ -n "$ns" ]; then
+      printf '%s\n' "$ns"
+      return 0
+    fi
+    st="$(_idns_status "$raw")"
+    seen="$seen${seen:+, }${st:-no status}"
+  done
+  infra_dns_no_authority "$fqdn" "$n" "$seen"
+  return 1
+}
+
+# infra_dns_no_authority <fqdn> <attempts> <what each attempt got> -- THE
+# sentence for a failed authority read, and the only place it is worded. check
+# lists it under COULD NOT MEASURE and init records it under `unreviewed:`, so
+# the two commands cannot describe one failure two ways. Each attempt reads as
+# what it got: the header status of a reply, `no status` for a reply that
+# carried none, `no reply` where dig heard nothing within its budget, or `dig
+# exit <n>: <why>` where dig could not run the query. "No NS record came from
+# the resolver" is true of all four, so one sentence holds any mix. Pure.
+infra_dns_no_authority() {
+  printf "no NS record for %s came from the machine's resolver on %s attempt(s) (%s), so devbin asked no authoritative nameserver\n" \
+    "$1" "$2" "$3"
 }
 
 # infra_dns_read <ns> <name> <type> -- `<ttl><TAB><rdata>` per record.
@@ -82,21 +254,18 @@ infra_dns_authority() {
 # needed: dig exits 9 when no server could be reached, but exits 0 on SERVFAIL
 # and REFUSED -- which are refusals to answer, not answers. Treating those as an
 # empty result is precisely how an unreachable zone reports as an empty one.
+#
+# The question is asked, and the status and the rows are read, by the same
+# three helpers the authority read uses, so the two readers cannot disagree
+# about what a reply said.
 infra_dns_read() {
-  local ns="$1" name="$2" type="$3" raw status
-  raw="$(dig +noall +comments +answer +time="$DEVBIN_INFRA_DNS_TIMEOUT" \
-         +tries="$DEVBIN_INFRA_DNS_TRIES" @"$ns" "$name" "$type" 2>/dev/null)" || return 1
-  status="$(printf '%s\n' "$raw" | sed -n 's/.*->>HEADER<<-.*status: \([A-Z]*\).*/\1/p' | head -1)"
-  case "$status" in
+  local ns="$1" name="$2" type="$3" raw
+  raw="$(_idns_ask @"$ns" "$name" "$type")" || return 1
+  case "$(_idns_status "$raw")" in
     NOERROR | NXDOMAIN) ;;
     *) return 1 ;;
   esac
-  # Answer rows only: `dig +comments` prefixes every non-record line with `;`.
-  printf '%s\n' "$raw" | awk -v t="$type" '
-    /^;/ { next }
-    NF >= 5 && $4 == t { ttl = $2; $1 = ""; $2 = ""; $3 = ""; $4 = "";
-                         sub(/^[[:space:]]+/, ""); printf "%s\t%s\n", ttl, $0 }
-  '
+  printf '%s\n' "$raw" | _idns_rows "$type"
 }
 
 # infra_dns_txt_joined <ns> <name> -- TXT records with the quoting removed.
@@ -115,6 +284,22 @@ infra_dns_txt_joined() {
     gsub(/^"|"$/, "", v)
     printf "%s\t%s\n", ttl, v
   }'
+}
+
+# infra_dns_rrset <ns> <name> <type> -- one RRset as `<ttl><TAB><rdata>` per
+# record, a TXT set JOINED. Same contract as infra_dns_read: rc 1 is a read
+# that failed, rc 0 with no line a measured absence.
+#
+# THE ONE READER FOR A RECORD THE PROFILE DECLARES BY TYPE (issue 0143): a
+# sender's DKIM record, whose type the profile states, and a zone's wildcard.
+# A TXT one is compared as a resolver sees it. A DKIM key read raw kept its
+# quotes and its string splits, so every 2048-bit key -- always more than one
+# string -- read as not carrying the value it carried.
+infra_dns_rrset() {
+  case "$3" in
+    TXT) infra_dns_txt_joined "$1" "$2" ;;
+    *) infra_dns_read "$1" "$2" "$3" ;;
+  esac
 }
 
 # --- record readers shared by `check` and `init` ------------------------------

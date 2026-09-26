@@ -32,7 +32,8 @@ usage: $DEVBIN_INVOKE upgrade [--from <dir>] [--force]
   --prefix <dir> PUBLISH-UPGRADE only: the machine install to replace
                  (default: install.prefix in devbin's own config. There is no
                  built-in default -- the location is configuration, D32)
-  --force        overwrite vendored files that were edited in place
+  --force        overwrite vendored files that were edited in place, and, in
+                 an install with no manifest, replace every one unchecked
 
 Replaces bin/devbin and bin/.devbin/lib/. Never touches config.yaml, cmd/ or
 help/ -- those are yours.
@@ -72,7 +73,7 @@ _upgrade_provenance_lines() {
 # refuses when an install already exists, this refuses when one does not, so
 # whichever verb you reach for, the wrong one names the right one (hv, 2026-09-06).
 _upgrade_the_install() {
-  local srcroot="$1" prefix="$2" dstroot dirty count modified
+  local srcroot="$1" prefix="$2" dstroot dirty modified record rel states unreadable
 
   cfg_load "$DEVBIN_DIR/config.yaml" >/dev/null 2>&1 ||
     die "cannot read devbin's own config at $DEVBIN_DIR/config.yaml"
@@ -114,23 +115,87 @@ _upgrade_the_install() {
   # vendored path containing a space would split into the wrong field under
   # awk's default whitespace FS. No such path exists today, which is exactly the
   # condition under which this would be found late.
-  modified="$(manifest_check "$dstroot" 2>/dev/null | awk -F'\t' '$1 == "modified" { print $2 }' || true)"
+  # Its stderr is kept: each file it could not read is named there, with the
+  # checksum tool's reason, which the list below does not repeat. An install
+  # manifest it cannot read refuses before anything is written (issue 0144):
+  # publish carries the install's ancestry forward from it.
+  states="$(manifest_check "$dstroot")" ||
+    die "cannot read the install's manifest at $(manifest_path "$dstroot") (named above), so nothing was published"
+  modified="$(printf '%s\n' "$states" | awk -F'\t' '$1 == "modified" { print $2 }')"
   if [ -n "$modified" ]; then
     warn "this install has edited files; they are being REPLACED, not preserved:"
     printf '%s\n' "$modified" | while IFS= read -r line; do warn "  $line"; done
   fi
+  # AND ONE DEVBIN CANNOT READ IS NAMED THE SAME WAY (issue 0144). Replacing it
+  # needs no read of it -- the copy lands beside it and is renamed over it -- so
+  # this is the one writer an unreadable file does not stop, and the file is
+  # readable afterwards. What was in it is nobody's to recover, so it is said.
+  unreadable="$(printf '%s\n' "$states" | awk -F'\t' '$1 == "unreadable" { print $2 }')"
+  if [ -n "$unreadable" ]; then
+    warn "this install has files devbin cannot read; they are being REPLACED or removed, unread:"
+    printf '%s\n' "$unreadable" | while IFS= read -r line; do warn "  $line"; done
+  fi
+  # AND AN INSTALL WITH NO MANIFEST HAS NO EDIT IT CAN NAME (issue 0146): it
+  # read as none edited. Publishing replaces every file either way, so this is
+  # said rather than refused.
+  if manifest_missing "$dstroot"; then
+    warn "this install has no manifest, so an edit in it cannot be named; every file is being REPLACED unchecked"
+  fi
 
-  count="$(publish_install "$srcroot" "$dstroot" "$(devbin_runtime_version)")" ||
+  record="$(publish_install "$srcroot" "$dstroot" "$(devbin_runtime_version)")" ||
     die "failed to write the install at $dstroot"
-  printf '  replaced   %d files (bin/devbin, bin/.devbin/lib/)\n' "$count"
+  printf '  replaced   %d files (bin/devbin, bin/.devbin/lib/)\n' "$(publish_copied "$record")"
+  # What the source stopped shipping leaves the install here, or every estate
+  # vendoring from it would keep receiving it as devbin's (issue 0123).
+  while IFS= read -r rel; do
+    [ -z "$rel" ] || printf '  removed    %s (devbin no longer ships it)\n' "$rel"
+  done <<<"$(publish_removed "$record")"
   printf '  recorded   %s\n' "$(manifest_field "$dstroot" source_commit 2>/dev/null || printf 'unrecorded')"
   printf '\nThe estate still carries the OLD bytes until each project upgrades:\n'
   printf '  %s     (previews the sweep; writes nothing)\n' "$(fleet_preview_hint)"
   return 0
 }
 
+# _refuse_unreadable <dstroot> <srcroot> <paths> <entries> <dst_sums> <src_sums>
+# -- the refusal of a run that holds a file it cannot read: a line for each, in
+# the column the run's own report uses, and a closing count (issue 0144).
+#
+# THE ROWS DECIDE, THROUGH _set_sum, AND NOTHING HERE ASKS THE DISK AGAIN. A
+# shipped path whose source copy has no row cannot be added or replaced; one
+# here with no row cannot be compared, so whether it was edited is unknown; an
+# orphan here with no row cannot be told intact from edited, so neither the
+# removal nor the release may be chosen. One line per path, the source's reason
+# first: it is the one the project cannot fix by itself.
+_refuse_unreadable() {
+  local dstroot="$1" srcroot="$2" paths="$3" entries="$4" dst_sums="$5" src_sums="$6" rel src n=0
+  while IFS= read -r rel; do
+    [ -n "$rel" ] || continue
+    src="$(vendor_source_path "$srcroot" "$rel")" || continue
+    if ! _set_sum "$src_sums" "${src#"$srcroot"/}" >/dev/null; then
+      printf '  unreadable %s (the source copy cannot be read: %s)\n' "$rel" "$src"
+    elif [ -f "$dstroot/$rel" ] && ! _set_sum "$dst_sums" "$rel" >/dev/null; then
+      printf '  unreadable %s (cannot be read here, so whether it was edited cannot be told)\n' "$rel"
+    else
+      continue
+    fi
+    n=$((n + 1))
+  done <<<"$paths"
+  while IFS= read -r rel; do
+    [ -n "$rel" ] || continue
+    list_contains "$paths" "$rel" && continue
+    [ -f "$dstroot/$rel" ] || continue
+    _set_sum "$dst_sums" "$rel" >/dev/null && continue
+    printf '  unreadable %s (no longer shipped, and cannot be read here, so whether it was edited cannot be told)\n' "$rel"
+    n=$((n + 1))
+  done <<<"$entries"
+  printf '\nNothing was upgraded: %d file(s) cannot be read, and upgrade reads every file\n' "$n"
+  printf 'it compares, copies or removes before it writes one. Make each readable, then\n'
+  printf 'run it again.\n'
+}
+
 main() {
   local from="" force="" prefix="" dstroot srcroot version states paths rel src state
+  local recorded twin entries dst_sums src_sums dst_read src_read direction
   local added=0 updated=0 unchanged=0 skipped=0 removed=0 converged=0 sum_src sum_dst
   # Released files are counted inside `skipped`, whose summary line fleet
   # parses across devbin versions, AND apart, because their remedy differs.
@@ -205,6 +270,29 @@ main() {
     return 1
   }
 
+  # A MANIFEST IT CANNOT READ REFUSES THE RUN, FIRST (issue 0144). It read as
+  # none: every file's state was `new`, so an edit was overwritten unrefused,
+  # and with no --from the recorded source read as unrecorded.
+  manifest_readable "$dstroot" ||
+    die "cannot read $DEVBIN_MANIFEST_REL (named above), so what it records -- the source, and which files were edited -- is unknown; nothing was written. Make it readable, eg chmod u+r $DEVBIN_MANIFEST_REL"
+
+  # AND ONE THAT IS NOT THERE REFUSES IT TOO, UNLESS --force ACCEPTS THE LOSS
+  # (issue 0146). With no manifest every file read as new, so an edit here was
+  # overwritten at exit 0 and a fresh manifest written over it, and doctor
+  # passed the next run. --force is the flag that already means "replace an
+  # edit": with no record of which files were edited, it replaces every one,
+  # and says so. Asked before the source is looked for, so a run with no
+  # --from does not say "no source recorded" and send it to --from.
+  if manifest_missing "$dstroot"; then
+    if [ -z "$force" ]; then
+      warn "there is no manifest at $DEVBIN_MANIFEST_REL, so which vendored files were edited here cannot be told; nothing was written"
+      warn "  an upgrade would replace every vendored file unchecked, an edit included"
+      warn "  to accept that:  $DEVBIN_INVOKE upgrade --from <dir> --force"
+      warn "  or re-install:   <path-to-devbin>/bin/devbin install --into $dstroot --force"
+      return 1
+    fi
+  fi
+
   if [ -n "$from" ]; then
     srcroot="$(cd "$from" 2>/dev/null && pwd)" || die "no such directory: $from"
   else
@@ -222,6 +310,41 @@ main() {
     warn "  name a different one with:  $DEVBIN_INVOKE upgrade --from <dir>"
     return 1
   }
+
+  # Said once the source is known to be one, so a --force run that then dies
+  # on its --from has not announced a replacement it never made (critic-shell).
+  if manifest_missing "$dstroot"; then
+    warn "there is no manifest at $DEVBIN_MANIFEST_REL: --force replaces every vendored file unchecked, an edit included"
+  fi
+
+  paths="$(vendored_paths "$srcroot")" ||
+    die "cannot list what devbin ships from $srcroot (the error above names it)"
+
+  # EVERY FILE THIS RUN MUST READ IS READ BEFORE ONE IS WRITTEN, AND ONE IT
+  # CANNOT READ REFUSES THE RUN (issue 0144): each file the source ships, which
+  # is compared and copied; each here, which is compared; and each the manifest
+  # records, since an orphan is removed or released on its checksum. The loop
+  # below checksummed file by file as it went, so an unreadable source file
+  # ended it partway -- measured, one file replaced under the old manifest, and
+  # doctor then called that file edited in place. It could not skip the one file
+  # and carry on either: that leaves a runtime of mixed versions, which doctor
+  # passes when the unreadable copy is the source's, and a copy the manifest
+  # never recorded has no checksum to carry, so the manifest write would refuse
+  # after the copies. The same rows are the loop's checksums below.
+  entries=""
+  if [ -f "$(manifest_path "$dstroot")" ]; then
+    entries="$(manifest_entries "$dstroot" | cut -f2)" ||
+      die "cannot read the manifest in $dstroot (named above), so the files it records cannot be checked"
+  fi
+  dst_read=yes
+  src_read=yes
+  dst_sums="$(_sha256_of_set "$dstroot" "$paths
+$entries")" || dst_read=""
+  src_sums="$(_sha256_of_set "$srcroot" "$(_source_rels "$srcroot" "$paths")")" || src_read=""
+  if [ -z "$dst_read" ] || [ -z "$src_read" ]; then
+    _refuse_unreadable "$dstroot" "$srcroot" "$paths" "$entries" "$dst_sums" "$src_sums"
+    return 1
+  fi
 
   # WHICH WAY THIS IS ABOUT TO MOVE, said BEFORE anything is written. Upgrade
   # syncs from the source unconditionally, so pointing `--from` at an older
@@ -243,7 +366,14 @@ main() {
   # the same command four lines later. A loud line that fires when nothing will
   # change is how the loud line stops being read, and this one guards a real
   # defect (0021) that needs to be heard.
-  case "$(source_direction "$dstroot" "$srcroot")" in
+  #
+  # NOT OVER A MISSING MANIFEST (issue 0146, critic-shell). Only --force gets
+  # here then, and the line above has said all that is true: with nothing
+  # recorded the direction is `unknown`, seam_is_level fails closed on it, and
+  # the `unknown` arm would send the reader to `vendor`, which refuses it.
+  direction=unrecorded
+  manifest_missing "$dstroot" || direction="$(source_direction "$dstroot" "$srcroot")"
+  case "$direction" in
     backward)
       if seam_is_level "$dstroot" "$srcroot"; then
         warn "this source is BEHIND what is vendored here, but NO vendored file would change"
@@ -279,15 +409,31 @@ main() {
   esac
 
   version="$(devbin_version_of "$srcroot")"
-  states="$(manifest_check "$dstroot")"
-  paths="$(vendored_paths "$srcroot")"
+  states="$(manifest_check "$dstroot")" ||
+    die "the manifest stopped being readable after upgrade read it (named above); nothing was written -- run it again"
+  # Every file was read above, so an unreadable state here is one that changed
+  # in between. Refused before the first write, since the loops below act on a
+  # state and would copy over or remove a file nobody read (critic-shell).
+  if printf '%s\n' "$states" | grep -q '^unreadable	'; then
+    die "a file here stopped being readable after upgrade read it (named above); nothing was written -- run it again"
+  fi
 
   printf 'Upgrading from %s (devbin %s)\n\n' "$srcroot" "$version"
+
+  # Every path the manifest records, for case_twin below (issue 0140).
+  recorded="$(printf '%s\n' "$states" | cut -f2)"
 
   while IFS= read -r rel; do
     [ -n "$rel" ] || continue
     src="$(vendor_source_path "$srcroot" "$rel")" || continue
     state="$(manifest_state_of "$states" "$rel")"
+    # A PATH SHIPPED UNDER A NEW CASE IS RECORDED UNDER ITS OLD ONE (issue
+    # 0140), and on a case-insensitive disk the two are one file. It takes the
+    # old spelling's state, so an edit to it is refused as an edit, where it
+    # read as `new` and was overwritten as a file devbin had never shipped.
+    if [ "$state" = new ] && twin="$(case_twin "$recorded" "$dstroot" "$rel")"; then
+      state="$(manifest_state_of "$states" "$twin")"
+    fi
 
     if [ ! -f "$dstroot/$rel" ]; then
       copy_vendored "$src" "$dstroot/$rel" || die "failed to write $dstroot/$rel"
@@ -306,8 +452,13 @@ main() {
     #
     # Nothing is written on this path either way, so reordering cannot cost a
     # file: the two branches differ only in what the MANIFEST ends up recording.
-    sum_src="$(sha256_of "$src")"
-    sum_dst="$(sha256_of "$dstroot/$rel")"
+    #
+    # The sums are the rows read before anything was written, above, so the
+    # comparison and the refusal cannot disagree about a file (issue 0144).
+    sum_src="$(_set_sum "$src_sums" "${src#"$srcroot"/}")" ||
+      die "no checksum for $src, which was read before this run wrote anything"
+    sum_dst="$(_set_sum "$dst_sums" "$rel")" ||
+      die "no checksum for $dstroot/$rel, which was read before this run wrote anything"
     if [ "$sum_src" = "$sum_dst" ]; then
       # DELIBERATELY NOT added to `preserved`: the checksum computed from disk
       # is now the canonical one, and recording it IS the heal. Preserving here
@@ -344,6 +495,10 @@ EOF
     state="${rel%%	*}"
     rel="${rel#*	}"
     list_contains "$paths" "$rel" && continue
+    # NOT RETIRED WHEN IT IS A SHIPPED FILE UNDER ANOTHER CASE (issue 0140): on
+    # a case-insensitive disk it is the file the loop above just updated, and
+    # removing it deleted that. It is renamed to the shipped spelling instead.
+    keep_case_twin "$paths" "$dstroot" "$rel" && continue
     case "$state" in
       missing) continue ;;
       modified)

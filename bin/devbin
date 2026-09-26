@@ -86,15 +86,31 @@ case "${1:-}" in
   # TWO EXEMPTIONS, BOTH BY DEFINITION RATHER THAN BY CONCESSION.
   #   install     -- its target is `--into <dir>`, defaulting to the CURRENT
   #                  directory, so acting outside its own tree IS the job.
-  #   shell-init  -- emits a static shell function to stdout. It reads nothing
-  #                  from PROJECT_ROOT and writes nothing, and it is run from a
-  #                  shell rc where the cwd is $HOME by definition.
+  #   shell-init  -- emits a shell function to stdout. It writes nothing, reads
+  #                  only its own project's install.prefix (issue 0125), and is
+  #                  run from a shell rc where the cwd is $HOME by definition.
   # Everything else writes to or reports on PROJECT_ROOT, `upgrade` and `vendor`
   # included -- their `--from` names a SOURCE, not a target.
   #   -v/--version/version, and the same behind the framework word `devbin`
   #               -- from an INSTALL these report what devbin is installed, and
   #                  an install has no project for the guard to protect.
-  install | shell-init | -v | --version | version) _devbin_wrong_tree_check=no ;;
+  #
+  # THAT REASON COVERS REPORTING A VERSION, NOT WRITING ONE (issue 0124). The
+  # exemption used to take `version` whatever followed it, so from a foreign cwd
+  # `version bump patch` moved a project's VERSION from 1.2.3 to 1.2.4 at rc 0,
+  # and dvb's DEVBIN_SOURCE fallback reaches exactly that path. So `version` is
+  # exempt only in the forms that write nothing: alone, `show`, `check` and its
+  # help. `set`, `bump` and `sync` write the version file and every sidecar and
+  # are guarded like any other writing verb. The list names what may PASS, so a
+  # writing sub-command added later is guarded by default. `-v`, `--version`
+  # and `devbin version` only report, whatever follows them.
+  install | shell-init | -v | --version) _devbin_wrong_tree_check=no ;;
+  version)
+    case "${2:-}" in
+      "" | show | check | -h | --help) _devbin_wrong_tree_check=no ;;
+      *) _devbin_wrong_tree_check=yes ;;
+    esac
+    ;;
   devbin) case "${2:-}" in -v | --version | version) _devbin_wrong_tree_check=no ;; *) _devbin_wrong_tree_check=yes ;; esac ;;
   *) _devbin_wrong_tree_check=yes ;;
 esac
@@ -225,11 +241,12 @@ if [ ! -f "$DEVBIN_DIR/config.yaml" ]; then
     unset _devbin_vq
 
     # `shell-init` is exempt for the same reason the wrong-tree guard exempts it:
-    # it emits a static shell function to stdout, reads nothing from
-    # PROJECT_ROOT and writes nothing. Missed on the first cut, and it was the
-    # one verb hv needed from the install -- regenerating `dvb` so the fallback
-    # to the install exists at all. An install that cannot emit the function
-    # that finds it is a bootstrap that cannot bootstrap.
+    # it emits a shell function to stdout and writes nothing, and from an
+    # install it reads only the manifest that says it is one. Missed on the
+    # first cut, and it was the one verb hv needed from the install --
+    # regenerating `dvb` so the fallback to the install exists at all. An
+    # install that cannot emit the function that finds it is a bootstrap that
+    # cannot bootstrap.
     case "${1:-}" in
       install | shell-init) _devbin_install_ok=yes ;;
       *) _devbin_install_ok=no ;;
@@ -383,6 +400,11 @@ unset _devbin_referent_cmd
 # was quoted into issue 0055 as the blocker, and 0055 sat unfixed and escalated
 # on the strength of it. Two comments disagreeing about one function is benign
 # until somebody acts on the wrong one.
+# ONE FORMAT, TWO STATEMENTS, HELD BY A TEST: lib/runlog's run_id_mint mints
+# the same id for a witness run started inside a process (issue 0135), and it
+# cannot be sourced from here, which runs before lib/ is found and must parse
+# under bash 3.2. contract.bats's mint-pair arm holds the two lines to one
+# format, $$ here and $BASHPID there.
 # NO HASH AND NO EXTERNAL TOOL. The pid is unique among live processes and the
 # clock separates reuses of it, so eight hex of the two is an identifier without
 # a dependency -- and this runs before lib/helpers is in scope, where
@@ -402,10 +424,12 @@ unset _devbin_referent_cmd
 # environment, so both are part of that run. The seal ledger reads this same
 # answer through the id (lib/runlog, record_seal): one definition, two readers.
 #
-# ACCEPTED, NOT OVERLOOKED: `devbin dormancy` starts both of its `test rust` legs
-# as witness runs, so each carries its own id rather than dormancy's. Those legs
-# are exactly "not this gate's verdict", which is what the boundary marks; the
-# comparison dormancy prints is where they are read together.
+# ACCEPTED, NOT OVERLOOKED: `devbin dormancy` runs both of its legs as witness
+# runs, so each carries its own id rather than dormancy's. Those legs are
+# exactly "not this gate's verdict", which is what the boundary marks; the
+# comparison dormancy prints is where they are read together. Since issue 0135
+# the legs run inside dormancy's process rather than as child devbins, so they
+# mint their ids by this rule through lib/runlog's run_id_mint.
 if [ -z "${DEVBIN_RUN_ID:-}" ] ||
   { [ "${RUNLOG_WITNESS_RUN:-}" = 1 ] && [ "${DEVBIN_RUN_WITNESS:-}" != 1 ]; }; then
   DEVBIN_RUN_ID="$(printf '%04x%04x' "$(($$ & 0xffff))" "$(($(date +%s) & 0xffff))")"
@@ -509,31 +533,6 @@ export DEVBIN_VERSION_SIDECARS
 DEVBIN_LANGUAGES="$(project_languages)"
 export DEVBIN_LANGUAGES
 
-# How `check format` may treat each declared language's fmt arm, computed here
-# because the gate handler cannot read config (same reason as every export
-# above) and the catalogue is only HALF the answer: config can switch an arm
-# off (`enabled: false`) or replace what it runs (`run:`), and a gate deriving
-# its check from the catalogue alone then verifies a command line the
-# formatter no longer runs -- same name, same green, different fact (delta
-# review, findings 5 and 10). Languages with no fmt arm anywhere get no entry.
-#
-#   <lang>=builtin      the catalogue governs; the gate derives the check form
-#   <lang>=overridden   config replaces `fmt <lang>`; the gate cannot derive
-#   <lang>=disabled     the project switched the arm off; the gate skips it
-DEVBIN_FMT_ARMS="$(
-  for _dl in $DEVBIN_LANGUAGES; do
-    builtin_has_default_run fmt "$_dl" || option_declared fmt "$_dl" || continue
-    if ! option_active fmt "$_dl"; then
-      printf '%s=disabled ' "$_dl"
-    elif [ -n "$(cfg_get "commands.fmt.options.$_dl.run")" ]; then
-      printf '%s=overridden ' "$_dl"
-    else
-      printf '%s=builtin ' "$_dl"
-    fi
-  done
-)"
-export DEVBIN_FMT_ARMS
-
 
 # THE VENDORED RUNTIME MAY HAVE MOVED ON, OR BEHIND. Once a day, on a terminal only, to
 # stderr, never fatal -- see devbin_update_notice in lib/helpers for why each of
@@ -624,6 +623,56 @@ case "$command" in
     ;;
 esac
 
+# How `check format` may treat each declared language's fmt arm, computed here
+# because the gate handler cannot read config (same reason as every export
+# above) and the catalogue is only HALF the answer: config can switch an arm
+# off (`enabled: false`) or replace what it runs (`run:`), and a gate deriving
+# its check from the catalogue alone then verifies a command line the
+# formatter no longer runs -- same name, same green, different fact (delta
+# review, findings 5 and 10). Languages with no fmt arm anywhere get no entry.
+#
+#   <lang>=builtin      the catalogue governs; the gate derives the check form
+#   <lang>=overridden   the project runs `fmt <lang>` -- config's own `run:` for
+#                       it, or the project owning `fmt` by a handler or a
+#                       command-level `run:` -- so the gate cannot derive
+#   <lang>=disabled     the project switched the arm off; the gate skips it
+#
+# WHAT `fmt <lang>` RUNS IS option_leaf's ANSWER (issue 0128), the dispatcher's
+# own route followed to its end. This block asked option_active and the
+# option's `run:` itself, which never saw the project owning `fmt` whole: under
+# a handler the arm read `disabled`, so the gate passed with a reason that was
+# not true, and under a command-level `run:` it read `builtin`, so the gate
+# verified a command line `fmt` no longer ran.
+#
+# An `@builtin` arm (`fmt swift`) has no command line, so it gets no entry
+# unless the project declares it -- and no entry already reads as `builtin` in
+# the gate (_fmt_arm_state, lib/cmd/check), which is what it is. Measured when
+# issue 0117 stopped builtin_has_default_run counting `@builtin`: `check format`
+# printed the same bytes either way -- with the swift arm undeclared, with it
+# disabled, and with all of fmt switched off.
+#
+# COMPUTED ONLY FOR `check`, its one reader, and once the command is known, as
+# DEVBIN_ACTIVE_* above is. Asking option_leaf per language measured 82 ms a
+# dispatch against 50 for the block it replaced, for a project declaring elixir
+# and rust, under the load of two suites (issue 0128), and every other command
+# paid for an answer only `check` reads.
+#
+# Built in THIS shell, not in a command substitution, so a state that cannot be
+# decided stops the dispatch by name instead of dying inside a subshell and
+# leaving the arm out (fmt_arm_state, lib/resolve).
+case "$command" in
+  check)
+    DEVBIN_FMT_ARMS=""
+    for _dl in $DEVBIN_LANGUAGES; do
+      builtin_has_default_run fmt "$_dl" || option_declared fmt "$_dl" || continue
+      _state="$(fmt_arm_state "$_dl")" || die "devbin defect: fmt_arm_state gave no answer for '$_dl'"
+      DEVBIN_FMT_ARMS="$DEVBIN_FMT_ARMS$_dl=$_state "
+    done
+    unset _dl _state
+    export DEVBIN_FMT_ARMS
+    ;;
+esac
+
 command_active "$command" || {
   # Distinguish "never heard of it" from "switched off here". A command that is
   # silently absent is indistinguishable from one that is broken, and the second
@@ -638,73 +687,80 @@ command_active "$command" || {
   exit 2
 }
 
-# `all` is synthesised (D8) over the options devbin can see -- config-declared
-# ones compose with a project handler (each dispatches INTO it), so a handler
-# command with declared options keeps the sweep, and `all` stays reserved
-# there: a sub-handler named all cannot thin it out (AC-04.13). But a total
-# shadow that declares NO options owns its whole argument list (D2, AC-04.4),
-# `all` included -- `which all` and `docs all` are real corpus invocations
-# whose meaning lives in the handler (WP-10). Only that shape falls through.
-if [ "${1:-}" = all ]; then
-  if ! has_project_handler "$command" || [ -n "$(command_options "$command")" ]; then
-    shift
-    run_all "$command" "$@"
-    exit $?
-  fi
+# AN ENVIRONMENT THE CATALOGUE SAYS A BUILT-IN REFUSES IS REFUSED HERE, before
+# `all`, any option or the command line runs (issue 0132). `db` refuses
+# MIX_ENV=prod, and until 0132 that check sat inside lib/cmd/db, which only the
+# lines devbin ships reach: a line the project declared ran under prod. The
+# refusal is about where the command points, not about whose line it runs, so
+# it is asked once, here. A project handler is the one way past it
+# (command_env_refusal in lib/resolve).
+if refusal="$(command_env_refusal "$command")"; then
+  die "$refusal"
 fi
 
-# A declared option routes through run_option so the declarative and handler
-# shapes stay one path. Anything else goes straight to the handler.
-if [ $# -gt 0 ] && option_declared "$command" "$1"; then
-  opt="$1"
-  shift
-  if ! option_active "$command" "$opt"; then
-    # The same explanation an UNdeclared inactive option gets, below. Splitting
-    # these produced two different answers to one question: a declared-then-
-    # disabled option said "is not active in this project" and exited 1, while
-    # an identical built-in said "it is disabled in <file>" and exited 2. D11
-    # asks for deactivation to be visible, and visible has to mean the same
-    # thing wherever the option came from.
-    if reason="$(option_unavailable_reason "$command" "$opt")"; then
-      warn "'$DEVBIN_INVOKE $command $opt' is not available here: $reason"
+# THE ROUTE IS arg_route's (lib/resolve), asked once and acted on here (issue
+# 0128). It states the dispatch order for an argument list in one place -- `all`
+# over the options there are, or refused over a run: line with none, a declared
+# option, a deactivated one, the project's handler, then run_command -- and
+# help's option_origin and check's fmt arms ask the same function through
+# option_leaf, as fullcycle and dormancy will once 0134 and 0135 land, so no
+# reader of it can describe a route this file does not take. arg_route's comment
+# says where `all` is devbin's, and why it is refused over a command-level run:
+# with no options.
+route="$(arg_route "$command" "$@")" || die "devbin defect: arg_route gave no answer for '$command'"
+# THE ROUTE'S WORD, for the three routes that name one (all, inactive, option):
+# the argument route_word_at names, the same one arg_route asked, taken out,
+# with everything before and after it kept in order (`test --purge all`,
+# `rq --purge one`).
+word=""
+wargs=("$@")
+at="$(route_word_at "$command" "$@")"
+if [ "$at" -gt 0 ]; then
+  word="${!at}"
+  wargs=("${@:1:at-1}" "${@:at+1}")
+fi
+case "$route" in
+  all)
+    run_all "$command" ${wargs[@]+"${wargs[@]}"}
+    exit $?
+    ;;
+  inactive)
+    # One explanation, whether config declared the option or devbin shipped it.
+    # Splitting these produced two different answers to one question: a
+    # declared-then-disabled option said "is not active in this project" and
+    # exited 1, while an identical built-in said "it is disabled in <file>" and
+    # exited 2. D11 asks for deactivation to be visible, and visible has to mean
+    # the same thing wherever the option came from.
+    if reason="$(option_unavailable_reason "$command" "$word")"; then
+      warn "'$DEVBIN_INVOKE $command $word' is not available here: $reason"
     else
-      warn "option '$command $opt' is not active in this project"
+      warn "option '$command $word' is not active in this project"
     fi
     exit 2
-  fi
-  run_option "$command" "$opt" "$@"
-  exit $?
-fi
+    ;;
+  option)
+    run_option "$command" "$word" ${wargs[@]+"${wargs[@]}"}
+    exit $?
+    ;;
+  handler)
+    handler="$(resolve_handler "$command")" || die "no runnable handler for '$command'"
+    # The handler is a separate process and `$0` is its own path, which for a
+    # config-mapped handler is not the command name -- bin/.devbin/cmd/myls serving
+    # `ls` would otherwise have no way to know it was called as `ls`. Telling it
+    # explicitly costs one export and keeps identity coming from the dispatcher
+    # rather than from a filename, which is the same rule D2 applies to the
+    # project name.
+    export DEVBIN_COMMAND="$command"
+    exec_handler "$handler" "$@"
+    ;;
+  command) ;;
+  *) die "devbin defect: arg_route answered '$route' for '$command'" ;;
+esac
 
-# Before handing an unrecognised option to the handler, check whether devbin
-# itself deactivated it. Falling through would report a shipped built-in as an
-# unknown option, which reads as a typo rather than as configuration (D11).
-if [ $# -gt 0 ]; then
-  if reason="$(option_unavailable_reason "$command" "$1")"; then
-    warn "'$DEVBIN_INVOKE $command $1' is not available here: $reason"
-    exit 2
-  fi
-fi
-
-# A PROJECT handler shadows totally (D2, AC-04.4), so it is the only thing
-# resolved here. Everything else -- config's own `run:`, devbin's own lib/cmd
-# handler, the catalogue default -- is run_command's, in that order.
-#
-# The split matters. Resolving lib/cmd/<command> here as well put devbin's OWN
-# handler ahead of the project's `run:`, which is backwards and is exactly the
-# bug that bit run_option: a built-in swallowed something config plainly
-# declared. One order, expressed once, at both levels.
-if has_project_handler "$command"; then
-  handler="$(resolve_handler "$command")" || die "no runnable handler for '$command'"
-  # The handler is a separate process and `$0` is its own path, which for a
-  # config-mapped handler is not the command name -- bin/.devbin/cmd/myls serving
-  # `ls` would otherwise have no way to know it was called as `ls`. Telling it
-  # explicitly costs one export and keeps identity coming from the dispatcher
-  # rather than from a filename, which is the same rule D2 applies to the
-  # project name.
-  export DEVBIN_COMMAND="$command"
-  exec_handler "$handler" "$@"
-fi
-
+# Everything else -- config's own `run:`, devbin's own lib/cmd handler, the
+# catalogue default -- is run_command's, in command_tier's order. Resolving
+# lib/cmd/<command> here as well once put devbin's OWN handler ahead of the
+# project's `run:`, which is backwards and is exactly the bug that bit
+# run_option: a built-in swallowed something config plainly declared.
 run_command "$command" "$@"
 exit $?

@@ -93,7 +93,7 @@ check_runtime() {
 
 # check_config -- present, parses, and validates against the schema.
 check_config() {
-  local file="$DEVBIN_DIR/config.yaml" line
+  local file="$DEVBIN_DIR/config.yaml" line errors
   if [ ! -f "$file" ]; then
     _fail "config: no config.yaml at $file"
     _detail "fix: devbin install --into $PROJECT_ROOT"
@@ -108,9 +108,16 @@ check_config() {
     _detail "run: bin/devbin help    to see the parse error in full"
     return 0
   fi
-  if ! cfg_validate >/dev/null 2>&1; then
+  # CAPTURED IN AN if, NEVER PIPED (issue 0120). The report used to be
+  # `cfg_validate 2>&1 >/dev/null | while ...`, and under pipefail that
+  # pipeline took cfg_validate's status -- 1, on the very failure it was
+  # reporting -- so errexit ended doctor there: exit 1, every later check
+  # unreached, no count. The status is read here, where errexit does not act.
+  if ! errors="$(cfg_validate 2>&1 >/dev/null)"; then
     _fail "config: $file has keys or values the schema does not know"
-    cfg_validate 2>&1 >/dev/null | while IFS= read -r line; do _detail "$line"; done
+    while IFS= read -r line; do
+      [ -z "$line" ] || _detail "$line"
+    done <<<"$errors"
     return 0
   fi
   _pass "config: bin/.devbin/config.yaml parses and validates"
@@ -134,6 +141,84 @@ check_release() {
   command_active release && return 0
   _note "release: a release: block is declared and inert -- release is not enabled here"
   _detail "enable it with commands.release.enabled: true, or remove the block"
+  return 0
+}
+
+# check_log_keys -- every `log:` in config sits where something reads it
+# (issue 0133).
+#
+# `log:` is read in two places only: beside an option's own `run:`, which
+# run_option seals under it, and on a command whose own line runs -- config's
+# `commands.<cmd>.run`, or the catalogue's -- which run_command seals under it.
+# Everywhere else a handler runs the command, devbin's or the project's, and
+# seals as it seals, whatever the key says. The key still validates, since
+# validation is schema-only, and until 0133 nothing said that nothing read it:
+# check.md and test.md told a reader that `log: false` alone ran a shipped
+# option unsealed.
+#
+# A FAILURE, NOT A NOTE: the project asked for a seal, or for none, and does not
+# get it. Measured before it shipped: every one of the 60 `log:` keys across the
+# 17 estates on 2026-09-24 is read, so no estate turns red on this.
+#
+# WHETHER A RUN READS THE KEY IS command_tier's AND option_run_tier's ANSWER
+# (issue 0128), the orders run_command and run_option act on, so this cannot
+# call a key dead that a run reads, or read one a run ignores. A config that
+# does not load returns quietly, as check_release does: check_config fails it.
+check_log_keys() {
+  local cmd opt n=0 dead=0 why suffix
+  local -a lines=()
+  cfg_load "$DEVBIN_DIR/config.yaml" >/dev/null 2>&1 || return 0
+  for cmd in $(cfg_list commands); do
+    if cfg_has "commands.$cmd.log"; then
+      n=$((n + 1))
+      why=""
+      case "$(command_tier "$cmd")" in
+        run | catalogue) ;;
+        devbin) why="devbin's own $cmd runs, from lib/cmd/$cmd, and seals as it seals -- declare commands.$cmd.run for a line of the project's own" ;;
+        handler | mapped) why="the project's handler runs $cmd and seals as it seals" ;;
+        *) why="$cmd has no line of its own to seal -- declare commands.$cmd.run beside it" ;;
+      esac
+      if [ -n "$why" ]; then
+        dead=$((dead + 1))
+        lines+=("commands.$cmd.log: $why")
+      fi
+    fi
+    for opt in $(cfg_list "commands.$cmd.options"); do
+      cfg_has "commands.$cmd.options.$opt.log" || continue
+      n=$((n + 1))
+      why=""
+      case "$(option_run_tier "$cmd" "$opt")" in
+        option-run) ;;
+        catalogue)
+          suffix="$(builtin_option_suffix "$cmd" "$opt" 2>/dev/null || true)"
+          if [ -n "$suffix" ] && ! is_no_default "$suffix"; then
+            why="devbin's own $cmd $opt seals under $suffix whatever this says -- declare its run: beside it to change the seal"
+          else
+            why="devbin's own $cmd $opt runs as it ships whatever this says -- declare its run: beside it to seal a line of the project's own"
+          fi
+          ;;
+        handler | mapped) why="the project's handler runs $cmd $opt and seals as it seals" ;;
+        run) why="commands.$cmd.run runs $cmd $opt, sealed by commands.$cmd.log -- declare the option's own run: to seal it apart" ;;
+        *) why="nothing runs $cmd $opt -- declare its run:" ;;
+      esac
+      if [ -n "$why" ]; then
+        dead=$((dead + 1))
+        lines+=("commands.$cmd.options.$opt.log: $why")
+      fi
+    done
+  done
+  if [ "$n" -eq 0 ]; then
+    _pass "log: no log: key declared"
+    return 0
+  fi
+  if [ "$dead" -eq 0 ]; then
+    _pass "log: $n key(s), each where a run reads it"
+    return 0
+  fi
+  _fail "log: $dead of $n key(s) read by nothing"
+  for why in "${lines[@]}"; do
+    _detail "$why"
+  done
   return 0
 }
 
@@ -196,24 +281,54 @@ check_devbin_version() {
     _pass "devbin_version: $have satisfies $want"
   else
     _fail "devbin_version: running $have, this project asks for $want"
-    _detail "fix: bin/devbin upgrade    or relax devbin_version in config.yaml"
+    # An install with no manifest runs `unknown`, and a plain upgrade refuses
+    # it: the fix is the manifest check's, below (issue 0146, critic-shell).
+    if manifest_missing "$PROJECT_ROOT"; then
+      _detail "fix: see manifest below -- the runtime's version is read from the manifest, and there is none"
+    else
+      _detail "fix: bin/devbin upgrade    or relax devbin_version in config.yaml"
+    fi
   fi
   return 0
 }
 
 # check_manifest -- every vendored file still as devbin left it.
+#
+# A FILE DEVBIN CANNOT READ FAILS HERE BY NAME, AND THE LIST GOES ON (issue
+# 0144). The checksum pass under manifest_check reported success over a file it
+# could not read, and under errexit its failure ended doctor at this check: no
+# manifest line, none of the checks after it, and no count -- issue 0120's
+# shape, with the checksum tool's own line the only word. manifest_check now
+# reports such a file as `unreadable` and returns 0, so this is one FAIL like
+# any other and every later check runs and is counted. Over a MANIFEST it
+# cannot read it returns 1, and that is a FAIL of its own, below.
 check_manifest() {
-  local states bad=0 state rel line
+  local states bad=0 unread=0 state rel line
   if ! is_devbin_installed "$PROJECT_ROOT"; then
     _note "manifest: none -- this is a devbin checkout, not an install"
     return 0
   fi
-  if [ ! -f "$PROJECT_ROOT/$DEVBIN_MANIFEST_REL" ]; then
-    _fail "manifest: $DEVBIN_MANIFEST_REL is missing"
-    _detail "fix: re-install to write one, or upgrade --from <dir>"
+  # AN INSTALL WITH NO MANIFEST IS UNCHECKED, NEVER CLEAN (issue 0146). The
+  # remedy this named, `upgrade --from <dir>`, was the damage: with no manifest
+  # every file read as new, so upgrade overwrote an edit at exit 0 and wrote a
+  # fresh manifest over it, and this check passed the next run. upgrade now
+  # refuses it, so the remedy names the flag that accepts the loss.
+  if manifest_missing "$PROJECT_ROOT"; then
+    _fail "manifest: $DEVBIN_MANIFEST_REL is missing, so no vendored file can be checked"
+    _detail "whether one was edited here cannot be told, and upgrade refuses to run until there is a manifest"
+    _detail "fix: $DEVBIN_INVOKE upgrade --from <dir> --force, or <path-to-devbin>/bin/devbin install --into $PROJECT_ROOT --force"
+    _detail "     each replaces every vendored file, an edit included"
     return 0
   fi
-  states="$(manifest_check "$PROJECT_ROOT")"
+  # A MANIFEST DOCTOR CANNOT READ FAILS BY NAME, AND THE LIST GOES ON (issue
+  # 0144). It read as a manifest of no entries, and this passed `0 vendored
+  # files intact`. Nothing it records can be checked, and the unowned check
+  # needs what it records, so both end here, as for a missing one.
+  if ! states="$(manifest_check "$PROJECT_ROOT")"; then
+    _fail "manifest: $DEVBIN_MANIFEST_REL cannot be read (named above), so no vendored file can be checked"
+    _detail "make it readable, eg chmod u+r $DEVBIN_MANIFEST_REL"
+    return 0
+  fi
   while IFS= read -r line; do
     [ -n "$line" ] || continue
     state="${line%%	*}"
@@ -229,6 +344,12 @@ check_manifest() {
         bad=$((bad + 1))
         _detail "missing: $rel"
         ;;
+      unreadable)
+        [ "$bad" -eq 0 ] && _fail "manifest: vendored files cannot be read"
+        bad=$((bad + 1))
+        unread=$((unread + 1))
+        _detail "unreadable: $rel"
+        ;;
     esac
   done <<EOF
 $states
@@ -236,7 +357,14 @@ EOF
   if [ "$bad" -eq 0 ]; then
     _pass "manifest: $(printf '%s\n' "$states" | grep -c . || true) vendored files intact"
   else
-    _detail "an edit here is lost on the next upgrade --force; move it into cmd/ instead"
+    # Each remedy only where it is true: an unreadable file was not edited, and
+    # upgrade --force does not reach it -- upgrade refuses to run while one is.
+    if [ "$bad" -gt "$unread" ]; then
+      _detail "an edit here is lost on the next upgrade --force; move it into cmd/ instead"
+    fi
+    if [ "$unread" -gt 0 ]; then
+      _detail "devbin can neither check nor upgrade a file it cannot read: make each readable, eg chmod u+r <file>"
+    fi
   fi
   _check_unowned "$states"
   return 0
@@ -254,8 +382,18 @@ EOF
 # A NOTE, not a failure: nothing is broken, and a project that put something
 # there may have meant to. What was wrong was that nothing ever said so.
 _check_unowned() {
-  local states="$1" f rel owned unowned=0
+  local states="$1" f rel owned files unowned=0
   [ -d "$DEVBIN_LIB" ] || return 0
+  # WHAT find CANNOT LIST IS A FAILURE, SAID (issue 0127). This read
+  # `$(find "$DEVBIN_LIB" -type f 2>/dev/null | sort)` inside the heredoc
+  # below, so a directory doctor could not read was a directory with nothing
+  # unowned in it, reported by saying nothing. Read whole first, in an if,
+  # because under errexit a bare failed assignment would end doctor instead
+  # (issue 0120's class); find's own error stays on stderr to name the path.
+  if ! files="$(find_walk "$DEVBIN_LIB" -type f -print)"; then
+    _fail "unowned: could not list all of bin/.devbin/lib (the error above names it), so files devbin does not own there are unchecked"
+    return 0
+  fi
   # The owned set, extracted ONCE, and then tested WITHOUT a pipe.
   #
   # This was `printf '%s\n' "$states" | grep -q "<TAB>$rel$" && continue`, and
@@ -283,7 +421,7 @@ _check_unowned() {
     unowned=$((unowned + 1))
     _detail "$rel"
   done <<EOF
-$(find "$DEVBIN_LIB" -type f 2>/dev/null | LC_ALL=C sort)
+$(printf '%s\n' "$files" | LC_ALL=C sort)
 EOF
   [ "$unowned" -gt 0 ] && _detail "delete them, or move them to bin/.devbin/cmd/ where they are yours"
   return 0
@@ -310,23 +448,28 @@ EOF
   _pass "commands: $count offered, all resolve"
   if [ -n "$dead" ]; then
     _note "offered with nothing to run:$dead"
-    _detail "each needs commands.<name>.run, or a handler in bin/.devbin/cmd/"
+    # EACH NAME GETS ITS OWN REMEDY, in unrunnable_why's words, which are the
+    # refusal's and `help --why`'s (issue 0128). One generic remedy for the list
+    # said "declare a run: or add a handler" to a built-in whose devbin handler
+    # is missing from the install (0117), where the right advice is to find out
+    # what else is missing. Only a built-in can be listed here: a command devbin
+    # does not ship is active only with something behind it.
+    for cmd in $dead; do
+      _detail "$cmd: $(unrunnable_why "$cmd")"
+    done
   fi
   return 0
 }
 
 # _command_runnable <cmd> -- would this do anything if someone typed it?
 #
-# The same five sources run_command consults, asked in the same order. Asking
-# differently here would let doctor bless a command the dispatcher refuses.
+# command_tier's answer, the order run_command acts on (issue 0128). Asking
+# differently here would let doctor bless a command the dispatcher refuses, and
+# this function spelled the five sources out itself until 0128.
 _command_runnable() {
-  local cmd="$1"
-  has_project_handler "$cmd" && return 0
-  cfg_has "commands.$cmd.run" && return 0
-  is_handler "${DEVBIN_LIB:-}/cmd/$cmd" && return 0
-  builtin_has_default_run "$cmd" 2>/dev/null && return 0
-  [ -n "$(command_options "$cmd")" ] && return 0
-  return 1
+  local tier
+  tier="$(command_tier "$1")" || die "devbin defect: command_tier gave no answer for '$1'"
+  [ "$tier" != none ]
 }
 
 # check_shadowing -- project names standing where devbin ships its own (0024).
@@ -389,7 +532,10 @@ _shadow_hits() {
   local cmd opt run
   while IFS= read -r cmd; do
     [ -n "$cmd" ] || continue
-    if has_project_handler "$cmd" || cfg_has "commands.$cmd.run"; then
+    # A NAME devbin ships with nothing behind it is filled, not shadowed (issue
+    # 0136): `commands.precommit.run` was reported as shadowing the built-in
+    # when devbin has no line, no handler and no option for precommit to lose.
+    if project_owns_command "$cmd" && _ships_behind_name "$cmd"; then
       printf '%s\n' "$cmd"
     fi
     # Only options devbin actually IMPLEMENTS can be shadowed. A catalogue row
@@ -409,6 +555,15 @@ OPTS
 $(builtin_commands)
 CMDS
   return 0
+}
+
+# _ships_behind_name <command> -- true when devbin ships something a project
+# taking the command over would displace: a command line, a handler of its own,
+# or an option. False for a name-only built-in (D18 tier 4) such as precommit.
+_ships_behind_name() {
+  builtin_has_default_run "$1" && return 0
+  [ -x "$DEVBIN_LIB/cmd/$1" ] && return 0
+  [ -n "$(builtin_options_for "$1")" ]
 }
 
 # check_handlers -- files in cmd/ that will never be reached.
@@ -727,6 +882,7 @@ main() {
   check_config
   check_languages
   check_release
+  check_log_keys
   check_devbin_version
   check_manifest
   check_commands

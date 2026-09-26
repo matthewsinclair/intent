@@ -23,6 +23,14 @@
 # silently with the format change. `infra_validate_profile` re-imposes it as an
 # explicit rule. A constraint the format was carrying is the kind that
 # disappears in a mechanical fix precisely because nobody ever had to state it.
+#
+# EVERY KEY IS ONE SOMETHING READS (issue 0143). `_INFRA_PROFILE_KEYS`, at the
+# foot of this file, is the one statement of the keys a profile may carry, and a
+# key it has no row for is refused before anything is checked. Until 0143 no
+# such list existed, so a key the schema had no field for parsed, validated and
+# was never read: vc drove a profile declaring a DMARC sp=, a sender's second
+# DKIM key and a wildcard against a zone carrying none of them, and check said
+# "4 assertion(s) held, 0 drift, 0 NOT MEASURED" at rc 0.
 
 [ -n "${_DEVBIN_INFRA_LOADED:-}" ] && return 0
 _DEVBIN_INFRA_LOADED=1
@@ -37,9 +45,14 @@ infra_profile_paths() {
 }
 
 # infra_resolve_profile [<explicit>] -- echo the profile path, or die naming
-# every candidate. An explicit --profile that does not exist is a DIFFERENT
-# failure from finding none: the caller named a file, so the search order is
-# not the answer they need.
+# every candidate. A profile NAMED by --profile or $DEVBIN_INFRA_PROFILE that
+# does not exist is a DIFFERENT failure from finding none: the caller named a
+# file, so the search order is not the answer they need.
+#
+# BOTH SPELLINGS OF "THIS FILE" GET THE SAME ANSWER (issue 0121). A
+# DEVBIN_INFRA_PROFILE naming nothing used to fall through to the search below,
+# so a typo in the variable checked a DIFFERENT profile and nothing said so,
+# while the same intent spelled as --profile was refused by name.
 infra_resolve_profile() {
   local explicit="${1:-}" p
   if [ -n "$explicit" ]; then
@@ -47,8 +60,10 @@ infra_resolve_profile() {
     printf '%s\n' "$explicit"
     return 0
   fi
-  if [ -n "${DEVBIN_INFRA_PROFILE:-}" ] && [ -f "$DEVBIN_INFRA_PROFILE" ]; then
-    printf '%s\n' "$DEVBIN_INFRA_PROFILE"; return 0
+  if [ -n "${DEVBIN_INFRA_PROFILE:-}" ]; then
+    [ -f "$DEVBIN_INFRA_PROFILE" ] || die "infra: no profile at $DEVBIN_INFRA_PROFILE (named by DEVBIN_INFRA_PROFILE)"
+    printf '%s\n' "$DEVBIN_INFRA_PROFILE"
+    return 0
   fi
   for p in "${PROJECT_ROOT:-.}/infra.yaml" "$HOME/.config/devbin/infra.yaml"; do
     [ -f "$p" ] && { printf '%s\n' "$p"; return 0; }
@@ -75,8 +90,9 @@ infra_handle_matches_name() {
   return 1
 }
 
-# infra_declared_children <file> <block> -- the child keys WRITTEN under a
-# top-level block, read from the raw text.
+# infra_assert_written_keys_visible <file> -- every key WRITTEN in the profile
+# must have reached the cache, as a value of its own or as keys under it. One
+# that did neither is valueless, and it is refused and named.
 #
 # WHY THIS EXISTS, AND WHY IT IS NOT A SECOND YAML PARSER. `lib/config`'s reader
 # emits a cache row only for a key carrying a SCALAR. A key with no value
@@ -89,50 +105,55 @@ infra_handle_matches_name() {
 # THAT BLINDNESS POINTS THE WRONG WAY BY CONSTRUCTION. A deviation `init` could
 # not confidently propose is PRECISELY the one with nothing to put on the
 # right-hand side, so the gate is blind in exactly the direction it was built to
-# see. This scan reads one block's child keys and nothing else -- no types, no
-# values, no nesting, no merging. It exists to ask "was this written?", which is
-# the one question the reader structurally cannot answer.
-infra_declared_children() {
-  awk -v block="$2" '
-    $0 ~ "^" block ":[[:space:]]*$" { inblock=1; indent=-1; next }
-    inblock && /^[^[:space:]#]/     { inblock=0 }
-    inblock && /^[[:space:]]*$/     { next }
-    inblock && /^[[:space:]]*#/     { next }
-    inblock {
-      match($0, /^[[:space:]]*/); w = RLENGTH
-      if (indent < 0) indent = w
-      if (w != indent) next
-      line = $0; sub(/^[[:space:]]+/, "", line)
-      if (match(line, /^[A-Za-z0-9_.-]+:/)) print substr(line, 1, RLENGTH - 1)
+# see. A valueless entry is refused rather than skipped, which also makes the
+# artefact better: a deviation with no stated reason is unreviewable anyway.
+#
+# The scan reads KEYS and their nesting and nothing else -- no values, no types,
+# no merging -- to ask "was this written?", the one question the reader cannot
+# answer. The file has already been through `cfg_load`, so its indentation is
+# known to be well formed. A written key is visible when the cache holds a row
+# AT its path or UNDER it: awk reads the cache first and the file second, and
+# prints the paths that are neither.
+#
+# ONE SCAN OF THE WHOLE FILE SINCE ISSUE 0143. It covered the children of
+# `domains:` and `unreviewed:` alone, and 0143 added a block of labels exactly
+# like `domains:` -- a sender's DKIM records -- where a label written with no
+# fields would vanish and its record never be asked for. A rule per block is a
+# rule that waits for its next block.
+infra_assert_written_keys_visible() {
+  local missing
+  missing="$(awk '
+    NR == FNR {
+      p = $0; sub(/\t.*/, "", p)
+      if (p == "") next
+      have[p] = 1
+      while (sub(/\.[^.]*$/, "", p)) have[p] = 1
+      next
     }
-  ' "$1"
-}
-
-# infra_assert_block_visible <file> <block> -- every key WRITTEN under <block>
-# must have survived into the cache. One that did not is valueless, and a
-# valueless entry is not a malformed profile -- it is the honest form of an
-# unratifiable deviation. It is refused so that a hole becomes a refusal, which
-# also makes the artefact better: a deviation with no stated reason is
-# unreviewable by a human anyway.
-infra_assert_block_visible() {
-  local file="$1" block="$2" declared seen missing="" k rc=0
-  declared="$(infra_declared_children "$file" "$block")"
-  [ -n "$declared" ] || return 0
-  seen="$(cfg_list "$block" 2>/dev/null || true)"
-  while IFS= read -r k; do
-    [ -n "$k" ] || continue
-    printf '%s\n' "$seen" | grep -qxF "$k" || missing="$missing $k"
-  done <<EOF
-$declared
-EOF
-  if [ -n "$missing" ]; then
-    printf 'infra: %s: these keys are written but carry no value, so nothing can read them:%s\n' \
-      "$block" "$missing" >&2
-    printf '       A key with no value is invisible to the config reader -- it is not\n' >&2
-    printf '       an empty entry, it is an absent one. Give each a value.\n' >&2
-    rc=1
-  fi
-  return $rc
+    /^[[:space:]]*$/ || /^[[:space:]]*#/ || /^---[[:space:]]*$/ { next }
+    {
+      match($0, /^ */); w = RLENGTH
+      body = substr($0, w + 1)
+      if (substr(body, 1, 2) == "- ") next
+      c = index(body, ":"); if (c == 0) next
+      k = substr(body, 1, c - 1); sub(/[[:space:]]+$/, "", k)
+      while (depth > 0 && ind[depth] >= w) depth--
+      p = ""; for (i = 1; i <= depth; i++) p = p key[i] "."
+      p = p k
+      if (!(p in have)) printf "%s ", p
+      depth++; ind[depth] = w; key[depth] = k
+    }' - "$1" <<<"$_DEVBIN_CFG")" || {
+    # A scan that could not run found nothing, and "nothing" is the pass.
+    printf 'infra: %s: could not be scanned for keys written with no value, so no key in it is known to be visible\n' "$1" >&2
+    return 1
+  }
+  [ -n "$missing" ] || return 0
+  {
+    printf 'infra: these keys are written but carry no value, so nothing can read them: %s\n' "${missing% }"
+    printf '       A key with no value is invisible to the config reader -- it is not\n'
+    printf '       an empty entry, it is an absent one. Give each a value.\n'
+  } >&2
+  return 1
 }
 
 # infra_validate_profile -- PARSE-TIME rules only. Errors accumulate so one run
@@ -172,6 +193,13 @@ infra_domain_pairs() {
 #   A domain declaring a sender must carry a MATCHED SPF include and DKIM
 #   selector pair, and the two must be consistent with each other.
 #
+# "PAIR" WAS AN ASSUMPTION ABOUT VENDORS, NOT THE RULE (issue 0143). MailerSend
+# moved on 2026-09-08 from one DKIM record to two, ms1 and ms2, and rotates
+# between them, so the rule's arithmetic is: no SPF include without EVERY DKIM
+# record that authorises it. A sender declares one record or several
+# (infra_sender_dkim_records); this asks for the include and at least one, and
+# infra_sender_dkim_shape holds each record's own form, for every sender.
+#
 # design.md settles that this is what the known-sender library ships -- the
 # pair's SHAPE, never its contents. A shipped `mailersend: {spf:
 # _spf.mailersend.net}` WOULD HAVE BEEN WRONG for a live domain sitting on
@@ -192,11 +220,10 @@ infra_domain_pairs() {
 # refusals -- "your profile is wrong" and "your estate is wrong" are different
 # problems with different fixes, and this one was wearing the other's clothes.
 infra_sender_pair_complete() {
-  local name="$1" inc sel miss=""
+  local name="$1" inc miss=""
   inc="$(cfg_get "senders.$name.spf_include" 2>/dev/null || true)"
-  sel="$(cfg_get "senders.$name.dkim.name" 2>/dev/null || true)"
   [ -n "$inc" ] || miss="$miss spf_include"
-  [ -n "$sel" ] || miss="$miss dkim.name"
+  [ -n "$(infra_sender_dkim_records "$name")" ] || miss="$miss dkim.name"
   [ -n "$miss" ] || return 0
   {
     printf 'infra: sender `%s` is defined with only HALF A PAIR -- missing:%s
@@ -225,8 +252,15 @@ infra_validate_profile() {
   local rc=0 handle fqdn other sender seen="" warn_out=""
   # Visibility BEFORE content: a key that never reached the cache cannot be
   # validated by any rule below, and the rules below would report it as absent.
-  infra_assert_block_visible "$_DEVBIN_INFRA_FILE" domains || rc=1
-  infra_assert_block_visible "$_DEVBIN_INFRA_FILE" unreviewed || rc=1
+  infra_assert_written_keys_visible "$_DEVBIN_INFRA_FILE" || rc=1
+  # EVERY KEY IS ONE SOMETHING READS, and a key read for a word holds one of the
+  # words it takes (issue 0143).
+  infra_profile_keys_known || rc=1
+  # THE DKIM RECORD FORMS, FOR EVERY SENDER DEFINED, not only the ones a domain
+  # names: a record nothing could ask for is malformed wherever it is written.
+  for sender in $(cfg_list senders 2>/dev/null || true); do
+    infra_sender_dkim_shape "$sender" || rc=1
+  done
   for handle in $(cfg_list domains); do
     fqdn="$(cfg_get "domains.$handle.name" 2>/dev/null || true)"
     if [ -z "$fqdn" ]; then
@@ -249,6 +283,16 @@ infra_validate_profile() {
     infra_handle_matches_name "$handle" "$fqdn" || \
       warn_out="$warn_out  handle \`$handle\` does not look derived from \`$fqdn\`
 "
+    # sp= IS COMPARED ONLY WHERE A _dmarc RECORD IS READ, AND ONLY THE POLICY
+    # ASSERTS ONE (issue 0143). An sp with no policy in force would be compared
+    # when a record happened to exist and pass in silence when none did. A
+    # domain spelled `dmarc: none` has opted out of all of it.
+    if [ "$(cfg_get "domains.$handle.dmarc" 2>/dev/null || true)" != none ] &&
+      infra_effective "$handle" dmarc.sp >/dev/null &&
+      ! infra_effective "$handle" dmarc.policy >/dev/null; then
+      printf 'infra: domain `%s` declares dmarc.sp with no dmarc.policy in force -- check asserts the _dmarc record through its policy alone, so with no record this domain would pass in silence.\n' "$handle" >&2
+      rc=1
+    fi
     # A NAMED SENDER IS A PROMISE THE PROFILE HAS TO KEEP.
     for sender in $(infra_domain_senders "$handle"); do
       if ! infra_sender_defined "$sender"; then
@@ -257,8 +301,10 @@ infra_validate_profile() {
           printf '       The profile is the TARGET STATE, so a sender named and not\n'
           printf '       described is an incomplete target -- not an estate that could\n'
           printf '       not be measured. Add a `senders.%s` block carrying its\n' "$sender"
-          printf '       `spf_include` and `dkim.name`. Both values are ACCOUNT-SPECIFIC,\n'
-          printf '       which is why devbin ships the pair shape and never the contents.\n'
+          printf '       `spf_include` and its DKIM record: `dkim.name`, or for several,\n'
+          printf '       `dkim.<label>.name` under a label each. The values are\n'
+          printf '       ACCOUNT-SPECIFIC, which is why devbin ships the shape and never\n'
+          printf '       the contents.\n'
         } >&2
         rc=1
         continue
@@ -352,4 +398,283 @@ infra_manual_keys() {
 infra_sender_defined() {
   local name="$1"
   cfg_list senders 2>/dev/null | grep -qxF "$name"
+}
+
+# --- the profile's keys (issue 0143) -------------------------------------------
+#
+# THE ONE STATEMENT OF THE KEYS A PROFILE MAY CARRY, and of the words a key read
+# for a word will take. infra_profile_keys_known refuses a cache row matching no
+# row here, before anything is checked, and the shipped reference carries a live
+# example of every row but `unreviewed.<key>` (tests/unit/infra-profile.bats
+# holds it to that). A key added to the schema is added HERE, or it is refused.
+#
+#   <scope>     `defaults` and `domains.<handle>` both, which is what
+#               inheritance means: infra_effective reads the one, then the other
+#   <n>         an index, as lib/config flattens a sequence item
+#   <anything>  one key the author chose: a handle, a sender, a label
+#
+# The second column, where there is one, lists the only values the key takes,
+# `|`-separated. A key read only against one word was otherwise the same trap
+# one level down: `dmarc: quarantine` under a domain parsed, validated, and was
+# ignored, because only `none` was ever compared.
+#
+# TWO ROWS ARE DOCUMENTED AND READ BY NOTHING, and they are legal on purpose:
+# `version`, which nothing reads yet, and the Fly `runtime` block, which every
+# check run names as not examined. Refusing them would refuse the reference.
+_INFRA_PROFILE_KEYS="
+version
+name
+<scope>.mail
+<scope>.ttl
+<scope>.dmarc.policy                  none|quarantine|reject
+<scope>.dmarc.rua
+<scope>.dmarc.sp                      none|quarantine|reject
+<scope>.manual.<key>
+<scope>.wildcard.a
+<scope>.wildcard.aaaa
+<scope>.wildcard.txt
+domains.<handle>.name
+domains.<handle>.dmarc                none
+domains.<handle>.senders.<n>
+senders.<sender>.spf_include
+senders.<sender>.dkim.name
+senders.<sender>.dkim.type
+senders.<sender>.dkim.value
+senders.<sender>.dkim.<label>.name
+senders.<sender>.dkim.<label>.type
+senders.<sender>.dkim.<label>.value
+runtime.fly.<app>.org
+runtime.fly.<app>.hostnames.<n>
+unreviewed.<key>
+"
+
+# infra_profile_key_patterns -- the table's key patterns, one per line.
+infra_profile_key_patterns() {
+  local pat _
+  while read -r pat _; do
+    [ -n "$pat" ] && printf '%s\n' "$pat"
+  done <<<"$_INFRA_PROFILE_KEYS"
+  return 0
+}
+
+# infra_key_matches <pattern> <path> -- rc 0 when the dotted <path> is an
+# instance of the table's <pattern>. Pure.
+#
+# SEGMENT BY SEGMENT, and deliberately not one case glob per row: a `*` in a
+# case pattern spans dots, so `domains.*.name` would also match a key nested
+# any depth below a domain (lib/config's schema learned that at
+# _cfg_path_known).
+infra_key_matches() {
+  local pat="$1" path="$2" i
+  local -a a b
+  case "$pat" in
+    '<scope>.'*)
+      infra_key_matches "defaults.${pat#<scope>.}" "$path" && return 0
+      infra_key_matches "domains.<handle>.${pat#<scope>.}" "$path"
+      return
+      ;;
+  esac
+  case "$path" in '' | *..* | .* | *.) return 1 ;; esac
+  IFS=. read -ra a <<<"$pat"
+  IFS=. read -ra b <<<"$path"
+  [ "${#a[@]}" -eq "${#b[@]}" ] || return 1
+  for ((i = 0; i < ${#a[@]}; i++)); do
+    case "${a[i]}" in
+      '<n>') [[ "${b[i]}" =~ ^[0-9]+$ ]] || return 1 ;;
+      '<'*'>') ;;
+      *) [ "${a[i]}" = "${b[i]}" ] || return 1 ;;
+    esac
+  done
+}
+
+# _infra_unknown_key <path> -- the refusal for a key the table has no row for.
+#
+# TWO REASONS, AND THE ONE PRINTED IS THE TRUE ONE. A name the profile uses
+# nowhere is a key it has no field for. A name it DOES use, written in the wrong
+# place or shape -- `dmarc: none` under `defaults:`, `senders:` as one word --
+# is a field nothing reads THERE, and saying "no such field" would send the
+# reader looking for a typo that is not there.
+# shellcheck disable=SC2016
+_infra_unknown_key() {
+  local k="$1" f="$1" pat _
+  # The field's name is the last segment that is not an index.
+  while [[ "${f##*.}" =~ ^[0-9]+$ ]] && [ "$f" != "${f%.*}" ]; do f="${f%.*}"; done
+  f="${f##*.}"
+  while read -r pat _; do
+    case ".$pat." in
+      *".$f."*)
+        printf 'infra: %s: unknown key: %s -- the profile has a `%s` field, but nothing reads it here\n' \
+          "${_DEVBIN_INFRA_FILE:-profile}" "$k" "$f" >&2
+        return 0
+        ;;
+    esac
+  done <<<"$_INFRA_PROFILE_KEYS"
+  printf 'infra: %s: unknown key: %s -- the profile has no such field, so nothing would read it\n' \
+    "${_DEVBIN_INFRA_FILE:-profile}" "$k" >&2
+}
+
+# infra_profile_keys_known -- every cache row is a key the table has a row for,
+# holding a value that row takes. Each one that is not is named, with the file;
+# rc 1 when any was.
+#
+# ONE PASS OVER THE CACHE, no fork per row. A row is tried only against table
+# rows starting with its own first segment, which keeps the pass to a few tens
+# of milliseconds on the largest profile in the fleet (90 rows).
+infra_profile_keys_known() {
+  local k v pat vals first found w ok rc=0
+  local -a allowed
+  while IFS=$'\t' read -r k v; do
+    [ -n "$k" ] || continue
+    first="${k%%.*}"
+    found=""
+    while read -r pat vals; do
+      [ -n "$pat" ] || continue
+      case "$pat" in
+        '<scope>.'*) case "$first" in defaults | domains) ;; *) continue ;; esac ;;
+        *) [ "${pat%%.*}" = "$first" ] || continue ;;
+      esac
+      if infra_key_matches "$pat" "$k"; then
+        found=1
+        break
+      fi
+    done <<<"$_INFRA_PROFILE_KEYS"
+    if [ -z "$found" ]; then
+      _infra_unknown_key "$k"
+      rc=1
+      continue
+    fi
+    # ONE ADDRESS, not a list in a string (issue 0143, vc's ruling). A wildcard
+    # A or AAAA is compared as the whole set, so `a: "192.0.2.7 192.0.2.8"`
+    # could never hold, and its drift line would print the two sides alike.
+    case "$pat:$v" in
+      *.wildcard.a:*[[:space:]]* | *.wildcard.aaaa:*[[:space:]]*)
+        # shellcheck disable=SC2016
+        printf 'infra: %s: %s: "%s" is more than one value -- a wildcard %s is ONE address or `none`\n' \
+          "${_DEVBIN_INFRA_FILE:-profile}" "$k" "$v" "${pat##*.}" >&2
+        rc=1
+        continue
+        ;;
+    esac
+    [ -n "$vals" ] || continue
+    ok=""
+    IFS='|' read -ra allowed <<<"$vals"
+    for w in "${allowed[@]}"; do
+      [ "$w" = "$v" ] && ok=1
+    done
+    if [ -z "$ok" ]; then
+      printf 'infra: %s: %s: "%s" is not a value it takes (%s)\n' \
+        "${_DEVBIN_INFRA_FILE:-profile}" "$k" "$v" "${vals//|/, }" >&2
+      rc=1
+    fi
+  done <<<"$_DEVBIN_CFG"
+  return $rc
+}
+
+# --- a sender's DKIM records (issue 0143) ------------------------------------
+#
+# A sender declares ONE record, its fields directly under `dkim:` exactly as
+# before 0143, or SEVERAL, each under a label the author chooses:
+#
+#   dkim:                          dkim:
+#     name: mlsend2._domainkey       ms1:
+#     type: CNAME                      name: ms1._domainkey
+#                                    ms2:
+#                                      name: ms2._domainkey
+#
+# lib/config refuses a sequence of maps, and it did not need to learn one: a
+# label names its record in every message, and a reader of labels would read
+# the `dkim.0`, `dkim.1` a sequence flattens to, should the grammar ever grow it.
+
+# infra_sender_dkim_records <sender> -- one PREFIX per DKIM record the sender
+# declares, under `senders.<sender>.`, in document order: `dkim` for the
+# one-record form, `dkim.<label>` for each labelled record. Nothing when the
+# sender declares none. THE one reader of the two spellings.
+#
+# THE FORMS ARE TOLD APART BY WHETHER `dkim` CARRIES A VALUE DIRECTLY, a test
+# _infra_dkim_children makes once for both this and infra_sender_dkim_shape.
+# Any key under it with a value of its own makes it the one-record form;
+# otherwise each key under it is a label. infra_sender_dkim_shape refuses a
+# sender writing both.
+#
+# PREFIXES, NOT TAB ROWS. A TAB is IFS whitespace and `read` collapses an empty
+# field -- the trap lib/infra.init's _ii_get records -- so a record missing its
+# name would shift every field after it. A key holds no space, so a list of
+# prefixes word-splits safely, and each field is read with cfg_get.
+infra_sender_dkim_records() {
+  local kind c labels=""
+  while read -r kind c; do
+    case "$kind" in
+      field)
+        printf 'dkim\n'
+        return 0
+        ;;
+      label) labels="$labels dkim.$c" ;;
+    esac
+  done <<<"$(_infra_dkim_children "$1")"
+  for c in $labels; do printf '%s\n' "$c"; done
+  return 0
+}
+
+# _infra_dkim_children <sender> -- each key under `senders.<sender>.dkim`, one
+# per line as `field <key>` when it carries a value of its own and `label
+# <key>` when it does not. THE test that tells the two spellings apart, read by
+# infra_sender_dkim_records and infra_sender_dkim_shape alike, so the reader and
+# the rules cannot classify one layout two ways.
+_infra_dkim_children() {
+  local base="senders.$1.dkim" c
+  for c in $(cfg_list "$base" 2>/dev/null || true); do
+    if cfg_has "$base.$c"; then printf 'field %s\n' "$c"; else printf 'label %s\n' "$c"; fi
+  done
+  return 0
+}
+
+# infra_sender_dkim_shape <sender> -- the rules the two spellings need, for any
+# sender, whether or not a domain names it:
+#
+#   - never both forms at once, which would leave the reader to choose
+#   - a label is never a field's name, which a reader would take for the field
+#   - one record per selector, since two would be two expectations of one name
+#   - every record has a name, since a record with none cannot be asked for
+# shellcheck disable=SC2016
+infra_sender_dkim_shape() {
+  local s="$1" kind c fields="" labels="" p n names=" " unnamed="" rc=0
+  while read -r kind c; do
+    case "$kind" in
+      field) fields="$fields dkim.$c" ;;
+      label) labels="$labels dkim.$c" ;;
+    esac
+  done <<<"$(_infra_dkim_children "$s")"
+  if [ -n "$fields" ] && [ -n "$labels" ]; then
+    printf 'infra: sender `%s` mixes the one-record form (%s) with labelled records (%s) -- write every record under a label.\n' \
+      "$s" "$(printf '%s' "${fields# }" | sed 's/ /, /g')" "$(printf '%s' "${labels# }" | sed 's/ /, /g')" >&2
+    return 1
+  fi
+  for p in $labels; do
+    case "${p#dkim.}" in
+      name | type | value)
+        printf 'infra: sender `%s` has a DKIM record labelled `%s`, which is the name of a field -- choose another label.\n' \
+          "$s" "${p#dkim.}" >&2
+        rc=1
+        ;;
+    esac
+  done
+  for p in $(infra_sender_dkim_records "$s"); do
+    n="$(cfg_get "senders.$s.$p.name" 2>/dev/null || true)"
+    if [ -z "$n" ]; then
+      unnamed="$unnamed $p.name"
+      continue
+    fi
+    case "$names" in
+      *" $n "*)
+        printf 'infra: sender `%s` declares the selector `%s` twice. One record per selector.\n' "$s" "$n" >&2
+        rc=1
+        ;;
+    esac
+    names="$names$n "
+  done
+  if [ -n "$unnamed" ]; then
+    printf 'infra: sender `%s` declares a DKIM record with no name, so nothing can ask for it:%s\n' "$s" "$unnamed" >&2
+    rc=1
+  fi
+  return $rc
 }

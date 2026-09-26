@@ -86,12 +86,20 @@ run_builtin_gate() {
       ;;
   esac
 
+  # A MISTYPED OPTION IS TOLD THE OPTIONS, never `<cmd> all` (issue 0132). The
+  # one remedy this offered for `db migrat` was the command that ran `db reset`
+  # and dropped the database; for any gate command it offered the whole sweep
+  # in answer to a typo.
   run="$(builtin_option_run "$cmd" "$opt")" ||
-    die "unknown $cmd option: $opt (try: ${DEVBIN_INVOKE:-bin/devbin} $cmd all)"
-  suffix="$(builtin_option_suffix "$cmd" "$opt")"
-  # Through gate_grammar, the one reading of `-` (issue 0066). No option row
-  # carries `-` today; one that did would otherwise warn `unknown grammar '-'`.
-  grammar="$(gate_grammar "$(builtin_option_grammar "$cmd" "$opt")")"
+    die "unknown $cmd option: $opt -- the options here are $(usage_options_for "$cmd" | sed 's/|/, /g') (see: ${DEVBIN_INVOKE:-bin/devbin} help $cmd)"
+  # THE SEAL IS option_seal_from's (issue 0135), the one statement of an
+  # option's seal from the row, which option_seal hands config's values for a
+  # line of the option's own. Config's own `run:` never reaches here, so it is
+  # handed nothing: the row's suffix and grammar, each through the one reading
+  # of `-` (0065, 0066). No config and no tier are needed to seal here, so a
+  # handler run without the dispatcher still reaches its own guards.
+  option_seal_from "$cmd" "$opt" "" "" suffix grammar ||
+    die "cannot resolve the seal of '$cmd $opt' -- not running it unsealed"
 
   cd "$PROJECT_ROOT" || die "cannot enter $PROJECT_ROOT"
 

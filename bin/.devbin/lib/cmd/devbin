@@ -92,17 +92,6 @@ runtime_identity() {
   git_head_identity "${PROJECT_ROOT:-.}"
 }
 
-# lib_rel -- where devbin's runtime lives, relative to the project root.
-#
-# DERIVED FROM DEVBIN_LIB, NEVER SPELLED (issue 0112). The overview and the
-# templates listing named bin/.devbin/lib/ outright, which is right in every
-# estate and wrong in the devbin checkout, where D12 runs lib/ in place -- so in
-# the one tree that explains devbin, `devbin devbin` pointed at two paths that
-# did not exist, beneath a line announcing that this was the checkout.
-lib_rel() {
-  printf '%s' "${DEVBIN_LIB#"$PROJECT_ROOT"/}"
-}
-
 show_version() {
   local ver ident
   ver="$(runtime_version)" || exit 1

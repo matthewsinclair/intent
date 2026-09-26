@@ -114,6 +114,18 @@ run_identity() {
   printf '%s' "${DEVBIN_RUN_ID:-pid-$$}"
 }
 
+# run_id_mint -- a fresh run id, in bin/devbin's format: eight hex of the pid
+# and the clock. bin/devbin mints its own, because it runs before lib/ can be
+# found and must parse under bash 3.2; this is the library's one copy, for a
+# witness run started inside a process rather than as a child devbin, which
+# crosses the boundary bin/devbin marks without passing through it (issue
+# 0135). $BASHPID, not $$, so two legs of one process get two ids. The pair is
+# held to one format by contract.bats's mint-pair arm.
+run_id_mint() {
+  # shellcheck disable=SC2004 # $BASHPID written as bin/devbin writes $$, so the mint-pair arm holds the two lines to one form
+  printf '%04x%04x' "$(($BASHPID & 0xffff))" "$(($(date +%s) & 0xffff))"
+}
+
 # inflight_marker -- the single line `open_run_log` seeds a fresh `.errors` with.
 #
 # ONE HOME, because there are now two consumers and they are in different files:
@@ -1434,12 +1446,14 @@ gate_out_dir() {
 # Exists because built-in gates put user args after `--`, so a wrapper flag
 # typed at the command line arrived as a TOOL argument -- `test mix --purge`
 # asked mix to run a file called --purge. hv ruled the corpus purge semantics
-# back in on 2026-08-09 (`test all --purge`). ONE parser, used by EVERY gate
-# site that forwards a user's argv, so they cannot drift on what counts as a
-# wrapper flag. THIS SENTENCE ONCE LISTED THE SITES, said "both", and was wrong
-# for as long as a third existed: run_command's gate forwarded "$@" whole until
-# issue 0087. The sites are not listed here any more; an arm in dispatch.bats
-# refuses any run_gate span that forwards a raw argv, which finds a new site
+# back in on 2026-08-09 (`test all --purge`). ONE parser, used by EVERY site
+# that forwards a user's argv to a tool, sealed or not, so they cannot drift on
+# what counts as a wrapper flag. THIS SENTENCE ONCE LISTED THE SITES, said
+# "both", and was wrong for as long as a third existed: run_command's gate
+# forwarded "$@" whole until issue 0087, and the two unsealed sites until issue
+# 0122. The sites are not listed here any more; an arm in dispatch.bats refuses
+# any run_gate span that forwards a raw argv, and another holds every unsealed
+# site in lib/resolve to saying what became of the flags, which finds a new site
 # the day it is written.
 #
 # The purge pair and --allow-empty are recognised, both ruled in by hv on
@@ -1453,12 +1467,52 @@ gate_split_args() {
   DEVBIN_GATE_ARGS=()
   local a
   for a in "$@"; do
-    case "$a" in
-      --purge | --purge-only | --allow-empty) DEVBIN_GATE_FLAGS+=("$a") ;;
-      *) DEVBIN_GATE_ARGS+=("$a") ;;
-    esac
+    if is_gate_flag "$a"; then DEVBIN_GATE_FLAGS+=("$a"); else DEVBIN_GATE_ARGS+=("$a"); fi
   done
   return 0
+}
+
+# is_gate_flag <word> -- zero when <word> is one of devbin's wrapper flags a
+# user may type on a gate's command line. THE LIST, stated once: gate_split_args
+# partitions an argv by it, and under a command-level run: route_word_at reads
+# past it to the word the dispatcher routes on (`test --purge all`, issue 0128).
+is_gate_flag() {
+  case "$1" in
+    --purge | --purge-only | --allow-empty) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+# gate_flags_unsealed <label> <dropped|passed> -- the word said when devbin's
+# wrapper flags were typed at a site that runs UNSEALED, once gate_split_args
+# has found them. Prints nothing when none was typed.
+#
+# The three flags act on a seal, and an unsealed run has none, so devbin cannot
+# act on them there -- and it used to say nothing, handing them to the tool as
+# if they were meant for it: `check bare --purge` ran `echo bare-ran --purge`
+# (issue 0122, 0087's class at the sites its fix missed). What should happen to
+# them depends on who they were typed for:
+#
+#   dropped -- inside `all`. run_all hands ONE argv to every option, so a flag
+#              there was typed for the sealed gates beside this one, and giving
+#              it to this tool makes it fail for a reason nobody caused.
+#   passed  -- everywhere else. A command or option named directly may launch a
+#              tool that owns the word -- `--allow-empty` is git commit's -- and
+#              devbin has no seal to spend it on, so the tool gets its argv
+#              whole. Refusing or dropping it there left such a project no way
+#              to pass it at all (cc's review of 0122).
+#
+# Either way the person is told, which is the half 0122 was filed for, in the
+# number the flags came in: two flags "were", one "was" (cc's review).
+gate_flags_unsealed() {
+  [ "${#DEVBIN_GATE_FLAGS[@]}" -gt 0 ] || return 0
+  local they="it was"
+  [ "${#DEVBIN_GATE_FLAGS[@]}" -eq 1 ] || they="they were"
+  if [ "$2" = dropped ]; then
+    warn "'$1' runs unsealed (it declares no log:), so ${DEVBIN_GATE_FLAGS[*]} had no seal to act on, and inside all $they not passed to it"
+  else
+    warn "'$1' runs unsealed (it declares no log:), so devbin did not act on ${DEVBIN_GATE_FLAGS[*]} -- $they passed to the tool as the tool's own"
+  fi
 }
 
 # gate_log_suffix <option> <declared> -- resolve a declared `log:` to a suffix,
@@ -1502,6 +1556,30 @@ gate_grammar() {
   else
     printf '%s' "$1"
   fi
+}
+
+# option_seal_from <cmd> <opt> <log> <grammar> <suffix-var> <grammar-var> --
+# an option's seal from the <log> and <grammar> a caller read, each falling
+# back to the catalogue's row when empty, each through the one reading of `-`
+# (gate_log_suffix, 0065; gate_grammar, 0066), into the two named variables.
+# The suffix is empty when the option is declared unsealed. Returns 1 when it
+# cannot be resolved.
+#
+# THE ONE STATEMENT OF THE FALLBACK AND THE READING (issue 0135). option_seal
+# in lib/resolve hands it config's `log:` and `grammar:` for a line of the
+# option's own, and nothing for any other tier; gatecmd's run_builtin_gate
+# hands it nothing, since config's own `run:` never reaches there. So gatecmd
+# needs no config and no tier to seal a catalogue option. The row is read from
+# lib/builtins, which every caller has loaded. Its locals carry their own
+# prefix, since the two variables are a caller's names.
+option_seal_from() {
+  local _osf_s="$3" _osf_g="$4"
+  local -n _osf_suffix="$5" _osf_grammar="$6"
+  [ -n "$_osf_s" ] || _osf_s="$(builtin_option_suffix "$1" "$2" 2>/dev/null || true)"
+  [ -n "$_osf_g" ] || _osf_g="$(builtin_option_grammar "$1" "$2" 2>/dev/null || true)"
+  _osf_s="$(gate_log_suffix "$2" "$_osf_s")" || return 1
+  _osf_suffix="$_osf_s"
+  _osf_grammar="$(gate_grammar "$_osf_g")"
 }
 
 # run_gate [options] -- <command> [args...]

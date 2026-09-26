@@ -1,0 +1,15 @@
+{
+  "id": "01M3ER72ZZQY0Y8HGM2ZETADP0",
+  "ts": "2026-09-26T11:39:40.930Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0587"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "docs: backup snapshots copy the whole store, so daily backups of a large store add up; say so beside backup.keep"
+  }
+}

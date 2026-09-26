@@ -226,12 +226,13 @@ builtin_check_format() {
         continue
         ;;
       overridden)
-        # Config replaced what `fmt <lang>` runs, and this gate derives its
-        # check from the CATALOGUE -- so the pair D21 promises would hold in
-        # name only: the gate green-lighting a command line the formatter no
-        # longer runs (delta review, finding 5). No guessing a check flag onto
-        # a command devbin does not know; the project states the check side too.
-        die "cannot verify $lang formatting -- config overrides what 'fmt $lang' runs
+        # The project runs `fmt <lang>` -- config's own `run:` for it, or the
+        # project owning `fmt` whole (issue 0128) -- and this gate derives its
+        # check from the CATALOGUE, so the pair D21 promises would hold in name
+        # only: the gate green-lighting a command line the formatter no longer
+        # runs (delta review, finding 5). No guessing a check flag onto a
+        # command devbin does not know; the project states the check side too.
+        die "cannot verify $lang formatting -- 'fmt $lang' runs the project's own formatter here, not the catalogue's
        The catalogue-derived check would verify a DIFFERENT command line from
        the one 'fmt $lang' actually runs. Declare the check side as well:
        commands.check.options.format.run."
@@ -302,18 +303,29 @@ builtin_check_format() {
 # disagreed about the file set the whole D21 section is about (delta review,
 # finding 8).
 _check_format_swift() {
-  local f n
+  local n
   command -v swift-format >/dev/null 2>&1 ||
     die "swift-format not found, so Swift formatting cannot be verified (brew install swift-format)
        'fmt swift' skips a missing formatter because it claims no verdict; a gate cannot."
 
+  # READ WHOLE, WITH ITS STATUS, AND A PARTIAL LIST FAILS THE GATE (issue
+  # 0139). find's error reached the screen, but its status was lost in a
+  # process substitution, so a file beneath a directory it could not read went
+  # unlinted and the gate passed. find_list reads the list whole, NUL-separated.
+  #
+  # BUILD DIRECTORIES ARE PRUNED, NOT FILTERED (critic-shell on 0139). `-not
+  # -path` kept their files out of the list and walked into them all the same,
+  # where a build running beside the check creates and deletes as it goes, and
+  # an entry that vanished between listing and reading failed the walk: `check
+  # format` went red in 2 of 20 runs with a writer in .build/ (measured).
+  # -ignore_readdir_race covers the rest of the tree, as it does in clean. The
+  # file set is the same, and fmt's twin below keeps it.
   local -a files=()
-  while IFS= read -r -d '' f; do
-    files+=("$f")
-  done < <(find . -name '*.swift' \
-    -not -path '*/build/*' \
-    -not -path '*/.build/*' \
-    -not -path '*/Carthage/*' -print0)
+  if ! find_list files . -ignore_readdir_race \
+    \( -type d \( -name build -o -name .build -o -name Carthage \) \) -prune -o \
+    -name '*.swift' -print0; then
+    die "check format swift: could not list every Swift file (the error above names it) -- a gate over part of them is not a pass"
+  fi
 
   n="${#files[@]}"
   printf '    %s file(s)\n' "$n"
@@ -407,7 +419,18 @@ builtin_check_toolchain() {
     # `| head -1` was here. Under pipefail a reader that exits early strands the
     # writer with SIGPIPE and 141 becomes the pipeline's status, which `set -e`
     # turns into an abort of the whole gate. Take the first line in bash instead.
-    otp_file="$(find "$erl_root/releases" -name OTP_VERSION -maxdepth 2 2>/dev/null)"
+    #
+    # find's error is shown, not sent to /dev/null (issue 0139): the fallback
+    # below says the comparison was coarse, and the error says why. It runs only
+    # where there is a releases/ to read, so an erl that is absent, or reports no
+    # root, falls back without a find error standing in for the reason. And
+    # -maxdepth comes first, since GNU find warns when it follows a test, which
+    # the /dev/null hid.
+    otp_file=""
+    if [ -n "$erl_root" ] && [ -d "$erl_root/releases" ]; then
+      # find-status: dropped -- the fallback below says the comparison was coarse, and find's error says why.
+      otp_file="$(find_walk "$erl_root/releases" -maxdepth 2 -name OTP_VERSION -print)" || :
+    fi
     otp_file="${otp_file%%$'\n'*}"
     if [ -n "$otp_file" ] && [ -r "$otp_file" ]; then
       live_erl="$(tr -d '[:space:]' <"$otp_file")"
@@ -472,6 +495,37 @@ builtin_check_toolchain() {
 }
 
 
+# _autotests_targets <crate dir> <array> -- the test targets cargo's
+# auto-discovery makes of the crate's tests/, into the named array, by asking
+# cargo's own question of each undotted entry directly in tests/ (critic-shell
+# on 0139, its fourth and fifth passes; re-driven with cargo metadata, cargo
+# 1.98.1): a real directory, not a link, is a target when <entry>/main.rs
+# exists, which the filesystem answers under its own case rules and through a
+# link, as cargo asks it; any other entry is a target when it is named *.rs --
+# a file, a link to one, a link naming nothing or naming a directory. A dotted
+# entry is never read. tests/ itself is read through a link (-H). It dies,
+# naming what it could not read, when find could not list tests/ whole or a
+# subdirectory cannot be searched: a count over part of it is not a verdict.
+# One home for both branches' counts.
+_autotests_targets() {
+  local -n _at_out="$2"
+  local -a _at_ent=()
+  local _at_e
+  find_list _at_ent -H "$1/tests" -mindepth 1 -maxdepth 1 ! -name '.*' -print0 ||
+    die "check autotests: could not read $1/tests (the error above names it) -- a verdict over part of it is not a pass"
+  _at_out=()
+  for _at_e in "${_at_ent[@]}"; do
+    if [ -d "$_at_e" ] && [ ! -L "$_at_e" ]; then
+      [ -x "$_at_e" ] ||
+        die "check autotests: could not read $1/tests whole: cannot search $_at_e, so whether it holds a main.rs, a target of its own, is unknown -- a verdict over part of it is not a pass"
+      [ ! -e "$_at_e/main.rs" ] || _at_out+=("$_at_e")
+    else
+      case "$_at_e" in *.rs) _at_out+=("$_at_e") ;; esac
+    fi
+  done
+  return 0
+}
+
 # builtin_check_autotests -- one test target per crate.
 #
 # Cargo's `autotests` defaults to TRUE, so every .rs file directly under a
@@ -483,18 +537,20 @@ builtin_check_toolchain() {
 # tree; consolidated it builds 5. The ruling is hv's, 2026-08-27, estate-wide.
 # This gate catches target #2.
 #
-# WHY THIS COUNTS FILES RATHER THAN TARGETS, WHICH LOOKS LIKE THE DOCUMENTED
-# TRAP AND IS NOT IT. TN001 is emphatic that test FILES are not cargo TARGETS,
-# and that `cargo test --workspace --no-run | grep -c 'Executable tests/'` is
-# the only count that is not a proxy. That is a rule about a CENSUS -- an
-# instrument reporting how many targets a crate HAS. This gate never asks that.
-# Its predicate is "is auto-discovery on, AND is there more than one file for it
-# to discover", and both halves are decidable from Cargo.toml and the filesystem
-# alone:
+# WHY THIS READS THE FILESYSTEM RATHER THAN BUILDING THE TARGETS, WHICH LOOKS
+# LIKE THE DOCUMENTED TRAP AND IS NOT IT. TN001 is emphatic that test FILES are
+# not cargo TARGETS, and that `cargo test --workspace --no-run | grep -c
+# 'Executable tests/'` is the only count that is not a proxy. That is a rule
+# about a CENSUS -- an instrument reporting how many targets a crate HAS. This
+# gate never asks that.
+# Its predicate is "is auto-discovery on, AND is there more than one target for
+# it to discover", and both halves are decidable from Cargo.toml and the
+# filesystem alone, by cargo's own discovery rule (_autotests_targets): each .rs
+# entry directly in tests/, and each subdirectory there holding a main.rs:
 #
 #   autotests = false          -> the crate declares its own targets. COMPLIANT.
-#   absent or true, <= 1 file  -> at most one auto target.          COMPLIANT.
-#   absent or true, >  1 file  -> exactly that many auto targets.   BREACH.
+#   absent or true, <= 1 found -> at most one auto target.          COMPLIANT.
+#   absent or true, >  1 found -> exactly that many auto targets.   BREACH.
 #
 # The trap's own worked example confirms the split instead of threatening it:
 # Intent's `testkit` greps zero `[[test]]` while cargo reports 1, because a
@@ -509,6 +565,7 @@ builtin_check_toolchain() {
 # a gate people switch off.
 builtin_check_autotests() {
   local rc=0 crates=0 breaches=0 manifest dir n rel walk walkrc=0
+  local -a targets=()
   local pruned="target .git .worktrees deps node_modules"
   [ $# -eq 0 ] ||
     die "check autotests takes no arguments (got: $*)
@@ -530,11 +587,11 @@ builtin_check_autotests() {
   # COMPLIANT PROJECT. So find's status is checked rather than discarded: this
   # is the one failure this gate could have that would look like success, and
   # `2>/dev/null` on the walk is what would have hidden it.
-  walk="$(find "$PROJECT_ROOT" \
+  walk="$(find_walk "$PROJECT_ROOT" \
     \( -name target -o -name .git -o -name .worktrees -o -name deps -o -name node_modules \) -prune -o \
     -name Cargo.toml -type f -print)" || walkrc=$?
   [ "$walkrc" -eq 0 ] ||
-    die "check autotests: the crate walk FAILED (find exit $walkrc).
+    die "check autotests: the crate walk FAILED (exit $walkrc; the error above names it).
        Refusing to report a verdict: a walk that errored finds no crates, and
        no crates is indistinguishable from a project that is fully compliant."
 
@@ -581,7 +638,11 @@ EOF
       # declared blocks pass at any count, and the count is REPORTED so a reader
       # can see what they are passing.
       n="$(grep -cE '^[[:space:]]*\[\[test\]\]' "$manifest" || true)"
-      if [ "$n" -eq 0 ] && [ -n "$(find "$dir/tests" -maxdepth 1 -type f -name '*.rs' -print -quit)" ]; then
+      # The targets auto-discovery WOULD make, from the one helper both branches
+      # ask (issue 0139): a tests/ reached through a link is read through it,
+      # one it cannot read refuses a verdict, and the count is cargo's own.
+      _autotests_targets "$dir" targets
+      if [ "$n" -eq 0 ] && [ "${#targets[@]}" -gt 0 ]; then
         # THE QUIET HOLE, IN ITS LOUDEST FORM, and the one case here that IS
         # unambiguous. Discovery off, nothing declared, files sitting in tests/:
         # compiled by nobody, run in no suite. They pass by not existing, which
@@ -594,12 +655,15 @@ EOF
       fi
       continue
     fi
-    # maxdepth 1 IS CARGO'S OWN RULE AND NOT A DEPTH GUESS, which is the
-    # distinction that matters here: cargo auto-discovers files DIRECTLY under
-    # tests/ and treats a subdirectory as a module of something, never as a
-    # target. This number is semantic, so unlike a scanning depth it is not a
-    # number a reader should defend against by changing it.
-    n="$(find "$dir/tests" -maxdepth 1 -type f -name '*.rs' | wc -l | tr -d ' ')"
+    # THE COUNT IS CARGO'S OWN RULE, NOT A DEPTH GUESS: cargo auto-discovers
+    # each .rs entry directly under tests/ and each subdirectory there holding
+    # a main.rs, one target of several files; any other subdirectory is a
+    # module of something. This said a subdirectory was never a target, and a
+    # crate whose only target was tests/multi/main.rs passed as holding none
+    # (critic-shell on 0139, its fourth pass). _autotests_targets asks cargo's
+    # question of each entry, as cargo asks it, rather than matching names.
+    _autotests_targets "$dir" targets
+    n="${#targets[@]}"
     if [ "$n" -gt 1 ]; then
       warn "$rel: $n auto-discovered test targets -- $n full links of this crate and its whole dependency graph. Set 'autotests = false' and declare one [[test]] whose suite.rs carries the rest as #[path] modules."
       breaches=$((breaches + 1))
@@ -648,7 +712,9 @@ EOF
 # tells a node to stop doing the only thing that made a hang legible to them is
 # a gate they will switch off.
 builtin_check_targetdir() {
-  local rc=0 seen=0 want cfg val home_cfg
+  local rc=0 seen=0 want cfg val home_dir home_cfg="" var pcfg="" pval="" hval="" i crate tree root
+  local ptree="" htree="" asked=0 hasked=0 placed c d inplay=0 under st
+  local -a crates=() trees=() roots=() cfgs=() forks=()
   [ $# -eq 0 ] ||
     die "check targetdir takes no arguments (got: $*)
        It reads the environment and the cargo config, whole-project."
@@ -657,44 +723,166 @@ builtin_check_targetdir() {
 
   # 1. THE ENVIRONMENT. This is the per-session fork dc measured, and it is the
   # one that reaches 41G without ever being written down anywhere.
-  if [ -n "${CARGO_TARGET_DIR:-}" ]; then
+  #
+  # An EMPTY value is set, and cargo refuses it, so it is refused here in
+  # cargo_target_dir_why's words, as fullcycle refuses it: one value, one
+  # verdict (issue 0148). CARGO_BUILD_TARGET_DIR moves the tree as
+  # CARGO_TARGET_DIR does, and is read the same way (issue 0150), unless
+  # CARGO_TARGET_DIR is set too: cargo puts that first, so the other forks
+  # nothing, and is said to be shadowed, as fullcycle judges only the one in
+  # force.
+  for var in CARGO_TARGET_DIR CARGO_BUILD_TARGET_DIR; do
+    [ -n "${!var+x}" ] || continue
     seen=1
-    if [ "${CARGO_TARGET_DIR%/}" = "$want" ]; then
-      printf '    env      CARGO_TARGET_DIR is set and points at the shared tree\n'
+    if [ "$var" != "$(cargo_env_carrier)" ]; then
+      printf '    env      CARGO_BUILD_TARGET_DIR is set, and CARGO_TARGET_DIR, which cargo puts first, decides the tree\n'
+    elif [ -z "${!var}" ]; then
+      warn "$var='' $(cargo_target_dir_why "") -- unset it, or set it to the shared tree at $want."
+      rc=1
+    elif [ "${!var%/}" = "$want" ]; then
+      printf '    env      %s is set and points at the shared tree\n' "$var"
     else
-      warn "CARGO_TARGET_DIR=$CARGO_TARGET_DIR -- a per-session fork of the build cache, not the shared tree at $want.
+      warn "$var=${!var} -- a per-session fork of the build cache, not the shared tree at $want.
        Each fork is a full copy: one estate measured 52G across three of them.
        If you set this because a build looked hung, it was almost certainly WAITING on cargo's build lock, which is silent and looks identical to a hang."
       rc=1
     fi
-  fi
+  done
 
-  # 2. THE PROJECT'S CARGO CONFIG, which forks it for everyone rather than for
-  # one session -- a smaller cache cost and a larger blast radius.
+  # 2. THE CARGO CONFIG. CARGO'S ANSWER IS THE VERDICT (issue 0150, vc's
+  # ruling): each crate whose directory, an ancestor or CARGO_HOME holds a
+  # config naming target-dir or include is asked where it builds
+  # (cargo_build_dirs), from its own directory, as `cd crate && cargo build`
+  # runs, with both variables removed from cargo's environment, so a config's
+  # verdict does not hang on the environment of whoever runs the check: a
+  # committer's own CARGO_TARGET_DIR hid a project-wide fork (critic-shell on
+  # 0150 v1). A tree that is the workspace's own target, or the shared one, is
+  # no fork. Each fork's cause is named, never decided, here: one the machine's
+  # config alone accounts for, asked of cargo in an empty directory
+  # (cargo_home_build_dir), is reported, not failed, since it is not this
+  # project's to fix; one the project's config names fails, naming it; and one
+  # neither accounts for, from a config nearer the crate, fails with its cause
+  # unknown to this check rather than guessed. Trees are compared as they are
+  # placed (cargo_place), since cargo does not tidy a `..`.
   for cfg in "$PROJECT_ROOT/.cargo/config.toml" "$PROJECT_ROOT/.cargo/config"; do
     [ -f "$cfg" ] || continue
-    val="$(sed -n 's/^[[:space:]]*target-dir[[:space:]]*=[[:space:]]*"\{0,1\}\([^"]*\)"\{0,1\}[[:space:]]*$/\1/p' "$cfg" | head -1)"
+    val="$(_targetdir_config_value "$cfg")"
     [ -n "$val" ] || continue
-    seen=1
-    if [ "${val%/}" = "$want" ] || [ "${val%/}" = "target" ]; then
-      printf '    config   %s pins the shared tree\n' "${cfg#"$PROJECT_ROOT"/}"
-    else
-      warn "${cfg#"$PROJECT_ROOT"/} sets build.target-dir = $val -- this forks the cache for every session in this project, not just yours."
+    pcfg="$cfg" pval="$val"
+    break
+  done
+  home_dir="$(cargo_home_dir)"
+  for cfg in "$home_dir/config.toml" "$home_dir/config"; do
+    [ -f "$cfg" ] || continue
+    home_cfg="$cfg"
+    hval="$(_targetdir_config_value "$cfg")"
+    break
+  done
+  [ -n "$home_cfg" ] || home_cfg="$home_dir/config.toml (none there)"
+  st=0
+  cargo_build_dirs crates trees roots cfgs || st=$?
+  case "$st" in
+    0) asked=1 ;;
+    2) seen=1 ;;
+    *)
+      warn "check targetdir: where every crate builds could not be known (the error above says why), so a fork may be unseen"
+      seen=1
       rc=1
+      ;;
+  esac
+  if [ -n "$pval" ]; then
+    case "$pval" in /*) placed="${pval%/}" ;; *) placed="$PROJECT_ROOT/${pval%/}" ;; esac
+    cargo_place "$placed" ptree || ptree="$placed"
+  fi
+  for i in ${trees[@]+"${!trees[@]}"}; do
+    crate="${crates[i]#"$PROJECT_ROOT"}"
+    crate="${crate#/}"
+    crate="${crate:-.}"
+    cargo_place "${trees[i]}" tree || tree="${trees[i]}"
+    cargo_place "${roots[i]}/target" root || root="${roots[i]}/target"
+    seen=1
+    forks[i]=0
+    if [ "$tree" = "$root" ]; then
+      printf '    cargo    %s builds into its own target\n' "$crate"
+    elif _targetdir_same "$tree" "$want"; then
+      printf '    cargo    %s builds into the shared tree\n' "$crate"
+    else
+      forks[i]=1
+      if [ "$hasked" = 0 ]; then
+        hasked=1
+        cargo_home_build_dir htree || htree=""
+        [ -z "$htree" ] || ! cargo_place "$htree" placed || htree="$placed"
+      fi
+      if [ -n "$ptree" ] && _targetdir_same "$tree" "$ptree"; then
+        warn "${pcfg#"$PROJECT_ROOT"/} sets build.target-dir = $pval, and cargo builds $crate into $tree -- this forks the cache for every session in this project, not just yours."
+        rc=1
+      elif [ -n "$htree" ] && _targetdir_same "$tree" "$htree"; then
+        # The machine's fork is reported, not failed, and a hole does not
+        # make it one: it is accounted for (critic-shell on 0150 v2d).
+        forks[i]=0
+        printf '    machine  %s moves the build tree, and cargo builds %s into %s\n' "$home_cfg" "$crate" "$tree"
+        printf '             this forks EVERY rust project on this machine. Not this project to fix, and not failed here.\n'
+      else
+        warn "cargo builds $crate into $tree, not its own target or the shared tree at $want, and no config this check can read accounts for it -- its cause is not named here."
+        rc=1
+      fi
     fi
   done
 
-  # 3. THE HOME CONFIG, REPORTED SEPARATELY BECAUSE IT IS A DIFFERENT FINDING.
-  # A fork here applies to EVERY rust project on the machine, so it is neither
-  # this project's fault nor something this project can fix -- and a gate that
-  # failed a clean checkout for a machine-level setting would be red in a tree
-  # whose own contents are correct. Reported, not failed.
-  home_cfg="${CARGO_HOME:-$HOME/.cargo}/config.toml"
-  if [ -f "$home_cfg" ]; then
-    val="$(sed -n 's/^[[:space:]]*target-dir[[:space:]]*=[[:space:]]*"\{0,1\}\([^"]*\)"\{0,1\}[[:space:]]*$/\1/p' "$home_cfg" | head -1)"
-    if [ -n "$val" ]; then
+  # A WALK WITH A HOLE IN IT (status 2), vc's rulings on 0150 v2 and v2c. It
+  # fails only when a carrier is IN PLAY, and is otherwise reported, not
+  # failed, since failing on it would be a refusal this check never made
+  # before 0150. A config naming target-dir or include is in play when a crate
+  # beneath it that cargo answered for forks -- builds neither into its own
+  # workspace's target nor the shared tree, other than a fork the machine's
+  # config alone accounts for, which stays reported -- or when no crate
+  # beneath it was answered for at all, since its crates then lie beneath the
+  # hole. Every
+  # other config is ACCOUNTED FOR: each crate beneath it was asked and builds
+  # where it should, so the unread part is no more exposed than in a project
+  # with no config at all. A config above the project, or in CARGO_HOME, is
+  # beneath-everything: every crate here is beneath it.
+  if [ "$st" -eq 2 ]; then
+    for c in ${cfgs[@]+"${cfgs[@]}"} ABOVE HOME; do
+      case "$c" in
+        ABOVE) cargo_config_above "$PROJECT_ROOT" --not-home || continue; d=/ ;;
+        HOME) cargo_config_in_home || continue; d=/ ;;
+        *) d="${c%/.cargo/*}" ;;
+      esac
+      under=0
+      for i in ${crates[@]+"${!crates[@]}"}; do
+        # "${d%/}/"*, never "${d%/}"/*: with d=/, bash 5.3 matches nothing
+        # against a quoted expansion trimmed to empty before an unquoted glob
+        # (critic-shell on 0150 v2d).
+        case "${crates[i]}/" in
+          "${d%/}/"*)
+            under=1
+            [ "${forks[i]:-0}" = 0 ] || inplay=1
+            ;;
+        esac
+      done
+      [ "$under" = 1 ] || inplay=1
+    done
+    if [ "$inplay" = 1 ]; then
+      warn "check targetdir: a cargo config here names target-dir or include, and the walk for crates could not read everything (the error above names it), so a crate beneath it may build elsewhere unasked"
+      rc=1
+    else
+      printf '    walk     could not read the whole project for its crates (the error above names it); no cargo config naming target-dir or include is in play here -- not failed\n'
+    fi
+  fi
+
+  # 3. A CONFIG NO CRATE BUILDS WITH IS REPORTED, NOT FAILED (vc's ruling on
+  # 0150): with no crate to ask, cargo has no answer to give, and nothing is
+  # built into the tree it names, so it forks nothing. Said only when cargo was
+  # asked and named no crate.
+  if [ "$asked" = 1 ] && [ "${#trees[@]}" -eq 0 ]; then
+    if [ -n "$pval" ]; then
       seen=1
-      printf '    machine  %s sets build.target-dir = %s\n' "$home_cfg" "$val"
+      printf '    config   %s sets build.target-dir = %s, and no crate here builds with it -- not failed\n' "${pcfg#"$PROJECT_ROOT"/}" "$pval"
+    fi
+    if [ -n "$hval" ]; then
+      seen=1
+      printf '    machine  %s sets build.target-dir = %s, and no crate here builds with it\n' "$home_cfg" "$hval"
       printf '             this forks EVERY rust project on this machine. Not this project to fix, and not failed here.\n'
     fi
   fi
@@ -707,6 +895,21 @@ builtin_check_targetdir() {
       ".cargo/config.toml" "$home_cfg"
   fi
   return "$rc"
+}
+
+# _targetdir_config_value <file> -- the build.target-dir a cargo config file
+# sets, as its text reads, or nothing. It names a cause for check targetdir and
+# decides nothing: cargo's answer is the verdict (issue 0150). It reads the
+# plain spelling only, `target-dir = "..."`; the machine's config is placed by
+# asking cargo (cargo_home_build_dir), whatever its spelling.
+_targetdir_config_value() {
+  sed -n 's/^[[:space:]]*target-dir[[:space:]]*=[[:space:]]*"\{0,1\}\([^"]*\)"\{0,1\}[[:space:]]*$/\1/p' "$1" | head -1
+}
+
+# _targetdir_same <a> <b> -- true when two paths name one directory: the same
+# text, or the same directory where both exist.
+_targetdir_same() {
+  [ "$1" = "$2" ] || { [ -e "$1" ] && [ "$1" -ef "$2" ]; }
 }
 
 run_builtin_gate check "$@"

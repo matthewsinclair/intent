@@ -39,11 +39,19 @@ builtin_fmt_swift() {
   _fmt_skip_without swift-format "brew install swift-format" || return 0
   # Build directories hold generated and vendored sources; formatting those
   # churns files nobody edits and can fight the build system.
-  find . -name '*.swift' \
-    -not -path '*/build/*' \
-    -not -path '*/.build/*' \
-    -not -path '*/Carthage/*' \
-    -print0 | xargs -0 swift-format format --in-place
+  #
+  # A PARTIAL LIST FAILS fmt, AND WHAT IT LISTED IS FORMATTED (issue 0139). The
+  # pipeline's status is this function's, under pipefail, and find's error
+  # names what it could not read: a verb that acts may act on what it found, as
+  # clean does, where its twin in check is a gate and refuses.
+  #
+  # The build directories are PRUNED, and the walk ignores an entry that
+  # vanishes mid-walk, exactly as check's twin does, so the pair keeps one file
+  # set (critic-shell on 0139: a writer in .build/ failed the walk).
+  # find-status: this function's, under pipefail, with find's error shown.
+  find_walk . -ignore_readdir_race \
+    \( -type d \( -name build -o -name .build -o -name Carthage \) \) -prune -o \
+    -name '*.swift' -print0 | xargs -0 swift-format format --in-place
 }
 
 # builtin_fmt_md -- prettier over Markdown.

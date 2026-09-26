@@ -134,9 +134,17 @@ test_dir() {
   # falling through to the `return 1` below. Measured at 4000 .bats files: status
   # 141, every time. The first line is taken in bash instead, where there is no
   # reader to exit early. Same defect as lib/cmd/doctor's unowned scan.
-  f="$(find "$PROJECT_ROOT" -name '*.bats' \
-    -not -path "$DEVBIN_LIB/*" -not -path '*/.git/*' 2>/dev/null |
-    LC_ALL=C sort)"
+  #
+  # find READS WHOLE, WITH ITS STATUS (issue 0139): its errors went to
+  # /dev/null, so a suite beneath a directory it could not read was a project
+  # with no suite. It picks where to scaffold rather than giving a verdict, so a
+  # partial search is SAID and what it found is still used.
+  local listing
+  if ! listing="$(find_walk "$PROJECT_ROOT" -ignore_readdir_race -name '*.bats' \
+    -not -path "$DEVBIN_LIB/*" -not -path '*/.git/*' -print)"; then
+    warn "could not search all of $PROJECT_ROOT for a bats suite (the error above names it) -- a suite beneath it was not seen"
+  fi
+  f="$(printf '%s\n' "$listing" | LC_ALL=C sort)"
   f="${f%%$'\n'*}"
   [ -n "$f" ] || return 1
   printf '%s\n' "$(dirname "$f")"

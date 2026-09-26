@@ -134,6 +134,11 @@ infra_init_handles() {
 # `!unread` is a read that FAILED, which is a different fact from an empty value
 # -- a measured absence. Collapsing the two is how an unreachable zone reports
 # as an empty one; see lib/infra.dns.
+#
+# A domain whose nameserver could not be found has an EMPTY `authority` and one
+# more row, `authority_unread`, holding the sentence the reader printed for
+# what it observed. propose says it in those words -- the words `check` prints
+# -- rather than in its own (issue 0142).
 
 _ii_row() { printf '%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4"; }
 
@@ -141,8 +146,10 @@ _ii_row() { printf '%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4"; }
 infra_init_measure() {
   local h="$1" f="$2" ns mx spf dm rec ttls="" unread=0 inc
 
+  # On rc 1 the reader prints what it observed where the nameserver would be.
   if ! ns="$(infra_dns_authority "$f")"; then
     _ii_row "$h" "$f" authority ""
+    _ii_row "$h" "$f" authority_unread "$ns"
     return 0
   fi
   _ii_row "$h" "$f" authority "$ns"
@@ -170,6 +177,7 @@ infra_init_measure() {
       _ii_row "$h" "$f" dmarc present
       _ii_row "$h" "$f" dmarc_policy "$(infra_dmarc_tag "$rec" p)"
       _ii_row "$h" "$f" dmarc_rua "$(infra_dmarc_tag "$rec" rua | sed 's/mailto://g')"
+      _ii_row "$h" "$f" dmarc_sp "$(infra_dmarc_tag "$rec" sp)"
       ttls="$ttls$(printf '%s' "$dm" | cut -f1)
 "
     else
@@ -230,14 +238,14 @@ _ii_include_census() {
 
 # infra_init_propose <table> <n>
 infra_init_propose() {
-  local t="$1" n="$2" handles h v w wv wc census mx d p rua pol=""
+  local t="$1" n="$2" handles h v w wv wc census mx d p rua sp pol=""
 
   handles="$(printf '%s\n' "$t" | awk -F'\t' '$3=="authority" { print $1 }')"
 
   # --- what could not be read -------------------------------------------------
   for h in $handles; do
     if [ -z "$(_ii_get "$t" "$h" authority)" ]; then
-      printf 'U\t%s\t%s\n' "$h" "could not be measured: no authoritative nameserver answered for $(printf '%s\n' "$t" | awk -F'\t' -v h="$h" '$1==h { print $2; exit }'). Nothing about it was proposed, and it abstained from every majority"
+      printf 'U\t%s\t%s\n' "$h" "could not be measured: $(_ii_get "$t" "$h" authority_unread). Nothing about it was proposed, and it abstained from every majority"
       continue
     fi
     [ "$(_ii_get "$t" "$h" mx)" != '!unread' ] || printf 'U\t%s_mx\t%s\n' "$h" "MX could not be read; this domain abstained from the MX census"
@@ -268,7 +276,7 @@ infra_init_propose() {
   # --- senders: no source ships ---------------------------------------------------
   census="$(_ii_include_census "$t")"
   if [ -n "$census" ]; then
-    printf 'U\tsenders\t%s\n' "nothing proposed: $(_ii_withheld senders "$n"), and a DKIM selector cannot be discovered from DNS. Live SPF includes: $census. A third-party sender is declared under senders: with its spf_include and dkim.name"
+    printf 'U\tsenders\t%s\n' "nothing proposed: $(_ii_withheld senders "$n"), and a DKIM selector cannot be discovered from DNS. Live SPF includes: $census. A third-party sender is declared under senders: with its spf_include and dkim.name, or a dkim.<label>.name for each of several records"
   fi
 
   # --- dmarc policy: the RFC decides presence, the majority decides the phase ---
@@ -281,6 +289,15 @@ infra_init_propose() {
     d="$(_ii_get "$t" "$h" dmarc)"; p="$(_ii_get "$t" "$h" dmarc_policy)"; mx="$(_ii_get "$t" "$h" mx)"
     case "$d" in
       present)
+        # AN EXPLICIT sp= THAT DIFFERS FROM ITS OWN p= IS A LIVE VALUE NOTHING
+        # MAY PROPOSE (issue 0143). Neither an RFC nor a vendor decides an
+        # estate's subdomain policy, and a majority over sp= would mostly count
+        # absent tags, so it is recorded and never targeted. One equal to p=
+        # says nothing p= does not, since an absent sp= follows p=.
+        sp="$(_ii_get "$t" "$h" dmarc_sp)"
+        if [ -n "$sp" ] && [ "$sp" != "$p" ]; then
+          printf 'U\t%s_dmarc_sp\t%s\n' "$h" "live sp=$sp against its own p=${p:-(no p= tag)}; nothing proposed: a subdomain policy is this estate's decision. Declaring dmarc.sp is what makes check hold it"
+        fi
         if [ -n "$pol" ]; then
           [ "$p" = "$pol" ] || printf 'U\t%s_dmarc_policy\t%s\n' "$h" "live p=${p:-(no p= tag)} against a majority of $pol ($wc of $n domains); the target is $pol"
         else

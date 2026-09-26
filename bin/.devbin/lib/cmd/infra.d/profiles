@@ -65,6 +65,15 @@ esac
 dir="$1"
 [ -d "$dir" ] || die "infra profiles: not a directory: $dir"
 
+# READ WHOLE, WITH ITS STATUS, AND REFUSED WHEN FIND COULD NOT READ EVERYTHING
+# (issue 0139). The listing sat in the loop's heredoc with find's errors sent to
+# /dev/null, so a profile beneath a directory find could not read was never
+# compared, and the run said no domain was claimed twice -- the one verdict this
+# verb exists to give, given over part of the estate. find's own error names
+# the directory.
+listing="$(find_walk "$dir" -maxdepth 3 -name 'infra.yaml' -type f -print)" ||
+  die "infra profiles: could not read all of $dir (the error above names it) -- a profile it could not see was compared with nothing, so there is no verdict"
+
 # A SUBSHELL PER PROFILE. `cfg_load` populates process-global state, so reading
 # two profiles in one shell risks the second inheriting keys from the first --
 # and a domain leaking between profiles is precisely the fault being looked for,
@@ -74,17 +83,32 @@ count=0
 while IFS= read -r f; do
   [ -n "$f" ] || continue
   count=$((count + 1))
+  # AND EACH IS VALIDATED, as the usage has always said (issue 0121: it only
+  # loaded them). A profile `show` would refuse is no basis for a comparison, so
+  # its own errors print, the file is named, and the run stops. `check`'s gate
+  # on `unreviewed:` is not validation and is not applied: a deviation awaiting
+  # review changes no domain's claim.
+  # What validation says is printed UNDER the file it is about -- a warning as
+  # well as an error, since a directory of profiles otherwise gets advice naming
+  # a handle and no file.
   out="$(
-    cfg_load "$f" >/dev/null 2>&1 || exit 1
+    cfg_load "$f" >/dev/null ||
+      die "infra profiles: $f does not load (above) -- fix it before comparing it to anything"
+    _DEVBIN_INFRA_FILE="$f"
+    vrc=0
+    said="$(infra_validate_profile 2>&1)" || vrc=$?
+    [ -z "$said" ] || printf '%s:\n%s\n' "$f" "$said" >&2
+    [ "$vrc" -eq 0 ] ||
+      die "infra profiles: $f does not validate (above) -- fix it before comparing it to anything"
     infra_domain_pairs
-  )" || die "infra profiles: $f does not load -- fix it before comparing it to anything"
+  )" || exit 1
   while IFS="$(printf '\t')" read -r handle fqdn; do
     [ -n "${fqdn:-}" ] || continue
     pairs="$pairs$fqdn	$f	$handle
 "
   done <<<"$out"
 done <<EOF
-$(find "$dir" -maxdepth 3 -name 'infra.yaml' -type f 2>/dev/null | LC_ALL=C sort)
+$(printf '%s\n' "$listing" | LC_ALL=C sort)
 EOF
 
 [ "$count" -gt 0 ] ||

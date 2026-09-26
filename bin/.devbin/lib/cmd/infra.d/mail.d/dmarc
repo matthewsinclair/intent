@@ -63,8 +63,10 @@ usage: ${DEVBIN_INVOKE:-bin/devbin} infra mail dmarc <verb>
                        or failed -- so stdout stays pure JSON Lines
   report               read those rows on stdin, summarise them for a human
 
-Both read no profile and make no network call. Neither judges the estate:
-that is \`infra mail dmarc check\`, which has a profile to judge it against.
+Both read no profile and make no network call, and neither judges the estate:
+that needs a profile, and the verb for it, a planned \`infra mail dmarc check\`
+(devbin's ST0006), does not exist yet. \`infra check\` judges the DMARC records
+each domain publishes.
 
   ${DEVBIN_INVOKE:-bin/devbin} infra mail dmarc parse r.xml | ${DEVBIN_INVOKE:-bin/devbin} infra mail dmarc report
 EOF
@@ -340,9 +342,19 @@ emit_record() {
 # the input entirely -- so a summary phrased as an estate verdict would be
 # reporting on its own input while sounding like it reported on the estate.
 # That is absent-reporting-reads-as-clean-reporting, produced by the tool built
-# to detect it. `report` therefore states the domains PRESENT, and
-# `infra mail dmarc check` -- which has a profile -- owns the assertion about
-# what should have been there.
+# to detect it. `report` therefore states the domains PRESENT, and the
+# assertion about what should have been there belongs to a verb with a profile:
+# `infra mail dmarc check`, planned as devbin's ST0006 WP-02 and not built. The
+# help named it as if it existed until issue 0121.
+#
+# NOR CAN IT SAY WHOSE A FAILING SIGNATURE IS (issue 0147, found by
+# prodinfra-cc). A signature present and failing is the domain's own mail
+# broken in transit, or a forged signature, and aggregate data cannot say
+# which. The heading said "your own mail, failing" until 0147, and in
+# Prodinfra's archive all five records under it were forged: a selector the
+# domain publishes no key at, or no signing domain at all. The heading now
+# names both readings, and every signed row prints its signer, so a reader
+# holding the domain's selectors can tell them apart.
 #
 # AND IT DOES NOT JUDGE. Exit 0 means the summary was produced, never that the
 # estate is well. A non-zero here for "found forgeries" would make the same
@@ -371,12 +383,23 @@ def klass:
 
 def plural($n): if $n == 1 then "" else "s" end;
 
+# A field of a signature as printed: an EMPTY one is `none`, and an ABSENT
+# selector, which the parser keeps apart from an empty one as null, is `absent`
+# (issue 0147). The domain and the result are read with string(), so a missing
+# one is empty and reads `none`.
+def shown: if . == null then "absent" elif . == "" then "none" else . end;
+
+# One signature: its result, then who signed it -- the signing domain (d=) and
+# the selector (s=). Without them a forged selector and the domain key read
+# the same (issue 0147).
+def sig: (.result | shown) + " d=" + (.domain | shown) + " s=" + (.selector | shown);
+
 def row:
   "  " + (.policy_domain | pad(22)) + (.source_ip | pad(18))
   + ((.count | tostring) + " msg" + plural(.count) | pad(11))
   + (if (.dkim_auth | length) == 0
      then "dkim=absent  spf=" + ((.spf_auth | map(.result) | join(",")) // "absent")
-     else "dkim=" + (.dkim_auth | map(.result) | join(","))
+     else "dkim=" + (.dkim_auth | map(sig) | join(", "))
           + "  spf=" + ((.spf_auth | map(.result) | join(",")) // "absent")
      end);
 
@@ -411,7 +434,7 @@ def block($title; $rows):
     + block("UNAUTHENTICATED -- no DKIM auth result (" + ($unauth | length | tostring)
             + " record" + plural($unauth | length) + ", "
             + (($unauth | map(.count) | add) // 0 | tostring) + " messages)"; $unauth)
-    + block("DKIM PRESENT BUT NOT PASSING -- your own mail, failing ("
+    + block("DKIM PRESENT BUT NOT PASSING -- own mail broken in transit, or a forged signature ("
             + ($failing | length | tostring) + " record" + plural($failing | length) + ")"; $failing)
     + block("AUTHENTICATED -- a DKIM signature passed (" + ($auth | length | tostring)
             + " record" + plural($auth | length) + ")"; $auth)
@@ -431,6 +454,10 @@ def block($title; $rows):
       "    and says nothing about any domain that is not in them.",
       "  - receivers that send no aggregate reports at all.",
       "  - message content. Aggregate reports carry counts, never bodies or subjects.",
+      "  - whether a failing signature is your own mail broken in transit or a forged",
+      "    one. Compare its d= and s= with the selectors the domain publishes. A",
+      "    planned infra mail dmarc check (devbin'"'"'s ST0006) is to compare them",
+      "    with the profile.",
       "  - whether a passing signature belongs to a sender you authorised."
     ]
   )
@@ -497,7 +524,16 @@ _dmarc_is_report() {
 # reports means the path was wrong, not that the estate is clean.
 parse_dir() {
   local dir="$1" f n_ok=0 n_skip=0 n_fail=0 skipped="" failed=""
-  while IFS= read -r -d '' f; do
+  local -a files=()
+  # READ WHOLE, WITH ITS STATUS, AND REFUSED WHEN FIND COULD NOT READ EVERYTHING
+  # (issue 0139). The walk ran in a process substitution with find's errors sent
+  # to /dev/null, so a report beneath a directory find could not read was never
+  # parsed, the counts below said nothing of it, and `report` would summarise
+  # the part as the whole. find_list reads the list whole, NUL-separated and in
+  # the C locale's order, with find's status.
+  find_list files "$dir" -type f -print0 ||
+    die "dmarc parse: could not list every file under $dir (the error above names it) -- a report it could not see would be missing from the counts, so nothing was parsed"
+  for f in "${files[@]}"; do
     if ! _dmarc_is_report "$f"; then
       n_skip=$((n_skip + 1)); skipped="$skipped  not a report: $f
 "
@@ -528,7 +564,7 @@ parse_dir() {
       n_fail=$((n_fail + 1)); failed="$failed  FAILED: $f
 "
     fi
-  done < <(find "$dir" -type f -print0 2>/dev/null | LC_ALL=C sort -z)
+  done
 
   {
     printf 'dmarc parse: %s parsed, %s not a report, %s failed (under %s)\n' \

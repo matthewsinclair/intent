@@ -16,9 +16,9 @@
 # one would erase the review, which is the only thing standing between it and a
 # false green. The caller redirects, and so the caller decides what is replaced.
 #
-# EXIT CODES follow `check`: 0 every domain measured; 2 something could not be
+# EXIT CODES follow `check`: 0 every domain measured; 1 something could not be
 # measured, and the profile is still printed with that recorded in
-# `unreviewed:`. A domain that could not be read is a gap in the instrument, and
+# `unreviewed:` -- 2 until issue 0126, which is the dispatcher's code. A domain that could not be read is a gap in the instrument, and
 # a caller scripting init must not bank it as adopted.
 #
 set -euo pipefail
@@ -82,6 +82,9 @@ infra_dns_have_tool ||
   die "infra init: dig not found. init reads AUTHORITATIVE records, and there is
        deliberately no fallback to the system resolver -- a cached TTL reads as a
        configured one, and init would propose it as the target."
+# The budget and the pause, once, before any domain is asked about: a malformed
+# one fails quietly per query (lib/infra.dns says how).
+infra_dns_assert_knobs "infra init"
 
 table=""
 while IFS="$(printf '\t')" read -r h f; do
@@ -115,7 +118,10 @@ unmeasured="$(printf '%s\n' "$table" | awk -F'\t' '($3=="authority" && $4=="") |
 unrev="$(printf '%s\n' "$proposal" | grep -c '^U' || true)"
 printf 'infra init: %s domain(s), %s unreviewed entr%s. check refuses until each is deleted or fixed.\n' \
   "$n" "$unrev" "$([ "$unrev" -eq 1 ] && printf y || printf ies)" >&2
+# A READ THAT COULD NOT BE MEASURED FAILS THE RUN, exit 1, with the profile
+# still printed above. It exited 2 until issue 0126, which is the dispatcher's
+# code for a command that is unknown or inactive.
 if [ "$unmeasured" -gt 0 ]; then
   printf 'infra init: %s read(s) could not be measured -- recorded in unreviewed:, and nothing was proposed from them.\n' "$unmeasured" >&2
-  exit 2
+  exit 1
 fi

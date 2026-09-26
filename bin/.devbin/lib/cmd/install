@@ -99,7 +99,7 @@ starter_config() {
 
 main() {
   local into="" name="" alias="" langs="" force="" prefix="" srcroot dstroot version
-  local rel src count=0 config mode dirty vendor_only=""
+  local rel src count=0 config mode dirty vendor_only="" record paths recorded removed
 
   while [ $# -gt 0 ]; do
     case "$1" in
@@ -329,20 +329,50 @@ main() {
   # install tree contains. VENDOR keeps its own loop because it writes a project
   # half that an install never gets.
   if [ "$mode" = publish ]; then
-    count="$(publish_install "$srcroot" "$dstroot" "$version")" ||
+    record="$(publish_install "$srcroot" "$dstroot" "$version")" ||
       die "failed to publish the install to $dstroot"
-    printf '  vendored   %d files (bin/devbin, bin/.devbin/lib/)\n' "$count"
+    printf '  vendored   %d files (bin/devbin, bin/.devbin/lib/)\n' "$(publish_copied "$record")"
+    while IFS= read -r rel; do
+      [ -z "$rel" ] || printf '  removed    %s (devbin no longer ships it)\n' "$rel"
+    done <<<"$(publish_removed "$record")"
   else
+    # Read whole, with its status, before the loop: in the loop's heredoc a
+    # failed enumeration was a shorter vendor at rc 0 (issue 0127).
+    paths="$(vendored_paths "$srcroot")" ||
+      die "cannot list what devbin ships from $srcroot (the error above names it)"
+    # And every file on the list read, before one is copied (issue 0144). The
+    # loop below stops at the first file cp cannot read, and on --force that
+    # left each file before it replaced under the old manifest, which doctor
+    # then reads as edited in place.
+    source_readable "$srcroot" "$paths" ||
+      die "cannot read the file(s) named above in $srcroot, so nothing was installed into $dstroot"
+    # What the previous manifest recorded, read BEFORE anything below rewrites
+    # it: the only files a re-vendor may retire (issue 0129). Absent on a first
+    # install, which has nothing to retire.
+    recorded=""
+    if [ -f "$(manifest_path "$dstroot")" ]; then
+      recorded="$(manifest_entries "$dstroot" | cut -f2)" ||
+        die "cannot read the manifest at $(manifest_path "$dstroot")"
+    fi
     while IFS= read -r rel; do
       [ -n "$rel" ] || continue
       src="$(vendor_source_path "$srcroot" "$rel")" ||
         die "cannot locate '$rel' in the source at $srcroot"
       copy_vendored "$src" "$dstroot/$rel" || die "failed to write $dstroot/$rel"
       count=$((count + 1))
-    done <<EOF
-$(vendored_paths "$srcroot")
-EOF
+    done <<<"$paths"
     printf '  vendored   %d files (bin/devbin, bin/.devbin/lib/)\n' "$count"
+    # A RE-VENDOR RETIRES WHAT THE SOURCE STOPPED SHIPPING (issue 0129). It
+    # copied and deleted nothing, so a retired file stayed and dropped out of
+    # the manifest -- and a retired lib/cmd/<name> went on dispatching, where
+    # no later upgrade could reach it, since upgrade retires only what the
+    # manifest lists. Edited or not, as --force copies over edits too; upgrade
+    # is the verb that releases an edited one to the project instead.
+    removed="$(remove_unshipped "$dstroot" "$paths" "$recorded")" ||
+      die "failed to remove from $dstroot a file devbin no longer ships"
+    while IFS= read -r rel; do
+      [ -z "$rel" ] || printf '  removed    %s (devbin no longer ships it)\n' "$rel"
+    done <<<"$removed"
   fi
 
   # THE PROJECT HALF IS EXACTLY WHAT AN INSTALL DOES NOT GET (D27, D33).
@@ -371,6 +401,12 @@ EOF
   # In PUBLISH mode `publish_install` already wrote it, as part of being the one
   # writer. Writing it a second time here would work and would mean the manifest
   # has two authors again, which is the thing that function exists to prevent.
+  #
+  # IT REFUSES A COPY IT CANNOT READ (issue 0144), naming each, and keeps the
+  # manifest that was there. The source was read in full above, so what reaches
+  # this is a copy that came out unreadable -- a umask that strips the owner's
+  # read bit does it to every file -- and the files are then in place, under
+  # the old manifest or none. It exited 0 over a manifest of no rows.
   if [ "$mode" != publish ]; then
     manifest_write "$dstroot" "$srcroot" "$version" ||
       die "failed to write the manifest"

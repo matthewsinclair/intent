@@ -58,13 +58,14 @@ _explain() {
     orphaned) printf 'no longer shipped -- upgrade would remove it\n' ;;
     released) printf 'no longer shipped and edited here -- upgrade would leave it with you\n' ;;
     unlisted) printf 'devbin neither tracks nor replaces this\n' ;;
+    unreadable) printf 'cannot be read, so it cannot be compared -- upgrade refuses to run until it can\n' ;;
     *) printf '\n' ;;
   esac
 }
 
 main() {
   local from="" all="" dstroot srcroot states line state rel
-  local tracked=0 divergent=0 unlisted=0 direction recorded
+  local tracked=0 divergent=0 unlisted=0 unreadable=0 direction recorded
 
   while [ $# -gt 0 ]; do
     case "$1" in
@@ -102,6 +103,24 @@ main() {
     return 1
   }
 
+  # A MANIFEST IT CANNOT READ IS REFUSED, FIRST (issue 0144): the rows compare
+  # this tree with the manifest, and it read as none -- every file new, and
+  # with no --from the recorded source as unrecorded.
+  manifest_readable "$dstroot" ||
+    die "cannot read $DEVBIN_MANIFEST_REL (named above), so this tree cannot be compared; make it readable, eg chmod u+r $DEVBIN_MANIFEST_REL"
+
+  # AND ONE THAT IS NOT THERE IS REFUSED THE SAME WAY (issue 0146). Every file
+  # read as new: one matching the source as level, so a tree with nothing
+  # recorded said "Level with", and an edit as behind, "upgrade would replace
+  # this". Which files were edited here is the half of the answer nobody has.
+  if manifest_missing "$dstroot"; then
+    warn "there is no manifest at $DEVBIN_MANIFEST_REL, so which vendored files were edited here cannot be told, and this tree cannot be compared"
+    warn "  upgrade refuses it too; to replace every vendored file, an edit included:"
+    warn "    $DEVBIN_INVOKE upgrade --from <dir> --force"
+    warn "    <path-to-devbin>/bin/devbin install --into $dstroot --force"
+    return 1
+  fi
+
   if [ -n "$from" ]; then
     srcroot="$(cd "$from" 2>/dev/null && pwd)" || die "no such directory: $from"
   else
@@ -138,7 +157,8 @@ main() {
   printf '  source now at     %s\n' "$(source_commit_of "$srcroot")"
   printf '  direction         %s\n\n' "$(_direction_words "$direction")"
 
-  states="$(vendor_states "$dstroot" "$srcroot")"
+  states="$(vendor_states "$dstroot" "$srcroot")" ||
+    die "cannot compare $dstroot with $srcroot (the error is above)"
 
   while IFS= read -r line; do
     [ -n "$line" ] || continue
@@ -151,6 +171,16 @@ main() {
         ;;
       unlisted)
         unlisted=$((unlisted + 1))
+        printf '  %-10s %s   %s%s%s\n' "$state" "$rel" "${dim:-}" "$(_explain "$state")" "${reset:-}"
+        ;;
+      # NOT LEVEL, AND COUNTED WITH THE REST THAT ARE NOT (issue 0144). Its sum
+      # was an empty string, so vendor_states read a file unreadable on both
+      # sides as level, and this command ended at its first checksum pass with
+      # no rows and no count. Counted apart as well, for the remedy below.
+      unreadable)
+        tracked=$((tracked + 1))
+        divergent=$((divergent + 1))
+        unreadable=$((unreadable + 1))
         printf '  %-10s %s   %s%s%s\n' "$state" "$rel" "${dim:-}" "$(_explain "$state")" "${reset:-}"
         ;;
       *)
@@ -181,7 +211,11 @@ EOF
     printf 'Level with %s.\n' "$srcroot"
     return 0
   fi
-  printf '\nto act on this: %s upgrade\n' "$DEVBIN_INVOKE"
+  if [ "$unreadable" -gt 0 ]; then
+    printf '\nto act on this: make each file marked unreadable readable, then %s upgrade\n' "$DEVBIN_INVOKE"
+  else
+    printf '\nto act on this: %s upgrade\n' "$DEVBIN_INVOKE"
+  fi
   return 1
 }
 
