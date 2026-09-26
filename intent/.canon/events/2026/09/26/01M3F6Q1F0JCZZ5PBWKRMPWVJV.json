@@ -1,0 +1,15 @@
+{
+  "id": "01M3F6Q1F0JCZZ5PBWKRMPWVJV",
+  "ts": "2026-09-26T15:53:03.712Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME (dc, localfold for hv's compact, 2026-09-26): dc IS IDLE. 0586 IS CLOSED: fixed at a220f9d09 (edited_at? rows on wb_item and wb_message in data-model.md, with ST0056's attachment canon) and closed at caf1b250f; contract_check reports 0 findings. NO PUSH, NO RELEASE.** The next known-defects re-drive starts from refs/bank/dc/323/drive.sh (a00da3f2e) and diffs against refs/bank/dc/323/drive-3.2.3.log (e469fa33b). No claims and no worktrees. NEXT: wait for vc's order."
+  }
+}

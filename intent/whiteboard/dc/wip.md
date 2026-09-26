@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 4e187b62-bbfa-4424-8bf9-a7e03ae421e0
-heartbeat_at: 2026-09-26 11:33Z
+heartbeat_at: 2026-09-26 15:53Z
 status: active
-focus: "idle: lane empty after 3.2.3; folded for compact"
+focus: "idle: 0586 closed; folded for compact"
 claims: []
 ---
 
@@ -13,10 +13,7 @@ claims: []
 
 ## DOING
 
-- **RESUME (dc, localfold for hv's compact, 2026-09-26): dc'S LANE IS EMPTY. 3.2.3 IS RELEASED (a2585b12c) AND LIFTED. NO PUSH, NO RELEASE.**
-  - The 3.2.3 known-defects re-drive landed as a9695e74f (patch-id 66a50702f099); every entry reproduced. The next cut's re-drive starts from refs/bank/dc/323/drive.sh (a00da3f2e) and diffs against refs/bank/dc/323/drive-3.2.3.log (e469fa33b).
-  - The worktrees wt-dc-322a, b and c are removed; their staged content was all on main.
-  - NEXT: wait for vc's next order. The standing holds are the two below.
+- **RESUME (dc, localfold for hv's compact, 2026-09-26): dc IS IDLE. 0586 IS CLOSED: fixed at a220f9d09 (edited_at? rows on wb_item and wb_message in data-model.md, with ST0056's attachment canon) and closed at caf1b250f; contract_check reports 0 findings. NO PUSH, NO RELEASE.** The next known-defects re-drive starts from refs/bank/dc/323/drive.sh (a00da3f2e) and diffs against refs/bank/dc/323/drive-3.2.3.log (e469fa33b). No claims and no worktrees. NEXT: wait for vc's order.
 
 ## TODO
 
@@ -24,7 +21,7 @@ _(none)_
 
 ## Holds
 
-- **THE GUARDS ADOPTION PASS FOR THE REMAINING ESTATES IS HELD UNTIL THE DEVBIN FLEET SWEEP (hv's ruling via vc; condition restated 2026-09-26).** The recipe runs intent claude upgrade --apply, so each estate's hooks wiring rides that sweep, one commit per estate. Pilot: MicroGPTEx 80d4c13, which passed vc's check. (edited)
+- **THE GUARDS ADOPTION PASS FOR THE REMAINING ESTATES IS HELD UNTIL THE DEVBIN FLEET SWEEP REACHES THEM (hv's ruling via vc; re-checked 2026-09-26 at vc's order).** Devbin 0.1.8 is in for Intent only (f85f2663f). A read-only census of the 15 named estates found core.hooksPath set to .githooks in Intent, MicroGPTEx (the pilot) and Gtools, to bin/hooks in Laksa, and unset in the other 11, so the sweep has not reached the estates this hold is about. The recipe runs intent claude upgrade --apply, so each estate's hooks wiring rides that sweep, one commit per estate. Pilot: MicroGPTEx 80d4c13, which passed vc's check. (edited)
   THE RECIPE: git config core.hooksPath .githooks; intent claude upgrade --apply (writes the four chain blocks, tracked, and the four .intent carriers); add .githooks/*.intent to .gitignore; declare formatters wherever the old hook checked any; red-control with staged probes; commit by path; run doctor.
   THE ESTATES: Molt and Prolix take the recipe unchanged, because their hook is byte-identical to MicroGPTEx's. Anvil, Baize, Cdtempl, Courses and Riffle share a hook with only the chain block and need no formatter declaration. Prodinfra, Conflab and Lamplight each get their own diff first. vc sequences Devbin, Laksa and Gtools. vc rules the seven unnamed estates on a measurement of which carry Intent.
   RIDER: wherever the recipe declares a markdown formatter in an estate with a whiteboard, the same commit adds prettier-ignore lines for intent/whiteboard/*/wip.md and intent/whiteboard/*/inbox.*.md (prettier 3.9.8 rewrites the generated views).
