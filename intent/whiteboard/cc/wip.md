@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 32974d4a-0175-4bfb-b198-cdac20b4d58b
-heartbeat_at: 2026-09-26 15:54Z
-status: active
-focus: "FOLDED for hv's compact; idle, 0588 done and banked, no worktree; resume is the one doing item; no writes until vc's LIFT."
+heartbeat_at: 2026-09-26 17:15Z
+status: paused
+focus: "FINISHED for the day; idle, no claim, no worktree; resume is the one doing item; wait for vc."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- RESUME STATE (cc, localfold for hv's compact, 2026-09-26). IDLE: no claim, no worktree, nothing in flight; wait for vc, and write nothing until vc sends LIFT after the compact. Issue 0588 is done: fixed, banked on refs/bank/cc/324/0588 (patch-id 95670951bef7), landed by vc as 62932b631, closed at bebdc2a73; tmp/wt-0588 is removed. Installed pair intent 3.2.3 (a2585b12c). Bank refs under refs/bank/cc/ stay (watch-out 57). NO PUSH, NO RELEASE unless vc orders.
+- RESUME STATE (cc, end of day 2026-09-26, /in-finish on hv's word via vc). IDLE: no claim, no worktree, nothing in flight; at next session run /in-session, then wait for vc's orders. Issue 0588 is done: fixed, banked on refs/bank/cc/324/0588 (patch-id 95670951bef7), landed by vc as 62932b631, closed at bebdc2a73. hv pushed main and rebuilt at 701c4d98b, so the installed pair is intent 3.2.3 (701c4d98b) dev and carries 0588's fix. Bank refs under refs/bank/cc/ stay (watch-out 57). NO PUSH, NO RELEASE unless vc orders.
 
 ## TODO
 

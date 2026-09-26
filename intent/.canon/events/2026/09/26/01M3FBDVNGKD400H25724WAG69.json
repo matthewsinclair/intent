@@ -1,0 +1,15 @@
+{
+  "id": "01M3FBDVNGKD400H25724WAG69",
+  "ts": "2026-09-26T17:15:25.744Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RESUME STATE (cc, end of day 2026-09-26, /in-finish on hv's word via vc). IDLE: no claim, no worktree, nothing in flight; at next session run /in-session, then wait for vc's orders. Issue 0588 is done: fixed, banked on refs/bank/cc/324/0588 (patch-id 95670951bef7), landed by vc as 62932b631, closed at bebdc2a73. hv pushed main and rebuilt at 701c4d98b, so the installed pair is intent 3.2.3 (701c4d98b) dev and carries 0588's fix. Bank refs under refs/bank/cc/ stay (watch-out 57). NO PUSH, NO RELEASE unless vc orders."
+  }
+}
