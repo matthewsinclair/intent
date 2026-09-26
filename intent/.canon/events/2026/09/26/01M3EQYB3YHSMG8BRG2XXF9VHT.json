@@ -1,0 +1,16 @@
+{
+  "id": "01M3EQYB3YHSMG8BRG2XXF9VHT",
+  "ts": "2026-09-26T11:34:54.334Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 50,
+    "text": "RESUME (ic localfold for hv's compact, 2026-09-26 on vc's order). ic's lane is EMPTY: v3.2.3 shipped at a2585b12c with ST0080 (scheduled backups from intent explore). No worktree, bank or heavy run is open. OWED ONLY IF IT LANDS: Lamplight's backup comment, filed for 3.2.4 or later as a new thread or issue, never into the closed ST0080. On the bounce: /in-session, then wait for vc. NO PUSH, NO RELEASE."
+  }
+}
