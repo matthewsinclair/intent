@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 32974d4a-0175-4bfb-b198-cdac20b4d58b
-heartbeat_at: 2026-09-26 11:29Z
+heartbeat_at: 2026-09-26 11:33Z
 status: active
-focus: "IDLE after the v3.2.3 cut (installed pair intent 3.2.3 (a2585b12c) release). No claim, no worktree, nothing in flight; the bank refs under refs/bank/cc/322/ stay. Waiting for vc. NO PUSH, NO RELEASE."
+focus: "FOLDED for hv's compact; idle after v3.2.3, resume is the one doing item; no writes until vc's LIFT."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- RESUME STATE (cc, localfold for hv's compact, 2026-09-25 after the v3.2.2 cut). IDLE: no claim, no worktree, nothing in flight; wait for vc. v3.2.2 IS CUT, PUBLISHED AND SMOKED (installed pair `intent 3.2.2 (658a89022) release`, brew unlinked and pinned). cc's last three landings before the cut: the doctor carrier advisory naming `intent claude upgrade --apply --skip-settings` (2a2e804db), the search-index self-repair (3e22bf0a3: a scoped refresh that deletes src_sections rows runs fts5's check in the same write and rebuilds on an objection; intentd checks doc_sections beside each scheduled backup; reported at every door; the SQLite cause is a SOURCE READING, fts5FlushSecureDelete returning OK on a miss, never reproduced), and the 3.2.2 release notes (494880486, CHANGELOG corrected in the same commit). WORTH KEEPING: doc_sections damage is also healed by every ingest or mutation (write_doc_sections ends in FTS5 'rebuild'), so the backup check covers an idle project only; doctor's orphan probe reads NO docid for a planted doc_sections orphan, only fts5's check objects. Todo 39 is done: all 20 cc worktrees removed and 3 stale entries pruned with vc's go; `git worktree list` holds main plus dc's three. The bank refs under refs/bank/cc/322/ stay. NO PUSH, NO RELEASE unless vc orders. (edited)
+- RESUME STATE (cc, localfold for hv's compact, 2026-09-26 after the v3.2.3 cut). IDLE: no claim, no worktree, nothing in flight; wait for vc, and write nothing until vc sends LIFT after the compact. Installed pair `intent 3.2.3 (a2585b12c) release`, cut by vc with hv. The bank refs under refs/bank/cc/322/ stay (watch-out 57). NO PUSH, NO RELEASE unless vc orders.
 
 ## TODO
 
@@ -25,7 +25,6 @@ _(none)_
 
 ## Watch-outs
 
-- SEVERAL DIRTY BOARD RENDERS AT ONCE IS NOT A CHURN PROBLEM. 10 of 307 board-touching commits in the week to 2026-09-22 have a whole-board diff that is `heartbeat_at` and nothing else -- about 3%, because a render is nearly always dirtied alongside content that was going to be committed anyway. Do not spend a design change on it. AND IF YOU WANT A RULE's HOLD RATE, COUNT OCCASIONS AND CLASSIFY THEM; incidents cannot give it, because a violation becomes a message to a peer and a correct application usually leaves nothing behind. Where a violation WOULD leave a persistent artefact the occasions are countable from git -- but classifying one needs OWNERSHIP, and git carries none here: every session commits as hv, and the only subject convention that names a node is `wb(<node>)`. Measured by ic on 2026-09-22: of 42 commits that day, 30 named a node and the 12 that did not were the substantive work. SO THE COUNT IS AVAILABLE FOR BOARD COMMITS AND MISSING FROM THE COMMITS THAT MATTER, and for work the owner is in the chain announcements, which are live-channel messages that die at a compact. CUT ON 2026-09-22 FROM THREE LONGER VERSIONS, on vc's rule that a caution needing this much care to state is close to the boundary where its precision stops being usable at the moment of use. The derivation, the worked example (zero violations in at least six occasions, one-sided at both ends) and what each revision cost are in archived watch-outs 52, 54 and 55 and in this board's commit messages.
 - NEVER DELETE A SPENT BANK REF, AND THE REASON IS NOT TIDINESS -- IT IS THAT THE DELETION IS UNRECOVERABLE AND TAKES THE BLOB WITH IT (vc's ruling, 2026-09-22, refusing dc's purge proposal). Measured: `.git/logs/refs/` holds `heads`, `remotes` and `stash` ONLY, there is no reflog for `refs/bank/*`, and `core.logAllRefUpdates=true` does not cover them. So a deleted bank ref cannot be recovered the way a deleted branch can. Worse, those refs are the ONLY thing keeping their patch blobs reachable: delete the ref and the blob is handed to the next `git gc`. cc holds 189 refs across 66 topics and they stay exactly where they are; vc's earlier decline of a ledger reconciliation stands on the same ground, that nothing turns on the number. A spent bank ref costs nothing where it sits.
 
 ## Decisions
