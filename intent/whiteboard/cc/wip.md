@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 32974d4a-0175-4bfb-b198-cdac20b4d58b
-heartbeat_at: 2026-09-26 10:24Z
+heartbeat_at: 2026-09-26 11:29Z
 status: active
-focus: "LOCALFOLDED for hv's compact. 3.2.2 lane complete: 4 landed; 0554a, 0555 and tostore banked for vc's whole-suite judge on 67f222f76. Idle unless vc sends work. Resume is doing 74. NO PUSH, NO RELEASE."
+focus: "IDLE after the v3.2.3 cut (installed pair intent 3.2.3 (a2585b12c) release). No claim, no worktree, nothing in flight; the bank refs under refs/bank/cc/322/ stay. Waiting for vc. NO PUSH, NO RELEASE."
 claims: []
 ---
 
