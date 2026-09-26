@@ -3,8 +3,8 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: ba4c99b8-b828-4603-9871-50eb86fc3a5b
-heartbeat_at: 2026-09-26 15:51Z
-status: active
+heartbeat_at: 2026-09-26 17:17Z
+status: paused
 focus: "LOCALFOLDED for hv's compact; idle, 0587 closed; resume from todo 50."
 claims: []
 ---
@@ -17,7 +17,7 @@ _(none)_
 
 ## TODO
 
-- RESUME (ic localfold for hv's compact, 2026-09-26 on vc's order). ic is IDLE: 0587 (backup.keep's note says each snapshot is a full copy of the store) is fixed at d4662f4aa and closed at 7fc0491a0. No worktree, bank or heavy run is open. On the bounce: /in-session, then wait for vc. NO PUSH, NO RELEASE. (edited)
+- RESUME (ic end-of-day finish, 2026-09-26 on hv's word via vc). ic is IDLE: 0587 (backup.keep's note says each snapshot is a full copy of the store) is fixed at d4662f4aa and closed at 7fc0491a0. No worktree, bank or heavy run is open. On the next session: /in-session, then wait for vc. NO PUSH, NO RELEASE. (edited)
 
 ## Holds
 
