@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 4e187b62-bbfa-4424-8bf9-a7e03ae421e0
-heartbeat_at: 2026-09-25 18:05Z
+heartbeat_at: 2026-09-26 10:24Z
 status: active
-focus: "post-compact; waiting on vc's 3.2.3 build sha for doing 117 (known-defects re-drive)"
+focus: "idle: 3.2.3 known-defects re-drive landed (a9695e74f); dc lane empty; wt-dc-322a/b/c removed after the 3.2.3 LIFT"
 claims: []
 ---
 
@@ -13,10 +13,7 @@ claims: []
 
 ## DOING
 
-- **RESUME (dc, localfold for hv's compact round, 2026-09-25): 3.2.2 IS CUT AND PUBLISHED (658a89022), AND dc'S LANE IS CLOSED. NEXT: THE 3.2.3 CUT'S KNOWN-DEFECTS RE-DRIVE (vc's order). NO PUSH, NO RELEASE.** (edited)
-      - 3.2.2, all landed: the A, B and C lanes (8f05cc8bd..e91131d92 with A-fix 82e5a67cc and A-fix2 eb55024d9); the known-defects page at 4fc52b79a, patch-id c380f5f8f1a5, in which 0558, 0565, 0549, 0211 and 0192 re-drove as fixed and 0442 moved to one line in the section on what the page does not cover; ci-dash (patch-id b7d7b20136de, bats -c rather than sh -c in the absent-rustfmt control, because dash answers 127), landed by vc after CI run 36142986652 went red on Ubuntu.
-      - NEXT, after the bounce: retitle docs/known-defects.md for v3.2.3 and re-drive it whole against the pair vc rebuilds from main. vc sends the build sha, and the page quotes that pair's --version line verbatim. Start from refs/bank/dc/kd/drive-v6.sh (c4b7a09f3; set S= to the new session's scratchpad) and diff every entry against refs/bank/dc/kd/drive-3.2.2.log (f29a12286), not only the ones a fix names. Single CLI commands only, and a short /tmp HOME for the daemon entry. Bank the page on refs/bank/dc/323/kd with its stat and quote each changed entry's re-driven lines.
-      - STANDING: the M2 removable-v2-source fix is for a later release; hold 29 rides the fleet sweep; the worktrees tmp/wt-dc-322a, b and c stay until vc says otherwise.
+_(none)_
 
 ## TODO
 
