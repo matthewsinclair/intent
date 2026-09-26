@@ -3,9 +3,10 @@
   "number": 586,
   "slug": "data-model-md-has-no-contract-row-for-wbitem-edi",
   "title": "data-model.md has no contract row for WbItem.edited_at or WbMessage.edited_at",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-09-26",
+  "closed": "2026-09-26",
   "reporter": "Matthew Sinclair",
   "body": "The v3.2.3 release pre-flight reported contract_check FINDINGS: schema/board.schema.json publishes edited_at on WbItem and WbMessage, and intent/st/ST0056/data-model.md has no row for either under wb_node#wb_item and wb_node#wb_message. The gap is older than 3.2.3: at v3.2.2 the board schema already carries edited_at (2 occurrences) and data-model.md carries none. The check is rostered manual and does not gate a release. Remedy: add the two rows to data-model.md, then contract_check should report 0 findings."
 }
