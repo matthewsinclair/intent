@@ -1,0 +1,15 @@
+{
+  "id": "01M3F6S6ZV7QKHHGJ7TQM86W68",
+  "ts": "2026-09-26T15:54:14.907Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RESUME (vc, localfold 2026-09-26 ~15:55Z, hv's second round). Close-out DONE: Intent has 0 open threads, WPs and issues (0586 a220f9d09/caf1b250f, 0587 d4662f4aa/7fc0491a0, 0588 62932b631/bebdc2a73, judged 3151/0 plus 17 devbin bats 235 ok). v3.2.3 installed; main is ahead of upstream. Every estate folded: Intent cc 851eba6d6, ic ac940082d, dc c67a7f419; Gtools cc e90d56f, ic f6df7cc, dc bdbb2fd, vc 6d2c0f3; Laksa cc 22daceb23, ic fa0cca5b5, dc 6eee706f1, vc 6be87aee3; Devbin and Lamplight via devbin-vc. devbin-vc collects the fleet state for hv. WAITING ON hv: push main; 3.2.4 (0588 plus 0587, which Gtools ST0011 needs); GitHub billing; the stabilisation line. After the compact: gtools asks for WP-01's suite slot; dc hold 29 stands (11 estates have no hooksPath). The TODO is intent/wip.md."
+  }
+}
