@@ -1,0 +1,15 @@
+{
+  "id": "01M3M9M7DQ4GVE165B2DMMW2J1",
+  "ts": "2026-09-28T15:20:09.403Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0589"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "trope catalogue: FMT-03's quote class holds straight quotes where curly ones were meant, so it flags every quote and misses every curly one; five [''] classes miss curly apostrophes the same way"
+  }
+}

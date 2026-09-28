@@ -1,0 +1,15 @@
+{
+  "id": "01M3M9M8D581YCKM3GJVB11RN9",
+  "ts": "2026-09-28T15:20:10.408Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0590"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "issues verbs act only on the working directory's project, so filing into another registered project means cd-ing into it first: add intent issues --project <project>"
+  }
+}
