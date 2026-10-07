@@ -28,9 +28,9 @@ usage: $DEVBIN_INVOKE install [--into <dir>] [--name <n>] [--alias <a>] [--lang 
   --into <dir>   the project to install into (default: the current directory)
   --prefix <dir> PUBLISH mode only: where to publish the machine install
                  (default: install.prefix in devbin's own config. There is no
-                 built-in default -- the location is configuration, D32)
+                 built-in default -- the location is configuration)
   --name <n>     the project name (default: the target directory's name)
-  --alias <a>    a short name this project may keep, eg 'cf' for conflab.
+  --alias <a>    a short name this project may keep, eg 'dm' for demo.
                  RECORDED ONLY -- devbin creates no symlink for it
   --lang <l>     a language the project declares; repeatable, or comma-separated
   --force        VENDOR mode only: re-vendor over an existing install
@@ -39,7 +39,7 @@ Writes bin/devbin and bin/.devbin/lib/, scaffolds bin/.devbin/{cmd,help}, and
 writes a starter config.yaml IF THERE IS NONE. Your config, handlers and
 authored help are never overwritten, with or without --force.
 
-TWO MODES, chosen by the tree you are standing in (ST0005, D26):
+TWO MODES, chosen by the tree you are standing in:
 
   PUBLISH   run inside devbin's own source tree with no --into. Publishes this
             runtime to the install prefix, which is what every consumer then
@@ -73,7 +73,7 @@ starter_config() {
     for l in $langs; do printf '    - %s\n' "$l"; done
   else
     printf '  # languages:            # elixir, rust, swift, lua, shell -- this is what\n'
-    printf '  #   - elixir            # activates the built-in gates (design D11)\n'
+    printf '  #   - elixir            # activates the built-in gates for it\n'
   fi
   printf '\n'
   printf '# The devbin this project expects. Enforced by: devbin doctor\n'
@@ -84,10 +84,10 @@ starter_config() {
 # THE PER-PROJECT LAUNCHER SYMLINK IS RETIRED (2026-08-27, superseding D6).
 #
 # `link_alias` lived here and made `bin/<project>` and `bin/<alias>` point at
-# `bin/devbin`, so you typed `bin/lamplight test`. That convention collided with
-# the binaries these projects now BUILD: Lamplight ships a `lamplight`, Intent
-# ships an `intent`, and Intent had already routed around it by calling its shim
-# `int`. A launcher that shadows the product is the wrong default.
+# `bin/devbin`, so you typed `bin/demo test`. That convention collided with
+# the binaries these projects now BUILD: a project named `demo` ships a `demo`,
+# and another had already routed around it by giving its shim a shorter name.
+# A launcher that shadows the product is the wrong default.
 #
 # `bin/devbin` was always the real dispatcher and the symlinks were always
 # aliases to it, so the retirement is a DELETION rather than a new convention --
@@ -99,7 +99,7 @@ starter_config() {
 
 main() {
   local into="" name="" alias="" langs="" force="" prefix="" srcroot dstroot version
-  local rel src count=0 config mode dirty vendor_only="" record paths recorded removed
+  local rel src count=0 config mode dirty vendor_only="" record paths recorded removed configured=""
 
   while [ $# -gt 0 ]; do
     case "$1" in
@@ -190,6 +190,13 @@ main() {
        to vendor:  $DEVBIN_INVOKE install --into <project>${vendor_only}"
   fi
 
+  # And what KIND of tree it is, which the manifest records (issue 0153), asked
+  # after the usage refusals, as upgrade asks it, and before anything is
+  # written: refused only at the manifest's write, a tree that cannot say left
+  # a runtime with no manifest behind.
+  manifest_source_token "$srcroot" >/dev/null ||
+    die "refusing to install from $srcroot (above), so nothing was written"
+
   if [ "$mode" = publish ]; then
     # The devbin config the dispatcher loaded lives in ITS process; handlers are
     # reached by `exec` (lib/resolve:173) so nothing survives into this one.
@@ -197,6 +204,9 @@ main() {
     # down over the top of it.
     cfg_load "$DEVBIN_DIR/config.yaml" >/dev/null 2>&1 ||
       die "cannot read devbin's own config at $DEVBIN_DIR/config.yaml"
+    # Read now, while devbin's own config is the one loaded, for the machine
+    # pointer the publish writes (issue 0153); empty when none is configured.
+    configured="$(install_prefix_configured 2>/dev/null || true)"
     # `|| die_...` rather than a bare assignment, so the refusal happens HERE
     # rather than as an unexplained errexit death at the assignment. There is no
     # baked default any more: an unconfigured prefix is a configuration error,
@@ -256,7 +266,7 @@ main() {
   # source was somewhere else.
   if is_devbin_dev_tree "$dstroot"; then
     die "cannot install devbin into a devbin SOURCE tree ($dstroot)
-       It runs lib/ in place (D12); a vendored copy would sit ahead of the
+       It runs lib/ in place; a vendored copy would sit ahead of the
        working tree in the search order and every edit to lib/ would stop
        taking effect, with the suite still green against the copy."
   fi
@@ -264,7 +274,7 @@ main() {
   # PUBLISH refuses an existing install and names `upgrade`; VENDOR refuses and
   # names `--force`. Same shape, different remedy -- and the shape is not new:
   # this refusal already existed for consumers and is only being told which verb
-  # to point at (hv, 2026-09-06).
+  # to point at.
   if is_devbin_installed "$dstroot" && [ "$mode" = publish ]; then
     warn "devbin is already installed at $dstroot"
     warn "  to update it:  $DEVBIN_INVOKE upgrade"
@@ -298,17 +308,17 @@ main() {
 
   # LOWER-CASED. This no longer names a symlink -- devbin creates none -- but it
   # is still the identity in help, die/warn output and doctor, and a capitalised
-  # one reads as a directory name leaking into a command surface.
-  # Project DIRECTORIES routinely are capitalised -- Conflab, Laksa, Baize,
-  # Lamplight, MicroGPTEx, Prolix, Riffle -- so taking the basename verbatim is
-  # wrong more often than it is right.
+  # one reads as a directory name leaking into a command surface. Project
+  # DIRECTORIES routinely are capitalised -- `Demo` for `demo`, in most of the
+  # first installs -- so taking the basename verbatim is wrong more often than
+  # it is right.
   #
-  # It took nine installs to find that out, because the derivation had never
-  # once run on a capitalised directory: all six capitalised projects happened
-  # to pass an explicit `--name`, and the two that took the default (arca_config,
-  # arca_cli) already had lowercase directories, so the default was accidentally
-  # correct. Riffle was the first install to take the default on a capitalised
-  # directory and it produced `bin/Riffle`.
+  # It took several installs to find that out, because the derivation had never
+  # once run on a capitalised directory: every capitalised project happened
+  # to pass an explicit `--name`, and those that took the default (demo_config,
+  # demo_cli) already had lowercase directories, so the default was accidentally
+  # correct. A later one was the first to take the default on a capitalised
+  # directory and it produced `bin/Demo`.
   #
   # An EXPLICIT `--name` is validated at parse time instead of being lowered
   # here: a derivation devbin performs is devbin's to get right silently, but a
@@ -414,9 +424,12 @@ main() {
   printf '  wrote      %s\n' "$DEVBIN_MANIFEST_REL"
 
   if [ "$mode" = publish ]; then
+    # The install is published either way; a pointer it could not write is
+    # named and fails the run, since no project could find it (issue 0153).
+    install_pointer_write "$dstroot" "$configured" ||
+      die "the install is published at $dstroot, but the machine pointer was not written (above)"
     printf '\nPublished. Consumers vendor from here:\n'
-    printf '  cd <a project> && bin/devbin upgrade --from %s\n' "$dstroot"
-    printf '  %s     (from this tree: previews the sweep, writes nothing)\n' "$(fleet_preview_hint)"
+    vendor_from_hint "$dstroot"
     return 0
   fi
 

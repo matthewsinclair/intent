@@ -105,7 +105,7 @@ valid_name() {
   local name="$1"
   case "$name" in
     "") die "which command? (usage: $DEVBIN_INVOKE new <command>)" ;;
-    all) die "'all' is reserved -- devbin synthesises it for every command with options (D8)" ;;
+    all) die "'all' is reserved -- devbin synthesises it for every command with options" ;;
     -*) die "a command name cannot start with '-' (got '$name')" ;;
     *[!a-z0-9_-]*) die "a command name may use lower-case letters, digits, '-' and '_' only (got '$name')" ;;
     [!a-z]*) die "a command name must start with a lower-case letter (got '$name')" ;;

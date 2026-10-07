@@ -17,7 +17,7 @@
 # and every other live value goes to `unreviewed:`, where `check` refuses to
 # run until a human has deleted or corrected each entry.
 #
-# THE SOURCES, AND WHAT DECIDES WHICH ONE MAY SPEAK. hv ruled on 2026-09-08
+# THE SOURCES, AND WHAT DECIDES WHICH ONE MAY SPEAK. The ruling is
 # that devbin ships NO vendor table: init proposes from the RFC-derived rules
 # and the estate's own majority, and every vendor-derived field goes to
 # `unreviewed:` populated from the live estate. Each facet init can write
@@ -85,7 +85,7 @@ _ii_may() {
 # _ii_withheld <facet> <n> -- why a facet proposed nothing, as one clause.
 _ii_withheld() {
   case "$(infra_init_facet_kind "$1")" in
-    none) printf 'devbin ships no vendor table (hv, 2026-09-08)' ;;
+    none) printf 'devbin ships no vendor table' ;;
     estate-inferred)
       if [ "$2" -gt 2 ]; then
         printf 'no value is held by more than half of the %s domains' "$2"

@@ -1,8 +1,8 @@
     bin/devbin publish [<option>|all] [args...]
 
-Publish a release artifact. devbin ships the name `publish` and nothing behind it: a project's release process is its own, so each project declares what `publish` runs (devbin design D18, tier 4).
+Publish a release artifact. devbin ships the name `publish` and nothing behind it: a project's release process is its own, so each project declares what `publish` runs.
 
-It is also opt-in (devbin design D22): absent until a project asks for it, with `commands.publish.enabled: true` or by filling it as below. `enabled: false` switches it off again, whatever fills it.
+It is also opt-in: absent until a project asks for it, with `commands.publish.enabled: true` or by filling it as below. `enabled: false` switches it off again, whatever fills it.
 
 ## Until the project fills it
 

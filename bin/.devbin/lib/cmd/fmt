@@ -5,7 +5,7 @@
 #
 # `fmt` MUTATES. Its read-only counterpart is `check format`, and the two are
 # deliberately not the same command: see design D21 for why `fmt --check`,
-# which two of the four corpus projects grew, does not ship.
+# which some corpus projects grew, does not ship.
 #
 set -euo pipefail
 
@@ -63,7 +63,7 @@ builtin_fmt_swift() {
 # formatting rule the project holds -- and it would do it across intent/ and
 # docs/, which are the directories most likely to be full of tables.
 #
-# Conflab learned this and encoded it. Naming paths explicitly is the way to
+# One project learned this and encoded it. Naming paths explicitly is the way to
 # format a file under those directories deliberately.
 #
 # NO `--prose-wrap` FLAG, AND ITS ABSENCE IS THE POINT (issue 0054, raised by a
@@ -72,7 +72,7 @@ builtin_fmt_swift() {
 # while that project's own `.prettierrc.json` -- and every other prettier caller
 # in it, commit hooks included -- used a different one. The two then disagreed
 # about the same file, and the disagreement surfaced as a large phantom diff on
-# a file the author had just committed clean. Measured in Intent: 110 changed
+# a file the author had just committed clean. Measured: 110 changed
 # lines on one document, 489 on another, against a tree that bare prettier
 # reproduces byte for byte.
 #

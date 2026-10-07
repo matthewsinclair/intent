@@ -21,13 +21,13 @@
 # none` on ten of ten records while five of them were forged. A verifier built
 # without that constraint reproduces the class it exists to catch.
 #
-# WHY A PROFILE IS NEVER DEFAULTED. `bin/.devbin/cmd/fleet:47-63` records a
-# hardcoded machine-specific root torn out of this project for being "one
-# person's Dropbox layout, in a tool four other estates vendor". devbin ships
-# MACHINERY and never an estate: the profile is absent by default and every verb
-# needing one fails loudly, naming every path it tried. That is also what makes
-# this safe as a framework builtin -- a builtin with no profile is INERT rather
-# than wrong, so it costs an estate that never uses it bytes and not behaviour.
+# WHY A PROFILE IS NEVER DEFAULTED. devbin ships MACHINERY and never a project's
+# data: a default profile would be one project's records, or one machine's
+# layout, baked into a tool every other project vendors. So the profile is
+# absent by default, and every verb needing one fails loudly, naming every path
+# it tried. That is also what makes this safe as a framework builtin -- a
+# builtin with no profile is INERT rather than wrong, so it costs an estate that
+# never uses it bytes and not behaviour.
 #
 set -euo pipefail
 
@@ -50,9 +50,9 @@ set -euo pipefail
 # about.
 #
 # THE NAME IS ${DEVBIN_INVOKE:-bin/devbin}, AS IN EVERY OTHER BUILT-IN (issue
-# 0107, hv's ruling K8). From 2026-09-07 it was $DEVBIN_NAME, which replaced a
-# literal `devbin` that resolved to nothing in an estate: in Lamplight, whose
-# dispatcher was then `lamplight`, it rendered `lamplight infra`. That launcher
+# 0107, ruling K8). From 2026-09-07 it was $DEVBIN_NAME, which replaced a
+# literal `devbin` that resolved to nothing in an estate: in one project, whose
+# dispatcher was then `demo`, it rendered `demo infra`. That launcher
 # is retired and bin/devbin is how every estate is typed, so $DEVBIN_NAME named
 # a command that no longer exists -- the defect the 2026-09-07 fix closed, come
 # back. The infra.d children carry the same form. $DEVBIN_NAME stays the
@@ -63,7 +63,7 @@ set -euo pipefail
 # right mechanism and exactly why they were missing here: nothing in the
 # dispatch path needs this list, so only a reader does, and no test could miss
 # them. An instrument silent about part of its own surface cannot teach anyone
-# the verb exists -- reported by lamplight-dc, who found `profiles` only by
+# the verb exists -- reported by a user who found `profiles` only by
 # already knowing to look.
 #
 # THE REFERENCE'S PATH IS $(lib_rel), NOT SPELLED (issue 0121). It read

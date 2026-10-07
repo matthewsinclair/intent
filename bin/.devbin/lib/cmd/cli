@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # `exec mix <task> "$@"` -- identical across the corpus but for the task name
-# (Baize runs `mix baize.cli`, Lamplight `mix lamplight.cli`).
+# (a project named `demo` runs `mix demo.cli`).
 #
 # That single difference is why this is a handler rather than a catalogue row.
 # A row would have to carry a template, and the catalogue is DATA: giving it
@@ -10,8 +10,9 @@
 # dispatcher from config, so this file asks config nothing.
 #
 # It was `${DEVBIN_NAME}.cli` until ST0002 WP-03. That derivation held for the
-# whole first fleet and is still the default; the Arca pair is where it stopped
-# being true (`arca.cli`, `arca.config`).
+# projects devbin was folded from and is still the default; a project whose task
+# is named otherwise is where it stops being true (demo_cli's task is
+# `demo.cli`, demo_config's `demo.config`).
 #
 set -euo pipefail
 

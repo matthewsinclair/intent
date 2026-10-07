@@ -4,7 +4,7 @@
 #
 # WHY THIS IS A COMMAND AND NOT A README SNIPPET. It was a snippet: prose in
 # README.md and again in usage-rules.md, with no code, no test and no doctor
-# coverage. hv installed it on 2026-08-27 and it carried two defects, one of
+# coverage. A user installed it and it carried two defects, one of
 # which made it run a DIFFERENT project's launcher and report success. Within
 # an hour of a third copy existing the three had already diverged, because the
 # landed copy was fixed and the README's was not.
@@ -25,7 +25,7 @@
 # THE `DEVBIN_SOURCE` FALLBACK DELIBERATELY BREAKS THAT INVARIANT, and the
 # guard is what makes that safe rather than a hole. The walk cannot bootstrap:
 # it locates devbin THROUGH a project that already has one, so a project
-# without one gets a correct report of the wrong thing (hv, 2026-08-28, trying
+# without one gets a correct report of the wrong thing (found when trying
 # to install into a fresh directory). The fallback runs a devbin that is NOT
 # above $PWD -- which is exactly the case the guard exists to catch.
 #
@@ -79,7 +79,7 @@ USAGE
 # _shell_init_zsh -- the one true body.
 #
 # TWO DEFECTS ARE FIXED HERE RELATIVE TO THE SNIPPET THIS REPLACES, both found
-# by molt-vc against a landed copy and both reproduced before this was written:
+# against a landed copy and both reproduced before this was written:
 #
 #   1. The loop tested `-x` alone, so a bin/devbin that EXISTS and is not
 #      executable was stepped over and the walk continued INTO THE PARENT --
@@ -174,7 +174,7 @@ BODY
 # consumer project has no reason to know where the machine install lives, so it
 # emits a `dvb` with no machine-install fallback rather than one aimed at a path
 # invented from somebody's $HOME -- which is what the removed default did, in
-# every one of the fourteen estates that vendor this file.
+# every estate that vendored this file.
 #
 # A PROJECT THAT DECLARES `install.prefix` GETS IT, which is what the reference
 # has always promised. It never did until issue 0125: install_prefix_configured
@@ -217,9 +217,9 @@ cmd_shell_init() {
       case "${2:-}" in
         --autoload)
           # THE AUTOLOAD FORM, and it exists because the eval form could not
-          # reach the one person already using it. hv's `dvb` is an autoload
-          # BODY at config/zsh/functions/dvb -- no `dvb() {` wrapper, because
-          # zsh's autoload takes the body alone -- hand-copied on 2026-08-27
+          # reach the one person already using it. Their `dvb` is an autoload
+          # BODY in a zsh functions directory -- no `dvb() {` wrapper, because
+          # zsh's autoload takes the body alone -- hand-copied
           # from the snippet this command replaced. The generated definition
           # cannot be pasted into that file: it would define a function inside
           # a function. So every fix made here since has been undeliverable to

@@ -1,8 +1,8 @@
     bin/devbin macos [<option>|all] [args...]
 
-Run this project's macOS bundle and platform tasks. devbin ships the name `macos` and nothing behind it: those tasks belong to the project, so each project declares what `macos` runs (devbin design D18, tier 4).
+Run this project's macOS bundle and platform tasks. devbin ships the name `macos` and nothing behind it: those tasks belong to the project, so each project declares what `macos` runs.
 
-It is also opt-in (devbin design D22): absent until a project asks for it, with `commands.macos.enabled: true` or by filling it as below. `enabled: false` switches it off again, whatever fills it.
+It is also opt-in: absent until a project asks for it, with `commands.macos.enabled: true` or by filling it as below. `enabled: false` switches it off again, whatever fills it.
 
 ## Until the project fills it
 

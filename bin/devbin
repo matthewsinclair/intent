@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 Geodica Ltd (geodica.com). All rights reserved.
+# Licence: LICENSE.md in devbin's lib directory (bin/.devbin/lib/ once vendored).
 #
 # devbin -- the unified dev launcher.
 #
@@ -6,13 +8,19 @@
 # its handler (IN-AG-THIN-COORD-001). Everything it decides lives in lib/resolve;
 # everything it reads lives in lib/config. No business logic here.
 #
-# This is the fold of four byte-identical launchers -- Conflab, Lamplight, Baize
-# and Laksa each carried the same 53 lines differing only in the project name.
-# That name now comes from bin/.devbin/config.yaml, which is the whole point.
+# This is the fold of byte-identical launchers -- each project carried the same
+# 53 lines, differing only in the project name. That name now comes from
+# bin/.devbin/config.yaml, which is the whole point.
 #
 # See `bin/devbin help` for the command surface.
 #
 set -euo pipefail
+
+# A GATE'S VIEW OF THE PERSON STOPS AT THIS PROCESS (issue 0158). gate_exec marks
+# what it runs as inside a gate, so a tool there keeps the flag the gate read;
+# a devbin started there is a new invocation, which reads the person from its
+# own stdin, as issue 0088 has every gate do.
+unset DEVBIN_IN_GATE
 
 # THE FLOOR (issue 0022) is checked by lib/helpers, sourced as soon as the
 # runtime is found below, and not here: one refusal, one home, reaching every
@@ -120,7 +128,7 @@ esac
 # `dvb` now falls back to the machine install when the walk finds nothing, so
 # running a PROJECT verb from outside any project reaches an install tree by
 # design. Without this, the answer was "refusing to run -- this is not your
-# current project", naming ~/Devel/opt/devbin as the project it belongs to,
+# current project", naming the machine install as the project it belongs to,
 # which is both confusing and false. The install-tree refusal says what is
 # actually true and names `install --into` and `upgrade --from`.
 #
@@ -143,7 +151,7 @@ if [ "$_devbin_wrong_tree_check" = yes ]; then
         # THE ARGUMENT IS NAMED FIRST, AND IT IS NOT DECORATION (issue 0039).
         # This guard runs BEFORE command resolution, so it cannot know whether
         # what it was given is a command at all -- and it was telling callers
-        # their LOCATION was wrong when their VERB was. hv typed `init`, which
+        # their LOCATION was wrong when their VERB was. A user typed `init`, which
         # devbin does not have, and got a refusal about paths. Echoing the word
         # back lets the reader spot their own typo without this guard needing to
         # resolve it, which is the whole reason it can run this early.
@@ -201,9 +209,9 @@ if [ ! -f "$DEVBIN_DIR/config.yaml" ]; then
     # unrelated repository and does not exist in devbin's history at all.
     #
     # Installing FROM THE INSTALL is the only path that gets both halves right:
-    # the fleet's exact bytes, and a `source_commit` forwarded out of the
-    # install's own manifest by `source_commit_of`. Blocking it left no correct
-    # way to onboard a project.
+    # the exact bytes every project vendors, and a `source_commit` forwarded out
+    # of the install's own manifest by `source_commit_of`. Blocking it left no
+    # correct way to onboard a project.
     #
     # `$1` rather than `$command`, which is not bound until much further down.
     #
@@ -225,7 +233,7 @@ if [ ! -f "$DEVBIN_DIR/config.yaml" ]; then
     # reads a project's VERSION file and its declared sidecars; in an install
     # there is neither, so routing to it would produce `unknown` from a tree
     # that knows the answer perfectly well -- the manifest records it. The
-    # framework word `devbin` is stripped first so all four spellings hv tried
+    # framework word `devbin` is stripped first so all four spellings a user tried
     # land here: `version`, `--version`, `devbin version`, `devbin --version`.
     _devbin_vq="${1:-}"
     if [ "$_devbin_vq" = devbin ]; then _devbin_vq="${2:-}"; fi
@@ -243,7 +251,7 @@ if [ ! -f "$DEVBIN_DIR/config.yaml" ]; then
     # `shell-init` is exempt for the same reason the wrong-tree guard exempts it:
     # it emits a shell function to stdout and writes nothing, and from an
     # install it reads only the manifest that says it is one. Missed on the
-    # first cut, and it was the one verb hv needed from the install --
+    # first cut, and it was the one verb a user needed from the install --
     # regenerating `dvb` so the fallback to the install exists at all. An
     # install that cannot emit the function that finds it is a bootstrap that
     # cannot bootstrap.
@@ -259,7 +267,7 @@ if [ ! -f "$DEVBIN_DIR/config.yaml" ]; then
         printf '\nTo SEED a project that has no devbin yet:\n'
         printf '  %s/bin/devbin install --into <your project>\n' "$PROJECT_ROOT"
         printf '\nTo UPGRADE a project that already has one:\n'
-        printf '  cd <your project> && bin/devbin upgrade --from %s\n' "$PROJECT_ROOT"
+        vendor_from_hint "$PROJECT_ROOT"
       } >&2
       # 5, ITS OWN CODE (issue 0099). It exited 3, which the contract reserves
       # for "resolves but not implemented", so a test asserting that refusal was
@@ -325,11 +333,11 @@ fi
 #
 # A REFERENT IS A READ, SO IT RUNS WITH GIT_OPTIONAL_LOCKS=0 BY DEFAULT (issue
 # 0094). It is eval'd on EVERY invocation, and a plain `git status` in one takes
-# git's optional index lock and rewrites a stale index: the hold-16 sweep found
-# three estates whose referent did exactly that on every devbin command. The
-# export lives inside the `$(...)`, so it reaches the referent alone and never a
-# gate. The override is the referent's own: one that sets GIT_OPTIONAL_LOCKS=1
-# itself gets the lock back.
+# git's optional index lock and rewrites a stale index, and referents were found
+# doing exactly that on every devbin command. The export lives inside the
+# `$(...)`, so it reaches the referent alone and never a gate. The override is
+# the referent's own: one that sets GIT_OPTIONAL_LOCKS=1 itself gets the lock
+# back.
 _devbin_referent_cmd="$(cfg_get project.referent "")"
 if [ -n "$_devbin_referent_cmd" ]; then
   DEVBIN_RUN_REFERENT="$(cd "$PROJECT_ROOT" && export GIT_OPTIONAL_LOCKS=0 && eval "$_devbin_referent_cmd" 2>/dev/null)" ||
@@ -410,12 +418,12 @@ unset _devbin_referent_cmd
 # a dependency -- and this runs before lib/helpers is in scope, where
 # `sha256_stdin` would not be.
 #
-# INHERITED BY A CHILD, EXCEPT ACROSS A WITNESS BOUNDARY (hv, 2026-09-16). A
+# INHERITED BY A CHILD, EXCEPT ACROSS A WITNESS BOUNDARY. A
 # child devbin -- fullcycle's clean, build and test -- keeps its parent's id,
 # because the operator asked for one thing. A witness run (RUNLOG_WITNESS_RUN=1)
 # started by a NON-witness parent mints its own: it has declared itself not the
 # gate's verdict, and sharing the parent's id made `grep -l "run: <id>"` count a
-# gate's nested witness runs as that gate (measured in Laksa, 2026-09-12).
+# gate's nested witness runs as that gate (measured).
 #
 # THE BOUNDARY, NOT THE FLAG. The flag is inherited, so keying on it alone gave
 # every child of a witness run a fresh id (critic-shell). DEVBIN_RUN_WITNESS
@@ -440,28 +448,28 @@ else
   DEVBIN_RUN_WITNESS=0
 fi
 # UTC, read with `date -u` (issue 0055). This stamp is read side by side with
-# `fleet audit`, which renders UTC with a trailing `Z`; an unmarked local stamp
-# compared against one of those is wrong by the local offset for half the year
-# and exactly right for the other half, which is the worst available shape. The
-# zone change cannot disturb retention or ordering -- both go through mtime.
+# stamps rendered in UTC with a trailing `Z`; an unmarked local stamp compared
+# against one of those is wrong by the local offset for half the year and
+# exactly right for the other half, which is the worst available shape. The zone
+# change cannot disturb retention or ordering -- both go through mtime.
 [ -n "${DEVBIN_RUN_STAMP:-}" ] || DEVBIN_RUN_STAMP="$(date -u +%Y%m%d-%H%M)"
 export DEVBIN_RUN_ID DEVBIN_RUN_STAMP DEVBIN_RUN_WITNESS
 
 # Identity comes from config, never from $0. That is what lets a project keep a
-# short alias -- bin/cf, a soft local convention pointing DIRECT at this file --
-# while `conflab -v` still says conflab. The project-named form (bin/conflab) is
+# short alias -- bin/dm, a soft local convention pointing DIRECT at this file --
+# while `-v` still names the project. The project-named form (bin/<name>) is
 # retired: it shadowed the product binary these projects now build.
 DEVBIN_NAME="$(cfg_get project.name devbin)"
-# The mix task the `cli` and `repl` built-ins call, defaulting to the
-# derivation that held for the whole first fleet. The Arca pair is why it is
-# configurable at all: arca_config's task is `arca.config` and arca_cli's is
-# `arca.cli`, so `<name>.cli` names a task neither project has.
+# The mix task the `cli` and `repl` built-ins call, defaulting to the derivation
+# that held for the projects devbin was folded from. Projects whose task differs
+# are why it is configurable at all: demo_config's task is `demo.config` and
+# demo_cli's is `demo.cli`, so `<name>.cli` names a task neither of them has.
 #
 # EXPORTED rather than looked up, because lib/helpers reads no config by rule
 # (D15) and a handler is a separate process -- the same reason DEVBIN_NAME
 # crosses this way. One derivation, here, read by both built-ins.
 #
-# `cli` alone could have used a `run:` override, which is what arca_config did.
+# `cli` alone could have used a `run:` override, which is what demo_config did.
 # `repl` could not: its built-in carries the rlwrap wiring, and overriding the
 # whole command line to change one word throws away history and completion. A
 # difference of one NAME should not cost a project the handler.
@@ -496,7 +504,7 @@ fi
 unset _devbin_cwd_now
 export DEVBIN_NAME DEVBIN_INVOKE
 # Exported under the project's own name so handlers ported from the corpus keep
-# reading the variable they already expect (CONFLAB_ROOT, LAKSA_ROOT, ...).
+# reading the variable they already expect (<NAME>_ROOT, eg DEMO_ROOT).
 # The assignment form of export, not eval: the config supplies the NAME here, so
 # eval would let a config file that can name a variable also run code.
 export "$PROJECT_ROOT_VAR=$PROJECT_ROOT"
@@ -577,7 +585,7 @@ case "$command" in
     ;;
   -v | --version)
     # The PROJECT's version, and the commit of the tree it is standing in.
-    # A consumer answers `laksa 1.2.3 (<laksa's HEAD>)` here -- its own identity,
+    # A consumer answers `demo 1.2.3 (<demo's HEAD>)` here -- its own identity,
     # not devbin's. `<name> devbin --version` is the framework's answer and
     # reads the manifest instead, because in a consumer devbin's bytes came from
     # a different repository entirely.

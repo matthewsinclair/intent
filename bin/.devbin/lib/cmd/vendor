@@ -65,7 +65,7 @@ _explain() {
 
 main() {
   local from="" all="" dstroot srcroot states line state rel
-  local tracked=0 divergent=0 unlisted=0 unreadable=0 direction recorded
+  local tracked=0 divergent=0 unlisted=0 unreadable=0 direction recorded unvouched
 
   while [ $# -gt 0 ]; do
     case "$1" in
@@ -94,7 +94,7 @@ main() {
     # compare and pointing it at `install --into` would name the command install
     # refuses.
     if is_devbin_source "$dstroot"; then
-      warn "devbin is not installed here -- this is the devbin source checkout, which runs lib/ in place (D12)"
+      warn "devbin is not installed here -- this is the devbin source checkout, which runs lib/ in place"
       warn "  there is nothing vendored to compare; a project installed FROM it can ask its own $DEVBIN_INVOKE vendor"
     else
       warn "devbin is not installed here -- there is no vendored runtime at $dstroot/bin/.devbin/lib"
@@ -113,8 +113,8 @@ main() {
   # read as new: one matching the source as level, so a tree with nothing
   # recorded said "Level with", and an edit as behind, "upgrade would replace
   # this". Which files were edited here is the half of the answer nobody has.
-  if manifest_missing "$dstroot"; then
-    warn "there is no manifest at $DEVBIN_MANIFEST_REL, so which vendored files were edited here cannot be told, and this tree cannot be compared"
+  if unvouched="$(manifest_unvouched "$dstroot")"; then
+    warn "$(manifest_unvouched_said "$unvouched"), so which vendored files were edited here cannot be told, and this tree cannot be compared"
     warn "  upgrade refuses it too; to replace every vendored file, an edit included:"
     warn "    $DEVBIN_INVOKE upgrade --from <dir> --force"
     warn "    <path-to-devbin>/bin/devbin install --into $dstroot --force"
@@ -126,12 +126,13 @@ main() {
   else
     srcroot="$(manifest_source "$dstroot" 2>/dev/null || true)"
     [ -n "$srcroot" ] ||
-      die "no source recorded in $DEVBIN_MANIFEST_REL -- name one with --from <dir>"
+      die "$(source_unplaced_why "$dstroot") -- name one with --from <dir>"
   fi
 
   is_devbin_source "$srcroot" || {
     warn "not a devbin source: $srcroot"
     warn "  (looked for bin/devbin and a lib/ beside it)"
+    [ -n "$from" ] || source_override_note "$dstroot"
     warn "  name a different one with:  $DEVBIN_INVOKE vendor --from <dir>"
     return 1
   }

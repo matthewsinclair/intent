@@ -12,9 +12,10 @@ Two modes, chosen by the tree you run it in.
                      refuses when there is no install yet -- use install.
 
     --from <dir>   UPGRADE only: the devbin to upgrade from (default: the source
-                   the manifest records)
+                   the manifest records, placed on this machine -- see The source)
     --force        UPGRADE only: overwrite vendored files that were edited in place,
-                   and in an install with no manifest, replace every one unchecked
+                   and in an install with no manifest, or one whose manifest
+                   records no files, replace every one unchecked
     --prefix <dir> PUBLISH-UPGRADE only: the install to replace (default:
                    install.prefix in that checkout's bin/.devbin/config.yaml).
                    There is no built-in default: an unset prefix is refused
@@ -49,7 +50,7 @@ The closing count reads `N added, N updated, N unchanged, N removed, N skipped`,
 
 A file devbin cannot read refuses the whole run, before anything is written. Whether it was edited cannot be told without reading it, so neither `updated` nor `skipped` can be said of it, and a run that went on around it would leave a runtime of mixed versions. Each is named as `unreadable`, with where the unreadable copy is; make each readable, eg `chmod u+r <file>`, and run it again. A manifest it cannot read refuses the run the same way, before the source is even looked for, since what it records -- the source, and which files were edited here -- is exactly what upgrade needs from it; with the manifest read as empty, every file would look new and an edit would be overwritten unrefused.
 
-A manifest that is not there refuses the run too, before the source is looked for, and exit 1 with nothing written. Without it every file looks new, so an edit here would be overwritten at exit 0, a fresh manifest written over it, and doctor would pass the next run. `--force` accepts that: with no record of which files were edited, it replaces every vendored file unchecked, and says so once the source is known to be a devbin. It prints no direction notice: with nothing recorded the direction is unknown, and `vendor`, the notice's remedy, refuses such a tree. `install --into <project> --force` from the devbin does the same. The test is `bin/.devbin/lib/` present with no manifest beside it; a project devbin was never installed in has no `bin/.devbin/lib/`, and `install` is the verb for it.
+A manifest that is not there refuses the run too, before the source is looked for, and exit 1 with nothing written. Without it every file looks new, so an edit here would be overwritten at exit 0, a fresh manifest written over it, and doctor would pass the next run. `--force` accepts that: with no record of which files were edited, it replaces every vendored file unchecked, and says so once the source is known to be a devbin. It prints no direction notice: with nothing recorded the direction is unknown, and `vendor`, the notice's remedy, refuses such a tree. `install --into <project> --force` from the devbin does the same. The test is `bin/.devbin/lib/` present with no manifest beside it; a project devbin was never installed in has no `bin/.devbin/lib/`, and `install` is the verb for it. A manifest that records no files, cut to its header or to nothing, is refused and forced the same way: it vouches for no file, so every file would look new, just as with none. Its header may still record the commit, so a forced run says the direction, but it does not send the reader to `vendor`, which refuses that manifest too.
 
 `released` exists because the honest answer to "you edited a file I have since deleted" is neither to remove your work nor to go on claiming ownership of it. --force does not reach a released file again: the manifest no longer lists it.
 
@@ -73,13 +74,13 @@ At most once a day, and only when stderr is a terminal, `bin/devbin` says on std
 
 Bare `bin/devbin` and `bin/devbin doctor`, typed at a terminal, go one step further and ask whether to upgrade now -- only when the source moved forward, and anything but a yes leaves the project as it is. Any non-empty `DEVBIN_NO_UPDATE_NOTICE` (eg `DEVBIN_NO_UPDATE_NOTICE=1`) silences the notice and the offer.
 
-## The exit status is a ruling
+## The exit status says whether it completed
 
-It stays 0 when files were refused, because this command's status answers "did I complete", and a run that reported every refusal and wrote a correct manifest did. Whether the tree is level with its source is a different question with its own command, `bin/devbin vendor`, whose exit status means only that; upgrade points at it whenever it skipped a file. A run that cannot start -- no vendored runtime here, no source recorded or named, a --from that is not a devbin, a file here or in the source or a manifest that devbin cannot read, a manifest missing without --force -- exits 1 before writing anything.
+It stays 0 when files were refused, because this command's status answers "did I complete", and a run that reported every refusal and wrote a correct manifest did. Whether the tree is level with its source is a different question with its own command, `bin/devbin vendor`, whose exit status means only that; upgrade points at it whenever it skipped a file. A run that cannot start -- no vendored runtime here, no source named and none recorded that this machine can place, a --from that is not a devbin, a file here or in the source or a manifest that devbin cannot read, a manifest missing without --force -- exits 1 before writing anything.
 
 ## The source
 
-With no --from, upgrade uses the source recorded in the manifest, which install writes and every upgrade rewrites -- so after `bin/devbin upgrade --from <dir>`, that directory is the default. That is usually right and occasionally not, eg a checkout that has moved, or a project seeded from another project that has since been deleted. --from names a different one, and it is checked for a `bin/devbin` with a runtime beside it before anything is written.
+With no --from, upgrade uses the source recorded in the manifest, which install writes and every upgrade rewrites. The manifest records the KIND of tree it came from, never where that tree is: `install`, `checkout` or `project`. The manifest is tracked in every project that vendors devbin, and a path in it named one machine's layout in all of them. This machine says where each kind is: an install through `DEVBIN_INSTALL_PREFIX`, or else the machine pointer, `$XDG_DATA_HOME/devbin/home` (by default `~/.local/share/devbin/home`), which publishing an install to `install.prefix` writes; a checkout through `DEVBIN_SOURCE`, as `dvb` reads it; a project through nothing, so --from is needed. When the kind cannot be placed here, upgrade says what is missing and asks for --from, and a pointer that is empty, a link to nothing, relative, or names a tree that is no install or whose manifest cannot be read is named as such rather than read as absent. A source DEVBIN_INSTALL_PREFIX places is taken as given, so a refusal of it says the variable named it. Vendoring from an install other than the one this machine names says so as it writes: the manifest records `install`, which a later upgrade without --from reads as the machine's install. A source that is no checkout and has no manifest to say what it is is refused, since recording `project` for it would be a guess. A manifest written before this recorded a path, which still reads until that project's next upgrade writes the kind. --from names a different source, and it is checked for a `bin/devbin` with a runtime beside it before anything is written.
 
 ## PUBLISH-UPGRADE: replacing the machine install
 

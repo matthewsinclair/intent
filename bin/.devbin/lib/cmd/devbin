@@ -6,7 +6,7 @@
 # thing under bin/ and how do I work on it": the seam, the templates `new`
 # scaffolds from, the annotated reference config, and where upgrades come
 # from. install/upgrade/doctor/new are its siblings in the Devbin group; this
-# row is the one that explains them (hv, 2026-08-09).
+# row is the one that explains them.
 #
 # Printing IS the job, so the bare form exits 0 -- same contract as doctor and
 # help, not the bare-gate rule (nothing here can false-green a pipeline).
@@ -115,18 +115,23 @@ show_templates() {
 }
 
 show_overview() {
-  local src ver
+  local src ver vendored=""
   # Captured rather than inlined: a refusal inside a command substitution does
   # not abort the printf that holds it, so an unanswerable version would have
   # printed as a blank and read as an answer.
   ver="$(runtime_version)" || exit 1
-  src="$(manifest_source "$PROJECT_ROOT" 2>/dev/null || true)"
+  # VENDORED OR THE CHECKOUT IS THE TREE'S OWN FACT, NEVER THE RECORDED SOURCE'S
+  # (issue 0153). A manifest records the kind of source it came from and this
+  # machine says where that is, so a project whose source cannot be placed here
+  # is still a vendored project: asked of manifest_source, it was told it was
+  # the devbin checkout.
+  is_devbin_installed "$PROJECT_ROOT" && vendored=1
   printf 'devbin %s -- the framework under bin/\n\n' "$ver"
   printf 'This launcher is devbin, vendored at bin/.devbin/ and driven by\n'
   printf "bin/.devbin/config.yaml. Identity comes from config: this install\n"
   printf "answers as '%s'.\n\n" "${DEVBIN_NAME:-devbin}"
   printf 'The seam:\n'
-  if [ -n "$src" ]; then
+  if [ -n "$vendored" ]; then
     printf "  bin/devbin, %s/   devbin's -- replaced wholesale by upgrade\n" "$(lib_rel)"
   else
     # The checkout has no vendored copy to replace: lib/ IS the source, and
@@ -137,12 +142,16 @@ show_overview() {
   printf 'The framework surface here: %s install | upgrade | vendor | doctor | new | shell-init\n' "${DEVBIN_INVOKE:-bin/devbin}"
   printf 'Reference config, every key annotated: %s/config.reference.yaml\n' "$(lib_rel)"
   printf 'Scaffold templates: %s devbin templates\n' "${DEVBIN_INVOKE:-bin/devbin}"
-  if [ -n "$src" ]; then
-    printf '\nUpgrades come from: %s\n' "$src"
+  if [ -n "$vendored" ]; then
+    if src="$(manifest_source "$PROJECT_ROOT" 2>/dev/null)" && [ -n "$src" ]; then
+      printf '\nUpgrades come from: %s\n' "$src"
+    else
+      printf '\nUpgrades come from: nowhere this machine can place -- %s\n' "$(source_unplaced_why "$PROJECT_ROOT")"
+    fi
     printf 'The long-form guides (authoring-commands, configuration, migration, releasing)\n'
     printf 'are in docs/ of the devbin source checkout; an install carries none.\n'
   else
-    printf '\nThis IS the devbin checkout (design D12) -- the long-form guides are in docs/.\n'
+    printf '\nThis IS the devbin checkout, which runs devbin on itself -- the long-form guides are in docs/.\n'
   fi
 }
 

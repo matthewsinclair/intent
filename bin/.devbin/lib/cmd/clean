@@ -5,16 +5,17 @@
 # which this summary claimed until issue 0035's review found nothing removes it.
 #
 # IT TAKES `release/` BY DEFAULT, AND THAT IS WHAT MAKES IT A RELEASE VERB
-# RATHER THAN A CACHE SWEEPER. hv runs this before a release so the shipped
-# surface is provably new. `int cache --clean` in the Intent tree is a different
+# RATHER THAN A CACHE SWEEPER. It is run before a release so the shipped
+# surface is provably new. One project's `cache --clean` is a different
 # concern with a near-disjoint scope -- it analyses path-move residue in
 # `debug/deps` that cargo reports FRESH, and never touches `release/` at all.
 # Neither is a policy over the other's engine; they answer different questions.
 #
-# WHY A VERB AND NOT A SCHEDULE. hv ruled out launchd and cron explicitly. The
-# failure this exists for was ~2.9M files and ~82 GB across the fleet's cargo
-# target dirs, and a scheduled sweep of a destructive action is the shape that
-# removes a live binary at 3am with nobody to answer the prompt.
+# WHY A VERB AND NOT A SCHEDULE. launchd and cron were ruled out explicitly. The
+# failure this exists for was ~2.9M files and ~82 GB across the cargo target
+# dirs of one machine's projects, and a scheduled sweep of a destructive action
+# is the shape that removes a live binary at 3am with nobody to answer the
+# prompt.
 #
 # EVERY REFUSAL BELOW WAS PAID FOR BY A REAL FAILURE. They are refusals rather
 # than warnings because this command's mistake is not recoverable by re-running
@@ -64,8 +65,8 @@ _clean_path_elements() {
 #
 # THIS EXISTS FOR ITS CONTROL, NOT FOR ITS SPLIT. A PATH scan that cannot parse
 # its input and one that finds nothing are indistinguishable by their output,
-# and the broken version passes review: intent-dc shipped exactly this check and
-# it returned nothing while `command -v conflab` resolved into a target dir one
+# and the broken version passes review: a project shipped exactly this check and
+# it returned nothing while `command -v demo` resolved into a target dir one
 # line later, because `${PATH//:/$'\n'}` does not expand under zsh and the loop
 # ran zero times.
 #
@@ -107,8 +108,8 @@ _clean_validate_path() {
 # _clean_live_binaries <dir> -- print every PATH-reachable name that resolves
 # INSIDE <dir>, one `name -> resolved` per line. Empty output means none.
 #
-# Conflab's `conflab` and `conflabd` resolved through `target/debug` on the
-# morning this command was specified; Intent's resolve through `target/release`,
+# One project's `demo` and `demod` resolved through `target/debug` on the
+# morning this command was specified; another's resolve through `target/release`,
 # which this verb takes BY DEFAULT. A comprehensive clean would have removed the
 # live binary every node in the estate was running, machine-wide, both copies.
 #
@@ -135,7 +136,7 @@ _clean_live_binaries() {
   # Branch (b) walks debug/, release/ and the tree root, takes each executable's
   # BASENAME, and resolves that name through PATH. A cargo tree ordinarily holds
   # the same binary in BOTH debug/ and release/, so one PATH entry was printed
-  # once per location carrying its name -- Intent listed `intent` and `intentd`
+  # once per location carrying its name -- one project listed `demo` and `demod`
   # twice each and reported two at-risk binaries as four.
   #
   # It matters because of what the line CLAIMS. The refusal above says "removing
@@ -163,10 +164,10 @@ _clean_live_binaries() {
   # actually happened, via a symlink from an ordinary bin directory.
   #
   # EVERY debug/ AND release/ WITHIN TWO LEVELS OF THE TOP (the critic's sixth
-  # pass): the tree's own, a per-node directory's such as target/cc's or a
+  # pass): the tree's own, a per-node directory's such as target/session-a's or a
   # target triple's, and a triple's inside a per-node directory. A target whose
   # only output is per-node is a tree (issue 0131), and a link into
-  # target/cc/debug went dark under --force unsaid; a triple's was missed
+  # target/session-a/debug went dark under --force unsaid; a triple's was missed
   # before 0131 too.
   #
   # AN ANSWER THAT IS A PATH IS READ, RELATIVE OR NOT: a command found through
@@ -207,11 +208,11 @@ _clean_live_binaries() {
 # sort that failed, which is a devbin defect.
 #
 # NO -maxdepth. A depth-limited sweep missed 22.6 GB on the day this was
-# specified, including a 10 GB tree inside a git worktree -- and devbin's own
-# fleet enumeration reproduced the same defect twice, at depth 3 and again at
-# depth 4, both times silently returning a plausible number.
+# specified, including a 10 GB tree inside a git worktree -- and an enumeration
+# of estates reproduced the same defect twice, at depth 3 and again at depth 4,
+# both times silently returning a plausible number.
 #
-# NAME ALONE IS NOT ENOUGH, and this is devbin-cc's correction to the first
+# NAME ALONE IS NOT ENOUGH, and this is a correction to the first
 # version of this file. `CARGO_TARGET_DIR` points a build tree anywhere, under
 # any name -- the largest single item on this estate was one of them, 33 GB and
 # 534,337 files, created because a guard's own refusal message tells the caller
@@ -389,9 +390,9 @@ _clean_roots() {
 # (issue 0137). A parent sorts before its own children, and this compared each
 # path with the last root it kept as if nothing could sort between the two. But
 # `.` and `-` sort below `/`, so `target.bak` and `target-old` sort between
-# `target` and `target/cc`: `target/cc` was then tested against the sibling,
-# kept, and reported as a tree of its own -- skipped and marked, and then
-# removed with `target` all the same.
+# `target` and `target/session-a`: `target/session-a` was then tested against
+# the sibling, kept, and reported as a tree of its own -- skipped and marked,
+# and then removed with `target` all the same.
 #
 # Without this a marker inside an already-matched tree reports a second root
 # inside the first, and the removal loop would then try to delete a directory
@@ -458,7 +459,7 @@ _clean_scan() {
     _clean_has_markers "$d" "$name" "$markers" || m=$?
     case "$m" in
       0)
-        if [ -f "${d%/*}/$manifest" ]; then
+        if build_tree_rebuildable "$d" "$manifest"; then
           _cs_rm+=("$d")
         else
           _cs_nm+=("$d")
@@ -564,7 +565,7 @@ _clean_confirm() {
 # the no-tty one (its fourth). A line true of every outcome has no mode to
 # forget.
 #
-# A PARTIAL CLEAN IS NOT A CLEAN (issue 0131, vc's ruling). What the scan found
+# A PARTIAL CLEAN IS NOT A CLEAN (issue 0131). What the scan found
 # is still acted on as asked, since removing what it saw is the safe direction,
 # but a zero would let `clean && build` build on trees nobody looked at: 0056's
 # rule, that a scan which could not read everything exits non-zero. find's and
@@ -618,7 +619,7 @@ _clean_run() {
   esac
   shift 4
 
-  # TWO CONSENTS, TWO FLAGS (issue 0047, hv's ruling: option 3, the split).
+  # TWO CONSENTS, TWO FLAGS (issue 0047, option 3, the split).
   #
   # `--force` used to be the only way past EITHER refusal, and they are not the
   # same question. The blocked-binaries refusal asks "do you accept these
@@ -631,7 +632,7 @@ _clean_run() {
   # `--force` still implies both, unchanged, because it is what every existing
   # caller and every piece of documentation says.
   #
-  # AND A THIRD FLAG THAT GIVES NEITHER CONSENT (issue 0042, hv's ruling).
+  # AND A THIRD FLAG THAT GIVES NEITHER CONSENT (issue 0042).
   # `clean` could tell you what it would remove, or remove it, but not the
   # first without a terminal: in CI, a script, or any non-interactive context
   # the only two reachable states were REFUSE and DELETE. The scan is the

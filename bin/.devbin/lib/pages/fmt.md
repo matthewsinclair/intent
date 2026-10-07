@@ -1,6 +1,6 @@
     bin/devbin fmt <elixir|rust|swift|md|all> [<arg>...]
 
-Format sources in place. `fmt` MUTATES files. Its read-only counterpart is `check format`, and the two are deliberately different commands (devbin design D21): there is no `fmt --check`.
+Format sources in place. `fmt` MUTATES files. Its read-only counterpart is `check format`, and the two are deliberately different commands: there is no `fmt --check`.
 
 ## Options
 

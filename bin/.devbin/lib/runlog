@@ -11,7 +11,7 @@
 # than as passing. `[ -s <seal> ]` is therefore a machine-checkable red flag, and
 # a caller never has to scrape a terminal to find out what happened.
 #
-# This file is a PORT of ~390 lines of Conflab's helpers, not a reimplementation.
+# This file is a PORT of ~390 lines of a project's helpers, not a rewrite.
 # The comments carry rationale that references specific past incidents -- the
 # xcodebuild grammar's inverted seal, the dangling-pointer purge hole, the
 # promotion that reached neither artifact. Rewriting from the description would
@@ -87,11 +87,11 @@ _DEVBIN_INVOKE_TAG='devbin| '
 # `grep -l "run: <id>" tmp/check/*.out` an enumeration rather than an inference.
 # `open_run_log`'s single stamp below is the readable half.
 #
-# INHERITED BY A CHILD DEVBIN, EXCEPT ACROSS A WITNESS BOUNDARY (hv, 2026-09-16).
+# INHERITED BY A CHILD DEVBIN, EXCEPT ACROSS A WITNESS BOUNDARY.
 # This paragraph used to say the id was NOT EXPORTED and that a child got its
 # own, while `bin/devbin` exported it and tests/unit/runlog.bats held a child to
-# its parent's id: two rulings. Laksa patched its vendored copy to match the
-# comment (2e4fb6642). hv ruled for inheritance -- fullcycle spawning clean, build
+# its parent's id: two rulings. One estate patched its vendored copy to match
+# the comment. It was ruled for inheritance -- fullcycle spawning clean, build
 # and test is one thing the operator asked for -- except where a non-witness run
 # starts a witness one. `bin/devbin` owns the rule; this paragraph only reports it.
 #
@@ -128,7 +128,7 @@ run_id_mint() {
 
 # inflight_marker -- the single line `open_run_log` seeds a fresh `.errors` with.
 #
-# ONE HOME, because there are now two consumers and they are in different files:
+# ONE HOME, because there are now two callers and they are in different files:
 # `open_run_log` writes it, and `run_all`'s disagreement arm (lib/resolve) reads
 # it to tell "returned 0 without sealing a verdict" from "returned 0 while its
 # seal records a failure". Those send a reader to different places -- one to a
@@ -199,15 +199,6 @@ seal_disagreement_reason() {
   fi
 }
 
-# stdin_tty_flag -- `1` when this process's stdin is a terminal, else `0`: the
-# ONE rule for DEVBIN_GATE_TTY (issue 0088). run_gate sets the flag from its own
-# stdin for the command it runs, so a stale inherited value cannot stand, and a
-# caller that must ask a person BEFORE its gate opens -- fullcycle (0096) --
-# reads the same rule here rather than writing a second copy of it.
-stdin_tty_flag() {
-  if [ -t 0 ]; then printf '1\n'; else printf '0\n'; fi
-}
-
 # open_run_log <keep_log 0|1> <out_dir> <suffix> -- set the `log` and `errors`
 # globals.
 #
@@ -235,6 +226,8 @@ open_run_log() {
   DEVBIN_RUN_T0="$(date +%s)"
   if [ "$keep" = 1 ]; then
     mkdir -p "$dir"
+    # The directory ignores itself before anything is written into it (0157).
+    gate_out_ignore "$dir"
     # ONE STAMP FOR THE WHOLE INVOCATION (issue 0045). Read from the clock on
     # the first gate and reused by every later one, so a five-option `check all`
     # that straddles a minute boundary does not scatter itself across two
@@ -374,7 +367,7 @@ note_promotion() {
 #
 # `run_gate` teed the tool's output and never recorded what produced it, so a
 # gate that died on its own ARGUMENTS sealed the tool's complaint about them and
-# nothing else. Measured at Prolix (issue 0025, reported by prolix/vc): a `run:` was
+# nothing else. Measured (issue 0025): a `run:` was
 # read while another session had the file mid-edit, `variant=Designed for iPad`
 # word-split into three arguments, and the seal read
 #
@@ -392,7 +385,7 @@ note_promotion() {
 #
 # `source` names where the command line came from when the caller knows (a
 # config key); empty when it does not (devbin's own catalogue). It answers the
-# other half of the Prolix complaint, which was not "what ran" but "is my
+# other half of the issue 0025 complaint, which was not "what ran" but "is my
 # config responsible for this".
 note_invocation() {
   local log="$1" source="$2" a i=0
@@ -429,11 +422,11 @@ note_invocation() {
 # when errors is unset (--no-out keeps no companion). Never alters the run's own
 # exit.
 #
-# THE PORT TAKES LAKSA'S COPY (design D13). Three of the four projects lack the
-# vanished-directory guard below; Laksa grew it after a suite swept a fixture
+# THE PORT TAKES THE GUARDED COPY (design D13). Most of the projects lacked
+# the vanished-directory guard below; one grew it after a suite swept a fixture
 # directory that shared a parent with the log dir. That hardening never reached
-# the other three, and could not, while there were four copies of this function
-# -- which is the clearest single argument for the fold.
+# the others, and could not, while each kept its own copy of this function --
+# which is the clearest single argument for the fold.
 write_errors_file() {
   local rc="$1" log="$2" errors="$3" extract="$4"
   [ -n "$errors" ] || return 0
@@ -707,7 +700,7 @@ grammar_for() {
 #
 # All are ported from the corpus runners
 # rather than invented, because they were measured against real output there --
-# conflab_test_{mix,rust,swift,credo}. That provenance is the whole reason to
+# <project>_test_{mix,rust,swift,credo}. That provenance is the whole reason to
 # trust them: none of these tools runs in this repository, so a grammar written
 # here from the documentation could not be checked against anything.
 #
@@ -1169,12 +1162,12 @@ note_referent() {
 
 # print_run_overhead <log> -- how much of this run was NOT the tests.
 #
-# TWO DURATIONS, NEITHER BANKABLE ALONE, DIVIDED, GIVE A MEASUREMENT THAT IS
-# (ic, 2026-08-19; the decomposition is theirs). A runner's own `finished in` is
-# a property of the ARTEFACT: it barely moves between machines. Wall-clock is a
-# property of the APPARATUS. **The ratio between them measures the apparatus, and
-# it needs no mechanism named** -- which is why it works where five successive
-# explanations of a slow estate did not.
+# TWO DURATIONS, NEITHER BANKABLE ALONE, DIVIDED, GIVE A MEASUREMENT THAT IS.
+# A runner's own `finished in` is a property of the ARTEFACT: it barely moves
+# between machines. Wall-clock is a property of the APPARATUS. **The ratio
+# between them measures the apparatus, and it needs no mechanism named** --
+# which is why it works where five successive explanations of a slow estate
+# did not.
 #
 # The measurement that produced it, on one project, same tests throughout:
 #
@@ -1205,8 +1198,8 @@ note_referent() {
 #   4. **It assumes THE WALL IT IS MEASURING IS A TEST RUN.** T0 is set in
 #      open_run_log, so the wall is the GATE's, and a gate that wraps other
 #      verbs charges their time to a denominator made only of test suites.
-#      `fullcycle` does exactly that: intent/dc measured `4.87x -- 170s wall
-#      against 34.91s` on hv's run, where 103 of those seconds were a cold
+#      `fullcycle` does exactly that. Measured on one run: `4.87x -- 170s wall
+#      against 34.91s`, where 103 of those seconds were a cold
 #      release build and `clean`, and the test phase alone was 1.75x -- quiet
 #      on the scale above. The arithmetic was exact and the SUBJECT was wrong.
 #
@@ -1235,7 +1228,7 @@ print_run_overhead() {
   #
   # THE ZEROS ARE COUNTED, NOT DROPPED (issue 0095). cargo prints a line for
   # every test binary and doc-test pass, empty ones included, so a bare count
-  # reads as more testing than happened -- laksa-dc saw "across 4 suite(s)"
+  # reads as more testing than happened -- one run printed "across 4 suite(s)"
   # for 0.00, 0.00, 11.04 and 0.00. Skipping the zeros would be wrong the other
   # way: cargo rounds to two places, so a binary running a few fast tests also
   # reads 0.00s. So the count stays, and the line says how many read zero, in
@@ -1360,8 +1353,8 @@ print_run_verdict() {
 record_seal() {
   local rc="$1" label="$2" errors="$3"
   [ -n "${DEVBIN_SEAL_LEDGER:-}" ] || return 0
-  # A ROW FROM ANOTHER RUN IS NOT WRITTEN (ported from Laksa, 25c431a00, on hv's
-  # ruling of 2026-09-16). run_all EXPORTS its ledger, so a nested devbin inherits
+  # A ROW FROM ANOTHER RUN IS NOT WRITTEN (ported from a fix in one estate's
+  # vendored copy). run_all EXPORTS its ledger, so a nested devbin inherits
   # it: a witness run failing on purpose put its red row into the PARENT's
   # ledger, and seal_failures named a seal the parent's gate never produced. A
   # label cannot separate the rows -- a nested `test rust` and the parent's carry
@@ -1439,14 +1432,122 @@ gate_out_dir() {
   printf 'tmp/%s' "$1"
 }
 
+# gate_out_ignore <dir> -- make a run-log directory under tmp/ ignore itself:
+# `*` in <dir>/.gitignore, the convention a tool keeps for its own output
+# directory, as pytest and ruff keep theirs (issue 0157).
+#
+# NOTHING IGNORED THE LOGS. A project whose own .gitignore did not cover tmp/
+# read `?? tmp/` after its first gate, and `+dirty` in --version from then on,
+# and a release whose pre-flight passed could fail at step 5 because its own
+# gates had changed the tree. devbin still never writes the PROJECT's
+# .gitignore: this file sits inside devbin's own output directory.
+#
+# WHICH DIRECTORY GETS ONE is _gate_out_ignore_file's to say, and nothing here
+# second-guesses it. A write that fails is said, never swallowed, and the run
+# goes on: a log the project then sees as dirt is what this exists to prevent.
+# Created and written in one exclusive open, so a file a racer made first is
+# never overwritten, and a write that fails leaves no empty file behind to stand
+# in for the ignore at every later run.
+gate_out_ignore() {
+  local gi
+  gi="$(_gate_out_ignore_file "$1")" || return 0
+  if ! (
+    set -o noclobber
+    printf '*\n' >"$gi"
+  ) 2>/dev/null; then
+    [ -s "$gi" ] && return 0
+    rm -f "$gi" 2>/dev/null
+    warn "could not write $gi, so git sees this run's log as a change to the tree -- add tmp/ to .gitignore"
+  fi
+  return 0
+}
+
+# gate_out_ignored <dir> -- true when what a run writes in <dir> is ignored:
+# git ignores it already, or gate_out_ignore will make <dir> ignore itself
+# before the first log is written. Writes nothing.
+#
+# ONE ANSWER FOR THE DRY RUN AND THE CUT (critic-shell on 0157 v1). The release
+# pre-flight asked git alone. A real cut had already opened its own log, which
+# wrote the ignore file, so it passed; a dry run had not, so it refused the same
+# tree. Asked here, both read the rule the writer follows.
+#
+# Asked of the project's repository through git_readonly, so an inherited GIT_DIR
+# cannot point it elsewhere, and a relative <dir> is the project root's, as the
+# writer reads it.
+gate_out_ignored() {
+  local dir="$1"
+  case "$dir" in
+    /*) ;;
+    *) dir="${PROJECT_ROOT:-.}/$dir" ;;
+  esac
+  git_readonly -C "${PROJECT_ROOT:-.}" check-ignore -q "$dir/probe.out" 2>/dev/null && return 0
+  _gate_out_ignore_file "$1" >/dev/null
+}
+
+# _gate_out_ignore_file <dir> -- the .gitignore gate_out_ignore would write for
+# <dir>, on stdout, rc 0; rc 1, having printed nothing, when it writes none.
+# <dir> may not exist yet: the part that does is resolved, and the rest is
+# appended as named, so a dry run gets the answer the run would.
+#
+# ONLY A DIRECTORY STRICTLY INSIDE <root>/tmp/, RESOLVED PHYSICALLY: never tmp/
+# itself, which a project may use for its own files, never at or above the root,
+# and never through a link that leads outside the tree. NEVER ONE THE PROJECT
+# KEEPS: a directory under tmp/ that git tracks is the project's, and `*` there
+# would hide its next file. And never where a .gitignore is already, which the
+# project made.
+_gate_out_ignore_file() {
+  local dir="${1%/}" root="" up rest="" abs="" tracked=""
+  [ -n "${PROJECT_ROOT:-}" ] || return 1
+  physical_dir "$PROJECT_ROOT" root || return 1
+  case "$dir" in
+    /*) ;;
+    *) dir="$PROJECT_ROOT/$dir" ;;
+  esac
+  up="$dir"
+  while [ ! -d "$up" ]; do
+    case "$up" in
+      */*) ;;
+      *) return 1 ;;
+    esac
+    rest="/${up##*/}$rest"
+    up="${up%/*}"
+    [ -n "$up" ] || return 1
+  done
+  case "$rest" in
+    */. | */./* | */.. | */../*) return 1 ;;
+  esac
+  physical_dir "$up" abs || return 1
+  abs="$abs$rest"
+  case "$abs" in
+    "$root"/tmp/?*) ;;
+    *) return 1 ;;
+  esac
+  if [ -e "$abs/.gitignore" ] || [ -L "$abs/.gitignore" ]; then
+    return 1
+  fi
+  # A git that cannot say is not a directory nobody tracks: it writes nothing,
+  # and says so, unless there is no repository here to ask.
+  if [ -d "$abs" ]; then
+    if ! tracked="$(git_readonly -C "$root" ls-files -- "${abs#"$root"/}" 2>/dev/null)"; then
+      if git_readonly -C "$root" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        warn "git could not say whether $abs is tracked, so it is given no .gitignore"
+        return 1
+      fi
+      tracked=""
+    fi
+    [ -z "$tracked" ] || return 1
+  fi
+  printf '%s\n' "$abs/.gitignore"
+}
+
 # gate_split_args [args...] -- partition a gate invocation's argv into the
 # run_gate wrapper flags a user may pass and the arguments that belong to the
 # tool. Sets DEVBIN_GATE_FLAGS and DEVBIN_GATE_ARGS.
 #
 # Exists because built-in gates put user args after `--`, so a wrapper flag
 # typed at the command line arrived as a TOOL argument -- `test mix --purge`
-# asked mix to run a file called --purge. hv ruled the corpus purge semantics
-# back in on 2026-08-09 (`test all --purge`). ONE parser, used by EVERY site
+# asked mix to run a file called --purge. The corpus purge semantics were
+# ruled back in (`test all --purge`). ONE parser, used by EVERY site
 # that forwards a user's argv to a tool, sealed or not, so they cannot drift on
 # what counts as a wrapper flag. THIS SENTENCE ONCE LISTED THE SITES, said
 # "both", and was wrong for as long as a third existed: run_command's gate
@@ -1456,8 +1557,8 @@ gate_out_dir() {
 # site in lib/resolve to saying what became of the flags, which finds a new site
 # the day it is written.
 #
-# The purge pair and --allow-empty are recognised, both ruled in by hv on
-# 2026-08-09. --allow-empty does not weaken the default -- a gate that examines
+# The purge pair and --allow-empty are recognised, both ruled in.
+# --allow-empty does not weaken the default -- a gate that examines
 # nothing still FAILS; the flag is the corpus's explicit per-invocation "this
 # emptiness is intended" override, now reachable from any gate's command line.
 # The remaining run_gate flags stay unreachable from a gate's argv on purpose:
@@ -1500,10 +1601,10 @@ is_gate_flag() {
 #              tool that owns the word -- `--allow-empty` is git commit's -- and
 #              devbin has no seal to spend it on, so the tool gets its argv
 #              whole. Refusing or dropping it there left such a project no way
-#              to pass it at all (cc's review of 0122).
+#              to pass it at all.
 #
 # Either way the person is told, which is the half 0122 was filed for, in the
-# number the flags came in: two flags "were", one "was" (cc's review).
+# number the flags came in: two flags "were", one "was".
 gate_flags_unsealed() {
   [ "${#DEVBIN_GATE_FLAGS[@]}" -gt 0 ] || return 0
   local they="it was"
@@ -1527,7 +1628,7 @@ gate_flags_unsealed() {
 # default" sentinel. Until issue 0065 the `-` mapping sat at one call site and
 # applied only to the value the CATALOGUE supplied, so a project writing
 # `log: "-"` sealed its gate under the suffix `-`, and `log: false` under the
-# suffix `false` -- dc's four-value sweep in Laksa found no value that declined
+# suffix `false` -- a four-value sweep found no value that declined
 # at all. One resolver now answers what a declared `log:` means, at option and
 # command level alike.
 #
@@ -1607,7 +1708,7 @@ option_seal_from() {
 # ---------------------------------------------------------------------------
 # THE HEARTBEAT. Fixes no defect; makes correct behaviour legible.
 #
-# Three "is this hung?" exchanges in one day at Intent, every one of them from
+# Three "is this hung?" exchanges in one day, every one of them from
 # SILENCE and every one of them a correctly-working operation: a 113G `rm -rf`
 # printing nothing for 35 minutes, cargo linking with nothing between crates,
 # and a build blocked on cargo's build lock. None was hung.
@@ -1799,8 +1900,8 @@ run_gate() {
   case "$-" in *e*) errexit_was_on=1 ;; esac
   set +e
   gate_heartbeat_start "$log" "$label"
-  # A GATED TOOL GETS NO INPUT (issue 0088, row 2; hv, 2026-09-18, amended
-  # twice the same day). It inherited the caller's stdin, so a tool run from a
+  # A GATED TOOL GETS NO INPUT (issue 0088, row 2, as amended twice). It
+  # inherited the caller's stdin, so a tool run from a
   # terminal was handed the person's keyboard: a tool that asks (`Shall I
   # install Hex? [Yn]`) BLOCKED there, while every agent and CI run read EOF
   # and took the no-answer path. Now every run takes that one path.
@@ -1813,13 +1914,13 @@ run_gate() {
   # no longer confirm a clean (clean.bats caught it). The first amendment let
   # devbin's own functions keep stdin instead, and so handed the terminal to
   # every tool such a function STARTS -- mix under `check format`, the
-  # formatters, fullcycle's phases (dc measured it): the split looked only at
+  # formatters, fullcycle's phases (measured): the split looked only at
   # the gate's first word. One rule at this one site is the only form that
   # covers a built-in not yet written. A tool that opens /dev/tty itself is
   # outside this either way.
-  local gate_tty
-  gate_tty="$(stdin_tty_flag)"
-  DEVBIN_GATE_TTY="$gate_tty" "$@" </dev/null 2>&1 | tee -a "$log"
+  # The rule itself is gate_exec's, in lib/helpers, so a project's handler
+  # running a gate tool directly applies the same one (issue 0158).
+  gate_exec "$@" 2>&1 | tee -a "$log"
   # PIPESTATUS IS READ BEFORE THE BEAT IS STOPPED, and the order is load-bearing:
   # `kill` and `wait` both set $?, and PIPESTATUS is clobbered by the next
   # command to run. Stopping first would hand the gate the heartbeat's verdict.

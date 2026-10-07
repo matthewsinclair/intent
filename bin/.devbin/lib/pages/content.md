@@ -1,8 +1,8 @@
     bin/devbin content [<option>|all] [args...]
 
-Run this project's content pipeline tasks. devbin ships the name `content` and nothing behind it: a content pipeline belongs to the project, so each project declares what `content` runs (devbin design D18, tier 4). It is separate from `docs`, the command devbin implements to regenerate generated documentation.
+Run this project's content pipeline tasks. devbin ships the name `content` and nothing behind it: a content pipeline belongs to the project, so each project declares what `content` runs. It is separate from `docs`, the command devbin implements to regenerate generated documentation.
 
-It is also opt-in (devbin design D22): absent until a project asks for it, with `commands.content.enabled: true` or by filling it as below. `enabled: false` switches it off again, whatever fills it.
+It is also opt-in: absent until a project asks for it, with `commands.content.enabled: true` or by filling it as below. `enabled: false` switches it off again, whatever fills it.
 
 ## Until the project fills it
 

@@ -17,8 +17,8 @@
 # reports nothing wrong is exactly the false green this framework refuses.
 #
 # GRAMMAR. The same restricted YAML subset every devbin config uses, read by the
-# same `lib/config` (design D7), so the same forms are refused with the same
-# line-naming errors:
+# same `lib/config`, so the same forms are refused with the same line-naming
+# errors:
 #
 #   yes   two-space indent, nested maps, `key: value`, scalar sequences
 #         (`- item`), `#` comments, quoted scalars, blank lines, `---`
@@ -28,11 +28,11 @@
 #
 # EVERYTHING BELOW IS BLOCK FORM, AND THAT IS A CONSTRAINT RATHER THAN A STYLE.
 # `dmarc: { policy: none }` and `senders: [mailersend]` are refused at parse
-# time. Until 2026-09-07 the worked example lived in a prose document and was
-# written in three forms this parser rejects -- flow collections, flow
-# sequences, and a `domains:` map keyed by FQDN instead of by handle. It was the
-# first thing a new reader would copy and it could not load, and no test noticed
-# because no test read it. THIS FILE IS PARSED BY THE SUITE ON EVERY RUN
+# time. The worked example once lived in a prose document and was written in
+# three forms this parser rejects -- flow collections, flow sequences, and a
+# `domains:` map keyed by FQDN instead of by handle. It was the first thing a
+# new reader would copy and it could not load, and no test noticed because no
+# test read it. THIS FILE IS PARSED BY THE SUITE ON EVERY RUN
 # (tests/unit/infra-profile.bats), which is the only assertion that cannot rot:
 # a test grepping for forbidden punctuation would pass the day somebody invented
 # a fourth way to write it wrong.
@@ -54,11 +54,11 @@
 # EVERY KEY IN A PROFILE IS ONE THIS FILE SHOWS, AND ANY OTHER IS REFUSED --
 # before a single record is read, naming the key and the file. A key written
 # where nothing reads it, like `dmarc: none` under `defaults:`, is refused the
-# same way. Until issue 0143 such a key parsed and was simply never read, and a
-# profile declaring a DMARC sp=, a second DKIM key and a wildcard checked green
-# against a zone carrying none of them. A key written with NO value is refused
-# too, wherever it is written: the reader cannot see it at all, so it is not an
-# empty entry but an absent one.
+# same way. Such a key once parsed and was simply never read, and a profile
+# declaring a DMARC sp=, a second DKIM key and a wildcard checked green against
+# a zone carrying none of them. A key written with NO value is refused too,
+# wherever it is written: the reader cannot see it at all, so it is not an empty
+# entry but an absent one.
 
 # The schema version, so a later shape can be told from this one. `infra init`
 # writes 1; nothing reads it yet, so a profile without it is not refused.
@@ -89,7 +89,7 @@ defaults:
   # record of verification -- the same failure as a disarmed guard that reports
   # nothing, arrived at from the other direction.
   #
-  # Undocumented here until 2026-09-22 although `infra_manual_keys` has read both
+  # This was once undocumented here, although `infra_manual_keys` has read both
   # `defaults.manual` and `domains.<handle>.manual` throughout. An honoured key
   # absent from the one annotated guide an operator has is the same defect as a
   # documented key that does nothing, and this file is VENDORED, so the omission
@@ -113,19 +113,19 @@ defaults:
 #
 # ONE DKIM RECORD OR SEVERAL. A sender publishing one record writes its fields
 # directly under `dkim:`, as `newsletter` does below. A sender publishing more
-# writes each under a label of your choosing, as `mailersend` does: it moved on
-# 2026-09-08 from one record to two, ms1 and ms2, and rotates between them. A
-# domain naming the sender must then carry EVERY record it declares, and check
-# asks for each on the domain's own nameserver and names each one missing as a
-# HALF PAIR. Each record takes the same three fields in both forms: `name` (the
-# name under the domain), `type` (CNAME when not given) and `value` (optional,
-# compared when given). The value is compared WHOLE with every record at that
-# name, so a second record there is drift, and so is a target the value is only
-# part of. A CNAME target is compared as a name, ignoring case and the root
-# dot; a TXT record as a resolver sees it, its strings joined. Refused before
-# anything is read: the two forms in one sender,
-# a label spelled `name`, `type` or `value`, two records naming one selector,
-# and a record with no name.
+# writes each under a label of your choosing, as `mailersend` does: it moved
+# from one record to two, ms1 and ms2, and rotates between them. A domain naming
+# the sender must then carry EVERY record it declares, and check asks for each
+# on the domain's own nameserver and names each one missing as a HALF PAIR. Each
+# record takes the same three fields in both forms: `name` (the name under the
+# domain), `type` (CNAME when not given) and `value` (optional, compared when
+# given). The value is compared WHOLE with every record at that name, so a
+# second record there is drift, and so is a target the value is only part of. A
+# CNAME target is compared as a name, ignoring case and the root dot; a TXT
+# record as a resolver sees it, its strings joined. Refused before anything is
+# read: the two forms in one sender, a label spelled `name`, `type` or `value`,
+# two records naming one selector, a record with no name, and a `type` other
+# than CNAME or TXT, in capitals.
 #
 # check cannot tell a sender declared with FEWER records than its vendor
 # publishes: a DKIM selector cannot be listed from DNS, and devbin ships no
@@ -222,7 +222,7 @@ domains:
 # --- runtime: omitted entirely by an estate that does not use Fly ------------
 #
 # No command reads this block yet: `check` covers DNS and mail only, and the
-# Fly runtime leg is devbin's ST0006, not built.
+# Fly runtime leg is not built.
 runtime:
   fly:
     example-app:

@@ -50,7 +50,7 @@ USAGE
 # profiles, no collisions" is the shape of every false green this repository has
 # a name for -- and a caller who omitted the argument got usage text and a
 # success code, which is that same false green one level up, in the command
-# written to refuse it. Reported by lamplight-dc.
+# written to refuse it. Reported from an estate.
 case "${1:-}" in
   -h | --help)
     usage

@@ -197,7 +197,7 @@ _cfg_parse() {
 # can be perfectly valid YAML, but a wrong VALUE, which is then word-split into
 # a command line and executed.
 #
-# Measured at Prolix (issue 0026, surfaced by prolix/vc). One session ran `test all` while
+# Measured (issue 0026). One session ran `test all` while
 # another edited config.yaml; the reader caught a transient state, the swift
 # arm's destination read `variant=Designed for iPad`, and xcodebuild died on
 # `Unknown build action 'for'`. Nothing was wrong with the config that landed or
@@ -361,17 +361,18 @@ _cfg_path_known() {
     project)
       if [ "$n" -eq 2 ]; then
         # cli_task: the mix task the `cli` and `repl` built-ins call. Defaults
-        # to `<name>.cli`, which is what the whole first fleet uses; the Arca
-        # pair needs it because their tasks are `arca.cli` and `arca.config`.
-        # `referent`: issue 0049's key, and it was READABLE BY THE RUNTIME AND
-        # UNKNOWN TO THE SCHEMA for two days -- the exact mismatch this validator
-        # exists to catch, occurring in the validator. `print_run_referent` reads
-        # it and prints it verbatim, so the feature worked perfectly while
-        # `devbin doctor` reported the consumer's correct config as an unknown
-        # key. **A gate that rejects the configuration its own runtime honours is
-        # worse than no gate**, because the failure names the project's file and
-        # the defect is here. Same shape as the `log`/`grammar` omission recorded
-        # above it: the feature landed, the allowlist did not follow.
+        # to `<name>.cli`, which the projects devbin was folded from use;
+        # `demo_cli` and `demo_config` need it: their tasks are `demo.cli` and
+        # `demo.config`. `referent`: issue 0049's key, and it was READABLE BY
+        # THE RUNTIME AND UNKNOWN TO THE SCHEMA for two days -- the exact
+        # mismatch this validator exists to catch, occurring in the validator.
+        # `print_run_referent` reads it and prints it verbatim, so the feature
+        # worked perfectly while `devbin doctor` reported the consumer's correct
+        # config as an unknown key. **A gate that rejects the configuration its
+        # own runtime honours is worse than no gate**, because the failure names
+        # the project's file and the defect is here. Same shape as the
+        # `log`/`grammar` omission recorded above it: the feature landed, the
+        # allowlist did not follow.
         case "${p[1]}" in name | alias | cli_task | root_var | version_from | referent) return 0 ;; esac
         return 1
       fi
@@ -417,10 +418,10 @@ _cfg_path_known() {
       fi
       [ "$n" -eq 4 ] && [ "${p[2]}" = values ] && _cfg_is_index "${p[3]}" && return 0
       # options.<name>.commands.<N> -- the commands that READ a framework-owned
-      # option, extending devbin's own set (issue 0009). Lamplight's `wrighter`
-      # reads DEVBIN_OPT_IEX and devbin cannot know that by looking. Note this
-      # is a sibling of `values`, not of the shape keys above: it says who
-      # consumes the option, never what shape it has.
+      # option, extending devbin's own set (issue 0009). A project's `web`
+      # command reads DEVBIN_OPT_IEX and devbin cannot know that by looking.
+      # Note this is a sibling of `values`, not of the shape keys above: it says
+      # who consumes the option, never what shape it has.
       [ "$n" -eq 4 ] && [ "${p[2]}" = commands ] && _cfg_is_index "${p[3]}" && return 0
       return 1
       ;;
@@ -470,8 +471,7 @@ _cfg_path_known() {
 # THE ONE STATEMENT OF THE RELEASE KEYS: shape, dotted key under `release.`,
 # and default. The schema branch above, the readers below and the value checks
 # all read it, so a key added here is known, defaulted and validated in one
-# edit. Every key has a default and every default can be overridden (hv,
-# 2026-09-16, decision 26).
+# edit. Every key has a default and every default can be overridden.
 #
 # A list's default items are separated by `|`. A project declares a list
 # EXPLICITLY EMPTY as the single item `-` (devbin's no-default sentinel): the

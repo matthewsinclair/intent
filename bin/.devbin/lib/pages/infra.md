@@ -32,7 +32,7 @@ A profile named by `--profile` or by `$DEVBIN_INFRA_PROFILE` is used or refused 
 
 Every record in an estate is correct against the advice in force on the day it was written. Providers revise that advice, domains set up on different dates freeze different snapshots of it, and nothing compares them to each other, so the drift is invisible by construction: there is no moment of carelessness to find. A declared target gives every record something to be compared against.
 
-The sharpest case is a sender that SPF authorises with no DKIM record to match: that domain's own legitimate mail is then indistinguishable from a forgery of it, and nothing says so until the first message flows. `check` reports it as drift, and a profile that declares a sender without both halves of its pair is refused before any record is read. A sender may publish more than one DKIM record, and then every one it declares is half of the pair: each missing one is its own drift, named.
+The sharpest case is a sender that SPF authorises with no DKIM record to match: that domain's own legitimate mail is then indistinguishable from a forgery of it, and nothing says so until the first message flows. `check` reports it as drift, and a profile that declares a sender without both halves of its pair is refused before any record is read. A sender may publish more than one DKIM record, and then every one it declares is half of the pair: each missing one is its own drift, named. A DKIM record's `type` is `CNAME` or `TXT`, in capitals, as DNS names them; any other word is refused when the profile is read.
 
 ## What check reads
 

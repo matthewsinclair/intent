@@ -20,7 +20,7 @@ zsh is the only shell with a body. Any other name is refused with that list, rat
 
 ## When the walk finds nothing
 
-The walk finds devbin through a project that already has one, so it cannot install into a project that does not. Set `DEVBIN_SOURCE` to a devbin checkout or install (its root or its bin/devbin), and `dvb` falls back to it. With it unset, `dvb` tries a machine install at `DEVBIN_INSTALL_PREFIX`, or else at the one baked in when the function was emitted: the install that emitted it, or the `install.prefix` the emitting project declares. Otherwise it lists where it looked and returns 127.
+The walk finds devbin through a project that already has one, so it cannot install into a project that does not. Set `DEVBIN_SOURCE` to a devbin checkout or install (its root or its bin/devbin), and `dvb` falls back to it. With it unset, `dvb` tries a machine install at `DEVBIN_INSTALL_PREFIX`, or else at the one baked in when the function was emitted: the install that emitted it, or the `install.prefix` the emitting project declares. Otherwise it lists where it looked and returns 127. The same two variables place a project's recorded source for `upgrade`, `vendor`, `doctor` and the update notice: `DEVBIN_INSTALL_PREFIX` over the machine pointer for an install, `DEVBIN_SOURCE` for a checkout (see `bin/devbin help upgrade`).
 
     export DEVBIN_SOURCE=/path/to/devbin
     cd ~/some/new/project && dvb install

@@ -40,8 +40,8 @@ _DEVBIN_GATECMD_LOADED=1
 # usage_options_for <command> -- the usage line's option list, |-joined.
 #
 # The ACTIVE set the dispatcher exported (issue 0007): the catalogue is the
-# menu, not what resolves in THIS project -- Baize's line advertised three
-# arms that refuse, Lamplight's advertised four disabled ones and omitted the
+# menu, not what resolves in THIS project -- one project's line advertised three
+# arms that refuse, another's advertised four disabled ones and omitted the
 # only one that runs. The derivation (D11 language axis + config enabled: +
 # declared options) lives dispatcher-side as command_options; re-deriving it
 # here would be a second copy, so this reads the export and falls back to the

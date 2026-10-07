@@ -14,7 +14,7 @@ set -euo pipefail
 # builtin_check_critic -- run the Intent critic for every declared language that
 # actually has a headless critic.
 #
-# Ported from the corpus, which carried this in all four projects. Two things it
+# Ported from the corpus, where every project carried this. Two things it
 # refuses to do quietly:
 #
 #   - A language declared in intent/.config/config.json with no headless critic
@@ -46,7 +46,7 @@ set -euo pipefail
 # were code". The obvious-looking predicate -- allow empty only when `git diff
 # --cached` is empty -- FIRES ON MARKDOWN: stage a doc, and a gate about source
 # code goes red for a reason that has nothing to do with source code. Measured
-# on Laksa with five .md files staged.
+# with five .md files staged.
 #
 # Getting that right needs a language-to-extension map, and devbin has none. The
 # critic owns which files belong to which language, and a second copy of that
@@ -147,8 +147,8 @@ $lang
 # declares, one arm per declared language (issue 0003).
 #
 # It used to be a catalogue command line, `mix format --check-formatted`, scoped
-# to elixir. `fmt` has four arms; this had one. So in a mixed project -- Conflab
-# is elixir + rust + swift -- declaring Elixir activated a gate NAMED `format`,
+# to elixir. `fmt` has four arms; this had one. So in a mixed project -- say
+# elixir + rust + swift -- declaring Elixir activated a gate NAMED `format`,
 # summarised "Formatting is up to date", that never looked at Rust or Swift.
 # Same exit code, same empty seal, two thirds of the project unexamined.
 #
@@ -336,10 +336,10 @@ _check_format_swift() {
 
 # builtin_check_toolchain -- the pinned toolchain must match what is running.
 #
-# Ported from Conflab and Laksa, which had substantially the same function. CI
-# resolves its compiler from .tool-versions; local work uses whatever the shell
-# resolves. When those diverge, a local warnings-as-errors pass stops being
-# evidence about CI, so this makes the skew loud rather than silent.
+# Ported from projects that had substantially the same function. CI resolves its
+# compiler from .tool-versions; local work uses whatever the shell resolves.
+# When those diverge, a local warnings-as-errors pass stops being evidence about
+# CI, so this makes the skew loud rather than silent.
 builtin_check_toolchain() {
   local tv="$PROJECT_ROOT/.tool-versions" rc=0
   # Same rule as check format above: arguments used to vanish without a word,
@@ -360,13 +360,13 @@ builtin_check_toolchain() {
   # that matters there is UNSET versus EMPTY, and it applies here unchanged --
   # absent-and-determinate is not the same as could-not-tell.
   #
-  # WHY IT MATTERS BEYOND TIDINESS: `check toolchain` is an arm of `int check
-  # all`, the one command a developer runs to ask "is anything wrong". A project
+  # WHY IT MATTERS BEYOND TIDINESS: `check toolchain` is an arm of `check all`,
+  # the one command a developer runs to ask "is anything wrong". A project
   # that legitimately pins nothing got a PERMANENT red for a reason that could
   # never change, and a permanently-red aggregate is worse than a slow one --
   # a slow gate gets bypassed, an always-red gate gets ignored, and the real
-  # failure then hides inside the noise. Intent measured exactly that on
-  # 2026-08-16: clippy, format and critic all passed; toolchain was the whole
+  # failure then hides inside the noise. That is what was measured:
+  # clippy, format and critic all passed; toolchain was the whole
   # of the red, on every run, forever.
   #
   # THIS DOES NOT WEAKEN THE GATE. Its subject is SKEW between a pin and what is
@@ -389,7 +389,7 @@ builtin_check_toolchain() {
   # The FULL erlang pin, kept aside: the coarse fallback below truncates
   # pin_erl to its major for the ACTIVE comparison, and the Dockerfile
   # comparison must not inherit that weakening -- the image tag is exact, so
-  # 29.0.4 vs 29.0.5 is a different image and must be caught (Laksa's copy
+  # 29.0.4 vs 29.0.5 is a different image and must be caught (one ported copy
   # carried this; D13 takes the strongest).
   pin_erl_full="$pin_erl"
 
@@ -451,17 +451,18 @@ builtin_check_toolchain() {
   fi
 
   # The pins' SECOND consumer, and the one that SHIPS (promoted from the
-  # Laksa/Lamplight config scripts at WP-11 close -- AC-11.11). A deploy image
-  # restates the pins as literal ARG defaults, because FROM needs the value
-  # before any RUN could read a file -- so a bump to .tool-versions moves CI
-  # while leaving production on the old compiler, with every other gate green.
-  # Lamplight's image lagged that way twice before its script grew this arm.
+  # config scripts of the projects that had it, at WP-11 close -- AC-11.11). A
+  # deploy image restates the pins as literal ARG defaults, because FROM needs
+  # the value before any RUN could read a file -- so a bump to .tool-versions
+  # moves CI while leaving production on the old compiler, with every other gate
+  # green. One project's image lagged that way twice before its script grew this
+  # arm.
   #
   # Three determinate shapes (the two-shapes doctrine):
   #   Dockerfile present      -> compare its ARGs against the pins, exactly
   #   fly.toml, no Dockerfile -> FAIL: this project deploys an image, so a
   #                              comparison that cannot run is not a pass
-  #                              (the Laksa/Lamplight authored strictness,
+  #                              (the strictness those scripts authored,
   #                              derived from the repo instead of config)
   #   neither                 -> informative: no deploy image exists
   dockerfile="$PROJECT_ROOT/Dockerfile"
@@ -533,16 +534,16 @@ _autotests_targets() {
 # FULL LINK of the crate plus its whole dependency graph. The cost is linear in
 # FILE COUNT, not in test count, and it is silent in BOTH directions -- nothing
 # says anything when target #2 appears, and nothing says anything at #257.
-# Intent reached 257 targets one honest file at a time, holding a 113G target
-# tree; consolidated it builds 5. The ruling is hv's, 2026-08-27, estate-wide.
+# One project reached 257 targets one honest file at a time, holding a 113G
+# target tree; consolidated it builds 5. The ruling is estate-wide.
 # This gate catches target #2.
 #
 # WHY THIS READS THE FILESYSTEM RATHER THAN BUILDING THE TARGETS, WHICH LOOKS
-# LIKE THE DOCUMENTED TRAP AND IS NOT IT. TN001 is emphatic that test FILES are
-# not cargo TARGETS, and that `cargo test --workspace --no-run | grep -c
-# 'Executable tests/'` is the only count that is not a proxy. That is a rule
-# about a CENSUS -- an instrument reporting how many targets a crate HAS. This
-# gate never asks that.
+# LIKE THE DOCUMENTED TRAP AND IS NOT IT. The rule's own note is emphatic that
+# test FILES are not cargo TARGETS, and that `cargo test --workspace --no-run |
+# grep -c 'Executable tests/'` is the only count that is not a proxy. That is a
+# rule about a CENSUS -- an instrument reporting how many targets a crate HAS.
+# This gate never asks that.
 # Its predicate is "is auto-discovery on, AND is there more than one target for
 # it to discover", and both halves are decidable from Cargo.toml and the
 # filesystem alone, by cargo's own discovery rule (_autotests_targets): each .rs
@@ -553,7 +554,7 @@ _autotests_targets() {
 #   absent or true, >  1 found -> exactly that many auto targets.   BREACH.
 #
 # The trap's own worked example confirms the split instead of threatening it:
-# Intent's `testkit` greps zero `[[test]]` while cargo reports 1, because a
+# one project's `testkit` greps zero `[[test]]` while cargo reports 1, because a
 # single file with no autotests key is auto-discovered -- and one target is
 # precisely what this gate passes. The expensive count is needed for REPORTING,
 # never for the verdict.
@@ -578,10 +579,10 @@ builtin_check_autotests() {
   #   target/     -- crate sources vendored under a build tree are not ours, and
   #                  a gate that walked them would report breaches in other
   #                  people's code that nobody here can fix.
-  #   .worktrees/ -- a git worktree is the SAME crate seen a second time. TN001
-  #                  records a fleet census that reported 14 crates where there
-  #                  were 4, by counting worktree copies; a gate doing that
-  #                  reports one breach per checkout of a single Cargo.toml.
+  #   .worktrees/ -- a git worktree is the SAME crate seen a second time. That
+  #                  note records a census that counted each crate once per
+  #                  worktree copy of it; a gate doing that reports one breach
+  #                  per checkout of a single Cargo.toml.
   #
   # A WALK THAT ERRORED RETURNS NO CRATES, AND NO CRATES READS EXACTLY LIKE A
   # COMPLIANT PROJECT. So find's status is checked rather than discarded: this
@@ -622,13 +623,13 @@ EOF
     # variation there is to allow for.
     if grep -Eq '^[[:space:]]*autotests[[:space:]]*=[[:space:]]*false' "$manifest"; then
       # WHAT "ONE TARGET PER CRATE" ACTUALLY POLICES, because the literal
-      # reading is wrong and the authoring estate is the proof. intent/vc raised
+      # reading is wrong and the authoring estate is the proof. A review raised
       # that this branch counted nothing, so `autotests = false` with ten
       # [[test]] blocks passed while cargo reported ten targets -- a real
-      # divergence from the rule's NAME. But TN001 itself keeps TWO targets in
-      # two crates on purpose (`dual_path_conformance` mutates process cwd,
-      # `daemon_subscriptions` drives a per-process watch stream, and merged
-      # targets are threads in one process), so a `> 1 is a breach` rule turns
+      # divergence from the rule's NAME. But the estate that wrote the rule keeps
+      # TWO targets in two crates on purpose (one test mutates process cwd,
+      # another drives a per-process watch stream, and merged targets are
+      # threads in one process), so a `> 1 is a breach` rule turns
       # the estate that authored the ruling red on a documented decision. A gate
       # red in the ordinary case is how a gate teaches people to ignore it.
       #
@@ -688,9 +689,9 @@ EOF
 
 # builtin_check_targetdir -- the cargo target directory is the shared one.
 #
-# 52G of Intent's 113G target tree was per-node FORKS (cc 41G, dc 11G, private
-# 919M): separate CARGO_TARGET_DIR trees, one per working session, each a full
-# copy of the same build.
+# 52G of one project's 113G target tree was per-session FORKS (one session's
+# 41G, another's 11G, private 919M): separate CARGO_TARGET_DIR trees, one per
+# working session, each a full copy of the same build.
 #
 # THIS IS NOT A DISCIPLINE PROBLEM AND THE GATE MUST NOT READ LIKE IT THINKS IT
 # IS. Cargo's build lock works correctly and INVISIBLY, so a blocked build is
@@ -698,9 +699,9 @@ EOF
 # waiting on the lock reasonably concludes it has hung and "fixes" it by
 # pointing CARGO_TARGET_DIR somewhere private, and one node reported doing so
 # permanently, to be "one contender off the shared lock". An instance happened
-# in front of hv while this was being measured: one session's `cargo check` held
-# the lock, hv's test run queued behind it, and hv reported the tests looked
-# hung. They were not.
+# in front of the operator while this was being measured: one session's
+# `cargo check` held the lock, the operator's test run queued behind it, and
+# the operator reported the tests looked hung. They were not.
 #
 # So the fork is a RATIONAL RESPONSE TO AN INVISIBLE WAIT, and a prohibition
 # only holds if the wait is made visible -- both halves or neither. The visible
@@ -711,17 +712,41 @@ EOF
 # below therefore names the CAUSE and not just the rule, because a gate that
 # tells a node to stop doing the only thing that made a hang legible to them is
 # a gate they will switch off.
+# _targetdir_home_tree <tree-var> <rc-var> -- the machine's reading
+# (cargo_home_build_dir) into <tree-var> and its status into <rc-var>, asked of
+# cargo once per run: <rc-var> is empty until it has been. Every reader in
+# check targetdir takes it from here, so one run never reads it two ways.
+_targetdir_home_tree() {
+  local -n _tht_tree="$1" _tht_rc="$2"
+  [ -z "$_tht_rc" ] || return 0
+  _tht_rc=0
+  cargo_home_build_dir _tht_tree || _tht_rc=$?
+}
+
 builtin_check_targetdir() {
-  local rc=0 seen=0 want cfg val home_dir home_cfg="" var pcfg="" pval="" hval="" i crate tree root
-  local ptree="" htree="" asked=0 hasked=0 placed c d inplay=0 under st
-  local -a crates=() trees=() roots=() cfgs=() forks=()
+  local rc=0 seen=0 want shared=1 nottree forkof home_cfg="" var pcfg="" pval="" i crate tree root
+  local ptree="" htree="" asked=0 hrc="" reach unread c d inplay=0 st
+  local h from ctree="" prc above applies pr forked=""
+  # Why the machine's reading can come back unmeasured (status 2).
+  local cloud="a cargo config at or above ${TMPDIR:-/tmp} may apply too"
+  local -a froms=()
+  local -A asked_from=()
+  local -a crates=() trees=() roots=() cfgs=() forks=() holes=()
   [ $# -eq 0 ] ||
     die "check targetdir takes no arguments (got: $*)
        It reads the environment and the cargo config, whole-project."
 
   want="$PROJECT_ROOT/target"
+  # THE SHARED TREE IS ONE CLEAN REMOVES (issue 0167): <root>/target with a
+  # Cargo.toml beside it (build_tree_rebuildable). With none, as for a crate
+  # nested below the project root, clean never removes it, and fullcycle fails
+  # a cycle that built there, so it is no tree to endorse; each crate's own
+  # workspace target is where cargo builds, and the one clean removes.
+  build_tree_rebuildable "$want" Cargo.toml || shared=0
+  nottree="not its own target or the shared tree at $want"
+  [ "$shared" = 1 ] || nottree="not its own target, and $want, with no Cargo.toml beside it, is no tree clean removes"
 
-  # 1. THE ENVIRONMENT. This is the per-session fork dc measured, and it is the
+  # 1. THE ENVIRONMENT. This is the measured per-session fork, and it is the
   # one that reaches 41G without ever being written down anywhere.
   #
   # An EMPTY value is set, and cargo refuses it, so it is refused here in
@@ -737,50 +762,50 @@ builtin_check_targetdir() {
     if [ "$var" != "$(cargo_env_carrier)" ]; then
       printf '    env      CARGO_BUILD_TARGET_DIR is set, and CARGO_TARGET_DIR, which cargo puts first, decides the tree\n'
     elif [ -z "${!var}" ]; then
-      warn "$var='' $(cargo_target_dir_why "") -- unset it, or set it to the shared tree at $want."
+      if [ "$shared" = 1 ]; then
+        warn "$var='' $(cargo_target_dir_why "") -- unset it, or set it to the shared tree at $want."
+      else
+        warn "$var='' $(cargo_target_dir_why "") -- unset it."
+      fi
       rc=1
-    elif [ "${!var%/}" = "$want" ]; then
+    elif [ "${!var%/}" = "$want" ] && [ "$shared" = 1 ]; then
       printf '    env      %s is set and points at the shared tree\n' "$var"
+    elif [ "${!var%/}" = "$want" ]; then
+      warn "$var=${!var} -- no Cargo.toml sits beside it at the project root, so clean never removes it and fullcycle fails a cycle built there: unset it, so each crate builds into its own workspace's target, which clean removes."
+      rc=1
     else
-      warn "$var=${!var} -- a per-session fork of the build cache, not the shared tree at $want.
+      forkof="not the shared tree at $want"
+      [ "$shared" = 1 ] || forkof="and with no Cargo.toml at the project root there is no shared tree to set it to: unset it, so each crate builds into its own workspace's target"
+      warn "$var=${!var} -- a per-session fork of the build cache, $forkof.
        Each fork is a full copy: one estate measured 52G across three of them.
        If you set this because a build looked hung, it was almost certainly WAITING on cargo's build lock, which is silent and looks identical to a hang."
       rc=1
     fi
   done
 
-  # 2. THE CARGO CONFIG. CARGO'S ANSWER IS THE VERDICT (issue 0150, vc's
-  # ruling): each crate whose directory, an ancestor or CARGO_HOME holds a
+  # 2. THE CARGO CONFIG. CARGO'S ANSWER IS THE VERDICT (issue 0150):
+  # each crate whose directory, an ancestor or CARGO_HOME holds a
   # config naming target-dir or include is asked where it builds
   # (cargo_build_dirs), from its own directory, as `cd crate && cargo build`
   # runs, with both variables removed from cargo's environment, so a config's
   # verdict does not hang on the environment of whoever runs the check: a
   # committer's own CARGO_TARGET_DIR hid a project-wide fork (critic-shell on
   # 0150 v1). A tree that is the workspace's own target, or the shared one, is
-  # no fork. Each fork's cause is named, never decided, here: one the machine's
-  # config alone accounts for, asked of cargo in an empty directory
+  # no fork. Each fork's cause is named, never decided, here, by the one
+  # attribution fullcycle's refusal makes too (cargo_tree_cause): one the
+  # project's config names (cargo_project_tree) fails, naming it; one the
+  # machine's config alone accounts for, asked of cargo in an empty directory
   # (cargo_home_build_dir), is reported, not failed, since it is not this
-  # project's to fix; one the project's config names fails, naming it; and one
-  # neither accounts for, from a config nearer the crate, fails with its cause
-  # unknown to this check rather than guessed. Trees are compared as they are
-  # placed (cargo_place), since cargo does not tidy a `..`.
-  for cfg in "$PROJECT_ROOT/.cargo/config.toml" "$PROJECT_ROOT/.cargo/config"; do
-    [ -f "$cfg" ] || continue
-    val="$(_targetdir_config_value "$cfg")"
-    [ -n "$val" ] || continue
-    pcfg="$cfg" pval="$val"
-    break
-  done
-  home_dir="$(cargo_home_dir)"
-  for cfg in "$home_dir/config.toml" "$home_dir/config"; do
-    [ -f "$cfg" ] || continue
-    home_cfg="$cfg"
-    hval="$(_targetdir_config_value "$cfg")"
-    break
-  done
-  [ -n "$home_cfg" ] || home_cfg="$home_dir/config.toml (none there)"
+  # project's to fix; and one neither accounts for, from a config nearer the
+  # crate, fails with its cause unknown to this check rather than guessed.
+  # Trees are compared as they are placed (cargo_place), since cargo does not
+  # tidy a `..`. The machine's config is the file cargo reads in CARGO_HOME
+  # (cargo_config_file).
+  cargo_project_tree pcfg pval ptree
+  home_cfg="$(cargo_config_file "$(cargo_home_dir)")"
+  [ -n "$home_cfg" ] || home_cfg="$(cargo_home_dir)/config.toml (none there)"
   st=0
-  cargo_build_dirs crates trees roots cfgs || st=$?
+  cargo_build_dirs crates trees roots cfgs holes || st=$?
   case "$st" in
     0) asked=1 ;;
     2) seen=1 ;;
@@ -790,10 +815,6 @@ builtin_check_targetdir() {
       rc=1
       ;;
   esac
-  if [ -n "$pval" ]; then
-    case "$pval" in /*) placed="${pval%/}" ;; *) placed="$PROJECT_ROOT/${pval%/}" ;; esac
-    cargo_place "$placed" ptree || ptree="$placed"
-  fi
   for i in ${trees[@]+"${!trees[@]}"}; do
     crate="${crates[i]#"$PROJECT_ROOT"}"
     crate="${crate#/}"
@@ -804,112 +825,200 @@ builtin_check_targetdir() {
     forks[i]=0
     if [ "$tree" = "$root" ]; then
       printf '    cargo    %s builds into its own target\n' "$crate"
-    elif _targetdir_same "$tree" "$want"; then
+    elif [ "$shared" = 1 ] && cargo_tree_same "$tree" "$want"; then
       printf '    cargo    %s builds into the shared tree\n' "$crate"
     else
       forks[i]=1
-      if [ "$hasked" = 0 ]; then
-        hasked=1
-        cargo_home_build_dir htree || htree=""
-        [ -z "$htree" ] || ! cargo_place "$htree" placed || htree="$placed"
-      fi
-      if [ -n "$ptree" ] && _targetdir_same "$tree" "$ptree"; then
-        warn "${pcfg#"$PROJECT_ROOT"/} sets build.target-dir = $pval, and cargo builds $crate into $tree -- this forks the cache for every session in this project, not just yours."
-        rc=1
-      elif [ -n "$htree" ] && _targetdir_same "$tree" "$htree"; then
-        # The machine's fork is reported, not failed, and a hole does not
-        # make it one: it is accounted for (critic-shell on 0150 v2d).
-        forks[i]=0
-        printf '    machine  %s moves the build tree, and cargo builds %s into %s\n' "$home_cfg" "$crate" "$tree"
-        printf '             this forks EVERY rust project on this machine. Not this project to fix, and not failed here.\n'
-      else
-        warn "cargo builds $crate into $tree, not its own target or the shared tree at $want, and no config this check can read accounts for it -- its cause is not named here."
-        rc=1
-      fi
+      _targetdir_home_tree htree hrc
+      case "$(cargo_tree_cause "$tree" "$ptree" "$htree")" in
+        project)
+          reach=""
+          [ "$shared" = 1 ] || ! cargo_tree_same "$tree" "$want" || reach=" With no Cargo.toml beside it, $want is no tree clean removes."
+          warn "${pcfg#"$PROJECT_ROOT"/} sets build.target-dir = $pval, and cargo builds $crate into $tree -- this forks the cache for every session in this project, not just yours.$reach"
+          rc=1
+          ;;
+        machine)
+          # The machine's fork is reported, not failed, and a hole does not
+          # make it one: it is accounted for (critic-shell on 0150 v2d).
+          forks[i]=0
+          printf '    machine  %s moves the build tree, and cargo builds %s into %s\n' "$home_cfg" "$crate" "$tree"
+          printf '             this forks EVERY rust project on this machine. Not this project to fix, and not failed here.\n'
+          ;;
+        *)
+          unread=""
+          [ "$hrc" -ne 2 ] || unread=" Where the machine's config sends a build could not be measured: $cloud."
+          warn "cargo builds $crate into $tree, $nottree, and no config this check can read accounts for it -- its cause is not named here.$unread"
+          rc=1
+          ;;
+      esac
     fi
   done
 
-  # A WALK WITH A HOLE IN IT (status 2), vc's rulings on 0150 v2 and v2c. It
+  # A WALK WITH A HOLE IN IT (status 2; issue 0150). It
   # fails only when a carrier is IN PLAY, and is otherwise reported, not
   # failed, since failing on it would be a refusal this check never made
   # before 0150. A config naming target-dir or include is in play when a crate
   # beneath it that cargo answered for forks -- builds neither into its own
   # workspace's target nor the shared tree, other than a fork the machine's
-  # config alone accounts for, which stays reported -- or when no crate
-  # beneath it was answered for at all, since its crates then lie beneath the
-  # hole. Every
-  # other config is ACCOUNTED FOR: each crate beneath it was asked and builds
-  # where it should, so the unread part is no more exposed than in a project
-  # with no config at all. A config above the project, or in CARGO_HOME, is
-  # beneath-everything: every crate here is beneath it.
+  # config alone accounts for, which stays reported -- or when a hole lies at
+  # or beneath its directory and a crate beneath that hole would build
+  # elsewhere: cargo is asked from the hole's parent for a throwaway crate
+  # (cargo_probe_build_dir), reading every config that applies there, nearest
+  # first, and only the probe's own target, the shared tree or the machine's
+  # tree is harmless (issue 0163). That asked only the crates answered, so a
+  # config forking a second workspace beneath the hole passed, every crate
+  # cargo saw building into its own target. A hole no config applies at tells
+  # nothing, since a config moves only crates beneath its directory. One the
+  # walk can search but not list is asked from inside it, where cargo reads a
+  # config the walk could not see (critic-shell on 0163 v2); one deeper in it
+  # is unseen, since nothing there can be listed, as one in a hole find cannot
+  # read at all is (critic-shell on 0163 v3). One whose place
+  # the walk could not read back is asked of every config from its own
+  # directory, and of one above the project from the project root, where the
+  # project's own config is read first, as a crate here reads it. A probe that
+  # cannot answer, or a machine tree that cannot be measured, puts the walk in
+  # play, and the failure says why.
+  #
+  # A WORKSPACE WHOSE OWN CONFIG PINS target-dir = "target" FAILS OVER A HOLE
+  # BENEATH IT (critic-shell on 0163 v2, its W1, kept failing): a crate beneath
+  # the hole builds into that workspace's target whether it is a member or a
+  # second workspace forked into it, and only what the hole hides tells which.
+  # A verdict that cannot see stays closed, so the failure names the remedy:
+  # make the directory readable to the user running the check, or move it out
+  # of the workspace.
+  #
+  # THE MACHINE'S CONFIG IS NEVER IN PLAY (issue 0164). It sends a crate
+  # beneath the hole where it sends every crate on this machine, which
+  # cargo_home_build_dir measures without the walk, and a fork it makes is
+  # reported, not failed, wherever it is seen. It was in play here, and here
+  # only: over a hole with no crate answered it failed, even as an `include`
+  # that moved nothing, while the same fork, once a crate was answered, was
+  # reported at rc 0. It is reported below.
   if [ "$st" -eq 2 ]; then
-    for c in ${cfgs[@]+"${cfgs[@]}"} ABOVE HOME; do
+    # Above the project only: the root's own config is one of cfgs. A root
+    # that cannot be placed counts one, failing open.
+    above=0
+    if ! physical_dir "$PROJECT_ROOT" pr || ! _path_parent pr || cargo_config_above "$pr" --not-home; then
+      above=1
+    fi
+    for c in ${cfgs[@]+"${cfgs[@]}"} ABOVE; do
       case "$c" in
-        ABOVE) cargo_config_above "$PROJECT_ROOT" --not-home || continue; d=/ ;;
-        HOME) cargo_config_in_home || continue; d=/ ;;
+        ABOVE) [ "$above" = 1 ] || continue; d=/ ;;
         *) d="${c%/.cargo/*}" ;;
       esac
-      under=0
       for i in ${crates[@]+"${!crates[@]}"}; do
         # "${d%/}/"*, never "${d%/}"/*: with d=/, bash 5.3 matches nothing
         # against a quoted expansion trimmed to empty before an unquoted glob
         # (critic-shell on 0150 v2d).
         case "${crates[i]}/" in
-          "${d%/}/"*)
-            under=1
-            [ "${forks[i]:-0}" = 0 ] || inplay=1
-            ;;
+          "${d%/}/"*) [ "${forks[i]:-0}" = 0 ] || inplay=1 ;;
         esac
       done
-      [ "$under" = 1 ] || inplay=1
+    done
+    # Where a crate beneath each hole would build, asked from the hole's parent,
+    # where cargo reads every config that applies there, nearest first, as it
+    # would for a crate beneath it; only where a config other than the
+    # machine's applies there at all. A hole whose place was not read back is
+    # asked of every config, from its own directory.
+    froms=()
+    for h in ${holes[@]+"${holes[@]}"}; do
+      if [ -z "$h" ]; then
+        for c in ${cfgs[@]+"${cfgs[@]}"}; do froms+=("${c%/.cargo/*}"); done
+        [ "$above" = 0 ] || froms+=("$PROJECT_ROOT")
+        continue
+      fi
+      # Searchable, it is asked from inside, where a config in it applies.
+      if [ -x "$h" ] && cargo_config_above "$h" --not-home; then
+        froms+=("$h")
+        continue
+      fi
+      applies="$above"
+      for c in ${cfgs[@]+"${cfgs[@]}"}; do
+        d="${c%/.cargo/*}"
+        case "$h/" in "${d%/}/"*) applies=1; break ;; esac
+      done
+      [ "$applies" = 0 ] || froms+=("${h%/*}")
+    done
+    unread=""
+    for from in ${froms[@]+"${froms[@]}"}; do
+      [ -z "${asked_from[$from]:-}" ] || continue
+      asked_from[$from]=1
+      prc=0
+      cargo_probe_build_dir ctree "$from" || prc=$?
+      if [ "$prc" -ne 0 ]; then
+        warn "check targetdir: where a crate beneath $from would build could not be measured (the error above says why)"
+        inplay=1
+        continue
+      fi
+      [ -n "$ctree" ] || continue
+      ! { [ "$shared" = 1 ] && cargo_tree_same "$ctree" "$want"; } || continue
+      _targetdir_home_tree htree hrc
+      ! { [ -n "$htree" ] && cargo_tree_same "$ctree" "$htree"; } || continue
+      inplay=1
+      [ -n "$forked" ] || forked="a crate beneath $from would build into $ctree"
+      [ "$hrc" -ne 2 ] || unread=" Where the machine's config sends a build could not be measured, so $ctree could not be told from it: $cloud."
     done
     if [ "$inplay" = 1 ]; then
-      warn "check targetdir: a cargo config here names target-dir or include, and the walk for crates could not read everything (the error above names it), so a crate beneath it may build elsewhere unasked"
+      # The remedy only where what the hole hides decides it: a probe that
+      # answered a tree here (critic-shell on 0163 v3). A config cargo cannot
+      # read, or a crate the walk answered forking, is cleared elsewhere.
+      reach="check targetdir: a cargo config here names target-dir or include, and the walk for crates could not read everything (the error above names it), so a crate beneath it may build elsewhere unasked"
+      [ -z "$forked" ] || reach="$reach -- $forked, and only what the directory hides tells whether that forks: make the directory readable to the user running this check, or move it out of the workspace.$unread"
+      warn "$reach"
       rc=1
     else
       printf '    walk     could not read the whole project for its crates (the error above names it); no cargo config naming target-dir or include is in play here -- not failed\n'
     fi
   fi
 
-  # 3. A CONFIG NO CRATE BUILDS WITH IS REPORTED, NOT FAILED (vc's ruling on
+  # 3. A CONFIG NO CRATE BUILDS WITH IS REPORTED, NOT FAILED (issue
   # 0150): with no crate to ask, cargo has no answer to give, and nothing is
   # built into the tree it names, so it forks nothing. Said only when cargo was
   # asked and named no crate.
-  if [ "$asked" = 1 ] && [ "${#trees[@]}" -eq 0 ]; then
-    if [ -n "$pval" ]; then
-      seen=1
-      printf '    config   %s sets build.target-dir = %s, and no crate here builds with it -- not failed\n' "${pcfg#"$PROJECT_ROOT"/}" "$pval"
-    fi
-    if [ -n "$hval" ]; then
-      seen=1
-      printf '    machine  %s sets build.target-dir = %s, and no crate here builds with it\n' "$home_cfg" "$hval"
+  if [ "$asked" = 1 ] && [ "${#trees[@]}" -eq 0 ] && [ -n "$pval" ]; then
+    seen=1
+    printf '    config   %s sets build.target-dir = %s, and no crate here builds with it -- not failed\n' "${pcfg#"$PROJECT_ROOT"/}" "$pval"
+  fi
+  # THE MACHINE'S CONFIG IS REPORTED AS CARGO READS IT (issue 0164), over a
+  # hole too, since it is never in play there, as of the crates the walk
+  # reached. It was reported only where sed read a value, so a dotted key, a
+  # trailing comment or an include that names target-dir was not reported at
+  # all, and the line below said there was no override in it. Cargo's reading
+  # needs no crate here: the probe is its own (cargo_home_build_dir).
+  if [ "${#trees[@]}" -eq 0 ] && { [ "$asked" = 1 ] || [ "$st" -eq 2 ]; } && cargo_config_in_home; then
+    seen=1
+    _targetdir_home_tree htree hrc
+    reach="no crate here builds with it"
+    [ "$asked" = 1 ] || reach="no crate the walk reached builds with it"
+    if [ "$hrc" -eq 0 ] && [ -n "$htree" ]; then
+      printf '    machine  %s moves the build tree to %s, and %s\n' "$home_cfg" "$htree" "$reach"
       printf '             this forks EVERY rust project on this machine. Not this project to fix, and not failed here.\n'
+    elif [ "$hrc" -eq 0 ]; then
+      printf '    machine  %s names target-dir or include, and moves no build tree -- not failed\n' "$home_cfg"
+    elif [ "$hrc" -eq 2 ]; then
+      printf '    machine  %s names target-dir or include, and where it alone sends a build could not be measured: %s -- not failed\n' "$home_cfg" "$cloud"
+    else
+      printf '    machine  %s names target-dir or include, and where it sends a build could not be measured (the error above says why) -- not failed\n' "$home_cfg"
     fi
   fi
 
   # THE CORPUS IS STATED ON THE PASSING PATH TOO. "No fork seen" and "I did not
   # look" are the same silence otherwise, which is the shape this whole packet
   # is about.
+  # It names the project's config file cargo reads, .cargo/config.toml when
+  # there is none: it named that one whatever it read (issue 0176).
   if [ "$seen" = 0 ]; then
-    printf '    no target-dir override in the environment, %s or %s -- cargo builds into the shared tree\n' \
-      ".cargo/config.toml" "$home_cfg"
+    pcfg="$(cargo_config_file "$PROJECT_ROOT/.cargo")"
+    pcfg="${pcfg#"$PROJECT_ROOT"/}"
+    if [ "$shared" = 1 ]; then
+      printf '    no target-dir override in the environment, %s or %s -- cargo builds into the shared tree\n' \
+        "${pcfg:-.cargo/config.toml}" "$home_cfg"
+    else
+      printf '    no target-dir override in the environment, %s or %s -- cargo builds each crate into its own workspace target\n' \
+        "${pcfg:-.cargo/config.toml}" "$home_cfg"
+    fi
   fi
   return "$rc"
-}
-
-# _targetdir_config_value <file> -- the build.target-dir a cargo config file
-# sets, as its text reads, or nothing. It names a cause for check targetdir and
-# decides nothing: cargo's answer is the verdict (issue 0150). It reads the
-# plain spelling only, `target-dir = "..."`; the machine's config is placed by
-# asking cargo (cargo_home_build_dir), whatever its spelling.
-_targetdir_config_value() {
-  sed -n 's/^[[:space:]]*target-dir[[:space:]]*=[[:space:]]*"\{0,1\}\([^"]*\)"\{0,1\}[[:space:]]*$/\1/p' "$1" | head -1
-}
-
-# _targetdir_same <a> <b> -- true when two paths name one directory: the same
-# text, or the same directory where both exist.
-_targetdir_same() {
-  [ "$1" = "$2" ] || { [ -e "$1" ] && [ "$1" -ef "$2" ]; }
 }
 
 run_builtin_gate check "$@"

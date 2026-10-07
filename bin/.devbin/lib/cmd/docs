@@ -11,7 +11,7 @@
 # assumption devbin is making about anyone.
 #
 # `treeindex` SHIPPED HERE UNTIL 2026-08-25 AND WAS REMOVED, not deprecated.
-# hv retired `intent treeindex` from Intent v3 with no replacement, so the option
+# Intent v3 retired `intent treeindex` with no replacement, so the option
 # was a catalogue row that lists cleanly, resolves cleanly and can never succeed
 # the day an estate moves -- which is the exact shape `check_commands` exists to
 # refuse, pointed at devbin itself. Issue 0016 had already measured the v3

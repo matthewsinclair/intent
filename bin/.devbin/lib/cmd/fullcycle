@@ -4,13 +4,13 @@
 #
 # A TOP-LEVEL COMMAND AND DELIBERATELY NOT `build fullcycle`, which is where it
 # was first put and where it did not belong. `build` is D18 tier 4 -- universal
-# in name only, shipping no option set, because the four corpus projects'
-# build targets intersect at nothing and shipping any of them imposes one
-# project's shape on the rest. A `build.fullcycle` row broke that, and broke it
-# in the way the tier exists to prevent: `command_active` makes a command with
-# no active options inactive, so `build` would have resolved for the FIRST time
-# in every rust estate on the strength of a devbin-shipped option, with `build
-# all` then being exactly one thing -- the destructive one.
+# in name only, shipping no option set, because the corpus projects' build
+# targets intersect at nothing and shipping any of them imposes one project's
+# shape on the rest. A `build.fullcycle` row broke that, and broke it in the way
+# the tier exists to prevent: `command_active` makes a command with no active
+# options inactive, so `build` would have resolved for the FIRST time in every
+# rust estate on the strength of a devbin-shipped option, with `build all` then
+# being exactly one thing -- the destructive one.
 #
 # As a command it is STRUCTURALLY outside every `all`. `all` sweeps a command's
 # options; a command is not one of them. For a verb that deletes the build tree
@@ -61,15 +61,15 @@ _fullcycle_usage() {
 # OWNS and never asked whether what remained was still a cycle. It was not:
 # `clean rust` removes `target/` INCLUDING `release/`, and `cargo test` builds
 # debug test binaries and never the release artefacts. On the estate this was
-# specified from, `~/.local/bin/intent` is a symlink into
+# specified from, a tool on PATH is a symlink into
 # `native/rust/target/release/`, so the two-phase cycle would have deleted the
-# binary every whiteboard guard on the machine resolves through and not put it
+# binary every commit guard on the machine resolves through and not put it
 # back -- the 2026-08-29 outage, reproduced by the command written to prevent
 # its cause.
 #
 # So `build all` is a phase again, and it is UNCONDITIONAL. It used to be
 # emitted only when `_fullcycle_can_rebuild` passed, and that guard is gone from
-# here for a reason worth the paragraph (issue 0051, laksa/dc).
+# here for a reason worth the paragraph (issue 0051).
 #
 # THE SAME PREDICATE WAS TESTED TWICE AND THE TWO COPIES FAILED IN OPPOSITE
 # DIRECTIONS. `cmd_fullcycle` tests it and REFUSES the whole verb, loudly, with
@@ -87,17 +87,17 @@ _fullcycle_usage() {
 # to be disturbed here; it ARGUES for removing the copy that protects you.
 #
 # (Stated as the SHAPE and not as two line numbers, which is this file's own
-# rule from the `-maxdepth` warning in the fleet command: a warning that names a
-# number gets the number changed.)
+# rule, learned from a `-maxdepth` warning: a warning that names a number gets
+# the number changed.)
 #
 # So the list is a list. The guard is a guard, it lives in `cmd_fullcycle`, and
 # there is exactly one of it.
 #
 # THE TEST PHASE IS `test all` (issue 0083). It was `test rust`, so a project's
 # other declared test options never ran in a full cycle, and nothing a project
-# declared could change that short of editing this vendored file. Intent found
-# it with tests that need a real toolchain, run by a second declared option,
-# which hv ruled must run under `fullcycle` as they do under `test all`. So the
+# declared could change that short of editing this vendored file. One project
+# found it with tests that need a real toolchain, run by a second declared
+# option, which must run under `fullcycle` as they do under `test all`. So the
 # two run the same tests: an option marked `in_all: false` is kept out of this
 # cycle as it is kept out of `all`, and reported as skipped, and a `test`
 # handler that declares no options receives `all` and decides for itself. It
@@ -108,7 +108,7 @@ _fullcycle_usage() {
 # THE BUILD AND TEST PHASES ARE WHAT THOSE COMMANDS RUN HERE (issue 0134), from
 # _fullcycle_phase_for: `all` where there are options to sweep or a handler to
 # hand it to, and the bare command over a command-level run:, whose `all` is
-# refused (hv's option (b)). The list is still a list: a command with nothing
+# refused (0128's option (b)). The list is still a list: a command with nothing
 # behind it gives no phase, and cmd_fullcycle's guard refuses the cycle before
 # anything is removed, so the list never runs short.
 _fullcycle_phases() {
@@ -129,7 +129,7 @@ _fullcycle_phases() {
 # arg_route says where `<command> all` goes and command_tier what the bare
 # command runs, and this maps their answers to words. `all` sweeps options
 # (run_all) or is handed to a project handler, a total shadow (D2); over a
-# command-level run: with no option to run it is refused (hv's option (b)), so
+# command-level run: with no option to run it is refused (0128's option (b)), so
 # the phase is the bare command, which runs the line.
 #
 # AND "WILL RUN", NOT "A TIER EXISTS" (critic-shell on 0134 v1). v1 chose by
@@ -172,7 +172,7 @@ _fullcycle_phase_check() {
       # run: it is handed to -- holds no words, each refuses inside `all`,
       # after the clean. run_all carries on past it and the phase still fails,
       # so ONE such option is enough, and every one is named, a line each, so a
-      # project sees them all at once (vc's ruling). The command-level line is
+      # project sees them all at once. The command-level line is
       # one line whichever options it serves, so it is named once.
       for opt in $run; do
         tier="$(option_run_tier "$cmd" "$opt")" || return 1
@@ -201,7 +201,7 @@ _fullcycle_phase_check() {
       # An option named `all` that config switched off: the dispatcher
       # refuses `<command> all` for it, in option_unavailable_reason's words.
       # With no answer from it the check fails rather than word it itself,
-      # and the cycle refuses, having removed nothing (vc's ruling: a copy of
+      # and the cycle refuses, having removed nothing (a copy of
       # the dispatcher's own fallback is drift nothing could test).
       if ! why="$(option_unavailable_reason "$cmd" all)"; then
         warn "could not tell why $cmd all is inactive -- nothing was removed"
@@ -248,10 +248,10 @@ _fullcycle_phase_for() {
 #
 # A NECESSARY CONDITION AND NOT A SUFFICIENT ONE, and the name used to promise
 # more than it delivers. The property that matters is "can restore the release
-# artefacts"; this asks "is there a build command". Conflab satisfied the proxy
+# artefacts"; this asks "is there a build command". A project satisfied the proxy
 # and failed the property -- `build all` there runs cargo at the DEV profile, so
 # a cycle refused nothing, reported rc=0 three phases running, and left
-# `~/.local/bin/conflab` and `conflabd` dangling into a release/ the clean had
+# `~/.local/bin/demo` and `demod` dangling into a release/ the clean had
 # deleted. A sound instrument aimed one unit wide, returning clean.
 #
 # It is kept because a project with NO build verb certainly cannot restore, and
@@ -263,9 +263,9 @@ _fullcycle_phase_for() {
 # 2026-09-01. `_fullcycle_path_links` measures PATH SYMLINKS. On an estate with
 # none, the after-half has an empty list to walk, so it fires nothing and the
 # cycle asserts NOTHING about whether the build restored anything -- while
-# still finishing rc=0. Found by laksa/dc, in the estate that proves it: Laksa
-# has no PATH symlinks, so Conflab's exact defect would land there as a clean
-# green, with the tripwire that caught it in Conflab simply absent.
+# still finishing rc=0. Found in the estate that proves it: one with no PATH
+# symlinks, so the exact defect above would land there as a clean green, with
+# the tripwire that caught it the first time simply absent.
 #
 # The instrument answers "did I darken anything that was lit". It cannot answer
 # "did the rebuild produce anything at all", and those two coincide only where
@@ -486,10 +486,10 @@ _fullcycle_header() {
   # exactly as the damage persists is worse than one that cannot fire, because
   # it used to work.
   #
-  # Measured cause, not hypothetical: hv could not recall whether `conflab`
-  # resolved before a cold cycle, having run a full clean earlier that day. If
-  # it was already dark, the run that reported rc=0 was the SECOND green report
-  # over the same damage.
+  # Measured cause, not hypothetical: the operator could not recall whether
+  # `demo` resolved before a cold cycle, having run a full clean earlier that
+  # day. If it was already dark, the run that reported rc=0 was the SECOND
+  # green report over the same damage.
   #
   # REPORTED, NOT FAILED. The cycle answers for what it broke; this is a fact
   # about the tree it found, and failing on it would make an estate red for
@@ -548,7 +548,7 @@ _fullcycle_launcher() {
 # a literal written in this function, so there is no field a split can damage.
 # A flag that could ever carry a space has to move to an array return.
 #
-# ALWAYS `--force` TOO, SINCE 0089 (hv, option B). The clean phase never asks:
+# ALWAYS `--force` TOO, SINCE 0089 (option B). The clean phase never asks:
 # fullcycle asks the person once, at the top, where its own gate knows whether
 # one is there, and a y is what this `--force` carries. Without `--force` given
 # on the command line, the phase is reached only after that y. So the command
@@ -578,7 +578,7 @@ _fullcycle_clean_phase() {
 }
 
 # _fullcycle_confirm <launcher> -- show what the clean phase would remove, then
-# ask the person once (issue 0089; hv, option B). 0 on a y; otherwise it says
+# ask the person once (issue 0089, option B). 0 on a y; otherwise it says
 # why and returns 1, and nothing has been removed.
 #
 # WHY HERE AND NOT IN clean. Each phase is a child devbin run behind its own
@@ -702,10 +702,60 @@ _fullcycle_tree_gone() {
 # _fullcycle_profile_built <tree> <profile> -- true when the artefact check
 # reads <tree>'s <profile>, debug or release, as built: the one statement of
 # what it compares, asked by the check and by _fullcycle_kept_release alike
-# (vc's ruling on 0148 v2e). It reads <tree>/<profile> only: a triple's
-# profile, target/<triple>/release, is not read, as it never was.
+# (issue 0148). Built is a binary in <tree>/<profile> or in any target
+# triple's, <tree>/<triple>/<profile> (build_triple_dirs, issue 0168): read
+# from the tree's own alone, `--release --target <triple>` beside a host debug
+# build read as release artefacts lost, and a debug build under a triple
+# whose release was lost read as fine. So a release lost, the tree's own or a
+# triple's, beside another one built is not seen (critic-shell on 0168 v1).
 _fullcycle_profile_built() {
-  dir_has_binary "$1/$2"
+  local _fpb_t
+  local -a _fpb_triples=()
+  ! dir_has_binary "$1/$2" || return 0
+  build_triple_dirs "$1" _fpb_triples
+  for _fpb_t in ${_fpb_triples[@]+"${_fpb_triples[@]}"}; do
+    ! dir_has_binary "$1/$_fpb_t/$2" || return 0
+  done
+  return 1
+}
+
+# _fullcycle_tree_listed <tree> -- 0 when every profile the artefact check
+# could compare in <tree>, a searchable tree, can be listed; otherwise each
+# cause is named and 1 (issues 0139, 0168). A debug/ or release/, the tree's
+# own or one in any directory inside it, that cannot be listed is not an empty
+# one, since dir_has_binary's glob is empty over it; a directory inside that
+# cannot be searched may be a target triple's, whose profiles and
+# fingerprints are then out of sight; and a tree that can be searched but not
+# listed hides its triples, so only a binary in its own release/ settles the
+# comparison, a triple adding only built profiles. A per-node target dir
+# (cargo_target_root) is no profile of this tree's and is passed over, and a
+# link is no triple (build_triple_dirs). The tree's own debug/ and release/ are
+# listed and never searched for as a triple.
+_fullcycle_tree_listed() {
+  local _ftl_rc=0 _ftl_d _ftl_p
+  local -a _ftl_profs=("$1/debug" "$1/release")
+  for _ftl_d in "$1"/*/; do
+    _ftl_d="${_ftl_d%/}"
+    case "${_ftl_d##*/}" in debug | release) continue ;; esac
+    [ -d "$_ftl_d" ] && [ ! -L "$_ftl_d" ] || continue
+    if [ ! -x "$_ftl_d" ]; then
+      warn "cannot search $_ftl_d -- a target triple there would not be read, so this tree's profiles were not compared"
+      _ftl_rc=1
+      continue
+    fi
+    cargo_target_root "$_ftl_d" || _ftl_profs+=("$_ftl_d/debug" "$_ftl_d/release")
+  done
+  for _ftl_p in "${_ftl_profs[@]}"; do
+    if [ -d "$_ftl_p" ] && { [ ! -r "$_ftl_p" ] || [ ! -x "$_ftl_p" ]; }; then
+      warn "cannot list $_ftl_p -- this tree's profiles were not compared"
+      _ftl_rc=1
+    fi
+  done
+  if [ ! -r "$1" ] && ! dir_has_binary "$1/release"; then
+    warn "cannot list $1 -- a target triple's profiles in it cannot be read, and its own release/ holds no binary, so this tree's profiles were not compared"
+    _ftl_rc=1
+  fi
+  return "$_ftl_rc"
 }
 
 # _fullcycle_kept_release <array> [<tree>...] -- into <array>, each build tree
@@ -734,7 +784,7 @@ _fullcycle_kept_release() {
 }
 
 # _fullcycle_kept_fix <tree> -- what to do about a tree that kept its release
-# artefacts through the clean, as one line (vc's rulings on 0148 v2e). A tree
+# artefacts through the clean, as one line (issue 0148). A tree
 # the clean does not recognise as cargo's is said to be one: it may not be a
 # build tree at all. Whether it does is asked of the clean's own question,
 # _clean_has_markers, never a second answer to it (critic-shell on 0148 v2f:
@@ -743,14 +793,14 @@ _fullcycle_kept_release() {
 # below the project root, is one the clean never removes, so unsetting the
 # variable, and building beside the manifest, is the remedy both this cycle
 # and check targetdir accept; beside one already, unsetting changes nothing.
-# "Beside" is the clean's own test, on the path as given (`${d%/*}/Cargo.toml`
-# in _clean_scan), not one resolved through a link, which answered otherwise
+# "Beside" is the clean's own test, on the path as given (build_tree_rebuildable,
+# which _clean_scan and check targetdir ask too), not one resolved through a link, which answered otherwise
 # for a target reached through one (critic-shell on 0148 v2g). The marker
 # question is asked only where its answer is used, so the clean's own warning
 # for a tree it cannot read is not printed over a remedy that did not need it.
 _fullcycle_kept_fix() {
   local marked=0 t="${1%/}"
-  if [ -n "${CARGO_TARGET_DIR:-}" ] && [ "$1" -ef "$CARGO_TARGET_DIR" ] && [ ! -f "${t%/*}/Cargo.toml" ]; then
+  if [ -n "${CARGO_TARGET_DIR:-}" ] && [ "$1" -ef "$CARGO_TARGET_DIR" ] && ! build_tree_rebuildable "$t" Cargo.toml; then
     printf '%s\n' "Unset CARGO_TARGET_DIR, so cargo builds beside its manifest, where the clean removes the tree, or remove it."
     return 0
   fi
@@ -760,6 +810,13 @@ _fullcycle_kept_fix() {
   else
     printf '%s\n' "Remove it, or build into a tree clean rust removes (${DEVBIN_INVOKE:-bin/devbin} clean rust --dry-run lists them)."
   fi
+}
+
+# _fullcycle_inside_tree -- the trees a remedy may point at, one clause for
+# every refusal that names them (critic-shell on 0164 v2: three copies, their
+# wording already drifting).
+_fullcycle_inside_tree() {
+  printf '%s\n' "a tree inside the project that clean rust removes (${DEVBIN_INVOKE:-bin/devbin} clean rust --dry-run lists them)"
 }
 
 # _fullcycle_tree_why <tree> <why-var> <fix-var> -- why the artefact check
@@ -772,16 +829,66 @@ _fullcycle_tree_why() {
   _ftw_why="$(cargo_target_dir_why "$1")"
   [ -z "$_ftw_why" ] || return 0
   _ftw_why="$(cargo_tree_outside_why "$1" "$PROJECT_ROOT")"
-  _ftw_fix="Point it at a tree inside the project that clean rust removes (${DEVBIN_INVOKE:-bin/devbin} clean rust --dry-run lists them), or unset it"
+  _ftw_fix="Point it at $(_fullcycle_inside_tree), or unset it"
 }
 
-# _fullcycle_refuse_tree <subject> <why> <fix> -- the refusal of a build tree
-# the check could not judge, before anything is shown, asked or removed.
+# _fullcycle_refuse_tree <subject> <why> <fix> [<then>] -- the refusal of a
+# build tree the check could not judge, before anything is shown, asked or
+# removed. <then> is what check targetdir says of it, its wider rule unless
+# given.
 _fullcycle_refuse_tree() {
   printf 'fullcycle: REFUSING -- %s %s,\n' "$1" "$2" >&2
   printf '  so the artefact check could not judge the tree this cycle builds. Nothing was removed.\n' >&2
   printf '  %s;\n' "$3" >&2
-  printf '  %s check targetdir holds the wider rule.\n' "${DEVBIN_INVOKE:-bin/devbin}" >&2
+  printf '  %s %s\n' "${DEVBIN_INVOKE:-bin/devbin}" "${4:-check targetdir holds the wider rule.}" >&2
+}
+
+# _fullcycle_refuse_config_tree <crate> <tree> <why> -- the refusal of a tree a
+# cargo config sends <crate> to, which the check could not judge.
+#
+# ITS CAUSE IS NAMED AS CHECK TARGETDIR NAMES IT (cargo_tree_cause, issue
+# 0164): the project root's config first, then the machine's, else a config
+# this does not read. It asked only for the machine's, so a tree both configs
+# named was refused as the machine's, "reported, not failed", while check
+# targetdir failed it as the project's; and an unknown cause was refused
+# telling the reader to point "its" build.target-dir, as if the crate's own
+# config set it.
+#
+# ONE THE MACHINE'S CONFIG ALONE SENDS THERE NAMES THAT FILE, and its remedy is
+# a config of the workspace's own, which cargo puts before the machine's and
+# check targetdir passes as the workspace's own target: the machine's config is
+# not this project's to change. CARGO_TARGET_DIR was the remedy, and check
+# targetdir fails every value of it but the shared tree, which the clean
+# removes only beside a Cargo.toml (critic-shell on 0164 v1). The probe is
+# asked only here, on the way to a refusal, and only where the project's config
+# does not account for the tree, as check targetdir asks it only for a fork.
+_fullcycle_refuse_config_tree() {
+  local subject placed pcfg pval ptree htree="" hcfg hrc=0 unread=""
+  subject="cargo builds $(printf '%q' "$1") into $(printf '%q' "$2")"
+  cargo_place "$2" placed || placed="$2"
+  cargo_project_tree pcfg pval ptree
+  if [ -z "$ptree" ] || ! cargo_tree_same "$placed" "$ptree"; then
+    cargo_home_build_dir htree || hrc=$?
+  fi
+  # A probe a config at or above TMPDIR clouds says so, where a cause goes
+  # unnamed, rather than leaving the machine's config unasked in silence.
+  [ "$hrc" -ne 2 ] || unread=", and where the machine's config sends a build could not be measured: a cargo config at or above ${TMPDIR:-/tmp} may apply too"
+  case "$(cargo_tree_cause "$placed" "$ptree" "$htree")" in
+    project)
+      _fullcycle_refuse_tree "$subject, as the project's cargo config $(printf '%q' "${pcfg#"$PROJECT_ROOT"/}") sets build.target-dir = $(printf '%q' "$pval"), which" "$3" \
+        "Point that file's build.target-dir at $(_fullcycle_inside_tree), or remove it"
+      ;;
+    machine)
+      hcfg="$(cargo_config_file "$(cargo_home_dir)")"
+      _fullcycle_refuse_tree "$subject, as the machine's cargo config $(printf '%q' "$hcfg") sends every crate on this machine, which" "$3" \
+        "Set build.target-dir = \"target\" in the workspace's own cargo config, its .cargo/config beside its root Cargo.toml if it has one, else .cargo/config.toml there: cargo puts it before the machine's config, so the workspace builds into its own target, which clean rust removes" \
+        "check targetdir reports a machine-wide config, and does not fail it."
+      ;;
+    *)
+      _fullcycle_refuse_tree "$subject, which" "$3" \
+        "Point its build.target-dir at $(_fullcycle_inside_tree), or remove it, in the cargo config that sets it, which is not named here$unread"
+      ;;
+  esac
 }
 
 _fullcycle_run() {
@@ -790,7 +897,7 @@ _fullcycle_run() {
   local kept_partial=0
   local -a restore_words
   local -a pass=()
-  # ALWAYS `--force-blocked`, NEVER `--force` UNASKED (issue 0047, hv: option 3).
+  # ALWAYS `--force-blocked`, NEVER `--force` UNASKED (issue 0047, option 3).
   #
   # THIS VERB CAN HONESTLY ANSWER ONE OF clean's TWO QUESTIONS AND NOT THE
   # OTHER. "Do you accept these binaries going dark?" -- yes, and it is the
@@ -817,7 +924,7 @@ _fullcycle_run() {
   else
     # WHAT was consented to, from the same two sources the preview used, so the
     # record cannot drift from what was shown: the notice and the preview print
-    # before this log exists (vc's review).
+    # before this log exists.
     printf '%sconfirmed y to %s %s at the prompt after %ss -- before this gate'"'"'s wall began\n' \
       "$_DEVBIN_INVOKE_TAG" "$(_fullcycle_clean_phase)" "$(_fullcycle_clean_flags)" "$waited"
   fi
@@ -907,7 +1014,7 @@ _fullcycle_run() {
       # on the day it is true.
       #
       # AFTER A PASSING BUILD IT STATES THE BUILD'S EXIT CODE AND NOTHING MORE.
-      # rc=0 is not evidence that release/ came back -- that is the Conflab
+      # rc=0 is not evidence that release/ came back -- that is the dev-profile
       # shape -- and the artefact check below runs only on a green cycle, so on
       # this path nothing measures it. The first cut of this fix said the failure
       # was "not in the rebuild", which overclaimed in the other direction and
@@ -942,14 +1049,14 @@ _fullcycle_run() {
     fi
   done 3< <(_fullcycle_phases)
 
-  # THE RESTORE HALF (issue 0050, hv's ruling: the TARGETED option).
+  # THE RESTORE HALF (issue 0050, the TARGETED option).
   #
   # WHY THIS EXISTS. `build all` is whatever the project declares, and on a
   # dev-profile estate that is a debug build. So the cycle deleted `release/`,
   # rebuilt `debug/`, reported three green phases and went red on the
-  # after-check -- correctly, and on EVERY invocation, permanently. conflab/vc
+  # after-check -- correctly, and on EVERY invocation, permanently. One project
   # measured exactly that. A gate that is red in the ordinary case teaches people
-  # to ignore it, and unlike the test-target rule hv killed, this one is red on a
+  # to ignore it, and unlike the retired test-target rule, this one is red on a
   # genuinely broken configuration, so the answer was never to soften the check.
   # The cycle was missing its other half.
   #
@@ -990,18 +1097,18 @@ _fullcycle_run() {
       # premise they rest on is not: that a release build is devbin's to
       # perform.
       #
-      # MEASURED, by the one instrument on the estate that could see it. Intent
+      # MEASURED, by the one instrument that could see it. One project
       # guards `native/rust/target/release/` because four nodes invoke that
       # artefact, and a build from a dirty tree poisons it for all of them --
       # so every release build there must go through a guarded path that
       # refuses a dirty tree. Vendored in, this line was a NEW UNGUARDED
-      # ENTRANCE, and Intent's shared-artefact guard named it by file and line
-      # on the first commit that carried it. Twelve other estates took the same
+      # ENTRANCE, and the shared-artefact guard named it by file and line
+      # on the first commit that carried it. Other estates took the same
       # bytes and have no such guard, which is not the same as having no such
       # exposure.
       #
       # AND THE OBVIOUS ALTERNATIVE IS WORSE. `build release` looks like a
-      # portable spelling and is not: at Intent that arm is INTERACTIVE and
+      # portable spelling and is not: in that project the arm is INTERACTIVE and
       # pushes. Guessing a verb by name would have turned a restore into a
       # publish.
       #
@@ -1057,14 +1164,14 @@ _fullcycle_run() {
   # AN EMPTY WATCH LIST IS DECLARED, NOT PASSED OVER. Until 2026-09-01 the
   # whole block below was skipped when atrisk was empty and nothing was said,
   # so a cycle that measured nothing and a cycle that measured everything
-  # emitted the identical rc=0 and the identical silence (laksa/dc).
-  # THE ARTEFACT CHECK THAT NEEDS NO TRIPWIRE (issue 0048, hv's ruling: option
+  # emitted the identical rc=0 and the identical silence.
+  # THE ARTEFACT CHECK THAT NEEDS NO TRIPWIRE (issue 0048, option
   # B, before/after on the build tree itself).
   #
   # THE VACUITY DECLARATION USED TO STAND HERE AND DID NOT MEASURE ANYTHING. It
   # said, honestly, that a cycle watching nothing asserted nothing -- which
   # converted a silent empty-set green into a stated one and left the underlying
-  # property unmeasured. laksa/dc filed it and then held the acceptance
+  # property unmeasured. The session that filed it then held the acceptance
   # condition that matters: a check that cannot fail against a dev-profile build
   # is the same instrument again with better wording.
   #
@@ -1074,7 +1181,7 @@ _fullcycle_run() {
   # fails silently are exactly the ones that would never have configured
   # anything. It is also the D18 tier-4 trap: per-project knowledge shipped into
   # a framework used by thirteen. `release/` empty while `debug/` is populated
-  # is the Conflab signature and it needs no configuration at all.
+  # is the dev-profile signature and it needs no configuration at all.
   #
   # SCOPED TO WHAT IT CAN ACTUALLY CLAIM. It fires only after a clean succeeded
   # and only when `debug/` came back, because that is what makes the comparison
@@ -1082,7 +1189,7 @@ _fullcycle_run() {
   # rebuild release. A tree with neither is a failed build, already red above.
   if [ "$cleaned" = 1 ] && [ "$rc" -eq 0 ]; then
     local tdir tdirs sub unlisted gone compared=0 lost=0 looked=0 found=0 walk_partial=0 tree_partial=0 kept_found=0
-    local -a seen=()
+    local -a seen=() triples=()
     # READ WHOLE, WITH ITS STATUS (issue 0139). Through a process substitution
     # a walk that could not read everything was a shorter list, and the check
     # below passed over the trees it never saw.
@@ -1134,12 +1241,7 @@ _fullcycle_run() {
           unlisted=1
         fi
       else
-        for sub in "$tdir/debug" "$tdir/release"; do
-          if [ -e "$sub" ] && { [ ! -r "$sub" ] || [ ! -x "$sub" ]; }; then
-            warn "cannot list $sub -- this tree's profiles were not compared"
-            unlisted=1
-          fi
-        done
+        _fullcycle_tree_listed "$tdir" || unlisted=1
       fi
       # A TREE THAT KEPT ITS RELEASE ARTEFACTS THROUGH THE CLEAN is not
       # compared: they may be the last cycle's (_fullcycle_kept_release).
@@ -1163,7 +1265,13 @@ _fullcycle_run() {
           printf '\n    THE BUILD TREE CAME BACK WITHOUT ITS RELEASE ARTEFACTS.\n'
         lost=$((lost + 1))
         compared=1
-        printf '      %s -- debug/ has binaries, release/ has none\n' "$tdir"
+        triples=()
+        build_triple_dirs "$tdir" triples
+        if [ "${#triples[@]}" -eq 0 ]; then
+          printf '      %s -- debug/ has binaries, release/ has none\n' "$tdir"
+        else
+          printf '      %s -- a debug/ has binaries, and neither its own release/ nor a target triple'"'"'s has any\n' "$tdir"
+        fi
       elif _fullcycle_profile_built "$tdir" release; then
         compared=1
       fi
@@ -1172,7 +1280,7 @@ _fullcycle_run() {
     # NAME THE POPULATION, ALWAYS. "Compared 1 tree and it was fine" and
     # "found no tree to compare" are the exact distinction this issue exists to
     # keep visible, and a bare silence renders them identically -- which is what
-    # the vacuity declaration was put here to stop in the first place (laksa/dc).
+    # the vacuity declaration was put here to stop in the first place.
     if [ "$looked" -gt 0 ]; then
       printf '\n    artefact check: %d cargo build tree(s) examined\n' "$looked"
       printf '      %s\n' "${seen[@]}"
@@ -1191,7 +1299,8 @@ _fullcycle_run() {
       # clean removed release/, and `cleaned` means only that the clean phase
       # passed: over a project with no tree to remove, a dev build made debug/
       # and the sentence claimed a removal that never happened.
-      printf '    release/ holds no binary after this cycle while debug/ does.\n'
+      printf '    No release/ holds a binary after this cycle while a debug/ does,\n'
+      printf '    the tree'"'"'s own or a target triple'"'"'s.\n'
       printf '    Nothing on PATH had to resolve into this tree for that to be true --\n'
       printf '    which is the case the PATH-symlink check cannot see at all.\n'
       rc=1
@@ -1221,7 +1330,7 @@ _fullcycle_run() {
       [ "$walk_partial" = 0 ] ||
         printf '    The walk for build trees could not read everything, so a tree beneath\n    what it could not read may not have been examined (the errors above name it).\n'
       [ "$tree_partial" = 0 ] ||
-        printf '    A build tree could not be reached or searched, or its debug/ or\n    release/ listed, so that tree was not examined (the lines above name each).\n'
+        printf '    A build tree could not be reached or searched, or a debug/ or release/\n    in it listed, or a directory in it that may be a target triple'"'"'s searched,\n    so that tree was not examined (the lines above name each).\n'
       [ "$kept_found" = 0 ] ||
         printf '    A build tree kept release artefacts through the clean, so they may be\n    the last cycle'"'"'s and that tree was not compared (the lines above name each).\n'
       [ "$kept_partial" = 0 ] ||
@@ -1306,7 +1415,7 @@ cmd_fullcycle() {
   launcher="$(_fullcycle_launcher)"
 
   # A CARGO_TARGET_DIR THE ARTEFACT CHECK CANNOT EXAMINE IS REFUSED BEFORE
-  # ANYTHING IS SHOWN, ASKED OR REMOVED (issue 0148; vc's ruling). A relative
+  # ANYTHING IS SHOWN, ASKED OR REMOVED (issue 0148). A relative
   # value let a build run from a crate's directory build a tree the check never
   # looked at, and a value holding a newline was read as two paths: either way
   # the check passed over release artefacts lost, INCONCLUSIVE at rc 0. An empty
@@ -1329,8 +1438,7 @@ cmd_fullcycle() {
   # such config builds into its workspace's own target, which the walk finds,
   # and cargo is not run. The trees cargo named are handed to the check.
   local tdir_var="" tdir_why tdir_fix i
-  # shellcheck disable=SC2034 # cargo_roots is filled by cargo_build_dirs through a name reference; the cycle judges trees, not roots
-  local -a cargo_crates=() cargo_trees=() cargo_roots=()
+  local -a cargo_crates=() cargo_trees=()
   tdir_var="$(cargo_env_carrier)"
   if [ -n "$tdir_var" ]; then
     _fullcycle_tree_why "${!tdir_var}" tdir_why tdir_fix
@@ -1340,7 +1448,7 @@ cmd_fullcycle() {
     fi
   else
     # A WALK WITH A HOLE IN IT (status 2) IS THE HOLE'S TO ANSWER FOR, not a
-    # refusal of 0150's (vc's ruling): a project with no carrier anywhere is
+    # refusal of 0150's: a project with no carrier anywhere is
     # not refused for it here. Proceeding is safe because of what runs next,
     # in this order. devbin's own clean runs with --refuse-partial, which
     # decides at its scan, before anything is removed or marked
@@ -1351,7 +1459,9 @@ cmd_fullcycle() {
     # status, kept_partial), and so does the check's own walk. Both are held by
     # arms.
     i=0
-    cargo_build_dirs cargo_crates cargo_trees cargo_roots || i=$?
+    # Trees, never roots: the cycle judges where cargo builds, so it names no
+    # roots array (issue 0169).
+    cargo_build_dirs cargo_crates cargo_trees || i=$?
     if [ "$i" -eq 1 ]; then
       printf 'fullcycle: REFUSING -- where cargo builds could not be known (the error above says why), so the artefact check could not judge the tree this cycle builds. Nothing was removed.\n' >&2
       return 1
@@ -1359,8 +1469,7 @@ cmd_fullcycle() {
     for i in ${cargo_trees[@]+"${!cargo_trees[@]}"}; do
       _fullcycle_tree_why "${cargo_trees[i]}" tdir_why tdir_fix
       if [ -n "$tdir_why" ]; then
-        _fullcycle_refuse_tree "cargo builds $(printf '%q' "${cargo_crates[i]}") into $(printf '%q' "${cargo_trees[i]}"), which" "$tdir_why" \
-          "Point its build.target-dir at a tree inside the project that clean rust removes (${DEVBIN_INVOKE:-bin/devbin} clean rust --dry-run lists them), or remove it"
+        _fullcycle_refuse_config_tree "${cargo_crates[i]}" "${cargo_trees[i]}" "$tdir_why"
         return 1
       fi
     done
@@ -1370,9 +1479,9 @@ cmd_fullcycle() {
   #
   # `clean rust` removes `target/` including `release/`, and `cargo test` builds
   # debug binaries only. Without a rebuild phase this verb is net-destructive,
-  # and on at least one estate the deleted path is what `~/.local/bin/intent`
+  # and on at least one estate the deleted path is what a tool on PATH
   # resolves through -- so the cost is not a slow next build, it is every
-  # whiteboard guard on the machine going dark until somebody rebuilds by hand.
+  # commit guard on the machine going dark until somebody rebuilds by hand.
   #
   # REFUSING IS THE SAFE DIRECTION AND SKIPPING IS NOT, so no build phase is
   # treated as "cannot rebuild" rather than "no rebuild needed". A project
@@ -1441,7 +1550,8 @@ cmd_fullcycle() {
   # ASKED HERE, BEFORE THE GATE OPENS ITS LOG (issue 0096). Inside the gate the
   # overhead meter's clock was already running, so a person's think time was
   # charged as apparatus overhead. The flag ask_person reads comes from the same
-  # rule run_gate uses (stdin_tty_flag, 0088), read from THIS process's stdin.
+  # rule a gate this process opens uses (stdin_tty_flag, 0088), read from THIS
+  # process's stdin: bin/devbin drops an outer gate's mark (0158), so the two agree.
   # An n or a missing tty now stops before any log exists: nothing ran.
   _FULLCYCLE_WAITED=0
   if [ "$force" = 0 ]; then
@@ -1449,8 +1559,8 @@ cmd_fullcycle() {
     # blocked-binaries `die` fires FIRST and has no tty test in it at all;
     # `_clean_confirm`'s no-tty refusal is further down and is reached only when
     # nothing is blocked. The old wording -- "clean will ask, or refuse if there
-    # is no terminal" -- described the second, so hv was refused WITH a terminal
-    # and sent hunting a tty problem that does not exist (intent/dc, 2026-09-01).
+    # is no terminal" -- described the second, so the operator was refused
+    # WITH a terminal and sent hunting a tty problem that does not exist.
     # A WRONG MECHANISM IN AN ERROR PATH IS WORSE THAN NO MECHANISM: it is
     # actionable, in the wrong direction.
     #
@@ -1460,7 +1570,7 @@ cmd_fullcycle() {
     # to remove. Predicting the refusal from the wider set would replace a false
     # sentence with a differently false one.
     # AND THE REACHABLE SET MOVED UNDER THIS NOTICE WHEN 0047 LANDED, WHICH
-    # intent/dc PREDICTED IN THE SAME BREATH AS PROPOSING THE SPLIT. Before it,
+    # WAS PREDICTED IN THE SAME BREATH AS THE SPLIT WAS PROPOSED. Before it,
     # a no---force cycle died at the blocked arm. Now this verb always passes
     # `--force-blocked`, so that arm is pre-answered and the ONLY refusal an
     # operator reaches here is the tty one. The old wording stayed literally true

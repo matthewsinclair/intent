@@ -21,11 +21,12 @@
 # WHY AUTHORITATIVE READS, AND IT IS NOT PURITY. A recursive resolver returns
 # the REMAINING ttl, not the CONFIGURED one, so a `ttl:` assertion read through
 # the cache reports drift that is an artefact of when the command ran.
-# Measured 2026-09-07 on three real domains:
+# Measured 2026-09-07 on three real domains, the third shown here under a
+# placeholder name:
 #
 #   cloudflare.com   configured 1800   through the resolver  780
 #   amazon.com       configured  900   through the resolver  815
-#   geodica.com      configured  300   through the resolver  300
+#   example.com      configured  300   through the resolver  300
 #
 # The third row is why this is a rule rather than a preference: on the estate
 # this command was written for, the WRONG instrument returns the RIGHT answer,
@@ -180,8 +181,8 @@ _idns_rows() {
 #
 # AN EMPTY ANSWER IS NOT TAKEN AS FINAL. dig's +tries repeats only a query that
 # got NO reply; an empty reply -- NOERROR with no record in it, NXDOMAIN,
-# SERVFAIL -- is a reply, so dig hands it back as final. At Prodinfra on
-# 2026-09-24 six runs each listed one to three live domains as unmeasured on
+# SERVFAIL -- is a reply, so dig hands it back as final. Measured: six runs
+# each listed one to three live domains as unmeasured on
 # one such answer, and every one of them answered moments later. So when an
 # answer holds no NS record the question is asked again, after
 # DEVBIN_INFRA_DNS_RETRY_PAUSE seconds, and the domain is unmeasured only when

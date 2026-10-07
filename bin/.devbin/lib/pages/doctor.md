@@ -40,7 +40,9 @@ In this order:
                     noted with the command that repoints it
     source          whether the devbin this project was vendored from has
                     moved: level, behind, ahead, differs or unknown, each
-                    said apart; only behind suggests an upgrade
+                    said apart; only behind suggests an upgrade. unknown
+                    names what this machine is missing to place the source
+                    the manifest records (see bin/devbin help upgrade)
     bash            which bash is running, against the >= 5 floor
 
 ## Three outcomes, not two
@@ -63,7 +65,7 @@ A config that does not parse is refused by `bin/devbin` itself, naming the line,
 
 A vendored file devbin cannot read, such as one at mode 000, fails the manifest check the same way: it is named as `unreadable`, never as edited, since nobody can tell whether it was, and the rest of the list still runs and is counted. So does the manifest itself when devbin cannot read it: it fails by name rather than reading as a manifest with nothing in it. Make each readable before anything else: `bin/devbin upgrade` refuses to run while one is not.
 
-An install with no manifest at all -- `bin/.devbin/lib/` present and `bin/.devbin/manifest.sha256` not -- fails the same check: no vendored file can be checked, so whether one was edited here cannot be told, and it is never read as clean. `devbin_version` fails beside it, running `unknown`, since the runtime's version is read from the manifest and never from the project's own VERSION. The fix replaces every vendored file, an edit included: `bin/devbin upgrade --from <dir> --force`, or a re-install with `install --into <project> --force`. A plain `upgrade` refuses it, so devbin_version's own fix points at the manifest's rather than at `upgrade`. A project devbin was never installed in has no `bin/.devbin/lib/` and is not this case: a first install writes the manifest.
+An install with no manifest at all -- `bin/.devbin/lib/` present and `bin/.devbin/manifest.sha256` not -- fails the same check: no vendored file can be checked, so whether one was edited here cannot be told, and it is never read as clean. `devbin_version` fails beside it, running `unknown`, since the runtime's version is read from the manifest and never from the project's own VERSION. The fix replaces every vendored file, an edit included: `bin/devbin upgrade --from <dir> --force`, or a re-install with `install --into <project> --force`. A plain `upgrade` refuses it, so devbin_version's own fix points at the manifest's rather than at `upgrade`. A project devbin was never installed in has no `bin/.devbin/lib/` and is not this case: a first install writes the manifest. A manifest that records no files, cut to its header or to nothing, fails the same way: it vouches for no vendored file, upgrade refuses it as it refuses a missing one, and the runtime's version is the one its header names, or `unknown` when it names none, never the project's own VERSION.
 
 ## Your project's own checks
 

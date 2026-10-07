@@ -27,7 +27,7 @@
 # WHAT IS DELIBERATELY NOT CHECKED, and it is the decision that unblocked this
 # work. `mail: google` does NOT assert a particular MX value. The STANDARD --
 # the vendor-derived table that would say what Google's current MX form is --
-# was deleted with `docs/infrastructure.md`, and hv ruled on 2026-09-08 that
+# was deleted with `docs/infrastructure.md`, and the ruling is that
 # devbin ships no vendor table at all: `init` puts every vendor-derived field in
 # `unreviewed:` instead (lib/infra.init). Shipping a value here would reverse
 # that ruling by accident, and would ship the exact `estate-inferred` row it
@@ -61,8 +61,8 @@ _IC_MANUAL=""
 # Every channel is newline-delimited records of tab-separated fields, and the
 # counts in the report come from `grep -c .` over them. A detail carrying its
 # own newline therefore inflates the count while rendering as one row, so the
-# header and the listing disagree -- measured 2026-09-07 on the geodica estate,
-# where the summary read 14 drift and the DRIFT section showed 3.
+# header and the listing disagree -- measured on one estate, where the summary
+# read 14 drift and the DRIFT section showed 3.
 #
 # That is precisely the class this command exists to report, produced by the
 # command reporting it: a count and a listing that disagree is a caught error,
@@ -480,7 +480,7 @@ infra_check_consistency() {
       # ONE LINE, and that is a contract rather than a formatting choice.
       # Every channel here is newline-delimited records of tab-separated
       # fields, so a detail carrying its own newlines makes the COUNT and the
-      # RENDERED ROWS disagree -- measured on the geodica estate, where the
+      # RENDERED ROWS disagree -- measured on one estate, where the
       # header read 14 drift and the section showed 3. A count that disagrees
       # with its own listing is the defect this command reports in estates,
       # produced by the command reporting it.
@@ -542,7 +542,7 @@ infra_check_report() {
   else
     printf '  (none)\n'
   fi
-  printf '\nThis run covered DNS and mail records only. The Fly runtime (devbin'\''s ST0006,\n'
-  printf 'not built) was not examined; Workspace routing is not machine-checkable at all.\n'
+  printf '\nThis run covered DNS and mail records only. The Fly runtime, not built yet,\n'
+  printf 'was not examined; Workspace routing is not machine-checkable at all.\n'
   return $rc
 }

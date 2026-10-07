@@ -7,7 +7,7 @@
 # resolves and renders the answer, and nothing below it may call back up here.
 #
 # This is design D4 built. It replaces ~92 KB of hand-maintained heredoc across
-# four launchers -- `conflab_help`, `lamplight_help`, `baize_help`, `laksa_help`
+# four launchers -- one `<project>_help` function apiece
 # -- each of which kept a command list its own dispatcher had to be kept in step
 # with by hand. There is nothing to keep in step now: the listing is whatever
 # `known_commands` resolves, so a command cannot be dispatchable-but-unlisted or
@@ -277,8 +277,8 @@ command_origin() {
     options) printf 'its options\n' ;;
     *)
       # D18 tier 4, and worth its own sentence rather than being lumped in with
-      # a broken declaration. `build` reaching here is the design working: four
-      # projects have four disjoint target lists, so devbin ships the NAME and
+      # a broken declaration. `build` reaching here is the design working:
+      # projects' target lists are disjoint, so devbin ships the NAME and
       # the project says what it runs. Reporting that as "unrunnable" reads as a
       # defect. The sentence itself lives in unrunnable_why (lib/resolve),
       # because the dispatcher's refusal says it too and the two drifted once
@@ -436,7 +436,7 @@ _print_shared_options() {
 # shipped page lists that command's options that are NOT offered here, with
 # their reasons, because _print_command lists active options only: a page
 # describing devbin's options would otherwise leave a disabled one reading as
-# offered, with nothing but its absence to say otherwise (vc's R1). The same
+# offered, with nothing but its absence to say otherwise. The same
 # walk, narrowed, rather than a second list. A narrowed walk that finds nothing
 # says nothing, since "everything is offered" is a claim about the catalogue.
 _print_unavailable() {
@@ -575,8 +575,7 @@ _help_walk() {
 # one. Devbin's pages for its built-ins ship at lib/pages/, inside the vendored
 # runtime, so every estate has them without writing them. Until 0113 they lived
 # only in devbin's own help/, which no install writes, and every estate got the
-# stub for every built-in -- 203 of 272 probes across 16 estates, measured
-# 2026-09-23.
+# stub for every built-in (measured 2026-09-23).
 #
 # DEVBIN'S PAGE ANSWERS ONLY WHERE DEVBIN'S IMPLEMENTATION RUNS. A command the
 # project owns runs the project's code, and a page describing devbin's would be

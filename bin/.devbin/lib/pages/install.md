@@ -62,6 +62,8 @@ That absence is the mechanism rather than tidiness. In a tree with no config.yam
 
 Because an install is project-shaped, `bin/devbin upgrade --from` and `bin/devbin vendor --from` work on it unchanged, and its manifest is the ordinary one.
 
+A publish to `install.prefix` also records, outside every repository, that this is the machine's install: one line, its root, in `$XDG_DATA_HOME/devbin/home` (by default `~/.local/share/devbin/home`). A project vendored from an install records only that its source is `install`, never where, and finds it again through that line, or through `DEVBIN_INSTALL_PREFIX` over it. A publish to any other --prefix leaves the line as it was and says which install it still names, so a scratch publish cannot repoint every project on the machine. A line that cannot be written fails the publish by name, though the install is in place.
+
 ## PUBLISH: why an install is cut only from a clean tree
 
 A project vendored straight from a working tree can carry bytes that match no commit, and two vendors taken from the same dirty tree at the same commit record the same provenance line over different files, so nothing can tell them apart. So publishing refuses a dirty tree, and there is no --force for it: an install cut from a dirty checkout would launder those bytes through one more directory and give them the LOOK of provenance.

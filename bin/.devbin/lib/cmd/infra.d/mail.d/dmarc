@@ -64,8 +64,8 @@ usage: ${DEVBIN_INVOKE:-bin/devbin} infra mail dmarc <verb>
   report               read those rows on stdin, summarise them for a human
 
 Both read no profile and make no network call, and neither judges the estate:
-that needs a profile, and the verb for it, a planned \`infra mail dmarc check\`
-(devbin's ST0006), does not exist yet. \`infra check\` judges the DMARC records
+that needs a profile, and the verb for it, a planned \`infra mail dmarc check\`,
+does not exist yet. \`infra check\` judges the DMARC records
 each domain publishes.
 
   ${DEVBIN_INVOKE:-bin/devbin} infra mail dmarc parse r.xml | ${DEVBIN_INVOKE:-bin/devbin} infra mail dmarc report
@@ -87,7 +87,7 @@ _dmarc_cleanup() {
 
 
 # EVERY REAL REPORT IS A CONTAINER, and that was MEASURED rather than assumed.
-# Across the 17 aggregate reports collected in `~/Devel/prj/Prodinfra/dmarc`
+# Across a collection of 17 aggregate reports
 # from three reporters on 2026-09-06 and -07: Google and Outlook ship `.zip`,
 # mail.ru ships `.xml.gz`, and NOT ONE arrived as bare XML. A `parse` whose
 # argument is `<report.xml>` therefore reads nothing anybody actually receives
@@ -347,11 +347,11 @@ emit_record() {
 # `infra mail dmarc check`, planned as devbin's ST0006 WP-02 and not built. The
 # help named it as if it existed until issue 0121.
 #
-# NOR CAN IT SAY WHOSE A FAILING SIGNATURE IS (issue 0147, found by
-# prodinfra-cc). A signature present and failing is the domain's own mail
+# NOR CAN IT SAY WHOSE A FAILING SIGNATURE IS (issue 0147). A signature
+# present and failing is the domain's own mail
 # broken in transit, or a forged signature, and aggregate data cannot say
 # which. The heading said "your own mail, failing" until 0147, and in
-# Prodinfra's archive all five records under it were forged: a selector the
+# one estate's archive all five records under it were forged: a selector the
 # domain publishes no key at, or no signing domain at all. The heading now
 # names both readings, and every signed row prints its signer, so a reader
 # holding the domain's selectors can tell them apart.
@@ -456,7 +456,7 @@ def block($title; $rows):
       "  - message content. Aggregate reports carry counts, never bodies or subjects.",
       "  - whether a failing signature is your own mail broken in transit or a forged",
       "    one. Compare its d= and s= with the selectors the domain publishes. A",
-      "    planned infra mail dmarc check (devbin'"'"'s ST0006) is to compare them",
+      "    planned infra mail dmarc check is to compare them",
       "    with the profile.",
       "  - whether a passing signature belongs to a sender you authorised."
     ]

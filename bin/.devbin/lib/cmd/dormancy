@@ -9,7 +9,7 @@
 # failing, not reported -- and a stale test does not misinform, it CERTIFIES.
 #
 # WHY A DELTA AND NOT A STATIC GATE. The first design was a check arm that read
-# `#[cfg(feature = ...)]` attributes and counted them. `intent/vc` adjudicated
+# `#[cfg(feature = ...)]` attributes and counted them. A reviewer adjudicated
 # it down and replaced it with this, and the replacement is better on three
 # counts rather than one:
 #
@@ -60,8 +60,8 @@ _dormancy_usage() {
 # loud one: it would silently fall through to the catalogue default and report
 # a delta about `cargo test` in a project that runs something else entirely.
 #
-# A LOAD THAT FAILS IS REFUSED, NEVER SWALLOWED (critic-shell on 0135 v2c;
-# vc's ruling). This returned 0 over a missing or unparseable config, and
+# A LOAD THAT FAILS IS REFUSED, NEVER SWALLOWED (critic-shell on 0135 v2c).
+# This returned 0 over a missing or unparseable config, and
 # since 0135 option_leaf's refusals and option_seal's seal both read the
 # config: the empty cache made option_leaf answer inactive, and dormancy
 # refused blaming project.languages, when the config was what could not be
@@ -209,7 +209,7 @@ _dormancy_count() {
 # exited 1 and dormancy read INCONCLUSIVE -- the one case this command exists
 # to find. The legs are a MEASUREMENT, so a zero is a count: each is sealed as
 # `test rust` is sealed, under tmp/test/ with option_seal's suffix and grammar
-# (vc's ruling: a fixed RUST and cargo sealed differently wherever config
+# (a fixed RUST and cargo sealed differently wherever config
 # said otherwise), with --allow-empty given to run_gate and never to cargo.
 #
 # RUNLOG_WITNESS_RUN=1 IS LOAD-BEARING AND IS NOT TIDINESS. Without it the
@@ -222,7 +222,7 @@ _dormancy_leg() {
   local -n _dl_words="$3"
   [ "$which" = declared ] || how="$how, with --all-features placed where cargo reads it"
   # A WITNESS RUN MINTS ITS OWN ID UNLESS ITS PARENT IS ONE (bin/devbin's
-  # boundary, hv 2026-09-16). The legs were child `bin/devbin test rust` runs,
+  # boundary). The legs were child `bin/devbin test rust` runs,
   # which crossed it; run here, in dormancy's own process, they kept its id, and
   # a parent `all` named a leg's seal as one of its failed gates (critic-shell
   # on 0135). So each leg runs in a subshell under an id of its own.

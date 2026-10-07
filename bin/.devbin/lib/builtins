@@ -24,9 +24,9 @@
 #   tier 2  the framework knows the option and its usual command line; a project
 #           that runs it differently overrides `run:` in one line of config
 #   tier 3  a parameterised one-liner (iex, server, cli, repl)
-#   tier 4  present as a NAME with no command line -- `build`'s four projects
-#           have four disjoint target lists, so shipping an option set for it
-#           would impose one project's shape on the other three. It gets a row
+#   tier 4  present as a NAME with no command line -- projects' `build`
+#           targets are disjoint lists, so shipping an option set for it
+#           would impose one project's shape on every other. It gets a row
 #           for its summary and a `-` for what to run.
 #
 [ -n "${_DEVBIN_BUILTINS_LOADED:-}" ] && return 0
@@ -56,8 +56,9 @@ _DEVBIN_BUILTINS_LOADED=1
 # `<cmd>.`, so a command row is correctly never reported as an option.
 #
 # language   the D11 activation key: the row is offered exactly when the
-#            project declares this language. `any` is always offered, `opt-in`
-#            only when the project asks (D22).
+#            project declares this language. `any` is offered everywhere
+#            unless its tree lacks what it needs (_DEVBIN_BUILTIN_NEEDS), and
+#            `opt-in` only when the project asks (D22).
 # grammar    the WP-06 extraction grammar for the sealed .errors companion.
 # suffix     names the .out/.errors pair and the LATEST_* pointers.
 # group      the help heading this command sits under (WP-07). Option rows carry
@@ -153,7 +154,7 @@ EOF
 unset _bi_name _bi_rest
 
 # `check.parity` was in the placeholder table and is deliberately NOT here. It
-# exists in two of four projects and both implementations are bespoke contract
+# exists in only some projects, and their implementations are bespoke contract
 # checks with nothing in common but the name -- D18 tier 4, in miniature. A
 # project that wants it declares it, which is one line and cannot be wrong.
 
@@ -168,6 +169,22 @@ unset _bi_name _bi_rest
 # builtins.bats holds each entry to a real option row, so a rename cannot leave
 # one naming nothing.
 _DEVBIN_BUILTIN_NOT_IN_ALL="db.reset"
+
+# WHAT A BUILT-IN OPTION NEEDS IN THE PROJECT'S TREE (issue 0156), one
+# `<command>.<option> <path>` a line. Where <path> is not there the option is
+# INACTIVE, as one whose language is undeclared is: `all` counts it inactive (or,
+# where it is a command's only option, the command is unavailable), and
+# `help --why` says why, where it used to run and fail. `check critic` and
+# `docs agents` drive Intent, so a project that is not an Intent project --
+# a legitimate consumer, and some are delivered to clients -- failed `check
+# all` on a gate it never chose. Keyed on the DIRECTORY, never on Intent's
+# config file: an Intent project that has lost its config still runs the
+# option and fails it loudly, naming the config. A project that declares the
+# option runs it whatever this says. Beside the table, as the list above is,
+# because two rows in thirty-odd carry it; builtins.bats holds each entry to a
+# real option row.
+_DEVBIN_BUILTIN_NEEDS="check.critic intent
+docs.agents intent"
 
 # THE ENVIRONMENTS A BUILT-IN REFUSES (issue 0132), one row per command, tab-free:
 #   <command>  <variable>  <value refused>  <why, to the end of the line>
@@ -199,6 +216,18 @@ _builtin_row() {
 $_DEVBIN_BUILTIN_CATALOGUE
 EOF
   return 1
+}
+
+# builtin_option_needs <command> <option> -- the path the option needs in the
+# project's tree, or nothing when it needs none (issue 0156).
+builtin_option_needs() {
+  local key path
+  while read -r key path; do
+    [ "$key" = "$1.$2" ] || continue
+    printf '%s\n' "$path"
+    return 0
+  done <<<"$_DEVBIN_BUILTIN_NEEDS"
+  return 0
 }
 
 # builtin_option_lang / _grammar / _suffix <command> <option>

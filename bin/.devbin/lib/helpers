@@ -16,32 +16,31 @@
 # belongs here. `is_command` and `parse_common_opts` live in lib/resolve for
 # exactly this reason, despite reading as helpers.
 #
-# WP-05 folds the universal functions out of the four source projects. The
-# run-log subsystem -- open_run_log, write_errors_file, note_promotion, the
-# purge family, print_run_verdict -- is deliberately NOT here: it is one
-# cohesive subsystem and WP-06 ports it whole into lib/runlog. Splitting it
-# across two files to satisfy a function count would be the worse trade.
+# WP-05 folds the universal functions out of the source projects. The run-log
+# subsystem -- open_run_log, write_errors_file, note_promotion, the purge
+# family, print_run_verdict -- is deliberately NOT here: it is one cohesive
+# subsystem and WP-06 ports it whole into lib/runlog. Splitting it across two
+# files to satisfy a function count would be the worse trade.
 #
 # The project name in the die/warn prefix comes from config rather than being
-# baked in, which is the whole point of the fold: four projects printing
-# `conflab:` / `laksa:` / `baize:` / `lamplight:` from four copies of the same
-# two lines becomes one line reading a value.
+# baked in, which is the whole point of the fold: every project printing
+# its own `<name>:` from its own copy of the same two lines becomes one line
+# reading a value.
 #
 # bash_floor_refuse <version> <path> [<how it was reached>] -- the ONE refusal
 # for a bash below devbin's floor, and it exits.
 #
 # THE FLOOR (issue 0022, reversing design D9). devbin requires bash >= 5 and
-# REFUSES older: macOS ships /bin/bash 3.2.57 permanently (GPLv3), the fleet
-# runs a Homebrew bash 5.x everywhere, and the guarantee points at what actually
-# runs. EVERYTHING FROM HERE TO THE LOAD GUARD MUST STAY PARSEABLE BY BASH 3.2 --
-# the refusal cannot be allowed to arrive as a syntax error that explains
-# nothing.
+# REFUSES older: macOS ships /bin/bash 3.2.57 permanently (GPLv3), the estates
+# devbin runs in use a Homebrew bash 5.x, and the guarantee points at what
+# actually runs. EVERYTHING FROM HERE TO THE LOAD GUARD MUST STAY PARSEABLE BY
+# BASH 3.2 -- the refusal cannot be allowed to arrive as a syntax error that
+# explains nothing.
 bash_floor_refuse() {
   printf '%s: bash >= 5 is required; this is bash %s (%s)\n' \
     "${DEVBIN_NAME:-devbin}" "${1:-unknown}" "${2:-unknown}" >&2
   [ -z "${3:-}" ] || printf '  %s\n' "$3" >&2
   printf '  macOS ships bash 3.2 permanently -- install a current one:  brew install bash\n' >&2
-  printf '  (issue 0022, reversing design D9, 2026-08-24)\n' >&2
   exit 1
 }
 
@@ -100,10 +99,10 @@ DEVBIN_NAME="${DEVBIN_NAME:-devbin}"
 # project's name.
 #
 # These were one field until 2026-08-27, because the launcher was symlinked to
-# the project's own name and `bin/lamplight` was both the thing you typed and
+# the project's own name and `bin/demo` was both the thing you typed and
 # the thing the project was called. That convention collided with the binaries
-# these projects now BUILD -- Lamplight ships a `lamplight`, Intent ships an
-# `intent` -- and Intent had already routed around it by naming its shim `int`.
+# these projects now BUILD -- a project named `demo` ships a `demo` binary --
+# and one project had already routed around it by renaming its shim.
 # So the per-project symlink is retired and `bin/devbin` is the invocation
 # everywhere.
 #
@@ -124,7 +123,7 @@ DEVBIN_NAME="${DEVBIN_NAME:-devbin}"
 #     $ bin/devbin upgrade
 #     no such file or directory: bin/devbin
 #
-# That is the Lamplight defect this file already records one form of -- "the
+# That is the defect this file already records one form of -- "the
 # remediation names a command that EXISTS" -- recurring in the one direction the
 # earlier fix did not cover. It exists at the project root, and not where the
 # reader is.
@@ -190,8 +189,8 @@ init_colors() {
 
 # strip_ansi -- filter: remove CSI escape sequences from stdin.
 #
-# Byte-identical in all four projects. Reads stdin, writes stdout, so it
-# composes in a pipeline: `... | strip_ansi > "$errors"`.
+# Byte-identical in every project it was folded from. Reads stdin, writes
+# stdout, so it composes in a pipeline: `... | strip_ansi > "$errors"`.
 #
 # The escape byte is passed in as an awk variable rather than written into the
 # pattern, because a literal ESC in source survives neither editors nor patches
@@ -202,7 +201,7 @@ strip_ansi() {
 
 # upper_snake <string> -- the environment-variable spelling of a name.
 #
-# `lamplight` -> LAMPLIGHT, `my-proj` -> MY_PROJ. Devbin derives variable names
+# `demo` -> DEMO, `my-proj` -> MY_PROJ. Devbin derives variable names
 # from the project name in several places -- <NAME>_ROOT, <NAME>_REPL_HISTORY,
 # DEVBIN_OPT_<NAME>, the run-log suffix -- and each did the same `tr` inline.
 # Four copies of one transformation is four chances to disagree about whether a
@@ -239,8 +238,8 @@ _DEVBIN_NO_DEFAULT="-"
 # IFS IS PINNED HERE, because `read -a` splits on the CALLER'S. Under the common
 # strict-mode `IFS=$'\n\t'`, or `IFS=`, the list stayed one word and `true`,
 # `yes`, `1` and `no` all read as not-a-word -- so `log: false` stopped declining,
-# 0065 again, in any estate handler that sources lib/helpers under strict mode
-# (vc, 2026-09-16). The case statements this replaced never read IFS.
+# 0065 again, in any estate handler that sources lib/helpers under strict mode.
+# The case statements this replaced never read IFS.
 _word_in() {
   local w IFS=' '
   local -a words
@@ -273,11 +272,26 @@ has_words() {
   return 1
 }
 
+# nonempty_lines <text> -- how many lines of <text> hold anything (issue 0159).
+#
+# A COUNT WITH NO STATUS TO SWALLOW. The idiom was `grep -c . || true`: grep
+# exits 1 on a count of 0, so every caller had to throw a status away, and the
+# same `|| true` throws away the 2 of a grep that could not read. A read loop
+# over a string it was handed has no status to lose.
+nonempty_lines() {
+  local line n=0
+  while IFS= read -r line; do
+    if [ -n "$line" ]; then n=$((n + 1)); fi
+  done <<<"$1"
+  printf '%s\n' "$n"
+  return 0
+}
+
 # run_words <array> <key> <value> -- fill <array> with the words <value> runs
 # as, or refuse, naming <key>, a value with no words in it.
 #
-# THE ONE READING OF A DECLARED COMMAND LINE (issue 0082, hv's ruling of
-# 2026-09-17). Every place devbin runs one asks this: an option's `run:` bare
+# THE ONE READING OF A DECLARED COMMAND LINE (issue 0082). Every place devbin
+# runs one asks this: an option's `run:` bare
 # and under a gate, a command's `run:` exec'd and under a gate,
 # `commands.fullcycle.restore`, `release.notes.run`, and the catalogue's own
 # command lines, which follow the same rule because two halves of one surface
@@ -291,9 +305,9 @@ has_words() {
 #   which each site makes the directory the command runs from: the project root,
 #   or for `notes.run` the root it answers for. A word matching nothing is
 #   passed as written, a word matching several becomes several words, and a
-#   dotfile is matched only by a pattern that names the dot. hv ruled the
-#   globbing KEPT and documented after the census of 2026-09-17: one word in the
-#   fleet relies on it, Utilz's `bats opt/*/test`, and it matches 16 directories.
+#   dotfile is matched only by a pattern that names the dot. The globbing was
+#   ruled KEPT and documented after the census of 2026-09-17: a project's
+#   `bats opt/*/test` relies on it.
 # - THE READING IS DEVBIN'S, NOT THE PROCESS'S. `set -f` and the glob options
 #   are pinned here for the split alone and put back before this returns, so an
 #   inherited `SHELLOPTS=noglob` or `BASHOPTS=nullglob:dotglob` cannot quietly
@@ -304,7 +318,7 @@ has_words() {
 #   GLOBIGNORE` would ACTIVATE the inherited value for the rest of the process
 #   as the local goes out of scope. devbin assigns neither, and a test holds it.
 #   **AND NOT PINNING IS THE ONLY CORRECT ANSWER, NOT THE CONVENIENT ONE**, which
-#   is stronger than this note said until dc drove it on 2026-09-17: bash runs
+#   is stronger than this note said until it was measured: bash runs
 #   these hooks on ASSIGNMENT, so once the variable is touched at all the inert
 #   state cannot be restored by any assignment -- saving it, unsetting it and
 #   writing the same bytes back leaves it ACTIVE. A pin here would therefore be
@@ -330,7 +344,7 @@ run_words() {
   # trap for the next caller rather than a live bug, and status 2 marks it as a
   # programming error rather than the config error 1 means.
   # TWO CHECKS, BECAUSE A BLACKLIST ALONE LEAVES 0082'S OWN SHAPE NEXT TO IT.
-  # The first cut here listed the colliding names and stopped, and dc drove the
+  # The first cut listed the colliding names and stopped, and a review drove the
   # hole: `run_words 2bad ...` makes `local -n` fail with bash's own `invalid
   # variable name for name reference`, execution FALLS THROUGH, and run_words
   # returns 0 with the caller's array never set -- which is the empty command
@@ -352,7 +366,7 @@ run_words() {
   local IFS=$' \t\n' _rw_o _rw_on=""
   # The split lands in a local and is copied to the caller AFTER the shopts are
   # put back, so a target bash refuses to assign -- a readonly one -- cannot
-  # leave the six options unset in the caller's shell. dc's finding; unreachable
+  # leave the six options unset in the caller's shell. Unreachable
   # from the eight sites, which all pass a plain indexed array.
   #
   # **AN INTEGER TARGET IS NOT REFUSED AND THE GUARD ABOVE CANNOT REFUSE IT**,
@@ -603,7 +617,7 @@ physical_dir() {
 #   temporary beside the file: a process killed before the rename, and a file
 #   flag that `cp -p` copies onto the temporary -- BSD's uchg refuses the write
 #   and the removal alike, so the helper returns 1 and rm's own error names the
-#   temporary (measured by vc, ST0007 WP-02 review).
+#   temporary (measured, ST0007 WP-02 review).
 stage_beside() {
   local file tmp restore=""
   # The x keeps a name that ends in a newline, which a bare capture strips, and
@@ -655,8 +669,8 @@ stage_beside() {
 # case, which is the one stage_beside goes to the most trouble to support. With
 # no tty the prompt never appears, so every agent-run and CI run of the suite
 # passed while `bin/devbin test all` from a human's terminal stopped dead at
-# `replace_file replaces a read-only file` and stayed quiet for eight hours
-# (2026-09-17, hv). A false green that is green for everyone who can see it.
+# `replace_file replaces a read-only file` and stayed quiet for eight hours.
+# A false green that is green for everyone who can see it.
 # lib/install:379 already wrote `mv -f` for its own rename; this is the second
 # of the two mv calls in the runtime and it had not.
 rename_staged() {
@@ -687,8 +701,8 @@ sed_inplace() {
 
 # bump_semver <current> <major|minor|patch> -- print the next version.
 #
-# Byte-identical in all four projects. Bumping a part zeroes everything to its
-# right, which is semver's rule rather than a preference.
+# Byte-identical in every project it was folded from. Bumping a part zeroes
+# everything to its right, which is semver's rule rather than a preference.
 bump_semver() {
   local current="$1" part="$2" major minor patch
   assert_semver "$current"
@@ -719,10 +733,10 @@ semver_gt() {
 
 # abs_path <path> -- absolutise against the project root, leaving absolutes be.
 #
-# Present in two of four (Baize, Conflab) and PROMOTED by the WP-05 fold: it is
-# four lines, has no dependencies, and the two projects that lacked it were
-# simply the ones that had not needed it yet. A verdict line printing a relative
-# path is not clickable in a terminal, which is the whole reason it exists.
+# Present in only some projects and PROMOTED by the WP-05 fold: it is four
+# lines, has no dependencies, and the projects that lacked it were simply the
+# ones that had not needed it yet. A verdict line printing a relative path is
+# not clickable in a terminal, which is the whole reason it exists.
 abs_path() {
   case "$1" in
     /*) printf '%s' "$1" ;;
@@ -732,7 +746,7 @@ abs_path() {
 
 # read_version [file] [role] -- the project version, or `unknown`.
 #
-# THE DRIFT: three projects read a VERSION file; Laksa reads the version out of
+# THE DRIFT: most projects read a VERSION file; one reads the version out of
 # mix.exs. Neither is wrong -- an Elixir project's version genuinely lives in
 # mix.exs, and duplicating it into a VERSION file would be two sources of truth.
 #
@@ -809,8 +823,8 @@ read_version() {
 # test suite, which runs an install per fixture.
 # sha256_run [file]... -- THE one place that knows how this tool is spelled.
 #
-# EXTRACTED 2026-09-02 BECAUSE A SECOND COPY HAD ALREADY DIVERGED. `seam_digest`
-# in the fleet command called `shasum -a 256` directly, and `shasum` is the name
+# EXTRACTED 2026-09-02 BECAUSE A SECOND COPY HAD ALREADY DIVERGED. A copy of the
+# digest elsewhere called `shasum -a 256` directly, and `shasum` is the name
 # that does NOT exist on a minimal Linux image -- the exact case the comment
 # below was written to cover. The knowledge was documented in one place and
 # re-implemented in another: the Highlander failure in its ordinary form, not
@@ -891,11 +905,11 @@ _clean_marked_without_read() {
 # 3 and not grep's own 2: 3 is this file's code for a read it could not make,
 # and 2 is the dispatcher's.
 #
-# Cargo's second line names it, and the WHOLE LINE is matched: "# This file is
-# a cache directory tag created by cargo." Read off cargo 1.98.1's own output,
-# and off the target trees of two estates, on 2026-09-23 -- pytest's says
-# "created by pytest" on the same line. So a line carrying cargo's sentence
-# inside other text is not cargo's, and nor is one naming another tool.
+# Cargo's second line names it, and the WHOLE LINE is matched: "# This file is a
+# cache directory tag created by cargo." Read off cargo 1.98.1's own output, and
+# off estates' target trees, on 2026-09-23 -- pytest's says "created by pytest"
+# on the same line. So a line carrying cargo's sentence inside other text is not
+# cargo's, and nor is one naming another tool.
 #
 # A SYMLINK IS NO TAG, as find's -type f already says in _clean_roots: were it
 # followed here, a tag the scan never read would be read, and one that could not
@@ -935,11 +949,12 @@ _clean_cargo_tag() {
 # it anyway printed grep's error over a passing result.
 #
 # A TREE HOLDING ONLY PER-NODE TARGET DIRS IS A BUILD TREE (the critic's third
-# review of 0131, with cargo 1.98.1). After `CARGO_TARGET_DIR=target/cc cargo
-# build`, target/ holds cc/ and nothing of cargo's at its own root, so it was
-# listed as unmarked -- on an estate where every session builds that way -- and
-# the trees inside it went unlisted, since the walk does not look inside a tree
-# found by name. Its per-node directories are what mark it (_clean_peer_dirs).
+# review of 0131, with cargo 1.98.1). After `CARGO_TARGET_DIR=target/session-a
+# cargo build`, target/ holds session-a/ and nothing of cargo's at its own root,
+# so it was listed as unmarked -- on an estate where every session builds that
+# way -- and the trees inside it went unlisted, since the walk does not look
+# inside a tree found by name. Its per-node directories are what mark it
+# (_clean_peer_dirs).
 _clean_has_markers() {
   local d="$1" name="$2" markers="$3" t=0 sub
   local -a peers=()
@@ -980,7 +995,7 @@ _clean_has_markers() {
 #
 # Several sessions share one working tree and therefore one target/. Where they
 # use CARGO_TARGET_DIR=target/<node> they each own a subdirectory, and one
-# node's cache was 33 GB in Intent on the day this was specified. Removing the
+# node's cache was 33 GB on the day this was specified. Removing the
 # parent takes all of them, so they are NAMED before the prompt: whoever is
 # mid-build deserves to see their own moniker in the list.
 #
@@ -1009,9 +1024,49 @@ _clean_peer_dirs() {
   local dir="$1" sub
   local -n _cpd_out="$2"
   for sub in "$dir"/*/; do
-    [ -f "$sub.rustc_info.json" ] || continue
+    cargo_target_root "${sub%/}" || continue
     sub="${sub%/}"
     _cpd_out+=("${sub##*/}")
+  done
+  return 0
+}
+
+# cargo_target_root <dir> -- true when <dir> is a cargo target dir's root by
+# the file cargo writes there and nowhere else, .rustc_info.json (issue 0131,
+# measured on cargo 1.98.1). The one test that tells a per-node target dir
+# inside a tree (_clean_peer_dirs) from a target triple's (build_triple_dirs).
+cargo_target_root() {
+  [ -f "$1/.rustc_info.json" ]
+}
+
+# build_triple_dirs <dir> <out-var> -- the target-triple directories inside a
+# cargo build tree, as `cargo build --target <triple>` makes them: a directory
+# directly inside it, not a link and not the tree's own debug/ or release/,
+# holding cargo's lock file, .cargo-lock, in its debug/ or release/, and not a
+# target dir's root (cargo_target_root). The artefact check reads a profile in
+# each beside the tree's own (issue 0168): a release built only under a triple
+# read as missing, and one lost there read as fine. The lock file keeps out a
+# directory of another shape, such as a test's executable under
+# target/tmp/release (critic-shell on 0168 v1); it is cargo's .fingerprint no
+# longer, which cargo writes into build.build-dir when one is set, leaving a
+# triple's profile with the lock file and its binaries (critic-shell on 0168
+# v2, measured on cargo 1.99.0). A per-node directory built with
+# CARGO_CACHE_RUSTC_INFO=0, or under a build.build-dir set to another
+# directory, carries no .rustc_info.json and reads as a triple, the limit
+# _clean_peer_dirs states.
+# Names go into the array <out-var>, whole. Over a tree it cannot list, or a
+# directory whose profiles it cannot search, it names nothing; the artefact
+# check names those (_fullcycle_tree_listed).
+build_triple_dirs() {
+  local dir="$1" sub
+  local -n _btd_out="$2"
+  for sub in "$dir"/*/; do
+    sub="${sub%/}"
+    case "${sub##*/}" in debug | release) continue ;; esac
+    [ ! -L "$sub" ] || continue
+    ! cargo_target_root "$sub" || continue
+    [ -e "$sub/debug/.cargo-lock" ] || [ -e "$sub/release/.cargo-lock" ] || continue
+    _btd_out+=("${sub##*/}")
   done
   return 0
 }
@@ -1038,10 +1093,16 @@ cargo_target_dir_why() {
   esac
 }
 
-# cargo_tree_outside_why <tree> <root> -- why a build tree at <tree>, an
-# absolute path cargo_target_dir_why passed, cannot be read as this cycle's:
-# nothing when it lies beneath <root> (issue 0148, vc's ruling). Reads the
-# filesystem and writes nothing.
+# cargo_tree_outside_why <tree> <root> -- why a build tree at <tree> cannot be
+# read as this cycle's: nothing when it lies beneath <root> (issue 0148). Reads
+# the filesystem and writes nothing.
+#
+# THE VALUE IS JUDGED FIRST, BY cargo_target_dir_why, so one value has one
+# verdict wherever it is asked (issue 0166). This held a guard of its own that
+# knew only "not absolute", and tidied `/` to an empty string, which
+# cargo_place answered with a 3 that nothing here read: the filesystem root,
+# under any number of slashes, came out "outside the project". No caller met
+# it, since each asks cargo_target_dir_why first; a direct question did.
 #
 # A TREE OUTSIDE THE PROJECT IS NOT REMOVED BY THE CLEAN, which is
 # project-scoped, so the artefact check read the last cycle's release
@@ -1068,23 +1129,24 @@ cargo_target_dir_why() {
 # no `.` or `..`, since where those land beneath a directory that does not
 # exist yet cannot be read. <root> itself is no tree the clean removes either.
 cargo_tree_outside_why() {
-  local t="$1" root="$2" pa x shown rc=0
-  # AN ABSOLUTE PATH ONLY: the walk up below strips a component at a time and
-  # never ends on a path with no leading /, so a relative one hung here
-  # (mutant T1 on 0148 v2h, spinning 11 minutes). Every caller refuses a
-  # relative value first; this refuses it too, at once.
-  case "$t" in
-    /*) ;;
-    *)
-      printf -v shown '%q' "$t"
-      printf '%s\n' "cannot be placed: $shown is not an absolute path"
-      return 0
-      ;;
-  esac
+  local t="$1" root="$2" pa x shown why rc=0
+  # THE VALUE FIRST, in cargo_target_dir_why's words: empty, holding a newline,
+  # the root, or relative, which the walk up below never ends on (mutant T1 on
+  # 0148 v2h, spinning 11 minutes). What passes is absolute and below the root.
+  why="$(cargo_target_dir_why "$t")"
+  if [ -n "$why" ]; then
+    printf '%s\n' "$why"
+    return 0
+  fi
   while [[ "$t" == *//* ]]; do t="${t//\/\//\/}"; done
   t="${t%/}"
   cargo_place "$t" pa || rc=$?
+  # ONLY 0 GOES ON TO THE WALK (issue 0166): a status read by no branch here
+  # walked an empty path to "outside", as the root's 3 did. A 3, a path that is
+  # not absolute, cannot follow the value check above; it, and any status
+  # cargo_place may come to return, is named by its number and never walked.
   case "$rc" in
+    0) ;;
     2)
       printf '%s\n' "names . or .. beneath a directory that does not exist yet, so where it lands cannot be known"
       return 0
@@ -1092,6 +1154,11 @@ cargo_tree_outside_why() {
     1)
       printf -v shown '%q' "$pa"
       printf '%s\n' "cannot be placed: $shown cannot be entered, so where it resolves cannot be known"
+      return 0
+      ;;
+    *)
+      printf -v shown '%q' "$t"
+      printf '%s\n' "cannot be placed: cargo_place answered $rc for $shown, a status this does not read"
       return 0
       ;;
   esac
@@ -1163,12 +1230,103 @@ _path_parent() {
   [ -n "$_pp_p" ] || _pp_p=/
 }
 
+# build_tree_rebuildable <tree> <manifest> -- 0 when <manifest> sits beside
+# <tree>, on the path as given: clean's own test of a tree it can rebuild, and
+# so of one it removes (issue 0167). One test for clean, which removes such a
+# tree, fullcycle, which reads one it cannot as kept, and check targetdir,
+# whose shared tree is <root>/target only where clean removes it: check named
+# it shared without one, and passed a nested crate's CARGO_TARGET_DIR that
+# clean never removes and fullcycle then failed.
+build_tree_rebuildable() {
+  local t="${1%/}"
+  [ -f "${t%/*}/$2" ]
+}
+
+# cargo_tree_same <a> <b> -- true when two build trees are one: the same text,
+# or the same directory where both exist. Compare trees as cargo_place placed
+# them, since cargo does not tidy a `..`. check targetdir's until issue 0164,
+# which put fullcycle's question about the machine's config to it too.
+cargo_tree_same() {
+  [ "$1" = "$2" ] || { [ -e "$1" ] && [ "$1" -ef "$2" ]; }
+}
+
+# cargo_tree_cause <tree> <project-tree> <machine-tree> -- which config sends a
+# crate's build tree to <tree>, all three placed: `project` when it is the tree
+# the project root's config names (cargo_project_tree), else `machine` when it
+# is where the machine's config alone sends every crate (cargo_home_build_dir),
+# else nothing, a config this does not read. The project's first, as cargo puts
+# it before the machine's. The one attribution, check targetdir's until issue
+# 0164: fullcycle's refusal asked only for the machine's, so a tree both
+# configs name was "the machine's" there while check targetdir failed it as
+# the project's.
+cargo_tree_cause() {
+  if [ -n "$2" ] && cargo_tree_same "$1" "$2"; then
+    printf 'project\n'
+  elif [ -n "$3" ] && cargo_tree_same "$1" "$3"; then
+    printf 'machine\n'
+  fi
+  return 0
+}
+
 # cargo_home_dir -- CARGO_HOME, or cargo's default, ~/.cargo, with no trailing
 # slash: the one statement of where the machine's cargo config lives (issue
 # 0150).
 cargo_home_dir() {
   local h="${CARGO_HOME:-$HOME/.cargo}"
   printf '%s\n' "${h%/}"
+}
+
+# cargo_config_file <dir> -- the config file cargo reads in the config
+# directory <dir>, a .cargo or CARGO_HOME, or nothing when it reads none:
+# `config` where it can be opened, else `config.toml` where it is there at all.
+# Measured on cargo 1.99.0, in CARGO_HOME and in a project's .cargo alike: with
+# both there it reads `config`, warning, even a `config` that names nothing; a
+# `config` it cannot open, or a dangling link, it passes over in silence; and a
+# config.toml it cannot read, it fails on. The one statement of which file
+# that is (issue 0164): check targetdir read config.toml first, so it named,
+# and took the value of, a file cargo ignores.
+cargo_config_file() {
+  if [ -r "${1%/}/config" ]; then
+    printf '%s\n' "${1%/}/config"
+  elif [ -e "${1%/}/config.toml" ]; then
+    printf '%s\n' "${1%/}/config.toml"
+  fi
+  return 0
+}
+
+# cargo_config_target_dir <file> -- the build.target-dir a cargo config file
+# sets, as its text reads, or nothing; the first such line. It names a cause and
+# decides nothing: cargo's answer is the verdict (issue 0150). It reads the
+# plain spelling only, `target-dir = "..."`; the machine's config is placed by
+# asking cargo (cargo_home_build_dir), whatever its spelling. check targetdir's
+# own until issue 0164, which puts the project's config to fullcycle too, under
+# errexit: sed quits at the first match rather than feeding `head -1`, which
+# could end it on a SIGPIPE with a value already read.
+cargo_config_target_dir() {
+  sed -n '/^[[:space:]]*target-dir[[:space:]]*=[[:space:]]*"\{0,1\}\([^"]*\)"\{0,1\}[[:space:]]*$/{s//\1/p;q;}' "$1"
+}
+
+# cargo_project_tree <file-var> <value-var> <tree-var> -- the project root's
+# cargo config, the file cargo reads there (cargo_config_file), when it names
+# build.target-dir; the value it sets (as cargo_config_target_dir reads it); and
+# the tree that value places, from the project root as cargo reads a relative
+# one: into the three, each empty when it names none. One reading for check
+# targetdir, which fails a fork this config makes, and fullcycle, whose refusal
+# names it (issue 0164). It took the first of config.toml and config to name a
+# value, so with both there it named, and placed, a file cargo ignores (issue
+# 0176). A file that cannot be read names nothing here; cargo, asked, names why.
+cargo_project_tree() {
+  local -n _cpt_f="$1" _cpt_v="$2" _cpt_t="$3"
+  local _cpt_c _cpt_x="" _cpt_p
+  _cpt_f="" _cpt_v="" _cpt_t=""
+  _cpt_c="$(cargo_config_file "$PROJECT_ROOT/.cargo")"
+  if [ -n "$_cpt_c" ] && [ -f "$_cpt_c" ] && [ -r "$_cpt_c" ]; then
+    _cpt_x="$(cargo_config_target_dir "$_cpt_c")" || _cpt_x=""
+  fi
+  [ -n "$_cpt_x" ] || return 0
+  _cpt_f="$_cpt_c" _cpt_v="$_cpt_x"
+  case "$_cpt_v" in /*) _cpt_p="${_cpt_v%/}" ;; *) _cpt_p="$PROJECT_ROOT/${_cpt_v%/}" ;; esac
+  cargo_place "$_cpt_p" _cpt_t || _cpt_t="$_cpt_p"
 }
 
 # cargo_env_carrier -- the name of the environment variable that decides
@@ -1197,11 +1355,11 @@ cargo_walk() {
 # cargo_carrier_present <dir> -- 0 when a cargo config that could move the
 # build tree of the crate in <dir> is present: a .cargo/config.toml or
 # .cargo/config naming target-dir in <dir> or any directory above it, or a
-# config.toml or config naming it in CARGO_HOME (issue 0150, vc's ruling).
+# config.toml or config naming it in CARGO_HOME (issue 0150).
 #
 # PRESENCE ONLY: it asks whether a file names the key, never what the key
 # sets, so cargo stays the one resolver (cargo_build_dir): it decides WHETHER
-# cargo is asked, never WHERE the tree is (vc's ruling). The match is safe
+# cargo is asked, never WHERE the tree is. The match is safe
 # because every spelling of the key holds the literal `target-dir`: dotted as
 # build.target-dir, under a [build] table, or quoted. It fails open: a file
 # that cannot be read is present, for cargo to answer, and a comment naming
@@ -1241,15 +1399,13 @@ cargo_config_above() {
   return 1
 }
 
-# cargo_config_in_home -- 0 when CARGO_HOME holds a config naming target-dir
-# or include.
+# cargo_config_in_home -- 0 when the config cargo reads in CARGO_HOME
+# (cargo_config_file) names target-dir or include. Either file named it until
+# issue 0164, the one cargo ignores included.
 cargo_config_in_home() {
-  local f h
-  h="$(cargo_home_dir)"
-  for f in "$h/config.toml" "$h/config"; do
-    _cargo_names_target_dir "$f" && return 0
-  done
-  return 1
+  local f
+  f="$(cargo_config_file "$(cargo_home_dir)")"
+  [ -n "$f" ] && _cargo_names_target_dir "$f"
 }
 
 # _cargo_names_target_dir <file> -- 0 when <file> exists and names target-dir,
@@ -1265,24 +1421,25 @@ _cargo_names_target_dir() {
   [ "$rc" -ne 1 ]
 }
 
-# cargo_build_dir <dir> <tree-var> <root-var> -- where cargo builds the crate
-# in <dir>, into <tree-var>, and its workspace's root, whose own target is the
-# tree when nothing moves it, into <root-var>; asked of cargo run in <dir>,
-# where `cd <dir> && cargo build` runs it, the config found from there
-# included (issue 0150). Each path comes back as cargo wrote it, byte for
-# byte: jq writes the two NUL-terminated and they are read with `read -d ''`,
-# where @tsv escaped a backslash, a tab and a newline, and a crate at `a\b`
-# was read at `a\\b` (critic-shell on 0150 v1). CARGO_TARGET_DIR and
+# cargo_build_dir <dir> <tree-var> <root-var> [<from-dir>] -- where cargo builds
+# the crate in <dir>, into <tree-var>, and its workspace's root, whose own
+# target is the tree when nothing moves it, into <root-var>; asked of cargo run
+# in <dir>, where `cd <dir> && cargo build` runs it, the config found from there
+# included (issue 0150). Each path comes back as cargo wrote it, byte for byte:
+# jq writes the two NUL-terminated and they are read with `read -d ''`, where
+# @tsv escaped a backslash, a tab and a newline, and a crate at `a\b` was read
+# at `a\\b` (critic-shell on 0150 v1). CARGO_TARGET_DIR and
 # CARGO_BUILD_TARGET_DIR are removed from cargo's environment, so the answer is
 # the configs' alone: either variable is its caller's to judge, as a value.
-# `--offline --no-deps` reads no network and resolves no dependency, and
-# leaves Cargo.lock as it was (measured across the fleet's 36 locks); colour
+# Given <from-dir>, cargo runs there with --manifest-path naming <dir>, and so
+# reads the configs found from <from-dir>, as it finds them from where it runs
+# (measured, cargo 1.99.0; issue 0163). `--offline --no-deps` reads no network
+# and resolves no dependency, and leaves Cargo.lock as it was (measured); colour
 # is off, so the error line quoted is plain. Fails naming cargo's own first
-# error line, or jq's absence. Its scratch directory is removed on every
-# return; an interrupt while cargo runs leaves it in TMPDIR, named
-# devbin-cargo.*.
+# error line, or jq's absence. Its scratch directory is removed on every return;
+# an interrupt while cargo runs leaves it in TMPDIR, named devbin-cargo.*.
 cargo_build_dir() {
-  local _cbd_d="$1" _cbd_s _cbd_rc=0 _cbd_line
+  local _cbd_d="$1" _cbd_s _cbd_rc=0 _cbd_line _cbd_from="${4:-}"
   local -n _cbd_tree="$2" _cbd_root="$3"
   _cbd_tree="" _cbd_root=""
   if ! command -v jq >/dev/null 2>&1; then
@@ -1295,7 +1452,11 @@ cargo_build_dir() {
   }
   (
     unset CARGO_TARGET_DIR CARGO_BUILD_TARGET_DIR
-    cd -- "$_cbd_d" && CARGO_TERM_COLOR=never cargo metadata --offline --no-deps --format-version 1
+    if [ -n "$_cbd_from" ]; then
+      cd -- "$_cbd_from" && CARGO_TERM_COLOR=never cargo metadata --offline --no-deps --format-version 1 --manifest-path "$_cbd_d/Cargo.toml"
+    else
+      cd -- "$_cbd_d" && CARGO_TERM_COLOR=never cargo metadata --offline --no-deps --format-version 1
+    fi
   ) >"$_cbd_s/out" 2>"$_cbd_s/err" || _cbd_rc=$?
   if [ "$_cbd_rc" -ne 0 ]; then
     _cbd_line="$(grep -m 1 '^error' "$_cbd_s/err")" || _cbd_line="$(grep -m 1 . "$_cbd_s/err")" || _cbd_line="it exited $_cbd_rc"
@@ -1316,11 +1477,15 @@ cargo_build_dir() {
   fi
 }
 
-# cargo_build_dirs <crates> <trees> <roots> -- into the three arrays, one entry
-# each per crate under this project with a carrier present
+# cargo_build_dirs <crates> <trees> [<roots> [<configs> [<holes>]]] -- into the arrays, one
+# entry each per crate under this project with a carrier present
 # (cargo_carrier_present): its directory, the tree cargo_build_dir names, and
 # its workspace's root; nothing for a crate with none. Parallel arrays, never
-# one delimited string, since a path may hold any byte but NUL. 1 when cargo is
+# one delimited string, since a path may hold any byte but NUL. The roots are
+# a caller's to ask for: named as nothing, or as an empty name, they are filled
+# into a local and dropped, as fullcycle, which judges trees and never roots,
+# asks (issue 0169: a third name was required, and a call naming two died on
+# an unbound $3). 1 when cargo is
 # not on PATH or cannot answer, named on stderr: where a crate's tree is cannot
 # then be known. 2 when the walk could not read everything, having asked about
 # every crate it did find: a crate beneath the hole is unseen, which is the
@@ -1328,14 +1493,18 @@ cargo_build_dir() {
 # it (issue 0139) -- so a project with no carrier anywhere is not refused
 # for it.
 # Each crate with a carrier is asked, a template's included: one cargo cannot
-# read is refused in cargo's words, declared (vc's ruling on 0150). With a
+# read is refused in cargo's words, declared (issue 0150). With a
 # fourth array named, each .cargo/config.toml or .cargo/config the walk met
 # that names target-dir or include is put in it, so a caller can tell a
 # config beneath the project whose crates the walk never reached (critic-shell
-# on 0150 v2c).
+# on 0150 v2c). With a fifth named, each directory the walk could not search is
+# put in it, as find_walk records it, and one empty entry where the walk failed
+# somewhere it could not place, so a caller can ask whether a hole lies beneath
+# a config (issue 0163). Every name past the second is optional.
 cargo_build_dirs() {
-  local -n _cbds_c="$1" _cbds_t="$2" _cbds_r="$3"
-  local _cbds_m _cbds_d _cbds_tree _cbds_root _cbds_rc=0 _cbds_cfgname="${4:-}"
+  local -a _cbds_noroots=()
+  local -n _cbds_c="$1" _cbds_t="$2" _cbds_r="${3:-_cbds_noroots}"
+  local _cbds_m _cbds_d _cbds_tree _cbds_root _cbds_rc=0 _cbds_cfgname="${4:-}" _cbds_hname="${5:-}" _cbds_hf=""
   local -a _cbds_list=() _cbds_met=()
   _cbds_c=() _cbds_t=() _cbds_r=()
   # NUL-separated, read whole with its status (critic-shell on 0150 v2: read
@@ -1345,12 +1514,28 @@ cargo_build_dirs() {
   # A config is one directly in a .cargo directory, never one beneath it, as
   # a project-local CARGO_HOME's .cargo/git/db/<repo>/config is not; a manifest
   # or a config may be a link, which cargo follows (critic-shell on 0150 v2d).
-  mapfile -d '' -t _cbds_list < <(cargo_walk -name target \( -type d -o -type l \) -prune -o \
+  if [ -n "$_cbds_hname" ]; then
+    # mktemp names its own failure; with no file the holes cannot be read
+    # back, and the empty entry below counts one beneath every config.
+    _cbds_hf="$(mktemp "${TMPDIR:-/tmp}/devbin-holes.XXXXXX")" || _cbds_hf=""
+  fi
+  mapfile -d '' -t _cbds_list < <(FIND_WALK_HOLES="$_cbds_hf" cargo_walk -name target \( -type d -o -type l \) -prune -o \
     \( -name Cargo.toml \( -type f -o -type l \) -print0 \) -o \
     \( \( -path '*/.cargo/config.toml' -o -path '*/.cargo/config' \) \( -type f -o -type l \) -print0 \))
   if ! wait "$!"; then
     warn "could not read the whole project for its crates (the error above names it), so a crate beneath what it could not read was not asked about"
     _cbds_rc=2
+  fi
+  if [ -n "$_cbds_hname" ]; then
+    local -n _cbds_h="$_cbds_hname"
+    _cbds_h=()
+    if [ -n "$_cbds_hf" ]; then
+      mapfile -d '' -t _cbds_h <"$_cbds_hf"
+      rm -f "$_cbds_hf"
+    fi
+    # A hole none was read back for lies, for all a caller can tell, beneath
+    # everything: one empty entry says so.
+    [ "$_cbds_rc" -ne 2 ] || [ "${#_cbds_h[@]}" -gt 0 ] || _cbds_h=("")
   fi
   for _cbds_m in ${_cbds_list[@]+"${_cbds_list[@]}"}; do
     [ -n "$_cbds_m" ] || continue
@@ -1378,26 +1563,52 @@ cargo_build_dirs() {
   return "$_cbds_rc"
 }
 
+# cargo_probe_build_dir <tree-var> [<from-dir>] -- where cargo sends a crate's
+# build tree from <from-dir>, placed (cargo_place), into <tree-var>; empty when
+# nothing moves it from the crate's own target. A throwaway crate in a scratch
+# directory is asked of cargo run in <from-dir> (cargo_build_dir), which reads
+# the configs found from there, so the answer is what a config there or above
+# pins for any crate beneath it, whatever its spelling: the one probe (issue
+# 0163), which check targetdir asks of a config over a hole beneath it. With no
+# <from-dir> it is asked from the scratch directory itself: the machine's
+# reading, cargo_home_build_dir. Statuses as below.
+#
 # cargo_home_build_dir <tree-var> -- where the machine's cargo config alone
-# sends a crate's build tree, into <tree-var>; empty when it moves nothing
-# (issue 0150, vc's ruling). Asked of cargo in an empty scratch directory
+# sends a crate's build tree, placed as it resolves (cargo_place), into
+# <tree-var>; empty when it moves nothing (issue 0150). The one reading of the
+# machine's config: check targetdir attributes a fork to it, and fullcycle
+# names its file, by this answer, compared with cargo_tree_same (issue 0164).
+# Asked of cargo in an empty scratch directory
 # holding a throwaway crate, where no config but CARGO_HOME's applies, so the
 # answer is the home config's, in whatever spelling it takes: sed read only
 # `target-dir = "..."` and passed over a dotted key, a comment and the legacy
-# file name (critic-shell on 0150 v1). 1, named, when cargo cannot say.
-cargo_home_build_dir() {
+# file name (critic-shell on 0150 v1). 1, named, when cargo cannot say, or is
+# not on PATH. 2, unnamed, when a config at or above the scratch directory, or
+# one the walk up cannot read, may apply too, so the
+# machine's alone cannot be told: nothing is said to be the machine's, and a
+# caller reporting the machine's config says it could not be measured, never
+# that it moves nothing (issue 0164).
+cargo_probe_build_dir() {
   local -n _chb_out="$1"
-  local _chb_s _chb_p _chb_tree _chb_root _chb_rc=0
+  local _chb_s _chb_p _chb_tree _chb_root _chb_rc=0 _chb_from="${2:-}"
+  local _chb_what="the machine's cargo config"
   _chb_out=""
+  [ -z "$_chb_from" ] || _chb_what="the cargo config found from $_chb_from"
+  # Asked with no crate here too, so cargo may not be there at all: said once,
+  # plainly, not as cargo's failure in a scratch directory already gone.
+  if ! command -v cargo >/dev/null 2>&1; then
+    warn "cargo is not on PATH, so where $_chb_what sends a build cannot be measured"
+    return 1
+  fi
   _chb_s="$(mktemp -d "${TMPDIR:-/tmp}/devbin-cargohome.XXXXXX")" || {
-    warn "cannot ask cargo about the machine's config: no scratch directory"
+    warn "cannot ask cargo about $_chb_what: no scratch directory"
     return 1
   }
   if ! { mkdir -p "$_chb_s/probe/src" &&
-    printf '[package]\nname = "probe"\nversion = "0.0.0"\nedition = "2021"\n' >"$_chb_s/probe/Cargo.toml" &&
+    printf '[package]\nname = "probe"\nversion = "0.0.0"\nedition = "2021"\n\n[workspace]\n' >"$_chb_s/probe/Cargo.toml" &&
     : >"$_chb_s/probe/src/main.rs"; }; then
     rm -rf "$_chb_s"
-    warn "cannot ask cargo about the machine's config: the probe crate could not be written in $_chb_s"
+    warn "cannot ask cargo about $_chb_what: the probe crate could not be written in $_chb_s"
     return 1
   fi
   # THE PROBE HEARS EVERY CONFIG ABOVE IT, not CARGO_HOME's alone, so one
@@ -1405,17 +1616,30 @@ cargo_home_build_dir() {
   # (critic-shell on 0150 v2: with TMPDIR inside the project, the project's own
   # fork was reported as the machine's and not failed). Then nothing is said
   # to be the machine's.
-  if cargo_config_above "$_chb_s/probe" --not-home; then
+  # Asked from <from-dir>, cargo reads what is found from there, never what
+  # sits above the scratch directory, so only the machine's reading is clouded.
+  # The probe declares its own [workspace]: beneath a project's workspace, as
+  # under a TMPDIR inside it, cargo refused a package that workspace does not
+  # list, and a correct project failed (critic-shell on 0163 v3).
+  if [ -z "$_chb_from" ] && cargo_config_above "$_chb_s/probe" --not-home; then
     rm -rf "$_chb_s"
-    return 0
+    return 2
   fi
-  cargo_build_dir "$_chb_s/probe" _chb_tree _chb_root || _chb_rc=1
-  if [ "$_chb_rc" -eq 0 ] && physical_dir "$_chb_s/probe" _chb_p && [ "$_chb_tree" != "$_chb_p/target" ] &&
+  cargo_build_dir "$_chb_s/probe" _chb_tree _chb_root "$_chb_from" || _chb_rc=1
+  if [ "$_chb_rc" -eq 0 ] && ! physical_dir "$_chb_s/probe" _chb_p; then
+    warn "cannot place the probe crate in $_chb_s, so where $_chb_what sends a build cannot be measured"
+    _chb_rc=1
+  fi
+  if [ "$_chb_rc" -eq 0 ] && [ "$_chb_tree" != "$_chb_p/target" ] &&
     [ "$_chb_tree" != "$_chb_root/target" ]; then
-    _chb_out="$_chb_tree"
+    cargo_place "$_chb_tree" _chb_out || _chb_out="$_chb_tree"
   fi
   rm -rf "$_chb_s"
   return "$_chb_rc"
+}
+
+cargo_home_build_dir() {
+  cargo_probe_build_dir "$1"
 }
 
 # cargo_target_dirs [<tree>...] -- every cargo build tree under this project,
@@ -1423,7 +1647,7 @@ cargo_home_build_dir() {
 #
 # NOT `$PROJECT_ROOT/target`, WHICH IS THE ASSUMPTION THIS FUNCTION EXISTS TO
 # REPLACE. A cargo tree sits at the WORKSPACE root, and a workspace is very
-# often nested: Laksa builds into `native/cli/target`, Intent into
+# often nested: one project builds into `native/cli/target`, another into
 # `native/rust/target`. A checker that looks only at the project root finds
 # nothing on those estates, concludes nothing is wrong, and reports a clean
 # result -- which is the same shape as the defect it was written to catch, and
@@ -1442,8 +1666,8 @@ cargo_home_build_dir() {
 # The variable cargo_env_carrier names wins outright when set: cargo writes
 # there and nowhere else, so a discovered tree would be a stale one.
 #
-# DEPENDENCY TREES ARE PRUNED, AND THE POPULATION IS THE POINT (laksa/dc,
-# 2026-09-02). Laksa carries five Cargo.toml files and exactly one is its own:
+# DEPENDENCY TREES ARE PRUNED, AND THE POPULATION IS THE POINT.
+# A project can carry five Cargo.toml files of which exactly one is its own:
 # the other four are Elixir NIF crates under `deps/`, built through mix by
 # Rustler rather than by cargo in place. A caller asking "did MY build restore
 # MY artefacts" must not be answered about somebody else's crate. If a dep ever
@@ -1457,7 +1681,7 @@ cargo_home_build_dir() {
 # other direction. Same argument that killed the >1-test-target rule.
 #
 # Note what does NOT need pruning: a crate with no `target/` at all -- which is
-# all four of Laksa's -- is invisible here by construction, because this
+# all four NIF crates above -- is invisible here by construction, because this
 # discovers BUILD TREES and never crates. There is nothing to skip.
 #
 # A WALK THAT CANNOT READ EVERYTHING RETURNS 1, having printed what it did find,
@@ -1519,6 +1743,11 @@ cargo_target_dirs() {
   return "$rc"
 }
 
+# FIND_WALK_HOLES is cargo_build_dirs' to set for one walk, and FIND_WALK_QUIET
+# find_walk's own, never the environment's: one inherited would have every walk
+# append to it, or print nothing.
+unset FIND_WALK_HOLES FIND_WALK_QUIET
+
 # find_walk [-H|-L|-P] <path>... [global options] <expression> -- find, with a
 # directory it can list but not search named and pruned, and its status raised
 # (issue 0145). Prints what find prints, on stdout, untouched. Returns find's
@@ -1532,8 +1761,8 @@ cargo_target_dirs() {
 # as absent at rc 0. GNU find lists the names beneath it and cannot open what
 # they name, so a walk that goes on to read them fails later and less clearly.
 # One clause, asked of the running user as clean asked it, prunes such a
-# directory under both finds and records it, so the two give one verdict (vc's
-# ruling). A directory find cannot read at all keeps find's own error and
+# directory under both finds and records it, so the two give one verdict.
+# A directory find cannot read at all keeps find's own error and
 # status, and is not named twice.
 #
 # - THE CLAUSE comes after the start paths and any leading global options
@@ -1554,8 +1783,8 @@ cargo_target_dirs() {
 #   does not own with u+x set, read from $EUID and never from an `id` found
 #   through PATH: only the owner bits apply to the owner, so the
 #   0700 and 0750 directories of an ordinary tree run none. Without the owner
-#   test every such directory cost one /bin/sh, and the fleet census walk over
-#   this machine's roots ran 3.3 times as long (critic-shell's measure).
+#   test every such directory cost one /bin/sh, and a census walk over a
+#   machine's roots ran 3.3 times as long (measured).
 # - WHAT IT RUNS IS /bin/sh, NAMED WHOLE, and nothing found through PATH, as
 #   clean's walk named it (0131): a project's own bin/test first on PATH was
 #   run by a walk that promised to change nothing. Where /bin/sh cannot be run
@@ -1565,7 +1794,7 @@ cargo_target_dirs() {
 #   the clause above that depth, so a directory there would be entered
 #   unexamined. -mindepth 1 leaves out only the start paths, and find reports
 #   a start path it cannot search itself.
-# - A DECLARED LIMIT (vc's ruling): the clause reads mode bits, so a directory
+# - A DECLARED LIMIT: the clause reads mode bits, so a directory
 #   whose ACL denies the running user search, its mode bits allowing it, is not
 #   asked about, and BSD find passes over what is beneath it silently, as
 #   before. clean's page says so. Probing each directory's ACL would cost a
@@ -1580,6 +1809,27 @@ cargo_target_dirs() {
 #   start path it lies under puts it at or beyond -maxdepth, and kept when any
 #   would have entered it. Each directory is named once, however many start
 #   paths reached it or however many slashes spell it.
+# - EVERY HOLE IS RECORDED, as a path and its kind, on fd 3: S for a directory
+#   it can list but not search, which this prunes and names, and U for one it
+#   cannot read at all, which find names. The clause also runs for a directory
+#   missing a read bit the running user does not own u+r on, so a 0711 or 0311
+#   one is recorded too (critic-shell on 0163 v1). With FIND_WALK_HOLES naming
+#   a file, each hole's path is appended to it, NUL-terminated, and one empty
+#   record when find failed with none recorded, so a caller can ask where the
+#   walk's holes are (issue 0163: check targetdir asks what a crate beneath one
+#   would build into). Each is filtered by -maxdepth, as a named one is. Where
+#   find failed with a U recorded, the walk is run again, quietly, with every
+#   hole pruned, so a failure the records do not place, as an ACL denying a
+#   listing the mode bits allow, still gets its empty record (critic-shell on
+#   0163 v2: one 000 directory hid it). The re-walk is find_walk itself with
+#   FIND_WALK_QUIET=1, which prunes every hole, prints and records nothing,
+#   and returns find's status. Its cost is a second walk whenever find failed
+#   with a U recorded, whether or not the caller then reads the holes:
+#   measured at about 1.8 times one walk on a tree of 7,200 directories
+#   (critic-shell on 0163 v3). The expression then runs twice, so with
+#   FIND_WALK_HOLES set one with an action beyond printing, in the expression
+#   or a lifted prune group, is refused at status 2. An ACL denying only
+#   search is still unseen, as the limit above says.
 # - FIND'S STATUS IS READ WITHOUT ERREXIT'S ABORT, so a find that failed on one
 #   directory still has every unsearchable one named after it.
 # - The expression must carry -print or -print0, since the clause's -exec
@@ -1588,9 +1838,9 @@ cargo_target_dirs() {
 # find_list is built on this: find_walk, sorted, read into an array. The locals
 # carry their own prefix, as find_list's do.
 find_walk() {
-  local -a _fw_pre=() _fw_paths=() _fw_glob=() _fw_expr=() _fw_marks=() _fw_prune=()
-  local _fw_rc _fw_d _fw_p _fw_rel _fw_max="" _fw_fd _fw_act=0 _fw_a _fw_in _fw_dn _fw_pn
-  local _fw_i _fw_n
+  local -a _fw_pre=() _fw_paths=() _fw_glob=() _fw_expr=() _fw_marks=() _fw_prune=() _fw_sel=() _fw_args=("$@")
+  local _fw_rc _fw_d _fw_p _fw_rel _fw_max="" _fw_fd _fw_efd _fw_act=0 _fw_a _fw_in _fw_dn _fw_pn _fw_prog
+  local _fw_i _fw_n _fw_k _fw_kind _fw_frc _fw_u=0
   local -A _fw_said=()
   while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -1662,25 +1912,48 @@ find_walk() {
     warn "find_walk: the find expression names no -print or -print0, so nothing it finds would be printed"
     return 2
   fi
+  if [ -n "${FIND_WALK_HOLES:-}" ]; then
+    for _fw_a in ${_fw_prune[@]+"${_fw_prune[@]}"} "${_fw_expr[@]}"; do
+      case "$_fw_a" in
+        -exec | -execdir | -ok | -okdir | -delete | -fprint | -fprint0 | -fprintf | -fls)
+          warn "find_walk: with FIND_WALK_HOLES set the expression may run twice, and $_fw_a would act twice"
+          return 2
+          ;;
+      esac
+    done
+  fi
   if [ ! -x /bin/sh ]; then
     warn "find_walk: /bin/sh cannot be run, and a directory that can be listed but not searched is found by running it -- nothing was walked"
     return 2
   fi
-  exec {_fw_fd}>&1
-  # shellcheck disable=SC2016 # the $1 in the -exec program is /bin/sh's own
+  # The directories the clause asks about, one selection for both walks.
+  _fw_sel=(-type d \( ! -perm -111 ! \( -user "$EUID" -perm -u+x \) -o ! -perm -444 ! \( -user "$EUID" -perm -u+r \) \))
+  # shellcheck disable=SC2016 # the $1 in each -exec program is /bin/sh's own
+  if [ "${FIND_WALK_QUIET:-}" = 1 ]; then
+    # Every hole pruned, a selected directory it can read and search entered.
+    _fw_prog='if [ -r "$1" ]; then [ ! -x "$1" ]; fi'
+    exec {_fw_fd}>/dev/null {_fw_efd}>/dev/null
+  else
+    _fw_prog='if [ -r "$1" ]; then [ ! -x "$1" ] && printf "%s\0S\0" "$1" >&3; else printf "%s\0U\0" "$1" >&3; exit 1; fi'
+    exec {_fw_fd}>&1 {_fw_efd}>&2
+  fi
   mapfile -d '' -t _fw_marks < <(
     # find-walk: this is find_walk, the one find that carries the clause itself
     # find-status: read by `wait "$!"` below, on this process substitution
     find ${_fw_pre[@]+"${_fw_pre[@]}"} "${_fw_paths[@]}" ${_fw_glob[@]+"${_fw_glob[@]}"} \
       ${_fw_prune[@]+"${_fw_prune[@]}"} \
-      \( -type d ! -perm -111 ! \( -user "$EUID" -perm -u+x \) \
-      -exec /bin/sh -c '[ -r "$1" ] && [ ! -x "$1" ] && printf "%s\0" "$1" >&3' sh {} \; -prune -false \) -o \
-      \( "${_fw_expr[@]}" \) 3>&1 >&"$_fw_fd"
+      \( "${_fw_sel[@]}" -exec /bin/sh -c "$_fw_prog" sh {} \; -prune -false \) -o \
+      \( "${_fw_expr[@]}" \) 3>&1 >&"$_fw_fd" 2>&"$_fw_efd"
   )
   _fw_rc=0
   wait "$!" || _fw_rc=$?
-  exec {_fw_fd}>&-
-  for _fw_d in "${_fw_marks[@]}"; do
+  exec {_fw_fd}>&- {_fw_efd}>&-
+  if [ "${FIND_WALK_QUIET:-}" = 1 ]; then
+    return "$_fw_rc"
+  fi
+  _fw_frc="$_fw_rc"
+  for ((_fw_k = 0; _fw_k + 1 < ${#_fw_marks[@]}; _fw_k += 2)); do
+    _fw_d="${_fw_marks[_fw_k]}" _fw_kind="${_fw_marks[_fw_k + 1]}"
     # Named once, however many start paths or spellings reached it.
     _fw_dn="$_fw_d"
     _find_walk_tidy _fw_dn
@@ -1690,8 +1963,8 @@ find_walk() {
       # one start it may sit at -maxdepth, never entered, and under another
       # above it, a walk that meant to look beneath it.
       #
-      # DEPTH IS READ FROM THE PATHS AS SPELLED, SO BOTH ARE READ ONE WAY (vc's
-      # ruling): every run of / as one, and a trailing / dropped. Both finds
+      # DEPTH IS READ FROM THE PATHS AS SPELLED, SO BOTH ARE READ ONE WAY:
+      # every run of / as one, and a trailing / dropped. Both finds
       # print `a/x` under a start spelled `a/` and `a//x` under `a//`
       # (measured on Darwin 27 and GNU findutils), and a start `.` prints `./x`.
       _fw_in=0
@@ -1712,12 +1985,28 @@ find_walk() {
       [ "$_fw_in" = 1 ] || continue
     fi
     _fw_said[$_fw_dn]=1
+    [ -z "${FIND_WALK_HOLES:-}" ] || printf '%s\0' "$_fw_d" >>"$FIND_WALK_HOLES"
+    # One find cannot read at all keeps find's own error and status.
+    if [ "$_fw_kind" = U ]; then
+      _fw_u=1
+      continue
+    fi
     case "$_fw_d" in
       *[![:print:]]*) printf -v _fw_d '%q' "$_fw_d" ;;
     esac
     warn "cannot search $_fw_d -- nothing beneath it was looked at"
     _fw_rc=1
   done
+  # A failed find failed somewhere this cannot place unless every failure was
+  # a U it recorded: the same walk with every hole pruned says which, and one
+  # empty record says so, which a caller reads as a hole beneath everything
+  # (issue 0163).
+  if [ -n "${FIND_WALK_HOLES:-}" ] && [ "$_fw_frc" -ne 0 ]; then
+    # find-status: the quiet re-walk's, read by the `if`, and only whether it is 0
+    if [ "$_fw_u" = 0 ] || ! FIND_WALK_HOLES="" FIND_WALK_QUIET=1 find_walk "${_fw_args[@]}"; then
+      printf '\0' >>"$FIND_WALK_HOLES"
+    fi
+  fi
   return "$_fw_rc"
 }
 
@@ -1845,11 +2134,11 @@ sha256_of() {
 #
 # Devbin owns the version-number axis completely -- `version_from`, the sidecars,
 # `version sync` -- and owned nothing of the git one, so every project resolved
-# "what commit is this build" for itself. hv ruled option B: devbin owns the half
-# that is genuinely SHARED and gets independently wrong, and declares nothing
-# about how a build system consumes it.
+# "what commit is this build" for itself. The ruling is option B: devbin owns
+# the half that is genuinely SHARED and gets independently wrong, and declares
+# nothing about how a build system consumes it.
 #
-# THE READ IS THE HALF NOBODY GETS WRONG. All six Lamplight sites agreed on
+# THE READ IS THE HALF NOBODY GETS WRONG. One project's six sites all agreed on
 # `git rev-parse --short HEAD` with `unknown` on failure. The INVALIDATION is
 # where four of four went wrong, each by naming git's internals literally:
 #
@@ -1872,7 +2161,7 @@ sha256_of() {
 # git_readonly <args...> -- git, asked about a repository this process only reads.
 #
 # `--no-optional-locks` because a plain `git status` may refresh the index and
-# take its lock: a census could fail a peer's concurrent commit with
+# take its lock: a caller reading many trees could fail a concurrent commit with
 # `index.lock exists`, and leave a write in a repository it only meant to read.
 #
 # EVERY ONE OF GIT'S LOCAL ENVIRONMENT VARIABLES IS CLEARED, IN A SUBSHELL, and
@@ -1885,19 +2174,19 @@ sha256_of() {
 # THE LIST IS CACHED IN THE SHELL THAT ASKS, AND A COMMAND SUBSTITUTION IS A
 # DIFFERENT SHELL. Every caller runs git_readonly inside `$(...)`, so a cache
 # filled there is gone before the next call -- the first cut claimed "once per
-# process" and asked three times per estate (vc, 2026-09-16, measured with a
-# counting git on PATH). git_readonly_prime fills it in the CURRENT shell, so a
+# process" and asked three times per estate (measured with a counting git on
+# PATH). git_readonly_prime fills it in the CURRENT shell, so a
 # caller that primes before its first substitution pays once for everything
-# beneath it. fleet's scan primes once for the whole fleet; source_commit_of and
-# tree_dirty_paths prime through their first, direct call.
+# beneath it. A scan over many trees primes once for all of them;
+# source_commit_of and tree_dirty_paths prime through their first, direct call.
 #
 # THE REPOSITORY'S OWN SETTINGS ARE NOT TRUSTED EITHER WHERE THEY CAN HIDE A
 # CHANGE OR RUN SOMETHING. `core.fsmonitor` names a hook the repository chose,
 # which would run here and could answer "nothing changed"; `core.untrackedCache`
-# is a cache of that same answer. Both are forced off for the one call.
-# (Moved from `fleet`'s `_estate_git` to lib/install, issue 0056, and from there
-# to lib/helpers, issue 0094: the dispatcher, `release` and `fullcycle` do not
-# source lib/install, and each has a read that must not write.)
+# is a cache of that same answer. Both are forced off for the one call. (Moved
+# to lib/install in issue 0056, and from there to lib/helpers, issue 0094: the
+# dispatcher, `release` and `fullcycle` do not source lib/install, and each has
+# a read that must not write.)
 _DEVBIN_GIT_LOCAL_VARS=""
 git_readonly_prime() {
   [ -z "$_DEVBIN_GIT_LOCAL_VARS" ] || return 0
@@ -1994,15 +2283,15 @@ platform_identity() {
 # runtime_digest <launcher> <libdir> -- SHA256 of the RUNTIME BYTES, 12 hex.
 #
 # THE ONE HOME FOR "WHICH BYTES ARE THESE", and it now has two readers: the
-# `--version` line here, and `fleet`'s per-estate seam digest, which had this
-# computation written out inside it. Two copies of a fingerprint is the worst
-# duplication available -- when they drift, the two surfaces report different
-# identities for one tree and neither says which is authoritative.
+# `--version` line here, and a caller that reports a digest per tree, which had
+# this computation written out inside it. Two copies of a fingerprint is the
+# worst duplication available -- when they drift, the two surfaces report
+# different identities for one tree and neither says which is authoritative.
 #
 # A STAMP IS NOT AN IDENTITY. `git_head_identity` below answers "which commit
 # was this checkout on", which is a different question and can be `<sha> +dirty`
 # -- a value that names no bytes at all. This answers the one a reader comparing
-# two installs actually has: are these the same runtime.
+# installs actually has: are these the same runtime.
 #
 # PATHS ARE FOLDED IN RELATIVE TO THE LIB DIRECTORY, not to a project root, and
 # the choice is load-bearing. It makes a source checkout (`lib/helpers`) and an
@@ -2025,9 +2314,9 @@ platform_identity() {
 # -H FOLLOWS A LIB DIRECTORY THAT IS A SYMLINK, AT THE START POINT ONLY
 # (critic-shell on 0139). find's default -P read such a libdir as the link
 # itself, listed nothing, and the runtime digested as its launcher alone
-# (2ebbc476af34, measured) at rc 0; fleet's `[ -d ]` guard lets that libdir
-# through. A trailing slash on the operand would follow it as well, and would
-# move every install's digest, since the strip below is spelled against $libdir.
+# (measured) at rc 0; a caller's `[ -d ]` guard lets that libdir through. A
+# trailing slash on the operand would follow it as well, and would move every
+# install's digest, since the strip below is spelled against $libdir.
 runtime_digest() {
   local launcher="$1" libdir="$2" f files digest
   # A LIB THAT IS NOT A DIRECTORY IS NO RUNTIME (critic-shell on 0139 v2): a
@@ -2080,7 +2369,7 @@ runtime_digest() {
 # DIFFERENTLY. `bin/devbin --version` printed the name, the version and the
 # tree's commit; `bin/devbin version` printed the name and the version alone.
 # Same question, one tree, two answers, and nothing in either output said which
-# one was the whole story -- found by hv running both in devbin's own checkout,
+# one was the whole story -- found by running both in devbin's own checkout,
 # where the project IS devbin so the disagreement had nowhere left to hide.
 #
 # It is a Highlander violation of the ordinary kind: not duplicated logic, but
@@ -2105,11 +2394,11 @@ version_identity() {
   # TWO FIELDS BECAUSE THEY ANSWER TWO QUESTIONS AND ONE OF THEM CAN BE EMPTY
   # OF MEANING. The commit says where this checkout stood; on a dirty tree it
   # says `+dirty`, which names no bytes at all and is exactly when a reader most
-  # needs an identity. `runtime` is that identity: the same twelve hex `fleet`
-  # reports per estate, so `--version` here and a row in the fleet table can be
-  # compared directly without either side deriving anything.
+  # needs an identity. `runtime` is that identity: the same twelve hex
+  # runtime_digest gives every caller, so `--version` here and another caller's
+  # report can be compared directly without either side deriving anything.
   #
-  # NOT CALLED `tree`. hv's ruling used that word and it is the wrong one for
+  # NOT CALLED `tree`. The ruling used that word and it is the wrong one for
   # this value: `tree` is a git object, a reader meeting it would go looking for
   # one, and would not find it -- a wrong mechanism in a provenance line is
   # actionable in the wrong direction. Rename it if the git object was meant.
@@ -2290,7 +2579,7 @@ assert_semver() {
 # carrying the execute bit.
 #
 # `-x` ALONE IS TRUE FOR A DIRECTORY, and the corpus keeps directories exactly
-# where handlers live. Lamplight's `lamplight_macos.d/pkg` is a directory of
+# where handlers live. One project's `demo_macos.d/pkg` is a directory of
 # packaging resources sitting beside the real sub-handlers, so `macos pkg`
 # descended into it and exec'd it: a raw bash "Is a directory" naming an
 # internal library path, exit 126, and the handler never reached (issue 0005).
@@ -2329,9 +2618,9 @@ is_bare_version() {
 
 # rlwrap_exec <completions> <history> [--] <cmd> [args...] -- exec under rlwrap.
 #
-# Byte-identical in all four projects. Missing rlwrap degrades to a plain exec
-# with a warning rather than failing: losing history is an inconvenience,
-# refusing to start a REPL is an outage.
+# Byte-identical in every project it was folded from. Missing rlwrap degrades to
+# a plain exec with a warning rather than failing: losing history is an
+# inconvenience, refusing to start a REPL is an outage.
 #
 # `opts` is a plain indexed array, which bash 3.2 has (design D9 -- since
 # reversed by issue 0022 -- ruled out only
@@ -2364,7 +2653,7 @@ rlwrap_exec() {
 # Replace the region between two markers in FILE with what <producer> writes to
 # stdout, or refuse and leave FILE untouched.
 #
-# WHY THIS IS HERE AND NOT IN A COMMAND. Four estates independently needed to
+# WHY THIS IS HERE AND NOT IN A COMMAND. Estates independently needed to
 # generate the factual half of a database runbook from live probes. The obvious
 # read is that the PROVIDER CODE is the shared thing, which would put a fly.io
 # opinion inside devbin and break the rule at lib/cmd/db:16. That read is wrong.
@@ -2372,7 +2661,7 @@ rlwrap_exec() {
 # you can just run them; what actually cost a measured incident is the
 # DISCIPLINE of writing a generated file safely. So devbin owns the discipline
 # and every project keeps its own producer. A Neon estate writes a Neon producer
-# and none of this changes (issue 0028; conflab/vc, relayed by lamplight/vc).
+# and none of this changes (issue 0028).
 #
 # It is a HELPER rather than a command, which is what keeps the surface honest:
 # no catalogue row, no opt-in cell, no `@builtin`, and no config schema key --
@@ -2565,6 +2854,16 @@ manifest_field() {
 manifest_version() { manifest_field "$1" devbin_version; }
 manifest_source_commit() { manifest_field "$1" source_commit; }
 
+# vendor_from_hint <install root> -- the line that tells an operator how a
+# project vendors from an install: printed by publish and publish-upgrade, and
+# by the dispatcher's refusal to run from an install, which is why it lives
+# here rather than in lib/install. One home keeps the three from differing;
+# what catches a WRONG line is the test, which runs the printed line in a
+# consumer.
+vendor_from_hint() {
+  printf '  cd <your project> && bin/devbin upgrade --from %s\n' "$1"
+}
+
 # lib_rel -- where devbin's runtime lives, relative to the project root.
 #
 # DERIVED FROM DEVBIN_LIB, NEVER SPELLED (issue 0112). The overview and the
@@ -2584,11 +2883,11 @@ lib_rel() {
 # home_expand <value> -- the inverse: `~` and `~/<rest>` expanded against $HOME.
 #
 # ONE DEFINITION OF THE `~` FORM, IN BOTH DIRECTIONS, WHERE THERE WERE FOUR
-# (issue 0069). `install_prefix_configured` expanded a config value, `fleet doc`
-# wrote its paste line one way and its roots another, and the manifest's source
-# needed both directions -- each with its own copy. They disagreed about exactly
-# the two edges below, and the roots were written into a tracked document with
-# no conversion at all.
+# (issue 0069). `install_prefix_configured` expanded a config value, a document
+# generator wrote its paste line one way and its roots another, and the
+# manifest's source needed both directions -- each with its own copy. They
+# disagreed about exactly the two edges below, and the roots were written into a
+# tracked document with no conversion at all.
 #
 # AN EMPTY HOME ENCODES NOTHING AND EXPANDS NOTHING. With HOME empty, "$HOME/"
 # is "/", which every absolute path starts with: the writer would record a `~`
@@ -2643,19 +2942,218 @@ home_expand() {
   printf '%s\n' "$v"
 }
 
+# devbin_home_pointer -- the file in which this machine records where its devbin
+# install is: one line, the install's absolute root (issue 0153).
+#
+# OUTSIDE EVERY REPOSITORY, BECAUSE WHERE DEVBIN LIVES IS THE MACHINE'S FACT. The
+# manifest is tracked in every project that vendors devbin, and the path it
+# recorded named the operator's directory layout in each of them, deliveries to
+# clients included. So the manifest says WHAT the source was and the machine
+# says WHERE, in the XDG data directory, where a tool conventionally keeps the
+# pointer to its install. XDG_DATA_HOME counts only when it is absolute, as the
+# XDG spec has it; otherwise ~/.local/share. An empty HOME locates nothing.
+devbin_home_pointer() {
+  local d="${XDG_DATA_HOME:-}" home="${HOME:-}"
+  case "$d" in
+    /*) ;;
+    *)
+      home="${home%/}"
+      [ -n "$home" ] || return 1
+      d="$home/.local/share"
+      ;;
+  esac
+  printf '%s\n' "${d%/}/devbin/home"
+}
+
+# machine_named_state -- what this machine NAMES as its devbin install, before
+# anything asks whether the tree there is one. On stdout, one word first:
+#
+#   at <root>       DEVBIN_INSTALL_PREFIX as given, or the pointer's absolute line
+#   none            nothing names one: no override, no pointer
+#   bad <reason>    the pointer is there and cannot be read: empty, a link to
+#                   nothing, unreadable, or relative
+#
+# THE ONE READER OF THE POINTER. machine_install_state adds the check this
+# leaves out, that a tree the pointer names declares itself an install; a
+# caller that lists installs asks this alone, so that the machine's own install
+# is still known as one when it has lost the manifest that would say so (issue
+# 0153).
+machine_named_state() {
+  if [ -n "${DEVBIN_INSTALL_PREFIX:-}" ]; then
+    printf 'at %s\n' "$(home_expand "$DEVBIN_INSTALL_PREFIX")"
+    return 0
+  fi
+  machine_pointer_state
+}
+
+# machine_pointer_state -- what the machine pointer alone names, in
+# machine_named_state's three states: the half of it that never asks
+# DEVBIN_INSTALL_PREFIX, for a reader whose question is the pointer itself (a
+# publish saying what it left alone, a sweep run on the variable).
+#
+# A LINK TO NOTHING IS SAID AS ONE (critic-shell on 0153 v3.2). Read as a file it
+# could not open, it was "empty, or cannot be read", and the remedy every reader
+# then gave, a publish, fails on it: replace_file will not write through a link
+# that leads nowhere (issue 0084).
+machine_pointer_state() {
+  local p v=""
+  if ! p="$(devbin_home_pointer)" || { [ ! -e "$p" ] && [ ! -L "$p" ]; }; then
+    printf 'none\n'
+    return 0
+  fi
+  if [ -L "$p" ] && [ ! -e "$p" ]; then
+    printf 'bad the machine pointer %s is a link to nothing, which a publish will not write through -- remove the link\n' "$p"
+    return 0
+  fi
+  # The shell's own word on a redirect it cannot open (a link to nothing, a
+  # directory, no read permission) is dropped: the reason below says it, once,
+  # to every reader, and the daily notice leaves stderr open.
+  if ! { IFS= read -r v <"$p" || [ -n "$v" ]; } 2>/dev/null || [ -z "$v" ]; then
+    printf 'bad the machine pointer %s is empty, or cannot be read\n' "$p"
+    return 0
+  fi
+  case "$v" in
+    /*) ;;
+    *)
+      printf "bad the machine pointer %s names '%s', which is not an absolute path\n" "$p" "$v"
+      return 0
+      ;;
+  esac
+  printf 'at %s\n' "$v"
+}
+
+# machine_install_state -- THREE states, on stdout, one word first:
+#
+#   at <root>       the machine names an install, and this is its root
+#   none            nothing names one: no override, no pointer
+#   bad <reason>    the pointer is there and cannot be trusted
+#
+# DEVBIN_INSTALL_PREFIX FIRST, AS GIVEN, then the pointer: a default with an
+# override, the variable `dvb` already reads. A pointer that is empty, a link to
+# nothing, relative, or names a tree that does not declare itself an install is
+# `bad`, never `none`: a reader told nothing is recorded would say so, and be
+# wrong about why. One reading, machine_named_state's, so machine_install_root,
+# devbin_source_state and any other caller cannot come to disagree about what
+# the pointer says.
+machine_install_state() {
+  local s m
+  s="$(machine_named_state)"
+  if [ -z "${DEVBIN_INSTALL_PREFIX:-}" ] && [ "${s%% *}" = at ]; then
+    # A manifest that is there and cannot be read says nothing about the tree,
+    # so it is named as that, never as a tree that is no install.
+    m="$(manifest_path "${s#at }")"
+    if [ -e "$m" ] && [ ! -r "$m" ]; then
+      printf 'bad the machine pointer %s names %s, whose manifest cannot be read\n' "$(devbin_home_pointer)" "${s#at }"
+      return 0
+    fi
+    if [ "$(manifest_field "${s#at }" kind 2>/dev/null || true)" != install ]; then
+      printf 'bad the machine pointer %s names %s, which is not a devbin install\n' "$(devbin_home_pointer)" "${s#at }"
+      return 0
+    fi
+  fi
+  printf '%s\n' "$s"
+}
+
+# machine_install_namer -- what names this machine's install, as the subject of a
+# sentence: DEVBIN_INSTALL_PREFIX while it is set, since it is read first, and
+# this machine otherwise, through its pointer. A message that said "this
+# machine names" while the variable did sent the reader to a pointer that had
+# no say (critic-shell on 0153 v3.2).
+machine_install_namer() {
+  if [ -n "${DEVBIN_INSTALL_PREFIX:-}" ]; then
+    printf 'DEVBIN_INSTALL_PREFIX'
+  else
+    printf 'this machine'
+  fi
+}
+
+# source_override_note <root> -- one warning line, when <root>'s recorded source
+# is an install and DEVBIN_INSTALL_PREFIX is what placed it, saying so; nothing
+# otherwise. For a refusal of the source it placed: the variable is taken as
+# given, so the tree it names is never checked before that refusal.
+source_override_note() {
+  [ -n "${DEVBIN_INSTALL_PREFIX:-}" ] || return 0
+  [ "$(manifest_field "$1" source 2>/dev/null || true)" = install ] || return 0
+  warn "  DEVBIN_INSTALL_PREFIX names it as this machine's devbin install"
+}
+
+# machine_install_root -- the root of this machine's devbin install: rc 0 with
+# the root; rc 1, having printed nothing, when nothing names one; rc 2, the
+# reason on stderr, when the pointer cannot be trusted.
+machine_install_root() {
+  local s
+  s="$(machine_install_state)"
+  case "$s" in
+    "at "*) printf '%s\n' "${s#at }" ;;
+    none) return 1 ;;
+    *)
+      warn "${s#bad }"
+      return 2
+      ;;
+  esac
+}
+
+# source_unplaced_why <root> -- why <root>'s recorded source cannot be placed
+# on this machine, as one clause, for every reader that has to say so: the
+# notice and doctor through devbin_source_state, and upgrade and vendor when
+# no --from is given. One wording, so they cannot disagree about the cause.
+#
+# THE KIND RECORDED DECIDES WHAT IS MISSING (issue 0153). A project records the
+# kind of source it came from and this machine says where that is, so an
+# unplaced source is said as what is missing HERE, never as a record the
+# project does not have.
+source_unplaced_why() {
+  local kind m
+  kind="$(manifest_field "$1" source 2>/dev/null || true)"
+  case "$kind" in
+    "") printf 'this project records no source' ;;
+    install)
+      m="$(machine_install_state)"
+      case "$m" in
+        "bad "*) printf '%s' "${m#bad }" ;;
+        *) printf 'this project came from a devbin install, and this machine names none: no %s, and DEVBIN_INSTALL_PREFIX is not set' \
+          "$(devbin_home_pointer 2>/dev/null || printf 'machine pointer')" ;;
+      esac
+      ;;
+    checkout) printf 'this project came from a devbin checkout, and DEVBIN_SOURCE names none here' ;;
+    project) printf 'this project came from another project, which nothing on this machine names' ;;
+    *) printf 'the source this project records cannot be read' ;;
+  esac
+  return 0
+}
+
 # manifest_source <root> -- the recorded source, as the absolute path it names.
 #
-# RECORDED THROUGH home_relative, READ THROUGH home_expand (issue 0069). The
-# manifest is tracked in the estates that vendor devbin, several of them public,
-# and an absolute source put the operator's home directory -- and with it their
-# login name -- into every one, rewritten on every upgrade so no scrub survived.
-# Every reader comes through here and still gets the absolute path it always
-# got. A manifest written before the change carries an absolute value, which
-# reads back as it is until that estate's next upgrade.
+# WHAT IS RECORDED IS A KIND, NEVER A PLACE (issue 0153): `install`, `checkout`
+# or `project`, as `manifest_source_token` in lib/install writes them. The place
+# comes from this machine -- an install from machine_install_root, a checkout
+# from DEVBIN_SOURCE, which names one for `dvb` too -- and a project vendored
+# from another project has none, so its caller asks for --from, as it does when
+# nothing was recorded at all. Every reader comes through here, so none of them
+# knows the difference.
+#
+# A RECORDED PATH STILL READS (issue 0069): a manifest written before 0153
+# carries `~/...`, or before 0069 an absolute path, and either resolves as it
+# always did until that project's next upgrade writes the kind in its place.
+#
+# rc 1 when nothing resolves; rc 2, with machine_install_root's reason on
+# stderr, when the machine pointer cannot be trusted.
 manifest_source() {
   local v
   v="$(manifest_field "$1" source)" || return 1
-  home_expand "$v"
+  case "$v" in
+    install) machine_install_root ;;
+    checkout)
+      v="${DEVBIN_SOURCE:-}"
+      [ -n "$v" ] || return 1
+      v="$(home_expand "$v")"
+      # dvb accepts the root or its bin/devbin, so this does too.
+      case "$v" in */bin/devbin) v="${v%/bin/devbin}" ;; esac
+      printf '%s\n' "$v"
+      ;;
+    project) return 1 ;;
+    *) home_expand "$v" ;;
+  esac
 }
 
 # _devbin_source_head <srcroot> -- the commit the SOURCE currently holds.
@@ -2722,7 +3220,7 @@ _devbin_source_head() {
 #
 # UNKNOWN IS A REAL ANSWER AND MUST NEVER BE READ AS `forward`. There are four
 # ways to reach it and none of them is exotic: the field is ABSENT on a manifest
-# written before b433988, it is PROSE when the source was not a checkout, it
+# that predates the field, it is PROSE when the source was not a checkout, it
 # carries `+dirty` when the bytes matched no commit, and a fresh clone may
 # simply not HAVE the recorded commit. Collapsing any of those into "fine" is
 # the direction that costs something -- upgrade syncs from source
@@ -2870,6 +3368,57 @@ is_yes_answer() {
   esac
 }
 
+# stdin_tty_flag -- `1` when this process's stdin is a terminal, else `0`: the
+# rule DEVBIN_GATE_TTY is read by in a devbin process (issue 0088). gate_exec
+# reads the flag this way for the command it runs, so a stale inherited value
+# cannot stand -- a tool it runs keeps the flag only inside the gate, and
+# bin/devbin drops that mark -- and a caller that must ask a person BEFORE its
+# gate opens -- fullcycle (0096) -- reads the same rule here.
+stdin_tty_flag() {
+  if [ -t 0 ]; then printf '1\n'; else printf '0\n'; fi
+}
+
+# gate_exec <command> [args...] -- run <command> as a gated tool runs, and
+# return its status: stdin from /dev/null, so a tool that would prompt reads
+# EOF instead of waiting on a terminal nobody may be watching, and
+# DEVBIN_GATE_TTY saying whether a person IS at one, so devbin's own code can
+# still ask through /dev/tty (issue 0088).
+#
+# THE ONE DEFINITION OF THAT RULE (issue 0158). run_gate wrote it inline, so a
+# project's own handler that runs a gate tool directly got neither half: a
+# prompting tool blocked at a terminal while an agent read EOF, and each
+# handler would have had to copy the redirect at every tool line.
+#
+# IT LIVES IN lib/helpers, NOT lib/runlog, AND THAT IS THE POINT: a scaffolded
+# handler sources helpers alone (lib/tmpl/handler), and a project's handler is
+# exactly the caller this exists for. Do not tidy it back into runlog.
+#
+# THE FLAG DESCRIBES THE PERSON, SO INSIDE A GATE IT IS KEPT (critic-shell on
+# 0158 v1). A command run under this one is told it is inside a gate
+# (DEVBIN_IN_GATE=1), and there the gate's own stdin is /dev/null, so asking it
+# again would say no person is there while the gate around it knew one was:
+# release's `version set` and `after:` lines, which inherited the flag before,
+# would have lost it. Outside a gate the flag is read from this stdin, whatever
+# the environment carries, so a stale one still cannot stand (issue 0088).
+#
+# AN EMPTY COMMAND IS REFUSED: with no word to run, the assignments in front
+# of it would be made in the caller's own shell, and nothing would run at rc 0.
+#
+# The local carries its own prefix: <command> may be a shell function, which
+# sees this function's locals by dynamic scope.
+gate_exec() {
+  local _ge_tty
+  if [ "$#" -eq 0 ]; then
+    warn "gate_exec: no command to run"
+    return 2
+  fi
+  case "${DEVBIN_IN_GATE:-}:${DEVBIN_GATE_TTY:-}" in
+    1:0 | 1:1) _ge_tty="$DEVBIN_GATE_TTY" ;;
+    *) _ge_tty="$(stdin_tty_flag)" ;;
+  esac
+  DEVBIN_IN_GATE=1 DEVBIN_GATE_TTY="$_ge_tty" "$@" </dev/null
+}
+
 # ask_person <question> -- ask a person at the terminal a yes/no question, from
 # inside a gate. Prints `<question> [y/N] ` and reads the answer from /dev/tty.
 #   0  the answer was a yes: y or yes, in any case (is_yes_answer)
@@ -2880,7 +3429,7 @@ is_yes_answer() {
 # 1 for both and says which in its message: release exited 2 for the second,
 # as ST0007 AC-5.3 asked, until issue 0130 gave 2 back to the dispatcher.
 #
-# THE ONE HOME FOR THE QUESTION (issue 0089; hv, option B): clean, fullcycle
+# THE ONE HOME FOR THE QUESTION (issue 0089, option B): clean, fullcycle
 # and the release core's first-push confirmation all ask through here, so the
 # rule for "is a person here" is written once.
 #
@@ -3030,8 +3579,11 @@ devbin_source_state() {
   [ -n "$root" ] || { printf 'unknown no project root given\n'; return 0; }
 
   src="$(manifest_source "$root" 2>/dev/null || true)"
+  if [ -z "$src" ]; then
+    printf 'unknown %s\n' "$(source_unplaced_why "$root")"
+    return 0
+  fi
   rec="$(manifest_source_commit "$root" 2>/dev/null || true)"
-  [ -n "$src" ] || { printf 'unknown this project records no source\n'; return 0; }
   [ -n "$rec" ] || { printf 'unknown this project records no source commit\n'; return 0; }
   [ -d "$src" ] || { printf 'unknown the source is not on this machine: %s\n' "$src"; return 0; }
 
@@ -3165,7 +3717,7 @@ devbin_update_notice() {
   base=".devbin-update-$(printf '%s' "$root" | tr -c 'a-zA-Z0-9' '-')"
   dir="${TMPDIR:-/tmp}"
   stamp="$dir/$base"
-  # -mtime is POSIX; -newermt is GNU-only and this fleet runs on macOS.
+  # -mtime is POSIX; -newermt is GNU-only, and devbin runs on macOS too.
   #
   # find's errors go to /dev/null HERE ON PURPOSE, one of two finds in lib/ that
   # may (issue 0139); the other is lib/install's seam check, which reads find's

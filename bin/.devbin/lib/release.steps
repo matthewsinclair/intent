@@ -104,7 +104,7 @@ release_versions() {
   # loop's status is its last body's, so a tag listed last that matches the
   # template and names no version failed the loop, pipefail made that the
   # pipeline's, and step 1 stopped with nothing said. git lists tags in byte
-  # order, so which tag is last is an accident of spelling (Utilz: tag
+  # order, so which tag is last is an accident of spelling (one project: tag
   # `{version}`, its old `v2.6.1` listed after every `2.x.y`).
   if ! versions="$(
     while IFS= read -r t; do
@@ -190,14 +190,16 @@ release_commit() {
 # materialised under the project root is untracked, non-ignored dirt -- exactly
 # what step 4's cleanliness clause and D38's tree rule read -- so a status run
 # would change the fact it reports. The check is made BEFORE anything is
-# created, on physical paths, so a symlinked $TMPDIR cannot hide inside.
+# created, on physical paths, so a symlinked $TMPDIR cannot hide inside, through
+# physical_dir, the one turn of a directory into one (issue 0162): its own
+# copies kept a leading //, so a root spelled that way walked past the check.
 release_scratch() {
   local root base dir
-  if ! root="$(cd -P "$1" 2>/dev/null && pwd -P)"; then
+  if ! physical_dir "$1" root; then
     warn "release: cannot resolve the project root $1"
     return 1
   fi
-  if ! base="$(cd -P "${TMPDIR:-/tmp}" 2>/dev/null && pwd -P)"; then
+  if ! physical_dir "${TMPDIR:-/tmp}" base; then
     warn "release: TMPDIR (${TMPDIR:-/tmp}) is not a directory, so there is nowhere to materialise a commit"
     return 1
   fi
@@ -222,8 +224,8 @@ release_scratch() {
 # notes_views_check renders from every note, and a `command` provider runs its
 # own script from the root.
 #
-# THROUGH AN INDEX OF ITS OWN, NOT `git archive` (hv, 2026-09-18, vc decision
-# 18, on dc's proposal and measurement). The archive applies export attributes:
+# THROUGH AN INDEX OF ITS OWN, NOT `git archive`.
+# The archive applies export attributes:
 # `export-ignore` drops a path, on a parent directory too, and `export-subst`
 # rewrites a file's bytes. Refusing them on the paths a release OWNS was not
 # enough -- an export-ignored OLDER note made the views read STALE for a
@@ -235,16 +237,16 @@ release_scratch() {
 # the scratch index is `<dir>.index`, beside it. Both are then under the one
 # root the caller's one trap removes, so an interrupt between `read-tree` and
 # the index's removal leaves nothing behind (WP-04; until then the tree WAS the
-# root and the index its sibling, which the trap missed -- dc's review of
-# 4328583). checkout-index makes <dir>. The index is still removed before this
+# root and the index its sibling, which the trap missed).
+# checkout-index makes <dir>. The index is still removed before this
 # returns, so a caller materialising two commits under one root holds one
 # index at a time.
 #
-# THE ATTRIBUTES ARE THE COMMIT'S (`--attr-source`, dc's review of ea7bc47).
+# THE ATTRIBUTES ARE THE COMMIT'S (`--attr-source`).
 # checkout-index otherwise reads .gitattributes from the WORKING TREE, so an
 # eol attribute committed after the tag, or one not committed at all, rewrote
 # the tagged release's bytes and rows 3 and 4 read UNREADABLE for a correct
-# release (dc, measured). `--attr-source` needs git 2.40; on an older git the
+# release (measured). `--attr-source` needs git 2.40; on an older git the
 # write fails and the rows say "could not materialise" -- loud, never wrong.
 #
 # THE POST-CHECK STAYS AS A GUARD: a depended path the commit holds
@@ -258,7 +260,7 @@ release_scratch() {
 #   - checkout-index applies smudge and eol filters, so the bytes are the ones
 #     a checkout of the commit would hold under the commit's own attributes. A
 #     clone's own .git/info/attributes and core.attributesFile still apply, as
-#     they would to a checkout (dc, measured: a smudge filter there still
+#     they would to a checkout (measured: a smudge filter there still
 #     rewrites the bytes). A required filter that fails fails the write (git
 #     2.55.0, measured 2026-09-18). On an LFS project the smudge downloads a
 #     missing object and writes .git/lfs/objects -- measured under git archive
@@ -273,7 +275,7 @@ release_materialise() {
   local commit="$1" dir="$2" idx="$2.index" p dropped="" wrote=yes
   shift 2
   # NO ARM REACHES IT: every caller names its directory once per run under a
-  # fresh scratch root, so a mutant dropping this lives (vc's M8, 2026-09-18).
+  # fresh scratch root, so a mutant dropping this lives.
   # Kept because a second tree written over the first would read as one.
   if [ -e "$dir" ] || [ -e "$idx" ]; then
     warn "release: $dir (or its index) already exists, so it cannot be a commit's tree alone"
@@ -360,7 +362,7 @@ release_owned() {
 
 # release_dirt -- every dirty path in the working tree, one per line: staged,
 # modified, deleted, and untracked but not ignored, which D38's tree rule counts
-# as dirt too (vc's S2 (a)). A rename or copy is both of its paths.
+# as dirt too. A rename or copy is both of its paths.
 #
 # READ WITH -z, so a path holding a space or a quote is the path and not git's
 # quoting of it: the owned-set test compares these with notes_paths' spelling.
@@ -399,7 +401,7 @@ release_outside() {
 # release_tree_state -- `<hash><TAB><path>` for every dirty path, the hash of
 # its bytes now (`gone` for a path that is gone). Two states compared by
 # release_tree_changed name every path that changed between them, which is how
-# step 5 re-reads the tree after the gates (vc's S2): a path a gate modified,
+# step 5 re-reads the tree after the gates: a path a gate modified,
 # created, deleted or cleaned. A path dirty before the gates and rewritten by
 # them is caught by its hash, where `git status` alone would read the same.
 release_tree_state() {
@@ -425,7 +427,7 @@ release_tree_changed() {
 
 # release_read_clean -- step 4's cleanliness clause over the working tree: no
 # modification and no untracked, non-ignored file (D38's tree rule counts both).
-# The caller asks it only while the tag is absent (vc's N2).
+# The caller asks it only while the tag is absent.
 release_read_clean() {
   local dirt
   if ! dirt="$(release_dirt 2>&1)"; then
@@ -458,7 +460,7 @@ release_read_tag() {
 # it is not the tag the core makes: "; <why>", or nothing when it is annotated
 # and its message is the notes body read under <root>. A VERDICT, not only a
 # report: step 7 reads back the tag it just made through this, and an empty
-# answer is the one that passes (vc's W6), so no caller decides by matching
+# answer is the one that passes, so no caller decides by matching
 # release_read_tag's prose.
 release_tag_reuse_note() {
   local tag="$1" root="$2" v="$3" kind notes message
@@ -478,7 +480,7 @@ release_tag_reuse_note() {
 # release_git_remote <git-args>... -- every git call the release core makes to a
 # remote goes through here, so none can stop on a question at the terminal
 # (issue 0088, row 3). git asks for a credential on /dev/tty, not on stdin, so
-# capturing a call's output does not stop it: measured by dc, `ls-remote`
+# capturing a call's output does not stop it. Measured: `ls-remote`
 # BLOCKS on a pty for an HTTP 401 and fails loudly with no tty. A human at a
 # terminal would get a question agents and CI never see.
 #
@@ -620,7 +622,7 @@ release_read_remote() {
 }
 
 # release_repo <declared-repo> <declared-remote> -- the repository gh is told
-# about, as OWNER/NAME or HOST/OWNER/NAME (hv, 2026-09-18, vc decision 16).
+# about, as OWNER/NAME or HOST/OWNER/NAME.
 # <declared-repo> is `release.repo` and <declared-remote> the first declared
 # `remotes` entry, each empty when not declared: the handler reads them, since
 # the library never reads config. <declared-repo> when given; otherwise read
@@ -631,7 +633,7 @@ release_read_remote() {
 # insteadOf and would report where the bytes go rather than which repository
 # the project names. Anything that cannot be resolved fails, with the reason on
 # stderr naming the key -- never gh's own guess, which with no tty silently
-# picked another remote's repository (dc, measured on gh 2.101).
+# picked another remote's repository (measured on gh 2.101).
 release_repo() {
   local repo="$1" remote="$2" all url rest host path
   if [ -n "$repo" ]; then
@@ -735,8 +737,8 @@ release_read_object() {
 }
 
 # release_read_object_content <repo> <tag> <title> <body-file> -- whether the
-# release object that exists for <tag> carries this release's title and notes
-# (vc's R2): `already` when both match, `pending` naming what differs, since a
+# release object that exists for <tag> carries this release's title and notes:
+# `already` when both match, `pending` naming what differs, since a
 # confirmed run has work there, or UNREADABLE. Read through release_gh, one
 # field per call so gh's own --jq answers and nothing else is needed. The
 # notes are compared as text, trailing newlines aside, as gh keeps them.
@@ -789,14 +791,14 @@ release_seconds() {
 # this. It lives beside its only callers; it moves to lib/helpers when a second
 # caller appears.
 #
-# The shape is Utilz's install_run_bounded, and so is its lesson (utilz#0032):
+# The shape is a consumer's own install_run_bounded, and so is its lesson:
 # THE WATCHDOG HOLDS NONE OF ITS CALLER'S OUTPUT. A caller reading this through
 # $(...) waits for every holder of its pipe, and a TERM landing between
 # `sleep &` and `sleeper=$!` would otherwise leave that sleep holding it until
 # the deadline.
 #
 # THE CALL RUNS IN ITS OWN PROCESS GROUP, and the deadline kills the group. It
-# killed one level until dc's WP-06 review: a query script's own `sleep` was
+# killed one level until the WP-06 review: a query script's own `sleep` was
 # orphaned, and it held every descriptor it had inherited -- measured, bats's
 # fd 3, so one arm added a minute to every run -- and the kill landed before
 # the reader's own cleanup. `set -m` in the wrapper puts the call in a group of
@@ -804,7 +806,7 @@ release_seconds() {
 # exec could not do it. A call that makes a session of its own is out of reach,
 # as it is for any group kill.
 #
-# AND A GROUP OF ITS OWN IS NOT THE TERMINAL'S FOREGROUND GROUP (dc, measured
+# AND A GROUP OF ITS OWN IS NOT THE TERMINAL'S FOREGROUND GROUP (measured
 # under a pty): a call that opens /dev/tty to ask is stopped (SIGTTIN) until the
 # deadline, and reads as "did not finish within", instead of prompting. The core's
 # own calls never ask -- release_git_remote turns git's prompt off and runs ssh
@@ -927,24 +929,24 @@ release_wait() {
 # appended as notes.run receives its verb and version, with the release tag in
 # its environment as DEVBIN_RELEASE_TAG, and no stdin; its first line of
 # output is `<verdict>[<TAB><detail>]`, the detail naming the run (an id or a
-# url) or the reason. That is Utilz's install_ci_state shape, with the core's
-# own verdict words rather than gh's conclusion words.
+# url) or the reason. That is a consumer's own install_ci_state shape, with the
+# core's own verdict words rather than gh's conclusion words.
 #
 # A QUERY THAT READS DEVBIN_RELEASE_TAG ANSWERS FOR THAT TAG'S RUNS ONLY, and
 # `none` until one exists (issue 0149). A release pushes the release commit to
 # its branch and pushes the tag, and CI may run a workflow for each, on that
-# one sha. Asked about the sha alone, a query read every run on it, and Gtools'
-# v0.4.0 cut ended green on the branch push's run (36155136723, which skips the
-# macOS job) before the tag's run (36156500018, which carries it) existed. The
-# tag is the release's identity, so its runs are the verdict.
+# one sha. Asked about the sha alone, a query read every run on it, and one
+# estate's cut ended green on the branch push's run (which skips the macOS
+# job) before the tag's run (which carries it) existed. The tag is the
+# release's identity, so its runs are the verdict.
 #
-# THE TAG TRAVELS IN THE ENVIRONMENT, NOT AS AN ARGUMENT (vc's ruling): the
-# fleet's queries, Gtools' and Utilz's tools/ci-state, refuse any argument but
-# the sha, so a second one would have failed every cut of theirs at step 11,
-# after the tag, the push and the release object. A query that does not read
-# DEVBIN_RELEASE_TAG keeps its old verdict, every run on the sha, and nothing
-# here can tell it from one that reads it: that is the declared limit, and the
-# release note of issue 0149 asks each such estate to read the tag.
+# THE TAG TRAVELS IN THE ENVIRONMENT, NOT AS AN ARGUMENT: consumers' own
+# queries, tools/ci-state scripts, refused any argument but the sha, so a second
+# one would have failed every cut of theirs at step 11, after the tag, the push
+# and the release object. A query that does not read DEVBIN_RELEASE_TAG keeps
+# its old verdict, every run on the sha, and nothing here can tell it from one
+# that reads it: that is the declared limit, and the release note of issue 0149
+# asks each such estate to read the tag.
 #
 # IT NEVER GUESSES: a query that exits non-zero, prints nothing, or prints a
 # first word that is not a verdict is `unknown`, carrying what it said -- a

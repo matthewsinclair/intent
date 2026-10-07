@@ -1,8 +1,8 @@
     bin/devbin precommit [<option>|all] [args...]
 
-Run this project's pre-commit gate. devbin ships the name `precommit` and nothing behind it: what a pre-commit gate checks belongs to the project, so each project declares what `precommit` runs (devbin design D18, tier 4).
+Run this project's pre-commit gate. devbin ships the name `precommit` and nothing behind it: what a pre-commit gate checks belongs to the project, so each project declares what `precommit` runs.
 
-It is also opt-in (devbin design D22): absent until a project asks for it, with `commands.precommit.enabled: true` or by filling it as below. `enabled: false` switches it off again, whatever fills it.
+It is also opt-in: absent until a project asks for it, with `commands.precommit.enabled: true` or by filling it as below. `enabled: false` switches it off again, whatever fills it.
 
 ## Until the project fills it
 

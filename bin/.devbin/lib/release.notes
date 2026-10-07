@@ -105,7 +105,7 @@ notes_select() {
       # call run_words; critic-shell caught it.
       #
       # IT WAS HARMLESS AS WRITTEN, AND FOR A SHARPER REASON THAN THE ONE FIRST
-      # WRITTEN HERE (dc). The two readers can disagree only if a value
+      # WRITTEN HERE. The two readers can disagree only if a value
       # has_words accepts globs to ZERO words, and measured on bash 5.3 exactly
       # one thing does that: `nullglob`. A word matching nothing passes through
       # as written (count 1), and GLOBIGNORE filtering away every match returns
@@ -492,8 +492,8 @@ _notes_releases_section() {
 # _notes_releases_changelog <root> -- CHANGELOG.md, on stdout: Keep a Changelog,
 # assembled from the notes.
 #
-# THE HEADER IS THE CORE'S AND NAMES THE PROJECT (hv, 2026-09-17, ruling on
-# ST0007 D39). While this lived in devbin's project handler its header also
+# THE HEADER IS THE CORE'S AND NAMES THE PROJECT (ST0007 D39).
+# While this lived in devbin's project handler its header also
 # stated devbin's own semver deviation, which every project taking
 # `notes.kind: releases` would then have published about itself. That rule's one
 # home is docs/configuration.md, beside `devbin_version`.
@@ -601,7 +601,7 @@ _notes_md_table() {
 # NEVER through a redirect onto the target. `render > path` truncates before the
 # renderer runs, so a renderer that dies leaves the previous good file empty --
 # the same defect this repository already carries as issue 0002, and the same
-# one the fleet generator was caught by. Each view is staged beside its target
+# one another generator was caught by. Each view is staged beside its target
 # (stage_beside: the render written into a temporary with the view's mode, and
 # removed if the render fails), and both are renamed into place only once both
 # are staged -- by rename_staged, which renames a view that is a link over the
@@ -743,7 +743,7 @@ _notes_releases_paths() {
 
 # ============================================================================
 # changelog -- a `## [<version>]` section in a hand-written CHANGELOG.md.
-# Intent's shape and Utilz's. It generates nothing, so it has no views.
+# The shape a consumer keeps by hand. It generates nothing, so it has no views.
 # ============================================================================
 #
 # A version's heading is `## [<version>] - <marker>`: `unreleased` or
@@ -751,8 +751,8 @@ _notes_releases_paths() {
 # dated.
 #
 # ONLY THE ASKED-FOR VERSION'S HEADING IS EVER PARSED. A changelog's history is
-# prose, and Intent's carries `## [2.19.1] - never released; this work shipped
-# in 3.0.0` -- a heading no rule here should have an opinion about.
+# prose, and one consumer's carries `## [2.19.1] - never released; this work
+# shipped in 3.0.0` -- a heading no rule here should have an opinion about.
 
 _notes_changelog_where() {
   printf '## [%s] heading in %s' "$1" "$_NOTES_CHANGELOG"

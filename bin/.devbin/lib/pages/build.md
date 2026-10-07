@@ -1,6 +1,6 @@
     bin/devbin build [<option>|all]
 
-Build this project's targets. devbin ships the name `build` and nothing behind it: projects build different things, so each project declares what `build` runs (devbin design D18, tier 4).
+Build this project's targets. devbin ships the name `build` and nothing behind it: projects build different things, so each project declares what `build` runs.
 
 ## Until the project declares one
 

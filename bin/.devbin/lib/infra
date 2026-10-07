@@ -28,9 +28,9 @@
 # foot of this file, is the one statement of the keys a profile may carry, and a
 # key it has no row for is refused before anything is checked. Until 0143 no
 # such list existed, so a key the schema had no field for parsed, validated and
-# was never read: vc drove a profile declaring a DMARC sp=, a sender's second
-# DKIM key and a wildcard against a zone carrying none of them, and check said
-# "4 assertion(s) held, 0 drift, 0 NOT MEASURED" at rc 0.
+# was never read: a profile declaring a DMARC sp=, a sender's second
+# DKIM key and a wildcard was driven against a zone carrying none of them, and
+# check said "4 assertion(s) held, 0 drift, 0 NOT MEASURED" at rc 0.
 
 [ -n "${_DEVBIN_INFRA_LOADED:-}" ] && return 0
 _DEVBIN_INFRA_LOADED=1
@@ -438,10 +438,10 @@ domains.<handle>.dmarc                none
 domains.<handle>.senders.<n>
 senders.<sender>.spf_include
 senders.<sender>.dkim.name
-senders.<sender>.dkim.type
+senders.<sender>.dkim.type            CNAME|TXT
 senders.<sender>.dkim.value
 senders.<sender>.dkim.<label>.name
-senders.<sender>.dkim.<label>.type
+senders.<sender>.dkim.<label>.type    CNAME|TXT
 senders.<sender>.dkim.<label>.value
 runtime.fly.<app>.org
 runtime.fly.<app>.hostnames.<n>
@@ -519,7 +519,7 @@ _infra_unknown_key() {
 #
 # ONE PASS OVER THE CACHE, no fork per row. A row is tried only against table
 # rows starting with its own first segment, which keeps the pass to a few tens
-# of milliseconds on the largest profile in the fleet (90 rows).
+# of milliseconds on the largest profile measured (90 rows).
 infra_profile_keys_known() {
   local k v pat vals first found w ok rc=0
   local -a allowed
@@ -543,7 +543,7 @@ infra_profile_keys_known() {
       rc=1
       continue
     fi
-    # ONE ADDRESS, not a list in a string (issue 0143, vc's ruling). A wildcard
+    # ONE ADDRESS, not a list in a string (issue 0143). A wildcard
     # A or AAAA is compared as the whole set, so `a: "192.0.2.7 192.0.2.8"`
     # could never hold, and its drift line would print the two sides alike.
     case "$pat:$v" in

@@ -5,9 +5,9 @@
 #
 # {{NAME}} -- a devbin command handler, scaffolded by `{{DEVBIN}} new {{NAME}}`.
 #
-# The two `# devbin:` lines above are read by help (design D23). They are the
-# ONE place this command's summary and group are declared -- config can override
-# them, nothing else duplicates them. Delete a line to drop that field.
+# The two `# devbin:` lines above are read by help. They are the ONE place this
+# command's summary and group are declared -- config can override them, nothing
+# else duplicates them. Delete a line to drop that field.
 #
 # This runs as a SEPARATE PROCESS. What reaches it is the environment below plus
 # whatever devbin did not recognise on the command line; it never reads config.
@@ -17,6 +17,11 @@
 #   DEVBIN_LIB       the devbin runtime, for sourcing helpers
 #   DEVBIN_COMMAND   the name this was invoked as
 #   DEVBIN_INVOKE    how to invoke this devbin from where you were called
+#
+# A gate tool this runs directly -- a formatter, a test runner, anything that
+# might prompt -- goes through `gate_exec <tool> [args]` (lib/helpers): stdin
+# from /dev/null and DEVBIN_GATE_TTY set, as devbin's own gates run theirs.
+# Inside a gate the flag the gate read is kept (DEVBIN_IN_GATE=1 marks it).
 #
 # Sub-commands: drop an executable at cmd/{{NAME}}.d/<word> and devbin routes
 # `{{DEVBIN}} {{NAME}} <word>` to it, at any depth. A word with no handler behind

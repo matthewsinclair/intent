@@ -31,14 +31,14 @@ usage: $DEVBIN_INVOKE upgrade [--from <dir>] [--force]
   --from <dir>   the devbin to upgrade from (default: the source the manifest records)
   --prefix <dir> PUBLISH-UPGRADE only: the machine install to replace
                  (default: install.prefix in devbin's own config. There is no
-                 built-in default -- the location is configuration, D32)
+                 built-in default -- the location is configuration)
   --force        overwrite vendored files that were edited in place, and, in
                  an install with no manifest, replace every one unchecked
 
 Replaces bin/devbin and bin/.devbin/lib/. Never touches config.yaml, cmd/ or
 help/ -- those are yours.
 
-TWO MODES, chosen by the tree you are standing in (ST0005, D26):
+TWO MODES, chosen by the tree you are standing in:
 
   PUBLISH-UPGRADE  run inside devbin's own source tree. Replaces the machine
                    install that the estate vendors from. Refuses on a dirty tree,
@@ -71,12 +71,15 @@ _upgrade_provenance_lines() {
 # The mirror of `install`'s PUBLISH mode and it shares that mode's single writer,
 # `publish_install`. What differs is the precondition and nothing else: `install`
 # refuses when an install already exists, this refuses when one does not, so
-# whichever verb you reach for, the wrong one names the right one (hv, 2026-09-06).
+# whichever verb you reach for, the wrong one names the right one.
 _upgrade_the_install() {
-  local srcroot="$1" prefix="$2" dstroot dirty modified record rel states unreadable
+  local srcroot="$1" prefix="$2" dstroot dirty modified record rel states unreadable configured unvouched
 
   cfg_load "$DEVBIN_DIR/config.yaml" >/dev/null 2>&1 ||
     die "cannot read devbin's own config at $DEVBIN_DIR/config.yaml"
+  # Read while devbin's own config is the one loaded, for the machine pointer
+  # below (issue 0153); empty when no prefix is configured.
+  configured="$(install_prefix_configured 2>/dev/null || true)"
   # As in `install`, and through the same reader: no baked default, and the
   # refusal is raised at the call site rather than left to errexit.
   if [ -z "$prefix" ]; then
@@ -138,8 +141,12 @@ _upgrade_the_install() {
   # AND AN INSTALL WITH NO MANIFEST HAS NO EDIT IT CAN NAME (issue 0146): it
   # read as none edited. Publishing replaces every file either way, so this is
   # said rather than refused.
-  if manifest_missing "$dstroot"; then
-    warn "this install has no manifest, so an edit in it cannot be named; every file is being REPLACED unchecked"
+  if unvouched="$(manifest_unvouched "$dstroot")"; then
+    if [ "$unvouched" = empty ]; then
+      warn "this install's manifest records no files, so an edit in it cannot be named; every file is being REPLACED unchecked"
+    else
+      warn "this install has no manifest, so an edit in it cannot be named; every file is being REPLACED unchecked"
+    fi
   fi
 
   record="$(publish_install "$srcroot" "$dstroot" "$(devbin_runtime_version)")" ||
@@ -151,8 +158,14 @@ _upgrade_the_install() {
     [ -z "$rel" ] || printf '  removed    %s (devbin no longer ships it)\n' "$rel"
   done <<<"$(publish_removed "$record")"
   printf '  recorded   %s\n' "$(manifest_field "$dstroot" source_commit 2>/dev/null || printf 'unrecorded')"
-  printf '\nThe estate still carries the OLD bytes until each project upgrades:\n'
-  printf '  %s     (previews the sweep; writes nothing)\n' "$(fleet_preview_hint)"
+  # The install is replaced either way; a pointer it could not write is named
+  # and fails the run, since no project would find the install it just wrote.
+  install_pointer_write "$dstroot" "$configured" || {
+    warn "the install is replaced at $dstroot, but the machine pointer was not written (above)"
+    return 1
+  }
+  printf '\nA project carries the OLD bytes until it upgrades from here:\n'
+  vendor_from_hint "$dstroot"
   return 0
 }
 
@@ -195,10 +208,11 @@ _refuse_unreadable() {
 
 main() {
   local from="" force="" prefix="" dstroot srcroot version states paths rel src state
-  local recorded twin entries dst_sums src_sums dst_read src_read direction
+  local recorded twin entries dst_sums src_sums dst_read src_read direction unvouched=""
   local added=0 updated=0 unchanged=0 skipped=0 removed=0 converged=0 sum_src sum_dst
-  # Released files are counted inside `skipped`, whose summary line fleet
-  # parses across devbin versions, AND apart, because their remedy differs.
+  # Released files are counted inside `skipped`, whose summary line a caller
+  # outside the runtime parses across devbin versions, AND apart, because their
+  # remedy differs.
   local released=0
   local prev_source now_source
   # Every path this run REFUSED to replace. Passed to manifest_write so each
@@ -259,9 +273,9 @@ main() {
     # checkout runs its own lib/ in place, so there is nothing vendored to
     # bring forward -- and advising `install --into` here pointed at the exact
     # command install refuses (a vendored copy would shadow lib/): a
-    # remediation string leading to a dead end (hv probe, 2026-08-09).
+    # remediation string leading to a dead end.
     if is_devbin_source "$dstroot"; then
-      warn "this is the devbin source checkout -- it runs lib/ in place (D12), so there is nothing vendored to upgrade"
+      warn "this is the devbin source checkout -- it runs lib/ in place, so there is nothing vendored to upgrade"
       warn "  the checkout moves with git; a project installed from it picks that up with ITS bin/devbin upgrade"
     else
       warn "devbin is not installed here -- there is no vendored runtime at $dstroot/bin/.devbin/lib"
@@ -282,10 +296,13 @@ main() {
   # passed the next run. --force is the flag that already means "replace an
   # edit": with no record of which files were edited, it replaces every one,
   # and says so. Asked before the source is looked for, so a run with no
-  # --from does not say "no source recorded" and send it to --from.
-  if manifest_missing "$dstroot"; then
+  # --from does not say its source cannot be placed and send it to --from.
+  if unvouched="$(manifest_unvouched "$dstroot")"; then
     if [ -z "$force" ]; then
-      warn "there is no manifest at $DEVBIN_MANIFEST_REL, so which vendored files were edited here cannot be told; nothing was written"
+      # A manifest that records no files is refused as a missing one is (issue
+      # 0159): over it, every vendored file read as new and an edit was
+      # overwritten at exit 0.
+      warn "$(manifest_unvouched_said "$unvouched"), so which vendored files were edited here cannot be told; nothing was written"
       warn "  an upgrade would replace every vendored file unchecked, an edit included"
       warn "  to accept that:  $DEVBIN_INVOKE upgrade --from <dir> --force"
       warn "  or re-install:   <path-to-devbin>/bin/devbin install --into $dstroot --force"
@@ -298,7 +315,7 @@ main() {
   else
     srcroot="$(manifest_source "$dstroot" 2>/dev/null || true)"
     [ -n "$srcroot" ] ||
-      die "no source recorded in $DEVBIN_MANIFEST_REL -- name one with --from <dir>"
+      die "$(source_unplaced_why "$dstroot") -- name one with --from <dir>"
   fi
 
   # Validated BEFORE anything is written (AC-09.9). Half a runtime is a project
@@ -307,14 +324,20 @@ main() {
   is_devbin_source "$srcroot" || {
     warn "not a devbin source: $srcroot"
     warn "  (looked for bin/devbin and a lib/ beside it)"
+    [ -n "$from" ] || source_override_note "$dstroot"
     warn "  name a different one with:  $DEVBIN_INVOKE upgrade --from <dir>"
     return 1
   }
+  # And what KIND of tree it is, which the manifest records (issue 0153): a tree
+  # that cannot say was refused only at the manifest's write, after every copy,
+  # and left new bytes under the old manifest, which doctor reads as edits.
+  manifest_source_token "$srcroot" >/dev/null ||
+    die "refusing to upgrade from $srcroot (above), so nothing here was written"
 
   # Said once the source is known to be one, so a --force run that then dies
   # on its --from has not announced a replacement it never made (critic-shell).
-  if manifest_missing "$dstroot"; then
-    warn "there is no manifest at $DEVBIN_MANIFEST_REL: --force replaces every vendored file unchecked, an edit included"
+  if [ -n "$unvouched" ]; then
+    warn "$(manifest_unvouched_said "$unvouched"): --force replaces every vendored file unchecked, an edit included"
   fi
 
   paths="$(vendored_paths "$srcroot")" ||
@@ -360,8 +383,8 @@ $entries")" || dst_read=""
   # AND THE CONSEQUENCE IS GATED ON BYTES, NOT ON COMMITS (issue 0053). The
   # direction above is a fact about history; `will REVERT the runtime` is a
   # claim about this tree, and the two came apart the moment a commit touched
-  # no vendored file. Measured: an estate installed from `49e8bb2`, upgraded
-  # from its parent `08aa004` -- zero seam paths differ between them -- was told
+  # no vendored file. Measured: an estate installed from one commit, upgraded
+  # from that commit's parent -- zero seam paths differ between them -- was told
   # the runtime would be REVERTED, and then told `No vendored file differs` by
   # the same command four lines later. A loud line that fires when nothing will
   # change is how the loud line stops being read, and this one guards a real
@@ -371,6 +394,11 @@ $entries")" || dst_read=""
   # here then, and the line above has said all that is true: with nothing
   # recorded the direction is `unknown`, seam_is_level fails closed on it, and
   # the `unknown` arm would send the reader to `vendor`, which refuses it.
+  #
+  # AND NEVER TO `vendor` OVER ONE THAT RECORDS NO FILES (issue 0159). Its header
+  # still records the commit, so the direction is read and said, but `vendor`
+  # refuses that manifest as upgrade does without --force, so the line that
+  # sends the reader there is not printed.
   direction=unrecorded
   manifest_missing "$dstroot" || direction="$(source_direction "$dstroot" "$srcroot")"
   case "$direction" in
@@ -382,7 +410,7 @@ $entries")" || dst_read=""
       else
         warn "this source is BEHIND what is vendored here -- upgrading will REVERT the runtime"
         _upgrade_provenance_lines "$dstroot" "$srcroot"
-        warn "  run '$DEVBIN_INVOKE vendor' first if that is not what you meant"
+        [ -n "$unvouched" ] || warn "  run '$DEVBIN_INVOKE vendor' first if that is not what you meant"
       fi
       ;;
     unrelated)
@@ -403,7 +431,7 @@ $entries")" || dst_read=""
       if ! seam_is_level "$dstroot" "$srcroot"; then
         warn "cannot tell whether this source is ahead of or BEHIND what is vendored here"
         _upgrade_provenance_lines "$dstroot" "$srcroot"
-        warn "  run '$DEVBIN_INVOKE vendor' first if you are not sure this moves forward"
+        [ -n "$unvouched" ] || warn "  run '$DEVBIN_INVOKE vendor' first if you are not sure this moves forward"
       fi
       ;;
   esac
@@ -531,18 +559,19 @@ EOF
   # change this tree: `source_commit` advances on its own whenever the source
   # has moved past what was vendored.
   #
-  # THE DEFECT THIS CLOSES, measured across the fleet on 2026-08-27. On exactly
-  # that run the summary printed `Already up to date.` while leaving the tree
-  # MODIFIED -- correct behaviour reported as no behaviour, and the single file
-  # it changed is the one that records where this runtime came from. A clean
-  # tree came back dirty under a message saying nothing had happened, which is
-  # the shape this project refuses everywhere else.
+  # THE DEFECT THIS CLOSES, measured on 2026-08-27. On exactly that run the
+  # summary printed `Already up to date.` while leaving the tree MODIFIED --
+  # correct behaviour reported as no behaviour, and the single file it changed
+  # is the one that records where this runtime came from. A clean tree came back
+  # dirty under a message saying nothing had happened, which is the shape this
+  # project refuses everywhere else.
   manifest_was=""
   [ -f "$(manifest_path "$dstroot")" ] &&
     manifest_was="$(cat "$(manifest_path "$dstroot")" 2>/dev/null || true)"
   prev_commit="$(manifest_source_commit "$dstroot" 2>/dev/null || true)"
-  # The SOURCE PATH is captured beside the commit because it can move on its own,
-  # and until ST0005 nothing ever did so -- see the report below.
+  # The SOURCE is captured beside the commit because it can move on its own --
+  # a path, until issue 0153, and its kind since -- and until ST0005 nothing
+  # ever did so: see the report below.
   prev_source="$(manifest_field "$dstroot" source 2>/dev/null || true)"
 
   manifest_write "$dstroot" "$srcroot" "$version" "$preserved" ||
@@ -592,7 +621,7 @@ EOF
         printf '  neither the commit nor the source changed -- the manifest differs\n'
         printf '  for some other reason, and this report cannot say which.\n'
       fi
-      printf 'No vendored file differs; this tree simply now names where it came from.\n'
+      printf 'No vendored file differs; only the record of where this tree came from changed.\n'
     fi
   fi
   if [ "$converged" -gt 0 ]; then

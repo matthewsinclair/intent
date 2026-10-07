@@ -1,8 +1,8 @@
     bin/devbin which [<option>|all] [args...]
 
-Report which binary or build a name resolves to. devbin ships the name `which` and nothing behind it: a project's binaries and builds are its own, so each project declares what `which` runs (devbin design D18, tier 4).
+Report which binary or build a name resolves to. devbin ships the name `which` and nothing behind it: a project's binaries and builds are its own, so each project declares what `which` runs.
 
-It is also opt-in (devbin design D22): absent until a project asks for it, with `commands.which.enabled: true` or by filling it as below. `enabled: false` switches it off again, whatever fills it.
+It is also opt-in: absent until a project asks for it, with `commands.which.enabled: true` or by filling it as below. `enabled: false` switches it off again, whatever fills it.
 
 ## Until the project fills it
 

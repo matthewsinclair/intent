@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# The built-in `version`. D18 tiers it 1 -- all four corpus projects have the
+# The built-in `version`. D18 tiers it 1 -- every corpus project has the
 # same three sub-commands over the same semver logic -- and it is the family
 # with the most real code and the most risk in it.
 #
@@ -17,15 +17,15 @@
 #
 # TWO INVARIANTS, both learned the hard way in the corpus and both load-bearing.
 #
-# 1. DERIVED FILES FIRST, THE VERSION FILE LAST. Baize states the rule: a
+# 1. DERIVED FILES FIRST, THE VERSION FILE LAST. One project states the rule: a
 #    partial failure then leaves the version file un-advanced, so re-running
 #    `bump patch` recomputes the SAME target and retries cleanly. Write the
 #    version file first and a failure halfway leaves it advanced, so the rerun
-#    bumps again -- a double-bump on top of a half-synced tree. Conflab writes
+#    bumps again -- a double-bump on top of a half-synced tree. Another writes
 #    it first and has `sync`/`check` to heal the drift that causes, which is
-#    treating the symptom. Raised against Conflab rather than fixed from here.
+#    treating the symptom. Raised against that project, not fixed from here.
 #
-# 2. THE SYNC IS UNCONDITIONAL. Conflab's comment records the shipped defect:
+# 2. THE SYNC IS UNCONDITIONAL. A corpus comment records the shipped defect:
 #    an earlier "only if the current version differs" gate skipped sidecar
 #    healing whenever the version file already held the target, so a tree with
 #    the version bumped in one commit and a plist lagging shipped a wrong
@@ -63,11 +63,11 @@ sidecars() {
 # So the write recipes below MIRROR read_version's patterns deliberately, and
 # `check` reads through read_version rather than around it.
 
-# THERE IS DELIBERATELY NO Cargo.lock RECIPE, and Conflab declares two of them.
+# THERE IS DELIBERATELY NO Cargo.lock RECIPE, and one project declares two.
 #
 # A lockfile carries a `version` for every package in the graph, so a recipe has
 # to know WHICH entries are this project's own -- and it cannot derive that from
-# the file. Conflab's own `sync_cargo_lock` hardcodes `conflab` and `conflabd`;
+# the file. That project's own `sync_cargo_lock` hardcodes `demo` and `demod`;
 # devbin has no equivalent to hardcode.
 #
 # The two derivations that look available both fail. Bumping every entry whose
@@ -91,7 +91,7 @@ sidecars() {
 # and the guess is unchecked: devbin dispatches on basename and then writes
 # content it never looked at.
 #
-# Conflab declares two `Cargo.lock` sidecars. Before this guard each was
+# One project declares two `Cargo.lock` sidecars. Before this guard each was
 # replaced by five bytes and the run exited 0; `check` then reported the tree
 # clean, and the cure `check` advertised -- `version sync` -- was the command
 # that did it (issue 0002).
@@ -230,7 +230,7 @@ report_drift() {
   # when there were none -- so the caller could not tell a real pass from a
   # vacuous one, and said `every sidecar agrees` for both. A universally
   # quantified claim over an empty set is TRUE and says nothing. Issue 0061,
-  # reported by intent/vc from Intent's checkout.
+  # reported from a consumer's checkout.
   DEVBIN_VERSION_EXAMINED=0
   want="$(read_version)"
   while IFS= read -r file; do
@@ -287,7 +287,7 @@ case "${1:-}" in
     # read_version emits no terminator (every extractor path strips it), and a
     # bare number with no newline glues itself to the next prompt and breaks
     # line-oriented readers. The corpus's own show printed the newline; found
-    # by the Laksa migration's first probe.
+    # by a migration's first probe.
     # shellcheck disable=SC2119  # the bare call IS the point: version-file role
     printf '%s\n' "$(read_version)"
     ;;
@@ -310,14 +310,14 @@ case "${1:-}" in
     if report_drift; then
       # ZERO IS A DIFFERENT VERDICT, NOT A QUIETER PASS. It stays exit 0 because
       # zero is the ORDINARY configuration rather than a misconfiguration --
-      # measured across the fleet at 12 of 16 estates, devbin's own included --
-      # so failing it would break `version check` in three quarters of the
-      # estate for projects that are correctly set up with a single version
-      # file. That is the line `infra check` already draws: a gate that COULD
-      # NOT examine fails, a gate with NOTHING DECLARED to examine says so.
+      # measured as the common case across estates, devbin's own included --
+      # so failing it would break `version check` in most of them, for projects
+      # that are correctly set up with a single version file. That is the line
+      # `infra check` already draws: a gate that COULD NOT examine fails, a gate
+      # with NOTHING DECLARED to examine says so.
       #
       # The count alone would not have been enough. `0 sidecar(s) agree` still
-      # reads as success to a skimming eye, which is intent/vc's point and the
+      # reads as success to a skimming eye, which is issue 0061's point and the
       # reason both halves landed rather than the cheaper one.
       if [ "${DEVBIN_VERSION_EXAMINED:-0}" -eq 0 ]; then
         printf 'version: %s, NO sidecars declared -- nothing was compared\n' "$(read_version)"

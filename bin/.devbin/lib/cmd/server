@@ -5,8 +5,8 @@
 # row holds one.
 #
 # What is shared across the corpus is exactly this conditional. Everything
-# around it is not: Laksa prints a banner of URLs, Conflab sources config/.env,
-# and Lamplight selects an umbrella app with a directory and a surfaces banner
+# around it is not: one prints a banner of URLs, another sources config/.env,
+# and a third selects an umbrella app with a directory and a surfaces banner
 # each. None of that belongs to a framework, and a project that wants it either
 # declares its own `run:` -- which wins over this file, see run_command -- or
 # ships a project handler, which shadows it entirely.
@@ -25,7 +25,7 @@ cd "${PROJECT_ROOT:?}" || die "cannot enter $PROJECT_ROOT"
 # shipped handler read the flag without asking config anything.
 #
 # Two command lines, NOT one with a prefix. For `server` the iex form happens to
-# be the plain form with `iex -S` in front; for Lamplight's `wrighter` it is not
+# be the plain form with `iex -S` in front; for an umbrella app `web` it is not
 # -- plain runs a launcher expression and `--iex` drops it for a bare shell. A
 # framework option selects which command line runs; it does not transform one.
 # Through is_true_word (issue 0066): `options.iex.value: yes` or `1` ran the plain

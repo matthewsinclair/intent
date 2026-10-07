@@ -13,7 +13,7 @@
 #
 # EVERY ARGUMENT IS PARSED BEFORE ANYTHING ACTS, and `-h` or `--help` in any
 # position prints usage and exits 0 (D36). Issue 0064 recorded
-# `macos prepare --help` rebuilding Intent.app: a handler that acts on its
+# `macos prepare --help` rebuilding a project's app: a handler that acts on its
 # first word before reading the rest cannot promise that --help is safe.
 #
 # AS BUILT BY WP-06: the argument loop, `release check` (the declaration and the
@@ -276,8 +276,8 @@ write_notes() {
 # ONE trap that removes it (WP-04). Every commit the run materialises is written
 # into a directory of its own under the root, with its index beside that
 # directory, so an interrupt at any point leaves nothing behind: until WP-04
-# the tree WAS the root and the index its sibling, which the trap missed (dc's
-# review of 4328583). Opened in this shell, never in a `$(...)`, because a trap
+# the tree WAS the root and the index its sibling, which the trap missed.
+# Opened in this shell, never in a `$(...)`, because a trap
 # set in a subshell is gone when the subshell is.
 SCRATCH=""
 open_scratch() {
@@ -515,7 +515,7 @@ cut_run() {
   # clean). That one answer decides what a remote that has moved past HEAD
   # means (release_read_remote, preflight-new), whether step 3 runs, and
   # whether step 4 commits. So a cut never commits on HEAD under `preflight`:
-  # the mode and the commit are the same answer (vc's F1).
+  # the mode and the commit are the same answer.
   local mode=preflight head_read="" head_is_release=no
   if [ "$source" = HEAD ]; then
     head_read="$(cut_stamp_read head "$commit" "$v" count)"
@@ -547,7 +547,7 @@ cut_run() {
   done 3<<<"$remotes"
 
   if [ "$source" = HEAD ]; then
-    # THE TREE RULE, while the tag is absent (vc's N2): dirt inside the owned
+    # THE TREE RULE, while the tag is absent: dirt inside the owned
     # set belongs in the release commit, whoever wrote it; dirt outside it is
     # refused, untracked files included. A `derived:` path is owned too, and
     # only running the command says which paths those are, so with `derived:`
@@ -571,9 +571,11 @@ cut_run() {
     # are devbin verbs behind theirs, so every one writes a log under
     # $(gate_out_dir <name>) for the whole of its run. Not ignored, each is dirt:
     # the tree rule would refuse the cut's own log, and step 5's re-read would
-    # see every gate change the tree. So it is refused here, naming the remedy,
-    # rather than the core writing to the project's .gitignore.
-    if ! git check-ignore -q "$(gate_out_dir release)/probe.out"; then
+    # see every gate change the tree. Each such directory ignores itself (issue
+    # 0157), so this refuses only where it will not -- a .gitignore the project
+    # put there, a tmp/ that leads outside the tree -- and asks the writer's own
+    # rule, without writing, so a dry run and the cut agree.
+    if ! gate_out_ignored "$(gate_out_dir release)"; then
       refusals+=("$(gate_out_dir release)/ is not ignored, and every gated run writes its log there -- add tmp/ to .gitignore")
     fi
   else
@@ -605,7 +607,7 @@ cut_run() {
   elif [ "$head_is_release" = yes ]; then
     # THE RELEASE COMMIT EXISTS, so derived: is not re-run: its output need not
     # be byte-stable, and a second run of it would make a second release commit
-    # on top of one a remote may already carry (vc's F1).
+    # on top of one a remote may already carry.
     cut_row 3 already "${commit:0:12} carries the stamp and the tree is clean (read at pre-flight); derived: is not re-run"
   else
     answer="$(release_read_stamp "$PROJECT_ROOT" "$v" count)"
@@ -622,7 +624,7 @@ cut_run() {
     else
       have="$(read_version)"
       if [ "$have" != "$v" ]; then
-        "$launcher" version set "$v" </dev/null || cut_fail 3 "version set $v failed (exit $?, above)"
+        gate_exec "$launcher" version set "$v" || cut_fail 3 "version set $v failed (exit $?, above)"
       fi
       local d
       local -a words=()
@@ -677,8 +679,8 @@ cut_run() {
       local -a paths=()
       mapfile -t paths <<<"$dirt"
       git add -- "${paths[@]}" || cut_fail 4 "git add failed (exit $?)"
-      # `--only` is EQUIVALENT here and no arm can tell it gone (vc's M12,
-      # 2026-09-18): pre-flight and step 3 refuse any dirt outside the owned
+      # `--only` is EQUIVALENT here and no arm can tell it gone:
+      # pre-flight and step 3 refuse any dirt outside the owned
       # set, staged included, so the index holds nothing these paths do not.
       # Kept so the commit stays exactly these paths if that rule ever moves.
       git commit -q --only -m "release: $tag" -- "${paths[@]}" </dev/null ||
@@ -696,7 +698,7 @@ cut_run() {
   fi
 
   # --- step 5: gates -------------------------------------------------------
-  # In place, on the release commit, and checked rather than trusted (vc's S2):
+  # In place, on the release commit, and checked rather than trusted:
   # the tree is read before and after, and a path any gate changed or created
   # fails the step. Never `already` (principle 4).
   if [ -z "$gates" ]; then
@@ -735,7 +737,7 @@ cut_run() {
   # What is left that another machine will see: each remote still to receive
   # the commit or the tag, and under `object: local` the release object. Read
   # through the same readers `release status` reads step 6 from, so the two
-  # cannot disagree about whether anything is left (vc's N3).
+  # cannot disagree about whether anything is left.
   local -a left=() push_plan=()
   local object_work="" object_detail="" title repo="" declared_repo drem
   declared_repo="$(cfg_release_get repo)"
@@ -756,7 +758,7 @@ cut_run() {
   # THE OBJECT IS READ HERE, whole: whether it exists, and when it does, whether
   # it carries this release's title and notes. A difference is work left, so it
   # is named in the question and only a confirmed run changes it; no run reports
-  # `already` over an object that differs (vc's R2).
+  # `already` over an object that differs.
   local body_file="$SCRATCH/notes-body"
   if [ "$object" = local ]; then
     repo="$(release_repo "$declared_repo" "$drem" 2>&1)" || cut_fail 6 "$(one_line "$repo")"
@@ -826,7 +828,7 @@ cut_run() {
       cut_fail 7 "git tag failed (exit $?, above)"
     CUT_OUTWARD+=", tagged $tag locally"
     # Read back by its FIELDS: the status is `already` and the reuse note is
-    # empty, never a match on the detail's wording (vc's W6).
+    # empty, never a match on the detail's wording.
     answer="$(release_read_tag "$tag" "$SCRATCH/rel" "$v")"
     [ "${answer%%$'\t'*}" = already ] && [ -z "$(release_tag_reuse_note "$tag" "$SCRATCH/rel" "$v")" ] ||
       cut_fail 7 "the tag was made and does not read back as made: ${answer#*$'\t'}"
@@ -838,7 +840,7 @@ cut_run() {
   # may have moved on), then the tag -- each only if the remote lacks it, so a
   # branch that has moved past the release commit is never pushed at.
   #
-  # NEVER --force, ON EITHER PUSH (vc's W5). Both are fast-forwards when step 6
+  # NEVER --force, ON EITHER PUSH. Both are fast-forwards when step 6
   # read the remote, so a forced push reads the same to every arm -- and when
   # the remote has moved since that read, a rejected push is the remote saying
   # someone else's work is there. Forcing it would overwrite that work. A
@@ -880,7 +882,7 @@ cut_run() {
       # THE PROJECT'S WORKFLOW MAKES THE OBJECT, from the tag step 8 pushed, and
       # the core makes none (D42). Step 9 reads the OBJECT, through the reader
       # status reads it with, never a CI verdict: another workflow's run on the
-      # release commit cannot stand in for it (AC-6.1, vc's finding 4).
+      # release commit cannot stand in for it (AC-6.1).
       local wait_for
       wait_for="$(cfg_release_get object_wait)"
       if [ "$dry_run" = 1 ]; then
@@ -915,7 +917,7 @@ cut_run() {
           cut_row 9 would "gh release create $tag --title \"$title\""
         else
           # --verify-tag: without it GitHub MAKES a tag it lacks, from the
-          # default branch (vc's W1). THE LIMIT, DECLARED (vc's Q1): nothing
+          # default branch. THE LIMIT, DECLARED: nothing
           # checks that a remote in `remotes` reaches $repo. With `repo:`
           # declared and every push going elsewhere, --verify-tag refuses here,
           # after the pushes. A pre-flight check would have to map a remote's
@@ -971,11 +973,14 @@ cut_run() {
       }
       printf '\nrelease: after: %s\n' "$cmd"
       local arc=0
-      # NOT THE ONLY THING KEEPING THE TERMINAL AWAY (dc's m7): the real cut runs
+      # NOT THE ONLY THING KEEPING THE TERMINAL AWAY: the real cut runs
       # inside run_gate, whose stdin is /dev/null for everything in it, and a dry
-      # run never gets here. So dropping this redirect changes nothing today and
-      # no arm can see it; it stays so step 10 does not depend on its caller.
-      "${aw[@]}" </dev/null 3<&- || arc=$?
+      # run never gets here. Through gate_exec the line keeps the flag the
+      # release gate set, since it runs inside that gate (issue 0158): an
+      # `after:` command that asks a person through ask_person can still ask one
+      # who was there when the cut began. And step 10 does not depend on its
+      # caller to keep stdin off the terminal.
+      gate_exec "${aw[@]}" 3<&- || arc=$?
       if [ "$arc" -eq 0 ]; then
         ran=$((ran + 1))
       else
@@ -1063,7 +1068,7 @@ cut_run() {
 # carries the stamp" is a question about HEAD, and a working tree carrying it
 # uncommitted must read pending. Step 3 reads the working tree while the tag is
 # absent and the release commit once it exists, since nothing after step 7
-# writes the tree (vc's N2).
+# writes the tree.
 # status_object_content <tag> <version> <materialised> <tree> <why> -- row 9's
 # answer for an object that exists under `object: local`: its title and notes
 # against this release's, the notes read from the release commit's own tree.
@@ -1158,7 +1163,7 @@ status_report() {
 
   # Steps 7, 8 and 9 are read before 6, whose state is a predicate over them.
   # With no materialised tree the message has nothing honest to be compared
-  # with: the working tree's note is another commit's (dc's WP-03 review).
+  # with: the working tree's note is another commit's.
   tag_row="$(release_read_tag "$tag" "$([ "$materialised" = yes ] && printf '%s' "$tree")" "$v")"
 
   local remotes remote r_state r_detail branch
@@ -1194,15 +1199,15 @@ status_report() {
     object_row="$(release_read_object "$object" "$tag" "$(cfg_release_get repo)" "$(declared_remote)")"
   fi
   # UNDER object: local AN OBJECT THAT EXISTS IS READ WHOLE, as a cut's step 6
-  # reads it and through the same reader (vc's R4, D42): `already` only when it
+  # reads it and through the same reader (D42): `already` only when it
   # carries this release's title and notes, so status and a cut cannot disagree
-  # about whether step 9 has work left (vc's N3).
+  # about whether step 9 has work left.
   if [ "$object" = local ] && [ "${object_row%%$'\t'*}" = already ]; then
     object_row="$(status_object_content "$tag" "$v" "$materialised" "$tree" "$why")"
   fi
   object_state="${object_row%%$'\t'*}"
 
-  # Step 6: not re-run only when no irreversible step has work left (vc's N3).
+  # Step 6: not re-run only when no irreversible step has work left.
   # The object holds it only when it is the core's to make (object: local).
   if [ "$push_state" = UNREADABLE ] || { [ "$object" = local ] && [ "$object_state" = UNREADABLE ]; }; then
     row UNREADABLE 6 "whether an irreversible step has work left cannot be read (push or object, below)"

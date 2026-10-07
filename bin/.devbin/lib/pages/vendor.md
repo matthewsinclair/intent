@@ -2,7 +2,7 @@
 
 How do these bytes compare to the devbin they came from, and what would upgrade do about each file? Reports, and writes nothing.
 
-    --from <dir>   the devbin to compare against (default: the source the manifest records)
+    --from <dir>   the devbin to compare against (default: the source the manifest records, placed on this machine as `upgrade` places it)
     --all          list every file, including the ones that are level
 
 Exits 0 when the tree is LEVEL with its source and 1 when it is not; non-zero is an answer, not a fault. A run that cannot compare at all -- no vendored runtime here, a --from that is not a devbin -- also exits 1 and says why on stderr. devbin's own source checkout runs its runtime in place, so there is nothing vendored to compare there, and vendor says so.
@@ -31,7 +31,7 @@ upgrade knows the answer and only tells you by DOING it. This tells you first.
 
 `level` is only listed under --all; the default report is the findings, then a `tracked, divergent, unlisted` count. Every row but `level` and `unlisted` makes the tree not level. An `unlisted` file is reported and leaves the exit status alone, since no upgrade would touch it. A comparison that examined no file at all fails rather than reading as level.
 
-An `unreadable` file is counted as divergent, and each one is also named on stderr, where the checksum tool says why. Two copies nobody can read are not two matching copies, so a tree holding one is never level, and the closing line says to make each readable before running upgrade. A manifest it cannot read is refused outright, exit 1, naming it: the rows compare this tree with it. So is an install with no manifest, `bin/.devbin/lib/` present and `bin/.devbin/manifest.sha256` not: every file would read as new, a copy matching the source as `level` and an edit as `behind`, and which files were edited here is the half of the answer nobody has. It is refused, never read as level, and names `bin/devbin upgrade --from <dir> --force` and `install --into <project> --force`, each of which replaces every vendored file, an edit included.
+An `unreadable` file is counted as divergent, and each one is also named on stderr, where the checksum tool says why. Two copies nobody can read are not two matching copies, so a tree holding one is never level, and the closing line says to make each readable before running upgrade. A manifest it cannot read is refused outright, exit 1, naming it: the rows compare this tree with it. So is an install with no manifest, `bin/.devbin/lib/` present and `bin/.devbin/manifest.sha256` not: every file would read as new, a copy matching the source as `level` and an edit as `behind`, and which files were edited here is the half of the answer nobody has. It is refused, never read as level, and names `bin/devbin upgrade --from <dir> --force` and `install --into <project> --force`, each of which replaces every vendored file, an edit included. So is one whose manifest records no files, cut to its header or to nothing, for the same reason.
 
 ## converged is why this is a cross product and not two greps
 

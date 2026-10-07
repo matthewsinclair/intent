@@ -157,8 +157,8 @@ check_release() {
 # option unsealed.
 #
 # A FAILURE, NOT A NOTE: the project asked for a seal, or for none, and does not
-# get it. Measured before it shipped: every one of the 60 `log:` keys across the
-# 17 estates on 2026-09-24 is read, so no estate turns red on this.
+# get it. Measured before it shipped: every `log:` key in the estates it was
+# measured on is read, so none of them turns red on this.
 #
 # WHETHER A RUN READS THE KEY IS command_tier's AND option_run_tier's ANSWER
 # (issue 0128), the orders run_command and run_option act on, so this cannot
@@ -190,7 +190,12 @@ check_log_keys() {
       case "$(option_run_tier "$cmd" "$opt")" in
         option-run) ;;
         catalogue)
-          suffix="$(builtin_option_suffix "$cmd" "$opt" 2>/dev/null || true)"
+          # Read with its status (issue 0159): a row that cannot be read is
+          # named, never taken for a row with no seal suffix.
+          if ! suffix="$(builtin_option_suffix "$cmd" "$opt")"; then
+            _fail "log: devbin's catalogue row for $cmd $opt cannot be read, so whether its log: key is read cannot be told"
+            return 0
+          fi
           if [ -n "$suffix" ] && ! is_no_default "$suffix"; then
             why="devbin's own $cmd $opt seals under $suffix whatever this says -- declare its run: beside it to change the seal"
           else
@@ -230,8 +235,8 @@ check_log_keys() {
 # not meant to match (lib/config.reference.yaml says why, ST0002 WP-04).
 # Declaring none is legitimate, and it is also exactly what a fresh install
 # looks like: install writes the block commented out, every built-in scoped by
-# language is then inactive, and until this check nothing said so. Riffle met it
-# at ST0002 close. Utilz met it on 2026-09-09 with rust in its Intent list, and
+# language is then inactive, and until this check nothing said so. One project
+# met it. Another met it with rust in its Intent list, and
 # was told its project did not declare rust.
 #
 # IT RE-READS THE CONFIG RATHER THAN TRUSTING THE CACHE. check_config reports a
@@ -266,7 +271,7 @@ check_languages() {
 # reached its neighbour, which is the whole defect: a fix applied to the case
 # that was reported rather than to the hazard that was found.
 check_devbin_version() {
-  local want have
+  local want have unvouched
   if ! cfg_load "$DEVBIN_DIR/config.yaml" >/dev/null 2>&1; then
     _note "devbin_version: not checked -- the config did not load (see config above)"
     return 0
@@ -282,9 +287,18 @@ check_devbin_version() {
   else
     _fail "devbin_version: running $have, this project asks for $want"
     # An install with no manifest runs `unknown`, and a plain upgrade refuses
-    # it: the fix is the manifest check's, below (issue 0146, critic-shell).
-    if manifest_missing "$PROJECT_ROOT"; then
-      _detail "fix: see manifest below -- the runtime's version is read from the manifest, and there is none"
+    # it: the fix is the manifest check's, below (issue 0146, critic-shell). So
+    # does one whose manifest records no files (issue 0159), whose header may
+    # still name a version: upgrade refuses it all the same.
+    if unvouched="$(manifest_unvouched "$PROJECT_ROOT")"; then
+      if [ "$unvouched" = empty ]; then
+        _detail "fix: see manifest below -- $(manifest_unvouched_said empty), and a plain upgrade refuses until it does"
+      else
+        _detail "fix: see manifest below -- the runtime's version is read from the manifest, and there is none"
+      fi
+    elif ! manifest_readable "$PROJECT_ROOT" 2>/dev/null; then
+      # And upgrade refuses one it cannot read (issue 0144), so it is not the fix.
+      _detail "fix: see manifest below -- the runtime's version is read from the manifest, which cannot be read"
     else
       _detail "fix: bin/devbin upgrade    or relax devbin_version in config.yaml"
     fi
@@ -303,7 +317,7 @@ check_devbin_version() {
 # any other and every later check runs and is counted. Over a MANIFEST it
 # cannot read it returns 1, and that is a FAIL of its own, below.
 check_manifest() {
-  local states bad=0 unread=0 state rel line
+  local states bad=0 unread=0 state rel line unvouched
   if ! is_devbin_installed "$PROJECT_ROOT"; then
     _note "manifest: none -- this is a devbin checkout, not an install"
     return 0
@@ -313,8 +327,15 @@ check_manifest() {
   # every file read as new, so upgrade overwrote an edit at exit 0 and wrote a
   # fresh manifest over it, and this check passed the next run. upgrade now
   # refuses it, so the remedy names the flag that accepts the loss.
-  if manifest_missing "$PROJECT_ROOT"; then
-    _fail "manifest: $DEVBIN_MANIFEST_REL is missing, so no vendored file can be checked"
+  if unvouched="$(manifest_unvouched "$PROJECT_ROOT")"; then
+    # AND ONE THAT RECORDS NO FILES FAILS THE SAME WAY (issue 0159): cut to its
+    # header it passed `0 vendored files intact` and named every vendored file
+    # unowned, while upgrade overwrote an edit under it.
+    if [ "$unvouched" = empty ]; then
+      _fail "manifest: $DEVBIN_MANIFEST_REL records no files, so no vendored file can be checked"
+    else
+      _fail "manifest: $DEVBIN_MANIFEST_REL is missing, so no vendored file can be checked"
+    fi
     _detail "whether one was edited here cannot be told, and upgrade refuses to run until there is a manifest"
     _detail "fix: $DEVBIN_INVOKE upgrade --from <dir> --force, or <path-to-devbin>/bin/devbin install --into $PROJECT_ROOT --force"
     _detail "     each replaces every vendored file, an edit included"
@@ -355,7 +376,7 @@ check_manifest() {
 $states
 EOF
   if [ "$bad" -eq 0 ]; then
-    _pass "manifest: $(printf '%s\n' "$states" | grep -c . || true) vendored files intact"
+    _pass "manifest: $(nonempty_lines "$states") vendored files intact"
   else
     # Each remedy only where it is true: an unreadable file was not edited, and
     # upgrade --force does not reach it -- upgrade refuses to run while one is.
@@ -406,8 +427,8 @@ _check_unowned() {
   #
   # Nothing about it is deterministic: it turns on whether grep exits before
   # printf's write lands, so it passed on Ubuntu and on most macOS runs and went
-  # red on one (CI run 32787816443, `lib/cmd/install` reported unowned on a clean
-  # install with all 28 files present and intact). A green here never meant the
+  # red on one (a CI run reported `lib/cmd/install` unowned on a clean install
+  # with all 28 files present and intact). A green here never meant the
   # code was right.
   #
   # `cut` is safe in the same position for the reason grep was not: it reads to
@@ -485,10 +506,10 @@ _command_runnable() {
 #
 #   0018  A project handler stood at a BUILT-IN name. Devbin's own cmd/check
 #         displaced the built-in option set for eighteen days, so `check critic`
-#         swept a corpus in one tree and scanned staged files in the other ten.
+#         swept a corpus in one tree and scanned staged files in every other.
 #         Both were honest; the seals were the only thing that knew.
 #   0024  A BUILT-IN arrived at a name a project already had. `devbin vendor`
-#         shipped into two installs carrying their own `vendor`, whose handler
+#         shipped into installs carrying their own `vendor`, whose handler
 #         answers tree-vs-MANIFEST where the built-in answers tree-vs-SOURCE --
 #         and a sweep nearly banked the wrong one as a convergence check.
 #
@@ -496,23 +517,30 @@ _command_runnable() {
 # plausible either way. It is detectable HERE, by comparing two lists devbin
 # already keeps.
 #
-# A NOTE, NEVER A FAILURE. A doctor that went red on a documented feature would
-# be red on every project using it, and a check nobody can satisfy is a check
-# nobody reads.
+# A SHADOW IS A NOTE, NEVER A FAILURE. A doctor that went red on a documented
+# feature would be red on every project using it, and a check nobody can
+# satisfy is a check nobody reads. A catalogue devbin could not read is not a
+# shadow, and that fails (issue 0159).
 #
 # It reports its count even at ZERO, because a row that appears only on a hit is
 # indistinguishable from a row that never ran -- which is the defect class this
 # whole command is built around.
 check_shadowing() {
   local hits n h
-  hits="$(_shadow_hits)"
-  n="$(printf '%s\n' "$hits" | grep -c . || true)"
+  # A READER THAT FAILED IS NOT A CATALOGUE WITH NO SHADOWS (issue 0159): the
+  # status of each row's read was thrown away, so a row devbin could not read
+  # dropped its shadow and this passed "no project name stands where ...".
+  if ! hits="$(_shadow_hits)"; then
+    _fail "shadowing: devbin's own catalogue could not be read (above), so whether a project name stands where devbin ships its own cannot be told"
+    return 0
+  fi
+  n="$(nonempty_lines "$hits")"
   if [ "$n" -eq 0 ]; then
     _pass "shadowing: no project name stands where devbin ships its own"
     return 0
   fi
   _pass "shadowing: $n project name(s) stand where devbin ships its own"
-  _note "SUPPORTED overrides (D2/D5) -- devbin's own is NOT reached for these"
+  _note "SUPPORTED overrides: the project's own answers first, and devbin's is NOT reached"
   while IFS= read -r h; do
     [ -n "$h" ] || continue
     _detail "$h shadows the built-in"
@@ -543,7 +571,10 @@ _shadow_hits() {
     # that is tier 2 working as designed and is not a substitution of anything.
     while IFS= read -r opt; do
       [ -n "$opt" ] || continue
-      run="$(builtin_option_run "$cmd" "$opt" 2>/dev/null || true)"
+      if ! run="$(builtin_option_run "$cmd" "$opt")"; then
+        warn "cannot read devbin's catalogue row for $cmd $opt"
+        return 1
+      fi
       [ "$run" = "@builtin" ] || continue
       if cfg_has "commands.$cmd.options.$opt.run"; then
         printf '%s %s\n' "$cmd" "$opt"
@@ -613,10 +644,10 @@ check_handlers() {
 # to require `bin/<project>` and `bin/<alias>` as symlinks to devbin, and to
 # tell you to create them. They are retired: `bin/devbin` is the invocation
 # everywhere, because the old convention collided with the binaries these
-# projects BUILD -- Lamplight ships a `lamplight`, Intent ships an `intent`.
+# projects BUILD -- a project named `demo` ships a `demo`.
 #
 # So a surviving alias is now a NOTE rather than a requirement, and the reason
-# it is worth reporting at all is that it may be actively harmful: `bin/lamplight`
+# it is worth reporting at all is that it may be actively harmful: `bin/demo`
 # pointing at devbin is a file standing exactly where the project's own binary
 # wants to live.
 #
@@ -636,10 +667,11 @@ check_symlinks() {
 
   # THE TWO NAMES ARE DIFFERENT THINGS AND THIS LOOP USED TO CONFLATE THEM.
   # It iterated `project.name project.alias` together and called both retired,
-  # so it told seven estates their RATIFIED shortcut was superseded. hv's
-  # convention (2026-08-27): bin/{project} is retired because it shadows the
-  # binary the project BUILDS; a 2-3 char shortcut pointing DIRECT at bin/devbin
-  # is a permitted per-project choice. Found by intent-dc auditing the fleet.
+  # so it told every estate with a shortcut that its RATIFIED one was
+  # superseded. The convention (2026-08-27): bin/{project} is retired because it
+  # shadows the binary the project BUILDS; a 2-3 char shortcut pointing DIRECT
+  # at bin/devbin is a permitted per-project choice. Found by an audit of the
+  # estates.
   pname="$(cfg_get project.name)"
   palias="$(cfg_get project.alias)"
 
@@ -653,7 +685,7 @@ check_symlinks() {
       _note "launcher: bin/$pname -> devbin is a retired alias, superseded by bin/devbin"
       # NO PASTEABLE `rm` HERE, AND THAT IS THE WHOLE POINT OF THIS BRANCH.
       #
-      # It offered one for about an hour and laksa-vc said plainly it would have
+      # It offered one for about an hour and a reader said plainly it would have
       # run it. A tool naming a SPECIFIC remedy is read as advice regardless of
       # its severity label: the reader's eye lands on a command it can paste and
       # the word "note" does not survive the trip.
@@ -678,8 +710,8 @@ check_symlinks() {
   # THE SHORTCUT -- permitted, and the only thing worth saying about it is
   # WHERE IT POINTS. Direct at devbin is correct and passes. Chained through the
   # project-named link is the one alias shape the retirement can break, which is
-  # what killed Lamplight's bin/ll -> lamplight -> devbin; it was the only such
-  # link in the fleet and nothing resolving a single hop could see it.
+  # what killed one project's bin/dm -> demo -> devbin; it was the only such
+  # link an audit found, and nothing resolving a single hop could see it.
   if [ -n "$palias" ] && [ "$palias" != devbin ] && [ "$palias" != "$pname" ]; then
     path="$PROJECT_ROOT/bin/$palias"
     if [ -L "$path" ]; then
@@ -760,14 +792,14 @@ check_source_currency() {
 # is ever removed while this one survives it.
 check_bash() {
   if [ "${BASH_VERSINFO[0]:-0}" -ge 5 ]; then
-    _pass "bash: ${BASH_VERSION:-unknown} at ${BASH:-unknown} (floor >= 5, issue 0022)"
+    _pass "bash: ${BASH_VERSION:-unknown} at ${BASH:-unknown} (floor >= 5)"
   else
-    _fail "bash: ${BASH_VERSION:-unknown} is below the >= 5 floor (issue 0022) -- brew install bash"
+    _fail "bash: ${BASH_VERSION:-unknown} is below the >= 5 floor -- brew install bash"
   fi
   return 0
 }
 
-# PROJECT CHECKS (issue 0093; hv, 2026-09-19): every executable in
+# PROJECT CHECKS (issue 0093): every executable in
 # bin/.devbin/cmd/doctor.d/ runs after devbin's own checks, and is counted into
 # the one summary. Discovered, as cmd/ is: a project adds a check by adding a
 # file. The directory is cmd/<name>.d/ because that is where a word under a
