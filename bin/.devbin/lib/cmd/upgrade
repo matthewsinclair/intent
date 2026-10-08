@@ -73,7 +73,7 @@ _upgrade_provenance_lines() {
 # refuses when an install already exists, this refuses when one does not, so
 # whichever verb you reach for, the wrong one names the right one.
 _upgrade_the_install() {
-  local srcroot="$1" prefix="$2" dstroot dirty modified record rel states unreadable configured unvouched
+  local srcroot="$1" prefix="$2" dstroot modified record rel states unreadable configured unvouched
 
   cfg_load "$DEVBIN_DIR/config.yaml" >/dev/null 2>&1 ||
     die "cannot read devbin's own config at $DEVBIN_DIR/config.yaml"
@@ -96,19 +96,11 @@ _upgrade_the_install() {
     return 1
   fi
 
-  # THE SAME GATE AS `install`, and it is the reason the install tree is worth
-  # having at all (D28). An install cut from a dirty checkout launders the bytes
-  # through one more hop and gives them the LOOK of provenance.
-  if ! dirty="$(tree_dirty_paths "$srcroot")"; then
-    die "cannot publish: $srcroot is not a git repository, so the commit this
-       install would claim cannot be established"
-  fi
-  if [ -n "$dirty" ]; then
-    warn "refusing to publish: the source tree is dirty"
-    printf '%s\n' "$dirty" | while IFS= read -r line; do warn "  $line"; done
-    die "commit or stash, then publish -- an install cut from a dirty tree
-       records a commit that does not describe the bytes in it"
-  fi
+  # THE SAME GATE AS `install`, publish_gate in lib/install, and it is the reason
+  # the install tree is worth having at all (D28). An install cut from a dirty
+  # checkout launders the bytes through one more hop and gives them the LOOK of
+  # provenance.
+  publish_gate "$srcroot"
 
   # AN EDITED INSTALL IS REPORTED BEFORE IT IS DISCARDED. Nobody should be
   # editing an install and the replace is wholesale either way -- but a file
@@ -324,15 +316,19 @@ main() {
   is_devbin_source "$srcroot" || {
     warn "not a devbin source: $srcroot"
     warn "  (looked for bin/devbin and a lib/ beside it)"
-    [ -n "$from" ] || source_override_note "$dstroot"
+    source_override_note "$dstroot" "$from"
     warn "  name a different one with:  $DEVBIN_INVOKE upgrade --from <dir>"
     return 1
   }
   # And what KIND of tree it is, which the manifest records (issue 0153): a tree
   # that cannot say was refused only at the manifest's write, after every copy,
-  # and left new bytes under the old manifest, which doctor reads as edits.
-  manifest_source_token "$srcroot" >/dev/null ||
+  # and left new bytes under the old manifest, which doctor reads as edits. A
+  # tree DEVBIN_INSTALL_PREFIX placed says so here as above (issue 0178): this is
+  # the first question its tree is asked that a devbin can fail.
+  if ! manifest_source_token "$srcroot" >/dev/null; then
+    source_override_note "$dstroot" "$from"
     die "refusing to upgrade from $srcroot (above), so nothing here was written"
+  fi
 
   # Said once the source is known to be one, so a --force run that then dies
   # on its --from has not announced a replacement it never made (critic-shell).

@@ -22,7 +22,10 @@ set -euo pipefail
 #     empty is fatal: a critic gate with no critic behind it exits 0 having
 #     examined nothing, which is a false green.
 #   - With no arguments it defaults to --staged, and SAYS SO when nothing is
-#     staged.
+#     staged. Where there is no git checkout it stops and says so, and where
+#     git cannot say what is staged it stops, in git's words (issue 0186): a
+#     failed `git diff --cached` read as nothing staged, and Intent's critic
+#     then failed on the same call under that diagnosis.
 #
 # ON THE EMPTY RUN. This comment used to say that examining zero files is always
 # a false green, and the code was made to match it -- correctly, because until
@@ -88,7 +91,7 @@ builtin_check_critic() {
   require_tool intent "Install Intent: see intent/docs at the Intent install"
   require_tool jq "brew install jq"
 
-  local declared headless langs="" lang rc=0 hl_rc=0 jq_rc=0 cfg
+  local declared headless langs="" lang rc=0 hl_rc=0 jq_rc=0 cfg staged why
   cfg="$PROJECT_ROOT/intent/.config/config.json"
   # THREE CONDITIONS, THREE DIAGNOSES (issue 0016). The `|| true` here collapsed
   # an ABSENT config, an UNPARSEABLE one, and a genuinely EMPTY `languages` array
@@ -131,7 +134,20 @@ $lang
 
   if [ $# -eq 0 ]; then
     set -- --staged
-    if [ -z "$(git -C "$PROJECT_ROOT" diff --cached --name-only 2>/dev/null)" ]; then
+    # A FAILED `git diff --cached` IS NO EMPTY ONE (issue 0186). Over an index
+    # git cannot read it fails, and was read as nothing staged. Where there is
+    # no repository at all, git takes `diff` for `diff --no-index`, which has no
+    # --cached, so that is said first, in devbin's words. The call is a plain
+    # git, as Intent's critic asks it, an inherited GIT_INDEX_FILE included --
+    # a commit hook's own index -- and git's reason is asked of the same index.
+    if git_repo_absent "$PROJECT_ROOT"; then
+      die "$PROJECT_ROOT is not a git checkout, so nothing can be staged and the critic was not run (pass --files <path>, once per file)"
+    fi
+    if ! staged="$(git -C "$PROJECT_ROOT" diff --cached --name-only 2>/dev/null)"; then
+      why="$(git_failure_line --plain "$PROJECT_ROOT" diff --cached --name-only)"
+      die "git could not say what is staged in $PROJECT_ROOT, so the critic was not run${why:+ -- $why}"
+    fi
+    if [ -z "$staged" ]; then
       warn "nothing staged -- the critic will examine NO files, which is not a failure here (stage changes, or pass --files <path>, once per file)"
     fi
   fi

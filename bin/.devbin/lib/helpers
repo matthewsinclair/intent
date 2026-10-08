@@ -172,6 +172,25 @@ require_tool() {
   command -v "$1" >/dev/null 2>&1 || die "$1 not found. ${2:-}"
 }
 
+# cpu_count -- how many CPUs this machine has online, a whole number of at
+# least 1: nproc where GNU coreutils provides it, getconf where it does not
+# (macOS ships no nproc), and 4 when neither answers, so a caller sizing a pool
+# of workers always gets a usable number. Taking 4 is said on stderr, since a
+# caller may print the number as this machine's.
+#
+# ONE HOME FOR THE PROBE (issue 0190). Devbin's lint gate sizes its shellcheck
+# pool from it and devbin's own test handler its parallel lane; the probe was
+# written inline in the lint gate until the second caller came.
+cpu_count() {
+  local n=""
+  n="$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null)" || n=""
+  if ! [[ "$n" =~ ^[1-9][0-9]*$ ]]; then
+    warn "could not count this machine's CPUs (neither nproc nor getconf answered with a number), so taking 4"
+    n=4
+  fi
+  printf '%s\n' "$n"
+}
+
 # init_colors [auto|off] -- set green/red/dim/reset. All empty when off, when
 # NO_COLOR is set, or when stdout is not a TTY.
 #
@@ -541,8 +560,11 @@ real_path() {
   return 0
 }
 
-# physical_dir <dir> <out-var> -- the physical path of <dir>, or 1 when it
-# cannot be entered.
+# physical_dir <dir> <out-var> [getcwd] -- the physical path of <dir>, or 1 when
+# it cannot be entered. With `getcwd` it is spelled as the kernel's getcwd
+# spells it, as git spells its own working directory: on a disk that folds case
+# that is the case the directory is stored in, where bash's own `pwd -P` keeps
+# the case it was typed in (issue 0185).
 #
 # PHYSICAL, AND FROM WHERE THE PATH SAYS (the critic's fifth pass). bash's plain
 # cd is logical: it tidies a/../b as text, where the kernel reads the `..` only
@@ -571,7 +593,11 @@ physical_dir() {
     /*) ;;
     *) _cpd_dir="./$_cpd_dir" ;;
   esac
-  _cpd_d="$(cd -P -- "$_cpd_dir" 2>/dev/null && pwd -P && printf .)" || return 1
+  if [ "${3-}" = getcwd ]; then
+    _cpd_d="$(cd -P -- "$_cpd_dir" 2>/dev/null && env pwd -P && printf .)" || return 1
+  else
+    _cpd_d="$(cd -P -- "$_cpd_dir" 2>/dev/null && pwd -P && printf .)" || return 1
+  fi
   _cpd_d="${_cpd_d%$'\n.'}"
   case "$_cpd_d" in //*) _cpd_d="${_cpd_d#/}" ;; esac
   _cpd_res="$_cpd_d"
@@ -2210,6 +2236,152 @@ VARS
   )
 }
 
+# git_marker_above <dir> [<ceiling>] -- whether the absolute, physical <dir>, as
+# physical_dir gives it, or a directory above it holds a `.git`: a directory, a
+# gitfile, or a link, dangling included. rc 0 when one does, rc 1 when none
+# does, rc 2 when <dir> is not absolute, so the question has no answer. Given a
+# <ceiling>, a proper ancestor of <dir> as git_ceiling gives it, the walk looks
+# in no directory at or above it, as git's own discovery does not.
+#
+# READ FROM THE FILESYSTEM, NEVER ASKED OF GIT, for a caller whose git did not
+# answer (issue 0179). A repository git refuses to read -- one owned by another
+# user, unless safe.directory names it -- fails with the status a tree with no
+# repository fails with, and only git's words, which a locale translates, tell
+# the two apart. The walk is textual and does not stop at a filesystem
+# boundary, where git's discovery does, so a marker beyond one still counts;
+# and a directory that is itself a bare repository holds no `.git`, so it
+# counts as none.
+git_marker_above() {
+  local d="$1" ceiling="${2-}" floor up
+  case "$d" in
+    /*) ;;
+    *) return 2 ;;
+  esac
+  # Stripped here, not in the pattern: bash 5.3 matches nothing against a
+  # quoted "${ceiling%/}"/?* when the strip leaves it empty, as it does for `/`.
+  floor="${ceiling%/}"
+  until [ -e "$d/.git" ] || [ -L "$d/.git" ]; do
+    up="${d%/*}"
+    [ "$up" != "$d" ] || return 1
+    if [ -n "$ceiling" ]; then
+      case "$up/" in
+        "$floor"/?*) ;;
+        *) return 1 ;;
+      esac
+    fi
+    d="$up"
+  done
+  return 0
+}
+
+# git_ceiling <dir> <out-var> -- the GIT_CEILING_DIRECTORIES entry git's own
+# discovery stops below when it starts in the physical <dir>: the longest entry
+# that is a proper ancestor of <dir>, or empty when none is. The list is read
+# as git reads it: entries part at `:`, a relative one is ignored, one before
+# an empty entry is resolved by physical_dir and dropped when it cannot be, one
+# after it is compared as written, and one trailing `/` is dropped, so `/`
+# keeps the walk out of the root alone. An entry equal to <dir> is no ceiling,
+# since git always looks in the directory it starts in. An entry keeps the case
+# it is typed in, as git's does, and <dir> is to be spelled through getcwd
+# (physical_dir's getcwd form), as git's working directory is, so on a disk that
+# folds case a ceiling typed in another case than <dir> is stored in hides
+# nothing, from git or here.
+#
+# Measured on git 2.56.0 (issue 0185): with a repository at r, a ceiling of r
+# hides it from r/a/b and not from r; r/, r/a and a link to r hide it too; the
+# link written after an empty entry does not, and a relative r does not.
+#
+# Its locals carry its own prefix, since <out-var> is a caller's name reached
+# through bash's dynamic scope, and a local of the same name would take it.
+git_ceiling() {
+  local _gcl_e _gcl_c _gcl_raw="" _gcl_len=-1 _gcl_list=()
+  local -n _gcl_res="$2"
+  _gcl_res=""
+  IFS=: read -r -a _gcl_list <<<"${GIT_CEILING_DIRECTORIES-}"
+  for _gcl_e in "${_gcl_list[@]}"; do
+    case "$_gcl_e" in
+      "")
+        _gcl_raw=1
+        continue
+        ;;
+      /*) ;;
+      *) continue ;;
+    esac
+    if [ -n "$_gcl_raw" ]; then
+      _gcl_c="$_gcl_e"
+    else
+      physical_dir "$_gcl_e" _gcl_c || continue
+    fi
+    _gcl_c="${_gcl_c%/}"
+    case "$1" in
+      "$_gcl_c"/?*) ;;
+      *) continue ;;
+    esac
+    if [ "${#_gcl_c}" -gt "$_gcl_len" ]; then
+      _gcl_len="${#_gcl_c}"
+      _gcl_res="${_gcl_c:-/}"
+    fi
+  done
+}
+
+# git_repo_absent <dir> -- whether a git call that failed in <dir> failed for
+# want of a repository: true only when no `.git` sits at <dir>, resolved and
+# spelled as git spells it (physical_dir's getcwd form), or above it, up to where
+# git's own discovery stops at GIT_CEILING_DIRECTORIES (git_ceiling) --
+# git_marker_above's plain no.
+# Anything else is not known to be absent: a `.git` within that reach, or a
+# <dir> that cannot be resolved. Most often that is a repository another user
+# owns, which git refuses unless safe.directory names it; it may be one whose
+# marker git cannot read, or a checkout with no git on PATH to read it.
+#
+# THE ONE READING OF A FAILED GIT CALL (issue 0185). Readers took the failure
+# for no repository, so a project vendored from a checkout git refused to read
+# recorded `source: checkout` above "not a git checkout". Every reader of a
+# failed call asks this, and says which in its own words; the two whose answer
+# is right either way, git_head_watch_paths and commit_direction, say why not.
+#
+# NOT A COPY OF GIT'S DISCOVERY. It walks further than git in three places, and
+# there it errs towards could-not-read: it does not stop at a filesystem
+# boundary (GIT_DISCOVERY_ACROSS_FILESYSTEM), it does not pass over a `.git` git
+# passes over as no repository (a dangling link, an empty directory), and it
+# reads GIT_CEILING_DIRECTORIES only up to a newline. It errs the other way in
+# one: a directory inside a bare repository holds no `.git`, so it reads as
+# absent where git would refuse that repository or read it.
+git_repo_absent() {
+  local d c rc=0
+  physical_dir "$1" d getcwd || return 1
+  git_ceiling "$d" c
+  git_marker_above "$d" "$c" || rc=$?
+  [ "$rc" -eq 1 ]
+}
+
+# git_failure_line [--plain] <dir> <git-args...> -- the first line git writes
+# to stderr for `git -C <dir> <git-args...>`, run through git_readonly in the C
+# locale, or nothing, as with no git on PATH. For a caller whose call has
+# already failed and that has only to say why, so the status is not read here;
+# the words are git's, untranslated, so a message carries what git said rather
+# than a guess at it (issue 0185).
+#
+# --plain asks a plain git, in the caller's environment, for a caller whose own
+# call was one (issue 0186). git_readonly clears GIT_INDEX_FILE, so a reason
+# asked through it comes from the repository's own index, not the one a commit
+# hook names, which is the one that failed.
+git_failure_line() {
+  local dir out plain=no
+  if [ "${1-}" = --plain ]; then
+    plain=yes
+    shift
+  fi
+  dir="$1"
+  shift
+  if [ "$plain" = yes ]; then
+    out="$(LC_ALL=C git -C "$dir" "$@" 2>&1 >/dev/null)" || true
+  else
+    out="$(LC_ALL=C git_readonly -C "$dir" "$@" 2>&1 >/dev/null)" || true
+  fi
+  printf '%s\n' "${out%%$'\n'*}"
+}
+
 # git_head_sha [root] [short|full] -- the commit sha, or `unknown`.
 #
 # `unknown` rather than empty or a failure, because every caller in the corpus
@@ -2235,11 +2407,17 @@ git_head_sha() {
   return 0
 }
 
-# git_head_identity [root] -- `<full sha>`, `<full sha> +dirty`, or `unknown`.
+# git_head_identity [root] -- `<full sha>`, `<full sha> +dirty`,
+# `<full sha> +unreadable`, or `unknown`.
 #
 # What a `--version` line should say about WHICH bytes are running. A bare sha
 # on a dirty tree is a confident false statement: the binary in front of you is
 # not that commit.
+#
+# `+unreadable` IS A TREE WHOSE STATE GIT COULD NOT READ (issue 0186). Over an
+# index git cannot read, rev-parse names the commit and status fails, and the
+# failure, read as an empty status, printed the bare sha. The commit is known;
+# whether these bytes are that commit is not, and the mark says so.
 #
 # IT SAYS `+dirty` AND NOT `THESE BYTES MATCH NO COMMIT`, AND THE DIFFERENT
 # WORDING IS DELIBERATE RATHER THAN A DRIFTED COPY. `source_commit_of` in
@@ -2407,7 +2585,7 @@ version_identity() {
 }
 
 git_head_identity() {
-  local root="${1:-${PROJECT_ROOT:-.}}" sha
+  local root="${1:-${PROJECT_ROOT:-.}}" sha state
   sha="$(git_head_sha "$root" full)"
   if [ "$sha" = unknown ]; then
     printf 'unknown\n'
@@ -2418,7 +2596,10 @@ git_head_identity() {
   # into the repository it describes. The sha goes the same way for a different
   # reason: an inherited GIT_DIR outranks `-C`, and with only one half cleared
   # the line would pair one repository's commit with another tree's `+dirty`.
-  if [ -n "$(git_readonly -C "$root" status --porcelain 2>/dev/null)" ]; then
+  # A status git could not give is no clean tree (issue 0186).
+  if ! state="$(git_readonly -C "$root" status --porcelain 2>/dev/null)"; then
+    printf '%s +unreadable\n' "$sha"
+  elif [ -n "$state" ]; then
     printf '%s +dirty\n' "$sha"
   else
     printf '%s\n' "$sha"
@@ -2472,6 +2653,10 @@ _git_path() {
 # quietly returned nothing would turn a slow-but-correct build into a fast and
 # possibly wrong one. Same rule as a gate that examines nothing: empty-and-
 # successful is the one answer that must not be available.
+#
+# A FAILED GIT CALL GIVES NO WATCH PATHS, whether there is no repository or one
+# git will not read: there is no HEAD this run can read either way, so this
+# does not ask git_repo_absent which (issue 0185).
 git_head_watch_paths() {
   local root="${1:-${PROJECT_ROOT:-.}}" ref n=0
   if git -C "$root" rev-parse --git-dir >/dev/null 2>&1; then
@@ -2766,9 +2951,14 @@ generated_doc_write() {
       warn "generated_doc_write: --deny-env $v is unset or empty, so there is no value to search for -- $target left untouched. A secret guard that cannot see its secret must not pass, and has not."
       return 1
     fi
+    # THE ADVICE NAMES THE VARIABLE, NEVER AN EXAMPLE URI (issue 0187). A
+    # connection URI with the variable where its password goes is what a secret
+    # scanner reads as a credential -- in this file, in every project that
+    # vendors it, and in every log that captures the warning -- and the scanner
+    # cannot tell the indirection from a value.
     case "$block" in
       *"${!v}"*)
-        warn "generated_doc_write: \$$v's value appears in the generated block -- $target left untouched. Use env indirection in the producer's output (postgresql://user:\$$v@host) rather than the value."
+        warn "generated_doc_write: \$$v's value appears in the generated block -- $target left untouched. Use env indirection in the producer's output -- write the literal text \$$v where the value would go -- rather than the value."
         return 1
         ;;
     esac
@@ -3067,11 +3257,15 @@ machine_install_namer() {
   fi
 }
 
-# source_override_note <root> -- one warning line, when <root>'s recorded source
-# is an install and DEVBIN_INSTALL_PREFIX is what placed it, saying so; nothing
-# otherwise. For a refusal of the source it placed: the variable is taken as
-# given, so the tree it names is never checked before that refusal.
+# source_override_note <root> [<from>] -- one warning line, when <root>'s
+# recorded source is an install, DEVBIN_INSTALL_PREFIX is what placed it and no
+# --from named another, saying so; nothing otherwise. For a refusal of the
+# source it placed: the variable is taken as given, so the tree it names is
+# never checked before that refusal. A <from> names the source on the command
+# line, so the variable placed nothing (issue 0178); the rule lives here, so a
+# refusal that calls this cannot forget it.
 source_override_note() {
+  [ -z "${2:-}" ] || return 0
   [ -n "${DEVBIN_INSTALL_PREFIX:-}" ] || return 0
   [ "$(manifest_field "$1" source 2>/dev/null || true)" = install ] || return 0
   warn "  DEVBIN_INSTALL_PREFIX names it as this machine's devbin install"
@@ -3134,7 +3328,10 @@ source_unplaced_why() {
 #
 # A RECORDED PATH STILL READS (issue 0069): a manifest written before 0153
 # carries `~/...`, or before 0069 an absolute path, and either resolves as it
-# always did until that project's next upgrade writes the kind in its place.
+# always did until an upgrade this runtime runs writes the kind in its place.
+# Not the next upgrade (issue 0178): an upgrade is run by the project's own
+# vendored runtime, so the one that brings this runtime in is run by the older
+# one, which records the path again.
 #
 # rc 1 when nothing resolves; rc 2, with machine_install_root's reason on
 # stderr, when the machine pointer cannot be trusted.
@@ -3281,6 +3478,10 @@ is_commit_sha() {
 # why <to> exists). Two copies of the ancestry rules would be two answers to
 # one question -- updatenotice.bats holds this as the only place ancestry is
 # asked.
+#
+# `unknown` FOR A CHECKOUT GIT CANNOT READ, whether no repository or one git will
+# not read: no direction can be read either way, so this does not ask
+# git_repo_absent which (issue 0185).
 commit_direction() {
   local srcroot="$1" rec="$2" head
   git -C "$srcroot" rev-parse --git-dir >/dev/null 2>&1 ||

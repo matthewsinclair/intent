@@ -68,7 +68,7 @@ A publish to `install.prefix` also records, outside every repository, that this 
 
 A project vendored straight from a working tree can carry bytes that match no commit, and two vendors taken from the same dirty tree at the same commit record the same provenance line over different files, so nothing can tell them apart. So publishing refuses a dirty tree, and there is no --force for it: an install cut from a dirty checkout would launder those bytes through one more directory and give them the LOOK of provenance.
 
-Clean means the whole tree: anything `git status --porcelain` lists refuses the publish. devbin's own half -- `bin/devbin` and the runtime beside it -- is asked harder than that: an ignored file, a symlink, or a file git was told not to watch there refuses too, reported as `seam: <state>`. A tree that is not a git repository is refused, since the commit the install would claim cannot be established.
+Clean means the whole tree: anything `git status --porcelain` lists refuses the publish. devbin's own half -- `bin/devbin` and the runtime beside it -- is asked harder than that: an ignored file, a symlink, or a file git was told not to watch there refuses too, reported as `seam: <state>`. A tree that is not a git repository is refused, since the commit the install would claim cannot be established, and so is a repository git cannot read, most often one another user owns, which git refuses unless `safe.directory` names it; the refusal says which of the two, and the second carries git's own first line.
 
 `install` publishes a NEW install and refuses to overwrite one; `upgrade` replaces an existing one and refuses when there is none. Whichever you reach for, the wrong one names the right one.
 

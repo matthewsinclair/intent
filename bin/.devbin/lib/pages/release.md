@@ -26,7 +26,7 @@ Cut a release: stamp, commit, gate, confirm, tag, push, make the release object,
     11  ci           ask ci.query for the release tag's CI verdict, if it is
                      declared
 
-Each step with a postcondition checks it first. Running the same command again after a failure therefore continues from where it stopped, and a step already done says `already`. A cut that stopped after its tag is resumed by naming the version: once the tag exists, `--patch` would name the NEXT version, so the summary prints the command to resume with.
+Each step with a postcondition checks it first. Running the same command again after a failure therefore continues from where it stopped, and a step already done says `already`. A cut that stopped after its tag is resumed by naming the version: once the tag exists, `--patch` would name the NEXT version, so the summary prints the command to resume with. A dry run's prints the command to cut with.
 
 ## Choosing the version
 
@@ -34,7 +34,7 @@ The bump is the one judgement in a release, so nothing infers it from commits. N
 
 ## --dry-run and --yes
 
-`--dry-run` makes no stamp, commit, tag, push or release object and runs no `after:`. It does run the gates, for real, on HEAD, as a prediction, so it takes as long as they do. Everything else it prints as what it would do, naming anything it could not predict.
+`--dry-run` makes no stamp, commit, tag, push or release object and runs no `after:`. It does run the gates, for real, on HEAD, as a prediction, so it takes as long as they do. Everything else it prints as what it would do, naming anything it could not predict. Where it would make the release commit, it names that commit as the one step 4 makes, never HEAD, and plans its push to every remote, one already at HEAD included. When no step failed, its last line is its verdict, saying so and whether the cut stops to ask at step 6.
 
 Step 6 asks a person. `--yes` answers it. With neither a terminal nor `--yes`, the cut stops there and exits 1, its row saying nobody was there to ask. It never guesses consent.
 
@@ -51,7 +51,8 @@ Step 6 asks a person. `--yes` answers it. With neither a terminal nor `--yes`, t
 
 ## Exit codes
 
-    0    released; for a dry run, the gates passed and the rest was predicted
+    0    released; for a dry run, no step failed: its gates passed, and it
+         predicted the rest or listed what it could not
     1    a step failed, a dry run's gates included, or the arguments were
          refused; a failed step is named, and a re-run continues from it.
          Step 6 fails this way when nobody is there to ask, as when a

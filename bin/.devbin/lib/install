@@ -291,6 +291,35 @@ die_install_prefix_unset() {
            prefix: ~/where/devbin/should/live$extra"
 }
 
+# publish_gate <srcroot> -- the dirty gate (D28): refuse, by die, to publish an
+# install from <srcroot> unless git says the whole tree is exactly its commit.
+# install and upgrade both publish through it, so their refusals cannot drift
+# apart; each had a copy of the whole gate until issue 0185.
+#
+# A TREE GIT CANNOT SAY ANYTHING OF IS NAMED FOR WHAT IT IS (issue 0185): no
+# repository there, or one git cannot read, asked of git_repo_absent, with
+# git's own first line. Most often that is a repository another user owns,
+# which git refuses unless safe.directory names it; a corrupt index fails here
+# too, and git's line says which.
+publish_gate() {
+  local dirty why line
+  if ! dirty="$(tree_dirty_paths "$1")"; then
+    if git_repo_absent "$1"; then
+      die "cannot publish: $1 is not a git repository, so the commit this
+       install would claim cannot be established"
+    fi
+    why="$(git_failure_line "$1" status --porcelain)"
+    die "cannot publish: git cannot read the repository at $1, so the commit this
+       install would claim cannot be established${why:+ -- $why}"
+  fi
+  if [ -n "$dirty" ]; then
+    warn "refusing to publish: the source tree is dirty"
+    printf '%s\n' "$dirty" | while IFS= read -r line; do warn "  $line"; done
+    die "commit or stash, then publish -- an install cut from a dirty tree
+       records a commit that does not describe the bytes in it"
+  fi
+}
+
 # tree_dirty_paths <root> -- porcelain lines for an unclean tree, empty when clean.
 #
 # WHOLE TREE, not just the vendored set (D28). The manifest's claim is "these
@@ -807,8 +836,18 @@ source_commit_of() {
   fi
   # git_readonly for the sha as well as the state, so an inherited GIT_DIR cannot
   # pair one repository's HEAD with another's status.
-  git_readonly -C "$root" rev-parse --git-dir >/dev/null 2>&1 ||
-    { printf 'not a git checkout -- these bytes name no commit\n'; return 0; }
+  # AND A CHECKOUT GIT COULD NOT READ IS NAMED AS ONE (issue 0185): this line is
+  # written into the consumer's manifest, beside `source: checkout`. "Could not
+  # read" is true of a repository git refuses, the case that made a manifest
+  # contradict itself, and of every other one git_repo_absent cannot call absent.
+  if ! git_readonly -C "$root" rev-parse --git-dir >/dev/null 2>&1; then
+    if git_repo_absent "$root"; then
+      printf 'not a git checkout -- these bytes name no commit\n'
+    else
+      printf 'a checkout git could not read -- these bytes name no commit\n'
+    fi
+    return 0
+  fi
   sha="$(git_readonly -C "$root" rev-parse HEAD 2>/dev/null)" || sha=""
   [ -n "$sha" ] ||
     { printf 'a checkout with no HEAD -- these bytes name no commit\n'; return 0; }

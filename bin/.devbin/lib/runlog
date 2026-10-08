@@ -1462,9 +1462,11 @@ gate_out_ignore() {
   return 0
 }
 
-# gate_out_ignored <dir> -- true when what a run writes in <dir> is ignored:
+# gate_out_ignored <dir> -- rc 0 when what a run writes in <dir> is ignored:
 # git ignores it already, or gate_out_ignore will make <dir> ignore itself
-# before the first log is written. Writes nothing.
+# before the first log is written. rc 1 when it is not, and rc 2 when git could
+# not say -- its check-ignore failed, or git could not be run at all -- with
+# git's own first line, where it gave one, on stdout. Writes nothing.
 #
 # ONE ANSWER FOR THE DRY RUN AND THE CUT (critic-shell on 0157 v1). The release
 # pre-flight asked git alone. A real cut had already opened its own log, which
@@ -1474,14 +1476,33 @@ gate_out_ignore() {
 # Asked of the project's repository through git_readonly, so an inherited GIT_DIR
 # cannot point it elsewhere, and a relative <dir> is the project root's, as the
 # writer reads it.
+#
+# A GIT THAT DID NOT ANSWER IS NO "not ignored" (issue 0186). Over an index git
+# cannot read, check-ignore fails at 128, and the fall to the writer's rule,
+# which writes no file where the project's is already, read the failure as not
+# ignored: the pre-flight told a directory that ignores itself to add tmp/ to
+# .gitignore. Where the writer's rule says yes it needs no git, and where there
+# is no repository there is no git to ask (0185's one reading); anywhere else a
+# failed check-ignore is rc 2. So is a git that cannot be run at all, which
+# git_readonly answers with 1, check-ignore's own "not ignored".
 gate_out_ignored() {
-  local dir="$1"
+  local dir="$1" rc=0
   case "$dir" in
     /*) ;;
     *) dir="${PROJECT_ROOT:-.}/$dir" ;;
   esac
-  git_readonly -C "${PROJECT_ROOT:-.}" check-ignore -q "$dir/probe.out" 2>/dev/null && return 0
-  _gate_out_ignore_file "$1" >/dev/null
+  if git_readonly_prime; then
+    git_readonly -C "${PROJECT_ROOT:-.}" check-ignore -q "$dir/probe.out" 2>/dev/null || rc=$?
+  else
+    rc=127
+  fi
+  [ "$rc" -ne 0 ] || return 0
+  _gate_out_ignore_file "$1" >/dev/null && return 0
+  if [ "$rc" -ne 1 ] && ! git_repo_absent "${PROJECT_ROOT:-.}"; then
+    git_failure_line "${PROJECT_ROOT:-.}" check-ignore -q "$dir/probe.out"
+    return 2
+  fi
+  return 1
 }
 
 # _gate_out_ignore_file <dir> -- the .gitignore gate_out_ignore would write for
@@ -1496,7 +1517,7 @@ gate_out_ignored() {
 # would hide its next file. And never where a .gitignore is already, which the
 # project made.
 _gate_out_ignore_file() {
-  local dir="${1%/}" root="" up rest="" abs="" tracked=""
+  local dir="${1%/}" root="" up rest="" abs="" tracked="" why
   [ -n "${PROJECT_ROOT:-}" ] || return 1
   physical_dir "$PROJECT_ROOT" root || return 1
   case "$dir" in
@@ -1526,11 +1547,18 @@ _gate_out_ignore_file() {
     return 1
   fi
   # A git that cannot say is not a directory nobody tracks: it writes nothing,
-  # and says so, unless there is no repository here to ask.
+  # and says so, unless there is no repository here to ask. Whether there is one
+  # is asked of the filesystem (issue 0179): a repository git refuses to read
+  # fails `rev-parse` as it fails `ls-files`, so asked of git it was a tree with
+  # no repository, and `*` landed unannounced in a directory it tracks. Only
+  # git_repo_absent's plain yes, the one reading of a failed git call (issue
+  # 0185), lets the file be written. git's own first line rides on the
+  # warning: for a repository it refuses to read, it says why.
   if [ -d "$abs" ]; then
     if ! tracked="$(git_readonly -C "$root" ls-files -- "${abs#"$root"/}" 2>/dev/null)"; then
-      if git_readonly -C "$root" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-        warn "git could not say whether $abs is tracked, so it is given no .gitignore"
+      if ! git_repo_absent "$root"; then
+        why="$(git_failure_line "$root" ls-files -- "${abs#"$root"/}")"
+        warn "git could not say whether $abs is tracked, so it is given no .gitignore${why:+ -- $why}"
         return 1
       fi
       tracked=""
@@ -1746,30 +1774,54 @@ option_seal_from() {
 gate_heartbeat_start() {
   local log="$1" label="$2" interval="${DEVBIN_HEARTBEAT_SECS:-30}" parent=$$
   _GATE_HEARTBEAT_PID=""
-  # 0 disables. Non-numeric disables rather than dying: a malformed override
-  # must not be able to take a gate down.
-  case "$interval" in '' | *[!0-9]*) return 0 ;; esac
-  [ "$interval" -gt 0 ] || return 0
+  # A number of seconds, whole or a decimal fraction, from 0.1 up: 30, 0.2, .5
+  # (issue 0191). Anything else disables rather than dying -- a malformed
+  # override must not be able to take a gate down -- and so does anything
+  # under 0.1, zero however it is written included: a beat more often than
+  # that is a flood, and sleep returns at once for a thousandth or less. All of
+  # it is matched as text, so no value reaches a test or an arithmetic
+  # expansion that would complain about it into the operator's terminal. The
+  # value is at least 0.1 when a digit before its point, or the first after
+  # it, is not 0.
+  case "$interval" in '' | . | *[!0-9.]* | *.*.*) return 0 ;; esac
+  case "${interval%%.*}" in
+    *[1-9]*) ;;
+    *) case "${interval#*.}" in [1-9]*) ;; *) return 0 ;; esac ;;
+  esac
   [ -t 2 ] || return 0
   (
     # No `local` here: this is a subshell, not a function, and the subshell is
     # what isolates these.
-    hb_total=0
-    hb_quiet=0
+    #
+    # ELAPSED AND QUIET ARE READ OFF THE CLOCK, NEVER SUMMED FROM THE INTERVAL.
+    # A sum leaves out each beat's own work, and at a fraction of a second that
+    # is a real share of the interval. EPOCHREALTIME (bash >= 5, the floor)
+    # writes the locale's decimal point and always six digits after it, so its
+    # digits alone are microseconds. The clock is the wall clock, so a step of
+    # the system clock moves both times.
+    hb_start="${EPOCHREALTIME//[!0-9]/}"
+    hb_since="$hb_start"
     hb_last=0
     [ -r "$log" ] && hb_last="$(wc -c <"$log" 2>/dev/null || printf 0)"
     while :; do
-      sleep "$interval"
+      # A sleep that refuses the interval ends the beat, silently, as the match
+      # above does for a malformed one. The match reads how a value is written,
+      # not how big it is, and BSD's sleep refuses anything above 2147483647.
+      # Unchecked, a refusal let the loop spin, its complaint and a beat on
+      # every pass.
+      sleep "$interval" 2>/dev/null || exit 0
       kill -0 "$parent" 2>/dev/null || exit 0
-      hb_total=$((hb_total + interval))
+      hb_now="${EPOCHREALTIME//[!0-9]/}"
       hb_size=0
       [ -r "$log" ] && hb_size="$(wc -c <"$log" 2>/dev/null || printf 0)"
       if [ "$hb_size" = "$hb_last" ]; then
-        hb_quiet=$((hb_quiet + interval))
+        # Whole seconds, rounded down, which is what fmt_duration takes.
+        hb_quiet=$(((hb_now - hb_since) / 1000000))
+        hb_total=$(((hb_now - hb_start) / 1000000))
         printf '    ... %s still running -- quiet for %s, %s elapsed\n' \
           "$label" "$(fmt_duration "$hb_quiet")" "$(fmt_duration "$hb_total")" >&2
       else
-        hb_quiet=0
+        hb_since="$hb_now"
       fi
       hb_last="$hb_size"
     done
@@ -1788,7 +1840,8 @@ gate_heartbeat_stop() {
   return 0
 }
 
-# fmt_duration <seconds> -- "45s", "2m30s", "1h04m". Read by a human mid-wait.
+# fmt_duration <whole seconds> -- "45s", "2m30s", "1h04m". Read by a human
+# mid-wait.
 fmt_duration() {
   local s="${1:-0}"
   if [ "$s" -lt 60 ]; then

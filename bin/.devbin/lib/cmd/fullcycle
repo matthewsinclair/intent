@@ -455,7 +455,7 @@ _fullcycle_link_in_tree() {
 }
 
 _fullcycle_header() {
-  local dirty link predark=0
+  local dirty why link predark=0 err="" line
   # WRITTEN BEFORE ANYTHING RUNS, so the log can never be a verdict describing
   # no commit. git_head_identity already carries `+dirty`; the count sits beside
   # it because "dirty" and "how dirty" are different questions to somebody
@@ -463,16 +463,35 @@ _fullcycle_header() {
   # A NON-CHECKOUT REPORTS AS ONE, rather than as zero dirty files. `dirty: 0`
   # would claim the tree matches its commit when there is no commit to match --
   # the same false statement a bare sha makes on a dirty tree, in the other
-  # direction. It also cannot be computed here: `set -o pipefail` is on, and
-  # git exiting 128 into `wc` takes the whole handler down with it.
+  # direction.
   printf '    HEAD:  %s\n' "$(git_head_identity "$PROJECT_ROOT")"
-  if git -C "$PROJECT_ROOT" rev-parse --git-dir >/dev/null 2>&1; then
-    # git_readonly: a header that reads the tree must not rewrite its index (0094).
-    dirty="$(git_readonly -C "$PROJECT_ROOT" status --porcelain | wc -l | tr -d ' ')"
-    printf '    dirty: %s file(s)\n' "$dirty"
-  else
+  # THE STATUS IS READ WHOLE, AND ITS OWN EXIT IS READ (issue 0186). It was
+  # piped into `wc` behind a rev-parse probe, and over an index git cannot read
+  # the probe passes and the status fails, so under pipefail git's 128 took the
+  # header down after a bare sha. A failure now lands in one of the two branches
+  # below, which say which it was. Its stderr is kept apart, never dropped: a
+  # status that answers can still warn, eg of a directory it could not open, and
+  # the warning is printed under the count; with no file to keep it in, it goes
+  # straight to stderr. git_readonly: a header that reads the tree must not
+  # rewrite its index (0094), nor answer for an inherited GIT_DIR's repository
+  # (0185).
+  err="$(mktemp "${TMPDIR:-/tmp}/devbin-fullcycle-status.XXXXXX")" || err=""
+  if dirty="$(git_readonly -C "$PROJECT_ROOT" status --porcelain 2>"${err:-/dev/stderr}")"; then
+    printf '    dirty: %s file(s)\n' "$(nonempty_lines "$dirty")"
+    if [ -n "$err" ]; then
+      while IFS= read -r line; do
+        printf '    %s\n' "$line"
+      done <"$err"
+    fi
+  elif git_repo_absent "$PROJECT_ROOT"; then
     printf '    dirty: not a checkout -- these bytes are not compared to anything\n'
+  else
+    # A CHECKOUT GIT COULD NOT READ IS NO "not a checkout" (issue 0185), and
+    # git's own first line says why (issue 0186).
+    why="$(git_failure_line "$PROJECT_ROOT" status --porcelain)"
+    printf '    dirty: a checkout git could not read -- these bytes are not compared to anything%s\n' "${why:+ -- $why}"
   fi
+  [ -z "$err" ] || rm -f "$err"
 
   # ALREADY DARK BEFORE THIS RUN, REPORTED AND NOT BLAMED ON THE CYCLE.
   #
@@ -651,7 +670,10 @@ _fullcycle_consent_notice() {
 # reach (critic-shell on 0139, its fifth pass); it then split a link's content
 # itself, a newline in it ended the split, and a tree beneath one read as gone
 # at rc 0 (the same pass, on v2h). The split is by parameter expansion, which
-# keeps a newline in a name.
+# keeps a newline in a name. The artefact check's tree loop turns each code into
+# the cause it names, and one it has no branch for is named out of reach, so a
+# new code needs a branch there and the four places that loop's comment lists
+# (issue 0177).
 _fullcycle_tree_gone() {
   local p="$1" cur next s i j hops=0
   local -a parts=()
@@ -730,7 +752,10 @@ _fullcycle_profile_built() {
 # comparison, a triple adding only built profiles. A per-node target dir
 # (cargo_target_root) is no profile of this tree's and is passed over, and a
 # link is no triple (build_triple_dirs). The tree's own debug/ and release/ are
-# listed and never searched for as a triple.
+# listed and never searched for as a triple. Each cause named here has a line
+# in the cycle's INCOMPLETE summary, its words in lib/pages/fullcycle.md and an
+# arm in tests/unit/fullcycle.bats that asserts the line, so a new one is added
+# in all four (issue 0177).
 _fullcycle_tree_listed() {
   local _ftl_rc=0 _ftl_d _ftl_p
   local -a _ftl_profs=("$1/debug" "$1/release")
@@ -1221,7 +1246,10 @@ _fullcycle_run() {
       # tree out of reach as for one that is not there, and one out of reach
       # may be there, so it is named out of reach and the check is incomplete
       # (critic-shell on 0139 v2f: it read as absent, and a link to one was
-      # dropped unsaid, INCONCLUSIVE at rc 0 both times).
+      # dropped unsaid, INCONCLUSIVE at rc 0 both times). Each cause here that
+      # sets unlisted has a line in the INCOMPLETE summary below, its words in
+      # lib/pages/fullcycle.md and an arm in tests/unit/fullcycle.bats that
+      # asserts the line, so a new one is added in all four (issue 0177).
       unlisted=0
       if [ ! -x "$tdir" ]; then
         if [ -e "$tdir" ]; then
@@ -1323,14 +1351,30 @@ _fullcycle_run() {
     # find could not read may never have been examined, and a tree it found
     # whose profiles could not be listed was not, so the check above cannot say
     # the rebuild put release/ back: it is incomplete, and a green over it is
-    # the false one this check exists to stop. Each cause is said for itself,
-    # and only when it holds (critic-shell on 0139 v2e).
+    # the false one this check exists to stop. Each of these four is said for
+    # itself, and only when it holds (critic-shell on 0139 v2e); the partial
+    # tree's line lists every cause a tree can be partial for, whichever held
+    # (issue 0177).
     if [ "$walk_partial" = 1 ] || [ "$tree_partial" = 1 ] || [ "$kept_found" = 1 ] || [ "$kept_partial" = 1 ]; then
       printf '\n    ARTEFACT CHECK INCOMPLETE -- this cycle cannot claim its release artefacts.\n'
       [ "$walk_partial" = 0 ] ||
         printf '    The walk for build trees could not read everything, so a tree beneath\n    what it could not read may not have been examined (the errors above name it).\n'
+      # THIS LISTS EVERY CAUSE A TREE CAN BE PARTIAL FOR, WHICHEVER HELD: the
+      # lines above name each tree and its own cause, and these say what kinds
+      # of thing keep a tree from being examined. A tree that can be searched
+      # but not listed, and one behind a link that cannot be followed exactly,
+      # had no line here, and read as one that could not be reached or searched
+      # (issue 0177). A cause added where tree_partial is set, in the tree's own
+      # tests above or in _fullcycle_tree_listed, gets a line here, its words in
+      # lib/pages/fullcycle.md, and an arm in tests/unit/fullcycle.bats that
+      # asserts the line.
       [ "$tree_partial" = 0 ] ||
-        printf '    A build tree could not be reached or searched, or a debug/ or release/\n    in it listed, or a directory in it that may be a target triple'"'"'s searched,\n    so that tree was not examined (the lines above name each).\n'
+        printf '    %s\n' "A build tree could not be reached or searched," \
+          "or listed while its own release/ held no binary," \
+          "or a debug/ or release/ in it listed," \
+          "or a directory in it that may be a target triple's searched," \
+          "or it lay behind a link that could not be followed exactly," \
+          "so that tree was not examined (the lines above name each)."
       [ "$kept_found" = 0 ] ||
         printf '    A build tree kept release artefacts through the clean, so they may be\n    the last cycle'"'"'s and that tree was not compared (the lines above name each).\n'
       [ "$kept_partial" = 0 ] ||

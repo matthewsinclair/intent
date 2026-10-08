@@ -11,7 +11,7 @@ Show, set, bump, sync and check the project version.
     sync           re-write the CURRENT version everywhere, healing drift
     check          report drift and write nothing; exits non-zero on any
 
-The bare form is the line `bin/devbin --version` prints. Its runtime digest reads `UNREADABLE` when devbin's runtime cannot be read whole, a directory `find` cannot read or can list but not search, or a file that cannot be opened, and the error names it: a digest of part of the runtime would name another one. `set` takes X.Y.Z only. These are sub-commands, not options, so there is no `version all`: show, then set, then bump, then sync, in one run, would make no sense.
+The bare form is the line `bin/devbin --version` prints. Its commit carries `+dirty` when `git status` lists anything, an untracked file included, and `+unreadable` where git names the commit but cannot give the tree's status, as over an index it cannot read. Its runtime digest reads `UNREADABLE` when devbin's runtime cannot be read whole, a directory `find` cannot read or can list but not search, or a file that cannot be opened, and the error names it: a digest of part of the runtime would name another one. `set` takes X.Y.Z only. These are sub-commands, not options, so there is no `version all`: show, then set, then bump, then sync, in one run, would make no sense.
 
 ## Where the version lives
 

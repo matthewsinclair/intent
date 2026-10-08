@@ -459,11 +459,12 @@ cut_stamp_read() {
 }
 
 # cut_run -- a cut of $target: steps 1 to 11. With --dry-run, the same reads
-# and gates with every write, every wait and every after: reported as `would`.
+# and gates with every write, every wait and every after: reported as `would`,
+# and a verdict as the last line when no step failed.
 cut_run() {
   local tpl branch object today launcher line v tag how rc_line commit source
   local state detail remotes remote answer nremote=0 owned dirt outside="" deferred=""
-  local derived gates out written="" have n
+  local derived gates out written="" have n ignored_rc ignored_why
   local -a refusals=()
 
   # THE TAG REACHES ci.query ALONE (issue 0149): one exported from outside,
@@ -497,7 +498,12 @@ cut_run() {
   fi
   commit="${rc_line%%$'\t'*}"
   source="${rc_line#*$'\t'}"
-  CUT_HEAD="release: $tag$dry_note -- resume with: ${DEVBIN_INVOKE:-bin/devbin} release v$v"
+  # THE HEADER NAMES THE COMMAND THAT RELEASES FOR REAL (0181): a cut that
+  # stops is resumed with it, and after a dry run it is the cut. "resume with"
+  # after a dry run that had passed read as though a cut had stopped.
+  local next="resume with"
+  [ "$dry_run" = 0 ] || next="cut with"
+  CUT_HEAD="release: $tag$dry_note -- $next: ${DEVBIN_INVOKE:-bin/devbin} release v$v"
   if [ "$how" = resume ]; then
     cut_row 1 "done" "$tag exists, at ${commit:0:12}: resuming it"
   else
@@ -536,7 +542,9 @@ cut_run() {
     [ -n "$remote" ] || continue
     nremote=$((nremote + 1))
     if ! git remote get-url "$remote" >/dev/null 2>&1; then
-      refusals+=("remote $remote is declared and does not exist")
+      # Named through release_url_shown: an entry can be a url, and a url can
+      # carry a token (issue 0189).
+      refusals+=("remote $(release_url_shown "$remote") is declared and does not exist")
       continue
     fi
     answer="$(release_read_remote "$remote" "$branch" "$tag" "$commit" "$mode" 3<&-)"
@@ -574,10 +582,15 @@ cut_run() {
     # see every gate change the tree. Each such directory ignores itself (issue
     # 0157), so this refuses only where it will not -- a .gitignore the project
     # put there, a tmp/ that leads outside the tree -- and asks the writer's own
-    # rule, without writing, so a dry run and the cut agree.
-    if ! gate_out_ignored "$(gate_out_dir release)"; then
-      refusals+=("$(gate_out_dir release)/ is not ignored, and every gated run writes its log there -- add tmp/ to .gitignore")
-    fi
+    # rule, without writing, so a dry run and the cut agree. Where git could not
+    # say, it says that, and never offers the remedy (issue 0186).
+    ignored_rc=0
+    ignored_why="$(gate_out_ignored "$(gate_out_dir release)")" || ignored_rc=$?
+    case "$ignored_rc" in
+      0) ;;
+      2) refusals+=("git could not say whether $(gate_out_dir release)/ is ignored${ignored_why:+ -- $ignored_why}") ;;
+      *) refusals+=("$(gate_out_dir release)/ is not ignored, and every gated run writes its log there -- add tmp/ to .gitignore") ;;
+    esac
   else
     # A TAG FOR THE TARGET MUST CARRY THE RELEASE, or it is refused and never
     # moved or deleted (AC-4.5): its commit's VERSION is the target and its note
@@ -662,6 +675,7 @@ cut_run() {
   fi
 
   # --- step 4: commit ------------------------------------------------------
+  local release_made=yes
   if [ "$source" = tag ]; then
     cut_row 4 already "${commit:0:12}, $tag's commit, is the release commit"
   else
@@ -673,6 +687,7 @@ cut_run() {
       cut_fail 4 "${answer#*$'\t'}"
     elif [ "$dry_run" = 1 ]; then
       cut_row 4 would "commit the stamp as \"release: $tag\""
+      release_made=no
     else
       dirt="$(release_dirt)" || cut_fail 4 "git status failed"
       [ -n "$dirt" ] || cut_fail 4 "${commit:0:12} does not carry the stamp, and there is nothing to commit: ${answer#*$'\t'}"
@@ -695,6 +710,18 @@ cut_run() {
       [ "$(release_read_clean | cut -f1)" = already ] || cut_fail 4 "the tree is not clean after the commit: $(release_read_clean | cut -f2-)"
       cut_row 4 "done" "${commit:0:12} \"release: $tag\", ${#paths[@]} path(s)"
     fi
+  fi
+
+  # WHERE STEP 4 READS `would`, THERE IS NO RELEASE COMMIT YET (0181), and
+  # `commit` is still HEAD, which the cut never tags: its step 4 makes a new
+  # commit on HEAD. So rows 6, 7 and 11 name the commit step 4 makes, never
+  # HEAD's sha, and step 6 reads every remote as lacking it (push-new), as the
+  # cut's own read does once step 4 has made it: a remote at HEAD is sent the
+  # commit as well as the tag. Row 5 names HEAD, which is what the gates ran on.
+  local rel_at="${commit:0:12}" push_mode=push
+  if [ "$release_made" = no ]; then
+    rel_at="the release commit step 4 makes"
+    push_mode=push-new
   fi
 
   # --- step 5: gates -------------------------------------------------------
@@ -744,7 +771,7 @@ cut_run() {
   drem="$(declared_remote)"
   while IFS= read -r remote <&3; do
     [ -n "$remote" ] || continue
-    answer="$(release_read_remote "$remote" "$branch" "$tag" "$commit" push 3<&-)"
+    answer="$(release_read_remote "$remote" "$branch" "$tag" "$commit" "$push_mode" 3<&-)"
     case "${answer%%$'\t'*}" in
       already) ;;
       pending)
@@ -784,17 +811,32 @@ cut_run() {
       *) cut_fail 6 "${answer#*$'\t'}" ;;
     esac
   fi
-  [ "$how" = resume ] || left=("tag $tag at ${commit:0:12}" "${left[@]}")
+  [ "$how" = resume ] || left=("tag $tag at $rel_at" "${left[@]}")
 
-  local confirmed=no
+  # THE WORK LEFT, JOINED ONCE, and the --yes row's words built once (0181), so
+  # every row and the question name one list, and a dry run given --yes says
+  # what the cut's own row says.
+  local work="" yes_detail
+  [ "${#left[@]}" -eq 0 ] || work="$(printf '%s; ' "${left[@]}" | sed 's/; $//')"
+  yes_detail="--yes given: $work"
+
+  # ask_next -- what a dry run's verdict says the cut does at this step (0181).
+  local confirmed=no ask_next=""
   if [ "${#left[@]}" -eq 0 ]; then
     cut_row 6 "not re-run" "no irreversible step has work left"
+    ask_next="the cut has nothing left to ask about"
+  elif [ "$dry_run" = 1 ] && [ "$assume_yes" = 1 ]; then
+    # --YES ANSWERS THE QUESTION, so a dry run given it predicts step 6 whole
+    # and leaves nothing of it unpredicted.
+    cut_row 6 would "$yes_detail"
+    ask_next="given --yes, the cut does not stop to ask"
   elif [ "$dry_run" = 1 ]; then
-    cut_row 6 would "ask before: $(printf '%s; ' "${left[@]}" | sed 's/; $//')"
+    cut_row 6 would "ask before: $work"
     CUT_UNREACHED+=("step 6's confirmation: a dry run never asks")
+    ask_next="the cut stops to ask at step 6"
   elif [ "$assume_yes" = 1 ]; then
     confirmed=yes
-    cut_row 6 "done" "--yes given: $(printf '%s; ' "${left[@]}" | sed 's/; $//')"
+    cut_row 6 "done" "$yes_detail"
   else
     printf '\nrelease: %s, release commit %s. Still to do, and seen by other machines once done:\n' "$tag" "${commit:0:12}"
     printf '  - %s\n' "${left[@]}"
@@ -803,7 +845,7 @@ cut_run() {
     case "$asked" in
       0)
         confirmed=yes
-        cut_row 6 "done" "confirmed: $(printf '%s; ' "${left[@]}" | sed 's/; $//')"
+        cut_row 6 "done" "confirmed: $work"
         ;;
       1) cut_fail 6 "declined at the prompt" ;;
       *) cut_fail 6 "nobody to ask: no terminal, and --yes was not given" ;;
@@ -819,7 +861,7 @@ cut_run() {
     answer="$(release_read_tag "$tag" "$SCRATCH/rel" "$v")"
     cut_row 7 already "${answer#*$'\t'}"
   elif [ "$dry_run" = 1 ]; then
-    cut_row 7 would "annotated tag $tag at ${commit:0:12}, its message the notes body"
+    cut_row 7 would "annotated tag $tag at $rel_at, its message the notes body"
   else
     # At the release commit's SHA, never HEAD (D38). NO ARM REACHES THE
     # DIFFERENCE: step 5 fails a gate that moves HEAD, so HEAD is the release
@@ -1006,7 +1048,7 @@ cut_run() {
   if ! cfg_release_declared ci.query; then
     cut_row 11 skipped "no ci.query declared"
   elif [ "$dry_run" = 1 ]; then
-    cut_row 11 would "ask ci.query about $tag (${commit:0:12}) for up to $(cfg_release_get ci.wait) (ci.wait)"
+    cut_row 11 would "ask ci.query about $tag ($rel_at) for up to $(cfg_release_get ci.wait) (ci.wait)"
   else
     local query ci_wait ci_secs
     local -a qw=()
@@ -1040,6 +1082,10 @@ cut_run() {
       printf '\nrelease: NOT REACHED by this dry run, so not predicted:\n'
       printf '  - %s\n' "${CUT_UNREACHED[@]}"
     fi
+    # THE VERDICT IS THE LAST LINE (0181). A passing dry run ended on "NOT
+    # REACHED" and "not predicted", and was read as a failure; a failing one
+    # stops at cut_fail, exit 1, and never gets here.
+    printf '\nrelease: dry run of %s -- no step failed; %s\n' "$tag" "$ask_next"
     return 0
   fi
   if [ -n "$after_failed$verdict_failed" ]; then
@@ -1180,7 +1226,14 @@ status_report() {
   while IFS= read -r remote; do
     [ -n "$remote" ] || continue
     local answer
-    answer="$(release_read_remote "$remote" "$branch" "$tag" "$commit")"
+    # AN ENTRY THAT NAMES NO REMOTE IS NOT READ, as pre-flight refuses it (issue
+    # 0189): it can be a url, whose userinfo would reach this row in devbin's
+    # words and in git's.
+    if git remote get-url "$remote" >/dev/null 2>&1; then
+      answer="$(release_read_remote "$remote" "$branch" "$tag" "$commit")"
+    else
+      answer="UNREADABLE"$'\t'"remote $(release_url_shown "$remote") is declared and does not exist"
+    fi
     r_state="${answer%%$'\t'*}"
     r_detail="${answer#*$'\t'}"
     push_detail+="; $r_detail"
@@ -1266,9 +1319,9 @@ case "$verb" in
     # cut's own exit through, so 1 -- a step failed, step 6 with nobody to ask
     # among them since issue 0130 -- reaches the caller as it is. No step exits
     # 2 or 3 (the header says so for 3, and this comment said otherwise until
-    # issue 0118). A dry run makes no release, so it has no verdict of its own
-    # to seal, as fullcycle's has none -- though the gates it runs still seal
-    # theirs.
+    # issue 0118). A dry run makes no release, so it seals nothing of its own,
+    # as fullcycle's dry run seals nothing: its verdict line is a prediction,
+    # printed and not sealed (0181), and the gates it runs still seal theirs.
     if [ "$dry_run" = 1 ]; then
       cut_run
     else

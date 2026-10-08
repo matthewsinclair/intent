@@ -132,7 +132,7 @@ main() {
   is_devbin_source "$srcroot" || {
     warn "not a devbin source: $srcroot"
     warn "  (looked for bin/devbin and a lib/ beside it)"
-    [ -n "$from" ] || source_override_note "$dstroot"
+    source_override_note "$dstroot" "$from"
     warn "  name a different one with:  $DEVBIN_INVOKE vendor --from <dir>"
     return 1
   }

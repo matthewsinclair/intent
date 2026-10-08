@@ -99,7 +99,7 @@ starter_config() {
 
 main() {
   local into="" name="" alias="" langs="" force="" prefix="" srcroot dstroot version
-  local rel src count=0 config mode dirty vendor_only="" record paths recorded removed configured=""
+  local rel src count=0 config mode vendor_only="" record paths recorded removed configured=""
 
   while [ $# -gt 0 ]; do
     case "$1" in
@@ -239,17 +239,11 @@ main() {
   # install cut from a dirty checkout launders the same bytes through one more
   # hop and gives them the LOOK of provenance, which is worse than today, since
   # today's manifest at least says THESE BYTES MATCH NO COMMIT out loud.
+  #
+  # The gate itself is publish_gate in lib/install, which upgrade's publish
+  # passes through too.
   if [ "$mode" = publish ]; then
-    if ! dirty="$(tree_dirty_paths "$srcroot")"; then
-      die "cannot publish: $srcroot is not a git repository, so the commit this
-       install would claim cannot be established"
-    fi
-    if [ -n "$dirty" ]; then
-      warn "refusing to publish: the source tree is dirty"
-      printf '%s\n' "$dirty" | while IFS= read -r line; do warn "  $line"; done
-      die "commit or stash, then publish -- an install cut from a dirty tree
-       records a commit that does not describe the bytes in it"
-    fi
+    publish_gate "$srcroot"
   fi
 
   # Refusing to install into the source is not fussiness. Devbin runs itself out

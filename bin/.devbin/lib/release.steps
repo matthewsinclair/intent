@@ -20,9 +20,12 @@
 #   release_read_tag <tag> <root> <version>      step 7's postcondition, with the reuse report
 #   release_tag_reuse_note <tag> <root> <version>
 #                                                how a found tag is not the one the core makes
-#   release_read_remote <remote> <branch> <tag> <commit> [preflight|preflight-new|push]
+#   release_read_remote <remote> <branch> <tag> <commit> [preflight|preflight-new|push|push-new]
 #                                                step 8's postcondition, one remote; pre-flight's
 #   release_git_remote <git-args>...             every git call that reaches a remote
+#   release_remote_urls                          every url this checkout reaches a remote by
+#   release_url_shown <url>                      a url as a message may print it, its userinfo left out
+#   release_text_shown <text> <url>...           text as a message may print it, each url's userinfo left out
 #   release_repo <declared-repo> <declared-remote>
 #                                                the repository gh is told about
 #   release_gh <repo> <group> <verb> [args...]   every gh call the release core makes
@@ -494,17 +497,62 @@ release_tag_reuse_note() {
 # GIT_SSH_COMMAND, ssh is left as the person set it, because setting
 # GIT_SSH_COMMAND would override their program; and an ssh command whose first
 # word is not OpenSSH (plink) is handed an OpenSSH option.
+#
+# GIT'S OWN WORDS ARE PRINTED WITH EVERY REMOTE'S USERINFO LEFT OUT, where
+# release_url_shown can read it (issue 0189). git leaves a well-formed userinfo
+# out of what it says, but not one whose password holds a raw @ or a raw `/`,
+# and what a remote call says reaches the terminal, a cut's sealed log and CI's
+# job log: a remote's row, pre-flight and `release status` print
+# release_read_remote's answer, which carries it, and step 8 prints its pushes'
+# words whole. So the call's stderr is taken into a file and printed once git
+# exits, through release_text_shown, with every url of every remote
+# (release_remote_urls); its stdout passes through as it comes.
+#
+# A FILE, NEVER A PIPE. $(...) waits for every holder of its pipe, not for git:
+# a hook's background job holds git's stderr past git's exit, and held a push
+# that had landed until its bound fired. A call killed at its bound
+# (release_run_bounded) prints none of what it said and leaves its file under
+# TMPDIR.
 release_git_remote() {
-  local ssh="${GIT_SSH_COMMAND:-}"
+  local ssh="${GIT_SSH_COMMAND:-}" err said rc=0
+  local -a urls=()
   if [ -z "$ssh" ] && [ -z "${GIT_SSH:-}" ]; then
     ssh="$(git config --get core.sshCommand 2>/dev/null)" || ssh=""
     ssh="${ssh:-ssh}"
   fi
-  if [ -n "$ssh" ]; then
-    GIT_TERMINAL_PROMPT=0 GIT_SSH_COMMAND="$ssh -o BatchMode=yes" git "$@" </dev/null
-  else
-    GIT_TERMINAL_PROMPT=0 git "$@" </dev/null
+  if ! err="$(mktemp "${TMPDIR:-/tmp}/devbin-git.XXXXXX")"; then
+    warn "release: cannot make a file under ${TMPDIR:-/tmp} for git's words, so the call to a remote was not made"
+    return 1
   fi
+  if [ -n "$ssh" ]; then
+    GIT_TERMINAL_PROMPT=0 GIT_SSH_COMMAND="$ssh -o BatchMode=yes" git "$@" </dev/null 2>"$err" || rc=$?
+  else
+    GIT_TERMINAL_PROMPT=0 git "$@" </dev/null 2>"$err" || rc=$?
+  fi
+  said="$(<"$err")"
+  rm -f "$err"
+  if [ -n "$said" ]; then
+    mapfile -t urls < <(release_remote_urls)
+    release_text_shown "$said" ${urls[@]+"${urls[@]}"} >&2
+  fi
+  return "$rc"
+}
+
+# release_remote_urls -- every url this checkout reaches a remote by, one a
+# line: each remote's url and pushurl as configured, and as git rewrites them
+# through insteadOf and pushInsteadOf (`remote get-url`), since what git prints
+# is the url it used. Nothing when there is no remote, and never a failure: a
+# url it cannot list is one fewer to leave out of a message, never a reason to
+# drop the message (issue 0189).
+release_remote_urls() {
+  local r
+  git config --get-regexp '^remote\..*\.(url|pushurl)$' 2>/dev/null | sed 's/^[^ ]* //' || true
+  while IFS= read -r r; do
+    [ -n "$r" ] || continue
+    git remote get-url --all "$r" 2>/dev/null || true
+    git remote get-url --push --all "$r" 2>/dev/null || true
+  done < <(git remote 2>/dev/null || true)
+  return 0
 }
 
 # release_read_remote <remote> <branch> <tag> <commit> -- step 8's postcondition
@@ -540,9 +588,19 @@ release_git_remote() {
 # answer's detail is the words `commit` and `tag` for the halves this remote
 # lacks, so the push sends exactly those and never re-sends a branch that has
 # moved past the release commit, which would be refused as a non-fast-forward.
+#
+# WITH `push-new`, a dry run's step 6 where step 4 would commit (0181):
+# <commit> is HEAD, refused as under `preflight-new`, and a `pending` answer's
+# detail is in halves, as under `push`. UNDER EITHER `-new` MODE A <branch> AT
+# HEAD LACKS THE RELEASE COMMIT, which step 4 makes on top of HEAD: a dry run
+# that read it as held planned "tag" where the cut sends "commit tag". Only
+# `push-new` shows it, since pre-flight reads no more than whether a remote is
+# refused, and a `-new` answer is never `already` while the tag is absent here.
 release_read_remote() {
   local remote="$1" branch="$2" tag="$3" commit="$4" mode="${5:-status}"
   local listing head="" rtag="" rpeel="" ltag="" lacks="" want=""
+  local new=no
+  case "$mode" in preflight-new | push-new) new=yes ;; esac
   if ! listing="$(release_git_remote ls-remote "$remote" "refs/heads/$branch" "refs/tags/$tag" 2>&1)"; then
     printf 'UNREADABLE\t%s did not answer ls-remote: %s\n' "$remote" "${listing//$'\n'/ }"
     return 0
@@ -556,6 +614,9 @@ release_read_remote() {
   if [ -z "$head" ]; then
     lacks+=", $branch"
     want+=" commit"
+  elif [ "$head" = "$commit" ] && [ "$new" = yes ]; then
+    lacks+=", the release commit on $branch"
+    want+=" commit"
   elif [ "$head" != "$commit" ]; then
     if ! git cat-file -e "$head^{commit}" 2>/dev/null; then
       printf "UNREADABLE\\t%s's %s is at %s, which this checkout does not hold, so whether it contains the release commit cannot be read -- fetch %s and ask again\\n" \
@@ -567,7 +628,7 @@ release_read_remote() {
     case "$(commit_direction . "$commit" "$head")" in
       same) ;;
       forward)
-        if [ "$mode" = preflight-new ]; then
+        if [ "$new" = yes ]; then
           printf "refused\\t%s's %s (%s) has moved past HEAD (%s), and the release commit is still to be made on HEAD, so it could not fast-forward %s -- bring %s into this branch first\\n" \
             "$remote" "$branch" "${head:0:12}" "${commit:0:12}" "$remote/$branch" "$remote/$branch"
           return 0
@@ -613,12 +674,99 @@ release_read_remote() {
   if [ -z "$lacks" ]; then
     printf 'already\t%s holds the release commit on %s and %s\n' "$remote" "$branch" "$tag"
   else
-    if [ "$mode" = push ]; then
+    if [ "$mode" = push ] || [ "$mode" = push-new ]; then
       printf 'pending\t%s\n' "${want# }"
     else
       printf 'pending\t%s lacks %s\n' "$remote" "${lacks#, }"
     fi
   fi
+}
+
+# release_url_shown <url> -- <url> as a message may print it, its userinfo left
+# out, since a remote's url can carry a token (issue 0188). The userinfo is all
+# before the LAST @ ahead of the first `/`, so a password holding a raw @ is
+# left out whole. With a scheme the search starts after its `://` and an @ in
+# the path is kept. With none, as in the scp form (user@host:path), it starts at
+# the url's first byte and runs past the `:` where an scp path begins, which
+# catches a password ahead of a host with no `:` after it, at a price: an @ in
+# the path's first segment ends the userinfo there, and the host is left out
+# too. A raw `/` in a password, which git cannot read either, ends the search
+# early, so with a scheme, where no @ stands ahead of the first `/` but a `:`
+# does whose text is no port's, as a host and its port never are, the userinfo
+# runs to the url's LAST @ (issue 0189); an @ in the path of such a url ends it
+# there, and the host and the path ahead of that @ are left out too. What it
+# cannot leave out it prints: a raw `/` in a userinfo with no `:` ahead of it,
+# in one whose password runs only digits up to it, or after a raw @ in a
+# password, each of which reads as a host with an @ in its path; a `://`
+# anywhere, read as the scheme's; and a secret elsewhere in a url, such as its
+# query, which is not looked for.
+release_url_shown() {
+  local url="$1" scheme="" rest authority port
+  case "$url" in
+    *://*)
+      scheme="${url%%://*}://"
+      rest="${url#*://}"
+      ;;
+    *) rest="$url" ;;
+  esac
+  authority="${rest%%/*}"
+  case "$authority" in
+    *@*) rest="${rest#"${authority%@*}"@}" ;;
+    \[*) ;;
+    *:*)
+      port="${authority#*:}"
+      if [ -n "$scheme" ] && [[ "$port" == *[!0-9]* ]] && [[ "$rest" == *@* ]]; then
+        rest="${rest##*@}"
+      fi
+      ;;
+  esac
+  printf '%s%s\n' "$scheme" "$rest"
+}
+
+# release_text_shown <text> <url>... -- <text> as a message may print it, every
+# part of each <url>'s userinfo it can carry left out, where release_url_shown
+# can read that userinfo (issue 0189): a url it prints whole is not looked for,
+# and git's words carry such a url whole too. git reads a userinfo to the FIRST
+# @, so of a password holding a raw @ it prints the rest as part of the host; a
+# url whose password holds a raw `/` does not parse, and git prints it whole,
+# or hands ssh all of it up to that `/` as the host, which ssh names when it
+# cannot resolve it; and asking for a password git names the user. So, with the
+# userinfo as release_url_shown reads it, four parts go: the userinfo whole,
+# its lead up to its first `/`, each tail of it after one of its own @s, and
+# its user, the whole first, since the others are inside it. A userinfo holding
+# a `:` is a password's and goes wherever it stands, and so does its lead where
+# that holds the `:` and text after it; the tails, the user, and a userinfo
+# with no `:`, where a scheme's `://` stands right ahead of them, as git prints
+# a url, so a word that happens to match one stands elsewhere, and ssh's
+# refusal, which names its user with no scheme ahead of it, keeps it: a user
+# alone is no credential. Text, never a pattern: a password may hold `*`, `?`
+# or `[`.
+release_text_shown() {
+  local text="$1" url shown scheme rest info lead tail user
+  shift
+  for url in "$@"; do
+    shown="$(release_url_shown "$url")"
+    [ "$shown" != "$url" ] || continue
+    scheme=""
+    case "$url" in *://*) scheme="${url%%://*}://" ;; esac
+    rest="${url#"$scheme"}"
+    info="${rest%"${shown#"$scheme"}"}"
+    info="${info%@}"
+    [ -n "$info" ] || continue
+    [[ "$info" != *:* ]] || text="${text//"$info@"/}"
+    lead="${info%%/*}"
+    [[ "$lead" == "$info" || "$lead" != *:?* ]] || text="${text//"$lead"/}"
+    [ -n "$scheme" ] || continue
+    text="${text//"$scheme$info@"/"$scheme"}"
+    tail="$info"
+    while [[ "$tail" == *@* ]]; do
+      tail="${tail#*@}"
+      [ -z "$tail" ] || text="${text//"$scheme$tail@"/"$scheme"}"
+    done
+    user="${info%%:*}"
+    [ "$user" = "$info" ] || [ -z "$user" ] || text="${text//"$scheme$user@"/"$scheme"}"
+  done
+  printf '%s\n' "$text"
 }
 
 # release_repo <declared-repo> <declared-remote> -- the repository gh is told
@@ -633,7 +781,14 @@ release_read_remote() {
 # insteadOf and would report where the bytes go rather than which repository
 # the project names. Anything that cannot be resolved fails, with the reason on
 # stderr naming the key -- never gh's own guess, which with no tty silently
-# picked another remote's repository (measured on gh 2.101).
+# picked another remote's repository (measured on gh 2.101). A refusal names
+# the url through release_url_shown, never as configured: a url can carry a
+# token, and a refusal reaches the terminal, a cut's sealed log and CI's job
+# log (issue 0188). So does one naming <declared-remote> that has no url,
+# since a declared entry can be a url itself (issue 0189). git's own words about a remote are release_git_remote's to
+# print, with every remote's userinfo left out of them where release_url_shown
+# can read it (issue 0189), and ssh's refusal still names its user, which is no
+# credential.
 release_repo() {
   local repo="$1" remote="$2" all url rest host path
   if [ -n "$repo" ]; then
@@ -653,7 +808,7 @@ release_repo() {
     return 1
   fi
   if ! url="$(git config --get "remote.$remote.url")"; then
-    warn "release: release.repo is not declared and remote $remote has no url -- declare release.repo: OWNER/NAME"
+    warn "release: release.repo is not declared and remote $(release_url_shown "$remote") has no url -- declare release.repo: OWNER/NAME"
     return 1
   fi
   case "$url" in
@@ -670,14 +825,25 @@ release_repo() {
       path="${rest#*:}"
       ;;
     *)
-      warn "release: release.repo is not declared and remote $remote's url ($url) names no host -- declare release.repo: OWNER/NAME"
+      warn "release: release.repo is not declared and remote $remote's url ($(release_url_shown "$url")) names no host -- declare release.repo: OWNER/NAME"
+      return 1
+      ;;
+  esac
+  # A HOST HOLDING AN @ IS REFUSED (issue 0188). It means the url held more
+  # than one @ ahead of its host: read at the first, as above, the rest of a
+  # password became the host, and reached gh's arguments and pre-flight's
+  # message as one, while release_url_shown reads at the last. Refused, no url
+  # this function accepts can be read two ways. An @ in a userinfo is %40.
+  case "$host" in
+    *@*)
+      warn "release: release.repo is not declared and remote $remote's url ($(release_url_shown "$url")) holds more than one @ ahead of its host, so where its userinfo ends cannot be told -- write an @ in a userinfo as %40, or declare release.repo: OWNER/NAME"
       return 1
       ;;
   esac
   path="${path%/}"
   path="${path%.git}"
   if ! [[ "$path" =~ ^[^/[:space:]]+/[^/[:space:]]+$ ]]; then
-    warn "release: release.repo is not declared and remote $remote's url ($url) is not HOST/OWNER/NAME -- declare release.repo: OWNER/NAME"
+    warn "release: release.repo is not declared and remote $remote's url ($(release_url_shown "$url")) is not HOST/OWNER/NAME -- declare release.repo: OWNER/NAME"
     return 1
   fi
   if [ "$host" = github.com ]; then
