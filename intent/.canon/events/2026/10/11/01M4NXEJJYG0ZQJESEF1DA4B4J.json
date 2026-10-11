@@ -1,0 +1,15 @@
+{
+  "id": "01M4NXEJJYG0ZQJESEF1DA4B4J",
+  "ts": "2026-10-11T16:41:32.002Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0592"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "after a compact, in-session re-invokes skills the compact already carried whole, so a restart loads them twice (about 9.6k tokens in an Elixir project)"
+  }
+}

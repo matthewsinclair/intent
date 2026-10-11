@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 592,
+  "slug": "after-a-compact-in-session-re-invokes-skills-the",
+  "title": "after a compact, in-session re-invokes skills the compact already carried whole, so a restart loads them twice (about 9.6k tokens in an Elixir project)",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-10-11",
+  "reporter": "Matthew Sinclair",
+  "body": "Raised from Laksa's dc node on hv's word (Laksa `hv/inbox.dc.md` 2026-10-11 16:40Z).\n\n**The conflict.** `intent/plugins/claude/skills/in-session/SKILL.md` says to invoke the skills \"unconditionally\" (line 31), that after `/compact` \"skill invocations are not replayed\" (line 102), and that after `/compact` the skills \"are not active. Re-invoke via `/in-session`\" (line 108). Claude Code's compact now attaches every skill invoked before it, each up to 20,000 characters, with the notes \"Do NOT re-execute these skills or perform their one-time setup actions\" and \"continue to apply ongoing behavioral guidelines from these skills where still relevant\". So at every restart a node reads two contrary orders and spends reasoning choosing between them, and if it follows in-session it loads every carried skill a second time.\n\n**The cost.** In a Laksa node (Elixir, Ash, LiveView) the six skills in-session re-invokes are each under 20,000 characters, so the compact carries all six whole: in-essentials 7,416 bytes, in-standards 5,969, in-elixir-essentials 4,116, in-elixir-testing 4,007, in-ash-ecto-essentials 3,198, in-phoenix-liveview 3,984. That is 28,690 bytes, roughly 9.6k tokens at the 3 bytes a token measured for these files, loaded twice on every restart.\n\n**Outcome wanted.** in-session says what to do after a compact. A skill the compact carried whole is active and is not invoked again. A skill it truncated (the note says so, as it does for in-whiteboard until issue 0591 lands) or did not carry is invoked. The gate release and the whiteboard pickup still run. Its \"Why this exists\" section and Red Flags row stop saying that a compact leaves the skills inactive.\n"
+}
