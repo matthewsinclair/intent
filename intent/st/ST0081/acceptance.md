@@ -55,7 +55,7 @@ _(no tests in this group)_
 
 ### WP-05 -- intent daemon start --at-login refuses on Linux before writing anything (status: Not Started)
 
-_(no tests in this group)_
+- AT-05.1 `native/rust/crates/intent-cli/tests/at_login_is_refused_off_macos.rs` -- covers AC-05.1 -- status: to-write -- Its two arms run off macOS only and are ignored on macOS, where the flag is supported; they are proven on kovacs, hv's Ubuntu VM, and then on Linux CI
 
 ---
 

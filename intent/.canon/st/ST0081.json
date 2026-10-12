@@ -113,5 +113,17 @@
         "is": "computed"
       }
     }
+  ],
+  "tests": [
+    {
+      "id": "AT-05.1",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/at_login_is_refused_off_macos.rs",
+      "covers": [
+        "AC-05.1"
+      ],
+      "status": "to-write",
+      "note": "Its two arms run off macOS only and are ignored on macOS, where the flag is supported; they are proven on kovacs, hv's Ubuntu VM, and then on Linux CI"
+    }
   ]
 }
