@@ -1,0 +1,15 @@
+{
+  "id": "01M4QGHQESVWH42TZBSY80QBTT",
+  "ts": "2026-10-12T07:34:32.665Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ST0081 WP-03, after the VM run, on vc's yes of 2026-10-12 to interface (1), which vc relayed to devbin-vc. The install step's ONE home is a bare `## Linux` section in docs/install.md, so the anchor stays #linux; the WSL specifics go in a new top-level docs/windows-wsl.md, which links to install.md#linux and never restates it. vc's three asks: (a) link docs/windows-wsl.md from docs/index.md; (b) every command on both pages comes from the VM's run of the package; (c) install.md's \"Verifying an install\" and \"What the install has to contain\" read true for the Linux package, by a line or by a pointer. The WSL page names jq and shellcheck beside Intent, because interface (2) is intent, shellcheck, git and jq."
+  }
+}

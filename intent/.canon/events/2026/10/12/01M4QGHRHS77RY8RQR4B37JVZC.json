@@ -1,0 +1,16 @@
+{
+  "id": "01M4QGHRHS77RY8RQR4B37JVZC",
+  "ts": "2026-10-12T07:34:33.785Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 78,
+    "text": "ST0081 (Intent on Windows through WSL) IS cc's, on vc's order of 2026-10-12 from hv's rulings: 3.2.4 (hv confirmed \"3.2.5\" was a typo) is ONE release, cut only once the work runs on main's HEAD. LANDED: the 3.2.4 CHANGELOG section at 21f72c2b9 (0588 and 0587, with 0587's sentence on the backups page; 0586 has no entry) and WP-01 at 86e4b0f7d (bin/int linux doctor|build|package|smoke, the dispatch-only linux-release workflow, SUPPORT_PATHS moved into cmd/shared/support.lib; judged by vc on a workspace cargo test and bats 770/770 against 766/766 at 9311a3fd5). NEXT, in order: (1) WP-05, written in tmp/wt-cc-0081-wp05 and not built (launchagent::enrolment_supported is pure, with a NotMacOs variant; start and stop with --at-login refuse first; at_login_is_refused_off_macos.rs is ignored on macOS): its judging run waits for vc's GO after devbin-cc's END. (2) The VM proof on kovacs, hv's Ubuntu arm64 VM: NOT until vc relays hv's word that its 26.04.1 upgrade is done; the tree goes by git bundle, never a push; build in the VM's own filesystem with --jobs 1; book it as a heavy run on rhadamanth. (3) WP-03 after the VM run (todo 40). WP-02 waits on hv's D55 ruling. Remove tmp/wt-cc-81-land and tmp/wt-cc-81-base once vc verifies 86e4b0f7d. NO PUSH, NO RELEASE."
+  }
+}

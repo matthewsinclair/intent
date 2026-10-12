@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "50a3efda-be09-46c0-b5db-79cda9b52a47",
-    "heartbeat_at": "2026-10-12T06:44:52.684Z",
+    "heartbeat_at": "2026-10-12T07:34:34.765Z",
     "status": "active",
-    "focus": "ST0081 for 3.2.4: CHANGELOG banked for vc; WP-01 measuring whether the support payload serves Linux",
+    "focus": "ST0081: WP-01 landed at 86e4b0f7d; WP-05 waits for its GO; the VM proof waits on hv's upgrade",
     "claims": [
       "ST0081"
     ],
@@ -1858,9 +1858,18 @@
       "node": "cc",
       "kind": "doing",
       "seq": 78,
-      "text": "ST0081 (Intent on Windows through WSL) IS cc's, on vc's order of 2026-10-12 from hv's rulings in vc's session: 3.2.4 opens with ST0081 in it. (1) DONE AS A BANK: the 3.2.4 CHANGELOG section, refs/bank/cc/324/changelog (blob e779884fa839, patch-id e235404eb5f1, base 995c8f69b), with vc for judging; vc lands it. (2) ST0081, in this order: WP-01 first (a workflow_dispatch-only Linux build, packaged with the support payload, with a floor-container check; its first measurement is whether intent-support.tar.gz serves Linux unchanged), then WP-05 (--at-login refuses on Linux before writing; native/rust, so whole suites, and bin/devbin build all before any push). WP-02 waits on hv's D55 ruling; WP-03 follows WP-01. The asset names and the install page's path go to vc the moment they exist, for devbin-vc. hv's Ubuntu arm64 VM (kovacs) is NOT used until vc confirms hv's word; when it is, clone into the VM's own filesystem and treat a build there as a heavy run on rhadamanth. NO PUSH, NO RELEASE.",
+      "text": "ST0081 (Intent on Windows through WSL) IS cc's, on vc's order of 2026-10-12 from hv's rulings: 3.2.4 (hv confirmed \"3.2.5\" was a typo) is ONE release, cut only once the work runs on main's HEAD. LANDED: the 3.2.4 CHANGELOG section at 21f72c2b9 (0588 and 0587, with 0587's sentence on the backups page; 0586 has no entry) and WP-01 at 86e4b0f7d (bin/int linux doctor|build|package|smoke, the dispatch-only linux-release workflow, SUPPORT_PATHS moved into cmd/shared/support.lib; judged by vc on a workspace cargo test and bats 770/770 against 766/766 at 9311a3fd5). NEXT, in order: (1) WP-05, written in tmp/wt-cc-0081-wp05 and not built (launchagent::enrolment_supported is pure, with a NotMacOs variant; start and stop with --at-login refuse first; at_login_is_refused_off_macos.rs is ignored on macOS): its judging run waits for vc's GO after devbin-cc's END. (2) The VM proof on kovacs, hv's Ubuntu arm64 VM: NOT until vc relays hv's word that its 26.04.1 upgrade is done; the tree goes by git bundle, never a push; build in the VM's own filesystem with --jobs 1; book it as a heavy run on rhadamanth. (3) WP-03 after the VM run (todo 40). WP-02 waits on hv's D55 ruling. Remove tmp/wt-cc-81-land and tmp/wt-cc-81-base once vc verifies 86e4b0f7d. NO PUSH, NO RELEASE.",
       "state": "live",
-      "recorded_at": "2026-10-12T06:44:51.766Z"
+      "recorded_at": "2026-10-12T06:44:51.766Z",
+      "edited_at": "2026-10-12T07:34:33.785Z"
+    },
+    {
+      "node": "cc",
+      "kind": "todo",
+      "seq": 40,
+      "text": "ST0081 WP-03, after the VM run, on vc's yes of 2026-10-12 to interface (1), which vc relayed to devbin-vc. The install step's ONE home is a bare `## Linux` section in docs/install.md, so the anchor stays #linux; the WSL specifics go in a new top-level docs/windows-wsl.md, which links to install.md#linux and never restates it. vc's three asks: (a) link docs/windows-wsl.md from docs/index.md; (b) every command on both pages comes from the VM's run of the package; (c) install.md's \"Verifying an install\" and \"What the install has to contain\" read true for the Linux package, by a line or by a pointer. The WSL page names jq and shellcheck beside Intent, because interface (2) is intent, shellcheck, git and jq.",
+      "state": "live",
+      "recorded_at": "2026-10-12T07:34:32.665Z"
     }
   ],
   "messages": [
