@@ -3,17 +3,17 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: c79ce3ba-567f-4e13-92da-66fd7e77f0db
-heartbeat_at: 2026-10-12 06:41Z
+heartbeat_at: 2026-10-12 07:12Z
 status: active
-focus: "0589 for 3.2.4 (vc's order); 0591-0593 and the 3.2.4 re-drive held for vc's word"
-claims: [ISSUE:0589]
+focus: "idle: 0589 fixed at 41c6b7a75 and closed; hold 31 (0591-0593, the 3.2.4 re-drive) waits on hv's scope ruling"
+claims: []
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-- **0589 FOR 3.2.4 (vc's order, 2026-10-12): THE TROPE CATALOGUE'S FLATTENED QUOTE CLASSES.** FMT-03's class gets its four curly quotes back, and TN-01, TN-02, TN-04, TN-05 and TN-07 get U+2019 in their apostrophe class. A catalogue test proves each one in the consumer's own engine, the bats files and Rust arms that scan the path run before the bank, and the bank goes on refs/bank/dc/0589 for vc's judgement. Built in a detached worktree. NO PUSH, NO RELEASE.
+_(none)_
 
 ## TODO
 
