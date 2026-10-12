@@ -124,7 +124,7 @@ Text that is explicitly about AI technology (research papers, AI product documen
 
 - **Automated**: Yes
 - **Method**: word list grep (case-insensitive), with topic-awareness for AI-system names
-- **Regex**: `(?i)(i'?m an AI|as an AI|being a language model|i was (created|trained|programmed) (by|to)|my (training data|programming|instructions)|i don'?t (actually )?have (real )?feelings|i'?m just a (program|machine)|i can'?t (actually )?(experience|feel))`
+- **Regex**: `(?i)(i['’]?m an AI|as an AI|being a language model|i was (created|trained|programmed) (by|to)|my (training data|programming|instructions)|i don['’]?t (actually )?have (real )?feelings|i['’]?m just a (program|machine)|i can['’]?t (actually )?(experience|feel))`
 
 ---
 
@@ -207,7 +207,7 @@ Metafiction (Borges, Calvino, Deadpool) breaks the fourth wall deliberately as a
 
 - **Automated**: Yes
 - **Method**: word list grep (case-insensitive)
-- **Regex**: `(?i)(in this (story|narrative|game|roleplay|scenario)\b|the player\b|player character|you'?re (playing|roleplaying)|breaking character|out of character|OOC:|the (author|writer|creator)\b|game master|dungeon master|let'?s continue the (story|roleplay)|back to the story|as a character)`
+- **Regex**: `(?i)(in this (story|narrative|game|roleplay|scenario)\b|the player\b|player character|you['’]?re (playing|roleplaying)|breaking character|out of character|OOC:|the (author|writer|creator)\b|game master|dungeon master|let['’]?s continue the (story|roleplay)|back to the story|as a character)`
 
 ---
 
@@ -289,7 +289,7 @@ Text about AI engineering, AI safety research, or LLM development will contain t
 
 - **Automated**: Yes
 - **Method**: word list grep (case-insensitive), with special handling for adversarial phrases
-- **Regex**: `(?i)(system prompt|context window|token (limit|budget)|instructions i was given|ignore previous instructions|jailbreak|prompt injection|my (parameters|weights)|fine-?tuned|RLHF|reinforcement learning|safety filter|content policy|i'?ve been instructed to|my guidelines say|i'?m not allowed to)`
+- **Regex**: `(?i)(system prompt|context window|token (limit|budget)|instructions i was given|ignore previous instructions|jailbreak|prompt injection|my (parameters|weights)|fine-?tuned|RLHF|reinforcement learning|safety filter|content policy|i['’]?ve been instructed to|my guidelines say|i['’]?m not allowed to)`
 
 ---
 
@@ -465,7 +465,7 @@ Textbooks and long-form educational material use section summaries deliberately,
 
 - **Automated**: Partial
 - **Method**: requires LLM (identifying semantic redundancy between openings, closings, and body)
-- **Regex**: `\b(in this section,? we'?ll|as we'?ve seen|let'?s recap|to summarize what we'?ve|to sum up what we'?ve)\b`
+- **Regex**: `\b(in this section,? we['’]?ll|as we['’]?ve seen|let['’]?s recap|to summarize what we['’]?ve|to sum up what we['’]?ve)\b`
 
 ---
 
@@ -798,7 +798,7 @@ Some style guides mandate smart quotes in published prose. LaTeX and typeset doc
 
 - **Automated**: Yes
 - **Method**: grep for unicode characters outside ASCII range
-- **Regex**: `[→←⟶⟵""''✓✗•◦▸▹]`
+- **Regex**: `[→←⟶⟵“”‘’✓✗•◦▸▹]`
 
 ---
 
@@ -947,7 +947,7 @@ Fancy dialog tags signal that the writer does not trust the dialogue to convey t
 
 - **Automated**: Yes
 - **Method**: regex for overused speech verbs and redundant adverb pairings
-- **Regex**: `(?i)(intoned|"\s*\w+\s+breathed|murmured softly|exclaimed loudly|whispered quietly|stated firmly|replied curtly|"\s*\w+\s+mused|"\s*\w+\s+quipped|"\s*\w+\s+opined|"\s*\w+\s+proclaimed|hissed\b)`
+- **Regex**: `(?i)(intoned|["”]\s*\w+\s+breathed|murmured softly|exclaimed loudly|whispered quietly|stated firmly|replied curtly|["”]\s*\w+\s+mused|["”]\s*\w+\s+quipped|["”]\s*\w+\s+opined|["”]\s*\w+\s+proclaimed|hissed\b)`
 
 ---
 
@@ -1150,7 +1150,7 @@ A character who is evasive or nervous might use one filler phrase to show that t
 
 - **Automated**: Yes
 - **Method**: word list grep (case-insensitive)
-- **Regex**: `(?i)\b(i must say|you see,|in point of fact|if i'?m being honest|to be perfectly frank|as a matter of fact|truth be told|i have to admit|i dare say|i'?ll be honest with you|let me be frank|honestly speaking)\b`
+- **Regex**: `(?i)\b(i must say|you see,|in point of fact|if i['’]?m being honest|to be perfectly frank|as a matter of fact|truth be told|i have to admit|i dare say|i['’]?ll be honest with you|let me be frank|honestly speaking)\b`
 
 ---
 
@@ -1215,7 +1215,7 @@ Parody and comedy may use these deliberately for effect. A character who is writ
 
 - **Automated**: Yes
 - **Method**: word list grep (case-insensitive)
-- **Regex**: `(?i)(well,?\s+well,?\s+well|ah,?\s+you must be|so,?\s+we meet again|i'?ve been expecting you|what do we have here|look who decided to|if it isn'?t|to what do i owe the pleasure|we'?ve been expecting you|at last,?\s+we meet)`
+- **Regex**: `(?i)(well,?\s+well,?\s+well|ah,?\s+you must be|so,?\s+we meet again|i['’]?ve been expecting you|what do we have here|look who decided to|if it isn['’]?t|to what do i owe the pleasure|we['’]?ve been expecting you|at last,?\s+we meet)`
 
 ---
 
@@ -1681,7 +1681,7 @@ Academic writing sometimes uses "notably" to flag a genuinely surprising data po
 
 - **Automated**: Yes
 - **Method**: phrase grep (case-insensitive)
-- **Regex**: `(?i)\b(it'?s worth noting|it bears mentioning|it should be noted|it'?s important to note|worth mentioning)\b`
+- **Regex**: `(?i)\b(it['’]?s worth noting|it bears mentioning|it should be noted|it['’]?s important to note|worth mentioning)\b`
 
 ---
 
@@ -1735,7 +1735,7 @@ A single "it's not X, it's Y" in an essay can land well when the reframe is genu
 
 - **Automated**: Partial
 - **Method**: regex for common forms, manual review for creative variations
-- **Regex**: `(?i)(it'?s not\b.{1,40}\bit'?s\b|isn'?t\b.{1,40}\bit'?s\b|not because\b.{1,40}\bbut because\b)`
+- **Regex**: `(?i)(it['’]?s not\b.{1,40}\bit['’]?s\b|isn['’]?t\b.{1,40}\bit['’]?s\b|not because\b.{1,40}\bbut because\b)`
 
 ---
 
@@ -2037,7 +2037,7 @@ Personal essays, memoirs, and reflective writing require genuine vulnerability. 
 
 - **Automated**: No (semantic analysis required)
 - **Method**: Flag candidate phrases, then assess whether the admission is specific and costly or generic and flattering
-- **Regex**: `\b([Aa]nd yes,? I|I['']ll (admit|be the first to admit|be honest)|[Ff]ull disclosure|[Ll]et me be transparent|[Ii]f I['']m being honest|I have to confess)\b`
+- **Regex**: `\b([Aa]nd yes,? I|I['’]ll (admit|be the first to admit|be honest)|[Ff]ull disclosure|[Ll]et me be transparent|[Ii]f I['’]m being honest|I have to confess)\b`
 
 ---
 
@@ -2173,7 +2173,7 @@ Acceptable in transcribed speech or intentionally conversational writing where t
 
 - **Automated**: Yes
 - **Method**: phrase matching (case-insensitive)
-- **Regex**: `\b[Hh]ere['']s (the (kicker|thing|real question|catch)|where it gets interesting|what (most people|nobody))`
+- **Regex**: `\b[Hh]ere['’]s (the (kicker|thing|real question|catch)|where it gets interesting|what (most people|nobody))`
 
 ---
 
@@ -2373,7 +2373,7 @@ Tutorials, classroom materials, and content explicitly targeting beginners use t
 
 - **Automated**: Yes
 - **Method**: phrase matching (case-insensitive)
-- **Regex**: `\b[Ll]et['']?s (break this down|unpack|explore|dive in(to)?|take a closer look|walk through|examine|dig into)\b|[Ll]et me explain`
+- **Regex**: `\b[Ll]et['’]?s (break this down|unpack|explore|dive in(to)?|take a closer look|walk through|examine|dig into)\b|[Ll]et me explain`
 
 ---
 
@@ -2441,7 +2441,7 @@ Declaring something obvious is the opposite of proving it. The move asks the rea
 
 - **Automated**: Partial (phrases flagged, context determines if assertion replaces evidence)
 - **Method**: phrase matching with manual review
-- **Regex**: `\b([Tt]he (reality|truth|fact|bottom line|answer) is|[Ii]t['']s (clear|obvious) that|[Hh]istory is (clear|unambiguous)|[Ss]imply put|[Mm]ake no mistake)\b`
+- **Regex**: `\b([Tt]he (reality|truth|fact|bottom line|answer) is|[Ii]t['’]s (clear|obvious) that|[Hh]istory is (clear|unambiguous)|[Ss]imply put|[Mm]ake no mistake)\b`
 
 ---
 
@@ -2505,7 +2505,7 @@ Analogies are useful when introducing genuinely unfamiliar concepts to a non-spe
 
 - **Automated**: Yes
 - **Method**: phrase matching (case-insensitive)
-- **Regex**: `\b([Tt]hink of it (like|as)|[Ii]t['']s (like|similar to) a|[Pp]icture a|[Cc]onsider it like|[Yy]ou can think of this as)\b`
+- **Regex**: `\b([Tt]hink of it (like|as)|[Ii]t['’]s (like|similar to) a|[Pp]icture a|[Cc]onsider it like|[Yy]ou can think of this as)\b`
 
 ---
 

@@ -44,7 +44,7 @@ LLM-assisted prose carries mechanical tells: direct AI-identity references ("as 
 
 ## Detection
 
-Highlander: the trope knowledge lives in one place -- the `in-detrope` skill's trope catalogue, `data/trope-catalog.md`, which an installed Intent keeps at `~/.claude/skills/in-detrope/data/trope-catalog.md`. This rule does not restate it. For each trope whose frontmatter says `detection: automated`, the catalogue supplies a `**Regex**:` line; apply those patterns to the target prose with `grep -iE` (drop the PCRE `(?i)` prefix -- `-i` covers it). A hit is a candidate; confirm the document is not itself about AI and the text is not a verbatim quote.
+Highlander: the trope knowledge lives in one place -- the `in-detrope` skill's trope catalogue, `data/trope-catalog.md`, which an installed Intent keeps at `~/.claude/skills/in-detrope/data/trope-catalog.md`. This rule does not restate it. For each trope whose frontmatter says `detection: automated`, the catalogue supplies a `**Regex**:` line; apply those patterns to the target prose with `LC_ALL=C.UTF-8 grep -iE` (drop the PCRE `(?i)` prefix -- `-i` covers it). The UTF-8 locale is what makes a curly quote in a pattern one character: plain BSD and GNU grep under `LC_ALL=C` read it byte by byte, so they miss it inside a phrase and flag any character that shares a byte with it. A hit is a candidate; confirm the document is not itself about AI and the text is not a verbatim quote.
 
 This is the mechanical, default form of detrope. The full contextual / stylometric diagnosis (the non-automated tropes, density judgement, voice) is the active discipline's full-trope-diagnosis craft rule (eg `IN-AU-CRAFT-003` in the author pack) -- an on-instruction `/in-detrope` pass, not part of the default review.
 
