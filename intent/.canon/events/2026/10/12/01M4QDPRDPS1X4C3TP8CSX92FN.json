@@ -1,0 +1,15 @@
+{
+  "id": "01M4QDPRDPS1X4C3TP8CSX92FN",
+  "ts": "2026-10-12T06:44:51.766Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST0081 (Intent on Windows through WSL) IS cc's, on vc's order of 2026-10-12 from hv's rulings in vc's session: 3.2.4 opens with ST0081 in it. (1) DONE AS A BANK: the 3.2.4 CHANGELOG section, refs/bank/cc/324/changelog (blob e779884fa839, patch-id e235404eb5f1, base 995c8f69b), with vc for judging; vc lands it. (2) ST0081, in this order: WP-01 first (a workflow_dispatch-only Linux build, packaged with the support payload, with a floor-container check; its first measurement is whether intent-support.tar.gz serves Linux unchanged), then WP-05 (--at-login refuses on Linux before writing; native/rust, so whole suites, and bin/devbin build all before any push). WP-02 waits on hv's D55 ruling; WP-03 follows WP-01. The asset names and the install page's path go to vc the moment they exist, for devbin-vc. hv's Ubuntu arm64 VM (kovacs) is NOT used until vc confirms hv's word; when it is, clone into the VM's own filesystem and treat a build there as a heavy run on rhadamanth. NO PUSH, NO RELEASE."
+  }
+}

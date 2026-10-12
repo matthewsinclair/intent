@@ -2,18 +2,18 @@
 node: cc
 name: Control Claude
 role: control
-session_id: 32974d4a-0175-4bfb-b198-cdac20b4d58b
-heartbeat_at: 2026-09-26 17:15Z
-status: paused
-focus: "FINISHED for the day; idle, no claim, no worktree; resume is the one doing item; wait for vc."
-claims: []
+session_id: 50a3efda-be09-46c0-b5db-79cda9b52a47
+heartbeat_at: 2026-10-12 06:44Z
+status: active
+focus: "ST0081 for 3.2.4: CHANGELOG banked for vc; WP-01 measuring whether the support payload serves Linux"
+claims: [ST0081]
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-- RESUME STATE (cc, end of day 2026-09-26, /in-finish on hv's word via vc). IDLE: no claim, no worktree, nothing in flight; at next session run /in-session, then wait for vc's orders. Issue 0588 is done: fixed, banked on refs/bank/cc/324/0588 (patch-id 95670951bef7), landed by vc as 62932b631, closed at bebdc2a73. hv pushed main and rebuilt at 701c4d98b, so the installed pair is intent 3.2.3 (701c4d98b) dev and carries 0588's fix. Bank refs under refs/bank/cc/ stay (watch-out 57). NO PUSH, NO RELEASE unless vc orders.
+- ST0081 (Intent on Windows through WSL) IS cc's, on vc's order of 2026-10-12 from hv's rulings in vc's session: 3.2.4 opens with ST0081 in it. (1) DONE AS A BANK: the 3.2.4 CHANGELOG section, refs/bank/cc/324/changelog (blob e779884fa839, patch-id e235404eb5f1, base 995c8f69b), with vc for judging; vc lands it. (2) ST0081, in this order: WP-01 first (a workflow_dispatch-only Linux build, packaged with the support payload, with a floor-container check; its first measurement is whether intent-support.tar.gz serves Linux unchanged), then WP-05 (--at-login refuses on Linux before writing; native/rust, so whole suites, and bin/devbin build all before any push). WP-02 waits on hv's D55 ruling; WP-03 follows WP-01. The asset names and the install page's path go to vc the moment they exist, for devbin-vc. hv's Ubuntu arm64 VM (kovacs) is NOT used until vc confirms hv's word; when it is, clone into the VM's own filesystem and treat a build there as a heavy run on rhadamanth. NO PUSH, NO RELEASE.
 
 ## TODO
 
