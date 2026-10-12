@@ -1,0 +1,16 @@
+{
+  "id": "01M4QNPKK4P5MHXVB6FM8GQWRE",
+  "ts": "2026-10-12T09:04:35.428Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 78,
+    "text": "ST0081 (Intent on Windows through WSL) IS cc's, on vc's order of 2026-10-12 from hv's rulings: 3.2.4 (hv confirmed \"3.2.5\" was a typo) is ONE release, cut only once the work runs on main's HEAD. LANDED 2026-10-12: the 3.2.4 CHANGELOG section at 21f72c2b9; WP-01 at 86e4b0f7d (bin/int linux doctor|build|package|smoke, the dispatch-only linux-release workflow, SUPPORT_PATHS in cmd/shared/support.lib); WP-05 at 1c21a04ff (start and stop with --at-login refuse off macOS before writing anything); AT-05.1 recorded at 188a42fe1, still to-write (watch-out 58); the clippy 0.1.99 fix at ee47b0e37 (needless_borrows_for_generic_args at nine sites, counted 9 to 0 with -W). cc holds no worktree and no unlanded bank. `bin/devbin build all` is vc's to book, once, right before hv's push. NEXT, in order: (1) THE KOVACS PROOF, once vc relays hv's word that the 26.04.1 upgrade is done. The tree goes by git bundle, never a push; build in the VM's own filesystem with --jobs 1; book it as a heavy run on rhadamanth. It proves WP-01's AC-01.1 and AC-01.2 on aarch64. For AT-05.1, apply the test file ALONE to 8c51de484 and run its two arms (expect red), then run them at the landed HEAD (expect green), then `intent at green ST0081 AT-05.1` citing both runs. NAME judging worktrees after a number, never a tool, because issue 0594 reds armed_tool_preconditions.bats in a path that names one. (2) WP-03 after the VM run (todo 40). WP-02 waits on hv's D55 ruling. NO PUSH, NO RELEASE."
+  }
+}

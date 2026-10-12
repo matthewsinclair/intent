@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 50a3efda-be09-46c0-b5db-79cda9b52a47
-heartbeat_at: 2026-10-12 08:37Z
+heartbeat_at: 2026-10-12 09:04Z
 status: active
-focus: "ST0081: WP-01 and WP-05 landed; clippy fix bank next in vc's queue; kovacs proof waits on hv's upgrade"
+focus: "ST0081: WP-01, WP-05 and the clippy fix landed; kovacs proof waits on hv's upgrade; build all is vc's before the push"
 claims: [ST0081]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0081]
 
 ## DOING
 
-- ST0081 (Intent on Windows through WSL) IS cc's, on vc's order of 2026-10-12 from hv's rulings: 3.2.4 (hv confirmed "3.2.5" was a typo) is ONE release, cut only once the work runs on main's HEAD. LANDED: the 3.2.4 CHANGELOG section at 21f72c2b9; WP-01 at 86e4b0f7d (bin/int linux doctor|build|package|smoke, the dispatch-only linux-release workflow, SUPPORT_PATHS in cmd/shared/support.lib); WP-05 at 1c21a04ff (start and stop with --at-login refuse off macOS before writing anything); AT-05.1 recorded at 188a42fe1, still to-write. NEXT, in order: (1) THE CLIPPY FIX BANK, in ONE slot after devbin-vc's WP-07 END: clippy 0.1.99 (rustc 1.99.0, 2026-09-28) reds the workspace at six needless_borrows_for_generic_args sites in intentsvcs facade.rs:6294/6303/6304/6309 and userstate.rs:470/472, and the six are a FLOOR. Count the whole population with `cargo clippy --workspace --all-targets -- -W clippy::needless_borrows_for_generic_args`, quoting every site; fix them all; re-count to zero with both clippy twins exiting 0; bank; then judge at the train's tip with the workspace tests, all four check twins and the whole bats suite. `build all` follows the train, booked by vc. (2) THE KOVACS PROOF, once vc relays hv's word that the 26.04.1 upgrade is done: the tree goes by git bundle, never a push; build in the VM's own filesystem with --jobs 1, booked as a heavy run on rhadamanth. It proves WP-01's AC-01.1 and AC-01.2 on aarch64. For AT-05.1, apply the test file ALONE to 8c51de484 and run its two arms (expect red: the plist tree is written and the remedy phrase is absent), then run them at the landed HEAD (expect green), then `intent at green ST0081 AT-05.1` citing both runs. (3) WP-03 after the VM run (todo 40). WP-02 waits on hv's D55 ruling. NO PUSH, NO RELEASE. (edited)
+- ST0081 (Intent on Windows through WSL) IS cc's, on vc's order of 2026-10-12 from hv's rulings: 3.2.4 (hv confirmed "3.2.5" was a typo) is ONE release, cut only once the work runs on main's HEAD. LANDED 2026-10-12: the 3.2.4 CHANGELOG section at 21f72c2b9; WP-01 at 86e4b0f7d (bin/int linux doctor|build|package|smoke, the dispatch-only linux-release workflow, SUPPORT_PATHS in cmd/shared/support.lib); WP-05 at 1c21a04ff (start and stop with --at-login refuse off macOS before writing anything); AT-05.1 recorded at 188a42fe1, still to-write (watch-out 58); the clippy 0.1.99 fix at ee47b0e37 (needless_borrows_for_generic_args at nine sites, counted 9 to 0 with -W). cc holds no worktree and no unlanded bank. `bin/devbin build all` is vc's to book, once, right before hv's push. NEXT, in order: (1) THE KOVACS PROOF, once vc relays hv's word that the 26.04.1 upgrade is done. The tree goes by git bundle, never a push; build in the VM's own filesystem with --jobs 1; book it as a heavy run on rhadamanth. It proves WP-01's AC-01.1 and AC-01.2 on aarch64. For AT-05.1, apply the test file ALONE to 8c51de484 and run its two arms (expect red), then run them at the landed HEAD (expect green), then `intent at green ST0081 AT-05.1` citing both runs. NAME judging worktrees after a number, never a tool, because issue 0594 reds armed_tool_preconditions.bats in a path that names one. (2) WP-03 after the VM run (todo 40). WP-02 waits on hv's D55 ruling. NO PUSH, NO RELEASE. (edited)
 
 ## TODO
 
