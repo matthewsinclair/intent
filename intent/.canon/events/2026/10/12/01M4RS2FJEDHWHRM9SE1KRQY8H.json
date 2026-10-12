@@ -1,0 +1,15 @@
+{
+  "id": "01M4RS2FJEDHWHRM9SE1KRQY8H",
+  "ts": "2026-10-12T19:22:44.686Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME (dc, localfold for hv's compact, 2026-10-12): dc IS IDLE AND HOLDING. NO PUSH, NO RELEASE.** Hold 31 (0591, 0592, 0593, 0594 and the 3.2.4 known-defects re-drive) waits on vc's word on hv's 3.2.4 scope ruling; holds 29 and 30 are unchanged. 0589 is closed (fix 41c6b7a75, close f7f2d0d0f); the skills and subagents syncs that carry it to ~/.claude, and its upstream copies in llm-tropes and Utilz, wait on hv. No claims and no worktrees. NEXT: wait for vc's order."
+  }
+}

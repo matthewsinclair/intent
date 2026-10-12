@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: c79ce3ba-567f-4e13-92da-66fd7e77f0db
-heartbeat_at: 2026-10-12 07:12Z
+heartbeat_at: 2026-10-12 19:22Z
 status: active
-focus: "idle: 0589 fixed at 41c6b7a75 and closed; hold 31 (0591-0593, the 3.2.4 re-drive) waits on hv's scope ruling"
+focus: "LOCALFOLDED for hv's close of day 2026-10-12: idle, no claim, no worktree, no unlanded bank; resume is the one doing item; hold 31 (0591-0594, the 3.2.4 re-drive) waits on hv's scope ruling"
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-_(none)_
+- **RESUME (dc, localfold for hv's compact, 2026-10-12): dc IS IDLE AND HOLDING. NO PUSH, NO RELEASE.** Hold 31 (0591, 0592, 0593, 0594 and the 3.2.4 known-defects re-drive) waits on vc's word on hv's 3.2.4 scope ruling; holds 29 and 30 are unchanged. 0589 is closed (fix 41c6b7a75, close f7f2d0d0f); the skills and subagents syncs that carry it to ~/.claude, and its upstream copies in llm-tropes and Utilz, wait on hv. No claims and no worktrees. NEXT: wait for vc's order.
 
 ## TODO
 
