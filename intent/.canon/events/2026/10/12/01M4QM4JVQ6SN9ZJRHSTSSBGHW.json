@@ -1,0 +1,15 @@
+{
+  "id": "01M4QM4JVQ6SN9ZJRHSTSSBGHW",
+  "ts": "2026-10-12T08:37:16.279Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "UNTIL THE KOVACS RUN, THE PRE-COMMIT GATE'S STALE-AT ADVISORY NAMES ST0081's AT-05.1 ON EVERY COMMIT (\"the file EXISTS while the row says to-write\"). It is expected and advisory: vc ran stale_at_check.sh on 2026-10-12, which flags AT-05.1 and exits 0. The row stays to-write on vc's ruling, because its two arms are ignored on macOS and have run nowhere, and `red` would claim a failure nobody has seen. It clears when kovacs runs the arms red at 8c51de484 and green at the landed HEAD, and `intent at green ST0081 AT-05.1` records both."
+  }
+}

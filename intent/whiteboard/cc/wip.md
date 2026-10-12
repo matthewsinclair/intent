@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 50a3efda-be09-46c0-b5db-79cda9b52a47
-heartbeat_at: 2026-10-12 07:34Z
+heartbeat_at: 2026-10-12 08:37Z
 status: active
-focus: "ST0081: WP-01 landed at 86e4b0f7d; WP-05 waits for its GO; the VM proof waits on hv's upgrade"
+focus: "ST0081: WP-01 and WP-05 landed; clippy fix bank next in vc's queue; kovacs proof waits on hv's upgrade"
 claims: [ST0081]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0081]
 
 ## DOING
 
-- ST0081 (Intent on Windows through WSL) IS cc's, on vc's order of 2026-10-12 from hv's rulings: 3.2.4 (hv confirmed "3.2.5" was a typo) is ONE release, cut only once the work runs on main's HEAD. LANDED: the 3.2.4 CHANGELOG section at 21f72c2b9 (0588 and 0587, with 0587's sentence on the backups page; 0586 has no entry) and WP-01 at 86e4b0f7d (bin/int linux doctor|build|package|smoke, the dispatch-only linux-release workflow, SUPPORT_PATHS moved into cmd/shared/support.lib; judged by vc on a workspace cargo test and bats 770/770 against 766/766 at 9311a3fd5). NEXT, in order: (1) WP-05, written in tmp/wt-cc-0081-wp05 and not built (launchagent::enrolment_supported is pure, with a NotMacOs variant; start and stop with --at-login refuse first; at_login_is_refused_off_macos.rs is ignored on macOS): its judging run waits for vc's GO after devbin-cc's END. (2) The VM proof on kovacs, hv's Ubuntu arm64 VM: NOT until vc relays hv's word that its 26.04.1 upgrade is done; the tree goes by git bundle, never a push; build in the VM's own filesystem with --jobs 1; book it as a heavy run on rhadamanth. (3) WP-03 after the VM run (todo 40). WP-02 waits on hv's D55 ruling. Remove tmp/wt-cc-81-land and tmp/wt-cc-81-base once vc verifies 86e4b0f7d. NO PUSH, NO RELEASE. (edited)
+- ST0081 (Intent on Windows through WSL) IS cc's, on vc's order of 2026-10-12 from hv's rulings: 3.2.4 (hv confirmed "3.2.5" was a typo) is ONE release, cut only once the work runs on main's HEAD. LANDED: the 3.2.4 CHANGELOG section at 21f72c2b9; WP-01 at 86e4b0f7d (bin/int linux doctor|build|package|smoke, the dispatch-only linux-release workflow, SUPPORT_PATHS in cmd/shared/support.lib); WP-05 at 1c21a04ff (start and stop with --at-login refuse off macOS before writing anything); AT-05.1 recorded at 188a42fe1, still to-write. NEXT, in order: (1) THE CLIPPY FIX BANK, in ONE slot after devbin-vc's WP-07 END: clippy 0.1.99 (rustc 1.99.0, 2026-09-28) reds the workspace at six needless_borrows_for_generic_args sites in intentsvcs facade.rs:6294/6303/6304/6309 and userstate.rs:470/472, and the six are a FLOOR. Count the whole population with `cargo clippy --workspace --all-targets -- -W clippy::needless_borrows_for_generic_args`, quoting every site; fix them all; re-count to zero with both clippy twins exiting 0; bank; then judge at the train's tip with the workspace tests, all four check twins and the whole bats suite. `build all` follows the train, booked by vc. (2) THE KOVACS PROOF, once vc relays hv's word that the 26.04.1 upgrade is done: the tree goes by git bundle, never a push; build in the VM's own filesystem with --jobs 1, booked as a heavy run on rhadamanth. It proves WP-01's AC-01.1 and AC-01.2 on aarch64. For AT-05.1, apply the test file ALONE to 8c51de484 and run its two arms (expect red: the plist tree is written and the remedy phrase is absent), then run them at the landed HEAD (expect green), then `intent at green ST0081 AT-05.1` citing both runs. (3) WP-03 after the VM run (todo 40). WP-02 waits on hv's D55 ruling. NO PUSH, NO RELEASE. (edited)
 
 ## TODO
 
@@ -26,6 +26,7 @@ _(none)_
 ## Watch-outs
 
 - NEVER DELETE A SPENT BANK REF, AND THE REASON IS NOT TIDINESS -- IT IS THAT THE DELETION IS UNRECOVERABLE AND TAKES THE BLOB WITH IT (vc's ruling, 2026-09-22, refusing dc's purge proposal). Measured: `.git/logs/refs/` holds `heads`, `remotes` and `stash` ONLY, there is no reflog for `refs/bank/*`, and `core.logAllRefUpdates=true` does not cover them. So a deleted bank ref cannot be recovered the way a deleted branch can. Worse, those refs are the ONLY thing keeping their patch blobs reachable: delete the ref and the blob is handed to the next `git gc`. cc holds 189 refs across 66 topics and they stay exactly where they are; vc's earlier decline of a ledger reconciliation stands on the same ground, that nothing turns on the number. A spent bank ref costs nothing where it sits.
+- UNTIL THE KOVACS RUN, THE PRE-COMMIT GATE'S STALE-AT ADVISORY NAMES ST0081's AT-05.1 ON EVERY COMMIT ("the file EXISTS while the row says to-write"). It is expected and advisory: vc ran stale_at_check.sh on 2026-10-12, which flags AT-05.1 and exits 0. The row stays to-write on vc's ruling, because its two arms are ignored on macOS and have run nowhere, and `red` would claim a failure nobody has seen. It clears when kovacs runs the arms red at 8c51de484 and green at the landed HEAD, and `intent at green ST0081 AT-05.1` records both.
 
 ## Decisions
 
