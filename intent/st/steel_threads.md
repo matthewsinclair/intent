@@ -4,7 +4,7 @@ An index of every steel thread in the project. A steel thread is a self-containe
 
 | ID     | Title                                                                                                                                           | Status    | Created    | Completed            |
 | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ---------- | -------------------- |
-| ST0081 | Intent on Windows through WSL: Linux binaries on every release                                                                                  | Triage    | 2026-10-12 |                      |
+| ST0081 | Intent on Windows through WSL: Linux binaries on every release                                                                                  | WIP       | 2026-10-12 |                      |
 | ST0077 | Level 3 stores the references only the toolchain sees, and a roster of the targets it defines                                                   | Triage    | 2026-09-17 |                      |
 | ST0060 | Add 'intent vault' as a way for intent projects to manage local credentials                                                                     | Triage    | 2026-08-25 |                      |
 | ST0080 | Scheduled store backups that actually fire                                                                                                      | Completed | 2026-09-25 | 2026-09-25           |
