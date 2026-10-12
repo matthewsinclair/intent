@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.4] - in progress
+
+### Fixed
+
+- **A write to a thread whose Objective or Context holds an H2 line of its own is no longer refused as a hand edit** (issue 0588). Reading the cover back started a new section at every `## ` line, so a field holding one read back as only the text above it. An unedited cover then tripped a false `CoverEditNotCarried` on every write that renders it, the author's own `intent set` included, and the remedy it named, `intent sync --to-store`, would have cut the field at that heading. A heading the stored field holds is now read as part of the field; one typed into the cover by hand still starts a section of its own.
+- **The docs say that each backup snapshot is a full copy of the store** (issue 0587), beside `backup.keep` on the backups page (`docs/concepts/the-store.md`) and in the dispatch table's note on that key. The disk a project's backups take grows with the store's size times the snapshots kept, so a project with a large store may want a smaller `keep`.
+
 ## [3.2.3] - 2026-09-26
 
 ### Added
