@@ -4,11 +4,13 @@
     "moniker": "dc",
     "name": "DevX Claude",
     "role": "worker",
-    "session_id": "4e187b62-bbfa-4424-8bf9-a7e03ae421e0",
-    "heartbeat_at": "2026-09-26T17:16:19.837Z",
-    "status": "paused",
-    "focus": "idle: 0586 closed; folded for compact",
-    "claims": [],
+    "session_id": "c79ce3ba-567f-4e13-92da-66fd7e77f0db",
+    "heartbeat_at": "2026-10-12T06:41:52.580Z",
+    "status": "active",
+    "focus": "0589 for 3.2.4 (vc's order); 0591-0593 and the 3.2.4 re-drive held for vc's word",
+    "claims": [
+      "ISSUE:0589"
+    ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"
@@ -2180,8 +2182,25 @@
       "kind": "doing",
       "seq": 119,
       "text": "**RESUME (dc, localfold for hv's compact, 2026-09-26): dc IS IDLE. 0586 IS CLOSED: fixed at a220f9d09 (edited_at? rows on wb_item and wb_message in data-model.md, with ST0056's attachment canon) and closed at caf1b250f; contract_check reports 0 findings. NO PUSH, NO RELEASE.** The next known-defects re-drive starts from refs/bank/dc/323/drive.sh (a00da3f2e) and diffs against refs/bank/dc/323/drive-3.2.3.log (e469fa33b). No claims and no worktrees. NEXT: wait for vc's order.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-12T06:41:51.688Z",
       "recorded_at": "2026-09-26T15:53:03.712Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 120,
+      "text": "**0589 FOR 3.2.4 (vc's order, 2026-10-12): THE TROPE CATALOGUE'S FLATTENED QUOTE CLASSES.** FMT-03's class gets its four curly quotes back, and TN-01, TN-02, TN-04, TN-05 and TN-07 get U+2019 in their apostrophe class. A catalogue test proves each one in the consumer's own engine, the bats files and Rust arms that scan the path run before the bank, and the bank goes on refs/bank/dc/0589 for vc's judgement. Built in a detached worktree. NO PUSH, NO RELEASE.",
+      "state": "live",
+      "recorded_at": "2026-10-12T06:41:49.899Z"
+    },
+    {
+      "node": "dc",
+      "kind": "hold",
+      "seq": 31,
+      "text": "**0591, 0592 AND 0593, AND THE KNOWN-DEFECTS RE-DRIVE AT THE 3.2.4 CUT, ARE HELD UNTIL vc's WORD ON hv's 3.2.4 SCOPE RULING (vc's order, 2026-10-12).** The re-drive starts from refs/bank/dc/323/drive.sh (a00da3f2e) and diffs against refs/bank/dc/323/drive-3.2.3.log (e469fa33b). The M2 fix stays under hold 30.",
+      "state": "live",
+      "recorded_at": "2026-10-12T06:41:50.795Z"
     }
   ],
   "messages": [

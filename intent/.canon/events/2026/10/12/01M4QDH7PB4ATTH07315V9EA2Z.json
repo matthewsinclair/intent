@@ -1,0 +1,15 @@
+{
+  "id": "01M4QDH7PB4ATTH07315V9EA2Z",
+  "ts": "2026-10-12T06:41:50.795Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "**0591, 0592 AND 0593, AND THE KNOWN-DEFECTS RE-DRIVE AT THE 3.2.4 CUT, ARE HELD UNTIL vc's WORD ON hv's 3.2.4 SCOPE RULING (vc's order, 2026-10-12).** The re-drive starts from refs/bank/dc/323/drive.sh (a00da3f2e) and diffs against refs/bank/dc/323/drive-3.2.3.log (e469fa33b). The M2 fix stays under hold 30."
+  }
+}

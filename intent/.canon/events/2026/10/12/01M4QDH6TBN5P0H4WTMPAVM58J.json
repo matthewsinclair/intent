@@ -1,0 +1,15 @@
+{
+  "id": "01M4QDH6TBN5P0H4WTMPAVM58J",
+  "ts": "2026-10-12T06:41:49.899Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**0589 FOR 3.2.4 (vc's order, 2026-10-12): THE TROPE CATALOGUE'S FLATTENED QUOTE CLASSES.** FMT-03's class gets its four curly quotes back, and TN-01, TN-02, TN-04, TN-05 and TN-07 get U+2019 in their apostrophe class. A catalogue test proves each one in the consumer's own engine, the bats files and Rust arms that scan the path run before the bank, and the bank goes on refs/bank/dc/0589 for vc's judgement. Built in a detached worktree. NO PUSH, NO RELEASE."
+  }
+}
