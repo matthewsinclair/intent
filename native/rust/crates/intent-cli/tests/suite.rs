@@ -30,6 +30,8 @@
 
 #[path = "all_flag_reaches_every_unit.rs"]
 mod all_flag_reaches_every_unit;
+#[path = "at_login_is_refused_off_macos.rs"]
+mod at_login_is_refused_off_macos;
 #[path = "at_new_takes_no_status.rs"]
 mod at_new_takes_no_status;
 #[path = "common/mod.rs"]

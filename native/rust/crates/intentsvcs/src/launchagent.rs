@@ -45,6 +45,8 @@ pub enum LaunchAgentError {
   NoLaunchctl(std::io::Error),
   #[error("`launchctl {verb}` refused: {stderr}")]
   Refused { verb: String, stderr: String },
+  #[error("login enrolment is macOS's, through launchd, and this machine runs {os}")]
+  NotMacOs { os: String },
   #[error(transparent)]
   UserState(#[from] userstate::UserStateError),
 }
@@ -69,6 +71,12 @@ impl Remedy for LaunchAgentError {
       LaunchAgentError::Refused { .. } => format!(
         "`launchctl` rejected the job. Check whether one is already loaded with `launchctl list | grep {LAUNCH_AGENT_LABEL}`, and unload it before enrolling again."
       ),
+      // **NOTHING WAS WRITTEN, AND THAT IS WHAT THE REFUSAL IS FOR** (ST0081,
+      // WP-05): off macOS there is no launchd to hand a job to, and the daemon
+      // runs here exactly as it does unenrolled on a Mac.
+      LaunchAgentError::NotMacOs { .. } => {
+        "nothing was written. The daemon runs here without enrolment: `intent daemon start` without the enrolment flag starts it, and `intent daemon stop` stops it.".to_string()
+      }
       LaunchAgentError::UserState(e) => e.remedy(),
     }
   }
@@ -185,6 +193,22 @@ fn escape(raw: &str) -> String {
     .replace('>', "&gt;")
 }
 
+/// Whether this machine can enrol the daemon at login. Only macOS can: enrolment
+/// hands the job to `launchd`, and `os` is the operating system the caller
+/// names, `std::env::consts::OS` in the CLI.
+///
+/// **ASKED BEFORE ANYTHING IS WRITTEN, WHICH IS WHY IT EXISTS** (ST0081,
+/// WP-05). `intent daemon start --at-login` wrote the plist first and failed at
+/// `launchctl` second, so a Linux machine was left a `~/Library/LaunchAgents/`
+/// file nothing would ever read. PURE in `os`, so the refusal is driven on any
+/// host rather than only on the platform that refuses.
+pub fn enrolment_supported(os: &str) -> Result<(), LaunchAgentError> {
+  if os == "macos" {
+    return Ok(());
+  }
+  Err(LaunchAgentError::NotMacOs { os: os.to_string() })
+}
+
 /// Write the plist under `dirs`, creating `~/Library/LaunchAgents/` if absent.
 ///
 /// Returns the path written. Does NOT tell `launchd` about it -- see [`load`].
@@ -277,6 +301,24 @@ mod tests {
 
   fn root() -> tempfile::TempDir {
     tempfile::tempdir().expect("tempdir")
+  }
+
+  #[test]
+  fn enrolment_is_supported_on_macos() {
+    assert!(enrolment_supported("macos").is_ok());
+  }
+
+  #[test]
+  fn enrolment_is_refused_off_macos_naming_the_unenrolled_start() {
+    let refused = enrolment_supported("linux").expect_err("linux has no launchd");
+    let said = refused.render();
+
+    assert!(said.contains("macOS"), "names no macOS: {said}");
+    assert!(said.contains("linux"), "names no platform: {said}");
+    assert!(
+      said.contains("`intent daemon start` without the enrolment flag"),
+      "names no unenrolled start: {said}"
+    );
   }
 
   #[test]

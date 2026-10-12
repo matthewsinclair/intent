@@ -9928,6 +9928,15 @@ fn daemon_logs_follow(
 fn daemon_start(at_login: bool) -> Result<(), Failure> {
   use std::os::unix::process::CommandExt;
 
+  // **ENROLMENT IS REFUSED OFF macOS BEFORE ANYTHING ELSE** (ST0081, WP-05):
+  // ahead of the plist write, so a Linux machine is left no file, and ahead of
+  // the already-running check, so a running daemon is never reported as though
+  // it had been enrolled.
+  if at_login {
+    launchagent::enrolment_supported(std::env::consts::OS)
+      .map_err(|e| Failure::Error(e.render()))?;
+  }
+
   let dirs = intentsvcs::userstate::dirs().map_err(|e| Failure::Error(e.render()))?;
   // **ALREADY RUNNING IS SUCCESS, NOT A FAILURE, AND THE POSTCONDITION IS WHY.**
   // The operator asked for a running daemon and there is one. `systemctl start`
@@ -10069,6 +10078,11 @@ const START_PAUSE: std::time::Duration = std::time::Duration::from_millis(20);
 /// operator needs it stopped. A wire-only `stop` would work in every case
 /// except the one it was reached for.
 fn daemon_stop(at_login: bool) -> Result<(), Failure> {
+  // Refused off macOS the same way `start --at-login` is, and for its reason.
+  if at_login {
+    launchagent::enrolment_supported(std::env::consts::OS)
+      .map_err(|e| Failure::Error(e.render()))?;
+  }
   let dirs = intentsvcs::userstate::dirs().map_err(|e| Failure::Error(e.render()))?;
 
   // **UNLOADING STOPS THE JOB AS WELL AS UNENROLLING IT**, so the enrolled path
