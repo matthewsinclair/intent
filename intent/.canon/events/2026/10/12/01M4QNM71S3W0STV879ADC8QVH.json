@@ -1,0 +1,15 @@
+{
+  "id": "01M4QNM71S3W0STV879ADC8QVH",
+  "ts": "2026-10-12T09:03:17.053Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0594"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "armed_tool_preconditions.bats reds in any checkout whose path names an armed tool, because its tool grep runs over each line's file path"
+  }
+}
