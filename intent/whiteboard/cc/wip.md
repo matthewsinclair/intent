@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 50a3efda-be09-46c0-b5db-79cda9b52a47
-heartbeat_at: 2026-10-12 09:04Z
+heartbeat_at: 2026-10-12 19:21Z
 status: active
-focus: "ST0081: WP-01, WP-05 and the clippy fix landed; kovacs proof waits on hv's upgrade; build all is vc's before the push"
+focus: "FOLDED for hv's close of day 2026-10-12: idle, no worktree, no unlanded bank; resume is doing 78 (the kovacs proof, then WP-03); build all is vc's before hv's push"
 claims: [ST0081]
 ---
 
