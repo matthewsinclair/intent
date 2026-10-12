@@ -14,6 +14,11 @@ _(none)_
 
 - [?] ST0060: Add 'intent vault' as a way for intent projects to manage local credentials
 - [?] ST0077: Level 3 stores the references only the toolchain sees, and a roster of the targets it defines
+- [?] ST0081: Intent on Windows through WSL: Linux binaries on every release
+  - [ ] 01: Linux release binaries built by GitHub Actions
+  - [ ] 02: Linux assets on each tag's GitHub release, one writer per release object
+  - [ ] 03: Intent's Linux install recipe and the WSL page
+  - [ ] 04: First install on a real Windows machine
 
 ## DONE:2026-09-10T00:00:51Z
 

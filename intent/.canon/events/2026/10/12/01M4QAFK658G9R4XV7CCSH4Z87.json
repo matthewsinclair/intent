@@ -1,0 +1,15 @@
+{
+  "id": "01M4QAFK658G9R4XV7CCSH4Z87",
+  "ts": "2026-10-12T05:48:31.304Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0081/04"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "First install on a real Windows machine"
+  }
+}

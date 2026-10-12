@@ -1,0 +1,15 @@
+{
+  "id": "01M4QAFHD1AD06BNN3AZGVMBQS",
+  "ts": "2026-10-12T05:48:29.477Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0081/02"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "Linux assets on each tag's GitHub release, one writer per release object"
+  }
+}
