@@ -467,9 +467,9 @@ pub fn migrate_legacy(dirs: &Dirs) -> Result<Option<Migrated>, UserStateError> {
       cause,
     };
     if let Some(parent) = to.parent() {
-      std::fs::create_dir_all(parent).map_err(&unmovable)?;
+      std::fs::create_dir_all(parent).map_err(unmovable)?;
     }
-    std::fs::rename(&source, &to).map_err(&unmovable)?;
+    std::fs::rename(&source, &to).map_err(unmovable)?;
     moved.push((name.to_string(), to));
   }
   if moved.is_empty() {

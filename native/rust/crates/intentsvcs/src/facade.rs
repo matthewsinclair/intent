@@ -6291,7 +6291,7 @@ impl Facade {
       }
     };
 
-    let mut stmt = conn.prepare(statement).map_err(&refused)?;
+    let mut stmt = conn.prepare(statement).map_err(refused)?;
     let columns: Vec<String> = stmt
       .column_names()
       .into_iter()
@@ -6300,13 +6300,13 @@ impl Facade {
     let width = columns.len();
     let mut kept: Vec<Vec<serde_json::Value>> = Vec::new();
     let mut matched = 0usize;
-    let mut rows = stmt.query([]).map_err(&refused)?;
-    while let Some(row) = rows.next().map_err(&refused)? {
+    let mut rows = stmt.query([]).map_err(refused)?;
+    while let Some(row) = rows.next().map_err(refused)? {
       matched += 1;
       if kept.len() < cap {
         let mut out = Vec::with_capacity(width);
         for i in 0..width {
-          out.push(sql_value(row.get_ref(i).map_err(&refused)?));
+          out.push(sql_value(row.get_ref(i).map_err(refused)?));
         }
         kept.push(out);
       }

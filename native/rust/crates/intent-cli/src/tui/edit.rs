@@ -206,15 +206,15 @@ pub fn hand_off(
     kept: path.clone(),
   };
 
-  session.launch(&path).map_err(&kept)?;
-  let after = session.read_back(&path).map_err(&kept)?;
+  session.launch(&path).map_err(kept)?;
+  let after = session.read_back(&path).map_err(kept)?;
 
   if after == before {
     session.discard(&path);
     return Ok(Landed::Unchanged);
   }
 
-  model.write(h, &after).map_err(&kept)?;
+  model.write(h, &after).map_err(kept)?;
   session.discard(&path);
   Ok(Landed::Written)
 }
