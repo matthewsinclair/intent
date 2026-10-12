@@ -35,11 +35,15 @@ MACOS="${INTENT_MACOS_SCRIPT:-${INTENT_HOME}/bin/.devbin/cmd/macos}"
 # says something else.
 load_macos_fns() {
   local fns="${TEST_TEMP_DIR}/macosfns.sh"
-  sed -n '/^BINARIES=/p;/^SUPPORT_ASSET=/p;/^APP_ASSET=/p;/^SUPPORT_PATHS=/p' "$MACOS" >"$fns"
+  sed -n '/^BINARIES=/p;/^SUPPORT_ASSET=/p;/^APP_ASSET=/p' "$MACOS" >"$fns"
   sed -n '/^is_binary_artefact() {/,/^}/p;/^staged_artefacts() {/,/^}/p;/^unclassified_artefacts() {/,/^}/p;/^support_tree_drift() {/,/^}/p;/^provenance_blockers() {/,/^}/p' \
     "$MACOS" >>"$fns"
   # shellcheck disable=SC1090
   . "$fns"
+  # SUPPORT_PATHS comes out of the library the script sources, for the same
+  # reason: ST0081 moved it there so `cmd/linux` packages the same tree.
+  # shellcheck disable=SC1091
+  . "${INTENT_HOME:-${MACOS%/bin/.devbin/cmd/macos}}/bin/.devbin/cmd/shared/support.lib"
 }
 
 # A staging directory holding whatever names it is given.

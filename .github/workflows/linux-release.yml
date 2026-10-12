@@ -1,0 +1,76 @@
+name: linux release
+
+# THE LINUX PACKAGES (ST0081 WP-01): `intent` and `intentd` built static against
+# musl for x86_64 and aarch64 Linux, each packaged with the support tree the
+# binaries read at run time, so a download installs rather than being a bare
+# binary. Intent's Windows route is this package under WSL 2; there is no native
+# Windows build.
+#
+# EVERY STEP IS `bin/int linux`, AND THAT IS THE POINT. hv's Ubuntu VM runs the
+# same subcommands by hand before anything is pushed (hv, 2026-10-12), so the
+# VM's proof and this workflow's prove one set of steps rather than two copies of
+# them. What a step does is in `bin/.devbin/cmd/linux`, not here.
+#
+# DISPATCH ONLY, BY THE THREAD'S OWN ORDER: a tag is never this workflow's first
+# run. It writes no release object, so `bin/devbin release check` finds no second
+# writer here. How a tag's packages reach the GitHub release is WP-02's, and
+# waits on hv's ruling (devbin's D55).
+on:
+  workflow_dispatch:
+
+# The fleet's group, as rust.yml and tests.yml carry it.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - triple: x86_64-unknown-linux-musl
+            runner: ubuntu-latest
+          - triple: aarch64-unknown-linux-musl
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    env:
+      # THE FLOOR: Oracle Linux 7, on glibc 2.17, older than any distribution the
+      # developers are likely to run under WSL. A static binary needs no glibc at
+      # all, so this proves the package starts where a binary linked against the
+      # runner's own glibc would not.
+      FLOOR: oraclelinux:7-slim
+    steps:
+      - uses: actions/checkout@v4
+      # Stable, unpinned, as rust.yml takes it and for its reason (rust.yml's
+      # toolchain step): a pin would bind CI alone. The step after next records
+      # the version this run used.
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.triple }}
+      - name: musl-gcc, for the C the build compiles (SQLite and the tree-sitter grammars)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq musl-tools
+      - name: record the toolchain this run actually used
+        # pipefail, because the step shell is bash -e without it and the
+        # pipeline's status would be tee's.
+        run: |
+          set -o pipefail
+          rustc --version | tee -a "$GITHUB_STEP_SUMMARY"
+          cargo --version | tee -a "$GITHUB_STEP_SUMMARY"
+      - run: bin/int linux doctor
+      - run: bin/int linux build
+      - run: bin/int linux package
+      - name: smoke, on the runner
+        run: bin/int linux smoke
+      - name: smoke, on the floor (AC-01.2)
+        run: bin/int linux smoke --in "$FLOOR"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: intent-${{ matrix.triple }}
+          path: native/rust/target/linux-dist/intent-${{ matrix.triple }}.tar.gz
+          if-no-files-found: error

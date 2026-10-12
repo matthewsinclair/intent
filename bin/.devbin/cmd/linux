@@ -1,0 +1,273 @@
+#!/usr/bin/env bash
+# bin/int linux <subcommand> -- Intent's Linux packages (ST0081 WP-01).
+#
+# `intent` and `intentd` built static against musl for this host's architecture,
+# each packaged with the support tree the binaries read at run time, so a
+# download installs rather than being a bare binary. Intent's Windows route is
+# this package under WSL 2; there is no native Windows build.
+#
+# ONE SCRIPT FOR EVERY PROVING RUN (vc, on hv's ruling of 2026-10-12). hv's
+# Ubuntu VM runs these subcommands by hand and `.github/workflows/linux-release.yml`
+# runs the same ones, so the VM's proof and the workflow's prove one set of steps
+# rather than two copies of them.
+#
+# STATIC MUSL, BECAUSE THE DEVELOPERS' DISTRIBUTIONS ARE NOT KNOWN. A static
+# binary has no glibc floor at all, and nothing in the workspace stands in the
+# way: Cargo.lock carries no OpenSSL or TLS crate, rusqlite builds SQLite from
+# its bundled source, every tree-sitter grammar is C, and the file watcher is
+# inotify on Linux. So the build needs the musl target and `musl-gcc` for that C,
+# and no container.
+set -euo pipefail
+: "${DEVBIN_LIB:?run me through the devbin dispatcher}"
+. "$DEVBIN_LIB/helpers"
+
+ROOT="${PROJECT_ROOT:?}"
+WORKSPACE="$ROOT/native/rust"
+BINARIES="intent intentd"
+DIST_DIR="$WORKSPACE/target/linux-dist"
+SUBCOMMANDS="doctor build package smoke"
+SMOKE_TMP=""
+trap 'rm -rf "${SMOKE_TMP:-}"' EXIT
+
+# SUPPORT_PATHS, the tree each package carries beside bin/, from the one home
+# cmd/macos reads for intent-support.tar.gz.
+. "$(dirname "${BASH_SOURCE[0]}")/shared/support.lib"
+
+# host_triple -- the musl triple for this host's architecture. Taken from
+# `rustc -vV`, as cmd/macos takes its triple, and never from `uname`. A host that
+# is not Linux is refused: these are Linux's binaries, and a cross build is not a
+# route this script offers.
+host_triple() {
+  local host
+  host="$(rustc -vV 2>/dev/null | sed -n 's/^host: //p')"
+  [ -n "$host" ] || die "rustc -vV names no host, so Rust is not installed here: install it through rustup (https://rustup.rs) and run again"
+  case "$host" in
+    *-unknown-linux-gnu | *-unknown-linux-musl) printf '%s-unknown-linux-musl\n' "${host%%-*}" ;;
+    *) die "bin/int linux builds on Linux and this host is $host: run it on hv's Ubuntu VM, or let .github/workflows/linux-release.yml run it" ;;
+  esac
+}
+
+# lacks <triple> -- one line per thing this host lacks to build and package the
+# pair, each carrying its remedy, and nothing when it lacks nothing. Every lack
+# is listed rather than the first, so one install pass readies a fresh machine.
+lacks() {
+  local triple="$1" t
+  for t in cargo git tar gzip file; do
+    command -v "$t" >/dev/null 2>&1 || printf '%s is not on PATH\n' "$t"
+  done
+  if ! command -v rustup >/dev/null 2>&1; then
+    printf 'rustup is not on PATH, and the %s target is installed through it: https://rustup.rs\n' "$triple"
+  elif ! rustup target list --installed 2>/dev/null | grep -qx "$triple"; then
+    printf 'the %s target is not installed: rustup target add %s\n' "$triple" "$triple"
+  fi
+  command -v musl-gcc >/dev/null 2>&1 ||
+    printf 'musl-gcc is not on PATH, and the C in the build (SQLite and the tree-sitter grammars) needs it: sudo apt-get install musl-tools\n'
+}
+
+cmd_doctor() {
+  local triple missing
+  triple="$(host_triple)"
+  missing="$(lacks "$triple")"
+  if [ -n "$missing" ]; then
+    printf '%s\n' "$missing" | sed 's/^/  missing: /' >&2
+    die "this host cannot build $triple yet"
+  fi
+  printf 'linux doctor: this host builds %s with %s\n' "$triple" "$(rustc --version)"
+}
+
+cmd_build() {
+  local jobs="" triple bin f kind
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --jobs)
+        [ $# -ge 2 ] || die "linux build --jobs needs a number"
+        jobs="$2"
+        shift 2
+        ;;
+      --jobs=*)
+        jobs="${1#--jobs=}"
+        shift
+        ;;
+      *) die "linux build takes only --jobs N, got: $1 (try: bin/devbin linux --help)" ;;
+    esac
+  done
+  [ -z "$jobs" ] || [[ "$jobs" =~ ^[1-9][0-9]*$ ]] || die "linux build --jobs takes a whole number of at least 1, got: $jobs"
+  cmd_doctor
+  triple="$(host_triple)"
+  step "building $BINARIES for $triple"
+  # cc-rs is told which compiler builds the C for this target rather than left
+  # to choose: on a glibc host it would reach for the host's gcc, whose objects
+  # are glibc's. The target directory is named for the same reason, so a
+  # CARGO_TARGET_DIR in the caller's environment cannot put the pair where the
+  # steps below do not look.
+  env "CC_${triple//-/_}=musl-gcc" CARGO_TARGET_DIR="$WORKSPACE/target" \
+    cargo build --release --locked --target "$triple" \
+    --manifest-path "$WORKSPACE/Cargo.toml" -p intent-cli -p intentd ${jobs:+--jobs "$jobs"}
+  for bin in $BINARIES; do
+    f="$WORKSPACE/target/$triple/release/$bin"
+    [ -x "$f" ] || die "cargo reported success and $f is not there"
+    kind="$(file -b "$f")"
+    case "$kind" in
+      *"statically linked"* | *"static-pie linked"*) ;;
+      *) die "$bin is not a static binary, so it would need this host's libc: $kind" ;;
+    esac
+    printf '    %s\n' "$("$f" --version 2>&1 | head -n 1)"
+  done
+  ok
+}
+
+cmd_package() {
+  local triple name bin dirt
+  triple="$(host_triple)"
+  name="intent-$triple"
+  for bin in $BINARIES; do
+    [ -x "$WORKSPACE/target/$triple/release/$bin" ] || die "no $bin is built for $triple yet: run bin/int linux build first"
+  done
+  # The committed bytes, as cmd/macos ships them: a support tree with
+  # uncommitted changes would package bytes no commit names.
+  # shellcheck disable=SC2086 # SUPPORT_PATHS is space-free (shared/support.lib)
+  dirt="$(git -C "$ROOT" status --porcelain -- $SUPPORT_PATHS)"
+  [ -z "$dirt" ] || die "the support tree has uncommitted changes, so the package would carry bytes no commit names:
+$dirt"
+  step "packaging $name"
+  rm -rf "${DIST_DIR:?}/$name" "$DIST_DIR/$name.tar.gz"
+  mkdir -p "$DIST_DIR/$name/bin"
+  for bin in $BINARIES; do
+    install -m 0755 "$WORKSPACE/target/$triple/release/$bin" "$DIST_DIR/$name/bin/$bin"
+  done
+  # shellcheck disable=SC2086 # SUPPORT_PATHS is space-free (shared/support.lib)
+  git -C "$ROOT" archive --format=tar HEAD -- $SUPPORT_PATHS | tar -x -C "$DIST_DIR/$name"
+  tar -czf "$DIST_DIR/$name.tar.gz" -C "$DIST_DIR" "$name"
+  printf '    %s\n' "$DIST_DIR/$name.tar.gz"
+  ok
+}
+
+# smoke_checks <root> -- the three proofs, run where the package is unpacked:
+# the binary starts, it resolves its install root to <root> when reached through
+# a link on PATH, as an install reaches it, and a hook script from the support
+# tree runs. The gate refuses a prompt that has no sentinel by exiting 2, from
+# the script itself, so that exit is the proof the script ran.
+#
+# SELF-CONTAINED, because `smoke --in` hands this function's own text to the
+# container's bash: it calls nothing else in this file.
+smoke_checks() {
+  local root="$1" bindir want resolved out rc
+  bindir="$(mktemp -d)"
+  ln -s "$root/bin/intent" "$bindir/intent"
+  PATH="$bindir:$PATH"
+  intent --version
+  want="$(cd "$root" && pwd -P)"
+  resolved="$(intent info | sed -n 's/^ *INTENT_HOME: *//p')"
+  if [ "$resolved" != "$want" ]; then
+    printf 'smoke: the install root resolved to [%s], not %s\n' "$resolved" "$want" >&2
+    return 1
+  fi
+  printf 'smoke: the install root is %s\n' "$resolved"
+  set +e
+  out="$(printf '%s' '{"prompt":"linux smoke"}' | CLAUDE_CODE_SESSION_ID=linux-smoke intent claude hook require-in-session 2>&1)"
+  rc=$?
+  set -e
+  if [ "$rc" -ne 2 ] || ! printf '%s' "$out" | grep -q 'Expected sentinel:'; then
+    printf 'smoke: the gate hook did not run from the support tree (exit %s): %s\n' "$rc" "$out" >&2
+    return 1
+  fi
+  printf 'smoke: a hook script from the support tree ran, and refused as it should\n'
+}
+
+# container_engine -- the engine `smoke --in` runs its image with.
+container_engine() {
+  local e
+  for e in docker podman; do
+    if command -v "$e" >/dev/null 2>&1; then
+      printf '%s\n' "$e"
+      return 0
+    fi
+  done
+  die "linux smoke --in runs the package in a container, and neither docker nor podman is on PATH"
+}
+
+cmd_smoke() {
+  local image="" triple name engine
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --in)
+        [ $# -ge 2 ] || die "linux smoke --in needs an image"
+        image="$2"
+        shift 2
+        ;;
+      --in=*)
+        image="${1#--in=}"
+        shift
+        ;;
+      *) die "linux smoke takes only --in IMAGE, got: $1 (try: bin/devbin linux --help)" ;;
+    esac
+  done
+  triple="$(host_triple)"
+  name="intent-$triple"
+  [ -f "$DIST_DIR/$name.tar.gz" ] || die "no $DIST_DIR/$name.tar.gz yet: run bin/int linux package first"
+  SMOKE_TMP="$(mktemp -d)"
+  tar -xzf "$DIST_DIR/$name.tar.gz" -C "$SMOKE_TMP"
+  if [ -z "$image" ]; then
+    step "smoke: $name on this host"
+    mkdir -p "$SMOKE_TMP/home"
+    # Outside any project, so `intent info` reads no store, and with every file
+    # the checks make inside the directory the exit trap removes.
+    (
+      cd "$SMOKE_TMP"
+      export HOME="$SMOKE_TMP/home" TMPDIR="$SMOKE_TMP"
+      unset XDG_CONFIG_HOME XDG_DATA_HOME XDG_STATE_HOME XDG_RUNTIME_DIR
+      smoke_checks "$SMOKE_TMP/$name"
+    )
+  else
+    engine="$(container_engine)"
+    step "smoke: $name in $image, through $engine"
+    {
+      declare -f smoke_checks
+      printf 'smoke_checks %q\n' "/opt/$name"
+    } | "$engine" run --rm -i -v "$SMOKE_TMP/$name:/opt/$name:ro" "$image" /bin/bash -euo pipefail -s
+  fi
+  ok
+}
+
+usage() {
+  cat <<EOF
+bin/devbin linux <subcommand>
+
+  Intent's Linux packages (ST0081): intent and intentd built static against musl
+  for this host's architecture, each packaged with the support tree as
+  intent-<triple>.tar.gz. hv's Ubuntu VM and .github/workflows/linux-release.yml
+  run the same subcommands, in this order:
+
+  doctor              what this host lacks to build and package, with each remedy
+  build [--jobs N]    the static pair for this host's musl triple; --jobs caps cargo
+  package             intent-<triple>.tar.gz under native/rust/target/linux-dist/
+  smoke [--in IMAGE]  the package starts, finds its install root and runs a hook
+                      script, on this host or in a container of IMAGE
+
+  It runs on Linux only, and builds for the architecture it runs on.
+EOF
+}
+
+case "${1:-}" in
+  "" | -h | --help)
+    usage
+    exit 0
+    ;;
+  doctor)
+    [ $# -eq 1 ] || die "linux doctor takes no arguments, got: ${*:2} (try: bin/devbin linux --help)"
+    cmd_doctor
+    ;;
+  build)
+    shift
+    cmd_build "$@"
+    ;;
+  package)
+    [ $# -eq 1 ] || die "linux package takes no arguments, got: ${*:2} (try: bin/devbin linux --help)"
+    cmd_package
+    ;;
+  smoke)
+    shift
+    cmd_smoke "$@"
+    ;;
+  *) die "unknown linux subcommand: $1 (try: $SUBCOMMANDS)" ;;
+esac

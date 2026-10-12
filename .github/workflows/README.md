@@ -1,6 +1,6 @@
 # GitHub Actions Workflows
 
-This directory holds the workflows GitHub runs for the Intent project: the bats suite (`tests.yml`), the Rust workspace gates (`rust.yml`) and the pull-request checks (`pr-checks.yml`).
+This directory holds the workflows GitHub runs for the Intent project: the bats suite (`tests.yml`), the Rust workspace gates (`rust.yml`), the pull-request checks (`pr-checks.yml`) and the Linux packages (`linux-release.yml`).
 
 ## Workflows
 
@@ -51,6 +51,19 @@ No concurrency group: every run completes.
 - `commit-message-check`: warns for each commit subject in `origin/main..HEAD` shorter than 10 or longer than 72 characters. Never fails.
 - `pr-size-check`: reports additions plus deletions, warns above 1000 changed lines and notes above 500. Never fails.
 - `doctor-on-the-merge-result`: builds the v3 `intent` binary and runs `intent doctor` on the pull request's merge result (`refs/pull/<n>/merge`), from a depth-1 checkout under a runner HOME that holds no Intent state, so the store loads from the committed canon as a collaborator's clone would. Doctor's exit code is the verdict: a counted finding fails the job. It is the merge-result twin of the pre-commit gate's doctor arm, which judges only the author's own tree. Unlike the gate's arm, which refuses only on exit 1 and lets any other exit through as UNENFORCED, this job fails on any non-zero exit, including 4 (an estate doctor cannot judge).
+
+### 4. linux release (`linux-release.yml`)
+
+**Triggers**: `workflow_dispatch` only (ST0081). A tag never runs it first, and it writes no release object; how a tag's packages reach the GitHub release is ST0081's WP-02, not yet ruled.
+
+**Concurrency**: a newer run of the same workflow for the same event and ref cancels the one in progress.
+
+**Job** `package`, on an x86_64 (`ubuntu-latest`) and an aarch64 (`ubuntu-24.04-arm`) leg with `fail-fast: false`:
+
+- Installs the stable toolchain with the leg's musl target and `musl-tools`, and records `rustc --version` and `cargo --version` to the job summary
+- Runs `bin/int linux doctor`, `build`, `package`, `smoke`, and `smoke --in oraclelinux:7-slim`: the same subcommands hv's Ubuntu VM runs by hand, so both prove one set of steps (`bin/.devbin/cmd/linux`)
+- `build` refuses a binary that is not static; `smoke` unpacks the package, reaches `intent` through a link on PATH, and checks that it starts, resolves its install root to the unpacked directory, and runs a hook script from the support tree
+- Uploads `intent-<triple>.tar.gz` as the run's artifact
 
 ## Local Testing
 

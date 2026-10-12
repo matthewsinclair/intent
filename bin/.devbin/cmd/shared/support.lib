@@ -1,0 +1,76 @@
+# shellcheck shell=bash
+#
+# shared/support.lib -- what the support tree carries, for every platform that
+# packages it. SOURCED, never run: it is 0644 so `is_handler` (-f AND -x) cannot
+# mistake it for a command.
+#
+# MOVED HERE FROM `cmd/macos` ON 2026-10-12 (ST0081), WITH THE REASONING THAT
+# SHAPED IT, BECAUSE A SECOND PLATFORM NOW PACKAGES THE SAME TREE. `cmd/macos`
+# archives it as `intent-support.tar.gz`; `cmd/linux` puts it beside the Linux
+# binaries in each `intent-<triple>.tar.gz`. One list sourced by both handlers is
+# what keeps the two platforms' installs one tree, and a copy in each handler is
+# the one-list-two-homes shape the reasoning below records twice.
+
+# THE ONE HOME for what the support tree carries. Relative to $ROOT. Every path
+# v3 resolves against its install root is either here or comes from the binaries
+# themselves, and `support_paths_coverage` in `cmd/macos` holds that sentence to the
+# source rather than to this comment.
+#
+# THIS LIST WAS `lib/templates` ALONE UNTIL 2026-08-26, AND THE COMMENT THAT KEPT
+# IT THAT WAY WAS NOT LAZY -- IT WAS VERIFIED AGAINST THE WRONG POPULATION. It
+# read: "everything the shipped consumers reach into is under it -- verified
+# rather than assumed: the only path any shipped SCRIPT references outside its
+# own tree is `$INTENT_HOME_RESOLVED`". That verification was real and correct
+# for shipped scripts. The rules and skills trees are read by the RUST BINARY,
+# which was never in the population -- so the check could not have failed, and
+# the words `verified rather than assumed` are exactly why nobody looked again.
+#
+# What it cost: the 3.0.0 keg shipped no rule library and no skills tree, so on
+# every project running it `intent critic <lang> --staged` armed 0 of 0 rules,
+# printed `ok` and exited 0, and the pre-commit hook branched on that rc
+# correctly and passed. Found by devbin/vc as a PACKAGING gap rather than a
+# resolver fault, which is the call that pointed here instead of into the rules
+# loader; located to this line by vc; resolver enumerated by dc.
+#
+# A RECORDED VERIFICATION MUST NAME ITS POPULATION, or the next reader inherits
+# the confidence without the scope.
+#
+# `intent/plugins/claude` SHIPS WHOLE, BECAUSE THE BINARY CHOOSES ITS CHILD AT RUN
+# TIME. `payload.rs` resolves `intent/plugins/claude/<kind.canon_subdir()>` --
+# `skills` or `subagents` -- and no reading of the source can list what a
+# run-time join will ask for. Until 2026-09-11 this list named the rules and
+# skills trees and the `intent_claude_cwi` file, the coverage guard counted the
+# directory as covered by those children, and the 3.0.1 keg shipped with no
+# `subagents` tree: `intent claude subagents list` answered `no subagents in this
+# install` at exit 0. `support_paths_coverage` now accepts a run-time-resolved
+# directory only when the whole directory ships, so the next child cannot be
+# left out in silence. The file-level `intent_claude_cwi` entry existed to keep
+# v2's plugin scripts out of the keg; they are gone from `bin/`, which now holds
+# only the launcher.
+#
+# HOW `intent_claude_cwi` WENT MISSING FROM THE 3.0.0 KEG, BECAUSE THE ANSWER
+# CHANGES WHAT A FIX MEANS. It was not missed when this list was corrected on
+# 2026-08-26 (`0112b8c1`). The cwi door
+# landed the NEXT DAY, `68ca70bf` 2026-08-27 14:41Z, and the copy list did not
+# follow it. `support_paths_coverage` caught it on the first stage attempt after
+# that -- **so this entry is the check WORKING, not the check having failed.** A
+# list that must be updated by hand when a resolver is added will go stale again;
+# what makes that survivable is that the coverage arm reads the consumer, so the
+# staleness is refused at stage rather than shipped.
+#
+# WHAT IT DARKENS WHEN ABSENT: `intent claude start <ws>` -- the MAAC whiteboard
+# launcher, `disposition: keep`. It had a sibling, `intent claude ws <verb>`, the
+# provisioner, until ST0069 AC-14.12 retired the family; the Whiteboard Protocol
+# skill SHIPS IN THIS SAME KEG and named `intent claude ws new` as the
+# provisioner, so a keg without this file used to contradict its own
+# documentation on disk. The skill now names `intent wb`, which is in the
+# binary rather than in this script, so what a missing file darkens is the
+# launch and nothing else.
+#
+# It needs no formula `chmod`: the archive preserves 0755 through `tar`, and the
+# `chmod` in the formula exists only for the BINARIES, which GitHub serves as
+# bare 644 files. Verified in the archive, not assumed.
+# Issue 0340: `intent plugin list` reads each plugin's `plugin.json`, and the
+# agents plugin's manifest did not ship, so the keg listed only `claude`.
+# shellcheck disable=SC2034 # read by the handlers that source this file
+SUPPORT_PATHS="lib/templates intent/plugins/claude intent/plugins/agents/plugin.json"
