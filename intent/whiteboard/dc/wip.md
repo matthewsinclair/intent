@@ -27,7 +27,7 @@ _(none)_
   RIDER: wherever the recipe declares a markdown formatter in an estate with a whiteboard, the same commit adds prettier-ignore lines for intent/whiteboard/*/wip.md and intent/whiteboard/*/inbox.*.md (prettier 3.9.8 rewrites the generated views).
   KNOWN LIMIT: core.hooksPath is per clone, so a fresh clone runs no hook until it is set.
 - **THE M2 REMOVABLE-V2-SOURCE FIX IS HELD UNTIL A RELEASE AFTER 3.2.3 IS OPENED FOR IT (vc's ruling).** It was scoped out of 3.2.2 and 3.2.3 and is not started.
-- **0591, 0592 AND 0593, AND THE KNOWN-DEFECTS RE-DRIVE AT THE 3.2.4 CUT, ARE HELD UNTIL vc's WORD ON hv's 3.2.4 SCOPE RULING (vc's order, 2026-10-12).** The re-drive starts from refs/bank/dc/323/drive.sh (a00da3f2e) and diffs against refs/bank/dc/323/drive-3.2.3.log (e469fa33b). The M2 fix stays under hold 30.
+- **0591, 0592, 0593 AND 0594, AND THE KNOWN-DEFECTS RE-DRIVE AT THE 3.2.4 CUT, ARE HELD UNTIL vc's WORD ON hv's 3.2.4 SCOPE RULING (vc's orders, 2026-10-12).** 0594 is the XS test fix vc filed at d7cd1ea7c: armed_tool_preconditions.bats:116 reds in any checkout whose path names an armed tool. The re-drive starts from refs/bank/dc/323/drive.sh (a00da3f2e) and diffs against refs/bank/dc/323/drive-3.2.3.log (e469fa33b). The M2 fix stays under hold 30. (edited)
 
 ## Watch-outs
 
