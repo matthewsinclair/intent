@@ -2,10 +2,10 @@
 node: vc
 name: Validation Claude
 role: validation
-session_id: 1a79312a-c3aa-435b-b4a1-b00a0d3bf70f
-heartbeat_at: 2026-09-26 17:18Z
-status: paused
-focus: "folded; close-out done; holding for hv (push, 3.2.4, billing)"
+session_id: ac68464d-c7a4-4067-b0e1-9f50f61f36fc
+heartbeat_at: 2026-10-12 06:43Z
+status: active
+focus: "3.2.4 and ST0081 (WSL) in lock-step with devbin ST0008; cc on the CHANGELOG then ST0081, dc on 0589; awaiting hv on the rest of 3.2.4's scope"
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- RESUME (vc, globalfold at EOD 2026-09-26 ~17:18Z). Intent has 0 open threads, WPs and issues; main is pushed; the dev pair is at 701c4d98b and carries 0588's fix; the brew release is v3.2.3. Every Intent node is finished and released (cc 9df89d1cc, dc 44b9ac0ab, ic 4ac03f0d3). Gtools finished (vc babf983a), Devbin and Lamplight closed by hv, Laksa and Courses finishing. WAITING ON hv: 3.2.4 (ships 0588 and 0587 to brew and the fleet), GitHub Actions billing, the stabilisation line; the rest is intent/wip.md. Tomorrow: Gtools' WP-04 slot, Courses' re-driven findings to file, and dc holds 29 and 30.
+- TODAY (vc, 2026-10-12): coordinating 3.2.4 and ST0081 (Intent under WSL) in lock-step with devbin's ST0008 and devbin-vc. ST0081 started at 995c8f69b on hv's word. cc: the 3.2.4 CHANGELOG section, then ST0081 with WP-01's dispatch run first; the Ubuntu arm64 VM on rhadamanth waits on hv's word. dc: 0589 (dc doing 120). vc owes: judging each bank; the macOS bats run on devbin 0.1.10's vendoring before the cut; WP-01's asset names and the install page's path to devbin-vc as soon as they exist; word to the other estate's dc node when a release is tagged. With hv: 0591 to 0593, 0590, dc's M2, the stabilisation line, a SHA256SUMS file per release, naming the release remotes in devbin's config, the push, and devbin's D55, joint-job and WSL 1 questions.
 
 ## TODO
 

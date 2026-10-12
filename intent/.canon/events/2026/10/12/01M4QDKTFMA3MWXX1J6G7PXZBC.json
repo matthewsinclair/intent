@@ -1,0 +1,15 @@
+{
+  "id": "01M4QDKTFMA3MWXX1J6G7PXZBC",
+  "ts": "2026-10-12T06:43:15.572Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "TODAY (vc, 2026-10-12): coordinating 3.2.4 and ST0081 (Intent under WSL) in lock-step with devbin's ST0008 and devbin-vc. ST0081 started at 995c8f69b on hv's word. cc: the 3.2.4 CHANGELOG section, then ST0081 with WP-01's dispatch run first; the Ubuntu arm64 VM on rhadamanth waits on hv's word. dc: 0589 (dc doing 120). vc owes: judging each bank; the macOS bats run on devbin 0.1.10's vendoring before the cut; WP-01's asset names and the install page's path to devbin-vc as soon as they exist; word to the other estate's dc node when a release is tagged. With hv: 0591 to 0593, 0590, dc's M2, the stabilisation line, a SHA256SUMS file per release, naming the release remotes in devbin's config, the push, and devbin's D55, joint-job and WSL 1 questions."
+  }
+}
