@@ -9,11 +9,11 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 ## DOING
 
 - [-] ST0081: Intent on Windows through WSL: Linux binaries on every release
-  - [ ] 01: Linux release binaries built by GitHub Actions
+  - [-] 01: Linux release binaries built by GitHub Actions
   - [ ] 02: Linux assets on each tag's GitHub release, one writer per release object
   - [ ] 03: Intent's Linux install recipe and the WSL page
   - [ ] 04: First install on a real Windows machine
-  - [ ] 05: intent daemon start --at-login refuses on Linux before writing anything
+  - [-] 05: intent daemon start --at-login refuses on Linux before writing anything
 
 ## TODO
 

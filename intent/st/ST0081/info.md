@@ -51,11 +51,11 @@ Linux proving, hv's rulings of 2026-10-12 given to devbin-vc and relayed: the te
 
 | WP    | Title                                                                    | Size | Status      |
 | ----- | ------------------------------------------------------------------------ | ---- | ----------- |
-| WP-01 | Linux release binaries built by GitHub Actions                           | S    | Not Started |
+| WP-01 | Linux release binaries built by GitHub Actions                           | S    | WIP         |
 | WP-02 | Linux assets on each tag's GitHub release, one writer per release object | S    | Not Started |
 | WP-03 | Intent's Linux install recipe and the WSL page                           | S    | Not Started |
 | WP-04 | First install on a real Windows machine                                  | XS   | Not Started |
-| WP-05 | intent daemon start --at-login refuses on Linux before writing anything  | XS   | Not Started |
+| WP-05 | intent daemon start --at-login refuses on Linux before writing anything  | XS   | WIP         |
 
 ## Acceptance
 

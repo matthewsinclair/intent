@@ -1,11 +1,20 @@
 ---
-verblock: "26 Sep 2026:v0.26: vc - v3.2.3 cut, every open issue closed, the fleet box queue"
+verblock: "12 Oct 2026:v0.27: vc - 3.2.4 opened, ST0081 started in lock-step with devbin, every bank of the day judged"
 intent_version: 3.2.3
 ---
 
 NOTE: This file is the terse DONE ledger, newest first. Older entries roll into `./history/YYYYMM-done.md` month-by-month; verbose per-release narratives live at `./history/<version>.md`. DOING/TODO work lives in `./wip.md`.
 
 # Done
+
+## 2026-10-12 -- 3.2.4 opened, Intent's WSL thread started in lock-step with devbin's, and every bank of the day judged and landed
+
+- **ST0081 IS CREATED AND STARTED** on hv's word: Intent on Windows through WSL 2, Linux binaries on every release, no native port, in lock-step with devbin's ST0008. The two vcs agreed three interfaces: one install page at `docs/install.md#linux`; the critic gate's contract of `intent`, `shellcheck`, `git` and `jq` on PATH; and one owner for the LF rules a project receives. WP-01's `bin/int linux` and its dispatch-only workflow landed at 86e4b0f7d, and WP-05's `--at-login` refusal off macOS at 1c21a04ff. Their Linux proof waits on hv's Ubuntu VM.
+- **3.2.4 IS OPEN** with its CHANGELOG section and 0587's backups-page sentence (21f72c2b9). **0589 LANDED** at 41c6b7a75 and closed at f7f2d0d0f: the trope catalogue's quote classes hold the literal curly characters, and the mechanical pass names `LC_ALL=C.UTF-8 grep -iE`. A backslash-u escape was the ordered form, and no grep measured honours one.
+- **rustc 1.99 REDDENED MAIN'S CLIPPY GATE** with needless borrows that predate the day. They were measured as a population rather than read off the first failing crate, and fixed at ee47b0e37, so the next push's clippy step passes.
+- **devbin 0.1.10's VENDORING IS JUDGED ON macOS**: the whole bats suite green at the landing tree and at the pre-vendoring baseline 9311a3fd5, with red sets empty in both directions.
+- **A STRAY REMOTE WAS CAUGHT BEFORE A CUT.** A mirror push for another estate, made from Intent's own tree on hv's word, added a remote that the next cut would have pushed to, because a cut pushes to every remote `git remote` lists. The remote was removed, and that estate's syncs now run from a bare clone of GitHub outside every checkout.
+- **0594 IS FILED**: `armed_tool_preconditions.bats` reds in any checkout whose path names an armed tool, found because a judging worktree was named for clippy.
 
 ## 2026-09-26 -- v3.2.3 cut and installed, every open issue closed, the fleet coordinated on one machine
 

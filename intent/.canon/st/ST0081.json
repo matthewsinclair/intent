@@ -14,7 +14,7 @@
       "seq": 1,
       "title": "Linux release binaries built by GitHub Actions",
       "scope": "S",
-      "status": "not-started",
+      "status": "wip",
       "objective": "A workflow builds `intent` and `intentd` for x86_64 Linux, and for aarch64 Linux if that is cheap, statically or against an old glibc floor because the developers' distributions are not known, packages them with the support payload the binaries read at run time, runs the packaged `intent --version` inside a container at that floor, and keeps the package as a workflow artifact. It runs on `workflow_dispatch`, so it is proven before any tag runs it. Its first measurement is whether `intent-support.tar.gz` serves Linux unchanged.",
       "body": "",
       "preamble": ""
@@ -50,7 +50,7 @@
       "seq": 5,
       "title": "intent daemon start --at-login refuses on Linux before writing anything",
       "scope": "XS",
-      "status": "not-started",
+      "status": "wip",
       "objective": "On a machine without launchd, `intent daemon start --at-login` refuses before it writes anything, so no `~/Library/LaunchAgents/` plist appears on Linux, and its remedy names `intent daemon start` without the flag as the way to run the daemon. `intent daemon stop --at-login` refuses the same way. Today `daemon_start` in `intent-cli/src/render.rs` writes the plist through `launchagent::write_plist` and only then fails at `launchctl`, whose `NoLaunchctl` remedy in `intentsvcs/src/launchagent.rs` already says the right thing; the refusal moves ahead of the write. Linux CI runs the test that proves it.",
       "body": "",
       "preamble": ""

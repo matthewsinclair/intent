@@ -2,7 +2,7 @@
 wp_id: WP-01
 title: Linux release binaries built by GitHub Actions
 scope: S
-status: Not Started
+status: WIP
 ---
 
 # WP-01: Linux release binaries built by GitHub Actions

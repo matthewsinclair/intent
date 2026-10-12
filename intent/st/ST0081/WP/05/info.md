@@ -2,7 +2,7 @@
 wp_id: WP-05
 title: intent daemon start --at-login refuses on Linux before writing anything
 scope: XS
-status: Not Started
+status: WIP
 ---
 
 # WP-05: intent daemon start --at-login refuses on Linux before writing anything

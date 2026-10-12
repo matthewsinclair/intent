@@ -13,7 +13,7 @@ title: Intent on Windows through WSL: Linux binaries on every release
 
 ## Acceptance Criteria
 
-### WP-01 -- Linux release binaries built by GitHub Actions (status: Not Started)
+### WP-01 -- Linux release binaries built by GitHub Actions (status: WIP)
 
 - AC-01.1 (non-test) A `workflow_dispatch` run, with no tag, builds `intent` and `intentd` for x86_64 Linux packaged with the support payload, and keeps the package as a workflow artifact. -- satisfied: no
 - AC-01.2 (non-test) The same run executes the packaged `intent --version` inside a container of the oldest Linux distribution the workflow names as its floor, and that step fails the run when the binary does not start. -- satisfied: no
@@ -31,13 +31,13 @@ title: Intent on Windows through WSL: Linux binaries on every release
 
 - AC-04.1 (non-test) On a real Windows machine, Intent installed under WSL from a tagged release by following the docs reports its version, passes `intent doctor`, and creates and lists a thread in a project in the WSL filesystem. -- satisfied: no
 
-### WP-05 -- intent daemon start --at-login refuses on Linux before writing anything (status: Not Started)
+### WP-05 -- intent daemon start --at-login refuses on Linux before writing anything (status: WIP)
 
 - AC-05.1 On Linux, `intent daemon start --at-login` and `intent daemon stop --at-login` refuse before writing anything, naming login enrolment as macOS-only and `intent daemon start` without the flag as the way to run the daemon. -- satisfied: no (computed)
 
 ## Acceptance Tests
 
-### WP-01 -- Linux release binaries built by GitHub Actions (status: Not Started)
+### WP-01 -- Linux release binaries built by GitHub Actions (status: WIP)
 
 _(no tests in this group)_
 
@@ -53,7 +53,7 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-05 -- intent daemon start --at-login refuses on Linux before writing anything (status: Not Started)
+### WP-05 -- intent daemon start --at-login refuses on Linux before writing anything (status: WIP)
 
 - AT-05.1 `native/rust/crates/intent-cli/tests/at_login_is_refused_off_macos.rs` -- covers AC-05.1 -- status: to-write -- Its two arms run off macOS only and are ignored on macOS, where the flag is supported; they are proven on kovacs, hv's Ubuntu VM, and then on Linux CI
 

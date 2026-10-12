@@ -32,6 +32,7 @@
 - The director gives one order per topic, to every lane it touches in one batch, and no second order until a lane reports the state. An order withdrawn after it went out races its own withdrawal; when the state has moved under an order, the order follows the state.
 - A ruling that reaches one lane and not another costs a rebase: a ruling goes to every lane it touches.
 - A cut's hold names hv's other sessions too: a go given in one session can reach main while the cut runs in another.
+- A cut pushes to every remote `git remote` lists unless `bin/.devbin/config.yaml` declares `release.remotes` (`cut_remotes`, `bin/.devbin/lib/cmd/release`), so a remote added for any other purpose rides the next cut: read `git remote -v` before one.
 - The release driver deletes its gate logs on green, so the terminal is the only copy of the gate's verdict: read it there, and keep it.
 - A source edit under somebody else's running suite unpins their verdict: bank exact hunks and `git apply` when the suite is off.
 - A landing is a write: a judged bank landed under `native/rust` inside a peer's announced run voids that run exactly as an edit does, so a judge who passes a bank during a live run says "land after <node>'s END".
@@ -58,7 +59,7 @@
 - Load reds a presence-asserting arm and never false-greens it; it inverts for an absence assertion within a time window.
 - Run bats through `tests/run_tests.sh`.
 - The heavy-run protocol coordinates the roster and the box is a machine: census every estate before a run and at its ends, one count per heavy PROCESS, whether it runs from an estate's tree or from a session scratchpad (`-Users-matts-Devel-prj-<Estate>`): `ps -axo args= | grep -E '[b]ats-exec|[c]argo (test|build|clippy|doc)|[r]ustc|/deps/[s]uite-' | awk '{ if (match($0, /Devel(\/|-)prj(\/|-)[A-Za-z_-]+/)) print substr($0, RSTART + 10, RLENGTH - 10); else print "(no estate)" }' | sort | uniq -c`. A path-less `cargo` line counts as `(no estate)`, never as nobody's. A delta between two runs survives foreign load; a timing does not.
-- The box has ONE queue and one holder, even when hv hands several VCs the pen at once: the holder grants each slot with a GO, and the holder's queue is the only one. A GO that crosses a peer's START loses to that START, and the holder sends the correction at once, before either run goes far. Media renders (headless Chrome, ffmpeg) run alongside the suites on hv's ruling of 2026-09-26; a timing-shaped red during one is re-run once before it is read.
+- The box has ONE queue and one holder, even when hv hands several VCs the pen at once: the holder grants each slot with a GO, and the holder's queue is the only one. A GO that crosses a peer's START loses to that START, and the holder sends the correction at once, before either run goes far. Media renders (headless Chrome, ffmpeg) run alongside the suites on hv's ruling of 2026-09-26; a timing-shaped red during one is re-run once before it is read. A VM on this host (hv's Parallels Ubuntu, `kovacs`) shares its CPU, so a run inside it books through the same queue.
 - A test that waits on a watching daemon is exposed to host-wide FSEvents pressure, not only CPU: synthetic CPU load left the 0516 arm green while file-event churn elsewhere on the volume made FSEvents lose events outright.
 - `bash -n` REFUSES EVERY `.bats` FILE and its red says nothing about your edit: a `.bats` file is not bash until bats rewrites `@test "name" {` into a function. `bats -c` is the syntax check that fits, and it counts the arms, so it also says whether bats still sees them all.
 - A defect closed as one estate's is a census question first: 0498 closed as Lamplight's while nine more scripts across the fleet carried the same re-staging stanza. Grep every checkout's hooks and handlers, with the known case as the positive control, before calling it local.
@@ -104,6 +105,7 @@
 
 ## Conventions
 
+- Intent is public: nothing committed (threads, issues, boards, events, commit messages) names another estate, its client or its people; write "another estate" and "its developers".
 - Commit conventions, house style and the banned-word list are in `CLAUDE.md` and `~/.claude/CLAUDE.md`. Local: em dashes in prose pages, `--` in generated reference pages; no hardcoded counts in any doc a reader reads.
 - Each project-wide document has one job: `.claude/restart.md` is the entry point and holds no state; `intent/wip.md` is DOING and TODO only; this file is rules.
 - The push gate runs no fmt, clippy or doc: CI runs them, and devbin's `int check` twins mirror each CI line, held equal by `tests/unit/devbin_rust_gates.bats`. A parity test holds only the fields it reads: that test read `run:` and not `env:`, and the doc twin drifted (0501).
