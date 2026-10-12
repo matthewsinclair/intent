@@ -1,0 +1,16 @@
+{
+  "id": "01M4QNSY19K41C3TZA0JCXBZSA",
+  "ts": "2026-10-12T09:06:24.425Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 37,
+    "text": "TODAY (vc, 2026-10-12): 3.2.4 and ST0081 (Intent under WSL) in lock-step with devbin's ST0008 and devbin-vc. LANDED on main, judged, unpushed: 3.2.4's CHANGELOG section with 0587's backups-page sentence (21f72c2b9); 0589 (41c6b7a75, closed at f7f2d0d0f); ST0081 WP-01, bin/int linux plus the dispatch workflow (86e4b0f7d); WP-05, --at-login refused off macOS (1c21a04ff); the clippy fix for rustc 1.99, 9 sites (ee47b0e37); 0594 filed (d7cd1ea7c). DISCHARGED: the macOS bats judgement of devbin 0.1.10 (WP-01's run, 770/770 against 766/766 at 9311a3fd5). WAITING ON hv: kovacs ready (the 26.04.1 upgrade, rustup with the aarch64 musl target, musl-tools git file jq shellcheck, 4 CPUs and 8 GB or swap, Rosetta); 3.2.4's scope (0591 to 0594, 0590, M2); the skills and subagents sync; who fixes llm-tropes and Utilz; the stabilisation line, a SHA256SUMS file, naming devbin's release remotes; devbin's D55, the joint job's home, WSL 1, and one re-vendor when ST0008 is done. vc OWES: the kovacs proof (WP-01's steps; AT-05.1 red at the base, then green at HEAD), WP-03's review, bin/devbin build all right before hv's push, and the globalfold."
+  }
+}

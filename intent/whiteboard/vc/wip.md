@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: ac68464d-c7a4-4067-b0e1-9f50f61f36fc
-heartbeat_at: 2026-10-12 06:43Z
+heartbeat_at: 2026-10-12 09:06Z
 status: active
-focus: "3.2.4 and ST0081 (WSL) in lock-step with devbin ST0008; cc on the CHANGELOG then ST0081, dc on 0589; awaiting hv on the rest of 3.2.4's scope"
+focus: "3.2.4 and ST0081: WP-01, WP-05 and the clippy fix landed; waiting on hv for kovacs and 3.2.4's scope"
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- TODAY (vc, 2026-10-12): coordinating 3.2.4 and ST0081 (Intent under WSL) in lock-step with devbin's ST0008 and devbin-vc. ST0081 started at 995c8f69b on hv's word. cc: the 3.2.4 CHANGELOG section, then ST0081 with WP-01's dispatch run first; the Ubuntu arm64 VM on rhadamanth waits on hv's word. dc: 0589 (dc doing 120). vc owes: judging each bank; the macOS bats run on devbin 0.1.10's vendoring before the cut; WP-01's asset names and the install page's path to devbin-vc as soon as they exist; word to the other estate's dc node when a release is tagged. With hv: 0591 to 0593, 0590, dc's M2, the stabilisation line, a SHA256SUMS file per release, naming the release remotes in devbin's config, the push, and devbin's D55, joint-job and WSL 1 questions.
+- TODAY (vc, 2026-10-12): 3.2.4 and ST0081 (Intent under WSL) in lock-step with devbin's ST0008 and devbin-vc. LANDED on main, judged, unpushed: 3.2.4's CHANGELOG section with 0587's backups-page sentence (21f72c2b9); 0589 (41c6b7a75, closed at f7f2d0d0f); ST0081 WP-01, bin/int linux plus the dispatch workflow (86e4b0f7d); WP-05, --at-login refused off macOS (1c21a04ff); the clippy fix for rustc 1.99, 9 sites (ee47b0e37); 0594 filed (d7cd1ea7c). DISCHARGED: the macOS bats judgement of devbin 0.1.10 (WP-01's run, 770/770 against 766/766 at 9311a3fd5). WAITING ON hv: kovacs ready (the 26.04.1 upgrade, rustup with the aarch64 musl target, musl-tools git file jq shellcheck, 4 CPUs and 8 GB or swap, Rosetta); 3.2.4's scope (0591 to 0594, 0590, M2); the skills and subagents sync; who fixes llm-tropes and Utilz; the stabilisation line, a SHA256SUMS file, naming devbin's release remotes; devbin's D55, the joint job's home, WSL 1, and one re-vendor when ST0008 is done. vc OWES: the kovacs proof (WP-01's steps; AT-05.1 red at the base, then green at HEAD), WP-03's review, bin/devbin build all right before hv's push, and the globalfold. (edited)
 
 ## TODO
 
