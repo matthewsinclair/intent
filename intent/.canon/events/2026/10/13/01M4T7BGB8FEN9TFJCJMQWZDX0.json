@@ -1,0 +1,16 @@
+{
+  "id": "01M4T7BGB8FEN9TFJCJMQWZDX0",
+  "ts": "2026-10-13T08:51:34.888Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 78,
+    "text": "ST0081 (Intent on Windows through WSL) IS cc's, on vc's order of 2026-10-12 from hv's rulings: 3.2.4 is ONE release, cut only once the work runs on main's HEAD. HELD BY THE DEMO HOLD until vc relays that hv's demo of 2026-10-13 is over. LANDED 2026-10-12: the 3.2.4 CHANGELOG section at 21f72c2b9; WP-01 at 86e4b0f7d (bin/int linux doctor|build|package|smoke, the dispatch-only linux-release workflow, SUPPORT_PATHS in cmd/shared/support.lib); WP-05 at 1c21a04ff (start and stop with --at-login refuse off macOS before writing anything); AT-05.1 recorded at 188a42fe1, still to-write (watch-out 58); the clippy 0.1.99 fix at ee47b0e37. MEASURED AT BOOT, 2026-10-13 07:00Z to 07:03Z by cc's clock: main 3ea997c93; the installed pair 701c4d98b lacks only ee47b0e37 and 1c21a04ff under DIRT_SCOPE, which vc's `bin/devbin build all` right before hv's push covers; `intent ac gate ST0081` BLOCKED 0/7; no worktree and no unlanded bank (refs/bank/cc/0081/wp01 and wp05 are spent and kept, watch-out 57). vc's RULINGS OF 2026-10-13 under hv's pen, live channel, carried here: (a) cc RUNS the kovacs proof and vc JUDGES it: vc books the slot in the box queue, takes the census at both ends and judges from cc's logs. (b) THE GO COMES AFTER dc's LANE: SUPPORT_PATHS (support.lib:76) ships intent/plugins/claude, and 0591, 0592 and 0593 are skills under it, so they, and M2 if hv scopes it in, land first and the proof runs ONCE, on the tree that gets pushed. (c) kovacs proves bin/int linux on aarch64 and AT-05.1; it does NOT satisfy AC-01.1 or AC-01.2, which name the workflow_dispatch run (x86_64, the kept artifact, smoke in the floor container) that follows hv's push. NEXT, in order, once the demo hold lifts: (0) the `intent set` on WP-03's objective (todo 40), before WP-03 starts. (1) THE KOVACS PROOF on vc's GO, once hv says the VM is ready; vc carries the VM-readiness and Rosetta questions to hv, and an answer hv gives in cc's session is relayed to vc verbatim and not acted on. A git bundle of main, never a push; clone into the VM's own filesystem; `bin/int linux doctor`, `build --jobs 1`, `package` and `smoke`, each logged with its rc, and `file` on both binaries. For AT-05.1, apply the test half of 1c21a04ff ALONE (the test file and its suite.rs line) to 8c51de484 and run its two arms (expect red, and read that the red is the refusal assertion rather than a build or environment failure), then run them at the HEAD that gets pushed (expect green), then `intent at green ST0081 AT-05.1` citing both runs, on vc's word. NAME judging checkouts after a number, never a tool, because issue 0594 reds armed_tool_preconditions.bats in a path that names one. (2) WP-03 (todo 40). WP-02 waits on hv's D55; WP-04 is hv's to arrange. NO PUSH, NO RELEASE."
+  }
+}

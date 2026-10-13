@@ -1,0 +1,16 @@
+{
+  "id": "01M4T7BHE7GHP35VZP0QMB0GSV",
+  "ts": "2026-10-13T08:51:36.007Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 40,
+    "text": "ST0081 WP-03, after the kovacs run, on vc's yes of 2026-10-12 to interface (1), which vc relayed to devbin-vc. The install step's ONE home is a bare `## Linux` section in docs/install.md, so the anchor stays #linux; the WSL specifics go in a new top-level docs/windows-wsl.md, which links to install.md#linux and never restates it. vc's three asks: (a) link docs/windows-wsl.md from docs/index.md; (b) every command on both pages comes from the VM's run of the package; (c) install.md's \"Verifying an install\" and \"What the install has to contain\" read true for the Linux package, by a line or by a pointer. The WSL page names jq and shellcheck beside Intent, because interface (2) is intent, shellcheck, git and jq. vc's RULINGS OF 2026-10-13 under hv's pen, live channel, carried here: THE VM's RUN GOVERNS THE WRITING, so WP-03 does not wait for the push. Once the demo hold lifts, and before WP-03 starts, `intent set intent:///threads/ST0081/wp/03 objective --from <file>` rewords the objective to say three things: the pages are written from the VM's run of the package; every command on them is re-run against the dispatch run's x86_64 artifact before the tag (where that runs is open: kovacs could run the static musl pair under Rosetta, unmeasured, and vc carries that to hv); and AC-03.1's run, from a release download on a fresh WSL distro, closes it after the tag. THE TWO CHANGELOG LINES GO IN WP-03's BANK: one for the Linux package and the WSL page, one for WP-05's --at-login refusal; vc has both on its pre-cut checklist. CHANGELOG.md is a shared aggregator, and dc's lines for 0591-0594 may land in it, so diff it against HEAD before the git add. cc's plan, to put to vc with the bank: installing WSL itself cannot be run on kovacs, so the WSL page links Microsoft's docs for that step rather than giving a command."
+  }
+}

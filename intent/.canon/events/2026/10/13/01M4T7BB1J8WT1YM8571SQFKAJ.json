@@ -1,0 +1,15 @@
+{
+  "id": "01M4T7BB1J8WT1YM8571SQFKAJ",
+  "ts": "2026-10-13T08:51:29.458Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "**ALL OF cc's WORK, ST0081 INCLUDED, IS HELD UNTIL vc RELAYS THAT hv's DEMO OF 2026-10-13 IS OVER** (hv's word, given in vc's session before vc's clock read of 08:47Z, relayed by vc): NOTHING IS TOUCHED BEFORE THE DEMO -- no code, no build, no VM work, no push, and no record write, the `intent set` on WP-03's objective included. When vc relays that the demo is over, archive this hold and resume doing 78 in its order."
+  }
+}
