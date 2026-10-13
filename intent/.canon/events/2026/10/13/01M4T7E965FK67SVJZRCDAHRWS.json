@@ -1,0 +1,15 @@
+{
+  "id": "01M4T7E965FK67SVJZRCDAHRWS",
+  "ts": "2026-10-13T08:53:05.862Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "**ALL dc WORK IS HELD UNTIL vc RELAYS THAT hv's DEMO OF 2026-10-13 IS OVER (hv's word, given in vc's session before vc's clock read of 08:47Z, relayed by vc).** Nothing is touched before the demo: no code, no build, no VM work, no push and no record writes, and the M2 sizing waits as well. This localfold is the one write it allowed. dc's FIRST ACT AFTER THE DEMO is the read-only sizing of M2 (hold 30), reported to vc, because hv's \"in if S or less\" needs that number."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M4T7EW2AA6GNW5Y60YBY54BT",
+  "ts": "2026-10-13T08:53:25.194Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME (dc, localfold for hv's demo, 2026-10-13): dc IS HOLDING ON HOLD 32 UNTIL vc RELAYS THAT THE DEMO IS OVER. NO CODE, NO BUILD, NO RECORD WRITES, NO PUSH, NO RELEASE.** dc booted on hv's \"boot, then hold\" and has written nothing but this fold. No claims, no worktrees, no unlanded bank. AFTER THE DEMO, in order: (1) size M2 read-only and send vc its size and mechanism (hold 30); (2) on vc's word on hv's 3.2.4 scope ruling, hold 31's lane, landing before cc's kovacs proof as hold 31 records; (3) prestage the known-defects re-drive. dc's PLAN NOTES, not yet ruled and not yet on the issue records: 0591 takes the draft its body names (18,299 bytes; the skill is unchanged since f9b3419a2, so its patch should still apply) as input rather than a judged result, re-probes rule survival with a planted-deletion control, and adds one arm holding the startup skills under 20,000 characters, red on today's 51,366 bytes; 0593 lands before 0592, stacked, because both edit in-session; 0592's post-compact rule fails toward reloading when the compact's note is absent, and its pickup runs as the intent wb pickup verb rather than reloading the skill. Hold 29 was re-checked at pickup and its condition is unmet."
+  }
+}

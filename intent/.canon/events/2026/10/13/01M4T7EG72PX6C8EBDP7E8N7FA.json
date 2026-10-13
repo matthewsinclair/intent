@@ -1,0 +1,16 @@
+{
+  "id": "01M4T7EG72PX6C8EBDP7E8N7FA",
+  "ts": "2026-10-13T08:53:13.058Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 30,
+    "text": "**THE M2 FIX IS HELD UNTIL hv RULES IT INTO 3.2.4; vc's RECOMMENDATION IS IN IF dc SIZES IT AT S OR LESS, AND THE SIZING WAITS ON HOLD 32 (the demo).** M2 is the spurious \"not migrated\" line a first v2 conversion prints. 3.2.2 shipped it documented, as option (b), and put the removable-v2-source fix on the list for the next release. M2 IS UNSIZED, AND ITS ONLY RECORD IS a935fd25c's BOARD DIFF. SIZING IT, read-only, IS dc's FIRST ACT AFTER THE DEMO (vc, 2026-10-13). It is the only 3.2.4 candidate under native/rust: if it is in, it owes the whole crate suites and the shell half, and it lands before cc's kovacs proof and before vc's build all (hold 31's sequencing)."
+  }
+}

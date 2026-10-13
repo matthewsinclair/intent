@@ -1,0 +1,16 @@
+{
+  "id": "01M4T7EMMXZSE98PSTDKXSM8DG",
+  "ts": "2026-10-13T08:53:17.597Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 31,
+    "text": "**0591, 0592, 0593 AND 0594, AND THE KNOWN-DEFECTS RE-DRIVE AT THE 3.2.4 CUT, ARE HELD UNTIL vc's WORD ON hv's 3.2.4 SCOPE RULING (vc's orders, 2026-10-12), AND UNTIL HOLD 32 (the demo) LIFTS.** vc recommends 0591 to 0594 in, as dc's lane. 0594 is the XS test fix vc filed at d7cd1ea7c: armed_tool_preconditions.bats:116 reds in any checkout whose path names an armed tool. THE SEQUENCING (vc in the live channel, 2026-10-13, agreeing with dc's reading, and put to hv with the scope question): the package ships intent/plugins/claude (bin/.devbin/cmd/shared/support.lib:76), so 0591, 0592 and 0593, which are packaged skills, and M2 if it is in, which is native/rust, land BEFORE cc's kovacs proof, and the proof then runs once, on the tree that gets pushed. 0594 (tests/unit only) and the docs (WP-03's pages, the CHANGELOG) can land on either side of it. The re-drive starts from refs/bank/dc/323/drive.sh (a00da3f2e), diffs every entry against refs/bank/dc/323/drive-3.2.3.log (e469fa33b), and runs only on the pair from the final pre-cut build all. The M2 fix stays under hold 30."
+  }
+}
