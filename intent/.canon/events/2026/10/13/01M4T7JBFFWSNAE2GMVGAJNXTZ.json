@@ -1,0 +1,16 @@
+{
+  "id": "01M4T7JBFFWSNAE2GMVGAJNXTZ",
+  "ts": "2026-10-13T08:55:19.279Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 37,
+    "text": "RESUME (vc, localfold for hv's demo hold, 2026-10-13): vc IS HOLDING, under hold 2. NO PUSH, NO RELEASE. MEASURED AT BOOT, 07:01-07:05Z by vc's clock: main 3ea997c93 with 31 commits unpushed on both remotes; the installed pair 701c4d98b lacks 1c21a04ff (WP-05) and ee47b0e37 (clippy 1.99) under DIRT_SCOPE, so the push refuses until build all; ST0081's gate reads BLOCKED 0/7; prlctl lists the Ubuntu VM as SUSPENDED. SETTLED WITH cc AND dc AT BOOT, under hv's pen, all on the live channel: (1) cc runs the kovacs proof and vc judges it from the logs; vc owes the judgement, never the run. (2) AC-01.1 and AC-01.2 are satisfied only by the workflow_dispatch run after hv's push, never on VM evidence. (3) WP-03's pages are written from the VM's run, every command is re-run against the dispatch run's x86_64 artifact before the tag, and AC-03.1 closes after the tag; cc rewords WP-03's objective with intent set after the demo. (4) ST0081's two CHANGELOG lines (the Linux package with the WSL page, and WP-05's --at-login refusal) ride WP-03's bank and sit on vc's pre-cut checklist. (5) The package ships intent/plugins/claude (bin/.devbin/cmd/shared/support.lib:76), so M2 if it is in and 0591-0593 land before the kovacs proof, which then runs once, on the tree that gets pushed; 0594 and the docs land either side; a package change after the push is proven by a dispatch run at the final HEAD before the cut. AFTER THE DEMO, vc puts hv's questions in one batch, in vc's session: the VM (26.04.1 done, toolchain in, Rosetta on so kovacs can run the dispatch run's static x86_64 pair, unmeasured); 3.2.4's scope (0591-0594 in, 0590 waits, M2 once dc has sized it); D55 (the first option puts devbin's change, hv's republish and a re-vendor judged by a macOS bats run on 3.2.4's path); the joint job's home and WSL 1; SHA256SUMS; release.remotes; the skills and subagents sync; llm-tropes and Utilz; the stabilisation line; ic's /refresh; the other estates' pushes; the machine's load. vc OWES: the kovacs proof's judgement, WP-03's review, the pre-push heavy run on the final tree and build all, and the globalfold."
+  }
+}

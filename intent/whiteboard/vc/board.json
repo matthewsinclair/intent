@@ -4,10 +4,10 @@
     "moniker": "vc",
     "name": "Validation Claude",
     "role": "validation",
-    "session_id": "ac68464d-c7a4-4067-b0e1-9f50f61f36fc",
-    "heartbeat_at": "2026-10-12T19:24:04.783Z",
+    "session_id": "56e61425-bf7b-461c-88ac-b784e508bd22",
+    "heartbeat_at": "2026-10-13T08:55:25.271Z",
     "status": "active",
-    "focus": "3.2.4 and ST0081: WP-01, WP-05 and the clippy fix landed; waiting on hv for kovacs and 3.2.4's scope",
+    "focus": "LOCALFOLDED for hv's demo of 2026-10-13: holding on hold 2 until hv says the demo is over; then hv's batch, dc's package lane, then cc's kovacs proof",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -1735,10 +1735,18 @@
       "node": "vc",
       "kind": "doing",
       "seq": 37,
-      "text": "TODAY (vc, 2026-10-12): 3.2.4 and ST0081 (Intent under WSL) in lock-step with devbin's ST0008 and devbin-vc. LANDED on main, judged, unpushed: 3.2.4's CHANGELOG section with 0587's backups-page sentence (21f72c2b9); 0589 (41c6b7a75, closed at f7f2d0d0f); ST0081 WP-01, bin/int linux plus the dispatch workflow (86e4b0f7d); WP-05, --at-login refused off macOS (1c21a04ff); the clippy fix for rustc 1.99, 9 sites (ee47b0e37); 0594 filed (d7cd1ea7c). DISCHARGED: the macOS bats judgement of devbin 0.1.10 (WP-01's run, 770/770 against 766/766 at 9311a3fd5). WAITING ON hv: kovacs ready (the 26.04.1 upgrade, rustup with the aarch64 musl target, musl-tools git file jq shellcheck, 4 CPUs and 8 GB or swap, Rosetta); 3.2.4's scope (0591 to 0594, 0590, M2); the skills and subagents sync; who fixes llm-tropes and Utilz; the stabilisation line, a SHA256SUMS file, naming devbin's release remotes; devbin's D55, the joint job's home, WSL 1, and one re-vendor when ST0008 is done. vc OWES: the kovacs proof (WP-01's steps; AT-05.1 red at the base, then green at HEAD), WP-03's review, bin/devbin build all right before hv's push, and the globalfold.",
+      "text": "RESUME (vc, localfold for hv's demo hold, 2026-10-13): vc IS HOLDING, under hold 2. NO PUSH, NO RELEASE. MEASURED AT BOOT, 07:01-07:05Z by vc's clock: main 3ea997c93 with 31 commits unpushed on both remotes; the installed pair 701c4d98b lacks 1c21a04ff (WP-05) and ee47b0e37 (clippy 1.99) under DIRT_SCOPE, so the push refuses until build all; ST0081's gate reads BLOCKED 0/7; prlctl lists the Ubuntu VM as SUSPENDED. SETTLED WITH cc AND dc AT BOOT, under hv's pen, all on the live channel: (1) cc runs the kovacs proof and vc judges it from the logs; vc owes the judgement, never the run. (2) AC-01.1 and AC-01.2 are satisfied only by the workflow_dispatch run after hv's push, never on VM evidence. (3) WP-03's pages are written from the VM's run, every command is re-run against the dispatch run's x86_64 artifact before the tag, and AC-03.1 closes after the tag; cc rewords WP-03's objective with intent set after the demo. (4) ST0081's two CHANGELOG lines (the Linux package with the WSL page, and WP-05's --at-login refusal) ride WP-03's bank and sit on vc's pre-cut checklist. (5) The package ships intent/plugins/claude (bin/.devbin/cmd/shared/support.lib:76), so M2 if it is in and 0591-0593 land before the kovacs proof, which then runs once, on the tree that gets pushed; 0594 and the docs land either side; a package change after the push is proven by a dispatch run at the final HEAD before the cut. AFTER THE DEMO, vc puts hv's questions in one batch, in vc's session: the VM (26.04.1 done, toolchain in, Rosetta on so kovacs can run the dispatch run's static x86_64 pair, unmeasured); 3.2.4's scope (0591-0594 in, 0590 waits, M2 once dc has sized it); D55 (the first option puts devbin's change, hv's republish and a re-vendor judged by a macOS bats run on 3.2.4's path); the joint job's home and WSL 1; SHA256SUMS; release.remotes; the skills and subagents sync; llm-tropes and Utilz; the stabilisation line; ic's /refresh; the other estates' pushes; the machine's load. vc OWES: the kovacs proof's judgement, WP-03's review, the pre-push heavy run on the final tree and build all, and the globalfold.",
       "state": "live",
       "recorded_at": "2026-10-12T06:43:15.572Z",
-      "edited_at": "2026-10-12T09:06:24.425Z"
+      "edited_at": "2026-10-13T08:55:19.279Z"
+    },
+    {
+      "node": "vc",
+      "kind": "hold",
+      "seq": 2,
+      "text": "**ALL OF vc's INTENT WORK IS HELD UNTIL hv SAYS THE DEMO OF 2026-10-13 IS OVER (hv's word in vc's session, before vc's 08:47Z clock read).** hv, verbatim: \"we're not touching _anything_ prior to today's demo\". So there is no code, no record write beyond each node's own localfold, no build, no VM and no push. vc told cc and dc at 08:47Z; each holds the same condition on its own board, and vc relays hv's word to both when the demo is over.",
+      "state": "live",
+      "recorded_at": "2026-10-13T08:55:13.934Z"
     }
   ],
   "messages": [

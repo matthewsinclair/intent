@@ -1,0 +1,15 @@
+{
+  "id": "01M4T7J68E0DQQPSKGQYDEJ3GQ",
+  "ts": "2026-10-13T08:55:13.934Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "**ALL OF vc's INTENT WORK IS HELD UNTIL hv SAYS THE DEMO OF 2026-10-13 IS OVER (hv's word in vc's session, before vc's 08:47Z clock read).** hv, verbatim: \"we're not touching _anything_ prior to today's demo\". So there is no code, no record write beyond each node's own localfold, no build, no VM and no push. vc told cc and dc at 08:47Z; each holds the same condition on its own board, and vc relays hv's word to both when the demo is over."
+  }
+}
