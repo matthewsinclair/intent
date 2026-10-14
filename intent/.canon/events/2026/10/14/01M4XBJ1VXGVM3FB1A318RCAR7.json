@@ -1,0 +1,15 @@
+{
+  "id": "01M4XBJ1VXGVM3FB1A318RCAR7",
+  "ts": "2026-10-14T14:02:47.037Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RESUME (cc, localfold for hv's shutdown of 2026-10-14, on hv's word relayed by zeop-sc and by vc). LANDED TODAY, each on vc's judgement: 0595 at c775f61ef with its staged_version follow-up at 7ee4fedd5 (doing 80; 0595 stays open until kovacs runs tests/unit/linux_doctor.bats on Linux, ORDER 3b), and ST0081 WP-06 at 11017d7bd (doing 81; WIP until AC-06.1). IN HAND, NOTHING LANDED: (1) THE KOVACS ORDER DRAFTS, with vc for review before kovacs-sysadm gets them, BANKED as blobs of their exact bytes: refs/bank/cc/0081/kovacs/o5-at051.sh (sha256 8fe1526b1561), o6-brew.sh (113a9d3b3a13) and o7-drive.sh (f89b59ae948d); each bash -n clean, shellcheck 0.11.0 at exit 0, on o3-build.sh's conventions without a census; o7 keeps Rust off the drive's PATH (a departure vc may overrule) and drives AC-07.1's hooks as settings.json declares them, leaving the in-session half to a real session. (2) WP-03, docs/install.md#linux, READ AND NOT WRITTEN, so nothing is banked: a bare `## Linux` section (Homebrew on Linux, brew install matthewsinclair/intent/intent, intent bootstrap, intent doctor in a new project), the Homebrew section's macOS-only paragraph, the --at-login sentence (WP-05's refusal off macOS, \"nothing was written\"), the libexec layout line under what an install contains, docs/concepts/working-in-a-team.md:505's \"published for macOS on Apple silicon only\", and two lines in CHANGELOG's 3.2.4 (Added: the Linux packages and the Homebrew install on Linux; Fixed: WP-05's --at-login refusal), composed with dc's refs/bank/dc/324/changelog in both orders and prettier --check before banking, with the trust step marked PENDING o6's measurement; it lands only after kovacs measures the trust question. STANDING: defects kovacs finds come to cc as issues, fixed in banks vc judges; no heavy run without vc's GO; kovacs's permission rule is NOT yet in (hv adds it; vc's correction) and ORDER 3 has no GO. FIRST STEP AT THE NEXT START: /in-session and the pickup, hold 31 until hv's word, then WP-03's bank. NO PUSH, NO RELEASE."
+  }
+}

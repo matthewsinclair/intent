@@ -1,0 +1,15 @@
+{
+  "id": "01M4XBJ32ZBN8T75CZSZ4V6SEH",
+  "ts": "2026-10-14T14:02:48.287Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "**ALL OF cc's WORK IS HELD ON THE FOLD UNTIL hv's WORD** (hv's shutdown of 2026-10-14, relayed by zeop-sc and by vc): cc localfolded and committed its own records by path, and pushed nothing, because the push in Intent is hv's. When hv's word reaches cc, in cc's session or relayed by vc, archive this hold and resume from doing 82, WP-03's bank first."
+  }
+}
