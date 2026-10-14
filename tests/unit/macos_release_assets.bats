@@ -476,3 +476,46 @@ render_formula() {
       fail "macos $sub (rc $status) did not refuse by name: $output"
   done
 }
+
+# --------------------------------------------------------------------
+# staged_version's read speaks (issue 0595's census). It was one pipe,
+# `"$bin" --version 2>/dev/null | sed`, under `set -euo pipefail` and helpers'
+# inherit_errexit, so a staged binary that was missing or would not run ended
+# the script at the pipe, in silence, before its die could name the cause: at a
+# release cut, where silence costs most. Each arm runs the function under the
+# script's own shell options, with host_triple and die stubbed, so nothing here
+# needs rustc or a staging run.
+
+# run_staged_version -- staged_version, extracted from the script and run
+# against STAGE_DIR in a bash carrying the script's shell options.
+run_staged_version() {
+  local fns="$TEST_TEMP_DIR/staged_version.sh"
+  sed -n '/^staged_version() {/,/^}/p' "$MACOS" >"$fns"
+  # shellcheck disable=SC2016 # the inner bash expands these, not this one
+  run "$BASH" -c 'set -euo pipefail
+    shopt -s inherit_errexit
+    die() { printf "%s\n" "$*" >&2; exit 1; }
+    host_triple() { printf "aarch64-apple-darwin\n"; }
+    STAGE_DIR="$2"
+    . "$1"
+    staged_version' _ "$fns" "$STAGE_DIR"
+}
+
+@test "invariant: staged_version refuses by name when no binary is staged, where it ended the script in silence (0595)" {
+  STAGE_DIR="$TEST_TEMP_DIR/dist"
+  mkdir -p "$STAGE_DIR"
+  run_staged_version
+  [ "$status" -eq 1 ] || fail "staged_version exited $status, and before 0595's follow-up it was 127 with no output: [$output]"
+  assert_output_contains "there is no staged intent binary at $STAGE_DIR/intent-aarch64-apple-darwin"
+}
+
+@test "invariant: staged_version refuses with the binary's own words when the staged binary does not run (0595)" {
+  STAGE_DIR="$TEST_TEMP_DIR/dist"
+  mkdir -p "$STAGE_DIR"
+  printf '#!/bin/sh\necho "dyld: Library not loaded" >&2\nexit 6\n' >"$STAGE_DIR/intent-aarch64-apple-darwin"
+  chmod +x "$STAGE_DIR/intent-aarch64-apple-darwin"
+  run_staged_version
+  [ "$status" -eq 1 ] || fail "staged_version exited $status, and before 0595's follow-up it was the binary's own status with no output: [$output]"
+  assert_output_contains "the staged intent binary does not run"
+  assert_output_contains "dyld: Library not loaded"
+}

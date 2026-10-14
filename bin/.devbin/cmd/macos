@@ -1388,7 +1388,7 @@ require_sums() {
 # exactly what a release must not ship. It also makes the formula's `test do`
 # block pass by construction rather than by coincidence.
 staged_version() {
-  local v
+  local bin out v
   # THE VERSION TOKEN ONLY. `--version` prints `intent <version> (<commit>)`, and
   # the provenance suffix is NOT part of the version. Taking everything after
   # `intent ` put `3.0.0-dev (4c5babdf...)` into `version`, into RELEASE_VERSION,
@@ -1400,8 +1400,20 @@ staged_version() {
   # header then predicted would happen to this path: "this path has no end-to-end
   # test, and refactoring an unexercised artefact for elegance is how the first
   # real run finds something new". It found something new.
-  v="$("$STAGE_DIR/intent-$(host_triple)" --version 2>/dev/null | sed -n 's/^intent \([^ ]*\).*/\1/p')"
-  [ -n "$v" ] || die "could not read a version from the staged intent binary"
+  #
+  # AND EVERY WAY THE READ FAILS SPEAKS (issue 0595's census). This was one pipe,
+  # `"$bin" --version 2>/dev/null | sed`, under `set -euo pipefail` and helpers'
+  # inherit_errexit, so a staged binary that was missing or would not run ended
+  # the script at the pipe, in silence, before the die below could say why: an
+  # empty refusal at a release cut. Its stderr is kept, because a binary that will
+  # not run says why there.
+  bin="$STAGE_DIR/intent-$(host_triple)"
+  [ -e "$bin" ] || die "there is no staged intent binary at $bin -- run 'bin/devbin macos stage' (or 'prepare') first"
+  out="$("$bin" --version 2>&1)" || die "the staged intent binary does not run, so its version cannot be read. $bin --version said:
+$out"
+  v="$(printf '%s\n' "$out" | sed -n 's/^intent \([^ ]*\).*/\1/p')"
+  [ -n "$v" ] || die "could not read a version from the staged intent binary. $bin --version said:
+$out"
   # A VERSION THAT CANNOT SIT IN A URL IS A BROKEN FORMULA, and it does not break
   # for us -- it breaks for every `brew install`, against a formula already
   # published. Refuse where the harm is, the same rule that keeps the dev-version
