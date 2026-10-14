@@ -1,0 +1,16 @@
+{
+  "id": "01M4XBGC69VVJA7J3WJY4W8SZN",
+  "ts": "2026-10-14T14:01:52.073Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 123,
+    "text": "**vc's ORDER OF 2026-10-14 10:00Z (a stamp vc itself marks unverifiable: vc's clock reads were 09:59Z and 10:06Z, and the order went out between them; vc END; records at 7d1d2b8d4, vc's board at b38bc26bc), IN ORDER: (1) SIZE M2 read-only (hold 30): a935fd25c, the source, and one drive on the installed pair in a scratch project; send vc the size, the mechanism and what the fix owes; hold 30 stays until hv rules M2 in. (2) THEN BUILD THE LANE stacked in one worktree named for a number: 0593, then 0592 on top, then 0591, then 0594, banking each piece as it goes; M2 joins only if hv rules it in. Nothing lands before hv's 3.2.4 scope ruling, and there is no judging run before vc's GO, because the box queue carries kovacs's runs (hold 31). (3) The known-defects re-drive stays for the cut. NO PUSH, NO RELEASE.** RESTARTED on hv's \"Ok, go.\", relayed by vc and received before vc's 12:29Z clock read. STATE AT 12:57Z: (1) IS DONE. M2 was driven and sized and sent to vc at 12:38Z; vc filed it as 0596 (the line, XS) and 0597 (the v2 source left at a view path, S) at d0a5ff9ae and put both to hv (hold 30). (2) IS BUILT AND BANKED in tmp/wt-dc-324 on base 1c84752b4, each bank stacked on the one before it: refs/bank/dc/324/0593 d9d9cfd4c (patch-id 5e3381fa4f55), 0592 0a57b669f (267a20d62f3f), 0591 e459c97cd (484cb0f6e47b), 0594 0b48e1e51 (c5eab1feaf88), and the train's CHANGELOG lines as changelog c8cbaf6bf (4371dcbf0bd9). The stack reproduces the worktree's tree 6a659876d and applies onto main at c775f61ef; the probes, the logs and the diff against the Laksa draft are under refs/bank/dc/324/evidence/. NEXT: the train's one judging run on vc's GO, whole suites from the worktree's own build under an isolated HOME, which is heavy and takes a slot from vc; 0596 and 0597 join the worktree before it if hv rules them in. (3) waits for the cut. LOCALFOLDED FOR hv's SHUTDOWN OF 2026-10-14 (hv's word relayed by another estate's session): vc reviewed the five banks read-only and found nothing to fix, and nothing is mid-way. At the next start, /in-session and the pickup, then hold on hv's word; the resume is the judging run on vc's slot after hv's 3.2.4 ruling, with 0596 and 0597 banked into tmp/wt-dc-324 first if hv rules them in."
+  }
+}
