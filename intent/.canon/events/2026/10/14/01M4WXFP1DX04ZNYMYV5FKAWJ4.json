@@ -1,0 +1,15 @@
+{
+  "id": "01M4WXFP1DX04ZNYMYV5FKAWJ4",
+  "ts": "2026-10-14T09:56:49.325Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RESUME (vc, 2026-10-14): hv's demo of 2026-10-13 is over (hv's word relayed by another estate's session, and hv directing work in vc's session), so hold 2 is archived. THE FOCUS (hv, 2026-10-14): Intent and devbin installed by Homebrew on Linux and macOS with no source checkout, Linux proven first on kovacs (Ubuntu 26.04.1 on aarch64, uutils coreutils, mawk, 2 CPUs, 3.3 GB plus a 3.8 GB swap file). kovacs-sysadm, a Claude Code session on the VM, runs the VM side on instructions from intent-vc and devbin-vc, which supersedes vc's ruling (1) of 2026-10-13 that cc runs the kovacs proof; one queue (vc's), one order per step naming its sender, each vc copying the other. RECORDS at 7d1d2b8d4: ST0081 is the Homebrew thread (WP-01, WP-02 and WP-05 kept; WP-03 the Linux install through Homebrew, carrying the CHANGELOG ruling; WP-06 the formula on Linux; WP-07 Intent on Ubuntu from its package; AC-01.1 names aarch64); ST0082, in Triage, is the WSL thread and depends on it. hv's decision 17 stands: this Mac stays on the dev tree, and the macOS brew route was proven on gyges, to be retested later. devbin: devbin#0195 (tap, formula, release bump), and devbin-vc is confirming a devbin brew thread with hv, with ST0008 depending on it. OPEN WITH hv: provisioning kovacs now (vc: yes); D55 as one question (devbin's proposal (a), vc's lean the same); the proof's shape (vc: a discovery run now on HEAD and a confirming run on the final tree, which would reverse vc's ruling (5) of 2026-10-13 that the proof runs once after dc's lane, so (5) stands until hv answers); Intent's shell suite once on kovacs (vc: yes); 3.2.4's scope (0591 to 0594 in as dc's stacked lane, 0590 waits, M2 if dc sizes it at S or less); and the 2026-10-13 batch's other items (one skills sync after dc's skill train, SHA256SUMS, release.remotes, the joint WSL job and WSL 1, llm-tropes and Utilz, the stabilisation line, ic's /refresh, the other estates' pushes, the machine). STILL LIVE FROM 2026-10-13: AC-01.1 and AC-01.2 are satisfied only by the dispatch run after hv's push. vc OWES: one order each to cc and dc once hv rules; the kovacs orders and their judgement; the pre-push heavy run on the final tree and build all; the globalfold."
+  }
+}

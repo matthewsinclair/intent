@@ -2,10 +2,10 @@
 node: vc
 name: Validation Claude
 role: validation
-session_id: 56e61425-bf7b-461c-88ac-b784e508bd22
-heartbeat_at: 2026-10-13 08:55Z
+session_id: 864750bb-ae12-4562-bc77-eb1f0e11fd85
+heartbeat_at: 2026-10-14 09:57Z
 status: active
-focus: "LOCALFOLDED for hv's demo of 2026-10-13: holding on hold 2 until hv says the demo is over; then hv's batch, dc's package lane, then cc's kovacs proof"
+focus: "Homebrew on Linux and macOS with no source checkout (hv, 2026-10-14): ST0081 is the Homebrew thread and ST0082 the WSL thread (7d1d2b8d4); kovacs proof next, with kovacs-sysadm under intent-vc and devbin-vc, once hv rules provisioning, D55 and the proof's shape"
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- RESUME (vc, localfold for hv's demo hold, 2026-10-13): vc IS HOLDING, under hold 2. NO PUSH, NO RELEASE. MEASURED AT BOOT, 07:01-07:05Z by vc's clock: main 3ea997c93 with 31 commits unpushed on both remotes; the installed pair 701c4d98b lacks 1c21a04ff (WP-05) and ee47b0e37 (clippy 1.99) under DIRT_SCOPE, so the push refuses until build all; ST0081's gate reads BLOCKED 0/7; prlctl lists the Ubuntu VM as SUSPENDED. SETTLED WITH cc AND dc AT BOOT, under hv's pen, all on the live channel: (1) cc runs the kovacs proof and vc judges it from the logs; vc owes the judgement, never the run. (2) AC-01.1 and AC-01.2 are satisfied only by the workflow_dispatch run after hv's push, never on VM evidence. (3) WP-03's pages are written from the VM's run, every command is re-run against the dispatch run's x86_64 artifact before the tag, and AC-03.1 closes after the tag; cc rewords WP-03's objective with intent set after the demo. (4) ST0081's two CHANGELOG lines (the Linux package with the WSL page, and WP-05's --at-login refusal) ride WP-03's bank and sit on vc's pre-cut checklist. (5) The package ships intent/plugins/claude (bin/.devbin/cmd/shared/support.lib:76), so M2 if it is in and 0591-0593 land before the kovacs proof, which then runs once, on the tree that gets pushed; 0594 and the docs land either side; a package change after the push is proven by a dispatch run at the final HEAD before the cut. AFTER THE DEMO, vc puts hv's questions in one batch, in vc's session: the VM (26.04.1 done, toolchain in, Rosetta on so kovacs can run the dispatch run's static x86_64 pair, unmeasured); 3.2.4's scope (0591-0594 in, 0590 waits, M2 once dc has sized it); D55 (the first option puts devbin's change, hv's republish and a re-vendor judged by a macOS bats run on 3.2.4's path); the joint job's home and WSL 1; SHA256SUMS; release.remotes; the skills and subagents sync; llm-tropes and Utilz; the stabilisation line; ic's /refresh; the other estates' pushes; the machine's load. vc OWES: the kovacs proof's judgement, WP-03's review, the pre-push heavy run on the final tree and build all, and the globalfold. (edited)
+- RESUME (vc, 2026-10-14): hv's demo of 2026-10-13 is over (hv's word relayed by another estate's session, and hv directing work in vc's session), so hold 2 is archived. THE FOCUS (hv, 2026-10-14): Intent and devbin installed by Homebrew on Linux and macOS with no source checkout, Linux proven first on kovacs (Ubuntu 26.04.1 on aarch64, uutils coreutils, mawk, 2 CPUs, 3.3 GB plus a 3.8 GB swap file). kovacs-sysadm, a Claude Code session on the VM, runs the VM side on instructions from intent-vc and devbin-vc, which supersedes vc's ruling (1) of 2026-10-13 that cc runs the kovacs proof; one queue (vc's), one order per step naming its sender, each vc copying the other. RECORDS at 7d1d2b8d4: ST0081 is the Homebrew thread (WP-01, WP-02 and WP-05 kept; WP-03 the Linux install through Homebrew, carrying the CHANGELOG ruling; WP-06 the formula on Linux; WP-07 Intent on Ubuntu from its package; AC-01.1 names aarch64); ST0082, in Triage, is the WSL thread and depends on it. hv's decision 17 stands: this Mac stays on the dev tree, and the macOS brew route was proven on gyges, to be retested later. devbin: devbin#0195 (tap, formula, release bump), and devbin-vc is confirming a devbin brew thread with hv, with ST0008 depending on it. OPEN WITH hv: provisioning kovacs now (vc: yes); D55 as one question (devbin's proposal (a), vc's lean the same); the proof's shape (vc: a discovery run now on HEAD and a confirming run on the final tree, which would reverse vc's ruling (5) of 2026-10-13 that the proof runs once after dc's lane, so (5) stands until hv answers); Intent's shell suite once on kovacs (vc: yes); 3.2.4's scope (0591 to 0594 in as dc's stacked lane, 0590 waits, M2 if dc sizes it at S or less); and the 2026-10-13 batch's other items (one skills sync after dc's skill train, SHA256SUMS, release.remotes, the joint WSL job and WSL 1, llm-tropes and Utilz, the stabilisation line, ic's /refresh, the other estates' pushes, the machine). STILL LIVE FROM 2026-10-13: AC-01.1 and AC-01.2 are satisfied only by the dispatch run after hv's push. vc OWES: one order each to cc and dc once hv rules; the kovacs orders and their judgement; the pre-push heavy run on the final tree and build all; the globalfold.
 
 ## TODO
 
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-- **ALL OF vc's INTENT WORK IS HELD UNTIL hv SAYS THE DEMO OF 2026-10-13 IS OVER (hv's word in vc's session, before vc's 08:47Z clock read).** hv, verbatim: "we're not touching _anything_ prior to today's demo". So there is no code, no record write beyond each node's own localfold, no build, no VM and no push. vc told cc and dc at 08:47Z; each holds the same condition on its own board, and vc relays hv's word to both when the demo is over.
+_(none)_
 
 ## Watch-outs
 
