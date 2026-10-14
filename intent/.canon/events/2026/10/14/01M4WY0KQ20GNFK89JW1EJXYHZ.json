@@ -1,0 +1,15 @@
+{
+  "id": "01M4WY0KQ20GNFK89JW1EJXYHZ",
+  "ts": "2026-10-14T10:06:04.006Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0595"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "bin/int linux doctor exits 127 with no output on a host without Rust, the one case it exists to explain"
+  }
+}
