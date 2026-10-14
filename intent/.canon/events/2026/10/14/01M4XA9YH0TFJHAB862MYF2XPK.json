@@ -1,0 +1,16 @@
+{
+  "id": "01M4XA9YH0TFJHAB862MYF2XPK",
+  "ts": "2026-10-14T13:40:52.896Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 81,
+    "text": "ST0081 WP-06 LANDED at 11017d7bd on vc's judgement of bank -c (refs/bank/cc/0081/wp06-brew-formula-c, landed patch-id 35a43378080c, the bank's), and it STAYS WIP: AC-06.1 is satisfied only by kovacs's brew rehearsal, which also measures whether a machine that never trusted matthewsinclair/intent installs after a plain brew tap or refuses until brew trust (Homebrew 7 loads only trusted taps; hv has the question through vc, and AC-06.1, docs/install.md and the macOS clean install wait on it). bin/int brew formula and smoke replace int macos formula and smoke; shared/brew.lib renders the formula for both release steps from the bytes its base URL serves; publish refuses only its own assets, by name, and pushes only a complete formula, else bin/int brew formula --push at a terminal; --dev-tap and --tap let the VM prove it first. The banks before it: -b fixed vc's defect (brew_fetch's exit dropped a hashing refusal unread), and -c re-padded MODULES.md's table after the staged-format guard refused -b's landing (the widest cell shrank). NO PUSH, NO RELEASE."
+  }
+}
