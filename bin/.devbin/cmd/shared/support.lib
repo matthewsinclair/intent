@@ -74,3 +74,70 @@
 # agents plugin's manifest did not ship, so the keg listed only `claude`.
 # shellcheck disable=SC2034 # read by the handlers that source this file
 SUPPORT_PATHS="lib/templates intent/plugins/claude intent/plugins/agents/plugin.json"
+
+# THE INSTALL-ROOT POPULATION, BESIDE THE COPY LIST IT IS HELD AGAINST (ST0081
+# WP-06). `cmd/macos`'s stage coverage check asks whether SUPPORT_PATHS carries
+# every path below, and `int brew smoke` asks whether a built keg holds them, so
+# both read this one copy now that smoke lives in `cmd/brew`. $ROOT is the
+# sourcing handler's project root.
+#
+# What the BINARIES put in the install root, as opposed to the support tarball.
+# The formula installs these directly, so the copy list must not be expected to
+# carry them and the coverage check in `cmd/macos` must not demand it.
+# shellcheck disable=SC2034 # read by the handlers that source this file
+INSTALL_BINARY_PATHS="bin"
+
+# resolved_install_paths -- every path v3 resolves against its install root,
+# read out of the RESOLVERS. One line per path, sorted, no duplicates.
+#
+# THE ONE HOME FOR THAT QUESTION, AND IT IS SHARED ON PURPOSE:
+# `support_paths_coverage` (does the copy list carry them) and smoke ARM 3 (does
+# the built keg contain them). Before 2026-08-29 ARM 3 asked its question of
+# `$SUPPORT_PATHS` instead -- the copy list -- so it audited the artefact against
+# the very list whose omissions it existed to catch, and would have reported all
+# green on a keg missing a tree. That is the SECOND instance in this file of a
+# check whose stated claim is wider than its population; the first is the one
+# recorded at SUPPORT_PATHS above. Deriving both from here is what stops there
+# being a third.
+#
+# THE WHOLE CHAIN, NOT THE FIRST LINK. `plugins.rs` writes
+# `install.join("intent").join("plugins")`, and a pattern that stops at the
+# first `.join(...)` reads that as `intent` -- which is covered by any entry
+# under `intent/`, so a chained NEW tree would pass while its first segment
+# carried it. Found by driving the positive control, not by reading.
+#
+# POPULATION, NAMED, BECAUSE NAMING IT IS THE WHOLE LESSON OF THE DEFECT: `src/`
+# only. A `tests/` join builds a FIXTURE install root -- `skills_sync.rs` mkdirs
+# some of these paths in a tempdir -- so a fixture path is not a shipping
+# requirement, and reading tests here would refuse a release over a temp dir.
+#
+# ONE SCAN, TWO KINDS OF LINE, AND A CHAIN MAY SPAN LINES. `install_path_chains`
+# reads each resolver file whole, so a chain rustfmt breaks across lines is seen
+# -- `payload.rs` writes
+#
+#   install
+#     .join("intent/plugins/claude")
+#     .join(kind.canon_subdir()),
+#
+# and a line-at-a-time grep saw none of it, which is how the 3.0.1 keg shipped
+# with no subagents tree while this guard printed nothing. Each line is
+#   L<TAB><path>   a literal chain: the binary resolves exactly <path>
+#   R<TAB><path>   a literal chain CONTINUED by a non-literal join: the binary
+#                  resolves a child of <path> chosen at run time
+# An R path is covered only by shipping the WHOLE directory (see below), because
+# no reading of the source can say which children the run time will ask for.
+install_path_chains() {
+  local src="$ROOT/native/rust/crates"
+  [ -d "$src" ] || return 0
+  find "$src" -path '*/src/*' -name '*.rs' -exec perl -0777 -ne '
+    while (/\b(?:install_root|install)((?:\s*\.join\(\s*"[^"]+"\s*\))+)(\s*\.join\(\s*[^\s")])?/g) {
+      my ($chain, $more) = ($1, $2);
+      my $p = join("/", $chain =~ /"([^"]+)"/g);
+      $p =~ s{^/+}{};
+      print((defined $more ? "R" : "L"), "\t", $p, "\n");
+    }' {} + 2>/dev/null | sort -u
+}
+
+resolved_install_paths() {
+  install_path_chains | cut -f2 | sort -u
+}

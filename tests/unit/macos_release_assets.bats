@@ -28,6 +28,8 @@ load "../lib/test_helper.bash"
 # mutation-tested against a deliberately broken one without editing the shipped
 # script. Unset -- every normal run -- this is the plain path.
 MACOS="${INTENT_MACOS_SCRIPT:-${INTENT_HOME}/bin/.devbin/cmd/macos}"
+# The formula's library, beside the script (ST0081 WP-06).
+BREW_LIB="${INTENT_BREW_LIB:-${INTENT_HOME:-${MACOS%/bin/.devbin/cmd/macos}}/bin/.devbin/cmd/shared/brew.lib}"
 
 # Source the classification helpers and the constants they read. The constants
 # come OUT OF THE SCRIPT rather than being restated here: a test that spells
@@ -35,7 +37,10 @@ MACOS="${INTENT_MACOS_SCRIPT:-${INTENT_HOME}/bin/.devbin/cmd/macos}"
 # says something else.
 load_macos_fns() {
   local fns="${TEST_TEMP_DIR}/macosfns.sh"
-  sed -n '/^BINARIES=/p;/^SUPPORT_ASSET=/p;/^APP_ASSET=/p' "$MACOS" >"$fns"
+  sed -n '/^BINARIES=/p;/^APP_ASSET=/p' "$MACOS" >"$fns"
+  # SUPPORT_ASSET lives in the library both release steps source since ST0081
+  # WP-06, and comes out of it for the same reason.
+  sed -n '/^SUPPORT_ASSET=/p' "$BREW_LIB" >>"$fns"
   sed -n '/^is_binary_artefact() {/,/^}/p;/^staged_artefacts() {/,/^}/p;/^unclassified_artefacts() {/,/^}/p;/^support_tree_drift() {/,/^}/p;/^provenance_blockers() {/,/^}/p' \
     "$MACOS" >>"$fns"
   # shellcheck disable=SC1090
@@ -242,31 +247,6 @@ build_support_fixture() {
   assert_output "1"
 }
 
-@test "the formula installs into libexec and symlinks bin" {
-  # `lib` is a LINKED directory: brew symlinks keg lib subdirectories into the
-  # shared prefix, so installing the support tree there would publish a directory
-  # called `templates` into the global lib alongside every other formula's. The
-  # binary must still sit beside the marker, so bin gets a symlink.
-  run grep -F 'bin.install_symlink libexec/"bin/intent"' "$MACOS"
-  assert_success
-
-  # The pre-fix form put the binary straight into bin, where the walk finds no
-  # marker above it.
-  run grep -F 'bin.install Dir["intent-*"].first => "intent"' "$MACOS"
-  assert_failure
-}
-
-@test "the support resource is declared in the formula with its own hash" {
-  # Top level since 3.0.1: the resources left `on_macos do on_arm do` so that
-  # `brew tap` can validate the formula on every simulated platform.
-  run grep -cE '^  resource "support" do' "$MACOS"
-  assert_success
-  assert_output "1"
-
-  run grep -F 'sha256 "$sha_support"' "$MACOS"
-  assert_success
-}
-
 # --------------------------------------------------------------------
 # Provenance: the bytes must come from the tag they are published under
 # --------------------------------------------------------------------
@@ -407,55 +387,6 @@ git_fixture() {
   assert_output_contains "dist-provenance.txt"
 }
 
-# Render the formula through the script's own cmd_formula against a planted
-# stage: a stand-in binary that reports a version, and a SHA256SUMS.txt naming
-# the three artefacts. host_triple is stubbed so no toolchain is asked, and die
-# is the only other helper the function calls. Nothing leaves TEST_TEMP_DIR.
-render_formula() {
-  local fns="${TEST_TEMP_DIR}/formulafns.sh" t="aarch64-apple-darwin"
-  sed -n '/^SUPPORT_ASSET=/p' "$MACOS" >"$fns"
-  sed -n '/^require_sums() {/,/^}/p;/^staged_version() {/,/^}/p;/^cmd_formula() {/,/^}/p' "$MACOS" >>"$fns"
-  # shellcheck disable=SC1090
-  . "$fns"
-  host_triple() { printf 'aarch64-apple-darwin'; }
-  die() {
-    printf 'die: %s\n' "$*" >&2
-    return 1
-  }
-  STAGE_DIR="${TEST_TEMP_DIR}/dist"
-  mkdir -p "$STAGE_DIR"
-  printf '#!/bin/sh\necho "intent 9.9.9 (0000000)"\n' >"$STAGE_DIR/intent-$t"
-  chmod +x "$STAGE_DIR/intent-$t"
-  printf 'aaa  intent-%s\nbbb  intentd-%s\nccc  %s\n' "$t" "$t" "$SUPPORT_ASSET" >"$STAGE_DIR/SHA256SUMS.txt"
-  cmd_formula
-}
-
-@test "the rendered caveat names the upgrade case and stays conditional (issue 0527)" {
-  run render_formula
-  assert_success
-  # The upgrade case: a pointer naming any keg, whether or not it is still on
-  # disk (issue 0540), and the door that says which case a machine is in.
-  assert_output_contains "if it names an Intent under Cellar/intent/, whether"
-  assert_output_contains "or not that version is still installed"
-  assert_output_contains '`intent bootstrap --check` says where it points'
-  refute_output_contains "no longer installed"
-  # Still conditional, so a pointer naming a source checkout is never moved.
-  assert_output_contains "if that file does not exist yet"
-  assert_output_contains "such as a source checkout, needs nothing"
-  # The heredoc is unquoted, so an unescaped backtick would have RUN rather than rendered.
-  assert_output_contains 'only `intent bootstrap` writes'
-  assert_output_contains '`brew upgrade` removes'
-}
-
-@test "the formula's install block is agnostic about what the archive carries" {
-  # Rooted at the install root, so a shipped set that grows -- `intent critic` and
-  # `intent claude rules` are unimplemented today and will need the rule library,
-  # which lives outside the marker directory -- is a content change rather than a
-  # formula change.
-  run grep -F 'libexec.install Dir["*"]' "$MACOS"
-  assert_success
-}
-
 # A subcommand that takes one optional argument refuses a second by name before
 # it runs anything (issue 0473). publish, app-build and app-verify read only the
 # first and dropped the rest without a word, against 0395's rule.
@@ -483,19 +414,20 @@ render_formula() {
 # inherit_errexit, so a staged binary that was missing or would not run ended
 # the script at the pipe, in silence, before its die could name the cause: at a
 # release cut, where silence costs most. Each arm runs the function under the
-# script's own shell options, with host_triple and die stubbed, so nothing here
-# needs rustc or a staging run.
+# script's own shell options, with rust_host and die stubbed, so nothing here
+# needs rustc or a staging run. The function lives in shared/brew.lib since
+# ST0081 WP-06.
 
 # run_staged_version -- staged_version, extracted from the script and run
 # against STAGE_DIR in a bash carrying the script's shell options.
 run_staged_version() {
   local fns="$TEST_TEMP_DIR/staged_version.sh"
-  sed -n '/^staged_version() {/,/^}/p' "$MACOS" >"$fns"
+  sed -n '/^staged_version() {/,/^}/p' "$BREW_LIB" >"$fns"
   # shellcheck disable=SC2016 # the inner bash expands these, not this one
   run "$BASH" -c 'set -euo pipefail
     shopt -s inherit_errexit
     die() { printf "%s\n" "$*" >&2; exit 1; }
-    host_triple() { printf "aarch64-apple-darwin\n"; }
+    rust_host() { printf "aarch64-apple-darwin\n"; }
     STAGE_DIR="$2"
     . "$1"
     staged_version' _ "$fns" "$STAGE_DIR"

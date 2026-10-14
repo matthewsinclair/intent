@@ -1,0 +1,668 @@
+# shellcheck shell=bash
+#
+# shared/brew.lib -- Intent's Homebrew formula: what it names, how it is
+# rendered, and the one push to the tap (ST0081 WP-06). SOURCED, never run: 0644
+# so the dispatcher's `is_handler` (-f AND -x) cannot mistake it for a command.
+#
+# WHY THIS IS SHARED. The formula lived in `cmd/macos` while the release was
+# macOS arm64 alone, and its header said it would move once Linux artefacts
+# arrived. They have: the formula names the Linux packages for x86_64 and aarch64
+# beside the macOS assets, so `int macos publish` and `int brew formula` both
+# render it here, and the formula a release pushes is the one the verb prints.
+#
+# FROM THE SOURCING HANDLER IT NEEDS: helpers (die, require_tool), rust_host from
+# shared/rusthost.lib (staged_version names the staged binary with it), and ROOT.
+
+# THE SUPPORT TREE, AND WHY A RELEASE OF BINARIES ALSO SHIPS A TARBALL.
+#
+# **A Rust binary cannot carry shell inside itself.** Intent ships its Claude Code
+# hooks and its whiteboard guards as FILES under `lib/templates/`, and shipped
+# consumers exec them out of the install tree: `intent claude hook <name>` runs
+# `lib/templates/.claude/scripts/<name>.sh`, and the pre-commit gate runs
+# `lib/templates/hooks/<guard>.sh` at a path it parses back out of `intent info`.
+# The binary finds that tree by walking up from its own symlink-resolved location
+# to the directory containing `lib/templates/` (`intentsvcs::install::MARKER`),
+# with no environment fallback -- deliberately, because a stale v2 `$INTENT_HOME`
+# would otherwise make a v3 binary exec v2's hook scripts.
+#
+# A formula that installs only the binaries therefore produces an install that
+# cannot find itself. Measured against a reproduction of exactly what the formula
+# builds -- binary under `Cellar/intent/3.0.0/bin/`, brew-style symlink, neutral
+# cwd (probe at 501f5083): `intent info` and `intent claude hook` both fail, and
+# the gate's guard path comes back unresolvable. **Every consumer project would
+# silently lose its session hooks and both whiteboard guards.**
+#
+# THE TARBALL'S ROOT IS THE INSTALL ROOT, one level under a wrapper directory,
+# and that is the one design decision here worth defending. **The wrapper is not
+# decoration -- see SUPPORT_PREFIX in cmd/macos. Without it this archive installs to the wrong
+# depth and the install cannot find itself, which is the exact failure the
+# paragraph above says the archive exists to prevent. Measured on the first real
+# brew install, 2026-08-26.** It contains `lib/templates/...`
+# rather than `templates/...`, so the formula's install line is "put everything in
+# this archive into libexec" rather than "put templates in libexec/lib". The rule
+# library and the skills tree that `intent critic` and `intent claude rules` read
+# live OUTSIDE the marker directory (`intent/plugins/claude/`), and rooting the
+# archive at the install root is what lets a tree like that join the shipped set
+# as a CONTENT change, not a formula change and not a second asset.
+#
+# IT IS NOT SIGNED AND NOT NOTARISED, AND THAT IS NOT AN OMISSION. Notarisation
+# assesses Mach-O binaries; a gzipped tar of shell and markdown has nothing to
+# sign and nowhere to hold a ticket. The control that protects it is the same one
+# that protects the binaries: `publish` re-downloads what it uploaded and hashes
+# THAT. What this DOES require is that `checksum` stop treating "staged artefact"
+# and "must be proven notarised" as the same set -- see cmd_checksum in cmd/macos, where an
+# unclassified artefact is now a refusal rather than a default.
+SUPPORT_ASSET="intent-support.tar.gz"
+
+# WHERE THE ARTEFACTS GO AND WHERE THE CLAIM ABOUT THEM GOES. Separate repositories,
+# by hv's ruling of 2026-08-15 (D40): artefacts live on the source repo's own
+# releases, and the tap carries only the formula that names them.
+#
+# The spellings are all real and none is derivable from the others without
+# a rule someone has to remember: GitHub calls the tap `homebrew-intent`, brew
+# calls the same thing `matthewsinclair/intent`, and the source repo is a third
+# name again. Written out once rather than reconstructed at each use.
+REPO="matthewsinclair/intent"
+TAP="matthewsinclair/homebrew-intent"
+# shellcheck disable=SC2034 # read by the handlers that source this file
+BREW_TAP="matthewsinclair/intent"
+
+# MEASURED 2026-08-15: neither `intent` nor `intentd` exists in homebrew-core, so
+# the names are free and `brew install intent` would resolve to our tap once it
+# is tapped. **We still print the fully-qualified `matthewsinclair/intent/intent`
+# everywhere, deliberately.** The short form works only while core stays empty of
+# that name, and the day core gains one, every published instruction becomes
+# ambiguous at best and installs somebody else's software at worst -- in an
+# instruction users have already copied into their own docs. The long form cannot
+# be shadowed and costs one line of typing.
+
+# EVERYTHING AFTER THE COPY HAPPENS HERE, AND THAT IS THE WHOLE POINT.
+#
+# `target/release/` is SHARED MUTABLE STATE. Several sessions build in this tree and
+# `cargo build --release` is the most ordinary thing any of them does -- so a
+# signature living there is not a property of a file, it is a property of a file
+# that nobody has rebuilt yet.
+#
+# MEASURED LIVE, 2026-08-15: a peer's release build replaced a Developer ID
+# signature with the linker's ad-hoc one, and one of the shipped binaries stopped
+# being notarised inside the hour, with NO signal and every artefact of the
+# earlier proof still reading as valid. Nobody did anything wrong; a shared target
+# directory is what it is for.
+#
+# The first response was to make `stage` REFUSE to checksum anything it could not
+# prove. That was right and it stays -- but a refusal DETECTS the race, it does
+# not remove it, and it detects it only at the end, after a notarisation round
+# trip has already been spent on bytes that no longer exist.
+#
+# So the target moved instead. `target/dist/` is written by `int macos stage` and by
+# nothing else, which means the window in which a peer can disturb an artefact
+# shrinks from "the whole sign -> notarise -> stage sequence", minutes long and
+# spanning a network round trip to Apple, to "the ditto on the line below". **A
+# structure that cannot fail beats a control that catches the failure**, and the
+# control is still there underneath because catching it is free.
+STAGE_DIR="$ROOT/native/rust/target/dist"
+
+# require_sums -- the proof file, or the reason there isn't one.
+#
+# ONE MESSAGE FOR ONE MISSING FILE. `formula` and `publish` both need it and both
+# need to say the same thing about why it is absent, because the answer is never
+# "create it" -- it is "prove the artefacts and it will be written for you".
+require_sums() {
+  [ -f "$STAGE_DIR/SHA256SUMS.txt" ] ||
+    die "no proven artefacts to describe -- run 'bin/devbin macos prepare' first (SHA256SUMS.txt is written only by 'checksum', and only for artefacts it has proven signed AND notarised)"
+}
+
+# staged_version -- the version the SHIPPING binary reports.
+#
+# From the BINARY, never from Cargo.toml or a git tag. It is the only source that
+# cannot disagree with what a user will actually run: a version read from a
+# manifest describes what was meant to be built, and the gap between those two is
+# exactly what a release must not ship. It also makes the formula's `test do`
+# block pass by construction rather than by coincidence.
+staged_version() {
+  local bin out v
+  # THE VERSION TOKEN ONLY. `--version` prints `intent <version> (<commit>)`, and
+  # the provenance suffix is NOT part of the version. Taking everything after
+  # `intent ` put `3.0.0-dev (4c5babdf...)` into `version`, into RELEASE_VERSION,
+  # and therefore into every download URL -- a URL carrying a space and
+  # parentheses, inside a formula that was otherwise perfectly well-formed and
+  # linted clean. Nothing about the output looked wrong.
+  #
+  # FOUND ON THE FIRST END-TO-END RUN, which is precisely what the cmd_formula
+  # header then predicted would happen to this path: "this path has no end-to-end
+  # test, and refactoring an unexercised artefact for elegance is how the first
+  # real run finds something new". It found something new.
+  #
+  # AND EVERY WAY THE READ FAILS SPEAKS (issue 0595's census). This was one pipe,
+  # `"$bin" --version 2>/dev/null | sed`, under `set -euo pipefail` and helpers'
+  # inherit_errexit, so a staged binary that was missing or would not run ended
+  # the script at the pipe, in silence, before the die below could say why: an
+  # empty refusal at a release cut. Its stderr is kept, because a binary that will
+  # not run says why there.
+  bin="$STAGE_DIR/intent-$(rust_host)"
+  [ -e "$bin" ] || die "there is no staged intent binary at $bin -- run 'bin/devbin macos stage' (or 'prepare') first"
+  out="$("$bin" --version 2>&1)" || die "the staged intent binary does not run, so its version cannot be read. $bin --version said:
+$out"
+  v="$(printf '%s\n' "$out" | sed -n 's/^intent \([^ ]*\).*/\1/p')"
+  [ -n "$v" ] || die "could not read a version from the staged intent binary. $bin --version said:
+$out"
+  # A VERSION THAT CANNOT SIT IN A URL IS A BROKEN FORMULA, and it does not break
+  # for us -- it breaks for every `brew install`, against a formula already
+  # published. Refuse where the harm is, the same rule that keeps the dev-version
+  # refusal in `publish`.
+  case "$v" in
+    *[!A-Za-z0-9.+_-]*)
+      die "the staged binary reports a version that is not URL-safe: '$v' -- the formula's download URLs are built from it"
+      ;;
+  esac
+  printf '%s' "$v"
+}
+
+# --- the asset set -----------------------------------------------------------
+# The macOS assets' triple. The formula's macOS branch is arm64 only, by hv's
+# ruling of 2026-08-15, so this is a constant and not this host's triple: the
+# formula is rendered on Linux too (a dev tap on hv's Ubuntu VM, or a CI step),
+# where the host's own triple names nothing on the release.
+MACOS_TRIPLE="aarch64-apple-darwin"
+# The Linux packages' triples, one package per architecture, named as `int linux
+# package` names them (ST0081 WP-01).
+LINUX_TRIPLES="x86_64-unknown-linux-musl aarch64-unknown-linux-musl"
+
+# brew_macos_assets -- the three macOS assets the formula names, one per line:
+# the CLI, the daemon and the support tree.
+brew_macos_assets() {
+  printf '%s\n' "intent-$MACOS_TRIPLE" "intentd-$MACOS_TRIPLE" "$SUPPORT_ASSET"
+}
+
+# brew_linux_asset <triple> -- the Linux package for one architecture.
+brew_linux_asset() {
+  printf 'intent-%s.tar.gz\n' "$1"
+}
+
+# brew_sum <sums> <asset> -- PURE. The sha256 a `<sha256>  <asset>` file gives
+# <asset>, or nothing.
+brew_sum() {
+  awk -v f="$2" '$2 == f { print $1; exit }' "$1"
+}
+
+# brew_url <base> <asset> -- PURE. Where the formula sends brew for <asset>: the
+# release's own download URL through RELEASE_VERSION when <base> is `release`,
+# and <base>/<asset> otherwise.
+brew_url() {
+  if [ "$1" = release ]; then
+    printf 'https://github.com/%s/releases/download/v#{RELEASE_VERSION}/%s\n' "$REPO" "$2"
+  else
+    printf '%s/%s\n' "$1" "$2"
+  fi
+}
+
+# sha256_of <file> -- IMPURE. The file's sha256: sha256sum where it exists (GNU,
+# so Linux), else shasum (perl's, so macOS). Refuses when neither is on PATH.
+sha256_of() {
+  local out
+  if command -v sha256sum >/dev/null 2>&1; then
+    out="$(sha256sum "$1")" || die "sha256sum could not read $1"
+  elif command -v shasum >/dev/null 2>&1; then
+    out="$(shasum -a 256 "$1")" || die "shasum could not read $1"
+  else
+    die "neither sha256sum nor shasum is on PATH, so no asset can be hashed"
+  fi
+  printf '%s\n' "${out%% *}"
+}
+
+# brew_fetch <from> <dir> <asset>... -- IMPURE. Fetch each asset from
+# <from>/<asset> into <dir>, and print `<sha256>  <asset>` for each one that came
+# back. Each one that did not is printed to stderr as `missing: <asset> from
+# <url> (<curl's words>)`, and the return is 3 when any is missing. It never stops
+# at the first: a refusal names every asset it lacks (vc, 2026-10-14).
+brew_fetch() {
+  local from="$1" dir="$2" a url err h rc=0
+  shift 2
+  for a in "$@"; do
+    url="$from/$a"
+    if err="$(curl -fsSL -o "$dir/$a" "$url" 2>&1)"; then
+      # return, never exit: brew_formula runs this with stderr in a file it shows
+      # only on its own way out, so an exit here would drop sha256_of's refusal
+      # unread and leave the fetch directory behind (vc, 2026-10-14).
+      h="$(sha256_of "$dir/$a")" || return 1
+      printf '%s  %s\n' "$h" "$a"
+    else
+      printf 'missing: %s from %s (%s)\n' "$a" "$url" "${err:-curl exited non-zero}" >&2
+      rc=3
+    fi
+  done
+  return "$rc"
+}
+
+# THE FORMULA -- rendered, never hand-edited, from the bytes at a base URL.
+#
+# GENERATED, NEVER HAND-EDITED, and that is the whole point. A tap formula
+# carries a version and one sha256 per artefact, and every one of them is a
+# restatement of a fact that already exists somewhere else. Conflab hand-maintains
+# exactly these lines and has a `release sync` command partly to heal the drift
+# that follows. **A number copied by hand is a number that will eventually be
+# copied wrong**, and this particular wrong number does not fail for us -- it
+# fails for every `brew install`, against a formula we already published.
+#
+# EVERY HASH IS READ FROM THE BYTES THE BASE URL SERVES (ST0081 WP-06). The only
+# input used to be `SHA256SUMS.txt`, which `checksum` writes ONLY for artefacts it
+# has proven signed and notarised, so there was no path from an unproven binary to
+# a formula. The Linux packages are not in that file, being built on Linux, so
+# every hash now comes from what the release (or a dev tap's file:// base) serves,
+# the round trip `publish` already made for macOS. The macOS half of the property
+# holds: with the release's own base, each macOS hash must equal the one
+# SHA256SUMS.txt records, and `publish` uploads only what `checksum` proved.
+#
+# THE DEV-VERSION REFUSAL IS DELIBERATELY NOT HERE. Emitting a formula that reads
+# `RELEASE_VERSION = "3.0.0-dev"` is harmless -- it is text on a terminal, and it is
+# self-evidently not a release. The harm is in PUBLISHING one, so the refusal
+# belongs in the publish step. **Put the control where the harm is, not where it
+# is convenient to write.**
+#
+# VALIDATED WITH `brew style`, AND THE CALIBRATION IS THE POINT. Linted as a bare
+# file the generated formula reports several offences; linted AT A TAP PATH it
+# reports far fewer. The difference was artefacts of judging a formula by the
+# generic Ruby config -- Sorbet sigils, a frozen-string-literal comment,
+# top-level class documentation -- none of which Homebrew applies inside a tap.
+# **Calibrated against `geodica/homebrew-conflab`'s live shipped formula**, which
+# reports the same remaining offence and none of the extras, then confirmed by linting a
+# copy of ours at a real tap path. `Style/MutableConstant` is now fixed here, so
+# this generates a formula that lints clean where the reference does not.
+#
+# **A linter run in the wrong context reports real-looking findings about a
+# correct artefact**, and the only way to tell was to run it against something
+# already known good. Same shape as `spctl -a -t exec` calling a correctly signed
+# binary rejected.
+#
+# THE CONSTANT ITSELF STAYS, deliberately. `RELEASE_VERSION` is the formula's
+# only statement of the version -- there is no `version` line, because brew reads
+# it from the /v<version>/ path -- and every download URL interpolates it.
+# `#{version}` may well work in its place, but the constant is what the shipped
+# conflab formula does, and refactoring an artefact for elegance is how the next
+# real run finds something new.
+# A formula rendered from any other base, such as a dev tap's file:// URLs, has
+# no /v<version>/ for brew to read, so it states the version on a line of its own.
+#
+# MOVED, AS ITS EXPIRY NOTE SAID IT WOULD BE (ST0081 WP-06). This lived under
+# `macos` while hv's ruling of 2026-08-15 made the release macOS arm64 only, and
+# its note said Linux artefacts would end that limit and the reason for it. hv
+# widened the release to Linux on 2026-10-14, so the formula grew per-platform
+# URLs and moved here, where `int macos publish` and `int brew formula` both
+# render it.
+
+# brew_render_formula <version> <revision> <base> <sums> -- PURE. The formula on
+# stdout, for the assets <sums> names (`<sha256>  <asset>` lines). <base> is
+# `release` for the release's own download URLs, written through
+# RELEASE_VERSION, or a literal base URL, which also gets a version line.
+#
+# THE BRANCHES COME FROM WHAT <sums> CARRIES, so how complete a formula must be is
+# the caller's rule: the macOS branch needs all three macOS assets, and each Linux
+# architecture its own package. A formula without the macOS branch depends on
+# Linux, one without a Linux branch depends on macOS, and one with a single Linux
+# architecture depends on it, so a partial dev tap refuses on a platform it does
+# not describe rather than install the wrong bytes there.
+brew_render_formula() {
+  local version="$1" revision="$2" base="$3" sums="$4"
+  local t pkg mac=1 linux="" sha_cli sha_daemon sha_support top_url top_sha
+  sha_cli="$(brew_sum "$sums" "intent-$MACOS_TRIPLE")"
+  sha_daemon="$(brew_sum "$sums" "intentd-$MACOS_TRIPLE")"
+  sha_support="$(brew_sum "$sums" "$SUPPORT_ASSET")"
+  if [ -z "$sha_cli" ] || [ -z "$sha_daemon" ] || [ -z "$sha_support" ]; then
+    mac=0
+  fi
+  for t in $LINUX_TRIPLES; do
+    if [ -n "$(brew_sum "$sums" "$(brew_linux_asset "$t")")" ]; then
+      linux="$linux $t"
+    fi
+  done
+  linux="${linux# }"
+  [ "$mac" -eq 1 ] || [ -n "$linux" ] ||
+    die "no platform's assets are all there, so there is no formula to render"
+  if [ "$mac" -eq 1 ]; then
+    top_url="$(brew_url "$base" "intent-$MACOS_TRIPLE")"
+    top_sha="$sha_cli"
+  else
+    pkg="$(brew_linux_asset "${linux%% *}")"
+    top_url="$(brew_url "$base" "$pkg")"
+    top_sha="$(brew_sum "$sums" "$pkg")"
+  fi
+
+  printf 'class Intent < Formula\n'
+  if [ "$base" != release ]; then
+    # The base is not repeated here: its url lines already name it, and `brew
+    # style` lets a long url line pass and refuses a long comment.
+    printf '  # NOT THE RELEASE FORMULA. Rendered by `bin/int brew formula` for a tap that\n'
+    printf '  # proves the formula before anything is pushed: the URLs below are not the\n'
+    printf "  # release's.\n"
+  fi
+  cat <<FORMULA
+  RELEASE_VERSION = "$version".freeze
+
+  desc "Steel thread process for helping LLMs help you work with your code"
+  homepage "https://github.com/$REPO"
+  # THE URL IS AT TOP LEVEL, NOT INSIDE \`on_macos do on_arm do\`. Until 3.0.1 it
+  # was nested there, and \`brew tap\` validates a tap's formulae under EVERY
+  # simulated OS and arch: on Linux and on Intel the nested form has no url, so
+  # the tap refused with "formula requires at least a URL" and "invalid syntax
+  # in tap", for everyone.
+FORMULA
+  if [ "$mac" -eq 1 ]; then
+    cat <<'FORMULA'
+  # It is macOS arm64's, and on Linux the package for the machine's
+  # architecture overrides it inside `on_linux`, below.
+FORMULA
+  else
+    cat <<'FORMULA'
+  # This formula renders no macOS branch, so it is the Linux package's.
+FORMULA
+  fi
+  if [ "$base" = release ]; then
+    cat <<'FORMULA'
+  # There is no `version` line because brew reads it from the /v<version>/ path,
+  # and `brew audit --strict` refuses the redundant one.
+FORMULA
+  else
+    cat <<'FORMULA'
+  # These URLs are not the release's, so they carry no /v<version>/ for brew to
+  # read, and the version line states it.
+FORMULA
+  fi
+  printf '  url "%s"\n' "$top_url"
+  [ "$base" = release ] || printf '  version "%s"\n' "$version"
+  printf '  sha256 "%s"\n' "$top_sha"
+  printf '  license "MIT"\n'
+  [ "$revision" -eq 0 ] || printf '  revision %s\n' "$revision"
+  cat <<'FORMULA'
+
+  # On macOS it is arm64 only, by ruling (hv, 2026-08-15) rather than by
+  # omission, and TRUE BY CONSTRUCTION through the dependency line inside
+  # `on_macos`, which is what a platform limit in a formula is for. Both macOS
+  # binaries are Developer ID signed and notarised; nothing is stapled, because a
+  # bare Mach-O has nowhere to hold a ticket and Gatekeeper checks online. On
+  # Linux (hv, 2026-10-14) the package for the machine's architecture carries
+  # both binaries, built static against musl, and the support tree. (No comment
+  # line here may open with the dependency keyword: `brew audit` reads that as a
+  # commented-out dependency and refuses it.)
+FORMULA
+  if [ "$mac" -eq 0 ]; then
+    printf '  depends_on :linux\n\n'
+  elif [ -z "$linux" ]; then
+    printf '  depends_on :macos\n\n'
+  fi
+  if [ "$mac" -eq 1 ]; then
+    cat <<FORMULA
+  on_macos do
+    depends_on arch: :arm64
+
+    resource "intentd" do
+      url "$(brew_url "$base" "intentd-$MACOS_TRIPLE")"
+      sha256 "$sha_daemon"
+    end
+
+    # The support tree the binaries read and exec: templates, hooks, guards, the
+    # rule library, skills and subagents. Not signed and not notarised -- there
+    # is no Mach-O in it. See SUPPORT_PATHS in bin/.devbin/cmd/shared/support.lib.
+    resource "support" do
+      url "$(brew_url "$base" "$SUPPORT_ASSET")"
+      sha256 "$sha_support"
+    end
+  end
+
+FORMULA
+  fi
+  if [ -n "$linux" ]; then
+    printf '  on_linux do\n'
+    case "$linux" in
+      x86_64-*' '* | aarch64-*' '*) ;;
+      x86_64-*) printf '    depends_on arch: :x86_64\n\n' ;;
+      aarch64-*) printf '    depends_on arch: :arm64\n\n' ;;
+    esac
+    for t in $linux; do
+      pkg="$(brew_linux_asset "$t")"
+      case "$t" in
+        x86_64-*) printf '    on_intel do\n' ;;
+        aarch64-*) printf '    on_arm do\n' ;;
+      esac
+      printf '      url "%s"\n' "$(brew_url "$base" "$pkg")"
+      printf '      sha256 "%s"\n' "$(brew_sum "$sums" "$pkg")"
+      printf '    end\n'
+    done
+    printf '  end\n\n'
+  fi
+  cat <<'FORMULA'
+  # EVERYTHING LANDS IN libexec AND bin GETS SYMLINKS, which is not the obvious
+  # layout and is not a style preference.
+  #
+  # `intent` locates its own install by walking up from its symlink-resolved
+  # location to the directory containing `lib/templates/`, so the support tree
+  # has to sit beside the binary inside the keg -- a plain `bin.install` leaves
+  # the binary unable to find the hooks it execs, and both whiteboard guards and
+  # every session hook stop working with nothing reporting a failure.
+  #
+  # That rules IN the layouts that keep the tree in the keg, and Homebrew rules one of them OUT. Installing to
+  # `prefix/lib/templates` resolves correctly, but `lib` is a LINKED directory:
+  # brew symlinks keg `lib` subdirectories into the shared prefix, so this would
+  # publish a directory called `templates` into `#{HOMEBREW_PREFIX}/lib`
+  # alongside every other formula's entries. `templates` is about as generic as a
+  # name gets, and the collision would surface as a `brew link` failure in
+  # somebody else's install. `libexec` is not linked, so the tree stays private
+  # to this keg.
+  def install
+    if OS.mac?
+      (libexec/"bin").install Dir["intent-*"].first => "intent"
+      resource("intentd").stage do
+        (libexec/"bin").install Dir["intentd-*"].first => "intentd"
+      end
+      # The archive is rooted at the install root, so this stays correct when the
+      # shipped set grows -- it installs whatever the tarball carries rather than
+      # naming `templates` and having to change when something joins it.
+      resource("support").stage do
+        libexec.install Dir["*"]
+      end
+    else
+      # The Linux package is the install root already, under the one top-level
+      # directory brew strips when it unpacks: bin/intent and bin/intentd, and
+      # the support tree beside them (bin/int linux package).
+      libexec.install Dir["*"]
+    end
+
+    # THE EXECUTABLE BIT, AND IT IS NOT BELT-AND-BRACES -- WITHOUT IT THE KEG
+    # INSTALLS AND NOTHING IN IT RUNS. GitHub serves release assets as plain
+    # files with no exec bit, and Homebrew's `.install` PRESERVES the source
+    # mode rather than setting one. So 644 goes in, 644 comes out, `brew
+    # install` prints its beer emoji, and every `intent` call returns
+    # `permission denied`. Measured on the v3.0.0 tap, 2026-08-26, on the first
+    # real install from the network. Harmless on Linux, where tar keeps the mode.
+    #
+    # A CACHE-PRESEEDED INSTALL CANNOT CATCH THIS, which is why it survived
+    # every proof taken before that one: a preseed fills the cache from LOCAL
+    # files that are already +x, so the mode survives and the install works.
+    # Only the network hop loses it. "Proves everything but the network hop"
+    # was an honest scoping, and this is what was behind it.
+    chmod 0755, libexec/"bin/intent"
+    chmod 0755, libexec/"bin/intentd"
+
+    bin.install_symlink libexec/"bin/intent"
+    bin.install_symlink libexec/"bin/intentd"
+  end
+
+  # A CAVEAT, NOT A post_install, AND THE CHOICE WAS DRIVEN (dc, 2026-09-11).
+  # The pre-commit gate a project installs finds this keg through ~/.local/share/intent/home,
+  # and only `intent bootstrap` writes that file, so a fresh install refuses
+  # every commit until it runs. A post_install cannot run it for the user:
+  # Homebrew gives post_install a throwaway HOME inside its sandbox and denies
+  # writes outside the keg, measured with a probe formula (Dir.home was a
+  # sandbox temp directory; a write to the real home failed with EPERM). The
+  # caveat is conditional because bootstrap REPOINTS an existing pointer, and a
+  # machine already set up -- a source checkout, say -- should not be moved.
+  #
+  # THE UPGRADE CASE (issue 0527, 2026-09-23). Intent 3.2.0 and earlier recorded
+  # the versioned keg, Cellar/intent/<version>/libexec, and `brew upgrade`
+  # deletes that keg, so the pointer names nothing and every gated commit is
+  # refused. From 3.2.1, bootstrap records opt/intent/libexec, which follows
+  # every upgrade. No 3.2.1 code runs before the old pointer breaks, so this
+  # caveat is the one lever that reaches such a machine at its upgrade. It stays
+  # conditional: a pointer naming anything else is left as it is.
+  #
+  # **WHETHER THE KEG IS STILL ON DISK DOES NOT DECIDE IT** (issue 0540). This
+  # said to run bootstrap only once the keg the pointer named was gone, and a
+  # keg brew has not cleaned up yet still resolves, so that machine read the
+  # advice as not its own and broke at the next `brew cleanup`. A pointer
+  # naming any keg under Cellar/intent/ is re-recorded, and `intent bootstrap
+  # --check` (issue 0533) is how a reader sees which case they are in.
+  def caveats
+    <<~EOS
+      Intent's pre-commit gate finds this install through ~/.local/share/intent/home, which
+      only `intent bootstrap` writes, and `intent bootstrap --check` says where it points.
+      Run
+        intent bootstrap
+      if that file does not exist yet, or if it names an Intent under Cellar/intent/, whether
+      or not that version is still installed: Intent 3.2.0 and earlier recorded the versioned
+      keg, which `brew upgrade` removes, and from then on every commit in a project with the
+      gate installed is refused. Later versions record a path that survives upgrades, and a
+      file naming anything else, such as a source checkout, needs nothing.
+    EOS
+  end
+
+  # THE SERVICE BLOCK, ADDED 2026-09-05 (dc) BECAUSE ITS OWN STATED PRECONDITION
+  # WAS MET. This comment read: no start verb and no log path, so any block here
+  # would be a guess at an interface that does not exist. Both halves are now
+  # false and were driven on the delivered pair rather than inferred --
+  # `intent daemon start|stop|status|run` all answer, start is idempotent and
+  # reports its pid, and the log path exists and is being written.
+  #
+  # IT RUNS `intentd` DIRECTLY RATHER THAN `intent daemon run`, on the daemon's
+  # own words: main.rs says serving is what this binary does with NO arguments,
+  # and that `intent daemon run` EXECS this binary. Going through the CLI would
+  # add a process for launchd to supervise in front of the one that matters, and
+  # supervise the wrong one if the exec ever became a spawn.
+  #
+  # THE LOG PATHS ARE BREW'S, NOT THE DAEMON'S, AND THAT IS NOT A DUPLICATE.
+  # intentd writes its own structured log under the user's state dir; these
+  # capture stdout and stderr, both into one brew log, where main.rs puts the
+  # warnings a supervised process would otherwise drop on the floor. The brew log
+  # and the daemon's log are different files with different subjects. On Linux
+  # `brew services` runs it under systemd's user manager, which no run has
+  # proven yet.
+  service do
+    run [opt_bin/"intentd"]
+    keep_alive true
+    log_path var/"log/intentd.log"
+    error_log_path var/"log/intentd.log"
+  end
+
+  test do
+    assert_match version.to_s, shell_output("#{bin}/intent --version")
+  end
+end
+FORMULA
+}
+
+# brew_formula <version> <revision> <from> <dev> -- IMPURE. Formula/intent.rb on
+# stdout, every sha256 read from the bytes at <from>, which is the release's
+# download URL for <version> when <from> is empty. A release formula needs all
+# five assets: when any is not there the return is 3, every missing asset having
+# been named with its URL on stderr, and nothing is rendered. With <dev> 1 it
+# renders the platforms whose assets are all there and names the others.
+#
+# WITH THE RELEASE'S OWN BASE, each macOS hash must equal the one SHA256SUMS.txt
+# records, when that file is staged: `checksum` writes it only for artefacts it
+# has proven signed and notarised, so a formula cannot describe macOS bytes that
+# proof did not cover.
+#
+# WRITTEN WITHOUT LEANING ON errexit, because its callers capture it, and
+# `x="$(f)" || rc=$?` runs f as a condition: bash suspends `set -e` inside that
+# substitution too, so a step that relied on it would carry on after failing.
+# Every step here checks its own status.
+brew_formula() {
+  local version="$1" revision="$2" from="$3" dev="$4" base tmp rc=0 a t got want staged assets
+  require_tool curl
+  if [ -z "$from" ]; then
+    base=release
+    from="https://github.com/$REPO/releases/download/v$version"
+  else
+    base="$from"
+  fi
+  tmp="$(mktemp -d)" || die "could not make a directory to fetch the assets into"
+  assets="$(brew_macos_assets)"
+  for t in $LINUX_TRIPLES; do
+    assets="$assets $(brew_linux_asset "$t")"
+  done
+  # shellcheck disable=SC2086 # asset names are space-free and split on purpose
+  brew_fetch "$from" "$tmp" $assets >"$tmp/fetched.sums" 2>"$tmp/missing" || rc=$?
+  case "$rc" in
+    0) ;;
+    3)
+      if [ "$dev" -eq 1 ]; then
+        sed 's/^missing: /not in this dev tap: /' "$tmp/missing" >&2
+      else
+        cat "$tmp/missing" >&2
+        printf '%s: a release formula needs all five assets, and %s of them are not at %s, so no formula is rendered\n' \
+          "$DEVBIN_NAME" "$(grep -c . "$tmp/missing")" "$from" >&2
+        rm -rf "$tmp"
+        return 3
+      fi
+      ;;
+    *)
+      cat "$tmp/missing" >&2
+      rm -rf "$tmp"
+      exit "$rc"
+      ;;
+  esac
+  staged="$STAGE_DIR/SHA256SUMS.txt"
+  if [ "$base" = release ] && [ -f "$staged" ]; then
+    for a in $(brew_macos_assets); do
+      got="$(brew_sum "$tmp/fetched.sums" "$a")"
+      want="$(brew_sum "$staged" "$a")"
+      if [ "$got" != "$want" ]; then
+        rm -rf "$tmp"
+        die "$a at $from hashes to ${got:-nothing}, and $staged records ${want:-nothing}: the release does not serve the bytes checksum proved, so no formula is rendered"
+      fi
+    done
+  fi
+  brew_render_formula "$version" "$revision" "$base" "$tmp/fetched.sums" || {
+    rm -rf "$tmp"
+    exit 1
+  }
+  rm -rf "$tmp"
+}
+
+# brew_push_formula <formula> <version> <how> -- IMPURE. Commit <formula> to the
+# tap as Formula/intent.rb and push it, with <how> saying in the commit what made
+# it. THE ONE PUSH TO THE TAP: `int macos publish` calls it at hv's terminal, and
+# so does `int brew formula --push`, which asks there first.
+brew_push_formula() {
+  local formula="$1" version="$2" how="$3" work
+  require_tool gh "Install it with: brew install gh"
+  gh repo view "$TAP" >/dev/null 2>&1 || die "cannot reach the tap $TAP -- check 'gh auth status'"
+  work="$(mktemp -d)" || die "could not make a directory to clone the tap into"
+  gh repo clone "$TAP" "$work/tap" -- --quiet >/dev/null 2>&1 || {
+    rm -rf "$work"
+    die "could not clone $TAP"
+  }
+  mkdir -p "$work/tap/Formula" || {
+    rm -rf "$work"
+    die "could not make Formula/ in the clone of $TAP"
+  }
+  printf '%s\n' "$formula" >"$work/tap/Formula/intent.rb" || {
+    rm -rf "$work"
+    die "could not write the formula into the clone of $TAP"
+  }
+  git -C "$work/tap" add Formula/intent.rb || {
+    rm -rf "$work"
+    die "could not stage the formula in the clone of $TAP"
+  }
+  git -C "$work/tap" commit -q -m "intent $version
+
+$how
+
+(C) hello@matthewsinclair.com" || {
+    rm -rf "$work"
+    die "nothing to commit -- the formula is unchanged"
+  }
+  git -C "$work/tap" push -q origin HEAD || {
+    rm -rf "$work"
+    die "could not push the formula to $TAP"
+  }
+  rm -rf "$work"
+}
