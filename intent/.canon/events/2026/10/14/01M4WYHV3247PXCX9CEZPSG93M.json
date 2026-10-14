@@ -1,0 +1,15 @@
+{
+  "id": "01M4WYHV3247PXCX9CEZPSG93M",
+  "ts": "2026-10-14T10:15:28.610Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "**ALL OF vc's WORK IS HELD AFTER THIS COMPACT UNTIL hv GIVES THE RESTART** (hv's word, relayed by another estate's session on 2026-10-14): every session localfolds, commits its own and compacts, then runs /in-session and the pickup and holds, and hv gives the restart once every session has. Until then vc writes, runs and orders nothing, kovacs included."
+  }
+}
