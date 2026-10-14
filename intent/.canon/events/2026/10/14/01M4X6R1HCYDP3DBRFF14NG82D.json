@@ -1,0 +1,16 @@
+{
+  "id": "01M4X6R1HCYDP3DBRFF14NG82D",
+  "ts": "2026-10-14T12:38:40.428Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 30,
+    "text": "**THE M2 FIX IS HELD UNTIL hv RULES IT INTO 3.2.4; vc's RECOMMENDATION IS IN IF dc SIZES IT AT S OR LESS. SIZED BY DRIVE ON 2026-10-14 AND SENT TO vc AT 12:38Z; vc FILED (A) AS 0596 AND (B) AS 0597 AT d0a5ff9ae AND PUT BOTH TO hv,** recommending 0596 in and 0597 in with the widening scoped to the v2 info.md of a thread the conversion leaves undeclared and whose content canon holds, which vc takes as ruled if hv rules 0597 in. M2 is the line every first v2 conversion prints just before its ok:, \"the views of undeclared threads were not examined: this project has not been migrated to Intent v3 -- it declares Intent 2.19.0\", which 3.2.2 documented at docs/migrating-from-v2.md:18. DRIVEN on the installed pair 701c4d98b, whose upgrade path is HEAD's, in scratch projects under an isolated HOME: four v2 layouts at 2.19.0 built from upgrade_command.rs's own fixture. (A) THE LINE, XS: it is facade.rs:4565's Err arm. Facade::upgrade opens a facade on the Project discovered before the conversion, whose in-memory config still declares 2.19.0 while config.json on disk already reads 3.2.3, so issue 0316's dehydration of undeclared views never runs on a first conversion. The line is a true report, and on v2's ordinary layout (WIP flat, closed threads in their buckets) it costs nothing: doctor exits 0. Fix: rediscover the Project from its root after stamp_version and before Facade::open (facade.rs:4554); one arm in upgrade_command.rs, red at base; retire the page's sentence. (B) THE REMOVABLE V2 SOURCE a935fd25c named, S: a v2 thread that v3 leaves undeclared at the flat path keeps its v2 info.md at its view path. That is every On Hold thread, since v2 has no hold bucket, and any closed thread v2 never moved into its bucket. The prune's population is the buckets alone (legacy.rs:3656, ST0069 AC-02.3), and organize's gate refuses a file that is not the render, so doctor exits 1 with view-skew on the converted estate and the second upgrade prints a dehydrate refusal before ok:. The fix goes in legacy::leftovers, the one derivation (facade.rs:4483); it widens AC-02.3's ruled population and needs that ruling. BOTH OWE: intentsvcs's and intent-cli's whole suites after cargo build -p intentd, clippy, the page, a 3.2.4 CHANGELOG line and an issue record each; no extra build all, because one is already owed before the push. dc's recommendation to vc: (A) in; (B) in if hv rules AC-02.3's widening, otherwise an issue and a line on the page. It is the only 3.2.4 candidate under native/rust."
+  }
+}
