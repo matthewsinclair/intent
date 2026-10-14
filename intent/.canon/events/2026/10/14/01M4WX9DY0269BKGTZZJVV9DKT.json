@@ -1,0 +1,14 @@
+{
+  "id": "01M4WX9DY0269BKGTZZJVV9DKT",
+  "ts": "2026-10-14T09:53:24.422Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0081/AC-01.1"
+  },
+  "payload": {
+    "text": "A `workflow_dispatch` run, with no tag, builds `intent` and `intentd` for x86_64 and aarch64 Linux packaged with the support payload, and keeps each package as a workflow artifact."
+  }
+}

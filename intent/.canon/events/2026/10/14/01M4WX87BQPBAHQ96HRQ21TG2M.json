@@ -1,0 +1,14 @@
+{
+  "id": "01M4WX87BQPBAHQ96HRQ21TG2M",
+  "ts": "2026-10-14T09:52:44.924Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.descope",
+  "subject": {
+    "type": "ac",
+    "id": "ST0081/AC-03.2"
+  },
+  "payload": {
+    "to": "ST0082"
+  }
+}

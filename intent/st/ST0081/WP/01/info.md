@@ -9,7 +9,7 @@ status: WIP
 
 ## Objective
 
-A workflow builds `intent` and `intentd` for x86_64 Linux, and for aarch64 Linux if that is cheap, statically or against an old glibc floor because the developers' distributions are not known, packages them with the support payload the binaries read at run time, runs the packaged `intent --version` inside a container at that floor, and keeps the package as a workflow artifact. It runs on `workflow_dispatch`, so it is proven before any tag runs it. Its first measurement is whether `intent-support.tar.gz` serves Linux unchanged.
+A workflow builds `intent` and `intentd` for x86_64 and aarch64 Linux, statically or against an old glibc floor because the distributions they will run on are not known, packages them with the support payload the binaries read at run time, runs the packaged `intent --version` inside a container at that floor, and keeps each package as a workflow artifact. It runs on `workflow_dispatch`, so it is proven before any tag runs it. Its first measurement is whether `intent-support.tar.gz` serves Linux unchanged. aarch64 became required on 2026-10-14, because Homebrew on Linux is proven first on hv's aarch64 VM.
 
 ## Acceptance
 

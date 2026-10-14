@@ -8,17 +8,22 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 
 ## DOING
 
-- [-] ST0081: Intent on Windows through WSL: Linux binaries on every release
+- [-] ST0081: Intent from Homebrew on Linux and macOS, with no source checkout: Linux binaries on every release
   - [-] 01: Linux release binaries built by GitHub Actions
   - [ ] 02: Linux assets on each tag's GitHub release, one writer per release object
-  - [ ] 03: Intent's Linux install recipe and the WSL page
-  - [ ] 04: First install on a real Windows machine
+  - [ ] 03: Intent's Linux install through Homebrew, in docs/install.md
+  - [~] 04: First install on a real Windows machine
   - [-] 05: intent daemon start --at-login refuses on Linux before writing anything
+  - [ ] 06: The Homebrew formula installs Intent on Linux
+  - [ ] 07: Intent on Ubuntu from its Linux package, as a user uses it
 
 ## TODO
 
 - [?] ST0060: Add 'intent vault' as a way for intent projects to manage local credentials
 - [?] ST0077: Level 3 stores the references only the toolchain sees, and a roster of the targets it defines
+- [?] ST0082: Intent on Windows through WSL 2: Intent's Linux install inside WSL, no native port
+  - [ ] 01: The WSL page
+  - [ ] 02: First install on a real Windows machine
 
 ## DONE:2026-09-10T00:00:51Z
 

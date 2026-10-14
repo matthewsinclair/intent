@@ -1,0 +1,15 @@
+{
+  "id": "01M4WX6JHDSX8484MTP9C7V5YA",
+  "ts": "2026-10-14T09:51:50.835Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0082/01"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "The WSL page"
+  }
+}

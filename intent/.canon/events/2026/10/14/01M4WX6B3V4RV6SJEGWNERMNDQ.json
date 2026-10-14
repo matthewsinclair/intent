@@ -1,0 +1,15 @@
+{
+  "id": "01M4WX6B3V4RV6SJEGWNERMNDQ",
+  "ts": "2026-10-14T09:51:43.236Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "st.relate",
+  "subject": {
+    "type": "thread",
+    "id": "ST0082"
+  },
+  "payload": {
+    "note": "ST0082 depends on ST0081: Intent is installed inside WSL by the Linux install ST0081 delivers, Homebrew on Linux (hv, 2026-10-14)",
+    "target": "ST0081"
+  }
+}

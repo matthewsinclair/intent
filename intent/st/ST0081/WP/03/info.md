@@ -1,15 +1,15 @@
 ---
 wp_id: WP-03
-title: Intent's Linux install recipe and the WSL page
+title: Intent's Linux install through Homebrew, in docs/install.md
 scope: S
 status: Not Started
 ---
 
-# WP-03: Intent's Linux install recipe and the WSL page
+# WP-03: Intent's Linux install through Homebrew, in docs/install.md
 
 ## Objective
 
-The docs carry Intent's own Linux install from a release (where to unpack it so the install root resolves, then `intent bootstrap` and `intent doctor`) and a WSL page: WSL is Intent's Windows route; keep repos in the WSL filesystem rather than under `/mnt/c`, and why; run Claude Code inside WSL. Every command on both pages is run on Linux from a dispatch run's artifacts before it is written down. Whether devbin also installs Intent is the Devbin project's call; this recipe is needed either way.
+`docs/install.md` carries Intent's Linux install in a bare `## Linux` section, so its anchor is `#linux`: Homebrew on Linux, then `brew install matthewsinclair/intent/intent`, `intent bootstrap` and `intent doctor`, with no checkout of Intent's source tree. It is the install step's one home: ST0082's WSL page links to it and never restates it, and devbin's README points at it. The page's sections on verifying an install and on what an install has to contain read true for the Linux package, by a line or by a pointer. Every command on the page is run on Linux before it is written down: drafted from hv's Ubuntu VM, and run again from the tap once a release carries the Linux packages. Whether devbin also installs Intent is the Devbin project's call; this install is needed either way. The WSL page this package also held moved to ST0082 on 2026-10-14. Its bank also carries this thread's two lines in the release's CHANGELOG section, one for the Linux packages and the Homebrew install on Linux and one for WP-05's `--at-login` refusal (vc under hv's pen, 2026-10-13, carried here 2026-10-14).
 
 ## Acceptance
 

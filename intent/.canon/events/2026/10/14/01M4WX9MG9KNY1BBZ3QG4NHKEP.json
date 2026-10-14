@@ -1,0 +1,15 @@
+{
+  "id": "01M4WX9MG9KNY1BBZ3QG4NHKEP",
+  "ts": "2026-10-14T09:53:31.151Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0081/06"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "The Homebrew formula installs Intent on Linux"
+  }
+}

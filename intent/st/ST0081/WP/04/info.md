@@ -2,7 +2,8 @@
 wp_id: WP-04
 title: First install on a real Windows machine
 scope: XS
-status: Not Started
+status: Cancelled
+status_reason: Moved to ST0082 as its WP-02 on hv's ruling of 2026-10-14: ST0081 became the Homebrew thread and its WSL work became ST0082, which depends on it. AC-04.1 is descoped to ST0082.
 ---
 
 # WP-04: First install on a real Windows machine

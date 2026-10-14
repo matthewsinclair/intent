@@ -1,0 +1,16 @@
+{
+  "id": "01M4WX8KDWTPDBES3Q4B9X4Q4Z",
+  "ts": "2026-10-14T09:52:57.282Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.cancel",
+  "subject": {
+    "type": "wp",
+    "id": "ST0081/04"
+  },
+  "payload": {
+    "from": "not-started",
+    "reason": "Moved to ST0082 as its WP-02 on hv's ruling of 2026-10-14: ST0081 became the Homebrew thread and its WSL work became ST0082, which depends on it. AC-04.1 is descoped to ST0082.",
+    "to": "cancelled"
+  }
+}
