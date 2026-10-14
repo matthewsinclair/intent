@@ -1,0 +1,15 @@
+{
+  "id": "01M4X6VENFSJ25CHKHADV2V1RQ",
+  "ts": "2026-10-14T12:40:32.179Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0597"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "A v2 thread outside the status buckets, eg one On Hold, keeps its v2 info.md after the upgrade: doctor exits 1 on the fresh estate and the next upgrade refuses to dehydrate it"
+  }
+}
