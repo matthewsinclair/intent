@@ -36,7 +36,7 @@ title: Intent from Homebrew on Linux and macOS, with no source checkout: Linux b
 
 - AC-05.1 On Linux, `intent daemon start --at-login` and `intent daemon stop --at-login` refuse before writing anything, naming login enrolment as macOS-only and `intent daemon start` without the flag as the way to run the daemon. -- satisfied: no (computed)
 
-### WP-06 -- The Homebrew formula installs Intent on Linux (status: Not Started)
+### WP-06 -- The Homebrew formula installs Intent on Linux (status: WIP)
 
 - AC-06.1 (non-test) On Linux, `brew install matthewsinclair/intent/intent` installs the release's Linux package for the machine's architecture with no checkout of Intent's source, and the installed `intent --version` names the release. -- satisfied: no
 
@@ -66,7 +66,7 @@ _(no tests in this group)_
 
 - AT-05.1 `native/rust/crates/intent-cli/tests/at_login_is_refused_off_macos.rs` -- covers AC-05.1 -- status: to-write -- Its two arms run off macOS only and are ignored on macOS, where the flag is supported; they are proven on kovacs, hv's Ubuntu VM, and then on Linux CI
 
-### WP-06 -- The Homebrew formula installs Intent on Linux (status: Not Started)
+### WP-06 -- The Homebrew formula installs Intent on Linux (status: WIP)
 
 _(no tests in this group)_
 

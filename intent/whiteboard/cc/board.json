@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "170c139d-4ce7-4ed3-a9ee-3da866f70f09",
-    "heartbeat_at": "2026-10-14T12:51:19.383Z",
+    "heartbeat_at": "2026-10-14T13:35:20.815Z",
     "status": "active",
-    "focus": "0595 BANKED (refs/bank/cc/0595/rust-host-speaks, doing 80), with vc for judgement and landing on vc's word; then WP-06 on its recorded shape; no push, no release",
+    "focus": "0595 landed (c775f61ef, 7ee4fedd5) and open until kovacs's Linux run; ST0081 WP-06 banked at refs/bank/cc/0081/wp06-brew-formula, with vc for judgement; no push, no release",
     "claims": [
       "ST0081",
       "ISSUE:0595"
@@ -1914,10 +1914,19 @@
       "node": "cc",
       "kind": "doing",
       "seq": 80,
-      "text": "0595 LANDED at c775f61ef on vc's judgement (landed patch-id 9dd962b6599e, the bank's; vc verified): shared/rusthost.lib's rust_host is the one reader of rustc -vV's host for cmd/linux and cmd/macos and refuses by name when rustc is absent, fails, or names no host; linux doctor lists rustc among its lacks, taking its triple from uname only when rustc is absent; tests/unit/linux_doctor.bats proves it on a built PATH. 0595 STAYS OPEN for the follow-up vc ordered from the census: staged_version (cmd/macos:1390), whose missing or non-running staged binary ended a release step in silence, is BANKED at refs/bank/cc/0595/staged-version-speaks, blob bd4de018f8ed41f50ed41ad4442d0aea461d62b5, base c775f61ef, patch-id 5f14289d2f16, two arms in macos_release_assets.bats red at the base (127 and 6, no output) and green at the fix, with vc for judgement. releasebuild.lib:166 device_of is unreachable and stays, on vc's word. The green on kovacs waits on hv. Then WP-06 on its recorded shape. NO PUSH, NO RELEASE.",
+      "text": "0595 LANDED at c775f61ef and its staged_version follow-up LANDED at 7ee4fedd5, each on vc's judgement, each landed patch-id the bank's (9dd962b6599e; 5f14289d2f16): shared/rusthost.lib's rust_host is the one reader of rustc -vV's host for cmd/linux and cmd/macos and refuses by name when rustc is absent, fails, or names no host; linux doctor lists rustc among its lacks and takes its triple from uname only when rustc is absent; staged_version refuses by name when the staged binary is missing or does not run, carrying its stderr. releasebuild.lib:166 device_of is unreachable and stays, on vc's word. 0595 STAYS OPEN until kovacs runs tests/unit/linux_doctor.bats on Linux, a light order vc sends once hv's permission rule is in. NO PUSH, NO RELEASE.",
       "state": "live",
       "recorded_at": "2026-10-14T12:51:12.300Z",
-      "edited_at": "2026-10-14T13:00:24.961Z"
+      "edited_at": "2026-10-14T13:34:54.749Z"
+    },
+    {
+      "node": "cc",
+      "kind": "doing",
+      "seq": 81,
+      "text": "ST0081 WP-06 BANKED, WITH vc FOR JUDGEMENT (size M, on vc's yes of 2026-10-14 to cc's five-decision interface, under hv's pen): refs/bank/cc/0081/wp06-brew-formula, blob 7cf44f247fc91d4a4baf394025c0c15ce355ee67, base 8c5645eb9, patch-id fda1d996fa61, 8 files, 1654 insertions and 932 deletions, in tmp/wt-cc-0595. bin/int brew formula and bin/int brew smoke (cmd/brew) replace int macos formula and smoke with no shim; shared/brew.lib renders the formula for both release steps, every sha256 read from the bytes at --from (the release by default, file:// for a dev tap), a release formula refusing every missing asset by name with its URL; publish refuses only its own assets, by name, renders from the release after its round trip, and pushes only a complete formula, else bin/int brew formula --push at a terminal (ask_person, no --yes); --dev-tap renders the complete platforms with a version line and depends_on lines, and --tap writes a brew tap-new tap; smoke's population is in shared/support.lib; releasing.md step 4 carries vc's cut sequence. PROOF: brew_formula.bats 10 arms red at the base (publish on its count refusal, the verb arms on unknown command) and green at the fix; macos_release_assets 21/21; brew style clean on three shapes at a tap path; brew readall --os all --arch all clean, with the 3.0.0 nested url as the control that refused. FINDING routed to vc for hv: Homebrew 7 loads formulae only from trusted taps (brew trust), which this Mac has for matthewsinclair/intent since Sep 22; whether a fresh machine's install needs the step is unmeasured, and it bears on AC-06.1 and WP-03's page. The Linux half is kovacs's. NO PUSH, NO RELEASE.",
+      "state": "live",
+      "recorded_at": "2026-10-14T13:05:44.208Z",
+      "edited_at": "2026-10-14T13:35:05.912Z"
     }
   ],
   "messages": [

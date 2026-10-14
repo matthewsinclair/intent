@@ -1,8 +1,8 @@
 ---
 wp_id: WP-06
 title: The Homebrew formula installs Intent on Linux
-scope: S
-status: Not Started
+scope: M
+status: WIP
 ---
 
 # WP-06: The Homebrew formula installs Intent on Linux

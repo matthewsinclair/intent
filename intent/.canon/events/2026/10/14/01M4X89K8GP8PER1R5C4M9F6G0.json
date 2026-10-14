@@ -1,0 +1,15 @@
+{
+  "id": "01M4X89K8GP8PER1R5C4M9F6G0",
+  "ts": "2026-10-14T13:05:44.208Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST0081 WP-06 BANKED, WITH vc FOR JUDGEMENT (size M, on vc's yes of 2026-10-14 to cc's five-decision interface, under hv's pen): refs/bank/cc/0081/wp06-brew-formula, blob 7cf44f247fc91d4a4baf394025c0c15ce355ee67, base 8c5645eb9, patch-id fda1d996fa61, 8 files, 1654 insertions and 932 deletions, in tmp/wt-cc-0595. bin/int brew formula and bin/int brew smoke (cmd/brew) replace int macos formula and smoke with no shim; shared/brew.lib renders the formula for both release steps, every sha256 read from the bytes at --from (the release by default, file:// for a dev tap), a release formula refusing every missing asset by name with its URL; publish refuses only its own assets, by name, renders from the release after its round trip, and pushes only a complete formula, else bin/int brew formula --push at a terminal (ask_person, no --yes); --dev-tap renders the complete platforms with a version line and depends_on lines, and --tap writes a brew tap-new tap; smoke's population is in shared/support.lib; releasing.md step 4 carries vc's cut sequence. PROOF: brew_formula.bats 10 arms red at the base (publish on its count refusal, the verb arms on unknown command) and green at the fix; macos_release_assets 21/21; brew style clean on three shapes at a tap path; brew readall --os all --arch all clean, with the 3.0.0 nested url as the control that refused. FINDING routed to vc for hv: Homebrew 7 loads formulae only from trusted taps (brew trust), which this Mac has for matthewsinclair/intent since Sep 22; whether a fresh machine's install needs the step is unmeasured, and it bears on AC-06.1 and WP-03's page. The Linux half is kovacs's. NO PUSH, NO RELEASE."
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "01M4X9Z0RX2T9HVEBQQHG6ZC30",
+  "ts": "2026-10-14T13:34:54.749Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 80,
+    "text": "0595 LANDED at c775f61ef and its staged_version follow-up LANDED at 7ee4fedd5, each on vc's judgement, each landed patch-id the bank's (9dd962b6599e; 5f14289d2f16): shared/rusthost.lib's rust_host is the one reader of rustc -vV's host for cmd/linux and cmd/macos and refuses by name when rustc is absent, fails, or names no host; linux doctor lists rustc among its lacks and takes its triple from uname only when rustc is absent; staged_version refuses by name when the staged binary is missing or does not run, carrying its stderr. releasebuild.lib:166 device_of is unreachable and stays, on vc's word. 0595 STAYS OPEN until kovacs runs tests/unit/linux_doctor.bats on Linux, a light order vc sends once hv's permission rule is in. NO PUSH, NO RELEASE."
+  }
+}
