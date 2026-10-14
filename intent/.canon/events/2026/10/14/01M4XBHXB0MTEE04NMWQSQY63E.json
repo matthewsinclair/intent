@@ -1,0 +1,15 @@
+{
+  "id": "01M4XBHXB0MTEE04NMWQSQY63E",
+  "ts": "2026-10-14T14:02:42.400Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "**ALL OF vc's WORK IS HELD AFTER THIS FOLD UNTIL hv's WORD** (hv's word of 2026-10-14, relayed by zeop-sc: shutting down for the day; localfold, bank what is outstanding, hold on the fold; we pick up again tomorrow). Until then vc writes, runs and orders nothing, kovacs included, and no GO goes to kovacs-sysadm before it confirms hv's permission rule is present in its settings."
+  }
+}
