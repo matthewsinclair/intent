@@ -1,0 +1,16 @@
+{
+  "id": "01M4WYFDF9521PQS8P8C1AYNQW",
+  "ts": "2026-10-14T10:14:09.129Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 30,
+    "text": "**THE M2 FIX IS HELD UNTIL hv RULES IT INTO 3.2.4; vc's RECOMMENDATION IS IN IF dc SIZES IT AT S OR LESS.** M2 is the line a first v2 conversion prints, \"this project has not been migrated to Intent v3\", on the line before its ok:. 3.2.2 shipped it documented as option (b), at docs/migrating-from-v2.md:18, which tells the reader the ok: line is the verdict, and a935fd25c's board diff put \"the removable-v2-source fix\" on the list for the next release. THE SIZING IS UNDER WAY ON vc's ORDER (doing 123), PAUSED FOR hv's COMPACT CYCLE AFTER ITS SOURCE READ AND BEFORE ITS DRIVE. FROM THE SOURCE, NOT YET DRIVEN: the text is Pending's Display (intentsvcs/src/project.rs:1448). Facade::upgrade (intentsvcs/src/facade.rs:4554), once the migration has landed and the v2 tree is pruned, opens a facade on project.clone(), the Project discovered BEFORE the conversion. On dc's reading its in-memory config still declares the v2 version, so project.migration() is Pending, Facade::open refuses Unmigrated, and the Err arm puts \"the views of undeclared threads were not examined: <cause>\" into dehydrate_refused, which upgrade() prints just before ok: (intent-cli/src/render.rs, fn upgrade). IF THE DRIVE BEARS THAT OUT, THE LINE IS NOT SPURIOUS: it truly reports that issue 0316's dehydration of undeclared threads' views never runs on a first conversion, and the page tells the reader to ignore it. That is a different mechanism from the one a935fd25c's name for the fix implies, and the drive decides between them. FIX SHAPE ON dc's READING: rediscover the project from its root once the conversion has landed and before Facade::open; one arm driving a first conversion of a v2 fixture, red at the base on the line and the unexamined dehydration and green with the fix; retire the page's sentence. OWED: intentsvcs's and intent-cli's whole suites and the shell half; no extra build all, because one is already owed before the push. PROVISIONAL SIZE, BEFORE THE DRIVE: S. NEXT: the drive, on the installed pair in a scratch project under a short /tmp HOME, then the size, the mechanism and the owed list to vc for hv's batch. It is the only 3.2.4 candidate under native/rust."
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "01M4WYFET720E186BHEA692V1R",
+  "ts": "2026-10-14T10:14:10.503Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 31,
+    "text": "**LANDING 0591, 0592, 0593 AND 0594 IS HELD UNTIL hv RULES ON 3.2.4's SCOPE, AND THE TRAIN'S ONE JUDGING RUN WAITS ON vc's GO (vc's order of 2026-10-14, stamped 10:00Z, a stamp vc itself marks unverifiable).** The same order released the building and the banking, which this board's DOING carries. vc recommends 0591 to 0594 in, as dc's lane; 0594 is the XS test fix vc filed at d7cd1ea7c. THE TRAIN: one worktree named for a number, holding 0593, then 0592 on top, then 0591, then 0594, with M2 only if hv rules it in (hold 30); one judging run stands for the whole train, and the banks land one at a time on vc's word. THE SEQUENCING against the Linux proof is vc's to set: hv's word of 2026-10-14 made ST0081 the Homebrew thread and moved the WSL work to ST0082 (7d1d2b8d4), and the package still ships intent/plugins/claude (bin/.devbin/cmd/shared/support.lib:76, read 2026-10-14). THE KNOWN-DEFECTS RE-DRIVE stays for the cut: it starts from refs/bank/dc/323/drive.sh (a00da3f2e), diffs every entry against refs/bank/dc/323/drive-3.2.3.log (e469fa33b), and runs only on the pair from the final pre-cut build all."
+  }
+}
