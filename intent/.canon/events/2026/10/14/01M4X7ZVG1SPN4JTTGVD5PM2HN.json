@@ -1,0 +1,16 @@
+{
+  "id": "01M4X7ZVG1SPN4JTTGVD5PM2HN",
+  "ts": "2026-10-14T13:00:24.961Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 80,
+    "text": "0595 LANDED at c775f61ef on vc's judgement (landed patch-id 9dd962b6599e, the bank's; vc verified): shared/rusthost.lib's rust_host is the one reader of rustc -vV's host for cmd/linux and cmd/macos and refuses by name when rustc is absent, fails, or names no host; linux doctor lists rustc among its lacks, taking its triple from uname only when rustc is absent; tests/unit/linux_doctor.bats proves it on a built PATH. 0595 STAYS OPEN for the follow-up vc ordered from the census: staged_version (cmd/macos:1390), whose missing or non-running staged binary ended a release step in silence, is BANKED at refs/bank/cc/0595/staged-version-speaks, blob bd4de018f8ed41f50ed41ad4442d0aea461d62b5, base c775f61ef, patch-id 5f14289d2f16, two arms in macos_release_assets.bats red at the base (127 and 6, no output) and green at the fix, with vc for judgement. releasebuild.lib:166 device_of is unreachable and stays, on vc's word. The green on kovacs waits on hv. Then WP-06 on its recorded shape. NO PUSH, NO RELEASE."
+  }
+}

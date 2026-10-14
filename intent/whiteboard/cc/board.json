@@ -1914,9 +1914,10 @@
       "node": "cc",
       "kind": "doing",
       "seq": 80,
-      "text": "0595 BANKED, WITH vc FOR JUDGEMENT (on hv's restart, relayed by vc): refs/bank/cc/0595/rust-host-speaks, blob 696b34bd33cf9ed4511c9d015aa2de29eff1877b, base d0a5ff9ae, patch-id 9dd962b6599e, sha256 a7ee932cac29, 5 files, 126 insertions and 13 deletions. shared/rusthost.lib (new, registered in MODULES.md first) is the one reader of rustc -vV's host for cmd/linux and cmd/macos, refusing by name when rustc is absent, fails, or names no host; linux doctor takes its triple from uname only when rustc is absent and lists rustc among the lacks. The arm, tests/unit/linux_doctor.bats, runs on a built PATH (the dispatcher's tools, a uname shim saying Linux x86_64, no Rust): red at d0a5ff9ae (127, no output), green at the fix, and green again in a base export with the blob applied. The census found two more sites of the class outside this patch, macos:1402 (rare, silent) and releasebuild.lib:166 (unreachable), routed to vc. It lands on vc's word; the work sits in tmp/wt-cc-0595. Then WP-06, on its recorded shape. NO PUSH, NO RELEASE.",
+      "text": "0595 LANDED at c775f61ef on vc's judgement (landed patch-id 9dd962b6599e, the bank's; vc verified): shared/rusthost.lib's rust_host is the one reader of rustc -vV's host for cmd/linux and cmd/macos and refuses by name when rustc is absent, fails, or names no host; linux doctor lists rustc among its lacks, taking its triple from uname only when rustc is absent; tests/unit/linux_doctor.bats proves it on a built PATH. 0595 STAYS OPEN for the follow-up vc ordered from the census: staged_version (cmd/macos:1390), whose missing or non-running staged binary ended a release step in silence, is BANKED at refs/bank/cc/0595/staged-version-speaks, blob bd4de018f8ed41f50ed41ad4442d0aea461d62b5, base c775f61ef, patch-id 5f14289d2f16, two arms in macos_release_assets.bats red at the base (127 and 6, no output) and green at the fix, with vc for judgement. releasebuild.lib:166 device_of is unreachable and stays, on vc's word. The green on kovacs waits on hv. Then WP-06 on its recorded shape. NO PUSH, NO RELEASE.",
       "state": "live",
-      "recorded_at": "2026-10-14T12:51:12.300Z"
+      "recorded_at": "2026-10-14T12:51:12.300Z",
+      "edited_at": "2026-10-14T13:00:24.961Z"
     }
   ],
   "messages": [
