@@ -1,0 +1,15 @@
+{
+  "id": "01M4X7EZSCZWEDRCTATD222N3Z",
+  "ts": "2026-10-14T12:51:12.300Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "0595 BANKED, WITH vc FOR JUDGEMENT (on hv's restart, relayed by vc): refs/bank/cc/0595/rust-host-speaks, blob 696b34bd33cf9ed4511c9d015aa2de29eff1877b, base d0a5ff9ae, patch-id 9dd962b6599e, sha256 a7ee932cac29, 5 files, 126 insertions and 13 deletions. shared/rusthost.lib (new, registered in MODULES.md first) is the one reader of rustc -vV's host for cmd/linux and cmd/macos, refusing by name when rustc is absent, fails, or names no host; linux doctor takes its triple from uname only when rustc is absent and lists rustc among the lacks. The arm, tests/unit/linux_doctor.bats, runs on a built PATH (the dispatcher's tools, a uname shim saying Linux x86_64, no Rust): red at d0a5ff9ae (127, no output), green at the fix, and green again in a base export with the blob applied. The census found two more sites of the class outside this patch, macos:1402 (rare, silent) and releasebuild.lib:166 (unreachable), routed to vc. It lands on vc's word; the work sits in tmp/wt-cc-0595. Then WP-06, on its recorded shape. NO PUSH, NO RELEASE."
+  }
+}

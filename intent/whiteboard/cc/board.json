@@ -5,11 +5,12 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "170c139d-4ce7-4ed3-a9ee-3da866f70f09",
-    "heartbeat_at": "2026-10-14T10:12:12.685Z",
+    "heartbeat_at": "2026-10-14T12:51:19.383Z",
     "status": "active",
-    "focus": "LOCALFOLDED 2026-10-14 for hv's compact cycle: holding (hold 30) until hv gives the restart, then 0595 (doing 79's last part); ST0081 is the Homebrew thread, and vc's orders (a) and (b) are done and with vc",
+    "focus": "0595 BANKED (refs/bank/cc/0595/rust-host-speaks, doing 80), with vc for judgement and landing on vc's word; then WP-06 on its recorded shape; no push, no release",
     "claims": [
-      "ST0081"
+      "ST0081",
+      "ISSUE:0595"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -1905,8 +1906,17 @@
       "kind": "hold",
       "seq": 30,
       "text": "**ALL OF cc's WORK, 0595 INCLUDED, IS HELD UNTIL hv GIVES THE RESTART after the estate-wide localfold and compact cycle (hv's word of 2026-10-14, relayed by another estate's session and by vc).** The cycle: every node localfolds and commits its own, hv compacts each session, then /in-session and the pickup, then this hold until hv gives the restart once every session has folded and compacted. When the restart reaches cc, from hv in cc's session or relayed by vc, archive this hold and start 0595 (doing 79's last part).",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-14T12:32:42.451Z",
       "recorded_at": "2026-10-14T10:12:07.119Z"
+    },
+    {
+      "node": "cc",
+      "kind": "doing",
+      "seq": 80,
+      "text": "0595 BANKED, WITH vc FOR JUDGEMENT (on hv's restart, relayed by vc): refs/bank/cc/0595/rust-host-speaks, blob 696b34bd33cf9ed4511c9d015aa2de29eff1877b, base d0a5ff9ae, patch-id 9dd962b6599e, sha256 a7ee932cac29, 5 files, 126 insertions and 13 deletions. shared/rusthost.lib (new, registered in MODULES.md first) is the one reader of rustc -vV's host for cmd/linux and cmd/macos, refusing by name when rustc is absent, fails, or names no host; linux doctor takes its triple from uname only when rustc is absent and lists rustc among the lacks. The arm, tests/unit/linux_doctor.bats, runs on a built PATH (the dispatcher's tools, a uname shim saying Linux x86_64, no Rust): red at d0a5ff9ae (127, no output), green at the fix, and green again in a base export with the blob applied. The census found two more sites of the class outside this patch, macos:1402 (rare, silent) and releasebuild.lib:166 (unreachable), routed to vc. It lands on vc's word; the work sits in tmp/wt-cc-0595. Then WP-06, on its recorded shape. NO PUSH, NO RELEASE.",
+      "state": "live",
+      "recorded_at": "2026-10-14T12:51:12.300Z"
     }
   ],
   "messages": [
