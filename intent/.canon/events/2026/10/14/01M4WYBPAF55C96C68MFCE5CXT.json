@@ -1,0 +1,15 @@
+{
+  "id": "01M4WYBPAF55C96C68MFCE5CXT",
+  "ts": "2026-10-14T10:12:07.119Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "**ALL OF cc's WORK, 0595 INCLUDED, IS HELD UNTIL hv GIVES THE RESTART after the estate-wide localfold and compact cycle (hv's word of 2026-10-14, relayed by another estate's session and by vc).** The cycle: every node localfolds and commits its own, hv compacts each session, then /in-session and the pickup, then this hold until hv gives the restart once every session has folded and compacted. When the restart reaches cc, from hv in cc's session or relayed by vc, archive this hold and start 0595 (doing 79's last part)."
+  }
+}

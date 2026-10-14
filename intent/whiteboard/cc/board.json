@@ -4,10 +4,10 @@
     "moniker": "cc",
     "name": "Control Claude",
     "role": "control",
-    "session_id": "7e123f3a-d490-465a-a475-bff3f68353b6",
-    "heartbeat_at": "2026-10-13T08:51:43.547Z",
+    "session_id": "170c139d-4ce7-4ed3-a9ee-3da866f70f09",
+    "heartbeat_at": "2026-10-14T10:12:12.685Z",
     "status": "active",
-    "focus": "LOCALFOLDED 2026-10-13 for hv's demo: holding (hold 29) until vc relays the demo is over; resume is doing 78 (the WP-03 objective write, then the kovacs proof on vc's GO after dc's lane), then todo 40",
+    "focus": "LOCALFOLDED 2026-10-14 for hv's compact cycle: holding (hold 30) until hv gives the restart, then 0595 (doing 79's last part); ST0081 is the Homebrew thread, and vc's orders (a) and (b) are done and with vc",
     "claims": [
       "ST0081"
     ],
@@ -1859,7 +1859,8 @@
       "kind": "doing",
       "seq": 78,
       "text": "ST0081 (Intent on Windows through WSL) IS cc's, on vc's order of 2026-10-12 from hv's rulings: 3.2.4 is ONE release, cut only once the work runs on main's HEAD. HELD BY THE DEMO HOLD until vc relays that hv's demo of 2026-10-13 is over. LANDED 2026-10-12: the 3.2.4 CHANGELOG section at 21f72c2b9; WP-01 at 86e4b0f7d (bin/int linux doctor|build|package|smoke, the dispatch-only linux-release workflow, SUPPORT_PATHS in cmd/shared/support.lib); WP-05 at 1c21a04ff (start and stop with --at-login refuse off macOS before writing anything); AT-05.1 recorded at 188a42fe1, still to-write (watch-out 58); the clippy 0.1.99 fix at ee47b0e37. MEASURED AT BOOT, 2026-10-13 07:00Z to 07:03Z by cc's clock: main 3ea997c93; the installed pair 701c4d98b lacks only ee47b0e37 and 1c21a04ff under DIRT_SCOPE, which vc's `bin/devbin build all` right before hv's push covers; `intent ac gate ST0081` BLOCKED 0/7; no worktree and no unlanded bank (refs/bank/cc/0081/wp01 and wp05 are spent and kept, watch-out 57). vc's RULINGS OF 2026-10-13 under hv's pen, live channel, carried here: (a) cc RUNS the kovacs proof and vc JUDGES it: vc books the slot in the box queue, takes the census at both ends and judges from cc's logs. (b) THE GO COMES AFTER dc's LANE: SUPPORT_PATHS (support.lib:76) ships intent/plugins/claude, and 0591, 0592 and 0593 are skills under it, so they, and M2 if hv scopes it in, land first and the proof runs ONCE, on the tree that gets pushed. (c) kovacs proves bin/int linux on aarch64 and AT-05.1; it does NOT satisfy AC-01.1 or AC-01.2, which name the workflow_dispatch run (x86_64, the kept artifact, smoke in the floor container) that follows hv's push. NEXT, in order, once the demo hold lifts: (0) the `intent set` on WP-03's objective (todo 40), before WP-03 starts. (1) THE KOVACS PROOF on vc's GO, once hv says the VM is ready; vc carries the VM-readiness and Rosetta questions to hv, and an answer hv gives in cc's session is relayed to vc verbatim and not acted on. A git bundle of main, never a push; clone into the VM's own filesystem; `bin/int linux doctor`, `build --jobs 1`, `package` and `smoke`, each logged with its rc, and `file` on both binaries. For AT-05.1, apply the test half of 1c21a04ff ALONE (the test file and its suite.rs line) to 8c51de484 and run its two arms (expect red, and read that the red is the refusal assertion rather than a build or environment failure), then run them at the HEAD that gets pushed (expect green), then `intent at green ST0081 AT-05.1` citing both runs, on vc's word. NAME judging checkouts after a number, never a tool, because issue 0594 reds armed_tool_preconditions.bats in a path that names one. (2) WP-03 (todo 40). WP-02 waits on hv's D55; WP-04 is hv's to arrange. NO PUSH, NO RELEASE.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-14T10:12:05.261Z",
       "recorded_at": "2026-10-12T06:44:51.766Z",
       "edited_at": "2026-10-13T08:51:34.888Z"
     },
@@ -1868,7 +1869,8 @@
       "kind": "todo",
       "seq": 40,
       "text": "ST0081 WP-03, after the kovacs run, on vc's yes of 2026-10-12 to interface (1), which vc relayed to devbin-vc. The install step's ONE home is a bare `## Linux` section in docs/install.md, so the anchor stays #linux; the WSL specifics go in a new top-level docs/windows-wsl.md, which links to install.md#linux and never restates it. vc's three asks: (a) link docs/windows-wsl.md from docs/index.md; (b) every command on both pages comes from the VM's run of the package; (c) install.md's \"Verifying an install\" and \"What the install has to contain\" read true for the Linux package, by a line or by a pointer. The WSL page names jq and shellcheck beside Intent, because interface (2) is intent, shellcheck, git and jq. vc's RULINGS OF 2026-10-13 under hv's pen, live channel, carried here: THE VM's RUN GOVERNS THE WRITING, so WP-03 does not wait for the push. Once the demo hold lifts, and before WP-03 starts, `intent set intent:///threads/ST0081/wp/03 objective --from <file>` rewords the objective to say three things: the pages are written from the VM's run of the package; every command on them is re-run against the dispatch run's x86_64 artifact before the tag (where that runs is open: kovacs could run the static musl pair under Rosetta, unmeasured, and vc carries that to hv); and AC-03.1's run, from a release download on a fresh WSL distro, closes it after the tag. THE TWO CHANGELOG LINES GO IN WP-03's BANK: one for the Linux package and the WSL page, one for WP-05's --at-login refusal; vc has both on its pre-cut checklist. CHANGELOG.md is a shared aggregator, and dc's lines for 0591-0594 may land in it, so diff it against HEAD before the git add. cc's plan, to put to vc with the bank: installing WSL itself cannot be run on kovacs, so the WSL page links Microsoft's docs for that step rather than giving a command.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-14T10:12:04.353Z",
       "recorded_at": "2026-10-12T07:34:32.665Z",
       "edited_at": "2026-10-13T08:51:36.007Z"
     },
@@ -1885,8 +1887,26 @@
       "kind": "hold",
       "seq": 29,
       "text": "**ALL OF cc's WORK, ST0081 INCLUDED, IS HELD UNTIL vc RELAYS THAT hv's DEMO OF 2026-10-13 IS OVER** (hv's word, given in vc's session before vc's clock read of 08:47Z, relayed by vc): NOTHING IS TOUCHED BEFORE THE DEMO -- no code, no build, no VM work, no push, and no record write, the `intent set` on WP-03's objective included. When vc relays that the demo is over, archive this hold and resume doing 78 in its order.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-14T10:12:03.416Z",
       "recorded_at": "2026-10-13T08:51:29.458Z"
+    },
+    {
+      "node": "cc",
+      "kind": "doing",
+      "seq": 79,
+      "text": "RESUME (cc, localfold for hv's estate-wide compact cycle, 2026-10-14). ST0081 IS NOW THE HOMEBREW THREAD (vc's records at 7d1d2b8d4, on hv's word of 2026-10-14): Intent from Homebrew on Linux and macOS with no source checkout, and cc still claims it. ST0082 (Triage) is the WSL thread and depends on it; WP-04 is cancelled into ST0082; WP-06 (the formula installs on Linux, AC-06.1) and WP-07 (Intent on Ubuntu from its package, AC-07.1) are new; WP-03 is the Linux install through Homebrew at docs/install.md#linux, and its objective carries the page layout, vc's asks and the two CHANGELOG lines; AC-01.1 names aarch64 beside x86_64; hv's decision 17 stands for this Mac. THE DEMO IS OVER on vc's relay, so hold 29 and todo 40 are archived. That relay and vc's order went out between vc's clock reads of 09:59Z and 10:06Z; the 10:00Z stamp they carried was not read from a clock (vc's correction) and is unverifiable. kovacs-sysadm, a Claude session on the VM, runs the VM side on orders from vc and devbin-vc, which SUPERSEDES vc's ruling (1) of 2026-10-13: cc does NOT run the kovacs proof. vc's ORDER, read-only: (a) DONE AND BANKED. AT-05.1's test half is `git diff --binary 8c51de484 1c21a04ff --` the test file and suite.rs, on refs/bank/cc/0081/at051-test-half, blob 20712d9d2c1fc888b96e1bd8c797162dc5054811, base 8c51de484, patch-id 3f31071f3bb6, 2 files and 84 insertions, sha256 300357635a3e (vc verified it byte for byte). It applies clean to a `git archive` export of 8c51de484 and compiles there, because the test drives only the binary. The reds to expect at the base, read from source and unrun, are in vc's ORDER 5 word for word: the start arm reds at its LAST assertion (a LaunchAgents tree was written) only once `cargo build -p intentd` has put intentd beside intent in the same target dir, because the base resolves intentd before it writes the plist; the stop arm reds at its FIRST (it exits 0 with \"not enrolled at login\"); at HEAD both refuse before anything else. (b) DONE AND ACCEPTED under hv's pen (vc, all seven points and the recommendation): WP-06's shape, a proposal and not code; its text is wp06-shape.md in cc's session scratchpad, and vc's fold writes it into WP-06's objective because that file dies with the session. The headlines: keep the top-level url and override it in on_linux per arch; the macOS resources and the arm64 dependency move inside on_macos; the Linux branch installs the unpacked package into libexec; every hash comes from the release's own bytes; a dev-tap input lets kovacs prove it before any push; publish's asset-count refusal (cmd/macos:1709) refuses a release that already carries Linux packages, and its release notes say macOS only. (c) STAND BY: defects kovacs finds come to cc as issues, fixed in banks vc judges, and no heavy run without vc's GO. THE FIRST IS 0595 (filed at 65d5db612, ST0081 WP-01, cc's): `bin/int linux doctor` on a host with no Rust exits 127 with no output, because cmd/linux:42 runs `rustc -vV 2>/dev/null | sed` under `set -euo pipefail` and helpers' inherit_errexit, so the pipe's 127 ends host_triple before its die, and doctor calls host_triple before lacks(). Fix the silent 127, and make doctor list every lack rather than dying on host_triple first; how doctor gets an architecture without rustc is cc's call, and host_triple's \"never from uname\" rule is for build and package. Prove it with ONE bats arm (a shim PATH with bash 5 and no rustc), red on the Mac today and green with the fix; bank it and vc judges it. cmd/macos:226 carries the same pipe, and vc's fold adds it to 0595's body, so the fix covers both. The green on kovacs waits for hv. AFTER THE RESTART, IN ORDER (vc): 0595 first, then WP-06 on its recorded shape (the formula writer and smoke move out of cmd/macos to one home both release steps call; every sha256 read from the bytes the release serves; a dev-tap input of base URL plus hashes so kovacs proves the formula from file:// before any push; publish asks for its own assets by name and its notes drop macOS-only, in the same unit; size S). The publish finding goes to hv with D55. NO PUSH, NO RELEASE.",
+      "state": "live",
+      "recorded_at": "2026-10-14T10:12:06.190Z",
+      "edited_at": "2026-10-14T10:12:56.639Z"
+    },
+    {
+      "node": "cc",
+      "kind": "hold",
+      "seq": 30,
+      "text": "**ALL OF cc's WORK, 0595 INCLUDED, IS HELD UNTIL hv GIVES THE RESTART after the estate-wide localfold and compact cycle (hv's word of 2026-10-14, relayed by another estate's session and by vc).** The cycle: every node localfolds and commits its own, hv compacts each session, then /in-session and the pickup, then this hold until hv gives the restart once every session has folded and compacted. When the restart reaches cc, from hv in cc's session or relayed by vc, archive this hold and start 0595 (doing 79's last part).",
+      "state": "live",
+      "recorded_at": "2026-10-14T10:12:07.119Z"
     }
   ],
   "messages": [
