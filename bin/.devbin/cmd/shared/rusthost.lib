@@ -1,0 +1,31 @@
+# shellcheck shell=bash
+#
+# shared/rusthost.lib -- the host triple, as rustc names it. SOURCED, never run:
+# 0644 so the dispatcher's `is_handler` (-f AND -x) cannot mistake it for a
+# command.
+#
+# WHY THIS IS SHARED RATHER THAN COPIED (issue 0595). `cmd/macos` names its
+# artefacts with the triple and `cmd/linux` builds the musl triple for its
+# architecture, and each read `rustc -vV | sed` itself, under `set -euo
+# pipefail` and helpers' `inherit_errexit`. In both, a missing or failing rustc
+# ended the script at the pipe, BEFORE the `die` that named the remedy: `int
+# linux doctor` exited 127 with no output on a host without Rust, because its
+# copy sent rustc's stderr to /dev/null, and `cmd/macos` printed only bash's
+# "command not found". One reader whose every failure speaks is the fix, and a
+# third caller cannot copy the pipe back in.
+
+# rust_host -- IMPURE. The host triple `rustc -vV` names, on one line. Refuses
+# with the remedy when rustc is not on PATH, when it runs and fails (eg rustup
+# with no default toolchain, whose own message names the remedy), and when its
+# output names no host.
+rust_host() {
+  local out host
+  command -v rustc >/dev/null 2>&1 ||
+    die "rustc is not on PATH, so this host has no Rust toolchain: install it through rustup (https://rustup.rs) and run again"
+  out="$(rustc -vV 2>&1)" || die "rustc -vV failed, so no Rust toolchain answers on this host:
+$out"
+  host="$(printf '%s\n' "$out" | sed -n 's/^host: //p')"
+  [ -n "$host" ] || die "rustc -vV names no host:
+$out"
+  printf '%s\n' "$host"
+}

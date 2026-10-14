@@ -32,19 +32,43 @@ trap 'rm -rf "${SMOKE_TMP:-}"' EXIT
 # SUPPORT_PATHS, the tree each package carries beside bin/, from the one home
 # cmd/macos reads for intent-support.tar.gz.
 . "$(dirname "${BASH_SOURCE[0]}")/shared/support.lib"
+# rust_host, the host triple rustc names, refusing with the remedy when rustc
+# names none: the one reader cmd/macos takes its triple from too (issue 0595).
+. "$(dirname "${BASH_SOURCE[0]}")/shared/rusthost.lib"
+
+# refuse_not_linux <host> -- the one refusal for a host that is not Linux.
+refuse_not_linux() {
+  die "bin/int linux builds on Linux and this host is $1: run it on hv's Ubuntu VM, or let .github/workflows/linux-release.yml run it"
+}
 
 # host_triple -- the musl triple for this host's architecture. Taken from
-# `rustc -vV`, as cmd/macos takes its triple, and never from `uname`. A host that
-# is not Linux is refused: these are Linux's binaries, and a cross build is not a
-# route this script offers.
+# rustc's host (rust_host), as cmd/macos takes its triple, and never from
+# `uname`. A host that is not Linux is refused: these are Linux's binaries, and a
+# cross build is not a route this script offers.
 host_triple() {
   local host
-  host="$(rustc -vV 2>/dev/null | sed -n 's/^host: //p')"
-  [ -n "$host" ] || die "rustc -vV names no host, so Rust is not installed here: install it through rustup (https://rustup.rs) and run again"
+  host="$(rust_host)"
   case "$host" in
     *-unknown-linux-gnu | *-unknown-linux-musl) printf '%s-unknown-linux-musl\n' "${host%%-*}" ;;
-    *) die "bin/int linux builds on Linux and this host is $host: run it on hv's Ubuntu VM, or let .github/workflows/linux-release.yml run it" ;;
+    *) refuse_not_linux "$host" ;;
   esac
+}
+
+# doctor_triple -- the triple doctor's remedies name: host_triple's whenever
+# rustc is on PATH. Without rustc there is nothing to ask, and rustc is one of
+# the lacks doctor exists to list (issue 0595: doctor asked host_triple first and
+# exited 127 in silence). So here alone the OS and the architecture come from
+# `uname`, and only for doctor's remedies: build, package and smoke take
+# host_triple's, which is the compiler's.
+doctor_triple() {
+  local os
+  if command -v rustc >/dev/null 2>&1; then
+    host_triple
+    return
+  fi
+  os="$(uname -s)"
+  [ "$os" = Linux ] || refuse_not_linux "$os"
+  printf '%s-unknown-linux-musl\n' "$(uname -m)"
 }
 
 # lacks <triple> -- one line per thing this host lacks to build and package the
@@ -52,7 +76,7 @@ host_triple() {
 # is listed rather than the first, so one install pass readies a fresh machine.
 lacks() {
   local triple="$1" t
-  for t in cargo git tar gzip file; do
+  for t in rustc cargo git tar gzip file; do
     command -v "$t" >/dev/null 2>&1 || printf '%s is not on PATH\n' "$t"
   done
   if ! command -v rustup >/dev/null 2>&1; then
@@ -66,7 +90,7 @@ lacks() {
 
 cmd_doctor() {
   local triple missing
-  triple="$(host_triple)"
+  triple="$(doctor_triple)"
   missing="$(lacks "$triple")"
   if [ -n "$missing" ]; then
     printf '%s\n' "$missing" | sed 's/^/  missing: /' >&2

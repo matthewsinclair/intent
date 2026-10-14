@@ -221,11 +221,12 @@ PROVENANCE_FILE="$ROOT/native/rust/target/dist-provenance.txt"
 
 # The triple comes from `rustc -vV`, never from `uname`: the artefact name is a
 # claim about what the compiler targeted, and only the compiler can answer that.
+# rust_host is the one reader, cmd/linux's too, and it refuses with the remedy
+# where this function's own pipe ended the script before its die could speak
+# (issue 0595).
+. "$(dirname "${BASH_SOURCE[0]}")/shared/rusthost.lib"
 host_triple() {
-  local t
-  t="$(rustc -vV | sed -n 's/^host: //p')"
-  [ -n "$t" ] || die "could not read the host target triple from 'rustc -vV'"
-  printf '%s' "$t"
+  rust_host
 }
 
 # --- credentials -------------------------------------------------------------
