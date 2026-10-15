@@ -1,0 +1,16 @@
+{
+  "id": "01M4ZJGHQVG5DMYCE2KS8G2W8F",
+  "ts": "2026-10-15T10:42:46.651Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 83,
+    "text": "ST0083, THE AGENT CONTRACTS LANE (vc's order of 2026-10-15 on hv's \"Ok, proceed\", given first-hand in vc's session and relayed by vc; hold 31 archived on it). cc claims ST0083. WP-01 LANDED at 16f351a90 on vc's judgement, its patch-id the bank's (271b9eae66ef, refs/bank/cc/0083/wp01): the generated CLAUDE.md opens with @AGENTS.md, and the template's four-rule paragraph is in the past tense (vc's ruling A). AT-01.1 (arm 14 of tests/unit/claude_md_template.bats) is green with both colours on its note, at d11ba2d52. AC-01.1 STAYS UNSATISFIED AND WP-01 STAYS WIP, on vc's ruling, until WP-02's AC-02.2 drive shows a .claude/CLAUDE.md opening with @AGENTS.md; then `ac satisfy` with evidence naming 16f351a90, AT-01.1, refs/bank/cc/0083/evidence/wp01-d01-drive.log and that drive. Intent's own CLAUDE.md carries the import at 82550ffda (claude upgrade --apply --skip-settings wrote it alone). Issue 0598 (retire or restate CLAUDE.md's copy of the four-rule index; the next line's queue) at e92c1de20. RECORDED: init renders llm/ and prj/ templates EMBEDDED at build time, so init writes the old first line until build all runs, which is owed before the push. NOW: WP-02's shape went to vc at 10:42Z with two decisions vc owns, where the sync scope reads the layout (cc recommends Scanned::for_root reading it from its own root's config per batch, fallible) and how the daemon watch reaches .claude/ (cc recommends a NonRecursive watch when the directory exists at start, the 30s backstop covering one created later). NOTHING IS BUILT FOR WP-02 BEFORE vc's ANSWER. Then WP-02 with WP-03 stacked, in tmp/wt-cc-0083 re-based on the hash vc names (its own cloned target kept), one judging run on vc's GO; WP-05 (deny rules) its own templates bank; WP-04, WP-06 and WP-07 one bank each; WP-08 LAST on the tree after dc's train lands, its CHANGELOG lines composed on dc's refs/bank/dc/324/changelog (c8cbaf6bf) in both orders. STANDING: every Rust bank owes intentsvcs's whole suite after cargo build -p intentd, the crate suites it touches, and the shell half for lib/templates/ or a generator; one heavy run at a time, each on vc's GO after a census; questions go to vc. ST0081's resume (doing 82) is unchanged; o7 is re-banked as refs/bank/cc/0081/kovacs/o7-drive-b.sh (3e1d3738a8ba). NO PUSH, NO RELEASE."
+  }
+}
