@@ -32,9 +32,9 @@ title: Intent from Homebrew on Linux and macOS, with no source checkout: Linux b
 
 - AC-04.1 (non-test) On a real Windows machine, Intent installed under WSL from a tagged release by following the docs reports its version, passes `intent doctor`, and creates and lists a thread in a project in the WSL filesystem. -- DESCOPED to ST0082 by hv, 2026-10-14; numbering under vc's pen: The real Windows install moved to ST0082 with WP-04 on hv's ruling of 2026-10-14.
 
-### WP-05 -- intent daemon start --at-login refuses on Linux before writing anything (status: WIP)
+### WP-05 -- intent daemon start --at-login refuses on Linux before writing anything (status: Done)
 
-- AC-05.1 On Linux, `intent daemon start --at-login` and `intent daemon stop --at-login` refuse before writing anything, naming login enrolment as macOS-only and `intent daemon start` without the flag as the way to run the daemon. -- satisfied: no (computed)
+- AC-05.1 On Linux, `intent daemon start --at-login` and `intent daemon stop --at-login` refuse before writing anything, naming login enrolment as macOS-only and `intent daemon start` without the flag as the way to run the daemon. -- satisfied: yes (computed)
 
 ### WP-06 -- The Homebrew formula installs Intent on Linux (status: WIP)
 
@@ -62,9 +62,9 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-05 -- intent daemon start --at-login refuses on Linux before writing anything (status: WIP)
+### WP-05 -- intent daemon start --at-login refuses on Linux before writing anything (status: Done)
 
-- AT-05.1 `native/rust/crates/intent-cli/tests/at_login_is_refused_off_macos.rs` -- covers AC-05.1 -- status: to-write -- Its two arms run off macOS only and are ignored on macOS, where the flag is supported; they are proven on kovacs, hv's Ubuntu VM, and then on Linux CI
+- AT-05.1 `native/rust/crates/intent-cli/tests/at_login_is_refused_off_macos.rs` -- covers AC-05.1 -- status: green -- Its two arms run off macOS only and are ignored on macOS, where the flag is supported; they are proven on kovacs, hv's Ubuntu VM, and then on Linux CI. vc's ORDER 5 on kovacs (hv's Ubuntu 26.04.1 VM, aarch64), script refs/bank/cc/0081/kovacs/o5-at051.sh, quoted from kovacs-sysadm's log as vc relayed it. RED at base 8c51de484 with the test half alone (blob 20712d9d2c1f, fetched and matched): "test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 802 filtered out" -- the start arm panicked at at_login_is_refused_off_macos.rs:53:3, "a LaunchAgents tree was written: error: `launchctl` could not be run", and the stop arm at :69:3, "stop --at-login did not refuse: ok: intentd is not enrolled at login". GREEN at 11017d7bd, where WP-05 landed: "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 802 filtered out"; o5 ended rc=0 at 11:19:12Z by kovacs's clock, its worktree removed and its home clean.
 
 ### WP-06 -- The Homebrew formula installs Intent on Linux (status: WIP)
 

@@ -13,7 +13,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [ ] 02: Linux assets on each tag's GitHub release, one writer per release object
   - [ ] 03: Intent's Linux install through Homebrew, in docs/install.md
   - [~] 04: First install on a real Windows machine
-  - [-] 05: intent daemon start --at-login refuses on Linux before writing anything
+  - [x] 05: intent daemon start --at-login refuses on Linux before writing anything
   - [-] 06: The Homebrew formula installs Intent on Linux
   - [ ] 07: Intent on Ubuntu from its Linux package, as a user uses it
 - [-] ST0083: Agent contracts at the root or in .claude/, chosen per project, and CLAUDE.md imports AGENTS.md

@@ -62,7 +62,7 @@ kovacs as measured 2026-10-14 by kovacs-sysadm, read-only: Ubuntu 26.04.1 LTS on
 | WP-02 | Linux assets on each tag's GitHub release, one writer per release object | S    | Not Started |
 | WP-03 | Intent's Linux install through Homebrew, in docs/install.md              | S    | Not Started |
 | WP-04 | First install on a real Windows machine                                  | XS   | Cancelled   |
-| WP-05 | intent daemon start --at-login refuses on Linux before writing anything  | XS   | WIP         |
+| WP-05 | intent daemon start --at-login refuses on Linux before writing anything  | XS   | Done        |
 | WP-06 | The Homebrew formula installs Intent on Linux                            | M    | WIP         |
 | WP-07 | Intent on Ubuntu from its Linux package, as a user uses it               | S    | Not Started |
 

@@ -51,7 +51,7 @@
       "seq": 5,
       "title": "intent daemon start --at-login refuses on Linux before writing anything",
       "scope": "XS",
-      "status": "wip",
+      "status": "done",
       "objective": "On a machine without launchd, `intent daemon start --at-login` refuses before it writes anything, so no `~/Library/LaunchAgents/` plist appears on Linux, and its remedy names `intent daemon start` without the flag as the way to run the daemon. `intent daemon stop --at-login` refuses the same way. Today `daemon_start` in `intent-cli/src/render.rs` writes the plist through `launchagent::write_plist` and only then fails at `launchctl`, whose `NoLaunchctl` remedy in `intentsvcs/src/launchagent.rs` already says the right thing; the refusal moves ahead of the write. Linux CI runs the test that proves it.",
       "body": "",
       "preamble": ""
@@ -81,7 +81,8 @@
       "text": "A `workflow_dispatch` run, with no tag, builds `intent` and `intentd` for x86_64 and aarch64 Linux packaged with the support payload, and keeps each package as a workflow artifact.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "unsatisfied",
+        "note": "Evidence so far, not a satisfy (vc, 2026-10-15): ORDER 3 on kovacs built, packaged and smoked aarch64 Linux through bin/int linux at 11017d7bd, package sha256 f289e5f170a05ae134375afdb18d1f48c9215cbf1535db14cf962d70436cd28d. The workflow_dispatch run this criterion names has not run, because nothing is pushed."
       }
     },
     {
@@ -89,7 +90,8 @@
       "text": "The same run executes the packaged `intent --version` inside a container of the oldest Linux distribution the workflow names as its floor, and that step fails the run when the binary does not start.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "unsatisfied",
+        "note": "Evidence so far, not a satisfy (vc, 2026-10-15): ORDER 3's smoke on kovacs ran the packaged intent natively on Ubuntu 26.04.1 at 11017d7bd (package sha256 f289e5f170a05ae134375afdb18d1f48c9215cbf1535db14cf962d70436cd28d). The floor-container step this criterion names is the dispatch run's, which has not run."
       }
     },
     {
@@ -174,8 +176,8 @@
       "covers": [
         "AC-05.1"
       ],
-      "status": "to-write",
-      "note": "Its two arms run off macOS only and are ignored on macOS, where the flag is supported; they are proven on kovacs, hv's Ubuntu VM, and then on Linux CI"
+      "status": "green",
+      "note": "Its two arms run off macOS only and are ignored on macOS, where the flag is supported; they are proven on kovacs, hv's Ubuntu VM, and then on Linux CI. vc's ORDER 5 on kovacs (hv's Ubuntu 26.04.1 VM, aarch64), script refs/bank/cc/0081/kovacs/o5-at051.sh, quoted from kovacs-sysadm's log as vc relayed it. RED at base 8c51de484 with the test half alone (blob 20712d9d2c1f, fetched and matched): \"test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 802 filtered out\" -- the start arm panicked at at_login_is_refused_off_macos.rs:53:3, \"a LaunchAgents tree was written: error: `launchctl` could not be run\", and the stop arm at :69:3, \"stop --at-login did not refuse: ok: intentd is not enrolled at login\". GREEN at 11017d7bd, where WP-05 landed: \"test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 802 filtered out\"; o5 ended rc=0 at 11:19:12Z by kovacs's clock, its worktree removed and its home clean."
     }
   ]
 }

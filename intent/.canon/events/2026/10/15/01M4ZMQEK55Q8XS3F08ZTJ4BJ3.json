@@ -1,0 +1,14 @@
+{
+  "id": "01M4ZMQEK55Q8XS3F08ZTJ4BJ3",
+  "ts": "2026-10-15T11:21:29.960Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0081/AC-01.2"
+  },
+  "payload": {
+    "note": "Evidence so far, not a satisfy (vc, 2026-10-15): ORDER 3's smoke on kovacs ran the packaged intent natively on Ubuntu 26.04.1 at 11017d7bd (package sha256 f289e5f170a05ae134375afdb18d1f48c9215cbf1535db14cf962d70436cd28d). The floor-container step this criterion names is the dispatch run's, which has not run."
+  }
+}
