@@ -38,7 +38,7 @@
 //! language-conditional blocks have real tests instead of one test of whatever
 //! tree the suite happens to run in.
 
-use crate::project::Config;
+use crate::project::{Config, Contracts};
 use crate::views::{RenderContext, View};
 use std::path::{Path, PathBuf};
 
@@ -242,9 +242,9 @@ pub fn render(
 
 /// Render every root file, in [`crate::sync::ROOT_FILES`] order.
 ///
-/// The `View`'s path is project-relative and bare -- these files live at the
-/// root by definition, which is the whole reason `sync` names them separately
-/// from its walk of `intent/`.
+/// The `View`'s path is project-relative: the contracts where the `contracts` key
+/// places them and `usage-rules.md` at the root (ST0083), which is why `sync`
+/// names them separately from its walk of `intent/`.
 pub fn render_all(
   home: &Path,
   cfg: &Config,
@@ -253,7 +253,7 @@ pub fn render_all(
   let mut out = Vec::with_capacity(crate::sync::ROOT_FILES.len());
   for name in crate::sync::ROOT_FILES {
     out.push(View {
-      path: PathBuf::from(name),
+      path: crate::sync::root_file_path(name, cfg.contracts),
       content: render(home, name, cfg, ctx)?,
     });
   }
@@ -288,7 +288,7 @@ pub fn sync(
   ctx: &RenderContext<'_>,
 ) -> Result<PathBuf, RootFileError> {
   let content = render(home, name, cfg, ctx)?;
-  let path = root.join(name);
+  let path = root.join(crate::sync::root_file_path(name, cfg.contracts));
   let mut set = crate::write_set::WriteSet::new();
   set.add(path.clone(), content);
   set
@@ -529,7 +529,7 @@ pub const AGENTS_SECTION_FLOOR: [&str; 4] = [
 /// file would be a claim about bytes nobody can read back.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AgentsFileState {
-  /// No `AGENTS.md` at the project root. The one ERROR a missing file earns.
+  /// No `AGENTS.md` where the layout puts it. The one ERROR a missing file earns.
   Missing,
   /// A symlink -- the legacy canon layout. A WARNING: the content may be
   /// fine, but `agents sync` writes real files and this one predates it.
@@ -547,6 +547,9 @@ pub enum AgentsFileState {
 /// cannot count differently.
 #[derive(Debug, Clone)]
 pub struct AgentsValidation {
+  /// Where the check looked, relative to the project root: the root or
+  /// `.claude/`, as the `contracts` key places it (ST0083).
+  pub path: PathBuf,
   pub state: AgentsFileState,
   /// One row per [`AGENTS_SECTION_FLOOR`] entry: the section and whether the
   /// file carries it. Empty unless `state` is `Regular`.
@@ -578,8 +581,9 @@ impl AgentsValidation {
 /// floor section reports absent -- rather than raised: the file's EXISTENCE
 /// was already established, and this check's contract is warnings about
 /// content, not I/O forensics. (v2 behaved the same way.)
-pub fn validate(root: &Path) -> AgentsValidation {
-  let path = root.join("AGENTS.md");
+pub fn validate(root: &Path, contracts: Contracts) -> AgentsValidation {
+  let rel = crate::sync::root_file_path("AGENTS.md", contracts);
+  let path = root.join(&rel);
   let state = match std::fs::symlink_metadata(&path) {
     Err(_) => AgentsFileState::Missing,
     Ok(m) if m.file_type().is_symlink() => AgentsFileState::Symlink,
@@ -596,5 +600,9 @@ pub fn validate(root: &Path) -> AgentsValidation {
     }
     _ => Vec::new(),
   };
-  AgentsValidation { state, sections }
+  AgentsValidation {
+    path: rel,
+    state,
+    sections,
+  }
 }

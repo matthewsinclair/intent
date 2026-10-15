@@ -25,6 +25,7 @@ use time::OffsetDateTime;
 use time::format_description::well_known::Rfc3339;
 
 use crate::finding::{Finding, FindingClass};
+use crate::project::{Contracts, Project, ProjectError};
 
 /// Root-level files inside the sync scope. Explicit and reviewed, never a
 /// glob: the scope is "Intent's own artefacts", and a glob over the repo root
@@ -33,7 +34,25 @@ use crate::finding::{Finding, FindingClass};
 /// `.gitignore` is deliberately absent -- migration converges it, but nothing
 /// ingests it, and a file in the index that no reader consumes is a claim the
 /// tool cannot back.
+///
+/// **A NAME, NOT A PLACE (ST0083).** The two agent contracts sit where the
+/// project's `contracts` key puts them, and `usage-rules.md` sits at the root in
+/// both layouts; [`root_file_path`] is where each one is.
 pub const ROOT_FILES: &[&str] = &["AGENTS.md", "CLAUDE.md", "usage-rules.md"];
+
+/// Where a root file sits, relative to the project root: `AGENTS.md` and
+/// `CLAUDE.md` in the directory [`Contracts::dir`] names, anything else at the
+/// root itself.
+///
+/// The relative form is [`Contracts::dir`] asked about an empty root, so the
+/// one answer to where the contracts live stays the only one.
+pub fn root_file_path(name: &str, contracts: Contracts) -> PathBuf {
+  if matches!(name, "AGENTS.md" | "CLAUDE.md") {
+    contracts.dir(Path::new("")).join(name)
+  } else {
+    PathBuf::from(name)
+  }
+}
 
 /// Paths under `intent/` that the scan does not walk.
 ///
@@ -451,12 +470,19 @@ pub enum SyncError {
   },
   #[error("formatting a timestamp: {0}")]
   Time(#[from] time::error::Format),
+  /// The project's config could not be read, so the scope cannot say where the
+  /// agent contracts live (ST0083). It surfaces rather than assuming `root`: a
+  /// `dotclaude` project scoped as `root` would stop ingesting its contracts
+  /// with nothing to say so.
+  #[error(transparent)]
+  Project(#[from] ProjectError),
 }
 
 impl crate::remedy::Remedy for SyncError {
   fn remedy(&self) -> String {
     match self {
       Self::Io { path, .. } => format!("check that {path} is readable and that its directory is writable"),
+      Self::Project(e) => e.remedy(),
       // Deliberately not an operator action: the format string is compiled in,
       // so a failure here is ours. A remedy telling someone to check their
       // input for a fault in our binary is the misdirection AC-04.4 exists to
@@ -473,6 +499,26 @@ fn io_err(path: &Path, source: io::Error) -> SyncError {
     path: path.display().to_string(),
     source,
   }
+}
+
+/// The layout `root`'s config declares, read where the scope is built (ST0083).
+///
+/// **AN ABSENT CONFIG DECLARES NO LAYOUT, AS AN ABSENT KEY DOES, AND READS AS
+/// `root`.** A config that is there and cannot be read, or that names a third
+/// value, is an error the caller surfaces: scoping a `dotclaude` project as
+/// `root` would stop its contracts being ingested with nothing to say so.
+///
+/// **THE TWO CASES ARE DIFFERENT ON PURPOSE, AND THE ABSENT ONE IS NOT TO BE
+/// TIGHTENED** (vc's ruling, 2026-10-15). A file that is not there declares
+/// nothing, so there is no layout for the scope to get wrong; a file that is
+/// there and unreadable may be declaring `dotclaude`, so guessing `root` for it
+/// is the silent fallback No Silent Errors forbids. Refusing the absent case as
+/// well would buy nothing and break every scope built over a bare directory.
+fn contracts_at(root: &Path) -> Result<Contracts, SyncError> {
+  if !Project::config_path(root).is_file() {
+    return Ok(Contracts::default());
+  }
+  Ok(Project::open(root)?.config().contracts)
 }
 
 /// Scan the project's sync scope, deciding each file's state against the
@@ -509,6 +555,11 @@ pub struct Scanned {
   /// daemon serves N projects at once, which is exactly where two roots are in
   /// scope in one process.
   root: PathBuf,
+  /// The root files' absolute paths, placed by the project's `contracts` key
+  /// (ST0083). **HELD, AND READ BY BOTH [`Scanned::includes`] AND `candidates`**,
+  /// so the predicate and the enumeration cannot disagree about where the
+  /// contracts are -- and a caller cannot pair this root with another layout.
+  root_files: Vec<PathBuf>,
   ignored: Ignored,
 }
 
@@ -518,11 +569,20 @@ impl Scanned {
   /// **NOT CHEAP, AND CALLED ONCE PER BATCH RATHER THAN ONCE PER PATH.**
   /// `Ignored::for_root` runs two walks; the note on that function records
   /// why the domain is narrow and what it cost when it was not.
-  pub fn for_root(root: &Path) -> Scanned {
-    Scanned {
+  ///
+  /// **THE LAYOUT IS READ HERE, FROM THIS ROOT'S OWN CONFIG, EVERY TIME**, so
+  /// the daemon follows a change of the `contracts` key at its next batch with
+  /// nothing cached, and an unreadable config fails the build of the scope.
+  pub fn for_root(root: &Path) -> Result<Scanned, SyncError> {
+    let contracts = contracts_at(root)?;
+    Ok(Scanned {
       root: root.to_path_buf(),
+      root_files: ROOT_FILES
+        .iter()
+        .map(|name| root.join(root_file_path(name, contracts)))
+        .collect(),
       ignored: Ignored::for_root(root),
-    }
+    })
   }
 
   /// Would the walk descend into this directory?
@@ -589,11 +649,9 @@ impl Scanned {
       }
       return true;
     }
-    // Otherwise the only in-scope paths are the root files, by name, at the
-    // root itself -- the same set and the same place `scan` looks.
-    ROOT_FILES
-      .iter()
-      .any(|name| path == self.root.join(name).as_path())
+    // Otherwise the only in-scope paths are the root files, where the layout
+    // puts them -- the same set and the same place `scan` looks.
+    self.root_files.iter().any(|file| path == file.as_path())
   }
 
   /// Is this path in the INDEX's scope -- the gitignore-aware repository?
@@ -715,7 +773,7 @@ pub fn changed_under(
   if !under.exists() {
     return Ok(Vec::new());
   }
-  let scope = Scanned::for_root(root);
+  let scope = Scanned::for_root(root)?;
   let changed = candidates(root, &scope)?
     .into_iter()
     .filter(|path| path.starts_with(under))
@@ -746,10 +804,9 @@ pub fn changed_under(
 /// event arrived through (2026-09-12, dc; vc's ruling is this function).
 fn candidates(root: &Path, scope: &Scanned) -> Result<Vec<PathBuf>, SyncError> {
   let mut paths = Vec::new();
-  for name in ROOT_FILES {
-    let candidate = root.join(name);
-    if candidate.is_file() && scope.keeps(&candidate) {
-      paths.push(candidate);
+  for candidate in &scope.root_files {
+    if candidate.is_file() && scope.keeps(candidate) {
+      paths.push(candidate.clone());
     }
   }
   let intent_dir = root.join("intent");
@@ -823,7 +880,7 @@ pub fn scan(root: &Path, previous: &[FileEntry]) -> Result<Vec<FileEntry>, SyncE
   // `SKIPPED_DIRS` checks would have made the predicate a SECOND statement of
   // scope that happened to agree today -- and a watcher built on a second
   // statement of scope drifts silently in the direction that loops.
-  let scope = Scanned::for_root(root);
+  let scope = Scanned::for_root(root)?;
 
   let paths = candidates(root, &scope)?;
 
@@ -1551,7 +1608,8 @@ mod tests {
     let dir = tempfile::tempdir().expect("tempdir");
     let root = dir.path();
     crate::init::init(root, "scoped", "dc", "3.0.2").expect("init a project");
-    let scope = super::Scanned::for_root(root);
+    let scope =
+      super::Scanned::for_root(root).expect("the scope builds for an initialised project");
 
     assert!(
       !scope.includes(&root.join("intent")),

@@ -215,7 +215,7 @@ fn rows_under(
   canon_dir: &Path,
   max_bytes: u64,
 ) -> Result<Vec<Row>, SyncError> {
-  let scope = Scanned::for_root(root);
+  let scope = Scanned::for_root(root)?;
   let files = match under {
     None => repository_files(root, &scope)?,
     Some(under) => repository_files_under(root, &scope, under)?,
@@ -683,7 +683,7 @@ mod tests {
       super::super::corpus::DEFAULT_MAX_FILE_BYTES,
     )
     .expect("survey");
-    let scope = Scanned::for_root(dir.path());
+    let scope = Scanned::for_root(dir.path()).expect("the scope builds over a root with no config");
 
     for row in &rows {
       assert!(

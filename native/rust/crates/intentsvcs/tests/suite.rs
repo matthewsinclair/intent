@@ -147,6 +147,8 @@ mod close_and_verdict_verbs_enforce_what_they_promise;
 mod close_gate_parity;
 #[path = "contention_wait_is_chosen.rs"]
 mod contention_wait_is_chosen;
+#[path = "contracts_layout.rs"]
+mod contracts_layout;
 #[path = "critic_refuses_an_empty_library.rs"]
 mod critic_refuses_an_empty_library;
 #[path = "daemon_address.rs"]

@@ -309,7 +309,8 @@ fn the_scope_predicate_and_the_walk_cannot_disagree() {
   p.write("intent/noise.log", b"ignored by .gitignore\n"); // gitignore
   p.write("native/rust/src/main.rs", b"fn main() {}\n"); // outside the scope
 
-  let scope = intentsvcs::sync::Scanned::for_root(p.root());
+  let scope = intentsvcs::sync::Scanned::for_root(p.root())
+    .expect("the scope builds for the fixture project");
 
   let scanned: Vec<std::path::PathBuf> = intentsvcs::sync::scan(p.root(), &[])
     .expect("scan")

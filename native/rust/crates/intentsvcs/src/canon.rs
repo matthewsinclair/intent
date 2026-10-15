@@ -50,7 +50,7 @@
 
 use std::path::{Path, PathBuf};
 
-use crate::project::Config;
+use crate::project::{Config, Contracts};
 use crate::views::RenderContext;
 
 /// The chain block's markers -- the spelling v2 ACTUALLY wrote, established by
@@ -707,7 +707,9 @@ pub fn apply(
   //    language-conditional blocks, and a second renderer here would drift from
   //    it the first time a template grew a new block form.
   for name in ["CLAUDE.md", "AGENTS.md"] {
-    let dest = root.join(name);
+    // Where the `contracts` key places them (ST0083): the root or `.claude/`,
+    // and never a root copy under `dotclaude`.
+    let dest = root.join(crate::sync::root_file_path(name, cfg.contracts));
     // **`CLAUDE.md` IS REGENERATED ONLY WITH ITS OWN CONSENT.** A copy carrying
     // no generated footer was authored by a person, and overwriting it to cure
     // variation destroys what the project actually decided -- the cure worse
@@ -734,22 +736,30 @@ pub fn apply(
   }
 
   // 3. User-owned. Seeded when absent, preserved otherwise.
-  seed_if_absent(
-    Template {
-      home,
-      rel: "llm/_usage-rules.md",
-      cfg,
-      ctx,
-    },
-    &root.join("usage-rules.md"),
-    // NOT force-overwritable. `--force`'s own help names `CLAUDE.md`,
-    // `.claude/settings.json` and `.intent_critic.yml` and stops there, and v2
-    // writes this one only when absent. Widening a documented flag past its own
-    // text is how a destructive option grows in the dark.
-    false,
-    opts.report,
-    &mut applied,
-  )?;
+  //
+  // **UNDER `dotclaude` AN ABSENT `usage-rules.md` IS NOT SEEDED** (hv's ruling
+  // 9 on ST0083): the layout exists so a tree's root carries no tooling file
+  // for the people who open it, and a seed there has no reader. One somebody
+  // wrote stays at the root and is reported as preserved, as in `root`.
+  let usage_rules = root.join("usage-rules.md");
+  if cfg.contracts == Contracts::Root || usage_rules.exists() {
+    seed_if_absent(
+      Template {
+        home,
+        rel: "llm/_usage-rules.md",
+        cfg,
+        ctx,
+      },
+      &usage_rules,
+      // NOT force-overwritable. `--force`'s own help names `CLAUDE.md`,
+      // `.claude/settings.json` and `.intent_critic.yml` and stops there, and v2
+      // writes this one only when absent. Widening a documented flag past its own
+      // text is how a destructive option grows in the dark.
+      false,
+      opts.report,
+      &mut applied,
+    )?;
+  }
   seed_if_absent(
     Template {
       home,

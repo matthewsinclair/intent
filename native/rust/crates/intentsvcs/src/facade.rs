@@ -1849,6 +1849,10 @@ pub enum FacadeError {
   // its variants is the store's and says the canon is intact.
   #[error("{}", .0.headline())]
   Ingest(#[from] IngestError),
+  /// The canon scope could not be built, which since ST0083 means the project's
+  /// config could not say where its contracts live.
+  #[error(transparent)]
+  Sync(#[from] crate::sync::SyncError),
   #[error("no export format named `{format}`")]
   NoSuchFormat {
     format: String,
@@ -3018,6 +3022,7 @@ impl crate::remedy::Remedy for FacadeError {
       // The embedder's own remedy, which names the configuration or the
       // endpoint; restating it here would be a second answer to one question.
       Self::Embed(cause) => cause.remedy(),
+      Self::Sync(cause) => cause.remedy(),
       Self::Store(cause) => cause.remedy(),
       // Delegated for the same reason: `organize` knows which of its four
       // refusals happened and this does not.
@@ -5743,7 +5748,7 @@ impl Facade {
   /// The check body lives in [`crate::rootfiles::validate`] -- validating
   /// generated content is a services concern (vc ruling (c), 2026-08-30).
   pub fn agents_validate(&self) -> crate::rootfiles::AgentsValidation {
-    crate::rootfiles::validate(self.project.root())
+    crate::rootfiles::validate(self.project.root(), self.project.config().contracts)
   }
 
   /// `intent agents sync` and `intent agents init` -- write `AGENTS.md` from
@@ -5806,7 +5811,7 @@ impl Facade {
   /// ([`crate::sync::Scanned::includes`]): canon also writes hooks and
   /// settings the index holds no row for.
   fn record_written(&mut self, written: &[std::path::PathBuf]) -> Result<(), FacadeError> {
-    let scope = crate::sync::Scanned::for_root(self.project.root());
+    let scope = crate::sync::Scanned::for_root(self.project.root())?;
     let paths: Vec<std::path::PathBuf> = written
       .iter()
       .filter(|path| scope.includes(path))

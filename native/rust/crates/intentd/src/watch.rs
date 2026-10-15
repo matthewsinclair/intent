@@ -40,6 +40,7 @@ use std::time::Duration;
 use notify_debouncer_full::notify::RecursiveMode;
 use notify_debouncer_full::{DebounceEventResult, Debouncer, NoCache, new_debouncer_opt};
 
+use intentsvcs::remedy::Remedy;
 use intentsvcs::wire::{Event, Response};
 
 use crate::store::ProjectHandle;
@@ -174,7 +175,8 @@ pub fn start(root: &Path, handle: Arc<ProjectHandle>) -> Result<Watch, Response>
     )
   })?;
 
-  // The root at depth one, for `sync::ROOT_FILES`.
+  // The root at depth one, for the root files the scope places there:
+  // `usage-rules.md`, and the contracts under `root` (`sync::root_file_path`).
   debouncer
     .watch(root, RecursiveMode::NonRecursive)
     .map_err(|e| {
@@ -192,6 +194,25 @@ pub fn start(root: &Path, handle: Arc<ProjectHandle>) -> Result<Watch, Response>
         Response::error(
           format!("`{}` could not be watched: {e}", intent_dir.display()),
           "the project's `intent/` directory is not readable, or this process has run out of the descriptors the platform watcher needs. Canon edits will not be ingested until the daemon is restarted.",
+        )
+      })?;
+  }
+
+  // **`.claude/` AT DEPTH ONE, FOR A `dotclaude` PROJECT'S CONTRACTS (ST0083),
+  // AND IN BOTH LAYOUTS.** Membership is the scope's question, read from the
+  // config at every batch, so this registration does not know the layout and a
+  // change of the `contracts` key needs no re-arm; a settings edit here finds
+  // nothing in scope. A `.claude/` made after the daemon started is not
+  // registered until it restarts, and the backstop reconciles it meanwhile,
+  // within one [`BACKSTOP`].
+  let claude_dir = root.join(".claude");
+  if claude_dir.is_dir() {
+    debouncer
+      .watch(&claude_dir, RecursiveMode::NonRecursive)
+      .map_err(|e| {
+        Response::error(
+          format!("`{}` could not be watched: {e}", claude_dir.display()),
+          "the project's `.claude/` directory is not readable, or this process has run out of the descriptors the platform watcher needs. Edits to agent contracts kept there will not be ingested until the daemon is restarted.",
         )
       })?;
   }
@@ -299,7 +320,9 @@ fn start_backstop(
 /// always does), a leaf goes only if the index scope admits it,
 /// and the daemon's own store writes are refused before they cost a round trip.
 fn index_paths_to_refresh(root: &Path, paths: &[&Path]) -> Vec<std::path::PathBuf> {
-  let scope = intentsvcs::sync::Scanned::for_root(root);
+  let Some(scope) = scope_for(root) else {
+    return Vec::new();
+  };
   let mut out: Vec<std::path::PathBuf> = Vec::new();
   for path in paths {
     // **A DIRECTORY OR A VANISHED PATH GOES ONLY WHEN THE SCOPE REACHES IT.**
@@ -318,6 +341,27 @@ fn index_paths_to_refresh(root: &Path, paths: &[&Path]) -> Vec<std::path::PathBu
   out.sort();
   out.dedup();
   out
+}
+
+/// The scope one batch asks, or `None` when it cannot be built.
+///
+/// **REPORTED, NEVER SWALLOWED** (`IN-AG-NO-SILENT-001`). Since ST0083 the scope
+/// reads the project's config to place the agent contracts, so a config this
+/// cannot read leaves no scope to ask: the batch names nothing, and the line
+/// says why, carrying the config's own remedy. The next batch or the backstop
+/// asks again, so a config repaired in the meantime is picked up unprompted.
+fn scope_for(root: &Path) -> Option<intentsvcs::sync::Scanned> {
+  match intentsvcs::sync::Scanned::for_root(root) {
+    Ok(scope) => Some(scope),
+    Err(error) => {
+      elogln!(
+        "warning: intentd: the sync scope for `{}` could not be built, so edits there are not reaching the store: {error}\n  remedy: {}",
+        root.display(),
+        error.remedy()
+      );
+      None
+    }
+  }
 }
 
 /// One debounced batch from the INDEX registration.
@@ -391,7 +435,9 @@ fn files_that_changed(
   paths: &[&Path],
   index: &mut dyn FnMut() -> Vec<intentsvcs::sync::FileEntry>,
 ) -> Vec<std::path::PathBuf> {
-  let scope = intentsvcs::sync::Scanned::for_root(root);
+  let Some(scope) = scope_for(root) else {
+    return Vec::new();
+  };
   let mut recorded: Option<Vec<intentsvcs::sync::FileEntry>> = None;
   let mut changed: Vec<std::path::PathBuf> = Vec::new();
   for path in paths {
@@ -731,6 +777,46 @@ mod tests {
       vec![agents],
       "a root file that changed must still be named"
     );
+  }
+
+  /// **ST0083 AC-02.3, THE DAEMON'S DECISION.** In a `dotclaude` project an
+  /// edit to `.claude/AGENTS.md` is named through the leaf door and the
+  /// directory door alike, exactly as a root copy's edit is in a `root`
+  /// project, and an edit to the root copy `init` left behind names nothing.
+  #[test]
+  fn a_dotclaude_contract_edit_is_named_and_a_root_copy_edit_is_not() {
+    let (dir, _) = project();
+    let root = dir.path();
+    let mut config = intentsvcs::project::Project::open(root)
+      .expect("the fixture opens")
+      .config()
+      .clone();
+    config.contracts = intentsvcs::project::Contracts::Dotclaude;
+    intentsvcs::project::write_config(root, &config).expect("the config writes");
+    let claude_dir = root.join(".claude");
+    std::fs::create_dir_all(&claude_dir).expect("mkdir .claude");
+    for name in ["AGENTS.md", "CLAUDE.md"] {
+      std::fs::copy(root.join(name), claude_dir.join(name)).expect("the contract");
+    }
+    let recorded = intentsvcs::sync::scan(root, &[]).expect("scan the dotclaude project");
+    let agents = claude_dir.join("AGENTS.md");
+    let root_copy = root.join("AGENTS.md");
+    std::fs::write(&agents, "an external edit\n").expect("edit the contract");
+    std::fs::write(&root_copy, "an edit to the root copy\n").expect("edit the root copy");
+
+    let leaves = files_that_changed(root, &[agents.as_path(), root_copy.as_path()], &mut || {
+      recorded.clone()
+    });
+    let under_claude = files_that_changed(root, &[claude_dir.as_path()], &mut || recorded.clone());
+    let under_root = files_that_changed(root, &[root], &mut || recorded.clone());
+
+    assert_eq!(leaves, vec![agents.clone()], "the leaf door");
+    assert_eq!(
+      under_claude,
+      vec![agents.clone()],
+      "the .claude/ directory door"
+    );
+    assert_eq!(under_root, vec![agents], "the root directory door");
   }
 
   /// **WHAT THE INDEX DISPATCH HANDS OVER, WHICH IS NOT THE SAME QUESTION AS

@@ -198,6 +198,37 @@ fn an_external_edit_reaches_the_store_with_nobody_running_sync() {
   let _ = std::fs::remove_dir_all(&root);
 }
 
+/// **ST0083 AC-02.3, THE RUNNING DAEMON'S HALF.** In a `dotclaude` project an
+/// edit to `.claude/AGENTS.md` reaches the store with nobody running a sync, as
+/// a root copy's edit does in a `root` project. The layout is declared and
+/// `.claude/` made before first contact, because first contact is when the
+/// watch registers its directories.
+#[test]
+fn a_dotclaude_contract_edit_reaches_the_store_with_nobody_running_sync() {
+  let daemon = RunningDaemon::start();
+  let root = crate::common::project("Dotclaude");
+  let mut config = intentsvcs::project::Project::open(&root)
+    .expect("the fixture opens")
+    .config()
+    .clone();
+  config.contracts = intentsvcs::project::Contracts::Dotclaude;
+  intentsvcs::project::write_config(&root, &config).expect("the config writes");
+  std::fs::create_dir_all(root.join(".claude")).expect("mkdir .claude");
+  let agents = root.join(".claude/AGENTS.md");
+  std::fs::write(&agents, "# AGENTS.md\n").expect("the contract");
+
+  thread_ids(&daemon, &root);
+  let rest = arm(&daemon, &root);
+
+  std::fs::write(&agents, "# AGENTS.md\n\nan external edit\n").expect("edit the contract");
+
+  until("the daemon ingested the .claude/AGENTS.md edit", || {
+    ingested(&daemon, &root) > rest
+  });
+
+  let _ = std::fs::remove_dir_all(&root);
+}
+
 #[test]
 fn one_external_edit_costs_a_bounded_number_of_ingests() {
   // **THIS ROW MEASURED SOMETHING REAL ON ITS FIRST RUN AND THE FINDING IS

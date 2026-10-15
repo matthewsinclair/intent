@@ -612,6 +612,60 @@ impl EmbedConfig {
   }
 }
 
+/// Where a project's two agent contracts live (ST0083): `root` keeps `AGENTS.md`
+/// and `CLAUDE.md` at the project root, where the agents.md cross-tool spec's
+/// readers open them; `dotclaude` keeps both under `.claude/`, for a tree whose
+/// root is read by people rather than by tools and whose one agent, Claude Code,
+/// reads `.claude/` on its own.
+///
+/// **AN ENUM AND NOT A PATH**: both values are places Claude Code reads
+/// natively, and a free path would admit a place no tool reads. **ABSENT MEANS
+/// `root` AND THE DEFAULT IS NEVER WRITTEN BACK**, for the `index` block's
+/// reason, so no existing `config.json` changes a byte.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Contracts {
+  #[default]
+  Root,
+  Dotclaude,
+}
+
+impl Contracts {
+  /// Is this the default, which a rewrite leaves out of the file?
+  fn is_root(&self) -> bool {
+    *self == Self::Root
+  }
+
+  /// The directory the two contracts live in, under the project root `root`.
+  ///
+  /// **THE ONE ANSWER TO WHERE THE CONTRACTS ARE.** `init`, `agents`, canon,
+  /// the sync scope and through it the daemon's ingest all derive the place
+  /// from this, so no site can put a contract where another site will not look.
+  pub fn dir(self, root: &Path) -> PathBuf {
+    match self {
+      Self::Root => root.to_path_buf(),
+      Self::Dotclaude => root.join(".claude"),
+    }
+  }
+}
+
+/// **A VALUE OTHER THAN THE TWO IS REFUSED BY NAME, WITH THE TWO IT ACCEPTS.**
+/// The derived form's error names neither the key nor a non-string value's
+/// type, so the reader of `{path} is not valid Intent config: ...` could not
+/// tell which line of the file to change or what to change it to.
+impl<'de> Deserialize<'de> for Contracts {
+  fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+    let value = serde_json::Value::deserialize(deserializer)?;
+    match value.as_str() {
+      Some("root") => Ok(Self::Root),
+      Some("dotclaude") => Ok(Self::Dotclaude),
+      _ => Err(serde::de::Error::custom(format!(
+        "`contracts` is {value}, and it accepts \"root\" or \"dotclaude\""
+      ))),
+    }
+  }
+}
+
 /// The per-project config (`intent/.config/config.json`).
 ///
 /// Unknown fields are PERMITTED here, and that is deliberate rather than an
@@ -634,6 +688,10 @@ pub struct Config {
   pub intent_dir: String,
   #[serde(default)]
   pub languages: Vec<String>,
+  /// Where the two agent contracts live (ST0083); absent means `root`, and the
+  /// default is never written back.
+  #[serde(default, skip_serializing_if = "Contracts::is_root")]
+  pub contracts: Contracts,
   /// The `todo` block (D44). Absent in every v2 config, hence the default.
   #[serde(default)]
   pub todo: TodoConfig,
@@ -2558,6 +2616,7 @@ mod tests {
       project_id: None,
       intent_dir: "intent".to_string(),
       languages: vec!["rust".to_string(), "elixir".to_string()],
+      contracts: Contracts::default(),
       todo: TodoConfig::default(),
       backup: BackupConfig::default(),
       embed: EmbedConfig::default(),
@@ -2595,6 +2654,7 @@ mod tests {
       project_id: None,
       intent_dir: "intent".to_string(),
       languages: vec!["rust".to_string(), "shell".to_string(), "rust".to_string()],
+      contracts: Contracts::default(),
       todo: TodoConfig::default(),
       backup: BackupConfig::default(),
       embed: EmbedConfig::default(),

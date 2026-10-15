@@ -13624,6 +13624,20 @@ fn backup(m: &ArgMatches) -> Result<(), Failure> {
   Ok(())
 }
 
+/// Where the `agents` lines say `AGENTS.md` is (ST0083): `project root` under
+/// `root`, the wording v2 printed and the register records as observed, and
+/// the file's own path under `dotclaude`, where "project root" would be false.
+fn agents_at(contracts: intentsvcs::project::Contracts) -> String {
+  match contracts {
+    intentsvcs::project::Contracts::Root => "project root".to_string(),
+    intentsvcs::project::Contracts::Dotclaude => {
+      intentsvcs::sync::root_file_path("AGENTS.md", contracts)
+        .display()
+        .to_string()
+    }
+  }
+}
+
 /// The `agents` family -- the `ROOT_FILES` generator (ST0057 AC-00.4).
 ///
 /// **`generate` is wired and its four siblings are not, and that is a chosen
@@ -13680,7 +13694,10 @@ fn agents(m: &ArgMatches) -> Result<(), Failure> {
       // live below both of us.
       // Issue 0351: the file index learns of the file in the same act.
       f.agents_sync().map_err(fail)?;
-      println!("ok: AGENTS.md updated at project root.");
+      println!(
+        "ok: AGENTS.md updated at {}.",
+        agents_at(f.project().config().contracts)
+      );
       Ok(())
     }
     // **`init` REFUSES OVER AN EXISTING FILE RATHER THAN OVERWRITING, and the
@@ -13691,7 +13708,11 @@ fn agents(m: &ArgMatches) -> Result<(), Failure> {
     // rewrites a file somebody may have edited.
     Some(("init", _)) => {
       let mut f = open()?;
-      let path = f.project().root().join("AGENTS.md");
+      let contracts = f.project().config().contracts;
+      let path = f
+        .project()
+        .root()
+        .join(intentsvcs::sync::root_file_path("AGENTS.md", contracts));
       if path.exists() {
         return Err(Failure::Error(format!(
           "error: AGENTS.md already exists at {}\n  remedy: `intent agents sync` rewrites it from the current project state; `init` refuses rather than discarding a file it did not write",
@@ -13705,7 +13726,7 @@ fn agents(m: &ArgMatches) -> Result<(), Failure> {
       // agreeing by inspection.
       // Issue 0351: the file index learns of the file in the same act.
       f.agents_sync().map_err(fail)?;
-      println!("ok: AGENTS.md created at project root.");
+      println!("ok: AGENTS.md created at {}.", agents_at(contracts));
       Ok(())
     }
     // A well-formedness check, not a currency check -- the section FLOOR and
@@ -13720,15 +13741,16 @@ fn agents(m: &ArgMatches) -> Result<(), Failure> {
       // and the error/warning arithmetic is the report's so they cannot
       // count differently.
       let report = f.agents_validate();
+      let at = agents_at(f.project().config().contracts);
       use intentsvcs::rootfiles::AgentsFileState as S;
       match report.state {
-        S::Missing => println!("error: AGENTS.md not found at project root"),
+        S::Missing => println!("error: AGENTS.md not found at {at}"),
         S::Symlink => println!(
           "warn: AGENTS.md is a symlink (legacy canon). Run `intent agents sync` to replace with a real file."
         ),
         S::NotRegular => println!("error: AGENTS.md exists but is not a regular file"),
         S::Regular => {
-          println!("ok: AGENTS.md found at project root (regular file)");
+          println!("ok: AGENTS.md found at {at} (regular file)");
           for (section, present) in &report.sections {
             if *present {
               println!("ok: has section: {section}");

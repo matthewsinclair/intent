@@ -76,7 +76,7 @@ impl Repo {
   }
 
   fn scope(&self) -> Scanned {
-    Scanned::for_root(self.root())
+    Scanned::for_root(self.root()).expect("the scope builds for the fixture")
   }
 
   /// git's own answer, with the machine's global excludes taken out of it.
@@ -284,7 +284,7 @@ fn a_project_inside_a_wider_repository_is_subject_to_its_rules() {
   outer.write("proj/notes.log", "chatter\n");
   outer.write("proj/src/keep.rs", "fn kept() {}\n");
   let project = outer.root().join("proj");
-  let scope = Scanned::for_root(&project);
+  let scope = Scanned::for_root(&project).expect("the scope builds for the fixture");
 
   assert!(
     !scope.in_repository(&project.join("notes.log")),

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This is the primary tool-agnostic config file for AI coding agents working on this project. Agentic CLIs that follow the AGENTS.md convention (Codex, Cursor, Copilot, Aider, Continue, Cline, Gemini CLI) read it as the canonical project contract. Claude Code does not: it reads `CLAUDE.md`, which points here. Spec: https://agents.md.
+This is the primary tool-agnostic config file for AI coding agents working on this project. Agentic CLIs that follow the AGENTS.md convention (Codex, Cursor, Copilot, Aider, Continue, Cline, Gemini CLI) read it as the canonical project contract. Claude Code reads `CLAUDE.md`, which imports this file with an `@AGENTS.md` line. Spec: https://agents.md.
 
 ## Project Overview
 
@@ -145,7 +145,7 @@ intent st list      # list steel threads
 - Shell scripts: 2-space indentation, POSIX-compliant where practical.
   [[/lang]]
 - Markdown: no manual line wrapping; verblock frontmatter on hand-authored persistent docs such as `intent/wip.md` (generated views such as a thread's `info.md` carry none).
-- See `usage-rules.md` for the terse "DO / NEVER" contract.
+- Where the project keeps one, `usage-rules.md` carries the terse "DO / NEVER" contract.
 - See `intent/docs/working-with-llms.md` in the Intent source repository (https://github.com/matthewsinclair/intent) for the canon tech note on the LLM-facing layout and how hooks + critics + skills compose.
 
 ## Steel Thread + Work Package Process
@@ -192,7 +192,7 @@ Cross-language principles govern all Intent projects. Every language pack concre
 - **Thin Coordinator** (`IN-AG-THIN-COORD-001`) -- coordinators parse to call to render; business logic lives elsewhere.
 - **No Silent Errors** (`IN-AG-NO-SILENT-001`) -- every failure surfaces; rescue-and-swallow is forbidden.
 
-Read any of them with `intent claude rules show <id>`. The terse DO / NEVER contract for this project lives in `usage-rules.md`.
+Read any of them with `intent claude rules show <id>`. The terse DO / NEVER contract for this project lives in `usage-rules.md`, where the project keeps one.
 
 ## Rule Library
 
@@ -251,7 +251,7 @@ In this project:
 
 - `intent/llm/MODULES.md` -- OPTIONAL module registry (Highlander enforcement). To check for prior art, ask the index first: `intent search --kind def <name>` answers whether a thing with that name already exists anywhere in the tree, and the answer carries the index's own freshness. When it says the index is not complete for the paths that matter, fall back to grep. Where the project keeps a registry, `intent modules find <name>` searches that as well. `intent init` does not create a registry, so for most projects the index is the whole answer.
 - `CLAUDE.md` -- Claude-specific overlay.
-- `usage-rules.md` -- DO / NEVER contract for this project (seeded by `intent claude upgrade --apply` when absent; `intent init` does not create it).
+- `usage-rules.md` -- DO / NEVER contract for this project, where it keeps one (seeded by `intent claude upgrade --apply` in the root layout when absent, not seeded in the `.claude/` layout, and never overwritten; `intent init` does not create it).
 
 ---
 

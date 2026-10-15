@@ -66,6 +66,9 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // A refusal from the embedder is about an endpoint or a configuration
     // block, not about a field the caller left out of this call.
     FacadeError::Embed(_)
+    // A scope that cannot be built is about the project's config file (ST0083),
+    // not a field the caller left out.
+    | FacadeError::Sync(_)
     | FacadeError::SqlMoreThanOneStatement
     | FacadeError::SqlNoStatement
     | FacadeError::SqlUnterminated

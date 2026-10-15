@@ -1089,6 +1089,23 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
     .expect_err("a digest the tree does not have is refused");
   out.push(("an apply pinned to a plan the tree moved past", moved));
 
+  // **LAST, BECAUSE IT BREAKS THE FIXTURE'S CONFIG FOR ANYTHING AFTER IT.**
+  // Since ST0083 the sync scope reads the project's config to place the agent
+  // contracts, so a config that goes bad under an open facade refuses the next
+  // write that records what it put on disk, rather than scoping it as `root`.
+  let config = intentsvcs::project::Project::config_path(fx.root());
+  let mut value: serde_json::Value =
+    serde_json::from_str(&std::fs::read_to_string(&config).expect("the fixture's config reads"))
+      .expect("the fixture's config is JSON");
+  value["contracts"] = serde_json::json!("elsewhere");
+  std::fs::write(&config, value.to_string()).expect("the fixture's config writes");
+  out.push((
+    "a config naming a third contracts layout",
+    facade
+      .agents_sync()
+      .expect_err("the scope cannot place the contracts"),
+  ));
+
   out
 }
 
@@ -1171,6 +1188,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::Embed(_) => "Embed",
     FacadeError::Store(_) => "Store",
     FacadeError::Ingest(_) => "Ingest",
+    FacadeError::Sync(_) => "Sync",
     FacadeError::NoSuchFormat { .. } => "NoSuchFormat",
     FacadeError::LossyFormat { .. } => "LossyFormat",
     FacadeError::ExportRoundTripFailed { .. } => "ExportRoundTripFailed",
@@ -1309,6 +1327,7 @@ const ALL_VARIANTS: &[&str] = &[
   "ViewsNotWritten",
   "Store",
   "Ingest",
+  "Sync",
   "NoSuchFormat",
   "LossyFormat",
   "WriteNotAddressable", // PUT to a server-assigned id -- `mutation_create_splits_two_ways.rs`
