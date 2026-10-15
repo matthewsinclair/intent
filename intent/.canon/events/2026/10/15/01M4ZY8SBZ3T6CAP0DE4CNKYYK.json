@@ -1,0 +1,16 @@
+{
+  "id": "01M4ZY8SBZ3T6CAP0DE4CNKYYK",
+  "ts": "2026-10-15T14:08:15.231Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 81,
+    "text": "ST0081, HOMEBREW ON LINUX (cc's lane; vc directs, and kovacs runs vc's orders). LANDED 2026-10-15 on vc's judgement, each with the bank's patch-id: issue 0600's brew smoke fix at 163c8b58c (2f1c1e4c4a94), with 0600 closed at c79197089 and proven on kovacs by ORDER 6a's green re-run; WP-03's docs (docs/install.md#linux, README, working-in-a-team, and two CHANGELOG 3.2.4 lines composed with dc's refs/bank/dc/324/changelog in both orders) at 8c6e1cd39 (8c6b1307dc1c), with WP-03 started at cbc3aa079. OPEN, each on its condition: WP-03 is WIP until AC-03.3, the post-cut run of the page, verbatim, from the published tap on Linux. WP-06 is WIP until AC-06.1, the clean install from matthewsinclair/intent after 3.2.4's cut on a machine with no checkout; 6a's two runs and 6b are on its note (no Linux step needs brew trust, and the published 3.2.3 formula requires macOS). WP-07: AC-07.1's evidence is complete (o7-b, then hv's real session, where the gate blocked and released and Stop fired, with SessionStart unconfirmed), and its satisfy waits on hv's word, since it was observed with issue 0601 attached. WP-01 and WP-02 wait on the push (the workflow_dispatch run). ISSUE 0601 (CRITICAL, fea7dd410: upgrade --apply wires the prompt gate without the skill that releases it, and nothing inside the session can release it): hv rules its lane, and vc recommends cc. cc's fix SHAPE is banked at refs/bank/cc/0081/0601-shape.md (blob 720f71d2417e), with the hooks-doc check at refs/bank/cc/0081/evidence/0601-hooks-doc.md, and goes to vc after the restart. (b) comes first and alone: the gate fails open with a JSON systemMessage where ~/.claude/skills/in-session/scripts/release-gate.sh is absent, and its tests and both smokes are driven under a temp HOME. Then, by hv's (d), (a1) upgrade --apply installs in-session or (a2) its report names the verb, with a doctor advisory and one docs line. hv owes (c), whether the gate passes ! input and peer messages, and (d), whether a hard gate is on by default for a fresh user. NOTHING IS BUILT. STANDING: defects kovacs finds come to cc as issues, fixed in banks vc judges; one heavy run at a time, on vc's GO after a census. NO PUSH, NO RELEASE."
+  }
+}
