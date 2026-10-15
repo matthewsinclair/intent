@@ -2,7 +2,7 @@
 wp_id: WP-02
 title: The contracts key and contracts_dir: every writer, reader, the sync scope and the daemon watch derive the place from it
 scope: M
-status: Not Started
+status: WIP
 ---
 
 # WP-02: The contracts key and contracts_dir: every writer, reader, the sync scope and the daemon watch derive the place from it

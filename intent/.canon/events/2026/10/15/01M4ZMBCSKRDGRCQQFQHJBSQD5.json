@@ -1,0 +1,14 @@
+{
+  "id": "01M4ZMBCSKRDGRCQQFQHJBSQD5",
+  "ts": "2026-10-15T11:14:54.903Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0083/AC-02.1"
+  },
+  "payload": {
+    "evidence": "a85dfbdf0 (ST0083 WP-02, patch-id a2246ee4ecc9, judged on vc's GO); AT-02.1 green (contracts_layout.rs: the key reads root and dotclaude, an absent key reads as root, a third value is refused by name with the two it accepts, and root is never written back)"
+  }
+}

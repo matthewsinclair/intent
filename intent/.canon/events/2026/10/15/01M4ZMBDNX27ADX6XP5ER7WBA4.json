@@ -1,0 +1,14 @@
+{
+  "id": "01M4ZMBDNX27ADX6XP5ER7WBA4",
+  "ts": "2026-10-15T11:14:55.809Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0083/AC-02.3"
+  },
+  "payload": {
+    "evidence": "a85dfbdf0 (ST0083 WP-02, patch-id a2246ee4ecc9); AT-02.1 green (the scope takes the contracts where the key puts them and leaves a copy elsewhere out, in both layouts); AT-02.2 green (the running daemon ingests a .claude/AGENTS.md edit with nobody running sync); AT-02.3 green (the watcher names a .claude/ contract edit through the leaf, .claude/ and root doors and names nothing for a root copy)"
+  }
+}

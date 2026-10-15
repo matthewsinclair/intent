@@ -2,14 +2,14 @@
 wp_id: WP-01
 title: CLAUDE.md imports AGENTS.md: the @AGENTS.md line in _CLAUDE.md
 scope: XS
-status: WIP
+status: Done
 ---
 
 # WP-01: CLAUDE.md imports AGENTS.md: the @AGENTS.md line in _CLAUDE.md
 
 ## Objective
 
-_(not yet written)_
+Every generated `CLAUDE.md` opens with the line `@AGENTS.md`, rendered from `lib/templates/llm/_CLAUDE.md`, so Claude Code loads `AGENTS.md` at launch in either layout: under its default a project with a `CLAUDE.md` never read `AGENTS.md`, and the template carried the pointer as prose the harness ignores. The template's paragraph that justified copying the four-rule index on the ground that `AGENTS.md` was never received moves to the past tense, and the copy and its drift test stay (issue 0598 asks whether to retire them).
 
 ## Acceptance
 

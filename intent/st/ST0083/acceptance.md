@@ -13,15 +13,15 @@ title: Agent contracts at the root or in .claude/, chosen per project, and CLAUD
 
 ## Acceptance Criteria
 
-### WP-01 -- CLAUDE.md imports AGENTS.md: the @AGENTS.md line in _CLAUDE.md (status: WIP)
+### WP-01 -- CLAUDE.md imports AGENTS.md: the @AGENTS.md line in _CLAUDE.md (status: Done)
 
-- AC-01.1 (non-test) The generated CLAUDE.md opens with the line `@AGENTS.md`, rendered from `lib/templates/llm/_CLAUDE.md`, so Claude Code loads AGENTS.md at launch in both layouts; `intent claude upgrade --apply` writes the line into an existing generated CLAUDE.md with its user block carried, and a CLAUDE.md without the generated footer is held as before. -- satisfied: no
+- AC-01.1 (non-test) The generated CLAUDE.md opens with the line `@AGENTS.md`, rendered from `lib/templates/llm/_CLAUDE.md`, so Claude Code loads AGENTS.md at launch in both layouts; `intent claude upgrade --apply` writes the line into an existing generated CLAUDE.md with its user block carried, and a CLAUDE.md without the generated footer is held as before. -- evidence: 16f351a90 (ST0083 WP-01) and AT-01.1 green; root layout: refs/bank/cc/0083/evidence/wp01-d01-drive.log (claude upgrade --apply writes the line with the user block carried, a footerless CLAUDE.md is held); dotclaude layout: refs/bank/cc/0083/evidence/wp01-d01b-dotclaude-drive.log on WP-02's build (.claude/CLAUDE.md opens with @AGENTS.md); Claude Code itself loaded a worktree's AGENTS.md through the import in cc's session of 2026-10-15 -- satisfied: yes
 
-### WP-02 -- The contracts key and contracts_dir: every writer, reader, the sync scope and the daemon watch derive the place from it (status: Not Started)
+### WP-02 -- The contracts key and contracts_dir: every writer, reader, the sync scope and the daemon watch derive the place from it (status: WIP)
 
-- AC-02.1 (non-test) `intent/.config/config.json` accepts `"contracts": "root"` or `"contracts": "dotclaude"`; an absent key reads as `root` and is never written back, and any other value is refused by name with the two values it accepts. -- satisfied: no
+- AC-02.1 (non-test) `intent/.config/config.json` accepts `"contracts": "root"` or `"contracts": "dotclaude"`; an absent key reads as `root` and is never written back, and any other value is refused by name with the two values it accepts. -- evidence: a85dfbdf0 (ST0083 WP-02, patch-id a2246ee4ecc9, judged on vc's GO); AT-02.1 green (contracts_layout.rs: the key reads root and dotclaude, an absent key reads as root, a third value is refused by name with the two it accepts, and root is never written back) -- satisfied: yes
 - AC-02.2 (non-test) Under `dotclaude`, `intent init`, `intent agents init`, `intent agents sync`, `intent agents validate` and `intent claude upgrade --apply` read and write `.claude/AGENTS.md` and `.claude/CLAUDE.md` and never a root copy, and `usage-rules.md` is not seeded; under `root` every one of them behaves as in 3.2.3, and `usage-rules.md` stays at the root in both. -- satisfied: no
-- AC-02.3 (non-test) The sync scope follows the key: in a `dotclaude` project an edit to `.claude/AGENTS.md` or `.claude/CLAUDE.md` is ingested by `intent sync --to-store` and by the running daemon exactly as an edit to the root copy is in a `root` project, and a root copy in a `dotclaude` project is not in scope. -- satisfied: no
+- AC-02.3 (non-test) The sync scope follows the key: in a `dotclaude` project an edit to `.claude/AGENTS.md` or `.claude/CLAUDE.md` is ingested by `intent sync --to-store` and by the running daemon exactly as an edit to the root copy is in a `root` project, and a root copy in a `dotclaude` project is not in scope. -- evidence: a85dfbdf0 (ST0083 WP-02, patch-id a2246ee4ecc9); AT-02.1 green (the scope takes the contracts where the key puts them and leaves a copy elsewhere out, in both layouts); AT-02.2 green (the running daemon ingests a .claude/AGENTS.md edit with nobody running sync); AT-02.3 green (the watcher names a .claude/ contract edit through the leaf, .claude/ and root doors and names nothing for a root copy) -- satisfied: yes
 
 ### WP-03 -- The doors: init --contracts and intent agents layout (status: Not Started)
 
@@ -53,13 +53,15 @@ title: Agent contracts at the root or in .claude/, chosen per project, and CLAUD
 
 ## Acceptance Tests
 
-### WP-01 -- CLAUDE.md imports AGENTS.md: the @AGENTS.md line in _CLAUDE.md (status: WIP)
+### WP-01 -- CLAUDE.md imports AGENTS.md: the @AGENTS.md line in _CLAUDE.md (status: Done)
 
 - AT-01.1 `tests/unit/claude_md_template.bats` -- covers AC-01.1 -- status: green -- Arm 14 of tests/unit/claude_md_template.bats. RED at base bed306a63 on 2026-10-15, on 701c4d98b's binary, whose embedded llm/ templates are byte-identical to the base's: 'the generated CLAUDE.md opens with # ScratchProj, not @AGENTS.md'. GREEN on tmp/wt-cc-0083's own release build in the judging run on vc's GO the same day (bats 781 of 781 ok, ok 78), landed at 16f351a90 with the bank's patch-id 271b9eae66ef. AC-01.1's run-time half (claude upgrade --apply writes the line, carries the user block, and holds a footerless CLAUDE.md) is driven evidence on refs/bank/cc/0083/evidence/wp01-d01-drive.log.
 
-### WP-02 -- The contracts key and contracts_dir: every writer, reader, the sync scope and the daemon watch derive the place from it (status: Not Started)
+### WP-02 -- The contracts key and contracts_dir: every writer, reader, the sync scope and the daemon watch derive the place from it (status: WIP)
 
-_(no tests in this group)_
+- AT-02.1 `native/rust/crates/intentsvcs/tests/contracts_layout.rs` -- covers AC-02.1, AC-02.2, AC-02.3 -- status: green -- RED at base e92c1de20: the arm cannot compile there, because the API it calls does not exist at that commit -- git grep finds no `pub enum Contracts`, no `pub fn root_file_path` and no fallible `Scanned::for_root` at e92c1de20, and one of each at a85dfbdf0. GREEN on tmp/wt-cc-0083's own build in WP-02's judging run on vc's GO, 2026-10-15 11:00Z to 11:08Z, with the workspace at 3164 passed and 0 failed; landed at a85dfbdf0 with the bank's patch-id a2246ee4ecc9. contracts_layout.rs: 9 passed, 0 failed.
+- AT-02.2 `native/rust/crates/intentd/tests/daemon_watch.rs` -- covers AC-02.3 -- status: green -- RED at base e92c1de20: the arm cannot compile there, because the API it calls does not exist at that commit -- git grep finds no `pub enum Contracts`, no `pub fn root_file_path` and no fallible `Scanned::for_root` at e92c1de20, and one of each at a85dfbdf0. GREEN on tmp/wt-cc-0083's own build in WP-02's judging run on vc's GO, 2026-10-15 11:00Z to 11:08Z, with the workspace at 3164 passed and 0 failed; landed at a85dfbdf0 with the bank's patch-id a2246ee4ecc9. The live-daemon arm a_dotclaude_contract_edit_reaches_the_store_with_nobody_running_sync passed.
+- AT-02.3 `native/rust/crates/intentd/src/watch.rs` -- covers AC-02.3 -- status: green -- RED at base e92c1de20: the arm cannot compile there, because the API it calls does not exist at that commit -- git grep finds no `pub enum Contracts`, no `pub fn root_file_path` and no fallible `Scanned::for_root` at e92c1de20, and one of each at a85dfbdf0. GREEN on tmp/wt-cc-0083's own build in WP-02's judging run on vc's GO, 2026-10-15 11:00Z to 11:08Z, with the workspace at 3164 passed and 0 failed; landed at a85dfbdf0 with the bank's patch-id a2246ee4ecc9. The unit arm a_dotclaude_contract_edit_is_named_and_a_root_copy_edit_is_not passed.
 
 ### WP-03 -- The doors: init --contracts and intent agents layout (status: Not Started)
 

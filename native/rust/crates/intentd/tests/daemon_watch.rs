@@ -198,7 +198,7 @@ fn an_external_edit_reaches_the_store_with_nobody_running_sync() {
   let _ = std::fs::remove_dir_all(&root);
 }
 
-/// **ST0083 AC-02.3, THE RUNNING DAEMON'S HALF.** In a `dotclaude` project an
+/// **ST0083 AT-02.2, COVERING AC-02.3: THE RUNNING DAEMON'S HALF.** In a `dotclaude` project an
 /// edit to `.claude/AGENTS.md` reaches the store with nobody running a sync, as
 /// a root copy's edit does in a `root` project. The layout is declared and
 /// `.claude/` made before first contact, because first contact is when the

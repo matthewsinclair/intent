@@ -58,8 +58,8 @@ hv's word, first-hand: the book is not upgraded from v2.14; its Intent content i
 
 | WP    | Title                                                                                                                   | Size | Status      |
 | ----- | ----------------------------------------------------------------------------------------------------------------------- | ---- | ----------- |
-| WP-01 | CLAUDE.md imports AGENTS.md: the @AGENTS.md line in _CLAUDE.md                                                          | XS   | WIP         |
-| WP-02 | The contracts key and contracts_dir: every writer, reader, the sync scope and the daemon watch derive the place from it | M    | Not Started |
+| WP-01 | CLAUDE.md imports AGENTS.md: the @AGENTS.md line in _CLAUDE.md                                                          | XS   | Done        |
+| WP-02 | The contracts key and contracts_dir: every writer, reader, the sync scope and the daemon watch derive the place from it | M    | WIP         |
 | WP-03 | The doors: init --contracts and intent agents layout                                                                    | S    | Not Started |
 | WP-04 | doctor: both layouts present, a held settings file with a dead hook command, an empty or placeholder author             | S    | Not Started |
 | WP-05 | The templated settings deny editing the generated AGENTS.md in either layout                                            | XS   | Not Started |

@@ -779,7 +779,7 @@ mod tests {
     );
   }
 
-  /// **ST0083 AC-02.3, THE DAEMON'S DECISION.** In a `dotclaude` project an
+  /// **ST0083 AT-02.3, COVERING AC-02.3: THE DAEMON'S DECISION.** In a `dotclaude` project an
   /// edit to `.claude/AGENTS.md` is named through the leaf door and the
   /// directory door alike, exactly as a root copy's edit is in a `root`
   /// project, and an edit to the root copy `init` left behind names nothing.

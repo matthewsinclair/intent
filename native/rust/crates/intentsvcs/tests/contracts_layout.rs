@@ -1,4 +1,4 @@
-//! ST0083 WP-02: the `contracts` key places the two agent contracts, and every
+//! ST0083 WP-02, AT-02.1: the `contracts` key places the two agent contracts, and every
 //! writer, reader and the sync scope derive the place from it (AC-02.1 to
 //! AC-02.3). Each `dotclaude` arm has a `root` control beside it, so a writer
 //! that ignored the key would fail one side or the other rather than pass both.
