@@ -1,3 +1,5 @@
+@AGENTS.md
+
 # [[PROJECT_NAME]]
 
 This project is built with Intent -- run `intent --version` for the version it is running. The primary config file for AI coding agents is `AGENTS.md` at the project root -- read that first. `CLAUDE.md` is a Claude Code-specific overlay that adds directives beyond the tool-agnostic contract.
@@ -39,7 +41,7 @@ Cross-language principles govern all Intent projects. Every language pack concre
 - **Thin Coordinator** (`IN-AG-THIN-COORD-001`) -- coordinators parse to call to render; business logic lives elsewhere.
 - **No Silent Errors** (`IN-AG-NO-SILENT-001`) -- every failure surfaces; rescue-and-swallow is forbidden.
 
-**THIS INDEX IS ALSO IN `AGENTS.md`, DELIBERATELY, AND A DRIFT TEST HOLDS THE TWO BYTE-IDENTICAL.** This section used to say the principles were stated in `AGENTS.md` and **not restated here**, on the grounds that a second copy would be a Highlander violation in the document that defines the rule. That reasoning was sound and its outcome was wrong: **`AGENTS.md` is the one file the Claude Code agent never receives**, so the pointer could not land for this file's own primary reader.
+**THIS INDEX IS ALSO IN `AGENTS.md`, DELIBERATELY, AND A DRIFT TEST HOLDS THE TWO BYTE-IDENTICAL.** This section used to say the principles were stated in `AGENTS.md` and **not restated here**, on the grounds that a second copy would be a Highlander violation in the document that defines the rule. That reasoning was sound and its outcome was wrong: **`AGENTS.md` was the one file the Claude Code agent never received**, so the pointer could not land for this file's own primary reader. The `@AGENTS.md` line at the top of this file (2026-10-15) now makes the harness load it, so that no longer justifies the copy, which stays on the ground the next paragraph gives.
 
 **HIGHLANDER GOVERNS IMPLEMENTATIONS, NOT INDEXES, AND THE TEST IS WHAT MAKES THE COPY LEGITIMATE.** The rule BODIES live in the rule library and are served by `intent claude rules show <id>`; there is exactly one of each and that is untouched. What is duplicated here is a table of contents pointing at them. **A copy that cannot silently diverge is not the failure mode Highlander names** -- drift is -- so the duplication is held by a test rather than by discipline.
 

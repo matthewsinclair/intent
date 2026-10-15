@@ -2,8 +2,9 @@
 # Tests for lib/templates/llm/_CLAUDE.md (ST0035/WP-09).
 #
 # Scenarios: template is under the length budget, contains the required
-# canon landmarks, uses the canonical [[PLACEHOLDER]] syntax, and is
-# sed-substituted correctly by `intent init` on a scratch project.
+# canon landmarks, uses the canonical [[PLACEHOLDER]] syntax, is
+# sed-substituted correctly by `intent init` on a scratch project, and the
+# CLAUDE.md that init writes opens with the `@AGENTS.md` import (ST0083).
 
 load "../lib/test_helper.bash"
 
@@ -97,29 +98,46 @@ TEMPLATE="${INTENT_PROJECT_ROOT}/lib/templates/llm/_CLAUDE.md"
   [ "$status" -ne 0 ] || fail "template still points at a local rules directory"
 }
 
-@test "intent init on a scratch project substitutes all placeholders" {
-  local project_dir="${TEST_TEMP_DIR}/scratch"
-  mkdir -p "$project_dir"
-  cd "$project_dir" || exit 1
-
-  # v3's one author source is `author` in the user config, which `bootstrap`
-  # writes from $USER (hv, 2026-08-27) -- never git, never an env var. The
-  # fixture writes that source directly, so HOME MUST be the sandbox first:
-  # without `setup_fake_home` this wrote the operator's real config (0368).
+# `intent init` on a scratch project, leaving the run's status and output for
+# the arm to judge. v3's one author source is `author` in the user config,
+# which `bootstrap` writes from $USER (hv, 2026-08-27) -- never git, never an
+# env var. The fixture writes that source directly, so HOME MUST be the sandbox
+# first: without `setup_fake_home` this wrote the operator's real config (0368).
+init_scratch_project() {
+  SCRATCH_DIR="${TEST_TEMP_DIR}/scratch"
+  mkdir -p "$SCRATCH_DIR"
+  cd "$SCRATCH_DIR" || return 1
   setup_fake_home
   mkdir -p "$HOME/.config/intent"
   printf '{"author":"TestUser"}\n' > "$HOME/.config/intent/config.json"
-
   run run_intent init "ScratchProj"
+}
+
+@test "intent init on a scratch project substitutes all placeholders" {
+  init_scratch_project
   assert_success
-  assert_file_exists "$project_dir/CLAUDE.md"
+  assert_file_exists "$SCRATCH_DIR/CLAUDE.md"
 
   # No placeholder should remain in the generated CLAUDE.md.
-  run grep -F "[[" "$project_dir/CLAUDE.md"
+  run grep -F "[[" "$SCRATCH_DIR/CLAUDE.md"
   [ "$status" -ne 0 ] || fail "unsubstituted placeholders remain in generated CLAUDE.md"
 
   # Project name from the CLI arg; author from the user config, in both files.
-  assert_file_contains "$project_dir/CLAUDE.md" "ScratchProj"
-  assert_file_contains "$project_dir/CLAUDE.md" "TestUser"
-  assert_file_contains "$project_dir/intent/.config/config.json" '"author": "TestUser"'
+  assert_file_contains "$SCRATCH_DIR/CLAUDE.md" "ScratchProj"
+  assert_file_contains "$SCRATCH_DIR/CLAUDE.md" "TestUser"
+  assert_file_contains "$SCRATCH_DIR/intent/.config/config.json" '"author": "TestUser"'
+}
+
+@test "intent init writes a CLAUDE.md whose first line imports AGENTS.md" {
+  # ST0083 AC-01.1. Under Claude Code's default, a project with a CLAUDE.md
+  # loads that file and never AGENTS.md, so a prose pointer to AGENTS.md is a
+  # request the harness does not honour; the `@AGENTS.md` import is what loads
+  # it. The line is read off the GENERATED file, which is what Claude Code
+  # reads, so a renderer that dropped or moved it fails here as well as a
+  # template that lost it.
+  init_scratch_project
+  assert_success
+  local first
+  first="$(head -n 1 "$SCRATCH_DIR/CLAUDE.md")"
+  [ "$first" = "@AGENTS.md" ] || fail "the generated CLAUDE.md opens with '$first', not @AGENTS.md"
 }
