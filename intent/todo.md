@@ -11,7 +11,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 - [-] ST0081: Intent from Homebrew on Linux and macOS, with no source checkout: Linux binaries on every release
   - [-] 01: Linux release binaries built by GitHub Actions
   - [ ] 02: Linux assets on each tag's GitHub release, one writer per release object
-  - [ ] 03: Intent's Linux install through Homebrew, in docs/install.md
+  - [-] 03: Intent's Linux install through Homebrew, in docs/install.md
   - [~] 04: First install on a real Windows machine
   - [x] 05: intent daemon start --at-login refuses on Linux before writing anything
   - [-] 06: The Homebrew formula installs Intent on Linux

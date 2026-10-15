@@ -22,7 +22,7 @@ title: Intent from Homebrew on Linux and macOS, with no source checkout: Linux b
 
 - AC-02.1 (non-test) Every release tag's GitHub release carries the Linux assets beside the macOS assets, and `bin/devbin release check` names no second writer of the release object. -- satisfied: no
 
-### WP-03 -- Intent's Linux install through Homebrew, in docs/install.md (status: Not Started)
+### WP-03 -- Intent's Linux install through Homebrew, in docs/install.md (status: WIP)
 
 - AC-03.1 (non-test) Following the docs' Linux install takes a fresh WSL distro from a release download to an `intent --version` that names the release and an `intent doctor` with no finding in a new project, and every command on the page has been run. -- DESCOPED to ST0082 by hv, 2026-10-14; numbering under vc's pen: The WSL walk-through moved to ST0082 with the WSL page on hv's ruling of 2026-10-14; the Linux install half is AC-03.3, through Homebrew.
 - AC-03.2 (non-test) The docs name WSL as Intent's Windows route, tell readers to keep repos in the WSL filesystem rather than under `/mnt/c` and why, and tell them to run Claude Code inside WSL. -- DESCOPED to ST0082 by hv, 2026-10-14; numbering under vc's pen: The WSL page moved to ST0082 on hv's ruling of 2026-10-14.
@@ -54,7 +54,7 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-03 -- Intent's Linux install through Homebrew, in docs/install.md (status: Not Started)
+### WP-03 -- Intent's Linux install through Homebrew, in docs/install.md (status: WIP)
 
 _(no tests in this group)_
 
