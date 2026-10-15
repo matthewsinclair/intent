@@ -10,7 +10,6 @@
     "focus": "ST0083, the agent contracts lane, on vc's order of 2026-10-15 (hv's word relayed; hold 31 archived): WP-01 first and alone in a detached worktree, the @AGENTS.md import, banked for vc; then WP-02 and WP-03 stacked; ST0081's WP-03 waits on kovacs; no push, no release",
     "claims": [
       "ST0081",
-      "ISSUE:0595",
       "ST0083"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
@@ -1917,7 +1916,8 @@
       "kind": "doing",
       "seq": 80,
       "text": "0595 LANDED at c775f61ef and its staged_version follow-up LANDED at 7ee4fedd5, each on vc's judgement, each landed patch-id the bank's (9dd962b6599e; 5f14289d2f16): shared/rusthost.lib's rust_host is the one reader of rustc -vV's host for cmd/linux and cmd/macos and refuses by name when rustc is absent, fails, or names no host; linux doctor lists rustc among its lacks and takes its triple from uname only when rustc is absent; staged_version refuses by name when the staged binary is missing or does not run, carrying its stderr. releasebuild.lib:166 device_of is unreachable and stays, on vc's word. 0595 STAYS OPEN until kovacs runs tests/unit/linux_doctor.bats on Linux, a light order vc sends once hv's permission rule is in. NO PUSH, NO RELEASE.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-15T10:46:57.202Z",
       "recorded_at": "2026-10-14T12:51:12.300Z",
       "edited_at": "2026-10-14T13:34:54.749Z"
     },
