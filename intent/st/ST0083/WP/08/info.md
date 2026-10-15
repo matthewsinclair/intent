@@ -9,7 +9,7 @@ status: Not Started
 
 ## Objective
 
-_(not yet written)_
+The docs, the two skills that state the root layout as fact, the generated reference and the 3.2.4 CHANGELOG describe the two layouts, the key, the import and `deinit`; built last, on the tree after dc's 3.2.4 train has landed.
 
 ## Acceptance
 

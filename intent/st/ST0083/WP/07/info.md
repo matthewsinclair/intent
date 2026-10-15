@@ -9,7 +9,7 @@ status: Not Started
 
 ## Objective
 
-_(not yet written)_
+A store created under a Dropbox folder is marked ignored for the Dropbox client present (the File Provider and legacy attributes on macOS, `com.dropbox.ignored` on Linux), so a synced content tree never syncs a live SQLite WAL, and doctor names an unmarked one.
 
 ## Acceptance
 

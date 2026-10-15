@@ -9,7 +9,7 @@ status: Not Started
 
 ## Objective
 
-_(not yet written)_
+The templated `.claude/settings.json` denies editing and writing the generated `AGENTS.md` in either layout, both paths in the one unsubstituted file, so a generated file is protected by a rule the harness enforces rather than by prose.
 
 ## Acceptance
 

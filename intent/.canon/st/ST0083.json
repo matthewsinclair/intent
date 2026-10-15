@@ -24,7 +24,7 @@
       "title": "The contracts key and contracts_dir: every writer, reader, the sync scope and the daemon watch derive the place from it",
       "scope": "M",
       "status": "wip",
-      "objective": "",
+      "objective": "Every writer, reader, the sync scope and the daemon watch derive where the two agent contracts live from one `contracts` key (`root` by default, `dotclaude` for a tree whose root is read by people), so no site puts a contract where another site will not look.",
       "body": "",
       "preamble": ""
     },
@@ -33,7 +33,7 @@
       "title": "The doors: init --contracts and intent agents layout",
       "scope": "S",
       "status": "not-started",
-      "objective": "",
+      "objective": "The two doors that set the layout: `intent init --contracts dotclaude` at a project's birth, and `intent agents layout <root|dotclaude>` for an existing project, which sets the key and moves the two contracts through git when they are tracked, refusing when the destination holds a different file.",
       "body": "",
       "preamble": ""
     },
@@ -42,7 +42,7 @@
       "title": "doctor: both layouts present, a held settings file with a dead hook command, an empty or placeholder author",
       "scope": "S",
       "status": "not-started",
-      "objective": "",
+      "objective": "`intent doctor` names what the layout work leaves exposed: a contract present in both layouts, a held `.claude/settings.json` whose hook command names a path that does not exist, an empty or placeholder author, and the dead v2 `.claude/scripts/` copies nothing references.",
       "body": "",
       "preamble": ""
     },
@@ -51,7 +51,7 @@
       "title": "The templated settings deny editing the generated AGENTS.md in either layout",
       "scope": "XS",
       "status": "not-started",
-      "objective": "",
+      "objective": "The templated `.claude/settings.json` denies editing and writing the generated `AGENTS.md` in either layout, both paths in the one unsubstituted file, so a generated file is protected by a rule the harness enforces rather than by prose.",
       "body": "",
       "preamble": ""
     },
@@ -60,7 +60,7 @@
       "title": "intent deinit: strip what Intent wrote from a project being closed",
       "scope": "S",
       "status": "not-started",
-      "objective": "",
+      "objective": "`intent deinit` strips what Intent wrote from a project being closed: a dry listing by default, and with `--apply` the removal of every file and hook block it can prove Intent wrote, naming what it leaves; `--all` also removes `intent/` with the store.",
       "body": "",
       "preamble": ""
     },
@@ -69,7 +69,7 @@
       "title": "A store under Dropbox is marked ignored for the Dropbox client",
       "scope": "S",
       "status": "not-started",
-      "objective": "",
+      "objective": "A store created under a Dropbox folder is marked ignored for the Dropbox client present (the File Provider and legacy attributes on macOS, `com.dropbox.ignored` on Linux), so a synced content tree never syncs a live SQLite WAL, and doctor names an unmarked one.",
       "body": "",
       "preamble": ""
     },
@@ -78,7 +78,7 @@
       "title": "Docs, reference and CHANGELOG for the two layouts, the import and deinit",
       "scope": "S",
       "status": "not-started",
-      "objective": "",
+      "objective": "The docs, the two skills that state the root layout as fact, the generated reference and the 3.2.4 CHANGELOG describe the two layouts, the key, the import and `deinit`; built last, on the tree after dc's 3.2.4 train has landed.",
       "body": "",
       "preamble": ""
     }

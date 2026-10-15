@@ -9,7 +9,7 @@ status: Not Started
 
 ## Objective
 
-_(not yet written)_
+`intent deinit` strips what Intent wrote from a project being closed: a dry listing by default, and with `--apply` the removal of every file and hook block it can prove Intent wrote, naming what it leaves; `--all` also removes `intent/` with the store.
 
 ## Acceptance
 

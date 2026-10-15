@@ -9,7 +9,7 @@ status: WIP
 
 ## Objective
 
-_(not yet written)_
+Every writer, reader, the sync scope and the daemon watch derive where the two agent contracts live from one `contracts` key (`root` by default, `dotclaude` for a tree whose root is read by people), so no site puts a contract where another site will not look.
 
 ## Acceptance
 

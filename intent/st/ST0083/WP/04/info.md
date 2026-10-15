@@ -9,7 +9,7 @@ status: Not Started
 
 ## Objective
 
-_(not yet written)_
+`intent doctor` names what the layout work leaves exposed: a contract present in both layouts, a held `.claude/settings.json` whose hook command names a path that does not exist, an empty or placeholder author, and the dead v2 `.claude/scripts/` copies nothing references.
 
 ## Acceptance
 

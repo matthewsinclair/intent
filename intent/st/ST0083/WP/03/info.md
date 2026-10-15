@@ -9,7 +9,7 @@ status: Not Started
 
 ## Objective
 
-_(not yet written)_
+The two doors that set the layout: `intent init --contracts dotclaude` at a project's birth, and `intent agents layout <root|dotclaude>` for an existing project, which sets the key and moves the two contracts through git when they are tracked, refusing when the destination holds a different file.
 
 ## Acceptance
 
