@@ -1,0 +1,14 @@
+{
+  "id": "01M4ZP0BDVGDQ221BC366VMBDW",
+  "ts": "2026-10-15T11:43:50.207Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0083/AC-03.2"
+  },
+  "payload": {
+    "evidence": "2d9b4de1a (ST0083 WP-03, patch-id ebde4dc9dec0); AT-03.1 green (agents layout moves both contracts and sets the key, removes a seeded usage-rules.md, names and leaves an authored one, refuses a destination holding other bytes with nothing moved and the key unchanged, stages tracked moves as renames, and moves back to root); AT-03.2 green (agents layout root through the binary, naming each move)"
+  }
+}

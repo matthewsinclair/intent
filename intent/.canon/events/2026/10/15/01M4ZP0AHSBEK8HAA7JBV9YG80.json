@@ -1,0 +1,14 @@
+{
+  "id": "01M4ZP0AHSBEK8HAA7JBV9YG80",
+  "ts": "2026-10-15T11:43:49.308Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0083/AC-03.1"
+  },
+  "payload": {
+    "evidence": "2d9b4de1a (ST0083 WP-03, patch-id ebde4dc9dec0); AT-03.1 green (init with dotclaude writes both contracts under .claude/ and the key; init without writes the root layout and no key); AT-03.2 green (intent init --contracts dotclaude through the binary)"
+  }
+}

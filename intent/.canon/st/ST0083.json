@@ -23,7 +23,7 @@
       "seq": 2,
       "title": "The contracts key and contracts_dir: every writer, reader, the sync scope and the daemon watch derive the place from it",
       "scope": "M",
-      "status": "wip",
+      "status": "done",
       "objective": "Every writer, reader, the sync scope and the daemon watch derive where the two agent contracts live from one `contracts` key (`root` by default, `dotclaude` for a tree whose root is read by people), so no site puts a contract where another site will not look.",
       "body": "",
       "preamble": ""
@@ -32,7 +32,7 @@
       "seq": 3,
       "title": "The doors: init --contracts and intent agents layout",
       "scope": "S",
-      "status": "not-started",
+      "status": "done",
       "objective": "The two doors that set the layout: `intent init --contracts dotclaude` at a project's birth, and `intent agents layout <root|dotclaude>` for an existing project, which sets the key and moves the two contracts through git when they are tracked, refusing when the destination holds a different file.",
       "body": "",
       "preamble": ""
@@ -107,7 +107,8 @@
       "text": "Under `dotclaude`, `intent init`, `intent agents init`, `intent agents sync`, `intent agents validate` and `intent claude upgrade --apply` read and write `.claude/AGENTS.md` and `.claude/CLAUDE.md` and never a root copy, and `usage-rules.md` is not seeded; under `root` every one of them behaves as in 3.2.3, and `usage-rules.md` stays at the root in both.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "2d9b4de1a (ST0083 WP-03, patch-id ebde4dc9dec0) on a85dfbdf0 (WP-02); AT-02.1 green (agents sync, validate and claude upgrade write and read .claude/ under dotclaude and seed no usage-rules.md); AT-03.2 green (through the binary: init --contracts dotclaude, then agents init, sync and validate at .claude/AGENTS.md with no root copy)"
       }
     },
     {
@@ -124,7 +125,8 @@
       "text": "`intent init --contracts dotclaude` creates the project with both contracts under `.claude/` and the key in its config; `intent init` without the flag writes `root` behaviour and no key.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "2d9b4de1a (ST0083 WP-03, patch-id ebde4dc9dec0); AT-03.1 green (init with dotclaude writes both contracts under .claude/ and the key; init without writes the root layout and no key); AT-03.2 green (intent init --contracts dotclaude through the binary)"
       }
     },
     {
@@ -132,7 +134,8 @@
       "text": "`intent agents layout <root|dotclaude>` sets the key and moves both contracts to the layout named, through git when they are tracked; it refuses by name when the destination already holds a different file, removes a `usage-rules.md` byte-identical to its seed when moving to `dotclaude`, reports an authored one and leaves it, and says what it moved.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "2d9b4de1a (ST0083 WP-03, patch-id ebde4dc9dec0); AT-03.1 green (agents layout moves both contracts and sets the key, removes a seeded usage-rules.md, names and leaves an authored one, refuses a destination holding other bytes with nothing moved and the key unchanged, stages tracked moves as renames, and moves back to root); AT-03.2 green (agents layout root through the binary, naming each move)"
       }
     },
     {
@@ -242,6 +245,29 @@
       ],
       "status": "green",
       "note": "RED at base e92c1de20: the arm cannot compile there, because the API it calls does not exist at that commit -- git grep finds no `pub enum Contracts`, no `pub fn root_file_path` and no fallible `Scanned::for_root` at e92c1de20, and one of each at a85dfbdf0. GREEN on tmp/wt-cc-0083's own build in WP-02's judging run on vc's GO, 2026-10-15 11:00Z to 11:08Z, with the workspace at 3164 passed and 0 failed; landed at a85dfbdf0 with the bank's patch-id a2246ee4ecc9. The unit arm a_dotclaude_contract_edit_is_named_and_a_root_copy_edit_is_not passed."
+    },
+    {
+      "id": "AT-03.1",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/contracts_layout.rs",
+      "covers": [
+        "AC-03.1",
+        "AC-03.2"
+      ],
+      "status": "green",
+      "note": "RED at base 8a8509258: the arm cannot compile or run there, because what it calls does not exist at that commit -- git grep finds no `pub fn relayout`, no `pub fn agents_layout`, no Contracts parameter on init_with_languages and no `agents layout` row in the dispatch table at 8a8509258, and one of each in the landed tree. GREEN on tmp/wt-cc-0083's own build in WP-03's judging run on vc's GO, 2026-10-15 11:31Z to 11:38Z: contracts_layout.rs 16 passed, 0 failed; landed at 2d9b4de1a with the bank's patch-id ebde4dc9dec0."
+    },
+    {
+      "id": "AT-03.2",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/agents_sync_parity.rs",
+      "covers": [
+        "AC-03.1",
+        "AC-03.2",
+        "AC-02.2"
+      ],
+      "status": "green",
+      "note": "RED at base 8a8509258: the arm cannot compile or run there, because what it calls does not exist at that commit -- git grep finds no `pub fn relayout`, no `pub fn agents_layout`, no Contracts parameter on init_with_languages and no `agents layout` row in the dispatch table at 8a8509258, and one of each in the landed tree. GREEN on tmp/wt-cc-0083's own build in WP-03's judging run on vc's GO, 2026-10-15 11:31Z to 11:38Z (intent-cli targeted 18 passed), and in intent-cli's whole suite after the declared-values fix at 11:39Z (1138 passed, 0 failed); landed at 2d9b4de1a with the bank's patch-id ebde4dc9dec0."
     }
   ]
 }

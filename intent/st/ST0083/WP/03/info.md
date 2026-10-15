@@ -2,7 +2,7 @@
 wp_id: WP-03
 title: The doors: init --contracts and intent agents layout
 scope: S
-status: Not Started
+status: Done
 ---
 
 # WP-03: The doors: init --contracts and intent agents layout
