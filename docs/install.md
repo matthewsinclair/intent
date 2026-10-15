@@ -13,11 +13,38 @@ This is the supported path. The formula installs the CLI (`intent`), the daemon 
 
 **Run `intent bootstrap` once on each machine, after installing.** It writes the install pointer, `~/.local/share/intent/home` (under `$XDG_DATA_HOME` when that is set), and your per-user config at `~/.config/intent/config.json` (under `$XDG_CONFIG_HOME` when that is set). A project's pre-commit gate finds Intent through that pointer, so until it exists every commit in a project with the gate installed is refused, and the refusal names `intent bootstrap`. Homebrew cannot run it for you, because a formula's `post_install` cannot write to your home directory, so the formula prints a caveat saying this. A source build needs it too. Re-running it repoints the pointer at the install you run it from and leaves an existing config alone, but it will not replace a pointer that names a working install with a scratch one (a linked git worktree, or a tree under the system temporary directory), and it writes nothing when it refuses. `--force` rewrites the config and keeps its `explorer` settings section. `intent bootstrap --check` writes nothing: it prints where the pointer sends the gate, and exits 1 when the pointer is missing or empty, names no install, or names an install that is missing the gate's own script, `lib/templates/hooks/pre-commit.sh` (`state: NO GATE`).
 
-**The formula is macOS on Apple silicon only.** It declares `depends_on arch: :arm64` and `depends_on :macos`, and no Intel or Linux binary is built. Anywhere else, build [from source](#from-source).
+**On macOS the formula is Apple silicon only.** It declares `depends_on arch: :arm64` inside `on_macos`, and no Intel Mac binary is built. On Linux it installs the package for the machine's architecture: see [Linux](#linux). Anywhere else, build [from source](#from-source).
 
 **Intent's hooks need `jq` on `PATH`.** macOS 15 and later ship it at `/usr/bin/jq`; on an earlier macOS, or on Linux, install it (`brew install jq`, or your distribution's package). Without it the opt-in post-tool hooks do nothing, and the pre-commit gate cannot read the project's declared languages, so it runs no language critic and says so on every commit.
 
-**The CLI does not need the daemon.** Every `intent` command does its work in-process unless you pass `--daemon`, with two exceptions: `intent graphql` is answered only by a running `intentd`, and `intent browse` (like `intent edit --browser`) opens a page that a running `intentd` serves. Neither starts one for you. If you want `intentd` running, `intent daemon start` starts it, and `intent daemon status` and `intent daemon stop` do what they say. `intent daemon start --at-login` also enrols it to start at login, as a LaunchAgent at `~/Library/LaunchAgents/com.matthewsinclair.intentd.plist`, and `intent daemon stop --at-login` removes that enrolment. The formula also declares a Homebrew service, so `brew services start matthewsinclair/intent/intent` keeps `intentd` running under launchd instead; its stdout and stderr go to `intentd.log` under Homebrew's `var/log`.
+**The CLI does not need the daemon.** Every `intent` command does its work in-process unless you pass `--daemon`, with two exceptions: `intent graphql` is answered only by a running `intentd`, and `intent browse` (like `intent edit --browser`) opens a page that a running `intentd` serves. Neither starts one for you. If you want `intentd` running, `intent daemon start` starts it, and `intent daemon status` and `intent daemon stop` do what they say. `intent daemon start --at-login` also enrols it to start at login, as a LaunchAgent at `~/Library/LaunchAgents/com.matthewsinclair.intentd.plist`, and `intent daemon stop --at-login` removes that enrolment. Enrolment at login is macOS only: off macOS both forms refuse before writing anything, and the refusal names `intent daemon start` without the flag. The formula also declares a Homebrew service, so `brew services start matthewsinclair/intent/intent` keeps `intentd` running under launchd instead; its stdout and stderr go to `intentd.log` under Homebrew's `var/log`.
+
+## Linux
+
+Intent installs on Linux through [Homebrew on Linux](https://docs.brew.sh/Homebrew-on-Linux), from the same tap as on macOS. With Homebrew installed by its own instructions:
+
+```
+  $ brew install matthewsinclair/intent/intent
+  $ intent --version
+  $ intent bootstrap
+```
+
+The formula installs the package for the machine's architecture, x86_64 or aarch64: `intent` and `intentd`, built static against musl, and the support tree, laid out under the keg's `libexec` as on macOS (see [What the install has to contain](#what-the-install-has-to-contain)). Nothing needs a checkout of Intent's source. `intent bootstrap` is the same step as on macOS ([above](#homebrew-macos-on-apple-silicon)), and the formula's caveat names it.
+
+**No `brew trust` step is needed.** On a Linux machine that had never run `brew trust`, Homebrew 7.0.9 added this tap and read its formula, and a fully-qualified `brew install` from a tap it had not been told to trust went through.
+
+Then, in a new project:
+
+```
+  $ mkdir my-project && cd my-project
+  $ git init
+  $ intent init
+  $ intent doctor
+```
+
+`intent doctor` reports `0 finding(s)` in a project `intent init` has just written, and [Getting started](getting-started.md) goes on from there. Intent's hooks need `jq` on `PATH` here too ([above](#homebrew-macos-on-apple-silicon)).
+
+**The daemon runs as it does on macOS, without enrolment at login.** `intent daemon start`, `intent daemon status` and `intent daemon stop` work as above, and both `--at-login` forms refuse before writing anything. The formula's Homebrew service would run `intentd` under systemd's user manager through `brew services`, and no run has proven that on Linux yet.
 
 ## The menubar app
 
@@ -75,7 +102,7 @@ Intent resolves these paths against its install root. **A binary on its own is n
 | `intent/plugins/<name>/plugin.json`           | `intentsvcs::plugins::root`                                                                                                     | `intent plugin list` / `show` (each plugin is a directory holding a `plugin.json`)                                                                                                                                                                                                                                                                                       |
 | `intent/plugins/claude/bin/intent_claude_cwi` | `intentsvcs::install::cwi_script`                                                                                               | `intent claude start`                                                                                                                                                                                                                                                                                                                                                    |
 
-On a Homebrew install these root at `$KEG/libexec`, which is what `intent info` reports on its `INTENT_HOME` line. The support archive is rooted at the install root, so the tree lands directly under `libexec`:
+On a Homebrew install, on macOS or Linux, these root at `$KEG/libexec`, which is what `intent info` reports on its `INTENT_HOME` line. The support archive, and on Linux the package that carries the binaries with it, is rooted at the install root, so the tree lands directly under `libexec`:
 
 ```
   $KEG/bin/intent, intentd                          symlinks into libexec

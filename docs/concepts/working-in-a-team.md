@@ -502,7 +502,7 @@ doctor-on-the-merge-result:
       run: native/rust/target/release/intent doctor
 ```
 
-A project that uses Intent installs the release instead of building it. Intent is published for macOS on Apple silicon only, through its Homebrew tap, so the job runs on an Apple silicon macOS runner. This job was not driven for this page, because it runs on GitHub, which the drive cannot reach:
+A project that uses Intent installs the release instead of building it. Intent is published through its Homebrew tap for macOS on Apple silicon and for [Linux](../install.md#linux), and the job below runs on an Apple silicon macOS runner. This job was not driven for this page, because it runs on GitHub, which the drive cannot reach:
 
 ```yaml
 intent-doctor:

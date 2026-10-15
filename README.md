@@ -8,7 +8,7 @@ Your code says what it does and version control says when it changed. Neither sa
   $ brew install matthewsinclair/intent/intent
 ```
 
-The Homebrew build is for macOS on Apple silicon; anywhere else, [build from source](./docs/install.md#from-source). Full documentation is in [`docs/`](./docs/). If you are new, start at [the documentation index](./docs/index.md); if you are moving a v2 project across, start at [Migrating from v2](./docs/migrating-from-v2.md).
+The Homebrew build is for macOS on Apple silicon and for [Linux](./docs/install.md#linux); anywhere else, [build from source](./docs/install.md#from-source). Full documentation is in [`docs/`](./docs/). If you are new, start at [the documentation index](./docs/index.md); if you are moving a v2 project across, start at [Migrating from v2](./docs/migrating-from-v2.md).
 
 ## What it is
 
