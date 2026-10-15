@@ -1,0 +1,16 @@
+{
+  "id": "01M4ZXZW7HWWXRDGN1T2DSNBB5",
+  "ts": "2026-10-15T14:03:23.250Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 42,
+    "text": "THE CONTRACTS-IN-.claude/ CHANGE, LIVE (vc, 2026-10-15; hv's \"Ok, proceed\" in vc's session took the nine recommendations as ruled, decision 62). The thread is ST0083 in cc's lane, 14 ACs and 8 WPs, hv's rulings in its context. Landed on main: WP-01 the import (16f351a90), WP-02 the key (a85dfbdf0), WP-03 the doors (2d9b4de1a); gate 6 of 14. WP-05 the deny PASSED (refs/bank/cc/0083/wp05, blob 3fd6377f1c12, patch-id edcada5fa2eb, base ba3babaea) and lands on hv's word in cc's session, because it rewrites this repository's own .claude/settings.json. WP-07's shape is ruled (intentsvcs::dropbox with its MODULES.md row first, the xattr crate, both macOS attrs and user.com.dropbox.ignored, marked at init and at the first store open that creates intent/.cache with one printed line, doctor advisory dropbox-cache-unmarked uncounted); WP-04 and WP-06 shapes to come; WP-08 last, after dc's train, and its prose claims the deny blocks editing, not creation (cc's docs read). The compiled halves reach the estates' intent only after bin/devbin build all, owed before hv's push. The write-up is refs/bank/vc/contracts/contracts-layout-brief-measured.md (blob f7d092d35a84); the reply owed to the next Sinclair-Shared session, now carrying the ruling, the landed state, the deny-anchor fact and the book's recreate steps, is refs/bank/vc/contracts/reply-to-sinclair-vc.md (blob c03d21d900d0, sha256 2c1c728854f8, superseding 43abd3608244). geodica-vc moved Geodica's deny to the / anchor on hv's approval and tested it blocked from a sub-directory; Sinclair's still carries the ./ form (geodica-vc's report), sinclair-vc is not running, so it is with hv. restart.md's templates line is corrected at c75fb343c. JEN'S BOOK: delete Intent from it and recreate on v3 as dotclaude, one session of the next Sinclair-Shared vc after build all, steps in the reply bank, the unstaged deletion of ch00/characters/david.md explained first. OPEN WITH hv, by number: 1 3.2.4's scope for dc's train; 2 issue 0599's release and lane; 3 AC-07.1's real-session half on kovacs; 4 the layout of kovacs's three repos; 5 WP-05's landing word in cc's session; 6 the book's recreate session. Doing 41 (kovacs, the queue) and doing 43 (the order scripts) carry the other half. (edited) 2026-10-15 ~13:58Z: sinclair-vc closed for hv's travel, restarting at home in a few hours, with the book steps from blob c03d21d900d0 in its restart notes; the \"build all has run\" signal goes to sinclair-vc AFTER its restart (or through hv), never before, since messages sent to a closed session are lost. The estate contract's sub-tree paragraph is gtools-vc's (geodica-vc's wording, hv-approved), off sinclair-vc's list and off this item."
+  }
+}
