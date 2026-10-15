@@ -1,0 +1,15 @@
+{
+  "id": "01M4ZGCZP6AXTQ2XDQY4E3XEQH",
+  "ts": "2026-10-15T10:05:53.291Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0083/08"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "Docs, reference and CHANGELOG for the two layouts, the import and deinit"
+  }
+}

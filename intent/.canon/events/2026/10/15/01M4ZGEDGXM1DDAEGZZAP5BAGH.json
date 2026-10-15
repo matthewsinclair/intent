@@ -1,0 +1,15 @@
+{
+  "id": "01M4ZGEDGXM1DDAEGZZAP5BAGH",
+  "ts": "2026-10-15T10:06:39.645Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-10-15, hv first-hand in vc's session, \"Ok, proceed\" on vc's nine recommendations after hv's own words that the two layouts are the requirement, that the book is deleted and recreated on v3 rather than upgraded, and that it all ships in 3.2.4 for zeop; wording vc's, authority hv's) NINE RULINGS ON THE AGENT CONTRACTS, recorded in ST0083's context before any lane starts. (1) THE SIGNAL IS AN EXPLICIT KEY, `contracts: root | dotclaude` in config.json, never `languages: []`, because an empty `languages` is a legitimate state of a code repository and inferring a layout from it moves a code repository's AGENTS.md silently. (2) THE BOOK IN hv's SHARED ESTATE IS `dotclaude`: its root is a manuscript to the people who open it, and no cross-tool agent will open it. (3) THE IMPORT LANDS FIRST, XS, before 3.2.4's cut: under Claude Code's default a project with any CLAUDE.md never loads AGENTS.md, so `@AGENTS.md` is a defect fix in every Intent project. (4) EVERYTHING IN ST0083 SHIPS IN 3.2.4. (5) `intent deinit` is in the same thread. (6) THE TEMPLATED SETTINGS DENY editing the generated AGENTS.md, both paths, never CLAUDE.md. (7) ANOTHER ESTATE's v2.12 project rides the fleet sweep under decision 31, its two markers read before any `--force`. (8) INTENT MARKS `intent/.cache` DROPBOX-IGNORED ITSELF under a Dropbox root: every content tree the layout is for is a synced tree, and the key without this ships a family-synced SQLite WAL. (9) UNDER `dotclaude`, `usage-rules.md` IS NOT SEEDED; an authored one is left alone and reported. The measured brief is refs/bank/vc/contracts/contracts-layout-brief-measured.md (sha256 7363a9f5a607)."
+  }
+}

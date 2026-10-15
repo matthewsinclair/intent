@@ -1,0 +1,15 @@
+{
+  "id": "01M4ZGCT9VPEXZ3M9TPED5Y26G",
+  "ts": "2026-10-15T10:05:47.769Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0083/04"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "doctor: both layouts present, a held settings file with a dead hook command, an empty or placeholder author"
+  }
+}

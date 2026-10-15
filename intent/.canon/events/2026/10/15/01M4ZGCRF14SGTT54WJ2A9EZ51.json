@@ -1,0 +1,15 @@
+{
+  "id": "01M4ZGCRF14SGTT54WJ2A9EZ51",
+  "ts": "2026-10-15T10:05:45.317Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0083/02"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "The contracts key and contracts_dir: every writer, reader, the sync scope and the daemon watch derive the place from it"
+  }
+}

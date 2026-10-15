@@ -1,0 +1,14 @@
+{
+  "id": "01M4ZGA8G4P1YR1VE9S6ZSM78Y",
+  "ts": "2026-10-15T10:04:23.431Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "st.new",
+  "subject": {
+    "type": "thread",
+    "id": "ST0083"
+  },
+  "payload": {
+    "title": "Agent contracts at the root or in .claude/, chosen per project, and CLAUDE.md imports AGENTS.md"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M4ZGCWEBHS8JKVGS3R6AE4WH",
+  "ts": "2026-10-15T10:05:49.391Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0083/05"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "The templated settings deny editing the generated AGENTS.md in either layout"
+  }
+}

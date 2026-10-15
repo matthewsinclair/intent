@@ -16,6 +16,15 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [-] 05: intent daemon start --at-login refuses on Linux before writing anything
   - [-] 06: The Homebrew formula installs Intent on Linux
   - [ ] 07: Intent on Ubuntu from its Linux package, as a user uses it
+- [-] ST0083: Agent contracts at the root or in .claude/, chosen per project, and CLAUDE.md imports AGENTS.md
+  - [ ] 01: CLAUDE.md imports AGENTS.md: the @AGENTS.md line in _CLAUDE.md
+  - [ ] 02: The contracts key and contracts_dir: every writer, reader, the sync scope and the daemon watch derive the place from it
+  - [ ] 03: The doors: init --contracts and intent agents layout
+  - [ ] 04: doctor: both layouts present, a held settings file with a dead hook command, an empty or placeholder author
+  - [ ] 05: The templated settings deny editing the generated AGENTS.md in either layout
+  - [ ] 06: intent deinit: strip what Intent wrote from a project being closed
+  - [ ] 07: A store under Dropbox is marked ignored for the Dropbox client
+  - [ ] 08: Docs, reference and CHANGELOG for the two layouts, the import and deinit
 
 ## TODO
 

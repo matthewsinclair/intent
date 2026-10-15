@@ -1,0 +1,15 @@
+{
+  "id": "01M4ZGCXBCYSGVGM5E71H44G12",
+  "ts": "2026-10-15T10:05:50.320Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0083/06"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "intent deinit: strip what Intent wrote from a project being closed"
+  }
+}

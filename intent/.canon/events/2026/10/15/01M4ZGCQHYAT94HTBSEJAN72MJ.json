@@ -1,0 +1,15 @@
+{
+  "id": "01M4ZGCQHYAT94HTBSEJAN72MJ",
+  "ts": "2026-10-15T10:05:44.386Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0083/01"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "CLAUDE.md imports AGENTS.md: the @AGENTS.md line in _CLAUDE.md"
+  }
+}
