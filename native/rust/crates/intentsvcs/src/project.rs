@@ -1681,6 +1681,13 @@ impl Project {
     &self.config
   }
 
+  /// Keep this handle in step after [`crate::canon::relayout`] has written a new
+  /// `contracts` key to disk (ST0083), so a facade that moved the contracts does
+  /// not go on answering from the layout it left.
+  pub(crate) fn set_contracts(&mut self, contracts: Contracts) {
+    self.config.contracts = contracts;
+  }
+
   /// `intent/` -- configurable in v2, so read rather than assumed.
   pub fn intent_dir(&self) -> PathBuf {
     self.root.join(&self.config.intent_dir)

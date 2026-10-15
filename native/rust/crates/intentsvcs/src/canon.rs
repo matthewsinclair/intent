@@ -252,6 +252,21 @@ pub enum CanonError {
     source: std::io::Error,
   },
   RootFile(String),
+  /// `agents layout` could not read or write a path it moves (ST0083). Its own
+  /// variant, because the remedy names `agents layout` and not `claude upgrade`.
+  LayoutIo {
+    path: PathBuf,
+    source: std::io::Error,
+  },
+  /// `agents layout` found a contract already at its destination with other
+  /// bytes than the one it would move there (ST0083). Nothing was moved.
+  LayoutDestinationHolds {
+    path: PathBuf,
+  },
+  /// git refused while `agents layout` staged what it moved.
+  Git(crate::gitstate::GitStateError),
+  /// The `contracts` key could not be written after the contracts moved.
+  Config(crate::project::ConfigWriteError),
 }
 
 impl std::fmt::Display for CanonError {
@@ -264,6 +279,21 @@ impl std::fmt::Display for CanonError {
         write!(f, "cannot write {}: {source}", path.display())
       }
       Self::RootFile(msg) => write!(f, "{msg}"),
+      Self::LayoutIo { path, source } => write!(
+        f,
+        "cannot move the contracts at {}: {source}",
+        path.display()
+      ),
+      Self::LayoutDestinationHolds { path } => write!(
+        f,
+        "{} already holds a different file, so the contracts were not moved",
+        path.display()
+      ),
+      Self::Git(source) => write!(f, "git refused while staging the moved contracts: {source}"),
+      Self::Config(source) => write!(
+        f,
+        "the contracts moved and the key was not written: {source}"
+      ),
     }
   }
 }
@@ -559,19 +589,7 @@ fn seed_if_absent(
   // after it made the seed invalid YAML (issue 0564). So a template in any other
   // format, and a Markdown one with no token and no empty section, is written as
   // its bytes stand.
-  let Template {
-    home,
-    rel,
-    cfg,
-    ctx,
-  } = template;
-  let text = self::template(home, rel)?;
-  let body = if rel.ends_with(".md") {
-    crate::rootfiles::substitute(&text, cfg, ctx)
-  } else {
-    crate::rootfiles::expand(&text, cfg, ctx)
-  }
-  .map_err(|e| CanonError::RootFile(format!("{rel}: {e:?}")))?;
+  let body = seed_body(&template)?;
   // **`preserved` NAMES A FILE THAT DIFFERS FROM WHAT CANON WOULD SEED** (issue
   // 0565). An existing file was reported as "yours, not canon's" without being
   // read, so a seed byte-identical to its template was called the project's
@@ -585,6 +603,131 @@ fn seed_if_absent(
     return Ok(());
   }
   write_if_changed(dest, &body, report, applied)
+}
+
+/// What canon would seed for `template`, rendered for this project.
+///
+/// **ONE RENDERING FOR EVERY QUESTION ABOUT A SEED.** [`seed_if_absent`] writes
+/// it and compares an existing file with it (issue 0565), and [`relayout`]
+/// removes a `usage-rules.md` only when it is byte-identical to it, so both
+/// must mean the same bytes. Every seed goes through the one token expander,
+/// so a template that gains a `[[TOKEN]]` renders it rather than shipping it
+/// literally (issue 0336). Only a Markdown seed also gets the empty-section
+/// placeholder, which reads a `#` line as a heading: in `.intent_critic.yml`
+/// that line is a comment, and the placeholder written after it made the seed
+/// invalid YAML (issue 0564).
+fn seed_body(template: &Template<'_>) -> Result<String, CanonError> {
+  let text = self::template(template.home, template.rel)?;
+  if template.rel.ends_with(".md") {
+    crate::rootfiles::substitute(&text, template.cfg, template.ctx)
+  } else {
+    crate::rootfiles::expand(&text, template.cfg, template.ctx)
+  }
+  .map_err(|e| CanonError::RootFile(format!("{}: {e:?}", template.rel)))
+}
+
+/// What [`relayout`] did, every path relative to the project root.
+#[derive(Debug, Default)]
+pub struct Relayout {
+  /// Each contract moved, from where it was to where it is.
+  pub moved: Vec<(PathBuf, PathBuf)>,
+  /// A `usage-rules.md` byte-identical to its seed, removed on the way to
+  /// `dotclaude`, which seeds none (hv's ruling 9 on ST0083).
+  pub removed: Vec<PathBuf>,
+  /// A `usage-rules.md` somebody wrote, left where it is and named.
+  pub left: Vec<PathBuf>,
+}
+
+/// Move the two agent contracts from where `cfg` places them to where `target`
+/// does, then write the `contracts` key (ST0083, `intent agents layout`).
+///
+/// **EVERY REFUSAL IS DECIDED BEFORE ANYTHING MOVES.** A destination holding a
+/// file with other bytes is refused by name, and nothing is touched; one with
+/// the same bytes needs no move, so the source is removed. A tracked contract
+/// moves through git: the move is made on disk and both paths are staged, which
+/// git records as the rename. **THE KEY IS WRITTEN LAST**, so a failure on the
+/// way leaves the old key, and a re-run finds what already moved and finishes.
+pub fn relayout(
+  root: &Path,
+  home: &Path,
+  cfg: &Config,
+  ctx: &RenderContext<'_>,
+  target: Contracts,
+) -> Result<Relayout, CanonError> {
+  let read = |path: &Path| {
+    std::fs::read(path).map_err(|source| CanonError::LayoutIo {
+      path: path.to_path_buf(),
+      source,
+    })
+  };
+  let mut done = Relayout::default();
+  let mut plan: Vec<(PathBuf, PathBuf)> = Vec::new();
+  for name in ["AGENTS.md", "CLAUDE.md"] {
+    let from = crate::sync::root_file_path(name, cfg.contracts);
+    let to = crate::sync::root_file_path(name, target);
+    if from == to || !root.join(&from).is_file() {
+      continue;
+    }
+    if root.join(&to).exists() && read(&root.join(&to))? != read(&root.join(&from))? {
+      return Err(CanonError::LayoutDestinationHolds { path: to });
+    }
+    plan.push((from, to));
+  }
+  let usage_rules = PathBuf::from("usage-rules.md");
+  let mut remove_usage_rules = false;
+  if target == Contracts::Dotclaude && root.join(&usage_rules).is_file() {
+    let seed = seed_body(&Template {
+      home,
+      rel: "llm/_usage-rules.md",
+      cfg,
+      ctx,
+    })?;
+    if read(&root.join(&usage_rules))? == seed.as_bytes() {
+      remove_usage_rules = true;
+    } else {
+      done.left.push(usage_rules.clone());
+    }
+  }
+
+  let mut staged: Vec<String> = Vec::new();
+  let tracked =
+    |rel: &Path| crate::gitstate::is_tracked(root, &rel.to_string_lossy()).map_err(CanonError::Git);
+  let unwritable = |path: &Path| {
+    let path = path.to_path_buf();
+    move |source| CanonError::LayoutIo { path, source }
+  };
+  for (from, to) in plan {
+    let was_tracked = tracked(&from)?;
+    let (source, dest) = (root.join(&from), root.join(&to));
+    if let Some(parent) = dest.parent() {
+      std::fs::create_dir_all(parent).map_err(unwritable(parent))?;
+    }
+    if dest.exists() {
+      std::fs::remove_file(&source).map_err(unwritable(&source))?;
+    } else {
+      std::fs::rename(&source, &dest).map_err(unwritable(&dest))?;
+    }
+    if was_tracked {
+      staged.push(from.to_string_lossy().into_owned());
+      staged.push(to.to_string_lossy().into_owned());
+    }
+    done.moved.push((from, to));
+  }
+  if remove_usage_rules {
+    let was_tracked = tracked(&usage_rules)?;
+    let path = root.join(&usage_rules);
+    std::fs::remove_file(&path).map_err(unwritable(&path))?;
+    if was_tracked {
+      staged.push(usage_rules.to_string_lossy().into_owned());
+    }
+    done.removed.push(usage_rules);
+  }
+  crate::gitstate::stage(root, &staged).map_err(CanonError::Git)?;
+
+  let mut config = cfg.clone();
+  config.contracts = target;
+  crate::project::write_config(root, &config).map_err(CanonError::Config)?;
+  Ok(done)
 }
 
 /// The repository's hooks directory, or `None` when there is no repository.

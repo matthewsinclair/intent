@@ -3064,6 +3064,22 @@ impl crate::remedy::Remedy for FacadeError {
           path.display()
         ),
         crate::canon::CanonError::RootFile(_) => "a root-file template in the Intent install could not be rendered; restore the install's `lib/templates/`, then re-run `intent claude upgrade --apply`".to_string(),
+        crate::canon::CanonError::LayoutIo { path, .. } => format!(
+          "check that {} and its directory are readable and writable, then run `intent agents layout` again: the key is written only after every move, so a re-run finds what already moved and finishes",
+          path.display()
+        ),
+        crate::canon::CanonError::LayoutDestinationHolds { path } => format!(
+          "nothing was moved and the key is unchanged. Compare {} with the contract in the layout you are leaving, keep the one you mean, remove the other, then run `intent agents layout` again",
+          path.display()
+        ),
+        crate::canon::CanonError::Git(cause) => format!(
+          "the contracts are moved on disk and the key is unchanged; stage the move yourself with `git add -A -- AGENTS.md CLAUDE.md .claude/`, then run `intent agents layout` again to write the key ({})",
+          cause.remedy()
+        ),
+        crate::canon::CanonError::Config(cause) => format!(
+          "the contracts are already where you asked; write the key by running `intent agents layout` again ({})",
+          cause.remedy()
+        ),
       },
       // **THE REMEDY THIS REPLACES STATED hv's RULE BACKWARDS, AND IT WAS THE
       // FIRST MESSAGE A NEW v3 PROJECT SHOWED ANYBODY** (AC-04.7 arm (c)). It
@@ -5766,6 +5782,29 @@ impl Facade {
     )?;
     self.record_written(std::slice::from_ref(&path))?;
     Ok(path)
+  }
+
+  /// `intent agents layout <root|dotclaude>` (ST0083 WP-03, AC-03.2): move the
+  /// two agent contracts to the layout named and write the `contracts` key, in
+  /// one act ([`crate::canon::relayout`]), then record what landed in the file
+  /// index as `agents sync` does. Naming the layout the project already has
+  /// moves nothing and writes the key it already holds.
+  pub fn agents_layout(
+    &mut self,
+    target: crate::project::Contracts,
+  ) -> Result<crate::canon::Relayout, FacadeError> {
+    let home = crate::install::home()?;
+    let ctx = RenderContext {
+      version: &self.ctx.version,
+      todo_watermark: None,
+    };
+    let root = self.project.root().to_path_buf();
+    let done = crate::canon::relayout(&root, &home, self.project.config(), &ctx, target)
+      .map_err(FacadeError::Canon)?;
+    self.project.set_contracts(target);
+    let landed: Vec<std::path::PathBuf> = done.moved.iter().map(|(_, to)| root.join(to)).collect();
+    self.record_written(&landed)?;
+    Ok(done)
   }
 
   /// `intent claude upgrade` -- apply canon, then record in the file index

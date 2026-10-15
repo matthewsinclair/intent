@@ -699,3 +699,66 @@ fn claude_upgrade_names_the_one_door_for_stale_views() {
     "the report names the door for stale views: {out}"
   );
 }
+
+/// ST0083 AT-03.2, covering AC-03.1, AC-03.2 and the `init` and `agents init`
+/// halves of AC-02.2, through the binary a user runs: `intent init --contracts
+/// dotclaude` lays both contracts under `.claude/` and no root copy; `agents
+/// init`, `agents sync` and `agents validate` then name and write
+/// `.claude/AGENTS.md`; and `agents layout root` moves both back and says so.
+#[test]
+fn a_dotclaude_project_is_initialised_kept_and_moved_back_by_the_binary() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let root = dir.path();
+  let agents = root.join(".claude/AGENTS.md");
+
+  let (out, rc) = run(root, &["init", "Book", "--contracts", "dotclaude"]);
+  assert_eq!(rc, 0, "{out}");
+  assert!(agents.is_file(), "init wrote .claude/AGENTS.md: {out}");
+  assert!(
+    root.join(".claude/CLAUDE.md").is_file(),
+    "init wrote .claude/CLAUDE.md: {out}"
+  );
+  assert!(!root.join("AGENTS.md").exists(), "no root AGENTS.md");
+  assert!(!root.join("CLAUDE.md").exists(), "no root CLAUDE.md");
+
+  std::fs::remove_file(&agents).expect("removed, so agents init has one to make");
+  let (out, rc) = run(root, &["agents", "init"]);
+  assert_eq!(rc, 0, "{out}");
+  assert!(
+    out.contains("ok: AGENTS.md created at .claude/AGENTS.md."),
+    "{out}"
+  );
+  assert!(
+    agents.is_file() && !root.join("AGENTS.md").exists(),
+    "{out}"
+  );
+
+  let (out, rc) = run(root, &["agents", "sync"]);
+  assert_eq!(rc, 0, "{out}");
+  assert!(
+    out.contains("ok: AGENTS.md updated at .claude/AGENTS.md."),
+    "{out}"
+  );
+  let (out, rc) = run(root, &["agents", "validate"]);
+  assert_eq!(rc, 0, "{out}");
+  assert!(
+    out.contains("ok: AGENTS.md found at .claude/AGENTS.md (regular file)"),
+    "{out}"
+  );
+
+  let (out, rc) = run(root, &["agents", "layout", "root"]);
+  assert_eq!(rc, 0, "{out}");
+  assert!(
+    out.contains("moved: .claude/AGENTS.md -> AGENTS.md"),
+    "{out}"
+  );
+  assert!(
+    out.contains("moved: .claude/CLAUDE.md -> CLAUDE.md"),
+    "{out}"
+  );
+  assert!(out.contains("ok: contracts is root -- 2 moved"), "{out}");
+  assert!(
+    root.join("AGENTS.md").is_file() && !agents.exists(),
+    "{out}"
+  );
+}

@@ -4952,6 +4952,17 @@
             },
             {
               "spellings": [
+                "--contracts"
+              ],
+              "type": "enum",
+              "help": "Where the two agent contracts live: root, or dotclaude for .claude/",
+              "value": "root|dotclaude",
+              "default": "root",
+              "accepts": "eg `--contracts dotclaude` for a tree whose root people read rather than tools",
+              "disposition": "keep"
+            },
+            {
+              "spellings": [
                 "--help",
                 "-h"
               ],
@@ -5636,6 +5647,48 @@
           "exposed_on_mcp": true,
           "read_or_mutate": "read",
           "facade": "agents_validate"
+        },
+        {
+          "path": "agents layout",
+          "help": "Move the two agent contracts to the root or into .claude/, and set the project's contracts key",
+          "args": [
+            {
+              "name": "layout",
+              "type": "string",
+              "arity": "1",
+              "values": [
+                "root",
+                "dotclaude"
+              ],
+              "note": "`root` keeps AGENTS.md and CLAUDE.md at the project root, where the agents.md spec's readers open them; `dotclaude` keeps both in .claude/, for a tree whose root people read rather than tools."
+            }
+          ],
+          "flags": [],
+          "observed": {
+            "exit": [
+              {
+                "code": 0,
+                "when": "the contracts are where the layout named puts them and the key says so -- moved through git when tracked, or already there and nothing moved"
+              },
+              {
+                "code": 1,
+                "when": "a destination already holds a different file, refused before anything moves; or a contract could not be moved or the key written, named with what already moved"
+              }
+            ],
+            "stdout": "`moved: <from> -> <to>` per contract, `removed: usage-rules.md (...)` or `left: usage-rules.md (...)` when one applies, then `ok: contracts is <layout> -- <n> moved`",
+            "stderr": "`error: ...` on stderr (INV-01)"
+          },
+          "v2": "new-surface",
+          "basis": "hv, 2026-10-15 (ST0083 WP-03, AC-03.2): a project moves between the two layouts its contracts key names. The door moves both contracts through git when they are tracked, refuses a destination holding a different file before anything moves, removes a usage-rules.md byte-identical to its seed on the way to dotclaude and names an authored one, and writes the key last.",
+          "disposition": "new-surface",
+          "target": {
+            "state": "new-surface"
+          },
+          "read_or_mutate": "mutate",
+          "exposed_on_mcp": false,
+          "recoverability": "reversible",
+          "recoverability_anomaly": "WITHHELD BECAUSE WHERE A PROJECT KEEPS ITS CONTRACTS IS A DECLARATION, NOT A TIDY-UP (ST0083, hv's ruling 1: the layout is an explicit per-project key). The act is reversible -- `agents layout` back to the other value restores it -- and is still the person's to ask for, as `wb register` is: an agent moving a project's contracts unasked is the move this key exists to make deliberate.",
+          "facade": "agents_layout"
         },
         {
           "path": "agents template",
@@ -10448,8 +10501,8 @@
     {
       "disposition": "new-surface",
       "target_state": "new-surface",
-      "n": 81,
-      "census_note": "81 since 2026-09-23: `wb edit`, the door that changes an item's text and keeps the old text out of any commit that does not hold it yet (issue 0523); 80 since 2026-09-21: `outstanding`, one table of the outstanding threads, work packages and issues (ST0079); 79 since 2026-09-21: `st relate` and `st unrelate`, the only doors to a thread's `related` links (issue 0460); 77 since 2026-09-18: `st renumber` and `issues renumber`, the verbs that move a thread or an issue to a free id after two clones minted the same one (ST0078 WP-02); 75 since 2026-09-17: `index resolve`, the verb that runs each language's toolchain over the project and stores the references that join a written one (ST0076 WP-05, vc decision 25); 74 since 2026-09-14: `st detach`, the verb that removes an attachment's record from the store and canon and leaves its file on disk (issue 0394); 73 earlier the same day: `wp gate`, the work package's own close-gate verdict (issue 0310); 72 earlier the same day: `daemon logs`, the verb Intent.app's Console tails, printing intentd's recent log lines and following them with `--follow` (ST0075 WP-01 AC-01.1); 71 since 2026-09-13: `discover`, the verb that finds Intent projects under a directory and registers the ones this build can serve (ST0074 WP-03 AC-03.3); 70 since 2026-09-12: `wb migrate`, the verb that carries a hand-authored board into the model (ST0069 WP-14 AC-14.9); 69 earlier the same day: `wb add`, the door the generated view would otherwise have closed (ST0069 WP-14); 68 earlier the same day: `wb archive` (ST0069 WP-14 AC-14.6, vc's ruling that the state change IS the schedule); 67 earlier the same day: `wb pickup`, `wb touch` and `wb release`, the lifecycle half of the `wb` family (ST0069 WP-14); 64 earlier the same day: `wb decide`, `wb claim` and `wb unclaim`, the item half of the `wb` family (ST0069 WP-14); 61 earlier the same day: `wb ask`, `wb announce` and `wb clear`, the message half of the `wb` family (ST0069 WP-14 AC-14.5); 58 earlier the same day: `wb status` and `wb show`, the read half of the `wb` family (ST0069 WP-14 AC-14.7); 56 earlier the same day: the `wb` family and `wb register` (the same criterion); 54 earlier the same day: the `index` family and its two verbs (`index`, `index status`, `index rebuild`, ST0069 WP-19 AC-19.6); 51 since 2026-09-11 with `set` (issues 0154 + 0185, vc's option (1)); 50 before it, with `ac show` (issue 0168, vc's option (a)).",
+      "n": 82,
+      "census_note": "82 since 2026-10-15: `agents layout`, the door that moves the two agent contracts between the root and .claude/ and sets the contracts key (ST0083 WP-03); 81 since 2026-09-23: `wb edit`, the door that changes an item's text and keeps the old text out of any commit that does not hold it yet (issue 0523); 80 since 2026-09-21: `outstanding`, one table of the outstanding threads, work packages and issues (ST0079); 79 since 2026-09-21: `st relate` and `st unrelate`, the only doors to a thread's `related` links (issue 0460); 77 since 2026-09-18: `st renumber` and `issues renumber`, the verbs that move a thread or an issue to a free id after two clones minted the same one (ST0078 WP-02); 75 since 2026-09-17: `index resolve`, the verb that runs each language's toolchain over the project and stores the references that join a written one (ST0076 WP-05, vc decision 25); 74 since 2026-09-14: `st detach`, the verb that removes an attachment's record from the store and canon and leaves its file on disk (issue 0394); 73 earlier the same day: `wp gate`, the work package's own close-gate verdict (issue 0310); 72 earlier the same day: `daemon logs`, the verb Intent.app's Console tails, printing intentd's recent log lines and following them with `--follow` (ST0075 WP-01 AC-01.1); 71 since 2026-09-13: `discover`, the verb that finds Intent projects under a directory and registers the ones this build can serve (ST0074 WP-03 AC-03.3); 70 since 2026-09-12: `wb migrate`, the verb that carries a hand-authored board into the model (ST0069 WP-14 AC-14.9); 69 earlier the same day: `wb add`, the door the generated view would otherwise have closed (ST0069 WP-14); 68 earlier the same day: `wb archive` (ST0069 WP-14 AC-14.6, vc's ruling that the state change IS the schedule); 67 earlier the same day: `wb pickup`, `wb touch` and `wb release`, the lifecycle half of the `wb` family (ST0069 WP-14); 64 earlier the same day: `wb decide`, `wb claim` and `wb unclaim`, the item half of the `wb` family (ST0069 WP-14); 61 earlier the same day: `wb ask`, `wb announce` and `wb clear`, the message half of the `wb` family (ST0069 WP-14 AC-14.5); 58 earlier the same day: `wb status` and `wb show`, the read half of the `wb` family (ST0069 WP-14 AC-14.7); 56 earlier the same day: the `wb` family and `wb register` (the same criterion); 54 earlier the same day: the `index` family and its two verbs (`index`, `index status`, `index rebuild`, ST0069 WP-19 AC-19.6); 51 since 2026-09-11 with `set` (issues 0154 + 0185, vc's option (1)); 50 before it, with `ac show` (issue 0168, vc's option (a)).",
       "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
     },
     {
@@ -10753,6 +10806,7 @@
       "agents generate",
       "agents sync",
       "agents validate",
+      "agents layout",
       "agents template",
       "claude",
       "claude subagents",
@@ -10926,6 +10980,7 @@
       "agents generate",
       "agents sync",
       "agents validate",
+      "agents layout",
       "claude",
       "claude subagents",
       "claude skills",
@@ -11107,6 +11162,7 @@
       "agents generate",
       "agents sync",
       "agents validate",
+      "agents layout",
       "claude",
       "claude subagents",
       "claude skills",

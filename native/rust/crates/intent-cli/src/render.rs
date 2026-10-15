@@ -8540,6 +8540,7 @@ fn todo_done(a: &ArgMatches) -> Result<(), Failure> {
 /// [`report_declarations`]'s, the ones `intent lang init` prints.
 fn init(a: &ArgMatches) -> Result<(), Failure> {
   let langs = init_langs(a)?;
+  let contracts = init_contracts(a)?;
 
   let cwd = std::env::current_dir().map_err(|e| Failure::Unavailable(format!("error: {e}")))?;
   // The directory name is the table's declared default for `project_name`, and
@@ -8599,21 +8600,27 @@ fn init(a: &ArgMatches) -> Result<(), Failure> {
   // WRITE** (issue 0557). They were declared after `init` returned, so the
   // `AGENTS.md` it had already rendered said "None declared" beside a config
   // that declared them.
-  let made =
-    intentsvcs::init::init_with_languages(&cwd, &name, author, env!("CARGO_PKG_VERSION"), &langs)
-      .map_err(|e| {
-      let message = format!("error: {e}");
-      match e {
-        // THE REFUSALS TAKE THE REFUSAL'S CODE. `WouldOverwrite` and
-        // `Undeclarable` are the same kind of no as `AlreadyAProject` -- a verb
-        // declining a job it could have done -- and `guide.rs` says that is a 1.
-        // The variants below are the tool unable to act at all, which is the 2.
-        intentsvcs::init::InitError::AlreadyAProject(_)
-        | intentsvcs::init::InitError::WouldOverwrite(_)
-        | intentsvcs::init::InitError::Undeclarable(_) => Failure::Error(message),
-        _ => Failure::Unavailable(message),
-      }
-    })?;
+  let made = intentsvcs::init::init_with_languages(
+    &cwd,
+    &name,
+    author,
+    env!("CARGO_PKG_VERSION"),
+    &langs,
+    contracts,
+  )
+  .map_err(|e| {
+    let message = format!("error: {e}");
+    match e {
+      // THE REFUSALS TAKE THE REFUSAL'S CODE. `WouldOverwrite` and
+      // `Undeclarable` are the same kind of no as `AlreadyAProject` -- a verb
+      // declining a job it could have done -- and `guide.rs` says that is a 1.
+      // The variants below are the tool unable to act at all, which is the 2.
+      intentsvcs::init::InitError::AlreadyAProject(_)
+      | intentsvcs::init::InitError::WouldOverwrite(_)
+      | intentsvcs::init::InitError::Undeclarable(_) => Failure::Error(message),
+      _ => Failure::Unavailable(message),
+    }
+  })?;
 
   println!("created: {} at {}", made.project_name, made.root.display());
   // **EVERY LISTED FILE IS NAMED FROM THE ROOT THE LINE ABOVE PRINTS, THE
@@ -8655,6 +8662,21 @@ fn init(a: &ArgMatches) -> Result<(), Failure> {
   }
   println!();
   report_declarations(&made.languages, 0)
+}
+
+/// `init --contracts <root|dotclaude>` (ST0083): where the two agent contracts
+/// are written, parsed BEFORE anything is written. The value goes through the
+/// config key's own deserialiser, so the flag and `config.json` refuse a third
+/// value with one sentence; absent is `root`, which writes no key.
+fn init_contracts(a: &ArgMatches) -> Result<intentsvcs::project::Contracts, Failure> {
+  let raw = a
+    .try_get_one::<String>("contracts")
+    .map_err(|e| undeclared_arg("contracts", e))?;
+  let Some(raw) = raw else {
+    return Ok(intentsvcs::project::Contracts::Root);
+  };
+  serde_json::from_value(serde_json::Value::String(raw.clone()))
+    .map_err(|e| Failure::Error(format!("error: {e}\n  remedy: nothing was created; re-run with `--contracts root` or `--contracts dotclaude`")))
 }
 
 /// `init --lang <list>`, parsed and checked BEFORE anything is written.
@@ -13727,6 +13749,42 @@ fn agents(m: &ArgMatches) -> Result<(), Failure> {
       // Issue 0351: the file index learns of the file in the same act.
       f.agents_sync().map_err(fail)?;
       println!("ok: AGENTS.md created at {}.", agents_at(contracts));
+      Ok(())
+    }
+    // `intent agents layout <root|dotclaude>` (ST0083 WP-03, AC-03.2). The
+    // move and the key are the library's one act; this names what it did. The
+    // value goes through the config key's own deserialiser, so a third value is
+    // refused with the sentence `config.json` would give.
+    Some(("layout", sub)) => {
+      let raw = sub
+        .try_get_one::<String>("layout")
+        .map_err(|e| undeclared_arg("layout", e))?
+        .cloned()
+        .unwrap_or_default();
+      let target: intentsvcs::project::Contracts =
+        serde_json::from_value(serde_json::Value::String(raw.clone())).map_err(|e| {
+          Failure::Error(format!(
+            "error: {e}\n  remedy: nothing was moved; name `root` or `dotclaude`"
+          ))
+        })?;
+      let mut f = open()?;
+      let done = f.agents_layout(target).map_err(fail)?;
+      for (from, to) in &done.moved {
+        println!("moved: {} -> {}", from.display(), to.display());
+      }
+      for path in &done.removed {
+        println!(
+          "removed: {} (byte-identical to its seed; the .claude/ layout seeds none)",
+          path.display()
+        );
+      }
+      for path in &done.left {
+        println!(
+          "left: {} (yours: not seeded in the .claude/ layout, and never removed)",
+          path.display()
+        );
+      }
+      println!("ok: contracts is {raw} -- {} moved", done.moved.len());
       Ok(())
     }
     // A well-formedness check, not a currency check -- the section FLOOR and

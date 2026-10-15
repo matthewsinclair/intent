@@ -235,23 +235,34 @@ pub fn init(
   author: &str,
   intent_version: &str,
 ) -> Result<Initialised, InitError> {
-  init_with_languages(root, project_name, author, intent_version, &[])
+  init_with_languages(
+    root,
+    project_name,
+    author,
+    intent_version,
+    &[],
+    crate::project::Contracts::Root,
+  )
 }
 
-/// [`init`], declaring `languages` in the config it writes.
+/// [`init`], declaring `languages` and the `contracts` layout in the config it
+/// writes.
 ///
 /// **THE LANGUAGES GO INTO THE FIRST WRITE OF THE CONFIG, BECAUSE THE ROOT
 /// FILES ARE RENDERED FROM IT.** `intent init --lang` used to create the project
 /// and declare the languages afterwards, so the `AGENTS.md` this function
 /// renders said "None declared" beside a config that declared them (issue
 /// 0557). Declaring them here puts them in the config before the generated root
-/// files read it.
+/// files read it. **THE LAYOUT GOES IN THE SAME WRITE FOR THE SAME REASON**
+/// (ST0083): the two contracts are written where it says, and `root`, the
+/// default, is written as no key at all.
 pub fn init_with_languages(
   root: &Path,
   project_name: &str,
   author: &str,
   intent_version: &str,
   languages: &[String],
+  contracts: crate::project::Contracts,
 ) -> Result<Initialised, InitError> {
   let config = root.join("intent/.config/config.json");
   let undeclarable: Vec<String> = languages
@@ -327,8 +338,12 @@ pub fn init_with_languages(
   // around it.
   let mut occupied: Vec<PathBuf> = plan
     .iter()
-    .map(|(_, dest, _)| root.join(dest))
-    .chain(generated.iter().map(|(dest, _)| root.join(dest)))
+    .map(|(_, dest, _)| root.join(crate::sync::root_file_path(dest, contracts)))
+    .chain(
+      generated
+        .iter()
+        .map(|(dest, _)| root.join(crate::sync::root_file_path(dest, contracts))),
+    )
     .chain([
       root.join("intent/.intentfiles"),
       root.join("intent/.cache/intent.db"),
@@ -387,10 +402,16 @@ pub fn init_with_languages(
   // minted id differs between two readers that race, which would make the
   // identity depend on who asked first.
   let project_id = crate::project::mint_project_id();
+  // The layout is written only when it is not the default, as a rewrite of the
+  // config leaves `root` out (ST0083): the two writers produce one shape.
+  let contracts_line = match contracts {
+    crate::project::Contracts::Root => String::new(),
+    crate::project::Contracts::Dotclaude => "  \"contracts\": \"dotclaude\",\n".to_string(),
+  };
   write(
     &config,
     &format!(
-      "{{\n  \"intent_version\": {intent_version:?},\n  \"project_name\": {project_name:?},\n  \"author\": {author:?},\n  \"project_id\": {project_id:?},\n  \"created\": {stamp:?},\n  \"intent_dir\": \"intent\",\n  \"languages\": {languages_json},\n  \"backup\": {{\n    \"schedule\": {backup_schedule:?}\n  }}\n}}\n"
+      "{{\n  \"intent_version\": {intent_version:?},\n  \"project_name\": {project_name:?},\n  \"author\": {author:?},\n  \"project_id\": {project_id:?},\n  \"created\": {stamp:?},\n  \"intent_dir\": \"intent\",\n  \"languages\": {languages_json},\n{contracts_line}  \"backup\": {{\n    \"schedule\": {backup_schedule:?}\n  }}\n}}\n"
     ),
   )?;
 
@@ -417,7 +438,7 @@ pub fn init_with_languages(
 
   let mut written = Vec::new();
   for (_, dest, body) in plan {
-    let path = root.join(dest);
+    let path = root.join(crate::sync::root_file_path(dest, contracts));
     write(&path, &fill(body))?;
     written.push(path);
   }
@@ -492,7 +513,7 @@ pub fn init_with_languages(
   for (dest, body) in &generated {
     let content = crate::rootfiles::substitute(body, project.config(), &ctx)
       .map_err(|fault| InitError::Render(dest, fault))?;
-    let path = root.join(dest);
+    let path = root.join(crate::sync::root_file_path(dest, contracts));
     write(&path, &content)?;
     written.push(path);
   }

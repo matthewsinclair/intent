@@ -1326,6 +1326,30 @@ fn cases() -> Vec<Case> {
       },
       true,
     ),
+    // ST0083 WP-03: canon first lays both contracts and the seeded
+    // `usage-rules.md` down at the root, so the move has something to move and
+    // a seed to remove; the config's key is the one file that changes in place.
+    (
+      "agents layout",
+      |fx| {
+        fx.facade()
+          .claude_upgrade(
+            None,
+            intentsvcs::canon::Options {
+              force: false,
+              skip_settings: true,
+              report: false,
+            },
+          )
+          .expect("canon lays the contracts down");
+      },
+      |fx| {
+        fx.facade()
+          .agents_layout(intentsvcs::project::Contracts::Dotclaude)
+          .expect("agents layout");
+      },
+      true,
+    ),
   ]
 }
 

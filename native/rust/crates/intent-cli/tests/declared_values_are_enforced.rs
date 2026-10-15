@@ -273,6 +273,18 @@ const DECLARED: &[Slot] = &[
     trail: &[],
     disposition: Disposition::Planned { via: "config" },
   },
+  Slot {
+    // **ENFORCED BY THE RENDERER, THROUGH THE `contracts` KEY'S OWN
+    // DESERIALISER** (ST0083 WP-03): a third value is refused at exit 1 with
+    // the sentence `config.json` gives, which names both values, and the
+    // refusal comes before the project is opened, so nothing moves. clap holds
+    // no roster for the slot, for the exit-2 reason the `wb` rows record.
+    path: "agents layout",
+    arg: "layout",
+    lead: &[],
+    trail: &[],
+    disposition: Disposition::Enforced,
+  },
 ];
 
 /// A project with one thread and one work package, so the wired commands get

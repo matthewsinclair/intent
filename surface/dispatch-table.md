@@ -2331,9 +2331,9 @@ Initialize a new Intent project in the current directory
 
 - Templates are read from `lib/templates/` at `INTENT_HOME`. In v3 they are embedded in the binary (WP-07, rust-embed), which removes the whole class of broken-install failure this command currently has to report.
 
-| command | args           | flags                                   | help                                                     | disposition |
-| ------- | -------------- | --------------------------------------- | -------------------------------------------------------- | ----------- |
-| `init`  | [project_name] | --with-st0000, --lang <list>, --help/-h | Initialize a new Intent project in the current directory | keep        |
+| command | args           | flags                                                               | help                                                     | disposition |
+| ------- | -------------- | ------------------------------------------------------------------- | -------------------------------------------------------- | ----------- |
+| `init`  | [project_name] | --with-st0000, --lang <list>, --contracts root/dotclaude, --help/-h | Initialize a new Intent project in the current directory | keep        |
 
 ### `init`
 
@@ -2348,6 +2348,10 @@ Initialize a new Intent project in the current directory
     - **disposition basis:** RETIRED 2026-09-11 by hv's decision 3 (ST0058 AC-00.3), in the same commit as `st bootstrap`: it is the same door by a second entrance. It shipped as `keep` with an arm that refused it because the ST0000 bootstrap was not implemented, and that refusal promised the step would work `once the command lands` -- false once the command was struck.
   - `--lang` `<list>` (string) -- Comma- or space-separated languages to install canon for
     - Accepts: eg `--lang elixir` or `--lang elixir,rust,shell`
+    - **disposition:** keep
+  - `--contracts` `root|dotclaude` (enum) -- Where the two agent contracts live: root, or dotclaude for .claude/
+    - Accepts: eg `--contracts dotclaude` for a tree whose root people read rather than tools
+    - **default:** root
     - **disposition:** keep
   - `--help`, `-h` (bool) -- Print the usage block
     - **disposition:** intrinsic
@@ -2580,14 +2584,15 @@ Manage AGENTS.md -- the primary tool-agnostic LLM config at project root
 - **parity.md's table said this family was just `sync`. Measured, its verbs are** init, generate, sync, validate, template.
 - A PLUGIN command, so it execs before the project check (bin/intent:188-191) and runs outside a project (measured: exit 0) despite not being in GLOBAL_COMMANDS. That is INV-03's second exception.
 
-| command           | args                | flags             | help                                            | disposition |
-| ----------------- | ------------------- | ----------------- | ----------------------------------------------- | ----------- |
-| `agents`          | [command]           | --                | Manage AGENTS.md for Intent projects            | keep        |
-| `agents init`     | --                  | --template <name> | Initialize AGENTS.md at project root            | keep        |
-| `agents generate` | --                  | --                | Emit generated AGENTS.md content to stdout      | keep        |
-| `agents sync`     | --                  | --                | Regenerate AGENTS.md from current project state | keep        |
-| `agents validate` | --                  | --                | Validate AGENTS.md shape and required sections  | keep        |
-| `agents template` | [subcommand] [name] | --                | Manage AGENTS.md templates                      | retire      |
+| command           | args                | flags             | help                                                                                           | disposition |
+| ----------------- | ------------------- | ----------------- | ---------------------------------------------------------------------------------------------- | ----------- |
+| `agents`          | [command]           | --                | Manage AGENTS.md for Intent projects                                                           | keep        |
+| `agents init`     | --                  | --template <name> | Initialize AGENTS.md at project root                                                           | keep        |
+| `agents generate` | --                  | --                | Emit generated AGENTS.md content to stdout                                                     | keep        |
+| `agents sync`     | --                  | --                | Regenerate AGENTS.md from current project state                                                | keep        |
+| `agents validate` | --                  | --                | Validate AGENTS.md shape and required sections                                                 | keep        |
+| `agents layout`   | <layout>            | --                | Move the two agent contracts to the root or into .claude/, and set the project's contracts key | new-surface |
+| `agents template` | [subcommand] [name] | --                | Manage AGENTS.md templates                                                                     | retire      |
 
 ### `agents`
 
@@ -2675,6 +2680,26 @@ Validate AGENTS.md shape and required sections
 - **Target:** `as-observed`
 - **MCP:** exposed as an agent tool -- read-only
 - **facade:** agents_validate
+
+### `agents layout`
+
+Move the two agent contracts to the root or into .claude/, and set the project's contracts key
+
+- **v2:** new-surface
+- **Arguments:**
+  - `layout` (string, arity `1`) -- one of: `root`, `dotclaude`
+    - `root` keeps AGENTS.md and CLAUDE.md at the project root, where the agents.md spec's readers open them; `dotclaude` keeps both in .claude/, for a tree whose root people read rather than tools.
+- **Exit codes:**
+  - `0` -- the contracts are where the layout named puts them and the key says so -- moved through git when tracked, or already there and nothing moved
+  - `1` -- a destination already holds a different file, refused before anything moves; or a contract could not be moved or the key written, named with what already moved
+- **stdout:** `moved: <from> -> <to>` per contract, `removed: usage-rules.md (...)` or `left: usage-rules.md (...)` when one applies, then `ok: contracts is <layout> -- <n> moved`
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `new-surface`
+- **MCP:** not exposed -- **mutates**
+- **basis:** hv, 2026-10-15 (ST0083 WP-03, AC-03.2): a project moves between the two layouts its contracts key names. The door moves both contracts through git when they are tracked, refuses a destination holding a different file before anything moves, removes a usage-rules.md byte-identical to its seed on the way to dotclaude and names an authored one, and writes the key last.
+- **recoverability:** reversible
+- **recoverability anomaly:** WITHHELD BECAUSE WHERE A PROJECT KEEPS ITS CONTRACTS IS A DECLARATION, NOT A TIDY-UP (ST0083, hv's ruling 1: the layout is an explicit per-project key). The act is reversible -- `agents layout` back to the other value restores it -- and is still the person's to ask for, as `wb register` is: an agent moving a project's contracts unasked is the move this key exists to make deliberate.
+- **facade:** agents_layout
 
 ### `agents template`
 

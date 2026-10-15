@@ -253,3 +253,211 @@ fn a_config_naming_a_third_layout_refuses_the_scope_rather_than_assuming_root() 
     }
   }
 }
+
+// ---------------------------------------------------------------------------
+// WP-03, AT-03.1: the doors -- `init` with a layout, and `agents layout`.
+// ---------------------------------------------------------------------------
+
+fn key_in_file(root: &Path) -> Option<String> {
+  let text = std::fs::read_to_string(Project::config_path(root)).expect("the config reads");
+  let value: serde_json::Value = serde_json::from_str(&text).expect("the config is JSON");
+  value
+    .get("contracts")
+    .and_then(|v| v.as_str())
+    .map(str::to_string)
+}
+
+fn git(root: &Path, args: &[&str]) -> String {
+  let out = std::process::Command::new("git")
+    .args([
+      "-c",
+      "user.name=t",
+      "-c",
+      "user.email=t@t.invalid",
+      "-c",
+      "core.hooksPath=/dev/null",
+    ])
+    .args(args)
+    .current_dir(root)
+    .output()
+    .expect("git runs");
+  assert!(
+    out.status.success(),
+    "git {args:?}: {}",
+    String::from_utf8_lossy(&out.stderr)
+  );
+  String::from_utf8_lossy(&out.stdout).into_owned()
+}
+
+#[test]
+fn init_with_dotclaude_writes_both_contracts_under_dotclaude_and_the_key() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  intentsvcs::init::init_with_languages(
+    dir.path(),
+    "Book",
+    "Author",
+    "3.2.3",
+    &[],
+    Contracts::Dotclaude,
+  )
+  .expect("init writes");
+
+  for name in ["AGENTS.md", "CLAUDE.md"] {
+    assert!(
+      dir.path().join(".claude").join(name).is_file(),
+      "{name} is under .claude/"
+    );
+    assert!(!dir.path().join(name).exists(), "{name} has no root copy");
+  }
+  assert_eq!(key_in_file(dir.path()).as_deref(), Some("dotclaude"));
+  let claude = std::fs::read_to_string(dir.path().join(".claude/CLAUDE.md")).expect("it reads");
+  assert_eq!(
+    claude.lines().next(),
+    Some("@AGENTS.md"),
+    "the import opens it there too"
+  );
+}
+
+#[test]
+fn init_without_a_layout_writes_the_root_layout_and_no_key() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  intentsvcs::init::init(dir.path(), "Code", "Author", "3.2.3").expect("init writes");
+
+  for name in ["AGENTS.md", "CLAUDE.md"] {
+    assert!(dir.path().join(name).is_file(), "{name} is at the root");
+  }
+  assert!(!dir.path().join(".claude/AGENTS.md").exists());
+  assert_eq!(
+    key_in_file(dir.path()),
+    None,
+    "root is the default and is not written"
+  );
+}
+
+/// A root project with both contracts and the seeded `usage-rules.md`, from
+/// canon, as a 3.2.3 project carries them.
+fn upgraded_root() -> (Fixture, Facade) {
+  let (fx, mut facade) = declared(Contracts::Root);
+  facade
+    .claude_upgrade(None, options())
+    .expect("canon applies");
+  (fx, facade)
+}
+
+#[test]
+fn agents_layout_moves_both_contracts_sets_the_key_and_removes_a_seeded_usage_rules() {
+  let (fx, mut facade) = upgraded_root();
+
+  let done = facade
+    .agents_layout(Contracts::Dotclaude)
+    .expect("the layout moves");
+
+  assert_eq!(
+    done.moved,
+    vec![
+      (
+        PathBuf::from("AGENTS.md"),
+        PathBuf::from(".claude/AGENTS.md")
+      ),
+      (
+        PathBuf::from("CLAUDE.md"),
+        PathBuf::from(".claude/CLAUDE.md")
+      ),
+    ]
+  );
+  for name in ["AGENTS.md", "CLAUDE.md"] {
+    assert!(fx.root().join(".claude").join(name).is_file());
+    assert!(!fx.root().join(name).exists());
+  }
+  assert_eq!(done.removed, vec![PathBuf::from("usage-rules.md")]);
+  assert!(!fx.root().join("usage-rules.md").exists());
+  assert_eq!(key_in_file(fx.root()).as_deref(), Some("dotclaude"));
+}
+
+#[test]
+fn agents_layout_leaves_an_authored_usage_rules_and_names_it() {
+  let (fx, mut facade) = upgraded_root();
+  std::fs::write(fx.root().join("usage-rules.md"), "# Ours\n").expect("an authored one");
+
+  let done = facade
+    .agents_layout(Contracts::Dotclaude)
+    .expect("the layout moves");
+
+  assert_eq!(done.left, vec![PathBuf::from("usage-rules.md")]);
+  assert!(done.removed.is_empty());
+  assert_eq!(
+    std::fs::read_to_string(fx.root().join("usage-rules.md")).expect("it reads"),
+    "# Ours\n"
+  );
+}
+
+#[test]
+fn agents_layout_refuses_a_destination_holding_a_different_file_and_moves_nothing() {
+  let (fx, mut facade) = upgraded_root();
+  std::fs::create_dir_all(fx.root().join(".claude")).expect("mkdir");
+  std::fs::write(fx.root().join(".claude/AGENTS.md"), "someone else's\n")
+    .expect("a different file");
+  let before = std::fs::read(fx.root().join("AGENTS.md")).expect("it reads");
+
+  let error = facade
+    .agents_layout(Contracts::Dotclaude)
+    .expect_err("a different file at the destination is refused");
+
+  assert!(
+    error
+      .to_string()
+      .contains(".claude/AGENTS.md already holds a different file"),
+    "the refusal names the path: {error}"
+  );
+  assert_eq!(
+    std::fs::read(fx.root().join("AGENTS.md")).expect("it reads"),
+    before
+  );
+  assert!(fx.root().join("CLAUDE.md").is_file(), "nothing moved");
+  assert!(
+    fx.root().join("usage-rules.md").is_file(),
+    "nothing removed"
+  );
+  assert_eq!(key_in_file(fx.root()), None, "the key is unchanged");
+}
+
+#[test]
+fn agents_layout_moves_tracked_contracts_through_git_as_renames() {
+  let (fx, mut facade) = upgraded_root();
+  git(fx.root(), &["init", "-q"]);
+  git(fx.root(), &["add", "-A"]);
+  git(fx.root(), &["commit", "-q", "-m", "fixture"]);
+
+  facade
+    .agents_layout(Contracts::Dotclaude)
+    .expect("the layout moves");
+
+  let status = git(fx.root(), &["status", "--porcelain"]);
+  for name in ["AGENTS.md", "CLAUDE.md"] {
+    assert!(
+      status.contains(&format!("R  {name} -> .claude/{name}")),
+      "{name}'s move is staged as a rename: {status}"
+    );
+  }
+  assert!(
+    status.contains("D  usage-rules.md"),
+    "the seeded removal is staged: {status}"
+  );
+}
+
+#[test]
+fn agents_layout_back_to_root_moves_them_back() {
+  let (fx, mut facade) = upgraded_root();
+  facade
+    .agents_layout(Contracts::Dotclaude)
+    .expect("to dotclaude");
+
+  let done = facade.agents_layout(Contracts::Root).expect("back to root");
+
+  assert_eq!(done.moved.len(), 2);
+  for name in ["AGENTS.md", "CLAUDE.md"] {
+    assert!(fx.root().join(name).is_file());
+    assert!(!fx.root().join(".claude").join(name).exists());
+  }
+  assert_eq!(key_in_file(fx.root()), None, "root is written as no key");
+}
