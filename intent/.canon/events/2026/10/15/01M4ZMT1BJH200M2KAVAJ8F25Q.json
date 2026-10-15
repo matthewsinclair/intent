@@ -1,0 +1,14 @@
+{
+  "id": "01M4ZMT1BJH200M2KAVAJ8F25Q",
+  "ts": "2026-10-15T11:22:54.709Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0081/AC-07.1"
+  },
+  "payload": {
+    "note": "Evidence so far, not a satisfy (vc, 2026-10-15): o7-b (refs/bank/cc/0081/kovacs/o7-drive-b.sh) ran green on kovacs at 11:20Z by vc's relay, on \"Linux kovacs 7.0.0-38-generic aarch64\" with \"date (uutils coreutils) 0.10.0\" and \"mawk 1.3.4 20260129\", from the package at sha256 f289e5f1...cd28d, with no Rust and no checkout on PATH: version, info, bootstrap, init, doctor at 0 findings, the st, wp and ac verbs, the gate's exit 1, the wb verbs, daemon start, status and stop, --at-login refused with nothing written, claude upgrade --apply, the three hook commands as settings.json declares them (exit 2, then 0 on the gate), a clean commit and a refused one, and doctor at the end. Owed for the satisfy: the criterion's last clause, hooks firing in a real Claude Code session, which a script cannot give -- a claude session in /home/matts/work/o7h/proj on kovacs (hv), whose transcript shows the SessionStart line and the gate."
+  }
+}

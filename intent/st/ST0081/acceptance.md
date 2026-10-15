@@ -40,7 +40,7 @@ title: Intent from Homebrew on Linux and macOS, with no source checkout: Linux b
 
 - AC-06.1 (non-test) On Linux, `brew install matthewsinclair/intent/intent` installs the release's Linux package for the machine's architecture with no checkout of Intent's source, and the installed `intent --version` names the release. -- satisfied: no
 
-### WP-07 -- Intent on Ubuntu from its Linux package, as a user uses it (status: Not Started)
+### WP-07 -- Intent on Ubuntu from its Linux package, as a user uses it (status: WIP)
 
 - AC-07.1 (non-test) On Ubuntu with uutils coreutils and mawk, Intent installed from its Linux package with no checkout of Intent's source reports its version, bootstraps, initialises a project in which `intent doctor` reports no finding, creates and lists a thread, starts and stops the daemon, and fires its hooks in a Claude Code session. -- satisfied: no
 
@@ -70,7 +70,7 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-07 -- Intent on Ubuntu from its Linux package, as a user uses it (status: Not Started)
+### WP-07 -- Intent on Ubuntu from its Linux package, as a user uses it (status: WIP)
 
 _(no tests in this group)_
 

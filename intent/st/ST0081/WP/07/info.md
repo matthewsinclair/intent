@@ -2,7 +2,7 @@
 wp_id: WP-07
 title: Intent on Ubuntu from its Linux package, as a user uses it
 scope: S
-status: Not Started
+status: WIP
 ---
 
 # WP-07: Intent on Ubuntu from its Linux package, as a user uses it
