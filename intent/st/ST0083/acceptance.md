@@ -37,7 +37,7 @@ title: Agent contracts at the root or in .claude/, chosen per project, and CLAUD
 
 ### WP-05 -- The templated settings deny editing the generated AGENTS.md in either layout (status: Not Started)
 
-- AC-05.1 (non-test) `lib/templates/.claude/settings.json` carries `permissions.deny` rules against editing and writing `./AGENTS.md` and `./.claude/AGENTS.md`, carries none against `CLAUDE.md`, and stays byte-identical on every machine. -- satisfied: no
+- AC-05.1 (non-test) `lib/templates/.claude/settings.json` carries `permissions.deny` rules `Edit(/AGENTS.md)` and `Edit(/.claude/AGENTS.md)`, no `Write(...)` rule (Claude Code consults `Edit(path)` and `Read(path)` rules only and warns at startup about a `Write(path)` rule; `Edit` rules govern every built-in tool that writes a file) and none against `CLAUDE.md`; the leading `/` anchors each at the project the settings file belongs to, not the current directory; and the file stays byte-identical on every machine. -- satisfied: no
 
 ### WP-06 -- intent deinit: strip what Intent wrote from a project being closed (status: Not Started)
 
