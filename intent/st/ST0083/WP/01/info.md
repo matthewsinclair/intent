@@ -2,7 +2,7 @@
 wp_id: WP-01
 title: CLAUDE.md imports AGENTS.md: the @AGENTS.md line in _CLAUDE.md
 scope: XS
-status: Not Started
+status: WIP
 ---
 
 # WP-01: CLAUDE.md imports AGENTS.md: the @AGENTS.md line in _CLAUDE.md

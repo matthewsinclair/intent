@@ -1,0 +1,15 @@
+{
+  "id": "01M4ZGPG5K0PHV3H4N7MRGJF6F",
+  "ts": "2026-10-15T10:11:04.499Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST0083, THE AGENT CONTRACTS LANE (vc's order of 2026-10-15 on hv's \"Ok, proceed\", given first-hand in vc's session and relayed by vc; hold 31 archived on it). cc claims ST0083 and WP-01 is started. THE ORDER OF WORK: (1) WP-01 FIRST AND ALONE, XS: the @AGENTS.md line at the top of lib/templates/llm/_CLAUDE.md (AC-01.1), built and judged in a detached worktree because lib/templates/ is live on save in every estate (hv decision 30), with a new arm in tests/unit/claude_md_template.bats that reads the first line; banked on refs/bank/cc/0083/wp01 for vc's judgement, git apply --stat quoted beside the blob. (2) WP-02, the key and contracts_dir (AC-02.1 to AC-02.3), every site in the thread's context deriving from one function, the sync scope and the daemon watch included; WP-03, the doors, stacked on it in the same worktree. (3) WP-05, the deny rules (AC-05.1), a templates change, its own bank under WP-01's worktree discipline. (4) WP-04, WP-06, WP-07 and WP-08 in the cheapest order, one bank each; WP-08's CHANGELOG lines compose on top of dc's refs/bank/dc/324/changelog (c8cbaf6bf), driven in both orders before banking. STANDING: every Rust bank owes intentsvcs's whole suite after cargo build -p intentd, the crate suites it touches, and the shell half for anything under lib/templates/ or a generator; one heavy run at a time, each on vc's GO after a census; questions go to vc, never to hv. ST0081's resume (doing 82) is unchanged: WP-03's bank waits on kovacs's trust measurement, and the o5, o6 and o7 review is vc's. NO PUSH, NO RELEASE."
+  }
+}

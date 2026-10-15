@@ -13,7 +13,7 @@ title: Agent contracts at the root or in .claude/, chosen per project, and CLAUD
 
 ## Acceptance Criteria
 
-### WP-01 -- CLAUDE.md imports AGENTS.md: the @AGENTS.md line in _CLAUDE.md (status: Not Started)
+### WP-01 -- CLAUDE.md imports AGENTS.md: the @AGENTS.md line in _CLAUDE.md (status: WIP)
 
 - AC-01.1 (non-test) The generated CLAUDE.md opens with the line `@AGENTS.md`, rendered from `lib/templates/llm/_CLAUDE.md`, so Claude Code loads AGENTS.md at launch in both layouts; `intent claude upgrade --apply` writes the line into an existing generated CLAUDE.md with its user block carried, and a CLAUDE.md without the generated footer is held as before. -- satisfied: no
 
@@ -52,7 +52,7 @@ title: Agent contracts at the root or in .claude/, chosen per project, and CLAUD
 
 ## Acceptance Tests
 
-### WP-01 -- CLAUDE.md imports AGENTS.md: the @AGENTS.md line in _CLAUDE.md (status: Not Started)
+### WP-01 -- CLAUDE.md imports AGENTS.md: the @AGENTS.md line in _CLAUDE.md (status: WIP)
 
 _(no tests in this group)_
 

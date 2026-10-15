@@ -4,13 +4,14 @@
     "moniker": "cc",
     "name": "Control Claude",
     "role": "control",
-    "session_id": "170c139d-4ce7-4ed3-a9ee-3da866f70f09",
-    "heartbeat_at": "2026-10-14T14:02:57.845Z",
+    "session_id": "499621e2-fc3c-4e68-95a3-009e5e8b84c4",
+    "heartbeat_at": "2026-10-15T10:11:05.470Z",
     "status": "active",
-    "focus": "LOCALFOLDED 2026-10-14 for hv's shutdown: holding (hold 31) until hv's word; then doing 82, WP-03's bank first, with o5, o6 and o7 banked for vc's review; 0595 and ST0081 WP-06 landed, open on kovacs's runs; no push, no release",
+    "focus": "ST0083, the agent contracts lane, on vc's order of 2026-10-15 (hv's word relayed; hold 31 archived): WP-01 first and alone in a detached worktree, the @AGENTS.md import, banked for vc; then WP-02 and WP-03 stacked; ST0081's WP-03 waits on kovacs; no push, no release",
     "claims": [
       "ST0081",
-      "ISSUE:0595"
+      "ISSUE:0595",
+      "ST0083"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -1942,8 +1943,17 @@
       "kind": "hold",
       "seq": 31,
       "text": "**ALL OF cc's WORK IS HELD ON THE FOLD UNTIL hv's WORD** (hv's shutdown of 2026-10-14, relayed by zeop-sc and by vc): cc localfolded and committed its own records by path, and pushed nothing, because the push in Intent is hv's. When hv's word reaches cc, in cc's session or relayed by vc, archive this hold and resume from doing 82, WP-03's bank first.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-15T10:10:32.744Z",
       "recorded_at": "2026-10-14T14:02:48.287Z"
+    },
+    {
+      "node": "cc",
+      "kind": "doing",
+      "seq": 83,
+      "text": "ST0083, THE AGENT CONTRACTS LANE (vc's order of 2026-10-15 on hv's \"Ok, proceed\", given first-hand in vc's session and relayed by vc; hold 31 archived on it). cc claims ST0083 and WP-01 is started. THE ORDER OF WORK: (1) WP-01 FIRST AND ALONE, XS: the @AGENTS.md line at the top of lib/templates/llm/_CLAUDE.md (AC-01.1), built and judged in a detached worktree because lib/templates/ is live on save in every estate (hv decision 30), with a new arm in tests/unit/claude_md_template.bats that reads the first line; banked on refs/bank/cc/0083/wp01 for vc's judgement, git apply --stat quoted beside the blob. (2) WP-02, the key and contracts_dir (AC-02.1 to AC-02.3), every site in the thread's context deriving from one function, the sync scope and the daemon watch included; WP-03, the doors, stacked on it in the same worktree. (3) WP-05, the deny rules (AC-05.1), a templates change, its own bank under WP-01's worktree discipline. (4) WP-04, WP-06, WP-07 and WP-08 in the cheapest order, one bank each; WP-08's CHANGELOG lines compose on top of dc's refs/bank/dc/324/changelog (c8cbaf6bf), driven in both orders before banking. STANDING: every Rust bank owes intentsvcs's whole suite after cargo build -p intentd, the crate suites it touches, and the shell half for anything under lib/templates/ or a generator; one heavy run at a time, each on vc's GO after a census; questions go to vc, never to hv. ST0081's resume (doing 82) is unchanged: WP-03's bank waits on kovacs's trust measurement, and the o5, o6 and o7 review is vc's. NO PUSH, NO RELEASE.",
+      "state": "live",
+      "recorded_at": "2026-10-15T10:11:04.499Z"
     }
   ],
   "messages": [
