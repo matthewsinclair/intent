@@ -196,5 +196,17 @@
         "is": "unsatisfied"
       }
     }
+  ],
+  "tests": [
+    {
+      "id": "AT-01.1",
+      "kind": "test",
+      "file": "tests/unit/claude_md_template.bats",
+      "covers": [
+        "AC-01.1"
+      ],
+      "status": "green",
+      "note": "Arm 14 of tests/unit/claude_md_template.bats. RED at base bed306a63 on 2026-10-15, on 701c4d98b's binary, whose embedded llm/ templates are byte-identical to the base's: 'the generated CLAUDE.md opens with # ScratchProj, not @AGENTS.md'. GREEN on tmp/wt-cc-0083's own release build in the judging run on vc's GO the same day (bats 781 of 781 ok, ok 78), landed at 16f351a90 with the bank's patch-id 271b9eae66ef. AC-01.1's run-time half (claude upgrade --apply writes the line, carries the user block, and holds a footerless CLAUDE.md) is driven evidence on refs/bank/cc/0083/evidence/wp01-d01-drive.log."
+    }
   ]
 }

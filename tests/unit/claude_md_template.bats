@@ -129,7 +129,7 @@ init_scratch_project() {
 }
 
 @test "intent init writes a CLAUDE.md whose first line imports AGENTS.md" {
-  # ST0083 AC-01.1. Under Claude Code's default, a project with a CLAUDE.md
+  # ST0083 AT-01.1, covering AC-01.1. Under Claude Code's default, a project with a CLAUDE.md
   # loads that file and never AGENTS.md, so a prose pointer to AGENTS.md is a
   # request the harness does not honour; the `@AGENTS.md` import is what loads
   # it. The line is read off the GENERATED file, which is what Claude Code
