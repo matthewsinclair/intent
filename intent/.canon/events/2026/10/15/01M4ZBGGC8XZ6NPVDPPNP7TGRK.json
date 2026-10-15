@@ -1,0 +1,15 @@
+{
+  "id": "01M4ZBGGC8XZ6NPVDPPNP7TGRK",
+  "ts": "2026-10-15T08:40:25.224Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RESUME, THE CONTRACTS-IN-.claude/ CHANGE (vc, localfold of 2026-10-15 for hv's move; hv's word: bank it all, pick up later). Estate-wide, and in 3.2.4 for zeop (hv first-hand). sinclair-vc's brief, carrying geodica-vc's asks, is measured against c5f6f646e and the Claude Code docs read that day; the write-up is refs/bank/vc/contracts/contracts-layout-brief-measured.md (blob f7d092d35a84, sha256 7363a9f5a607) and the reply sinclair-vc's session ended before receiving is refs/bank/vc/contracts/reply-to-sinclair-vc.md (blob 43abd3608244, sha256 e6ca8f7cf914); geodica-vc has the facts and closed its side (aterra commit 3570e2c). hv's REQUIREMENT, relayed by sinclair-vc: two layouts, the root for a code project and .claude/ for a non-code project, chosen by a per-project key that init, agents sync, agents validate and doctor honour, with `@AGENTS.md` imported in both. THE FINDING: under Claude Code's default a project with any CLAUDE.md never loads AGENTS.md, so the import is a defect fix in every Intent project, XS, and lands first. NINE DECISIONS hv owes, numbered in the bank; 4 is answered (everything in 3.2.4): 1 an explicit key, not languages []; 2 Jen's book is dotclaude; 3 the import first; 5 intent deinit in the same thread; 6 a deny on editing AGENTS.md in the templated settings, both paths; 7 the Geodica project rides the fleet sweep under decision 31; 8 Intent marks intent/.cache Dropbox-ignored itself; 9 no usage-rules.md seed under dotclaude. JEN'S BOOK: hv says delete Intent from it and recreate it on v3, no upgrade and no yak-shaving; the steps are in the bank, one session of the next Sinclair-Shared vc on the pair that carries the key, after the unstaged deletion of ch00/characters/david.md in its tree is explained. FIRST STEPS AT THE NEXT START: hv answers by number; vc files the thread for cc's lane (the import, the key and its doors, the sync scope and the daemon watch, the doctor checks, the deny, deinit, the Dropbox ignore) with the rulings in its records before cc starts; vc sends the next Sinclair-Shared session the banked reply and the ruling so it writes the estate contract's sub-tree sentence. Doing 41 (kovacs, 3.2.4's lane, the queue) is unchanged and is the other half of the resume."
+  }
+}

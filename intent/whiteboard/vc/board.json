@@ -4,10 +4,10 @@
     "moniker": "vc",
     "name": "Validation Claude",
     "role": "validation",
-    "session_id": "864750bb-ae12-4562-bc77-eb1f0e11fd85",
-    "heartbeat_at": "2026-10-14T14:02:43.798Z",
+    "session_id": "2fc8afd2-3ec8-41fe-bd9f-a5170cd80a61",
+    "heartbeat_at": "2026-10-15T08:40:26.232Z",
     "status": "active",
-    "focus": "LOCALFOLDED 2026-10-14 for hv's shutdown: holding on hold 4 until hv's word; first at the next start: kovacs-sysadm confirms hv's permission rule is in, then ORDER 3b, then ORDER 3's GO, then cc's o5, o6 and o7 reviewed; doing 41 is the state",
+    "focus": "LOCALFOLDED 2026-10-15 for hv's move: the contracts-in-.claude/ change is measured and banked on refs/bank/vc/contracts/ (doing 42), nine decisions with hv, 3.2.4 for zeop; doing 41 (kovacs, 3.2.4's lane) unchanged; hold 4 holds until hv's word",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -1802,6 +1802,14 @@
       "text": "**ALL OF vc's WORK IS HELD AFTER THIS FOLD UNTIL hv's WORD** (hv's word of 2026-10-14, relayed by zeop-sc: shutting down for the day; localfold, bank what is outstanding, hold on the fold; we pick up again tomorrow). Until then vc writes, runs and orders nothing, kovacs included, and no GO goes to kovacs-sysadm before it confirms hv's permission rule is present in its settings.",
       "state": "live",
       "recorded_at": "2026-10-14T14:02:42.400Z"
+    },
+    {
+      "node": "vc",
+      "kind": "doing",
+      "seq": 42,
+      "text": "RESUME, THE CONTRACTS-IN-.claude/ CHANGE (vc, localfold of 2026-10-15 for hv's move; hv's word: bank it all, pick up later). Estate-wide, and in 3.2.4 for zeop (hv first-hand). sinclair-vc's brief, carrying geodica-vc's asks, is measured against c5f6f646e and the Claude Code docs read that day; the write-up is refs/bank/vc/contracts/contracts-layout-brief-measured.md (blob f7d092d35a84, sha256 7363a9f5a607) and the reply sinclair-vc's session ended before receiving is refs/bank/vc/contracts/reply-to-sinclair-vc.md (blob 43abd3608244, sha256 e6ca8f7cf914); geodica-vc has the facts and closed its side (aterra commit 3570e2c). hv's REQUIREMENT, relayed by sinclair-vc: two layouts, the root for a code project and .claude/ for a non-code project, chosen by a per-project key that init, agents sync, agents validate and doctor honour, with `@AGENTS.md` imported in both. THE FINDING: under Claude Code's default a project with any CLAUDE.md never loads AGENTS.md, so the import is a defect fix in every Intent project, XS, and lands first. NINE DECISIONS hv owes, numbered in the bank; 4 is answered (everything in 3.2.4): 1 an explicit key, not languages []; 2 Jen's book is dotclaude; 3 the import first; 5 intent deinit in the same thread; 6 a deny on editing AGENTS.md in the templated settings, both paths; 7 the Geodica project rides the fleet sweep under decision 31; 8 Intent marks intent/.cache Dropbox-ignored itself; 9 no usage-rules.md seed under dotclaude. JEN'S BOOK: hv says delete Intent from it and recreate it on v3, no upgrade and no yak-shaving; the steps are in the bank, one session of the next Sinclair-Shared vc on the pair that carries the key, after the unstaged deletion of ch00/characters/david.md in its tree is explained. FIRST STEPS AT THE NEXT START: hv answers by number; vc files the thread for cc's lane (the import, the key and its doors, the sync scope and the daemon watch, the doctor checks, the deny, deinit, the Dropbox ignore) with the rulings in its records before cc starts; vc sends the next Sinclair-Shared session the banked reply and the ruling so it writes the estate contract's sub-tree sentence. Doing 41 (kovacs, 3.2.4's lane, the queue) is unchanged and is the other half of the resume.",
+      "state": "live",
+      "recorded_at": "2026-10-15T08:40:25.224Z"
     }
   ],
   "messages": [
