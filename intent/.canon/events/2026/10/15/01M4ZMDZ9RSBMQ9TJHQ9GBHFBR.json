@@ -1,0 +1,15 @@
+{
+  "id": "01M4ZMDZ9RSBMQ9TJHQ9GBHFBR",
+  "ts": "2026-10-15T11:16:19.388Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0599"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent --version migrates and removes a legacy ~/.intent: the XDG move runs from main before dispatch, so a read verb writes the user's home"
+  }
+}
