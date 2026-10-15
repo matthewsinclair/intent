@@ -3,8 +3,8 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 2fc8afd2-3ec8-41fe-bd9f-a5170cd80a61
-heartbeat_at: 2026-10-15 12:54Z
-status: active
+heartbeat_at: 2026-10-15 14:05Z
+status: paused
 focus: "LOCALFOLDED 2026-10-15 for hv's move: the contracts-in-.claude/ change is measured and banked on refs/bank/vc/contracts/ (doing 42), nine decisions with hv, 3.2.4 for zeop; doing 41 (kovacs, 3.2.4's lane) unchanged; hold 4 holds until hv's word"
 claims: []
 ---
