@@ -173,7 +173,9 @@ $dirt"
 # the script itself, so that exit is the proof the script ran.
 #
 # SELF-CONTAINED, because `smoke --in` hands this function's own text to the
-# container's bash: it calls nothing else in this file.
+# container's bash: it calls nothing else in this file. That is also why
+# cmd/brew's ARM 6 drives the gate with its own copy of these lines rather than
+# a helper the two share (issue 0600).
 smoke_checks() {
   local root="$1" bindir want resolved out rc
   bindir="$(mktemp -d)"

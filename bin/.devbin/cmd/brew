@@ -339,12 +339,13 @@ cmd_smoke() {
       "pre-commit-guards.sh under INTENT_HOME"
   fi
 
-  # ARM 6 -- the session hooks answer 0 and an unknown one answers 1, NEVER 2.
+  # ARM 6 -- three session hooks answer 0, the gate refuses an unreleased prompt
+  # with 2, and an unknown hook answers 1, NEVER 2.
   # The names are the binary's, not Claude Code's lifecycle names: driving
   # SessionStart/UserPromptSubmit/Stop returns rc=1 and reads as a failing arm
   # when it is a wrong instrument (dc, measured 2026-08-26).
   step "the session hooks"
-  for h in session-context require-in-session session-finish post-tool-advisory; do
+  for h in session-context session-finish post-tool-advisory; do
     rc=0
     (cd "$tmp" && "$bin_intent" claude hook "$h" </dev/null >/dev/null 2>&1) || rc=$?
     # `rc` captured on its own line rather than read inside the else branch:
@@ -356,6 +357,23 @@ cmd_smoke() {
       smoke_fail "hook $h returned $rc -- expected 0" "hook $h -> 0"
     fi
   done
+  # require-in-session IS THE GATE, AND FED NOTHING IT ANSWERED FOR THE MACHINE.
+  # It exits 0 only where /tmp/intent holds a sentinel for the session id it
+  # resolves, so this arm passed at every cut on a Mac where /in-session had left
+  # one, and went red on a fresh machine where the keg refused, as it should
+  # (issue 0600). So it is driven as cmd/linux's smoke_checks drives it: a
+  # prompt, under a session id no sentinel exists for, and the refusal is the
+  # pass -- 2, carrying the gate script's own `Expected sentinel:` line, which
+  # proves the script under libexec ran. The id carries this run's pid, so no
+  # sentinel an earlier run or session left in /tmp/intent can answer for it.
+  rc=0
+  out="$(cd "$tmp" && printf '%s' '{"prompt":"brew smoke"}' |
+    CLAUDE_CODE_SESSION_ID="brew-smoke-$$" "$bin_intent" claude hook require-in-session 2>&1)" || rc=$?
+  case "$rc:$out" in
+    2:*"Expected sentinel:"*) smoke_ok "hook require-in-session refuses -> 2" ;;
+    *) smoke_fail "hook require-in-session returned $rc, expected 2 with the gate's 'Expected sentinel:' line: $(printf '%s' "${out:-<nothing>}" | tail -1)" \
+      "hook require-in-session refuses -> 2" ;;
+  esac
   rc=0
   (cd "$tmp" && "$bin_intent" claude hook not-a-hook </dev/null >/dev/null 2>&1) || rc=$?
   case "$rc" in
