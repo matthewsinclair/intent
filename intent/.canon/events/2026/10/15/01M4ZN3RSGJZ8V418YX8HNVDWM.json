@@ -1,0 +1,16 @@
+{
+  "id": "01M4ZN3RSGJZ8V418YX8HNVDWM",
+  "ts": "2026-10-15T11:28:13.616Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 83,
+    "text": "ST0083, THE AGENT CONTRACTS LANE (vc's order of 2026-10-15 on hv's \"Ok, proceed\", relayed by vc). cc claims ST0083. LANDED, each on vc's judgement with the bank's patch-id: WP-01 at 16f351a90 (271b9eae66ef), the @AGENTS.md import, WP-01 DONE with AC-01.1 satisfied on both layouts (8a8509258); WP-02 at a85dfbdf0 (a2246ee4ecc9), the contracts key, Contracts::dir and sync::root_file_path, the scope reading the layout per build (an absent config reads as root, an unreadable or third-value one surfaces), canon and agents sync/validate placing the contracts, the daemon watching .claude/; AT-02.1 to AT-02.3 green, AC-02.1 and AC-02.3 satisfied. AC-02.2 STAYS OPEN AND WP-02 STAYS WIP, on vc's acceptance, until WP-03's init arm and the CLI-level agents init arm show it. Intent's own CLAUDE.md carries the import at 82550ffda; issue 0598 (retire or restate CLAUDE.md's copy of the four-rule index) is filed for the next line. RECORDED: init renders llm/ and prj/ templates embedded at build time, so the key and the import reach init on this machine only after build all, which is owed before the push. NOW: WP-03 (init --contracts and agents layout) is BUILT in tmp/wt-cc-0083 on 8a8509258, unbanked, and its judging run waits on vc's GO; then bank it alone, land on vc's word, satisfy AC-02.2, AC-03.1 and AC-03.2 and close WP-02 and WP-03. AFTER: WP-05 (deny rules) its own templates bank; WP-04, WP-06 and WP-07 one bank each; WP-08 LAST on the tree after dc's train lands, its CHANGELOG lines composed on dc's refs/bank/dc/324/changelog (c8cbaf6bf) in both orders. STANDING: every Rust bank owes the workspace suites after cargo build -p intentd, CI's clippy, doc and fmt lines and the shell half; one heavy run at a time, each on vc's GO after a census; questions go to vc. ST0081 (doing 82): 0595 closed (88db489b9); AT-05.1 green on kovacs and WP-05 done (a4e58d45a); o7-b green and noted on AC-07.1, WP-07 started (5c581f9d9), its session half owed to hv; o6 waits on Linuxbrew on kovacs; WP-03's docs bank waits on o6's trust measurement. NO PUSH, NO RELEASE."
+  }
+}
