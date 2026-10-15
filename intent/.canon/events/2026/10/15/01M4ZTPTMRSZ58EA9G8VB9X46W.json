@@ -1,0 +1,15 @@
+{
+  "id": "01M4ZTPTMRSZ58EA9G8VB9X46W",
+  "ts": "2026-10-15T13:06:00.988Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0600"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "int brew smoke's session-hook arm expects the gate hook to pass and has only ever measured whether /in-session left a sentinel on the machine: on a fresh machine the keg's gate refuses, which is correct, and the smoke reads it as red"
+  }
+}
