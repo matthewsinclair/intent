@@ -1,0 +1,14 @@
+{
+  "id": "01M4ZGTA6CCCG9XVCJK9Z27W6K",
+  "ts": "2026-10-15T10:13:09.456Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0083/AC-08.1"
+  },
+  "payload": {
+    "text": "The docs describe the two layouts, the key, the import and `deinit` where the contracts are described today (`intent/docs/working-with-llms.md`, `docs/working-with-agents.md`, `docs/getting-started.md`, `docs/migrating-from-v2.md`); the two skills that state the root layout as fact are corrected (`in-essentials/SKILL.md` rule 2 and `in-standards/SKILL.md` step 1); the reference regenerates for the new verbs and flags; and `CHANGELOG.md` carries the lines under `## [3.2.4] - in progress`."
+  }
+}

@@ -48,7 +48,7 @@ title: Agent contracts at the root or in .claude/, chosen per project, and CLAUD
 
 ### WP-08 -- Docs, reference and CHANGELOG for the two layouts, the import and deinit (status: Not Started)
 
-- AC-08.1 (non-test) The docs describe the two layouts, the key, the import and `deinit` where the contracts are described today (`intent/docs/working-with-llms.md`, `docs/working-with-agents.md`, `docs/getting-started.md`, `docs/migrating-from-v2.md`), the reference regenerates for the new verbs and flags, and `CHANGELOG.md` carries the lines under `## [3.2.4] - in progress`. -- satisfied: no
+- AC-08.1 (non-test) The docs describe the two layouts, the key, the import and `deinit` where the contracts are described today (`intent/docs/working-with-llms.md`, `docs/working-with-agents.md`, `docs/getting-started.md`, `docs/migrating-from-v2.md`); the two skills that state the root layout as fact are corrected (`in-essentials/SKILL.md` rule 2 and `in-standards/SKILL.md` step 1); the reference regenerates for the new verbs and flags; and `CHANGELOG.md` carries the lines under `## [3.2.4] - in progress`. -- satisfied: no
 
 ## Acceptance Tests
 
