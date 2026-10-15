@@ -1,0 +1,14 @@
+{
+  "id": "01M4ZVDQR387KVSWK449S4X7QS",
+  "ts": "2026-10-15T13:18:31.687Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0081/AC-06.1"
+  },
+  "payload": {
+    "note": "Evidence so far, not a satisfy (cc, 2026-10-15). ORDER 6a on kovacs (Ubuntu 26.04.1 aarch64, Homebrew 7.0.9 at /home/linuxbrew/.linuxbrew) installed ORDER 3's aarch64 package from a LOCAL dev tap. These are kovacs-sysadm's lines from its report of 13:02Z, as vc relayed them to cc, not a log cc read: \"o6a start 2026-10-15 13:02:47Z head 11017d7bd0e0413aaea9a39d4d5c61879d3473c9\" / \"o6a the package reports version [3.2.3] rc=0 2026-10-15 13:02:47Z\" / \"o6a render rc=0 2026-10-15 13:02:49Z\" / \"o6a MEASURED: brew install intent-dev/intent/intent before brew trust rc=0 2026-10-15 13:02:51Z\" / \"o6a trust-dev-tap rc=0 2026-10-15 13:02:51Z\" / \"o6a keg /home/linuxbrew/.linuxbrew/Cellar/intent/3.2.3 rc=0 2026-10-15 13:02:51Z\" / \"o6a installed-version rc=0 2026-10-15 13:02:51Z\" / \"o6a smoke rc=1 2026-10-15 13:02:51Z\" / \"o6a summary: install before trust rc=0; first failing step rc=1\" / \"o6a end 2026-10-15 13:02:53Z rc=1\". From the install output it quoted: \"==> Trusted formula intent-dev/intent/intent\", \"==> Installing intent from intent-dev/intent\" and \"/home/linuxbrew/.linuxbrew/Cellar/intent/3.2.3: 189 files, 43.9MB, built in 1 second\" (brew's glyph dropped). At the start there was no trust.json file, and brew trust --json gave \"taps [] formulae []\". Every fetch was a file:// source, and it saw no real network access. Every smoke group was ok except the session-hook arm's \"hook require-in-session -> 0 FAIL\". That red was the instrument's, not the keg's: issue 0600, fixed at 163c8b58c. So brew test did not run. Cleanup uninstalled, untapped and untrusted intent-dev/intent and left /tmp/intent empty. WHY NOT A SATISFY: the criterion names brew install matthewsinclair/intent/intent, the published tap, and 6a installed from a local dev tap. The published-tap measurement is ORDER 6b, on hv's word only, and 6a's smoke and brew test halves re-run from main on vc's GO."
+  }
+}
