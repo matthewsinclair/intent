@@ -1,0 +1,15 @@
+{
+  "id": "01M4ZXHQ5QYSCT4MG8XMW985D4",
+  "ts": "2026-10-15T13:55:39.323Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0602"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "intent claude skills uninstall removes a skill's files and leaves its empty directory under ~/.claude/skills/"
+  }
+}
