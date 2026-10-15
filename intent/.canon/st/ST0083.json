@@ -157,6 +157,14 @@
       }
     },
     {
+      "id": "AC-04.4",
+      "text": "`intent doctor` reports, as an advisory naming each file, a `.claude/scripts/*.sh` whose header names Intent and that no hook command in `.claude/settings.json` or `.claude/settings.local.json` references: v2 wrote these copies into every project and v3 reads none of them, so the remedy is `git rm` of the named files.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
       "id": "AC-05.1",
       "text": "`lib/templates/.claude/settings.json` carries `permissions.deny` rules against editing and writing `./AGENTS.md` and `./.claude/AGENTS.md`, carries none against `CLAUDE.md`, and stays byte-identical on every machine.",
       "kind": "non-test",

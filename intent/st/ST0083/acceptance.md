@@ -33,6 +33,7 @@ title: Agent contracts at the root or in .claude/, chosen per project, and CLAUD
 - AC-04.1 (non-test) `intent doctor` counts a finding when a contract exists in both layouts, naming both paths and `intent agents layout` as the remedy. -- satisfied: no
 - AC-04.2 (non-test) `intent doctor` reports, as an advisory naming the file and the command, a `.claude/settings.json` that canon holds (one without the marker `intent claude hook`) whose hook command names a path that does not exist on this machine. -- satisfied: no
 - AC-04.3 (non-test) `intent doctor` reports a config whose `author` is empty or reads `Author Unknown`, naming the field. -- satisfied: no
+- AC-04.4 (non-test) `intent doctor` reports, as an advisory naming each file, a `.claude/scripts/*.sh` whose header names Intent and that no hook command in `.claude/settings.json` or `.claude/settings.local.json` references: v2 wrote these copies into every project and v3 reads none of them, so the remedy is `git rm` of the named files. -- satisfied: no
 
 ### WP-05 -- The templated settings deny editing the generated AGENTS.md in either layout (status: Not Started)
 
