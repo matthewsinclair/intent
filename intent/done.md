@@ -1,11 +1,21 @@
 ---
-verblock: "12 Oct 2026:v0.27: vc - 3.2.4 opened, ST0081 started in lock-step with devbin, every bank of the day judged"
+verblock: "16 Oct 2026:v0.28: vc - the 3.2.4 train and 0601 landed unbuilt, 0605 found and fixed, the agent contracts thread four packages in"
 intent_version: 3.2.3
 ---
 
 NOTE: This file is the terse DONE ledger, newest first. Older entries roll into `./history/YYYYMM-done.md` month-by-month; verbose per-release narratives live at `./history/<version>.md`. DOING/TODO work lives in `./wip.md`.
 
 # Done
+
+## 2026-10-16 (with 2026-10-14 and 15) -- the 3.2.4 train and 0601 landed unbuilt, 0605 found and fixed the same day, the agent contracts thread four packages in
+
+- **THE 3.2.4 TRAIN IS ON MAIN**: 0593, 0592, 0591, 0594, 0605, 0596 and 0597 with their CHANGELOG lines, dc's eight banks landed by judged patch-id with a close commit each (HEAD dfe4ff8eb), after vc judged the whole composition with 0601's (a1) and (b) fixup as one tree (f37ce22d2392): canon, rustdoc under `-Dwarnings`, whole cargo suites with no failure, the release build, prettier and the bats tree under the composed binary. The first judging run redded nine cargo arms; a baseline of the nine at the base split them four the train's (fixed and re-banked by dc) and five already on main from 0601 (b), which vc had judged on bats alone. The lesson is in restart.md's landing rules and the shared memory.
+- **0605 (CRITICAL) WAS FOUND, MEASURED, REPAIRED AND FIXED IN ONE DAY**: every scoped ingest doubled the file and whiteboard halves of the prose index, so Utilz's store grew from 28 MB to 5.3 GB with a three-minute write (2^11 copies of every section). Shipped since 3.1.0; the same class as closed 0234. hv's `intent index rebuild` repaired the store, measured back to one row per key. dc's fix (915245eb2) guards the one place sections become rows, filters the scoped read-back, dedupes in schema rung 31 with an FTS rebuild, and adds the uncounted doctor class `prose-index-duplicated`. Utilz keeps a no-scoped-sync restriction until the fixed pair is installed.
+- **0601 (CRITICAL, hv's verdict relayed from kovacs: not production behaviour)**: `claude upgrade --apply` wired a prompt gate nothing on a fresh machine could release. Landed: (b) the gate fails open with a one-time notice where no releaser is installed (ae1bb7fb4), its five-arm cargo fixup, and (a1) the install of in-session by `claude upgrade --apply` with a doctor advisory (57d07b6d2; closed 197503ced); (c) was measured on Claude Code 2.1.301 and needs no code: a `!` escape fires no UserPromptSubmit, a peer message is an ordinary prompt. hv's eleven rulings are vc decision 63.
+- **ST0083, THE AGENT CONTRACTS, CREATED FROM A MEASURED DEFECT**: Claude Code never loads AGENTS.md beside a CLAUDE.md, so every Intent project's tool-agnostic contract was unread by its primary reader. hv decision 62's nine rulings; landed WP-01 the `@AGENTS.md` import (16f351a90), WP-02 the `contracts: root | dotclaude` key (a85dfbdf0), WP-03 the doors (2d9b4de1a), WP-05 the settings deny on the generated AGENTS.md (c4cab2134, on hv's typed word). Geodica's deny moved to the `/` anchor; Jen's book is to be recreated on v3 as `dotclaude`.
+- **ST0081 ON kovacs, hv's Ubuntu VM**: WP-06 landed (11017d7bd), WP-03's install pages (8c6e1cd39), AC-07.1 satisfied on hv's own session there (3f037d00f); 0595 fixed; 0600 found by ORDER 6a's smoke and fixed (163c8b58c); ORDER 3 built the Linux package; o6a and o6b measured Homebrew 7's tap trust (no `brew trust` needed on 7.0.9); o8 reinstalled in-session there; devbin's D1c and D2b ran green through the same queue. Nothing cloned from GitHub ran without hv's own word.
+- **THE BOX RAN AS ONE QUEUE** across Intent, devbin, Utilz and the VM under vc's pen, with the census tools banked (refs/bank/vc/tools/census.sh, census-ok.sh) and two of their artefacts found and recorded: a scratch clone reads as `(no estate)`, and the census reads the caller's argv, so a commit message naming `cargo test` read as a build.
+- **FILED**: 0598, 0602, 0604 (low). Issue 0603 closed for Utilz.
 
 ## 2026-10-12 -- 3.2.4 opened, Intent's WSL thread started in lock-step with devbin's, and every bank of the day judged and landed
 
