@@ -62,6 +62,10 @@ Then declare which languages the project is in:
 
 `AGENTS.md` is **generated from the templates and the project's configuration**: `intent init` writes the first one and `intent agents sync` regenerates it. Do not hand-edit it; the next sync will overwrite you. `intent doctor` says, as an uncounted advisory, when it is behind.
 
+**The two contracts can live in `.claude/` instead of the root.** `intent init --contracts dotclaude` writes `AGENTS.md` and `CLAUDE.md` there, for a tree whose root people read rather than tools, and `intent agents layout <root|dotclaude>` moves an existing project between the two.
+
+**A project under a Dropbox folder has its store's directory marked ignored by the Dropbox client** when the store is created, so the client never syncs a live database; `intent init` says so on a line of its own.
+
 ## 2. Open a steel thread
 
 A steel thread is one intention. Name the outcome, not the task.

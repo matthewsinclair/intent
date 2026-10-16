@@ -84,7 +84,7 @@ Each layer has one job. Deciding where a new rule or piece of information belong
 
 ## The three-file architecture
 
-Root-level LLM config on every Intent project:
+LLM config on every Intent project, in the default `root` layout ([The two layouts](#the-two-layouts) has the other):
 
 ```
 my-project/
@@ -126,6 +126,17 @@ Layering:
                 └───────────────────────────────┘
 ```
 
+### The two layouts
+
+A project declares where its two agent contracts live with the `contracts` key in `intent/.config/config.json`:
+
+- `root`, the default, and what an absent key means: `AGENTS.md` and `CLAUDE.md` at the project root, where the agents.md spec's readers (Codex, Cursor, Copilot, Aider) open them.
+- `dotclaude`: both in `.claude/`, which Claude Code reads natively. It is for a tree whose root is read by people rather than tools, such as a book or a shared estate whose only agent is Claude Code.
+
+`intent init --contracts dotclaude` sets it at birth, and `intent agents layout <root|dotclaude>` moves an existing project's contracts and writes the key; a destination that holds a different file is refused before anything moves. `intent agents sync`, `intent agents validate`, `intent claude upgrade --apply`, `intent doctor`, the sync scope and the daemon's watch all read the key, and nothing recreates a root copy under `dotclaude`. `usage-rules.md` stays at the root in `root` and is not seeded in `dotclaude`, where an authored one is left where it is; `.mcp.json`, `.intent_critic.yml` and `.claude/settings.json` do not move.
+
+`intent doctor` counts a contract Intent generated that sits in both layouts, naming both paths and the command that removes the stray copy. `intent deinit` removes what Intent wrote, in either layout, from a project being closed: it lists every file it would remove or edit and writes nothing until `--apply`, keeps anything it cannot prove Intent wrote, and with `--all` also removes `intent/` with the store.
+
 Each file answers a different question:
 
 | File                               | Answers                                              | Audience             |
@@ -153,21 +164,21 @@ The numbered decisions below define Intent's current LLM canon in living-doc for
 
 ## D1. AGENTS.md is the primary LLM config file
 
-Every Intent project carries a root-level `AGENTS.md`, written as a real file (not a symlink). `intent init` generates it, and `intent agents sync` and `intent claude upgrade --apply` regenerate it from `lib/templates/llm/_AGENTS.md` and the project's config.
+Every Intent project carries an `AGENTS.md`, written as a real file (not a symlink), in the directory its `contracts` key names: the project root by default, or `.claude/` under `contracts: dotclaude`. `intent init` generates it, and `intent agents sync` and `intent claude upgrade --apply` regenerate it from `lib/templates/llm/_AGENTS.md` and the project's config.
 
-Why: AGENTS.md is the cross-tool convention for agent instructions (spec: https://agents.md), governed by the Linux Foundation's Agentic AI Foundation. Aligning with the community is free; deviating costs compatibility with tooling downstream users already rely on. Claude Code is the exception that matters here: it loads `CLAUDE.md` rather than `AGENTS.md`, which is why D2 exists.
+Why: AGENTS.md is the cross-tool convention for agent instructions (spec: https://agents.md), governed by the Linux Foundation's Agentic AI Foundation. Aligning with the community is free; deviating costs compatibility with tooling downstream users already rely on. Claude Code is the exception that matters here: it reads `AGENTS.md` only where there is no `CLAUDE.md`, so in a project that has both it reads `CLAUDE.md` alone, which is why D2 exists and why `CLAUDE.md` imports `AGENTS.md`.
 
 Why a real file, not a symlink: symlinks work for tools that follow them, but some CI pipelines, web-rendered docs, and `find | cat` patterns treat them opaquely. A real file removes a class of bug and matches community norm. `intent agents validate` warns on a symlink and names `intent agents sync` as the fix.
 
-Regenerate with `intent agents sync`; never edit manually. The file is regenerated whole, with no block kept across a sync, so a manual edit is overwritten on the next one. `intent agents generate` prints what a sync would write, so `intent agents generate | diff - AGENTS.md` shows staleness without writing anything; `intent agents validate` checks that the file is a regular file carrying the recommended sections. `intent upgrade` does not touch `AGENTS.md`, and neither does `intent lang init`: after declaring a language, run `intent agents sync`.
+Regenerate with `intent agents sync`; never edit manually. The file is regenerated whole, with no block kept across a sync, so a manual edit is overwritten on the next one. `intent agents generate` prints what a sync would write, so `intent agents generate | diff - AGENTS.md` shows staleness without writing anything; `intent agents validate` checks that the file is a regular file carrying the recommended sections. The templated `.claude/settings.json` denies `Edit(/AGENTS.md)` and `Edit(/.claude/AGENTS.md)`, so Claude Code refuses an edit to the generated file in either layout. `intent upgrade` does not touch `AGENTS.md`, and neither does `intent lang init`: after declaring a language, run `intent agents sync`.
 
 **Every language-specific block is gated on the declared `languages` array, not on filesystem probes** (issue 0009). Prerequisites, Setup, the test and build commands, and Code Style carry their language-specific lines in per-language blocks — the bats lines ride with `shell` — and nothing looks for a `mix.exs` or a `Cargo.toml`. ST0037 made declaration authoritative because filesystem presence is unreliable evidence: a stray `mix.exs` told every reader the project needs an Elixir toolchain, and a polyglot repo whose markers sit in subdirectories was told it needs nothing. Since AGENTS.md is, by its own preamble, the contract agentic tools read and trust without cross-checking, a wrong answer there is stated authoritatively. An undeclared project gets no prerequisite lines and a hint to declare with `intent lang init <lang>`.
 
 ## D2. CLAUDE.md is a Claude-specific overlay
 
-`CLAUDE.md` at the project root points at `AGENTS.md` as the primary contract and adds Claude-specific directives — the `/in-session` requirement, the memory directory, the session-hook wiring, a file map, and critic dispatch. It is generated from `lib/templates/llm/_CLAUDE.md` by `intent init` and `intent claude upgrade --apply`. The project's own directives go between `<!-- user:start -->` and `<!-- user:end -->`, and regeneration carries that block across. A `CLAUDE.md` without the generated footer is treated as hand-authored and held back unless `--force` is given.
+`CLAUDE.md`, beside `AGENTS.md` in either layout, opens with an `@AGENTS.md` line, which makes Claude Code load `AGENTS.md` with it, and adds Claude-specific directives — the `/in-session` requirement, the memory directory, the session-hook wiring, a file map, and critic dispatch. It is generated from `lib/templates/llm/_CLAUDE.md` by `intent init` and `intent claude upgrade --apply`. The project's own directives go between `<!-- user:start -->` and `<!-- user:end -->`, and regeneration carries that block across. A `CLAUDE.md` without the generated footer is treated as hand-authored and held back unless `--force` is given.
 
-It repeats one thing from `AGENTS.md` on purpose: the index of the cross-language principles — Highlander, PFIC, Thin Coordinator and No Silent Errors. Claude Code does not load `AGENTS.md`, so a pointer to that index could not reach `CLAUDE.md`'s own reader. The rule bodies themselves stay in the rule library, served by `intent claude rules show <id>`, and the agnostic pack holds more rules than the index names: `intent claude rules list --lang agnostic` lists them.
+It does not repeat `AGENTS.md`'s index of the cross-language principles (Highlander, PFIC, Thin Coordinator and No Silent Errors): the import loads that index, and `CLAUDE.md`'s "Rules of the road" names the four and points at it. The rule bodies themselves stay in the rule library, served by `intent claude rules show <id>`, and the agnostic pack holds more rules than the index names: `intent claude rules list --lang agnostic` lists them.
 
 Why: Anthropic positions `CLAUDE.md` as complementary, not competing. Treating the two as parallel sources of truth guarantees divergence over time; treating `CLAUDE.md` as an overlay removes that risk.
 
@@ -205,7 +216,7 @@ See the dedicated FAQ section below for the forensic history and the clearest sh
 
 ## D7. Session hooks inject reminders
 
-`intent claude upgrade --apply` writes `.claude/settings.json` with its `SessionStart`, `UserPromptSubmit` and `Stop` hooks when the file is absent or already Intent's (one carrying `intent claude hook`), holds an existing file that is not Intent's unless `--force`, and seeds `.mcp.json` when it is absent, which declares `intent mcp` to Claude Code; `intent init` and `intent upgrade` write neither, and `intent claude upgrade --apply --skip-settings` declines both (the run reports them as `skipped` and applies the rest of canon). Each hook runs `intent claude hook <name>`:
+`intent claude upgrade --apply` writes `.claude/settings.json` with its `SessionStart`, `UserPromptSubmit` and `Stop` hooks when the file is absent or already Intent's (one carrying `intent claude hook`), holds an existing file that is not Intent's unless `--force`, merges into one that is (Intent's hook entries and deny rules are brought to the template's and every other key the project added is kept, and a file that does not parse is held), and seeds `.mcp.json` when it is absent, which declares `intent mcp` to Claude Code; `intent init` and `intent upgrade` write neither, and `intent claude upgrade --apply --skip-settings` declines both (the run reports them as `skipped` and applies the rest of canon). Each hook runs `intent claude hook <name>`:
 
 - `SessionStart` (matcher `startup|resume|clear|compact`) runs `session-context`, which prints the name of the project's directory (the last component of `$CLAUDE_PROJECT_DIR`, or of the working directory when that is unset), not a configured project name, then the git branch and short SHA, the first `**ST…` line of `intent/wip.md` when there is one, and a prompt to run `/in-session`.
 - `UserPromptSubmit` (strict gate) runs `require-in-session`, which blocks a prompt until `/in-session` has run in the session. This enforces loading coding-standards skills before any code discussion starts. A prompt that starts with `/` passes through, which is how `/in-session` itself gets in. The gate reads the prompt with `jq` where `jq` is on PATH, and from the raw payload where it is not, so it works either way; without `jq` its block message says so.

@@ -26,7 +26,7 @@ intent st edit ST0000
 
 ### 2. Use `intent agents sync` to update AGENTS.md
 
-NEVER edit root `AGENTS.md` directly -- it is auto-generated from project state by `intent agents sync`. Manual edits will be overwritten on the next sync. `AGENTS.md` lives at the project root as a real file (not a symlink); older projects may still have a legacy `intent/llm/AGENTS.md` which is retired and should be removed.
+NEVER edit `AGENTS.md` directly -- it is auto-generated from project state by `intent agents sync`. Manual edits will be overwritten on the next sync. `AGENTS.md` lives at the project root, or in `.claude/` when the project's `contracts` key is `dotclaude`, as a real file (not a symlink); older projects may still have a legacy `intent/llm/AGENTS.md` which is retired and should be removed.
 
 ```bash
 # BAD -- direct edit

@@ -10,7 +10,7 @@ Load coding discipline into context. Invoke at the start of coding or after any 
 
 ### 1. Re-read project rules
 
-- `CLAUDE.md` (project rules) -- always present.
+- `CLAUDE.md` (project rules) -- always present, at the project root or in `.claude/` when the project's `contracts` key is `dotclaude`; its `@AGENTS.md` line loads `AGENTS.md` with it.
 
 The other two exist only where somebody chose them:
 

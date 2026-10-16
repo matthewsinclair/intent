@@ -18,7 +18,7 @@ The usual fix is a context file: `AGENTS.md`, `CLAUDE.md`, a `.cursorrules`. **T
   $ intent agents sync
 ```
 
-This regenerates `AGENTS.md` at your repository root from Intent's template and the project's configuration: its name, its author and its declared languages, each language adding its toolchain's commands. **Do not hand-edit it; the next sync overwrites you.**
+This regenerates `AGENTS.md` from Intent's template and the project's configuration: its name, its author and its declared languages, each language adding its toolchain's commands. **Do not hand-edit it; the next sync overwrites you.** It is written at your repository root, or in `.claude/` when the project's `contracts` key is `dotclaude`, for a tree whose root people read rather than tools: `intent init --contracts dotclaude` sets that at birth, and `intent agents layout <root|dotclaude>` moves an existing project between the two. `CLAUDE.md` always sits beside it.
 
 The contract is split across these files, and the split is deliberate:
 
@@ -30,9 +30,11 @@ The contract is split across these files, and the split is deliberate:
 
 `intent claude upgrade` reports what it would write and changes nothing until you pass `--apply`. With `--apply` it also writes `.intent_critic.yml`, the pre-commit gate and the post-pull hooks (`post-merge`, `post-checkout`, `post-rewrite`, which run `intent sync --apply` for you), and it wires the Claude Code harness, session hooks in `.claude/settings.json` and the MCP server in `.mcp.json`, unless you pass `--skip-settings`, which leaves both alone. **A `CLAUDE.md` you wrote yourself, without the generated footer, is held back** rather than overwritten; `--force` overwrites it.
 
-**One index is stated twice, on purpose.** `CLAUDE.md` and `AGENTS.md` both carry the short index of the agnostic principles, because `AGENTS.md` is not a file Claude Code reads. The rule bodies have one home, the rule library, and the two indexes are held identical by a test rather than by care.
+**`CLAUDE.md` imports `AGENTS.md`.** Claude Code reads `AGENTS.md` only where there is no `CLAUDE.md`, so a generated `CLAUDE.md` opens with an `@AGENTS.md` line, which loads it. The index of the agnostic principles lives in `AGENTS.md` alone and `CLAUDE.md` points at it; the rule bodies have one home, the rule library. The templated `.claude/settings.json` denies Claude Code edits to the generated `AGENTS.md`, in either layout.
 
 `intent agents validate` checks that `AGENTS.md` is present and carries its required sections.
+
+**Closing a project:** `intent deinit` lists what Intent wrote into it, the contracts, the seeds still as seeded, Intent's entries in `.claude/settings.json` and `.mcp.json`, and its git hook blocks, and writes nothing. `intent deinit --apply` removes and edits exactly that, keeping anything a person wrote, and `--all` also removes `intent/` with the store.
 
 **Deeper:** [`intent/docs/working-with-llms.md`](../intent/docs/working-with-llms.md) is the full narrative — why the three files are split this way, how session hooks compose with them, and the decisions behind the architecture.
 
