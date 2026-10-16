@@ -1,0 +1,15 @@
+{
+  "id": "01M526RKEKX3C5YA3N4ZQ8ZY01",
+  "ts": "2026-10-16T11:15:10.932Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ISSUE 0605 (critical, vc from utilz-vc's measurements, 2026-10-16): every scoped ingest doubles the file and wb_node halves of doc_sections; Utilz's store 28 MB to 5.3 GB in one day, 2^11 copies, three minutes per write; reproduced by vc on the pair (49, 98, 196, 392 file rows over three scoped syncs); shipped since v3.1.0. hv closed every intent expl and ran intent index rebuild in each project: Utilz measured back to one row per key at 11:12Z (604 wb_node, 1475 file), the db file still 5.29 GB of free pages (VACUUM is hv's hand if wanted; no verb ships one). LANE: dc, first in the 3.2.4 train, under vc's delegated pen (decision 4), hv may reverse. Shape M: the guard in write_doc_sections under Canon and compose_scoped's filter, a dedupe migration rung 30 to 31 with the FTS rebuild, tests (scoped sync twice is stable; the rung on a planted duplicated store), a doctor count. UTILZ: store writes resumed on vc's all-clear step 1; NO scoped sync --to-store and NO disk edit under intent/st until the fixed pair is installed (build all, daemon restart), then step 2. Slot order on this Mac after devbin-cc's runs: dc (0605, 0596, 0597), then cc ((a1)). Filed 484815b77."
+  }
+}
