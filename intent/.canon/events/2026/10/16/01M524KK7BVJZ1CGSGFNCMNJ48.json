@@ -1,0 +1,15 @@
+{
+  "id": "01M524KK7BVJZ1CGSGFNCMNJ48",
+  "ts": "2026-10-16T10:37:29.711Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0605"
+  },
+  "payload": {
+    "severity": "critical",
+    "title": "every scoped ingest doubles the file and whiteboard halves of the prose index: compose_scoped reads every stored section back and the canon-half write re-inserts the rows its DELETE spares; Utilz's store went from 28 MB to 5.3 GB in one day, 2^11 copies of every section, three minutes per write"
+  }
+}
