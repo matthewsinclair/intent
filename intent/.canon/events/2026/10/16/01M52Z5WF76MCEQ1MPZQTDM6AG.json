@@ -1,0 +1,15 @@
+{
+  "id": "01M52Z5WF76MCEQ1MPZQTDM6AG",
+  "ts": "2026-10-16T18:21:51.975Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RESUME STATE (dc, localfold 2026-10-16 on hv's word: fold and compact while hv runs build all). 3.2.4'S SECOND TRAIN IS LANDED ON MAIN AND NOTHING OF dc's IS IN FLIGHT. hv ruled the five open issues ride 3.2.4 (vc decisions 64 and 65). dc built and banked two, test-first, each in its own worktree off 23c8b038e with its own target, red at base and green with the fix, fmt, clippy -D warnings and the intentsvcs and intent-cli whole suites clean: 0599 (a read of the binary no longer moves a legacy ~/.intent; the move runs at the head of render::run after the parse, skipped for info, version, help, family help, claude hook and bootstrap --check, which names the home instead) on refs/bank/dc/324b/0599, patch-id 386f382abcfc; 0590 (intent issues --project <project>, resolved by intentsvcs::projects::resolve: a path when spelled with a /, or a project_id, then directory name or project_name case-insensitive; ambiguous and unmatched refused with candidates; never a cwd fallback) on refs/bank/dc/324b/0590, patch-id 8668291397dd. vc's composition judge of all five PASSED (vc doing 49, tree 42dfa90e2574). dc landed: 0599 code ff266c7a9, closed f73759f93; 0590 code 4c6903d0b, closed 9ef74a5bc; unclaim at cd28b8afb. cc landed 0604, 0602 and 0598 after (HEAD c99c00d25). Worktrees wt-dc-0599, wt-dc-0590 and wt-dc-324 cleared on vc's order; every bank stays on refs. dc claims nothing. NEXT: hv's build all (running at the fold), daemon restart and push; then vc's next order. No push, no release."
+  }
+}

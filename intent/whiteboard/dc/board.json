@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "worker",
     "session_id": "45688c36-a10d-4ad6-b27b-9f7011eb1956",
-    "heartbeat_at": "2026-10-16T16:53:17.975Z",
+    "heartbeat_at": "2026-10-16T18:21:58.911Z",
     "status": "active",
-    "focus": "LOCALFOLDED 2026-10-16 on hv's word via vc, holding for hv's compact: the 3.2.4 train is LANDED on main (8 banks, 15 commits, 87fdc6bcf..dfe4ff8eb, every patch-id as judged; issues 0591 0592 0593 0594 0596 0597 0605 closed); hv's build all is still owed; 0599 is next, not started; holds 29 and 31; no push, no release",
+    "focus": "LOCALFOLDED 2026-10-16 evening on hv's word, holding for hv's compact: 3.2.4's second train is LANDED (dc's 0599 ff266c7a9 and 0590 4c6903d0b, closed; cc's 0604 0602 0598 after, HEAD c99c00d25); hv's build all running, then daemon restart and push; dc claims nothing; holds 29 and 31; no push, no release",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -2265,7 +2265,8 @@
       "kind": "doing",
       "seq": 126,
       "text": "**RESUME STATE (dc, localfold 2026-10-16 on hv's word via vc: hv is moving, pick up later). THE 3.2.4 TRAIN IS LANDED ON MAIN AND NOTHING OF dc's IS IN FLIGHT.** vc's first judging run (judge-324) was HOLD: four reds were the train's own, five were cc's 0601 (b). dc re-banked three: 0591 (the claim-forms sentence restored byte-equal to model::CLAIM_ADDRESS_FORMS) to patch-id 3a1bff190ae1; 0605 (the remedy literal no longer names the issue) to 0015e32c9e97; 0597 (two migration arms now assert that an undeclared thread's v2 cover is removed and an attachment beside it stays byte for byte) to f7a6758e169b. The earlier blobs are kept as refs/bank/dc/324/{0591-v1,0605-v2,0597-v1}. dc's eight plus cc's a1-v2 and fixup compose in both orders to tree f37ce22d2. vc's re-judge of that tree PASSED at 13:20:29Z (refs/bank/vc/324/evidence/judge-324b.log). dc landed the eight on vc's word, two commits each (the bank by literal path behind census-ok, with the patch-id checked before and after; then the issue's Resolution and close), with the script at scratchpad/land/land.sh:\n- 0593: ce873474a, closed at 15cbac92c\n- 0592: d6a372833, closed at 51c60abc3\n- 0591: be387b038, closed at 6d4df7a2a\n- 0594: 086e98b71, closed at eafc07c40\n- 0605: 915245eb2, closed at d3c1436b4\n- 0596: e2d8519ce, closed at 6c1c571b1\n- 0597: 58f3e7a9b, closed at 2bbfa6dc7\n- changelog: dfe4ff8eb\ncc lands a1-v2 and the fixup after dc's END. STILL OWED, not dc's: hv's build all and the push. tmp/wt-dc-324 is kept: its staged tree is the landed train, and its target is seeded. No push, no release.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-16T18:21:49.968Z",
       "recorded_at": "2026-10-16T13:36:49.135Z"
     },
     {
@@ -2273,9 +2274,18 @@
       "kind": "todo",
       "seq": 46,
       "text": "**ISSUE 0599 (S), NEXT IN dc's LANE, NOT STARTED: `intent --version` must not migrate ~/.intent.** No code is written, by hv's word via vc on 2026-10-16. Shape read so far: main.rs:17 runs userstate::migrate_legacy before dispatch. spine::parse returns DisplayHelp and DisplayVersion as Err(EXIT_OK) before any verb runs (spine.rs:869), so running the migration at the head of render::run, after parse, keeps --version and --help out of it with no list; `info` is skipped there by name, and the note is printed from render. intentd's main has no migration call. The arm: under a HOME carrying a legacy ~/.intent, `intent --version`, `--help` and `info` leave it byte for byte, and `intent bootstrap` migrates it and prints the note. Build in a fresh worktree off main, with its own target, on vc's GO. It starts in the NEXT session, on vc's GO after hv's build all and daemon restart (vc, 2026-10-16 13:5xZ, after its globalfold at b96a14c78).",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-16T18:21:50.961Z",
       "recorded_at": "2026-10-16T13:36:51.093Z",
       "edited_at": "2026-10-16T13:58:57.766Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 127,
+      "text": "RESUME STATE (dc, localfold 2026-10-16 on hv's word: fold and compact while hv runs build all). 3.2.4'S SECOND TRAIN IS LANDED ON MAIN AND NOTHING OF dc's IS IN FLIGHT. hv ruled the five open issues ride 3.2.4 (vc decisions 64 and 65). dc built and banked two, test-first, each in its own worktree off 23c8b038e with its own target, red at base and green with the fix, fmt, clippy -D warnings and the intentsvcs and intent-cli whole suites clean: 0599 (a read of the binary no longer moves a legacy ~/.intent; the move runs at the head of render::run after the parse, skipped for info, version, help, family help, claude hook and bootstrap --check, which names the home instead) on refs/bank/dc/324b/0599, patch-id 386f382abcfc; 0590 (intent issues --project <project>, resolved by intentsvcs::projects::resolve: a path when spelled with a /, or a project_id, then directory name or project_name case-insensitive; ambiguous and unmatched refused with candidates; never a cwd fallback) on refs/bank/dc/324b/0590, patch-id 8668291397dd. vc's composition judge of all five PASSED (vc doing 49, tree 42dfa90e2574). dc landed: 0599 code ff266c7a9, closed f73759f93; 0590 code 4c6903d0b, closed 9ef74a5bc; unclaim at cd28b8afb. cc landed 0604, 0602 and 0598 after (HEAD c99c00d25). Worktrees wt-dc-0599, wt-dc-0590 and wt-dc-324 cleared on vc's order; every bank stays on refs. dc claims nothing. NEXT: hv's build all (running at the fold), daemon restart and push; then vc's next order. No push, no release.",
+      "state": "live",
+      "recorded_at": "2026-10-16T18:21:51.975Z"
     }
   ],
   "messages": [
