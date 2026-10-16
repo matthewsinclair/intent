@@ -1,0 +1,16 @@
+{
+  "id": "01M52F03PZ4YGV6QDB4D7GR5XX",
+  "ts": "2026-10-16T13:39:05.567Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 83,
+    "text": "RESUME, ST0083 (agent contracts lane, vc directs): WP-01, 02, 03 and 05 DONE, gate 7 of 14. NEXT, each shape first and one bank each: WP-07 (Dropbox mark, shape accepted by vc), WP-04 (doctor), WP-06 (deinit); WP-08 LAST, its CHANGELOG lines composed on main's CHANGELOG (dc's 3.2.4 train and 0601 landed at 197503ced) in both orders. tmp/wt-cc-0083 KEPT (detached at ba3babaea, its own cargo target); rebase it to main before WP-07. init renders llm/ and prj/ embedded at build, so build all is owed before the push. Issue 0598 filed for the next line. ALSO OPEN ON ST0081: WP-03 WIP until AC-03.3, WP-06 until AC-06.1, WP-01 and WP-02 wait on the push; 0601 CLOSED 2026-10-16 ((a1) 57d07b6d2, (b) fixup c0e45eb8f, record 197503ced). build all is owed by hv before any push. Worktrees tmp/wt-cc-0601a and tmp/wt-cc-0601f are spent and kept until cleared. STANDING: every Rust bank owes cargo build -p intentd, the workspace suites, CI's clippy, doc and fmt, and the shell half. NO PUSH, NO RELEASE."
+  }
+}

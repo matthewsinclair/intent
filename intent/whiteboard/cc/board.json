@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "499621e2-fc3c-4e68-95a3-009e5e8b84c4",
-    "heartbeat_at": "2026-10-16T12:21:33.404Z",
+    "heartbeat_at": "2026-10-16T13:39:07.432Z",
     "status": "active",
-    "focus": "Holding for vc's GO: 0601 (a1) builds and tests in cc's slot after dc's 0605 train; no push, no release",
+    "focus": "LOCALFOLDED 2026-10-16 for hv's compact: 0601 closed ((a1) and fixup landed); resume ST0083 at WP-07 from doing 83; build all owed by hv; no push, no release",
     "claims": [
       "ST0081",
       "ST0083"
@@ -1927,7 +1927,8 @@
       "kind": "doing",
       "seq": 81,
       "text": "RESUME, ST0081 ISSUE 0601 (a1) (vc directs): upgrade --apply installs in-session before it wires the gate (canon.rs Releaser step 0, render.rs report lines, doctor's uncounted advisory, a docs/install.md paragraph, the 0601 CHANGELOG line after 0600's, two new test files). CODED AND UNBUILT, banked for safe keeping at refs/bank/cc/0081/0601-a1 (blob 1ad2b2fd3fc6, sha256 62b7b586da41, patch-id bb97a868dec6, base 85285d60a, 20 files +631 -7, base+blob tree 38489ffdcf69). tmp/wt-cc-0601a KEPT, detached at 85285d60a. NEXT, in this order: (1) compose the CHANGELOG hunk against dc's changelog bank in both orders once dc's 0605 line is in it; (2) slot 2, after dc's slot, on vc's GO, census first, START and END announced: own cargo target (cp -c of main's plus cargo clean -p for the three crates), cargo build -p intentd, intentsvcs and intent-cli suites, CI's clippy, doc and fmt, then the bats tree; (3) re-bank the judged blob and report to vc; (4) land on vc's word with the judged patch-id; (5) close 0601. OTHER ST0081: WP-03 WIP until AC-03.3, WP-06 until AC-06.1, WP-01 and WP-02 wait on the push. build all owed before any push. NO PUSH, NO RELEASE.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-16T13:39:04.150Z",
       "recorded_at": "2026-10-14T13:05:44.208Z",
       "edited_at": "2026-10-16T12:22:57.704Z"
     },
@@ -1953,10 +1954,10 @@
       "node": "cc",
       "kind": "doing",
       "seq": 83,
-      "text": "RESUME, ST0083 (agent contracts lane, vc directs): WP-01, 02, 03 and 05 DONE, gate 7 of 14. NEXT, each shape first and one bank each, after 0601 (a1): WP-07 (Dropbox mark, shape accepted by vc), WP-04 (doctor), WP-06 (deinit); WP-08 LAST, after dc's train lands, its CHANGELOG lines composed on dc's changelog bank in both orders. tmp/wt-cc-0083 KEPT (detached at ba3babaea, its own cargo target); rebase it to main before WP-07. init renders llm/ and prj/ embedded at build, so build all is owed before the push. Issue 0598 filed for the next line. STANDING: every Rust bank owes cargo build -p intentd, the workspace suites, CI's clippy, doc and fmt, and the shell half. NO PUSH, NO RELEASE.",
+      "text": "RESUME, ST0083 (agent contracts lane, vc directs): WP-01, 02, 03 and 05 DONE, gate 7 of 14. NEXT, each shape first and one bank each: WP-07 (Dropbox mark, shape accepted by vc), WP-04 (doctor), WP-06 (deinit); WP-08 LAST, its CHANGELOG lines composed on main's CHANGELOG (dc's 3.2.4 train and 0601 landed at 197503ced) in both orders. tmp/wt-cc-0083 KEPT (detached at ba3babaea, its own cargo target); rebase it to main before WP-07. init renders llm/ and prj/ embedded at build, so build all is owed before the push. Issue 0598 filed for the next line. ALSO OPEN ON ST0081: WP-03 WIP until AC-03.3, WP-06 until AC-06.1, WP-01 and WP-02 wait on the push; 0601 CLOSED 2026-10-16 ((a1) 57d07b6d2, (b) fixup c0e45eb8f, record 197503ced). build all is owed by hv before any push. Worktrees tmp/wt-cc-0601a and tmp/wt-cc-0601f are spent and kept until cleared. STANDING: every Rust bank owes cargo build -p intentd, the workspace suites, CI's clippy, doc and fmt, and the shell half. NO PUSH, NO RELEASE.",
       "state": "live",
       "recorded_at": "2026-10-15T10:11:04.499Z",
-      "edited_at": "2026-10-16T12:22:58.893Z"
+      "edited_at": "2026-10-16T13:39:05.567Z"
     }
   ],
   "messages": [
