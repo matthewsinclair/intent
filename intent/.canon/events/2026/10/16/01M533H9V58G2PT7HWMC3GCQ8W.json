@@ -1,0 +1,15 @@
+{
+  "id": "01M533H9V58G2PT7HWMC3GCQ8W",
+  "ts": "2026-10-16T19:38:00.421Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-10-16, hv first-hand in vc's session, received between vc's clock reads of 19:36:35Z and 19:4xZ; hv's words verbatim, vc's reading after them) hv: \"Ok, I'm going to be AFK for a while. I want you to contine to drive this to a release. If a fix needs fixing, then fix it. Use kovacs to test Ubuntu runs, and push on for a release. I'll tell the other Claudes that you have the pen for intent and they take instruction from you. You will need to work with utilz-vc to coordinate builds etc so you don't clash with each other.\" VC's READING, under decision 3 (hv, 2026-08-26: the act of releasing is hv's hand; \"get the release done\" is not \"release it\"; the release confirmation reads /dev/tty; never --no-confirm from a tool session; the push gate stays human): vc drives 3.2.4 to CUT-READY and no further: ST0083's remaining work packages built, judged and landed; `bin/devbin build all` run by vc after the last Rust bank, booked with utilz-vc and announced to every node since it swaps what every node runs, then `intent daemon restart`; the Ubuntu proof on kovacs (ORDER 3 rebuilt from the final HEAD, then o7-b, then o5); the final prep pass landed once (the known-defects re-drive, the reference regen, the screenshots, the release notes); then vc reports cut-ready and the tag, `prepare`, `publish`, `smoke` and the push wait for hv's own terminal. \"If a fix needs fixing, then fix it\" is read as: a defect found on the way is fixed in a lane on vc's order without a question to hv, shipping-grade or not, since hv asked for the release to be driven. The pen for Intent (decision 4) now reaches the other Claudes on hv's word; Utilz's builds and Intent's interleave through utilz-vc and vc, one heavy run at a time on the box."
+  }
+}
