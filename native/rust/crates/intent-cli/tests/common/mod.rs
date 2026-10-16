@@ -36,6 +36,33 @@ pub fn intent() -> std::process::Command {
   testkit::fixtured_command(intent_path())
 }
 
+/// A HOME where the skill that releases the prompt gate is installed, for an
+/// arm that drives `require-in-session` and needs its block branch.
+///
+/// **WITHOUT IT THE GATE FAILS OPEN AND WRITES A SENTINEL (issue 0601 (b)).**
+/// The fixture HOME has no `~/.claude/skills/in-session`, so the gate passes
+/// the prompt with exit 0 and touches `/tmp/intent/in-session-<id>.sentinel`,
+/// shared by every run on the machine. A fixed id is then released for every
+/// later run as well, and an id inherited from the operator's Claude session
+/// releases THAT session's gate. The releaser is only tested for presence, so
+/// an empty file is enough, as the bats arm in `no_absolute_home_paths.bats`
+/// plants it.
+pub fn gate_home() -> tempfile::TempDir {
+  let home = tempfile::tempdir().expect("the gate's HOME");
+  let scripts = home.path().join(".claude/skills/in-session/scripts");
+  std::fs::create_dir_all(&scripts).expect("mkdir the releaser's directory");
+  std::fs::write(scripts.join("release-gate.sh"), "").expect("plant the releaser");
+  home
+}
+
+/// A gate session id no sentinel can already exist for: `tag` plus this
+/// process's id. A fixed id is only as good as the machine's `/tmp/intent`, and
+/// a build carrying the fail-open branch without [`gate_home`] wrote sentinels
+/// for the fixed ids these arms used, which then pass every prompt.
+pub fn gate_session(tag: &str) -> String {
+  format!("{tag}-{}", std::process::id())
+}
+
 /// A connected pseudo-terminal pair, as owned files.
 ///
 /// **THE MASTER MUST OUTLIVE THE CHILD.** Dropping it closes the terminal's

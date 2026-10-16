@@ -93,10 +93,21 @@ fn hook_invocations(root: &Path) -> Vec<Vec<String>> {
 /// stdin is an empty pipe that is closed immediately: these hooks read Claude
 /// Code's event JSON from it, and a hook inheriting the test harness's stdin
 /// would hang rather than fail.
+///
+/// HOME carries the gate's releaser and the session id is this process's own,
+/// so a hook that reaches `require-in-session` blocks rather than failing open
+/// and writing a sentinel -- for the operator's live session, when the suite
+/// runs inside one and the id is inherited.
 fn run(args: &[String], cwd: &Path) -> (Option<i32>, String) {
+  let home = crate::common::gate_home();
   let out = crate::common::intent()
     .args(args)
     .current_dir(cwd)
+    .env("HOME", home.path())
+    .env(
+      "CLAUDE_CODE_SESSION_ID",
+      crate::common::gate_session("0043-canary"),
+    )
     .stdin(Stdio::null())
     .output()
     .expect("run the v3 binary");
@@ -180,11 +191,17 @@ fn the_marker_is_the_message_an_unimplemented_command_actually_prints() {
 #[test]
 fn the_gates_own_block_still_reaches_the_caller_through_the_v3_binary() {
   let root = install_root();
+  let home = crate::common::gate_home();
   let out = crate::common::intent()
     .args(["claude", "hook", "require-in-session"])
     .current_dir(&root)
-    // A session whose sentinel cannot exist: the gate must choose to block.
-    .env("CLAUDE_CODE_SESSION_ID", "0043-canary-no-such-session")
+    // The releaser installed and a session whose sentinel cannot exist: the
+    // gate must choose to block.
+    .env("HOME", home.path())
+    .env(
+      "CLAUDE_CODE_SESSION_ID",
+      crate::common::gate_session("0043-canary"),
+    )
     .stdin(Stdio::null())
     .output()
     .expect("run the hook through the v3 binary");

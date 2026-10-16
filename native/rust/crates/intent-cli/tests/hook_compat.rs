@@ -50,11 +50,14 @@ use std::process::{Command, Stdio};
 
 use testkit::repo_root;
 
-/// A fixed session id, so `require-in-session` prints a sentinel path that is a
-/// function of this test and not of whoever is running it. The gate only ever
-/// READS the sentinel, so a value that matches nothing on disk is the stable
-/// choice as well as the safe one.
-const SESSION_ID: &str = "hook-compat-fixture-0000";
+/// The session id every door run carries, so `require-in-session` prints a
+/// sentinel path that is a function of this test and not of whoever is running
+/// it. Per process rather than fixed: the gate WRITES a sentinel when it fails
+/// open, and a fixed id released by any earlier run passes every prompt here
+/// (`crate::common::gate_session`).
+fn session_id() -> String {
+  crate::common::gate_session("hook-compat")
+}
 
 /// What v3's door prints when it does not recognise a name. Pinned as a live
 /// probe by `a_name_the_canon_does_not_ship_is_refused` rather than trusted:
@@ -200,12 +203,17 @@ fn git(root: &Path, args: &[&str]) {
 }
 
 /// Run one door against the fixture, with every ambient input pinned.
+///
+/// HOME carries the gate's releaser, so `require-in-session` reaches its block
+/// branch rather than failing open and writing a sentinel.
 fn run_door(bin: &Path, name: &str, fx: &Path, stdin: &[u8]) -> Run {
+  let home = crate::common::gate_home();
   let mut child = testkit::fixtured_command(bin)
     .args(["claude", "hook", name])
     .current_dir(fx)
+    .env("HOME", home.path())
     .env("CLAUDE_PROJECT_DIR", fx)
-    .env("CLAUDE_CODE_SESSION_ID", SESSION_ID)
+    .env("CLAUDE_CODE_SESSION_ID", session_id())
     .env_remove("INTENT_HOME")
     .env_remove("INTENT_SKIP_IN_SESSION_GATE")
     .env_remove("GIT_DIR")
@@ -325,8 +333,9 @@ fn the_gates_block_code_is_the_scripts_own_and_reaches_the_caller() {
   assert_eq!(
     run.code,
     Some(2),
-    "the gate did not block with 2 on an absent sentinel. Either the door translated the script's exit code, or the sentinel for `{SESSION_ID}` exists on \
+    "the gate did not block with 2 on an absent sentinel. Either the door translated the script's exit code, or the sentinel for `{}` exists on \
      this machine. stderr: {}",
+    session_id(),
     String::from_utf8_lossy(&run.stderr)
   );
   assert!(

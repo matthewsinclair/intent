@@ -20,7 +20,7 @@
 #          without jq can still run `/in-session` -- OR
 #       b) the per-session sentinel exists.
 #   - Fail open (exit 0) when the skill that releases the gate is not
-#     installed on this machine (issue 0601): the gate is cooperative, so
+#     installed on this machine: the gate is cooperative, so
 #     with no releaser nothing inside the session could ever release it.
 #     The first such prompt prints one JSON object naming the install verb
 #     (systemMessage for the user, additionalContext for the model) and

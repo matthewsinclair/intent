@@ -247,6 +247,29 @@ const CONSUMERS: &[(&str, &str, Policy)] = &[
        which a fresh keg gets BEFORE a commit is attempted; this one arrives after one has been.",
     ),
   ),
+  (
+    ".claude/scripts/require-in-session.sh",
+    "claude",
+    Policy::Names(
+      "**THE INSTALL VERB IN THE FAIL-OPEN NOTICE, NAMED BECAUSE THE GATE MUST NOT RUN IT.** Where the skill \
+       that releases the gate is absent, the gate passes the prompt and prints one JSON notice naming \
+       `intent claude skills install in-session`. Installing from inside a hook would write the user's \
+       skills directory on a prompt they typed for something else, and the hook's exit code is the \
+       prompt's verdict, so a failed install could only be swallowed or turned into a block. So no call \
+       is made and there is no exit code to have a policy about.",
+    ),
+  ),
+  (
+    ".claude/scripts/session-context.sh",
+    "claude",
+    Policy::Names(
+      "**THE SAME INSTALL VERB, SAID AT SESSION START.** Where the releaser is absent the context's `Next:` \
+       line says the gate is off and names `intent claude skills install in-session`, so the user reads \
+       it before the first prompt rather than after. It is advice in the injected context, never a \
+       command: a SessionStart hook that wrote under `~/.claude` would do it in every session of every \
+       project, unasked.",
+    ),
+  ),
 ];
 
 /// The shipped canon: what a consumer project receives.
