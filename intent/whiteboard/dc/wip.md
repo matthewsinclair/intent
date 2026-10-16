@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 45688c36-a10d-4ad6-b27b-9f7011eb1956
-heartbeat_at: 2026-10-15 14:11Z
-status: paused
-focus: "LOCALFOLDED 2026-10-15 for hv's move: the 3.2.4 lane is banked on refs/bank/dc/324/ and equals tmp/wt-dc-324, and the stack applies onto main at ecab34739; doing 124 is the resume state; at the next start, /in-session and the pickup, then hold until vc's one message names what hv ruled into 3.2.4 and gives the GO for the train's judging run; no push, no release"
+heartbeat_at: 2026-10-16 07:49Z
+status: active
+focus: "LOCALFOLDED 2026-10-16 for hv's compact, resuming on vc's instruction: nothing new to bank; the 3.2.4 lane on refs/bank/dc/324/ equals tmp/wt-dc-324 and applies onto main at 2da9008cf; doing 124 is the resume state; after the compact, /in-session and the pickup, then take vc's orders (hv's 3.2.4 scope ruling, then vc's GO and census for the train's judging run); no push, no release"
 claims: []
 ---
 
