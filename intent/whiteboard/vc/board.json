@@ -1905,6 +1905,14 @@
       "text": "COMPOSITION JUDGE of 3.2.4's second train: PASS (vc, 2026-10-16, ran 18:03:31Z to 18:12:31Z in tmp/wt-vc-324c with its own target, script refs/bank/vc/324b/judge-324c.sh). Main HEAD 7c828ddc7 plus the five banks in landing order, dc 0599 (blob 64a834db8eca, patch-id 386f382abcfc), dc 0590 (1658bc9c985b, 8668291397dd), then cc's re-contexted stack 0604 (c74f1bc53aa0, e392553208f4), 0602 (f5d03bb03cd2, 68ae361ae86c), 0598 (4e644bb1043d, ea3f65d3e8e7): composed tree 42dfa90e2574, which differs from cc's ed27478d6389 only by vc's board files. Every step rc 0: intentd build, fmt, clippy all targets and lib, doc under -Dwarnings, cargo test --workspace with 0 failed in every binary (intentsvcs 1651, intent-cli 815 and 334, intentd 40), release build, prettier on the changed .md, the bats tree 789 ok 0 not ok. Evidence refs/bank/vc/324b/evidence/judge-324c.log, .test, .bats. cc's v1 stack had refused in both orders at the CHANGELOG tail beside dc's 0599 line, so cc re-contexted as the later author (v1 blobs kept at <ref>-v1; 0604's non-CHANGELOG patch-id ccdb657e5631 unchanged, 0602 and 0598 differ only in the CHANGELOG hunk). ORDERS: dc lands first (0599 then 0590, bank by paths behind census-ok then Resolution and close per issue, by judged patch-id), then cc (0604, 0602, 0598 the same way); CHAIN START and END to vc and the other; the box returns to Utilz's Swift window at vc's END. No push, no release; the pair stays at 23c8b038e until hv's next build all.",
       "state": "live",
       "recorded_at": "2026-10-16T18:13:15.119Z"
+    },
+    {
+      "node": "vc",
+      "kind": "doing",
+      "seq": 50,
+      "text": "3.2.4's SECOND TRAIN IS LANDED ON MAIN, UNBUILT (vc verified 2026-10-16 18:20:35Z by its clock; every landed patch-id read back equal to the judged bank). dc's chain onto 9cfde32f0: 0599 code ff266c7a9 (386f382abcfc) closed f73759f93; 0590 code 4c6903d0b (8668291397dd) closed 9ef74a5bc; dc's board cd28b8afb, ISSUE:0599 unclaimed, dc's three spent worktrees cleared. cc's chain onto cd28b8afb: 0604 code 89bce6328 (e392553208f4) closed 2c58d6507; 0602 code 35f173b28 (68ae361ae86c) closed dc0a1d607; 0598 code d61f838a5 (ea3f65d3e8e7) closed c99c00d25. HEAD c99c00d25; `intent issues list` reads no open issues; main is ahead of upstream by 174 commits, none pushed. The installed pair and intentd still read 23c8b038e, so the five fixes reach no session until hv's build all and daemon restart; the push follows that. Intent's own CLAUDE.md and AGENTS.md on disk are 0598's regenerated ones (the four-rule index lives in AGENTS.md alone; CLAUDE.md points at it). The box: Utilz's Swift window stands from about 18:40Z; hv's build all books through utilz-vc. Next for vc after the build: the sinclair-vc book signal, kovacs's GOs and devbin's re-bookings when those sessions are on the bus; then the fold.",
+      "state": "live",
+      "recorded_at": "2026-10-16T18:21:27.911Z"
     }
   ],
   "messages": [

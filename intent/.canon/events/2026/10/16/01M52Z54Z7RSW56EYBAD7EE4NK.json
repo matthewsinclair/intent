@@ -1,0 +1,15 @@
+{
+  "id": "01M52Z54Z7RSW56EYBAD7EE4NK",
+  "ts": "2026-10-16T18:21:27.911Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "3.2.4's SECOND TRAIN IS LANDED ON MAIN, UNBUILT (vc verified 2026-10-16 18:20:35Z by its clock; every landed patch-id read back equal to the judged bank). dc's chain onto 9cfde32f0: 0599 code ff266c7a9 (386f382abcfc) closed f73759f93; 0590 code 4c6903d0b (8668291397dd) closed 9ef74a5bc; dc's board cd28b8afb, ISSUE:0599 unclaimed, dc's three spent worktrees cleared. cc's chain onto cd28b8afb: 0604 code 89bce6328 (e392553208f4) closed 2c58d6507; 0602 code 35f173b28 (68ae361ae86c) closed dc0a1d607; 0598 code d61f838a5 (ea3f65d3e8e7) closed c99c00d25. HEAD c99c00d25; `intent issues list` reads no open issues; main is ahead of upstream by 174 commits, none pushed. The installed pair and intentd still read 23c8b038e, so the five fixes reach no session until hv's build all and daemon restart; the push follows that. Intent's own CLAUDE.md and AGENTS.md on disk are 0598's regenerated ones (the four-rule index lives in AGENTS.md alone; CLAUDE.md points at it). The box: Utilz's Swift window stands from about 18:40Z; hv's build all books through utilz-vc. Next for vc after the build: the sinclair-vc book signal, kovacs's GOs and devbin's re-bookings when those sessions are on the bus; then the fold."
+  }
+}
