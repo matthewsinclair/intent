@@ -1,0 +1,16 @@
+{
+  "id": "01M52APCXFY9TXHTQPZEXXX8WW",
+  "ts": "2026-10-16T12:23:53.007Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 31,
+    "text": "**THE KNOWN-DEFECTS RE-DRIVE IS HELD UNTIL THE 3.2.4 CUT'S FINAL PRE-CUT build all PAIR EXISTS.** It starts from refs/bank/dc/323/drive.sh (a00da3f2e), diffs every entry against refs/bank/dc/323/drive-3.2.3.log (e469fa33b), and runs only on that pair. (Re-scoped 2026-10-16: the scope half of this hold was met by hv's ruling, vc decision 63, and the train's judging and landing are doing 125's.)"
+  }
+}
