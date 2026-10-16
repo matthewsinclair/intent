@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 2fc8afd2-3ec8-41fe-bd9f-a5170cd80a61
-heartbeat_at: 2026-10-16 12:51Z
-status: active
-focus: "BACK ON THE BOUNCE 2026-10-16 08:00Z: skills loaded, gate released, no live messages; cc builds 0601's (b) in tmp/wt-cc-0601, dc holds for hv's 3.2.4 scope ruling, kovacs idle with nothing booked; ten questions open with hv, carried by doing 41, 42 and 43; no push, no release"
+heartbeat_at: 2026-10-16 13:49Z
+status: paused
+focus: "booted after the globalfold compact; holding for hv's /in-finish; build all, daemon restart and push are hv's"
 claims: []
 ---
 
