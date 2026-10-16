@@ -114,15 +114,22 @@ teardown() {
 }
 
 @test "no arm in the suite skips because an armed tool is absent" {
-  local offenders="" tool hit
-  while read -r tool; do
+  local offenders="" tools tool f hit
+  tools="$(armed_tools)"
+  # One file at a time, so each hit is `line:text` and a tool is matched against the arm's own text.
+  # Matched against `path:line:text`, a checkout under a directory named for an armed tool reported
+  # every skip in the suite.
+  for f in "${INTENT_PROJECT_ROOT}"/tests/unit/*.bats; do
     while IFS= read -r hit; do
-      [ -n "$hit" ] && offenders="${offenders}${tool}: ${hit}"$'\n'
-    done < <(grep -n 'skip' "${INTENT_PROJECT_ROOT}"/tests/unit/*.bats 2>/dev/null \
+      while IFS= read -r tool; do
+        if [[ -n "$tool" && "$hit" == *"$tool"* ]]; then
+          offenders="${offenders}${tool}: ${f##*/}:${hit}"$'\n'
+        fi
+      done <<<"$tools"
+    done < <(grep -n 'skip' "$f" 2>/dev/null \
       | grep -v ':[[:space:]]*#' \
-      | grep -F -- "$tool" \
       | grep -Ei -- 'unavailable|not installed|not found|is missing|not on PATH|is absent')
-  done < <(armed_tools)
+  done
 
   if [ -n "$offenders" ]; then
     echo "an arm degrades to a skip when an armed tool is absent, which reports"
