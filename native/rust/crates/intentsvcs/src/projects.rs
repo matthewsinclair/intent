@@ -382,6 +382,133 @@ pub fn discover(registry: &Path, from: &Path, depth: usize) -> Result<Discovered
   })
 }
 
+/// One registered project as a refusal lists it: how it can be named, and
+/// where it is.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Candidate {
+  /// The directory the project lives in, [`Project::directory_name`].
+  pub directory: String,
+  /// The name the project's config declares.
+  pub project_name: String,
+  pub root: PathBuf,
+}
+
+impl std::fmt::Display for Candidate {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(
+      f,
+      "{} (project_name {}) at {}",
+      self.directory,
+      self.project_name,
+      self.root.display()
+    )
+  }
+}
+
+fn listed(candidates: &[Candidate]) -> String {
+  candidates.iter().map(|c| format!("\n  - {c}")).collect()
+}
+
+fn unopenable(roots: &[(PathBuf, String)]) -> String {
+  if roots.is_empty() {
+    return String::new();
+  }
+  let lines: String = roots
+    .iter()
+    .map(|(root, why)| format!("\n  - {} ({why})", root.display()))
+    .collect();
+  format!("\nregistered roots that do not open as a project, never matched:{lines}")
+}
+
+#[derive(Debug, Error)]
+pub enum ResolveError {
+  #[error(transparent)]
+  Registry(#[from] ProjectsError),
+  #[error("`{wanted}` names more than one registered project:{}", listed(.candidates))]
+  Ambiguous {
+    wanted: String,
+    candidates: Vec<Candidate>,
+  },
+  #[error("`{wanted}` names no registered project{}{}", if .registered.is_empty() { " (the registry lists none)".to_string() } else { format!(". The registry lists:{}", listed(.registered)) }, unopenable(.stale))]
+  NoMatch {
+    wanted: String,
+    registered: Vec<Candidate>,
+    stale: Vec<(PathBuf, String)>,
+  },
+}
+
+impl crate::remedy::Remedy for ResolveError {
+  fn remedy(&self) -> String {
+    match self {
+      Self::Registry(e) => e.remedy(),
+      Self::Ambiguous { .. } => "name it by its registered root or its project_id, which are unique. Nothing was read or written.".to_string(),
+      Self::NoMatch { .. } => "name a project by its root, its project_id, its directory name or its project_name. `intent discover <dir>` registers the projects under a directory. Nothing was read or written.".to_string(),
+    }
+  }
+}
+
+/// The registered project `wanted` names (issue 0590).
+///
+/// **TWO TIERS, AND THE FIRST CANNOT BE SHADOWED BY THE SECOND.** An exact
+/// name, a path (one spelled with a `/`) to the root or the project's `project_id`,
+/// wins outright when one project carries it. Only then is `wanted` read as a
+/// name, case-insensitive, against each project's directory name and its
+/// `project_name`, because the directory is what tells two checkouts of one
+/// project apart (hv, 2026-09-03: `Intentv2` declares itself `Intent`).
+///
+/// **NEVER THE WORKING DIRECTORY'S PROJECT.** Two matches are refused naming
+/// both and none is refused listing the registry, so an issue can never be
+/// filed in an estate the caller did not name. A registered root that no
+/// longer opens is listed in the refusal and never matched.
+pub fn resolve(registry: &Path, wanted: &str) -> Result<Project, ResolveError> {
+  let mut open = Vec::new();
+  let mut stale = Vec::new();
+  for root in load(registry)?.roots() {
+    match Project::open(&root) {
+      Ok(project) => open.push(project),
+      Err(e) => stale.push((root, e.to_string())),
+    }
+  }
+  let candidate = |p: &Project| Candidate {
+    directory: p.directory_name().unwrap_or_default(),
+    project_name: p.config().project_name.clone(),
+    root: p.root().to_path_buf(),
+  };
+  // A value is read as a path only when it is spelled as one, so a bare name
+  // that happens to be a directory under the working directory stays a name.
+  let wanted_path = wanted
+    .contains('/')
+    .then(|| std::fs::canonicalize(wanted).ok())
+    .flatten();
+  let exact = |p: &Project| {
+    (wanted_path.is_some() && std::fs::canonicalize(p.root()).ok() == wanted_path)
+      || p.config().identity() == Some(wanted)
+  };
+  let folded = wanted.to_lowercase();
+  let named = |p: &Project| {
+    p.directory_name().map(|d| d.to_lowercase()) == Some(folded.clone())
+      || p.config().project_name.to_lowercase() == folded
+  };
+  for tier in [&exact as &dyn Fn(&Project) -> bool, &named] {
+    let mut hits: Vec<Project> = open.iter().filter(|p| tier(p)).cloned().collect();
+    match hits.len() {
+      0 => continue,
+      1 => return Ok(hits.remove(0)),
+      _ => {
+        return Err(ResolveError::Ambiguous {
+          wanted: wanted.to_string(),
+          candidates: hits.iter().map(candidate).collect(),
+        });
+      }
+    }
+  }
+  Err(ResolveError::NoMatch {
+    wanted: wanted.to_string(),
+    registered: open.iter().map(candidate).collect(),
+    stale,
+  })
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;

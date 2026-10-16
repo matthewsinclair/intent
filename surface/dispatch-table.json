@@ -3661,6 +3661,16 @@
           "flags": [
             {
               "spellings": [
+                "--project"
+              ],
+              "type": "string",
+              "value": "<project>",
+              "help": "Act on this registered project instead of the working directory's: its root (a value with a / in it is read as a path), project_id, directory name or project_name",
+              "disposition": "keep",
+              "disposition_basis": "Issue 0590 (hv, 2026-09-28, raised from a Lamplight session; vc decision 64, 2026-10-16: on the issues family ALONE in 3.2.4). Filing an issue in another estate meant cd-ing into it first, because every issues verb takes its project from the working directory. On the FAMILY row, before the verb (`intent issues --project <p> add ...`), so every issues verb and the bare `list` take it from one declaration. `intentsvcs::projects::resolve` answers it from the registry and NEVER falls back to the working directory: two matches and none are both refused with the candidates. With `--daemon` it is refused, because a daemon serves one project."
+            },
+            {
+              "spellings": [
                 "--width"
               ],
               "type": "integer",

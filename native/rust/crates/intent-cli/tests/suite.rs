@@ -173,6 +173,8 @@ mod issue_declaration_and_organize;
 mod issue_realised_form;
 #[path = "issues_add_body_door.rs"]
 mod issues_add_body_door;
+#[path = "issues_project_names_another_estate.rs"]
+mod issues_project_names_another_estate;
 #[path = "issues_surface.rs"]
 mod issues_surface;
 #[path = "lang_surface.rs"]

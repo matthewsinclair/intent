@@ -11074,6 +11074,53 @@ pub(crate) fn show_filter(spec: &str) -> Result<Vec<intentsvcs::outstanding::Kin
 /// `target.state: as-observed`, so `bin/intent_issues` is the specification --
 /// including its two-line `add` output and its `already CLOSED` self-loop, which
 /// is where hv's self-loop ruling took its citation from.
+/// The project `--project` named for an `issues` verb (issue 0590).
+struct Named {
+  name: String,
+  root: std::path::PathBuf,
+}
+
+/// Where the line naming a `--project` answer goes: beside a read's output on
+/// stderr, so a table or a JSON document is not polluted; ahead of a write's.
+#[derive(Clone, Copy)]
+enum Answer {
+  Read,
+  Write,
+}
+
+/// The facade an `issues` verb works through: the working directory's project,
+/// or the registered one `--project` names on the family (issue 0590).
+///
+/// **NEVER ONE IN PLACE OF THE OTHER.** A `--project` value that names no
+/// registered project, or more than one, is refused by
+/// [`intentsvcs::projects::resolve`] with the candidates, so an issue is never
+/// filed in the working directory's estate when another was asked for. The
+/// write goes through the same [`engine`] door as any other, so its event,
+/// canon file and view land in the named project's own tree. `--daemon` never
+/// reaches here: no `issues` verb is served by a daemon, so `run` refuses it.
+fn issues_open(family: &ArgMatches, answer: Answer) -> Result<(Facade, Option<Named>), Failure> {
+  let Some(wanted) = opt(family, "project")? else {
+    return Ok((open()?, None));
+  };
+  let registry =
+    intentsvcs::userstate::project_registry().map_err(|e| Failure::Error(e.render()))?;
+  let project =
+    intentsvcs::projects::resolve(&registry, &wanted).map_err(|e| Failure::Error(e.render()))?;
+  let named = Named {
+    name: project
+      .directory_name()
+      .unwrap_or_else(|| project.config().project_name.clone()),
+    root: project.root().to_path_buf(),
+  };
+  let line = format!("project: {} at {}", named.name, named.root.display());
+  match answer {
+    Answer::Read => eprintln!("{line}"),
+    Answer::Write => println!("{line}"),
+  }
+  let ctx = FacadeContext::for_project(&project, env!("CARGO_PKG_VERSION"));
+  Ok((engine(project, ctx, StoreNeed::Shared)?, Some(named)))
+}
+
 fn issues(m: &ArgMatches) -> Result<(), Failure> {
   match m.subcommand() {
     // The bare form runs `list`, which is the table's declared default verb
@@ -11096,7 +11143,7 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
         }
       };
 
-      let f = open()?;
+      let (f, _) = issues_open(m, Answer::Read)?;
       let rows: Vec<Vec<String>> = f
         .issue_list()
         .into_iter()
@@ -11130,13 +11177,20 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
     }
     Some(("show", a)) => {
       let number = issue_arg(a, "id")?;
-      let f = open()?;
+      let (f, named) = issues_open(m, Answer::Read)?;
       let issue = f.issue_show(number).map_err(fail)?;
       if output_of(a)?.format() == Format::Json {
+        let unrenderable =
+          |e: serde_json::Error| format!("error: the issue could not be rendered as JSON: {e}");
+        let mut json = serde_json::to_value(issue).map_err(unrenderable)?;
+        // Issue 0590: an answer from another project names it as fields too.
+        if let (Some(named), Some(fields)) = (named, json.as_object_mut()) {
+          fields.insert("project".to_string(), named.name.into());
+          fields.insert("root".to_string(), named.root.display().to_string().into());
+        }
         println!(
           "{}",
-          serde_json::to_string_pretty(issue)
-            .map_err(|e| format!("error: the issue could not be rendered as JSON: {e}"))?
+          serde_json::to_string_pretty(&json).map_err(unrenderable)?
         );
       } else {
         // **ONE RENDERER (`crate::show::issue`), shared with the MCP resource
@@ -11181,7 +11235,7 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
       }
       let reporter = reporter();
       let body = issue_body(a)?;
-      let mut f = open()?;
+      let (mut f, _) = issues_open(m, Answer::Write)?;
       let number = f
         .issue_add(&title, severity.as_deref(), reporter.as_deref(), &body)
         .map_err(fail)?;
@@ -11296,7 +11350,8 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
       let written = format!("{} written", asked.join(" and "));
 
       reported(
-        &open()?
+        &issues_open(m, Answer::Write)?
+          .0
           .issue_edit(
             number,
             body.as_deref(),
@@ -11312,7 +11367,10 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
     Some(("close", a)) => {
       let number = issue_arg(a, "id")?;
       reported(
-        &open()?.issue_close(number).map_err(fail)?,
+        &issues_open(m, Answer::Write)?
+          .0
+          .issue_close(number)
+          .map_err(fail)?,
         &format!("issue {number:04}"),
         "-> CLOSED",
       );
@@ -11322,7 +11380,10 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
     Some(("renumber", a)) => {
       let old = issue_arg(a, "old")?;
       let new = issue_arg(a, "new")?;
-      let done = open()?.issue_renumber(old, new).map_err(fail)?;
+      let done = issues_open(m, Answer::Write)?
+        .0
+        .issue_renumber(old, new)
+        .map_err(fail)?;
       print_renumbering(
         &done,
         &format!("issue {old:04} renumbered to {new:04}"),
@@ -11333,7 +11394,10 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
     Some(("open", a)) => {
       let number = issue_arg(a, "id")?;
       reported(
-        &open()?.issue_open(number).map_err(fail)?,
+        &issues_open(m, Answer::Write)?
+          .0
+          .issue_open(number)
+          .map_err(fail)?,
         &format!("issue {number:04}"),
         "-> OPEN",
       );

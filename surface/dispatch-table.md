@@ -1722,7 +1722,7 @@ Track issues without the ceremony of a steel thread
 
 | command                           | args        | flags                                                                             | help                                                          | disposition |
 | --------------------------------- | ----------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------- | ----------- |
-| `issues`                          | [command]   | --width <n>, --format terminal/md                                                 | Track issues without the ceremony of a steel thread           | keep        |
+| `issues`                          | [command]   | --project <project>, --width <n>, --format terminal/md                            | Track issues without the ceremony of a steel thread           | keep        |
 | `issues list`                     | --          | --kind open/closed/all, --width <n>, --format terminal/md                         | List issues (default: open)                                   | keep        |
 | `issues add` (alias `issues new`) | <title>     | --severity critical/high/medium/low, --body <text>, --from <file>                 | Add a new issue, print its ID:TITLE                           | keep        |
 | `issues edit`                     | <id>        | --body <text>, --from <file>, --title <text>, --severity critical/high/medium/low | Correct an issue's record: its prose, its title, its severity | new-surface |
@@ -1741,6 +1741,9 @@ Track issues without the ceremony of a steel thread
 - **Arguments:**
   - `command` (subcommand, arity `0..1`), default `list`
 - **Flags:**
+  - `--project` `<project>` (string) -- Act on this registered project instead of the working directory's: its root (a value with a / in it is read as a path), project_id, directory name or project_name
+    - **disposition:** keep
+    - **disposition basis:** Issue 0590 (hv, 2026-09-28, raised from a Lamplight session; vc decision 64, 2026-10-16: on the issues family ALONE in 3.2.4). Filing an issue in another estate meant cd-ing into it first, because every issues verb takes its project from the working directory. On the FAMILY row, before the verb (`intent issues --project <p> add ...`), so every issues verb and the bare `list` take it from one declaration. `intentsvcs::projects::resolve` answers it from the registry and NEVER falls back to the working directory: two matches and none are both refused with the candidates. With `--daemon` it is refused, because a daemon serves one project.
   - `--width` `<n>` (integer) -- Render at a fixed column width; 0 or absent means terminal width
     - **disposition:** keep
     - **disposition basis:** Unified output surface (hv, 2026-08-25), on the FAMILY row because `intent issues` bare runs `list` -- this row's own `command` arg declares `default: list`. The flags landed on `issues list` first and the bare route could not take them, so the DOCUMENTED SHORT FORM WAS THE ONE THAT REFUSED: `intent issues --width 80` answered `unexpected argument`. A default verb that cannot accept the flags of the verb it defaults to is the same inconsistency this change exists to remove, one level up -- and it is the form an operator reaches for first, so it is the one most likely to be met. `render.rs:2792` already falls back to the family matches when there is no subcommand, so this is a declaration and not a code path.

@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Intent installs on Linux through Homebrew** (ST0081). On Homebrew on Linux, `brew install matthewsinclair/intent/intent` installs the release's Linux package for the machine's architecture, x86_64 or aarch64: `intent` and `intentd` built static against musl, with the support tree, and no checkout of Intent's source. `docs/install.md#linux` carries the steps.
+- **`intent issues --project <project>` files and reads issues in another registered project** (issue 0590). Every `issues` verb took its project from the working directory, so filing into another estate meant changing into it first. `--project`, given before the verb (`intent issues --project Lamplight add "..."`), names a project from the machine's registry (`~/.config/intent/projects.json`) by its root, its `project_id`, its directory name or its `project_name`, the last two case-insensitive. A value is read as a path only when it has a `/` in it, so a bare name that is also a directory under the working directory stays a name. A name two projects carry is refused naming both, a name none carries is refused listing the registry, and nothing falls back to the working directory's project. The answer names the project and its root, on stderr for `list` and `show`, and `show --format json` carries them as `project` and `root`.
 
 ### Fixed
 
