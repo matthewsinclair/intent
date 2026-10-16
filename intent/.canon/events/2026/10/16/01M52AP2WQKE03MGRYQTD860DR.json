@@ -1,0 +1,15 @@
+{
+  "id": "01M52AP2WQKE03MGRYQTD860DR",
+  "ts": "2026-10-16T12:23:42.743Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RESUME (vc, localfold 2026-10-16 12:23Z on hv's word 'context is high... bank what we have, then localfold and compact'; Intent's cc, dc, vc fold in that order, Utilz's and devbin's nodes fold on the same word through their vcs). STATE: main carries WP-05 (c4cab2134, deny Edit(/AGENTS.md) and Edit(/.claude/AGENTS.md), gate 7 of 14), 0601's (b) (ae1bb7fb4, the gate fails open with a notice where no releaser is installed; TUI check measured systemMessage shows, ! fires no UserPromptSubmit on 2.1.301, a peer message is an ordinary prompt and stays gated, so (c) needs no code; 0601 closes when (a1) lands), 0600's CHANGELOG line (92d5a77ce), AC-07.1 satisfied (3f037d00f), issues 0604 (cc) and 0605 (484815b77, the prose-index doubling; Utilz repaired by hv's intent index rebuild, measured 604 wb_node and 1475 file rows, one per key). Installed pair still 701c4d98b: templates live on save, everything compiled waits on hv's bin/devbin build all. THE QUEUE ON THIS MAC, one heavy run at a time, census-ok.sh before each (refs/bank/vc/tools/census-ok.sh blob 6ff819b02716, census.sh 553c92e79cec): devbin-dc's WP-03 END (devbin-vc sends it) -> GO dc slot 1 (0605 at ac55f52517dd first, then 0596 0e9574949b4a and 0597 8c35467adc86, slot1.sh RED at T0 then GREEN, schema-faces verdict on the new doctor class; dc sends START and END to vc and cc) -> vc judges the 8-bank train on refs/bank/dc/324/ with canon and whole crate suites in a worktree of vc's -> GO cc slot 2 ((a1), coded and banked by cc on refs/bank/cc/0081/, compose its CHANGELOG hunk against dc's bank both orders) -> judge -> land dc's train then (a1) on main by patch-id -> hv's build all and intent daemon restart -> step 2 all-clear to utilz-vc (Utilz's restriction until then: no scoped sync --to-store, no hand edit under intent/st) -> the 'build all has run' signal to sinclair-vc for the book (steps in blob c03d21d900d0) -> hv's push. Then devbin's landing suite takes the Mac. KOVACS: idle, in-session reinstalled from ORDER 3's package (o8, green), D1c and D2b green, Claude Code 2.1.301 there; still queued from doing 43: o5-at051 and o7-drive-b on vc's GO with a census; the ! re-measure on Linux is optional and hv's hand. OPEN WITH hv: only hv's own acts (build all, the push, optionally a VACUUM of Utilz's 5.29 GB db file, optionally the Linux ! re-measure). OWED BY vc: the globalfold of intent/wip.md at EOD; the memory for 0605's class written at this fold."
+  }
+}
