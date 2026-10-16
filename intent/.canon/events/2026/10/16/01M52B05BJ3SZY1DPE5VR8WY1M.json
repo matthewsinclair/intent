@@ -1,0 +1,15 @@
+{
+  "id": "01M52B05BJ3SZY1DPE5VR8WY1M",
+  "ts": "2026-10-16T12:29:12.946Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "JUDGING RUN of dc's 3.2.4 train, started 2026-10-16 12:29Z in the background (a Bash background task outlives a compact): tmp/wt-vc-324 at main HEAD b0d4992ea plus the 8 banks on refs/bank/dc/324/ (0593 0592 0591 0594 0605 0596 0597 changelog; 0605 at ac55f52517dd); script refs/bank/vc/324/judge-324.sh (blob 678a1eb31146); log /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/2fc8afd2-3ec8-41fe-bd9f-a5170cd80a61/scratchpad/judge-324.log with one file per step beside it (.build-intentd .fmt .clippy-all .clippy-lib .doc .test .build-release .prettier .bats). ON THE BOUNCE: read the log's rc lines and the END; a step red is judged against base both directions before any verdict (judging-setup reds are known: the pair's embedded template, the rule validator seeing two roots in a worktree); PASS lands dc's train on main bank by bank in stack order starting at 0593, each by its judged patch-id, dc landing on vc's word; then cc's slot 2 for (a1); then hv's build all and daemon restart; then Utilz's step 2, sinclair-vc's build-all signal, hv's push. START was sent to devbin-vc, utilz-vc, cc and dc at 12:28Z; END owed to all four. Remove tmp/wt-vc-324 after the verdict."
+  }
+}
