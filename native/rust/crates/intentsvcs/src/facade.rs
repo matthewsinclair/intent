@@ -7706,6 +7706,12 @@ impl Facade {
     std::mem::take(&mut self.after_write)
   }
 
+  /// What opening this project's store did about Dropbox when the open
+  /// created `intent/.cache`, taken so it is said once (ST0083 WP-07).
+  pub fn take_cache_marking(&mut self) -> Option<crate::dropbox::Marking> {
+    self.store.take_cache_marking()
+  }
+
   /// Keep a landed write's note for [`Self::take_notes`], for a verb with no
   /// [`Outcome`] to carry it.
   fn park(&mut self, applied: Applied) {

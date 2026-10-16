@@ -617,6 +617,10 @@ fn examine(
   // Beside the gate and for its reason: whether git tracks the store is a fact
   // about the repository, and a store that will not open is still tracked.
   report.findings.extend(store_tracked_finding(project));
+  // Beside it and for its reason: whether `intent/.cache` is marked for
+  // Dropbox is a fact about the directory, and a store that will not open
+  // still syncs (ST0083 WP-07).
+  report.findings.extend(dropbox_cache_finding(project));
   // Beside the gate and for its reason: a root file behind its template is not
   // a property of the store, and an estate whose canon will not read still has
   // a `CLAUDE.md` worth comparing (issue `0496`).
@@ -2502,6 +2506,48 @@ fn store_tracked_finding(project: &Project) -> Option<Finding> {
         "git was not asked whether it tracks the store: {cause} -- `git ls-files intent/.cache` answers it"
       ),
     )),
+  }
+}
+
+/// `intent/.cache` under a Dropbox folder without the attributes that tell the
+/// client to ignore it (ST0083 WP-07): one finding whose detail carries the
+/// command that marks it. A question that could not be answered is said as an
+/// advisory, never read as "not under Dropbox".
+///
+/// **NOTHING TO SAY WITHOUT THE DIRECTORY OR WITHOUT `$HOME`**: no directory
+/// is nothing to sync, and the client's `info.json` lives under `$HOME`, so a
+/// process without one has no client to ask about.
+fn dropbox_cache_finding(project: &Project) -> Option<Finding> {
+  let dir = project.db_path().parent()?.to_path_buf();
+  if !dir.is_dir() {
+    return None;
+  }
+  let home = crate::userstate::home().ok()?;
+  let file = project.relative(&dir);
+  let unread = |cause: crate::dropbox::DropboxError| {
+    Some(Finding::new(
+      file.clone(),
+      FindingClass::Advisory,
+      format!("whether {file} is marked ignored by Dropbox was not read: {cause}"),
+    ))
+  };
+  let root = match crate::dropbox::under_dropbox(&dir, &home) {
+    Ok(None) => return None,
+    Ok(Some(root)) => root,
+    Err(cause) => return unread(cause),
+  };
+  match crate::dropbox::is_marked(&dir) {
+    Ok(true) => None,
+    Ok(false) => Some(Finding::new(
+      file.clone(),
+      FindingClass::DropboxCacheUnmarked,
+      format!(
+        "{file} is under the Dropbox folder {} and is not marked ignored, so the client syncs the live store and its WAL to every device that shares the folder; `{}` marks it",
+        root.display(),
+        crate::dropbox::command(&file)
+      ),
+    )),
+    Err(cause) => unread(cause),
   }
 }
 

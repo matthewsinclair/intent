@@ -227,6 +227,12 @@ proptest = "1"
 # (issue 0537). A hand-rolled directory would be the part most likely to be
 # wrong -- a name that collides, a mode that is too open, a copy left behind.
 tempfile = "3"
+# The extended attributes that tell the Dropbox client to leave `intent/.cache`
+# alone (ST0083 WP-07, hv's ruling 8 of 2026-10-15). Small and libc-backed on
+# both platforms, and its Linux half rides `rustix`, already in this lock.
+# Shelling out was the alternative and loses on Linux, where `attr` is not
+# installed by default, so the mark would silently not happen there.
+xattr = "1"
 
 # Release profile for the SHIPPED binaries (WP-11, dc 2026-08-15). Measured on
 # this workspace rather than copied from a blog post -- four cold builds, same

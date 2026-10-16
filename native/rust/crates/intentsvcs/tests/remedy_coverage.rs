@@ -44,6 +44,7 @@ fn proofs() {
   implements::<intentsvcs::launchagent::LaunchAgentError>();
   implements::<intentsvcs::macapp::AppError>();
   implements::<intentsvcs::embed::EmbedError>();
+  implements::<intentsvcs::dropbox::DropboxError>();
   implements::<intentsvcs::event::JsonlError>();
   implements::<intentsvcs::output::OutputError>();
   implements::<intentsvcs::plugins::PluginError>();

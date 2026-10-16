@@ -175,6 +175,14 @@ pub enum FindingClass {
   /// it did nothing to earn it, and the store is per-machine, so a counted
   /// class would refuse commits over a state no commit can change.
   ProseIndexDuplicated,
+  /// `intent/.cache` sits under a Dropbox folder and is not marked ignored by
+  /// the client (ST0083 WP-07), so the client syncs a live store and its WAL
+  /// to every device that shares the folder.
+  ///
+  /// **SHOWN AND NOT COUNTED, FOR `ProseIndexDuplicated`'s REASON**: the
+  /// directory is per-machine and its attributes are not in any commit, so a
+  /// counted class would refuse commits over a state no commit can change.
+  DropboxCacheUnmarked,
   /// An ATTACHMENT on disk differs from the bytes canon records for it.
   ///
   /// **Not [`FindingClass::ViewSkew`], and the difference is what the operator
@@ -560,6 +568,11 @@ impl FindingClass {
         "store-tracked",
         "run the git command the finding names and commit it: it takes the store out of the index and leaves your copy on disk, and the ignore rule keeps it out from then on. Not counted: a project made by Intent 3.0 carries this from its first commit rather than from anything done since",
       ),
+      Self::DropboxCacheUnmarked => (
+        6,
+        "dropbox-cache-unmarked",
+        "run the command the finding names, from the project root: it sets the attributes the Dropbox client reads on `intent/.cache`, and the client then removes that directory from the server and from other devices, which is right for a store each machine rebuilds from committed canon. Not counted: the directory is per-machine, so no commit can change it",
+      ),
       Self::ProseIndexDuplicated => (
         6,
         "prose-index-duplicated",
@@ -821,6 +834,7 @@ impl FindingClass {
         | Self::RootFileBehind
         | Self::StoreTracked
         | Self::ProseIndexDuplicated
+        | Self::DropboxCacheUnmarked
     )
   }
 
@@ -844,7 +858,11 @@ impl FindingClass {
     self.is_actionable()
       || matches!(
         self,
-        Self::StoreStale | Self::RootFileBehind | Self::StoreTracked | Self::ProseIndexDuplicated
+        Self::StoreStale
+          | Self::RootFileBehind
+          | Self::StoreTracked
+          | Self::ProseIndexDuplicated
+          | Self::DropboxCacheUnmarked
       )
   }
 

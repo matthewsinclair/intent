@@ -34,6 +34,9 @@ regex.workspace = true
 # for a tool that reads a file rather than bytes (issue 0537). The rationale is
 # beside the pin in the workspace manifest.
 tempfile.workspace = true
+# Marks `intent/.cache` ignored by the Dropbox client (ST0083 WP-07); the
+# rationale is beside the pin in the workspace manifest.
+xattr.workspace = true
 # **THE STRUCTURAL TIER, EACH GRAMMAR OPTIONAL AND BEHIND ITS OWN FEATURE**
 # (ST0069 WP-20). The runtime is not optional -- `index::symbols` compiles
 # either way and simply knows no languages -- while each grammar is, so a build

@@ -2737,6 +2737,9 @@ pub struct Store {
   /// record of something that did not happen. `RefCell` because
   /// [`Store::append_event`] writes through `&self`.
   landed_events: std::cell::RefCell<Vec<Envelope>>,
+  /// What [`Store::open`]'s birth of `intent/.cache` did about Dropbox, until
+  /// [`Store::take_cache_marking`] takes it (ST0083 WP-07).
+  cache_marking: Option<crate::dropbox::Marking>,
 }
 
 /// Everything ONE mutation changes, written in ONE transaction.
@@ -3658,13 +3661,28 @@ impl Store {
     // project. Without this, the first command in a new project fails with
     // "unable to open database file" -- a confusing message for a directory
     // the tool owns and can simply make.
-    if let Some(parent) = path.parent() {
-      std::fs::create_dir_all(parent).map_err(StoreError::Cache)?;
-    }
+    //
+    // **AND THE BIRTH IS WHERE A DROPBOX FOLDER IS TOLD TO IGNORE IT** (ST0083
+    // WP-07), before SQLite creates the file, so the client never sees a store
+    // it was not told to ignore. What happened is kept for the caller to say
+    // once: see [`Store::take_cache_marking`].
+    let marking = match path.parent() {
+      Some(parent) => crate::dropbox::make_cache_dir(parent).map_err(StoreError::Cache)?,
+      None => None,
+    };
     let conn = Connection::open(path)?;
     conn.pragma_update(None, "journal_mode", "WAL")?;
     Self::wait_for_contention(&conn)?;
-    Self::init(conn, Some(path))
+    let mut store = Self::init(conn, Some(path))?;
+    store.cache_marking = marking;
+    Ok(store)
+  }
+
+  /// What this open's birth of `intent/.cache` did about Dropbox, taken so
+  /// it is said once; `None` when the directory already existed or Dropbox
+  /// has no claim on it.
+  pub fn take_cache_marking(&mut self) -> Option<crate::dropbox::Marking> {
+    self.cache_marking.take()
   }
 
   /// Apply the contention wait -- **the ONE place the constant is read**.
@@ -3804,6 +3822,7 @@ impl Store {
       ingest_depth: 0,
       ingest_attempt: None,
       landed_events: std::cell::RefCell::default(),
+      cache_marking: None,
     })
   }
 

@@ -58,6 +58,7 @@ pub mod critic;
 pub mod daemon;
 pub mod daemon_logs;
 pub mod doctor;
+pub mod dropbox;
 pub mod embed;
 pub mod event;
 pub mod export;

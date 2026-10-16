@@ -128,7 +128,7 @@ const DESTINATIONS: &[(&str, Destination)] = &[
 ];
 
 /// What `init` created.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Initialised {
   pub root: PathBuf,
   pub project_name: String,
@@ -144,6 +144,9 @@ pub struct Initialised {
   /// declared it and `false` where an earlier name in the same list already
   /// had. Empty when none was asked for.
   pub languages: Vec<(String, bool)>,
+  /// What the store's birth did about Dropbox, when the project sits under a
+  /// Dropbox folder (ST0083 WP-07).
+  pub cache_marking: Option<crate::dropbox::Marking>,
 }
 
 /// Why `init` did not initialise.
@@ -360,7 +363,8 @@ pub fn init_with_languages(
     return Err(InitError::WouldOverwrite(occupied));
   }
 
-  let store = Store::open(&root.join("intent/.cache/intent.db")).map_err(InitError::Store)?;
+  let mut store = Store::open(&root.join("intent/.cache/intent.db")).map_err(InitError::Store)?;
+  let cache_marking = store.take_cache_marking();
   // The event names who created the project by the rule every later event
   // uses (ST0078 P1), so an `init` with no recorded author names git's identity.
   let principal = crate::facade::author_at(root, author);
@@ -569,6 +573,7 @@ pub fn init_with_languages(
     written,
     skipped,
     languages: outcomes,
+    cache_marking,
   })
 }
 

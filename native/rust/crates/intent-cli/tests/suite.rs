@@ -67,6 +67,8 @@ mod a_skewed_views_printed_remedy_clears_it;
 mod a_stale_render_names_the_verb_that_clears_it;
 #[path = "a_stale_store_shows_on_a_default_doctor_run.rs"]
 mod a_stale_store_shows_on_a_default_doctor_run;
+#[path = "a_store_under_dropbox_is_marked_ignored.rs"]
+mod a_store_under_dropbox_is_marked_ignored;
 #[path = "a_tool_description_comes_from_its_row.rs"]
 mod a_tool_description_comes_from_its_row;
 #[path = "a_write_keeps_a_cover_edit_it_could_carry.rs"]

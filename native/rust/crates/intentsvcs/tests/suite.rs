@@ -179,6 +179,8 @@ mod dep_graph_guard;
 mod dependency_rationale;
 #[path = "doctor_advisory.rs"]
 mod doctor_advisory;
+#[path = "dropbox_cache_mark.rs"]
+mod dropbox_cache_mark;
 #[path = "init_keeps_the_store_out_of_git.rs"]
 mod init_keeps_the_store_out_of_git;
 

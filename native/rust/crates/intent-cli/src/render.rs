@@ -662,7 +662,32 @@ pub(crate) fn engine(
   // `fn engine`", which is a real property and a weaker one.** Restructuring so
   // the match decides only WHETHER to refuse keeps the guard exactly as strong
   // as it was, and reads better besides.
-  Facade::open_as(project, ctx, need.opening()).map_err(fail)
+  let mut facade = Facade::open_as(project, ctx, need.opening()).map_err(fail)?;
+  // **SAID ON STDERR, ONCE, BY THE OPEN THAT CREATED `intent/.cache`** (ST0083
+  // WP-07): a fresh clone under Dropbox is marked by whichever verb runs
+  // first, and that verb's stdout may be JSON a caller parses.
+  if let Some(marking) = facade.take_cache_marking() {
+    eprintln!("{}", cache_marking_line(&marking, facade.project().root()));
+  }
+  Ok(facade)
+}
+
+/// The one line that says what a store's birth did about Dropbox (ST0083
+/// WP-07), for `init` and for the first open of a fresh clone alike.
+fn cache_marking_line(marking: &intentsvcs::dropbox::Marking, root: &Path) -> String {
+  use intentsvcs::dropbox::{ATTRIBUTES, Marking};
+  match marking {
+    Marking::Marked { dir } => format!(
+      "marked: {} ignored by Dropbox ({})",
+      intentsvcs::project::relative(root, dir),
+      ATTRIBUTES.join(", ")
+    ),
+    Marking::Unmarked { dir, cause } => format!(
+      "warning: {} is not marked ignored by Dropbox: {cause}\n  remedy: {}",
+      intentsvcs::project::relative(root, dir),
+      cause.remedy()
+    ),
+  }
 }
 
 /// Should a search answered IN THIS PROCESS reconcile the index first?
@@ -8692,6 +8717,9 @@ fn init(a: &ArgMatches) -> Result<(), Failure> {
     for (name, why) in &made.skipped {
       println!("    {name} -- {why}");
     }
+  }
+  if let Some(marking) = &made.cache_marking {
+    println!("{}", cache_marking_line(marking, &made.root));
   }
   if made.languages.is_empty() {
     return Ok(());
