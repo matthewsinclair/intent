@@ -41,7 +41,7 @@ title: Agent contracts at the root or in .claude/, chosen per project, and CLAUD
 
 ### WP-06 -- intent deinit: strip what Intent wrote from a project being closed (status: Not Started)
 
-- AC-06.1 (non-test) `intent deinit` without `--apply` lists every file and hook block it would remove and writes nothing; with `--apply` it removes the generated contracts in either layout, a `.claude/settings.json` and `.mcp.json` carrying Intent markers, Intent hook chain blocks and carriers, and a `.intent_critic.yml` byte-identical to its seed, naming each, and names each file it leaves because it cannot prove Intent wrote it; `--all` also removes `intent/` with the store. -- satisfied: no
+- AC-06.1 (non-test) `intent deinit` without `--apply` lists every file and hook block it would remove or edit and writes nothing; with `--apply` it removes the generated contracts in either layout (each one canon's generated predicate reads as Intent's, a `CLAUDE.md` only while its user block is empty), a `usage-rules.md` and a `.intent_critic.yml` byte-identical to their seeds, Intent's hook chain blocks and their carriers, and from `.claude/settings.json` only the hook entries whose command carries `intent claude hook` and the two deny rules the template adds, re-serialised as 2-space JSON and deleted when `{}` remains, and from `.mcp.json` only the `intent` server entry, deleted when nothing remains, naming each removal and edit, and naming each file it leaves because it cannot prove Intent wrote it or cannot parse it; `--all` also removes `intent/` with the store and this project's row in the project registry, and refuses while a daemon watches the tree. -- satisfied: no
 
 ### WP-07 -- A store under Dropbox is marked ignored for the Dropbox client (status: Done)
 
