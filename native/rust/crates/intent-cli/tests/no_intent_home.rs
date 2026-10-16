@@ -86,8 +86,15 @@ use testkit::workspace_root;
 /// **`CLAUDE_CODE_SESSION_ID` WAS GRANTED BY hv ON 2026-09-17, IN ISSUE 0433's
 /// FIX**: `wb pickup` with no `--session` records the Claude Code session it
 /// runs in. Confined to `render.rs` below, for `HOME`'s reason.
+///
+/// **`CLAUDE_CONFIG_DIR` WAS GRANTED BY hv ON 2026-10-16, IN ISSUE 0604's
+/// FIX**: Claude Code keeps its configuration, `skills/` included, there when
+/// it is set, so `userstate::claude_dir` follows it, and the prompt gate's
+/// shell scripts read it beside it. Confined to `userstate.rs` below, for
+/// `HOME`'s reason.
 const ALLOWED: &[&str] = &[
   "CLAUDE_CODE_SESSION_ID",
+  "CLAUDE_CONFIG_DIR",
   "COLUMNS",
   "EDITOR",
   "HOME",
@@ -119,6 +126,7 @@ const ALLOWED: &[&str] = &[
 /// A new entry here needs the same thing the `ALLOWED` row needed: a ruling,
 /// and a reason written down beside it.
 const CONFINED: &[(&str, &str)] = &[
+  ("CLAUDE_CONFIG_DIR", "crates/intentsvcs/src/userstate.rs"),
   ("HOME", "crates/intentsvcs/src/userstate.rs"),
   ("USER", "crates/intentsvcs/src/userstate.rs"),
   ("XDG_CONFIG_HOME", "crates/intentsvcs/src/userstate.rs"),

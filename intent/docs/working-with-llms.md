@@ -415,7 +415,7 @@ Full contract in `intent/docs/critics.md`.
 
 ## Skills and /in-session auto-load
 
-`intent claude skills install <name>` (or `--all`) installs a skill to `~/.claude/skills/<name>/`, where Claude Code makes it available to every session. `intent claude skills sync` refreshes installed skills from the install and holds any you changed locally.
+`intent claude skills install <name>` (or `--all`) installs a skill to `~/.claude/skills/<name>/`, where Claude Code makes it available to every session. Where `CLAUDE_CONFIG_DIR` is set, Claude Code keeps its configuration there instead of `~/.claude`, and Intent installs into `$CLAUDE_CONFIG_DIR/skills/<name>/` to match. `intent claude skills sync` refreshes installed skills from the install and holds any you changed locally.
 
 The session-bootstrap flow handled by the `/in-session` skill:
 

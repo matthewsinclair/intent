@@ -119,22 +119,26 @@ pub fn fixture_home() -> &'static Path {
     .as_path()
 }
 
-/// The XDG base-directory variables, each of which moves a slice of per-user
-/// state out from under `HOME` when it is set.
+/// The variables that move per-user state out from under `HOME` when set: the
+/// XDG base-directory ones, each moving a slice of it.
 ///
 /// Removed rather than pointed at the fixture: a variable the operator never
 /// set is absent in their shell, and absent is the state the binary's own
 /// fallback to `HOME` was written for.
-const XDG: &[&str] = &[
+///
+/// `CLAUDE_CONFIG_DIR` is here for the same reason (issue 0604): set, it
+/// moves `~/.claude`, where skills install and the prompt gate looks.
+const MOVERS: &[&str] = &[
   "XDG_CONFIG_HOME",
   "XDG_DATA_HOME",
   "XDG_STATE_HOME",
   "XDG_CACHE_HOME",
   "XDG_RUNTIME_DIR",
+  "CLAUDE_CONFIG_DIR",
 ];
 
 /// A `Command` for `program` whose per-user state is the fixture's, never the
-/// operator's: `HOME` at [`fixture_home`] and every `XDG` variable removed.
+/// operator's: `HOME` at [`fixture_home`] and every variable in `MOVERS` removed.
 ///
 /// **THE ONE DOOR FOR SPAWNING A BINARY UNDER TEST (issue 0493).**
 /// [`fixture_home`] existed and a third of the spawns used it. The rest
@@ -150,7 +154,7 @@ const XDG: &[&str] = &[
 pub fn fixtured_command(program: impl AsRef<std::ffi::OsStr>) -> Command {
   let mut command = Command::new(program);
   command.env("HOME", fixture_home());
-  for var in XDG {
+  for var in MOVERS {
     command.env_remove(var);
   }
   command

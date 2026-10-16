@@ -359,8 +359,29 @@ pub fn author() -> Option<String> {
 /// Claude Code defines, so a v3-specific filename is available in the first and
 /// not the second. That asymmetry is exactly why the skills manifest could be
 /// given its own path and the installed skills could not.
+///
+/// **`$CLAUDE_CONFIG_DIR` MOVES IT, AND INTENT FOLLOWS** (issue 0604). Claude
+/// Code reads its configuration directory from that variable when it is set,
+/// `skills/` included, so a skill installed under `$HOME/.claude` on such a
+/// machine is one Claude Code never loads. Set and non-empty, it is the
+/// answer; unset or empty, `$HOME/.claude` is, as before. The prompt gate's
+/// two scripts and the in-session release line resolve the same way, so the
+/// install, the release and the check read one path.
 pub fn claude_dir() -> Result<PathBuf, UserStateError> {
-  Ok(home()?.join(".claude"))
+  pick_claude_dir(std::env::var("CLAUDE_CONFIG_DIR").ok(), home)
+}
+
+/// [`claude_dir`]'s choice, apart from the environment it reads. `home` is
+/// asked only when the variable does not answer, so a machine that sets
+/// `CLAUDE_CONFIG_DIR` and no `HOME` still has a Claude directory.
+fn pick_claude_dir(
+  config_dir: Option<String>,
+  home: impl FnOnce() -> Result<PathBuf, UserStateError>,
+) -> Result<PathBuf, UserStateError> {
+  match config_dir {
+    Some(dir) if !dir.is_empty() => Ok(PathBuf::from(dir)),
+    _ => Ok(home()?.join(".claude")),
+  }
 }
 
 /// Where v3 records what IT installed: `$XDG_DATA_HOME/intent/<kind's manifest>`.
@@ -595,6 +616,30 @@ mod tests {
     );
     assert_eq!(linux.runtime, PathBuf::from("/run/user/1000/intent"));
     assert_eq!(linux.config, PathBuf::from("/h/.config/intent"));
+  }
+
+  /// `CLAUDE_CONFIG_DIR` set and non-empty is the Claude directory, and `HOME`
+  /// is not asked; unset or empty, it is `$HOME/.claude` (issue 0604).
+  #[test]
+  fn claude_config_dir_moves_the_claude_dir_and_empty_does_not() {
+    let unasked = || -> Result<PathBuf, UserStateError> { panic!("HOME was asked") };
+    assert_eq!(
+      pick_claude_dir(Some("/cfg/claude".into()), unasked).expect("set"),
+      PathBuf::from("/cfg/claude")
+    );
+    let home = || Ok(PathBuf::from("/h"));
+    assert_eq!(
+      pick_claude_dir(Some(String::new()), home).expect("empty"),
+      PathBuf::from("/h/.claude")
+    );
+    assert_eq!(
+      pick_claude_dir(None, home).expect("unset"),
+      PathBuf::from("/h/.claude")
+    );
+    assert!(matches!(
+      pick_claude_dir(None, || Err(UserStateError::NoHome)),
+      Err(UserStateError::NoHome)
+    ));
   }
 
   /// The daemon's files sit in the kind of directory their lifetime names.

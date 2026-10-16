@@ -102,3 +102,50 @@ fn a_fresh_machine_gets_in_session_from_claude_upgrade_and_doctor_names_its_abse
   );
   assert_eq!(code, 0, "doctor counted a machine advisory: {out}{err}");
 }
+
+/// The line `/in-session` runs to release the gate, exactly as the installed
+/// SKILL.md must carry it (issue 0604).
+const RELEASE_LINE: &str =
+  "bash \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/in-session/scripts/release-gate.sh\"";
+
+/// Issue 0604: with `CLAUDE_CONFIG_DIR` set, `claude skills install` writes the
+/// skill where Claude Code loads it, not under `$HOME/.claude`, and the
+/// installed SKILL.md carries the release line byte for byte. The installed
+/// file is what Claude Code reads; its own rendering at injection time is not
+/// drivable from here, and `skill_renderer_trap.bats` guards the tokens it
+/// strips.
+#[test]
+fn claude_config_dir_moves_the_skill_install_and_the_release_line_arrives_whole() {
+  let cwd = tempfile::tempdir().expect("tempdir");
+  let home = tempfile::tempdir().expect("tempdir");
+  let config = tempfile::tempdir().expect("tempdir");
+  let out = crate::common::intent()
+    .args(["claude", "skills", "install", "in-session"])
+    .current_dir(cwd.path())
+    .env("HOME", home.path())
+    .env("CLAUDE_CONFIG_DIR", config.path())
+    .stdin(testkit::lifeline_for(&["claude", "skills", "install"]))
+    .output()
+    .expect("run the v3 binary");
+  let said = format!(
+    "{}{}",
+    String::from_utf8_lossy(&out.stdout),
+    String::from_utf8_lossy(&out.stderr)
+  );
+  assert!(out.status.success(), "the install failed: {said}");
+
+  let skill = config.path().join("skills/in-session");
+  assert!(
+    skill.join("scripts/release-gate.sh").is_file(),
+    "no releaser under CLAUDE_CONFIG_DIR:\n{said}"
+  );
+  assert!(
+    !home.path().join(".claude/skills/in-session").exists(),
+    "the install also wrote under HOME"
+  );
+  let body = std::fs::read_to_string(skill.join("SKILL.md")).expect("read the installed SKILL.md");
+  assert!(
+    body.lines().any(|line| line == RELEASE_LINE),
+    "the installed SKILL.md does not carry the release line whole:\n{body}"
+  );
+}

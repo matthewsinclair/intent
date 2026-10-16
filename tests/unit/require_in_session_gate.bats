@@ -222,6 +222,30 @@ no_jq_path() {
   teardown_gate
 }
 
+@test "with CLAUDE_CONFIG_DIR set, the gate finds the releaser there and blocks" {
+  setup_gate
+  local config="$BATS_TEST_TMPDIR/claude-config"
+  mkdir -p "$config/skills/in-session/scripts"
+  : > "$config/skills/in-session/scripts/release-gate.sh"
+  rm -f "$HOME/.claude/skills/in-session/scripts/release-gate.sh"
+  run --separate-stderr env CLAUDE_CONFIG_DIR="$config" CLAUDE_CODE_SESSION_ID="$GATE_SESSION_ID" \
+    bash "$SCRIPT" <<< '{"prompt":"hello"}'
+  [ "$status" -eq 2 ] || fail "status $status, output: $output"
+  [[ "$stderr" == *"Expected sentinel:"* ]]
+  [ ! -f "$GATE_SENTINEL" ]
+  teardown_gate
+}
+
+@test "with CLAUDE_CONFIG_DIR set, a releaser only under HOME does not count" {
+  setup_gate
+  [ -f "$HOME/.claude/skills/in-session/scripts/release-gate.sh" ]
+  run --separate-stderr env CLAUDE_CONFIG_DIR="$BATS_TEST_TMPDIR/empty-config" CLAUDE_CODE_SESSION_ID="$GATE_SESSION_ID" \
+    bash "$SCRIPT" <<< '{"prompt":"hello"}'
+  [ "$status" -eq 0 ] || fail "status $status, stderr: $stderr"
+  [[ "$output" == *"intent claude skills install in-session"* ]]
+  teardown_gate
+}
+
 @test "with the releaser and no sentinel, a plain prompt is blocked" {
   setup_gate
   [ -f "$HOME/.claude/skills/in-session/scripts/release-gate.sh" ]

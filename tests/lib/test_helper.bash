@@ -19,6 +19,10 @@ export INTENT_BIN
 # Export INTENT_HOME for tests
 export INTENT_HOME="${INTENT_PROJECT_ROOT}"
 
+# Set, CLAUDE_CONFIG_DIR moves ~/.claude, where skills install and the prompt
+# gate looks for its releaser (issue 0604); a test that wants it sets it.
+unset CLAUDE_CONFIG_DIR
+
 # Create temporary test directory
 setup_file() {
   mkdir -p "${INTENT_TEMP_DIR}"

@@ -84,11 +84,13 @@ if [ -f "$sentinel" ]; then
   exit 0
 fi
 
-# The release is `bash "$HOME/.claude/skills/in-session/scripts/release-gate.sh"`
+# The release is `bash "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/in-session/scripts/release-gate.sh"`
 # (in-session SKILL.md), so the gate checks that same file rather than
 # SKILL.md: the check and the release read one path. session-context.sh
-# checks it too, to say the same thing at session start.
-releaser="${HOME:-}/.claude/skills/in-session/scripts/release-gate.sh"
+# checks it too, to say the same thing at session start. CLAUDE_CONFIG_DIR
+# is where Claude Code keeps skills when it is set, and a hook receives it
+# from the session.
+releaser="${CLAUDE_CONFIG_DIR:-${HOME:-}/.claude}/skills/in-session/scripts/release-gate.sh"
 if [ ! -f "$releaser" ]; then
   mkdir -p "$SENTINEL_DIR" 2>/dev/null && touch "$sentinel" 2>/dev/null
   # The backticks are the notice's own markdown, not a substitution. The text

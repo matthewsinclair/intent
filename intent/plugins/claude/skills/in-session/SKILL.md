@@ -71,7 +71,7 @@ Where `.claude/settings.json` was installed by `intent claude upgrade --apply`, 
 Run the helper script (idempotent, fast):
 
 ```bash
-bash "$HOME/.claude/skills/in-session/scripts/release-gate.sh"
+bash "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/in-session/scripts/release-gate.sh"
 ```
 
 If after running `/in-session` the gate is **still** firing on the next prompt -- visible as `Expected sentinel: /tmp/intent/in-session-<UUID>.sentinel` in the hook output -- copy the UUID from the gate's error message and run `touch /tmp/intent/in-session-<UUID>.sentinel`.

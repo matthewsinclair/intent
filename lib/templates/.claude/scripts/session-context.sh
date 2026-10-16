@@ -60,7 +60,7 @@ if [ -n "$wip_summary" ]; then
 fi
 # The same releaser path require-in-session.sh checks: with it absent the
 # gate fails open, so naming /in-session as the gate's release would be false.
-if [ -f "${HOME:-}/.claude/skills/in-session/scripts/release-gate.sh" ]; then
+if [ -f "${CLAUDE_CONFIG_DIR:-${HOME:-}/.claude}/skills/in-session/scripts/release-gate.sh" ]; then
   printf 'Next: run /in-session to load coding skills and release the UserPromptSubmit gate.\n'
 else
   # shellcheck disable=SC2016 # the backticks are the line's own markdown

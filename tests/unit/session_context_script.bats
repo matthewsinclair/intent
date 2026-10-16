@@ -94,3 +94,19 @@ EOF
   # never be written. Identity comes from \$CLAUDE_CODE_SESSION_ID instead.
   [ ! -f "$state_file" ]
 }
+
+@test "the Next line looks for the releaser under CLAUDE_CONFIG_DIR when it is set" {
+  mkdir -p "$TEST_TEMP_DIR/proj" "$TEST_TEMP_DIR/home"
+  cd "$TEST_TEMP_DIR/proj"
+  local config="$TEST_TEMP_DIR/claude-config"
+  mkdir -p "$config/skills/in-session/scripts"
+  : > "$config/skills/in-session/scripts/release-gate.sh"
+
+  HOME="$TEST_TEMP_DIR/home" CLAUDE_CONFIG_DIR="$config" CLAUDE_PROJECT_DIR="$PWD" run bash "$SCRIPT" < /dev/null
+  assert_success
+  assert_output_contains "Next: run /in-session"
+
+  HOME="$TEST_TEMP_DIR/home" CLAUDE_CONFIG_DIR="$TEST_TEMP_DIR/empty-config" CLAUDE_PROJECT_DIR="$PWD" run bash "$SCRIPT" < /dev/null
+  assert_success
+  assert_output_contains "the in-session skill is not installed"
+}
