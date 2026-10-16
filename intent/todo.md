@@ -23,7 +23,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [ ] 04: doctor: both layouts present, a held settings file with a dead hook command, an empty or placeholder author
   - [x] 05: The templated settings deny editing the generated AGENTS.md in either layout
   - [ ] 06: intent deinit: strip what Intent wrote from a project being closed
-  - [ ] 07: A store under Dropbox is marked ignored for the Dropbox client
+  - [x] 07: A store under Dropbox is marked ignored for the Dropbox client
   - [ ] 08: Docs, reference and CHANGELOG for the two layouts, the import and deinit
 
 ## TODO

@@ -64,7 +64,7 @@ hv's word, first-hand: the book is not upgraded from v2.14; its Intent content i
 | WP-04 | doctor: both layouts present, a held settings file with a dead hook command, an empty or placeholder author             | S    | Not Started |
 | WP-05 | The templated settings deny editing the generated AGENTS.md in either layout                                            | XS   | Done        |
 | WP-06 | intent deinit: strip what Intent wrote from a project being closed                                                      | S    | Not Started |
-| WP-07 | A store under Dropbox is marked ignored for the Dropbox client                                                          | S    | Not Started |
+| WP-07 | A store under Dropbox is marked ignored for the Dropbox client                                                          | S    | Done        |
 | WP-08 | Docs, reference and CHANGELOG for the two layouts, the import and deinit                                                | S    | Not Started |
 
 ## Acceptance

@@ -43,9 +43,9 @@ title: Agent contracts at the root or in .claude/, chosen per project, and CLAUD
 
 - AC-06.1 (non-test) `intent deinit` without `--apply` lists every file and hook block it would remove and writes nothing; with `--apply` it removes the generated contracts in either layout, a `.claude/settings.json` and `.mcp.json` carrying Intent markers, Intent hook chain blocks and carriers, and a `.intent_critic.yml` byte-identical to its seed, naming each, and names each file it leaves because it cannot prove Intent wrote it; `--all` also removes `intent/` with the store. -- satisfied: no
 
-### WP-07 -- A store under Dropbox is marked ignored for the Dropbox client (status: Not Started)
+### WP-07 -- A store under Dropbox is marked ignored for the Dropbox client (status: Done)
 
-- AC-07.1 (non-test) When the project root is under a Dropbox folder, `intent init` and the first store open mark `intent/.cache` ignored for the Dropbox client present (the File Provider and legacy attributes on macOS, `com.dropbox.ignored` on Linux) and say so once; `intent doctor` reports an unmarked `intent/.cache` under Dropbox as an advisory with the command that marks it. -- satisfied: no
+- AC-07.1 (non-test) When the project root is under a Dropbox folder, `intent init` and the first store open mark `intent/.cache` ignored for the Dropbox client present (the File Provider and legacy attributes on macOS, `com.dropbox.ignored` on Linux) and say so once; `intent doctor` reports an unmarked `intent/.cache` under Dropbox as an advisory with the command that marks it. -- evidence: ST0083 WP-07 landed at 8b956d818 on vc's PASS, patch-id a044cab88691 from refs/bank/cc/0083/wp07 (blob d9c7d4fb7610) on base 9382bf1f9; evidence refs/bank/cc/0083/evidence/wp07-*: init under a fixture Dropbox folder reached through a symlink marks intent/.cache and says so once, a fresh clone's first open marks it and says so once on stderr, doctor reports an unmarked cache with the command and leaves the counted verdict and exit alone, nothing is said outside Dropbox (intent-cli a_store_under_dropbox_is_marked_ignored 5/5, intentsvcs dropbox_cache_mark 6/6, dropbox unit 3/3; workspace and bats 789/789 green); a real Dropbox folder is not driven here, the book's recreate under the pair carrying this is the live proof -- satisfied: yes
 
 ### WP-08 -- Docs, reference and CHANGELOG for the two layouts, the import and deinit (status: Not Started)
 
@@ -80,7 +80,7 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-07 -- A store under Dropbox is marked ignored for the Dropbox client (status: Not Started)
+### WP-07 -- A store under Dropbox is marked ignored for the Dropbox client (status: Done)
 
 _(no tests in this group)_
 

@@ -2,7 +2,7 @@
 wp_id: WP-07
 title: A store under Dropbox is marked ignored for the Dropbox client
 scope: S
-status: Not Started
+status: Done
 ---
 
 # WP-07: A store under Dropbox is marked ignored for the Dropbox client
