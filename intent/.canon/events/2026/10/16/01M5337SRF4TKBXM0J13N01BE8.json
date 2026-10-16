@@ -1,0 +1,15 @@
+{
+  "id": "01M5337SRF4TKBXM0J13N01BE8",
+  "ts": "2026-10-16T19:32:49.039Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-10-16, vc under hv's pen granted 2026-08-22, answering cc's WP-04 and WP-06 shapes; vc's clock 19:30Z) SIX RULINGS ON ST0083's DOCTOR AND DEINIT, each measured at 9382bf1f9 before ruling. WP-04 (a) AC-04.1's REMEDY IS REWORDED BEFORE CODE: `intent agents layout` clears a doubled contract only when both copies hold the same bytes (canon::relayout refuses other bytes), so the AC's remedy misdirected; the finding names both paths and which one the `contracts` key reads, the remedy is removal of the stray (`git rm` tracked, `rm` untracked) and `intent agents layout <other>` only when the other layout is meant; relayout is unchanged, since a verb named layout must not delete bytes it did not write. (b) \"A CONTRACT EXISTS IN BOTH LAYOUTS\" COUNTS ONLY A COPY INTENT GENERATED, answered by canon's one predicate per file (the CLAUDE.md marker, the AGENTS.md footer), because Claude Code reads .claude/CLAUDE.md natively and a root-layout project may own one. (c) AC-04.3 IS SHOWN AND NOT COUNTED (the RootFileBehind tier): every v2 estate whose config reads \"Author Unknown\" would otherwise have every commit refused the day it upgrades; the AC says \"reports\", so no edit; the remedy names the field and the file. WP-06 (a) `intent deinit` DOES SURGERY ON .claude/settings.json AND .mcp.json rather than removing or keeping them whole: Intent's hook entries and WP-05's two deny rules go, the owner's keys stay, the file goes when nothing remains, an unparseable file is kept and named, the edit is named in both modes; a deinit that left `intent claude hook` wired would make the prompt gate refuse every prompt in a project that no longer has Intent. MEASURED BESIDE IT, an issue cc files after WP-06 banks: canon.rs:884 writes the template whole over any marker-carrying settings.json at every `claude upgrade --apply`, so the owner's keys in such a file survive only until the next upgrade. (b) usage-rules.md IS REMOVED WHEN BYTE-IDENTICAL TO ITS SEED, relayout's own test; AC-06.1 gains it. (c) `--all` ALSO REMOVES THE PROJECT'S ROW FROM projects.json, reversing cc's recommendation: the registry is Intent's own file, the row is provably Intent's, and `projects::resolve` would list the dead root in every `--project` refusal for ever; a remover is added beside `with_roots`. Both AC edits land before code, named in the bank messages."
+  }
+}
