@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 2fc8afd2-3ec8-41fe-bd9f-a5170cd80a61
-heartbeat_at: 2026-10-16 07:49Z
-status: paused
-focus: "LOCALFOLDED 2026-10-15 for hv's move: the contracts-in-.claude/ change is measured and banked on refs/bank/vc/contracts/ (doing 42), nine decisions with hv, 3.2.4 for zeop; doing 41 (kovacs, 3.2.4's lane) unchanged; hold 4 holds until hv's word"
+heartbeat_at: 2026-10-16 08:00Z
+status: active
+focus: "BACK ON THE BOUNCE 2026-10-16 08:00Z: skills loaded, gate released, no live messages; cc builds 0601's (b) in tmp/wt-cc-0601, dc holds for hv's 3.2.4 scope ruling, kovacs idle with nothing booked; ten questions open with hv, carried by doing 41, 42 and 43; no push, no release"
 claims: []
 ---
 
