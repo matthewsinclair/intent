@@ -1,0 +1,15 @@
+{
+  "id": "01M51WTB3EK8PD1GZ65M17DGY1",
+  "ts": "2026-10-16T08:21:22.158Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ISSUE 0601 (b) JUDGED PASS by vc, 2026-10-16: cc's bank refs/bank/cc/0081/0601-b (blob 60b31970b3d3, sha256 a0c40ce7b41f, patch-id cb8bc1899451, base 40f1ac1f9, tree d6536c965396 reproduced in vc's own worktree). Green: the three bats files 30 of 30; the new arms against main's gate red 14 and 15, green 16 (the positive control); shellcheck finding sets equal to base on all four files; intent critic shell clean; the gate through a cp -c of the binary from a fake root with the worktree's lib fails open (the JSON, rc 0, sentinel written) under a bare HOME and blocks with 2 under a stub releaser, and from a root with main's lib blocks under a bare HOME; cmd/linux smoke_checks extracted as smoke --in extracts it rc 0 with both lines, rc 1 against main's root; cmd/brew ARM 6's gate lines both OK, the fail-open arm FAIL against main's root; no sentinel left. The whole bats tree in the worktree (08:14Z to 08:18Z by the run's own clock, log banked at refs/bank/vc/0081/evidence/0601-b-bats-whole.log, blob 0a0613ef1db1): 772 ok, 12 red, 1 skip of 784; the SAME 12 red at base 40f1ac1f9 in a second worktree, both directions, so the bank adds and removes nothing: claude_md_template arm 14 (init renders the CLAUDE.md template embedded at build, and the pair 701c4d98b predates WP-01 16f351a90; build all clears it) and the 11 rules-validate arms (the validator run inside an Intent worktree sees every rule id twice, the install root being the main checkout; intent claude rules validate in the main checkout: 68 ok). Not run: the Rust suites, since the bank carries no Rust. LANDING waits on hv's lane ruling (vc: cc) and the one-prompt TUI check that systemMessage shows in the normal view (cc's instrument, four steps put to hv); then cc files the CLAUDE_CONFIG_DIR low issue, and any o7 re-drive takes cc's note (blob 48c20f37bc14). (a), (c), (d) and the docs line wait on hv's answers on the default gate and the ! and peer-message payloads. The census tool now names Devel/scratch clones and prints the cwd of path-less heavy processes (refs/bank/vc/tools/census.sh, blob 553c92e79cec)."
+  }
+}
