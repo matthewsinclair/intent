@@ -2,7 +2,7 @@
 wp_id: WP-08
 title: Docs, reference and CHANGELOG for the two layouts, the import and deinit
 scope: S
-status: Not Started
+status: Done
 ---
 
 # WP-08: Docs, reference and CHANGELOG for the two layouts, the import and deinit

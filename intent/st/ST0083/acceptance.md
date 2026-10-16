@@ -47,9 +47,9 @@ title: Agent contracts at the root or in .claude/, chosen per project, and CLAUD
 
 - AC-07.1 (non-test) When the project root is under a Dropbox folder, `intent init` and the first store open mark `intent/.cache` ignored for the Dropbox client present (the File Provider and legacy attributes on macOS, `com.dropbox.ignored` on Linux) and say so once; `intent doctor` reports an unmarked `intent/.cache` under Dropbox as an advisory with the command that marks it. -- evidence: ST0083 WP-07 landed at 8b956d818 on vc's PASS, patch-id a044cab88691 from refs/bank/cc/0083/wp07 (blob d9c7d4fb7610) on base 9382bf1f9; evidence refs/bank/cc/0083/evidence/wp07-*: init under a fixture Dropbox folder reached through a symlink marks intent/.cache and says so once, a fresh clone's first open marks it and says so once on stderr, doctor reports an unmarked cache with the command and leaves the counted verdict and exit alone, nothing is said outside Dropbox (intent-cli a_store_under_dropbox_is_marked_ignored 5/5, intentsvcs dropbox_cache_mark 6/6, dropbox unit 3/3; workspace and bats 789/789 green); a real Dropbox folder is not driven here, the book's recreate under the pair carrying this is the live proof -- satisfied: yes
 
-### WP-08 -- Docs, reference and CHANGELOG for the two layouts, the import and deinit (status: Not Started)
+### WP-08 -- Docs, reference and CHANGELOG for the two layouts, the import and deinit (status: Done)
 
-- AC-08.1 (non-test) The docs describe the two layouts, the key, the import and `deinit` where the contracts are described today (`intent/docs/working-with-llms.md`, `docs/working-with-agents.md`, `docs/getting-started.md`, `docs/migrating-from-v2.md`); the two skills that state the root layout as fact are corrected (`in-essentials/SKILL.md` rule 2 and `in-standards/SKILL.md` step 1); the reference regenerates for the new verbs and flags; and `CHANGELOG.md` carries the lines under `## [3.2.4] - in progress`. -- satisfied: no
+- AC-08.1 (non-test) The docs describe the two layouts, the key, the import and `deinit` where the contracts are described today (`intent/docs/working-with-llms.md`, `docs/working-with-agents.md`, `docs/getting-started.md`, `docs/migrating-from-v2.md`); the two skills that state the root layout as fact are corrected (`in-essentials/SKILL.md` rule 2 and `in-standards/SKILL.md` step 1); the reference regenerates for the new verbs and flags; and `CHANGELOG.md` carries the lines under `## [3.2.4] - in progress`. -- evidence: landed at 3a36026d4 (refs/bank/cc/0083/wp08, patch-id abecbe65860a, vc's PASS; evidence at refs/bank/cc/0083/evidence/wp08-*): working-with-llms.md, working-with-agents.md, getting-started.md and migrating-from-v2.md describe the two layouts, the contracts key, the @AGENTS.md import and deinit; in-essentials rule 2 and in-standards step 1 corrected; CHANGELOG 3.2.4 carries the lines; the reference regeneration for the new verbs and flags is dc's half, landing after this from tmp/wt-dc-kd324 against the final HEAD -- satisfied: yes
 
 ## Acceptance Tests
 
@@ -84,7 +84,7 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-08 -- Docs, reference and CHANGELOG for the two layouts, the import and deinit (status: Not Started)
+### WP-08 -- Docs, reference and CHANGELOG for the two layouts, the import and deinit (status: Done)
 
 _(no tests in this group)_
 

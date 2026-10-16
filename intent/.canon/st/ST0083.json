@@ -77,7 +77,7 @@
       "seq": 8,
       "title": "Docs, reference and CHANGELOG for the two layouts, the import and deinit",
       "scope": "S",
-      "status": "not-started",
+      "status": "done",
       "objective": "The docs, the two skills that state the root layout as fact, the generated reference and the 3.2.4 CHANGELOG describe the two layouts, the key, the import and `deinit`; built last, on the tree after dc's 3.2.4 train has landed.",
       "body": "",
       "preamble": ""
@@ -206,7 +206,8 @@
       "text": "The docs describe the two layouts, the key, the import and `deinit` where the contracts are described today (`intent/docs/working-with-llms.md`, `docs/working-with-agents.md`, `docs/getting-started.md`, `docs/migrating-from-v2.md`); the two skills that state the root layout as fact are corrected (`in-essentials/SKILL.md` rule 2 and `in-standards/SKILL.md` step 1); the reference regenerates for the new verbs and flags; and `CHANGELOG.md` carries the lines under `## [3.2.4] - in progress`.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "landed at 3a36026d4 (refs/bank/cc/0083/wp08, patch-id abecbe65860a, vc's PASS; evidence at refs/bank/cc/0083/evidence/wp08-*): working-with-llms.md, working-with-agents.md, getting-started.md and migrating-from-v2.md describe the two layouts, the contracts key, the @AGENTS.md import and deinit; in-essentials rule 2 and in-standards step 1 corrected; CHANGELOG 3.2.4 carries the lines; the reference regeneration for the new verbs and flags is dc's half, landing after this from tmp/wt-dc-kd324 against the final HEAD"
       }
     }
   ],

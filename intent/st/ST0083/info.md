@@ -56,16 +56,16 @@ hv's word, first-hand: the book is not upgraded from v2.14; its Intent content i
 
 ## Work Packages
 
-| WP    | Title                                                                                                                   | Size | Status      |
-| ----- | ----------------------------------------------------------------------------------------------------------------------- | ---- | ----------- |
-| WP-01 | CLAUDE.md imports AGENTS.md: the @AGENTS.md line in _CLAUDE.md                                                          | XS   | Done        |
-| WP-02 | The contracts key and contracts_dir: every writer, reader, the sync scope and the daemon watch derive the place from it | M    | Done        |
-| WP-03 | The doors: init --contracts and intent agents layout                                                                    | S    | Done        |
-| WP-04 | doctor: both layouts present, a held settings file with a dead hook command, an empty or placeholder author             | S    | Done        |
-| WP-05 | The templated settings deny editing the generated AGENTS.md in either layout                                            | XS   | Done        |
-| WP-06 | intent deinit: strip what Intent wrote from a project being closed                                                      | S    | Done        |
-| WP-07 | A store under Dropbox is marked ignored for the Dropbox client                                                          | S    | Done        |
-| WP-08 | Docs, reference and CHANGELOG for the two layouts, the import and deinit                                                | S    | Not Started |
+| WP    | Title                                                                                                                   | Size | Status |
+| ----- | ----------------------------------------------------------------------------------------------------------------------- | ---- | ------ |
+| WP-01 | CLAUDE.md imports AGENTS.md: the @AGENTS.md line in _CLAUDE.md                                                          | XS   | Done   |
+| WP-02 | The contracts key and contracts_dir: every writer, reader, the sync scope and the daemon watch derive the place from it | M    | Done   |
+| WP-03 | The doors: init --contracts and intent agents layout                                                                    | S    | Done   |
+| WP-04 | doctor: both layouts present, a held settings file with a dead hook command, an empty or placeholder author             | S    | Done   |
+| WP-05 | The templated settings deny editing the generated AGENTS.md in either layout                                            | XS   | Done   |
+| WP-06 | intent deinit: strip what Intent wrote from a project being closed                                                      | S    | Done   |
+| WP-07 | A store under Dropbox is marked ignored for the Dropbox client                                                          | S    | Done   |
+| WP-08 | Docs, reference and CHANGELOG for the two layouts, the import and deinit                                                | S    | Done   |
 
 ## Acceptance
 

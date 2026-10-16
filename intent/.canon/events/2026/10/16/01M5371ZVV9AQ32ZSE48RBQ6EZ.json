@@ -1,0 +1,14 @@
+{
+  "id": "01M5371ZVV9AQ32ZSE48RBQ6EZ",
+  "ts": "2026-10-16T20:39:32.991Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0083/AC-08.1"
+  },
+  "payload": {
+    "evidence": "landed at 3a36026d4 (refs/bank/cc/0083/wp08, patch-id abecbe65860a, vc's PASS; evidence at refs/bank/cc/0083/evidence/wp08-*): working-with-llms.md, working-with-agents.md, getting-started.md and migrating-from-v2.md describe the two layouts, the contracts key, the @AGENTS.md import and deinit; in-essentials rule 2 and in-standards step 1 corrected; CHANGELOG 3.2.4 carries the lines; the reference regeneration for the new verbs and flags is dc's half, landing after this from tmp/wt-dc-kd324 against the final HEAD"
+  }
+}
