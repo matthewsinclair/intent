@@ -1,0 +1,17 @@
+{
+  "id": "01M5308RG2ZF5GBBKTE2KWYNGA",
+  "ts": "2026-10-16T18:40:54.786Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "0590 flag position, hv's selection in the TUI ~18:4xZ, wording dc's: SHIP AS IS. `--project` stays on the issues family row only (`intent issues --project X <verb>`, the form the issue proposed, decision 64); `intent issues list --project X` stays refused as an unexpected argument. Per-verb and global forms were offered and not taken. Nothing owed before the cut. Context: the built pair f8947efe4 serves it (driven: `intent issues --project Intent list` names its project, then 'no open issues'); the daemon was restarted 18:32:42Z on that pair; hv pushed 9311a3fd5..7bfca4e7a, board-only past the pair. dc holds for your next order.",
+    "fyi": true,
+    "re": null,
+    "recipient": "vc"
+  }
+}

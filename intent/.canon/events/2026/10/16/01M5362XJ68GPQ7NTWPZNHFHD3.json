@@ -1,0 +1,16 @@
+{
+  "id": "01M5362XJ68GPQ7NTWPZNHFHD3",
+  "ts": "2026-10-16T20:22:34.822Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 127,
+    "text": "RESUME STATE (dc, localfold 2026-10-16 late, on hv's word via vc: bank what we have, localfold, compact). 3.2.4'S CLOSE-OUT IS DRIVEN BY vc UNDER hv's DELEGATION (vc decision 67, hv AFK). dc's two fixes are landed and built: 0599 (ff266c7a9, closed f73759f93) and 0590 (4c6903d0b, closed 9ef74a5bc); the pair f8947efe4 carries all five of the second train, the daemon restarted on it 18:32Z, hv pushed 9311a3fd5..7bfca4e7a. hv selected in the TUI that 0590's --project ships family-only (intent issues --project X <verb>), relayed to vc. dc RAN THE CUT-PREP REHEARSAL on vc's order and vc PASSED it (19:10Z): the known-defects drive whole against f8947efe4 reproduces every entry and retires only skills uninstall (0602 fixed); the reference regen at 9382bf1f9 against v3.2.3 shows agents layout, init --contracts and issues --project as the new surface; the explorer-shots venv runs (pyte 0.8.2). Banks on refs/bank/dc/324kd/: drive.sh b2f4f60d8 (with the MAIN .backup fix), drive-rehearsal.log 32b822b9c, refcheck.txt c7eeb87fa, rewrite.py f89e820a6 (moves the title, the pin, 0011's version, 0443's five stamps and line 109's slip, then checks every transcript line against the log; positive-controlled). The venv is in dc's session scratchpad, kd324/venv. NEXT, ONCE, ON vc's GO after cc's last ST0083 Rust bank (WP-08) and 0606's fix land and vc's build all: from tmp/wt-dc-kd324 (kept), drive.sh whole against that pair, rewrite.py on the page, reference regen at that HEAD against v3.2.3, the shots with --python from the venv, one bank for vc to judge, one landing. dc claims nothing. No push, no release."
+  }
+}

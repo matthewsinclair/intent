@@ -1,0 +1,16 @@
+{
+  "id": "01M5362YMVAP06FWESPJN8ETJC",
+  "ts": "2026-10-16T20:22:35.931Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 31,
+    "text": "**THE KNOWN-DEFECTS RE-DRIVE IS HELD UNTIL THE 3.2.4 CUT'S FINAL PRE-CUT build all PAIR EXISTS AND vc SAYS GO.** It runs refs/bank/dc/324kd/drive.sh (b2f4f60d8) whole on that pair, diffs it against the rehearsal log refs/bank/dc/324kd/drive-rehearsal.log (32b822b9c) and 3.2.3's (refs/bank/dc/323/drive-3.2.3.log e469fa33b), then rewrites the page with refs/bank/dc/324kd/rewrite.py (f89e820a6). Rehearsed 2026-10-16 against f8947efe4 and PASSED by vc. (Re-scoped 2026-10-16: the scope half of this hold was met by hv's ruling, vc decision 63.)"
+  }
+}
