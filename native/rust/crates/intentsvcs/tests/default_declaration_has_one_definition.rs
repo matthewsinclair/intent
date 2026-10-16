@@ -335,9 +335,18 @@ fn upgrade_over_a_present_manifest_changes_not_one_byte() {
 /// presence is unambiguous evidence that THIS run rendered a v3 view for that
 /// thread; asking whether `info.md` exists could not tell a view the migration
 /// wrote from the v2 file that was always there.
+///
+/// **AN UNDECLARED THREAD'S v2 VIEW GOES, AND ITS ATTACHMENT STAYS** (issue
+/// 0597). Nothing renders over the v2 `info.md` of a thread the migration does
+/// not declare, so the prune removes it as a v2 leftover once canon holds the
+/// thread; the attachment beside it carries the same v2 stamp and is kept byte
+/// for byte, because the prune takes generated views and never the directory.
 #[test]
 fn the_migration_realises_only_what_it_declares() {
   let converted = v2_corpus();
+  let v2_stamped = converted.read("intent/st/ST0003/info.md");
+  converted.write_file("intent/st/ST0003/design.md", &v2_stamped);
+  converted.git_commit_all();
   let before = crate::common::tree(converted.root());
 
   Facade::upgrade(&converted.project(), &facade_ctx()).expect("a clean v2 estate converts");
@@ -367,15 +376,17 @@ fn the_migration_realises_only_what_it_declares() {
       !after.contains_key(&format!("intent/st/{id}/acceptance.md")),
       "{id} is NOT declared and the migration realised it anyway"
     );
-    // **AND IT WAS NOT REMOVED EITHER.** Both halves matter: a migration that
-    // deleted the undeclared threads would satisfy the line above and break
-    // AC-11.4, which is the criterion that says every pre-existing file is
-    // still there byte for byte.
     let rel = format!("intent/st/{id}/info.md");
-    assert_eq!(
-      before.get(&rel),
-      after.get(&rel),
-      "{id} is undeclared, so the migration must neither refresh nor remove {rel}"
+    assert!(
+      before.contains_key(&rel) && !after.contains_key(&rel),
+      "{id} is undeclared, so its v2 {rel} is a leftover nothing renders over, and the \
+       prune removes it"
     );
   }
+  let attachment = "intent/st/ST0003/design.md";
+  assert_eq!(
+    after.get(attachment),
+    before.get(attachment),
+    "the attachment beside an undeclared thread's v2 view is kept byte for byte"
+  );
 }

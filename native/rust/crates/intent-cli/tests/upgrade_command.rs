@@ -732,3 +732,39 @@ fn a_first_conversion_examines_the_views_of_undeclared_threads() {
     "the first conversion skipped the dehydration of undeclared views: {out}{err}"
   );
 }
+
+/// Issue 0597. **An On Hold thread, which v2 keeps at the flat path, converts
+/// to an estate doctor passes, and the next upgrade refuses nothing.**
+///
+/// v2 has no hold bucket and the conversion leaves the thread undeclared, so
+/// its v2 `info.md` stayed at its v3 view path: doctor exited 1 with view-skew
+/// on the fresh estate and the second upgrade printed a refusal to dehydrate it
+/// before its `ok:`. Red at the base on all three counts.
+#[test]
+fn a_flat_on_hold_thread_converts_to_an_estate_doctor_passes() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  v2_project(dir.path(), "2.19.0");
+  v2_thread(dir.path(), "ST0001", "WIP");
+  v2_thread(dir.path(), "ST0002", "On Hold");
+  git_ready(dir.path());
+
+  let (_, err, code) = run(&["upgrade"], dir.path());
+  assert_eq!(code, 0, "a clean v2 estate migrates: {err}");
+  assert!(
+    !dir.path().join("intent/st/ST0002/info.md").exists(),
+    "the held thread's v2 info.md survived the conversion: {err}"
+  );
+
+  let (out, err, code) = run(&["doctor"], dir.path());
+  assert_eq!(
+    code, 0,
+    "doctor fails the freshly converted estate: {out}{err}"
+  );
+
+  let (out, err, code) = run(&["upgrade"], dir.path());
+  assert_eq!(code, 0, "second run: {err}");
+  assert!(
+    !format!("{out}{err}").contains("refusing to dehydrate"),
+    "the second upgrade refuses the held thread's view: {out}{err}"
+  );
+}

@@ -209,6 +209,69 @@ fn a_tool_tree_beside_the_threads_is_neither_candidate_nor_pruned() {
   );
 }
 
+/// A v2 view the way v2.19 writes one, stamped with v2's version.
+const V2_COVER: &str = "---\nverblock: \"14 Aug 2026:v0.1: cc - x\"\nintent_version: 2.19.0\nstatus: On Hold\n---\n\n# ST0002: A thread\n";
+
+/// Issue 0597, the widening hv ruled into 3.2.4. **A flat thread's v2 views are
+/// removable once canon holds the thread, and nothing else beside them is.**
+///
+/// v2 has no hold bucket, so an On Hold thread is at the flat path, its cover
+/// is a v2 document, and the conversion leaves it undeclared, so nothing
+/// renders over it. The attachment beside it carries the same v2 stamp and
+/// stays: the widening is the generated views, not the directory.
+#[test]
+fn a_flat_threads_v2_views_are_removable_and_its_attachments_are_not() {
+  let fx = Fixture::new();
+  fx.write_file("intent/st/ST0002/info.md", V2_COVER);
+  fx.write_file("intent/st/ST0002/WP/01/info.md", V2_COVER);
+  fx.write_file("intent/st/ST0002/design.md", V2_COVER);
+  let canon = canon_with(Vec::new());
+
+  let found = legacy::leftovers(&fx.project(), &canon);
+  assert!(
+    !found.refuses(),
+    "nothing is withheld: {:?}",
+    found.withheld
+  );
+  let names: Vec<String> = found
+    .removable
+    .iter()
+    .map(|p| fx.project().relative(p))
+    .collect();
+  assert_eq!(
+    names,
+    vec!["intent/st/ST0002/WP/01/info.md", "intent/st/ST0002/info.md"],
+    "the cover and the work package's view, and never the attachment"
+  );
+}
+
+/// Issue 0597's controls. **A v3 view is never a v2 leftover, edited or not,
+/// and a flat thread canon does not hold keeps every file** -- neither removable
+/// nor withheld, because a withheld file would freeze the prune for the whole
+/// estate over a directory the conversion never claimed.
+#[test]
+fn a_flat_v3_view_and_a_thread_outside_canon_are_not_in_the_population() {
+  let fx = Fixture::new();
+  fx.write_file(
+    "intent/st/ST0002/info.md",
+    "---\nst_id: ST0002\ntitle: A thread\nstatus: On Hold\n---\n\n# ST0002: edited by hand\n",
+  );
+  fx.write_file("intent/st/ST0003/info.md", V2_COVER);
+  let canon = canon_with(Vec::new());
+
+  let found = legacy::leftovers(&fx.project(), &canon);
+  let touched: Vec<String> = found
+    .removable
+    .iter()
+    .chain(found.withheld.iter().map(|w| &w.path))
+    .map(|p| fx.project().relative(p))
+    .collect();
+  assert!(
+    touched.is_empty(),
+    "neither file is in the population: {touched:?}"
+  );
+}
+
 /// AC-02.4. **Reported, and the file is not touched.**
 #[test]
 fn an_authored_file_naming_a_bucket_path_is_reported_and_left_alone() {

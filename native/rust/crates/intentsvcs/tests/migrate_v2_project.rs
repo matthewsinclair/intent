@@ -126,17 +126,25 @@ fn a_clean_estate_emits_structured_canon_for_every_thread() {
 /// from the thread's own model, and the project-level index is assembled from
 /// the whole population. `migrator_population_is_canon.rs` already proves the
 /// index names the RIGHT population; this proves it is written at all.
+///
+/// **A VIEW IS REGENERATED FOR THE DECLARED THREAD ALONE** (issue 0597). The
+/// Completed ST0002 is undeclared, so nothing renders a view for it, and its v2
+/// cover is a leftover the prune removes; the index still names it, because the
+/// index is assembled from canon rather than from the tree.
 #[test]
 fn a_clean_estate_regenerates_its_views() {
   let fx = converted();
   let project = fx.project();
-  for id in ["ST0001", "ST0002"] {
-    assert!(
-      project.info_view(id).exists(),
-      "no regenerated view for {id} -- {}",
-      project.relative(&project.info_view(id))
-    );
-  }
+  assert!(
+    project.info_view("ST0001").exists(),
+    "no regenerated view for the declared ST0001 -- {}",
+    project.relative(&project.info_view("ST0001"))
+  );
+  assert!(
+    !project.info_view("ST0002").exists(),
+    "the undeclared ST0002's v2 cover survived the migration -- {}",
+    project.relative(&project.info_view("ST0002"))
+  );
   let index = project.steel_threads_view();
   assert!(
     index.exists(),

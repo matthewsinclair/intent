@@ -3660,6 +3660,18 @@ pub const V2_TREEINDEX: &str = ".treeindex";
 /// it is today and is not a prune candidate at all. A predicate that asked
 /// "does this look like leftover tooling" would be a second, guessing, spelling
 /// of a question the layout already answers.
+///
+/// **ONE WIDENING, RULED INTO 3.2.4 BY hv (issue 0597): A FLAT THREAD'S v2
+/// VIEW.** v2 has no hold bucket, so an On Hold thread sits at the flat path,
+/// and so does a closed thread v2 never moved. The conversion leaves it
+/// undeclared, so nothing renders over its v2 `info.md`, and the bucket rooting
+/// above never reached it: doctor exited 1 on the fresh estate and the next
+/// upgrade refused to dehydrate it. **The widening is the GENERATED VIEWS alone,
+/// and only while they are still v2 documents** -- a cover or a work package's
+/// `info.md` whose frontmatter declares a 2.x `intent_version`, of a thread
+/// canon holds. Every other file under a flat thread is an attachment
+/// candidate as before, so the tool tree above stays outside the population,
+/// and a v3 view, edited or not, is never a v2 leftover.
 pub fn leftovers(project: &Project, canon: &Canon) -> Leftovers {
   let mut out = Leftovers::default();
   let st_root = project.st_dir();
@@ -3671,6 +3683,18 @@ pub fn leftovers(project: &Project, canon: &Canon) -> Leftovers {
       match bucket_verdict(canon, &rel, &path) {
         Holding::Held => out.removable.push(path),
         Holding::NotHeld(reason) => out.withheld.push(Withheld { path, reason }),
+      }
+    }
+  }
+
+  let flat = thread_dirs(project).into_iter().filter(|(id, dir)| {
+    dir.parent() == Some(st_root.as_path()) && canon.threads.iter().any(|t| &t.id == id)
+  });
+  for (_, dir) in flat {
+    for rel in Project::files_in(&dir) {
+      let path = dir.join(&rel);
+      if Project::classify(&rel) == ThreadFile::GeneratedView && is_v2_document(&path) {
+        out.removable.push(path);
       }
     }
   }
@@ -3701,6 +3725,21 @@ pub fn leftovers(project: &Project, canon: &Canon) -> Leftovers {
   out.removable.sort();
   out.withheld.sort_by(|a, b| a.path.cmp(&b.path));
   out
+}
+
+/// Whether a file is a v2 document: its frontmatter declares a 2.x
+/// `intent_version`, which v2 stamps on every view it writes and v3 never does.
+///
+/// A file that cannot be read is not one, so it stays where it is: the prune's
+/// error is in the direction that keeps bytes, and the skew check still names
+/// the file.
+fn is_v2_document(path: &Path) -> bool {
+  std::fs::read_to_string(path).is_ok_and(|text| {
+    frontmatter(&text)
+      .0
+      .get("intent_version")
+      .is_some_and(|v| v.trim_matches('"').starts_with("2."))
+  })
 }
 
 /// Whether the store holds one bucket file's content.
