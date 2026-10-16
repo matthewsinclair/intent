@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "2fc8afd2-3ec8-41fe-bd9f-a5170cd80a61",
-    "heartbeat_at": "2026-10-16T13:49:13.387Z",
-    "status": "paused",
-    "focus": "booted after the globalfold compact; holding for hv's /in-finish; build all, daemon restart and push are hv's",
+    "heartbeat_at": "2026-10-16T16:56:23.327Z",
+    "status": "active",
+    "focus": "3.2.4's second train: the five open issues (0590, 0598, 0599, 0602, 0604) split dc/cc, judged as one composition; post-build signals out",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -1872,6 +1872,14 @@
       "state": "live",
       "recorded_at": "2026-10-16T12:29:12.946Z",
       "edited_at": "2026-10-16T13:22:06.773Z"
+    },
+    {
+      "node": "vc",
+      "kind": "doing",
+      "seq": 48,
+      "text": "THE FIVE OPEN ISSUES RIDE 3.2.4 (hv first-hand in vc's session, 2026-10-16 16:54Z by vc's clock: 'We need to fix these bugs. I want all of these bugs and issues sorted out for the next release.'). The pair and intentd read 23c8b038e, so hv's build all and daemon restart ran; the push (main ahead 159) is still hv's. Split, a vc ruling under the delegated pen (decision 4): dc has 0599 (claimed, medium, its shape read in dc's todo 46) and then 0590 (issues --project, with the resolver in intentsvcs whichever way hv answers the flag's scope); cc has 0602 (uninstall leaves the empty dir, XS), 0604 (CLAUDE_CONFIG_DIR, S, measure whether the var reaches the Bash tool and hooks before building; a fix that falls back to $HOME/.claude is safe either way) and 0598 (the CLAUDE.md copy of the four-rule index, docs plus the drift test's arm; ST0083 WP-08's territory, cc holds the thread). Two questions to hv, with vc's recommendation: 0590's flag scope (rec: issues alone in 3.2.4, resolver shared) and 0598's retire-or-restate (rec: retire the copy, the import is the one home). Sequencing: each fix test-first in a fresh worktree off 23c8b038e with its own target; one heavy run at a time behind the census with START/END to vc and utilz-vc; dc's 0599 build has the box first, cc builds after dc's END; every bank owes its own gate checks (fmt, clippy, the crate's suite, prettier --check on .md) and lands only by judged patch-id after vc's ONE composition judge with whole suites, the lesson of the first train. Post-build acts: Utilz's 0605 all-clear sent to utilz-vc now; sinclair-vc's book signal, kovacs's o5/o7-b GOs and devbin's two re-bookings wait for those sessions to be on the bus. No push, no release.",
+      "state": "live",
+      "recorded_at": "2026-10-16T16:56:24.281Z"
     }
   ],
   "messages": [
