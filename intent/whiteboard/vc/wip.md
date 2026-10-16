@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 2fc8afd2-3ec8-41fe-bd9f-a5170cd80a61
-heartbeat_at: 2026-10-16 18:23Z
+heartbeat_at: 2026-10-16 18:28Z
 status: active
-focus: "localfolded 2026-10-16 ~18:25Z for hv's compact; the second train is landed and verified, unbuilt; hv's build all, daemon restart and push next; not released"
+focus: "resumed after the compact 2026-10-16 ~18:29Z; doing 50 is the state; holding for hv's build all booking"
 claims: []
 ---
 
