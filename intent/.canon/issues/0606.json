@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 606,
+  "slug": "claude-upgrade-apply-overwrites-the-owner-s-keys",
+  "title": "claude upgrade --apply overwrites the owner's keys in a marker-carrying .claude/settings.json",
+  "status": "open",
+  "severity": "high",
+  "created": "2026-10-16",
+  "reporter": "Matthew Sinclair",
+  "body": "## What happens\n\n`intent claude upgrade --apply` writes Intent's `.claude/settings.json` template whole over any settings file that carries Intent's hook door (`intent claude hook`). In `intentsvcs::canon::apply`, a file with the marker is \"ours\", and the template's bytes replace it, so every key the owner added beside Intent's hooks is lost: permissions of their own, a model pin, hooks of their own. Nothing reports the loss; the file is listed as written.\n\n## Where it bites\n\nThe fleet's settings files carry exactly that shape: Intent's hooks beside the owner's own permissions and hooks, which ST0083's audit of a shared estate measured. The owner's keys survive only until the next `claude upgrade --apply`, which the fleet sweep after the 3.2.4 cut runs in every project.\n\n## The fix (vc's ruling, 2026-10-16, into 3.2.4 under hv's \"if a fix needs fixing, fix it\" and decision 33(1))\n\nThe inverse of `intent deinit`'s settings surgery, reusing it: on a marker-carrying file, strip Intent's entries with `deinit::strip_settings`, merge the template's hook entries and deny rules back in, keep every other key, and write 2-space JSON only when the result differs. An unparseable file is held and named, as a marker-less one is. A file byte-identical to the template stays byte-identical.\n\nRaised by cc on vc's measurement, beside ST0083 WP-06.\n"
+}

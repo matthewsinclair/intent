@@ -1,0 +1,15 @@
+{
+  "id": "01M535NAD9STT75EXSQ8RSPQXF",
+  "ts": "2026-10-16T20:15:09.229Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0606"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "claude upgrade --apply overwrites the owner's keys in a marker-carrying .claude/settings.json"
+  }
+}
