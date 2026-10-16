@@ -42,7 +42,7 @@ title: Intent from Homebrew on Linux and macOS, with no source checkout: Linux b
 
 ### WP-07 -- Intent on Ubuntu from its Linux package, as a user uses it (status: WIP)
 
-- AC-07.1 (non-test) On Ubuntu with uutils coreutils and mawk, Intent installed from its Linux package with no checkout of Intent's source reports its version, bootstraps, initialises a project in which `intent doctor` reports no finding, creates and lists a thread, starts and stops the daemon, and fires its hooks in a Claude Code session. -- satisfied: no
+- AC-07.1 (non-test) On Ubuntu with uutils coreutils and mawk, Intent installed from its Linux package with no checkout of Intent's source reports its version, bootstraps, initialises a project in which `intent doctor` reports no finding, creates and lists a thread, starts and stops the daemon, and fires its hooks in a Claude Code session. -- evidence: hv's word, recorded by vc as decision 63 (2026-10-16 10:15:37Z by vc's clock) and relayed to cc as lane owner: satisfied on the evidence in this criterion's note at cbc3aa079 -- o7-b green on kovacs, and hv's real Claude Code session on kovacs where the UserPromptSubmit gate blocked and released and Stop fired; SessionStart stays unconfirmed on screen, as that note records; observed with issue 0601 attached, whose fix lane is cc's by the same decision -- satisfied: yes
 
 ## Acceptance Tests
 
