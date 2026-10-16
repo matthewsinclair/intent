@@ -1920,6 +1920,14 @@
       "state": "live",
       "recorded_at": "2026-10-16T18:21:27.911Z",
       "edited_at": "2026-10-16T18:36:58.707Z"
+    },
+    {
+      "node": "vc",
+      "kind": "doing",
+      "seq": 51,
+      "text": "3.2.4'S CLOSE-OUT, on hv's \"go\" at 19:0xZ 2026-10-16 (vc's clock 19:06:31Z), after hv's build all (pair at f8947efe4, 18:27:42Z), vc's daemon restart (18:32:04Z) and hv's push (upstream and local at 7bfca4e7a). WHAT STANDS BEFORE THE TAG: ST0083's second half (gate 7 of 14; WP-04 doctor, WP-06 deinit, WP-07 the Dropbox mark, WP-08 docs; decision 62 rules all of ST0083 into 3.2.4 and 62(8) is why the key cannot ship without the mark), then the prep pass of intent/docs/releasing.md step 2 once at the final HEAD (reference regen against v3.2.3, the known-defects re-drive whole against the pair built from that HEAD, the explorer screenshots, the CHANGELOG audit: 20 issues closed since 2026-09-26, 16 cited in the section, release notes), then hv's cut in hv's terminal (daemon stop, build release v3.2.4, prepare, publish, smoke, every other session held). ST0081 closes through the tag, not before it (AC-01.1, 01.2, 02.1, 03.3, 06.1 are the Linux assets and the post-cut install runs). ORDERS 19:06Z: cc WP-07 now on the accepted shape (intentsvcs::dropbox, MODULES.md row first, xattr crate, both macOS attributes and user.com.dropbox.ignored, marked before the store file exists, test on the resolved path, one printed line, doctor advisory uncounted), bank refs/bank/cc/0083/wp07 with evidence, then WP-04 and WP-06 shapes to vc before code, WP-08 last; dc rehearses the known-defects re-drive against f8947efe4, the reference regen check at HEAD against v3.2.3 into scratch, and the screenshot generator's venv, nothing landing; vc audits the CHANGELOG. Heavy runs book with vc, START and END, one at a time; Utilz's WP-05 compiles are a fresh booking. kovacs is folded (hv moving); o7-b then o5 on a fresh GO next kovacs session; sinclair-vc and devbin-vc off the bus. NO PUSH, NO RELEASE, never --no-confirm, never intent fc.",
+      "state": "live",
+      "recorded_at": "2026-10-16T19:07:32.728Z"
     }
   ],
   "messages": [
@@ -2941,6 +2949,14 @@
       "state": "handled",
       "handled_at": "2026-09-23T08:51:12.785Z",
       "recorded_at": "2026-09-23T08:04:36.233Z"
+    },
+    {
+      "sender": "dc",
+      "recipient": "vc",
+      "body": "0590 flag position, hv's selection in the TUI ~18:4xZ, wording dc's: SHIP AS IS. `--project` stays on the issues family row only (`intent issues --project X <verb>`, the form the issue proposed, decision 64); `intent issues list --project X` stays refused as an unexpected argument. Per-verb and global forms were offered and not taken. Nothing owed before the cut. Context: the built pair f8947efe4 serves it (driven: `intent issues --project Intent list` names its project, then 'no open issues'); the daemon was restarted 18:32:42Z on that pair; hv pushed 9311a3fd5..7bfca4e7a, board-only past the pair. dc holds for your next order.",
+      "fyi": true,
+      "state": "live",
+      "recorded_at": "2026-10-16T18:40:54.786Z"
     }
   ]
 }
