@@ -1897,6 +1897,14 @@
       "text": "(2026-10-16, hv's selection in the TUI vc asked, recorded at 2026-10-16T17:55:25Z by vc's clock, the first clock read after the answer; wording vc's, the choice hv's; vc's recommendation) THE SHIPPED SURFACE MAY READ `CLAUDE_CONFIG_DIR`, CONFINED to crates/intentsvcs/src/userstate.rs as HOME is: an ALLOWED row and a CONFINED row dated 2026-10-16 with the reason (issue 0604: skill and subagent installs land where Claude Code looks when the variable is set, and fall back to $HOME/.claude when it is not; require-in-session.sh, session-context.sh and the in-session release line read it in shell beside it, which the arm does not police). The arm no_intent_home::the_shipped_surface_reads_exactly_one_environment_variable then holds any second Rust reader of the variable red. cc asked the same question in its own session; this answer is the one ruling.",
       "state": "live",
       "recorded_at": "2026-10-16T17:55:45.745Z"
+    },
+    {
+      "node": "vc",
+      "kind": "doing",
+      "seq": 49,
+      "text": "COMPOSITION JUDGE of 3.2.4's second train: PASS (vc, 2026-10-16, ran 18:03:31Z to 18:12:31Z in tmp/wt-vc-324c with its own target, script refs/bank/vc/324b/judge-324c.sh). Main HEAD 7c828ddc7 plus the five banks in landing order, dc 0599 (blob 64a834db8eca, patch-id 386f382abcfc), dc 0590 (1658bc9c985b, 8668291397dd), then cc's re-contexted stack 0604 (c74f1bc53aa0, e392553208f4), 0602 (f5d03bb03cd2, 68ae361ae86c), 0598 (4e644bb1043d, ea3f65d3e8e7): composed tree 42dfa90e2574, which differs from cc's ed27478d6389 only by vc's board files. Every step rc 0: intentd build, fmt, clippy all targets and lib, doc under -Dwarnings, cargo test --workspace with 0 failed in every binary (intentsvcs 1651, intent-cli 815 and 334, intentd 40), release build, prettier on the changed .md, the bats tree 789 ok 0 not ok. Evidence refs/bank/vc/324b/evidence/judge-324c.log, .test, .bats. cc's v1 stack had refused in both orders at the CHANGELOG tail beside dc's 0599 line, so cc re-contexted as the later author (v1 blobs kept at <ref>-v1; 0604's non-CHANGELOG patch-id ccdb657e5631 unchanged, 0602 and 0598 differ only in the CHANGELOG hunk). ORDERS: dc lands first (0599 then 0590, bank by paths behind census-ok then Resolution and close per issue, by judged patch-id), then cc (0604, 0602, 0598 the same way); CHAIN START and END to vc and the other; the box returns to Utilz's Swift window at vc's END. No push, no release; the pair stays at 23c8b038e until hv's next build all.",
+      "state": "live",
+      "recorded_at": "2026-10-16T18:13:15.119Z"
     }
   ],
   "messages": [
