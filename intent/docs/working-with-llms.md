@@ -419,18 +419,18 @@ Full contract in `intent/docs/critics.md`.
 
 The session-bootstrap flow handled by the `/in-session` skill:
 
-1. Unconditionally invoke `/in-essentials` and `/in-standards` (universal workflow rules).
+1. Invoke `/in-essentials` and `/in-standards` (universal workflow rules), whatever the project's languages.
 2. Read the `languages` array from `intent/.config/config.json` (`jq -r '(.languages // []) | .[]' ...`). For each language listed, invoke its essentials skill if one exists. `elixir` has `/in-elixir-essentials` + `/in-elixir-testing`, `author` has `/in-author-essentials`, and `content` has `/in-content-essentials`; Rust, Swift, Lua, and shell carry their coding rules through the rule library the installed tool serves (`intent claude rules list --lang <lang>`) and the `critic-<lang>` subagent applied on demand.
 3. Elixir dep fan-out, when `mix.exs` is present:
    - `:ash` or `:ash_postgres` in `mix.exs` → `/in-ash-ecto-essentials`.
    - `:phoenix_live_view` in `mix.exs` → `/in-phoenix-liveview`.
 4. Release the `UserPromptSubmit` gate by running the skill's `scripts/release-gate.sh`, which writes the session's sentinel.
-5. When `intent/whiteboard/` exists, invoke `/in-whiteboard pickup`.
+5. When `intent/whiteboard/` exists, invoke `/in-whiteboard pickup`, or run `intent wb pickup --node <node>` after a compact that carried `/in-whiteboard` whole.
 6. Report the loaded skill set in one line so the user can spot an unexpected match.
 
 Languages are declared with `intent lang init <lang>` and removed with `intent lang remove <lang>`. The set is explicit per-project configuration, not filesystem detection — file presence is unreliable evidence of intent. See ST0037 for the rationale.
 
-Why auto-load: after `/compact`, conversation context is regenerated but skill invocations are not replayed. Without `/in-session`, the user has to paste the skill list manually every reset. The `/in-session` skill is a thin coordinator that reads the project's declared languages and calls the right skills in one command.
+Why auto-load: a new session starts with no skills loaded, and a `/compact` carries only the skills invoked before it, each up to a size limit, marking any it had to truncate. The `/in-session` skill is a thin coordinator that reads the project's declared languages and calls the right skills in one command. After a compact it invokes only the skills the compact did not carry whole, because a skill carried in full is still active and invoking it again loads it twice; where nothing says what the compact carried, it invokes them all. The gate release and the whiteboard pickup run either way.
 
 To extend:
 

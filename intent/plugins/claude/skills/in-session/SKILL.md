@@ -26,9 +26,11 @@ Thin coordinator that loads the right coding skills for the current project. Inv
 
 ## Procedure
 
+**After a `/compact`, invoke only the skills the compact did not carry whole.** The compact's summary carries each skill invoked before it, and a skill it carries in full is still active, so invoking it again loads it twice. Invoke a skill the summary marks as truncated or does not carry at all. When nothing in the summary says which skills it carried, invoke them all. Steps 4 to 6 run either way.
+
 ### 1. Load universal skills
 
-Invoke these skills via the Skill tool, unconditionally:
+Invoke these skills via the Skill tool, whatever the project's languages:
 
 - `/in-essentials` -- Intent workflow rules (use the CLI, never edit generated files)
 - `/in-standards` -- agnostic coding discipline (Highlander, PFIC, Thin Coordinator, No Silent Errors)
@@ -76,7 +78,7 @@ If after running `/in-session` the gate is **still** firing on the next prompt -
 
 ### 5. Pickup the whiteboard
 
-If `intent/whiteboard/` exists in the project root, invoke `/in-whiteboard pickup`. This reads your node's board + inboxes, surfaces peer-node state + any inbound asks, and touches this session's heartbeat. If the directory doesn't exist, skip silently -- the whiteboard is opt-in per project.
+If `intent/whiteboard/` exists in the project root, invoke `/in-whiteboard pickup`. This reads your node's board + inboxes, surfaces peer-node state + any inbound asks, and touches this session's heartbeat. After a compact that carried `/in-whiteboard` whole, run `intent wb pickup --node <you>` instead: the same pickup, without loading the skill again. If the directory doesn't exist, skip silently -- the whiteboard is opt-in per project.
 
 The whiteboard is the live cross-session coordination channel; `wip.md` is the post-session snapshot. See `/in-whiteboard` for protocol details.
 
@@ -95,6 +97,6 @@ Hold these regardless of which language skills get loaded above. They do not exp
 
 | Rationalisation                                | Reality                                                                 |
 | ---------------------------------------------- | ----------------------------------------------------------------------- |
-| "The skills loaded once already this session." | After `/compact` they are not active. Re-invoke via `/in-session`.      |
+| "The skills loaded once already this session." | Only a skill the compact carried whole is active. Invoke the rest.      |
 | "I can read each rule file on demand."         | Skills carry procedural orchestration, not just rule prose. Load them.  |
 | "Elixir-only -- no need for agnostic rules."   | Every language concretises the agnostic pack. Always load in-standards. |
