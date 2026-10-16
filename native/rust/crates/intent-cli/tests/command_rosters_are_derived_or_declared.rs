@@ -108,6 +108,18 @@ const MCP_SERVING_MATCH: &str = "the MCP serving match: SERVED + arms, held agai
 const DECLARED: &[(&str, &str, Why)] = &[
   (
     "intent-cli/src/render.rs",
+    "claude hook",
+    Why::Discharges(
+      "`READS_ONLY_THE_BINARY` (issue 0599): the invocations that never move a legacy \
+     `~/.intent/`, because they read the binary rather than the user's state. A roster, and \
+     deliberately not derived from `read_or_mutate`: nearly every `read` row reads the \
+     install pointer or `config.json` the move relocates, so skipping all of them would leave \
+     them on a 3.0.1 home. It goes when the table declares per row whether a verb reads user \
+     state, and the list is derived from that field.",
+    ),
+  ),
+  (
+    "intent-cli/src/render.rs",
     "wb archive",
     Why::NotARoster(
       "THE SAME SHAPE AS `daemon status` BELOW, one slot over: it is the LOOKUP KEY \

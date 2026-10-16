@@ -435,6 +435,13 @@ fn legacy_moves(dirs: &Dirs) -> [(&'static str, PathBuf); 6] {
   ]
 }
 
+/// The 3.0.1 home [`migrate_legacy`] would move, when there is one: what
+/// `intent bootstrap --check` names rather than moving (issue 0599).
+pub fn legacy_home(dirs: &Dirs) -> Option<PathBuf> {
+  let from = dirs.home.join(".intent");
+  from.is_dir().then_some(from)
+}
+
 /// Move what Intent owns out of `~/.intent/` into the layout, once.
 ///
 /// **`Ok(None)` WHEN THERE WAS NOTHING TO MOVE**, which is every run after the
@@ -451,10 +458,9 @@ fn legacy_moves(dirs: &Dirs) -> [(&'static str, PathBuf); 6] {
 /// there is somebody else's, and a migration that deleted it would be the one
 /// destructive path in a move.
 pub fn migrate_legacy(dirs: &Dirs) -> Result<Option<Migrated>, UserStateError> {
-  let from = dirs.home.join(".intent");
-  if !from.is_dir() {
+  let Some(from) = legacy_home(dirs) else {
     return Ok(None);
-  }
+  };
   let mut moved = Vec::new();
   for (name, to) in legacy_moves(dirs) {
     let source = from.join(name);

@@ -53,6 +53,8 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     }
   }
 
+  migrate_user_state(matches);
+
   // **`intent <family> help`, SERVED ONCE HERE FOR EVERY FAMILY** (issue 0203,
   // vc ruled (ii) 2026-09-02). Here for the reason the `--daemon` guard above
   // is here: this is the only place that sees every invocation and knows what
@@ -371,6 +373,40 @@ pub fn daemon_servable_paths() -> Vec<String> {
     })
     .map(|entry| entry.path.clone())
     .collect()
+}
+
+/// The invocations that read the binary rather than the user's state, and so
+/// never move `~/.intent/` (issue 0599).
+const READS_ONLY_THE_BINARY: [&str; 4] = ["info", "version", "help", "claude hook"];
+
+/// **THE MOVE INTO THE XDG LAYOUT COMES BEFORE THE VERB, SO NOTHING IT RUNS
+/// READS A PATH THIS IS ABOUT TO CHANGE**, and it does nothing after the first
+/// run. It was `main`'s first line until issue 0599: there it ran before any
+/// argument was parsed, so a build that read `intent --version` moved the
+/// operator's home. `--version` and `--help` never get here (`spine::parse`
+/// answers them), and the verbs in [`READS_ONLY_THE_BINARY`] and every family's
+/// `help` are skipped by name, and so is `bootstrap --check`, which names the
+/// home instead of moving it. `claude hook` is among them because it runs in
+/// every Claude session, its stdout reaches the session, and it resolves its
+/// script from the executable alone. A verb list in the other direction would
+/// leave every verb not on it reading a 3.0.1 home: `config.json` and the
+/// install pointer move too, and nearly every verb reads one of them.
+///
+/// A missing home directory is not reported: the project commands never needed one.
+fn migrate_user_state(matches: &ArgMatches) {
+  use intentsvcs::userstate::{self, UserStateError};
+  let path = invoked_path(matches);
+  let check = matches
+    .subcommand_matches("bootstrap")
+    .is_some_and(|m| given(m, "check"));
+  if READS_ONLY_THE_BINARY.contains(&path.as_str()) || path.ends_with(" help") || check {
+    return;
+  }
+  match userstate::dirs().and_then(|dirs| userstate::migrate_legacy(&dirs)) {
+    Ok(Some(migrated)) => eprintln!("{migrated}"),
+    Ok(None) | Err(UserStateError::NoHome) => {}
+    Err(e) => eprintln!("{}", e.render()),
+  }
 }
 
 /// The full verb path the parser resolved, as `SERVED_BY_DAEMON` spells it.
@@ -8836,6 +8872,17 @@ fn bootstrap_check(force: bool, quiet: bool) -> Result<(), Failure> {
     if let Err(e) = &this_binary {
       println!(
         "note: this binary is in no install ({e}), so whether the gate is its own cannot be said."
+      );
+    }
+    // Issue 0599: a check moves nothing, so it says what the next verb that
+    // does work will move.
+    if let Some(legacy) = intentsvcs::userstate::dirs()
+      .ok()
+      .and_then(|dirs| intentsvcs::userstate::legacy_home(&dirs))
+    {
+      println!(
+        "note: {} is a legacy home; the next intent verb that does work moves it into the XDG layout",
+        legacy.display()
       );
     }
   }

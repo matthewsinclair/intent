@@ -57,6 +57,8 @@ mod a_narrowed_render_names_its_scope;
 mod a_pull_is_reflected_by_the_next_verb;
 #[path = "a_pull_is_repaired_by_one_command.rs"]
 mod a_pull_is_repaired_by_one_command;
+#[path = "a_read_verb_leaves_a_legacy_home.rs"]
+mod a_read_verb_leaves_a_legacy_home;
 #[path = "a_search_by_target_asks_one_question.rs"]
 mod a_search_by_target_asks_one_question;
 #[path = "a_skewed_views_printed_remedy_clears_it.rs"]
