@@ -48,6 +48,7 @@
 //! the shipped shell assets are versioned with the install, and a binary
 //! carrying its own copy would answer differently from the scripts beside it.
 
+use serde_json::Value;
 use std::path::{Path, PathBuf};
 
 use crate::project::{Config, Contracts};
@@ -363,6 +364,10 @@ pub struct Applied {
   /// generated marker and `--force` was not given. Distinct from `preserved`:
   /// canon owns the template for these, and held back on consent grounds.
   pub held: Vec<PathBuf>,
+  /// A `.claude/settings.json` carrying Intent's hook door that does not parse
+  /// as JSON, so Intent's entries in it could not be merged (issue 0606). Held
+  /// like [`Applied::held`], and named apart because its reason differs.
+  pub unparseable: Vec<PathBuf>,
   /// Paths the caller told canon not to examine at all -- `.claude/settings.json`
   /// (issue `0143`) and `.mcp.json` (AC-24.1) under `--skip-settings`. Not
   /// `preserved`: nothing here was read, so nothing can be said about whose it is.
@@ -545,6 +550,159 @@ pub fn lines_outside_chain_block(text: &str) -> Vec<(usize, &str)> {
     out.push((i + 1, line));
   }
   out
+}
+
+/// `settings` without what Intent adds to it: the hook entries whose command
+/// carries Intent's hook door, and the deny rules `template` carries, emptied
+/// containers dropped (ST0083 WP-06, issue 0606).
+///
+/// **ONE SURGERY FOR BOTH DIRECTIONS.** `intent deinit` writes what this
+/// returns, and [`merge_settings`] puts the template's entries back on it, so
+/// what Intent removes and what it re-adds are the same entries by
+/// construction.
+pub fn strip_settings(settings: &Value, template: &Value) -> Value {
+  let deny = template
+    .pointer("/permissions/deny")
+    .and_then(Value::as_array)
+    .cloned()
+    .unwrap_or_default();
+  let mut out = settings.clone();
+  if let Some(events) = out.get_mut("hooks").and_then(Value::as_object_mut) {
+    for matchers in events.values_mut() {
+      if let Some(matchers) = matchers.as_array_mut() {
+        for matcher in matchers.iter_mut() {
+          if let Some(hooks) = matcher.get_mut("hooks").and_then(Value::as_array_mut) {
+            hooks.retain(|hook| {
+              !hook
+                .get("command")
+                .and_then(Value::as_str)
+                .is_some_and(carries_hook_door)
+            });
+          }
+        }
+        matchers.retain(|matcher| {
+          !matcher
+            .get("hooks")
+            .and_then(Value::as_array)
+            .is_some_and(Vec::is_empty)
+        });
+      }
+    }
+    events.retain(|_, matchers| !matchers.as_array().is_some_and(Vec::is_empty));
+  }
+  if let Some(rules) = out
+    .pointer_mut("/permissions/deny")
+    .and_then(Value::as_array_mut)
+  {
+    rules.retain(|rule| !deny.contains(rule));
+  }
+  if let Some(permissions) = out.get_mut("permissions").and_then(Value::as_object_mut) {
+    permissions.retain(|_, v| !v.as_array().is_some_and(Vec::is_empty));
+  }
+  drop_empty(&mut out, &["hooks", "permissions"]);
+  out
+}
+
+/// Remove each of `keys` from `doc` whose value is an empty object.
+pub(crate) fn drop_empty(doc: &mut Value, keys: &[&str]) {
+  if let Some(map) = doc.as_object_mut() {
+    for key in keys {
+      if map
+        .get(*key)
+        .and_then(Value::as_object)
+        .is_some_and(serde_json::Map::is_empty)
+      {
+        map.remove(*key);
+      }
+    }
+  }
+}
+
+/// Two-space JSON with a trailing newline, as Intent writes its own.
+pub fn render_json(doc: &Value) -> String {
+  // A `Value` parsed from text has no failing case in serde_json's serialiser.
+  #[allow(
+    clippy::expect_used,
+    reason = "INVARIANT: a Value parsed from JSON text has no failing case in serde_json's serialiser"
+  )]
+  let text = serde_json::to_string_pretty(doc).expect("a parsed Value serialises");
+  text + "\n"
+}
+
+/// A marker-carrying `.claude/settings.json` brought to canon (issue 0606):
+/// Intent's entries stripped by [`strip_settings`], the template's hook
+/// entries and deny rules put back, and every key of the owner's kept.
+///
+/// **IDEMPOTENT BY CONSTRUCTION**: Intent's matchers are appended after the
+/// owner's within each event, so a second run strips and appends the same
+/// entries and returns the document unchanged.
+pub fn merge_settings(existing: &Value, template: &Value) -> Value {
+  let mut out = strip_settings(existing, template);
+  let (Some(map), Some(wanted)) = (out.as_object_mut(), template.as_object()) else {
+    return template.clone();
+  };
+  for (key, value) in wanted {
+    match (key.as_str(), value.as_object()) {
+      ("hooks", Some(events)) => {
+        let slot = map
+          .entry("hooks")
+          .or_insert_with(|| Value::Object(serde_json::Map::new()));
+        if let Some(slot) = slot.as_object_mut() {
+          for (event, matchers) in events {
+            let list = slot
+              .entry(event.clone())
+              .or_insert_with(|| Value::Array(Vec::new()));
+            if let (Some(list), Some(matchers)) = (list.as_array_mut(), matchers.as_array()) {
+              list.extend(matchers.iter().cloned());
+            }
+          }
+        }
+      }
+      ("permissions", Some(rules)) => {
+        let slot = map
+          .entry("permissions")
+          .or_insert_with(|| Value::Object(serde_json::Map::new()));
+        if let Some(slot) = slot.as_object_mut() {
+          for (kind, entries) in rules {
+            let list = slot
+              .entry(kind.clone())
+              .or_insert_with(|| Value::Array(Vec::new()));
+            if let (Some(list), Some(entries)) = (list.as_array_mut(), entries.as_array()) {
+              for entry in entries {
+                if !list.contains(entry) {
+                  list.push(entry.clone());
+                }
+              }
+            }
+          }
+        }
+      }
+      _ => {
+        map.entry(key.clone()).or_insert_with(|| value.clone());
+      }
+    }
+  }
+  out
+}
+
+/// What `claude upgrade --apply` writes to a `.claude/settings.json` that
+/// carries Intent's hook door (issue 0606): the template's own bytes when the
+/// merge comes to the template, the file's own bytes when it changes nothing,
+/// and the merge as 2-space JSON otherwise. `None` when the file does not
+/// parse, so the caller holds it as it holds a file that is not Intent's.
+fn settings_merged(current: &str, template_text: &str) -> Option<String> {
+  let existing: Value = serde_json::from_str(current).ok()?;
+  let Ok(template) = serde_json::from_str::<Value>(template_text) else {
+    return Some(template_text.to_string());
+  };
+  let merged = merge_settings(&existing, &template);
+  Some(if merged == template {
+    template_text.to_string()
+  } else if merged == existing {
+    current.to_string()
+  } else {
+    render_json(&merged)
+  })
 }
 
 /// Whether a trimmed hook line is preamble: the shebang, a blank line, or shell
@@ -1088,7 +1246,22 @@ pub fn apply(
     applied.held.push(settings_path);
   } else {
     let settings = template(home, Artefact::Settings.rel())?;
-    write_if_changed(&settings_path, &settings, opts.report, &mut applied)?;
+    // **A FILE THAT CARRIES THE DOOR IS MERGED, NOT REPLACED** (issue 0606):
+    // Intent's entries are brought to the template's and every key the owner
+    // added beside them is kept. Absent, or under `--force`, the template is
+    // written whole as before. A file that does not parse is held.
+    let current = if opts.force {
+      None
+    } else {
+      std::fs::read_to_string(&settings_path).ok()
+    };
+    match current {
+      None => write_if_changed(&settings_path, &settings, opts.report, &mut applied)?,
+      Some(current) => match settings_merged(&current, &settings) {
+        Some(body) => write_if_changed(&settings_path, &body, opts.report, &mut applied)?,
+        None => applied.unparseable.push(settings_path),
+      },
+    }
   }
 
   // 1b. `.mcp.json`, which declares `intent mcp` to Claude Code (AC-24.1).

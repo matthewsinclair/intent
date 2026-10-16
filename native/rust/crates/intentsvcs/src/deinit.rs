@@ -163,9 +163,9 @@ pub fn plan(scope: &Scope<'_>) -> Result<Plan, DeinitError> {
     }
   }
 
-  let deny = template_deny(scope)?;
+  let template = template_settings(scope)?;
   plan.json_surgery(&root.join(".claude/settings.json"), |doc| {
-    strip_settings(doc, &deny)
+    canon::strip_settings(doc, &template)
   })?;
   plan.json_surgery(&root.join(".mcp.json"), strip_mcp)?;
 
@@ -256,7 +256,7 @@ impl Plan {
         why: "Intent's entries removed, the rest kept and re-serialised as 2-space JSON"
           .to_string(),
         expect: bytes,
-        after: render_json(&stripped),
+        after: canon::render_json(&stripped),
       });
     }
     Ok(())
@@ -293,9 +293,9 @@ impl Plan {
   }
 }
 
-/// The deny rules the settings template carries, read from the template, the
-/// one home of what Intent adds there.
-fn template_deny(scope: &Scope<'_>) -> Result<Vec<Value>, DeinitError> {
+/// The settings template, the one home of what Intent adds to a project's
+/// `.claude/settings.json`.
+fn template_settings(scope: &Scope<'_>) -> Result<Value, DeinitError> {
   let text = canon::canon_bytes(
     Artefact::Settings,
     scope.install,
@@ -303,54 +303,7 @@ fn template_deny(scope: &Scope<'_>) -> Result<Vec<Value>, DeinitError> {
     scope.ctx,
   )
   .map_err(DeinitError::Canon)?;
-  let template: Value = serde_json::from_str(&text).unwrap_or(Value::Null);
-  Ok(
-    template
-      .pointer("/permissions/deny")
-      .and_then(Value::as_array)
-      .cloned()
-      .unwrap_or_default(),
-  )
-}
-
-/// `settings` without the hook entries whose command carries Intent's hook
-/// door and without the deny rules in `deny`, emptied containers dropped.
-pub fn strip_settings(settings: &Value, deny: &[Value]) -> Value {
-  let mut out = settings.clone();
-  if let Some(events) = out.get_mut("hooks").and_then(Value::as_object_mut) {
-    for matchers in events.values_mut() {
-      if let Some(matchers) = matchers.as_array_mut() {
-        for matcher in matchers.iter_mut() {
-          if let Some(hooks) = matcher.get_mut("hooks").and_then(Value::as_array_mut) {
-            hooks.retain(|hook| {
-              !hook
-                .get("command")
-                .and_then(Value::as_str)
-                .is_some_and(canon::carries_hook_door)
-            });
-          }
-        }
-        matchers.retain(|matcher| {
-          !matcher
-            .get("hooks")
-            .and_then(Value::as_array)
-            .is_some_and(Vec::is_empty)
-        });
-      }
-    }
-    events.retain(|_, matchers| !matchers.as_array().is_some_and(Vec::is_empty));
-  }
-  if let Some(rules) = out
-    .pointer_mut("/permissions/deny")
-    .and_then(Value::as_array_mut)
-  {
-    rules.retain(|rule| !deny.contains(rule));
-  }
-  if let Some(permissions) = out.get_mut("permissions").and_then(Value::as_object_mut) {
-    permissions.retain(|_, v| !v.as_array().is_some_and(Vec::is_empty));
-  }
-  drop_empty(&mut out, &["hooks", "permissions"]);
-  out
+  Ok(serde_json::from_str(&text).unwrap_or(Value::Null))
 }
 
 /// `mcp` without the `intent` server, emptied containers dropped.
@@ -359,34 +312,8 @@ pub fn strip_mcp(mcp: &Value) -> Value {
   if let Some(servers) = out.get_mut("mcpServers").and_then(Value::as_object_mut) {
     servers.remove("intent");
   }
-  drop_empty(&mut out, &["mcpServers"]);
+  canon::drop_empty(&mut out, &["mcpServers"]);
   out
-}
-
-/// Remove each of `keys` from `doc` whose value is an empty object.
-fn drop_empty(doc: &mut Value, keys: &[&str]) {
-  if let Some(map) = doc.as_object_mut() {
-    for key in keys {
-      if map
-        .get(*key)
-        .and_then(Value::as_object)
-        .is_some_and(serde_json::Map::is_empty)
-      {
-        map.remove(*key);
-      }
-    }
-  }
-}
-
-/// Two-space JSON with a trailing newline, as Intent writes its own.
-fn render_json(doc: &Value) -> String {
-  // A `Value` parsed from text has no failing case in serde_json's serialiser.
-  #[allow(
-    clippy::expect_used,
-    reason = "INVARIANT: a Value parsed from JSON text has no failing case in serde_json's serialiser"
-  )]
-  let text = serde_json::to_string_pretty(doc).expect("a parsed Value serialises");
-  text + "\n"
 }
 
 /// The bytes at `path`, or `None` when nothing is there.
@@ -469,9 +396,9 @@ mod tests {
         ] }]
       }
     });
-    let deny = vec![serde_json::json!("Edit(/AGENTS.md)")];
+    let template = serde_json::json!({ "permissions": { "deny": ["Edit(/AGENTS.md)"] } });
     assert_eq!(
-      strip_settings(&settings, &deny),
+      canon::strip_settings(&settings, &template),
       serde_json::json!({
         "model": "opus",
         "permissions": { "allow": ["Bash(ls)"], "deny": ["Read(./secrets)"] },
@@ -487,7 +414,10 @@ mod tests {
       "hooks": { "Stop": [{ "hooks": [{ "type": "command", "command": "intent claude hook session-finish" }] }] }
     });
     assert_eq!(
-      strip_settings(&settings, &[serde_json::json!("Edit(/AGENTS.md)")]),
+      canon::strip_settings(
+        &settings,
+        &serde_json::json!({ "permissions": { "deny": ["Edit(/AGENTS.md)"] } })
+      ),
       serde_json::json!({})
     );
   }

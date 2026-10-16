@@ -12163,6 +12163,12 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
       rel(root, p)
     );
   }
+  for p in &applied.unparseable {
+    println!(
+      "held: {} -- does not parse as JSON, so Intent's hook entries in it were not merged; fix the JSON and run again, or --force overwrites it with the template",
+      rel(root, p)
+    );
+  }
   // **A HOOK WHOSE CHAIN BLOCK CANON COULD NOT REWRITE IS NAMED, WITH WHY**
   // (issue `0538`): it keeps the block it had, which may be one that passes a
   // commit in silence, and a count alone would never say which hook that is.
@@ -12202,7 +12208,7 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
       applied.written.len(),
       applied.unchanged.len(),
       applied.preserved.len(),
-      applied.held.len() + applied.blocks_held.len(),
+      applied.held.len() + applied.unparseable.len() + applied.blocks_held.len(),
       applied.skipped.len()
     );
     // **THE `CANNOT RUN` WARNINGS BELOW STAY ON THE APPLY PATH AND THE
@@ -12227,7 +12233,7 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
     applied.written.len(),
     applied.unchanged.len(),
     applied.preserved.len(),
-    applied.held.len() + applied.blocks_held.len(),
+    applied.held.len() + applied.unparseable.len() + applied.blocks_held.len(),
     applied.skipped.len()
   );
   // hv's ruling 17 (2026-09-15): `intent organize --apply` stays the one door for stale views, and this report names it.
