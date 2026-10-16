@@ -35,9 +35,9 @@ title: Agent contracts at the root or in .claude/, chosen per project, and CLAUD
 - AC-04.3 (non-test) `intent doctor` reports a config whose `author` is empty or reads `Author Unknown`, naming the field. -- satisfied: no
 - AC-04.4 (non-test) `intent doctor` reports, as an advisory naming each file, a `.claude/scripts/*.sh` whose header names Intent and that no hook command in `.claude/settings.json` or `.claude/settings.local.json` references: v2 wrote these copies into every project and v3 reads none of them, so the remedy is `git rm` of the named files. -- satisfied: no
 
-### WP-05 -- The templated settings deny editing the generated AGENTS.md in either layout (status: Not Started)
+### WP-05 -- The templated settings deny editing the generated AGENTS.md in either layout (status: Done)
 
-- AC-05.1 (non-test) `lib/templates/.claude/settings.json` carries `permissions.deny` rules `Edit(/AGENTS.md)` and `Edit(/.claude/AGENTS.md)`, no `Write(...)` rule (Claude Code consults `Edit(path)` and `Read(path)` rules only and warns at startup about a `Write(path)` rule; `Edit` rules govern every built-in tool that writes a file) and none against `CLAUDE.md`; the leading `/` anchors each at the project the settings file belongs to, not the current directory; and the file stays byte-identical on every machine. -- satisfied: no
+- AC-05.1 (non-test) `lib/templates/.claude/settings.json` carries `permissions.deny` rules `Edit(/AGENTS.md)` and `Edit(/.claude/AGENTS.md)`, no `Write(...)` rule (Claude Code consults `Edit(path)` and `Read(path)` rules only and warns at startup about a `Write(path)` rule; `Edit` rules govern every built-in tool that writes a file) and none against `CLAUDE.md`; the leading `/` anchors each at the project the settings file belongs to, not the current directory; and the file stays byte-identical on every machine. -- evidence: WP-05 landed at c4cab2134 on hv's own word in cc's session ("land WP-05", 2026-10-16), patch-id edcada5fa2eb from refs/bank/cc/0083/wp05 as vc judged it: lib/templates/.claude/settings.json's permissions.deny reads exactly ["Edit(/AGENTS.md)","Edit(/.claude/AGENTS.md)"], with no Write rule and none against CLAUDE.md, and this repository's .claude/settings.json stays byte-identical to it; AT-05.1 green -- satisfied: yes
 
 ### WP-06 -- intent deinit: strip what Intent wrote from a project being closed (status: Not Started)
 
@@ -72,9 +72,9 @@ title: Agent contracts at the root or in .claude/, chosen per project, and CLAUD
 
 _(no tests in this group)_
 
-### WP-05 -- The templated settings deny editing the generated AGENTS.md in either layout (status: Not Started)
+### WP-05 -- The templated settings deny editing the generated AGENTS.md in either layout (status: Done)
 
-_(no tests in this group)_
+- AT-05.1 `tests/unit/no_absolute_home_paths.bats` -- covers AC-05.1 -- status: green -- the arm "the settings template denies editing the generated AGENTS.md in both layouts, and nothing more", landed with WP-05 at c4cab2134. Red at 92d5a77ce, the commit before WP-05: the template's .permissions.deny reads null there, not the two Edit rules the arm asserts (measured 2026-10-16 by jq on that commit's template). Green at c4cab2134: the arm passes on main, 31 of 31 across require_in_session_gate, no_absolute_home_paths and release_gate_script, and was green in vc's whole-suite judging of refs/bank/cc/0083/wp05
 
 ### WP-06 -- intent deinit: strip what Intent wrote from a project being closed (status: Not Started)
 

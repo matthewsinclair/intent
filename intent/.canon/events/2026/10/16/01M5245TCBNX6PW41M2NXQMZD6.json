@@ -1,0 +1,14 @@
+{
+  "id": "01M5245TCBNX6PW41M2NXQMZD6",
+  "ts": "2026-10-16T10:29:58.289Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0083/AC-05.1"
+  },
+  "payload": {
+    "evidence": "WP-05 landed at c4cab2134 on hv's own word in cc's session (\"land WP-05\", 2026-10-16), patch-id edcada5fa2eb from refs/bank/cc/0083/wp05 as vc judged it: lib/templates/.claude/settings.json's permissions.deny reads exactly [\"Edit(/AGENTS.md)\",\"Edit(/.claude/AGENTS.md)\"], with no Write rule and none against CLAUDE.md, and this repository's .claude/settings.json stays byte-identical to it; AT-05.1 green"
+  }
+}

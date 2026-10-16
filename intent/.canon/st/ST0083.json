@@ -50,7 +50,7 @@
       "seq": 5,
       "title": "The templated settings deny editing the generated AGENTS.md in either layout",
       "scope": "XS",
-      "status": "not-started",
+      "status": "done",
       "objective": "The templated `.claude/settings.json` denies editing and writing the generated `AGENTS.md` in either layout, both paths in the one unsubstituted file, so a generated file is protected by a rule the harness enforces rather than by prose.",
       "body": "",
       "preamble": ""
@@ -175,7 +175,8 @@
       "text": "`lib/templates/.claude/settings.json` carries `permissions.deny` rules `Edit(/AGENTS.md)` and `Edit(/.claude/AGENTS.md)`, no `Write(...)` rule (Claude Code consults `Edit(path)` and `Read(path)` rules only and warns at startup about a `Write(path)` rule; `Edit` rules govern every built-in tool that writes a file) and none against `CLAUDE.md`; the leading `/` anchors each at the project the settings file belongs to, not the current directory; and the file stays byte-identical on every machine.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "WP-05 landed at c4cab2134 on hv's own word in cc's session (\"land WP-05\", 2026-10-16), patch-id edcada5fa2eb from refs/bank/cc/0083/wp05 as vc judged it: lib/templates/.claude/settings.json's permissions.deny reads exactly [\"Edit(/AGENTS.md)\",\"Edit(/.claude/AGENTS.md)\"], with no Write rule and none against CLAUDE.md, and this repository's .claude/settings.json stays byte-identical to it; AT-05.1 green"
       }
     },
     {
@@ -268,6 +269,16 @@
       ],
       "status": "green",
       "note": "RED at base 8a8509258: the arm cannot compile or run there, because what it calls does not exist at that commit -- git grep finds no `pub fn relayout`, no `pub fn agents_layout`, no Contracts parameter on init_with_languages and no `agents layout` row in the dispatch table at 8a8509258, and one of each in the landed tree. GREEN on tmp/wt-cc-0083's own build in WP-03's judging run on vc's GO, 2026-10-15 11:31Z to 11:38Z (intent-cli targeted 18 passed), and in intent-cli's whole suite after the declared-values fix at 11:39Z (1138 passed, 0 failed); landed at 2d9b4de1a with the bank's patch-id ebde4dc9dec0."
+    },
+    {
+      "id": "AT-05.1",
+      "kind": "test",
+      "file": "tests/unit/no_absolute_home_paths.bats",
+      "covers": [
+        "AC-05.1"
+      ],
+      "status": "green",
+      "note": "the arm \"the settings template denies editing the generated AGENTS.md in both layouts, and nothing more\", landed with WP-05 at c4cab2134. Red at 92d5a77ce, the commit before WP-05: the template's .permissions.deny reads null there, not the two Edit rules the arm asserts (measured 2026-10-16 by jq on that commit's template). Green at c4cab2134: the arm passes on main, 31 of 31 across require_in_session_gate, no_absolute_home_paths and release_gate_script, and was green in vc's whole-suite judging of refs/bank/cc/0083/wp05"
     }
   ]
 }

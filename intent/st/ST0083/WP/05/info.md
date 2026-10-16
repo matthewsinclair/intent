@@ -2,7 +2,7 @@
 wp_id: WP-05
 title: The templated settings deny editing the generated AGENTS.md in either layout
 scope: XS
-status: Not Started
+status: Done
 ---
 
 # WP-05: The templated settings deny editing the generated AGENTS.md in either layout
