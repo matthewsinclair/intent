@@ -1,4 +1,7 @@
 {
+  "permissions": {
+    "deny": ["Edit(/AGENTS.md)", "Edit(/.claude/AGENTS.md)"]
+  },
   "hooks": {
     "SessionStart": [
       {

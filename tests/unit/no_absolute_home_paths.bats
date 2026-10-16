@@ -63,6 +63,20 @@ HOME_PATH_RE='(/Users/[a-z]|/home/[a-z])'
   [ "$output" -gt 0 ] || fail "no timeout found, so the bound above examined nothing"
 }
 
+@test "the settings template denies editing the generated AGENTS.md in both layouts, and nothing more" {
+  # ST0083 AT-05.1, covering AC-05.1. Claude Code consults `Edit(path)` and
+  # `Read(path)` rules only: a `Write(path)` rule is accepted, never consulted,
+  # and warned about at the start of every session, while an `Edit` rule governs
+  # every built-in tool that writes a file. The leading `/` anchors each rule at
+  # the project the settings file belongs to, so it holds in a session started
+  # below the root, where `./` would not. CLAUDE.md is not denied: its user block
+  # is a sanctioned edit surface. Exact equality, so a third rule reds this too.
+  require_tool jq "the deny rules, which are read with jq," || return 1
+  run jq -c '.permissions.deny' "$INTENT_HOME/lib/templates/.claude/settings.json"
+  assert_success
+  assert_output '["Edit(/AGENTS.md)","Edit(/.claude/AGENTS.md)"]'
+}
+
 @test "a scaffolded project's hooks are portable and actually run" {
   project_dir=$(create_test_project "Hook Portability")
   cd "$project_dir"
