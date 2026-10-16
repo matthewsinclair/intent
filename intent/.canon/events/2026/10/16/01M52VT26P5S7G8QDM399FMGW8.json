@@ -1,0 +1,15 @@
+{
+  "id": "01M52VT26P5S7G8QDM399FMGW8",
+  "ts": "2026-10-16T17:22:58.902Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-10-16, hv's selections in the TUI vc asked, recorded at 2026-10-16T17:22:58Z by vc's clock, the first clock read after the answers; wording vc's, each choice hv's; each was vc's recommendation) THREE RULINGS FOR 3.2.4'S SECOND TRAIN. (1) ISSUE 0590: `--project <project>` belongs to the `issues` family ALONE in 3.2.4; the resolver lives once in intentsvcs beside the registry (exact tier: registered root or project_id; name tier: directory name or project_name case-insensitive, both, per hv's 2026-09-03 ruling that the directory name tells two checkouts apart; ambiguous and unmatched refused naming the candidates; never a cwd fallback), so a global flag later is wiring. (2) ISSUE 0598: the CLAUDE.md copy of the four-rule index is RETIRED in favour of the `@AGENTS.md` import; _CLAUDE.md points at the imported section; the byte-identity arm is rewritten to assert the pointer rather than left vacuous with one carrier; in-standards/SKILL.md stays the declared rendering; Intent's own CLAUDE.md regenerates in the same bank. (3) ISSUE 0602 REVERSES hv's 2026-09-09 ruling on 0218 for the empty shell only: after a skill's files go, uninstall removes the skill's directory WHEN EMPTY; a directory holding anything the manifest does not name is left and named, so the 0218 principle that the user's directory is theirs survives; the payload.rs comment block records the reversal; subagents are single files, nothing changes there."
+  }
+}
