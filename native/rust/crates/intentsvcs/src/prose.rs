@@ -76,6 +76,18 @@ pub const FILE_OWNER: &str = "file";
 /// `DELETE` that runs on every ingest.
 pub const WB_OWNER: &str = "wb_node";
 
+/// Whether a section belongs to the CANON half: neither a file's nor a
+/// whiteboard node's.
+///
+/// **ONE PREDICATE FOR THE CANON WRITER'S DELETE AND ITS INSERT** (issue 0605).
+/// The delete spared the other two halves and the insert took whatever it was
+/// handed, so a caller that handed it rows it had read back from the store
+/// inserted those two halves again beside themselves, doubling them on every
+/// scoped ingest.
+pub fn is_canon_owned(owner_type: &str) -> bool {
+  owner_type != FILE_OWNER && owner_type != WB_OWNER
+}
+
 /// The owner of a board's and its inboxes' sections: the node's board.
 pub const BOARD_OWNER: &str = "board";
 

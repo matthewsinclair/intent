@@ -936,8 +936,13 @@ fn compose_scoped(
   threads.extend(disk.threads.into_iter().filter(|t| scoped(&t.id)));
   threads.sort_by(|a, b| a.id.cmp(&b.id));
 
+  // **THE READ-BACK KEEPS ONLY THE CANON HALF** (issue 0605). The store's file
+  // and whiteboard sections are not this restore's to write: the canon writer
+  // spares them, so handing them back to it inserted each one again beside
+  // itself, one doubling per scoped ingest.
   let mut sections: Vec<DocSection> = read_sections(project, store)?
     .into_iter()
+    .filter(|s| crate::prose::is_canon_owned(&s.owner_type))
     .filter(|s| !named.iter().any(|id| section_of_thread(s, id)))
     .collect();
   sections.extend(

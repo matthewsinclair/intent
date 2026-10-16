@@ -600,6 +600,9 @@ fn examine(
     report
       .findings
       .extend(index_unreadable_finding(project, store));
+    report
+      .findings
+      .extend(duplicated_prose_finding(project, store));
     report.search_index = read_search_index(store);
   } else {
     report
@@ -2495,6 +2498,29 @@ fn index_unreadable_finding(project: &Project, store: &crate::store::Store) -> O
       crate::ingest::unreadable_index_remedy(table, newest_snapshot.as_deref(), &snapshot_dir)
     ),
   ))
+}
+
+/// Prose sections the index holds more than one row for (issue 0605), shown
+/// and not counted.
+///
+/// **A COUNT THAT CANNOT BE READ IS SAID, NOT DROPPED**: the class went
+/// unmeasured for every 3.1 release because nothing asked, so a check that
+/// went quiet when its query failed would be that silence again.
+fn duplicated_prose_finding(project: &Project, store: &crate::store::Store) -> Option<Finding> {
+  let file = project.relative(&project.db_path());
+  match store.duplicated_section_keys() {
+    Ok(0) => None,
+    Ok(keys) => Some(Finding::new(
+      file,
+      FindingClass::ProseIndexDuplicated,
+      format!("the prose index holds more than one row for each of {keys} section(s)"),
+    )),
+    Err(cause) => Some(Finding::new(
+      file,
+      FindingClass::Advisory,
+      format!("whether the prose index holds duplicated sections was not read: {cause}"),
+    )),
+  }
 }
 
 /// A store file that exists and could not be opened or read back (issue 0455).

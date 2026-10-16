@@ -163,6 +163,18 @@ pub enum FindingClass {
   /// would refuse every commit in it on the day it upgrades. The remedy is one
   /// command in the next commit, and the upgrade names it too.
   StoreTracked,
+  /// The prose index holds more than one row for one section (issue `0605`).
+  ///
+  /// **EVERY SCOPED INGEST FROM 3.1.0 TO 3.2.3 DOUBLED THE FILE AND WHITEBOARD
+  /// HALVES OF `doc_sections`**, and nothing reported it until a store reached
+  /// gigabytes and every write took minutes. Schema rung 31 removes the copies
+  /// on the first open under a fixed binary, so a store that still carries
+  /// them was written by a binary since, which is the class coming back.
+  ///
+  /// **SHOWN AND NOT COUNTED, FOR `StoreTracked`'s REASON**: the estate carrying
+  /// it did nothing to earn it, and the store is per-machine, so a counted
+  /// class would refuse commits over a state no commit can change.
+  ProseIndexDuplicated,
   /// An ATTACHMENT on disk differs from the bytes canon records for it.
   ///
   /// **Not [`FindingClass::ViewSkew`], and the difference is what the operator
@@ -548,6 +560,11 @@ impl FindingClass {
         "store-tracked",
         "run the git command the finding names and commit it: it takes the store out of the index and leaves your copy on disk, and the ignore rule keeps it out from then on. Not counted: a project made by Intent 3.0 carries this from its first commit rather than from anything done since",
       ),
+      Self::ProseIndexDuplicated => (
+        6,
+        "prose-index-duplicated",
+        "run `intent index rebuild`: it opens the store through the index repair, which drops and recreates the prose index and fills it again from canon, from each migrated whiteboard node's `.history/` and from the tree, one row per section. Then report it with `intent --version`: schema rung 31 removed every copy on the first open under a fixed Intent, so copies found since mean some writer is doubling the index again. Not counted: the store is per-machine, so no commit can change it",
+      ),
       // **THE FIRST INSTRUCTION IS TO COPY THE FILE ASIDE, AND THAT IS NOT
       // padding.** Unlike `ViewSkew` above, neither side here is derivable:
       // both are authored bytes, and whichever one loses is gone. So the first
@@ -803,6 +820,7 @@ impl FindingClass {
         | Self::StoreStale
         | Self::RootFileBehind
         | Self::StoreTracked
+        | Self::ProseIndexDuplicated
     )
   }
 
@@ -826,7 +844,7 @@ impl FindingClass {
     self.is_actionable()
       || matches!(
         self,
-        Self::StoreStale | Self::RootFileBehind | Self::StoreTracked
+        Self::StoreStale | Self::RootFileBehind | Self::StoreTracked | Self::ProseIndexDuplicated
       )
   }
 

@@ -335,8 +335,12 @@ fn the_schema_version_is_bumped_whenever_the_ddl_changes() {
   // 30 is `edited_at` on `wb_item` and `wb_message` (0525), the stamp behind
   // the `(edited)` mark. Two rebuilds rather than `ADD COLUMN`, for rung 15's
   // reason, each re-creating its table's index; existing rows start null.
+  //
+  // 31 deletes the duplicated rows of `doc_sections` (0605), keeping one per
+  // (owner_type, owner_id, file, seq), and re-derives its full-text index. Rows
+  // go and the shape stays, so this hash is unchanged, as it was for rung 26.
   const PINNED_SCHEMA_HASH: u64 = 0xeffe_562a_f60c_db87;
-  const PINNED_FOR_VERSION: i32 = 30;
+  const PINNED_FOR_VERSION: i32 = 31;
 
   assert_eq!(
     SCHEMA_VERSION, PINNED_FOR_VERSION,

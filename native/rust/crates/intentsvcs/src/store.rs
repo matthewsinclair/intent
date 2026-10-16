@@ -813,7 +813,7 @@ CREATE INDEX IF NOT EXISTS wb_message_by_recipient ON wb_message (recipient, id)
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 30;
+pub const SCHEMA_VERSION: i32 = 31;
 
 /// FTS5 `secure-delete` on both search tables: a `DELETE` takes the row's terms
 /// out of the inverted index rather than writing a tombstone for them.
@@ -826,6 +826,23 @@ pub const SCHEMA_VERSION: i32 = 30;
 const FTS_SECURE_DELETE: &str =
   "INSERT INTO doc_sections(doc_sections, rank) VALUES('secure-delete', 1);
 INSERT INTO src_sections(src_sections, rank) VALUES('secure-delete', 1);";
+
+/// Rung 31: one `doc_sections` row per (owner_type, owner_id, file, seq), the
+/// first written, and the full-text index re-derived from what remains (0605).
+///
+/// **`secure-delete` OFF ACROSS THE DELETE AND ON AGAIN AFTER THE `rebuild`**,
+/// as `Store::write_doc_sections` does and for its reason (0420): on a store
+/// that doubled eleven times the delete removes nearly every row, and under
+/// `secure-delete` each one would rewrite the index pages that the `rebuild`
+/// then discards. A store with no duplicate keeps every row, and the `rebuild`
+/// re-derives the same index.
+const DOC_SECTIONS_DEDUPE: &str =
+  "INSERT INTO doc_sections(doc_sections, rank) VALUES('secure-delete', 0);
+DELETE FROM doc_sections WHERE rowid NOT IN (
+  SELECT min(rowid) FROM doc_sections GROUP BY owner_type, owner_id, file, seq
+);
+INSERT INTO doc_sections(doc_sections) VALUES('rebuild');
+INSERT INTO doc_sections(doc_sections, rank) VALUES('secure-delete', 1);";
 
 /// **The record-timestamp columns (AC-02.8, D42), named once.**
 ///
@@ -1910,6 +1927,15 @@ const MIGRATIONS: &[(i32, &str)] = &[(
      ALTER TABLE wb_message_rebuilt RENAME TO wb_message;
      CREATE INDEX IF NOT EXISTS wb_item_by_node ON wb_item (node, kind, seq);
      CREATE INDEX IF NOT EXISTS wb_message_by_recipient ON wb_message (recipient, id);",
+  ),
+  (
+    31,
+    // 30 -> 31: the prose index's duplicated rows go (0605). Every scoped
+    // ingest from v3.1.0 to v3.2.3 inserted the file and whiteboard halves of
+    // `doc_sections` again beside themselves, so an affected store holds 2^n
+    // copies of each of those sections; the shape is unchanged and only rows
+    // go, which is why the DDL hash is too.
+    DOC_SECTIONS_DEDUPE,
   ),
 ];
 
@@ -5239,6 +5265,17 @@ impl Store {
   /// fts5's own check is the per-table `PRAGMA integrity_check(<table>)`,
   /// which since SQLite 3.44 calls the table's integrity method and is a read,
   /// where the `'integrity-check'` command is an `INSERT`.
+  /// How many (owner_type, owner_id, file, seq) keys the prose index holds
+  /// more than one row for (issue 0605): 0 on a store no writer has doubled.
+  pub fn duplicated_section_keys(&self) -> Result<i64, StoreError> {
+    Ok(self.conn.query_row(
+      "SELECT count(*) FROM (SELECT 1 FROM doc_sections
+         GROUP BY owner_type, owner_id, file, seq HAVING count(*) > 1)",
+      [],
+      |row| row.get(0),
+    )?)
+  }
+
   pub fn read_search_index(&self) -> Result<Vec<crate::doctor::SearchIndexReading>, StoreError> {
     // **ONE READ TRANSACTION, SO EVERY PROBE READS ONE SNAPSHOT** (issue 0450).
     // Each probe was its own statement and so its own snapshot, and a write
@@ -6502,7 +6539,16 @@ impl Store {
       [],
     )?;
     Self::secure_delete(conn, "doc_sections", true)?;
-    for s in sections {
+    // **THE CANON HALF INSERTS ONLY WHAT ITS DELETE REMOVED** (issue 0605). Its
+    // delete spares the file and whiteboard halves, so a file or whiteboard
+    // section handed to it is a row that is already there: inserting it was
+    // one more copy per write, and a scoped ingest that read the store's
+    // sections back doubled both halves every time it ran.
+    let owned = |s: &&DocSection| match half {
+      ProseHalf::Canon => crate::prose::is_canon_owned(&s.owner_type),
+      ProseHalf::Files | ProseHalf::Whiteboard(_) => true,
+    };
+    for s in sections.iter().filter(owned) {
       insert_doc_section(conn, s)?;
     }
     Ok(())
