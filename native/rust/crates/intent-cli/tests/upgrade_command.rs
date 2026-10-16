@@ -709,3 +709,26 @@ fn a_store_git_tracks_is_named_until_it_is_untracked() {
     "an untracked store is not named: {out}{err}"
   );
 }
+
+/// Issue 0596. **A first conversion examines the undeclared views, so it prints
+/// no "not examined" line before its `ok:`.**
+///
+/// The upgrade opened its facade on the Project discovered before the
+/// conversion, whose config still declared 2.19.0 after the stamp had landed on
+/// disk, so the open was refused as unmigrated and the dehydration of
+/// undeclared views never ran on a first conversion. Red at the base on every
+/// v2 layout, this one included.
+#[test]
+fn a_first_conversion_examines_the_views_of_undeclared_threads() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  v2_project(dir.path(), "2.19.0");
+  v2_thread(dir.path(), "ST0001", "WIP");
+  git_ready(dir.path());
+
+  let (out, err, code) = run(&["upgrade"], dir.path());
+  assert_eq!(code, 0, "a clean v2 estate migrates: {err}");
+  assert!(
+    !format!("{out}{err}").contains("not examined"),
+    "the first conversion skipped the dehydration of undeclared views: {out}{err}"
+  );
+}

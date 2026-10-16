@@ -4572,9 +4572,20 @@ impl Facade {
         // its operator a hand deletion. The migration has LANDED by this line,
         // so a failure here is reported beside the refusals rather than
         // returned: an error now would say the upgrade was not made when it was.
-        let (dehydrated, dehydrate_refused) = match Facade::open(project.clone(), ctx.clone())
-          .and_then(|mut f| f.dehydrate_undeclared_thread_views())
-        {
+        //
+        // **THE PROJECT IS READ AGAIN FROM ITS ROOT, BECAUSE THE STAMP HAS JUST
+        // CHANGED IT** (issue 0596). `project` was discovered before the
+        // conversion, so its config still declares the v2 version while
+        // config.json on disk declares this binary's; a facade opened on it was
+        // refused as unmigrated, and every first conversion printed "not
+        // examined" before its `ok:` and skipped this step.
+        let examined = match Project::open(project.root()) {
+          Ok(stamped) => Facade::open(stamped, ctx.clone())
+            .and_then(|mut f| f.dehydrate_undeclared_thread_views())
+            .map_err(|cause| cause.to_string()),
+          Err(cause) => Err(cause.to_string()),
+        };
+        let (dehydrated, dehydrate_refused) = match examined {
           Ok(report) => (
             report.dehydrated,
             report
