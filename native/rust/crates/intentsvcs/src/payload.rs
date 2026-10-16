@@ -1378,33 +1378,22 @@ impl Payload {
       // operator is told the directory was left, and `--force`-installing over
       // it first gives this build a file list to work from.
 
-      // **THE SKILL'S OWN DIRECTORY SURVIVES THIS CALL, DELIBERATELY, AND
-      // UNTIL THIS COMMENT NOTHING IN THE TREE SAID SO** (hv, 2026-09-09,
-      // `0218` remedy 1): **`uninstall` PROMISES THE FILES IT WROTE, NOT THE
-      // DIRECTORY IT EMPTIED.** `prune_empty_dirs` drops empty SUBdirectories
-      // and refuses the root it was handed -- which is `dir`, the skill's own
-      // directory -- so the emptied directory is left behind. **That is the
-      // ruled outcome, not the pruner failing to reach it.**
-      //
-      // **THE HAZARD IS THAT THE CODE READS AS A BUG AND THE SUITE STAYS
-      // GREEN IF YOU FIX IT.** `0218` was filed on exactly that reading, by a
-      // node whose own count of installed skills disagreed with canon because
-      // of the leftover. The leftover is asserted INERT rather than ABSENT --
-      // `installed()` does not list it and a following `sync` reports no step
-      // for it, pinned by
-      // `a_canon_delete_strands_the_skill_and_only_uninstall_prunes_it` in
-      // `intentsvcs/tests/skills_sync.rs` -- so removing the root here would
-      // pass every test while reversing a ruling.
-      //
-      // **AND THERE IS DELIBERATELY NO TEST ASSERTING THE DIRECTORY SURVIVES,
-      // BECAUSE THAT WOULD BE STRONGER THAN THE RULING.** hv ruled what
-      // `uninstall` PROMISES; a promise about the files is a floor and says
-      // nothing about what else may be removed. That test's OWN first draft
-      // asserted the directory was gone and was relaxed for being stronger
-      // than the criterion -- **pinning the opposite would be the same error
-      // in the other direction**, so what is recorded here is the reason and
-      // not a witness.
+      // **THE SKILL'S OWN DIRECTORY GOES WITH ITS FILES WHEN NOTHING ELSE IS
+      // IN IT** (issue 0602, hv 2026-10-16, reversing hv's 2026-09-09 ruling
+      // on 0218 for the empty shell alone). That ruling held that `uninstall`
+      // promises the files it wrote and not the directory it emptied, so the
+      // emptied directory stayed; a reader of `~/.claude/skills/` met an
+      // empty shell for every skill removed. `prune_empty_dirs` still refuses
+      // the root it is handed, so the root is removed here, by `remove_dir`,
+      // which refuses a directory holding anything. A directory holding a file
+      // the manifest does not name keeps it, and `left` names it.
       prune_empty_dirs(&dir)?;
+      if read_dir(&dir)?.is_empty() {
+        std::fs::remove_dir(&dir).map_err(|source| PayloadError::Io {
+          path: dir.clone(),
+          source,
+        })?;
+      }
       manifest.remove(name);
       steps.push(Step {
         name: name.clone(),

@@ -94,10 +94,6 @@ Listed in `--help` and refusing when called, exit codes as shown.
 
 **`intent ext` and every verb under it** (`intent#0177`, which records the missing `remove`). `intent ext --help` lists `list`, `show`, `validate` and `new`, and each refuses with ``error: `ext` is a known command that is not implemented yet``, exit 2. `intent ext remove` is not listed and refuses with `error: unrecognized subcommand 'remove'`, exit 1.
 
-## Uninstalling a skill
-
-**A second `uninstall` of a skill already removed reports a change that did not happen.** After `intent claude skills uninstall in-debug --force` has removed an edited skill, running `uninstall` again prints `in-debug removed nothing` over `ok: 1 changed, 0 already settled, 0 need a decision`, at exit 0. Read the per-skill line, not the total. **The skill's directory is left behind empty** in `~/.claude/skills/` after the removal. For a skill this build did not write, the file stays on disk and the tool says so -- `removed nothing; left 1 this build did not install, so it is still loadable` -- which is it being careful rather than a defect.
-
 ## What this page does not cover
 
 **This is the driven set, not the whole register.** Every entry was driven in a fresh scratch project under an isolated `HOME`. Conditions that setup cannot create are not covered: several sessions sharing one checkout, and surfaces not driven for this page -- `intent fc`, `intent mcp`, `intent graphql`, `intent explore`, `intent browse` and the menubar app. Defects that need those conditions are not described here, because an undriven defect is a guess.

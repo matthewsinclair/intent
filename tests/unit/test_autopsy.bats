@@ -130,12 +130,8 @@ teardown() {
   assert_success
   assert_output_contains "removed"
 
-  # Every file it installed is gone, and the directory it emptied stays: v3's
-  # uninstall removes what it wrote and never the root it was handed (0218).
-  [ ! -e "$HOME/.claude/skills/in-autopsy/SKILL.md" ] || fail "SKILL.md should be removed"
-  [ ! -e "$HOME/.claude/skills/in-autopsy/scripts" ] || fail "scripts/ should be removed"
-  assert_directory_exists "$HOME/.claude/skills/in-autopsy"
-  [ -z "$(ls -A "$HOME/.claude/skills/in-autopsy")" ] || fail "the skill directory should be left empty"
+  # Every file it installed is gone, and the directory it emptied with them.
+  [ ! -e "$HOME/.claude/skills/in-autopsy" ] || fail "the skill directory should be removed"
 }
 
 # ====================================================================

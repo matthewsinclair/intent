@@ -1056,16 +1056,14 @@ fn the_discarded_checksum_moves_with_the_content_when_no_baseline_exists() {
 /// nothing automatic ever revisits the orphan, while `~/.claude/skills/`, which
 /// is what Claude Code actually reads, goes on loading it.
 ///
-/// # What `uninstall` leaves, measured rather than assumed
+/// # What `uninstall` leaves
 ///
-/// It removes the FILES it wrote and leaves the now-empty directory. **That is
-/// inert and is asserted as such rather than failed on**: `installed()` does
-/// not list it and a following `sync` reports no step for it at all, so the
-/// tool does not read an empty directory as a skill and Claude Code has no
-/// `SKILL.md` to load. **The first draft of this test asserted the directory
-/// was gone, which was stronger than the criterion and turned an accurate
-/// result into an alarming one** -- `uninstall left the installed tree` reads
-/// as a pruner that does not prune.
+/// Nothing, when everything in the skill's directory was its own: the files go
+/// and the emptied directory with them (issue 0602, reversing the 2026-09-09
+/// ruling on 0218 that left the empty directory). A file the manifest does not
+/// name keeps the directory, which
+/// `uninstall_keeps_a_directory_holding_a_file_it_did_not_write_and_names_it`
+/// pins.
 #[test]
 fn a_canon_delete_strands_the_skill_and_only_uninstall_prunes_it() {
   let f = Fixture::new();
@@ -1127,8 +1125,52 @@ fn a_canon_delete_strands_the_skill_and_only_uninstall_prunes_it() {
       .installed()
       .expect("the installed set reads")
       .contains(&"in-doomed".to_string()),
-    "the leftover empty directory is read as an installed skill, which would \
-     make it a state the tool misreads rather than inert litter"
+    "the uninstalled skill is still read as installed"
+  );
+  assert!(
+    !installed.exists(),
+    "uninstall left the skill's emptied directory behind (issue 0602)"
+  );
+  // With the directory gone, a second uninstall finds nothing to remove and
+  // says so, rather than reporting a removal of nothing.
+  let again = f
+    .skills()
+    .uninstall(&["in-doomed".to_string()], false)
+    .expect("second uninstall");
+  assert_eq!(outcome(&again.steps, "in-doomed"), Outcome::NotInstalled);
+}
+
+/// Issue 0602's other half: a file `uninstall` did not write keeps the skill's
+/// directory, stays on disk, and is named in the step, so the directory is
+/// removed only when nothing but the skill's own files was in it.
+#[test]
+fn uninstall_keeps_a_directory_holding_a_file_it_did_not_write_and_names_it() {
+  let f = Fixture::new();
+  f.source("in-kept", &[("SKILL.md", "# kept\n")]);
+  f.skills()
+    .install(&["in-kept".to_string()], false)
+    .expect("install");
+  let installed = f.target.join("in-kept");
+  fs::write(installed.join("notes.md"), "the operator's own\n").unwrap();
+
+  let report = f
+    .skills()
+    .uninstall(&["in-kept".to_string()], false)
+    .expect("uninstall");
+  match outcome(&report.steps, "in-kept") {
+    Outcome::Removed { removed, left } => {
+      assert_eq!(removed, vec!["SKILL.md".to_string()]);
+      assert_eq!(left, vec!["notes.md".to_string()]);
+    }
+    other => panic!("uninstall did not report a removal: {other:?}"),
+  }
+  assert!(
+    !installed.join("SKILL.md").exists(),
+    "uninstall left SKILL.md"
+  );
+  assert!(
+    installed.join("notes.md").is_file(),
+    "uninstall removed a file it did not write"
   );
 }
 
