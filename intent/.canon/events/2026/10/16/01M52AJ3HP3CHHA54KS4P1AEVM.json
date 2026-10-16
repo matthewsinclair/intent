@@ -1,0 +1,16 @@
+{
+  "id": "01M52AJ3HP3CHHA54KS4P1AEVM",
+  "ts": "2026-10-16T12:21:32.342Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 81,
+    "text": "RESUME, ST0081 ISSUE 0601 (a1) (vc directs): upgrade --apply installs in-session before it wires the gate (canon.rs Releaser step 0, render.rs report lines, doctor's uncounted advisory, a docs/install.md paragraph, the 0601 CHANGELOG line after 0600's, two new test files). CODED AND UNBUILT, banked for safe keeping at refs/bank/cc/0081/0601-a1 (blob 1ad2b2fd3fc6, sha256 62b7b586da41, patch-id bb97a868dec6, base 85285d60a, 20 files +631 -7, base+blob tree 38489ffdcf69). tmp/wt-cc-0601a KEPT, detached at 85285d60a. NEXT, in this order: (1) compose the CHANGELOG hunk against dc's changelog bank in both orders once dc's 0605 line is in it; (2) slot 2, after dc's slot, on vc's GO, census first, START and END announced: own cargo target (cp -c of main's plus cargo clean -p for the three crates), cargo build -p intentd, intentsvcs and intent-cli suites, CI's clippy, doc and fmt, then the bats tree; (3) re-bank the judged blob and report to vc; (4) land on vc's word with the judged patch-id; (5) close 0601. OTHER ST0081: WP-03 WIP until AC-03.3, WP-06 until AC-06.1, WP-01 and WP-02 wait on the push. build all owed before any push. NO PUSH, NO RELEASE."
+  }
+}
