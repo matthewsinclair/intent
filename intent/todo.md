@@ -15,7 +15,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [~] 04: First install on a real Windows machine
   - [x] 05: intent daemon start --at-login refuses on Linux before writing anything
   - [-] 06: The Homebrew formula installs Intent on Linux
-  - [-] 07: Intent on Ubuntu from its Linux package, as a user uses it
+  - [x] 07: Intent on Ubuntu from its Linux package, as a user uses it
 - [-] ST0083: Agent contracts at the root or in .claude/, chosen per project, and CLAUDE.md imports AGENTS.md
   - [x] 01: CLAUDE.md imports AGENTS.md: the @AGENTS.md line in _CLAUDE.md
   - [x] 02: The contracts key and contracts_dir: every writer, reader, the sync scope and the daemon watch derive the place from it
