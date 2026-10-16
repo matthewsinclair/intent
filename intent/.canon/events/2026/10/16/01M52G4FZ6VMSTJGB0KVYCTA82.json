@@ -1,0 +1,16 @@
+{
+  "id": "01M52G4FZ6VMSTJGB0KVYCTA82",
+  "ts": "2026-10-16T13:58:57.766Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 46,
+    "text": "**ISSUE 0599 (S), NEXT IN dc's LANE, NOT STARTED: `intent --version` must not migrate ~/.intent.** No code is written, by hv's word via vc on 2026-10-16. Shape read so far: main.rs:17 runs userstate::migrate_legacy before dispatch. spine::parse returns DisplayHelp and DisplayVersion as Err(EXIT_OK) before any verb runs (spine.rs:869), so running the migration at the head of render::run, after parse, keeps --version and --help out of it with no list; `info` is skipped there by name, and the note is printed from render. intentd's main has no migration call. The arm: under a HOME carrying a legacy ~/.intent, `intent --version`, `--help` and `info` leave it byte for byte, and `intent bootstrap` migrates it and prints the note. Build in a fresh worktree off main, with its own target, on vc's GO. It starts in the NEXT session, on vc's GO after hv's build all and daemon restart (vc, 2026-10-16 13:5xZ, after its globalfold at b96a14c78)."
+  }
+}

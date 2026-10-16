@@ -5,8 +5,8 @@
     "name": "DevX Claude",
     "role": "worker",
     "session_id": "45688c36-a10d-4ad6-b27b-9f7011eb1956",
-    "heartbeat_at": "2026-10-16T13:36:47.647Z",
-    "status": "active",
+    "heartbeat_at": "2026-10-16T13:58:58.790Z",
+    "status": "paused",
     "focus": "LOCALFOLDED 2026-10-16 on hv's word via vc, holding for hv's compact: the 3.2.4 train is LANDED on main (8 banks, 15 commits, 87fdc6bcf..dfe4ff8eb, every patch-id as judged; issues 0591 0592 0593 0594 0596 0597 0605 closed); hv's build all is still owed; 0599 is next, not started; holds 29 and 31; no push, no release",
     "claims": [
       "ISSUE:0599"
@@ -2274,9 +2274,10 @@
       "node": "dc",
       "kind": "todo",
       "seq": 46,
-      "text": "**ISSUE 0599 (S), NEXT IN dc's LANE, NOT STARTED: `intent --version` must not migrate ~/.intent.** No code is written, by hv's word via vc on 2026-10-16. Shape read so far: main.rs:17 runs userstate::migrate_legacy before dispatch. spine::parse returns DisplayHelp and DisplayVersion as Err(EXIT_OK) before any verb runs (spine.rs:869), so running the migration at the head of render::run, after parse, keeps --version and --help out of it with no list; `info` is skipped there by name, and the note is printed from render. intentd's main has no migration call. The arm: under a HOME carrying a legacy ~/.intent, `intent --version`, `--help` and `info` leave it byte for byte, and `intent bootstrap` migrates it and prints the note. Build in a fresh worktree off main, with its own target, on vc's GO.",
+      "text": "**ISSUE 0599 (S), NEXT IN dc's LANE, NOT STARTED: `intent --version` must not migrate ~/.intent.** No code is written, by hv's word via vc on 2026-10-16. Shape read so far: main.rs:17 runs userstate::migrate_legacy before dispatch. spine::parse returns DisplayHelp and DisplayVersion as Err(EXIT_OK) before any verb runs (spine.rs:869), so running the migration at the head of render::run, after parse, keeps --version and --help out of it with no list; `info` is skipped there by name, and the note is printed from render. intentd's main has no migration call. The arm: under a HOME carrying a legacy ~/.intent, `intent --version`, `--help` and `info` leave it byte for byte, and `intent bootstrap` migrates it and prints the note. Build in a fresh worktree off main, with its own target, on vc's GO. It starts in the NEXT session, on vc's GO after hv's build all and daemon restart (vc, 2026-10-16 13:5xZ, after its globalfold at b96a14c78).",
       "state": "live",
-      "recorded_at": "2026-10-16T13:36:51.093Z"
+      "recorded_at": "2026-10-16T13:36:51.093Z",
+      "edited_at": "2026-10-16T13:58:57.766Z"
     }
   ],
   "messages": [
