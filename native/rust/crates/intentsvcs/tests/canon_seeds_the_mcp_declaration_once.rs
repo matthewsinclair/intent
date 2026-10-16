@@ -40,6 +40,7 @@ fn apply(fx: &crate::common::Fixture, hooks: &Path, opts: canon::Options) -> can
     &crate::common::ctx(),
     Some(hooks),
     opts,
+    None,
   )
   .expect("canon apply")
 }

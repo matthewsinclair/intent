@@ -1340,6 +1340,7 @@ fn cases() -> Vec<Case> {
               skip_settings: true,
               report: false,
             },
+            None,
           )
           .expect("canon lays the contracts down");
       },

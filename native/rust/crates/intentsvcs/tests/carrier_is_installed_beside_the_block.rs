@@ -75,6 +75,7 @@ fn apply(fx: &crate::common::Fixture, hooks: &Path) -> canon::Applied {
     &crate::common::ctx(),
     Some(hooks),
     canon::Options::default(),
+    None,
   )
   .expect("canon apply")
 }
@@ -427,6 +428,7 @@ fn no_repository_means_no_carrier_and_no_error() {
     &crate::common::ctx(),
     None,
     canon::Options::default(),
+    None,
   )
   .expect("a project without git is a supported shape, not an error");
 
@@ -478,6 +480,7 @@ fn skip_settings_leaves_the_settings_file_alone_and_says_so() {
         skip_settings: skip,
         ..Default::default()
       },
+      None,
     )
     .expect("canon apply");
     let after = std::fs::read_to_string(&settings).expect("settings still readable");
@@ -557,6 +560,7 @@ fn report_mode_answers_what_apply_would_do_and_writes_nothing() {
         report,
         ..Default::default()
       },
+      None,
     )
     .expect("canon apply")
   };

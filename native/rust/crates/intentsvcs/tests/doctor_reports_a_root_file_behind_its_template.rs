@@ -33,6 +33,7 @@ fn apply(fx: &Fixture) {
     &ctx(),
     None,
     canon::Options::default(),
+    None,
   )
   .expect("canon apply");
 }

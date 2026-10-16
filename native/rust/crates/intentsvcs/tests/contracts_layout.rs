@@ -127,7 +127,7 @@ fn under_dotclaude_claude_upgrade_writes_both_contracts_there_and_seeds_no_usage
   let (fx, mut facade) = declared(Contracts::Dotclaude);
 
   let upgraded = facade
-    .claude_upgrade(None, options())
+    .claude_upgrade(None, options(), None)
     .expect("canon applies");
 
   for name in ["AGENTS.md", "CLAUDE.md"] {
@@ -153,7 +153,7 @@ fn under_dotclaude_an_authored_usage_rules_at_the_root_is_preserved_and_reported
   std::fs::write(&usage_rules, "# Ours\n").expect("an authored usage-rules.md");
 
   let upgraded = facade
-    .claude_upgrade(None, options())
+    .claude_upgrade(None, options(), None)
     .expect("canon applies");
 
   assert!(
@@ -174,7 +174,7 @@ fn under_root_claude_upgrade_writes_the_contracts_at_the_root_and_seeds_usage_ru
   let (fx, mut facade) = declared(Contracts::Root);
 
   let upgraded = facade
-    .claude_upgrade(None, options())
+    .claude_upgrade(None, options(), None)
     .expect("canon applies");
 
   for name in ["AGENTS.md", "CLAUDE.md"] {
@@ -339,7 +339,7 @@ fn init_without_a_layout_writes_the_root_layout_and_no_key() {
 fn upgraded_root() -> (Fixture, Facade) {
   let (fx, mut facade) = declared(Contracts::Root);
   facade
-    .claude_upgrade(None, options())
+    .claude_upgrade(None, options(), None)
     .expect("canon applies");
   (fx, facade)
 }

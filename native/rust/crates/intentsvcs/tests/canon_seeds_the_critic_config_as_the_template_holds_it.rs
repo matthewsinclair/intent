@@ -22,6 +22,7 @@ fn a_seeded_critic_config_equals_its_template_byte_for_byte() {
     &crate::common::ctx(),
     Some(&hooks),
     canon::Options::default(),
+    None,
   )
   .expect("canon apply");
 

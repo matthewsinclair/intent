@@ -310,6 +310,8 @@ mod uninstall_names_what_it_removed;
 mod unmigrated_surface;
 #[path = "upgrade_command.rs"]
 mod upgrade_command;
+#[path = "upgrade_installs_the_gate_releaser.rs"]
+mod upgrade_installs_the_gate_releaser;
 #[path = "verbosity_flags.rs"]
 mod verbosity_flags;
 #[path = "version_spellings_agree.rs"]

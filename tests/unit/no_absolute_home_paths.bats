@@ -81,7 +81,10 @@ HOME_PATH_RE='(/Users/[a-z]|/home/[a-z])'
   project_dir=$(create_test_project "Hook Portability")
   cd "$project_dir"
   # The engine prompts before writing; feed it a yes and check what it wrote.
-  run bash -c "yes | '$INTENT_BIN' claude upgrade --apply >/dev/null 2>&1; true"
+  # Under a temp HOME, since the run installs the gate's releaser skill into
+  # \$HOME/.claude/skills where it is absent (issue 0601).
+  mkdir -p "$TEST_TEMP_DIR/home"
+  run bash -c "yes | HOME='$TEST_TEMP_DIR/home' '$INTENT_BIN' claude upgrade --apply >/dev/null 2>&1; true"
   [ -f .claude/settings.json ]
   run bash -c "grep -cE '$HOME_PATH_RE' .claude/settings.json || true"
   assert_output "0"

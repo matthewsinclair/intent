@@ -621,6 +621,7 @@ fn examine(
   // a property of the store, and an estate whose canon will not read still has
   // a `CLAUDE.md` worth comparing (issue `0496`).
   report.findings.extend(root_file_findings(project, ctx));
+  report.findings.extend(gate_release_findings(project));
 
   let canon = match crate::ingest::read(project) {
     Ok(canon) => canon,
@@ -2102,6 +2103,7 @@ fn root_file_findings(project: &Project, ctx: &RenderContext<'_>) -> Vec<Finding
     &render,
     hooks.as_deref(),
     opts,
+    None,
   ) {
     Ok(applied) => applied,
     Err(e) => return unchecked(e.to_string()),
@@ -2123,6 +2125,51 @@ fn root_file_findings(project: &Project, ctx: &RenderContext<'_>) -> Vec<Finding
       )
     })
     .collect()
+}
+
+/// The prompt gate wired with nothing on this machine to release it (issue
+/// `0601`).
+///
+/// **AN ADVISORY, NOT A FAULT, AND UNCOUNTED.** It is a fact about the
+/// MACHINE, not the project: the same committed settings file is right on a
+/// machine with `in-session` installed and passes every prompt on one without
+/// it, where the gate fails open. Counting it would refuse a commit for the
+/// state of someone's `~/.claude`. It names the verb that installs the skill,
+/// and reads the releaser at the one path [`crate::canon::GATE_RELEASER`]
+/// names, which is the path the gate itself checks.
+fn gate_release_findings(project: &Project) -> Vec<Finding> {
+  let settings = project.root().join(".claude/settings.json");
+  let wires_gate = std::fs::read_to_string(&settings)
+    .map(|text| text.contains(crate::canon::GATE_HOOK))
+    .unwrap_or(false);
+  if !wires_gate {
+    return Vec::new();
+  }
+  let skills = match crate::userstate::payload_target(crate::payload::Kind::Skills) {
+    Ok(dir) => dir,
+    Err(e) => {
+      return vec![Finding::new(
+        project.relative(&settings),
+        FindingClass::Advisory,
+        format!(
+          "this file wires the prompt gate, and whether this machine can release it was not checked: {e}"
+        ),
+      )];
+    }
+  };
+  let releaser = crate::canon::releaser_under(&skills);
+  if releaser.is_file() {
+    return Vec::new();
+  }
+  vec![Finding::new(
+    project.relative(&settings),
+    FindingClass::Advisory,
+    format!(
+      "this file wires the prompt gate, and this machine has no {} to release it, so the gate passes every prompt here -- `intent claude skills install {}` installs it",
+      releaser.display(),
+      crate::canon::GATE_SKILL
+    ),
+  )]
 }
 
 /// The `claude upgrade` spelling that rewrites `path`: `--skip-settings` leaves

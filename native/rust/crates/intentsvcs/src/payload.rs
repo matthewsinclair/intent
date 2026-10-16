@@ -734,7 +734,11 @@ impl Payload {
   }
 
   /// Where a named unit is installed: a directory for a tree, a file otherwise.
-  fn installed_dir(&self, name: &str) -> PathBuf {
+  ///
+  /// Public so a caller that needs one file inside an installed unit, as
+  /// [`crate::canon`]'s gate releaser step does, asks the payload rather than
+  /// re-deriving the layout.
+  pub fn installed_dir(&self, name: &str) -> PathBuf {
     match self.kind.shape() {
       Shape::Tree => self.target.join(name),
       Shape::SingleFile => self.target.join(format!("{name}.md")),

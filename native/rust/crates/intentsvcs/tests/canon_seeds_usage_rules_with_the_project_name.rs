@@ -21,6 +21,7 @@ fn a_seeded_usage_rules_carries_the_project_name_and_no_token() {
     &crate::common::ctx(),
     Some(&hooks),
     canon::Options::default(),
+    None,
   )
   .expect("canon apply");
 

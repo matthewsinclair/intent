@@ -11881,6 +11881,12 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
   // runs the same `canon::apply` with writes suppressed, and the verdicts are
   // the ones `--apply` would reach.
   let report = !m.get_flag("apply");
+  // Issue 0601 (a1): the machine's skills payload, through which canon puts the
+  // prompt gate's releaser on this machine before it wires the gate. Built by
+  // the one builder the `claude skills` verbs use; a machine where it cannot
+  // be built still takes the rest of canon, and says why the gate's releaser
+  // was not installed.
+  let skills = payload_lib(intentsvcs::payload::Kind::Skills);
   // Issue 0351: canon wrote the root files and the file index never learned of them, so a running daemon read them back as an edit.
   let upgraded = f
     .claude_upgrade(
@@ -11890,6 +11896,7 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
         skip_settings: m.get_flag("skip-settings"),
         report,
       },
+      skills.as_ref().ok(),
     )
     .map_err(fail)?;
   let applied = upgraded.applied;
@@ -11938,6 +11945,14 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
   for p in &applied.skipped {
     println!("skipped: {} (--skip-settings)", rel(root, p));
   }
+  // Issue 0601 (a1): the prompt gate's releaser, beside the settings line. It
+  // lives outside the project, so its line says so.
+  report_gate_releaser(
+    &applied,
+    skills.as_ref().err(),
+    m.get_flag("skip-settings"),
+    report,
+  );
   // Issue 0378: each generated-view pattern the formatter exclusion gained, named.
   for pattern in &upgraded.excluded {
     let verb = if report { "would exclude" } else { "excluded" };
@@ -12189,6 +12204,51 @@ fn payload_lib(kind: intentsvcs::payload::Kind) -> Result<intentsvcs::payload::P
     target,
     manifest,
   ))
+}
+
+/// The `claude upgrade` line for the prompt gate's releaser (issue `0601`,
+/// (a1)): what canon's step found or did, or why it could not run. Every
+/// outcome is named, as every other disposition in the report is.
+fn report_gate_releaser(
+  applied: &intentsvcs::canon::Applied,
+  unbuilt: Option<&Failure>,
+  skip_settings: bool,
+  report: bool,
+) {
+  use intentsvcs::canon::{GATE_SKILL, Releaser};
+  const REMEDY: &str = "`intent claude skills install in-session` installs it";
+  match &applied.releaser {
+    Some(Releaser::Present { dir }) => {
+      println!(
+        "unchanged: {} (the prompt gate's releaser, outside this project)",
+        dir.display()
+      );
+    }
+    Some(Releaser::Installed { dir }) => {
+      let verb = if report { "would install" } else { "installed" };
+      println!(
+        "{verb}: {} -- the skill whose /{GATE_SKILL} releases the prompt gate, outside this project",
+        dir.display()
+      );
+    }
+    Some(Releaser::Held { dir }) => println!(
+      "held: {} -- installed without its releaser, so the prompt gate passes every prompt here; `intent claude skills sync {GATE_SKILL}` brings it to canon",
+      dir.display()
+    ),
+    Some(Releaser::Failed { cause }) => println!(
+      "failed: the {GATE_SKILL} skill was not installed ({cause}), so the prompt gate passes every prompt on this machine -- {REMEDY}"
+    ),
+    None if !skip_settings && unbuilt.is_some() => {
+      let cause = match unbuilt {
+        Some(Failure::Error(text)) => text.lines().next().unwrap_or_default().to_string(),
+        _ => String::from("the skills directory could not be resolved"),
+      };
+      println!(
+        "failed: the {GATE_SKILL} skill could not be checked ({cause}), so the prompt gate may pass every prompt on this machine -- {REMEDY}"
+      );
+    }
+    None => {}
+  }
 }
 
 /// The positional names, for either kind -- `named_units` rather than

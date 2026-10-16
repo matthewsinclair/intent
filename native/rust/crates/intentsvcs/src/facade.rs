@@ -5821,11 +5821,14 @@ impl Facade {
   /// `intent claude upgrade` -- apply canon, then record in the file index
   /// what it wrote into the corpus the index covers, in one act (0351). A dry
   /// run writes nothing, so it records nothing. It also converges the
-  /// formatter exclusion and names each pattern it adds (0378).
+  /// formatter exclusion and names each pattern it adds (0378). `skills` is
+  /// the machine's skills payload, through which canon installs the prompt
+  /// gate's releaser when it is absent (0601); `None` installs nothing.
   pub fn claude_upgrade(
     &mut self,
     git_hooks: Option<&std::path::Path>,
     opts: crate::canon::Options,
+    skills: Option<&crate::payload::Payload>,
   ) -> Result<ClaudeUpgraded, FacadeError> {
     let home = crate::install::home()?;
     let ctx = RenderContext {
@@ -5839,6 +5842,7 @@ impl Facade {
       &ctx,
       git_hooks,
       opts,
+      skills,
     )
     .map_err(FacadeError::Canon)?;
     // Issue 0378: a consumer that took canon before the exclusion covered every generated view never received the rest, and no verb converged it.

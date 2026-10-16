@@ -119,6 +119,51 @@ const CLAUDE_MD_MARKER: &str = "lib/templates/llm/_CLAUDE.md";
 /// the door's ABSENCE holds exactly the file nobody here wrote.
 const SETTINGS_MARKER: &str = "intent claude hook";
 
+/// The skill whose script releases the prompt gate (issue `0601`).
+pub const GATE_SKILL: &str = "in-session";
+
+/// The releaser inside an installed [`GATE_SKILL`]: what `/in-session` runs to
+/// release the gate, and what the gate itself (`require-in-session.sh`) and
+/// `session-context.sh` look for under `$HOME/.claude/skills/`. The install
+/// step, doctor's advisory and the gate read this one path, so they cannot
+/// disagree about whether the gate can be released on this machine.
+pub const GATE_RELEASER: &str = "scripts/release-gate.sh";
+
+/// Where the releaser sits under a skills directory (`~/.claude/skills/`), for
+/// a caller with no [`crate::payload::Payload`] to ask, as doctor's advisory
+/// has none. A test pins it equal to the payload's own layout.
+pub fn releaser_under(skills_dir: &Path) -> PathBuf {
+  skills_dir.join(GATE_SKILL).join(GATE_RELEASER)
+}
+
+/// What a `.claude/settings.json` that wires the prompt gate carries.
+pub const GATE_HOOK: &str = "intent claude hook require-in-session";
+
+/// What [`apply`]'s gate releaser step found or did (issue `0601`, (a1)).
+///
+/// **THE STEP EXISTS BECAUSE THE SETTINGS FILE WIRES A COOPERATIVE GATE.** The
+/// gate blocks a session's first prompt until `/in-session` releases it, and
+/// before this step nothing `upgrade --apply` did put that skill on the
+/// machine, so a fresh user got a gate nothing in the session could release.
+/// The gate now fails open without its releaser (0601 (b)); this step is what
+/// makes the strict gate, hv's default for a fresh user, actually strict.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Releaser {
+  /// The releaser was already on this machine: nothing to do.
+  Present { dir: PathBuf },
+  /// [`GATE_SKILL`] was installed by this run -- or, under
+  /// [`Options::report`], would be.
+  Installed { dir: PathBuf },
+  /// [`GATE_SKILL`] is installed but carries no releaser -- an older copy or a
+  /// local change. **HELD, NEVER FORCED**, as `skills sync` and `uninstall`
+  /// treat a skill changed here; the gate fails open until it is brought to
+  /// canon.
+  Held { dir: PathBuf },
+  /// The install was attempted and did not leave a releaser. Reported, never
+  /// fatal: the rest of canon still applies, and the gate fails open.
+  Failed { cause: String },
+}
+
 /// The markers delimiting the project's OWN directives inside a generated
 /// `CLAUDE.md`.
 ///
@@ -239,6 +284,11 @@ pub struct Applied {
   /// anything at install time having said so. Recorded here so the caller can
   /// say it at the only moment the operator is looking.
   pub gate: Option<crate::install::GateResolution>,
+  /// The prompt gate's releaser step (issue `0601`, (a1)); `None` when the
+  /// step did not run: under `--skip-settings`, when the settings file that
+  /// will stand does not wire the gate, or when the caller passed no skills
+  /// payload (doctor's report-mode comparison does not install skills).
+  pub releaser: Option<Releaser>,
 }
 
 #[derive(Debug)]
@@ -783,6 +833,7 @@ pub fn apply(
   ctx: &RenderContext<'_>,
   git_hooks: Option<&Path>,
   opts: Options,
+  skills: Option<&crate::payload::Payload>,
 ) -> Result<Applied, CanonError> {
   let mut applied = Applied::default();
 
@@ -805,6 +856,24 @@ pub fn apply(
     || std::fs::read_to_string(&settings_path)
       .unwrap_or_default()
       .contains(SETTINGS_MARKER);
+  // 0. The gate's releaser, BEFORE the settings that wire the gate, so a run
+  //    never leaves the gate wired on a machine where nothing can release it
+  //    when the install could have prevented it. Only where the settings file
+  //    that will stand wires the gate: canon's template does, and a held file
+  //    is the project's own, so it is asked rather than assumed.
+  let wires_gate = if settings_is_ours {
+    true
+  } else {
+    std::fs::read_to_string(&settings_path)
+      .unwrap_or_default()
+      .contains(GATE_HOOK)
+  };
+  if !opts.skip_settings
+    && wires_gate
+    && let Some(skills) = skills
+  {
+    applied.releaser = Some(install_releaser(skills, opts.report));
+  }
   if opts.skip_settings {
     applied.skipped.push(settings_path);
   } else if !settings_is_ours {
@@ -1068,4 +1137,40 @@ fn make_executable(path: &Path) -> Result<(), CanonError> {
     })?;
   }
   Ok(())
+}
+
+/// Put the prompt gate's releaser on this machine when it is absent (issue
+/// `0601`, (a1)): `in-session` through the same installer `intent claude skills
+/// install` uses, so the manifest records it and `skills sync` and `uninstall`
+/// treat it as any other skill.
+///
+/// **NEVER FORCED.** An installed `in-session` without the releaser is held, not
+/// overwritten: whatever is there is the operator's, and `skills sync` is the
+/// door that reports a local change before taking the source copy.
+fn install_releaser(skills: &crate::payload::Payload, report: bool) -> Releaser {
+  let dir = skills.installed_dir(GATE_SKILL);
+  let releaser = dir.join(GATE_RELEASER);
+  if releaser.is_file() {
+    return Releaser::Present { dir };
+  }
+  if skills.is_installed(GATE_SKILL) {
+    return Releaser::Held { dir };
+  }
+  if report {
+    return Releaser::Installed { dir };
+  }
+  match skills.install(&[GATE_SKILL.to_string()], false) {
+    Err(e) => Releaser::Failed {
+      cause: e.to_string(),
+    },
+    Ok(_) if releaser.is_file() => Releaser::Installed { dir },
+    Ok(report) => Releaser::Failed {
+      cause: match report.steps.first().map(|step| &step.outcome) {
+        Some(crate::payload::Outcome::SourceMissing) => {
+          format!("the running Intent's canon carries no `{GATE_SKILL}` skill to install")
+        }
+        _ => format!("the install left no `{GATE_RELEASER}` in {}", dir.display()),
+      },
+    },
+  }
 }
