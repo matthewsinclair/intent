@@ -5,7 +5,7 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "499621e2-fc3c-4e68-95a3-009e5e8b84c4",
-    "heartbeat_at": "2026-10-16T18:24:51.462Z",
+    "heartbeat_at": "2026-10-16T20:21:48.340Z",
     "status": "active",
     "focus": "HOLDING 2026-10-16 after the 3.2.4 issue train: 0604, 0602, 0598 landed and closed (89bce6328, 35f173b28, d61f838a5), no open issues; hv's build all, daemon restart and push next; ST0083 WP-07 on hv's word after; no push, no release",
     "claims": [
@@ -1954,10 +1954,10 @@
       "node": "cc",
       "kind": "doing",
       "seq": 83,
-      "text": "RESUME (localfold 2026-10-16 18:2xZ for hv's compact). 3.2.4's issue train is LANDED: cc's 0604 at 89bce6328 (closed 2c58d6507), 0602 at 35f173b28 (closed dc0a1d607), 0598 at d61f838a5 (closed c99c00d25), after dc's 0599 and 0590; vc judged the five PASS on tree 42dfa90e2574; no open issues. hv's rulings: 0602 reverses 0218 for the empty shell (vc decision 64), 0598 retires CLAUDE.md's copy of the index (decision 64), CLAUDE_CONFIG_DIR read granted, confined to userstate.rs (decision 65). Banks at refs/bank/cc/324b/{0604,0602,0598} (v1 kept at -v1) and evidence under refs/bank/cc/324b/evidence/. NEXT, only after hv's build all, daemon restart and push, on hv's word: ST0083 (agent contracts lane, vc directs; WP-01, 02, 03 and 05 DONE, gate 7 of 14), each shape first and one bank each: WP-07 (Dropbox mark, shape accepted by vc), WP-04 (doctor), WP-06 (deinit); WP-08 LAST, its CHANGELOG lines composed on main's in both orders. tmp/wt-cc-0083 KEPT (detached at ba3babaea, own target, staged diff = refs/bank/cc/0083/wp05); rebase it to main before WP-07. tmp/wt-cc-324b, 0601a and 0601f CLEARED. ST0081 as it stands: WP-03 WIP until AC-03.3, WP-06 until AC-06.1, WP-01 and WP-02 wait on the push. STANDING: every Rust bank owes the intentd build, the workspace suites, CI's clippy, doc and fmt, and the shell half. NO PUSH, NO RELEASE.",
+      "text": "RESUME (localfold 2026-10-16 20:21Z for hv's compact; vc's ORDER of 20:19:50Z). ST0083 is at 13 of 14: WP-01 to WP-07 landed (WP-07 8b956d818 rec bc4871ded; WP-04 2c290c821 rec 068edd408; WP-06 11c1f9aea rec 6ab3899cf; AC-04.1 edit ff015c24d, AC-06.1 edit 321fce43b); AC-08.1 is left. ISSUE 0606 (high, filed ccfd78879: claude upgrade --apply overwrote the owner's keys in a marker-carrying .claude/settings.json) is FIXED AND BANKED UNJUDGED at refs/bank/cc/0083/0606 (blob 5238ff1c204a, sha256 628d26d06910, patch-id 2c22ce31f716, base ccfd78879, tree ea7444882931): strip_settings moved into canon, merge_settings, Applied::unparseable, 4 arms in intentsvcs/tests/claude_upgrade_merges_an_owners_settings.rs; vc accepted the shape; its judging window waits on vc's GO after the bounce (the script is judge-0606.sh in the scratchpad), then land, close 0606, and its CHANGELOG line rides WP-08. WP-08 (AC-08.1, docs only, vc's ORDER of 19:55Z standing) is DRAFTED AND BANKED at refs/bank/cc/0083/wp08-draft (a tar, blob 773c0a7fb6de, sha256 c597bea76fcd: wp08-docs.py, which edits the four docs and two skills and inserts the CHANGELOG lines; the Added and Fixed lines, 0606's included; the 3.2.4 release notes for docs/releases/3.2.4/RELEASE_NOTES.md): apply it to the worktree after 0606 lands, then prettier, doctor, the bats docs and skills arms, and a booked cargo run for no_skill_names_an_unshipped_verb and agents_sync_parity; dc's reference regen lands after. ST0081 WP-07 is done at ec6a29333 (ORDER 7b's kovacs drive in its body). tmp/wt-cc-0083 is kept at ccfd78879 with 0606's change staged, equal to its bank. hv's build all after the last Rust bank is hv's hand. No push, no release.",
       "state": "live",
       "recorded_at": "2026-10-15T10:11:04.499Z",
-      "edited_at": "2026-10-16T18:22:58.821Z"
+      "edited_at": "2026-10-16T20:21:39.040Z"
     }
   ],
   "messages": [
