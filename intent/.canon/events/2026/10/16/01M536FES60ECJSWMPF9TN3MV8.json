@@ -1,0 +1,15 @@
+{
+  "id": "01M536FES60ECJSWMPF9TN3MV8",
+  "ts": "2026-10-16T20:29:25.670Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-10-16 20:25Z, hv first-hand in prose to vc, cc and dc, each quoting it verbatim: \"Ok, continue. Push to get the release done. I'm afk for now.\"; wording vc's) THE DELEGATION OF DECISION 67 IS REAFFIRMED, AND \"PUSH\" IS \"PUSH ON\". Decision 3 holds unchanged: hv is AFK, so no tag, no prepare, no publish, no smoke and no outward push happen in this window, and vc drives 3.2.4 to CUT-READY and reports. The sequence stands: issue 0606's judge (cc, window open 20:25:30Z), its landing on vc's PASS, WP-08 and AC-08.1, vc's build all with intent daemon restart, dc's final cut-prep pass at that HEAD, the kovacs package build and drive on hv's hand, then the cut-ready report naming HEAD, the pair, the gate, the Ubuntu result and CI."
+  }
+}
