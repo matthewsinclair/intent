@@ -3,8 +3,8 @@ node: cc
 name: Control Claude
 role: control
 session_id: 499621e2-fc3c-4e68-95a3-009e5e8b84c4
-heartbeat_at: 2026-10-16 13:39Z
-status: active
+heartbeat_at: 2026-10-16 13:58Z
+status: paused
 focus: "LOCALFOLDED 2026-10-16 for hv's compact: 0601 closed ((a1) and fixup landed); resume ST0083 at WP-07 from doing 83; build all owed by hv; no push, no release"
 claims: [ST0081, ST0083]
 ---
