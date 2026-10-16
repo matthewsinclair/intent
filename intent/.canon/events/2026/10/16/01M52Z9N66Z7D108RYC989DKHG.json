@@ -1,0 +1,16 @@
+{
+  "id": "01M52Z9N66Z7D108RYC989DKHG",
+  "ts": "2026-10-16T18:23:55.590Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 50,
+    "text": "RESUME (vc, localfold 2026-10-16 ~18:25Z on hv's word 'project-wide localfold+compact, context is high'; Intent's cc, dc, vc folded, not released; hv compacts each and continues on the bounce). STATE: main HEAD carries 3.2.4's second train, landed and verified by patch-id (0599 ff266c7a9, 0590 4c6903d0b, 0604 89bce6328, 0602 35f173b28, 0598 d61f838a5, each closed in its own record commit) on top of the first train and 0601; no open issues; main is ahead of upstream by about 174 commits, none pushed; the installed pair and intentd read 23c8b038e, so the five fixes reach no session until hv's `bin/devbin build all` and `intent daemon restart`; the push follows that. hv's rulings this evening: decision 64 (0590 on issues alone, 0598 retire the copy, 0602 remove when empty) and decision 65 (CLAUDE_CONFIG_DIR granted, confined to userstate.rs). Evidence: refs/bank/vc/324b/judge-324c.sh and evidence/judge-324c.{log,log.test,log.bats}; cc's banks refs/bank/cc/324b/{0604,0602,0598} (v2, re-contexted; v1 kept at -v1) and evidence; dc's refs/bank/dc/324b/{0599,0590}. ON THE BOUNCE: /in-session, read inboxes; nothing heavy runs for Intent; the box has Utilz's Swift window (START 18:12Z, compiles from about 18:40Z, END from utilz-vc); hv's build all books through utilz-vc first. AFTER hv's build all: the sinclair-vc book signal (blob c03d21d900d0), kovacs's o5-at051 and o7-drive-b GOs with a census, devbin's two re-bookings, each when that session is on the bus (none was at 18:00Z); then cc's ST0083 WP-07, 04, 06, 08 on hv's word; then the globalfold (wip.md's DOING line on main's unbuilt content and the TODO for hv's hand are stale by the five). Standing: no push, no release, never --no-confirm, never intent fc; one heavy run at a time behind the census from the banked script; commit messages and long board texts from files."
+  }
+}
