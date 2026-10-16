@@ -175,6 +175,38 @@ pub enum FindingClass {
   /// it did nothing to earn it, and the store is per-machine, so a counted
   /// class would refuse commits over a state no commit can change.
   ProseIndexDuplicated,
+  /// An agent contract Intent generated sits in both layouts (ST0083 WP-04):
+  /// where the `contracts` key places it, and an Intent-generated copy in the
+  /// other.
+  ///
+  /// **COUNTED, BECAUSE TWO CONTRACTS DISAGREE BY CONSTRUCTION.** Only the
+  /// keyed copy is regenerated, so the stray goes stale while a tool that
+  /// reads the other place goes on reading it. A copy Intent did not generate
+  /// is not this class: Claude Code reads `.claude/CLAUDE.md` natively, so a
+  /// root-layout project may keep one of its own.
+  ContractsDoubled,
+  /// A `.claude/settings.json` canon holds (no Intent hook door) whose hook
+  /// command names a path that does not exist on this machine (ST0083 WP-04).
+  ///
+  /// **SHOWN AND NOT COUNTED, FOR `RootFileBehind`'s REASON**: the estates that
+  /// carry one are the v2.12 projects whose hooks named an absolute path on
+  /// the machine that wrote them, and they did nothing since to earn it.
+  SettingsHookMissing,
+  /// The config's `author` is empty or reads the placeholder `Author Unknown`
+  /// (ST0083 WP-04), so every record the project writes names nobody.
+  ///
+  /// **SHOWN AND NOT COUNTED, FOR `RootFileBehind`'s REASON**: every v2 estate
+  /// whose config carries the placeholder would have every commit refused the
+  /// day it upgrades.
+  AuthorPlaceholder,
+  /// A `.claude/scripts/*.sh` whose header names Intent and that no hook
+  /// command in `.claude/settings.json` or `.claude/settings.local.json`
+  /// references (ST0083 WP-04): a copy v2 wrote into the project, which v3
+  /// reads none of.
+  ///
+  /// **SHOWN AND NOT COUNTED, FOR `RootFileBehind`'s REASON**: the project
+  /// carries it from v2 rather than from anything done since.
+  HookScriptOrphaned,
   /// `intent/.cache` sits under a Dropbox folder and is not marked ignored by
   /// the client (ST0083 WP-07), so the client syncs a live store and its WAL
   /// to every device that shares the folder.
@@ -573,6 +605,26 @@ impl FindingClass {
         "dropbox-cache-unmarked",
         "run the command the finding names, from the project root: it sets the attributes the Dropbox client reads on `intent/.cache`, and the client then removes that directory from the server and from other devices, which is right for a store each machine rebuilds from committed canon. Not counted: the directory is per-machine, so no commit can change it",
       ),
+      Self::ContractsDoubled => (
+        6,
+        "contracts-doubled",
+        "remove the stray copy with the command the finding names, which takes git's tracking into account, and keep the one the `contracts` key reads. If the other layout is the one you meant, remove the keyed copy instead and then run `intent agents layout` naming that layout: it refuses to move a contract onto a file holding other bytes, so the keyed copy has to go first",
+      ),
+      Self::SettingsHookMissing => (
+        6,
+        "settings-hook-missing",
+        "point each hook command the finding names at a file that exists, or run `intent claude upgrade --apply --force`, which replaces `.claude/settings.json` with Intent's template and so discards every setting of your own in it -- copy those out first. Not counted: a v2.12 project's hooks named an absolute path on the machine that wrote them",
+      ),
+      Self::AuthorPlaceholder => (
+        6,
+        "author-placeholder",
+        "set `author` in `intent/.config/config.json` to the name the project's records should carry. Not counted: a project upgraded from v2 carries the placeholder rather than having done anything since",
+      ),
+      Self::HookScriptOrphaned => (
+        6,
+        "hook-script-orphaned",
+        "remove each file the finding names with the command it gives: v2 wrote these hook scripts into every project, v3 serves its hooks from the installed Intent and reads none of them, and no hook command here runs them. Not counted: the project carries them from v2 rather than from anything done since",
+      ),
       Self::ProseIndexDuplicated => (
         6,
         "prose-index-duplicated",
@@ -835,6 +887,9 @@ impl FindingClass {
         | Self::StoreTracked
         | Self::ProseIndexDuplicated
         | Self::DropboxCacheUnmarked
+        | Self::SettingsHookMissing
+        | Self::AuthorPlaceholder
+        | Self::HookScriptOrphaned
     )
   }
 
@@ -863,6 +918,9 @@ impl FindingClass {
           | Self::StoreTracked
           | Self::ProseIndexDuplicated
           | Self::DropboxCacheUnmarked
+          | Self::SettingsHookMissing
+          | Self::AuthorPlaceholder
+          | Self::HookScriptOrphaned
       )
   }
 

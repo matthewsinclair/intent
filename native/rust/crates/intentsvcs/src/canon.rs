@@ -106,6 +106,25 @@ fn opens_chain_block(line: &str) -> bool {
 /// by either tool reads the same to the other.
 const CLAUDE_MD_MARKER: &str = "lib/templates/llm/_CLAUDE.md";
 
+/// The footer a generated `AGENTS.md` carries, naming its template, read the
+/// way [`CLAUDE_MD_MARKER`] is.
+const AGENTS_MD_MARKER: &str = "lib/templates/llm/_AGENTS.md";
+
+/// Whether `text`, the bytes of the agent contract `name`, is one Intent
+/// generated: its footer names the template it came from.
+///
+/// **THE ONE ANSWER TO "IS THIS CONTRACT OURS"** (ST0083). Canon's consent
+/// check before regenerating `CLAUDE.md`, doctor's doubled-contract finding and
+/// `deinit`'s planner all ask it, so the footer is spelled once and the three
+/// cannot disagree about a file.
+pub fn is_generated_contract(name: &str, text: &str) -> bool {
+  match name {
+    "CLAUDE.md" => text.contains(CLAUDE_MD_MARKER),
+    "AGENTS.md" => text.contains(AGENTS_MD_MARKER),
+    _ => false,
+  }
+}
+
 /// **`.claude/settings.json`'s generated marker is Intent's own hook door.**
 ///
 /// JSON carries no comment, so there is no footer to look for the way
@@ -118,6 +137,66 @@ const CLAUDE_MD_MARKER: &str = "lib/templates/llm/_CLAUDE.md";
 /// report would say `held` while everybody assumed it had landed. Holding on
 /// the door's ABSENCE holds exactly the file nobody here wrote.
 const SETTINGS_MARKER: &str = "intent claude hook";
+
+/// Whether a `.claude/settings.json`'s text carries Intent's hook door, which
+/// is what makes it canon's to rewrite rather than the project's to keep.
+pub fn carries_hook_door(settings: &str) -> bool {
+  settings.contains(SETTINGS_MARKER)
+}
+
+/// Every hook command a Claude Code settings document wires, in document
+/// order: each `.hooks.<Event>[].hooks[].command` string.
+pub fn hook_commands(settings: &serde_json::Value) -> Vec<String> {
+  settings
+    .get("hooks")
+    .and_then(serde_json::Value::as_object)
+    .into_iter()
+    .flat_map(|events| events.values())
+    .filter_map(serde_json::Value::as_array)
+    .flatten()
+    .filter_map(|matcher| matcher.get("hooks")?.as_array())
+    .flatten()
+    .filter_map(|hook| hook.get("command")?.as_str())
+    .map(str::to_string)
+    .collect()
+}
+
+/// The filesystem paths a hook command names: each word that starts with `/`,
+/// `~/` or `$CLAUDE_PROJECT_DIR` (bare or braced), quotes removed, with `~`
+/// read as `home` and the variable as the project `root`.
+///
+/// **A WORD, NOT A PARSE OF THE SHELL.** The v2.12 form this exists for is one
+/// absolute script path, quoted or not; a command that builds a path at run
+/// time names none this can see, and is not reported.
+pub fn command_paths(command: &str, root: &Path, home: &Path) -> Vec<PathBuf> {
+  command
+    .split_whitespace()
+    .map(|word| word.replace(['"', '\''], ""))
+    .map(|word| word.trim_end_matches([';', ')']).to_string())
+    .filter_map(|word| {
+      for var in ["${CLAUDE_PROJECT_DIR}", "$CLAUDE_PROJECT_DIR"] {
+        if let Some(rest) = word.strip_prefix(var) {
+          return Some(root.join(rest.trim_start_matches('/')));
+        }
+      }
+      if let Some(rest) = word.strip_prefix("~/") {
+        return Some(home.join(rest));
+      }
+      word.starts_with('/').then(|| PathBuf::from(&word))
+    })
+    .collect()
+}
+
+/// Whether a shell script's header names Intent: the word in its first five
+/// lines, where every hook script v2 wrote into a project says what it is
+/// (`# session-context.sh -- Intent SessionStart hook`).
+pub fn names_intent(script: &str) -> bool {
+  script.lines().take(5).any(|line| {
+    line
+      .split(|c: char| !c.is_alphanumeric())
+      .any(|word| word == "Intent")
+  })
+}
 
 /// The skill whose script releases the prompt gate (issue `0601`).
 pub const GATE_SKILL: &str = "in-session";
@@ -853,9 +932,7 @@ pub fn apply(
   // `--skip-settings` both decide without it.
   let settings_is_ours = opts.force
     || !settings_path.exists()
-    || std::fs::read_to_string(&settings_path)
-      .unwrap_or_default()
-      .contains(SETTINGS_MARKER);
+    || carries_hook_door(&std::fs::read_to_string(&settings_path).unwrap_or_default());
   // 0. The gate's releaser, BEFORE the settings that wire the gate, so a run
   //    never leaves the gate wired on a machine where nothing can release it
   //    when the install could have prevented it. Only where the settings file
@@ -931,7 +1008,7 @@ pub fn apply(
     // (`init.rs`, `Generated("AGENTS.md")`).
     if name == "CLAUDE.md" && dest.exists() && !opts.force {
       let current = std::fs::read_to_string(&dest).unwrap_or_default();
-      if !current.contains(CLAUDE_MD_MARKER) {
+      if !is_generated_contract(name, &current) {
         applied.held.push(dest);
         continue;
       }

@@ -127,6 +127,8 @@ mod default_declaration_help;
 mod dispatch_ssot;
 #[path = "doctor_advisory_summary.rs"]
 mod doctor_advisory_summary;
+#[path = "doctor_reads_layouts_settings_author_and_v2_scripts.rs"]
+mod doctor_reads_layouts_settings_author_and_v2_scripts;
 #[path = "edit_and_browse_reach_one_model.rs"]
 mod edit_and_browse_reach_one_model;
 #[path = "edit_answers_about_the_entity_you_named.rs"]

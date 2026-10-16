@@ -129,6 +129,8 @@ mod canon_holds_a_settings_file_it_did_not_write;
 mod canon_installs_the_gate_releaser;
 #[path = "canon_preserves_what_it_did_not_write.rs"]
 mod canon_preserves_what_it_did_not_write;
+#[path = "canon_reads_hook_commands.rs"]
+mod canon_reads_hook_commands;
 #[path = "canon_relocation.rs"]
 mod canon_relocation;
 #[path = "canon_relocation_roundtrip.rs"]

@@ -626,6 +626,16 @@ fn examine(
   // a `CLAUDE.md` worth comparing (issue `0496`).
   report.findings.extend(root_file_findings(project, ctx));
   report.findings.extend(gate_release_findings(project));
+  // ST0083 WP-04, beside the root files and for their reason: each is a fact
+  // about files at the project root, and a store that will not open has them.
+  report.findings.extend(contracts_doubled_findings(project));
+  report
+    .findings
+    .extend(settings_hook_missing_finding(project));
+  report.findings.extend(author_placeholder_finding(project));
+  report
+    .findings
+    .extend(hook_script_orphaned_findings(project));
 
   let canon = match crate::ingest::read(project) {
     Ok(canon) => canon,
@@ -2549,6 +2559,174 @@ fn dropbox_cache_finding(project: &Project) -> Option<Finding> {
     )),
     Err(cause) => unread(cause),
   }
+}
+
+/// The command that removes `rel` from the project: `git rm` when git tracks
+/// it, `rm` when it does not.
+fn removal_command(root: &std::path::Path, rel: &str) -> String {
+  if is_tracked(root, std::path::Path::new(rel)) {
+    format!("git rm {rel}")
+  } else {
+    format!("rm {rel}")
+  }
+}
+
+/// An agent contract Intent generated, in both layouts (ST0083 WP-04,
+/// AC-04.1): one counted finding per contract, on the stray copy.
+///
+/// **THE STRAY COUNTS ONLY WHEN CANON'S ONE PREDICATE READS IT AS OURS**
+/// ([`crate::canon::is_generated_contract`]): Claude Code reads
+/// `.claude/CLAUDE.md` natively, so a root-layout project may keep one of its
+/// own, and counting it would refuse that project's commits.
+fn contracts_doubled_findings(project: &Project) -> Vec<Finding> {
+  use crate::project::Contracts;
+  let root = project.root();
+  let keyed = project.config().contracts;
+  let (keyed_name, other, other_name) = match keyed {
+    Contracts::Root => ("root", Contracts::Dotclaude, "dotclaude"),
+    Contracts::Dotclaude => ("dotclaude", Contracts::Root, "root"),
+  };
+  ["AGENTS.md", "CLAUDE.md"]
+    .into_iter()
+    .filter_map(|name| {
+      let kept = sync::root_file_path(name, keyed);
+      let stray = sync::root_file_path(name, other);
+      if !root.join(&kept).is_file() {
+        return None;
+      }
+      let text = std::fs::read_to_string(root.join(&stray)).ok()?;
+      if !crate::canon::is_generated_contract(name, &text) {
+        return None;
+      }
+      let (kept, stray) = (kept.display().to_string(), stray.display().to_string());
+      Some(Finding::new(
+        stray.clone(),
+        FindingClass::ContractsDoubled,
+        format!(
+          "{name} is at {kept}, which the `contracts` key ({keyed_name}) reads, and an Intent-generated copy is also at {stray}, which nothing regenerates; `{}` removes the stray, or, if the {other_name} layout is the one meant, remove {kept} and run `intent agents layout {other_name}`",
+          removal_command(root, &stray)
+        ),
+      ))
+    })
+    .collect()
+}
+
+/// A `.claude/settings.json` canon holds whose hook commands name paths that
+/// do not exist on this machine (ST0083 WP-04, AC-04.2): one finding naming
+/// each missing path. A file canon owns is not this check's: canon rewrites it.
+/// A file that does not parse is said as an advisory, never read as clean.
+fn settings_hook_missing_finding(project: &Project) -> Option<Finding> {
+  let root = project.root();
+  let rel = ".claude/settings.json";
+  let text = std::fs::read_to_string(root.join(rel)).ok()?;
+  if crate::canon::carries_hook_door(&text) {
+    return None;
+  }
+  let settings: serde_json::Value = match serde_json::from_str(&text) {
+    Ok(settings) => settings,
+    Err(cause) => {
+      return Some(Finding::new(
+        rel,
+        FindingClass::Advisory,
+        format!("its hook commands were not read, because it does not parse as JSON: {cause}"),
+      ));
+    }
+  };
+  let home = crate::userstate::home().ok()?;
+  let missing: Vec<String> = crate::canon::hook_commands(&settings)
+    .iter()
+    .flat_map(|command| crate::canon::command_paths(command, root, &home))
+    .filter(|path| !path.exists())
+    .map(|path| path.display().to_string())
+    .collect();
+  if missing.is_empty() {
+    return None;
+  }
+  Some(Finding::new(
+    rel,
+    FindingClass::SettingsHookMissing,
+    format!(
+      "Intent does not manage this file (it carries no `intent claude hook`), and its hook commands name {} that do not exist on this machine, so Claude Code runs a hook that cannot start: {}",
+      if missing.len() == 1 {
+        "a path"
+      } else {
+        "paths"
+      },
+      missing.join(", ")
+    ),
+  ))
+}
+
+/// The config's `author` empty or the placeholder `Author Unknown` (ST0083
+/// WP-04, AC-04.3), naming the field and the file.
+fn author_placeholder_finding(project: &Project) -> Option<Finding> {
+  let author = project.config().author.trim();
+  let what = match author {
+    "" => "is empty".to_string(),
+    "Author Unknown" => format!("reads the placeholder \"{author}\""),
+    _ => return None,
+  };
+  let file = project.relative(&Project::config_path(project.root()));
+  Some(Finding::new(
+    file.clone(),
+    FindingClass::AuthorPlaceholder,
+    format!("`author` in {file} {what}, so the records this project writes name nobody"),
+  ))
+}
+
+/// Each `.claude/scripts/*.sh` whose header names Intent and that no hook
+/// command references (ST0083 WP-04, AC-04.4): one finding per file, with the
+/// command that removes it. A settings file that does not parse leaves the
+/// question open, so it is said as an advisory rather than every script being
+/// read as unreferenced.
+fn hook_script_orphaned_findings(project: &Project) -> Vec<Finding> {
+  let root = project.root();
+  let Ok(entries) = std::fs::read_dir(root.join(".claude/scripts")) else {
+    return Vec::new();
+  };
+  let mut scripts: Vec<String> = entries
+    .filter_map(Result::ok)
+    .map(|entry| entry.file_name().to_string_lossy().into_owned())
+    .filter(|name| name.ends_with(".sh"))
+    .filter(|name| {
+      std::fs::read_to_string(root.join(".claude/scripts").join(name))
+        .is_ok_and(|text| crate::canon::names_intent(&text))
+    })
+    .collect();
+  if scripts.is_empty() {
+    return Vec::new();
+  }
+  scripts.sort();
+  let mut commands = Vec::new();
+  for rel in [".claude/settings.json", ".claude/settings.local.json"] {
+    let Ok(text) = std::fs::read_to_string(root.join(rel)) else {
+      continue;
+    };
+    match serde_json::from_str::<serde_json::Value>(&text) {
+      Ok(settings) => commands.extend(crate::canon::hook_commands(&settings)),
+      Err(cause) => {
+        return vec![Finding::new(
+          rel,
+          FindingClass::Advisory,
+          format!(
+            "whether the Intent hook scripts in .claude/scripts/ are still run was not read, because this file does not parse as JSON: {cause}"
+          ),
+        )];
+      }
+    }
+  }
+  scripts
+    .into_iter()
+    .filter(|name| !commands.iter().any(|command| command.contains(name.as_str())))
+    .map(|name| {
+      let rel = format!(".claude/scripts/{name}");
+      let detail = format!(
+        "a hook script v2 wrote, whose header names Intent and which no hook command in .claude/settings.json or .claude/settings.local.json runs; `{}` removes it",
+        removal_command(root, &rel)
+      );
+      Finding::new(rel, FindingClass::HookScriptOrphaned, detail)
+    })
+    .collect()
 }
 
 fn git_succeeds(root: &std::path::Path, args: &[&str]) -> bool {
