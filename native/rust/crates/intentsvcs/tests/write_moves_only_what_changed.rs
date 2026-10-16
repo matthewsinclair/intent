@@ -322,6 +322,17 @@ fn shipped_mutators() -> Vec<String> {
 /// unproven one.
 const COVERED_ELSEWHERE: &[(&str, &str)] = &[
   (
+    "deinit",
+    "intent-cli/tests/deinit_strips_what_intent_wrote.rs and intentsvcs/tests/deinit_plan.rs -- \
+     **IT WRITES NO PROJECTED ESTATE AT ALL**: what it removes and edits are the files Intent laid \
+     around the estate (the contracts, the seeds, the settings, the git hooks), and `--all` removes \
+     the estate whole, so `did the projected estate move` has no answer to give. What it can be \
+     wrong about is touching a byte a person wrote, which is what the arms hold: the dry run leaves \
+     the tree's bytes unchanged, a foreign hook line survives byte for byte, a hand-written contract \
+     and an edited seed are kept, the owner's settings key outlives the surgery, and a file that \
+     moved after the plan is refused.",
+  ),
+  (
     "export",
     "intent-cli/tests/export_md_accepted.rs -- `the_realisation_is_written_under_backup_text` drives \
      `--format md` and asserts the files it realises under `intent/.backup/text/<stamp>/`. \

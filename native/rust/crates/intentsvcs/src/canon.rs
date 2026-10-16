@@ -262,6 +262,26 @@ pub enum Releaser {
 const USER_START: &str = "<!-- user:start -->";
 const USER_END: &str = "<!-- user:end -->";
 
+/// Whether a `CLAUDE.md`'s user block holds nothing a person wrote: only
+/// whitespace and HTML comments between the markers, as the template seeds it,
+/// or no block at all (ST0083 WP-06).
+pub fn user_block_is_empty(text: &str) -> bool {
+  let Some((start, end)) = user_block_span(text) else {
+    return true;
+  };
+  let mut rest = &text[start..end];
+  let mut kept = String::new();
+  while let Some(open) = rest.find("<!--") {
+    kept.push_str(&rest[..open]);
+    rest = match rest[open..].find("-->") {
+      Some(close) => &rest[open + close + 3..],
+      None => "",
+    };
+  }
+  kept.push_str(rest);
+  kept.trim().is_empty()
+}
+
 /// The span strictly between the two markers, as byte offsets.
 ///
 /// Offsets rather than lines so the carried text goes back byte for byte,
@@ -527,6 +547,61 @@ pub fn lines_outside_chain_block(text: &str) -> Vec<(usize, &str)> {
   out
 }
 
+/// Whether a trimmed hook line is preamble: the shebang, a blank line, or shell
+/// discipline (`set -e`). The chain block goes after it, and a hook that is
+/// nothing else once its block is cut carries nothing of the project's.
+fn is_preamble(trimmed: &str) -> bool {
+  trimmed.starts_with("#!")
+    || trimmed.is_empty()
+    || trimmed.starts_with("set -")
+    || trimmed.starts_with("set +")
+}
+
+/// Every git hook canon puts a chain block in: the gate and the post-pull
+/// hooks, in the order [`apply`] wires them.
+pub fn chained_hooks() -> [&'static str; 4] {
+  let [a, b, c] = POST_PULL_HOOKS;
+  ["pre-commit", a, b, c]
+}
+
+/// The carrier `hook`'s chain block calls: `<hook>.intent` beside the hook.
+pub fn carrier_name(hook: &str) -> String {
+  format!("{hook}.intent")
+}
+
+/// The template a hook's carrier is written from.
+pub fn carrier_artefact(hook: &str) -> Artefact {
+  if hook == "pre-commit" {
+    Artefact::PreCommitCarrier
+  } else {
+    Artefact::PostPullCarrier
+  }
+}
+
+/// `existing` with its one chain block cut out, markers included, and every
+/// other byte kept; `None` when there is no block, or when
+/// [`chain_block_held`] says the block is not one to touch (ST0083 WP-06).
+pub fn cut_chain_block(existing: &str) -> Option<String> {
+  if chain_block_held(existing).is_some() {
+    return None;
+  }
+  let lines: Vec<&str> = existing.split_inclusive('\n').collect();
+  let start = lines.iter().position(|line| opens_chain_block(line))?;
+  let end = (start..lines.len()).find(|&i| lines[i].trim() == CHAIN_END)?;
+  // **THE ONE BLANK LINE [`insert_chain_block`] PUTS AFTER THE BLOCK GOES WITH
+  // IT**, so a cut hook reads as it did before canon wired it.
+  let after = match lines.get(end + 1) {
+    Some(line) if line.trim().is_empty() => end + 2,
+    _ => end + 1,
+  };
+  Some(lines[..start].concat() + &lines[after..].concat())
+}
+
+/// Whether a hook's text is preamble alone, so nothing in it is the project's.
+pub fn is_only_preamble(text: &str) -> bool {
+  text.lines().all(|line| is_preamble(line.trim()))
+}
+
 /// Insert `hook`'s chain block into that hook's existing text, or bring a block
 /// already there to canon's form.
 ///
@@ -559,7 +634,7 @@ pub fn insert_chain_block(hook: &str, existing: &str) -> Option<String> {
       // **COMMENTS ARE NOT PREAMBLE, DELIBERATELY.** v2 skipped them too, and a
       // hook whose header comment explains what the hook does would otherwise
       // get the block wedged between the explanation and the code it explains.
-      if t.starts_with("#!") || t.is_empty() || t.starts_with("set -") || t.starts_with("set +") {
+      if is_preamble(t) {
         out.push_str(line);
         out.push('\n');
         continue;
@@ -690,6 +765,60 @@ fn write_if_changed(
 
 /// A template to seed and what renders it: the install it is read from, its
 /// path there, and the project's config and render context for its tokens.
+/// The files canon lays down from a template, each naming its template once.
+///
+/// **THE ONE HOME OF EACH TEMPLATE'S PATH** (ST0083 WP-06): canon writes from
+/// it and `deinit` compares against it, so the two cannot come to disagree
+/// about which bytes are Intent's.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Artefact {
+  /// `.claude/settings.json`, written whole.
+  Settings,
+  /// `.mcp.json`, seeded when absent.
+  Mcp,
+  /// `usage-rules.md`, seeded when absent.
+  UsageRules,
+  /// `.intent_critic.yml`, seeded when absent.
+  CriticConfig,
+  /// `<hooks>/pre-commit.intent`, the gate's carrier.
+  PreCommitCarrier,
+  /// `<hooks>/<hook>.intent` for each post-pull hook.
+  PostPullCarrier,
+}
+
+impl Artefact {
+  /// The template's path under the install's `lib/templates/`.
+  fn rel(self) -> &'static str {
+    match self {
+      Self::Settings => ".claude/settings.json",
+      Self::Mcp => "_mcp.json",
+      Self::UsageRules => "llm/_usage-rules.md",
+      Self::CriticConfig => "_intent_critic.yml",
+      Self::PreCommitCarrier => "hooks/pre-commit-shim.sh",
+      Self::PostPullCarrier => "hooks/post-pull.sh",
+    }
+  }
+}
+
+/// The bytes canon writes for `artefact` in this project: a seed rendered
+/// through `seed_body`, anything else the template as it stands.
+pub fn canon_bytes(
+  artefact: Artefact,
+  home: &Path,
+  cfg: &Config,
+  ctx: &RenderContext<'_>,
+) -> Result<String, CanonError> {
+  match artefact {
+    Artefact::Mcp | Artefact::UsageRules | Artefact::CriticConfig => seed_body(&Template {
+      home,
+      rel: artefact.rel(),
+      cfg,
+      ctx,
+    }),
+    _ => template(home, artefact.rel()),
+  }
+}
+
 struct Template<'a> {
   home: &'a Path,
   rel: &'a str,
@@ -807,7 +936,7 @@ pub fn relayout(
   if target == Contracts::Dotclaude && root.join(&usage_rules).is_file() {
     let seed = seed_body(&Template {
       home,
-      rel: "llm/_usage-rules.md",
+      rel: Artefact::UsageRules.rel(),
       cfg,
       ctx,
     })?;
@@ -958,7 +1087,7 @@ pub fn apply(
     // lifecycle hook would otherwise look identical to one with nothing to do.
     applied.held.push(settings_path);
   } else {
-    let settings = template(home, ".claude/settings.json")?;
+    let settings = template(home, Artefact::Settings.rel())?;
     write_if_changed(&settings_path, &settings, opts.report, &mut applied)?;
   }
 
@@ -981,7 +1110,7 @@ pub fn apply(
     seed_if_absent(
       Template {
         home,
-        rel: "_mcp.json",
+        rel: Artefact::Mcp.rel(),
         cfg,
         ctx,
       },
@@ -1035,7 +1164,7 @@ pub fn apply(
     seed_if_absent(
       Template {
         home,
-        rel: "llm/_usage-rules.md",
+        rel: Artefact::UsageRules.rel(),
         cfg,
         ctx,
       },
@@ -1052,7 +1181,7 @@ pub fn apply(
   seed_if_absent(
     Template {
       home,
-      rel: "_intent_critic.yml",
+      rel: Artefact::CriticConfig.rel(),
       cfg,
       ctx,
     },
@@ -1134,8 +1263,8 @@ fn install_post_pull_carrier(
   report: bool,
   applied: &mut Applied,
 ) -> Result<(), CanonError> {
-  let carrier = hooks.join(format!("{hook}.intent"));
-  let body = template(home, "hooks/post-pull.sh")?;
+  let carrier = hooks.join(carrier_name(hook));
+  let body = template(home, Artefact::PostPullCarrier.rel())?;
   write_if_changed(&carrier, &body, report, applied)?;
   if report {
     return Ok(());
@@ -1178,8 +1307,8 @@ fn install_carrier(
   report: bool,
   applied: &mut Applied,
 ) -> Result<(), CanonError> {
-  let carrier = hooks.join("pre-commit.intent");
-  let shim = template(home, "hooks/pre-commit-shim.sh")?;
+  let carrier = hooks.join(carrier_name("pre-commit"));
+  let shim = template(home, Artefact::PreCommitCarrier.rel())?;
   write_if_changed(&carrier, &shim, report, applied)?;
   // **ASKED AT INSTALL TIME BECAUSE THE ALTERNATIVE IS ASKING AT COMMIT TIME.**
   // The carrier is a shim: it does nothing except resolve this pointer and exec

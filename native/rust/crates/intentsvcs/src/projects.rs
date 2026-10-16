@@ -175,6 +175,26 @@ impl Registry {
     (!added.is_empty()).then_some((next, added))
   }
 
+  /// This registry without each listed entry whose root is one of `roots`, and
+  /// the roots that were removed. `None` when none of them was listed.
+  pub fn without_roots(&self, roots: &[PathBuf]) -> Option<(Registry, Vec<PathBuf>)> {
+    let mut next = self.clone();
+    let mut removed = Vec::new();
+    next.projects.retain(|entry| {
+      let Some(root) = entry.get("root").and_then(Value::as_str).map(PathBuf::from) else {
+        return true;
+      };
+      if !roots.contains(&root) {
+        return true;
+      }
+      if !removed.contains(&root) {
+        removed.push(root);
+      }
+      false
+    });
+    (!removed.is_empty()).then_some((next, removed))
+  }
+
   /// The document's text: two-space JSON with a trailing newline, so an
   /// operator's editor and this build write the same shape.
   pub fn render(&self) -> String {
@@ -219,17 +239,37 @@ pub fn load(path: &Path) -> Result<Registry, ProjectsError> {
 /// Add each of `roots` the registry at `path` does not list, returning the ones
 /// added. The roots are stored as given, so the caller passes canonical ones:
 /// intentd keys projects by canonical root, and a second spelling of one project
-/// would list it twice.
+/// would list it twice. Written through `rewrite`, the file's one writer.
+pub fn add(
+  path: &Path,
+  roots: &[PathBuf],
+  added_by: AddedBy,
+) -> Result<Vec<PathBuf>, ProjectsError> {
+  rewrite(path, |registry| registry.with_roots(roots, added_by))
+}
+
+/// Remove each of `roots` the registry at `path` lists, returning the ones
+/// removed (ST0083 WP-06, `intent deinit --all`). The roots are compared as
+/// given, so the caller passes canonical ones, as [`add`] stores them.
+pub fn remove(path: &Path, roots: &[PathBuf]) -> Result<Vec<PathBuf>, ProjectsError> {
+  if !path.exists() {
+    return Ok(Vec::new());
+  }
+  rewrite(path, |registry| registry.without_roots(roots))
+}
+
+/// Apply `change` to the registry at `path` and write the result, returning
+/// the roots it reports. **THE ONE WRITER OF THE FILE**, for [`add`] and
+/// [`remove`] alike.
 ///
 /// **THE WRITE IS A RENAME, AND IT CHECKS THE FILE DID NOT MOVE UNDER IT.** A
 /// temporary file beside the registry is renamed over it, so a reader never sees
 /// half a document. If the file changed between the read and the rename,
 /// another writer got there first, so this re-reads and re-applies its one
 /// change rather than overwriting theirs.
-pub fn add(
+fn rewrite(
   path: &Path,
-  roots: &[PathBuf],
-  added_by: AddedBy,
+  change: impl Fn(&Registry) -> Option<(Registry, Vec<PathBuf>)>,
 ) -> Result<Vec<PathBuf>, ProjectsError> {
   let unwritable = |at: &Path, cause| ProjectsError::Unwritable {
     path: at.to_path_buf(),
@@ -247,7 +287,7 @@ pub fn add(
         schema: registry.schema(),
       });
     }
-    let Some((next, added)) = registry.with_roots(roots, added_by) else {
+    let Some((next, changed)) = change(&registry) else {
       return Ok(Vec::new());
     };
     if let Some(dir) = path.parent() {
@@ -260,7 +300,7 @@ pub fn add(
       continue;
     }
     std::fs::rename(&temporary, path).map_err(|cause| unwritable(path, cause))?;
-    return Ok(added);
+    return Ok(changed);
   }
   Err(ProjectsError::Contended {
     path: path.to_path_buf(),

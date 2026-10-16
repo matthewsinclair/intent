@@ -123,6 +123,8 @@ mod daemon_status_answers_a_machine;
 mod declared_values_are_enforced;
 #[path = "default_declaration_help.rs"]
 mod default_declaration_help;
+#[path = "deinit_strips_what_intent_wrote.rs"]
+mod deinit_strips_what_intent_wrote;
 #[path = "dispatch_ssot.rs"]
 mod dispatch_ssot;
 #[path = "doctor_advisory_summary.rs"]

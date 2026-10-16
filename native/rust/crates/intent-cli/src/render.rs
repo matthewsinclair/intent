@@ -85,6 +85,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("organize", m)) => organize(m),
     Some(("explore", m)) => explore(m.get_one::<String>("address").map(String::as_str)),
     Some(("discover", m)) => discover(m),
+    Some(("deinit", m)) => deinit(m),
     Some(("upgrade", _)) => upgrade(),
     Some(("bootstrap", m)) => bootstrap(m),
     Some(("init", m)) => init(m),
@@ -5800,6 +5801,98 @@ fn discover(m: &ArgMatches) -> Result<(), Failure> {
     found.refused.len(),
     registry.display()
   );
+  Ok(())
+}
+
+/// `intent deinit [--apply] [--all]` (ST0083 WP-06): what Intent wrote into
+/// this project, listed, and with `--apply` removed or edited.
+///
+/// **NO STORE IS OPENED, SO NO ENGINE.** The plan reads files and the
+/// templates; `--all` removes the store with `intent/`, and refuses while a
+/// daemon watches this tree, by the predicate the engine door asks.
+fn deinit(m: &ArgMatches) -> Result<(), Failure> {
+  use intentsvcs::deinit::{self, Act};
+  // An unmigrated project is refused by the door `lang` and `modules` share:
+  // what deinit could prove Intent's is read through a project v3 can open.
+  let project = migrated_project()?;
+  let root = project.root().to_path_buf();
+  let all = m.get_flag("all");
+  if all && watched_by_a_daemon(&root)? {
+    return Err(Failure::Error(
+      "error: intentd is watching this project's tree, and `deinit --all` removes the store it is ingesting into\n  remedy: stop the daemon process and run again; `intent deinit` without `--all` leaves the store alone and can run beside it".to_string(),
+    ));
+  }
+  let install = intentsvcs::install::home().map_err(|e| Failure::Error(e.render()))?;
+  let registry = if all {
+    Some(intentsvcs::userstate::project_registry().map_err(|e| Failure::Error(e.render()))?)
+  } else {
+    None
+  };
+  let hooks = intentsvcs::canon::hooks_dir(&root);
+  let ctx = intentsvcs::views::RenderContext {
+    version: env!("CARGO_PKG_VERSION"),
+    todo_watermark: None,
+  };
+  let scope = deinit::Scope {
+    project: &project,
+    install: &install,
+    hooks: hooks.as_deref(),
+    ctx: &ctx,
+    all: registry.as_deref(),
+  };
+  let plan = deinit::plan(&scope).map_err(|e| Failure::Error(e.render()))?;
+  let shown = |path: &Path| intentsvcs::project::relative(&root, path);
+  let apply = m.get_flag("apply");
+  let line = |act: &Act| match act {
+    Act::Remove { path, why, .. } | Act::RemoveTree { path, why } => {
+      let verb = if apply { "removed" } else { "would remove" };
+      format!("{verb}: {} ({why})", shown(path))
+    }
+    Act::Rewrite { path, why, .. } => {
+      let verb = if apply { "edited" } else { "would edit" };
+      format!("{verb}: {} ({why})", shown(path))
+    }
+    Act::Unregister { registry, root } => {
+      let verb = if apply {
+        "unregistered"
+      } else {
+        "would unregister"
+      };
+      format!("{verb}: {} from {}", root.display(), registry.display())
+    }
+  };
+  let report_kept = || {
+    for kept in &plan.kept {
+      println!("kept: {} ({})", shown(&kept.path), kept.why);
+    }
+  };
+  if !apply {
+    for act in &plan.acts {
+      println!("{}", line(act));
+    }
+    report_kept();
+    println!(
+      "done: dry run, {} to act on and {} kept; nothing was written -- `intent deinit --apply{}` does it",
+      plan.acts.len(),
+      plan.kept.len(),
+      if all { " --all" } else { "" }
+    );
+    return Ok(());
+  }
+  // Each act is printed as it lands, so a refusal part way names what was
+  // already done above the error rather than leaving it to be guessed.
+  let mut done = 0;
+  for act in &plan.acts {
+    let one = deinit::Plan {
+      acts: vec![act.clone()],
+      kept: Vec::new(),
+    };
+    deinit::apply(&one).map_err(|e| Failure::Error(e.render()))?;
+    println!("{}", line(act));
+    done += 1;
+  }
+  report_kept();
+  println!("done: {done} acted on, {} kept", plan.kept.len());
   Ok(())
 }
 

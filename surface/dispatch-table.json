@@ -10202,6 +10202,54 @@
       }
     },
     {
+      "path": "deinit",
+      "help": "Strip what Intent wrote from a project being closed -- a dry run unless --apply",
+      "args": [],
+      "flags": [
+        {
+          "spellings": [
+            "--apply"
+          ],
+          "type": "bool",
+          "help": "Remove and edit what the dry run lists; without it nothing is written",
+          "disposition": "keep"
+        },
+        {
+          "spellings": [
+            "--all"
+          ],
+          "type": "bool",
+          "help": "Also remove intent/ with the store, and this project's row in the project registry",
+          "disposition": "keep"
+        }
+      ],
+      "observed": {
+        "exit": [
+          {
+            "code": 0,
+            "when": "the dry run listed what it would do and wrote nothing, or --apply did every act it planned; a file kept because Intent cannot prove it wrote it is a result, not a refusal"
+          },
+          {
+            "code": 1,
+            "when": "--all while a daemon watches this tree, refused before anything is planned; or a file changed after it was planned, or could not be removed, named with what was already done"
+          }
+        ],
+        "stdout": "`would remove: <path> (<why>)`, `would edit: <path> (<why>)` and `kept: <path> (<why>)` per file in the dry run, or `removed:` and `edited:` under --apply, then a `done:` line counting each",
+        "stderr": "`error: ...` on stderr (INV-01)"
+      },
+      "v2": "new-surface",
+      "basis": "hv, 2026-10-15 (ST0083 ruling 5, WP-06, AC-06.1): a project being closed loses what Intent wrote and keeps what its people wrote. vc's decision 66 under hv's pen: .claude/settings.json and .mcp.json are edited rather than deleted, losing only Intent's entries; usage-rules.md and .intent_critic.yml go only when byte-identical to their seeds; --all also removes the project's registry row.",
+      "owner_wp": "ST0083 WP-06",
+      "disposition": "new-surface",
+      "read_or_mutate": "mutate",
+      "recoverability": "one-way",
+      "exposed_on_mcp": false,
+      "acceptance": "ST0083 AC-06.1",
+      "target": {
+        "state": "new-surface"
+      }
+    },
+    {
       "path": "help",
       "help": "Show usage for Intent",
       "args": [],
@@ -10511,8 +10559,8 @@
     {
       "disposition": "new-surface",
       "target_state": "new-surface",
-      "n": 82,
-      "census_note": "82 since 2026-10-15: `agents layout`, the door that moves the two agent contracts between the root and .claude/ and sets the contracts key (ST0083 WP-03); 81 since 2026-09-23: `wb edit`, the door that changes an item's text and keeps the old text out of any commit that does not hold it yet (issue 0523); 80 since 2026-09-21: `outstanding`, one table of the outstanding threads, work packages and issues (ST0079); 79 since 2026-09-21: `st relate` and `st unrelate`, the only doors to a thread's `related` links (issue 0460); 77 since 2026-09-18: `st renumber` and `issues renumber`, the verbs that move a thread or an issue to a free id after two clones minted the same one (ST0078 WP-02); 75 since 2026-09-17: `index resolve`, the verb that runs each language's toolchain over the project and stores the references that join a written one (ST0076 WP-05, vc decision 25); 74 since 2026-09-14: `st detach`, the verb that removes an attachment's record from the store and canon and leaves its file on disk (issue 0394); 73 earlier the same day: `wp gate`, the work package's own close-gate verdict (issue 0310); 72 earlier the same day: `daemon logs`, the verb Intent.app's Console tails, printing intentd's recent log lines and following them with `--follow` (ST0075 WP-01 AC-01.1); 71 since 2026-09-13: `discover`, the verb that finds Intent projects under a directory and registers the ones this build can serve (ST0074 WP-03 AC-03.3); 70 since 2026-09-12: `wb migrate`, the verb that carries a hand-authored board into the model (ST0069 WP-14 AC-14.9); 69 earlier the same day: `wb add`, the door the generated view would otherwise have closed (ST0069 WP-14); 68 earlier the same day: `wb archive` (ST0069 WP-14 AC-14.6, vc's ruling that the state change IS the schedule); 67 earlier the same day: `wb pickup`, `wb touch` and `wb release`, the lifecycle half of the `wb` family (ST0069 WP-14); 64 earlier the same day: `wb decide`, `wb claim` and `wb unclaim`, the item half of the `wb` family (ST0069 WP-14); 61 earlier the same day: `wb ask`, `wb announce` and `wb clear`, the message half of the `wb` family (ST0069 WP-14 AC-14.5); 58 earlier the same day: `wb status` and `wb show`, the read half of the `wb` family (ST0069 WP-14 AC-14.7); 56 earlier the same day: the `wb` family and `wb register` (the same criterion); 54 earlier the same day: the `index` family and its two verbs (`index`, `index status`, `index rebuild`, ST0069 WP-19 AC-19.6); 51 since 2026-09-11 with `set` (issues 0154 + 0185, vc's option (1)); 50 before it, with `ac show` (issue 0168, vc's option (a)).",
+      "n": 83,
+      "census_note": "83 since 2026-10-16: `deinit`, the door that strips what Intent wrote from a project being closed (ST0083 WP-06); 82 since 2026-10-15: `agents layout`, the door that moves the two agent contracts between the root and .claude/ and sets the contracts key (ST0083 WP-03); 81 since 2026-09-23: `wb edit`, the door that changes an item's text and keeps the old text out of any commit that does not hold it yet (issue 0523); 80 since 2026-09-21: `outstanding`, one table of the outstanding threads, work packages and issues (ST0079); 79 since 2026-09-21: `st relate` and `st unrelate`, the only doors to a thread's `related` links (issue 0460); 77 since 2026-09-18: `st renumber` and `issues renumber`, the verbs that move a thread or an issue to a free id after two clones minted the same one (ST0078 WP-02); 75 since 2026-09-17: `index resolve`, the verb that runs each language's toolchain over the project and stores the references that join a written one (ST0076 WP-05, vc decision 25); 74 since 2026-09-14: `st detach`, the verb that removes an attachment's record from the store and canon and leaves its file on disk (issue 0394); 73 earlier the same day: `wp gate`, the work package's own close-gate verdict (issue 0310); 72 earlier the same day: `daemon logs`, the verb Intent.app's Console tails, printing intentd's recent log lines and following them with `--follow` (ST0075 WP-01 AC-01.1); 71 since 2026-09-13: `discover`, the verb that finds Intent projects under a directory and registers the ones this build can serve (ST0074 WP-03 AC-03.3); 70 since 2026-09-12: `wb migrate`, the verb that carries a hand-authored board into the model (ST0069 WP-14 AC-14.9); 69 earlier the same day: `wb add`, the door the generated view would otherwise have closed (ST0069 WP-14); 68 earlier the same day: `wb archive` (ST0069 WP-14 AC-14.6, vc's ruling that the state change IS the schedule); 67 earlier the same day: `wb pickup`, `wb touch` and `wb release`, the lifecycle half of the `wb` family (ST0069 WP-14); 64 earlier the same day: `wb decide`, `wb claim` and `wb unclaim`, the item half of the `wb` family (ST0069 WP-14); 61 earlier the same day: `wb ask`, `wb announce` and `wb clear`, the message half of the `wb` family (ST0069 WP-14 AC-14.5); 58 earlier the same day: `wb status` and `wb show`, the read half of the `wb` family (ST0069 WP-14 AC-14.7); 56 earlier the same day: the `wb` family and `wb register` (the same criterion); 54 earlier the same day: the `index` family and its two verbs (`index`, `index status`, `index rebuild`, ST0069 WP-19 AC-19.6); 51 since 2026-09-11 with `set` (issues 0154 + 0185, vc's option (1)); 50 before it, with `ac show` (issue 0168, vc's option (a)).",
       "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
     },
     {
@@ -10903,6 +10951,7 @@
       "browse",
       "explore",
       "discover",
+      "deinit",
       "help",
       "graphql",
       "set",
@@ -11068,6 +11117,7 @@
       "browse",
       "explore",
       "discover",
+      "deinit",
       "help",
       "graphql",
       "set",
@@ -11241,6 +11291,7 @@
       "browse",
       "explore",
       "discover",
+      "deinit",
       "help",
       "graphql",
       "set",

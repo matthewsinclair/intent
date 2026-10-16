@@ -57,6 +57,7 @@ pub mod contract;
 pub mod critic;
 pub mod daemon;
 pub mod daemon_logs;
+pub mod deinit;
 pub mod doctor;
 pub mod dropbox;
 pub mod embed;

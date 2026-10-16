@@ -175,6 +175,8 @@ mod declarable_languages_derive_from_one_list;
 mod default_declaration_has_one_definition;
 #[path = "dehydration_ship_gate.rs"]
 mod dehydration_ship_gate;
+#[path = "deinit_plan.rs"]
+mod deinit_plan;
 #[path = "dep_graph_guard.rs"]
 mod dep_graph_guard;
 #[path = "dependency_rationale.rs"]
