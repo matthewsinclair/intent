@@ -72,12 +72,6 @@ Run the helper script (idempotent, fast):
 bash "$HOME/.claude/skills/in-session/scripts/release-gate.sh"
 ```
 
-It is extracted from this prose so any pipeline survives skill-renderer token-stripping. The earlier inline form leaked positional-field syntax through the renderer, which silently emptied it, producing a no-op gate release. The canonical source is `intent/plugins/claude/skills/in-session/scripts/release-gate.sh`.
-
-How it resolves the session_id: a single authoritative source, `$CLAUDE_CODE_SESSION_ID`, the env var Claude Code exports into every Bash tool invocation. The gate (`require-in-session.sh`) resolves the same env var, so the release path and the check path agree by construction -- no shared state file in between. When the env var is absent (an older Claude Code build), both sides fall back to the same `unknown` sentinel, which the script always touches, so they still agree and the gate self-heals.
-
-This replaced an earlier design where the releaser read a shared per-project state file written by `SessionStart`. Concurrent Claude Code sessions in one project all wrote that one file, the releaser touched the wrong session's sentinel, and the gate deadlocked. The shared file is gone.
-
 If after running `/in-session` the gate is **still** firing on the next prompt -- visible as `Expected sentinel: /tmp/intent/in-session-<UUID>.sentinel` in the hook output -- copy the UUID from the gate's error message and run `touch /tmp/intent/in-session-<UUID>.sentinel`.
 
 ### 5. Pickup the whiteboard
@@ -96,10 +90,6 @@ Hold these regardless of which language skills get loaded above. They do not exp
 
 - Be diligent for any Highlander, Thin Coordinator, and PFIC violations (adjust for language-specifics, ie Elixir, Rust, Lua, and Swift, as appropriate).
 - NEVER MANUALLY WRAP .MD FILES.
-
-## Why this exists
-
-After `/compact`, the conversation summary is regenerated but skill invocations are not replayed. Without a bootstrap, the user has to paste the skill list manually every reset. This skill is a Thin Coordinator: parse the project, call the right skills, done.
 
 ## Red Flags
 

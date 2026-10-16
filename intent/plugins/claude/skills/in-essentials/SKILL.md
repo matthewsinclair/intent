@@ -61,7 +61,7 @@ Each steel thread's record lives in the store; `intent/st/<ID>/` is its realised
 - `WP/<NN>/info.md` -- changed with `intent set intent:///threads/<ID>/wp/<NN> objective|body --from <file>` and the `intent wp` verbs.
 - `design.md`, `impl.md`, `tasks.md` -- optional ATTACHMENTS: a thread carries one once `intent st attach <ID> <name>.md --from <file>` records it, or once `intent sync --to-store` or a running intentd takes in a file you put in the thread's directory, and from then on the file on disk is its authoring surface.
 
-Frontmatter is written by v3 from the store, so do not hand-author it: `info.md` carries `st_id`, `title`, `status`, `created`, `completed`; `WP/<NN>/info.md` carries `wp_id`, `title`, `scope`, `status`. **This line claimed `verblock:` until 2026-09-08 and v3 writes no such field on a thread view** -- that is v2's shape, and v3 emits it only when ingesting a v2 tree. `verblock` remains the house style for HAND-AUTHORED persistent documents such as `intent/wip.md`, which is a different document class and the reason the wrong claim read as plausible.
+Frontmatter is written by v3 from the store, so do not hand-author it: `info.md` carries `st_id`, `title`, `status`, `created`, `completed`; `WP/<NN>/info.md` carries `wp_id`, `title`, `scope`, `status`. A thread view never carries `verblock:`; `verblock` is the house style only for HAND-AUTHORED persistent documents such as `intent/wip.md`.
 
 **AND THE FILES ABOVE ARE REALISED LAZILY.** `intent st new` writes the store, not the tree, so `intent/st/<ID>/` does not exist until something realises it -- `intent edit <kind> <ID> --path` realises one, as does `intent st hydrate <ID>`, and `intent organize --apply` reconciles the tree against `.intentfiles`, which does not list a thread `st new` has just made. An agent that runs `st new` and then lists the directory will find nothing, and nothing is wrong.
 
@@ -71,10 +71,8 @@ Before ending a session, update tracking files to preserve context for the next 
 
 1. Update `intent/wip.md` with current state and what is next -- **DOING and TODO only; done work is illegal in it**
 2. Update `intent/restart.md` with session restart context
-3. **Leave `.claude/restart.md` alone** unless the entry procedure itself changed -- it is the ENTRY POINT and holds NO STATE
+3. **Leave `.claude/restart.md` alone** unless the entry procedure itself changed -- it is the ENTRY POINT and holds NO STATE (`/in-finish` step 4 says why)
 4. Commit changes before ending session
-
-**STEP 3 SAID _update `.claude/restart.md` with WIP/TODO focus_ UNTIL 2026-09-08, WHICH IS THE OPPOSITE OF WHAT `/in-finish` SAYS ABOUT THE SAME FILE.** Two skills, one file, contradictory orders -- and the one that was wrong is the one loaded at every session start, so it was read far more often. The three tracking files were three copies of one narrative until 2026-08-24, each opening with a banner claiming to supersede the others; **state written into the entry point is how that rebuilds.** `/in-finish` step 4 carries the full reasoning and is the one home for it.
 
 ### 6. Use `intent wp` commands for work package management
 
@@ -104,7 +102,7 @@ intent todo --json       # machine-readable view
 
 ### 8. Never invoke `intent fc` -- fiat close is the human's verb
 
-`IN-AG-FIAT-001`, severity critical. Read it with `intent claude rules show IN-AG-FIAT-001`; it is not restated here, because a second copy of a rule's content in a skill is exactly the Highlander violation the rule library exists to prevent.
+`IN-AG-FIAT-001`, severity critical. Read it with `intent claude rules show IN-AG-FIAT-001`; it is not restated here.
 
 **Nothing stops you from running it.** You share the human's uid and their shell, so this is a contract you hold and not a wall you would hit -- and every invocation is attributable to you, permanently. Do not run it, do not put it in a script, a hook, a skill or a Makefile, and do not ask a peer to run it on your behalf.
 
