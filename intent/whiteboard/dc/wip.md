@@ -3,21 +3,30 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 45688c36-a10d-4ad6-b27b-9f7011eb1956
-heartbeat_at: 2026-10-16 12:23Z
+heartbeat_at: 2026-10-16 13:36Z
 status: active
-focus: "LOCALFOLDED 2026-10-16 on hv's word via vc, resuming on vc's instruction: doing 125 is the resume state; the 3.2.4 lane is 8 banks on refs/bank/dc/324/ (0605 at patch-id ac55f52517dd); slot 1 runs slot1.sh on vc's GO after devbin-dc's WP-03 END; no push, no release"
-claims: [ISSUE:0591, ISSUE:0592, ISSUE:0593, ISSUE:0594, ISSUE:0596, ISSUE:0597, ISSUE:0599, ISSUE:0605]
+focus: "LOCALFOLDED 2026-10-16 on hv's word via vc, holding for hv's compact: the 3.2.4 train is LANDED on main (8 banks, 15 commits, 87fdc6bcf..dfe4ff8eb, every patch-id as judged; issues 0591 0592 0593 0594 0596 0597 0605 closed); hv's build all is still owed; 0599 is next, not started; holds 29 and 31; no push, no release"
+claims: [ISSUE:0599]
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-- **THE 3.2.4 TRAIN UNDER hv's RULING (vc decision 63) AND vc's ORDERS IS THE RESUME STATE, AS LOCALFOLDED ON hv's WORD VIA vc (dc, 2026-10-16).** hv ruled 0591, 0592, 0593, 0594, 0596 and 0597 into 3.2.4; 0590 waits on its design question; 0599 (intent --version migrates ~/.intent) is dc's in 3.2.4 after the train is judged; 0600's CHANGELOG line is already on main at 92d5a77ce. vc assigned 0605 (critical, the scoped-sync doubling of the prose index) to dc under hv's delegated pen (decision 4), first in the train after 0594. The rulings are recorded in 0596's and 0597's issues and the claims taken at eeabc0df7. THE LANE: tmp/wt-dc-324, detached at base 1c84752b4 with every change staged, equals this stack, which applies onto main at bb437bc86: refs/bank/dc/324/0593 (patch-id 5e3381fa4f55), 0592 (267a20d62f3f), 0591 (484cb0f6e47b), 0594 (c5eab1feaf88), 0605 (blob 864722699383, patch-id ac55f52517dd: the canon-half guard in Store::write_doc_sections, compose_scoped's read-back filter, rung 31 DOC_SECTIONS_DEDUPE, doctor's uncounted prose-index-duplicated finding whose remedy names intent index rebuild, and a three-arm test file), 0596 (0e9574949b4a), 0597 (8c35467adc86) and changelog (83826c3c1cb3); refs/bank/dc/tools/verify-lane.sh repeats the check read-only. NEXT, IN ORDER: (1) SLOT 1 on vc's GO, which follows devbin-dc's WP-03 END: START to vc and cc, then refs/bank/dc/324/evidence/slot1.sh (8566e6bcf) in the background, which runs a census, seeds the worktree's own target by a cp -c clone of main's with cargo clean -p of the three crates (vc's OK), builds intentd, then runs the arms RED with ingest.rs, facade.rs and legacy.rs at T0 and the store.rs guard disabled, then GREEN on the whole train. Expected red: the doubling arm, 0596's arm, 0597's unit and CLI arms; green both phases: the rung, doctor and 0597-control arms. SLOT 1 IS DONE (dc, 2026-10-16; the log ends "done at 12:26:01Z", exit=0; END sent to vc and cc): every arm went as expected, red with the fixes out (the doubling arm left file 4 and wb_node 4 against 1 and 1; 0596's arm printed the not-examined line; 0597's unit arm found no removable views; 0597's CLI arm found the held thread's v2 info.md surviving) and all green on the train (svcs 13 of 13, cli 9 of 9); schema_faces_drift green in both phases, so no published-schema update rides in 0605; no arm needed a change, so no bank moved; log at refs/bank/dc/324/evidence/slot1.log (blob 2528ed45deb7). vc judges the whole train next in a worktree of its own, so slot 3 is vc's and steps (2) and (4) are done or vc's. (2) The schema-faces verdict to vc: schema_faces_drift green, or the published schema updated in the 0605 bank with its reason. Any arm fix is re-banked and its blob, sha256 and patch-id sent to vc. (3) Logs banked under refs/bank/dc/324/evidence/, ISSUE:0605 claimed, one chain by literal path. (4) SLOT 3, the whole-train judging run on vc's GO: a short isolated HOME, an in-tree CARGO_TARGET_DIR, cargo build -p intentd first, intentsvcs's and intent-cli's whole suites with --no-fail-fast, clippy -W, fmt, the rust.yml doc line, tests/run_tests.sh, logs banked, verdicts to vc verbatim. (5) Land one bank at a time on vc's hash, 0593, 0592, 0591, 0594, 0605, 0596, 0597, changelog, each patch-id checked and each issue closed with its commit. (6) Then 0599, size S: migrate_legacy moves out of main before dispatch into the verbs that use user state; an arm shows --version leaves a legacy ~/.intent byte for byte while bootstrap migrates it. STILL WITH hv: who ports 0589's quote classes to llm-tropes, and when intent claude skills sync runs. NO PUSH, NO RELEASE. (edited)
+- **RESUME STATE (dc, localfold 2026-10-16 on hv's word via vc: hv is moving, pick up later). THE 3.2.4 TRAIN IS LANDED ON MAIN AND NOTHING OF dc's IS IN FLIGHT.** vc's first judging run (judge-324) was HOLD: four reds were the train's own, five were cc's 0601 (b). dc re-banked three: 0591 (the claim-forms sentence restored byte-equal to model::CLAIM_ADDRESS_FORMS) to patch-id 3a1bff190ae1; 0605 (the remedy literal no longer names the issue) to 0015e32c9e97; 0597 (two migration arms now assert that an undeclared thread's v2 cover is removed and an attachment beside it stays byte for byte) to f7a6758e169b. The earlier blobs are kept as refs/bank/dc/324/{0591-v1,0605-v2,0597-v1}. dc's eight plus cc's a1-v2 and fixup compose in both orders to tree f37ce22d2. vc's re-judge of that tree PASSED at 13:20:29Z (refs/bank/vc/324/evidence/judge-324b.log). dc landed the eight on vc's word, two commits each (the bank by literal path behind census-ok, with the patch-id checked before and after; then the issue's Resolution and close), with the script at scratchpad/land/land.sh:
+  - 0593: ce873474a, closed at 15cbac92c
+  - 0592: d6a372833, closed at 51c60abc3
+  - 0591: be387b038, closed at 6d4df7a2a
+  - 0594: 086e98b71, closed at eafc07c40
+  - 0605: 915245eb2, closed at d3c1436b4
+  - 0596: e2d8519ce, closed at 6c1c571b1
+  - 0597: 58f3e7a9b, closed at 2bbfa6dc7
+  - changelog: dfe4ff8eb
+  cc lands a1-v2 and the fixup after dc's END. STILL OWED, not dc's: hv's build all and the push. tmp/wt-dc-324 is kept: its staged tree is the landed train, and its target is seeded. No push, no release.
 
 ## TODO
 
-_(none)_
+- **ISSUE 0599 (S), NEXT IN dc's LANE, NOT STARTED: `intent --version` must not migrate ~/.intent.** No code is written, by hv's word via vc on 2026-10-16. Shape read so far: main.rs:17 runs userstate::migrate_legacy before dispatch. spine::parse returns DisplayHelp and DisplayVersion as Err(EXIT_OK) before any verb runs (spine.rs:869), so running the migration at the head of render::run, after parse, keeps --version and --help out of it with no list; `info` is skipped there by name, and the note is printed from render. intentd's main has no migration call. The arm: under a HOME carrying a legacy ~/.intent, `intent --version`, `--help` and `info` leave it byte for byte, and `intent bootstrap` migrates it and prints the note. Build in a fresh worktree off main, with its own target, on vc's GO.
 
 ## Holds
 

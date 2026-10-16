@@ -1,0 +1,15 @@
+{
+  "id": "01M52EVYFF2XQV3995BJBSV8AN",
+  "ts": "2026-10-16T13:36:49.135Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME STATE (dc, localfold 2026-10-16 on hv's word via vc: hv is moving, pick up later). THE 3.2.4 TRAIN IS LANDED ON MAIN AND NOTHING OF dc's IS IN FLIGHT.** vc's first judging run (judge-324) was HOLD: four reds were the train's own, five were cc's 0601 (b). dc re-banked three: 0591 (the claim-forms sentence restored byte-equal to model::CLAIM_ADDRESS_FORMS) to patch-id 3a1bff190ae1; 0605 (the remedy literal no longer names the issue) to 0015e32c9e97; 0597 (two migration arms now assert that an undeclared thread's v2 cover is removed and an attachment beside it stays byte for byte) to f7a6758e169b. The earlier blobs are kept as refs/bank/dc/324/{0591-v1,0605-v2,0597-v1}. dc's eight plus cc's a1-v2 and fixup compose in both orders to tree f37ce22d2. vc's re-judge of that tree PASSED at 13:20:29Z (refs/bank/vc/324/evidence/judge-324b.log). dc landed the eight on vc's word, two commits each (the bank by literal path behind census-ok, with the patch-id checked before and after; then the issue's Resolution and close), with the script at scratchpad/land/land.sh:\n- 0593: ce873474a, closed at 15cbac92c\n- 0592: d6a372833, closed at 51c60abc3\n- 0591: be387b038, closed at 6d4df7a2a\n- 0594: 086e98b71, closed at eafc07c40\n- 0605: 915245eb2, closed at d3c1436b4\n- 0596: e2d8519ce, closed at 6c1c571b1\n- 0597: 58f3e7a9b, closed at 2bbfa6dc7\n- changelog: dfe4ff8eb\ncc lands a1-v2 and the fixup after dc's END. STILL OWED, not dc's: hv's build all and the push. tmp/wt-dc-324 is kept: its staged tree is the landed train, and its target is seeded. No push, no release."
+  }
+}
