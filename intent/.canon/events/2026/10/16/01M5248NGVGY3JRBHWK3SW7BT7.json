@@ -1,0 +1,15 @@
+{
+  "id": "01M5248NGVGY3JRBHWK3SW7BT7",
+  "ts": "2026-10-16T10:31:31.618Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0604"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "CLAUDE_CONFIG_DIR relocates ~/.claude, but Intent's skill install, the in-session release line and the prompt gate all name $HOME/.claude"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 604,
+  "slug": "claude-config-dir-relocates-claude-but-intent-s",
+  "title": "CLAUDE_CONFIG_DIR relocates ~/.claude, but Intent's skill install, the in-session release line and the prompt gate all name $HOME/.claude",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-10-16",
+  "reporter": "Matthew Sinclair",
+  "body": "Recorded by cc while shaping issue 0601's (b), and filed on vc's word when (b) landed at ae1bb7fb4; not a defect anyone has hit.\n\nClaude Code's docs say `CLAUDE_CONFIG_DIR` overrides the configuration directory, default `~/.claude`, and that every `~/.claude` path, `skills/` included, then lives under it (code.claude.com/docs/en/env-vars and /claude-directory, read 2026-10-15 for 0601; refs/bank/cc/0081/evidence/0601-hooks-doc.md). Intent names `$HOME/.claude` in three places that would then disagree with where Claude Code loads skills from:\n\n- the in-session skill's release line, `bash \"$HOME/.claude/skills/in-session/scripts/release-gate.sh\"` (in-session SKILL.md);\n- the prompt gate's releaser check, require-in-session.sh, and session-context.sh's Next line, both since 0601 (b);\n- `intentsvcs::userstate::claude_dir`, which `intent claude skills install` writes to.\n\nSo on a machine that sets `CLAUDE_CONFIG_DIR`, `intent claude skills install` writes skills where Claude Code does not look, and the gate looks for a releaser that is not where the skill was loaded from. The docs do not say whether `CLAUDE_CONFIG_DIR` reaches a hook's environment (hooks inherit \"the parent environment\", and `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1` removes it), so a fix that reads it in the hook first measures that it arrives.\n\nShape, if taken: `userstate::claude_dir` honours `CLAUDE_CONFIG_DIR` when set, and the release line and the two hook scripts resolve the same way, so the check, the release and the install read one path. Size S. Measure before building: whether a session started with `CLAUDE_CONFIG_DIR` set exports it into the Bash tool and into hooks.\n"
+}
