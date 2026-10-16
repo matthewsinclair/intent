@@ -1,0 +1,14 @@
+{
+  "id": "01M535KWJEGJJF2T739XCFF9RB",
+  "ts": "2026-10-16T20:14:22.290Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0083/AC-06.1"
+  },
+  "payload": {
+    "evidence": "ST0083 WP-06 landed at 11c1f9aea on vc's PASS, patch-id 3ae4ca29f095 from refs/bank/cc/0083/wp06 (blob a64aa2c86d70) on base 068edd408; evidence refs/bank/cc/0083/evidence/wp06-* (final pass: workspace 3235/0, bats 789/789, clippy, doc, fmt, release build): intent-cli deinit_strips_what_intent_wrote 4/4 (the dry run lists every act kind and leaves the tree's bytes unchanged; --apply strips and keeps the owner's settings key with intent/ intact; --all removes intent/ and the registry row; --all refuses at rc 1 beside a watching daemon) and intentsvcs deinit_plan 6/6 (a hand-written contract, a filled user block, an edited seed and a doubled chain block kept; a foreign hook line kept byte for byte; an unparseable settings file kept; a moved file refused); the two earlier passes' reds fixed before the bank (the cut leaving insert's blank line, deinit answering an unmigrated estate, the mutator census bucket, two private doc links), their summaries banked beside it"
+  }
+}

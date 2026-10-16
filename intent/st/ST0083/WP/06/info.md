@@ -2,7 +2,7 @@
 wp_id: WP-06
 title: intent deinit: strip what Intent wrote from a project being closed
 scope: S
-status: Not Started
+status: Done
 ---
 
 # WP-06: intent deinit: strip what Intent wrote from a project being closed

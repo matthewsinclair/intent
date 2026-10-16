@@ -59,7 +59,7 @@
       "seq": 6,
       "title": "intent deinit: strip what Intent wrote from a project being closed",
       "scope": "S",
-      "status": "not-started",
+      "status": "done",
       "objective": "`intent deinit` strips what Intent wrote from a project being closed: a dry listing by default, and with `--apply` the removal of every file and hook block it can prove Intent wrote, naming what it leaves; `--all` also removes `intent/` with the store.",
       "body": "",
       "preamble": ""
@@ -188,7 +188,8 @@
       "text": "`intent deinit` without `--apply` lists every file and hook block it would remove or edit and writes nothing; with `--apply` it removes the generated contracts in either layout (each one canon's generated predicate reads as Intent's, a `CLAUDE.md` only while its user block is empty), a `usage-rules.md` and a `.intent_critic.yml` byte-identical to their seeds, Intent's hook chain blocks and their carriers, and from `.claude/settings.json` only the hook entries whose command carries `intent claude hook` and the two deny rules the template adds, re-serialised as 2-space JSON and deleted when `{}` remains, and from `.mcp.json` only the `intent` server entry, deleted when nothing remains, naming each removal and edit, and naming each file it leaves because it cannot prove Intent wrote it or cannot parse it; `--all` also removes `intent/` with the store and this project's row in the project registry, and refuses while a daemon watches the tree.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "ST0083 WP-06 landed at 11c1f9aea on vc's PASS, patch-id 3ae4ca29f095 from refs/bank/cc/0083/wp06 (blob a64aa2c86d70) on base 068edd408; evidence refs/bank/cc/0083/evidence/wp06-* (final pass: workspace 3235/0, bats 789/789, clippy, doc, fmt, release build): intent-cli deinit_strips_what_intent_wrote 4/4 (the dry run lists every act kind and leaves the tree's bytes unchanged; --apply strips and keeps the owner's settings key with intent/ intact; --all removes intent/ and the registry row; --all refuses at rc 1 beside a watching daemon) and intentsvcs deinit_plan 6/6 (a hand-written contract, a filled user block, an edited seed and a doubled chain block kept; a foreign hook line kept byte for byte; an unparseable settings file kept; a moved file refused); the two earlier passes' reds fixed before the bank (the cut leaving insert's blank line, deinit answering an unmigrated estate, the mutator census bucket, two private doc links), their summaries banked beside it"
       }
     },
     {
