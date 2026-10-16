@@ -19,9 +19,17 @@
 #          PATH, and from the raw payload when it is not, so a machine
 #          without jq can still run `/in-session` -- OR
 #       b) the per-session sentinel exists.
+#   - Fail open (exit 0) when the skill that releases the gate is not
+#     installed on this machine (issue 0601): the gate is cooperative, so
+#     with no releaser nothing inside the session could ever release it.
+#     The first such prompt prints one JSON object naming the install verb
+#     (systemMessage for the user, additionalContext for the model) and
+#     writes the sentinel, so later prompts pass silently.
 #   - Block (exit 2 + stderr message) when the sentinel is absent AND the
-#     prompt is not a slash command.
-#   - Stderr is surfaced to the user by Claude Code.
+#     prompt is not a slash command AND the releaser is installed.
+#   - Stderr is surfaced to the user by Claude Code on exit 2. On exit 0 it
+#     reaches nobody, and plain stdout reaches only the model, which is why
+#     the fail-open notice is JSON.
 
 # set -u only: -e and -o pipefail are deliberately omitted so a jq/cat hiccup
 # cannot turn this gate hook into a hard abort. The script decides pass/block
@@ -73,6 +81,21 @@ esac
 sentinel="${SENTINEL_DIR}/in-session-${session_id}.sentinel"
 
 if [ -f "$sentinel" ]; then
+  exit 0
+fi
+
+# The release is `bash "$HOME/.claude/skills/in-session/scripts/release-gate.sh"`
+# (in-session SKILL.md), so the gate checks that same file rather than
+# SKILL.md: the check and the release read one path. session-context.sh
+# checks it too, to say the same thing at session start.
+releaser="${HOME:-}/.claude/skills/in-session/scripts/release-gate.sh"
+if [ ! -f "$releaser" ]; then
+  mkdir -p "$SENTINEL_DIR" 2>/dev/null && touch "$sentinel" 2>/dev/null
+  # The backticks are the notice's own markdown, not a substitution. The text
+  # carries no quote or backslash, so it is JSON-safe as written.
+  # shellcheck disable=SC2016
+  notice='The Intent prompt gate is off on this machine: /in-session, the skill that releases it, is not installed. `intent claude skills install in-session` installs it.'
+  printf '{"systemMessage":"%s","hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":"%s"}}\n' "$notice" "$notice"
   exit 0
 fi
 

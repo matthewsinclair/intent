@@ -94,16 +94,21 @@ HOME_PATH_RE='(/Users/[a-z]|/home/[a-z])'
   # specifically, and reads the event JSON on stdin. A wrapper that swallowed
   # either would turn the gate into a no-op or into a hard block on every
   # prompt, so this is the contract that matters most about the indirection.
-  run bash -c "printf '%s' '{\"prompt\":\"do something\"}' | CLAUDE_CODE_SESSION_ID=bats-none '$INTENT_BIN' claude hook require-in-session"
+  # The temp HOME holds a stub releaser, since the gate fails open without one
+  # (issue 0601); HOME is set for the hook alone.
+  local stub_home="$BATS_TEST_TMPDIR/home"
+  mkdir -p "$stub_home/.claude/skills/in-session/scripts"
+  : > "$stub_home/.claude/skills/in-session/scripts/release-gate.sh"
+  run bash -c "printf '%s' '{\"prompt\":\"do something\"}' | HOME='$stub_home' CLAUDE_CODE_SESSION_ID=bats-none '$INTENT_BIN' claude hook require-in-session"
   [ "$status" -eq 2 ]
 
   # stdin is genuinely parsed: a slash command passes through.
-  run bash -c "printf '%s' '{\"prompt\":\"/in-session\"}' | CLAUDE_CODE_SESSION_ID=bats-none '$INTENT_BIN' claude hook require-in-session"
+  run bash -c "printf '%s' '{\"prompt\":\"/in-session\"}' | HOME='$stub_home' CLAUDE_CODE_SESSION_ID=bats-none '$INTENT_BIN' claude hook require-in-session"
   [ "$status" -eq 0 ]
 
   # And the sentinel releases it.
   mkdir -p /tmp/intent && touch /tmp/intent/in-session-bats-yes.sentinel
-  run bash -c "printf '%s' '{\"prompt\":\"do something\"}' | CLAUDE_CODE_SESSION_ID=bats-yes '$INTENT_BIN' claude hook require-in-session"
+  run bash -c "printf '%s' '{\"prompt\":\"do something\"}' | HOME='$stub_home' CLAUDE_CODE_SESSION_ID=bats-yes '$INTENT_BIN' claude hook require-in-session"
   rm -f /tmp/intent/in-session-bats-yes.sentinel
   [ "$status" -eq 0 ]
 }

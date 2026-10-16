@@ -170,14 +170,17 @@ $dirt"
 # the binary starts, it resolves its install root to <root> when reached through
 # a link on PATH, as an install reaches it, and a hook script from the support
 # tree runs. The gate refuses a prompt that has no sentinel by exiting 2, from
-# the script itself, so that exit is the proof the script ran.
+# the script itself, so that exit is the proof the script ran. That is its
+# branch where HOME holds the in-session skill's releaser; with none it fails
+# open, 0 with the notice naming the install verb (issue 0601). Both branches
+# are driven, each under its own temp HOME set for the hook alone.
 #
 # SELF-CONTAINED, because `smoke --in` hands this function's own text to the
 # container's bash: it calls nothing else in this file. That is also why
 # cmd/brew's ARM 6 drives the gate with its own copy of these lines rather than
 # a helper the two share (issue 0600).
 smoke_checks() {
-  local root="$1" bindir want resolved out rc
+  local root="$1" bindir want resolved out rc home_releaser home_bare
   bindir="$(mktemp -d)"
   ln -s "$root/bin/intent" "$bindir/intent"
   PATH="$bindir:$PATH"
@@ -189,8 +192,12 @@ smoke_checks() {
     return 1
   fi
   printf 'smoke: the install root is %s\n' "$resolved"
+  home_releaser="$(mktemp -d)"
+  home_bare="$(mktemp -d)"
+  mkdir -p "$home_releaser/.claude/skills/in-session/scripts"
+  : >"$home_releaser/.claude/skills/in-session/scripts/release-gate.sh"
   set +e
-  out="$(printf '%s' '{"prompt":"linux smoke"}' | CLAUDE_CODE_SESSION_ID=linux-smoke intent claude hook require-in-session 2>&1)"
+  out="$(printf '%s' '{"prompt":"linux smoke"}' | HOME="$home_releaser" CLAUDE_CODE_SESSION_ID="linux-smoke-$$" intent claude hook require-in-session 2>&1)"
   rc=$?
   set -e
   if [ "$rc" -ne 2 ] || ! printf '%s' "$out" | grep -q 'Expected sentinel:'; then
@@ -198,6 +205,16 @@ smoke_checks() {
     return 1
   fi
   printf 'smoke: a hook script from the support tree ran, and refused as it should\n'
+  set +e
+  out="$(printf '%s' '{"prompt":"linux smoke"}' | HOME="$home_bare" CLAUDE_CODE_SESSION_ID="linux-smoke-open-$$" intent claude hook require-in-session 2>&1)"
+  rc=$?
+  set -e
+  rm -f "/tmp/intent/in-session-linux-smoke-open-$$.sentinel"
+  if [ "$rc" -ne 0 ] || ! printf '%s' "$out" | grep -q 'intent claude skills install in-session'; then
+    printf 'smoke: the gate without its releaser did not fail open with its notice (exit %s): %s\n' "$rc" "$out" >&2
+    return 1
+  fi
+  printf 'smoke: without its releaser the gate failed open and named the install verb\n'
 }
 
 # container_engine -- the engine `smoke --in` runs its image with.

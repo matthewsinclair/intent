@@ -362,17 +362,36 @@ cmd_smoke() {
   # resolves, so this arm passed at every cut on a Mac where /in-session had left
   # one, and went red on a fresh machine where the keg refused, as it should
   # (issue 0600). So it is driven as cmd/linux's smoke_checks drives it: a
-  # prompt, under a session id no sentinel exists for, and the refusal is the
-  # pass -- 2, carrying the gate script's own `Expected sentinel:` line, which
-  # proves the script under libexec ran. The id carries this run's pid, so no
-  # sentinel an earlier run or session left in /tmp/intent can answer for it.
+  # prompt, under a session id no sentinel exists for. The ids carry this run's
+  # pid, so no sentinel an earlier run or session left in /tmp/intent can answer.
+  #
+  # AND IT HAS TWO BRANCHES, EACH DRIVEN UNDER ITS OWN HOME (issue 0601). Where
+  # $HOME holds the in-session skill's releaser, the refusal is the pass: 2,
+  # carrying the gate script's own `Expected sentinel:` line, which proves the
+  # script under libexec ran. Where it does not, nothing in the session could
+  # release the gate, so it fails open: 0, with the notice naming the install
+  # verb. HOME is set for the hook alone, so the rest of the smoke keeps the
+  # real one.
+  mkdir -p "$tmp/home-releaser/.claude/skills/in-session/scripts" "$tmp/home-bare"
+  : >"$tmp/home-releaser/.claude/skills/in-session/scripts/release-gate.sh"
   rc=0
   out="$(cd "$tmp" && printf '%s' '{"prompt":"brew smoke"}' |
-    CLAUDE_CODE_SESSION_ID="brew-smoke-$$" "$bin_intent" claude hook require-in-session 2>&1)" || rc=$?
+    HOME="$tmp/home-releaser" CLAUDE_CODE_SESSION_ID="brew-smoke-$$" \
+      "$bin_intent" claude hook require-in-session 2>&1)" || rc=$?
   case "$rc:$out" in
     2:*"Expected sentinel:"*) smoke_ok "hook require-in-session refuses -> 2" ;;
     *) smoke_fail "hook require-in-session returned $rc, expected 2 with the gate's 'Expected sentinel:' line: $(printf '%s' "${out:-<nothing>}" | tail -1)" \
       "hook require-in-session refuses -> 2" ;;
+  esac
+  rc=0
+  out="$(cd "$tmp" && printf '%s' '{"prompt":"brew smoke"}' |
+    HOME="$tmp/home-bare" CLAUDE_CODE_SESSION_ID="brew-smoke-open-$$" \
+      "$bin_intent" claude hook require-in-session 2>&1)" || rc=$?
+  rm -f "/tmp/intent/in-session-brew-smoke-open-$$.sentinel"
+  case "$rc:$out" in
+    0:*"intent claude skills install in-session"*) smoke_ok "hook require-in-session without its releaser fails open -> 0" ;;
+    *) smoke_fail "hook require-in-session without its releaser returned $rc, expected 0 with the notice naming the install verb: $(printf '%s' "${out:-<nothing>}" | tail -1)" \
+      "hook require-in-session without its releaser fails open -> 0" ;;
   esac
   rc=0
   (cd "$tmp" && "$bin_intent" claude hook not-a-hook </dev/null >/dev/null 2>&1) || rc=$?

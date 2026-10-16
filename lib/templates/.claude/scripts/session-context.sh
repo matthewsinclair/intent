@@ -58,6 +58,13 @@ fi
 if [ -n "$wip_summary" ]; then
   printf 'WIP: %s\n' "$wip_summary"
 fi
-printf 'Next: run /in-session to load coding skills and release the UserPromptSubmit gate.\n'
+# The same releaser path require-in-session.sh checks: with it absent the
+# gate fails open, so naming /in-session as the gate's release would be false.
+if [ -f "${HOME:-}/.claude/skills/in-session/scripts/release-gate.sh" ]; then
+  printf 'Next: run /in-session to load coding skills and release the UserPromptSubmit gate.\n'
+else
+  # shellcheck disable=SC2016 # the backticks are the line's own markdown
+  printf 'Next: the in-session skill is not installed, so the Intent prompt gate is off on this machine; `intent claude skills install in-session` installs it, then /in-session loads coding skills.\n'
+fi
 
 exit 0

@@ -12,7 +12,18 @@ load "../lib/test_helper.bash"
 
 SCRIPT="${INTENT_PROJECT_ROOT}/lib/templates/.claude/scripts/require-in-session.sh"
 
+# Every gated arm runs under a temp HOME holding a stub releaser, because the
+# gate fails open where $HOME/.claude/skills/in-session/scripts/release-gate.sh
+# is absent (issue 0601); without the stub, every block arm would turn on
+# whether this machine happens to have the skill installed.
+stub_releaser_home() {
+  export HOME="$BATS_TEST_TMPDIR/home"
+  mkdir -p "$HOME/.claude/skills/in-session/scripts"
+  : > "$HOME/.claude/skills/in-session/scripts/release-gate.sh"
+}
+
 setup_gate() {
+  stub_releaser_home
   GATE_SENTINEL_DIR="/tmp/intent"
   mkdir -p "$GATE_SENTINEL_DIR"
   GATE_SESSION_ID="bats-$(date +%s)-$$"
@@ -171,5 +182,53 @@ no_jq_path() {
     bash "$SCRIPT" <<< '{"prompt":"hello"}'
   [ "$status" -eq 2 ]
   [[ "$stderr" != *"jq"* ]]
+  teardown_gate
+}
+
+# --------------------------------------------------------------------
+# No releaser on this machine (issue 0601): nothing inside the session
+# could release the gate, so it fails open, says so once, and names the
+# install verb. With the releaser present it blocks as before.
+# --------------------------------------------------------------------
+
+@test "without the releaser, a plain prompt passes and the notice names the install verb" {
+  setup_gate
+  rm -f "$HOME/.claude/skills/in-session/scripts/release-gate.sh"
+  run --separate-stderr env CLAUDE_CODE_SESSION_ID="$GATE_SESSION_ID" \
+    bash "$SCRIPT" <<< '{"prompt":"hello"}'
+  [ "$status" -eq 0 ] || fail "status $status, stderr: $stderr"
+  [ -z "$stderr" ]
+  [[ "$output" == '{"systemMessage":'* ]] || fail "not the JSON notice: $output"
+  [[ "$output" == *'"hookEventName":"UserPromptSubmit"'* ]]
+  [[ "$output" == *"intent claude skills install in-session"* ]]
+  [ -f "$GATE_SENTINEL" ]
+
+  # Said once: the second prompt in the session passes silently.
+  run --separate-stderr env CLAUDE_CODE_SESSION_ID="$GATE_SESSION_ID" \
+    bash "$SCRIPT" <<< '{"prompt":"again"}'
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+  teardown_gate
+}
+
+@test "without the releaser, the notice is one valid JSON object" {
+  setup_gate
+  require_tool jq "the notice's JSON shape" || return 1
+  rm -f "$HOME/.claude/skills/in-session/scripts/release-gate.sh"
+  run --separate-stderr env CLAUDE_CODE_SESSION_ID="$GATE_SESSION_ID" \
+    bash -c "bash '$SCRIPT' <<< '{\"prompt\":\"hello\"}' | jq -r '.hookSpecificOutput.additionalContext == .systemMessage'"
+  [ "$status" -eq 0 ]
+  [ "$output" = "true" ]
+  teardown_gate
+}
+
+@test "with the releaser and no sentinel, a plain prompt is blocked" {
+  setup_gate
+  [ -f "$HOME/.claude/skills/in-session/scripts/release-gate.sh" ]
+  run --separate-stderr env CLAUDE_CODE_SESSION_ID="$GATE_SESSION_ID" \
+    bash "$SCRIPT" <<< '{"prompt":"hello"}'
+  [ "$status" -eq 2 ]
+  [ -z "$output" ]
+  [[ "$stderr" == *"Expected sentinel:"* ]]
   teardown_gate
 }
