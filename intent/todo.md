@@ -20,7 +20,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 01: CLAUDE.md imports AGENTS.md: the @AGENTS.md line in _CLAUDE.md
   - [x] 02: The contracts key and contracts_dir: every writer, reader, the sync scope and the daemon watch derive the place from it
   - [x] 03: The doors: init --contracts and intent agents layout
-  - [ ] 04: doctor: both layouts present, a held settings file with a dead hook command, an empty or placeholder author
+  - [x] 04: doctor: both layouts present, a held settings file with a dead hook command, an empty or placeholder author
   - [x] 05: The templated settings deny editing the generated AGENTS.md in either layout
   - [ ] 06: intent deinit: strip what Intent wrote from a project being closed
   - [x] 07: A store under Dropbox is marked ignored for the Dropbox client

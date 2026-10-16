@@ -41,7 +41,7 @@
       "seq": 4,
       "title": "doctor: both layouts present, a held settings file with a dead hook command, an empty or placeholder author",
       "scope": "S",
-      "status": "not-started",
+      "status": "done",
       "objective": "`intent doctor` names what the layout work leaves exposed: a contract present in both layouts, a held `.claude/settings.json` whose hook command names a path that does not exist, an empty or placeholder author, and the dead v2 `.claude/scripts/` copies nothing references.",
       "body": "",
       "preamble": ""
@@ -143,7 +143,8 @@
       "text": "`intent doctor` counts a finding when a contract exists in both layouts, the copy outside the layout the `contracts` key names counting only when canon's one generated predicate for that file reads it as Intent's (the `CLAUDE.md` marker, the `AGENTS.md` footer), so a hand-written `.claude/CLAUDE.md` in a root-layout project is not counted; the finding names both paths and which one the key reads, and its remedy is removing the stray copy, `git rm` when git tracks it and `rm` when it does not, with `intent agents layout <other>` only when the other layout is the one meant, after the keyed copy is gone.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "ST0083 WP-04 landed at 2c290c821 on vc's PASS, patch-id 2c9468a6212a from refs/bank/cc/0083/wp04 (blob 0bb204d5d0e2) on base ff015c24d; evidence refs/bank/cc/0083/evidence/wp04-* (workspace 3222/0, bats 789/789, clippy, doc, fmt, release build): intent-cli doctor_reads_layouts_settings_author_and_v2_scripts arms a_generated_contract_in_both_layouts_is_counted_and_names_both_paths (counted verdict and exit move, both paths and the rm named) and a_hand_written_dotclaude_claude_md_under_root_is_not_counted"
       }
     },
     {
@@ -151,7 +152,8 @@
       "text": "`intent doctor` reports, as an advisory naming the file and the command, a `.claude/settings.json` that canon holds (one without the marker `intent claude hook`) whose hook command names a path that does not exist on this machine.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "ST0083 WP-04 landed at 2c290c821 on vc's PASS, patch-id 2c9468a6212a from refs/bank/cc/0083/wp04 (blob 0bb204d5d0e2) on base ff015c24d; evidence refs/bank/cc/0083/evidence/wp04-* (workspace 3222/0, bats 789/789, clippy, doc, fmt, release build): arm a_held_settings_file_naming_a_dead_path_is_shown_and_not_counted (dead path named, live path and a marker-carrying file silent, verdict and exit unmoved)"
       }
     },
     {
@@ -159,7 +161,8 @@
       "text": "`intent doctor` reports a config whose `author` is empty or reads `Author Unknown`, naming the field.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "ST0083 WP-04 landed at 2c290c821 on vc's PASS, patch-id 2c9468a6212a from refs/bank/cc/0083/wp04 (blob 0bb204d5d0e2) on base ff015c24d; evidence refs/bank/cc/0083/evidence/wp04-* (workspace 3222/0, bats 789/789, clippy, doc, fmt, release build): arm an_empty_or_placeholder_author_is_shown_naming_the_field_and_not_counted (empty and Author Unknown each name author in intent/.config/config.json, verdict and exit unmoved)"
       }
     },
     {
@@ -167,7 +170,8 @@
       "text": "`intent doctor` reports, as an advisory naming each file, a `.claude/scripts/*.sh` whose header names Intent and that no hook command in `.claude/settings.json` or `.claude/settings.local.json` references: v2 wrote these copies into every project and v3 reads none of them, so the remedy is `git rm` of the named files.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "ST0083 WP-04 landed at 2c290c821 on vc's PASS, patch-id 2c9468a6212a from refs/bank/cc/0083/wp04 (blob 0bb204d5d0e2) on base ff015c24d; evidence refs/bank/cc/0083/evidence/wp04-* (workspace 3222/0, bats 789/789, clippy, doc, fmt, release build): arm an_intent_hook_script_nothing_runs_is_shown_with_its_removal_and_not_counted (the orphan named with its rm, a script settings.local.json runs and one not naming Intent silent, verdict and exit unmoved)"
       }
     },
     {

@@ -1,0 +1,14 @@
+{
+  "id": "01M5341X1E7HR7FQJS8SCQ22ET",
+  "ts": "2026-10-16T19:47:04.370Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0083/AC-04.4"
+  },
+  "payload": {
+    "evidence": "ST0083 WP-04 landed at 2c290c821 on vc's PASS, patch-id 2c9468a6212a from refs/bank/cc/0083/wp04 (blob 0bb204d5d0e2) on base ff015c24d; evidence refs/bank/cc/0083/evidence/wp04-* (workspace 3222/0, bats 789/789, clippy, doc, fmt, release build): arm an_intent_hook_script_nothing_runs_is_shown_with_its_removal_and_not_counted (the orphan named with its rm, a script settings.local.json runs and one not naming Intent silent, verdict and exit unmoved)"
+  }
+}

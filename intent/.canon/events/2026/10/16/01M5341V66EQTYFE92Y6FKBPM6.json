@@ -1,0 +1,14 @@
+{
+  "id": "01M5341V66EQTYFE92Y6FKBPM6",
+  "ts": "2026-10-16T19:47:02.474Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0083/AC-04.2"
+  },
+  "payload": {
+    "evidence": "ST0083 WP-04 landed at 2c290c821 on vc's PASS, patch-id 2c9468a6212a from refs/bank/cc/0083/wp04 (blob 0bb204d5d0e2) on base ff015c24d; evidence refs/bank/cc/0083/evidence/wp04-* (workspace 3222/0, bats 789/789, clippy, doc, fmt, release build): arm a_held_settings_file_naming_a_dead_path_is_shown_and_not_counted (dead path named, live path and a marker-carrying file silent, verdict and exit unmoved)"
+  }
+}

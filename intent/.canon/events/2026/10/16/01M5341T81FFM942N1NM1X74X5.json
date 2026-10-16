@@ -1,0 +1,14 @@
+{
+  "id": "01M5341T81FFM942N1NM1X74X5",
+  "ts": "2026-10-16T19:47:01.509Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0083/AC-04.1"
+  },
+  "payload": {
+    "evidence": "ST0083 WP-04 landed at 2c290c821 on vc's PASS, patch-id 2c9468a6212a from refs/bank/cc/0083/wp04 (blob 0bb204d5d0e2) on base ff015c24d; evidence refs/bank/cc/0083/evidence/wp04-* (workspace 3222/0, bats 789/789, clippy, doc, fmt, release build): intent-cli doctor_reads_layouts_settings_author_and_v2_scripts arms a_generated_contract_in_both_layouts_is_counted_and_names_both_paths (counted verdict and exit move, both paths and the rm named) and a_hand_written_dotclaude_claude_md_under_root_is_not_counted"
+  }
+}

@@ -2,7 +2,7 @@
 wp_id: WP-04
 title: doctor: both layouts present, a held settings file with a dead hook command, an empty or placeholder author
 scope: S
-status: Not Started
+status: Done
 ---
 
 # WP-04: doctor: both layouts present, a held settings file with a dead hook command, an empty or placeholder author

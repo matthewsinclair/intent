@@ -1,0 +1,14 @@
+{
+  "id": "01M5341W4A434NNVJXYPXWQSRD",
+  "ts": "2026-10-16T19:47:03.438Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0083/AC-04.3"
+  },
+  "payload": {
+    "evidence": "ST0083 WP-04 landed at 2c290c821 on vc's PASS, patch-id 2c9468a6212a from refs/bank/cc/0083/wp04 (blob 0bb204d5d0e2) on base ff015c24d; evidence refs/bank/cc/0083/evidence/wp04-* (workspace 3222/0, bats 789/789, clippy, doc, fmt, release build): arm an_empty_or_placeholder_author_is_shown_naming_the_field_and_not_counted (empty and Author Unknown each name author in intent/.config/config.json, verdict and exit unmoved)"
+  }
+}
