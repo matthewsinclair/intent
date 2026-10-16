@@ -1889,6 +1889,14 @@
       "state": "live",
       "recorded_at": "2026-10-16T17:22:58.902Z",
       "edited_at": "2026-10-16T17:23:23.572Z"
+    },
+    {
+      "node": "vc",
+      "kind": "decision",
+      "seq": 65,
+      "text": "(2026-10-16, hv's selection in the TUI vc asked, recorded at 2026-10-16T17:55:25Z by vc's clock, the first clock read after the answer; wording vc's, the choice hv's; vc's recommendation) THE SHIPPED SURFACE MAY READ `CLAUDE_CONFIG_DIR`, CONFINED to crates/intentsvcs/src/userstate.rs as HOME is: an ALLOWED row and a CONFINED row dated 2026-10-16 with the reason (issue 0604: skill and subagent installs land where Claude Code looks when the variable is set, and fall back to $HOME/.claude when it is not; require-in-session.sh, session-context.sh and the in-session release line read it in shell beside it, which the arm does not police). The arm no_intent_home::the_shipped_surface_reads_exactly_one_environment_variable then holds any second Rust reader of the variable red. cc asked the same question in its own session; this answer is the one ruling.",
+      "state": "live",
+      "recorded_at": "2026-10-16T17:55:45.745Z"
     }
   ],
   "messages": [
