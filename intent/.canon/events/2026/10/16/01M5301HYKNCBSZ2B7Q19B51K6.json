@@ -1,0 +1,16 @@
+{
+  "id": "01M5301HYKNCBSZ2B7Q19B51K6",
+  "ts": "2026-10-16T18:36:58.707Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 50,
+    "text": "RESUME (vc, localfold 2026-10-16 ~18:25Z on hv's word 'project-wide localfold+compact, context is high'; Intent's cc, dc, vc folded, not released; vc bounced 18:28Z). STATE: main HEAD f8947efe4 carries 3.2.4's second train, landed and verified by patch-id (0599 ff266c7a9, 0590 4c6903d0b, 0604 89bce6328, 0602 35f173b28, 0598 d61f838a5, each closed in its own record commit) on top of the first train and 0601; no open issues; main is ahead of upstream by about 174 commits, none pushed. BUILT AND RUNNING: hv's own hand ran bin/devbin build all during the compact, the pair's binaries stamped 18:27:42Z at f8947efe4, intent --version reading 3.2.3 (f8947efe4) dev; vc ran intent daemon restart at 18:32:04Z after an FYI to utilz-vc, and daemon status reads intentd 3.2.3 (f8947efe4), the commit the intentd beside this intent names; so every session on this Mac now runs the five fixes. PUSHED: hv committed the three folded boards' renders as 7bfca4e7a \"For release\" at 18:32:50Z and pushed main to upstream and local at about 18:33Z, so main is ahead of both by vc's board commits only; the currency verdict reads ok against the pair at f8947efe4. THE 3.2.4 CUT IS hv's HAND AND STILL OWES ITS PREP on hv's word: the CHANGELOG section is dated, docs/releases/3.2.4/RELEASE_NOTES.md does not exist, docs/known-defects.md is titled v3.2.3 and is re-driven whole from dc's latest drive script, the reference pages regenerate against v3.2.3 per intent/docs/releasing.md. hv's rulings this evening: decision 64 (0590 on issues alone, 0598 retire the copy, 0602 remove when empty) and decision 65 (CLAUDE_CONFIG_DIR granted, confined to userstate.rs). Evidence: refs/bank/vc/324b/judge-324c.sh and evidence/judge-324c.{log,log.test,log.bats}; cc's banks refs/bank/cc/324b/{0604,0602,0598} (v2, re-contexted; v1 kept at -v1) and evidence; dc's refs/bank/dc/324b/{0599,0590}. HELD 18:36Z: hv is moving and told kovacs-sysadm to fold kovacs, tell the vcs to hold, compact and finish; vc's 18:34:49Z GO for o7-drive-b was held unrun by kovacs-sysadm and vc withdrew it, so nothing runs on kovacs this session, o7-b then o5 on a fresh GO next session; Utilz's Swift window ENDED 18:3xZ (utilz-vc), the box is free. POST-BUILD SIGNALS, each when that session is on the bus (at 18:29Z kovacs-sysadm was, sinclair-vc and devbin-vc were not): the sinclair-vc book signal (blob c03d21d900d0); kovacs's o7-drive-b then o5-at051 GOs, one at a time on a census, o5 a cargo build on the CPU kovacs shares so it waits for Utilz's Swift END (window granted 18:12:31Z, compiles from about 18:40Z); devbin's two re-bookings. Then cc's ST0083 WP-07, 04, 06, 08 on hv's word; then the globalfold (wip.md's DOING line on main's unbuilt content and the TODO for hv's hand are stale by the five). Standing: no push, no release, never --no-confirm, never intent fc; one heavy run at a time behind the census from the banked script; commit messages and long board texts from files."
+  }
+}
