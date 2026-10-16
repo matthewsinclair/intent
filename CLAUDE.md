@@ -2,7 +2,7 @@
 
 # Intent
 
-This project is built with Intent -- run `intent --version` for the version it is running. The primary config file for AI coding agents is `AGENTS.md` at the project root -- read that first. `CLAUDE.md` is a Claude Code-specific overlay that adds directives beyond the tool-agnostic contract.
+This project is built with Intent -- run `intent --version` for the version it is running. The primary config file for AI coding agents is `AGENTS.md`, beside this file, and the `@AGENTS.md` line at the top of this file loads it. `CLAUDE.md` is a Claude Code-specific overlay that adds directives beyond the tool-agnostic contract.
 
 ## Required on every session
 
@@ -23,31 +23,18 @@ Claude Code persists cross-session memories at `~/.claude/projects/<project-dir>
 ## File map
 
 - `AGENTS.md` -- primary tool-agnostic contract. Read first.
-- `usage-rules.md` -- terse DO / NEVER rules (Elixir convention; honoured by `mix usage_rules.sync`). Seeded by `intent claude upgrade --apply` when absent and never overwritten after that; `intent init` does not create it.
+- `usage-rules.md` -- terse DO / NEVER rules (Elixir convention; honoured by `mix usage_rules.sync`). Seeded by `intent claude upgrade --apply` in the root layout when absent, not seeded in the `.claude/` layout, and never overwritten; `intent init` does not create it.
 - `intent/llm/MODULES.md` -- OPTIONAL Highlander registry. To check for prior art, ask the index first: `intent search --kind def <name>` answers whether a thing with that name already exists anywhere in the tree, and the answer carries the index's own freshness. When it says the index is not complete for the paths that matter, fall back to grep. Where the project keeps a registry, `intent modules find <name>` searches that as well. `intent init` does not create one; a project that wants it creates the file and keeps it, and searches it rather than reading it -- a mature registry is too large to read.
 - `intent/llm/DECISION_TREE.md` -- OPTIONAL code-placement flow chart. `intent init` does not create one; where a project has one, it was chosen for that project and describes that project's own stack.
 - `intent/llm/RULES.md`, `intent/llm/ARCHITECTURE.md` -- this project's own rules and architecture, seeded empty by `intent init` for the project to author.
 - `intent/` -- steel threads (`st/`), project docs (`docs/`), work tracking (`wip.md`, `restart.md`).
 - `intent/.config/` -- configuration and metadata.
 
-Canon narrative on how AGENTS.md + CLAUDE.md + usage-rules.md + hooks + critics + skills compose: `intent/docs/working-with-llms.md` in the Intent source repository (https://github.com/matthewsinclair/intent).
+Canon narrative on how AGENTS.md + CLAUDE.md + usage-rules.md (where the project keeps one) + hooks + critics + skills compose: `intent/docs/working-with-llms.md` in the Intent source repository (https://github.com/matthewsinclair/intent).
 
 ## Rules of the road
 
-Cross-language principles govern all Intent projects. Every language pack concretises them; the critics enforce them.
-
-- **Highlander** (`IN-AG-HIGHLANDER-001`) -- there can be only one; no divergent copies of the same concern.
-- **PFIC** (`IN-AG-PFIC-001`) -- Pure Function, Impure Coordination. Read it with `intent claude rules show IN-AG-PFIC-001`.
-- **Thin Coordinator** (`IN-AG-THIN-COORD-001`) -- coordinators parse to call to render; business logic lives elsewhere.
-- **No Silent Errors** (`IN-AG-NO-SILENT-001`) -- every failure surfaces; rescue-and-swallow is forbidden.
-
-**THIS INDEX IS ALSO IN `AGENTS.md`, DELIBERATELY, AND A DRIFT TEST HOLDS THE TWO BYTE-IDENTICAL.** This section used to say the principles were stated in `AGENTS.md` and **not restated here**, on the grounds that a second copy would be a Highlander violation in the document that defines the rule. That reasoning was sound and its outcome was wrong: **`AGENTS.md` was the one file the Claude Code agent never received**, so the pointer could not land for this file's own primary reader. The `@AGENTS.md` line at the top of this file (2026-10-15) now makes the harness load it, so that no longer justifies the copy, which stays on the ground the next paragraph gives.
-
-**HIGHLANDER GOVERNS IMPLEMENTATIONS, NOT INDEXES, AND THE TEST IS WHAT MAKES THE COPY LEGITIMATE.** The rule BODIES live in the rule library and are served by `intent claude rules show <id>`; there is exactly one of each and that is untouched. What is duplicated here is a table of contents pointing at them. **A copy that cannot silently diverge is not the failure mode Highlander names** -- drift is -- so the duplication is held by a test rather than by discipline.
-
-**AND THE HONEST LIMIT, MEASURED RATHER THAN ASSUMED: THE OTHER HOME IS `in-standards/SKILL.md`, NOT `usage-rules.md`.** Driven 2026-09-04 on Intent's own tree: its `usage-rules.md` names the principles in passing -- a skill description, a pointer to the rules directory, a rule-id format example -- and carries no index of them; the `_usage-rules.md` template that seeds every other project's `usage-rules.md` carries nothing at all. **`intent/plugins/claude/skills/in-standards/SKILL.md` does carry a real index**, every id with its slug, as a TABLE. It cannot join a byte-identity test because it is a different RENDERING by design, not a copy of these bytes, and it reaches a machine's `~/.claude/skills/` through `intent claude skills sync` rather than reaching a project through `claude upgrade --apply`. **So this arrangement takes the two root-file templates into a tested pair and leaves `in-standards/SKILL.md` as a declared exception whose divergence is intended. It does not reach zero and does not claim to.**
-
-Read any of them with `intent claude rules show <id>` (`intent claude rules list` to enumerate, `--lang <lang>` to filter).
+The cross-language principles, Highlander, PFIC, Thin Coordinator and No Silent Errors, are indexed under "Rules of the Road" in `AGENTS.md`, which the `@AGENTS.md` line at the top of this file loads into every Claude Code session. Read any of them with `intent claude rules show <id>` (`intent claude rules list` to enumerate, `--lang <lang>` to filter).
 
 ## Critic dispatch
 
