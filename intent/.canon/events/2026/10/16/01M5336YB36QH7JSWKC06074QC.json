@@ -1,0 +1,14 @@
+{
+  "id": "01M5336YB36QH7JSWKC06074QC",
+  "ts": "2026-10-16T19:32:20.966Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0083/AC-04.1"
+  },
+  "payload": {
+    "text": "`intent doctor` counts a finding when a contract exists in both layouts, the copy outside the layout the `contracts` key names counting only when canon's one generated predicate for that file reads it as Intent's (the `CLAUDE.md` marker, the `AGENTS.md` footer), so a hand-written `.claude/CLAUDE.md` in a root-layout project is not counted; the finding names both paths and which one the key reads, and its remedy is removing the stray copy, `git rm` when git tracks it and `rm` when it does not, with `intent agents layout <other>` only when the other layout is the one meant, after the keyed copy is gone."
+  }
+}
