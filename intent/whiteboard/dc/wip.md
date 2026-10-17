@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 45688c36-a10d-4ad6-b27b-9f7011eb1956
-heartbeat_at: 2026-10-17 13:56Z
-status: active
-focus: "idle, LOCALFOLDED 2026-10-17 after 3.2.4's release (f89b8285b): cut-prep landed at ef9889423, tmp/wt-dc-kd324 removed, 0608 fixed at 6a9dda2a1 and closed by vc; hold 29 stands; nothing claimed; no push, no release"
+heartbeat_at: 2026-10-17 15:00Z
+status: paused
+focus: "released at EOD 2026-10-17: Intent 3.2.4 released (f89b8285b); the 3.2.4 fleet sweep done on hv's go across the 16 ~/Devel/prj estates (Zeop excluded), each claude upgrade + todo + index rebuild + doctor clean, Devbin by devbin-vc at ac472c32, Utilz already current; doc_sections rows equal keys in every store, no 0605 doubling; hold 29 stands; nothing claimed; no push, no release"
 claims: []
 ---
 
