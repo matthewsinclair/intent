@@ -3,8 +3,8 @@ node: cc
 name: Control Claude
 role: control
 session_id: 499621e2-fc3c-4e68-95a3-009e5e8b84c4
-heartbeat_at: 2026-10-17 13:57Z
-status: active
+heartbeat_at: 2026-10-17 14:09Z
+status: paused
 focus: "IDLE after hv's 3.2.4 cut (f89b8285b); localfolded 2026-10-17 13:5xZ, holding; next work by vc's order; no push, no release"
 claims: [ST0081, ST0083]
 ---
