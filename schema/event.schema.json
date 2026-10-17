@@ -60,6 +60,6 @@
   ],
   "title": "Envelope",
   "type": "object",
-  "x-intent-ver": "3.2.3",
+  "x-intent-ver": "3.2.4",
   "x-schema-json-ver": 22
 }

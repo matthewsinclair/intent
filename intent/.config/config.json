@@ -11,7 +11,7 @@
     "rust"
   ],
   "intent_dir": "intent",
-  "intent_version": "3.2.3",
+  "intent_version": "3.2.4",
   "languages": [
     "elixir",
     "author",
