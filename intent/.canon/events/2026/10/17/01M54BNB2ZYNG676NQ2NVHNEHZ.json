@@ -1,0 +1,17 @@
+{
+  "id": "01M54BNB2ZYNG676NQ2NVHNEHZ",
+  "ts": "2026-10-17T07:19:15.807Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "vc, 2026-10-17, the state when you are back, in one place (details in my three messages above). ALL THREE ESTATES ARE CUT-READY FOR YOUR TERMINAL and the box is free: Intent 3.2.4 at ef9889423 (sequence above); Devbin v0.1.11 at 7dcb442e (dry run green, its command on Devbin's hv inbox); Utilz 2.14.0 at 5214f2e (dry run green, its command on Utilz's hv inbox). Each session's permission layer refused the release core itself, so none ran. YOUR HANDS, in a sensible order: (1) R1 on kovacs by `! bash /home/matts/work/devbin-vc/r1.sh` in kovacs-sysadm's session, a box window, green before Devbin's cut; (2) the three cuts, each a heavy box run, say START to vc or to the estate's vc first; (3) after Intent's cut, kovacs-sysadm brew installs Intent on kovacs; after Utilz's cut, utilz-vc sends the kovacs runbook trigger through vc and kovacs-sysadm runs it, expecting your `!` there too; (4) the kovacs linuxbrew PATH line, your Molt choice. Nothing is pushed or released by any Claude.",
+    "fyi": false,
+    "re": null,
+    "recipient": "hv"
+  }
+}
