@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 45688c36-a10d-4ad6-b27b-9f7011eb1956
-heartbeat_at: 2026-10-17 10:11Z
+heartbeat_at: 2026-10-17 13:56Z
 status: active
-focus: "LOCALFOLDED 2026-10-17 on hv's word via vc, holding for hv's compact: 3.2.4's cut-prep pass landed at ef9889423; banks on refs/bank/dc/324kd/; tmp/wt-dc-kd324 kept at 5fd224626 until hv's cut; idle until the cut or a re-drive order; hold 29 stands; no push, no release"
+focus: "idle, LOCALFOLDED 2026-10-17 after 3.2.4's release (f89b8285b): cut-prep landed at ef9889423, tmp/wt-dc-kd324 removed, 0608 fixed at 6a9dda2a1 and closed by vc; hold 29 stands; nothing claimed; no push, no release"
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- RESUME STATE (dc, localfold 2026-10-17 on hv's word via vc: bank what we have, localfold, compact). 3.2.4'S CUT-PREP PASS LANDED at ef9889423 on vc's PASS (patch-id 6e9c5b994fd4): known-defects.md re-driven whole against the pair at 09a13ebfd (intent 210a18d30e37e8af, intentd 4559274a3f6e0d84, pinned at both ends), 23 entries as rehearsed, nothing flipped, retitled v3.2.4; docs/reference regenerated at 5fd224626 against v3.2.3 (reference_current_check ok); three explorer shots. Everything is banked on refs/bank/dc/324kd/: final.patch b7b8f8d75633, drive-final.log d3c90ccb4810, drive-final.diff bf4a7b6da6dd, final-pass.out e5a724d1ea89, refcheck-final.txt a92076183d47, final-pass.sh 103d461adfde, land.sh de5e2e0c0542, with drive.sh b2f4f60d8 and rewrite.py f89e820a6 (the venv is in dc's session scratchpad, kd324/venv). tmp/wt-dc-kd324 KEPT at 5fd224626 until hv's cut, its removal on vc's order after the smoke. vc's cut-ready report is with hv; the tag, push and release are hv's at the terminal. NEXT: dc idle until the cut or a re-drive order from vc (a re-drive reruns kd324/final-pass.sh <HEAD> <pair> from the bank). dc claims nothing. No push, no release. (edited)
+_(none)_
 
 ## TODO
 
@@ -21,11 +21,9 @@ _(none)_
 
 ## Holds
 
-- **THE GUARDS ADOPTION PASS FOR THE REMAINING ESTATES IS HELD UNTIL THE DEVBIN FLEET SWEEP REACHES THEM (hv's ruling via vc; re-checked 2026-09-26 at vc's order).** Devbin 0.1.8 is in for Intent only (f85f2663f). A read-only census of the 15 named estates found core.hooksPath set to .githooks in Intent, MicroGPTEx (the pilot) and Gtools, to bin/hooks in Laksa, and unset in the other 11, so the sweep has not reached the estates this hold is about. The recipe runs intent claude upgrade --apply, so each estate's hooks wiring rides that sweep, one commit per estate. Pilot: MicroGPTEx 80d4c13, which passed vc's check. (edited)
-  THE RECIPE: git config core.hooksPath .githooks; intent claude upgrade --apply (writes the four chain blocks, tracked, and the four .intent carriers); add .githooks/*.intent to .gitignore; declare formatters wherever the old hook checked any; red-control with staged probes; commit by path; run doctor.
-  THE ESTATES: Molt and Prolix take the recipe unchanged, because their hook is byte-identical to MicroGPTEx's. Anvil, Baize, Cdtempl, Courses and Riffle share a hook with only the chain block and need no formatter declaration. Prodinfra, Conflab and Lamplight each get their own diff first. vc sequences Devbin, Laksa and Gtools. vc rules the seven unnamed estates on a measurement of which carry Intent.
-  RIDER: wherever the recipe declares a markdown formatter in an estate with a whiteboard, the same commit adds prettier-ignore lines for intent/whiteboard/*/wip.md and intent/whiteboard/*/inbox.*.md (prettier 3.9.8 rewrites the generated views).
-  KNOWN LIMIT: core.hooksPath is per clone, so a fresh clone runs no hook until it is set.
+- HELD UNTIL THE DEVBIN FLEET SWEEP REACHES THE REMAINING ESTATES (hv's ruling via vc): the guards adoption pass, one commit per estate, riding each estate's intent claude upgrade --apply. Pilot MicroGPTEx 80d4c13 passed vc's check; Intent is in at f85f2663f. (edited)
+  RECIPE: git config core.hooksPath .githooks; intent claude upgrade --apply; add .githooks/*.intent to .gitignore; declare formatters wherever the old hook checked any (and, with a whiteboard, prettier-ignore intent/whiteboard/*/wip.md and inbox.*.md); red-control with staged probes; commit by path; doctor.
+  ESTATES: Molt, Prolix take it unchanged; Anvil, Baize, Cdtempl, Courses, Riffle need no formatter declaration; Prodinfra, Conflab, Lamplight get their own diff first; vc sequences Devbin, Laksa, Gtools and rules the seven unnamed on a measurement. core.hooksPath is per clone.
 
 ## Watch-outs
 

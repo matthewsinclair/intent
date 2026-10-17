@@ -1,0 +1,16 @@
+{
+  "id": "01M552DJ3WHN2PFFN9SNJBZEFQ",
+  "ts": "2026-10-17T13:56:58.108Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 29,
+    "text": "HELD UNTIL THE DEVBIN FLEET SWEEP REACHES THE REMAINING ESTATES (hv's ruling via vc): the guards adoption pass, one commit per estate, riding each estate's intent claude upgrade --apply. Pilot MicroGPTEx 80d4c13 passed vc's check; Intent is in at f85f2663f.\nRECIPE: git config core.hooksPath .githooks; intent claude upgrade --apply; add .githooks/*.intent to .gitignore; declare formatters wherever the old hook checked any (and, with a whiteboard, prettier-ignore intent/whiteboard/*/wip.md and inbox.*.md); red-control with staged probes; commit by path; doctor.\nESTATES: Molt, Prolix take it unchanged; Anvil, Baize, Cdtempl, Courses, Riffle need no formatter declaration; Prodinfra, Conflab, Lamplight get their own diff first; vc sequences Devbin, Laksa, Gtools and rules the seven unnamed on a measurement. core.hooksPath is per clone."
+  }
+}
