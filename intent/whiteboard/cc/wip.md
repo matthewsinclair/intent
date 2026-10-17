@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 499621e2-fc3c-4e68-95a3-009e5e8b84c4
-heartbeat_at: 2026-10-17 04:58Z
+heartbeat_at: 2026-10-17 10:11Z
 status: active
 focus: "IDLE 2026-10-17 after ST0083 closed 14/14 and 0606 landed; waiting on the kovacs c3 drive (o3-build.sh then c3 on hv's hand) or the cut; no push, no release"
 claims: [ST0081, ST0083]
