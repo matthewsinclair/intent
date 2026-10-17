@@ -1,5 +1,5 @@
 ---
-verblock: "2026-10-17:v3.16: vc - localfold on hv's word after the 3.2.4 cut; both boxes free, every inbox item of the day resolved"
+verblock: "2026-10-17:v3.17: vc - hygiene on hv's word: ST0080 dehydrated, closed-issue views reconciled, ST0084 filed for the tooling that keeps ST0056 and ST0057 on disk"
 intent_version: 3.2.4
 ---
 
@@ -22,4 +22,4 @@ Measure before believing anything below: `.claude/restart.md` carries the comman
 - **GTOOLS**: the WP-04 slot vc's 2026-09-26 resume named is unscheduled; gtools-vc owns it.
 - **COURSES**: courses-vc re-drives its Intent findings against 3.2.4 and sends vc the ones that still reproduce, to file.
 - **MACHINE, hv's call**: the resident `SetStoreUpdateService` processes and the Spotlight-family services that push the load high; the CoreSimulator framework xcodebuild reports as out of date (noise for the Release build, a macOS or Xcode update clears it).
-- **ST0060** and **ST0077** stay in Triage as the next line's queue (hv, 2026-09-23).
+- **ST0084** (Triage, filed 2026-10-17 on hv's word): relocate the parity tooling and reference generators out of `intent/st/ST0056` so completed threads can leave the disk; until it lands, ST0056 and ST0057 stay hydrated because the gate, the release script and ST0057's acceptance rows cite files under them. **ST0060** and **ST0077** stay in Triage as the next line's queue (hv, 2026-09-23).
