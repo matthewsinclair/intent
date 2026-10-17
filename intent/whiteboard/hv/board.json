@@ -797,6 +797,14 @@
       "fyi": false,
       "state": "live",
       "recorded_at": "2026-10-17T07:19:15.807Z"
+    },
+    {
+      "sender": "vc",
+      "recipient": "hv",
+      "body": "vc, 2026-10-17 after 09:50Z: the Mac is QUIET for Intent's 3.2.4 cut whenever you want it (devbin v0.1.11 is done by your hand, Utilz 2.14.0 is tagged at 069e0f3 and waiting on CI, nothing else is booked on the Mac). R1 is still running on kovacs by your `!`, and Utilz's kovacs runbook follows it there (its prez build is the one CPU step), so the VM shares this CPU for a while yet; your devbin cut ran beside R1 and you may choose the same. Say START to vc, or just begin; the sequence is in my first message above. After the cut, kovacs-sysadm brew installs Intent on kovacs and reports by full path.",
+      "fyi": false,
+      "state": "live",
+      "recorded_at": "2026-10-17T09:52:14.772Z"
     }
   ]
 }
