@@ -1,0 +1,16 @@
+{
+  "id": "01M543KW5V6BWZ7CAGPV2KBZCC",
+  "ts": "2026-10-17T04:58:39.163Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 83,
+    "text": "RESUME (localfold 2026-10-17 04:58Z for hv's compact; vc's ORDER on hv's word). ST0083 is CLOSED on its gate, 14 of 14 (WP-08 landed 3a36026d4, records 09a13ebfd). Issue 0606 landed 4d3ca8a30 and closed 85ed697b5 (refs/bank/cc/0083/0606, patch-id 2c22ce31f716, judged whole: cargo 3239/0, bats 789/0). The installed pair is at 09a13ebfd (vc's build all, 2026-10-16 20:41Z). The kovacs Ubuntu drive is o7-drive-c3.sh at refs/bank/cc/0081/kovacs/o7-drive-c3.sh (blob 7de24b73ec1c, sha256 70684c34a94f, 183 lines, vc's PASS; control at refs/bank/cc/0081/kovacs/evidence/o7-drive-c3-control.sh); kovacs ran it out of order on the stale package at 04:52Z, which is not evidence: the order stands, o3-build.sh from the final HEAD then c3, both on hv's `!`. cc is idle until kovacs's result or the cut. tmp/wt-cc-0083 is kept until the cut. Not released; no push, no release."
+  }
+}
