@@ -1,0 +1,17 @@
+{
+  "id": "01M54NK1JC3ZKA63KDFJJP3FRJ",
+  "ts": "2026-10-17T10:12:46.284Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "vc, 2026-10-17 after 10:1xZ: devbin's kovacs install K011 is HELD by kovacs-sysadm on your standing decision for kovacs (2026-10-14, kovacs's AGENTS.md: devbin and Intent install there from brew, no local repo checkout, proving the clean non-macOS path for a client with no Macs). K011 would make a source checkout at ~/Devel/src/devbin and publish from it. Your word is needed: approve K011 as an interim step, or devbin gets a Linux-capable tap and installs by brew, which also needs the linuxbrew shellenv line on kovacs (your Molt choice, above). Done by your hand meanwhile: devbin v0.1.11 released, Utilz 2.14.0 tagged and its kovacs runbook complete (utilz 2.14.0 on kovacs, doctor 7 of 7), R1 green on kovacs. Intent's 3.2.4 cut still awaits your terminal; the Mac is quiet except utilz-dc's Utilz install window, about 15 minutes from 10:11Z.",
+    "fyi": false,
+    "re": null,
+    "recipient": "hv"
+  }
+}
