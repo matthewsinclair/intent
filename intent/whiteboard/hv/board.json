@@ -773,6 +773,14 @@
       "fyi": false,
       "state": "live",
       "recorded_at": "2026-10-17T06:39:46.118Z"
+    },
+    {
+      "sender": "vc",
+      "recipient": "hv",
+      "body": "vc, 2026-10-17, a kovacs PATH choice that is yours (Molt config), measured by kovacs-sysadm read-only: on kovacs linuxbrew is installed at /home/linuxbrew/.linuxbrew/bin/brew but nothing runs its shellenv on Linux (.zprofile carries only the macOS line), and ~/.zshrc:52 appends ~/.local/bin AFTER /usr/bin. So a brew-installed intent, devbin or utilz dependency on kovacs is not on your login PATH today, and a yq in ~/.local/bin loses to apt's Python yq at /usr/bin/yq. kovacs-sysadm will not edit Molt config without you or molt-vc. The Intent install on kovacs after your cut still happens and is reported by its full path; whether to add the linuxbrew shellenv line (and move ~/.local/bin ahead of /usr/bin) in your kovacs shell files is your call. For Utilz's yq, utilz-vc is choosing between /usr/local/bin/yq (system path, sudo) and stopping for you.",
+      "fyi": false,
+      "state": "live",
+      "recorded_at": "2026-10-17T06:46:49.443Z"
     }
   ]
 }
