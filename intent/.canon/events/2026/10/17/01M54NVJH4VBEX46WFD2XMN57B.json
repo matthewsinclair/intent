@@ -1,0 +1,17 @@
+{
+  "id": "01M54NVJH4VBEX46WFD2XMN57B",
+  "ts": "2026-10-17T10:17:25.796Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "vc, 2026-10-17 after 10:13Z, one fact for Intent's cut, not a blocker: utilz-dc's `brew upgrade utilz` on rhad pulled Homebrew's rust from 1.99.0_1 to 1.99.1 at 10:13Z, and rhad's cargo is Homebrew's (no rustup), so `bin/devbin build release v3.2.4` compiles with a toolchain the pair at 09a13ebfd and every local gate did not run on. CI runs dtolnay stable, which is 1.99.1 since August, and was green at 7bfca4e7a, so the code is proven on 1.99.1 on Linux already, and a point release is the smallest toolchain step there is. The release command's own pre-flight gates run under 1.99.1 before the tag, so run it with --dry-run first, as docs/releasing.md step 3 already says; a green dry run is the proof, and a red stops before anything is written. Also done since my last note: utilz 2.14.0 is installed on rhad by brew (doctor 7 of 7; menuz install waits on your store-creds for Menuz.app.zip), and K011 is withdrawn on your choice (a), so devbin reaches kovacs by the tap you create.",
+    "fyi": false,
+    "re": null,
+    "recipient": "hv"
+  }
+}
