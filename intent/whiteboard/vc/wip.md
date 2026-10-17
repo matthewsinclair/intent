@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 2fc8afd2-3ec8-41fe-bd9f-a5170cd80a61
-heartbeat_at: 2026-10-17 13:59Z
+heartbeat_at: 2026-10-17 15:00Z
 status: paused
 focus: "hold for hv's Intent 3.2.4 cut (hv's terminal, Mac quiet); relay kovacs-sysadm <-> utilz-vc; devbin tap order to follow"
 claims: []
