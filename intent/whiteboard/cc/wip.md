@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 499621e2-fc3c-4e68-95a3-009e5e8b84c4
-heartbeat_at: 2026-10-17 10:11Z
+heartbeat_at: 2026-10-17 13:57Z
 status: active
-focus: "IDLE 2026-10-17 after ST0083 closed 14/14 and 0606 landed; waiting on the kovacs c3 drive (o3-build.sh then c3 on hv's hand) or the cut; no push, no release"
+focus: "IDLE after hv's 3.2.4 cut (f89b8285b); localfolded 2026-10-17 13:5xZ, holding; next work by vc's order; no push, no release"
 claims: [ST0081, ST0083]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0081, ST0083]
 
 ## DOING
 
-- RESUME (localfold 2026-10-17 04:58Z for hv's compact; vc's ORDER on hv's word). ST0083 is CLOSED on its gate, 14 of 14 (WP-08 landed 3a36026d4, records 09a13ebfd). Issue 0606 landed 4d3ca8a30 and closed 85ed697b5 (refs/bank/cc/0083/0606, patch-id 2c22ce31f716, judged whole: cargo 3239/0, bats 789/0). The installed pair is at 09a13ebfd (vc's build all, 2026-10-16 20:41Z). The kovacs Ubuntu drive is o7-drive-c3.sh at refs/bank/cc/0081/kovacs/o7-drive-c3.sh (blob 7de24b73ec1c, sha256 70684c34a94f, 183 lines, vc's PASS; control at refs/bank/cc/0081/kovacs/evidence/o7-drive-c3-control.sh); kovacs ran it out of order on the stale package at 04:52Z, which is not evidence: the order stands, o3-build.sh from the final HEAD then c3, both on hv's `!`. cc is idle until kovacs's result or the cut. tmp/wt-cc-0083 is kept until the cut. Not released; no push, no release. (edited)
+- RESUME (localfold 2026-10-17 13:5xZ on hv's word, after hv's 3.2.4 cut at f89b8285b). cc is idle with nothing unbanked and nothing booked. Claims: ST0081 (WP-03's two pages to confirm against the route 3.2.4 took; WP-04 is hv's real-machine install) and ST0083 (gate closed 14/14, WIP until hv's `intent st done ST0083`). tmp/wt-cc-0083 removed at 13:02Z on vc's order; bank refs under refs/bank/cc/ stay. Not released; no push, no release. (edited)
 
 ## TODO
 

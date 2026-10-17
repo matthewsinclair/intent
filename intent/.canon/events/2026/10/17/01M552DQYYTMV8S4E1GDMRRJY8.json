@@ -1,0 +1,16 @@
+{
+  "id": "01M552DQYYTMV8S4E1GDMRRJY8",
+  "ts": "2026-10-17T13:57:04.350Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 83,
+    "text": "RESUME (localfold 2026-10-17 13:5xZ on hv's word, after hv's 3.2.4 cut at f89b8285b). cc is idle with nothing unbanked and nothing booked. Claims: ST0081 (WP-03's two pages to confirm against the route 3.2.4 took; WP-04 is hv's real-machine install) and ST0083 (gate closed 14/14, WIP until hv's `intent st done ST0083`). tmp/wt-cc-0083 removed at 13:02Z on vc's order; bank refs under refs/bank/cc/ stay. Not released; no push, no release."
+  }
+}
