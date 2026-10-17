@@ -328,7 +328,7 @@ fi
 #
 # THE LINE THIS MUST NEVER CROSS IS THE ONE ABOVE: eval-ing the COMMAND is not
 # parsing the ANSWER. The moment devbin can tell a sha from a hostname, the layer
-# ruling has been reversed by implementation rather than by decision, and nothing
+# split has been reversed by implementation rather than by decision, and nothing
 # in a diff would say so.
 #
 # A REFERENT IS A READ, SO IT RUNS WITH GIT_OPTIONAL_LOCKS=0 BY DEFAULT (issue

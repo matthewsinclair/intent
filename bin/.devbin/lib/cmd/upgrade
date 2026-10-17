@@ -670,7 +670,7 @@ EOF
     printf '\n%d file(s) devbin no longer ships were released to the project; --force will not\n' "$released"
     printf 'touch them again. Delete each if it is dead, or move it out of bin/.devbin/lib/.\n'
   fi
-  # THE EXIT STATUS IS A RULING, NOT A DEFAULT (issue 0021). It stays 0 when
+  # THE EXIT STATUS ANSWERS ONE QUESTION, NOT TWO (issue 0021). It stays 0 when
   # files were refused, because this command's status answers "did I complete",
   # and a run that reported every refusal and wrote a correct manifest DID. The
   # other question -- is this tree level with its source -- is a different one,

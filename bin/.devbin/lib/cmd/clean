@@ -11,7 +11,7 @@
 # `debug/deps` that cargo reports FRESH, and never touches `release/` at all.
 # Neither is a policy over the other's engine; they answer different questions.
 #
-# WHY A VERB AND NOT A SCHEDULE. launchd and cron were ruled out explicitly. The
+# WHY A VERB AND NOT A SCHEDULE. launchd and cron were rejected on purpose. The
 # failure this exists for was ~2.9M files and ~82 GB across the cargo target
 # dirs of one machine's projects, and a scheduled sweep of a destructive action
 # is the shape that removes a live binary at 3am with nobody to answer the

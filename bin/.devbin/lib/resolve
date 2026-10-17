@@ -1450,7 +1450,7 @@ run_command() {
       # possible answer from a test command: every wrapper, CI step and `&&` chain
       # read 'the tests passed' from a run that executed no test at all." Surfaced
       # by WP-07's migration audit, which is what that audit is for -- the prose
-      # carried a ruling, and dropping the prose would have dropped the ruling.
+      # carried a rule, and dropping the prose would have dropped the rule.
       case "${1:-}" in
         -h | --help) return 0 ;;
       esac
@@ -1660,7 +1660,7 @@ report_unrunnable() {
 # exported. One project also carried `_set_fidelity`, another `_set_bin`, both
 # the same function again with a third and fourth pair of answers.
 #
-# So the ruling is that NONE of them is library code: the shape is one function
+# So NONE of them is library code: the shape is one function
 # reading `options.<name>.values` and `options.<name>.export` from config. Four
 # hand-written setters plus every future one become this section, and a project
 # adds `--fidelity` by declaring it rather than by writing bash.
@@ -1699,7 +1699,7 @@ report_unrunnable() {
 # not, so a library declares elixir with `server` switched off, and the proxy
 # started advertising a flag nothing could read.
 #
-# The ruling: `--iex` selects a SERVER's IEx form. It is not a
+# The rule: `--iex` selects a SERVER's IEx form. It is not a
 # general "do this in IEx" modifier -- running `cli` or `repl` under it makes no
 # sense and nobody would want to. So the flag is offered where a consumer is
 # active, and REFUSED where the command being run is not one of them: silence is

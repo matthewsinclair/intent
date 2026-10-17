@@ -27,10 +27,10 @@
 # WHAT IS DELIBERATELY NOT CHECKED, and it is the decision that unblocked this
 # work. `mail: google` does NOT assert a particular MX value. The STANDARD --
 # the vendor-derived table that would say what Google's current MX form is --
-# was deleted with `docs/infrastructure.md`, and the ruling is that
+# was deleted with `docs/infrastructure.md`, and since then
 # devbin ships no vendor table at all: `init` puts every vendor-derived field in
 # `unreviewed:` instead (lib/infra.init). Shipping a value here would reverse
-# that ruling by accident, and would ship the exact `estate-inferred` row it
+# that by accident, and would ship the exact `estate-inferred` row it
 # removed.
 #
 # INTRA-ESTATE CONSISTENCY REPLACES IT AND COSTS NOTHING: every domain declaring

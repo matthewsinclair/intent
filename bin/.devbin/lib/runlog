@@ -90,8 +90,8 @@ _DEVBIN_INVOKE_TAG='devbin| '
 # INHERITED BY A CHILD DEVBIN, EXCEPT ACROSS A WITNESS BOUNDARY.
 # This paragraph used to say the id was NOT EXPORTED and that a child got its
 # own, while `bin/devbin` exported it and tests/unit/runlog.bats held a child to
-# its parent's id: two rulings. One estate patched its vendored copy to match
-# the comment. It was ruled for inheritance -- fullcycle spawning clean, build
+# its parent's id: two answers. One estate patched its vendored copy to match
+# the comment. Inheritance is the answer -- fullcycle spawning clean, build
 # and test is one thing the operator asked for -- except where a non-witness run
 # starts a witness one. `bin/devbin` owns the rule; this paragraph only reports it.
 #
@@ -1276,7 +1276,7 @@ print_run_overhead() {
 # chatter instead of its artifact. The file is the verdict: empty means a
 # COMPLETED run was green. Read the file.
 #
-# The name is the WP-05 ruling (D13): print_run_verdict over the corpus's other
+# The name print_run_verdict (D13) wins over the corpus's other
 # spelling, print_failed_log_line, because it is a strict superset and reads
 # colours as `${red:-}` so it survives `set -u` when init_colors was never
 # called.
@@ -1575,7 +1575,7 @@ _gate_out_ignore_file() {
 # Exists because built-in gates put user args after `--`, so a wrapper flag
 # typed at the command line arrived as a TOOL argument -- `test mix --purge`
 # asked mix to run a file called --purge. The corpus purge semantics were
-# ruled back in (`test all --purge`). ONE parser, used by EVERY site
+# brought back (`test all --purge`). ONE parser, used by EVERY site
 # that forwards a user's argv to a tool, sealed or not, so they cannot drift on
 # what counts as a wrapper flag. THIS SENTENCE ONCE LISTED THE SITES, said
 # "both", and was wrong for as long as a third existed: run_command's gate
@@ -1585,7 +1585,7 @@ _gate_out_ignore_file() {
 # site in lib/resolve to saying what became of the flags, which finds a new site
 # the day it is written.
 #
-# The purge pair and --allow-empty are recognised, both ruled in.
+# The purge pair and --allow-empty are recognised, both kept.
 # --allow-empty does not weaken the default -- a gate that examines
 # nothing still FAILS; the flag is the corpus's explicit per-invocation "this
 # emptiness is intended" override, now reachable from any gate's command line.

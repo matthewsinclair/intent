@@ -50,7 +50,7 @@ set -euo pipefail
 # about.
 #
 # THE NAME IS ${DEVBIN_INVOKE:-bin/devbin}, AS IN EVERY OTHER BUILT-IN (issue
-# 0107, ruling K8). From 2026-09-07 it was $DEVBIN_NAME, which replaced a
+# 0107). From 2026-09-07 it was $DEVBIN_NAME, which replaced a
 # literal `devbin` that resolved to nothing in an estate: in one project, whose
 # dispatcher was then `demo`, it rendered `demo infra`. That launcher
 # is retired and bin/devbin is how every estate is typed, so $DEVBIN_NAME named

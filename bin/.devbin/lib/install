@@ -481,7 +481,7 @@ publish_install() {
 # deletes the last, so bytes devbin wrote into one would be lost at the next
 # upgrade, and until then would sit under a version brew believes it installed.
 # So install and upgrade refuse to write into it, and name the verb that owns
-# it, as Utilz's --managed-by brew does for its own keg.
+# it, as another tool's --managed-by brew does for its own keg.
 #
 # IT DECIDES ONLY ON A MARK IT CAN READ. A manifest that is there and cannot be
 # read is not passed over as "not Homebrew's": every writer this guards refuses

@@ -27,7 +27,7 @@
 #         key indented under a key that already has a value
 #
 # EVERYTHING BELOW IS BLOCK FORM, AND THAT IS A CONSTRAINT RATHER THAN A STYLE.
-# `dmarc: { policy: none }` and `senders: [mailersend]` are refused at parse
+# `dmarc: { policy: none }` and `senders: [transactional]` are refused at parse
 # time. The worked example once lived in a prose document and was written in
 # three forms this parser rejects -- flow collections, flow sequences, and a
 # `domains:` map keyed by FQDN instead of by handle. It was the first thing a
@@ -113,9 +113,10 @@ defaults:
 #
 # ONE DKIM RECORD OR SEVERAL. A sender publishing one record writes its fields
 # directly under `dkim:`, as `newsletter` does below. A sender publishing more
-# writes each under a label of your choosing, as `mailersend` does: it moved
-# from one record to two, ms1 and ms2, and rotates between them. A domain naming
-# the sender must then carry EVERY record it declares, and check asks for each
+# writes each under a label of your choosing, as `transactional` does: its
+# provider moved from one record to two, tx1 and tx2, and rotates between
+# them. A domain naming the sender must then carry EVERY record it declares,
+# and check asks for each
 # on the domain's own nameserver and names each one missing as a HALF PAIR. Each
 # record takes the same three fields in both forms: `name` (the name under the
 # domain), `type` (CNAME when not given) and `value` (optional, compared when
@@ -140,17 +141,17 @@ senders:
       name: nl1._domainkey
       type: CNAME
       value: nl1._domainkey.newsletter.example
-  mailersend:
-    spf_include: _spf.mailersend.net
+  transactional:
+    spf_include: _spf.transactional.example
     dkim:
-      ms1:
-        name: ms1._domainkey
+      tx1:
+        name: tx1._domainkey
         type: CNAME
-        value: ms1._domainkey.mailersend.net
-      ms2:
-        name: ms2._domainkey
+        value: tx1._domainkey.transactional.example
+      tx2:
+        name: tx2._domainkey
         type: CNAME
-        value: ms2._domainkey.mailersend.net
+        value: tx2._domainkey.transactional.example
 
 # --- domains: a map from HANDLE to a block carrying name: --------------------
 #
@@ -168,7 +169,7 @@ domains:
   partner:
     name: partner.example
     senders:
-      - mailersend
+      - transactional
       - newsletter
     # sp: THE POLICY FOR SUBDOMAINS, the _dmarc record's sp= tag, beside the
     # policy it would otherwise follow. It is compared with the live sp=, or,

@@ -552,7 +552,7 @@ _autotests_targets() {
 # FILE COUNT, not in test count, and it is silent in BOTH directions -- nothing
 # says anything when target #2 appears, and nothing says anything at #257.
 # One project reached 257 targets one honest file at a time, holding a 113G
-# target tree; consolidated it builds 5. The ruling is estate-wide.
+# target tree; consolidated it builds 5.
 # This gate catches target #2.
 #
 # WHY THIS READS THE FILESYSTEM RATHER THAN BUILDING THE TARGETS, WHICH LOOKS
@@ -578,7 +578,7 @@ _autotests_targets() {
 #
 # That is what keeps this at check speed, and the alternative is self-defeating:
 # `cargo test --no-run` BUILDS every test target in order to count them, which
-# is the expensive half of the build this whole ruling exists to shrink. A gate
+# is the expensive half of the build this whole gate exists to shrink. A gate
 # that must link the test graph to decide whether the test graph is too big is
 # a gate people switch off.
 builtin_check_autotests() {
@@ -647,7 +647,7 @@ EOF
       # TWO targets in two crates on purpose (one test mutates process cwd,
       # another drives a per-process watch stream, and merged targets are
       # threads in one process), so a `> 1 is a breach` rule turns
-      # the estate that authored the ruling red on a documented decision. A gate
+      # the estate that wrote the rule red on a documented decision. A gate
       # red in the ordinary case is how a gate teaches people to ignore it.
       #
       # The defect being policed is SILENT GROWTH, not arithmetic. Auto-discovery

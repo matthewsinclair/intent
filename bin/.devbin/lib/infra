@@ -193,23 +193,23 @@ infra_domain_pairs() {
 #   A domain declaring a sender must carry a MATCHED SPF include and DKIM
 #   selector pair, and the two must be consistent with each other.
 #
-# "PAIR" WAS AN ASSUMPTION ABOUT VENDORS, NOT THE RULE (issue 0143). MailerSend
-# moved on 2026-09-08 from one DKIM record to two, ms1 and ms2, and rotates
+# "PAIR" WAS AN ASSUMPTION ABOUT VENDORS, NOT THE RULE (issue 0143). A
+# transactional mail provider moved from one DKIM record to two and rotates
 # between them, so the rule's arithmetic is: no SPF include without EVERY DKIM
 # record that authorises it. A sender declares one record or several
 # (infra_sender_dkim_records); this asks for the include and at least one, and
 # infra_sender_dkim_shape holds each record's own form, for every sender.
 #
 # design.md settles that this is what the known-sender library ships -- the
-# pair's SHAPE, never its contents. A shipped `mailersend: {spf:
-# _spf.mailersend.net}` WOULD HAVE BEEN WRONG for a live domain sitting on
-# `_spf.mlsend.com`, and neither node could establish whether that split is
+# pair's SHAPE, never its contents. A shipped SPF include for a provider WOULD
+# HAVE BEEN WRONG for a live domain sitting on the same provider's other
+# include, and nobody could establish whether that split is
 # account-specific or generational. Shipping a value commits to an answer
 # nobody has; the invariant is correct either way.
 #
 # WHAT THIS FIXES IS A MISCLASSIFICATION, measured against a real estate on
-# 2026-09-08. Two live domains name `mailersend` in profiles that never define
-# it, and `check` reported "names sender `mailersend` which the profile does
+# 2026-09-08. Two live domains name a sender in profiles that never define
+# it, and `check` reported "names sender `<label>` which the profile does
 # not define -- the matched-pair check CANNOT RUN for it" under COULD NOT
 # MEASURE, whose own header reads "gaps in the INSTRUMENT, not verdicts".
 #
@@ -581,10 +581,10 @@ infra_profile_keys_known() {
 # before 0143, or SEVERAL, each under a label the author chooses:
 #
 #   dkim:                          dkim:
-#     name: mlsend2._domainkey       ms1:
-#     type: CNAME                      name: ms1._domainkey
-#                                    ms2:
-#                                      name: ms2._domainkey
+#     name: nl1._domainkey           tx1:
+#     type: CNAME                      name: tx1._domainkey
+#                                    tx2:
+#                                      name: tx2._domainkey
 #
 # lib/config refuses a sequence of maps, and it did not need to learn one: a
 # label names its record in every message, and a reader of labels would read

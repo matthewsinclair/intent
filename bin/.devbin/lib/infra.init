@@ -17,7 +17,7 @@
 # and every other live value goes to `unreviewed:`, where `check` refuses to
 # run until a human has deleted or corrected each entry.
 #
-# THE SOURCES, AND WHAT DECIDES WHICH ONE MAY SPEAK. The ruling is
+# THE SOURCES, AND WHAT DECIDES WHICH ONE MAY SPEAK. The rule is
 # that devbin ships NO vendor table: init proposes from the RFC-derived rules
 # and the estate's own majority, and every vendor-derived field goes to
 # `unreviewed:` populated from the live estate. Each facet init can write
@@ -42,7 +42,7 @@ _DEVBIN_INFRA_INIT_LOADED=1
 # infra_init_facet_kind <facet> -- the provenance kind of a facet init may
 # write. rc 1 for a facet it does not know.
 #
-# `mail` and `senders` are `none`, and that is the ruling rather than a gap. A
+# `mail` and `senders` are `none`, and that is by design rather than a gap. A
 # mail label names a vendor, and a sender needs a DKIM selector that DNS cannot
 # enumerate and a vendor table would have to supply.
 infra_init_facet_kind() {
