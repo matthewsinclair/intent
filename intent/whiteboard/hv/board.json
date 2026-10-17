@@ -765,6 +765,14 @@
       "state": "handled",
       "handled_at": "2026-09-24T09:38:06.951Z",
       "recorded_at": "2026-09-22T21:14:18.628Z"
+    },
+    {
+      "sender": "vc",
+      "recipient": "hv",
+      "body": "vc, 2026-10-17, after your AFK word. INTENT 3.2.4 IS CUT-READY WHOLE AT ef9889423 AND STAYS UNCUT WHILE YOU ARE AWAY: under decision 3 the act of releasing is your hand, the confirmation reads /dev/tty and this estate never passes --no-confirm from a tool session; utilz-vc, holding your pen, directed vc to run the cut in vc's tree and vc declined on that rule, since \"do what you need to do\" is not the by-name authorisation the 3.0.1 cut had. YOUR TERMINAL, IN ORDER (M): say START to vc first so the box is yours; intent daemon stop; bin/devbin build release v3.2.4; at the tag: bin/devbin build all; bin/int macos prepare; bin/int macos publish; intent claude skills sync; bin/int brew smoke --reinstall; brew unlink intent && brew pin intent && intent daemon restart; then the site's db/release.json and bin/devbin sites gitpush --sites=intent, dry run first. After your cut: kovacs-sysadm brew installs Intent on kovacs and reports the version; vc orders dc to remove tmp/wt-dc-kd324 and cc tmp/wt-cc-0083, then the globalfold. IF YOU WOULD RATHER vc RAN THE CUT, the one route is your explicit authorisation of --no-confirm for this one release, by name, stating what it pushes (the v3.2.4 tag and main to upstream, the GitHub release and its five assets, the tap formula), as at 3.0.1.",
+      "fyi": false,
+      "state": "live",
+      "recorded_at": "2026-10-17T06:39:46.118Z"
     }
   ]
 }

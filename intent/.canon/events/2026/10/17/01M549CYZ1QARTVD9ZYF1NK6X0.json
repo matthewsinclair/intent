@@ -1,0 +1,15 @@
+{
+  "id": "01M549CYZ1QARTVD9ZYF1NK6X0",
+  "ts": "2026-10-17T06:39:44.097Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-10-17, hv first-hand in vc's session, received between vc's clock reads of 06:34Z and 06:37Z; the same word given to utilz-vc, devbin-vc and kovacs-sysadm) hv verbatim: \"I'll be AFK for a while. I have given utilz-vc the pen, but it will liase with intent-vc, devbin-vc, and kovacs-sysadm as needed. I've let them all know as well. All holds are off. Do what you need to do. I hope to get back and find that utilz, devbin, and intent are up-to-date and ready to release (or already relased), including installed on both rhad and kovacs (where that makes sense, of course). Go!\" vc's reading: the box queue runs on vc's START as each END arrives, with no further word from hv; utilz-vc's pen directs Utilz, Devbin and Intent and vc reports blockers to utilz-vc, not to hv; DECISION 3 STANDS UNTOUCHED, because it is hv's first-hand ruling on hv's own hand (the release confirmation reads /dev/tty, this estate never passes --no-confirm from a tool session, the push gate stays human) and a general \"do it\" is not the explicit, specific, by-name authorisation of --no-confirm that the 3.0.1 cut had, so Intent's 3.2.4 cut waits for hv's terminal and no pen can move it; vc declined utilz-vc's direction to run the cut in vc's tree on that rule and put the cut sequence in hv's inbox; Intent's install on kovacs waits on the published 3.2.4 formula."
+  }
+}
