@@ -1,0 +1,15 @@
+{
+  "id": "01M544FRK397BKCJMP3ZH4FDD1",
+  "ts": "2026-10-17T05:13:52.998Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0607"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "Swap out the bespoke logging console and use the macOS Console app as the menubar app's log viewer, as Utilz menuz does"
+  }
+}
