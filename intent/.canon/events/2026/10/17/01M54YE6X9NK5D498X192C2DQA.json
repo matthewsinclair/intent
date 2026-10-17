@@ -1,0 +1,15 @@
+{
+  "id": "01M54YE6X9NK5D498X192C2DQA",
+  "ts": "2026-10-17T12:47:25.101Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0608"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "devbin_canon.bats hides the canon sweep's output, so a CI red there cannot say what it saw (one Ubuntu flake at v3.2.4)"
+  }
+}
