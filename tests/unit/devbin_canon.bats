@@ -34,6 +34,6 @@ CANON="${INTENT_PROJECT_ROOT}/bin/.devbin/cmd/canon"
 @test "canon: a clean estate exits 0" {
   cd "$INTENT_PROJECT_ROOT" || return 1
   run env DEVBIN_LIB="$INTENT_PROJECT_ROOT/bin/.devbin/lib" bash "$CANON"
-  [ "$status" -eq 0 ]
+  [ "$status" -eq 0 ] || { printf '%s\n' "$output" >&2; return 1; }
   [[ "$output" == *"controls: membership both directions fired"* ]]
 }
