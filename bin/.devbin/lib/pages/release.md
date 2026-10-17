@@ -19,12 +19,15 @@ Cut a release: stamp, commit, gate, confirm, tag, push, make the release object,
      6  confirm      ask once, naming the tag, the commit and what others will see
      7  tag          an annotated tag whose message is the note's body
      8  push         the release commit and the tag, to each remote in remotes:,
-                     or to every remote git lists when none is declared
+                     or to every remote git lists when none is declared, each
+                     read back after its push
      9  object       the release object -- made here (object: local, the
                      default), by the project's CI (object: ci), or none
     10  after        the declared after: commands
     11  ci           ask ci.query for the release tag's CI verdict, if it is
                      declared
+
+Step 8 reads each remote back after pushing to it, and a remote is slowest straight after a push, so a read that does not answer is asked again every 15 seconds for about 2 minutes, the bound the push itself has. A remote that answers without the release fails the step at once, as one that does not hold the release after the push. An answer that cannot be read here, such as a branch moved to a commit this checkout does not hold, fails it at once too, as a read that could not tell whether the remote holds the release, since no later ask can clear it. One that has not answered in that time fails it as a read that could not tell, never as a remote without the release: running the same command again reads it back.
 
 Each step with a postcondition checks it first. Running the same command again after a failure therefore continues from where it stopped, and a step already done says `already`. A cut that stopped after its tag is resumed by naming the version: once the tag exists, `--patch` would name the NEXT version, so the summary prints the command to resume with. A dry run's prints the command to cut with.
 

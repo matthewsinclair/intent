@@ -40,7 +40,7 @@ bash_floor_refuse() {
   printf '%s: bash >= 5 is required; this is bash %s (%s)\n' \
     "${DEVBIN_NAME:-devbin}" "${1:-unknown}" "${2:-unknown}" >&2
   [ -z "${3:-}" ] || printf '  %s\n' "$3" >&2
-  printf '  macOS ships bash 3.2 permanently -- install a current one:  brew install bash\n' >&2
+  printf '  macOS ships bash 3.2 permanently -- install a current one:  brew install bash, or apt-get install bash\n' >&2
   exit 1
 }
 
@@ -601,6 +601,65 @@ physical_dir() {
   _cpd_d="${_cpd_d%$'\n.'}"
   case "$_cpd_d" in //*) _cpd_d="${_cpd_d#/}" ;; esac
   _cpd_res="$_cpd_d"
+}
+
+# is_wsl -- rc 0 when this session runs under WSL (ST0008 D49), rc 1 otherwise,
+# asked of _wsl_probe against /proc.
+#
+# FOR REPORTING ONLY. WSL is Linux, so no command behaves differently under it
+# (ST0008, principle 1); doctor asks this to say where a project sits, and
+# nothing else may branch on it.
+#
+# DEVBIN_WSL overrides the probe, 1 for WSL and 0 for not, so an arm drives it
+# on any machine. Any other value is refused rather than read as either.
+is_wsl() {
+  case "${DEVBIN_WSL-}" in
+    1) return 0 ;;
+    0) return 1 ;;
+    '') _wsl_probe /proc ;;
+    *) die "DEVBIN_WSL must be 1 or 0, not '$DEVBIN_WSL'" ;;
+  esac
+}
+
+# _wsl_probe <proc-root> -- rc 0 when <proc-root> carries WSL's own marks: its
+# interop handler registered under sys/fs/binfmt_misc, as WSLInterop or, where
+# systemd runs, WSLInterop-late; or `microsoft` in sys/kernel/osrelease. rc 1
+# otherwise. The root is an argument so an arm reads a fixture's.
+#
+# THE STATED LIMIT: a Linux container on a WSL 2 kernel, Docker Desktop's
+# among them, carries the kernel's release and reads as WSL.
+_wsl_probe() {
+  local rel=""
+  [ -e "$1/sys/fs/binfmt_misc/WSLInterop" ] && return 0
+  [ -e "$1/sys/fs/binfmt_misc/WSLInterop-late" ] && return 0
+  if [ -r "$1/sys/kernel/osrelease" ]; then
+    # A release with no final newline still sets rel, and a read that fails
+    # leaves it empty, which reads as not WSL: this only ever reports.
+    read -r rel <"$1/sys/kernel/osrelease" || true
+  fi
+  case "$rel" in *[Mm]icrosoft*) return 0 ;; esac
+  return 1
+}
+
+# windows_drive_of <path> <mount-root> <out-var> -- rc 0, with the drive's
+# mount point (eg /mnt/c) in <out-var>, when <path> is a Windows drive WSL
+# mounts under <mount-root> or anything under one: <mount-root>/<one letter>,
+# then / or nothing. rc 1 otherwise. Pure: the caller resolves <path> and
+# <mount-root>, so a link onto a drive, or to the mount root, is read as what
+# it reaches. Trailing slashes on <mount-root> are dropped, so / is a root.
+#
+# WSL mounts each drive at /mnt/<letter> unless /etc/wsl.conf moves the
+# automount root, so the root is the caller's to pass rather than written here.
+windows_drive_of() {
+  local _wdo_root="$2" _wdo_rest
+  local -n _wdo_out="$3"
+  while [ "${_wdo_root%/}" != "$_wdo_root" ]; do _wdo_root="${_wdo_root%/}"; done
+  case "$1" in
+    "$_wdo_root"/[A-Za-z] | "$_wdo_root"/[A-Za-z]/*) ;;
+    *) return 1 ;;
+  esac
+  _wdo_rest="${1#"$_wdo_root"/}"
+  _wdo_out="$_wdo_root/${_wdo_rest:0:1}"
 }
 
 # stage_beside <file> <command> [args...] -- write what <command> prints into a
@@ -2823,7 +2882,7 @@ rlwrap_exec() {
     fi
     exec rlwrap "${opts[@]}" "$@"
   fi
-  warn "rlwrap not found -- no history or tab completion (try: brew install rlwrap)"
+  warn "rlwrap not found -- no history or tab completion (try: brew install rlwrap, or apt-get install rlwrap)"
   exec "$@"
 }
 
@@ -3049,9 +3108,10 @@ manifest_source_commit() { manifest_field "$1" source_commit; }
 # by the dispatcher's refusal to run from an install, which is why it lives
 # here rather than in lib/install. One home keeps the three from differing;
 # what catches a WRONG line is the test, which runs the printed line in a
-# consumer.
+# consumer. A keg is named by its opt link (install_named_root), so a line
+# copied from a brew install still runs after `brew upgrade`.
 vendor_from_hint() {
-  printf '  cd <your project> && bin/devbin upgrade --from %s\n' "$1"
+  printf '  cd <your project> && bin/devbin upgrade --from %s\n' "$(install_named_root "$1")"
 }
 
 # lib_rel -- where devbin's runtime lives, relative to the project root.
@@ -3155,11 +3215,114 @@ devbin_home_pointer() {
   printf '%s\n' "${d%/}/devbin/home"
 }
 
+# brew_opt_root <homebrew prefix> -- where Homebrew keeps devbin under <prefix>
+# across upgrades, <prefix>/opt/devbin/libexec. Pure.
+# brew_keg_prefix <root> -- the Homebrew prefix whose keg <root> is, when <root>
+# is one, <prefix>/Cellar/devbin/<version>/libexec: rc 0 with the prefix, rc 1
+# otherwise. Pure.
+#
+# THE ONE SPELLING OF THE FORMULA'S LAYOUT (critic-shell on 0195). Discovery,
+# the sentence that says where it looked, and the opt link shell-init and the
+# hints name a keg by each spelled it, so a formula that moved the runtime would
+# have been followed by one and missed by the others.
+brew_opt_root() {
+  printf '%s/opt/devbin/libexec\n' "${1%/}"
+}
+brew_keg_prefix() {
+  case "$1" in
+    /*/Cellar/devbin/*/libexec) printf '%s\n' "${1%%/Cellar/devbin/*}" ;;
+    *) return 1 ;;
+  esac
+}
+
+# install_named_root <root> -- the path to name the install at <root> by: when
+# <root> is a Homebrew keg and its prefix's opt link leads to this very keg, the
+# opt link; <root> otherwise.
+#
+# A KEG IS NAMED BY ITS OPT LINK (issue 0195). The launcher resolves its own
+# links, so an install Homebrew placed runs from Cellar/devbin/<version>, which
+# `brew upgrade` and its cleanup delete: a path written into `dvb`, or copied
+# from a hint, would name a keg that is gone. opt/devbin follows each upgrade.
+# It is taken only when it leads to <root>, so an opt link still naming the last
+# keg, as it does while brew builds the next, leaves <root> as it is.
+install_named_root() {
+  local brew opt real
+  if brew="$(brew_keg_prefix "$1")"; then
+    opt="$(brew_opt_root "$brew")"
+    if physical_dir "$opt" real && [ "$real" = "$1" ]; then
+      printf '%s\n' "$opt"
+      return 0
+    fi
+  fi
+  printf '%s\n' "$1"
+}
+
+# devbin_brew_root -- the root of the devbin Homebrew installed, at the path
+# Homebrew keeps for it across upgrades, $HOMEBREW_PREFIX/opt/devbin/libexec:
+# rc 0 with that root when it is there, rc 1 otherwise (issue 0195).
+#
+# OPT, NEVER CELLAR. The keg is Cellar/devbin/<version>, and `brew upgrade`
+# deletes it; opt/devbin is the link Homebrew moves to each new keg, so a project
+# that found its install here finds it again after an upgrade (Intent measured
+# the same of its own keg, its issue 0527).
+#
+# HOMEBREW_PREFIX ALONE, which `brew shellenv` exports, and only when absolute,
+# as XDG_DATA_HOME counts. No `brew` is run and none is looked for on PATH:
+# running it would cost every lookup a Ruby start, and a PATH search cannot be
+# held off in the suite, whose scrubbed `env -i` calls keep PATH and would find
+# a real install on the machine running them. An environment with no
+# HOMEBREW_PREFIX has no Homebrew default.
+devbin_brew_root() {
+  local p="${HOMEBREW_PREFIX:-}"
+  case "$p" in
+    /*) ;;
+    *) return 1 ;;
+  esac
+  p="$(brew_opt_root "$p")"
+  [ -e "$p" ] || return 1
+  printf '%s\n' "$p"
+}
+
+# brew_unplaced_why -- why devbin_brew_root found nothing, as one clause, for the
+# sentence that says where a machine install was looked for (issue 0195). A
+# process started without the login profile -- cron, a hook a GUI app launched, a
+# bare ssh command -- has no HOMEBREW_PREFIX, and there the default is off, so
+# the clause names the variable rather than leaving a bare "no install". Pure.
+brew_unplaced_why() {
+  local p="${HOMEBREW_PREFIX:-}"
+  case "$p" in
+    '') printf 'HOMEBREW_PREFIX is not set' ;;
+    /*) printf 'no devbin at %s, under HOMEBREW_PREFIX' "$(brew_opt_root "$p")" ;;
+    *) printf "HOMEBREW_PREFIX, '%s', is not an absolute path" "$p" ;;
+  esac
+}
+
+# machine_install_chooser -- which place chose this machine's devbin install, one
+# word: `prefix` while DEVBIN_INSTALL_PREFIX is set, `pointer` while the machine
+# pointer names anything, a pointer that cannot be read included, and `brew`
+# when neither does and Homebrew's install is there (issue 0195). Read in that
+# order, so a machine set up from a checkout is never moved to Homebrew's, and a
+# broken pointer is said to be broken rather than passed over.
+#
+# THE ONE DECISION. machine_named_state places the install by it, and the
+# sentences that say what chose one read it, so the two cannot disagree.
+machine_install_chooser() {
+  if [ -n "${DEVBIN_INSTALL_PREFIX:-}" ]; then
+    printf 'prefix\n'
+  elif [ "$(machine_pointer_state)" = none ] && devbin_brew_root >/dev/null; then
+    printf 'brew\n'
+  else
+    printf 'pointer\n'
+  fi
+}
+
 # machine_named_state -- what this machine NAMES as its devbin install, before
 # anything asks whether the tree there is one. On stdout, one word first:
 #
-#   at <root>       DEVBIN_INSTALL_PREFIX as given, or the pointer's absolute line
-#   none            nothing names one: no override, no pointer
+#   at <root>       DEVBIN_INSTALL_PREFIX as given, the pointer's absolute line,
+#                   or Homebrew's install (devbin_brew_root)
+#   none            nothing names one: no override, no pointer, no Homebrew
+#                   install
 #   bad <reason>    the pointer is there and cannot be read: empty, a link to
 #                   nothing, unreadable, or relative
 #
@@ -3169,11 +3332,11 @@ devbin_home_pointer() {
 # is still known as one when it has lost the manifest that would say so (issue
 # 0153).
 machine_named_state() {
-  if [ -n "${DEVBIN_INSTALL_PREFIX:-}" ]; then
-    printf 'at %s\n' "$(home_expand "$DEVBIN_INSTALL_PREFIX")"
-    return 0
-  fi
-  machine_pointer_state
+  case "$(machine_install_chooser)" in
+    prefix) printf 'at %s\n' "$(home_expand "$DEVBIN_INSTALL_PREFIX")" ;;
+    brew) printf 'at %s\n' "$(devbin_brew_root)" ;;
+    *) machine_pointer_state ;;
+  esac
 }
 
 # machine_pointer_state -- what the machine pointer alone names, in
@@ -3226,18 +3389,19 @@ machine_pointer_state() {
 # devbin_source_state and any other caller cannot come to disagree about what
 # the pointer says.
 machine_install_state() {
-  local s m
+  local s m by
   s="$(machine_named_state)"
   if [ -z "${DEVBIN_INSTALL_PREFIX:-}" ] && [ "${s%% *}" = at ]; then
+    by="$(machine_install_by)"
     # A manifest that is there and cannot be read says nothing about the tree,
     # so it is named as that, never as a tree that is no install.
     m="$(manifest_path "${s#at }")"
     if [ -e "$m" ] && [ ! -r "$m" ]; then
-      printf 'bad the machine pointer %s names %s, whose manifest cannot be read\n' "$(devbin_home_pointer)" "${s#at }"
+      printf 'bad %s names %s, whose manifest cannot be read\n' "$by" "${s#at }"
       return 0
     fi
     if [ "$(manifest_field "${s#at }" kind 2>/dev/null || true)" != install ]; then
-      printf 'bad the machine pointer %s names %s, which is not a devbin install\n' "$(devbin_home_pointer)" "${s#at }"
+      printf 'bad %s names %s, which is not a devbin install\n' "$by" "${s#at }"
       return 0
     fi
   fi
@@ -3245,16 +3409,30 @@ machine_install_state() {
 }
 
 # machine_install_namer -- what names this machine's install, as the subject of a
-# sentence: DEVBIN_INSTALL_PREFIX while it is set, since it is read first, and
-# this machine otherwise, through its pointer. A message that said "this
-# machine names" while the variable did sent the reader to a pointer that had
-# no say (critic-shell on 0153 v3.2).
+# sentence: DEVBIN_INSTALL_PREFIX while it is set, since it is read first; this
+# machine, through its pointer; and HOMEBREW_PREFIX when Homebrew's install is
+# what chose it (issue 0195). A message that said "this machine names" while the
+# variable did sent the reader to a pointer that had no say (critic-shell on
+# 0153 v3.2).
 machine_install_namer() {
-  if [ -n "${DEVBIN_INSTALL_PREFIX:-}" ]; then
-    printf 'DEVBIN_INSTALL_PREFIX'
-  else
-    printf 'this machine'
-  fi
+  case "$(machine_install_chooser)" in
+    prefix) printf 'DEVBIN_INSTALL_PREFIX' ;;
+    brew) printf 'HOMEBREW_PREFIX' ;;
+    *) printf 'this machine' ;;
+  esac
+}
+
+# machine_install_by -- what chose this machine's install, by name, for a
+# sentence that has to say where to look: DEVBIN_INSTALL_PREFIX, the machine
+# pointer by its path, or HOMEBREW_PREFIX's opt/devbin (issue 0195). The pointer
+# messages read as they always did; doctor gives it beside the install a project
+# resolves to.
+machine_install_by() {
+  case "$(machine_install_chooser)" in
+    prefix) printf 'DEVBIN_INSTALL_PREFIX' ;;
+    brew) printf "HOMEBREW_PREFIX's opt/devbin" ;;
+    *) printf 'the machine pointer %s' "$(devbin_home_pointer 2>/dev/null || printf '(no home directory to keep it in)')" ;;
+  esac
 }
 
 # source_override_note <root> [<from>] -- one warning line, when <root>'s
@@ -3305,8 +3483,8 @@ source_unplaced_why() {
       m="$(machine_install_state)"
       case "$m" in
         "bad "*) printf '%s' "${m#bad }" ;;
-        *) printf 'this project came from a devbin install, and this machine names none: no %s, and DEVBIN_INSTALL_PREFIX is not set' \
-          "$(devbin_home_pointer 2>/dev/null || printf 'machine pointer')" ;;
+        *) printf 'this project came from a devbin install, and this machine names none: no %s, DEVBIN_INSTALL_PREFIX is not set, and %s' \
+          "$(devbin_home_pointer 2>/dev/null || printf 'machine pointer')" "$(brew_unplaced_why)" ;;
       esac
       ;;
     checkout) printf 'this project came from a devbin checkout, and DEVBIN_SOURCE names none here' ;;
@@ -3505,21 +3683,47 @@ commit_direction() {
   return 0
 }
 
-# manifest_ancestry <root> -- the ancestry table as `<sha><TAB><direction>` lines.
+# commit_ancestors <checkout> -- every commit <checkout>'s HEAD contains but HEAD
+# itself, one full sha per line, from one `git rev-list` (issue 0195).
+#
+# commit_direction's question, asked of all of them at once: each line is a
+# commit it would call `forward`, so the answer lives beside it. A publish
+# places a whole history this way, where asking per commit would run git three
+# times for each of them. Nothing for a checkout git cannot read, as
+# commit_direction answers `unknown` there, and nothing for a shallow one that
+# holds HEAD alone.
+commit_ancestors() {
+  local all
+  all="$(git -C "$1" rev-list HEAD 2>/dev/null)" || return 0
+  printf '%s\n' "$all" | awk 'NR > 1'
+}
+
+# manifest_ancestry <root> [<sha>] -- the ancestry table as `<sha><TAB><direction>`
+# lines; given <sha>, only the first row for it, or nothing.
 #
 # Read by its own reader rather than manifest_field, which returns ONE value per
 # key and this key repeats. Header lines only: the table ends where the header
 # does, exactly as manifest_field's does.
+#
+# THE LOOKUP STOPS AT ITS ROW, IN ONE awk (issue 0195). A publish now writes a
+# row for every commit its checkout's HEAD contains, so the table grows with
+# every commit, and a lookup that handed every row to a shell loop took about
+# 10 us a row, 32 ms at 1544 rows. The sha travels in the environment, never
+# through -v, which would read a backslash in it as an escape.
 manifest_ancestry() {
   local path
   path="$(manifest_path "$1")"
   [ -f "$path" ] || return 0
-  awk '
+  DEVBIN_ANCESTRY_SHA="${2:-}" awk '
+    BEGIN { want = ENVIRON["DEVBIN_ANCESTRY_SHA"] }
     $0 !~ /^#/ { exit }
     /^#[[:space:]]*ancestry:[[:space:]]/ {
       line = $0
       sub(/^#[[:space:]]*ancestry:[[:space:]]*/, "", line)
-      if (split(line, f, /[[:space:]]+/) == 2) printf "%s\t%s\n", f[1], f[2]
+      if (split(line, f, /[[:space:]]+/) != 2) next
+      # Compared as strings: a sha of digits and one e reads to awk as a number.
+      if (want == "") printf "%s\t%s\n", f[1], f[2]
+      else if ((f[1] "") == (want "")) { printf "%s\t%s\n", f[1], f[2]; exit }
     }
   ' "$path"
 }
@@ -3531,7 +3735,7 @@ manifest_ancestry() {
 # the table has it; `unknown` otherwise. NOT FOUND IS UNKNOWN, never `forward`:
 # a commit the install never held is exactly the case nobody can vouch for.
 install_direction() {
-  local install="$1" rec="$2" head line sha dir
+  local install="$1" rec="$2" head line
   # The install's commit through the one reader of "which commit does this
   # source hold", not a second parse of the same header.
   head="$(_devbin_source_head "$install" 2>/dev/null)" || head=""
@@ -3539,20 +3743,14 @@ install_direction() {
   # EXACT MATCHES ONLY. Every writer records full shas; a short recorded value
   # comes from a hand edit, and a prefix could match a row it does not name.
   [ "$head" = "$rec" ] && { printf 'same\n'; return 0; }
-  while IFS= read -r line; do
-    [ -n "$line" ] || continue
-    sha="${line%%	*}"
-    dir="${line#*	}"
-    [ "$sha" = "$rec" ] || continue
-    case "$dir" in
-      forward | backward | unrelated) printf '%s\n' "$dir" ;;
-      *) printf 'unknown\n' ;;
-    esac
-    return 0
-  done <<EOF
-$(manifest_ancestry "$install")
-EOF
-  printf 'unknown\n'
+  # A table that cannot be read places nothing, so it answers as a row not
+  # found does: `unknown`, which every caller says out loud.
+  line="$(manifest_ancestry "$install" "$rec")" || line=""
+  [ -n "$line" ] || { printf 'unknown\n'; return 0; }
+  case "${line#*	}" in
+    forward | backward | unrelated) printf '%s\n' "${line#*	}" ;;
+    *) printf 'unknown\n' ;;
+  esac
   return 0
 }
 

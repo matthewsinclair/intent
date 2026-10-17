@@ -139,12 +139,21 @@ infra_init_handles() {
 # more row, `authority_unread`, holding the sentence the reader printed for
 # what it observed. propose says it in those words -- the words `check` prints
 # -- rather than in its own (issue 0142).
+#
+# A read whose failure printed a line check shows beside it (infra_dns_said: a
+# reply without AA, or a CNAME answer with no row of the type asked, issue
+# 0196) has one more row, `<facet>_unread` (`mx_unread`, `spf_unread`,
+# `dmarc_unread`), holding that line, which propose gives beside that read as
+# `check` gives it in its row. A reply without AA also gives its domain a
+# `noaa` row, and the run, when infra_init_cause finds why, one row with no
+# handle, `interception`, holding the sentence `check` prints for it (issue
+# 0193).
 
 _ii_row() { printf '%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4"; }
 
 # infra_init_measure <handle> <fqdn>
 infra_init_measure() {
-  local h="$1" f="$2" ns mx spf dm rec ttls="" unread=0 inc
+  local h="$1" f="$2" ns mx spf dm rec ttls="" unread=0 inc noaa=0
 
   # On rc 1 the reader prints what it observed where the nameserver would be.
   if ! ns="$(infra_dns_authority "$f")"; then
@@ -160,6 +169,8 @@ infra_init_measure() {
 "
   else
     _ii_row "$h" "$f" mx '!unread'; unread=1
+    if infra_dns_said "$mx"; then _ii_row "$h" "$f" mx_unread "$mx"; fi
+    if infra_dns_noaa "$mx"; then noaa=1; fi
   fi
 
   if spf="$(infra_dns_spf "$ns" "$f")"; then
@@ -169,6 +180,8 @@ infra_init_measure() {
 "
   else
     _ii_row "$h" "$f" spf_includes '!unread'; unread=1
+    if infra_dns_said "$spf"; then _ii_row "$h" "$f" spf_unread "$spf"; fi
+    if infra_dns_noaa "$spf"; then noaa=1; fi
   fi
 
   if dm="$(infra_dns_dmarc "$ns" "$f")"; then
@@ -185,7 +198,13 @@ infra_init_measure() {
     fi
   else
     _ii_row "$h" "$f" dmarc '!unread'; unread=1
+    if infra_dns_said "$dm"; then _ii_row "$h" "$f" dmarc_unread "$dm"; fi
+    if infra_dns_noaa "$dm"; then noaa=1; fi
   fi
+
+  # A DOMAIN WITH A READ THAT MET A REPLY WITHOUT AA says so once, for
+  # infra_init_cause.
+  [ "$noaa" -eq 0 ] || _ii_row "$h" "$f" noaa yes
 
   # ONE TTL PER DOMAIN, OR NONE. A domain whose records disagree has no single
   # ttl to vote with, and a partial read has not seen all of them.
@@ -200,6 +219,19 @@ infra_init_measure() {
   fi
 }
 
+# infra_init_cause <table> -- the run's `interception` row, or nothing.
+#
+# Impure, and asked once per run, only when a domain's read met a reply
+# without AA: whether something on the path answers port 53 itself
+# (infra_dns_interception). propose records the sentence under `unreviewed:`,
+# where check prints it under COULD NOT MEASURE.
+infra_init_cause() {
+  local why
+  awk -F'\t' '$3 == "noaa" { f = 1 } END { exit !f }' <<<"$1" || return 0
+  why="$(infra_dns_interception)"
+  [ -z "$why" ] || _ii_row "" "" interception "$why"
+}
+
 # --- propose (pure) -----------------------------------------------------------
 #
 # Output lines:
@@ -210,7 +242,16 @@ infra_init_measure() {
 # _ii_get <table> <handle> <facet> -- one value, empty when absent. Read with
 # awk rather than `read`, because a tab is IFS whitespace and `read` collapses
 # the empty fields this table is built to keep.
-_ii_get() { printf '%s\n' "$1" | awk -F'\t' -v h="$2" -v f="$3" '$1==h && $3==f { print $4; exit }'; }
+_ii_get() { awk -F'\t' -v h="$2" -v f="$3" '$1==h && $3==f { print $4; exit }' <<<"$1"; }
+
+# _ii_said <table> <handle> <facet> -- ` (<the reader's line>)` for a read of
+# <facet> whose failure printed a line check shows (infra_dns_said), the words
+# check's row gives, or nothing.
+_ii_said() {
+  local w
+  w="$(_ii_get "$1" "$2" "$3_unread")"
+  [ -z "$w" ] || printf ' (%s)' "$w"
+}
 
 # _ii_votes <table> <facet> -- every measured, single-valued answer.
 _ii_votes() {
@@ -243,14 +284,17 @@ infra_init_propose() {
   handles="$(printf '%s\n' "$t" | awk -F'\t' '$3=="authority" { print $1 }')"
 
   # --- what could not be read -------------------------------------------------
+  # The run's cause first, once, ahead of the reads it explains.
+  v="$(_ii_get "$t" "" interception)"
+  [ -z "$v" ] || printf 'U\tinterception\t%s\n' "$v"
   for h in $handles; do
     if [ -z "$(_ii_get "$t" "$h" authority)" ]; then
       printf 'U\t%s\t%s\n' "$h" "could not be measured: $(_ii_get "$t" "$h" authority_unread). Nothing about it was proposed, and it abstained from every majority"
       continue
     fi
-    [ "$(_ii_get "$t" "$h" mx)" != '!unread' ] || printf 'U\t%s_mx\t%s\n' "$h" "MX could not be read; this domain abstained from the MX census"
-    [ "$(_ii_get "$t" "$h" spf_includes)" != '!unread' ] || printf 'U\t%s_spf\t%s\n' "$h" "SPF could not be read; this domain abstained from the sender census"
-    [ "$(_ii_get "$t" "$h" dmarc)" != '!unread' ] || printf 'U\t%s_dmarc\t%s\n' "$h" "_dmarc could not be read; nothing about its DMARC was proposed"
+    [ "$(_ii_get "$t" "$h" mx)" != '!unread' ] || printf 'U\t%s_mx\t%s\n' "$h" "MX could not be read$(_ii_said "$t" "$h" mx); this domain abstained from the MX census"
+    [ "$(_ii_get "$t" "$h" spf_includes)" != '!unread' ] || printf 'U\t%s_spf\t%s\n' "$h" "SPF could not be read$(_ii_said "$t" "$h" spf); this domain abstained from the sender census"
+    [ "$(_ii_get "$t" "$h" dmarc)" != '!unread' ] || printf 'U\t%s_dmarc\t%s\n' "$h" "_dmarc could not be read$(_ii_said "$t" "$h" dmarc); nothing about its DMARC was proposed"
   done
 
   # --- ttl: estate-inferred -----------------------------------------------------

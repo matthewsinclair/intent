@@ -910,8 +910,19 @@ cut_run() {
           release_git_remote push -q "$r" "refs/tags/$tag:refs/tags/$tag"
         CUT_OUTWARD+=", pushed $tag to $r"
       fi
-      answer="$(release_wait 0 "" UNREADABLE release_read_remote "$r" "$branch" "$tag" "$commit")"
-      [ "${answer%%$'\t'*}" = already ] || cut_fail 8 "$r does not hold the release after the push: ${answer#*$'\t'}"
+      # READ BACK THROUGH A READ THAT DID NOT ANSWER (issue 0194): an
+      # UNANSWERED read, and an ask cut off at its bound, is asked again up to
+      # RELEASE_READBACK_SECONDS. What it ends as, and an UNREADABLE the remote
+      # did answer, fails as a read that could not tell, never as the remote
+      # lacking the release; a remote that answered without it fails at once.
+      answer="$(release_wait "$RELEASE_READBACK_SECONDS" UNANSWERED UNANSWERED \
+        release_read_remote "$r" "$branch" "$tag" "$commit" readback)"
+      case "${answer%%$'\t'*}" in
+        already) ;;
+        UNANSWERED) cut_fail 8 "could not read back whether $r holds the release after the push, in the ${RELEASE_READBACK_SECONDS}s a read-back waits: ${answer#*$'\t'}" ;;
+        UNREADABLE) cut_fail 8 "could not read back whether $r holds the release after the push: ${answer#*$'\t'}" ;;
+        *) cut_fail 8 "$r does not hold the release after the push: ${answer#*$'\t'}" ;;
+      esac
       pushed+=", $r (${plan#* })"
     done
     cut_row 8 "done" "pushed to ${pushed#, }"

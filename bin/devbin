@@ -265,7 +265,7 @@ if [ ! -f "$DEVBIN_DIR/config.yaml" ]; then
         printf '  installed at:  %s\n' "$PROJECT_ROOT"
         printf '  vendored from: %s\n' "$(manifest_field "$PROJECT_ROOT" source_commit 2>/dev/null || printf 'unrecorded')"
         printf '\nTo SEED a project that has no devbin yet:\n'
-        printf '  %s/bin/devbin install --into <your project>\n' "$PROJECT_ROOT"
+        printf '  %s/bin/devbin install --into <your project>\n' "$(install_named_root "$PROJECT_ROOT")"
         printf '\nTo UPGRADE a project that already has one:\n'
         vendor_from_hint "$PROJECT_ROOT"
       } >&2

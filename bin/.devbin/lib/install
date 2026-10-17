@@ -13,7 +13,10 @@
 # THE SEAM, which is the whole of design D5 in one sentence: everything under
 # `bin/.devbin/lib/` plus `bin/devbin` is DEVBIN's and is replaced wholesale;
 # everything else under `bin/.devbin/` -- `config.yaml`, `cmd/`, `help/` -- is
-# the PROJECT's and is never written by any function in this file. Devbin's
+# the PROJECT's and is never written by any function in this file. The one
+# write outside bin/.devbin/ is devbin's marked line-ending block in the
+# project's root .gitattributes (lf_block_write), and only between its markers,
+# so no line the project authored is written there either. Devbin's
 # own help pages for its built-ins are on devbin's side: they ship under lib/
 # (lib/pages/) and are replaced with the rest of it (issue 0113). One rule,
 # stated once, and `vendored_paths` is the only thing that enumerates the first
@@ -155,16 +158,53 @@ source_token_note() {
       warn "$src is not the install $(machine_install_namer) names, so the source this project records, \`install\`, will read as ${m#at } -- vendor from that install, or pass --from to each later upgrade"
       ;;
     "bad "*) warn "this project records its source as \`install\`, and ${m#bad }, so a later upgrade will ask for --from until it names one" ;;
-    *) warn "this project records its source as \`install\`, and this machine names no devbin install, so a later upgrade will ask for --from until one is named (install.prefix, or DEVBIN_INSTALL_PREFIX)" ;;
+    *) warn "this project records its source as \`install\`, and this machine names no devbin install ($(brew_unplaced_why)), so a later upgrade will ask for --from until one is named (install.prefix, DEVBIN_INSTALL_PREFIX, or a Homebrew install under HOMEBREW_PREFIX)" ;;
   esac
   return 0
 }
 
-# install_pointer_write <dstroot> <configured-prefix> -- record <dstroot> as this
-# machine's devbin install in the machine pointer (issue 0153), when it is the
-# configured install.prefix, which the caller read from devbin's own config
-# while it had it loaded (empty when none is set). Prints one line saying what
-# it did or did not do.
+# is_install_prefix <dstroot> <configured-prefix> -- rc 0 when <dstroot> is the
+# configured install.prefix (empty when none is set): by its spelling, trailing
+# slashes aside, or as the same directory (-ef), which counts a prefix spelled
+# through a link only once both exist. One test, for the pointer below and for
+# --point's refusal before a publish, when <dstroot> may not exist yet, so a
+# first publish to a linked spelling of install.prefix is refused --point
+# rather than pointed at a path nobody asked for (issue 0197).
+is_install_prefix() {
+  local a="$1" b="$2"
+  [ -n "$b" ] || return 1
+  while [ "${a%/}" != "$a" ] && [ "${#a}" -gt 1 ]; do a="${a%/}"; done
+  while [ "${b%/}" != "$b" ] && [ "${#b}" -gt 1 ]; do b="${b%/}"; done
+  [ "$a" = "$b" ] || [ "$1" -ef "$2" ]
+}
+
+# point_refusal <dstroot> <configured-prefix> -- why --point cannot apply to a
+# publish to <dstroot>, as one line, or nothing when it can (issue 0197).
+# --point makes install.prefix the machine's install; only a publish there can
+# be pointed at, as only a publish there writes the pointer at all.
+point_refusal() {
+  if [ -z "$2" ]; then
+    printf '%s\n' "--point makes install.prefix the machine's install, and devbin's own config declares no install.prefix"
+  elif ! is_install_prefix "$1" "$2"; then
+    printf '%s\n' "--point makes install.prefix the machine's install, and --prefix names $1, which is not install.prefix ($2)"
+  fi
+}
+
+# install_pointer_write <dstroot> <configured-prefix> [point] -- record <dstroot>
+# as this machine's devbin install in the machine pointer (issue 0153), when it
+# is the configured install.prefix, which the caller read from devbin's own
+# config while it had it loaded (empty when none is set). Prints one line saying
+# what it did or did not do.
+#
+# A MACHINE WHOSE INSTALL IS HOMEBREW'S KEEPS IT (issue 0197). When
+# machine_install_chooser says brew -- no pointer and no DEVBIN_INSTALL_PREFIX,
+# so the keg at HOMEBREW_PREFIX's opt is the machine's install -- a publish to
+# install.prefix from a checkout writes its files and leaves the pointer
+# unwritten, saying whose install the machine keeps and how to change it:
+# writing it would repoint every project on the machine at the checkout's
+# install, undoing the move to Homebrew in silence. `point` is the explicit
+# override (--point), which writes it as on any other machine. The chooser is
+# the one place that decides, so nothing here tests HOMEBREW_PREFIX itself.
 #
 # ONLY install.prefix IS THE MACHINE'S INSTALL. A publish to any other --prefix
 # leaves the pointer alone and says which install it still names: otherwise a
@@ -180,10 +220,10 @@ source_token_note() {
 # named, and the caller's: the install is published either way, and every
 # project on this machine will not find it until the pointer names it.
 install_pointer_write() {
-  local dstroot="$1" configured="$2" p root s
+  local dstroot="$1" configured="$2" point="${3:-}" p root s
   # Asked first: a publish anywhere but install.prefix writes no pointer, so it
   # needs no home directory to keep one in.
-  if [ -z "$configured" ] || [ ! "$dstroot" -ef "$configured" ]; then
+  if ! is_install_prefix "$dstroot" "$configured"; then
     if ! p="$(devbin_home_pointer)"; then
       printf '  pointer    none written: this is not install.prefix\n'
       return 0
@@ -194,6 +234,20 @@ install_pointer_write() {
       none) printf '  pointer    none written: this is not install.prefix, and %s names no install yet\n' "$(home_relative "$p")" ;;
       *) printf '  pointer    left as it was: this is not install.prefix, and %s\n' "${s#bad }" ;;
     esac
+    return 0
+  fi
+  if [ "$point" != point ] && [ "$(machine_install_chooser)" = brew ]; then
+    # Read with its status, never inside the printf: an opt link that leads to
+    # no devbin install still makes the chooser say brew, and its root then
+    # fails, with the reason warned (critic-shell on 0197).
+    if root="$(machine_install_root)"; then
+      printf "  pointer    none written: this machine's install is Homebrew's, %s, named by %s, so projects keep reading it\n" \
+        "$root" "$(machine_install_by)"
+    else
+      printf "  pointer    none written: this machine's install is chosen by %s, which names no devbin install (above), so a project here finds none until it does or the pointer names one\n" \
+        "$(machine_install_by)"
+    fi
+    printf "             to make this install the machine's instead: %s upgrade --point\n" "$DEVBIN_INVOKE"
     return 0
   fi
   if ! p="$(devbin_home_pointer)"; then
@@ -391,7 +445,7 @@ tree_dirty_paths() {
 # publish_copied and publish_removed below): a function that both writes files
 # and formats a report is two jobs (IN-AG-THIN-COORD-001).
 publish_install() {
-  local srcroot="$1" dstroot="$2" version="$3" rel src count=0 paths have removed
+  local srcroot="$1" dstroot="$2" version="$3" managed="${4:-}" rel src count=0 paths have removed
   paths="$(vendored_paths "$srcroot")" || return 1
   if ! source_readable "$srcroot" "$paths"; then
     warn "cannot read the file(s) named above in $srcroot, so the install at $dstroot is left as it was"
@@ -415,8 +469,31 @@ publish_install() {
   while IFS= read -r rel; do
     [ -z "$rel" ] || printf 'removed\t%s\n' "$rel"
   done <<<"$removed"
-  manifest_write "$dstroot" "$srcroot" "$version" "" install || return 1
+  manifest_write "$dstroot" "$srcroot" "$version" "" install "$managed" || return 1
   return 0
+}
+
+# install_managed_refusal <root> -- a refusal, rc 1, when the install at <root>
+# is the one Homebrew placed, which its manifest says when the formula published
+# it with --managed-by brew (issue 0195); rc 0, saying nothing, otherwise.
+#
+# A KEG IS HOMEBREW'S TO REPLACE. brew writes one whole at each version and
+# deletes the last, so bytes devbin wrote into one would be lost at the next
+# upgrade, and until then would sit under a version brew believes it installed.
+# So install and upgrade refuse to write into it, and name the verb that owns
+# it, as Utilz's --managed-by brew does for its own keg.
+#
+# IT DECIDES ONLY ON A MARK IT CAN READ. A manifest that is there and cannot be
+# read is not passed over as "not Homebrew's": every writer this guards refuses
+# one before it writes, in its own words -- publish (lib/install's
+# publish_install), publish-upgrade and install --into (issue 0144) -- so the
+# refusal is theirs, once, and localinstall.bats holds a keg unchanged under it
+# (critic-shell on 0195 asked that this check fail closed; the writers do).
+install_managed_refusal() {
+  [ "$(manifest_field "$1" managed_by 2>/dev/null || true)" = brew ] || return 0
+  warn "$1 is the devbin Homebrew installed, and Homebrew replaces it whole at each version, so devbin will not write into it"
+  warn "  to update it:  brew upgrade devbin"
+  return 1
 }
 
 # remove_unshipped <dstroot> <shipped> <candidates> -- remove each candidate
@@ -623,6 +700,173 @@ copy_vendored() {
     return 1
   }
   return 0
+}
+
+# --- line endings: devbin's block in a project's .gitattributes (ST0008 D46) --
+#
+# A CHECKOUT THAT CONVERTS LINE ENDINGS BREAKS THE VENDORED RUNTIME. git on
+# Windows checks text out with CRLF unless the repository says otherwise, and a
+# script whose shebang then reads `bash\r` does not run, while the manifest
+# reads every converted file as edited in place. The rule that stops it lives
+# in the repository, so every clone gets it, rather than in each clone's git
+# settings, which reach only the developers who set them.
+#
+# ONE MARKED BLOCK, devbin's, in the project's ROOT .gitattributes, covering the
+# launcher and everything under bin/.devbin/: one block per tool that writes
+# into a project, each with one writer. The launcher sits beside bin/.devbin/,
+# so no file of devbin's own could reach it. Everything outside the markers is
+# the project's and is carried byte for byte; inside them is devbin's, written
+# by install and rewritten by upgrade, so an edit there is replaced. Another
+# tool's block beside it is another writer's, and devbin writes no rule for any
+# file but its own.
+#
+# `text=auto` LEAVES A BINARY ALONE, so a compiled handler under bin/.devbin/cmd/
+# is not rewritten, and eol=lf holds every text file to LF on every platform.
+LF_BLOCK_BEGIN='# >>> devbin: line endings >>>'
+LF_BLOCK_END='# <<< devbin: line endings <<<'
+
+# lf_block -- devbin's block, on stdout.
+lf_block() {
+  printf '%s\n' "$LF_BLOCK_BEGIN"
+  printf '# Written by devbin install and kept by devbin upgrade, which replace\n'
+  printf '# what is between these two lines: the vendored runtime checks out with\n'
+  printf '# LF line endings on every machine, Windows included.\n'
+  printf 'bin/devbin text=auto eol=lf\n'
+  printf 'bin/.devbin/** text=auto eol=lf\n'
+  printf '%s\n' "$LF_BLOCK_END"
+}
+
+# lf_block_merge -- a .gitattributes read on stdin, with devbin's block in it,
+# on stdout. Pure. Returns 0 when one block was found and replaced where it
+# stands, 3 when none was and the block was appended, after a blank line when
+# the file's last line is not blank.
+#
+# A marker standing alone, an end before its begin, or two blocks returns 2,
+# and what was printed is not to be used: which lines are devbin's cannot be
+# told, so the caller writes none. A marker is a whole line, read with a
+# trailing CR stripped, so a .gitattributes that was itself checked out CRLF
+# still has its block found; a line that only quotes one is the project's.
+#
+# awk ends every line it prints with a newline, so a last line that had none
+# gains one here; lf_block_write takes it back off where that line is the
+# project's and nothing follows it.
+lf_block_merge() {
+  local block
+  block="$(lf_block)"
+  # Through the environment, not -v: -v reads backslash escapes and, in some
+  # awks, refuses a value holding a newline.
+  LF_BEGIN="$LF_BLOCK_BEGIN" LF_END="$LF_BLOCK_END" LF_BLOCK="$block" awk '
+    BEGIN { begin = ENVIRON["LF_BEGIN"]; end = ENVIRON["LF_END"]; block = ENVIRON["LF_BLOCK"] }
+    { line = $0; sub(/\r$/, "", line) }
+    line == begin {
+      if (state != 0) bad = 1
+      state = 1; blocks++
+      next
+    }
+    line == end {
+      if (state != 1) bad = 1
+      state = 2
+      print block
+      next
+    }
+    state == 1 { next }
+    { print; last = line; n++ }
+    END {
+      if (bad || state == 1 || blocks > 1) exit 2
+      if (blocks == 0) {
+        if (n > 0 && last != "") print ""
+        print block
+        exit 3
+      }
+    }
+  '
+}
+
+# lf_block_write <root> -- put devbin's block into <root>/.gitattributes, and
+# say on stdout what happened: `wrote` (the file was not there), `added` (the
+# file was, without the block), `updated` (the block differed and was
+# replaced) or `kept` (it was there as written). Returns 1, naming why on
+# stderr, with nothing written, when the file cannot be read or replaced, is
+# not a file, or has markers that do not make one block.
+#
+# THE PROJECT'S BYTES STAY ITS OWN, with one exception: appending after a last
+# line that has no newline gives that line one, since the block cannot follow
+# it otherwise. Where the block is replaced in place and the project's last
+# line, after it, has no newline, it keeps none.
+#
+# Through replace_file, so a reader sees the old file or the new one, a link
+# is written through rather than replaced, and the file keeps its mode.
+lf_block_write() {
+  local root="$1" file="$1/.gitattributes" old="" new tail rc word=wrote
+  if [ -e "$file" ] || [ -L "$file" ]; then
+    if [ ! -f "$file" ]; then
+      warn "$file is not a file, so devbin's line-ending block cannot be written into it"
+      return 1
+    fi
+    if ! old="$(cat "$file" && printf x)"; then
+      warn "cannot read $file, so devbin's line-ending block was not written into it"
+      return 1
+    fi
+    old="${old%x}"
+    word=""
+  fi
+  # In an `if`, so the merge's own statuses reach the caller: under errexit a
+  # bare failing pipeline would end the substitution before its x.
+  rc=0
+  new="$(if printf '%s' "$old" | lf_block_merge; then s=0; else s=$?; fi
+    printf x
+    exit "$s")" || rc=$?
+  new="${new%x}"
+  case "$rc" in
+    0) word="${word:-updated}" ;;
+    3) word="${word:-added}" ;;
+    *)
+      warn "$file has a devbin line-ending marker that does not make one block (a begin with no end, an end with no begin, or two blocks), so which lines are devbin's cannot be told and nothing was written"
+      warn "  leave one '$LF_BLOCK_BEGIN' line and one '$LF_BLOCK_END' line below it, or delete both, and run it again"
+      return 1
+      ;;
+  esac
+  if [ "$rc" -eq 0 ] && [ -n "$old" ] && [ "${old: -1}" != $'\n' ]; then
+    tail="${old##*$'\n'}"
+    [ "${tail%$'\r'}" = "$LF_BLOCK_END" ] || new="${new%$'\n'}"
+  fi
+  if [ "$word" = updated ] && [ "$new" = "$old" ]; then
+    printf 'kept\n'
+    return 0
+  fi
+  replace_file "$file" printf '%s' "$new" || {
+    warn "could not write $file, so devbin's line-ending block is not in it"
+    return 1
+  }
+  printf '%s\n' "$word"
+}
+
+# lf_block_said <word> -- the report line for lf_block_write's word.
+lf_block_said() {
+  case "$1" in
+    wrote) printf '  wrote      .gitattributes (devbin'"'"'s line-ending block: LF for bin/devbin and bin/.devbin/)\n' ;;
+    added) printf '  added      devbin'"'"'s line-ending block to .gitattributes (LF for bin/devbin and bin/.devbin/)\n' ;;
+    updated) printf '  updated    devbin'"'"'s line-ending block in .gitattributes\n' ;;
+    kept) printf '  kept       devbin'"'"'s line-ending block in .gitattributes\n' ;;
+  esac
+}
+
+# cr_files <root> <rel>... -- each <rel> under <root> holding a CR byte, one per
+# line, as given. Binary files are passed over (grep -I), since a CR byte in
+# one is data, not a line ending. Returns 1 when grep could not read a file,
+# whose error names it, after printing what it found.
+cr_files() {
+  local root="$1" rc=0 out rel
+  shift
+  [ $# -gt 0 ] || return 0
+  # Each path joined to <root> rather than grep run from inside it, so a root
+  # that cannot be entered is grep's error, status 2, never a cd's 1, which
+  # would read as "none found".
+  out="$(LC_ALL=C grep -I -l -e $'\r' -- "${@/#/$root/}")" || rc=$?
+  while IFS= read -r rel; do
+    [ -z "$rel" ] || printf '%s\n' "${rel#"$root"/}"
+  done <<<"$out"
+  [ "$rc" -le 1 ]
 }
 
 # --- the manifest ------------------------------------------------------------
@@ -985,7 +1229,7 @@ _two_space_to_tab() {
 # out is never checked again. Each caller refuses as early as its flow allows,
 # so this is the last line rather than the only one.
 manifest_write() {
-  local dstroot="$1" srcroot="$2" version="$3" preserve="${4:-}" kind="${5:-}" path rel sum old old_sum line ancestry paths sums token
+  local dstroot="$1" srcroot="$2" version="$3" preserve="${4:-}" kind="${5:-}" managed="${6:-}" path rel sum old old_sum line ancestry paths sums token
   path="$(manifest_path "$dstroot")"
   # The shipped list, read with its status BEFORE the redirect below: inside
   # the heredoc at the foot of the block a failed enumeration was a shorter
@@ -1032,6 +1276,9 @@ manifest_write() {
     # because a comment claiming a break that does not happen is the defect this
     # project catalogues.
     if [ -n "$kind" ]; then printf '# kind: %s\n' "$kind"; fi
+    # What manages this install, when something else does: `brew` for the keg
+    # the formula publishes (issue 0195), which install_managed_refusal reads.
+    if [ -n "$managed" ]; then printf '# managed_by: %s\n' "$managed"; fi
     # The KIND of source, never its place -- see manifest_source (issue 0153).
     printf '# source: %s\n' "$token"
     printf '# source_commit: %s\n' "$(source_commit_of "$srcroot")"
@@ -1374,32 +1621,50 @@ EOF
 # the list of commits is carried. So a rewind is seen however many publishes
 # later it happens, and a direction is never older than the install.
 #
+# AND EVERY COMMIT THE CHECKOUT'S HEAD CONTAINS, as `forward` (issue 0195). A
+# Homebrew keg is a new install at every version, so a table carried from
+# earlier publishes was always empty there, and every project vendored from the
+# previous release read the next one as `differs` rather than as an update. The
+# whole history is one listing (commit_ancestors), so a consumer at any commit
+# the checkout contains is placed: every release tag, and every commit a
+# checkout install was ever cut at. The commits it does not contain -- a
+# rewind's, another clone's -- are still placed one at a time.
+#
 # The new head itself is left out: it is `same`, and source_commit already says
 # so. A commit this checkout does not have -- a publish from a different clone --
 # is kept as `unknown`, so a later publish from a checkout that has it can still
 # place it.
 #
-# TWO LIMITS, DECLARED BECAUSE THE PARAGRAPH ABOVE WOULD OTHERWISE OVERCLAIM
-# (critic-shell, 2026-09-16). The table begins at the first publish made by a
-# devbin carrying it: that publish learns only the one commit the install held
-# before it, so commits held earlier still are not in it. And a publish runs the
-# CHECKOUT's own lib, so rewinding the checkout to a commit from before 0059
-# rewinds the publisher too, and that publish writes no table at all -- the
-# history carried until then is gone, and every consumer reads `unknown`.
-# upgrade says so out loud when the bytes would change (lib/cmd/upgrade).
+# TWO LIMITS, DECLARED BECAUSE THE PARAGRAPHS ABOVE WOULD OTHERWISE OVERCLAIM
+# (critic-shell, 2026-09-16). A commit the checkout's HEAD does not contain is
+# known only once the install has held it, so one held before the table began is
+# not in it. And a publish runs the CHECKOUT's own lib, so rewinding the checkout
+# to a commit from before 0059 rewinds the publisher too, and that publish writes
+# no table at all -- the history carried until then is gone, and every consumer
+# reads `unknown`. upgrade says so out loud when the bytes would change
+# (lib/cmd/upgrade).
 install_ancestry() {
-  local install="$1" checkout="$2" head sha seen=""
+  local install="$1" checkout="$2" head sha anc
+  local -A reach=() seen=()
   head="$(git -C "$checkout" rev-parse HEAD 2>/dev/null)" || head=""
+  anc="$(commit_ancestors "$checkout")"
+  while IFS= read -r sha; do
+    [ -z "$sha" ] || reach["$sha"]=1
+  done <<<"$anc"
   while IFS= read -r sha; do
     is_commit_sha "$sha" || continue
     [ "$sha" = "$head" ] && continue
-    list_contains "$seen" "$sha" && continue
-    seen="$seen$sha
-"
-    printf '%s %s\n' "$sha" "$(commit_direction "$checkout" "$sha")"
+    [ -z "${seen[$sha]:-}" ] || continue
+    seen["$sha"]=1
+    if [ -n "${reach[$sha]:-}" ]; then
+      printf '%s forward\n' "$sha"
+    else
+      printf '%s %s\n' "$sha" "$(commit_direction "$checkout" "$sha")"
+    fi
   done <<EOF
 $(manifest_ancestry "$install" | cut -f1)
 $({ manifest_source_commit "$install" 2>/dev/null || true; } | awk '{ print $1 }')
+$anc
 EOF
   return 0
 }

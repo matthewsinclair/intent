@@ -178,6 +178,8 @@ case "$verb" in
 $(infra_domain_pairs)
 EOF
     infra_check_consistency
+    # Once per run, after every domain: why any read met a reply without AA.
+    infra_check_cause
     infra_check_report "$profile" "$(cfg_get name '(unnamed)')"
     ;;
 esac

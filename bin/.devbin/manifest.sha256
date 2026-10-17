@@ -1,48 +1,48 @@
 # devbin manifest -- written by: devbin install. Read by: devbin upgrade, devbin doctor.
 # Every line below is a file devbin owns. An edit to one is DETECTED, not overwritten.
 # Files not listed here -- config.yaml, cmd/, help/ -- belong to the project.
-# devbin_version: 0.1.10
+# devbin_version: 0.1.11
 # source: install
-# source_commit: 7c39d91ce0b4b47bac8004ab198859a296194a59
-eed0a2672cbdceaaf3ad0ebbf35e4aa0d70a222fb35e33b1fc98abcc849e19e1  bin/devbin
+# source_commit: 0fc226696548573935dd42e0112fb7167f602a75
+8452aebc6fc49184ace92107a1cc491d83afd6af14336df4e8d22f61ea8b7797  bin/devbin
 b960eb0ef4e21ab06c27bd14c278715409839e0458e71c0d4042985cdd790b3a  bin/.devbin/lib/LICENSE.md
 beac1723adb1e943b9b8db78881e1cee36d9ee2851ea4e62d1238a6ddcc22b68  bin/.devbin/lib/builtins
-9b3d60fac709ae3659f33dd0e46db627d2e54f352fccb3bab0fcec8d5372baae  bin/.devbin/lib/cmd/check
-9117ceda122873625611c61b549f1fccfa54799d5597c8f26e5b4967dc755307  bin/.devbin/lib/cmd/clean
+a9b16cc71668c4c9691c77bfe4f697a22737019e8796b3f5cd0f29c231c0a3e7  bin/.devbin/lib/cmd/check
+5034a34ae8793df6be5c28ead59c2dcfe495b4408fe44831911cf014d851f5a8  bin/.devbin/lib/cmd/clean
 fb8ae2c146c3038bfab42622ebe87340c95a24bb768ef991531739983fe34ead  bin/.devbin/lib/cmd/cli
 7ed1bdc0dcdb75311ff06031c9acf10bd17782d76ae7a551c90e5e649f9ceba6  bin/.devbin/lib/cmd/db
 67be1732c8eef5d1eee82a2483eafa31788f72b91665556bfb181a200c806c39  bin/.devbin/lib/cmd/devbin
 981198ab8a2304c8147e10f80d87ccac471717630cae4f416ff627f9699d73d3  bin/.devbin/lib/cmd/docs
-b27dbafddc8f1d31c5272c514adbbba6f0d10226d9379d8403895e683d530e97  bin/.devbin/lib/cmd/doctor
+f657d498c16872d3a6bd40a68cff5733ac1eb13db87270c9d76bc829879223b4  bin/.devbin/lib/cmd/doctor
 f8d49761378315cdc2cfbcba442e18ea96df8cf8a5b375f5d4cca08e2c009c76  bin/.devbin/lib/cmd/dormancy
-87636fb8c3ce37ab6d7a08c94cc2c8ab37293d1a0dd1f4e247c31bf1fac7ed2b  bin/.devbin/lib/cmd/fmt
+24392822dc23364042d492cfc70beae2479618c8965eac1eb62cab30cf8f0eba  bin/.devbin/lib/cmd/fmt
 d833ee5dd9388cf027ab8e476b6678d16e2df41caccee530162b7c3a91a3381b  bin/.devbin/lib/cmd/fullcycle
-2b67f228048f3b586f479c7668bc7dab74bea4bf9ba0dc5d3e80893b32df9842  bin/.devbin/lib/cmd/infra
-73a3a93634b15ee5b74f0c26713d8f2a4f39e8320c15993e35749eb5f3c909db  bin/.devbin/lib/cmd/infra.d/init
+703055bdc57cd287c445dee3659add2ca0830d3318391c5c247d709498224e4c  bin/.devbin/lib/cmd/infra
+af18e96d453651a5ef36acdea8d13dfc73ff779b3023619dd2721b8a6a2b47d6  bin/.devbin/lib/cmd/infra.d/init
 a4c7fb7b0aae140344fe620c48e81faccc1885d26d51212517664079abfbb1d0  bin/.devbin/lib/cmd/infra.d/mail
 c18ac0af38a691c4dd2f8638e285be31914e971d7318a83bd8d4578295fd0b80  bin/.devbin/lib/cmd/infra.d/mail.d/dmarc
 156d6a1b55d7572e519267ab486ca4d64d324494d2a9a323eabf159e516a3413  bin/.devbin/lib/cmd/infra.d/profiles
-da78f0606d4b6ec10696fb8763874f28b8a4b22340108f356f4705ae7602f8d4  bin/.devbin/lib/cmd/install
+20ec3c64638e0a0967cc407cec554f638a75ea218496a67914af42440c3d027b  bin/.devbin/lib/cmd/install
 9ef34fe9fba225687f49c4653642e11bb71895bca47258debb271c0fa4b5f6f3  bin/.devbin/lib/cmd/new
-767e679faed2727dcf110fda979d937abffae85e0f940fb78d98869d5ea30b41  bin/.devbin/lib/cmd/release
+2016b9f6b825a41262c4c34478416eb04ee2fe0ca8e11ff6dbdecd77fa520a59  bin/.devbin/lib/cmd/release
 f0c452411977487b077bc5254b48cae791009c1a7be75dabdb9682ecd6bf2010  bin/.devbin/lib/cmd/repl
 4b6b966e92d29905bd3e806de1375ee572a8af9eb89d77a89a614bace44367e4  bin/.devbin/lib/cmd/server
-7a3d2da970cb9badfd640bc01a40aff01ef02acd2b2a8bdbc14f1768299c0ae0  bin/.devbin/lib/cmd/shell-init
+f6e9828d58690ae4302b1fba93939a2db946fd2670d7eab2eb5df6dcf2cbeaad  bin/.devbin/lib/cmd/shell-init
 0f9a4209be96a2f7d7242a6c653718df523517ec6c40aa3f56240d7cf07c148f  bin/.devbin/lib/cmd/test
-71ffba4cdfb7249752e6a978a83dff45049d644c3f8d9adc9130f7a9724079e1  bin/.devbin/lib/cmd/upgrade
+a83662860b060af4a52e53ad825d84f4b97e24b607fc0a763298c1275a2eb398  bin/.devbin/lib/cmd/upgrade
 627e72966dee31d52695c08117f4745d52669ab5d4de81a754927bf03cc01235  bin/.devbin/lib/cmd/vendor
 7e3c43aca544ac2f951751b831b1280ae8341f3d07eec7623e2d9bc913a1b0fc  bin/.devbin/lib/cmd/version
 94149b36e33b6a5abe1263a1896304e46c0d970ed90c855197e795dbbb95fb62  bin/.devbin/lib/config
 5d5b4282b3f5365ea83bba5796969478266eaa411ace4960621ff1edd8f83094  bin/.devbin/lib/config.reference.yaml
 4c31a7bad0c5b1480a0bd742d41debe2f98df6cb4ff5b8ebca430b70353f315d  bin/.devbin/lib/gatecmd
 d0b61eeab0a9fbc26af77a753699da023ef6ed9c20e20a8dcad9e72a16611923  bin/.devbin/lib/help
-9fb9679766803a0f5d6a7a60dd16ee23797d09cdb3082b36efa83f6cbd1cdced  bin/.devbin/lib/helpers
-53a2dbfbbb11ac749fd2c4231148799bb545eaa75132ca39e21e1eac240a8b44  bin/.devbin/lib/infra
-1412b748d7292126e0779eb96ef658bd8200b624c3884ac13af7207581581572  bin/.devbin/lib/infra.check
-54b4b475e3204838084299fef55f6c6e2f7e948b5773a6348a356e08a6f7739d  bin/.devbin/lib/infra.dns
-f2811da8b3d42997711d5f2e71946d1dcb56a3b47d84c923d3d5391d01772bb0  bin/.devbin/lib/infra.init
+6f4f1d651301e77a6095da56e11385deb58672c39ea710519b88a9ea7fe2abaa  bin/.devbin/lib/helpers
+1c14211199c0c340a7454b6acfd26e6d559fa2f142e33beda3348a48cc205290  bin/.devbin/lib/infra
+75af040ca1b33d0467ff22768f751c3fe90df43b301c0f122210109106a42d19  bin/.devbin/lib/infra.check
+7e783c127d46addc153a5cb345072d83395622124f2365e8d9ebb8f7d4f2f4a2  bin/.devbin/lib/infra.dns
+bdf987784869349a6e225b789fc0f97adc677093b3769bd3d11b698599990fbd  bin/.devbin/lib/infra.init
 8b3c762d4f3c6b7decb0734aa4d846f32043fe3ab04dcc8c6b7c2d0aba28f023  bin/.devbin/lib/infra.reference.yaml
-f278ed22526d3b65d58b39c21a253dab2bac72f0b7ef53ce9fab81264227e4f9  bin/.devbin/lib/install
+fe06db2a0a210b8db7b29bb17351817256eb3f2d6ca2a3d20cd1c0fae51fd522  bin/.devbin/lib/install
 f54626360ca858829b12dd08a3cb7d19b1f0b8df0705012a6b6c94145a00a135  bin/.devbin/lib/pages/build.md
 90d1f53221d1e8fc8bd59850eda711f02a3c74d608730c8a189062fdc44aa2fc  bin/.devbin/lib/pages/check.md
 f058e83516f415f092b428196faa7c5a1c44a319a7efdc5744f21d71acab02e3  bin/.devbin/lib/pages/clean.md
@@ -51,28 +51,28 @@ f058e83516f415f092b428196faa7c5a1c44a319a7efdc5744f21d71acab02e3  bin/.devbin/li
 0ea20901406b30ce7ec65dd03ab60e9b5e59c88a80fb431f4b880707bdca38dd  bin/.devbin/lib/pages/db.md
 f6e709fba8924ea70dcb27b77c24750749fb5af768ee0a81d3f5442ca0d5d07a  bin/.devbin/lib/pages/devbin.md
 ab705c0dd49c4e2dc250c5a3c074885d122165af038db8e99d93bb608731584f  bin/.devbin/lib/pages/docs.md
-36a0a0ba0aa6942ddfdceee1b1fa42afced8e06fe5cf92ebb5697d078ba5d7f6  bin/.devbin/lib/pages/doctor.md
+3f77388c337ab1a60122797bc4a7957429f2c7b33461920201852759c6810dc6  bin/.devbin/lib/pages/doctor.md
 de06e4d2ef0ee5ea071ccd05e6d9e2f830f318b1c5ba37c41820c25f7c4cc52f  bin/.devbin/lib/pages/dormancy.md
 27a380ebd6c2640e945d2177f111fd3617c50ac981ccea58c3d0e9aa6b50cfe9  bin/.devbin/lib/pages/fmt.md
 d25ed6dcebc91b4ce506486e55388a398883282d88f89d552c98b1ed2012e53f  bin/.devbin/lib/pages/fullcycle.md
 95a3eb203c8716e1a3c9a67e0fa5901233878c67bc7d1b97ee6c2332f84d6bfc  bin/.devbin/lib/pages/iex.md
-e6c1c384c308411ec2c16333f32587217da428a158706e9471beef0995f72391  bin/.devbin/lib/pages/infra.md
-7edc08d32491478d43c11a8243200df09cda2caa33b7936ea077cddb8269a16e  bin/.devbin/lib/pages/install.md
+af2fa5055f01ae22397b4cedf554d82b8995fb0a97c20fefa0b70e7cb7853477  bin/.devbin/lib/pages/infra.md
+769706cd670c1fee6014115ebb9d4d7d5c4a2aae85d5156e7d3820cfc00a3dfd  bin/.devbin/lib/pages/install.md
 eb879f47ba6437d0f351296a78a1459256e716f840dedc25b80a809609fbe3a4  bin/.devbin/lib/pages/macos.md
 c4d37d574ba596c886e52a603dbbbde264656d25fcbbba505746c9ead7cca719  bin/.devbin/lib/pages/new.md
 691a9d348197b41bfd5de5e7402b4b776b74d539c37b11541c7b6dd2ad633043  bin/.devbin/lib/pages/precommit.md
 1a54cf31be60518b71e1c197b0a8b903c2d40267d565de808595b5c8f046f982  bin/.devbin/lib/pages/publish.md
-e79e3fb312a1803907fb1951a71b5cc297eeaaa2002204c84ae1031c289a428d  bin/.devbin/lib/pages/release.md
-098ec4b1cc81f5cd45283d79ca472badc80d4b514a0888a47bbaca70b827b16d  bin/.devbin/lib/pages/repl.md
+56a75b6a30013b299e8efcb7932426677f38609d624039c47552a21678de1eaf  bin/.devbin/lib/pages/release.md
+c7fd12d122502428691e3e7c64215140737dcbea4fb86229927dd1e55df43c78  bin/.devbin/lib/pages/repl.md
 cb85ad9335c71050801a177bb5ad8478afe51a5e1ed47c62cb92532d081aeccd  bin/.devbin/lib/pages/server.md
-026a952962142e27594e2dbb97beee39a7793ce1a923069045f54a407777d073  bin/.devbin/lib/pages/shell-init.md
+2d36fc2a2ce188023c97e5b04b4742393f33443388cbd0e002dcdd7804696560  bin/.devbin/lib/pages/shell-init.md
 ffa87defc41131fb236c75988fa1fe129b1cbd4162f6ee8bba7999193799adb5  bin/.devbin/lib/pages/test.md
-772105ac3437a92453d51f0932d4ab5d0b4ccc817493b2d227f1784dedbea501  bin/.devbin/lib/pages/upgrade.md
+3735c7ad9ec341b144102199f8d788a272ae98340a09b9f12103d7ddbe2c0527  bin/.devbin/lib/pages/upgrade.md
 9af500bed01b682f562f43379afc2b7bbf787ec6a3aaaed276780d6270394b53  bin/.devbin/lib/pages/vendor.md
 4b404fad85bbeca785e69c45be385348979b44ea85f1d7990c502391e9235879  bin/.devbin/lib/pages/version.md
 46f48dd7defe219ce7dc7b49c56bb02ae95511f1e2677fc8dd3e03bd8e433960  bin/.devbin/lib/pages/which.md
 5c1993d2ab5952ec1f4691fdcf972c3ff7ba8ce9182326bfbb78c12c825acca9  bin/.devbin/lib/release.notes
-fbf6f1c0260f69c8e118c38e4ec4598807154eeded9b15c2bf3070f1947d6637  bin/.devbin/lib/release.steps
+d78031aab55259308977dcbba92bd7989596389ac639b93e783afba5f572238d  bin/.devbin/lib/release.steps
 559a4a8c3efc9eb5af4762c01330f9ecc6f9d15d244ee069694f3502e8852119  bin/.devbin/lib/resolve
 823cd1e22a9e2a899c912023a08640a94fc7c54682a609a53f10faffa7cacf24  bin/.devbin/lib/runlog
 36a1362cb1a672bf4ccf88f987e383163882183ec2989f1e716f9f5649f9ff42  bin/.devbin/lib/tmpl/handler

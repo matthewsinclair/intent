@@ -36,7 +36,7 @@ _fmt_skip_without() {
 # twin's breakage went unseen for so long: the two lines no longer looked like
 # a pair, so nothing invited the comparison that would have caught `--lint`.
 builtin_fmt_swift() {
-  _fmt_skip_without swift-format "brew install swift-format" || return 0
+  _fmt_skip_without swift-format "brew install swift-format; on Linux it ships with the Swift toolchain, swift.org/install" || return 0
   # Build directories hold generated and vendored sources; formatting those
   # churns files nobody edits and can fight the build system.
   #

@@ -272,8 +272,12 @@ infra_validate_profile() {
     # against the same live records, so one goes green and one goes red on the
     # same domain and ordering decides which the operator reads. A profile that
     # cannot be self-consistent is worse than one that fails to parse.
-    other="$(printf '%s' "$seen" | awk -v f="$fqdn" -F'\t' '$2==f {print $1; exit}')"
-    if [ -n "$other" ]; then
+    # A lookup that fails refuses too: this runs under `||`, so errexit is off,
+    # and an empty answer from a lookup that never ran would pass the domain.
+    if ! other="$(awk -v f="$fqdn" -F'\t' '$2==f {print $1; exit}' <<<"$seen")"; then
+      printf 'infra: could not check whether `%s` is named by a second handle.\n' "$fqdn" >&2
+      rc=1
+    elif [ -n "$other" ]; then
       printf 'infra: `%s` is named by two handles, `%s` and `%s`. One entry per domain.\n' \
         "$fqdn" "$other" "$handle" >&2
       rc=1
@@ -396,8 +400,9 @@ infra_manual_keys() {
 # legitimate mail is indistinguishable from a forgery of it -- silently covers
 # nothing. Reported by `check` as an unmeasurable rather than passed over.
 infra_sender_defined() {
-  local name="$1"
-  cfg_list senders 2>/dev/null | grep -qxF "$name"
+  local name="$1" senders
+  senders="$(cfg_list senders 2>/dev/null)" || return 1
+  grep -qxF "$name" <<<"$senders"
 }
 
 # --- the profile's keys (issue 0143) -------------------------------------------

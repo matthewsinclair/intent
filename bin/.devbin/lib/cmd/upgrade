@@ -26,12 +26,17 @@ set -euo pipefail
 usage() {
   cat <<EOF
 usage: $DEVBIN_INVOKE upgrade [--from <dir>] [--force]
-       $DEVBIN_INVOKE upgrade [--prefix <dir>]          (inside devbin's own tree)
+       $DEVBIN_INVOKE upgrade [--prefix <dir>] [--point]          (inside devbin's own tree)
 
   --from <dir>   the devbin to upgrade from (default: the source the manifest records)
   --prefix <dir> PUBLISH-UPGRADE only: the machine install to replace
                  (default: install.prefix in devbin's own config. There is no
                  built-in default -- the location is configuration)
+  --point        PUBLISH-UPGRADE only, to install.prefix: make this install
+                 the machine's, writing the machine pointer, where the
+                 machine's install is Homebrew's and would otherwise stay so.
+                 Elsewhere the pointer is written anyway, and --point changes
+                 nothing
   --force        overwrite vendored files that were edited in place, and, in
                  an install with no manifest, replace every one unchecked
 
@@ -66,14 +71,15 @@ _upgrade_provenance_lines() {
   warn "  upgrading to:  $(source_commit_of "$2")"
 }
 
-# _upgrade_the_install <srcroot> <prefix-flag> -- replace the machine install.
+# _upgrade_the_install <srcroot> <prefix-flag> [point] -- replace the machine
+# install; `point` is --point (issue 0197).
 #
 # The mirror of `install`'s PUBLISH mode and it shares that mode's single writer,
 # `publish_install`. What differs is the precondition and nothing else: `install`
 # refuses when an install already exists, this refuses when one does not, so
 # whichever verb you reach for, the wrong one names the right one.
 _upgrade_the_install() {
-  local srcroot="$1" prefix="$2" dstroot modified record rel states unreadable configured unvouched
+  local srcroot="$1" prefix="$2" point="${3:-}" dstroot modified record rel states unreadable configured unvouched why
 
   cfg_load "$DEVBIN_DIR/config.yaml" >/dev/null 2>&1 ||
     die "cannot read devbin's own config at $DEVBIN_DIR/config.yaml"
@@ -86,6 +92,11 @@ _upgrade_the_install() {
     prefix="$(install_prefix_configured)" || die_install_prefix_unset '--prefix <dir>'
   fi
   dstroot="$prefix"
+  # Refused before anything is written (issue 0197).
+  if [ -n "$point" ]; then
+    why="$(point_refusal "$dstroot" "$configured")"
+    [ -z "$why" ] || die "$why"
+  fi
 
   printf 'mode: PUBLISH-UPGRADE -- %s is devbin'"'"'s own source tree\n' "$srcroot"
   printf '  replacing the install at: %s\n\n' "$dstroot"
@@ -95,6 +106,9 @@ _upgrade_the_install() {
     warn "  to publish one:  $DEVBIN_INVOKE install"
     return 1
   fi
+  # A HOMEBREW KEG IS HOMEBREW'S TO REPLACE (issue 0195), so this refuses before
+  # the gate reads anything: see install_managed_refusal.
+  install_managed_refusal "$dstroot" || return 1
 
   # THE SAME GATE AS `install`, publish_gate in lib/install, and it is the reason
   # the install tree is worth having at all (D28). An install cut from a dirty
@@ -152,7 +166,7 @@ _upgrade_the_install() {
   printf '  recorded   %s\n' "$(manifest_field "$dstroot" source_commit 2>/dev/null || printf 'unrecorded')"
   # The install is replaced either way; a pointer it could not write is named
   # and fails the run, since no project would find the install it just wrote.
-  install_pointer_write "$dstroot" "$configured" || {
+  install_pointer_write "$dstroot" "$configured" "$point" || {
     warn "the install is replaced at $dstroot, but the machine pointer was not written (above)"
     return 1
   }
@@ -199,14 +213,14 @@ _refuse_unreadable() {
 }
 
 main() {
-  local from="" force="" prefix="" dstroot srcroot version states paths rel src state
+  local from="" force="" prefix="" point="" dstroot srcroot version states paths rel src state
   local recorded twin entries dst_sums src_sums dst_read src_read direction unvouched=""
   local added=0 updated=0 unchanged=0 skipped=0 removed=0 converged=0 sum_src sum_dst
   # Released files are counted inside `skipped`, whose summary line a caller
   # outside the runtime parses across devbin versions, AND apart, because their
   # remedy differs.
   local released=0
-  local prev_source now_source
+  local prev_source now_source lf
   # Every path this run REFUSED to replace. Passed to manifest_write so each
   # keeps its install-time checksum: re-checksumming a file we declined to
   # overwrite would record the edit as canonical and the next `doctor` would
@@ -232,6 +246,10 @@ main() {
         force=yes
         shift
         ;;
+      --point)
+        point=point
+        shift
+        ;;
       -*) die "unknown option '$1' (try: $DEVBIN_INVOKE upgrade --help)" ;;
       *) die "unexpected argument '$1'" ;;
     esac
@@ -254,11 +272,13 @@ main() {
        you are in devbin's own source tree, which PUBLISH-UPGRADEs the machine install"
     [ -z "$force" ] || die "--force applies only when upgrading a project
        you are in devbin's own source tree, which PUBLISH-UPGRADEs the machine install"
-    _upgrade_the_install "$dstroot" "$prefix"
+    _upgrade_the_install "$dstroot" "$prefix" "$point"
     return $?
   fi
   [ -z "$prefix" ] || die "--prefix applies only when publishing from devbin's own source tree
        you are upgrading a project; its source is --from <dir> or the manifest's"
+  [ -z "$point" ] || die "--point applies only when publishing from devbin's own source tree
+       you are upgrading a project, and a project's upgrade writes no machine pointer"
 
   is_devbin_installed "$dstroot" || {
     # Two un-installed shapes, and only one of them wants an install. The D12
@@ -437,8 +457,10 @@ $entries")" || dst_read=""
     die "the manifest stopped being readable after upgrade read it (named above); nothing was written -- run it again"
   # Every file was read above, so an unreadable state here is one that changed
   # in between. Refused before the first write, since the loops below act on a
-  # state and would copy over or remove a file nobody read (critic-shell).
-  if printf '%s\n' "$states" | grep -q '^unreadable	'; then
+  # state and would copy over or remove a file nobody read (critic-shell). A
+  # bash match, not a reader: a here-string needs a temp file on bash 5.0, and
+  # a refusal must never read a match that could not run as no match.
+  if [[ $'\n'$states == *$'\n'unreadable$'\t'* ]]; then
     die "a file here stopped being readable after upgrade read it (named above); nothing was written -- run it again"
   fi
 
@@ -575,6 +597,12 @@ EOF
 
   manifest_now="$(cat "$(manifest_path "$dstroot")" 2>/dev/null || true)"
 
+  # DEVBIN'S LINE-ENDING BLOCK, KEPT (ST0008 D46): written where it is missing
+  # or differs, as install writes it, and said only then, as each file is.
+  lf="$(lf_block_write "$dstroot")" ||
+    die "the runtime is upgraded, but devbin's line-ending block is not in .gitattributes (above)"
+  [ "$lf" = kept ] || lf_block_said "$lf"
+
   # An empty report is indistinguishable from a run that did nothing because it
   # broke. Every path above prints only when it changed something, so the
   # all-unchanged case has to say so explicitly.
@@ -582,7 +610,11 @@ EOF
     "$added" "$updated" "$unchanged" "$removed" "$skipped"
   if [ "$((added + updated + removed + converged))" -eq 0 ] && [ "$skipped" -eq 0 ]; then
     if [ "$manifest_now" = "$manifest_was" ]; then
-      printf 'Already up to date.\n'
+      if [ "$lf" = kept ]; then
+        printf 'Already up to date.\n'
+      else
+        printf 'Runtime already up to date; only .gitattributes changed (above).\n'
+      fi
     else
       # NOTHING RAN AND THE TREE STILL CHANGED. Say which file and which way,
       # because the caller is about to find a modified working tree and the
@@ -617,7 +649,11 @@ EOF
         printf '  neither the commit nor the source changed -- the manifest differs\n'
         printf '  for some other reason, and this report cannot say which.\n'
       fi
-      printf 'No vendored file differs; only the record of where this tree came from changed.\n'
+      if [ "$lf" = kept ]; then
+        printf 'No vendored file differs; only the record of where this tree came from changed.\n'
+      else
+        printf 'No vendored file differs; only the record of where this tree came from changed, and .gitattributes (above).\n'
+      fi
     fi
   fi
   if [ "$converged" -gt 0 ]; then

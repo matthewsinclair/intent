@@ -20,7 +20,7 @@
 #   release_read_tag <tag> <root> <version>      step 7's postcondition, with the reuse report
 #   release_tag_reuse_note <tag> <root> <version>
 #                                                how a found tag is not the one the core makes
-#   release_read_remote <remote> <branch> <tag> <commit> [preflight|preflight-new|push|push-new]
+#   release_read_remote <remote> <branch> <tag> <commit> [preflight|preflight-new|push|push-new|readback]
 #                                                step 8's postcondition, one remote; pre-flight's
 #   release_git_remote <git-args>...             every git call that reaches a remote
 #   release_remote_urls                          every url this checkout reaches a remote by
@@ -596,12 +596,22 @@ release_remote_urls() {
 # that read it as held planned "tag" where the cut sends "commit tag". Only
 # `push-new` shows it, since pre-flight reads no more than whether a remote is
 # refused, and a `-new` answer is never `already` while the tag is absent here.
+#
+# WITH `readback`, step 8's read after its push (issue 0194): as status, but a
+# remote that did not answer ls-remote is `UNANSWERED`, not `UNREADABLE`. Only
+# that is waited through: an UNREADABLE the remote did answer -- a head this
+# checkout does not hold, a tag that is not this one -- stays so however long
+# it is asked, since this reader never fetches.
 release_read_remote() {
   local remote="$1" branch="$2" tag="$3" commit="$4" mode="${5:-status}"
   local listing head="" rtag="" rpeel="" ltag="" lacks="" want=""
   local new=no
   case "$mode" in preflight-new | push-new) new=yes ;; esac
   if ! listing="$(release_git_remote ls-remote "$remote" "refs/heads/$branch" "refs/tags/$tag" 2>&1)"; then
+    if [ "$mode" = readback ]; then
+      printf 'UNANSWERED\t%s did not answer ls-remote: %s\n' "$remote" "${listing//$'\n'/ }"
+      return 0
+    fi
     printf 'UNREADABLE\t%s did not answer ls-remote: %s\n' "$remote" "${listing//$'\n'/ }"
     return 0
   fi
@@ -639,7 +649,7 @@ release_read_remote() {
         want+=" commit"
         ;;
       unrelated)
-        if [ "$mode" != status ]; then
+        if [ "$mode" != status ] && [ "$mode" != readback ]; then
           printf "refused\\t%s's %s (%s) has diverged from the release commit (%s): it neither contains it nor is behind it, so the push cannot fast-forward -- bring %s into this branch first\\n" \
             "$remote" "$branch" "${head:0:12}" "${commit:0:12}" "$remote/$branch"
           return 0
@@ -1038,11 +1048,26 @@ RELEASE_ASK_FLOOR_SECONDS="$(release_bound DEVBIN_RELEASE_ASK_FLOOR_SECONDS "${D
 RELEASE_CALL_SECONDS="$(release_bound DEVBIN_RELEASE_CALL_SECONDS "${DEVBIN_RELEASE_CALL_SECONDS:-120}")" ||
   RELEASE_CALL_SECONDS=120
 
+# STEP 8'S READ-BACK WAITS THROUGH A READ THAT DID NOT ANSWER, up to this bound
+# (issue 0194). It asked once, within the floor's 15s, and a read that did not
+# come back was reported as the remote not holding the release: a cut stopped
+# that way with both remotes holding it, read back as held three minutes later.
+# A remote is slowest straight after taking a push, so the read-back gets what
+# the push itself gets, RELEASE_CALL_SECONDS, read from it rather than written
+# again, asked again every RELEASE_POLL_SECONDS: one hung read runs to the
+# bound, and a read that fails at once is asked again. The last ask is still
+# given the floor, so the worst case is the bound and one floor. Past that a
+# remote is not slow but not answering, and a run again reads it back, as the
+# resume does.
+# shellcheck disable=SC2034
+RELEASE_READBACK_SECONDS="$(release_bound DEVBIN_RELEASE_READBACK_SECONDS "${DEVBIN_RELEASE_READBACK_SECONDS:-$RELEASE_CALL_SECONDS}")" ||
+  RELEASE_READBACK_SECONDS="$RELEASE_CALL_SECONDS"
+
 # release_wait <seconds> <keep> <cutoff-state> <reader>... -- ask <reader> until
 # its answer's state is not one of <keep> (space-separated) or <seconds> have
 # passed, and print the last answer. It asks at least once, and then every
-# min(RELEASE_POLL_SECONDS, time left). Steps 9 and 11 wait through this, so
-# the two cannot come to disagree about what a wait is.
+# min(RELEASE_POLL_SECONDS, time left). Steps 8, 9 and 11 wait through this,
+# so they cannot come to disagree about what a wait is.
 #
 # EVERY ASK IS BOUNDED (release_run_bounded), at the time left and never below
 # RELEASE_ASK_FLOOR_SECONDS, so even a zero wait gives a slow answer a moment.
@@ -1052,7 +1077,16 @@ RELEASE_CALL_SECONDS="$(release_bound DEVBIN_RELEASE_CALL_SECONDS "${DEVBIN_RELE
 #
 # The caller tells "answered" from "ran out of time" by the answer's state:
 # still one of <keep> means the wait ran out.
-RELEASE_POLL_SECONDS=15
+
+# THE POLL takes an override for the arms too, so an arm that waits through one
+# unanswered read asks again in a second rather than in fifteen. Never below 1:
+# at 0 a reader that fails at once would be asked as fast as it can answer.
+RELEASE_POLL_SECONDS="$(release_bound DEVBIN_RELEASE_POLL_SECONDS "${DEVBIN_RELEASE_POLL_SECONDS:-15}")" ||
+  RELEASE_POLL_SECONDS=15
+if [ "$RELEASE_POLL_SECONDS" -lt 1 ]; then
+  printf 'release: DEVBIN_RELEASE_POLL_SECONDS is 0, below the 1s a poll waits at least, so 1 is used\n' >&2
+  RELEASE_POLL_SECONDS=1
+fi
 RELEASE_WAIT_DIR=""
 release_wait() {
   local seconds="$1" keep=" $2 " cutoff="$3" deadline left bound answer rc dir

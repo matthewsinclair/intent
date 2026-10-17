@@ -32,6 +32,15 @@
 # this command was written for, the WRONG instrument returns the RIGHT answer,
 # so nothing local would ever have shown the defect.
 #
+# AND A READ IS AUTHORITATIVE ONLY WHEN THE REPLY SAYS SO. Addressing a
+# domain's own nameserver is not enough, since whatever answers at that
+# address is what gets read. Measured 2026-10-14 through a VPN tunnel that
+# answered every port-53 query itself: each ttl came back as the time left in
+# the tunnel's cache, 37 assertions drifted in one run, and a cache matching
+# the profile would have held. So a record is asked for WITHOUT RECURSION and
+# measured only when the reply carries AA, the flag a server sets on an
+# answer from its own zone (infra_dns_read).
+#
 # NAMESERVERS ARE AN INPUT, NEVER A DECLARATION (design principle 1). They are
 # what lookups run THROUGH, so nothing could compare them to anything; declaring
 # them creates a second source of truth free to drift, and every subsequent
@@ -112,9 +121,9 @@ infra_dns_assert_knobs() {
 # buries the one line that matters.
 infra_dns_have_tool() { command -v dig >/dev/null 2>&1; }
 
-# _idns_ask [@<ns>] <name> <type> -- THE dig invocation, the only one: both
-# readers ask through it, so the flags the two parsers below depend on are
-# written once. `+comments` is what carries the header status and `+answer`
+# _idns_ask [+norecurse @<ns>] <name> <type> -- THE dig invocation, the only
+# one: both readers ask through it, so the flags the parsers below depend on
+# are written once. `+comments` is what carries the header status and `+answer`
 # the rows, and a reader asking without either would read every reply as
 # empty -- which, for the authority read, is every domain unmeasured.
 #
@@ -144,11 +153,27 @@ _idns_ask() {
   return "$rc"
 }
 
+# _idns_ask_at <server> <name> <type> -- a question put to one server, asked
+# WITHOUT RECURSION, so a server that recurses answers from what it holds
+# rather than resolving the question on devbin's behalf. Every record read is
+# one, and so is the interception probe.
+_idns_ask_at() { _idns_ask +norecurse @"$1" "$2" "$3"; }
+
 # _idns_status <reply> -- the header status of a `+comments` reply, or empty
 # when the reply carries none. Pure.
 _idns_status() {
-  # sed quits at the first header itself: no `| head` after it (0031).
-  printf '%s\n' "$1" | sed -n '/->>HEADER<<-/{s/.*->>HEADER<<-.*status: \([A-Z]*\).*/\1/p;q;}'
+  # sed quits at the first header, so it reads a here-string: a pipe into it
+  # would leave the writer holding the rest of the reply (0031).
+  sed -n '/->>HEADER<<-/{s/.*->>HEADER<<-.*status: \([A-Z]*\).*/\1/p;q;}' <<<"$1"
+}
+
+# _idns_flags <reply> -- the header flags of a `+comments` reply as dig
+# prints them (`qr aa`), or empty when the reply carries no flags line. Pure.
+# dig prints the line straight after the status line, `;; flags: qr aa;
+# QUERY: 1, ...`; the EDNS line says `flags:` too, after one `;`, and is not
+# read.
+_idns_flags() {
+  sed -n '/^;; flags:/{s/^;; flags: *\([^;]*\).*/\1/p;q;}' <<<"$1"
 }
 
 # _idns_rows <type> -- `<ttl><TAB><rdata>` for each answer row of <type> in the
@@ -245,29 +270,169 @@ infra_dns_no_authority() {
 
 # infra_dns_read <ns> <name> <type> -- `<ttl><TAB><rdata>` per record.
 #
-# rc 0  -- the server answered. Zero lines means the name genuinely carries no
-#          record of that type, which is a fact the caller can check against.
-# rc 1  -- NO ANSWER WAS OBTAINED. Not "no records": no reading. The caller must
-#          report this in its own category and must never let it satisfy or
-#          violate an assertion.
+# rc 0  -- the server answered from its own zone. Zero lines means the name
+#          genuinely carries no record of that type, which is a fact the
+#          caller can check against.
+# rc 1  -- NO AUTHORITATIVE ANSWER WAS OBTAINED. Not "no records": no reading.
+#          The caller must report this in its own category and must never let
+#          it satisfy or violate an assertion. Where a reply came back WITHOUT
+#          AA, one line says what it was, `answered without AA: <status>,
+#          flags <flags>`, for the caller to print; otherwise nothing.
 #
-# The discriminator is dig's exit status PLUS the header status, and both are
-# needed: dig exits 9 when no server could be reached, but exits 0 on SERVFAIL
-# and REFUSED -- which are refusals to answer, not answers. Treating those as an
-# empty result is precisely how an unreachable zone reports as an empty one.
+# The discriminator is dig's exit status, the header status AND the AA flag,
+# and all three are needed: dig exits 9 when no server could be reached, but
+# exits 0 on SERVFAIL and REFUSED -- which are refusals to answer, not answers.
+# Treating those as an empty result is precisely how an unreachable zone
+# reports as an empty one.
+#
+# A REPLY WITHOUT AA IS NOT THE ZONE'S ANSWER, WHATEVER ITS STATUS. A cache
+# answering in the nameserver's place sets no AA, and its ttl is the time left
+# in it; a recursive server asked without recursion answers only from that
+# cache, or refuses. And a REFERRAL sets none: it names other nameservers for
+# a name the server asked does not hold, and comes back NOERROR with no
+# record, which read as a measured absence until issue 0193. devbin reads
+# each name from the domain's own nameserver and follows no delegation, so a
+# name delegated elsewhere, a sender's `_domainkey` say, is not measured
+# rather than missing.
 #
 # The question is asked, and the status and the rows are read, by the same
-# three helpers the authority read uses, so the two readers cannot disagree
-# about what a reply said.
+# helpers the authority read uses, so the two readers cannot disagree about
+# what a reply said. The authority read alone reads no AA: it asks the
+# machine's resolver by design, and nothing it returns is a measurement.
+#
+# AN ANSWER THAT IS A CNAME AND NO ROW OF THE TYPE ASKED IS NOT AN ABSENCE
+# (issue 0196). Asked for a TXT at a name that is a CNAME to a name outside its
+# zone, an authoritative server answers with the CNAME row alone, with AA: it
+# holds nothing for the target, and was asked not to recurse. Read as rows of
+# the type asked, that was no row -- so DMARC a provider hosts by CNAME read as
+# "NO _dmarc record", and a DKIM key declared TXT and published as a CNAME as a
+# HALF PAIR. devbin follows no CNAME, so such a read is rc 1, NOT MEASURED,
+# with one line naming the asked name and the target. A CNAME inside the zone
+# whose target holds records of the type comes with them, and reads as it
+# always has; one whose target holds none is answered with the CNAME alone too,
+# and reads NOT MEASURED as well, since the answer does not say whose zone the
+# target is in. The target named is the first CNAME row's, the asked name's own
+# hop of a chain. A read of type CNAME is the CNAME itself, and is never this.
+#
+# THE LINE FOR A REPLY WITHOUT AA opens with _DEVBIN_INFRA_DNS_NOAA, and THE
+# LINE FOR A CNAME ANSWER with _DEVBIN_INFRA_DNS_CNAME. They are two outcomes,
+# told apart where they arise: infra_dns_noaa is how a caller knows the first,
+# which sends the interception probe, and infra_dns_cname the second, which
+# sends nothing. Each set of words and its test is written once.
+_DEVBIN_INFRA_DNS_NOAA="answered without AA"
+_DEVBIN_INFRA_DNS_CNAME="answered with a CNAME"
 infra_dns_read() {
-  local ns="$1" name="$2" type="$3" raw
-  raw="$(_idns_ask @"$ns" "$name" "$type")" || return 1
-  case "$(_idns_status "$raw")" in
+  local ns="$1" name="$2" type="$3" raw st flags rows target
+  raw="$(_idns_ask_at "$ns" "$name" "$type")" || return 1
+  st="$(_idns_status "$raw")"
+  [ -n "$st" ] || return 1
+  flags="$(_idns_flags "$raw")"
+  case " $flags " in
+    *" aa "*) ;;
+    *)
+      printf '%s: %s, flags %s\n' "$_DEVBIN_INFRA_DNS_NOAA" "$st" "${flags:-none}"
+      return 1
+      ;;
+  esac
+  case "$st" in
     NOERROR | NXDOMAIN) ;;
     *) return 1 ;;
   esac
-  printf '%s\n' "$raw" | _idns_rows "$type"
+  rows="$(printf '%s\n' "$raw" | _idns_rows "$type")"
+  if [ -z "$rows" ] && [ "$type" != CNAME ]; then
+    target="$(printf '%s\n' "$raw" | _idns_rows CNAME | cut -f2)"
+    target="${target%%$'\n'*}"
+    if [ -n "$target" ]; then
+      printf '%s: %s is a CNAME to %s, and no %s record came with it -- devbin follows no CNAME, so it was not measured\n' \
+        "$_DEVBIN_INFRA_DNS_CNAME" "$name" "$target" "$type"
+      return 1
+    fi
+  fi
+  [ -z "$rows" ] || printf '%s\n' "$rows"
 }
+
+# infra_dns_noaa <what a failed read printed> -- rc 0 when it is infra_dns_read's
+# line for a reply without AA, rc 1 for anything else, nothing included. Pure.
+# check and init both ask it, never the bare fact that a failed read printed
+# something: that line alone sends the probe and is shown beside the read.
+infra_dns_noaa() {
+  case "$1" in
+    "$_DEVBIN_INFRA_DNS_NOAA: "*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+# infra_dns_cname <what a failed read printed> -- rc 0 when it is infra_dns_read's
+# line for a CNAME answer with no row of the type asked (issue 0196), rc 1 for
+# anything else, nothing and a reply without AA included. Pure.
+infra_dns_cname() {
+  case "$1" in
+    "$_DEVBIN_INFRA_DNS_CNAME: "*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+# infra_dns_said <what a failed read printed> -- rc 0 when it is a line a caller
+# shows beside the read, a reply without AA's or a CNAME answer's, rc 1 for
+# anything else. Pure. THE ONE ANSWER TO WHICH LINES ARE SHOWN, for check and
+# init alike, so the two cannot show different lines for one read; each then
+# marks a reply without AA (infra_dns_noaa) for the probe on its own.
+infra_dns_said() { infra_dns_noaa "$1" || infra_dns_cname "$1"; }
+
+# THE INTERCEPTION PROBE'S ADDRESS. 198.51.100.1 is in TEST-NET-2 (RFC 5737),
+# set aside for documentation, so no DNS server is there: a reply from it
+# proves something on this machine's network path answers port 53 itself, and
+# silence proves nothing either way. Its question names example.com, reserved
+# as well (RFC 2606), so it names nobody's domain.
+_DEVBIN_INFRA_DNS_PROBE=198.51.100.1
+
+# infra_dns_cause <answered|unasked> <status|why> -- THE sentence a probe's
+# outcome is told in, and the only place it is worded. check prints it on its
+# Cause: line and init records it under `unreviewed:`, so the two commands give
+# one cause in one set of words. Pure, as infra_dns_no_authority is for the
+# authority read.
+infra_dns_cause() {
+  case "$1" in
+    answered)
+      printf "%s, an address in TEST-NET-2 (RFC 5737) where no DNS server is, answered %s: something on this machine's network path answers port 53 itself, as a VPN tunnel can, so the replies without AA in this run most likely came from it rather than from the domains' own nameservers\n" \
+        "$_DEVBIN_INFRA_DNS_PROBE" "${2:-with no status}"
+      ;;
+    unasked)
+      printf "unknown: devbin could not ask %s, an address in TEST-NET-2 (RFC 5737) where no DNS server is, whether something on this machine's network path answers port 53 itself (%s)\n" \
+        "$_DEVBIN_INFRA_DNS_PROBE" "$2"
+      ;;
+  esac
+}
+
+# infra_dns_interception -- ask the probe's question and print what it showed,
+# through infra_dns_cause: the cause when anything answered, and why not when
+# dig could not ask (an exit other than 0 and 9, in _idns_ask's words). Nothing
+# when nothing answered (exit 9), since that silence proves nothing either way.
+# rc 0 in every case: both callers assign its output under errexit.
+#
+# ASKED ONCE, AND ONLY BY A RUN THAT MET A REPLY WITHOUT AA, which each command
+# counts for itself. A run whose every reply carries AA pays nothing for it.
+# One that met a reply without AA pays one question's budget, up to
+# DEVBIN_INFRA_DNS_TIMEOUT x DEVBIN_INFRA_DNS_TRIES seconds when nothing
+# answers, and that includes a run nothing intercepts whose nameserver is lame
+# or refusing, or whose name is delegated: a real refusal and a referral carry
+# no AA either. A probe on every run would cost every run that budget. It is
+# asked as a record read is, without recursion: the tunnel it was written
+# against refused every such question, and a refusal from where no server is
+# proves interception as well as an answer does.
+infra_dns_interception() {
+  local raw rc=0
+  raw="$(_idns_ask_at "$_DEVBIN_INFRA_DNS_PROBE" example.com A)" || rc=$?
+  case "$rc" in
+    0) infra_dns_cause answered "$(_idns_status "$raw")" ;;
+    9) ;;
+    *) infra_dns_cause unasked "${raw##*$'\n'}" ;;
+  esac
+}
+
+# _idns_why <what a failed read printed> -- hands it on, so every reader built
+# on infra_dns_read gives its caller that read's line on rc 1. Pure.
+_idns_why() { [ -z "$1" ] || printf '%s\n' "$1"; }
 
 # infra_dns_txt_joined <ns> <name> -- TXT records with the quoting removed.
 #
@@ -278,7 +443,7 @@ infra_dns_read() {
 # fails only on long records, which is to say only on the ones that matter.
 infra_dns_txt_joined() {
   local ns="$1" name="$2" out
-  out="$(infra_dns_read "$ns" "$name" TXT)" || return 1
+  out="$(infra_dns_read "$ns" "$name" TXT)" || { _idns_why "$out"; return 1; }
   printf '%s\n' "$out" | awk -F'\t' 'NF >= 2 {
     ttl = $1; v = $2
     gsub(/" +"/, "", v)     # adjacent strings concatenate with nothing between
@@ -313,26 +478,29 @@ infra_dns_rrset() {
 # for a reason neither command could show.
 
 # infra_dns_spf <ns> <fqdn> -- the SPF records, `<ttl><TAB><record>` one per
-# line. Zero lines is a measured absence; rc 1 is a failure to read.
+# line. Zero lines is a measured absence; rc 1 is a failure to read, with
+# infra_dns_read's line where it printed one.
 infra_dns_spf() {
   local out
-  out="$(infra_dns_txt_joined "$1" "$2")" || return 1
+  out="$(infra_dns_txt_joined "$1" "$2")" || { _idns_why "$out"; return 1; }
   printf '%s\n' "$out" | awk -F'\t' '$2 ~ /^v=spf1/ { print }'
 }
 
 # infra_dns_dmarc <ns> <fqdn> -- the first `v=DMARC1` record at `_dmarc.<fqdn>`
 # as `<ttl><TAB><record>`. Empty is a measured absence; rc 1 is a failure to
-# read.
+# read, with infra_dns_read's line where it printed one.
 infra_dns_dmarc() {
   local out
-  out="$(infra_dns_txt_joined "$1" "_dmarc.$2")" || return 1
-  printf '%s\n' "$out" | awk -F'\t' '$2 ~ /^v=DMARC1/ { print; exit }'
+  out="$(infra_dns_txt_joined "$1" "_dmarc.$2")" || { _idns_why "$out"; return 1; }
+  awk -F'\t' '$2 ~ /^v=DMARC1/ { print; exit }' <<<"$out"
 }
 
 # infra_dmarc_tag <record> <tag> -- one tag's value from a DMARC record, or
 # empty. Pure.
 infra_dmarc_tag() {
-  printf '%s' "$1" | tr ';' '\n' | sed -n "s/^ *$2= *//p" | head -1
+  local v
+  v="$(printf '%s' "$1" | tr ';' '\n' | sed -n "s/^ *$2= *//p")" || return 1
+  printf '%s\n' "${v%%$'\n'*}"
 }
 
 # infra_mx_form <records> -- an MX set as one comparable string: rdata only,

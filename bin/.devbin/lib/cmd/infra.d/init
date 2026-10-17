@@ -73,9 +73,11 @@ done
 [ "${#domains[@]}" -gt 0 ] || die "infra init: no domains given. Nothing was measured."
 
 pairs="$(infra_init_handles "${domains[@]}")"
-dup="$(printf '%s\n' "$pairs" | cut -f2 | LC_ALL=C sort | uniq -d | head -1)"
+dup="$(printf '%s\n' "$pairs" | cut -f2 | LC_ALL=C sort | uniq -d)"
+dup="${dup%%$'\n'*}"
 [ -z "$dup" ] || die "infra init: \`$dup\` is named twice. One entry per domain."
-dup="$(printf '%s\n' "$pairs" | cut -f1 | LC_ALL=C sort | uniq -d | head -1)"
+dup="$(printf '%s\n' "$pairs" | cut -f1 | LC_ALL=C sort | uniq -d)"
+dup="${dup%%$'\n'*}"
 [ -z "$dup" ] || die "infra init: two domains derive the handle \`$dup\`. Name them so their handles differ."
 
 infra_dns_have_tool ||
@@ -94,10 +96,12 @@ while IFS="$(printf '\t')" read -r h f; do
 done <<EOF
 $pairs
 EOF
+# Once per run, after every domain: why any read met a reply without AA.
+table="$table$(infra_init_cause "$table")"
 
 n="$(printf '%s\n' "$pairs" | grep -c .)"
 proposal="$(infra_init_propose "$table" "$n")"
-[ -n "$name" ] || name="$(printf '%s\n' "$pairs" | head -1 | cut -f1)"
+[ -n "$name" ] || name="$(cut -f1 <<<"${pairs%%$'\n'*}")"
 profile="$(infra_init_render "$name" "$pairs" "$proposal")"
 
 # THE OUTPUT IS READ BACK BEFORE IT IS PRINTED. A generated profile its own

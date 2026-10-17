@@ -1,4 +1,5 @@
     bin/devbin shell-init zsh [--autoload]
+    bin/devbin shell-init bash
 
 Emit a shell function, `dvb`, that walks up from the current directory to the nearest bin/devbin and runs it. A bin/devbin that is not executable stops the walk: `dvb` says so and returns 126 rather than reaching a parent project's. Nothing is vendored and nothing is configured.
 
@@ -6,7 +7,8 @@ Emit a shell function, `dvb`, that walks up from the current directory to the ne
 
 `shell-init` runs from any directory, so your shell rc can name a launcher by its full path:
 
-    eval "$(/path/to/project/bin/devbin shell-init zsh)"
+    eval "$(/path/to/project/bin/devbin shell-init zsh)"     # ~/.zshrc
+    eval "$(/path/to/project/bin/devbin shell-init bash)"    # ~/.bashrc
 
 Or, for zsh's autoload, write the function BODY to a file on your fpath:
 
@@ -16,11 +18,11 @@ The eval form defines `dvb() { ... }`. The autoload form emits the body alone, b
 
 ## Shells
 
-zsh is the only shell with a body. Any other name is refused with that list, rather than handed a zsh body that would be wrong in it. Bare `shell-init` is a usage error: it prints its usage on stderr, so a shell rc that names no shell evaluates nothing, and exits 1. `-h` prints the same usage on stdout and exits 0.
+zsh and bash each have a body, and both are rendered from one source: the function is written in what the two shells share, so the line naming the shell is the only one that differs. `--autoload` is zsh's alone, since bash has no autoload. Any other shell is refused with that list, rather than handed a body that would be wrong in it. Bare `shell-init` is a usage error: it prints its usage on stderr, so a shell rc that names no shell evaluates nothing, and exits 1. `-h` prints the same usage on stdout and exits 0.
 
 ## When the walk finds nothing
 
-The walk finds devbin through a project that already has one, so it cannot install into a project that does not. Set `DEVBIN_SOURCE` to a devbin checkout or install (its root or its bin/devbin), and `dvb` falls back to it. With it unset, `dvb` tries a machine install at `DEVBIN_INSTALL_PREFIX`, or else at the one baked in when the function was emitted: the install that emitted it, or the `install.prefix` the emitting project declares. Otherwise it lists where it looked and returns 127. The same two variables place a project's recorded source for `upgrade`, `vendor`, `doctor` and the update notice: `DEVBIN_INSTALL_PREFIX` over the machine pointer for an install, `DEVBIN_SOURCE` for a checkout (see `bin/devbin help upgrade`).
+The walk finds devbin through a project that already has one, so it cannot install into a project that does not. Set `DEVBIN_SOURCE` to a devbin checkout or install (its root or its bin/devbin), and `dvb` falls back to it. With it unset, `dvb` tries a machine install at `DEVBIN_INSTALL_PREFIX`, or else at the one baked in when the function was emitted: the install that emitted it, or the `install.prefix` the emitting project declares. An install Homebrew placed is baked in by its `opt` path, `$HOMEBREW_PREFIX/opt/devbin/libexec`, which follows `brew upgrade`, never by the versioned keg it runs from, which `brew upgrade` deletes. Otherwise it lists where it looked and returns 127. The same two variables place a project's recorded source for `upgrade`, `vendor`, `doctor` and the update notice: `DEVBIN_INSTALL_PREFIX` over the machine pointer, and both over the install Homebrew placed, for an install; `DEVBIN_SOURCE` for a checkout (see `bin/devbin help upgrade`).
 
     export DEVBIN_SOURCE=/path/to/devbin
     cd ~/some/new/project && dvb install

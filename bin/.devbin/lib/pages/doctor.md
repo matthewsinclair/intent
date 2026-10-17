@@ -26,6 +26,12 @@ In this order:
                     one devbin cannot read fails by name, as does a manifest
                     it cannot read or one that is missing; a file in the
                     vendored runtime that the manifest does not own is a note
+    line endings    git holds bin/devbin and every file under bin/.devbin/
+                    to LF, asked with git check-attr eol, so a later rule
+                    that undoes devbin's block is found too; each file not
+                    held is named. A file there carrying CR bytes fails by
+                    name, with CRLF line endings as the cause. Outside a
+                    git checkout the rule is not checked, and that is a note
     commands        how many commands are offered; fails only when there
                     are none, and notes any offered with nothing to run
     handlers        every file in bin/.devbin/cmd/ is reachable: each is
@@ -42,8 +48,15 @@ In this order:
                     moved: level, behind, ahead, differs or unknown, each
                     said apart; only behind suggests an upgrade. unknown
                     names what this machine is missing to place the source
-                    the manifest records (see bin/devbin help upgrade)
+                    the manifest records (see bin/devbin help upgrade). A
+                    project vendored from an install also gets the install
+                    it resolves to, and what named it: DEVBIN_INSTALL_PREFIX,
+                    the machine pointer, or HOMEBREW_PREFIX's opt/devbin
     bash            which bash is running, against the >= 5 floor
+    location        under WSL only: where the project sits. One on a
+                    Windows drive (/mnt/<letter>) is a note naming the
+                    drive, the cause and the fix, never a failure; one in
+                    WSL's own filesystem passes. Off WSL there is no row
 
 ## Three outcomes, not two
 
@@ -82,6 +95,12 @@ A file there that is not executable, or a directory, is a note and is not run. A
 ## The upgrade offer
 
 At a terminal, `bin/devbin doctor` and bare `bin/devbin` first ask whether to upgrade, and only when the devbin this project was vendored from has moved forward past it -- the `behind` state above. A source that is behind the project, or differs in no known direction, is never offered: nothing says it is newer, and an upgrade from an older source can take the project backwards. Only `y` or `yes`, in any case, runs `bin/devbin upgrade`; any other answer, or none, leaves the project as it is. `DEVBIN_NO_UPDATE_NOTICE=1` turns the offer off, along with devbin's once-a-day update notice.
+
+## A checkout on a Windows drive
+
+Under WSL a project cloned onto a Windows drive works, but slowly: WSL reaches the drive through its bridge to Windows, exec bits come from the mount options, and names ignore case. doctor says so and does not fail on it, since a refusal would stop work that still runs. The fix is to clone the project again inside WSL's own filesystem, under `~/`, and work there.
+
+WSL is recognised the way it marks itself: its interop handler at `/proc/sys/fs/binfmt_misc/WSLInterop` (`WSLInterop-late` where systemd runs), or `microsoft` in the kernel release. So a Linux container on a WSL 2 kernel, such as one under Docker Desktop, reads as WSL too. `DEVBIN_WSL=1` or `DEVBIN_WSL=0` overrides that, and any other value is refused before doctor checks anything. Drives are looked for under `/mnt`; where `/etc/wsl.conf` moves WSL's automount root, `DEVBIN_WSL_MOUNT_ROOT` names it, since doctor does not read wsl.conf.
 
 ## What it does not check
 

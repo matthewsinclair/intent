@@ -18,7 +18,7 @@ When `bin/completions/repl.txt` exists under the project root, devbin hands it t
 
 With no rlwrap on PATH, the REPL still starts, as plain `mix <task> repl` with no history or completion, after a warning on stderr:
 
-    <name>: rlwrap not found -- no history or tab completion (try: brew install rlwrap)
+    <name>: rlwrap not found -- no history or tab completion (try: brew install rlwrap, or apt-get install rlwrap)
 
 The exit status is then the task's own.
 

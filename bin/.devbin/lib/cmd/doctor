@@ -358,7 +358,16 @@ check_manifest() {
       modified)
         [ "$bad" -eq 0 ] && _fail "manifest: vendored files have been edited in place"
         bad=$((bad + 1))
-        _detail "edited:  $rel"
+        # A FILE CHECKED OUT CRLF READS AS EDITED, so its cause is said beside
+        # it, and check_line_endings names it with the remedy (ST0008 D46). A
+        # read error here goes unsaid: a file devbin cannot read is
+        # `unreadable`, not `modified`, failed below, and check_line_endings
+        # notes it as unchecked.
+        if [ -n "$(cr_files "$PROJECT_ROOT" "$rel" 2>/dev/null)" ]; then
+          _detail "edited:  $rel (it carries CR bytes: CRLF line endings, see line endings below)"
+        else
+          _detail "edited:  $rel"
+        fi
         ;;
       missing)
         [ "$bad" -eq 0 ] && _fail "manifest: vendored files are missing"
@@ -445,6 +454,102 @@ _check_unowned() {
 $(printf '%s\n' "$files" | LC_ALL=C sort)
 EOF
   [ "$unowned" -gt 0 ] && _detail "delete them, or move them to bin/.devbin/cmd/ where they are yours"
+  return 0
+}
+
+# check_line_endings -- bin/devbin and every file under bin/.devbin/ held to LF
+# by the repository, and none carrying CR bytes already (ST0008 D46).
+#
+# ASKED OF GIT, NOT READ OFF .gitattributes. `git check-attr eol` answers as
+# git itself will at the next checkout: devbin's block, a rule after it that
+# undoes it, and a .gitattributes nearer the file all count, and a parse of one
+# file would see only the first.
+#
+# A CR BYTE ALREADY THERE is the failure the rule prevents, and it surfaces
+# somewhere obscure: a script whose first line reads `bash\r` does not run,
+# and a vendored one reads as edited in place. So it is named here with its
+# cause. A binary is passed over: a CR byte in one is data.
+check_line_endings() {
+  local root="$PROJECT_ROOT" files="" f out line val n=0 cr
+  local -a rels=() readable=() unread=() loose=()
+  if [ -d "$root/bin/.devbin" ]; then
+    if ! files="$(find_walk "$root/bin/.devbin" -type f -print)"; then
+      _fail "line endings: could not list all of bin/.devbin (the error above names it), so its line endings are unchecked"
+      return 0
+    fi
+  fi
+  [ ! -e "$root/bin/devbin" ] || rels+=(bin/devbin)
+  while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    rels+=("bin/.devbin/${f#"$root/bin/.devbin"/}")
+  done <<EOF
+$(printf '%s\n' "$files" | LC_ALL=C sort)
+EOF
+  if [ "${#rels[@]}" -eq 0 ]; then
+    _note "line endings: no bin/devbin and nothing under bin/.devbin, so nothing to check"
+    return 0
+  fi
+
+  # A FILE DEVBIN CANNOT READ IS THE MANIFEST'S TO FAIL, NOT THIS CHECK'S. The
+  # manifest check owns "cannot read" for a vendored file and names its remedy,
+  # and config's own check fails an unreadable config.yaml; a second failure
+  # here over the same file would count one fault twice. So the CR scan reads
+  # only what can be read, and what it passes over is said, as a note.
+  for f in "${rels[@]}"; do
+    if [ -r "$root/$f" ]; then readable+=("$f"); else unread+=("$f"); fi
+  done
+  if [ "${#unread[@]}" -gt 0 ]; then
+    _note "line endings: ${#unread[@]} file(s) cannot be read, so whether they carry CR bytes is unchecked (the rows above fail them)"
+    for f in "${unread[@]}"; do
+      _detail "unread:  $f"
+    done
+  fi
+  if ! cr="$(cr_files "$root" ${readable[@]+"${readable[@]}"})"; then
+    _fail "line endings: could not read every file to look for CR bytes (the error above names it)"
+  elif [ -n "$cr" ]; then
+    _fail "line endings: $(nonempty_lines "$cr") file(s) carry CR bytes -- CRLF line endings, not an edit"
+    while IFS= read -r f; do
+      [ -z "$f" ] || _detail "CRLF:    $f"
+    done <<EOF
+$cr
+EOF
+    _detail "a script whose first line reads bash\\r does not run, and a vendored one also reads as edited in place"
+    _detail "fix: convert each to LF, eg with dos2unix; $DEVBIN_INVOKE upgrade --force replaces a vendored one from the source, an edit there included"
+  fi
+
+  if ! out="$(git_readonly -C "$root" check-attr eol -- "${rels[@]}" 2>/dev/null)"; then
+    if git_repo_absent "$root"; then
+      _note "line endings: not a git checkout, so no git converts them and no .gitattributes rule is checked"
+    else
+      _fail "line endings: git could not say which line endings it holds these files to: $(git_failure_line "$root" check-attr eol -- bin/devbin)"
+    fi
+    return 0
+  fi
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    n=$((n + 1))
+    val="${line##*: }"
+    [ "$val" = lf ] || loose+=("${line%: eol: *} (eol: $val)")
+  done <<EOF
+$out
+EOF
+  if [ "$n" -ne "${#rels[@]}" ]; then
+    _fail "line endings: git answered for $n of ${#rels[@]} files, so which line endings the rest check out with is unknown"
+    return 0
+  fi
+  if [ "${#loose[@]}" -eq 0 ]; then
+    _pass "line endings: .gitattributes holds bin/devbin and everything under bin/.devbin/ to LF ($n files)"
+    return 0
+  fi
+  _fail "line endings: ${#loose[@]} of $n files are not held to LF by .gitattributes, so a checkout on Windows can give them CRLF"
+  for f in "${loose[@]}"; do
+    _detail "not LF:  $f"
+  done
+  if is_devbin_installed "$root"; then
+    _detail "fix: $DEVBIN_INVOKE upgrade writes devbin's line-ending block into .gitattributes; a rule after it, or a .gitattributes nearer the file, can still undo it"
+  else
+    _detail "fix: hold them to LF in .gitattributes, eg with the line: * text=auto eol=lf"
+  fi
   return 0
 }
 
@@ -745,7 +850,7 @@ check_symlinks() {
 # is kept apart, because a check that cannot reach the source and says nothing
 # gets read as currency it never established. Absent is not clean.
 check_source_currency() {
-  local state word rec cur why
+  local state word rec cur why root by
   is_devbin_installed "$PROJECT_ROOT" || return 0
 
   state="$(devbin_source_state "$PROJECT_ROOT")"
@@ -780,6 +885,16 @@ check_source_currency() {
       _detail "this is not a clean bill -- nothing was established either way"
       ;;
   esac
+  # WHICH INSTALL, AND WHAT CHOSE IT (issue 0195). DEVBIN_INSTALL_PREFIX, the
+  # machine pointer and, when neither names one, Homebrew's opt/devbin can each
+  # name the install, and a project read against the wrong one reads level or
+  # behind against it all the same.
+  if [ "$(manifest_field "$PROJECT_ROOT" source 2>/dev/null || true)" = install ] &&
+    root="$(machine_install_root 2>/dev/null)"; then
+    by="$(machine_install_by)"
+    [ "$(machine_install_chooser)" != brew ] || by="$by, since no DEVBIN_INSTALL_PREFIX or machine pointer names one"
+    _detail "install: $root, named by $by"
+  fi
   return 0
 }
 
@@ -794,7 +909,35 @@ check_bash() {
   if [ "${BASH_VERSINFO[0]:-0}" -ge 5 ]; then
     _pass "bash: ${BASH_VERSION:-unknown} at ${BASH:-unknown} (floor >= 5)"
   else
-    _fail "bash: ${BASH_VERSION:-unknown} is below the >= 5 floor -- brew install bash"
+    _fail "bash: ${BASH_VERSION:-unknown} is below the >= 5 floor -- brew install bash, or apt-get install bash"
+  fi
+  return 0
+}
+
+# check_location <wsl> -- under WSL (<wsl> 1), whether the project sits on a
+# Windows drive (ST0008 D49). Off WSL there is nothing to say, so no row. main
+# asks is_wsl before the header, so a DEVBIN_WSL it refuses stops doctor
+# before any row rather than partway down the list.
+#
+# A NOTE, NEVER A FAILURE. A checkout under /mnt/<letter> works, slowly, so a
+# refusal would stop a developer mid-task over something that still runs; the
+# note names the cause and the fix instead. The root and the mount root are
+# both read physically, so a link to either is read as what it reaches.
+#
+# DEVBIN_WSL_MOUNT_ROOT names the automount root where /etc/wsl.conf moved it
+# from /mnt; nothing reads wsl.conf for it.
+check_location() {
+  local root mount drive
+  [ "$1" = 1 ] || return 0
+  physical_dir "$PROJECT_ROOT" root || root="$PROJECT_ROOT"
+  mount="${DEVBIN_WSL_MOUNT_ROOT:-/mnt}"
+  physical_dir "$mount" mount || mount="${DEVBIN_WSL_MOUNT_ROOT:-/mnt}"
+  if windows_drive_of "$root" "$mount" drive; then
+    _note "location: $root is on the Windows drive at $drive, under WSL"
+    _detail "cause: WSL reaches $drive through its bridge to Windows, so it is slower, exec bits come from the mount options, and names ignore case"
+    _detail "fix: clone the project again inside WSL's own filesystem, eg under ~/, and work there"
+  else
+    _pass "location: $root is inside WSL's own filesystem"
   fi
   return 0
 }
@@ -881,7 +1024,7 @@ EOF
 }
 
 main() {
-  local only=""
+  local only="" wsl=0
   case "${1:-}" in
     -h | --help)
       usage
@@ -898,6 +1041,9 @@ main() {
       fi
       ;;
   esac
+
+  # Asked before the header: a DEVBIN_WSL is_wsl refuses stops doctor here.
+  is_wsl && wsl=1
 
   init_colors auto
   printf 'devbin doctor -- %s\n\n' "$PROJECT_ROOT"
@@ -917,12 +1063,14 @@ main() {
   check_log_keys
   check_devbin_version
   check_manifest
+  check_line_endings
   check_commands
   check_handlers
   check_shadowing
   check_symlinks
   check_source_currency
   check_bash
+  check_location "$wsl"
   run_project_checks
 
   printf '\n%d checks, %d failed, %d notes\n' "$CHECKS" "$FAILURES" "$NOTES"

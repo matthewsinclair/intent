@@ -51,14 +51,15 @@ set -uo pipefail
 
 _shell_init_usage() {
   cat <<USAGE
-usage: $DEVBIN_INVOKE shell-init <zsh>
+usage: $DEVBIN_INVOKE shell-init <zsh|bash>
 
   Emit a shell function that walks up from \$PWD to the nearest bin/devbin and
   runs it. Nothing is vendored and nothing is configured.
 
-  Add to your shell rc:
+  Add the line for your shell to its rc:
 
-    eval "\$($DEVBIN_INVOKE shell-init zsh)"
+    eval "\$($DEVBIN_INVOKE shell-init zsh)"     # in ~/.zshrc
+    eval "\$($DEVBIN_INVOKE shell-init bash)"    # in ~/.bashrc
 
   The emitted function is named dvb.
 
@@ -76,7 +77,15 @@ usage: $DEVBIN_INVOKE shell-init <zsh>
 USAGE
 }
 
-# _shell_init_zsh -- the one true body.
+# _shell_init_body -- the one true body, for zsh and for bash alike.
+#
+# ONE SOURCE RENDERS BOTH, and the function is written in the shared subset of
+# the two shells so that nothing but the header line naming the shell differs:
+# `printf ... >&2` rather than zsh's `print -u2`, `${d%/*}` rather than its
+# `${d:h}`, and `printf '  %s\n' "${tried[@]}"` rather than `print -l
+# ${^tried[@]}`. A second body would drift, as the three copies of the snippet
+# this replaced did within an hour. The shell's name travels as a placeholder,
+# substituted by _shell_init_render, as the prefix does.
 #
 # TWO DEFECTS ARE FIXED HERE RELATIVE TO THE SNIPPET THIS REPLACES, both found
 # against a landed copy and both reproduced before this was written:
@@ -90,11 +99,11 @@ USAGE
 #      which sits beside the existing 127 without overlapping it.
 #
 #   2. `${^tried}` collapsed every candidate onto one space-separated line.
-#      `${^tried[@]}` prints one per line. The control that missed it is the
+#      The body now prints one per line. The control that missed it is the
 #      lesson: with ONE element the two forms are byte-identical, so a negative
 #      control run from a depth-1 directory cannot see the difference at any
 #      level of care -- correct, and insufficient.
-_shell_init_zsh() {
+_shell_init_body() {
   # The emitted comment must not begin `# devbin: `. tests/unit/help.bats greps
   # lib/cmd for that prefix to hold down D23 -- a handler must not restate the
   # summary its catalogue row owns -- and the grep cannot tell a header from a
@@ -102,7 +111,7 @@ _shell_init_zsh() {
   # that is catching a real class.
   cat <<'BODY'
 # devbin shell shortcut -- runs the nearest bin/devbin, walking up from $PWD.
-# Emitted by `bin/devbin shell-init zsh` -- do not edit; re-run it instead.
+# Emitted by `bin/devbin shell-init @@SHELL@@` -- do not edit; re-run it instead.
 dvb() {
   local d=$PWD tried=()
   while [[ $d != / ]]; do
@@ -111,10 +120,13 @@ dvb() {
       "$d/bin/devbin" "$@"
       return $?
     elif [[ -f $d/bin/devbin ]]; then
-      print -u2 "dvb: $d/bin/devbin exists but is not executable -- chmod +x it."
+      printf '%s\n' "dvb: $d/bin/devbin exists but is not executable -- chmod +x it." >&2
       return 126
     fi
-    d=${d:h}
+    # The parent, and `/` once the last component is gone: `${d%/*}` of
+    # `/home` is empty, and an empty d would try /bin/devbin, a real path.
+    d=${d%/*}
+    d=${d:-/}
   done
   # The bootstrap fallback. Reached only when the walk found nothing at all,
   # so it can never shadow a project's own launcher.
@@ -128,13 +140,13 @@ dvb() {
       "$src" "$@"
       return $?
     elif [[ -f $src ]]; then
-      print -u2 "dvb: DEVBIN_SOURCE names $src, which is not executable -- chmod +x it."
+      printf '%s\n' "dvb: DEVBIN_SOURCE names $src, which is not executable -- chmod +x it." >&2
       return 126
     fi
     # A MISCONFIGURATION MUST NOT BE REPORTED AS AN ABSENCE. Falling through to
     # the walk's "Looked in:" listing would answer a question the caller did not
     # ask and hide the one they got wrong.
-    print -u2 "dvb: DEVBIN_SOURCE is set to '$DEVBIN_SOURCE' but $src is not there."
+    printf '%s\n' "dvb: DEVBIN_SOURCE is set to '$DEVBIN_SOURCE' but $src is not there." >&2
     return 127
   fi
   # THE MACHINE INSTALL, and it is why `dvb` outside any project is not an
@@ -146,18 +158,23 @@ dvb() {
   # not configure install.prefix and there is no default to fall through to any
   # more, so this arrives empty in the ordinary case -- and `-x /bin/devbin`
   # is a real path on the system PATH that an unguarded test would RUN.
-  local prefix=${DEVBIN_INSTALL_PREFIX:-@@DEVBIN_INSTALL_PREFIX@@}
+  local prefix=${DEVBIN_INSTALL_PREFIX:-'@@DEVBIN_INSTALL_PREFIX@@'}
   if [[ -n $prefix ]]; then
     if [[ -x $prefix/bin/devbin ]]; then
       "$prefix/bin/devbin" "$@"
       return $?
     fi
-    print -u2 "dvb: no bin/devbin found from $PWD upward, and no machine install at $prefix. Looked in:"
+    printf '%s\n' "dvb: no bin/devbin found from $PWD upward, and no machine install at $prefix. Looked in:" >&2
   else
-    print -u2 "dvb: no bin/devbin found from $PWD upward, and no machine install prefix is configured. Looked in:"
+    printf '%s\n' "dvb: no bin/devbin found from $PWD upward, and no machine install prefix is configured. Looked in:" >&2
   fi
-  print -u2 -l "  ${^tried[@]}"
-  print -u2 "dvb: publish one with 'bin/devbin install' inside devbin, or set DEVBIN_INSTALL_PREFIX or DEVBIN_SOURCE."
+  # At / the walk never ran: an empty list would print as one blank path.
+  if [[ ${#tried[@]} -gt 0 ]]; then
+    printf '  %s\n' "${tried[@]}" >&2
+  else
+    printf '%s\n' "  (nowhere: $PWD is /)" >&2
+  fi
+  printf '%s\n' "dvb: publish one with 'bin/devbin install' inside devbin, or set DEVBIN_INSTALL_PREFIX or DEVBIN_SOURCE." >&2
   return 127
 }
 BODY
@@ -188,13 +205,16 @@ BODY
 # answer than a `dvb` without its fallback; saying nothing would make the
 # missing fallback look like a project that declared none.
 #
-# rc 0 WITH EMPTY OUTPUT, SAID OUT LOUD, because the value travels through two
-# nested command substitutions on its way into the sed below. An rc raised in
-# there is swallowed without `inherit_errexit` (issue 0060) and the emptiness
-# would look deliberate either way, so it is made deliberate.
+# rc 0 WITH EMPTY OUTPUT, SAID OUT LOUD: an unset prefix is an answer, not a
+# failure, so every path here ends at rc 0 and the emptiness is deliberate. The
+# fill in _shell_init_render still checks the rc, so a failure added here later
+# is refused rather than emitted as a body with no fallback.
 _shell_init_prefix() {
   if [ "$(manifest_field "$PROJECT_ROOT" kind 2>/dev/null || true)" = install ]; then
-    printf '%s\n' "$PROJECT_ROOT"
+    # A HOMEBREW KEG IS NAMED BY ITS OPT LINK (issue 0195): baked into `dvb`,
+    # Cellar/devbin/<version> would leave every open shell aimed at a keg the
+    # next `brew upgrade` deletes. install_named_root says why, once.
+    install_named_root "$PROJECT_ROOT"
     return 0
   fi
   [ -f "${DEVBIN_DIR:-}/config.yaml" ] || return 0
@@ -206,10 +226,48 @@ _shell_init_prefix() {
   install_prefix_configured || return 0
 }
 
+# _shell_init_render <shell> [--autoload] -- the body for <shell>, its name and
+# the machine install's prefix filled in; with --autoload, zsh's form, the body
+# without its `dvb() {` wrapper. Every body passes through here, so the two
+# placeholders have one place they are filled.
+#
+# THE PREFIX IS FILLED AS DATA, LAST, AND NEVER BY SED (issue 0200). It went
+# into sed's replacement, where `&` is the matched text and `|` or `\` break the
+# expression, and then sat unquoted in the body, where `$`, `}` and quotes are
+# code to every shell that evals it. Now the body single-quotes it, any `'` in
+# it is closed, escaped and reopened, and bash's own replacement fills it: a
+# QUOTED replacement is literal, `&` included, under bash 5.2's
+# patsub_replacement as before it. The unwrap runs on the unfilled body, so no
+# line-oriented edit ever sees the path, whatever it holds -- a newline in it
+# included. No arm holds that order: a config value cannot carry a newline, and
+# no fixture builds an install root with one.
+_shell_init_render() {
+  local body prefix quoted
+  body="$(_shell_init_body)" || return 1
+  if [ "${2:-}" = --autoload ]; then
+    # SC2016 disabled for this command: the sed replacement names a COMMAND in
+    # backticks and must NOT expand -- which is the very thing being warned
+    # about here, and the thing that is wanted.
+    #
+    # NB: no comment line above may BEGIN with the linter's own name, or it is
+    # parsed as a malformed directive (SC1073) and takes the real one below
+    # down with it. Measured, 2026-09-07.
+    # shellcheck disable=SC2016
+    body="$(sed -e '/^dvb() {$/d' -e '/^}$/d' -e 's/^  //' \
+      -e 's|^# Emitted by .*|# Emitted by `devbin shell-init zsh --autoload` -- do not edit; re-run it instead.|' \
+      <<<"$body")" || return 1
+  fi
+  prefix="$(_shell_init_prefix)" || return 1
+  quoted=${prefix//\'/\'\\\'\'}
+  body=${body//@@SHELL@@/"$1"}
+  body=${body//@@DEVBIN_INSTALL_PREFIX@@/"$quoted"}
+  printf '%s\n' "$body"
+}
+
 cmd_shell_init() {
   case "${1:-}" in
     # THE PREFIX IS SUBSTITUTED, NOT INTERPOLATED. The body heredoc is quoted
-    # so that $PWD, $@ and ${^tried[@]} survive generation verbatim -- the exact
+    # so that $PWD, $@ and ${tried[@]} survive generation verbatim -- the exact
     # trap `lib/cmd/infra` fell into by unquoting one -- so the one value that
     # DOES need to come from config travels as a placeholder and is replaced
     # here. `install_prefix_configured` stays its only source.
@@ -225,23 +283,19 @@ cmd_shell_init() {
           # a function. So every fix made here since has been undeliverable to
           # the setup that reported the bug, which is precisely the failure the
           # README records this command as having FIXED.
-          # SC2016 disabled for this pipeline: the sed replacement names a
-          # COMMAND in backticks and must NOT expand -- which is the very thing
-          # being warned about here, and the thing that is wanted.
-          #
-          # NB: no comment line above may BEGIN with the linter's own name, or
-          # it is parsed as a malformed directive (SC1073) and takes the real
-          # one below down with it. Measured, 2026-09-07.
-          # shellcheck disable=SC2016
-          _shell_init_zsh |
-            sed -e '/^dvb() {$/d' -e '/^}$/d' -e 's/^  //' \
-              -e 's|^# Emitted by .*|# Emitted by `devbin shell-init zsh --autoload` -- do not edit; re-run it instead.|' |
-            sed "s|@@DEVBIN_INSTALL_PREFIX@@|$(_shell_init_prefix)|g"
+          _shell_init_render zsh --autoload
           ;;
-        "")
-          _shell_init_zsh | sed "s|@@DEVBIN_INSTALL_PREFIX@@|$(_shell_init_prefix)|g"
-          ;;
+        "") _shell_init_render zsh ;;
         *) die "shell-init zsh: unknown option '$2' (try: --autoload)" ;;
+      esac
+      ;;
+    bash)
+      case "${2:-}" in
+        "") _shell_init_render bash ;;
+        # bash has no autoload: a body without its wrapper would define
+        # nothing there, so the option is refused by name, not emitted.
+        --autoload) die "shell-init bash: --autoload is zsh's, and bash has no autoload; use the eval form in ~/.bashrc" ;;
+        *) die "shell-init bash: unknown option '$2' (it takes none)" ;;
       esac
       ;;
     -h | --help) _shell_init_usage ;;
@@ -262,8 +316,8 @@ cmd_shell_init() {
       ;;
     *)
       # Named, not guessed at: an unknown shell gets the list rather than a
-      # zsh body that would be wrong in it.
-      die "shell-init: no body for '$1'. Shells with one: zsh"
+      # body that would be wrong in it.
+      die "shell-init: no body for '$1'. Shells with one: zsh, bash"
       ;;
   esac
 }

@@ -523,7 +523,8 @@ _clean_mark() {
 # _clean_size <dir> -- human size, or `?` when du cannot answer.
 _clean_size() {
   local s
-  s="$(du -sh "$1" 2>/dev/null | awk '{print $1; exit}')" || s=""
+  s="$(du -sh "$1" 2>/dev/null)" || s=""
+  s="$(awk '{print $1; exit}' <<<"$s")"
   printf '%s\n' "${s:-?}"
   return 0
 }

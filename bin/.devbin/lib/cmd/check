@@ -89,7 +89,7 @@ builtin_check_critic_gateflags() {
 
 builtin_check_critic() {
   require_tool intent "Install Intent: see intent/docs at the Intent install"
-  require_tool jq "brew install jq"
+  require_tool jq "brew install jq, or apt-get install jq"
 
   local declared headless langs="" lang rc=0 hl_rc=0 jq_rc=0 cfg staged why
   cfg="$PROJECT_ROOT/intent/.config/config.json"
@@ -321,7 +321,7 @@ builtin_check_format() {
 _check_format_swift() {
   local n
   command -v swift-format >/dev/null 2>&1 ||
-    die "swift-format not found, so Swift formatting cannot be verified (brew install swift-format)
+    die "swift-format not found, so Swift formatting cannot be verified (brew install swift-format; on Linux it ships with the Swift toolchain, swift.org/install)
        'fmt swift' skips a missing formatter because it claims no verdict; a gate cannot."
 
   # READ WHOLE, WITH ITS STATUS, AND A PARTIAL LIST FAILS THE GATE (issue
@@ -416,7 +416,8 @@ builtin_check_toolchain() {
 
   if [ -n "$pin_ex" ]; then
     require_tool elixir "Install via asdf/mise per .tool-versions"
-    live_ex="$(elixir --version 2>/dev/null | awk '/^Elixir / { print $2; exit }')"
+    live_ex="$(elixir --version 2>/dev/null)"
+    live_ex="$(awk '/^Elixir / { print $2; exit }' <<<"$live_ex")"
     if [ "$pin_ex" != "$live_ex" ]; then
       warn "elixir: .tool-versions pins $pin_ex, the active toolchain is ${live_ex:-unknown}"
       rc=1

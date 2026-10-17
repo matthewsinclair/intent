@@ -23,12 +23,20 @@ set -euo pipefail
 usage() {
   cat <<EOF
 usage: $DEVBIN_INVOKE install [--into <dir>] [--name <n>] [--alias <a>] [--lang <l>] [--force]
-       $DEVBIN_INVOKE install [--prefix <dir>]          (inside devbin's own tree)
+       $DEVBIN_INVOKE install [--prefix <dir>] [--managed-by brew] [--point]   (inside devbin's own tree)
 
   --into <dir>   the project to install into (default: the current directory)
   --prefix <dir> PUBLISH mode only: where to publish the machine install
                  (default: install.prefix in devbin's own config. There is no
                  built-in default -- the location is configuration)
+  --managed-by brew
+                 PUBLISH mode only: record that Homebrew owns this install, so
+                 devbin's install and upgrade refuse to write into it. The
+                 Homebrew formula passes it
+  --point        PUBLISH mode only, to install.prefix: make this install the
+                 machine's, writing the machine pointer, where the machine's
+                 install is Homebrew's and would otherwise stay so. Elsewhere
+                 the pointer is written anyway, and --point changes nothing
   --name <n>     the project name (default: the target directory's name)
   --alias <a>    a short name this project may keep, eg 'dm' for demo.
                  RECORDED ONLY -- devbin creates no symlink for it
@@ -98,8 +106,8 @@ starter_config() {
 # for `intent` and for a human, and nothing about that needed the symlink.
 
 main() {
-  local into="" name="" alias="" langs="" force="" prefix="" srcroot dstroot version
-  local rel src count=0 config mode vendor_only="" record paths recorded removed configured=""
+  local into="" name="" alias="" langs="" force="" prefix="" managed="" point="" srcroot dstroot version
+  local rel src count=0 config mode vendor_only="" record paths recorded removed configured="" why lf
 
   while [ $# -gt 0 ]; do
     case "$1" in
@@ -140,9 +148,23 @@ main() {
         prefix="${2:-}"
         shift 2 || die "--prefix needs a directory"
         ;;
+      --managed-by)
+        managed="${2:-}"
+        shift 2 || die "--managed-by needs a value"
+        # ONE MANAGER, NAMED, so a typo is refused rather than recorded as a
+        # manager nothing knows to step aside for (issue 0195).
+        case "$managed" in
+          brew) ;;
+          *) die "--managed-by takes brew, the one manager devbin steps aside for, not '$managed'" ;;
+        esac
+        ;;
       --force)
         vendor_only="$vendor_only --force"
         force=yes
+        shift
+        ;;
+      --point)
+        point=point
         shift
         ;;
       -*) die "unknown option '$1' (try: $DEVBIN_INVOKE install --help)" ;;
@@ -181,6 +203,14 @@ main() {
        you are in VENDOR mode$([ -n "$into" ] && printf ' (--into was given)')
        to publish:  cd <the devbin source tree> && bin/devbin install"
   fi
+  if [ -n "$managed" ] && [ "$mode" != publish ]; then
+    die "--managed-by applies only when publishing from devbin's own source tree
+       you are in VENDOR mode$([ -n "$into" ] && printf ' (--into was given)')"
+  fi
+  if [ -n "$point" ] && [ "$mode" != publish ]; then
+    die "--point applies only when publishing from devbin's own source tree
+       you are in VENDOR mode$([ -n "$into" ] && printf ' (--into was given)')"
+  fi
   # AND THE MIRROR (issue 0103): a VENDOR flag while publishing was dropped in
   # silence. Publishing writes no config and never re-vendors over an install,
   # so --name, --alias, --lang and --force have nothing to act on.
@@ -215,6 +245,11 @@ main() {
       prefix="$(install_prefix_configured)" || die_install_prefix_unset '--prefix <dir>'
     fi
     dstroot="$prefix"
+    # Refused before anything is written (issue 0197).
+    if [ -n "$point" ]; then
+      why="$(point_refusal "$dstroot" "$configured")"
+      [ -z "$why" ] || die "$why"
+    fi
   else
     dstroot="$(cd "${into:-.}" 2>/dev/null && pwd)" ||
       die "no such directory: ${into:-.}"
@@ -264,6 +299,10 @@ main() {
        working tree in the search order and every edit to lib/ would stop
        taking effect, with the suite still green against the copy."
   fi
+
+  # A HOMEBREW KEG IS HOMEBREW'S TO REPLACE (issue 0195), and that comes first:
+  # neither `upgrade` nor `--force`, the remedies below, may write into one.
+  install_managed_refusal "$dstroot" || return 1
 
   # PUBLISH refuses an existing install and names `upgrade`; VENDOR refuses and
   # names `--force`. Same shape, different remedy -- and the shape is not new:
@@ -333,7 +372,7 @@ main() {
   # install tree contains. VENDOR keeps its own loop because it writes a project
   # half that an install never gets.
   if [ "$mode" = publish ]; then
-    record="$(publish_install "$srcroot" "$dstroot" "$version")" ||
+    record="$(publish_install "$srcroot" "$dstroot" "$version" "$managed")" ||
       die "failed to publish the install to $dstroot"
     printf '  vendored   %d files (bin/devbin, bin/.devbin/lib/)\n' "$(publish_copied "$record")"
     while IFS= read -r rel; do
@@ -417,10 +456,20 @@ main() {
   fi
   printf '  wrote      %s\n' "$DEVBIN_MANIFEST_REL"
 
+  # DEVBIN'S LINE-ENDING BLOCK IN THE PROJECT'S .gitattributes (ST0008 D46), so
+  # every clone checks the runtime out LF. A project's file, written only
+  # between devbin's markers (lf_block_write). Not on a publish: an install is
+  # vendored from, never cloned.
+  if [ "$mode" != publish ]; then
+    lf="$(lf_block_write "$dstroot")" ||
+      die "devbin is installed in $dstroot, but its line-ending block is not in .gitattributes (above)"
+    lf_block_said "$lf"
+  fi
+
   if [ "$mode" = publish ]; then
     # The install is published either way; a pointer it could not write is
     # named and fails the run, since no project could find it (issue 0153).
-    install_pointer_write "$dstroot" "$configured" ||
+    install_pointer_write "$dstroot" "$configured" "$point" ||
       die "the install is published at $dstroot, but the machine pointer was not written (above)"
     printf '\nPublished. Consumers vendor from here:\n'
     vendor_from_hint "$dstroot"
