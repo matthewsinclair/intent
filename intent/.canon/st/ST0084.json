@@ -1,0 +1,12 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0084",
+  "title": "Relocate the parity tooling and reference generators out of intent/st/ST0056 so completed threads can leave the disk",
+  "slug": "relocate-the-parity-tooling-and-reference-genera",
+  "status": "triage",
+  "created": "2026-10-17",
+  "objective": "Move the project's live tooling out of a completed thread's directory so that `intent st dehydrate` can take ST0056 and ST0057 off the disk without breaking anything. Today `intent/st/ST0056/parity/tools/` is the home of every guard the pre-commit gate runs (named by path in `bin/.devbin/cmd/precommit`), of the release script's contract and reference checks (`bin/.devbin/cmd/build.d/release`), and of the generators behind `docs/reference/` and the explorer screenshots; `intent/st/ST0056/data-model.md` holds the ratified machines the gate's machine-table check compares; `intent/st/ST0057/parity/tools/` holds seven scripts that ST0057's green acceptance rows cite. Paths into both are hard-coded in the gate, the release script, Rust tests under `native/rust/crates/*/tests/`, the surface files, the generated docs' headers and the acceptance rows. Found on 2026-10-17 when a dehydrate of ST0056 and ST0057 was refused by the absent-citation guard and reverted (7d14c1363). The thread chooses one home outside `intent/st/` for the tooling and the ratified data model, moves them with their history, updates every reference and every citing AT row, proves the gate, the release dry run and the generators from the new home, and ends with both threads dehydrated.",
+  "context": "",
+  "body": "",
+  "preamble": ""
+}

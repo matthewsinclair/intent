@@ -33,6 +33,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 - [?] ST0082: Intent on Windows through WSL 2: Intent's Linux install inside WSL, no native port
   - [ ] 01: The WSL page
   - [ ] 02: First install on a real Windows machine
+- [?] ST0084: Relocate the parity tooling and reference generators out of intent/st/ST0056 so completed threads can leave the disk
 
 ## DONE:2026-09-10T00:00:51Z
 

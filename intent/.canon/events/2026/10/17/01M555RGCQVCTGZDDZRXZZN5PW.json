@@ -1,0 +1,14 @@
+{
+  "id": "01M555RGCQVCTGZDDZRXZZN5PW",
+  "ts": "2026-10-17T14:55:22.522Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "st.new",
+  "subject": {
+    "type": "thread",
+    "id": "ST0084"
+  },
+  "payload": {
+    "title": "Relocate the parity tooling and reference generators out of intent/st/ST0056 so completed threads can leave the disk"
+  }
+}

@@ -4,6 +4,7 @@ An index of every steel thread in the project. A steel thread is a self-containe
 
 | ID     | Title                                                                                                                                           | Status    | Created    | Completed            |
 | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ---------- | -------------------- |
+| ST0084 | Relocate the parity tooling and reference generators out of intent/st/ST0056 so completed threads can leave the disk                            | Triage    | 2026-10-17 |                      |
 | ST0083 | Agent contracts at the root or in .claude/, chosen per project, and CLAUDE.md imports AGENTS.md                                                 | WIP       | 2026-10-15 |                      |
 | ST0082 | Intent on Windows through WSL 2: Intent's Linux install inside WSL, no native port                                                              | Triage    | 2026-10-14 |                      |
 | ST0081 | Intent from Homebrew on Linux and macOS, with no source checkout: Linux binaries on every release                                               | WIP       | 2026-10-12 |                      |
