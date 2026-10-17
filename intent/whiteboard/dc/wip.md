@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 45688c36-a10d-4ad6-b27b-9f7011eb1956
-heartbeat_at: 2026-10-16 20:22Z
+heartbeat_at: 2026-10-17 04:59Z
 status: active
-focus: "LOCALFOLDED 2026-10-16 late on hv's word via vc, holding for hv's compact: 3.2.4's close-out driven by vc (decision 67); dc's cut-prep rehearsal PASSED, scripts banked on refs/bank/dc/324kd/; the final pass runs once on vc's GO after WP-08, 0606 and vc's build all, from tmp/wt-dc-kd324; holds 29 and 31; no push, no release"
+focus: "LOCALFOLDED 2026-10-17 on hv's word via vc, holding for hv's compact: 3.2.4's cut-prep pass landed at ef9889423; banks on refs/bank/dc/324kd/; tmp/wt-dc-kd324 kept at 5fd224626 until hv's cut; idle until the cut or a re-drive order; hold 29 stands; no push, no release"
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- RESUME STATE (dc, localfold 2026-10-16 late, on hv's word via vc: bank what we have, localfold, compact). 3.2.4'S CLOSE-OUT IS DRIVEN BY vc UNDER hv's DELEGATION (vc decision 67, hv AFK). dc's two fixes are landed and built: 0599 (ff266c7a9, closed f73759f93) and 0590 (4c6903d0b, closed 9ef74a5bc); the pair f8947efe4 carries all five of the second train, the daemon restarted on it 18:32Z, hv pushed 9311a3fd5..7bfca4e7a. hv selected in the TUI that 0590's --project ships family-only (intent issues --project X <verb>), relayed to vc. dc RAN THE CUT-PREP REHEARSAL on vc's order and vc PASSED it (19:10Z): the known-defects drive whole against f8947efe4 reproduces every entry and retires only skills uninstall (0602 fixed); the reference regen at 9382bf1f9 against v3.2.3 shows agents layout, init --contracts and issues --project as the new surface; the explorer-shots venv runs (pyte 0.8.2). Banks on refs/bank/dc/324kd/: drive.sh b2f4f60d8 (with the MAIN .backup fix), drive-rehearsal.log 32b822b9c, refcheck.txt c7eeb87fa, rewrite.py f89e820a6 (moves the title, the pin, 0011's version, 0443's five stamps and line 109's slip, then checks every transcript line against the log; positive-controlled). The venv is in dc's session scratchpad, kd324/venv. NEXT, ONCE, ON vc's GO after cc's last ST0083 Rust bank (WP-08) and 0606's fix land and vc's build all: from tmp/wt-dc-kd324 (kept), drive.sh whole against that pair, rewrite.py on the page, reference regen at that HEAD against v3.2.3, the shots with --python from the venv, one bank for vc to judge, one landing. dc claims nothing. No push, no release. (edited)
+- RESUME STATE (dc, localfold 2026-10-17 on hv's word via vc: bank what we have, localfold, compact). 3.2.4'S CUT-PREP PASS LANDED at ef9889423 on vc's PASS (patch-id 6e9c5b994fd4): known-defects.md re-driven whole against the pair at 09a13ebfd (intent 210a18d30e37e8af, intentd 4559274a3f6e0d84, pinned at both ends), 23 entries as rehearsed, nothing flipped, retitled v3.2.4; docs/reference regenerated at 5fd224626 against v3.2.3 (reference_current_check ok); three explorer shots. Everything is banked on refs/bank/dc/324kd/: final.patch b7b8f8d75633, drive-final.log d3c90ccb4810, drive-final.diff bf4a7b6da6dd, final-pass.out e5a724d1ea89, refcheck-final.txt a92076183d47, final-pass.sh 103d461adfde, land.sh de5e2e0c0542, with drive.sh b2f4f60d8 and rewrite.py f89e820a6 (the venv is in dc's session scratchpad, kd324/venv). tmp/wt-dc-kd324 KEPT at 5fd224626 until hv's cut, its removal on vc's order after the smoke. vc's cut-ready report is with hv; the tag, push and release are hv's at the terminal. NEXT: dc idle until the cut or a re-drive order from vc (a re-drive reruns kd324/final-pass.sh <HEAD> <pair> from the bank). dc claims nothing. No push, no release. (edited)
 
 ## TODO
 
@@ -26,7 +26,6 @@ _(none)_
   THE ESTATES: Molt and Prolix take the recipe unchanged, because their hook is byte-identical to MicroGPTEx's. Anvil, Baize, Cdtempl, Courses and Riffle share a hook with only the chain block and need no formatter declaration. Prodinfra, Conflab and Lamplight each get their own diff first. vc sequences Devbin, Laksa and Gtools. vc rules the seven unnamed estates on a measurement of which carry Intent.
   RIDER: wherever the recipe declares a markdown formatter in an estate with a whiteboard, the same commit adds prettier-ignore lines for intent/whiteboard/*/wip.md and intent/whiteboard/*/inbox.*.md (prettier 3.9.8 rewrites the generated views).
   KNOWN LIMIT: core.hooksPath is per clone, so a fresh clone runs no hook until it is set.
-- **THE KNOWN-DEFECTS RE-DRIVE IS HELD UNTIL THE 3.2.4 CUT'S FINAL PRE-CUT build all PAIR EXISTS AND vc SAYS GO.** It runs refs/bank/dc/324kd/drive.sh (b2f4f60d8) whole on that pair, diffs it against the rehearsal log refs/bank/dc/324kd/drive-rehearsal.log (32b822b9c) and 3.2.3's (refs/bank/dc/323/drive-3.2.3.log e469fa33b), then rewrites the page with refs/bank/dc/324kd/rewrite.py (f89e820a6). Rehearsed 2026-10-16 against f8947efe4 and PASSED by vc. (Re-scoped 2026-10-16: the scope half of this hold was met by hv's ruling, vc decision 63.) (edited)
 
 ## Watch-outs
 

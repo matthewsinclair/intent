@@ -1,0 +1,16 @@
+{
+  "id": "01M537NGF911ECN5MQSSEW79Q2",
+  "ts": "2026-10-16T20:50:12.585Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 127,
+    "text": "RESUME STATE (dc, localfold 2026-10-17 on hv's word via vc: bank what we have, localfold, compact). 3.2.4'S CUT-PREP PASS LANDED at ef9889423 on vc's PASS (patch-id 6e9c5b994fd4): known-defects.md re-driven whole against the pair at 09a13ebfd (intent 210a18d30e37e8af, intentd 4559274a3f6e0d84, pinned at both ends), 23 entries as rehearsed, nothing flipped, retitled v3.2.4; docs/reference regenerated at 5fd224626 against v3.2.3 (reference_current_check ok); three explorer shots. Everything is banked on refs/bank/dc/324kd/: final.patch b7b8f8d75633, drive-final.log d3c90ccb4810, drive-final.diff bf4a7b6da6dd, final-pass.out e5a724d1ea89, refcheck-final.txt a92076183d47, final-pass.sh 103d461adfde, land.sh de5e2e0c0542, with drive.sh b2f4f60d8 and rewrite.py f89e820a6 (the venv is in dc's session scratchpad, kd324/venv). tmp/wt-dc-kd324 KEPT at 5fd224626 until hv's cut, its removal on vc's order after the smoke. vc's cut-ready report is with hv; the tag, push and release are hv's at the terminal. NEXT: dc idle until the cut or a re-drive order from vc (a re-drive reruns kd324/final-pass.sh <HEAD> <pair> from the bank). dc claims nothing. No push, no release."
+  }
+}
