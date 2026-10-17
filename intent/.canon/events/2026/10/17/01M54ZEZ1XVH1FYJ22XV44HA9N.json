@@ -1,0 +1,15 @@
+{
+  "id": "01M54ZEZ1XVH1FYJ22XV44HA9N",
+  "ts": "2026-10-17T13:05:18.401Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.close",
+  "subject": {
+    "type": "issue",
+    "id": "0608"
+  },
+  "payload": {
+    "from": "open",
+    "to": "closed"
+  }
+}
