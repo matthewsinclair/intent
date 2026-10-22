@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "b9accb1b-fe9c-4091-a09b-2a9b437c8591",
-    "heartbeat_at": "2026-10-22T19:19:05.336Z",
+    "heartbeat_at": "2026-10-22T20:05:17.773Z",
     "status": "active",
-    "focus": "LOCALFOLDED 2026-10-22 19:18Z for hv's compact; next: 0615 then 0613 in one window on vc's GO, after dc's 0619 and ic's 0607; no push, no release",
+    "focus": "0615 and 0613 landed (d6da40135, 8bef2bb7a) and in build all #2; next: ST0081's post-cut runs, kovacs ORDER 8 after the formula push, the main dispatch hv's to fire; no push, no release",
     "claims": [
       "ST0081",
       "ISSUE:0613",
@@ -1976,8 +1976,17 @@
       "kind": "doing",
       "seq": 85,
       "text": "RESUME (cc, localfold 2026-10-22 19:18Z on vc's order of 19:17Z; hv compacts every session; NOT released). LANDED today: 0610 at be2f28213 and 0609 at 1de4bcf0a, each at its judged patch-id, carried by build all #1 at dcd9057d4, both closed by vc at bc2469bc8; their refs (refs/bank/cc/0609/fix to fix-g, refs/bank/cc/0610/pre-0612, fix, fix-b) stay, spent. CLAIMS: ST0081, ISSUE:0613, ISSUE:0615. QUEUE: no heavy run until after the compact; then dc's 0619, ic's 0607, then ONE cc window on vc's GO: 0615 first, then 0613. 0615 (XS, widened by vc at b1b23955e): refs/bank/cc/0615/fix-b, blob f3180b62b677, patch-id ad56ebffe614, base b1b23955e, staged in tmp/wt-cc-0609 (reused at b1b23955e): the module doc, plus the door-carrying arm's doc and name (now a_settings_file_carrying_the_hook_door_takes_the_templates_entries); its window is intentsvcs whole, CI's doc line and the old-name grep (empty). 0613 (S, design accepted by vc at 19:16Z): tmp/wt-cc-0610 at de2290778 holds the red arm alone, refs/bank/cc/0613/red (blob 5d2ece4a1ba7, base de2290778); the fix is refs/bank/cc/0613/fix-only (blob 148ab994dfda, applies on top of red): lib.rs end_quietly_when_stdout_closes(), a panic hook turning only std's stdout Broken-pipe panic into exit 141, called first in main.rs, SIGPIPE left ignored, one CHANGELOG line. Its window: the arm red on the base, apply fix-only, bank refs/bank/cc/0613/fix, then both builds, CI's four lines, intentsvcs, intentd and intent-cli whole, and the zsh drive quoting ${pipestatus}. NEXT after those: 0616 to 0618 (vc). Scripts in the session scratchpad: run-0615/window.sh, run-0613/{red,judged,drive}.sh; census by refs/bank/vc/tools/census-ok-ci.sh beside census.sh. FIRST ACT AFTER THE BOUNCE: /in-session, read the inboxes, wait for vc's GO, run 0615 then 0613. Commit rule: exactly the wrote: paths. No push, no release.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-22T20:04:58.055Z",
       "recorded_at": "2026-10-22T19:19:03.068Z"
+    },
+    {
+      "node": "cc",
+      "kind": "doing",
+      "seq": 86,
+      "text": "0615 AND 0613 LANDED (cc, 2026-10-22): 0615 at d6da40135 (patch-id ad56ebffe614, refs/bank/cc/0615/fix-b) and 0613 at 8bef2bb7a (patch-id a58423a229b2, refs/bank/cc/0613/fix, blob f3ecd00bc6b6), judged in one window at 5d28210ad and passed by vc; build all #2 at 8bef2bb7a carries both. Every spent ref stays (0615/fix and fix-b; 0613/red, fix-only and fix); tmp/wt-cc-0609 and tmp/wt-cc-0610 stay until vc's word. NEXT, ST0081 after tonight's cut, on the plan vc read 2026-10-22: (1) AC-01.1 and AC-01.2 from one `gh workflow run linux-release.yml --ref main` after the release's own tag dispatch, an optional line in the cut's command list for hv to fire or skip (a branch dispatch is stamped dev, which neither row asks about); (2) AC-03.3 and AC-06.1 from kovacs ORDER 8, refs/bank/cc/0081/kovacs/o8-postcut.sh (blob f9414b29fc73, sha256 da0115d7b8de), which hv runs with `!` in kovacs-sysadm's session once vc says `bin/int brew formula --push` is done, args <version> <tag commit>; (3) AC-02.1 stays on D55, with tonight's release recorded as evidence only. No push, no release.",
+      "state": "live",
+      "recorded_at": "2026-10-22T20:05:09.356Z"
     }
   ],
   "sent": [

@@ -1,0 +1,15 @@
+{
+  "id": "01M5JKFAKC73SB3NZK4MD5GZY8",
+  "ts": "2026-10-22T20:05:09.356Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "0615 AND 0613 LANDED (cc, 2026-10-22): 0615 at d6da40135 (patch-id ad56ebffe614, refs/bank/cc/0615/fix-b) and 0613 at 8bef2bb7a (patch-id a58423a229b2, refs/bank/cc/0613/fix, blob f3ecd00bc6b6), judged in one window at 5d28210ad and passed by vc; build all #2 at 8bef2bb7a carries both. Every spent ref stays (0615/fix and fix-b; 0613/red, fix-only and fix); tmp/wt-cc-0609 and tmp/wt-cc-0610 stay until vc's word. NEXT, ST0081 after tonight's cut, on the plan vc read 2026-10-22: (1) AC-01.1 and AC-01.2 from one `gh workflow run linux-release.yml --ref main` after the release's own tag dispatch, an optional line in the cut's command list for hv to fire or skip (a branch dispatch is stamped dev, which neither row asks about); (2) AC-03.3 and AC-06.1 from kovacs ORDER 8, refs/bank/cc/0081/kovacs/o8-postcut.sh (blob f9414b29fc73, sha256 da0115d7b8de), which hv runs with `!` in kovacs-sysadm's session once vc says `bin/int brew formula --push` is done, args <version> <tag commit>; (3) AC-02.1 stays on D55, with tonight's release recorded as evidence only. No push, no release."
+  }
+}
