@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- AFTER THE 3.2.5 CUT (vc, 2026-10-22). v3.2.5 is out: release commit 2e0e9215d, tag on both remotes, the GitHub release with six assets, the tap at 1de8ca7e5, CI green at the tag, the site at 3.2.5, o8 green on kovacs, and the cut's Intent.app in /Applications. ST0081 is BLOCKED on AC-02.1 alone (hv's D55). dc's 0620 and 0621 passed their window (21:23:11Z to 21:23:37Z; arms red on the base and green on the fix, app-test rc 0 over 58 tests) and landed on vc's word at e76f159d4, and vc closed both at 6360f206c. THE BOX: two queues until hv rules (vc Intent's, utilz-vc Utilz's and Gtools'), and Intent has no heavy run queued. NEXT: the spent bank refs' cleanup on vc's word; 0622, 0623, 0624 and 0626 (all low) wait for lanes; the globalfold is intent/wip.md. (edited)
+- AFTER THE 3.2.5 CUT (vc, 2026-10-22). v3.2.5 is out: release commit 2e0e9215d, tag on both remotes, the GitHub release with six assets, the tap at 1de8ca7e5, CI green at the tag, the site at 3.2.5, o8 green on kovacs, and the cut's Intent.app in /Applications. ST0081 is BLOCKED on AC-02.1 alone (hv's D55). dc's 0620 and 0621 passed their window (21:23:11Z to 21:23:37Z; arms red on the base and green on the fix, app-test rc 0 over 58 tests) and landed on vc's word at e76f159d4, and vc closed both at 6360f206c. THE BOX: two queues until hv rules (vc Intent's, utilz-vc Utilz's and Gtools'), and Intent has no heavy run queued. NEXT: 0622, 0623, 0624 and 0626 (all low) wait for lanes; the globalfold is intent/wip.md. (edited)
 
 ## TODO
 

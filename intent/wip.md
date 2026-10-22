@@ -30,7 +30,6 @@ Measure before believing anything below: `.claude/restart.md` carries the comman
   - 0624 (low, dc's finding after the cut): `intent issues edit` and `close` write tracked files and print no `wrote:` lines, so a node commits what they leave dirty after reading each path. It waits for a lane.
   - 0626 (low, cc's finding after the cut): `macos stage` tars the support paths from the release machine's working copy, so v3.2.5's `intent-support.tar.gz` carries three empty directories git does not track. It waits for a lane.
 - **A CLEAN-MAC RE-PROOF AT 3.2.5, hv's loop-back on gyges:** ST0081 WP-06's objective names it and no criterion carries it. It was last proven at 3.2.0 on 2026-09-21, which satisfied ST0056's AC-00.5 and AC-11.1 (`intent/st/ST0056/gyges-install.md`).
-- **CLEANUP, on vc's word:** the spent bank refs under `refs/bank/`, which every lane keeps until then.
 - **TO MEASURE AND FILE:** a peer's board write that is still landing can make the commit gate's doctor count view skew on that peer's `wip.md`, and so refuse an unrelated commit. dc's fold commit on 2026-10-22 was refused on cc's mid-fold `wip.md` (3266 bytes on disk, 1410 rendered), then passed on a re-issue.
 - **UNVERIFIED:** whether the Sinclair-Shared book recreate of decision 63(8) happened, and whether its build-all signal reached sinclair-vc.
 - **AFTER THE LINE, vc's hand, no push:** hv decision 28's ten Conflab and Baize rulings, which repair records. None is done.
