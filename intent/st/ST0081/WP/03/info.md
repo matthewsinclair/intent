@@ -2,7 +2,7 @@
 wp_id: WP-03
 title: Intent's Linux install through Homebrew, in docs/install.md
 scope: S
-status: WIP
+status: Done
 ---
 
 # WP-03: Intent's Linux install through Homebrew, in docs/install.md

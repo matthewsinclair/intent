@@ -1,0 +1,14 @@
+{
+  "id": "01M5JQ1T2XQDMWK7XY2F1DDCYW",
+  "ts": "2026-10-22T21:07:40.769Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0081/AC-03.3"
+  },
+  "payload": {
+    "evidence": "kovacs ORDER 8, green, 2026-10-22 21:02:53Z to 21:03:12Z by its own stamps, summary first red none: refs/bank/cc/0081/kovacs/o8-postcut.sh (blob f9414b29fc73, sha256 da0115d7b8de, read by vc) run as `o8-postcut.sh 3.2.5 2e0e9215d67f67c665d1b8179a7888555551c8e7` in hv's own kovacs terminal after hv's `brew formula --push` (tap 1de8ca7e5), its sha256 matched there; its `o8 ` lines, as hv pasted them and vc relayed them, are refs/bank/cc/0081/evidence/o8-postcut-lines.txt (blob b3fc943efce9), and the whole log stays on kovacs at /home/matts/work/intent-vc/o8-20261022T210253Z/o8.log. On kovacs, the Ubuntu aarch64 VM with Homebrew at /home/linuxbrew/.linuxbrew, the run removed brew's intent and untapped matthewsinclair/intent, so the real PATH answered no intent; then, under a fresh HOME and the system PATH with no intent on it, and with no checkout at ~/work/Intent, it ran every command of docs/install.md#linux at v3.2.5 (unchanged since v3.2.4) in order, each at rc 0: `brew install matthewsinclair/intent/intent`; `intent --version`, which read `intent 3.2.5 (2e0e9215d67f67c665d1b8179a7888555551c8e7) release`; `intent bootstrap`; `mkdir my-project && cd my-project`; `git init`; `intent init`; `intent doctor`, at rc 0 with its line carrying `0 finding(s)` (3.2.5's doctor exits 0 only when the count its summary line prints is 0: Report::exit_code through is_healthy, actionable() == 0); and the daemon paragraph's `intent daemon start`, `status` (naming a running intentd) and `stop`, with both `--at-login` forms refusing at rc 1 and writing no enrolment; jq was on PATH. The --version, doctor and daemon status blocks are in the kovacs log; cc read the o8 lines, not those blocks."
+  }
+}

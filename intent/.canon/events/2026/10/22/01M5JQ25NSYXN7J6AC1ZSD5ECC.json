@@ -1,0 +1,14 @@
+{
+  "id": "01M5JQ25NSYXN7J6AC1ZSD5ECC",
+  "ts": "2026-10-22T21:07:52.637Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0081/AC-06.1"
+  },
+  "payload": {
+    "evidence": "kovacs ORDER 8, green (the run AC-03.3's evidence names: refs/bank/cc/0081/kovacs/o8-postcut.sh, blob f9414b29fc73, args 3.2.5 2e0e9215d67f67c665d1b8179a7888555551c8e7, 2026-10-22 21:02:53Z to 21:03:12Z, first red none; its lines are refs/bank/cc/0081/evidence/o8-postcut-lines.txt, blob b3fc943efce9). On kovacs, aarch64 Linux, with brew's intent removed, the tap gone and no checkout at ~/work/Intent, `brew install matthewsinclair/intent/intent` from the published tap at 1de8ca7e5 ran at rc 0, and the installed `intent --version` read `intent 3.2.5 (2e0e9215d67f67c665d1b8179a7888555551c8e7) release`, the commit the tag v3.2.5 points at. The package is the release's own for this architecture by the formula and brew's check: that formula's on_linux on_arm entry is v3.2.5's intent-aarch64-unknown-linux-musl.tar.gz at sha256 3ccb521acc97 (read by cc from the tap at 1de8ca7e5), vc verified the formula's five sha256s against prepare's checksums and the release's two Linux packages, and brew refuses a download whose sha256 differs from the formula's. The run's evidence lines for brew info's URL, the resolved binary and `file -L` ran at rc 0 and sit in the kovacs log, not read by cc."
+  }
+}

@@ -22,11 +22,11 @@ title: Intent from Homebrew on Linux and macOS, with no source checkout: Linux b
 
 - AC-02.1 (non-test) Every release tag's GitHub release carries the Linux assets beside the macOS assets, and `bin/devbin release check` names no second writer of the release object. -- satisfied: no
 
-### WP-03 -- Intent's Linux install through Homebrew, in docs/install.md (status: WIP)
+### WP-03 -- Intent's Linux install through Homebrew, in docs/install.md (status: Done)
 
 - AC-03.1 (non-test) Following the docs' Linux install takes a fresh WSL distro from a release download to an `intent --version` that names the release and an `intent doctor` with no finding in a new project, and every command on the page has been run. -- DESCOPED to ST0082 by hv, 2026-10-14; numbering under vc's pen: The WSL walk-through moved to ST0082 with the WSL page on hv's ruling of 2026-10-14; the Linux install half is AC-03.3, through Homebrew.
 - AC-03.2 (non-test) The docs name WSL as Intent's Windows route, tell readers to keep repos in the WSL filesystem rather than under `/mnt/c` and why, and tell them to run Claude Code inside WSL. -- DESCOPED to ST0082 by hv, 2026-10-14; numbering under vc's pen: The WSL page moved to ST0082 on hv's ruling of 2026-10-14.
-- AC-03.3 (non-test) On Linux, following `docs/install.md#linux` takes a machine with Homebrew and no Intent to an `intent --version` that names the release and an `intent doctor` with no finding in a new project, with no checkout of Intent's source, and every command on the page has been run. -- satisfied: no
+- AC-03.3 (non-test) On Linux, following `docs/install.md#linux` takes a machine with Homebrew and no Intent to an `intent --version` that names the release and an `intent doctor` with no finding in a new project, with no checkout of Intent's source, and every command on the page has been run. -- evidence: kovacs ORDER 8, green, 2026-10-22 21:02:53Z to 21:03:12Z by its own stamps, summary first red none: refs/bank/cc/0081/kovacs/o8-postcut.sh (blob f9414b29fc73, sha256 da0115d7b8de, read by vc) run as `o8-postcut.sh 3.2.5 2e0e9215d67f67c665d1b8179a7888555551c8e7` in hv's own kovacs terminal after hv's `brew formula --push` (tap 1de8ca7e5), its sha256 matched there; its `o8 ` lines, as hv pasted them and vc relayed them, are refs/bank/cc/0081/evidence/o8-postcut-lines.txt (blob b3fc943efce9), and the whole log stays on kovacs at /home/matts/work/intent-vc/o8-20261022T210253Z/o8.log. On kovacs, the Ubuntu aarch64 VM with Homebrew at /home/linuxbrew/.linuxbrew, the run removed brew's intent and untapped matthewsinclair/intent, so the real PATH answered no intent; then, under a fresh HOME and the system PATH with no intent on it, and with no checkout at ~/work/Intent, it ran every command of docs/install.md#linux at v3.2.5 (unchanged since v3.2.4) in order, each at rc 0: `brew install matthewsinclair/intent/intent`; `intent --version`, which read `intent 3.2.5 (2e0e9215d67f67c665d1b8179a7888555551c8e7) release`; `intent bootstrap`; `mkdir my-project && cd my-project`; `git init`; `intent init`; `intent doctor`, at rc 0 with its line carrying `0 finding(s)` (3.2.5's doctor exits 0 only when the count its summary line prints is 0: Report::exit_code through is_healthy, actionable() == 0); and the daemon paragraph's `intent daemon start`, `status` (naming a running intentd) and `stop`, with both `--at-login` forms refusing at rc 1 and writing no enrolment; jq was on PATH. The --version, doctor and daemon status blocks are in the kovacs log; cc read the o8 lines, not those blocks. -- satisfied: yes
 
 ### WP-04 -- First install on a real Windows machine (status: Cancelled)
 
@@ -38,7 +38,7 @@ title: Intent from Homebrew on Linux and macOS, with no source checkout: Linux b
 
 ### WP-06 -- The Homebrew formula installs Intent on Linux (status: WIP)
 
-- AC-06.1 (non-test) On Linux, `brew install matthewsinclair/intent/intent` installs the release's Linux package for the machine's architecture with no checkout of Intent's source, and the installed `intent --version` names the release. -- satisfied: no
+- AC-06.1 (non-test) On Linux, `brew install matthewsinclair/intent/intent` installs the release's Linux package for the machine's architecture with no checkout of Intent's source, and the installed `intent --version` names the release. -- evidence: kovacs ORDER 8, green (the run AC-03.3's evidence names: refs/bank/cc/0081/kovacs/o8-postcut.sh, blob f9414b29fc73, args 3.2.5 2e0e9215d67f67c665d1b8179a7888555551c8e7, 2026-10-22 21:02:53Z to 21:03:12Z, first red none; its lines are refs/bank/cc/0081/evidence/o8-postcut-lines.txt, blob b3fc943efce9). On kovacs, aarch64 Linux, with brew's intent removed, the tap gone and no checkout at ~/work/Intent, `brew install matthewsinclair/intent/intent` from the published tap at 1de8ca7e5 ran at rc 0, and the installed `intent --version` read `intent 3.2.5 (2e0e9215d67f67c665d1b8179a7888555551c8e7) release`, the commit the tag v3.2.5 points at. The package is the release's own for this architecture by the formula and brew's check: that formula's on_linux on_arm entry is v3.2.5's intent-aarch64-unknown-linux-musl.tar.gz at sha256 3ccb521acc97 (read by cc from the tap at 1de8ca7e5), vc verified the formula's five sha256s against prepare's checksums and the release's two Linux packages, and brew refuses a download whose sha256 differs from the formula's. The run's evidence lines for brew info's URL, the resolved binary and `file -L` ran at rc 0 and sit in the kovacs log, not read by cc. -- satisfied: yes
 
 ### WP-07 -- Intent on Ubuntu from its Linux package, as a user uses it (status: Done)
 
@@ -54,7 +54,7 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-03 -- Intent's Linux install through Homebrew, in docs/install.md (status: WIP)
+### WP-03 -- Intent's Linux install through Homebrew, in docs/install.md (status: Done)
 
 _(no tests in this group)_
 
