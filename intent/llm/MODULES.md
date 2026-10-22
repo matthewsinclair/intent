@@ -134,6 +134,7 @@ User-local extensions at `~/.local/share/intent/ext/<name>/`. Not discovered in 
 | Session-context hook (ST0035)   | `tests/unit/session_context_script.bats`    | SessionStart hook: git project with and without `wip.md`, graceful no-git degradation, no `session_id` persisted to a shared state file (WP04)                |
 | Pre-commit hook (ST0035)        | `tests/unit/pre_commit_hook.bats`           | Scratch-repo end-to-end: bad/good/no-intent/disabled scenarios (WP06)                                                                                         |
 | Skill-renderer trap (v2.10.x)   | `tests/unit/skill_renderer_trap.bats`       | Regression guard: no SKILL.md inlines `$N`/`$@`/`$#`/`$*`/`${N}` tokens                                                                                       |
+| macOS app dev-verb guards       | `tests/unit/macos_app_dev_verbs.bats`       | `int macos app-icons` writes the masthead logo as a copy of the 512 px icon (0620); `app-test` reads its summary from the result bundle (0621)                |
 
 ## Docs (v2.9.0 / WP10)
 

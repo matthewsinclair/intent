@@ -1575,6 +1575,9 @@ cmd_store_creds() {
 APP_DIR="$ROOT/native/macos/Intent"
 APP_PROJECT="$APP_DIR/Intent.xcodeproj"
 APP_ASSETS="$APP_DIR/Intent/Assets.xcassets"
+# The menu masthead's logo (issue 0607): app-icons writes it, as a copy of the
+# AppIcon set's 512 px icon (issue 0620).
+APP_MASTHEAD_LOGO="$APP_DIR/Intent/Masthead/intent-logo.png"
 LOGO_SVG="$ROOT/docs/design/intent-logo.svg"
 APP_STATE_DIR="${INTENT_MACOS_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/intent}/build/macos"
 
@@ -1685,6 +1688,9 @@ app_require_xcode() {
 # committed Assets.xcassets when it changes. AppIcon is the colour turtle for
 # the dock/About; MenuBarIcon is a template (alpha silhouette) the app tints at
 # paint time from the ONE health predicate -- so the colour is never baked here.
+# The menu masthead's logo is the 512 px icon, copied from this same render
+# rather than rendered again (issue 0620): nothing else writes it, so a new logo
+# would refresh the app icon and leave the masthead behind.
 app_png() { rsvg-convert -w "$1" -h "$1" "$LOGO_SVG" -o "$2" || die "rsvg-convert failed at ${1}px"; }
 
 app_appicon_contents() {
@@ -1726,14 +1732,16 @@ cmd_app_icons() {
   [ -f "$LOGO_SVG" ] || die "no logo at $LOGO_SVG"
   local appset="$APP_ASSETS/AppIcon.appiconset" barset="$APP_ASSETS/MenuBarIcon.imageset"
   printf -- '-> rasterising %s\n' "$LOGO_SVG"
-  mkdir -p "$appset" "$barset"
+  mkdir -p "$appset" "$barset" "${APP_MASTHEAD_LOGO%/*}"
   printf '{\n  "info" : { "author" : "xcode", "version" : 1 }\n}\n' >"$APP_ASSETS/Contents.json"
   local px
   for px in 16 32 64 128 256 512 1024; do app_png "$px" "$appset/icon_$px.png"; done
   app_appicon_contents >"$appset/Contents.json"
+  cp "$appset/icon_512.png" "$APP_MASTHEAD_LOGO" || die "could not copy the 512 px icon to $APP_MASTHEAD_LOGO"
   for px in 18 36 54; do app_png "$px" "$barset/menubar_$px.png"; done
   app_menubar_contents >"$barset/Contents.json"
-  printf 'wrote AppIcon (7 sizes) + MenuBarIcon (template, 3 scales) to %s\n' "${APP_ASSETS#"$ROOT"/}"
+  printf 'wrote AppIcon (7 sizes) + MenuBarIcon (template, 3 scales) to %s, and the masthead logo to %s\n' \
+    "${APP_ASSETS#"$ROOT"/}" "${APP_MASTHEAD_LOGO#"$ROOT"/}"
 }
 
 # --- app-doctor: preflight the toolchain, no build -----------------------------
@@ -1744,7 +1752,7 @@ cmd_app_doctor() {
   app_stamps
   printf 'stamps:      %s build %s, %s, tree %s\n' "$APP_VERSION" "$APP_BUILD" "$APP_COMMIT" "$(app_short_tree "$APP_TREE")"
   printf '\ntoolchain:\n'
-  for t in xcodegen xcodebuild rsvg-convert; do
+  for t in xcodegen xcodebuild rsvg-convert jq; do
     if command -v "$t" >/dev/null 2>&1; then printf '  %-14s %s\n' "$t" "$(command -v "$t")"
     else printf '  %-14s MISSING\n' "$t"; ok=0; fi
   done
@@ -1789,25 +1797,54 @@ cmd_app_run() {
   printf "logs: log stream --predicate 'subsystem == \"com.matthewsinclair.intent.macos\"'\n"
 }
 
-# --- app-test: xcodebuild test (IntentTests) -- not -quiet, so the count shows -
+# --- app-test: xcodebuild test (IntentTests), summarised from its result bundle -
 # Stamped like app-build (dc's call): the bundle you TEST must be the bundle you
 # SHIP, and the difference would live in exactly the Info.plist metadata
 # app-verify exists to check -- so an unstamped test bundle makes a real
 # stamp defect indistinguishable from the benign "test does not stamp" one.
+#
+# THE SUMMARY IS READ FROM THE RUN'S RESULT BUNDLE (issue 0621). xcodebuild's
+# "Executed N tests" line is XCTest's alone, so the app's Swift Testing suites
+# never reached it and the printed count under-reported what ran. The bundle
+# records every framework the run executed; xcodebuild's exit status stays the
+# verdict. The path is fixed and cleared first, because xcodebuild refuses a
+# result bundle path that already exists.
+APP_TEST_RESULTS="$APP_STATE_DIR/app-test.xcresult"
+
+# app_test_summary <bundle> -- the run's totals, each suite's verdict with the
+# number of tests directly in it, and each failed test with its message. Says
+# why, and returns 1, when the bundle holds no test results to read.
+app_test_summary() {
+  local summary tests
+  summary="$(xcrun xcresulttool get test-results summary --path "$1" --compact)" \
+    || { printf 'no test results in %s (xcresulttool says why above)\n' "$1" >&2; return 1; }
+  tests="$(xcrun xcresulttool get test-results tests --path "$1" --compact)" \
+    || { printf 'no test results in %s (xcresulttool says why above)\n' "$1" >&2; return 1; }
+  jq -r '"\(.result): \(.totalTestCount) tests, \(.passedTests) passed, \(.failedTests) failed, \(.skippedTests) skipped, \(.expectedFailures) expected failures"' <<<"$summary" \
+    && jq -r '.. | objects | select(.nodeType == "Test Suite")
+        | "  \(.result // "unknown")  \(.name) (\([.children[]? | select(.nodeType == "Test Case")] | length))"' <<<"$tests" \
+    && jq -r '.testFailures[]? | "  FAILED  \(.testIdentifierString): \(.failureText)"' <<<"$summary"
+}
+
 cmd_app_test() {
   app_require_xcode
+  require_tool jq "Install it with: brew install jq"
   app_generate_if_stale
   app_stamps
   printf -- '-> xcodebuild test -scheme Intent\n'
+  mkdir -p "$APP_STATE_DIR"
+  rm -rf "$APP_TEST_RESULTS"
   local out rc=0
   out="$(xcodebuild -project "$APP_PROJECT" -scheme Intent -destination 'platform=macOS' \
-    "${APP_LOC_ARGS[@]}" "${APP_STAMP_ARGS[@]}" CODE_SIGNING_ALLOWED=NO test 2>&1)" || rc=$?
+    "${APP_LOC_ARGS[@]}" "${APP_STAMP_ARGS[@]}" -resultBundlePath "$APP_TEST_RESULTS" \
+    CODE_SIGNING_ALLOWED=NO test 2>&1)" || rc=$?
   if [ "$rc" != 0 ]; then
-    printf '%s\n' "$out" | grep -E 'Executed [0-9]+ test|error:|✘|failed' | tail -40 || true
+    printf '%s\n' "$out" | grep -E 'error:|✘|failed' | tail -40 || true
     printf '%s\n' "$out" | tail -20
+    if [ -d "$APP_TEST_RESULTS" ]; then app_test_summary "$APP_TEST_RESULTS" || true; fi
     die "xcodebuild test exited $rc"
   fi
-  printf '%s\n' "$out" | grep -E 'Executed [0-9]+ test|Test Suite .* passed' | tail -8 || true
+  app_test_summary "$APP_TEST_RESULTS" || die "xcodebuild test passed, and its result bundle could not be read: $APP_TEST_RESULTS"
   printf 'IntentTests passed\n'
 }
 
@@ -2228,17 +2265,18 @@ bin/devbin macos <subcommand>
   THE MENUBAR APP (native/macos/Intent). Build, run, test, install, icon, and
   the distributable: app-sign then app-notarize.
 
-  app-doctor   Preflight: xcodegen, xcodebuild, rsvg-convert, the icon asset
+  app-doctor   Preflight: xcodegen, xcodebuild, rsvg-convert, jq, the icon asset
   app-icons    Rasterise docs/design/intent-logo.svg into the tracked asset
-               catalogue (AppIcon + the template MenuBarIcon); re-run when the
-               logo changes
+               catalogue (AppIcon + the template MenuBarIcon) and the menu
+               masthead's logo; re-run when the logo changes
   app-build    xcodegen-if-stale + xcodebuild (Debug default; app-build release
                for Release). Unsigned; products land off the synced tree so
                synced xattrs cannot break a later codesign
   app-run      Build Debug, quit any running copy, and launch the built binary
                directly in the background (never open, which can launch the
                installed copy); prints the log stream command
-  app-test     xcodebuild test -- the IntentTests target
+  app-test     xcodebuild test -- the IntentTests target, summarised from the
+               run's result bundle: every test framework, each suite's verdict
   app-install  Build Release, install to /Applications, register intent://,
                launch. An unsigned dev build, never the distributable
   app-verify   [debug|release|dist] (Debug default). Checks on a bundle:
