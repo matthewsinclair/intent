@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 620,
+  "slug": "the-menu-masthead-s-512-px-logo-is-a-second-copy",
+  "title": "The menu masthead's 512 px logo is a second copy of the app icon that int macos app-icons does not write",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-10-22",
+  "reporter": "Matthew Sinclair",
+  "body": "## What\n\nIssue 0607's menu masthead ships `Masthead/intent-logo.png`, a 512 px rendering of `docs/design/intent-logo.svg`. Its bytes are the same as the `icon_512.png` that `int macos app-icons` writes into the AppIcon set, by the same recipe (`rsvg-convert` from the SVG), which is also the recipe Gtools' 512 px masthead logo matches. Nothing writes the masthead copy, so a new logo would refresh the app icon and leave the masthead behind.\n\n## Expected\n\n`int macos app-icons` (`bin/.devbin/cmd/macos`) writes the masthead copy beside the AppIcon set, from the same render, so one command is the writer of every logo derivative. It lands with issue 0607's bank or directly after it.\n\nFound by ic while building 0607's masthead, 2026-10-22. Filed by vc.\n"
+}

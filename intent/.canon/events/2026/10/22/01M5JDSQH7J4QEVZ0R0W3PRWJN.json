@@ -1,0 +1,15 @@
+{
+  "id": "01M5JDSQH7J4QEVZ0R0W3PRWJN",
+  "ts": "2026-10-22T18:25:58.827Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0619"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "A store warmed cold from a clone's files records no board rows in its file index, so a pull that changes a board it already holds is never taken"
+  }
+}

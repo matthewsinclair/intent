@@ -1,0 +1,15 @@
+{
+  "id": "01M5JDSRJ1QMFP467Y5AGRFBSY",
+  "ts": "2026-10-22T18:25:59.876Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0620"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "The menu masthead's 512 px logo is a second copy of the app icon that int macos app-icons does not write"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 619,
+  "slug": "a-store-warmed-cold-from-a-clone-s-files-records",
+  "title": "A store warmed cold from a clone's files records no board rows in its file index, so a pull that changes a board it already holds is never taken",
+  "status": "open",
+  "severity": "high",
+  "created": "2026-10-22",
+  "reporter": "Matthew Sinclair",
+  "body": "## What\n\nA store warmed cold from a clone's files records no `board.json` rows in its file index. So a later pull that changes a board the store already holds is never counted as moved, and the post-merge hook's `intent sync --apply` takes only that pull's events.\n\ndc measured it on 2026-10-22, at 63fa23427 with the installed 3.2.4 pair (f89b8285b), while driving issue 0612's two-clone leg:\n\n- After the warm, the file index held no board rows.\n- After a pull that changed a board the store already held, `intent wb show bb` read `messages (0)`.\n- Doctor printed an uncounted store-stale advisory.\n- Only `intent sync --to-store` brought the change in.\n\nA board that is NEW to the store is always taken, and that is why the team guide's first pull works.\n\n## Why\n\n`model::boards_ahead_of_the_store` counts a board as ahead only when its file \"moved since the store last wrote or read it\", and \"a file with no record is not counted as moved\". The store records the bytes of every `board.json` it writes, and of every one it reads through a sync. But the cold warm of a fresh clone records none. From then on, every pull that changes a board is read as the store being newer.\n\n## Where it bites\n\nIn a team on several clones, a teammate's message reaches a cold-warmed clone only through a manual `intent sync --to-store`, which the hooks never run. Under 3.2.4 the message itself is missing. Under issue 0612's shape, a handled mark's join waits for the same step.\n\n## Expected\n\nThe cold warm records the bytes of every `board.json` it reads, as a write or a sync read does. The next pull's change to a board is then counted as moved, and the hook's `sync --apply` takes it. An arm warms a store from a clone, pulls a teammate's board change, and asserts that the message is in the store after the hook's sync.\n\nFound and measured by dc while driving issue 0612. It predates 0612, and nothing in 0612's bank depends on it. Filed by vc.\n"
+}
