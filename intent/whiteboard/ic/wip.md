@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: cac0203f-a1ec-453f-85c9-2780bd123dc5
-heartbeat_at: 2026-10-22 16:41Z
+heartbeat_at: 2026-10-22 19:19Z
 status: active
-focus: "LOCALFOLDED for hv's compact; idle, 0587 closed; resume from todo 50."
+focus: "LOCALFOLDED for hv's compact, 2026-10-22 19:18Z: 0607 banked at refs/bank/ic/0607/fix, its judging window queued after dc's 0619; resume from doing 120; no push, no release"
 claims: [ISSUE:0607]
 ---
 
@@ -13,11 +13,11 @@ claims: [ISSUE:0607]
 
 ## DOING
 
-_(none)_
+- RESUME (ic, localfold 2026-10-22 19:18Z on vc's order for hv's compact; this item is the resume state). ISSUE 0607, claimed as ISSUE:0607: Intent.app's own Console is replaced by the macOS Console app, and the menu takes the controls Gtools and menuz use (arca_swift's masthead row, Gtools' layout A with the intentd row and its flyout, menuz's Log item), on hv's word of 2026-10-22; the record carries it at fc8149207 and 40b15a2a4, and its 27.0-to-27.1 correction rides the bank. LANDED: the L5 guard at 55cdb6ecf (refs/bank/ic/0607/l5, blob bb625830cce8, patch-id 962c2ec371ed, as judged). THE BANK: refs/bank/ic/0607/fix, blob 74e02bf4b6d3e3d9e0b24ff47f7e99fc3efeaa55, patch-id 08b770ab196b0eea8decea2c6f505b7eed3f6cd8, base 9c91e278e, 66 files, carrying the canon dispositions made with the dcd9057d4 pair: ST0075's seven ACs withdrawn and seven ATs non-test n/a (gate PASS 4/4 with 7 withdrawn, lint ok); ST0074's AC-02.1 withdrawn and AT-02.1 green with its note extended (gate PASS 10/10 with 1 withdrawn). WORKTREES: tmp/wt-ic-0607 equals the bank, its app state at tmp/wt-ic-0607/tmp/macos-state (INTENT_MACOS_STATE_DIR); tmp/wt-ic-0607-l5 is spent (L5 landed) and kept on vc's word. PINS: refs/bank/ic/0607/pre-rebase (blob 008b994f4862, base 55cdb6ecf) and refs/bank/ic/0607/pre-rebase-2 (blob 7708ac8ed327, base 521f81ca2). THE JUDGING WINDOW is refs/bank/ic/0607/judge-run.sh (blob f3136908920e), accepted by vc as written: app-test with the xcresult count beside the printed XCTest-only line, rust.yml's lines from native/rust under an isolated HOME (cargo test --workspace standing for the three whole suites), prettier on every touched .md, nine bats files, the worktree equal to the bank before and after. QUEUE (vc, 19:17Z): dc's 0619, then ic's 0607, then cc's 0615 and 0613. FIRST ACT AFTER THE BOUNCE: /in-session; read inboxes; HOLD for vc's GO; at it, send START and run the window script (`git cat-file -p refs/bank/ic/0607/judge-run.sh > <file>`), then END with every rc; land on vc's word, rebased onto the hash vc sends; build all #2 is vc's after. NO PUSH, NO RELEASE.
 
 ## TODO
 
-- RESUME (ic end-of-day finish, 2026-09-26 on hv's word via vc). ic is IDLE: 0587 (backup.keep's note says each snapshot is a full copy of the store) is fixed at d4662f4aa and closed at 7fc0491a0. No worktree, bank or heavy run is open. On the next session: /in-session, then wait for vc. NO PUSH, NO RELEASE. (edited)
+_(none)_
 
 ## Holds
 
