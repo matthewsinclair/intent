@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "b9accb1b-fe9c-4091-a09b-2a9b437c8591",
-    "heartbeat_at": "2026-10-22T20:19:00.319Z",
+    "heartbeat_at": "2026-10-22T21:03:30.281Z",
     "status": "active",
-    "focus": "FROZEN for the 3.2.5 cut from cc's render commit to vc's CUT END: no wb verb, no commit; then ST0081's post-cut runs (doing 86): kovacs ORDER 8 once vc names hv's formula push done, AC-01.1 and AC-01.2 if hv fires the --ref main dispatch, AC-02.1 on D55; no push, no release",
+    "focus": "v3.2.5 is cut and published; ST0081 next: kovacs ORDER 8 with hv (START 20:57Z, its log back through vc), then AC-03.3 and AC-06.1 from it; AC-01.1 and AC-01.2 on hv's optional --ref main dispatch; AC-02.1 on D55; no push, no release",
     "claims": [
       "ST0081"
     ],
@@ -1982,9 +1982,10 @@
       "node": "cc",
       "kind": "doing",
       "seq": 86,
-      "text": "0615 AND 0613 LANDED (cc, 2026-10-22): 0615 at d6da40135 (patch-id ad56ebffe614, refs/bank/cc/0615/fix-b) and 0613 at 8bef2bb7a (patch-id a58423a229b2, refs/bank/cc/0613/fix, blob f3ecd00bc6b6), judged in one window at 5d28210ad and passed by vc; build all #2 at 8bef2bb7a carries both. Every spent ref stays (0615/fix and fix-b; 0613/red, fix-only and fix); tmp/wt-cc-0609 and tmp/wt-cc-0610 stay until vc's word. NEXT, ST0081 after tonight's cut, on the plan vc read 2026-10-22: (1) AC-01.1 and AC-01.2 from one `gh workflow run linux-release.yml --ref main` after the release's own tag dispatch, an optional line in the cut's command list for hv to fire or skip (a branch dispatch is stamped dev, which neither row asks about); (2) AC-03.3 and AC-06.1 from kovacs ORDER 8, refs/bank/cc/0081/kovacs/o8-postcut.sh (blob f9414b29fc73, sha256 da0115d7b8de), which hv runs with `!` in kovacs-sysadm's session once vc says `bin/int brew formula --push` is done, args <version> <tag commit>; (3) AC-02.1 stays on D55, with tonight's release recorded as evidence only. No push, no release.",
+      "text": "0615 AND 0613 LANDED AND SHIPPED (cc, 2026-10-22): 0615 at d6da40135 (patch-id ad56ebffe614, refs/bank/cc/0615/fix-b) and 0613 at 8bef2bb7a (patch-id a58423a229b2, refs/bank/cc/0613/fix, blob f3ecd00bc6b6), judged in one window at 5d28210ad and passed by vc; both are in v3.2.5 (release commit 2e0e9215d). Every spent ref stays (0615/fix and fix-b; 0613/red, fix-only and fix). tmp/wt-cc-0609 and tmp/wt-cc-0610 are REMOVED, on vc's word after CUT END: each held only staged work, byte-identical to its bank (fix-b f3180b62b677; 0613/fix f3ecd00bc6b6) and with no diff against its landed commit, nothing unstaged or untracked and no process in either, so the --force discarded nothing that is not on main. NEXT, ST0081 after the 3.2.5 cut: (1) AC-01.1 and AC-01.2 from one `gh workflow run linux-release.yml --ref main`, hv's to fire or skip, which vc has put to hv (a branch dispatch is stamped dev, which neither row asks about); (2) AC-03.3 and AC-06.1 from kovacs ORDER 8, refs/bank/cc/0081/kovacs/o8-postcut.sh (blob f9414b29fc73, sha256 da0115d7b8de), args `3.2.5 2e0e9215d67f67c665d1b8179a7888555551c8e7`: START went to vc and utilz-vc at 20:57Z; vc sent the order one-way to kovacs-sysadm, which cc cannot reach, for hv's `!`; the log comes back through hv and vc; cc sends END to vc and utilz-vc when its end line arrives, then satisfies both rows from it. WP-03 closes on AC-03.3, since 03.1 and 03.2 went to ST0082; whether WP-06 closes on AC-06.1 alone or waits for its objective's macOS re-proof on a Mac with no checkout is vc's to rule. (3) AC-02.1 stays on D55, with the 3.2.5 release recorded as evidence only. No push, no release.",
       "state": "live",
-      "recorded_at": "2026-10-22T20:05:09.356Z"
+      "recorded_at": "2026-10-22T20:05:09.356Z",
+      "edited_at": "2026-10-22T21:03:29.297Z"
     }
   ],
   "sent": [
