@@ -3,10 +3,10 @@ node: cc
 name: Control Claude
 role: control
 session_id: b9accb1b-fe9c-4091-a09b-2a9b437c8591
-heartbeat_at: 2026-10-22 20:05Z
+heartbeat_at: 2026-10-22 20:19Z
 status: active
-focus: "0615 and 0613 landed (d6da40135, 8bef2bb7a) and in build all #2; next: ST0081's post-cut runs, kovacs ORDER 8 after the formula push, the main dispatch hv's to fire; no push, no release"
-claims: [ST0081, ISSUE:0613, ISSUE:0615]
+focus: "FROZEN for the 3.2.5 cut from cc's render commit to vc's CUT END: no wb verb, no commit; then ST0081's post-cut runs (doing 86): kovacs ORDER 8 once vc names hv's formula push done, AC-01.1 and AC-01.2 if hv fires the --ref main dispatch, AC-02.1 on D55; no push, no release"
+claims: [ST0081]
 ---
 
 # Control Claude (cc)
