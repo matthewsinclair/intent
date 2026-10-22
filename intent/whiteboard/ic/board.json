@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "cac0203f-a1ec-453f-85c9-2780bd123dc5",
-    "heartbeat_at": "2026-10-22T20:19:35.911Z",
+    "heartbeat_at": "2026-10-22T21:02:28.019Z",
     "status": "active",
-    "focus": "FROZEN until vc's CUT END: 0607 landed at 3d6820e0f and closed at 143c15b01, the 3.2.5 reference set at de5fc7b75, issues 0622 and 0623 filed at 77427d4bb; no push, no release",
+    "focus": "0607 shipped in v3.2.5 and its worktrees are removed; 0622 and 0623 (low) wait for a lane; holding for vc's next assignment; no push, no release",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -2424,8 +2424,17 @@
       "kind": "doing",
       "seq": 122,
       "text": "FROZEN from this commit until vc's CUT END, on vc's order of 2026-10-22 20:17Z: no wb verb of any kind and no commit, because the release pre-flight refuses any dirty file. After a compact during the freeze: /in-session without its pickup, and boards read with `intent wb show`. DONE TODAY, for the record: 0607 landed at 3d6820e0f and was closed by vc at 143c15b01; the 3.2.5 reference set is at de5fc7b75 against v3.2.4; issues 0622 and 0623 (low) are filed at 77427d4bb. AFTER THE CUT: hv looks at Intent.app's Debug build at 77427d4bb (3.2.4, macOS 26), running since 2026-10-22 20:17:56Z, with the masthead row, layout A and the Log item; 0622 and 0623 wait for a lane; tmp/wt-ic-0607, tmp/wt-ic-0607-l5 and every refs/bank/ic/0607/* ref stay until vc says to clean them up. No push, no release.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-22T21:02:26.074Z",
       "recorded_at": "2026-10-22T20:19:35.008Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 51,
+      "text": "AFTER THE 3.2.5 CUT (vc's CUT END of 21:00Z by vc's clock, 2026-10-22): 0607 shipped in v3.2.5. The worktrees tmp/wt-ic-0607 and tmp/wt-ic-0607-l5 were removed on vc's word at 21:02Z: each diff equalled its bank (fix-b 94ca70234a59, l5 bb625830cce8), with no untracked files, its HEAD in main, no stash entry, and no process standing in it. WAITING: issues 0622 and 0623 (low, filed by ic) wait for a lane from vc; the eight refs/bank/ic/0607/* refs stay until vc says to clean them up. Intent.app's Debug build at 77427d4bb is running for hv's look; the release app is the one macos prepare built at 3.2.5. No push, no release.",
+      "state": "live",
+      "recorded_at": "2026-10-22T21:02:27.130Z"
     }
   ],
   "sent": [

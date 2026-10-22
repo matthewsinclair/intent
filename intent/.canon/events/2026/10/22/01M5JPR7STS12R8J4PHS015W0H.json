@@ -1,0 +1,15 @@
+{
+  "id": "01M5JPR7STS12R8J4PHS015W0H",
+  "ts": "2026-10-22T21:02:27.130Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "AFTER THE 3.2.5 CUT (vc's CUT END of 21:00Z by vc's clock, 2026-10-22): 0607 shipped in v3.2.5. The worktrees tmp/wt-ic-0607 and tmp/wt-ic-0607-l5 were removed on vc's word at 21:02Z: each diff equalled its bank (fix-b 94ca70234a59, l5 bb625830cce8), with no untracked files, its HEAD in main, no stash entry, and no process standing in it. WAITING: issues 0622 and 0623 (low, filed by ic) wait for a lane from vc; the eight refs/bank/ic/0607/* refs stay until vc says to clean them up. Intent.app's Debug build at 77427d4bb is running for hv's look; the release app is the one macos prepare built at 3.2.5. No push, no release."
+  }
+}
