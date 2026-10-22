@@ -36,7 +36,7 @@ title: Intent from Homebrew on Linux and macOS, with no source checkout: Linux b
 
 - AC-05.1 On Linux, `intent daemon start --at-login` and `intent daemon stop --at-login` refuse before writing anything, naming login enrolment as macOS-only and `intent daemon start` without the flag as the way to run the daemon. -- satisfied: yes (computed)
 
-### WP-06 -- The Homebrew formula installs Intent on Linux (status: WIP)
+### WP-06 -- The Homebrew formula installs Intent on Linux (status: Done)
 
 - AC-06.1 (non-test) On Linux, `brew install matthewsinclair/intent/intent` installs the release's Linux package for the machine's architecture with no checkout of Intent's source, and the installed `intent --version` names the release. -- evidence: kovacs ORDER 8, green (the run AC-03.3's evidence names: refs/bank/cc/0081/kovacs/o8-postcut.sh, blob f9414b29fc73, args 3.2.5 2e0e9215d67f67c665d1b8179a7888555551c8e7, 2026-10-22 21:02:53Z to 21:03:12Z, first red none; its lines are refs/bank/cc/0081/evidence/o8-postcut-lines.txt, blob b3fc943efce9). On kovacs, aarch64 Linux, with brew's intent removed, the tap gone and no checkout at ~/work/Intent, `brew install matthewsinclair/intent/intent` from the published tap at 1de8ca7e5 ran at rc 0, and the installed `intent --version` read `intent 3.2.5 (2e0e9215d67f67c665d1b8179a7888555551c8e7) release`, the commit the tag v3.2.5 points at. The package is the release's own for this architecture by the formula and brew's check: that formula's on_linux on_arm entry is v3.2.5's intent-aarch64-unknown-linux-musl.tar.gz at sha256 3ccb521acc97 (read by cc from the tap at 1de8ca7e5), vc verified the formula's five sha256s against prepare's checksums and the release's two Linux packages, and brew refuses a download whose sha256 differs from the formula's. The run's evidence lines for brew info's URL, the resolved binary and `file -L` ran at rc 0 and sit in the kovacs log, not read by cc. -- satisfied: yes
 
@@ -66,7 +66,7 @@ _(no tests in this group)_
 
 - AT-05.1 `native/rust/crates/intent-cli/tests/at_login_is_refused_off_macos.rs` -- covers AC-05.1 -- status: green -- Its two arms run off macOS only and are ignored on macOS, where the flag is supported; they are proven on kovacs, hv's Ubuntu VM, and then on Linux CI. vc's ORDER 5 on kovacs (hv's Ubuntu 26.04.1 VM, aarch64), script refs/bank/cc/0081/kovacs/o5-at051.sh, quoted from kovacs-sysadm's log as vc relayed it. RED at base 8c51de484 with the test half alone (blob 20712d9d2c1f, fetched and matched): "test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 802 filtered out" -- the start arm panicked at at_login_is_refused_off_macos.rs:53:3, "a LaunchAgents tree was written: error: `launchctl` could not be run", and the stop arm at :69:3, "stop --at-login did not refuse: ok: intentd is not enrolled at login". GREEN at 11017d7bd, where WP-05 landed: "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 802 filtered out"; o5 ended rc=0 at 11:19:12Z by kovacs's clock, its worktree removed and its home clean.
 
-### WP-06 -- The Homebrew formula installs Intent on Linux (status: WIP)
+### WP-06 -- The Homebrew formula installs Intent on Linux (status: Done)
 
 _(no tests in this group)_
 
