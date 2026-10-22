@@ -1,6 +1,6 @@
 # inbox: dc -> vc
 
-## (2026-09-13 10:24Z) claimed 2026-09-12 08:28Z (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-12 08:28Z
 
 dc to vc, for your pickup. THE WATCHER REPAIR IS BUILT AND HELD ON ONE RULING; nothing is committed.
 
@@ -14,7 +14,7 @@ Also banked for you: a new dependency needs its rationale in the WORKSPACE manif
 
 Nothing landed in your dark window from me. NO RELEASE, NO PUSH.
 
-## (2026-09-13 10:24Z) claimed 2026-09-12 14:14Z (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-12 14:14Z
 
 dc banking and folding for hv's compact. **The quiet window's step 1 is DONE and reported; step 2, WP-22, is HALF BUILT AND NOT COMMITTED.** Durable copy because you are dark.
 
@@ -28,7 +28,7 @@ THREE DECISIONS INSIDE IT, stated so they are not re-litigated. `Response::Searc
 
 NOTHING WAITING ON A RULING FROM YOU. Steps 3, 4 and 5 are as you ordered and I have them on my board with your one-re-run rule for the rehearsal recorded verbatim. NO RELEASE, NO PUSH.
 
-## (2026-09-13 10:24Z) claimed 2026-09-12 14:53Z (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-12 14:53Z
 
 **WP-22 IS LANDED AT `e809eea8f`, 17 files, and one ruling is yours before the tag.**
 
@@ -50,7 +50,7 @@ Two `search_surface` arms take `--no-reconcile` to stay on their own subjects. `
 
 Next on the serial road is step 3, the hook, and its shape comes to you in three lines before anything is built.
 
-## (2026-09-13 10:24Z) claimed 2026-09-12 14:53Z (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-12 14:53Z
 
 **AT-24.1 is cited at `23803861b` and AC-24.1 now computes satisfied.** The `.mcp.json` seeding landed at `763c47648` with three green arms and no row, so the criterion read `satisfied: no` while the thing it asserts was green. The file gains the literal `AT-24.1` because the acceptance contract refuses a row whose cited file does not carry its id -- which is what stops a citation outliving the test it names.
 
@@ -62,7 +62,7 @@ Reading `complete` errs SAFE in both directions and the two hooks fail different
 
 Waiting on two words before building: the shared predicate as one facade call, and whether it sits in WP-24 with the hook or takes its own row. Issue 0304's ruling is still with you as well.
 
-## (2026-09-13 10:24Z) claimed 2026-09-12 15:01Z (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-12 15:01Z
 
 **STEP 4 IS CLOSED AND I DID NOT RUN IT.** cc measured both Local shapes under AC-23.4 at subject `3ade8dea3` (report `b70a0f97e`) -- the same toolchain and release profile as my grammar table, controls firing in both directions, wall-clock and ONNX linkage recorded -- and you ruled under the pen that no Local runtime ships in 3.0.2. AC-20.4 and AC-23.4 both compute satisfied.
 
@@ -72,7 +72,7 @@ Two notes for whoever revisits shape B, reported rather than changed. **cc measu
 
 **So my serial road is: 1, 2 and 4 done; 3 held on your word; 5 waits on the last HEAD by its own definition.** I have nothing else live. The two things with you are issue 0304's ruling and the shared freshness predicate for AC-24.4 and AC-24.6.
 
-## (2026-09-13 10:24Z) claimed 2026-09-12 15:22Z (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-12 15:22Z
 
 **WP-22 IS CLOSED (`783b9cc82`) AND THE HOOK IS LANDED (`bd79cf605`). Both of your ordered items are done.**
 
@@ -92,7 +92,7 @@ Two guards caught real things and are answered rather than worked around: a ship
 
 AC-24.4 and AC-22.1 to AC-22.3 all compute satisfied. AT-24.1 was cited earlier at `23803861b`. **Step 5, the rehearsal, is all that is left of my road, and it waits on the HEAD you name.**
 
-## (2026-09-13 10:24Z) claimed 2026-09-12 15:38Z (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-12 15:38Z
 
 **SHA: `25af41fbae3e17b1fdc4d3d38fef79a8864116ac`**
 **CMD: `bin/devbin build release --dry-run --patch`**
@@ -165,7 +165,7 @@ Two targets failed: `daemon_subscriptions` and `intentd --test suite`. Loads **8
 
 **Your call.** The cut is a separate go from hv either way, and NO RELEASE, NO PUSH stands.
 
-## (2026-09-13 10:24Z) claimed 2026-09-12 15:45Z (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-12 15:45Z
 
 **SHA: `25af41fbae3e17b1fdc4d3d38fef79a8864116ac`**
 **CMD: `bin/devbin build release --dry-run --patch`**
@@ -216,7 +216,7 @@ The clean decomposition is obvious and I am not taking it on my own: the suite h
 
 **NO RELEASE, NO PUSH.**
 
-## (2026-09-13 10:24Z) claimed 2026-09-12 15:49Z (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-12 15:49Z
 
 **SHA: `25af41fbae3e17b1fdc4d3d38fef79a8864116ac`**
 **CMD: `GH_CONFIG_DIR=/Users/matts/.config/gh bin/devbin build release --dry-run --patch --skip-tests`**
@@ -278,7 +278,7 @@ This is the class this file already paid for once: batch 4 fixed the two test ga
 
 **NO RELEASE, NO PUSH.**
 
-## (2026-09-13 10:24Z) claimed 2026-09-12 16:01Z (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-12 16:01Z
 
 **Nothing of mine is uncommitted and nothing is owed but run 6's report.** Every work package I claimed is closed: WP-22 at `783b9cc82`, WP-24 at `25af41fba`. The preview fix is at `2239998e3`.
 
@@ -298,7 +298,7 @@ The board before this fold is verbatim at `dc/.history/20260912/wip-prefold-1600
 
 **NO RELEASE, NO PUSH.**
 
-## (2026-09-13 10:24Z) claimed 2026-09-12 16:09Z (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-12 16:09Z
 
 **RUN 6 IS RED, AND IT HALTS PER YOUR STANDING ORDER. The decision goes to hv.**
 
@@ -361,7 +361,7 @@ a source edit never reached the index. The index registration is not watching th
 
 **THE GATE'S CARGO LOG IS PRESERVED**, because the temp dir it was written to is reaped and the record would have gone with it: `scratchpad/run6-cargo-test.log`, 227787 bytes, sha256 `97bf5d994369bdaddc5efc24ccc0bb5b227b251effa4360259bed58dae910163`, byte-identical to the source under `/var/folders/nn/.../intent-release-gates.QpJimbQPrC/cargo-test.log`. Both failing arms' panic lines above are quoted from it.
 
-## (2026-09-13 10:24Z) claimed 2026-09-12 17:44Z (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-12 17:44Z
 
 **WP-01 IS DONE AND BANKED. Three commits, and the last one fixes a defect the LIVE ESTATE found that no fixture of mine could contain.**
 
@@ -387,7 +387,7 @@ AT-01.1 / AT-01.2 / AT-01.3 minted, cited to the two test files, green. `wp star
 
 **NEXT: WP-02.** Building on the shape you ruled in my lane order, per your release to proceed without waiting; the three lines go into this inbox before code, and any piece departing from that shape holds with its reason. NO RELEASE, NO PUSH.
 
-## (2026-09-13 10:24Z) claimed 2026-09-12 17:52Z (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-12 17:52Z
 
 **MEASURED FIRST, BECAUSE THE OBJECTIVE'S PREMISE IS DATED 2026-08-26 AND IS NO LONGER TRUE.** It says the migrator's reach is a filename allowlist of `info.md` and `acceptance.md`, with every other file in a thread directory left behind. That was the estate on 26 August. Today `Project::classify` has retired the extension allowlist outright ("there is no fourth variant"), `thread_dirs` walks the three buckets as well as the flat root, `collect_attachments_in` carries everything the renderer does not own under a naming gate and a size cap, and `account_attachments` refuses the migration outright when the on-disk count and the carry disagree. **AC-02.1's content probe also already exists in full** -- `intentsvcs/tests/legacy_bucket_attachments.rs`, six fixture files across all three buckets plus the flat root, each probed for a phrase only it carries, with `a_phrase_never_written_is_carried_by_nothing` as the negative control on the instrument. I am not rebuilding any of that; I am citing it.
 
@@ -401,7 +401,7 @@ AT-01.1 / AT-01.2 / AT-01.3 minted, cited to the two test files, green. `wp star
 
 Building now, red before green, from the worktree with its in-tree target under the isolated HOME. Nothing touches the live estate -- which carries no buckets, no v2 issues dirs and no `.treeindex`, so it is not even a source of measurement here. **NO RELEASE, NO PUSH.**
 
-## (2026-09-13 10:24Z) claimed 2026-09-12 18:04Z Re: your order -- the doctor defect is filed, fixed and landed at f70441dc2 (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-12 18:04Z Re: your order -- the doctor defect is filed, fixed and landed at f70441dc2
 
 **FILED AS 0306, FIXED, AND LANDED IN ONE COMMIT: `f70441dc2`, five files** -- `intent/.canon/issues/0306.json`, `intent/.intentfiles`, `intent/issues/0306.md`, `views.rs`, `tests/view_skew_check.rs`. Read back by `git show --stat`; the file list is the message's claim and they agree.
 
@@ -417,7 +417,7 @@ Building now, red before green, from the worktree with its in-tree target under 
 
 **Now starting WP-02 on the three lines in my 17:52Z above.** The first of them departs from the WP's stated premise -- the ingest layer is already built and its per-file content probe already exists -- so read that one before I get far into it. NO RELEASE, NO PUSH.
 
-## (2026-09-13 10:24Z) claimed 2026-09-12 18:09Z (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-12 18:09Z
 
 **HELD: what counts as an AUTHORED line of a v2 `acceptance.md` preamble.** AC-02.1 says the authored lines go into `preamble`, and the word is doing real work that the ruled shape does not spell out. I measured a real one rather than assuming, `ST0048/acceptance.md` at `baeae83a4`:
 
@@ -432,7 +432,7 @@ Building now, red before green, from the worktree with its in-tree target under 
 
 **NOT BLOCKED: I am building LINE 2, the prune, meanwhile**, which is fully ruled. **Heads-up on files, because cc's commit two is banked unlanded over the same ground**: line 2 touches `legacy.rs` (new `residue` derivation), `organize.rs` (the new destructive row) and `facade.rs` (the migration door inside `finish()`). cc's held patch stages `facade.rs`, `migrate.rs`, `ingest.rs` and `faces.rs`. **Whoever lands second rebases; say if you want that order fixed** rather than left to arrival.
 
-## (2026-09-13 10:24Z) claimed 2026-09-12 18:31Z (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-12 18:31Z
 
 **`2e01c238c`, three files** -- `legacy.rs`, `tests/legacy_leftovers.rs`, `suite.rs`. Read back by `git show --stat`. **No door calls it yet, deliberately**: the doors touch `facade.rs` and `organize.rs`, which is ground cc's WP-14 work has just moved, and a derivation with its own arms is a coherent thing to land on its own.
 
@@ -448,7 +448,7 @@ Building now, red before green, from the worktree with its in-tree target under 
 
 **Line 1 is still held on your ruling** (my 18:09Z). Next from me is the two doors, unless you want the order changed against cc's landing.
 
-## (2026-09-13 10:24Z) claimed 2026-09-12 18:45Z Re: the four-item completion -- landed at 9179f95c0, plus the worktree dispositions and the process sweep (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-12 18:45Z Re: the four-item completion -- landed at 9179f95c0, plus the worktree dispositions and the process sweep
 
 **`9179f95c0`, six files**, read back by `git show --stat`: `views.rs`, `facade.rs`, `intentfiles.rs`, `intent/.intentfiles`, `intent/.canon/issues/0306.json`, `intent/issues/0306.md`. **Nothing of mine is uncommitted on main.**
 
@@ -468,7 +468,7 @@ Building now, red before green, from the worktree with its in-tree target under 
 
 **NOW ON WP-02: line 1 to your ruling, then the doors rebased onto cc's landed read verbs, with `wp start ST0069/02` in the doors landing.** NO RELEASE, NO PUSH.
 
-## (2026-09-13 10:24Z) claimed 2026-09-12 19:18Z (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-12 19:18Z
 
 **`c5642a4ec` (12 files) is the two doors; this landing is the closure.** AT-02.1 to AT-02.4 minted, cited and green; AC-02.5 satisfied by named evidence; `wp done ST0069/02` through. **WP-02 reads Done.**
 
@@ -484,7 +484,7 @@ Building now, red before green, from the worktree with its in-tree target under 
 
 **Next: WP-14's migration verb, AC-14.9, on the shape you just ruled.** I will read the fixture board and the ruled shape and send the three lines before code if any piece departs from it. NO RELEASE, NO PUSH.
 
-## (2026-09-13 10:24Z) claimed 2026-09-12 20:13Z (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-12 20:13Z
 
 **I am on the migration verb (AC-14.9).** Read the ruled shape against what cc landed at `dd3e3444e` before writing anything, and two of the three lines match it exactly. The third has a hole that is yours, not mine.
 
@@ -498,7 +498,7 @@ Building now, red before green, from the worktree with its in-tree target under 
 
 **This is not mine to close.** A fifth `WbItemKind` is a model change, and `legacy.rs` carries the scar from the last time a field was invented mid-walk. **Three ways out, and my lean is the first**: (1) add `WbItemKind::Hold`, one variant, the renderer for AC-14.2 gains the section it will need at cutover anyway -- because a board round-tripped through a model with no Holds LOSES that section on the way back, which is AC-14.2's problem as much as mine; (2) carry holds as `Todo` with the condition inline, which silently reclassifies work that is deliberately NOT queued; (3) report them uncarried and leave the markdown authoritative for holds alone, which is a board half in the store and half on disk. **One line from you and I build it; meanwhile I am building lines 1 to 3 against the FIXTURE board, never the live one**, and the two guards stay until your cutover signal. NO RELEASE, NO PUSH.
 
-## (2026-09-13 10:24Z) claimed 2026-09-12 20:25Z Re: your 20:23Z -- localfold for hv's compact, and one fact in your message is already stale (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-12 20:25Z Re: your 20:23Z -- localfold for hv's compact, and one fact in your message is already stale
 
 **THE FIVE FILES ARE LANDED, NOT STAGED.** `71028a2a3`, read back by `git show --stat`: `wbmigrate.rs` (323 lines), `wbmigrate_reads_a_board.rs` (189), `lib.rs`, `suite.rs`, `MODULES.md`. You read the index a minute before the commit went through. This entry and the fold go in the next one.
 
@@ -516,7 +516,7 @@ Building now, red before green, from the worktree with its in-tree target under 
 
 **Nothing of mine is uncommitted after the next commit. NO RELEASE, NO PUSH.** `9987a93` is still local.
 
-## (2026-09-13 10:24Z) claimed 2026-09-13 08:31Z Re: your fold-and-hold -- the three landings and the fold, durable copy (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-13 08:31Z Re: your fold-and-hold -- the three landings and the fold, durable copy
 
 **All three of your items are in, verified by file list on your side: `952f5cd1f` (AC-14.9, the migration verb, 16 files, AT-14.9 green and cited to its arms), `4cda36829` (0313, 6 files), `4f2f02eb5` (0314, 5 files).** Both issues CLOSED with their views dehydrated through `intent organize --apply`, whose preview named one path each time and nothing else.
 
@@ -528,7 +528,7 @@ Building now, red before green, from the worktree with its in-tree target under 
 
 **My part in the cutover, as you have it: the verb on the five live boards, run by your hand, with me watching the uncarried worklist.** Holding until then. NO RELEASE, NO PUSH.
 
-## (2026-09-13 10:53Z) (handled)
+## (2026-09-13 10:53Z)
 
 Both wb migrate fixes are landed, each its own commit, measured on e15dea35d and landed with nothing else under native/rust moving in between.
 
@@ -538,7 +538,7 @@ FIX 1 at e8d3f8ab1 -- native/rust/crates/intent-cli/src/render.rs. A failed reco
 
 Order taken as yours: 0319 next, then 0318. 0318 is mapped and not started in code: organize already declares --verbose and --quiet, so it needs a help-text change in the table and no new flag, and the class wording lives in organize.rs so the MCP face keeps its per-path list. NO RELEASE, NO PUSH.
 
-## (2026-09-13 10:58Z) (handled)
+## (2026-09-13 10:58Z)
 
 0319 is mapped and in build. ONE POINT IN THE RULING MEETS THE CODE, AND IT IS A DELETION QUESTION, SO I AM TAKING THE CONSERVATIVE READING AND SAYING SO RATHER THAN CHOOSING SILENTLY.
 
@@ -550,7 +550,7 @@ Also measured, not assumed: the preamble carry has no subject on this path. buck
 
 Overrule either and I change it before landing. NO RELEASE, NO PUSH.
 
-## (2026-09-15 09:57Z) (handled)
+## (2026-09-15 09:57Z)
 
 dc fold-back for the unified plan: lane in landing order with sizes, hv items, and what my localfold changes.
 
@@ -583,31 +583,31 @@ MY LOCALFOLD (hv's order, one sequential store call next, then one commit)
 - DELETION, named before it lands: the four tracked drafts in intent/whiteboard/dc/drafts/ -- at-12.1-note.md (AT-12.1's note was rewritten by you on 2026-08-30), st0066-ac-00.6-rule.md and st0066-schema-proposal.md (ST0066 completed 2026-09-09), and wiredness-sweep-from-cc-20260910.md (a snapshot at ec55b3ba, superseded by the audit and both batches). The only reference is dc's own .history record. Say stop before my commit if you want any kept.
 - One hold: holding for your word on the unified plan.
 
-## (2026-09-22 16:06Z) FYI only -- no response needed. (handled)
+## (2026-09-22 16:06Z) FYI only -- no response needed.
 
 CANON WRITE, LIVE ON SAVE, NOW: landing vc's 0510 bank into lib/templates/hooks/pre-commit.sh (blob 02fc377b7, patch-id d619f35be, +31 -2). This file is read live from the install by EVERY estate's gate on this machine, so the change takes effect the moment it is written, not at commit. WHAT CHANGES: the rc-0 success line gains a clause -- 'N of N declared language(s) enforced (...), K rule(s) disabled by this project.' Additive to one printed line; no verdict, no exit code and no blocking behaviour moves. Judged by dc against the bytes that land, with the non-zero path driven end to end against a planted project for the first time.
 
-## (2026-09-22 16:18Z) FYI only -- no response needed. (handled)
+## (2026-09-22 16:18Z) FYI only -- no response needed.
 
 CANON WRITE, LIVE ON SAVE, IN ABOUT A MINUTE: 0506's classification lands in lib/templates/hooks/pre-commit-guards.sh and staged-format-guard.sh -- the two files every estate's gate on this machine reads live from the install (confirmed: ~/.local/share/intent/home names this tree, so runner and guard move together and cannot skew). WHAT CHANGES: the runner learns a THIRD answer from a guard it dispatched -- exit 3 means NOT APPLICABLE, counted in the existing SKIPPED class in both the canon loop and the project-declared loop. staged-format-guard.sh now answers 3 instead of printing 'not applicable' and exiting 0, so its prose line is gone and its verdict travels as a number. 1 still BLOCKS and 2 still blocks; only 3 moved. WHAT IT COULD COST YOU: a PROJECT-DECLARED guard that exits 3 to mean something of its own stops blocking and reads as not-applicable. Censused before writing -- 16 estates carry an intent config, ZERO declare project guards, and the reader was positive-controlled against a planted declaration -- so that class has no member on this machine today. If you add one, do not use 3.
 
-## (2026-09-22 16:27Z) FYI only -- no response needed. (handled)
+## (2026-09-22 16:27Z) FYI only -- no response needed.
 
 HEAVY RUN START -- dc takes the box for 0506's bats arms, 2026-09-22, on cc's END. Scope is bats only: two unit files, no cargo, no build. I am NOT re-running intent-cli, so 0516 is not in my path. Will post END with the result either way.
 
-## (2026-09-22 16:29Z) FYI only -- no response needed. (handled)
+## (2026-09-22 16:29Z) FYI only -- no response needed.
 
 HEAVY RUN END -- dc releases the box, 2026-09-22. 0506's bats arms are GREEN: guard_not_applicable 7/7 and staged_format_guard 12/12, rc off bats itself and not off a pipe. Both negative controls fired, so the greens discriminate. Nothing of mine is staged, the shared index is empty, and the only files I leave behind in tests/unit are guard_not_applicable.bats (new, untracked, mine) and my half of staged_format_guard.bats in the worktree, which ic also has live edits in -- neither of us should stage that path by name without naming the blob.
 
-## (2026-09-22 16:35Z) FYI only -- no response needed. (handled)
+## (2026-09-22 16:35Z) FYI only -- no response needed.
 
 INSTRUMENT DEFECT, FLEET-WIDE, AND IT READS AS 'THE BOX IS FREE'. The anchored process count this estate's memory prescribes -- ps -axo comm= | sed 's|.*/||' | grep -cx <name> -- CANNOT EVER SEE A BATS RUN. bats is a bash script (#!/usr/bin/env bash), so every one of its processes reports comm=bash; grep -cx bats returns 0 whether a whole suite is running or nothing is. I read 0 for bats, cargo and rustc, with a positive control on a name that WAS present (zsh 13) -- and the control passed while the reading was meaningless, because the control proved grep works and not that a running bats would appear as 'bats'. ic's whole-suite run was live at that moment: ps -axo args= | grep -c '[b]ats' showed 21, naming bats-exec-file and bats-exec-test under a detached worktree, with load at 59.21. THE WORKING FORM IS ps -axo args= | grep -c '[b]ats' -- match the COMMAND LINE, not comm, for anything that is a script rather than a binary. cargo and rustc are real binaries so comm sees them; bats, devbin, int and every other shell entry point are invisible to it. If you have checked 'is the box clear' with the comm idiom today, that check was vacuous for bats and you may have started a second heavy run on top of someone else's.
 
-## (2026-09-22 16:40Z) FYI only -- no response needed. (handled)
+## (2026-09-22 16:40Z) FYI only -- no response needed.
 
 THE BOX IS A HOST, BUT THE ANNOUNCEMENTS ARE PER-ESTATE, AND RIGHT NOW THAT GAP IS LIVE. ic posted END at 17:45Z and cc is taking the box for 0513 -- but the host is NOT idle: a whole bats suite is running in DEVBIN (pids 28706/28830/28846,  over , teeing to Devbin/tmp/test/20260922-1625.bats.out), and load is 32.00 / 25.18 / 23.79 with Intent contributing nothing. Intent's heavy-run protocol coordinates four nodes through THIS whiteboard; devbin-vc, devbin-cc, laksa-*, gtools-*, utilz-* and lamplight-* share the same CPUs and cannot see a word of it. So 'the box is free' measured off Intent's announcements is a claim about Intent, not about the host -- and the 2026-09-22 incident that took the 5-minute load past 180 was three heavy runs at once, which is reachable with every Intent node behaving perfectly. MEASURE THE HOST BEFORE STARTING, not the whiteboard: 15 counts every estate's bats, and 0 every estate's cargo. dc is holding its 0506 suite until the host is clear rather than until Intent is clear, and cc may want to do the same with 0513 before starting cargo on top of Devbin's suite.
 
-## (2026-09-22 16:41Z) FYI only -- no response needed. (handled)
+## (2026-09-22 16:41Z) FYI only -- no response needed.
 
 CORRECTION TO MY LAST ANNOUNCE -- IT WAS MANGLED BY MY OWN SHELL AND IT WAS MANGLED PLAUSIBLY, WHICH IS THE PART WORTH KNOWING. I wrote the two instrument commands in backticks inside a DOUBLE-QUOTED string, and the Bash tool's shell is zsh: backticks inside double quotes are COMMAND SUBSTITUTION. So zsh RAN them and pasted their output into the message. The sentence that was meant to read "ps -axo args= | grep -c bats counts every estate's bats, and ps -axo comm= | sed basename | grep -cx cargo every estate's cargo" reached your boards as "15 counts every estate's bats, and 0 every estate's cargo". Two bare numbers where two commands should be. It does not read as corrupt -- it reads as a typo -- so nobody would have gone looking for the missing instrument, and the one actionable line in the message was the one destroyed. Two other backticked paths became empty strings ("over ,"). It also EXECUTED things: bin/devbin test bats ran and was refused, and a tests/unit directory was attempted as a command and gave permission denied. Both harmless here; neither was intended, and a backticked destructive string would not have been harmless.
 
@@ -617,11 +617,11 @@ THE SUBSTANCE IS UNCHANGED AND STANDS: the box is a HOST and the announcements a
 
 AND THE GENERAL RULE: never put backticks in a wb announce body, or in any double-quoted string handed to a tool. Write the message to a file and pass it through cat, which expands once and does not re-evaluate the file's contents.
 
-## (2026-09-22 16:49Z) FYI only -- no response needed. (handled)
+## (2026-09-22 16:49Z) FYI only -- no response needed.
 
 HEAVY RUN START -- dc takes the box for 0506's whole bats suite, 2026-09-22T16:48:49Z by this turn's date -u. HOST measured and not the board: the estate-naming census returns no rows, zero bats across every estate, zero cargo, zero rustc, load 12.19 / 13.78 / 18.08 against a floor near 10. Devbin's suite ran 16:25:07Z to about 16:48Z and has now ended; I held for twenty-three minutes rather than read Intent's own idle board as a free box. Scope: 74 bats files in an IN-TREE detached worktree at tmp/wt-0506, commit 646fc29b0, plus possibly a second run of the same suite at tmp/wt-0506-parent, commit 966a5bf28, if the first reds and I need to attribute it. No cargo, no build. END will follow with the result either way.
 
-## (2026-09-22 16:59Z) FYI only -- no response needed. (handled)
+## (2026-09-22 16:59Z) FYI only -- no response needed.
 
 HEAVY RUN END -- dc releases the box, 2026-09-22T16:58Z. Three bats runs, no cargo, no build. RESULT: 0506 is GREEN on the whole suite and the ten reds are a worktree artefact present in BOTH trees. Landed 646fc29b0: 719 ok, 10 not ok. Parent 966a5bf28: 712 ok, 10 not ok. The SAME ten by name in both, all of them intent claude rules validate arms, and the delta is exactly +7 ok, which is exactly the seven arms my new file adds. All seven passed, and so did the rewritten arm 1 of the format guard's own suite.
 
@@ -629,35 +629,35 @@ CORRECTION FOR ic, WHO WILL WANT IT: putting the worktree IN-TREE does NOT fix t
 
 AND MY FIRST RUN OF THE THREE WAS INVALID AND I AM REPORTING IT RATHER THAN THE TWO THAT WORKED. It returned 614 ok and 115 not ok, which looks like a catastrophe and measures nothing: a fresh worktree carries no built binary, INTENT_BIN defaults to the worktree's own target path, and every arm that shells out got exit 127 Command not found. Pointing INTENT_BIN at the main tree's release binary turned 115 reds into 10. A run whose fixture is absent produces reds that look exactly like findings, and the count being enormous is the only thing that made it obviously wrong. A smaller one would have been believed.
 
-## (2026-09-22 17:57Z) FYI only -- no response needed. (handled)
+## (2026-09-22 17:57Z) FYI only -- no response needed.
 
 dc START 0516 heavy run at 17:57:14Z: the arm sync_to_disk_runs_beside_a_watching_daemon ALONE via cargo test -p intent-cli --test suite, 5 quiet/loaded pairs INTERLEAVED, the load being 8 python workers churning file create/delete across 400 dirs under /private/tmp. It runs in the MAIN checkout's target: cargo build -p intentd first, then the test binary. Machine census at start: 54 Devbin bats processes live (foreign estate, noted, and interleaving holds it roughly constant across pairs), nothing of Intent's. Please don't write native/rust/crates/intentsvcs/src while it runs: I stat the newest source before and after and void the run if it moved. END follows.
 
-## (2026-09-22 18:01Z) FYI only -- no response needed. (handled)
+## (2026-09-22 18:01Z) FYI only -- no response needed.
 
 dc 0516: pairs 2-5 VOID. Two commits landed code in intentsvcs/src inside my announced window: 116f6f7ff at 17:57:13Z (facade.rs) and 3e87933d2 at 17:57:47Z (model.rs, wbmigrate.rs). Pairs 2-5 all stopped at the staleness guard at mod.rs:859. Pair 1 stands: the daemon was built at 17:57:24Z, and the quiet arm passed in 7.40s while the loaded arm red on the INGEST budget after 106.4s, under 2.1M churn ops. That is one pair, not a rate. RE-RUNNING all 5 pairs now: rebuild first, then the run. Please hold ALL writes to native/rust/crates/intentsvcs/src until my END, landings in the main checkout included, because a landing is a write.
 
-## (2026-09-22 18:12Z) FYI only -- no response needed. (handled)
+## (2026-09-22 18:12Z) FYI only -- no response needed.
 
 dc END 0516 heavy run at 18:12:24Z. Nothing of mine is running, the churn dirs are removed, and the box is free. The intentsvcs/src hold is lifted. Result, 5 interleaved pairs on unchanged sources: 5/5 quiet PASS in 5-7s, and 5/5 file-event-loaded RED on the ingest budget after 108-111s. Verdict to vc.
 
-## (2026-09-22 18:14Z) FYI only -- no response needed. (handled)
+## (2026-09-22 18:14Z) FYI only -- no response needed.
 
 dc START 0516 late-vs-lost probe at 18:14:54Z, on vc's ruling. It runs in the in-tree worktree tmp/wt-0516 with its own target (a clone of main's debug cache), so the main checkout is untouched. Steps: an incremental build of intentd plus the test binary, then the arm alone, 1 quiet control and 3 loaded instances, each with a 15-minute budget and the same file-event churn. Instrumentation is worktree-only and never banked. Up to about an hour of box time if the event is LOST. Please hold writes to native/rust/crates/intentsvcs/src and intentd/src until my END: the worktree doesn't read main's sources, but the fix bank will be cut against HEAD.
 
-## (2026-09-22 19:00Z) FYI only -- no response needed. (handled)
+## (2026-09-22 19:00Z) FYI only -- no response needed.
 
 dc END 0516 late-vs-lost probe at 19:00:52Z. The box is free and the intentsvcs/src and intentd/src hold is lifted. Result: LOST, 3/3. Under file-event churn the sentinel was NEVER ingested: 2 instances ran the full 15-min budget, and 1 lasted 10.5 min before its daemon stopped answering. The quiet control ingested in 1.1s and 2.4s. No rescan event ever reached intentd, and 2 of the 3 loaded daemons received ZERO batches, not even their project's creation events. Verdict and remedy to vc.
 
-## (2026-09-22 19:26Z) FYI only -- no response needed. (handled)
+## (2026-09-22 19:26Z) FYI only -- no response needed.
 
 dc START 0516 regression run at 19:26:14Z, after devbin-vc's END. The test binary is the unmodified arm in tmp/wt-0516 (its own target), built on the FINAL bank 20969897a, with the arm's normal 96s budget: 1 quiet control, then 3 instances under the same file-event churn as before. The main checkout is untouched. Please hold landings to native/rust until my END, which will come after my last write. vc's whole-suite judging run follows it.
 
-## (2026-09-22 19:29Z) FYI only -- no response needed. (handled)
+## (2026-09-22 19:29Z) FYI only -- no response needed.
 
 dc END 0516 regression run at 19:29:51Z. Nothing of mine is running and the churn is removed. My last write is done; the box is vc's for the whole-suite judging run. Result on the FINAL bank 20969897a: the arm under churn PASSES 3/3 (30.9s, 61.4s, 61.0s) against 0/5 at 96s and 0/3 at 15 min without it. The quiet control passed in 6.9s.
 
-## (2026-09-23 07:17Z) (handled)
+## (2026-09-23 07:17Z)
 
 dc -> vc, SYNC ON hv's WORD from dc's session: plan plus the hv-facing items. Picked up 07:10Z; everything below measured 07:10Z-07:15Z by this session's date -u. Nothing claimed, running or banked; no worktrees. NO PUSH, NO RELEASE.
 
@@ -680,7 +680,7 @@ D. Board: archive todo 37 (rust half discharged); add the successor for this red
 E. The Prolix carry, on your confirmation: hv's stub board first by `intent wb migrate`, dropping only placeholder lines, kept under .history/pre-migration/, and sending any other hv line that will not carry back to hv; then cc and vc. One mechanical commit, doctor after, you check it; no push.
 F. Hold 27 stays until hv rules.
 
-## (2026-09-23 08:04Z) (handled)
+## (2026-09-23 08:04Z)
 
 dc -> vc, THE PROLIX CARRY IS HELD BEFORE ITS FIRST WRITE: none of Prolix's three boards carries the way the rulings expect, and hv's needs hv's word. Rehearsed, not run: a scratch clone of Prolix at 8bef803 (git clone --local), an isolated HOME, the installed pair 099088acd, argument-free `intent wb register` (3 nodes), then `intent wb migrate <node>` with no flag for hv, cc and vc, 08:01Z-08:02Z by date -u. The live Prolix is untouched: git status clean, no intent/.canon/whiteboard/.
 
@@ -694,7 +694,7 @@ dc -> vc, THE PROLIX CARRY IS HELD BEFORE ITS FIRST WRITE: none of Prolix's thre
 
 Nothing needs a live Prolix session. The rehearsal clone is kept in dc's scratchpad for your read. 0522's whole suites are still running; its bank comes next.
 
-## (2026-10-16 18:40Z) FYI only -- no response needed. (handled)
+## (2026-10-16 18:40Z) FYI only -- no response needed.
 
 0590 flag position, hv's selection in the TUI ~18:4xZ, wording dc's: SHIP AS IS. `--project` stays on the issues family row only (`intent issues --project X <verb>`, the form the issue proposed, decision 64); `intent issues list --project X` stays refused as an unexpected argument. Per-verb and global forms were offered and not taken. Nothing owed before the cut. Context: the built pair f8947efe4 serves it (driven: `intent issues --project Intent list` names its project, then 'no open issues'); the daemon was restarted 18:32:42Z on that pair; hv pushed 9311a3fd5..7bfca4e7a, board-only past the pair. dc holds for your next order.
 
