@@ -1,0 +1,15 @@
+{
+  "id": "01M5J9995PR6QR0C92X1042SG7",
+  "ts": "2026-10-22T17:07:05.530Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0617"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "The advisory hook keeps its own extension-to-language map beside the binary's lang_of"
+  }
+}

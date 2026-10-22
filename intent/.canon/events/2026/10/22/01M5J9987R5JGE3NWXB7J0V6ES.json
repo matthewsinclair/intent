@@ -1,0 +1,15 @@
+{
+  "id": "01M5J9987R5JGE3NWXB7J0V6ES",
+  "ts": "2026-10-22T17:07:04.572Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0616"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "The commit gate parses and validates guards with its own jq program, beside the binary's Config.guards"
+  }
+}

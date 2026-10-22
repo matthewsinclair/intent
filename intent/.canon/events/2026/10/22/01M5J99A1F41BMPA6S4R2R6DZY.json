@@ -1,0 +1,15 @@
+{
+  "id": "01M5J99A1F41BMPA6S4R2R6DZY",
+  "ts": "2026-10-22T17:07:06.418Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0618"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "Declared languages are read from config.json with jq in five places, because no verb prints them"
+  }
+}

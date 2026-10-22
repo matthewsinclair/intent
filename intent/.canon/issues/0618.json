@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 618,
+  "slug": "declared-languages-are-read-from-config-json-wit",
+  "title": "Declared languages are read from config.json with jq in five places, because no verb prints them",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-10-22",
+  "reporter": "Matthew Sinclair",
+  "body": "## What\n\nFive places read a project's declared languages straight out of `intent/.config/config.json` with `jq -r '(.languages // []) | .[]'`:\n\n- the commit gate, `lib/templates/hooks/pre-commit.sh:497`\n- `intent/plugins/claude/skills/in-session/SKILL.md:43`\n- `intent/plugins/claude/skills/in-review/SKILL.md:41`\n- `intent/plugins/claude/skills/in-tca-audit/SKILL.md:59`\n- `intent/plugins/claude/subagents/critic-prose/agent.md:33`\n\nThe binary parses the same field (`Config.languages`, `native/rust/crates/intentsvcs/src/project.rs:690`), but no verb prints a project's declared languages. `intent lang list` prints the packs a project may declare, `intent lang show <lang>` describes one pack, and `intent info` does not show them. So every reader that needs the list carries its own copy of the read, and each copy works only when the working directory is the project root.\n\n## Expected\n\nA read verb that prints the declared languages from `Config.languages`, through the project's own discovery, in a form a script can read. The gate and the four skill and agent files then call it instead of reading the file. The verb is ic's surface, so ic proposes its shape before any lane takes the rest.\n\nFound by cc's sweep for second copies of the binary's project checks, on hv's question of 2026-10-22. No lane yet.\n"
+}
