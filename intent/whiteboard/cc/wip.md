@@ -3,17 +3,17 @@ node: cc
 name: Control Claude
 role: control
 session_id: b9accb1b-fe9c-4091-a09b-2a9b437c8591
-heartbeat_at: 2026-10-22 17:11Z
+heartbeat_at: 2026-10-22 19:19Z
 status: active
-focus: "0609 (bare-repo refusal; the launcher asks the binary) in tmp/wt-cc-0609, then 0610 (wb ask --re) after 0612 lands; no push, no release"
-claims: [ST0081, ISSUE:0613]
+focus: "LOCALFOLDED 2026-10-22 19:18Z for hv's compact; next: 0615 then 0613 in one window on vc's GO, after dc's 0619 and ic's 0607; no push, no release"
+claims: [ST0081, ISSUE:0613, ISSUE:0615]
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-- 0609, 0610 AND 0613, cc's (hv's word 2026-10-22; vc's orders). 0610 LANDED at be2f28213 and 0609 LANDED at 1de4bcf0a, each at its judged patch-id (6440f2e54c08 and 33f9bcb9e1c4), and build all #1 carried both at dcd9057d4; both issues stay claimed until vc closes them. 0613 (a verb whose stdout is closed early panics, exit 101) taken on vc's offer of 19:08Z: the red arm first, driving two verbs into a pipe whose reader is gone; the fix once at the CLI's entry, a panic hook that turns std's broken-pipe print panic into a quiet exit at the filter's conventional status, leaving SIGPIPE ignored so a broken daemon socket still reports; worktree tmp/wt-cc-0610 reused at HEAD so its target stays valid; START through vc. No push, no release. (edited)
+- RESUME (cc, localfold 2026-10-22 19:18Z on vc's order of 19:17Z; hv compacts every session; NOT released). LANDED today: 0610 at be2f28213 and 0609 at 1de4bcf0a, each at its judged patch-id, carried by build all #1 at dcd9057d4, both closed by vc at bc2469bc8; their refs (refs/bank/cc/0609/fix to fix-g, refs/bank/cc/0610/pre-0612, fix, fix-b) stay, spent. CLAIMS: ST0081, ISSUE:0613, ISSUE:0615. QUEUE: no heavy run until after the compact; then dc's 0619, ic's 0607, then ONE cc window on vc's GO: 0615 first, then 0613. 0615 (XS, widened by vc at b1b23955e): refs/bank/cc/0615/fix-b, blob f3180b62b677, patch-id ad56ebffe614, base b1b23955e, staged in tmp/wt-cc-0609 (reused at b1b23955e): the module doc, plus the door-carrying arm's doc and name (now a_settings_file_carrying_the_hook_door_takes_the_templates_entries); its window is intentsvcs whole, CI's doc line and the old-name grep (empty). 0613 (S, design accepted by vc at 19:16Z): tmp/wt-cc-0610 at de2290778 holds the red arm alone, refs/bank/cc/0613/red (blob 5d2ece4a1ba7, base de2290778); the fix is refs/bank/cc/0613/fix-only (blob 148ab994dfda, applies on top of red): lib.rs end_quietly_when_stdout_closes(), a panic hook turning only std's stdout Broken-pipe panic into exit 141, called first in main.rs, SIGPIPE left ignored, one CHANGELOG line. Its window: the arm red on the base, apply fix-only, bank refs/bank/cc/0613/fix, then both builds, CI's four lines, intentsvcs, intentd and intent-cli whole, and the zsh drive quoting ${pipestatus}. NEXT after those: 0616 to 0618 (vc). Scripts in the session scratchpad: run-0615/window.sh, run-0613/{red,judged,drive}.sh; census by refs/bank/vc/tools/census-ok-ci.sh beside census.sh. FIRST ACT AFTER THE BOUNCE: /in-session, read the inboxes, wait for vc's GO, run 0615 then 0613. Commit rule: exactly the wrote: paths. No push, no release.
 
 ## TODO
 
