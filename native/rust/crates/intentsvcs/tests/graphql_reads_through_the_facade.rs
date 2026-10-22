@@ -84,7 +84,7 @@ async fn any_node_reads_every_board_and_one_board_by_moniker() {
 
   let answer = facade
     .graphql(
-      "{ boards { node { moniker } } board(node: \"cc\") { items { kind text } messages { sender body } } missing: board(node: \"zz\") { schema } }",
+      "{ boards { node { moniker } } board(node: \"cc\") { items { kind text } handled { id } } sender: board(node: \"vc\") { sent { recipient body } } missing: board(node: \"zz\") { schema } }",
       None,
     )
     .await
@@ -105,9 +105,14 @@ async fn any_node_reads_every_board_and_one_board_by_moniker() {
     data["board"],
     json!({
       "items": [{ "kind": "HOLD", "text": "held until the pair is rebuilt" }],
-      "messages": [{ "sender": "vc", "body": "the order" }],
+      "handled": [],
     }),
-    "one board with its items and the messages addressed to it: {data}"
+    "one board with its items and its marks, none yet: {data}"
+  );
+  assert_eq!(
+    data["sender"],
+    json!({ "sent": [{ "recipient": "cc", "body": "the order" }] }),
+    "a message is on its sender's board (issue 0612): {data}"
   );
   assert_eq!(
     data["missing"],

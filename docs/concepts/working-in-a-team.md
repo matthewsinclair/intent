@@ -390,7 +390,7 @@ The Objective and the Context are the two sections of `info.md` the store takes 
 
 **Write a thread's objective and context with `intent set`, not by editing `info.md`.** The hooks' `intent sync --apply` after a pull, a checkout or a rebase takes a hand edit to either section into the store, but any other Intent write that renders the cover first writes the store's version over it, with a warning. An edit anywhere else in `info.md` is not carried at all.
 
-The same holds for anything generated from one store state: commit it together. A commit that carries a whiteboard board without that node's inbox views leaves views on `main` that no longer match their model, and a fresh clone's `intent doctor` counts them.
+The same holds for anything generated from one store state: commit it together. On the whiteboard, each verb prints what it wrote on its `wrote:` lines -- the node's own `board.json` and `wip.md`, the inbox views it wrote in its peers' directories, and its event -- and those files go in one commit. A commit that carries a node's board without the inbox views the same write rendered leaves views on `main` that no committed board renders, and a fresh clone's `intent doctor` counts them.
 
 ## History travels
 
@@ -461,18 +461,30 @@ A read verb such as `intent st show ST0002` still answers, from what the store h
 
 ## The whiteboard across clones
 
-A whiteboard's boards are committed files, and they travel like the rest of the canon. **The hook's `intent sync --apply` takes a pulled board into your store** when the file is the only side that moved: its bytes changed since your store last wrote or read it, and your store's own copy has not changed since. It names each board it takes on its `took` line:
+A whiteboard's boards are committed files, and they travel like the rest of the canon. **Each `board.json` has one writer, its own node**: it carries the node's items, the messages it sent and its marks on the messages it has handled, so a message travels in its sender's commit and a clear in its recipient's. **The hook's `intent sync --apply` takes a pulled board into your store** when the file is the only side that moved: its bytes changed since your store last wrote or read it, and your store's own copy has not changed since. It names each board it takes on its `took` line.
+
+Bob's ask names what it wrote, and he commits exactly that:
+
+```
+  $ intent wb ask al "Can I take the release checklist?" --node bo
+  ok: bo -> al
+  wrote: intent/.canon/events/2026/10/22/01M5JD9WA9Z2WAHHDBEECQ07SW.json
+  wrote: intent/whiteboard/al/inbox.bo.md
+  wrote: intent/whiteboard/bo/board.json
+```
+
+Alice pulls it, and the hook's `took` line names the board it carried:
 
 ```
   $ git pull
-  intent (post-merge): took 2 change(s) from the files into the store: board al, board bo; and 2 event file(s)
+  intent (post-merge): took 1 change(s) from the files into the store: board bo; and 2 event file(s)
   $ intent wb pickup --node al
   ...
   messages (1)
     bo -> al Can I take the release checklist?
 ```
 
-**When both sides moved, the board is left and named.** A board your store changed and has not yet written to its file, meeting a pulled file, has two newer sides, and neither overwrites the other. The hook names it on its `left:` line, every `intent wb` verb refuses until it is resolved, and `intent sync --to-store` is the step: it replaces the store's board from the file and lists each difference before it takes it.
+**When both sides moved, the board is left and named.** Because each board has one writer, that takes one node acting in two clones; a reply crossing a message moves two different files. A board your store changed and has not yet written to its file, meeting a pulled file, has two newer sides, and neither overwrites the other. The hook names it on its `left:` line, every `intent wb` verb refuses until it is resolved, and `intent sync --to-store` is the step: it replaces the store's board from the file and lists each difference before it takes it.
 
 **A checkout of an older commit is not taken.** It moves a board file as a pull does, but backwards: your store's board is newer than the file. The hook leaves it and names it on its `left:` line, and every `intent wb` verb refuses and names both ways out: `intent sync --to-store` takes the older board over the store's, and deleting the file and running `intent sync --to-disk` keeps the store's. Checking the newer commit out again puts back the file your store matches.
 

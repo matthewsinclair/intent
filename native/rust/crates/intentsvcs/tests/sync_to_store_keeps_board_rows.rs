@@ -3,16 +3,14 @@
 //! `updated_at` on all of them, and changed a node's name and role.
 //!
 //! vc decision 22: the restore applies the DIFFERENCE by natural key -- a node
-//! by moniker, an item by (node, kind, seq), a message by (sender, recipient,
-//! recorded_at, body) counted as a multiset, and then, for the messages that
-//! leaves unpaired, by (sender, recipient, recorded_at) in order (issue 0525)
-//! -- so an unchanged row keeps its id
+//! by moniker, an item by (node, kind, seq), a message by its id (issue 0612,
+//! which replaced 0525's two-pass key) -- so an unchanged row keeps its id
 //! and `updated_at`, and the preview names every board difference beside the
 //! threads and issues, which is what makes the no-overwrite line true when it
 //! prints.
 
 use crate::common::Fixture;
-use intentsvcs::model::{Board, WbItemKind};
+use intentsvcs::model::{Board, WbItemKind, WbSent};
 use intentsvcs::store::Store;
 use intentsvcs::sync::Scope;
 use rusqlite::Connection;
@@ -48,11 +46,18 @@ fn boards(fx: &Fixture) -> Vec<Board> {
     .expect("add");
   f.wb_ask("vc", "cc", "go", None, false).expect("ask");
   let mut boards = f.boards().expect("boards");
-  let twin = boards[0].messages[0].clone();
-  boards[0].messages.push(twin.clone());
-  let mut other = twin;
-  other.body = "and again".to_string();
-  boards[0].messages.push(other);
+  // A message is on its SENDER's board (issue 0612), so vc's, the second;
+  // twins are the same words under two ids.
+  let first = boards[1].sent[0].clone();
+  boards[1].sent.push(WbSent {
+    id: format!("{}A", first.id),
+    ..first.clone()
+  });
+  boards[1].sent.push(WbSent {
+    id: format!("{}B", first.id),
+    body: "and again".to_string(),
+    ..first
+  });
   boards
 }
 
@@ -97,7 +102,7 @@ fn a_restore_updates_the_row_that_differs_and_leaves_the_rest() {
 
   later();
   boards[0].items[0].text = "write the one door".to_string();
-  boards[0].messages.remove(1);
+  boards[1].sent.remove(1);
   store
     .replace_boards(&boards)
     .expect("one change, one removal");
@@ -136,8 +141,8 @@ fn an_edited_body_is_updated_in_place_and_keeps_its_place() {
   let (_, messages) = rows(&db);
 
   later();
-  boards[0].messages[2].body = "and again, edited".to_string();
-  boards[0].messages[2].edited_at = Some("2026-09-23T10:30:00.000Z".to_string());
+  boards[1].sent[2].body = "and again, edited".to_string();
+  boards[1].sent[2].edited_at = Some("2026-09-23T10:30:00.000Z".to_string());
   store.replace_boards(&boards).expect("one edited body");
 
   let (_, messages_after) = rows(&db);
@@ -192,9 +197,11 @@ fn the_preview_names_a_board_difference_and_is_quiet_without_one() {
 
 /// **A ROW WHOSE NODE IS NOT ON THE ROSTER IS NAMED BEFORE IT IS DELETED.** A
 /// hand `DELETE` on `wb_node` -- devbin's repair of a foreign registration --
-/// leaves that node's items and messages behind. No board hydrates them, so a
-/// diff of boards cannot see them, and a restore that removed them unnamed
-/// would print the no-overwrite line over a deletion: 0414 again.
+/// leaves that node's items, the messages it sent and its marks behind, since a
+/// message is its sender's row and a mark its recipient's (issue 0612). No
+/// board hydrates them, so a diff of boards cannot see them, and a restore
+/// that removed them unnamed would print the no-overwrite line over a
+/// deletion: 0414 again.
 #[test]
 fn rows_whose_node_is_gone_are_named_and_then_removed() {
   let fx = Fixture::new();
@@ -206,6 +213,10 @@ fn rows_whose_node_is_gone_are_named_and_then_removed() {
   f.wb_add("cc", WbItemKind::Todo, "write the door")
     .expect("add");
   f.wb_ask("vc", "cc", "go", None, false).expect("ask");
+  f.wb_ask("cc", "vc", "on it", None, false)
+    .expect("cc's reply");
+  f.wb_clear("cc", "vc")
+    .expect("cc marks vc's message handled");
   let db = Connection::open(fx.project().db_path()).expect("open");
   db.execute("DELETE FROM wb_node WHERE moniker = 'cc'", [])
     .expect("the hand repair");
@@ -214,16 +225,28 @@ fn rows_whose_node_is_gone_are_named_and_then_removed() {
   let preview = f.sync_overwrite(&Scope::All).expect("preview");
   assert!(
     preview.iter().any(|l| l.contains("board cc")
-      && l.contains("1 item(s) and 1 message(s)")
+      && l.contains("1 item(s), 1 message(s) it sent and 1 mark(s)")
       && l.contains("not on the roster")),
     "the orphaned rows are about to be deleted and the preview did not name them: {preview:?}"
   );
 
   f.sync_from_disk(&Scope::All).expect("disk -> db");
+  let kept: i64 = db
+    .query_row(
+      "SELECT count(*) FROM wb_message WHERE sender = 'vc' AND recipient = 'cc'",
+      [],
+      |r| r.get(0),
+    )
+    .expect("count");
+  assert_eq!(
+    kept, 1,
+    "a message to a node off the roster stays on its sender's board"
+  );
   let left: i64 = db
     .query_row(
       "SELECT (SELECT count(*) FROM wb_item WHERE node = 'cc') + \
-       (SELECT count(*) FROM wb_message WHERE recipient = 'cc')",
+       (SELECT count(*) FROM wb_message WHERE sender = 'cc') + \
+       (SELECT count(*) FROM wb_mark WHERE recipient = 'cc')",
       [],
       |r| r.get(0),
     )

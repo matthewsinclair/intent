@@ -1,5 +1,5 @@
 -- INTENT_VER: 3.2.4
--- SCHEMA_DDL_VER: 26
+-- SCHEMA_DDL_VER: 27
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
 -- The durable source of truth for a project, not an index of its files.
@@ -683,26 +683,40 @@ CREATE TABLE IF NOT EXISTS wb_item (
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   edited_at TEXT
 );
--- **`id` IS AN INTEGER PRIMARY KEY SO INSERTION ORDER IS RECOVERABLE**, which
--- is not decoration: every row a migration inserts in one pass shares one
--- `recorded_at`, so that column cannot order them and the board's only
--- cross-node ordering would be lost at the moment it became queryable. The
--- migration inserts in SOURCE FILE ORDER, ties on `recorded_at` order by
--- insertion, and every view orders that way.
+-- **`mid` IS THE MESSAGE'S ID AND THE ONE KEY ACROSS CLONES**: minted at the
+-- send, carried in the sender's board, named by the recipient's mark. Every
+-- order a message is read in is `mid` order, which is send order, so it is
+-- the same in every clone; `id` is this store's row number and nothing else.
+-- A message is the SENDER's: this table is the store's image of every board's
+-- `sent`, and holds nothing the recipient writes.
 -- openness: carried by intent/whiteboard/<node>/board.json
 CREATE TABLE IF NOT EXISTS wb_message (
   id INTEGER PRIMARY KEY,
+  mid TEXT NOT NULL,
   sender TEXT NOT NULL,
   recipient TEXT NOT NULL,
   body TEXT NOT NULL,
   re TEXT,
   fyi INTEGER NOT NULL DEFAULT 0,
-  state TEXT NOT NULL,
-  handled_at TEXT,
   recorded_at TEXT NOT NULL,
   authored_at TEXT,
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   edited_at TEXT
 );
+-- **EVERY MARK HAS ONE HOME, AND IT IS HERE**: the store's image of every
+-- board's `handled`. A message is handled when a mark names its `mid`; a mark
+-- whose message no board carries yet is the same row with an empty join, kept
+-- and counted by nothing.
+-- openness: carried by intent/whiteboard/<node>/board.json
+CREATE TABLE IF NOT EXISTS wb_mark (
+  mid TEXT PRIMARY KEY,
+  sender TEXT NOT NULL,
+  recipient TEXT NOT NULL,
+  handled_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
 CREATE INDEX IF NOT EXISTS wb_item_by_node ON wb_item (node, kind, seq);
-CREATE INDEX IF NOT EXISTS wb_message_by_recipient ON wb_message (recipient, id);
+CREATE UNIQUE INDEX IF NOT EXISTS wb_message_by_mid ON wb_message (mid);
+CREATE INDEX IF NOT EXISTS wb_message_by_sender ON wb_message (sender, mid);
+CREATE INDEX IF NOT EXISTS wb_message_by_recipient ON wb_message (recipient, mid);
+CREATE INDEX IF NOT EXISTS wb_mark_by_recipient ON wb_mark (recipient, mid);

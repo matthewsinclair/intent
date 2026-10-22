@@ -1654,6 +1654,51 @@ fn event_checks(project: &Project, out: &mut Vec<Finding>) {
 // File checks
 // ---------------------------------------------------------------------------
 
+/// Every `board.json` still in the old shape, and every old message no board
+/// can carry, as uncounted advisories (issue 0612).
+///
+/// **NAMED, NEVER COUNTED.** A board in the old shape is read and converted by
+/// the one reader, so nothing is wrong with the estate: it is waiting for the
+/// re-render that one board write does, and a commit refused for that would be
+/// an outage on the day it upgrades. A message whose sender has no board is
+/// not carried, because a message lives on its sender's board now, and the old
+/// file keeps it in git; saying so is the whole of the remedy.
+fn board_shape_advisories(project: &Project) -> Vec<Finding> {
+  let on_disk = match crate::ingest::boards_on_disk(project) {
+    Ok(on_disk) => on_disk,
+    Err(e) => {
+      return vec![Finding::new(
+        project.relative(&project.whiteboard_dir()),
+        FindingClass::Advisory,
+        format!("the boards could not be read to say which are in the old shape: {e}"),
+      )];
+    }
+  };
+  let mut out = Vec::new();
+  for node in &on_disk.old_shape {
+    out.push(Finding::new(
+      project.relative(&project.board_json(node)),
+      FindingClass::Advisory,
+      format!(
+        "in the old shape (`{}`), where a message sat with its recipient: this binary reads it, and the next board write re-renders every `board.json` and inbox view in `{}` -- one mechanical commit, the coordinating node's or hv's",
+        crate::model::BOARD_SCHEMA_V3,
+        crate::model::BOARD_SCHEMA
+      ),
+    ));
+  }
+  for m in &on_disk.uncarried {
+    out.push(Finding::new(
+      project.relative(&project.board_json(&m.board)),
+      FindingClass::Advisory,
+      format!(
+        "carries a message from `{}` recorded {} whose sender has no board: a message lives on its sender's board now, so this one is not carried, and the old file keeps it in git",
+        m.sender, m.recorded_at
+      ),
+    ));
+  }
+  out
+}
+
 fn file_checks(project: &Project, canon: &Canon, ctx: &RenderContext<'_>, report: &mut Report) {
   // **`doctor` ASKS THE MANIFEST, and until now it did not.** The three-state
   // answer already existed for exactly this reader -- `realised_threads`'s own
@@ -1668,6 +1713,7 @@ fn file_checks(project: &Project, canon: &Canon, ctx: &RenderContext<'_>, report
   let skew = views::skew(project, canon, ctx, &realised);
   report.views_checked = views::render_all(project, canon, ctx).len();
   report.findings.extend(skew);
+  report.findings.extend(board_shape_advisories(project));
 
   // **Every file under a thread that nothing in the model holds, named.** The
   // classifier is `Project::classify` rather than a list repeated here: a

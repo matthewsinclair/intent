@@ -131,6 +131,9 @@ fn the_rung_leaves_one_row_per_key_and_the_content_findable() {
         [],
       )
       .expect("plant a row with no duplicate");
+    // The store is the current DDL's, and rung 32 after this one reads the
+    // message tables as schema 31 held them.
+    crate::common::wb_messages_as_at_31(&conn);
     conn
       .pragma_update(None, "user_version", 30)
       .expect("stamp the version before the rung");

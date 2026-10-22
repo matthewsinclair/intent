@@ -19,7 +19,8 @@ use serde_json::json;
 use crate::event::Envelope;
 use crate::model::{
   AcceptanceTest, BOARD_SCHEMA, Board, BoardRows, Criterion, ISSUE_SCHEMA, Issue, Legacy, Related,
-  RowChange, THREAD_SCHEMA, Thread, WbItem, WbMessage, WbNode, WorkPackage, enum_str,
+  RowChange, THREAD_SCHEMA, Thread, WbHandled, WbItem, WbMessage, WbMessageState, WbNode, WbSent,
+  WorkPackage, enum_str,
 };
 use crate::prose::DocSection;
 use crate::sync::FileEntry;
@@ -766,29 +767,43 @@ CREATE TABLE IF NOT EXISTS wb_item (
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   edited_at TEXT
 );
--- **`id` IS AN INTEGER PRIMARY KEY SO INSERTION ORDER IS RECOVERABLE**, which
--- is not decoration: every row a migration inserts in one pass shares one
--- `recorded_at`, so that column cannot order them and the board's only
--- cross-node ordering would be lost at the moment it became queryable. The
--- migration inserts in SOURCE FILE ORDER, ties on `recorded_at` order by
--- insertion, and every view orders that way.
+-- **`mid` IS THE MESSAGE'S ID AND THE ONE KEY ACROSS CLONES**: minted at the
+-- send, carried in the sender's board, named by the recipient's mark. Every
+-- order a message is read in is `mid` order, which is send order, so it is
+-- the same in every clone; `id` is this store's row number and nothing else.
+-- A message is the SENDER's: this table is the store's image of every board's
+-- `sent`, and holds nothing the recipient writes.
 -- openness: carried by intent/whiteboard/<node>/board.json
 CREATE TABLE IF NOT EXISTS wb_message (
   id INTEGER PRIMARY KEY,
+  mid TEXT NOT NULL,
   sender TEXT NOT NULL,
   recipient TEXT NOT NULL,
   body TEXT NOT NULL,
   re TEXT,
   fyi INTEGER NOT NULL DEFAULT 0,
-  state TEXT NOT NULL,
-  handled_at TEXT,
   recorded_at TEXT NOT NULL,
   authored_at TEXT,
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   edited_at TEXT
 );
+-- **EVERY MARK HAS ONE HOME, AND IT IS HERE**: the store's image of every
+-- board's `handled`. A message is handled when a mark names its `mid`; a mark
+-- whose message no board carries yet is the same row with an empty join, kept
+-- and counted by nothing.
+-- openness: carried by intent/whiteboard/<node>/board.json
+CREATE TABLE IF NOT EXISTS wb_mark (
+  mid TEXT PRIMARY KEY,
+  sender TEXT NOT NULL,
+  recipient TEXT NOT NULL,
+  handled_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
 CREATE INDEX IF NOT EXISTS wb_item_by_node ON wb_item (node, kind, seq);
-CREATE INDEX IF NOT EXISTS wb_message_by_recipient ON wb_message (recipient, id);
+CREATE UNIQUE INDEX IF NOT EXISTS wb_message_by_mid ON wb_message (mid);
+CREATE INDEX IF NOT EXISTS wb_message_by_sender ON wb_message (sender, mid);
+CREATE INDEX IF NOT EXISTS wb_message_by_recipient ON wb_message (recipient, mid);
+CREATE INDEX IF NOT EXISTS wb_mark_by_recipient ON wb_mark (recipient, mid);
 ";
 
 /// **The shape of [`DDL`], stamped into every store this binary creates**
@@ -813,7 +828,7 @@ CREATE INDEX IF NOT EXISTS wb_message_by_recipient ON wb_message (recipient, id)
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 31;
+pub const SCHEMA_VERSION: i32 = 32;
 
 /// FTS5 `secure-delete` on both search tables: a `DELETE` takes the row's terms
 /// out of the inverted index rather than writing a tombstone for them.
@@ -1937,7 +1952,59 @@ const MIGRATIONS: &[(i32, &str)] = &[(
     // go, which is why the DDL hash is too.
     DOC_SECTIONS_DEDUPE,
   ),
+  (
+    32,
+    // 31 -> 32: a message is its sender's and a mark its recipient's (0612).
+    // `wb_message` gains `mid` and drops `state` and `handled_at`; every mark
+    // moves to `wb_mark`, its one home.
+    //
+    // **THE IDS ARE DERIVED IN RUST, BEFORE THIS SQL, IN THE SAME
+    // TRANSACTION** ([`Store::rung_step`]): a message that predates the shape
+    // takes the id `model::derived_message_ids` gives its row, the same id a
+    // fresh store gives it from the old files, and SQLite cannot compute it.
+    // That step adds `mid` to the old table; this SQL moves the marks out and
+    // rebuilds the table without the recipient's columns, for rung 15's
+    // reason, with each index re-created after it.
+    "CREATE TABLE IF NOT EXISTS wb_mark (
+       mid TEXT PRIMARY KEY,
+       sender TEXT NOT NULL,
+       recipient TEXT NOT NULL,
+       handled_at TEXT NOT NULL,
+       updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+     );
+     INSERT INTO wb_mark (mid, sender, recipient, handled_at, updated_at)
+       SELECT mid, sender, recipient, coalesce(handled_at, recorded_at), updated_at
+       FROM wb_message WHERE state = 'handled';
+     CREATE TABLE wb_message_rebuilt (
+       id INTEGER PRIMARY KEY,
+       mid TEXT NOT NULL,
+       sender TEXT NOT NULL,
+       recipient TEXT NOT NULL,
+       body TEXT NOT NULL,
+       re TEXT,
+       fyi INTEGER NOT NULL DEFAULT 0,
+       recorded_at TEXT NOT NULL,
+       authored_at TEXT,
+       updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+       edited_at TEXT
+     );
+     INSERT INTO wb_message_rebuilt (id, mid, sender, recipient, body, re, fyi, recorded_at,
+       authored_at, updated_at, edited_at)
+       SELECT id, mid, sender, recipient, body, re, fyi, recorded_at, authored_at, updated_at,
+         edited_at
+       FROM wb_message;
+     DROP TABLE wb_message;
+     ALTER TABLE wb_message_rebuilt RENAME TO wb_message;
+     CREATE UNIQUE INDEX IF NOT EXISTS wb_message_by_mid ON wb_message (mid);
+     CREATE INDEX IF NOT EXISTS wb_message_by_sender ON wb_message (sender, mid);
+     CREATE INDEX IF NOT EXISTS wb_message_by_recipient ON wb_message (recipient, mid);
+     CREATE INDEX IF NOT EXISTS wb_mark_by_recipient ON wb_mark (recipient, mid);",
+  ),
 ];
+
+/// The Rust step of a migration rung, run in the rung's own transaction ahead
+/// of its SQL: see [`Store::rung_step`].
+type RungStep = fn(&rusqlite::Transaction<'_>) -> Result<(), StoreError>;
 
 /// The `symbols` columns a [`crate::index::symbols::Symbol`] is read from, in
 /// the order `Store::symbol_rows` reads them.
@@ -3049,7 +3116,10 @@ pub enum ProjectStateEdit {
 pub struct WbOrphans {
   pub node: String,
   pub items: usize,
+  /// The messages the node SENT, which are its board's (issue 0612).
   pub messages: usize,
+  /// The node's marks on messages it handled.
+  pub marks: usize,
 }
 
 /// One message as `wb edit message` addresses it (issue 0523): the row it is,
@@ -3362,7 +3432,11 @@ impl WbWrite<'_> {
     Ok(())
   }
 
-  /// Append one message to the recipient's board.
+  /// Append one message to the SENDER's board, and say which id it was given.
+  ///
+  /// **THE ID IS MINTED HERE, ONE PER ROW, AND NEVER BY A CALLER** (issue
+  /// 0612): it is the key a recipient's mark names in every clone, so it comes
+  /// from the crate's one minter at the send, as an event's does.
   ///
   /// **NO CALLER SUPPLIES THE SERVICE'S STAMP, AND THERE IS NO PARAMETER FOR
   /// ONE.** The clock is read by the database at the write, as a VALUE and never
@@ -3386,19 +3460,24 @@ impl WbWrite<'_> {
     re: Option<&str>,
     fyi: bool,
     authored_at: Option<&str>,
-  ) -> Result<(), StoreError> {
+  ) -> Result<String, StoreError> {
+    let mid = crate::event::next_id();
     self.moved += self.tx.execute(
-      "INSERT INTO wb_message (sender, recipient, body, re, fyi, state, handled_at, recorded_at, \
-       authored_at, updated_at) \
-       VALUES (?1, ?2, ?3, ?4, ?5, 'live', NULL, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), ?6, \
+      "INSERT INTO wb_message (mid, sender, recipient, body, re, fyi, recorded_at, authored_at, \
+       updated_at) \
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), ?7, \
        strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
-      params![sender, recipient, body, re, fyi, authored_at],
+      params![mid, sender, recipient, body, re, fyi, authored_at],
     )?;
-    Ok(())
+    Ok(mid)
   }
 
   /// Mark every live message from `sender` to `recipient` handled, and say how
   /// many moved.
+  ///
+  /// **A MARK IS A ROW IN `wb_mark`, THE RECIPIENT'S, AND NOTHING ON THE
+  /// MESSAGE MOVES** (issue 0612): the message is the sender's, so the clear
+  /// writes only what the recipient's board carries.
   ///
   /// **THE COUNT IS WHAT MOVED, NOT WHAT WAS THERE.** Clearing an inbox that
   /// was already clear moves nothing, and reporting its size either way would
@@ -3406,9 +3485,11 @@ impl WbWrite<'_> {
   /// to.
   pub fn clear_inbox(&mut self, sender: &str, recipient: &str) -> Result<usize, StoreError> {
     let moved = self.tx.execute(
-      "UPDATE wb_message SET handled_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), state = \
-       'handled', updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') \
-       WHERE sender = ?1 AND recipient = ?2 AND state = 'live'",
+      "INSERT INTO wb_mark (mid, sender, recipient, handled_at, updated_at) \
+       SELECT m.mid, m.sender, m.recipient, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), \
+       strftime('%Y-%m-%dT%H:%M:%fZ', 'now') \
+       FROM wb_message m WHERE m.sender = ?1 AND m.recipient = ?2 \
+       AND NOT EXISTS (SELECT 1 FROM wb_mark k WHERE k.mid = m.mid) ORDER BY m.mid",
       params![sender, recipient],
     )?;
     self.moved += moved;
@@ -3429,51 +3510,83 @@ impl WbWrite<'_> {
   /// **A CHANGED OR INSERTED ROW TAKES `updated_at` FROM THE CLOCK; EVERY OTHER
   /// STAMP IS CARRIED FROM THE BOARD**, because those are history and a restore
   /// is not the moment they happened. An inserted row takes the next id in the
-  /// order the boards hold it, which is the order the inbox reads back.
+  /// order the boards hold it; an inbox reads its messages in `mid` order, so
+  /// that id orders nothing a reader sees (issue 0612).
   fn restore(&mut self, offered: &[Board]) -> Result<(), StoreError> {
     // **A ROW NO BOARD HYDRATES IS A ROW NO BOARD OFFERS, AND IT GOES FIRST.**
-    // An item or message whose node is not on the roster never reaches `held`,
-    // so the diff cannot name it, and the tables must still end holding exactly
-    // the boards. Deleted before any insert, because a restore that brings the
+    // A row whose node is not on the roster never reaches `held`, so the diff
+    // cannot name it, and the tables must still end holding exactly the
+    // boards. Deleted before any insert, because a restore that brings the
     // moniker back would otherwise adopt rows it never offered. The sync
-    // preview names these from the same read (vc, on bank 1).
+    // preview names these from the same read (vc, on bank 1). **A MESSAGE
+    // HYDRATES ON ITS SENDER'S BOARD AND A MARK ON ITS RECIPIENT'S** (0612), so
+    // a node off the roster takes its items, the messages it sent and its marks
+    // with it, and this stays the only delete of a message.
     for orphan in Store::wb_orphans_on(&self.tx)? {
       self.moved += self
         .tx
         .execute("DELETE FROM wb_item WHERE node = ?1", params![orphan.node])?;
       self.moved += self.tx.execute(
-        "DELETE FROM wb_message WHERE recipient = ?1",
+        "DELETE FROM wb_message WHERE sender = ?1",
+        params![orphan.node],
+      )?;
+      self.moved += self.tx.execute(
+        "DELETE FROM wb_mark WHERE recipient = ?1",
         params![orphan.node],
       )?;
     }
     let held = Store::hydrate_boards_on(&self.tx)?;
-    let (item_ids, message_ids) = Store::wb_row_ids(&self.tx)?;
+    let item_ids = Store::wb_item_ids(&self.tx)?;
     let changes = crate::model::board_changes(&held, offered);
     let (was, now) = (BoardRows::of(&held), BoardRows::of(offered));
-    for change in &changes.messages {
+    // **A MESSAGE AND A MARK ARE THEIR `mid`, AND EACH TABLE IS DIFFED AGAINST
+    // ITS OWN LIST** (0612): `wb_message` against every board's `sent`,
+    // `wb_mark` against every board's `handled`. A mark whose message no board
+    // carries is a row like any other, so nothing moves between tables.
+    for change in &changes.sent {
       match *change {
         RowChange::Removed(h) => {
           self.moved += self.tx.execute(
-            "DELETE FROM wb_message WHERE id = ?1",
-            params![message_ids[h]],
+            "DELETE FROM wb_message WHERE mid = ?1",
+            params![was.sent[h].1.id],
           )?;
         }
-        RowChange::Changed { held, offered } => {
-          let m = now.messages[offered];
+        RowChange::Changed { offered, .. } => {
+          let (sender, s) = now.sent[offered];
           self.moved += self.tx.execute(
-            "UPDATE wb_message SET body = ?2, re = ?3, fyi = ?4, state = ?5, handled_at = ?6, \
-             authored_at = ?7, edited_at = ?8, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') \
-             WHERE id = ?1",
+            "UPDATE wb_message SET sender = ?2, recipient = ?3, body = ?4, re = ?5, fyi = ?6, \
+             recorded_at = ?7, authored_at = ?8, edited_at = ?9, \
+             updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE mid = ?1",
             params![
-              message_ids[held],
-              m.body,
-              m.re,
-              i64::from(m.fyi),
-              enum_str(&m.state),
-              m.handled_at,
-              m.authored_at,
-              m.edited_at
+              s.id,
+              sender,
+              s.recipient,
+              s.body,
+              s.re,
+              i64::from(s.fyi),
+              s.recorded_at,
+              s.authored_at,
+              s.edited_at
             ],
+          )?;
+        }
+        RowChange::Added(_) => {}
+      }
+    }
+    for change in &changes.handled {
+      match *change {
+        RowChange::Removed(h) => {
+          self.moved += self.tx.execute(
+            "DELETE FROM wb_mark WHERE mid = ?1",
+            params![was.handled[h].1.id],
+          )?;
+        }
+        RowChange::Changed { offered, .. } => {
+          let (recipient, k) = now.handled[offered];
+          self.moved += self.tx.execute(
+            "UPDATE wb_mark SET sender = ?2, recipient = ?3, handled_at = ?4, \
+             updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE mid = ?1",
+            params![k.id, k.sender, recipient, k.handled_at],
           )?;
         }
         RowChange::Added(_) => {}
@@ -3584,25 +3697,34 @@ impl WbWrite<'_> {
         )?;
       }
     }
-    for change in &changes.messages {
+    for change in &changes.sent {
       if let RowChange::Added(o) = *change {
-        let m = now.messages[o];
+        let (sender, s) = now.sent[o];
         self.moved += self.tx.execute(
-          "INSERT INTO wb_message (sender, recipient, body, re, fyi, state, handled_at, \
-           recorded_at, authored_at, edited_at, updated_at) \
-           VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+          "INSERT INTO wb_message (mid, sender, recipient, body, re, fyi, recorded_at, \
+           authored_at, edited_at, updated_at) \
+           VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
           params![
-            m.sender,
-            m.recipient,
-            m.body,
-            m.re,
-            i64::from(m.fyi),
-            enum_str(&m.state),
-            m.handled_at,
-            m.recorded_at,
-            m.authored_at,
-            m.edited_at,
+            s.id,
+            sender,
+            s.recipient,
+            s.body,
+            s.re,
+            i64::from(s.fyi),
+            s.recorded_at,
+            s.authored_at,
+            s.edited_at,
           ],
+        )?;
+      }
+    }
+    for change in &changes.handled {
+      if let RowChange::Added(o) = *change {
+        let (recipient, k) = now.handled[o];
+        self.moved += self.tx.execute(
+          "INSERT INTO wb_mark (mid, sender, recipient, handled_at, updated_at) \
+           VALUES (?1, ?2, ?3, ?4, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+          params![k.id, k.sender, recipient, k.handled_at],
         )?;
       }
     }
@@ -3880,6 +4002,9 @@ impl Store {
         continue;
       }
       let tx = Self::write_tx(conn)?;
+      if let Some(step) = Self::rung_step(*to) {
+        step(&tx)?;
+      }
       tx.execute_batch(sql)?;
       // **CHECKED INSIDE THE RUNG'S TRANSACTION, BEFORE THE VERSION MOVES.** A
       // migration that left dangling children is a corrupt store that opens
@@ -3896,6 +4021,48 @@ impl Store {
       }
       tx.pragma_update(None, "user_version", to)?;
       tx.commit()?;
+    }
+    Ok(())
+  }
+
+  /// The Rust a rung runs inside its transaction, ahead of its SQL, where the
+  /// rung needs a value SQLite cannot compute.
+  ///
+  /// **A STEP BELONGS TO ITS RUNG, NOT TO A SECOND LADDER**: it runs in the
+  /// rung's own transaction, so a failure rolls the rung back whole and the
+  /// store stays validly at the version before it.
+  fn rung_step(to: i32) -> Option<RungStep> {
+    match to {
+      32 => Some(Self::message_ids_for_rung_32),
+      _ => None,
+    }
+  }
+
+  /// Rung 32's step: give every message the id its old row derives (0612).
+  ///
+  /// **IN THE OLD BOARD'S ORDER**, recipient by recipient and by row within one,
+  /// because that is the order a `board.json` in the old shape carried them,
+  /// and [`crate::model::derived_message_ids`] counts its ordinals in it. So
+  /// this store's ids are the ones a fresh store derives from those files.
+  fn message_ids_for_rung_32(tx: &rusqlite::Transaction<'_>) -> Result<(), StoreError> {
+    tx.execute_batch("ALTER TABLE wb_message ADD COLUMN mid TEXT")?;
+    let rows: Vec<(i64, String, String, String)> = {
+      let mut stmt = tx.prepare(
+        "SELECT id, sender, recipient, recorded_at FROM wb_message ORDER BY recipient, id",
+      )?;
+      let rows = stmt.query_map([], |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?)))?;
+      rows.collect::<Result<_, _>>()?
+    };
+    let ids = crate::model::derived_message_ids(
+      rows
+        .iter()
+        .map(|(_, sender, recipient, at)| (sender.as_str(), recipient.as_str(), at.as_str())),
+    );
+    for ((id, ..), mid) in rows.iter().zip(&ids) {
+      tx.execute(
+        "UPDATE wb_message SET mid = ?2 WHERE id = ?1",
+        params![id, mid],
+      )?;
     }
     Ok(())
   }
@@ -5709,8 +5876,10 @@ impl Store {
   /// ordering for migrated content, so it is what the read preserves and what
   /// every view then renders.
   ///
-  /// A message belongs to its RECIPIENT's board: that is the shape the disk
-  /// already has, so one file is a whole readable board.
+  /// **A MESSAGE BELONGS TO ITS SENDER'S BOARD AND A MARK TO ITS RECIPIENT'S**
+  /// (issue 0612), so every field of a board is its own node's to write, and
+  /// a node that commits its own `board.json` commits every row it changed.
+  /// Both lists read in `mid` order, which is send order in every clone.
   pub fn hydrate_boards(&self) -> Result<Vec<Board>, StoreError> {
     Self::hydrate_boards_on(&self.conn)
   }
@@ -5771,7 +5940,8 @@ impl Store {
       boards.push(Board {
         schema: BOARD_SCHEMA.to_string(),
         items: Self::hydrate_items(conn, &moniker)?,
-        messages: Self::hydrate_messages(conn, &moniker)?,
+        sent: Self::hydrate_sent(conn, &moniker)?,
+        handled: Self::hydrate_handled(conn, &moniker)?,
         node,
       });
     }
@@ -5786,10 +5956,12 @@ impl Store {
   /// [`Store::wb_orphans`] on any connection: the ONE read both the restore's
   /// delete and the sync preview's warning take, so they name the same rows.
   fn wb_orphans_on(conn: &rusqlite::Connection) -> Result<Vec<WbOrphans>, StoreError> {
+    // A message is its SENDER's row and a mark its RECIPIENT's (issue 0612).
     let mut stmt = conn.prepare(
-      "SELECT node, sum(items), sum(messages) FROM ( \
-         SELECT node, 1 AS items, 0 AS messages FROM wb_item \
-         UNION ALL SELECT recipient, 0, 1 FROM wb_message \
+      "SELECT node, sum(items), sum(messages), sum(marks) FROM ( \
+         SELECT node, 1 AS items, 0 AS messages, 0 AS marks FROM wb_item \
+         UNION ALL SELECT sender, 0, 1, 0 FROM wb_message \
+         UNION ALL SELECT recipient, 0, 0, 1 FROM wb_mark \
        ) WHERE node NOT IN (SELECT moniker FROM wb_node) GROUP BY node ORDER BY node",
     )?;
     let rows = stmt.query_map([], |r| {
@@ -5797,29 +5969,22 @@ impl Store {
         node: r.get(0)?,
         items: r.get::<_, i64>(1)? as usize,
         messages: r.get::<_, i64>(2)? as usize,
+        marks: r.get::<_, i64>(3)? as usize,
       })
     })?;
     Ok(rows.collect::<Result<Vec<_>, _>>()?)
   }
 
-  /// The ids of every item and message, in exactly the order
-  /// [`Store::hydrate_boards`] reads the rows -- node by moniker, then id -- so
-  /// an index into its flattened boards is an index here.
-  fn wb_row_ids(conn: &rusqlite::Connection) -> Result<(Vec<i64>, Vec<i64>), StoreError> {
-    let read = |sql: &str| -> Result<Vec<i64>, StoreError> {
-      let mut stmt = conn.prepare(sql)?;
-      let ids = stmt.query_map([], |r| r.get(0))?;
-      Ok(ids.collect::<Result<Vec<_>, _>>()?)
-    };
-    Ok((
-      read(
-        "SELECT i.id FROM wb_item i JOIN wb_node n ON n.moniker = i.node ORDER BY n.moniker, i.id",
-      )?,
-      read(
-        "SELECT m.id FROM wb_message m JOIN wb_node n ON n.moniker = m.recipient \
-         ORDER BY n.moniker, m.id",
-      )?,
-    ))
+  /// The ids of every item, in exactly the order [`Store::hydrate_boards`]
+  /// reads them -- node by moniker, then id -- so an index into its flattened
+  /// boards is an index here. A message and a mark are addressed by their
+  /// `mid` and need no such map (issue 0612).
+  fn wb_item_ids(conn: &rusqlite::Connection) -> Result<Vec<i64>, StoreError> {
+    let mut stmt = conn.prepare(
+      "SELECT i.id FROM wb_item i JOIN wb_node n ON n.moniker = i.node ORDER BY n.moniker, i.id",
+    )?;
+    let ids = stmt.query_map([], |r| r.get(0))?;
+    Ok(ids.collect::<Result<Vec<_>, _>>()?)
   }
 
   fn hydrate_items(conn: &rusqlite::Connection, node: &str) -> Result<Vec<WbItem>, StoreError> {
@@ -5862,60 +6027,95 @@ impl Store {
       .collect()
   }
 
-  fn hydrate_messages(
+  /// The messages `sender` sent, as its board carries them, in `mid` order.
+  fn hydrate_sent(conn: &rusqlite::Connection, sender: &str) -> Result<Vec<WbSent>, StoreError> {
+    let mut stmt = conn.prepare(
+      "SELECT mid, recipient, body, re, fyi, recorded_at, authored_at, edited_at \
+       FROM wb_message WHERE sender = ?1 ORDER BY mid",
+    )?;
+    let rows = stmt.query_map(params![sender], |row| {
+      Ok(WbSent {
+        id: row.get(0)?,
+        recipient: row.get(1)?,
+        body: row.get(2)?,
+        re: row.get(3)?,
+        fyi: row.get::<_, i64>(4)? != 0,
+        recorded_at: row.get(5)?,
+        authored_at: row.get(6)?,
+        edited_at: row.get(7)?,
+      })
+    })?;
+    Ok(rows.collect::<Result<Vec<_>, _>>()?)
+  }
+
+  /// The marks `recipient` holds, as its board carries them, in `mid` order.
+  fn hydrate_handled(
     conn: &rusqlite::Connection,
     recipient: &str,
-  ) -> Result<Vec<WbMessage>, StoreError> {
-    let mut stmt = conn.prepare(
-      "SELECT sender, recipient, body, re, fyi, state, handled_at, recorded_at, authored_at, \
-       edited_at FROM wb_message WHERE recipient = ?1 ORDER BY id",
+  ) -> Result<Vec<WbHandled>, StoreError> {
+    let mut stmt = conn
+      .prepare("SELECT mid, sender, handled_at FROM wb_mark WHERE recipient = ?1 ORDER BY mid")?;
+    let rows = stmt.query_map(params![recipient], |row| {
+      Ok(WbHandled {
+        id: row.get(0)?,
+        sender: row.get(1)?,
+        handled_at: row.get(2)?,
+      })
+    })?;
+    Ok(rows.collect::<Result<Vec<_>, _>>()?)
+  }
+
+  /// Every message addressed to `recipient`, joined with the recipient's mark:
+  /// what its inbox holds, live and handled, in `mid` order (issue 0612).
+  ///
+  /// **THE JOIN IS THE ONE PLACE A MESSAGE AND ITS MARK MEET**, so every reader
+  /// that asks whether a message is handled -- `wb pickup`, `wb show`, `wb
+  /// status`, the bound -- asks the same two tables the same way.
+  pub fn wb_inbox(&self, recipient: &str) -> Result<Vec<WbMessage>, StoreError> {
+    let mut stmt = self.conn.prepare(
+      "SELECT m.mid, m.sender, m.recipient, m.body, m.re, m.fyi, k.handled_at, m.recorded_at, \
+       m.authored_at, m.edited_at \
+       FROM wb_message m LEFT JOIN wb_mark k ON k.mid = m.mid \
+       WHERE m.recipient = ?1 ORDER BY m.mid",
     )?;
-    let rows = stmt
-      .query_map(params![recipient], |row| {
-        Ok((
-          row.get::<_, String>(0)?,
-          row.get::<_, String>(1)?,
-          row.get::<_, String>(2)?,
-          row.get::<_, Option<String>>(3)?,
-          row.get::<_, i64>(4)?,
-          row.get::<_, String>(5)?,
-          row.get::<_, Option<String>>(6)?,
-          row.get::<_, String>(7)?,
-          row.get::<_, Option<String>>(8)?,
-          row.get::<_, Option<String>>(9)?,
-        ))
-      })?
-      .collect::<Result<Vec<_>, _>>()?;
-    rows
-      .into_iter()
-      .map(
-        |(
-          sender,
-          recipient,
-          body,
-          re,
-          fyi,
-          state,
-          handled_at,
-          recorded_at,
-          authored_at,
-          edited_at,
-        )| {
-          Ok(WbMessage {
-            sender,
-            recipient,
-            body,
-            re,
-            fyi: fyi != 0,
-            state: enum_from(&state)?,
-            handled_at,
-            recorded_at,
-            authored_at,
-            edited_at,
-          })
+    let rows = stmt.query_map(params![recipient], |row| {
+      let handled_at: Option<String> = row.get(6)?;
+      Ok(WbMessage {
+        id: row.get(0)?,
+        sender: row.get(1)?,
+        recipient: row.get(2)?,
+        body: row.get(3)?,
+        re: row.get(4)?,
+        fyi: row.get::<_, i64>(5)? != 0,
+        state: match handled_at {
+          Some(_) => WbMessageState::Handled,
+          None => WbMessageState::Live,
         },
-      )
-      .collect()
+        handled_at,
+        recorded_at: row.get(7)?,
+        authored_at: row.get(8)?,
+        edited_at: row.get(9)?,
+      })
+    })?;
+    Ok(rows.collect::<Result<Vec<_>, _>>()?)
+  }
+
+  /// The marks `recipient` holds on messages no board in this store carries
+  /// yet (issue 0612): a clone can take the recipient's commit before the
+  /// sender's. Kept, counted by nothing, and listed by `wb show --all`.
+  pub fn wb_marks_awaiting(&self, recipient: &str) -> Result<Vec<WbHandled>, StoreError> {
+    let mut stmt = self.conn.prepare(
+      "SELECT k.mid, k.sender, k.handled_at FROM wb_mark k WHERE k.recipient = ?1 \
+       AND NOT EXISTS (SELECT 1 FROM wb_message m WHERE m.mid = k.mid) ORDER BY k.mid",
+    )?;
+    let rows = stmt.query_map(params![recipient], |row| {
+      Ok(WbHandled {
+        id: row.get(0)?,
+        sender: row.get(1)?,
+        handled_at: row.get(2)?,
+      })
+    })?;
+    Ok(rows.collect::<Result<Vec<_>, _>>()?)
   }
 
   /// Run one whiteboard verb's writes, and record the verb.
@@ -6042,8 +6242,9 @@ impl Store {
   }
 
   /// Every message `sender` sent `recipient`, handled or live, in the order
-  /// they were sent (issue 0523). The order is the inbox's own, so a message's
-  /// position among those headed with one minute never changes.
+  /// they were sent (issue 0523). The order is the inbox's own, `mid` order
+  /// (issue 0612), so a message's position among those headed with one minute
+  /// never changes, in this clone or any other.
   pub fn wb_messages_between(
     &self,
     sender: &str,
@@ -6051,7 +6252,7 @@ impl Store {
   ) -> Result<Vec<MessageRow>, StoreError> {
     let mut stmt = self.conn.prepare(
       "SELECT id, body, recorded_at FROM wb_message WHERE sender = ?1 AND recipient = ?2 \
-       ORDER BY id",
+       ORDER BY mid",
     )?;
     let rows = stmt.query_map(params![sender, recipient], |row| {
       Ok(MessageRow {
@@ -6117,13 +6318,28 @@ impl Store {
   /// recipient's first `wb clear`, which marks it handled with the rest.
   pub fn wb_live_message_count(&self, sender: &str, recipient: &str) -> Result<usize, StoreError> {
     // Issue 0374: carried rows counted, so an inbox migrated over the bound refused its sender's next ask.
+    // A live message is one no mark names (issue 0612).
     let n: i64 = self.conn.query_row(
-      "SELECT count(*) FROM wb_message WHERE sender = ?1 AND recipient = ?2 AND state = 'live' \
-       AND authored_at IS NULL",
+      "SELECT count(*) FROM wb_message m WHERE m.sender = ?1 AND m.recipient = ?2 \
+       AND m.authored_at IS NULL AND NOT EXISTS (SELECT 1 FROM wb_mark k WHERE k.mid = m.mid)",
       params![sender, recipient],
       |r| r.get(0),
     )?;
     Ok(n as usize)
+  }
+
+  /// How many messages addressed to each node no mark names, by recipient
+  /// (issue 0612): `wb status`'s count, carried entries included, as it has
+  /// always counted them.
+  pub fn wb_live_counts(&self) -> Result<std::collections::BTreeMap<String, usize>, StoreError> {
+    let mut stmt = self.conn.prepare(
+      "SELECT m.recipient, count(*) FROM wb_message m \
+       WHERE NOT EXISTS (SELECT 1 FROM wb_mark k WHERE k.mid = m.mid) GROUP BY m.recipient",
+    )?;
+    let rows = stmt.query_map([], |r| {
+      Ok((r.get::<_, String>(0)?, r.get::<_, i64>(1)? as usize))
+    })?;
+    Ok(rows.collect::<Result<_, _>>()?)
   }
 
   /// How many LIVE items one node holds of one kind.

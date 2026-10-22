@@ -246,8 +246,10 @@ fn no_generated_view_names_a_generated_artefact_as_truth() {
   // fails the day the generator renders a board this walk does not examine.
   // The record is the authored text, so a node quoting a phrase in an item or
   // a message is the node speaking, never the generator making a claim.
+  // An inbox renders from its SENDER's board (issue 0612), so what any board
+  // carries is authored text for every view here.
+  let authored = serde_json::to_string(&canon.boards).expect("boards serialise");
   for board in &canon.boards {
-    let authored = serde_json::to_string(board).expect("board serialises");
     let node = &board.node.moniker;
     let mut per_board = vec![(
       project.wb_board_view(node),
@@ -260,7 +262,7 @@ fn no_generated_view_names_a_generated_artefact_as_truth() {
       }
       per_board.push((
         project.wb_inbox_view(node, sender),
-        views::wb_inbox(sender, node, &board.messages, &context),
+        views::wb_inbox(sender, node, &peer.sent, &context),
       ));
     }
     for (path, content) in per_board {

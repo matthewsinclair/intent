@@ -1,5 +1,5 @@
 # INTENT_VER: 3.2.4
-# SCHEMA_SDL_VER: 19
+# SCHEMA_SDL_VER: 20
 
 enum AcKind {
   TEST
@@ -207,12 +207,12 @@ type Attachment {
 """
 One node's whiteboard: `whiteboard/<node>/board.json`.
 
-**Messages sit with the RECIPIENT, which is the shape the disk already
-has** -- `<recipient>/inbox.<sender>.md` -- so one file is a whole readable
-board and rendering one needs no join across nodes. A sender writing into
-the recipient's file is exactly what `ask` does today; the single-writer
-invariant is enforced by the API and is not a property of which file the
-extract lands in.
+**EVERY FIELD HAS ONE WRITER, AND IT IS THIS NODE.** Its items, the
+messages it SENT, and its marks on the messages it has handled. A message
+lives with its sender because the sender is the only node that writes it,
+and the mark lives with the recipient for the same reason, so a node that
+commits its own `board.json` and the inbox views it wrote has committed
+everything its verbs changed.
 """
 type Board {
   """
@@ -225,9 +225,13 @@ type Board {
   """
   items: [WbItem!]!
   """
-  The messages ADDRESSED TO this node, in insertion order.
+  The messages this node SENT, in id order, which is send order.
   """
-  messages: [WbMessage!]!
+  sent: [WbSent!]!
+  """
+  This node's marks on the messages it has handled, in id order.
+  """
+  handled: [WbHandled!]!
 }
 
 type Criterion {
@@ -602,6 +606,31 @@ enum Tshirt {
 }
 
 """
+One mark as the RECIPIENT's board carries it: this node handled the message
+with this id, at this instant. Written by `wb clear` alone. The
+recipient is the board's own node, so it is not repeated here.
+
+**A MARK WHOSE MESSAGE NO BOARD CARRIES YET IS KEPT**, because a clone can
+hold the recipient's commit before the sender's. Nothing counts it and no
+view renders it, and it joins its message when that arrives.
+"""
+type WbHandled {
+  """
+  The [`WbSent::id`] of the message handled.
+  """
+  id: String!
+  """
+  Who sent it, so a mark whose message has not arrived can still say whose
+  it is.
+  """
+  sender: String!
+  """
+  When `wb clear` marked it, read from the clock at the write.
+  """
+  handledAt: String!
+}
+
+"""
 One line of a node's board.
 """
 type WbItem {
@@ -651,48 +680,6 @@ enum WbItemState {
 }
 
 """
-One entry in an inbox.
-"""
-type WbMessage {
-  sender: String!
-  recipient: String!
-  body: String!
-  """
-  The timestamp of the entry this one answers, where it answers one.
-  """
-  re: String
-  """
-  Set when the sender expects no reply.
-  """
-  fyi: Boolean!
-  state: WbMessageState!
-  handledAt: String
-  """
-  **The message's send instant**, written by the service from the clock,
-  once, at the write. Not named `sent_at`: see the note above this block.
-  """
-  recordedAt: String!
-  """
-  The stamp the entry's `## (...)` heading claimed, verbatim. **Untrusted,
-  and non-null only on a migrated row** -- this is the field that carries
-  the class of value the clock guard exists to refuse, so it is typed as
-  text and never read as a time.
-  """
-  authoredAt: String
-  """
-  When `wb edit` last changed the body, read from the clock at the write;
-  `None` for a body never edited. Its presence is the
-  `(edited)` mark, and it carries none of the old body.
-  """
-  editedAt: String
-}
-
-enum WbMessageState {
-  LIVE
-  HANDLED
-}
-
-"""
 A participant: the board's header block, modelled.
 """
 type WbNode {
@@ -737,6 +724,50 @@ type WbNode {
 enum WbNodeStatus {
   ACTIVE
   PAUSED
+}
+
+"""
+One message as its SENDER's board carries it: every field only the sender
+writes, and nothing the recipient does. The sender is the
+board's own node, so it is not repeated here.
+"""
+type WbSent {
+  """
+  **The message's id, the one key across clones.** Minted by the service
+  at the send, one per row, so each recipient of an announce has its own.
+  A mark names its message by this and nothing else: a minute anchor and
+  its `#<n>` are per-minute order, which a clone holding some of the
+  sender's messages, or holding them in another order, cannot share. A
+  message that predates this shape carries an id DERIVED from its old row
+  rather than minted ([`derived_message_ids`]), so every clone converting
+  the old shape gives it the same one. Ids sort in send order.
+  """
+  id: String!
+  recipient: String!
+  body: String!
+  """
+  The timestamp of the entry this one answers, where it answers one.
+  """
+  re: String
+  """
+  Set when the sender expects no reply.
+  """
+  fyi: Boolean!
+  """
+  **The message's send instant**, written by the service from the clock,
+  once, at the write.
+  """
+  recordedAt: String!
+  """
+  The stamp the entry's `## (...)` heading claimed, verbatim. **Untrusted,
+  and non-null only on a migrated row.**
+  """
+  authoredAt: String
+  """
+  When `wb edit message` last changed the body; its presence is the
+  `(edited)` mark, and it carries none of the old body.
+  """
+  editedAt: String
 }
 
 type WorkPackage {

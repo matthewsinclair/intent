@@ -2383,6 +2383,9 @@ pub struct Pickup {
   /// for a board this read never looked at.
   pub standing: Option<Vec<crate::model::WbItem>>,
   pub peers: Vec<PeerRead>,
+  /// The files this pickup landed, by whose they are to commit (issue 0612),
+  /// as every board verb's answer carries them.
+  pub written: Written,
 }
 
 /// The item kinds a booting node is obliged to read on `hv`'s board: what `hv`
@@ -2425,30 +2428,67 @@ pub struct KindCount {
 /// of it, so it sits beside [`Pickup`] rather than in the model.
 // Issue 0322: one `wb show` measured at hv's terminal was mostly the bodies of
 // handled messages, with no live message on the board.
+//
+// **THE INBOX IS READ FROM THE STORE, NOT FROM THE BOARD** (issue 0612): a
+// board carries what its node sent and its marks, and the messages addressed
+// to it live on their senders' boards, so the store's join is the one place a
+// node's inbox, with its handled state, can be read whole.
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 pub struct BoardRead {
   #[serde(flatten)]
   pub board: Board,
+  /// The messages addressed to this node: the live ones, or every one with
+  /// `all`, each with its state.
+  pub messages: Vec<crate::model::WbMessage>,
   pub handled_count: usize,
+  /// This node's marks on messages no board here carries yet, with `all`.
+  pub awaiting: Vec<crate::model::WbHandled>,
 }
 
 impl BoardRead {
-  pub fn of(mut board: Board, all: bool) -> Self {
-    let handled_count = board
-      .messages
+  pub fn of(
+    board: Board,
+    inbox: Vec<crate::model::WbMessage>,
+    awaiting: Vec<crate::model::WbHandled>,
+    all: bool,
+  ) -> Self {
+    let handled_count = inbox
       .iter()
       .filter(|m| m.state == crate::model::WbMessageState::Handled)
       .count();
-    if !all {
-      board
-        .messages
-        .retain(|m| m.state == crate::model::WbMessageState::Live);
-    }
+    let messages = match all {
+      true => inbox,
+      false => inbox
+        .into_iter()
+        .filter(|m| m.state == crate::model::WbMessageState::Live)
+        .collect(),
+    };
     Self {
       board,
+      messages,
       handled_count,
+      awaiting: if all { awaiting } else { Vec::new() },
     }
   }
+}
+
+/// The files one board verb landed, split by whose they are to commit (issue
+/// 0612): `wrote` is the acting node's own -- its `board.json` and `wip.md`,
+/// every inbox view it is the sender of, and the event the verb recorded --
+/// and `re_rendered` is anyone else's, beside its owner. Read off what landed,
+/// never predicted.
+#[derive(Debug, Clone, Default, PartialEq, Eq, serde::Serialize)]
+pub struct Written {
+  pub wrote: Vec<String>,
+  pub re_rendered: Vec<RerenderedFile>,
+}
+
+/// A file a verb landed that is another node's to commit, or nobody's.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+pub struct RerenderedFile {
+  pub path: String,
+  /// The node whose verbs write this file; empty for a file no node's are.
+  pub owner: String,
 }
 
 /// Refuse an address naming another project, before a door resolves anything
@@ -3442,7 +3482,7 @@ const RERENDER_REMEDY: &str = "the change is safe in the store -- do NOT retry i
 /// file bytes reached from outside the store is usually a teammate's write a
 /// pull brought, and carrying it is right; a checkout of an older commit puts
 /// bytes there too, and carrying those rolls the store's board back.
-pub(crate) const BOARDS_NOT_IN_THE_STORE_REMEDY: &str = "`intent sync --to-store` carries each board.json into this store with everything it holds, OVER what the store holds for that node: its items, archived ones included, and its messages with their handled state. After a pull that is your teammates' writes; after checking out an older commit it is that commit's older board, and carrying it rolls this store's board back. To keep the store's board instead, delete that node's board.json and run `intent sync --to-disk`, which re-creates it from the store and discards the file's version. Until one of them runs, every board write, `wb register` and `wb migrate` are refused, because each would write the store's board over one of these files. A store an older Intent warmed, which took the threads and issues and no board, is the other usual cause";
+pub(crate) const BOARDS_NOT_IN_THE_STORE_REMEDY: &str = "`intent sync --to-store` carries each board.json into this store with everything it holds, OVER what the store holds for that node: its items, archived ones included, the messages it sent and its marks on the messages it handled. After a pull that is your teammates' writes; after checking out an older commit it is that commit's older board, and carrying it rolls this store's board back. To keep the store's board instead, delete that node's board.json and run `intent sync --to-disk`, which re-creates it from the store and discards the file's version. Until one of them runs, every board write, `wb register` and `wb migrate` are refused, because each would write the store's board over one of these files. A store an older Intent warmed, which took the threads and issues and no board, is the other usual cause";
 
 pub(crate) const BOARD_RERENDER_REMEDY: &str = "the row is safe in the store and the TREE is behind it -- do NOT retry the write. Clear the filesystem cause, then run `intent wb touch --node <you>`: a board's views are landed by a board write and by nothing else. NOT `intent organize`, which renders no board, and NOT `intent st sync`, which rewrites a thread's views only -- either one reports a clean run and leaves the board stale";
 
@@ -3914,6 +3954,9 @@ pub struct Facade {
   /// Notes from steps that failed after a write landed, held for a verb that
   /// returns no [`Outcome`] until [`Facade::take_notes`] hands them over.
   after_write: Vec<Note>,
+  /// The files the board writes landed since the last [`Facade::take_written`],
+  /// for a verb to name them (issue 0612).
+  board_landed: Vec<std::path::PathBuf>,
   /// This connection's `PRAGMA data_version` when `canon` was last read from
   /// the store: what [`Facade::catch_up`] compares against (issue 0520).
   seen: i64,
@@ -4286,6 +4329,7 @@ impl Facade {
       embedder,
       resolvers: carried(&crate::index::resolved::readers()),
       after_write: Vec::new(),
+      board_landed: Vec::new(),
       seen,
     }
   }
@@ -7706,6 +7750,60 @@ impl Facade {
     std::mem::take(&mut self.after_write)
   }
 
+  /// The files the board writes landed since the last call, split by whose
+  /// they are to commit when `node` is the acting node (issue 0612), taken so
+  /// each verb names its own.
+  ///
+  /// **A NODE COMMITS WHAT ITS OWN VERBS WROTE, AND THIS IS WHERE THAT IS READ
+  /// OFF RATHER THAN REMEMBERED.** A whiteboard file is its writer's by
+  /// `views::whiteboard_writer`; an event file in the write set is
+  /// the verb's own, because a board write lands its events with it. Anything
+  /// else the write landed -- the re-render of an older shape, or a board the
+  /// store moved under another node -- is named with its owner.
+  pub fn take_written(&mut self, node: &str) -> Written {
+    let mut landed = std::mem::take(&mut self.board_landed);
+    landed.sort();
+    landed.dedup();
+    let events = self.project.events_dir();
+    let mut written = Written::default();
+    for path in landed {
+      let owner = match path.starts_with(&events) {
+        true => Some(node.to_string()),
+        false => crate::views::whiteboard_writer(&self.project, &path),
+      };
+      let rel = self.project.relative(&path);
+      match owner {
+        Some(owner) if owner == node => written.wrote.push(rel),
+        owner => written.re_rendered.push(RerenderedFile {
+          path: rel,
+          owner: owner.unwrap_or_default(),
+        }),
+      }
+    }
+    written
+  }
+
+  /// Every file the board writes landed since the last call, all of it as
+  /// `wrote` (issue 0612): what a ROSTER act rendered -- `wb register`, `wb
+  /// migrate` -- which whoever registers or migrates commits whole.
+  ///
+  /// **A ROSTER ACT IS NOT ONE NODE'S, SO THE ONE-WRITER SPLIT DOES NOT
+  /// APPLY.** Registering a node renders an empty inbox in its directory for
+  /// every peer, and each of those is the peer's by
+  /// `views::whiteboard_writer`; left to the peers, a fresh checkout
+  /// would count them missing until every peer had written. It is the same
+  /// reasoning that makes the re-render of a new board shape one commit by the
+  /// coordinating node.
+  pub fn take_written_by_the_roster(&mut self) -> Written {
+    let mut landed = std::mem::take(&mut self.board_landed);
+    landed.sort();
+    landed.dedup();
+    Written {
+      wrote: landed.iter().map(|p| self.project.relative(p)).collect(),
+      re_rendered: Vec::new(),
+    }
+  }
+
   /// What opening this project's store did about Dropbox when the open
   /// created `intent/.cache`, taken so it is said once (ST0083 WP-07).
   pub fn take_cache_marking(&mut self) -> Option<crate::dropbox::Marking> {
@@ -7789,6 +7887,7 @@ impl Facade {
       .commit()
       .map_err(|cause| FacadeError::ViewsNotWritten { cause })?;
     let landed: Vec<std::path::PathBuf> = applied.written().map(std::path::PathBuf::from).collect();
+    self.board_landed.extend(landed.iter().cloned());
     applied.keep();
     let canon_files: Vec<(std::path::PathBuf, String)> = canon_files
       .into_iter()
@@ -7834,8 +7933,9 @@ impl Facade {
   /// differently only when `moved` asks for it (issue 0554 (b)). Without it
   /// the answer is 0535's alone: a migrated board the store never took in.
   fn boards_ahead(&self, moved: bool) -> Result<Vec<String>, FacadeError> {
-    let (on_disk, _not_boards) =
-      ingest::boards_on_disk(&self.project).map_err(FacadeError::Ingest)?;
+    let on_disk = ingest::boards_on_disk(&self.project)
+      .map_err(FacadeError::Ingest)?
+      .boards;
     let moved = match moved {
       true => {
         let index = self.store.file_index().map_err(FacadeError::Store)?;
@@ -7901,8 +8001,9 @@ impl Facade {
   /// takes it.
   fn pulled_boards(&self) -> Result<(Vec<String>, Vec<Board>), FacadeError> {
     let held = self.boards()?;
-    let (on_disk, _not_boards) =
-      ingest::boards_on_disk(&self.project).map_err(FacadeError::Ingest)?;
+    let on_disk = ingest::boards_on_disk(&self.project)
+      .map_err(FacadeError::Ingest)?
+      .boards;
     let index = self.store.file_index().map_err(FacadeError::Store)?;
     let moved = ingest::boards_moved_on_disk(&self.project, &index).map_err(FacadeError::Ingest)?;
     let recorded: std::collections::HashMap<&str, &str> = index
@@ -8170,10 +8271,37 @@ impl Facade {
       })
       .collect();
     Ok(Pickup {
-      board: BoardRead::of(board, all),
+      board: self.board_read_of(board, all)?,
       standing,
       peers,
+      written: self.take_written(node),
     })
+  }
+
+  /// One node's board as `wb show` answers it: [`BoardRead`], its inbox read
+  /// from the store (issue 0612).
+  pub fn board_read(&self, node: &str, all: bool) -> Result<BoardRead, FacadeError> {
+    self.board_read_of(self.board(node)?, all)
+  }
+
+  fn board_read_of(&self, board: Board, all: bool) -> Result<BoardRead, FacadeError> {
+    let node = board.node.moniker.clone();
+    Ok(BoardRead::of(
+      board,
+      self.store.wb_inbox(&node).map_err(FacadeError::Store)?,
+      self
+        .store
+        .wb_marks_awaiting(&node)
+        .map_err(FacadeError::Store)?,
+      all,
+    ))
+  }
+
+  /// How many messages addressed to each node are still live, by moniker,
+  /// read from the store (issue 0612): a board carries what its node sent,
+  /// so no board can count its own inbox.
+  pub fn wb_live_counts(&self) -> Result<std::collections::BTreeMap<String, usize>, FacadeError> {
+    self.store.wb_live_counts().map_err(FacadeError::Store)
   }
 
   /// Add one item of a WRITABLE kind to the acting node's own board.
@@ -8326,11 +8454,14 @@ impl Facade {
     self.refuse_if_the_store_lacks_any()?;
     self.require_registered(node)?;
     let standing = self.board(node)?;
-    if !standing.items.is_empty() || !standing.messages.is_empty() {
+    // The messages a carry brings are the ones addressed to this node, which
+    // the store joins from their senders' boards (issue 0612).
+    let inbox = self.store.wb_inbox(node).map_err(FacadeError::Store)?;
+    if !standing.items.is_empty() || !inbox.is_empty() {
       return Err(FacadeError::WbAlreadyCarried {
         node: node.to_string(),
         items: standing.items.len(),
-        messages: standing.messages.len(),
+        messages: inbox.len(),
       });
     }
 
@@ -9382,6 +9513,7 @@ impl Facade {
       .store
       .wb_write(&event, |w| {
         w.insert_message(sender, recipient, body, re, fyi, None)
+          .map(|_| ())
       })
       .map_err(FacadeError::Store)?;
     self.land_board_write_noting()?;
@@ -10966,8 +11098,8 @@ impl Facade {
     if scope.named().is_none() {
       for orphan in self.store.wb_orphans().map_err(FacadeError::Store)? {
         out.push(format!(
-          "board {}: {} item(s) and {} message(s) whose node is not on the roster, would be DELETED",
-          orphan.node, orphan.items, orphan.messages
+          "board {}: {} item(s), {} message(s) it sent and {} mark(s) whose node is not on the roster, would be DELETED",
+          orphan.node, orphan.items, orphan.messages, orphan.marks
         ));
       }
       out.extend(Self::board_differences(
@@ -11018,18 +11150,32 @@ impl Facade {
         verdict(change)
       ));
     }
-    for change in &changes.messages {
+    // A message is its sender's board's and a mark its recipient's (0612).
+    for change in &changes.sent {
       let (from_held, at) = pick(change);
-      let m = if from_held {
-        was.messages[at]
+      let (sender, s) = if from_held {
+        was.sent[at]
       } else {
-        now.messages[at]
+        now.sent[at]
       };
       out.push(format!(
-        "board {}: message from {} recorded {} {}",
-        m.recipient,
-        m.sender,
-        m.recorded_at,
+        "board {sender}: message to {} recorded {} {}",
+        s.recipient,
+        s.recorded_at,
+        verdict(change)
+      ));
+    }
+    for change in &changes.handled {
+      let (from_held, at) = pick(change);
+      let (recipient, k) = if from_held {
+        was.handled[at]
+      } else {
+        now.handled[at]
+      };
+      out.push(format!(
+        "board {recipient}: mark on {}'s message {} {}",
+        k.sender,
+        k.id,
         verdict(change)
       ));
     }
@@ -17934,14 +18080,15 @@ impl Facade {
         .into_iter()
         // **A VIEW AN OLDER INTENT RENDERED IS NOT A HAND EDIT**, by the one
         // predicate doctor asks (issue 0539): text the renderer owns (0309,
-        // widened by 0446), or a node's board in the shape before 0532. Nobody's
-        // work is under either. Issue 0385: the first write after an upgrade
+        // widened by 0446), a node's board in the shape before 0532, or an inbox
+        // with the handled marks it carried before 0612. Nobody's work is under
+        // any of them. Issue 0385: the first write after an upgrade
         // warned for every such view, and 0539 found that again for boards.
         .filter(|(path, disk)| {
           before.get(path).is_some_and(|prior| {
             prior != disk
               && views::rendered_by_an_older_intent(
-                views::node_board_view(&self.project, path).is_some(),
+                views::view_kind(&self.project, path),
                 &String::from_utf8_lossy(disk),
                 &String::from_utf8_lossy(prior),
               )

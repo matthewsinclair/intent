@@ -45,6 +45,8 @@ mod a_due_backup_is_taken_by_whichever_door_asks;
 mod a_facade_catches_up_with_a_peers_commit;
 #[path = "a_fresh_clone_takes_its_boards.rs"]
 mod a_fresh_clone_takes_its_boards;
+#[path = "a_message_id_from_the_old_shape_is_the_same_everywhere.rs"]
+mod a_message_id_from_the_old_shape_is_the_same_everywhere;
 #[path = "a_mutation_does_not_duplicate_the_prose_index.rs"]
 mod a_mutation_does_not_duplicate_the_prose_index;
 #[path = "a_re_cite_keeps_what_it_was_not_given.rs"]
@@ -499,6 +501,8 @@ mod unsatisfied_note_serde;
 mod view_determinism;
 #[path = "view_skew_check.rs"]
 mod view_skew_check;
+#[path = "wb_a_sender_commits_its_own_message.rs"]
+mod wb_a_sender_commits_its_own_message;
 #[path = "wb_archive_frees_the_bound.rs"]
 mod wb_archive_frees_the_bound;
 #[path = "wb_edit_keeps_the_old_text_out_of_a_commit.rs"]

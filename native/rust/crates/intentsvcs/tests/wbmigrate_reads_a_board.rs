@@ -319,7 +319,8 @@ fn a_rendered_board_reads_back_without_carrying_its_empty_sections() {
       authored_at: None,
       edited_at: None,
     }],
-    messages: Vec::new(),
+    sent: Vec::new(),
+    handled: Vec::new(),
   };
   let rendered = intentsvcs::views::wb_board_body(&board);
   assert!(

@@ -117,7 +117,7 @@
 #
 #   The row-shaped reader is driven the same way, because a code path that has
 #   never been driven is exactly what this criterion is about:
-#     drop `fyi` from the wb_message cell   -> WbMessage.fyi SHIPPED WITH NO CONTRACT ROW
+#     drop `fyi` from the wb_message cell   -> WbSent.fyi SHIPPED WITH NO CONTRACT ROW
 #     add a name to the wb_item cell        -> WbItem.<name> CONTRACT ROW WITH NO SHIPPED PROPERTY
 #     rename the `wb_node` row label        -> REFUSED (AC-16.3), the mapped row is not found
 #
@@ -172,7 +172,8 @@ Invoker|invoker
 Subject|subject
 WbNode|wb_node#wb_node
 WbItem|wb_node#wb_item
-WbMessage|wb_node#wb_message
+WbSent|wb_node#wb_message
+WbHandled|wb_node#wb_mark
 Board|board
 -|project|never:`intent/.config/config.json` is CONFIGURATION read by `Config`, not a canon entity with a published JSON face. Its contract is the file format itself, and its catch-all row (`Config::extra`, carried verbatim) means a property set could not be closed even in principle. RATIFIED by vc under the pen, 2026-09-12, on this line's own reasoning. Declared here rather than skipped silently: it is reported every run and it never gates.
 EOF

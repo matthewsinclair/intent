@@ -622,6 +622,35 @@ pub fn git_commit_all_at(root: &Path) {
   git_at(root, &["commit", "-q", "-m", "fixture estate"]);
 }
 
+/// Put the whiteboard's message tables back in the shape a store at schema 31
+/// holds (issue 0612): `wb_message` carrying the recipient's `state` and
+/// `handled_at` on the row and no `mid`, and no `wb_mark`. For a fixture that
+/// stamps a store from the current `DDL` with a version before rung 32, so the
+/// ladder it walks reads the shape that version had.
+pub fn wb_messages_as_at_31(conn: &rusqlite::Connection) {
+  conn
+    .execute_batch(
+      "DROP TABLE wb_mark;
+       DROP TABLE wb_message;
+       CREATE TABLE wb_message (
+         id INTEGER PRIMARY KEY,
+         sender TEXT NOT NULL,
+         recipient TEXT NOT NULL,
+         body TEXT NOT NULL,
+         re TEXT,
+         fyi INTEGER NOT NULL DEFAULT 0,
+         state TEXT NOT NULL,
+         handled_at TEXT,
+         recorded_at TEXT NOT NULL,
+         authored_at TEXT,
+         updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+         edited_at TEXT
+       );
+       CREATE INDEX wb_message_by_recipient ON wb_message (recipient, id);",
+    )
+    .expect("the whiteboard's message tables as schema 31 held them");
+}
+
 /// Run a git command at `root`, RAISING on failure -- a silently failed git
 /// leaves the tree in a state the test did not ask for, and every assertion
 /// after it then measures the wrong world.

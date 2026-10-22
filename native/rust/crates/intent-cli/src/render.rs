@@ -4248,6 +4248,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
         } else {
           println!("ok: {moniker} unchanged, already {name} ({role})");
         }
+        print_written(&f.take_written_by_the_roster());
         return Ok(());
       }
       let registered = match (moniker, name, role) {
@@ -4276,18 +4277,20 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       // and reporting the roster's SIZE either time would say a write happened
       // when none did.
       println!("ok: {registered} node(s) registered");
+      print_written(&f.take_written_by_the_roster());
       Ok(())
     }
     Some(("status", m)) => {
       let f = open()?;
       let boards = f.wb_status().map_err(fail)?;
-      report_wb_status(&boards, m.get_flag("json"))
+      let live = f.wb_live_counts().map_err(fail)?;
+      report_wb_status(&boards, &live, m.get_flag("json"))
     }
     Some(("show", m)) => {
       let f = open()?;
       let node = arg(m, "node")?;
       let all = m.get_flag("all");
-      let board = intentsvcs::facade::BoardRead::of(f.board(&node).map_err(fail)?, all);
+      let board = f.board_read(&node, all).map_err(fail)?;
       report_wb_board(&board, m.get_flag("json"), all)
     }
     Some(("ask", m)) => {
@@ -4305,6 +4308,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       .map_err(fail)?;
       print_notes(&f.take_notes(), &me);
       println!("ok: {me} -> {to}");
+      print_written(&f.take_written(&me));
       Ok(())
     }
     Some(("announce", m)) => {
@@ -4317,6 +4321,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       // node but the sender, so on a one-node board it reaches nobody, and
       // printing the roster size would report a delivery that did not happen.
       println!("ok: {me} -> {reached} node(s)");
+      print_written(&f.take_written(&me));
       Ok(())
     }
     Some(("touch", m)) => {
@@ -4325,6 +4330,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       f.wb_touch(&me).map_err(fail)?;
       print_notes(&f.take_notes(), &me);
       println!("ok: {me} touched");
+      print_written(&f.take_written(&me));
       Ok(())
     }
     Some(("release", m)) => {
@@ -4333,6 +4339,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       f.wb_release(&me).map_err(fail)?;
       print_notes(&f.take_notes(), &me);
       println!("ok: {me} paused");
+      print_written(&f.take_written(&me));
       Ok(())
     }
     Some(("pickup", m)) => {
@@ -4418,6 +4425,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
           );
         }
       }
+      print_written(&up.written);
       Ok(())
     }
     Some(("add", m)) => {
@@ -4428,6 +4436,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       let seq = f.wb_add(&me, kind, &text).map_err(fail)?;
       print_notes(&f.take_notes(), &me);
       println!("ok: {me} {} {seq}", item_kind_word(&kind));
+      print_written(&f.take_written(&me));
       Ok(())
     }
     Some(("decide", m)) => {
@@ -4437,6 +4446,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       let seq = f.wb_decide(&me, &text).map_err(fail)?;
       print_notes(&f.take_notes(), &me);
       println!("ok: {me} decision {seq}");
+      print_written(&f.take_written(&me));
       Ok(())
     }
     Some(("migrate", m)) => {
@@ -4457,7 +4467,9 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       }
       let carried = result.map_err(fail)?;
       print_notes(&f.take_notes(), &node);
-      report_wb_migration(&carried)
+      report_wb_migration(&carried)?;
+      print_written(&f.take_written_by_the_roster());
+      Ok(())
     }
     Some(("archive", m)) => {
       let me = acting_node(m)?;
@@ -4487,6 +4499,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
           format!("has no live {word} {seq}")
         }
       );
+      print_written(&f.take_written(&me));
       Ok(())
     }
     Some(("edit", m)) => {
@@ -4499,7 +4512,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       // its recipient and its inbox heading. `--to` is what tells them apart, so
       // it is required for one and refused for the other, and both refusals show
       // both forms.
-      let (said, edited) = if kind == "message" {
+      let (said, edited, written) = if kind == "message" {
         let Some(to) = to else {
           return Err(edit_forms(
             "`wb edit message` edits a message you sent, so it needs `--to <recipient>`",
@@ -4512,6 +4525,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
         (
           format!("message {id} for {}", edited.recipients.join(", ")),
           edited.edit,
+          f.take_written(&me),
         )
       } else {
         if to.is_some() {
@@ -4524,7 +4538,11 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
         let mut f = open()?;
         let edited = f.wb_edit(&me, kind, seq, &text).map_err(fail)?;
         print_notes(&f.take_notes(), &me);
-        (format!("{} {seq}", item_kind_word(&kind)), edited)
+        (
+          format!("{} {seq}", item_kind_word(&kind)),
+          edited,
+          f.take_written(&me),
+        )
       };
       // **IT SAYS WHERE THE OLD TEXT IS, BECAUSE THAT IS WHAT THE VERB IS FOR**
       // (issue 0523), and what it says is what HEAD and the next commit were
@@ -4570,6 +4588,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       } else {
         println!("ok: {me} {said} edited {how}");
       }
+      print_written(&written);
       if !still_at_head.is_empty() {
         println!(
           "  HEAD already carries the old text in {}, which git history keeps",
@@ -4610,6 +4629,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
         "ok: {me} {} {what}",
         if moved { "claims" } else { "already claimed" }
       );
+      print_written(&f.take_written(&me));
       Ok(())
     }
     Some(("unclaim", m)) => {
@@ -4622,6 +4642,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
         "ok: {me} {} {what}",
         if moved { "drops" } else { "was not claiming" }
       );
+      print_written(&f.take_written(&me));
       Ok(())
     }
     Some(("clear", m)) => {
@@ -4631,6 +4652,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       let moved = f.wb_clear(&me, &from).map_err(fail)?;
       print_notes(&f.take_notes(), &me);
       println!("ok: {moved} message(s) from {from} marked handled");
+      print_written(&f.take_written(&me));
       Ok(())
     }
     _ => Err(Failure::Error(
@@ -4690,7 +4712,14 @@ pub(crate) fn pickup_session(flag: Option<&str>) -> Option<String> {
 /// header with nothing under it is the shape that reads as "this project has no
 /// nodes" when what it means is "nobody has registered them yet", and the two
 /// send an operator to different places.
-fn report_wb_status(boards: &[intentsvcs::model::Board], json: bool) -> Result<(), Failure> {
+/// The roster, one line per node. **THE MESSAGE COUNT IS `live`'s, READ FROM
+/// THE STORE** (issue 0612): a node's board carries what it sent, so the
+/// messages addressed to it are counted where they are joined with its marks.
+fn report_wb_status(
+  boards: &[intentsvcs::model::Board],
+  live: &std::collections::BTreeMap<String, usize>,
+  json: bool,
+) -> Result<(), Failure> {
   if json {
     let rows: Vec<serde_json::Value> = boards.iter().map(|b| serde_json::json!(b.node)).collect();
     println!(
@@ -4729,10 +4758,7 @@ fn report_wb_status(boards: &[intentsvcs::model::Board], json: bool) -> Result<(
         .iter()
         .filter(|i| i.state == intentsvcs::model::WbItemState::Live)
         .count(),
-      b.messages
-        .iter()
-        .filter(|m| m.state == intentsvcs::model::WbMessageState::Live)
-        .count(),
+      live.get(&n.moniker).copied().unwrap_or(0),
       focus,
     );
   }
@@ -4806,8 +4832,8 @@ fn report_wb_board(
     );
   }
   println!("archived ({})", archived.len());
-  println!("messages ({})", board.messages.len());
-  for msg in &board.messages {
+  println!("messages ({})", read.messages.len());
+  for msg in &read.messages {
     println!(
       "  {} -> {}{}{}{} {}",
       msg.sender,
@@ -4818,6 +4844,14 @@ fn report_wb_board(
       msg.body
     );
   }
+  // **A MARK WHOSE MESSAGE HAS NOT ARRIVED IS LISTED, NOT HIDDEN** (issue
+  // 0612): this clone holds the recipient's commit and not yet the sender's.
+  for mark in &read.awaiting {
+    println!(
+      "  handled, message not carried yet: {} {}",
+      mark.sender, mark.id
+    );
+  }
   if !all {
     println!(
       "handled: {} message(s) -- --all lists them",
@@ -4825,6 +4859,21 @@ fn report_wb_board(
     );
   }
   Ok(())
+}
+
+/// The files one board verb landed (issue 0612), after its `ok:` line:
+/// `wrote:` for the acting node's own, which is what it commits, and
+/// `re-rendered:` for anyone else's, with whose each is.
+fn print_written(written: &intentsvcs::facade::Written) {
+  for path in &written.wrote {
+    println!("wrote: {path}");
+  }
+  for file in &written.re_rendered {
+    match file.owner.as_str() {
+      "" => println!("re-rendered: {}", file.path),
+      owner => println!("re-rendered: {} ({owner}'s)", file.path),
+    }
+  }
 }
 
 /// The item kind a table-declared wire word names.

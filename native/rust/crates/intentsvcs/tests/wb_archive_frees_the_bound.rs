@@ -61,7 +61,7 @@ fn a_bound_is_freed_by_the_state_change_and_nothing_is_deleted() {
     1,
     "the archived item is still a row"
   );
-  let cc = f.board("cc").expect("cc's board");
+  let cc = f.board_read("cc", true).expect("cc's board");
   assert_eq!(
     cc.messages.len(),
     bound.live_messages + 1,

@@ -615,7 +615,7 @@ fn two_nodes(fx: &Fixture) -> Facade {
 
 /// The anchor of the first message `vc` holds.
 fn first_anchor(f: &Facade) -> String {
-  heading_stamp(&f.board("vc").expect("vc's board").messages[0].recorded_at)
+  heading_stamp(&f.board_read("vc", true).expect("vc's board").messages[0].recorded_at)
 }
 
 #[test]
@@ -736,7 +736,7 @@ fn two_messages_in_one_minute_are_refused_by_name_and_n_picks_one() {
 
   assert_eq!(edited.recipients, vec!["vc".to_string()]);
   let bodies: Vec<String> = f
-    .board("vc")
+    .board_read("vc", true)
     .expect("vc's board")
     .messages
     .into_iter()
@@ -795,7 +795,7 @@ fn a_carried_message_never_borrows_a_later_messages_event() {
   let fx = Fixture::new();
   let mut f = carried_inbox(&fx);
   let (body, recorded_at) = {
-    let board = f.board("vc").expect("vc's board");
+    let board = f.board_read("vc", true).expect("vc's board");
     (
       board.messages[1].body.clone(),
       board.messages[1].recorded_at.clone(),
@@ -817,7 +817,7 @@ fn a_carried_message_never_borrows_a_later_messages_event() {
     "the later ask's event is untouched"
   );
   let bodies: Vec<String> = f
-    .board("vc")
+    .board_read("vc", true)
     .expect("vc's board")
     .messages
     .into_iter()

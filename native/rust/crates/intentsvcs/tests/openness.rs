@@ -524,17 +524,23 @@ fn populated() -> (Fixture, Vec<String>) {
     // Issue 0525: an edited row's mark crosses the round trip too.
     edited_at: Some("2026-09-23T10:00:00.000Z".to_string()),
   });
-  boards[0].messages.push(intentsvcs::model::WbMessage {
-    sender: second,
+  // Issue 0612: a message is on its SENDER's board and a mark on its
+  // RECIPIENT's, so both tables cross the round trip.
+  let id = "01K5Z00000000000000000QK01".to_string();
+  boards[1].sent.push(intentsvcs::model::WbSent {
+    id: id.clone(),
     recipient: first,
     body: "the kestrel combinator returns its first argument".to_string(),
     re: None,
     fyi: true,
-    state: intentsvcs::model::WbMessageState::Live,
-    handled_at: None,
-    recorded_at: stamp,
+    recorded_at: stamp.clone(),
     authored_at: None,
     edited_at: Some("2026-09-23T10:00:01.000Z".to_string()),
+  });
+  boards[0].handled.push(intentsvcs::model::WbHandled {
+    id,
+    sender: second,
+    handled_at: stamp,
   });
   {
     let mut store = intentsvcs::store::Store::open(&fx.project().db_path()).expect("store");
@@ -629,9 +635,16 @@ fn the_round_trip_carries_every_table_that_claims_a_file_form() {
   assert!(
     boards
       .iter()
-      .flat_map(|b| b.messages.iter())
+      .flat_map(|b| b.sent.iter())
       .any(|m| m.body == "the kestrel combinator returns its first argument"),
-    "and the message addressed to that board: {boards:?}"
+    "and the message, on its sender's board: {boards:?}"
+  );
+  assert!(
+    boards
+      .iter()
+      .flat_map(|b| b.handled.iter())
+      .any(|k| k.id == "01K5Z00000000000000000QK01"),
+    "and its recipient's mark on it: {boards:?}"
   );
   // **THE EVENT LOG'S DISK ROUND TRIP IS BACK, AS ONE FILE PER EVENT** (ST0078
   // P1, which reverses D53). Every event the fixture's verbs wrote landed as a

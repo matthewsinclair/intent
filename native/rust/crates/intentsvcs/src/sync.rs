@@ -171,9 +171,10 @@ pub struct NotYetBuilt {
 /// CLAIM.** Driving the full `AC-10.5` corpus, `conservation_check.sh` reported
 /// 135 UNACCOUNTED files on baize and 347 on the canary, and issue `0183` was
 /// filed proposing the migrator name them as its out-of-model set. **110 of
-/// baize's 135 -- 81% -- are `intent/whiteboard/`, which `data-model.md:510`
-/// says LEFT the not-modelled set at D30 and is modelled as
-/// `wb_node`/`wb_item`/`wb_message`.** Declaring them out-of-model would have
+/// baize's 135 -- 81% -- are `intent/whiteboard/`, which `data-model.md`, in
+/// "What is deliberately not modelled", says LEFT the not-modelled set at D30
+/// and is modelled as `wb_node`/`wb_item`/`wb_message`/`wb_mark` (issue 0612
+/// added the last).** Declaring them out-of-model would have
 /// contradicted an hv ruling that moved them INTO the model, and it is exactly
 /// the denominator attack [`NOT_CARRIED`] warns about two hundred lines above:
 /// *a set this code chose for itself would be a denominator certifying itself.*

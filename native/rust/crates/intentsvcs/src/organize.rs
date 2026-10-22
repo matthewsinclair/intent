@@ -1523,7 +1523,8 @@ pub fn gate(step: &Step) -> Result<(), OrganizeError> {
 fn only_renderer_owned_text_moved(on_disk: &[u8], carried: &[u8]) -> bool {
   match (std::str::from_utf8(on_disk), std::str::from_utf8(carried)) {
     (Ok(disk), Ok(rendered)) => {
-      crate::views::rendered_by_an_older_intent(false, disk, rendered).is_some()
+      crate::views::rendered_by_an_older_intent(crate::views::ViewKind::Other, disk, rendered)
+        .is_some()
     }
     _ => false,
   }

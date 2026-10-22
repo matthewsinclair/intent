@@ -329,7 +329,10 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // 26: `edited_at` on `wb_item` and `wb_message` (issue 0525, schema rung
     // 30). One field on two modelled types, so all three faces move for it, as
     // they did for `Issue.reporter`.
-    ("SCHEMA_DDL_VER", 26, 0x9849_8519_fcf0_4cf7),
+    // 27: a message and its mark each in its own table (issue 0612, schema rung
+    // 32): `wb_message` gains `mid` and drops `state` and `handled_at`, and
+    // `wb_mark` is new. All three faces move for it.
+    ("SCHEMA_DDL_VER", 27, 0x27c8_39d0_5a43_f0bb),
     // SDL and JSON move together, as they did for the AC kind: `AtStatus`
     // gained a `Fiat` variant and `AcceptanceTest` gained the optional record
     // beside it, so the wire contract now says an acceptance test can be closed
@@ -341,7 +344,9 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // 17 -> 18 is the sixth item kind, `directive` (issue 0375). The board reads
     // gave `WbItemKind` an SDL face, so unlike `hold` the enum gains a member here.
     // 18 -> 19 is `editedAt` on `WbItem` and `WbMessage` (issue 0525).
-    ("SCHEMA_SDL_VER", 19, 0xe0f4_1790_d2de_5e68),
+    // 19 -> 20 is the board as its file carries it (issue 0612): `messages`
+    // gives way to `sent: [WbSent!]!` and `handled: [WbHandled!]!`.
+    ("SCHEMA_SDL_VER", 20, 0xfc01_ce52_b325_1bbc),
     // Same change on the JSON face. 13 -> 14. 16 -> 17 is `status_legacy`.
     // **THE COORDINATION ENTITIES GET A PUBLISHED FACE (WP-14).** 17 -> 18, and
     // it is a ONE-face result: `board.schema.json` joins the JSON contract, so
@@ -357,7 +362,10 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // 0375). The DDL stores the kind as text with no CHECK, so it does not move.
     // 21 -> 22 is `edited_at` on the board's item and message (issue 0525),
     // omitted when null so an unedited board re-emits byte for byte.
-    ("SCHEMA_JSON_VER", 22, 0x1a65_a32a_6dbc_d1c3),
+    // 22 -> 23 is `intent/board@4.0` (issue 0612): `messages` gives way to
+    // `sent` and `handled`, a message on its sender's board and a mark on its
+    // recipient's.
+    ("SCHEMA_JSON_VER", 23, 0x1a77_8568_1b67_b6e8),
   ];
 
   let mut moved = Vec::new();

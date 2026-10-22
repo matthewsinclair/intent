@@ -2279,21 +2279,29 @@ pub fn parse_domain_date(raw: &str) -> Result<String, DateError> {
 // by insertion, and every view orders that way.
 
 /// The `schema` field value for a node's board canon file.
-pub const BOARD_SCHEMA: &str = "intent/board@3.0";
+pub const BOARD_SCHEMA: &str = "intent/board@4.0";
+
+/// The board file's shape before issue 0612, when a message sat with its
+/// RECIPIENT. Read once, by [`boards_from_files`], and never written.
+pub const BOARD_SCHEMA_V3: &str = "intent/board@3.0";
 
 /// One node's whiteboard: `whiteboard/<node>/board.json`.
 ///
-/// **Messages sit with the RECIPIENT, which is the shape the disk already
-/// has** -- `<recipient>/inbox.<sender>.md` -- so one file is a whole readable
-/// board and rendering one needs no join across nodes. A sender writing into
-/// the recipient's file is exactly what `ask` does today; the single-writer
-/// invariant is enforced by the API and is not a property of which file the
-/// extract lands in.
+/// **EVERY FIELD HAS ONE WRITER, AND IT IS THIS NODE.** Its items, the
+/// messages it SENT, and its marks on the messages it has handled. A message
+/// lives with its sender because the sender is the only node that writes it,
+/// and the mark lives with the recipient for the same reason, so a node that
+/// commits its own `board.json` and the inbox views it wrote has committed
+/// everything its verbs changed.
 // **THE CRITERION ID STAYS OUT OF THE `///`, DELIBERATELY.** schemars lifts doc
 // comments into the published `board.schema.json`, and a consumer holding that
 // face has no AC-14.5 to look up -- the same reason `ddl.sql`'s comments carry
-// their reasoning without thread ids. The invariant above is AC-14.5; this
-// `//` is where saying so belongs, because it does not ship.
+// their reasoning without thread ids. The single-writer invariant is AC-14.5,
+// now a property of the file and not only of the API (issue 0612): until then
+// the message sat with its recipient, so an ask moved the recipient's file and
+// no commit the sender could make left main right, a fresh checkout counting
+// view skew or holding no message. This `//` is where saying so belongs,
+// because it does not ship.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, SimpleObject)]
 #[serde(deny_unknown_fields)]
 pub struct Board {
@@ -2303,9 +2311,12 @@ pub struct Board {
   /// This node's own items, in `seq` order.
   #[serde(default)]
   pub items: Vec<WbItem>,
-  /// The messages ADDRESSED TO this node, in insertion order.
+  /// The messages this node SENT, in id order, which is send order.
   #[serde(default)]
-  pub messages: Vec<WbMessage>,
+  pub sent: Vec<WbSent>,
+  /// This node's marks on the messages it has handled, in id order.
+  #[serde(default)]
+  pub handled: Vec<WbHandled>,
 }
 
 /// A participant: the board's header block, modelled.
@@ -2383,10 +2394,18 @@ pub struct WbItem {
   pub edited_at: Option<String>,
 }
 
-/// One entry in an inbox.
+/// One entry in an inbox as the store joins it: the sender's message and, once
+/// the recipient has cleared it, the recipient's mark.
+///
+/// **A READ, NOT A FILE SHAPE.** No `board.json` carries this; the sender's
+/// carries a [`WbSent`] and the recipient's a [`WbHandled`], and the store
+/// joins the two by [`Self::id`] for every reader that asks what an inbox
+/// holds.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, SimpleObject)]
 #[serde(deny_unknown_fields)]
 pub struct WbMessage {
+  /// The message's id, the one key across clones: see [`WbSent::id`].
+  pub id: String,
   pub sender: String,
   pub recipient: String,
   pub body: String,
@@ -2414,6 +2433,269 @@ pub struct WbMessage {
   pub edited_at: Option<String>,
 }
 
+/// One message as its SENDER's board carries it: every field only the sender
+/// writes, and nothing the recipient does. The sender is the
+/// board's own node, so it is not repeated here.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, SimpleObject)]
+#[serde(deny_unknown_fields)]
+pub struct WbSent {
+  /// **The message's id, the one key across clones.** Minted by the service
+  /// at the send, one per row, so each recipient of an announce has its own.
+  /// A mark names its message by this and nothing else: a minute anchor and
+  /// its `#<n>` are per-minute order, which a clone holding some of the
+  /// sender's messages, or holding them in another order, cannot share. A
+  /// message that predates this shape carries an id DERIVED from its old row
+  /// rather than minted ([`derived_message_ids`]), so every clone converting
+  /// the old shape gives it the same one. Ids sort in send order.
+  pub id: String,
+  pub recipient: String,
+  pub body: String,
+  /// The timestamp of the entry this one answers, where it answers one.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub re: Option<String>,
+  /// Set when the sender expects no reply.
+  pub fyi: bool,
+  /// **The message's send instant**, written by the service from the clock,
+  /// once, at the write.
+  pub recorded_at: String,
+  /// The stamp the entry's `## (...)` heading claimed, verbatim. **Untrusted,
+  /// and non-null only on a migrated row.**
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub authored_at: Option<String>,
+  /// When `wb edit message` last changed the body; its presence is the
+  /// `(edited)` mark, and it carries none of the old body.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub edited_at: Option<String>,
+}
+
+/// One mark as the RECIPIENT's board carries it: this node handled the message
+/// with this id, at this instant. Written by `wb clear` alone. The
+/// recipient is the board's own node, so it is not repeated here.
+///
+/// **A MARK WHOSE MESSAGE NO BOARD CARRIES YET IS KEPT**, because a clone can
+/// hold the recipient's commit before the sender's. Nothing counts it and no
+/// view renders it, and it joins its message when that arrives.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, SimpleObject)]
+#[serde(deny_unknown_fields)]
+pub struct WbHandled {
+  /// The [`WbSent::id`] of the message handled.
+  pub id: String,
+  /// Who sent it, so a mark whose message has not arrived can still say whose
+  /// it is.
+  pub sender: String,
+  /// When `wb clear` marked it, read from the clock at the write.
+  pub handled_at: String,
+}
+
+/// A `board.json` in the shape [`BOARD_SCHEMA_V3`] describes, where a message
+/// sat with its recipient. Read by [`boards_from_files`] and nowhere else.
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct BoardV3 {
+  pub schema: String,
+  pub node: WbNode,
+  #[serde(default)]
+  pub items: Vec<WbItem>,
+  /// The messages ADDRESSED TO this node, in insertion order.
+  #[serde(default)]
+  pub messages: Vec<WbMessageV3>,
+}
+
+/// One message as a [`BoardV3`] carried it.
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct WbMessageV3 {
+  pub sender: String,
+  pub recipient: String,
+  pub body: String,
+  #[serde(default)]
+  pub re: Option<String>,
+  pub fyi: bool,
+  pub state: WbMessageState,
+  #[serde(default)]
+  pub handled_at: Option<String>,
+  pub recorded_at: String,
+  #[serde(default)]
+  pub authored_at: Option<String>,
+  #[serde(default)]
+  pub edited_at: Option<String>,
+}
+
+/// A message an old-shape board carried that no board in the set can carry
+/// now, because its sender has no board (issue 0612). Named, never dropped
+/// silently; the old `board.json` stays in git.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct UncarriedMessage {
+  /// The node whose old board carried it: the recipient.
+  pub board: String,
+  pub sender: String,
+  pub recorded_at: String,
+}
+
+/// The ids of messages that predate issue 0612, for rows given in each
+/// recipient's old board order -- the order a [`BoardV3`] carried them, which
+/// is the store's insertion order within that recipient.
+///
+/// **DERIVED, NOT MINTED, SO EVERY CLONE AGREES.** Two clones that each
+/// converted the old shape with fresh ids would give one message two, and a
+/// mark written in one would never join the message as the other extracts it.
+/// So the id is a function of the old row alone: a ULID whose time is the
+/// row's `recorded_at` and whose random half is the row's ordinal among the
+/// rows sharing its (sender, recipient, recorded_at), then a hash of the four.
+/// The ordinal tells twins apart and keeps a migration pass's rows, which share
+/// one `recorded_at`, in their source order when sorted by id.
+///
+/// **ONE FUNCTION FOR BOTH DOORS**: the old-shape read ([`boards_from_files`])
+/// and the store's rung that converts its own rows, so a store that converts
+/// itself and a fresh store built from the old files agree on every id.
+pub fn derived_message_ids<'a>(
+  rows: impl IntoIterator<Item = (&'a str, &'a str, &'a str)>,
+) -> Vec<String> {
+  use sha2::{Digest, Sha256};
+  let mut seen: std::collections::HashMap<(&str, &str, &str), u16> =
+    std::collections::HashMap::new();
+  rows
+    .into_iter()
+    .map(|(sender, recipient, recorded_at)| {
+      let ordinal = seen.entry((sender, recipient, recorded_at)).or_insert(0);
+      let n = *ordinal;
+      *ordinal = ordinal.saturating_add(1);
+      let digest = Sha256::digest(
+        format!("wb-message-id\n{sender}\n{recipient}\n{recorded_at}\n{n}").as_bytes(),
+      );
+      let mut low = [0u8; 8];
+      low.copy_from_slice(&digest[..8]);
+      let random = (u128::from(n) << 64) | u128::from(u64::from_be_bytes(low));
+      ulid::Ulid::from_parts(stamp_millis(recorded_at), random).to_string()
+    })
+    .collect()
+}
+
+/// A stored instant as milliseconds since the epoch, for an id's time half:
+/// the `YYYY-MM-DDTHH:MM:SS.mmmZ` the service's clock writes, milliseconds
+/// optional.
+///
+/// **A STAMP THAT DOES NOT PARSE GIVES ZERO RATHER THAN AN ERROR**, because
+/// the id it feeds must be a pure function of the row: every stamp the service
+/// writes parses, and one that does not still gets the same id in every clone,
+/// sorting first. Read by position rather than through `time`'s parser, which
+/// this workspace does not build.
+fn stamp_millis(iso: &str) -> u64 {
+  let field = |at: std::ops::Range<usize>| iso.get(at).and_then(|s| s.parse::<u16>().ok());
+  let millis = || -> Option<i128> {
+    let month = time::Month::try_from(u8::try_from(field(5..7)?).ok()?).ok()?;
+    let date = time::Date::from_calendar_date(
+      i32::from(field(0..4)?),
+      month,
+      u8::try_from(field(8..10)?).ok()?,
+    )
+    .ok()?;
+    let at = time::Time::from_hms_milli(
+      u8::try_from(field(11..13)?).ok()?,
+      u8::try_from(field(14..16)?).ok()?,
+      u8::try_from(field(17..19)?).ok()?,
+      field(20..23).unwrap_or(0),
+    )
+    .ok()?;
+    Some(
+      time::PrimitiveDateTime::new(date, at)
+        .assume_utc()
+        .unix_timestamp_nanos()
+        / 1_000_000,
+    )
+  };
+  millis().and_then(|ms| u64::try_from(ms).ok()).unwrap_or(0)
+}
+
+/// The boards a set of `board.json` files describes, whatever shape each file
+/// was written in, and the old messages no board can now carry (issue 0612).
+///
+/// **THE OLD BOARDS ARE CONVERTED AS A SET**, because one recipient's old board
+/// feeds several senders' `sent`: every old message goes to its sender's board
+/// with its derived id, and when it was handled a mark goes to the recipient's.
+/// A message a current board already carries under the same id is that board's
+/// already, so a set mixing the two shapes joins rather than doubling. A
+/// message whose sender has no board in the set is not carried and is returned
+/// by name: in this shape a message lives with its sender.
+///
+/// **PURE**, and the boards come back in the order the files were offered.
+pub fn boards_from_files(files: Vec<BoardFile>) -> (Vec<Board>, Vec<UncarriedMessage>) {
+  let mut boards: Vec<Board> = Vec::new();
+  let mut old: Vec<(usize, Vec<WbMessageV3>)> = Vec::new();
+  for file in files {
+    match file {
+      BoardFile::Current(board) => boards.push(board),
+      BoardFile::V3(board) => {
+        old.push((boards.len(), board.messages));
+        boards.push(Board {
+          schema: BOARD_SCHEMA.to_string(),
+          node: board.node,
+          items: board.items,
+          sent: Vec::new(),
+          handled: Vec::new(),
+        });
+      }
+    }
+  }
+  let index: std::collections::HashMap<String, usize> = boards
+    .iter()
+    .enumerate()
+    .map(|(i, b)| (b.node.moniker.clone(), i))
+    .collect();
+  let mut uncarried = Vec::new();
+  for (at, messages) in old {
+    let recipient = boards[at].node.moniker.clone();
+    let ids = derived_message_ids(messages.iter().map(|m| {
+      (
+        m.sender.as_str(),
+        recipient.as_str(),
+        m.recorded_at.as_str(),
+      )
+    }));
+    for (m, id) in messages.into_iter().zip(ids) {
+      let Some(&sender_at) = index.get(&m.sender) else {
+        uncarried.push(UncarriedMessage {
+          board: recipient.clone(),
+          sender: m.sender,
+          recorded_at: m.recorded_at,
+        });
+        continue;
+      };
+      if m.state == WbMessageState::Handled && !boards[at].handled.iter().any(|h| h.id == id) {
+        boards[at].handled.push(WbHandled {
+          id: id.clone(),
+          sender: m.sender.clone(),
+          handled_at: m.handled_at.unwrap_or_else(|| m.recorded_at.clone()),
+        });
+      }
+      if !boards[sender_at].sent.iter().any(|s| s.id == id) {
+        boards[sender_at].sent.push(WbSent {
+          id,
+          recipient: recipient.clone(),
+          body: m.body,
+          re: m.re,
+          fyi: m.fyi,
+          recorded_at: m.recorded_at,
+          authored_at: m.authored_at,
+          edited_at: m.edited_at,
+        });
+      }
+    }
+  }
+  for board in &mut boards {
+    board.sent.sort_by(|a, b| a.id.cmp(&b.id));
+    board.handled.sort_by(|a, b| a.id.cmp(&b.id));
+  }
+  (boards, uncarried)
+}
+
+/// One `board.json` as the reader found it: in this shape, or in the old one.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum BoardFile {
+  Current(Board),
+  V3(BoardV3),
+}
+
 /// How one row on a board differs between what the store holds and what a
 /// restore offers, by position in [`BoardRows`]' flattened lists.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -2432,7 +2714,11 @@ pub enum RowChange {
 pub struct BoardRows<'a> {
   pub nodes: Vec<&'a WbNode>,
   pub items: Vec<&'a WbItem>,
-  pub messages: Vec<&'a WbMessage>,
+  /// Every sent message, beside the moniker of the board carrying it: its
+  /// sender.
+  pub sent: Vec<(&'a str, &'a WbSent)>,
+  /// Every mark, beside the moniker of the board carrying it: its recipient.
+  pub handled: Vec<(&'a str, &'a WbHandled)>,
 }
 
 impl<'a> BoardRows<'a> {
@@ -2440,7 +2726,14 @@ impl<'a> BoardRows<'a> {
     Self {
       nodes: boards.iter().map(|b| &b.node).collect(),
       items: boards.iter().flat_map(|b| &b.items).collect(),
-      messages: boards.iter().flat_map(|b| &b.messages).collect(),
+      sent: boards
+        .iter()
+        .flat_map(|b| b.sent.iter().map(move |s| (b.node.moniker.as_str(), s)))
+        .collect(),
+      handled: boards
+        .iter()
+        .flat_map(|b| b.handled.iter().map(move |h| (b.node.moniker.as_str(), h)))
+        .collect(),
     }
   }
 }
@@ -2449,12 +2742,16 @@ impl<'a> BoardRows<'a> {
 pub struct BoardChanges {
   pub nodes: Vec<RowChange>,
   pub items: Vec<RowChange>,
-  pub messages: Vec<RowChange>,
+  pub sent: Vec<RowChange>,
+  pub handled: Vec<RowChange>,
 }
 
 impl BoardChanges {
   pub fn is_empty(&self) -> bool {
-    self.nodes.is_empty() && self.items.is_empty() && self.messages.is_empty()
+    self.nodes.is_empty()
+      && self.items.is_empty()
+      && self.sent.is_empty()
+      && self.handled.is_empty()
   }
 }
 
@@ -2517,18 +2814,21 @@ pub fn boards_ahead_of_the_store(
 /// The difference between the boards the store holds and the boards a restore
 /// offers, by natural key (vc decision 22, issue 0414).
 ///
-/// **A ROW IS ITS KEY, NOT ITS POSITION AND NOT ITS ID.** A node is its
-/// moniker, an item its (node, kind, seq), a message its (sender, recipient,
-/// recorded_at, body) and then, for the rows that leaves unpaired, its
-/// (sender, recipient, recorded_at): see `message_changes`. board.json
-/// carries no id, so the restore that deleted every row and re-inserted the
-/// file renumbered and restamped rows nothing had changed, while the preview
-/// that compared threads and issues printed that nothing was overwritten.
-/// Keyed, an unchanged row is simply absent from this answer.
+/// **A ROW IS ITS KEY, NOT ITS POSITION AND NOT ITS STORE ID.** A node is its
+/// moniker, an item its (node, kind, seq), a sent message and a mark the
+/// message's id. The restore that deleted every row and re-inserted the file
+/// renumbered and restamped rows nothing had changed, while the preview that
+/// compared threads and issues printed that nothing was overwritten. Keyed,
+/// an unchanged row is simply absent from this answer.
 ///
-/// **THE MESSAGE KEY IS A MULTISET.** Two identical messages are two rows, so
-/// rows sharing a key pair up in order and the surplus on either side is added
-/// or removed -- a set would fold them into one and lose a message.
+/// **A MESSAGE IS ITS ID** (issue 0612), which is what 0525's two-pass key of
+/// (sender, recipient, recorded_at, body) and then the same without the body
+/// approximated: a body `wb edit message` changed on another clone is the same
+/// row `Changed`, and two identical messages are two ids.
+///
+/// **THE KEYS ARE MULTISETS.** Rows sharing a key pair up in order and the
+/// surplus on either side is added or removed -- a set would fold two into one
+/// and lose a row.
 ///
 /// **PURE**: the store applies this and the sync preview reports it, so the
 /// write and the warning cannot disagree about what a restore changes.
@@ -2540,67 +2840,15 @@ pub fn board_changes(held: &[Board], offered: &[Board]) -> BoardChanges {
     items: row_changes(&held.items, &offered.items, |i| {
       (i.node.clone(), enum_str(&i.kind), i.seq)
     }),
-    messages: message_changes(&held.messages, &offered.messages),
+    sent: row_changes(&held.sent, &offered.sent, |(_, s)| s.id.clone()),
+    handled: row_changes(&held.handled, &offered.handled, |(_, h)| h.id.clone()),
   }
-}
-
-/// [`row_changes`] for messages, in two passes (issue 0525, from cc's restore
-/// note that vc filed).
-///
-/// **THE BODY IS IN THE FIRST KEY AND NOT THE SECOND.** The full key, body
-/// included, pairs the rows a restore leaves alone: identical messages pair up
-/// in order, so removing one of two twins removes exactly the surplus and moves
-/// nothing else. A body `wb edit message` changed on another clone then matches
-/// no held row, so the rows left over on both sides pair up again by sender,
-/// recipient and stamp, in order, as `Changed`. The row is updated in place
-/// and keeps its id, and with it its place in its inbox and its `#<n>`. Keyed
-/// by body alone, that edit was a removal and an addition, which re-inserted
-/// the row last and could renumber its minute.
-fn message_changes(held: &[&WbMessage], offered: &[&WbMessage]) -> Vec<RowChange> {
-  let full = |m: &WbMessage| {
-    (
-      m.sender.clone(),
-      m.recipient.clone(),
-      m.recorded_at.clone(),
-      m.body.clone(),
-    )
-  };
-  let without_body = |m: &WbMessage| (m.sender.clone(), m.recipient.clone(), m.recorded_at.clone());
-  let mut changes = Vec::new();
-  let (mut held_left, mut offered_left) = (Vec::new(), Vec::new());
-  for change in row_changes(held, offered, full) {
-    match change {
-      RowChange::Removed(h) => held_left.push(h),
-      RowChange::Added(o) => offered_left.push(o),
-      changed => changes.push(changed),
-    }
-  }
-  let held_rest: Vec<&WbMessage> = held_left.iter().map(|&h| held[h]).collect();
-  let offered_rest: Vec<&WbMessage> = offered_left.iter().map(|&o| offered[o]).collect();
-  for change in row_changes(&held_rest, &offered_rest, without_body) {
-    changes.push(match change {
-      RowChange::Removed(h) => RowChange::Removed(held_left[h]),
-      RowChange::Added(o) => RowChange::Added(offered_left[o]),
-      RowChange::Changed { held, offered } => RowChange::Changed {
-        held: held_left[held],
-        offered: offered_left[offered],
-      },
-    });
-  }
-  // The order `row_changes` answers in: removals, then changes by held row,
-  // then additions in offered order, which is the order a restore inserts.
-  changes.sort_by_key(|c| match *c {
-    RowChange::Removed(h) => (0, h),
-    RowChange::Changed { held, .. } => (1, held),
-    RowChange::Added(o) => (2, o),
-  });
-  changes
 }
 
 /// Pair rows by key, in order within a key, and name what differs.
 fn row_changes<T: PartialEq, K: Ord>(
-  held: &[&T],
-  offered: &[&T],
+  held: &[T],
+  offered: &[T],
   key: impl Fn(&T) -> K,
 ) -> Vec<RowChange> {
   let mut by_key: std::collections::BTreeMap<K, (Vec<usize>, Vec<usize>)> =
@@ -2804,7 +3052,8 @@ mod claim_address_tests {
           migrated_at: migrated.then(|| "2026-09-13T11:03:59.755Z".to_string()),
         },
         items: Vec::new(),
-        messages: Vec::new(),
+        sent: Vec::new(),
+        handled: Vec::new(),
       }
     }
 

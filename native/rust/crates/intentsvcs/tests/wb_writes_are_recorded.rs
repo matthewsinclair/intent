@@ -148,8 +148,7 @@ fn every_row_a_verb_changes_carries_updated_at_from_that_write() {
     updated >= archived,
     "the archive stamped {archived} and left updated_at at {updated}"
   );
-  let (updated, handled) =
-    one("SELECT updated_at, handled_at FROM wb_message WHERE recipient = 'cc'");
+  let (updated, handled) = one("SELECT updated_at, handled_at FROM wb_mark WHERE recipient = 'cc'");
   assert!(
     updated >= handled,
     "the clear stamped {handled} and left updated_at at {updated}"

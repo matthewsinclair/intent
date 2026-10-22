@@ -368,7 +368,11 @@ pub struct Subject {
 /// **Falls back to a fresh random ULID rather than failing**: `generate` can
 /// refuse only when the random half has been exhausted inside a single
 /// millisecond, and a monotonic id is a nicety where an id at all is not.
-fn next_id() -> String {
+///
+/// **THE CRATE'S ONE MINTER**: a whiteboard message's id comes from here too
+/// (issue 0612), so an announce's rows, minted in one transaction, sort in the
+/// order they were written, as a cascade's events do.
+pub(crate) fn next_id() -> String {
   use std::sync::Mutex;
   static GEN: Mutex<Option<ulid::Generator>> = Mutex::new(None);
   let mut guard = match GEN.lock() {

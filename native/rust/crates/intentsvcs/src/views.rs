@@ -1044,6 +1044,51 @@ pub fn board_rendered_before_0532(on_disk: &str, rendered: &str) -> bool {
   before != rendered && (on_disk == before || differs_only_in_renderer_owned_text(on_disk, &before))
 }
 
+/// An inbox view as an Intent before issue 0612 rendered the same messages,
+/// read backwards: `on_disk` with the ` (handled)` mark taken off the end of
+/// every heading that carries one, before `(edited)` where both are there.
+///
+/// **EXACT, AND ONLY AT THE END OF A HEADING.** The older renderer put the mark
+/// there and nowhere else, after the stamp, `claimed`, `Re:` and `FYI only`,
+/// and before `(edited)`; a ` (handled)` anywhere else on the line, or in a
+/// body, is left as it is and still differs.
+pub fn inbox_without_handled_marks(on_disk: &str) -> String {
+  on_disk
+    .split_inclusive('\n')
+    .map(|line| {
+      let (text, end) = match line.strip_suffix('\n') {
+        Some(text) => (text, "\n"),
+        None => (line, ""),
+      };
+      if !text.starts_with("## (") {
+        return line.to_string();
+      }
+      if let Some(head) = text.strip_suffix(" (handled) (edited)") {
+        return format!("{head} (edited){end}");
+      }
+      text
+        .strip_suffix(" (handled)")
+        .map_or_else(|| line.to_string(), |head| format!("{head}{end}"))
+    })
+    .collect()
+}
+
+/// Does this inbox view differ from its render ONLY by the ` (handled)` marks
+/// an Intent before issue 0612 wrote on its headings, with text the renderer
+/// owns free to differ as well?
+///
+/// **ASKED BEFORE SKEW IS DECIDED, FOR 0532's REASON.** The inbox view stopped
+/// showing handled state when the message moved to its sender's board, so every
+/// inbox holding a handled message renders differently in every estate, and
+/// with `doctor` on the pre-commit gate a skew there refuses the estate's
+/// commits until its views are re-rendered. Nobody edited those inboxes. Any
+/// other difference, a one-byte edit anywhere included, still differs.
+pub fn inbox_rendered_before_0612(on_disk: &str, rendered: &str) -> bool {
+  let without = inbox_without_handled_marks(on_disk);
+  without != on_disk
+    && (without == rendered || differs_only_in_renderer_owned_text(&without, rendered))
+}
+
 /// What an older Intent rendered, where a view differs from today's render.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum OlderRender {
@@ -1052,6 +1097,30 @@ pub enum OlderRender {
   /// A node's board view in the shape before issue 0532, with any text the
   /// renderer owns differing besides.
   BoardBefore0532,
+  /// An inbox view in the shape before issue 0612, its headings marked
+  /// `(handled)`, with any text the renderer owns differing besides.
+  InboxBefore0612,
+}
+
+/// Which kind of view a path is, as [`rendered_by_an_older_intent`] asks it:
+/// each older shape is excused on the one kind of view it occurs in.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ViewKind {
+  /// A node's board view, its `wip.md`.
+  Board,
+  /// An inbox view, `<recipient>/inbox.<sender>.md`.
+  Inbox,
+  /// Any other generated view.
+  Other,
+}
+
+/// The kind of view `path` is.
+pub(crate) fn view_kind(project: &Project, path: &std::path::Path) -> ViewKind {
+  match whiteboard_owner(project, path) {
+    Some(node) if project.wb_board_view(&node) == path => ViewKind::Board,
+    Some(_) => ViewKind::Inbox,
+    None => ViewKind::Other,
+  }
 }
 
 /// **DID AN OLDER INTENT RENDER THIS VIEW?** Doctor's skew, a write's
@@ -1065,21 +1134,30 @@ pub enum OlderRender {
 /// again, one door over. With one predicate, a shape an older Intent wrote is
 /// excused by every door or by none.
 ///
-/// **`board` IS THE CALLER'S TO SAY**, because only the caller knows what the
-/// view is. Doctor and the write path ask `node_board_view`. Organize's gate
-/// removes thread and issue views only, never a node's board, so it passes
-/// `false`. The 0532 shape is asked of a node's board and of no other view,
-/// because the invariant that makes it exact holds there alone (see
-/// [`board_before_0532`]).
+/// **THE VIEW'S KIND IS THE CALLER'S TO SAY**, because only the caller knows
+/// what the view is. Doctor and the write path ask `view_kind`. Organize's
+/// gate removes thread and issue views only, never a whiteboard view, so it
+/// passes [`ViewKind::Other`]. The 0532 shape is asked of a node's board and
+/// the 0612 shape of an inbox, each of no other view, because the invariant
+/// that makes each exact holds there alone (see [`board_before_0532`] and
+/// [`inbox_without_handled_marks`]).
 pub fn rendered_by_an_older_intent(
-  board: bool,
+  kind: ViewKind,
   on_disk: &str,
   rendered: &str,
 ) -> Option<OlderRender> {
   if differs_only_in_renderer_owned_text(on_disk, rendered) {
     return Some(OlderRender::RendererOwnedText);
   }
-  (board && board_rendered_before_0532(on_disk, rendered)).then_some(OlderRender::BoardBefore0532)
+  match kind {
+    ViewKind::Board => {
+      board_rendered_before_0532(on_disk, rendered).then_some(OlderRender::BoardBefore0532)
+    }
+    ViewKind::Inbox => {
+      inbox_rendered_before_0612(on_disk, rendered).then_some(OlderRender::InboxBefore0612)
+    }
+    ViewKind::Other => None,
+  }
 }
 
 /// The node whose board view `path` is, when it is one: its `wip.md`, never
@@ -1966,6 +2044,27 @@ fn whiteboard_owner(project: &Project, path: &std::path::Path) -> Option<String>
   is_view.then_some(node)
 }
 
+/// The node whose verbs write a whiteboard file (issue 0612): a node's
+/// `board.json` and `wip.md` are its own, and an inbox view
+/// `<recipient>/inbox.<sender>.md` is its SENDER's, because the view renders
+/// from the sender's board alone. `None` for anything else.
+pub(crate) fn whiteboard_writer(project: &Project, path: &std::path::Path) -> Option<String> {
+  let rest = path.strip_prefix(project.whiteboard_dir()).ok()?;
+  let mut parts = rest.components();
+  let node = parts.next()?.as_os_str().to_str()?;
+  let file = parts.next()?.as_os_str().to_str()?;
+  if parts.next().is_some() {
+    return None;
+  }
+  match file {
+    "board.json" | "wip.md" => Some(node.to_string()),
+    _ => file
+      .strip_prefix("inbox.")
+      .and_then(|f| f.strip_suffix(".md"))
+      .map(str::to_string),
+  }
+}
+
 /// Whether the whiteboard writes this path for a node: its `board.json`
 /// record, its board view or one of its inbox views.
 ///
@@ -2068,8 +2167,9 @@ pub fn edited_mark(edited_at: Option<&String>) -> &'static str {
   if edited_at.is_some() { " (edited)" } else { "" }
 }
 
-/// The mark a message its recipient has cleared carries, in its inbox heading
-/// and on the CLI's line under `--all` (issue 0531), spelled once for both.
+/// The mark a message its recipient has cleared carries on the CLI's line
+/// under `--all` (issue 0531). **NOT IN THE INBOX VIEW** since issue 0612: the
+/// view is the sender's, and the mark is the recipient's.
 pub fn handled_mark(state: &crate::model::WbMessageState) -> &'static str {
   if *state == crate::model::WbMessageState::Handled {
     " (handled)"
@@ -2164,35 +2264,29 @@ pub fn wb_board_body(board: &crate::model::Board) -> String {
 /// self-describing when it is read alone -- which is how a board is usually
 /// read, one file at a time, by somebody who did not open the directory.
 ///
-/// **A HANDLED MESSAGE STILL RENDERS, AND THAT IS THE DIFFERENCE FROM AN
-/// ARCHIVED ITEM.** `handled` means acted on, not retired: what a peer said and
-/// what was done about it is the record an inbox exists to be. It leaves the
-/// live COUNT, which is what the bound reads, and it stays on the page, which is
-/// what a reader reads. The marker says which.
+/// **EVERY MESSAGE THE SENDER SENT RENDERS, HANDLED OR NOT, AND THE VIEW SAYS
+/// NOTHING ABOUT HANDLING** (issue 0612). `sent` is the sender's board and the
+/// view is the sender's to write, so a recipient's clear changes no file but its
+/// own `board.json`; handled state shows in `wb pickup` and `wb show --all`,
+/// which read the store.
 pub fn wb_inbox(
   sender: &str,
   recipient: &str,
-  messages: &[crate::model::WbMessage],
+  sent: &[crate::model::WbSent],
   ctx: &RenderContext<'_>,
 ) -> String {
   finish(
-    wb_inbox_body(sender, recipient, messages),
+    wb_inbox_body(sender, recipient, sent),
     ctx,
     "the whiteboard model",
   )
 }
 
-/// [`wb_inbox`] without the generated footer, for the prose index.
-pub fn wb_inbox_body(
-  sender: &str,
-  recipient: &str,
-  messages: &[crate::model::WbMessage],
-) -> String {
+/// [`wb_inbox`] without the generated footer, for the prose index. `sent` is
+/// the sender's board's, in its own order, which is send order.
+pub fn wb_inbox_body(sender: &str, recipient: &str, sent: &[crate::model::WbSent]) -> String {
   let mut out = format!("# inbox: {sender} -> {recipient}\n\n");
-  let mine: Vec<&crate::model::WbMessage> = messages
-    .iter()
-    .filter(|m| m.sender == sender && m.recipient == recipient)
-    .collect();
+  let mine: Vec<&crate::model::WbSent> = sent.iter().filter(|m| m.recipient == recipient).collect();
   if mine.is_empty() {
     out.push_str(&format!("{EMPTY_INBOX}\n"));
     return out;
@@ -2214,7 +2308,6 @@ pub fn wb_inbox_body(
     if m.fyi {
       out.push_str(" FYI only -- no response needed.");
     }
-    out.push_str(handled_mark(&m.state));
     out.push_str(edited_mark(m.edited_at.as_ref()));
     out.push_str("\n\n");
     out.push_str(&m.body);
@@ -2336,6 +2429,9 @@ pub fn render_all(project: &Project, canon: &Canon, ctx: &RenderContext<'_>) -> 
   // **FIVE NODES ARE FIVE BOARDS AND TWENTY INBOXES**, one per ordered pair,
   // an empty one included: an inbox that exists and says `_(empty)_` reads
   // differently from one that is missing, and only the first is true.
+  // **AN INBOX RENDERS FROM ITS SENDER'S BOARD ALONE** (issue 0612), so the
+  // view's one writer is the sender, and a fresh checkout of what the sender
+  // committed reads it clean whatever the recipient has handled.
   for board in &canon.boards {
     let node = &board.node.moniker;
     views.push(View {
@@ -2349,7 +2445,7 @@ pub fn render_all(project: &Project, canon: &Canon, ctx: &RenderContext<'_>) -> 
       }
       views.push(View {
         path: project.wb_inbox_view(node, sender),
-        content: wb_inbox(sender, node, &board.messages, ctx),
+        content: wb_inbox(sender, node, &peer.sent, ctx),
       });
     }
   }
@@ -2443,6 +2539,7 @@ pub fn skew(
     let rel = project.relative(&view.path);
     let owner = undeclared_owner(project, &view.path, canon, realised);
     let board_node = node_board_view(project, &view.path);
+    let kind = view_kind(project, &view.path);
     // **A REGISTERED, UNMIGRATED BOARD IS NOT A GENERATED VIEW AND IS NEVER
     // COMPARED AGAINST ONE** (issue 0412). Its markdown stays hand-authored and
     // authoritative until `wb migrate` carries it, the projection writes nothing
@@ -2484,7 +2581,7 @@ pub fn skew(
       // `doctor` on the pre-commit gate (issue `0308`) that is a commit outage
       // in every estate on the day it upgrades.
       Ok(on_disk)
-        if rendered_by_an_older_intent(board_node.is_some(), &on_disk, &view.content)
+        if rendered_by_an_older_intent(kind, &on_disk, &view.content)
           == Some(OlderRender::RendererOwnedText) =>
       {
         // **THE VERB DEPENDS ON WHETHER `.intentfiles` REALISES THE VIEW**, the
@@ -2519,7 +2616,7 @@ pub fn skew(
       // upgrades. Asked of a node's board and of no other view, so an
       // indentation change anywhere else still reads as the hand edit it may be.
       Ok(on_disk)
-        if rendered_by_an_older_intent(board_node.is_some(), &on_disk, &view.content)
+        if rendered_by_an_older_intent(kind, &on_disk, &view.content)
           == Some(OlderRender::BoardBefore0532) =>
       {
         findings.push(Finding::new(
@@ -2530,6 +2627,26 @@ pub fn skew(
             declared_version(&on_disk).unwrap_or("<none>"),
             declared_version(&view.content).unwrap_or("<none>"),
             board_node.as_deref().unwrap_or_default(),
+          ),
+        ));
+      }
+      // **AN INBOX AN OLDER INTENT WROTE IS STALE, NOT SKEWED** (issue 0612),
+      // for 0532's reason: the view stopped showing handled state when the
+      // message moved to its sender's board, so every estate whose inboxes
+      // hold a handled message would be refused commits the day it upgrades.
+      // Asked of an inbox and of no other view, and only of the `(handled)`
+      // marks and text the renderer owns.
+      Ok(on_disk)
+        if rendered_by_an_older_intent(kind, &on_disk, &view.content)
+          == Some(OlderRender::InboxBefore0612) =>
+      {
+        findings.push(Finding::new(
+          &rel,
+          FindingClass::StaleRender,
+          format!(
+            "rendered by an older Intent (v{}; this binary renders v{}) -- only the `(handled)` marks on its headings differ, which an inbox no longer shows, and any text the renderer owns; its sender's next board write re-renders it, and `intent sync --to-disk` re-renders every view at once",
+            declared_version(&on_disk).unwrap_or("<none>"),
+            declared_version(&view.content).unwrap_or("<none>"),
           ),
         ));
       }
@@ -2851,18 +2968,13 @@ mod tests {
   }
 
   /// A board as the store hands it over: a live item of four kinds, one
-  /// archived item, TODO left empty, and messages from two senders.
+  /// archived item, TODO left empty, a message it sent and its mark on the
+  /// message [`vc_sent`] sent it.
   fn board() -> crate::model::Board {
     let item = |kind: &str, seq: u32, text: &str, state: &str| {
       serde_json::json!({
         "node": "cc", "kind": kind, "seq": seq, "text": text, "state": state,
         "recorded_at": "2026-09-12T20:30:00.000Z",
-      })
-    };
-    let message = |sender: &str, body: &str, fyi: bool, state: &str| {
-      serde_json::json!({
-        "sender": sender, "recipient": "cc", "body": body, "fyi": fyi, "state": state,
-        "recorded_at": "2026-09-12T19:02:38.616Z",
       })
     };
     serde_json::from_value(serde_json::json!({
@@ -2880,12 +2992,32 @@ mod tests {
         item("doing", 2, "the retired line", "archived"),
         item("watchout", 1, "the watch-out", "live"),
       ],
-      "messages": [
-        message("vc", "the order", false, "handled"),
-        message("dc", "not this pair", true, "live"),
-      ],
+      "sent": [{
+        "id": "01K5Z0000000000000000000CC", "recipient": "vc", "body": "the reply",
+        "fyi": false, "recorded_at": "2026-09-12T19:10:00.000Z",
+      }],
+      "handled": [{
+        "id": "01K5Z0000000000000000000V1", "sender": "vc",
+        "handled_at": "2026-09-12T19:20:00.000Z",
+      }],
     }))
     .expect("board fixture")
+  }
+
+  /// What vc's board carries as sent: the order to cc, which [`board`] has
+  /// marked handled, and one message to ic.
+  fn vc_sent() -> Vec<crate::model::WbSent> {
+    serde_json::from_value(serde_json::json!([
+      {
+        "id": "01K5Z0000000000000000000V1", "recipient": "cc", "body": "the order",
+        "fyi": false, "recorded_at": "2026-09-12T19:02:38.616Z",
+      },
+      {
+        "id": "01K5Z0000000000000000000V2", "recipient": "ic", "body": "not this pair",
+        "fyi": true, "recorded_at": "2026-09-12T19:03:00.000Z",
+      },
+    ]))
+    .expect("sent fixture")
   }
 
   #[test]
@@ -2933,21 +3065,28 @@ mod tests {
   }
 
   #[test]
-  fn an_inbox_renders_only_its_own_pair_and_marks_what_was_handled() {
-    let b = board();
-    let out = wb_inbox("vc", "cc", &b.messages, &ctx());
-    assert_eq!(out, wb_inbox("vc", "cc", &b.messages, &ctx()));
+  fn an_inbox_renders_only_its_own_pair_and_never_its_handled_state() {
+    // Issue 0612: the view is the sender's, so the mark cc's board holds on
+    // the order shows nowhere in it.
+    let sent = vc_sent();
+    assert_eq!(
+      board().handled[0].id,
+      sent[0].id,
+      "precondition: cc handled it"
+    );
+    let out = wb_inbox("vc", "cc", &sent, &ctx());
+    assert_eq!(out, wb_inbox("vc", "cc", &sent, &ctx()));
     assert!(
-      out.starts_with("# inbox: vc -> cc\n\n## (2026-09-12 19:02Z) (handled)\n\nthe order\n"),
+      out.starts_with("# inbox: vc -> cc\n\n## (2026-09-12 19:02Z)\n\nthe order\n"),
       "{out}"
     );
     assert!(
       !out.contains("not this pair"),
-      "another sender's message is another file"
+      "a message to another recipient is another file"
     );
-    let empty = wb_inbox("ic", "cc", &b.messages, &ctx());
+    let empty = wb_inbox("vc", "dc", &sent, &ctx());
     assert!(
-      empty.starts_with("# inbox: ic -> cc\n\n_(empty)_\n"),
+      empty.starts_with("# inbox: vc -> dc\n\n_(empty)_\n"),
       "{empty}"
     );
   }
@@ -2955,12 +3094,12 @@ mod tests {
   #[test]
   fn a_carried_entry_shows_the_stamp_it_was_written_with_as_claimed_text() {
     // Issue 0382: a carried entry rendered only the carry's recorded_at, so a migrated inbox lost its order.
-    let mut b = board();
-    b.messages[0].authored_at = Some("2026-09-12 08:59Z".to_string());
-    let out = wb_inbox("vc", "cc", &b.messages, &ctx());
+    let mut sent = vc_sent();
+    sent[0].authored_at = Some("2026-09-12 08:59Z".to_string());
+    let out = wb_inbox("vc", "cc", &sent, &ctx());
     assert!(
       out.starts_with(
-        "# inbox: vc -> cc\n\n## (2026-09-12 19:02Z) claimed 2026-09-12 08:59Z (handled)\n\nthe order\n"
+        "# inbox: vc -> cc\n\n## (2026-09-12 19:02Z) claimed 2026-09-12 08:59Z\n\nthe order\n"
       ),
       "{out}"
     );
@@ -2969,11 +3108,12 @@ mod tests {
   #[test]
   fn an_edited_item_and_an_edited_message_say_so_and_show_only_the_new_text() {
     // Issue 0525: the mark is an edit's one trace on a board, and it names no
-    // old text. It sits where `(handled)` sits on a heading, and at the end of
-    // an item's first line.
+    // old text. It sits at the end of a heading, and at the end of an item's
+    // first line.
     let mut b = board();
     b.items[0].edited_at = Some("2026-09-23T10:00:00.000Z".to_string());
-    b.messages[0].edited_at = Some("2026-09-23T10:00:01.000Z".to_string());
+    let mut sent = vc_sent();
+    sent[0].edited_at = Some("2026-09-23T10:00:01.000Z".to_string());
     let board_view = wb_board(&b, &ctx());
     assert!(
       board_view.contains("- the decision (edited)\n"),
@@ -2983,11 +3123,9 @@ mod tests {
       board_view.contains("- the watch-out\n"),
       "an item never edited carries no mark: {board_view}"
     );
-    let inbox = wb_inbox("vc", "cc", &b.messages, &ctx());
+    let inbox = wb_inbox("vc", "cc", &sent, &ctx());
     assert!(
-      inbox.starts_with(
-        "# inbox: vc -> cc\n\n## (2026-09-12 19:02Z) (handled) (edited)\n\nthe order\n"
-      ),
+      inbox.starts_with("# inbox: vc -> cc\n\n## (2026-09-12 19:02Z) (edited)\n\nthe order\n"),
       "{inbox}"
     );
   }
@@ -3165,12 +3303,12 @@ mod tests {
     let now = wb_board(&b, &ctx());
     let older = board_before_0532(&now);
     assert_eq!(
-      rendered_by_an_older_intent(true, &older, &now),
+      rendered_by_an_older_intent(ViewKind::Board, &older, &now),
       Some(OlderRender::BoardBefore0532),
       "a node's board in the older shape"
     );
     assert_eq!(
-      rendered_by_an_older_intent(false, &older, &now),
+      rendered_by_an_older_intent(ViewKind::Other, &older, &now),
       None,
       "the same bytes in any other view are an edit"
     );
@@ -3181,17 +3319,81 @@ mod tests {
         todo_watermark: None,
       },
     );
-    for board in [true, false] {
+    for kind in [ViewKind::Board, ViewKind::Inbox, ViewKind::Other] {
       assert_eq!(
-        rendered_by_an_older_intent(board, &older_footer, &now),
+        rendered_by_an_older_intent(kind, &older_footer, &now),
         Some(OlderRender::RendererOwnedText),
-        "text the renderer owns is excused in every view, board {board}"
+        "text the renderer owns is excused in every view, {kind:?}"
       );
     }
     assert_eq!(
-      rendered_by_an_older_intent(true, &older.replacen("git log -1", "git log -2", 1), &now),
+      rendered_by_an_older_intent(
+        ViewKind::Board,
+        &older.replacen("git log -1", "git log -2", 1),
+        &now
+      ),
       None,
       "a hand edit in an older-shaped board is not an older render"
+    );
+  }
+
+  /// Issue 0612: an inbox an Intent before 0612 wrote carries `(handled)` at
+  /// the end of a heading, and the one older-render question excuses exactly
+  /// that, on an inbox and nowhere else.
+  #[test]
+  fn the_one_older_render_question_excuses_the_0612_marks_on_an_inbox_and_nowhere_else() {
+    let mut sent = vc_sent();
+    sent[0].edited_at = Some("2026-09-23T10:00:01.000Z".to_string());
+    let heading = "## (2026-09-12 19:02Z) (edited)";
+    let marked = "## (2026-09-12 19:02Z) (handled) (edited)";
+    let now = wb_inbox("vc", "cc", &sent, &ctx());
+    let older = now.replacen(heading, marked, 1);
+    assert_ne!(
+      older, now,
+      "precondition: the older render carries the mark"
+    );
+    assert_eq!(
+      rendered_by_an_older_intent(ViewKind::Inbox, &older, &now),
+      Some(OlderRender::InboxBefore0612),
+      "an inbox carrying the marks an older Intent wrote"
+    );
+    assert_eq!(
+      rendered_by_an_older_intent(ViewKind::Board, &older, &now),
+      None,
+      "the same bytes in a board view are an edit"
+    );
+    let older_footer = wb_inbox(
+      "vc",
+      "cc",
+      &sent,
+      &RenderContext {
+        version: "3.2.4-test",
+        todo_watermark: None,
+      },
+    )
+    .replacen(heading, marked, 1);
+    assert_eq!(
+      rendered_by_an_older_intent(ViewKind::Inbox, &older_footer, &now),
+      Some(OlderRender::InboxBefore0612),
+      "and under an older footer"
+    );
+    assert_eq!(
+      rendered_by_an_older_intent(
+        ViewKind::Inbox,
+        &older.replacen("the order", "the 0rder", 1),
+        &now
+      ),
+      None,
+      "a hand edit in an older-shaped inbox still differs"
+    );
+    assert_eq!(
+      rendered_by_an_older_intent(
+        ViewKind::Inbox,
+        &now.replacen("\nthe order\n", "\nthe order (handled)\n", 1),
+        &now
+      ),
+      None,
+      "a mark anywhere but the end of a heading is an edit"
     );
   }
 

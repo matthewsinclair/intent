@@ -1,5 +1,29 @@
 {
   "$defs": {
+    "WbHandled": {
+      "additionalProperties": false,
+      "description": "One mark as the RECIPIENT's board carries it: this node handled the message\nwith this id, at this instant. Written by `wb clear` alone. The\nrecipient is the board's own node, so it is not repeated here.\n\n**A MARK WHOSE MESSAGE NO BOARD CARRIES YET IS KEPT**, because a clone can\nhold the recipient's commit before the sender's. Nothing counts it and no\nview renders it, and it joins its message when that arrives.",
+      "properties": {
+        "handled_at": {
+          "description": "When `wb clear` marked it, read from the clock at the write.",
+          "type": "string"
+        },
+        "id": {
+          "description": "The [`WbSent::id`] of the message handled.",
+          "type": "string"
+        },
+        "sender": {
+          "description": "Who sent it, so a mark whose message has not arrived can still say whose\nit is.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "sender",
+        "handled_at"
+      ],
+      "type": "object"
+    },
     "WbItem": {
       "additionalProperties": false,
       "description": "One line of a node's board.",
@@ -73,75 +97,6 @@
       "enum": [
         "live",
         "archived"
-      ],
-      "type": "string"
-    },
-    "WbMessage": {
-      "additionalProperties": false,
-      "description": "One entry in an inbox.",
-      "properties": {
-        "authored_at": {
-          "description": "The stamp the entry's `## (...)` heading claimed, verbatim. **Untrusted,\nand non-null only on a migrated row** -- this is the field that carries\nthe class of value the clock guard exists to refuse, so it is typed as\ntext and never read as a time.",
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "body": {
-          "type": "string"
-        },
-        "edited_at": {
-          "description": "When `wb edit` last changed the body, read from the clock at the write;\n`None` for a body never edited. Its presence is the\n`(edited)` mark, and it carries none of the old body.",
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "fyi": {
-          "description": "Set when the sender expects no reply.",
-          "type": "boolean"
-        },
-        "handled_at": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "re": {
-          "description": "The timestamp of the entry this one answers, where it answers one.",
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "recipient": {
-          "type": "string"
-        },
-        "recorded_at": {
-          "description": "**The message's send instant**, written by the service from the clock,\nonce, at the write. Not named `sent_at`: see the note above this block.",
-          "type": "string"
-        },
-        "sender": {
-          "type": "string"
-        },
-        "state": {
-          "$ref": "#/$defs/WbMessageState"
-        }
-      },
-      "required": [
-        "sender",
-        "recipient",
-        "body",
-        "fyi",
-        "state",
-        "recorded_at"
-      ],
-      "type": "object"
-    },
-    "WbMessageState": {
-      "enum": [
-        "live",
-        "handled"
       ],
       "type": "string"
     },
@@ -219,25 +174,78 @@
         "paused"
       ],
       "type": "string"
+    },
+    "WbSent": {
+      "additionalProperties": false,
+      "description": "One message as its SENDER's board carries it: every field only the sender\nwrites, and nothing the recipient does. The sender is the\nboard's own node, so it is not repeated here.",
+      "properties": {
+        "authored_at": {
+          "description": "The stamp the entry's `## (...)` heading claimed, verbatim. **Untrusted,\nand non-null only on a migrated row.**",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "body": {
+          "type": "string"
+        },
+        "edited_at": {
+          "description": "When `wb edit message` last changed the body; its presence is the\n`(edited)` mark, and it carries none of the old body.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "fyi": {
+          "description": "Set when the sender expects no reply.",
+          "type": "boolean"
+        },
+        "id": {
+          "description": "**The message's id, the one key across clones.** Minted by the service\nat the send, one per row, so each recipient of an announce has its own.\nA mark names its message by this and nothing else: a minute anchor and\nits `#<n>` are per-minute order, which a clone holding some of the\nsender's messages, or holding them in another order, cannot share. A\nmessage that predates this shape carries an id DERIVED from its old row\nrather than minted ([`derived_message_ids`]), so every clone converting\nthe old shape gives it the same one. Ids sort in send order.",
+          "type": "string"
+        },
+        "re": {
+          "description": "The timestamp of the entry this one answers, where it answers one.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "recipient": {
+          "type": "string"
+        },
+        "recorded_at": {
+          "description": "**The message's send instant**, written by the service from the clock,\nonce, at the write.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "recipient",
+        "body",
+        "fyi",
+        "recorded_at"
+      ],
+      "type": "object"
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "One node's whiteboard: `whiteboard/<node>/board.json`.\n\n**Messages sit with the RECIPIENT, which is the shape the disk already\nhas** -- `<recipient>/inbox.<sender>.md` -- so one file is a whole readable\nboard and rendering one needs no join across nodes. A sender writing into\nthe recipient's file is exactly what `ask` does today; the single-writer\ninvariant is enforced by the API and is not a property of which file the\nextract lands in.",
+  "description": "One node's whiteboard: `whiteboard/<node>/board.json`.\n\n**EVERY FIELD HAS ONE WRITER, AND IT IS THIS NODE.** Its items, the\nmessages it SENT, and its marks on the messages it has handled. A message\nlives with its sender because the sender is the only node that writes it,\nand the mark lives with the recipient for the same reason, so a node that\ncommits its own `board.json` and the inbox views it wrote has committed\neverything its verbs changed.",
   "properties": {
+    "handled": {
+      "default": [],
+      "description": "This node's marks on the messages it has handled, in id order.",
+      "items": {
+        "$ref": "#/$defs/WbHandled"
+      },
+      "type": "array"
+    },
     "items": {
       "default": [],
       "description": "This node's own items, in `seq` order.",
       "items": {
         "$ref": "#/$defs/WbItem"
-      },
-      "type": "array"
-    },
-    "messages": {
-      "default": [],
-      "description": "The messages ADDRESSED TO this node, in insertion order.",
-      "items": {
-        "$ref": "#/$defs/WbMessage"
       },
       "type": "array"
     },
@@ -247,6 +255,14 @@
     "schema": {
       "description": "Always [`BOARD_SCHEMA`].",
       "type": "string"
+    },
+    "sent": {
+      "default": [],
+      "description": "The messages this node SENT, in id order, which is send order.",
+      "items": {
+        "$ref": "#/$defs/WbSent"
+      },
+      "type": "array"
     }
   },
   "required": [
@@ -256,5 +272,5 @@
   "title": "Board",
   "type": "object",
   "x-intent-ver": "3.2.4",
-  "x-schema-json-ver": 22
+  "x-schema-json-ver": 23
 }

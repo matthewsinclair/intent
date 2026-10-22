@@ -339,8 +339,14 @@ fn the_schema_version_is_bumped_whenever_the_ddl_changes() {
   // 31 deletes the duplicated rows of `doc_sections` (0605), keeping one per
   // (owner_type, owner_id, file, seq), and re-derives its full-text index. Rows
   // go and the shape stays, so this hash is unchanged, as it was for rung 26.
-  const PINNED_SCHEMA_HASH: u64 = 0xeffe_562a_f60c_db87;
-  const PINNED_FOR_VERSION: i32 = 31;
+  //
+  // 32 is a message and its mark each in its own table (0612): `wb_message`
+  // gains `mid`, the id a mark names across clones, and drops `state` and
+  // `handled_at`, and `wb_mark` holds every mark. One rebuild, for rung 15's
+  // reason, after a Rust step in the rung's transaction derives each existing
+  // row's id, which SQLite cannot compute.
+  const PINNED_SCHEMA_HASH: u64 = 0x8439_9dc7_3672_c8d3;
+  const PINNED_FOR_VERSION: i32 = 32;
 
   assert_eq!(
     SCHEMA_VERSION, PINNED_FOR_VERSION,
@@ -385,13 +391,18 @@ fn a_store_stamped_by_an_earlier_draft_of_a_rung_is_walked_forward_not_refused()
 
   // Version 10 exactly as the earlier draft of rung 10 left it: `attachments`
   // with no `seq`, keyed on (thread_id, path). Written by hand because no
-  // binary that still exists produces this shape.
+  // binary that still exists produces this shape. **And no `wb_message` or
+  // `wb_mark`**: those arrive at rung 24 and change shape at rungs 30 and 32
+  // (issue 0612), and rung 30 reads the shape rung 24 made, so a version-10
+  // store holds neither and the ladder builds them as it does for a real one.
   {
     let conn = Connection::open(&path).expect("create");
     conn.execute_batch(DDL).expect("apply the current DDL");
     conn
       .execute_batch(
-        "DROP TABLE attachments;
+        "DROP TABLE wb_mark;
+         DROP TABLE wb_message;
+         DROP TABLE attachments;
          CREATE TABLE attachments (
            thread_id TEXT NOT NULL REFERENCES threads (id) ON DELETE CASCADE,
            path TEXT NOT NULL,

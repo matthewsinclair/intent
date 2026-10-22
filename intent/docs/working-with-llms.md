@@ -470,7 +470,7 @@ Protocol 3.0 (ST0045) supersedes the retired 2.0 flat-file model (one shared cro
 intent/whiteboard/
   README.md                 # protocol reference + the project's node roster
   <node>/
-    board.json              # the node's row, rendered from the store
+    board.json              # the node's canon, rendered from the store: its items, the messages it sent, its handled marks
     wip.md                  # the node's board, rendered (single-writer: the node, through `intent wb`)
     inbox.<sender>.md       # messages FROM <sender>, rendered (single-writer: the sender)
     .history/
@@ -478,7 +478,7 @@ intent/whiteboard/
       YYYYMMDD/             # the hand-authored era's archives; nothing writes here now
 ```
 
-Each node changes only its own `wip.md`, through `intent wb --node <node>`; each inbox is appended only by its named sender and read and cleared only by the owning node. There is no shared file. The verbs act as whatever `--node` names, so the rule is the protocol's, held by convention rather than refused by the tool. A node's board and inboxes are read on every `pickup`, so they are kept lean: `intent wb archive <kind> <seq>` retires one of the node's own items and `intent wb clear <sender>` marks that sender's messages handled. Archived is a state the row carries, not a directory it moves to; the `.history/<YYYYMMDD>/` trees are the record of the hand-authored era and nothing writes there now.
+Each node changes only its own `wip.md`, through `intent wb --node <node>`; each inbox is rendered from its named sender's `board.json` alone and read only by the owning node, which clears it by marking in its own `board.json`. There is no shared file, and a node commits what its own verbs wrote, as each prints it on its `wrote:` lines (issue 0612). The verbs act as whatever `--node` names, so the rule is the protocol's, held by convention rather than refused by the tool. A node's board and inboxes are read on every `pickup`, so they are kept lean: `intent wb archive <kind> <seq>` retires one of the node's own items and `intent wb clear <sender>` marks that sender's messages handled. Archived is a state the row carries, not a directory it moves to; the `.history/<YYYYMMDD>/` trees are the record of the hand-authored era and nothing writes there now.
 
 `intent wb register <moniker> --name <display> --role <role>` puts a node on the board, and its `wip.md` and every inbox in both directions render from that row; there is no directory to create. `intent wb status` lists the roster, and `intent claude start <node>` launches a session bound to a node; the skill owns the judgement operations. The file-era `intent claude ws` family that provisioned directories is retired (ST0069 AC-14.12).
 

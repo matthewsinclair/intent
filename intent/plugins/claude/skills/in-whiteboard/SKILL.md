@@ -53,9 +53,9 @@ Every verb that writes as a node takes `--node <moniker>`; `status`, `show <node
 intent/whiteboard/
   README.md                 # protocol reference + the project's node roster (hand-authored)
   <node>/
-    board.json              # the node's board as the store carries it: canon, tool-written
+    board.json              # the node's canon, tool-written: its items, the messages it SENT, its handled marks
     wip.md                  # generated view: header block + DOING + TODO + Holds + Watch-outs + Decisions
-    inbox.<sender>.md       # generated view, one per OTHER registered node: messages FROM that sender
+    inbox.<sender>.md       # generated view, one per OTHER registered node: messages FROM that sender, rendered from the sender's board.json alone
     .history/
       .gitkeep              # tracks the otherwise-empty archive dir (git ignores empty dirs)
       YYYYMMDD/             # the hand-authored era's fold archives; not written any more
@@ -104,15 +104,15 @@ On a generated board the renderer writes it. The header guard refuses escapes in
 
 ## inbox.<sender>.md shape
 
-`<recipient>/inbox.<sender>.md` holds what `<sender>` sent `<recipient>`: the sender alone appends, the recipient alone reads and clears. An unused pair shows `# inbox: <sender> -> <recipient>` over `_(empty)_`. `clear` removes nothing: a handled entry stays, marked `(handled)`, out of the live count.
+`<recipient>/inbox.<sender>.md` holds what `<sender>` sent `<recipient>`, rendered from `<sender>/board.json` alone, so the sender is its one writer; the recipient reads it and clears. An unused pair shows `# inbox: <sender> -> <recipient>` over `_(empty)_`. `clear` removes nothing and changes no inbox file: it puts a mark on each message in the recipient's own `board.json`, the message leaves the live count, and `wb pickup` and `wb show --all` say what is handled. The file never does.
 
 ```
-## (YYYY-MM-DD HH:MMZ) [claimed <stamp>] [Re: <prior-anchor>] [FYI only -- no response needed.] [(handled)] [(edited)]
+## (YYYY-MM-DD HH:MMZ) [claimed <stamp>] [Re: <prior-anchor>] [FYI only -- no response needed.] [(edited)]
 
 <text>
 ```
 
-The minute stamp is the anchor a reply threads against (`--re`). `Re:` marks a reply; `FYI only` marks no reply expected, and its absence means one is. A reply is a new entry in the opposite inbox. The renderer adds `claimed` (a migrated entry's claimed stamp), `(handled)` and `(edited)`. Every `announce` is FYI. Field separators are not significant.
+The minute stamp is the anchor a reply threads against (`--re`). `Re:` marks a reply; `FYI only` marks no reply expected, and its absence means one is. A reply is a new entry in the opposite inbox. The renderer adds `claimed` (a migrated entry's claimed stamp) and `(edited)`; handled state is the recipient's and is not in the file. Every `announce` is FYI. Field separators are not significant.
 
 ## Every timestamp is READ FROM A CLOCK, never written from memory
 
@@ -141,7 +141,7 @@ Every writing verb takes `--node <moniker>`, which the tool cannot work out. Use
 - **`add <doing|todo|watchout|hold|directive>`**: the service assigns the seq. A hold needs its condition. `directive` is `hv`'s alone; `decision` is redirected to `decide`.
 - **`decide`** puts a decision on your own board, where peers read it at pickup; no recipients, so no copies to diverge.
 - **`claim` / `unclaim`** take a thread as `ST0000`, a work package as `ST0000/01`, or an issue as `ISSUE:0000`. **Check who holds it first** (`intent wb status --json`); if an active peer does, surface the overlap to `hv` rather than claiming alongside.
-- **`clear <sender>`** marks that sender's live messages handled. **Clear an entry only if it was answered, actioned, or re-stated live on your board. Reading is not handling.** A cleared-but-unactioned entry makes the board affirmatively WRONG, and no guard can catch it: actioned-ness is judgement. Re-count live messages right before clearing, or a message that landed after your read is swept too.
+- **`clear <sender>`** marks that sender's live messages handled, in your own `board.json`; no inbox file changes. **Clear an entry only if it was answered, actioned, or re-stated live on your board. Reading is not handling.** A cleared-but-unactioned entry makes the board affirmatively WRONG, and no guard can catch it: actioned-ness is judgement. Re-count live messages right before clearing, or a message that landed after your read is swept too.
 - **`archive <kind> <seq>`** retires your own item (seqs are numbered per kind). **Archived is a state, never a deletion**; the answer says what moved. Whether the item IS finished with is your judgement (see Folding).
 - **`edit <kind> <id> <text>`** changes your own item, live or archived; `edit message "<anchor>" "<text>" --to <recipient>` changes a message you sent (`<anchor>#<n>` for one of several in a minute; one copy of an announce edits all). An uncommitted event is amended in place; a committed one gets a `wb.edit` event and git keeps the old text. The answer names every file under `intent/` still holding the old text (HEAD, staged, unstaged) and gives the all-clear only when both searches found nothing. Edits render `(edited)`, never the old text.
 - **`touch`** stamps your heartbeat, nothing else; no caller supplies the time.
@@ -169,7 +169,7 @@ Checks that other nodes' landed or claimed work is **correct, complete, consiste
 
 ## Protocol invariants
 
-1. **One writer per board**; only the recipient clears its inbox. Enforced against the moniker you pass, not who you are.
+1. **One writer per file**: a board's `board.json` and `wip.md` are its node's, and `<recipient>/inbox.<sender>.md` is its sender's; only the recipient clears, by marking in its own `board.json`. Enforced against the moniker you pass, not who you are.
 2. **Live channel, not snapshot**: `<node>/wip.md` is live; `intent/wip.md` is the snapshot.
 3. **Claims by ST ID**, never glob paths.
 4. **Broadcast via `announce`**, never a shared file; announce before touching a shared platform layer.
@@ -177,6 +177,7 @@ Checks that other nodes' landed or claimed work is **correct, complete, consiste
 6. **`/compact` does NOT end a session**: status stays `active`; the next `pickup` touches the heartbeat.
 7. **You archive your own items only**; old `.history/YYYYMMDD/` trees are append-only, never reloaded.
 8. **The human is `hv`**, never named.
+9. **You commit what your verbs wrote, as each verb prints it on its `wrote:` lines**: your own `board.json` and `wip.md`, every `<peer>/inbox.<you>.md`, and your own event files. A `re-rendered:` line names another node's file and who owns it; leave it to that node. The one exception is the re-render a new board shape forces on every board at once, which is one mechanical commit by the coordinating node or `hv`, outside this rule. `wb register` and `wb migrate` are roster acts: each prints everything it rendered on `wrote:` lines, and whoever runs it commits all of it.
 
 ## Red Flags
 

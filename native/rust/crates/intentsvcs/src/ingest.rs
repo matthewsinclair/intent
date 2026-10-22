@@ -35,8 +35,8 @@ pub struct Canon {
   pub threads: Vec<Thread>,
   pub issues: Vec<Issue>,
   pub sections: Vec<DocSection>,
-  /// One per node, each carrying that node's row, its items, and the messages
-  /// addressed to it.
+  /// One per node, each carrying that node's row, its items, the messages it
+  /// sent and its marks on the messages it handled (issue 0612).
   pub boards: Vec<crate::model::Board>,
 }
 
@@ -372,9 +372,9 @@ pub fn read(project: &Project) -> Result<Canon, IngestError> {
     }
   }
 
-  let (boards, mut unread) = boards_on_disk(project)?;
-  canon.boards = boards;
-  findings.append(&mut unread);
+  let on_disk = boards_on_disk(project)?;
+  canon.boards = on_disk.boards;
+  findings.extend(on_disk.not_boards);
 
   if findings.is_empty() {
     // **DERIVED FROM THE ASSEMBLED CANON, NOT ACCUMULATED DURING THE WALK.**
@@ -401,23 +401,67 @@ pub fn read(project: &Project) -> Result<Canon, IngestError> {
 /// **ONE READER FOR THE EXTRACT'S BOARDS**: [`read`] takes them from here, and
 /// so do the refusals that ask whether a store has taken them (issue 0535).
 /// The two therefore read the same files the same way.
-pub(crate) fn boards_on_disk(
-  project: &Project,
-) -> Result<(Vec<crate::model::Board>, Vec<Finding>), IngestError> {
-  let mut boards = Vec::new();
-  let mut findings = Vec::new();
+///
+/// **IT READS BOTH SHAPES** (issue 0612). A file in the old shape, where a
+/// message sat with its recipient, is converted with the rest of the set by
+/// [`crate::model::boards_from_files`], so every caller sees boards in this
+/// shape whatever is on disk until the re-render lands; what it could not
+/// carry, and which files were old, come back beside the boards for doctor to
+/// name.
+pub(crate) fn boards_on_disk(project: &Project) -> Result<BoardsOnDisk, IngestError> {
+  let mut files = Vec::new();
+  let mut not_boards = Vec::new();
+  let mut old_shape = Vec::new();
   for node in project.board_nodes()? {
     let path = project.board_json(&node);
-    match serde_json::from_str::<crate::model::Board>(&read_to_string(&path)?) {
-      Ok(board) => boards.push(board),
-      Err(e) => findings.push(Finding::new(
+    match read_board_file(&read_to_string(&path)?) {
+      Ok(file) => {
+        if matches!(file, crate::model::BoardFile::V3(_)) {
+          old_shape.push(node);
+        }
+        files.push(file);
+      }
+      Err(e) => not_boards.push(Finding::new(
         project.relative(&path),
         FindingClass::SchemaInvalid,
         format!("not a board: {e}"),
       )),
     }
   }
-  Ok((boards, findings))
+  let (boards, uncarried) = crate::model::boards_from_files(files);
+  Ok(BoardsOnDisk {
+    boards,
+    not_boards,
+    old_shape,
+    uncarried,
+  })
+}
+
+/// Every `board.json` on disk, as [`boards_on_disk`] reads it.
+pub(crate) struct BoardsOnDisk {
+  /// The boards, in this shape whatever shape their files are in.
+  pub boards: Vec<crate::model::Board>,
+  /// A finding for each file that is not a board.
+  pub not_boards: Vec<Finding>,
+  /// The nodes whose `board.json` is in the old shape (issue 0612).
+  pub old_shape: Vec<String>,
+  /// The old messages no board in the set can carry (issue 0612).
+  pub uncarried: Vec<crate::model::UncarriedMessage>,
+}
+
+/// One `board.json`'s bytes as the board they describe, in whichever shape its
+/// `schema` names. **THE SCHEMA IS READ FIRST**, so a file in neither shape is
+/// refused by what it says it is, and each shape is parsed strictly.
+fn read_board_file(text: &str) -> Result<crate::model::BoardFile, serde_json::Error> {
+  #[derive(serde::Deserialize)]
+  struct Schema {
+    schema: String,
+  }
+  let Schema { schema } = serde_json::from_str(text)?;
+  if schema == crate::model::BOARD_SCHEMA_V3 {
+    return serde_json::from_str(text).map(crate::model::BoardFile::V3);
+  }
+  serde_json::from_str(text).map(crate::model::BoardFile::Current)
 }
 
 /// The nodes whose `board.json` has moved since the store last recorded it:
@@ -1661,8 +1705,9 @@ pub fn sections_of(
 /// markdown is a generated view, the disk corpus leaves it out as the store's
 /// own projection, so this is the only way a board's words reach a search --
 /// and naming the view path keeps the hit the same shape as any file's.
-/// The inboxes belong to the recipient's board, one file per sender that has
-/// written; an empty inbox has nothing to find.
+/// The inboxes are indexed under the recipient's board, one file per sender
+/// that has written; an empty inbox has nothing to find. **EACH RENDERS FROM
+/// ITS SENDER'S BOARD** (issue 0612), the bytes its view has.
 pub fn board_sections(project: &Project, boards: &[crate::model::Board]) -> Vec<DocSection> {
   let mut out = Vec::new();
   for board in boards {
@@ -1673,15 +1718,18 @@ pub fn board_sections(project: &Project, boards: &[crate::model::Board]) -> Vec<
       &project.relative(&project.wb_board_view(node)),
       &crate::views::wb_board_body(board),
     ));
-    let mut senders: Vec<&str> = board.messages.iter().map(|m| m.sender.as_str()).collect();
-    senders.sort_unstable();
-    senders.dedup();
+    let mut senders: Vec<&crate::model::Board> = boards
+      .iter()
+      .filter(|b| b.sent.iter().any(|m| &m.recipient == node))
+      .collect();
+    senders.sort_by(|a, b| a.node.moniker.cmp(&b.node.moniker));
     for sender in senders {
+      let from = &sender.node.moniker;
       out.append(&mut prose::split(
         prose::BOARD_OWNER,
         node,
-        &project.relative(&project.wb_inbox_view(node, sender)),
-        &crate::views::wb_inbox_body(sender, node, &board.messages),
+        &project.relative(&project.wb_inbox_view(node, from)),
+        &crate::views::wb_inbox_body(from, node, &sender.sent),
       ));
     }
   }

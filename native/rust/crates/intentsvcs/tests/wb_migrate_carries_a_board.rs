@@ -182,7 +182,7 @@ fn the_board_lands_with_its_holds_and_its_untrusted_stamp() {
 #[test]
 fn messages_land_under_their_registered_sender() {
   let (_fx, facade, _carried) = carried();
-  let board = facade.board("dc").expect("the board");
+  let board = facade.board_read("dc", true).expect("the board");
 
   let senders: Vec<&str> = board.messages.iter().map(|m| m.sender.as_str()).collect();
   assert_eq!(
@@ -338,9 +338,11 @@ fn an_inbox_from_an_unregistered_sender_refuses_the_migration_before_it_writes()
       && refusal.contains("intent wb register laksa-vc"),
     "the refusal names the inbox and the registration that admits its sender: {refusal}"
   );
-  let board = facade.board("dc").expect("the board");
+  let board = facade.board_read("dc", true).expect("the board");
   assert!(
-    board.items.is_empty() && board.messages.is_empty() && board.node.migrated_at.is_none(),
+    board.board.items.is_empty()
+      && board.messages.is_empty()
+      && board.board.node.migrated_at.is_none(),
     "and nothing was carried"
   );
 
@@ -351,7 +353,11 @@ fn an_inbox_from_an_unregistered_sender_refuses_the_migration_before_it_writes()
     .wb_migrate("dc", true)
     .expect("the re-run after the registration carries the board");
   assert_eq!(
-    facade.board("dc").expect("the board").messages.len(),
+    facade
+      .board_read("dc", true)
+      .expect("the board")
+      .messages
+      .len(),
     1,
     "with the stranger's entry"
   );
@@ -425,9 +431,11 @@ fn standing_directives_on_a_board_that_is_not_hv_s_refuse_the_migration_before_i
       && rendered.contains("intent/whiteboard/dc/wip.md:"),
     "the refusal names the section and where its lines are: {rendered}"
   );
-  let board = facade.board("dc").expect("the board");
+  let board = facade.board_read("dc", true).expect("the board");
   assert!(
-    board.items.is_empty() && board.messages.is_empty() && board.node.migrated_at.is_none(),
+    board.board.items.is_empty()
+      && board.messages.is_empty()
+      && board.board.node.migrated_at.is_none(),
     "and nothing was carried"
   );
 }
@@ -457,7 +465,11 @@ fn a_migrated_inbox_over_the_bound_does_not_refuse_its_sender() {
     .expect("register the sender");
   facade.wb_migrate("dc", true).expect("carry the board");
   assert_eq!(
-    facade.board("dc").expect("the board").messages.len(),
+    facade
+      .board_read("dc", true)
+      .expect("the board")
+      .messages
+      .len(),
     bound + 1,
     "every entry is carried"
   );

@@ -487,10 +487,12 @@ fn a_pulled_board_is_taken_into_the_store_by_the_pull() {
   team.git(&alice, &["push", "-q"]);
 
   let pulled = team.git(&bob, &["pull", "-q"]);
-  let board = bob.join("intent/whiteboard/bo/board.json");
+  // The message is on its SENDER's board (issue 0612), so the board the pull
+  // brings is al's, and bo's inbox reads it from the store.
+  let board = bob.join("intent/whiteboard/al/board.json");
   assert!(
     std::fs::read_to_string(&board)
-      .expect("Bob's board.json is on disk")
+      .expect("Alice's board.json is on disk in Bob's clone")
       .contains("The onboarding guide is yours"),
     "the pull's pass wrote the store's board over the pulled message: {}",
     pulled.said
@@ -506,7 +508,7 @@ fn a_pulled_board_is_taken_into_the_store_by_the_pull() {
     .find(|l| l.contains("from the files into the store"))
     .unwrap_or_else(|| panic!("the hook named nothing it took: {}", pulled.said));
   assert!(
-    took.contains("board bo"),
+    took.contains("board al"),
     "the took line names the board: {took}"
   );
 

@@ -36,14 +36,15 @@ This was added because the obligation did not exist in writing and its absence c
 intent/whiteboard/
   README.md                 # this file -- protocol pointer + roster
   <node>/
-    board.json              # the node's row, rendered from the store
+    board.json              # the node's canon, rendered from the store: its items, the messages it sent, its handled marks
     wip.md                  # the node's board, rendered from the store (single-writer = the node, through `intent wb`)
     inbox.<sender>.md       # messages FROM <sender>, rendered (single-writer = the sender)
     .history/               # the hand-authored era's archives, and the pre-migration copies `intent wb migrate` keeps
 ```
 
 - `<node>/wip.md` -- changed only by `<node>` acting through `intent wb --node <node>`; a hand edit is skew and `intent doctor` reports it.
-- `<node>/inbox.<sender>.md` -- written only by `<sender>`: appended through `intent wb ask` or `announce`, and a sent message's body changed through `intent wb edit message`; read and cleared only by `<node>` (the owner), with `intent wb clear`.
+- `<node>/inbox.<sender>.md` -- written only by `<sender>`, rendered from `<sender>/board.json` alone: appended through `intent wb ask` or `announce`, and a sent message's body changed through `intent wb edit message`; read only by `<node>` (the owner), which clears with `intent wb clear` by marking in its own `board.json`, so the file never changes when it does.
+- A node commits what its own verbs wrote, as each verb prints it on its `wrote:` lines: its `board.json` and `wip.md`, every `<peer>/inbox.<node>.md`, and its own event files. A `re-rendered:` line is another node's file to commit, named with its owner (issue 0612).
 
 ## The board's header block is NOT YAML
 

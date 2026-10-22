@@ -1297,34 +1297,34 @@ pub fn serve(
     // The tool answers the same summary the terminal renders, with the SKIPPED
     // PATHS in it -- an agent deciding whether to trust a search needs to know
     // which files are not in the index, and a count cannot answer that.
-    "wb status" => Ok(json!(
-      f.wb_status()?
-        .iter()
-        .map(|b| json!({
+    "wb status" => {
+      // The messages addressed to a node are counted from the store, which
+      // joins them with its marks: its own board carries what it sent (0612).
+      let mut rows = Vec::new();
+      for b in f.wb_status()? {
+        rows.push(json!({
           "node": b.node,
           // **THE COUNTS TRAVEL AND THE CONTENTS DO NOT.** An agent asking who
           // is on the board should not be handed every item and message on it;
           // `wb show` is the door for one board, and answering the roster with
           // the whole estate would make the cheap question the expensive one.
           "items": b.items.len(),
-          "messages": b.messages.len(),
-        }))
-        .collect::<Vec<_>>()
-    )),
+          "messages": f.board_read(&b.node.moniker, true)?.messages.len(),
+        }));
+      }
+      Ok(json!(rows))
+    }
     "wb show" => {
       let node = str_arg(args, "node", path)?;
       let all = opt_b(path, map, "all")?;
-      Ok(json!(intentsvcs::facade::BoardRead::of(
-        f.board(node)?,
-        all
-      )))
+      Ok(json!(f.board_read(node, all)?))
     }
     "wb clear" => {
       let node = str_arg(args, "node", path)?;
       let sender = str_arg(args, "sender", path)?;
       let handled = f.wb_clear(node, sender)?;
       Ok(
-        json!({ "recipient": node, "sender": sender, "handled": handled, "notes": intentsvcs::facade::notes_json(&f.take_notes()) }),
+        json!({ "recipient": node, "sender": sender, "handled": handled, "written": f.take_written(node), "notes": intentsvcs::facade::notes_json(&f.take_notes()) }),
       )
     }
     // **`wb ask`, `wb announce` AND `wb decide` ARE NOT SERVED HERE, AND THE
@@ -1351,13 +1351,15 @@ pub fn serve(
     "wb touch" => {
       let node = str_arg(args, "node", path)?;
       f.wb_touch(node)?;
-      Ok(json!({ "node": node, "notes": intentsvcs::facade::notes_json(&f.take_notes()) }))
+      Ok(
+        json!({ "node": node, "written": f.take_written(node), "notes": intentsvcs::facade::notes_json(&f.take_notes()) }),
+      )
     }
     "wb release" => {
       let node = str_arg(args, "node", path)?;
       f.wb_release(node)?;
       Ok(
-        json!({ "node": node, "status": "paused", "notes": intentsvcs::facade::notes_json(&f.take_notes()) }),
+        json!({ "node": node, "status": "paused", "written": f.take_written(node), "notes": intentsvcs::facade::notes_json(&f.take_notes()) }),
       )
     }
     "wb archive" => {
@@ -1369,7 +1371,7 @@ pub fn serve(
         .map_err(|_| args_err(path, "`seq` is the item's number on the board"))?;
       let moved = f.wb_archive(node, kind, seq)?;
       Ok(
-        json!({ "node": node, "moved": moved, "notes": intentsvcs::facade::notes_json(&f.take_notes()) }),
+        json!({ "node": node, "moved": moved, "written": f.take_written(node), "notes": intentsvcs::facade::notes_json(&f.take_notes()) }),
       )
     }
     "wb claim" => {
@@ -1377,7 +1379,7 @@ pub fn serve(
       let id = str_arg(args, "id", path)?;
       let moved = f.wb_claim(node, id)?;
       Ok(
-        json!({ "node": node, "id": id, "moved": moved, "notes": intentsvcs::facade::notes_json(&f.take_notes()) }),
+        json!({ "node": node, "id": id, "moved": moved, "written": f.take_written(node), "notes": intentsvcs::facade::notes_json(&f.take_notes()) }),
       )
     }
     "wb unclaim" => {
@@ -1385,7 +1387,7 @@ pub fn serve(
       let id = str_arg(args, "id", path)?;
       let moved = f.wb_unclaim(node, id)?;
       Ok(
-        json!({ "node": node, "id": id, "moved": moved, "notes": intentsvcs::facade::notes_json(&f.take_notes()) }),
+        json!({ "node": node, "id": id, "moved": moved, "written": f.take_written(node), "notes": intentsvcs::facade::notes_json(&f.take_notes()) }),
       )
     }
     "index status" => {
