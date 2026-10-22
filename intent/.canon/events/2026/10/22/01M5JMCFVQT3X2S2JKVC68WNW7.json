@@ -1,0 +1,15 @@
+{
+  "id": "01M5JMCFVQT3X2S2JKVC68WNW7",
+  "ts": "2026-10-22T20:21:05.015Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "AFTER THE CUT, the 0614 lead to its issue (vc's order, 2026-10-22), worded as a lead and not a finding: in a clean scratch project a linked worktree's carrier rewrote no file on any pair; the worktree's store went stale on both pre-0619 pairs (dcd9057d4 and the released 3.2.4, f89b8285b) and took main's board after each carrier on build all #2's pair (8bef2bb7a), 0619's fix in the worktree shape. What wrote Molt's backwards views is undriven; a later render from a stale store is the candidate. The control is refs/bank/dc/325kd/e_worktree_carriers.sh, with control-dcd9057d4.log, control-324keg.log and control-final.log beside it."
+  }
+}

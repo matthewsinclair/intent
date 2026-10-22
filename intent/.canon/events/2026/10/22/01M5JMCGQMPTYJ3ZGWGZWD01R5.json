@@ -1,0 +1,15 @@
+{
+  "id": "01M5JMCGQMPTYJ3ZGWGZWD01R5",
+  "ts": "2026-10-22T20:21:05.908Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "AFTER THE CUT, issues 0620 (low: the menu masthead's 512 px logo, written by int macos app-icons beside the AppIcon set) and 0621 (low: int macos app-test's summary taken from the result bundle, every framework counted), both dc's. Worktrees tmp/wt-dc-0619, tmp/wt-dc-0612 and tmp/wt-dc-kd325 are kept until vc says."
+  }
+}

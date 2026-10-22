@@ -3,23 +3,22 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 4d49d436-713f-4dbb-b59f-4a7a135be63a
-heartbeat_at: 2026-10-22 19:54Z
+heartbeat_at: 2026-10-22 20:21Z
 status: active
-focus: "0619 landed at 5d28210ad; now the v3.2.5 known-defects re-drive on vc's order, run on build all #2's pair; then 0620 and 0621"
-claims: [ISSUE:0619]
+focus: "0619 landed (5d28210ad) and closed (143c15b01); the v3.2.5 known-defects page landed (02fc792f4); frozen for the cut until vc's END; next: the 0614 lead to its issue, then 0620 and 0621; no push, no release"
+claims: []
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-- 0619 LANDED at 5d28210ad (2026-10-22 19:50Z): fix-c (blob 6ac46dbbd74b, patch-id 14e0325d71ff) onto ic's 0607 landing 3d6820e0f, tree b66cac7984ef as vc computed, judged green 19:42-19:45Z (the arm red to green, the whole workspace's tests, fmt, both clippy lines, doc, and the three-clone hook drive taking board al). The cause: resync_inner decided which boards were ahead against the empty pre-warm store, so its closing replace_file_index kept no board row; refs/bank/dc/0619/fix and fix-b are spent. ISSUE:0619 stays claimed until vc closes it after build all #2.
-  NOW: the v3.2.5 known-defects re-drive (vc's order, 2026-10-22): prepared by reading; the additions list went to vc (0614 alone, on the page only if it reproduces on #2's pair). The drive runs only on build all #2's pair, under START and END; then the page is retitled, every transcript replaced, each entry that no longer reproduces removed naming the release that fixed it, banked under refs/bank/dc/325kd/ and landed on vc's word before the cut.
-  AFTER: issues 0620 and 0621 (low, dc's). Worktrees tmp/wt-dc-0619 and tmp/wt-dc-0612 are kept until vc says.
+_(none)_
 
 ## TODO
 
-_(none)_
+- AFTER THE CUT, the 0614 lead to its issue (vc's order, 2026-10-22), worded as a lead and not a finding: in a clean scratch project a linked worktree's carrier rewrote no file on any pair; the worktree's store went stale on both pre-0619 pairs (dcd9057d4 and the released 3.2.4, f89b8285b) and took main's board after each carrier on build all #2's pair (8bef2bb7a), 0619's fix in the worktree shape. What wrote Molt's backwards views is undriven; a later render from a stale store is the candidate. The control is refs/bank/dc/325kd/e_worktree_carriers.sh, with control-dcd9057d4.log, control-324keg.log and control-final.log beside it.
+- AFTER THE CUT, issues 0620 (low: the menu masthead's 512 px logo, written by int macos app-icons beside the AppIcon set) and 0621 (low: int macos app-test's summary taken from the result bundle, every framework counted), both dc's. Worktrees tmp/wt-dc-0619, tmp/wt-dc-0612 and tmp/wt-dc-kd325 are kept until vc says.
 
 ## Holds
 
