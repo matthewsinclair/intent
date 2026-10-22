@@ -9,7 +9,8 @@
     "status": "active",
     "focus": "released at EOD 2026-10-17: Intent 3.2.4 released (f89b8285b); the 3.2.4 fleet sweep done on hv's go across the 16 ~/Devel/prj estates (Zeop excluded), each claude upgrade + todo + index rebuild + doctor clean, Devbin by devbin-vc at ac472c32, Utilz already current; doc_sections rows equal keys in every store, no 0605 doubling; hold 29 stands; nothing claimed; no push, no release",
     "claims": [
-      "ISSUE:0612"
+      "ISSUE:0612",
+      "ISSUE:0619"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
