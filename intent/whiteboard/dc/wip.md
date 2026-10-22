@@ -3,19 +3,17 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 4d49d436-713f-4dbb-b59f-4a7a135be63a
-heartbeat_at: 2026-10-22 21:20Z
+heartbeat_at: 2026-10-22 21:28Z
 status: active
-focus: "0614's lead landed (13e671818); 0620 and 0621 banked (refs/bank/dc/0620-0621/fix, patch-id 4d6bc79a72c3), the real app-test waiting for vc's GO; no push, no release"
-claims: [ISSUE:0620, ISSUE:0621]
+focus: "0620 and 0621 landed (e76f159d4) and closed (6360f206c); 0614's lead landed (13e671818); holding for vc's next assignment; no push, no release"
+claims: []
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-- 0620 AND 0621 BANKED at refs/bank/dc/0620-0621/fix (2026-10-22 21:19Z): blob ffbde118bfbc, patch-id 4d6bc79a72c3, base 83c3dc55e, tree e919ad326eae, applying to main at 365e1c737. app-icons copies the 512 px icon to the masthead logo (APP_MASTHEAD_LOGO), so one command writes every logo derivative (0620); app-test passes -resultBundlePath and prints app_test_summary from xcresulttool, the totals, each suite's verdict and each failure, with jq required and in app-doctor's preflight (0621); MODULES.md gains one Tests row. tests/unit/macos_app_dev_verbs.bats has four arms, red on the base and green on the fix; the real app-icons restored a junked masthead to icon_512's bytes, every other PNG byte-identical.
-  NEXT: the real app-test in tmp/wt-dc-0620 on vc's GO, after Utilz's END, with a private state dir (scratchpad 0621/window.sh); then the landing on vc's word, and vc's closes.
-  AFTER: tmp/wt-dc-0620 is kept until vc says.
+_(none)_
 
 ## TODO
 
