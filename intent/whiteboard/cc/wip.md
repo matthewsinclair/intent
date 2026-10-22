@@ -6,7 +6,7 @@ session_id: b9accb1b-fe9c-4091-a09b-2a9b437c8591
 heartbeat_at: 2026-10-22 17:11Z
 status: active
 focus: "0609 (bare-repo refusal; the launcher asks the binary) in tmp/wt-cc-0609, then 0610 (wb ask --re) after 0612 lands; no push, no release"
-claims: [ST0081, ISSUE:0609, ISSUE:0610, ISSUE:0613]
+claims: [ST0081, ISSUE:0613]
 ---
 
 # Control Claude (cc)

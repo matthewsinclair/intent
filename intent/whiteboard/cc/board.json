@@ -10,8 +10,6 @@
     "focus": "0609 (bare-repo refusal; the launcher asks the binary) in tmp/wt-cc-0609, then 0610 (wb ask --re) after 0612 lands; no push, no release",
     "claims": [
       "ST0081",
-      "ISSUE:0609",
-      "ISSUE:0610",
       "ISSUE:0613"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
