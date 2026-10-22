@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 4d49d436-713f-4dbb-b59f-4a7a135be63a
-heartbeat_at: 2026-10-22 16:41Z
+heartbeat_at: 2026-10-22 19:18Z
 status: active
-focus: "released at EOD 2026-10-17: Intent 3.2.4 released (f89b8285b); the 3.2.4 fleet sweep done on hv's go across the 16 ~/Devel/prj estates (Zeop excluded), each claude upgrade + todo + index rebuild + doctor clean, Devbin by devbin-vc at ac472c32, Utilz already current; doc_sections rows equal keys in every store, no 0605 doubling; hold 29 stands; nothing claimed; no push, no release"
+focus: "0619 (high) banked as refs/bank/dc/0619/fix on 9c91e278e; its judging window is first after hv's compact; localfolded 2026-10-22 19:18Z, not released"
 claims: [ISSUE:0619]
 ---
 
@@ -13,7 +13,13 @@ claims: [ISSUE:0619]
 
 ## DOING
 
-_(none)_
+- RESUME (dc, localfold 2026-10-22 19:18Z by date -u, on hv's word via vc; NOT released). STATE: the installed pair is 3.2.4 dev at dcd9057d4 (build all #1: 0612, 0610, 0609); every board is intent/board@4.0 since vc's re-render 9c91e278e; THE NEW COMMIT RULE IS IN FORCE: commit exactly what a verb prints under wrote:, by literal path with --only, census-ok-ci (refs/bank/vc/tools/census-ok-ci.sh, blob 49fa6fc20873, beside refs/bank/vc/tools/census.sh) in the same command. 0612 landed at 521f81ca2 (patch-id 217ca39237ba) and is closed at bc2469bc8.
+  CLAIM: ISSUE:0619 (high), the cold-warm file index.
+  BANKS: refs/bank/dc/0619/fix -> blob 2c7c10395ef3, patch-id 00b394ba4d43, base 9c91e278e (9 paths, +123 -21; compiled clean 19:09Z, nothing run). Its red refs/bank/dc/0619/red -> blob a03d4b6eaa2c, patch-id f78787068af3, base 521f81ca2, ACCEPTED as ([], 0) against (["aa"], 1). The pre-rebase save refs/bank/dc/0619/wip-521 -> blob 9fa3e485576d. 0612's spent refs stay: fix-b 86b891121861, fix 8484ed525aea, red e91580e8335d, red-v1 9a36e5ac5986, shape.md 7f5ac612d451.
+  WORKTREES: tmp/wt-dc-0619 at 9c91e278e plus the fix, its index exactly the bank, in-tree target, HOME=/tmp/dc0619h; tmp/wt-dc-0612, kept until vc says, HOME=/tmp/dc0612h.
+  QUEUE: dc's 0619 judging window is FIRST after the compact, then ic's 0607, then cc's 0615 and 0613. The window, scripted in the session scratchpad's 0619/window.sh: build intentd and intent-cli; the intentsvcs and intent-cli whole suites, --no-fail-fast; CI's fmt, both clippy lines, RUSTDOCFLAGS=-Dwarnings doc; then 0619/drive.sh with the fix build's bin dir, the three-clone hook drive, whose 3.2.4 pre-measurement took only the event and left bo's messages at (0). Then land on vc's word in 0612's pattern (0612/land.sh).
+  AFTER 0619: issues 0620 (low, ic's logo copy, one line in bin/.devbin/cmd/macos's app-icons) and 0621 (low, the `int macos app-test` summary), both dc's. Hold 29 stands.
+  FIRST ACT AFTER THE BOUNCE: /in-session, then intent wb pickup --node dc; read vc's messages; send vc START for 0619's window with blob, patch-id, base and apply --stat, and run it on vc's GO.
 
 ## TODO
 
