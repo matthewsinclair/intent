@@ -1167,14 +1167,21 @@ fn resync_inner(
 
   let canon = read(project)?;
   // **A BOARD AHEAD OF THE STORE STAYS AHEAD** (issue 0554 (b)). Only a
-  // Restore carries boards, so on every other load a board.json a pull
-  // brought is not taken in -- and writing this scan into the index below
-  // would record its new bytes as the store's, so the next check would read
-  // the file as where the store left it and a board write would render over
-  // it. Decided here, against the index as it stood before this pass, and
+  // Restore and a cold warm carry boards, so on every other load a board.json
+  // a pull brought is not taken in -- and writing this scan into the index
+  // below would record its new bytes as the store's, so the next check would
+  // read the file as where the store left it and a board write would render
+  // over it. Decided here, against the index as it stood before this pass, and
   // those files keep their previous rows.
+  //
+  // **A COLD WARM LEAVES NO BOARD AHEAD** (issue 0619). Asked of the empty
+  // store it found, every board on disk reads as ahead, so the index kept no
+  // row for any file in a board's directory, and a pull's change to a board
+  // the warm had taken never counted as moved. A warm that runs takes every
+  // board the disk carries, and one that does not returns before the index is
+  // written.
   let ahead: Vec<String> = match load {
-    Load::Restore => Vec::new(),
+    Load::Restore | Load::WarmIfCold => Vec::new(),
     _ => crate::model::boards_ahead_of_the_store(
       &store.hydrate_boards()?,
       &canon.boards,

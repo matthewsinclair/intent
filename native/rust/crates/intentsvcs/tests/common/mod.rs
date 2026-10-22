@@ -651,6 +651,25 @@ pub fn wb_messages_as_at_31(conn: &rusqlite::Connection) {
     .expect("the whiteboard's message tables as schema 31 held them");
 }
 
+/// Run git at `root` with hooks off and return what it printed, RAISING on
+/// failure: a git that failed quietly would leave a commit, a clone or a pull
+/// an arm reads unmade.
+pub fn git_out(root: &Path, args: &[&str]) -> String {
+  let out = std::process::Command::new("git")
+    .args(["-c", "core.hooksPath=/dev/null"])
+    .args(args)
+    .current_dir(root)
+    .output()
+    .expect("run git");
+  assert!(
+    out.status.success(),
+    "git {args:?} failed at {}: {}",
+    root.display(),
+    String::from_utf8_lossy(&out.stderr)
+  );
+  String::from_utf8(out.stdout).expect("git prints utf-8")
+}
+
 /// Run a git command at `root`, RAISING on failure -- a silently failed git
 /// leaves the tree in a state the test did not ask for, and every assertion
 /// after it then measures the wrong world.

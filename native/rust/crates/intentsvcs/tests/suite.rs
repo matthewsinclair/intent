@@ -425,6 +425,8 @@ mod root_files_generated;
 #[path = "schema_faces_drift.rs"]
 mod schema_faces_drift;
 
+#[path = "a_pull_into_a_cold_warmed_store_carries_its_board.rs"]
+mod a_pull_into_a_cold_warmed_store_carries_its_board;
 #[path = "a_pulled_board_is_taken_only_when_the_store_is_still.rs"]
 mod a_pulled_board_is_taken_only_when_the_store_is_still;
 #[path = "skills_sync.rs"]

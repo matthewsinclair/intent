@@ -12,28 +12,11 @@
 //! files. This arm commits exactly that set after one ask and reads the commit
 //! the way a teammate's clone does: a cold store, then doctor.
 
-use crate::common::{Fixture, ctx};
+use crate::common::{Fixture, ctx, git_out as git};
 use intentsvcs::finding::FindingClass;
 use intentsvcs::sync::Scope;
 
 const BODY: &str = "hello from aa";
-
-/// Run git at `root` and return what it printed, RAISING on failure: a git
-/// that failed quietly would leave the commit this arm reads unmade.
-fn git(root: &std::path::Path, args: &[&str]) -> String {
-  let out = std::process::Command::new("git")
-    .args(args)
-    .current_dir(root)
-    .output()
-    .expect("run git");
-  assert!(
-    out.status.success(),
-    "git {args:?} failed at {}: {}",
-    root.display(),
-    String::from_utf8_lossy(&out.stderr)
-  );
-  String::from_utf8(out.stdout).expect("git prints utf-8")
-}
 
 /// What a teammate's clone of `fx`'s HEAD reads: how many messages from aa to
 /// bb carrying [`BODY`] its store holds, and every view-skew finding its
