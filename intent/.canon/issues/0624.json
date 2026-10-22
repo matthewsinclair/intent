@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 624,
+  "slug": "intent-issues-edit-and-close-write-tracked-files",
+  "title": "intent issues edit and close write tracked files but print no wrote: lines, so the commit rule cannot be followed mechanically for them",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-10-22",
+  "reporter": "Matthew Sinclair",
+  "body": "Found by dc on 2026-10-22, after the 3.2.5 cut, while landing 0614's lead. vc measured it from the same night's logs.\n\nThe wb verbs print every file they write on `wrote:` lines (issue 0612), and the commit rule for boards rests on that: a node commits exactly what its verbs printed, by literal path with `--only` (`intent/restart.md`). The issue verbs write tracked files too and print none of them:\n\n- `intent issues edit <n> --from <file>` prints only `ok: issue <n> body written`.\n- `intent issues close <n>` prints only `ok: issue <n> -> CLOSED`.\n\nEach one writes an event file under `intent/.canon/events/`, the issue's canon record and its view. So a node has to find those paths in `git status` and read each one before it commits. That is the census the `wrote:` lines exist to replace. On a shared tree with a peer's writes in flight, it can also take in a path that is not its own.\n\nMEASURED: vc's edits and closes of 0607, 0619, 0613 and 0615 on 2026-10-22 wrote eight event files, four canon records and four views, and printed none of them. dc's edit of 0614 wrote one event, the canon record and the view, and printed none of them.\n\nNOT MEASURED: the `st`, `wp`, `ac`, `at` and `set` verbs, which also write canon. Whether they print `wrote:` is unread.\n\nTHE ASK: every verb that writes a tracked file names it on a `wrote:` line, in the shape the wb verbs print. Then the commit rule is mechanical for every verb, not only for boards.\n"
+}

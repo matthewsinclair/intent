@@ -1,0 +1,15 @@
+{
+  "id": "01M5JQ7GDEK9WMZY04KH4ZFKY1",
+  "ts": "2026-10-22T21:10:47.474Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0624"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "intent issues edit and close write tracked files but print no wrote: lines, so the commit rule cannot be followed mechanically for them"
+  }
+}
