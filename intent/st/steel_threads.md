@@ -5,11 +5,11 @@ An index of every steel thread in the project. A steel thread is a self-containe
 | ID     | Title                                                                                                                                           | Status    | Created    | Completed            |
 | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ---------- | -------------------- |
 | ST0084 | Relocate the parity tooling and reference generators out of intent/st/ST0056 so completed threads can leave the disk                            | Triage    | 2026-10-17 |                      |
-| ST0083 | Agent contracts at the root or in .claude/, chosen per project, and CLAUDE.md imports AGENTS.md                                                 | WIP       | 2026-10-15 |                      |
 | ST0082 | Intent on Windows through WSL 2: Intent's Linux install inside WSL, no native port                                                              | Triage    | 2026-10-14 |                      |
 | ST0081 | Intent from Homebrew on Linux and macOS, with no source checkout: Linux binaries on every release                                               | WIP       | 2026-10-12 |                      |
 | ST0077 | Level 3 stores the references only the toolchain sees, and a roster of the targets it defines                                                   | Triage    | 2026-09-17 |                      |
 | ST0060 | Add 'intent vault' as a way for intent projects to manage local credentials                                                                     | Triage    | 2026-08-25 |                      |
+| ST0083 | Agent contracts at the root or in .claude/, chosen per project, and CLAUDE.md imports AGENTS.md                                                 | Completed | 2026-10-15 | 2026-10-22           |
 | ST0080 | Scheduled store backups that actually fire                                                                                                      | Completed | 2026-09-25 | 2026-09-25           |
 | ST0079 | Add 'outs[tanding]' verb to show all outstanding items from a single verb                                                                       | Completed | 2026-09-21 | 2026-09-22           |
 | ST0078 | Using Intent on a multi-person project with a Git workflow including PRs                                                                        | Completed | 2026-09-18 | 2026-09-18           |

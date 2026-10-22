@@ -16,15 +16,6 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 05: intent daemon start --at-login refuses on Linux before writing anything
   - [-] 06: The Homebrew formula installs Intent on Linux
   - [x] 07: Intent on Ubuntu from its Linux package, as a user uses it
-- [-] ST0083: Agent contracts at the root or in .claude/, chosen per project, and CLAUDE.md imports AGENTS.md
-  - [x] 01: CLAUDE.md imports AGENTS.md: the @AGENTS.md line in _CLAUDE.md
-  - [x] 02: The contracts key and contracts_dir: every writer, reader, the sync scope and the daemon watch derive the place from it
-  - [x] 03: The doors: init --contracts and intent agents layout
-  - [x] 04: doctor: both layouts present, a held settings file with a dead hook command, an empty or placeholder author
-  - [x] 05: The templated settings deny editing the generated AGENTS.md in either layout
-  - [x] 06: intent deinit: strip what Intent wrote from a project being closed
-  - [x] 07: A store under Dropbox is marked ignored for the Dropbox client
-  - [x] 08: Docs, reference and CHANGELOG for the two layouts, the import and deinit
 
 ## TODO
 
@@ -133,6 +124,15 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 01: TUI Omnibox /outs[tanding]: the same table intent outs prints, inside the TUI
   - [x] 02: outs shows each open WP directly underneath its own ST
 - [x] ST0080: Scheduled store backups that actually fire
+- [x] ST0083: Agent contracts at the root or in .claude/, chosen per project, and CLAUDE.md imports AGENTS.md
+  - [x] 01: CLAUDE.md imports AGENTS.md: the @AGENTS.md line in _CLAUDE.md
+  - [x] 02: The contracts key and contracts_dir: every writer, reader, the sync scope and the daemon watch derive the place from it
+  - [x] 03: The doors: init --contracts and intent agents layout
+  - [x] 04: doctor: both layouts present, a held settings file with a dead hook command, an empty or placeholder author
+  - [x] 05: The templated settings deny editing the generated AGENTS.md in either layout
+  - [x] 06: intent deinit: strip what Intent wrote from a project being closed
+  - [x] 07: A store under Dropbox is marked ignored for the Dropbox client
+  - [x] 08: Docs, reference and CHANGELOG for the two layouts, the import and deinit
 
 ---
 

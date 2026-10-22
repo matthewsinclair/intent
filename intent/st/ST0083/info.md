@@ -1,9 +1,9 @@
 ---
 st_id: ST0083
 title: Agent contracts at the root or in .claude/, chosen per project, and CLAUDE.md imports AGENTS.md
-status: WIP
+status: Completed
 created: 2026-10-15
-completed:
+completed: 2026-10-22
 ---
 
 # ST0083: Agent contracts at the root or in .claude/, chosen per project, and CLAUDE.md imports AGENTS.md
