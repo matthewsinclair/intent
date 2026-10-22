@@ -1,0 +1,16 @@
+{
+  "id": "01M5JG9ZFY0JM5YT1EE3GAPHKV",
+  "ts": "2026-10-22T19:09:48.414Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 84,
+    "text": "0609, 0610 AND 0613, cc's (hv's word 2026-10-22; vc's orders). 0610 LANDED at be2f28213 and 0609 LANDED at 1de4bcf0a, each at its judged patch-id (6440f2e54c08 and 33f9bcb9e1c4), and build all #1 carried both at dcd9057d4; both issues stay claimed until vc closes them. 0613 (a verb whose stdout is closed early panics, exit 101) taken on vc's offer of 19:08Z: the red arm first, driving two verbs into a pipe whose reader is gone; the fix once at the CLI's entry, a panic hook that turns std's broken-pipe print panic into a quiet exit at the filter's conventional status, leaving SIGPIPE ignored so a broken daemon socket still reports; worktree tmp/wt-cc-0610 reused at HEAD so its target stays valid; START through vc. No push, no release."
+  }
+}

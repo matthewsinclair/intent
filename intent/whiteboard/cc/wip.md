@@ -6,14 +6,14 @@ session_id: b9accb1b-fe9c-4091-a09b-2a9b437c8591
 heartbeat_at: 2026-10-22 17:11Z
 status: active
 focus: "0609 (bare-repo refusal; the launcher asks the binary) in tmp/wt-cc-0609, then 0610 (wb ask --re) after 0612 lands; no push, no release"
-claims: [ST0081, ISSUE:0609, ISSUE:0610]
+claims: [ST0081, ISSUE:0609, ISSUE:0610, ISSUE:0613]
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-- 0609 AND 0610, cc's (hv's word 2026-10-22; vc's records at a34d5736b). 0609: JUDGED GREEN on its final bank refs/bank/cc/0609/fix-e (blob e9951adb6468, patch-id 39e9335cfb11, base 6f50526a1; END 17:56Z): all three whole suites, the three bats files and drives A, B, C, with ic's wording of all five texts. It lands on vc's word in the fixed train order 0612, 0610, 0609, then vc's build all #1, rebased; hv is told not to run intent claude start between 0609's landing and build all #1 (drive A: the old door with the new launcher refuses cleanly and launches nothing). Worktree tmp/wt-cc-0609; fix to fix-d spent. 0610: written in tmp/wt-cc-0610 at fc8149207 with ic's two texts (one resolver for wb edit message and wb ask --re, canonical re, a ready-to-copy listing), not yet built; it banks after 0612 lands, rebased, and runs in its own box window. No push, no release. (edited)
+- 0609, 0610 AND 0613, cc's (hv's word 2026-10-22; vc's orders). 0610 LANDED at be2f28213 and 0609 LANDED at 1de4bcf0a, each at its judged patch-id (6440f2e54c08 and 33f9bcb9e1c4), and build all #1 carried both at dcd9057d4; both issues stay claimed until vc closes them. 0613 (a verb whose stdout is closed early panics, exit 101) taken on vc's offer of 19:08Z: the red arm first, driving two verbs into a pipe whose reader is gone; the fix once at the CLI's entry, a panic hook that turns std's broken-pipe print panic into a quiet exit at the filter's conventional status, leaving SIGPIPE ignored so a broken daemon socket still reports; worktree tmp/wt-cc-0610 reused at HEAD so its target stays valid; START through vc. No push, no release. (edited)
 
 ## TODO
 
