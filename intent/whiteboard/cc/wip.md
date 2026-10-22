@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: b9accb1b-fe9c-4091-a09b-2a9b437c8591
-heartbeat_at: 2026-10-22 21:03Z
+heartbeat_at: 2026-10-22 21:19Z
 status: active
-focus: "v3.2.5 is cut and published; ST0081 next: kovacs ORDER 8 with hv (START 20:57Z, its log back through vc), then AC-03.3 and AC-06.1 from it; AC-01.1 and AC-01.2 on hv's optional --ref main dispatch; AC-02.1 on D55; no push, no release"
+focus: "ST0081 is down to AC-02.1 and WP-02, which wait on hv's D55; 0613 and 0615 shipped in v3.2.5; no push, no release"
 claims: [ST0081]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0081]
 
 ## DOING
 
-- 0615 AND 0613 LANDED AND SHIPPED (cc, 2026-10-22): 0615 at d6da40135 (patch-id ad56ebffe614, refs/bank/cc/0615/fix-b) and 0613 at 8bef2bb7a (patch-id a58423a229b2, refs/bank/cc/0613/fix, blob f3ecd00bc6b6), judged in one window at 5d28210ad and passed by vc; both are in v3.2.5 (release commit 2e0e9215d). Every spent ref stays (0615/fix and fix-b; 0613/red, fix-only and fix). tmp/wt-cc-0609 and tmp/wt-cc-0610 are REMOVED, on vc's word after CUT END: each held only staged work, byte-identical to its bank (fix-b f3180b62b677; 0613/fix f3ecd00bc6b6) and with no diff against its landed commit, nothing unstaged or untracked and no process in either, so the --force discarded nothing that is not on main. NEXT, ST0081 after the 3.2.5 cut: (1) AC-01.1 and AC-01.2 from one `gh workflow run linux-release.yml --ref main`, hv's to fire or skip, which vc has put to hv (a branch dispatch is stamped dev, which neither row asks about); (2) AC-03.3 and AC-06.1 from kovacs ORDER 8, refs/bank/cc/0081/kovacs/o8-postcut.sh (blob f9414b29fc73, sha256 da0115d7b8de), args `3.2.5 2e0e9215d67f67c665d1b8179a7888555551c8e7`: START went to vc and utilz-vc at 20:57Z; vc sent the order one-way to kovacs-sysadm, which cc cannot reach, for hv's `!`; the log comes back through hv and vc; cc sends END to vc and utilz-vc when its end line arrives, then satisfies both rows from it. WP-03 closes on AC-03.3, since 03.1 and 03.2 went to ST0082; whether WP-06 closes on AC-06.1 alone or waits for its objective's macOS re-proof on a Mac with no checkout is vc's to rule. (3) AC-02.1 stays on D55, with the 3.2.5 release recorded as evidence only. No push, no release. (edited)
+- ST0081 AFTER THE 3.2.5 CUT (cc, 2026-10-22): every row the cut could settle is settled, and the gate reads BLOCKED, 6/7 satisfied, 3 descoped, with AC-02.1 alone open. AC-03.3 and AC-06.1 satisfied and WP-03 done at 6a5d06b5d, from kovacs ORDER 8 (refs/bank/cc/0081/kovacs/o8-postcut.sh, green 21:02:53Z to 21:03:12Z; its lines are refs/bank/cc/0081/evidence/o8-postcut-lines.txt, blob b3fc943efce9). WP-06 done at 0f3c75b20 on vc's ruling (a) under hv's pen: its objective's macOS re-proof on a Mac with no checkout is hv's loop-back (gyges proved 3.2.0 on 2026-09-21, ST0056's AC-00.5 and AC-11.1), carried in intent/wip.md's TODO. AC-01.1 and AC-01.2 satisfied and WP-01 done at 927c058e4, from hv's --ref main dispatch, run 39854556183 (refs/bank/cc/0081/evidence/run-39854556183.txt, blob baec68a54b14); WP-01's first measurement is answered: intent-support.tar.gz serves Linux unchanged. LEFT: AC-02.1 and WP-02 (Linux assets on each tag's release, one writer per release object) wait on hv's D55. 0613 and 0615 shipped in v3.2.5; tmp/wt-cc-0609 and tmp/wt-cc-0610 are removed; every bank ref stays. No push, no release.
 
 ## TODO
 

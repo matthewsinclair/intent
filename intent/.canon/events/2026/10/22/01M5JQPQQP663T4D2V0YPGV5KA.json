@@ -1,0 +1,15 @@
+{
+  "id": "01M5JQPQQP663T4D2V0YPGV5KA",
+  "ts": "2026-10-22T21:19:06.486Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST0081 AFTER THE 3.2.5 CUT (cc, 2026-10-22): every row the cut could settle is settled, and the gate reads BLOCKED, 6/7 satisfied, 3 descoped, with AC-02.1 alone open. AC-03.3 and AC-06.1 satisfied and WP-03 done at 6a5d06b5d, from kovacs ORDER 8 (refs/bank/cc/0081/kovacs/o8-postcut.sh, green 21:02:53Z to 21:03:12Z; its lines are refs/bank/cc/0081/evidence/o8-postcut-lines.txt, blob b3fc943efce9). WP-06 done at 0f3c75b20 on vc's ruling (a) under hv's pen: its objective's macOS re-proof on a Mac with no checkout is hv's loop-back (gyges proved 3.2.0 on 2026-09-21, ST0056's AC-00.5 and AC-11.1), carried in intent/wip.md's TODO. AC-01.1 and AC-01.2 satisfied and WP-01 done at 927c058e4, from hv's --ref main dispatch, run 39854556183 (refs/bank/cc/0081/evidence/run-39854556183.txt, blob baec68a54b14); WP-01's first measurement is answered: intent-support.tar.gz serves Linux unchanged. LEFT: AC-02.1 and WP-02 (Linux assets on each tag's release, one writer per release object) wait on hv's D55. 0613 and 0615 shipped in v3.2.5; tmp/wt-cc-0609 and tmp/wt-cc-0610 are removed; every bank ref stays. No push, no release."
+  }
+}
