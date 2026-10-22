@@ -1,0 +1,15 @@
+{
+  "id": "01M5JQXX97RP08JMSNKEMVZN7Z",
+  "ts": "2026-10-22T21:23:01.547Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0626"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "the support tarball is tarred from the release machine's working copy, so v3.2.5's carries three empty directories git does not track and the asset is not a function of the tag"
+  }
+}
