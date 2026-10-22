@@ -16,13 +16,16 @@
 //! ever, so a hook fix would silently never reach it and the report would say
 //! `held` while everyone assumed it had landed. The discriminator that answers
 //! the real question -- *did this file ever carry Intent's hook door* -- is the
-//! door itself, `intent claude hook`. Present means Intent wrote it and an
-//! upgrade may rewrite it; absent means it is somebody else's file.
+//! door itself, `intent claude hook`. Absent means it is somebody else's file.
 //!
-//! **AND THE RESIDUAL IS STATED RATHER THAN HIDDEN**: a project that kept
-//! Intent's hooks and tuned a timeout still has its tuning rewritten, exactly as
-//! a marker-carrying `CLAUDE.md` is regenerated. That is the same trade in the
-//! same function, not a gap this file leaves open by accident.
+//! **WHAT THESE ARMS HOLD TODAY: A FILE WITHOUT THE DOOR IS HELD.** `--force`
+//! goes through the hold, `--skip-settings` declines the file without holding
+//! it, and a project with no settings file still gets one. A file that DOES
+//! carry the door is merged into, keeping every key its owner added, and is
+//! never written over (issue 0606, in 3.2.4); that behaviour is held by
+//! `claude_upgrade_merges_an_owners_settings.rs`, and the door-carrying arm
+//! here checks only that such a file is not held and receives the template's
+//! current entries.
 
 use std::path::Path;
 
@@ -128,11 +131,11 @@ fn force_overwrites_the_settings_file_it_would_otherwise_hold() {
 }
 
 /// **THE CONTROL THAT KEEPS THE UPGRADE PATH ALIVE.** A file that already
-/// carries the hook door is Intent's own, and an upgrade must still be able to
-/// rewrite it -- otherwise a hook fix reaches nobody and the report says `held`
-/// while everyone believes it landed.
+/// carries the hook door is Intent's own: an upgrade does not hold it, and the
+/// template's current entries are written into it -- otherwise a hook fix
+/// reaches nobody and the report says `held` while everyone believes it landed.
 #[test]
-fn a_settings_file_carrying_the_hook_door_is_still_rewritten() {
+fn a_settings_file_carrying_the_hook_door_takes_the_templates_entries() {
   let fx = crate::common::Fixture::new();
   fx.git_init();
   let hooks = hooks_dir(&fx);
