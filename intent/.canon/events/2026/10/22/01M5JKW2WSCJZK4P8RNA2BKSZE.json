@@ -1,0 +1,15 @@
+{
+  "id": "01M5JKW2WSCJZK4P8RNA2BKSZE",
+  "ts": "2026-10-22T20:12:07.452Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0622"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "cut-surface.md calls its refusal list exhaustive, but ALL_VARIANTS names only FacadeError's own variants, so a refusal the facade does not wrap, or one inside a type it wraps, is absent"
+  }
+}
