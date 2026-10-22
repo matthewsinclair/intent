@@ -1,0 +1,15 @@
+{
+  "id": "01M5J961YM5734EEDXGE6RQNF9",
+  "ts": "2026-10-22T17:05:19.831Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0613"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "A verb whose stdout is closed early panics (exit 101, failed printing to stdout: Broken pipe) instead of ending quietly"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 613,
+  "slug": "a-verb-whose-stdout-is-closed-early-panics-exit",
+  "title": "A verb whose stdout is closed early panics (exit 101, failed printing to stdout: Broken pipe) instead of ending quietly",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-10-22",
+  "reporter": "Matthew Sinclair",
+  "body": "## What\n\nA verb whose standard output is closed early panics instead of ending quietly. Measured by vc on 2026-10-22, on the installed 3.2.4 pair (f89b8285b), three runs each:\n\n- `intent at list ST0056 | true` exits 101.\n- `intent st list --status all | true` exits 101.\n- `intent llm guide | true` exits 101.\n\nEach prints `thread 'main' panicked at .../library/std/src/io/stdio.rs:1168:9: failed printing to stdout: Broken pipe (os error 32)`.\n\nMolt hit it as `intent at list | grep -q ...`. That form is a race: `grep -q` reads the first chunk and exits, and the panic follows whenever Intent writes again after that. So it panicked in Molt and passed once here.\n\n## Why\n\nRust ignores SIGPIPE, so a write to a closed pipe returns an error, and `println!` panics on that error. The panic goes to every caller that pipes Intent into a reader that stops early (`grep -q`, `head`, `sed q`), including hooks and scripts, and it says nothing a reader can act on.\n\n## Expected\n\nA verb whose stdout is closed ends without a panic, with the conventional status a filter has when its reader goes away, and prints nothing on stderr about it. It is fixed once for every verb, at the CLI's entry or at its one writer, never verb by verb. A test drives at least two verbs into a closed pipe and asserts no panic text and the chosen status.\n\nReported by molt-dc (Molt), 2026-10-22; measured and filed by vc.\n"
+}
