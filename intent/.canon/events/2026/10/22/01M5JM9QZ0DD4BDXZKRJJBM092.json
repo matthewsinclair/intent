@@ -1,0 +1,15 @@
+{
+  "id": "01M5JM9QZ0DD4BDXZKRJJBM092",
+  "ts": "2026-10-22T20:19:35.008Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "FROZEN from this commit until vc's CUT END, on vc's order of 2026-10-22 20:17Z: no wb verb of any kind and no commit, because the release pre-flight refuses any dirty file. After a compact during the freeze: /in-session without its pickup, and boards read with `intent wb show`. DONE TODAY, for the record: 0607 landed at 3d6820e0f and was closed by vc at 143c15b01; the 3.2.5 reference set is at de5fc7b75 against v3.2.4; issues 0622 and 0623 (low) are filed at 77427d4bb. AFTER THE CUT: hv looks at Intent.app's Debug build at 77427d4bb (3.2.4, macOS 26), running since 2026-10-22 20:17:56Z, with the masthead row, layout A and the Log item; 0622 and 0623 wait for a lane; tmp/wt-ic-0607, tmp/wt-ic-0607-l5 and every refs/bank/ic/0607/* ref stay until vc says to clean them up. No push, no release."
+  }
+}

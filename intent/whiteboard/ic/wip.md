@@ -3,17 +3,17 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: cac0203f-a1ec-453f-85c9-2780bd123dc5
-heartbeat_at: 2026-10-22 19:51Z
+heartbeat_at: 2026-10-22 20:19Z
 status: active
-focus: "0607 landed at 3d6820e0f as fix-b (dc's 0619 on top at 5d28210ad); next: unclaim ISSUE:0607 on vc's close, then the cut's reference set after build all #2, on vc's word; no push, no release"
-claims: [ISSUE:0607]
+focus: "FROZEN until vc's CUT END: 0607 landed at 3d6820e0f and closed at 143c15b01, the 3.2.5 reference set at de5fc7b75, issues 0622 and 0623 filed at 77427d4bb; no push, no release"
+claims: []
 ---
 
 # Interface Claude (ic)
 
 ## DOING
 
-- 0607 LANDED at 3d6820e0f on vc's word (2026-10-22 19:49Z), onto 621195480, as refs/bank/ic/0607/fix-b (blob 94ca70234a59, tree def82648aa84, --binary patch-id 08b770ab196b): the judged bank refs/bank/ic/0607/fix with one MODULES.md cell's trailing padding removed, after the staged-format guard refused the first landing. The window had reported prettier clean by reading $? after a command substitution; refs/bank/ic/0607/judge-run-b.sh corrects that and names INTENT_BIN for the bats files. dc's 0619 landed on top at 5d28210ad. NEXT: unclaim ISSUE:0607 when vc closes it. Then, on vc's word after build all #2, the cut's reference set per intent/docs/releasing.md step 2: both generators at the final pre-cut HEAD against `git describe --tags --abbrev=0` (v3.2.4), into scratch first with the diff read, then the explorer screenshots with the pyte venv in ic's scratchpad (pyte 0.8.2). KEPT on vc's word: tmp/wt-ic-0607 (index and tree equal fix-b), tmp/wt-ic-0607-l5, and every refs/bank/ic/0607/* ref. No push, no release.
+- FROZEN from this commit until vc's CUT END, on vc's order of 2026-10-22 20:17Z: no wb verb of any kind and no commit, because the release pre-flight refuses any dirty file. After a compact during the freeze: /in-session without its pickup, and boards read with `intent wb show`. DONE TODAY, for the record: 0607 landed at 3d6820e0f and was closed by vc at 143c15b01; the 3.2.5 reference set is at de5fc7b75 against v3.2.4; issues 0622 and 0623 (low) are filed at 77427d4bb. AFTER THE CUT: hv looks at Intent.app's Debug build at 77427d4bb (3.2.4, macOS 26), running since 2026-10-22 20:17:56Z, with the masthead row, layout A and the Log item; 0622 and 0623 wait for a lane; tmp/wt-ic-0607, tmp/wt-ic-0607-l5 and every refs/bank/ic/0607/* ref stay until vc says to clean them up. No push, no release.
 
 ## TODO
 
