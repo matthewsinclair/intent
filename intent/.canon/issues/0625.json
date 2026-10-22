@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 625,
+  "slug": "docs-install-md-says-intent-app-needs-macos-14-o",
+  "title": "docs/install.md says Intent.app needs macOS 14 or later, but since issue 0607 it needs macOS 26, and v3.2.5 shipped with the old floor on that page",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-10-22",
+  "reporter": "Matthew Sinclair",
+  "body": "## What\n\n`docs/install.md` line 53 says the menubar app \"needs macOS 14 or later\". Since issue 0607 (3d6820e0f) the app's minimum is macOS 26. The CHANGELOG's 3.2.5 entry says \"Intent.app now runs on macOS 26 or later\". The v3.2.5 app's own `Info.plist`, read from the stapled bundle in `native/rust/target/dist/Intent.app.zip`, gives `LSMinimumSystemVersion` 26.0. 0607 did not update this page, so v3.2.5 shipped with the old floor on it, and a reader on macOS 14 to 25 would download an app that does not launch. ic measured this on 2026-10-22, after the 3.2.5 cut, when hv asked how to install the release app.\n\n- Only the repository's page is wrong, not a shipped artefact. The release's `intent-support.tar.gz` carries no `docs/`: none of its 331 entries has a `docs/` path segment, and its folders under `intent-support/` are `intent` and `lib`. The same listing finds 34 `lib/templates` entries, so the check can see a path that is there.\n- No other current page states the app's floor. A grep of `docs/` and `intent/docs/` for macOS versions finds this line, two lines about `jq` on macOS 15 (unrelated), and `docs/releases/3.0.1/RELEASE_NOTES.md`, whose \"macOS 14 or later\" was true of 3.0.1 and stays.\n\n## Expected\n\nThe page says macOS 26 or later, as the CHANGELOG and the app do.\n\nFound by ic after the 3.2.5 cut. Filed by ic on vc's word, under hv's pen.\n"
+}
