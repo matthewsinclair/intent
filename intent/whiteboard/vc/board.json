@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "b9c0d657-8ee0-449e-86f3-7277b7513c19",
-    "heartbeat_at": "2026-10-22T20:22:46.736Z",
+    "heartbeat_at": "2026-10-22T21:24:18.024Z",
     "status": "active",
-    "focus": "2026-10-22: THE 3.2.5 CUT, at hv's terminal by hv's hand; vc runs the box, the render chain and the freeze until CUT END; after it: CUT END to every node and estate, cc's kovacs o8 after the formula push, Utilz's gap at macos prepare's END, the worktree removals, the globalfold; vc pushes nothing and releases nothing",
+    "focus": "2026-10-22: v3.2.5 is out (2e0e9215d); vc reads the post-cut landings (cc's WP-06 close and AC-01.1/01.2, ic's install.md and releasing.md fixes), holds Intent's box queue, and keeps the globalfold in intent/wip.md; vc pushes nothing and releases nothing",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -1980,8 +1980,18 @@
       "kind": "doing",
       "seq": 53,
       "text": "THE 3.2.5 CUT (vc, 2026-10-22, on hv's word \"I want this next release done tonight\"; the cut is hv's, at hv's terminal, and vc pushes nothing and releases nothing). HEAD'S LINEAGE: the train landed at its judged patch-ids and was closed at 143c15b01 -- 0607 at 3d6820e0f (ic's fix-b, a whitespace re-bank after the format gate refused fix), 0619 at 5d28210ad (dc's fix-c, after fix failed its own red arm), 0615 at d6da40135 and 0613 at 8bef2bb7a (cc's); build all #2 is the live pair at 8bef2bb7a, and nothing since touches DIRT_SCOPE; the pre-cut sync and the closed views' removal are 88816de77; the known-defects page is re-driven whole at 02fc792f4 (every entry still reproduces, 0614 stays off it, and dc's e_worktree_carriers control under refs/bank/dc/325kd/ is a lead for 0614's lane); the reference set is regenerated against v3.2.4 at de5fc7b75 (reference_current_check.sh rc 0), and ic's two low findings are 0622 and 0623 at 77427d4bb; the render commits went in one at a time, ic 1c63b77d3, cc 563dc65e6, dc f5aa13d35, then this board's, and every node is frozen from its own commit until vc's CUT END.\n\nTHE CUT'S COMMAND LIST is the one vc sends hv whole with READY: `intent daemon stop`, `bin/devbin build release v3.2.5 --dry-run`, the real run (`--skip-tests` only at the dry run's HEAD, on hv's choice), `macos prepare`, `macos publish` (expect the stop), the Linux packages by hand, `brew formula --push` at a terminal, `claude skills sync`, `brew unpin` and the smoke, `brew unlink`, pin and daemon restart, the site. hv's three choices were asked before READY: the version (vc recommends 3.2.5), `--skip-tests` on the real run, and the optional `--ref main` dispatch.\n\nAFTER IT: CUT END to every node and every estate's vc (the tag's build swaps every estate's pair); cc's kovacs order o8 (refs/bank/cc/0081/kovacs/o8-postcut.sh, blob f9414b29fc73) once hv's formula push is done, for ST0081's AC-03.3 and AC-06.1; hv's optional `--ref main` dispatch for AC-01.1 and AC-01.2; at macos prepare's END vc sends utilz-vc that END, the census and which side of o8 K1 sits on, and the GO for Utilz's R99, K1 and ic's S is utilz-vc's (hv: Intent first); the worktree removals on each lane's word; then the globalfold (intent/wip.md).",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-22T21:24:16.080Z",
       "recorded_at": "2026-10-22T20:22:45.845Z"
+    },
+    {
+      "node": "vc",
+      "kind": "doing",
+      "seq": 54,
+      "text": "AFTER THE 3.2.5 CUT (vc, 2026-10-22). v3.2.5 is out: release commit 2e0e9215d, tag on both remotes, the GitHub release with six assets, the tap at 1de8ca7e5, CI green at the tag, the site at 3.2.5, o8 green on kovacs, and the cut's Intent.app in /Applications. ST0081 is BLOCKED on AC-02.1 alone (hv's D55). dc's 0620 and 0621 passed their window (21:23:11Z to 21:23:37Z; arms red on the base and green on the fix, app-test rc 0 over 58 tests) and landed on vc's word at e76f159d4, and vc closed both at 6360f206c. THE BOX: two queues until hv rules (vc Intent's, utilz-vc Utilz's and Gtools'), and Intent has no heavy run queued. NEXT: the spent bank refs' cleanup on vc's word; 0622, 0623, 0624 and 0626 (all low) wait for lanes; the globalfold is intent/wip.md.",
+      "state": "live",
+      "recorded_at": "2026-10-22T21:24:17.073Z",
+      "edited_at": "2026-10-22T21:27:36.084Z"
     }
   ],
   "sent": [
