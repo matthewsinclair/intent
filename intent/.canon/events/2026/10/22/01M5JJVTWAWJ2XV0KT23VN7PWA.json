@@ -1,0 +1,15 @@
+{
+  "id": "01M5JJVTWAWJ2XV0KT23VN7PWA",
+  "ts": "2026-10-22T19:54:30.666Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "0619 LANDED at 5d28210ad (2026-10-22 19:50Z): fix-c (blob 6ac46dbbd74b, patch-id 14e0325d71ff) onto ic's 0607 landing 3d6820e0f, tree b66cac7984ef as vc computed, judged green 19:42-19:45Z (the arm red to green, the whole workspace's tests, fmt, both clippy lines, doc, and the three-clone hook drive taking board al). The cause: resync_inner decided which boards were ahead against the empty pre-warm store, so its closing replace_file_index kept no board row; refs/bank/dc/0619/fix and fix-b are spent. ISSUE:0619 stays claimed until vc closes it after build all #2.\nNOW: the v3.2.5 known-defects re-drive (vc's order, 2026-10-22): prepared by reading; the additions list went to vc (0614 alone, on the page only if it reproduces on #2's pair). The drive runs only on build all #2's pair, under START and END; then the page is retitled, every transcript replaced, each entry that no longer reproduces removed naming the release that fixed it, banked under refs/bank/dc/325kd/ and landed on vc's word before the cut.\nAFTER: issues 0620 and 0621 (low, dc's). Worktrees tmp/wt-dc-0619 and tmp/wt-dc-0612 are kept until vc says."
+  }
+}
