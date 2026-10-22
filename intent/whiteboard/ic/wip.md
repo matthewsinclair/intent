@@ -2,11 +2,11 @@
 node: ic
 name: Interface Claude
 role: interface
-session_id: ba4c99b8-b828-4603-9871-50eb86fc3a5b
-heartbeat_at: 2026-09-26 17:17Z
-status: paused
+session_id: cac0203f-a1ec-453f-85c9-2780bd123dc5
+heartbeat_at: 2026-10-22 16:41Z
+status: active
 focus: "LOCALFOLDED for hv's compact; idle, 0587 closed; resume from todo 50."
-claims: []
+claims: [ISSUE:0607]
 ---
 
 # Interface Claude (ic)
