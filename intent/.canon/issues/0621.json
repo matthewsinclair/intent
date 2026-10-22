@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 621,
+  "slug": "int-macos-app-test-s-printed-summary-counts-only",
+  "title": "int macos app-test's printed summary counts only XCTest, so a Swift Testing suite's results never reach it",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-10-22",
+  "reporter": "Matthew Sinclair",
+  "body": "## What\n\n`bin/int macos app-test` prints a summary that counts only XCTest. A Swift Testing suite's results never reach it. ic measured this on 2026-10-22 in issue 0607's worktree, where the app now carries both frameworks:\n\n- The printed summary said \"Executed 35 tests\". That is the four XCTest classes alone.\n- The run's result bundle, read with `xcrun xcresulttool get test-results summary`, gave 58 passed, 0 failed, 0 skipped, and every suite passed. That includes the three Swift Testing suites \"Masthead\", \"Version row\" and \"intentd flyout\".\n\nA failure is never misreported, because xcodebuild's exit code covers both frameworks. But the summary a reader judges a run by under-reports what ran, and a judge reading \"35\" cannot tell that 23 tests were outside the count.\n\n## Expected\n\napp-test's summary comes from the result bundle, so it counts every framework the run executed and names each suite's verdict. A test that exists only in Swift Testing appears in the count, and in the failures when it fails.\n\nFound by ic in 0607's early app-test window. Filed by vc.\n"
+}
