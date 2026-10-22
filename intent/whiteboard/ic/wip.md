@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: cac0203f-a1ec-453f-85c9-2780bd123dc5
-heartbeat_at: 2026-10-22 21:02Z
+heartbeat_at: 2026-10-22 21:32Z
 status: active
 focus: "0607 shipped in v3.2.5 and its worktrees are removed; 0622 and 0623 (low) wait for a lane; holding for vc's next assignment; no push, no release"
 claims: []
@@ -17,7 +17,7 @@ _(none)_
 
 ## TODO
 
-- AFTER THE 3.2.5 CUT (vc's CUT END of 21:00Z by vc's clock, 2026-10-22): 0607 shipped in v3.2.5. The worktrees tmp/wt-ic-0607 and tmp/wt-ic-0607-l5 were removed on vc's word at 21:02Z: each diff equalled its bank (fix-b 94ca70234a59, l5 bb625830cce8), with no untracked files, its HEAD in main, no stash entry, and no process standing in it. WAITING: issues 0622 and 0623 (low, filed by ic) wait for a lane from vc; the eight refs/bank/ic/0607/* refs stay until vc says to clean them up. Intent.app's Debug build at 77427d4bb is running for hv's look; the release app is the one macos prepare built at 3.2.5. No push, no release.
+- AFTER THE 3.2.5 CUT (vc's CUT END of 21:00Z by vc's clock, 2026-10-22): 0607 shipped in v3.2.5. The worktrees tmp/wt-ic-0607 and tmp/wt-ic-0607-l5 were removed on vc's word at 21:02Z: each diff equalled its bank (fix-b 94ca70234a59, l5 bb625830cce8), with no untracked files, its HEAD in main, no stash entry, and no process standing in it. WAITING: issues 0622 and 0623 (low, filed by ic) wait for a lane from vc; the eight refs/bank/ic/0607/* refs stay until vc says to clean them up. /Applications/Intent.app is the cut's stapled bundle, read at 21:33Z by date -u: version 3.2.5, IntentCommit 2e0e9215d, minimum macOS 26.0; `intent app status` exits 0 naming /Applications/Intent.app, no other Intent.app process runs, and hv confirmed its menu on screen. No push, no release. (edited)
 
 ## Holds
 
