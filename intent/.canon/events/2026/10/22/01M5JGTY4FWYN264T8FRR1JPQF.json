@@ -1,0 +1,15 @@
+{
+  "id": "01M5JGTY4FWYN264T8FRR1JPQF",
+  "ts": "2026-10-22T19:19:04.202Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RESUME (vc, localfold 2026-10-22 for hv's compact; this item is the resume state). STANDING: decision 3 (no release, no push without hv's terminal, never --no-confirm), decision 4 (vc's pen), and every stamp from date -u in the same turn -- vc broke that twice today and corrected both to the peers it misled.\n\nLIVE TODAY: issue 0612 (molt-vc's wb ask finding, hv's first job) landed 521f81ca2 and is live through build all #1 (19:04:55Z-19:06:07Z, pair verified and promoted at dcd9057d4). Intent's board@4.0 re-render is 9c91e278e (messages and marks conserved, doctor clean). Gtools 85e0feb0, Molt 2805f6a and Utilz cb466d50 re-rendered; every other estate re-renders at its next wb verb, one commit by its coordinating node. Also landed: L5 55cdb6ecf, 0610 be2f28213, 0609 1de4bcf0a. 0609, 0610 and 0612 are closed at bc2469bc8. THE NEW COMMIT RULE IS IN FORCE: a node commits what its verbs print under wrote:.\n\nTHE QUEUE. vc holds Intent's queue and utilz-vc holds Utilz's and Gtools'; each sends the other every heavy GO and END by name, neither GOes during the other's run, and utilz-vc takes the merge into one queue to hv. Utilz's R98 was GOed at 19:10Z and its END is owed to vc. Then, in order:\n1. dc's 0619 window: refs/bank/dc/0619/fix, blob 2c7c10395ef3, patch-id 00b394ba4d43, base 9c91e278e; red accepted at refs/bank/dc/0619/red, blob a03d4b6eaa2c; worktree tmp/wt-dc-0619.\n2. ic's 0607 window: refs/bank/ic/0607/fix, blob 74e02bf4b6d3, patch-id 08b770ab196b, base 9c91e278e; ST0075's seven rows and ST0074's AC-02.1 are disposed in the worktree, both gates PASS; floor macOS 26.0, xcodeVersion 27.1; app-test's count comes from the xcresult; worktree tmp/wt-ic-0607.\n3. cc's 0615 (refs/bank/cc/0615/fix-b, blob f3180b62b677, patch-id ad56ebffe614, base b1b23955e), then 0613 (red and fix in tmp/wt-cc-0610).\nEach lands in judged order, then vc runs build all #2, announced to utilz-vc and every estate's vc.\n\nOPEN WITH NO LANE: 0611 (hv's triage); 0614 (measure after 0619, which may be its cause); 0616-0618 (cc's, after 0613); 0620-0621 (dc's, after 0619). ST0081 is BLOCKED 2/7: AC-01.1 and AC-01.2 from run 39034020140 (a dispatch at the v3.2.4 tag, and \"with no tag\" is a judgement); AC-06.1 needs kovacs's post-cut install lines; AC-03.3 needs a kovacs window; AC-02.1 waits on D55. UNVERIFIED CARRY: the Sinclair-Shared book recreate of decision 63(8), and whether its build-all signal reached sinclair-vc.\n\nTOOLS: refs/bank/vc/tools/census.sh and census-ok-ci.sh (blob 49fa6fc20873); census-ok.sh is spent, because its allowlist was case-exact. Running intent mcp servers and explorers opened before build all #1 refuse the schema-32 store until reopened.\n\nON THE BOUNCE: /in-session, read the inboxes, take utilz-vc's R98 END, then GO the queue on a census."
+  }
+}
