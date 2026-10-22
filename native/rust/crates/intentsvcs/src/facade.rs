@@ -481,10 +481,10 @@ fn holds_text(bytes: &[u8], spellings: &[String]) -> bool {
     .any(|s| !s.is_empty() && bytes.windows(s.len()).any(|w| w == s.as_bytes()))
 }
 
-/// A message's address as `wb edit message` takes it (issue 0523): the stamp
-/// its inbox heading shows, and the `#<n>` that names one of several in that
-/// minute. A suffix that is not a number is part of the stamp, and matches
-/// nothing.
+/// A message's address as `wb edit message` and `wb ask --re` take it (issues
+/// 0523 and 0610): the stamp its inbox heading shows, and the `#<n>` that names
+/// one of several in that minute. A suffix that is not a number is part of the
+/// stamp, and matches nothing.
 fn message_address(id: &str) -> (&str, Option<u32>) {
   match id.rsplit_once('#') {
     Some((anchor, n)) => match n.parse::<u32>() {
@@ -504,6 +504,83 @@ fn first_words(body: &str) -> String {
   } else {
     shown
   }
+}
+
+/// Each message's address among `rows`, one sender's messages to one recipient
+/// in send order: its heading stamp, with `#<n>` where its minute holds
+/// several, which is the form [`message_address`] reads back.
+fn addresses(rows: &[crate::store::MessageRow]) -> Vec<String> {
+  let stamps: Vec<String> = rows
+    .iter()
+    .map(|r| crate::views::board_stamp(&r.recorded_at))
+    .collect();
+  stamps
+    .iter()
+    .enumerate()
+    .map(|(i, stamp)| {
+      let minute: Vec<usize> = (0..stamps.len()).filter(|&j| stamps[j] == *stamp).collect();
+      match minute.iter().position(|&j| j == i) {
+        Some(k) if minute.len() > 1 => format!("{stamp}#{}", k + 1),
+        _ => stamp.clone(),
+      }
+    })
+    .collect()
+}
+
+/// The messages an address that named none could have meant (issue 0610): the
+/// ones whose address begins with what was given, so a stamp cut short finds
+/// its minute, and otherwise the latest few, each set under a heading that
+/// says which it is. One per line, address first, so the right one can be
+/// copied. The flag says whether any address was listed, which the remedy
+/// reads.
+fn could_have_meant(
+  rows: &[crate::store::MessageRow],
+  anchor: &str,
+  sender: &str,
+  recipient: &str,
+) -> (String, bool) {
+  const SHOWN: usize = 5;
+  let all: Vec<(String, &crate::store::MessageRow)> =
+    addresses(rows).into_iter().zip(rows).collect();
+  if all.is_empty() {
+    return (
+      format!("; `{sender}` has sent `{recipient}` no message"),
+      false,
+    );
+  }
+  let starting: Vec<&(String, &crate::store::MessageRow)> = all
+    .iter()
+    .filter(|(address, _)| !anchor.is_empty() && address.starts_with(anchor))
+    .collect();
+  let (heading, pool): (String, Vec<&(String, &crate::store::MessageRow)>) =
+    match starting.is_empty() {
+      true => (
+        format!(", and no address starts with it; the latest `{sender}` sent `{recipient}`:"),
+        all.iter().collect(),
+      ),
+      false => ("; the messages it could mean:".to_string(), starting),
+    };
+  let lines = pool[pool.len().saturating_sub(SHOWN)..]
+    .iter()
+    .map(|(address, row)| format!("  {address}  \"{}\"", first_words(&row.body)))
+    .collect::<Vec<_>>()
+    .join("\n");
+  (format!("{heading}\n{lines}"), true)
+}
+
+/// One message an address named, as [`Facade::resolve_message`] found it.
+struct NamedMessage {
+  /// The pair's messages, in send order.
+  rows: Vec<crate::store::MessageRow>,
+  /// Where the named one sits in `rows`.
+  index: usize,
+  /// The stamp its inbox heading shows.
+  anchor: String,
+  /// Its place among the messages headed with that stamp, counting from 1.
+  n: u32,
+  /// Its address as `wb ask --re` stores it: the stamp, with `#<n>` when the
+  /// call gave one (issue 0610).
+  canonical: String,
 }
 
 /// Is `e` a correction of the message the event `origin` sent?
@@ -2019,12 +2096,18 @@ pub enum FacadeError {
     seq: u32,
   },
   /// No message from the sender to the recipient is headed with this anchor
-  /// (issue 0523). `anchor` is what the call named, `#<n>` included.
-  #[error("no message from `{sender}` to `{recipient}` is headed {anchor}")]
+  /// (issue 0523). `anchor` is what the call named, `#<n>` included, and
+  /// `listing` names the messages it could have meant, one address per line
+  /// ready to copy, or says there are none, with `listed` saying which (issue
+  /// 0610). The sender and recipient are the parties of the message the
+  /// address names, which for `wb ask --re` are the ask's own, reversed.
+  #[error("no message from `{sender}` to `{recipient}` is headed {anchor}{listing}")]
   WbNoSuchMessage {
     sender: String,
     recipient: String,
     anchor: String,
+    listing: String,
+    listed: bool,
   },
   /// Several messages share one heading minute and the call did not say which
   /// (issue 0523). `listing` is one line per message: `<anchor>#<n>` and its
@@ -2548,19 +2631,25 @@ impl crate::remedy::Remedy for FacadeError {
       Self::WbNoSuchItem { node, .. } => format!(
         "`intent wb show {node}` prints each live item as `[kind] seq text`. An archived item keeps its number, and `intent/whiteboard/{node}/board.json` lists every item with it. An item on another node's board is edited by that node"
       ),
+      // Led by the listing when one was printed (issue 0610).
       Self::WbNoSuchMessage {
-        sender, recipient, ..
-      } => format!(
-        "the anchor is the first stamp in a heading of `intent/whiteboard/{recipient}/inbox.{sender}.md`; a `claimed` stamp is the markdown's and is not an anchor. Several messages in one minute are told apart as `<anchor>#<n>`, counting from 1 in send order"
-      ),
-      Self::WbMessageAmbiguous {
         sender,
         recipient,
-        anchor,
+        listed,
         ..
-      } => format!(
-        "`intent wb edit message '{anchor}#<n>' <text> --to {recipient} --node {sender}` names one. `#<n>` counts from 1 in send order, and an inbox only grows, so a number never moves"
-      ),
+      } => {
+        let anchor = format!(
+          "the first stamp in a heading of `intent/whiteboard/{recipient}/inbox.{sender}.md`; a `claimed` stamp is the markdown's and is not an anchor. Several messages in one minute are told apart as `<anchor>#<n>`, counting from 1 in send order"
+        );
+        match listed {
+          true => format!("copy one of the addresses listed. An anchor is {anchor}"),
+          false => format!("an anchor is {anchor}"),
+        }
+      }
+      // Not one verb's command line: `wb edit message` and `wb ask --re` both
+      // meet this refusal through the one resolver (issue 0610), and the
+      // listing above already carries each address ready to copy.
+      Self::WbMessageAmbiguous { .. } => "give one of the addresses above, `<anchor>#<n>`, in place of the anchor alone. `#<n>` counts from 1 in send order, and an inbox only grows, so a number never moves".to_string(),
       Self::WbAlreadyCarried { node, .. } => format!(
         "read what is there first -- `intent wb show {node}` -- because this refuses rather than guessing whether those rows are an earlier carry or work written since. A board carried by mistake is emptied by rebuilding the store from canon; one carrying real work is already past the markdown era and needs no migration"
       ),
@@ -8963,6 +9052,72 @@ impl Facade {
     Ok(edited)
   }
 
+  /// The one message an address names among those `sender` sent `recipient`.
+  ///
+  /// **THE ONE RESOLVER BEHIND BOTH VERBS THAT TAKE AN ADDRESS** (issues 0523
+  /// and 0610): `wb edit message` names a message the acting node sent, and
+  /// `wb ask --re` names one the addressee sent the acting node, so both read
+  /// one grammar -- the heading stamp, with `#<n>` for one of several in a
+  /// minute -- and refuse in one voice. An address that names nothing, a stamp
+  /// cut short among them, is refused with the messages it could have meant.
+  fn resolve_message(
+    &self,
+    sender: &str,
+    recipient: &str,
+    id: &str,
+  ) -> Result<NamedMessage, FacadeError> {
+    let (anchor, nth) = message_address(id);
+    let rows = self
+      .store
+      .wb_messages_between(sender, recipient)
+      .map_err(FacadeError::Store)?;
+    let headed: Vec<usize> = rows
+      .iter()
+      .enumerate()
+      .filter(|(_, r)| crate::views::board_stamp(&r.recorded_at) == anchor)
+      .map(|(i, _)| i)
+      .collect();
+    let n = match (nth, headed.len()) {
+      (Some(n), count) if n >= 1 && n as usize <= count => n,
+      (Some(_), _) | (None, 0) => {
+        let (listing, listed) = could_have_meant(&rows, anchor, sender, recipient);
+        return Err(FacadeError::WbNoSuchMessage {
+          sender: sender.to_string(),
+          recipient: recipient.to_string(),
+          anchor: id.to_string(),
+          listing,
+          listed,
+        });
+      }
+      (None, 1) => 1,
+      (None, count) => {
+        return Err(FacadeError::WbMessageAmbiguous {
+          sender: sender.to_string(),
+          recipient: recipient.to_string(),
+          anchor: anchor.to_string(),
+          count,
+          listing: headed
+            .iter()
+            .enumerate()
+            .map(|(k, &i)| format!("  {anchor}#{}  \"{}\"", k + 1, first_words(&rows[i].body)))
+            .collect::<Vec<_>>()
+            .join("\n"),
+        });
+      }
+    };
+    let canonical = match nth {
+      Some(n) => format!("{anchor}#{n}"),
+      None => anchor.to_string(),
+    };
+    Ok(NamedMessage {
+      index: headed[n as usize - 1],
+      rows,
+      anchor: anchor.to_string(),
+      n,
+      canonical,
+    })
+  }
+
   /// Change the body of one message the acting node sent, handled or live,
   /// and say which record now carries it and whose copies changed (issue 0523,
   /// stage 2).
@@ -8994,42 +9149,14 @@ impl Facade {
     self.require_registered(sender)?;
     self.require_migrated(recipient)?;
     self.check_body_bound(sender, text)?;
-    let (anchor, nth) = message_address(id);
-    let rows = self
-      .store
-      .wb_messages_between(sender, recipient)
-      .map_err(FacadeError::Store)?;
-    let headed: Vec<usize> = rows
-      .iter()
-      .enumerate()
-      .filter(|(_, r)| crate::views::board_stamp(&r.recorded_at) == anchor)
-      .map(|(i, _)| i)
-      .collect();
-    let no_such = || FacadeError::WbNoSuchMessage {
-      sender: sender.to_string(),
-      recipient: recipient.to_string(),
-      anchor: id.to_string(),
-    };
-    let n = match (nth, headed.len()) {
-      (Some(n), count) if n >= 1 && n as usize <= count => n,
-      (Some(_), _) | (None, 0) => return Err(no_such()),
-      (None, 1) => 1,
-      (None, count) => {
-        return Err(FacadeError::WbMessageAmbiguous {
-          sender: sender.to_string(),
-          recipient: recipient.to_string(),
-          anchor: anchor.to_string(),
-          count,
-          listing: headed
-            .iter()
-            .enumerate()
-            .map(|(k, &i)| format!("  {anchor}#{}  \"{}\"", k + 1, first_words(&rows[i].body)))
-            .collect::<Vec<_>>()
-            .join("\n"),
-        });
-      }
-    };
-    let row = &rows[headed[n as usize - 1]];
+    let NamedMessage {
+      rows,
+      index,
+      anchor,
+      n,
+      ..
+    } = self.resolve_message(sender, recipient, id)?;
+    let row = &rows[index];
     if row.body == text {
       return Ok(WbMessageEdit {
         edit: WbEdit::Unchanged,
@@ -9040,7 +9167,7 @@ impl Facade {
       .store
       .wb_text_events(sender)
       .map_err(FacadeError::Store)?;
-    let mut origin = message_origin(&events, recipient, &rows, headed[n as usize - 1]);
+    let mut origin = message_origin(&events, recipient, &rows, index);
     let announced = match origin.as_ref().filter(|o| o.op == "wb.announce") {
       Some(announce) => Some(self.announce_copies(sender, &events, announce, &row.body)?),
       None => None,
@@ -9489,6 +9616,15 @@ impl Facade {
     self.require_registered(sender)?;
     self.require_migrated(recipient)?;
     self.check_body_bound(sender, body)?;
+    // Issue 0610: `re` is resolved, never stored as typed. It names a message
+    // the addressee sent this node, the one being answered, through the
+    // resolver `wb edit message` uses with the direction reversed, and what is
+    // stored is that message's address in canonical form. A value stored
+    // before this stays as it was written.
+    let re = match re {
+      Some(id) => Some(self.resolve_message(recipient, sender, id)?.canonical),
+      None => None,
+    };
     let cfg = self.project.config().whiteboard.clone();
     if cfg.bounds_apply_to(sender) {
       let live = self
@@ -9512,7 +9648,7 @@ impl Facade {
     self
       .store
       .wb_write(&event, |w| {
-        w.insert_message(sender, recipient, body, re, fyi, None)
+        w.insert_message(sender, recipient, body, re.as_deref(), fyi, None)
           .map(|_| ())
       })
       .map_err(FacadeError::Store)?;
