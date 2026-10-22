@@ -3,8 +3,8 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: b9c0d657-8ee0-449e-86f3-7277b7513c19
-heartbeat_at: 2026-10-22 21:24Z
-status: active
+heartbeat_at: 2026-10-22 21:30Z
+status: paused
 focus: "2026-10-22: v3.2.5 is out (2e0e9215d); vc reads the post-cut landings (cc's WP-06 close and AC-01.1/01.2, ic's install.md and releasing.md fixes), holds Intent's box queue, and keeps the globalfold in intent/wip.md; vc pushes nothing and releases nothing"
 claims: []
 ---
