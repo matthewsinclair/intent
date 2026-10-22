@@ -17,7 +17,7 @@ _(none)_
 
 ## TODO
 
-- AFTER THE 3.2.5 CUT (vc's CUT END of 21:00Z by vc's clock, 2026-10-22): 0607 shipped in v3.2.5. The worktrees tmp/wt-ic-0607 and tmp/wt-ic-0607-l5 were removed on vc's word at 21:02Z: each diff equalled its bank (fix-b 94ca70234a59, l5 bb625830cce8), with no untracked files, its HEAD in main, no stash entry, and no process standing in it. WAITING: issues 0622 and 0623 (low, filed by ic) wait for a lane from vc; the eight refs/bank/ic/0607/* refs stay until vc says to clean them up. /Applications/Intent.app is the cut's stapled bundle, read at 21:33Z by date -u: version 3.2.5, IntentCommit 2e0e9215d, minimum macOS 26.0; `intent app status` exits 0 naming /Applications/Intent.app, no other Intent.app process runs, and hv confirmed its menu on screen. No push, no release. (edited)
+- AFTER THE 3.2.5 CUT (vc's CUT END of 21:00Z by vc's clock, 2026-10-22): 0607 shipped in v3.2.5. The worktrees tmp/wt-ic-0607 and tmp/wt-ic-0607-l5 were removed on vc's word at 21:02Z: each diff equalled its bank (fix-b 94ca70234a59, l5 bb625830cce8), with no untracked files, its HEAD in main, no stash entry, and no process standing in it. WAITING: issues 0622 and 0623 (low, filed by ic) wait for a lane from vc. The eight refs/bank/ic/0607/* refs stay for good: no spent bank ref is ever deleted (vc's ruling of 2026-09-22, watchout 57 on cc's board), so the cleanup this item and 46c070d6e named is withdrawn, by vc's correction of 2026-10-22. /Applications/Intent.app is the cut's stapled bundle, read at 21:33Z by date -u: version 3.2.5, IntentCommit 2e0e9215d, minimum macOS 26.0; `intent app status` exits 0 naming /Applications/Intent.app, no other Intent.app process runs, and hv confirmed its menu on screen. No push, no release. (edited)
 
 ## Holds
 
