@@ -1,0 +1,14 @@
+{
+  "id": "01M5JA5R4ZKEQQ70SMBTVEAM2G",
+  "ts": "2026-10-22T17:22:38.371Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.withdraw",
+  "subject": {
+    "type": "ac",
+    "id": "ST0075/AC-02.2"
+  },
+  "payload": {
+    "reason": "shipped in ST0075 (2026-09-16); superseded by issue 0607, filed on hv's word 2026-10-17: Intent.app's own Console is replaced by the macOS Console app, and ConsoleTests.swift goes with it"
+  }
+}

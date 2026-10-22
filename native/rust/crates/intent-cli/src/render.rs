@@ -10018,9 +10018,9 @@ fn daemon_run() -> Result<(), Failure> {
 /// `intent daemon logs` -- intentd's two logs: their last lines as one list in the
 /// order they were written, and with `--follow` every line written after.
 ///
-/// **THE FIRST LINE NAMES BOTH FILES AND IS A CONTRACT.** Intent.app's Console
-/// reads it to say what it is tailing, as Gtools' reads `cms logs`'s, so the app
-/// derives no log path of its own. A log intentd has not written yet is named as
+/// **THE FIRST LINE NAMES BOTH FILES AND IS A CONTRACT.** Intent.app reads it to
+/// find the logs its Log item opens in the macOS Console app (issue 0607), so the
+/// app derives no log path of its own. A log intentd has not written yet is named as
 /// absent on the next line, never skipped: a quiet log and a missing one would
 /// otherwise print the same nothing.
 ///
@@ -10040,10 +10040,11 @@ fn daemon_run() -> Result<(), Failure> {
 /// and this process holds the write end, so SIGKILL closes the pipe as surely as
 /// an orderly exit: the shell reads end-of-file and kills the tail by the pid it
 /// recorded. No process group is signalled, so nothing rests on who leads one.
-/// This process in turn ends when ITS stdin closes, which is how Intent.app's
-/// Console, holding that pipe, takes the whole chain down even if the app itself
-/// is killed. A plain `exec` of `tail -F` was the first version, and a
-/// `terminate()` from the app would have left every tail it ever started running.
+/// This process in turn ends when ITS stdin closes, so whatever holds that pipe
+/// takes the whole chain down even if it is itself killed; Intent.app's Console
+/// held it until issue 0607 replaced the Console with the macOS Console app. A
+/// plain `exec` of `tail -F` was the first version, and a `terminate()` from the
+/// app would have left every tail it ever started running.
 fn daemon_logs(m: &ArgMatches) -> Result<(), Failure> {
   use std::io::Write;
 

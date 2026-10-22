@@ -2,18 +2,31 @@ name: Intent
 options:
   bundleIdPrefix: com.matthewsinclair
   deploymentTarget:
-    macOS: "14.0"
-  xcodeVersion: "16.0"
+    macOS: "26.0"
+  # The Xcode floor, as menuz's spec has it (issue 0607, hv's "Xcode 27.x"):
+  # equal to the installed Xcode, so `xcodegen generate` raises no "Update to
+  # Recommended Settings" dialog.
+  xcodeVersion: "27.1"
   generateEmptyDirectories: true
 # Ported from Geodica's project.yml (~/Devel/prj/Gtools/native/macos/Gtools),
 # itself cut from Conflab's. The menubar app shells out to `intent` (and to
 # `/bin/zsh` once per launch, for the login PATH) and holds no product logic
-# (AC-01.1). Both configs sign with the Geodica ADC
-# team on this machine; Developer ID signing + notarisation for distribution
-# is the `int macos app-sign | app-notarize` path (AC-01.7), never this spec.
+# (AC-01.1). One package, arca_swift, for the menu's masthead row and its About
+# window, as Gtools' and menuz's specs take it (issue 0607). Both configs sign
+# with the Geodica ADC team on this machine; Developer ID signing +
+# notarisation for distribution is the `int macos app-sign | app-notarize` path
+# (AC-01.7), never this spec.
 configs:
   Debug: debug
   Release: release
+packages:
+  # XcodeGen's up-to-next-minor: before 1.0 a minor release may change the
+  # API, so a new one is taken on purpose, never by a fresh resolve. It needs
+  # macOS 26 and Swift 6.2, which the deployment target and the Xcode floor
+  # above meet.
+  ArcaSwift:
+    url: https://github.com/builtwitharca/arca_swift
+    minorVersion: 0.1.1
 settings:
   base:
     SWIFT_VERSION: "6.0"
@@ -47,6 +60,9 @@ targets:
     platform: macOS
     sources:
       - Intent
+    dependencies:
+      - package: ArcaSwift
+        product: ArcaMasthead
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.matthewsinclair.intent.macos

@@ -2,8 +2,9 @@
 //! writes with a `remedy:` line opens with intentd's `warning: ` or `error: `
 //! token, and says its remedy once.**
 //!
-//! The Console colours a log line by its token, so a notice without one is
-//! coloured by guessing from its words or not coloured at all. A rendered error
+//! A reader finds a log line's severity by its token -- a search in the macOS
+//! Console app, a filter over `intent daemon logs` -- so a notice without one
+//! is found by guessing from its words or not at all. A rendered error
 //! already ends with its remedy, so a notice that renders the error and then
 //! appends `e.remedy()` writes the same remedy line twice at one stamp.
 //!
@@ -19,7 +20,7 @@ use intentsvcs::remedy::{ERROR_PREFIX, REMEDY_PREFIX};
 
 use crate::common::{daemon_sources, without_comments};
 
-/// intentd's warning token, as its notices spell it and the Console reads it.
+/// intentd's warning token, as its notices spell it and a reader searches for it.
 /// The error token is the renderer's own, read from `intentsvcs::remedy`.
 const WARNING_PREFIX: &str = "warning: ";
 
@@ -132,7 +133,7 @@ fn every_notice_with_a_remedy_opens_with_a_severity_token() {
     .collect();
   assert!(
     untokened.is_empty(),
-    "decision 19: a notice with a remedy opens with `{WARNING_PREFIX}` or `{ERROR_PREFIX}`, so the Console colours it by its token; these do not:\n{}",
+    "decision 19: a notice with a remedy opens with `{WARNING_PREFIX}` or `{ERROR_PREFIX}`, so a reader finds it by its token; these do not:\n{}",
     untokened.join("\n")
   );
 }

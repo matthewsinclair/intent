@@ -1,0 +1,14 @@
+{
+  "id": "01M5JG9ZGE0CGPVF6D6EBZ3DXM",
+  "ts": "2026-10-22T19:09:48.434Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.withdraw",
+  "subject": {
+    "type": "ac",
+    "id": "ST0074/AC-02.1"
+  },
+  "payload": {
+    "reason": "shipped in ST0074; superseded by issue 0607's layout A on hv's word, 2026-10-22: the place is the intentd row's title and the state and details its second line"
+  }
+}

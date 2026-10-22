@@ -2,32 +2,45 @@ import Foundation
 import OSLog
 import Observation
 
+/// The CLI's build, as `intent version` names it: its version, its commit when
+/// the line carries one, and whether it is a release or a dev build when the
+/// line says (issue 0534). Gtools' `CLIVersion`, with the kind Intent's line
+/// carries.
+struct CLIVersion: Sendable, Equatable {
+  let version: String
+  let commit: String?
+  let kind: String?
+}
+
 /// What the app knows about the CLI's version. **A FAILED READ IS NOT A
 /// PENDING ONE**: both would otherwise render as the app's bare name, and an
 /// operator could not tell a CLI that has not answered yet from one that
 /// cannot answer -- the same reason `Health` carries `unknown` with its cause.
 enum VersionState: Sendable, Equatable {
   case pending
-  case answered(String)
+  case answered(CLIVersion)
   case failed(String)
 
-  /// The identity row's text: the CLI's version once it has answered, the
-  /// app's name before then, and the name marked unavailable after a failure.
-  var menuTitle: String {
-    switch self {
-    case .pending: "Intent"
-    case .answered(let title): title
-    case .failed: "Intent (version unavailable)"
-    }
+  /// The CLI's answer, once it has given one; nil while pending and after a
+  /// failure.
+  var answer: CLIVersion? {
+    if case .answered(let cli) = self { return cli }
+    return nil
+  }
+
+  /// Why the read failed, for the masthead row's tooltip; nil unless it failed.
+  var failure: String? {
+    if case .failed(let why) = self { return why }
+    return nil
   }
 }
 
 /// The version of the `intent` this app drives, read through `intent version`
-/// and rendered as the menu's identity row (hv, 2026-09-13). **IT IS THE CLI'S
+/// for the menu's masthead row (hv, 2026-09-13; issue 0607). **IT IS THE CLI'S
 /// VERSION, NOT THE APP'S**: every fact the menu shows comes from the CLI or the
 /// daemon (AC-01.1), and the build a person is asking about is the `intent` the
 /// app shells, which is rebuilt far more often than the app is. The app's own
-/// Info.plist stamps stay where they are (`Bundle.intentVersionString`).
+/// stamps are on the About page (`Bundle.intentVersionString`).
 @MainActor @Observable
 final class VersionService {
   static let shared = VersionService()
@@ -48,15 +61,15 @@ final class VersionService {
   }
 
   /// One read of `intent version`. A failure is logged and carried as `failed`
-  /// with its cause, never a title kept from an earlier read. The state is
+  /// with its cause, never a version kept from an earlier read. The state is
   /// assigned only when it changes, so an unchanged answer does not repaint the
   /// menu every poll.
   func refresh() async {
     let next: VersionState
     do {
       let output = try await IntentCLI.run(["version"])
-      if let title = Self.menuTitle(output) {
-        next = .answered(title)
+      if let cli = Self.parse(output) {
+        next = .answered(cli)
       } else {
         Self.logger.error("intent version printed nothing")
         next = .failed("intent version printed nothing")
@@ -70,21 +83,30 @@ final class VersionService {
 
   /// `intent version` prints `intent <version> (<commit>) <kind>`, where the
   /// commit is a full sha, `dirty-<sha>`, or `unknown`, and the kind is
-  /// `release` or `dev` (spine.rs, issue 0534). A full sha, SHA-1 or SHA-256, is
-  /// shortened to its FIRST eight characters, a `dirty-` marker is KEPT so a
-  /// dirty build never reads as a clean one, and the kind is kept after it. A
-  /// line with no kind, as an `intent` before 3.2.1 prints, reads the same way
-  /// without one. Any other shape is rendered as the CLI printed it rather than
-  /// guessed at; empty output is nil. Pure and `nonisolated`, like
-  /// Health.decode, so its tests run off the main actor.
-  nonisolated static func menuTitle(_ output: String) -> String? {
+  /// `release` or `dev` (spine.rs, issue 0534); an `intent` before 3.2.1 prints
+  /// no kind. A line with no commit gives the version alone, and a line in any
+  /// other shape, one that does not start with the program's name included, is
+  /// all version, as the CLI printed it, rather than guessed at. Empty output is
+  /// nil. Pure and `nonisolated`, so its tests run off the main actor.
+  nonisolated static func parse(_ output: String) -> CLIVersion? {
     let line = output.split(whereSeparator: \.isNewline).first.map(String.init) ?? ""
     let trimmed = line.trimmingCharacters(in: .whitespaces)
     guard !trimmed.isEmpty else { return nil }
-    let shape = /^(\S+) (\S+) \((dirty-)?([0-9a-f]{64}|[0-9a-f]{40})\)( release| dev)?$/
-    guard let match = trimmed.wholeMatch(of: shape) else { return trimmed }
-    let dirty = match.output.3 ?? ""
-    let kind = match.output.5 ?? ""
-    return "\(match.output.1) \(match.output.2) (\(dirty)\(match.output.4.prefix(8)))\(kind)"
+    let shape = /^intent (\S+)(?: \(([^()]+)\))?(?: (release|dev))?$/
+    guard let match = trimmed.wholeMatch(of: shape) else {
+      return CLIVersion(version: trimmed, commit: nil, kind: nil)
+    }
+    return CLIVersion(
+      version: String(match.output.1), commit: match.output.2.map { shortened(String($0)) },
+      kind: match.output.3.map(String.init))
+  }
+
+  /// The commit is a full sha, `dirty-<sha>`, or `unknown`. A full sha, SHA-1
+  /// or SHA-256, is cut to its first eight characters and a `dirty-` marker is
+  /// kept, so a dirty build never reads as a clean one; any other word is kept
+  /// as the CLI printed it.
+  private nonisolated static func shortened(_ commit: String) -> String {
+    guard let match = commit.wholeMatch(of: /(dirty-)?([0-9a-f]{64}|[0-9a-f]{40})/) else { return commit }
+    return "\(match.output.1 ?? "")\(match.output.2.prefix(8))"
   }
 }

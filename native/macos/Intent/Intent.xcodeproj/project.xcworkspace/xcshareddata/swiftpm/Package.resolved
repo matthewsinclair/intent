@@ -1,0 +1,33 @@
+{
+  "originHash" : "dda56d058e2e18fb6f99fad02459bf5b79a452671c7502fc28182f602de652c3",
+  "pins" : [
+    {
+      "identity" : "arca_swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/builtwitharca/arca_swift",
+      "state" : {
+        "revision" : "5a17571c568838a63930aab4c85bbf4846383a9d",
+        "version" : "0.1.1"
+      }
+    },
+    {
+      "identity" : "swift-cmark",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swiftlang/swift-cmark",
+      "state" : {
+        "revision" : "08ddb528923cc1a6527e02b7a1aee9e516ca749a",
+        "version" : "0.9.0"
+      }
+    },
+    {
+      "identity" : "yams",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/jpsim/Yams",
+      "state" : {
+        "revision" : "a27b21e0c81c5bf42049b897a62aaf387e80f279",
+        "version" : "6.2.2"
+      }
+    }
+  ],
+  "version" : 3
+}

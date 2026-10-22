@@ -1,0 +1,11 @@
+# The menu's top row and its About window (issue 0607), read by arca_swift's
+# ArcaMasthead, as Gtools' and menuz's are. A copy in
+# ${XDG_CONFIG_HOME:-~/.config}/intent/ replaces this one with no rebuild. The
+# app gives {version}, {commit} and {kind} from `intent version`, and {app} and
+# {tree} from its own stamps; {name} is the bundle's.
+heading: "{name} {version}"
+subheading: "{commit} · {kind}"
+icon: app
+about:
+  body: about.md
+  css: about.css

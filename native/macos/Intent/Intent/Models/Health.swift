@@ -60,10 +60,11 @@ enum Health: Sendable, Equatable {
     let url: String?
   }
 
-  /// The menu's ONE status line, and the icon's tooltip: place, state, details,
-  /// in Gtools' shape (hv, 2026-09-13), eg "intentd :51737 — active · 73 steel
-  /// threads". `stale` names the pid and points the operator at it -- the
-  /// remedy, never an unlink.
+  /// The intentd row's second line (issue 0607): the state, then its details,
+  /// as Gtools' site line has them (gtools#0108), eg "active on :51737 · 73
+  /// steel threads". The row's title is the place, `intentd`, so a state is
+  /// never part of it. `stale` names the pid and points the operator at it --
+  /// the remedy, never an unlink.
   ///
   /// **EVERY PART IS A REPORTED FACT, NOTHING IS MEASURED HERE** (AC-01.1). The
   /// port is read off the `url` the daemon published, the thread count is the
@@ -79,17 +80,23 @@ enum Health: Sendable, Equatable {
   /// **THE THREAD COUNT IS A DETAIL OF `live` ONLY**, as Gtools' details are of
   /// `running`. It comes from a separate poll, so beside `not running` or
   /// `status unknown` it would be a figure from a state the line says is gone.
-  func menuLine(busy: String?, threadCount: Int?) -> String {
-    if let busy { return "intentd — \(busy.lowercased())" }
+  func menuSubtitle(busy: String?, threadCount: Int?) -> String {
+    if let busy { return busy.lowercased() }
     switch self {
     case .live:
-      let place = port.map { "intentd :\($0)" } ?? "intentd"
-      guard let threadCount else { return "\(place) — active" }
-      return "\(place) — active · \(threadCount) steel thread\(threadCount == 1 ? "" : "s")"
-    case .stale(let pid): return "intentd — pid \(pid) holds the socket but is not answering, investigate it"
-    case .absent: return "intentd — not running"
-    case .unknown(let why): return "intentd — status unknown (\(why))"
+      let state = port.map { "active on :\($0)" } ?? "active"
+      guard let threadCount else { return state }
+      return "\(state) · \(threadCount) steel thread\(threadCount == 1 ? "" : "s")"
+    case .stale(let pid): return "pid \(pid) holds the socket but is not answering, investigate it"
+    case .absent: return "not running"
+    case .unknown(let why): return "status unknown (\(why))"
     }
+  }
+
+  /// The intentd row's two lines as one, for the icon's tooltip, as Gtools'
+  /// site summary is, so the two can never describe the daemon differently.
+  func menuSummary(busy: String?, threadCount: Int?) -> String {
+    "intentd: " + menuSubtitle(busy: busy, threadCount: threadCount)
   }
 
   /// The web face's port, as the daemon published it inside `url`. **READ,

@@ -71,7 +71,9 @@
       "text": "While intentd is live, the menubar status line names the place, the state and the details on one line: `intentd :<port>`, `active`, and the steel-thread count. The port is read from the url the daemon published, and the count appears only once the project query has answered.",
       "kind": "test",
       "state": {
-        "is": "computed"
+        "is": "withdrawn",
+        "reason": "shipped in ST0074; superseded by issue 0607's layout A on hv's word, 2026-10-22: the place is the intentd row's title and the state and details its second line",
+        "by": "vc under hv's pen; the layout is hv's (0607)"
       }
     },
     {
@@ -167,7 +169,7 @@
         "AC-02.1"
       ],
       "status": "green",
-      "note": "bin/int macos app-test at 133061d7f's Swift bytes (ids added as comments after the run): 32 tests, 0 failures, IntentTests passed."
+      "note": "bin/int macos app-test at 133061d7f's Swift bytes (ids added as comments after the run): 32 tests, 0 failures, IntentTests passed.; from 2026-10-22 it covers the withdrawn AC-02.1 and asserts layout A's second line under issue 0607 (Health.menuSubtitle and menuSummary): intentd over its state, where AC-02.1's one line was"
     },
     {
       "id": "AT-02.2",

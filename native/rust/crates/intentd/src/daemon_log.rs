@@ -7,8 +7,8 @@
 //! line, so which stop a restart followed, and whether a sweep was looking at a
 //! deliberate restart or a crash and respawn, could be told from the wording of
 //! one line and nothing else. **The text after the stamp is unchanged because a
-//! reader classifies a line by it**: the Console skips the stamp and colours
-//! what follows.
+//! reader classifies a line by it**: a search for `error:` or `warning:`, in the
+//! macOS Console app or over `intent daemon logs`, finds what follows the stamp.
 //!
 //! **THIS IS THE ONE FILE IN THE WORKSPACE THAT ASKS WHAT TIME IT IS, AND IT DOES
 //! SO BY RULING** (hv, 2026-09-15). The reason is recorded once, at ST0056's

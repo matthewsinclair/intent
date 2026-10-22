@@ -1,6 +1,6 @@
 //! `AT-01.1`, `AT-01.2`, `AT-01.3` and `AT-01.4` (ST0075): **`intent daemon logs` answers
-//! from the state directory `userstate` names**, the verb Intent.app's Console
-//! tails.
+//! from the state directory `userstate` names**, the verb a terminal tails and
+//! whose first line Intent.app reads to find the logs.
 //!
 //! Every arm drives the shipped binary under an isolated `HOME`, and plants the
 //! logs at the paths `userstate` itself computes, so the test cannot agree with
@@ -186,8 +186,8 @@ fn reap_within(child: &mut Child, way: &str) -> ExitStatus {
   panic!("{way}: the verb did not exit within the bound, so this arm would have hung")
 }
 
-/// Spawn `--follow` holding its stdin, as Intent.app's Console does, with
-/// its stdout read line by line on a thread.
+/// Spawn `--follow` holding its stdin, as a caller that ends it by closing
+/// that pipe does, with its stdout read line by line on a thread.
 ///
 /// **THE CHILD STARTS WITH SIGINT AT ITS DEFAULT, AND THAT IS NOT A DETAIL**
 /// (issue 0491). A signal disposition of `SIG_IGN` survives `exec`, so a suite

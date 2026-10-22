@@ -7,28 +7,34 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1DE37D2FE2B9D3B49132CB41 /* ConsoleWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 064AD6E96C572AE9369B3902 /* ConsoleWindowController.swift */; };
+		04226873785265424EF71C4F /* IntentMasthead.swift in Sources */ = {isa = PBXBuildFile; fileRef = 591ED52F06D01612F8A4722A /* IntentMasthead.swift */; };
+		1EAB37D59BFFC7F7F34266D5 /* DaemonMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EC1E034465838C3C2F45D8F /* DaemonMenu.swift */; };
 		2997E46680241912D530A7B5 /* HealthTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29672806305D887EA65656B8 /* HealthTests.swift */; };
 		39B9EAFE62DD941B78D87ABA /* DaemonService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20934AD411AEAE2B4F79A01B /* DaemonService.swift */; };
 		63748568E2B10D3229CB13A9 /* ProjectServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9E84295876C1959E651CD8B /* ProjectServiceTests.swift */; };
+		65666ACB8C7B0D7EF2F1A36F /* DaemonMenuTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C024B86BFF2B9F2CCF9536B6 /* DaemonMenuTests.swift */; };
 		692A1EC01D5213CB6472B434 /* LoginShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DC7A046D343F9FF30FC56EA /* LoginShell.swift */; };
+		6D344093FBD0AE445553E351 /* ArcaMasthead in Frameworks */ = {isa = PBXBuildFile; productRef = 12FDADDC843D4F426680980F /* ArcaMasthead */; };
+		719EBEB038E2C35780785F96 /* intent-logo.png in Resources */ = {isa = PBXBuildFile; fileRef = C459D833BDA43CC006FB3644 /* intent-logo.png */; };
 		77F2AD848C06FB9ADCF161AC /* ContinuousObservation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0B4F62DDB480DBBBD1A353 /* ContinuousObservation.swift */; };
 		7D834CF192226880601F3117 /* Health.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93A196E045968A129A323B3D /* Health.swift */; };
-		828CE0959BBDB3F7A50BFC9D /* ConsoleLine.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8D3EF321345AFA711845E70 /* ConsoleLine.swift */; };
-		8343B7CACA2683B7988F3B85 /* tail-orphan-probe.sh in Resources */ = {isa = PBXBuildFile; fileRef = 5B1D8CD9C21DD8AB55553EE1 /* tail-orphan-probe.sh */; };
+		827D43953A110A34E0640EAA /* LogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE1E2DF7DE40C3015596D575 /* LogTests.swift */; };
+		82EFE8BBE3E2426525CAD703 /* LogFiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = A824D39A53D2B485D9D72C30 /* LogFiles.swift */; };
 		8D27169B4F83BE63308AB785 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8EAE393A0F5FE9A9C3B52262 /* Assets.xcassets */; };
 		916BB7ABBBF4DD2D92D59492 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 894E47351007915CC6F59BBD /* Theme.swift */; };
 		954C28016164850D99C2B79C /* IntentCLI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60A27EDDB4A20BCF4F9C54CA /* IntentCLI.swift */; };
 		AEC29FC709731DBCD305DDEC /* Poller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E8E88CC01798FAF64224EC9 /* Poller.swift */; };
 		B2A4082D2E9259C1F405DFFC /* VersionServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC383096DF8A7D0628802048 /* VersionServiceTests.swift */; };
 		BA9D8826A2AF602EDE7C694D /* VersionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D295EE684DDA44AB926831B4 /* VersionService.swift */; };
-		C30DECF79FAFD474D4A5EC07 /* IntentCLIStreamTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF08243CA86423DC9F591566 /* IntentCLIStreamTests.swift */; };
+		C904BB330738E311BA501507 /* about.css in Resources */ = {isa = PBXBuildFile; fileRef = EE706272DE46AD215F1F63D3 /* about.css */; };
+		CFC853B0CA7DB897444DC065 /* MastheadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F5239B62131AAEC064369EE /* MastheadTests.swift */; };
 		D1B7407CB6E1DC3E976E745A /* ProjectService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1FDFCD2416E01A931378EF /* ProjectService.swift */; };
-		D5124505F2A0C08CD4F41239 /* ConsoleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C37F14D17BFBF25C00FEFD4 /* ConsoleTests.swift */; };
-		DA11798D557190F5D7DC21E9 /* TailOrphanTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D0CA4EA5DAA03411AB24E /* TailOrphanTests.swift */; };
+		D7DA17FC567367897064AB60 /* LogService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D734695C399BAEB5B65CF71 /* LogService.swift */; };
+		D8E4EEC5CBEE0374184345DD /* Masthead.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEDAC0318D5F84C8EAF779E /* Masthead.swift */; };
+		E04C55AF2BD7C577FC926D18 /* about.md in Resources */ = {isa = PBXBuildFile; fileRef = CFA864D67654136B353CFB71 /* about.md */; };
 		E4FB94495E37A90BCFC43C24 /* IntentApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A21089C3EE01CC6CD256BFC /* IntentApp.swift */; };
 		EBF3AF03AA3839C2B76908CC /* AppLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBD05359383F74A925C859E /* AppLog.swift */; };
-		ED8E98F4A429AF2BE95E19D7 /* ConsoleRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36D5486CB1EC1784D17369FD /* ConsoleRunner.swift */; };
+		F542B6796D50AB2D31A4B7FF /* masthead.yaml in Resources */ = {isa = PBXBuildFile; fileRef = C37467B506A61348D31F094D /* masthead.yaml */; };
 		FCF20238A656A982DF4B12D1 /* LoginShellTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E9C74AD191140D77FB3294C /* LoginShellTests.swift */; };
 /* End PBXBuildFile section */
 
@@ -43,35 +49,51 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		064AD6E96C572AE9369B3902 /* ConsoleWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleWindowController.swift; sourceTree = "<group>"; };
+		0F5239B62131AAEC064369EE /* MastheadTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MastheadTests.swift; sourceTree = "<group>"; };
 		20934AD411AEAE2B4F79A01B /* DaemonService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DaemonService.swift; sourceTree = "<group>"; };
 		29672806305D887EA65656B8 /* HealthTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthTests.swift; sourceTree = "<group>"; };
 		2BBD05359383F74A925C859E /* AppLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLog.swift; sourceTree = "<group>"; };
-		36D5486CB1EC1784D17369FD /* ConsoleRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleRunner.swift; sourceTree = "<group>"; };
 		3FAB073C6E0F8ACF198E5CB8 /* Intent.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Intent.entitlements; sourceTree = "<group>"; };
 		4634133A4EB56FC2D1AED35E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		4AF69039A2E9F208B08C436D /* IntentTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = IntentTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		5B1D8CD9C21DD8AB55553EE1 /* tail-orphan-probe.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "tail-orphan-probe.sh"; sourceTree = "<group>"; };
-		5B5D0CA4EA5DAA03411AB24E /* TailOrphanTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TailOrphanTests.swift; sourceTree = "<group>"; };
+		4D734695C399BAEB5B65CF71 /* LogService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogService.swift; sourceTree = "<group>"; };
+		591ED52F06D01612F8A4722A /* IntentMasthead.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentMasthead.swift; sourceTree = "<group>"; };
 		5E9C74AD191140D77FB3294C /* LoginShellTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginShellTests.swift; sourceTree = "<group>"; };
 		60A27EDDB4A20BCF4F9C54CA /* IntentCLI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentCLI.swift; sourceTree = "<group>"; };
-		6C37F14D17BFBF25C00FEFD4 /* ConsoleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleTests.swift; sourceTree = "<group>"; };
 		6E8E88CC01798FAF64224EC9 /* Poller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Poller.swift; sourceTree = "<group>"; };
 		7A0B4F62DDB480DBBBD1A353 /* ContinuousObservation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinuousObservation.swift; sourceTree = "<group>"; };
 		894E47351007915CC6F59BBD /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		8A21089C3EE01CC6CD256BFC /* IntentApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentApp.swift; sourceTree = "<group>"; };
+		8AEDAC0318D5F84C8EAF779E /* Masthead.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Masthead.swift; sourceTree = "<group>"; };
 		8EAE393A0F5FE9A9C3B52262 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		8EC1E034465838C3C2F45D8F /* DaemonMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DaemonMenu.swift; sourceTree = "<group>"; };
 		93A196E045968A129A323B3D /* Health.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Health.swift; sourceTree = "<group>"; };
 		9DC7A046D343F9FF30FC56EA /* LoginShell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginShell.swift; sourceTree = "<group>"; };
+		A824D39A53D2B485D9D72C30 /* LogFiles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogFiles.swift; sourceTree = "<group>"; };
 		B9E84295876C1959E651CD8B /* ProjectServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectServiceTests.swift; sourceTree = "<group>"; };
 		BD1FDFCD2416E01A931378EF /* ProjectService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectService.swift; sourceTree = "<group>"; };
+		C024B86BFF2B9F2CCF9536B6 /* DaemonMenuTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DaemonMenuTests.swift; sourceTree = "<group>"; };
+		C37467B506A61348D31F094D /* masthead.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = masthead.yaml; sourceTree = "<group>"; };
+		C459D833BDA43CC006FB3644 /* intent-logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "intent-logo.png"; sourceTree = "<group>"; };
 		CB43CE810A6886230867C1CB /* Intent.Debug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Intent.Debug.entitlements; sourceTree = "<group>"; };
-		CF08243CA86423DC9F591566 /* IntentCLIStreamTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentCLIStreamTests.swift; sourceTree = "<group>"; };
+		CFA864D67654136B353CFB71 /* about.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = about.md; sourceTree = "<group>"; };
 		D295EE684DDA44AB926831B4 /* VersionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VersionService.swift; sourceTree = "<group>"; };
 		D9ED4FC1411ABD3535ED4A3F /* Intent.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Intent.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC383096DF8A7D0628802048 /* VersionServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VersionServiceTests.swift; sourceTree = "<group>"; };
-		F8D3EF321345AFA711845E70 /* ConsoleLine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleLine.swift; sourceTree = "<group>"; };
+		EE1E2DF7DE40C3015596D575 /* LogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogTests.swift; sourceTree = "<group>"; };
+		EE706272DE46AD215F1F63D3 /* about.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = about.css; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		62960C31050CCC52E05DAE8A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6D344093FBD0AE445553E351 /* ArcaMasthead in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		06F1E41B346A90B5B5929D42 /* Utilities */ = {
@@ -93,6 +115,7 @@
 				CB43CE810A6886230867C1CB /* Intent.Debug.entitlements */,
 				3FAB073C6E0F8ACF198E5CB8 /* Intent.entitlements */,
 				8A21089C3EE01CC6CD256BFC /* IntentApp.swift */,
+				0A9F8122CC43D7D2CB4FD395 /* Masthead */,
 				2663181069977861CA08EB95 /* Models */,
 				4C162142A7E052C76D6298ED /* Services */,
 				06F1E41B346A90B5B5929D42 /* Utilities */,
@@ -101,11 +124,24 @@
 			path = Intent;
 			sourceTree = "<group>";
 		};
+		0A9F8122CC43D7D2CB4FD395 /* Masthead */ = {
+			isa = PBXGroup;
+			children = (
+				EE706272DE46AD215F1F63D3 /* about.css */,
+				CFA864D67654136B353CFB71 /* about.md */,
+				C459D833BDA43CC006FB3644 /* intent-logo.png */,
+				C37467B506A61348D31F094D /* masthead.yaml */,
+			);
+			path = Masthead;
+			sourceTree = "<group>";
+		};
 		2663181069977861CA08EB95 /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				F8D3EF321345AFA711845E70 /* ConsoleLine.swift */,
+				8EC1E034465838C3C2F45D8F /* DaemonMenu.swift */,
 				93A196E045968A129A323B3D /* Health.swift */,
+				591ED52F06D01612F8A4722A /* IntentMasthead.swift */,
+				A824D39A53D2B485D9D72C30 /* LogFiles.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -113,13 +149,12 @@
 		36432786E9DEB6D7808CC402 /* IntentTests */ = {
 			isa = PBXGroup;
 			children = (
-				6C37F14D17BFBF25C00FEFD4 /* ConsoleTests.swift */,
+				C024B86BFF2B9F2CCF9536B6 /* DaemonMenuTests.swift */,
 				29672806305D887EA65656B8 /* HealthTests.swift */,
-				CF08243CA86423DC9F591566 /* IntentCLIStreamTests.swift */,
 				5E9C74AD191140D77FB3294C /* LoginShellTests.swift */,
+				EE1E2DF7DE40C3015596D575 /* LogTests.swift */,
+				0F5239B62131AAEC064369EE /* MastheadTests.swift */,
 				B9E84295876C1959E651CD8B /* ProjectServiceTests.swift */,
-				5B1D8CD9C21DD8AB55553EE1 /* tail-orphan-probe.sh */,
-				5B5D0CA4EA5DAA03411AB24E /* TailOrphanTests.swift */,
 				DC383096DF8A7D0628802048 /* VersionServiceTests.swift */,
 			);
 			path = IntentTests;
@@ -128,10 +163,10 @@
 		4C162142A7E052C76D6298ED /* Services */ = {
 			isa = PBXGroup;
 			children = (
-				36D5486CB1EC1784D17369FD /* ConsoleRunner.swift */,
 				20934AD411AEAE2B4F79A01B /* DaemonService.swift */,
 				60A27EDDB4A20BCF4F9C54CA /* IntentCLI.swift */,
 				9DC7A046D343F9FF30FC56EA /* LoginShell.swift */,
+				4D734695C399BAEB5B65CF71 /* LogService.swift */,
 				BD1FDFCD2416E01A931378EF /* ProjectService.swift */,
 				D295EE684DDA44AB926831B4 /* VersionService.swift */,
 			);
@@ -141,9 +176,17 @@
 		5127FADD6735CFE5B4C4987B /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				822893D5597B46204D93B903 /* Console */,
+				549A1BCFD7B73D7F5E085026 /* Menu */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		549A1BCFD7B73D7F5E085026 /* Menu */ = {
+			isa = PBXGroup;
+			children = (
+				8AEDAC0318D5F84C8EAF779E /* Masthead.swift */,
+			);
+			path = Menu;
 			sourceTree = "<group>";
 		};
 		7B5A377AB41B28879377D20A /* Products */ = {
@@ -153,14 +196,6 @@
 				4AF69039A2E9F208B08C436D /* IntentTests.xctest */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		822893D5597B46204D93B903 /* Console */ = {
-			isa = PBXGroup;
-			children = (
-				064AD6E96C572AE9369B3902 /* ConsoleWindowController.swift */,
-			);
-			path = Console;
 			sourceTree = "<group>";
 		};
 		8C961C266FDD3CFBBA3D5CCB = {
@@ -181,6 +216,7 @@
 			buildPhases = (
 				4AF7FB044E3EA174021F9F80 /* Sources */,
 				A43CF13D2B9B8F145436FD50 /* Resources */,
+				62960C31050CCC52E05DAE8A /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -188,6 +224,7 @@
 			);
 			name = Intent;
 			packageProductDependencies = (
+				12FDADDC843D4F426680980F /* ArcaMasthead */,
 			);
 			productName = Intent;
 			productReference = D9ED4FC1411ABD3535ED4A3F /* Intent.app */;
@@ -198,7 +235,6 @@
 			buildConfigurationList = CA6FEAF1F0E40EF3446BB27B /* Build configuration list for PBXNativeTarget "IntentTests" */;
 			buildPhases = (
 				E7E51653936A202A5E0085C3 /* Sources */,
-				590F833EDDB1E95EEB128599 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -219,7 +255,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1600;
+				LastUpgradeCheck = 2710;
 				TargetAttributes = {
 					8BB28D78213FAA9DA1247371 = {
 						DevelopmentTeam = 76BQL8L47U;
@@ -240,6 +276,9 @@
 			);
 			mainGroup = 8C961C266FDD3CFBBA3D5CCB;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				D05AC65B7D9D49E8758760F5 /* XCRemoteSwiftPackageReference "arca_swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 7B5A377AB41B28879377D20A /* Products */;
 			projectDirPath = "";
@@ -252,19 +291,15 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		590F833EDDB1E95EEB128599 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				8343B7CACA2683B7988F3B85 /* tail-orphan-probe.sh in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		A43CF13D2B9B8F145436FD50 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				8D27169B4F83BE63308AB785 /* Assets.xcassets in Resources */,
+				C904BB330738E311BA501507 /* about.css in Resources */,
+				E04C55AF2BD7C577FC926D18 /* about.md in Resources */,
+				719EBEB038E2C35780785F96 /* intent-logo.png in Resources */,
+				F542B6796D50AB2D31A4B7FF /* masthead.yaml in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -276,15 +311,17 @@
 			buildActionMask = 2147483647;
 			files = (
 				EBF3AF03AA3839C2B76908CC /* AppLog.swift in Sources */,
-				828CE0959BBDB3F7A50BFC9D /* ConsoleLine.swift in Sources */,
-				ED8E98F4A429AF2BE95E19D7 /* ConsoleRunner.swift in Sources */,
-				1DE37D2FE2B9D3B49132CB41 /* ConsoleWindowController.swift in Sources */,
 				77F2AD848C06FB9ADCF161AC /* ContinuousObservation.swift in Sources */,
+				1EAB37D59BFFC7F7F34266D5 /* DaemonMenu.swift in Sources */,
 				39B9EAFE62DD941B78D87ABA /* DaemonService.swift in Sources */,
 				7D834CF192226880601F3117 /* Health.swift in Sources */,
 				E4FB94495E37A90BCFC43C24 /* IntentApp.swift in Sources */,
 				954C28016164850D99C2B79C /* IntentCLI.swift in Sources */,
+				04226873785265424EF71C4F /* IntentMasthead.swift in Sources */,
+				82EFE8BBE3E2426525CAD703 /* LogFiles.swift in Sources */,
+				D7DA17FC567367897064AB60 /* LogService.swift in Sources */,
 				692A1EC01D5213CB6472B434 /* LoginShell.swift in Sources */,
+				D8E4EEC5CBEE0374184345DD /* Masthead.swift in Sources */,
 				AEC29FC709731DBCD305DDEC /* Poller.swift in Sources */,
 				D1B7407CB6E1DC3E976E745A /* ProjectService.swift in Sources */,
 				916BB7ABBBF4DD2D92D59492 /* Theme.swift in Sources */,
@@ -296,12 +333,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D5124505F2A0C08CD4F41239 /* ConsoleTests.swift in Sources */,
+				65666ACB8C7B0D7EF2F1A36F /* DaemonMenuTests.swift in Sources */,
 				2997E46680241912D530A7B5 /* HealthTests.swift in Sources */,
-				C30DECF79FAFD474D4A5EC07 /* IntentCLIStreamTests.swift in Sources */,
+				827D43953A110A34E0640EAA /* LogTests.swift in Sources */,
 				FCF20238A656A982DF4B12D1 /* LoginShellTests.swift in Sources */,
+				CFC853B0CA7DB897444DC065 /* MastheadTests.swift in Sources */,
 				63748568E2B10D3229CB13A9 /* ProjectServiceTests.swift in Sources */,
-				DA11798D557190F5D7DC21E9 /* TailOrphanTests.swift in Sources */,
 				B2A4082D2E9259C1F405DFFC /* VersionServiceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -379,7 +416,7 @@
 				INTENT_SOURCE_TREE = dev;
 				INTENT_VERSION = dev;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -482,7 +519,7 @@
 				INTENT_SOURCE_TREE = dev;
 				INTENT_VERSION = dev;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -559,6 +596,25 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		D05AC65B7D9D49E8758760F5 /* XCRemoteSwiftPackageReference "arca_swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/builtwitharca/arca_swift";
+			requirement = {
+				kind = upToNextMinorVersion;
+				minimumVersion = 0.1.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		12FDADDC843D4F426680980F /* ArcaMasthead */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D05AC65B7D9D49E8758760F5 /* XCRemoteSwiftPackageReference "arca_swift" */;
+			productName = ArcaMasthead;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 57EA405432D0975FFD8420F2 /* Project object */;
 }

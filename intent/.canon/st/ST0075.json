@@ -77,7 +77,9 @@
       "text": "Console (Cmd-L) opens a window tailing intent daemon logs --follow while it is visible, and its footer names the files being tailed",
       "kind": "test",
       "state": {
-        "is": "computed"
+        "is": "withdrawn",
+        "reason": "shipped in ST0075 (2026-09-16); superseded by issue 0607, filed on hv's word 2026-10-17: Intent.app's own Console is replaced by the macOS Console app, and ConsoleTests.swift goes with it",
+        "by": "vc under hv's pen; the removal is hv's (0607)"
       }
     },
     {
@@ -85,7 +87,9 @@
       "text": "Console lines are coloured by kind: error, caused by and intentd could-not lines as errors, warning and remedy lines as warnings, the markers as the accent",
       "kind": "test",
       "state": {
-        "is": "computed"
+        "is": "withdrawn",
+        "reason": "shipped in ST0075 (2026-09-16); superseded by issue 0607, filed on hv's word 2026-10-17: Intent.app's own Console is replaced by the macOS Console app, and ConsoleTests.swift goes with it",
+        "by": "vc under hv's pen; the removal is hv's (0607)"
       }
     },
     {
@@ -93,7 +97,9 @@
       "text": "the Console keeps the last lines up to its capacity and drops the oldest, so a command run while the window is closed is there when it opens",
       "kind": "test",
       "state": {
-        "is": "computed"
+        "is": "withdrawn",
+        "reason": "shipped in ST0075 (2026-09-16); superseded by issue 0607, filed on hv's word 2026-10-17: Intent.app's own Console is replaced by the macOS Console app, and ConsoleTests.swift goes with it",
+        "by": "vc under hv's pen; the removal is hv's (0607)"
       }
     },
     {
@@ -101,7 +107,9 @@
       "text": "Run Doctor streams intent doctor into the Console between a marker naming the command and a marker carrying its exit and duration, and brings the Console forward, so a clean pass is visible",
       "kind": "test",
       "state": {
-        "is": "computed"
+        "is": "withdrawn",
+        "reason": "shipped in ST0075 (2026-09-16); superseded by issue 0607, filed on hv's word 2026-10-17: Intent.app's own Console is replaced by the macOS Console app, and ConsoleTests.swift goes with it",
+        "by": "vc under hv's pen; the removal is hv's (0607)"
       }
     },
     {
@@ -109,7 +117,9 @@
       "text": "Rebuild Search Index streams intent index rebuild into the Console the same way",
       "kind": "test",
       "state": {
-        "is": "computed"
+        "is": "withdrawn",
+        "reason": "shipped in ST0075 (2026-09-16); superseded by issue 0607, filed on hv's word 2026-10-17: Intent.app's own Console is replaced by the macOS Console app, and ConsoleTests.swift goes with it",
+        "by": "vc under hv's pen; the removal is hv's (0607)"
       }
     },
     {
@@ -117,7 +127,9 @@
       "text": "Start, Stop and Restart intentd write a marked block with their command and result into the Console",
       "kind": "test",
       "state": {
-        "is": "computed"
+        "is": "withdrawn",
+        "reason": "shipped in ST0075 (2026-09-16); superseded by issue 0607, filed on hv's word 2026-10-17: Intent.app's own Console is replaced by the macOS Console app, and ConsoleTests.swift goes with it",
+        "by": "vc under hv's pen; the removal is hv's (0607)"
       }
     },
     {
@@ -125,7 +137,9 @@
       "text": "a second one-off while one is running is refused with an alert naming the running command, not queued",
       "kind": "test",
       "state": {
-        "is": "computed"
+        "is": "withdrawn",
+        "reason": "shipped in ST0075 (2026-09-16); superseded by issue 0607, filed on hv's word 2026-10-17: Intent.app's own Console is replaced by the macOS Console app, and ConsoleTests.swift goes with it",
+        "by": "vc under hv's pen; the removal is hv's (0607)"
       }
     }
   ],
@@ -168,73 +182,73 @@
     },
     {
       "id": "AT-02.1",
-      "kind": "test",
+      "kind": "non-test",
       "file": "native/macos/Intent/IntentTests/ConsoleTests.swift",
       "covers": [
         "AC-02.1"
       ],
-      "status": "green",
-      "note": "red at 3e1578d03, one mutation per criterion's subject in one app-test run, reverted after and the worktree's tree proven unchanged: with the header's two logs never returned, testTheTailingHeaderNamesBothLogs, testAPathContainingAndSplitsAtTheSharedDirectory and testOnlyTheFirstLineIsReadAsTheHeader failed; green at 3e1578d03 as banked in refs/bank/ic/st0075-wp02 (76ec91175): app-test ran 49 tests with 0 failures; rebanked at 878804412 after Decision A landed, changing only two comments in Theme.swift, not re-run"
+      "status": "n-a",
+      "note": "red at 3e1578d03, one mutation per criterion's subject in one app-test run, reverted after and the worktree's tree proven unchanged: with the header's two logs never returned, testTheTailingHeaderNamesBothLogs, testAPathContainingAndSplitsAtTheSharedDirectory and testOnlyTheFirstLineIsReadAsTheHeader failed; green at 3e1578d03 as banked in refs/bank/ic/st0075-wp02 (76ec91175): app-test ran 49 tests with 0 failures; rebanked at 878804412 after Decision A landed, changing only two comments in Theme.swift, not re-run; n/a from 2026-10-22: issue 0607 replaced Intent.app's own Console with the macOS Console app and removed ConsoleTests.swift with it (bank refs/bank/ic/0607/fix); re-kinded non-test on vc's ruling of 2026-10-22, once L5 asked only about criteria still in scope, so the row no longer cites a deleted file as a passing test"
     },
     {
       "id": "AT-02.2",
-      "kind": "test",
+      "kind": "non-test",
       "file": "native/macos/Intent/IntentTests/ConsoleTests.swift",
       "covers": [
         "AC-02.2"
       ],
-      "status": "green",
-      "note": "red at 3e1578d03, one mutation per criterion's subject in one app-test run, reverted after and the worktree's tree proven unchanged: with `warning:` not matched, testLinesAreClassifiedOverIntentdsOwnShapes failed; green at 3e1578d03 as banked in refs/bank/ic/st0075-wp02 (76ec91175): app-test ran 49 tests with 0 failures; rebanked at 878804412 after Decision A landed, changing only two comments in Theme.swift, not re-run"
+      "status": "n-a",
+      "note": "red at 3e1578d03, one mutation per criterion's subject in one app-test run, reverted after and the worktree's tree proven unchanged: with `warning:` not matched, testLinesAreClassifiedOverIntentdsOwnShapes failed; green at 3e1578d03 as banked in refs/bank/ic/st0075-wp02 (76ec91175): app-test ran 49 tests with 0 failures; rebanked at 878804412 after Decision A landed, changing only two comments in Theme.swift, not re-run; n/a from 2026-10-22: issue 0607 replaced Intent.app's own Console with the macOS Console app and removed ConsoleTests.swift with it (bank refs/bank/ic/0607/fix); re-kinded non-test on vc's ruling of 2026-10-22, once L5 asked only about criteria still in scope, so the row no longer cites a deleted file as a passing test"
     },
     {
       "id": "AT-02.3",
-      "kind": "test",
+      "kind": "non-test",
       "file": "native/macos/Intent/IntentTests/ConsoleTests.swift",
       "covers": [
         "AC-02.3"
       ],
-      "status": "green",
-      "note": "red at 3e1578d03, one mutation per criterion's subject in one app-test run, reverted after and the worktree's tree proven unchanged: with the ring never dropping a line, testTheRingKeepsTheLastLinesAndSaysHowManyItDropped failed; green at 3e1578d03 as banked in refs/bank/ic/st0075-wp02 (76ec91175): app-test ran 49 tests with 0 failures; rebanked at 878804412 after Decision A landed, changing only two comments in Theme.swift, not re-run"
+      "status": "n-a",
+      "note": "red at 3e1578d03, one mutation per criterion's subject in one app-test run, reverted after and the worktree's tree proven unchanged: with the ring never dropping a line, testTheRingKeepsTheLastLinesAndSaysHowManyItDropped failed; green at 3e1578d03 as banked in refs/bank/ic/st0075-wp02 (76ec91175): app-test ran 49 tests with 0 failures; rebanked at 878804412 after Decision A landed, changing only two comments in Theme.swift, not re-run; n/a from 2026-10-22: issue 0607 replaced Intent.app's own Console with the macOS Console app and removed ConsoleTests.swift with it (bank refs/bank/ic/0607/fix); re-kinded non-test on vc's ruling of 2026-10-22, once L5 asked only about criteria still in scope, so the row no longer cites a deleted file as a passing test"
     },
     {
       "id": "AT-03.1",
-      "kind": "test",
+      "kind": "non-test",
       "file": "native/macos/Intent/IntentTests/ConsoleTests.swift",
       "covers": [
         "AC-03.1"
       ],
-      "status": "green",
-      "note": "red at 643999214, one mutation per criterion's subject in one app-test run, reverted after and the worktree's tree proven unchanged (b04a8eec4): with a command's lines appended as tail lines, testRunDoctorStreamsBetweenItsMarkers failed; green at 643999214 as banked in refs/bank/ic/st0075-wp03 (5c1a66041): app-test ran 55 tests with 0 failures; rebanked at 1e4cab80a adding only the five intent/llm/MODULES.md rows, not re-run"
+      "status": "n-a",
+      "note": "red at 643999214, one mutation per criterion's subject in one app-test run, reverted after and the worktree's tree proven unchanged (b04a8eec4): with a command's lines appended as tail lines, testRunDoctorStreamsBetweenItsMarkers failed; green at 643999214 as banked in refs/bank/ic/st0075-wp03 (5c1a66041): app-test ran 55 tests with 0 failures; rebanked at 1e4cab80a adding only the five intent/llm/MODULES.md rows, not re-run; n/a from 2026-10-22: issue 0607 replaced Intent.app's own Console with the macOS Console app and removed ConsoleTests.swift with it (bank refs/bank/ic/0607/fix); re-kinded non-test on vc's ruling of 2026-10-22, once L5 asked only about criteria still in scope, so the row no longer cites a deleted file as a passing test"
     },
     {
       "id": "AT-03.2",
-      "kind": "test",
+      "kind": "non-test",
       "file": "native/macos/Intent/IntentTests/ConsoleTests.swift",
       "covers": [
         "AC-03.2"
       ],
-      "status": "green",
-      "note": "red at 643999214, one mutation per criterion's subject in one app-test run, reverted after and the worktree's tree proven unchanged (b04a8eec4): with a failing exit thrown and never marked, testRebuildSearchIndexStreamsTheSameWayAndReportsItsExit failed; green at 643999214 as banked in refs/bank/ic/st0075-wp03 (5c1a66041): app-test ran 55 tests with 0 failures; rebanked at 1e4cab80a adding only the five intent/llm/MODULES.md rows, not re-run"
+      "status": "n-a",
+      "note": "red at 643999214, one mutation per criterion's subject in one app-test run, reverted after and the worktree's tree proven unchanged (b04a8eec4): with a failing exit thrown and never marked, testRebuildSearchIndexStreamsTheSameWayAndReportsItsExit failed; green at 643999214 as banked in refs/bank/ic/st0075-wp03 (5c1a66041): app-test ran 55 tests with 0 failures; rebanked at 1e4cab80a adding only the five intent/llm/MODULES.md rows, not re-run; n/a from 2026-10-22: issue 0607 replaced Intent.app's own Console with the macOS Console app and removed ConsoleTests.swift with it (bank refs/bank/ic/0607/fix); re-kinded non-test on vc's ruling of 2026-10-22, once L5 asked only about criteria still in scope, so the row no longer cites a deleted file as a passing test"
     },
     {
       "id": "AT-03.3",
-      "kind": "test",
+      "kind": "non-test",
       "file": "native/macos/Intent/IntentTests/ConsoleTests.swift",
       "covers": [
         "AC-03.3"
       ],
-      "status": "green",
-      "note": "red at 643999214, one mutation per criterion's subject in one app-test run, reverted after and the worktree's tree proven unchanged (b04a8eec4): with stdout run into stderr's first line, testALifecycleVerbIsNotedAsAMarkedBlock failed; green at 643999214 as banked in refs/bank/ic/st0075-wp03 (5c1a66041): app-test ran 55 tests with 0 failures; rebanked at 1e4cab80a adding only the five intent/llm/MODULES.md rows, not re-run"
+      "status": "n-a",
+      "note": "red at 643999214, one mutation per criterion's subject in one app-test run, reverted after and the worktree's tree proven unchanged (b04a8eec4): with stdout run into stderr's first line, testALifecycleVerbIsNotedAsAMarkedBlock failed; green at 643999214 as banked in refs/bank/ic/st0075-wp03 (5c1a66041): app-test ran 55 tests with 0 failures; rebanked at 1e4cab80a adding only the five intent/llm/MODULES.md rows, not re-run; n/a from 2026-10-22: issue 0607 replaced Intent.app's own Console with the macOS Console app and removed ConsoleTests.swift with it (bank refs/bank/ic/0607/fix); re-kinded non-test on vc's ruling of 2026-10-22, once L5 asked only about criteria still in scope, so the row no longer cites a deleted file as a passing test"
     },
     {
       "id": "AT-03.4",
-      "kind": "test",
+      "kind": "non-test",
       "file": "native/macos/Intent/IntentTests/ConsoleTests.swift",
       "covers": [
         "AC-03.4"
       ],
-      "status": "green",
-      "note": "red at 643999214, one mutation per criterion's subject in one app-test run, reverted after and the worktree's tree proven unchanged (b04a8eec4): with the busy guard removed, testASecondCommandWhileOneRunsIsRefusedNamingTheRunningOne failed; green at 643999214 as banked in refs/bank/ic/st0075-wp03 (5c1a66041): app-test ran 55 tests with 0 failures; rebanked at 1e4cab80a adding only the five intent/llm/MODULES.md rows, not re-run"
+      "status": "n-a",
+      "note": "red at 643999214, one mutation per criterion's subject in one app-test run, reverted after and the worktree's tree proven unchanged (b04a8eec4): with the busy guard removed, testASecondCommandWhileOneRunsIsRefusedNamingTheRunningOne failed; green at 643999214 as banked in refs/bank/ic/st0075-wp03 (5c1a66041): app-test ran 55 tests with 0 failures; rebanked at 1e4cab80a adding only the five intent/llm/MODULES.md rows, not re-run; n/a from 2026-10-22: issue 0607 replaced Intent.app's own Console with the macOS Console app and removed ConsoleTests.swift with it (bank refs/bank/ic/0607/fix); re-kinded non-test on vc's ruling of 2026-10-22, once L5 asked only about criteria still in scope, so the row no longer cites a deleted file as a passing test"
     }
   ],
   "attachments": [
