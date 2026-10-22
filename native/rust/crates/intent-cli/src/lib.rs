@@ -20,6 +20,48 @@ pub mod show;
 pub mod spine;
 pub mod tui;
 
+/// The status a shell reports for a process its reader's going away ended:
+/// 128 plus SIGPIPE's 13.
+const READER_GONE: i32 = 141;
+
+/// End this process quietly when its stdout's reader has gone away (issue
+/// 0613), at the status a shell reports for a filter that SIGPIPE ended.
+///
+/// **ONCE, AT THE PROCESS'S ENTRY, FOR EVERY VERB.** Rust ignores SIGPIPE, so a
+/// write to a pipe whose reader has gone returns an error and `println!`
+/// panics on it: `intent at list | grep -q x` ended at 101 with a panic
+/// whenever Intent wrote after `grep` had stopped reading. This hook turns that
+/// one panic, std's own report of printing to stdout over a broken pipe, into
+/// the exit a filter has when its reader goes away, and hands every other
+/// panic to the hook it replaced. The explorer's terminal restore installs
+/// itself over this one, so it still runs first.
+///
+/// **NOT SIGPIPE BACK AT ITS DEFAULT**, which would also end the process on a
+/// write to a closed SOCKET: a daemon that hangs up mid-request is reported
+/// today as an error with a remedy (`wire::AskError`), and under the default
+/// disposition the CLI would stop without a word.
+pub fn end_quietly_when_stdout_closes() {
+  let previous = std::panic::take_hook();
+  std::panic::set_hook(Box::new(move |info| {
+    if stdout_closed(info.payload()) {
+      std::process::exit(READER_GONE);
+    }
+    previous(info);
+  }));
+}
+
+/// Whether a panic is std's report that printing to stdout met a pipe with no
+/// reader: `failed printing to stdout: ` and the I/O error, the only form the
+/// payload carries.
+fn stdout_closed(payload: &(dyn std::any::Any + Send)) -> bool {
+  let message = payload
+    .downcast_ref::<String>()
+    .map(String::as_str)
+    .or_else(|| payload.downcast_ref::<&str>().copied())
+    .unwrap_or_default();
+  message.starts_with("failed printing to stdout") && message.contains("Broken pipe")
+}
+
 /// What one `intent` invocation came to: the exit code, and the message that
 /// belongs on stderr if there is one.
 #[derive(Debug, Clone, PartialEq, Eq)]

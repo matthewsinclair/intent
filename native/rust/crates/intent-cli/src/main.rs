@@ -8,6 +8,10 @@
 use std::process::ExitCode;
 
 fn main() -> ExitCode {
+  // Issue 0613: a stdout whose reader has gone ends the process quietly, at a
+  // filter's status, rather than as a panic. A process-wide hook is what only a
+  // process installs, so it is set here, first, under every verb.
+  intent_cli::end_quietly_when_stdout_closes();
   // **THE SEQUENCE ITSELF IS [`intent_cli::dispatch`], NOT HERE.** The
   // explorer's `/{cmd} ...` runs commands too, and two copies of parse-then-run
   // would be two homes for one thing. What is left in this function is what
