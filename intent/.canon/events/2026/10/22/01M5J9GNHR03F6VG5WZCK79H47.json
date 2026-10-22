@@ -1,0 +1,15 @@
+{
+  "id": "01M5J9GNHR03F6VG5WZCK79H47",
+  "ts": "2026-10-22T17:11:07.576Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "0609 AND 0610, cc's (hv's word in cc's session 2026-10-22; vc's orders 17:02Z with its refinements of 17:05Z and 17:10Z). 0609: one structural predicate in intentsvcs, no spawn: a directory is a bare repository when it holds HEAD, objects/ and refs/ and its config's [core] says bare = true; a project root is refused when it or an ancestor is one, the walk stopping at the first .git entry as git's own discovery does. It is called from Project::open, so discover and every open refuse; init refuses before any write and takes Project::config_path; the claude start door resolves the root through discover and runs the launcher from it; the launcher drops its own walk-up and reads registration from intent wb show <ws> --json. Worktree tmp/wt-cc-0609. 0610: wb ask --re resolves through message_address with the direction reversed and stores the canonical anchor; built against the store as it stands, banks after 0612 lands. Neither banked; no box booked. No push, no release."
+  }
+}
