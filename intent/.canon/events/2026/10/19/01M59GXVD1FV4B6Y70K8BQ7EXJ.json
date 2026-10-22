@@ -1,0 +1,15 @@
+{
+  "id": "01M59GXVD1FV4B6Y70K8BQ7EXJ",
+  "ts": "2026-10-19T07:27:29.701Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0610"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "wb ask --re accepts a partial anchor and renders a malformed Re: line"
+  }
+}

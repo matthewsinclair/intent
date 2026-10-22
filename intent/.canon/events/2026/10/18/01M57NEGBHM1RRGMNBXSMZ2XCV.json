@@ -1,0 +1,15 @@
+{
+  "id": "01M57NEGBHM1RRGMNBXSMZ2XCV",
+  "ts": "2026-10-18T14:08:00.884Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0609"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent init, wb register and claude start all run inside a bare git repository"
+  }
+}

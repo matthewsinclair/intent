@@ -1,0 +1,15 @@
+{
+  "id": "01M5C2T6D0CQRJT9A2FTC27Z4R",
+  "ts": "2026-10-20T07:18:33.123Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0611"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "Passive prompt injection: stale skills, rules and agent text in git history and archives are acted on as live"
+  }
+}

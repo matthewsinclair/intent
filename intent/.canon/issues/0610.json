@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 610,
+  "slug": "wb-ask-re-accepts-a-partial-anchor-and-renders-a",
+  "title": "wb ask --re accepts a partial anchor and renders a malformed Re: line",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-10-19",
+  "reporter": "Matthew Sinclair",
+  "body": "## What\n\n`intent wb ask <node> --re \"<anchor>\"` accepts an anchor that isn't a whole `YYYY-MM-DD HH:MMZ` stamp. It returns ok and renders the partial anchor as the new message's `Re:` line, which threads against nothing.\n\nThis happened twice on 2026-10-18, on one project's whiteboard, with intent 3.2.4. One node's replies, sent at 18:05Z and 19:01Z, went out with `--re \"2026-10-18 18:0\"` and `--re \"2026-10-18 18:5\"`. Both were stored and rendered as `Re: 2026-10-18 18:0` and `Re: 2026-10-18 18:5`. Each needed a correction note through `intent wb edit message`.\n\n## Expected\n\nThe verb refuses an anchor that isn't a whole minute stamp. It also refuses one that matches no message the recipient sent the sender. Either refusal names the messages the anchor could have meant, so that the sender can copy the right one.\n\n## Workaround\n\nCopy the full anchor from the inbox file in the same turn as the reply.\n"
+}
