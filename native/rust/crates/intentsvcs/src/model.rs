@@ -2360,8 +2360,9 @@ pub struct WbNode {
 /// two `wb register` refusals that named the flags and never the command, and
 /// could not get from either one to the form that works, while the remedies
 /// that did name it spelled its placeholders two ways. `intent claude start`
-/// prints the same form from `intent_claude_cwi`, a bash door that cannot call
-/// this, and `claude_cwi_door.rs` holds that copy to this one.
+/// prints it through the facade's `WbNodeNotRegistered` since issue 0609, which
+/// removed the launcher's bash copy of the refusal along with the launcher's
+/// own node lookup.
 pub fn register_form(moniker: &str) -> String {
   format!("intent wb register {moniker} --name \"<display name>\" --role <role>")
 }

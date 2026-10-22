@@ -1202,6 +1202,10 @@ pub enum ProjectError {
     "{0} is an Intent project from before v2.10 (its config is .intent/config.json), which this build cannot open"
   )]
   PreV210(String),
+  /// Issue 0609: the root is a bare git repository, or sits inside one with no
+  /// `.git` entry between them. Carries the repository's path.
+  #[error("{0} is {bare}", bare = BARE_REPOSITORY)]
+  BareRepository(String),
   #[error("reading {path}: {source}")]
   Io {
     path: String,
@@ -1226,6 +1230,14 @@ impl crate::remedy::Remedy for ProjectError {
       // pre-v2.10 project can be anything from v2.0 up, so the remedy names the
       // extra hop rather than sending that part of its population to a refusal.
       Self::PreV210(_) => "bring it to v2.19.0 with Intent v2.19.0 first (the v2.19.0 release: https://github.com/matthewsinclair/intent/releases/tag/v2.19.0, then its `intent upgrade`), then run `intent upgrade` with v3. v2.19.0's `intent upgrade` refuses a project below v2.9.0: take one of those to v2.11.14 with that release's `intent upgrade` (the v2.11.14 tag) before v2.19.0".to_string(),
+      // A clone of the repository may already hold a project, so `intent init`
+      // is named for a clone that has none rather than as the next command. The
+      // files an earlier `init` left are named from `init`'s own list, so an
+      // operator undoing one deletes what it wrote and nothing of git's.
+      Self::BareRepository(repository) => format!(
+        "a project lives in a working copy, never in a bare repository: run Intent in a clone of it (`git clone {repository} <dir>`), where `intent init` starts a project if the clone has none. If an earlier `intent init` wrote files here, delete `intent/` and the root files it wrote ({}) and leave everything git keeps there",
+        crate::init::root_files().join(", ")
+      ),
       Self::Io { path, .. } => {
         format!("check that {path} exists and that this user can read it")
       }
@@ -1578,6 +1590,72 @@ fn parse_version(text: &str) -> Option<(u64, u64, u64)> {
   }
 }
 
+/// What a bare repository is to a project, in the words every refusal of one
+/// uses (issue 0609): `ProjectError`'s message, and the registry's label for a
+/// root it will not register.
+pub const BARE_REPOSITORY: &str =
+  "a bare git repository, which has no working tree to hold a project";
+
+/// The bare git repository `root` is, or sits inside, if there is one (issue
+/// 0609).
+///
+/// **STRUCTURAL, WITH NO `git` SPAWNED.** [`Project::open`] runs on every
+/// command, the PostToolUse hooks' `intent critic` and `intent search` among
+/// them, so a subprocess here would be paid on every tool call in every
+/// session. A bare repository is what `git init --bare` writes: `HEAD`,
+/// `objects/` and `refs/` together, and a config whose `[core]` says
+/// `bare = true`. A working copy's `.git` directory holds the same three and
+/// says `bare = false`, so it never answers here.
+///
+/// **THE WALK STOPS AT THE FIRST `.git` ENTRY, AS GIT'S OWN DISCOVERY DOES.** A
+/// `.git` directory marks a working copy and a `.git` file a linked worktree,
+/// and both are where a project belongs -- a worktree kept inside a bare
+/// repository's directory included, the bare-plus-worktrees layout, whose bare
+/// ancestor is the repository it was made from and not the place it lives.
+pub fn bare_repository(root: &Path) -> Option<PathBuf> {
+  for dir in root.ancestors() {
+    if dir.join(".git").exists() {
+      return None;
+    }
+    if is_bare_repository(dir) {
+      return Some(dir.to_path_buf());
+    }
+  }
+  None
+}
+
+fn is_bare_repository(dir: &Path) -> bool {
+  dir.join("HEAD").is_file()
+    && dir.join("objects").is_dir()
+    && dir.join("refs").is_dir()
+    && std::fs::read_to_string(dir.join("config")).is_ok_and(|config| declares_bare(&config))
+}
+
+/// Whether a git config's `[core]` section sets `bare` to true, in any of git's
+/// spellings of a true boolean. Section and key names are case-insensitive to
+/// git, and a value may carry quotes or a trailing comment.
+fn declares_bare(config: &str) -> bool {
+  let mut in_core = false;
+  for line in config.lines().map(str::trim) {
+    if let Some(header) = line.strip_prefix('[') {
+      let name = header.split_once(']').map_or(header, |(name, _)| name);
+      in_core = name.trim().eq_ignore_ascii_case("core");
+      continue;
+    }
+    let Some((key, value)) = line.split_once('=') else {
+      continue;
+    };
+    if in_core && key.trim().eq_ignore_ascii_case("bare") {
+      let value = value.split(['#', ';']).next().unwrap_or_default();
+      return matches!(
+        value.trim().trim_matches('"').to_ascii_lowercase().as_str(),
+        "true" | "yes" | "on" | "1"
+      );
+    }
+  }
+  false
+}
+
 /// A resolved project.
 #[derive(Debug, Clone)]
 pub struct Project {
@@ -1594,7 +1672,18 @@ impl Project {
   }
 
   /// Open the project rooted exactly at `root`.
+  ///
+  /// A root that [`bare_repository`] places in a bare git repository is refused
+  /// before its config is read (issue 0609). Every door opens through here --
+  /// the CLI's gate by way of [`Project::discover`], the daemon and the
+  /// registry -- so a project an `intent init` once wrote into a bare
+  /// repository is inert at all of them.
   pub fn open(root: &Path) -> Result<Self, ProjectError> {
+    if let Some(repository) = bare_repository(root) {
+      return Err(ProjectError::BareRepository(
+        repository.display().to_string(),
+      ));
+    }
     let path = Self::config_path(root);
     let text = std::fs::read_to_string(&path).map_err(|source| ProjectError::Io {
       path: path.display().to_string(),
@@ -2461,6 +2550,63 @@ mod tests {
       remedy.contains("below v2.9.0") && remedy.contains("v2.11.14"),
       "the remedy sends a project below v2.9.0 to v2.19.0's refusal: {remedy}"
     );
+  }
+
+  fn git(args: &[&std::ffi::OsStr]) {
+    let status = std::process::Command::new("git")
+      .args(args)
+      .status()
+      .expect("run git");
+    assert!(status.success(), "git {args:?} failed");
+  }
+
+  /// Issue 0609's controls, on what git itself writes. `git init --bare` reads
+  /// as a bare repository from its own root and from a directory inside it
+  /// with no `.git` between them; a working copy and its own `.git` directory,
+  /// whose config says `bare = false`, do not.
+  #[test]
+  fn a_bare_repository_is_found_from_its_root_and_from_inside_it() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let bare = dir.path().join("x.git");
+    let copy = dir.path().join("copy");
+    git(&[
+      "init".as_ref(),
+      "-q".as_ref(),
+      "--bare".as_ref(),
+      bare.as_os_str(),
+    ]);
+    git(&["init".as_ref(), "-q".as_ref(), copy.as_os_str()]);
+    let inside = bare.join("inside");
+    std::fs::create_dir(&inside).expect("a directory inside the bare repository");
+
+    assert_eq!(bare_repository(&bare), Some(bare.clone()));
+    assert_eq!(bare_repository(&inside), Some(bare.clone()));
+    assert_eq!(bare_repository(&copy), None);
+    assert_eq!(bare_repository(&copy.join(".git")), None);
+  }
+
+  /// The bare-plus-worktrees layout: a worktree kept inside a bare repository's
+  /// directory carries its own `.git` file, and the walk stops there rather
+  /// than refusing the worktree for the repository above it.
+  #[test]
+  fn a_worktree_inside_a_bare_repository_is_where_a_project_lives() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let bare = dir.path().join("x.git");
+    git(&[
+      "init".as_ref(),
+      "-q".as_ref(),
+      "--bare".as_ref(),
+      bare.as_os_str(),
+    ]);
+    let worktree = bare.join("main");
+    std::fs::create_dir(&worktree).expect("the worktree's directory");
+    std::fs::write(
+      worktree.join(".git"),
+      format!("gitdir: {}\n", bare.join("worktrees/main").display()),
+    )
+    .expect("the worktree's .git file");
+
+    assert_eq!(bare_repository(&worktree), None);
   }
 
   /// hv's ruling (2026-08-19): `intent edit` refuses a generated view and

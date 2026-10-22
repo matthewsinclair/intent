@@ -12,12 +12,22 @@
 #
 #   intent claude start <ws>        launch a Claude session for a workstream
 #
+# THE DOOR RESOLVES, THIS SCRIPT COMPOSES. `intent claude start`
+# (`claude_cwi` in render.rs) finds the project the way every verb does, so a
+# bare repository is refused there; reads the node from the store, so an absent
+# node is refused there with the command that registers it; and then runs this
+# script FROM the project root as `start <ws> <display name>`. What is left here
+# is the one job no verb does -- composing a session's context and exec-ing
+# claude. Until the door took that over, this script carried its own walk-up
+# for the project, its own reader of a board's header and its own copy of the
+# absent-node refusal: a second discovery, which accepted layouts the binary
+# refuses.
+#
 # THE `ws` FAMILY IS GONE. `new`, `list`, `archive` and
 # `hygiene` managed the board as FILES; `intent wb` manages the model they were
-# a view of, so this script keeps only the one job no verb does -- composing a
-# session's context and launching it. `intent wb register` is what creates a
-# node now, `intent wb status` lists them, and the two whiteboard guards plus
-# `intent doctor` are what `hygiene` was reaching for.
+# a view of. `intent wb register` is what creates a node now, `intent wb status`
+# lists them, and the two whiteboard guards plus `intent doctor` are what
+# `hygiene` was reaching for.
 #
 # THE RETIRED SPELLING IS ANSWERED BY THE CLI, NOT HERE, and that is the whole
 # reason this file carries no `ws` arm. `surface/dispatch-table.json` retires
@@ -27,28 +37,14 @@
 # the message. A second refusal here would say the same thing worse, in a code
 # a caller cannot classify.
 #
-# Promoted from the Baize prototype. Operates on the whiteboard of the
-# CURRENT project (find_project_root), so the one command serves every project.
+# Promoted from the Baize prototype.
 #
-# Test/automation seams (env):
+# Test/automation seam (env):
 #   CWI_DRY_RUN=1|full   `start` prints the assembled `claude` argv instead of
 #                        exec-ing it (full also dumps the composed context).
-#   CWI_WB=<dir>         override the whiteboard root, so a test resolves a node
-#                        against a scratch dir and never reads the real board.
 
-# ---- Bootstrap ----
-PLUGIN_BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-INTENT_ROOT="$(cd "$PLUGIN_BIN/../../../.." && pwd)"
-: "${INTENT_HOME:=$INTENT_ROOT}"
-# ---- Self-contained: no `bin/` dependency ----
-# This file is the ONE plugin script that survives the v3 cut, so it carries
-# its own two primitives instead
-# of sourcing `bin/intent_helpers`, which the cut prunes. Behaviour is
-# unchanged. The ONE textual difference from the originals is SC2155
-# (`local x; x=$(...)`): copying them verbatim regressed this file from a clean
-# lint to one SC2155, and `bin/intent_helpers` is simply not held to that
-# standard (it carries five). Cited rather than quietly cleaned, because a
-# claim of "verbatim" that is not verbatim is worse than the diff it hides.
+# This file is the ONE plugin script that survives the v3 cut, and it sources
+# nothing, so it carries its own `error`.
 # (Do not open a comment line with the word shellcheck: it is read as a
 # DIRECTIVE, and a malformed one makes the linter stop rather than continue.)
 
@@ -57,59 +53,23 @@ error() {
   exit 1
 }
 
-find_project_root() {
-  local current_dir
-  current_dir=$(pwd)
-
-  while [ "$current_dir" != "/" ]; do
-    # Check for v2.0.0 structure
-    if [ -f "$current_dir/intent/.config/config.json" ]; then
-      echo "$current_dir"
-      return 0
-    fi
-
-    # Check for legacy structures
-    if [ -d "$current_dir/stp/.config" ] || [ -f "$current_dir/.stp-config" ]; then
-      echo "$current_dir"
-      return 0
-    fi
-
-    # Check for directory-based or file-based steel threads
-    if [ -d "$current_dir/stp/prj/st" ]; then
-      echo "$current_dir"
-      return 0
-    fi
-
-    current_dir=$(dirname "$current_dir")
-  done
-
-  # No project root found
-  return 1
-}
-
-# -u is enabled here. It used to be deferred until after `bin/intent_helpers`
-# was sourced, because that file predates -u; nothing is sourced now, and both
-# primitives above are -u clean. -e and -o pipefail are
-# deliberately omitted (the require-in-session.sh precedent): a script of
-# `[ test ] && action` conditionals would abort under -e on the first false
-# test. Every error path surfaces explicitly via error() (No-Silent).
+# -u is enabled here. -e and -o pipefail are deliberately omitted (the
+# require-in-session.sh precedent): a script of `[ test ] && action`
+# conditionals would abort under -e on the first false test. Every error path
+# surfaces explicitly via error() (No-Silent).
 set -u
 
-# Deterministic, byte-based globbing: keep [a-z0-9-] ASCII rather than locale
-# collation, so a case-folding locale cannot change how a moniker compares.
+# Byte-based, so a case-folding locale cannot change how `tr` lowercases the
+# project's name into the session name.
 export LC_ALL=C
 
-# The whiteboard belongs to the CURRENT project, not the Intent tool home.
-ROOT="$(find_project_root)" || error "not in an Intent project (no intent/.config/config.json at or above $(pwd))"
-WB="${CWI_WB:-$ROOT/intent/whiteboard}"
+# The door runs this from the project root it resolved.
+ROOT="$(pwd)"
 RESTART="$ROOT/.claude/restart.md"
 # ONE computation, TWO renderings: compose_ctx wants it as written for prose,
 # the session name wants it lowercased. Hoisted here the moment the second
 # consumer arrived rather than left as a second `basename` call.
 PROJ="$(basename "$ROOT")"
-
-# Run from the project root so `start` execs claude in the project.
-cd "$ROOT" || error "cannot enter project root: $ROOT"
 
 usage() {
   cat <<'EOF'
@@ -121,44 +81,10 @@ board, `status` to see who is there, `show <node>` to read one whole board.
 EOF
 }
 
-# THE header-block reader. One key from a wip.md's leading block.
-#
-# The block is a line-oriented `key: value` record and NOT YAML, which is a
-# ruling rather than an accident -- see "The header block is NOT YAML" in the
-# in-whiteboard skill. It is hand-written by LLM nodes in prose-heavy fields,
-# which is close to the worst case for a quoting-sensitive format: quoting a
-# phrase inside `focus:` is the natural thing to write and is invalid YAML. On
-# the reporting board two of five nodes were unparseable at a point in time, and
-# every instance repaired itself at the next fold before anyone noticed.
-#
-# The surrounding quotes are a DISPLAY DELIMITER and are stripped here, once,
-# for every caller. Quotes inside a value are literal and are never escaped, so
-# there is deliberately no unescaping step: a board that wrote \" to be correct
-# under YAML would render the backslash, which is the disincentive that made the
-# invalid form the pretty one. It is stripped in the reader rather than at the
-# call site because that is where it stayed correct while the callers changed:
-# `ws list` and `ws hygiene` were the two that mattered, and `compose_ctx` is
-# what is left.
-fm_get() { # $1 file  $2 key
-  [ -f "$1" ] || return 0
-  awk -v k="$2" '
-    /^---[[:space:]]*$/ { fm++; next }
-    fm==1 {
-      key=$0; sub(/:.*/, "", key)
-      if (key==k) {
-        v=$0; sub(/^[^:]*:[[:space:]]*/, "", v)
-        if (v ~ /^".*"$/) { v = substr(v, 2, length(v) - 2) }
-        print v; exit
-      }
-    }
-  ' "$1"
-}
-
 # --- compose context + start -------------------------------------------------
-compose_ctx() { # $1 ws
+compose_ctx() { # $1 ws  $2 display name
   ws="$1"
-  name="$(fm_get "$WB/$ws/wip.md" name)"
-  [ -n "$name" ] || name="$ws"
+  name="$2"
   proj="$PROJ"
   cat <<EOF
 YOU ARE: $ws ($name) -- a workstream node on the $proj whiteboard (intent/whiteboard/$ws/).
@@ -179,24 +105,14 @@ EOF
 
 cmd_start() {
   ws="${1:-}"
+  name="${2:-}"
   [ -n "$ws" ] || error "start <ws>: missing workstream id"
-  # A MISSING WORKSTREAM IS REFUSED HERE AND NAMED SOMEWHERE ELSE.
-  # This offered to scaffold one until the `ws` family retired; a
-  # node is now a row rather than a directory, and its board and inboxes render
-  # from that row, so there is nothing here to create. The refusal names the
-  # command rather than the concept, because a launcher that says no without
-  # saying what instead is how a person ends up making the directory by hand --
-  # which the cutover turns into skew.
-  if [ ! -d "$WB/$ws" ]; then
-    error "workstream '$ws' is not on this board.
-  remedy: register it first --
-    intent wb register $ws --name \"<display name>\" --role <role>
-  eg --name \"Control Claude\" --role control: a display name and a one-word
-  role, not the session name. Then run this again. \`intent wb status\` lists
-  the nodes that exist, and a node registered with the wrong name or role is
-  fixed with \`intent wb register <moniker> --name ... --role ... --correct\`."
-  fi
-  ctx="$(compose_ctx "$ws")"
+  # The door read the display name from the store and passes it; a run without
+  # one did not come through the door, which is the only thing that checks the
+  # project and the node.
+  [ -n "$name" ] || error "start <ws> <name>: missing the display name, which \`intent claude start <ws>\` reads from the store and passes
+  remedy: run \`intent claude start <ws>\` rather than this launcher. If that is what you ran, the \`intent\` on your PATH is older than this launcher: rebuild or reinstall it"
+  ctx="$(compose_ctx "$ws" "$name")"
   # THE SESSION NAME IS SET AT LAUNCH, NOT BY THE WOKEN SESSION (hv, 2026-08-27).
   # `claude -n/--name` sets the display name in the prompt box, the /resume
   # picker and the terminal title. Doing it here rather than asking the session

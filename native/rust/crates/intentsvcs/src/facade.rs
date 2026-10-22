@@ -2045,7 +2045,7 @@ pub enum FacadeError {
   /// fixed by retyping and the other by registering, which are not the same
   /// next move. The roster is small by construction, so listing it costs a line
   /// and removes the guess.
-  #[error("no node `{node}` is registered on this board; the roster carries {known}")]
+  #[error("no node `{node}` is registered in this project; the roster carries {known}")]
   WbNodeNotRegistered { node: String, known: String },
   /// An entry body over the configured bound.
   ///
@@ -2615,8 +2615,12 @@ impl crate::remedy::Remedy for FacadeError {
       ),
       Self::StructuralTierNotAsked => "drop the tier filter or add `structural` to it; the lexical and semantic tiers answer a text query".to_string(),
       Self::SqlDidNotRun { .. } => "the words above are SQLite's own -- `intent schema` publishes the tables and columns this store holds".to_string(),
+      // Issue 0413's ruling, moved here from the launcher's bash copy (issue
+      // 0609) so every verb that refuses an absent node shows it: the session
+      // name `<project>-<node>` is the natural fill-in for a display name, so
+      // the remedy shows what one looks like.
       Self::WbNodeNotRegistered { node, .. } => format!(
-        "check the spelling against the roster above; a node that is genuinely missing is put on the board by `{}`, or, where each node's board is still a hand-authored `wip.md`, by `intent wb register` with no arguments, which reads the roster from those headers",
+        "check the spelling against that roster. A missing node is registered with `{}`, with a display name and a one-word role rather than the session name (eg `--name \"Control Claude\" --role control`); where each node's board is still a hand-authored `wip.md`, `intent wb register` with no arguments registers the roster from those headers. A node registered with the wrong name or role is fixed with `intent wb register <moniker> --name ... --role ... --correct`",
         crate::model::register_form(node)
       ),
       Self::WbBodyOverBound { bound, .. } => format!(

@@ -127,6 +127,28 @@ const DESTINATIONS: &[(&str, Destination)] = &[
   ),
 ];
 
+/// The files the two convergers `init` shares with the migration write at a
+/// project's root, named once for `init`'s report and for [`root_files`].
+const GITIGNORE: &str = ".gitignore";
+const PRETTIERIGNORE: &str = ".prettierignore";
+
+/// Every file `init` writes at a project's root, outside `intent/`: the
+/// contracts `DESTINATIONS` places there, then the convergers' two files.
+/// The bare-repository refusal names them (issue 0609), so an operator undoing
+/// an `init` deletes what it wrote and nothing of git's.
+pub fn root_files() -> Vec<&'static str> {
+  let mut files: Vec<&'static str> = DESTINATIONS
+    .iter()
+    .filter_map(|(_, destination)| match destination {
+      At(path) | Generated(path) if !path.starts_with("intent/") => Some(*path),
+      _ => None,
+    })
+    .collect();
+  files.sort_unstable();
+  files.extend([GITIGNORE, PRETTIERIGNORE]);
+  files
+}
+
 /// What `init` created.
 #[derive(Debug)]
 pub struct Initialised {
@@ -178,6 +200,11 @@ pub enum InitError {
   /// A language this build cannot serve was asked for. Refused before
   /// anything is written, as `intent init --lang` checks it too.
   Undeclarable(Vec<String>),
+  /// The target is a bare git repository, or sits inside one (issue 0609).
+  /// Refused before anything is written, because `init` is the one verb that
+  /// never reaches [`crate::project::Project::open`], where every other door
+  /// meets the same refusal. Carries the repository's path.
+  BareRepository(PathBuf),
 }
 
 impl std::fmt::Display for InitError {
@@ -219,6 +246,18 @@ impl std::fmt::Display for InitError {
         "not a language this build can serve: {}\n  remedy: run `intent lang list` for the languages you can declare. Nothing has been written.",
         langs.join(", ")
       ),
+      // The words are `ProjectError`'s, so the refusal `init` gives and the one
+      // every other door gives in the same repository cannot drift apart.
+      Self::BareRepository(repository) => {
+        use crate::remedy::Remedy;
+        let refusal =
+          crate::project::ProjectError::BareRepository(repository.display().to_string());
+        write!(
+          f,
+          "{refusal}\n  remedy: {}. This run wrote nothing.",
+          refusal.remedy()
+        )
+      }
     }
   }
 }
@@ -267,7 +306,10 @@ pub fn init_with_languages(
   languages: &[String],
   contracts: crate::project::Contracts,
 ) -> Result<Initialised, InitError> {
-  let config = root.join("intent/.config/config.json");
+  if let Some(repository) = crate::project::bare_repository(root) {
+    return Err(InitError::BareRepository(repository));
+  }
+  let config = crate::project::Project::config_path(root);
   let undeclarable: Vec<String> = languages
     .iter()
     .filter(|l| !crate::rules::is_declarable(l))
@@ -553,16 +595,16 @@ pub fn init_with_languages(
   }
 
   crate::facade::converge_formatter_exclusion(&project)
-    .map_err(|cause| InitError::Io(root.join(".prettierignore"), cause))?;
-  written.push(root.join(".prettierignore"));
+    .map_err(|cause| InitError::Io(root.join(PRETTIERIGNORE), cause))?;
+  written.push(root.join(PRETTIERIGNORE));
 
   // **THE STORE STAYS OUT OF GIT FROM THE FIRST COMMIT** (issue 0323). A fresh
   // project had no rule for `intent/.cache/`, so `git add .` staged
   // `intent.db`, which D34 says never enters history. The one converger the
   // migration calls, so both doors write the same rules in the same words.
   crate::facade::converge_gitignore(&project)
-    .map_err(|cause| InitError::Io(root.join(".gitignore"), cause))?;
-  written.push(root.join(".gitignore"));
+    .map_err(|cause| InitError::Io(root.join(GITIGNORE), cause))?;
+  written.push(root.join(GITIGNORE));
 
   written.sort();
 

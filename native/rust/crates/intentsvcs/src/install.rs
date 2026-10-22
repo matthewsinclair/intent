@@ -716,12 +716,13 @@ pub fn gate_script(root: &Path) -> PathBuf {
 ///
 /// **THIS SCRIPT IS DELIBERATELY NOT PORTED.** Its own header records hv's
 /// ruling that it is the ONE plugin script surviving the v3 cut (AC-14.12 is
-/// the expiry), which is why it carries its own `error` and `find_project_root`
-/// instead of sourcing `bin/intent_helpers` that the cut prunes. It is
-/// self-contained, it does its own project discovery, and it was measured
-/// working standalone under a v3 binary before this door was wired -- so
-/// wiring is reachability, not a port, and a port would be the Highlander
-/// violation rather than the fix.
+/// the expiry), which is why it sources nothing and carries its own `error`.
+/// **It does no project discovery and no node lookup** (issue 0609): the
+/// `claude start` door resolves both through the binary's own doors and runs
+/// it from the project root with the workstream and its display name, so what
+/// it keeps is composing the session's context and exec-ing `claude`. It did
+/// its own walk-up until 0609, a second discovery that accepted layouts the
+/// binary refuses.
 pub fn cwi_script(install: &Path) -> PathBuf {
   install.join("intent/plugins/claude/bin/intent_claude_cwi")
 }

@@ -2108,7 +2108,9 @@ pub(crate) fn board_stamp(iso: &str) -> String {
 /// quote INSIDE the value is literal and must not be escaped, which is exactly
 /// what a node hand-writing prose does naturally and what a node that knows YAML
 /// gets wrong. The renderer emitting the un-escaped form is what makes the
-/// round trip through `fm_get` byte-identical.
+/// round trip through a line-oriented reader ([`crate::wbmigrate::read_board`])
+/// byte-identical. The launcher's `fm_get` was the other such reader until
+/// issue 0609, when the launcher stopped reading boards at all.
 fn board_header(node: &crate::model::WbNode) -> String {
   let mut out = String::from("---\n");
   out.push_str(&kv("node", &node.moniker));

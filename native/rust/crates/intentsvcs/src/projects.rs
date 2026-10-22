@@ -17,7 +17,7 @@ use std::path::{Path, PathBuf};
 use serde_json::{Map, Value};
 use thiserror::Error;
 
-use crate::project::{Migration, Project};
+use crate::project::{Migration, Project, ProjectError};
 
 /// The schema this build writes, and the newest it will rewrite.
 pub const SCHEMA: u64 = 1;
@@ -314,6 +314,11 @@ pub enum Refusal {
   ConfigDoesNotParse(String),
   /// v3 would refuse it until it is migrated (`AC-10.7`); carries what it declares.
   NeedsMigration(String),
+  /// It sits in a bare git repository (issue 0609), whatever its config holds.
+  /// Named apart from `ConfigDoesNotParse`, whose label would send the operator
+  /// to a config that parses. It carries no path: the line that reports it
+  /// already names the root.
+  BareRepository,
 }
 
 impl std::fmt::Display for Refusal {
@@ -326,6 +331,7 @@ impl std::fmt::Display for Refusal {
           "needs migration (declares {declared}); `intent upgrade` there migrates it"
         )
       }
+      Self::BareRepository => write!(f, "in {}", crate::project::BARE_REPOSITORY),
     }
   }
 }
@@ -333,7 +339,10 @@ impl std::fmt::Display for Refusal {
 /// Whether this build can serve the project at `root`: its config opens, and
 /// it is not a project v3 refuses until it is migrated.
 pub fn assess(root: &Path) -> Result<(), Refusal> {
-  let project = Project::open(root).map_err(|e| Refusal::ConfigDoesNotParse(e.to_string()))?;
+  let project = Project::open(root).map_err(|e| match e {
+    ProjectError::BareRepository(_) => Refusal::BareRepository,
+    other => Refusal::ConfigDoesNotParse(other.to_string()),
+  })?;
   match project.migration() {
     Migration::Done => Ok(()),
     Migration::Pending(pending) => Err(Refusal::NeedsMigration(pending.declared)),

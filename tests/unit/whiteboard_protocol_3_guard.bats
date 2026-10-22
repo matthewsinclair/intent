@@ -97,7 +97,8 @@ RETIRED_MARKER='retired|supersede|legacy|2\.0'
   assert_output "1"
   run bash -c "grep -c '^\`\`\`yaml' '$INTENT_HOME/intent/plugins/claude/skills/in-whiteboard/SKILL.md' || true"
   assert_output "0"
-  # And the reader strips the display delimiter exactly once, in one place.
+  # And the launcher carries no reader of its own: since issue 0609 it reads no
+  # board at all, so it strips no display delimiter anywhere.
   run bash -c "grep -c \"sed 's/^\\\"//; s/\\\"\\\$//'\" '$INTENT_HOME/intent/plugins/claude/bin/intent_claude_cwi' || true"
   assert_output "0"
 }

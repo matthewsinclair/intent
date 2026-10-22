@@ -796,13 +796,16 @@ fn check_prose_index(facade: &mut Facade, root: &Path) {
 /// Open the facade for a root, turning every failure into something sayable.
 fn open_facade(root: &Path) -> Result<(Facade, String), Response> {
   let project = Project::open(root).map_err(|e| {
-    Response::error(
-      format!("{e}"),
-      format!(
+    let remedy = match &e {
+      // Issue 0609: `intent init` is refused in a bare repository, so the
+      // general remedy below would send the operator to a second refusal.
+      intentsvcs::project::ProjectError::BareRepository(_) => e.remedy(),
+      _ => format!(
         "`{}` is registered with this daemon and is not an Intent project. Run `intent init` there, or the directory has been replaced since the daemon first opened it.",
         root.display()
       ),
-    )
+    };
+    Response::error(format!("{e}"), remedy)
   })?;
   // **THE ID IS TAKEN HERE BECAUSE HERE IS WHERE THE CONFIG IS ALREADY OPEN**,
   // and `D20`'s events name a project by id rather than by root: a root is

@@ -2,10 +2,10 @@
 # ST0047: behavioural tests for `intent claude start` (claude_with_intent),
 # ported from the Baize prototype's cwi_test.sh.
 #
-# Drives the command through the real `intent claude` dispatch against a scratch
-# whiteboard (CWI_WB) and the launch via the CWI_DRY_RUN seam -- never spawns a
-# real claude, never touches a real board. @test names are cited by AT-0N.M in
-# ST0047's contract.
+# Drives the command through the real `intent claude` dispatch in a throwaway
+# project whose nodes are registered through `intent wb register`, and the
+# launch via the CWI_DRY_RUN seam -- never spawns a real claude, never touches a
+# real board. @test names are cited by AT-0N.M in ST0047's contract.
 #
 # ==========================================================================
 # THE WS ARMS WERE DELETED BY ST0069 AC-14.12, AND WHAT IS LEFT IS WHAT ONLY
@@ -23,8 +23,8 @@
 # Others went for Highlander rather than for retirement:
 #
 # - **AT-02.3** drove `start` on an absent node, which used to PROMPT to
-#   scaffold one and now refuses. The refusal is AC-14.12's own requirement and
-#   lives beside the door it belongs to, in `claude_cwi_door.rs`.
+#   scaffold one and now refuses. The refusal lives beside the door it belongs
+#   to, in `claude_cwi_door.rs`.
 # - **AT-04.1** drove the dispatch, which `claude_cwi_door.rs` drives with a
 #   fixture install rather than this file's real one.
 # - **AT-04.2** asserted the in-whiteboard skill names `intent claude ws new`.
@@ -35,69 +35,56 @@
 #   register rather than from a hand-written grep, and a second reader beside
 #   it would go stale the same way this one did.
 #
-# What survives is the composed CONTEXT, which no Rust arm reads: `CWI_DRY_RUN=full`
-# is the only surface that prints it, and its content is the whole point of the
-# launcher.
+# What survives is the composed CONTEXT, which no Rust arm reads in full:
+# `CWI_DRY_RUN=full` is the only surface that prints it, and its content is the
+# whole point of the launcher.
+#
+# Since issue 0609 the door resolves the project and reads the node from the
+# store, then runs the launcher from the project root with the node's display
+# name, so the nodes here are registered through the verb rather than written
+# as rendered boards the launcher used to read.
 
 load "../lib/test_helper.bash"
 
 INTENT="$INTENT_BIN"
 
-# Override the shared setup(): the cwi command resolves the CURRENT project via
-# find_project_root, so the test must run inside a project. Provision a throwaway
-# Intent project + a scratch whiteboard root (CWI_WB).
+# Override the shared setup(): `claude start` resolves the CURRENT project and
+# reads the node from its store, so the test runs inside a throwaway Intent
+# project with its nodes registered, under a sandboxed HOME.
 setup() {
   TEST_TEMP_DIR="$(mktemp -d /tmp/intent-cwi-XXXXXX)"
+  setup_fake_home
   PROJECT="$(create_test_project "CWI Test" "$TEST_TEMP_DIR/proj")"
   cd "$PROJECT" || exit 1
-  WB="$TEST_TEMP_DIR/wb"
-  mkdir -p "$WB"
 }
 
 teardown() {
+  teardown_fake_home
   cd "$INTENT_HOME" 2>/dev/null || true
   [ -n "${TEST_TEMP_DIR:-}" ] && rm -rf "$TEST_TEMP_DIR"
 }
 
-# A node on the scratch board, written directly.
-#
-# It was `ws new` until AC-14.12 retired it. The fixture writes the rendered
-# view because that is what the launcher reads -- it resolves a node by the
-# directory being there and reads `name:` out of the header -- and a test that
-# needed the real writer would be testing `intent wb register`, which has its
-# own criteria.
-seed_node() { # $1 moniker  $2 display name
-  mkdir -p "$WB/$1"
-  cat > "$WB/$1/wip.md" <<EOF
----
-node: $1
-name: $2
-role: worker
-session_id: none
-heartbeat_at: 2026-01-01 00:00Z
-status: paused
-focus: "a fixture node"
-claims: []
----
-# $2 ($1)
-EOF
+# A node on the board, registered through the verb that puts one there.
+register_node() { # $1 moniker  $2 display name  $3 role
+  run "$INTENT" wb register "$1" --name "$2" --role "$3"
+  assert_success
 }
 
 # ---- WP-02: start (launch + composed context) ----
 
 @test "AT-02.1 start assembles the verified claude argv (dry-run)" {
-  seed_node hv "Hypervisor"
-  seed_node cc "Control Claude"
-  run env CWI_WB="$WB" CWI_DRY_RUN=full "$INTENT" claude start cc
+  register_node hv "Hypervisor" hypervisor
+  register_node cc "Control Claude" control
+  run env CWI_DRY_RUN=full "$INTENT" claude start cc
   assert_success
   assert_output_contains 'effort max --permission-mode auto'
   assert_output_contains '/in-session'
 }
 
 @test "AT-02.2 compose_ctx carries identity + pickup + plan instruction, not the board" {
-  seed_node hv "Hypervisor"
-  seed_node cc "Control Claude"
-  run env CWI_WB="$WB" CWI_DRY_RUN=full "$INTENT" claude start cc
+  register_node hv "Hypervisor" hypervisor
+  register_node cc "Control Claude" control
+  run env CWI_DRY_RUN=full "$INTENT" claude start cc
   assert_success
   assert_output_contains 'YOU ARE: cc (Control Claude)'
   assert_output_contains 'pickup cc'

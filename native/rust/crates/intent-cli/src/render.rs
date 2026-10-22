@@ -8820,7 +8820,8 @@ fn init(a: &ArgMatches) -> Result<(), Failure> {
       // The variants below are the tool unable to act at all, which is the 2.
       intentsvcs::init::InitError::AlreadyAProject(_)
       | intentsvcs::init::InitError::WouldOverwrite(_)
-      | intentsvcs::init::InitError::Undeclarable(_) => Failure::Error(message),
+      | intentsvcs::init::InitError::Undeclarable(_)
+      | intentsvcs::init::InitError::BareRepository(_) => Failure::Error(message),
       _ => Failure::Unavailable(message),
     }
   })?;
@@ -12099,10 +12100,19 @@ fn claude(m: &ArgMatches) -> Result<(), Failure> {
 ///
 /// **IT DISPATCHES RATHER THAN PORTS, DELIBERATELY.** See
 /// [`intentsvcs::install::cwi_script`] for hv's ruling that this script
-/// survives the cut. Measured before wiring: `CWI_DRY_RUN=1 ... start cc`
-/// exits 0 under a v3 binary, in this project and from
-/// another estate's working directory, because the script does its own
-/// `find_project_root`. One binary therefore serves every estate.
+/// survives the cut.
+///
+/// **THE DOOR RESOLVES AND THE LAUNCHER COMPOSES** (issue 0609). The door finds
+/// the project through [`open`], so a bare repository is refused here exactly
+/// as at every other verb, and reads the node with the facade's `board`, the
+/// call `wb show` makes, so an absent node meets the facade's own
+/// `WbNodeNotRegistered` and an unmigrated one is found. It then runs the
+/// launcher FROM the project root with the workstream and its display name,
+/// and the launcher composes the session's context and execs `claude`,
+/// searching for nothing. Until 0609 the launcher carried its own walk-up, its
+/// own header parse and its own copy of the refusal: a second discovery that
+/// accepted layouts this binary refuses. **Nothing else belongs here**: a
+/// further decision this door needs goes into a facade function, not inline.
 ///
 /// **THE VERB IS PASSED THROUGH, NOT CONSUMED.** v2's `bin/intent` carried the
 /// same instruction as a comment -- *"Do NOT shift: intent_claude_cwi's own
@@ -12120,12 +12130,21 @@ fn claude(m: &ArgMatches) -> Result<(), Failure> {
 /// projects' `PATH` -- wiring does not create it, but it does add weight to it,
 /// and hv rules on it with the weight visible rather than meeting it later.
 fn claude_cwi(m: &ArgMatches) -> Result<(), Failure> {
+  let ws = arg(m, "ws")?;
   let home = intentsvcs::install::home().map_err(|e| Failure::Error(format!("error: {e}")))?;
   let script = intentsvcs::install::cwi_script(&home);
+  // The facade is dropped at the end of this block, so the store is closed
+  // before the process is replaced rather than handed to `claude`.
+  let (root, name) = {
+    let f = open()?;
+    let board = f.board(&ws).map_err(fail)?;
+    (f.project().root().to_path_buf(), board.node.name)
+  };
 
   exec_shipped_script(
     &script,
-    &["start".to_string(), arg(m, "ws")?],
+    &["start".to_string(), ws, name],
+    Some(root.as_path()),
     "whiteboard launcher",
   )
 }
@@ -13344,7 +13363,7 @@ fn hook(a: &ArgMatches) -> Result<(), Failure> {
   }
   let home = intentsvcs::install::home().map_err(|e| Failure::Error(format!("error: {e}")))?;
   let script = intentsvcs::install::hook_script(&home, &name);
-  exec_shipped_script(&script, &[], "hook script")
+  exec_shipped_script(&script, &[], None, "hook script")
 }
 
 /// Replace this process with `bash <script> <args...>`, or fail BY NAME.
@@ -13360,7 +13379,16 @@ fn hook(a: &ArgMatches) -> Result<(), Failure> {
 /// `kind` names what was not found, because "script not found" over a path is
 /// a fact the operator already has -- what they lack is which subsystem is
 /// incomplete.
-fn exec_shipped_script(script: &Path, args: &[String], kind: &str) -> Result<(), Failure> {
+///
+/// `dir` is where the script runs: the project root the launcher's door
+/// resolved (issue 0609), or `None` for a hook, which runs where Claude Code
+/// started it.
+fn exec_shipped_script(
+  script: &Path,
+  args: &[String],
+  dir: Option<&Path>,
+  kind: &str,
+) -> Result<(), Failure> {
   use std::os::unix::process::CommandExt;
 
   // Named rather than left to the shell. Claude Code surfaces a hook's stderr,
@@ -13372,10 +13400,12 @@ fn exec_shipped_script(script: &Path, args: &[String], kind: &str) -> Result<(),
       script.display()
     )));
   }
-  let e = std::process::Command::new("bash")
-    .arg(script)
-    .args(args)
-    .exec();
+  let mut command = std::process::Command::new("bash");
+  command.arg(script).args(args);
+  if let Some(dir) = dir {
+    command.current_dir(dir);
+  }
+  let e = command.exec();
   // `exec` returns ONLY on failure to replace the process.
   Err(Failure::Error(format!(
     "error: cannot run {}: {e}",
