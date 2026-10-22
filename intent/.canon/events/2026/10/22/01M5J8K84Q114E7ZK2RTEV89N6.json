@@ -1,0 +1,15 @@
+{
+  "id": "01M5J8K84Q114E7ZK2RTEV89N6",
+  "ts": "2026-10-22T16:55:03.579Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0612"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "wb ask writes the message into the recipient's board.json, so no commit the sender may make leaves main right: a fresh checkout either counts view skew or holds no message"
+  }
+}
