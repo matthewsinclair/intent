@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.5] - in progress
+
+### Fixed
+
+- **A withdrawn or descoped criterion's test rows can leave the green state** (issue 0607). Contract L5 refuses a non-test acceptance test over a test-backed criterion, because a non-test row is never green and the criterion could never be satisfied. It refused the same row over a withdrawn or descoped criterion too, which is never asked to be satisfied, so `intent at edit --kind non-test` had no way to retire a removed feature's test rows once their test file was gone. L5 now asks only about criteria still in scope: `at edit` and `at lint` accept a non-test row over a withdrawn or descoped criterion, and still refuse one over a criterion in scope.
+
 ## [3.2.4] - 2026-10-17
 
 ### Added

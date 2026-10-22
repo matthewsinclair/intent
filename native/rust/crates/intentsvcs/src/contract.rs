@@ -881,7 +881,16 @@ pub fn contract_report(
         // trap needed the row to be the criterion's only coverage. Under AND it
         // blocks unconditionally -- which is what this lint's own sentence always
         // claimed, so the gate has stopped disagreeing with it.
-        Some(c) if t.kind == AtKind::NonTest && c.kind != AcKind::NonTest => out.push(format!(
+        //
+        // **ONLY A CRITERION STILL IN SCOPE IS ASKED (issue 0607, vc under hv's
+        // pen, 2026-10-22).** A withdrawn or descoped criterion is never asked
+        // whether it is satisfied -- [`resolve`] answers before any coverage
+        // question -- so no AT over one can make the contract unclosable, and
+        // `AcState::in_scope` is the one answer to which criteria those are.
+        // Asking anyway left a withdrawn criterion's test rows no honest way out
+        // of the green state once the feature and its test file were removed:
+        // ST0075's seven Console rows, after 0607 replaced the Console.
+        Some(c) if t.kind == AtKind::NonTest && c.kind != AcKind::NonTest && c.state.in_scope() => out.push(format!(
           "{} is a non-test AT covering {covered}, which is test-backed -- a non-test AT is never green, so it can never satisfy it. Mark {covered} non-test and satisfy it by evidence, or cover it with a real test",
           t.id
         )),

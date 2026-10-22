@@ -271,6 +271,8 @@ mod intentfiles_is_the_list;
 mod intentfiles_names_artefacts_only;
 #[path = "issue_estate.rs"]
 mod issue_estate;
+#[path = "l5_asks_only_about_criteria_still_in_scope.rs"]
+mod l5_asks_only_about_criteria_still_in_scope;
 #[path = "legacy_at_citation_annotation.rs"]
 mod legacy_at_citation_annotation;
 #[path = "legacy_at_status_annotation.rs"]
