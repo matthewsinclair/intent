@@ -1,0 +1,16 @@
+{
+  "id": "01M5JBEV6D6E8CC57K288Z9ZWA",
+  "ts": "2026-10-22T17:45:04.973Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 84,
+    "text": "0609 AND 0610, cc's (hv's word 2026-10-22; vc's records at a34d5736b). 0609: JUDGED GREEN on its final bank refs/bank/cc/0609/fix-e (blob e9951adb6468, patch-id 39e9335cfb11, base 6f50526a1; END 17:56Z): all three whole suites, the three bats files and drives A, B, C, with ic's wording of all five texts. It lands on vc's word in the fixed train order 0612, 0610, 0609, then vc's build all #1, rebased; hv is told not to run intent claude start between 0609's landing and build all #1 (drive A: the old door with the new launcher refuses cleanly and launches nothing). Worktree tmp/wt-cc-0609; fix to fix-d spent. 0610: written in tmp/wt-cc-0610 at fc8149207 with ic's two texts (one resolver for wb edit message and wb ask --re, canonical re, a ready-to-copy listing), not yet built; it banks after 0612 lands, rebased, and runs in its own box window. No push, no release."
+  }
+}
