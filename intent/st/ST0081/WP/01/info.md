@@ -2,7 +2,7 @@
 wp_id: WP-01
 title: Linux release binaries built by GitHub Actions
 scope: S
-status: WIP
+status: Done
 ---
 
 # WP-01: Linux release binaries built by GitHub Actions
@@ -10,6 +10,12 @@ status: WIP
 ## Objective
 
 A workflow builds `intent` and `intentd` for x86_64 and aarch64 Linux, statically or against an old glibc floor because the distributions they will run on are not known, packages them with the support payload the binaries read at run time, runs the packaged `intent --version` inside a container at that floor, and keeps each package as a workflow artifact. It runs on `workflow_dispatch`, so it is proven before any tag runs it. Its first measurement is whether `intent-support.tar.gz` serves Linux unchanged. aarch64 became required on 2026-10-14, because Homebrew on Linux is proven first on hv's aarch64 VM.
+
+## Closed on AC-01.1 and AC-01.2 (cc, 2026-10-22)
+
+Both criteria are satisfied from run 39854556183, hv's `--ref main` workflow_dispatch of 2026-10-22 at the release commit 2e0e9215d, conclusion success. The x86_64 and aarch64 musl packages were built, packaged with the support payload and kept as workflow artifacts, and each package's `intent --version` ran inside `oraclelinux:7-slim`, the floor the workflow names, reading `intent 3.2.5 (2e0e9215d67f67c665d1b8179a7888555551c8e7) dev`. The evidence is `refs/bank/cc/0081/evidence/run-39854556183.txt` (blob baec68a54b14).
+
+The objective's first measurement, whether `intent-support.tar.gz` serves Linux unchanged, is answered yes. Every one of the 180 support files each package carries (`intent/plugins` and `lib/templates`) is byte-identical, exec bits included, to v3.2.5's `intent-support.tar.gz` (sha256 d0938ba5832f). The tarball's only extra is three empty directories git does not track, `lib/templates/eng`, `issues` and `prime`, which were on the release Mac's working copy and not in CI's clean checkout, and which no code names. The binaries are statically linked against musl, so no glibc floor applies to them, and the workflow is dispatch-only, so no tag ever triggers it.
 
 ## Acceptance
 

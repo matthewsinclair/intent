@@ -9,7 +9,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 ## DOING
 
 - [-] ST0081: Intent from Homebrew on Linux and macOS, with no source checkout: Linux binaries on every release
-  - [-] 01: Linux release binaries built by GitHub Actions
+  - [x] 01: Linux release binaries built by GitHub Actions
   - [ ] 02: Linux assets on each tag's GitHub release, one writer per release object
   - [x] 03: Intent's Linux install through Homebrew, in docs/install.md
   - [~] 04: First install on a real Windows machine

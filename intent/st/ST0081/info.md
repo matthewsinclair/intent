@@ -58,7 +58,7 @@ kovacs as measured 2026-10-14 by kovacs-sysadm, read-only: Ubuntu 26.04.1 LTS on
 
 | WP    | Title                                                                    | Size | Status      |
 | ----- | ------------------------------------------------------------------------ | ---- | ----------- |
-| WP-01 | Linux release binaries built by GitHub Actions                           | S    | WIP         |
+| WP-01 | Linux release binaries built by GitHub Actions                           | S    | Done        |
 | WP-02 | Linux assets on each tag's GitHub release, one writer per release object | S    | Not Started |
 | WP-03 | Intent's Linux install through Homebrew, in docs/install.md              | S    | Done        |
 | WP-04 | First install on a real Windows machine                                  | XS   | Cancelled   |

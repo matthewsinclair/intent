@@ -1,0 +1,14 @@
+{
+  "id": "01M5JQJ7YCS6KJPN930N41DAJ9",
+  "ts": "2026-10-22T21:16:39.248Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0081/AC-01.1"
+  },
+  "payload": {
+    "evidence": "Run 39854556183 of .github/workflows/linux-release.yml (https://github.com/matthewsinclair/intent/actions/runs/39854556183), the workflow_dispatch hv fired on 2026-10-22 with --ref main, so with no tag: headBranch main, headSha 2e0e9215d67f67c665d1b8179a7888555551c8e7 (the release commit, upstream/main), and the build saw no tag, so each package's `intent --version` reads `intent 3.2.5 (2e0e9215d67f67c665d1b8179a7888555551c8e7) dev`. Conclusion success, 21:06:43Z to 21:11:33Z: job package (x86_64-unknown-linux-musl, ubuntu-latest), id 120089246768, and job package (aarch64-unknown-linux-musl, ubuntu-24.04-arm), id 120089247186, each green through bin/int linux doctor, build, package, smoke on the runner and smoke on the floor. Each package is kept as a workflow artifact: intent-x86_64-unknown-linux-musl (artifact 12459447395, 14576654 bytes, digest sha256:9c386af2b961) and intent-aarch64-unknown-linux-musl (artifact 12459690768, 13589688 bytes, digest sha256:e63d2e01e4cc), both kept until 2027-01-20. Downloaded and listed by cc, never run: each tarball (x86_64 sha256 9e9ae9f6b7f9, aarch64 ed579ded2241) holds bin/intent and bin/intentd, statically linked (x86-64 static-pie; ARM aarch64 static), beside the support payload the binaries read at run time, intent/plugins and lib/templates, whose 180 files are byte-identical, exec bits included, in both packages and in v3.2.5's intent-support.tar.gz (sha256 d0938ba5832f); the tarball's only extra is three empty directories git does not track (lib/templates/eng, issues and prime). The run's records, both floor steps and these listings are refs/bank/cc/0081/evidence/run-39854556183.txt (blob baec68a54b14)."
+  }
+}

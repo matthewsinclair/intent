@@ -1,0 +1,14 @@
+{
+  "id": "01M5JQJHTG9S10G8F16GMGEZCS",
+  "ts": "2026-10-22T21:16:49.363Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0081/AC-01.2"
+  },
+  "payload": {
+    "evidence": "The same run, 39854556183 (hv's --ref main workflow_dispatch of 2026-10-22, conclusion success). In both jobs (ids 120089246768 and 120089247186) the step `smoke, on the floor (AC-01.2)` ran `bin/int linux smoke --in \"$FLOOR\"` with FLOOR oraclelinux:7-slim, the one floor the workflow names (Oracle Linux 7, glibc 2.17), pulled at digest sha256:1add6ed8602e. Inside that container the packaged binary, reached through a link on PATH, printed `intent 3.2.5 (2e0e9215d67f67c665d1b8179a7888555551c8e7) dev` on each leg, then resolved its install root to /opt/intent-<triple> and ran the support tree's gate hook both ways. The step fails the run when the binary does not start, by reading: bin/.devbin/cmd/linux runs under `set -euo pipefail` (line 20) and pipes smoke_checks into the container's `/bin/bash -euo pipefail -s`, whose first check is `intent --version`, so a binary that does not start ends the container's shell non-zero, which ends `bin/int` non-zero, which fails the step (its shell, as the log shows, is `/usr/bin/bash -e {0}`), the job and the run; that clause was read, not driven with a broken binary. Both floor steps are quoted in refs/bank/cc/0081/evidence/run-39854556183.txt (blob baec68a54b14)."
+  }
+}
