@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: b9c0d657-8ee0-449e-86f3-7277b7513c19
-heartbeat_at: 2026-10-22 19:07Z
+heartbeat_at: 2026-10-22 20:22Z
 status: active
-focus: "2026-10-22: 0612 first (molt-vc's wb ask finding; shape ruled by vc under hv's pen at e248aafd9; dc builds); cc 0609 then 0610, ic 0607; vc holds the box queue and judges every bank; ST0083 done by hv; no push, no release"
+focus: "2026-10-22: THE 3.2.5 CUT, at hv's terminal by hv's hand; vc runs the box, the render chain and the freeze until CUT END; after it: CUT END to every node and estate, cc's kovacs o8 after the formula push, Utilz's gap at macos prepare's END, the worktree removals, the globalfold; vc pushes nothing and releases nothing"
 claims: []
 ---
 
@@ -13,21 +13,11 @@ claims: []
 
 ## DOING
 
-- RESUME (vc, localfold 2026-10-22 for hv's compact; this item is the resume state). STANDING: decision 3 (no release, no push without hv's terminal, never --no-confirm), decision 4 (vc's pen), and every stamp from date -u in the same turn -- vc broke that twice today and corrected both to the peers it misled.
+- THE 3.2.5 CUT (vc, 2026-10-22, on hv's word "I want this next release done tonight"; the cut is hv's, at hv's terminal, and vc pushes nothing and releases nothing). HEAD'S LINEAGE: the train landed at its judged patch-ids and was closed at 143c15b01 -- 0607 at 3d6820e0f (ic's fix-b, a whitespace re-bank after the format gate refused fix), 0619 at 5d28210ad (dc's fix-c, after fix failed its own red arm), 0615 at d6da40135 and 0613 at 8bef2bb7a (cc's); build all #2 is the live pair at 8bef2bb7a, and nothing since touches DIRT_SCOPE; the pre-cut sync and the closed views' removal are 88816de77; the known-defects page is re-driven whole at 02fc792f4 (every entry still reproduces, 0614 stays off it, and dc's e_worktree_carriers control under refs/bank/dc/325kd/ is a lead for 0614's lane); the reference set is regenerated against v3.2.4 at de5fc7b75 (reference_current_check.sh rc 0), and ic's two low findings are 0622 and 0623 at 77427d4bb; the render commits went in one at a time, ic 1c63b77d3, cc 563dc65e6, dc f5aa13d35, then this board's, and every node is frozen from its own commit until vc's CUT END.
 
-  LIVE TODAY: issue 0612 (molt-vc's wb ask finding, hv's first job) landed 521f81ca2 and is live through build all #1 (19:04:55Z-19:06:07Z, pair verified and promoted at dcd9057d4). Intent's board@4.0 re-render is 9c91e278e (messages and marks conserved, doctor clean). Gtools 85e0feb0, Molt 2805f6a and Utilz cb466d50 re-rendered; every other estate re-renders at its next wb verb, one commit by its coordinating node. Also landed: L5 55cdb6ecf, 0610 be2f28213, 0609 1de4bcf0a. 0609, 0610 and 0612 are closed at bc2469bc8. THE NEW COMMIT RULE IS IN FORCE: a node commits what its verbs print under wrote:.
+  THE CUT'S COMMAND LIST is the one vc sends hv whole with READY: `intent daemon stop`, `bin/devbin build release v3.2.5 --dry-run`, the real run (`--skip-tests` only at the dry run's HEAD, on hv's choice), `macos prepare`, `macos publish` (expect the stop), the Linux packages by hand, `brew formula --push` at a terminal, `claude skills sync`, `brew unpin` and the smoke, `brew unlink`, pin and daemon restart, the site. hv's three choices were asked before READY: the version (vc recommends 3.2.5), `--skip-tests` on the real run, and the optional `--ref main` dispatch.
 
-  THE QUEUE. vc holds Intent's queue and utilz-vc holds Utilz's and Gtools'; each sends the other every heavy GO and END by name, neither GOes during the other's run, and utilz-vc takes the merge into one queue to hv. Utilz's R98 was GOed at 19:10Z and its END is owed to vc. Then, in order:
-  1. dc's 0619 window: refs/bank/dc/0619/fix, blob 2c7c10395ef3, patch-id 00b394ba4d43, base 9c91e278e; red accepted at refs/bank/dc/0619/red, blob a03d4b6eaa2c; worktree tmp/wt-dc-0619.
-  2. ic's 0607 window: refs/bank/ic/0607/fix, blob 74e02bf4b6d3, patch-id 08b770ab196b, base 9c91e278e; ST0075's seven rows and ST0074's AC-02.1 are disposed in the worktree, both gates PASS; floor macOS 26.0, xcodeVersion 27.1; app-test's count comes from the xcresult; worktree tmp/wt-ic-0607.
-  3. cc's 0615 (refs/bank/cc/0615/fix-b, blob f3180b62b677, patch-id ad56ebffe614, base b1b23955e), then 0613 (red and fix in tmp/wt-cc-0610).
-  Each lands in judged order, then vc runs build all #2, announced to utilz-vc and every estate's vc.
-
-  OPEN WITH NO LANE: 0611 (hv's triage); 0614 (measure after 0619, which may be its cause); 0616-0618 (cc's, after 0613); 0620-0621 (dc's, after 0619). ST0081 is BLOCKED 2/7: AC-01.1 and AC-01.2 from run 39034020140 (a dispatch at the v3.2.4 tag, and "with no tag" is a judgement); AC-06.1 needs kovacs's post-cut install lines; AC-03.3 needs a kovacs window; AC-02.1 waits on D55. UNVERIFIED CARRY: the Sinclair-Shared book recreate of decision 63(8), and whether its build-all signal reached sinclair-vc.
-
-  TOOLS: refs/bank/vc/tools/census.sh and census-ok-ci.sh (blob 49fa6fc20873); census-ok.sh is spent, because its allowlist was case-exact. Running intent mcp servers and explorers opened before build all #1 refuse the schema-32 store until reopened.
-
-  ON THE BOUNCE: /in-session, read the inboxes, take utilz-vc's R98 END, then GO the queue on a census.
+  AFTER IT: CUT END to every node and every estate's vc (the tag's build swaps every estate's pair); cc's kovacs order o8 (refs/bank/cc/0081/kovacs/o8-postcut.sh, blob f9414b29fc73) once hv's formula push is done, for ST0081's AC-03.3 and AC-06.1; hv's optional `--ref main` dispatch for AC-01.1 and AC-01.2; at macos prepare's END vc sends utilz-vc that END, the census and which side of o8 K1 sits on, and the GO for Utilz's R99, K1 and ic's S is utilz-vc's (hv: Intent first); the worktree removals on each lane's word; then the globalfold (intent/wip.md).
 
 ## TODO
 
