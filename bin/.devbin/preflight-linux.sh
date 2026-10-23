@@ -13,12 +13,22 @@
 #   - bin/ and native/rust/target/release first on PATH; a CI git identity;
 #   - `cargo build --release --manifest-path native/rust/Cargo.toml -p intent-cli -p intentd`;
 #   - `cd tests && ./run_tests.sh` with BATS_LIB_PATH set;
+#   - LANG=C.UTF-8 with LC_ALL unset, the runner's locale; any other LC_* variable this login exports is dropped
+#     too, because each one overrides LANG for its own category;
 #   - AND SIGPIPE IGNORED, as GitHub's runners start every step. An interactive shell has it at default, and
 #     that difference hid issue 0628's class: under it, `comm | head -1` dies quietly; ignored, it fails.
 # The git identity goes through GIT_CONFIG_GLOBAL, a file in the run's own directory, so the user's ~/.gitconfig
 # is never touched. Everything lands in ~/work/intent-preflight/<sha>/, and the summary names every red arm. Its
 # first line and where it is copied come from bin/.devbin/cmd/shared/preflight.lib in the clone, the file
 # `int prepush` reads them from.
+#
+# THE BINARIES ARE COPIED INTO THE CLONE, NEVER LINKED. `intent` finds the install it belongs to by walking up
+# from its own REAL path to a directory holding lib/templates/. CI builds in-tree, so that path is inside the
+# checkout. This order builds into one target directory kept across runs, outside the clone, and the first run
+# linked native/rust/target to it: every binary's real path was then outside the clone, and most of the suite
+# went red on "cannot locate the Intent install this binary belongs to" (the gate's "no usable INTENT_HOME").
+# So intent and intentd are copied to native/rust/target/release after the build, where they would have been
+# built, and where PATH and INTENT_BIN's default look for them.
 set -uo pipefail
 
 want="${1:?usage: preflight-linux.sh <sha> <host>:<path> -- the commit to test, and the checkout to clone it from}"
@@ -66,21 +76,29 @@ gitconfig="$run/gitconfig"
 printf '[user]\n\temail = ci@intent.local\n\tname = Intent CI\n' >"$gitconfig"
 
 # ONE target directory across runs, as CI's rust-cache keeps one: the build is redirected there with
-# CARGO_TARGET_DIR, outside this clone and never this repository's shared native/rust/target, and it is linked
-# where the suite looks for the binaries (native/rust/target/release is on PATH and is INTENT_BIN's default).
-# Runs are sequential, so it is never shared by two builds at once. One job by default: kovacs has two CPUs and
-# little memory (ORDER 3's setting).
+# CARGO_TARGET_DIR, outside this clone and never this repository's shared native/rust/target, and the two
+# binaries are copied from it into the clone (see the header for why a link will not do). Runs are sequential,
+# so it is never shared by two builds at once. One job by default: kovacs has two CPUs and little memory
+# (ORDER 3's setting).
 mkdir -p "$ROOT/target"
-ln -s "$ROOT/target" native/rust/target || die "cannot link native/rust/target to $ROOT/target"
 printf '\n# ---- build (cargo build --release -p intent-cli -p intentd), jobs %s ----\n' "${PREFLIGHT_JOBS:-1}" >>"$log"
 printf 'preflight: building %s (jobs %s)\n' "$sha" "${PREFLIGHT_JOBS:-1}" >&3
 CARGO_TARGET_DIR="$ROOT/target" CARGO_BUILD_JOBS="${PREFLIGHT_JOBS:-1}" \
   cargo build --release --manifest-path native/rust/Cargo.toml -p intent-cli -p intentd >>"$log" 2>&1 ||
   die "the build failed at $sha -- see $log"
-printf 'preflight: running the bats suite, SIGPIPE ignored\n' >&3
+mkdir -p native/rust/target/release || die "cannot make native/rust/target/release in the clone"
+cp -p "$ROOT/target/release/intent" "$ROOT/target/release/intentd" native/rust/target/release/ ||
+  die "cannot copy intent and intentd from $ROOT/target/release into the clone"
+printf 'preflight: running the bats suite, SIGPIPE ignored, LANG=C.UTF-8\n' >&3
 
-printf '\n# ---- run_tests.sh, SIGPIPE ignored as on the runner ----\n' >>"$log"
-env XDG_CONFIG_HOME= XDG_DATA_HOME= XDG_STATE_HOME= XDG_RUNTIME_DIR= \
+# The runner's locale: LANG=C.UTF-8 and LC_ALL unset. Every other LC_* this login exports is unset as well,
+# since any one of them would override LANG for its own category.
+nolc=(-u LC_ALL)
+while IFS= read -r v; do
+  case "$v" in LC_ALL) ;; LC_*) nolc+=(-u "$v") ;; esac
+done < <(compgen -e)
+printf '\n# ---- run_tests.sh, SIGPIPE ignored and LANG=C.UTF-8 as on the runner (env %s) ----\n' "${nolc[*]}" >>"$log"
+env "${nolc[@]}" LANG=C.UTF-8 XDG_CONFIG_HOME= XDG_DATA_HOME= XDG_STATE_HOME= XDG_RUNTIME_DIR= \
   GIT_CONFIG_GLOBAL="$gitconfig" \
   PATH="$PWD/bin:$PWD/native/rust/target/release:$PATH" \
   BATS_LIB_PATH="$PWD/tests/lib" \
