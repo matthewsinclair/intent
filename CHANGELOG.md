@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.6] - in progress
+
+### Fixed
+
+- **The macOS support tarball is built from the release commit, so nothing on the release machine's working copy can reach it** (issue 0626). `intent-support.tar.gz` was tarred from the working copy, so v3.2.5's carried three empty directories git does not track (`lib/templates/eng`, `issues` and `prime`), which the stage's drift check, comparing files, could not see. `int macos stage` now archives the commit it records with `git archive`, through the one function the Linux packages already used. That function pins the file modes to 0755 and 0644, which the Linux package had until now only because the packaging runner's umask was 022, so neither asset's modes depend on the machine that builds it.
+
 ## [3.2.5] - 2026-10-23
 
 ### Changed

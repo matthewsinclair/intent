@@ -159,8 +159,7 @@ $dirt"
   for bin in $BINARIES; do
     install -m 0755 "$WORKSPACE/target/$triple/release/$bin" "$DIST_DIR/$name/bin/$bin"
   done
-  # shellcheck disable=SC2086 # SUPPORT_PATHS is space-free (shared/support.lib)
-  git -C "$ROOT" archive --format=tar HEAD -- $SUPPORT_PATHS | tar -x -C "$DIST_DIR/$name"
+  support_tree_tar "$ROOT" HEAD "" | tar -x -C "$DIST_DIR/$name"
   tar -czf "$DIST_DIR/$name.tar.gz" -C "$DIST_DIR" "$name"
   printf '    %s\n' "$DIST_DIR/$name.tar.gz"
   ok

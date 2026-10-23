@@ -264,14 +264,34 @@ unclassified_artefacts() {
   printf '%s' "$out"
 }
 
+# support_archive <root> <commit> <out> -- the support tarball: the support tree
+# at <commit> (`support_tree_tar`, shared/support.lib), under the one top-level
+# entry Homebrew strips, gzipped with no name or stamp in its header.
+#
+# FROM THE COMMIT, NEVER FROM THE WORKING COPY (issue 0626). It was
+# `tar -C "$ROOT"`, so the asset carried whatever this machine's checkout held
+# under the support paths: v3.2.5's shipped lib/templates/eng, issues and prime,
+# three directories git does not track, which a file-level drift check cannot
+# see. Its own subshell sets pipefail, so a failed `git archive` fails here under
+# any caller rather than leaving a valid gzip of nothing.
+support_archive() {
+  (
+    set -o pipefail
+    support_tree_tar "$1" "$2" "$SUPPORT_PREFIX/" | gzip -n >"$3"
+  )
+}
+
 # support_tree_drift -- how the built archive differs from the source tree, in
 # both directions. Empty output means they agree.
 #
 # `comm -3` over two sorted lists rather than a per-file grep, so the answer is
 # derived from the sets rather than from a list of names someone maintained.
-# .DS_Store is excluded on BOTH sides, because it is excluded when the archive is
-# built and comparing an exclusion against a non-exclusion reports drift that is
-# not drift.
+# .DS_Store is excluded on the tree's side because no commit holds one, so the
+# archive never carries one, and comparing an exclusion against a non-exclusion
+# reports drift that is not drift. Since the archive is the commit's (issue
+# 0626), any other file the working copy holds and the commit does not -- an
+# ignored one -- reads here as '<' and refuses the stage: the checkout differs
+# from what ships, and that is the direction to fail in.
 support_tree_drift() {
   local archive="$STAGE_DIR/$SUPPORT_ASSET"
   [ -f "$archive" ] || { printf 'no archive at %s' "$archive"; return 0; }
@@ -345,11 +365,12 @@ support_paths_coverage() {
 #      sessions work in, so the bytes staged can be a peer's build of their own
 #      uncommitted work -- measured on this estate twice, once with a rebuild
 #      that silently compiled another node's in-flight edit.
-#   2. The support tarball is built with `tar -C "$ROOT"` straight from the
-#      WORKING TREE, so uncommitted shell ships verbatim. That one arrived with
-#      the support asset itself and is the sharper, because it needs
-#      no peer and no stale cache -- an editor with unsaved-but-written changes
-#      is enough.
+#   2. The support tarball WAS built with `tar -C "$ROOT"` straight from the
+#      WORKING TREE, so uncommitted shell shipped verbatim. That one arrived with
+#      the support asset itself and was the sharper, because it needed no peer
+#      and no stale cache -- an editor with unsaved-but-written changes was
+#      enough. Since issue 0626 `support_archive` builds it from the commit, so
+#      it ships no uncommitted byte; the dirt check below now says so.
 #
 # The round-trip check in `publish` cannot see either. It re-downloads what it
 # uploaded and hashes THAT, which proves the pipeline is internally consistent
@@ -367,16 +388,17 @@ provenance_blockers() {
     printf 'not a git checkout, so nothing staged here can name a commit\n'
     return 0
   fi
-  # Narrow first, because this one is certain: these paths are archived from the
-  # working tree, so dirt here is not a risk of shipping uncommitted bytes, it IS
-  # shipping them.
+  # Narrow first, and named apart from the wide one: since issue 0626 the
+  # support tarball is archived from the commit, so dirt here does NOT ship, and
+  # an operator who expects an edit under these paths to ship has to hear that
+  # it will not.
   # SUPPORT_PATHS is a fixed list of three space-free repository paths, and
   # splitting it into one argument each is the point (IN-SH-CODE-001 exempts
   # intentional splitting with a comment; issue 0536).
   # shellcheck disable=SC2086
   dirt="$(git -C "$root" status --porcelain -- $SUPPORT_PATHS 2>/dev/null)"
   [ -z "$dirt" ] ||
-    printf 'the support tree is dirty and is archived VERBATIM from the working tree, so these WOULD ship:\n%s\n' "$dirt"
+    printf 'the support tree is dirty, and the support tarball is archived from the commit, so these edits would NOT ship:\n%s\n' "$dirt"
   # Then the wide one, which is weaker evidence and still worth refusing on: a
   # dirty tree anywhere means the release build may carry changes no commit has.
   dirt="$(git -C "$root" status --porcelain 2>/dev/null)"
@@ -429,13 +451,12 @@ provenance_blockers() {
 # COUNT AND EITHER ADD A BOGUS CHECK OR ASSUME A HOLE. The binaries are
 # COPIED here out of a build directory, so the only thing that knows what built
 # them is the artefact, and nothing in the checkout can answer for them. The
-# support tarball is ARCHIVED from the working tree by `tar -C "$ROOT"`, so its
-# provenance question is genuinely a question about the CHECKOUT -- "was the tree
-# clean when this was rolled up" -- and `provenance_blockers` answers it with a
-# NARROW `git status --porcelain -- $SUPPORT_PATHS`, which is the sharper of its
-# arms precisely because dirt there is not a risk of shipping uncommitted
-# bytes, it IS shipping them. DIFFERENT ARTEFACTS, DIFFERENT SUBJECTS, DIFFERENT
-# CORRECT CHECKS. Adding a marker to a tarball of shell would be a check whose
+# support tarball is ARCHIVED from the commit `stage` records, by
+# `support_archive` (issue 0626; until then `tar -C "$ROOT"` archived the
+# working tree), so its provenance is that commit by construction, and
+# `provenance_blockers`' NARROW `git status --porcelain -- $SUPPORT_PATHS` now
+# tells the operator that dirt there will NOT ship. DIFFERENT ARTEFACTS,
+# DIFFERENT SUBJECTS, DIFFERENT CORRECT CHECKS. Adding a marker to a tarball of shell would be a check whose
 # subject does not exist; leaving the tarball unexamined would be the compound
 # artefact problem this function was built to fix. It is neither. The app zip
 # (APP_ASSET) is examined at `stage` by `app_asset_blockers` instead: it must be
@@ -969,9 +990,11 @@ cmd_stage() {
   # rewrites a binary's bytes, so a hash taken before `sign` is stale, but nothing
   # in this pipeline ever rewrites the tarball. It is built once and hashed once.
   #
-  # `--exclude` on .DS_Store, because the Finder writes one into any directory it
-  # has been looked at in, and a release artefact whose bytes depend on whether
-  # somebody opened a window is not a release artefact.
+  # FROM THE COMMIT THIS STAGE RECORDS, by `support_archive` (issue 0626), so
+  # nothing the working copy holds and the commit does not -- a .DS_Store the
+  # Finder wrote, an ignored file, an empty directory -- reaches the asset. A
+  # release artefact whose bytes depend on whether somebody opened a window, or
+  # on which machine cut it, is not a release artefact.
   step "staging the support tree"
 
   # REFUSE BEFORE BUILDING, because the archive cannot report what the copy list
@@ -988,14 +1011,9 @@ $uncovered
        rule library on the fleet: every critic gate armed 0 of 0 and passed."
   printf '    %-34s %s\n' "resolver coverage" "every install-root path v3 reads is carried"
 
-  # SUPPORT_PATHS is a fixed list of three space-free repository paths, and
-  # splitting it into one argument each is the point (IN-SH-CODE-001 exempts
-  # intentional splitting with a comment; issue 0536).
-  # shellcheck disable=SC2086
-  tar -czf "$STAGE_DIR/$SUPPORT_ASSET" -C "$ROOT" -s "#^#$SUPPORT_PREFIX/#" \
-    --exclude '.DS_Store' $SUPPORT_PATHS ||
-    die "could not build $SUPPORT_ASSET from $SUPPORT_PATHS"
-  printf '    %-34s <- %s\n' "$SUPPORT_ASSET" "$SUPPORT_PATHS"
+  support_archive "$ROOT" "$head" "$STAGE_DIR/$SUPPORT_ASSET" ||
+    die "could not build $SUPPORT_ASSET from $SUPPORT_PATHS at $head"
+  printf '    %-34s <- %s at %s\n' "$SUPPORT_ASSET" "$SUPPORT_PATHS" "$head"
 
   # Assert the archive carries the tree -- DERIVED, not spot-checked. The first
   # version of this listed the scripts the shipped consumers exec, which is a
@@ -1333,9 +1351,11 @@ $(printf '%s\n' "$conflicts" | sed 's/^/       /')
   #
   # An unreachable correct answer is the other half: this gate dies before the
   # artefact gate runs, so in that case the check that could have answered was
-  # never reached. Left in this order deliberately -- the support tarball is
-  # archived from the working tree, so tree dirt is its own harm and not merely a
-  # proxy for stale bytes. What changed is that the sentence now says so.
+  # never reached. Left in this order deliberately. Until issue 0626 the support
+  # tarball was archived from the working tree, so tree dirt was its own harm;
+  # it is now archived from the commit, and the gate stays first because a dirty
+  # tree is still evidence the binaries may carry bytes no commit names, `init`'s
+  # embedded templates included. What changed is that the sentence now says so.
   [ "$prov_clean" = "yes" ] ||
     die "the working tree was not clean when these artefacts were staged. $PROVENANCE_FILE records:
 $(sed 's/^/       /' "$PROVENANCE_FILE")

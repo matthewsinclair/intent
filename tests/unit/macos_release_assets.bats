@@ -37,11 +37,11 @@ BREW_LIB="${INTENT_BREW_LIB:-${INTENT_HOME:-${MACOS%/bin/.devbin/cmd/macos}}/bin
 # says something else.
 load_macos_fns() {
   local fns="${TEST_TEMP_DIR}/macosfns.sh"
-  sed -n '/^BINARIES=/p;/^APP_ASSET=/p' "$MACOS" >"$fns"
+  sed -n '/^BINARIES=/p;/^APP_ASSET=/p;/^SUPPORT_PREFIX=/p' "$MACOS" >"$fns"
   # SUPPORT_ASSET lives in the library both release steps source since ST0081
   # WP-06, and comes out of it for the same reason.
   sed -n '/^SUPPORT_ASSET=/p' "$BREW_LIB" >>"$fns"
-  sed -n '/^is_binary_artefact() {/,/^}/p;/^staged_artefacts() {/,/^}/p;/^unclassified_artefacts() {/,/^}/p;/^support_tree_drift() {/,/^}/p;/^provenance_blockers() {/,/^}/p' \
+  sed -n '/^is_binary_artefact() {/,/^}/p;/^staged_artefacts() {/,/^}/p;/^unclassified_artefacts() {/,/^}/p;/^support_archive() {/,/^}/p;/^support_tree_drift() {/,/^}/p;/^provenance_blockers() {/,/^}/p' \
     "$MACOS" >>"$fns"
   # shellcheck disable=SC1090
   . "$fns"
@@ -60,8 +60,8 @@ stage_with() {
   for f in "$@"; do printf 'x' >"$STAGE_DIR/$f"; done
 }
 
-# A source tree shaped like the part of the install that ships, plus a real
-# tarball built from it the same way cmd_stage builds one.
+# A committed source tree shaped like the part of the install that ships, plus
+# a real tarball built from its commit by cmd_stage's own `support_archive`.
 build_support_fixture() {
   ROOT="${TEST_TEMP_DIR}/root"
   STAGE_DIR="${TEST_TEMP_DIR}/dist"
@@ -71,9 +71,9 @@ build_support_fixture() {
   # helper still mkdir'd `lib/templates` alone, `tar` failed with `Cannot stat`
   # on the other two, and four arms went red. The arms were right and the
   # fixture was the stale copy -- which is the same one-list-two-homes shape
-  # the copy list itself had just been fixed for. Empty dirs are enough: the
-  # drift check compares `find -type f`, so a directory with no files in it
-  # contributes nothing to either side.
+  # the copy list itself had just been fixed for. Each directory entry holds one
+  # committed file, because the archive is the commit's since issue 0626 and
+  # `git archive` refuses a path that names no file at the commit.
   #
   # AND THE SHAPE IS DERIVED TOO, NOT ASSUMED TO BE A DIRECTORY. The list may name
   # a FILE: `intent/plugins/claude/bin/intent_claude_cwi` is one, entered at file
@@ -91,13 +91,19 @@ build_support_fixture() {
       printf '#!/usr/bin/env bash\n' >"$ROOT/$_p"
     else
       mkdir -p "$ROOT/$_p"
+      printf 'fixture\n' >"$ROOT/$_p/README.md"
     fi
   done
   mkdir -p "$ROOT/lib/templates/hooks" "$ROOT/lib/templates/.claude/scripts" "$STAGE_DIR"
   printf '#!/usr/bin/env bash\n' >"$ROOT/lib/templates/hooks/whiteboard-clock-guard.sh"
   printf '#!/usr/bin/env bash\n' >"$ROOT/lib/templates/hooks/pre-commit.sh"
   printf '#!/usr/bin/env bash\n' >"$ROOT/lib/templates/.claude/scripts/require-in-session.sh"
-  tar -czf "$STAGE_DIR/$SUPPORT_ASSET" -C "$ROOT" --exclude '.DS_Store' $SUPPORT_PATHS
+  git -C "$ROOT" init -q
+  git -C "$ROOT" config user.email t@t
+  git -C "$ROOT" config user.name t
+  git -C "$ROOT" add -A
+  git -C "$ROOT" commit -qm fixture
+  support_archive "$ROOT" HEAD "$STAGE_DIR/$SUPPORT_ASSET"
 }
 
 @test "int macos is syntactically valid" {
@@ -207,9 +213,9 @@ build_support_fixture() {
 }
 
 @test ".DS_Store is excluded on both sides, so its presence is not drift" {
-  # Excluded when the archive is built; comparing an exclusion against a
-  # non-exclusion would report drift that is not drift, on any tree the Finder
-  # has looked at.
+  # No commit holds one, so the archive never carries one; comparing an
+  # exclusion against a non-exclusion would report drift that is not drift, on
+  # any tree the Finder has looked at.
   load_macos_fns
   build_support_fixture
   printf 'x' >"$ROOT/lib/templates/.DS_Store"
@@ -217,6 +223,25 @@ build_support_fixture() {
   run support_tree_drift
   assert_success
   assert_output ""
+}
+
+@test "invariant: an empty directory the commit does not hold is not in the support tarball (0626)" {
+  # v3.2.5's intent-support.tar.gz carried lib/templates/eng, issues and prime,
+  # three directories git does not track, because the tarball was tarred from
+  # the working copy and the drift check compares files only. Planted here
+  # beside a .DS_Store-only directory, the other shape eng had on the cutting
+  # machine, and the archive is built again over them.
+  load_macos_fns
+  build_support_fixture
+  mkdir -p "$ROOT/lib/templates/issues" "$ROOT/lib/templates/eng"
+  printf 'x' >"$ROOT/lib/templates/eng/.DS_Store"
+  support_archive "$ROOT" HEAD "$STAGE_DIR/$SUPPORT_ASSET"
+
+  run tar -tzf "$STAGE_DIR/$SUPPORT_ASSET"
+  assert_success
+  assert_output_contains "intent-support/lib/templates/hooks/pre-commit.sh"
+  refute_output_contains "lib/templates/issues"
+  refute_output_contains "lib/templates/eng"
 }
 
 # --------------------------------------------------------------------
@@ -258,12 +283,12 @@ build_support_fixture() {
 # is perfectly self-consistent. Nothing was asking whether these are the bytes the
 # tag names.
 #
-# Two ways they might not be, both reachable today rather than theoretical.
-# `stage` COPIES out of native/rust/target/release instead of building, and that
-# directory is shared mutable state in a clone several sessions write to. And the
-# support tarball is archived with `tar -C "$ROOT"` from the WORKING TREE, so
-# uncommitted shell ships verbatim -- that one arrived with the support asset
-# itself and needs no peer and no stale cache to fire.
+# Two ways they might not be. `stage` COPIES out of native/rust/target/release
+# instead of building, and that directory is shared mutable state in a clone
+# several sessions write to. And until issue 0626 the support tarball was
+# archived with `tar -C "$ROOT"` from the WORKING TREE, so uncommitted shell
+# shipped verbatim; it is archived from the commit now, and the dirt check says
+# that the edits will NOT ship.
 
 # A checkout shaped like the part of the tree that ships, plus one file outside it.
 git_fixture() {
@@ -292,15 +317,15 @@ git_fixture() {
   assert_output ""
 }
 
-@test "a dirty SUPPORT TREE is refused, and named, because it ships verbatim" {
-  # The certain one: these paths are archived out of the working tree, so dirt
-  # here is not a risk of shipping uncommitted bytes, it IS shipping them.
+@test "a dirty SUPPORT TREE is refused, and named as NOT shipping (0626)" {
+  # The tarball is archived from the commit, so an operator who expects an edit
+  # under these paths to ship has to hear that it will not.
   load_macos_fns
   git_fixture
   printf '# edited but never committed\n' >>"$PROV_ROOT/lib/templates/hooks/guard.sh"
 
   run provenance_blockers "$PROV_ROOT"
-  assert_output_contains "archived VERBATIM"
+  assert_output_contains "would NOT ship"
   assert_output_contains "guard.sh"
 }
 
@@ -314,8 +339,8 @@ git_fixture() {
 
   run provenance_blockers "$PROV_ROOT"
   assert_output_contains "may hold bytes that match no commit"
-  # It must NOT claim the support tree would ship, because it would not.
-  refute_output_contains "archived VERBATIM"
+  # It must NOT name the support tree, because nothing under it changed.
+  refute_output_contains "would NOT ship"
 }
 
 @test "a directory that is not a checkout at all is refused" {

@@ -75,6 +75,28 @@
 # shellcheck disable=SC2034 # read by the handlers that source this file
 SUPPORT_PATHS="lib/templates intent/plugins/claude intent/plugins/agents/plugin.json"
 
+# support_tree_tar <root> <commit> <prefix> -- the support tree AT <commit>, as
+# a tar stream on stdout, every path under <prefix> ("" for none).
+#
+# ONE HOME FOR "THE TREE A RELEASE SHIPS" (issue 0626), because every platform
+# packages the same tree and each must take it from the COMMIT. `git archive`
+# reads the commit's tree and nothing else, so no untracked or ignored path, no
+# empty directory and no .DS_Store on the packaging machine can reach an asset,
+# and the asset is a function of the ref. `cmd/linux` always took it this way;
+# `cmd/macos` tarred the working copy, and v3.2.5's intent-support.tar.gz
+# carried three directories git does not track. `tar.umask=022` keeps the modes a
+# checkout gives them, 0755 and 0644: `git archive`'s own default, 002, writes
+# every file group-writable. The Linux package had 0755 and 0644 until now only
+# because `tar -x` applied the packaging runner's umask, 022; neither asset
+# depends on the packaging machine's umask any more.
+support_tree_tar() {
+  # SUPPORT_PATHS is a fixed list of three space-free repository paths, and
+  # splitting it into one argument each is the point (IN-SH-CODE-001 exempts
+  # intentional splitting with a comment; issue 0536).
+  # shellcheck disable=SC2086
+  git -c tar.umask=022 -C "$1" archive --format=tar --prefix="$3" "$2" -- $SUPPORT_PATHS
+}
+
 # THE INSTALL-ROOT POPULATION, BESIDE THE COPY LIST IT IS HELD AGAINST (ST0081
 # WP-06). `cmd/macos`'s stage coverage check asks whether SUPPORT_PATHS carries
 # every path below, and `int brew smoke` asks whether a built keg holds them, so
