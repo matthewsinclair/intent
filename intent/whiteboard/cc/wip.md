@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 66e84138-c919-405e-bed0-8057e34a7ac2
-heartbeat_at: 2026-10-23 11:34Z
+heartbeat_at: 2026-10-23 15:09Z
 status: active
-focus: "ST0081 is down to AC-02.1 and WP-02, which wait on hv's D55; 0613 and 0615 shipped in v3.2.5; no push, no release"
+focus: "ORDER cc-1: 0627 banked at refs/bank/cc/0627/fix for vc's verdict after the bounce; 0624 next; the templates bank held for build all; ST0081 WP-02 held for devbin 0.1.13; no push, no release"
 claims: [ST0081]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0081]
 
 ## DOING
 
-- ST0081 AFTER THE 3.2.5 CUT (cc, 2026-10-22): every row the cut could settle is settled, and the gate reads BLOCKED, 6/7 satisfied, 3 descoped, with AC-02.1 alone open. AC-03.3 and AC-06.1 satisfied and WP-03 done at 6a5d06b5d, from kovacs ORDER 8 (refs/bank/cc/0081/kovacs/o8-postcut.sh, green 21:02:53Z to 21:03:12Z; its lines are refs/bank/cc/0081/evidence/o8-postcut-lines.txt, blob b3fc943efce9). WP-06 done at 0f3c75b20 on vc's ruling (a) under hv's pen: its objective's macOS re-proof on a Mac with no checkout is hv's loop-back (gyges proved 3.2.0 on 2026-09-21, ST0056's AC-00.5 and AC-11.1), carried in intent/wip.md's TODO. AC-01.1 and AC-01.2 satisfied and WP-01 done at 927c058e4, from hv's --ref main dispatch, run 39854556183 (refs/bank/cc/0081/evidence/run-39854556183.txt, blob baec68a54b14); WP-01's first measurement is answered: intent-support.tar.gz serves Linux unchanged. LEFT: AC-02.1 and WP-02 (Linux assets on each tag's release, one writer per release object) wait on hv's D55. 0613 and 0615 shipped in v3.2.5; tmp/wt-cc-0609 and tmp/wt-cc-0610 are removed; every bank ref stays. No push, no release.
+- RESUME STATE (cc, localfold on hv's call via vc, 2026-10-23). ORDER cc-1 (vc, on hv's word: every open issue closed where it can be; 0627 and the 0616-0618 train are cc's). LANDED: the verbs `intent guards`, `intent lang declared` and `intent lang of` (issues 0616-0618) at 3c2ed2d39 on vc's word, patch-id 6a71352dfa04 as judged; they reach the pair at the next build all. 0627 (a sender archives a message its recipient has handled): BANKED at refs/bank/cc/0627/fix (blob 8e1d8d1aeb3d, base 3cfa54026, patch-id a26106bda9e0, sha256 623e35b0f721), whole runs green in tmp/wt-cc-0627b (verdicts in cc's END to vc at 15:08Z), WAITING FOR vc's VERDICT, a 28-file read that is vc's first act after the bounce; it lands on vc's land word (re-bank its CHANGELOG hunk if main moves there), then `intent issues close 0627` naming the sha. No estate archives a message before no 3.2.5 reader reads its boards (kovacs); hv's inbox sweep is vc's after 3.2.6 reaches kovacs. NEXT, vc's order: 0624's Rust fix, every verb that writes a tracked file prints its paths on wrote: lines through print_written, event files included, in a worktree, banked, whole suites, box booked; restart.md loses its line on verbs outside wb in the same bank. dc's source read is refs/bank/cc/0624/notes.md (blob d288c4357491). No push, no release.
 
 ## TODO
 
@@ -21,7 +21,8 @@ _(none)_
 
 ## Holds
 
-_(none)_
+- HOLD the 0616-0618 TEMPLATES BANK (refs/bank/cc/0616-0618/templates, blob 750d089d17ea, base 62e65eadf, patch-id 3f91a0f48ab8) UNTIL vc's one `build all` after the Rust train (the verbs at 3c2ed2d39, 0627, dc's 0614, cc's 0624, ic's generator) has run, so the installed pair carries `intent guards`, `intent lang declared` and `intent lang of` before the gate, the advisory hook and four skill and agent files call them (vc's order, 2026-10-23). AT ITS LANDING: re-bank on the HEAD of the day with its CHANGELOG Changed line, run the whole shell half and the Rust arms that scan those paths on the final tree, land by literal path on vc's word, run `intent claude skills sync`, then close 0616, 0617 and 0618 together naming the sha. Its worktree is tmp/wt-cc-0616t (detached), because lib/templates is live on save.
+- HOLD ST0081 AC-02.1 and WP-02 (Linux assets on each tag's release, one writer per release object) UNTIL devbin 0.1.13 is cut and re-vendored into Intent. D55 is ruled (hv, 2026-10-23: devbin's release core attaches the Linux assets, SHA256SUMS riding it), and devbin-vc's shape is the build: Intent declares `commands.release.enabled: true` with `release.verbs: [check, attach]`, `release.repo` and the assets keys; linux-release.yml triggers on tags matching `v[0-9]*`; the cut runs build release, macos prepare, macos publish, `bin/devbin release attach vX.Y.Z`, then brew formula --push. vc appends the shape to the record. Every other ST0081 row is settled: AC-01.1, AC-01.2, AC-03.3 and AC-06.1 satisfied, WP-01, WP-03 and WP-06 done, and the gate reads BLOCKED on AC-02.1 alone. The release.remotes block is retired (vc), not owed.
 
 ## Watch-outs
 

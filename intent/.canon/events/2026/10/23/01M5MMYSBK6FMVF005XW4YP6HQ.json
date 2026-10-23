@@ -1,0 +1,15 @@
+{
+  "id": "01M5MMYSBK6FMVF005XW4YP6HQ",
+  "ts": "2026-10-23T15:09:33.428Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "HOLD the 0616-0618 TEMPLATES BANK (refs/bank/cc/0616-0618/templates, blob 750d089d17ea, base 62e65eadf, patch-id 3f91a0f48ab8) UNTIL vc's one `build all` after the Rust train (the verbs at 3c2ed2d39, 0627, dc's 0614, cc's 0624, ic's generator) has run, so the installed pair carries `intent guards`, `intent lang declared` and `intent lang of` before the gate, the advisory hook and four skill and agent files call them (vc's order, 2026-10-23). AT ITS LANDING: re-bank on the HEAD of the day with its CHANGELOG Changed line, run the whole shell half and the Rust arms that scan those paths on the final tree, land by literal path on vc's word, run `intent claude skills sync`, then close 0616, 0617 and 0618 together naming the sha. Its worktree is tmp/wt-cc-0616t (detached), because lib/templates is live on save."
+  }
+}

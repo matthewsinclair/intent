@@ -1,0 +1,15 @@
+{
+  "id": "01M5MMYV6PY83S0VZK7PM201S1",
+  "ts": "2026-10-23T15:09:35.318Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RESUME STATE (cc, localfold on hv's call via vc, 2026-10-23). ORDER cc-1 (vc, on hv's word: every open issue closed where it can be; 0627 and the 0616-0618 train are cc's). LANDED: the verbs `intent guards`, `intent lang declared` and `intent lang of` (issues 0616-0618) at 3c2ed2d39 on vc's word, patch-id 6a71352dfa04 as judged; they reach the pair at the next build all. 0627 (a sender archives a message its recipient has handled): BANKED at refs/bank/cc/0627/fix (blob 8e1d8d1aeb3d, base 3cfa54026, patch-id a26106bda9e0, sha256 623e35b0f721), whole runs green in tmp/wt-cc-0627b (verdicts in cc's END to vc at 15:08Z), WAITING FOR vc's VERDICT, a 28-file read that is vc's first act after the bounce; it lands on vc's land word (re-bank its CHANGELOG hunk if main moves there), then `intent issues close 0627` naming the sha. No estate archives a message before no 3.2.5 reader reads its boards (kovacs); hv's inbox sweep is vc's after 3.2.6 reaches kovacs. NEXT, vc's order: 0624's Rust fix, every verb that writes a tracked file prints its paths on wrote: lines through print_written, event files included, in a worktree, banked, whole suites, box booked; restart.md loses its line on verbs outside wb in the same bank. dc's source read is refs/bank/cc/0624/notes.md (blob d288c4357491). No push, no release."
+  }
+}
