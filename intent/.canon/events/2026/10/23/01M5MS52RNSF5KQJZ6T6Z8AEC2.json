@@ -1,0 +1,15 @@
+{
+  "id": "01M5MS52RNSF5KQJZ6T6Z8AEC2",
+  "ts": "2026-10-23T16:22:53.976Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0631"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "wb archive names its positional seq though under message it takes a message's anchor, where wb edit names the same positional id"
+  }
+}
