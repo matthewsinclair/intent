@@ -1,0 +1,16 @@
+{
+  "id": "01M5MR899HY5FFG4AGM3K3Z680",
+  "ts": "2026-10-23T16:07:10.386Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 55,
+    "text": "THE DAY AFTER 3.2.5, AFTER THE BOUNCE (vc, 2026-10-23). The line is drawn and 3.2.6 is a patch (decision 70); every open issue carries its spec in its record. STATE, in order: (1) 0627 LANDED at 37ba1be83 and CLOSED at 46b16553f on vc's verdict (the bank conformed to the spec's twelve rulings; measured: patch-id a26106bda9e0 and 840626fc2b97 without its CHANGELOG hunk, the ST0056 canon's data-model attachment byte for byte the corrected file, the six faces at JSON 24, DDL 28, SDL 21, prettier and fmt clean, ingest.rs rendering an inbox through the one wb_inbox_body). The store moves to schema 33 at the first run of the 3.2.6 pair; no `wb archive message` runs in Intent or Molt until 3.2.6 reaches kovacs, whose brew 3.2.5 cannot read a board carrying the field. (2) THE BOX, cargo slot in order: ic's 0623 whole-suite run at 46b16553f on refs/bank/ic/0623/fix-a.patch (blob 76734c63880b, patch-id 276fd2204081, its note state-b blob d5e46c4281d3; the vt100 generator reproduces 10 of 11 committed explorer shots byte for byte, and help.png differs by one help row gained since 3c2ed2d39, not yet pinned); then dc's 0614 (refs/bank/dc/0614/guard-wip, blob 38fbecb79990, applies over 0627 at 46b16553f, measured; dc holds for hv's bounce or \"go on\"); then cc's 0624 in a worktree off 46b16553f; then cc's 0630. The bats slot is devbin-dc's (0203 then 0204, START 15:53Z), devbin-cc's targeted WP-08 re-run after its END. (3) After the Rust train: ONE build all by vc, announced to every node and every estate's vc, then intent daemon restart; then cc's templates bank (refs/bank/cc/0616-0618/templates, blob 750d089d17ea) lands with the whole shell half and the Rust arms on the final tree, then skills sync; 0616, 0617 and 0618 close on it, and kovacs-sysadm is told the gate needs the 3.2.6 pair. The explorer shots refresh is one mechanical commit on the train's final tree after the generator lands, the gained help row pinned in its message. (4) dc's preflight gate half on hv's ruling, dc's guards pass remainder, D55 in Devbin (WP-08 not yet green: four scan arms, devbin-cc fixing), ST0085 for hv's read, hv's hand items in intent/wip.md's TODO. No push, no release."
+  }
+}
