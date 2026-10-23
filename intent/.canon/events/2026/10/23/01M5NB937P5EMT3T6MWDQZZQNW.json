@@ -1,0 +1,16 @@
+{
+  "id": "01M5NB937P5EMT3T6MWDQZZQNW",
+  "ts": "2026-10-23T21:39:39.894Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 55,
+    "text": "THE CLOSE OF 2026-10-23 (vc; the day after 3.2.5). The line is drawn and 3.2.6 is a patch (decision 70); the pre-cut pass and the cut are tomorrow's. (1) THE TRAIN IS JUDGED WHOLE on one composition in cc's worktree (templates for 0616-0618 with the fixture, roster, hook-comment and bats stand-in repairs; 0630 as fix-s to fix-s5; ic's 0633): the cargo half at tree 2e36149a89ce (fmt, clippy, doc, the whole intentsvcs and intent-cli suites, every positive control flipping on its reversed hunk) and the shell half at tree 9b11789c0486 (the Ubuntu leg's environment, nothing red). LANDED tonight: the templates at 3b04aec52 (0616, 0617 and 0618 closed at 384702712; `intent claude skills sync` and `subagents sync` run), 0630 at 491c1cc33 (closed c7acdbc6e), 0633 at 6a3f9aaef (closed 89da8f56e). 0635 (filed cfece3efe on dc's measurement: a board git moved after the store recorded it takes the store's older render, 0614's class, pre-existing) is banked at refs/bank/dc/0635/fix (blob e5799abfb283, one guard at two doors reading only the Clean row, two arms) on hv's TUI ruling: it rides 3.2.6 on ONE stacked run, tomorrow's first cargo in tmp/wt-dc-0635 on vc's GO, and drops to 3.2.7 on a red. (2) THE PREFLIGHT GATE: live at f40df8f72, repaired at 6cf058a5a after the first run (red by the order's own symlinked target dir; the comm collation and the in-whiteboard skill size found and fixed beside it); the re-run at 95bf1c6a5 is GREEN (nothing red, three environmental skips), the summary under ~/.local/share/intent/preflight/, kovacs's target warm, kovacs at CI's tool pins plus llvm 23.1.4 and openldap 2.7.2 from Utilz's slot. (3) TOMORROW, in order, each on vc's GO with the sha: 0635's run and landing; vc's build all #2 (announce, build, promote by rename, intentd restarted, doctor, announce, the verbs' paths committed); dc's known-defects re-drive (refs/bank/dc/kd326/drive.sh) and ic's reference set and second shots run, committed before step 3; cc's CHANGELOG audit of every issue closed since v3.2.5 (0611, 0622 and 0623 without a line; 0635's line in its bank); vc runs reference_current_check.sh, globalfolds intent/wip.md (v3.22), runs the board render chain, sends READY; hv's candidate preflight by the gate's two lines (vc announces to utilz-vc and kovacs-sysadm first); the cut by releasing.md steps 0 to 5 in hv's terminal. Devbin 0.1.13 is landed, its dry run run tonight, its cut hv's hand tomorrow by devbin-vc's text, the bats slot on vc's word. (4) THE HOST at the close: Utilz, Molt, Devbin and Laksa folding; nothing heavy of Intent's tonight; Laksa released; the box's rules learned today on the board as watch-outs are not yet written: a worktree's target is never seeded from another worktree's, and a judging run in a worktree puts its own bin/ and release pair first on PATH with no INTENT_BIN. (5) OPEN: 0629 (next session), 0631 and 0632 (behind the line), 0634 (hv's ruling), 0635 (tomorrow's run); ST0085 for hv's read; the five .py removals in hv's hand. No push, no release."
+  }
+}
