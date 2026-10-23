@@ -3,51 +3,54 @@
 # explorer itself.
 #
 # It seeds two demo projects under a short HOME of their own, runs `intent
-# explore` in a pty for each shot (explorer_shots.py, which declares the shots),
-# and rasterises the SVGs it writes with rsvg-convert. Re-run it when the
-# explorer's screens change, and at a cut, and commit the PNGs with the page.
+# explore` in a pty for each shot (the `explorer_shots` example of intent-cli,
+# which declares the shots), and rasterises the SVGs it writes with
+# rsvg-convert. Re-run it when the explorer's screens change, and at a cut, and
+# commit the PNGs with the page.
 #
 # THE HOME IS FIXED RATHER THAN MADE BY mktemp, because `/projects` prints each
 # project's absolute path: a random directory would put a different path into
 # that shot on every run. An existing one is refused rather than reused, since
 # it is either a run in progress or one kept with --keep.
 #
-# THE VENV STEP, once per machine, because pyte is what reads the screen:
-#
-#   python3 -m venv <dir> && <dir>/bin/pip install pyte
-#
-# then pass `--python <dir>/bin/python`. rsvg-convert comes from librsvg, and
+# THE SCREEN IS READ IN RUST: the example reads it through the vt100 crate,
+# and this builds it with cargo before it seeds anything, because cargo finds
+# its own home through HOME. rsvg-convert comes from librsvg, and
 # ImageMagick's `magick` reduces each PNG to a 64-colour palette: a terminal
 # draws in a handful of colours, and the result reads the same at a quarter of
 # the size.
 #
+# THE SEED'S DATES ARE DRAWN AS ONE FIXED DATE (issue 0623). The demo projects
+# are seeded on the day of the run, and no verb sets a thread's created date,
+# so the dates that day can stamp, in UTC and in local time, are read on both
+# sides of seeding and passed with --seed-date. Two runs over an unchanged
+# explorer then write byte-identical files on any day.
+#
 # Exit codes: 0 the shots are written, 1 a step failed, 2 usage or a missing
 # prerequisite.
 
-# inputs: intent/st/ST0056/parity/tools/explorer_shots.py
+# inputs: native/rust/crates/intent-cli/examples/explorer_shots.rs native/rust/Cargo.lock
 # inputs-exempt: INTENT -- the explorer is driven, not read: the shots show whichever `intent` is on PATH, which `bin/devbin build all` builds from this tree
-# inputs-exempt: PYTHON -- a scratch venv holding pyte, made by the venv step above; it reads the screen and adds nothing to it
 
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(git -C "$HERE" rev-parse --show-toplevel)"
 
-PYTHON="python3"
 OUTDIR="$ROOT/docs/images/explorer"
 KEEP=""
 DEMO="/tmp/intent-demo"
 
 usage() {
   cat >&2 <<'USAGE'
-usage: gen_explorer_shots.sh [--python <path>] [--out <dir>] [--keep]
+usage: gen_explorer_shots.sh [--out <dir>] [--keep]
 
-  --python  a python3 that can import pyte (default: python3)
   --out     write the PNGs here (default: docs/images/explorer)
   --keep    leave the demo HOME at /tmp/intent-demo for a look afterwards
 
-Seeds the demo projects, takes every shot explorer_shots.py declares, and
-writes one PNG per shot. The version and commit the explorer draws are elided.
+Seeds the demo projects, takes every shot the explorer_shots example declares,
+and writes one PNG per shot. The version and commit the explorer draws are
+elided, and the seed's dates are drawn as one fixed date.
 USAGE
   exit 2
 }
@@ -60,7 +63,6 @@ die() {
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    --python) PYTHON="${2:?--python needs a path}"; shift 2 ;;
     --out)    OUTDIR="${2:?--out needs a directory}"; shift 2 ;;
     --keep)   KEEP=1; shift ;;
     -h|--help) usage ;;
@@ -72,8 +74,7 @@ command -v intent >/dev/null || die "no \`intent\` on PATH" "run \`bin/devbin bu
 command -v rsvg-convert >/dev/null || die "no rsvg-convert on PATH" "install librsvg (\`brew install librsvg\`)"
 command -v magick >/dev/null || die "no magick on PATH" "install ImageMagick (\`brew install imagemagick\`)"
 command -v jq >/dev/null || die "no jq on PATH" "install jq (\`brew install jq\`)"
-"$PYTHON" -c 'import pyte, wcwidth' 2>/dev/null \
-  || die "\`$PYTHON\` cannot import pyte" "python3 -m venv <dir> && <dir>/bin/pip install pyte, then pass --python <dir>/bin/python"
+command -v cargo >/dev/null || die "no cargo on PATH" "install the Rust toolchain (https://rustup.rs), which builds the explorer_shots example"
 [ ! -e "$DEMO" ] \
   || die "$DEMO already exists" "a run is in progress, or one was kept with --keep: remove it with \`rm -rf $DEMO\` once nothing is using it"
 
@@ -85,6 +86,17 @@ COMMIT="${COMMIT#(}"
 COMMIT="${COMMIT%)}"
 if [ -z "$VERSION" ] || [ -z "$COMMIT" ]; then
   echo "error: \`intent --version\` did not name a version and a commit, so no shot can be checked for them" >&2
+  exit 1
+fi
+
+# Built before HOME moves, and --locked, because a run of this must never
+# rewrite the lock.
+SHOTS="$(cargo build --quiet --locked --manifest-path "$ROOT/native/rust/Cargo.toml" \
+  -p intent-cli --example explorer_shots --message-format=json-render-diagnostics \
+  | jq -r 'select(.reason == "compiler-artifact" and .target.name == "explorer_shots") | .executable')" \
+  || { echo "error: cargo could not build the explorer_shots example (its diagnostics are above)" >&2; exit 1; }
+if [ -z "$SHOTS" ] || [ ! -x "$SHOTS" ]; then
+  echo "error: cargo built no explorer_shots example to run" >&2
   exit 1
 fi
 
@@ -197,12 +209,20 @@ seed_warehouse() {
   intent st new "Count stock by bin" --start >> "$LOG"
 }
 
+# The dates the seed can stamp, in UTC and in local time, read on both sides
+# of seeding so a run that crosses midnight is covered too.
+SEED_DATES=("$(date -u +%F)" "$(date +%F)")
 seed_shopfront
 seed_warehouse
 intent discover "$DEMO" >> "$LOG"
+SEED_DATES+=("$(date -u +%F)" "$(date +%F)")
+DATE_ARGS=()
+while read -r d; do
+  DATE_ARGS+=(--seed-date "$d")
+done < <(printf '%s\n' "${SEED_DATES[@]}" | sort -u)
 
-"$PYTHON" "$HERE/explorer_shots.py" --cwd "$DEMO/shopfront" --out "$TMP/svg" \
-  --version "$VERSION" --commit "$COMMIT"
+"$SHOTS" --cwd "$DEMO/shopfront" --out "$TMP/svg" \
+  --version "$VERSION" --commit "$COMMIT" "${DATE_ARGS[@]}"
 
 mkdir -p "$OUTDIR"
 for svg in "$TMP"/svg/*.svg; do

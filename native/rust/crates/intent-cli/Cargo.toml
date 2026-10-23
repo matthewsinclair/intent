@@ -99,6 +99,12 @@ tempfile.workspace = true
 # not present one. Before this, the estate said so in a comment and left the
 # arm uncovered.
 libc = "0.2"
+# **THE EXPLORER'S SCREENSHOT TAKER, AND NOTHING THE PAIR SHIPS.**
+# `examples/explorer_shots.rs` reads the explorer's screen through vt100, the
+# terminal parser that replaced pyte when the Python taker went (decision
+# 70(3) on vc's board, 2026-10-23). A dev-dependency is built for this
+# crate's tests and examples only, never into `intent` or `intentd`.
+vt100 = "0.18.1"
 
 [[test]]
 name = "suite"

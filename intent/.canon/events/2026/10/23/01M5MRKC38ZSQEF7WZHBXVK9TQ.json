@@ -1,0 +1,14 @@
+{
+  "id": "01M5MRKC38ZSQEF7WZHBXVK9TQ",
+  "ts": "2026-10-23T16:13:13.709Z",
+  "principal": "matts",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.detach",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/explorer_shots.py"
+  },
+  "payload": {
+    "via": "address"
+  }
+}
