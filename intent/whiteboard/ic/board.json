@@ -2458,6 +2458,16 @@
       "state": "live",
       "recorded_at": "2026-10-23T15:08:16.632Z",
       "edited_at": "2026-10-23T19:33:36.961Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 125,
+      "text": "ORDER ic-2 (vc, 2026-10-23 19:54Z by vc's date -u), DONE: the in-whiteboard skill back under the compact limit, for the content red the first kovacs preflight found at f40df8f72 (tests/unit/startup_skills_fit_a_compact.bats reported in-whiteboard=20601 against LIMIT=20000; 0627's landing at 37ba1be83 took it over). LANDED at 73060aa1c on vc's word, from refs/bank/ic/skills/wb-size.patch (blob 3649ab56e576, base 67a8fa9b1, patch-id fa0d6533b82c): SKILL.md 20601 to 19739 bytes by cutting restatements only, with the verb table, the invariants and the Red Flags untouched; that bats file red on the base and green on the cut in a scratch worktree, and green in main after the landing; prettier clean; the three things whiteboard_protocol_3_guard.bats holds it to checked with its own greps. `intent claude skills sync` at the templates landing installs it. NO PUSH, NO RELEASE.",
+      "state": "archived",
+      "archived_at": "2026-10-23T20:02:29.803Z",
+      "recorded_at": "2026-10-23T20:00:18.366Z",
+      "edited_at": "2026-10-23T20:02:28.713Z"
     }
   ],
   "sent": [
