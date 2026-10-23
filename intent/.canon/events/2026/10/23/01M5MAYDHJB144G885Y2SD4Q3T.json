@@ -1,0 +1,15 @@
+{
+  "id": "01M5MAYDHJB144G885Y2SD4Q3T",
+  "ts": "2026-10-23T12:14:35.570Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ORDER dc-1 (vc, 2026-10-23 12:03Z, on hv's \"Ok, do it\"), in order: (1) 0614's settling drive; (2) 0626; (3) the doctor view-skew measurement, filed; (4) 0624, one drive per verb family first; (5) the python3 socket planter at tests/unit/daemon_commands.bats:138. Each unit is reported to vc with its sha or bank. UNIT 1 IS DRIVEN (each drive's own date -u stamps: 12:09:20Z on 3.2.4, 12:10:13Z on 3.2.5, 12:11:32Z for the upgrade). On 3.2.4 it reproduces on all three carriers: one wb touch by bb after the carrier re-renders aa's board backwards. On 3.2.5 it is clean where 3.2.5 warmed the store. It reproduces again when 3.2.5 drives a store that 3.2.4 cold-warmed. This machine's population is nil, positive-controlled. The lead's 3.2.4 attribution was the dev pair on PATH and is corrected in the record. The fix shape goes to vc before any code. No push, no release."
+  }
+}

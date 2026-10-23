@@ -5,10 +5,12 @@
     "name": "DevX Claude",
     "role": "worker",
     "session_id": "5abe68e1-b9b1-4003-9718-c8fbba772543",
-    "heartbeat_at": "2026-10-23T11:34:14.168Z",
+    "heartbeat_at": "2026-10-23T12:07:18.613Z",
     "status": "active",
-    "focus": "0620 and 0621 landed (e76f159d4) and closed (6360f206c); 0614's lead landed (13e671818); holding for vc's next assignment; no push, no release",
-    "claims": [],
+    "focus": "ORDER dc-1 (vc, 2026-10-23 12:03Z, on hv's word): unit 1, 0614's settling drive on the 3.2.5 pair and the published v3.2.4 assets; then 0626, the doctor view-skew measurement, 0624, and the socket planter in daemon_commands.bats; hold 29 waits on hv's timing; no push, no release",
+    "claims": [
+      "ISSUE:0614"
+    ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"
@@ -1990,7 +1992,8 @@
       "kind": "hold",
       "seq": 29,
       "text": "HELD UNTIL THE DEVBIN FLEET SWEEP REACHES THE REMAINING ESTATES (hv's ruling via vc): the guards adoption pass, one commit per estate, riding each estate's intent claude upgrade --apply. Pilot MicroGPTEx 80d4c13 passed vc's check; Intent is in at f85f2663f.\nRECIPE: git config core.hooksPath .githooks; intent claude upgrade --apply; add .githooks/*.intent to .gitignore; declare formatters wherever the old hook checked any (and, with a whiteboard, prettier-ignore intent/whiteboard/*/wip.md and inbox.*.md); red-control with staged probes; commit by path; doctor.\nESTATES: Molt, Prolix take it unchanged; Anvil, Baize, Cdtempl, Courses, Riffle need no formatter declaration; Prodinfra, Conflab, Lamplight get their own diff first; vc sequences Devbin, Laksa, Gtools and rules the seven unnamed on a measurement. core.hooksPath is per clone.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-23T12:14:34.630Z",
       "recorded_at": "2026-09-23T08:49:50.578Z",
       "edited_at": "2026-10-17T13:56:58.108Z"
     },
@@ -2334,6 +2337,22 @@
       "state": "archived",
       "archived_at": "2026-10-22T21:28:16.357Z",
       "recorded_at": "2026-10-22T21:20:02.511Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 131,
+      "text": "ORDER dc-1 (vc, 2026-10-23 12:03Z, on hv's \"Ok, do it\"), in order: (1) 0614's settling drive; (2) 0626; (3) the doctor view-skew measurement, filed; (4) 0624, one drive per verb family first; (5) the python3 socket planter at tests/unit/daemon_commands.bats:138. Each unit is reported to vc with its sha or bank. UNIT 1 IS DRIVEN (each drive's own date -u stamps: 12:09:20Z on 3.2.4, 12:10:13Z on 3.2.5, 12:11:32Z for the upgrade). On 3.2.4 it reproduces on all three carriers: one wb touch by bb after the carrier re-renders aa's board backwards. On 3.2.5 it is clean where 3.2.5 warmed the store. It reproduces again when 3.2.5 drives a store that 3.2.4 cold-warmed. This machine's population is nil, positive-controlled. The lead's 3.2.4 attribution was the dev pair on PATH and is corrected in the record. The fix shape goes to vc before any code. No push, no release.",
+      "state": "live",
+      "recorded_at": "2026-10-23T12:14:35.570Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 132,
+      "text": "GUARDS ADOPTION PASS, released by hv in the TUI (vc's relay, 2026-10-23 12:1xZ by vc's clock), running in parallel with ORDER dc-1; hold 29 is archived as released. SEQUENCE (vc): Laksa measured first, its bin/hooks read before anything; then Prolix, Cdtempl, Riffle and Baize; then Prodinfra, Conflab and Lamplight, each with its own diff read first; Molt is molt-vc's hand on dc's recipe, sent to molt-vc direct, and vc is told when it lands; Devbin waits for a Devbin session, which is hv's to start; Intent, MicroGPTEx, Gtools and Utilz are wired already. PER ESTATE: the recipe re-derived at 3.2.5 by a dry run first; one commit by literal path; doctor after; no push anywhere. dc-1's Intent units (0614, 0626, 0624) outrank the later estates. Anvil, Courses and Trellis are not in vc's sequence, and dc asks vc about them. hv's rule, verbatim: NEVER truncate the output of \"git remote -v\" because doing so cuts off valid remotes.",
+      "state": "live",
+      "recorded_at": "2026-10-23T12:14:36.489Z"
     }
   ],
   "sent": [

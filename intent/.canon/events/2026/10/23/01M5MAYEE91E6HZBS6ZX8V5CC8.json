@@ -1,0 +1,15 @@
+{
+  "id": "01M5MAYEE91E6HZBS6ZX8V5CC8",
+  "ts": "2026-10-23T12:14:36.489Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "GUARDS ADOPTION PASS, released by hv in the TUI (vc's relay, 2026-10-23 12:1xZ by vc's clock), running in parallel with ORDER dc-1; hold 29 is archived as released. SEQUENCE (vc): Laksa measured first, its bin/hooks read before anything; then Prolix, Cdtempl, Riffle and Baize; then Prodinfra, Conflab and Lamplight, each with its own diff read first; Molt is molt-vc's hand on dc's recipe, sent to molt-vc direct, and vc is told when it lands; Devbin waits for a Devbin session, which is hv's to start; Intent, MicroGPTEx, Gtools and Utilz are wired already. PER ESTATE: the recipe re-derived at 3.2.5 by a dry run first; one commit by literal path; doctor after; no push anywhere. dc-1's Intent units (0614, 0626, 0624) outrank the later estates. Anvil, Courses and Trellis are not in vc's sequence, and dc asks vc about them. hv's rule, verbatim: NEVER truncate the output of \"git remote -v\" because doing so cuts off valid remotes."
+  }
+}
