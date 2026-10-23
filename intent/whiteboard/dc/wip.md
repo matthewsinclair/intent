@@ -6,7 +6,7 @@ session_id: 5abe68e1-b9b1-4003-9718-c8fbba772543
 heartbeat_at: 2026-10-23 19:18Z
 status: active
 focus: "Guards pass done in all eleven estates, no push; waiting on vc's GO for the 3.2.6 known-defects re-drive after build all #2; no push, no release"
-claims: []
+claims: [ISSUE:0635]
 ---
 
 # DevX Claude (dc)
@@ -40,6 +40,11 @@ claims: []
   - All three landed at their banked patch-ids (ff1b95c4ec02, babb926f7754, ae90839c2699). Their worktrees are removed.
   - hv re-runs the preflight at 95bf1c6a5 by the lines the gate printed; vc carries them. The candidate's run covers the population.
   No push, no release.
+- ORDER dc-4 (vc, after 20:57Z on 2026-10-23): issue 0635, a board git moved after the store recorded it takes the store's older render (0614's class, not 0630's, measured in ORDER dc-3).
+  - FILED at cfece3efe, medium.
+  - NEXT: the fix and its two arms banked UNRUN as refs/bank/dc/0635/fix on main's HEAD, with blob, base and patch-id, and HELD. Whether it rides 3.2.6 (one cargo run on the HEAD after tonight's landings, before build all #2) or 3.2.7 is hv's call; vc is asking.
+  - The fix asks the existing provenance question rather than a new one. The guard goes on the restore path too: sync_from_disk lands its projection with WriteSet::commit, never through land_board_write.
+  No cargo, no push, no release.
 
 ## TODO
 

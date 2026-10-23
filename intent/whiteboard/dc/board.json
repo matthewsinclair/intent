@@ -8,7 +8,9 @@
     "heartbeat_at": "2026-10-23T19:18:47.015Z",
     "status": "active",
     "focus": "Guards pass done in all eleven estates, no push; waiting on vc's GO for the 3.2.6 known-defects re-drive after build all #2; no push, no release",
-    "claims": [],
+    "claims": [
+      "ISSUE:0635"
+    ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"
@@ -2371,6 +2373,14 @@
       "state": "live",
       "recorded_at": "2026-10-23T20:08:39.565Z",
       "edited_at": "2026-10-23T20:18:08.510Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 135,
+      "text": "ORDER dc-4 (vc, after 20:57Z on 2026-10-23): issue 0635, a board git moved after the store recorded it takes the store's older render (0614's class, not 0630's, measured in ORDER dc-3).\n- FILED at cfece3efe, medium.\n- NEXT: the fix and its two arms banked UNRUN as refs/bank/dc/0635/fix on main's HEAD, with blob, base and patch-id, and HELD. Whether it rides 3.2.6 (one cargo run on the HEAD after tonight's landings, before build all #2) or 3.2.7 is hv's call; vc is asking.\n- The fix asks the existing provenance question rather than a new one. The guard goes on the restore path too: sync_from_disk lands its projection with WriteSet::commit, never through land_board_write.\nNo cargo, no push, no release.",
+      "state": "live",
+      "recorded_at": "2026-10-23T21:06:46.372Z"
     }
   ],
   "sent": [

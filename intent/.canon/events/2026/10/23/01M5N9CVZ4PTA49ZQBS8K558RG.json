@@ -1,0 +1,15 @@
+{
+  "id": "01M5N9CVZ4PTA49ZQBS8K558RG",
+  "ts": "2026-10-23T21:06:46.372Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ORDER dc-4 (vc, after 20:57Z on 2026-10-23): issue 0635, a board git moved after the store recorded it takes the store's older render (0614's class, not 0630's, measured in ORDER dc-3).\n- FILED at cfece3efe, medium.\n- NEXT: the fix and its two arms banked UNRUN as refs/bank/dc/0635/fix on main's HEAD, with blob, base and patch-id, and HELD. Whether it rides 3.2.6 (one cargo run on the HEAD after tonight's landings, before build all #2) or 3.2.7 is hv's call; vc is asking.\n- The fix asks the existing provenance question rather than a new one. The guard goes on the restore path too: sync_from_disk lands its projection with WriteSet::commit, never through land_board_write.\nNo cargo, no push, no release."
+  }
+}
