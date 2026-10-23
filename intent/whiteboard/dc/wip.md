@@ -13,8 +13,20 @@ claims: [ISSUE:0614]
 
 ## DOING
 
-- ORDER dc-1 (vc, 2026-10-23 12:03Z, on hv's "Ok, do it"), in order: (1) 0614's settling drive; (2) 0626; (3) the doctor view-skew measurement, filed; (4) 0624, one drive per verb family first; (5) the python3 socket planter at tests/unit/daemon_commands.bats:138. Each unit is reported to vc with its sha or bank. UNIT 1 IS DRIVEN (each drive's own date -u stamps: 12:09:20Z on 3.2.4, 12:10:13Z on 3.2.5, 12:11:32Z for the upgrade). On 3.2.4 it reproduces on all three carriers: one wb touch by bb after the carrier re-renders aa's board backwards. On 3.2.5 it is clean where 3.2.5 warmed the store. It reproduces again when 3.2.5 drives a store that 3.2.4 cold-warmed. This machine's population is nil, positive-controlled. The lead's 3.2.4 attribution was the dev pair on PATH and is corrected in the record. The fix shape goes to vc before any code. No push, no release.
-- GUARDS ADOPTION PASS, released by hv in the TUI (vc's relay, 2026-10-23 12:1xZ by vc's clock), running in parallel with ORDER dc-1; hold 29 is archived as released. SEQUENCE (vc): Laksa measured first, its bin/hooks read before anything; then Prolix, Cdtempl, Riffle and Baize; then Prodinfra, Conflab and Lamplight, each with its own diff read first; Molt is molt-vc's hand on dc's recipe, sent to molt-vc direct, and vc is told when it lands; Devbin waits for a Devbin session, which is hv's to start; Intent, MicroGPTEx, Gtools and Utilz are wired already. PER ESTATE: the recipe re-derived at 3.2.5 by a dry run first; one commit by literal path; doctor after; no push anywhere. dc-1's Intent units (0614, 0626, 0624) outrank the later estates. Anvil, Courses and Trellis are not in vc's sequence, and dc asks vc about them. hv's rule, verbatim: NEVER truncate the output of "git remote -v" because doing so cuts off valid remotes.
+- ORDER dc-1 (vc, 2026-10-23 12:03Z, on hv's "Ok, do it"), where each unit stands at 13:30Z by date -u: (edited)
+  - (1) 0614: driven, and the drive is in its record (caf7c7afb). vc's ruling (c') is a narrow guard in land_board_write; it is written in tmp/wt-dc-0614 and WAITS FOR THE BOX: cargo build -p intentd, the arm red at caf7c7afb and green on the fix, then the whole intentsvcs and intent-cli suites.
+  - (2) 0626: landed at 9d1147136, closed at 0e0f340d6.
+  - (3) the doctor view-skew: filed as 0630 (62e65eadf). Repros are on refs/bank/dc/skew/.
+  - (4) 0624: driven, and the drive is in its record (cd40e9b7a). The fix is Rust and waits.
+  - (5) daemon_commands.bats's python3 planter: banked as refs/bank/dc/sock-planter/fix (828df2023bd8), using `nc -lU`.
+  hv's CI red: canon-pipe is banked (1dc27932916a) and waits for vc's word. 0628 (the class) is filed (f0ef5690d) and its fix banked (24053b9c0f5e); it waits for the box, for the whole-bats run. 0629 (.heex) is filed (111654574). The kovacs preflight order is banked (2ca2461428d9, sha256 d3000b60886d). No push, no release.
+- GUARDS ADOPTION PASS, released by hv (vc's relay 2026-10-23 12:1xZ), where each estate stands at 13:30Z by date -u. CORRECTION, MEASURED: every estate but Trellis already ran the gate, most of them from untracked .git/hooks. The pass gives them tracked .githooks dispatchers and formatter declarations. (edited)
+  - DONE, one commit each, no push: Laksa a54132707, corrected forward by 9637080e8, which untracks the carriers; Prolix 5b9f45e (formatters markdown and elixir, at parity with its old hook); Cdtempl 0075199; Riffle 67c9235; Baize 3f6da7e.
+  - SENT: Molt's recipe, to molt-vc (its hand).
+  - DIFFS WITH vc: Prodinfra and Lamplight are plain. Conflab needs its bin/precommit-rust line, which is its clippy gate, kept after the chain block.
+  - WAITING: Trellis, for vc's ruling between gate only and the full upgrade (it has no gate at all); Devbin, through devbin-vc; Anvil and Courses, after Trellis.
+  - LAKSA FOLLOW-UP, for its own nodes: four canon guards run twice. Retiring them needs check-guards reworked and the ExUnit fence test re-pointed.
+  hv's rule, verbatim: NEVER truncate the output of "git remote -v" because doing so cuts off valid remotes.
 
 ## TODO
 

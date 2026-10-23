@@ -1,0 +1,16 @@
+{
+  "id": "01M5MFA7WAPAKFPJKMEHEGR31H",
+  "ts": "2026-10-23T13:30:57.290Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 132,
+    "text": "GUARDS ADOPTION PASS, released by hv (vc's relay 2026-10-23 12:1xZ), where each estate stands at 13:30Z by date -u. CORRECTION, MEASURED: every estate but Trellis already ran the gate, most of them from untracked .git/hooks. The pass gives them tracked .githooks dispatchers and formatter declarations.\n- DONE, one commit each, no push: Laksa a54132707, corrected forward by 9637080e8, which untracks the carriers; Prolix 5b9f45e (formatters markdown and elixir, at parity with its old hook); Cdtempl 0075199; Riffle 67c9235; Baize 3f6da7e.\n- SENT: Molt's recipe, to molt-vc (its hand).\n- DIFFS WITH vc: Prodinfra and Lamplight are plain. Conflab needs its bin/precommit-rust line, which is its clippy gate, kept after the chain block.\n- WAITING: Trellis, for vc's ruling between gate only and the full upgrade (it has no gate at all); Devbin, through devbin-vc; Anvil and Courses, after Trellis.\n- LAKSA FOLLOW-UP, for its own nodes: four canon guards run twice. Retiring them needs check-guards reworked and the ExUnit fence test re-pointed.\nhv's rule, verbatim: NEVER truncate the output of \"git remote -v\" because doing so cuts off valid remotes."
+  }
+}

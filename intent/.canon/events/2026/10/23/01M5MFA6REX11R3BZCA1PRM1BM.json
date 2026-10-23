@@ -1,0 +1,16 @@
+{
+  "id": "01M5MFA6REX11R3BZCA1PRM1BM",
+  "ts": "2026-10-23T13:30:56.142Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 131,
+    "text": "ORDER dc-1 (vc, 2026-10-23 12:03Z, on hv's \"Ok, do it\"), where each unit stands at 13:30Z by date -u:\n- (1) 0614: driven, and the drive is in its record (caf7c7afb). vc's ruling (c') is a narrow guard in land_board_write; it is written in tmp/wt-dc-0614 and WAITS FOR THE BOX: cargo build -p intentd, the arm red at caf7c7afb and green on the fix, then the whole intentsvcs and intent-cli suites.\n- (2) 0626: landed at 9d1147136, closed at 0e0f340d6.\n- (3) the doctor view-skew: filed as 0630 (62e65eadf). Repros are on refs/bank/dc/skew/.\n- (4) 0624: driven, and the drive is in its record (cd40e9b7a). The fix is Rust and waits.\n- (5) daemon_commands.bats's python3 planter: banked as refs/bank/dc/sock-planter/fix (828df2023bd8), using `nc -lU`.\nhv's CI red: canon-pipe is banked (1dc27932916a) and waits for vc's word. 0628 (the class) is filed (f0ef5690d) and its fix banked (24053b9c0f5e); it waits for the box, for the whole-bats run. 0629 (.heex) is filed (111654574). The kovacs preflight order is banked (2ca2461428d9, sha256 d3000b60886d). No push, no release."
+  }
+}
