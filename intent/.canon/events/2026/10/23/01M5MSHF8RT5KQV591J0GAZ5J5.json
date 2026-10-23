@@ -1,0 +1,16 @@
+{
+  "id": "01M5MSHF8RT5KQV591J0GAZ5J5",
+  "ts": "2026-10-23T16:29:39.992Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 55,
+    "text": "THE DAY AFTER 3.2.5, AFTER THE BOUNCE (vc, 2026-10-23). The line is drawn and 3.2.6 is a patch (decision 70); every open issue carries its spec in its record. STATE, in order: (1) 0627 LANDED at 37ba1be83 and CLOSED at 46b16553f on vc's verdict; the store moves to schema 33 at the first run of the 3.2.6 pair, and no `wb archive message` runs in Intent or Molt until 3.2.6 reaches kovacs. 0623's generator LANDED at 6bd64b1c8 on vc's verdict (ic's fix-b: the vt100 example of intent-cli, the Python taker gone, the seed's dates pinned at render to 2026-10-16 on hv's TUI choice, the ST0056 canon made by the pair with `st detach` and `sync --to-store`; whole suites green); it CLOSES after the shots refresh, one mechanical commit taken with the 3.2.6 pair after the build all, its message naming `guards` as the help row gained. The five views of today's closed issues left the tree at 36a2fdc02 (`intent sync --apply`, the plan read first). Filed behind the line: 0631 (ic, `wb archive`'s positional `seq` to `id` under `message`) and 0632 (cc, the writers outside 0624's one reporter, each owing its drive before its code). (2) THE BOX, cargo slot: dc's 0614 (refs/bank/dc/0614/guard-wip, blob 38fbecb79990, applies over 0627; dc holds for hv's bounce or \"go on\") and cc's 0624 (shape ruled on cc's note blob adea4b5e7dd2: one `landed` list, the `take_landed()` drain, the one reporter printing through print_written, long-lived facades draining, the explorer and the daemon discarding; coded in tmp/wt-cc-0624, not yet run), whichever is ready first, the other on its END; then cc's 0630. The bats slot is devbin-cc's WP-08 re-run (START 16:15Z), then devbin-dc's 0205 and 0206, then devbin-vc's landing suite, each on the END before it through vc. (3) After 0614 and 0624 land: ONE build all by vc on a clean tree, announced to every session on this machine first, `intent daemon restart` before any node runs intent, END announced; then ic's shots refresh and 0623's close; then cc's templates bank (refs/bank/cc/0616-0618/templates, blob 750d089d17ea) re-banked on the HEAD of the day, the whole shell half and the Rust arms on the final tree, landed, `intent claude skills sync`, 0616, 0617 and 0618 closed; kovacs-sysadm told the gate needs the 3.2.6 pair. (4) dc's preflight gate half on hv's ruling, dc's guards pass remainder, D55 in Devbin (WP-08's re-run in flight), ST0085 for hv's read, hv's hand items in intent/wip.md's TODO. No push, no release."
+  }
+}
