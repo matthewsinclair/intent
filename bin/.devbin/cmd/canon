@@ -174,7 +174,14 @@ ctl_git="$(divergence git-only "$(printf '%s\n%s\n' "$in_git" "ZZZZ-gitonly.json
 grep -qx 'ZZZZ-gitonly.json' <<<"$ctl_git" ||
   die_control "positive control FAILED for the git-only direction -- an injected git-only name was not detected, so the clone-facing arm's green would be worthless"
 
-first_both="$(comm -12 <(printf '%s\n' "$in_git") <(printf '%s\n' "$on_disk") | head -1)"
+# The files in BOTH, computed once, and the first of them by parameter expansion
+# rather than `| head -1`. Under pipefail an early-exit reader fails the pipeline
+# whenever the writer still has a write to make when the reader exits, and a CI
+# runner that ignores SIGPIPE turns that into `comm: write error: Broken pipe`
+# and exit 1 -- Intent Tests on Ubuntu, runs 39857791246 and 39859110923
+# (2026-10-22), while macOS passed the same tree.
+both="$(comm -12 <(printf '%s\n' "$in_git") <(printf '%s\n' "$on_disk"))"
+first_both="${both%%$'\n'*}"
 if [ -n "$first_both" ]; then
   ctl_neg="$(divergence disk-only "$in_git" "$on_disk")"
   grep -qx "$first_both" <<<"$ctl_neg" &&
@@ -190,8 +197,6 @@ blob_state() {
   git cat-file -e "HEAD:$1" 2>/dev/null || { printf 'absent'; return 0; }
   if git show "HEAD:$1" | cmp -s - "$2"; then printf 'same'; else printf 'differs'; fi
 }
-
-both="$(comm -12 <(printf '%s\n' "$in_git") <(printf '%s\n' "$on_disk"))"
 
 ctl_a="$(head -1 <<<"$both")"
 ctl_b="$(sed -n '2p' <<<"$both")"
