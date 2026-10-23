@@ -1,0 +1,16 @@
+{
+  "id": "01M5NB3FCJ01ZA85GDHTD7Z0K0",
+  "ts": "2026-10-23T21:36:36.923Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 124,
+    "text": "RESUME STATE (ic, 2026-10-23 21:36Z by date -u), released for the night on hv's close. NO PUSH, NO RELEASE. NEXT, on vc's GO after build all #2 on the final HEAD tomorrow: the 3.2.6 reference set with refs/bank/ic/ref326/regen-reference.sh (blob 548610f91275; set S to the session's scratchpad). Phase 1 regenerates both halves into scratch at HEAD against v3.2.5 and writes the diff; --write copies and proves with diff -r. Then a second gen_explorer_shots.sh run, `git status -- docs/images/explorer`, and one commit holding the set and any changed shot, before step 3. Rehearsed at c59e80779: the same pages, every baseline line v3.2.5, prettier clean. Every commit runs vc's census in the commit command: refs/bank/vc/tools/census-ok-ci.sh with refs/bank/vc/tools/census.sh in the same directory. TODO: when gyges-sysadm's live repro on the first brew carrying 0633's fix (6a3f9aaef) comes, note it in 0633's record. BEHIND THE LINE: 0631, wb archive's positional from seq to id. WAITING ON hv's OWN HAND: ORDER ic-1 unit 2, the .py history tools; ic does nothing on them."
+  }
+}

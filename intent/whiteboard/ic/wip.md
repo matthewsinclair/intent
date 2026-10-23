@@ -3,17 +3,17 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd
-heartbeat_at: 2026-10-23 20:20Z
-status: active
-focus: "HOLD for hv's bounce and vc's word: 0633 judged green on cc's combined run and lands after fix-s; the 3.2.6 reference set on vc's GO after build all #2; no push, no release"
-claims: [ISSUE:0633]
+heartbeat_at: 2026-10-23 21:36Z
+status: paused
+focus: "Released for the night: the 3.2.6 reference set and the second shots run on vc's GO after build all #2 tomorrow; no push, no release"
+claims: []
 ---
 
 # Interface Claude (ic)
 
 ## DOING
 
-- RESUME STATE (ic, 2026-10-23 20:20Z by date -u). NO PUSH, NO RELEASE. AFTER HV'S BOUNCE, HOLD FOR vc's WORD. 0633 (claimed) is JUDGED GREEN on cc's combined run of 2026-10-23 20:02Z to 20:08Z by cc's stamps, over the composed tree 5b34eb9280aa, read from cc's logs and sent to vc: in the reversed-facade control each arm ran alone under `running 1 test`, and the coverage arms FAILED at their would_exclude assertions (agents_sync_parity.rs:677, :712, :730) while the text-only control a_line_the_probe_cannot_judge_counts_only_by_its_text stayed ok; with 0633 in place all four passed in the whole intent-cli run; clippy, the strict --lib line, doc and intentd were green; the fmt and intentsvcs reds named no 0633 file (cc's testkit carried another worktree's CARGO_MANIFEST_DIR, and the cover round trip was 0630's regression). Banked as refs/bank/ic/0633/wip-b.patch (blob c044a0f3afe9, base b129c1b91, patch-id 8b7e9b9a07f3), which stays as banked through cc's re-run of the composed tree (fmt re-banks, 0630's fix-s4 and fix-s5, the testkit fault); tmp/wt-ic-0633 stands at b129c1b91 with it applied. NEXT, on vc's word after fix-s lands: 0633 lands by literal path. refs/bank/ic/0633/run-0633.sh (blob 02463d7d519d; set S to the session's scratchpad) `rebase` re-places the CHANGELOG line last in 3.2.6's Fixed, after 0630's; bank as refs/bank/ic/0633/fix and send vc the blob, apply --stat and patch-id first; then close 0633 naming the sha, the record correcting "three ** lines" to Molt's two. If it is not ready when the 3.2.6 candidate is set, it rides 3.2.7. THEN, on vc's GO after build all #2 on the final HEAD: the 3.2.6 reference set with refs/bank/ic/ref326/regen-reference.sh (blob 548610f91275). Phase 1 regenerates both halves into scratch at HEAD against v3.2.5 and writes the diff; --write copies and proves with diff -r. Then a second gen_explorer_shots.sh run, `git status -- docs/images/explorer`, and one commit holding the set and any changed shot, before step 3. Rehearsed at c59e80779: the same pages, every baseline line v3.2.5, prettier clean. BEHIND THE LINE: 0631, wb archive's positional from seq to id. WAITING ON hv's OWN HAND: ORDER ic-1 unit 2, the .py history tools; ic does nothing on them. (edited)
+- RESUME STATE (ic, 2026-10-23 21:36Z by date -u), released for the night on hv's close. NO PUSH, NO RELEASE. NEXT, on vc's GO after build all #2 on the final HEAD tomorrow: the 3.2.6 reference set with refs/bank/ic/ref326/regen-reference.sh (blob 548610f91275; set S to the session's scratchpad). Phase 1 regenerates both halves into scratch at HEAD against v3.2.5 and writes the diff; --write copies and proves with diff -r. Then a second gen_explorer_shots.sh run, `git status -- docs/images/explorer`, and one commit holding the set and any changed shot, before step 3. Rehearsed at c59e80779: the same pages, every baseline line v3.2.5, prettier clean. Every commit runs vc's census in the commit command: refs/bank/vc/tools/census-ok-ci.sh with refs/bank/vc/tools/census.sh in the same directory. TODO: when gyges-sysadm's live repro on the first brew carrying 0633's fix (6a3f9aaef) comes, note it in 0633's record. BEHIND THE LINE: 0631, wb archive's positional from seq to id. WAITING ON hv's OWN HAND: ORDER ic-1 unit 2, the .py history tools; ic does nothing on them. (edited)
 
 ## TODO
 
