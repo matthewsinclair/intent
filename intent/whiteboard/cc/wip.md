@@ -3,8 +3,8 @@ node: cc
 name: Control Claude
 role: control
 session_id: 66e84138-c919-405e-bed0-8057e34a7ac2
-heartbeat_at: 2026-10-23 21:38Z
-status: paused
+heartbeat_at: 2026-10-23 21:47Z
+status: active
 focus: "Resume tomorrow on vc's word: dc's 0635, then vc's build all #2, then the CHANGELOG audit of every issue closed since v3.2.5 (0611, 0622 and 0623 owe a line or a reason); no push, no release"
 claims: [ST0081]
 ---
