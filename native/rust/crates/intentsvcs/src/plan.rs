@@ -615,7 +615,7 @@ pub fn classify(
   let canon = rel(project.canon_dir());
   let st = rel(project.st_dir());
   let issue_views = rel(project.issues_view_dir());
-  let patterns = project.generated_view_patterns();
+  let is_view = project.generated_view_matcher();
 
   let mut out = Conflicts::default();
   // Paths whose owner is decided once every twice-minted id is known.
@@ -649,10 +649,7 @@ pub fn classify(
       }
     } else if path.starts_with(&canon) {
       out.take_sides.push(path.to_string());
-    } else if patterns
-      .iter()
-      .any(|p| crate::search::glob_matches(p, path))
-    {
+    } else if is_view(path) {
       views.push(path.to_string());
     } else if let Some((id, _)) = path
       .strip_prefix(&st)

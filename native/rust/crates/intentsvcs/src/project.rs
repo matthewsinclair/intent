@@ -2216,6 +2216,23 @@ impl Project {
     ]
   }
 
+  /// Whether a project-relative path is one of the generated views
+  /// [`Self::generated_view_patterns`] names, for a caller that asks about many
+  /// paths: the patterns are built once and matched with the search surfaces'
+  /// glob, `*` within one segment.
+  ///
+  /// **ONE PREDICATE.** `plan::classify` sorts a merge's views with it, and the
+  /// file index asks it so that a generated view's row is only ever the bytes
+  /// its renderer wrote (issue 0630).
+  pub fn generated_view_matcher(&self) -> impl Fn(&str) -> bool + use<> {
+    let patterns = self.generated_view_patterns();
+    move |rel: &str| {
+      patterns
+        .iter()
+        .any(|pattern| crate::search::glob_matches(pattern, rel))
+    }
+  }
+
   /// Every file under a thread's directory, sorted, each as a path RELATIVE to
   /// that directory -- the address [`Attachment::path`] carries.
   ///

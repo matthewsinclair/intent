@@ -35,6 +35,8 @@ mod common;
 
 #[path = "a_board_write_leaves_a_board_nothing_records.rs"]
 mod a_board_write_leaves_a_board_nothing_records;
+#[path = "a_board_write_still_landing_refuses_no_commit.rs"]
+mod a_board_write_still_landing_refuses_no_commit;
 #[path = "a_cold_warm_leaves_a_peers_write.rs"]
 mod a_cold_warm_leaves_a_peers_write;
 #[path = "a_create_refuses_a_child_id_that_is_taken.rs"]

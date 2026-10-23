@@ -1355,12 +1355,13 @@ fn resync_inner(
         .and_then(|node| node.as_os_str().to_str())
         .is_some_and(|node| ahead.iter().any(|a| a == node))
     };
-    let entries: Vec<sync::FileEntry> = entries
-      .into_iter()
-      .filter(|e| !in_ahead(&e.path))
-      .chain(previous.iter().filter(|e| in_ahead(&e.path)).cloned())
-      .collect();
-    store.replace_file_index(&entries)?;
+    store.replace_file_index(&index_rows(
+      project,
+      entries,
+      &previous,
+      in_ahead,
+      load == Load::Ingest,
+    ))?;
   }
 
   // **The restore SUCCEEDING is not the same as the history being there**, and
@@ -1520,18 +1521,102 @@ pub fn refresh_index(project: &Project, store: &mut Store) -> Result<(), IngestE
     path: project.root().display().to_string(),
     source: std::io::Error::other(e.to_string()),
   })?;
-  store.replace_file_index(&entries)?;
-
   let findings: Vec<Finding> = entries
     .iter()
     .filter(|e| e.state == FileState::Unparsed)
     .flat_map(|e| e.findings.iter().cloned())
     .collect();
+  store.replace_file_index(&index_rows(project, entries, &previous, |_| false, false))?;
+
   if findings.is_empty() {
     Ok(())
   } else {
     Err(Refusal::new(findings).into())
   }
+}
+
+/// The rows a scan of the tree writes into the file index: the scan's own
+/// entry for every path but a generated view, and for each generated view the
+/// scan met, the row its renderer recorded, as it stands (issue 0630).
+///
+/// **A SCAN NEVER WRITES A VIEW'S ROW.** A view has one writer, its renderer,
+/// and [`record_canon_files`] records the bytes a render landed. A scan
+/// records what it meets, and a second scan of the same bytes marks them
+/// `clean`, so a scan that met a hand-edited view recorded the edit as the
+/// store's own render wherever nothing rendered the view back after it: every
+/// open of a store that holds nothing scans, and `doctor` then read the edit
+/// as a write still landing. Driven: two `doctor` runs in a freshly
+/// initialised project took a hand edit of `todo.md` to `clean`. A view gone
+/// from disk loses its row with every other path the scan did not meet.
+///
+/// **EXCEPT A VIEW THE SCAN MEETS WITH NO ROW, WHICH TAKES THE SCAN'S ENTRY AS
+/// `Changed`** (vc's ruling, 2026-10-23). No renderer has recorded such a
+/// file: a cover a fresh clone brought, or a file at a view's path that no
+/// projection writes, such as an issue view for an issue the store does not
+/// hold. Left with no row, a cover reads as new at every sync, and a cover
+/// with no baseline is never read back, so a hand edit to it was neither
+/// carried nor refused; and the daemon reconciles its whole scope against
+/// this index at every backstop, so a file with no row read as changed at
+/// every pass and cost an ingest every thirty seconds. The row is `Changed`
+/// whatever the scan made of the bytes, and a scan never writes over a
+/// renderer's `Clean` row, so `doctor`, which reads only a `Clean` row as a
+/// render, still counts a hand edit as skew.
+///
+/// **AND UNDER THE DAEMON'S INGEST, A VIEW WHOSE ROW IS NOT A RENDERER'S TAKES
+/// THE SCAN'S ENTRY AGAIN** (`ingest`, set for [`Load::Ingest`] alone). A file
+/// no projection writes keeps the row of its first sighting, so an edit after
+/// it read as changed at every backstop. The same pass's projection writes or
+/// finds right every view it renders and records its `Clean` row over this
+/// one, so only a file no projection writes keeps a scan's row past the pass.
+/// Outside the ingest no projection follows, and the row a scan recorded
+/// stands until one does.
+///
+/// `kept` names the other paths whose previous rows stand whatever the scan
+/// met: the files of a board ahead of the store (issue 0554 (b)).
+fn index_rows(
+  project: &Project,
+  scanned: Vec<sync::FileEntry>,
+  previous: &[sync::FileEntry],
+  kept: impl Fn(&str) -> bool,
+  ingest: bool,
+) -> Vec<sync::FileEntry> {
+  let is_view = project.generated_view_matcher();
+  let recorded: std::collections::HashMap<&str, FileState> = previous
+    .iter()
+    .map(|e| (e.path.as_str(), e.state))
+    .collect();
+  let takes_the_scan = |path: &str| match recorded.get(path) {
+    None => true,
+    Some(FileState::Clean) => false,
+    Some(_) => ingest,
+  };
+  let met_views: std::collections::HashSet<String> = scanned
+    .iter()
+    .filter(|e| is_view(&e.path))
+    .map(|e| e.path.clone())
+    .collect();
+  scanned
+    .into_iter()
+    .filter(|e| !kept(&e.path))
+    .filter_map(|e| {
+      if !is_view(&e.path) {
+        Some(e)
+      } else if takes_the_scan(&e.path) {
+        Some(sync::FileEntry {
+          state: FileState::Changed,
+          ..e
+        })
+      } else {
+        None
+      }
+    })
+    .chain(
+      previous
+        .iter()
+        .filter(|e| kept(&e.path) || (met_views.contains(&e.path) && !takes_the_scan(&e.path)))
+        .cloned(),
+    )
+    .collect()
 }
 
 /// Validate against the generated schema, then deserialise.

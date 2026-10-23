@@ -387,3 +387,242 @@ fn a_burst_of_edits_is_debounced_into_far_fewer_ingests() {
 
   let _ = std::fs::remove_dir_all(&root);
 }
+
+/// A facade on `root`, opened fresh, the way a command-line verb opens one.
+fn facade(root: &Path) -> intentsvcs::facade::Facade {
+  let project = intentsvcs::project::Project::open(root).expect("the project opens");
+  let ctx = intentsvcs::facade::FacadeContext {
+    principal: "test".to_string(),
+    project_id: project.config().project_id.clone().unwrap_or_default(),
+    version: env!("CARGO_PKG_VERSION").to_string(),
+  };
+  intentsvcs::facade::Facade::open(project, ctx).expect("the facade opens")
+}
+
+/// Run git in `dir`, refusing with what git said.
+///
+/// Identity, signing and hooks are set on every call, so nothing here reads
+/// the user's configuration: a global hooks path would run some other
+/// repository's gate on this fixture's commits.
+fn git(dir: &Path, args: &[&str]) {
+  let out = std::process::Command::new("git")
+    .args([
+      "-c",
+      "user.email=t@example.com",
+      "-c",
+      "user.name=t",
+      "-c",
+      "commit.gpgsign=false",
+      "-c",
+      "core.hooksPath=/dev/null",
+    ])
+    .args(args)
+    .current_dir(dir)
+    .output()
+    .expect("run git");
+  assert!(
+    out.status.success(),
+    "git {args:?} failed in {}:\n{}{}",
+    dir.display(),
+    String::from_utf8_lossy(&out.stdout),
+    String::from_utf8_lossy(&out.stderr)
+  );
+}
+
+/// The store's file index, the table the watcher reconciles against, read
+/// beside the daemon's writer as
+/// `a_source_edit_reaches_the_index_and_costs_canon_nothing.rs` reads it.
+fn recorded(root: &Path) -> Vec<intentsvcs::sync::FileEntry> {
+  intentsvcs::store::Store::open(&root.join("intent/.cache/intent.db"))
+    .expect("the daemon's store opens beside it")
+    .file_index()
+    .expect("the file index reads")
+}
+
+/// What the next backstop pass would ingest: every in-scope file whose bytes
+/// the store has not recorded.
+///
+/// **THE BACKSTOP'S OWN QUESTION, ASKED NOW RATHER THAN WAITED FOR.** The
+/// backstop reconciles the root through `sync::changed_under` against the
+/// file index every thirty seconds; this asks the same function the same
+/// question of the same table. A file it names after an ingest has settled is
+/// a file every later pass ingests again, which `settle` cannot see: between
+/// two passes the count is still.
+fn left_for_a_backstop(root: &Path) -> Vec<std::path::PathBuf> {
+  intentsvcs::sync::changed_under(root, root, &recorded(root)).expect("the scope reads")
+}
+
+/// **A RECORDED VIEW THAT A PULL REPLACED WITH A PEER'S NEWER RENDER IS
+/// INGESTED, ITS ROW THEN HOLDS THE PULLED BYTES, AND NO BACKSTOP INGESTS IT
+/// AGAIN** (issue 0630, vc's order of 2026-10-23). A view's row is only ever
+/// what a projection wrote or found right. The pull brings the peer's canon
+/// with the view rendered from it; the ingest takes the canon in, and its
+/// projection finds the view already right and leaves it. Had that
+/// projection not recorded what it found, the row would keep the old render
+/// and the backstop would ingest the view at every pass.
+///
+/// "Once" is held as the count coming to rest with nothing left for a
+/// backstop, not as an exact count: a pull's files can reach the watcher in
+/// more than one debounced batch.
+#[test]
+fn a_pulled_render_of_a_recorded_view_is_ingested_and_then_left_alone() {
+  const RETITLED: &str = "Retitled by a peer";
+  let daemon = RunningDaemon::start();
+  let ours = crate::common::project("Pulled");
+  let id = thread_ids(&daemon, &ours)
+    .pop()
+    .expect("the fixture's one thread");
+  arm(&daemon, &ours);
+
+  let address =
+    intentsvcs::address::parse(&format!("intent:///threads/{id}")).expect("an addressable thread");
+  facade(&ours)
+    .hydrate(&address)
+    .expect("the thread's views realise");
+  let rel = format!("intent/st/{id}/info.md");
+  assert!(
+    ours.join(&rel).is_file(),
+    "hydrating {id} realised no `{rel}`"
+  );
+
+  git(&ours, &["init", "-q"]);
+  git(&ours, &["add", "-A"]);
+  git(&ours, &["commit", "-q", "-m", "ours"]);
+  let theirs = crate::common::short_dir("intentd-peer");
+  let ours_path = ours.to_str().expect("a utf-8 path");
+  git(&theirs, &["clone", "-q", ours_path, "."]);
+  facade(&theirs)
+    .set(&address, "title", RETITLED.into())
+    .expect("the peer's write");
+  git(&theirs, &["add", "-A"]);
+  git(&theirs, &["commit", "-q", "-m", "theirs"]);
+  let pulled = std::fs::read(theirs.join(&rel)).expect("the peer's render");
+  assert_ne!(
+    std::fs::read(ours.join(&rel)).expect("our render"),
+    pulled,
+    "the peer's write left `{rel}` as it was, so the pull replaces no view and this arm asks nothing"
+  );
+
+  let rest = settle(&daemon, &ours);
+  let theirs_path = theirs.to_str().expect("a utf-8 path");
+  git(&ours, &["pull", "-q", "--ff-only", theirs_path, "HEAD"]);
+  until("the daemon ingested the pull", || {
+    ingested(&daemon, &ours) > rest
+  });
+  settle(&daemon, &ours);
+
+  let Response::Threads { threads } = daemon.ask(Request {
+    root: ours.clone(),
+    op: Op::ThreadList,
+  }) else {
+    panic!("intentd answered Op::ThreadList with something else");
+  };
+  assert!(
+    threads.iter().any(|t| t.id == id && t.title == RETITLED),
+    "the ingest did not take the pulled canon in: {threads:?}"
+  );
+  assert_eq!(
+    std::fs::read(ours.join(&rel)).expect("the view after the ingest"),
+    pulled,
+    "the daemon rendered over the pulled `{rel}`"
+  );
+  let rows = recorded(&ours);
+  let sha = intentsvcs::model::sha256_hex(&pulled);
+  assert!(
+    rows.iter().any(|e| e.path == rel && e.sha256 == sha),
+    "`{rel}`'s row does not hold the pulled bytes: {:?}",
+    rows.iter().find(|e| e.path == rel)
+  );
+  let left = left_for_a_backstop(&ours);
+  assert!(
+    left.is_empty(),
+    "after the pull's ingest the backstop still finds {left:?} changed, so it ingests them again at every pass"
+  );
+
+  let _ = std::fs::remove_dir_all(&ours);
+  let _ = std::fs::remove_dir_all(&theirs);
+}
+
+/// **A FILE AT A VIEW'S PATH THAT NO RENDERER WRITES IS INGESTED AT MOST
+/// ONCE, NEVER AT EVERY BACKSTOP** (issue 0630, vc's order of 2026-10-23).
+/// The scan no longer records a view's bytes, so a file matching a view's
+/// pattern that no projection writes has no row unless the ingest that met it
+/// records one, and the backstop would find it changed at every pass. An
+/// issue view for an issue the store does not hold is such a file: no
+/// renderer writes it and nothing reads it in.
+#[test]
+fn a_stray_file_at_a_view_path_is_ingested_at_most_once() {
+  let daemon = RunningDaemon::start();
+  let root = crate::common::project("Stray");
+  thread_ids(&daemon, &root);
+  let rest = arm(&daemon, &root);
+
+  let rel = "intent/issues/0099.md";
+  let project = intentsvcs::project::Project::open(&root).expect("the fixture opens");
+  assert!(
+    project
+      .generated_view_patterns()
+      .iter()
+      .any(|pattern| intentsvcs::search::glob_matches(pattern, rel)),
+    "`{rel}` matches no generated view's pattern, so this arm would not be asking about a view"
+  );
+  let stray = root.join(rel);
+  std::fs::create_dir_all(stray.parent().expect("a parent")).expect("mkdir");
+  std::fs::write(
+    &stray,
+    "# 0099\n\nLeft behind by a branch this store never saw.\n",
+  )
+  .expect("write the stray");
+
+  until("the daemon ingested the stray", || {
+    ingested(&daemon, &root) > rest
+  });
+  settle(&daemon, &root);
+
+  assert!(
+    stray.is_file(),
+    "the ingest removed `{rel}`, so nothing is left to ingest again and this arm cannot see the loop it asks about"
+  );
+  let left = left_for_a_backstop(&root);
+  assert!(
+    left.is_empty(),
+    "after the stray's ingest the backstop still finds {left:?} changed, so it ingests them again at every pass: no row holds their bytes"
+  );
+
+  let _ = std::fs::remove_dir_all(&root);
+}
+
+/// **THE SAME FILE, EDITED AFTER ITS INGEST, IS INGESTED ONCE MORE AND THEN
+/// LEFT ALONE** (vc's ruling, 2026-10-23). Its first sighting records its row,
+/// and no renderer ever records over it, so unless the ingest takes the scan's
+/// entry again over a row no renderer wrote, the row keeps the first bytes and
+/// the backstop finds every later edit changed at every pass.
+#[test]
+fn a_stray_file_edited_after_its_ingest_is_ingested_once_more_and_then_left_alone() {
+  let daemon = RunningDaemon::start();
+  let root = crate::common::project("Restray");
+  thread_ids(&daemon, &root);
+  let rest = arm(&daemon, &root);
+
+  let stray = root.join("intent/issues/0099.md");
+  std::fs::create_dir_all(stray.parent().expect("a parent")).expect("mkdir");
+  std::fs::write(&stray, "# 0099\n\nFirst seen.\n").expect("write the stray");
+  until("the daemon ingested the stray", || {
+    ingested(&daemon, &root) > rest
+  });
+  let first = settle(&daemon, &root);
+
+  std::fs::write(&stray, "# 0099\n\nEdited after its ingest.\n").expect("edit the stray");
+  until("the daemon ingested the edit", || {
+    ingested(&daemon, &root) > first
+  });
+  settle(&daemon, &root);
+
+  let left = left_for_a_backstop(&root);
+  assert!(
+    left.is_empty(),
+    "after the edit's ingest the backstop still finds {left:?} changed, so it ingests them again at every pass: the row holds the first sighting's bytes"
+  );
+
+  let _ = std::fs::remove_dir_all(&root);
+}

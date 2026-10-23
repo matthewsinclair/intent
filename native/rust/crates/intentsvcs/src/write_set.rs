@@ -222,6 +222,21 @@ impl Applied {
       .map(|prior| prior.path.as_path())
   }
 
+  /// The paths this batch carried and did not write, because each already
+  /// held exactly the bytes it carried: the other half of the set from
+  /// [`Self::written`] (issue 0630).
+  ///
+  /// **AGREEMENT, NOT AN ACT.** Nothing was done to these files, so they
+  /// belong in no record of what was written; they are what the file index
+  /// takes as the store's render of a view the write found already right.
+  pub fn unchanged(&self) -> impl Iterator<Item = &Path> {
+    self
+      .priors
+      .iter()
+      .filter(|prior| !prior.written)
+      .map(|prior| prior.path.as_path())
+  }
+
   /// Accept the batch: nothing more to undo.
   pub fn keep(self) {}
 }

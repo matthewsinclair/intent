@@ -4149,6 +4149,12 @@ pub struct Facade {
   /// server, the daemon and the explorer do, or it grows for the life of the
   /// process.
   landed: Vec<std::path::PathBuf>,
+  /// The generated views the last committed write set carried and found
+  /// already holding its bytes, for [`Facade::record_landed`] to record as the
+  /// store's render of them (issue 0630). [`Facade::note_landed`] replaces it at
+  /// every write set, and every recorder notes its own set first, so it never
+  /// describes a set other than the one being recorded.
+  unchanged_views: Vec<std::path::PathBuf>,
   /// This connection's `PRAGMA data_version` when `canon` was last read from
   /// the store: what [`Facade::catch_up`] compares against (issue 0520).
   seen: i64,
@@ -4522,6 +4528,7 @@ impl Facade {
       resolvers: carried(&crate::index::resolved::readers()),
       after_write: Vec::new(),
       landed: Vec::new(),
+      unchanged_views: Vec::new(),
       seen,
     }
   }
@@ -8041,10 +8048,29 @@ impl Facade {
   /// run's files itself. Not the free functions that write before a facade
   /// exists (`backfill_event_files`, `upgrade`), and not `restore_manifest`,
   /// which puts back what a failed transition took.
+  ///
+  /// It also keeps the generated views the set found already right, for the
+  /// [`Self::record_landed`] that follows it (issue 0630).
   fn note_landed(&mut self, applied: &crate::write_set::Applied) {
     self
       .landed
       .extend(applied.written().map(std::path::PathBuf::from));
+    self.unchanged_views = Self::views_left_unchanged(&self.project, applied);
+  }
+
+  /// The generated views a committed write set carried and left as they
+  /// were, because each already held the bytes it would have written: the
+  /// store's render of them as surely as a view it wrote (issue 0630).
+  fn views_left_unchanged(
+    project: &Project,
+    applied: &crate::write_set::Applied,
+  ) -> Vec<std::path::PathBuf> {
+    let is_view = project.generated_view_matcher();
+    applied
+      .unchanged()
+      .filter(|path| is_view(&project.relative(path)))
+      .map(std::path::PathBuf::from)
+      .collect()
   }
 
   /// What opening this project's store did about Dropbox when the open
@@ -11248,9 +11274,12 @@ impl Facade {
     let landed: Vec<std::path::PathBuf> = applied.written().map(std::path::PathBuf::from).collect();
     // The field rather than `note_landed`, because the store is held here.
     self.landed.extend(landed.iter().cloned());
-    let entries =
-      ingest::canon_file_entries(&self.project, &Self::landed_paths(&canon_files, &landed))
-        .map_err(FacadeError::Ingest)?;
+    let unchanged = Self::views_left_unchanged(&self.project, &applied);
+    let entries = ingest::canon_file_entries(
+      &self.project,
+      &Self::landed_paths(&canon_files, &landed, &unchanged),
+    )
+    .map_err(FacadeError::Ingest)?;
     held
       .record_file_entries(&entries)
       .map_err(FacadeError::Store)?;
@@ -12198,16 +12227,23 @@ impl Facade {
     // `refuse_if_canon_moved_under_the_store` reads. And the views are in
     // `written` and were never in `canon_files`. The union is the honest answer
     // to *what does the store now know it wrote*.
+    //
+    // **AND A VIEW THE SET FOUND ALREADY RIGHT IS RECORDED TOO** (issue 0630),
+    // as a canon file already right is. The scan never writes a view's row, so
+    // a view `init` wrote, or one no write has had to change since, would
+    // otherwise have no row of its renderer's to be judged against.
+    let unchanged = std::mem::take(&mut self.unchanged_views);
     ingest::record_canon_files(
       &self.project,
       &mut self.store,
-      &Self::landed_paths(canon_files, written),
+      &Self::landed_paths(canon_files, written, &unchanged),
     )
     .map_err(FacadeError::Ingest)
   }
 
   /// What [`Facade::record_landed`] records: every canon file the projection
-  /// carried and every path it wrote, sorted, each once.
+  /// carried, every path it wrote and every generated view it found already
+  /// right, sorted, each once.
   ///
   /// **ONE UNION FOR BOTH RECORDERS** (issue `0441`). The ingest pass records
   /// the same set inside its held lock, and a second spelling of it there would
@@ -12215,9 +12251,11 @@ impl Facade {
   fn landed_paths(
     canon_files: &[(std::path::PathBuf, String)],
     written: &[std::path::PathBuf],
+    unchanged_views: &[std::path::PathBuf],
   ) -> Vec<std::path::PathBuf> {
     let mut paths: Vec<std::path::PathBuf> = canon_files.iter().map(|(p, _)| p.clone()).collect();
     paths.extend(written.iter().cloned());
+    paths.extend(unchanged_views.iter().cloned());
     paths.sort();
     paths.dedup();
     paths

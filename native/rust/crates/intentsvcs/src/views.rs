@@ -2551,11 +2551,29 @@ pub fn write_all(
 /// matters: `write_all` would overwrite the edit without a word, and the
 /// person who made it would have no way to know their change was discarded.
 /// `doctor` runs this; the migrator runs it before it converges.
+///
+/// With no record of what the store last rendered, every difference is
+/// counted; [`skew_against`] is the same check given that record (issue 0630).
 pub fn skew(
   project: &Project,
   canon: &Canon,
   ctx: &RenderContext<'_>,
   realised: &crate::intentfiles::Realised,
+) -> Vec<Finding> {
+  skew_against(project, canon, ctx, realised, &|_, _| false)
+}
+
+/// [`skew`], given a way to ask whether a view's bytes are the store's last
+/// render of it: `last_render(path, sha256)`, the path project-relative (issue
+/// 0630). A view on disk that is that render, byte for byte, is a write still
+/// landing, and it is reported as store-stale rather than counted as a hand
+/// edit.
+pub fn skew_against(
+  project: &Project,
+  canon: &Canon,
+  ctx: &RenderContext<'_>,
+  realised: &crate::intentfiles::Realised,
+  last_render: &dyn Fn(&str, &str) -> bool,
 ) -> Vec<Finding> {
   let mut findings = Vec::new();
   for view in render_all(project, canon, ctx) {
@@ -2692,6 +2710,28 @@ pub fn skew(
             on_disk.len(),
             view.content.len(),
             first_difference(&on_disk, &view.content),
+          ),
+        ));
+      }
+      // **A VIEW THE STORE ITSELF LAST RENDERED IS A WRITE STILL LANDING, NOT A
+      // HAND EDIT** (issue 0630). A write set lands one file at a time, a
+      // board's `board.json` before its `wip.md`, and the file index records
+      // what landed only once the whole set has, so between the renames a
+      // peer's old view is still, byte for byte, the store's last render of it.
+      // A view's row is its renderer's alone, because a scan never writes one,
+      // so a hand edit matches no row and falls through, counted.
+      Ok(on_disk) if last_render(&rel, &crate::model::sha256_hex(on_disk.as_bytes())) => {
+        let remedy = match &board_node {
+          Some(node) => format!(
+            "`intent wb touch --node {node}` re-renders it, and `intent sync --to-disk` re-renders every view"
+          ),
+          None => "`intent sync --to-disk` re-renders it".to_string(),
+        };
+        findings.push(Finding::new(
+          &rel,
+          FindingClass::StoreStale,
+          format!(
+            "generated view differs from the model and is, byte for byte, the store's last render of it: a write is still landing, or landed without its views -- {remedy}"
           ),
         ));
       }

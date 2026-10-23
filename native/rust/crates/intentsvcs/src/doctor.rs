@@ -669,9 +669,47 @@ fn examine(
   status_gate_disagreement(&canon, project, &mut report);
   db_checks(&canon, project, &mut report.findings);
   event_checks(project, &mut report.findings);
-  file_checks(project, &canon, ctx, &mut report);
+  // **THE FILE INDEX IS READ BEFORE THE VIEWS** (issue 0630), so a view a
+  // peer's write has not reached yet is matched against its renderer's row.
+  let before = match store.map(last_renders) {
+    None => std::collections::BTreeMap::new(),
+    Some(Ok(rows)) => rows,
+    Some(Err(cause)) => {
+      report.findings.push(Finding::new(
+        "intent/.cache/intent.db",
+        FindingClass::Advisory,
+        format!(
+          "the file index was not read ({cause}), so a view a write is still landing reads as a hand edit"
+        ),
+      ));
+      std::collections::BTreeMap::new()
+    }
+  };
+  file_checks(project, &canon, ctx, store, &before, &mut report);
 
   report
+}
+
+/// What the file index records, read now, as the store's last render of each
+/// path: project-relative path to sha256, `clean` rows only (issue 0630), so
+/// the skew check can tell a view a write is still landing from a hand edit.
+///
+/// **A VIEW'S ROW IS ITS RENDERER'S, BECAUSE NOTHING ELSE WRITES IT.** The
+/// renderers record the bytes they landed as `clean`, and a scan carries a
+/// view's row forward without ever writing one (`ingest::index_rows`). `clean`
+/// is still asked, so a row a scan wrote before that held, and left `changed`,
+/// excuses nothing.
+fn last_renders(
+  store: &crate::store::Store,
+) -> Result<std::collections::BTreeMap<String, String>, crate::store::StoreError> {
+  Ok(
+    store
+      .file_index()?
+      .into_iter()
+      .filter(|row| row.state == crate::sync::FileState::Clean)
+      .map(|row| (row.path, row.sha256))
+      .collect(),
+  )
 }
 
 /// **A unit's recorded status must agree with its gate** -- hv, ratified
@@ -1699,7 +1737,14 @@ fn board_shape_advisories(project: &Project) -> Vec<Finding> {
   out
 }
 
-fn file_checks(project: &Project, canon: &Canon, ctx: &RenderContext<'_>, report: &mut Report) {
+fn file_checks(
+  project: &Project,
+  canon: &Canon,
+  ctx: &RenderContext<'_>,
+  store: Option<&crate::store::Store>,
+  before: &std::collections::BTreeMap<String, String>,
+  report: &mut Report,
+) {
   // **`doctor` ASKS THE MANIFEST, and until now it did not.** The three-state
   // answer already existed for exactly this reader -- `realised_threads`'s own
   // doc said *"the value exists here so that `doctor` can ask; that it does not
@@ -1710,7 +1755,33 @@ fn file_checks(project: &Project, canon: &Canon, ctx: &RenderContext<'_>, report
   // everything, so a project that has never run `organize` is checked exactly as
   // it was before this landed.
   let realised = crate::intentfiles::realised(&project.intentfiles_path());
-  let skew = views::skew(project, canon, ctx, &realised);
+  // **AND READ ONCE MORE, AFTER A VIEW THE FIRST READ DOES NOT EXCUSE**
+  // (issue 0630), so a write that lands and records its views while this reads
+  // them is matched too. Lazily, so a tree with no difference reads the index
+  // once, and once only, so a tree full of hand edits does not read it per
+  // view. What stays counted is a write read between its last rename and its
+  // record: a false refusal in that window, never a hand edit excused.
+  let after: std::cell::OnceCell<Result<std::collections::BTreeMap<String, String>, String>> =
+    std::cell::OnceCell::new();
+  let last_render = |rel: &str, sha: &str| {
+    before.get(rel).is_some_and(|recorded| recorded == sha)
+      || store.is_some_and(|store| {
+        after
+          .get_or_init(|| last_renders(store).map_err(|cause| cause.to_string()))
+          .as_ref()
+          .is_ok_and(|now| now.get(rel).is_some_and(|recorded| recorded == sha))
+      })
+  };
+  let skew = views::skew_against(project, canon, ctx, &realised, &last_render);
+  if let Some(Err(cause)) = after.get() {
+    report.findings.push(Finding::new(
+      "intent/.cache/intent.db",
+      FindingClass::Advisory,
+      format!(
+        "the file index was not read again after the views ({cause}), so a view whose write landed while doctor read it reads as a hand edit"
+      ),
+    ));
+  }
   report.views_checked = views::render_all(project, canon, ctx).len();
   report.findings.extend(skew);
   report.findings.extend(board_shape_advisories(project));
