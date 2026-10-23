@@ -1,0 +1,15 @@
+{
+  "id": "01M5MDN1C0B25DGFZAYCZY1MDP",
+  "ts": "2026-10-23T13:01:53.924Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0628"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "An early-exit reader on a pipe inside a pipefail shell script fails the pipeline whenever its writer still has a write to make, so the script ends or takes the wrong branch: 35 sites, one of which reddened CI after the 3.2.5 cut"
+  }
+}
