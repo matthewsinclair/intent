@@ -8,9 +8,7 @@
     "heartbeat_at": "2026-10-23T18:12:25.067Z",
     "status": "active",
     "focus": "Resume after the bounce: 0614's Rust run on cc's BOX END (0627), then the preflight gate half (hv's ruling), and the guards pass at Prodinfra, Lamplight, Conflab and Trellis (a); no push, no release",
-    "claims": [
-      "ISSUE:0614"
-    ],
+    "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"
