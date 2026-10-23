@@ -132,18 +132,27 @@ teardown() {
 
 @test "daemon status: a leftover socket FILE with no listener is still absent" {
   # A unix socket file outlives the process that bound it. Planting one is the
-  # whole fixture: bind it, close it, leave the inode. A status verb keying on
-  # `Path::exists` reports a running daemon here and is wrong.
+  # whole fixture: bind it, end the binder, leave the inode. A status verb keying
+  # on `Path::exists` reports a running daemon here and is wrong.
+  #
+  # THE PLANTER IS `nc -lU`, killed once its socket is there, which is the shape a
+  # daemon that died without unlinking leaves. Both CI legs carry nc (the BSD nc
+  # on macOS; netcat 1.226, OpenBSD's, in the Ubuntu 24.04 runner image), while
+  # ubuntu-latest ships no zsh for `zsocket`, and no repository ships Python. The
+  # loop is bounded and asks for the socket, never for a length of time.
+  local sock="$HOME/.local/state/intent/run/intentd.sock" nc_pid i=0
   mkdir -p "$HOME/.local/state/intent/run"
-  python3 -c "
-import socket
-s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-s.bind('$HOME/.local/state/intent/run/intentd.sock')
-s.close()
-"
+  nc -lU "$sock" </dev/null >/dev/null 2>&1 &
+  nc_pid=$!
+  while [ ! -S "$sock" ] && [ "$i" -lt 100 ]; do
+    i=$((i + 1))
+    sleep 0.05
+  done
+  kill "$nc_pid" 2>/dev/null || true
+  wait "$nc_pid" 2>/dev/null || true
   # The fixture must actually be a socket, or this test passes for the wrong
   # reason -- an absent file would also report absent.
-  [ -S "$HOME/.local/state/intent/run/intentd.sock" ]
+  [ -S "$sock" ]
 
   run "$INTENT_BIN" daemon status
   [ "$status" -eq 0 ]
