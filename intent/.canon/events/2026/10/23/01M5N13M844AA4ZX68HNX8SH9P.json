@@ -1,0 +1,20 @@
+{
+  "id": "01M5N13M844AA4ZX68HNX8SH9P",
+  "ts": "2026-10-23T18:41:54.948Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "HEAVY RUN END vc, 2026-10-23 18:41Z by date -u: bin/devbin build all promoted the verified pair at 18:41Z; intent and intentd both print 3.2.5 (c59e807790f3694b7449bed561bffa1ec31b3eac) dev; intentd restarted and answering; the store opened by the new pair, doctor 0 findings. Commits may land again. The cargo slot: ic's shots refresh now; then Utilz's window at the later of devbin-dc's 0206 END and ic's END; the templates landing's runs and the gate arm on vc's GO. No push, no release.",
+    "recipients": [
+      "cc",
+      "dc",
+      "hv",
+      "ic"
+    ]
+  }
+}

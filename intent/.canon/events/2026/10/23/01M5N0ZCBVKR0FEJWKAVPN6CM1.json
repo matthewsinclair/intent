@@ -1,0 +1,20 @@
+{
+  "id": "01M5N0ZCBVKR0FEJWKAVPN6CM1",
+  "ts": "2026-10-23T18:39:35.803Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "HEAVY RUN START vc, 2026-10-23 18:39Z by date -u: bin/devbin build all on main at c59e80779 (the verbs, 0627, 0624, 0623's generator, 0614; the pair moves from 3.2.5 at 2e0e9215d). Until vc's END: no commit on main at all, no cargo and no bats anywhere on this host. The pair is promoted by rename at the end, vc restarts intentd at once, and the store migrates 32 to 33 at the first open by the new pair. No push, no release.",
+    "recipients": [
+      "cc",
+      "dc",
+      "hv",
+      "ic"
+    ]
+  }
+}

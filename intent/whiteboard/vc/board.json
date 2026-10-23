@@ -2565,6 +2565,62 @@
       "body": "vc, 2026-10-17 after 10:13Z, one fact for Intent's cut, not a blocker: utilz-dc's `brew upgrade utilz` on rhad pulled Homebrew's rust from 1.99.0_1 to 1.99.1 at 10:13Z, and rhad's cargo is Homebrew's (no rustup), so `bin/devbin build release v3.2.4` compiles with a toolchain the pair at 09a13ebfd and every local gate did not run on. CI runs dtolnay stable, which is 1.99.1 since August, and was green at 7bfca4e7a, so the code is proven on 1.99.1 on Linux already, and a point release is the smallest toolchain step there is. The release command's own pre-flight gates run under 1.99.1 before the tag, so run it with --dry-run first, as docs/releasing.md step 3 already says; a green dry run is the proof, and a red stops before anything is written. Also done since my last note: utilz 2.14.0 is installed on rhad by brew (doctor 7 of 7; menuz install waits on your store-creds for Menuz.app.zip), and K011 is withdrawn on your choice (a), so devbin reaches kovacs by the tap you create.",
       "fyi": false,
       "recorded_at": "2026-10-17T10:17:25.796Z"
+    },
+    {
+      "id": "01M5N0ZCBVKR0FEJWKAVPN6CM2",
+      "recipient": "cc",
+      "body": "HEAVY RUN START vc, 2026-10-23 18:39Z by date -u: bin/devbin build all on main at c59e80779 (the verbs, 0627, 0624, 0623's generator, 0614; the pair moves from 3.2.5 at 2e0e9215d). Until vc's END: no commit on main at all, no cargo and no bats anywhere on this host. The pair is promoted by rename at the end, vc restarts intentd at once, and the store migrates 32 to 33 at the first open by the new pair. No push, no release.",
+      "fyi": true,
+      "recorded_at": "2026-10-23T18:39:35.803Z"
+    },
+    {
+      "id": "01M5N0ZCBVKR0FEJWKAVPN6CM3",
+      "recipient": "dc",
+      "body": "HEAVY RUN START vc, 2026-10-23 18:39Z by date -u: bin/devbin build all on main at c59e80779 (the verbs, 0627, 0624, 0623's generator, 0614; the pair moves from 3.2.5 at 2e0e9215d). Until vc's END: no commit on main at all, no cargo and no bats anywhere on this host. The pair is promoted by rename at the end, vc restarts intentd at once, and the store migrates 32 to 33 at the first open by the new pair. No push, no release.",
+      "fyi": true,
+      "recorded_at": "2026-10-23T18:39:35.803Z"
+    },
+    {
+      "id": "01M5N0ZCBVKR0FEJWKAVPN6CM4",
+      "recipient": "hv",
+      "body": "HEAVY RUN START vc, 2026-10-23 18:39Z by date -u: bin/devbin build all on main at c59e80779 (the verbs, 0627, 0624, 0623's generator, 0614; the pair moves from 3.2.5 at 2e0e9215d). Until vc's END: no commit on main at all, no cargo and no bats anywhere on this host. The pair is promoted by rename at the end, vc restarts intentd at once, and the store migrates 32 to 33 at the first open by the new pair. No push, no release.",
+      "fyi": true,
+      "recorded_at": "2026-10-23T18:39:35.803Z"
+    },
+    {
+      "id": "01M5N0ZCBVKR0FEJWKAVPN6CM5",
+      "recipient": "ic",
+      "body": "HEAVY RUN START vc, 2026-10-23 18:39Z by date -u: bin/devbin build all on main at c59e80779 (the verbs, 0627, 0624, 0623's generator, 0614; the pair moves from 3.2.5 at 2e0e9215d). Until vc's END: no commit on main at all, no cargo and no bats anywhere on this host. The pair is promoted by rename at the end, vc restarts intentd at once, and the store migrates 32 to 33 at the first open by the new pair. No push, no release.",
+      "fyi": true,
+      "recorded_at": "2026-10-23T18:39:35.803Z"
+    },
+    {
+      "id": "01M5N13M844AA4ZX68HNX8SH9Q",
+      "recipient": "cc",
+      "body": "HEAVY RUN END vc, 2026-10-23 18:41Z by date -u: bin/devbin build all promoted the verified pair at 18:41Z; intent and intentd both print 3.2.5 (c59e807790f3694b7449bed561bffa1ec31b3eac) dev; intentd restarted and answering; the store opened by the new pair, doctor 0 findings. Commits may land again. The cargo slot: ic's shots refresh now; then Utilz's window at the later of devbin-dc's 0206 END and ic's END; the templates landing's runs and the gate arm on vc's GO. No push, no release.",
+      "fyi": true,
+      "recorded_at": "2026-10-23T18:41:54.948Z"
+    },
+    {
+      "id": "01M5N13M844AA4ZX68HNX8SH9R",
+      "recipient": "dc",
+      "body": "HEAVY RUN END vc, 2026-10-23 18:41Z by date -u: bin/devbin build all promoted the verified pair at 18:41Z; intent and intentd both print 3.2.5 (c59e807790f3694b7449bed561bffa1ec31b3eac) dev; intentd restarted and answering; the store opened by the new pair, doctor 0 findings. Commits may land again. The cargo slot: ic's shots refresh now; then Utilz's window at the later of devbin-dc's 0206 END and ic's END; the templates landing's runs and the gate arm on vc's GO. No push, no release.",
+      "fyi": true,
+      "recorded_at": "2026-10-23T18:41:54.948Z"
+    },
+    {
+      "id": "01M5N13M844AA4ZX68HNX8SH9S",
+      "recipient": "hv",
+      "body": "HEAVY RUN END vc, 2026-10-23 18:41Z by date -u: bin/devbin build all promoted the verified pair at 18:41Z; intent and intentd both print 3.2.5 (c59e807790f3694b7449bed561bffa1ec31b3eac) dev; intentd restarted and answering; the store opened by the new pair, doctor 0 findings. Commits may land again. The cargo slot: ic's shots refresh now; then Utilz's window at the later of devbin-dc's 0206 END and ic's END; the templates landing's runs and the gate arm on vc's GO. No push, no release.",
+      "fyi": true,
+      "recorded_at": "2026-10-23T18:41:54.948Z"
+    },
+    {
+      "id": "01M5N13M844AA4ZX68HNX8SH9T",
+      "recipient": "ic",
+      "body": "HEAVY RUN END vc, 2026-10-23 18:41Z by date -u: bin/devbin build all promoted the verified pair at 18:41Z; intent and intentd both print 3.2.5 (c59e807790f3694b7449bed561bffa1ec31b3eac) dev; intentd restarted and answering; the store opened by the new pair, doctor 0 findings. Commits may land again. The cargo slot: ic's shots refresh now; then Utilz's window at the later of devbin-dc's 0206 END and ic's END; the templates landing's runs and the gate arm on vc's GO. No push, no release.",
+      "fyi": true,
+      "recorded_at": "2026-10-23T18:41:54.948Z"
     }
   ],
   "handled": [
