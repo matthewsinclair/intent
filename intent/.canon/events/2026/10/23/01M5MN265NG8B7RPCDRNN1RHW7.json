@@ -1,0 +1,16 @@
+{
+  "id": "01M5MN265NG8B7RPCDRNN1RHW7",
+  "ts": "2026-10-23T15:11:24.853Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 55,
+    "text": "THE DAY AFTER 3.2.5, FOLDED AT THE MID-AFTERNOON BOUNCE (vc, 2026-10-23). The line is drawn and 3.2.6 is a patch (decision 70); every open issue carries its spec in its record. RESUME STATE, in order: (1) vc's first act is the verdict on cc's 0627 bank (refs/bank/cc/0627/fix, blob 8e1d8d1aeb3d, base 3cfa54026, patch-id a26106bda9e0, the judged tree minus CHANGELOG 840626fc2b97, whole suites green on cc's runs 2 and 3, base reds at refs/bank/cc/0627/base-red.txt), then the land word; it moves the store to schema 33, and no `wb archive message` runs in Intent or Molt until 3.2.6 reaches kovacs. (2) THE BOX: devbin-cc's WP-08 bats series was running at the fold; its END is relayed to devbin-dc (0203 then 0204); cargo goes to dc's 0614 on dc's ask, then ic's generator. (3) After the Rust train (0627, 0614, 0624 by cc, ic's generator with 0623 banked unfinished at refs/bank/ic/0623/wip-a.patch): ONE build all by vc, announced to every node and every estate's vc, then intent daemon restart; then cc's templates bank (refs/bank/cc/0616-0618/templates, blob 750d089d17ea) lands with the whole shell half and the Rust arms on the final tree, then skills sync; 0616, 0617 and 0618 close on it, and kovacs-sysadm is told the gate now needs 3.2.6. (4) dc: the preflight gate half on hv's TUI ruling (the pre-push hook refuses a push to upstream whose HEAD has no green kovacs summary; the order is banked at refs/bank/dc/preflight/preflight-linux.sh), and the pass (Prodinfra, Lamplight, Conflab, Trellis gate only, Devbin via devbin-vc, Anvil, Courses). (5) D55 as Devbin's ST0008 WP-08, hv cutting 0.1.13, then the re-vendor and cc's WP-02 Intent half; ST0081 stays BLOCKED on AC-02.1 until the first cut after. (6) hv's hand: the five .py history tools' removal with --no-verify once (command given in session), the first kovacs preflight run, main's push after the build all. The globalfold is intent/wip.md v3.20. No push, no release."
+  }
+}

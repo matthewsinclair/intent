@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 78d66f67-02b7-4497-bbec-4466e2fcb852
-heartbeat_at: 2026-10-23 12:09Z
+heartbeat_at: 2026-10-23 15:11Z
 status: active
-focus: "2026-10-23: the day after 3.2.5; the line is drawn, next cut 3.2.6 (patch); hv's aim is every open unit closed this session where it can be; vc writes the specs and directs cc, dc, ic; no push, no release"
+focus: "2026-10-23 after the bounce: the 3.2.6 train (0627's verdict first, then 0614, 0624, the generator, one build all, the templates landing), the preflight gate, the guards pass, D55 in Devbin; no push, no release"
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- THE DAY AFTER 3.2.5 (vc, 2026-10-23, from 12:03Z). hv's aim: every open unit closed this session where it can be; the line is drawn and the next cut is 3.2.6, a patch (decision 70). LANES ON vc's ORDERS: cc 0627 (shape note, then build), release.remotes, the 0616/0617/0618 train after ic's surface note, WP-02's Intent half; dc 0614's settling drive, 0626, the doctor view-skew measurement, 0624, the bats socket planter, and the guards adoption pass in parallel; ic the surface note, the five .py removals, inert_arg_check.sh, 0622, 0611's inventory as the new thread's WP-01, then the Rust screenshot generator with 0623. vc: the spec into each unit's record before its lane starts, judging every bank, the box (one heavy run at a time), hv's inbox marked on hv's word, `build all` after the last Rust landing, the globalfold. Devbin's half of D55 waits for a Devbin session. No push, no release.
+- THE DAY AFTER 3.2.5, FOLDED AT THE MID-AFTERNOON BOUNCE (vc, 2026-10-23). The line is drawn and 3.2.6 is a patch (decision 70); every open issue carries its spec in its record. RESUME STATE, in order: (1) vc's first act is the verdict on cc's 0627 bank (refs/bank/cc/0627/fix, blob 8e1d8d1aeb3d, base 3cfa54026, patch-id a26106bda9e0, the judged tree minus CHANGELOG 840626fc2b97, whole suites green on cc's runs 2 and 3, base reds at refs/bank/cc/0627/base-red.txt), then the land word; it moves the store to schema 33, and no `wb archive message` runs in Intent or Molt until 3.2.6 reaches kovacs. (2) THE BOX: devbin-cc's WP-08 bats series was running at the fold; its END is relayed to devbin-dc (0203 then 0204); cargo goes to dc's 0614 on dc's ask, then ic's generator. (3) After the Rust train (0627, 0614, 0624 by cc, ic's generator with 0623 banked unfinished at refs/bank/ic/0623/wip-a.patch): ONE build all by vc, announced to every node and every estate's vc, then intent daemon restart; then cc's templates bank (refs/bank/cc/0616-0618/templates, blob 750d089d17ea) lands with the whole shell half and the Rust arms on the final tree, then skills sync; 0616, 0617 and 0618 close on it, and kovacs-sysadm is told the gate now needs 3.2.6. (4) dc: the preflight gate half on hv's TUI ruling (the pre-push hook refuses a push to upstream whose HEAD has no green kovacs summary; the order is banked at refs/bank/dc/preflight/preflight-linux.sh), and the pass (Prodinfra, Lamplight, Conflab, Trellis gate only, Devbin via devbin-vc, Anvil, Courses). (5) D55 as Devbin's ST0008 WP-08, hv cutting 0.1.13, then the re-vendor and cc's WP-02 Intent half; ST0081 stays BLOCKED on AC-02.1 until the first cut after. (6) hv's hand: the five .py history tools' removal with --no-verify once (command given in session), the first kovacs preflight run, main's push after the build all. The globalfold is intent/wip.md v3.20. No push, no release. (edited)
 
 ## TODO
 
