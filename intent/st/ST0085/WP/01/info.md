@@ -2,7 +2,7 @@
 wp_id: WP-01
 title: Inventory of every surface that feeds prompt text to an agent, live or historical
 scope: S
-status: WIP
+status: Done
 ---
 
 # WP-01: Inventory of every surface that feeds prompt text to an agent, live or historical

@@ -13,7 +13,15 @@ title: Passive prompt injection: prompt text Intent stores or ships is acted on 
 
 ## Acceptance Criteria
 
+### WP-01 -- Inventory of every surface that feeds prompt text to an agent, live or historical (status: Done)
+
+- AC-01.1 (non-test) The inventory names every surface through which text Intent stores or ships reaches an agent as prompt text, live or historical, and for each says where it lives, how an agent reads it, whether and by what route it can surface a stale copy, and what marks a non-live copy today; it proposes no fix. -- evidence: intent/st/ST0085/inventory.md at 622c1940a, accepted by vc as WP-01's report on 2026-10-23 -- satisfied: yes
+
 ## Acceptance Tests
+
+### WP-01 -- Inventory of every surface that feeds prompt text to an agent, live or historical (status: Done)
+
+_(no tests in this group)_
 
 ---
 

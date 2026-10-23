@@ -1,0 +1,14 @@
+{
+  "id": "01M5MM30D3QPT5AMHBCGMTQ4K9",
+  "ts": "2026-10-23T14:54:23.142Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0085/AC-01.1"
+  },
+  "payload": {
+    "evidence": "intent/st/ST0085/inventory.md at 622c1940a, accepted by vc as WP-01's report on 2026-10-23"
+  }
+}

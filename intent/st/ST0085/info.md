@@ -24,7 +24,7 @@ Directions the inventory feeds, from 0611: a convention for non-live prompt text
 
 | WP    | Title                                                                             | Size | Status |
 | ----- | --------------------------------------------------------------------------------- | ---- | ------ |
-| WP-01 | Inventory of every surface that feeds prompt text to an agent, live or historical | S    | WIP    |
+| WP-01 | Inventory of every surface that feeds prompt text to an agent, live or historical | S    | Done   |
 
 ## Acceptance
 
