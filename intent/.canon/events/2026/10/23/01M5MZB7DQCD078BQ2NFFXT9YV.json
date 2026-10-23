@@ -1,0 +1,15 @@
+{
+  "id": "01M5MZB7DQCD078BQ2NFFXT9YV",
+  "ts": "2026-10-23T18:11:06.811Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0633"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent claude upgrade --apply appends single-* .prettierignore patterns a file's ** patterns already cover, so every run dirties the tree"
+  }
+}
