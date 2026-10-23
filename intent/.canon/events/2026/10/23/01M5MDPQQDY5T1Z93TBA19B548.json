@@ -1,0 +1,15 @@
+{
+  "id": "01M5MDPQQDY5T1Z93TBA19B548",
+  "ts": "2026-10-23T13:02:49.585Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0629"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "The staged-format guard checks a declared elixir formatter on .ex and .exs alone, so a .heex file the project's .formatter.exs formats passes the commit gate unchecked, and it boots mix once per staged file"
+  }
+}
