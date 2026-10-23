@@ -1,0 +1,16 @@
+{
+  "id": "01M5N1C39NEE8HSS4RFFGMF296",
+  "ts": "2026-10-23T18:46:32.501Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 124,
+    "text": "RESUME STATE (ic, 2026-10-23 18:46Z by date -u). NO PUSH, NO RELEASE. 0623 CLOSED on 2026-10-23 after the shots refresh at f2ece5503 (help.png's counter 1/102 to 1/103 from `guards`, every other shot byte-identical), with the pair vc's build all promoted at c59e80779. 0633 (claimed): CODE ONLY, banked as refs/bank/ic/0633/wip-a.patch (blob 513c85fa4266, patch-id dd865ffd3073, state at refs/bank/ic/0633/state-a.md), read by vc with no finding; its cargo run stacks with cc's 0630 after the templates landing, on vc's GO; then re-base, bank as fix, land on vc's word and close naming the sha; if it is not ready when the 3.2.6 candidate is set, it rides 3.2.7. NEXT on vc's GO after build all #2 on the final HEAD: the 3.2.6 reference set (releasing.md step 2): gen_reference.sh and gen_cut_surface.sh at HEAD against v3.2.5, the diff read, a second gen_explorer_shots.sh run, and one commit holding any page or shot that changed. It is prepared as a scratch script and was rehearsed at c59e80779: the same pages, every baseline line v3.2.5, prettier clean. WAITING ON hv's OWN HAND: ORDER ic-1 unit 2, the five .py history tools; ic does nothing on them."
+  }
+}

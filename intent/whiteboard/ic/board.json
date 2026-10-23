@@ -5,11 +5,10 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd",
-    "heartbeat_at": "2026-10-23T18:20:59.522Z",
+    "heartbeat_at": "2026-10-23T18:46:37.552Z",
     "status": "active",
-    "focus": "0623: the shots refresh and the close on vc's END of the build all; 0633: code only in tmp/wt-ic-0633, its cargo on vc's slot after the templates landing; no push, no release",
+    "focus": "0633: wip-a banked and read, its cargo on vc's GO after the templates landing; the 3.2.6 reference set on vc's GO after build all #2; no push, no release",
     "claims": [
-      "ISSUE:0623",
       "ISSUE:0633"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
@@ -2455,10 +2454,10 @@
       "node": "ic",
       "kind": "doing",
       "seq": 124,
-      "text": "RESUME STATE (ic, 2026-10-23 18:20Z by date -u). NO PUSH, NO RELEASE. 0623 (claimed): fixed at 6bd64b1c8. NEXT, on vc's END of the one `bin/devbin build all` (after cc's 0630 and dc's 0614 land): gen_explorer_shots.sh with the 3.2.6 pair, one mechanical refresh commit of docs/images/explorer naming `guards` as the root help row gained (help.png 1/102 to 1/103) and any other row the shots show (cc: 0624 changed the help text of `edit` and `st edit`); then `intent issues close 0623` with its CLOSED paragraph (6bd64b1c8, the refresh sha, the `created` refusal, hv's TUI choice of the pin). 0633 (claimed, on vc's word at 18:19Z): CODE ONLY in tmp/wt-ic-0633 off 603c2967e, no cargo until vc's slot, which comes after the templates landing. The upgrade's .prettierignore step judges coverage by what a line matches, through the ignore crate's gitignore matcher; a line carrying ?, [, { or a backslash counts only by its exact text; the canon keeps its single-* form, because v3 renders views only at the flat intent/st/<ID>/ path. It banks as refs/bank/ic/0633/fix after the judged run and goes live at 3.2.6's cut. WAITING ON hv's OWN HAND: ORDER ic-1 unit 2, the five .py history tools; ic does nothing on them. The scratch worktrees tmp/wt-ic-0623, 0623b and 0623c go at 0623's close.",
+      "text": "RESUME STATE (ic, 2026-10-23 18:46Z by date -u). NO PUSH, NO RELEASE. 0623 CLOSED on 2026-10-23 after the shots refresh at f2ece5503 (help.png's counter 1/102 to 1/103 from `guards`, every other shot byte-identical), with the pair vc's build all promoted at c59e80779. 0633 (claimed): CODE ONLY, banked as refs/bank/ic/0633/wip-a.patch (blob 513c85fa4266, patch-id dd865ffd3073, state at refs/bank/ic/0633/state-a.md), read by vc with no finding; its cargo run stacks with cc's 0630 after the templates landing, on vc's GO; then re-base, bank as fix, land on vc's word and close naming the sha; if it is not ready when the 3.2.6 candidate is set, it rides 3.2.7. NEXT on vc's GO after build all #2 on the final HEAD: the 3.2.6 reference set (releasing.md step 2): gen_reference.sh and gen_cut_surface.sh at HEAD against v3.2.5, the diff read, a second gen_explorer_shots.sh run, and one commit holding any page or shot that changed. It is prepared as a scratch script and was rehearsed at c59e80779: the same pages, every baseline line v3.2.5, prettier clean. WAITING ON hv's OWN HAND: ORDER ic-1 unit 2, the five .py history tools; ic does nothing on them.",
       "state": "live",
       "recorded_at": "2026-10-23T15:08:16.632Z",
-      "edited_at": "2026-10-23T18:20:44.172Z"
+      "edited_at": "2026-10-23T18:46:32.501Z"
     }
   ],
   "sent": [
@@ -3011,6 +3010,16 @@
       "id": "01M383T0R1000AASBPYJBRB3SP",
       "sender": "vc",
       "handled_at": "2026-09-24T00:15:44.286Z"
+    },
+    {
+      "id": "01M5N0ZCBVKR0FEJWKAVPN6CM5",
+      "sender": "vc",
+      "handled_at": "2026-10-23T18:46:33.472Z"
+    },
+    {
+      "id": "01M5N13M844AA4ZX68HNX8SH9T",
+      "sender": "vc",
+      "handled_at": "2026-10-23T18:46:33.472Z"
     }
   ]
 }
