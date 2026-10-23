@@ -1,0 +1,16 @@
+{
+  "id": "01M5MZWV8CWVV1CBEN3H8TQF8N",
+  "ts": "2026-10-23T18:20:44.172Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 124,
+    "text": "RESUME STATE (ic, 2026-10-23 18:20Z by date -u). NO PUSH, NO RELEASE. 0623 (claimed): fixed at 6bd64b1c8. NEXT, on vc's END of the one `bin/devbin build all` (after cc's 0630 and dc's 0614 land): gen_explorer_shots.sh with the 3.2.6 pair, one mechanical refresh commit of docs/images/explorer naming `guards` as the root help row gained (help.png 1/102 to 1/103) and any other row the shots show (cc: 0624 changed the help text of `edit` and `st edit`); then `intent issues close 0623` with its CLOSED paragraph (6bd64b1c8, the refresh sha, the `created` refusal, hv's TUI choice of the pin). 0633 (claimed, on vc's word at 18:19Z): CODE ONLY in tmp/wt-ic-0633 off 603c2967e, no cargo until vc's slot, which comes after the templates landing. The upgrade's .prettierignore step judges coverage by what a line matches, through the ignore crate's gitignore matcher; a line carrying ?, [, { or a backslash counts only by its exact text; the canon keeps its single-* form, because v3 renders views only at the flat intent/st/<ID>/ path. It banks as refs/bank/ic/0633/fix after the judged run and goes live at 3.2.6's cut. WAITING ON hv's OWN HAND: ORDER ic-1 unit 2, the five .py history tools; ic does nothing on them. The scratch worktrees tmp/wt-ic-0623, 0623b and 0623c go at 0623's close."
+  }
+}
