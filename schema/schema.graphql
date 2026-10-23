@@ -1,5 +1,5 @@
 # INTENT_VER: 3.2.5
-# SCHEMA_SDL_VER: 20
+# SCHEMA_SDL_VER: 21
 
 enum AcKind {
   TEST
@@ -768,6 +768,18 @@ type WbSent {
   `(edited)` mark, and it carries none of the old body.
   """
   editedAt: String
+  """
+  When the sender archived it, read from the clock at the write; its
+  presence is the archived state. Only a message its recipient has handled
+  can be archived, and an archived one leaves the recipient's inbox view
+  while `wb show --all` still lists it. Archived is a state, never a
+  deletion, as it is for an item.
+  
+  **NOT A VALUE OF THE RECIPIENT'S `WbMessageState`**: that is derived from
+  the recipient's marks, and folding the sender's archive into it would give
+  one field two writers.
+  """
+  archivedAt: String
 }
 
 type WorkPackage {

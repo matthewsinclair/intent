@@ -179,6 +179,13 @@
       "additionalProperties": false,
       "description": "One message as its SENDER's board carries it: every field only the sender\nwrites, and nothing the recipient does. The sender is the\nboard's own node, so it is not repeated here.",
       "properties": {
+        "archived_at": {
+          "description": "When the sender archived it, read from the clock at the write; its\npresence is the archived state. Only a message its recipient has handled\ncan be archived, and an archived one leaves the recipient's inbox view\nwhile `wb show --all` still lists it. Archived is a state, never a\ndeletion, as it is for an item.\n\n**NOT A VALUE OF THE RECIPIENT'S `WbMessageState`**: that is derived from\nthe recipient's marks, and folding the sender's archive into it would give\none field two writers.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "authored_at": {
           "description": "The stamp the entry's `## (...)` heading claimed, verbatim. **Untrusted,\nand non-null only on a migrated row.**",
           "type": [
@@ -272,5 +279,5 @@
   "title": "Board",
   "type": "object",
   "x-intent-ver": "3.2.5",
-  "x-schema-json-ver": 23
+  "x-schema-json-ver": 24
 }

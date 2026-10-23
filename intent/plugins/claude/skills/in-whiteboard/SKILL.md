@@ -25,23 +25,24 @@ The human is a node, conventionally `hv`, never named in protocol language. It a
 
 Every verb that writes as a node takes `--node <moniker>`; `status`, `show <node>` and `register` do not, and `migrate` takes the board as a positional.
 
-| What you want                                        | The verb                            |
-| ---------------------------------------------------- | ----------------------------------- |
-| Start a session                                      | `intent wb pickup`                  |
-| See where every node stands                          | `intent wb status`                  |
-| Read one node's whole board                          | `intent wb show <node>`             |
-| Message one node                                     | `intent wb ask <node> <body>`       |
-| Broadcast to every peer                              | `intent wb announce <body>`         |
-| Record what you are doing, or a watch-out, or a hold | `intent wb add <kind> <text>`       |
-| Record a cross-node decision                         | `intent wb decide <text>`           |
-| Take or drop a claim                                 | `intent wb claim` / `unclaim <id>`  |
-| Retire one of your own items                         | `intent wb archive <kind> <seq>`    |
-| Change or redact your item or a message you sent     | `intent wb edit <kind> <id> <text>` |
-| Mark one sender's messages handled                   | `intent wb clear <sender>`          |
-| Say you are still alive                              | `intent wb touch`                   |
-| End a session                                        | `intent wb release`                 |
-| Put the project's nodes on the board                 | `intent wb register`                |
-| Carry a hand-authored board into the store           | `intent wb migrate <node>`          |
+| What you want                                        | The verb                                         |
+| ---------------------------------------------------- | ------------------------------------------------ |
+| Start a session                                      | `intent wb pickup`                               |
+| See where every node stands                          | `intent wb status`                               |
+| Read one node's whole board                          | `intent wb show <node>`                          |
+| Message one node                                     | `intent wb ask <node> <body>`                    |
+| Broadcast to every peer                              | `intent wb announce <body>`                      |
+| Record what you are doing, or a watch-out, or a hold | `intent wb add <kind> <text>`                    |
+| Record a cross-node decision                         | `intent wb decide <text>`                        |
+| Take or drop a claim                                 | `intent wb claim` / `unclaim <id>`               |
+| Retire one of your own items                         | `intent wb archive <kind> <seq>`                 |
+| Retire a message you sent, once it is handled        | `intent wb archive message <anchor> --to <node>` |
+| Change or redact your item or a message you sent     | `intent wb edit <kind> <id> <text>`              |
+| Mark one sender's messages handled                   | `intent wb clear <sender>`                       |
+| Say you are still alive                              | `intent wb touch`                                |
+| End a session                                        | `intent wb release`                              |
+| Put the project's nodes on the board                 | `intent wb register`                             |
+| Carry a hand-authored board into the store           | `intent wb migrate <node>`                       |
 
 `ask` also takes `--re <anchor>` (thread a reply) and `--fyi` (no reply expected). `pickup`, `status` and `show` take `--json`; `pickup` and `show` take `--all` (handled messages too). `pickup --focus <line>` is the only way to set the focus line; `--session <id>` records the session id (default `CLAUDE_CODE_SESSION_ID`).
 
@@ -104,7 +105,7 @@ On a generated board the renderer writes it. The header guard refuses escapes in
 
 ## inbox.<sender>.md shape
 
-`<recipient>/inbox.<sender>.md` holds what `<sender>` sent `<recipient>`, rendered from `<sender>/board.json` alone, so the sender is its one writer; the recipient reads it and clears. An unused pair shows `# inbox: <sender> -> <recipient>` over `_(empty)_`. `clear` removes nothing and changes no inbox file: it puts a mark on each message in the recipient's own `board.json`, the message leaves the live count, and `wb pickup` and `wb show --all` say what is handled. The file never does.
+`<recipient>/inbox.<sender>.md` holds what `<sender>` sent `<recipient>`, rendered from `<sender>/board.json` alone, so the sender is its one writer; the recipient reads it and clears. An unused pair shows `# inbox: <sender> -> <recipient>` over `_(empty)_`. `clear` removes nothing and changes no inbox file: it puts a mark on each message in the recipient's own `board.json`, the message leaves the live count, and `wb pickup` and `wb show --all` say what is handled. The file never does. A handled message leaves the file only when its sender archives it (`wb archive message`).
 
 ```
 ## (YYYY-MM-DD HH:MMZ) [claimed <stamp>] [Re: <prior-anchor>] [FYI only -- no response needed.] [(edited)]
@@ -143,6 +144,7 @@ Every writing verb takes `--node <moniker>`, which the tool cannot work out. Use
 - **`claim` / `unclaim`** take a thread as `ST0000`, a work package as `ST0000/01`, or an issue as `ISSUE:0000`. **Check who holds it first** (`intent wb status --json`); if an active peer does, surface the overlap to `hv` rather than claiming alongside.
 - **`clear <sender>`** marks that sender's live messages handled, in your own `board.json`; no inbox file changes. **Clear an entry only if it was answered, actioned, or re-stated live on your board. Reading is not handling.** A cleared-but-unactioned entry makes the board affirmatively WRONG, and no guard can catch it: actioned-ness is judgement. Re-count live messages right before clearing, or a message that landed after your read is swept too.
 - **`archive <kind> <seq>`** retires your own item (seqs are numbered per kind). **Archived is a state, never a deletion**; the answer says what moved. Whether the item IS finished with is your judgement (see Folding).
+- **`archive message <anchor> --to <recipient>`** retires a message you SENT once its recipient has handled it: the recipient's inbox view drops it, and `wb show --all` and the JSON still carry it. Refused while the recipient holds it live, because only the recipient clears; one copy of an announce at a time; `--handled` archives everything you sent that its recipients have handled. A board carrying an archived message needs Intent 3.2.6 or later, so archive nothing while another machine reads the estate's boards with an older Intent.
 - **`edit <kind> <id> <text>`** changes your own item, live or archived; `edit message "<anchor>" "<text>" --to <recipient>` changes a message you sent (`<anchor>#<n>` for one of several in a minute; one copy of an announce edits all). An uncommitted event is amended in place; a committed one gets a `wb.edit` event and git keeps the old text. The answer names every file under `intent/` still holding the old text (HEAD, staged, unstaged) and gives the all-clear only when both searches found nothing. Edits render `(edited)`, never the old text.
 - **`touch`** stamps your heartbeat, nothing else; no caller supplies the time.
 - **`release`** sets you paused and stamps, so a clean stop differs from a dead session. **Session end only**: never for a localfold, a compact or a context reset.
@@ -150,7 +152,7 @@ Every writing verb takes `--node <moniker>`, which the tool cannot work out. Use
 
 ### Folding: localfold and globalfold
 
-**localfold** = tidy your OWN node before a compact: archive what is finished with, clear what you have handled. **It does NOT `release`.** **globalfold** = the project-wide snapshot (`intent/wip.md`, `restart.md`, `done.md`), usually the coordinating or validation node's job.
+**localfold** = tidy your OWN node before a compact: archive what is finished with, clear what you have handled, and archive what you sent that its recipients have handled (`wb archive message --handled`). **It does NOT `release`.** **globalfold** = the project-wide snapshot (`intent/wip.md`, `restart.md`, `done.md`), usually the coordinating or validation node's job.
 
 - **An unexecuted ruling is live state, not history.** A fold archives the NARRATIVE of a ruling, never the ruling while it is unexecuted. Execution is the test, not the date; verify it against the ARTEFACT, not the board that records it.
 - **A hold is not archived while its condition stands unmet**; a released one goes back to TODO (`wb archive hold <seq>`, then `wb add todo`).

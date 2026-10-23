@@ -562,7 +562,13 @@ fn could_have_meant(
     };
   let lines = pool[pool.len().saturating_sub(SHOWN)..]
     .iter()
-    .map(|(address, row)| format!("  {address}  \"{}\"", first_words(&row.body)))
+    .map(|(address, row)| {
+      format!(
+        "  {address}  \"{}\"{}",
+        first_words(&row.body),
+        crate::views::archived_mark(row.archived_at.as_ref())
+      )
+    })
     .collect::<Vec<_>>()
     .join("\n");
   (format!("{heading}\n{lines}"), true)
@@ -2122,6 +2128,17 @@ pub enum FacadeError {
     count: usize,
     listing: String,
   },
+  /// An archive named a message its recipient has not handled (issue 0627).
+  /// Only the recipient can say a message is handled, so the archive waits on
+  /// the recipient's `wb clear`.
+  #[error(
+    "`{recipient}` has not handled the message from `{sender}` headed {anchor}, so it stays in `{recipient}`'s inbox view"
+  )]
+  WbMessageLive {
+    sender: String,
+    recipient: String,
+    anchor: String,
+  },
   /// A claim that is not a steel thread or work package address.
   #[error("`{claim}` is not a steel thread or work package address")]
   WbClaimMalformed { claim: String },
@@ -2422,6 +2439,32 @@ pub struct WbMessageEdit {
   pub recipients: Vec<String>,
 }
 
+/// What `wb archive message --handled` did (issue 0627): every message it
+/// archived, and every one it left because its recipient still holds it live,
+/// as (recipient, send instant), so the answer names what stays rather than
+/// skipping it in silence.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct WbArchiveSweep {
+  pub archived: Vec<crate::store::ArchivedMessage>,
+  pub live: Vec<(String, String)>,
+}
+
+/// The `wb.archive` event for the messages an archive moved (issue 0627): the
+/// op the item form records, its payload naming each message by recipient and
+/// by its id, the one key across clones. Built from what the write moved, in
+/// its transaction, so the log names exactly those messages.
+fn message_archive_event(template: &Envelope, moved: &[crate::store::ArchivedMessage]) -> Envelope {
+  let mut event = template.clone();
+  event.payload = json!({
+    "kind": "message",
+    "messages": moved
+      .iter()
+      .map(|m| json!({ "to": m.recipient, "id": m.mid }))
+      .collect::<Vec<_>>(),
+  });
+  event
+}
+
 impl WbMigration {
   /// Did everything the source offered end up on one side or the other?
   ///
@@ -2654,6 +2697,13 @@ impl crate::remedy::Remedy for FacadeError {
       // meet this refusal through the one resolver (issue 0610), and the
       // listing above already carries each address ready to copy.
       Self::WbMessageAmbiguous { .. } => "give one of the addresses above, `<anchor>#<n>`, in place of the anchor alone. `#<n>` counts from 1 in send order, and an inbox only grows, so a number never moves".to_string(),
+      // The recipient's act and the way to see it, and no way around the gate:
+      // the sender cannot mark another node's message handled.
+      Self::WbMessageLive {
+        sender, recipient, ..
+      } => format!(
+        "a message leaves the inbox view only once its recipient has handled it, and only the recipient can say so: `{recipient}` marks it with `intent wb clear {sender} --node {recipient}`, and `intent wb show {recipient} --all` shows when it has; `intent wb archive message --handled --to {recipient} --node {sender}` then archives it with any others"
+      ),
       Self::WbAlreadyCarried { node, .. } => format!(
         "read what is there first -- `intent wb show {node}` -- because this refuses rather than guessing whether those rows are an earlier carry or work written since. A board carried by mistake is emptied by rebuilding the store from canon; one carrying real work is already past the markdown era and needs no migration"
       ),
@@ -8938,6 +8988,103 @@ impl Facade {
     Ok(moved)
   }
 
+  /// Archive one message the acting node sent, once its recipient has handled
+  /// it, and say whether it moved (issue 0627): an archived message leaves the
+  /// recipient's inbox view, and `wb show --all` still lists it.
+  ///
+  /// **ADDRESSED AS `wb edit message` ADDRESSES ONE**, through the one message
+  /// resolver: the recipient, and the stamp its inbox heading shows, with
+  /// `#<n>` naming one of several in a minute.
+  ///
+  /// **ONE COPY OF AN ANNOUNCE, THE RECIPIENT'S.** Each copy is its own row with
+  /// its own id, the mark that gates the archive is that recipient's, and the
+  /// view it changes is that pair's. An edit reaches every copy because an
+  /// announce has one body; an archive changes no body.
+  ///
+  /// **A MESSAGE ITS RECIPIENT STILL HOLDS LIVE IS REFUSED**, because only the
+  /// recipient can say it is handled. One already archived moves nothing,
+  /// records nothing, and answers `false`.
+  pub fn wb_archive_message(
+    &mut self,
+    sender: &str,
+    recipient: &str,
+    id: &str,
+  ) -> Result<bool, FacadeError> {
+    self.require_migrated(sender)?;
+    self.require_migrated(recipient)?;
+    let NamedMessage {
+      rows,
+      index,
+      canonical,
+      ..
+    } = self.resolve_message(sender, recipient, id)?;
+    let row_id = rows[index].id;
+    let template = self.wb_event("wb.archive", sender, json!({}));
+    let moved = self
+      .store
+      .wb_write_then_record(
+        |w| w.archive_messages(sender, Some(recipient), Some(row_id)),
+        |moved| message_archive_event(&template, moved),
+      )
+      .map_err(FacadeError::Store)?;
+    if moved.is_empty() {
+      // Nothing moved, and the store says why: archived already, or not handled.
+      // Handled now and still unarchived is a mark that landed after the write's
+      // own gate read none, which is a re-run's to pick up.
+      return match self
+        .store
+        .wb_message_archived_and_handled(row_id)
+        .map_err(FacadeError::Store)?
+      {
+        (true, _) => Ok(false),
+        (false, false) => Err(FacadeError::WbMessageLive {
+          sender: sender.to_string(),
+          recipient: recipient.to_string(),
+          anchor: canonical,
+        }),
+        (false, true) => Err(FacadeError::RecordMovedUnderTheWrite {
+          subject: format!("the message from `{sender}` to `{recipient}` headed {canonical}"),
+        }),
+      };
+    }
+    self.land_board_write_noting()?;
+    Ok(true)
+  }
+
+  /// Archive every message the acting node sent that its recipient has
+  /// handled, to `recipient` alone where one is named, and say what moved and
+  /// what stays live with its recipient (issue 0627): the form a fold runs.
+  ///
+  /// **ONE STATEMENT SELECTS AND ARCHIVES**, inside the write's transaction, and
+  /// the one `wb.archive` event names exactly what it moved. A repeat moves
+  /// nothing and records nothing.
+  pub fn wb_archive_handled(
+    &mut self,
+    sender: &str,
+    recipient: Option<&str>,
+  ) -> Result<WbArchiveSweep, FacadeError> {
+    self.require_migrated(sender)?;
+    if let Some(recipient) = recipient {
+      self.require_migrated(recipient)?;
+    }
+    let template = self.wb_event("wb.archive", sender, json!({}));
+    let archived = self
+      .store
+      .wb_write_then_record(
+        |w| w.archive_messages(sender, recipient, None),
+        |moved| message_archive_event(&template, moved),
+      )
+      .map_err(FacadeError::Store)?;
+    if !archived.is_empty() {
+      self.land_board_write_noting()?;
+    }
+    let live = self
+      .store
+      .wb_sent_live(sender, recipient)
+      .map_err(FacadeError::Store)?;
+    Ok(WbArchiveSweep { archived, live })
+  }
+
   /// Change the text of one of the acting node's items, live or archived, and
   /// say which record now carries it (issue 0523).
   ///
@@ -9103,7 +9250,14 @@ impl Facade {
           listing: headed
             .iter()
             .enumerate()
-            .map(|(k, &i)| format!("  {anchor}#{}  \"{}\"", k + 1, first_words(&rows[i].body)))
+            .map(|(k, &i)| {
+              format!(
+                "  {anchor}#{}  \"{}\"{}",
+                k + 1,
+                first_words(&rows[i].body),
+                crate::views::archived_mark(rows[i].archived_at.as_ref())
+              )
+            })
             .collect::<Vec<_>>()
             .join("\n"),
         });
@@ -9216,10 +9370,14 @@ impl Facade {
     // Asked before the write, as `wb_edit` asks it.
     let still_at_head = self.text_at_head(&row.body)?;
     let new_holds_old = text.contains(row.body.as_str());
-    let mut rewritten = Vec::new();
+    // **THE BODY IS IN THE SENDER'S BOARD AND EACH COPY'S VIEW IN ITS
+    // RECIPIENT'S DIRECTORY** (issue 0612). Until 0627's bank this list named
+    // each recipient's `board.json`, the home a message had before 0612, so a
+    // staged sender board holding the old body went unnamed and a staged
+    // recipient board holding none of it was named.
+    let mut rewritten = vec![self.project.relative(&self.project.board_json(sender))];
     for (to, _) in &copies {
       let dir = self.project.whiteboard_dir().join(to);
-      rewritten.push(self.project.relative(&dir.join("board.json")));
       rewritten.push(
         self
           .project

@@ -193,6 +193,24 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .wb_ask("cc", "hv", &format!("message {i}"), None, false)
       .expect("inside the bound");
   }
+  // **A MESSAGE ITS RECIPIENT HOLDS LIVE IS NOT ARCHIVED** (issue 0627). Nothing
+  // here clears `hv`'s inbox, so the first message `cc` sent it is live. Its
+  // address is read off the inbox view, where a reader finds it, and `#1` names
+  // the first of its minute.
+  let view = std::fs::read_to_string(fx.root().join("intent/whiteboard/hv/inbox.cc.md"))
+    .expect("hv's inbox from cc is rendered");
+  let anchor = view
+    .lines()
+    .find_map(|line| line.strip_prefix("## ("))
+    .and_then(|rest| rest.split(')').next())
+    .expect("the inbox view heads its first message with its stamp")
+    .to_string();
+  out.push((
+    "an archive of a message its recipient has not handled",
+    facade
+      .wb_archive_message("cc", "hv", &format!("{anchor}#1"))
+      .expect_err("only a message its recipient has handled is archived"),
+  ));
   // **THE ITEM BOUND IS PER KIND, so the provocation fills ONE kind.** Filling a
   // board's worth of mixed kinds would pass on a per-board bound too, and the
   // per-kind reading is the thing that keeps a long watch-out list from refusing
@@ -1231,6 +1249,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::WbNoSuchItem { .. } => "WbNoSuchItem",
     FacadeError::WbNoSuchMessage { .. } => "WbNoSuchMessage",
     FacadeError::WbMessageAmbiguous { .. } => "WbMessageAmbiguous",
+    FacadeError::WbMessageLive { .. } => "WbMessageLive",
     FacadeError::WbClaimMalformed { .. } => "WbClaimMalformed",
     FacadeError::WbAlreadyCarried { .. } => "WbAlreadyCarried",
     FacadeError::WbSendersNotRegistered { .. } => "WbSendersNotRegistered",
@@ -1357,6 +1376,7 @@ const ALL_VARIANTS: &[&str] = &[
   "WbItemsFull",
   "WbNoSuchItem",
   "WbNoSuchMessage",
+  "WbMessageLive",
   "WbClaimMalformed",
   "WbAlreadyCarried",
   "WbSendersNotRegistered",

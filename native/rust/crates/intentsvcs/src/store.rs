@@ -772,7 +772,8 @@ CREATE TABLE IF NOT EXISTS wb_item (
 -- order a message is read in is `mid` order, which is send order, so it is
 -- the same in every clone; `id` is this store's row number and nothing else.
 -- A message is the SENDER's: this table is the store's image of every board's
--- `sent`, and holds nothing the recipient writes.
+-- `sent`, and holds nothing the recipient writes. `archived_at` is the sender's
+-- archive of a message its recipient has handled, which leaves the inbox view.
 -- openness: carried by intent/whiteboard/<node>/board.json
 CREATE TABLE IF NOT EXISTS wb_message (
   id INTEGER PRIMARY KEY,
@@ -785,7 +786,8 @@ CREATE TABLE IF NOT EXISTS wb_message (
   recorded_at TEXT NOT NULL,
   authored_at TEXT,
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
-  edited_at TEXT
+  edited_at TEXT,
+  archived_at TEXT
 );
 -- **EVERY MARK HAS ONE HOME, AND IT IS HERE**: the store's image of every
 -- board's `handled`. A message is handled when a mark names its `mid`; a mark
@@ -828,7 +830,7 @@ CREATE INDEX IF NOT EXISTS wb_mark_by_recipient ON wb_mark (recipient, mid);
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 32;
+pub const SCHEMA_VERSION: i32 = 33;
 
 /// FTS5 `secure-delete` on both search tables: a `DELETE` takes the row's terms
 /// out of the inverted index rather than writing a tombstone for them.
@@ -2000,6 +2002,40 @@ const MIGRATIONS: &[(i32, &str)] = &[(
      CREATE INDEX IF NOT EXISTS wb_message_by_recipient ON wb_message (recipient, mid);
      CREATE INDEX IF NOT EXISTS wb_mark_by_recipient ON wb_mark (recipient, mid);",
   ),
+  (
+    33,
+    // 32 -> 33: `wb_message.archived_at` (0627), the sender's archive of a
+    // message its recipient has handled, which takes it out of the inbox view.
+    // Nothing was archived before this rung, so the column starts null.
+    //
+    // **A REBUILD RATHER THAN `ALTER TABLE ADD COLUMN`, for rung 15's reason**,
+    // as rung 30 did for `edited_at`, with each index re-created after it. The
+    // `SELECT` names only the columns the table had before.
+    "CREATE TABLE wb_message_rebuilt (
+       id INTEGER PRIMARY KEY,
+       mid TEXT NOT NULL,
+       sender TEXT NOT NULL,
+       recipient TEXT NOT NULL,
+       body TEXT NOT NULL,
+       re TEXT,
+       fyi INTEGER NOT NULL DEFAULT 0,
+       recorded_at TEXT NOT NULL,
+       authored_at TEXT,
+       updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+       edited_at TEXT,
+       archived_at TEXT
+     );
+     INSERT INTO wb_message_rebuilt (id, mid, sender, recipient, body, re, fyi, recorded_at,
+       authored_at, updated_at, edited_at)
+       SELECT id, mid, sender, recipient, body, re, fyi, recorded_at, authored_at, updated_at,
+         edited_at
+       FROM wb_message;
+     DROP TABLE wb_message;
+     ALTER TABLE wb_message_rebuilt RENAME TO wb_message;
+     CREATE UNIQUE INDEX IF NOT EXISTS wb_message_by_mid ON wb_message (mid);
+     CREATE INDEX IF NOT EXISTS wb_message_by_sender ON wb_message (sender, mid);
+     CREATE INDEX IF NOT EXISTS wb_message_by_recipient ON wb_message (recipient, mid);",
+  ),
 ];
 
 /// The Rust step of a migration rung, run in the rung's own transaction ahead
@@ -3134,6 +3170,18 @@ pub struct MessageRow {
   pub id: i64,
   pub body: String,
   pub recorded_at: String,
+  /// Set when its sender archived it (issue 0627). An archived message keeps
+  /// its place, so an address counted over these rows never moves.
+  pub archived_at: Option<String>,
+}
+
+/// One message an archive moved (issue 0627): its id, the one key across
+/// clones, its recipient and the stamp its inbox heading rendered.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ArchivedMessage {
+  pub mid: String,
+  pub recipient: String,
+  pub recorded_at: String,
 }
 
 /// One whiteboard verb's writes, inside the transaction that records it.
@@ -3496,6 +3544,43 @@ impl WbWrite<'_> {
     Ok(moved)
   }
 
+  /// Archive what `sender` sent that its recipient has handled, and say what
+  /// moved, in `mid` order (issue 0627): the one message on row `id` where it
+  /// is given, every such message otherwise, to `recipient` alone where one is
+  /// named.
+  ///
+  /// **THE SELECTION, THE HANDLED GATE AND THE WRITE ARE ONE STATEMENT.** A row
+  /// moves only while a mark names its `mid` and it is not archived yet, and
+  /// `RETURNING` says which rows did, so the event the verb records names
+  /// exactly what moved. Archived is a state and never a deletion, as
+  /// [`Self::archive_item`]'s is: the row keeps its body and its place.
+  pub fn archive_messages(
+    &mut self,
+    sender: &str,
+    recipient: Option<&str>,
+    id: Option<i64>,
+  ) -> Result<Vec<ArchivedMessage>, StoreError> {
+    let mut stmt = self.tx.prepare(
+      "UPDATE wb_message SET archived_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), \
+       updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') \
+       WHERE sender = ?1 AND (?2 IS NULL OR recipient = ?2) AND (?3 IS NULL OR id = ?3) \
+       AND archived_at IS NULL \
+       AND EXISTS (SELECT 1 FROM wb_mark k WHERE k.mid = wb_message.mid) \
+       RETURNING mid, recipient, recorded_at",
+    )?;
+    let rows = stmt.query_map(params![sender, recipient, id], |row| {
+      Ok(ArchivedMessage {
+        mid: row.get(0)?,
+        recipient: row.get(1)?,
+        recorded_at: row.get(2)?,
+      })
+    })?;
+    let mut moved = rows.collect::<Result<Vec<_>, _>>()?;
+    moved.sort_by(|a, b| a.mid.cmp(&b.mid));
+    self.moved += moved.len();
+    Ok(moved)
+  }
+
   /// Make the whiteboard tables hold `offered`, changing only the rows that
   /// differ (vc decision 22, issue 0414).
   ///
@@ -3555,7 +3640,7 @@ impl WbWrite<'_> {
           let (sender, s) = now.sent[offered];
           self.moved += self.tx.execute(
             "UPDATE wb_message SET sender = ?2, recipient = ?3, body = ?4, re = ?5, fyi = ?6, \
-             recorded_at = ?7, authored_at = ?8, edited_at = ?9, \
+             recorded_at = ?7, authored_at = ?8, edited_at = ?9, archived_at = ?10, \
              updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE mid = ?1",
             params![
               s.id,
@@ -3566,7 +3651,8 @@ impl WbWrite<'_> {
               i64::from(s.fyi),
               s.recorded_at,
               s.authored_at,
-              s.edited_at
+              s.edited_at,
+              s.archived_at
             ],
           )?;
         }
@@ -3702,8 +3788,9 @@ impl WbWrite<'_> {
         let (sender, s) = now.sent[o];
         self.moved += self.tx.execute(
           "INSERT INTO wb_message (mid, sender, recipient, body, re, fyi, recorded_at, \
-           authored_at, edited_at, updated_at) \
-           VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+           authored_at, edited_at, archived_at, updated_at) \
+           VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, \
+           strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
           params![
             s.id,
             sender,
@@ -3714,6 +3801,7 @@ impl WbWrite<'_> {
             s.recorded_at,
             s.authored_at,
             s.edited_at,
+            s.archived_at,
           ],
         )?;
       }
@@ -6030,7 +6118,7 @@ impl Store {
   /// The messages `sender` sent, as its board carries them, in `mid` order.
   fn hydrate_sent(conn: &rusqlite::Connection, sender: &str) -> Result<Vec<WbSent>, StoreError> {
     let mut stmt = conn.prepare(
-      "SELECT mid, recipient, body, re, fyi, recorded_at, authored_at, edited_at \
+      "SELECT mid, recipient, body, re, fyi, recorded_at, authored_at, edited_at, archived_at \
        FROM wb_message WHERE sender = ?1 ORDER BY mid",
     )?;
     let rows = stmt.query_map(params![sender], |row| {
@@ -6043,6 +6131,7 @@ impl Store {
         recorded_at: row.get(5)?,
         authored_at: row.get(6)?,
         edited_at: row.get(7)?,
+        archived_at: row.get(8)?,
       })
     })?;
     Ok(rows.collect::<Result<Vec<_>, _>>()?)
@@ -6074,7 +6163,7 @@ impl Store {
   pub fn wb_inbox(&self, recipient: &str) -> Result<Vec<WbMessage>, StoreError> {
     let mut stmt = self.conn.prepare(
       "SELECT m.mid, m.sender, m.recipient, m.body, m.re, m.fyi, k.handled_at, m.recorded_at, \
-       m.authored_at, m.edited_at \
+       m.authored_at, m.edited_at, m.archived_at \
        FROM wb_message m LEFT JOIN wb_mark k ON k.mid = m.mid \
        WHERE m.recipient = ?1 ORDER BY m.mid",
     )?;
@@ -6095,6 +6184,7 @@ impl Store {
         recorded_at: row.get(7)?,
         authored_at: row.get(8)?,
         edited_at: row.get(9)?,
+        archived_at: row.get(10)?,
       })
     })?;
     Ok(rows.collect::<Result<Vec<_>, _>>()?)
@@ -6134,13 +6224,25 @@ impl Store {
     event: &Envelope,
     write: impl FnOnce(&mut WbWrite<'_>) -> Result<T, StoreError>,
   ) -> Result<T, StoreError> {
+    self.wb_write_then_record(write, |_| event.clone())
+  }
+
+  /// [`Self::wb_write`], for a verb whose event names what its write moved
+  /// (issue 0627): `event` is built from the write's answer, inside the same
+  /// transaction, so the log names exactly the rows that moved and never a row
+  /// a concurrent write took out of the selection.
+  pub fn wb_write_then_record<T>(
+    &mut self,
+    write: impl FnOnce(&mut WbWrite<'_>) -> Result<T, StoreError>,
+    event: impl FnOnce(&T) -> Envelope,
+  ) -> Result<T, StoreError> {
     let mut w = WbWrite {
       tx: Self::write_tx(&mut self.conn)?,
       moved: 0,
     };
     let out = write(&mut w)?;
     if w.moved > 0 {
-      let landed = Self::write_landed(&w.tx, event, Stamp::ByTheDatabase)?;
+      let landed = Self::write_landed(&w.tx, &event(&out), Stamp::ByTheDatabase)?;
       w.tx.commit()?;
       self.landed_events.borrow_mut().push(landed);
     }
@@ -6251,15 +6353,47 @@ impl Store {
     recipient: &str,
   ) -> Result<Vec<MessageRow>, StoreError> {
     let mut stmt = self.conn.prepare(
-      "SELECT id, body, recorded_at FROM wb_message WHERE sender = ?1 AND recipient = ?2 \
-       ORDER BY mid",
+      "SELECT id, body, recorded_at, archived_at FROM wb_message \
+       WHERE sender = ?1 AND recipient = ?2 ORDER BY mid",
     )?;
     let rows = stmt.query_map(params![sender, recipient], |row| {
       Ok(MessageRow {
         id: row.get(0)?,
         body: row.get(1)?,
         recorded_at: row.get(2)?,
+        archived_at: row.get(3)?,
       })
+    })?;
+    Ok(rows.collect::<Result<Vec<_>, _>>()?)
+  }
+
+  /// Whether the message on row `id` is archived, and whether a mark names it
+  /// (issue 0627): what an archive that moved nothing tells its caller.
+  pub fn wb_message_archived_and_handled(&self, id: i64) -> Result<(bool, bool), StoreError> {
+    Ok(self.conn.query_row(
+      "SELECT m.archived_at IS NOT NULL, \
+       EXISTS (SELECT 1 FROM wb_mark k WHERE k.mid = m.mid) \
+       FROM wb_message m WHERE m.id = ?1",
+      params![id],
+      |row| Ok((row.get(0)?, row.get(1)?)),
+    )?)
+  }
+
+  /// The messages `sender` sent that their recipients still hold live, as
+  /// (recipient, send instant), to `recipient` alone where one is named, in
+  /// `mid` order (issue 0627): what an archive of the handled ones leaves.
+  pub fn wb_sent_live(
+    &self,
+    sender: &str,
+    recipient: Option<&str>,
+  ) -> Result<Vec<(String, String)>, StoreError> {
+    let mut stmt = self.conn.prepare(
+      "SELECT m.recipient, m.recorded_at FROM wb_message m \
+       WHERE m.sender = ?1 AND (?2 IS NULL OR m.recipient = ?2) \
+       AND NOT EXISTS (SELECT 1 FROM wb_mark k WHERE k.mid = m.mid) ORDER BY m.mid",
+    )?;
+    let rows = stmt.query_map(params![sender, recipient], |row| {
+      Ok((row.get(0)?, row.get(1)?))
     })?;
     Ok(rows.collect::<Result<Vec<_>, _>>()?)
   }

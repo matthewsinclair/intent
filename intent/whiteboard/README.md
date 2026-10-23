@@ -43,7 +43,7 @@ intent/whiteboard/
 ```
 
 - `<node>/wip.md` -- changed only by `<node>` acting through `intent wb --node <node>`; a hand edit is skew and `intent doctor` reports it.
-- `<node>/inbox.<sender>.md` -- written only by `<sender>`, rendered from `<sender>/board.json` alone: appended through `intent wb ask` or `announce`, and a sent message's body changed through `intent wb edit message`; read only by `<node>` (the owner), which clears with `intent wb clear` by marking in its own `board.json`, so the file never changes when it does.
+- `<node>/inbox.<sender>.md` -- written only by `<sender>`, rendered from `<sender>/board.json` alone: appended through `intent wb ask` or `announce`, a sent message's body changed through `intent wb edit message`, and a handled message taken out through `intent wb archive message`; read only by `<node>` (the owner), which clears with `intent wb clear` by marking in its own `board.json`, so the file never changes when it does.
 - A node commits what its own verbs wrote, as each verb prints it on its `wrote:` lines: its `board.json` and `wip.md`, every `<peer>/inbox.<node>.md`, and its own event files. A `re-rendered:` line is another node's file to commit, named with its owner (issue 0612).
 
 ## The board's header block is NOT YAML

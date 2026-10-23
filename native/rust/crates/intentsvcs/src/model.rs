@@ -2432,6 +2432,11 @@ pub struct WbMessage {
   /// `(edited)` mark, and it carries none of the old body.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub edited_at: Option<String>,
+  /// When its sender archived it: [`WbSent::archived_at`], carried beside the
+  /// recipient's `state` rather than folded into it, because the two have
+  /// different writers.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub archived_at: Option<String>,
 }
 
 /// One message as its SENDER's board carries it: every field only the sender
@@ -2467,6 +2472,19 @@ pub struct WbSent {
   /// `(edited)` mark, and it carries none of the old body.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub edited_at: Option<String>,
+  // 0627: the sender's retire of a message its recipient has handled. The
+  // `///` below is published in the schema faces, so the history stays here.
+  /// When the sender archived it, read from the clock at the write; its
+  /// presence is the archived state. Only a message its recipient has handled
+  /// can be archived, and an archived one leaves the recipient's inbox view
+  /// while `wb show --all` still lists it. Archived is a state, never a
+  /// deletion, as it is for an item.
+  ///
+  /// **NOT A VALUE OF THE RECIPIENT'S `WbMessageState`**: that is derived from
+  /// the recipient's marks, and folding the sender's archive into it would give
+  /// one field two writers.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub archived_at: Option<String>,
 }
 
 /// One mark as the RECIPIENT's board carries it: this node handled the message
@@ -2679,6 +2697,8 @@ pub fn boards_from_files(files: Vec<BoardFile>) -> (Vec<Board>, Vec<UncarriedMes
           recorded_at: m.recorded_at,
           authored_at: m.authored_at,
           edited_at: m.edited_at,
+          // The old shape had no archive, so a converted message is never one.
+          archived_at: None,
         });
       }
     }

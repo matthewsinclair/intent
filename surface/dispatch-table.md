@@ -4117,25 +4117,25 @@ The whiteboard: read the node boards, and send between them
 - **THE FAMILY HELP SAYS WHAT THE VERBS DO IN THIS CUT, AND NOT WHAT THE MODEL WILL EVENTUALLY SERVE** (ic, ruled by vc 2026-09-12). It first read `node boards and inboxes, served from the store` while the one shipped verb registered monikers -- a reader typing `intent wb` was told the whiteboard is served and then found a roster registrar. **THE RULE CUTS BOTH WAYS AND THE SECOND CUT CAUGHT THE FIRST FIX** (ic, same day): narrowed to `the node roster in the store`, it was stale again one commit later, when `wb show` began reading whole boards -- promising LESS than the family does, which sends a reader looking elsewhere for a verb that is right there. **So this line moves with every verb group, in whichever direction the group moved it**, and it is not a decision that stays taken.
 - DECLARED AS A FAMILY FROM THE FIRST VERB, not as a root row promoted later. `index` was moved into a family after two root paths sharing a prefix made the prefix itself ambiguous (`intent index` refused, matching `index rebuild` and `index status`); a family that starts as one costs nothing now and cannot arrive at that refusal.
 
-| command       | args               | flags                                     | help                                                                                                   | disposition |
-| ------------- | ------------------ | ----------------------------------------- | ------------------------------------------------------------------------------------------------------ | ----------- |
-| `wb`          | <command>          | --                                        | The whiteboard: read the node boards, and send between them                                            | new-surface |
-| `wb status`   | --                 | --json                                    | List the registered nodes: role, status, heartbeat, and what each is working on                        | new-surface |
-| `wb show`     | <node>             | --all, --json                             | Read one node's board: its header, its items, the messages still live, and a count of the handled ones | new-surface |
-| `wb ask`      | <recipient> <body> | --node, --re, --fyi                       | Send one message from the acting node into another node's board                                        | new-surface |
-| `wb announce` | <body>             | --node                                    | Send one message to every registered node but the sender                                               | new-surface |
-| `wb add`      | <kind> <text>      | --node                                    | Add an item to the acting node's own board                                                             | new-surface |
-| `wb archive`  | <kind> <seq>       | --node                                    | Move one of the acting node's live items to archived                                                   | new-surface |
-| `wb edit`     | <kind> <id> <text> | --node, --to                              | Change the text of one of the acting node's items, live or archived, or of a message it sent           | new-surface |
-| `wb pickup`   | --                 | --node, --session, --focus, --all, --json | Start a session: mark this node active, then its board and its peers' state                            | new-surface |
-| `wb touch`    | --                 | --node                                    | Stamp the acting node's heartbeat                                                                      | new-surface |
-| `wb release`  | --                 | --node                                    | Pause the acting node, stamping when it stopped                                                        | new-surface |
-| `wb decide`   | <text>             | --node                                    | Record a decision on the acting node's own board                                                       | new-surface |
-| `wb claim`    | <id>               | --node                                    | Add a steel thread, work package or issue to the acting node's claims                                  | new-surface |
-| `wb unclaim`  | <id>               | --node                                    | Drop a steel thread, work package or issue from the acting node's claims                               | new-surface |
-| `wb clear`    | <sender>           | --node                                    | Mark every live message one sender sent the acting node handled                                        | new-surface |
-| `wb register` | [moniker]          | --name, --role, --correct                 | Register a node from its arguments, or the roster from each node's own board header                    | new-surface |
-| `wb migrate`  | <node>             | --drop-uncarried                          | Carry one node's hand-authored board into the model                                                    | new-surface |
+| command       | args               | flags                                     | help                                                                                                      | disposition |
+| ------------- | ------------------ | ----------------------------------------- | --------------------------------------------------------------------------------------------------------- | ----------- |
+| `wb`          | <command>          | --                                        | The whiteboard: read the node boards, and send between them                                               | new-surface |
+| `wb status`   | --                 | --json                                    | List the registered nodes: role, status, heartbeat, and what each is working on                           | new-surface |
+| `wb show`     | <node>             | --all, --json                             | Read one node's board: its header, its items, the messages still live, and a count of the handled ones    | new-surface |
+| `wb ask`      | <recipient> <body> | --node, --re, --fyi                       | Send one message from the acting node into another node's board                                           | new-surface |
+| `wb announce` | <body>             | --node                                    | Send one message to every registered node but the sender                                                  | new-surface |
+| `wb add`      | <kind> <text>      | --node                                    | Add an item to the acting node's own board                                                                | new-surface |
+| `wb archive`  | <kind> [seq]       | --node, --to, --handled                   | Move one of the acting node's live items to archived, or a message it sent that its recipient has handled | new-surface |
+| `wb edit`     | <kind> <id> <text> | --node, --to                              | Change the text of one of the acting node's items, live or archived, or of a message it sent              | new-surface |
+| `wb pickup`   | --                 | --node, --session, --focus, --all, --json | Start a session: mark this node active, then its board and its peers' state                               | new-surface |
+| `wb touch`    | --                 | --node                                    | Stamp the acting node's heartbeat                                                                         | new-surface |
+| `wb release`  | --                 | --node                                    | Pause the acting node, stamping when it stopped                                                           | new-surface |
+| `wb decide`   | <text>             | --node                                    | Record a decision on the acting node's own board                                                          | new-surface |
+| `wb claim`    | <id>               | --node                                    | Add a steel thread, work package or issue to the acting node's claims                                     | new-surface |
+| `wb unclaim`  | <id>               | --node                                    | Drop a steel thread, work package or issue from the acting node's claims                                  | new-surface |
+| `wb clear`    | <sender>           | --node                                    | Mark every live message one sender sent the acting node handled                                           | new-surface |
+| `wb register` | [moniker]          | --name, --role, --correct                 | Register a node from its arguments, or the roster from each node's own board header                       | new-surface |
+| `wb migrate`  | <node>             | --drop-uncarried                          | Carry one node's hand-authored board into the model                                                       | new-surface |
 
 ### `wb`
 
@@ -4274,21 +4274,27 @@ Add an item to the acting node's own board
 
 ### `wb archive`
 
-Move one of the acting node's live items to archived
+Move one of the acting node's live items to archived, or a message it sent that its recipient has handled
 
 - **v2:** new-surface
 - **Arguments:**
-  - `kind` (enum, arity `1`) -- one of: `doing`, `todo`, `decision`, `watchout`, `hold`, `directive`
-  - `seq` (string, arity `1`)
+  - `kind` (enum, arity `1`) -- The item's kind, the section of the board it sits in, or `message` for a message you sent -- one of: `doing`, `todo`, `decision`, `watchout`, `hold`, `directive`, `message`
+  - `seq` (string, arity `0..1`) -- The item's number within its kind, as `intent wb show <node>` prints it; for `message`, the message's address, the first stamp in its inbox heading with `#<n>` (from 1, in send order) to pick one of several in a minute, and none with `--handled`
 - **Flags:**
   - `--node` (string) -- The moniker of the node writing
+    - **disposition:** keep
+    - **exposed on mcp:** true
+  - `--to` (string) -- The recipient of the message being archived, with `message` and nothing else; under `--handled`, the one recipient to sweep
+    - **disposition:** keep
+    - **exposed on mcp:** true
+  - `--handled` (bool) -- With `message`: archive every message you sent that its recipient has handled, instead of one
     - **disposition:** keep
     - **exposed on mcp:** true
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- **mutates**
-- **when to use:** USE IT to state that an item is finished with: for a `doing` or `todo` item that is what DONE means, and for a `decision` or `watchout` it is retirement, and for a `hold` it means the condition was met and the work moved on. For a `directive`, which only `hv`'s board carries, it is `hv` retiring one that is spent. The item leaves the live count in that write, which is how a board that refuses a write starts accepting again. DO NOT USE IT expecting a deletion: the row keeps its number and its text and stays readable, it just stops counting. It reports what MOVED, so archiving something already archived says so.
-- **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds, and AC-14.6 read as vc ruled it 2026-09-12. There is no v2 antecedent.
+- **when to use:** USE IT to state that an item is finished with: for a `doing` or `todo` item that is what DONE means, and for a `decision` or `watchout` it is retirement, and for a `hold` it means the condition was met and the work moved on. For a `directive`, which only `hv`'s board carries, it is `hv` retiring one that is spent. The item leaves the live count in that write, which is how a board that refuses a write starts accepting again. DO NOT USE IT expecting a deletion: the row keeps its number and its text and stays readable, it just stops counting. It reports what MOVED, so archiving something already archived says so. A MESSAGE is `wb archive message <seq> --to <recipient>`, `<seq>` being the message's address as `wb edit message` takes it: one message you sent, once its recipient has handled it. It leaves the recipient's inbox view, the file a human reads, while `wb show --all` and the JSON still carry it. A message its recipient still holds live is refused, because only the recipient can say it is handled, and each copy of an announce is archived on its own. `wb archive message --handled` archives every message you sent that its recipient has handled, to `--to` alone where it is given, and names what stays live; it is what a fold runs.
+- **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds, and AC-14.6 read as vc ruled it 2026-09-12. There is no v2 antecedent. The `message` form is issue 0627 (hv's shape ruling of 2026-10-23, vc's spec in the issue's record): a handled message never left its inbox view, which is the file a human reads, and no verb retired one. Its sender archives it, so the single-writer rule holds.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.6
 - **recoverability:** idempotent

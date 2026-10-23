@@ -289,6 +289,10 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // picked.
     | FacadeError::WbNoSuchMessage { .. }
     | FacadeError::WbMessageAmbiguous { .. }
+    // Issue 0627: an archive names a message its recipient still holds live.
+    // Every field was supplied; what is missing is the recipient's mark, which
+    // no fuller call from the sender can supply.
+    | FacadeError::WbMessageLive { .. }
     | FacadeError::WbAlreadyCarried { .. }
     | FacadeError::WbSendersNotRegistered { .. }
     // Issue 0424's refusal: the call takes no fields at all. What is missing is

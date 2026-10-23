@@ -1364,6 +1364,42 @@ pub fn serve(
     }
     "wb archive" => {
       let node = str_arg(args, "node", path)?;
+      // Issue 0627: `message` is a message this node sent, by `seq` (its
+      // address) and `to`, or every one its recipient has handled under
+      // `handled`; the CLI arm takes the same three forms.
+      if str_arg(args, "kind", path)? == "message" {
+        let to = opt_s(path, map, "to")?;
+        return match (opt_s(path, map, "seq")?, opt_b(path, map, "handled")?, to) {
+          (None, true, to) => {
+            let sweep = f.wb_archive_handled(node, to)?;
+            let stamped = |to: &str, at: &str| json!({ "to": to, "anchor": intentsvcs::views::board_stamp(at) });
+            Ok(json!({
+              "node": node,
+              "archived": sweep.archived.iter().map(|m| stamped(m.recipient.as_str(), m.recorded_at.as_str())).collect::<Vec<_>>(),
+              "live": sweep.live.iter().map(|(to, at)| stamped(to.as_str(), at.as_str())).collect::<Vec<_>>(),
+              "written": f.take_written(node),
+              "notes": intentsvcs::facade::notes_json(&f.take_notes()),
+            }))
+          }
+          (Some(seq), false, Some(to)) => {
+            let moved = f.wb_archive_message(node, to, seq)?;
+            Ok(
+              json!({ "node": node, "moved": moved, "written": f.take_written(node), "notes": intentsvcs::facade::notes_json(&f.take_notes()) }),
+            )
+          }
+          _ => Err(args_err(
+            path,
+            "`message` takes `seq`, the message's address, with `to`, or `handled` with no `seq`",
+          )),
+        };
+      }
+      // Refused rather than ignored, as the CLI arm refuses them.
+      if opt_s(path, map, "to")?.is_some() || opt_b(path, map, "handled")? {
+        return Err(args_err(
+          path,
+          "`to` and `handled` name messages this node sent, and an item `kind` is an item on its own board",
+        ));
+      }
       let kind = crate::render::wb_item_kind(str_arg(args, "kind", path)?)
         .map_err(|e| failure_args(path, e))?;
       let seq: u32 = str_arg(args, "seq", path)?

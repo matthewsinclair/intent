@@ -72,5 +72,5 @@
   "title": "Issue",
   "type": "object",
   "x-intent-ver": "3.2.5",
-  "x-schema-json-ver": 23
+  "x-schema-json-ver": 24
 }

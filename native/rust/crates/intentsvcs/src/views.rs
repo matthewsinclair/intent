@@ -2092,8 +2092,9 @@ pub(crate) fn is_whiteboard_written(project: &Project, path: &std::path::Path) -
 ///
 /// **IT IS ALSO A MESSAGE'S ANCHOR** (issue 0523): `wb edit message` finds a
 /// message by the stamp its inbox heading shows, so it asks this function
-/// rather than spelling the format a second time.
-pub(crate) fn board_stamp(iso: &str) -> String {
+/// rather than spelling the format a second time. Public since issue 0627, so
+/// the CLI names what `wb archive message --handled` moved by the same stamp.
+pub fn board_stamp(iso: &str) -> String {
   match (iso.find('T'), iso.len() >= 16) {
     (Some(10), true) => format!("{} {}Z", &iso[..10], &iso[11..16]),
     _ => iso.to_string(),
@@ -2175,6 +2176,18 @@ pub fn edited_mark(edited_at: Option<&String>) -> &'static str {
 pub fn handled_mark(state: &crate::model::WbMessageState) -> &'static str {
   if *state == crate::model::WbMessageState::Handled {
     " (handled)"
+  } else {
+    ""
+  }
+}
+
+/// The mark a message its sender has archived carries wherever it is still
+/// listed (issue 0627): after `(handled)` on the CLI's line under `--all`, and
+/// beside an address a message refusal lists. **NOT IN THE INBOX VIEW**, which
+/// leaves an archived message out altogether.
+pub fn archived_mark(archived_at: Option<&String>) -> &'static str {
+  if archived_at.is_some() {
+    " (archived)"
   } else {
     ""
   }
@@ -2271,6 +2284,11 @@ pub fn wb_board_body(board: &crate::model::Board) -> String {
 /// view is the sender's to write, so a recipient's clear changes no file but its
 /// own `board.json`; handled state shows in `wb pickup` and `wb show --all`,
 /// which read the store.
+///
+/// **EXCEPT WHAT ITS SENDER HAS ARCHIVED** (issue 0627): the sender's own act,
+/// on the sender's own board, so the view still has one writer. An archived
+/// message is left out with no count, as if it had never been rendered there,
+/// and `wb show --all` and the JSON still carry it.
 pub fn wb_inbox(
   sender: &str,
   recipient: &str,
@@ -2288,7 +2306,10 @@ pub fn wb_inbox(
 /// the sender's board's, in its own order, which is send order.
 pub fn wb_inbox_body(sender: &str, recipient: &str, sent: &[crate::model::WbSent]) -> String {
   let mut out = format!("# inbox: {sender} -> {recipient}\n\n");
-  let mine: Vec<&crate::model::WbSent> = sent.iter().filter(|m| m.recipient == recipient).collect();
+  let mine: Vec<&crate::model::WbSent> = sent
+    .iter()
+    .filter(|m| m.recipient == recipient && m.archived_at.is_none())
+    .collect();
   if mine.is_empty() {
     out.push_str(&format!("{EMPTY_INBOX}\n"));
     return out;

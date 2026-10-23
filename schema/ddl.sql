@@ -1,5 +1,5 @@
 -- INTENT_VER: 3.2.5
--- SCHEMA_DDL_VER: 27
+-- SCHEMA_DDL_VER: 28
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
 -- The durable source of truth for a project, not an index of its files.
@@ -688,7 +688,8 @@ CREATE TABLE IF NOT EXISTS wb_item (
 -- order a message is read in is `mid` order, which is send order, so it is
 -- the same in every clone; `id` is this store's row number and nothing else.
 -- A message is the SENDER's: this table is the store's image of every board's
--- `sent`, and holds nothing the recipient writes.
+-- `sent`, and holds nothing the recipient writes. `archived_at` is the sender's
+-- archive of a message its recipient has handled, which leaves the inbox view.
 -- openness: carried by intent/whiteboard/<node>/board.json
 CREATE TABLE IF NOT EXISTS wb_message (
   id INTEGER PRIMARY KEY,
@@ -701,7 +702,8 @@ CREATE TABLE IF NOT EXISTS wb_message (
   recorded_at TEXT NOT NULL,
   authored_at TEXT,
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
-  edited_at TEXT
+  edited_at TEXT,
+  archived_at TEXT
 );
 -- **EVERY MARK HAS ONE HOME, AND IT IS HERE**: the store's image of every
 -- board's `handled`. A message is handled when a mark names its `mid`; a mark

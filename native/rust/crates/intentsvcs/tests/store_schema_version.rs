@@ -345,8 +345,13 @@ fn the_schema_version_is_bumped_whenever_the_ddl_changes() {
   // `handled_at`, and `wb_mark` holds every mark. One rebuild, for rung 15's
   // reason, after a Rust step in the rung's transaction derives each existing
   // row's id, which SQLite cannot compute.
-  const PINNED_SCHEMA_HASH: u64 = 0x8439_9dc7_3672_c8d3;
-  const PINNED_FOR_VERSION: i32 = 32;
+  //
+  // 33 is `wb_message.archived_at` (0627), the sender's archive of a message
+  // its recipient has handled, which takes it out of the inbox view. One
+  // rebuild, for rung 15's reason, as rung 30 added `edited_at`; existing rows
+  // start null, since nothing was archived before the rung.
+  const PINNED_SCHEMA_HASH: u64 = 0x3a6d_3544_f0b2_f28e;
+  const PINNED_FOR_VERSION: i32 = 33;
 
   assert_eq!(
     SCHEMA_VERSION, PINNED_FOR_VERSION,
@@ -384,6 +389,66 @@ fn the_schema_version_is_bumped_whenever_the_ddl_changes() {
 /// **The rule the failure earned: a version number is a claim about SHAPE, so
 /// once any store has run a rung, changing what that rung produces needs a NEW
 /// rung.** The old rung's output is already stamped and unreachable.
+/// **RUNG 33 CARRIES EVERY MESSAGE ACROSS AND ARCHIVES NONE** (issue 0627): a
+/// store at 32 holds `wb_message` without `archived_at`, and the rebuild keeps
+/// each row, its `mid` and its body, with the new column null, because nothing
+/// was archived before the rung. Red at the base, whose DDL has no such column.
+#[test]
+fn rung_33_carries_every_message_and_archives_none() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let path = dir.path().join("intent.db");
+  {
+    let conn = Connection::open(&path).expect("create");
+    conn.execute_batch(DDL).expect("apply the current DDL");
+    conn
+      .execute_batch(
+        "DROP TABLE wb_message;
+         CREATE TABLE wb_message (
+           id INTEGER PRIMARY KEY,
+           mid TEXT NOT NULL,
+           sender TEXT NOT NULL,
+           recipient TEXT NOT NULL,
+           body TEXT NOT NULL,
+           re TEXT,
+           fyi INTEGER NOT NULL DEFAULT 0,
+           recorded_at TEXT NOT NULL,
+           authored_at TEXT,
+           updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+           edited_at TEXT
+         );
+         INSERT INTO wb_message (mid, sender, recipient, body, fyi, recorded_at)
+           VALUES ('01K5Z00000000000000000QK01', 'cc', 'vc', 'the kestrel', 1,
+                   '2026-10-23T12:00:00.000Z');",
+      )
+      .expect("lay down the shape at 32");
+    conn.pragma_update(None, "user_version", 32).expect("stamp");
+  }
+
+  drop(Store::open(&path).expect("a store at 32 opens and is walked forward"));
+  assert_eq!(
+    version_of(&path),
+    SCHEMA_VERSION,
+    "walked all the way forward"
+  );
+
+  let conn = Connection::open(&path).expect("reopen");
+  let row: (String, String, Option<String>) = conn
+    .query_row(
+      "SELECT mid, body, archived_at FROM wb_message WHERE sender = 'cc'",
+      [],
+      |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)),
+    )
+    .expect("the message is carried, and the new column exists");
+  assert_eq!(
+    row,
+    (
+      "01K5Z00000000000000000QK01".to_string(),
+      "the kestrel".to_string(),
+      None
+    )
+  );
+}
+
 #[test]
 fn a_store_stamped_by_an_earlier_draft_of_a_rung_is_walked_forward_not_refused() {
   let dir = tempfile::tempdir().expect("tempdir");

@@ -4483,7 +4483,28 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       // archived `watchout` for any word at all (`wb archive nonsense 1`,
       // driven). `enum_arg` reads the roster the table declares, so the
       // vocabulary has one home and this match cannot outlive it.
-      let kind = wb_item_kind(enum_arg(m, "wb archive", "kind")?.as_str())?;
+      let kind = enum_arg(m, "wb archive", "kind")?;
+      // **AN ITEM AND A MESSAGE ARE TWO ADDRESSES ON ONE VERB, AS ON `wb edit`**
+      // (issue 0627): an item is a number on your own board, a message is one
+      // you sent, found by its address and `--to`, or every one its recipient
+      // has handled under `--handled`. Each form refuses the other's flags and
+      // every refusal shows all three forms.
+      let to = opt(m, "to")?;
+      let handled = m.get_flag("handled");
+      if kind == "message" {
+        return archive_messages(m, &me, to.as_deref(), handled);
+      }
+      if to.is_some() || handled {
+        return Err(archive_forms(&format!(
+          "`--to` and `--handled` name messages you sent, and a `{kind}` is an item on your own board"
+        )));
+      }
+      let kind = wb_item_kind(&kind)?;
+      if opt(m, "seq")?.is_none() {
+        return Err(archive_forms(
+          "`wb archive <kind>` archives one of your items, so it needs the item's number",
+        ));
+      }
       let seq = item_seq(m, "seq")?;
       let mut f = open()?;
       // **WHAT MOVED, NOT WHAT WAS ASKED FOR.** Archiving something already
@@ -4836,11 +4857,13 @@ fn report_wb_board(
   println!("messages ({})", read.messages.len());
   for msg in &read.messages {
     println!(
-      "  {} -> {}{}{}{} {}",
+      "  {} -> {}{}{}{}{} {}",
       msg.sender,
       msg.recipient,
       if msg.fyi { " (fyi)" } else { "" },
       intentsvcs::views::handled_mark(&msg.state),
+      // Issue 0627: its sender archived it, so its inbox view no longer shows it.
+      intentsvcs::views::archived_mark(msg.archived_at.as_ref()),
       intentsvcs::views::edited_mark(msg.edited_at.as_ref()),
       msg.body
     );
@@ -4901,6 +4924,89 @@ pub(crate) fn wb_item_kind(wire: &str) -> Result<intentsvcs::model::WbItemKind, 
       "error: the table declares `{other}` as an item kind and this build has no arm for it"
     ))),
   }
+}
+
+/// `wb archive message` (issue 0627): one message you sent, by its address and
+/// `--to`, once its recipient has handled it; or with `--handled`, every message
+/// you sent that its recipient has handled, to `--to` alone where it is given.
+///
+/// **WHAT MOVED, NOT WHAT WAS ASKED FOR**, as the item form answers: an archive
+/// of a message already archived, or a sweep with nothing handled, moves
+/// nothing and says so. The sweep names what stays live with its recipient
+/// rather than leaving it out in silence.
+fn archive_messages(
+  m: &ArgMatches,
+  me: &str,
+  to: Option<&str>,
+  handled: bool,
+) -> Result<(), Failure> {
+  match (opt(m, "seq")?, handled) {
+    (Some(_), true) => Err(archive_forms(
+      "`--handled` archives every message its recipient has handled, so it takes no address",
+    )),
+    (None, false) => Err(archive_forms(
+      "`wb archive message` needs a message's address and `--to <recipient>`, or `--handled`",
+    )),
+    (Some(id), false) => {
+      let Some(to) = to else {
+        return Err(archive_forms(
+          "`wb archive message <anchor>` archives a message you sent, so it needs `--to <recipient>`",
+        ));
+      };
+      let mut f = open()?;
+      let moved = f.wb_archive_message(me, to, &id).map_err(fail)?;
+      print_notes(&f.take_notes(), me);
+      println!(
+        "ok: {me} {}",
+        if moved {
+          format!("archived message {id} for {to}")
+        } else {
+          format!("message {id} for {to} is already archived")
+        }
+      );
+      print_written(&f.take_written(me));
+      Ok(())
+    }
+    (None, true) => {
+      let mut f = open()?;
+      let sweep = f.wb_archive_handled(me, to).map_err(fail)?;
+      print_notes(&f.take_notes(), me);
+      if sweep.archived.is_empty() {
+        println!("ok: {me} has no handled message to archive");
+      } else {
+        println!(
+          "ok: {me} archived {} message(s) its recipients have handled",
+          sweep.archived.len()
+        );
+      }
+      for archived in &sweep.archived {
+        println!(
+          "  archived: {} {}",
+          archived.recipient,
+          intentsvcs::views::board_stamp(&archived.recorded_at)
+        );
+      }
+      for (recipient, recorded_at) in &sweep.live {
+        println!(
+          "  still live with {recipient}: {}",
+          intentsvcs::views::board_stamp(recorded_at)
+        );
+      }
+      print_written(&f.take_written(me));
+      Ok(())
+    }
+  }
+}
+
+/// A `wb archive` refusal that shows the verb's three forms (issue 0627), for
+/// the reason [`edit_forms`] shows both of `wb edit`'s.
+fn archive_forms(why: &str) -> Failure {
+  Failure::Error(format!(
+    "error: {why}\n  remedy: `intent wb archive <kind> <seq> --node <you>` archives one of your \
+     items; `intent wb archive message <anchor> --to <recipient> --node <you>` archives a message \
+     you sent once its recipient has handled it; `intent wb archive message --handled [--to \
+     <recipient>] --node <you>` archives every such message"
+  ))
 }
 
 /// A `wb edit` refusal that shows both of the verb's forms (issue 0523): the

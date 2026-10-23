@@ -463,13 +463,15 @@ Every file has one writer, its node, and every view renders from one file: a nod
 
 | Field     | Form                                                                        |
 | --------- | --------------------------------------------------------------------------- |
-| `schema`  | always `intent/board@4.0`, the published face's own version marker          |
+| `schema`  | always `intent/board@4.0`, the shape's structural marker (see below)        |
 | `node`    | this board's own `wb_node` -- the header block, modelled                    |
 | `items`   | this node's `wb_item` rows, in insertion order (ROWID)                      |
 | `sent`    | the `wb_message` rows this node SENT, in id order, which is send order      |
 | `handled` | this node's `wb_mark` rows, its marks on the messages it has handled, by id |
 
 **A message lands in its SENDER's file and a mark in its RECIPIENT's**, so a node that commits its own `board.json` and the inbox views its verbs wrote has committed everything those verbs changed, and a fresh checkout of that commit reads clean: AC-14.5's single-writer invariant is a property of the file as well as of the API. A message carries an id minted at the send, the one key a mark names across clones; a message that predates this shape carries an id derived from its old row, so every clone that converts it agrees. This placement is issue 0612's (2026-10-22).
+
+**The `schema` string marks a structural break a reader must implement, and `SCHEMA_JSON_VER` marks the contract** (vc's ruling on issue 0627, 2026-10-23). The string moved from `3.0` to `4.0` at 0612, where a message changed boards and a reader had to convert; it did not move when 0525 added the optional `edited_at`, or when 0627 added the optional `archived_at`, and the face version moved both times. Every board type denies unknown fields, so a reader refuses a board that carries a field newer than itself rather than reading it as absent: a board written by a later release is read by that release or later.
 
 ### wb_node / wb_item / wb_message / wb_mark (`whiteboard/<node>/board.json`; D30, WP-14)
 
@@ -479,7 +481,7 @@ The coordination entities, **modelled and in the store from ST0069 WP-14**, insi
 | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `wb_node`    | `moniker` (PK), `name`, `role`, `session_id?`, `heartbeat_at`, `status` (`active · paused`), `focus`, `claims[]`, `recorded_at`, `authored_at?`, `migrated_at?`       |
 | `wb_item`    | `node`, `kind` (`doing · todo · decision · watchout · hold`), `seq`, `text`, `state` (`live · archived`), `archived_at?`, `recorded_at`, `authored_at?`, `edited_at?` |
-| `wb_message` | `id` (the store's `mid`, minted at the send), `recipient`, `body`, `re?` (prior anchor), `fyi` (bool), `recorded_at`, `authored_at?`, `edited_at?`                    |
+| `wb_message` | `id` (the store's `mid`, minted at the send), `recipient`, `body`, `re?` (prior anchor), `fyi` (bool), `recorded_at`, `authored_at?`, `edited_at?`, `archived_at?`    |
 | `wb_mark`    | `id` (the store's `mid`: the message this marks), `sender`, `handled_at`                                                                                              |
 
 Each `wb_message` and `wb_mark` row above is the face its board carries: a message in its sender's `sent`, a mark in its recipient's `handled`. The store's row adds the node the board leaves implicit, `sender` on `wb_message` and `recipient` on `wb_mark`, and names the id `mid` beside its own ROWID. A message is handled when a mark names it; a mark whose message no board carries yet is kept, counted by nothing, and joins its message when that arrives.

@@ -536,6 +536,9 @@ fn populated() -> (Fixture, Vec<String>) {
     recorded_at: stamp.clone(),
     authored_at: None,
     edited_at: Some("2026-09-23T10:00:01.000Z".to_string()),
+    // Handled below and then archived by its sender (issue 0627), so the
+    // round trip carries the sender's archive stamp as well as the mark.
+    archived_at: Some("2026-09-23T10:00:02.000Z".to_string()),
   });
   boards[0].handled.push(intentsvcs::model::WbHandled {
     id,
