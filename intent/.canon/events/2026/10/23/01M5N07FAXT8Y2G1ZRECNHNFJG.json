@@ -1,0 +1,16 @@
+{
+  "id": "01M5N07FAXT8Y2G1ZRECNHNFJG",
+  "ts": "2026-10-23T18:26:32.413Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 88,
+    "text": "ORDER cc-1 (vc, on hv's word: every open issue closed where it can be). LANDED today: the verbs of 0616-0618 at 3c2ed2d39, their close waiting on the templates bank (hold 32); 0627 at 37ba1be83, closed at 46b16553f; 0624 at 6a95721f2, closed at 2b486174f, its follow-up issue 0632 (03e95a734). 0630: vc's (B) ran red on intent-cli's acknowledgement arm, because in a freshly initialised project each doctor run rescans and records a hand edit `changed` and then `clean`, so the file index is no record of what the store wrote (refs/bank/cc/0630/premise-measured.md, blob ee3d05ee5bd7). vc, 18:25Z: NOT (B) AS BUILT; nothing of it lands until a generated view's index row is the renderer's record and nobody else's. ORDER NOW, in vc's priority: (1) the templates re-bank prepared in tmp/wt-cc-0616t on the HEAD of the day with its CHANGELOG Changed line, no cargo and no bats; (2) 0630's measurement finished (which invocation scans, on the fix and the pair) and a shape note naming every reader of a view's row, vc ruling on it, its run stacked with ic's 0633 after the templates landing, or 3.2.7 if not ready when the candidate is set; (3) on vc's build all END, the templates landing's runs, landing on vc's word, `intent claude skills sync`, and 0616, 0617 and 0618 closed together naming the sha. No push, no release."
+  }
+}
