@@ -12046,6 +12046,21 @@ fn print_notes(notes: &[Note], subject: &str) {
           "  remedy: `git add <path>` stages the corrected file, and `git restore --staged <path>` unstages it"
         );
       }
+      // Issue 0614: what the write did NOT do, named, so a view left behind
+      // the store reads as a decision rather than as a missed render.
+      Note::BoardsLeftUnrecorded(paths) => {
+        eprintln!(
+          "warning: left these boards as they are on disk -- each differs from this store's board and the store holds no record of its bytes, so it cannot tell which is newer, and writing it could put an older board over a newer one:"
+        );
+        for path in paths {
+          eprintln!("  {path}");
+        }
+        eprintln!(
+          "{}{}",
+          intentsvcs::remedy::REMEDY_PREFIX,
+          intentsvcs::facade::BOARD_LEFT_UNRECORDED_REMEDY
+        );
+      }
       Note::StepFailedAfterWrite {
         step,
         cause,

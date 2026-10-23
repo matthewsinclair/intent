@@ -2832,6 +2832,34 @@ pub fn boards_ahead_of_the_store(
   ahead.into_iter().map(str::to_string).collect()
 }
 
+/// Whether a board write must leave `node`'s board as it is on disk (issue
+/// 0614): its `board.json` exists, differs from the store's render of it, and
+/// the file index holds no record of its bytes.
+///
+/// **NO RECORD MEANS NOTHING SAYS WHICH SIDE IS NEWER.** A file whose bytes
+/// match the index is where the store left it, and one that does not has moved
+/// under it, which is how [`boards_ahead_of_the_store`] tells a pull from the
+/// store's own unlanded write. With no record neither can be told, and writing
+/// the render puts an older board over a newer file whenever a pull or a rebase
+/// brought one: a store an Intent before 0619's fix warmed recorded no board's
+/// bytes, and its next board write rendered a peer's board backwards (driven on
+/// 3.2.4, and on 3.2.5 over a store 3.2.4 warmed). So the write leaves it.
+///
+/// **THE ACTING NODES' OWN BOARDS ARE NEVER LEFT** (vc, 2026-10-23): the act
+/// lands as the user asked, and leaving it would make `intent sync --to-store`,
+/// the remedy for the others, read the old file over the new write.
+///
+/// **PURE**: the caller reads the disk and the index.
+pub fn board_left_unrecorded(
+  acting: &[&str],
+  node: &str,
+  recorded: bool,
+  on_disk: Option<&[u8]>,
+  rendered: &[u8],
+) -> bool {
+  !acting.contains(&node) && !recorded && on_disk.is_some_and(|bytes| bytes != rendered)
+}
+
 /// The difference between the boards the store holds and the boards a restore
 /// offers, by natural key (vc decision 22, issue 0414).
 ///

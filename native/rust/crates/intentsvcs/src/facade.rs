@@ -3555,6 +3555,16 @@ pub enum Note {
   /// the staged bytes rather than the corrected ones. The verb does not stage:
   /// the index is the operator's, so this names the paths and the command.
   StagedBeforeTheEdit(Vec<String>),
+  /// A board write LEFT these boards as they are on disk, each named by its
+  /// project-relative `board.json` (issue 0614), because the store could not
+  /// tell whether the file or its own board is newer
+  /// ([`crate::model::board_left_unrecorded`]).
+  ///
+  /// **A WARNING AND NOT A REFUSAL, BECAUSE THE ACT LANDED** (vc, 2026-10-23).
+  /// The acting node's board is written and the verb exits as the act did; only
+  /// the boards nothing records are left, and a left board's file is kept out
+  /// of the file index, so the index never claims bytes the store did not write.
+  BoardsLeftUnrecorded(Vec<String>),
   /// A unit closed while its objective was still unwritten (issue 0337). It
   /// carries the address `intent set` takes for that unit.
   UnwrittenObjective(String),
@@ -3592,6 +3602,18 @@ impl Note {
   }
 }
 
+/// The two doors for a `board.json` this store does not hold as the file does,
+/// and which version each keeps: ONE HOME for the text the refusal's remedy
+/// ([`BOARDS_NOT_IN_THE_STORE_REMEDY`]) and the left board's
+/// ([`BOARD_LEFT_UNRECORDED_REMEDY`]) share, since they differ only in what
+/// happens until a door runs (issue 0614). A macro because `concat!` takes
+/// literals, and both remedies stay `&'static str`.
+macro_rules! board_file_doors {
+  () => {
+    "`intent sync --to-store` carries each board.json into this store with everything it holds, OVER what the store holds for that node: its items, archived ones included, the messages it sent and its marks on the messages it handled. After a pull that is your teammates' writes; after checking out an older commit it is that commit's older board, and carrying it rolls this store's board back. To keep the store's board instead, delete that node's board.json and run `intent sync --to-disk`, which re-creates it from the store and discards the file's version."
+  };
+}
+
 /// The remedy when the views a landed write renders could not be written:
 /// [`FacadeError::ViewsNotWritten`]'s and the landed-write note's, in one home
 /// (0376).
@@ -3625,7 +3647,17 @@ const RERENDER_REMEDY: &str = "the change is safe in the store -- do NOT retry i
 /// file bytes reached from outside the store is usually a teammate's write a
 /// pull brought, and carrying it is right; a checkout of an older commit puts
 /// bytes there too, and carrying those rolls the store's board back.
-pub(crate) const BOARDS_NOT_IN_THE_STORE_REMEDY: &str = "`intent sync --to-store` carries each board.json into this store with everything it holds, OVER what the store holds for that node: its items, archived ones included, the messages it sent and its marks on the messages it handled. After a pull that is your teammates' writes; after checking out an older commit it is that commit's older board, and carrying it rolls this store's board back. To keep the store's board instead, delete that node's board.json and run `intent sync --to-disk`, which re-creates it from the store and discards the file's version. Until one of them runs, every board write, `wb register` and `wb migrate` are refused, because each would write the store's board over one of these files. A store an older Intent warmed, which took the threads and issues and no board, is the other usual cause";
+pub(crate) const BOARDS_NOT_IN_THE_STORE_REMEDY: &str = concat!(
+  board_file_doors!(),
+  " Until one of them runs, every board write, `wb register` and `wb migrate` are refused, because each would write the store's board over one of these files. A store an older Intent warmed, which took the threads and issues and no board, is the other usual cause"
+);
+
+/// The remedy for a board a write LEFT as it is on disk (issue 0614): the same
+/// two doors as `BOARDS_NOT_IN_THE_STORE_REMEDY`, and nothing is refused.
+pub const BOARD_LEFT_UNRECORDED_REMEDY: &str = concat!(
+  board_file_doors!(),
+  " Until one of them runs, every board write leaves that board as it is on disk and names it here. A store an Intent before 3.2.5 warmed, which recorded no board's bytes, is the usual cause"
+);
 
 pub(crate) const BOARD_RERENDER_REMEDY: &str = "the row is safe in the store and the TREE is behind it -- do NOT retry the write. Clear the filesystem cause, then run `intent wb touch --node <you>`: a board's views are landed by a board write and by nothing else. NOT `intent organize`, which renders no board, and NOT `intent st sync`, which rewrites a thread's views only -- either one reports a clean run and leaves the board stale";
 
@@ -3850,6 +3882,9 @@ pub fn notes_json(notes: &[Note]) -> serde_json::Value {
       }),
       Note::StagedBeforeTheEdit(paths) => serde_json::json!({
         "kind": "staged-before-the-edit", "paths": paths,
+      }),
+      Note::BoardsLeftUnrecorded(paths) => serde_json::json!({
+        "kind": "boards-left-unrecorded", "paths": paths, "remedy": BOARD_LEFT_UNRECORDED_REMEDY,
       }),
       Note::UnwrittenObjective(unit) => serde_json::json!({
         "kind": "unwritten-objective", "unit": unit,
@@ -7800,7 +7835,7 @@ impl Facade {
       self.reindex_boards()?;
       self.land_event_files()?;
     } else {
-      self.land_board_write_noting()?;
+      self.land_board_write_noting(&[moniker])?;
     }
     Ok(written)
   }
@@ -7851,7 +7886,7 @@ impl Facade {
       .wb_node_migrated(moniker)
       .map_err(FacadeError::Store)?
     {
-      self.land_board_write_noting()?;
+      self.land_board_write_noting(&[moniker])?;
     } else {
       self.reindex_boards()?;
       self.land_event_files()?;
@@ -8030,9 +8065,12 @@ impl Facade {
   /// **EVERY CALLER HAS COMMITTED ITS ROW BEFORE THIS RUNS** (vc, ruled
   /// 2026-09-14). Returning the failure as the verb's own sent the caller to
   /// retry a write the store already held, and `wb add` doubled a row that way.
-  fn land_board_write_noting(&mut self) -> Result<(), FacadeError> {
+  ///
+  /// `acting` names the nodes whose boards this write changed; theirs are never
+  /// left (issue 0614, [`Self::land_board_write`]).
+  fn land_board_write_noting(&mut self, acting: &[&str]) -> Result<(), FacadeError> {
     // Issue 0376: this failure was returned as the write's own.
-    match self.land_board_write() {
+    match self.land_board_write(acting) {
       Ok(()) => Ok(()),
       Err(
         torn @ FacadeError::ViewsNotWritten {
@@ -8078,17 +8116,35 @@ impl Facade {
   /// index only. [`Self::wb_migrate`] reads every file first and lands its
   /// views once the carry is written, which is when the tree and the store can
   /// agree.
-  fn land_board_write(&mut self) -> Result<(), FacadeError> {
+  ///
+  /// **SAVE A BOARD NOTHING RECORDS, WHICH IS LEFT AND NAMED** (issue 0614).
+  /// Overwriting a hand edit is right because the index says where the store
+  /// left the file. A `board.json` the index holds no record of, and whose
+  /// bytes differ from the render, may be newer than the store -- a pull or a
+  /// rebase into a store an older Intent warmed -- so every file that node
+  /// writes is left as it is, kept out of the record, and named with the
+  /// remedy. `acting`'s boards always land: they hold the act itself.
+  fn land_board_write(&mut self, acting: &[&str]) -> Result<(), FacadeError> {
     self.reindex_boards()?;
     let Projection { set, canon_files } = self.projection(&self.canon, &[], &[], None, None)?;
     let whiteboard = self.project.whiteboard_dir();
+    let left = self.boards_to_leave(&set, acting)?;
+    let leaves = |path: &std::path::Path| {
+      views::whiteboard_writer(&self.project, path).is_some_and(|node| left.contains(&node))
+    };
     let mut boards = WriteSet::new();
     for (path, content) in set
       .writes()
-      .filter(|(path, _)| path.starts_with(&whiteboard))
+      .filter(|(path, _)| path.starts_with(&whiteboard) && !leaves(path))
     {
       boards.add_bytes(path.to_path_buf(), content.to_vec());
     }
+    // Filtered before the commit: `leaves` reads the project, and noting what
+    // landed takes the facade.
+    let canon_files: Vec<(std::path::PathBuf, String)> = canon_files
+      .into_iter()
+      .filter(|(path, _)| path.starts_with(&whiteboard) && !leaves(path))
+      .collect();
     // The board write's event travels with the boards it changed (ST0078 P1).
     self.add_event_files(&mut boards)?;
     let applied = boards
@@ -8097,11 +8153,76 @@ impl Facade {
     let landed: Vec<std::path::PathBuf> = applied.written().map(std::path::PathBuf::from).collect();
     self.note_landed(&applied);
     applied.keep();
-    let canon_files: Vec<(std::path::PathBuf, String)> = canon_files
-      .into_iter()
-      .filter(|(path, _)| path.starts_with(&whiteboard))
-      .collect();
+    if !left.is_empty() {
+      self.after_write.push(Note::BoardsLeftUnrecorded(
+        left
+          .iter()
+          .map(|node| self.project.relative(&self.project.board_json(node)))
+          .collect(),
+      ));
+    }
     self.record_landed(&canon_files, &landed)
+  }
+
+  /// The nodes whose boards this write must leave as they are on disk (issue
+  /// 0614): each `board.json` in the projection that exists, differs from its
+  /// render and has no record in the file index, save `acting`'s, decided by
+  /// [`crate::model::board_left_unrecorded`]. This reads the disk and the
+  /// index; the decision is the model's.
+  ///
+  /// **THE INDEX IS READ ONLY WHEN IT CAN CHANGE THE ANSWER.** Each board is
+  /// asked first as though nothing recorded it, and only one that would then be
+  /// left is looked up, so a write whose only changed board is the acting
+  /// node's own -- nearly every write -- never reads the index.
+  fn boards_to_leave(
+    &self,
+    set: &WriteSet,
+    acting: &[&str],
+  ) -> Result<std::collections::BTreeSet<String>, FacadeError> {
+    let mut unless_recorded = Vec::new();
+    for (path, rendered) in set.writes() {
+      if path.file_name().is_none_or(|name| name != "board.json") {
+        continue;
+      }
+      let Some(node) = views::whiteboard_writer(&self.project, path) else {
+        continue;
+      };
+      let on_disk = match path.exists() {
+        true => Some(Self::read_board_bytes(path)?),
+        false => None,
+      };
+      if crate::model::board_left_unrecorded(acting, &node, false, on_disk.as_deref(), rendered) {
+        unless_recorded.push((node, self.project.relative(path)));
+      }
+    }
+    if unless_recorded.is_empty() {
+      return Ok(std::collections::BTreeSet::new());
+    }
+    let recorded: std::collections::HashSet<String> = self
+      .store
+      .file_index()
+      .map_err(FacadeError::Store)?
+      .into_iter()
+      .map(|entry| entry.path)
+      .collect();
+    Ok(
+      unless_recorded
+        .into_iter()
+        .filter(|(_, rel)| !recorded.contains(rel))
+        .map(|(node, _)| node)
+        .collect(),
+    )
+  }
+
+  /// A `board.json`'s bytes, its path named on failure: an unreadable file is
+  /// an error, never a quiet "nothing on disk".
+  fn read_board_bytes(path: &std::path::Path) -> Result<Vec<u8>, FacadeError> {
+    std::fs::read(path).map_err(|source| {
+      FacadeError::Ingest(IngestError::Io {
+        path: path.display().to_string(),
+        source,
+      })
+    })
   }
 
   /// Refuse an entry body the acting node's bound does not admit.
@@ -8359,7 +8480,7 @@ impl Facade {
       .store
       .wb_write(&event, |w| w.touch(node))
       .map_err(FacadeError::Store)?;
-    self.land_board_write_noting()?;
+    self.land_board_write_noting(&[node])?;
     Ok(())
   }
 
@@ -8383,7 +8504,7 @@ impl Facade {
         w.touch(node)
       })
       .map_err(FacadeError::Store)?;
-    self.land_board_write_noting()?;
+    self.land_board_write_noting(&[node])?;
     Ok(())
   }
 
@@ -8426,7 +8547,7 @@ impl Facade {
         )
       })
       .map_err(FacadeError::Store)?;
-    self.land_board_write_noting()?;
+    self.land_board_write_noting(&[node])?;
     let boards = self.canon.boards.clone();
     #[allow(
       clippy::expect_used,
@@ -8595,7 +8716,7 @@ impl Facade {
       .store
       .wb_write(&event, |w| w.insert_item(node, &wire, text, None))
       .map_err(FacadeError::Store)?;
-    self.land_board_write_noting()?;
+    self.land_board_write_noting(&[node])?;
     Ok(seq)
   }
 
@@ -8898,7 +9019,7 @@ impl Facade {
     // write above stamped the node migrated, so the projection renders this
     // board and its inboxes and leaves every unmigrated peer's markdown alone.
     // Issue 0380: this refreshed the index only, so the carried board stayed hand-authored and doctor refused every commit as skew.
-    self.land_board_write_noting()?;
+    self.land_board_write_noting(&[node])?;
     let (heartbeat_at_carry, heartbeat_authored) = self
       .store
       .wb_node_heartbeats(node)
@@ -9049,7 +9170,7 @@ impl Facade {
       .store
       .wb_write(&event, |w| w.archive_item(node, &wire, seq))
       .map_err(FacadeError::Store)?;
-    self.land_board_write_noting()?;
+    self.land_board_write_noting(&[node])?;
     Ok(moved)
   }
 
@@ -9112,7 +9233,7 @@ impl Facade {
         }),
       };
     }
-    self.land_board_write_noting()?;
+    self.land_board_write_noting(&[sender])?;
     Ok(true)
   }
 
@@ -9141,7 +9262,7 @@ impl Facade {
       )
       .map_err(FacadeError::Store)?;
     if !archived.is_empty() {
-      self.land_board_write_noting()?;
+      self.land_board_write_noting(&[sender])?;
     }
     let live = self
       .store
@@ -9258,7 +9379,7 @@ impl Facade {
         }
       }
     };
-    self.land_board_write_noting()?;
+    self.land_board_write_noting(&[node])?;
     self.note_staged(&rewritten);
     let scanned = self.scan_next_commit(&held);
     if let WbEdit::Amended { next_commit, .. } | WbEdit::Recorded { next_commit, .. } = &mut edited
@@ -9496,7 +9617,7 @@ impl Facade {
         }
       }
     };
-    self.land_board_write_noting()?;
+    self.land_board_write_noting(&[sender])?;
     self.note_staged(&rewritten);
     let scanned = self.scan_next_commit(&row.body);
     if let WbEdit::Amended { next_commit, .. } | WbEdit::Recorded { next_commit, .. } = &mut edit {
@@ -9782,7 +9903,7 @@ impl Facade {
       .store
       .wb_write(&event, |w| w.set_claims(node, &claims))
       .map_err(FacadeError::Store)?;
-    self.land_board_write_noting()?;
+    self.land_board_write_noting(&[node])?;
     Ok(true)
   }
 
@@ -9804,7 +9925,7 @@ impl Facade {
       .store
       .wb_write(&event, |w| w.set_claims(node, &kept))
       .map_err(FacadeError::Store)?;
-    self.land_board_write_noting()?;
+    self.land_board_write_noting(&[node])?;
     Ok(true)
   }
 
@@ -9879,7 +10000,7 @@ impl Facade {
           .map(|_| ())
       })
       .map_err(FacadeError::Store)?;
-    self.land_board_write_noting()?;
+    self.land_board_write_noting(&[sender])?;
     Ok(())
   }
 
@@ -9942,7 +10063,7 @@ impl Facade {
         Ok(())
       })
       .map_err(FacadeError::Store)?;
-    self.land_board_write_noting()?;
+    self.land_board_write_noting(&[sender])?;
     Ok(recipients.len())
   }
 
@@ -9961,7 +10082,7 @@ impl Facade {
       .store
       .wb_write(&event, |w| w.clear_inbox(sender, recipient))
       .map_err(FacadeError::Store)?;
-    self.land_board_write_noting()?;
+    self.land_board_write_noting(&[recipient])?;
     Ok(cleared)
   }
 
@@ -10743,7 +10864,8 @@ impl Facade {
           .wb_write(&event, |w| w.set_claims(node, list))
           .map_err(FacadeError::Store)?;
       }
-      self.land_board_write_noting()?;
+      let moved: Vec<&str> = claims.iter().map(|(node, _)| node.as_str()).collect();
+      self.land_board_write_noting(&moved)?;
       notes.extend(self.after_write.drain(mark..));
     }
     self.after_write.extend(notes);
@@ -13634,6 +13756,8 @@ impl Facade {
     if !model.claims.is_empty() {
       // Only this call's board notes: a long-lived facade may hold others.
       let mark = self.after_write.len();
+      // The boards whose claims did move: theirs land, as any act's does (0614).
+      let mut moved: Vec<&str> = Vec::new();
       for (node, claims) in &model.claims {
         let event = self.wb_event("st.renumber", node, json!({ "from": from, "to": to }));
         if let Err(cause) = self
@@ -13650,9 +13774,11 @@ impl Facade {
                `intent wb unclaim {from} --node {node}` and `intent wb claim {to} --node {node}`"
             ),
           ));
+        } else {
+          moved.push(node.as_str());
         }
       }
-      self.land_board_write_noting()?;
+      self.land_board_write_noting(&moved)?;
       notes.extend(self.after_write.drain(mark..));
     }
     let prose = match self.search_all(&from, &crate::search::SearchQuery::default()) {
