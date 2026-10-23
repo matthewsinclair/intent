@@ -175,7 +175,9 @@ fn all_three_ruled_spellings_reach_the_same_artefact() {
   ] {
     let (out, rc) = run(dir.path(), argv);
     assert_eq!(rc, 0, "{argv:?} was refused: {out}");
-    answers.push(out.trim().to_string());
+    // The path, stdout's one line. Only the first call realises the thread,
+    // and a realise names its files on stderr (issue 0624).
+    answers.push(out.lines().next().unwrap_or_default().to_string());
   }
   assert!(
     answers.windows(2).all(|w| w[0] == w[1]),

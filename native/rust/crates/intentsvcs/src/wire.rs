@@ -410,7 +410,14 @@ pub enum Response {
   /// **UNTYPED HERE ON PURPOSE.** The alternative is a wire-local mirror of
   /// `Outcome` and `Note`, which is a second home for both, in the crate whose
   /// job is to not have one.
-  Set { outcome: serde_json::Value },
+  ///
+  /// `written` is what the write landed, as [`crate::facade::written_json`]
+  /// renders it (issue 0624), drained from the daemon's long-lived facade so
+  /// the next request does not inherit it.
+  Set {
+    outcome: serde_json::Value,
+    written: serde_json::Value,
+  },
   /// The generic form description an [`Op::Form`] resolved.
   ///
   /// **`fields` IS [`crate::form::Triple`] ITSELF, NOT A WIRE-LOCAL MIRROR OF

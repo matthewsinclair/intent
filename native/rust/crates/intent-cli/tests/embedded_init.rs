@@ -164,7 +164,11 @@ fn the_offline_project_accepts_the_first_command() {
 
   let (out, err, code) = run_isolated(&bin, &["st", "new", "offline thread"], proj.path());
   assert_eq!(code, 0, "the offline project refused `st new`: {err}");
-  assert_eq!(out.trim(), "created: ST0001");
+  assert_eq!(
+    crate::common::result_lines(&out),
+    "created: ST0001",
+    "{out}"
+  );
 }
 
 /// **THE 0022 CLASS IS UNCONSTRUCTIBLE, WHICH IS A STRONGER CLAIM THAN

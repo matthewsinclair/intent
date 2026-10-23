@@ -266,7 +266,7 @@ fn closing_a_closed_issue_is_accepted_and_an_absent_one_is_still_refused() {
 
   let loop_out = run(dir.path(), &["issues", "close", "7"]);
   assert_eq!(
-    stdout(&loop_out).trim(),
+    crate::common::result_lines(&stdout(&loop_out)),
     "ok: issue 0007 already CLOSED",
     "a self-loop reports the state the issue is in, in v2's own words"
   );
@@ -296,7 +296,7 @@ fn an_issue_closes_and_reopens_and_the_close_date_follows() {
   let dir = project();
 
   assert_eq!(
-    stdout(&run(dir.path(), &["issues", "close", "21"])).trim(),
+    crate::common::result_lines(&stdout(&run(dir.path(), &["issues", "close", "21"]))),
     "ok: issue 0021 -> CLOSED"
   );
   let closed: serde_json::Value = serde_json::from_str(&stdout(&run(
@@ -319,7 +319,7 @@ fn an_issue_closes_and_reopens_and_the_close_date_follows() {
   );
 
   assert_eq!(
-    stdout(&run(dir.path(), &["issues", "open", "21"])).trim(),
+    crate::common::result_lines(&stdout(&run(dir.path(), &["issues", "open", "21"]))),
     "ok: issue 0021 -> OPEN"
   );
   let reopened: serde_json::Value = serde_json::from_str(&stdout(&run(
@@ -350,7 +350,10 @@ fn adding_an_issue_numbers_it_past_the_highest_and_reads_back() {
   let dir = project();
   let out = run(dir.path(), &["issues", "add", "A new thing"]);
   let printed = stdout(&out);
-  let lines: Vec<&str> = printed.lines().map(str::trim).collect();
+  // The result, without the `wrote:` lines that follow it (issue 0624), which
+  // are the commit rule's rather than part of v2's shape.
+  let result = crate::common::result_lines(&printed);
+  let lines: Vec<&str> = result.lines().map(str::trim).collect();
   assert_eq!(
     lines.len(),
     2,

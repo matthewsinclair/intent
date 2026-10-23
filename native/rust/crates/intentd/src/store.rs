@@ -368,6 +368,11 @@ impl ProjectHandle {
             );
           }
         }
+        // **DRAINED AFTER EVERY UNIT OF WORK** (issue 0624): this facade lives
+        // as long as the daemon, and an ingest lands views like any write, so
+        // what it landed is taken here or it grows until the daemon stops.
+        // `Op::Set` has already answered with its own.
+        facade.take_landed();
       }
     });
 
@@ -886,6 +891,7 @@ fn serve(facade: &mut Facade, op: Op, runtime: &tokio::runtime::Handle) -> Respo
       Ok(address) => match facade.set(&address, &field, value) {
         Ok(outcome) => Response::Set {
           outcome: intentsvcs::facade::outcome_json(&outcome, &url),
+          written: intentsvcs::facade::written_json(&facade.take_landed()),
         },
         Err(e) => Response::error(e.to_string(), e.remedy()),
       },

@@ -126,7 +126,11 @@ fn the_first_command_in_a_fresh_project_succeeds() {
     "precondition: the gitignored cache directory does not exist yet"
   );
   let out = ok(dir.path(), &["st", "new", "Add a Rust-based CLI"]);
-  assert_eq!(out.trim(), "created: ST0001");
+  assert_eq!(
+    crate::common::result_lines(&out),
+    "created: ST0001",
+    "{out}"
+  );
 }
 
 /// **Issue 0223: a bare command word is not taken as a title, and the refusal
@@ -162,7 +166,7 @@ fn a_bare_command_word_is_refused_as_a_title_and_passes_after_the_door() {
   let dir = project();
   let root = dir.path();
   assert_eq!(
-    ok(root, &["st", "new", "A thread for its work package"]).trim(),
+    crate::common::result_lines(&ok(root, &["st", "new", "A thread for its work package"])),
     "created: ST0001"
   );
 
@@ -205,15 +209,15 @@ fn a_bare_command_word_is_refused_as_a_title_and_passes_after_the_door() {
   }
 
   assert_eq!(
-    ok(root, &["st", "new", "--", "start"]).trim(),
+    crate::common::result_lines(&ok(root, &["st", "new", "--", "start"])),
     "created: ST0002"
   );
   assert_eq!(
-    ok(root, &["issues", "add", "--", "severity"]).trim(),
+    crate::common::result_lines(&ok(root, &["issues", "add", "--", "severity"])),
     "created: intent/.canon/issues/0001.json\n0001:severity"
   );
   assert_eq!(
-    ok(root, &["wp", "new", "ST0001", "--", "help"]).trim(),
+    crate::common::result_lines(&ok(root, &["wp", "new", "ST0001", "--", "help"])),
     "created: ST0001/01"
   );
 }
@@ -328,7 +332,7 @@ fn start_is_legal_straight_from_triage() {
 
   ok(root, &["st", "new", "Add a Rust-based CLI"]);
   assert_eq!(
-    ok(root, &["st", "start", "ST0001"]).trim(),
+    crate::common::result_lines(&ok(root, &["st", "start", "ST0001"])),
     "ok: ST0001 started"
   );
 
@@ -397,31 +401,30 @@ fn a_thread_moves_through_its_lifecycle_and_writes_canon_and_views() {
   // own wording is the only shape that distinguishes a wired arm from a
   // present-but-unbuilt one.
   assert_eq!(
-    ok(root, &["st", "triage", "ST0001"]).trim(),
+    crate::common::result_lines(&ok(root, &["st", "triage", "ST0001"])),
     "ok: ST0001 accepted out of triage",
     "and the message names where the thread LANDED -- `triage` reads in both directions"
   );
   assert_eq!(
-    ok(root, &["st", "start", "ST0001"]).trim(),
+    crate::common::result_lines(&ok(root, &["st", "start", "ST0001"])),
     "ok: ST0001 started"
   );
   assert_eq!(
-    ok(
+    crate::common::result_lines(&ok(
       root,
       &["st", "hold", "ST0001", "--reason", "waiting on the fleet"]
-    )
-    .trim(),
+    )),
     "ok: ST0001 on hold"
   );
   assert_eq!(
-    ok(root, &["st", "resume", "ST0001"]).trim(),
+    crate::common::result_lines(&ok(root, &["st", "resume", "ST0001"])),
     "ok: ST0001 resumed"
   );
 
   ok(root, &["wp", "new", "ST0001", "Ingest and views"]);
   ok(root, &["wp", "start", "ST0001/01"]);
   assert_eq!(
-    ok(root, &["wp", "unstart", "ST0001/01"]).trim(),
+    crate::common::result_lines(&ok(root, &["wp", "unstart", "ST0001/01"])),
     "ok: ST0001/01 back to not started"
   );
   ok(root, &["wp", "start", "ST0001/01"]);
@@ -435,15 +438,17 @@ fn a_thread_moves_through_its_lifecycle_and_writes_canon_and_views() {
   // neither consults the gate -- so the round trip runs here rather than in
   // the closed-state test below.
   assert_eq!(
-    ok(root, &["st", "cancel", "ST0001", "--reason", "overtaken"]).trim(),
+    crate::common::result_lines(&ok(
+      root,
+      &["st", "cancel", "ST0001", "--reason", "overtaken"]
+    )),
     "ok: ST0001 cancelled"
   );
   assert_eq!(
-    ok(
+    crate::common::result_lines(&ok(
       root,
       &["st", "reinstate", "ST0001", "--reason", "wanted again"]
-    )
-    .trim(),
+    )),
     "ok: ST0001 reinstated to the backlog",
     "a reinstated thread lands in the BACKLOG, not back at wip, and the message says so"
   );
@@ -520,7 +525,7 @@ fn a_closed_thread_and_work_package_can_both_be_reopened() {
 
   ok(root, &["wp", "done", "ST0001/01"]);
   assert_eq!(
-    ok(
+    crate::common::result_lines(&ok(
       root,
       &[
         "wp",
@@ -529,8 +534,7 @@ fn a_closed_thread_and_work_package_can_both_be_reopened() {
         "--reason",
         "an AC arrived after it closed"
       ]
-    )
-    .trim(),
+    )),
     "ok: ST0001/01 reopened"
   );
   // **`WIP`, not `wip` -- this assertion was PINNING A DIVERGENCE.** `wp show`
@@ -548,11 +552,10 @@ fn a_closed_thread_and_work_package_can_both_be_reopened() {
   ok(root, &["wp", "done", "ST0001/01"]);
   ok(root, &["st", "done", "ST0001"]);
   assert_eq!(
-    ok(
+    crate::common::result_lines(&ok(
       root,
       &["st", "reopen", "ST0001", "--reason", "the contract grew"]
-    )
-    .trim(),
+    )),
     "ok: ST0001 reopened"
   );
   let shown = ok(root, &["st", "show", "ST0001"]);

@@ -109,7 +109,7 @@ fn line(root: &Path, args: &[&str]) -> String {
     args.join(" "),
     String::from_utf8_lossy(&out.stderr)
   );
-  stdout(&out).trim().to_string()
+  crate::common::result_lines(&stdout(&out))
 }
 
 /// **The whole property, applied to one verb.**

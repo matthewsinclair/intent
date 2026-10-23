@@ -1051,7 +1051,7 @@
         },
         {
           "path": "st edit",
-          "help": "Open a steel thread file, realising the thread if it is not on disk: in $VISUAL or $EDITOR on a terminal, and as a printed path when stdout is not one",
+          "help": "Open a steel thread file, realising the thread if it is not on disk: in $VISUAL or $EDITOR on a terminal, and as a printed path when stdout is not one; the files a realise writes are named on stderr as `wrote:` lines",
           "args": [
             {
               "name": "id",
@@ -9919,7 +9919,7 @@
     },
     {
       "path": "edit",
-      "help": "Open an artefact's file, realising it first so the path exists: in $VISUAL or $EDITOR on a terminal, and as a printed path when stdout is not one (`--path` prints, `--editor` opens)",
+      "help": "Open an artefact's file, realising it first so the path exists: in $VISUAL or $EDITOR on a terminal, and as a printed path when stdout is not one (`--path` prints, `--editor` opens); the files a realise writes are named on stderr as `wrote:` lines",
       "args": [
         {
           "name": "kind",

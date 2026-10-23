@@ -271,6 +271,11 @@ fn mismatches(decls: &[Decl]) -> Vec<String> {
       );
     }
     let (got, err, _) = run(dir.path(), &d.argv);
+    // **THE RESULT LINES, NOT THE FILES THE WRITE NAMES** (issue 0624). Every
+    // write prints a `wrote:` line per file it landed, for the commit rule, and
+    // one of them is an event file whose name is minted per run, which no
+    // literal can hold. A template's claim is the verb's result.
+    let got = crate::common::result_lines(&got);
     if got != d.template {
       // **NAME THE CHANNEL WHEN THE CHANNEL IS THE DEFECT.** Without this the
       // day the merge would have mattered reads as "v3 printed nothing", and

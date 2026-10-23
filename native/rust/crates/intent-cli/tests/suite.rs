@@ -151,6 +151,8 @@ mod every_face_says_what_level_three_knows;
 mod every_skill_has_a_live_caller;
 #[path = "every_spawn_has_a_fixture_home.rs"]
 mod every_spawn_has_a_fixture_home;
+#[path = "every_verb_names_the_files_it_wrote.rs"]
+mod every_verb_names_the_files_it_wrote;
 #[path = "exit_code_consumers.rs"]
 mod exit_code_consumers;
 #[path = "exit_codes.rs"]

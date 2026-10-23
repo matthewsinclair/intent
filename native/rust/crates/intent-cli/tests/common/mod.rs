@@ -1047,3 +1047,56 @@ pub fn seed_plugin(root: &Path, rel: &str, src: &Path) -> PathBuf {
   std::fs::copy(src, &dest).expect("copy the plugin file");
   dest
 }
+
+/// Make `dir` a git work tree, for a test that asks what the next commit would
+/// carry.
+pub fn git_init(dir: &Path) {
+  let git = std::process::Command::new("git")
+    .args(["init", "-q"])
+    .current_dir(dir)
+    .status()
+    .expect("run git init");
+  assert!(git.success(), "git init");
+}
+
+/// Commit everything in `dir`, with no user config, signing or hooks of the
+/// machine running the suite. Each `git` runs a literal argv, because this file
+/// reads the dispatch table and a spawn here with an argv held in a variable
+/// reads to `every_daemon_spawn_carries_a_lifeline` as one that could serve.
+pub fn git_commit_all(dir: &Path) {
+  let add = std::process::Command::new("git")
+    .args(["add", "-A"])
+    .current_dir(dir)
+    .status()
+    .expect("run git add");
+  assert!(add.success(), "git add -A");
+  let commit = std::process::Command::new("git")
+    .args([
+      "-c",
+      "user.name=t",
+      "-c",
+      "user.email=t@example.com",
+      "-c",
+      "commit.gpgSign=false",
+      "-c",
+      "core.hooksPath=/dev/null",
+      "commit",
+      "-q",
+      "-m",
+      "seed",
+    ])
+    .current_dir(dir)
+    .status()
+    .expect("run git commit");
+  assert!(commit.success(), "git commit");
+}
+
+/// What a verb printed before the `wrote:` lines that follow its result (issue
+/// 0624): the result itself, for a test that holds a verb to its exact words.
+pub fn result_lines(out: &str) -> String {
+  out
+    .lines()
+    .take_while(|line| !line.starts_with("wrote: ") && !line.starts_with("re-rendered: "))
+    .collect::<Vec<_>>()
+    .join("\n")
+}

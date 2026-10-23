@@ -3818,6 +3818,13 @@ pub fn outcome_json(outcome: &Outcome, subject: &str) -> serde_json::Value {
   })
 }
 
+/// What a write landed as the machine faces carry it (issue 0624): one
+/// mapping for MCP's `written` and the daemon's `Response::Set`, as
+/// [`notes_json`] is for notes, so the daemon names no serialiser of its own.
+pub fn written_json(written: &Written) -> serde_json::Value {
+  serde_json::json!(written)
+}
+
 /// Notes as the machine faces carry them: one mapping for [`outcome_json`] and
 /// for the verbs that hand theirs over through [`Facade::take_notes`].
 pub fn notes_json(notes: &[Note]) -> serde_json::Value {
@@ -4097,9 +4104,16 @@ pub struct Facade {
   /// Notes from steps that failed after a write landed, held for a verb that
   /// returns no [`Outcome`] until [`Facade::take_notes`] hands them over.
   after_write: Vec<Note>,
-  /// The files the board writes landed since the last [`Facade::take_written`],
-  /// for a verb to name them (issue 0612).
-  board_landed: Vec<std::path::PathBuf>,
+  /// The files this facade's writes landed since the last drain, for a verb to
+  /// name them: the board writes' since issue 0612, and every write set's since
+  /// issue 0624. [`Facade::take_written`] and
+  /// [`Facade::take_written_by_the_roster`] drain it for a board verb, and
+  /// [`Facade::take_landed`] for any other.
+  ///
+  /// **A FACADE THAT LIVES PAST ONE VERB DRAINS IT AFTER EACH**, as the MCP
+  /// server, the daemon and the explorer do, or it grows for the life of the
+  /// process.
+  landed: Vec<std::path::PathBuf>,
   /// This connection's `PRAGMA data_version` when `canon` was last read from
   /// the store: what [`Facade::catch_up`] compares against (issue 0520).
   seen: i64,
@@ -4472,7 +4486,7 @@ impl Facade {
       embedder,
       resolvers: carried(&crate::index::resolved::readers()),
       after_write: Vec::new(),
-      board_landed: Vec::new(),
+      landed: Vec::new(),
       seen,
     }
   }
@@ -6362,6 +6376,7 @@ impl Facade {
     let applied = set
       .commit()
       .map_err(|cause| FacadeError::ViewsNotWritten { cause })?;
+    self.note_landed(&applied);
     let landed: Vec<std::path::PathBuf> = applied.written().map(std::path::PathBuf::from).collect();
     applied.keep();
     self.record_landed(&[], &landed)
@@ -6996,7 +7011,9 @@ impl Facade {
         if after != before {
           let mut set = WriteSet::new();
           set.add(path, after);
-          set.commit()?.keep();
+          let applied = set.commit()?;
+          self.note_landed(&applied);
+          applied.keep();
           true
         } else {
           false
@@ -7134,6 +7151,12 @@ impl Facade {
           .unwrap_or_else(|_| "tree-could-not-be-re-read".to_string())
       })
       .map_err(FacadeError::Organize)?;
+    // **A REALISE WRITES THROUGH THE ORGANIZE RUN, NOT A WRITE SET OF THIS
+    // FILE'S**, so its files are recorded from the run's own answer (issue
+    // 0624).
+    self
+      .landed
+      .extend(run.hydrated.iter().chain(&run.rewritten).cloned());
 
     // **PATHS THAT NOW EXIST, NOT PATHS THIS RUN HAD A STEP FOR, AND THE
     // DIFFERENCE IS A DEFECT MY OWN TEST CAUGHT.** Returning the plan's steps
@@ -7308,7 +7331,9 @@ impl Facade {
 
     let mut set = WriteSet::new();
     set.add(path.clone(), text);
-    set.commit()?.keep();
+    let applied = set.commit()?;
+    self.note_landed(&applied);
+    applied.keep();
 
     self.record_disk_act(
       "disk.declare_default",
@@ -7523,7 +7548,9 @@ impl Facade {
     if was_listed {
       let mut set = WriteSet::new();
       set.add(path, after);
-      set.commit()?.keep();
+      let committed = set.commit()?;
+      self.note_landed(&committed);
+      committed.keep();
     }
 
     let removed: Vec<std::path::PathBuf> = run.dehydrated.clone();
@@ -7904,7 +7931,7 @@ impl Facade {
   /// else the write landed -- the re-render of an older shape, or a board the
   /// store moved under another node -- is named with its owner.
   pub fn take_written(&mut self, node: &str) -> Written {
-    let mut landed = std::mem::take(&mut self.board_landed);
+    let mut landed = std::mem::take(&mut self.landed);
     landed.sort();
     landed.dedup();
     let events = self.project.events_dir();
@@ -7938,13 +7965,51 @@ impl Facade {
   /// reasoning that makes the re-render of a new board shape one commit by the
   /// coordinating node.
   pub fn take_written_by_the_roster(&mut self) -> Written {
-    let mut landed = std::mem::take(&mut self.board_landed);
+    let mut landed = std::mem::take(&mut self.landed);
     landed.sort();
     landed.dedup();
     Written {
       wrote: landed.iter().map(|p| self.project.relative(p)).collect(),
       re_rendered: Vec::new(),
     }
+  }
+
+  /// Every file a verb's writes landed since the last call, split by whose it
+  /// is to commit (issue 0624): the drain for a verb that is not a board verb,
+  /// as [`Self::take_notes`] is for its notes.
+  ///
+  /// **WHOEVER RAN THE VERB COMMITS WHAT IT WROTE, SAVE A BOARD.** An event
+  /// file, a canon record, a view and `.intentfiles` are the project's, so they
+  /// are `wrote`. A whiteboard file has one writer by
+  /// `views::whiteboard_writer`, so a board the verb re-rendered is named with
+  /// its owner and never taken as the caller's.
+  pub fn take_landed(&mut self) -> Written {
+    let mut landed = std::mem::take(&mut self.landed);
+    landed.sort();
+    landed.dedup();
+    let mut written = Written::default();
+    for path in landed {
+      let rel = self.project.relative(&path);
+      match crate::views::whiteboard_writer(&self.project, &path) {
+        None => written.wrote.push(rel),
+        Some(owner) => written
+          .re_rendered
+          .push(RerenderedFile { path: rel, owner }),
+      }
+    }
+    written
+  }
+
+  /// Record what a write set landed, for the verb's drain to name (issue
+  /// 0624). Every facade method that commits a `WriteSet` hands its written
+  /// paths here before it keeps them, and a realise records its organize
+  /// run's files itself. Not the free functions that write before a facade
+  /// exists (`backfill_event_files`, `upgrade`), and not `restore_manifest`,
+  /// which puts back what a failed transition took.
+  fn note_landed(&mut self, applied: &crate::write_set::Applied) {
+    self
+      .landed
+      .extend(applied.written().map(std::path::PathBuf::from));
   }
 
   /// What opening this project's store did about Dropbox when the open
@@ -8030,7 +8095,7 @@ impl Facade {
       .commit()
       .map_err(|cause| FacadeError::ViewsNotWritten { cause })?;
     let landed: Vec<std::path::PathBuf> = applied.written().map(std::path::PathBuf::from).collect();
-    self.board_landed.extend(landed.iter().cloned());
+    self.note_landed(&applied);
     applied.keep();
     let canon_files: Vec<(std::path::PathBuf, String)> = canon_files
       .into_iter()
@@ -9978,6 +10043,7 @@ impl Facade {
     self.refuse_if_this_would_empty_a_populated_face(&canon, &set)?;
     self.refuse_if_canon_moved_under_the_store(&set, &canon_files)?;
     let applied = set.commit()?;
+    self.note_landed(&applied);
     let landed: Vec<std::path::PathBuf> = applied.written().map(std::path::PathBuf::from).collect();
     self.record_landed(&canon_files, &landed)?;
     // **WHAT LANDED, NOT WHAT WAS ASKED FOR.** `commit` skips a path whose
@@ -10030,6 +10096,7 @@ impl Facade {
     let (canon, count, Projection { set, canon_files }) =
       self.render_from_disk(scope, ingest::Load::Restore)?;
     let applied = set.commit()?;
+    self.note_landed(&applied);
     let landed: Vec<std::path::PathBuf> = applied.written().map(std::path::PathBuf::from).collect();
     self.record_landed(&canon_files, &landed)?;
     self.finish_from_disk(scope, canon, count, applied)
@@ -10565,6 +10632,7 @@ impl Facade {
     }
     if !set.is_empty() {
       let applied = set.commit()?;
+      self.note_landed(&applied);
       let landed: Vec<std::path::PathBuf> =
         applied.written().map(std::path::PathBuf::from).collect();
       applied.keep();
@@ -10949,7 +11017,9 @@ impl Facade {
     if pinned != text {
       let mut set = WriteSet::new();
       set.add(manifest, pinned);
-      set.commit()?.keep();
+      let committed = set.commit()?;
+      self.note_landed(&committed);
+      committed.keep();
     }
     Ok(())
   }
@@ -11054,6 +11124,8 @@ impl Facade {
     };
     let applied = set.commit()?;
     let landed: Vec<std::path::PathBuf> = applied.written().map(std::path::PathBuf::from).collect();
+    // The field rather than `note_landed`, because the store is held here.
+    self.landed.extend(landed.iter().cloned());
     let entries =
       ingest::canon_file_entries(&self.project, &Self::landed_paths(&canon_files, &landed))
         .map_err(FacadeError::Ingest)?;
@@ -11584,7 +11656,9 @@ impl Facade {
     let content = self.todo_view()?;
     let mut set = WriteSet::new();
     set.add(self.project.todo_view(), content);
-    set.commit()?.keep();
+    let committed = set.commit()?;
+    self.note_landed(&committed);
+    committed.keep();
     Ok(())
   }
 
@@ -13475,7 +13549,9 @@ impl Facade {
         let after = intentfiles::pin(&unpinned, sigil, &to, None)?;
         let mut set = WriteSet::new();
         set.add(manifest.clone(), after);
-        set.commit()?.keep();
+        let committed = set.commit()?;
+        self.note_landed(&committed);
+        committed.keep();
         moved.push(format!(
           "{}: {} -> {}",
           self.project.relative(&manifest),
@@ -13645,6 +13721,7 @@ impl Facade {
       return Ok(());
     }
     let applied = set.commit()?;
+    self.note_landed(&applied);
     let written: Vec<std::path::PathBuf> =
       applied.written().map(std::path::PathBuf::from).collect();
     applied.keep();
@@ -18308,6 +18385,7 @@ impl Facade {
     // **READ BEFORE `keep`, BECAUSE `keep` CONSUMES IT.** The mutation path is
     // the one a fixture and a user both take, so a view written here that the
     // index never learned about is the same feedback loop by the commonest door.
+    self.note_landed(&applied);
     let landed: Vec<std::path::PathBuf> = applied.written().map(std::path::PathBuf::from).collect();
     applied.keep();
     let after_write = self
@@ -18531,7 +18609,7 @@ impl Facade {
   /// AND THE TWO ARE NOT IN TENSION.** Hydrate's ordering answers a different
   /// question -- that the pin must not be skipped when the files already exist
   /// -- and it has no second write to be interrupted between.
-  fn edit_list(&self, op: &str, id: &str, list: ListEdit) -> Result<(), FacadeError> {
+  fn edit_list(&mut self, op: &str, id: &str, list: ListEdit) -> Result<(), FacadeError> {
     if list == ListEdit::Suppressed {
       return Ok(());
     }
@@ -18571,7 +18649,9 @@ impl Facade {
     if after != before {
       let mut set = WriteSet::new();
       set.add(path, after);
-      set.commit()?.keep();
+      let committed = set.commit()?;
+      self.note_landed(&committed);
+      committed.keep();
     }
     Ok(())
   }

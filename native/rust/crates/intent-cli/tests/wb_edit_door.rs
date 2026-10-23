@@ -33,46 +33,6 @@ fn ok(cwd: &Path, args: &[&str]) -> String {
   text
 }
 
-/// Make `dir` a git work tree, so the edit's scan of what the next commit
-/// would carry has a repository to ask.
-fn git_init(dir: &Path) {
-  let git = std::process::Command::new("git")
-    .args(["init", "-q"])
-    .current_dir(dir)
-    .status()
-    .expect("run git init");
-  assert!(git.success(), "git init");
-}
-
-/// Commit everything in `dir`, with no user config, signing or hooks of the
-/// machine running the suite.
-fn git_commit_all(dir: &Path) {
-  for args in [
-    vec!["add", "-A"],
-    vec![
-      "-c",
-      "user.name=t",
-      "-c",
-      "user.email=t@example.com",
-      "-c",
-      "commit.gpgSign=false",
-      "-c",
-      "core.hooksPath=/dev/null",
-      "commit",
-      "-q",
-      "-m",
-      "seed",
-    ],
-  ] {
-    let git = std::process::Command::new("git")
-      .args(&args)
-      .current_dir(dir)
-      .status()
-      .expect("run git");
-    assert!(git.success(), "git {args:?}");
-  }
-}
-
 /// Every file under `intent/` holding `needle`, project-relative and sorted.
 /// The store under `.cache/` is left out, as the edit's own scan leaves it.
 fn holding(root: &Path, needle: &str) -> Vec<String> {
@@ -217,7 +177,7 @@ fn a_file_the_edit_cannot_rewrite_is_named_and_no_commit_is_not_claimed() {
   // so the answer names it and gives no all-clear.
   let dir = tempfile::tempdir().expect("tempdir");
   ok(dir.path(), &["init", "wbedit"]);
-  git_init(dir.path());
+  crate::common::git_init(dir.path());
   let board = dir.path().join("intent/whiteboard/cc");
   std::fs::create_dir_all(&board).expect("cc's directory");
   std::fs::write(
@@ -253,7 +213,7 @@ fn a_new_text_holding_the_old_lists_every_file_and_says_why() {
   // it is long, so an addition does not read as a failed edit.
   let dir = tempfile::tempdir().expect("tempdir");
   ok(dir.path(), &["init", "wbedit"]);
-  git_init(dir.path());
+  crate::common::git_init(dir.path());
   ok(
     dir.path(),
     &[
@@ -308,7 +268,7 @@ fn a_new_text_holding_the_old_lists_every_file_and_says_why() {
 fn two_committed_boards() -> tempfile::TempDir {
   let dir = tempfile::tempdir().expect("tempdir");
   ok(dir.path(), &["init", "wbedit"]);
-  git_init(dir.path());
+  crate::common::git_init(dir.path());
   for (node, name, role) in [
     ("cc", "Control Claude", "control"),
     ("vc", "Validation Claude", "validation"),
@@ -318,7 +278,7 @@ fn two_committed_boards() -> tempfile::TempDir {
       &["wb", "register", node, "--name", name, "--role", role],
     );
   }
-  git_commit_all(dir.path());
+  crate::common::git_commit_all(dir.path());
   dir
 }
 
@@ -330,7 +290,7 @@ fn a_peers_committed_copy_is_named_at_head_and_no_all_clear_is_given() {
   let dir = two_committed_boards();
   let secret = "client Acme renewal, secret marker Q7";
   ok(dir.path(), &["wb", "add", "todo", secret, "--node", "vc"]);
-  git_commit_all(dir.path());
+  crate::common::git_commit_all(dir.path());
   ok(dir.path(), &["wb", "add", "todo", secret, "--node", "cc"]);
 
   let said = ok(

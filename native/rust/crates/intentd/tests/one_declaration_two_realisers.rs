@@ -88,7 +88,7 @@ fn through_the_wire_door(daemon: &RunningDaemon, root: &std::path::Path, id: &st
     op: parsed.op,
   });
   match response {
-    Response::Set { outcome } => {
+    Response::Set { outcome, .. } => {
       assert_eq!(
         outcome["moved"], true,
         "the wire door answered without moving the field: {outcome}"

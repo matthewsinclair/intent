@@ -86,7 +86,11 @@ fn the_project_init_creates_actually_works() {
     code, 0,
     "st new failed in a freshly initialised project: {err}"
   );
-  assert_eq!(out.trim(), "created: ST0001");
+  assert_eq!(
+    crate::common::result_lines(&out),
+    "created: ST0001",
+    "{out}"
+  );
 }
 
 /// **THE REALISATION, END TO END, FROM A DIRECTORY `init` MADE.** This is the

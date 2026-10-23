@@ -1943,6 +1943,12 @@ fn edited(m: &ArgMatches) -> Result<(), Failure> {
 
   let mut facade = open()?;
   let path = artefact_path(&mut facade, &address, &file).map_err(fail)?;
+  // **ON STDERR, WHICH NO OTHER VERB'S `wrote:` LINES USE** (issue 0624):
+  // realising a thread writes its files, and stdout is the one path a script
+  // reads when it is not a terminal.
+  for line in written_lines(&facade.take_landed()) {
+    eprintln!("{line}");
+  }
 
   if opens_an_editor(m)? {
     launch_editor(&path, named_editor(m).as_deref())
@@ -2616,11 +2622,14 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       // does this. The new status is one `st list` away and a second line here
       // would be a deviation owed to nobody.
       println!("created: {id}");
+      print_written(&f.take_landed());
       Ok(())
     }
     Some(("start", a)) => {
       let id = thread_arg(a, "id")?;
-      reported(&open()?.st_start(&id).map_err(fail)?, &id, "started");
+      let mut f = open()?;
+      let outcome = f.st_start(&id).map_err(fail)?;
+      reported(&mut f, &outcome, &id, "started");
       Ok(())
     }
     Some(("done", a)) => {
@@ -2639,13 +2648,11 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       // all as finished the day it migrated. Read through `opt`, which returns
       // the typed value or nothing -- this row declares no default, so there is
       // no default to mistake for a choice.
-      reported(
-        &open()?
-          .st_done_listing(&id, list, opt(a, "date")?.as_deref())
-          .map_err(fail)?,
-        &id,
-        "done",
-      );
+      let mut f = open()?;
+      let outcome = f
+        .st_done_listing(&id, list, opt(a, "date")?.as_deref())
+        .map_err(fail)?;
+      reported(&mut f, &outcome, &id, "done");
       Ok(())
     }
     Some(("cancel", a)) => {
@@ -2669,13 +2676,11 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       // Both closing verbs take it, for the same reason `--keep` is on both:
       // two identical acts with the override on one of them is a surface that
       // has to be memorised rather than understood.
-      reported(
-        &open()?
-          .st_cancel_listing(&id, &reason, list, opt(a, "date")?.as_deref())
-          .map_err(fail)?,
-        &id,
-        "cancelled",
-      );
+      let mut f = open()?;
+      let outcome = f
+        .st_cancel_listing(&id, &reason, list, opt(a, "date")?.as_deref())
+        .map_err(fail)?;
+      reported(&mut f, &outcome, &id, "cancelled");
       Ok(())
     }
     // The five lifecycle verbs below have NO v2 antecedent -- every one is a
@@ -2692,46 +2697,40 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
     // thread has been told less than the verb knew.
     Some(("triage", a)) => {
       let id = thread_arg(a, "id")?;
-      reported(
-        &open()?.st_triage(&id).map_err(fail)?,
-        &id,
-        "accepted out of triage",
-      );
+      let mut f = open()?;
+      let outcome = f.st_triage(&id).map_err(fail)?;
+      reported(&mut f, &outcome, &id, "accepted out of triage");
       Ok(())
     }
     Some(("hold", a)) => {
       let id = thread_arg(a, "id")?;
       let reason = opt(a, "reason")?.unwrap_or_default();
-      reported(
-        &open()?.st_hold(&id, &reason).map_err(fail)?,
-        &id,
-        "on hold",
-      );
+      let mut f = open()?;
+      let outcome = f.st_hold(&id, &reason).map_err(fail)?;
+      reported(&mut f, &outcome, &id, "on hold");
       Ok(())
     }
     Some(("resume", a)) => {
       let id = thread_arg(a, "id")?;
-      reported(&open()?.st_resume(&id).map_err(fail)?, &id, "resumed");
+      let mut f = open()?;
+      let outcome = f.st_resume(&id).map_err(fail)?;
+      reported(&mut f, &outcome, &id, "resumed");
       Ok(())
     }
     Some(("reopen", a)) => {
       let id = thread_arg(a, "id")?;
       let reason = opt(a, "reason")?.unwrap_or_default();
-      reported(
-        &open()?.st_reopen(&id, &reason).map_err(fail)?,
-        &id,
-        "reopened",
-      );
+      let mut f = open()?;
+      let outcome = f.st_reopen(&id, &reason).map_err(fail)?;
+      reported(&mut f, &outcome, &id, "reopened");
       Ok(())
     }
     Some(("reinstate", a)) => {
       let id = thread_arg(a, "id")?;
       let reason = opt(a, "reason")?.unwrap_or_default();
-      reported(
-        &open()?.st_reinstate(&id, &reason).map_err(fail)?,
-        &id,
-        "reinstated to the backlog",
-      );
+      let mut f = open()?;
+      let outcome = f.st_reinstate(&id, &reason).map_err(fail)?;
+      reported(&mut f, &outcome, &id, "reinstated to the backlog");
       Ok(())
     }
     Some(("list", a)) => {
@@ -2849,17 +2848,22 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       let id = thread_arg(a, "id")?;
       let target = thread_arg(a, "target")?;
       let note = opt(a, "note")?;
-      let outcome = open()?
-        .st_relate(&id, &target, note.as_deref())
-        .map_err(fail)?;
-      reported(&outcome, &id, &format!("related to {target}"));
+      let mut f = open()?;
+      let outcome = f.st_relate(&id, &target, note.as_deref()).map_err(fail)?;
+      reported(&mut f, &outcome, &id, &format!("related to {target}"));
       Ok(())
     }
     Some(("unrelate", a)) => {
       let id = thread_arg(a, "id")?;
       let target = thread_arg(a, "target")?;
-      let outcome = open()?.st_unrelate(&id, &target).map_err(fail)?;
-      reported(&outcome, &id, &format!("no longer related to {target}"));
+      let mut f = open()?;
+      let outcome = f.st_unrelate(&id, &target).map_err(fail)?;
+      reported(
+        &mut f,
+        &outcome,
+        &id,
+        &format!("no longer related to {target}"),
+      );
       Ok(())
     }
     Some(("show", a)) => {
@@ -2992,24 +2996,21 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
         .map_err(fail)?;
       print_notes(&f.take_notes(), &st);
       println!("created: {st}/{seq:02}");
+      print_written(&f.take_landed());
       Ok(())
     }
     Some(("start", a)) => {
       let (st, seq) = wp_target(a)?;
-      reported(
-        &open()?.wp_start(&st, seq).map_err(fail)?,
-        &format!("{st}/{seq:02}"),
-        "started",
-      );
+      let mut f = open()?;
+      let outcome = f.wp_start(&st, seq).map_err(fail)?;
+      reported(&mut f, &outcome, &format!("{st}/{seq:02}"), "started");
       Ok(())
     }
     Some(("done", a)) => {
       let (st, seq) = wp_target(a)?;
-      reported(
-        &open()?.wp_done(&st, seq).map_err(fail)?,
-        &format!("{st}/{seq:02}"),
-        "done",
-      );
+      let mut f = open()?;
+      let outcome = f.wp_done(&st, seq).map_err(fail)?;
+      reported(&mut f, &outcome, &format!("{st}/{seq:02}"), "done");
       Ok(())
     }
     // `wp reopen` is the inverse `wp done` never had, and its absence was
@@ -3021,11 +3022,9 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
     Some(("reopen", a)) => {
       let (st, seq) = wp_target(a)?;
       let reason = opt(a, "reason")?.unwrap_or_default();
-      reported(
-        &open()?.wp_reopen(&st, seq, &reason).map_err(fail)?,
-        &format!("{st}/{seq:02}"),
-        "reopened",
-      );
+      let mut f = open()?;
+      let outcome = f.wp_reopen(&st, seq, &reason).map_err(fail)?;
+      reported(&mut f, &outcome, &format!("{st}/{seq:02}"), "reopened");
       Ok(())
     }
     // **The state the model could not express until 2026-08-21.** `wp done`
@@ -3038,27 +3037,26 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
     Some(("cancel", a)) => {
       let (st, seq) = wp_target(a)?;
       let reason = opt(a, "reason")?.unwrap_or_default();
-      reported(
-        &open()?.wp_cancel(&st, seq, &reason).map_err(fail)?,
-        &format!("{st}/{seq:02}"),
-        "cancelled",
-      );
+      let mut f = open()?;
+      let outcome = f.wp_cancel(&st, seq, &reason).map_err(fail)?;
+      reported(&mut f, &outcome, &format!("{st}/{seq:02}"), "cancelled");
       Ok(())
     }
     Some(("reinstate", a)) => {
       let (st, seq) = wp_target(a)?;
       let reason = opt(a, "reason")?.unwrap_or_default();
-      reported(
-        &open()?.wp_reinstate(&st, seq, &reason).map_err(fail)?,
-        &format!("{st}/{seq:02}"),
-        "reinstated",
-      );
+      let mut f = open()?;
+      let outcome = f.wp_reinstate(&st, seq, &reason).map_err(fail)?;
+      reported(&mut f, &outcome, &format!("{st}/{seq:02}"), "reinstated");
       Ok(())
     }
     Some(("unstart", a)) => {
       let (st, seq) = wp_target(a)?;
+      let mut f = open()?;
+      let outcome = f.wp_unstart(&st, seq).map_err(fail)?;
       reported(
-        &open()?.wp_unstart(&st, seq).map_err(fail)?,
+        &mut f,
+        &outcome,
         &format!("{st}/{seq:02}"),
         "back to not started",
       );
@@ -3087,8 +3085,11 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
     Some(("rescope", a)) => {
       let (st, seq) = wp_target(a)?;
       let size = t_shirt(&arg(a, "size")?)?;
+      let mut f = open()?;
+      let outcome = f.wp_rescope(&st, seq, size).map_err(fail)?;
       reported(
-        &open()?.wp_rescope(&st, seq, size).map_err(fail)?,
+        &mut f,
+        &outcome,
         &format!("{st}/{seq:02}"),
         &format!("rescoped to {}", enum_str(&size)),
       );
@@ -3202,11 +3203,9 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
       // live protection against a hazard that no longer exists**, and the next
       // reader would infer the replace still happens. The repair it named lives
       // in `ac edit`, which changes the sentence and cannot touch the kind.
-      reported(
-        &open()?.ac_new(&st, &id, &text, kind).map_err(fail)?,
-        &id,
-        "created",
-      );
+      let mut f = open()?;
+      let outcome = f.ac_new(&st, &id, &text, kind).map_err(fail)?;
+      reported(&mut f, &outcome, &id, "created");
       Ok(())
     }
     // **THE OTHER HALF OF hv's RULING, AND IT SHIPS IN THE SAME CHANGE.**
@@ -3222,11 +3221,9 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
         (None, Some(_)) => "note written",
         _ => "reworded",
       };
-      reported(
-        &open()?.ac_edit(&st, &id, text, note).map_err(fail)?,
-        &id,
-        moved,
-      );
+      let mut f = open()?;
+      let outcome = f.ac_edit(&st, &id, text, note).map_err(fail)?;
+      reported(&mut f, &outcome, &id, moved);
       Ok(())
     }
     Some(("satisfy", a)) => {
@@ -3248,11 +3245,9 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
       // The no-op stays `already satisfied` -- `reported` composes it from the
       // state, so the phrase is structurally unable to leak into a line where no
       // evidence was recorded.
-      reported(
-        &open()?.ac_satisfy(&st, &id, &evidence).map_err(fail)?,
-        &id,
-        "satisfied by evidence",
-      );
+      let mut f = open()?;
+      let outcome = f.ac_satisfy(&st, &id, &evidence).map_err(fail)?;
+      reported(&mut f, &outcome, &id, "satisfied by evidence");
       Ok(())
     }
     Some(("unsatisfy", a)) => {
@@ -3268,11 +3263,9 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
       // unsatisfied (evidence cleared)` would report a clearing that did not
       // happen. `reported` takes the movement phrase and composes the no-op from
       // the state, so this falls out rather than needing care.
-      reported(
-        &open()?.ac_unsatisfy(&st, &id).map_err(fail)?,
-        &id,
-        "unsatisfied (evidence cleared)",
-      );
+      let mut f = open()?;
+      let outcome = f.ac_unsatisfy(&st, &id).map_err(fail)?;
+      reported(&mut f, &outcome, &id, "unsatisfied (evidence cleared)");
       Ok(())
     }
     Some(("list", a)) => {
@@ -3334,13 +3327,11 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
       // twice through the real binary -- `ac descope` printed `ok: AC-01.1
       // descoped to ST0001` on both calls, which is the defect the issue is about,
       // in an arm the issue does not list.
-      reported(
-        &open()?
-          .ac_descope(&st, &id, &to, by.as_deref(), reason.as_deref())
-          .map_err(fail)?,
-        &id,
-        &format!("descoped to {to}"),
-      );
+      let mut f = open()?;
+      let outcome = f
+        .ac_descope(&st, &id, &to, by.as_deref(), reason.as_deref())
+        .map_err(fail)?;
+      reported(&mut f, &outcome, &id, &format!("descoped to {to}"));
       Ok(())
     }
     Some(("withdraw", a)) => {
@@ -3356,13 +3347,11 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
       let by = arg(a, "by").ok();
       // The second arm 0050's line-oriented count could not see -- see `descope`
       // above.
-      reported(
-        &open()?
-          .ac_withdraw(&st, &id, &reason, by.as_deref())
-          .map_err(fail)?,
-        &id,
-        "withdrawn",
-      );
+      let mut f = open()?;
+      let outcome = f
+        .ac_withdraw(&st, &id, &reason, by.as_deref())
+        .map_err(fail)?;
+      reported(&mut f, &outcome, &id, "withdrawn");
       Ok(())
     }
     // **BOTH UNDO VERBS PRINT THE SAME STRING, AND THE STATE IN IT IS COMPUTED**
@@ -3389,7 +3378,8 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
       let id = arg(a, "acid")?;
       let mut f = open()?;
       let outcome = f.ac_rescope(&st, &id).map_err(fail)?;
-      reported(&outcome, &id, &back_in_scope(&f, &st, &id)?);
+      let moved = back_in_scope(&f, &st, &id)?;
+      reported(&mut f, &outcome, &id, &moved);
       Ok(())
     }
     Some(("reinstate", a)) => {
@@ -3397,7 +3387,8 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
       let id = arg(a, "acid")?;
       let mut f = open()?;
       let outcome = f.ac_reinstate(&st, &id).map_err(fail)?;
-      reported(&outcome, &id, &back_in_scope(&f, &st, &id)?);
+      let moved = back_in_scope(&f, &st, &id)?;
+      reported(&mut f, &outcome, &id, &moved);
       Ok(())
     }
     Some((verb, _)) => unwired("ac", verb),
@@ -3447,21 +3438,19 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
           )));
         }
       };
-      reported(
-        &open()?
-          .at_new(
-            &st,
-            &id,
-            kind,
-            opt(a, "file")?,
-            opt(a, "prose")?,
-            covers,
-            opt(a, "note")?,
-          )
-          .map_err(fail)?,
-        &id,
-        "created",
-      );
+      let mut f = open()?;
+      let outcome = f
+        .at_new(
+          &st,
+          &id,
+          kind,
+          opt(a, "file")?,
+          opt(a, "prose")?,
+          covers,
+          opt(a, "note")?,
+        )
+        .map_err(fail)?;
+      reported(&mut f, &outcome, &id, "created");
       Ok(())
     }
     // **THE RE-CITE DOOR, AND IT IS WHY THE REFUSAL BESIDE IT IS SAFE TO SHIP.**
@@ -3502,21 +3491,19 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
       // collapsing the two here would silently clear a row's coverage.
       let covers: Option<Vec<String>> =
         a.get_many::<String>("covers").map(|v| v.cloned().collect());
-      reported(
-        &open()?
-          .at_edit(
-            &st,
-            &id,
-            opt(a, "file")?,
-            opt(a, "prose")?,
-            covers,
-            opt(a, "note")?,
-            kind,
-          )
-          .map_err(fail)?,
-        &id,
-        "re-cited",
-      );
+      let mut f = open()?;
+      let outcome = f
+        .at_edit(
+          &st,
+          &id,
+          opt(a, "file")?,
+          opt(a, "prose")?,
+          covers,
+          opt(a, "note")?,
+          kind,
+        )
+        .map_err(fail)?;
+      reported(&mut f, &outcome, &id, "re-cited");
       Ok(())
     }
     Some(("list", a)) => {
@@ -3559,13 +3546,9 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
         "red" => AtStatus::Red,
         _ => AtStatus::Na,
       };
-      reported(
-        &open()?
-          .at_set(&st, &id, status, opt(a, "note")?)
-          .map_err(fail)?,
-        &id,
-        &format!("-> {}", status.display()),
-      );
+      let mut f = open()?;
+      let outcome = f.at_set(&st, &id, status, opt(a, "note")?).map_err(fail)?;
+      reported(&mut f, &outcome, &id, &format!("-> {}", status.display()));
       Ok(())
     }
     Some(("lint", a)) => {
@@ -3687,13 +3670,11 @@ fn set_verb(m: &ArgMatches) -> Result<(), Failure> {
   };
   let address = address_of(None, &raw)?;
   let subject = address.to_url();
-  reported(
-    &open()?
-      .set(&address, &field, serde_json::Value::String(value))
-      .map_err(fail)?,
-    &subject,
-    &format!("{field} written"),
-  );
+  let mut f = open()?;
+  let outcome = f
+    .set(&address, &field, serde_json::Value::String(value))
+    .map_err(fail)?;
+  reported(&mut f, &outcome, &subject, &format!("{field} written"));
   Ok(())
 }
 
@@ -4885,19 +4866,31 @@ fn report_wb_board(
   Ok(())
 }
 
-/// The files one board verb landed (issue 0612), after its `ok:` line:
-/// `wrote:` for the acting node's own, which is what it commits, and
-/// `re-rendered:` for anyone else's, with whose each is.
+/// The files one verb landed, after its `ok:` line: `wrote:` for the caller's
+/// own, which is what it commits, and `re-rendered:` for anyone else's, with
+/// whose each is. The board verbs' since issue 0612, every verb's since 0624.
 fn print_written(written: &intentsvcs::facade::Written) {
-  for path in &written.wrote {
-    println!("wrote: {path}");
+  for line in written_lines(written) {
+    println!("{line}");
   }
+}
+
+/// The lines [`print_written`] prints, one per file, in the one format every
+/// verb uses. `edit` prints the same lines on stderr (issue 0624), because its
+/// stdout is the one path a script reads.
+fn written_lines(written: &intentsvcs::facade::Written) -> Vec<String> {
+  let mut lines: Vec<String> = written
+    .wrote
+    .iter()
+    .map(|path| format!("wrote: {path}"))
+    .collect();
   for file in &written.re_rendered {
-    match file.owner.as_str() {
-      "" => println!("re-rendered: {}", file.path),
-      owner => println!("re-rendered: {} ({owner}'s)", file.path),
-    }
+    lines.push(match file.owner.as_str() {
+      "" => format!("re-rendered: {}", file.path),
+      owner => format!("re-rendered: {} ({owner}'s)", file.path),
+    });
   }
+  lines
 }
 
 /// The item kind a table-declared wire word names.
@@ -6815,7 +6808,7 @@ impl tui::edit::Model for Live {
     name: &str,
   ) -> Result<std::path::PathBuf, tui::edit::Refused> {
     let address = handed_address(kind, id)?;
-    artefact_path(&mut self.facade, &address, name).map_err(|e| {
+    let path = artefact_path(&mut self.facade, &address, name).map_err(|e| {
       // **THE REMEDY TRAVELS WITH THE REFUSAL, AND DROPPING IT WOULD LOSE THE
       // USEFUL HALF.** `FacadeError::NotEditable` says the view is generated
       // AND names what authors it -- `author it with intent ac` -- and the
@@ -6825,7 +6818,12 @@ impl tui::edit::Model for Live {
       // and a caller that forwards one of them has quietly re-scoped the answer.
       let remedy = intentsvcs::remedy::Remedy::remedy(&e);
       tui::edit::Refused::new(format!("{e} -- {remedy}"))
-    })
+    });
+    // **DRAINED AND DROPPED** (issue 0624): this facade lives for the session,
+    // so what each realise landed is taken here or it grows until the explorer
+    // exits. The explorer commits nothing, so nothing reads it.
+    self.facade.take_landed();
+    path
   }
 
   /// **THE RAW BYTES, NOT THE ROW.** `intentsvcs::form::raw` exists precisely
@@ -6877,7 +6875,7 @@ impl tui::edit::Model for Live {
   /// width arm kept them agreeing.
   fn write(&mut self, h: &tui::edit::Handoff, value: &str) -> Result<(), tui::edit::Refused> {
     let address = handed_address(&h.kind, &h.id)?;
-    self
+    let written = self
       .facade
       .set(
         &address,
@@ -6885,7 +6883,11 @@ impl tui::edit::Model for Live {
         serde_json::Value::String(value.to_string()),
       )
       .map(|_| ())
-      .map_err(|e| tui::edit::Refused::new(e.to_string()))
+      .map_err(|e| tui::edit::Refused::new(e.to_string()));
+    // Drained and dropped after every edit, refused or not, as `artefact` does
+    // (issue 0624): the edit's own line says what moved.
+    self.facade.take_landed();
+    written
   }
 }
 
@@ -8748,7 +8750,7 @@ fn todo_done(a: &ArgMatches) -> Result<(), Failure> {
         (st, Scope::Thread) => f.st_done(&st).map_err(fail)?,
         (st, Scope::WorkPackage(seq)) => f.wp_done(&st, seq).map_err(fail)?,
       };
-      reported(&outcome, &spec, "done");
+      reported(&mut f, &outcome, &spec, "done");
       Ok(())
     }
     (None, true) => {
@@ -11608,6 +11610,7 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
         f.project().relative(&f.project().issue_json(number))
       );
       println!("{number:04}:{title}");
+      print_written(&f.take_landed());
       Ok(())
     }
     // **THE CORRECTION DOOR** (hv, 2026-08-28/29; re-sequenced to cc after
@@ -11688,31 +11691,23 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
       }
       let written = format!("{} written", asked.join(" and "));
 
-      reported(
-        &issues_open(m, Answer::Write)?
-          .0
-          .issue_edit(
-            number,
-            body.as_deref(),
-            title.as_deref(),
-            severity.as_deref(),
-          )
-          .map_err(fail)?,
-        &format!("issue {number:04}"),
-        &written,
-      );
+      let mut f = issues_open(m, Answer::Write)?.0;
+      let outcome = f
+        .issue_edit(
+          number,
+          body.as_deref(),
+          title.as_deref(),
+          severity.as_deref(),
+        )
+        .map_err(fail)?;
+      reported(&mut f, &outcome, &format!("issue {number:04}"), &written);
       Ok(())
     }
     Some(("close", a)) => {
       let number = issue_arg(a, "id")?;
-      reported(
-        &issues_open(m, Answer::Write)?
-          .0
-          .issue_close(number)
-          .map_err(fail)?,
-        &format!("issue {number:04}"),
-        "-> CLOSED",
-      );
+      let mut f = issues_open(m, Answer::Write)?.0;
+      let outcome = f.issue_close(number).map_err(fail)?;
+      reported(&mut f, &outcome, &format!("issue {number:04}"), "-> CLOSED");
       Ok(())
     }
     // ST0078 WP-02: the issue half of `st renumber`.
@@ -11732,14 +11727,9 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
     }
     Some(("open", a)) => {
       let number = issue_arg(a, "id")?;
-      reported(
-        &issues_open(m, Answer::Write)?
-          .0
-          .issue_open(number)
-          .map_err(fail)?,
-        &format!("issue {number:04}"),
-        "-> OPEN",
-      );
+      let mut f = issues_open(m, Answer::Write)?.0;
+      let outcome = f.issue_open(number).map_err(fail)?;
+      reported(&mut f, &outcome, &format!("issue {number:04}"), "-> OPEN");
       Ok(())
     }
     // **`issues hydrate` AND `issues dehydrate` ARE GONE FROM THE SURFACE, AND
@@ -11866,20 +11856,16 @@ fn fc(m: &ArgMatches) -> Result<(), Failure> {
   match child {
     Some(id) if id.starts_with("AC-") => {
       let st = thread_arg(m, "target")?;
-      reported(
-        &open()?.ac_fc(&st, &id, &because, by).map_err(fail)?,
-        &id,
-        "fiat-closed",
-      );
+      let mut f = open()?;
+      let outcome = f.ac_fc(&st, &id, &because, by).map_err(fail)?;
+      reported(&mut f, &outcome, &id, "fiat-closed");
       Ok(())
     }
     Some(id) if id.starts_with("AT-") => {
       let st = thread_arg(m, "target")?;
-      reported(
-        &open()?.at_fc(&st, &id, &because, by).map_err(fail)?,
-        &id,
-        "fiat-closed",
-      );
+      let mut f = open()?;
+      let outcome = f.at_fc(&st, &id, &because, by).map_err(fail)?;
+      reported(&mut f, &outcome, &id, "fiat-closed");
       Ok(())
     }
     // **NO CHILD MEANS THE TARGET ITSELF, AND WHICH KIND IT IS COMES FROM
@@ -11895,20 +11881,16 @@ fn fc(m: &ArgMatches) -> Result<(), Failure> {
       let target = thread_arg(m, "target")?;
       match scope_of(&target) {
         (st, Scope::Thread) => {
-          reported(
-            &open()?.st_fc(&st, &because, by).map_err(fail)?,
-            &st,
-            "fiat-closed",
-          );
+          let mut f = open()?;
+          let outcome = f.st_fc(&st, &because, by).map_err(fail)?;
+          reported(&mut f, &outcome, &st, "fiat-closed");
           Ok(())
         }
         (st, Scope::WorkPackage(seq)) => {
           let label = format!("{st}/{seq:02}");
-          reported(
-            &open()?.wp_fc(&st, seq, &because, by).map_err(fail)?,
-            &label,
-            "fiat-closed",
-          );
+          let mut f = open()?;
+          let outcome = f.wp_fc(&st, seq, &because, by).map_err(fail)?;
+          reported(&mut f, &outcome, &label, "fiat-closed");
           Ok(())
         }
       }
@@ -11924,12 +11906,17 @@ fn fc(m: &ArgMatches) -> Result<(), Failure> {
   }
 }
 
-fn reported(outcome: &Outcome, subject: &str, moved: &str) {
+/// The one reporter for a verb that returns an [`Outcome`]: its notes, its
+/// `ok:` line, and then every file it wrote (issue 0624), through the printer
+/// the board verbs use. A verb that moved nothing landed nothing, so it prints
+/// no `wrote:` line.
+fn reported(f: &mut Facade, outcome: &Outcome, subject: &str, moved: &str) {
   report_notes(outcome, subject);
   match outcome.already() {
     None => println!("ok: {subject} {moved}"),
     Some(state) => println!("ok: {subject} already {state}"),
   }
+  print_written(&f.take_landed());
 }
 
 /// The notes half of [`reported`], for a verb whose result line is its own --

@@ -515,6 +515,12 @@ pub const SERVED: [&str; 74] = [
 /// call's argument object; `Null` reads as empty. The population is the
 /// table's: a path outside it, or narrowed off this surface, is
 /// [`ServeError::UnknownTool`] whether or not an arm exists below.
+///
+/// **A WRITE THAT IS NOT A BOARD VERB NAMES WHAT IT WROTE** (issue 0624), as
+/// `written` beside its answer: the files an agent commits, read off the row's
+/// own `read_or_mutate` in this one place rather than added arm by arm, where
+/// an arm that forgot would answer without them. The board arms name theirs
+/// through `take_written`, split by the acting node, so they are left alone.
 pub fn serve(
   f: &mut Facade,
   ctx: &FacadeContext,
@@ -530,7 +536,28 @@ pub fn serve(
       });
     }
   };
+  let mut answered = tool_answer(f, ctx, path, args, &table, entry)?;
+  if entry.read_or_mutate == "mutate"
+    && !path.starts_with("wb ")
+    && let Value::Object(fields) = &mut answered
+  {
+    fields.insert(
+      "written".to_string(),
+      intentsvcs::facade::written_json(&f.take_landed()),
+    );
+  }
+  Ok(answered)
+}
 
+/// One tool call's answer, from the row [`serve`] found for it.
+fn tool_answer(
+  f: &mut Facade,
+  ctx: &FacadeContext,
+  path: &str,
+  args: &Value,
+  table: &Table,
+  entry: &Entry,
+) -> Result<Value, ServeError> {
   let empty = Map::new();
   let map: &Map<String, Value> = match args {
     Value::Null => &empty,
@@ -705,7 +732,7 @@ pub fn serve(
       let file = opt_s(path, map, "file")?.unwrap_or("info").to_string();
       // The declared vocabulary, from the table -- the same home the CLI arm
       // reads, so the two doors cannot drift about what a file view is.
-      let permitted = crate::dispatch::arg_values(&table, "edit", "file");
+      let permitted = crate::dispatch::arg_values(table, "edit", "file");
       if !permitted.is_empty() && !permitted.iter().any(|v| v == &file) {
         return Err(args_err(
           path,
