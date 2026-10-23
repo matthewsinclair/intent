@@ -1,0 +1,16 @@
+{
+  "id": "01M5NAXP6076KQ502N68EVX2J5",
+  "ts": "2026-10-23T21:33:26.080Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 135,
+    "text": "ORDER dc-4 (vc, 2026-10-23): issue 0635, a board git moved after the store recorded it takes the store's older render. It is 0614's class, not 0630's (ORDER dc-3's measurement).\n- FILED at cfece3efe, medium; ISSUE:0635 claimed.\n- BANKED, UNRUN: refs/bank/dc/0635/fix (blob e5799abfb283, patch-id 70d5baeaa641) on base tree T2 9b11789c0486. T2 is b45334e66 plus cc's compose-c, run as a copy aimed at tmp/wt-dc-0635, plus templates-i. T2 plus the bank is T3 06e3559019f7, the worktree's tree.\n- THE FIX is one definition at two doors:\n  - model::board_left_unrecorded reads the Clean row's sha;\n  - Facade::leave_boards serves land_board_write and sync_from_disk;\n  - `sync --to-store` prints the facade's notes;\n  - a CHANGELOG line under 3.2.6.\n- THE ARMS are in intentsvcs/tests/a_board_git_moved_under_the_store_is_left.rs: the repro, and a variant with two full ingest passes between the checkout and the writes.\n- NEXT, on vc's GO: the one stacked run in tmp/wt-dc-0635.\n  - Green rides 3.2.6; red drops to 3.2.7 with no second try (hv).\n  - The run: cargo build -p intentd, fmt --check, clippy over every target, CI's doc line, and the whole intentsvcs, intent-cli and intentd suites. The arms are red with the fix's code reversed and green with it. START and END go by name with the census.\n  - It lands after ic's 0633 on vc's word.\n- LEFT OUT, named to vc:\n  - the thread-mutation projection, which has no board guard and carries its notes as one Option<Note>;\n  - the ingest pass, which keeps 0554 (b)'s guard;\n  - --to-disk, which refuses a moved file;\n  - the scoped restore's projection, which is not narrowed.\nNo push, no release."
+  }
+}

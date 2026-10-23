@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 5abe68e1-b9b1-4003-9718-c8fbba772543
-heartbeat_at: 2026-10-23 19:18Z
-status: active
-focus: "Guards pass done in all eleven estates, no push; waiting on vc's GO for the 3.2.6 known-defects re-drive after build all #2; no push, no release"
+heartbeat_at: 2026-10-23 21:33Z
+status: paused
+focus: "Closed for the night (hv): resume with 0635's stacked run on vc's GO, then the 3.2.6 known-defects re-drive after build all #2; no push, no release"
 claims: [ISSUE:0635]
 ---
 
@@ -13,38 +13,36 @@ claims: [ISSUE:0635]
 
 ## DOING
 
-- GUARDS ADOPTION PASS (hv released hold 29; vc's sequence): DONE in dc's lane, as read at 19:18Z on 2026-10-23 by date -u; one commit per estate, no push. Before the bounce: Laksa a54132707 (corrected forward by 9637080e8), Prolix 5b9f45e, Cdtempl 0075199, Riffle 67c9235, Baize 3f6da7e. After it, each on a fresh dry run on the pair at c59e80779 that wrote the 8 hook files and nothing else: Prodinfra fa4b6a3, Lamplight 7cfa606a5, Conflab ff4d7441, Trellis e07fce8, Anvil 95eff25, Courses 076d6e7. (edited)
-  - TRELLIS took option (a), the gate only: it had no commit gate before; `--skip-settings` left .claude/settings.json and .mcp.json alone, so no session hook is installed (hv's to ask for), and usage-rules.md and .intent_critic.yml were seeded and tracked.
-  - CONFLAB's old hook ran three checks outside the chain block. Its markdown and elixir checks are now declared as formatters in intent/.config/config.json, which the shipped staged-format guard runs. Its bin/precommit-rust line is kept, verbatim, as the last command of the tracked dispatcher: a dry run after it was added keeps it, and doctor's hand-wired advisory cleared once the dispatcher was tracked. gate_rust returns at once when no .rs is staged, so a commit without Rust runs no cargo.
-  - RED CONTROLS ran through each estate's new dispatcher on a throwaway index:
-    - canon-ignore refused (Prodinfra, Trellis);
-    - unformatted .md and .ex refused by the staged-format guard (Lamplight, Conflab);
-    - unformatted .rs refused by precommit-rust after Intent's gate passed (Conflab);
-    - an unquoted shell expansion refused by the critic (Anvil, Courses);
-    - a clean .md passed everywhere, and doctor gave 0 findings in each estate.
-  - SWEPT after the last commit:
-    - all eleven estates run their tracked dispatchers (Laksa from bin/hooks, the rest from .githooks);
-    - every carrier is executable and ignored, and every hook tree is clean;
-    - every dry run has 0 to write.
-  - NOT dc's hand: Molt's recipe is with molt-vc; Devbin waits on devbin-vc; Laksa's follow-up (four canon guards run twice) is for Laksa's own nodes.
-  hv's rule, verbatim: NEVER truncate the output of "git remote -v" because doing so cuts off valid remotes.
-- RESUME STATE at the localfold, 19:04Z on 2026-10-23 by date -u (hv's call, relayed by vc). Nothing heavy until vc's GO.
-  - NEXT, on vc's GO after build all #2 on the final HEAD: the 3.2.6 known-defects re-drive. The drive is refs/bank/dc/kd326/drive.sh (blob de3278753b8f), 3.2.5's drive-final.sh with only its title, S= and REPO changed; REPO is tmp/wt-dc-kd326, made at the final HEAD at START. Census, then START by name; the drive against build all #2's pair; every entry diffed against 3.2.5's final log (refs/bank/dc/325kd/drive-final.log); the page rewritten from the transcripts and retitled for v3.2.6; its commit to vc before step 3, so the tag carries it; END with each entry's verdict. The page is unchanged since v3.2.5, so no entry is new, and no commit since v3.2.5 names an issue it cites.
-  - THE PREFLIGHT for tonight's cut: hv's next kovacs run uses the in-tree order, landed at f40df8f72. While nothing covers HEAD, `bin/int prepush --preflight-covers HEAD` prints its two lines, and the run copies its summary back here. It runs on the final candidate, after the last landing and close.
+- RESUME STATE at the close, on hv's call (2026-10-23). Nothing heavy until vc's GO. (edited)
+  - FIRST: 0635's stacked run on vc's GO (doing 135).
+  - THEN, on vc's GO after build all #2 on the final HEAD: the 3.2.6 known-defects re-drive.
+    - The drive is refs/bank/dc/kd326/drive.sh (blob de3278753b8f), and REPO is tmp/wt-dc-kd326, made at the final HEAD at START.
+    - Every entry is diffed against 3.2.5's final log, and the page is rewritten and retitled for v3.2.6.
+    - Its commit goes to vc before the cut's step 3, so the tag carries it.
+  - THE PREFLIGHT:
+    - hv's kovacs re-run at 95bf1c6a5 uses the two lines the gate printed; vc carries them.
+    - kovacs needs prettier@3 and OTP 29 / Elixir 1.20 at CI's pins. vc ruled out any waiver path.
   - 0629 (.heex in the staged-format guard): next session.
   No push, no release.
-- ORDER dc-2 (vc, 19:54Z on 2026-10-23 by vc's clock): light work, no cargo, single-file bats only. The first kovacs preflight ran at f40df8f72 and was red (rc=1, 716 ok, 88 not ok). (edited)
-  - LANDED on vc's word: order-d at 6cf058a5a. The order now copies intent and intentd into the clone rather than linking the target outside it, and runs the suite under LANG=C.UTF-8 with every LC_* unset.
-  - LANDED on vc's word: macos-comm at 95bf1c6a5, which puts support_tree_drift's sorts and comm under LC_ALL=C.
-  - LANDED on vc's word: comm-population at 511613c96, the same spelling at every other comm in bin/.devbin and every sort feeding one (measured, cache, canon, build.d/release). vc lifted the hold: the re-run clones 95bf1c6a5 fresh and never sees HEAD.
-  - All three landed at their banked patch-ids (ff1b95c4ec02, babb926f7754, ae90839c2699). Their worktrees are removed.
-  - hv re-runs the preflight at 95bf1c6a5 by the lines the gate printed; vc carries them. The candidate's run covers the population.
+- ORDER dc-4 (vc, 2026-10-23): issue 0635, a board git moved after the store recorded it takes the store's older render. It is 0614's class, not 0630's (ORDER dc-3's measurement). (edited)
+  - FILED at cfece3efe, medium; ISSUE:0635 claimed.
+  - BANKED, UNRUN: refs/bank/dc/0635/fix (blob e5799abfb283, patch-id 70d5baeaa641) on base tree T2 9b11789c0486. T2 is b45334e66 plus cc's compose-c, run as a copy aimed at tmp/wt-dc-0635, plus templates-i. T2 plus the bank is T3 06e3559019f7, the worktree's tree.
+  - THE FIX is one definition at two doors:
+    - model::board_left_unrecorded reads the Clean row's sha;
+    - Facade::leave_boards serves land_board_write and sync_from_disk;
+    - `sync --to-store` prints the facade's notes;
+    - a CHANGELOG line under 3.2.6.
+  - THE ARMS are in intentsvcs/tests/a_board_git_moved_under_the_store_is_left.rs: the repro, and a variant with two full ingest passes between the checkout and the writes.
+  - NEXT, on vc's GO: the one stacked run in tmp/wt-dc-0635.
+    - Green rides 3.2.6; red drops to 3.2.7 with no second try (hv).
+    - The run: cargo build -p intentd, fmt --check, clippy over every target, CI's doc line, and the whole intentsvcs, intent-cli and intentd suites. The arms are red with the fix's code reversed and green with it. START and END go by name with the census.
+    - It lands after ic's 0633 on vc's word.
+  - LEFT OUT, named to vc:
+    - the thread-mutation projection, which has no board guard and carries its notes as one Option<Note>;
+    - the ingest pass, which keeps 0554 (b)'s guard;
+    - --to-disk, which refuses a moved file;
+    - the scoped restore's projection, which is not narrowed.
   No push, no release.
-- ORDER dc-4 (vc, after 20:57Z on 2026-10-23): issue 0635, a board git moved after the store recorded it takes the store's older render (0614's class, not 0630's, measured in ORDER dc-3).
-  - FILED at cfece3efe, medium.
-  - NEXT: the fix and its two arms banked UNRUN as refs/bank/dc/0635/fix on main's HEAD, with blob, base and patch-id, and HELD. Whether it rides 3.2.6 (one cargo run on the HEAD after tonight's landings, before build all #2) or 3.2.7 is hv's call; vc is asking.
-  - The fix asks the existing provenance question rather than a new one. The guard goes on the restore path too: sync_from_disk lands its projection with WriteSet::commit, never through land_board_write.
-  No cargo, no push, no release.
 
 ## TODO
 

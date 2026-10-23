@@ -1,0 +1,16 @@
+{
+  "id": "01M5NAXN2AQ8JV7P0J548VWCH2",
+  "ts": "2026-10-23T21:33:24.938Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 133,
+    "text": "RESUME STATE at the close, on hv's call (2026-10-23). Nothing heavy until vc's GO.\n- FIRST: 0635's stacked run on vc's GO (doing 135).\n- THEN, on vc's GO after build all #2 on the final HEAD: the 3.2.6 known-defects re-drive.\n  - The drive is refs/bank/dc/kd326/drive.sh (blob de3278753b8f), and REPO is tmp/wt-dc-kd326, made at the final HEAD at START.\n  - Every entry is diffed against 3.2.5's final log, and the page is rewritten and retitled for v3.2.6.\n  - Its commit goes to vc before the cut's step 3, so the tag carries it.\n- THE PREFLIGHT:\n  - hv's kovacs re-run at 95bf1c6a5 uses the two lines the gate printed; vc carries them.\n  - kovacs needs prettier@3 and OTP 29 / Elixir 1.20 at CI's pins. vc ruled out any waiver path.\n- 0629 (.heex in the staged-format guard): next session.\nNo push, no release."
+  }
+}
