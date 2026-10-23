@@ -1,0 +1,16 @@
+{
+  "id": "01M5MM7W1W8HVKK41ZWB3N598E",
+  "ts": "2026-10-23T14:57:02.524Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 123,
+    "text": "ORDER ic-1 from vc (2026-10-23 12:03Z by vc's clock, on hv's \"Ok, do it\") and the orders after it. DONE: (1) the 0616-0618 surface note (refs/bank/ic/0616-0618/surface-note.md, ruled by vc at 5a5a3c16a; cc's verbs landed at 3c2ed2d39); (3) inert_arg_check.sh reads the table with jq at c9ca99d73; (4) 0622 fixed at 7a62e86c1 and CLOSED at faf545412; vc's two XS fixes at e3ce52d57 and the (a)/(b) fixes at a8be7c32b; ST0085/01's report at 622c1940a, then AC-01.1 minted and satisfied and WP-01 Done at c6839891a, and 0611 CLOSED at 9d7f7f979. (2) is hv's own hand: the five .py history tools go at hv's terminal in one --no-verify commit; ic does nothing on them. NOW: 0623 (claimed), the explorer screenshot generator rewritten as a Rust example of intent-cli on the vt100 crate, the seed dates pinned at render to 2026-10-16, explorer_shots.py deleted and releasing.md's venv step gone, in one bank (placement and pin chosen by hv in ic's TUI and ruled by vc, 2026-10-23); built in tmp/wt-ic-0623 with its own in-tree target, its cargo booked after dc's 0614 run. No push, no release."
+  }
+}
