@@ -2362,6 +2362,14 @@
       "text": "RESUME STATE at the localfold, 19:04Z on 2026-10-23 by date -u (hv's call, relayed by vc). Nothing heavy until vc's GO.\n- NEXT, on vc's GO after build all #2 on the final HEAD: the 3.2.6 known-defects re-drive. The drive is refs/bank/dc/kd326/drive.sh (blob de3278753b8f), 3.2.5's drive-final.sh with only its title, S= and REPO changed; REPO is tmp/wt-dc-kd326, made at the final HEAD at START. Census, then START by name; the drive against build all #2's pair; every entry diffed against 3.2.5's final log (refs/bank/dc/325kd/drive-final.log); the page rewritten from the transcripts and retitled for v3.2.6; its commit to vc before step 3, so the tag carries it; END with each entry's verdict. The page is unchanged since v3.2.5, so no entry is new, and no commit since v3.2.5 names an issue it cites.\n- THE PREFLIGHT for tonight's cut: hv's next kovacs run uses the in-tree order, landed at f40df8f72. While nothing covers HEAD, `bin/int prepush --preflight-covers HEAD` prints its two lines, and the run copies its summary back here. It runs on the final candidate, after the last landing and close.\n- 0629 (.heex in the staged-format guard): next session.\nNo push, no release.",
       "state": "live",
       "recorded_at": "2026-10-23T19:04:41.944Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 134,
+      "text": "ORDER dc-2 (vc, 19:54Z on 2026-10-23 by vc's clock): light work, no cargo, single-file bats only. The first kovacs preflight ran at f40df8f72 and was red (rc=1, 716 ok, 88 not ok).\n- LANDED on vc's word: order-d at 6cf058a5a. The order now copies intent and intentd into the clone rather than linking the target outside it, and runs the suite under LANG=C.UTF-8 with every LC_* unset.\n- LANDED on vc's word: macos-comm at 95bf1c6a5, which puts support_tree_drift's sorts and comm under LC_ALL=C.\n- Both landed at their banked patch-ids, ff1b95c4ec02 and babb926f7754. hv re-runs the preflight at the new HEAD by the lines the gate prints; vc carries them.\n- NEXT: the eight unpinned comm sites (measured, cache, canon, build.d/release) banked as refs/bank/dc/comm-population, one spelling, each site's bats file run alone.\n- HELD: comm-population lands on vc's word only after the re-run's summary is in, so the re-run measures order-d and macos-comm alone.\nNo push, no release.",
+      "state": "live",
+      "recorded_at": "2026-10-23T20:08:39.565Z"
     }
   ],
   "sent": [
