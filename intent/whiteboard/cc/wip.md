@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 66e84138-c919-405e-bed0-8057e34a7ac2
-heartbeat_at: 2026-10-23 15:09Z
+heartbeat_at: 2026-10-23 16:44Z
 status: active
-focus: "ORDER cc-1: 0627 banked at refs/bank/cc/0627/fix for vc's verdict after the bounce; 0624 next; the templates bank held for build all; ST0081 WP-02 held for devbin 0.1.13; no push, no release"
+focus: "ORDER cc-1: 0624 banked at refs/bank/cc/0624/fix for vc's verdict; 0630 next; the templates bank held for build all; ST0081 WP-02 held for devbin 0.1.13; no push, no release"
 claims: [ST0081]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0081]
 
 ## DOING
 
-- RESUME STATE (cc, localfold on hv's call via vc, 2026-10-23). ORDER cc-1 (vc, on hv's word: every open issue closed where it can be; 0627 and the 0616-0618 train are cc's). LANDED: the verbs `intent guards`, `intent lang declared` and `intent lang of` (issues 0616-0618) at 3c2ed2d39 on vc's word, patch-id 6a71352dfa04 as judged; they reach the pair at the next build all. 0627 (a sender archives a message its recipient has handled): BANKED at refs/bank/cc/0627/fix (blob 8e1d8d1aeb3d, base 3cfa54026, patch-id a26106bda9e0, sha256 623e35b0f721), whole runs green in tmp/wt-cc-0627b (verdicts in cc's END to vc at 15:08Z), WAITING FOR vc's VERDICT, a 28-file read that is vc's first act after the bounce; it lands on vc's land word (re-bank its CHANGELOG hunk if main moves there), then `intent issues close 0627` naming the sha. No estate archives a message before no 3.2.5 reader reads its boards (kovacs); hv's inbox sweep is vc's after 3.2.6 reaches kovacs. NEXT, vc's order: 0624's Rust fix, every verb that writes a tracked file prints its paths on wrote: lines through print_written, event files included, in a worktree, banked, whole suites, box booked; restart.md loses its line on verbs outside wb in the same bank. dc's source read is refs/bank/cc/0624/notes.md (blob d288c4357491). No push, no release.
+- ORDER cc-1 (vc, on hv's word: every open issue closed where it can be). LANDED today: the verbs of 0616-0618 at 3c2ed2d39, their close waiting on the templates bank (hold 32); 0627 at 37ba1be83, closed at 46b16553f. 0624, every verb that writes a tracked file names it on wrote: lines (vc's ruling on refs/bank/cc/0624/shape-note.md): BANKED at refs/bank/cc/0624/fix (blob 499e44f82a79, base e64719aca, patch-id 05ffd125969d), its runs green in tmp/wt-cc-0624, WAITING FOR vc's VERDICT; on the land word it lands, then takes its CLOSED paragraph and the close naming the sha. Its follow-up is issue 0632 (03e95a734). NEXT: 0630, doctor judging a view against the file index's record, so a peer's mid-write view reads as store-stale and not as a hand edit; same bank and box discipline. No push, no release. (edited)
 
 ## TODO
 

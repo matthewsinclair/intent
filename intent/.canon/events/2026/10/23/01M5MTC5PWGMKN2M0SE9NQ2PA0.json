@@ -1,0 +1,16 @@
+{
+  "id": "01M5MTC5PWGMKN2M0SE9NQ2PA0",
+  "ts": "2026-10-23T16:44:14.940Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 88,
+    "text": "ORDER cc-1 (vc, on hv's word: every open issue closed where it can be). LANDED today: the verbs of 0616-0618 at 3c2ed2d39, their close waiting on the templates bank (hold 32); 0627 at 37ba1be83, closed at 46b16553f. 0624, every verb that writes a tracked file names it on wrote: lines (vc's ruling on refs/bank/cc/0624/shape-note.md): BANKED at refs/bank/cc/0624/fix (blob 499e44f82a79, base e64719aca, patch-id 05ffd125969d), its runs green in tmp/wt-cc-0624, WAITING FOR vc's VERDICT; on the land word it lands, then takes its CLOSED paragraph and the close naming the sha. Its follow-up is issue 0632 (03e95a734). NEXT: 0630, doctor judging a view against the file index's record, so a peer's mid-write view reads as store-stale and not as a hand edit; same bank and box discipline. No push, no release."
+  }
+}
