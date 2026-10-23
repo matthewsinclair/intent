@@ -128,7 +128,7 @@ crate_of() { basename "$1" .d | sed -E 's/-[0-9a-f]{8,}$//'; }
 stale_crates="" ; fresh_crates=""
 for f in "$DEPS"/*.d; do
   [ -e "$f" ] || continue
-  if grep -qE "$(printf '%s' "$stale_roots" | head -1)" "$f" 2>/dev/null; then
+  if grep -qE "${stale_roots%%$'\n'*}" "$f" 2>/dev/null; then
     stale_crates="${stale_crates}$(crate_of "$f")
 "
   else

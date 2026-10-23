@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **The macOS support tarball is built from the release commit, so nothing on the release machine's working copy can reach it** (issue 0626). `intent-support.tar.gz` was tarred from the working copy, so v3.2.5's carried three empty directories git does not track (`lib/templates/eng`, `issues` and `prime`), which the stage's drift check, comparing files, could not see. `int macos stage` now archives the commit it records with `git archive`, through the one function the Linux packages already used. That function pins the file modes to 0755 and 0644, which the Linux package had until now only because the packaging runner's umask was 022, so neither asset's modes depend on the machine that builds it.
+- **The cost-analysis skill's `cost-metrics.sh` no longer pipes `git log` into `head`** (issue 0628). It took the first commit's date with `git log --reverse | head -1` under `pipefail`, a pipeline that fails whenever git is still writing when `head` exits, as it is on any long history. The script carried on only because that line runs inside a command substitution, where `errexit` is off, so the fix changes no output today: it removes a failure that would end the script the day the function is called any other way. It now reads the whole log and takes the first line from the value.
 
 ## [3.2.5] - 2026-10-23
 

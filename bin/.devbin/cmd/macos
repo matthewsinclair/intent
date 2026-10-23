@@ -172,7 +172,8 @@ if [ -n "$APPLE_TEAM_ID" ]; then
   IDENTITY="Developer ID Application: Geodica Pty Ltd ($APPLE_TEAM_ID)"
 else
   IDENTITY="$({ security find-identity -v -p codesigning 2>/dev/null || true; } |
-    sed -n 's/.*"\(Developer ID Application: [^"]*\)".*/\1/p' | head -1)"
+    sed -n 's/.*"\(Developer ID Application: [^"]*\)".*/\1/p')"
+  IDENTITY="${IDENTITY%%$'\n'*}"
 fi
 
 present() { [ -n "$1" ] && printf 'PRESENT' || printf 'MISSING'; }
@@ -639,7 +640,8 @@ cmd_sign() {
     # Notarisation refuses without it, so an unmeasured claim here is discovered
     # minutes later at Apple -- after this pipeline has reported success twice.
     flags="$(codesign -d --verbose=2 "$STAGE_DIR/$b-$triple" 2>&1 |
-      sed -n 's/.*flags=\([^ ]*\).*/\1/p' | head -1)"
+      sed -n 's/.*flags=\([^ ]*\).*/\1/p')"
+    flags="${flags%%$'\n'*}"
     case "$flags" in
       *runtime*) printf '    %-34s %s\n' "hardened runtime" "$flags" ;;
       *) die "$b-$triple was signed but the hardened runtime is NOT set on it (flags=${flags:-<unreadable>}).
@@ -668,7 +670,7 @@ cmd_notarize() {
   # anyway, minutes later, with a less useful message -- and a gate that fails
   # early beats one that fails after a round trip to Apple.
   for b in $BINARIES; do
-    codesign -dv "$STAGE_DIR/$b-$triple" 2>&1 | grep -q 'TeamIdentifier=not set' &&
+    grep -q 'TeamIdentifier=not set' <<<"$(codesign -dv "$STAGE_DIR/$b-$triple" 2>&1)" &&
       die "$b-$triple is not Developer ID signed -- run 'bin/devbin macos sign' first"
   done
 
@@ -703,9 +705,9 @@ cmd_notarize() {
 
   if [ "$status" != "Accepted" ]; then
     local id
-    id="$(printf '%s' "$out" | awk '/id: [0-9a-f-]{36}/ { print $2; exit }')"
+    id="$(awk '/id: [0-9a-f-]{36}/ && id == "" { id = $2 } END { print id }' <<<"$out")"
     [ -n "$id" ] && xcrun notarytool log "$id" \
-      --apple-id "$APPLE_ID" --password "$APPLE_APP_PASSWORD" --team-id "$APPLE_TEAM_ID" 2>&1 | head -40
+      --apple-id "$APPLE_ID" --password "$APPLE_APP_PASSWORD" --team-id "$APPLE_TEAM_ID" 2>&1 | sed -n '1,40p'
     rm -rf "$staging"
     die "notarisation was not Accepted (status: ${status:-unknown})"
   fi
@@ -1338,8 +1340,10 @@ $(printf '%s\n' "$conflicts" | sed 's/^/       /')
   local prov_commit prov_clean tag_commit
   [ -f "$PROVENANCE_FILE" ] ||
     die "no provenance record at $PROVENANCE_FILE -- run 'bin/devbin macos stage' (or 'prepare'), which writes it. Refusing to publish bytes whose source commit was never recorded."
-  prov_commit="$(sed -n 's/^commit: //p' "$PROVENANCE_FILE" | head -1)"
-  prov_clean="$(sed -n 's/^checkout_clean: //p' "$PROVENANCE_FILE" | head -1)"
+  prov_commit="$(sed -n 's/^commit: //p' "$PROVENANCE_FILE")"
+  prov_commit="${prov_commit%%$'\n'*}"
+  prov_clean="$(sed -n 's/^checkout_clean: //p' "$PROVENANCE_FILE")"
+  prov_clean="${prov_clean%%$'\n'*}"
   # EVERY REFUSAL NAMES THE SUBJECT IT MEASURED, and this one did not. It read
   # `git status` and said "the staged artefacts cannot name their source commit"
   # -- a sentence about the BYTES. Driven on real repositories: with
@@ -2034,7 +2038,8 @@ app_signature_readback() {
   codesign --verify --strict --deep "$bundle" >/dev/null 2>&1 ||
     die "$bundle does not verify -- its signature is broken or incomplete"
   desc="$(codesign -d --verbose=2 "$bundle" 2>&1)"
-  flags="$(printf '%s\n' "$desc" | sed -n 's/.*flags=\([^ ]*\).*/\1/p' | head -1)"
+  flags="$(sed -n 's/.*flags=\([^ ]*\).*/\1/p' <<<"$desc")"
+  flags="${flags%%$'\n'*}"
   team="$(printf '%s\n' "$desc" | sed -n 's/^TeamIdentifier=//p')"
   ident="$(printf '%s\n' "$desc" | sed -n 's/^Identifier=//p')"
   want_team="${IDENTITY##*(}"; want_team="${want_team%)}"
@@ -2196,13 +2201,13 @@ cmd_app_notarize() {
   printf '%s\n' "$out"
   rm -rf "$staging"
   status="$(printf '%s' "$out" | awk '/^  status: / { print $2 }' | tail -1)"
-  id="$(printf '%s' "$out" | awk '/id: [0-9a-f-]{36}/ { print $2; exit }')"
+  id="$(awk '/id: [0-9a-f-]{36}/ && id == "" { id = $2 } END { print id }' <<<"$out")"
   [ -n "$id" ] || die "could not read a submission id from notarytool's output -- nothing stapled"
   # Anything but Accepted: print the log and stop. Never staple, never claim a
   # ticket that does not exist.
   if [ "$status" != "Accepted" ]; then
     xcrun notarytool log "$id" \
-      --apple-id "$APPLE_ID" --password "$APPLE_APP_PASSWORD" --team-id "$APPLE_TEAM_ID" 2>&1 | head -40
+      --apple-id "$APPLE_ID" --password "$APPLE_APP_PASSWORD" --team-id "$APPLE_TEAM_ID" 2>&1 | sed -n '1,40p'
     die "notarisation was not Accepted (status: ${status:-unknown}) -- nothing stapled"
   fi
 

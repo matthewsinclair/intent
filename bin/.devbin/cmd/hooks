@@ -166,7 +166,8 @@ resolve_guard_home() {
     GUARD_HOME="$ROOT"
     GUARD_HOME_FROM="this repository"
   else
-    GUARD_HOME="$(intent info 2>/dev/null | sed -n '/^ *INTENT_HOME:/ { s/^ *INTENT_HOME: *//; s/ *$//; p; }' | head -1)"
+    GUARD_HOME="$(intent info 2>/dev/null | sed -n '/^ *INTENT_HOME:/ { s/^ *INTENT_HOME: *//; s/ *$//; p; }')"
+    GUARD_HOME="${GUARD_HOME%%$'\n'*}"
     GUARD_HOME_FROM="INTENT_HOME"
   fi
 }

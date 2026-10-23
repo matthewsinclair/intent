@@ -124,6 +124,6 @@ fi
 
 if [ "$rc" -ne 0 ]; then
   printf '\n'
-  grep -E '^not ok ' "$out" | head -20
+  grep -E '^not ok ' "$out" | sed -n '1,20p'
   die "the suite is RED at $clone_sha -- full output was at $out (removed on exit; rerun to keep it)"
 fi

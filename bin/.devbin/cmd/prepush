@@ -343,7 +343,7 @@ if [ "$FORCE" -eq 0 ]; then
   # prefix, because a prefix needle stops matching the moment the prefix moves
   # and then passes in SILENCE -- which is exactly how the tree moved twice in
   # one morning without the tooling noticing.
-  if ! printf '%s\n' "$CHANGED" | grep -qE '^(native/|Cargo\.(toml|lock)$|rust-toolchain)'; then
+  if ! grep -qE '^(native/|Cargo\.(toml|lock)$|rust-toolchain)' <<<"$CHANGED"; then
     printf 'prepush: no native/ or build-manifest change in this push -- clone check not needed.\n'
     exit 0
   fi

@@ -328,7 +328,8 @@ collect_git_history() {
 
   local first_commit last_commit total_commits author_count months_active
 
-  first_commit="$(git -C "$TARGET_DIR" log --reverse --format="%ai" 2>/dev/null | head -1)"
+  first_commit="$(git -C "$TARGET_DIR" log --reverse --format="%ai" 2>/dev/null)"
+  first_commit="${first_commit%%$'\n'*}"
   last_commit="$(git -C "$TARGET_DIR" log -1 --format="%ai" 2>/dev/null)"
   total_commits="$(git -C "$TARGET_DIR" rev-list --count HEAD 2>/dev/null || echo 0)"
   author_count="$(git -C "$TARGET_DIR" log --format="%ae" 2>/dev/null | sort -u | wc -l | tr -d ' ')"

@@ -141,9 +141,9 @@ for v in "${VERBS[@]}"; do
   case "$rc" in
     0) state="HOSTED"; hosted=$((hosted+1)) ;;
     2)
-      if printf '%s' "$out" | grep -q 'not implemented yet'; then
+      if grep -q 'not implemented yet' <<<"$out"; then
         state="UNBUILT"; unbuilt=$((unbuilt+1))
-      elif printf '%s' "$out" | grep -q 'retired'; then
+      elif grep -q 'retired' <<<"$out"; then
         state="retired"; retired=$((retired+1))
       else
         state="rc2-other"; other=$((other+1))
@@ -151,7 +151,7 @@ for v in "${VERBS[@]}"; do
       ;;
     *) state="rc$rc"; other=$((other+1)) ;;
   esac
-  printf '  %-9s %-28s %s\n' "$state" "$v" "$(printf '%s' "$out" | head -1 | cut -c1-44)"
+  printf '  %-9s %-28s %s\n' "$state" "$v" "$(sed -n 1p <<<"$out" | cut -c1-44)"
 done
 
 printf '\n'

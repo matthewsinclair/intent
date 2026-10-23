@@ -173,7 +173,7 @@ assert_referent_safe() {
       die "referent line contains a diagnostic marker, which xcodebuild reads as a failure: $1"
       ;;
   esac
-  printf '%s\n' "$1" | grep -Eq '^devbin-referent: commit=[0-9a-f]+|^devbin-referent: commit=none' ||
+  grep -Eq '^devbin-referent: commit=[0-9a-f]+|^devbin-referent: commit=none' <<<"$1" ||
     die "referent line's commit field is not a hex sha: $1"
 }
 
@@ -275,7 +275,7 @@ seal_state() {
   local errors="$1"
   [ -f "$errors" ] || { printf 'ABSENT\n'; return 0; }
   [ -s "$errors" ] || { printf 'GREEN\n'; return 0; }
-  if head -1 "$errors" 2>/dev/null | grep -q '^run in flight'; then
+  if [[ "$(head -1 "$errors" 2>/dev/null)" == 'run in flight'* ]]; then
     printf 'IN-FLIGHT\n'
   else
     printf 'RED\n'
@@ -529,7 +529,7 @@ report_run() {
   if [ "$dn" -gt 0 ]; then
     printf '      differ  %s%s differ in CONTENT from %s%s\n' \
       "${red:-}" "$dn" "$against" "${reset:-}"
-    printf '%s\n' "$differ" | head -10 | while IFS= read -r f; do
+    sed -n '1,10p' <<<"$differ" | while IFS= read -r f; do
       printf '                %s%s%s\n' "${dim:-}" "$f" "${reset:-}"
     done
     [ "$dn" -le 10 ] || printf '                %s... and %s more%s\n' "${dim:-}" "$((dn - 10))" "${reset:-}"
@@ -539,7 +539,7 @@ report_run() {
       "${dim:-}" "$tn" "${reset:-}"
     printf '              %sa suite that backs a file up and restores it moves the mtime;%s\n' "${dim:-}" "${reset:-}"
     printf '              %sthat is not evidence about what this run measured.%s\n' "${dim:-}" "${reset:-}"
-    printf '%s\n' "$touched" | head -5 | while IFS= read -r f; do
+    sed -n '1,5p' <<<"$touched" | while IFS= read -r f; do
       printf '                %s%s%s\n' "${dim:-}" "$f" "${reset:-}"
     done
     [ "$tn" -le 5 ] || printf '                %s... and %s more%s\n' "${dim:-}" "$((tn - 5))" "${reset:-}"

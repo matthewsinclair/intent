@@ -438,7 +438,7 @@ cmd_install() {
 # the link really lands, never by the file's name.
 use_flavour() {
   local first target brew_prefix
-  first="$(path_hits intent | head -1 | cut -f2)"
+  first="$(path_hits intent | sed -n 1p | cut -f2)"
   [ -n "$first" ] || { printf 'none'; return 0; }
   target="$(describe_binding "$first" | cut -f2)"
   brew_prefix="$(brew --prefix 2>/dev/null)"
@@ -499,7 +499,7 @@ verify_hook_door() {
   out="$(intent claude hook session-context </dev/null 2>&1)"
   rc=$?
   if [ "$rc" -ne 0 ]; then
-    printf '    %s\n' "$out" | head -2
+    printf '    %s\n' "$out" | sed -n '1,2p'
     die "the binary resolves but its HOOK DOOR does not open (rc=$rc) -- lib/templates/ is not above the resolved executable, so every consumer hook would refuse at exit 1 and Claude Code would not block on it"
   fi
   printf '    hook door opens (rc=0)\n'

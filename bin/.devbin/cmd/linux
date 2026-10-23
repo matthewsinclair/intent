@@ -81,7 +81,7 @@ lacks() {
   done
   if ! command -v rustup >/dev/null 2>&1; then
     printf 'rustup is not on PATH, and the %s target is installed through it: https://rustup.rs\n' "$triple"
-  elif ! rustup target list --installed 2>/dev/null | grep -qx "$triple"; then
+  elif ! grep -qx "$triple" <<<"$(rustup target list --installed 2>/dev/null)"; then
     printf 'the %s target is not installed: rustup target add %s\n' "$triple" "$triple"
   fi
   command -v musl-gcc >/dev/null 2>&1 ||
@@ -135,7 +135,7 @@ cmd_build() {
       *"statically linked"* | *"static-pie linked"*) ;;
       *) die "$bin is not a static binary, so it would need this host's libc: $kind" ;;
     esac
-    printf '    %s\n' "$("$f" --version 2>&1 | head -n 1)"
+    printf '    %s\n' "$("$f" --version 2>&1 | sed -n 1p)"
   done
   ok
 }
@@ -199,7 +199,7 @@ smoke_checks() {
   out="$(printf '%s' '{"prompt":"linux smoke"}' | HOME="$home_releaser" CLAUDE_CODE_SESSION_ID="linux-smoke-$$" intent claude hook require-in-session 2>&1)"
   rc=$?
   set -e
-  if [ "$rc" -ne 2 ] || ! printf '%s' "$out" | grep -q 'Expected sentinel:'; then
+  if [ "$rc" -ne 2 ] || ! grep -q 'Expected sentinel:' <<<"$out"; then
     printf 'smoke: the gate hook did not run from the support tree (exit %s): %s\n' "$rc" "$out" >&2
     return 1
   fi
@@ -209,7 +209,7 @@ smoke_checks() {
   rc=$?
   set -e
   rm -f "/tmp/intent/in-session-linux-smoke-open-$$.sentinel"
-  if [ "$rc" -ne 0 ] || ! printf '%s' "$out" | grep -q 'intent claude skills install in-session'; then
+  if [ "$rc" -ne 0 ] || ! grep -q 'intent claude skills install in-session' <<<"$out"; then
     printf 'smoke: the gate without its releaser did not fail open with its notice (exit %s): %s\n' "$rc" "$out" >&2
     return 1
   fi
