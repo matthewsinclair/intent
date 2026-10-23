@@ -855,15 +855,73 @@ pub(crate) fn converge_formatter_exclusion(
 }
 
 /// The generated views' formatter-ignore patterns a project's `.prettierignore`
-/// does not carry: what [`converge_formatter_exclusion`] appends, asked without
+/// does not cover: what [`converge_formatter_exclusion`] appends, asked without
 /// writing so a dry run can report it (0378).
 pub(crate) fn formatter_exclusion_missing(project: &Project) -> Vec<String> {
   let current = std::fs::read_to_string(project.root().join(".prettierignore")).unwrap_or_default();
-  project
-    .generated_view_patterns()
+  uncovered_patterns(&current, project.generated_view_patterns())
+}
+
+/// The patterns in `wanted` that no line of `ignore_file` covers.
+///
+/// **COVERAGE IS WHAT A LINE MATCHES, NOT HOW IT IS SPELT** (issue 0633). The
+/// test was the line's text, so a file fencing the thread views with
+/// `intent/st/**/info.md` gained `intent/st/*/info.md` and its two siblings on
+/// every run: the `**` line already matched every path they stand for, and the
+/// redundant append left the tree dirty, so an estate whose own upgrade
+/// refuses a dirty checkout stopped before it ran.
+///
+/// **ONE PROBE PER PATTERN, NOTHING ENUMERATED.** Each `*` of the pattern
+/// becomes a character no line of the file contains, and the pattern is covered
+/// when the file's lines, read by gitignore's rules (prettier's), ignore that
+/// path or a directory above it. Only a `*` or a `**` can consume a character
+/// no line contains, so a line that matches the probe matches every path the
+/// pattern stands for, while a line naming one thread
+/// (`intent/st/ST0001/info.md`) misses it.
+///
+/// **A LINE THE PROBE CANNOT JUDGE COUNTS BY ITS TEXT ALONE, AS EVERY LINE DID
+/// BEFORE.** A `?` or a class can consume the probe's character and still miss
+/// a path the pattern stands for, and the matcher reads `{a,b}` as alternation
+/// where prettier reads braces literally, so a line carrying any of `?[]{}` or
+/// a backslash never reaches the matcher. Nor does a `!` line, which the text
+/// test never read either, so an operator's negation keeps what it re-includes.
+/// Each of these falls back to the old answer, an append, and never to a lost
+/// exclusion.
+fn uncovered_patterns(ignore_file: &str, wanted: Vec<String>) -> Vec<String> {
+  const PROBE: &str = "\u{e000}";
+  let matcher = if ignore_file.contains(PROBE) {
+    None
+  } else {
+    probe_matcher(ignore_file)
+  };
+  wanted
     .into_iter()
-    .filter(|pattern| !current.lines().any(|l| l.trim() == pattern))
+    .filter(|pattern| {
+      let spelt = ignore_file.lines().any(|l| l.trim() == pattern);
+      let matched = matcher.as_ref().is_some_and(|m| {
+        m.matched_path_or_any_parents(pattern.replace('*', PROBE), false)
+          .is_ignore()
+      });
+      !spelt && !matched
+    })
     .collect()
+}
+
+/// A gitignore matcher over the lines of `ignore_file` the probe can judge
+/// (see [`uncovered_patterns`]), rooted where the file sits.
+///
+/// `None` when one of those lines will not parse or the set will not build:
+/// the text test then decides every pattern alone, which is the answer this
+/// function was added to improve on and never a worse one.
+fn probe_matcher(ignore_file: &str) -> Option<ignore::gitignore::Gitignore> {
+  let mut builder = ignore::gitignore::GitignoreBuilder::new(".");
+  for line in ignore_file
+    .lines()
+    .filter(|l| !l.starts_with('!') && !l.contains(['?', '[', ']', '{', '}', '\\']))
+  {
+    builder.add_line(None, line).ok()?;
+  }
+  builder.build().ok()
 }
 
 /// Write `intent_version` into `config.json`. **THE LAST ACT OF THE

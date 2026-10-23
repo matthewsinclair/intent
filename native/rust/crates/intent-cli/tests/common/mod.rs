@@ -1091,6 +1091,21 @@ pub fn git_commit_all(dir: &Path) {
   assert!(commit.success(), "git commit");
 }
 
+/// Every path `git status` shows changed in `dir`, untracked files included.
+pub fn git_changed(dir: &Path) -> std::collections::BTreeSet<String> {
+  let out = std::process::Command::new("git")
+    .args(["status", "--porcelain", "--untracked-files=all"])
+    .current_dir(dir)
+    .output()
+    .expect("run git status");
+  assert!(out.status.success(), "git status");
+  String::from_utf8_lossy(&out.stdout)
+    .lines()
+    .filter_map(|line| line.get(3..))
+    .map(str::to_string)
+    .collect()
+}
+
 /// What a verb printed before the `wrote:` lines that follow its result (issue
 /// 0624): the result itself, for a test that holds a verb to its exact words.
 pub fn result_lines(out: &str) -> String {

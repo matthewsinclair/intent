@@ -43,21 +43,6 @@ fn setup(dir: &Path, args: &[&str]) {
   crate::common::git_commit_all(dir);
 }
 
-/// Every path `git status` shows changed, untracked files included.
-fn changed(dir: &Path) -> BTreeSet<String> {
-  let out = std::process::Command::new("git")
-    .args(["status", "--porcelain", "--untracked-files=all"])
-    .current_dir(dir)
-    .output()
-    .expect("run git status");
-  assert!(out.status.success(), "git status");
-  String::from_utf8_lossy(&out.stdout)
-    .lines()
-    .filter_map(|line| line.get(3..))
-    .map(str::to_string)
-    .collect()
-}
-
 /// The paths a run printed under `wrote:`, from either stream: `edit` prints
 /// its own on stderr, because its stdout is the one path a script reads.
 fn wrote(out: &str, err: &str) -> BTreeSet<String> {
@@ -76,7 +61,7 @@ fn wrote(out: &str, err: &str) -> BTreeSet<String> {
 fn names_what_it_wrote(dir: &Path, args: &[&str]) -> String {
   let (out, err, code) = run(dir, args);
   assert_eq!(code, 0, "{args:?}: {out}{err}");
-  let changed = changed(dir);
+  let changed = crate::common::git_changed(dir);
   assert!(
     !changed.is_empty(),
     "{args:?} changed nothing, so it proves nothing: {out}{err}"
@@ -279,5 +264,8 @@ fn a_verb_that_moves_nothing_names_nothing() {
     wrote(&out, &err).is_empty(),
     "a no-op named files:\n{out}{err}"
   );
-  assert!(changed(d).is_empty(), "a no-op changed files");
+  assert!(
+    crate::common::git_changed(d).is_empty(),
+    "a no-op changed files"
+  );
 }

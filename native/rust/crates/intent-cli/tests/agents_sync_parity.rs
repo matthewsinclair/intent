@@ -622,6 +622,146 @@ fn claude_upgrade_restores_the_formatter_exclusion_a_consumer_is_missing() {
   );
 }
 
+/// A project at canon in its own git repository, committed with
+/// `prettierignore` in place of the `.prettierignore` `init` wrote: `init`,
+/// then the one `claude upgrade --apply` that seeds what `init` leaves to it.
+/// What the next `claude upgrade` does to the file is then its own doing.
+fn at_canon_with(prettierignore: &str) -> tempfile::TempDir {
+  let dir = tempfile::tempdir().expect("tempdir");
+  crate::common::git_init(dir.path());
+  let (out, rc) = run(dir.path(), &["init", PROJECT_NAME]);
+  assert_eq!(rc, 0, "init a corpus project: {out}");
+  let (out, rc) = run(
+    dir.path(),
+    &["claude", "upgrade", "--apply", "--skip-settings"],
+  );
+  assert_eq!(rc, 0, "claude upgrade --apply brings it to canon: {out}");
+  std::fs::write(dir.path().join(".prettierignore"), prettierignore)
+    .expect("the operator's .prettierignore");
+  crate::common::git_commit_all(dir.path());
+  dir
+}
+
+/// The patterns a `claude upgrade` dry run says it would add to
+/// `.prettierignore`, in the order it names them.
+fn would_exclude(dir: &Path) -> Vec<String> {
+  let (out, rc) = run(dir, &["claude", "upgrade", "--skip-settings"]);
+  assert_eq!(rc, 0, "claude upgrade, dry run: {out}");
+  out
+    .lines()
+    .filter_map(|l| {
+      l.strip_prefix("would exclude: ")?
+        .strip_suffix(" in .prettierignore")
+    })
+    .map(str::to_string)
+    .collect()
+}
+
+/// Issue 0633: the upgrade judges coverage by what a line matches, not by how
+/// it is spelt. Molt fences the thread views with `**`, under its own note that
+/// a single `*` misses a thread under a status directory, and every upgrade
+/// appended the three single-`*` patterns those two lines already cover, so
+/// its tree was dirty after each run and its own upgrade refused to start. The
+/// file is Molt's pattern lines as they stand. Red on a binary without the
+/// fix, whose dry run names all three.
+#[test]
+fn a_double_star_line_covers_what_it_matches_and_the_upgrade_writes_nothing() {
+  const MOLT: &str = "intent/st/**/info.md\n\
+                      intent/st/**/acceptance.md\n\
+                      intent/st/steel_threads.md\n\
+                      intent/todo.md\n\
+                      intent/issues/*.md\n\
+                      intent/whiteboard/*/wip.md\n\
+                      intent/whiteboard/*/inbox.*.md\n";
+  let dir = at_canon_with(MOLT);
+  assert_eq!(
+    would_exclude(dir.path()),
+    Vec::<String>::new(),
+    "the dry run would add nothing"
+  );
+  let (out, rc) = run(
+    dir.path(),
+    &["claude", "upgrade", "--apply", "--skip-settings"],
+  );
+  assert_eq!(rc, 0, "claude upgrade --apply: {out}");
+  let after =
+    std::fs::read_to_string(dir.path().join(".prettierignore")).expect("re-read .prettierignore");
+  assert_eq!(after, MOLT, "the operator's file is left as it was: {out}");
+  let changed = crate::common::git_changed(dir.path());
+  assert!(
+    changed.is_empty(),
+    "and the tree is clean, where it holds {changed:?}: {out}"
+  );
+}
+
+/// Issue 0633, the `*` form: a line's `*` covers what it reaches and no more.
+/// `intent/st/*/*.md` matches every thread's `info.md` and `acceptance.md`,
+/// and its `*` does not cross the `/` into `WP/`, so the work-package views'
+/// pattern is still added. Red on a binary without the fix, which adds all
+/// three thread patterns.
+#[test]
+fn a_star_line_covers_what_its_star_reaches_and_no_more() {
+  let dir = at_canon_with(
+    "intent/st/steel_threads.md\n\
+     intent/todo.md\n\
+     intent/st/*/*.md\n\
+     intent/issues/*.md\n\
+     intent/whiteboard/*/wip.md\n\
+     intent/whiteboard/*/inbox.*.md\n",
+  );
+  assert_eq!(would_exclude(dir.path()), ["intent/st/*/WP/*/info.md"]);
+}
+
+/// Issue 0633, the literal form: a line with no wildcard covers the path it
+/// names and, naming a directory, everything beneath it. `intent/issues/`
+/// covers the issue views' pattern, while `intent/st/ST0001/info.md` names one
+/// thread's view and covers no pattern, so the three thread patterns are still
+/// added. Red on a binary without the fix, which adds the issue views' as well.
+#[test]
+fn a_literal_line_covers_what_it_names_and_what_lies_beneath_it() {
+  let dir = at_canon_with(
+    "intent/st/steel_threads.md\n\
+     intent/todo.md\n\
+     intent/st/ST0001/info.md\n\
+     intent/issues/\n\
+     intent/whiteboard/*/wip.md\n\
+     intent/whiteboard/*/inbox.*.md\n",
+  );
+  assert_eq!(
+    would_exclude(dir.path()),
+    [
+      "intent/st/*/info.md",
+      "intent/st/*/acceptance.md",
+      "intent/st/*/WP/*/info.md",
+    ]
+  );
+}
+
+/// Issue 0633's guard on the probe: a line carrying `?` or a brace counts only
+/// by its text. The probe puts one character where each `*` stands, which
+/// `intent/st/?/info.md` matches although it misses every thread id longer
+/// than one character, and the matcher reads `{info,acceptance}` as alternation
+/// where prettier reads the braces literally (prettier 3.9.10 ignores neither
+/// view under either line). So both patterns are still added, as they are by a
+/// binary without the fix.
+#[test]
+fn a_line_the_probe_cannot_judge_counts_only_by_its_text() {
+  let dir = at_canon_with(
+    "intent/st/steel_threads.md\n\
+     intent/todo.md\n\
+     intent/st/?/info.md\n\
+     intent/st/*/{info,acceptance}.md\n\
+     intent/st/*/WP/*/info.md\n\
+     intent/issues/*.md\n\
+     intent/whiteboard/*/wip.md\n\
+     intent/whiteboard/*/inbox.*.md\n",
+  );
+  assert_eq!(
+    would_exclude(dir.path()),
+    ["intent/st/*/info.md", "intent/st/*/acceptance.md"]
+  );
+}
+
 /// hv's ruling 17 (2026-09-15): `intent organize --apply` stays the one door for
 /// stale views, and `claude upgrade --apply`'s report names it.
 #[test]
