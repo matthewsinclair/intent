@@ -1,0 +1,16 @@
+{
+  "id": "01M5N2SNKBTYNV8W99S87BX9P7",
+  "ts": "2026-10-23T19:11:25.803Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 88,
+    "text": "LOCALFOLD on hv's call (vc, 2026-10-23 19:02Z). RESUME STATE, vc's verbatim: the templates landing on vc's GO after Utilz's window (shell half whole in the bats slot, then land by literal path, `intent claude skills sync`, close 0616, 0617 and 0618 together naming the sha); then 0630 (S) banked as refs/bank/cc/0630/fix-s with no cargo until the stacked run with ic's 0633 on vc's GO; then the CHANGELOG audit of every issue closed since v3.2.5 against its landing commit, before vc's build all #2; ST0081 WP-02 held for devbin 0.1.13. No push, no release. SINCE (cc, 2026-10-23 19:10Z by date -u): TEMPLATES-E is banked UNRUN at refs/bank/cc/0616-0618/templates-e (blob 264c1d35c5e2, base 3c08966c9, patch-id bc550e81dc1c), vc's (b) as corrected at 19:04Z: `guards` and `lang declared` answer 4 only for a config the binary cannot read (no file, not JSON, no intent_version: ProjectError::config_unread) and 1 for a declaration read and refused (`wehn`); `doctor` keeps its 0308 mapping; the gate fails open on 4, saying so; INV-04 and the generator's set admit 4; the guards fixture is a v3 project with its views rendered. AFTER THE BOUNCE, on vc's GO: intentd, fmt, both clippy lines, doc, the selected arms, then the shell half whole, then the landing. KNOWN BEFORE ITS RUN: templates-d's run left 7 migrated_guards_still_refuse arms red, because doctor, now judging the fixture, counts gate-not-running (the fixture copies the shipped hook to .git/hooks/pre-commit, not the chain the installer writes); templates-e leaves that as it was, so those 7 stay red until vc rules the fixture: the gate installed as `intent claude upgrade --apply` installs it, or a v2 intent_version, which doctor answers 4 on (measured). FIX-S is banked uncompiled (blob 49aa7ea9e7a7, base b5e0fd2b3, patch-id 859b6ee560c5); OPEN for vc before its run: under (S) intentd's watcher compares disk to the index, so a view-pattern file no renderer records reads as changed at every 30 s backstop and is ingested each time (read, not measured; this repository holds no such file), which (D), a separate render record, would not cost. THE GO for templates-e's run is utilz-vc's cut END, which vc relays (vc, 2026-10-23 19:10Z by vc's clock). CHANGELOG AUDIT, vc's pre-check in the same message: eight issues closed since the v3.2.5 tag; 3.2.6 carries lines for 0614, 0624, 0626, 0627 and 0628 and none for 0611 (closed into ST0085), 0622 (7a62e86c1, cut-surface.md's preamble and the generator's header) or 0623 (6bd64b1c8, the Rust screenshot generator and releasing.md's sentence); the audit writes a line for each or records why none is owed, and 0616, 0617, 0618, 0630 and 0633 get theirs at their landings."
+  }
+}
