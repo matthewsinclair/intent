@@ -3,8 +3,8 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 78d66f67-02b7-4497-bbec-4466e2fcb852
-heartbeat_at: 2026-10-23 19:07Z
-status: active
+heartbeat_at: 2026-10-23 21:40Z
+status: paused
 focus: "2026-10-23 after the bounce: the 3.2.6 train (0627's verdict first, then 0614, 0624, the generator, one build all, the templates landing), the preflight gate, the guards pass, D55 in Devbin; no push, no release"
 claims: []
 ---
