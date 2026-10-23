@@ -404,3 +404,199 @@ pair_at_tag_run() {
   [[ "$output" == *"refuse:"*"behind HEAD"* ]] ||
     fail "expected the currency verdict naming the pair as behind; got: $output"
 }
+
+# ---------------------------------------------------------------------------
+# THE LINUX PREFLIGHT (hv's ruling, 2026-10-23, after the 3.2.5 cut went red on
+# GitHub for a Linux-only shell failure that one run on kovacs would have
+# found): a push to upstream that no green preflight summary covers is refused,
+# naming the order to run and the commit to run it at. A push to local needs
+# none. These arms live here because they need this file's fixture: the two
+# remotes, the pair stamped at HEAD, and cargo off PATH, so a push the
+# preflight passes ends at the path trigger and one that wrongly engaged the
+# clone-and-build dies at once instead of building.
+#
+# THE COVERAGE RULE, as vc read the ruling under hv's pen: a green summary at S
+# covers a pushed commit C when S is C, or S is reached from C by first parents
+# through commits that change only intent/whiteboard/ and intent/.canon/events/,
+# or through the release driver's own stamp, known by its diff. A red summary
+# stops the walk.
+#
+# Every summary is written with the order's own line from preflight.lib, under
+# a HOME inside the fixture, so the only summaries the runner can read are the
+# arm's.
+
+# preflight_push <remote> <local-sha> -- the runner as git's pre-push hook runs
+# it for `git push <remote> main`: the ref pair on stdin and the destination as
+# argv, over a pair stamped at HEAD.
+preflight_push() {
+  stamp_pair "$(at HEAD)"
+  printf '%s\n' "$(refpair "$2" "$(at "$1/main")")" |
+    env -i HOME="$TEST_TEMP_DIR/home" PATH="$TRIMMED_PATH" DEVBIN_NAME=int \
+      DEVBIN_LIB="${INTENT_PROJECT_ROOT}/bin/.devbin/lib" \
+      PROJECT_ROOT="$REPO" \
+      bash "$RUNNER" "$1" "$TEST_TEMP_DIR/$1.git" 2>&1
+}
+
+# preflight_covers_q <rev> -- the question `bin/devbin build release` asks
+# before it stamps anything.
+preflight_covers_q() {
+  env -i HOME="$TEST_TEMP_DIR/home" PATH="$TRIMMED_PATH" DEVBIN_NAME=int \
+    DEVBIN_LIB="${INTENT_PROJECT_ROOT}/bin/.devbin/lib" \
+    PROJECT_ROOT="$REPO" \
+    bash "$RUNNER" --preflight-covers "$1" </dev/null 2>&1
+}
+
+# summary_at <sha> <rc> <ok> <not-ok> -- the summary the order copies back for
+# <sha>.
+summary_at() {
+  # shellcheck disable=SC1091
+  . "${INTENT_PROJECT_ROOT}/bin/.devbin/cmd/shared/preflight.lib" ||
+    fail "no preflight.lib to write a summary with"
+  mkdir -p "$TEST_TEMP_DIR/home/$PREFLIGHT_SUMMARY_REL"
+  preflight_summary_line "$@" >"$TEST_TEMP_DIR/home/$PREFLIGHT_SUMMARY_REL/$1.summary"
+}
+
+# commit_file <path> <text> -- one commit writing <text> to <path>.
+commit_file() {
+  mkdir -p "$(dirname "$REPO/$1")"
+  printf '%s\n' "$2" >"$REPO/$1"
+  git -C "$REPO" add -A
+  git -C "$REPO" commit -qm "$1"
+}
+
+expect_covered() { # <summary's sha> <pushed sha>
+  [ "$status" -eq 0 ] || fail "expected the push PASSED, got status $status: $output"
+  [[ "$output" == *"the green Linux preflight at $1 covers $2"* ]] ||
+    fail "expected the summary at $1 named as covering $2; got: $output"
+}
+
+expect_blocked() { # <the commit the order should run at>
+  [ "$status" -eq 1 ] || fail "expected the push BLOCKED, got status $status: $output"
+  [[ "$output" == *"BLOCKED: no green Linux preflight covers"* ]] ||
+    fail "expected the preflight refusal; got: $output"
+  [[ "$output" == *"preflight-linux.sh $1 "* ]] ||
+    fail "expected the order named at $1; got: $output"
+}
+
+@test "preflight: a push to upstream that no summary covers is refused, naming the order at that commit" {
+  local pushed
+  commit_file README.md "a change"
+  pushed="$(at HEAD)"
+  run preflight_push upstream "$pushed"
+  expect_blocked "$pushed"
+  [[ "$output" == *"this push would reach 'upstream'"* ]] || fail "expected upstream named; got: $output"
+}
+
+@test "preflight: a push to local needs no preflight" {
+  commit_file README.md "a change"
+  run preflight_push local "$(at HEAD)"
+  expect_skipped
+  [[ "$output" != *"BLOCKED"* ]] || fail "expected no refusal on a push to local; got: $output"
+}
+
+@test "preflight: a green summary for the pushed commit passes it" {
+  local pushed
+  commit_file README.md "a change"
+  pushed="$(at HEAD)"
+  summary_at "$pushed" 0 12 0
+  run preflight_push upstream "$pushed"
+  expect_covered "$pushed" "$pushed"
+  expect_skipped
+}
+
+@test "preflight: a red summary refuses, and the walk does not route around it" {
+  local tested pushed
+  commit_file README.md "a change"
+  tested="$(at HEAD)"
+  summary_at "$tested" 0 12 0
+  commit_file intent/whiteboard/dc/board.json '{"after": "the green run"}'
+  pushed="$(at HEAD)"
+  summary_at "$pushed" 1 11 1
+  run preflight_push upstream "$pushed"
+  expect_blocked "$pushed"
+  [[ "$output" == *"its summary is red"* ]] || fail "expected the red summary named; got: $output"
+}
+
+@test "preflight: a green summary covers the board and event commits after it" {
+  local tested
+  commit_file README.md "a change"
+  tested="$(at HEAD)"
+  summary_at "$tested" 0 12 0
+  commit_file intent/whiteboard/dc/board.json '{"after": "the run"}'
+  commit_file intent/.canon/events/2026/10/23/01TEST.json '{"op": "wb.touch"}'
+  run preflight_push upstream "$(at HEAD)"
+  expect_covered "$tested" "$(at HEAD)"
+}
+
+@test "preflight: a commit that changes anything else after the green summary needs its own run" {
+  local tested pushed
+  commit_file README.md "a change"
+  tested="$(at HEAD)"
+  summary_at "$tested" 0 12 0
+  commit_file intent/whiteboard/dc/board.json '{"after": "the run"}'
+  commit_file intent/.canon/issues/0001.json '{"status": "closed"}'
+  pushed="$(at HEAD)"
+  run preflight_push upstream "$pushed"
+  expect_blocked "$pushed"
+}
+
+@test "preflight: the release commit is covered by its candidate's summary, known by its diff" {
+  local candidate
+  commit_file VERSION "3.2.0"
+  commit_file CHANGELOG.md "## [3.2.1] - in progress"
+  commit_file intent/st/ST0001/info.md "_Generated by Intent v3.2.0 from intent/st/ST0001_"
+  candidate="$(at HEAD)"
+  summary_at "$candidate" 0 12 0
+  printf '3.2.1\n' >"$REPO/VERSION"
+  printf '## [3.2.1] - 2026-10-23\n' >"$REPO/CHANGELOG.md"
+  printf '_Generated by Intent v3.2.1 from intent/st/ST0001_\n' >"$REPO/intent/st/ST0001/info.md"
+  git -C "$REPO" commit -qam "release: v3.2.1"
+  run preflight_push upstream "$(at HEAD)"
+  expect_covered "$candidate" "$(at HEAD)"
+}
+
+@test "preflight: a release commit that carries anything beyond the stamp is not covered by its candidate" {
+  local pushed
+  commit_file VERSION "3.2.0"
+  summary_at "$(at HEAD)" 0 12 0
+  printf '3.2.1\n' >"$REPO/VERSION"
+  printf 'a change the stamp never makes\n' >"$REPO/README.md"
+  git -C "$REPO" commit -qam "release: v3.2.1"
+  pushed="$(at HEAD)"
+  run preflight_push upstream "$pushed"
+  expect_blocked "$pushed"
+}
+
+@test "preflight: --preflight-covers answers the release driver before it stamps" {
+  local tested
+  commit_file README.md "a change"
+  tested="$(at HEAD)"
+  run preflight_covers_q HEAD
+  [ "$status" -eq 1 ] || fail "expected no cover before the run, got status $status: $output"
+  [[ "$output" == *"preflight-linux.sh $tested "* ]] || fail "expected the order named at $tested; got: $output"
+  summary_at "$tested" 0 12 0
+  run preflight_covers_q HEAD
+  [ "$status" -eq 0 ] || fail "expected the summary to cover HEAD, got status $status: $output"
+  [[ "$output" == *"the green Linux preflight at $tested covers $tested"* ]] || fail "expected the cover named; got: $output"
+}
+
+@test "preflight: a commit carrying an event beside code is not a board commit" {
+  # The shape every landing and every close has: an event file beside the change.
+  # git lists the event first, so a check that judged a commit by its first path,
+  # or kept a match from one path to the next, would carry the green summary over
+  # the code; this arm refuses it.
+  local tested pushed first
+  commit_file README.md "a change"
+  tested="$(at HEAD)"
+  summary_at "$tested" 0 12 0
+  mkdir -p "$REPO/intent/.canon/events/2026/10/23" "$REPO/tests"
+  printf '{"op": "issues.close"}\n' >"$REPO/intent/.canon/events/2026/10/23/01MIXED.json"
+  printf 'echo code\n' >"$REPO/tests/probe.sh"
+  git -C "$REPO" add -A
+  git -C "$REPO" commit -qm "an event beside code"
+  first="$(git -C "$REPO" diff --name-only HEAD~1 HEAD | sed -n 1p)"
+  [[ "$first" == intent/.canon/events/* ]] || fail "control: expected the event listed first; got $first"
+  pushed="$(at HEAD)"
+  run preflight_push upstream "$pushed"
+  expect_blocked "$pushed"
+}

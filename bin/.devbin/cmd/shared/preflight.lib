@@ -1,0 +1,33 @@
+# shellcheck shell=bash
+#
+# THE LINUX PREFLIGHT'S SUMMARY: where it lands and what green means. The order
+# (bin/.devbin/preflight-linux.sh, run on kovacs) writes it and copies it to the
+# machine it cloned from, and `int prepush` reads it there before a push to
+# upstream (hv's ruling, 2026-10-23). The writer and the reader take the path
+# and the line from here, so they cannot disagree about either.
+
+# Relative to HOME, on the machine the order copies to and prepush reads on.
+# shellcheck disable=SC2034 # read by the scripts that source this file
+PREFLIGHT_SUMMARY_REL=".local/share/intent/preflight"
+
+# preflight_summary_line <sha> <rc> <ok> <not-ok> -- the summary's first line.
+preflight_summary_line() {
+  printf 'preflight-linux at %s: run_tests.sh rc=%s, %s ok, %s not ok\n' "$1" "$2" "$3" "$4"
+}
+
+# preflight_state <summary-file> <sha> -- prints `green`, `red` or `absent`.
+# Green is a first line naming <sha> with rc=0, at least one arm passing and
+# none failing: a run that passed nothing is a green that means nothing. Any
+# other first line is red, a summary for another commit included.
+preflight_state() {
+  local file=$1 sha=$2 head=""
+  [ -f "$file" ] || {
+    printf 'absent\n'
+    return 0
+  }
+  IFS= read -r head <"$file" || true
+  case "$head" in
+    "preflight-linux at $sha: run_tests.sh rc=0, "[1-9]*" ok, 0 not ok") printf 'green\n' ;;
+    *) printf 'red\n' ;;
+  esac
+}

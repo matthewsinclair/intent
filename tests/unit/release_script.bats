@@ -14,6 +14,9 @@ load "../lib/test_helper.bash"
 # which is every normal run, this is byte-identical to the plain path. Same
 # mechanism and same name as release_sidecars.bats: one override, not two.
 RELEASE="${INTENT_RELEASE_SCRIPT:-${INTENT_PROJECT_ROOT}/bin/.devbin/cmd/build.d/release}"
+# The lib the driver sources for the files a release commit holds, redirected
+# the way release_sidecars.bats redirects it.
+RELEASESTAMP="${INTENT_RELEASESTAMP_LIB:-${INTENT_PROJECT_ROOT}/bin/.devbin/cmd/shared/releasestamp.lib}"
 
 # --------------------------------------------------------------------
 # Scratch repo helper
@@ -105,9 +108,10 @@ EOF
   # Install the handler under test as part of the repo, at the SAME relative
   # path it occupies for real, so the working tree is clean by the time the
   # dry run does its checks.
-  mkdir -p bin/.devbin/cmd/build.d
+  mkdir -p bin/.devbin/cmd/build.d bin/.devbin/cmd/shared
   cp "$RELEASE" bin/.devbin/cmd/build.d/release
   chmod +x bin/.devbin/cmd/build.d/release
+  cp "$RELEASESTAMP" bin/.devbin/cmd/shared/releasestamp.lib
 
   # Pre-flight refuses a stale docs/reference, and it refuses when the check
   # cannot answer at all -- so a fixture without the instrument would stop every

@@ -13,11 +13,14 @@
 #                  changed
 #   --list-frozen  (first argument only) print FROZEN_REMOTES, one per line,
 #                  and exit 0; `bin/devbin build release` reads it
+#   --preflight-covers <rev>  (first argument only) exit 0 when a green Linux
+#                  preflight covers <rev>, and 1 with the order to run when none
+#                  does; `bin/devbin build release` asks it before it stamps
 #   INTENT_ALLOW_FROZEN_PUSH=1  let one push reach a frozen remote
 #
 # Exits 0 when the clone builds and its binaries run (or when no build input
-# changed), 1 on a frozen remote, a delivered pair the currency verdict refuses,
-# or any failure.
+# changed), 1 on a frozen remote, a push to upstream no green Linux preflight
+# covers, a delivered pair the currency verdict refuses, or any failure.
 #
 # THE FAILURE THIS EXISTS FOR, and it is not hypothetical. On 2026-08-15 a
 # commit titled "all native code moves to native/rust/" committed the additions
@@ -74,10 +77,11 @@ esac
 # `artefact.lib` then `sharedtarget.lib`, then the verdict. `releasebuild.lib`
 # is here for `RELEASE_DIR` alone, so the delivered pair has one spelling. A
 # HARD DEPENDENCY for the reason `cmd/cli` gives: a gate that drops its check
-# when a file goes missing still looks like a gate.
-for lib in artefact sharedtarget currency releasebuild; do
+# when a file goes missing still looks like a gate. `releasestamp.lib` and
+# `preflight.lib` carry the Linux preflight's rule, further down.
+for lib in artefact sharedtarget currency releasebuild releasestamp preflight; do
   libpath="$(dirname "${BASH_SOURCE[0]}")/shared/$lib.lib"
-  [ -r "$libpath" ] || die "cannot read $libpath -- refusing to push without the currency check"
+  [ -r "$libpath" ] || die "cannot read $libpath -- refusing to push without the checks it carries"
   # shellcheck disable=SC1090
   . "$libpath"
 done
@@ -138,16 +142,134 @@ if [ "${1:-}" = "--list-frozen" ]; then
   exit 0
 fi
 
+# push_reaches <remote> -- whether this push goes to <remote>, by its name or by
+# its configured URL. The frozen check and the preflight check below ask the
+# same question, so it is answered once. By hand there is no destination, and a
+# push with none reaches nothing.
+push_reaches() {
+  local name=$1 url
+  [ -n "$REMOTE" ] || return 1
+  [ "$REMOTE" = "$name" ] && return 0
+  url="$(git -C "$ROOT" config --get "remote.$name.url" 2>/dev/null || true)"
+  [ -n "$url" ] && { [ "$REMOTE" = "$url" ] || [ "$REMOTE_URL" = "$url" ]; }
+}
+
+# ---------------------------------------------------------------------------
+# THE LINUX PREFLIGHT -- refuse a push to upstream that no green kovacs run of
+# CI's Ubuntu leg covers (hv's ruling, 2026-10-23, after a cut went red on
+# GitHub for a Linux-only shell failure that one run on kovacs would have
+# found). The order is bin/.devbin/preflight-linux.sh, run on kovacs; it copies
+# its summary back to ~/$PREFLIGHT_SUMMARY_REL/<sha>.summary on the machine it
+# cloned from, and preflight.lib says what green is. A push to local needs none.
+PREFLIGHT_REMOTES="upstream"
+
+# A green summary at S covers a commit C when S is C, or when S is reached from
+# C by first parents through commits that each change only BOARD_PATHS, or that
+# are the release driver's own stamp (`release_stamp_only`) -- vc's reading of
+# the ruling under hv's pen. Read literally, the rule refused every cut, whose
+# release commit no preflight can have seen, and every push made after a
+# node's board commit.
+#
+# BOARD_PATHS STAND ON AN OUTCOME ARGUMENT, NOT ON A READ ONE. The leg does read
+# them: arms such as docs_completeness.bats and config_undefined.bats run intent
+# verbs in the repository root, and a verb in a fresh clone warms its store
+# from every canon record. They reach the leg only as input to that warm, in
+# arms that assert on other things, so a board or event commit can red the leg
+# only by breaking the warm, which no platform escapes and which is not the
+# Linux-only class the preflight exists for. The record paths stay out because
+# the leg reads them directly: `devbin canon` reads intent/.canon/issues/, and
+# the parity tools under intent/st/ are run.
+BOARD_PATHS="intent/whiteboard/ intent/.canon/events/"
+
+# board_only <parent> <commit> -- exit 0 when <commit> changes nothing outside
+# BOARD_PATHS against <parent>.
+board_only() {
+  local paths path prefix hit
+  paths="$(git -C "$ROOT" diff --name-only "$1" "$2")" || return 1
+  while IFS= read -r path; do
+    [ -n "$path" ] || continue
+    hit=0
+    for prefix in $BOARD_PATHS; do
+      case "$path" in "$prefix"*) hit=1 && break ;; esac
+    done
+    [ "$hit" -eq 1 ] || return 1
+  done <<<"$paths"
+}
+
+# preflight_covers <commit> -- prints `covered <sha>`, naming the commit whose
+# green summary covers <commit>, and exits 0; or prints `wanted <sha> <why>` and
+# exits 1, naming the commit to run the order at: the deepest the walk reached,
+# so its summary covers <commit> and every board commit after it. A red summary
+# stops the walk, because it is evidence and the gate does not route around it.
+preflight_covers() {
+  local c=$1 file state parent
+  while :; do
+    file="$HOME/$PREFLIGHT_SUMMARY_REL/$c.summary"
+    state="$(preflight_state "$file" "$c")"
+    case "$state" in
+      green)
+        printf 'covered %s\n' "$c"
+        return 0
+        ;;
+      red)
+        printf 'wanted %s its summary is red: %s\n' "$c" "$file"
+        return 1
+        ;;
+    esac
+    if parent="$(git -C "$ROOT" rev-parse --verify --quiet "$c^1")" &&
+      { board_only "$parent" "$c" || release_stamp_only "$ROOT" "$parent" "$c"; }; then
+      c=$parent
+      continue
+    fi
+    printf 'wanted %s no summary at %s\n' "$c" "$file"
+    return 1
+  done
+}
+
+# preflight_order <sha> -- the two lines that run the order on kovacs at <sha>,
+# cloning from this checkout, which is where its summary comes back to.
+preflight_order() {
+  local host path
+  host="$(scutil --get LocalHostName 2>/dev/null || hostname -s).local"
+  path="${ROOT#"$HOME"/}"
+  printf '      ssh %s git -C %s show %s:bin/.devbin/preflight-linux.sh > ~/work/preflight-linux.sh\n' "$host" "$path" "$1"
+  printf '      bash ~/work/preflight-linux.sh %s %s:%s\n' "$1" "$host" "$path"
+}
+
+# preflight_refusal <commit> <answer> [<remote>] -- why no preflight covers
+# <commit>, and the order that would, on stderr.
+preflight_refusal() {
+  local commit=$1 answer=${2#wanted } dest=${3:-} wanted why
+  wanted="${answer%% *}"
+  why="${answer#* }"
+  {
+    printf '\nBLOCKED: no green Linux preflight covers %s' "$commit"
+    [ -z "$dest" ] || printf ", and this push would reach '%s'" "$dest"
+    printf '.\n\n  %s: %s\n\n' "$wanted" "$why"
+    printf '  Run the preflight order on kovacs at %s, in a terminal there:\n\n' "$wanted"
+    preflight_order "$wanted"
+    printf '\n  It copies its summary to ~/%s/ here when it ends.\n' "$PREFLIGHT_SUMMARY_REL"
+    printf '  A push to local needs none.\n\n'
+  } >&2
+}
+
+# DECLARED ONCE, ASKED TWICE, as --list-frozen is: `int build release` asks it
+# before it stamps anything, so a cut no preflight covers stops before its tag
+# rather than at its own upstream push.
+if [ "${1:-}" = "--preflight-covers" ]; then
+  [ -n "${2:-}" ] || die "usage: int prepush --preflight-covers <rev>"
+  commit="$(git -C "$ROOT" rev-parse --verify --quiet "$2^{commit}")" || die "'$2' names no commit in $ROOT"
+  if answer="$(preflight_covers "$commit")"; then
+    printf 'prepush: the green Linux preflight at %s covers %s\n' "${answer#covered }" "$commit"
+    exit 0
+  fi
+  preflight_refusal "$commit" "$answer"
+  exit 1
+fi
+
 if [ -n "$REMOTE" ] && [ -z "${INTENT_ALLOW_FROZEN_PUSH:-}" ]; then
   for frozen in $FROZEN_REMOTES; do
-    frozen_url="$(git -C "$ROOT" config --get "remote.$frozen.url" 2>/dev/null || true)"
-    hit=0
-    [ "$REMOTE" = "$frozen" ] && hit=1
-    if [ -n "$frozen_url" ]; then
-      [ "$REMOTE" = "$frozen_url" ] && hit=1
-      [ "$REMOTE_URL" = "$frozen_url" ] && hit=1
-    fi
-    [ "$hit" -eq 1 ] || continue
+    push_reaches "$frozen" || continue
     cat >&2 <<EOF
 
 BLOCKED: '$frozen' is a FROZEN remote and this push would reach it.
@@ -267,9 +389,11 @@ esac
 # gate exists to protect.
 CHANGED=""
 pairs=0
+# What each ref pair moves, for the Linux preflight below.
+PUSHED=""
 
-# NOT a pipeline: `CHANGED` and `pairs` must survive the loop, and `cmd | while`
-# would run the body in a subshell and discard both.
+# NOT a pipeline: `CHANGED`, `pairs` and `PUSHED` must survive the loop, and
+# `cmd | while` would run the body in a subshell and discard them.
 if [ ! -t 0 ]; then
   while read -r _lref lsha _rref rsha; do
     [ -n "${lsha:-}" ] || continue
@@ -281,6 +405,7 @@ if [ ! -t 0 ]; then
       *[!0]*) ;;
       *) continue ;; # deleting a ref pushes no tree, so nothing can fail to build
     esac
+    PUSHED="$PUSHED $lsha"
     case "$rsha" in
       *[!0]*)
         # The remote has this ref. If we cannot resolve its sha locally the
@@ -306,11 +431,11 @@ fi
 # REMOTE means the hook line did not forward argv. The tracked
 # `.githooks/pre-push` does forward it; what does not is an older, untracked
 # `.git/hooks/pre-push` in a clone whose core.hooksPath is unset, written before
-# that generator changed. The frozen-remote check above then does NOTHING, and
-# it does nothing in the shape that looks exactly like passing -- a guard that
-# is quietly inactive is worse than one that was never written.
+# that generator changed. The frozen-remote and Linux preflight checks then do
+# NOTHING, and they do nothing in the shape that looks exactly like passing -- a
+# guard that is quietly inactive is worse than one that was never written.
 if [ "$pairs" -gt 0 ] && [ -z "$REMOTE" ]; then
-  warn "this clone's pre-push hook does not forward argv, so the frozen-remote check is INACTIVE."
+  warn "this clone's pre-push hook does not forward argv, so the frozen-remote and Linux preflight checks are INACTIVE."
   warn "  fix: bin/int hooks --install   (rewrites the line to \`bin/int prepush \"\$@\"\`)"
 fi
 
@@ -336,6 +461,24 @@ $(git -C "$ROOT" diff --name-only "refs/remotes/$r/$branch"...HEAD 2>/dev/null |
     done
   fi
 fi
+
+# THE LINUX PREFLIGHT, for a push that reaches upstream: every commit the push
+# moves, or HEAD when run by hand with upstream named. Before the path trigger
+# below, because a push that changes no build input can still change what the
+# Ubuntu leg runs.
+for target in $PREFLIGHT_REMOTES; do
+  push_reaches "$target" || continue
+  [ "$pairs" -gt 0 ] || PUSHED="$(git -C "$ROOT" rev-parse HEAD)"
+  for sha in $PUSHED; do
+    commit="$(git -C "$ROOT" rev-parse --verify --quiet "$sha^{commit}")" ||
+      die "this push moves $sha, which names no commit, so no preflight can cover it"
+    answer="$(preflight_covers "$commit")" || {
+      preflight_refusal "$commit" "$answer" "$target"
+      exit 1
+    }
+    printf 'prepush: the green Linux preflight at %s covers %s\n' "${answer#covered }" "$commit"
+  done
+done
 
 if [ "$FORCE" -eq 0 ]; then
   # The build's inputs: the native tree and anything that tells cargo where the

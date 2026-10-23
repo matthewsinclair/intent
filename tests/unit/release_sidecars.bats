@@ -24,6 +24,11 @@ load "../lib/test_helper.bash"
 # deliberately broken copy to confirm they go red -- without editing the shipped
 # one. Unset, which is every normal run, this is byte-identical to the plain path.
 RELEASE="${INTENT_RELEASE_SCRIPT:-${INTENT_HOME}/bin/.devbin/cmd/build.d/release}"
+# The list and the view classifier live in the lib the driver and `int prepush`
+# both source, so the release commit the driver writes and the one the pre-push
+# gate covers are one definition. INTENT_RELEASESTAMP_LIB redirects it as
+# INTENT_RELEASE_SCRIPT redirects the script.
+RELEASESTAMP="${INTENT_RELEASESTAMP_LIB:-${INTENT_HOME}/bin/.devbin/cmd/shared/releasestamp.lib}"
 
 @test "intent build release is syntactically valid" {
   run bash -n "$RELEASE"
@@ -31,7 +36,7 @@ RELEASE="${INTENT_RELEASE_SCRIPT:-${INTENT_HOME}/bin/.devbin/cmd/build.d/release
 }
 
 @test "the sidecar list is declared once and covers every file a release stamps" {
-  run grep -E '^SIDECAR_FILES=' "$RELEASE"
+  run grep -E '^SIDECAR_FILES=' "$RELEASESTAMP"
   assert_success
   assert_output_contains "VERSION"
   assert_output_contains "CHANGELOG.md"
@@ -39,9 +44,12 @@ RELEASE="${INTENT_RELEASE_SCRIPT:-${INTENT_HOME}/bin/.devbin/cmd/build.d/release
   assert_output_contains "CLAUDE.md"
   assert_output_contains "CONFIG_REL"
 
-  # Declared exactly once -- a second declaration is how the two lists drifted.
-  run bash -c "grep -cE '^SIDECAR_FILES=' '$RELEASE'"
+  # Declared exactly once, in the lib and nowhere in the driver -- a second
+  # declaration is how the two lists drifted.
+  run bash -c "grep -cE '^SIDECAR_FILES=' '$RELEASESTAMP'"
   assert_output "1"
+  run bash -c "grep -cE '^SIDECAR_FILES=' '$RELEASE'"
+  assert_output "0"
 }
 
 @test "the commit stages the sidecar list rather than a hardcoded set" {
@@ -447,10 +455,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"'
 
 load_footer_fn() {
   local fn="${TEST_TEMP_DIR}/footer_only.sh"
-  sed -n '/^footer_only() {/,/^}/p' "$RELEASE" > "$fn"
+  sed -n '/^footer_only() {/,/^}/p' "$RELEASESTAMP" > "$fn"
   # A missing function must fail the arm, never pass it: every refusal arm
-  # below would otherwise pass vacuously on a script without footer_only.
-  [ -s "$fn" ] || { echo "footer_only is not defined in $RELEASE" >&2; return 1; }
+  # below would otherwise pass vacuously on a lib without footer_only.
+  [ -s "$fn" ] || { echo "footer_only is not defined in $RELEASESTAMP" >&2; return 1; }
   # shellcheck disable=SC1090
   . "$fn"
 }
