@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 632,
+  "slug": "organize-sync-st-hydrate-and-dehydrate-renumber",
+  "title": "organize, sync, st hydrate and dehydrate, renumber, claude upgrade, agents sync, lang init and remove, and init print no wrote: lines",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-10-23",
+  "reporter": "Matthew Sinclair",
+  "body": "Found while building 0624, on vc's scope ruling of 2026-10-23 (cc's shape note, refs/bank/cc/0624/shape-note.md). 0624 makes every verb that reports through the CLI's one reporter, the `created:` verbs, `set` and `edit` name each file they wrote on a `wrote:` line, and feeds the facade's one `landed` list from every facade write set. These writers report in shapes of their own and print no `wrote:` line:\n\n- `organize`\n- `sync --to-disk` and `sync --to-store`\n- `st hydrate` and `st dehydrate`\n- `st renumber` and `issues renumber`, whose `moved:` and `rewritten:` lines are a format of their own\n- `claude upgrade`\n- `agents sync`\n- `lang init` and `lang remove`\n- `init`\n\nTHE ASK: each names the files it wrote through the one printer, in the shape every other verb now uses. THE COMMIT RULE NEEDS EACH VERB'S DRIVE BEFORE ITS CODE: what it writes in a scratch git project, against what it prints, as dc's drive did for 0624 (refs/bank/dc/0624/drive.sh). Whether each verb's writes reach the facade's `landed` list at all is part of that drive, because some of them write before a facade exists. Until this is fixed, a node commits what such a verb leaves dirty, each path read first, as intent/restart.md says.\n\nIt rides 3.2.6 only if its drive is cheap after the Rust train; otherwise it waits.\n"
+}
