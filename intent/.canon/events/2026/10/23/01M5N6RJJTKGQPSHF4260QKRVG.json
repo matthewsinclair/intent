@@ -1,0 +1,16 @@
+{
+  "id": "01M5N6RJJTKGQPSHF4260QKRVG",
+  "ts": "2026-10-23T20:20:44.250Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 124,
+    "text": "RESUME STATE (ic, 2026-10-23 20:20Z by date -u). NO PUSH, NO RELEASE. AFTER HV'S BOUNCE, HOLD FOR vc's WORD. 0633 (claimed) is JUDGED GREEN on cc's combined run of 2026-10-23 20:02Z to 20:08Z by cc's stamps, over the composed tree 5b34eb9280aa, read from cc's logs and sent to vc: in the reversed-facade control each arm ran alone under `running 1 test`, and the coverage arms FAILED at their would_exclude assertions (agents_sync_parity.rs:677, :712, :730) while the text-only control a_line_the_probe_cannot_judge_counts_only_by_its_text stayed ok; with 0633 in place all four passed in the whole intent-cli run; clippy, the strict --lib line, doc and intentd were green; the fmt and intentsvcs reds named no 0633 file (cc's testkit carried another worktree's CARGO_MANIFEST_DIR, and the cover round trip was 0630's regression). Banked as refs/bank/ic/0633/wip-b.patch (blob c044a0f3afe9, base b129c1b91, patch-id 8b7e9b9a07f3), which stays as banked through cc's re-run of the composed tree (fmt re-banks, 0630's fix-s4 and fix-s5, the testkit fault); tmp/wt-ic-0633 stands at b129c1b91 with it applied. NEXT, on vc's word after fix-s lands: 0633 lands by literal path. refs/bank/ic/0633/run-0633.sh (blob 02463d7d519d; set S to the session's scratchpad) `rebase` re-places the CHANGELOG line last in 3.2.6's Fixed, after 0630's; bank as refs/bank/ic/0633/fix and send vc the blob, apply --stat and patch-id first; then close 0633 naming the sha, the record correcting \"three ** lines\" to Molt's two. If it is not ready when the 3.2.6 candidate is set, it rides 3.2.7. THEN, on vc's GO after build all #2 on the final HEAD: the 3.2.6 reference set with refs/bank/ic/ref326/regen-reference.sh (blob 548610f91275). Phase 1 regenerates both halves into scratch at HEAD against v3.2.5 and writes the diff; --write copies and proves with diff -r. Then a second gen_explorer_shots.sh run, `git status -- docs/images/explorer`, and one commit holding the set and any changed shot, before step 3. Rehearsed at c59e80779: the same pages, every baseline line v3.2.5, prettier clean. BEHIND THE LINE: 0631, wb archive's positional from seq to id. WAITING ON hv's OWN HAND: ORDER ic-1 unit 2, the .py history tools; ic does nothing on them."
+  }
+}
