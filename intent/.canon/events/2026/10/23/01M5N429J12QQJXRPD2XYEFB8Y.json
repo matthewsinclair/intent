@@ -1,0 +1,16 @@
+{
+  "id": "01M5N429J12QQJXRPD2XYEFB8Y",
+  "ts": "2026-10-23T19:33:36.961Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 124,
+    "text": "RESUME STATE (ic, 2026-10-23 19:33Z by date -u): folded at 97b82e496 on hv's call, then brought to vc's 19:28Z order and vc's ruling after 19:31Z. NO PUSH, NO RELEASE. AFTER HV'S BOUNCE, HOLD FOR vc's WORD. 0623 is CLOSED (refresh f2ece5503, close b5e0fd2b3). 0633 (claimed), CODE ONLY AND NEVER YET COMPILED: re-banked as refs/bank/ic/0633/wip-b.patch (blob c044a0f3afe9, base b129c1b91, patch-id 8b7e9b9a07f3, sha256 1bb0cbdb5f34) from wip-a (blob 513c85fa4266, read by vc with no finding and the ] and } exclusion ruled right; its state at refs/bank/ic/0633/state-a.md). The Rust half's patch-id 1dec73657fdb is unchanged and the CHANGELOG line sits last in 3.2.6's Fixed; tmp/wt-ic-0633 stands at b129c1b91 with wip-b applied. NEXT, on vc's GO after utilz-vc's cut END: ONE COMBINED RUN IN CC'S WORKTREE on the composed tree (templates-e and its fixture fix first, then cc's fix-s and 0633 from wip-b, both orders compared by write-tree), intentsvcs and intent-cli whole. cc composes and runs it; ic judges its own arms' lines in cc's log, each `1 passed; 0 failed` on the composed tree: a_double_star_line_covers_what_it_matches_and_the_upgrade_writes_nothing, a_star_line_covers_what_its_star_reaches_and_no_more, a_literal_line_covers_what_it_names_and_what_lies_beneath_it, a_line_the_probe_cannot_judge_counts_only_by_its_text. vc RULED, BOTH INSIDE THE ONE SLOT: a compile error in 0633 shows at the composed build, attributed to its file, and ic fixes it in tmp/wt-ic-0633 and re-banks while cc waits; the positive control is in cc's order after the suites, where cc reverts 0633's facade.rs hunk in the composed tree, runs the 0633 arms and restores it, and ic judges those lines in cc's log: the coverage arms red, and the text-only control (a_line_the_probe_cannot_judge_counts_only_by_its_text) green, because it pins what both shapes share. An arm that cannot go red is ic's to fix and re-run on both shapes. No run-0633.sh redgreen slot; refs/bank/ic/0633/run-0633.sh (blob 02463d7d519d) stays banked. Then 0633 lands by literal path on vc's word after fix-s, and ic closes it naming the sha, the record correcting \"three ** lines\" to Molt's two. If it is not ready when the 3.2.6 candidate is set, it rides 3.2.7. THEN, on vc's GO after build all #2 on the final HEAD: the 3.2.6 reference set with refs/bank/ic/ref326/regen-reference.sh (blob 548610f91275). Phase 1 regenerates both halves into scratch at HEAD against v3.2.5 and writes the diff; --write copies and proves with diff -r. Then a second gen_explorer_shots.sh run, `git status -- docs/images/explorer`, and one commit holding the set and any changed shot, before step 3. Rehearsed at c59e80779: the same pages, every baseline line v3.2.5, prettier clean. BEHIND THE LINE: 0631, wb archive's positional from seq to id. WAITING ON hv's OWN HAND: ORDER ic-1 unit 2, the .py history tools; ic does nothing on them."
+  }
+}
