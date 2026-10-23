@@ -192,9 +192,12 @@ Taken from `populations.shipped`, which the register declares to be the one home
 
 ## Refusals
 
-The refusal variants declared at this revision, from `ALL_VARIANTS` in `native/rust/crates/intentsvcs/tests/error_remedies.rs`.
+The variants of `FacadeError` declared at this revision, from `ALL_VARIANTS` in `native/rust/crates/intentsvcs/tests/error_remedies.rs`. **They are the top-level variants of the facade, not every refusal the CLI renders:**
 
-**The register does not carry refusals and it should.** A row declares its path, args, flags, target, disposition, recoverability, MCP exposure and read-or-mutate, and nothing about what it refuses. This list therefore comes from a roster that declares itself exhaustive and is checked as one, which is the same kind of object as `.populations` -- but it lives somewhere else, and a reader who assumes the register carries refusals because this document has them would be wrong. **Filed as owed.**
+- **A wrapped type is one entry.** A variant that wraps another error type, such as `Install` (`InstallError`) or `Store` (`StoreError`), is listed once by its own name, and none of the refusals of the wrapped type is listed.
+- **A type the facade does not wrap is absent.** A refusal the CLI renders without passing through `FacadeError` is not in this list -- for example the bare-repository refusal in `InitError`, `ProjectError` and `projects::Refusal` (issue 0609).
+
+**The register does not carry refusals and it should.** A row declares its path, args, flags, target, disposition, recoverability, MCP exposure and read-or-mutate, and nothing about what it refuses. This list therefore comes from a roster that is exhaustive over the variants of `FacadeError` and is checked as one, which is the same kind of object as `.populations` -- but it lives somewhere else, and a reader who assumes the register carries refusals because this document has them would be wrong. **Filed as owed.**
 
 - `AlreadyFiatClosed`
 - `BadQuery`

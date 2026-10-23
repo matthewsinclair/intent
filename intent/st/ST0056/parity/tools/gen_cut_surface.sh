@@ -58,14 +58,24 @@
 #
 # **REFUSALS HAVE NO DECLARED HOME IN THE REGISTER, AND THAT GAP IS OWED.** A
 # row declares path, args, flags, target, disposition, recoverability, MCP
-# exposure and read-or-mutate. Nothing structural about what it REFUSES. Of 118
-# shipped rows, two mention a refusal anywhere and both do it as prose inside a
-# `help` string. So the refusal population here comes from `ALL_VARIANTS` in
+# exposure and read-or-mutate. Nothing structural about what it REFUSES: where a
+# row mentions a refusal at all, it is prose inside a `help` string. So the
+# refusal population here comes from `ALL_VARIANTS` in
 # `intentsvcs/tests/error_remedies.rs`, a roster that declares itself exhaustive
 # and is checked as one (vc, 2026-08-29) -- the same category of object as
 # `.populations`, which is why it qualifies. **The register still ought to carry
 # it, and an artefact that silently sourced its third leg elsewhere is how the
 # next reader concludes the register does.**
+#
+# **AND THAT ROSTER IS EXHAUSTIVE OVER `FacadeError`'S OWN VARIANTS, NOT OVER
+# WHAT THE CLI REFUSES** (issue 0622, measured at the 3.2.5 cut). It names each
+# variant of the facade's error once, so the list is the facade's top-level
+# variants and nothing more. A variant that wraps another error type, such as
+# `Install(InstallError)` or `Store(StoreError)`, is one entry, and none of the
+# wrapped type's own refusals is listed; a refusal the CLI renders without
+# passing through the facade is absent altogether, and issue 0609's
+# bare-repository refusal in `InitError`, `ProjectError` and `projects::Refusal`
+# is the measured case. The page says so where it prints the list.
 #
 # A green here is a DECLARATION agreement and never a behaviour claim. The build
 # that emptied two estate views had a perfect surface.
@@ -292,8 +302,10 @@ HDR
   sed 's/^/- `/; s/$/`/' "$TMP/rev.shipped"
 
   printf '\n## Refusals\n\n'
-  printf 'The refusal variants declared at this revision, from `ALL_VARIANTS` in `%s`.\n\n' "$ROSTER"
-  printf '**The register does not carry refusals and it should.** A row declares its path, args, flags, target, disposition, recoverability, MCP exposure and read-or-mutate, and nothing about what it refuses. This list therefore comes from a roster that declares itself exhaustive and is checked as one, which is the same kind of object as `.populations` -- but it lives somewhere else, and a reader who assumes the register carries refusals because this document has them would be wrong. **Filed as owed.**\n\n'
+  printf 'The variants of `FacadeError` declared at this revision, from `ALL_VARIANTS` in `%s`. **They are the top-level variants of the facade, not every refusal the CLI renders:**\n\n' "$ROSTER"
+  printf '%s\n' '- **A wrapped type is one entry.** A variant that wraps another error type, such as `Install` (`InstallError`) or `Store` (`StoreError`), is listed once by its own name, and none of the refusals of the wrapped type is listed.'
+  printf '%s\n\n' '- **A type the facade does not wrap is absent.** A refusal the CLI renders without passing through `FacadeError` is not in this list -- for example the bare-repository refusal in `InitError`, `ProjectError` and `projects::Refusal` (issue 0609).'
+  printf '**The register does not carry refusals and it should.** A row declares its path, args, flags, target, disposition, recoverability, MCP exposure and read-or-mutate, and nothing about what it refuses. This list therefore comes from a roster that is exhaustive over the variants of `FacadeError` and is checked as one, which is the same kind of object as `.populations` -- but it lives somewhere else, and a reader who assumes the register carries refusals because this document has them would be wrong. **Filed as owed.**\n\n'
   sed 's/^/- `/; s/$/`/' "$TMP/refusals"
 
   cat <<'TRAP'
