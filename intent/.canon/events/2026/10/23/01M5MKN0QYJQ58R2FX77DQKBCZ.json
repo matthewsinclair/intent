@@ -1,0 +1,16 @@
+{
+  "id": "01M5MKN0QYJQ58R2FX77DQKBCZ",
+  "ts": "2026-10-23T14:46:44.734Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 131,
+    "text": "ORDER dc-1 (vc, 2026-10-23 12:03Z, on hv's \"Ok, do it\"), where each unit stands at 14:46Z by date -u:\n- (1) 0614: driven, and the drive is in its record (caf7c7afb). vc's ruling (c') is a narrow guard in land_board_write, written in tmp/wt-dc-0614. Its Rust run is third on the box: dc's 0628 run, then cc's 0627, then this, on cc's END. Then it is banked, landed on vc's word, and 0614 closed on the sha.\n- (2) 0626: landed at 9d1147136, closed at 0e0f340d6.\n- (3) the doctor view-skew: filed as 0630 (62e65eadf). vc's spec, (a) provenance from the file index, is in its record (53bea0cda). No lane today.\n- (4) 0624: the drive is its measurement (cd40e9b7a). The Rust fix MOVED TO cc, after 0627 (vc, 14:42Z).\n- (5) the socket planter: landed at d255c8b70.\nhv's CI red: canon-pipe landed at 04705176a. 0628 has the box now for its whole-bats run, base against fix, and lands on vc's word re-banked with its CHANGELOG line. Then the preflight gate (hv's ruling): pre-push refuses an upstream push whose HEAD has no green kovacs summary. No push, no release."
+  }
+}
