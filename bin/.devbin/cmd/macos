@@ -293,6 +293,12 @@ support_archive() {
 # 0626), any other file the working copy holds and the commit does not -- an
 # ignored one -- reads here as '<' and refuses the stage: the checkout differs
 # from what ships, and that is the direction to fail in.
+#
+# Both sorts and the comm run under LC_ALL=C, one collation for all three:
+# comm checks its inputs' order under its own, and on a Linux login under a
+# user locale it refused this pair as "file 1 is not in sorted order" (the
+# kovacs preflight, 2026-10-23). Byte order is the one every implementation
+# agrees on, which is lib/release.steps' spelling too.
 support_tree_drift() {
   local archive="$STAGE_DIR/$SUPPORT_ASSET"
   [ -f "$archive" ] || { printf 'no archive at %s' "$archive"; return 0; }
@@ -300,10 +306,10 @@ support_tree_drift() {
   # splitting it into one argument each is the point (IN-SH-CODE-001 exempts
   # intentional splitting with a comment; issue 0536).
   # shellcheck disable=SC2086
-  comm -3 \
-    <(cd "$ROOT" && find $SUPPORT_PATHS -type f ! -name '.DS_Store' | sort) \
+  LC_ALL=C comm -3 \
+    <(cd "$ROOT" && find $SUPPORT_PATHS -type f ! -name '.DS_Store' | LC_ALL=C sort) \
     <(tar -tzf "$archive" | grep -v '/$' | grep -v '\.DS_Store$' |
-      sed "s#^$SUPPORT_PREFIX/##" | sort) |
+      sed "s#^$SUPPORT_PREFIX/##" | LC_ALL=C sort) |
     sed -e 's/^\t/       > /' -e 's/^\([^ \t]\)/       < \1/'
 }
 
