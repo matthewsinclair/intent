@@ -1,0 +1,15 @@
+{
+  "id": "01M5MANARJ3B60RWPAMSETFTWF",
+  "ts": "2026-10-23T12:09:37.810Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**NEVER TRUNCATE THE OUTPUT OF `git remote -v`** (hv, 2026-10-23, verbatim: \"NEVER truncate the output of \"git remote -v\" because doing so cuts off valid remotes\"). A `| head`, a `cut -c` or a pager over that listing hides a remote the next cut pushes to (a cut pushes to every remote listed unless `release.remotes` is declared). Read it whole, quote it whole, before any cut and in any report that names remotes."
+  }
+}

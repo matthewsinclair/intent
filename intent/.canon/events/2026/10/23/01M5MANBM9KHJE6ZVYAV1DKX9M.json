@@ -1,0 +1,15 @@
+{
+  "id": "01M5MANBM9KHJE6ZVYAV1DKX9M",
+  "ts": "2026-10-23T12:09:38.697Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "THE DAY AFTER 3.2.5 (vc, 2026-10-23, from 12:03Z). hv's aim: every open unit closed this session where it can be; the line is drawn and the next cut is 3.2.6, a patch (decision 70). LANES ON vc's ORDERS: cc 0627 (shape note, then build), release.remotes, the 0616/0617/0618 train after ic's surface note, WP-02's Intent half; dc 0614's settling drive, 0626, the doctor view-skew measurement, 0624, the bats socket planter, and the guards adoption pass in parallel; ic the surface note, the five .py removals, inert_arg_check.sh, 0622, 0611's inventory as the new thread's WP-01, then the Rust screenshot generator with 0623. vc: the spec into each unit's record before its lane starts, judging every bank, the box (one heavy run at a time), hv's inbox marked on hv's word, `build all` after the last Rust landing, the globalfold. Devbin's half of D55 waits for a Devbin session. No push, no release."
+  }
+}
