@@ -74,7 +74,7 @@ BOGUS="__no_such_value__"
 die() { printf 'inert-arg: %s\n' "$*" >&2; exit 2; }
 
 [ -x "$BIN" ] || die "no binary to drive at $BIN -- cannot measure, and a clean report over nothing would be worse than this refusal"
-command -v python3 >/dev/null 2>&1 || die "python3 is required to read the dispatch table"
+command -v jq >/dev/null 2>&1 || die "jq is required to read the dispatch table"
 
 # --- the fixture: its own project AND its own HOME ------------------------
 FIX="$(mktemp -d)"
@@ -90,17 +90,13 @@ TABLE="$ROOT/surface/dispatch-table.json"
 [ -f "$TABLE" ] || die "no dispatch table at $TABLE"
 
 # --- the population, derived from the table in one pass ---------------------
-POP="$(python3 - "$TABLE" <<'PY'
-import json, sys
-t = json.load(open(sys.argv[1]))
-for f in t["families"]:
-  for e in f.get("entries", []):
-    for a in e.get("args") or []:
-      v = a.get("values")
-      if isinstance(v, list) and len(v) >= 2:
-        print("\t".join([e.get("path", ""), a.get("name", ""), str(len(v)), v[0]]))
-PY
-)" || die "could not read the dispatch table"
+POP="$(jq -r '
+  .families[] | (.entries // [])[] | . as $e
+  | ($e.args // [])[]
+  | select((.values | type) == "array" and (.values | length) >= 2)
+  | [($e.path // ""), (.name // ""), (.values | length | tostring), .values[0]]
+  | join("\t")
+' "$TABLE")" || die "could not read the dispatch table"
 
 [ -n "$POP" ] || die "the population is EMPTY -- a table declaring no multi-valued argument means this tool measured nothing, and reporting clean over an empty set is the vacuity this thread files as a defect"
 
