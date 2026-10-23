@@ -25,6 +25,8 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [ ] 01: The WSL page
   - [ ] 02: First install on a real Windows machine
 - [?] ST0084: Relocate the parity tooling and reference generators out of intent/st/ST0056 so completed threads can leave the disk
+- [?] ST0085: Passive prompt injection: prompt text Intent stores or ships is acted on only when it is live
+  - [ ] 01: Inventory of every surface that feeds prompt text to an agent, live or historical
 
 ## DONE:2026-09-10T00:00:51Z
 

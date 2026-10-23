@@ -1,0 +1,14 @@
+{
+  "id": "01M5MAVKT8E8PR9Y91YHSVP6AM",
+  "ts": "2026-10-23T12:13:03.691Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "st.new",
+  "subject": {
+    "type": "thread",
+    "id": "ST0085"
+  },
+  "payload": {
+    "title": "Passive prompt injection: prompt text Intent stores or ships is acted on only when it is live"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0085",
+  "title": "Passive prompt injection: prompt text Intent stores or ships is acted on only when it is live",
+  "slug": "passive-prompt-injection-prompt-text-intent-stor",
+  "status": "triage",
+  "created": "2026-10-23",
+  "objective": "Prompt text that Intent stores or ships (skills, the critic rule libraries and their Detection heuristics, agent files, the AGENTS.md and CLAUDE.md templates, usage rules, whiteboard messages and archives, `intent/history/`, autopsy inputs, and the superseded versions of all of these in git) is acted on by an agent only when it is live, and every other copy says so where the agent reads it. Issue 0611 (hv, 2026-10-20) is the raise; this thread is its triage and, behind the stabilisation line of 2026-10-23, its fix.",
+  "context": "An agent that reads prompt-shaped text which is not live can act on it as an instruction: an old skill in `git log -p`, a retired rule quoted in a change note, an archived whiteboard message addressed to \"you\". Nothing attacks the agent; the text was written by us, for an agent, and only its tense is wrong. Intent is more exposed than most projects because so much of what it stores and ships is prompts, and downstream projects inherit the exposure through their own git history.\n\nhv's ruling of 2026-10-23 (vc's decision 70(5)): the thread opens now, in Triage, with ic's inventory of every surface that feeds prompt text to an agent, live or historical, and which of them can surface a stale copy, as WP-01. No fix lane starts until hv has read the inventory: the fixes are new surface and wait behind the line.\n\nDirections the inventory feeds, from 0611: a convention for non-live prompt text (a framing marker an agent is told to treat as data, not instruction); guidance in the skills and agent files that read history, diffs, transcripts or archives (autopsy, review, critics, whiteboard) that what they read there is evidence; rule-change notes that quote the old rule in a form that cannot be mistaken for the rule; and tests or fixtures that put a stale instruction in front of a critic or skill and check it is not followed.",
+  "body": "",
+  "preamble": "",
+  "wps": [
+    {
+      "seq": 1,
+      "title": "Inventory of every surface that feeds prompt text to an agent, live or historical",
+      "scope": "S",
+      "status": "not-started",
+      "objective": "",
+      "body": "",
+      "preamble": ""
+    }
+  ]
+}
