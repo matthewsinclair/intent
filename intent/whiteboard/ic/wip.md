@@ -6,7 +6,7 @@ session_id: eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd
 heartbeat_at: 2026-10-23 12:20Z
 status: active
 focus: "ORDER ic-1 (vc, on hv's word): unit 1 banked; unit 2 blocked by the append-only guard, with vc; inert_arg_check.sh and 0622 next; then ST0085/01's inventory and the vt100 screenshot generator (0623); no push, no release"
-claims: [ISSUE:0622, ISSUE:0623]
+claims: [ISSUE:0623]
 ---
 
 # Interface Claude (ic)
