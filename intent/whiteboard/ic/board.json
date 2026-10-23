@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd",
-    "heartbeat_at": "2026-10-23T12:20:58.836Z",
+    "heartbeat_at": "2026-10-23T12:55:36.489Z",
     "status": "active",
-    "focus": "ORDER ic-1 (vc, on hv's word): unit 1 banked; unit 2 blocked by the append-only guard, with vc; inert_arg_check.sh and 0622 next; then ST0085/01's inventory and the vt100 screenshot generator (0623); no push, no release",
+    "focus": "ORDER ic-1 done but unit 2 (hv's hand); 0622 closed; ST0085/01's report landed at 622c1940a for vc's read; then the inert_arg_check fixes and the vt100 screenshot generator (0623); no push, no release",
     "claims": [
       "ISSUE:0623"
     ],
@@ -2444,9 +2444,10 @@
       "node": "ic",
       "kind": "doing",
       "seq": 123,
-      "text": "ORDER ic-1 from vc (2026-10-23 12:03Z by vc's clock, on hv's \"Ok, do it\"), four units, each reported to vc with its sha. (1) DONE: the surface note for 0616, 0617 and 0618 is banked at refs/bank/ic/0616-0618/surface-note.md (blob 13571783fc26) and sent to vc and cc; vc rules, cc builds. (2) BLOCKED on hv's word: `git rm` of the five .py history tools under intent/whiteboard/ic/.history/20260915/tools/ (hv's no-Python rule, Molt-matts 10715b0 and e5c9e68) was refused at 12:17Z by the commit gate's append-only guard (lib/templates/hooks/append-only-guard.sh, no case to exempt); the files are restored from HEAD, and vc has the options: hv's one --no-verify commit, a declared exemption, or the files stay. (3) inert_arg_check.sh's python3 heredoc becomes jq; the population is byte-identical on the live table. (4) 0622's honest fix: the cut-surface page's Refusals claim and gen_cut_surface.sh's header name what the list leaves out. THEN, on hv's word in the TUI between vc's clock reads of 12:03Z and 12:09Z: 0611 is now ST0085 (Triage) and the inventory is ST0085/01, written as the attachment intent/st/ST0085/inventory.md (read-only, S); then the explorer screenshot generator as a Rust dev tool on the vt100 crate (M), with 0623's seed-date pin riding it and one line to vc on where it lives before any code. 0622 and 0623 are ic's to close. No push, no release.",
+      "text": "ORDER ic-1 from vc (2026-10-23 12:03Z by vc's clock, on hv's \"Ok, do it\"). (1) DONE: the surface note for 0616, 0617 and 0618 is banked at refs/bank/ic/0616-0618/surface-note.md (blob 13571783fc26) and ruled by vc at 5a5a3c16a; cc builds. (2) hv's own hand: the five .py history tools go at hv's terminal in one --no-verify commit, because the append-only guard has no case to exempt (hv's word in vc's TUI, after 12:23Z); ic does nothing on them. (3) DONE at c9ca99d73: inert_arg_check.sh reads the table with jq. (4) DONE at 7a62e86c1, and 0622 CLOSED at faf545412. vc's two XS fixes from ic's observations landed at e3ce52d57. ST0085/01 (0611's inventory) started at 05b665e67, and its report, intent/st/ST0085/inventory.md, landed at 622c1940a; the WP closes on vc's read of it. NEXT, in one chain: inert_arg_check.sh's header control claim corrected to what the tool measures today, with the 2026-08-30 counts on runner_roster_check.sh row 132 deleted, and its fixture owning VISUAL and EDITOR. THEN the explorer screenshot generator as a Rust dev tool on the vt100 crate (M), 0623's seed-date pin riding it, after one line to vc on where it lives. ISSUE:0623 is claimed. No push, no release.",
       "state": "live",
-      "recorded_at": "2026-10-23T12:20:48.514Z"
+      "recorded_at": "2026-10-23T12:20:48.514Z",
+      "edited_at": "2026-10-23T12:55:31.116Z"
     }
   ],
   "sent": [

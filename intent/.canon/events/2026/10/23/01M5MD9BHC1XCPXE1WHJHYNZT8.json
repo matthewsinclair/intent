@@ -1,0 +1,16 @@
+{
+  "id": "01M5MD9BHC1XCPXE1WHJHYNZT8",
+  "ts": "2026-10-23T12:55:31.116Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 123,
+    "text": "ORDER ic-1 from vc (2026-10-23 12:03Z by vc's clock, on hv's \"Ok, do it\"). (1) DONE: the surface note for 0616, 0617 and 0618 is banked at refs/bank/ic/0616-0618/surface-note.md (blob 13571783fc26) and ruled by vc at 5a5a3c16a; cc builds. (2) hv's own hand: the five .py history tools go at hv's terminal in one --no-verify commit, because the append-only guard has no case to exempt (hv's word in vc's TUI, after 12:23Z); ic does nothing on them. (3) DONE at c9ca99d73: inert_arg_check.sh reads the table with jq. (4) DONE at 7a62e86c1, and 0622 CLOSED at faf545412. vc's two XS fixes from ic's observations landed at e3ce52d57. ST0085/01 (0611's inventory) started at 05b665e67, and its report, intent/st/ST0085/inventory.md, landed at 622c1940a; the WP closes on vc's read of it. NEXT, in one chain: inert_arg_check.sh's header control claim corrected to what the tool measures today, with the 2026-08-30 counts on runner_roster_check.sh row 132 deleted, and its fixture owning VISUAL and EDITOR. THEN the explorer screenshot generator as a Rust dev tool on the vt100 crate (M), 0623's seed-date pin riding it, after one line to vc on where it lives. ISSUE:0623 is claimed. No push, no release."
+  }
+}
