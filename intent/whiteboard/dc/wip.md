@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 5abe68e1-b9b1-4003-9718-c8fbba772543
-heartbeat_at: 2026-10-23 19:06Z
+heartbeat_at: 2026-10-23 19:18Z
 status: active
-focus: "After the bounce: the guards pass at Prodinfra, Lamplight, Conflab and Trellis (a) as light work, pausing on vc's GO for the 3.2.6 known-defects re-drive after build all #2; no push, no release"
+focus: "Guards pass done in all eleven estates, no push; waiting on vc's GO for the 3.2.6 known-defects re-drive after build all #2; no push, no release"
 claims: []
 ---
 
@@ -13,12 +13,20 @@ claims: []
 
 ## DOING
 
-- GUARDS ADOPTION PASS (hv released hold 29; vc's sequence), at the localfold, 19:04Z on 2026-10-23 by date -u. The remainder runs AFTER THE BOUNCE as light work, no cargo and no bats suite, and pauses on vc's GO for the known-defects re-drive after build all #2 (vc, 19:04Z, superseding 19:02Z's "after the cut"). (edited)
-  - DONE, one commit each, no push: Laksa a54132707 (corrected forward by 9637080e8), Prolix 5b9f45e, Cdtempl 0075199, Riffle 67c9235, Baize 3f6da7e.
-  - NEXT, after the bounce, each with a fresh dry run on the pair of the day: Prodinfra, Lamplight, Conflab, then Trellis (a), gate only; then Anvil and Courses, measured first. The recipe is Baize's: core.hooksPath .githooks; `intent claude upgrade --apply` once a dry run says 8 to write and nothing else; Baize's ignore stanza for .githooks/*.intent; the four dispatchers tracked; red controls through the pass's probes.sh; one commit each. The carriers are shims that exec the live gate, so cc's templates landing reaches every estate with no re-upgrade.
-  - PRODINFRA, measured at 19:02Z on the pair at c59e80779: with hooksPath .githooks the dry run says 8 to write (4 canonical, 2 preserved). hooksPath was then UNSET again, because the pass was waiting for the fold, so Prodinfra runs its gate from .git/hooks as before; nothing was written and its tree is clean. It declares no languages and no formatters, so its red control is the canon-ignore probe (an intent/.gitignore line `.canon/`), as Riffle's was.
-  - Conflab declares formatters [markdown, elixir], and its tracked pre-commit keeps the precommit-rust line after the chain block. Lamplight's formatters are already declared. Trellis takes --skip-settings, with usage-rules.md and .intent_critic.yml seeded; its session hooks are hv's to ask for.
-  - SENT: Molt's recipe, to molt-vc. WAITING: Devbin, through devbin-vc. LAKSA FOLLOW-UP, for its own nodes: four canon guards run twice.
+- GUARDS ADOPTION PASS (hv released hold 29; vc's sequence): DONE in dc's lane, as read at 19:18Z on 2026-10-23 by date -u; one commit per estate, no push. Before the bounce: Laksa a54132707 (corrected forward by 9637080e8), Prolix 5b9f45e, Cdtempl 0075199, Riffle 67c9235, Baize 3f6da7e. After it, each on a fresh dry run on the pair at c59e80779 that wrote the 8 hook files and nothing else: Prodinfra fa4b6a3, Lamplight 7cfa606a5, Conflab ff4d7441, Trellis e07fce8, Anvil 95eff25, Courses 076d6e7. (edited)
+  - TRELLIS took option (a), the gate only: it had no commit gate before; `--skip-settings` left .claude/settings.json and .mcp.json alone, so no session hook is installed (hv's to ask for), and usage-rules.md and .intent_critic.yml were seeded and tracked.
+  - CONFLAB's old hook ran three checks outside the chain block. Its markdown and elixir checks are now declared as formatters in intent/.config/config.json, which the shipped staged-format guard runs. Its bin/precommit-rust line is kept, verbatim, as the last command of the tracked dispatcher: a dry run after it was added keeps it, and doctor's hand-wired advisory cleared once the dispatcher was tracked. gate_rust returns at once when no .rs is staged, so a commit without Rust runs no cargo.
+  - RED CONTROLS ran through each estate's new dispatcher on a throwaway index:
+    - canon-ignore refused (Prodinfra, Trellis);
+    - unformatted .md and .ex refused by the staged-format guard (Lamplight, Conflab);
+    - unformatted .rs refused by precommit-rust after Intent's gate passed (Conflab);
+    - an unquoted shell expansion refused by the critic (Anvil, Courses);
+    - a clean .md passed everywhere, and doctor gave 0 findings in each estate.
+  - SWEPT after the last commit:
+    - all eleven estates run their tracked dispatchers (Laksa from bin/hooks, the rest from .githooks);
+    - every carrier is executable and ignored, and every hook tree is clean;
+    - every dry run has 0 to write.
+  - NOT dc's hand: Molt's recipe is with molt-vc; Devbin waits on devbin-vc; Laksa's follow-up (four canon guards run twice) is for Laksa's own nodes.
   hv's rule, verbatim: NEVER truncate the output of "git remote -v" because doing so cuts off valid remotes.
 - RESUME STATE at the localfold, 19:04Z on 2026-10-23 by date -u (hv's call, relayed by vc). Nothing heavy until vc's GO.
   - NEXT, on vc's GO after build all #2 on the final HEAD: the 3.2.6 known-defects re-drive. The drive is refs/bank/dc/kd326/drive.sh (blob de3278753b8f), 3.2.5's drive-final.sh with only its title, S= and REPO changed; REPO is tmp/wt-dc-kd326, made at the final HEAD at START. Census, then START by name; the drive against build all #2's pair; every entry diffed against 3.2.5's final log (refs/bank/dc/325kd/drive-final.log); the page rewritten from the transcripts and retitled for v3.2.6; its commit to vc before step 3, so the tag carries it; END with each entry's verdict. The page is unchanged since v3.2.5, so no entry is new, and no commit since v3.2.5 names an issue it cites.

@@ -1,0 +1,16 @@
+{
+  "id": "01M5N373FMNRFF371R64GZT69G",
+  "ts": "2026-10-23T19:18:46.004Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 132,
+    "text": "GUARDS ADOPTION PASS (hv released hold 29; vc's sequence): DONE in dc's lane, as read at 19:18Z on 2026-10-23 by date -u; one commit per estate, no push. Before the bounce: Laksa a54132707 (corrected forward by 9637080e8), Prolix 5b9f45e, Cdtempl 0075199, Riffle 67c9235, Baize 3f6da7e. After it, each on a fresh dry run on the pair at c59e80779 that wrote the 8 hook files and nothing else: Prodinfra fa4b6a3, Lamplight 7cfa606a5, Conflab ff4d7441, Trellis e07fce8, Anvil 95eff25, Courses 076d6e7.\n- TRELLIS took option (a), the gate only: it had no commit gate before; `--skip-settings` left .claude/settings.json and .mcp.json alone, so no session hook is installed (hv's to ask for), and usage-rules.md and .intent_critic.yml were seeded and tracked.\n- CONFLAB's old hook ran three checks outside the chain block. Its markdown and elixir checks are now declared as formatters in intent/.config/config.json, which the shipped staged-format guard runs. Its bin/precommit-rust line is kept, verbatim, as the last command of the tracked dispatcher: a dry run after it was added keeps it, and doctor's hand-wired advisory cleared once the dispatcher was tracked. gate_rust returns at once when no .rs is staged, so a commit without Rust runs no cargo.\n- RED CONTROLS ran through each estate's new dispatcher on a throwaway index:\n  - canon-ignore refused (Prodinfra, Trellis);\n  - unformatted .md and .ex refused by the staged-format guard (Lamplight, Conflab);\n  - unformatted .rs refused by precommit-rust after Intent's gate passed (Conflab);\n  - an unquoted shell expansion refused by the critic (Anvil, Courses);\n  - a clean .md passed everywhere, and doctor gave 0 findings in each estate.\n- SWEPT after the last commit:\n  - all eleven estates run their tracked dispatchers (Laksa from bin/hooks, the rest from .githooks);\n  - every carrier is executable and ignored, and every hook tree is clean;\n  - every dry run has 0 to write.\n- NOT dc's hand: Molt's recipe is with molt-vc; Devbin waits on devbin-vc; Laksa's follow-up (four canon guards run twice) is for Laksa's own nodes.\nhv's rule, verbatim: NEVER truncate the output of \"git remote -v\" because doing so cuts off valid remotes."
+  }
+}
