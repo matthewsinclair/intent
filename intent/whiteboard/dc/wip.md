@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 5abe68e1-b9b1-4003-9718-c8fbba772543
-heartbeat_at: 2026-10-23 18:12Z
+heartbeat_at: 2026-10-23 19:04Z
 status: active
-focus: "Resume after the bounce: 0614's Rust run on cc's BOX END (0627), then the preflight gate half (hv's ruling), and the guards pass at Prodinfra, Lamplight, Conflab and Trellis (a); no push, no release"
+focus: "After the bounce: nothing heavy until vc's GO; the 3.2.6 known-defects re-drive on vc's GO after build all #2; the guards pass remainder after the cut; no push, no release"
 claims: []
 ---
 
@@ -13,16 +13,18 @@ claims: []
 
 ## DOING
 
-- ORDER dc-1 (vc, 12:03Z, on hv's "Ok, do it"), where it stands after hv's bounce, 18:18Z on 2026-10-23 by date -u: (edited)
-  - (1) 0614 (claimed): vc's ruling (c'), the narrow guard in land_board_write. The patch under judgement is refs/bank/dc/0614/guard-wip (blob 38fbecb79990) with rustfmt's layout of one statement in the new arm, patch-id c017cfee8927. It sits in tmp/wt-dc-0614 at main's tip 9eb9790db, whose Rust tree is 2b486174f's (0627 and 0624 landed). NEXT, on cc's END of 0630's whole-suite run (cc STARTed in the cargo slot at 18:15Z): the arm red on the base, then fmt, both clippy lines and the doc line, intentd, the arm green, the whole intentsvcs and intent-cli suites; bank it judged, land it on vc's word, close 0614 on the sha. vc's one build all follows the 0614 and 0630 landings.
-  - (2) 0626 and (5) the socket planter (d255c8b70) are landed. (3) 0630 is cc's, ruled (B). (4) 0624 is landed (6a95721f2) and closed (2b486174f) by cc.
-  hv's CI red: canon-pipe (04705176a) and 0628 (fd9bc0fe2, closed df61305b3) are landed. NOW, while the cargo slot is cc's: the preflight gate half's code, with no heavy run. The order copies its summary to rhadamanth.local:~/.local/share/intent/preflight/<sha>.summary; bin/.devbin/cmd/prepush refuses a push to upstream whose HEAD has no green summary, naming the order's three-line command as the remedy; releasing.md gets the step; and a bats arm, red on the base, runs in a bats slot vc gives. Then hv runs the first preflight on a HEAD carrying canon-pipe and 0628. No push, no release.
-- GUARDS ADOPTION PASS (hv released hold 29; vc's sequence), where it stands at 15:05Z by date -u. Every estate but Trellis already ran the gate, most of them from untracked .git/hooks. The pass gives them tracked .githooks dispatchers and formatter declarations. (edited)
-  - DONE, one commit each, no push: Laksa a54132707, corrected forward by 9637080e8; Prolix 5b9f45e; Cdtempl 0075199; Riffle 67c9235; Baize 3f6da7e.
-  - NEXT, approved by vc at 14:42Z, in this order: Prodinfra, Lamplight, Conflab, then Trellis (a). Dry runs read this afternoon: the first three are canonical, with their hooks in .git/hooks and nothing else to write. The recipe is the one Baize took: core.hooksPath .githooks; upgrade --apply, after a dry run says 8 to write; .githooks/*.intent ignored; the four dispatchers tracked; red controls through the pass's probes.sh; one commit each. Conflab declares formatters [markdown, elixir], the two its old hook checked by hand, and its tracked pre-commit keeps the precommit-rust line after the chain block. That line returns at once when no .rs file is staged. Lamplight's formatters are already declared. Trellis takes --skip-settings, with usage-rules.md and .intent_critic.yml seeded. Its session hooks are hv's to ask for.
-  - SENT: Molt's recipe, to molt-vc. WAITING: Devbin, through devbin-vc; Anvil and Courses, after Trellis.
-  - LAKSA FOLLOW-UP, for its own nodes: four canon guards run twice.
+- GUARDS ADOPTION PASS (hv released hold 29; vc's sequence), at the localfold, 19:04Z on 2026-10-23 by date -u. The remainder runs AFTER THE CUT (vc, 19:02Z). (edited)
+  - DONE, one commit each, no push: Laksa a54132707 (corrected forward by 9637080e8), Prolix 5b9f45e, Cdtempl 0075199, Riffle 67c9235, Baize 3f6da7e.
+  - NEXT, after the cut, each with a fresh dry run on the pair of the day: Prodinfra, Lamplight, Conflab, then Trellis (a), gate only; then Anvil and Courses, measured first. The recipe is Baize's: core.hooksPath .githooks; `intent claude upgrade --apply` once a dry run says 8 to write and nothing else; Baize's ignore stanza for .githooks/*.intent; the four dispatchers tracked; red controls through the pass's probes.sh; one commit each. The carriers are shims that exec the live gate, so cc's templates landing reaches every estate with no re-upgrade.
+  - PRODINFRA, measured at 19:02Z on the pair at c59e80779: with hooksPath .githooks the dry run says 8 to write (4 canonical, 2 preserved). hooksPath was then UNSET again, because the pass waits for the cut, so Prodinfra runs its gate from .git/hooks as before; nothing was written and its tree is clean. It declares no languages and no formatters, so its red control is the canon-ignore probe (an intent/.gitignore line `.canon/`), as Riffle's was.
+  - Conflab declares formatters [markdown, elixir], and its tracked pre-commit keeps the precommit-rust line after the chain block. Lamplight's formatters are already declared. Trellis takes --skip-settings, with usage-rules.md and .intent_critic.yml seeded; its session hooks are hv's to ask for.
+  - SENT: Molt's recipe, to molt-vc. WAITING: Devbin, through devbin-vc. LAKSA FOLLOW-UP, for its own nodes: four canon guards run twice.
   hv's rule, verbatim: NEVER truncate the output of "git remote -v" because doing so cuts off valid remotes.
+- RESUME STATE at the localfold, 19:04Z on 2026-10-23 by date -u (hv's call, relayed by vc). Nothing heavy until vc's GO.
+  - NEXT, on vc's GO after build all #2 on the final HEAD: the 3.2.6 known-defects re-drive. The drive is refs/bank/dc/kd326/drive.sh (blob de3278753b8f), 3.2.5's drive-final.sh with only its title, S= and REPO changed; REPO is tmp/wt-dc-kd326, made at the final HEAD at START. Census, then START by name; the drive against build all #2's pair; every entry diffed against 3.2.5's final log (refs/bank/dc/325kd/drive-final.log); the page rewritten from the transcripts and retitled for v3.2.6; its commit to vc before step 3, so the tag carries it; END with each entry's verdict. The page is unchanged since v3.2.5, so no entry is new, and no commit since v3.2.5 names an issue it cites.
+  - THE PREFLIGHT for tonight's cut: hv's next kovacs run uses the in-tree order, landed at f40df8f72. While nothing covers HEAD, `bin/int prepush --preflight-covers HEAD` prints its two lines, and the run copies its summary back here. It runs on the final candidate, after the last landing and close.
+  - 0629 (.heex in the staged-format guard): next session.
+  No push, no release.
 
 ## TODO
 
