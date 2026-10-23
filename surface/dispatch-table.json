@@ -6691,6 +6691,34 @@
           "read_or_mutate": "read"
         },
         {
+          "path": "lang declared",
+          "help": "Print the languages this project declares, one per line",
+          "args": [],
+          "flags": [],
+          "v2": "new-surface",
+          "basis": "Issue 0618, ruled by vc on 2026-10-23 on ic's surface note (refs/bank/ic/0616-0618/surface-note.md, blob 13571783fc26). Five readers took a project's declared languages out of `intent/.config/config.json` with jq -- the commit gate, three skills and a subagent -- because no verb printed them, and each worked only from the project root. This reads `Config.languages` through project discovery and prints it in config order and nothing else, so a script reads the field the binary parses from any directory inside the project. `languages: []` prints nothing at 0, because an empty declaration is a legitimate state (decision 62(1)); a name outside the catalogue is printed rather than refused, because `lang init` refuses it at the door and the gate and `critic` already name it. It answers in a project nobody has migrated, because its consumer is the commit gate.",
+          "observed": {
+            "exit": [
+              {
+                "code": 0,
+                "when": "the declared languages printed, or nothing when the project declares none"
+              },
+              {
+                "code": 1,
+                "when": "no project at or above the working directory, or a config that does not parse -- discovery's own refusals, each with its remedy"
+              }
+            ],
+            "stdout": "one declared language per line, in config order, and nothing else",
+            "stderr": "`error: ...` on stderr (INV-01)"
+          },
+          "target": {
+            "state": "new-surface"
+          },
+          "disposition": "new-surface",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "read"
+        },
+        {
           "path": "lang show",
           "help": "Show what declaring a language does",
           "args": [
@@ -6734,6 +6762,40 @@
             ]
           },
           "disposition": "keep",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "read"
+        },
+        {
+          "path": "lang of",
+          "help": "Print the language Intent assigns a path, or nothing",
+          "args": [
+            {
+              "name": "path",
+              "type": "string",
+              "arity": "1"
+            }
+          ],
+          "flags": [],
+          "v2": "new-surface",
+          "basis": "Issue 0617, ruled by vc on 2026-10-23 on ic's surface note (refs/bank/ic/0616-0618/surface-note.md, blob 13571783fc26). The advisory hook chose an edited file's critic from its own `case` on the extension, beside `index::corpus::lang_of`, the map the index and search read. A language added to the map was skipped by the hook in silence, because its `*) exit 0` arm cannot tell an extension nobody handles from one it was never told about. This prints `lang_of`'s answer for one path. It is a function of the name, so it needs no project and checks no file, and nothing printed at 0 is the answer `no language`. `intent critic` is not made to derive a language from a path: its positional picks the pack, each rule matches by its own `applies_to` globs, and its exit codes are the gate's.",
+          "observed": {
+            "exit": [
+              {
+                "code": 0,
+                "when": "the path's language printed, or nothing when its extension maps to none"
+              },
+              {
+                "code": 1,
+                "when": "no path given -- clap's usage error"
+              }
+            ],
+            "stdout": "the language on one line, or nothing",
+            "stderr": "`error: ...` on stderr (INV-01)"
+          },
+          "target": {
+            "state": "new-surface"
+          },
+          "disposition": "new-surface",
           "exposed_on_mcp": false,
           "read_or_mutate": "read"
         },
@@ -10422,6 +10484,34 @@
       "exposed_on_mcp": true,
       "read_or_mutate": "read",
       "facade": "outstanding"
+    },
+    {
+      "path": "guards",
+      "help": "Print the project's declared commit guards, parsed and validated, one per line",
+      "args": [],
+      "flags": [],
+      "v2": "new-surface",
+      "basis": "Issue 0616, ruled by vc on 2026-10-23 on ic's surface note (refs/bank/ic/0616-0618/surface-note.md, blob 13571783fc26). The commit gate read a project's `guards` with its own jq program and its own rules, beside `Config.guards`, which `doctor` reads: two readers of one declaration and nothing to report where they disagreed. This prints the declaration as the gate reads it, `<index> US <when> US <run[0]> [US <run[n]> ...]`, US (0x1f) being the gate's own separator and an empty `when` a guard that applies to every commit, validated once in intentsvcs (`project::guard_lines`). serde's refusals stay discovery's, `GuardDecl` refuses an unknown key, and the verb refuses an empty `run`, an empty argument and a control character in any field, each naming the entry. The per-commit checks on `run[0]` stay in the gate, because they are facts about the commit's tree. It answers in a project nobody has migrated, because its consumer is the commit gate.",
+      "observed": {
+        "exit": [
+          {
+            "code": 0,
+            "when": "one line per declared guard, or nothing when the project declares none"
+          },
+          {
+            "code": 1,
+            "when": "no project, a config that does not parse (an unknown key in a guard among them), or a guard a line cannot carry -- each named with its remedy"
+          }
+        ],
+        "stdout": "one line per declared guard, its fields separated by US (0x1f)",
+        "stderr": "`error: ...` on stderr (INV-01)"
+      },
+      "target": {
+        "state": "new-surface"
+      },
+      "disposition": "new-surface",
+      "exposed_on_mcp": false,
+      "read_or_mutate": "read"
     }
   ],
   "provenance": {
@@ -10559,8 +10649,8 @@
     {
       "disposition": "new-surface",
       "target_state": "new-surface",
-      "n": 83,
-      "census_note": "83 since 2026-10-16: `deinit`, the door that strips what Intent wrote from a project being closed (ST0083 WP-06); 82 since 2026-10-15: `agents layout`, the door that moves the two agent contracts between the root and .claude/ and sets the contracts key (ST0083 WP-03); 81 since 2026-09-23: `wb edit`, the door that changes an item's text and keeps the old text out of any commit that does not hold it yet (issue 0523); 80 since 2026-09-21: `outstanding`, one table of the outstanding threads, work packages and issues (ST0079); 79 since 2026-09-21: `st relate` and `st unrelate`, the only doors to a thread's `related` links (issue 0460); 77 since 2026-09-18: `st renumber` and `issues renumber`, the verbs that move a thread or an issue to a free id after two clones minted the same one (ST0078 WP-02); 75 since 2026-09-17: `index resolve`, the verb that runs each language's toolchain over the project and stores the references that join a written one (ST0076 WP-05, vc decision 25); 74 since 2026-09-14: `st detach`, the verb that removes an attachment's record from the store and canon and leaves its file on disk (issue 0394); 73 earlier the same day: `wp gate`, the work package's own close-gate verdict (issue 0310); 72 earlier the same day: `daemon logs`, the verb Intent.app's Console tails, printing intentd's recent log lines and following them with `--follow` (ST0075 WP-01 AC-01.1); 71 since 2026-09-13: `discover`, the verb that finds Intent projects under a directory and registers the ones this build can serve (ST0074 WP-03 AC-03.3); 70 since 2026-09-12: `wb migrate`, the verb that carries a hand-authored board into the model (ST0069 WP-14 AC-14.9); 69 earlier the same day: `wb add`, the door the generated view would otherwise have closed (ST0069 WP-14); 68 earlier the same day: `wb archive` (ST0069 WP-14 AC-14.6, vc's ruling that the state change IS the schedule); 67 earlier the same day: `wb pickup`, `wb touch` and `wb release`, the lifecycle half of the `wb` family (ST0069 WP-14); 64 earlier the same day: `wb decide`, `wb claim` and `wb unclaim`, the item half of the `wb` family (ST0069 WP-14); 61 earlier the same day: `wb ask`, `wb announce` and `wb clear`, the message half of the `wb` family (ST0069 WP-14 AC-14.5); 58 earlier the same day: `wb status` and `wb show`, the read half of the `wb` family (ST0069 WP-14 AC-14.7); 56 earlier the same day: the `wb` family and `wb register` (the same criterion); 54 earlier the same day: the `index` family and its two verbs (`index`, `index status`, `index rebuild`, ST0069 WP-19 AC-19.6); 51 since 2026-09-11 with `set` (issues 0154 + 0185, vc's option (1)); 50 before it, with `ac show` (issue 0168, vc's option (a)).",
+      "n": 86,
+      "census_note": "86 since 2026-10-23: `lang declared`, `lang of` and `guards`, the read verbs that print for a script what the binary already parses -- a project's declared languages, a path's language and the declared commit guards (issues 0618, 0617 and 0616); 83 since 2026-10-16: `deinit`, the door that strips what Intent wrote from a project being closed (ST0083 WP-06); 82 since 2026-10-15: `agents layout`, the door that moves the two agent contracts between the root and .claude/ and sets the contracts key (ST0083 WP-03); 81 since 2026-09-23: `wb edit`, the door that changes an item's text and keeps the old text out of any commit that does not hold it yet (issue 0523); 80 since 2026-09-21: `outstanding`, one table of the outstanding threads, work packages and issues (ST0079); 79 since 2026-09-21: `st relate` and `st unrelate`, the only doors to a thread's `related` links (issue 0460); 77 since 2026-09-18: `st renumber` and `issues renumber`, the verbs that move a thread or an issue to a free id after two clones minted the same one (ST0078 WP-02); 75 since 2026-09-17: `index resolve`, the verb that runs each language's toolchain over the project and stores the references that join a written one (ST0076 WP-05, vc decision 25); 74 since 2026-09-14: `st detach`, the verb that removes an attachment's record from the store and canon and leaves its file on disk (issue 0394); 73 earlier the same day: `wp gate`, the work package's own close-gate verdict (issue 0310); 72 earlier the same day: `daemon logs`, the verb Intent.app's Console tails, printing intentd's recent log lines and following them with `--follow` (ST0075 WP-01 AC-01.1); 71 since 2026-09-13: `discover`, the verb that finds Intent projects under a directory and registers the ones this build can serve (ST0074 WP-03 AC-03.3); 70 since 2026-09-12: `wb migrate`, the verb that carries a hand-authored board into the model (ST0069 WP-14 AC-14.9); 69 earlier the same day: `wb add`, the door the generated view would otherwise have closed (ST0069 WP-14); 68 earlier the same day: `wb archive` (ST0069 WP-14 AC-14.6, vc's ruling that the state change IS the schedule); 67 earlier the same day: `wb pickup`, `wb touch` and `wb release`, the lifecycle half of the `wb` family (ST0069 WP-14); 64 earlier the same day: `wb decide`, `wb claim` and `wb unclaim`, the item half of the `wb` family (ST0069 WP-14); 61 earlier the same day: `wb ask`, `wb announce` and `wb clear`, the message half of the `wb` family (ST0069 WP-14 AC-14.5); 58 earlier the same day: `wb status` and `wb show`, the read half of the `wb` family (ST0069 WP-14 AC-14.7); 56 earlier the same day: the `wb` family and `wb register` (the same criterion); 54 earlier the same day: the `index` family and its two verbs (`index`, `index status`, `index rebuild`, ST0069 WP-19 AC-19.6); 51 since 2026-09-11 with `set` (issues 0154 + 0185, vc's option (1)); 50 before it, with `ac show` (issue 0168, vc's option (a)).",
       "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
     },
     {
@@ -10879,7 +10969,9 @@
       "critic",
       "lang",
       "lang list",
+      "lang declared",
       "lang show",
+      "lang of",
       "lang init",
       "lang remove",
       "lang sync",
@@ -10955,7 +11047,8 @@
       "help",
       "graphql",
       "set",
-      "outstanding"
+      "outstanding",
+      "guards"
     ],
     "shipped": [
       "st",
@@ -11050,7 +11143,9 @@
       "critic",
       "lang",
       "lang list",
+      "lang declared",
       "lang show",
+      "lang of",
       "lang init",
       "lang remove",
       "llm",
@@ -11121,7 +11216,8 @@
       "help",
       "graphql",
       "set",
-      "outstanding"
+      "outstanding",
+      "guards"
     ],
     "retired": [
       "st repair",
@@ -11231,7 +11327,9 @@
       "critic",
       "lang",
       "lang list",
+      "lang declared",
       "lang show",
+      "lang of",
       "lang init",
       "lang remove",
       "llm",
@@ -11295,7 +11393,8 @@
       "help",
       "graphql",
       "set",
-      "outstanding"
+      "outstanding",
+      "guards"
     ],
     "self_loop": [
       "ac descope",

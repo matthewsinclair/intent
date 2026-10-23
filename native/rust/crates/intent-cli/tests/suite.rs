@@ -165,6 +165,8 @@ mod flag_reachability;
 mod format_roster_is_honoured;
 #[path = "graphql_escape_hatch.rs"]
 mod graphql_escape_hatch;
+#[path = "guards_surface.rs"]
+mod guards_surface;
 #[path = "hook_compat.rs"]
 mod hook_compat;
 #[path = "info_exit_code.rs"]

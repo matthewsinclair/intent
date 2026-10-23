@@ -1041,7 +1041,14 @@ impl DoctorConfig {
 /// shell and a path with a space in it means what it says. `run[0]` is a path
 /// relative to the project root, and it must be tracked: a guard a fresh clone
 /// does not receive is refused by the hook rather than skipped.
+///
+/// **AN UNKNOWN KEY IS REFUSED** (issue 0616, vc's ruling of 2026-10-23). A
+/// misspelt `when` parsed as a guard with no `when`, which runs on every commit,
+/// in the binary and in the gate alike. vc's census that day found guards
+/// declared in one estate, with `run` alone, so the refusal reaches no
+/// declaration written before it.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct GuardDecl {
   pub run: Vec<String>,
   /// A path relative to the project root, NOT a pattern: the hook skips the
@@ -1049,6 +1056,98 @@ pub struct GuardDecl {
   /// applies to every commit.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub when: Option<String>,
+}
+
+/// The field separator of a guard line: US (0x1f), the commit gate's own.
+///
+/// **NOT TAB, WHICH WAS THE GATE'S FIRST SPELLING.** Tab is whitespace to `read`,
+/// so the empty `when` of a guard that applies to every commit collapsed into
+/// the field after it, and the guard was skipped as not applicable. A separator
+/// that is not whitespace keeps an empty field a field.
+pub const GUARD_FIELD_SEPARATOR: char = '\u{1f}';
+
+/// Why a declared guard cannot be handed to the commit gate (issue 0616).
+///
+/// What serde refuses -- a `guards` that is not an array, an entry that is not
+/// an object, a `run` that is not strings, an unknown key -- is refused before
+/// this, by every verb, as [`ProjectError::Config`] with its position. These are
+/// what serde accepts and a guard line cannot carry.
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+pub enum GuardError {
+  #[error("guards[{index}] in intent/.config/config.json has an empty run")]
+  EmptyRun { index: usize },
+  #[error(
+    "guards[{index}].run[{element}] in intent/.config/config.json is empty, and a guard line cannot carry an empty argument"
+  )]
+  EmptyArgument { index: usize, element: usize },
+  #[error(
+    "guards[{index}].{field} in intent/.config/config.json holds a control character, and a guard line cannot carry one"
+  )]
+  ControlCharacter { index: usize, field: String },
+}
+
+impl crate::remedy::Remedy for GuardError {
+  fn remedy(&self) -> String {
+    match self {
+      Self::EmptyRun { index } => format!(
+        "give guards[{index}] a run whose first element is a tracked, executable file, or remove the entry"
+      ),
+      Self::EmptyArgument { index, element } => {
+        format!("give guards[{index}].run[{element}] a value, or take it out of the run")
+      }
+      Self::ControlCharacter { index, field } => format!(
+        "take the control character out of guards[{index}].{field}: the gate reads one guard per line, so no field can hold a newline, a tab or the separator"
+      ),
+    }
+  }
+}
+
+/// The declared guards as the commit gate reads them, one line each:
+/// `<index> US <when> US <run[0]> [US <run[n]> ...]`, with an empty `when` for
+/// a guard that applies to every commit (issue 0616).
+///
+/// **THE ONE VALIDATION OF A GUARD DECLARATION.** The gate carried its own jq
+/// program for this beside [`Config::guards`], two readers of one field with two
+/// sets of rules and nothing to report where they disagreed. `intent guards`
+/// prints these lines, and the gate runs what it is given.
+///
+/// **NO LINE ENDS IN AN EMPTY FIELD**, because `run` is never empty and no
+/// argument in it is: bash 3.2's `read -a` drops a trailing empty field, while
+/// it keeps the empty `when` in the middle of a line.
+pub fn guard_lines(guards: &[GuardDecl]) -> Result<Vec<String>, GuardError> {
+  guards
+    .iter()
+    .enumerate()
+    .map(|(index, guard)| guard_line(index, guard))
+    .collect()
+}
+
+/// One guard's line, or why it cannot be carried.
+fn guard_line(index: usize, guard: &GuardDecl) -> Result<String, GuardError> {
+  if guard.run.is_empty() {
+    return Err(GuardError::EmptyRun { index });
+  }
+  let when = guard.when.as_deref().unwrap_or("");
+  if when.chars().any(char::is_control) {
+    return Err(GuardError::ControlCharacter {
+      index,
+      field: "when".to_string(),
+    });
+  }
+  for (element, arg) in guard.run.iter().enumerate() {
+    if arg.is_empty() {
+      return Err(GuardError::EmptyArgument { index, element });
+    }
+    if arg.chars().any(char::is_control) {
+      return Err(GuardError::ControlCharacter {
+        index,
+        field: format!("run[{element}]"),
+      });
+    }
+  }
+  let mut fields = vec![index.to_string(), when.to_string()];
+  fields.extend(guard.run.iter().cloned());
+  Ok(fields.join(&GUARD_FIELD_SEPARATOR.to_string()))
 }
 
 /// The `todo` block: how much of the DONE bucket a TERMINAL render shows.

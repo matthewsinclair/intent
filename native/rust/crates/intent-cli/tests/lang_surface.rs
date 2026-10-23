@@ -211,10 +211,16 @@ fn sync_is_retired_in_both_places() {
 /// **THE MUTATING HALF IS GATED AND THE READING HALF IS NOT.**
 ///
 /// This is the one property a family-level exemption would destroy, so it is
-/// asserted as a contrast rather than as two separate facts.
+/// asserted as a contrast rather than as two separate facts. `declared` sits
+/// outside the contrast: it reads the project's config, so it needs a project
+/// and writes nothing, and its own arm below holds its refusal.
 #[test]
 fn only_the_verbs_that_write_require_a_project() {
-  for read in [vec!["lang", "list"], vec!["lang", "show", "rust"]] {
+  for read in [
+    vec!["lang", "list"],
+    vec!["lang", "show", "rust"],
+    vec!["lang", "of", "foo.rs"],
+  ] {
     let out = run_outside(&read);
     assert!(
       out.status.success(),
@@ -281,4 +287,82 @@ fn a_language_command_does_not_migrate_a_v2_project_behind_the_operator() {
     );
   }
   let _ = std::fs::remove_dir_all(&dir);
+}
+
+/// A v3 project in a temp directory declaring `languages` as written (a JSON
+/// array), with a subdirectory to run from.
+fn declaring(languages: &str) -> tempfile::TempDir {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let config = dir.path().join("intent").join(".config");
+  std::fs::create_dir_all(&config).expect("mkdir");
+  std::fs::create_dir_all(dir.path().join("src").join("deep")).expect("mkdir the subdirectory");
+  std::fs::write(
+    config.join("config.json"),
+    format!(
+      "{{\n  \"intent_version\": \"3.0.0\",\n  \"project_name\": \"Declared\",\n  \"author\": \"cc\",\n  \"intent_dir\": \"intent\",\n  \"languages\": {languages}\n}}\n"
+    ),
+  )
+  .expect("write config");
+  dir
+}
+
+fn declared_from(dir: &std::path::Path) -> Output {
+  crate::common::intent()
+    .args(["lang", "declared"])
+    .current_dir(dir)
+    .stdin(testkit::lifeline_for(&["lang", "declared"]))
+    .output()
+    .expect("run the v3 binary")
+}
+
+/// **`lang declared` ANSWERS FROM ANY DIRECTORY IN THE PROJECT, IN CONFIG
+/// ORDER** (issue 0618). The five jq readers it replaces each read
+/// `intent/.config/config.json` relative to the working directory, so each
+/// worked from the root alone; discovery walks up. The order is not
+/// alphabetical, so a sorted answer fails.
+#[test]
+fn declared_prints_the_configs_languages_in_order_from_a_subdirectory() {
+  let dir = declaring(r#"["shell", "rust", "elixir"]"#);
+  let out = declared_from(&dir.path().join("src").join("deep"));
+  assert!(out.status.success(), "stderr: {}", stderr(&out));
+  assert_eq!(stdout(&out), "shell\nrust\nelixir\n");
+}
+
+/// `languages: []` is a legitimate state (decision 62(1)), so it prints nothing
+/// at 0 rather than refusing.
+#[test]
+fn an_empty_declaration_prints_nothing_at_zero() {
+  let dir = declaring("[]");
+  let out = declared_from(dir.path());
+  assert!(out.status.success(), "stderr: {}", stderr(&out));
+  assert_eq!(stdout(&out), "");
+}
+
+/// Outside a project, `declared` refuses with discovery's own words and remedy.
+#[test]
+fn declared_outside_a_project_refuses_with_discoverys_remedy() {
+  let out = run_outside(&["lang", "declared"]);
+  assert_eq!(out.status.code(), Some(1), "stdout: {}", stdout(&out));
+  let err = stderr(&out);
+  assert!(err.contains("error: no Intent project found"), "{err}");
+  assert!(err.contains("remedy: run `intent init` here"), "{err}");
+}
+
+/// **`lang of` IS THE INDEX'S MAP, ASKED BY NAME** (issue 0617): a language on
+/// one line, or nothing at 0 for an extension that maps to none -- the answer
+/// the advisory hook's `*) exit 0` could not give -- and a usage error with no
+/// path. It needs no project and no file.
+#[test]
+fn of_prints_a_paths_language_or_nothing() {
+  for (path, expected) in [
+    ("foo.rs", "rust\n"),
+    ("lib/foo.ex", "elixir\n"),
+    ("foo.txt", ""),
+  ] {
+    let out = run_outside(&["lang", "of", path]);
+    assert!(out.status.success(), "{path}: {}", stderr(&out));
+    assert_eq!(stdout(&out), expected, "{path}");
+  }
+  let out = run_outside(&["lang", "of"]);
+  assert_eq!(out.status.code(), Some(1), "no path is a usage error");
 }

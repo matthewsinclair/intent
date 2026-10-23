@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.2.6] - in progress
 
+### Added
+
+- **`intent lang declared` prints the languages a project declares, and `intent lang of <path>` the language Intent assigns a path** (issues 0618 and 0617). The commit gate, three skills and a subagent read a project's languages out of `intent/.config/config.json` with jq, each from the project root alone, and the advisory hook chose a file's critic from its own table of extensions beside the one the index reads. `lang declared` prints `languages` in config order, from any directory inside the project, and nothing for `languages: []`; `lang of` prints the language for one path, or nothing when its extension maps to none, and needs no project. Both print bare lines for a script to read.
+- **`intent guards` prints a project's declared commit guards, parsed and validated, one line per guard** (issue 0616). The commit gate read `guards` with its own jq program and its own rules, beside the binary's reader of the same field. Each line is `<index>`, `<when>` and the `run` argv, separated by US (0x1f), the gate's own separator; an empty `run`, an empty argument or a control character in any field is refused, naming the entry. A guard entry with a key other than `run` and `when` is now refused as invalid config, where a misspelt `when` used to parse as a guard that runs on every commit.
+
 ### Fixed
 
 - **The macOS support tarball is built from the release commit, so nothing on the release machine's working copy can reach it** (issue 0626). `intent-support.tar.gz` was tarred from the working copy, so v3.2.5's carried three empty directories git does not track (`lib/templates/eng`, `issues` and `prime`), which the stage's drift check, comparing files, could not see. `int macos stage` now archives the commit it records with `git archive`, through the one function the Linux packages already used. That function pins the file modes to 0755 and 0644, which the Linux package had until now only because the packaging runner's umask was 022, so neither asset's modes depend on the machine that builds it.

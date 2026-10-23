@@ -238,6 +238,13 @@ fn exempt_from_the_migration_refusal(path: &str) -> Option<&'static str> {
     "agents" => Some("prints its own usage; it reads neither the install nor a project"),
     "lang list" => Some("lists a compile-time language registry; it never reads a project"),
     "lang show" => Some("describes a compile-time language registry; it never reads a project"),
+    // `of` is `list`'s class: the index's compile-time extension map, answered
+    // from the name alone. (Exemption added by cc with the wiring that made it
+    // reachable, issue 0617; ic owns this list and should reword if the
+    // framing is wrong.)
+    "lang of" => {
+      Some("maps a path's extension through a compile-time table; it never reads a project")
+    }
     // **THE UNMIGRATED PROJECT IS THIS VERB'S PRIMARY CASE, NOT AN EDGE OF
     // IT.** Ground 1 holds mechanically -- `surface retired` publishes
     // `spine::retired_and_unreachable()` over the dispatch table compiled into
@@ -269,7 +276,7 @@ fn exempt_from_the_migration_refusal(path: &str) -> Option<&'static str> {
     // (dc raised the hazard against ic's row, 2026-08-29; ic owns this list and
     // ruled the exemption.)
     "surface" => Some("publishes the compiled-in retirement roster; it never reads a project"),
-    // **GROUND 2, AND THE ONLY MEMBER OF IT.** `critic` READS the project --
+    // **GROUND 2, AND ITS FIRST MEMBER.** `critic` READS the project --
     // `languages` out of `intent/.config/config.json`, the threshold out of
     // `.intent_critic.yml` -- so it fails every test the entries above pass.
     // It is exempt because of what happens DOWNSTREAM of a refusal.
@@ -290,6 +297,20 @@ fn exempt_from_the_migration_refusal(path: &str) -> Option<&'static str> {
     // number; issue 0045 (vc) is the record.
     "critic" => Some(
       "its consumer FAILS CLOSED on a refusal -- the gate reads 1 as findings and blocks every        commit in every unmigrated project (issue 0038 / 0045)",
+    ),
+    // **GROUND 2's OTHER MEMBERS, ON `critic`'s ARGUMENT.** Each reads the
+    // project's config -- `languages`, `guards` -- through discovery and writes
+    // nothing, and the commit gate runs each on every commit and refuses the
+    // commit on any refusal from either. A migration refusal here would block
+    // every commit in every unmigrated project, which is issue 0038 again.
+    // (Exemptions added by cc with the wiring that made them reachable, issues
+    // 0618 and 0616; ic owns this list and should reword if the framing is
+    // wrong.)
+    "lang declared" => Some(
+      "its consumer, the commit gate, FAILS CLOSED on a refusal; it reads the config and writes nothing (issue 0618)",
+    ),
+    "guards" => Some(
+      "its consumer, the commit gate, FAILS CLOSED on a refusal; it reads the config and writes nothing (issue 0616)",
     ),
     _ => None,
   }

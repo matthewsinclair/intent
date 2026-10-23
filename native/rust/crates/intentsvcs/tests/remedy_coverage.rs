@@ -50,6 +50,7 @@ fn proofs() {
   implements::<intentsvcs::output::OutputError>();
   implements::<intentsvcs::plugins::PluginError>();
   implements::<intentsvcs::project::ConfigWriteError>();
+  implements::<intentsvcs::project::GuardError>();
   implements::<intentsvcs::modules::ModulesError>();
   implements::<intentsvcs::project::ProjectError>();
   implements::<intentsvcs::nav::Unlanded>();

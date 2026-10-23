@@ -104,6 +104,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("llm", m)) => llm(m),
     Some(("issues", m)) => issues(m),
     Some(("outstanding", m)) => outstanding(m),
+    Some(("guards", _)) => guards(),
     Some(("agents", m)) => agents(m),
     Some(("critic", m)) => critic(m),
     Some(("edit", m)) => edited(m),
@@ -9446,16 +9447,19 @@ fn plugin_show(m: &ArgMatches) -> Result<(), Failure> {
 /// `intent lang` -- the declared-languages family.
 ///
 /// **THE FAMILY IS MIXED, WHICH IS WHY IT TAKES NO FAMILY-LEVEL EXEMPTION FROM
-/// THE PROJECT GATE THE WAY `plugin` DOES.** `list` and `show` answer from the
-/// tool's own registry and are correct outside a project; `init` and `remove`
-/// write `intent/.config/config.json` and must refuse outside one (INV-03).
+/// THE PROJECT GATE THE WAY `plugin` DOES.** `list`, `show` and `of` answer from
+/// the tool's own registries and are correct outside a project; `declared`
+/// reads `intent/.config/config.json` and needs a project but not a migrated
+/// one; `init` and `remove` write it and must refuse outside one (INV-03).
 /// The exemption `plugin` legitimately takes is family-wide, and taking it here
 /// would exempt precisely the two verbs that mutate.
 fn lang(m: &ArgMatches) -> Result<(), Failure> {
   match m.subcommand() {
     None => lang_usage(),
     Some(("list", _)) => lang_list(),
+    Some(("declared", _)) => lang_declared(),
     Some(("show", sm)) => lang_show(sm),
+    Some(("of", sm)) => lang_of_path(sm),
     Some(("init", sm)) => lang_declare(sm),
     Some(("remove", sm)) => lang_undeclare(sm),
     Some((verb, _)) => unwired("lang", verb),
@@ -9540,6 +9544,42 @@ fn lang_show(m: &ArgMatches) -> Result<(), Failure> {
   println!("Its rules are served by the installed Intent tool:");
   println!("  intent claude rules list --lang {lang}");
   println!("  intent claude rules show <id>");
+  Ok(())
+}
+
+/// `intent lang declared` (issue 0618): the languages this project declares,
+/// one per line, in config order, and nothing else.
+///
+/// **THE FIELD `init` AND `remove` WRITE, READ THROUGH DISCOVERY.** Five readers
+/// took it out of `intent/.config/config.json` with jq, each from the working
+/// directory alone; this answers from any directory inside the project.
+/// `languages: []` is a legitimate state (decision 62(1)), so it prints nothing
+/// at 0, and a name outside the catalogue is printed rather than refused:
+/// `lang init` refuses it at the door, and the gate and `critic` name it.
+///
+/// **IT ANSWERS IN A PROJECT NOBODY HAS MIGRATED**, as `guards` does and for the
+/// same reason: the commit gate reads its languages from here.
+fn lang_declared() -> Result<(), Failure> {
+  let (project, _) = context()?;
+  for lang in &project.config().languages {
+    println!("{lang}");
+  }
+  Ok(())
+}
+
+/// `intent lang of <path>` (issue 0617): the language Intent assigns a path,
+/// or nothing.
+///
+/// **THE MAP IS [`intentsvcs::index::corpus::lang_of`], THE ONE THE INDEX
+/// READS**, so the advisory hook asks it instead of carrying a table of its
+/// own. It is a function of the name: no project, and no check that the path
+/// exists. Nothing printed at 0 is the answer "no language", which the hook's
+/// `*) exit 0` arm could never tell from an extension nobody told it about.
+fn lang_of_path(m: &ArgMatches) -> Result<(), Failure> {
+  let path = arg(m, "path")?;
+  if let Some(lang) = intentsvcs::index::corpus::lang_of(Path::new(&path)) {
+    println!("{lang}");
+  }
   Ok(())
 }
 
@@ -11105,6 +11145,27 @@ fn info_project(cwd: Option<&std::path::Path>) {
     }
   }
   println!();
+}
+
+/// `intent guards` (issue 0616): the project's declared commit guards, parsed
+/// and validated, one line each, for the commit gate to run.
+///
+/// **THE VALIDATION IS [`intentsvcs::project::guard_lines`]'s AND THIS PRINTS
+/// IT.** The gate read the declaration with its own jq program beside the
+/// binary's `Config::guards`, and now runs what this prints.
+///
+/// **IT ANSWERS IN A PROJECT NOBODY HAS MIGRATED**, through discovery alone and
+/// never `Facade::open`, for `critic`'s reason: its consumer is the commit gate,
+/// which refuses the commit on any refusal from here, so a migration refusal
+/// would block every commit in every unmigrated project.
+fn guards() -> Result<(), Failure> {
+  let (project, _) = context()?;
+  let lines = intentsvcs::project::guard_lines(&project.config().guards)
+    .map_err(|e| Failure::Error(e.render()))?;
+  for line in lines {
+    println!("{line}");
+  }
+  Ok(())
 }
 
 /// `intent outstanding`, alias `outs` (ST0079): the outstanding threads, work
