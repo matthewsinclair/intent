@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd",
-    "heartbeat_at": "2026-10-23T14:57:07.050Z",
+    "heartbeat_at": "2026-10-23T15:08:24.495Z",
     "status": "active",
-    "focus": "ORDER ic-1 done but unit 2 (hv's hand); 0622 and 0611 closed, ST0085/01 Done; now 0623, the vt100 screenshot generator as an intent-cli example with the seed dates pinned at render, its cargo booked after dc's 0614 run; no push, no release",
+    "focus": "LOCALFOLD on hv's call: 0611 and 0622 closed, ST0085/01 Done; 0623's vt100 generator banked UNFINISHED at refs/bank/ic/0623/wip-a.patch with its state at state.md, its cargo booked after dc's 0614 run; unit 2 is hv's own hand; no push, no release",
     "claims": [
       "ISSUE:0623"
     ],
@@ -2445,9 +2445,18 @@
       "kind": "doing",
       "seq": 123,
       "text": "ORDER ic-1 from vc (2026-10-23 12:03Z by vc's clock, on hv's \"Ok, do it\") and the orders after it. DONE: (1) the 0616-0618 surface note (refs/bank/ic/0616-0618/surface-note.md, ruled by vc at 5a5a3c16a; cc's verbs landed at 3c2ed2d39); (3) inert_arg_check.sh reads the table with jq at c9ca99d73; (4) 0622 fixed at 7a62e86c1 and CLOSED at faf545412; vc's two XS fixes at e3ce52d57 and the (a)/(b) fixes at a8be7c32b; ST0085/01's report at 622c1940a, then AC-01.1 minted and satisfied and WP-01 Done at c6839891a, and 0611 CLOSED at 9d7f7f979. (2) is hv's own hand: the five .py history tools go at hv's terminal in one --no-verify commit; ic does nothing on them. NOW: 0623 (claimed), the explorer screenshot generator rewritten as a Rust example of intent-cli on the vt100 crate, the seed dates pinned at render to 2026-10-16, explorer_shots.py deleted and releasing.md's venv step gone, in one bank (placement and pin chosen by hv in ic's TUI and ruled by vc, 2026-10-23); built in tmp/wt-ic-0623 with its own in-tree target, its cargo booked after dc's 0614 run. No push, no release.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-23T15:08:19.927Z",
       "recorded_at": "2026-10-23T12:20:48.514Z",
       "edited_at": "2026-10-23T14:57:02.524Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 124,
+      "text": "RESUME STATE (ic, localfold on hv's call relayed by vc, 2026-10-23 15:07Z by date -u). NO PUSH, NO RELEASE. LANDED by ic today: 0622 fixed at 7a62e86c1 and CLOSED at faf545412; inert_arg_check.sh reads the table with jq (c9ca99d73), vc's two XS fixes (e3ce52d57) and the (a)/(b) fixes (a8be7c32b); ST0085/01's inventory at 622c1940a, then AC-01.1 minted and satisfied and WP-01 Done at c6839891a (ST0085 stays in Triage for hv to read before any fix lane); 0611 CLOSED at 9d7f7f979. WAITING ON hv's OWN HAND: ORDER ic-1 unit 2, the five .py history tools removed in one --no-verify commit at hv's terminal, because the append-only guard has no case to exempt; ic does nothing on them. IN FLIGHT: 0623 (claimed), the explorer screenshot generator as a Rust example of intent-cli, native/rust/crates/intent-cli/examples/explorer_shots.rs, on the vt100 crate, with the seed's dates pinned at render to 2026-10-16 (placement and pin chosen by hv in ic's TUI after 14:41:28Z and before 14:51:34Z by date -u, and ruled by vc). Its bank is UNFINISHED AND UNCOMPILED: refs/bank/ic/0623/wip-a.patch (blob faf155caf45d, sha256 1bdb18e19108, base 4d10120ed), held staged in tmp/wt-ic-0623, with what it holds and the remaining steps in refs/bank/ic/0623/state.md (blob e692b353ac1d). NEXT: its cargo is booked after dc's 0614 run (the box order was cc's 0627, then dc's 0614, then ic): the lock gains vt100 0.18.1 and vte 0.15 (a fetch), the feature comparison, the build, fmt, clippy --all-targets, the critics, the shots against HEAD's PNGs with the positive control, the MODULES.md row, then fix-b to vc; on vc's word it lands, the shots are regenerated once and 0623 closes naming the sha. TO BE FILED BEHIND THE LINE (vc's note at the localfold): the rename of wb archive's positional from `seq` to `id`.",
+      "state": "live",
+      "recorded_at": "2026-10-23T15:08:16.632Z"
     }
   ],
   "sent": [
