@@ -1,0 +1,16 @@
+{
+  "id": "01M5MS1F5A54GTCGYZZ0BG3M67",
+  "ts": "2026-10-23T16:20:55.594Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 124,
+    "text": "RESUME STATE (ic, 2026-10-23 16:20Z by date -u). NO PUSH, NO RELEASE. LANDED by ic today: 0622 fixed at 7a62e86c1 and CLOSED at faf545412; inert_arg_check.sh reads the table with jq (c9ca99d73), vc's two XS fixes (e3ce52d57) and the (a)/(b) fixes (a8be7c32b); ST0085/01's inventory at 622c1940a, then AC-01.1 minted and satisfied and WP-01 Done at c6839891a (ST0085 stays in Triage for hv to read before any fix lane); 0611 CLOSED at 9d7f7f979; 0623 FIXED at 6bd64b1c8 (refs/bank/ic/0623/fix-b.patch, patch-id d25b350d3bfd, on vc's word: the explorer screenshot generator as a Rust example of intent-cli on vt100, the seed's dates pinned at render to 2026-10-16 as hv chose in ic's TUI, explorer_shots.py deleted and detached from ST0056; intentsvcs 2024 passed 0 failed, intent-cli 1183 passed 0 failed, clippy clean; verified past the ingest). WAITING ON hv's OWN HAND: ORDER ic-1 unit 2, the five .py history tools removed in one --no-verify commit at hv's terminal; ic does nothing on them. NEXT FOR 0623 (claimed): the refresh of docs/images/explorer as one mechanical commit on the train's final tree, taken with the 3.2.6 pair after vc's one `bin/devbin build all` (vc names its END), its message naming `guards` as the row the root help gained (help.png 1/102 to 1/103); then `intent issues close 0623` with a CLOSED paragraph naming 6bd64b1c8 and the refresh sha, the created-date refusal (`intent set ST0085 created ...`: \"a machine stamp ... no verb for this\") and hv's TUI choice of the pin. MEANWHILE, on vc's order: file the behind-the-line issue for the rename of `wb archive`'s positional from `seq` to `id` (0627's spec, ruling (1)). Scratch worktrees tmp/wt-ic-0623, 0623b and 0623c go at the close."
+  }
+}
