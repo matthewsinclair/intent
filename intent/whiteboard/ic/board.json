@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd",
-    "heartbeat_at": "2026-10-23T18:46:37.552Z",
+    "heartbeat_at": "2026-10-23T19:06:58.644Z",
     "status": "active",
-    "focus": "0633: wip-a banked and read, its cargo on vc's GO after the templates landing; the 3.2.6 reference set on vc's GO after build all #2; no push, no release",
+    "focus": "LOCALFOLD on hv's call: 0633 re-based in tmp/wt-ic-0633 for the stacked run with cc's 0630 on vc's GO, then the 3.2.6 reference set on vc's GO after build all #2; no push, no release",
     "claims": [
       "ISSUE:0633"
     ],
@@ -2454,10 +2454,10 @@
       "node": "ic",
       "kind": "doing",
       "seq": 124,
-      "text": "RESUME STATE (ic, 2026-10-23 18:46Z by date -u). NO PUSH, NO RELEASE. 0623 CLOSED on 2026-10-23 after the shots refresh at f2ece5503 (help.png's counter 1/102 to 1/103 from `guards`, every other shot byte-identical), with the pair vc's build all promoted at c59e80779. 0633 (claimed): CODE ONLY, banked as refs/bank/ic/0633/wip-a.patch (blob 513c85fa4266, patch-id dd865ffd3073, state at refs/bank/ic/0633/state-a.md), read by vc with no finding; its cargo run stacks with cc's 0630 after the templates landing, on vc's GO; then re-base, bank as fix, land on vc's word and close naming the sha; if it is not ready when the 3.2.6 candidate is set, it rides 3.2.7. NEXT on vc's GO after build all #2 on the final HEAD: the 3.2.6 reference set (releasing.md step 2): gen_reference.sh and gen_cut_surface.sh at HEAD against v3.2.5, the diff read, a second gen_explorer_shots.sh run, and one commit holding any page or shot that changed. It is prepared as a scratch script and was rehearsed at c59e80779: the same pages, every baseline line v3.2.5, prettier clean. WAITING ON hv's OWN HAND: ORDER ic-1 unit 2, the five .py history tools; ic does nothing on them.",
+      "text": "RESUME STATE (ic, 2026-10-23 19:04Z by date -u), at the LOCALFOLD on hv's call. NO PUSH, NO RELEASE. 0623 is CLOSED (refresh f2ece5503, close b5e0fd2b3). 0633 (claimed), CODE ONLY: banked as refs/bank/ic/0633/wip-a.patch (blob 513c85fa4266, patch-id dd865ffd3073), its state at refs/bank/ic/0633/state-a.md, read by vc with no finding and the ] and } exclusion ruled right. tmp/wt-ic-0633 holds it re-based on b5e0fd2b3: the Rust half's patch-id 1dec73657fdb is unchanged and the CHANGELOG line sits last in 3.2.6's Fixed, after 0614's. NEXT, on vc's GO after the templates landing: one stacked run with cc's 0630 (S), whoever is ready first running it. refs/bank/ic/0633/run-0633.sh (blob 02463d7d519d; set S to the session's scratchpad) does `rebase` onto the HEAD of the day; `redgreen`, three arms red on the base facade and the control green, all green on the fix, judged by the result line; `stack <0630 patch>`, both orders, write-trees compared; and `suite`, intentsvcs and intent-cli whole, fmt, both clippy lines and the doc line. Then bank as refs/bank/ic/0633/fix, send vc the blob, apply --stat and patch-id with the counts, land on vc's word, and close 0633 naming the sha, the record correcting \"three ** lines\" to Molt's two. If it is not ready when the 3.2.6 candidate is set, it rides 3.2.7. THEN, on vc's GO after build all #2 on the final HEAD: the 3.2.6 reference set with refs/bank/ic/ref326/regen-reference.sh (blob 548610f91275). Phase 1 regenerates both halves into scratch at HEAD against v3.2.5 and writes the diff; --write copies and proves with diff -r. Then a second gen_explorer_shots.sh run, `git status -- docs/images/explorer`, and one commit holding the set and any changed shot, before step 3. Rehearsed at c59e80779: the same pages, every baseline line v3.2.5, prettier clean. BEHIND THE LINE: 0631, wb archive's positional from seq to id. WAITING ON hv's OWN HAND: ORDER ic-1 unit 2, the five .py history tools; ic does nothing on them.",
       "state": "live",
       "recorded_at": "2026-10-23T15:08:16.632Z",
-      "edited_at": "2026-10-23T18:46:32.501Z"
+      "edited_at": "2026-10-23T19:04:46.586Z"
     }
   ],
   "sent": [
