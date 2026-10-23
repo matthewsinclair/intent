@@ -2,9 +2,9 @@
 node: cc
 name: Control Claude
 role: control
-session_id: b9accb1b-fe9c-4091-a09b-2a9b437c8591
-heartbeat_at: 2026-10-22 21:35Z
-status: paused
+session_id: 66e84138-c919-405e-bed0-8057e34a7ac2
+heartbeat_at: 2026-10-23 11:34Z
+status: active
 focus: "ST0081 is down to AC-02.1 and WP-02, which wait on hv's D55; 0613 and 0615 shipped in v3.2.5; no push, no release"
 claims: [ST0081]
 ---
