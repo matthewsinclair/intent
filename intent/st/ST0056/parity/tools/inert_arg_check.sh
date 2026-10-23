@@ -33,10 +33,14 @@
 # values that legitimately agree are byte-identical for the same reason an
 # unread argument is, which is exactly the confound this pairing removes.
 #
-# THE TWO-SIDED CONTROL IS FREE AND IS IN THE POPULATION. `st show` DISCARDS
-# and `st edit` READS -- same shape, same family, same argument name, opposite
-# verdicts -- so a run in which every row comes back clean is a run in which
-# this tool has stopped working, and it says so.
+# THE CONTROL IS THAT SOMETHING WAS DRIVEN. When this tool was written, `st show`
+# DISCARDED its `file` argument and `st edit` READ it -- same shape, same family,
+# same argument name, opposite verdicts -- so the population carried a known
+# member of each verdict. `st show` has since been fixed and reads (no row
+# discards on 2026-10-23), so a run in which every driven row READS is a clean
+# result. What the tool refuses is a run in which NO row was driven to either
+# verdict -- every row unwired or undrivable -- because that run measured
+# nothing.
 #
 # ==========================================================================
 # REACH -- WHAT A GREEN HERE DOES NOT MEAN
@@ -83,6 +87,12 @@ export HOME="$FIX/home"; mkdir -p "$HOME"
 # fixture owns it as it owns HOME: a `claude skills` or `claude subagents` probe
 # must never reach the operator's real Claude config.
 export CLAUDE_CONFIG_DIR="$HOME/.claude"
+# `st edit` opens the program $VISUAL or $EDITOR names and waits for it, and a
+# probe must never wait on the operator's terminal editor, so the fixture's
+# editor is `true`, which opens nothing and exits 0; VISUAL is cleared because
+# it outranks EDITOR.
+unset VISUAL
+export EDITOR=true
 mkdir -p "$FIX/proj"
 cleanup() { rm -rf "$FIX"; }
 trap cleanup EXIT
@@ -207,8 +217,9 @@ printf '\ninert-arg: partition -- %d discards + %d reads + %d unwired + %d undri
   "$DISCARDS" "$READS" "$UNWIRED" "$UNDRIVABLE" "$SUM" "$TOTAL"
 [ "$SUM" -eq "$TOTAL" ] || die "the partition does not close: $SUM against $TOTAL. A row reached no arm, so it is being asserted about by nobody"
 
-# THE TOOL'S OWN CONTROL. The population contains a known DISCARDS and a known
-# READS. If neither verdict ever fires, the run says nothing about the estate.
+# THE TOOL'S OWN CONTROL. If neither verdict fires, no row was driven at all and
+# the run says nothing about the estate. The population no longer carries a
+# known DISCARDS (`st show` reads since its fix), so an all-READS run is clean.
 if [ "$DISCARDS" -eq 0 ] && [ "$READS" -eq 0 ]; then
   die "no row was DRIVEN to either verdict -- every row was unwired or undrivable, so this run measured nothing and must not read as clean"
 fi
