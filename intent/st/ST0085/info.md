@@ -22,9 +22,9 @@ Directions the inventory feeds, from 0611: a convention for non-live prompt text
 
 ## Work Packages
 
-| WP    | Title                                                                             | Size | Status      |
-| ----- | --------------------------------------------------------------------------------- | ---- | ----------- |
-| WP-01 | Inventory of every surface that feeds prompt text to an agent, live or historical | S    | Not Started |
+| WP    | Title                                                                             | Size | Status |
+| ----- | --------------------------------------------------------------------------------- | ---- | ------ |
+| WP-01 | Inventory of every surface that feeds prompt text to an agent, live or historical | S    | WIP    |
 
 ## Acceptance
 

@@ -2,14 +2,14 @@
 wp_id: WP-01
 title: Inventory of every surface that feeds prompt text to an agent, live or historical
 scope: S
-status: Not Started
+status: WIP
 ---
 
 # WP-01: Inventory of every surface that feeds prompt text to an agent, live or historical
 
 ## Objective
 
-_(not yet written)_
+Measure and write down every surface through which text Intent stores or ships reaches an agent as prompt text, live or historical. For each surface: what it is and where it lives; how an agent comes to read it (loaded at session start, injected by a hook, served by a verb or the MCP server, or read on demand by a skill, a critic, a search or a person's instruction); whether it can put a stale copy in front of an agent, and by what route; and what, if anything, marks a non-live copy as such today. The report is the attachment `intent/st/ST0085/inventory.md`. It proposes no fix: the fixes are new surface behind the line drawn on 2026-10-23, and hv reads the inventory before any fix lane starts (decision 70(5) on vc's board).
 
 ## Acceptance
 
