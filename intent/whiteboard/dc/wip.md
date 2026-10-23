@@ -33,12 +33,12 @@ claims: []
   - THE PREFLIGHT for tonight's cut: hv's next kovacs run uses the in-tree order, landed at f40df8f72. While nothing covers HEAD, `bin/int prepush --preflight-covers HEAD` prints its two lines, and the run copies its summary back here. It runs on the final candidate, after the last landing and close.
   - 0629 (.heex in the staged-format guard): next session.
   No push, no release.
-- ORDER dc-2 (vc, 19:54Z on 2026-10-23 by vc's clock): light work, no cargo, single-file bats only. The first kovacs preflight ran at f40df8f72 and was red (rc=1, 716 ok, 88 not ok).
+- ORDER dc-2 (vc, 19:54Z on 2026-10-23 by vc's clock): light work, no cargo, single-file bats only. The first kovacs preflight ran at f40df8f72 and was red (rc=1, 716 ok, 88 not ok). (edited)
   - LANDED on vc's word: order-d at 6cf058a5a. The order now copies intent and intentd into the clone rather than linking the target outside it, and runs the suite under LANG=C.UTF-8 with every LC_* unset.
   - LANDED on vc's word: macos-comm at 95bf1c6a5, which puts support_tree_drift's sorts and comm under LC_ALL=C.
-  - Both landed at their banked patch-ids, ff1b95c4ec02 and babb926f7754. hv re-runs the preflight at the new HEAD by the lines the gate prints; vc carries them.
-  - NEXT: the eight unpinned comm sites (measured, cache, canon, build.d/release) banked as refs/bank/dc/comm-population, one spelling, each site's bats file run alone.
-  - HELD: comm-population lands on vc's word only after the re-run's summary is in, so the re-run measures order-d and macos-comm alone.
+  - LANDED on vc's word: comm-population at 511613c96, the same spelling at every other comm in bin/.devbin and every sort feeding one (measured, cache, canon, build.d/release). vc lifted the hold: the re-run clones 95bf1c6a5 fresh and never sees HEAD.
+  - All three landed at their banked patch-ids (ff1b95c4ec02, babb926f7754, ae90839c2699). Their worktrees are removed.
+  - hv re-runs the preflight at 95bf1c6a5 by the lines the gate printed; vc carries them. The candidate's run covers the population.
   No push, no release.
 
 ## TODO
