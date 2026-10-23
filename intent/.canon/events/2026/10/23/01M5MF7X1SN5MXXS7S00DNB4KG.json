@@ -1,0 +1,15 @@
+{
+  "id": "01M5MF7X1SN5MXXS7S00DNB4KG",
+  "ts": "2026-10-23T13:29:40.669Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0630"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "A peer's board write that is still landing refuses an unrelated commit: WriteSet renames board.json before wip.md, and doctor counts the old view beside the new canon as a hand edit"
+  }
+}
