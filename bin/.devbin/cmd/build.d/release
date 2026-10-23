@@ -412,7 +412,10 @@ semver_gt() {
 #
 # `lock_packages` emits one `name<TAB>version` per `[[package]]`. `lock_members`
 # emits the workspace members, which are exactly the packages carrying no
-# `source` line -- a path package has none, a registry one always does.
+# `source` line -- a path package has none, a registry one always does. Both
+# sort under LC_ALL=C because lock_nonmember_changes compares them with comm,
+# which checks its inputs' order under its own collation and runs under
+# LC_ALL=C too (bin/.devbin/cmd/macos's support_tree_drift says why).
 #
 # The member list is DERIVED from the lockfile being checked rather than from
 # `cargo metadata`, for two reasons. It needs no `jq` and no second cargo
@@ -427,7 +430,7 @@ lock_packages() {
     /^name = "/        { name=$0;    sub(/^name = "/,"",name);       sub(/"$/,"",name);       next }
     /^version = "/     { version=$0; sub(/^version = "/,"",version); sub(/"$/,"",version);
                          if (name != "") print name "\t" version; next }
-  ' "$1" | sort
+  ' "$1" | LC_ALL=C sort
 }
 
 lock_members() {
@@ -436,7 +439,7 @@ lock_members() {
     /^name = "/        { name=$0; sub(/^name = "/,"",name); sub(/"$/,"",name); next }
     /^source = /       { src=1; next }
     END                { if (name != "" && !src) print name }
-  ' "$1" | sort
+  ' "$1" | LC_ALL=C sort
 }
 
 lock_nonmember_changes() {
@@ -468,8 +471,8 @@ lock_nonmember_changes() {
     return 1
   fi
 
-  comm -3 "$pkgs_before" "$pkgs_after" | sed 's/^\t//' | cut -f1 | sort -u |
-    comm -23 - "$members"
+  LC_ALL=C comm -3 "$pkgs_before" "$pkgs_after" | sed 's/^\t//' | cut -f1 | LC_ALL=C sort -u |
+    LC_ALL=C comm -23 - "$members"
   rm -f "$pkgs_before" "$pkgs_after" "$members"
   return 0
 }

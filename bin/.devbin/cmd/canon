@@ -132,8 +132,11 @@ DIR=intent/.canon/issues
 
 [ -d "$DIR" ] || die "$DIR does not exist -- this estate keeps no canon issues, so there is nothing to compare"
 
-in_git="$(git ls-files "$DIR/*.json" | xargs -n1 basename | sort)"
-on_disk="$(find "$DIR" -maxdepth 1 -name '*.json' -exec basename {} \; | sort)"
+# Both lists, and the controls' below, are sorted under LC_ALL=C, as every comm
+# here runs: comm checks its inputs' order under its own collation
+# (bin/.devbin/cmd/macos's support_tree_drift says why).
+in_git="$(git ls-files "$DIR/*.json" | xargs -n1 basename | LC_ALL=C sort)"
+on_disk="$(find "$DIR" -maxdepth 1 -name '*.json' -exec basename {} \; | LC_ALL=C sort)"
 
 # ONE function computes the divergence, and BOTH the verdict and the controls
 # call it. **THIS IS NOT STYLE. The first version of this file ran the controls
@@ -147,8 +150,8 @@ on_disk="$(find "$DIR" -maxdepth 1 -name '*.json' -exec basename {} \; | sort)"
 # `$1` = direction (`disk-only` or `git-only`), `$2` = git list, `$3` = disk list.
 divergence() {
   case "$1" in
-    disk-only) comm -13 <(printf '%s\n' "$2") <(printf '%s\n' "$3") ;;
-    git-only) comm -23 <(printf '%s\n' "$2") <(printf '%s\n' "$3") ;;
+    disk-only) LC_ALL=C comm -13 <(printf '%s\n' "$2") <(printf '%s\n' "$3") ;;
+    git-only) LC_ALL=C comm -23 <(printf '%s\n' "$2") <(printf '%s\n' "$3") ;;
     *) die_control "divergence: unknown direction $1" ;;
   esac
 }
@@ -161,7 +164,7 @@ only_git="$(divergence git-only "$in_git" "$on_disk")"
 # BOTH must not be. One proves the comparison can fire; the other proves it is
 # not simply firing on everything, which a positive control alone cannot
 # establish. Both go through `divergence`, so a mutation of it kills them.
-ctl_pos="$(divergence disk-only "$in_git" "$(printf '%s\n%s\n' "$on_disk" "ZZZZ-control.json" | sort)")"
+ctl_pos="$(divergence disk-only "$in_git" "$(printf '%s\n%s\n' "$on_disk" "ZZZZ-control.json" | LC_ALL=C sort)")"
 grep -qx 'ZZZZ-control.json' <<<"$ctl_pos" ||
   die_control "positive control FAILED -- an injected disk-only name was not detected through the same comparison the verdict uses, so this run's green would be worthless"
 
@@ -170,7 +173,7 @@ grep -qx 'ZZZZ-control.json' <<<"$ctl_pos" ||
 # perfectly green -- it only ever exercises `disk-only`. A direction with no
 # control is a direction whose verdict nobody has checked, and this file already
 # shipped one round of controls that turned out to be decoration.
-ctl_git="$(divergence git-only "$(printf '%s\n%s\n' "$in_git" "ZZZZ-gitonly.json" | sort)" "$on_disk")"
+ctl_git="$(divergence git-only "$(printf '%s\n%s\n' "$in_git" "ZZZZ-gitonly.json" | LC_ALL=C sort)" "$on_disk")"
 grep -qx 'ZZZZ-gitonly.json' <<<"$ctl_git" ||
   die_control "positive control FAILED for the git-only direction -- an injected git-only name was not detected, so the clone-facing arm's green would be worthless"
 
@@ -180,7 +183,7 @@ grep -qx 'ZZZZ-gitonly.json' <<<"$ctl_git" ||
 # runner that ignores SIGPIPE turns that into `comm: write error: Broken pipe`
 # and exit 1 -- Intent Tests on Ubuntu, runs 39857791246 and 39859110923
 # (2026-10-22), while macOS passed the same tree.
-both="$(comm -12 <(printf '%s\n' "$in_git") <(printf '%s\n' "$on_disk"))"
+both="$(LC_ALL=C comm -12 <(printf '%s\n' "$in_git") <(printf '%s\n' "$on_disk"))"
 first_both="${both%%$'\n'*}"
 if [ -n "$first_both" ]; then
   ctl_neg="$(divergence disk-only "$in_git" "$on_disk")"

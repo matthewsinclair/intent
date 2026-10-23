@@ -137,7 +137,9 @@ for f in "$DEPS"/*.d; do
   fi
 done
 stale_u="$(printf '%s' "$stale_crates" | sort -u | grep -c . || true)"
-orphans="$(comm -23 <(printf '%s' "$stale_crates" | sort -u) <(printf '%s' "$fresh_crates" | sort -u) || true)"
+# comm checks its inputs' order under its own collation, so it and both sorts
+# feeding it run under LC_ALL=C (bin/.devbin/cmd/macos's support_tree_drift says why).
+orphans="$(LC_ALL=C comm -23 <(printf '%s' "$stale_crates" | LC_ALL=C sort -u) <(printf '%s' "$fresh_crates" | LC_ALL=C sort -u) || true)"
 n_orph="$(printf '%s' "$orphans" | grep -c . || true)"
 n_sup=$((stale_u - n_orph))
 

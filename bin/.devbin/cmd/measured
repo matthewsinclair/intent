@@ -341,10 +341,13 @@ content_differs_from() {
     git -C "$ROOT" diff --name-only "$ref" 2>/dev/null || true
     # Everything NOT in the reference tree: untracked, ignored, or newly added.
     # None of these can be identical to a commit that does not contain them.
-    comm -23 \
-      <(git -C "$ROOT" ls-files --others --cached 2>/dev/null | sort -u) \
-      <(git -C "$ROOT" ls-tree -r --name-only "$ref" 2>/dev/null | sort -u)
-  } | sort -u
+    # comm checks its inputs' order under its own collation, so it and every
+    # sort feeding it run under LC_ALL=C, here and where this list is compared
+    # below (bin/.devbin/cmd/macos's support_tree_drift says why).
+    LC_ALL=C comm -23 \
+      <(git -C "$ROOT" ls-files --others --cached 2>/dev/null | LC_ALL=C sort -u) \
+      <(git -C "$ROOT" ls-tree -r --name-only "$ref" 2>/dev/null | LC_ALL=C sort -u)
+  } | LC_ALL=C sort -u
 }
 
 # in_scope_total -- how many files the scope covers at all.
@@ -514,8 +517,8 @@ report_run() {
     against="HEAD"
     source="this run recorded no referent, so HEAD is the nearest question available"
   fi
-  differ="$(comm -12 <(printf '%s\n' "$moved" | sort -u) <(content_differs_from "$against"))"
-  touched="$(comm -23 <(printf '%s\n' "$moved" | sort -u) <(content_differs_from "$against"))"
+  differ="$(LC_ALL=C comm -12 <(printf '%s\n' "$moved" | LC_ALL=C sort -u) <(content_differs_from "$against"))"
+  touched="$(LC_ALL=C comm -23 <(printf '%s\n' "$moved" | LC_ALL=C sort -u) <(content_differs_from "$against"))"
   dn="$(printf '%s' "$differ" | grep -c '^' || true)"
   tn="$(printf '%s' "$touched" | grep -c '^' || true)"
 
