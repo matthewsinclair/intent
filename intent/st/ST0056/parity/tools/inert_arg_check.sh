@@ -79,6 +79,10 @@ command -v jq >/dev/null 2>&1 || die "jq is required to read the dispatch table"
 # --- the fixture: its own project AND its own HOME ------------------------
 FIX="$(mktemp -d)"
 export HOME="$FIX/home"; mkdir -p "$HOME"
+# Skill and subagent installs land in CLAUDE_CONFIG_DIR when it is set, so the
+# fixture owns it as it owns HOME: a `claude skills` or `claude subagents` probe
+# must never reach the operator's real Claude config.
+export CLAUDE_CONFIG_DIR="$HOME/.claude"
 mkdir -p "$FIX/proj"
 cleanup() { rm -rf "$FIX"; }
 trap cleanup EXIT
