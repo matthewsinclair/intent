@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 5abe68e1-b9b1-4003-9718-c8fbba772543
-heartbeat_at: 2026-10-23 14:40Z
+heartbeat_at: 2026-10-23 15:05Z
 status: active
-focus: "ORDER dc-1 (vc, 2026-10-23 12:03Z, on hv's word): unit 1, 0614's settling drive on the 3.2.5 pair and the published v3.2.4 assets; then 0626, the doctor view-skew measurement, 0624, and the socket planter in daemon_commands.bats; hold 29 waits on hv's timing; no push, no release"
+focus: "Resume after the bounce: 0614's Rust run on cc's BOX END (0627), then the preflight gate half (hv's ruling), and the guards pass at Prodinfra, Lamplight, Conflab and Trellis (a); no push, no release"
 claims: [ISSUE:0614]
 ---
 
@@ -13,18 +13,15 @@ claims: [ISSUE:0614]
 
 ## DOING
 
-- ORDER dc-1 (vc, 2026-10-23 12:03Z, on hv's "Ok, do it"), where each unit stands at 14:46Z by date -u: (edited)
-  - (1) 0614: driven, and the drive is in its record (caf7c7afb). vc's ruling (c') is a narrow guard in land_board_write, written in tmp/wt-dc-0614. Its Rust run is third on the box: dc's 0628 run, then cc's 0627, then this, on cc's END. Then it is banked, landed on vc's word, and 0614 closed on the sha.
-  - (2) 0626: landed at 9d1147136, closed at 0e0f340d6.
-  - (3) the doctor view-skew: filed as 0630 (62e65eadf). vc's spec, (a) provenance from the file index, is in its record (53bea0cda). No lane today.
-  - (4) 0624: the drive is its measurement (cd40e9b7a). The Rust fix MOVED TO cc, after 0627 (vc, 14:42Z).
-  - (5) the socket planter: landed at d255c8b70.
-  hv's CI red: canon-pipe landed at 04705176a. 0628 has the box now for its whole-bats run, base against fix, and lands on vc's word re-banked with its CHANGELOG line. Then the preflight gate (hv's ruling): pre-push refuses an upstream push whose HEAD has no green kovacs summary. No push, no release.
-- GUARDS ADOPTION PASS, released by hv (vc's relay 2026-10-23 12:1xZ), where each estate stands at 14:46Z by date -u. Every estate but Trellis already ran the gate, most of them from untracked .git/hooks. The pass gives them tracked .githooks dispatchers and formatter declarations. (edited)
-  - DONE, one commit each, no push: Laksa a54132707, corrected forward by 9637080e8, which untracks the carriers; Prolix 5b9f45e; Cdtempl 0075199; Riffle 67c9235; Baize 3f6da7e.
-  - APPROVED by vc (14:42Z), next, in this order: Prodinfra, Lamplight, Conflab (its tracked dispatcher keeps the precommit-rust line after the chain block), then Trellis (a), the gate only. Its session hooks are hv's to ask for.
+- RESUME STATE at the localfold, 15:05Z on 2026-10-23 by date -u (hv's call, relayed by vc). ORDER dc-1 (vc, 12:03Z, on hv's "Ok, do it"): (edited)
+  - (1) 0614 (claimed): vc's ruling (c'), a narrow guard in land_board_write, is written and NOT YET BUILT. It is banked as refs/bank/dc/0614/guard-wip (blob 38fbecb79990, patch-id 22e5722ba69b) and applies at df61305b3; its worktree is tmp/wt-dc-0614. NEXT, on cc's BOX END for 0627 (cc STARTed at 14:58Z): put the bank on a worktree at HEAD, build intentd first, run the new arm red on the base and green on the fix, then the whole intentsvcs and intent-cli suites, fmt, both clippy lines and CI's doc line; then bank it judged, land it on vc's word, and close 0614 on the sha. ic's heavy run follows my END.
+  - (2) 0626 and (5) the socket planter (d255c8b70) are landed. (3) 0630's spec (a) is in its record, with no lane today. (4) 0624's Rust moved to cc after 0627, and cc has dc's source read of the landing points.
+  hv's CI red: canon-pipe landed (04705176a), and 0628 is fixed (fd9bc0fe2) and closed (df61305b3). NEXT after 0614, on hv's ruling: the preflight gate half. The order copies its summary to rhadamanth.local:~/.local/share/intent/preflight/<sha>.summary; bin/.devbin/cmd/prepush refuses a push to upstream whose HEAD has no green summary, naming the order's three-line command as the remedy; releasing.md gets the step; and a bats arm is red on the base. Then hv runs the first preflight on a HEAD carrying canon-pipe and 0628. No push, no release.
+- GUARDS ADOPTION PASS (hv released hold 29; vc's sequence), where it stands at 15:05Z by date -u. Every estate but Trellis already ran the gate, most of them from untracked .git/hooks. The pass gives them tracked .githooks dispatchers and formatter declarations. (edited)
+  - DONE, one commit each, no push: Laksa a54132707, corrected forward by 9637080e8; Prolix 5b9f45e; Cdtempl 0075199; Riffle 67c9235; Baize 3f6da7e.
+  - NEXT, approved by vc at 14:42Z, in this order: Prodinfra, Lamplight, Conflab, then Trellis (a). Dry runs read this afternoon: the first three are canonical, with their hooks in .git/hooks and nothing else to write. The recipe is the one Baize took: core.hooksPath .githooks; upgrade --apply, after a dry run says 8 to write; .githooks/*.intent ignored; the four dispatchers tracked; red controls through the pass's probes.sh; one commit each. Conflab declares formatters [markdown, elixir], the two its old hook checked by hand, and its tracked pre-commit keeps the precommit-rust line after the chain block. That line returns at once when no .rs file is staged. Lamplight's formatters are already declared. Trellis takes --skip-settings, with usage-rules.md and .intent_critic.yml seeded. Its session hooks are hv's to ask for.
   - SENT: Molt's recipe, to molt-vc. WAITING: Devbin, through devbin-vc; Anvil and Courses, after Trellis.
-  - LAKSA FOLLOW-UP, for its own nodes: four canon guards run twice. Retiring them needs check-guards reworked and the ExUnit fence test re-pointed.
+  - LAKSA FOLLOW-UP, for its own nodes: four canon guards run twice.
   hv's rule, verbatim: NEVER truncate the output of "git remote -v" because doing so cuts off valid remotes.
 
 ## TODO

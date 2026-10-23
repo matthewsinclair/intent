@@ -1,0 +1,16 @@
+{
+  "id": "01M5MMR1XTH3K5JJW121NJ2CD8",
+  "ts": "2026-10-23T15:05:52.826Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 132,
+    "text": "GUARDS ADOPTION PASS (hv released hold 29; vc's sequence), where it stands at 15:05Z by date -u. Every estate but Trellis already ran the gate, most of them from untracked .git/hooks. The pass gives them tracked .githooks dispatchers and formatter declarations.\n- DONE, one commit each, no push: Laksa a54132707, corrected forward by 9637080e8; Prolix 5b9f45e; Cdtempl 0075199; Riffle 67c9235; Baize 3f6da7e.\n- NEXT, approved by vc at 14:42Z, in this order: Prodinfra, Lamplight, Conflab, then Trellis (a). Dry runs read this afternoon: the first three are canonical, with their hooks in .git/hooks and nothing else to write. The recipe is the one Baize took: core.hooksPath .githooks; upgrade --apply, after a dry run says 8 to write; .githooks/*.intent ignored; the four dispatchers tracked; red controls through the pass's probes.sh; one commit each. Conflab declares formatters [markdown, elixir], the two its old hook checked by hand, and its tracked pre-commit keeps the precommit-rust line after the chain block. That line returns at once when no .rs file is staged. Lamplight's formatters are already declared. Trellis takes --skip-settings, with usage-rules.md and .intent_critic.yml seeded. Its session hooks are hv's to ask for.\n- SENT: Molt's recipe, to molt-vc. WAITING: Devbin, through devbin-vc; Anvil and Courses, after Trellis.\n- LAKSA FOLLOW-UP, for its own nodes: four canon guards run twice.\nhv's rule, verbatim: NEVER truncate the output of \"git remote -v\" because doing so cuts off valid remotes."
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "01M5MMQW2C349RQCX4J6H61140",
+  "ts": "2026-10-23T15:05:46.828Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 131,
+    "text": "RESUME STATE at the localfold, 15:05Z on 2026-10-23 by date -u (hv's call, relayed by vc). ORDER dc-1 (vc, 12:03Z, on hv's \"Ok, do it\"):\n- (1) 0614 (claimed): vc's ruling (c'), a narrow guard in land_board_write, is written and NOT YET BUILT. It is banked as refs/bank/dc/0614/guard-wip (blob 38fbecb79990, patch-id 22e5722ba69b) and applies at df61305b3; its worktree is tmp/wt-dc-0614. NEXT, on cc's BOX END for 0627 (cc STARTed at 14:58Z): put the bank on a worktree at HEAD, build intentd first, run the new arm red on the base and green on the fix, then the whole intentsvcs and intent-cli suites, fmt, both clippy lines and CI's doc line; then bank it judged, land it on vc's word, and close 0614 on the sha. ic's heavy run follows my END.\n- (2) 0626 and (5) the socket planter (d255c8b70) are landed. (3) 0630's spec (a) is in its record, with no lane today. (4) 0624's Rust moved to cc after 0627, and cc has dc's source read of the landing points.\nhv's CI red: canon-pipe landed (04705176a), and 0628 is fixed (fd9bc0fe2) and closed (df61305b3). NEXT after 0614, on hv's ruling: the preflight gate half. The order copies its summary to rhadamanth.local:~/.local/share/intent/preflight/<sha>.summary; bin/.devbin/cmd/prepush refuses a push to upstream whose HEAD has no green summary, naming the order's three-line command as the remedy; releasing.md gets the step; and a bats arm is red on the base. Then hv runs the first preflight on a HEAD carrying canon-pipe and 0628. No push, no release."
+  }
+}
