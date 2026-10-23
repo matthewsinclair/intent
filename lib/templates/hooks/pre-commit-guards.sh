@@ -172,37 +172,43 @@ GUARD_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # not applicable and never blocks.
 PROJECT_CONFIG="intent/.config/config.json"
 
-# One line per declared guard: `<index> US <when> US <run as JSON>`, or
-# `! US <reason>` for a declaration that cannot be read. Nothing when the
-# project declares no guards.
+# One line per declared guard, as `intent guards` prints it:
+# `<index> US <when> US <run[0]> [US <run[n]> ...]`, an empty `when` for a guard
+# that applies to every commit. Or `! US <reason>` when the binary refused, and
+# `? US <reason>` when it could not judge. Nothing when the project declares no
+# guards.
+#
+# **THE BINARY READS AND VALIDATES THE DECLARATION, ONCE.** This was a jq
+# program with its own rules beside `Config.guards`, which `doctor` reads, so
+# the two could disagree about which guards a project declared and nothing
+# would say so. The binary's refusals name the entry and the remedy, on its own
+# stderr, which reaches the terminal unchanged because only stdout is read.
+#
+# **A REFUSAL REFUSES THE COMMIT**: a declaration nobody could read is a hole,
+# not a pass.
+#
+# **AND 4 IS NOT A REFUSAL**, as with `intent doctor`'s own 4: the
+# binary answers 4, could not judge, when it cannot read the project's config
+# at all, so there is no declaration to refuse. The guards are not run, the
+# gate says so, and `intent doctor`, which answers 4 on the same config, names
+# the cause.
 #
 # **US (0x1f), NOT TAB, AND A TAB WAS THE FIRST SPELLING.** Tab is whitespace
 # to `read`, so the empty `when` of a guard that always applies collapsed into
 # the next field: `run` was read as `when`, found absent, and the guard was
 # skipped as not applicable -- silently, which is this block's own defect. A
-# non-whitespace separator keeps an empty field a field.
+# non-whitespace separator keeps an empty field a field, and the binary never
+# ends a line in an empty field, which bash 3.2's `read -a` would drop.
 P_SEP="$(printf '\037')"
 project_guard_rows() {
   [ -f "$PROJECT_CONFIG" ] || return 0
-  grep -q '"guards"' "$PROJECT_CONFIG" 2>/dev/null || return 0
-  if ! command -v jq >/dev/null 2>&1; then
-    printf '!%s%s\n' "$P_SEP" "${PROJECT_CONFIG} declares guards and jq is not installed, so they cannot be read"
-    return 0
-  fi
-  jq -r '
-    if .guards == null then empty
-    elif (.guards | type) != "array" then "!\u001fguards in intent/.config/config.json is \(.guards | type), not an array"
-    else .guards | to_entries[] | .key as $i | .value as $g
-      | if ($g | type) != "object"
-          or ($g.run | type) != "array"
-          or ($g.run | length) == 0
-          or ([$g.run[] | type] | any(. != "string"))
-          or (($g.when // "") | type) != "string"
-        then "!\u001fguards[\($i)] in intent/.config/config.json needs `run`, a non-empty array of strings, and an optional string `when`"
-        else "\($i)\u001f\($g.when // "")\u001f\($g.run | @json)"
-        end
-    end' "$PROJECT_CONFIG" 2>/dev/null \
-    || printf '!%s%s\n' "$P_SEP" "${PROJECT_CONFIG} is not valid JSON, so its guards cannot be read"
+  local rows rc=0
+  rows="$(intent guards)" || rc=$?
+  case "$rc" in
+    0) [ -z "$rows" ] || printf '%s\n' "$rows" ;;
+    4) printf '?%s%s\n' "$P_SEP" "\`intent guards\` could not judge this project ($(intent --version 2>/dev/null || echo "\`intent --version\` did not answer")): its config cannot be read, so its declared guards are unknown" ;;
+    *) printf '!%s%s\n' "$P_SEP" "\`intent guards\` refused ($(intent --version 2>/dev/null || echo "\`intent --version\` did not answer")), so the declared guards are unknown" ;;
+  esac
 }
 
 # Why a declared guard's first element cannot run, or nothing when it can.
@@ -285,12 +291,18 @@ if [ "${1:-}" = "--list-guards" ]; then
   # inserted, so a reader that SPLITS the row keeps its first four fields -- but a
   # bash `read` of four names hands the fourth the rest of the line, so every
   # such reader must name the fifth (`int hooks` does).
-  while IFS="$P_SEP" read -r p_index p_when p_run; do
+  while IFS="$P_SEP" read -r -a p_fields; do
+    p_index="${p_fields[0]}"
+    p_when="${p_fields[1]:-}"
     if [ "$p_index" = "!" ]; then
       printf '%s\t%s\t%s\t%s\t%s\n' "-" "-" "-" "unreadable: ${p_when}" "project"
       continue
     fi
-    p_first="$(jq -r '.[0]' <<<"$p_run")"
+    if [ "$p_index" = "?" ]; then
+      printf '%s\t%s\t%s\t%s\t%s\n' "-" "-" "-" "unjudged: ${p_when}" "project"
+      continue
+    fi
+    p_first="${p_fields[2]}"
     p_state="$(project_guard_fault "$p_first")"
     if [ -z "$p_state" ]; then
       if [ -n "$p_when" ] && [ ! -e "$p_when" ]; then
@@ -299,7 +311,9 @@ if [ "${1:-}" = "--list-guards" ]; then
         p_state="present"
       fi
     fi
-    printf '%s\t%s\t%s\t%s\t%s\n' "$(jq -r 'join(" ")' <<<"$p_run")" "$PWD/$p_first" "${p_when:--}" "$p_state" "project"
+    # The argv's display name is its fields joined by a space, as jq's `join`
+    # printed it when the rows were read with jq.
+    printf '%s\t%s\t%s\t%s\t%s\n' "${p_fields[*]:2}" "$PWD/$p_first" "${p_when:--}" "$p_state" "project"
   done < <(project_guard_rows)
   exit 0
 fi
@@ -325,8 +339,8 @@ for g_entry in "${GUARDS[@]}"; do
 
   g_path="${GUARD_HOME}/${g_name}"
   if [ -f "$g_path" ]; then
-    # **THE THIRD ANSWER, AND THE COUNTER IT FEEDS ALREADY EXISTED** (issue
-    # 0506). Applicability is settled two ways, not one: by the PATH test above
+    # **THE THIRD ANSWER, AND THE COUNTER IT FEEDS ALREADY EXISTED.**
+    # Applicability is settled two ways, not one: by the PATH test above
     # for a guard whose subject is a file, and by the GUARD ITSELF for a guard
     # whose subject is a DECLARATION -- every Intent project carries
     # `intent/.config/config.json`, so a path test on it can only ever say yes.
@@ -414,27 +428,35 @@ P_DECLARED=0
 P_RAN=0
 P_SKIPPED=0
 P_REFUSED=0
-while IFS="$P_SEP" read -r p_index p_when p_run; do
+P_UNJUDGED=0
+while IFS="$P_SEP" read -r -a p_fields; do
   P_DECLARED=$((P_DECLARED + 1))
+  p_index="${p_fields[0]}"
+  p_when="${p_fields[1]:-}"
+  if [ "$p_index" = "?" ]; then
+    P_UNJUDGED=$((P_UNJUDGED + 1))
+    echo "intent gate: the project's declared guards were NOT run, and this commit is not refused on them." >&2
+    echo "  ${p_when}." >&2
+    echo "  \`intent doctor\` answers 4 on the same config and names the cause; once the config reads, the guards run again." >&2
+    continue
+  fi
   if [ "$p_index" = "!" ]; then
     P_REFUSED=$((P_REFUSED + 1))
     BLOCKED=1
     echo "intent gate: the project's declared guards cannot be read -- this commit is REFUSED." >&2
     echo "  ${p_when}." >&2
     echo "  a guard the project declared and nothing ran is a hole, not a pass." >&2
-    echo "  remedy: correct the \`guards\` declaration (or install jq), then commit again." >&2
+    echo "  remedy: the binary's message above names the entry and what to fix; correct the \`guards\` declaration, then commit again." >&2
     continue
   fi
   if [ -n "$p_when" ] && [ ! -e "$p_when" ]; then
     P_SKIPPED=$((P_SKIPPED + 1))
     continue
   fi
-  # bash 3.2 has no mapfile, and an empty-array expansion under `set -u` is an
-  # error there, so the argv is read line by line and is never empty.
-  p_argv=()
-  while IFS= read -r p_arg; do
-    p_argv+=("$p_arg")
-  done < <(jq -r '.[]' <<<"$p_run")
+  # The argv is every field after `when`, and the binary refuses a guard whose
+  # `run` is empty, so it is never empty here (an empty-array expansion under
+  # `set -u` is an error in bash 3.2).
+  p_argv=("${p_fields[@]:2}")
   p_first="${p_argv[0]}"
   p_fault="$(project_guard_fault "$p_first")"
   if [ -n "$p_fault" ]; then
@@ -471,6 +493,7 @@ printf 'guards: %d ran, %d skipped (not applicable)' "$RAN" "$SKIPPED"
 if [ "$P_DECLARED" -gt 0 ]; then
   printf '; project: %d ran, %d skipped (not applicable)' "$P_RAN" "$P_SKIPPED"
   [ "$P_REFUSED" -gt 0 ] && printf ', %d REFUSED' "$P_REFUSED"
+  [ "$P_UNJUDGED" -gt 0 ] && printf ', NOT JUDGED (the config cannot be read)'
 fi
 printf '\n'
 

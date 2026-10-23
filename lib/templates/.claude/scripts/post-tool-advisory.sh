@@ -65,16 +65,16 @@ config="$project_dir/.intent_critic.yml"
 [ -f "$config" ] || exit 0
 grep -qE '^[[:space:]]*post_tool_use_advisory:[[:space:]]*true' "$config" 2>/dev/null || exit 0
 
-case "$file_path" in
-  *.ex|*.exs)         lang="elixir" ;;
-  *.rs)               lang="rust" ;;
-  *.swift)            lang="swift" ;;
-  *.lua)              lang="lua" ;;
-  *.sh|*.bash|*.zsh)  lang="shell" ;;
-  *) exit 0 ;;
-esac
-
 command -v intent >/dev/null 2>&1 || exit 0
+
+# **THE FILE'S LANGUAGE IS THE BINARY'S, FROM THE MAP THE INDEX READS.**
+# This was a `case` on the extension of its own, beside the binary's
+# `lang_of`, and its `*) exit 0` arm could not tell an extension nobody handles
+# from one it was never told about. `intent lang of` prints the language, or
+# nothing when the extension maps to none, which is now the authoritative "no
+# critic for this file".
+lang="$(intent lang of "$file_path" 2>/dev/null)"
+[ -n "$lang" ] || exit 0
 
 # The critic's exit status decides whether this hook speaks, and nothing it
 # returns can block: the EXIT trap above ends every path at 0. Exit 0 is a clean

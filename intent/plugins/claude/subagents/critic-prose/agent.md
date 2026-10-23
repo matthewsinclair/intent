@@ -30,7 +30,7 @@ If the first word is not `review` or `craft-check`, default to `review` and note
 The prose base (`IN-PR-*`) always applies. The discipline pack is resolved in order:
 
 1. An explicit `--lang author` / `--lang content` in the invocation wins.
-2. Otherwise read the project's declared languages: `jq -r '(.languages // []) | .[]' intent/.config/config.json`, and take whichever of `author` / `content` are declared. A project may declare both -- then apply both discipline packs.
+2. Otherwise read the project's declared languages with `intent lang declared` (one per line), and take whichever of `author` / `content` are declared. A project may declare both -- then apply both discipline packs.
 3. If neither is declared and none is named, apply the prose base alone and note it in the report.
 
 ### The two tiers

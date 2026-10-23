@@ -35,10 +35,10 @@ Is the code consistent with the Intent rule library? This stage dispatches to th
 
 #### Language dispatch
 
-Read the project's declared languages from `intent/.config/config.json`:
+Read the project's declared languages, one per line, with the binary that parses `intent/.config/config.json`:
 
 ```bash
-jq -r '(.languages // []) | .[]' intent/.config/config.json
+intent lang declared
 ```
 
 For each language listed, dispatch to its critic subagent. Code languages map directly: `elixir` -> `critic-elixir`, `rust` -> `critic-rust`, `swift` -> `critic-swift`, `lua` -> `critic-lua`, `shell` -> `critic-shell`. The prose disciplines both map to the one `critic-prose`: `author` (books + courseware) and `content` (web pages + posts) each dispatch to `critic-prose`, which reviews prose (`.md`/`.mdx`/`.html`), not code, and resolves which discipline pack to apply from the declared `languages` -- see Prose projects below.

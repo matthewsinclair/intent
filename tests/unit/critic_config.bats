@@ -155,17 +155,14 @@ EOF
 # ====================================================================
 
 # Fixture git repo + stub `intent` that records the args it was called with.
+# The config names its version, so the binary the stub hands `lang declared`
+# to reads the languages rather than answering that it cannot judge.
 run_hook_with_yml() {
   local yml_content="$1"
   local repo="$TEST_TEMP_DIR/repo"
-  mkdir -p "$STUB_BIN" "$repo/intent/.config"
-  cat > "$STUB_BIN/intent" << EOF
-#!/bin/bash
-echo "\$@" >> "$CALL_LOG"
-exit 0
-EOF
-  chmod +x "$STUB_BIN/intent"
-  printf '{"languages":["shell"]}\n' > "$repo/intent/.config/config.json"
+  mkdir -p "$repo/intent/.config"
+  write_intent_stub "$STUB_BIN" "$CALL_LOG" 0
+  printf '{"intent_version":"3.0.0","languages":["shell"]}\n' > "$repo/intent/.config/config.json"
   [ -n "$yml_content" ] && printf '%s\n' "$yml_content" > "$repo/.intent_critic.yml"
   git -C "$repo" init -q
   ( cd "$repo" && PATH="$STUB_BIN:$PATH" bash "$HOOK" )

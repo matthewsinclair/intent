@@ -147,6 +147,26 @@ run_intent() {
   "$INTENT_BIN" "$@"
 }
 
+# A stub `intent` at <dir>/intent that appends every invocation to <log> and
+# answers it with exit code <rc>, printing <line> first when one is given --
+# EXCEPT `intent lang declared`, which it hands to the binary under test. The
+# pre-commit gate reads a project's languages through that verb, so a stub
+# answering it would be a second opinion about what the project declares.
+write_intent_stub() { # write_intent_stub <dir> <log> <rc> [line]
+  local dir="$1" log="$2" rc="$3" line="${4:-}"
+  mkdir -p "$dir"
+  {
+    printf '#!/bin/bash\n'
+    # shellcheck disable=SC2016 # the stub's own "$@", "$1" and "$2", unexpanded here
+    printf 'echo "$@" >> %q\n' "$log"
+    # shellcheck disable=SC2016
+    printf 'if [ "$1" = lang ] && [ "$2" = declared ]; then exec %q "$@"; fi\n' "$INTENT_BIN"
+    [ -z "$line" ] || printf 'echo %q\n' "$line"
+    printf 'exit %s\n' "$rc"
+  } > "$dir/intent"
+  chmod +x "$dir/intent"
+}
+
 # Helper to check if command output contains expected text
 assert_output_contains() {
   local expected="$1"

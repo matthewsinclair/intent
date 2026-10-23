@@ -726,3 +726,79 @@ shim_doctor() {  # shim_doctor red | clean | unjudgeable
   assert_success
   assert_output_contains "estate health is UNENFORCED in this commit"
 }
+
+# Put an `intent` on PATH that REFUSES one read the gate makes, with a planted
+# stderr line, and answers `info` with this tree, so the guard runner under test
+# is the one beside this gate. Everything else defers to the real CLI.
+shim_refusing() {  # shim_refusing lang | guards [exit code, 1 when omitted]
+  local code="${2:-1}"
+  mkdir -p "${TEST_TEMP_DIR}/shim"
+  {
+    echo '#!/bin/sh'
+    echo 'if [ "$1" = "info" ]; then'
+    echo "  echo '  INTENT_HOME: ${INTENT_PROJECT_ROOT}'"
+    echo '  exit 0'
+    echo 'fi'
+    case "$1" in
+      lang) echo 'if [ "$1" = "lang" ] && [ "$2" = "declared" ]; then' ;;
+      guards) echo 'if [ "$1" = "guards" ]; then' ;;
+    esac
+    echo '  echo "error: PLANTED-REFUSAL" >&2'
+    echo "  exit ${code}"
+    echo 'fi'
+    echo "exec '${INTENT_BIN}' \"\$@\""
+  } > "${TEST_TEMP_DIR}/shim/intent"
+  chmod +x "${TEST_TEMP_DIR}/shim/intent"
+}
+
+@test "a refusal from \`intent lang declared\` refuses the commit, in the binary's own words (issue 0618)" {
+  # Red on a gate that read the languages with jq: it never asked the binary,
+  # so nothing refused and the commit went through.
+  shim_refusing lang
+  git add intent/.config
+  PATH="${TEST_TEMP_DIR}/shim:$PATH" run git commit -m "languages-refused"
+  assert_failure
+  assert_output_contains "PLANTED-REFUSAL"
+  assert_output_contains "\`intent lang declared\` refused"
+  assert_output_contains "this commit is REFUSED"
+}
+
+@test "a refusal from \`intent guards\` refuses the commit, in the binary's own words (issue 0616)" {
+  shim_refusing guards
+  git add intent/.config
+  PATH="${TEST_TEMP_DIR}/shim:$PATH" run git commit -m "guards-refused"
+  assert_failure
+  assert_output_contains "PLANTED-REFUSAL"
+  assert_output_contains "\`intent guards\` refused"
+  assert_output_contains "the project's declared guards cannot be read -- this commit is REFUSED"
+}
+
+@test "\`intent lang declared\` answering 4 fails the gate open, saying so (issue 0618)" {
+  # 4 is could-not-judge: the binary cannot read the config at all, which
+  # `doctor` answers 4 on too, so nothing was refused (vc's ruling, 2026-10-23).
+  shim_refusing lang 4
+  git add intent/.config
+  PATH="${TEST_TEMP_DIR}/shim:$PATH" run git commit -m "languages-unjudged"
+  assert_success
+  assert_output_contains "PLANTED-REFUSAL"
+  assert_output_contains "\`intent lang declared\` could not judge this project"
+  assert_output_contains "NO code critic ran"
+}
+
+@test "\`intent guards\` answering 4 fails the gate open, saying so (issue 0616)" {
+  shim_refusing guards 4
+  git add intent/.config
+  PATH="${TEST_TEMP_DIR}/shim:$PATH" run git commit -m "guards-unjudged"
+  assert_success
+  assert_output_contains "PLANTED-REFUSAL"
+  assert_output_contains "\`intent guards\` could not judge this project"
+  assert_output_contains "the project's declared guards were NOT run, and this commit is not refused on them"
+}
+
+@test "no template or plugin reads \`.languages\` with jq any more (issue 0618)" {
+  # The binary is the one reader of the field; a jq read of it is a second home
+  # with its own rules, and it works only from the project root.
+  run grep -rnE "jq +(-[a-zA-Z]+ +)*'[^']*\.languages" \
+    "${INTENT_PROJECT_ROOT}/lib/templates" "${INTENT_PROJECT_ROOT}/intent/plugins"
+  [ "$status" -eq 1 ] || fail "a jq read of .languages remains: $output"
+}

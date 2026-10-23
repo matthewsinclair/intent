@@ -56,7 +56,7 @@ Task(subagent_type="critic-<lang>", prompt="test-check <test_file1> <test_file2>
 
 `<lang>` is the WP's language per `info.md`. Polyglot WPs run one dispatch per language. The critic auto-loads the right rule packs (agnostic + language code/test + framework subdirs) and honours the project's `.intent_critic.yml`.
 
-**Critic selection**: read the project's declared languages from `intent/.config/config.json` (`jq -r '(.languages // []) | .[]' intent/.config/config.json`) and dispatch one critic per language listed:
+**Critic selection**: read the project's declared languages with `intent lang declared` (one per line, from `intent/.config/config.json`) and dispatch one critic per language listed:
 
 | Language entry | Critic to dispatch |
 | -------------- | ------------------ |

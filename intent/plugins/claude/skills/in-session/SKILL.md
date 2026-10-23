@@ -37,10 +37,10 @@ Invoke these skills via the Skill tool, whatever the project's languages:
 
 ### 2. Read the project's declared languages
 
-Languages-in-use is a configuration decision, not a filesystem detection. Read the `languages` array from `intent/.config/config.json`:
+Languages-in-use is a configuration decision, not a filesystem detection. Ask the binary for the `languages` array in `intent/.config/config.json`, one language per line, from any directory in the project:
 
 ```bash
-jq -r '(.languages // []) | .[]' intent/.config/config.json
+intent lang declared
 ```
 
 For each language listed, invoke the matching essentials skill if one exists. Elixir, `author` and `content` have an essentials skill; the other languages get their coding rules via the rule library served by the installed Intent tool (`intent claude rules list --lang <lang>`, `intent claude rules show <id>`) plus the `critic-<lang>` subagent applied on demand.

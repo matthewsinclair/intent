@@ -98,10 +98,10 @@ Commands that need a project refuse outside one with exactly `error: not in an I
 
 ### INV-04 -- Exit codes are 0, 1, 2, 3 and 4
 
-0 success. 1 the command RAN and the answer is no -- findings, a refused verb, a blocked gate, a usage error. 2 this build could not answer at all, and it carries no verdict about the work -- a declared command that is not implemented yet, `intent critic` rejecting an invocation it cannot act on or finding no rule library, a `--daemon` that cannot be reached; the shipped pre-commit gate fails OPEN on it. 3 REFUSED -- a rule the project armed could not be enforced here (`intent critic`); the gate BLOCKS on it. 4 the estate could not be judged -- `intent doctor` could not read the project it was asked about, so nothing it printed is a verdict; the gate fails open on it. `intent claude hook` propagates the hook's own code by design.
+0 success. 1 the command RAN and the answer is no -- findings, a refused verb, a blocked gate, a usage error. 2 this build could not answer at all, and it carries no verdict about the work -- a declared command that is not implemented yet, `intent critic` rejecting an invocation it cannot act on or finding no rule library, a `--daemon` that cannot be reached; the shipped pre-commit gate fails OPEN on it. 3 REFUSED -- a rule the project armed could not be enforced here (`intent critic`); the gate BLOCKS on it. 4 the estate could not be judged -- `intent doctor`, `intent guards` or `intent lang declared`, the readers the commit gate runs, could not read the project it was asked about, so nothing it printed is a verdict; the gate fails open on it, saying so. `intent claude hook` propagates the hook's own code by design.
 
 - **v2:** bin/intent_critic: `:89` error_out and `:95` no-args-help both exit 2 (usage); `:335` clean exits 0; `:348` FINDINGS PRESENT exits 1; `:334` and `:347` CRITIC_REFUSED exit 3. Read directly 2026-08-20.
-- **Target:** `corrected` -- ratified: D17, read as the ratification of v3's own exit contract rather than a carry-over from v2 (vc, 2026-09-14): an as-observed row claims nothing about v3, and this is a row that must. Enforced by exit_codes.rs. -- behaviour: 0 success; 1 the command ran and the answer is no; 2 this build could not answer and carries no verdict about the work; 3 refused, an armed rule could not be enforced here. The rule above states each in full.
+- **Target:** `corrected` -- ratified: D17, read as the ratification of v3's own exit contract rather than a carry-over from v2 (vc, 2026-09-14): an as-observed row claims nothing about v3, and this is a row that must. Enforced by exit_codes.rs. -- behaviour: 0 success; 1 the command ran and the answer is no; 2 this build could not answer and carries no verdict about the work; 3 refused, an armed rule could not be enforced here; 4 a reader the gate runs could not read the project. The rule above states each in full.
 - **rulings:**
   - `0.state`: ratified
   - `0.authority`: vc
@@ -3127,7 +3127,8 @@ Print the languages this project declares, one per line
 - **v2:** new-surface
 - **Exit codes:**
   - `0` -- the declared languages printed, or nothing when the project declares none
-  - `1` -- no project at or above the working directory, or a config that does not parse -- discovery's own refusals, each with its remedy
+  - `1` -- a config the binary reads, JSON naming its `intent_version`, whose declaration serde refuses -- named with its remedy; the commit gate refuses the commit on it
+  - `4` -- no project at or above the working directory, or a config the binary cannot read at all -- no file, text that is not JSON, or no `intent_version` -- each with discovery's remedy, answered as could-not-judge, which the commit gate fails open on
 - **stdout:** one declared language per line, in config order, and nothing else
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `new-surface`
@@ -5217,7 +5218,9 @@ Resolve references to the definitions they name with each language's own toolcha
   - `exit.0.code`: 0
   - `exit.0.when`: one line per declared guard, or nothing when the project declares none
   - `exit.1.code`: 1
-  - `exit.1.when`: no project, a config that does not parse (an unknown key in a guard among them), or a guard a line cannot carry -- each named with its remedy
+  - `exit.1.when`: a config the binary reads, JSON naming its `intent_version`, whose declaration serde refuses (an unknown key in a guard among them), or a guard a line cannot carry -- each named with its remedy; the commit gate refuses the commit on it
+  - `exit.2.code`: 4
+  - `exit.2.when`: no project, or a config the binary cannot read at all -- no file, text that is not JSON, or no `intent_version` -- each with discovery's remedy, answered as could-not-judge, which the commit gate fails open on
   - `stdout`: one line per declared guard, its fields separated by US (0x1f)
   - `stderr`: `error: ...` on stderr (INV-01)
 - **disposition:** new-surface

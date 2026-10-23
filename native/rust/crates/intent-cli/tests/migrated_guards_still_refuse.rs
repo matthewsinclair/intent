@@ -158,13 +158,18 @@ fn project(home: &Path, with_config: bool) -> tempfile::TempDir {
   // every consumer. A migrated project keeps its config (v3 reads it in
   // project.rs, migrate.rs and backup.rs), so this row's own population is not
   // the one exposed -- but a fixture without it tests the exit, not the guard.
+  //
+  // **AND A CONFIG THE BINARY CAN READ** (vc's ruling, 2026-10-23). This wrote
+  // `{"languages": []}`, which is not Intent config: the gate read `guards` and
+  // `languages` out of it with jq, and `doctor` answered 4 on it, could not
+  // judge, so every arm here ran with the gate's doctor failing open by
+  // accident. The gate now asks the binary for both, and a config it cannot
+  // read is could-not-judge there too, so the project's guards would never
+  // run. So the config names its version, and `config` says why that version
+  // is a v2 one.
   if with_config {
     fs::create_dir_all(root.join("intent/.config")).expect("config dir");
-    fs::write(
-      root.join("intent/.config/config.json"),
-      "{\n  \"languages\": []\n}\n",
-    )
-    .expect("config");
+    fs::write(root.join("intent/.config/config.json"), config(None)).expect("config");
   }
 
   let hook_src = home.join("lib/templates/hooks/pre-commit.sh");
@@ -373,13 +378,28 @@ fn the_resolver_answers_and_the_hook_does_not_fail_open() {
 // the repository, so a clone runs Intent's roster and not the project's, and
 // nothing says so. The declaration lives in `intent/.config/config.json`.
 
-/// Declare `guards` in the fixture's config, keeping its `languages`.
+/// Declare `guards` in the fixture's config, keeping the rest of it.
 fn declare_guards(root: &Path, guards: &str) {
   fs::write(
     root.join("intent/.config/config.json"),
-    format!("{{\n  \"languages\": [],\n  \"guards\": {guards}\n}}\n"),
+    config(Some(guards)),
   )
   .expect("declare guards");
+}
+
+/// The fixture's config: one the binary reads, declaring no language and the
+/// `guards` given, or none.
+fn config(guards: Option<&str>) -> String {
+  let guards = guards
+    .map(|g| format!(",\n  \"guards\": {g}"))
+    .unwrap_or_default();
+  // A v2 version on purpose (vc's ruling, 2026-10-23): doctor declines a v2
+  // project, so these arms judge the guards alone. On a v3 one doctor judges
+  // the fixture as well, counts the hook copied into `.git/hooks/` as a gate
+  // that is not running, and the seed is refused on that rather than on a
+  // guard. `guards` and `lang declared` read a v2 config as they read a v3 one,
+  // and `sync --to-disk` refuses it, so the fixture renders no views.
+  format!("{{\n  \"intent_version\": \"2.11.0\",\n  \"languages\": []{guards}\n}}\n")
 }
 
 /// A tracked, executable guard body that prints its name and exits `rc`.

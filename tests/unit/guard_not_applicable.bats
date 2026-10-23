@@ -37,6 +37,9 @@ scratch_repo() {
   shift
   mkdir -p "$repo/intent/.config" "$repo/gd"
   cd "$repo" || return 1
+  # The runner reads the declared guards through `intent guards` (issue 0616),
+  # so the `intent` it finds first is the build under test, as CI's is.
+  PATH="$(dirname "$INTENT_BIN"):$PATH"
   git init -q -b main >/dev/null
   git config user.email "test@example.com"
   git config user.name "Test"
@@ -65,8 +68,33 @@ scratch_repo() {
 # REFUSE rather than dispatch, which would look like a failure of the thing
 # under test. Declared once, as a precondition, rather than skipped per arm:
 # a skip is how an unarmed run reads identical to a passing one (issue 0512).
-@test "precondition: jq is present, so the project-guard loop dispatches at all" {
-  command -v jq >/dev/null 2>&1
+@test "precondition: the intent under test answers \`intent guards\`, so the project-guard loop dispatches at all" {
+  scratch_repo "" 0
+  run intent guards
+  [ "$status" -eq 0 ]
+  [[ "$output" == "0"* ]]
+}
+
+@test "the runner takes its guards from \`intent guards\`, not from the file (issue 0616)" {
+  # A tracked guard the config does NOT declare, and an `intent` that answers
+  # `guards` with a row naming it. Red on a runner that reads the file itself:
+  # it finds no guard there and never runs this one.
+  scratch_repo ""
+  printf '#!/usr/bin/env bash\ntouch "%s/planted-ran"\nexit 0\n' "$TEST_TEMP_DIR" > gd/planted.sh
+  chmod +x gd/planted.sh
+  git add gd/planted.sh
+  git commit -q -m "a guard the config does not declare"
+  mkdir -p "$TEST_TEMP_DIR/shim"
+  cat > "$TEST_TEMP_DIR/shim/intent" <<EOF
+#!/bin/sh
+if [ "\$1" = guards ]; then printf '0\037\037gd/planted.sh\n'; exit 0; fi
+exec "$INTENT_BIN" "\$@"
+EOF
+  chmod +x "$TEST_TEMP_DIR/shim/intent"
+  PATH="$TEST_TEMP_DIR/shim:$PATH" run bash "$RUNNER"
+  [ "$status" -eq 0 ]
+  [ -f "$TEST_TEMP_DIR/planted-ran" ] || fail "the planted guard never ran: $output"
+  [[ "$output" == *"project: 1 ran"* ]]
 }
 
 @test "a project guard answering 3 is counted SKIPPED and does not block" {

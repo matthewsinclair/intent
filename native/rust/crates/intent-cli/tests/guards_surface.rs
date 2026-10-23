@@ -124,6 +124,10 @@ fn a_field_a_line_cannot_carry_is_refused_naming_it() {
 /// **A MISSPELT KEY IS REFUSED** (vc's ruling on 0616): `wehn` parsed as a
 /// guard with no `when`, which runs on every commit. serde now refuses it,
 /// at discovery, with the config error's position and remedy.
+///
+/// **AND IT IS A REFUSAL, 1, NOT COULD-NOT-JUDGE** (vc's ruling, 2026-10-23):
+/// the config is JSON and names its version, so it was read, and the key is a
+/// declaration refused. The gate refuses the commit on it, as its jq read did.
 #[test]
 fn an_unknown_key_in_a_guard_is_refused() {
   let dir = project(Some(r#"[{"run": ["bin/x"], "wehn": "docs"}]"#));
@@ -135,5 +139,25 @@ fn an_unknown_key_in_a_guard_is_refused() {
   assert!(
     err.contains("remedy: the parse error above names the position"),
     "{err}"
+  );
+}
+
+/// **A CONFIG NAMING NO VERSION IS ONE THE BINARY CANNOT READ, SO IT ANSWERS 4**
+/// (vc's ruling, 2026-10-23): could not judge, which the gate fails open on,
+/// saying so, where it refuses on 1. This is the config the guards fixture
+/// wrote before it wrote one the binary reads.
+#[test]
+fn a_config_naming_no_version_answers_four() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let config = dir.path().join("intent").join(".config");
+  std::fs::create_dir_all(&config).expect("mkdir");
+  std::fs::write(config.join("config.json"), "{\n  \"languages\": []\n}\n").expect("write config");
+  let out = guards_in(&dir);
+  assert_eq!(out.status.code(), Some(4), "stdout: {}", stdout(&out));
+  assert_eq!(stdout(&out), "");
+  assert!(
+    stderr(&out).contains("missing field `intent_version`"),
+    "{}",
+    stderr(&out)
   );
 }

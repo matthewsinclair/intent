@@ -83,16 +83,11 @@ HOOK="${INTENT_PROJECT_ROOT}/lib/templates/hooks/pre-commit.sh"
 setup() {
   TEST_TEMP_DIR="$(mktemp -d /tmp/intent-test-XXXXXX)"
 
-  # Stub `intent` that records every invocation and exits clean.
+  # Stub `intent` that records every invocation and exits clean, handing
+  # `lang declared` to the binary under test (test_helper's write_intent_stub).
   STUB_BIN="$TEST_TEMP_DIR/stub-bin"
   CALL_LOG="$TEST_TEMP_DIR/intent-calls.log"
-  mkdir -p "$STUB_BIN"
-  cat > "$STUB_BIN/intent" << EOF
-#!/bin/bash
-echo "\$@" >> "$CALL_LOG"
-exit 0
-EOF
-  chmod +x "$STUB_BIN/intent"
+  write_intent_stub "$STUB_BIN" "$CALL_LOG" 0
 }
 
 teardown() {
@@ -100,12 +95,13 @@ teardown() {
 }
 
 # Create a git repo that looks like an Intent project with the given
-# languages JSON array, and run the shipped hook from inside it.
+# languages JSON array, and run the shipped hook from inside it. The config
+# names its version, so the binary reads the languages for the gate.
 run_hook_with_languages() {
   local langs_json="$1"
   local repo="$TEST_TEMP_DIR/repo"
   mkdir -p "$repo/intent/.config"
-  printf '{"languages":%s}\n' "$langs_json" > "$repo/intent/.config/config.json"
+  printf '{"intent_version":"3.0.0","languages":%s}\n' "$langs_json" > "$repo/intent/.config/config.json"
   git -C "$repo" init -q
   ( cd "$repo" && PATH="$STUB_BIN:$PATH" run_hook_inner )
 }
@@ -166,25 +162,14 @@ run_hook_inner() {
 
 @test "hook blocks the commit when a critic reports findings" {
   # Stub exits 1 (findings at threshold) -> hook must exit 1.
-  cat > "$STUB_BIN/intent" << EOF
-#!/bin/bash
-echo "\$@" >> "$CALL_LOG"
-echo "[WARNING] IN-SH-TEST-901 at file.sh:1"
-exit 1
-EOF
-  chmod +x "$STUB_BIN/intent"
+  write_intent_stub "$STUB_BIN" "$CALL_LOG" 1 "[WARNING] IN-SH-TEST-901 at file.sh:1"
   run run_hook_with_languages '["shell"]'
   [ "$status" -eq 1 ]
   assert_output_contains "commit blocked by findings"
 }
 
 @test "hook fails open when the critic does not check (exit 2)" {
-  cat > "$STUB_BIN/intent" << EOF
-#!/bin/bash
-echo "\$@" >> "$CALL_LOG"
-exit 2
-EOF
-  chmod +x "$STUB_BIN/intent"
+  write_intent_stub "$STUB_BIN" "$CALL_LOG" 2
   run run_hook_with_languages '["shell"]'
   # THE FAIL-OPEN IS THE RULING AND IT IS UNCHANGED. Only the CLAIM changed:
   # this arm asserted `invocation error (exit 2); fail-open` until 2026-08-18,

@@ -187,14 +187,14 @@
     {
       "id": "INV-04",
       "title": "Exit codes are 0, 1, 2, 3 and 4",
-      "rule": "0 success. 1 the command RAN and the answer is no -- findings, a refused verb, a blocked gate, a usage error. 2 this build could not answer at all, and it carries no verdict about the work -- a declared command that is not implemented yet, `intent critic` rejecting an invocation it cannot act on or finding no rule library, a `--daemon` that cannot be reached; the shipped pre-commit gate fails OPEN on it. 3 REFUSED -- a rule the project armed could not be enforced here (`intent critic`); the gate BLOCKS on it. 4 the estate could not be judged -- `intent doctor` could not read the project it was asked about, so nothing it printed is a verdict; the gate fails open on it. `intent claude hook` propagates the hook's own code by design.",
+      "rule": "0 success. 1 the command RAN and the answer is no -- findings, a refused verb, a blocked gate, a usage error. 2 this build could not answer at all, and it carries no verdict about the work -- a declared command that is not implemented yet, `intent critic` rejecting an invocation it cannot act on or finding no rule library, a `--daemon` that cannot be reached; the shipped pre-commit gate fails OPEN on it. 3 REFUSED -- a rule the project armed could not be enforced here (`intent critic`); the gate BLOCKS on it. 4 the estate could not be judged -- `intent doctor`, `intent guards` or `intent lang declared`, the readers the commit gate runs, could not read the project it was asked about, so nothing it printed is a verdict; the gate fails open on it, saying so. `intent claude hook` propagates the hook's own code by design.",
       "v2": "bin/intent_critic: `:89` error_out and `:95` no-args-help both exit 2 (usage); `:335` clean exits 0; `:348` FINDINGS PRESENT exits 1; `:334` and `:347` CRITIC_REFUSED exit 3. Read directly 2026-08-20.",
       "corrected_2026_08_20": "**THIS ROW HAD `intent critic`'s EXIT 2 EXACTLY BACKWARDS AND WOULD HAVE SHIPPED A PERMANENT SILENT GATE BYPASS** (dc, who found it reading the contract before building the v3 critic, and refused to build to it; ic verified at zero hops and reworded). The row said _2 only from `intent critic` (findings-present)_, citing `:89,95` -- **but those two lines are the USAGE paths, findings-present is `exit 1` at `:348`, and exit 3 has two live sites the row did not mention at all.** The harm is specific and it is in `lib/templates/hooks/pre-commit.sh:350-369`: `1` blocks, `3` blocks, and `*)` -- where 2 lands -- prints `invocation error; fail-open` and never sets `AGGREGATE`. **A v3 critic built to the old wording would have exited 2 on every finding, the gate would have failed open every time, and the commit would have proceeded unchecked -- here and in every consumer project through one symlink -- while the binary remained CONFORMANT TO THIS TABLE.** A gate bypass that passes its own surface check. **AND THE EVIDENCE CLAUSE IS THE LESSON: `measured across 108 probes` could establish that exit 2 OCCURS and can never establish what it MEANS**, which needs the branch that produces it read. A count of occurrences reported as a semantics -- the same shape as `1 refused` standing for 423 files, and the first instance that would have propagated into a BUILD rather than into a report.",
       "why_2_is_correct_for_critic": "**`intent critic` exiting 2 on a USAGE error is deliberate and right, and it is NOT an exception grudgingly tolerated** (ic ruling, 2026-08-20, on dc's question of whether it is a v2 defect worth a `corrected` row). The gate states the principle itself at `pre-commit.sh:349`: _a gate should fail open on its own breakage and closed on yours._ **A critic that cannot parse its own invocation is the gate's breakage, not the developer's code**, so fail-open is the correct disposition and 2 is the code that produces it. `guide.rs` already teaches the same reading -- _2 means this build cannot answer the question at all_. So v3 keeps it: 0 clean, 1 findings, 2 usage, 3 refused.",
       "target": {
         "state": "corrected",
         "ratification": "D17, read as the ratification of v3's own exit contract rather than a carry-over from v2 (vc, 2026-09-14): an as-observed row claims nothing about v3, and this is a row that must. Enforced by exit_codes.rs.",
-        "behaviour": "0 success; 1 the command ran and the answer is no; 2 this build could not answer and carries no verdict about the work; 3 refused, an armed rule could not be enforced here. The rule above states each in full.",
+        "behaviour": "0 success; 1 the command ran and the answer is no; 2 this build could not answer and carries no verdict about the work; 3 refused, an armed rule could not be enforced here; 4 a reader the gate runs could not read the project. The rule above states each in full.",
         "rulings": [
           {
             "state": "ratified",
@@ -6705,7 +6705,11 @@
               },
               {
                 "code": 1,
-                "when": "no project at or above the working directory, or a config that does not parse -- discovery's own refusals, each with its remedy"
+                "when": "a config the binary reads, JSON naming its `intent_version`, whose declaration serde refuses -- named with its remedy; the commit gate refuses the commit on it"
+              },
+              {
+                "code": 4,
+                "when": "no project at or above the working directory, or a config the binary cannot read at all -- no file, text that is not JSON, or no `intent_version` -- each with discovery's remedy, answered as could-not-judge, which the commit gate fails open on"
               }
             ],
             "stdout": "one declared language per line, in config order, and nothing else",
@@ -10520,7 +10524,11 @@
           },
           {
             "code": 1,
-            "when": "no project, a config that does not parse (an unknown key in a guard among them), or a guard a line cannot carry -- each named with its remedy"
+            "when": "a config the binary reads, JSON naming its `intent_version`, whose declaration serde refuses (an unknown key in a guard among them), or a guard a line cannot carry -- each named with its remedy; the commit gate refuses the commit on it"
+          },
+          {
+            "code": 4,
+            "when": "no project, or a config the binary cannot read at all -- no file, text that is not JSON, or no `intent_version` -- each with discovery's remedy, answered as could-not-judge, which the commit gate fails open on"
           }
         ],
         "stdout": "one line per declared guard, its fields separated by US (0x1f)",

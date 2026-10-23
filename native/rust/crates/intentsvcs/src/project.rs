@@ -1319,6 +1319,27 @@ pub enum ProjectError {
   },
 }
 
+impl ProjectError {
+  /// Whether this refusal is a config the binary cannot read at all: no config
+  /// file, a file it could not read, text that is not JSON, or JSON naming no
+  /// `intent_version`. Any other refusal of a config is one it read and whose
+  /// declaration it refused, such as an unknown key in a guard.
+  ///
+  /// **THE COMMIT GATE'S READERS ANSWER THE TWO DIFFERENTLY** (vc's ruling,
+  /// 2026-10-23): could not judge for the first, which the gate fails open on,
+  /// and a refusal for the second, which refuses the commit. The JSON is read
+  /// again to tell them apart, because serde's error does not say which it was.
+  pub fn config_unread(&self) -> bool {
+    match self {
+      Self::Config { path, .. } => std::fs::read_to_string(path)
+        .ok()
+        .and_then(|text| serde_json::from_str::<serde_json::Value>(&text).ok())
+        .is_none_or(|config| config.get("intent_version").is_none()),
+      Self::NotFound(_) | Self::PreV210(_) | Self::BareRepository(_) | Self::Io { .. } => true,
+    }
+  }
+}
+
 impl crate::remedy::Remedy for ProjectError {
   fn remedy(&self) -> String {
     match self {

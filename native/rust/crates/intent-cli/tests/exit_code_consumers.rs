@@ -152,6 +152,16 @@ const CONSUMERS: &[(&str, &str, Policy)] = &[
     ),
   ),
   (
+    ".claude/scripts/post-tool-advisory.sh",
+    "lang",
+    Policy::Invokes(
+      "`intent lang of <file>` names the critic to run, and its stdout is all the hook reads: the \
+       language, or nothing when the extension maps to none. An empty answer for any reason, a non-zero \
+       code included since stderr is discarded, runs no critic and adds nothing, and the EXIT trap ends \
+       every path at 0, so no code can block the tool call.",
+    ),
+  ),
+  (
     "hooks/pre-commit.sh",
     "gate",
     Policy::Names("the gate's own messages name themselves `intent gate:` / `intent critic gate:`"),
@@ -174,14 +184,43 @@ const CONSUMERS: &[(&str, &str, Policy)] = &[
     "hooks/pre-commit-guards.sh",
     "gate",
     Policy::Names(
-      "THE ROSTER, and it invokes no `intent` at all -- by construction, because it is reached only \
-       AFTER `pre-commit.sh` has resolved `INTENT_HOME`, and resolving twice would let the two answers \
-       differ. It locates guards as its own siblings and `bash`es them. The only appearance is the \
-       `intent gate:` prefix on its one-guard-missing report. Exit codes are its own: 0 clean or \
-       nothing applicable, 1 at least one guard refused, which `pre-commit.sh` turns into a blocked \
-       commit. **It is READ LIVE out of `INTENT_HOME` and never copied into a project**, which is the \
-       whole reason it is a separate file -- a roster a consumer holds a frozen copy of cannot be \
-       updated by shipping canon, and for six days it was not.",
+      "THE ROSTER. This row is its `intent gate:` prefix on the one-guard-missing report; the one \
+       `intent` it RUNS is `intent guards`, declared in its own row and found on the PATH \
+       `pre-commit.sh` resolved before reaching it, so the gate and the guards are read by one binary. \
+       It locates Intent's own guards as its siblings and `bash`es them. Exit codes are its own: 0 \
+       clean or nothing applicable, 1 at least one guard refused, which `pre-commit.sh` turns into a \
+       blocked commit. **It is READ LIVE out of `INTENT_HOME` and never copied into a project**, which \
+       is the whole reason it is a separate file -- a roster a consumer holds a frozen copy of cannot \
+       be updated by shipping canon, and for six days it was not.",
+    ),
+  ),
+  (
+    "hooks/pre-commit-guards.sh",
+    "guards",
+    Policy::Invokes(
+      "the project's declared guards, one line each on stdout: 0 runs them, and a guard's own refusal \
+       blocks the commit. 4, could not judge, means the config cannot be read at all (no file, not \
+       JSON, or no `intent_version`), so the guards are NOT run, the commit is not refused on them and \
+       the gate says so, failing open as it does on `intent doctor`'s 4. Any other code REFUSES the \
+       commit, the binary's own stderr naming the declaration it refused.",
+    ),
+  ),
+  (
+    "hooks/pre-commit-guards.sh",
+    "--version",
+    Policy::Invokes(
+      "inside the could-not-judge and refused lines only, to name the binary that answered `intent \
+       guards`: its code is never read, and a binary that does not answer is named as not answering \
+       rather than leaving the parenthesis empty.",
+    ),
+  ),
+  (
+    "hooks/pre-commit-guards.sh",
+    "doctor",
+    Policy::Names(
+      "one `echo` under the not-judged report, pointing at `intent doctor`, which answers 4 on the same \
+       unreadable config and names its cause. Never invoked here: `pre-commit.sh` runs doctor itself, \
+       and a second run would be a second verdict on one tree.",
     ),
   ),
   (
@@ -208,11 +247,23 @@ const CONSUMERS: &[(&str, &str, Policy)] = &[
   (
     "hooks/pre-commit.sh",
     "lang",
-    Policy::Names(
-      "one `echo` in the same zero-scope branch, offering `intent lang init <lang>` as the way to give \
-       the gate something to enforce. Never invoked, for the same reason: declaring a language is the \
-       operator's decision about what the project IS, and a gate that made it would be answering a \
-       question nobody asked it.",
+    Policy::Invokes(
+      "`intent lang declared` is the gate's read of the project's languages: 0 prints one per line and \
+       each gets its critic, nothing for `languages: []`, which the zero-scope note names. 4, could not \
+       judge (no config file, not JSON, or no `intent_version`), runs no critic and the scope note says \
+       why, failing open as the gate does on `intent doctor`'s 4. Any other code REFUSES the commit, the \
+       binary's own stderr naming the cause. The zero-scope branch's `echo` also offers `intent lang \
+       init <lang>`, which is never invoked: declaring a language is the operator's decision about what \
+       the project IS.",
+    ),
+  ),
+  (
+    "hooks/pre-commit.sh",
+    "--version",
+    Policy::Invokes(
+      "inside the could-not-judge note and the refusal message of `intent lang declared` only, to name \
+       the binary that answered: its code is never read, and a binary that does not answer is named as \
+       not answering rather than leaving the parenthesis empty.",
     ),
   ),
   (

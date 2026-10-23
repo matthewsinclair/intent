@@ -786,6 +786,29 @@ fn watching_this_project(endpoint: &daemon::Endpoint, root: &Path) -> Result<boo
   }
 }
 
+/// [`context`], for `guards` and `lang declared`, the readers the commit gate
+/// runs beside `doctor`: a config this binary cannot read at all answers as
+/// could-not-judge, exit 4, and a config it read and whose declaration it
+/// refused answers 1, as every other refusal of discovery does.
+///
+/// **0308's LINE, DRAWN WHERE A CONFIG CANNOT BE READ** (vc's ruling,
+/// 2026-10-23). The gate refuses a commit on 1, *the answer is no*, and fails
+/// open on 4. No config file, text that is not JSON, or JSON naming no
+/// `intent_version` is nothing judged, so it is 4 and the gate says so; a
+/// well-formed config whose guard serde refuses, such as a misspelt key, is a
+/// declaration read and refused, so it is 1 and the commit is refused, as the
+/// gate's jq read refused it. [`intentsvcs::project::ProjectError::config_unread`]
+/// tells the two apart.
+fn context_or_unjudged() -> Result<(Project, FacadeContext), Failure> {
+  context_refusing(|e| {
+    use intentsvcs::remedy::Remedy;
+    match e.config_unread() {
+      true => Failure::Unjudgeable(e.render()),
+      false => Failure::from(e.render()),
+    }
+  })
+}
+
 /// Locate the project and assemble the ambient context, WITHOUT loading canon
 /// into the store.
 ///
@@ -793,14 +816,21 @@ fn watching_this_project(endpoint: &daemon::Endpoint, root: &Path) -> Result<boo
 /// more: it has to run on a project that cannot be opened, since that is when
 /// someone reaches for it. Every other verb goes on through [`engine`].
 pub(crate) fn context() -> Result<(Project, FacadeContext), Failure> {
-  let cwd = std::env::current_dir()
-    .map_err(|e| format!("error: cannot read the working directory: {e}"))?;
   // Issue 0333: the error's own remedy, so a pre-v2.10 project is told its route
   // rather than to run `intent init` over it.
-  let project = Project::discover(&cwd).map_err(|e| {
+  context_refusing(|e| {
     use intentsvcs::remedy::Remedy;
-    e.render()
-  })?;
+    Failure::from(e.render())
+  })
+}
+
+/// [`context`]'s discovery, with the answer to a refusal the caller's.
+fn context_refusing(
+  refusal: impl FnOnce(intentsvcs::project::ProjectError) -> Failure,
+) -> Result<(Project, FacadeContext), Failure> {
+  let cwd = std::env::current_dir()
+    .map_err(|e| format!("error: cannot read the working directory: {e}"))?;
+  let project = Project::discover(&cwd).map_err(refusal)?;
   let ctx = FacadeContext::for_project(&project, env!("CARGO_PKG_VERSION"));
   Ok((project, ctx))
 }
@@ -8250,7 +8280,9 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
   //
   // Scoped to `doctor` on purpose: every other command's `no project` really is
   // an error about the request, and widening this would change codes nobody has
-  // asked for.
+  // asked for. The gate's other two readers, `guards` and `lang declared`, draw
+  // the line narrower, at a config this binary cannot read at all
+  // ([`context_or_unjudged`]), so that a typo in a guard still refuses.
   let (project, ctx) = context().map_err(|failure| match failure.message() {
     Some(message) => Failure::Unjudgeable(message.to_string()),
     None => failure,
@@ -9666,9 +9698,11 @@ fn lang_show(m: &ArgMatches) -> Result<(), Failure> {
 /// `lang init` refuses it at the door, and the gate and `critic` name it.
 ///
 /// **IT ANSWERS IN A PROJECT NOBODY HAS MIGRATED**, as `guards` does and for the
-/// same reason: the commit gate reads its languages from here.
+/// same reason: the commit gate reads its languages from here. And it answers
+/// 4 where it cannot read the project at all, for the gate to fail open on
+/// ([`context_or_unjudged`]).
 fn lang_declared() -> Result<(), Failure> {
-  let (project, _) = context()?;
+  let (project, _) = context_or_unjudged()?;
   for lang in &project.config().languages {
     println!("{lang}");
   }
@@ -11264,10 +11298,14 @@ fn info_project(cwd: Option<&std::path::Path>) {
 ///
 /// **IT ANSWERS IN A PROJECT NOBODY HAS MIGRATED**, through discovery alone and
 /// never `Facade::open`, for `critic`'s reason: its consumer is the commit gate,
-/// which refuses the commit on any refusal from here, so a migration refusal
-/// would block every commit in every unmigrated project.
+/// which refuses the commit on a refusal from here, so a migration refusal
+/// would block every commit in every unmigrated project. **A CONFIG IT CANNOT
+/// READ AT ALL ANSWERS 4**, which the gate fails open on, saying so
+/// ([`context_or_unjudged`]); a guard it reads and refuses answers 1. serde
+/// refuses an unknown key in a guard while the config is parsed, so that one
+/// is the config unread, 4.
 fn guards() -> Result<(), Failure> {
-  let (project, _) = context()?;
+  let (project, _) = context_or_unjudged()?;
   let lines = intentsvcs::project::guard_lines(&project.config().guards)
     .map_err(|e| Failure::Error(e.render()))?;
   for line in lines {

@@ -1699,7 +1699,7 @@ INV_UNCITED="$(jq -r '
 [ -z "$INV_DANGLING" ] || die "citation(s) to undeclared invariant(s):$INV_DANGLING -- the rule text lives in exactly one place, so a citation pointing nowhere is a divergent copy in the direction nobody checks"
 [ -z "$INV_UNCITED" ] || die "declared but never cited:$INV_UNCITED -- an invariant no row references is an orphan that still reads as governing. Cite it or retire it; leaving it is the stale-canon shape."
 
-# INV-04 asserts the shipped surface exits 0, 1, 2 or 3. That is a claim about
+# INV-04 asserts the shipped surface exits 0, 1, 2, 3 or 4. That is a claim about
 # MEASURED data sitting in the same file as the measurements, so it can be
 # checked against them rather than trusted. REPORTS THE DISAGREEMENT AND REFUSES
 # rather than picking a side: a code outside the set means either a genuinely new
@@ -1721,9 +1721,13 @@ INV_UNCITED="$(jq -r '
 # on the first correct data it ever saw. **The same shape as the defect that
 # edit fixed: the 2026-08-20 correction landed in one home and not the other,
 # one file apart, and the home nobody re-reads kept the old value.**
+#
+# **AND IT DRIFTED A SECOND TIME, THE SAME WAY.** INV-04 admitted `4` with
+# issue 0308, `doctor`'s could-not-judge, and this set did not, because no row
+# carried a 4 until `guards` and `lang declared` did (vc's ruling, 2026-10-23).
 EXIT_ODD="$(jq -r '[.families[].entries[] | (.observed.exit // [])[] | .code]
-  | unique | map(select(. != 0 and . != 1 and . != 2 and . != 3)) | join(" ")' "$IN")"
-[ -z "$EXIT_ODD" ] || die "observed exit code(s) outside INV-04's set of 0/1/2/3:$EXIT_ODD -- the canon contradicts its own invariant. Either a new exit path was measured and INV-04 must be updated, or a row is wrong. Decide; this refuses rather than choosing."
+  | unique | map(select(. != 0 and . != 1 and . != 2 and . != 3 and . != 4)) | join(" ")' "$IN")"
+[ -z "$EXIT_ODD" ] || die "observed exit code(s) outside INV-04's set of 0/1/2/3/4:$EXIT_ODD -- the canon contradicts its own invariant. Either a new exit path was measured and INV-04 must be updated, or a row is wrong. Decide; this refuses rather than choosing."
 
 # --- FORMATTER FIXED POINT: the view must survive the repo formatter --------
 #

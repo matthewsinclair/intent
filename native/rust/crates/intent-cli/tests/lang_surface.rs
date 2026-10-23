@@ -338,14 +338,44 @@ fn an_empty_declaration_prints_nothing_at_zero() {
   assert_eq!(stdout(&out), "");
 }
 
-/// Outside a project, `declared` refuses with discovery's own words and remedy.
+/// Outside a project, `declared` refuses with discovery's own words and remedy,
+/// at 4, could not judge, as `doctor` does: the commit gate fails open on 4 and
+/// refuses on 1 (vc's ruling, 2026-10-23).
 #[test]
 fn declared_outside_a_project_refuses_with_discoverys_remedy() {
   let out = run_outside(&["lang", "declared"]);
-  assert_eq!(out.status.code(), Some(1), "stdout: {}", stdout(&out));
+  assert_eq!(out.status.code(), Some(4), "stdout: {}", stdout(&out));
   let err = stderr(&out);
   assert!(err.contains("error: no Intent project found"), "{err}");
   assert!(err.contains("remedy: run `intent init` here"), "{err}");
+}
+
+/// **A CONFIG THE BINARY CANNOT READ IS COULD-NOT-JUDGE, 4** (vc's ruling,
+/// 2026-10-23), with the parse error's position and remedy, and no language
+/// printed: the gate fails open on it, saying so, where it refuses on 1. Text
+/// that is not JSON is one; a well-formed config whose `languages` serde
+/// refuses is a declaration read and refused, 1.
+#[test]
+fn declared_on_a_config_that_is_not_json_answers_four() {
+  let dir = declaring("[]");
+  std::fs::write(
+    dir
+      .path()
+      .join("intent")
+      .join(".config")
+      .join("config.json"),
+    "{ not json\n",
+  )
+  .expect("break the config");
+  let out = declared_from(dir.path());
+  assert_eq!(out.status.code(), Some(4), "stdout: {}", stdout(&out));
+  assert_eq!(stdout(&out), "");
+  let err = stderr(&out);
+  assert!(err.contains("is not valid Intent config"), "{err}");
+  assert!(
+    err.contains("remedy: the parse error above names the position"),
+    "{err}"
+  );
 }
 
 /// **`lang of` IS THE INDEX'S MAP, ASKED BY NAME** (issue 0617): a language on
@@ -365,4 +395,20 @@ fn of_prints_a_paths_language_or_nothing() {
   }
   let out = run_outside(&["lang", "of"]);
   assert_eq!(out.status.code(), Some(1), "no path is a usage error");
+}
+
+/// **A WELL-FORMED CONFIG WHOSE DECLARATION SERDE REFUSES IS A REFUSAL, 1**
+/// (vc's ruling, 2026-10-23): it was read, and the gate refuses the commit on
+/// it, where a config it cannot read at all is 4.
+#[test]
+fn declared_on_a_config_whose_languages_serde_refuses_answers_one() {
+  let dir = declaring(r#""rust""#);
+  let out = declared_from(dir.path());
+  assert_eq!(out.status.code(), Some(1), "stdout: {}", stdout(&out));
+  assert_eq!(stdout(&out), "");
+  assert!(
+    stderr(&out).contains("is not valid Intent config"),
+    "{}",
+    stderr(&out)
+  );
 }

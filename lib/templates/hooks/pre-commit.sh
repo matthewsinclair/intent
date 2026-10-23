@@ -469,11 +469,13 @@ fi
 # dispatches one critic per language. Empty array means no language critics
 # run (only the agnostic checklist applies upstream of this hook).
 
-# **TWO ROUTES REACH AN EMPTY `LANGS` HERE, AND BOTH USED TO BE SILENT**
-# `jq` is not installed, or the array is empty. Each left the
+# **TWO ROUTES REACHED AN EMPTY `LANGS` HERE, AND BOTH USED TO BE SILENT**
+# `jq` was not installed, or the array was empty. Each left the
 # dispatch loop unentered, `UNENFORCED` empty, and the digest below suppressed
 # -- so the gate ran no critic and said nothing about it, which is
-# indistinguishable from a gate that enforced everything.
+# indistinguishable from a gate that enforced everything. The jq route went
+# with the jq read; the empty array is the one route left, and it
+# is named below.
 #
 # **0242 NAMES A THIRD -- AN ABSENT `config.json` -- AND IT CANNOT ARRIVE HERE.**
 # Driven 2026-09-05: the project test at the top of this file `exit 0`s on that
@@ -482,22 +484,49 @@ fi
 # about, one level down. The first build of this fix had exactly that branch;
 # it is removed rather than left in as defence, and the row is corrected.
 #
-# **THE ROUTE IS RECORDED, NOT JUST THE ZERO.** `jq` missing and `languages: []`
-# are different situations with different fixes, and a reader told only that the
-# scope was empty cannot tell which one they are in. `jq` deserves its own line
-# in particular: a machine without it disarms every language critic in the gate
-# on every project, with no message on any path.
+# **THE LANGUAGES ARE THE BINARY'S, READ THROUGH `intent lang declared`.**
+# This read was a jq program of its own beside the binary's
+# `Config.languages`, and a machine without jq disarmed every language critic
+# on every project. The verb reads the field the binary parses, from any
+# directory in the project, and prints one language per line.
+#
+# **A REFUSAL REFUSES THE COMMIT**, as a refusal from
+# `intent guards` does: a gate that cannot say which languages it enforces has
+# not enforced them. The binary's own stderr is what names the cause and its
+# remedy, and it reaches the terminal unchanged because only stdout is
+# captured; the gate adds one line naming the binary that refused.
+#
+# **AND 4 IS NOT A REFUSAL**, as with `intent doctor`'s own 4: the
+# binary answers 4, could not judge, when it cannot read the project's config
+# at all, so there is no declaration to refuse. No language critic runs, the
+# scope line below says why, and `intent doctor`, which answers 4 on the same
+# config, names the cause.
+#
+# **AN EMPTY DECLARATION IS NOT A REFUSAL.** `languages: []` prints nothing at
+# 0, and the scope note below says so, because a reader told only that the
+# scope was empty could not tell it from a gate that read nothing.
 LANGS=()
 SCOPE_NOTE=""
-if ! command -v jq >/dev/null 2>&1; then
-  SCOPE_NOTE="jq is not installed, so the declared languages could not be read at all -- every language critic is disarmed on this machine, in every project"
-else
-  while IFS= read -r lang; do
-    [ -n "$lang" ] && LANGS+=("$lang")
-  done < <(jq -r '(.languages // []) | .[]' intent/.config/config.json 2>/dev/null)
-  if [ "${#LANGS[@]}" -eq 0 ]; then
-    SCOPE_NOTE="intent/.config/config.json declares no languages -- \`languages: []\` is what \`intent init\` leaves behind, so this is the default rather than a decision anyone made"
-  fi
+langs_rc=0
+langs_declared="$(intent lang declared)" || langs_rc=$?
+case "$langs_rc" in
+  0) ;;
+  4)
+    langs_declared=""
+    SCOPE_NOTE="\`intent lang declared\` could not judge this project ($(intent --version 2>/dev/null || echo "\`intent --version\` did not answer")): intent/.config/config.json cannot be read, so its languages are unknown, and \`intent doctor\` names the cause"
+    ;;
+  *)
+    echo "intent critic gate: \`intent lang declared\` refused, so this project's languages are unknown -- this commit is REFUSED ($(intent --version 2>/dev/null || echo "\`intent --version\` did not answer"))." >&2
+    echo "  remedy: the binary's message above names what to fix; then commit again." >&2
+    echo "  to bypass this one commit (use sparingly): git commit --no-verify" >&2
+    exit 1
+    ;;
+esac
+while IFS= read -r lang; do
+  [ -n "$lang" ] && LANGS+=("$lang")
+done <<<"$langs_declared"
+if [ "${#LANGS[@]}" -eq 0 ] && [ -z "$SCOPE_NOTE" ]; then
+  SCOPE_NOTE="intent/.config/config.json declares no languages -- \`languages: []\` is what \`intent init\` leaves behind, so this is the default rather than a decision anyone made"
 fi
 
 # ---- Load severity threshold from .intent_critic.yml ----

@@ -19,9 +19,34 @@ setup() {
 }
 
 stub_critic() {
-  # $1 = exit status, $2 = stdout
-  printf '#!/bin/sh\nprintf "%%s\\n" "%s"\nexit %s\n' "$2" "$1" > "$ADV_BIN/intent"
+  # $1 = exit status, $2 = stdout. `intent lang of` answers $ADV_LANG, `shell`
+  # unless an arm sets it (issue 0617), and every call is logged to
+  # $ADV_BIN/calls so an arm can say which verbs the hook asked.
+  printf '#!/bin/sh\nprintf "%%s\\n" "$*" >> "%s/calls"\nif [ "$1" = lang ] && [ "$2" = of ]; then printf "%%s" "%s"; exit 0; fi\nprintf "%%s\\n" "%s"\nexit %s\n' \
+    "$ADV_BIN" "${ADV_LANG-shell}" "$2" "$1" > "$ADV_BIN/intent"
   chmod +x "$ADV_BIN/intent"
+}
+
+@test "the hook asks \`intent lang of\` for the file's language and keeps no table of its own (issue 0617)" {
+  # Red on the hook that chose the critic from a `case` on the extension: it
+  # never asks the binary, so no `lang of` call is logged.
+  stub_critic 1 "x.sh:2 IN-SH-CODE-001 warning: FINDING-MARKER"
+  run --separate-stderr env PATH="$ADV_BIN:$PATH" CLAUDE_PROJECT_DIR="$ADV_PROJECT" bash "$SCRIPT" <<< "$ADV_PAYLOAD"
+  [ "$status" -eq 0 ]
+  grep -qxF "lang of $ADV_PROJECT/x.sh" "$ADV_BIN/calls" || fail "the hook did not ask the binary: $(cat "$ADV_BIN/calls")"
+  grep -q '^critic shell ' "$ADV_BIN/calls" || fail "the critic was not run for the language it was told: $(cat "$ADV_BIN/calls")"
+  run grep -nE '^[[:space:]]*\*\.[a-z]+[|)]' "$SCRIPT"
+  [ "$status" -eq 1 ] || fail "the hook still carries an extension table: $output"
+}
+
+@test "a file whose extension maps to no language runs no critic and adds nothing (issue 0617)" {
+  ADV_LANG="" stub_critic 1 "x.sh:2 IN-SH-CODE-001 warning: FINDING-MARKER"
+  run --separate-stderr env PATH="$ADV_BIN:$PATH" CLAUDE_PROJECT_DIR="$ADV_PROJECT" bash "$SCRIPT" <<< "$ADV_PAYLOAD"
+  [ "$status" -eq 0 ]
+  [ -z "$output" ] || fail "a file with no language reached the model: $output"
+  if grep -q '^critic ' "$ADV_BIN/calls"; then
+    fail "a critic ran for a file with no language: $(cat "$ADV_BIN/calls")"
+  fi
 }
 
 @test "a clean critic run adds nothing, although the critic printed its census" {
