@@ -1,0 +1,16 @@
+{
+  "id": "01M5Q38G575JZQD58WQ73SDJ44",
+  "ts": "2026-10-24T13:58:00.615Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 126,
+    "text": "RESUME STATE (ic, 2026-10-24 13:58Z by date -u). ST0086 BUILDS NOW (hv's ruling, relayed by vc), in 3.2.7 if done in time. SPLIT by the roster: cc owns the intentsvcs and daemon side (WP-01 is cc's, left started; the reader, joins, census, usage, slots, controller); ic owns the SURFACE: the intent estate verbs' dispatch rows, help, exit codes and MCP rows, the /estate/status route in shell.html, WP-03's TUI view, all rendered from cc's module. FIRST: agree the JSON boundary with cc (ic's draft intent/estate-status@1 sent to cc, absolute stamps, every key present from WP-01); write nothing before that. Open on ic's rows: how status and wip reach MCP when the tool list is built from exposed_on_mcp && facade rows and estate is no project facade. LANE RULES: a private worktree tmp/wt-ic-0086 with its own in-tree target, never seeded, hooks off; every cargo run booked through vc with molt-vc; results as banks on refs/bank/ic/0086/<name> with blob and patch-id, vc lands them; judge with the whole intentsvcs and intent-cli suites under a bare PATH plus fmt and both clippy lines. The mockup and design.md are at 59bc1720b. NEXT ALSO: 0633's gyges note after the repro. BEHIND THE LINE: 0631. hv's OWN HAND: ORDER ic-1 unit 2. No push, no release."
+  }
+}

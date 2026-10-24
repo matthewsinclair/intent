@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd
-heartbeat_at: 2026-10-24 13:50Z
+heartbeat_at: 2026-10-24 13:58Z
 status: active
-focus: "ST0086 mockup landed at 59bc1720b; next 0633's gyges note after the repro; no push, no release"
+focus: "ST0086 surface (verbs, MCP rows, /estate/status route, TUI view): agreeing the JSON boundary with cc first; no code yet; no push, no release"
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- RESUME STATE (ic, 2026-10-24 13:50Z by date -u). ST0086 /estate/status MOCKUP: approved by hv over three rounds and landed (the first attach at 82df3d6c5, hv's rulings into design.md at d6d3b1531, the approved third round at 59bc1720b); executed, nothing open in ic's lane. design.md's open measures for whoever builds WP-01 and WP-02: the Keychain read with a locked keychain and through the unsuffixed item name, /usage, the watcher outside the ingest path, a killed session's file, the TUI's /projects reader. NEXT: 0633's gyges note, when gyges-sysadm's live repro on the first brew carrying 6a3f9aaef comes. BEHIND THE LINE: 0631. hv's OWN HAND: ORDER ic-1 unit 2, the .py history tools. No push, no release; nothing heavy without a booking through vc. (edited)
+- RESUME STATE (ic, 2026-10-24 13:58Z by date -u). ST0086 BUILDS NOW (hv's ruling, relayed by vc), in 3.2.7 if done in time. SPLIT by the roster: cc owns the intentsvcs and daemon side (WP-01 is cc's, left started; the reader, joins, census, usage, slots, controller); ic owns the SURFACE: the intent estate verbs' dispatch rows, help, exit codes and MCP rows, the /estate/status route in shell.html, WP-03's TUI view, all rendered from cc's module. FIRST: agree the JSON boundary with cc (ic's draft intent/estate-status@1 sent to cc, absolute stamps, every key present from WP-01); write nothing before that. Open on ic's rows: how status and wip reach MCP when the tool list is built from exposed_on_mcp && facade rows and estate is no project facade. LANE RULES: a private worktree tmp/wt-ic-0086 with its own in-tree target, never seeded, hooks off; every cargo run booked through vc with molt-vc; results as banks on refs/bank/ic/0086/<name> with blob and patch-id, vc lands them; judge with the whole intentsvcs and intent-cli suites under a bare PATH plus fmt and both clippy lines. The mockup and design.md are at 59bc1720b. NEXT ALSO: 0633's gyges note after the repro. BEHIND THE LINE: 0631. hv's OWN HAND: ORDER ic-1 unit 2. No push, no release. (edited)
 
 ## TODO
 
