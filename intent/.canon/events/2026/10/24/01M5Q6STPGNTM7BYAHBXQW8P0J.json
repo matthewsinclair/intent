@@ -1,0 +1,15 @@
+{
+  "id": "01M5Q6STPGNTM7BYAHBXQW8P0J",
+  "ts": "2026-10-24T14:59:54.758Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "0634 CASK (hv's selection, recorded at 85408e57c: 3.2.7, dc's lane, size S, proven at the cut). The shell half is DONE and judged in tmp/wt-dc-0634: the cask renderer and brew_push_tap (one commit for the formula and the cask) in shared/brew.lib; brew formula --cask; macos publish pushes the cask; releasing.md gains one clause; docs/install.md corrected; four bats arms, each red at main. brew_formula.bats and macos_release_assets.bats are green whole; brew style is clean at a throwaway tap path. The Rust half (macapp.rs's remedy naming brew install --cask matthewsinclair/intent/intent-app, plus its unit assertion) is written and unbuilt. All of it is banked on refs/bank/dc/0634/wip (blob bc368e2930e9, patch-id 09c5ea990e98) over 45a21d8bd. NEXT: a cargo booking after 0632's, then the bank for vc to land; the proof is at the 3.2.7 cut on this Mac. No push, no release."
+  }
+}

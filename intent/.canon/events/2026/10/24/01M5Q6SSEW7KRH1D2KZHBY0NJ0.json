@@ -1,0 +1,16 @@
+{
+  "id": "01M5Q6SSEW7KRH1D2KZHBY0NJ0",
+  "ts": "2026-10-24T14:59:52.924Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 138,
+    "text": "0632 CODE written and banked, UNBUILT (hv's order; vc ruling (a): Written gains removed, the one printer prints removed: <path>). The drive is banked on refs/bank/dc/0632/drive.sh (blob 1e45c2580287). The WIP is banked on refs/bank/dc/0632/wip (blob 322e1f7dca26, patch-id 974333db124a) over 935092cc2, in tmp/wt-dc-0632 (own cold target, hooks off). It carries: facade.rs (pub written_from, the one split; removed drained with landed; dehydrate, organize --apply, renumber moves and stale files, agents_sync and claude_upgrade noted); render.rs (print_written ends hydrate, dehydrate, organize --apply, sync in every direction, both renumbers, agents sync, claude upgrade --apply, init and lang); vc's rulings applied: lang remove says undeclared:, and claude upgrade's written: list is gone on apply; six new arms plus a no-op control in every_verb_names_the_files_it_wrote.rs, and two existing tests moved to the printer's form. NEXT: step 1 (scratchpad/0632/run-0632a.sh) BOOKED with molt-vc after the compact; START and END to molt-vc and vc by name; then the full judge and its control, then the bank for vc to land. vc corrects restart.md and wip.md at the landing. No push, no release."
+  }
+}
