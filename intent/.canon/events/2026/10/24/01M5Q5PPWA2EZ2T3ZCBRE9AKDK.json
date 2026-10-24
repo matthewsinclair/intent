@@ -1,0 +1,15 @@
+{
+  "id": "01M5Q5PPWA2EZ2T3ZCBRE9AKDK",
+  "ts": "2026-10-24T14:40:43.406Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0638"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "st dehydrate, st renumber and issues renumber leave the store's file_index row for every path they remove"
+  }
+}
