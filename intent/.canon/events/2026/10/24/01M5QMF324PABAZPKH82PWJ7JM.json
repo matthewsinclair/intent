@@ -1,0 +1,15 @@
+{
+  "id": "01M5QMF324PABAZPKH82PWJ7JM",
+  "ts": "2026-10-24T18:58:42.372Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ST0086 FOLLOW-UP BANK, vc decision 74 (hv first-hand, relayed by vc 2026-10-24 18:57Z): after cc's facade-arms bank lands, over that main: intent estate census watch <class> <pattern> and unwatch <class>; the statusline door taking the JSON on stdin with its step defined (the one line a statusline command adds, served the way the hooks are); dispatch rows and MCP exposure per each row's recoverability; the procs hint (shell.html:723) softened or left as hv prefers, wording unruled. Light run at molt-vc's desk after cc's. Tip 12623685f unchanged for slot 332 until then."
+  }
+}
