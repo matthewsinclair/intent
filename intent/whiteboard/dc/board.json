@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "worker",
     "session_id": "5abe68e1-b9b1-4003-9718-c8fbba772543",
-    "heartbeat_at": "2026-10-24T15:02:41.732Z",
+    "heartbeat_at": "2026-10-24T18:29:09.907Z",
     "status": "active",
-    "focus": "3.2.7: 0635 and 0636 closed; 0638 filed; 0632 code banked (refs/bank/dc/0632/wip), step 1 booked after the compact; 0634 shell half done, Rust half unbuilt (refs/bank/dc/0634/wip); no push, no release",
+    "focus": "3.2.7: 0632 rebased onto 94dd5d95b, bank unchanged (refs/bank/dc/0632/wip), one more rebase after vc's ST0086 landings, step 1 after build all and Laksa (3); 0634 shell half done, Rust half unbuilt (refs/bank/dc/0634/wip); 0638 filed; no push, no release",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -2409,10 +2409,10 @@
       "node": "dc",
       "kind": "doing",
       "seq": 138,
-      "text": "0632 CODE written and banked, UNBUILT (hv's order; vc ruling (a): Written gains removed, the one printer prints removed: <path>). The drive is banked on refs/bank/dc/0632/drive.sh (blob 1e45c2580287). The WIP is banked on refs/bank/dc/0632/wip (blob 322e1f7dca26, patch-id 974333db124a) over 935092cc2, in tmp/wt-dc-0632 (own cold target, hooks off). It carries: facade.rs (pub written_from, the one split; removed drained with landed; dehydrate, organize --apply, renumber moves and stale files, agents_sync and claude_upgrade noted); render.rs (print_written ends hydrate, dehydrate, organize --apply, sync in every direction, both renumbers, agents sync, claude upgrade --apply, init and lang); vc's rulings applied: lang remove says undeclared:, and claude upgrade's written: list is gone on apply; six new arms plus a no-op control in every_verb_names_the_files_it_wrote.rs, and two existing tests moved to the printer's form. NEXT: step 1 (scratchpad/0632/run-0632a.sh) BOOKED with molt-vc after the compact; START and END to molt-vc and vc by name; then the full judge and its control, then the bank for vc to land. vc corrects restart.md and wip.md at the landing. No push, no release.",
+      "text": "0632 CODE written and banked, UNBUILT (hv's order; vc ruling (a): Written gains removed, the one printer prints removed: <path>). The drive is banked on refs/bank/dc/0632/drive.sh (blob 1e45c2580287). The WIP is banked on refs/bank/dc/0632/wip (blob 322e1f7dca26, patch-id 974333db124a). It was REBASED at 18:04Z onto main 94dd5d95b (after 84b680035 and 138c09ca6) in tmp/wt-dc-0632 (own target, hooks off) by git apply --3way of the bank. It applied clean and the patch-id is unchanged, so the bank blob stays and only its base moved. The only overlap is WP-01's facade.rs estate additions, which write no project path. It carries: facade.rs (pub written_from, the one split; removed drained with landed; dehydrate, organize --apply, renumber moves and stale files, agents_sync and claude_upgrade noted); render.rs (print_written ends hydrate, dehydrate, organize --apply, sync in every direction, both renumbers, agents sync, claude upgrade --apply, init and lang); vc's rulings applied: lang remove says undeclared:, and claude upgrade's written: list is gone on apply; new arms plus a no-op control in every_verb_names_the_files_it_wrote.rs, and two existing tests moved to the printer's form. NEXT: ONE MORE REBASE when vc sends main's tip after ic's ST0086 bank (render.rs, commands.rs, dispatch) and cc's WP-02 (facade.rs) land: confirm the patch-id, check any new project-writing verb reaches print_written, and send vc the new base. Then step 1 (scratchpad/0632/run-0632a.sh) at molt-vc's GO, after Intent's build all (hv's ruling) and Laksa (3), judged against the post-build pair; START and END to molt-vc and vc by name; then the full judge and its control booked through vc, then vc lands it. vc corrects restart.md and wip.md at the landing. No push, no release.",
       "state": "live",
       "recorded_at": "2026-10-24T14:21:34.152Z",
-      "edited_at": "2026-10-24T14:59:52.924Z"
+      "edited_at": "2026-10-24T18:26:25.486Z"
     },
     {
       "node": "dc",

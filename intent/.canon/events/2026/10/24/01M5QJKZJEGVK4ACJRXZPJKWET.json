@@ -1,0 +1,16 @@
+{
+  "id": "01M5QJKZJEGVK4ACJRXZPJKWET",
+  "ts": "2026-10-24T18:26:25.486Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 138,
+    "text": "0632 CODE written and banked, UNBUILT (hv's order; vc ruling (a): Written gains removed, the one printer prints removed: <path>). The drive is banked on refs/bank/dc/0632/drive.sh (blob 1e45c2580287). The WIP is banked on refs/bank/dc/0632/wip (blob 322e1f7dca26, patch-id 974333db124a). It was REBASED at 18:04Z onto main 94dd5d95b (after 84b680035 and 138c09ca6) in tmp/wt-dc-0632 (own target, hooks off) by git apply --3way of the bank. It applied clean and the patch-id is unchanged, so the bank blob stays and only its base moved. The only overlap is WP-01's facade.rs estate additions, which write no project path. It carries: facade.rs (pub written_from, the one split; removed drained with landed; dehydrate, organize --apply, renumber moves and stale files, agents_sync and claude_upgrade noted); render.rs (print_written ends hydrate, dehydrate, organize --apply, sync in every direction, both renumbers, agents sync, claude upgrade --apply, init and lang); vc's rulings applied: lang remove says undeclared:, and claude upgrade's written: list is gone on apply; new arms plus a no-op control in every_verb_names_the_files_it_wrote.rs, and two existing tests moved to the printer's form. NEXT: ONE MORE REBASE when vc sends main's tip after ic's ST0086 bank (render.rs, commands.rs, dispatch) and cc's WP-02 (facade.rs) land: confirm the patch-id, check any new project-writing verb reaches print_written, and send vc the new base. Then step 1 (scratchpad/0632/run-0632a.sh) at molt-vc's GO, after Intent's build all (hv's ruling) and Laksa (3), judged against the post-build pair; START and END to molt-vc and vc by name; then the full judge and its control booked through vc, then vc lands it. vc corrects restart.md and wip.md at the landing. No push, no release."
+  }
+}
