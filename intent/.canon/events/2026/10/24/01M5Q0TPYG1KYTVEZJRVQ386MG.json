@@ -1,0 +1,16 @@
+{
+  "id": "01M5Q0TPYG1KYTVEZJRVQ386MG",
+  "ts": "2026-10-24T13:15:31.664Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 136,
+    "text": "CI-RED ON THE v3.2.6 TAG (issue 0637). LANDED: fix-c at 660ac1492 (explorer_shots passes openpty's window size as a typed *mut; the kovacs preflight runs every rust.yml Linux line before the build, the failing step named on the summary's first line, a steps: second line) and fix-e at d822aa204 (the leg's PATH is a per-run directory of links to exactly the tools it runs, then the system dirs, so no installed intent is on it; brew's intent shares kovacs's rust directory). fix, fix-b and fix-d are superseded banks. NEXT: vc's kovacs preflight at e39e60104, the first under the widened order, is the Linux proof and closes 0637; vc sends the summary if a step reds. Then tmp/wt-dc-ci326 can go. No push, no release."
+  }
+}

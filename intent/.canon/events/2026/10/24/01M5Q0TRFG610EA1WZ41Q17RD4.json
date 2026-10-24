@@ -1,0 +1,16 @@
+{
+  "id": "01M5Q0TRFG610EA1WZ41Q17RD4",
+  "ts": "2026-10-24T13:15:33.232Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 135,
+    "text": "0635 REWORK FOR 3.2.7 (ISSUE:0635 claimed by dc). THE RED READ: bb's write in the scan arm was refused by require_migrated's refuse_if_the_store_lacks_any (0554 (b)): aa is migrated (wb register stamps migrated_at) and its file no longer matches the index's sha, so every board verb but registration and the migration refuses before writing; the bank's arm expected the leave instead. The restore has no such gate, which is 0635's bug, and the bank's leave fixes it. THE REWORK is on refs/bank/dc/0635/fix-b (blob b157309b193c, patch-id cd7343bb3cc4) over main e39e60104 in tmp/wt-dc-0635: the scan arm asserts the refusal, a no-scan arm probes that the refusal needs no scan, leave_boards' doc names each door, and the CHANGELOG line sits under [Unreleased]. NEXT: one cargo slot booked through vc with molt-vc (the arms, then the judging run); the refuse-or-leave call for the board write is vc's. No push, no release."
+  }
+}
