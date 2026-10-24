@@ -220,40 +220,195 @@ check_markdown() {
 
 # ---- elixir, via mix format ----
 #
-# The probe sits beside the original so `.formatter.exs` resolution is the
-# file's own, including a plugin an umbrella app declares.
+# WHICH STAGED FILES ARE ELIXIR'S IS THE PROJECT'S OWN ANSWER, READ FROM ITS
+# .formatter.exs, AND NEVER A LIST HERE. A Phoenix project's `inputs` name
+# `*.{heex,ex,exs}` and its HTMLFormatter plugin formats the templates, so a
+# check on `.ex` and `.exs` alone passed every unformatted template, and the
+# project's own `mix format --check-formatted` refused it afterwards. An
+# umbrella's root names few inputs and hands each app its own .formatter.exs
+# through `subdirectories`, so those are read as well. A project with no
+# .formatter.exs is checked on `.ex` and `.exs`, mix's own default.
+#
+# THE READ IS OF THE TEXT, NOT AN EVALUATION, because evaluating the file would
+# boot Elixir on every commit, whether or not it stages any. It takes the
+# extension each quoted glob names in its last path segment, so it cannot see a
+# brace group holding a `/`, or inputs computed from a variable. A file it reads
+# no extension from REFUSES, naming the fix: a formatter config the gate cannot
+# read is a broken tree, and a guess would pass the very files it formats.
+
+# The quoted strings inside the list that follows `$2:` in the .formatter.exs at
+# $1, one per line. The list may span lines, and it ends at its first `]`
+# outside a string, so a character class inside a glob does not end it.
+formatter_list() {
+  awk -v key="$2:" '
+    {
+      if (!on) {
+        i = index($0, key)
+        if (i == 0) next
+        s = substr($0, i + length(key))
+        on = 1
+      } else {
+        s = $0
+      }
+      inq = 0
+      for (k = 1; k <= length(s); k++) {
+        c = substr(s, k, 1)
+        if (inq) {
+          if (c == "\"") { print cur; inq = 0 } else { cur = cur c }
+        } else if (c == "\"") {
+          inq = 1
+          cur = ""
+        } else if (c == "]") {
+          exit
+        }
+      }
+    }' "$1" 2>/dev/null
+}
+
+# The extensions one glob names, from its last path segment: the brace group
+# after its last dot, or the text after that dot. Anything but a plain name is
+# dropped, so a `*.*` cannot widen the selection to every staged file.
+glob_exts() {
+  local seg="${1##*/}" tail e
+  case "$seg" in
+    *.*) tail="${seg##*.}" ;;
+    *) return 0 ;;
+  esac
+  tail="${tail//\{/}"
+  tail="${tail//\}/}"
+  local IFS=,
+  # shellcheck disable=SC2086 # split on purpose, at the commas IFS names
+  for e in $tail; do
+    case "$e" in
+      '' | *[!A-Za-z0-9_]*) ;;
+      *) printf '%s\n' "$e" ;;
+    esac
+  done
+}
+
+# The extensions the .formatter.exs in directory $1 names in its inputs, with
+# those of each subdirectory it hands a .formatter.exs of its own, to $2 levels
+# below it.
+elixir_exts() {
+  local dir="$1" depth="$2" g sub
+  [ -f "$dir/.formatter.exs" ] || return 0
+  while IFS= read -r g; do
+    glob_exts "$g"
+  done < <(formatter_list "$dir/.formatter.exs" inputs)
+  [ "$depth" -gt 0 ] || return 0
+  while IFS= read -r g; do
+    # shellcheck disable=SC2086 # unquoted on purpose: the glob is mix's own
+    for sub in $dir/$g; do
+      [ -f "$sub/.formatter.exs" ] && elixir_exts "$sub" $((depth - 1))
+    done
+  done < <(formatter_list "$dir/.formatter.exs" subdirectories)
+}
+
+# ONE `mix format --check-formatted` OVER EVERY STAGED PROBE, because each call
+# boots the VM, and a commit staging many templates paid one boot per file. Each
+# probe sits beside its original, so `.formatter.exs` resolution is the file's
+# own, including a plugin an umbrella app declares, and its leading dot keeps
+# mix's compiler from reading it as a source file.
+#
+# mix names each unformatted file by its ABSOLUTE path, on a line of its own
+# inside its colour codes, so a probe is matched by its whole path and never by
+# its name, which two directories can share. An error in any one file ends the
+# call before mix lists anything, so a call that ends in anything but that
+# listing is asked again a file at a time: the error then belongs to the file
+# that caused it, and every other file still gets a verdict of its own. mix
+# exits 1 for an unformatted file AND for one it cannot parse, so only its own
+# `--check-formatted` line names the unformatted case; anything else is an
+# error, reported as not checked, with its first line.
 check_elixir() {
-  staged_files '*.ex' '*.exs'
+  local exts e
+  local -a patterns=()
+  if [ -f .formatter.exs ]; then
+    exts="$(elixir_exts . 3 | LC_ALL=C sort -u)"
+    if [ -z "$exts" ]; then
+      note "REFUSED -- .formatter.exs names no file extension this guard can read in its inputs, so which staged files mix formats is unknown."
+      note "  fix:   write its inputs as literal globs, eg \"*.{heex,ex,exs}\" and \"{config,lib,test}/**/*.{heex,ex,exs}\""
+      exit 1
+    fi
+  else
+    exts="$(printf 'ex\nexs\n')"
+  fi
+  while IFS= read -r e; do
+    patterns+=("*.$e")
+  done <<EOF
+$exts
+EOF
+  staged_files "${patterns[@]}"
   [ "${#STAGED[@]}" -gt 0 ] || return 0
   if ! command -v mix >/dev/null 2>&1; then
     UNENFORCED="$UNENFORCED elixir(mix)"
     return 0
   fi
-  local f probe err bad="" unmeasured=""
+  local f probe out err i top esc nl='
+' bad="" unmeasured="" listed=0
+  local -a originals=() probes=()
   for f in "${STAGED[@]}"; do
-    CHECKED=$((CHECKED + 1))
-    probe="$(dirname "$f")/.staged-check-$$.$(basename "$f")"
+    case "$f" in
+      */*) probe="$(dirname "$f")/.staged-check-$$.$(basename "$f")" ;;
+      *) probe=".staged-check-$$.$f" ;;
+    esac
     PROBES="$PROBES
 $probe"
     if git show ":$f" > "$probe" 2>/dev/null; then
-      # mix exits 1 for an unformatted file AND for one it cannot parse, so the
-      # exit code cannot say which. Its own `--check-formatted`
-      # line names the unformatted case; anything else is an error, reported
-      # as not checked, with its first line.
-      if ! err="$(mix format --check-formatted "$probe" 2>&1 >/dev/null)"; then
-        case "$err" in
-          *--check-formatted*) bad="$bad
-      $f" ;;
-          *)
-            CHECKED=$((CHECKED - 1))
-            err="${err//$(basename "$probe")/$(basename "$f")}"
-            unmeasured="$unmeasured
-      $f: $(printf '%s' "$err" | grep -v '^mix format failed for file' | head -1)" ;;
-        esac
+      originals+=("$f")
+      probes+=("$probe")
+    else
+      rm -f "$probe"
+      unmeasured="$unmeasured
+      $f: its staged blob could not be read"
+    fi
+  done
+  if [ "${#probes[@]}" -gt 0 ]; then
+    if out="$(mix format --check-formatted "${probes[@]}" 2>&1 >/dev/null)"; then
+      CHECKED=$((CHECKED + ${#probes[@]}))
+    else
+      case "$out" in
+        *--check-formatted*)
+          top="$(pwd -P)"
+          esc="$(printf '\033')"
+          out="$(printf '%s\n' "$out" | sed "s/${esc}\[[0-9;]*m//g")"
+          for i in "${!probes[@]}"; do
+            case "$nl$out$nl" in
+              *"$nl$top/${probes[$i]}$nl"*)
+                bad="$bad
+      ${originals[$i]}"
+                listed=1
+                ;;
+            esac
+          done
+          ;;
+      esac
+      if [ "$listed" = 1 ]; then
+        CHECKED=$((CHECKED + ${#probes[@]}))
+      else
+        for i in "${!probes[@]}"; do
+          if err="$(mix format --check-formatted "${probes[$i]}" 2>&1 >/dev/null)"; then
+            CHECKED=$((CHECKED + 1))
+          else
+            case "$err" in
+              *--check-formatted*)
+                CHECKED=$((CHECKED + 1))
+                bad="$bad
+      ${originals[$i]}"
+                ;;
+              *)
+                err="${err//$(basename "${probes[$i]}")/$(basename "${originals[$i]}")}"
+                unmeasured="$unmeasured
+      ${originals[$i]}: $(printf '%s' "$err" | grep -v '^mix format failed for file' | head -1)"
+                ;;
+            esac
+          fi
+        done
       fi
     fi
-    rm -f "$probe"
-  done
+    for i in "${!probes[@]}"; do
+      rm -f "${probes[$i]}"
+    done
+  fi
   [ -n "$bad" ] && refuse_files "elixir" "$bad" "mix format <the files listed above>"
   [ -n "$unmeasured" ] && unmeasured_files "elixir" "$unmeasured"
   return 0

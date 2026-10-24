@@ -43,6 +43,14 @@
 # unrecognised formatter is refused, naming the closed vocabulary) and arm 11
 # (the rust edition is resolved, and a default is disclosed in the verdict).
 #
+# ISSUE 0629's ARMS, at the end of the file, each named for what it holds: which
+# staged files are Elixir's is the project's .formatter.exs (a template its
+# formatter formats is refused unformatted; an umbrella app's own file decides
+# under it; no .formatter.exs keeps `.ex` and `.exs`; inputs naming no
+# extension refuse), and mix runs once for them all (counted by a shim that
+# forwards to the real mix), with an error in one file leaving every other its
+# own verdict.
+#
 # AND THE LIMIT, SAID PLAINLY: nothing machine-checks this mapping. It is a
 # reader's aid, not a gate -- an arm renamed or a clause reworded leaves it
 # stale and silent, and only a reader catches that.
@@ -52,8 +60,8 @@
 # is the guard's VERDICT cannot be measured with that formatter absent -- the
 # guard takes its `command -v` branch, records the language UNENFORCED and
 # refuses nothing, which is correct behaviour and makes the arm meaningless.
-# Nine of the twelve arms carry such a precondition: four on prettier, five on
-# rustfmt. They now say so with `require_tool`, and FAIL naming the tool.
+# Every such arm carries the precondition, on prettier, rustfmt or mix, and says
+# so with `require_tool`, which FAILS naming the tool.
 #
 # **THE ASYMMETRY IS WHAT MAKES THIS WORTH DECLARING, AND IT WAS MEASURED IN
 # ONE RUN RATHER THAN REASONED ABOUT.** In run 35739715195, with prettier
@@ -70,12 +78,13 @@
 # that asserted a REFUSAL went red and got reported; the two that asserted an
 # ABSENCE went green and got no attention. **An arm asserting the absence of an
 # output is the one a missing tool satisfies for free**, which is why the
-# preconditions are declared on all nine and not only on the two CI named.
+# preconditions are declared on every such arm and not only on the two CI named.
 #
 # AND THE ONE THAT NEEDS NO TOOL, SO THE POPULATION IS NOT JUST "ALL OF THEM":
 # arm 7 asserts what the guard does when rustfmt is ABSENT, and constructs that
 # absence itself; arm 1 (no formatters declared) and arm 8 (an unrecognised
-# formatter name) are answered from config before any tool is consulted.
+# formatter name) are answered from config before any tool is consulted, and so
+# is the refusal of a .formatter.exs whose inputs name no extension.
 
 load "../lib/test_helper.bash"
 
@@ -363,4 +372,160 @@ formatted_rust() { printf 'fn main() {\n    let x = 1;\n    println!("{}", x);\n
   run bash "$GUARD"
   [ "$status" -eq 0 ]
   [[ "$output" == *"ok --"* ]]
+}
+
+# ISSUE 0629: WHICH STAGED FILES ARE ELIXIR'S IS THE PROJECT'S .formatter.exs,
+# AND mix IS BOOTED ONCE FOR THEM ALL. The guard checked `.ex` and `.exs` alone,
+# so a Phoenix project's unformatted `.heex` templates passed it and failed the
+# project's own `mix format --check-formatted` in CI, and it booted mix once
+# per staged file.
+#
+# THE PLUGIN IS THE FIXTURE'S OWN, compiled by mix itself on first use, because
+# Phoenix's HTMLFormatter would need a dependency fetch the runner cannot make.
+# What the arm proves does not depend on whose plugin it is: mix hands a `.heex`
+# file to the plugin that claims the extension, and the guard's subject is
+# whether the file reaches mix at all.
+heex_project() {
+  scratch_repo '"elixir"'
+  cat > mix.exs <<'EOF'
+defmodule Fixture.MixProject do
+  use Mix.Project
+  def project, do: [app: :fixture, version: "0.1.0"]
+end
+EOF
+  mkdir -p lib
+  cat > lib/heex_formatter.ex <<'EOF'
+defmodule Fixture.HeexFormatter do
+  @behaviour Mix.Tasks.Format
+  @impl true
+  def features(_opts), do: [extensions: [".heex"]]
+  @impl true
+  def format(contents, _opts), do: String.replace(contents, ~r/[ \t]+$/m, "")
+end
+EOF
+  printf '[\n  plugins: [Fixture.HeexFormatter],\n  inputs: ["*.{heex,ex,exs}", "{config,lib,test}/**/*.{heex,ex,exs}"]\n]\n' > .formatter.exs
+  git add mix.exs lib/heex_formatter.ex .formatter.exs
+  git commit -q -m "a project whose formatter formats its templates"
+}
+
+# THE COUNTING SHIM FORWARDS TO THE REAL mix, so an arm that uses it still drives
+# the real formatter: it records each call's arguments in $MIX_CALLS, one line
+# per call, and execs mix with them unchanged. $1 is the directory it goes in.
+mix_shim() {
+  local real
+  real="$(command -v mix)"
+  mkdir -p "$1"
+  cat > "$1/mix" <<EOF
+#!/usr/bin/env bash
+printf '%s\n' "\$*" >> "\$MIX_CALLS"
+exec "$real" "\$@"
+EOF
+  chmod +x "$1/mix"
+}
+
+@test "an unformatted staged .heex is refused when the project's .formatter.exs names heex" {
+  require_tool mix "whether a template the project's formatter formats is checked"
+  heex_project
+  printf '<div>   \n  <p>hi</p>\n</div>\n' > page.heex
+  git add page.heex
+  run bash "$GUARD"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"elixir is not formatted"* ]]
+  [[ "$output" == *"page.heex"* ]]
+
+  # THE CONTROL, same project: the formatted template passes, and is counted.
+  printf '<div>\n  <p>hi</p>\n</div>\n' > page.heex
+  git add page.heex
+  run bash "$GUARD"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"ok -- 1 staged file(s) checked"* ]]
+}
+
+# ONE CALL, AND EACH FILE NAMED BY ITS OWN PATH. Two files share a name in two
+# directories, one formatted and one not, so a guard matching mix's listing by
+# name would refuse both or neither.
+@test "mix runs once over every staged Elixir file, and the refusal names each unformatted one by its path" {
+  require_tool mix "how many times the guard boots mix"
+  scratch_repo '"elixir"'
+  mix_shim "$TEST_TEMP_DIR/shim"
+  mkdir -p lib/a lib/b
+  printf 'defmodule A do\ndef f(x),   do: x\nend\n' > lib/a/same.ex
+  printf 'defmodule B do\n  def f(x), do: x\nend\n' > lib/b/same.ex
+  printf 'defmodule C do\ndef g(y),   do: y\nend\n' > c.exs
+  git add lib/a/same.ex lib/b/same.ex c.exs
+  run env PATH="$TEST_TEMP_DIR/shim:$PATH" MIX_CALLS="$TEST_TEMP_DIR/mix-calls" bash "$GUARD"
+  [ "$status" -eq 1 ]
+  [ "$(wc -l < "$TEST_TEMP_DIR/mix-calls" | tr -d ' ')" = 1 ]
+  [[ "$output" == *"lib/a/same.ex"* ]]
+  [[ "$output" != *"lib/b/same.ex"* ]]
+  [[ "$output" == *"c.exs"* ]]
+}
+
+# AN ERROR IN ONE FILE LEAVES EVERY OTHER ITS OWN VERDICT. mix stops at the first
+# file it cannot parse and lists nothing, so a guard that took that one call's
+# answer for every file would pass the unformatted file staged beside it.
+@test "a staged Elixir file mix cannot parse does not hide an unformatted one beside it" {
+  require_tool mix "whether a parse error hides another staged file's verdict"
+  scratch_repo '"elixir"'
+  printf 'defmodule A do\n  def f(x) do\n    (x\n  end\nend\n' > bad.ex
+  printf 'defmodule B do\ndef f(x),   do: x\nend\n' > ugly.ex
+  git add bad.ex ugly.ex
+  run bash "$GUARD"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"elixir is not formatted"* ]]
+  [[ "$output" == *"ugly.ex"* ]]
+  [[ "$output" == *"could not be checked"* ]]
+  [[ "$output" == *"bad.ex"* ]]
+}
+
+@test "with no .formatter.exs only .ex and .exs reach mix, as before" {
+  require_tool mix "which staged files reach mix when the project has no .formatter.exs"
+  scratch_repo '"elixir"'
+  mix_shim "$TEST_TEMP_DIR/shim"
+  printf '<div>   \n</div>\n' > page.heex
+  printf 'defmodule A do\ndef f(x),   do: x\nend\n' > ugly.ex
+  git add page.heex ugly.ex
+  run env PATH="$TEST_TEMP_DIR/shim:$PATH" MIX_CALLS="$TEST_TEMP_DIR/mix-calls" bash "$GUARD"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"ugly.ex"* ]]
+  run grep -q 'ugly\.ex' "$TEST_TEMP_DIR/mix-calls"
+  [ "$status" -eq 0 ]
+  run grep -q 'heex' "$TEST_TEMP_DIR/mix-calls"
+  [ "$status" -eq 1 ]
+}
+
+# AN UMBRELLA'S APP DECIDES FOR ITS OWN FILES. The root names no template, as an
+# umbrella's root does, and the app's own .formatter.exs names them, so the read
+# must follow `subdirectories` to see them at all.
+@test "an umbrella app's own .formatter.exs decides which of its staged files reach mix" {
+  require_tool mix "whether a template under an umbrella app reaches mix"
+  scratch_repo '"elixir"'
+  mix_shim "$TEST_TEMP_DIR/shim"
+  mkdir -p apps/web/lib
+  printf '[\n  inputs: ["mix.exs", "config/*.exs"],\n  subdirectories: ["apps/*"]\n]\n' > .formatter.exs
+  printf '[\n  inputs: ["*.{heex,ex,exs}", "{config,lib,test}/**/*.{heex,ex,exs}"]\n]\n' > apps/web/.formatter.exs
+  git add .formatter.exs apps/web/.formatter.exs
+  git commit -q -m "an umbrella"
+  printf '<div>\n</div>\n' > apps/web/lib/page.heex
+  git add apps/web/lib/page.heex
+  run env PATH="$TEST_TEMP_DIR/shim:$PATH" MIX_CALLS="$TEST_TEMP_DIR/mix-calls" bash "$GUARD"
+  [ "$status" -eq 0 ]
+  run grep -q 'apps/web/lib/\.staged-check-[0-9]*\.page\.heex' "$TEST_TEMP_DIR/mix-calls"
+  [ "$status" -eq 0 ]
+}
+
+# A .formatter.exs THE GUARD CANNOT READ REFUSES, NAMING THE FIX. Inputs that
+# name no extension leave which staged files mix formats unknown, and a guess
+# would pass the very files the project formats. Answered before mix is asked.
+@test "a .formatter.exs whose inputs name no extension is refused, naming the fix" {
+  scratch_repo '"elixir"'
+  printf '[\n  import_deps: [:ecto]\n]\n' > .formatter.exs
+  git add .formatter.exs
+  git commit -q -m "a formatter config with no inputs"
+  printf 'defmodule A do\nend\n' > a.ex
+  git add a.ex
+  run bash "$GUARD"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *".formatter.exs names no file extension"* ]]
+  [[ "$output" == *"write its inputs as literal globs"* ]]
 }
