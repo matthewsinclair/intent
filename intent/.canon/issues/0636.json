@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 636,
+  "slug": "fix-in-session-skill-to-safely-handle-being-run",
+  "title": "Fix /in-session skill to safely handle being run in non-Intent projects",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-10-24",
+  "reporter": "Matthew Sinclair",
+  "body": ""
+}

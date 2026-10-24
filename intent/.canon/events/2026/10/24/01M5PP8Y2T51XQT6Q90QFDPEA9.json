@@ -1,0 +1,15 @@
+{
+  "id": "01M5PP8Y2T51XQT6Q90QFDPEA9",
+  "ts": "2026-10-24T10:11:03.389Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0636"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "Fix /in-session skill to safely handle being run in non-Intent projects"
+  }
+}
