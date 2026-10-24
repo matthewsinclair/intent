@@ -1,0 +1,16 @@
+{
+  "id": "01M5P8JTF7PYVK31835Y3VNPP3",
+  "ts": "2026-10-24T06:11:47.303Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 135,
+    "text": "0635 DROPPED TO 3.2.7 (hv's one-run ruling; vc's attribution). It stays OPEN; ISSUE:0635 stays claimed by dc.\n  - THE RED: one stacked run on hv's Go at 29c658790 (refs/bank/dc/0635/run.sh). The bank's own arm a_full_scan_between_the_checkout_and_the_write_does_not_read_a_moved_board_as_unmoved failed at 126:20: bb's own write was refused with WbBoardsNotInTheStore for aa, after two full ingest passes and the scoped restore. Everything else was green, and the control was exact. The record and the stamps were committed at 3aa352cf6.\n  - THE BANK stays on refs/bank/dc/0635/fix (blob e5799abfb283), unlanded. tmp/wt-dc-0635 stays as it is through the cut.\n  - NEXT, for 3.2.7: find why a scan-moved board's write path refuses rather than leaves, fix it, and send it through a new one-run judgement. The class beyond the fix is in intent/wip.md TODO.\n  No push, no release."
+  }
+}

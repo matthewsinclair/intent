@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 5abe68e1-b9b1-4003-9718-c8fbba772543
-heartbeat_at: 2026-10-23 21:47Z
+heartbeat_at: 2026-10-24 06:11Z
 status: active
-focus: "Closed for the night (hv): resume with 0635's stacked run on vc's GO, then the 3.2.6 known-defects re-drive after build all #2; no push, no release"
+focus: "3.2.6 pre-cut lane done (0629 landed and closed, the known-defects page re-driven); 0635 to 3.2.7; frozen until the tag; no push, no release"
 claims: [ISSUE:0635]
 ---
 
@@ -13,36 +13,16 @@ claims: [ISSUE:0635]
 
 ## DOING
 
-- RESUME STATE at the close, on hv's call (2026-10-23). Nothing heavy until vc's GO. (edited)
-  - FIRST: 0635's stacked run on vc's GO (doing 135).
-  - THEN, on vc's GO after build all #2 on the final HEAD: the 3.2.6 known-defects re-drive.
-    - The drive is refs/bank/dc/kd326/drive.sh (blob de3278753b8f), and REPO is tmp/wt-dc-kd326, made at the final HEAD at START.
-    - Every entry is diffed against 3.2.5's final log, and the page is rewritten and retitled for v3.2.6.
-    - Its commit goes to vc before the cut's step 3, so the tag carries it.
-  - THE PREFLIGHT:
-    - hv's kovacs re-run at 95bf1c6a5 uses the two lines the gate printed; vc carries them.
-    - kovacs needs prettier@3 and OTP 29 / Elixir 1.20 at CI's pins. vc ruled out any waiver path.
-  - 0629 (.heex in the staged-format guard): next session.
-  No push, no release.
-- ORDER dc-4 (vc, 2026-10-23): issue 0635, a board git moved after the store recorded it takes the store's older render. It is 0614's class, not 0630's (ORDER dc-3's measurement). (edited)
-  - FILED at cfece3efe, medium; ISSUE:0635 claimed.
-  - BANKED, UNRUN: refs/bank/dc/0635/fix (blob e5799abfb283, patch-id 70d5baeaa641) on base tree T2 9b11789c0486. T2 is b45334e66 plus cc's compose-c, run as a copy aimed at tmp/wt-dc-0635, plus templates-i. T2 plus the bank is T3 06e3559019f7, the worktree's tree.
-  - THE FIX is one definition at two doors:
-    - model::board_left_unrecorded reads the Clean row's sha;
-    - Facade::leave_boards serves land_board_write and sync_from_disk;
-    - `sync --to-store` prints the facade's notes;
-    - a CHANGELOG line under 3.2.6.
-  - THE ARMS are in intentsvcs/tests/a_board_git_moved_under_the_store_is_left.rs: the repro, and a variant with two full ingest passes between the checkout and the writes.
-  - NEXT, on vc's GO: the one stacked run in tmp/wt-dc-0635.
-    - Green rides 3.2.6; red drops to 3.2.7 with no second try (hv).
-    - The run: cargo build -p intentd, fmt --check, clippy over every target, CI's doc line, and the whole intentsvcs, intent-cli and intentd suites. The arms are red with the fix's code reversed and green with it. START and END go by name with the census.
-    - It lands after ic's 0633 on vc's word.
-  - LEFT OUT, named to vc:
-    - the thread-mutation projection, which has no board guard and carries its notes as one Option<Note>;
-    - the ingest pass, which keeps 0554 (b)'s guard;
-    - --to-disk, which refuses a moved file;
-    - the scoped restore's projection, which is not narrowed.
-  No push, no release.
+- RESUME STATE for the 3.2.6 cut (2026-10-24). dc's pre-cut lane is done. Nothing heavy until vc's GO. (edited)
+    - 0629 LANDED at a22ad3133 and CLOSED at 5b4852e7c. Its own run passed (refs/bank/dc/0629/run-b.sh over 3aa352cf6 plus refs/bank/dc/0629/fix-b, tree f380ab7cc058): both crate suites green, shell 818 ok, 0 not ok.
+    - THE KNOWN-DEFECTS RE-DRIVE was committed at b64d9fbe9 against build all #2's pair 09ac0e2f2. No verdict moved, and the page is retitled v3.2.6. tmp/wt-dc-kd326 is kept until the cut.
+    - NEXT, after the tag: the freeze ends at the tag; the 0635 rework for 3.2.7 (doing 135).
+    No push, no release.
+- 0635 DROPPED TO 3.2.7 (hv's one-run ruling; vc's attribution). It stays OPEN; ISSUE:0635 stays claimed by dc. (edited)
+    - THE RED: one stacked run on hv's Go at 29c658790 (refs/bank/dc/0635/run.sh). The bank's own arm a_full_scan_between_the_checkout_and_the_write_does_not_read_a_moved_board_as_unmoved failed at 126:20: bb's own write was refused with WbBoardsNotInTheStore for aa, after two full ingest passes and the scoped restore. Everything else was green, and the control was exact. The record and the stamps were committed at 3aa352cf6.
+    - THE BANK stays on refs/bank/dc/0635/fix (blob e5799abfb283), unlanded. tmp/wt-dc-0635 stays as it is through the cut.
+    - NEXT, for 3.2.7: find why a scan-moved board's write path refuses rather than leaves, fix it, and send it through a new one-run judgement. The class beyond the fix is in intent/wip.md TODO.
+    No push, no release.
 
 ## TODO
 

@@ -1,0 +1,16 @@
+{
+  "id": "01M5P8JS8K5Z44GFD7V09QKAFE",
+  "ts": "2026-10-24T06:11:46.067Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 133,
+    "text": "RESUME STATE for the 3.2.6 cut (2026-10-24). dc's pre-cut lane is done. Nothing heavy until vc's GO.\n  - 0629 LANDED at a22ad3133 and CLOSED at 5b4852e7c. Its own run passed (refs/bank/dc/0629/run-b.sh over 3aa352cf6 plus refs/bank/dc/0629/fix-b, tree f380ab7cc058): both crate suites green, shell 818 ok, 0 not ok.\n  - THE KNOWN-DEFECTS RE-DRIVE was committed at b64d9fbe9 against build all #2's pair 09ac0e2f2. No verdict moved, and the page is retitled v3.2.6. tmp/wt-dc-kd326 is kept until the cut.\n  - NEXT, after the tag: the freeze ends at the tag; the 0635 rework for 3.2.7 (doing 135).\n  No push, no release."
+  }
+}
