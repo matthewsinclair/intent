@@ -110,13 +110,55 @@
     border: 1px solid var(--rule); border-radius: 5px; padding: .15rem .55rem; cursor: pointer;
   }
   button:hover { color: var(--ink); }
+  /* ONE BAND: who and where | the last hour | plan usage. Equal heights, so
+     no panel leaves a hole under it; one column on a narrow window. */
+  .band { display: grid; grid-template-columns: max-content minmax(0, 1fr) minmax(17rem, 25rem); gap: .8rem; align-items: stretch; }
+  @media (max-width: 70rem) { .band { grid-template-columns: max-content minmax(0, 1fr); } .band .usage { grid-column: 1 / -1; } }
+  @media (max-width: 44rem) { .band { grid-template-columns: minmax(0, 1fr); } }
+  .panel { background: var(--card); border: 1px solid var(--rule); border-radius: 6px; padding: .5rem .8rem .6rem; min-width: 0; }
+  .panel .cap { font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; margin-bottom: .25rem; }
+  .band pre.head { margin: 0; white-space: pre; overflow-x: auto; }
+  .spark { display: flex; flex-direction: column; }
+  .spark .row { flex: 1; display: grid; grid-template-columns: 6.5rem minmax(0, 1fr) 6rem; gap: .7rem; align-items: center; min-height: 2.6rem; }
+  .spark svg { width: 100%; height: 100%; min-height: 2.4rem; display: block; }
+  .spark .now { text-align: right; }
+  .spark .now b { font-weight: 600; }
+  .spark .lbl { color: var(--muted); }
+  .uline { display: grid; grid-template-columns: 4.6rem minmax(3rem, 1fr) 2.8rem 4.2rem; gap: .55rem; align-items: center; padding: .12rem 0; }
+  .uline .track { margin: 0; }
+  .uline .pct { text-align: right; font-weight: 600; }
+  .uline .rst { text-align: right; color: var(--muted); }
+  .uline.open { color: var(--muted); }
+  .uline.open .track { background: repeating-linear-gradient(45deg, transparent 0 5px, color-mix(in srgb, var(--rule) 90%, transparent) 5px 10px); }
+  .line-load { fill: none; stroke: var(--accent); stroke-width: 1.5; }
+  .area-load { fill: color-mix(in srgb, var(--accent) 16%, transparent); stroke: none; }
+  .line-slots { fill: none; stroke: var(--heavy); stroke-width: 1.5; }
+  .area-slots { fill: color-mix(in srgb, var(--heavy) 16%, transparent); stroke: none; }
+  .track { height: 7px; border-radius: 4px; background: color-mix(in srgb, var(--rule) 80%, transparent); overflow: hidden; margin: .2rem 0 .1rem; }
+  .fill { height: 100%; border-radius: 4px; }
+  .lvl-ok { color: var(--busy); } .fill.lvl-ok { background: var(--busy); }
+  .lvl-warn { color: var(--heavy); } .fill.lvl-warn { background: var(--heavy); }
+  .lvl-high { color: var(--gone); } .fill.lvl-high { background: var(--gone); }
+  .src { color: var(--muted); font-size: .75rem; margin-top: .2rem; }
   .foot { color: var(--muted); margin-top: 1rem; font-size: .75rem; }
   @media (max-width: 40rem) { input[type=search] { min-width: 0; width: 100%; } }
 </style>
 
 <main>
   <p class="crumbs"><a href="/">intentd</a> / estate / status <span class="mock">-- mockup, driven by an inline sample</span></p>
-  <pre class="head" id="head"></pre>
+  <div class="band">
+    <pre class="head" id="head"></pre>
+    <div class="panel spark"><div class="cap">last hour</div><div id="spark" class="spark" style="flex:1"></div></div>
+    <div class="panel usage"><div class="cap">plan usage</div><div id="usage"></div></div>
+  </div>
+
+  <h2>Queue</h2>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>request</th><th>type</th><th>asks for</th><th>requester</th><th>what</th><th class="num">waiting</th></tr></thead>
+      <tbody id="queue"></tbody>
+    </table>
+  </div>
 
   <h2>Lanes</h2>
   <div class="scroll">
@@ -153,7 +195,24 @@
       load: [11.20, 10.16, 10.84],
       cargo: 3,
       bats: 0,
-      live_pids: [41207, 41388, 41502, 41611, 52044, 52190, 53817, 60112, 60455, 61230, 70033]
+      live_pids: [41207, 41388, 41502, 41611, 52044, 52190, 53817, 60112, 60455, 61230, 70033],
+      // The daemon's in-memory ring, one sample a minute: NOT a record on disk. Filled by
+      // seedHistory() below so the sample stays readable.
+      history: []
+    },
+    // Plan usage. MEASURED 2026-10-24: Claude Code 2.1.310 hands its statusline command a JSON
+    // on stdin whose optional `rate_limits` carries `five_hour` and `seven_day`, each
+    // {used_percentage, resets_at (epoch s)}, for subscribers after the first API response. No
+    // per-model weekly figure is in that schema. How the latest copy reaches the estate
+    // directory (a statusline wrapper writing it beside the session record) is OPEN.
+    usage: {
+      source: "statusline rate_limits",
+      session_id: "eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd",
+      at: "2026-10-24T13:17:58Z",
+      rate_limits: {
+        five_hour: { used_percentage: 57, resets_at: 1792854720 },
+        seven_day: { used_percentage: 93, resets_at: 1793330280 }
+      }
     },
     controller: {
       schema: 1,
@@ -352,7 +411,26 @@
       return pa < pb ? -1 : pa > pb ? 1 : a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
     });
 
-    return { census: s.census, controller: controller, lanes: lanes, queues: queues, sessions: sessions };
+    // One queue, oldest first: queued is per type, and the type is a column.
+    var queue = requests.filter(function (r) { return r.state === "asked"; })
+      .sort(function (a, b) { return b.age_s - a.age_s; });
+
+    var u = s.usage, usage = null;
+    if (u) {
+      var reporter = byId[u.session_id];
+      var win = function (w) {
+        return w ? { pct: w.used_percentage, resets_in_s: Math.max(0, w.resets_at - Math.round(now / 1000)) } : null;
+      };
+      usage = {
+        source: u.source,
+        reporter: reporter ? reporter.name : u.session_id.slice(0, 8),
+        age_s: Math.round((now - ms(u.at)) / 1000),
+        five_hour: win(u.rate_limits && u.rate_limits.five_hour),
+        seven_day: win(u.rate_limits && u.rate_limits.seven_day)
+      };
+    }
+
+    return { census: s.census, controller: controller, lanes: lanes, queue: queue, usage: usage, sessions: sessions };
   }
 
   function base(p) { return p.replace(/\/+$/, "").split("/").pop(); }
@@ -395,52 +473,142 @@
       .map(function (k) { return tally[k] + " " + k; }).join(", ");
     var ctl;
     if (!e.controller) {
-      ctl = [["k", "controller "], ["warn", "NO CONTROLLER"], " -- asks queue and nothing is granted"];
+      ctl = [line([["k", "control  "], ["warn", "NO CONTROLLER"]]), line([["k", "         "], "asks queue, nothing is granted"])];
     } else if (e.controller.orphaned) {
-      ctl = [["k", "controller "], ["warn", e.controller.name + " ORPHANED"], " (pid " + e.controller.pid + " is dead; the next `control take` succeeds it)"];
+      ctl = [line([["k", "control  "], ["warn", e.controller.name + " ORPHANED"]]), line([["k", "         "], "pid " + e.controller.pid + " dead; next take succeeds"])];
     } else {
-      ctl = [["k", "controller "], e.controller.name, ["k", "  session "], e.controller.session_id.slice(0, 8),
-             ["k", "  pid "], String(e.controller.pid), ["k", "  in "], e.controller.where];
+      ctl = [line([["k", "control  "], e.controller.name, ["k", " in "], e.controller.where]),
+             line([["k", "         "], e.controller.session_id.slice(0, 8), ["k", " pid "], String(e.controller.pid)])];
     }
-    head.replaceChildren(
-      line([["k", "estate "], c.host, "   ", c.version, ["k", "   at "], c.taken_at.replace("T", " ")]),
-      line([["k", "load "], c.load.map(function (x) { return x.toFixed(2); }).join(" "),
-            ["k", "   cargo "], String(c.cargo), ["k", "   bats "], String(c.bats),
-            ["k", "   sessions "], String(e.sessions.length), ["k", ": "], tallyText]),
-      line(ctl)
-    );
+    head.replaceChildren.apply(head, [
+      line([["k", "estate   "], c.host]),
+      line([["k", "daemon   "], c.version]),
+      line([["k", "at       "], c.taken_at.replace("T", " ")]),
+      line([["k", "load     "], c.load.map(function (x) { return x.toFixed(2); }).join(" ")]),
+      line([["k", "procs    "], "cargo " + c.cargo + "  bats " + c.bats]),
+      line([["k", "sessions "], String(e.sessions.length)]),
+      line([["k", "         "], tallyText])
+    ].concat(ctl));
   }
 
   function renderLanes(e) {
     var body = document.getElementById("lanes");
     var rows = document.createDocumentFragment();
-    var shownQueue = {};
     e.lanes.forEach(function (l) {
       var used = l.holders.length;
       var tr = el("tr", "lane");
       tr.append(td(l.lane), td(l.type), td(used + "/" + l.capacity), td(used >= l.capacity ? "full" : "open", used >= l.capacity ? "st-running" : "muted"), td(""), td(""), td(""));
       rows.appendChild(tr);
       l.holders.forEach(function (r) { rows.appendChild(reqRow(r)); });
-      // The queue is per type, so it is drawn once, under the first lane of
-      // that type, and says so.
-      var q = e.queues[l.type];
-      if (q && !shownQueue[l.type]) {
-        shownQueue[l.type] = true;
-        q.forEach(function (r) { rows.appendChild(reqRow(r, true)); });
+      var waiting = e.queue.filter(function (r) { return r.type === l.type; }).length;
+      if (waiting && !l.holders.length) {
+        var hint = el("tr", "req");
+        hint.append(td(""), td(""), td(""), td(""), td(""), td(waiting + " waiting on type " + l.type + " (see Queue)", "wide muted"), td(""));
+        rows.appendChild(hint);
       }
     });
     body.replaceChildren(rows);
   }
 
-  function reqRow(r, queued) {
+  function reqRow(r) {
     var tr = el("tr", "req");
     var state = r.orphaned ? "orphaned" : r.state;
-    var whatCell = td(r.what, "wide");
-    if (queued) {
-      whatCell.appendChild(el("span", "muted", "  (queued on type " + r.type + (r.wanted_lane ? ", asks for " + r.wanted_lane : "") + ")"));
-    }
-    tr.append(td(r.id), td(""), td(""), td(state, "st-" + state), td(r.requester, r.orphaned ? "orph" : ""), whatCell, td(age(r.age_s), "num"));
+    tr.append(td(r.id), td(""), td(""), td(state, "st-" + state), td(r.requester, r.orphaned ? "orph" : ""), td(r.what, "wide"), td(age(r.age_s), "num"));
     return tr;
+  }
+
+  function renderQueue(e) {
+    var body = document.getElementById("queue");
+    var rows = document.createDocumentFragment();
+    if (!e.queue.length) {
+      var tr = el("tr");
+      var cell = td("nothing queued", "muted");
+      cell.colSpan = 6;
+      tr.appendChild(cell);
+      rows.appendChild(tr);
+    }
+    e.queue.forEach(function (r) {
+      var tr = el("tr");
+      tr.append(td(r.id), td(r.type), td(r.wanted_lane || "any " + r.type, r.wanted_lane ? "" : "muted"),
+        td(r.requester), td(r.what, "wide"), td(age(r.age_s), "num st-asked"));
+      rows.appendChild(tr);
+    });
+    body.replaceChildren(rows);
+  }
+
+  // ---- sparklines: inline SVG, drawn from the daemon's ring -----------------
+  var SVG = "http://www.w3.org/2000/svg";
+  function svgEl(tag, cls, attrs) {
+    var n = document.createElementNS(SVG, tag);
+    if (cls) { n.setAttribute("class", cls); }
+    Object.keys(attrs || {}).forEach(function (k) { n.setAttribute(k, attrs[k]); });
+    return n;
+  }
+  function sparkline(values, top, cls) {
+    var w = 300, h = 34, pad = 2;
+    var svg = svgEl("svg", "", { viewBox: "0 0 " + w + " " + h, preserveAspectRatio: "none", role: "img" });
+    if (values.length < 2) { return svg; }
+    var step = w / (values.length - 1);
+    var pts = values.map(function (v, i) {
+      return (i * step).toFixed(1) + "," + (h - pad - (Math.min(v, top) / top) * (h - 2 * pad)).toFixed(1);
+    });
+    svg.appendChild(svgEl("polygon", "area-" + cls, { points: "0," + h + " " + pts.join(" ") + " " + w + "," + h }));
+    svg.appendChild(svgEl("polyline", "line-" + cls, { points: pts.join(" ") }));
+    return svg;
+  }
+
+  function renderSpark(e) {
+    var hist = e.census.history;
+    var box = document.getElementById("spark");
+    var load = hist.map(function (p) { return p.load1; });
+    var slots = hist.map(function (p) { return p.slots_running; });
+    var cap = e.lanes.reduce(function (n, l) { return n + l.capacity; }, 0);
+    var lmax = Math.max.apply(null, load.concat([1]));
+    var lmin = Math.min.apply(null, load);
+    var running = e.lanes.reduce(function (n, l) {
+      return n + l.holders.filter(function (r) { return r.state === "running"; }).length;
+    }, 0);
+    function row(label, svg, now, range) {
+      var r = el("div", "row");
+      var right = el("span", "now");
+      right.appendChild(el("b", "", now));
+      right.appendChild(el("div", "muted", range));
+      r.append(el("span", "lbl", label), svg, right);
+      return r;
+    }
+    box.replaceChildren(
+      row("load 1m", sparkline(load, Math.ceil(lmax), "load"), e.census.load[0].toFixed(2), "range " + lmin.toFixed(0) + "-" + lmax.toFixed(0)),
+      row("slots running", sparkline(slots, cap, "slots"), running + " of " + cap, "capacity " + cap)
+    );
+  }
+
+  function renderUsage(e) {
+    var box = document.getElementById("usage");
+    var parts = [];
+    // One line per window: name | bar | percent | reset. The bar takes what is left.
+    function uline(name, w, openText) {
+      var m = el("div", "uline");
+      var track = el("div", "track");
+      m.append(el("span", "", name), track);
+      if (!w) {
+        m.className = "uline open";
+        m.append(el("span", "pct", "--"), el("span", "rst", openText));
+        return m;
+      }
+      var lvl = w.pct >= 90 ? "lvl-high" : w.pct >= 75 ? "lvl-warn" : "lvl-ok";
+      var fill = el("div", "fill " + lvl);
+      fill.style.width = Math.min(100, w.pct) + "%";
+      track.appendChild(fill);
+      m.append(el("span", "pct " + lvl, Math.round(w.pct) + "%"), el("span", "rst", age(w.resets_in_s)));
+      return m;
+    }
+    parts.push(uline("5 hour", e.usage && e.usage.five_hour, "unreported"));
+    parts.push(uline("7 day", e.usage && e.usage.seven_day, "unreported"));
+    parts.push(uline("model", null, "src open"));
+    parts.push(el("div", "src", e.usage
+      ? "5h, 7d: statusline rate_limits from " + e.usage.reporter + ", " + age(e.usage.age_s) + " ago. Per-model weekly: no local source."
+      : "No session has reported plan usage."));
+    box.replaceChildren.apply(box, parts);
   }
 
   function renderSessions(e) {
@@ -479,6 +647,9 @@
   function render() {
     var e = estate(model);
     renderHead(e);
+    renderSpark(e);
+    renderUsage(e);
+    renderQueue(e);
     renderLanes(e);
     renderSessions(e);
   }
@@ -488,7 +659,24 @@
   // the writes each party would make, replayed in a loop.
   // ==========================================================================
   var model, tick = 0, paused = false;
-  function reset() { model = JSON.parse(JSON.stringify(SAMPLE)); tick = 0; }
+  function runningNow() {
+    return model.requests.filter(function (r) { return r.start && !r.end && !r.revoke && !r.deny; }).length;
+  }
+  // An hour of minute samples ending at the snapshot: a deterministic wave
+  // with the afternoon's bump in it, and the slots stepping up to now.
+  function seedHistory() {
+    var t0 = ms(model.census.taken_at), out = [];
+    for (var i = 59; i >= 0; i -= 1) {
+      var x = 59 - i;
+      out.push({
+        at: new Date(t0 - i * 60000).toISOString().replace(/\.\d+Z$/, "Z"),
+        load1: 9 + 3 * Math.sin(x / 7) + (x > 20 && x < 34 ? 12 * Math.sin((x - 20) / 14 * Math.PI) : 0) + (x % 5) * .3,
+        slots_running: x < 18 ? 1 : x < 42 ? 2 : x < 55 ? 3 : 4
+      });
+    }
+    model.census.history = out;
+  }
+  function reset() { model = JSON.parse(JSON.stringify(SAMPLE)); tick = 0; seedHistory(); }
   function findReq(id) { return model.requests.filter(function (r) { return r.id === id; })[0]; }
   function findSess(name) { return model.sessions.filter(function (r) { return r.name === name; })[0]; }
   function nowIso() { return model.census.taken_at; }
@@ -517,6 +705,13 @@
       if (tick % 3 === 0) { findSess(n).updated_at = nowIso(); }
     });
     if (SCRIPT[tick]) { SCRIPT[tick](); }
+    // Mockup speed: each 2s tick stands for a minute of the ring.
+    model.census.history.push({ at: nowIso(), load1: model.census.load[0], slots_running: runningNow() });
+    model.census.history.shift();
+    if (tick % 4 === 0) {
+      model.usage.at = nowIso();
+      model.usage.rate_limits.five_hour.used_percentage = Math.min(100, model.usage.rate_limits.five_hour.used_percentage + 1);
+    }
     render();
   }
 
