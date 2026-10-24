@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.7] - in progress
+
+### Fixed
+
+- **The kovacs preflight builds inside its clone, so the test binaries find the install they belong to** (issue 0637). `bin/.devbin/preflight-linux.sh` ran cargo with `CARGO_TARGET_DIR` outside the clone, so every test binary that finds its install by walking up from its real path to `lib/templates/` found none, and the run went red on one cause across `intent-cli` and `intentsvcs`. The kept target now moves into the clone's `native/rust/target` after the clone and back on an EXIT trap, the order refuses a set `CARGO_TARGET_DIR` or `CARGO_BUILD_TARGET_DIR` and a symlinked target before its first step, and the workspace crates rebuild each run, which keeps testkit's `CARGO_MANIFEST_DIR` naming the clone.
+- **`/in-session` outside an Intent project says `Not an Intent project, reestablishing context` and goes on, and never runs `intent init`** (issue 0636). The skill's step 2 treated the binary's `no Intent project found` refusal as a failure, and the remedy it would have followed names `intent init`. The skill keys on that text, or on no `intent` on PATH at all: it keeps the universal skills loaded, skips the language fan-out and the whiteboard, releases the gate and continues from the context the compact carried. The text is the discriminator because `intent lang declared` exits 4 both for that refusal and for a config the binary cannot read inside a real project, which is a fault to report.
+
 ## [3.2.6] - 2026-10-24
 
 ### Added
