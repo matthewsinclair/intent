@@ -55,6 +55,28 @@ done
 run="$ROOT/$want"
 rm -rf "$run" || die "cannot clear $run"
 mkdir -p "$run" || die "cannot make $run"
+
+# THE LEG'S PATH HOLDS NO INSTALLED intent, because CI's runners have none. A test that runs `intent` from the
+# ambient PATH where it should run the build's own is green on any machine with Intent installed and red on
+# the runner, as the 3.2.6 tag's macOS test leg was (issue 0637). kovacs has brew's intent in the directory
+# its brew rust links into, and stays brew-only, so no directory of the login's PATH can go on the leg's. The
+# leg's PATH is instead a directory of links, made for this run, to exactly the tools the leg runs, each
+# resolved from the login's PATH, then the system directories: the rust steps run under it as rust.yml's job
+# does, and the build and the bats suite put the clone's bin/ and native/rust/target/release in front of it, as
+# tests.yml does. cargo finds rustc, rustdoc and its fmt and clippy subcommands on PATH, so they are linked
+# too; the rest are what tests.yml installs (bats, jq, prettier with node, the BEAM's erl, elixir and mix) and
+# what the runner's image ships (git, shellcheck). An intent the leg's PATH still finds can only be in a system
+# directory, and is refused here, naming where, before anything is cloned or built.
+legbin="$run/leg-bin"
+mkdir -p "$legbin" || die "cannot make $legbin"
+for t in cargo rustc rustdoc rustfmt cargo-fmt cargo-clippy clippy-driver git bats jq prettier node erl escript elixir mix shellcheck; do
+  p="$(command -v "$t" 2>/dev/null)" || continue
+  ln -s "$p" "$legbin/$t" || die "cannot link $t into $legbin"
+done
+leg_path="$legbin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+if stray="$(PATH="$leg_path" && command -v intent)"; then
+  die "an installed intent is in a system directory, at $stray -- CI's runners have none there, so a test that finds it passes here and fails there; remove it from that directory, then run again"
+fi
 log="$run/run.log"
 exec 3>&1
 {
@@ -128,7 +150,7 @@ rust_step() {
   steps="${steps:+$steps }$name"
   printf 'preflight: rust.yml %s\n' "$name" >&3
   (cd native/rust && env "${nolc[@]}" LANG=C.UTF-8 XDG_CONFIG_HOME= XDG_DATA_HOME= XDG_STATE_HOME= XDG_RUNTIME_DIR= \
-    CARGO_TARGET_DIR="$ROOT/target" CARGO_BUILD_JOBS="${PREFLIGHT_JOBS:-1}" \
+    PATH="$leg_path" CARGO_TARGET_DIR="$ROOT/target" CARGO_BUILD_JOBS="${PREFLIGHT_JOBS:-1}" \
     bash -c "trap '' PIPE; exec \"\$@\"" rust-step "$@") >"$steplog" 2>&1
   rc=$?
   { printf '\n# ---- rust.yml %s: %s, rc=%s ----\n' "$name" "$*" "$rc"; cat "$steplog"; } >>"$log"
@@ -150,7 +172,7 @@ rust_step test cargo test --workspace --no-fail-fast
 
 printf '\n# ---- build (cargo build --release -p intent-cli -p intentd), jobs %s ----\n' "${PREFLIGHT_JOBS:-1}" >>"$log"
 printf 'preflight: building %s (jobs %s)\n' "$sha" "${PREFLIGHT_JOBS:-1}" >&3
-CARGO_TARGET_DIR="$ROOT/target" CARGO_BUILD_JOBS="${PREFLIGHT_JOBS:-1}" \
+PATH="$PWD/bin:$PWD/native/rust/target/release:$leg_path" CARGO_TARGET_DIR="$ROOT/target" CARGO_BUILD_JOBS="${PREFLIGHT_JOBS:-1}" \
   cargo build --release --manifest-path native/rust/Cargo.toml -p intent-cli -p intentd >>"$log" 2>&1 ||
   die "the build failed at $sha -- see $log"
 mkdir -p native/rust/target/release || die "cannot make native/rust/target/release in the clone"
@@ -160,7 +182,7 @@ printf 'preflight: running the bats suite, SIGPIPE ignored, LANG=C.UTF-8\n' >&3
 printf '\n# ---- run_tests.sh, SIGPIPE ignored and LANG=C.UTF-8 as on the runner (env %s) ----\n' "${nolc[*]}" >>"$log"
 env "${nolc[@]}" LANG=C.UTF-8 XDG_CONFIG_HOME= XDG_DATA_HOME= XDG_STATE_HOME= XDG_RUNTIME_DIR= \
   GIT_CONFIG_GLOBAL="$gitconfig" \
-  PATH="$PWD/bin:$PWD/native/rust/target/release:$PATH" \
+  PATH="$PWD/bin:$PWD/native/rust/target/release:$leg_path" \
   BATS_LIB_PATH="$PWD/tests/lib" \
   bash -c "trap '' PIPE; cd tests && ./run_tests.sh" >>"$log" 2>&1
 rc=$?
