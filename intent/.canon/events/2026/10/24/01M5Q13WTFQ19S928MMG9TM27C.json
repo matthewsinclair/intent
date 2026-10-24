@@ -1,0 +1,16 @@
+{
+  "id": "01M5Q13WTFQ19S928MMG9TM27C",
+  "ts": "2026-10-24T13:20:33.698Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 135,
+    "text": "0635 REWORK FOR 3.2.7, RESUME STATE (ISSUE:0635 claimed by dc). THE RED READ: the scan arm's bb write was refused by require_migrated's refuse_if_the_store_lacks_any (issue 0554 (b)): aa is migrated (wb register stamps migrated_at) and its file no longer matches the index's sha, so every board verb but registration and the migration refuses before writing. The restore (sync_from_disk) has no such gate, which is 0635's defect, and the bank's leave_boards closes it. vc's RULINGS of 2026-10-24: (1) the board write keeps REFUSING; leaving would be new behaviour the issue does not ask for, and this goes in 0635's record at landing (the draft is in dc's scratchpad, 0635/record-b-draft.md); (2) one cargo slot covers both steps, stopping at a red step 1 and sending it to vc. THE BANK: refs/bank/dc/0635/fix-b (blob b157309b193c, patch-id cd7343bb3cc4) over main e39e60104, staged in tmp/wt-dc-0635. THE RUN SCRIPT: refs/bank/dc/0635/run-b.sh (blob bc8ec661ec1f), run as bash run-0635b.sh <main HEAD at the GO>: step 1 the test file's three arms; step 2 rust.yml's lines, the control (the restore arm and the scan arm fail, the no-scan arm passes), the release pair, and the shell half with no installed intent on PATH. NEXT: molt-vc has it queued in Intent's earlier place; start nothing until vc relays the GO; then land through vc with the record. No push, no release."
+  }
+}

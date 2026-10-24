@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "worker",
     "session_id": "5abe68e1-b9b1-4003-9718-c8fbba772543",
-    "heartbeat_at": "2026-10-24T12:28:05.100Z",
+    "heartbeat_at": "2026-10-24T13:20:39.224Z",
     "status": "active",
-    "focus": "3.2.7: the tag's ci-red fix banked on fix-c for vc's landing; 0635 next; no push, no release",
+    "focus": "3.2.7: 0635's fix-b judge queued with molt-vc, waiting for vc's GO; no push, no release",
     "claims": [
       "ISSUE:0635"
     ],
@@ -2363,7 +2363,8 @@
       "kind": "doing",
       "seq": 133,
       "text": "RESUME STATE for the 3.2.6 cut (2026-10-24). dc's pre-cut lane is done. Nothing heavy until vc's GO.\n  - 0629 LANDED at a22ad3133 and CLOSED at 5b4852e7c. Its own run passed (refs/bank/dc/0629/run-b.sh over 3aa352cf6 plus refs/bank/dc/0629/fix-b, tree f380ab7cc058): both crate suites green, shell 818 ok, 0 not ok.\n  - THE KNOWN-DEFECTS RE-DRIVE was committed at b64d9fbe9 against build all #2's pair 09ac0e2f2. No verdict moved, and the page is retitled v3.2.6. tmp/wt-dc-kd326 is kept until the cut.\n  - NEXT, after the tag: the freeze ends at the tag; the 0635 rework for 3.2.7 (doing 135).\n  No push, no release.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-24T13:20:25.580Z",
       "recorded_at": "2026-10-23T19:04:41.944Z",
       "edited_at": "2026-10-24T06:11:46.067Z"
     },
@@ -2381,17 +2382,18 @@
       "node": "dc",
       "kind": "doing",
       "seq": 135,
-      "text": "0635 REWORK FOR 3.2.7 (ISSUE:0635 claimed by dc). THE RED READ: bb's write in the scan arm was refused by require_migrated's refuse_if_the_store_lacks_any (0554 (b)): aa is migrated (wb register stamps migrated_at) and its file no longer matches the index's sha, so every board verb but registration and the migration refuses before writing; the bank's arm expected the leave instead. The restore has no such gate, which is 0635's bug, and the bank's leave fixes it. THE REWORK is on refs/bank/dc/0635/fix-b (blob b157309b193c, patch-id cd7343bb3cc4) over main e39e60104 in tmp/wt-dc-0635: the scan arm asserts the refusal, a no-scan arm probes that the refusal needs no scan, leave_boards' doc names each door, and the CHANGELOG line sits under [Unreleased]. NEXT: one cargo slot booked through vc with molt-vc (the arms, then the judging run); the refuse-or-leave call for the board write is vc's. No push, no release.",
+      "text": "0635 REWORK FOR 3.2.7, RESUME STATE (ISSUE:0635 claimed by dc). THE RED READ: the scan arm's bb write was refused by require_migrated's refuse_if_the_store_lacks_any (issue 0554 (b)): aa is migrated (wb register stamps migrated_at) and its file no longer matches the index's sha, so every board verb but registration and the migration refuses before writing. The restore (sync_from_disk) has no such gate, which is 0635's defect, and the bank's leave_boards closes it. vc's RULINGS of 2026-10-24: (1) the board write keeps REFUSING; leaving would be new behaviour the issue does not ask for, and this goes in 0635's record at landing (the draft is in dc's scratchpad, 0635/record-b-draft.md); (2) one cargo slot covers both steps, stopping at a red step 1 and sending it to vc. THE BANK: refs/bank/dc/0635/fix-b (blob b157309b193c, patch-id cd7343bb3cc4) over main e39e60104, staged in tmp/wt-dc-0635. THE RUN SCRIPT: refs/bank/dc/0635/run-b.sh (blob bc8ec661ec1f), run as bash run-0635b.sh <main HEAD at the GO>: step 1 the test file's three arms; step 2 rust.yml's lines, the control (the restore arm and the scan arm fail, the no-scan arm passes), the release pair, and the shell half with no installed intent on PATH. NEXT: molt-vc has it queued in Intent's earlier place; start nothing until vc relays the GO; then land through vc with the record. No push, no release.",
       "state": "live",
       "recorded_at": "2026-10-23T21:06:46.372Z",
-      "edited_at": "2026-10-24T13:15:33.232Z"
+      "edited_at": "2026-10-24T13:20:33.698Z"
     },
     {
       "node": "dc",
       "kind": "doing",
       "seq": 136,
       "text": "CI-RED ON THE v3.2.6 TAG (issue 0637). LANDED: fix-c at 660ac1492 (explorer_shots passes openpty's window size as a typed *mut; the kovacs preflight runs every rust.yml Linux line before the build, the failing step named on the summary's first line, a steps: second line) and fix-e at d822aa204 (the leg's PATH is a per-run directory of links to exactly the tools it runs, then the system dirs, so no installed intent is on it; brew's intent shares kovacs's rust directory). fix, fix-b and fix-d are superseded banks. NEXT: vc's kovacs preflight at e39e60104, the first under the widened order, is the Linux proof and closes 0637; vc sends the summary if a step reds. Then tmp/wt-dc-ci326 can go. No push, no release.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-24T13:20:28.099Z",
       "recorded_at": "2026-10-24T12:28:04.090Z",
       "edited_at": "2026-10-24T13:15:31.664Z"
     }
