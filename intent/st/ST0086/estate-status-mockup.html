@@ -8,7 +8,10 @@
   light and dark from the same tokens as intentd's shell.html.
 
   The SAMPLE below is the raw records, in the shapes design.md gives them:
-    census      what the daemon measures itself (load, cargo and bats, live pids)
+    census      what the daemon measures itself (load, the declared process classes counted
+                and attributed to a project by cwd, live pids)
+    watches     ~/.local/state/intent/estate/census/watches/<class>.json, written by the
+                controller: which processes the census counts; the tool knows no names
     controller  ~/.local/state/intent/estate/slots/controller.json
     lanes       ~/.local/state/intent/estate/slots/lanes/<lane>.json
     requests    ~/.local/state/intent/estate/slots/requests/<id>/{ask,grant,deny,start,end,revoke}.json,
@@ -140,45 +143,82 @@
   .lvl-warn { color: var(--heavy); } .fill.lvl-warn { background: var(--heavy); }
   .lvl-high { color: var(--gone); } .fill.lvl-high { background: var(--gone); }
   .src { color: var(--muted); font-size: .75rem; margin-top: .2rem; }
+  /* Collapsible panels. The summary carries the caption and a live reading; the
+     caret is drawn here so every browser shows the same one. */
+  details > summary { list-style: none; cursor: pointer; display: flex; align-items: baseline; gap: .6rem; flex-wrap: wrap; }
+  details > summary::-webkit-details-marker { display: none; }
+  details > summary::before { content: "\25B8"; color: var(--muted); font-size: .8rem; transition: transform .12s; display: inline-block; }
+  details[open] > summary::before { transform: rotate(90deg); }
+  details > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+  .sum { color: var(--muted); font-size: .78rem; }
+  details[open] > summary .sum { display: none; }
+  .panel > summary .cap { margin: 0; }
+  details.panel[open] > summary { margin-bottom: .25rem; }
+  .band > details:not([open]) { align-self: start; }
+  .panel pre.head { border: 0; padding: 0; background: none; border-radius: 0; }
+  details.sec { margin-top: 1.1rem; }
+  details.sec > summary { margin-bottom: .35rem; }
+  details.sec > summary .h { font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+  details.sec .bar { margin: 0 0 .35rem; }
+  .crumbs button { margin-left: .5rem; font-size: .8rem; }
   .foot { color: var(--muted); margin-top: 1rem; font-size: .75rem; }
   @media (max-width: 40rem) { input[type=search] { min-width: 0; width: 100%; } }
 </style>
 
 <main>
-  <p class="crumbs"><a href="/">intentd</a> / estate / status <span class="mock">-- mockup, driven by an inline sample</span></p>
+  <p class="crumbs"><a href="/">intentd</a> / estate / status <span class="mock">-- mockup, driven by an inline sample</span>
+    <button type="button" id="pause">pause</button> <button type="button" id="fold">collapse all</button></p>
+
+  <!-- EVERY PANEL IS A <details>: collapsing is the browser's, no script and no
+       stored state. A collapsed panel's summary line keeps a live one-line
+       reading, so folding a panel never hides that something is happening. -->
   <div class="band">
-    <pre class="head" id="head"></pre>
-    <div class="panel spark"><div class="cap">last hour</div><div id="spark" class="spark" style="flex:1"></div></div>
-    <div class="panel usage"><div class="cap">plan usage</div><div id="usage"></div></div>
+    <details open class="panel">
+      <summary><span class="cap">host</span><span class="sum" id="sum-head"></span></summary>
+      <pre class="head" id="head"></pre>
+    </details>
+    <details open class="panel spark">
+      <summary><span class="cap">last hour</span><span class="sum" id="sum-spark"></span></summary>
+      <div id="spark" class="spark" style="flex:1"></div>
+    </details>
+    <details open class="panel usage">
+      <summary><span class="cap">plan usage</span><span class="sum" id="sum-usage"></span></summary>
+      <div id="usage"></div>
+    </details>
   </div>
 
-  <h2>Queue</h2>
-  <div class="scroll">
-    <table>
-      <thead><tr><th>request</th><th>type</th><th>asks for</th><th>requester</th><th>what</th><th class="num">waiting</th></tr></thead>
-      <tbody id="queue"></tbody>
-    </table>
-  </div>
+  <details open class="sec">
+    <summary><span class="h">Queue</span><span class="sum" id="sum-queue"></span></summary>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>request</th><th>type</th><th>asks for</th><th>requester</th><th>what</th><th class="num">waiting</th></tr></thead>
+        <tbody id="queue"></tbody>
+      </table>
+    </div>
+  </details>
 
-  <h2>Lanes</h2>
-  <div class="scroll">
-    <table>
-      <thead><tr><th>lane / request</th><th>type</th><th>cap</th><th>state</th><th>holder / requester</th><th>what</th><th class="num">age</th></tr></thead>
-      <tbody id="lanes"></tbody>
-    </table>
-  </div>
+  <details open class="sec">
+    <summary><span class="h">Lanes</span><span class="sum" id="sum-lanes"></span></summary>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>lane / request</th><th>type</th><th>cap</th><th>state</th><th>holder / requester</th><th>what</th><th class="num">age</th></tr></thead>
+        <tbody id="lanes"></tbody>
+      </table>
+    </div>
+  </details>
 
-  <div class="bar">
-    <h2>Sessions</h2>
-    <input type="search" id="filter" placeholder="filter: name, project, node, state, focus" aria-label="Filter sessions">
-    <button type="button" id="pause">pause</button>
-  </div>
-  <div class="scroll">
-    <table>
-      <thead><tr><th>name</th><th>project</th><th>node</th><th>state</th><th class="num">since</th><th class="num">hb</th><th>slots</th><th>claims</th><th>wip / focus</th></tr></thead>
-      <tbody id="sessions"></tbody>
-    </table>
-  </div>
+  <details open class="sec">
+    <summary><span class="h">Sessions</span><span class="sum" id="sum-sessions"></span></summary>
+    <div class="bar">
+      <input type="search" id="filter" placeholder="filter: name, project, node, state, focus" aria-label="Filter sessions">
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>name</th><th>project</th><th>node</th><th>state</th><th class="num">since</th><th class="num">hb</th><th>slots</th><th>claims</th><th>wip / focus</th></tr></thead>
+        <tbody id="sessions"></tbody>
+      </table>
+    </div>
+  </details>
 
   <p class="foot" id="foot"></p>
 </main>
@@ -193,25 +233,52 @@
       version: "intentd 3.2.6 (88633fe93) release",
       taken_at: "2026-10-24T13:18:00Z",
       load: [11.20, 10.16, 10.84],
-      cargo: 3,
-      bats: 0,
+      // One row per (declared class, project the process's cwd falls in) with a live count;
+      // project "" is a process whose cwd is in no known project. Classes with no row ran nothing.
+      procs: [
+        { class: "cargo", project: "Devbin", count: 3 },
+        { class: "mix", project: "Laksa", count: 2 }
+      ],
       live_pids: [41207, 41388, 41502, 41611, 52044, 52190, 53817, 60112, 60455, 61230, 70033],
       // The daemon's in-memory ring, one sample a minute: NOT a record on disk. Filled by
       // seedHistory() below so the sample stays readable.
       history: []
     },
-    // Plan usage. MEASURED 2026-10-24: Claude Code 2.1.310 hands its statusline command a JSON
-    // on stdin whose optional `rate_limits` carries `five_hour` and `seven_day`, each
-    // {used_percentage, resets_at (epoch s)}, for subscribers after the first API response. No
-    // per-model weekly figure is in that schema. How the latest copy reaches the estate
-    // directory (a statusline wrapper writing it beside the session record) is OPEN.
+    // What the census counts: declared by the controller (`intent estate census watch <class>
+    // <pattern>`), matched against each process's command line. `intent estate init` seeds
+    // these four; nothing is built in.
+    watches: [
+      { schema: 1, class: "cargo", match: "(^|/)(cargo|rustc) " },
+      { schema: 1, class: "bats",  match: "(^|/)bats " },
+      { schema: 1, class: "mix",   match: "(^|/)(mix |beam\\.smp)" },
+      { schema: 1, class: "swift", match: "(^|/)(swift-build|swift-frontend|xcodebuild) " }
+    ],
+    // Plan usage, two sources (hv's ruling, 2026-10-24; design.md, Readers).
     usage: {
-      source: "statusline rate_limits",
-      session_id: "eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd",
-      at: "2026-10-24T13:17:58Z",
-      rate_limits: {
-        five_hour: { used_percentage: 57, resets_at: 1792854720 },
-        seven_day: { used_percentage: 93, resets_at: 1793330280 }
+      // PRIMARY: the daemon's last read of GET api.anthropic.com/api/oauth/usage with Claude
+      // Code's Keychain token (through /usr/bin/security, which was measured not to prompt).
+      // In memory, not on disk. `body` is the endpoint's own shape; `error` names a failed read.
+      endpoint: {
+        at: "2026-10-24T13:17:30Z",
+        error: null,
+        body: {
+          five_hour: { utilization: 57, resets_at: "2026-10-24T15:12:00Z" },
+          seven_day: { utilization: 93, resets_at: "2026-10-30T03:18:00Z" },
+          limits: [
+            { scope: { model: { display_name: "Fable" } }, percent: 43, resets_at: "2026-10-30T03:18:00Z" }
+          ]
+        }
+      },
+      // FALLBACK: the statusline's `rate_limits` (stdin to the statusline command; 5h and 7d
+      // only, no per-model), as the latest copy a session's statusline step wrote into its
+      // Intent record.
+      statusline: {
+        session_id: "eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd",
+        at: "2026-10-24T13:17:58Z",
+        rate_limits: {
+          five_hour: { used_percentage: 57, resets_at: 1792854720 },
+          seven_day: { used_percentage: 93, resets_at: 1793330280 }
+        }
       }
     },
     controller: {
@@ -415,22 +482,39 @@
     var queue = requests.filter(function (r) { return r.state === "asked"; })
       .sort(function (a, b) { return b.age_s - a.age_s; });
 
-    var u = s.usage, usage = null;
-    if (u) {
-      var reporter = byId[u.session_id];
+    // Usage: the endpoint when its last read succeeded, else the statusline's
+    // copy; a failed read is carried, named, to the page, never dropped.
+    var ep = s.usage && s.usage.endpoint, sl = s.usage && s.usage.statusline;
+    var left = function (iso) { return Math.max(0, Math.round((ms(iso) - now) / 1000)); };
+    var usage = { error: ep ? ep.error : "no read yet", models: null, five_hour: null, seven_day: null, source: null, age_s: 0 };
+    if (ep && !ep.error && ep.body) {
+      var b = ep.body;
+      usage.source = "endpoint";
+      usage.age_s = Math.round((now - ms(ep.at)) / 1000);
+      usage.five_hour = b.five_hour ? { pct: b.five_hour.utilization, resets_in_s: left(b.five_hour.resets_at) } : null;
+      usage.seven_day = b.seven_day ? { pct: b.seven_day.utilization, resets_in_s: left(b.seven_day.resets_at) } : null;
+      usage.models = (b.limits || []).map(function (l) {
+        return { name: l.scope.model.display_name, pct: l.percent, resets_in_s: left(l.resets_at) };
+      });
+    } else if (sl) {
+      var reporter = byId[sl.session_id];
       var win = function (w) {
         return w ? { pct: w.used_percentage, resets_in_s: Math.max(0, w.resets_at - Math.round(now / 1000)) } : null;
       };
-      usage = {
-        source: u.source,
-        reporter: reporter ? reporter.name : u.session_id.slice(0, 8),
-        age_s: Math.round((now - ms(u.at)) / 1000),
-        five_hour: win(u.rate_limits && u.rate_limits.five_hour),
-        seven_day: win(u.rate_limits && u.rate_limits.seven_day)
-      };
+      usage.source = "statusline from " + (reporter ? reporter.name : sl.session_id.slice(0, 8));
+      usage.age_s = Math.round((now - ms(sl.at)) / 1000);
+      usage.five_hour = win(sl.rate_limits && sl.rate_limits.five_hour);
+      usage.seven_day = win(sl.rate_limits && sl.rate_limits.seven_day);
     }
 
-    return { census: s.census, controller: controller, lanes: lanes, queue: queue, usage: usage, sessions: sessions };
+    // Every declared class, in declaration order, with its total and whose it is.
+    var procs = s.watches.map(function (w) {
+      var by = s.census.procs.filter(function (p) { return p.class === w.class && p.count > 0; })
+        .sort(function (a, b) { return b.count - a.count; });
+      return { class: w.class, total: by.reduce(function (n, p) { return n + p.count; }, 0), by: by };
+    });
+
+    return { census: s.census, procs: procs, controller: controller, lanes: lanes, queue: queue, usage: usage, sessions: sessions };
   }
 
   function base(p) { return p.replace(/\/+$/, "").split("/").pop(); }
@@ -485,10 +569,26 @@
       line([["k", "daemon   "], c.version]),
       line([["k", "at       "], c.taken_at.replace("T", " ")]),
       line([["k", "load     "], c.load.map(function (x) { return x.toFixed(2); }).join(" ")]),
-      line([["k", "procs    "], "cargo " + c.cargo + "  bats " + c.bats]),
+    ].concat(procLines(e)).concat([
       line([["k", "sessions "], String(e.sessions.length)]),
       line([["k", "         "], tallyText])
-    ].concat(ctl));
+    ]).concat(ctl));
+  }
+
+  // One line per declared class that is running, with whose it is; the idle
+  // classes share one line, so a declared class never silently disappears.
+  function procLines(e) {
+    var out = [], idle = [], first = true;
+    e.procs.forEach(function (p) {
+      if (!p.total) { idle.push(p.class); return; }
+      var who = p.by.map(function (b) { return (b.project || "(no project)") + " " + b.count; }).join(", ");
+      out.push(line([["k", first ? "procs    " : "         "], p.class + " " + p.total, ["k", "  " + who]]));
+      first = false;
+    });
+    if (idle.length) {
+      out.push(line([["k", first ? "procs    " : "         "], ["muted", idle.join(" 0  ") + " 0"]]));
+    }
+    return out;
   }
 
   function renderLanes(e) {
@@ -602,13 +702,25 @@
       m.append(el("span", "pct " + lvl, Math.round(w.pct) + "%"), el("span", "rst", age(w.resets_in_s)));
       return m;
     }
-    parts.push(uline("5 hour", e.usage && e.usage.five_hour, "unreported"));
-    parts.push(uline("7 day", e.usage && e.usage.seven_day, "unreported"));
-    parts.push(uline("model", null, "src open"));
-    parts.push(el("div", "src", e.usage
-      ? "5h, 7d: statusline rate_limits from " + e.usage.reporter + ", " + age(e.usage.age_s) + " ago. Per-model weekly: no local source."
-      : "No session has reported plan usage."));
-    box.replaceChildren.apply(box, parts);
+    var u = e.usage;
+    parts.push(uline("5 hour", u.five_hour, "no source"));
+    parts.push(uline("7 day", u.seven_day, "no source"));
+    if (u.models) {
+      u.models.forEach(function (m) { parts.push(uline(m.name, m)); });
+    } else {
+      parts.push(uline("models", null, "unavailable"));
+    }
+    var note = el("div", "src");
+    if (u.source === "endpoint") {
+      note.textContent = "usage endpoint, read " + age(u.age_s) + " ago; statusline fallback standing by.";
+    } else {
+      note.appendChild(el("span", "warn", "endpoint read failed: " + u.error + ". "));
+      note.appendChild(document.createTextNode(u.source
+        ? "5h, 7d from the " + u.source + ", " + age(u.age_s) + " ago; per-model needs the endpoint."
+        : "No fallback reported either."));
+    }
+    parts.push(note);
+    box.replaceChildren.apply(box, parts.filter(function (p) { return p; }));
   }
 
   function renderSessions(e) {
@@ -644,8 +756,31 @@
       "Mockup: re-rendered every 2s against the inline sample, with a scripted sequence of grants, starts and ends so the live behaviour shows. The served page reads the same shape from the daemon.";
   }
 
+  // The one line a collapsed panel still shows: live counts, computed each
+  // render from the reader's answer and never stored.
+  function renderSummaries(e) {
+    function put(id, text) { document.getElementById(id).textContent = text; }
+    var running = 0, cap = 0;
+    e.lanes.forEach(function (l) { cap += l.capacity; running += l.holders.length; });
+    var tally = {};
+    e.sessions.forEach(function (s) { tally[s.state] = (tally[s.state] || 0) + 1; });
+    var ctl = !e.controller ? "NO CONTROLLER" : e.controller.orphaned ? e.controller.name + " ORPHANED" : e.controller.name;
+    put("sum-head", e.census.host + "  load " + e.census.load[0].toFixed(2) + "  control " + ctl);
+    put("sum-spark", "load " + e.census.load[0].toFixed(2) + "  slots " + running + " of " + cap);
+    var u = e.usage;
+    put("sum-usage", (u.five_hour ? "5h " + Math.round(u.five_hour.pct) + "%" : "5h --") +
+      (u.seven_day ? "  7d " + Math.round(u.seven_day.pct) + "%" : "  7d --") +
+      (u.source === "endpoint" ? "" : "  (fallback)"));
+    put("sum-queue", e.queue.length ? e.queue.length + " waiting, oldest " + age(e.queue[0].age_s) : "nothing queued");
+    put("sum-lanes", e.lanes.length + " lanes, " + running + " of " + cap + " slots held");
+    put("sum-sessions", e.sessions.length + " sessions" + ["heavy", "busy", "gone"].map(function (k) {
+      return tally[k] ? ", " + tally[k] + " " + k : "";
+    }).join(""));
+  }
+
   function render() {
     var e = estate(model);
+    renderSummaries(e);
     renderHead(e);
     renderSpark(e);
     renderUsage(e);
@@ -681,15 +816,24 @@
   function findSess(name) { return model.sessions.filter(function (r) { return r.name === name; })[0]; }
   function nowIso() { return model.census.taken_at; }
 
+  function setProc(cls, project, count) {
+    model.census.procs = model.census.procs.filter(function (p) { return !(p.class === cls && p.project === project); });
+    if (count) { model.census.procs.push({ class: cls, project: project, count: count }); }
+  }
+
   var SCRIPT = {
     3:  function () { findReq("r-0144").grant = { lane: "bats", at: nowIso() }; },
-    5:  function () { findReq("r-0144").start = { at: nowIso() }; findSess("intent-cc").state = "busy"; findSess("intent-cc").updated_at = nowIso(); model.census.bats = 1; },
-    8:  function () { findReq("r-0142").end = { at: nowIso() }; findSess("devbin-cc").updated_at = nowIso(); model.census.cargo = 0; },
-    9:  function () { findSess("devbin-cc").state = "idle"; },
+    5:  function () { findReq("r-0144").start = { at: nowIso() }; findSess("intent-cc").state = "busy"; findSess("intent-cc").updated_at = nowIso(); setProc("bats", "Intent", 6); },
+    7:  function () { setProc("mix", "Laksa", 1); setProc("swift", "", 1); },
+    8:  function () { findReq("r-0142").end = { at: nowIso() }; findSess("devbin-cc").updated_at = nowIso(); setProc("cargo", "Devbin", 0); },
+    9:  function () { findSess("devbin-cc").state = "idle"; setProc("swift", "", 0); },
     11: function () { findReq("r-0145").grant = { lane: "cargo", at: nowIso() }; },
-    13: function () { findReq("r-0145").start = { at: nowIso() }; findSess("utilz-cc").updated_at = nowIso(); model.census.cargo = 4; },
+    13: function () { findReq("r-0145").start = { at: nowIso() }; findSess("utilz-cc").updated_at = nowIso(); setProc("cargo", "Utilz", 4); },
     15: function () { findReq("r-0139").revoke = { at: nowIso(), why: "holder gone" }; },
-    17: function () { model.requests.push({ id: "r-0146", ask: { session_id: "4d7b2e90-c18f-4a35-8e6d-5a9f0c3b7e21", type: "kovacs", what: "brew install intent 3.2.6 on kovacs", at: nowIso() } }); findSess("utilz-vc").state = "busy"; findSess("utilz-vc").updated_at = nowIso(); }
+    17: function () { model.requests.push({ id: "r-0146", ask: { session_id: "4d7b2e90-c18f-4a35-8e6d-5a9f0c3b7e21", type: "kovacs", what: "brew install intent 3.2.6 on kovacs", at: nowIso() } }); findSess("utilz-vc").state = "busy"; findSess("utilz-vc").updated_at = nowIso(); },
+    // The failure path, shown: the endpoint read fails, the fallback takes over, then it recovers.
+    18: function () { model.usage.endpoint.error = "the Keychain is locked"; model.usage.endpoint.at = nowIso(); },
+    22: function () { model.usage.endpoint.error = null; model.usage.endpoint.at = nowIso(); }
   };
   var LOOP = 24;
 
@@ -709,13 +853,25 @@
     model.census.history.push({ at: nowIso(), load1: model.census.load[0], slots_running: runningNow() });
     model.census.history.shift();
     if (tick % 4 === 0) {
-      model.usage.at = nowIso();
-      model.usage.rate_limits.five_hour.used_percentage = Math.min(100, model.usage.rate_limits.five_hour.used_percentage + 1);
+      var u = model.usage;
+      u.statusline.at = nowIso();
+      u.statusline.rate_limits.five_hour.used_percentage = Math.min(100, u.statusline.rate_limits.five_hour.used_percentage + 1);
+      if (!u.endpoint.error) {
+        u.endpoint.at = nowIso();
+        u.endpoint.body.five_hour.utilization = u.statusline.rate_limits.five_hour.used_percentage;
+      }
     }
     render();
   }
 
   document.getElementById("filter").addEventListener("input", render);
+  // Collapse or expand every panel at once; the button names what it will do.
+  document.getElementById("fold").addEventListener("click", function (ev) {
+    var panels = document.querySelectorAll("main details");
+    var anyOpen = Array.prototype.some.call(panels, function (d) { return d.open; });
+    panels.forEach(function (d) { d.open = !anyOpen; });
+    ev.target.textContent = anyOpen ? "expand all" : "collapse all";
+  });
   document.getElementById("pause").addEventListener("click", function (ev) {
     paused = !paused;
     ev.target.textContent = paused ? "resume" : "pause";
