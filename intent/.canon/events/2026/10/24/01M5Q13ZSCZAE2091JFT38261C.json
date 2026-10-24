@@ -1,0 +1,16 @@
+{
+  "id": "01M5Q13ZSCZAE2091JFT38261C",
+  "ts": "2026-10-24T13:20:39.215Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 55,
+    "text": "RESUME STATE (vc, 2026-10-24 13:20Z by date -u, localfold before hv's machine-wide compact). 3.2.6 IS CUT AND LIVE: tag at 88633fe93 on both remotes, all six release assets, the tap at 3.2.6, smoke green bar its own arm (fixed 799526be1), Intent.app swapped, intent.laksa.io at 3.2.6, kovacs on brew 3.2.6. The tag's CI is red (ubuntu clippy; one macOS test); hv ruled the tag stays and the fix lands on main: issue 0637, landed at 660ac1492, 6be51289f and d822aa204. 0637 IS NOT CLOSED: the kovacs preflight at e39e60104, the first under the widened order, came back RED at 13:20Z at rust.yml test: fmt, both clippy lines and doc green, so the tag's clippy red is fixed on Linux; ONE test failed, invariant_every_shipped_verb_answers_identically_down_every_route (native/rust/crates/intent-cli/tests/dual_path_conformance.rs:468), which no Linux run had reached before (GitHub's ubuntu job stopped at clippy, macOS passed it). kovacs-sysadm was asked for its panic block from ~/work/intent-preflight/e39e60104.../rust-test.log. NEXT: read that block, decide whether it is Linux behaviour or kovacs's real HOME state, spec the fix to dc, land it, one more preflight; 0637 closes on that green. QUEUED with molt-vc (the desk is closed until molt-vc reopens it after the compact; bookings keep their places): dc's 0635 judge (bank refs/bank/dc/0635/fix-b, script run-b.sh; vc's rulings: the board write keeps refusing, one slot for both steps), then Intent's PATH-clean sweep last. ic is building the /estate/status mockup for ST0086 off main, to attach after a green covers HEAD. Then 3.2.7 in hv's order (decision 71). No push."
+  }
+}
