@@ -8,7 +8,9 @@
     "heartbeat_at": "2026-10-24T13:50:57.102Z",
     "status": "active",
     "focus": "ST0086 mockup landed at 59bc1720b; next 0633's gyges note after the repro; no push, no release",
-    "claims": [],
+    "claims": [
+      "ST0086"
+    ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"

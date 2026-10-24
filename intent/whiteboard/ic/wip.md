@@ -6,7 +6,7 @@ session_id: eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd
 heartbeat_at: 2026-10-24 13:50Z
 status: active
 focus: "ST0086 mockup landed at 59bc1720b; next 0633's gyges note after the repro; no push, no release"
-claims: []
+claims: [ST0086]
 ---
 
 # Interface Claude (ic)
