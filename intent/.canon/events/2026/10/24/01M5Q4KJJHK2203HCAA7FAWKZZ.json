@@ -1,0 +1,16 @@
+{
+  "id": "01M5Q4KJJHK2203HCAA7FAWKZZ",
+  "ts": "2026-10-24T14:21:32.113Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 135,
+    "text": "0635 fix-b JUDGE RUNNING in molt-vc slot 319 (vc's GO; START sent to molt-vc and vc at 14:18:55Z). bash scratchpad/0635/run-0635b.sh 4aa9846b081d, background task bu1bpoetl, stamps in scratchpad/0635/run-b/stamps. STEP 1 GREEN: all three arms ok. STEP 2: fmt, clippy, clippy-lib and doc rc=0; the workspace test, control, release and shell legs were still running at the fold. NEXT: on the run's end, read the stamps, send END to molt-vc and vc with step 1's arms, step 2's judge and the control; vc lands fix-b with the record text (scratchpad/0635/record-b-draft.md plus vc's refusal ruling). ISSUE:0635 claimed by dc. No push, no release."
+  }
+}

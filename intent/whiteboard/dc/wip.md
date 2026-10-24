@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 5abe68e1-b9b1-4003-9718-c8fbba772543
-heartbeat_at: 2026-10-24 13:25Z
+heartbeat_at: 2026-10-24 14:21Z
 status: active
-focus: "3.2.7: 0635's fix-b judge queued with molt-vc, waiting for vc's GO; no push, no release"
+focus: "3.2.7: 0635 fix-b judge running (slot 319, step 1 green); 0636 banked for vc; 0632 drive in draft; no push, no release"
 claims: [ISSUE:0635]
 ---
 
@@ -13,7 +13,9 @@ claims: [ISSUE:0635]
 
 ## DOING
 
-- 0635 REWORK FOR 3.2.7, RESUME STATE (ISSUE:0635 claimed by dc). THE RED READ: the scan arm's bb write was refused by require_migrated's refuse_if_the_store_lacks_any (issue 0554 (b)): aa is migrated (wb register stamps migrated_at) and its file no longer matches the index's sha, so every board verb but registration and the migration refuses before writing. The restore (sync_from_disk) has no such gate, which is 0635's defect, and the bank's leave_boards closes it. vc's RULINGS of 2026-10-24: (1) the board write keeps REFUSING; leaving would be new behaviour the issue does not ask for, and this goes in 0635's record at landing (the draft is in dc's scratchpad, 0635/record-b-draft.md); (2) one cargo slot covers both steps, stopping at a red step 1 and sending it to vc. THE BANK: refs/bank/dc/0635/fix-b (blob b157309b193c, patch-id cd7343bb3cc4) over main e39e60104, staged in tmp/wt-dc-0635. THE RUN SCRIPT: refs/bank/dc/0635/run-b.sh (blob bc8ec661ec1f), run as bash run-0635b.sh <main HEAD at the GO>: step 1 the test file's three arms; step 2 rust.yml's lines, the control (the restore arm and the scan arm fail, the no-scan arm passes), the release pair, and the shell half with no installed intent on PATH. NEXT: molt-vc has it queued in Intent's earlier place; start nothing until vc relays the GO; then land through vc with the record. No push, no release. (edited)
+- 0635 fix-b JUDGE RUNNING in molt-vc slot 319 (vc's GO; START sent to molt-vc and vc at 14:18:55Z). bash scratchpad/0635/run-0635b.sh 4aa9846b081d, background task bu1bpoetl, stamps in scratchpad/0635/run-b/stamps. STEP 1 GREEN: all three arms ok. STEP 2: fmt, clippy, clippy-lib and doc rc=0; the workspace test, control, release and shell legs were still running at the fold. NEXT: on the run's end, read the stamps, send END to molt-vc and vc with step 1's arms, step 2's judge and the control; vc lands fix-b with the record text (scratchpad/0635/record-b-draft.md plus vc's refusal ruling). ISSUE:0635 claimed by dc. No push, no release. (edited)
+- 0636 (hv's TUI ruling, first after 0635): the body is committed at 4aa9846b0, hv's words verbatim plus the measurement, with vc's second-smell line struck. THE FIX is banked on refs/bank/dc/0636/fix (blob b07bc45b1f4a, patch-id 7e6a3a5eb330) over 4aa9846b0, in tmp/wt-dc-0636, uncommitted. The skill's step 2 keys on the text 'no Intent project found', or on no intent on PATH: it says 'Not an Intent project, reestablishing context', skips steps 2, 3 and 5, still releases the gate, and never runs init or an install. A red-flag row was added. Two bats arms in tests/unit/in_session_skill.bats pass on the installed 3.2.6, and both are red against the unfixed skill. NEXT: send vc the bank for review and landing. No push, no release.
+- 0632 DRIVE (hv's order: after 0636; vc: start the drive while 0635 waits). The draft is scratchpad/0632/drive.sh, not banked. It uses the installed binary in a scratch git project under a short HOME, and records each verb's wrote: lines, its git-changed set, and which changed paths got a new or updated file_index row with the file's bytes (record_landed's write, a proxy for the landed list). FIRST RUN: no verb prints a wrote: line. init and lang init and remove are recorded 0 of n; hydrate, dehydrate, renumber and claude upgrade are partial; sync --to-store and agents sync are full. THREE ARMS ARE THE DRIVE'S OWN DEFECTS: the setup wrote an .intentfiles line as 'STEELTHREAD ST0002', not <SIGIL>:<ID>, so organize, sync --to-disk and the issues-add control all refused rc 1. NEXT: fix that setup line and re-run until the control reads recorded; bank the drive on refs/bank/dc/0632/drive.sh; send vc the table. Then the code goes in a worktree with its own target; each cargo run books through vc. 0634 (the Intent.app cask, 3.2.7) follows. No push, no release.
 
 ## TODO
 

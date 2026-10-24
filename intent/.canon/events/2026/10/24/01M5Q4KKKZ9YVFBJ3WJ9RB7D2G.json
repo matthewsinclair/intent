@@ -1,0 +1,15 @@
+{
+  "id": "01M5Q4KKKZ9YVFBJ3WJ9RB7D2G",
+  "ts": "2026-10-24T14:21:33.183Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "0636 (hv's TUI ruling, first after 0635): the body is committed at 4aa9846b0, hv's words verbatim plus the measurement, with vc's second-smell line struck. THE FIX is banked on refs/bank/dc/0636/fix (blob b07bc45b1f4a, patch-id 7e6a3a5eb330) over 4aa9846b0, in tmp/wt-dc-0636, uncommitted. The skill's step 2 keys on the text 'no Intent project found', or on no intent on PATH: it says 'Not an Intent project, reestablishing context', skips steps 2, 3 and 5, still releases the gate, and never runs init or an install. A red-flag row was added. Two bats arms in tests/unit/in_session_skill.bats pass on the installed 3.2.6, and both are red against the unfixed skill. NEXT: send vc the bank for review and landing. No push, no release."
+  }
+}

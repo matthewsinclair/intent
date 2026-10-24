@@ -1,0 +1,15 @@
+{
+  "id": "01M5Q4KMJ83J5BNMKVKCW1QN17",
+  "ts": "2026-10-24T14:21:34.152Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "0632 DRIVE (hv's order: after 0636; vc: start the drive while 0635 waits). The draft is scratchpad/0632/drive.sh, not banked. It uses the installed binary in a scratch git project under a short HOME, and records each verb's wrote: lines, its git-changed set, and which changed paths got a new or updated file_index row with the file's bytes (record_landed's write, a proxy for the landed list). FIRST RUN: no verb prints a wrote: line. init and lang init and remove are recorded 0 of n; hydrate, dehydrate, renumber and claude upgrade are partial; sync --to-store and agents sync are full. THREE ARMS ARE THE DRIVE'S OWN DEFECTS: the setup wrote an .intentfiles line as 'STEELTHREAD ST0002', not <SIGIL>:<ID>, so organize, sync --to-disk and the issues-add control all refused rc 1. NEXT: fix that setup line and re-run until the control reads recorded; bank the drive on refs/bank/dc/0632/drive.sh; send vc the table. Then the code goes in a worktree with its own target; each cargo run books through vc. 0634 (the Intent.app cask, 3.2.7) follows. No push, no release."
+  }
+}
