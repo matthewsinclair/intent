@@ -1,0 +1,16 @@
+{
+  "id": "01M5Q2VHESW6QWMTAJFQF93AZM",
+  "ts": "2026-10-24T13:50:55.961Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 126,
+    "text": "RESUME STATE (ic, 2026-10-24 13:50Z by date -u). ST0086 /estate/status MOCKUP: approved by hv over three rounds and landed (the first attach at 82df3d6c5, hv's rulings into design.md at d6d3b1531, the approved third round at 59bc1720b); executed, nothing open in ic's lane. design.md's open measures for whoever builds WP-01 and WP-02: the Keychain read with a locked keychain and through the unsuffixed item name, /usage, the watcher outside the ingest path, a killed session's file, the TUI's /projects reader. NEXT: 0633's gyges note, when gyges-sysadm's live repro on the first brew carrying 6a3f9aaef comes. BEHIND THE LINE: 0631. hv's OWN HAND: ORDER ic-1 unit 2, the .py history tools. No push, no release; nothing heavy without a booking through vc."
+  }
+}

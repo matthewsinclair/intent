@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd",
-    "heartbeat_at": "2026-10-24T13:20:39.225Z",
+    "heartbeat_at": "2026-10-24T13:50:57.102Z",
     "status": "active",
-    "focus": "ST0086 /estate/status mockup built in the scratchpad; attach on vc's word after the kovacs preflight's END; 0633's gyges note after the repro; no push, no release",
+    "focus": "ST0086 mockup landed at 59bc1720b; next 0633's gyges note after the repro; no push, no release",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -2472,9 +2472,10 @@
       "node": "ic",
       "kind": "doing",
       "seq": 126,
-      "text": "RESUME STATE (ic, 2026-10-24 13:20Z by date -u, localfold before a compact). LIVE: (1) ST0086 /estate/status MOCKUP, hv's ask through vc, size S: built and checked, not yet attached. File: /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd/scratchpad/st0086/estate-status-mockup.html (one self-contained file, shell.html's tokens, light and dark, textContent only; an inline sample of the raw records: census, controller, lanes, requests as one key per file, sessions, boards joined; a reader stand-in folds and joins; a 2s scripted re-render; node --check is clean and the reader's output was checked against the sample). NEXT on vc's word that the kovacs preflight at e39e60104 has ENDED (it covers HEAD for 0637, and anything under intent/st/ uncovers it): intent st attach ST0086 estate-status-mockup.html --from <that file> (a .md wrapper if html is refused), then commit exactly its wrote: paths. Questions for vc with it: under D56 the daemon serves ONE shell document, so WP-02 is a route in shell.html fed by /op rather than a second page; and design.md lists the record state as active, idle, heavy, paused, while a heavy run is a slot, so the mockup records busy, idle, paused and joins heavy from a running slot and gone from a dead pid, and heavy counts a running slot in any lane, light included. (2) 0633: when gyges-sysadm's live repro on the first brew carrying 6a3f9aaef comes, note it in 0633's record (outside board paths, so after the preflight's END). BEHIND THE LINE: 0631. hv's OWN HAND: ORDER ic-1 unit 2, the .py history tools. No push, no release; nothing heavy without a booking through vc.",
+      "text": "RESUME STATE (ic, 2026-10-24 13:50Z by date -u). ST0086 /estate/status MOCKUP: approved by hv over three rounds and landed (the first attach at 82df3d6c5, hv's rulings into design.md at d6d3b1531, the approved third round at 59bc1720b); executed, nothing open in ic's lane. design.md's open measures for whoever builds WP-01 and WP-02: the Keychain read with a locked keychain and through the unsuffixed item name, /usage, the watcher outside the ingest path, a killed session's file, the TUI's /projects reader. NEXT: 0633's gyges note, when gyges-sysadm's live repro on the first brew carrying 6a3f9aaef comes. BEHIND THE LINE: 0631. hv's OWN HAND: ORDER ic-1 unit 2, the .py history tools. No push, no release; nothing heavy without a booking through vc.",
       "state": "live",
-      "recorded_at": "2026-10-24T13:20:21.651Z"
+      "recorded_at": "2026-10-24T13:20:21.651Z",
+      "edited_at": "2026-10-24T13:50:55.961Z"
     }
   ],
   "sent": [
