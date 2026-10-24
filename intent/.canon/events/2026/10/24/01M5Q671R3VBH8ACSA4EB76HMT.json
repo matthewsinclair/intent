@@ -1,0 +1,16 @@
+{
+  "id": "01M5Q671R3VBH8ACSA4EB76HMT",
+  "ts": "2026-10-24T14:49:38.819Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 126,
+    "text": "RESUME STATE (ic, 2026-10-24 14:49Z by date -u). ST0086, ic's half under vc's split, reordered by vc under hv's pen (WP-02's page first, WP-03 after; hv: the /estate/status functionality is pretty important). Claims: ST0086/02 (295474de2) and ST0086/03 (76c6b1aee); cc holds /01 and /04 and builds WP-02's daemon half under /02 on vc's assignment. ALL IN tmp/wt-ic-0086, UNBUILT (no cargo has run), as three local WIP commits on 0fc7eb308, none for landing: a37cc2b52 WP-01's surface (estate dispatch rows, render arm, MCP arms, estate_surface tests); 2d68c51cb WP-03 (nav View::Estate at /estate with /estate/status parsing to it, ESTATE_SEGMENT and ESTATE_DEFAULT_ITEM, the contract test; the /estate palette act, the shared estate_lines and estate_summary cells for verb and view, a five-second clock re-read, MATCH_CAP raised, tests, docs/explorer.md); 2fb9f6f99 WP-02's page (/estate/status in the one shell document, dispatching on result estate_status from Op::Form, rendering intent/estate-status@1 as hv's approved mockup, stale banner on a failed re-read; the fixture at intentsvcs/tests/fixtures/estate-status-1.json in cc's normalised keys, which cc's reader test will check; estate status --browser through served_url, split out of browser_url; a refusal arm; docs/working-with-agents.md). AGREED WITH cc: Op::EstateStatus and an unbound Op::Form for View::Estate answer {result: estate_status, status}; cc builds the main.rs arm on my nav hunk. CHECKED: node --check on the shell scripts; the page rendered headless against the fixture (full, empty, failing re-read, narrow, filter and fold driven). OPEN: cc's D42 ruling may drop taken_at and census.history[].at (the page falls back to the browser clock). NEXT: when cc's WP-01 bank lands, rebase the three commits onto it, book one cargo run through vc with molt-vc, judge (whole intentsvcs, intent-cli and intentd suites under a bare PATH, fmt, both clippy lines), then bank on refs/bank/ic/0086/. ALSO: todo 52; 0633's note. BEHIND THE LINE: 0631. hv's OWN HAND: ORDER ic-1 unit 2. No push, no release."
+  }
+}
