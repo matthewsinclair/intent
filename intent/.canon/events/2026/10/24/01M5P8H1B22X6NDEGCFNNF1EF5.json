@@ -1,0 +1,16 @@
+{
+  "id": "01M5P8H1B22X6NDEGCFNNF1EF5",
+  "ts": "2026-10-24T06:10:48.803Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 33,
+    "text": "HOLD ST0081 AC-02.1 and WP-02 (Linux assets on each tag's release, one writer per release object) UNTIL devbin 0.1.13 is re-vendored into Intent after the 3.2.6 tag, with the macOS bats run a vendored devbin upgrade owes before the cut that carries it; AC-02.1 is proven at the first cut after 3.2.6. THE DEVBIN HALF IS MET (cc's measurement 2026-10-24 06:10Z by date -u, from devbin-vc's END through vc): devbin 0.1.13 released by hv's hand, release commit 6fa7b3c0, annotated tag v0.1.13 on local and upstream, the GitHub release published 2026-10-23 21:50:25Z, the tap at 853f6414. D55 is ruled (hv, 2026-10-23: devbin's release core attaches the Linux assets, SHA256SUMS riding it), and devbin-vc's shape is the build: Intent declares `commands.release.enabled: true` with `release.verbs: [check, attach]`, `release.repo` and the assets keys; linux-release.yml triggers on tags matching `v[0-9]*`; the cut runs build release, macos prepare, macos publish, `bin/devbin release attach vX.Y.Z`, then brew formula --push. Every other ST0081 row is settled: AC-01.1, AC-01.2, AC-03.3 and AC-06.1 satisfied, WP-01, WP-03 and WP-06 done, and the gate reads BLOCKED on AC-02.1 alone. The release.remotes block is retired (vc), not owed."
+  }
+}

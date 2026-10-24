@@ -1,0 +1,16 @@
+{
+  "id": "01M5P8H2M8CG9AJ1KVZAK059P9",
+  "ts": "2026-10-24T06:10:50.120Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 88,
+    "text": "RESUME STATE (cc, 2026-10-24 06:10Z by date -u), at the render chain before the 3.2.6 tag. cc's part of the pre-cut pass is landed: the CHANGELOG audit at 09ac0e2f2 on vc's GO (refs/bank/cc/changelog-audit, blob 655a13634419, patch-id 326ef795ccfa, base 5b4852e7c), adding 3.2.6 lines for 0622 and 0625 and recording in its message why 0611, 0620, 0621 and 0623 owe none; 0635 moved to 3.2.7. cc's earlier 3.2.6 landings stand as recorded: the templates for 0616 to 0618 at 3b04aec52 (closed at 384702712), 0630 at 491c1cc33 (closed at c7acdbc6e). FROM THIS FOLD UNTIL THE TAG EXISTS: the freeze, no wb write, no commit, no /in-session (restart.md), hv's .py removal commit the one exception. NEXT, after the tag, on vc's word: the re-vendor of devbin 0.1.13 and ST0081 WP-02's Intent half (hold 33). tmp/wt-cc-0616t and tmp/wt-cc-0630 hold nothing unbanked and can be removed after the cut. No push, no release."
+  }
+}

@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 66e84138-c919-405e-bed0-8057e34a7ac2
-heartbeat_at: 2026-10-24 05:28Z
+heartbeat_at: 2026-10-24 06:10Z
 status: active
-focus: "Resume tomorrow on vc's word: dc's 0635, then vc's build all #2, then the CHANGELOG audit of every issue closed since v3.2.5 (0611, 0622 and 0623 owe a line or a reason); no push, no release"
+focus: "Frozen until the 3.2.6 tag (render chain done): after it, on vc's word, re-vendor devbin 0.1.13 and ST0081 WP-02's Intent half (hold 33); no push, no release"
 claims: [ST0081]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0081]
 
 ## DOING
 
-- RESUME STATE (cc, 2026-10-23 21:38Z by date -u): hv closed for the night; no cut tonight. LANDED TODAY on vc's word, each by literal path through the gate, judged on one composition (the cargo half green at 2e36149a89ce, intentsvcs, intent-cli and intentd whole; the shell half green at 9b11789c0486, 812 ok): the templates for 0616, 0617 and 0618 at 3b04aec52, then `intent claude skills sync` (6 changed) and `intent claude subagents sync` (critic-prose), the three issues closed together at 384702712; 0630 at 491c1cc33 (fix-s-formatted and fix-s2 to fix-s5 as one commit with its CHANGELOG line), closed at c7acdbc6e with a Resolution correcting its premise forward; then ic's 0633 at 6a3f9aaef, closed at 89da8f56e. kovacs-sysadm was told through vc that the gate now asks the pair for `lang declared` and `guards`. NEXT, each on vc's word: dc's 0635 (hv: in 3.2.6); vc's build all #2 on the final HEAD (the installed pair at c59e80779 predates the Rust in 3b04aec52 and 491c1cc33, which the gate's self-provenance arm reports); THEN THE CHANGELOG AUDIT, owed tomorrow after build all #2: every issue closed since v3.2.5 against its landing commit, with 0611 (closed into ST0085), 0622 (7a62e86c1) and 0623 (6bd64b1c8) carrying no 3.2.6 line yet, so the audit writes one for each or records why none is owed. ST0081 WP-02 stays held (hold 33). tmp/wt-cc-0616t (the composed tree, staged) and tmp/wt-cc-0630 hold nothing unbanked; the banks are refs/bank/cc/0616-0618/* and refs/bank/cc/0630/*. No push, no release. (edited)
+- RESUME STATE (cc, 2026-10-24 06:10Z by date -u), at the render chain before the 3.2.6 tag. cc's part of the pre-cut pass is landed: the CHANGELOG audit at 09ac0e2f2 on vc's GO (refs/bank/cc/changelog-audit, blob 655a13634419, patch-id 326ef795ccfa, base 5b4852e7c), adding 3.2.6 lines for 0622 and 0625 and recording in its message why 0611, 0620, 0621 and 0623 owe none; 0635 moved to 3.2.7. cc's earlier 3.2.6 landings stand as recorded: the templates for 0616 to 0618 at 3b04aec52 (closed at 384702712), 0630 at 491c1cc33 (closed at c7acdbc6e). FROM THIS FOLD UNTIL THE TAG EXISTS: the freeze, no wb write, no commit, no /in-session (restart.md), hv's .py removal commit the one exception. NEXT, after the tag, on vc's word: the re-vendor of devbin 0.1.13 and ST0081 WP-02's Intent half (hold 33). tmp/wt-cc-0616t and tmp/wt-cc-0630 hold nothing unbanked and can be removed after the cut. No push, no release. (edited)
 
 ## TODO
 
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-- HOLD ST0081 AC-02.1 and WP-02 (Linux assets on each tag's release, one writer per release object) UNTIL devbin 0.1.13 is cut and re-vendored into Intent. D55 is ruled (hv, 2026-10-23: devbin's release core attaches the Linux assets, SHA256SUMS riding it), and devbin-vc's shape is the build: Intent declares `commands.release.enabled: true` with `release.verbs: [check, attach]`, `release.repo` and the assets keys; linux-release.yml triggers on tags matching `v[0-9]*`; the cut runs build release, macos prepare, macos publish, `bin/devbin release attach vX.Y.Z`, then brew formula --push. vc appends the shape to the record. Every other ST0081 row is settled: AC-01.1, AC-01.2, AC-03.3 and AC-06.1 satisfied, WP-01, WP-03 and WP-06 done, and the gate reads BLOCKED on AC-02.1 alone. The release.remotes block is retired (vc), not owed.
+- HOLD ST0081 AC-02.1 and WP-02 (Linux assets on each tag's release, one writer per release object) UNTIL devbin 0.1.13 is re-vendored into Intent after the 3.2.6 tag, with the macOS bats run a vendored devbin upgrade owes before the cut that carries it; AC-02.1 is proven at the first cut after 3.2.6. THE DEVBIN HALF IS MET (cc's measurement 2026-10-24 06:10Z by date -u, from devbin-vc's END through vc): devbin 0.1.13 released by hv's hand, release commit 6fa7b3c0, annotated tag v0.1.13 on local and upstream, the GitHub release published 2026-10-23 21:50:25Z, the tap at 853f6414. D55 is ruled (hv, 2026-10-23: devbin's release core attaches the Linux assets, SHA256SUMS riding it), and devbin-vc's shape is the build: Intent declares `commands.release.enabled: true` with `release.verbs: [check, attach]`, `release.repo` and the assets keys; linux-release.yml triggers on tags matching `v[0-9]*`; the cut runs build release, macos prepare, macos publish, `bin/devbin release attach vX.Y.Z`, then brew formula --push. Every other ST0081 row is settled: AC-01.1, AC-01.2, AC-03.3 and AC-06.1 satisfied, WP-01, WP-03 and WP-06 done, and the gate reads BLOCKED on AC-02.1 alone. The release.remotes block is retired (vc), not owed. (edited)
 
 ## Watch-outs
 
