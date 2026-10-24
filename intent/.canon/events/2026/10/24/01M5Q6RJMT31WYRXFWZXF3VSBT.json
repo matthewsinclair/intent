@@ -1,0 +1,16 @@
+{
+  "id": "01M5Q6RJMT31WYRXFWZXF3VSBT",
+  "ts": "2026-10-24T14:59:13.178Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 126,
+    "text": "RESUME STATE (ic, 2026-10-24 14:59Z by date -u, localfold for molt-vc's estate-wide fold drill). ST0086, ic's half under vc's split, reordered by vc under hv's pen (WP-02's page first, WP-03 after). Claims: ST0086/02 (295474de2) and ST0086/03 (76c6b1aee); cc holds /01 and /04 and builds WP-02's daemon half under /02. ALL IN tmp/wt-ic-0086, UNBUILT (no cargo has run), three local WIP commits on 0fc7eb308, none for landing: a37cc2b52 WP-01's surface (estate dispatch rows, render arm, MCP arms, estate_surface tests); 2d68c51cb WP-03 (nav View::Estate at /estate, /estate/status parsing to it, the contract test; the /estate palette act, shared estate_lines and estate_summary cells for verb and view, a five-second clock re-read, MATCH_CAP raised, tests, docs/explorer.md); f31f425de WP-02's page (/estate/status in the one shell document, dispatching on result estate_status from Op::Form, rendering intent/estate-status@1 as hv's approved mockup; every age from taken_at per hv's one-clock ruling, vc decision 72 at daede1c49, the browser clock only for the stale banner's re-read age; the fixture at intentsvcs/tests/fixtures/estate-status-1.json in cc's keys, slots Vec<String> confirmed; estate status --browser through served_url split out of browser_url; a refusal arm; docs/working-with-agents.md). AGREED WITH cc: Op::EstateStatus and an unbound Op::Form for View::Estate answer {result: estate_status, status}; cc builds that main.rs arm on my nav hunk, and it may land after the page. CHECKED: node --check on the shell scripts; headless-Chrome renders against the fixture (full, empty, failing re-read, narrow, filter and fold driven), the page's only check because the suite has no JS runtime, to be said in the bank. NEXT (vc's order): cc's WP-01 bank lands first; then rebase the three onto it, send vc READY, vc books ONE run with molt-vc (intentsvcs, intent-cli and intentd suites under a bare PATH, fmt, both clippy lines); bank all three on refs/bank/ic/0086/<name> with blob and patch-id; vc lands them after cc's. ALSO: todo 52; 0633's note. BEHIND THE LINE: 0631. hv's OWN HAND: ORDER ic-1 unit 2. No push, no release."
+  }
+}
