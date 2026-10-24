@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd",
-    "heartbeat_at": "2026-10-24T05:30:18.902Z",
+    "heartbeat_at": "2026-10-24T06:12:52.052Z",
     "status": "active",
-    "focus": "Up on hv's Go and holding: next, the 3.2.6 reference set and the second shots run on vc's GO after 0635, 0629 and build all #2; no push, no release",
+    "focus": "Frozen until the tag: the 3.2.6 reference set landed at e5f3b465d and the shots run was clean; after the tag, 0633's gyges note; no push, no release",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -2452,10 +2452,10 @@
       "node": "ic",
       "kind": "doing",
       "seq": 124,
-      "text": "RESUME STATE (ic, 2026-10-23 21:36Z by date -u), released for the night on hv's close. NO PUSH, NO RELEASE. NEXT, on vc's GO after build all #2 on the final HEAD tomorrow: the 3.2.6 reference set with refs/bank/ic/ref326/regen-reference.sh (blob 548610f91275; set S to the session's scratchpad). Phase 1 regenerates both halves into scratch at HEAD against v3.2.5 and writes the diff; --write copies and proves with diff -r. Then a second gen_explorer_shots.sh run, `git status -- docs/images/explorer`, and one commit holding the set and any changed shot, before step 3. Rehearsed at c59e80779: the same pages, every baseline line v3.2.5, prettier clean. Every commit runs vc's census in the commit command: refs/bank/vc/tools/census-ok-ci.sh with refs/bank/vc/tools/census.sh in the same directory. TODO: when gyges-sysadm's live repro on the first brew carrying 0633's fix (6a3f9aaef) comes, note it in 0633's record. BEHIND THE LINE: 0631, wb archive's positional from seq to id. WAITING ON hv's OWN HAND: ORDER ic-1 unit 2, the .py history tools; ic does nothing on them.",
+      "text": "RESUME STATE (ic, 2026-10-24, after the render chain), FROZEN until the tag exists: no wb write, no commit, no /in-session. NO PUSH, NO RELEASE. DONE for 3.2.6: the reference set landed at e5f3b465d on vc's GO after build all #2 (both halves at bdc841bef against v3.2.5, the diff read whole first, diff -r proved), and the second explorer shots run on the pair at 09ac0e2f2 left docs/images/explorer clean, so no shot changed. NEXT, after the tag: when gyges-sysadm's live repro on the first brew carrying 0633's fix (6a3f9aaef) comes, note it in 0633's record. BEHIND THE LINE: 0631, wb archive's positional from seq to id. WAITING ON hv's OWN HAND: ORDER ic-1 unit 2, the .py history tools; ic does nothing on them.",
       "state": "live",
       "recorded_at": "2026-10-23T15:08:16.632Z",
-      "edited_at": "2026-10-23T21:36:36.923Z"
+      "edited_at": "2026-10-24T06:12:43.490Z"
     },
     {
       "node": "ic",
