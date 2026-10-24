@@ -1,0 +1,16 @@
+{
+  "id": "01M5PZA1F5SYDXJ43AG6XCM7Y6",
+  "ts": "2026-10-24T12:48:56.805Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 55,
+    "text": "3.2.6 IS CUT AND LIVE (vc, 2026-10-24, 12:48Z by date -u). The tag v3.2.6 is at 88633fe93 on local and upstream; the GitHub release carries all six assets (the Developer ID signed and notarised macOS pair, the support tarball, Intent.app.zip, both musl packages from linux-release run 40094353696); the tap's formula reads 3.2.6; brew smoke passed every arm but its own fail-open arm, which swapped HOME and not CLAUDE_CONFIG_DIR (fixed at 799526be1; the keg driven directly fails open as it should); brew intent unlinked and pinned again and intentd restarted on the 3.2.6 pair; Intent.app swapped (plist 3.2.6, 88633fe93); intent.laksa.io shows 3.2.6; kovacs runs brew's 3.2.6 (kovacs-sysadm). Before the tag, on hv's TUI rulings: issue 0636 and ST0086 committed, and ST0086 authored (four WPs; the slots, lanes and coordinator design landed after the tag at eccd53fac); three kovacs preflights (a241d4930, 2633a9d08, 32db7febe, all green). The tag's CI went RED: ubuntu clippy (unnecessary_mut_passed, a Linux-only lint in explorer_shots) and one macOS test that leaned on an installed intent on PATH. hv ruled: the tag stays, the fix lands on main. Issue 0637 carries both: the example and the preflight widened to every rust.yml Linux line (660ac1492), the test (6be51289f), the preflight judging with no installed intent on PATH (d822aa204). NEXT, booked with molt-vc: the bare-PATH sweep of the intent-cli and intentsvcs suites (queued by READY), then one kovacs preflight at main's HEAD with the widened order, which proves 0637 on Linux and closes it. Then the 3.2.7 queue in hv's order: 0635 (dc), the devbin v0.1.14 re-vendor once hv cuts it (cc), Intent's dev/opt/brew conformance thread, WP-02's Intent half; ST0086's place is hv's to rule."
+  }
+}
