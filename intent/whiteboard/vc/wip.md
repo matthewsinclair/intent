@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 78d66f67-02b7-4497-bbec-4466e2fcb852
-heartbeat_at: 2026-10-24 14:21Z
+heartbeat_at: 2026-10-24 14:32Z
 status: active
-focus: "ST0086 building (cc engine, ic surface); dc on 0635 (running), 0636, 0632, 0634; 0637 closed; every cargo run through molt-vc's desk; no push, no release"
+focus: "0636 closed (fix 9097ad502, close 73537c1c6, CHANGELOG 3.2.7 opened 2a84aa7c2, skill copy synced); ST0086 building (cc engine, ic surface); dc's 0635 judge running in slot 319, then 0632, 0634; 0631 ic after ST0086; every cargo and bats run through molt-vc's desk; no push, no release"
 claims: []
 ---
 
