@@ -1,0 +1,16 @@
+{
+  "id": "01M5Q4JR3K2JNV4KRASGYT21Q9",
+  "ts": "2026-10-24T14:21:05.011Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 126,
+    "text": "RESUME STATE (ic, 2026-10-24 14:21Z by date -u, localfold before a compact). ST0086 SURFACE, ic's under vc's split (cc owns the intentsvcs and daemon side, claims ST0086/01 and /04; ic claims /02 and /03 when starting each). WP-01's SURFACE IS WRITTEN AND UNBUILT in the worktree tmp/wt-ic-0086 (detached at 0fc7eb308, hooks off, uncommitted there): surface/dispatch-table.json gains the estate family (status read and on MCP with --format terminal|json; wip reversible and on MCP with the anomaly sentence; prune one-way and withheld); render.rs gains the estate arm (the terminal table drawn from serde_json::to_value of the reader's answer, unreadable files as stderr warnings at rc 0, a null host shown as (host unknown), wip wrote:/removed:, prune removed: then done:, the session only through pickup_session); mcp.rs gains the estate status and estate wip arms over cc's Facade delegators estate_status() and estate_wip(session_id, line), SERVED +2; tests/estate_surface.rs (seven arms, registered in suite.rs) takes procStart from intentsvcs::estate::proc_start_of (confirmed by cc; the form is per OS). rustfmt clean; NO cargo has run. THE BOUNDARY agreed with cc: intent/estate-status@1, absolute ISO-Z stamps, every key present from WP-01, claude_status kept, state gone > paused > heavy > busy > idle, project {root, name = directory name}, node null without a board, unreadable {path, why, pid?}, worktree bool, host null when uname fails. NEXT: when cc's WP-01 bank exists, rebase the worktree onto it, book a cargo run through vc with molt-vc, judge (the whole intentsvcs and intent-cli suites under a bare PATH, fmt, both clippy lines), bank on refs/bank/ic/0086/surface-01 with blob and patch-id; cc's bank lands first. ALSO: 0633's gyges note after the repro; todo 52, the reference regeneration at the cut carrying the verbs. BEHIND THE LINE: 0631. hv's OWN HAND: ORDER ic-1 unit 2. No push, no release."
+  }
+}
