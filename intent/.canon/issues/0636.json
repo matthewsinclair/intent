@@ -3,9 +3,10 @@
   "number": 636,
   "slug": "fix-in-session-skill-to-safely-handle-being-run",
   "title": "Fix /in-session skill to safely handle being run in non-Intent projects",
-  "status": "open",
+  "status": "closed",
   "severity": "medium",
   "created": "2026-10-24",
+  "closed": "2026-10-24",
   "reporter": "Matthew Sinclair",
   "body": "hv, verbatim (2026-10-24, by TUI, relayed by vc):\n\n> The issue is simply that running /in-sess OUTSIDE an Intent session shouldn't fail and shouldn't try to install intent or anything like that. It should just reestablish its context from prior to the compact and just say something like \"Not an Intent project, reestablishing context\" and then continues.\n\nTHE MEASUREMENT, outside any Intent project (a bare directory, and the same directory after `git init`), with intent 3.2.6 (88633fe93e9d):\n\n- the skill's gate release (`release-gate.sh`) works;\n- `intent lang declared`, the skill's step 2, exits 4 with `error: no Intent project found at or above <dir> (looked for intent/.config/config.json)` and a remedy naming `intent init`. Exit 4 alone does not say \"not a project\": `lang declared` also answers 4 for a config this binary cannot read, inside a real project. So the skill keys on the error's text, not the code;\n- `intent wb pickup`, `wb status`, `st list` and `issues list` exit 1 with the same `no Intent project found` error; `lang declared` and `doctor` exit 4, the pre-commit gate's fail-open contract. None of those exits is a defect. The defect is the skill: it treats that refusal as a failure, and the remedy it would follow names `intent init`.\n\nTHE FIX (vc's spec), in the skill's canon `intent/plugins/claude/skills/in-session/SKILL.md`: step 2 treats `no Intent project found`, or no `intent` on PATH at all, as \"not an Intent project\". It prints \"Not an Intent project, reestablishing context\", keeps the universal skills step 1 loaded, releases the gate, skips the language fan-out and the whiteboard, and continues. It never runs `intent init` and never installs anything. One bats arm drives step 2's command in a bare directory and asserts that no init happened. No cargo.\n"
 }
