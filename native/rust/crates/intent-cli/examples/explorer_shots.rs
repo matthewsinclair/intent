@@ -387,17 +387,21 @@ fn open_pty() -> io::Result<(OwnedFd, OwnedFd)> {
     ws_xpixel: 0,
     ws_ypixel: 0,
   };
+  // Linux declares the window size `*const` and macOS `*mut`. A `&mut` at the
+  // call is an unnecessary_mut_passed lint on Linux, so it goes in as a typed
+  // `*mut`, which is macOS's type and coerces to Linux's.
+  let winp: *mut libc::winsize = &mut size;
   // SAFETY: openpty(3) writes two descriptors through the two pointers, which
-  // point at live locals, and reads the window size; the name and the termios
-  // are null, which it accepts. The termios is typed because Linux declares it
-  // `*const` and macOS `*mut`, and only a typed null coerces to both.
+  // point at live locals, and reads the window size through winp, which points
+  // at a live local; the name and the termios are null, which it accepts. The
+  // termios has the window size's split, and only a typed null coerces to both.
   let rc = unsafe {
     libc::openpty(
       &mut master,
       &mut slave,
       std::ptr::null_mut(),
       std::ptr::null_mut::<libc::termios>(),
-      &mut size,
+      winp,
     )
   };
   if rc != 0 {

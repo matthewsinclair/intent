@@ -15,6 +15,13 @@ preflight_summary_line() {
   printf 'preflight-linux at %s: run_tests.sh rc=%s, %s ok, %s not ok\n' "$1" "$2" "$3" "$4"
 }
 
+# preflight_step_line <sha> <step> <rc> -- the first line when a step before
+# run_tests.sh failed, naming it. The order stops there, so the suite never ran,
+# and preflight_state reads the line as red.
+preflight_step_line() {
+  printf 'preflight-linux at %s: %s rc=%s, run_tests.sh not run\n' "$1" "$2" "$3"
+}
+
 # preflight_state <summary-file> <sha> -- prints `green`, `red` or `absent`.
 # Green is a first line naming <sha> with rc=0, at least one arm passing and
 # none failing: a run that passed nothing is a green that means nothing. Any

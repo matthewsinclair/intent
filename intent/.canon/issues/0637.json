@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 637,
+  "slug": "v3-2-6-s-tag-is-red-on-ubuntu-clippy-a-linux-onl",
+  "title": "v3.2.6's tag is red on ubuntu clippy: a Linux-only lint in an example, and a preflight that never ran rust.yml's lines",
+  "status": "open",
+  "severity": "high",
+  "created": "2026-10-24",
+  "reporter": "Matthew Sinclair",
+  "body": "The v3.2.6 tag's CI went red on ubuntu at `cargo clippy --workspace --all-targets -- -D warnings`: `clippy::unnecessary_mut_passed` at `native/rust/crates/intent-cli/examples/explorer_shots.rs:400`, a `&mut size` passed to `libc::openpty`, whose window-size parameter is `*mut winsize` on macOS and `*const winsize` on Linux. No macOS run can raise it. It fell through because the kovacs preflight (`bin/.devbin/preflight-linux.sh`), the only Linux run before a push, ran `tests/run_tests.sh` alone and none of rust.yml's Linux lines, and upstream's CI had not run since the 3.2.5 cut, so the whole train reached GitHub in the tag's push. The shipped binaries are not affected: the lint is in an example. Fix: the window size goes in as a typed `*mut`, and the preflight runs every rust.yml Linux line in order (fmt, both clippy lines, doc, test) before the build and the bats suite, the first failure ending the run with the step named in the summary. hv ruled 2026-10-24: the fix lands on main and the tag stays.\n"
+}
