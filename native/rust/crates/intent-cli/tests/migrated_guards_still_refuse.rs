@@ -522,10 +522,19 @@ fn list_guards_reports_the_projects_declared_guards_beside_intents_in_a_fifth_co
   );
   assert!(git(root, &["add", "-A"]).status.success());
 
+  // The real binary reachable as `intent`, as commit_through_hook gives it:
+  // the lister asks `intent guards`, and an ambient PATH holds an installed
+  // intent on every judging machine but none on CI's runner (issue 0637).
+  let path = format!(
+    "{}:{}",
+    td.path().join("install").join("bin").display(),
+    std::env::var("PATH").unwrap_or_default()
+  );
   let out = Command::new("bash")
     .arg(home.join("lib/templates/hooks/pre-commit-guards.sh"))
     .arg("--list-guards")
     .current_dir(root)
+    .env("PATH", path)
     .output()
     .expect("run --list-guards");
   let text = String::from_utf8_lossy(&out.stdout).to_string();
