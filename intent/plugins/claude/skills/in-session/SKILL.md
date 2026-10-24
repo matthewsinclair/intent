@@ -43,6 +43,8 @@ Languages-in-use is a configuration decision, not a filesystem detection. Ask th
 intent lang declared
 ```
 
+**NOT AN INTENT PROJECT IS NOT A FAILURE.** When that command fails with `no Intent project found`, or when there is no `intent` on PATH at all, this session is outside an Intent project. Say `Not an Intent project, reestablishing context`, keep the skills step 1 loaded, skip the rest of this step and steps 3 and 5, run step 4, and continue with what the user was already asking for, from the context the compact carried. **Never run `intent init`, and never install Intent or anything else**, whatever the error's remedy suggests: a remedy that names `intent init` is for someone making a project, and nobody here asked for one. Key on the text, not the exit code: `lang declared` exits 4 for that refusal and also for a config this binary cannot read inside a real project, which is a fault to report, not a reason to skip.
+
 For each language listed, invoke the matching essentials skill if one exists. Elixir, `author` and `content` have an essentials skill; the other languages get their coding rules via the rule library served by the installed Intent tool (`intent claude rules list --lang <lang>`, `intent claude rules show <id>`) plus the `critic-<lang>` subagent applied on demand.
 
 | Language  | Skills to invoke (if listed in config)                                           |
@@ -99,4 +101,5 @@ Hold these regardless of which language skills get loaded above. They do not exp
 | ---------------------------------------------- | ----------------------------------------------------------------------- |
 | "The skills loaded once already this session." | Only a skill the compact carried whole is active. Invoke the rest.      |
 | "I can read each rule file on demand."         | Skills carry procedural orchestration, not just rule prose. Load them.  |
+| "Not a project, so run `intent init`."         | Never. Say `Not an Intent project, reestablishing context` and go on.   |
 | "Elixir-only -- no need for agnostic rules."   | Every language concretises the agnostic pack. Always load in-standards. |

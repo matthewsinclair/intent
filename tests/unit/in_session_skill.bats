@@ -134,3 +134,34 @@ CLAUDE_MD="${INTENT_PROJECT_ROOT}/CLAUDE.md"
   [ -f "$script" ]
   [ -x "$script" ]
 }
+
+# ====================================================================
+# Outside an Intent project (issue 0636): not a failure, never an init
+# ====================================================================
+
+# The command step 2 tells a session to run, read from the skill itself, so this arm drives what the
+# skill says rather than a second copy of it.
+step2_command() {
+  sed -n '/^### 2\./,/^### 3\./p' "$SKILL" | sed -n '/^```bash$/,/^```$/p' | sed '/^```/d'
+}
+
+@test "in-session step 2 outside an Intent project is the refusal the skill keys on, and nothing is initialised" {
+  local cmd bare
+  cmd="$(step2_command)"
+  [ "$cmd" = "intent lang declared" ] || fail "step 2's command is not the one this arm drives: '$cmd'"
+  bare="$BATS_TEST_TMPDIR/not-a-project"
+  mkdir -p "$bare"
+  git -C "$bare" init -q
+  run bash -c 'cd "$1" && shift && "$@"' drive "$bare" "$INTENT_BIN" ${cmd#intent }
+  [ "$status" -eq 4 ] || fail "step 2 exited $status, not 4: $output"
+  [[ "$output" == *"no Intent project found"* ]] || fail "step 2 did not refuse as not-a-project: $output"
+  # The text this run printed is the text the skill tells a session to key on.
+  assert_file_contains "$SKILL" '`no Intent project found`'
+  [ ! -e "$bare/intent" ] || fail "step 2 made $bare/intent: $(ls -A "$bare/intent")"
+  [ "$(ls -A "$bare")" = ".git" ] || fail "step 2 left files in the bare directory: $(ls -A "$bare")"
+}
+
+@test "in-session says what it does outside an Intent project, and forbids init and installs" {
+  assert_file_contains "$SKILL" "Not an Intent project, reestablishing context"
+  assert_file_contains "$SKILL" 'Never run `intent init`, and never install Intent or anything else'
+}
