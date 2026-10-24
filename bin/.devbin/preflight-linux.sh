@@ -27,13 +27,16 @@
 # first line and where it is copied come from bin/.devbin/cmd/shared/preflight.lib in the clone, the file
 # `int prepush` reads them from.
 #
-# THE BINARIES ARE COPIED INTO THE CLONE, NEVER LINKED. `intent` finds the install it belongs to by walking up
-# from its own REAL path to a directory holding lib/templates/. CI builds in-tree, so that path is inside the
-# checkout. This order builds into one target directory kept across runs, outside the clone, and the first run
-# linked native/rust/target to it: every binary's real path was then outside the clone, and most of the suite
-# went red on "cannot locate the Intent install this binary belongs to" (the gate's "no usable INTENT_HOME").
-# So intent and intentd are copied to native/rust/target/release after the build, where they would have been
-# built, and where PATH and INTENT_BIN's default look for them.
+# EVERY BINARY IS BUILT INSIDE THE CLONE, as CI builds in-tree. `intent` finds the install it belongs to by
+# walking up from its own REAL path to a directory holding lib/templates/, and the test binaries cargo test runs
+# do the same, so that path must sit inside the clone. One target directory is kept across runs, as CI's
+# rust-cache keeps one, at $ROOT/target: after the clone it is MOVED into the clone's native/rust/target, and an
+# EXIT trap moves it back on every way the order ends (finish, die, a signal). Both are renames, since the two
+# paths are on one filesystem. It is never a redirect or a link. A link to it put every binary's real path
+# outside the clone and most of the bats suite went red on "cannot locate the Intent install this binary belongs
+# to"; a CARGO_TARGET_DIR redirect did the same to cargo test's binaries (issue 0637, the kovacs run at
+# e39e60104). The workspace crates rebuild on each run because their path moved, which also keeps testkit's
+# CARGO_MANIFEST_DIR naming this clone; the registry dependencies stay built.
 set -uo pipefail
 
 want="${1:?usage: preflight-linux.sh <sha> <host>:<path> -- the commit to test, and the checkout to clone it from}"
@@ -105,12 +108,34 @@ chmod +x tests/*.sh 2>/dev/null
 gitconfig="$run/gitconfig"
 printf '[user]\n\temail = ci@intent.local\n\tname = Intent CI\n' >"$gitconfig"
 
-# ONE target directory across runs, as CI's rust-cache keeps one: the build is redirected there with
-# CARGO_TARGET_DIR, outside this clone and never this repository's shared native/rust/target, and the two
-# binaries are copied from it into the clone (see the header for why a link will not do). Runs are sequential,
-# so it is never shared by two builds at once. One job by default: kovacs has two CPUs and little memory
-# (ORDER 3's setting).
-mkdir -p "$ROOT/target"
+# ONE target directory across runs, MOVED into the clone and back, never a redirect or a link (see the header).
+# The trap is set before the move and returns the target once the move-in has begun; a move that failed left
+# nothing in the clone to return. It moves the target back only when nothing is at $ROOT/target already, since
+# mv would otherwise move it inside that directory; a target it cannot return is said, and the next run starts
+# cold. Runs are sequential, so it is never shared by two builds at once. One job by default: kovacs has two
+# CPUs and little memory (ORDER 3's setting).
+intree="$run/Intent/native/rust/target"
+moved_in=""
+# shellcheck disable=SC2329 # invoked by the EXIT trap below
+return_target() {
+  [ -n "$moved_in" ] && [ -d "$intree" ] || return 0
+  if [ -e "$ROOT/target" ]; then
+    printf 'preflight: %s exists, so this run left its target at %s -- the next run starts cold\n' "$ROOT/target" "$intree" >&2
+    return 0
+  fi
+  mv "$intree" "$ROOT/target" || printf 'preflight: could not move %s back to %s\n' "$intree" "$ROOT/target" >&2
+}
+trap return_target EXIT
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
+[ ! -e "$intree" ] || die "the fresh clone already holds native/rust/target, so the kept target cannot move in"
+moved_in=1
+if [ -d "$ROOT/target" ]; then
+  mv "$ROOT/target" "$intree" || die "cannot move $ROOT/target into the clone at $intree"
+else
+  mkdir -p "$intree" || die "cannot make $intree"
+fi
 
 # The runner's locale: LANG=C.UTF-8 and LC_ALL unset. Every other LC_* this login exports is unset as well,
 # since any one of them would override LANG for its own category.
@@ -138,7 +163,7 @@ finish() {
 }
 
 # rust_step <name> <command...> -- one of .github/workflows/rust.yml's `run:` lines, as its Linux leg runs it:
-# in native/rust, XDG_* empty (the job's env), the runner's locale, SIGPIPE ignored, into the shared target. Its
+# in native/rust, XDG_* empty (the job's env), the runner's locale, SIGPIPE ignored, into the clone's own native/rust/target. Its
 # output goes to its own log and then the run's. A failure ends the order there: the summary's first line names
 # the step and its rc, its second the steps that ran, and the step's error lines follow, so a lint that fails
 # here fails before a push. A green summary's second line names every step too, so a green this order made
@@ -150,7 +175,7 @@ rust_step() {
   steps="${steps:+$steps }$name"
   printf 'preflight: rust.yml %s\n' "$name" >&3
   (cd native/rust && env "${nolc[@]}" LANG=C.UTF-8 XDG_CONFIG_HOME= XDG_DATA_HOME= XDG_STATE_HOME= XDG_RUNTIME_DIR= \
-    PATH="$leg_path" CARGO_TARGET_DIR="$ROOT/target" CARGO_BUILD_JOBS="${PREFLIGHT_JOBS:-1}" \
+    PATH="$leg_path" CARGO_BUILD_JOBS="${PREFLIGHT_JOBS:-1}" \
     bash -c "trap '' PIPE; exec \"\$@\"" rust-step "$@") >"$steplog" 2>&1
   rc=$?
   { printf '\n# ---- rust.yml %s: %s, rc=%s ----\n' "$name" "$*" "$rc"; cat "$steplog"; } >>"$log"
@@ -163,6 +188,14 @@ rust_step() {
   finish "$rc" "$run/summary.head"
 }
 
+# THE POSITIVE CONTROL on where cargo builds: nothing may send it outside the clone. A target-dir variable in the
+# environment would redirect every step, and a link at native/rust/target would put every binary's real path
+# outside the clone; either is refused here, named, before the first step.
+for v in CARGO_TARGET_DIR CARGO_BUILD_TARGET_DIR; do
+  [ -z "${!v+x}" ] || die "$v is set in the environment (to ${!v}) -- it would build outside the clone; unset it, then run again"
+done
+[ ! -L "$intree" ] || die "$intree is a symlink (to $(readlink "$intree")) -- every binary's real path would be outside the clone"
+
 # rust.yml's Linux leg, in its order, each line as that file writes it.
 rust_step fmt cargo fmt --check
 rust_step clippy cargo clippy --workspace --all-targets -- -D warnings
@@ -172,12 +205,9 @@ rust_step test cargo test --workspace --no-fail-fast
 
 printf '\n# ---- build (cargo build --release -p intent-cli -p intentd), jobs %s ----\n' "${PREFLIGHT_JOBS:-1}" >>"$log"
 printf 'preflight: building %s (jobs %s)\n' "$sha" "${PREFLIGHT_JOBS:-1}" >&3
-PATH="$PWD/bin:$PWD/native/rust/target/release:$leg_path" CARGO_TARGET_DIR="$ROOT/target" CARGO_BUILD_JOBS="${PREFLIGHT_JOBS:-1}" \
+PATH="$PWD/bin:$PWD/native/rust/target/release:$leg_path" CARGO_BUILD_JOBS="${PREFLIGHT_JOBS:-1}" \
   cargo build --release --manifest-path native/rust/Cargo.toml -p intent-cli -p intentd >>"$log" 2>&1 ||
   die "the build failed at $sha -- see $log"
-mkdir -p native/rust/target/release || die "cannot make native/rust/target/release in the clone"
-cp -p "$ROOT/target/release/intent" "$ROOT/target/release/intentd" native/rust/target/release/ ||
-  die "cannot copy intent and intentd from $ROOT/target/release into the clone"
 printf 'preflight: running the bats suite, SIGPIPE ignored, LANG=C.UTF-8\n' >&3
 printf '\n# ---- run_tests.sh, SIGPIPE ignored and LANG=C.UTF-8 as on the runner (env %s) ----\n' "${nolc[*]}" >>"$log"
 env "${nolc[@]}" LANG=C.UTF-8 XDG_CONFIG_HOME= XDG_DATA_HOME= XDG_STATE_HOME= XDG_RUNTIME_DIR= \
