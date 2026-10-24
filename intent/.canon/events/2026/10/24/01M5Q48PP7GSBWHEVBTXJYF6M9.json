@@ -1,0 +1,15 @@
+{
+  "id": "01M5Q48PP7GSBWHEVBTXJYF6M9",
+  "ts": "2026-10-24T14:15:35.879Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST0086 WP-01, the engine (cc, 2026-10-24 14:15Z by date -u): estate.rs, the Facade delegators estate_status and estate_wip, the two session fixtures (macOS and kovacs's Linux, scrubbed), the reader test, and design.md's launchd and liveness corrections are written in tmp/wt-cc-0086 at 0fc7eb308's tree, uncompiled. NEXT: one heavy slot booked by vc with molt-vc, two steps (the targeted tests, then the whole intentsvcs and intent-cli suites under a bare PATH, fmt, both clippy lines), waiting for vc's relayed GO; then bank on refs/bank/cc/0086/wp01 for vc to land, before ic's surface bank. The devbin v0.1.14 re-vendor pre-empts this when hv cuts it. No push, no release."
+  }
+}
