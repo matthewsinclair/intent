@@ -41,6 +41,14 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
     "unknown thread",
     facade.st_show("ST9999").expect_err("no such thread"),
   )];
+  // A session id that would name a path is refused before anything is read
+  // or written, so the estate door is provokable by a bad call.
+  out.push((
+    "a path as an estate session id",
+    facade
+      .estate_wip("../x", Some("a line"))
+      .expect_err("not a session id"),
+  ));
   // Reachable by a bad CALL since `Facade::schema` landed -- before it, the
   // variant existed and nothing on the facade raised it, so its exemption
   // below cited a CLI arm that composed its own refusal string instead.
@@ -1207,6 +1215,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::Store(_) => "Store",
     FacadeError::Ingest(_) => "Ingest",
     FacadeError::Sync(_) => "Sync",
+    FacadeError::Estate(_) => "Estate",
     FacadeError::NoSuchFormat { .. } => "NoSuchFormat",
     FacadeError::LossyFormat { .. } => "LossyFormat",
     FacadeError::ExportRoundTripFailed { .. } => "ExportRoundTripFailed",
@@ -1347,6 +1356,7 @@ const ALL_VARIANTS: &[&str] = &[
   "Store",
   "Ingest",
   "Sync",
+  "Estate",
   "NoSuchFormat",
   "LossyFormat",
   "WriteNotAddressable", // PUT to a server-assigned id -- `mutation_create_splits_two_ways.rs`

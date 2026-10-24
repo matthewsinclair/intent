@@ -1,0 +1,25 @@
+{
+  "pid": 692155,
+  "sessionId": "00000000-0000-0000-0000-000000000000",
+  "cwd": "/home/someone/Devel/prj/Example",
+  "startedAt": 1792819584834,
+  "procStart": "12448223",
+  "version": "2.1.310",
+  "peerProtocol": 1,
+  "peerFeatures": [
+    "notify_idle",
+    "reply_across_default_dirs",
+    "artifact_yield"
+  ],
+  "kind": "interactive",
+  "entrypoint": "cli",
+  "pidDomain": "linux:00000000000000000000000000000000:pid:[4026531836]",
+  "messagingSocketPath": "/tmp/scrubbed.sock",
+  "name": "example-cc",
+  "nameSource": "user",
+  "nameSince": 1792819584883,
+  "updatedAt": 1792850492364,
+  "status": "busy",
+  "statusUpdatedAt": 1792850492364,
+  "bridgeSessionId": "session_scrubbed"
+}

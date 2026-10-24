@@ -481,6 +481,8 @@ mod text_realisation;
 mod the_backup_cycle_has_one_home;
 #[path = "the_editor_gets_the_model_bytes.rs"]
 mod the_editor_gets_the_model_bytes;
+#[path = "the_estate_reader_pins_claude_codes_session_fields.rs"]
+mod the_estate_reader_pins_claude_codes_session_fields;
 #[path = "the_index_is_built_from_the_tree_and_read_from_the_store.rs"]
 mod the_index_is_built_from_the_tree_and_read_from_the_store;
 #[path = "the_index_scope_is_the_repository.rs"]

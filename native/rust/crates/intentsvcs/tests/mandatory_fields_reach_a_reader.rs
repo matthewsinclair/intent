@@ -69,6 +69,8 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // A scope that cannot be built is about the project's config file (ST0083),
     // not a field the caller left out.
     | FacadeError::Sync(_)
+    // The estate refuses a session id or a line, never a field left out.
+    | FacadeError::Estate(_)
     | FacadeError::SqlMoreThanOneStatement
     | FacadeError::SqlNoStatement
     | FacadeError::SqlUnterminated

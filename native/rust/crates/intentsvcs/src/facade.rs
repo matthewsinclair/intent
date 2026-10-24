@@ -1994,6 +1994,9 @@ pub enum FacadeError {
   /// config could not say where its contracts live.
   #[error(transparent)]
   Sync(#[from] crate::sync::SyncError),
+  /// The host's estate could not be read or written (ST0086).
+  #[error(transparent)]
+  Estate(#[from] crate::estate::EstateError),
   #[error("no export format named `{format}`")]
   NoSuchFormat {
     format: String,
@@ -3264,6 +3267,7 @@ impl crate::remedy::Remedy for FacadeError {
       // endpoint; restating it here would be a second answer to one question.
       Self::Embed(cause) => cause.remedy(),
       Self::Sync(cause) => cause.remedy(),
+      Self::Estate(cause) => cause.remedy(),
       Self::Store(cause) => cause.remedy(),
       // Delegated for the same reason: `organize` knows which of its four
       // refusals happened and this does not.
@@ -7976,6 +7980,25 @@ impl Facade {
       },
       payload,
     )
+  }
+
+  /// The host's estate (ST0086): every Claude Code session on it, joined to
+  /// the project and node each stands in. Not this project's alone, so it
+  /// reads the operator's directories and never this facade's store.
+  pub fn estate_status(&self) -> Result<crate::estate::EstateStatus, FacadeError> {
+    let dirs = crate::userstate::dirs().map_err(crate::estate::EstateError::from)?;
+    let claude = crate::userstate::claude_dir().map_err(crate::estate::EstateError::from)?;
+    Ok(crate::estate::status(&dirs, &claude)?)
+  }
+
+  /// Writes the session's WIP line on the estate, or with `None` removes it.
+  pub fn estate_wip(
+    &self,
+    session_id: &str,
+    line: Option<&str>,
+  ) -> Result<crate::estate::WipWritten, FacadeError> {
+    let dirs = crate::userstate::dirs().map_err(crate::estate::EstateError::from)?;
+    Ok(crate::estate::wip(&dirs, session_id, line)?)
   }
 
   pub fn boards(&self) -> Result<Vec<Board>, FacadeError> {

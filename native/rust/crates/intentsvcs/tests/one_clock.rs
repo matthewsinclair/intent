@@ -66,7 +66,8 @@ const CLOCK: &[&str] = &[
   "SELECT strftime(",
 ];
 
-/// **Files allowed to read a clock: ONE, the daemon log's writer, by ruling.**
+/// **Files allowed to read a clock: TWO, each by its own ruling** -- the daemon
+/// log's writer and the estate's clock.
 ///
 /// It held `store.rs` until the store clock was deleted. That exemption was
 /// correct under the model of the morning -- one well-sourced clock beat three
@@ -80,7 +81,16 @@ const CLOCK: &[&str] = &[
 /// recorded once, at ST0056's D42: the log is an operational stream that must
 /// write when the store cannot (issue `0321`). The entry is a file rather than
 /// a crate, so every other file in `intentd` is still scanned.
-const EXEMPT: &[&str] = &["crates/intentd/src/daemon_log.rs"];
+///
+/// **The estate's clock joined it on 2026-10-24, by a ruling of its own** (hv,
+/// vc decision 72, recorded at ST0056's D42 beside the daemon log's): the estate
+/// view is a reading of the live host, not a record, so when it was taken has
+/// no write to be stamped by. One file again, so every other file in the estate
+/// module is still scanned.
+const EXEMPT: &[&str] = &[
+  "crates/intentd/src/daemon_log.rs",
+  "crates/intentsvcs/src/estate/clock.rs",
+];
 
 /// Every `.rs` under every crate's `src/` AND `tests/`, discovered by walking.
 ///
@@ -140,7 +150,7 @@ fn code_of(path: &Path) -> String {
 }
 
 #[test]
-fn nothing_but_the_daemon_log_reads_a_clock() {
+fn nothing_but_the_exempt_files_read_a_clock() {
   let root = workspace_root();
   let files = sources(&root);
   assert!(
@@ -174,13 +184,13 @@ fn nothing_but_the_daemon_log_reads_a_clock() {
 
   assert!(
     offenders.is_empty(),
-    "time comes from the DB (hv, 2026-08-15). There is no clock in this workspace but the daemon log's writer, D42's one exemption: a record is stamped BY the write that creates it, so nothing needs to ask. These asked --\n  {}",
+    "time comes from the DB (hv, 2026-08-15). There is no clock in this workspace but the two files D42 exempts by ruling, the daemon log's writer (hv, 2026-09-15) and the estate's clock (hv, 2026-10-24): a record is stamped BY the write that creates it, so nothing needs to ask. These asked --\n  {}",
     offenders.join("\n  ")
   );
 }
 
-/// **The exemption list names the daemon log's writer and nothing else, and the
-/// clock every record uses lives in the SCHEMA.**
+/// **The exemption list names the daemon log's writer and the estate's clock and
+/// nothing else, and the clock every record uses lives in the SCHEMA.**
 ///
 /// Inverted rather than deleted, and the reason is the failure it used to
 /// guard: an exemption that stops describing reality passes forever. The old
@@ -189,23 +199,27 @@ fn nothing_but_the_daemon_log_reads_a_clock() {
 /// the superseded model, whose failure text argued for keeping the thing being
 /// removed** (vc, who caught it before it was hit).
 ///
-/// **The one entry is pinned in both directions** (hv, 2026-09-15, recorded at
-/// ST0056's D42; issue `0321`). A second file cannot join it without this test
-/// changing, and the file it names must still be the one that reads the clock,
-/// so the exemption cannot outlive its reason. Every record is still stamped by
+/// **Both entries are pinned in both directions** (hv, 2026-09-15, issue `0321`,
+/// and hv, 2026-10-24, vc decision 72; both recorded at ST0056's D42). A third
+/// file cannot join them without this test changing, and each file named must
+/// still be one that reads the clock, so no exemption can outlive its reason. Every record is still stamped by
 /// a column DEFAULT.
 #[test]
-fn only_the_daemon_log_is_exempt_and_the_stamping_lives_in_the_schema() {
+fn only_the_two_ruled_files_are_exempt_and_the_stamping_lives_in_the_schema() {
   assert_eq!(
     EXEMPT,
-    ["crates/intentd/src/daemon_log.rs"],
-    "the clock ban exempts the daemon log's writer and nothing else (hv, 2026-09-15, for the reason ST0056's D42 records). Another file wants its own ruling, with its reason recorded at D42, rather than an entry here"
+    [
+      "crates/intentd/src/daemon_log.rs",
+      "crates/intentsvcs/src/estate/clock.rs"
+    ],
+    "the clock ban exempts the daemon log's writer (hv, 2026-09-15) and the estate's clock (hv, 2026-10-24) and nothing else, for the reasons ST0056's D42 records. Another file wants its own ruling, with its reason recorded at D42, rather than an entry here"
   );
-  assert!(
-    code_of(&workspace_root().join(EXEMPT[0])).contains("OffsetDateTime::now"),
-    "`{}` is exempt from the clock ban and is missing or no longer reads the clock, so the exemption has outlived its reason: remove the entry",
-    EXEMPT[0]
-  );
+  for exempt in EXEMPT {
+    assert!(
+      code_of(&workspace_root().join(exempt)).contains("OffsetDateTime::now"),
+      "`{exempt}` is exempt from the clock ban and is missing or no longer reads the clock, so the exemption has outlived its reason: remove the entry"
+    );
+  }
 
   // Where the clock went. Every record-timestamp column is filled by SQLite as
   // part of the write, which is why no Rust file has to ask.

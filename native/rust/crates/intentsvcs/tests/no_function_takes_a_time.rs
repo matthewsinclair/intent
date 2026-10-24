@@ -154,8 +154,18 @@ fn split_params(params: &str) -> Vec<String> {
   out
 }
 
-/// Every `(name, type)` parameter of every `fn` in a source file.
-fn parameters(code: &str) -> Vec<(String, String)> {
+/// **One parameter is exempt, by name, as a PFIC seam** (hv, 2026-10-24, vc
+/// decision 72, recorded at ST0056's D42): `estate::join` takes `now`, the one
+/// reading of the estate's clock that every age in the estate derives from, so
+/// the join stays pure and its caller, `estate::status`, is the one that reads
+/// `estate/clock.rs`. Exempted as file, function and parameter, so a second
+/// time parameter in the same file is still caught, and pinned by
+/// [`the_estate_seam_is_still_the_join_taking_now`] so the exemption cannot
+/// outlive the parameter.
+const SEAMS: &[(&str, &str, &str)] = &[("crates/intentsvcs/src/estate.rs", "join", "now")];
+
+/// Every `(function, name, type)` parameter of every `fn` in a source file.
+fn parameters(code: &str) -> Vec<(String, String, String)> {
   let mut out = Vec::new();
   let bytes: Vec<char> = code.chars().collect();
   let mut idx = 0;
@@ -165,6 +175,12 @@ fn parameters(code: &str) -> Vec<(String, String)> {
       break;
     };
     let open = start + open_rel;
+    let function = code[start + 3..open]
+      .split('<')
+      .next()
+      .unwrap_or_default()
+      .trim()
+      .to_string();
     // Balanced scan to the closing paren, so a defaulted generic or a tuple
     // parameter does not end the list early.
     let mut depth = 0i32;
@@ -189,18 +205,21 @@ fn parameters(code: &str) -> Vec<(String, String)> {
         continue;
       };
       let name = name.trim().trim_start_matches("mut ").trim().to_string();
-      out.push((name, ty.trim().to_string()));
+      out.push((function.clone(), name, ty.trim().to_string()));
     }
     idx = close;
   }
   out
 }
 
-fn offenders_in(code: &str) -> Vec<String> {
+fn offenders_in(rel: &str, code: &str) -> Vec<String> {
   parameters(code)
     .into_iter()
-    .filter(|(name, ty)| TIME_NAMES.contains(&name.trim_start_matches('_')) && is_time_shaped(ty))
-    .map(|(name, ty)| format!("{name}: {ty}"))
+    .filter(|(function, name, _)| !SEAMS.contains(&(rel, function.as_str(), name.as_str())))
+    .filter(|(_, name, ty)| {
+      TIME_NAMES.contains(&name.trim_start_matches('_')) && is_time_shaped(ty)
+    })
+    .map(|(_, name, ty)| format!("{name}: {ty}"))
     .collect()
 }
 
@@ -224,7 +243,7 @@ fn no_function_in_the_shipped_surface_takes_a_time() {
     if rel.ends_with("tests/no_function_takes_a_time.rs") {
       continue;
     }
-    for offender in offenders_in(&code_of(path)) {
+    for offender in offenders_in(&rel, &code_of(path)) {
       found.push(format!("{rel} -- {offender}"));
     }
   }
@@ -244,17 +263,17 @@ fn no_function_in_the_shipped_surface_takes_a_time() {
 #[test]
 fn the_detector_catches_a_time_parameter_and_spares_the_mechanism() {
   assert_eq!(
-    offenders_in("fn record(ts: String) {}"),
+    offenders_in("x.rs", "fn record(ts: String) {}"),
     vec!["ts: String".to_string()],
     "the plainest form of the defect must be caught"
   );
   assert_eq!(
-    offenders_in("pub fn backup(&self, today: &str, keep: usize) {}"),
+    offenders_in("x.rs", "pub fn backup(&self, today: &str, keep: usize) {}"),
     vec!["today: &str".to_string()],
     "and it must be found among other parameters, not only alone"
   );
   assert!(
-    offenders_in("fn snapshot_into(&self, dest: &std::path::Path) {}").is_empty(),
+    offenders_in("x.rs", "fn snapshot_into(&self, dest: &std::path::Path) {}").is_empty(),
     "a path is not a time"
   );
 
@@ -262,13 +281,17 @@ fn the_detector_catches_a_time_parameter_and_spares_the_mechanism() {
   // door a write is going through; a name-only check would condemn the thing
   // enforcing the rule.
   assert!(
-    offenders_in("fn write_thread(tx: &Transaction<'_>, t: &Thread, stamp: Stamp) {}").is_empty(),
+    offenders_in(
+      "x.rs",
+      "fn write_thread(tx: &Transaction<'_>, t: &Thread, stamp: Stamp) {}"
+    )
+    .is_empty(),
     "`stamp: Stamp` selects the create-or-restore door and carries no time"
   );
 
   // Generics must not end the parameter scan early.
   assert_eq!(
-    offenders_in("fn f(a: Result<A, B>, when: String) {}"),
+    offenders_in("x.rs", "fn f(a: Result<A, B>, when: String) {}"),
     vec!["when: String".to_string()],
     "a comma inside angle brackets does not end a parameter"
   );
@@ -292,7 +315,48 @@ fn carrying_a_record_that_holds_a_stamp_is_not_taking_a_time() {
      the thing this whole file forbids"
   );
   assert!(
-    offenders_in("pub fn restore_event(&self, e: &Envelope) {}").is_empty(),
+    offenders_in("x.rs", "pub fn restore_event(&self, e: &Envelope) {}").is_empty(),
     "and the detector agrees: an envelope is not a timestamp"
+  );
+}
+
+/// The seam [`SEAMS`] exempts is still there: `estate::join` still takes `now`
+/// as a time. Once it does not, the exemption names nothing and must go.
+#[test]
+fn the_estate_seam_is_still_the_join_taking_now() {
+  let root = workspace_root();
+  for (rel, function, name) in SEAMS {
+    let found = parameters(&code_of(&root.join(rel)))
+      .into_iter()
+      .any(|(f, n, ty)| f == *function && n == *name && is_time_shaped(&ty));
+    assert!(
+      found,
+      "`{rel}`'s `{function}` no longer takes `{name}` as a time, so its exemption (hv, 2026-10-24, recorded at ST0056's D42) has outlived its reason: remove it from SEAMS"
+    );
+  }
+}
+
+/// The seam exempts that one parameter of that one function in that one file,
+/// and nothing beside it.
+#[test]
+fn the_seam_exempts_only_the_join_in_the_estate() {
+  let estate = "crates/intentsvcs/src/estate.rs";
+  assert!(
+    offenders_in(
+      estate,
+      "pub fn join(gathered: Gathered, now: OffsetDateTime) {}"
+    )
+    .is_empty()
+  );
+  assert_eq!(
+    offenders_in(estate, "fn other(now: OffsetDateTime) {}"),
+    ["now: OffsetDateTime"]
+  );
+  assert_eq!(
+    offenders_in(
+      "crates/intentsvcs/src/other.rs",
+      "fn join(now: OffsetDateTime) {}"
+    ),
+    ["now: OffsetDateTime"]
   );
 }

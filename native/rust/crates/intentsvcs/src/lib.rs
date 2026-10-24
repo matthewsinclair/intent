@@ -61,6 +61,7 @@ pub mod deinit;
 pub mod doctor;
 pub mod dropbox;
 pub mod embed;
+pub mod estate;
 pub mod event;
 pub mod export;
 pub mod facade;
