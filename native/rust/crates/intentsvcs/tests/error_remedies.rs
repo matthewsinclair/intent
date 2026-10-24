@@ -49,6 +49,26 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .estate_wip("../x", Some("a line"))
       .expect_err("not a session id"),
   ));
+  // The census and statusline doors refuse their input before anything is
+  // read or written, so each is provokable by a bad call too.
+  out.push((
+    "a path as a census class",
+    facade
+      .estate_census_watch("../x", "claude")
+      .expect_err("not a class name"),
+  ));
+  out.push((
+    "a census pattern that is not a regex",
+    facade
+      .estate_census_watch("agents", "(")
+      .expect_err("not a regex"),
+  ));
+  out.push((
+    "a statusline input that is not JSON",
+    facade
+      .estate_statusline_report("not json")
+      .expect_err("not JSON"),
+  ));
   // Reachable by a bad CALL since `Facade::schema` landed -- before it, the
   // variant existed and nothing on the facade raised it, so its exemption
   // below cited a CLI arm that composed its own refusal string instead.

@@ -7999,6 +7999,34 @@ impl Facade {
     Ok(crate::estate::wip(&dirs, session_id, line)?)
   }
 
+  /// Declares a census class, or changes its pattern, and answers the watch
+  /// file it wrote. The next tick counts the class.
+  pub fn estate_census_watch(
+    &self,
+    class: &str,
+    pattern: &str,
+  ) -> Result<std::path::PathBuf, FacadeError> {
+    let dirs = crate::userstate::dirs().map_err(crate::estate::EstateError::from)?;
+    Ok(crate::estate::census::watch(&dirs, class, pattern)?)
+  }
+
+  /// Removes a census class; the answer says whether one was declared.
+  pub fn estate_census_unwatch(&self, class: &str) -> Result<bool, FacadeError> {
+    let dirs = crate::userstate::dirs().map_err(crate::estate::EstateError::from)?;
+    Ok(crate::estate::census::unwatch(&dirs, class)?)
+  }
+
+  /// Keeps the plan usage a statusline input carries, from `text`, the JSON
+  /// Claude Code hands a statusline command on stdin, whole and unchanged.
+  /// An input with no `rate_limits` writes nothing and answers `None`.
+  pub fn estate_statusline_report(
+    &self,
+    text: &str,
+  ) -> Result<Option<std::path::PathBuf>, FacadeError> {
+    let dirs = crate::userstate::dirs().map_err(crate::estate::EstateError::from)?;
+    Ok(crate::estate::usage::report(&dirs, text)?)
+  }
+
   pub fn boards(&self) -> Result<Vec<Board>, FacadeError> {
     self.store.hydrate_boards().map_err(FacadeError::Store)
   }
