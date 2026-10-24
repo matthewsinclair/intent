@@ -1,0 +1,532 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>estate -- intentd</title>
+<!--
+  ST0086 MOCKUP of /estate/status (WP-02, with WP-04's controller, lanes and slots).
+  Not served by anything yet. One self-contained file: inline CSS and JS, no fetch,
+  light and dark from the same tokens as intentd's shell.html.
+
+  The SAMPLE below is the raw records, in the shapes design.md gives them:
+    census      what the daemon measures itself (load, cargo and bats, live pids)
+    controller  ~/.local/state/intent/estate/slots/controller.json
+    lanes       ~/.local/state/intent/estate/slots/lanes/<lane>.json
+    requests    ~/.local/state/intent/estate/slots/requests/<id>/{ask,grant,deny,start,end,revoke}.json,
+                one object per directory, one key per file present
+    sessions    ~/.local/state/intent/estate/<session-id>.json
+    boards      what the reader joins from each project's store (focus, claims) for a node;
+                never copied into a session record (Highlander)
+  `estate()` below stands in for the one intentsvcs reader: it folds the request files to a
+  state, joins the boards and the slots onto the sessions, and marks gone and orphaned.
+  The renderer only draws its answer.
+-->
+<style>
+  :root {
+    color-scheme: light dark;
+    --ground: #fbfaf7;
+    --ink: #17171a;
+    --muted: #5d5d66;
+    --rule: #e2ded4;
+    --card: #ffffff;
+    --accent: #7a5c2e;
+    --busy: #2f6f3e;
+    --heavy: #9a4a14;
+    --idle: #5d5d66;
+    --paused: #5a5f9a;
+    --gone: #b4453a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: #17171a;
+      --ink: #ece9e2;
+      --muted: #9b9aa3;
+      --rule: #2e2e34;
+      --card: #202026;
+      --accent: #d8b877;
+      --busy: #7fc48d;
+      --heavy: #e8a066;
+      --idle: #9b9aa3;
+      --paused: #a3a8e6;
+      --gone: #e0786c;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font: 13px/1.45 ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  }
+  main { padding: 1rem 16px 2rem; max-width: 120rem; }
+  .crumbs { margin: 0 0 .75rem; font-family: ui-serif, Georgia, serif; font-size: .95rem; }
+  .crumbs a { color: var(--accent); text-decoration: none; }
+  .mock { color: var(--muted); font-family: ui-serif, Georgia, serif; font-style: italic; }
+  pre.head {
+    margin: 0 0 1rem; padding: .6rem .8rem;
+    background: var(--card); border: 1px solid var(--rule); border-radius: 6px;
+    white-space: pre-wrap; overflow-wrap: anywhere;
+  }
+  .k { color: var(--muted); }
+  .warn { color: var(--gone); font-weight: 600; }
+  h2 {
+    font-size: .78rem; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--muted); margin: 1.1rem 0 .35rem; font-weight: 600;
+  }
+  .scroll { overflow-x: auto; border: 1px solid var(--rule); border-radius: 6px; background: var(--card); }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { text-align: left; padding: .18rem .7rem; white-space: nowrap; vertical-align: top; }
+  th {
+    position: sticky; top: 0; background: var(--card);
+    color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--rule);
+  }
+  tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--rule) 30%, transparent); }
+  td.wide { white-space: normal; min-width: 22rem; max-width: 46rem; }
+  td.num { text-align: right; }
+  tr.lane td { border-top: 1px solid var(--rule); font-weight: 600; }
+  tr.lane:first-child td { border-top: 0; }
+  tr.req td:first-child { padding-left: 1.6rem; }
+  .st-busy { color: var(--busy); }
+  .st-heavy { color: var(--heavy); font-weight: 600; }
+  .st-idle { color: var(--idle); }
+  .st-paused { color: var(--paused); }
+  .st-gone { color: var(--gone); }
+  .st-asked { color: var(--muted); }
+  .st-granted { color: var(--accent); }
+  .st-running { color: var(--heavy); font-weight: 600; }
+  .st-orphaned { color: var(--gone); font-weight: 600; }
+  tr.gone td { color: var(--gone); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--gone) 45%, transparent); }
+  tr.gone td.state { text-decoration: none; }
+  .orph { color: var(--gone); font-weight: 600; }
+  .muted { color: var(--muted); }
+  .bar { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; margin: 1.1rem 0 .35rem; }
+  .bar h2 { margin: 0; }
+  input[type=search] {
+    font: inherit; color: var(--ink); background: var(--card);
+    border: 1px solid var(--rule); border-radius: 5px; padding: .2rem .5rem; min-width: 16rem;
+  }
+  input[type=search]:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  button {
+    font: inherit; color: var(--muted); background: var(--card);
+    border: 1px solid var(--rule); border-radius: 5px; padding: .15rem .55rem; cursor: pointer;
+  }
+  button:hover { color: var(--ink); }
+  .foot { color: var(--muted); margin-top: 1rem; font-size: .75rem; }
+  @media (max-width: 40rem) { input[type=search] { min-width: 0; width: 100%; } }
+</style>
+
+<main>
+  <p class="crumbs"><a href="/">intentd</a> / estate / status <span class="mock">-- mockup, driven by an inline sample</span></p>
+  <pre class="head" id="head"></pre>
+
+  <h2>Lanes</h2>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>lane / request</th><th>type</th><th>cap</th><th>state</th><th>holder / requester</th><th>what</th><th class="num">age</th></tr></thead>
+      <tbody id="lanes"></tbody>
+    </table>
+  </div>
+
+  <div class="bar">
+    <h2>Sessions</h2>
+    <input type="search" id="filter" placeholder="filter: name, project, node, state, focus" aria-label="Filter sessions">
+    <button type="button" id="pause">pause</button>
+  </div>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>name</th><th>project</th><th>node</th><th>state</th><th class="num">since</th><th class="num">hb</th><th>slots</th><th>claims</th><th>wip / focus</th></tr></thead>
+      <tbody id="sessions"></tbody>
+    </table>
+  </div>
+
+  <p class="foot" id="foot"></p>
+</main>
+
+<script>
+  // ==========================================================================
+  // THE SAMPLE. Raw records only; nothing here is derived. Stamps are UTC.
+  // ==========================================================================
+  var SAMPLE = {
+    census: {
+      host: "rhadamanth",
+      version: "intentd 3.2.6 (88633fe93) release",
+      taken_at: "2026-10-24T13:18:00Z",
+      load: [11.20, 10.16, 10.84],
+      cargo: 3,
+      bats: 0,
+      live_pids: [41207, 41388, 41502, 41611, 52044, 52190, 53817, 60112, 60455, 61230, 70033]
+    },
+    controller: {
+      schema: 1,
+      session_id: "c41f0e9a-6a1d-4f52-9d0b-2b7e6f1c0a11",
+      name: "molt-vc",
+      pid: 52044,
+      taken_at: "2026-10-24T09:40:12Z"
+    },
+    lanes: [
+      { schema: 1, lane: "cargo",  type: "heavy",  capacity: 1, opened_at: "2026-10-24T09:41:02Z" },
+      { schema: 1, lane: "bats",   type: "heavy",  capacity: 1, opened_at: "2026-10-24T09:41:05Z" },
+      { schema: 1, lane: "light",  type: "light",  capacity: 2, opened_at: "2026-10-24T09:41:09Z" },
+      { schema: 1, lane: "kovacs", type: "kovacs", capacity: 1, opened_at: "2026-10-24T09:41:14Z" }
+    ],
+    requests: [
+      { id: "r-0141",
+        ask:   { session_id: "5be2d771-0d8a-4b8e-a0c4-91d7f3e2aa40", type: "kovacs", what: "preflight-linux e39e60104 (covers HEAD for 0637)", at: "2026-10-24T12:58:40Z" },
+        grant: { lane: "kovacs", at: "2026-10-24T12:59:03Z" },
+        start: { at: "2026-10-24T13:00:11Z" } },
+      { id: "r-0142",
+        ask:   { session_id: "9d03c6f2-77b1-4d4e-8a52-0f5e1b9c3d07", type: "heavy", what: "cargo test --workspace (devbin)", at: "2026-10-24T13:02:19Z" },
+        grant: { lane: "cargo", at: "2026-10-24T13:02:30Z" },
+        start: { at: "2026-10-24T13:02:44Z" } },
+      { id: "r-0143",
+        ask:   { session_id: "e7a90b13-3c2f-4a60-b1d8-6f40c2a9e5b2", type: "light", what: "mix test (fakes only)", at: "2026-10-24T13:06:51Z" },
+        grant: { lane: "light", at: "2026-10-24T13:06:58Z" },
+        start: { at: "2026-10-24T13:07:05Z" } },
+      { id: "r-0139",
+        ask:   { session_id: "0b6c2e55-1f9e-4d7a-9e33-a8c1d4f60e19", type: "light", what: "mix format --check", at: "2026-10-24T12:31:10Z" },
+        grant: { lane: "light", at: "2026-10-24T12:31:14Z" },
+        start: { at: "2026-10-24T12:31:20Z" } },
+      { id: "r-0144",
+        ask:   { session_id: "2f8d1a64-b0c3-4e9f-8d27-73a5e0b4c1f8", type: "heavy", what: "macOS bats run for the devbin 0.1.13 re-vendor", lane: "bats", at: "2026-10-24T13:09:37Z" } },
+      { id: "r-0145",
+        ask:   { session_id: "a6e4c9d0-58b2-4f13-9c7e-1d0b8f3a2e64", type: "heavy", what: "cargo clippy --workspace (utilz)", at: "2026-10-24T13:12:02Z" } },
+      { id: "r-0138",
+        ask:   { session_id: "a6e4c9d0-58b2-4f13-9c7e-1d0b8f3a2e64", type: "heavy", what: "bats -r tests/ (utilz)", at: "2026-10-24T11:40:00Z" },
+        grant: { lane: "bats", at: "2026-10-24T11:40:21Z" },
+        start: { at: "2026-10-24T11:40:30Z" },
+        end:   { at: "2026-10-24T12:05:12Z" } }
+    ],
+    sessions: [
+      { schema: 1, session_id: "5be2d771-0d8a-4b8e-a0c4-91d7f3e2aa40", name: "intent-vc", pid: 41207, host: "rhadamanth",
+        project_root: "/Users/matts/Devel/prj/Intent", node: "vc", state: "busy",
+        started_at: "2026-10-23T21:52:04Z", updated_at: "2026-10-24T13:17:41Z" },
+      { schema: 1, session_id: "2f8d1a64-b0c3-4e9f-8d27-73a5e0b4c1f8", name: "intent-cc", pid: 41388, host: "rhadamanth",
+        project_root: "/Users/matts/Devel/prj/Intent", node: "cc", state: "idle",
+        started_at: "2026-10-23T21:50:12Z", updated_at: "2026-10-24T13:09:40Z" },
+      { schema: 1, session_id: "8c51e3b7-94a0-4d26-b5f1-e02d7c9a6b33", name: "intent-dc", pid: 41502, host: "rhadamanth",
+        project_root: "/Users/matts/Devel/prj/Intent", node: "dc", state: "idle",
+        started_at: "2026-10-23T21:51:30Z", updated_at: "2026-10-24T12:44:02Z" },
+      { schema: 1, session_id: "eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd", name: "intent-ic", pid: 41611, host: "rhadamanth",
+        project_root: "/Users/matts/Devel/prj/Intent", node: "ic", state: "busy",
+        started_at: "2026-10-23T21:48:55Z", updated_at: "2026-10-24T13:17:58Z" },
+      { schema: 1, session_id: "c41f0e9a-6a1d-4f52-9d0b-2b7e6f1c0a11", name: "molt-vc", pid: 52044, host: "rhadamanth",
+        project_root: "/Users/matts/Devel/prj/Molt", node: "vc", state: "busy",
+        started_at: "2026-10-24T06:20:31Z", updated_at: "2026-10-24T13:17:12Z" },
+      { schema: 1, session_id: "4d7b2e90-c18f-4a35-8e6d-5a9f0c3b7e21", name: "utilz-vc", pid: 52190, host: "rhadamanth",
+        project_root: "/Users/matts/Devel/prj/Utilz", node: "vc", state: "idle",
+        started_at: "2026-10-24T07:02:44Z", updated_at: "2026-10-24T12:51:09Z" },
+      { schema: 1, session_id: "a6e4c9d0-58b2-4f13-9c7e-1d0b8f3a2e64", name: "utilz-cc", pid: 53817, host: "rhadamanth",
+        project_root: "/Users/matts/Devel/prj/Utilz", node: "cc", state: "busy",
+        started_at: "2026-10-24T07:05:10Z", updated_at: "2026-10-24T13:12:05Z" },
+      { schema: 1, session_id: "71c0f5a3-2e8b-4d19-a6f4-3b9d0e7c5a82", name: "devbin-vc", pid: 60112, host: "rhadamanth",
+        project_root: "/Users/matts/Devel/prj/Devbin", node: "vc", state: "paused",
+        started_at: "2026-10-23T18:30:00Z", updated_at: "2026-10-24T08:15:27Z" },
+      { schema: 1, session_id: "9d03c6f2-77b1-4d4e-8a52-0f5e1b9c3d07", name: "devbin-cc", pid: 60455, host: "rhadamanth",
+        project_root: "/Users/matts/Devel/prj/Devbin", node: "cc", state: "busy",
+        started_at: "2026-10-24T08:20:48Z", updated_at: "2026-10-24T13:16:30Z" },
+      { schema: 1, session_id: "e7a90b13-3c2f-4a60-b1d8-6f40c2a9e5b2", name: "laksa-vc", pid: 61230, host: "rhadamanth",
+        project_root: "/Users/matts/Devel/prj/Laksa", node: "vc", state: "busy",
+        started_at: "2026-10-24T10:02:17Z", updated_at: "2026-10-24T13:07:08Z" },
+      { schema: 1, session_id: "0b6c2e55-1f9e-4d7a-9e33-a8c1d4f60e19", name: "laksa-cc", pid: 61377, host: "rhadamanth",
+        project_root: "/Users/matts/Devel/prj/Laksa", node: "cc", state: "busy",
+        started_at: "2026-10-24T10:05:41Z", updated_at: "2026-10-24T12:31:22Z" },
+      { schema: 1, session_id: "3e9a7c14-d6b0-4f82-b5a3-c7e1f0d92b48", name: "kovacs-sysadm", pid: 70033, host: "rhadamanth",
+        project_root: null, node: null, state: "idle",
+        wip: "watching the e39e60104 preflight in the kovacs VM; brew 3.2.6 to kovacs after it",
+        started_at: "2026-10-24T05:55:02Z", updated_at: "2026-10-24T13:00:15Z" }
+    ],
+    boards: {
+      "/Users/matts/Devel/prj/Intent": {
+        vc: { focus: "3.2.6 cut and pushed; kovacs preflight at e39e60104 to close 0637; board paths only until its END", claims: [] },
+        cc: { focus: "After the 3.2.6 tag: devbin 0.1.13 re-vendor and ST0081 WP-02's Intent half (hold 33)", claims: ["ST0081/02"] },
+        dc: { focus: "0635 to 3.2.7: the bank on refs/bank/dc/0635/fix and its four open decisions", claims: ["ISSUE:0635"] },
+        ic: { focus: "ST0086 /estate/status mockup in the scratchpad; 0633's gyges note after the repro", claims: [] }
+      },
+      "/Users/matts/Devel/prj/Molt": {
+        vc: { focus: "Slot desk for the machine on hv's word: every heavy run books here", claims: [] }
+      },
+      "/Users/matts/Devel/prj/Utilz": {
+        vc: { focus: "Holding for the 3.2.6 brew; Utilz's bookings go through molt-vc", claims: [] },
+        cc: { focus: "clippy pass after the 3.2.6 pair", claims: ["ST0019"] }
+      },
+      "/Users/matts/Devel/prj/Devbin": {
+        vc: { focus: "0.1.13 released; dev, opt, brew contract at docs/dev-opt-brew.md", claims: [] },
+        cc: { focus: "contract follow-ups in Devbin's own tests", claims: ["ST0007"] }
+      },
+      "/Users/matts/Devel/prj/Laksa": {
+        vc: { focus: "retire gate_elixir now the staged-format guard reads .formatter.exs", claims: [] },
+        cc: { focus: "formatter inputs sweep", claims: [] }
+      }
+    }
+  };
+
+  // ==========================================================================
+  // THE READER (stand-in for the one intentsvcs function). Pure: records in,
+  // the joined table out. Readers never write.
+  // ==========================================================================
+  function ms(stamp) { return Date.parse(stamp); }
+
+  // A request's state is the FOLD of the files present, latest verb wins.
+  function requestState(r) {
+    if (r.revoke) { return "revoked"; }
+    if (r.deny) { return "denied"; }
+    if (r.end) { return "ended"; }
+    if (r.start) { return "running"; }
+    if (r.grant) { return "granted"; }
+    return "asked";
+  }
+
+  function estate(s) {
+    var alive = {};
+    s.census.live_pids.forEach(function (p) { alive[p] = true; });
+    var byId = {};
+    s.sessions.forEach(function (rec) { byId[rec.session_id] = rec; });
+    var now = ms(s.census.taken_at);
+
+    var requests = s.requests.map(function (r) {
+      var state = requestState(r);
+      var holder = byId[r.ask.session_id];
+      var holderGone = !holder || !alive[holder.pid];
+      var live = state === "granted" || state === "running";
+      var since = r.start ? r.start.at : r.grant ? r.grant.at : r.ask.at;
+      return {
+        id: r.id, type: r.ask.type, what: r.ask.what,
+        lane: r.grant ? r.grant.lane : null, wanted_lane: r.ask.lane || null,
+        state: state, orphaned: live && holderGone,
+        requester: holder ? holder.name : r.ask.session_id.slice(0, 8),
+        age_s: Math.max(0, Math.round((now - ms(since)) / 1000))
+      };
+    });
+
+    var lanes = s.lanes.map(function (l) {
+      var holders = requests.filter(function (r) {
+        return r.lane === l.lane && (r.state === "granted" || r.state === "running");
+      });
+      return { lane: l.lane, type: l.type, capacity: l.capacity, holders: holders };
+    });
+
+    // Queued is per TYPE: an ask belongs to no lane until granted.
+    var queues = {};
+    requests.forEach(function (r) {
+      if (r.state === "asked") { (queues[r.type] = queues[r.type] || []).push(r); }
+    });
+    Object.keys(queues).forEach(function (t) {
+      queues[t].sort(function (a, b) { return b.age_s - a.age_s; });
+    });
+
+    var ctl = s.controller;
+    var controller = ctl ? {
+      name: ctl.name, session_id: ctl.session_id, pid: ctl.pid,
+      orphaned: !alive[ctl.pid],
+      where: (function () {
+        var rec = byId[ctl.session_id];
+        if (!rec || !rec.project_root) { return "dedicated"; }
+        return base(rec.project_root) + (rec.node ? " / " + rec.node : "");
+      })()
+    } : null;
+
+    var sessions = s.sessions.map(function (rec) {
+      var gone = !alive[rec.pid];
+      var held = requests.filter(function (r) {
+        return r.requester === rec.name && (r.state === "granted" || r.state === "running");
+      });
+      var running = held.some(function (r) { return r.state === "running"; });
+      var board = rec.project_root && rec.node && s.boards[rec.project_root]
+        ? s.boards[rec.project_root][rec.node] : null;
+      return {
+        name: rec.name,
+        project: rec.project_root ? base(rec.project_root) : "",
+        node: rec.node || "",
+        // Presence comes from the record; heavy is JOINED from a running slot
+        // and gone from a dead pid -- neither is a field the session writes.
+        state: gone ? "gone" : running ? "heavy" : rec.state,
+        since_s: Math.round((now - ms(rec.started_at)) / 1000),
+        hb_s: Math.round((now - ms(rec.updated_at)) / 1000),
+        slots: held,
+        claims: board ? board.claims : [],
+        line: board ? board.focus : (rec.wip || ""),
+        line_is_wip: !board
+      };
+    });
+    sessions.sort(function (a, b) {
+      var pa = a.project || "\uffff", pb = b.project || "\uffff";
+      return pa < pb ? -1 : pa > pb ? 1 : a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
+    });
+
+    return { census: s.census, controller: controller, lanes: lanes, queues: queues, sessions: sessions };
+  }
+
+  function base(p) { return p.replace(/\/+$/, "").split("/").pop(); }
+
+  // ==========================================================================
+  // THE RENDERER. Built with textContent, never innerHTML (shell.html's rule):
+  // every value is somebody's prose out of their own estate.
+  // ==========================================================================
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) { n.className = cls; }
+    if (text !== undefined && text !== null) { n.textContent = text; }
+    return n;
+  }
+  function td(text, cls) { return el("td", cls, text); }
+
+  function age(s) {
+    if (s < 60) { return s + "s"; }
+    if (s < 3600) { return Math.floor(s / 60) + "m" + String(s % 60).padStart(2, "0"); }
+    if (s < 86400) { return Math.floor(s / 3600) + "h" + String(Math.floor(s % 3600 / 60)).padStart(2, "0"); }
+    return Math.floor(s / 86400) + "d" + String(Math.floor(s % 86400 / 3600)).padStart(2, "0") + "h";
+  }
+
+  function line(parts) {
+    var frag = document.createDocumentFragment();
+    parts.forEach(function (p) {
+      frag.appendChild(typeof p === "string" ? document.createTextNode(p) : el("span", p[0], p[1]));
+    });
+    frag.appendChild(document.createTextNode("\n"));
+    return frag;
+  }
+
+  function renderHead(e) {
+    var c = e.census;
+    var head = document.getElementById("head");
+    var tally = {};
+    e.sessions.forEach(function (s) { tally[s.state] = (tally[s.state] || 0) + 1; });
+    var tallyText = ["busy", "heavy", "idle", "paused", "gone"]
+      .filter(function (k) { return tally[k]; })
+      .map(function (k) { return tally[k] + " " + k; }).join(", ");
+    var ctl;
+    if (!e.controller) {
+      ctl = [["k", "controller "], ["warn", "NO CONTROLLER"], " -- asks queue and nothing is granted"];
+    } else if (e.controller.orphaned) {
+      ctl = [["k", "controller "], ["warn", e.controller.name + " ORPHANED"], " (pid " + e.controller.pid + " is dead; the next `control take` succeeds it)"];
+    } else {
+      ctl = [["k", "controller "], e.controller.name, ["k", "  session "], e.controller.session_id.slice(0, 8),
+             ["k", "  pid "], String(e.controller.pid), ["k", "  in "], e.controller.where];
+    }
+    head.replaceChildren(
+      line([["k", "estate "], c.host, "   ", c.version, ["k", "   at "], c.taken_at.replace("T", " ")]),
+      line([["k", "load "], c.load.map(function (x) { return x.toFixed(2); }).join(" "),
+            ["k", "   cargo "], String(c.cargo), ["k", "   bats "], String(c.bats),
+            ["k", "   sessions "], String(e.sessions.length), ["k", ": "], tallyText]),
+      line(ctl)
+    );
+  }
+
+  function renderLanes(e) {
+    var body = document.getElementById("lanes");
+    var rows = document.createDocumentFragment();
+    var shownQueue = {};
+    e.lanes.forEach(function (l) {
+      var used = l.holders.length;
+      var tr = el("tr", "lane");
+      tr.append(td(l.lane), td(l.type), td(used + "/" + l.capacity), td(used >= l.capacity ? "full" : "open", used >= l.capacity ? "st-running" : "muted"), td(""), td(""), td(""));
+      rows.appendChild(tr);
+      l.holders.forEach(function (r) { rows.appendChild(reqRow(r)); });
+      // The queue is per type, so it is drawn once, under the first lane of
+      // that type, and says so.
+      var q = e.queues[l.type];
+      if (q && !shownQueue[l.type]) {
+        shownQueue[l.type] = true;
+        q.forEach(function (r) { rows.appendChild(reqRow(r, true)); });
+      }
+    });
+    body.replaceChildren(rows);
+  }
+
+  function reqRow(r, queued) {
+    var tr = el("tr", "req");
+    var state = r.orphaned ? "orphaned" : r.state;
+    var whatCell = td(r.what, "wide");
+    if (queued) {
+      whatCell.appendChild(el("span", "muted", "  (queued on type " + r.type + (r.wanted_lane ? ", asks for " + r.wanted_lane : "") + ")"));
+    }
+    tr.append(td(r.id), td(""), td(""), td(state, "st-" + state), td(r.requester, r.orphaned ? "orph" : ""), whatCell, td(age(r.age_s), "num"));
+    return tr;
+  }
+
+  function renderSessions(e) {
+    var q = document.getElementById("filter").value.trim().toLowerCase();
+    var body = document.getElementById("sessions");
+    var rows = document.createDocumentFragment();
+    var shown = 0;
+    e.sessions.forEach(function (s) {
+      var hay = [s.name, s.project, s.node, s.state, s.line, s.claims.join(" ")].join(" ").toLowerCase();
+      if (q && hay.indexOf(q) < 0) { return; }
+      shown += 1;
+      var tr = el("tr", s.state === "gone" ? "gone" : "");
+      var slots = td("");
+      s.slots.forEach(function (r, i) {
+        if (i) { slots.appendChild(document.createTextNode(" ")); }
+        slots.appendChild(el("span", r.orphaned ? "orph" : "st-" + r.state, r.lane + ":" + r.id + (r.orphaned ? " ORPHANED" : "")));
+      });
+      var lineCell = td("", "wide");
+      if (s.line) {
+        if (s.line_is_wip) { lineCell.appendChild(el("span", "muted", "wip ")); }
+        lineCell.appendChild(document.createTextNode(s.line));
+      }
+      tr.append(
+        td(s.name), td(s.project || "--", s.project ? "" : "muted"), td(s.node || "--", s.node ? "" : "muted"),
+        td(s.state, "state st-" + s.state), td(age(s.since_s), "num"), td(age(s.hb_s), "num"),
+        slots, td(s.claims.join(", ")), lineCell
+      );
+      rows.appendChild(tr);
+    });
+    body.replaceChildren(rows);
+    document.getElementById("foot").textContent =
+      (q ? shown + " of " + e.sessions.length + " sessions match \"" + q + "\". " : "") +
+      "Mockup: re-rendered every 2s against the inline sample, with a scripted sequence of grants, starts and ends so the live behaviour shows. The served page reads the same shape from the daemon.";
+  }
+
+  function render() {
+    var e = estate(model);
+    renderHead(e);
+    renderLanes(e);
+    renderSessions(e);
+  }
+
+  // ==========================================================================
+  // THE SIMULATION. Mockup only: a clock that advances and a short script of
+  // the writes each party would make, replayed in a loop.
+  // ==========================================================================
+  var model, tick = 0, paused = false;
+  function reset() { model = JSON.parse(JSON.stringify(SAMPLE)); tick = 0; }
+  function findReq(id) { return model.requests.filter(function (r) { return r.id === id; })[0]; }
+  function findSess(name) { return model.sessions.filter(function (r) { return r.name === name; })[0]; }
+  function nowIso() { return model.census.taken_at; }
+
+  var SCRIPT = {
+    3:  function () { findReq("r-0144").grant = { lane: "bats", at: nowIso() }; },
+    5:  function () { findReq("r-0144").start = { at: nowIso() }; findSess("intent-cc").state = "busy"; findSess("intent-cc").updated_at = nowIso(); model.census.bats = 1; },
+    8:  function () { findReq("r-0142").end = { at: nowIso() }; findSess("devbin-cc").updated_at = nowIso(); model.census.cargo = 0; },
+    9:  function () { findSess("devbin-cc").state = "idle"; },
+    11: function () { findReq("r-0145").grant = { lane: "cargo", at: nowIso() }; },
+    13: function () { findReq("r-0145").start = { at: nowIso() }; findSess("utilz-cc").updated_at = nowIso(); model.census.cargo = 4; },
+    15: function () { findReq("r-0139").revoke = { at: nowIso(), why: "holder gone" }; },
+    17: function () { model.requests.push({ id: "r-0146", ask: { session_id: "4d7b2e90-c18f-4a35-8e6d-5a9f0c3b7e21", type: "kovacs", what: "brew install intent 3.2.6 on kovacs", at: nowIso() } }); findSess("utilz-vc").state = "busy"; findSess("utilz-vc").updated_at = nowIso(); }
+  };
+  var LOOP = 24;
+
+  function step() {
+    if (paused) { return; }
+    tick += 1;
+    if (tick > LOOP) { reset(); render(); return; }
+    var t = ms(model.census.taken_at) + 2000;
+    model.census.taken_at = new Date(t).toISOString().replace(/\.\d+Z$/, "Z");
+    var w = Math.sin(tick / 3);
+    model.census.load = [11.2 + w * 1.4, 10.16 + w * .5, 10.84 + w * .15];
+    ["intent-vc", "intent-ic", "molt-vc"].forEach(function (n) {
+      if (tick % 3 === 0) { findSess(n).updated_at = nowIso(); }
+    });
+    if (SCRIPT[tick]) { SCRIPT[tick](); }
+    render();
+  }
+
+  document.getElementById("filter").addEventListener("input", render);
+  document.getElementById("pause").addEventListener("click", function (ev) {
+    paused = !paused;
+    ev.target.textContent = paused ? "resume" : "pause";
+  });
+
+  reset();
+  render();
+  window.setInterval(step, 2000);
+</script>

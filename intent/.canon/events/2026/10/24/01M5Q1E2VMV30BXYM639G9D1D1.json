@@ -1,0 +1,14 @@
+{
+  "id": "01M5Q1E2VMV30BXYM639G9D1D1",
+  "ts": "2026-10-24T13:26:06.459Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0086/estate-status-mockup.html"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

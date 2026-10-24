@@ -8,7 +8,7 @@ The estate is the host (rhadamanth, kovacs, gyges each its own). The estate view
 
 ## The source of truth
 
-A directory of session records: `~/.local/state/intent/estate/<session-id>.json`. State, not config (intentd's socket already lives under `~/.local/state/intent/run`, measured). One writer per file, the session itself; written whole by atomic rename; no locking. Record fields: schema version (pinned from day one, since the dev, opt and brew switch lets two intents share a host), session id (the id the UserPromptSubmit gate already uses), cross-session name, pid, host, project root, node moniker where the session is a whiteboard node, state (active, idle, heavy, paused), started and updated stamps read by the tool at the write, and a WIP line only for a session with no board. A heavy run is not a field here: it is a slot the session holds in a lane (see Slots and lanes), and the reader joins it.
+A directory of session records: `~/.local/state/intent/estate/<session-id>.json`. State, not config (intentd's socket already lives under `~/.local/state/intent/run`, measured). One writer per file, the session itself; written whole by atomic rename; no locking. Record fields: schema version (pinned from day one, since the dev, opt and brew switch lets two intents share a host), session id (the id the UserPromptSubmit gate already uses), cross-session name, pid, host, project root, node moniker where the session is a whiteboard node, state (busy, idle or paused), started and updated stamps read by the tool at the write, and a WIP line only for a session with no board. Heavy and gone are not states a session writes; the reader joins both (vc's ruling, 2026-10-24): heavy is a running slot the session holds in any lane, a light lane included (see Slots and lanes), and gone is a dead pid (see Cleanup).
 
 Highlander: a session that is a whiteboard node does not copy its focus or claims into the record; the reader joins them from that project's store, which intentd (registry, ST0074) and the TUI already open. The record carries presence only.
 
@@ -19,6 +19,8 @@ The hooks, so no Claude has to remember: SessionStart registers the record; User
 ## Readers
 
 One reader function in intentsvcs returns the joined table from the directory plus the stores it points at; the page, the TUI pane and the verb are renderers of it (PFIC, thin coordinator). The daemon adds the host census (load, cargo and bats processes) it measures itself, which retires vc's census script.
+
+The page is not a second document (vc's ruling, 2026-10-24): under D56 the daemon serves one shell document, so /estate/status is a route in `shell.html`, fed by `/op` with the reader's JSON, and the daemon renders no HTML for it. The mockup attached as `estate-status-mockup.html` shows the page's layout and the raw record shapes it reads (census, controller, lanes, requests with one key per file present, sessions, and the boards the reader joins), from an inline sample that re-renders on a timer.
 
 ## Cleanup
 
@@ -49,7 +51,7 @@ The controller is whichever session hv assigns to manage the workload: a dedicat
 ## Work packages
 
 - WP-01 the record and its doors: directory, record, reader, verbs, hooks, MCP exposure, the reap rule.
-- WP-02 the page: intentd watches the directory outside the ingest path and serves /estate/status, live, top-styled, with the census.
+- WP-02 the page: intentd watches the directory outside the ingest path and answers the reader over `/op`; /estate/status is a route in the one shell document (D56), live, top-styled, with the census, laid out as `estate-status-mockup.html`.
 - WP-03 the TUI: /estate in intent explore on the same reader, beside /projects.
 - WP-04 slots, lanes and the coordinator: lane types and lanes with a capacity, the request records, the controller record with take and release, `intent estate init` and the coordinator templates, the slot verbs, the capacity refusal, wait and watch, the hook naming pending asks, and the controller, lanes and slots on the page and in the TUI.
 
