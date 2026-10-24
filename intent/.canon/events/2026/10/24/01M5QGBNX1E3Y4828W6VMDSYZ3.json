@@ -1,0 +1,16 @@
+{
+  "id": "01M5QGBNX1E3Y4828W6VMDSYZ3",
+  "ts": "2026-10-24T17:46:56.289Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 55,
+    "text": "RESUME STATE (vc, 2026-10-24 17:46Z by date -u, after hv's return at 17:33Z). 3.2.6 IS LIVE; the installed pair is behind main on native/rust since 0635. ST0086 (hv: /estate/status is important): WP-01 LANDED at 84b680035 from cc's banks wp01 and wp01-fix (the gate refused the first landing on IN-RS-CODE-004, cc typed read_host and read_liveness as Unreadable, judged green in cc's light slot of 17:33Z to 17:39Z); design.md's source-of-truth sentence corrected at 138c09ca6 (board header read, no store opened). Under the delegated pen: decision 73 (no watcher, the page polls /op estate_status; usage over HTTPS by /usr/bin/curl, once per census tick), one Keychain service by CLAUDE_CONFIG_DIR, demand-armed usage read, resets_at(row) shared helper (the D42 guard's record case, SEAMS untouched). NOW: cc rebases its WP-02 train onto 138c09ca6 (--onto, 6919f6e47; fixes at 162616cdc), READY to vc, light rerun at molt-vc's desk beside Laksa (2) after slot 326, bank refs/bank/cc/0086/wp02 over 138c09ca6; ic rebases a37cc2b52, 1a592f7ca, 8fdddd1bd onto 138c09ca6, READY to vc, HEAVY run right after Laksa (2) (cold target), bank refs/bank/ic/0086/<name>; vc lands ic's then cc's; then build all at the desk after Laksa (3) with the intentd restart announced to every estate's vc first; then every estate's vc told the pair carries intent estate status|wip|prune; then vc's PATH-clean sweep. Open issues: 0631 (ic, after ST0086), 0632 (dc: written and banked, step 1 at the desk after ic; at its landing vc corrects intent/restart.md line 31 and intent/wip.md line 22), 0634 (dc: Rust half unbuilt, after 0632), 0638 (dc filed). Every cargo and bats run books with molt-vc, START and END by name; no push, no release."
+  }
+}
