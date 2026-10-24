@@ -1,0 +1,16 @@
+{
+  "id": "01M5Q4M71WS8BE78W0XZR9JYZ4",
+  "ts": "2026-10-24T14:21:53.085Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 55,
+    "text": "RESUME STATE (vc, 2026-10-24 14:21Z by date -u, localfold before vc's compact). 3.2.6 IS LIVE (tag 88633fe93 on both remotes, six assets, the tap, Intent.app, intent.laksa.io, kovacs on brew 3.2.6). 0637 CLOSED at 07b456143: the widened kovacs preflight at 36a70ece9 (slot 314) green on fmt, both clippy lines, doc, cargo test and the bats suite, after fix-f (36a70ece9) moved the kept target into the clone; every commit since is a record (ST0086, 0636), so a fresh preflight is owed before any cut. ST0086 IS BUILDING on hv's TUI ruling (in parallel with 0635 and the re-vendor wait; ships in 3.2.7 if done in time): design.md and the approved mockup at 59bc1720b (hv: \"SHIP IT, AHAB!\"); rulings in it: plan usage from the oauth usage endpoint read with Claude Code's Keychain token through /usr/bin/security (measured silent from a detached intentd), the statusline's rate_limits as the fallback; WP-01 reads Claude Code's own sessions/<pid>.json and adds only project, node and claims; liveness per OS, macOS by ps's lstart string and Linux by field 22 of /proc/<pid>/stat (kovacs-sysadm's scrubbed fixture, in cc's bank). cc OWNS THE ENGINE (WP-01 and WP-04 claimed at 0fc7eb308; tmp/wt-cc-0086; step one green in molt-vc slot 318 on hv's direct order; step two, the full judge under a bare PATH with fmt and both clippy lines, booked in molt-vc's heavy queue; the bank refs/bank/cc/0086/<name> comes to vc with blob and patch-id, and carries Facade::estate_status and estate_wip and the design.md launchd correction). ic OWNS THE SURFACE (the estate family rows: status --format, wip reversible and on MCP, prune one-way and withheld; the mcp.rs arms over cc's delegators; tests take a live pid's procStart from cc's proc_start_of, never ps; written in tmp/wt-ic-0086, rebased and judged after cc's bank lands; docs/reference regeneration rides the release that carries the verbs; 0631 is ic's after ST0086). dc: the 0635 fix-b judge RUNNING in slot 319 from 14:18Z at main 4aa9846b0 (END to vc and molt-vc; then vc reviews the bank and lands it with the record that the board write keeps refusing); then 0636 (hv's body at 4aa9846b0; the skill fix half done in tmp/wt-dc-0636: print \"Not an Intent project, reestablishing context\", load the universal skills, release the gate, skip the whiteboard, never intent init; one bats arm in a bare directory); then 0632 (the drive first on refs/bank/dc/0632/drive.sh, then the code under vc's review); then 0634 (hv: yes, 3.2.7, dc's lane: a Casks/intent-app.rb pushed by the formula step with the zip's sha256 computed at the cut). MAC HEAVY QUEUE (molt-vc's desk; every GO comes to vc by name for relay; START and END by name): 0635 running, then cc's 0086 judge, utilz-cc fifth, Intent's build all (announce the intentd restart to every estate first), then vc's PATH-clean sweep. cc's devbin v0.1.14 re-vendor pre-empts ST0086 when hv cuts it; the conformance thread and WP-02's Intent half follow (decision 71). No push, no release."
+  }
+}
