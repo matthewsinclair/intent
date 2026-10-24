@@ -278,6 +278,6 @@
   ],
   "title": "Board",
   "type": "object",
-  "x-intent-ver": "3.2.5",
+  "x-intent-ver": "3.2.6",
   "x-schema-json-ver": 24
 }
