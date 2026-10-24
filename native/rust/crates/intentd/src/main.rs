@@ -37,6 +37,7 @@ use intentsvcs::userstate;
 use intentsvcs::wire::{self, Event, Op, Response};
 use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader};
 
+mod census;
 mod daemon_log;
 mod listed;
 mod registry;
@@ -346,6 +347,7 @@ async fn serve_under(dirs: &userstate::Dirs, lifeline: Lifeline) -> Result<(), S
   let stop = Arc::new(tokio::sync::Notify::new());
 
   tokio::spawn(sweep_backups(Arc::clone(&registry)));
+  tokio::spawn(census::tick());
 
   // **ONE PUBLISHED PORT SERVING BOTH PROTOCOLS** (`AC-08.9`, vc's ruling
   // 2026-08-30). The HTTP half is a `Router` fed by a channel rather than a
@@ -823,6 +825,24 @@ async fn dispatch(registry: &Registry, bound: &mut Option<PathBuf>, line: &[u8])
       version: env!("CARGO_PKG_VERSION").to_string(),
       commit: SOURCE_COMMIT.to_string(),
     });
+  }
+
+  // **ANSWERED WITHOUT BINDING, FOR `Op::Registry`'s REASON** (ST0086): the
+  // estate is the host's, not a project's. The read runs `ps` and lists
+  // directories, so it goes to the blocking pool; it always returns, which is
+  // the property a blocking-pool task needs and the lifeline reader lacks.
+  if matches!(request.op, Op::EstateStatus) {
+    return Served::Reply(
+      match tokio::task::spawn_blocking(|| intentsvcs::estate::host_status_with(census::held()))
+        .await
+      {
+        Ok(read) => Response::estate_status(read),
+        Err(cause) => Response::error(
+          format!("the estate read did not finish: {cause}"),
+          "this is a fault in intentd rather than in the estate. Run `intent estate status` to read it in your own process.",
+        ),
+      },
+    );
   }
 
   // **THE BINDING IS CHECKED BEFORE ANYTHING IS OPENED.** Canonicalising is a

@@ -31,7 +31,9 @@ use crate::project::{Project, ProjectError};
 use crate::userstate::{Dirs, UserStateError};
 use crate::write_set::{WriteError, write_atomically};
 
+pub mod census;
 pub mod clock;
+pub mod usage;
 
 /// The schema of the value [`status`] returns.
 pub const STATUS_SCHEMA: &str = "intent/estate-status@1";
@@ -91,6 +93,12 @@ pub enum EstateError {
   },
   #[error("which sessions are alive could not be read: {why}")]
   NoLiveness { why: String },
+  #[error("`{class}` is not a census class name")]
+  BadClass { class: String },
+  #[error("`{pattern}` is not a pattern: {why}")]
+  BadPattern { pattern: String, why: String },
+  #[error("the statusline input {why}")]
+  BadStatusline { why: String },
 }
 
 impl crate::remedy::Remedy for EstateError {
@@ -102,6 +110,9 @@ impl crate::remedy::Remedy for EstateError {
       Self::BadLine { .. } => "give one non-empty line, or `--clear` to remove the record. Nothing was written.".to_string(),
       Self::Unwritable { .. } => "check that the estate directory is writable. The record was not changed.".to_string(),
       Self::Unremovable { .. } => "check the file's permissions and remove it by hand if it should go. Nothing else was removed.".to_string(),
+      Self::BadClass { .. } => "name the class with letters, digits, `-` and `_` only: it is the watch file's name. Nothing was written.".to_string(),
+      Self::BadPattern { .. } => "give a regular expression in Rust's `regex` syntax, matched against the process's whole command line. Nothing was written.".to_string(),
+      Self::BadStatusline { .. } => "hand it the JSON Claude Code gives a statusline command, unchanged, on stdin. Nothing was written.".to_string(),
       Self::NoLiveness { .. } => "prune must read which processes are running (`/bin/ps` on macOS, `/proc` on Linux) to tell a gone session from a live one, so nothing was removed. Run `intent estate status` to see what `ps` reported.".to_string(),
     }
   }
@@ -179,6 +190,8 @@ pub struct Gathered {
   /// Keyed by the session's cwd; `None` where it stands in no project.
   pub projects: BTreeMap<PathBuf, Option<ProjectAt>>,
   pub records: BTreeMap<String, WipRecord>,
+  pub census: census::Census,
+  pub usage: usage::Usage,
   pub unreadable: Vec<Unreadable>,
 }
 
@@ -221,19 +234,19 @@ pub struct SessionRow {
 /// The estate, as every renderer receives it.
 ///
 /// **EVERY KEY IS PRESENT FROM WP-01**, so a renderer never branches on a
-/// missing one: `census`, `controller`, `lanes`, `queue` and `usage` hold the
-/// agreed empty shapes until WP-02 and WP-04 fill and type them.
+/// missing one: `controller`, `lanes` and `queue` hold the agreed empty
+/// shapes until WP-04 fills and types them.
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct EstateStatus {
   pub schema: String,
   pub host: Option<String>,
   pub version: String,
   pub taken_at: String,
-  pub census: Value,
+  pub census: census::Census,
   pub controller: Value,
   pub lanes: Value,
   pub queue: Value,
-  pub usage: Value,
+  pub usage: usage::Usage,
   pub sessions: Vec<SessionRow>,
   pub unreadable: Vec<Unreadable>,
 }
@@ -481,18 +494,6 @@ pub fn state_of(alive: bool, paused: bool, heavy: bool, claude_status: &str) -> 
   }
 }
 
-/// The agreed empty shapes of what WP-02 and WP-04 fill.
-fn pending_census() -> Value {
-  json!({ "load": [], "procs": [], "history": [] })
-}
-
-fn pending_usage() -> Value {
-  json!({
-    "source": null, "error": null, "read_at": null,
-    "five_hour": null, "seven_day": null, "models": null
-  })
-}
-
 /// The estate from what was gathered. Pure.
 pub fn join(gathered: Gathered, now: OffsetDateTime) -> EstateStatus {
   let Gathered {
@@ -501,6 +502,8 @@ pub fn join(gathered: Gathered, now: OffsetDateTime) -> EstateStatus {
     liveness,
     projects,
     records,
+    census,
+    usage,
     mut unreadable,
   } = gathered;
   let starts = match liveness {
@@ -570,11 +573,11 @@ pub fn join(gathered: Gathered, now: OffsetDateTime) -> EstateStatus {
     host,
     version: crate::VERSION.to_string(),
     taken_at: iso(now).unwrap_or_default(),
-    census: pending_census(),
+    census,
     controller: Value::Null,
     lanes: json!([]),
     queue: json!([]),
-    usage: pending_usage(),
+    usage,
     sessions: rows,
     unreadable,
   }
@@ -620,11 +623,38 @@ fn read_boards(root: &Path, unreadable: &mut Vec<Unreadable>) -> Vec<BoardHeader
     .collect()
 }
 
-/// The project a cwd stands in, folded out of a worktree.
-fn project_at(cwd: &Path, unreadable: &mut Vec<Unreadable>) -> Option<ProjectAt> {
+/// The project a cwd stands in, folded out of a worktree, with whether it
+/// was one; `Err` when a project is there and could not be opened.
+fn locate(cwd: &Path) -> Result<Option<(Project, bool)>, ProjectError> {
   let project = match Project::discover(cwd) {
     Ok(project) => project,
-    Err(ProjectError::NotFound(_)) => return None,
+    Err(ProjectError::NotFound(_)) => return Ok(None),
+    Err(e) => return Err(e),
+  };
+  Ok(Some(
+    match main_checkout(project.root()).map(|main| Project::open(&main)) {
+      Some(Ok(main)) => (main, true),
+      _ => (project, false),
+    },
+  ))
+}
+
+fn name_of(project: &Project) -> String {
+  project
+    .directory_name()
+    .unwrap_or_else(|| project.root().display().to_string())
+}
+
+/// The name of the project a cwd stands in, for the census. A project that
+/// cannot be opened counts as none: the session rows list it unreadable.
+fn project_name_at(cwd: &Path) -> Option<String> {
+  locate(cwd).ok().flatten().map(|(p, _)| name_of(&p))
+}
+
+/// The project a cwd stands in, folded out of a worktree.
+fn project_at(cwd: &Path, unreadable: &mut Vec<Unreadable>) -> Option<ProjectAt> {
+  let (project, worktree) = match locate(cwd) {
+    Ok(found) => found?,
     Err(e) => {
       unreadable.push(Unreadable {
         path: cwd.display().to_string(),
@@ -634,15 +664,9 @@ fn project_at(cwd: &Path, unreadable: &mut Vec<Unreadable>) -> Option<ProjectAt>
       return None;
     }
   };
-  let (project, worktree) = match main_checkout(project.root()).map(|main| Project::open(&main)) {
-    Some(Ok(main)) => (main, true),
-    _ => (project, false),
-  };
   let root = project.root().to_path_buf();
   Some(ProjectAt {
-    name: project
-      .directory_name()
-      .unwrap_or_else(|| root.display().to_string()),
+    name: name_of(&project),
     boards: read_boards(&root, unreadable),
     worktree,
     root,
@@ -776,6 +800,23 @@ fn valid_session_id(id: &str) -> bool {
 /// The estate on this host. Reads only: no store is opened and nothing is
 /// written, so a reader never disturbs the sessions it reports.
 pub fn status(dirs: &Dirs, claude_dir: &Path) -> Result<EstateStatus, EstateError> {
+  status_with(dirs, claude_dir, Held::default())
+}
+
+/// What only a long-lived reader holds, and so only intentd hands over: the
+/// census ring and the last endpoint reading, both taken on its census tick.
+#[derive(Debug, Clone, Default)]
+pub struct Held {
+  pub history: Vec<census::Sample>,
+  pub endpoint: Option<usage::Endpoint>,
+}
+
+/// [`status`] with what a long-lived caller held.
+pub fn status_with(
+  dirs: &Dirs,
+  claude_dir: &Path,
+  held: Held,
+) -> Result<EstateStatus, EstateError> {
   let mut unreadable = Vec::new();
   let host = read_host().map_err(|u| unreadable.push(u)).ok();
   let sessions = read_sessions(claude_dir, &mut unreadable)?;
@@ -789,6 +830,8 @@ pub fn status(dirs: &Dirs, claude_dir: &Path) -> Result<EstateStatus, EstateErro
     })
     .collect();
   let records = read_records(dirs, &mut unreadable);
+  let census = census::read(dirs, held.history, &mut unreadable);
+  let usage = usage::resolve(held.endpoint.as_ref(), dirs, &mut unreadable);
   Ok(join(
     Gathered {
       host,
@@ -796,9 +839,42 @@ pub fn status(dirs: &Dirs, claude_dir: &Path) -> Result<EstateStatus, EstateErro
       liveness,
       projects,
       records,
+      census,
+      usage,
       unreadable,
     },
     clock::now(),
+  ))
+}
+
+/// [`status`] over the operator's own directories: the one place the CLI's
+/// facade and intentd's [`crate::wire::Op::EstateStatus`] both resolve them,
+/// so the two faces cannot read two different estates.
+pub fn host_status() -> Result<EstateStatus, EstateError> {
+  host_status_with(Held::default())
+}
+
+/// [`host_status`] with what intentd held.
+pub fn host_status_with(held: Held) -> Result<EstateStatus, EstateError> {
+  let dirs = crate::userstate::dirs()?;
+  let claude = crate::userstate::claude_dir()?;
+  status_with(&dirs, &claude, held)
+}
+
+/// [`prune`] over the operator's own directories, for intentd's census tick
+/// (vc decision 73: a gone session's WIP record is reaped there).
+pub fn host_prune() -> Result<Pruned, EstateError> {
+  let dirs = crate::userstate::dirs()?;
+  let claude = crate::userstate::claude_dir()?;
+  prune(&dirs, &claude)
+}
+
+/// One endpoint reading over the operator's Claude directory, for intentd's
+/// census tick.
+pub fn host_endpoint() -> Result<usage::Endpoint, EstateError> {
+  Ok(usage::read_endpoint(
+    &crate::userstate::claude_dir()?,
+    crate::userstate::claude_dir_configured(),
   ))
 }
 
@@ -1197,6 +1273,13 @@ mod tests {
     assert_eq!(
       value["census"],
       json!({ "load": [], "procs": [], "history": [] })
+    );
+    assert_eq!(
+      value["usage"],
+      json!({
+        "source": null, "error": null, "read_at": null,
+        "five_hour": null, "seven_day": null, "models": null
+      })
     );
   }
 

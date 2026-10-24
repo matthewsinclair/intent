@@ -7986,9 +7986,7 @@ impl Facade {
   /// the project and node each stands in. Not this project's alone, so it
   /// reads the operator's directories and never this facade's store.
   pub fn estate_status(&self) -> Result<crate::estate::EstateStatus, FacadeError> {
-    let dirs = crate::userstate::dirs().map_err(crate::estate::EstateError::from)?;
-    let claude = crate::userstate::claude_dir().map_err(crate::estate::EstateError::from)?;
-    Ok(crate::estate::status(&dirs, &claude)?)
+    Ok(crate::estate::host_status()?)
   }
 
   /// Writes the session's WIP line on the estate, or with `None` removes it.

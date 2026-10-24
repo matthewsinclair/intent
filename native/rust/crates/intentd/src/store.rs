@@ -1063,5 +1063,9 @@ fn serve(facade: &mut Facade, op: Op, runtime: &tokio::runtime::Handle) -> Respo
       "the build question is not a project-scoped operation and reached a project's store",
       "this is a routing fault inside intentd. `Op::Build` is answered by the daemon itself, from the build it embedded.",
     ),
+    Op::EstateStatus => Response::error(
+      "the estate is not a project-scoped operation and reached a project's store",
+      "this is a routing fault inside intentd. The estate is answered by the daemon itself, not by any project.",
+    ),
   }
 }

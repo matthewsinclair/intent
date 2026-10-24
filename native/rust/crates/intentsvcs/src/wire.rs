@@ -242,6 +242,15 @@ pub enum Op {
   /// build time -- and a running image could not be asked for it, so a restart
   /// that relaunched a stale binary read exactly like one that picked up a fix.
   Build,
+  /// Every Claude Code session on this host, joined to the project and node
+  /// each stands in (ST0086 WP-02).
+  ///
+  /// **ANSWERED WITHOUT BINDING, FOR [`Op::Registry`]'s REASON**: the estate
+  /// is the host's, not any project's, and the page that asks for it is the
+  /// one an operator opens when they cannot tell which project is stuck. The
+  /// answer is [`crate::estate::host_status`], the reader `intent estate
+  /// status` calls, so the two faces render one value.
+  EstateStatus,
 }
 
 /// Ops the daemon answers WITHOUT reaching a project's store, and which
@@ -259,7 +268,13 @@ pub enum Op {
 /// harness reads the registry to take its before-and-after delta, so a counting
 /// registry would move the number it is measuring -- the instrument perturbing
 /// its own subject.
-pub const UNCOUNTED: &[Op] = &[Op::Registry, Op::Subscribe, Op::Shutdown, Op::Build];
+pub const UNCOUNTED: &[Op] = &[
+  Op::Registry,
+  Op::Subscribe,
+  Op::Shutdown,
+  Op::Build,
+  Op::EstateStatus,
+];
 
 /// One thread, as much of it as a listing needs.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -456,6 +471,15 @@ pub enum Response {
   /// What an [`Op::Build`] asked: this running image's version and commit,
   /// read from what the binary embedded, so `dirty-` and `unknown` survive.
   Build { version: String, commit: String },
+  /// The estate an [`Op::EstateStatus`] read, as [`Response::estate_status`]
+  /// serialised it.
+  ///
+  /// **ONE VALUE, FOR [`Response::Search`]'s REASON.** The schema
+  /// ([`crate::estate::STATUS_SCHEMA`]) is owned by `crate::estate`, whose
+  /// type is written and never read back, and `census.load` is three `f64`s,
+  /// which `Eq` cannot carry. So the value travels as the JSON its owner
+  /// produced.
+  EstateStatus { status: serde_json::Value },
   /// This connection is now a feed (`AC-08.6`).
   ///
   /// **THE SUBSCRIPTION IS ACKNOWLEDGED BEFORE ANY EVENT ARRIVES, AND THE
@@ -505,6 +529,22 @@ impl Response {
         format!("the search answer could not be serialised: {cause}"),
         "this is a fault in this build rather than in the project. Run `intent search` without `--daemon` to answer it in your own process.",
       ),
+    }
+  }
+
+  /// The estate, or the reader's refusal with its remedy, serialised here for
+  /// [`Response::search`]'s reason: `intentd` has no `serde_json`.
+  pub fn estate_status(
+    read: Result<crate::estate::EstateStatus, crate::estate::EstateError>,
+  ) -> Response {
+    use crate::remedy::Remedy;
+    match read.map(|status| serde_json::to_value(&status)) {
+      Ok(Ok(value)) => Response::EstateStatus { status: value },
+      Ok(Err(cause)) => Response::error(
+        format!("the estate could not be serialised: {cause}"),
+        "this is a fault in this build rather than in the estate. Run `intent estate status` to read it in your own process.",
+      ),
+      Err(refusal) => Response::error(refusal.to_string(), refusal.remedy()),
     }
   }
 
@@ -764,6 +804,47 @@ mod tests {
       serde_json::to_string(&answer).expect("serialisable"),
       r#"{"result":"build","version":"3.0.0","commit":"dirty-abc"}"#
     );
+  }
+
+  #[test]
+  fn the_estate_question_and_its_answer_have_the_hand_written_shape() {
+    // ST0086 WP-02, the shape agreed with ic for the estate page.
+    let line = br#"{"root":"/tmp/project","op":"estate_status"}"#;
+    let parsed: Request = serde_json::from_slice(line).expect("the estate line parses");
+    assert_eq!(parsed.op, Op::EstateStatus);
+    assert!(
+      UNCOUNTED.contains(&Op::EstateStatus),
+      "a question about the host must not count as a project's dispatch"
+    );
+
+    let answer = Response::EstateStatus {
+      status: serde_json::json!({"schema": crate::estate::STATUS_SCHEMA}),
+    };
+    assert_eq!(
+      serde_json::to_string(&answer).expect("serialisable"),
+      r#"{"result":"estate_status","status":{"schema":"intent/estate-status@1"}}"#
+    );
+  }
+
+  #[test]
+  fn an_estate_refusal_reaches_the_wire_with_its_remedy() {
+    use crate::remedy::Remedy;
+    let refusal = crate::estate::EstateError::NoLiveness {
+      why: "ps exited 1".to_string(),
+    };
+    let remedy = refusal.remedy();
+    let Response::Error {
+      message,
+      remedy: sent,
+    } = Response::estate_status(Err(refusal))
+    else {
+      panic!("a refused read must answer as an error");
+    };
+    assert_eq!(
+      message,
+      "which sessions are alive could not be read: ps exited 1"
+    );
+    assert_eq!(sent, remedy);
   }
 
   #[test]

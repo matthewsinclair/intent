@@ -142,6 +142,13 @@ pub struct RunningDaemon {
 
 impl RunningDaemon {
   pub fn start() -> RunningDaemon {
+    RunningDaemon::start_with(&[])
+  }
+
+  /// [`RunningDaemon::start`] with these variables set as well, for a test
+  /// whose subject is read from somewhere `HOME` does not reach, eg Claude
+  /// Code's directory under `CLAUDE_CONFIG_DIR`.
+  pub fn start_with(vars: &[(&str, &Path)]) -> RunningDaemon {
     let home = short_dir("intentd-home");
     // **THE LIFELINE (`ST0073`), AND IT IS WHAT MAKES THE `Drop` GUARD BELOW A
     // BELT RATHER THAN THE ONLY STRAP.** `Drop` runs on a normal return or an
@@ -161,6 +168,7 @@ impl RunningDaemon {
     // and only a pipe, as an owner. `launchd` hands it `/dev/null`.
     let child = Command::new(env!("CARGO_BIN_EXE_intentd"))
       .env("HOME", &home)
+      .envs(vars.iter().copied())
       .stdin(Stdio::piped())
       .stdout(Stdio::null())
       .stderr(Stdio::null())

@@ -371,6 +371,18 @@ pub fn claude_dir() -> Result<PathBuf, UserStateError> {
   pick_claude_dir(std::env::var("CLAUDE_CONFIG_DIR").ok(), home)
 }
 
+/// Whether `$CLAUDE_CONFIG_DIR` chose [`claude_dir`], by the same test
+/// [`claude_dir`] applies. Claude Code keys its Keychain item on this, not on
+/// the path, so a variable set to `$HOME/.claude` explicitly still counts.
+pub fn claude_dir_configured() -> bool {
+  configured(std::env::var("CLAUDE_CONFIG_DIR").ok().as_deref())
+}
+
+/// Set and non-empty: the one test of whether the variable answers.
+fn configured(config_dir: Option<&str>) -> bool {
+  config_dir.is_some_and(|dir| !dir.is_empty())
+}
+
 /// [`claude_dir`]'s choice, apart from the environment it reads. `home` is
 /// asked only when the variable does not answer, so a machine that sets
 /// `CLAUDE_CONFIG_DIR` and no `HOME` still has a Claude directory.
@@ -379,7 +391,7 @@ fn pick_claude_dir(
   home: impl FnOnce() -> Result<PathBuf, UserStateError>,
 ) -> Result<PathBuf, UserStateError> {
   match config_dir {
-    Some(dir) if !dir.is_empty() => Ok(PathBuf::from(dir)),
+    Some(dir) if configured(Some(&dir)) => Ok(PathBuf::from(dir)),
     _ => Ok(home()?.join(".claude")),
   }
 }
