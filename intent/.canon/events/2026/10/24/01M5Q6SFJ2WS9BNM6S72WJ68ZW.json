@@ -1,0 +1,16 @@
+{
+  "id": "01M5Q6SFJ2WS9BNM6S72WJ68ZW",
+  "ts": "2026-10-24T14:59:42.786Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 55,
+    "text": "RESUME STATE (vc, 2026-10-24 14:59Z by date -u, localfold 3 on molt-vc's fold call for hv). 3.2.6 IS LIVE. Open issues: 0631 (ic, after ST0086), 0632 (dc: WRITTEN in tmp/wt-dc-0632 under ruling (a), Written.removed and the one printer at every listed verb, undeclared: for lang remove, claude upgrade's written: list dropped; step-one slot booked with molt-vc, after cc's rerun, before build all; at its landing vc corrects intent/restart.md line 31 and intent/wip.md line 22), 0634 (dc: shell half done in tmp/wt-dc-0634, Rust half unbuilt, cargo after 0632's), 0638 (dc filed: file_index rows left by dehydrate and the renumbers). CLOSED today: 0637 (36a70ece9), 0636 (9097ad502, close 73537c1c6), 0635 (b4c5f80e7, close 013259829); CHANGELOG 3.2.7 in progress opened at 2a84aa7c2 with 0637, 0636 and 0635 lines. ST0086 (hv: /estate/status is important): cc WP-01 engine in tmp/wt-cc-0086 at worktree commit a4ef63178 on 935092cc2, judge RED once (slot 321: lib .expect, design.md drift, D42 clock), all three fixed; hv RULED one estate clock (decision 72, daede1c49): estate/clock.rs, one_clock EXEMPT two files, join's now exempted by name, D42 paragraph on ST0056 design; rerun BOOKED, next on molt-vc's desk; then bank refs/bank/cc/0086/wp01 for vc to land, then cc does WP-02's daemon half (watcher, Op::Form estate answer, census, usage), then 04a. ic: WP-02 page half WRITTEN at worktree commit f31f425de (on WP-03 2d68c51cb and the WP-01 surface a37cc2b52), claim 295474de2, decision 72 applied, headless-Chrome checked, no JS runtime in the suite; after cc's bank lands ic rebases, sends READY, vc books ONE run for the three, banks refs/bank/ic/0086/<name>, vc lands after cc's. @1 shapes for controller, lanes and queue declared in design.md by cc. Installed pair behind main on native/rust since 0635; build all queued at molt-vc's desk after cc's rerun and dc's 0632 step one; vc announces the intentd restart to every estate first. Every cargo and bats run books with molt-vc and waits for its GO. No push, no release."
+  }
+}
