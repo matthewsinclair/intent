@@ -1,0 +1,12 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0086",
+  "title": "Add an 'Estate' page to intentd that all intent-using Claudes on an estate can use to post status",
+  "slug": "add-an-estate-page-to-intentd-that-all-intent-us",
+  "status": "wip",
+  "created": "2026-10-24",
+  "objective": "",
+  "context": "",
+  "body": "",
+  "preamble": ""
+}

@@ -16,6 +16,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 05: intent daemon start --at-login refuses on Linux before writing anything
   - [x] 06: The Homebrew formula installs Intent on Linux
   - [x] 07: Intent on Ubuntu from its Linux package, as a user uses it
+- [-] ST0086: Add an 'Estate' page to intentd that all intent-using Claudes on an estate can use to post status
 
 ## TODO
 
