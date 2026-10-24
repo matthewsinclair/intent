@@ -2027,6 +2027,14 @@
       "text": "(2026-10-24, hv's selections in the TUIs vc asked between vc's clock reads of 10:00Z and 12:20Z, and hv first-hand in vc's session; wording vc's, each choice hv's; vc's recommendation taken unless said) SEVEN RULINGS FOR THE 3.2.6 CUT AND 3.2.7. (1) Intent's dev/opt/brew conformance thread sits THIRD in 3.2.7, after 0635 and the devbin re-vendor, before WP-02's Intent half; the re-vendor takes devbin v0.1.14 (devbin decision 60: hv cuts 0.1.14 privately once 0213 lands; 0213 landed at 76b3d790), one re-vendor, not two. (2) kovacs stays brew-only; after a release reaches the tap, kovacs-sysadm runs brew upgrade intent on vc's notice in its own session, booked with molt-vc as a run (molt-vc, 12:4xZ). (3) Issue 0636, filed during the freeze, was committed before the tag with a fresh preflight. (4) ST0086 was committed and authored before the tag, hv first-hand: \"There's no risk of adding docs. Just put it in now.\" (5) ST0086 has four WPs in one thread, hv first-hand: the record and its doors, intentd's /estate/status page, the TUI, and a generic slot protocol with lane types, lanes with a capacity and a controller any assigned session may hold, dedicated or a project node, running on Intent alone with no Molt (hv: \"This is all inside Intent\"). (6) The v3.2.6 tag's red CI is fixed on main and the tag stays; no re-cut. (7) Whether main is pushed to upstream after each landing, so CI judges each commit rather than each cut, is OPEN for hv; vc recommends it.",
       "state": "live",
       "recorded_at": "2026-10-24T12:48:57.866Z"
+    },
+    {
+      "node": "vc",
+      "kind": "decision",
+      "seq": 72,
+      "text": "(2026-10-24 14:48Z by vc's clock, hv's selection in the TUI vc asked, received between vc's clock reads of 14:41Z and this one; wording vc's, the choice hv's; vc's recommendation taken) THE ESTATE GETS ONE CLOCK, BY RULING: the second file exempt from D42's one-clock guard. hv chose the option labelled 'One estate clock, by ruling (Recommended)', whose text was: one file, intentsvcs estate/clock.rs, read by the reader for taken_at and by intentd's census tick for the ring; every age derives from taken_at; join's now parameter is exempted by name as the PFIC seam; the reason is recorded at D42 beside the daemon log's. The reason: a reading of the live host is not a record and has no write to stamp it, and every idle age on the page, in intent estate status and in the TUI is measured from that reading's stamp. The WIP record is stamped by its own write, the file's mtime after the atomic rename, with no clock. The alternative hv did not take: no taken_at in @1, ages only in the browser, the terminal and TUI showing raw stamps. cc carries the exemption, the guard's change, the D42 record on ST0056's design and the clock file in ST0086 WP-01's bank.",
+      "state": "live",
+      "recorded_at": "2026-10-24T14:48:22.929Z"
     }
   ],
   "sent": [

@@ -1,0 +1,15 @@
+{
+  "id": "01M5Q64QMH2VT38CVG5726558D",
+  "ts": "2026-10-24T14:48:22.929Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-10-24 14:48Z by vc's clock, hv's selection in the TUI vc asked, received between vc's clock reads of 14:41Z and this one; wording vc's, the choice hv's; vc's recommendation taken) THE ESTATE GETS ONE CLOCK, BY RULING: the second file exempt from D42's one-clock guard. hv chose the option labelled 'One estate clock, by ruling (Recommended)', whose text was: one file, intentsvcs estate/clock.rs, read by the reader for taken_at and by intentd's census tick for the ring; every age derives from taken_at; join's now parameter is exempted by name as the PFIC seam; the reason is recorded at D42 beside the daemon log's. The reason: a reading of the live host is not a record and has no write to stamp it, and every idle age on the page, in intent estate status and in the TUI is measured from that reading's stamp. The WIP record is stamped by its own write, the file's mtime after the atomic rename, with no clock. The alternative hv did not take: no taken_at in @1, ages only in the browser, the terminal and TUI showing raw stamps. cc carries the exemption, the guard's change, the D42 record on ST0056's design and the clock file in ST0086 WP-01's bank."
+  }
+}
