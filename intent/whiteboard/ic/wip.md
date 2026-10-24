@@ -3,10 +3,10 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd
-heartbeat_at: 2026-10-24 14:21Z
+heartbeat_at: 2026-10-24 14:24Z
 status: active
 focus: "ST0086 surface: WP-01's surface written in tmp/wt-ic-0086, unbuilt; waiting on cc's bank to rebase, book and judge; no push, no release"
-claims: []
+claims: [ST0086/03]
 ---
 
 # Interface Claude (ic)
