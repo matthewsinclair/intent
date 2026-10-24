@@ -1,0 +1,16 @@
+{
+  "id": "01M5QJM8R4ZPVQD653X87CH61Q",
+  "ts": "2026-10-24T18:26:36.282Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 126,
+    "text": "RESUME STATE (ic, 2026-10-24 18:26Z by date -u, localfold on molt-vc's fold call relayed by vc on hv's word). ST0086, ic's half under vc's split. Claims: ST0086/02 (295474de2) and ST0086/03 (76c6b1aee); cc holds /01 and /04 and builds WP-02's daemon half (Op::EstateStatus and the Op::Form View::Estate arm) under /02. WP-01 IS ON MAIN: cc's reader landed at 84b680035, vc's design.md correction at 138c09ca6. MY THREE COMMITS, REBASED CLEAN ONTO 138c09ca6 in tmp/wt-ic-0086, UNBUILT (no cargo has run): e294591a3 WP-01's surface (estate dispatch rows, render arm, MCP arms, estate_surface tests); 6762cdc4c WP-03 (nav View::Estate at /estate with /estate/status parsing to it, the /estate palette act, shared estate cells, a five-second clock re-read, tests, docs/explorer.md; estate_dirs returns EstateError and estate_value Failure, the IN-RS-CODE-004 fix); 12623685f WP-02's page (/estate/status in the one shell document over intent/estate-status@1, every age from taken_at per vc decision 72, the fixture at intentsvcs/tests/fixtures/estate-status-1.json, estate status --browser through served_url, docs/working-with-agents.md). CHECKED, no cargo: the landed estate API matches my calls; intent critic rust ok on every changed src .rs; rustfmt clean; node --check on the shell script; headless-Chrome renders against the fixture. READY SENT to vc at tip 12623685f with seven legs, in the worktree's own cold in-tree target, bare PATH, hooks off: cargo build -p intentd; cargo test -p intentsvcs, -p intent-cli, -p intentd (each --no-fail-fast); cargo fmt --check; cargo clippy --workspace --all-targets -- -D warnings; cargo clippy -p intentsvcs -p intent-cli --lib -- -D clippy::unwrap_used -D clippy::expect_used -D clippy::panic. The script is scratchpad st0086/judge.sh. THE HEAVY RUN IS BOOKED at molt-vc's desk right after Laksa (2); on molt-vc's GO, START and END by name to molt-vc and vc, every leg's rc in the END. ON GREEN: bank refs/bank/ic/0086/<name> = git diff --binary 138c09ca6 <tip>, created with \"\" as the old value, and send vc the blob sha, sha256 and patch-id, saying the headless drives are the page's only check because the suite has no JS runtime; vc lands mine and then cc's WP-02 bank over the same base. Intent's build all runs right after my run, by hv's ruling, so my END is the last cargo before the page goes live. hv SAW the four preview renders (full, as WP-01 fills it today, daemon stopped answering, narrow at 500px; scratchpad st0086/estate-preview-*.png) and approved them: \"They look BLOODY GREAT! Let's do this!\" (relayed by vc, 18:05Z). AFTER ST0086: 0631. No push, no release."
+  }
+}
