@@ -1,0 +1,15 @@
+{
+  "id": "01M5PTWSKXFDR24GQH5S8DBF0Q",
+  "ts": "2026-10-24T11:31:48.493Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0086/02"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "intentd serves /estate/status: watches the estate directory outside the ingest path, renders the live top-styled page with the host census"
+  }
+}

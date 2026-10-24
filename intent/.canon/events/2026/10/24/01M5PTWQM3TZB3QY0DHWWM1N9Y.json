@@ -1,0 +1,15 @@
+{
+  "id": "01M5PTWQM3TZB3QY0DHWWM1N9Y",
+  "ts": "2026-10-24T11:31:46.442Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0086/01"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "The estate record and its doors: directory, versioned record, one reader, the estate verbs, the hooks writing presence, MCP exposure, the reap rule"
+  }
+}

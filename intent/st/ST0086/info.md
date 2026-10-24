@@ -10,11 +10,19 @@ completed:
 
 ## Objective
 
-_(not yet written)_
+Give the host one live view of every Claude session on it: who it is, which project and node it stands in, whether it is busy, idle, in a heavy run or paused, its one-line WIP and its claims, with the host's load and the cargo and bats census. One source of truth on disk, a directory of session records under `~/.local/state/intent/estate/`, written by the sessions themselves through the hooks and the `intent estate` verbs; three renderers of it: intentd at `/estate/status` styled like top, `/estate` in the `intent explore` TUI beside `/projects`, and `intent estate status --json` for Claudes.
 
 ## Context
 
-_(not yet written)_
+The estate is the host (rhadamanth, kovacs and gyges each its own), not a project; Intent, Devbin and Laksa are projects on it. Each project has a status surface already, the whiteboard, and what has no home is the layer above it: which sessions exist on the host, what each is doing, which heavy run holds the box. On 2026-10-24 that layer was run by hand over cross-session messages and a census script, and it vanished at every compact. intentd is one daemon per user with a web face and a registry of every project root on the host (ST0074), so it already knows the estate and renders none of it. State, not config: the records live under `~/.local/state/intent/estate/`, beside the daemon's own run dir, one writer per file, the readers never write, and the daemon reaps a record whose pid is dead. A session that is a whiteboard node does not copy its focus or claims into its record; the reader joins them from the project's store, so one fact has one home. The design is attached as `design.md`.
+
+## Work Packages
+
+| WP    | Title                                                                                                                                               | Size | Status      |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ----------- |
+| WP-01 | The estate record and its doors: directory, versioned record, one reader, the estate verbs, the hooks writing presence, MCP exposure, the reap rule | S    | Not Started |
+| WP-02 | intentd serves /estate/status: watches the estate directory outside the ingest path, renders the live top-styled page with the host census          | S    | Not Started |
+| WP-03 | The intent explore TUI: /estate beside /projects, on the same reader                                                                                | S    | Not Started |
 
 ## Acceptance
 
