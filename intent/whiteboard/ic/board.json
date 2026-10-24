@@ -2476,6 +2476,14 @@
       "state": "live",
       "recorded_at": "2026-10-24T13:20:21.651Z",
       "edited_at": "2026-10-24T13:58:00.615Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 52,
+      "text": "docs/reference regeneration for the intent estate verbs (ST0086): the new dispatch-table rows make the reference pages stale; regenerate them at the cut of whichever release carries the verbs (vc, 2026-10-24), by intent/docs/releasing.md's reference step",
+      "state": "live",
+      "recorded_at": "2026-10-24T14:09:20.204Z"
     }
   ],
   "sent": [

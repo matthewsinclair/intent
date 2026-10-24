@@ -1,0 +1,15 @@
+{
+  "id": "01M5Q3X7TC1CFY64PX7VHHK31M",
+  "ts": "2026-10-24T14:09:20.204Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "docs/reference regeneration for the intent estate verbs (ST0086): the new dispatch-table rows make the reference pages stale; regenerate them at the cut of whichever release carries the verbs (vc, 2026-10-24), by intent/docs/releasing.md's reference step"
+  }
+}

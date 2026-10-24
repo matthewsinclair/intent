@@ -17,7 +17,7 @@ claims: []
 
 ## TODO
 
-_(none)_
+- docs/reference regeneration for the intent estate verbs (ST0086): the new dispatch-table rows make the reference pages stale; regenerate them at the cut of whichever release carries the verbs (vc, 2026-10-24), by intent/docs/releasing.md's reference step
 
 ## Holds
 
