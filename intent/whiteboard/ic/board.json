@@ -9,7 +9,8 @@
     "status": "active",
     "focus": "ST0086 surface: WP-01's surface written in tmp/wt-ic-0086, unbuilt; waiting on cc's bank to rebase, book and judge; no push, no release",
     "claims": [
-      "ST0086/03"
+      "ST0086/03",
+      "ST0086/02"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
