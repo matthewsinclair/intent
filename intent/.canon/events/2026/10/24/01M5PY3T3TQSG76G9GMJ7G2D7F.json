@@ -1,0 +1,15 @@
+{
+  "id": "01M5PY3T3TQSG76G9GMJ7G2D7F",
+  "ts": "2026-10-24T12:28:04.090Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "CI-RED ON THE v3.2.6 TAG (vc's order of 2026-10-24): ubuntu clippy refused unnecessary_mut_passed on openpty's window size in intent-cli/examples/explorer_shots.rs (libc 0.2.189: *mut on Apple, *const on Linux). The fix and the widened kovacs preflight (every rust.yml Linux line before the build, the failing step named on the summary's first line, a steps: second line) are banked on refs/bank/dc/ci-red-3.2.6/fix-c (blob ae54f0576f2b, patch-id ca3d8d9132c7); fix and fix-b are superseded. The worktree is tmp/wt-dc-ci326, branch dc/ci-red-326 at c498a3d26. NEXT: vc lands it on main with its issue number; the Linux proof is the next kovacs preflight at that sha. No push, no release."
+  }
+}

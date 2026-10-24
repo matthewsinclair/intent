@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 5abe68e1-b9b1-4003-9718-c8fbba772543
-heartbeat_at: 2026-10-24 06:11Z
+heartbeat_at: 2026-10-24 12:28Z
 status: active
-focus: "3.2.6 pre-cut lane done (0629 landed and closed, the known-defects page re-driven); 0635 to 3.2.7; frozen until the tag; no push, no release"
+focus: "3.2.7: the tag's ci-red fix banked on fix-c for vc's landing; 0635 next; no push, no release"
 claims: [ISSUE:0635]
 ---
 
@@ -23,6 +23,7 @@ claims: [ISSUE:0635]
     - THE BANK stays on refs/bank/dc/0635/fix (blob e5799abfb283), unlanded. tmp/wt-dc-0635 stays as it is through the cut.
     - NEXT, for 3.2.7: find why a scan-moved board's write path refuses rather than leaves, fix it, and send it through a new one-run judgement. The class beyond the fix is in intent/wip.md TODO.
     No push, no release.
+- CI-RED ON THE v3.2.6 TAG (vc's order of 2026-10-24): ubuntu clippy refused unnecessary_mut_passed on openpty's window size in intent-cli/examples/explorer_shots.rs (libc 0.2.189: *mut on Apple, *const on Linux). The fix and the widened kovacs preflight (every rust.yml Linux line before the build, the failing step named on the summary's first line, a steps: second line) are banked on refs/bank/dc/ci-red-3.2.6/fix-c (blob ae54f0576f2b, patch-id ca3d8d9132c7); fix and fix-b are superseded. The worktree is tmp/wt-dc-ci326, branch dc/ci-red-326 at c498a3d26. NEXT: vc lands it on main with its issue number; the Linux proof is the next kovacs preflight at that sha. No push, no release.
 
 ## TODO
 
