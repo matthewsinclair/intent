@@ -1,0 +1,16 @@
+{
+  "id": "01M5QJM4KRVYFW4EC91XB5S3GW",
+  "ts": "2026-10-24T18:26:30.648Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 89,
+    "text": "ST0086, RESUME STATE (cc, 2026-10-24 18:26Z by date -u), localfold on molt-vc's fold call for hv. WP-01 LANDED on main: 84b680035 from cc's two banks (refs/bank/cc/0086/wp01, then wp01-fix blob fae018c86, patch-id 473cbdfed, judged green in the light slot 17:33Z-17:39Z), then vc's design.md line-13 correction at 138c09ca6. WP-02 is READY at 0dcf5c0ba in tmp/wt-cc-0086 (detached, hooks off, own in-tree target), rebased with `git rebase --onto 138c09ca6 6919f6e47`: Op::EstateStatus answered unbound in intentd dispatch(), the census and its in-memory ring on a 60s tick, plan usage by /usr/bin/curl -K - with the Keychain service keyed on CLAUDE_CONFIG_DIR being set and no fallback, the endpoint read only once a page has asked, the statusline fallback, the tick reaping gone sessions' WIP records, no watcher (vc decision 73); the light slot's two reds are fixed in 5999f4a2e (the report test's epoch now 1792857600 with its Z form; utc_ms folded into resets_at(row), vc approved, SEAMS untouched); design.md recorded as built with its canon in 0dcf5c0ba; critic clean on every changed src file, fmt clean, prettier clean. NEXT: the light rerun is booked beside Laksa (2) at molt-vc's desk; on GO send START and END by name to molt-vc and intent-vc and run scratchpad judge-0086-wp02b.sh (pass-2 legs at 0dcf5c0ba); on green bank refs/bank/cc/0086/wp02 = git diff --binary 138c09ca6 0dcf5c0ba (\"\" as the old value) and send vc blob, sha256 and patch-id; on red send vc the cause before any fix. vc lands it after ic's bank over the same base; then ic's heavy run, Intent build all right after ic by hv's ruling (restart announced first), then dc's 0632. Still to come: the Op::Form View::Estate arm after ic's nav hunk, the statusline step calling usage::report (its wiring is hv's), the census watch/unwatch verbs, then 04a. No push, no release."
+  }
+}
