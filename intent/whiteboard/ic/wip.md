@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd
-heartbeat_at: 2026-10-24 06:12Z
+heartbeat_at: 2026-10-24 12:27Z
 status: active
-focus: "Frozen until the tag: the 3.2.6 reference set landed at e5f3b465d and the shots run was clean; after the tag, 0633's gyges note; no push, no release"
+focus: "After the 3.2.6 tag: 0633's gyges note when gyges-sysadm's repro on the first brew carrying 6a3f9aaef comes; 0631 behind the line; nothing heavy without a booking through vc"
 claims: []
 ---
 
