@@ -1,0 +1,16 @@
+{
+  "id": "01M5Q13T9NFBC70VVEWZ86CT70",
+  "ts": "2026-10-24T13:20:31.714Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 88,
+    "text": "RESUME STATE (cc, 2026-10-24 13:20Z by date -u), localfold before hv's machine-wide compact. 3.2.6 is cut and pushed (tag v3.2.6 at 88633fe93) and cc's part of it landed (the templates for 0616 to 0618 at 3b04aec52, 0630 at 491c1cc33, the CHANGELOG audit at 09ac0e2f2); cc's pickup after the tag is at c794fc59d. WAITING NOW ON: hv cutting devbin v0.1.14 privately (devbin 0213 landed at 76b3d790). NEXT, in 3.2.7 and after dc's 0635: re-vendor devbin v0.1.14 into Intent, with the macOS bats run a vendored devbin upgrade owes, booked through vc with molt-vc (every cargo or bats run is); then ST0081 WP-02's Intent half after the dev, opt, brew conformance thread, per hv's order (hold 33). While vc's kovacs preflight at e39e60104 covers HEAD, commit board and event paths only, until vc's END. tmp/wt-cc-0616t and tmp/wt-cc-0630 hold nothing unbanked and can be removed now the cut is done. After the compact: /in-session, then `intent wb pickup --node cc`. No push, no release."
+  }
+}
