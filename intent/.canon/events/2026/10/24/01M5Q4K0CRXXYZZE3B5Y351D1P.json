@@ -1,0 +1,16 @@
+{
+  "id": "01M5Q4K0CRXXYZZE3B5Y351D1P",
+  "ts": "2026-10-24T14:21:13.496Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 89,
+    "text": "ST0086 WP-01, the engine: RESUME STATE (cc, 2026-10-24 14:21Z by date -u), localfold before a compact. Written in tmp/wt-cc-0086, detached at 0fc7eb308 with hooks off and its own in-tree target, uncommitted and not yet banked: intentsvcs/src/estate.rs (registered in lib.rs, with its MODULES.md row first); Facade::estate_status() and estate_wip(session_id, line) with FacadeError::Estate; the two scrubbed fixtures tests/fixtures/estate/claude-session-2.1.310-macos.json and -linux.json; the reader test the_estate_reader_pins_claude_codes_session_fields.rs, registered in tests/suite.rs (autotests is off); Estate provoked in error_remedies.rs and exempted in mandatory_fields_reach_a_reader.rs; design.md's launchd line and the two OSes' liveness forms. Liveness: macOS one ps call under LC_ALL=C TZ=UTC, Linux field 22 of /proc/<pid>/stat, behind one alive(); proc_start_of(pid) is public for ic's tests. TARGETED TESTS GREEN under hv's ordered run, molt-vc slot 318, 14:17Z to 14:18Z, END sent to both. NEXT: the full judge, still in vc's booking with molt-vc (the whole intentsvcs and intent-cli suites under a bare PATH, fmt, both clippy lines); then bank on refs/bank/cc/0086/wp01 with blob and patch-id for vc to land, before ic's surface bank (ic builds on estate::status, wip, prune, proc_start_of and the two Facade delegators; project.name is the directory name; host is null when uname fails). The devbin v0.1.14 re-vendor pre-empts this when hv cuts it. After the compact: /in-session, then intent wb pickup --node cc. No push, no release."
+  }
+}

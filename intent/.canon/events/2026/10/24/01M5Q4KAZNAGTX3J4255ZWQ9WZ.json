@@ -1,0 +1,16 @@
+{
+  "id": "01M5Q4KAZNAGTX3J4255ZWQ9WZ",
+  "ts": "2026-10-24T14:21:24.341Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 88,
+    "text": "RESUME STATE (cc, 2026-10-24 14:21Z by date -u), localfold before a compact. 3.2.6 is cut and pushed (tag v3.2.6 at 88633fe93) with cc's landings in it. WAITING ON: hv cutting devbin v0.1.14 privately (devbin 0213 landed at 76b3d790). NEXT, in 3.2.7 and after dc's 0635: re-vendor devbin v0.1.14 into Intent, with the macOS bats run a vendored devbin upgrade owes, booked through vc with molt-vc; it pre-empts ST0086 (doing 89) when it comes; then ST0081 WP-02's Intent half after the dev, opt, brew conformance thread (hold 33). vc's kovacs preflight ended green at 13:47Z, so the board-paths-only rule is lifted. tmp/wt-cc-0616t and tmp/wt-cc-0630 hold nothing unbanked and can be removed. No push, no release."
+  }
+}
