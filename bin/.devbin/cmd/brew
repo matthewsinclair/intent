@@ -372,11 +372,14 @@ cmd_smoke() {
   # release the gate, so it fails open: 0, with the notice naming the install
   # verb. HOME is set for the hook alone, so the rest of the smoke keeps the
   # real one.
+  # CLAUDE_CONFIG_DIR is unset for it too: the hook reads the releaser from
+  # there before HOME, and a maintainer's shell that exports it (Molt-matts
+  # does, from 2026-10-22) would hand the hook the real installed releaser.
   mkdir -p "$tmp/home-releaser/.claude/skills/in-session/scripts" "$tmp/home-bare"
   : >"$tmp/home-releaser/.claude/skills/in-session/scripts/release-gate.sh"
   rc=0
   out="$(cd "$tmp" && printf '%s' '{"prompt":"brew smoke"}' |
-    HOME="$tmp/home-releaser" CLAUDE_CODE_SESSION_ID="brew-smoke-$$" \
+    env -u CLAUDE_CONFIG_DIR HOME="$tmp/home-releaser" CLAUDE_CODE_SESSION_ID="brew-smoke-$$" \
       "$bin_intent" claude hook require-in-session 2>&1)" || rc=$?
   case "$rc:$out" in
     2:*"Expected sentinel:"*) smoke_ok "hook require-in-session refuses -> 2" ;;
@@ -385,7 +388,7 @@ cmd_smoke() {
   esac
   rc=0
   out="$(cd "$tmp" && printf '%s' '{"prompt":"brew smoke"}' |
-    HOME="$tmp/home-bare" CLAUDE_CODE_SESSION_ID="brew-smoke-open-$$" \
+    env -u CLAUDE_CONFIG_DIR HOME="$tmp/home-bare" CLAUDE_CODE_SESSION_ID="brew-smoke-open-$$" \
       "$bin_intent" claude hook require-in-session 2>&1)" || rc=$?
   rm -f "/tmp/intent/in-session-brew-smoke-open-$$.sentinel"
   case "$rc:$out" in
