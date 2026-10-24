@@ -20,6 +20,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [ ] 01: The estate record and its doors: directory, versioned record, one reader, the estate verbs, the hooks writing presence, MCP exposure, the reap rule
   - [ ] 02: intentd serves /estate/status: watches the estate directory outside the ingest path, renders the live top-styled page with the host census
   - [ ] 03: The intent explore TUI: /estate beside /projects, on the same reader
+  - [ ] 04: Slots: a generic pool, ask, grant, start, release protocol on the estate, records beside the status records, capacity enforced by the tool, policy with the controlling Claude
 
 ## TODO
 

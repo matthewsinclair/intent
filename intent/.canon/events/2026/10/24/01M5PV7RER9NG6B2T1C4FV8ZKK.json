@@ -1,0 +1,15 @@
+{
+  "id": "01M5PV7RER9NG6B2T1C4FV8ZKK",
+  "ts": "2026-10-24T11:37:47.741Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0086/04"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "Slots: a generic pool, ask, grant, start, release protocol on the estate, records beside the status records, capacity enforced by the tool, policy with the controlling Claude"
+  }
+}
