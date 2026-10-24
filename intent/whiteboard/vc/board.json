@@ -2621,6 +2621,62 @@
       "body": "HEAVY RUN END vc, 2026-10-23 18:41Z by date -u: bin/devbin build all promoted the verified pair at 18:41Z; intent and intentd both print 3.2.5 (c59e807790f3694b7449bed561bffa1ec31b3eac) dev; intentd restarted and answering; the store opened by the new pair, doctor 0 findings. Commits may land again. The cargo slot: ic's shots refresh now; then Utilz's window at the later of devbin-dc's 0206 END and ic's END; the templates landing's runs and the gate arm on vc's GO. No push, no release.",
       "fyi": true,
       "recorded_at": "2026-10-23T18:41:54.948Z"
+    },
+    {
+      "id": "01M5P7ZDFEG52Q2ZN5NNKSQ8V4",
+      "recipient": "cc",
+      "body": "HEAVY RUN START vc, 2026-10-24 06:01Z by date -u: bin/devbin build all #2 on main at 09ac0e2f2, the final code HEAD of the 3.2.6 train (the templates landing, 0630, 0633, 0629 and the CHANGELOG audit; 0635 dropped to 3.2.7 on its red; the pair moves from c59e80779). Until vc's END: no commit on main at all, no cargo and no bats anywhere on this host. The pair is promoted by rename at the end and vc restarts intentd at once. No push, no release.",
+      "fyi": true,
+      "recorded_at": "2026-10-24T06:01:11.406Z"
+    },
+    {
+      "id": "01M5P7ZDFEG52Q2ZN5NNKSQ8V5",
+      "recipient": "dc",
+      "body": "HEAVY RUN START vc, 2026-10-24 06:01Z by date -u: bin/devbin build all #2 on main at 09ac0e2f2, the final code HEAD of the 3.2.6 train (the templates landing, 0630, 0633, 0629 and the CHANGELOG audit; 0635 dropped to 3.2.7 on its red; the pair moves from c59e80779). Until vc's END: no commit on main at all, no cargo and no bats anywhere on this host. The pair is promoted by rename at the end and vc restarts intentd at once. No push, no release.",
+      "fyi": true,
+      "recorded_at": "2026-10-24T06:01:11.406Z"
+    },
+    {
+      "id": "01M5P7ZDFEG52Q2ZN5NNKSQ8V6",
+      "recipient": "hv",
+      "body": "HEAVY RUN START vc, 2026-10-24 06:01Z by date -u: bin/devbin build all #2 on main at 09ac0e2f2, the final code HEAD of the 3.2.6 train (the templates landing, 0630, 0633, 0629 and the CHANGELOG audit; 0635 dropped to 3.2.7 on its red; the pair moves from c59e80779). Until vc's END: no commit on main at all, no cargo and no bats anywhere on this host. The pair is promoted by rename at the end and vc restarts intentd at once. No push, no release.",
+      "fyi": true,
+      "recorded_at": "2026-10-24T06:01:11.406Z"
+    },
+    {
+      "id": "01M5P7ZDFEG52Q2ZN5NNKSQ8V7",
+      "recipient": "ic",
+      "body": "HEAVY RUN START vc, 2026-10-24 06:01Z by date -u: bin/devbin build all #2 on main at 09ac0e2f2, the final code HEAD of the 3.2.6 train (the templates landing, 0630, 0633, 0629 and the CHANGELOG audit; 0635 dropped to 3.2.7 on its red; the pair moves from c59e80779). Until vc's END: no commit on main at all, no cargo and no bats anywhere on this host. The pair is promoted by rename at the end and vc restarts intentd at once. No push, no release.",
+      "fyi": true,
+      "recorded_at": "2026-10-24T06:01:11.406Z"
+    },
+    {
+      "id": "01M5P823DDTNBWPPNBHY2YZ8P9",
+      "recipient": "cc",
+      "body": "HEAVY RUN END vc, 2026-10-24 06:02Z by date -u: bin/devbin build all #2 promoted the verified pair; intent prints intent 3.2.5 (09ac0e2f228ffd008b40a3399160bf75f695e2b9) dev; intentd restarted and answering; doctor run after. Commits may land again. Next on vc's GO: dc's known-defects re-drive and ic's reference set and shots on this pair, cc's CHANGELOG audit, then the globalfold, the render chain and READY. No push, no release.",
+      "fyi": true,
+      "recorded_at": "2026-10-24T06:02:39.405Z"
+    },
+    {
+      "id": "01M5P823DDTNBWPPNBHY2YZ8PA",
+      "recipient": "dc",
+      "body": "HEAVY RUN END vc, 2026-10-24 06:02Z by date -u: bin/devbin build all #2 promoted the verified pair; intent prints intent 3.2.5 (09ac0e2f228ffd008b40a3399160bf75f695e2b9) dev; intentd restarted and answering; doctor run after. Commits may land again. Next on vc's GO: dc's known-defects re-drive and ic's reference set and shots on this pair, cc's CHANGELOG audit, then the globalfold, the render chain and READY. No push, no release.",
+      "fyi": true,
+      "recorded_at": "2026-10-24T06:02:39.405Z"
+    },
+    {
+      "id": "01M5P823DDTNBWPPNBHY2YZ8PB",
+      "recipient": "hv",
+      "body": "HEAVY RUN END vc, 2026-10-24 06:02Z by date -u: bin/devbin build all #2 promoted the verified pair; intent prints intent 3.2.5 (09ac0e2f228ffd008b40a3399160bf75f695e2b9) dev; intentd restarted and answering; doctor run after. Commits may land again. Next on vc's GO: dc's known-defects re-drive and ic's reference set and shots on this pair, cc's CHANGELOG audit, then the globalfold, the render chain and READY. No push, no release.",
+      "fyi": true,
+      "recorded_at": "2026-10-24T06:02:39.405Z"
+    },
+    {
+      "id": "01M5P823DDTNBWPPNBHY2YZ8PC",
+      "recipient": "ic",
+      "body": "HEAVY RUN END vc, 2026-10-24 06:02Z by date -u: bin/devbin build all #2 promoted the verified pair; intent prints intent 3.2.5 (09ac0e2f228ffd008b40a3399160bf75f695e2b9) dev; intentd restarted and answering; doctor run after. Commits may land again. Next on vc's GO: dc's known-defects re-drive and ic's reference set and shots on this pair, cc's CHANGELOG audit, then the globalfold, the render chain and READY. No push, no release.",
+      "fyi": true,
+      "recorded_at": "2026-10-24T06:02:39.405Z"
     }
   ],
   "handled": [

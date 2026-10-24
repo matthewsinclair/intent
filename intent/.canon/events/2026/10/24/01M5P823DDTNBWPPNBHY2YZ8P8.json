@@ -1,0 +1,20 @@
+{
+  "id": "01M5P823DDTNBWPPNBHY2YZ8P8",
+  "ts": "2026-10-24T06:02:39.405Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "HEAVY RUN END vc, 2026-10-24 06:02Z by date -u: bin/devbin build all #2 promoted the verified pair; intent prints intent 3.2.5 (09ac0e2f228ffd008b40a3399160bf75f695e2b9) dev; intentd restarted and answering; doctor run after. Commits may land again. Next on vc's GO: dc's known-defects re-drive and ic's reference set and shots on this pair, cc's CHANGELOG audit, then the globalfold, the render chain and READY. No push, no release.",
+    "recipients": [
+      "cc",
+      "dc",
+      "hv",
+      "ic"
+    ]
+  }
+}

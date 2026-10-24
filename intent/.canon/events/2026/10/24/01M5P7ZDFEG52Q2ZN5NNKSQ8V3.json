@@ -1,0 +1,20 @@
+{
+  "id": "01M5P7ZDFEG52Q2ZN5NNKSQ8V3",
+  "ts": "2026-10-24T06:01:11.406Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "HEAVY RUN START vc, 2026-10-24 06:01Z by date -u: bin/devbin build all #2 on main at 09ac0e2f2, the final code HEAD of the 3.2.6 train (the templates landing, 0630, 0633, 0629 and the CHANGELOG audit; 0635 dropped to 3.2.7 on its red; the pair moves from c59e80779). Until vc's END: no commit on main at all, no cargo and no bats anywhere on this host. The pair is promoted by rename at the end and vc restarts intentd at once. No push, no release.",
+    "recipients": [
+      "cc",
+      "dc",
+      "hv",
+      "ic"
+    ]
+  }
+}
