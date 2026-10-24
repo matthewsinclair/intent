@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd
-heartbeat_at: 2026-10-24 12:27Z
+heartbeat_at: 2026-10-24 13:20Z
 status: active
-focus: "After the 3.2.6 tag: 0633's gyges note when gyges-sysadm's repro on the first brew carrying 6a3f9aaef comes; 0631 behind the line; nothing heavy without a booking through vc"
+focus: "ST0086 /estate/status mockup built in the scratchpad; attach on vc's word after the kovacs preflight's END; 0633's gyges note after the repro; no push, no release"
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- RESUME STATE (ic, 2026-10-24, after the render chain), FROZEN until the tag exists: no wb write, no commit, no /in-session. NO PUSH, NO RELEASE. DONE for 3.2.6: the reference set landed at e5f3b465d on vc's GO after build all #2 (both halves at bdc841bef against v3.2.5, the diff read whole first, diff -r proved), and the second explorer shots run on the pair at 09ac0e2f2 left docs/images/explorer clean, so no shot changed. NEXT, after the tag: when gyges-sysadm's live repro on the first brew carrying 0633's fix (6a3f9aaef) comes, note it in 0633's record. BEHIND THE LINE: 0631, wb archive's positional from seq to id. WAITING ON hv's OWN HAND: ORDER ic-1 unit 2, the .py history tools; ic does nothing on them. (edited)
+- RESUME STATE (ic, 2026-10-24 13:20Z by date -u, localfold before a compact). LIVE: (1) ST0086 /estate/status MOCKUP, hv's ask through vc, size S: built and checked, not yet attached. File: /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd/scratchpad/st0086/estate-status-mockup.html (one self-contained file, shell.html's tokens, light and dark, textContent only; an inline sample of the raw records: census, controller, lanes, requests as one key per file, sessions, boards joined; a reader stand-in folds and joins; a 2s scripted re-render; node --check is clean and the reader's output was checked against the sample). NEXT on vc's word that the kovacs preflight at e39e60104 has ENDED (it covers HEAD for 0637, and anything under intent/st/ uncovers it): intent st attach ST0086 estate-status-mockup.html --from <that file> (a .md wrapper if html is refused), then commit exactly its wrote: paths. Questions for vc with it: under D56 the daemon serves ONE shell document, so WP-02 is a route in shell.html fed by /op rather than a second page; and design.md lists the record state as active, idle, heavy, paused, while a heavy run is a slot, so the mockup records busy, idle, paused and joins heavy from a running slot and gone from a dead pid, and heavy counts a running slot in any lane, light included. (2) 0633: when gyges-sysadm's live repro on the first brew carrying 6a3f9aaef comes, note it in 0633's record (outside board paths, so after the preflight's END). BEHIND THE LINE: 0631. hv's OWN HAND: ORDER ic-1 unit 2, the .py history tools. No push, no release; nothing heavy without a booking through vc.
 
 ## TODO
 
