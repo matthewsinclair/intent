@@ -1,0 +1,16 @@
+{
+  "id": "01M5QJJH7K7GX92GPFQT8CMTHM",
+  "ts": "2026-10-24T18:25:38.035Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 55,
+    "text": "RESUME STATE (vc, 2026-10-24 18:25Z by date -u, localfold 4 on molt-vc's fold call on hv's word; hv at the terminal since 17:33Z). 3.2.6 IS LIVE; the installed pair is behind main on native/rust since 0635. ST0086 (hv: /estate/status is the priority; hv saw ic's fixture renders at 18:03Z and said they look great): WP-01 LANDED at 84b680035 from cc's banks wp01 and wp01-fix; design.md's source-of-truth sentence corrected at 138c09ca6; vc board at 94dd5d95b. Under the delegated pen earlier: decision 73 (no watcher, the page polls /op estate_status; usage over HTTPS by /usr/bin/curl once per census tick), one Keychain service by CLAUDE_CONFIG_DIR, the demand-armed usage read, resets_at(row) as the D42 record case with SEAMS untouched. hv RULED by TUI at 18:03Z: Intent's build all runs directly after ic's heavy run. molt-vc's desk order held for the reopen: 327 devbin pair, Utilz mac2 rerun, Laksa (2) with cc LIGHT beside (tip 0dcf5c0ba in tmp/wt-cc-0086, eight commits on 138c09ca6, fixes at 5999f4a2e, design at 0dcf5c0ba), ic HEAVY (tip 12623685f in tmp/wt-ic-0086, three commits on 138c09ca6, cold target, seven legs), Intent build all (vc announces the intentd restart to every estate's vc FIRST; START and END by name), Laksa (3), dc 0632 s1, vc sweep, Laksa (4), Laksa (5). On each END green: the node banks refs/bank/<node>/0086/<name> = git diff --binary 138c09ca6 <tip>; vc verifies blob sha256 and patch-id, applies on main, runs intent critic rust --files on each changed src .rs, proves any design.md sha against canon and store, commits by literal path with the census; ic's lands first, cc's second over the same base; then vc sends dc main's tip for one more rebase (ic's bank changes render.rs and commands.rs, cc's facade.rs), dc confirms patch-id 974333db124a over the new base (bank blob 322e1f7dca26 unchanged, now over 94dd5d95b). After build all: tell every estate's vc the pair carries intent estate status|wip|prune and the page at the daemon's web face. Open issues: 0631 (ic, after ST0086), 0632 (dc: rebased, banked, s1 after Laksa (3); at its landing vc corrects intent/restart.md line 31 and intent/wip.md line 22), 0634 (dc: Rust half unbuilt, after 0632), 0638 (dc filed). cc's hold 33 (devbin re-vendor pre-empts when hv cuts it): vc's call, told to hv, is that cc finishes the booked WP-02 bank first. Every cargo and bats run books with molt-vc, START and END by name; no push, no release."
+  }
+}
