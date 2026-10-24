@@ -1,0 +1,15 @@
+{
+  "id": "01M5Q7Z2VRAG5S1T53HT3PCKR3",
+  "ts": "2026-10-24T15:20:14.968Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-10-24 15:20Z, vc under the delegated pen, answering cc's two WP-02 questions; wording vc's, authority delegated per decision 4; ST0086) TWO RULINGS. (1) NO WATCHER IN WP-02: the estate page polls intentd's /op estate_status on the interval ic's page already uses, every read being fresh because the reader holds no state but the census ring (a read costs one ps, one lsof over the matched pids and the directory listings, about 0.05s each on this host); D20 keeps its two event names, and a third event (estate_changed) is hv's to add if a push is ever wanted; the daemon reaps Intent's WIP record for a gone session on its census tick, not on a watch; design.md line 62 and the open question at line 72 are struck to say so in cc's WP-02 bank. (2) PLAN USAGE OVER HTTPS BY /usr/bin/curl, NO TLS CRATE: the workspace has no HTTPS client and a rustls stack for one GET is a new third-party dependency under AC-08.10 that this does not need; intentd spawns /usr/bin/curl by absolute path, as it does /bin/ps, /usr/bin/uname and /usr/bin/security, with the URL, the headers and the bearer token in a config on stdin (-K -) so the token never enters argv, -sS --fail-with-body --max-time 10, status and body both captured, every failure named in usage.error (curl absent, the Keychain read, a status other than 200, a body that will not parse), read once per census tick and never per page read, the statusline fallback answering where the endpoint cannot; before the Keychain is read, cc positive-controls that ps -axo args= shows no token while a curl with a dummy token runs; recorded in design.md's usage paragraph and the MODULES row in the WP-02 bank."
+  }
+}
