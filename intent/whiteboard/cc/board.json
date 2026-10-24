@@ -2034,6 +2034,14 @@
       "state": "live",
       "recorded_at": "2026-10-24T14:15:35.879Z",
       "edited_at": "2026-10-24T18:26:30.648Z"
+    },
+    {
+      "node": "cc",
+      "kind": "todo",
+      "seq": 41,
+      "text": "ST0086 tidy after ic's bank and cc's wp02-doors both land (vc, 2026-10-24 19:27Z by vc's clock): Facade::estate_wip and the three doors arms (estate_census_watch, estate_census_unwatch, estate_statusline_report) each resolve userstate::dirs() themselves while estate_status delegates to estate::host_status; move them all onto host_* functions in estate.rs, beside ic's host_wip, so the operator's dirs resolve in one place. One small bank, light run at molt-vc's desk.",
+      "state": "live",
+      "recorded_at": "2026-10-24T19:28:56.488Z"
     }
   ],
   "sent": [

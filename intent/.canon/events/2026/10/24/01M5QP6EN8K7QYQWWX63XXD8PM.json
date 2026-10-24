@@ -1,0 +1,15 @@
+{
+  "id": "01M5QP6EN8K7QYQWWX63XXD8PM",
+  "ts": "2026-10-24T19:28:56.488Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ST0086 tidy after ic's bank and cc's wp02-doors both land (vc, 2026-10-24 19:27Z by vc's clock): Facade::estate_wip and the three doors arms (estate_census_watch, estate_census_unwatch, estate_statusline_report) each resolve userstate::dirs() themselves while estate_status delegates to estate::host_status; move them all onto host_* functions in estate.rs, beside ic's host_wip, so the operator's dirs resolve in one place. One small bank, light run at molt-vc's desk."
+  }
+}

@@ -18,7 +18,7 @@ claims: [ST0081, ST0086/01, ST0086/04]
 
 ## TODO
 
-_(none)_
+- ST0086 tidy after ic's bank and cc's wp02-doors both land (vc, 2026-10-24 19:27Z by vc's clock): Facade::estate_wip and the three doors arms (estate_census_watch, estate_census_unwatch, estate_statusline_report) each resolve userstate::dirs() themselves while estate_status delegates to estate::host_status; move them all onto host_* functions in estate.rs, beside ic's host_wip, so the operator's dirs resolve in one place. One small bank, light run at molt-vc's desk.
 
 ## Holds
 
