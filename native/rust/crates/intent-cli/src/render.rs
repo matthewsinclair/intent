@@ -1417,6 +1417,12 @@ fn sync(m: &ArgMatches) -> Result<(), Failure> {
         }
       }
       f.sync_from_disk(&scope).map_err(fail)?;
+      // Issue 0635: a board the restore left as it is on disk is named here.
+      // The facade keeps the note, and this verb carries no `Outcome`.
+      print_notes(
+        &f.take_notes(),
+        &scope.named().map(|ids| ids.join(" ")).unwrap_or_default(),
+      );
       // **THE TWO LINES USED TO CONTRADICT EACH OTHER AND ONE OF THEM WAS
       // READ.** `overwrites nothing` followed immediately by `store replaced
       // from the extract` reads as the replacement having materially happened;
@@ -12084,11 +12090,11 @@ fn print_notes(notes: &[Note], subject: &str) {
           "  remedy: `git add <path>` stages the corrected file, and `git restore --staged <path>` unstages it"
         );
       }
-      // Issue 0614: what the write did NOT do, named, so a view left behind
-      // the store reads as a decision rather than as a missed render.
+      // Issues 0614 and 0635: what the write did NOT do, named, so a view left
+      // behind the store reads as a decision rather than as a missed render.
       Note::BoardsLeftUnrecorded(paths) => {
         eprintln!(
-          "warning: left these boards as they are on disk -- each differs from this store's board and the store holds no record of its bytes, so it cannot tell which is newer, and writing it could put an older board over a newer one:"
+          "warning: left these boards as they are on disk -- each differs from this store's board, and its bytes are not the ones this store last wrote there: the file moved under the store, or the store holds no record of it, so writing the store's board could put an older board over a newer one:"
         );
         for path in paths {
           eprintln!("  {path}");

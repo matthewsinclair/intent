@@ -8201,34 +8201,31 @@ impl Facade {
   /// views once the carry is written, which is when the tree and the store can
   /// agree.
   ///
-  /// **SAVE A BOARD NOTHING RECORDS, WHICH IS LEFT AND NAMED** (issue 0614).
-  /// Overwriting a hand edit is right because the index says where the store
-  /// left the file. A `board.json` the index holds no record of, and whose
-  /// bytes differ from the render, may be newer than the store -- a pull or a
-  /// rebase into a store an older Intent warmed -- so every file that node
-  /// writes is left as it is, kept out of the record, and named with the
-  /// remedy. `acting`'s boards always land: they hold the act itself.
+  /// **SAVE A BOARD THE STORE DID NOT LEAVE THERE, WHICH IS LEFT AND NAMED**
+  /// (issues 0614 and 0635). Overwriting a hand edit is right because the index
+  /// says where the store left the file. A `board.json` whose bytes differ from
+  /// the render and are not the ones the store's renderer last recorded may be
+  /// newer than the store: a pull or a rebase into a store an older Intent
+  /// warmed, or a checkout that moved the files under a store that holds every
+  /// board. So every file that node writes is left as it is, kept out of the
+  /// record, and named with the remedy, by [`Self::leave_boards`], which the
+  /// restore asks too. `acting`'s boards always land: they hold the act itself.
   fn land_board_write(&mut self, acting: &[&str]) -> Result<(), FacadeError> {
     self.reindex_boards()?;
     let Projection { set, canon_files } = self.projection(&self.canon, &[], &[], None, None)?;
     let whiteboard = self.project.whiteboard_dir();
-    let left = self.boards_to_leave(&set, acting)?;
-    let leaves = |path: &std::path::Path| {
-      views::whiteboard_writer(&self.project, path).is_some_and(|node| left.contains(&node))
-    };
     let mut boards = WriteSet::new();
     for (path, content) in set
       .writes()
-      .filter(|(path, _)| path.starts_with(&whiteboard) && !leaves(path))
+      .filter(|(path, _)| path.starts_with(&whiteboard))
     {
       boards.add_bytes(path.to_path_buf(), content.to_vec());
     }
-    // Filtered before the commit: `leaves` reads the project, and noting what
-    // landed takes the facade.
     let canon_files: Vec<(std::path::PathBuf, String)> = canon_files
       .into_iter()
-      .filter(|(path, _)| path.starts_with(&whiteboard) && !leaves(path))
+      .filter(|(path, _)| path.starts_with(&whiteboard))
       .collect();
+    let (mut boards, canon_files) = self.leave_boards(boards, canon_files, acting)?;
     // The board write's event travels with the boards it changed (ST0078 P1).
     self.add_event_files(&mut boards)?;
     let applied = boards
@@ -8237,27 +8234,70 @@ impl Facade {
     let landed: Vec<std::path::PathBuf> = applied.written().map(std::path::PathBuf::from).collect();
     self.note_landed(&applied);
     applied.keep();
-    if !left.is_empty() {
-      self.after_write.push(Note::BoardsLeftUnrecorded(
-        left
-          .iter()
-          .map(|node| self.project.relative(&self.project.board_json(node)))
-          .collect(),
-      ));
-    }
     self.record_landed(&canon_files, &landed)
   }
 
-  /// The nodes whose boards this write must leave as they are on disk (issue
-  /// 0614): each `board.json` in the projection that exists, differs from its
-  /// render and has no record in the file index, save `acting`'s, decided by
-  /// [`crate::model::board_left_unrecorded`]. This reads the disk and the
-  /// index; the decision is the model's.
+  /// Take out of a write set, and out of the canon files it records, every
+  /// file of each board [`Self::boards_to_leave`] names, and name those boards
+  /// in this write's notes with the remedy (issues 0614 and 0635).
+  ///
+  /// **ONE DEFINITION FOR EVERY DOOR THAT WRITES A BOARD FROM THE STORE
+  /// UNASKED.** A board write and a restore both render every board, and a
+  /// scoped restore takes none from disk, so either one would put the store's
+  /// older board over a newer file. Both leave it here, decided the same way.
+  /// Every board verb but registration and the migration asks
+  /// [`Self::require_migrated`] first, which refuses a migrated board whose file
+  /// moved before anything is written (issue 0554 (b)), so from those verbs what
+  /// reaches here is a board the index holds no `Clean` record of. The restore
+  /// has no such gate, and reaches here with both.
+  /// The ingest pass keeps its own rule for a board ahead of the store, and
+  /// `sync --to-disk`, whose purpose is to write the store's board, refuses a
+  /// moved one instead.
+  fn leave_boards(
+    &mut self,
+    set: WriteSet,
+    canon_files: Vec<(std::path::PathBuf, String)>,
+    acting: &[&str],
+  ) -> Result<(WriteSet, Vec<(std::path::PathBuf, String)>), FacadeError> {
+    let left = self.boards_to_leave(&set, acting)?;
+    if left.is_empty() {
+      return Ok((set, canon_files));
+    }
+    let project = &self.project;
+    let leaves = |path: &std::path::Path| {
+      views::whiteboard_writer(project, path).is_some_and(|node| left.contains(&node))
+    };
+    let mut kept = WriteSet::new();
+    for (path, content) in set.writes().filter(|(path, _)| !leaves(path)) {
+      kept.add_bytes(path.to_path_buf(), content.to_vec());
+    }
+    let canon_files: Vec<(std::path::PathBuf, String)> = canon_files
+      .into_iter()
+      .filter(|(path, _)| !leaves(path))
+      .collect();
+    let named: Vec<String> = left
+      .iter()
+      .map(|node| project.relative(&project.board_json(node)))
+      .collect();
+    self.after_write.push(Note::BoardsLeftUnrecorded(named));
+    Ok((kept, canon_files))
+  }
+
+  /// The nodes whose boards this write must leave as they are on disk (issues
+  /// 0614 and 0635): each `board.json` in the projection that exists, differs
+  /// from its render and is not the bytes of its `Clean` row in the file index,
+  /// save `acting`'s, decided by [`crate::model::board_left_unrecorded`]. This
+  /// reads the disk and the index; the decision is the model's.
   ///
   /// **THE INDEX IS READ ONLY WHEN IT CAN CHANGE THE ANSWER.** Each board is
   /// asked first as though nothing recorded it, and only one that would then be
   /// left is looked up, so a write whose only changed board is the acting
   /// node's own -- nearly every write -- never reads the index.
+  ///
+  /// **ONLY A `Clean` ROW IS THE STORE'S RECORD** (0630's row states). The
+  /// renderer records the bytes it landed as `Clean`; a scan records a file it
+  /// meets with no row as `Changed`, which says what was on disk and not what
+  /// the store wrote there.
   fn boards_to_leave(
     &self,
     set: &WriteSet,
@@ -8275,25 +8315,34 @@ impl Facade {
         true => Some(Self::read_board_bytes(path)?),
         false => None,
       };
-      if crate::model::board_left_unrecorded(acting, &node, false, on_disk.as_deref(), rendered) {
-        unless_recorded.push((node, self.project.relative(path)));
+      if crate::model::board_left_unrecorded(acting, &node, None, on_disk.as_deref(), rendered) {
+        unless_recorded.push((node, self.project.relative(path), on_disk, rendered));
       }
     }
     if unless_recorded.is_empty() {
       return Ok(std::collections::BTreeSet::new());
     }
-    let recorded: std::collections::HashSet<String> = self
+    let recorded: std::collections::HashMap<String, String> = self
       .store
       .file_index()
       .map_err(FacadeError::Store)?
       .into_iter()
-      .map(|entry| entry.path)
+      .filter(|entry| entry.state == crate::sync::FileState::Clean)
+      .map(|entry| (entry.path, entry.sha256))
       .collect();
     Ok(
       unless_recorded
         .into_iter()
-        .filter(|(_, rel)| !recorded.contains(rel))
-        .map(|(node, _)| node)
+        .filter(|(node, rel, on_disk, rendered)| {
+          crate::model::board_left_unrecorded(
+            acting,
+            node,
+            recorded.get(rel).map(String::as_str),
+            on_disk.as_deref(),
+            rendered,
+          )
+        })
+        .map(|(node, ..)| node)
         .collect(),
     )
   }
@@ -10297,9 +10346,17 @@ impl Facade {
   /// method does not print, because the facade renders nothing; it refuses
   /// nothing either, because a service call with a stated direction has
   /// already been chosen. The REFUSAL belongs on the bare verb (AC-03.9).
+  ///
+  /// **A BOARD THE STORE DID NOT LEAVE THERE IS NOT WRITTEN OVER** (issue
+  /// 0635). The projection carries every board, and a scoped restore takes
+  /// none from disk, so a board whose file a checkout moved under this store
+  /// would take the store's older render. Each such board is left as it is,
+  /// kept out of the record, and named in [`Self::take_notes`], by the same
+  /// `leave_boards` a board write asks.
   pub fn sync_from_disk(&mut self, scope: &SyncScope) -> Result<usize, FacadeError> {
     let (canon, count, Projection { set, canon_files }) =
       self.render_from_disk(scope, ingest::Load::Restore)?;
+    let (set, canon_files) = self.leave_boards(set, canon_files, &[])?;
     let applied = set.commit()?;
     self.note_landed(&applied);
     let landed: Vec<std::path::PathBuf> = applied.written().map(std::path::PathBuf::from).collect();

@@ -2832,9 +2832,11 @@ pub fn boards_ahead_of_the_store(
   ahead.into_iter().map(str::to_string).collect()
 }
 
-/// Whether a board write must leave `node`'s board as it is on disk (issue
-/// 0614): its `board.json` exists, differs from the store's render of it, and
-/// the file index holds no record of its bytes.
+/// Whether a write must leave `node`'s board as it is on disk (issues 0614 and
+/// 0635): its `board.json` exists, differs from the store's render of it, and
+/// is not the bytes the store's renderer last recorded for it. `recorded` is
+/// the sha256 of the file's `Clean` row, the one a render that landed writes,
+/// and `None` when the index holds no such row.
 ///
 /// **NO RECORD MEANS NOTHING SAYS WHICH SIDE IS NEWER.** A file whose bytes
 /// match the index is where the store left it, and one that does not has moved
@@ -2845,6 +2847,19 @@ pub fn boards_ahead_of_the_store(
 /// bytes, and its next board write rendered a peer's board backwards (driven on
 /// 3.2.4, and on 3.2.5 over a store 3.2.4 warmed). So the write leaves it.
 ///
+/// **AND A RECORD OF OTHER BYTES SAYS THE FILE MOVED UNDER THE STORE** (issue
+/// 0635). A 3.2.5 warm records every board, so asking only whether a record
+/// existed never fired once a store did. A checkout, a reset or a merge that
+/// moves the board files under an existing store, which a stack judge's
+/// worktree does by design, then had a scoped `sync --to-store` write every
+/// node's older board over the newer files with nothing on stderr (driven on
+/// 3.2.5 and on 0630's stack, byte-identically). The file is newer than the
+/// store, so it is left like the unrecorded one.
+///
+/// **ONLY THE RENDERER'S ROW COUNTS.** A scan's sighting of a file (a
+/// `Changed` row) says what was on disk, not what the store wrote there, so a
+/// file with only such a row has no record of its bytes.
+///
 /// **THE ACTING NODES' OWN BOARDS ARE NEVER LEFT** (vc, 2026-10-23): the act
 /// lands as the user asked, and leaving it would make `intent sync --to-store`,
 /// the remedy for the others, read the old file over the new write.
@@ -2853,11 +2868,13 @@ pub fn boards_ahead_of_the_store(
 pub fn board_left_unrecorded(
   acting: &[&str],
   node: &str,
-  recorded: bool,
+  recorded: Option<&str>,
   on_disk: Option<&[u8]>,
   rendered: &[u8],
 ) -> bool {
-  !acting.contains(&node) && !recorded && on_disk.is_some_and(|bytes| bytes != rendered)
+  !acting.contains(&node)
+    && on_disk
+      .is_some_and(|bytes| bytes != rendered && recorded != Some(sha256_hex(bytes).as_str()))
 }
 
 /// The difference between the boards the store holds and the boards a restore

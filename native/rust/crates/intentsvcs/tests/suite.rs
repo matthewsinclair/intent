@@ -33,6 +33,8 @@ mod canon_commit_guard_names_a_held_edit;
 #[path = "common/mod.rs"]
 mod common;
 
+#[path = "a_board_git_moved_under_the_store_is_left.rs"]
+mod a_board_git_moved_under_the_store_is_left;
 #[path = "a_board_write_leaves_a_board_nothing_records.rs"]
 mod a_board_write_leaves_a_board_nothing_records;
 #[path = "a_board_write_still_landing_refuses_no_commit.rs"]
