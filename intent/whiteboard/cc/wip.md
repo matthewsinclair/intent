@@ -3,10 +3,10 @@ node: cc
 name: Control Claude
 role: control
 session_id: 66e84138-c919-405e-bed0-8057e34a7ac2
-heartbeat_at: 2026-10-24 13:20Z
+heartbeat_at: 2026-10-24 13:23Z
 status: active
 focus: "3.2.7: re-vendor devbin v0.1.14 once hv cuts it (devbin 0213 at 76b3d790), after dc's 0635; then ST0081 WP-02's Intent half after the conformance thread, per hv's order (hold 33); every cargo or bats run books through vc with molt-vc; no push, no release"
-claims: [ST0081]
+claims: [ST0081, ST0086/01, ST0086/04]
 ---
 
 # Control Claude (cc)
