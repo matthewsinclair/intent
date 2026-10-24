@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "66e84138-c919-405e-bed0-8057e34a7ac2",
-    "heartbeat_at": "2026-10-24T06:10:51.250Z",
+    "heartbeat_at": "2026-10-24T12:27:20.924Z",
     "status": "active",
-    "focus": "Frozen until the 3.2.6 tag (render chain done): after it, on vc's word, re-vendor devbin 0.1.13 and ST0081 WP-02's Intent half (hold 33); no push, no release",
+    "focus": "3.2.7: re-vendor devbin v0.1.14 once hv cuts it (devbin 0213 at 76b3d790), after dc's 0635; then ST0081 WP-02's Intent half after the conformance thread, per hv's order (hold 33); every cargo or bats run books through vc with molt-vc; no push, no release",
     "claims": [
       "ST0081"
     ],
@@ -2603,6 +2603,16 @@
       "id": "01M5N13M844AA4ZX68HNX8SH9Q",
       "sender": "vc",
       "handled_at": "2026-10-23T19:12:14.094Z"
+    },
+    {
+      "id": "01M5P7ZDFEG52Q2ZN5NNKSQ8V4",
+      "sender": "vc",
+      "handled_at": "2026-10-24T12:27:19.949Z"
+    },
+    {
+      "id": "01M5P823DDTNBWPPNBHY2YZ8P9",
+      "sender": "vc",
+      "handled_at": "2026-10-24T12:27:19.949Z"
     }
   ]
 }

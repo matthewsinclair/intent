@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 66e84138-c919-405e-bed0-8057e34a7ac2
-heartbeat_at: 2026-10-24 06:10Z
+heartbeat_at: 2026-10-24 12:27Z
 status: active
-focus: "Frozen until the 3.2.6 tag (render chain done): after it, on vc's word, re-vendor devbin 0.1.13 and ST0081 WP-02's Intent half (hold 33); no push, no release"
+focus: "3.2.7: re-vendor devbin v0.1.14 once hv cuts it (devbin 0213 at 76b3d790), after dc's 0635; then ST0081 WP-02's Intent half after the conformance thread, per hv's order (hold 33); every cargo or bats run books through vc with molt-vc; no push, no release"
 claims: [ST0081]
 ---
 
