@@ -1,0 +1,15 @@
+{
+  "id": "01M5RXAF9VN5BRC4MZKD02VRMA",
+  "ts": "2026-10-25T06:52:42.683Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "3.2.7 CUT-SIDE (vc's decision 76, hv via molt-vc, 2026-10-25 06:51Z by vc's clock: one release carrying everything; done, then tested at molt-vc's desk, then kovacs via kovacs-sysadm, then hv's cut): dc's share in the same release, not a later one: (a) re-run the 0632 drive with removed: lines counted beside wrote: (scratchpad/0632/drive.sh compares only wrote:); (b) the known-defects re-drive; (c) the release tooling steps dc owns. Each heavy books with molt-vc. Behind doing 139 (0634) and todo 49 (ST0087 WP-04)."
+  }
+}
