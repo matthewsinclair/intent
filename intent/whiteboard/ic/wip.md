@@ -6,7 +6,7 @@ session_id: eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd
 heartbeat_at: 2026-10-25 10:51Z
 status: active
 focus: "LOCALFOLD (2026-10-25 10:51Z): atdoc bank rides cc's re-judge (56d98e716, lands third); then ST0087 WP-03 behind cc's WP-01 (hold 14), ST0086 WP-03, the AC-02.2/02.6 arms; no heavy start until hv says continue; no push, no release"
-claims: [ST0086/03, ST0086/02, ST0087/03]
+claims: [ST0086/03, ST0086/02, ST0087/03, ST0088/01]
 ---
 
 # Interface Claude (ic)
