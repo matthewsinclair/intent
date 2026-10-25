@@ -1,0 +1,14 @@
+{
+  "id": "01M5T5YBVBDX45GFP984FM0V35",
+  "ts": "2026-10-25T18:42:37.551Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0088/AC-04.1"
+  },
+  "payload": {
+    "evidence": "BEFORE and AFTER readings in the note, by one script over the same two roots: this repository 74587 to 61577 bytes, a fresh project 33228 to 25561 bytes"
+  }
+}

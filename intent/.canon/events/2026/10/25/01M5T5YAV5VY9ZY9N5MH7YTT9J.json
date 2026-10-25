@@ -1,0 +1,14 @@
+{
+  "id": "01M5T5YAV5VY9ZY9N5MH7YTT9J",
+  "ts": "2026-10-25T18:42:36.521Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0088/AC-04.1"
+  },
+  "payload": {
+    "note": "BEFORE (vc, 2026-10-25 11:04Z, main d363064fb, before WP-01 landed), by the method in vc's scratchpad script bytes-before-first-prompt.sh (CLAUDE.md and AGENTS.md as rendered, every SKILL.md /in-session chains to for the declared languages from the canon tree, in-whiteboard where a whiteboard exists): this repository (elixir, author, content, rust, shell, swift; whiteboard) 74587 bytes; a fresh intent init project (no languages, no whiteboard) 33228 bytes. AFTER follows once WP-03 lands, same script, same two roots. AFTER (vc, 2026-10-25 18:41Z, main 75279a5e3, after WP-03 landed), same script, same two roots: this repository 61577 bytes (CLAUDE.md, AGENTS.md, in-whiteboard and the essentials skills all smaller; in-standards gone, merged into in-essentials, which grew); a fresh intent init project 25561 bytes, initialised by the debug binary dc's WP-03 judge built from the landed tree (991071ac4 plus v3), since init embeds its root templates and the installed pair predates them. The installed pair carries the new templates for init from the next build all."
+  }
+}
