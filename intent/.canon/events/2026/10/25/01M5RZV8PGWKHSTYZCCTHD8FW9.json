@@ -1,0 +1,16 @@
+{
+  "id": "01M5RZV8PGWKHSTYZCCTHD8FW9",
+  "ts": "2026-10-25T07:36:50.128Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 128,
+    "text": "0631+0642+0643 JUDGED GREEN 07:34Z on molt-vc's GO: refs/bank/ic/0631/v3 (blob a0ec030d91c1, patch-id c54074494f6d) at be110e062 over 6afb46998; every leg rc 0, six arms red at the base on their own assertions. READY to land with intent-vc, who closes the three issues. No push, no release."
+  }
+}
