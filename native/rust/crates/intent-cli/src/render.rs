@@ -10339,6 +10339,233 @@ fn estate_summary(v: &serde_json::Value) -> String {
   )
 }
 
+/// The host's lines under the estate's sessions (ST0086 WP-03): the load, one
+/// line per declared class, the controller, the queue and the lanes, each a
+/// label and its text, read from the keys `/estate/status` reads and written in
+/// its words, so the page and the explorer say the same thing.
+///
+/// **AN EMPTY KEY IS A LINE THAT SAYS SO**, never a missing one: before WP-04
+/// the controller is null and the lanes and queue are empty, and each says what
+/// that means rather than vanishing.
+fn estate_host(v: &serde_json::Value) -> Vec<(String, String)> {
+  let empty = Vec::new();
+  let arr = |x: &serde_json::Value| x.as_array().unwrap_or(&empty).clone();
+  let s = |x: &serde_json::Value| x.as_str().unwrap_or("").to_string();
+  let sessions = arr(&v["sessions"]);
+  let by_id = |id: &str| {
+    sessions
+      .iter()
+      .find(|x| x["session_id"].as_str() == Some(id))
+      .cloned()
+  };
+  // A ULID's head is its time, so two from one minute share it: the tail is
+  // what tells them apart, as the page shortens it.
+  let short = |id: &str| {
+    if id.chars().count() > 8 {
+      id.chars().skip(id.chars().count() - 6).collect()
+    } else {
+      id.to_string()
+    }
+  };
+  let who = |id: &str| match by_id(id) {
+    Some(x) => s(&x["name"]),
+    None => id.chars().take(8).collect(),
+  };
+  let mut out: Vec<(String, String)> = Vec::new();
+  let mut push = |label: &str, first: &mut bool, text: String| {
+    out.push((
+      if *first {
+        label.to_string()
+      } else {
+        String::new()
+      },
+      text,
+    ));
+    *first = false;
+  };
+
+  let load = arr(&v["census"]["load"]);
+  let measured = !load.is_empty();
+  let mut first = true;
+  push(
+    "load",
+    &mut first,
+    if measured {
+      load
+        .iter()
+        .map(|x| format!("{:.2}", x.as_f64().unwrap_or(0.0)))
+        .collect::<Vec<_>>()
+        .join(" ")
+    } else {
+      "not measured yet".to_string()
+    },
+  );
+
+  // One line per declared class that is running, with whose it is; the idle
+  // ones share a line, so a declared class never drops off.
+  let procs = arr(&v["census"]["procs"]);
+  let mut first = true;
+  let mut idle = Vec::new();
+  for p in &procs {
+    let count = p["count"].as_u64().unwrap_or(0);
+    if count == 0 {
+      idle.push(format!("{} 0", s(&p["class"])));
+      continue;
+    }
+    let whose = arr(&p["projects"])
+      .iter()
+      .map(|b| {
+        format!(
+          "{} {}",
+          b["project"].as_str().unwrap_or("(no project)"),
+          b["count"]
+        )
+      })
+      .collect::<Vec<_>>()
+      .join(", ");
+    push(
+      "procs",
+      &mut first,
+      format!("{} {count}  {whose}", s(&p["class"])),
+    );
+  }
+  if !idle.is_empty() {
+    push("procs", &mut first, idle.join("  "));
+  } else if procs.is_empty() {
+    // An empty census is not an estate with no classes: until the daemon has
+    // measured, the load is empty too, and that is what this says.
+    push(
+      "procs",
+      &mut first,
+      if measured {
+        "no classes declared (intent estate watch <class> <pattern>)".to_string()
+      } else {
+        "not measured yet".to_string()
+      },
+    );
+  }
+
+  // **A CONTROLLER WHOSE SESSION IS GONE, OR NOT ON THIS HOST, IS ORPHANED**,
+  // the page's reading: the next take succeeds, and saying so is the point.
+  let ctl = &v["controller"];
+  let mut first = true;
+  if ctl.is_null() {
+    push(
+      "control",
+      &mut first,
+      "NO CONTROLLER: asks queue, nothing is granted".to_string(),
+    );
+  } else {
+    match by_id(&s(&ctl["session_id"])).filter(|x| x["state"].as_str() != Some("gone")) {
+      None => push(
+        "control",
+        &mut first,
+        format!(
+          "{} ORPHANED: pid {} is not a live session; the next take succeeds",
+          s(&ctl["name"]),
+          ctl["pid"]
+        ),
+      ),
+      Some(x) => {
+        let place = match x["project"]["name"].as_str() {
+          Some(name) => match x["node"].as_str() {
+            Some(node) => format!("{name} / {node}"),
+            None => name.to_string(),
+          },
+          None => "no project".to_string(),
+        };
+        push(
+          "control",
+          &mut first,
+          format!(
+            "{} in {place}, since {}, pid {}",
+            s(&ctl["name"]),
+            estate_age(v, ctl, "taken_at"),
+            ctl["pid"]
+          ),
+        );
+      }
+    }
+  }
+
+  // The queue is what waits, the reader's order, which is oldest first.
+  let queue = arr(&v["queue"]);
+  let waiting: Vec<_> = queue
+    .iter()
+    .filter(|q| q["state"].as_str() == Some("asked"))
+    .collect();
+  let mut first = true;
+  if waiting.is_empty() {
+    push("queue", &mut first, "nothing queued".to_string());
+  }
+  for q in waiting {
+    push(
+      "queue",
+      &mut first,
+      format!(
+        "{}  {}  {}  {}  {}",
+        short(&s(&q["id"])),
+        s(&q["type"]),
+        who(&s(&q["by"])),
+        s(&q["what"]),
+        estate_age(v, q, "asked_at")
+      ),
+    );
+  }
+
+  // Each lane, then what holds a slot in it; a hold whose holder is gone is
+  // orphaned and still counted against the lane.
+  let lanes = arr(&v["lanes"]);
+  let mut first = true;
+  if lanes.is_empty() {
+    push(
+      "lanes",
+      &mut first,
+      if ctl.is_null() {
+        "no lanes: a controller opens them".to_string()
+      } else {
+        "no lanes are open".to_string()
+      },
+    );
+  }
+  for l in &lanes {
+    let used = l["granted"].as_u64().unwrap_or(0) + l["running"].as_u64().unwrap_or(0);
+    let capacity = l["capacity"].as_u64().unwrap_or(0);
+    push(
+      "lanes",
+      &mut first,
+      format!(
+        "{}  {}  {used}/{capacity}  {}",
+        s(&l["name"]),
+        s(&l["type"]),
+        if used >= capacity { "full" } else { "open" }
+      ),
+    );
+    for q in queue.iter().filter(|q| {
+      q["lane"] == l["name"] && matches!(q["state"].as_str(), Some("granted" | "running"))
+    }) {
+      let gone = by_id(&s(&q["by"])).is_none_or(|x| x["state"].as_str() == Some("gone"));
+      push(
+        "lanes",
+        &mut first,
+        format!(
+          "  {}  {}  {}  {}  {}",
+          short(&s(&q["id"])),
+          if gone {
+            "orphaned".to_string()
+          } else {
+            s(&q["state"])
+          },
+          who(&s(&q["by"])),
+          s(&q["what"]),
+          estate_age(v, q, "asked_at")
+        ),
+      );
+    }
+  }
+  out
+}
+
 /// What the estate says when no session is running.
 const NO_SESSIONS: &str = "no Claude Code sessions are running on this host";
 
@@ -10478,6 +10705,7 @@ fn estate_view() -> Vec<tui::layout::Row> {
       ESTATE_HEADER,
       &estate_lines(&v),
       &estate_summary(&v),
+      &estate_host(&v),
       &estate_warnings(&v),
       NO_SESSIONS,
     ),
@@ -16625,6 +16853,85 @@ mod tests {
         "  stored: run 2 at 2026-09-17T12:00:00Z  joined 0 of 30 files  matched 0  unmatched 0  dropped 0  ambiguous 0".to_string(),
         "  stale: none".to_string(),
       ]
+    );
+  }
+
+  /// ST0086 AT-03.1
+  ///
+  /// ST0086 AC-03.1: before WP-04 fills them, the controller is null and the
+  /// lanes and queue are empty, and the explorer's host lines say what each
+  /// means rather than dropping it; an unmeasured census says so too.
+  #[test]
+  fn the_estates_host_lines_say_what_an_empty_key_means() {
+    let v = serde_json::json!({
+      "taken_at": "2026-10-25T17:00:00Z",
+      "sessions": [],
+      "census": {"load": [], "procs": [], "history": []},
+      "controller": null,
+      "lanes": [],
+      "queue": []
+    });
+    assert_eq!(
+      estate_host(&v),
+      [
+        ("load", "not measured yet"),
+        ("procs", "not measured yet"),
+        ("control", "NO CONTROLLER: asks queue, nothing is granted"),
+        ("queue", "nothing queued"),
+        ("lanes", "no lanes: a controller opens them"),
+      ]
+      .map(|(l, t)| (l.to_string(), t.to_string()))
+    );
+  }
+
+  /// ST0086 AT-03.1
+  ///
+  /// ST0086 AC-03.1: a measured census, a live controller, a waiting ask and a
+  /// lane holding one live and one orphaned slot, each from the key the page
+  /// reads; a label is written once, on its first line.
+  #[test]
+  fn the_estates_host_lines_read_the_census_controller_queue_and_lanes() {
+    let v = serde_json::json!({
+      "taken_at": "2026-10-25T17:00:00Z",
+      "sessions": [
+        {"session_id": "s-ctl", "name": "molt-vc", "state": "idle",
+         "project": {"name": "Molt", "root": "/p/Molt"}, "node": "vc"},
+        {"session_id": "s-ic", "name": "intent-ic", "state": "heavy",
+         "project": {"name": "Intent", "root": "/p/Intent"}, "node": "ic"}
+      ],
+      "census": {
+        "load": [3.5, 2.25, 1.0],
+        "procs": [
+          {"class": "cargo", "count": 2, "projects": [
+            {"project": "Intent", "count": 1}, {"project": null, "count": 1}]},
+          {"class": "bats", "count": 0, "projects": []}
+        ],
+        "history": []
+      },
+      "controller": {"session_id": "s-ctl", "name": "molt-vc", "pid": 7, "taken_at": "2026-10-25T16:00:00Z"},
+      "lanes": [{"name": "heavy", "type": "exclusive", "capacity": 2, "granted": 1, "running": 1}],
+      "queue": [
+        {"id": "01JAAAAAAAAAAAAAAAAAAQUEUE", "type": "heavy", "what": "the WP-03 judge",
+         "state": "asked", "lane": null, "asked_at": "2026-10-25T16:58:00Z", "by": "s-ic"},
+        {"id": "01JAAAAAAAAAAAAAAAAAARUNIC", "type": "heavy", "what": "build all",
+         "state": "running", "lane": "heavy", "asked_at": "2026-10-25T16:30:00Z", "by": "s-ic"},
+        {"id": "01JAAAAAAAAAAAAAAAAAAGONE1", "type": "heavy", "what": "a dead judge",
+         "state": "granted", "lane": "heavy", "asked_at": "2026-10-25T16:10:00Z", "by": "s-gone"}
+      ]
+    });
+    assert_eq!(
+      estate_host(&v),
+      [
+        ("load", "3.50 2.25 1.00"),
+        ("procs", "cargo 2  Intent 1, (no project) 1"),
+        ("", "bats 0"),
+        ("control", "molt-vc in Molt / vc, since 1h00, pid 7"),
+        ("queue", "AQUEUE  heavy  intent-ic  the WP-03 judge  2m00"),
+        ("lanes", "heavy  exclusive  2/2  full"),
+        ("", "  ARUNIC  running  intent-ic  build all  30m00"),
+        ("", "  AGONE1  orphaned  s-gone  a dead judge  50m00"),
+      ]
+      .map(|(l, t)| (l.to_string(), t.to_string()))
     );
   }
 }

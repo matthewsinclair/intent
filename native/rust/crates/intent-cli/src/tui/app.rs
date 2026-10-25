@@ -3649,6 +3649,35 @@ mod tests {
     .expect("config");
   }
 
+  /// ST0086 AT-03.2
+  ///
+  /// ST0086 AC-03.2: `/estate` in the omnibox opens the estate, `/estate` on it
+  /// pushes nothing, and an argument is refused in words rather than run.
+  #[test]
+  fn slash_estate_opens_the_estate_once_and_takes_no_argument() {
+    let mut app = App::explore();
+    assert_eq!(run_palette(&mut app, "estate"), Step::Continue);
+    assert_eq!(
+      app.stack.current(),
+      &View::Estate,
+      "`/estate` did not open the estate"
+    );
+    let depth = app.stack.depth();
+    run_palette(&mut app, "estate");
+    assert_eq!(
+      app.stack.depth(),
+      depth,
+      "`/estate` on the estate pushed it again"
+    );
+    run_palette(&mut app, "estate now");
+    assert_eq!(app.stack.depth(), depth, "`/estate now` pushed a view");
+    assert!(
+      app.notice.contains("takes no argument"),
+      "an argument was not refused in words: {:?}",
+      app.notice
+    );
+  }
+
   /// `AT-04.1` (ST0074 WP-04, issue 0418): `/projects` opens the registry's
   /// projects as a list in the explorer, and Enter on one chooses it, which
   /// the run loop reads as the project to switch to.

@@ -316,8 +316,9 @@ pub struct EstateLine {
 }
 
 /// The estate's rows (ST0086 WP-03): the verb's column heads, one row per
-/// session, then a rule, the summary line and a row per file the reader could
-/// not read.
+/// session, then a rule, the summary line, the host's lines (the load, the
+/// census, the controller, the queue and the lanes, each a label and its
+/// text) and a row per file the reader could not read.
 ///
 /// **THE ROWS LEAVE IN THE ORDER THEY ARRIVE**, for [`outstanding_rows`]'
 /// reason: the order is [`intentsvcs::estate`]'s. **FOUR COLUMNS AND THE REST,
@@ -331,6 +332,7 @@ pub fn estate_rows(
   header: [&str; 9],
   lines: &[EstateLine],
   summary: &str,
+  host: &[(String, String)],
   warnings: &[String],
   none: &str,
 ) -> Vec<Row> {
@@ -374,6 +376,14 @@ pub fn estate_rows(
   }
   rows.push(Row::rule());
   rows.push(Row::new("estate", summary, "label"));
+  rows.extend(host.iter().enumerate().map(|(at, (label, text))| {
+    Row::named(
+      format!("estate host {at}"),
+      label.clone(),
+      text.clone(),
+      "label",
+    )
+  }));
   rows.extend(
     warnings
       .iter()
@@ -853,6 +863,9 @@ mod tests {
     }
   }
 
+  /// ST0086 AT-03.1
+  /// ST0086 AT-03.2
+  ///
   /// ST0086 WP-03: the column heads, a row per session in the order given,
   /// each opening its project and carrying its whole line, then the summary
   /// and the files the reader could not read.
@@ -863,10 +876,15 @@ mod tests {
       session("s-2", "scratch", None, "-"),
     ];
     let warnings = ["warning: /h/.claude/sessions/9.json -- not JSON".to_string()];
+    let host = [
+      ("load".to_string(), "1.50 1.20 0.90".to_string()),
+      ("control".to_string(), "NO CONTROLLER".to_string()),
+    ];
     let rows = estate_rows(
       HEADER,
       &lines,
       "estate rhadamanth  sessions 2",
+      &host,
       &warnings,
       "none",
     );
@@ -874,8 +892,22 @@ mod tests {
     let names: Vec<&str> = rows.iter().map(|r| r.name.as_str()).collect();
     assert_eq!(
       names,
-      ["estate columns", "s-1", "s-2", "", "estate", "unreadable 0"],
-      "the rows are not heads, sessions in order, rule, summary, warning"
+      [
+        "estate columns",
+        "s-1",
+        "s-2",
+        "",
+        "estate",
+        "estate host 0",
+        "estate host 1",
+        "unreadable 0"
+      ],
+      "the rows are not heads, sessions in order, rule, summary, host, warning"
+    );
+    assert_eq!(
+      (rows[6].title.as_str(), rows[6].value.as_str()),
+      ("control", "NO CONTROLLER"),
+      "a host line is not its label and its text"
     );
     assert!(
       rows[0].title.starts_with("NAME") && rows[0].value.starts_with("NODE"),
@@ -916,7 +948,7 @@ mod tests {
     );
     assert_eq!(rows[4].value, "estate rhadamanth  sessions 2");
     assert_eq!(
-      rows[5].value, warnings[0],
+      rows[7].value, warnings[0],
       "an unreadable file is not on the view"
     );
   }
@@ -931,6 +963,7 @@ mod tests {
       HEADER,
       &[wide, session("s-2", "b", None, "y")],
       "s",
+      &[],
       &[],
       "none",
     );
@@ -952,6 +985,7 @@ mod tests {
       HEADER,
       &[],
       "estate rhadamanth  sessions 0",
+      &[],
       &[],
       "no sessions here",
     );

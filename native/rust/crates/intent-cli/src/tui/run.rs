@@ -2222,6 +2222,8 @@ mod tests {
     );
   }
 
+  /// ST0086 AT-03.2
+  ///
   /// ST0086 WP-03: `/estate` is re-read once a tick has passed, with the cursor
   /// kept on its session, and no other view is re-read on the clock at all.
   #[test]
