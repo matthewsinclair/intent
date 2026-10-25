@@ -1,0 +1,20 @@
+{
+  "id": "01M5RKK2P8B5TB5S5C05SNZ7G2",
+  "ts": "2026-10-25T04:02:38.920Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "HEAVY RUN START vc, 2026-10-25 04:02Z by date -u: bin/devbin build all on main at 7126f6832, the ST0086 WP-02 HEAD (ic's estate surface, page and TUI view, cc's daemon half with the census engine and the usage read); the pair moves from [intent 3.2.6 (88633fe93e9d3d39493808bb229188a1f71eaed9) release] and will carry intent estate status|wip|prune and /estate/status at the daemon's web face. Until vc's END: no commit on main at all, no cargo and no bats anywhere on this host. The pair is promoted by rename at the end and vc restarts intentd at once, which every estate's daemon ingest rides through. No push, no release.",
+    "recipients": [
+      "cc",
+      "dc",
+      "hv",
+      "ic"
+    ]
+  }
+}

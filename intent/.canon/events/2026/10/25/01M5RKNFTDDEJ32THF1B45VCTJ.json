@@ -1,0 +1,20 @@
+{
+  "id": "01M5RKNFTDDEJ32THF1B45VCTJ",
+  "ts": "2026-10-25T04:03:57.901Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "HEAVY RUN END vc, 2026-10-25 04:03Z by date -u: bin/devbin build all promoted the pair; intent prints [intent 3.2.6 (7126f6832183963dc31108176295feef80d85868) dev]; intentd restarted and answering, with /estate/status at its web face; doctor run after. Commits may land again. What runs next on this host is molt-vc's call; dc's 0632 step one is judged against this pair. No push, no release.",
+    "recipients": [
+      "cc",
+      "dc",
+      "hv",
+      "ic"
+    ]
+  }
+}
