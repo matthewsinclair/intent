@@ -19,6 +19,8 @@ fn session_fixture() -> String {
   std::fs::read_to_string(&path).expect("the session fixture")
 }
 
+/// AT-02.1: **intentd answers the estate form with the reader's JSON, for a
+/// root that names no project.**
 #[test]
 fn the_estate_is_answered_for_a_root_that_names_no_project() {
   let claude = short_dir("estate-claude");
@@ -61,6 +63,8 @@ fn the_estate_is_answered_for_a_root_that_names_no_project() {
   let _ = std::fs::remove_dir_all(&claude);
 }
 
+/// AT-02.1: **the estate form is answered unbound, and no other view is.**
+///
 /// The page asks for the estate's FORM, by both of its paths, and is answered
 /// with the status, unbound; a view that is not the estate still binds, so the
 /// same nowhere root refuses it.

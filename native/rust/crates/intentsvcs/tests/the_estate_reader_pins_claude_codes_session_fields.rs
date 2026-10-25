@@ -21,6 +21,8 @@ fn fixture(rel: &str) -> String {
   std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join(rel)).expect("the fixture")
 }
 
+/// AT-01.2: **the macOS session file parses with every field the reader
+/// relies on.**
 #[test]
 fn the_macos_session_file_parses_with_every_pinned_field() {
   let session =
@@ -35,6 +37,7 @@ fn the_macos_session_file_parses_with_every_pinned_field() {
   assert_eq!(session.updated_at, "2026-10-24T13:56:13.388Z");
 }
 
+/// AT-01.2: **the Linux session file parses, its procStart a tick count.**
 #[test]
 fn the_linux_session_file_parses_with_its_tick_count_procstart() {
   let session =
@@ -46,6 +49,8 @@ fn the_linux_session_file_parses_with_its_tick_count_procstart() {
   assert_eq!(session.started_at, "2026-10-24T05:26:24.834Z");
 }
 
+/// AT-01.2: **a file lacking a pinned field is listed under `unreadable`
+/// with the field named, never dropped.**
 #[test]
 fn removing_any_pinned_field_names_it_in_either_form() {
   for (rel, pid) in [(MACOS, 12345), (LINUX, 692155)] {

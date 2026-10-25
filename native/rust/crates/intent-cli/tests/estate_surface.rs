@@ -158,6 +158,9 @@ fn row<'a>(v: &'a serde_json::Value, name: &str) -> &'a serde_json::Value {
     .unwrap_or_else(|| panic!("no session row named {name} in {v:#}"))
 }
 
+/// AT-01.1: **the reader returns one value, schema `intent/estate-status@1`,
+/// with every key present and typed, and a later package's keys at the empty
+/// value of their shape.**
 #[test]
 fn status_json_carries_every_key_of_the_boundary_from_the_first_work_package() {
   let host = Host::new();
@@ -180,6 +183,9 @@ fn status_json_carries_every_key_of_the_boundary_from_the_first_work_package() {
   assert_eq!(v["schema"], "intent/estate-status@1");
 }
 
+/// AT-01.3 and AT-01.5: **project, node, focus and claims are joined from
+/// the board whose session id matches, never stored, and a session whose pid
+/// is dead renders as gone.**
 #[test]
 fn status_renders_a_live_node_with_its_board_and_a_gone_session_as_gone() {
   let host = Host::new();
@@ -222,6 +228,8 @@ fn status_renders_a_live_node_with_its_board_and_a_gone_session_as_gone() {
   );
 }
 
+/// AT-01.5: **a session file that cannot be read is listed as unreadable,
+/// and nobody is called gone on its account.**
 #[test]
 fn an_unreadable_session_file_is_a_warning_on_stderr_and_the_verb_still_answers() {
   let host = Host::new();
@@ -269,6 +277,8 @@ fn an_unreadable_session_file_is_a_warning_on_stderr_and_the_verb_still_answers(
   );
 }
 
+/// AT-01.4: **`estate wip` writes only Intent's own session record, whole,
+/// and prints `wrote:`.**
 #[test]
 fn wip_writes_a_line_the_status_shows_and_clear_removes_it() {
   let host = Host::new();
@@ -331,6 +341,7 @@ fn wip_writes_a_line_the_status_shows_and_clear_removes_it() {
   assert!(!Path::new(path).exists(), "--clear removed the record");
 }
 
+/// AT-01.7: **an estate verb's error is typed and carries a remedy.**
 #[test]
 fn wip_refuses_with_a_remedy_when_it_cannot_tell_what_was_meant() {
   let host = Host::new();
@@ -351,6 +362,8 @@ fn wip_refuses_with_a_remedy_when_it_cannot_tell_what_was_meant() {
   }
 }
 
+/// AT-01.7: **an estate verb's error is typed and carries a remedy.**
+///
 /// ST0086 WP-02: `--browser` refuses rather than opening a page nothing serves,
 /// and refuses alongside `--format`, which asks for the opposite thing; each
 /// refusal names its remedy and no browser is opened by either.
@@ -390,6 +403,8 @@ fn status_browser_refuses_with_no_daemon_and_beside_a_format() {
   );
 }
 
+/// AT-01.4: **`estate prune` removes only Intent's own records for gone
+/// sessions, prints `removed:` per file, and touches no Claude Code file.**
 #[test]
 fn prune_removes_a_gone_sessions_record_and_never_touches_the_claude_dir() {
   let host = Host::new();
@@ -437,6 +452,8 @@ fn prune_removes_a_gone_sessions_record_and_never_touches_the_claude_dir() {
   );
 }
 
+/// AT-01.6: **`estate status` on MCP answers the reader's value unchanged,
+/// as `estate status --json` prints it.**
 #[test]
 fn the_mcp_tool_answers_the_same_boundary_as_the_cli() {
   let host = Host::new();
@@ -548,6 +565,8 @@ impl Host {
 
 const STATUSLINE_SESSION: &str = "00000000-0000-4000-8000-000000000000";
 
+/// AT-02.3: **`estate watch` writes the class's file and `estate unwatch`
+/// removes it, each printing its `wrote:` or `removed:` line.**
 #[test]
 fn watch_declares_a_class_the_status_lists_and_unwatch_removes_it() {
   let host = Host::new();
@@ -598,6 +617,8 @@ fn watch_declares_a_class_the_status_lists_and_unwatch_removes_it() {
   );
 }
 
+/// AT-01.7 and AT-02.3: **a bad class or a bad pattern is refused with a
+/// remedy.**
 #[test]
 fn watch_refuses_a_bad_class_and_a_bad_pattern_with_a_remedy() {
   let host = Host::new();
@@ -617,6 +638,8 @@ fn watch_refuses_a_bad_class_and_a_bad_pattern_with_a_remedy() {
   }
 }
 
+/// AT-02.4: **`estate statusline` writes the session record's rate limits,
+/// prints `wrote:` on stderr and nothing on stdout.**
 #[test]
 fn statusline_keeps_the_usage_and_leaves_stdout_to_the_status_line() {
   let host = Host::new();
@@ -641,6 +664,7 @@ fn statusline_keeps_the_usage_and_leaves_stdout_to_the_status_line() {
   assert!(record.exists(), "the usage record is written");
 }
 
+/// AT-02.4: **an input with no rate_limits exits 0 and writes nothing.**
 #[test]
 fn statusline_with_no_rate_limits_writes_and_prints_nothing() {
   let host = Host::new();
@@ -654,6 +678,8 @@ fn statusline_with_no_rate_limits_writes_and_prints_nothing() {
   );
 }
 
+/// AT-01.7 and AT-02.4: **an input that is not JSON is refused with a
+/// remedy.**
 #[test]
 fn statusline_refuses_an_input_that_is_not_json_with_a_remedy() {
   let host = Host::new();
