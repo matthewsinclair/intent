@@ -13,7 +13,7 @@ title: Add an 'Estate' page to intentd that all intent-using Claudes on an estat
 
 ## Acceptance Criteria
 
-### WP-01 -- The estate record and its doors: directory, versioned record, one reader, the estate verbs, MCP exposure, the reap rule (status: WIP)
+### WP-01 -- The estate record and its doors: directory, versioned record, one reader, the estate verbs, MCP exposure, the reap rule (status: Done)
 
 - AC-01.1 One reader in intentsvcs returns the host's estate as one serialisable value, schema `intent/estate-status@1`, with every key present and typed from this package, so no renderer branches on a missing key; a key a later package fills carries the empty value of its declared shape until then. -- satisfied: yes (computed)
 - AC-01.2 The reader reads Claude Code's own session files under the config dir and never writes them; a test pins exactly the fields it relies on (pid, procStart, sessionId, cwd, name, status, startedAt, updatedAt), and a file lacking one is listed under `unreadable` with the field named, never dropped. -- satisfied: yes (computed)
@@ -48,7 +48,7 @@ title: Add an 'Estate' page to intentd that all intent-using Claudes on an estat
 
 ## Acceptance Tests
 
-### WP-01 -- The estate record and its doors: directory, versioned record, one reader, the estate verbs, MCP exposure, the reap rule (status: WIP)
+### WP-01 -- The estate record and its doors: directory, versioned record, one reader, the estate verbs, MCP exposure, the reap rule (status: Done)
 
 - AT-01.1 `native/rust/crates/intent-cli/tests/estate_surface.rs` -- covers AC-01.1 -- status: green -- arms: status_json_carries_every_key_of_the_boundary_from_the_first_work_package; green in the whole-suite judges that landed the estate work on 2026-10-25: ic at 4df0b005f (e9464ad6c), ic at 7ae5bbac9 (b01cec8aa), cc at 3d1d0a269 (4f6b504a8), ic at dad17961e (7536f4009), and the cc 0638 judge at cf1846543 (the intent-cli, intentsvcs and intentd suites whole); cited by vc at the contract's authoring
 - AT-01.2 `native/rust/crates/intentsvcs/tests/the_estate_reader_pins_claude_codes_session_fields.rs` -- covers AC-01.2 -- status: green -- arms: the_macos_session_file_parses_with_every_pinned_field, the_linux_session_file_parses_with_its_tick_count_procstart, removing_any_pinned_field_names_it_in_either_form; green in the whole-suite judges that landed the estate work on 2026-10-25: ic at 4df0b005f (e9464ad6c), ic at 7ae5bbac9 (b01cec8aa), cc at 3d1d0a269 (4f6b504a8), ic at dad17961e (7536f4009), and the cc 0638 judge at cf1846543 (the intent-cli, intentsvcs and intentd suites whole); cited by vc at the contract's authoring

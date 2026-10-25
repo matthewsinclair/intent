@@ -2,7 +2,7 @@
 wp_id: WP-01
 title: The estate record and its doors: directory, versioned record, one reader, the estate verbs, MCP exposure, the reap rule
 scope: S
-status: WIP
+status: Done
 ---
 
 # WP-01: The estate record and its doors: directory, versioned record, one reader, the estate verbs, MCP exposure, the reap rule
