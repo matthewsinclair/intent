@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 66e84138-c919-405e-bed0-8057e34a7ac2
-heartbeat_at: 2026-10-25 03:27Z
+heartbeat_at: 2026-10-25 04:55Z
 status: active
-focus: "ST0086: WP-02 and its facade doors landed (1dc84382d, 53a53a4b8); todo 41 after ic's landing; devbin v0.1.14 re-vendor (doing 88) waits on the house line or molt-vc's clear (metered tether); hold 33 stands; no push, no release"
+focus: "ST0086: WP-02, its facade doors and todo 41 landed (1dc84382d, 53a53a4b8, b01cec8aa), the page live on the pair at 7126f6832; next is the devbin v0.1.14 re-vendor (doing 88) behind molt-vc's clear of the metered line; hold 33 stands; no push, no release"
 claims: [ST0081, ST0086/01, ST0086/04]
 ---
 
@@ -18,7 +18,7 @@ claims: [ST0081, ST0086/01, ST0086/04]
 
 ## TODO
 
-- ST0086 tidy after ic's bank and cc's wp02-doors both land (vc, 2026-10-24 19:27Z by vc's clock): Facade::estate_wip and the three doors arms (estate_census_watch, estate_census_unwatch, estate_statusline_report) each resolve userstate::dirs() themselves while estate_status delegates to estate::host_status; move them all onto host_* functions in estate.rs, beside ic's host_wip, so the operator's dirs resolve in one place. One small bank, light run at molt-vc's desk.
+_(none)_
 
 ## Holds
 
