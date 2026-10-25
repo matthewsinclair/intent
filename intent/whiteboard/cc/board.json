@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "66e84138-c919-405e-bed0-8057e34a7ac2",
-    "heartbeat_at": "2026-10-25T06:43:14.029Z",
+    "heartbeat_at": "2026-10-25T10:52:32.644Z",
     "status": "active",
-    "focus": "0640 re-check at 6ce61c580 is next for Intent at molt-vc's desk (fmt + intentsvcs suite), then vc lands refs/bank/cc/0640; then ST0087 WP-01 (claim on 0640's landing); hold 33 waits on ST0087; no push, no release",
+    "focus": "ST0087 re-judge at 56d98e716 waits on molt-vc's GO and hv's continue; then banks 01b, 02b, ic's atdoc; ST0086 WP-04 last; hold 33 waits on ST0087; no push, no release",
     "claims": [
       "ST0081",
       "ST0086/01",
@@ -2053,9 +2053,18 @@
       "kind": "doing",
       "seq": 90,
       "text": "RESUME STATE (cc, localfold for hv's compact, 2026-10-25 06:28Z by date -u; NOT released). LANDED today: ST0086's estate form arm at 4f6b504a8 (refs/bank/cc/0086/form; the page's form call answered unbound, in the pair since vc's build all at fef91e6f8); 0638 at 05f1f189b (refs/bank/cc/0638, closed); the devbin v0.1.14 re-vendor at 141dcf9ff. READY, NOT LANDED: 0640 (rules validate counts the install root's copy of a canon rule named in a worktree) at 6ce61c580 in tmp/wt-cc-0086, banked refs/bank/cc/0640 (blob 49120cc853d2, patch-id 52481df4f37b). Its slot-357 run was green but fmt (my suite.rs mod order, fixed by the amend after the run), and it is NEXT FOR INTENT AT molt-vc's DESK as a light re-check at 6ce61c580: cargo fmt --check plus the whole intentsvcs suite (scratchpad judge-0640-recheck.sh); on green send END with both rcs and vc lands it as banked. FILED today: 0640, 0641 (organize --apply overwrites a hand edit inside Objective at a re-declared dehydrated thread's path; hv's to rule). NEXT, after 0640 lands: claim ST0087/01 (the tree function, RUNTIME_SET, the version line; vc's rulings in ST0087's design: the caller names the pair for support.lib, `intent install --print-runtime-set` as install's only mode until WP-02, brew decided by the manifest first, the provenance word stays last), measured and shaped already; then ST0087/02. No heavy start until hv says continue. Worktrees: tmp/wt-cc-0086 (0640), tmp/wt-cc-0638 (spent), tmp/wt-cc-devbin14 (spent); remove only on instruction. No push, no release.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-25T10:52:29.243Z",
       "recorded_at": "2026-10-25T06:28:31.947Z",
       "edited_at": "2026-10-25T06:28:41.585Z"
+    },
+    {
+      "node": "cc",
+      "kind": "doing",
+      "seq": 91,
+      "text": "RESUME STATE (cc, localfold on hv's call via molt-vc and vc, 2026-10-25 10:52Z by date -u; NOT released; no new heavy start until hv says continue, cc's place at molt-vc's desk stands). NEXT: the ST0087 re-judge at the combined tip 56d98e716 in tmp/wt-cc-0087b (three commits on c2154ab8e: WP-01 a9a953271, WP-02 77ab9b78d, ic's atdoc bank 56d98e716, applied from refs/bank/ic/atdoc/v1 with blob a45efae68412d2fc76c4faa51e1d6f128aa0446a, identity verified). It waits on vc re-giving molt-vc its word on 56d98e716, then molt-vc's GO by name. On GO: date -u, confirm tip and clean tree, check main's movement for overlap (main was 34f286c70 at this fold), START to molt-vc and intent-vc, then run TIP=56d98e716 BASE=c2154ab8e zsh scratchpad/judge-0087.sh in the background (fmt, per-file critic legs, build, clippy both legs, the three suites, at lint ST0086 after sync --to-store, bats with INTENT_BIN, the drives, the WP-02 publish drives). END reports each leg's rc and the critic counts, test files worded as \"asked nothing\". On green: bank NEW refs refs/bank/cc/0087/01b (c2154ab8e..a9a953271) and refs/bank/cc/0087/02b (a9a953271..77ab9b78d); ic's stays refs/bank/ic/atdoc/v1 over 77ab9b78d..56d98e716; send each blob, sha256 and patch-id, verified sequentially on current main in a scratch index. LANDING ORDER: 01b, 02b, then ic's bank. On red: the cause to vc before any fix. SPENT, never moved or deleted: refs/bank/cc/0087/01 and /02. THEN: ST0086 WP-04 (the slot protocol) in 3.2.7, built last, after vc specs its ACs. Hold 33 stands until ST0087 goes first. Worktrees kept until told: tmp/wt-cc-0638, wt-cc-devbin14, wt-cc-0616t, wt-cc-0630, wt-cc-0086, wt-cc-0087, wt-cc-0087b. No push, no release.",
+      "state": "live",
+      "recorded_at": "2026-10-25T10:52:30.253Z"
     }
   ],
   "sent": [
