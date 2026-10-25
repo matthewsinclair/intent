@@ -8,9 +8,7 @@
     "heartbeat_at": "2026-10-25T06:54:42.506Z",
     "status": "active",
     "focus": "3.2.7 (decision 76): 0634 judge READY, waiting on molt-vc's GO alone, behind Laksa's 0018fu (hv's continue given, per vc; refs/bank/dc/0634/wip, patch-id 09c5ea990e98, applies clean on c0ba2501d); then ST0087 WP-04 (todo 49), then the cut-side work (todo 50); no push, no release",
-    "claims": [
-      "ISSUE:0641"
-    ],
+    "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"

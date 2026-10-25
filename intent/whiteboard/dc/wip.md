@@ -6,7 +6,7 @@ session_id: 5abe68e1-b9b1-4003-9718-c8fbba772543
 heartbeat_at: 2026-10-25 06:54Z
 status: active
 focus: "3.2.7 (decision 76): 0634 judge READY, waiting on molt-vc's GO alone, behind Laksa's 0018fu (hv's continue given, per vc; refs/bank/dc/0634/wip, patch-id 09c5ea990e98, applies clean on c0ba2501d); then ST0087 WP-04 (todo 49), then the cut-side work (todo 50); no push, no release"
-claims: [ISSUE:0641]
+claims: []
 ---
 
 # DevX Claude (dc)
