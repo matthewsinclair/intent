@@ -2533,7 +2533,8 @@
       "kind": "hold",
       "seq": 14,
       "text": "ST0087 WP-03's Rust half (intent use and the shadow check) and the bank with the Swift draft at 830fedbe1. RELEASES WHEN: cc's WP-01 (the tree function and the version line) is on main, and hv has said continue after the fold",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-25T11:42:55.845Z",
       "recorded_at": "2026-10-25T06:28:25.972Z"
     },
     {
@@ -2598,6 +2599,14 @@
       "state": "archived",
       "archived_at": "2026-10-25T10:51:19.999Z",
       "recorded_at": "2026-10-25T07:33:17.136Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 130,
+      "text": "ST0087 WP-03 building over main 49f54f308 (hold 14 released 2026-10-25: cc's WP-01 landed at 976fad577): intent use [dev|opt|brew], the shadow check, the masthead parser, with the Swift draft from 830fedbe1; one bank, judged on molt-vc's GO. Queued behind it: ST0088's stacked judge (tip 89c40ffaf, banks wp01b and wp02b), ST0086 WP-03, the AC-02.2 and AC-02.6 arms. No push, no release.",
+      "state": "live",
+      "recorded_at": "2026-10-25T11:42:56.981Z"
     }
   ],
   "sent": [
