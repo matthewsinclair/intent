@@ -2,7 +2,7 @@
 wp_id: WP-03
 title: intent use and the shadow check
 scope: M
-status: Not Started
+status: Done
 ---
 
 # WP-03: intent use and the shadow check

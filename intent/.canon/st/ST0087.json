@@ -38,7 +38,7 @@
       "seq": 3,
       "title": "intent use and the shadow check",
       "scope": "M",
-      "status": "not-started",
+      "status": "done",
       "objective": "`intent use [dev|opt|brew]` is the one verb that points the per-user link set, `~/.local/bin/intent` and `~/.local/bin/intentd`, declared in one function and moved as one because the CLI finds the daemon only beside its own executable. `use dev` and `use opt` point both links at that tree's pair and refuse a tree that is not there, naming the step that makes it (`bin/devbin build all` for dev, `intent install` for opt); `use brew` removes both links and nothing else, so Homebrew's own links answer, and no link means brew; bare `use` reports the tree each link serves and changes nothing, reporting brew when no link is left and the first `intent` on PATH resolves into the keg. Every `use dev|opt` ends with the version line and `intent daemon restart`, so the old tree's daemon does not keep serving. The shadow check, in doctor and in bare `use`, fails when a link in the set exists but is not the first hit on PATH, or when the set is split across trees, naming what shadows or splits it, comparing resolved directories and never path strings. A test-only option names the link directory, defaulting to `~/.local/bin`. The switch governs login shells only: a process started without the login PATH (a launchd-spawned app, cron, Claude Code's hooks and MCP server under the desktop app) may run brew's copy while the maintainer is on dev or opt, and the docs say so; nothing else of Intent's repoints or removes a link. Arms: each of the three switches over a scratch link directory and scratch trees; the bare report; both shadow failures; the refusal naming the missing tree's step.",
       "body": "",
       "preamble": ""
@@ -296,6 +296,66 @@
       ],
       "status": "green",
       "note": "arms: an_existing_opt_tree_is_replaced_only_with_force_and_brew_only_by_brew; green in cc's judge at 47eb2d2c7 on 2026-10-25 (fmt, build, both clippy legs, the intentsvcs, intent-cli and intentd suites whole, the two bats files, the drives; the critic leg 0 red of 12 judged), landed at 976fad577 and bb4bb4e70; cited by vc at the landing"
+    },
+    {
+      "id": "AT-03.1",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/the_switch_points_the_link_set.rs",
+      "covers": [
+        "AC-03.1"
+      ],
+      "status": "green",
+      "note": "row written after the arm landed; red is the machine's route to a verdict, not a failing run. Green in ic's combined rejudge at e756e484a (2026-10-25 18:07Z-18:11Z, molt-vc's desk), landed at ec266c998; AT-03.4's Swift arm passed app-test at f2f9c5779 (67 of 67)"
+    },
+    {
+      "id": "AT-03.2",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/the_switch_points_the_link_set.rs",
+      "covers": [
+        "AC-03.2"
+      ],
+      "status": "green",
+      "note": "row written after the arm landed; red is the machine's route to a verdict, not a failing run. Green in ic's combined rejudge at e756e484a (2026-10-25 18:07Z-18:11Z, molt-vc's desk), landed at ec266c998; AT-03.4's Swift arm passed app-test at f2f9c5779 (67 of 67)"
+    },
+    {
+      "id": "AT-03.3",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/the_switch_points_the_link_set.rs",
+      "covers": [
+        "AC-03.3"
+      ],
+      "status": "green",
+      "note": "row written after the arm landed; red is the machine's route to a verdict, not a failing run. Green in ic's combined rejudge at e756e484a (2026-10-25 18:07Z-18:11Z, molt-vc's desk), landed at ec266c998; AT-03.4's Swift arm passed app-test at f2f9c5779 (67 of 67)"
+    },
+    {
+      "id": "AT-03.4",
+      "kind": "test",
+      "file": "native/macos/Intent/IntentTests/VersionServiceTests.swift",
+      "covers": [
+        "AC-03.4"
+      ],
+      "status": "green",
+      "note": "row written after the arm landed; red is the machine's route to a verdict, not a failing run. Green in ic's combined rejudge at e756e484a (2026-10-25 18:07Z-18:11Z, molt-vc's desk), landed at ec266c998; AT-03.4's Swift arm passed app-test at f2f9c5779 (67 of 67)"
+    },
+    {
+      "id": "AT-03.5",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/the_switch_points_the_link_set.rs",
+      "covers": [
+        "AC-03.5"
+      ],
+      "status": "green",
+      "note": "row written after the arm landed; red is the machine's route to a verdict, not a failing run. Green in ic's combined rejudge at e756e484a (2026-10-25 18:07Z-18:11Z, molt-vc's desk), landed at ec266c998; AT-03.4's Swift arm passed app-test at f2f9c5779 (67 of 67)"
+    },
+    {
+      "id": "AT-03.6",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/the_switch_points_the_link_set.rs",
+      "covers": [
+        "AC-03.6"
+      ],
+      "status": "green",
+      "note": "row written after the arm landed; red is the machine's route to a verdict, not a failing run. Green in ic's combined rejudge at e756e484a (2026-10-25 18:07Z-18:11Z, molt-vc's desk), landed at ec266c998; AT-03.4's Swift arm passed app-test at f2f9c5779 (67 of 67)"
     }
   ],
   "attachments": [

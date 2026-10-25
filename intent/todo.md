@@ -35,7 +35,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 - [?] ST0087: Intent conforms to the dev, opt and brew contract
   - [x] 01: The tree function, the runtime set and the version line
   - [x] 02: intent install and the manifest, with doctor's manifest arms
-  - [ ] 03: intent use and the shadow check
+  - [x] 03: intent use and the shadow check
   - [ ] 04: The formula, the release tooling and the docs
   - [ ] 05: The proof, per tree, on rhadamanth and kovacs
 - [?] ST0088: Intent's prompt corpus is culled to what a session needs: one home per instruction, nothing it does not invoke, nothing the tool already does
