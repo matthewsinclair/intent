@@ -1,0 +1,15 @@
+{
+  "id": "01M5T0APZNNCTCW2VE8XRCKBP4",
+  "ts": "2026-10-25T17:04:32.188Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-10-25, vc under hv's pen granted 2026-08-22, answering dc on ST0088 WP-03) intent/plugins/claude/plugin.json IS KEPT, and its reader is named: plugins::discover treats a directory as a plugin only when it holds plugin.json, so removing it would drop claude from intent plugin list and make intent plugin show claude answer no such plugin while the directory still ships every skill, subagent and rule. agents/plugin.json is install payload, and the roster test reads both. This satisfies AC-03.3's second arm, 'its reader is named by hv's ruling'. Retiring the plugin verbs is a surface removal outside WP-03, with no issue unless hv asks. The '>= 2' manifest literal in command_rosters_are_derived_or_declared.rs is a hardcoded count: respell it as a check naming both paths, or leave it named, but never change it to another number. Sent to dc by name."
+  }
+}
