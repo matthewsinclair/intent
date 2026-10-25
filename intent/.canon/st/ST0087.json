@@ -129,7 +129,7 @@
     },
     {
       "id": "AC-03.1",
-      "text": "`intent use` with no argument reports the tree each link serves and changes nothing; `use dev` and `use opt` point both links of the set, `intent` and `intentd` in `~/.local/bin`, at that tree's own copies as one set, each refusing a tree that is not there by naming the step that makes it; `use brew` removes the whole set and nothing else, so no link means brew.",
+      "text": "`intent use` with no argument reports the tree each link serves and changes nothing; `use dev` and `use opt` point both links of the set, `intent` and `intentd` in `~/.local/bin`, at that tree's own copies as one set, each refusing a tree that is not there by naming the step that makes it; `use brew` removes the whole set and nothing else, so no link means brew. When bare `use` reports dev or opt it adds one line saying brew is the resting state and `intent use brew` puts it back, and when it reports brew it adds nothing (hv's ruling of 2026-10-25, decision 80).",
       "kind": "test",
       "state": {
         "is": "computed"
