@@ -216,6 +216,56 @@
       ],
       "status": "green",
       "note": "arms: every skill /in-session chains to under the startup size cap; green in ic's bats runs on 2026-10-25 (the new one-home arms red on planted violations and green restored, startup_skills_fit_a_compact and prior_art_route ok) and the corpus tests in the intent-cli suite of the ST0088 WP-01 and WP-02 judge at 1c8d893e3 and 89c40ffaf; cited by vc at the landing"
+    },
+    {
+      "id": "AT-03.1",
+      "kind": "test",
+      "file": "tests/unit/claude_md_template.bats",
+      "covers": [
+        "AC-03.1"
+      ],
+      "status": "green",
+      "note": "the template arms named by AC-03.1: the memory line under CLAUDE_CONFIG_DIR, and the file map and critic dispatch in _AGENTS.md alone"
+    },
+    {
+      "id": "AT-03.2",
+      "kind": "test",
+      "file": "tests/unit/the_critics_and_subagents_say_each_thing_once.bats",
+      "covers": [
+        "AC-03.2"
+      ],
+      "status": "green",
+      "note": "the five AT-03.2 arms: the Diogenes handoff in critic-elixir alone, each code critic naming intent critic <lang> as the gate's, no description naming rules/, test-check offered exactly where the pack has test rules, and subagents list and intent critic --languages agreeing with the tracked tree"
+    },
+    {
+      "id": "AT-03.3",
+      "kind": "test",
+      "file": "tests/unit/the_critics_and_subagents_say_each_thing_once.bats",
+      "covers": [
+        "AC-03.3"
+      ],
+      "status": "green",
+      "note": "the AT-03.3 arm on the tracked tree: no intent subagent, no socrates README.md, nothing tracked in a canon subagent but agent.md; payload.rs and the installer's agreement is subagents_payload.rs's"
+    },
+    {
+      "id": "AT-03.4",
+      "kind": "test",
+      "file": "tests/unit/the_skill_corpus_keeps_one_home_each.bats",
+      "covers": [
+        "AC-03.4"
+      ],
+      "status": "green",
+      "note": "the corpus arm widened by WP-03 to _CLAUDE.md, the subagents and the critic contract: every file naming ~/.claude reads CLAUDE_CONFIG_DIR"
+    },
+    {
+      "id": "AT-03.5",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/agents_sync_parity.rs",
+      "covers": [
+        "AC-03.1"
+      ],
+      "status": "green",
+      "note": "agents sync renders the root files from the templates AC-03.1 cut, byte for byte, the parity arm AC-03.1 names"
     }
   ],
   "attachments": [
