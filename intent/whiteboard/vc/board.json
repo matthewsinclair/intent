@@ -2171,6 +2171,14 @@
       "text": "(2026-10-25 16:46Z by date -u, hv first-hand in vc's window) hv's words: \"GO; drive for ST0086\". The GO is the continue every node folded for at LOCALFOLD 8: the desk at molt-vc resumes in the folded order (dc's 0644 landing light, the build all heavy with the restart announced to every estate's vc, ic's ST0087 WP-03 rerun after its rebase over 0647 then its app install, dc's ST0088 WP-03, cc's 0648, then the rest of doing 58's queue). \"drive for ST0086\" is hv's YES on the one question left with hv: cc's throwaway-session SIGKILL drive, ST0086's To-measure item, so the killed-session reading on the estate page is measured rather than inferred; cc runs it as its own host booking in a short isolated HOME and lands what the number saw and could not see on ST0086's design. Relayed at 16:46Z to molt-vc (with vc's READY for 0644), cc, ic and dc by name. No push, no release.",
       "state": "live",
       "recorded_at": "2026-10-25T16:47:17.162Z"
+    },
+    {
+      "node": "vc",
+      "kind": "decision",
+      "seq": 85,
+      "text": "(2026-10-25, vc under hv's pen granted 2026-08-22, answering cc on 0648 item 2) THE SWIFT PACK GAINS IN-SW-CODE-006, NO FORCE OPERATIONS, WITH THREE PROXIES, AND ITEM 2'S PREMISE IS CORRECTED FORWARD. cc measured that none of the six Swift rules names a force operation and every one declares no greppable proxy authoritative, so 'proxies for the rules that have one' armed nothing; vc measured the app's own Swift (native/macos, tests included) before ruling: no try!, no as!, no fatalError( and no postfix force unwrap today, the bang grep positive-controlled, so the rule reds nothing that exists. The rule concretises IN-AG-NO-SILENT-001 for Swift (the force operations are Swift's panics) and relates to IN-RS-CODE-001, severity warning, applies_to every .swift file tests included because the runner reaches files by glob alone and the Xcode layout has no production-only glob, with try XCTUnwrap named as a test's remedy. Proxies: try!, as!, and a postfix ! after an identifier, ) or ] not followed by =, as extended regex. fatalError( is NOT armed: IN-SW-CODE-001 allows it as a guard exit and a line grep cannot see the guard; it stays in the prose Detection for the subagent. The Detection states the measured costs: a ! in a string literal after a word fires; x! = y escapes through the = exclusion; an implicitly unwrapped optional declaration fires and is in scope. Arms: one positive per proxy and one negative clean file in critic_surface.rs, tests of the product and not the planted positive devbin decision 68 withdrew; any count pinning the pack at six rules is deleted, never corrected. Sent to cc by name.",
+      "state": "live",
+      "recorded_at": "2026-10-25T16:54:52.301Z"
     }
   ],
   "sent": [
