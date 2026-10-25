@@ -1,0 +1,14 @@
+{
+  "id": "01M5SVNNJE2RFZW506445S4ZQF",
+  "ts": "2026-10-25T15:43:06.836Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0087/AC-01.3"
+  },
+  "payload": {
+    "text": "`intent --version`, `intent version`, intentd's own version print and doctor's first human line come from one formatter and read `intent <version> (<tree>, <sha12>[+dirty]) [<provenance>]`: the sha is the built commit read from the binary and never HEAD, `+dirty` appears only in dev and only when the support set differs from the built commit or the pair was built dirty, the provenance word follows the parenthesis, and a dev tree whose git cannot be read prints `(dev, unknown)`. (The root left the line on hv's ruling of 2026-10-25, decision 82, issue 0647; `which intent` says where the binary is.)"
+  }
+}

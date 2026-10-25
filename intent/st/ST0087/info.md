@@ -14,7 +14,7 @@ Intent follows the one dev, opt and brew contract every tool released through Ho
 
 Concretely:
 
-1. One function in intentsvcs names the running tree, brew, opt, dev or unknown, from the manifest and git, and every caller asks it; `intent --version`, `intent version` and doctor print the contract's one line, `intent <version> (<tree>, <sha12>[+dirty]) at <root> <provenance>`, with the sha the commit the running pair was built from.
+1. One function in intentsvcs names the running tree, brew, opt, dev or unknown, from the manifest and git, and every caller asks it; `intent --version`, `intent version` and doctor print the contract's one line, `intent <version> (<tree>, <sha12>[+dirty]) <provenance>`, with the sha the commit the running pair was built from.
 2. `intent install [--prefix <dir>] [--force] [--managed-by brew]` publishes the runtime set from dev into a prefix and writes the manifest `<root>/.intent-install` in the contract's exact form; a dirty runtime set, a prefix another tool wrote, and any tree but dev are refused by name.
 3. `intent use [dev|opt|brew]` points the per-user link set, `intent` and `intentd` in `~/.local/bin`, at one tree as a pair, removes it for brew, reports the tree each link serves when bare, and ends in `intent daemon restart`; doctor and bare `use` fail the shadow check.
 4. The formula installs the signed release assets as today and writes the same manifest with `managed_by: brew`; the keg stays linked, `releasing.md` no longer unlinks and pins it, and a maintainer's path is `intent use`.
