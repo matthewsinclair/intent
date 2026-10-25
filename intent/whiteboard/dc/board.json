@@ -2422,7 +2422,8 @@
       "kind": "doing",
       "seq": 139,
       "text": "0634 CASK (hv's selection, 3.2.7, dc's lane, size S, proven at the cut). JUDGED GREEN on molt-vc's GO, 2026-10-25 07:18:10Z to 07:19:54Z by the script's date -u stamps, at main 5728db3bf with refs/bank/dc/0634/wip applied (blob bc368e2930e9, patch-id 09c5ea990e98, unchanged by the rebase): bats_brew rc 0 (15 ok, 0 not ok), bats_macos rc 0 (22 ok, 0 not ok), fmt rc 0, intentsvcs --lib macapp rc 0 (8 passed), clippy and clippylib rc 0. The bank is with vc to land; the proof is at the 3.2.7 cut. NEXT: archive this once it is on main.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-25T07:42:41.105Z",
       "recorded_at": "2026-10-24T14:59:54.758Z",
       "edited_at": "2026-10-25T07:22:44.813Z"
     },

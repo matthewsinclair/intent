@@ -13,7 +13,6 @@ claims: [ISSUE:0641]
 
 ## DOING
 
-- 0634 CASK (hv's selection, 3.2.7, dc's lane, size S, proven at the cut). JUDGED GREEN on molt-vc's GO, 2026-10-25 07:18:10Z to 07:19:54Z by the script's date -u stamps, at main 5728db3bf with refs/bank/dc/0634/wip applied (blob bc368e2930e9, patch-id 09c5ea990e98, unchanged by the rebase): bats_brew rc 0 (15 ok, 0 not ok), bats_macos rc 0 (22 ok, 0 not ok), fmt rc 0, intentsvcs --lib macapp rc 0 (8 passed), clippy and clippylib rc 0. The bank is with vc to land; the proof is at the 3.2.7 cut. NEXT: archive this once it is on main. (edited)
 - 0641 (decision 77; ISSUE:0641 claimed): BANKED UNJUDGED at refs/bank/dc/0641/wip (blob 36acfa956bea, patch-id b02b472cf195), applying clean on main 104b9a9b8. organize's observe records each cover's text; plan asks views::cover_thread and carriable_cover and makes a carriable cover Action::CoverDiverged; run reports it diverged and refuses it with OrganizeError::CoverDiverged naming intent sync --to-store <ID>; st hydrate counts it in HydrationWouldOverwrite and --overwrite still writes it. Arms (a) edited copy over a moved store, (b) unedited over an unmoved store, (c) unedited over a moved store, as vc ruled. The judge is BOOKED at molt-vc's desk, fourth: scratchpad/0641/run-0641.sh (fmt, intentd, both whole suites, both clippy lines, and a red leg with the check taken out). Worktree tmp/wt-dc-0641; rebase at the GO.
 
 ## TODO
