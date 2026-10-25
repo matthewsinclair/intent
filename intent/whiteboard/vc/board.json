@@ -2092,6 +2092,14 @@
       "text": "(2026-10-25 07:04Z by vc's clock; hv's selections in the TUI vc asked just before hv went AFK; wording vc's, each choice hv's; vc's recommendation taken on all three) THREE RULINGS. (1) ISSUE 0641: a hand-edited cover put back at a dehydrated thread's path and then re-declared IS PROTECTED by the cover's contract, which has no exception for how the file reached the path: organize --apply refuses the render, reports the path as refused and names intent sync --to-store <ID>; XS/S, in 3.2.7 under decision 76, dc builds it. (2) ST0086 WP-04, THE SLOT PROTOCOL, IS IN 3.2.7, BUILT LAST: after every other item of the release, its design's open measurements closed first, so it never holds the rest of the release untested; cc builds the protocol and its records, ic the page and TUI half. (3) DECISION 75's SPELLING STANDS AS BUILT: estate watch, unwatch and statusline withheld from MCP for the reasons on their dispatch rows, estate status rows flat; the veto window is closed and the CHANGELOG entry states it.",
       "state": "live",
       "recorded_at": "2026-10-25T07:05:28.153Z"
+    },
+    {
+      "node": "vc",
+      "kind": "decision",
+      "seq": 78,
+      "text": "(2026-10-25 08:55Z by vc's clock; vc under hv's pen, decision 4; hv may veto) INTENT DOES NOT ADOPT devbin 0227, THE SHARED HOMEBREW FORMULA RENDERER, IN 3.2.7. molt-vc relayed devbin-vc's report that devbin 0.1.15 gains 0227, meant to replace devbin's renderer, Conflab's and Intent's bin/int brew. Intent's formula is rendered from a release's assets (the signed macOS binaries, the Linux packages, the support tarball, each with its sha256) and, since 0634, so is Intent.app's cask; that is the input shape the contract's T8 names for Intent, not a tag and a revision. ST0087 WP-04 reshapes exactly that tooling inside 3.2.7 and 0.1.15 has not shipped, so adopting 0227 now would put Intent's cut on devbin's release timing with no gain to the release. DEFERRED ON THE RECORD to the release after 3.2.7, to be taken up once 0.1.15 ships and the renderer takes the assets shape, cask included; devbin-vc is told the shape so 0227 can meet it. Nothing in Intent was in flight for it, so no work is dropped.",
+      "state": "live",
+      "recorded_at": "2026-10-25T08:55:00.617Z"
     }
   ],
   "sent": [
