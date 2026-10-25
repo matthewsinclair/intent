@@ -1,0 +1,15 @@
+{
+  "id": "01M5T589XR84RPWG2WJJ088PFM",
+  "ts": "2026-10-25T18:30:34.684Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0649"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "the critic defers IN-RS-CODE-001 and -002 to clippy, but no gate's clippy runs needless_pass_by_value or redundant_clone anywhere, or the restriction lints outside intentsvcs and intent-cli"
+  }
+}
