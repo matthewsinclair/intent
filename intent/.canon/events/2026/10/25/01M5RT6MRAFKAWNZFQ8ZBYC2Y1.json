@@ -1,0 +1,15 @@
+{
+  "id": "01M5RT6MRAFKAWNZFQ8ZBYC2Y1",
+  "ts": "2026-10-25T05:58:11.466Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ST0087 WP-04 (vc's assignment): the formula writes the manifest over the release assets with managed_by brew; bin/int brew formula aligned to render and publish; the caveats name intent use; releasing.md drops the unlink-and-pin step; docs/install.md gains the maintainer section with the upgrade procedure per tree. Spec: intent/st/ST0087/design.md, citing devbin's docs/dev-opt-brew.md. ORDER: after 0634 lands, and it lands after WP-01 to WP-03, because its doctor run must see a keg with no manifest answer brew with a note. Claim ST0087/04 when I start. WP-05, the proof, is vc's with dc once the rest is in. No push, no release."
+  }
+}
