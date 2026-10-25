@@ -13,7 +13,7 @@ claims: [ISSUE:0641]
 
 ## DOING
 
-- 0641 (decision 77; ISSUE:0641 claimed): BANKED UNJUDGED at refs/bank/dc/0641/wip (blob 36acfa956bea, patch-id b02b472cf195), applying clean on main 104b9a9b8. organize's observe records each cover's text; plan asks views::cover_thread and carriable_cover and makes a carriable cover Action::CoverDiverged; run reports it diverged and refuses it with OrganizeError::CoverDiverged naming intent sync --to-store <ID>; st hydrate counts it in HydrationWouldOverwrite and --overwrite still writes it. Arms (a) edited copy over a moved store, (b) unedited over an unmoved store, (c) unedited over a moved store, as vc ruled. The judge is BOOKED at molt-vc's desk, fourth: scratchpad/0641/run-0641.sh (fmt, intentd, both whole suites, both clippy lines, and a red leg with the check taken out). Worktree tmp/wt-dc-0641; rebase at the GO.
+_(none)_
 
 ## TODO
 
