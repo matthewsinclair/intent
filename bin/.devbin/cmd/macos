@@ -834,6 +834,8 @@ cmd_verify() {
 # about to replace, and keeping it would let a stale artefact survive a rebuild.
 cmd_stage() {
   require_binaries
+  # The support paths, from the release pair this stage copies (support.lib).
+  support_paths_from "$RELEASE_DIR/intent"
   local triple blockers head sc
   triple="$(host_triple)"
 

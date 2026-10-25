@@ -15,8 +15,8 @@
 //! byte-identity of stdout** -- the strongest statement that can be made from
 //! outside the binary.
 //!
-//! The renderer closes it by construction (`render_version()` is the same
-//! string `spine::parse` prints for clap's `DisplayVersion`), and this file is
+//! The renderer closes it by construction (`crate::version_line()` is the
+//! line `spine::parse` prints for clap's `DisplayVersion`), and this file is
 //! written anyway, because **a shared SOURCE is not a shared OUTPUT**: a
 //! `println!` where the arm has `print!`, or any later decoration, keeps the
 //! shared source and breaks the shared bytes, and the type checker is happy
@@ -46,6 +46,10 @@ fn stdout(out: &Output) -> String {
   String::from_utf8_lossy(&out.stdout).into_owned()
 }
 
+/// AT-01.3: **`--version` and `version` print the same line from one
+/// formatter, `intent <version> (<tree>, <sha12>[+dirty]) at <root> <kind>`.**
+/// The arms below pin its shape and the built commit it names.
+///
 /// The flag and its subcommand twin print the same bytes and both succeed.
 #[test]
 fn the_flag_and_its_subcommand_twin_are_one_capability() {
@@ -116,15 +120,31 @@ fn the_version_string_names_the_build_and_not_only_the_line() {
     "the version line carries no build marker.\nprinted: {printed}"
   );
 
-  let sha_shaped = inside.len() >= 7 && inside.chars().all(|c| c.is_ascii_hexdigit());
-  let known_form = sha_shaped
-    || inside == "unknown"
-    || inside
-      .strip_prefix("dirty-")
-      .is_some_and(|s| s.len() >= 7 && s.chars().all(|c| c.is_ascii_hexdigit()));
+  // `(<tree>, <sha12>[+dirty])`, the contract's T4 (ST0087 WP-01): the build
+  // is named by its tree and the commit the binary was built from.
+  let (tree, build) = inside.split_once(", ").unwrap_or_default();
+  assert!(
+    ["dev", "opt", "brew", "unknown"].contains(&tree),
+    "the build marker does not name a tree first: {inside:?}"
+  );
+  let sha = build.strip_suffix("+dirty").unwrap_or(build);
+  let known_form =
+    sha == "unknown" || (sha.len() == 12 && sha.chars().all(|c| c.is_ascii_hexdigit()));
   assert!(
     known_form,
-    "the build marker is not a commit, `dirty-<sha>` or `unknown`: {inside:?}"
+    "the build marker's commit is not a sha12, `<sha12>+dirty` or `unknown`: {inside:?}"
+  );
+  let after = printed.split_once(") at ").map(|(_, rest)| rest.trim_end());
+  let (root, kind) = after
+    .and_then(|rest| rest.rsplit_once(' '))
+    .unwrap_or_default();
+  assert!(
+    root.starts_with('/'),
+    "the line does not name an absolute root after `at`: {printed}"
+  );
+  assert!(
+    ["release", "dev"].contains(&kind),
+    "the line does not end in the build's kind, `release` or `dev`: {printed}"
   );
 }
 
@@ -165,10 +185,20 @@ fn the_version_line_ends_in_its_kind_and_a_release_names_a_clean_commit() {
   let commit = env!("INTENT_SOURCE_COMMIT");
   let kind = env!("INTENT_SOURCE_KIND");
 
-  assert_eq!(
-    printed,
-    format!("intent {} ({commit}) {kind}\n", env!("CARGO_PKG_VERSION")),
-    "the line is the version, the build marker and then the kind"
+  // `intent <version> (<tree>, <sha12>[+dirty]) at <root> <kind>` (ST0087
+  // WP-01): the build marker names the commit this binary was built from, a
+  // `dirty-` build carries `+dirty`, and the kind comes last.
+  let built = commit.strip_prefix("dirty-").unwrap_or(commit);
+  let marker = match built.get(..12) {
+    Some(sha12) if commit.starts_with("dirty-") => format!(", {sha12}+dirty) at /"),
+    Some(sha12) => format!(", {sha12}"),
+    None => ", unknown) at /".to_string(),
+  };
+  assert!(
+    printed.starts_with(&format!("intent {} (", env!("CARGO_PKG_VERSION")))
+      && printed.contains(&marker)
+      && printed.ends_with(&format!(" {kind}\n")),
+    "the line is the version, the build marker naming {commit:?}, the root and then the kind: {printed}"
   );
   assert!(
     kind == "release" || kind == "dev",

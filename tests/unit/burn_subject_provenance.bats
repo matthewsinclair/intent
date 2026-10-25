@@ -62,7 +62,7 @@ BURN="${INTENT_BURN_SCRIPT:-${INTENT_HOME}/intent/st/ST0056/parity/tools/burn.sh
   local fake="$TEST_TEMP_DIR/fake-intent"
   cat > "$fake" <<'SH'
 #!/usr/bin/env bash
-echo "intent 9.9.9 (cafebabe)"
+echo "intent 9.9.9 (dev, cafebabe0000) at /fake/root dev"
 SH
   chmod +x "$fake"
 
@@ -70,7 +70,7 @@ SH
 
   [ "$status" -eq 0 ]
   [[ "$output" == *"SUBJECT=$fake"* ]]
-  [[ "$output" == *"VERSION=intent 9.9.9 (cafebabe)"* ]]
+  [[ "$output" == *"VERSION=intent 9.9.9 (dev, cafebabe0000) at /fake/root dev"* ]]
 }
 
 @test "burn.sh asks the subject for its version rather than deriving it from the path" {
@@ -81,7 +81,7 @@ SH
   local fake="$TEST_TEMP_DIR/fake-intent"
   cat > "$fake" <<'SH'
 #!/usr/bin/env bash
-echo "intent 1.2.3 (deadbeef)"
+echo "intent 1.2.3 (opt, deadbeef0000) at /fake/opt release"
 SH
   chmod +x "$fake"
 
@@ -90,7 +90,7 @@ SH
   [ "$status" -eq 0 ]
   # Same path as the test above, deliberately: only the binary's own answer
   # differs, so a header built from the path could not tell these two apart.
-  [[ "$output" == *"VERSION=intent 1.2.3 (deadbeef)"* ]]
+  [[ "$output" == *"VERSION=intent 1.2.3 (opt, deadbeef0000) at /fake/opt release"* ]]
   [[ "$output" != *"9.9.9"* ]]
 }
 

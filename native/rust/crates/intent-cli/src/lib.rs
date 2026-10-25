@@ -129,6 +129,22 @@ pub const SOURCE_COMMIT: &str = env!("INTENT_SOURCE_COMMIT");
 /// tagged `v<version>`, so `dirty-<sha>` and `unknown` are always `dev`.
 pub const SOURCE_KIND: &str = env!("INTENT_SOURCE_KIND");
 
+/// This binary's build, as the version line names it.
+pub fn build() -> intentsvcs::install::Build<'static> {
+  intentsvcs::install::Build {
+    name: "intent",
+    version: env!("CARGO_PKG_VERSION"),
+    commit: SOURCE_COMMIT,
+    kind: SOURCE_KIND,
+  }
+}
+
+/// The line `--version`, `intent version` and `doctor` print, from the one
+/// formatter `intentd --version` calls too (ST0087 WP-01).
+pub fn version_line() -> String {
+  intentsvcs::install::version_line(&build(), &intentsvcs::install::tree(SOURCE_COMMIT))
+}
+
 /// The string `self_provenance_check.sh` greps out of the ARTEFACT.
 ///
 /// SELF-DELIMITING, and that is not cosmetic. Rodata packs string literals with

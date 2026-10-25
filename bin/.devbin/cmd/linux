@@ -147,6 +147,8 @@ cmd_package() {
   for bin in $BINARIES; do
     [ -x "$WORKSPACE/target/$triple/release/$bin" ] || die "no $bin is built for $triple yet: run bin/int linux build first"
   done
+  # The support paths, from the pair this package carries (support.lib).
+  support_paths_from "$WORKSPACE/target/$triple/release/intent"
   # The committed bytes, as cmd/macos ships them: a support tree with
   # uncommitted changes would package bytes no commit names.
   # shellcheck disable=SC2086 # SUPPORT_PATHS is space-free (shared/support.lib)

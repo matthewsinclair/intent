@@ -78,12 +78,16 @@ command -v cargo >/dev/null || die "no cargo on PATH" "install the Rust toolchai
 [ ! -e "$DEMO" ] \
   || die "$DEMO already exists" "a run is in progress, or one was kept with --keep: remove it with \`rm -rf $DEMO\` once nothing is using it"
 
-# `intent 3.2.0 (<sha>) dev` -- the two things every shot must not show.
-read -r _ VERSION COMMIT _ <<EOF
-$(intent --version)
+# `intent 3.2.7 (<tree>, <sha12>[+dirty]) at <root> dev` (ST0087 WP-01) -- the
+# version and the commit are the two things every shot must not show.
+LINE="$(intent --version)"
+read -r _ VERSION _ <<EOF
+$LINE
 EOF
-COMMIT="${COMMIT#(}"
-COMMIT="${COMMIT%)}"
+COMMIT="${LINE#*(*, }"
+COMMIT="${COMMIT%%)*}"
+COMMIT="${COMMIT%+dirty}"
+[ "$COMMIT" != "$LINE" ] || COMMIT=""
 if [ -z "$VERSION" ] || [ -z "$COMMIT" ]; then
   echo "error: \`intent --version\` did not name a version and a commit, so no shot can be checked for them" >&2
   exit 1

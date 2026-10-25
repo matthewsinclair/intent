@@ -10507,6 +10507,46 @@
       }
     },
     {
+      "path": "install",
+      "help": "Publish this checkout as an opt tree; this build has only --print-runtime-set",
+      "args": [],
+      "flags": [
+        {
+          "spellings": [
+            "--print-runtime-set"
+          ],
+          "type": "bool",
+          "help": "Print the support paths of the runtime set, one per line, as this binary names them; writes nothing",
+          "disposition": "keep"
+        }
+      ],
+      "observed": {
+        "exit": [
+          {
+            "code": 0,
+            "when": "--print-runtime-set printed the support paths"
+          },
+          {
+            "code": 2,
+            "when": "bare, or any mode but --print-runtime-set: publishing is not built yet (ST0087 WP-02), refused with `is a known command that is not implemented yet`"
+          }
+        ],
+        "stdout": "one support path per line, relative to the install root",
+        "stderr": "`error: ...` on stderr (INV-01)"
+      },
+      "v2": "new-surface",
+      "basis": "ST0087 WP-01 (vc's ruling of 2026-10-25 on cc's shape): the runtime set lives in the binary as one list (devbin's docs/dev-opt-brew.md, T1), and the packaging reads it from the pair the caller names rather than keeping SUPPORT_PATHS of its own. `--print-runtime-set` is the verb's first mode; the publish modes arrive in WP-02.",
+      "owner_wp": "ST0087 WP-01",
+      "disposition": "new-surface",
+      "read_or_mutate": "read",
+      "recoverability": null,
+      "exposed_on_mcp": false,
+      "acceptance": "ST0087 WP-01",
+      "target": {
+        "state": "new-surface"
+      }
+    },
+    {
       "path": "help",
       "help": "Show usage for Intent",
       "args": [],
@@ -11251,6 +11291,7 @@
       "explore",
       "discover",
       "deinit",
+      "install",
       "help",
       "graphql",
       "set",
@@ -11427,6 +11468,7 @@
       "explore",
       "discover",
       "deinit",
+      "install",
       "help",
       "graphql",
       "set",
@@ -11609,6 +11651,7 @@
       "explore",
       "discover",
       "deinit",
+      "install",
       "help",
       "graphql",
       "set",

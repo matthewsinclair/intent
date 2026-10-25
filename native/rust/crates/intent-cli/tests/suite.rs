@@ -306,6 +306,8 @@ mod the_daemon_takes_the_backup_itself;
 mod the_event_log_travels;
 #[path = "the_index_says_what_it_holds.rs"]
 mod the_index_says_what_it_holds;
+#[path = "the_install_verb_prints_the_runtime_set.rs"]
+mod the_install_verb_prints_the_runtime_set;
 #[path = "the_search_pane_is_resident.rs"]
 mod the_search_pane_is_resident;
 #[path = "the_search_tool_and_json_are_one_envelope.rs"]

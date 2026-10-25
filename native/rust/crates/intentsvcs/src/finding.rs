@@ -412,6 +412,11 @@ pub enum FindingClass {
   /// reds every estate permanently is one operators learn to skip, and then it
   /// is not there for the two that need it either.
   GateNotRunning,
+  /// **THE RUNNING BINARY BELONGS TO NO TREE THE CONTRACT NAMES, OR TO A DEV TREE
+  /// WHOSE GIT CANNOT BE READ** (ST0087 WP-01; devbin's `docs/dev-opt-brew.md`,
+  /// T4). The version line then says `unknown`, and nothing that asks which tree
+  /// is running -- `use`, upgrade, the shadow check -- can answer.
+  InstallTreeUnknown,
   /// A hygiene note, not a fault: the artefact is well-formed and nothing is
   /// blocked by it. Printed under `advisory:` and NOT counted toward the
   /// verdict -- hv, 2026-08-26, on Baize printing 66 of these at rc 1 under the
@@ -753,6 +758,13 @@ impl FindingClass {
         8,
         "gate-not-running",
         "the pre-commit gate is installed and does not run its guards. The detail above says what that does to a commit -- REFUSED, or through with no guard run -- and names the verb that repairs this state",
+      ),
+      // Rank 1, beside the settings that stop everything else being read: an
+      // install that cannot say which tree it is answers nothing about itself.
+      Self::InstallTreeUnknown => (
+        1,
+        "install-tree-unknown",
+        "the detail above says why the tree or its commit is unknown. A dev checkout needs a readable git (eg `git status` there must not refuse); anything else is not an install this binary recognises, so run the intent you mean from its own tree",
       ),
       // Outside the verdict altogether: a state, not an obligation. It sorts last
       // so the totals line ends with what nobody has to act on.

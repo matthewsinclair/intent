@@ -72,8 +72,28 @@
 # bare 644 files. Verified in the archive, not assumed.
 # Issue 0340: `intent plugin list` reads each plugin's `plugin.json`, and the
 # agents plugin's manifest did not ship, so the keg listed only `claude`.
-# shellcheck disable=SC2034 # read by the handlers that source this file
-SUPPORT_PATHS="lib/templates intent/plugins/claude intent/plugins/agents/plugin.json"
+#
+# THE LIST LIVES IN THE BINARY NOW (ST0087 WP-01, the contract's T1), as
+# `intentsvcs::install::RUNTIME_SET`, and nothing here keeps a copy: each
+# handler reads it from the pair it means with `support_paths_from`, the staged
+# or release pair for a release and the packaged pair for a Linux package. A
+# pair behind HEAD is dirty by T2 and cannot pass the checks that ask, so an
+# older binary's list never decides, and no guard is needed between two homes.
+
+# support_paths_from <intent> -- set SUPPORT_PATHS, the support paths of the
+# runtime set as <intent> names them (`intent install --print-runtime-set`),
+# space-separated. Refuses when that binary is absent or cannot answer, since a
+# support tree read from nowhere is the omission this list exists to prevent.
+support_paths_from() {
+  local bin="$1" out
+  [ -x "$bin" ] || die "there is no intent binary at $bin to read the runtime set from -- build the pair first (bin/devbin build all)"
+  # Stdout only, so nothing the binary warns about on stderr becomes a path;
+  # its stderr reaches the terminal above the refusal.
+  out="$("$bin" install --print-runtime-set)" || die "$bin could not print its runtime set (its stderr is above), so the support tree is unknown"
+  [ -n "$out" ] || die "$bin printed an empty runtime set"
+  SUPPORT_PATHS="$(printf '%s\n' "$out" | tr '\n' ' ')"
+  SUPPORT_PATHS="${SUPPORT_PATHS% }"
+}
 
 # support_tree_tar <root> <commit> <prefix> -- the support tree AT <commit>, as
 # a tar stream on stdout, every path under <prefix> ("" for none).

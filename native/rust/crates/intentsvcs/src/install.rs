@@ -748,6 +748,349 @@ pub fn embedded_marker(binary: &Path, key: &str) -> Option<String> {
   String::from_utf8(bytes[at..end].to_vec()).ok()
 }
 
+/// The manifest an opt or brew tree carries at its root (devbin's
+/// `docs/dev-opt-brew.md`, T3). A dev tree has none.
+pub const MANIFEST: &str = ".intent-install";
+
+/// The `tool` an Intent manifest names.
+const TOOL: &str = "intent";
+
+/// The support paths of the runtime set (T1): what the pair reads and execs
+/// beside itself, as git names them. The runtime set is the pair built from one
+/// commit plus these.
+///
+/// **THE ONE HOME.** The packaging reads this list from the pair it names with
+/// `intent install --print-runtime-set` (`bin/.devbin/cmd/shared/support.lib`),
+/// and keeps no copy of its own: a pair behind HEAD is dirty by T2 and cannot
+/// pass the checks that ask, so an older binary's list never decides.
+pub const RUNTIME_SET: &[&str] = &[
+  "lib/templates",
+  "intent/plugins/claude",
+  "intent/plugins/agents/plugin.json",
+];
+
+/// Which tree the running binary belongs to (T4).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Tree {
+  /// The git checkout, running the pair cargo built in it.
+  Dev,
+  /// A tree `intent install --prefix` published, its manifest naming Intent.
+  Opt,
+  /// Homebrew's keg, by its manifest or, for a keg from before the contract,
+  /// by its root resolving under the formula's opt link.
+  Brew,
+  /// None of those, which doctor fails.
+  Unknown,
+}
+
+impl Tree {
+  /// The word the version line prints.
+  pub fn as_str(self) -> &'static str {
+    match self {
+      Self::Dev => "dev",
+      Self::Opt => "opt",
+      Self::Brew => "brew",
+      Self::Unknown => "unknown",
+    }
+  }
+}
+
+impl std::fmt::Display for Tree {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    f.write_str(self.as_str())
+  }
+}
+
+/// What a binary knows about its own build: its name, `CARGO_PKG_VERSION`, and
+/// the commit and kind `build-support/source_commit.rs` stamped into it. Each
+/// binary passes its own, so the line names the build that is running.
+#[derive(Debug, Clone, Copy)]
+pub struct Build<'a> {
+  pub name: &'a str,
+  pub version: &'a str,
+  /// `<sha>`, `dirty-<sha>` or `unknown`, as `INTENT_SOURCE_COMMIT` carries it.
+  pub commit: &'a str,
+  /// `release` or `dev`, the provenance word printed last.
+  pub kind: &'a str,
+}
+
+/// The running tree, as the one function [`tree_at`] reads it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TreeId {
+  pub tree: Tree,
+  /// Absolute; a brew root is named by its opt link.
+  pub root: PathBuf,
+  /// The full commit the line names: the manifest's `source_commit` in opt
+  /// and brew, the commit the binary was built from in dev. `None` is
+  /// `unknown`, and [`TreeId::why`] says why.
+  pub sha: Option<String>,
+  /// Dev only: the support set differs from the built commit, or the binary
+  /// was built from a dirty tree.
+  pub dirty: bool,
+  /// Dev only: HEAD when this was read, so doctor can say it moved past the
+  /// build.
+  pub head: Option<String>,
+  /// Why the tree or the sha is unknown.
+  pub why: Option<String>,
+}
+
+/// The running binary's tree. Never fails: a binary that resolves no install
+/// still prints a line, naming its tree `unknown` and its own directory.
+pub fn tree(commit: &str) -> TreeId {
+  match home() {
+    Ok(root) => tree_at(&root, commit),
+    Err(e) => TreeId {
+      tree: Tree::Unknown,
+      root: std::env::current_exe()
+        .ok()
+        .and_then(|exe| exe.parent().map(Path::to_path_buf))
+        .unwrap_or_default(),
+      sha: built_sha(commit),
+      dirty: false,
+      head: None,
+      why: Some(e.to_string()),
+    },
+  }
+}
+
+/// THE TREE FUNCTION (T4): which tree `root` is, in the contract's order --
+/// brew when the manifest says `managed_by: brew`, opt when its `tool` is
+/// `intent`, dev when the root is a git work tree with no manifest, unknown
+/// otherwise. A keg with no manifest answers brew by its opt link (T3 as
+/// amended), which is read only after the manifest. `root` is as [`resolve`]
+/// returns it, canonical; `commit` is the binary's `INTENT_SOURCE_COMMIT`.
+pub fn tree_at(root: &Path, commit: &str) -> TreeId {
+  let built = built_sha(commit);
+  let id = |tree, root: PathBuf, sha, why| TreeId {
+    tree,
+    root,
+    sha,
+    dirty: false,
+    head: None,
+    why,
+  };
+  match std::fs::read_to_string(root.join(MANIFEST)) {
+    Ok(text) => {
+      let header = manifest_header(&text);
+      let sha = header
+        .get("source_commit")
+        .filter(|s| is_sha(s))
+        .cloned()
+        .or(built);
+      if header.get("managed_by").map(String::as_str) == Some("brew") {
+        id(Tree::Brew, stable_root(root), sha, None)
+      } else if header.get("tool").map(String::as_str) == Some(TOOL) {
+        id(Tree::Opt, root.to_path_buf(), sha, None)
+      } else {
+        let tool = header.get("tool").map_or("no tool", String::as_str);
+        id(
+          Tree::Unknown,
+          root.to_path_buf(),
+          sha,
+          Some(format!(
+            "{} names `{tool}`, not intent, and says it is not managed by brew",
+            root.join(MANIFEST).display()
+          )),
+        )
+      }
+    }
+    Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+      let stable = stable_root(root);
+      if stable != root {
+        id(Tree::Brew, stable, built, None)
+      } else if root.join(".git").exists() {
+        dev_at(root, commit)
+      } else {
+        id(
+          Tree::Unknown,
+          root.to_path_buf(),
+          built,
+          Some(format!(
+            "{} has no {MANIFEST} and is not a git work tree",
+            root.display()
+          )),
+        )
+      }
+    }
+    Err(e) => id(
+      Tree::Unknown,
+      root.to_path_buf(),
+      built,
+      Some(format!(
+        "cannot read {}: {e}",
+        root.join(MANIFEST).display()
+      )),
+    ),
+  }
+}
+
+/// A dev tree: the sha is the built commit, never HEAD, and `+dirty` follows
+/// it while the support set differs from that commit in git (untracked files
+/// included, since the dev pair reads the working tree) or the binary was
+/// built from a dirty tree. When git cannot answer, the sha is `unknown`.
+fn dev_at(root: &Path, commit: &str) -> TreeId {
+  let mut id = TreeId {
+    tree: Tree::Dev,
+    root: root.to_path_buf(),
+    sha: None,
+    dirty: false,
+    head: None,
+    why: None,
+  };
+  let Some(sha) = built_sha(commit) else {
+    id.why = Some(format!(
+      "this binary names no commit it was built from (`{commit}`)"
+    ));
+    return id;
+  };
+  match support_differs(root, &sha) {
+    Ok(differs) => {
+      id.dirty = differs || commit.starts_with("dirty-");
+      id.head = git_out(root, &["rev-parse", "HEAD"]).ok();
+      id.sha = Some(sha);
+    }
+    Err(why) => id.why = Some(why.to_string()),
+  }
+  id
+}
+
+/// What a read of git in a tree could not do. The tree function keeps its
+/// text as [`TreeId::why`], and a publish carries it into its refusal.
+#[derive(Debug, thiserror::Error)]
+enum GitRead {
+  #[error("git could not be run in {root}: {source}")]
+  Spawn {
+    root: String,
+    #[source]
+    source: std::io::Error,
+  },
+  #[error("`git {args}` refused: {stderr}")]
+  Refused { args: String, stderr: String },
+}
+
+/// Whether the support set in `root`'s working tree differs from `sha`.
+fn support_differs(root: &Path, sha: &str) -> Result<bool, GitRead> {
+  let mut diff = vec!["diff", "--quiet", sha, "--"];
+  diff.extend_from_slice(RUNTIME_SET);
+  let out = git(root, &diff)?;
+  let changed = match out.status.code() {
+    Some(0) => false,
+    Some(1) => true,
+    _ => return Err(git_refusal(&diff, &out)),
+  };
+  let mut others = vec!["ls-files", "--others", "--exclude-standard", "--"];
+  others.extend_from_slice(RUNTIME_SET);
+  Ok(changed || !git_out(root, &others)?.is_empty())
+}
+
+fn git(root: &Path, args: &[&str]) -> Result<std::process::Output, GitRead> {
+  std::process::Command::new("git")
+    .arg("-C")
+    .arg(root)
+    .args(args)
+    .output()
+    .map_err(|source| GitRead::Spawn {
+      root: root.display().to_string(),
+      source,
+    })
+}
+
+fn git_out(root: &Path, args: &[&str]) -> Result<String, GitRead> {
+  let out = git(root, args)?;
+  if !out.status.success() {
+    return Err(git_refusal(args, &out));
+  }
+  Ok(String::from_utf8_lossy(&out.stdout).trim().to_string())
+}
+
+fn git_refusal(args: &[&str], out: &std::process::Output) -> GitRead {
+  GitRead::Refused {
+    args: args.join(" "),
+    stderr: String::from_utf8_lossy(&out.stderr).trim().to_string(),
+  }
+}
+
+/// The commit a stamp names, without its `dirty-` marker; `None` for
+/// `unknown` or anything else that is not a sha.
+fn built_sha(commit: &str) -> Option<String> {
+  let sha = commit.strip_prefix("dirty-").unwrap_or(commit);
+  is_sha(sha).then(|| sha.to_string())
+}
+
+fn is_sha(s: &str) -> bool {
+  s.len() >= 12 && s.bytes().all(|b| b.is_ascii_hexdigit())
+}
+
+/// A manifest's header (T3): `# key: value` lines, read until the body.
+fn manifest_header(text: &str) -> std::collections::BTreeMap<String, String> {
+  text
+    .lines()
+    .map_while(|line| line.strip_prefix("# "))
+    .filter_map(|line| line.split_once(": "))
+    .map(|(k, v)| (k.trim().to_string(), v.trim().to_string()))
+    .collect()
+}
+
+/// THE VERSION LINE (T4), one formatter for both printers:
+/// `<name> <version> (<tree>, <sha12>[+dirty]) at <root> <kind>`.
+///
+/// **THE PROVENANCE WORD STAYS LAST** so the fields before it read as the
+/// contract's line; it is read by no shell (the gate's self-provenance arm and
+/// `verify_pair` read the `[intent-source-commit:...]` marker inside the
+/// binary instead).
+pub fn version_line(build: &Build<'_>, id: &TreeId) -> String {
+  let sha = match &id.sha {
+    Some(sha) => {
+      let short = &sha[..sha.len().min(12)];
+      let dirty = if id.dirty && id.tree == Tree::Dev {
+        "+dirty"
+      } else {
+        ""
+      };
+      format!("{short}{dirty}")
+    }
+    None => "unknown".to_string(),
+  };
+  format!(
+    "{} {} ({}, {sha}) at {} {}",
+    build.name,
+    build.version,
+    id.tree,
+    id.root.display(),
+    build.kind
+  )
+}
+
+/// What doctor says about the running tree: an unknown tree, or a dev tree
+/// whose git cannot be read, fails; HEAD past the build is said, not counted.
+pub fn tree_findings(id: &TreeId) -> Vec<crate::finding::Finding> {
+  use crate::finding::{Finding, FindingClass};
+  let at = id.root.display().to_string();
+  let why = id.why.clone().unwrap_or_default();
+  match (id.tree, &id.sha, &id.head) {
+    (Tree::Unknown, _, _) => vec![Finding::new(
+      at,
+      FindingClass::InstallTreeUnknown,
+      format!("this binary's tree is unknown: {why}"),
+    )],
+    (Tree::Dev, None, _) => vec![Finding::new(
+      at,
+      FindingClass::InstallTreeUnknown,
+      format!("this dev tree's git cannot be read, so the line names no commit: {why}"),
+    )],
+    (Tree::Dev, Some(sha), Some(head)) if head != sha => vec![Finding::new(
+      at,
+      FindingClass::Advisory,
+      format!(
+        "HEAD ({}) has moved past the commit this pair was built from ({}); `bin/devbin build all` builds HEAD",
+        &head[..head.len().min(12)],
+        &sha[..sha.len().min(12)]
+      ),
+    )],
+    _ => Vec::new(),
+  }
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;

@@ -86,6 +86,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("explore", m)) => explore(m.get_one::<String>("address").map(String::as_str)),
     Some(("discover", m)) => discover(m),
     Some(("deinit", m)) => deinit(m),
+    Some(("install", m)) => install(m),
     Some(("upgrade", _)) => upgrade(),
     Some(("bootstrap", m)) => bootstrap(m),
     Some(("init", m)) => init(m),
@@ -6018,6 +6019,24 @@ fn discover(m: &ArgMatches) -> Result<(), Failure> {
   Ok(())
 }
 
+/// `intent install --print-runtime-set` (ST0087 WP-01): the support paths of
+/// the runtime set, one per line, from the one list in
+/// `intentsvcs::install::RUNTIME_SET`. The packaging reads them from the pair
+/// it names. Publishing an opt tree is WP-02's, so any other mode refuses as
+/// not built.
+fn install(m: &ArgMatches) -> Result<(), Failure> {
+  if !given(m, "print-runtime-set") {
+    return refuse_unwired(
+      "install",
+      "only `intent install --print-runtime-set` is built; publishing an opt tree arrives with ST0087 WP-02",
+    );
+  }
+  for path in intentsvcs::install::RUNTIME_SET {
+    println!("{path}");
+  }
+  Ok(())
+}
+
 /// `intent deinit [--apply] [--all]` (ST0083 WP-06): what Intent wrote into
 /// this project, listed, and with `--apply` removed or edited.
 ///
@@ -8375,7 +8394,20 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
     );
   }
 
-  let report = Facade::doctor(&project, &ctx, opened.as_ref().map(|f| f.store()), scope);
+  let mut report = Facade::doctor(&project, &ctx, opened.as_ref().map(|f| f.store()), scope);
+  // **DOCTOR PRINTS THE VERSION LINE AND ASKS THE TREE FUNCTION** (ST0087
+  // WP-01, the contract's T4): an unknown tree, or a dev tree whose git cannot
+  // be read, fails; HEAD past the build is said and not counted.
+  let tree = intentsvcs::install::tree(crate::SOURCE_COMMIT);
+  report
+    .findings
+    .extend(intentsvcs::install::tree_findings(&tree));
+  if format != "json" && !quiet {
+    println!(
+      "{}",
+      intentsvcs::install::version_line(&crate::build(), &tree)
+    );
+  }
   // **THE MACHINE FACE THIS FILE ASKED FOR IN WORDS.** The `unattached` block
   // below carries the note *it stays inline until `doctor` has a machine face
   // to carry it, which needs a surface row and is not mine to add*. This is
@@ -10074,7 +10106,7 @@ fn modules_check() -> Result<(), Failure> {
 
 /// `intent version` -- the subcommand twin of `--version`.
 ///
-/// **IT ASKS CLAP FOR THE STRING RATHER THAN COMPOSING ONE, AND THAT IS THE
+/// **IT ASKS THE ONE FORMATTER RATHER THAN COMPOSING A LINE, AND THAT IS THE
 /// WHOLE DESIGN.** The criterion this closes is not "the subcommand exists"
 /// but "one capability does not disagree with itself about whether it
 /// exists": `--version` answered rc=0 with a version while `version` refused
@@ -10083,17 +10115,11 @@ fn modules_check() -> Result<(), Failure> {
 /// one level down and harder to see -- both spellings would answer, and
 /// nothing would say they answered differently.
 ///
-/// `render_version()` is the exact string `spine::parse` prints for the
+/// `crate::version_line()` is the line `spine::parse` prints for the
 /// `DisplayVersion` arm, so the two are one value with two call sites rather
 /// than two values that a test hopes are equal. The test is still written,
 /// because a shared SOURCE is not a shared OUTPUT -- a future `print!` that
 /// trimmed or decorated this would pass the type checker.
-///
-/// Rebuilding the Command costs a table parse on a command that prints one
-/// line. That is deliberate: the alternative is threading the built Command
-/// through `run`, which widens a signature every arm shares for the benefit of
-/// one, and the honest cost of asking the authority is smaller than the cost
-/// of keeping a copy near the caller.
 /// `intent daemon` -- the CLI owns the daemon's lifecycle (the conflabd
 /// pattern), and the daemon owns nothing about the CLI.
 fn daemon(m: &ArgMatches) -> Result<(), Failure> {
@@ -11487,13 +11513,9 @@ fn version_reported_by(path: &Path) -> Option<String> {
 }
 
 fn version() -> Result<(), Failure> {
-  // `print!`, not `println!`: `render_version()` already ends in a newline, and
-  // the byte-identity property is asserted against `--version`, so an added
-  // newline here would break the criterion rather than tidy the output.
-  print!(
-    "{}",
-    crate::spine::build(&dispatch::table()).render_version()
-  );
+  // `println!`, as `spine::parse` prints it: the byte-identity property is
+  // asserted against `--version`.
+  println!("{}", crate::version_line());
   Ok(())
 }
 

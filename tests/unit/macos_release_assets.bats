@@ -50,6 +50,9 @@ load_macos_fns() {
   # reason: ST0081 moved it there so `cmd/linux` packages the same tree.
   # shellcheck disable=SC1091
   . "${INTENT_HOME:-${MACOS%/bin/.devbin/cmd/macos}}/bin/.devbin/cmd/shared/support.lib"
+  # And the list itself from the binary under test, as each handler reads it
+  # from the pair it means (ST0087 WP-01).
+  support_paths_from "$INTENT_BIN"
 }
 
 # A staging directory holding whatever names it is given.

@@ -288,9 +288,9 @@ pub fn surface() -> Command {
 pub fn build(table: &Table) -> Command {
   let mut root = Command::new("intent")
     // **ONE CAPABILITY, TWO SPELLINGS, PRINTING THE SAME BYTES BY
-    // CONSTRUCTION.** `intent version` asks this Command for
-    // `render_version()` rather than composing a line of its own, so the two
-    // cannot drift. That drift is the defect the row was raised on: the flag
+    // CONSTRUCTION.** `intent version` and the flag both print
+    // `crate::version_line()` rather than composing a line of their own, so the
+    // two cannot drift. That drift is the defect the row was raised on: the flag
     // answered rc=0 with a version and the subcommand refused rc=2 as
     // unimplemented, in one binary, with the failing spelling the one a person
     // types first.
@@ -305,13 +305,14 @@ pub fn build(table: &Table) -> Command {
     //
     // THE KIND IS A WORD AFTER THE BUILD, `release` or `dev` (issue 0534):
     // the commit alone could not say whether this is the tagged release or a
-    // dev-tree build. It comes last so the tokens before it do not move.
-    .version(format!(
-      "{} ({}) {}",
-      env!("CARGO_PKG_VERSION"),
-      crate::SOURCE_COMMIT,
-      crate::SOURCE_KIND
-    ))
+    // dev-tree build.
+    //
+    // **CLAP HOLDS ONLY THE VERSION, SO THE FLAG EXISTS; THE LINE IS
+    // `crate::version_line`** (ST0087 WP-01), which [`parse`] prints for
+    // `DisplayVersion` and `intent version` prints too. The line names the
+    // running tree, which costs a read of git in a dev tree, so it is built
+    // when asked for rather than whenever the Command is.
+    .version(env!("CARGO_PKG_VERSION"))
     // FROM THE TABLE, like every other help string on the surface (EXP-08).
     // This was the ONE `.about("...")` literal in the CLI: every family, entry,
     // verb and flag below already reads its help from the table, so the root was
@@ -866,8 +867,12 @@ pub fn parse(argv: Vec<String>) -> Result<clap::ArgMatches, i32> {
     Err(e) => {
       use clap::error::ErrorKind;
       match e.kind() {
-        ErrorKind::DisplayHelp | ErrorKind::DisplayVersion => {
+        ErrorKind::DisplayHelp => {
           print!("{e}");
+          Err(EXIT_OK)
+        }
+        ErrorKind::DisplayVersion => {
+          println!("{}", crate::version_line());
           Err(EXIT_OK)
         }
         _ => {

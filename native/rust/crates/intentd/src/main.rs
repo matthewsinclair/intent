@@ -198,11 +198,17 @@ async fn main() -> ExitCode {
   // than the commit it was recorded under, and an operator diagnosing a daemon
   // asks the daemon.
   if std::env::args().any(|arg| arg == "--version" || arg == "-V") {
+    // THE ONE FORMATTER `intent --version` calls too (ST0087 WP-01), with this
+    // binary's own build, so the daemon names its own commit and tree.
+    let build = intentsvcs::install::Build {
+      name: "intentd",
+      version: env!("CARGO_PKG_VERSION"),
+      commit: SOURCE_COMMIT,
+      kind: SOURCE_KIND,
+    };
     println!(
-      "intentd {} ({}) {}",
-      env!("CARGO_PKG_VERSION"),
-      SOURCE_COMMIT,
-      SOURCE_KIND
+      "{}",
+      intentsvcs::install::version_line(&build, &intentsvcs::install::tree(SOURCE_COMMIT))
     );
     return ExitCode::SUCCESS;
   }
