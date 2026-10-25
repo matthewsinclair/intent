@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 78d66f67-02b7-4497-bbec-4466e2fcb852
-heartbeat_at: 2026-10-25 13:46Z
+heartbeat_at: 2026-10-25 14:19Z
 status: active
-focus: "LOCALFOLD 7b at 2026-10-25 11:41Z for hv's compact; ST0087 WP-01+02 and ic's doc lines LANDED (976fad577, bb4bb4e70, 5ee382c0b), ST0086 WP-01 Done; build all READY heavy at molt-vc's desk; ST0088 cull WP-01+02 banked and queued; 0644 queued; no push, no release"
+focus: "3.2.7 is the one release; pair REBUILT at 128c58669 (2026-10-25 14:19Z), new version line live, 0640 after-check green; ST0087 WP-01+02 and ST0086 WP-01 done; next at the desk: ic's ST0088 cull judge (banks wp01b/wp02b pre-verified) then ic's ST0087 WP-03; dc paused on the limit (0644 judge, ST0088 WP-03 wait); cc's ST0086 WP-04 last; no push, no release"
 claims: []
 ---
 
