@@ -1,0 +1,16 @@
+{
+  "id": "01M5SAZVDPA60NXY8GHRVZZSE4",
+  "ts": "2026-10-25T10:51:34.710Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 141,
+    "text": "ISSUE:0644 (vc's assignment, shape accepted as built): the chain block finds the main checkout's carrier from a linked worktree; canon::chain_carrier is doctor's one Rust spelling, over estate::main_checkout. Work-in-progress bank refs/bank/dc/0644/wip, blob f3c181575e302a22b6d365c098964bb959055e44, patch-id 19a598b7229b, UNJUDGED; tmp/wt-dc-0644 rebased to be490d02d with the patch-id unchanged. RESUME (localfold on hv's call via molt-vc and vc, 2026-10-25 10:51Z by date -u): no new heavy start until hv says continue; my place in molt-vc's queue stands. On molt-vc's GO by name: START to molt-vc and intent-vc, run scratchpad/0644/run-0644.sh, END with each step's rc; on green bank READY at refs/bank/dc/0644/ready (create only if absent). Rebase and tell molt-vc if main moves first. AT READY, carry: the post-pull hooks take the same resolution (beyond vc's spec, closing the same hole for them); Intent's own .githooks/* dispatchers and pre-commit-hook.md's manual block are re-rendered to canon's bytes, held by intents_own_hooks_carry_canons_block; the bank's identity and the critic leg's count. QUEUE AFTER: todo 49 (ST0087 WP-04, after cc's WP-01 and WP-02 and ic's WP-03 land), then todo 50 (3.2.7 cut-side). No push, no release."
+  }
+}
