@@ -1,0 +1,15 @@
+{
+  "id": "01M5RVY0QM7A5135T8MTKC8MSE",
+  "ts": "2026-10-25T06:28:25.972Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "ST0087 WP-03's Rust half (intent use and the shadow check) and the bank with the Swift draft at 830fedbe1. RELEASES WHEN: cc's WP-01 (the tree function and the version line) is on main, and hv has said continue after the fold"
+  }
+}
