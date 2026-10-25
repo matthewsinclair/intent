@@ -1,0 +1,15 @@
+{
+  "id": "01M5RYS1VRD1P1AHAGQZPVDJEM",
+  "ts": "2026-10-25T07:18:09.016Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "0643 BANKED unjudged at refs/bank/ic/0643/wip (blob 927e5b0b141, patch-id 5d2b4b264863) over 8cb343447, WIP 39f0c6167 in tmp/wt-ic-0643: one natural-order comparator, model::id_order, called by all three sort sites. Judge /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd/scratchpad/0643/judge.sh, heavy, READY at molt-vc after 0631. Its CHANGELOG bullet collides with 0631/v2's at the same spot, so the second to land gets rebased. No push, no release."
+  }
+}
