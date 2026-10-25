@@ -34,7 +34,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 01: Inventory of every surface that feeds prompt text to an agent, live or historical
 - [?] ST0087: Intent conforms to the dev, opt and brew contract
   - [-] 01: The tree function, the runtime set and the version line
-  - [ ] 02: intent install and the manifest, with doctor's manifest arms
+  - [-] 02: intent install and the manifest, with doctor's manifest arms
   - [ ] 03: intent use and the shadow check
   - [ ] 04: The formula, the release tooling and the docs
   - [ ] 05: The proof, per tree, on rhadamanth and kovacs

@@ -20,7 +20,7 @@ title: Intent conforms to the dev, opt and brew contract
 - AC-01.3 `intent --version`, `intent version`, intentd's own version print and doctor's first human line come from one formatter and read `intent <version> (<tree>, <sha12>[+dirty]) at <root> [<provenance>]`: the sha is the built commit read from the binary and never HEAD, `+dirty` appears only in dev and only when the support set differs from the built commit or the pair was built dirty, the root is absolute and brew's is the opt link, the provenance word stays last, and a dev tree whose git cannot be read prints `(dev, unknown)`. -- satisfied: no (computed)
 - AC-01.4 Every reader of the old line is moved and driven against the new one: `gen_explorer_shots.sh`, `version_spellings_agree.rs`, `arguments_do_not_start_a_daemon.rs`, `macos_release_assets.bats` and `burn_subject_provenance.bats`; the gate's self-provenance arm and the build's pair verification still read the embedded source-commit marker, and readers of the version field alone are unchanged. -- satisfied: no (computed)
 
-### WP-02 -- intent install and the manifest, with doctor's manifest arms (status: Not Started)
+### WP-02 -- intent install and the manifest, with doctor's manifest arms (status: WIP)
 
 - AC-02.1 `intent install [--prefix <dir>] [--force] [--managed-by brew]` runs in dev only and is refused by name from opt and brew; it refuses a dirty runtime set by name with no override while live project records never count; the prefix comes from `--prefix`, else `INTENT_INSTALL_PREFIX`, else it refuses by name; an existing prefix is replaced only with `--force` and only over a manifest saying `tool: intent`; and the layout it writes is the keg's libexec layout exactly. -- satisfied: no (computed)
 - AC-02.2 The manifest is `<root>/.intent-install` in T3's exact form: a header of `# key: value` lines carrying at least tool, version, source_commit as the full sha and managed_by, then one `shasum -a 256 -c` line per runtime file, path relative to the root, sorted by `LC_ALL=C sort`, the binaries checksummed as installed. -- satisfied: no (computed)
@@ -51,7 +51,7 @@ title: Intent conforms to the dev, opt and brew contract
 
 _(no tests in this group)_
 
-### WP-02 -- intent install and the manifest, with doctor's manifest arms (status: Not Started)
+### WP-02 -- intent install and the manifest, with doctor's manifest arms (status: WIP)
 
 _(no tests in this group)_
 

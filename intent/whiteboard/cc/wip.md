@@ -6,7 +6,7 @@ session_id: 66e84138-c919-405e-bed0-8057e34a7ac2
 heartbeat_at: 2026-10-25 06:43Z
 status: active
 focus: "0640 re-check at 6ce61c580 is next for Intent at molt-vc's desk (fmt + intentsvcs suite), then vc lands refs/bank/cc/0640; then ST0087 WP-01 (claim on 0640's landing); hold 33 waits on ST0087; no push, no release"
-claims: [ST0081, ST0086/01, ST0086/04, ST0087/01]
+claims: [ST0081, ST0086/01, ST0086/04, ST0087/01, ST0087/02]
 ---
 
 # Control Claude (cc)

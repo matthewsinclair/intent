@@ -29,7 +29,7 @@
       "seq": 2,
       "title": "intent install and the manifest, with doctor's manifest arms",
       "scope": "M",
-      "status": "not-started",
+      "status": "wip",
       "objective": "`intent install [--prefix <dir>] [--force] [--managed-by brew]` publishes the runtime set from a dev tree into `<prefix>` as the keg's layout, `<prefix>/bin/{intent,intentd}` and the support paths, and writes `<prefix>/.intent-install`: a header of `# key: value` lines carrying `tool`, `version`, `source_commit` (the full sha the pair was built from) and `managed_by`, then one `shasum -a 256 -c` line per runtime file, paths relative to the root, sorted by `LC_ALL=C sort`. The prefix comes from `--prefix`, else `INTENT_INSTALL_PREFIX`, named once in the docs and read by `install` alone; with neither, install refuses by name. Refused by name, no override: a tree that is not dev; a dirty runtime set (a support path differing from the built commit, or a pair built from a dirty tree or behind HEAD); an existing prefix without `--force`; a prefix whose manifest names another tool or nothing. `--managed-by brew` writes a manifest that refuses `install` and `use` writes into that tree and says to use brew. Doctor in opt and brew checks the manifest body and names every file that drifted; an install in an older form (today's kegs have no manifest at all) is named as old with its remedy: in opt a failure until `install --force`, in brew a note naming `brew upgrade intent`, the tree still answering brew when its root resolves under `$(brew --prefix)/opt/intent/libexec`. Arms: a publish into a scratch prefix round-trips through `shasum -a 256 -c`; each refusal by name; doctor's drift and old-manifest arms over a scratch tree.",
       "body": "",
       "preamble": ""
