@@ -1,0 +1,15 @@
+{
+  "id": "01M5RPK3FD6H8D6047619FM0HX",
+  "ts": "2026-10-25T04:55:05.453Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "issue 0631 (wb archive's positional seq renamed id, as wb edit's): new surface that waits behind the stabilisation line drawn after 3.2.5. RELEASES WHEN: vc or hv lifts the line for 0631 and vc specifies what a client still sending seq meets"
+  }
+}
