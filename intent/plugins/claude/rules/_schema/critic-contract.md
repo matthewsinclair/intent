@@ -14,6 +14,8 @@ A Critic subagent is a **thin orchestrator** that:
 
 A Critic is **not** a fixer, generator, or editor. It reports; it does not modify.
 
+The pre-commit gate does not run a Critic subagent: it runs the headless `intent critic <lang>`, which arms each rule through a greppable proxy or a named tool where the rule has one. A clean subagent report therefore does not promise a commit the gate accepts.
+
 A Critic's prompt (the `agent.md` body) contains only orchestration logic: mode dispatch, rule loading order, report format. No rule content lives in the Critic prompt — that's in RULE.md files.
 
 ## Identity
@@ -57,10 +59,7 @@ On invocation, the Critic loads rules in this order (each entry additive; later-
 
 1. `intent claude rules list --lang agnostic` and `intent claude rules list --lang <lang>`; select by the `category` column for the mode.
 2. `intent claude rules show <id>` for each selected rule.
-3. **Upstream interop** (Elixir only): if elixir-test-critic is installed as a Claude plugin in `~/.claude/`, load its rules too. Dedupe by `upstream_id`: where an Intent rule has `upstream_id: <slug>` and upstream has the matching rule, skip upstream's copy in favour of Intent's.
-4. **User extensions**: none in v3. `userstate::ext_base()` answers `None`, so `rules list` serves canon only.
-
-Intent IDs and upstream slugs do not collide: Intent rules live in the `IN-*` namespace, upstream in `ETC-*`.
+3. **User extensions**: none in v3. `userstate::ext_base()` answers `None`, so `rules list` serves canon only.
 
 After loading, the Critic applies optional filters:
 
@@ -216,25 +215,6 @@ RECOMMENDATION
 ```
 
 The Critic does not invoke `diogenes` itself. That's the human's or top-level agent's choice. The recommendation is the handoff signal.
-
-## Elixir-test-critic interop
-
-On invocation, `critic-elixir` checks whether the upstream plugin is installed:
-
-```bash
-# Detection heuristic (pseudocode)
-if [ -d "$HOME/.claude/plugins/elixir-test-critic" ]; then
-  UPSTREAM_AVAILABLE=1
-fi
-```
-
-If available:
-
-- Load upstream rules from the discovered path.
-- Dedupe against Intent rules by `upstream_id` match.
-- Include findings from both sets in the report.
-
-If not available: Critic runs with Intent rules only. No warning — upstream is optional depth, not a dependency.
 
 ## Error handling
 

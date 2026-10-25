@@ -1,10 +1,9 @@
 //! The rule library -- the thing the whole agentic contract is written against.
 //!
-//! `CLAUDE.md`, `AGENTS.md`, `usage-rules.md`, `/in-standards`, `/in-essentials`
-//! and all five `critic-<lang>` subagents reach the four rules of the road
-//! through `intent claude rules show <id>`. Measured on this repo's own
-//! machinery: **125 call sites**, against 230 for the whole `claude` family.
-//! It is the single highest-traffic verb in the tool and v3 answered `2` for it.
+//! `CLAUDE.md`, `AGENTS.md`, `usage-rules.md`, `/in-essentials` and every
+//! `critic-<lang>` subagent reach the rules of the road through
+//! `intent claude rules show <id>`, the single highest-traffic verb in the
+//! tool, which v3 answered `2` for.
 //!
 //! **ONE ENUMERATION, ONE PROVENANCE RULE, ONE FRONTMATTER CONTRACT, and v2
 //! already proved why.** `rules_lib.sh` exists in v2 for exactly this reason:

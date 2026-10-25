@@ -9,26 +9,18 @@ load "../lib/test_helper.bash"
 
 CRITIC_DIR="${INTENT_PROJECT_ROOT}/intent/plugins/claude/subagents/critic-prose"
 AGENT_MD="$CRITIC_DIR/agent.md"
-METADATA="$CRITIC_DIR/metadata.json"
 
 # ====================================================================
 # Rename (AC-03.1): critic-prose, no critic-author
 # ====================================================================
 
-@test "critic-prose: directory has agent.md and metadata.json" {
+@test "critic-prose: directory has agent.md" {
   [ -d "$CRITIC_DIR" ]
   assert_file_exists "$AGENT_MD"
-  assert_file_exists "$METADATA"
 }
 
 @test "critic-prose: agent.md frontmatter declares name critic-prose" {
   assert_file_contains "$AGENT_MD" 'name: critic-prose'
-}
-
-@test "critic-prose: metadata.json is valid JSON naming critic-prose" {
-  run jq -r '.name' "$METADATA"
-  assert_success
-  assert_output "critic-prose"
 }
 
 @test "critic-prose: the old critic-author is fully retired (no dir)" {
@@ -53,12 +45,6 @@ METADATA="$CRITIC_DIR/metadata.json"
   assert_success
   refute_output_contains "Write"
   refute_output_contains "Edit"
-}
-
-@test "critic-prose: metadata.json tools are read-only" {
-  run jq -r '.tools | index("Write") // empty, index("Edit") // empty' "$METADATA"
-  assert_success
-  assert_output ""
 }
 
 # ====================================================================

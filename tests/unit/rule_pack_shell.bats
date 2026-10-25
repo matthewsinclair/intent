@@ -131,10 +131,9 @@ EOF
 # critic-shell subagent is registered
 # ====================================================================
 
-@test "critic-shell subagent directory exists with agent.md and metadata.json" {
+@test "critic-shell subagent directory exists with agent.md" {
   local critic_dir="${INTENT_PROJECT_ROOT}/intent/plugins/claude/subagents/critic-shell"
   [ -d "$critic_dir" ]
   [ -f "$critic_dir/agent.md" ]
-  [ -f "$critic_dir/metadata.json" ]
 }
 

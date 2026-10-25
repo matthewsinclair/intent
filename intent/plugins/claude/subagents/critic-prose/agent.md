@@ -1,6 +1,6 @@
 ---
 name: critic-prose
-description: Prose rule-library critic for every prose discipline (author + content). Reads the shared rules/prose/ base plus the declared discipline pack (rules/author/ and/or rules/content/) and the agnostic pack, applies each rule's Detection to target prose files, and emits a machine-parseable report grouped by severity. Two-tier -- a mechanical style pass by default; a judgment craft pass, and the full /in-detrope diagnosis, on instruction.
+description: Prose rule-library critic for every prose discipline (author + content). Reads the shared prose base plus the declared discipline pack (author and/or content) and the agnostic pack, served by the installed Intent tool, applies each rule's Detection to target prose files, and emits a machine-parseable report grouped by severity. Two-tier -- a mechanical style pass by default; a judgment craft pass, and the full /in-detrope diagnosis, on instruction.
 tools: Read, Grep, Glob, Bash
 ---
 
@@ -54,7 +54,7 @@ Default `review` never runs the craft tier. When you finish a `review`, add one 
 
 ### Two-form detrope
 
-detrope has two forms, and critic-prose wires both without ever forking the trope knowledge -- the single home is the `in-detrope` skill's trope catalogue, `data/trope-catalog.md`, which an installed Intent keeps at `~/.claude/skills/in-detrope/data/trope-catalog.md`.
+detrope has two forms, and critic-prose wires both without ever forking the trope knowledge -- the single home is the `in-detrope` skill's trope catalogue, `data/trope-catalog.md`, which an installed Intent keeps at `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/in-detrope/data/trope-catalog.md`.
 
 - **Mechanical (default, in `review`).** Rule `IN-PR-STYLE-004` (mechanical-trope-pass, in the shared prose base) is applied like any other style rule: read the catalogue, take the `**Regex**:` line from each trope whose frontmatter says `detection: automated`, and `LC_ALL=C.UTF-8 grep -iE` the target (drop the PCRE `(?i)` prefix -- `-i` covers it; the rule says why the locale matters). A hit is a candidate; confirm the document is not itself about AI and the text is not a verbatim quote before reporting it.
 - **Full LLM (on instruction, handoff only).** The full contextual + stylometric pass -- trope density, the non-automated tells, cadence and voice -- is the discipline's full-trope-diagnosis craft rule (author: `IN-AU-CRAFT-003`; content has no full-trope craft rule, so the handoff points at `/in-detrope` directly). critic-prose does NOT run it and does NOT invoke the skill. It emits a handoff recommendation (the diogenes pattern):

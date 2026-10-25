@@ -1,8 +1,0 @@
-{
-  "name": "intent",
-  "version": "1.0.0",
-  "description": "Intent-aware assistant for steel threads methodology",
-  "author": "Intent Contributors",
-  "tools": ["Bash", "Read", "Write", "Edit", "Grep"],
-  "tags": ["project-management", "steel-threads"]
-}

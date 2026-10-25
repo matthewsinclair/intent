@@ -33,12 +33,12 @@ SKILLS="${INTENT_PROJECT_ROOT}/intent/plugins/claude/skills"
 
 # ST0088 AT-02.3: a skill or one of its scripts that names Claude Code's config
 # dir also reads CLAUDE_CONFIG_DIR, so a machine with it set is found. The home
-# fallback is still named, so the check is per file, not per line. The sites
-# outside the skills (the _CLAUDE.md template, critic-elixir's agent.md, the
-# critic contract) are ST0088 WP-03's.
-@test "every skill that names ~/.claude reads CLAUDE_CONFIG_DIR" {
+# fallback is still named, so the check is per file, not per line. ST0088 WP-03
+# widened it to the _CLAUDE.md template, the subagents and the critic contract
+# (AT-03.4).
+@test "every skill, subagent and LLM template that names ~/.claude reads CLAUDE_CONFIG_DIR" {
   local files f bad=""
-  files="$(grep -rlE '~/\.claude|\$HOME/\.claude|\$\{HOME\}/\.claude' "${SKILLS}" || true)"
+  files="$(grep -rlE '~/\.claude|\$HOME/\.claude|\$\{HOME\}/\.claude' "${SKILLS}" "${INTENT_PROJECT_ROOT}/lib/templates/llm/_CLAUDE.md" "${INTENT_PROJECT_ROOT}/intent/plugins/claude/subagents" "${INTENT_PROJECT_ROOT}/intent/plugins/claude/rules/_schema/critic-contract.md" || true)"
   for f in ${files}; do
     grep -q 'CLAUDE_CONFIG_DIR' "${f}" || bad="${bad} ${f#"${SKILLS}"/}"
   done

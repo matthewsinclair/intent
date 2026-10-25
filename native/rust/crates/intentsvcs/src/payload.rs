@@ -184,8 +184,8 @@ impl Kind {
   ///
   /// **THE ONE STRUCTURAL DIFFERENCE, AND IT IS ASYMMETRIC.** A skill is a
   /// directory that lands as a directory. A subagent is a directory containing
-  /// `agent.md` (plus a `metadata.json` Claude Code never reads) that lands as
-  /// the single file `<name>.md`. So a subagent's SOURCE shape and TARGET shape
+  /// `agent.md` that lands as the single file `<name>.md`; anything else in the
+  /// directory stays in canon. So a subagent's SOURCE shape and TARGET shape
   /// differ, which a skill's never do.
   pub fn shape(self) -> Shape {
     match self {
@@ -216,9 +216,9 @@ pub enum Shape {
 ///
 /// **IT IS A DIFFERENT TOKEN BECAUSE IT COVERS A DIFFERENT THING, AND HASHING
 /// THE WHOLE CANON DIRECTORY WOULD HAVE BEEN WRONG RATHER THAN MERELY WIDER.**
-/// A subagent's canon directory holds `metadata.json` beside `agent.md`, and
-/// only `agent.md` is installed. A tree hash would report an update as due
-/// whenever the metadata moved, having changed nothing a consumer can see --
+/// Only a subagent's `agent.md` is installed, and its canon directory may hold
+/// other files beside it. A tree hash would report an update as due whenever
+/// one of those moved, having changed nothing a consumer can see --
 /// a checksum whose subject is not what it is being used to decide about.
 /// **The rule for both kinds is the same one: hash what this payload
 /// INSTALLS**, which for a tree is the tree and here is one file.

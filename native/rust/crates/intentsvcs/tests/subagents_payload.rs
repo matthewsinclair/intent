@@ -57,8 +57,8 @@ impl Fixture {
     self.install.join("intent/plugins/claude/subagents")
   }
 
-  /// A canon subagent as the estate actually stores one: `agent.md` beside a
-  /// `metadata.json` that is never installed.
+  /// A canon subagent with a file beside `agent.md` that is never installed, the
+  /// shape a user extension may carry: here a `metadata.json`.
   fn plant(&self, name: &str, body: &str, metadata: &str) {
     let dir = self.canon().join(name);
     fs::create_dir_all(&dir).unwrap();

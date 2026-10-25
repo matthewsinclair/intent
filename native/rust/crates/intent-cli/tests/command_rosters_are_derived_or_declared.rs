@@ -807,11 +807,15 @@ fn shipped_plugin_manifests() -> Vec<(String, serde_json::Value)> {
 #[test]
 fn no_shipped_plugin_manifest_hand_maintains_a_command_list() {
   let manifests = shipped_plugin_manifests();
+  let missing: Vec<&str> = ["claude", "agents"]
+    .into_iter()
+    .filter(|want| !manifests.iter().any(|(dir, _)| dir == want))
+    .collect();
   assert!(
-    manifests.len() >= 2,
-    "only {} plugin manifest(s) found -- the population is empty or the path \
-     moved, and a green here would mean nothing",
-    manifests.len()
+    missing.is_empty(),
+    "intent/plugins/{{{}}}/plugin.json not found -- the population is empty or the \
+     path moved, and a green here would mean nothing",
+    missing.join(",")
   );
 
   let offenders: Vec<String> = manifests

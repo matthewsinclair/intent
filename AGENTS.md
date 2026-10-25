@@ -86,7 +86,6 @@ intent st list      # list steel threads
 - Shell scripts: 2-space indentation, POSIX-compliant where practical.
 - Markdown: no manual line wrapping; verblock frontmatter on hand-authored persistent docs such as `intent/wip.md` (generated views such as a thread's `info.md` carry none).
 - Where the project keeps one, `usage-rules.md` carries the terse "DO / NEVER" contract.
-- See `intent/docs/working-with-llms.md` in the Intent source repository (https://github.com/matthewsinclair/intent) for the canon tech note on the LLM-facing layout and how hooks + critics + skills compose.
 
 ## Steel Thread + Work Package Process
 
@@ -104,24 +103,16 @@ intent wp done <STID/NN>     # mark done
 
 Never create steel thread or work package directories by hand -- always use the CLI.
 
-## Installed Skills and Subagents
-
-Read live rather than reproduced here, because a snapshot of what is installed goes stale the moment anything is installed and nothing regenerates this file to notice:
-
-```bash
-intent claude skills list
-intent claude subagents list
-```
-
 ## Critic Family
 
 Per-language rule enforcement via thin subagents that read the rule library at invocation time: `critic-<lang>` for code, `critic-prose` for prose. `intent claude subagents list` names them. Invoke:
 
 ```
 Task(subagent_type="critic-<lang>", prompt="review <targets>")
+Task(subagent_type="critic-<lang>", prompt="test-check <targets>")
 ```
 
-The installed Intent tool's headless runner (`intent critic <lang>`: rules armed with a greppable proxy or a named tool such as `shellcheck`; no LLM required) powers the pre-commit gate. Contract: `intent/docs/critics.md` in the Intent source repository (https://github.com/matthewsinclair/intent). Exit codes: `0` clean, `1` findings, `2` the runner could not answer (the gate fails open), `3` an armed rule's tool is absent on this machine (the gate blocks).
+The installed Intent tool's headless runner (`intent critic <lang>`: rules armed with a greppable proxy or a named tool such as `shellcheck`; no LLM required) powers the pre-commit gate. Its exit codes, and every other command's, are in `intent llm guide`.
 
 ## Rules of the Road
 
@@ -144,18 +135,11 @@ intent claude rules show <id>   # inspect
 intent claude rules validate    # schema check
 ```
 
+What is installed is read live, never listed here: `intent claude skills list` and `intent claude subagents list`.
+
 ## Session Hooks
 
-`.claude/settings.json`, once `intent claude upgrade --apply` has written it, wires Claude Code lifecycle hooks: **SessionStart** (inject context + `/in-session` reminder), **UserPromptSubmit** (strict gate -- block first prompt until `/in-session` runs), **Stop** (remind `/in-finish` at wrap-up). Full architecture: `intent/docs/working-with-llms.md#session-hook-architecture` in the Intent source repository (https://github.com/matthewsinclair/intent).
-
-## Socrates vs Diogenes FAQ
-
-Distinct subagents for distinct concerns:
-
-- **Socrates** -- CTO Review Mode. Architectural and strategic technical decision-making via Socratic dialog.
-- **Diogenes** -- Elixir Test Architect. Test-specification generation and gap analysis.
-
-They have never been the same agent. FAQ + forensic detail: `intent/docs/working-with-llms.md#socrates-vs-diogenes-faq` in the Intent source repository (https://github.com/matthewsinclair/intent).
+`.claude/settings.json`, once `intent claude upgrade --apply` has written it, wires Claude Code lifecycle hooks: **SessionStart** (inject context + `/in-session` reminder), **UserPromptSubmit** (strict gate -- block first prompt until `/in-session` runs), **Stop** (remind `/in-finish` at wrap-up).
 
 ## Testing Instructions
 
@@ -163,19 +147,13 @@ They have never been the same agent. FAQ + forensic detail: `intent/docs/working
 2. Make changes.
 3. Run the suite again; confirm no regressions.
 4. Add new tests for new functionality.
-5. Before commit, the pre-commit gate (installed by `intent claude upgrade --apply`) runs the shipped guards, checks staged files with `intent critic <lang>` for `CRITICAL` + `WARNING` findings, and runs `intent doctor`; a finding, a refusing guard or a doctor exit 1 refuses the commit. See `intent/docs/pre-commit-hook.md` in the Intent source repository (https://github.com/matthewsinclair/intent).
+5. Before commit, the pre-commit gate (installed by `intent claude upgrade --apply`) runs the shipped guards, `intent critic <lang>` on the staged files and `intent doctor`, and refuses the commit on a finding, a refusing guard or a doctor exit 1.
 
 ## Commit Guidelines
 
 - Descriptive commit messages; reference steel thread or work package IDs where applicable.
 - No AI attribution in commit messages (no `Co-Authored-By`, no tool signatures).
 - Small, coherent commits preferred over large batches.
-
-## Security Considerations
-
-- Never commit secrets or credentials.
-- Review external inputs for injection-class bugs.
-- Follow the project's security policy if one exists.
 
 ## Additional Resources
 
@@ -190,6 +168,9 @@ In the Intent source repository (https://github.com/matthewsinclair/intent), not
 In this project:
 
 - `intent/llm/MODULES.md` -- OPTIONAL module registry (Highlander enforcement). To check for prior art, ask the index first: `intent search --kind def <name>` answers whether a thing with that name already exists anywhere in the tree, and the answer carries the index's own freshness. When it says the index is not complete for the paths that matter, fall back to grep. Where the project keeps a registry, `intent modules find <name>` searches that as well. `intent init` does not create a registry, so for most projects the index is the whole answer.
+- `intent/llm/DECISION_TREE.md` -- OPTIONAL code-placement flow chart. `intent init` does not create one; where a project has one, it was chosen for that project and describes that project's own stack.
+- `intent/llm/RULES.md`, `intent/llm/ARCHITECTURE.md` -- this project's own rules and architecture, seeded empty by `intent init` for the project to author.
+- `intent/` -- steel threads (`st/`), project docs (`docs/`), work tracking (`wip.md`, `restart.md`); `intent/.config/` -- configuration.
 - `CLAUDE.md` -- Claude-specific overlay.
 - `usage-rules.md` -- DO / NEVER contract for this project, where it keeps one (seeded by `intent claude upgrade --apply` in the root layout when absent, not seeded in the `.claude/` layout, and never overwritten; `intent init` does not create it).
 

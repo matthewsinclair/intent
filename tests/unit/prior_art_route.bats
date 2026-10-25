@@ -19,20 +19,19 @@
 load "../lib/test_helper.bash"
 
 # Each tells a model how to check for prior art, and each now routes
-# through the index.
+# through the index. _CLAUDE.md left the population in ST0088 WP-03: it loads
+# _AGENTS.md through its @AGENTS.md line, so the paragraph has one home there.
 PRIOR_ART_ARTEFACTS=(
   "intent/plugins/claude/rules/agnostic/highlander/RULE.md"
   "intent/plugins/claude/skills/in-plan/SKILL.md"
   "intent/plugins/claude/skills/in-review/SKILL.md"
   "lib/templates/llm/_AGENTS.md"
-  "lib/templates/llm/_CLAUDE.md"
 )
 
-# The two the templates generate. They are OUTPUT: they must carry the route,
-# and they are never edited by hand.
+# The one the template generates. It is OUTPUT: it must carry the route, and it
+# is never edited by hand.
 GENERATED_ROOTS=(
   "AGENTS.md"
-  "CLAUDE.md"
 )
 
 @test "every prior-art artefact routes through the index" {

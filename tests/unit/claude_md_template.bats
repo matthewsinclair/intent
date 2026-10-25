@@ -9,6 +9,7 @@
 load "../lib/test_helper.bash"
 
 TEMPLATE="${INTENT_PROJECT_ROOT}/lib/templates/llm/_CLAUDE.md"
+AGENTS_TEMPLATE="${INTENT_PROJECT_ROOT}/lib/templates/llm/_AGENTS.md"
 
 @test "template exists" {
   [ -f "$TEMPLATE" ]
@@ -30,8 +31,8 @@ TEMPLATE="${INTENT_PROJECT_ROOT}/lib/templates/llm/_CLAUDE.md"
   assert_file_contains "$TEMPLATE" "compact"
 }
 
-@test "template references persistent memory directory" {
-  assert_file_contains "$TEMPLATE" "~/.claude/projects"
+@test "template references persistent memory directory under the config dir" {
+  assert_file_contains "$TEMPLATE" "\${CLAUDE_CONFIG_DIR:-\$HOME/.claude}/projects"
   assert_file_contains "$TEMPLATE" "memory"
 }
 
@@ -40,17 +41,24 @@ TEMPLATE="${INTENT_PROJECT_ROOT}/lib/templates/llm/_CLAUDE.md"
   assert_file_contains "$TEMPLATE" "session-hook-architecture"
 }
 
-@test "template includes a file map with canon landmarks" {
-  assert_file_contains "$TEMPLATE" "usage-rules.md"
-  assert_file_contains "$TEMPLATE" "working-with-llms.md"
-  assert_file_contains "$TEMPLATE" "intent/llm/MODULES.md"
-  assert_file_contains "$TEMPLATE" "intent/llm/DECISION_TREE.md"
+# ST0088 WP-03: the file map has one home, _AGENTS.md, which _CLAUDE.md loads
+# through its @AGENTS.md line.
+@test "the file map lives in _AGENTS.md, which _CLAUDE.md imports" {
+  assert_file_contains "$AGENTS_TEMPLATE" "usage-rules.md"
+  assert_file_contains "$AGENTS_TEMPLATE" "working-with-llms.md"
+  assert_file_contains "$AGENTS_TEMPLATE" "intent/llm/MODULES.md"
+  assert_file_contains "$AGENTS_TEMPLATE" "intent/llm/DECISION_TREE.md"
+  run grep -F "intent/llm/MODULES.md" "$TEMPLATE"
+  assert_failure
 }
 
-@test "template includes critic dispatch section" {
-  assert_file_contains "$TEMPLATE" "critic-"
-  assert_file_contains "$TEMPLATE" "Task(subagent_type"
-  assert_file_contains "$TEMPLATE" "intent/docs/critics.md"
+# ST0088 WP-03: critic dispatch has one home, _AGENTS.md.
+@test "critic dispatch lives in _AGENTS.md, not _CLAUDE.md" {
+  assert_file_contains "$AGENTS_TEMPLATE" "critic-"
+  assert_file_contains "$AGENTS_TEMPLATE" "Task(subagent_type"
+  assert_file_contains "$AGENTS_TEMPLATE" "intent/docs/critics.md"
+  run grep -F "Task(subagent_type" "$TEMPLATE"
+  assert_failure
 }
 
 @test "template includes user-preservation markers" {
