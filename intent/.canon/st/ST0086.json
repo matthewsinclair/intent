@@ -226,8 +226,8 @@
       "covers": [
         "AC-01.1"
       ],
-      "status": "to-write",
-      "note": "arms: status_json_carries_every_key_of_the_boundary_from_the_first_work_package"
+      "status": "green",
+      "note": "arms: status_json_carries_every_key_of_the_boundary_from_the_first_work_package; green in the whole-suite judges that landed the estate work on 2026-10-25: ic at 4df0b005f (e9464ad6c), ic at 7ae5bbac9 (b01cec8aa), cc at 3d1d0a269 (4f6b504a8), ic at dad17961e (7536f4009), and the cc 0638 judge at cf1846543 (the intent-cli, intentsvcs and intentd suites whole); cited by vc at the contract's authoring"
     },
     {
       "id": "AT-01.2",
@@ -236,8 +236,8 @@
       "covers": [
         "AC-01.2"
       ],
-      "status": "to-write",
-      "note": "arms: the_macos_session_file_parses_with_every_pinned_field, the_linux_session_file_parses_with_its_tick_count_procstart, removing_any_pinned_field_names_it_in_either_form"
+      "status": "green",
+      "note": "arms: the_macos_session_file_parses_with_every_pinned_field, the_linux_session_file_parses_with_its_tick_count_procstart, removing_any_pinned_field_names_it_in_either_form; green in the whole-suite judges that landed the estate work on 2026-10-25: ic at 4df0b005f (e9464ad6c), ic at 7ae5bbac9 (b01cec8aa), cc at 3d1d0a269 (4f6b504a8), ic at dad17961e (7536f4009), and the cc 0638 judge at cf1846543 (the intent-cli, intentsvcs and intentd suites whole); cited by vc at the contract's authoring"
     },
     {
       "id": "AT-01.3",
@@ -246,8 +246,8 @@
       "covers": [
         "AC-01.3"
       ],
-      "status": "to-write",
-      "note": "arms: status_renders_a_live_node_with_its_board_and_a_gone_session_as_gone"
+      "status": "green",
+      "note": "arms: status_renders_a_live_node_with_its_board_and_a_gone_session_as_gone; green in the whole-suite judges that landed the estate work on 2026-10-25: ic at 4df0b005f (e9464ad6c), ic at 7ae5bbac9 (b01cec8aa), cc at 3d1d0a269 (4f6b504a8), ic at dad17961e (7536f4009), and the cc 0638 judge at cf1846543 (the intent-cli, intentsvcs and intentd suites whole); cited by vc at the contract's authoring"
     },
     {
       "id": "AT-01.4",
@@ -256,8 +256,8 @@
       "covers": [
         "AC-01.4"
       ],
-      "status": "to-write",
-      "note": "arms: wip_writes_a_line_the_status_shows_and_clear_removes_it, prune_removes_a_gone_sessions_record_and_never_touches_the_claude_dir"
+      "status": "green",
+      "note": "arms: wip_writes_a_line_the_status_shows_and_clear_removes_it, prune_removes_a_gone_sessions_record_and_never_touches_the_claude_dir; green in the whole-suite judges that landed the estate work on 2026-10-25: ic at 4df0b005f (e9464ad6c), ic at 7ae5bbac9 (b01cec8aa), cc at 3d1d0a269 (4f6b504a8), ic at dad17961e (7536f4009), and the cc 0638 judge at cf1846543 (the intent-cli, intentsvcs and intentd suites whole); cited by vc at the contract's authoring"
     },
     {
       "id": "AT-01.5",
@@ -266,8 +266,8 @@
       "covers": [
         "AC-01.5"
       ],
-      "status": "to-write",
-      "note": "arms: status_renders_a_live_node_with_its_board_and_a_gone_session_as_gone, an_unreadable_session_file_is_a_warning_on_stderr_and_the_verb_still_answers"
+      "status": "green",
+      "note": "arms: status_renders_a_live_node_with_its_board_and_a_gone_session_as_gone, an_unreadable_session_file_is_a_warning_on_stderr_and_the_verb_still_answers; green in the whole-suite judges that landed the estate work on 2026-10-25: ic at 4df0b005f (e9464ad6c), ic at 7ae5bbac9 (b01cec8aa), cc at 3d1d0a269 (4f6b504a8), ic at dad17961e (7536f4009), and the cc 0638 judge at cf1846543 (the intent-cli, intentsvcs and intentd suites whole); cited by vc at the contract's authoring"
     },
     {
       "id": "AT-01.6",
@@ -276,8 +276,8 @@
       "covers": [
         "AC-01.6"
       ],
-      "status": "to-write",
-      "note": "arms: the_mcp_tool_answers_the_same_boundary_as_the_cli, with the dispatch-table population and legal-pairs arms that pin every row's exposure"
+      "status": "green",
+      "note": "arms: the_mcp_tool_answers_the_same_boundary_as_the_cli, with the dispatch-table population and legal-pairs arms that pin every row's exposure; green in the whole-suite judges that landed the estate work on 2026-10-25: ic at 4df0b005f (e9464ad6c), ic at 7ae5bbac9 (b01cec8aa), cc at 3d1d0a269 (4f6b504a8), ic at dad17961e (7536f4009), and the cc 0638 judge at cf1846543 (the intent-cli, intentsvcs and intentd suites whole); cited by vc at the contract's authoring"
     },
     {
       "id": "AT-01.7",
@@ -286,8 +286,8 @@
       "covers": [
         "AC-01.7"
       ],
-      "status": "to-write",
-      "note": "arms: wip_refuses_with_a_remedy_when_it_cannot_tell_what_was_meant, watch_refuses_a_bad_class_and_a_bad_pattern_with_a_remedy, statusline_refuses_an_input_that_is_not_json_with_a_remedy, status_browser_refuses_with_no_daemon_and_beside_a_format"
+      "status": "green",
+      "note": "arms: wip_refuses_with_a_remedy_when_it_cannot_tell_what_was_meant, watch_refuses_a_bad_class_and_a_bad_pattern_with_a_remedy, statusline_refuses_an_input_that_is_not_json_with_a_remedy, status_browser_refuses_with_no_daemon_and_beside_a_format; green in the whole-suite judges that landed the estate work on 2026-10-25: ic at 4df0b005f (e9464ad6c), ic at 7ae5bbac9 (b01cec8aa), cc at 3d1d0a269 (4f6b504a8), ic at dad17961e (7536f4009), and the cc 0638 judge at cf1846543 (the intent-cli, intentsvcs and intentd suites whole); cited by vc at the contract's authoring"
     },
     {
       "id": "AT-02.1",
@@ -296,8 +296,8 @@
       "covers": [
         "AC-02.1"
       ],
-      "status": "to-write",
-      "note": "arms: the_estate_is_answered_for_a_root_that_names_no_project, the_estate_form_is_answered_unbound_and_no_other_view_is"
+      "status": "green",
+      "note": "arms: the_estate_is_answered_for_a_root_that_names_no_project, the_estate_form_is_answered_unbound_and_no_other_view_is; green in the whole-suite judges that landed the estate work on 2026-10-25: ic at 4df0b005f (e9464ad6c), ic at 7ae5bbac9 (b01cec8aa), cc at 3d1d0a269 (4f6b504a8), ic at dad17961e (7536f4009), and the cc 0638 judge at cf1846543 (the intent-cli, intentsvcs and intentd suites whole); cited by vc at the contract's authoring"
     },
     {
       "id": "AT-02.3",
@@ -306,8 +306,8 @@
       "covers": [
         "AC-02.3"
       ],
-      "status": "to-write",
-      "note": "arms: watch_declares_a_class_the_status_lists_and_unwatch_removes_it, watch_refuses_a_bad_class_and_a_bad_pattern_with_a_remedy"
+      "status": "green",
+      "note": "arms: watch_declares_a_class_the_status_lists_and_unwatch_removes_it, watch_refuses_a_bad_class_and_a_bad_pattern_with_a_remedy; green in the whole-suite judges that landed the estate work on 2026-10-25: ic at 4df0b005f (e9464ad6c), ic at 7ae5bbac9 (b01cec8aa), cc at 3d1d0a269 (4f6b504a8), ic at dad17961e (7536f4009), and the cc 0638 judge at cf1846543 (the intent-cli, intentsvcs and intentd suites whole); cited by vc at the contract's authoring"
     },
     {
       "id": "AT-02.4",
@@ -316,8 +316,8 @@
       "covers": [
         "AC-02.4"
       ],
-      "status": "to-write",
-      "note": "arms: statusline_keeps_the_usage_and_leaves_stdout_to_the_status_line, statusline_with_no_rate_limits_writes_and_prints_nothing, statusline_refuses_an_input_that_is_not_json_with_a_remedy"
+      "status": "green",
+      "note": "arms: statusline_keeps_the_usage_and_leaves_stdout_to_the_status_line, statusline_with_no_rate_limits_writes_and_prints_nothing, statusline_refuses_an_input_that_is_not_json_with_a_remedy; green in the whole-suite judges that landed the estate work on 2026-10-25: ic at 4df0b005f (e9464ad6c), ic at 7ae5bbac9 (b01cec8aa), cc at 3d1d0a269 (4f6b504a8), ic at dad17961e (7536f4009), and the cc 0638 judge at cf1846543 (the intent-cli, intentsvcs and intentd suites whole); cited by vc at the contract's authoring"
     }
   ],
   "attachments": [
