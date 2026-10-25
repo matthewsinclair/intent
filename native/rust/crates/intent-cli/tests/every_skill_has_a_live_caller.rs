@@ -12,12 +12,12 @@
 //!
 //! **A skill is reached either by another skill's `chains_to`, or by being
 //! INVOKED BY NAME in a canon document** (`/in-review` in `usage-rules.md`, say).
-//! Measured before the predicate was written: seven of the shipped skills are
-//! chained to by nothing at all -- `in-session`, `in-review`, `in-plan`,
-//! `in-debug`, `in-autopsy`, `in-cost-analysis`, `in-tca-init` -- and every one
-//! of them is an ENTRY POINT an operator types. **A checker that knew only
-//! `chains_to` would report seven dead skills, all of them false**, and a
-//! checker with seven standing false positives is one nobody runs twice.
+//! Measured before the predicate was written: several shipped skills are
+//! chained to by nothing at all -- `in-session`, `in-review`, `in-plan` and
+//! `in-autopsy` among them -- and every one of them is an ENTRY POINT an
+//! operator types. **A checker that knew only `chains_to` would report each of
+//! them dead, every one of them falsely**, and a checker with standing false
+//! positives is one nobody runs twice.
 //!
 //! # What this cannot see, stated so a green is not read as more
 //!

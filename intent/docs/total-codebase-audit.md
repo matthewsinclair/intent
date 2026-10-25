@@ -29,7 +29,7 @@ It has been run on a single-app Elixir project, an umbrella Elixir project, and 
 
 > **Key insight**: The process is rule-driven, not language-driven. The rules change per ecosystem; the audit process does not.
 
-For operational use, see the `/in-tca-*` skill suite (init, audit, synthesize, remediate, finish).
+This document is the whole procedure: no skill drives it. Each phase below names the verbs and the critic dispatch it runs, and Appendix C is the checklist.
 
 # Overview
 
@@ -62,7 +62,7 @@ Why it matters — four failure modes that manifest together:
 
 Reference: the Lamplight ST0121/WP/24 incident (commits 75706c18 → 98616a0c, 2026-04-08). A 24-hour window existed where every top-level session doc lied about the steel thread state — `wip.md`, `intent/restart.md`, `.claude/restart.md`, and `impl.md` all claimed ST0121 was complete before `feedback-report.md` existed. A full doc-reconciliation commit was required to repair the damage.
 
-**If you have already started wrong** (the audit is a WP inside the audited thread): provision the dedicated thread (`intent st new "TCA: <scope>" --start`, then `/in-tca-init` against it), copy each captured report into the matching new `WP/NN/socrates.md` and record it with `intent st attach`, then cancel the misplaced WP with `intent wp cancel <ST>/<NN> --reason "<why>"`.
+**If you have already started wrong** (the audit is a WP inside the audited thread): provision the dedicated thread (`intent st new "TCA: <scope>" --start`, then its work packages as in §0.3), copy each captured report into the matching new `WP/NN/socrates.md` and record it with `intent st attach`, then cancel the misplaced WP with `intent wp cancel <ST>/<NN> --reason "<why>"`.
 
 ### Invariant 2: Work packages are flat
 
@@ -89,7 +89,7 @@ The flat layout used to repair the Lamplight ST0121/WP/24 state (phase-numbered 
 
 ### Invariant 3: The last work package is the synthesis WP
 
-Create the synthesis WP with `intent wp new` after every component WP, so it takes the highest number; `tca-init.sh` does this by construction, titling its last WP `Cross-Component Synthesis`. No guard checks it afterwards, and `intent wp new` always numbers after the highest existing WP, so a WP added later lands after the synthesis WP.
+Create the synthesis WP with `intent wp new` after every component WP, so it takes the highest number. No guard checks it afterwards, and `intent wp new` always numbers after the highest existing WP, so a WP added later lands after the synthesis WP.
 
 ### Invariant 4: Rank components by later-pain impact, not raw violation count
 
@@ -137,7 +137,7 @@ Project-specific rules have no home in the rule library: Intent v3 reads no user
 
 ### False Positive Guidance: still load-bearing
 
-Even with stable IN-* rules and `.intent_critic.yml`, codebase-specific carve-outs exist. The `design.md` **False Positive Guidance** section (REQUIRED — see Phase 0.1 and the `in-tca-init` skill) documents the conditions under which a flagged rule is a known non-violation in *this\* codebase, distinct from a project-wide disable.
+Even with stable IN-* rules and `.intent_critic.yml`, codebase-specific carve-outs exist. The `design.md` **False Positive Guidance** section (REQUIRED — see Phase 0.1) documents the conditions under which a flagged rule is a known non-violation in *this\* codebase, distinct from a project-wide disable.
 
 **Empirical benchmark — pre-classification at Phase 0 vs triage at synthesis**: Lamplight ST0121 (2026-04-08): the `Map.get`-on-defstruct rule (which would be `IN-EX-CODE-002` carve-out territory in the v2.9.0 schema) achieved a 0% false-positive rate _with_ pre-classification. Without it, FP rate would have been ~82% — `Map.get` calls flagged on plain maps, Jido plugin configs, LLM response maps, and Ash metadata, all legitimate uses that don't touch `defstruct`-defined modules. Pre-classification belongs at Phase 0 authoring time, not synthesis-time triage. An auditor drowning in synthesis FPs loses signal on real findings.
 
@@ -304,8 +304,6 @@ intent wp new ST{NNNN} "<Component name>"          # once per component, in orde
 intent wp new ST{NNNN} "Cross-Component Synthesis" # always last
 ```
 
-If you provision with `/in-tca-init`, its `tca-init.sh --tca-dir intent/st/ST{NNNN} --wp-count N --project <name>` registers WP/01..WP/NN itself (`intent wp new`), titling them `Component NN` and the last `Cross-Component Synthesis`, seeds each body with `intent set`, and creates an empty `socrates.md` beside each view; it sets no objective. Do not run `intent wp new` after it (it would number after the synthesis WP): name each component with `intent set intent:///threads/ST{NNNN}/wp/{NN} title "<name>"`, then write its objective and body as below.
-
 `info.md` (the thread's and each WP's) and `acceptance.md` are generated views rendered from the store: do not edit them by hand, because `intent doctor` reports a hand edit as view skew and `intent sync --to-disk` discards it. Write their prose with `intent set` (below) and mint acceptance criteria with `intent ac new`. `intent st done` refuses while the thread has no criteria or any criterion is unsatisfied. It also refuses while any work package is still open (Not Started or WIP), the synthesis WP included: close each with `intent wp start` then `intent wp done` (`wp done` refuses a WP that was never started), or drop one with `intent wp cancel ST{NNNN}/{NN} --reason "<why>"`. `intent wp done` checks only a work package's own criteria (those numbered for it, `AC-<NN>.n`): a WP with none closes without a contract check once the thread has any criterion, while a thread with no criteria at all refuses it too, and a WP whose own criteria are all descoped or withdrawn is refused. Give each component WP its own criteria if its close should mean anything. The audit's own documents are files you write into the thread directory and then record in the store with `intent st attach ST{NNNN} <file> --from intent/st/ST{NNNN}/<file>`; until they are attached, `intent organize --verbose` counts them as unclaimed, one line per directory (`unclaimed: <dir>/ (<n> file(s))`):
 
 ```
@@ -328,7 +326,7 @@ intent/st/ST{NNNN}/
         └── socrates.md
 ```
 
-Head design.md's rule-pack section `## The rule set`: `/in-tca-finish` refuses a design.md that lacks the literal lowercase `rule set` (or `Rule <N>` / `R<N>`), and `## Rule Set` does not match.
+Head design.md's rule-pack section `## The rule set`: the synthesis and the feedback report cite it by that name.
 
 ### WP body template
 
@@ -367,7 +365,7 @@ Special focus: `IN-<LANG>-<CAT>-NNN` ({reason}), `IN-<LANG>-<CAT>-MMM` ({reason}
 For each WP, identify 2-4 other WPs that might contain overlapping logic. Record these as:
 
 1. **In the WP body** (rendered into its `info.md`): A "Cross-WP Highlander Dependencies" section listing which WPs and what logic might overlap
-2. **In `socrates.md`, after the audit**: the wrapper's "Cross-WP Highlander notes" section (§1.1), under the verbatim critic report. Leave `socrates.md` empty until then: `tca-progress.sh` counts any non-empty `socrates.md` as Complete, and `tca-init.sh` refuses to re-run over one.
+2. **In `socrates.md`, after the audit**: the wrapper's "Cross-WP Highlander notes" section (§1.1), under the verbatim critic report. Leave `socrates.md` empty until then, so a non-empty one means the component's audit ran.
 
 This way, the audit wrapper records suspects that the synthesis WP can cross-reference; the critic sees only its own WP's files. Without this, cross-WP violations are invisible until Phase 2 and much harder to find retroactively.
 
@@ -432,7 +430,7 @@ At the default `severity_min: warning` a critic lists only CRITICAL and WARNING 
 
 ### Capturing the report
 
-The critic writes its report directly to its return value. The audit wrapper (`/in-tca-audit` skill) writes the verbatim report to `WP/{NN}/socrates.md` with a small header:
+The critic writes its report directly to its return value. The auditing session writes the verbatim report to `WP/{NN}/socrates.md` with a small header:
 
 ```markdown
 # WP-{NN} {Component Name} -- Critic Audit
@@ -598,7 +596,7 @@ Cluster violations by **root cause and fix**, not by rule number:
 
 > **Important**: Use all five tiers consistently. The P2a/P2b split matters because mechanical fixes (add @impl, add SAFETY comments) are grep-fixable in bulk, while refactoring (extract thick coordinator) requires careful design.
 
-Default tier by critic severity: CRITICAL -> P0, WARNING -> P1 (Highlander) or P2a (mechanical), RECOMMENDATION -> P2b, STYLE -> P3. A finding on `IN-AG-HIGHLANDER-001` (critical) or on a rule in its `concretised_by:` list is always P1. `/in-tca-synthesize` applies this mapping.
+Default tier by critic severity: CRITICAL -> P0, WARNING -> P1 (Highlander) or P2a (mechanical), RECOMMENDATION -> P2b, STYLE -> P3. A finding on `IN-AG-HIGHLANDER-001` (critical) or on a rule in its `concretised_by:` list is always P1. The synthesis WP applies this mapping.
 
 ### P0: Bugs & Crash Risks
 
@@ -748,6 +746,10 @@ After remediation, add enforcement:
 | Pre-commit hook | `mix compile --warnings-as-errors` | `cargo check`                 | `swift build`   |
 | Code review     | Checklist from rule set            | Same                          | Same            |
 
+## 4.5 The Feedback Report
+
+The audit closes on `feedback-report.md`, a top-level file of the TCA thread and never a work package, recorded with `intent st attach ST{NNNN} feedback-report.md --from intent/st/ST{NNNN}/feedback-report.md`. It carries the audit statistics with a per-WP breakdown (files, raw findings, false positives), the rule analysis (which rules produced the most findings and which the most false positives), the WP sizing assessment, how the critic dispatch performed, the process improvements this document should take for next time, a comparison with earlier audits where there is one, and the metrics summary (raw findings, unique after deduplication, fixed, false positives, deferred). Write it after remediation and before the thread closes, so no session doc claims the audit complete while the report does not exist (Invariant 1).
+
 # Appendix A: Scaling Considerations
 
 ## Small Projects (<50 files)
@@ -818,7 +820,7 @@ TypeScript / React rules are a future-work item — no `typescript/` or `react/`
 
 # Appendix C: Quick-Start Checklist
 
-For a new project audit, use `/in-tca-init` or follow this manual checklist:
+For a new project audit, follow this checklist:
 
 - [ ] Select rule packs per ecosystem (`agnostic` + `<lang>/code` + `<lang>/test`; framework subdirs auto-load via critic)
 - [ ] Author project `.intent_critic.yml` if any IN-\* rules need to be disabled or thresholds adjusted
@@ -829,21 +831,21 @@ For a new project audit, use `/in-tca-init` or follow this manual checklist:
 - [ ] Identify Ash DSL resources, emission/struct files, dead stubs
 - [ ] Map files into 8-15 WPs (12-20 effective files each)
 - [ ] Create the steel thread with `intent st new "TCA: <scope>" --start`; write design.md and tasks.md into its directory; mint acceptance criteria with `intent ac new`; record design.md and tasks.md with `intent st attach ST{NNNN} <file> --from intent/st/ST{NNNN}/<file>`
-- [ ] Create each WP with `intent wp new`, synthesis last; write each WP's objective and body with `intent set` (§0.3; skip the `intent wp new` part if `/in-tca-init` ran)
+- [ ] Create each WP with `intent wp new`, synthesis last; write each WP's objective and body with `intent set` (§0.3)
 - [ ] Run Phase 0.5 pre-filtering (grep for IN-EX-CODE-002 / -003 / debug artifacts)
 - [ ] Verify file manifests (all listed files exist)
 - [ ] Confirm critics are registered (restart session if any installed mid-session)
-- [ ] For each WP (`/in-tca-audit`):
+- [ ] For each WP:
   - [ ] Run `/compact` first
   - [ ] `intent wp start ST{NNNN}/{NN}` before the dispatch
   - [ ] Dispatch `Task(subagent_type="critic-<lang>", prompt="review <files>")` (+ `test-check` for test files)
   - [ ] Capture critic report verbatim into WP/{NN}/socrates.md with the wrapper header
   - [ ] `intent st attach ST{NNNN} WP/{NN}/socrates.md --from intent/st/ST{NNNN}/WP/{NN}/socrates.md`, then `intent wp done ST{NNNN}/{NN}`
   - [ ] Commit socrates.md immediately after completion
-- [ ] Write synthesis WP (`/in-tca-synthesize`): cluster by root cause across IN-\* IDs, 5-tier priority
-- [ ] Review with project owner (`/in-tca-remediate` for execution)
+- [ ] Write synthesis WP: cluster by root cause across IN-\* IDs, 5-tier priority
+- [ ] Review with project owner
 - [ ] Execute remediation batches in main conversation with verification gates
-- [ ] Wrap up (`/in-tca-finish`): write `feedback-report.md` with `tca-report.sh --tca-dir intent/st/ST{NNNN} -o intent/st/ST{NNNN}/feedback-report.md` and replace every `[Fill in` placeholder; satisfy the criteria; `tca-report.sh --check-only` must pass (it needs WP/, a design.md containing `rule set`, the report with no placeholder, and runs `intent ac gate ST{NNNN}` itself, refusing while BLOCKED); close every WP, then `intent st done ST{NNNN}`; update the ST docs.
+- [ ] Wrap up: write `feedback-report.md` (§4.5); satisfy the criteria and run `intent ac gate ST{NNNN}` until it no longer reports BLOCKED; close every WP, then `intent st done ST{NNNN}`; update the ST docs.
 
 # Appendix D: Reference Implementations
 

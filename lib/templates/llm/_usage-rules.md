@@ -32,7 +32,7 @@ Auto-loaded by `/in-session`:
 
 On demand — invoked by name or chained from another skill:
 
-- `/in-review`, `/in-verify`, `/in-debug`, `/in-finish` — review / verify / debug / wrap-up flows.
+- `/in-review`, `/in-verify`, `/in-finish` — review / verify / wrap-up flows.
 
 Full list: `intent claude skills list`.
 

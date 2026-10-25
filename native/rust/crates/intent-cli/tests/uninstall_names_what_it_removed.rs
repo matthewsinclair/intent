@@ -3,7 +3,7 @@
 //! The two halves of one line, as it stood:
 //!
 //! ```text
-//!   in-debug  removed (<n> file(s)); left 1 this build did not install: NOTES.md
+//!   in-verify  removed (<n> file(s)); left 1 this build did not install: NOTES.md
 //! ```
 //!
 //! `NOTES.md` survived and is named. The files that are gone are a number.
@@ -35,17 +35,17 @@ fn run(home: &Path, args: &[&str]) -> (i32, String) {
 #[test]
 fn removing_a_skill_names_the_files_it_deleted() {
   let home = tempfile::tempdir().expect("tempdir");
-  let (code, text) = run(home.path(), &["claude", "skills", "install", "in-debug"]);
+  let (code, text) = run(home.path(), &["claude", "skills", "install", "in-verify"]);
   assert_eq!(code, 0, "could not install the fixture skill: {text}");
   assert!(
     home
       .path()
-      .join(".claude/skills/in-debug/SKILL.md")
+      .join(".claude/skills/in-verify/SKILL.md")
       .is_file(),
     "the fixture skill is not on disk"
   );
 
-  let (code, text) = run(home.path(), &["claude", "skills", "uninstall", "in-debug"]);
+  let (code, text) = run(home.path(), &["claude", "skills", "uninstall", "in-verify"]);
   assert_eq!(code, 0, "uninstall refused: {text}");
   assert!(
     text.contains("SKILL.md"),
@@ -54,7 +54,7 @@ fn removing_a_skill_names_the_files_it_deleted() {
   assert!(
     !home
       .path()
-      .join(".claude/skills/in-debug/SKILL.md")
+      .join(".claude/skills/in-verify/SKILL.md")
       .exists(),
     "the test proves nothing: the file is still there"
   );
@@ -88,13 +88,13 @@ fn removing_a_subagent_names_the_file_it_deleted() {
 #[test]
 fn a_file_this_build_did_not_write_is_still_named_and_still_kept() {
   let home = tempfile::tempdir().expect("tempdir");
-  let (code, text) = run(home.path(), &["claude", "skills", "install", "in-debug"]);
+  let (code, text) = run(home.path(), &["claude", "skills", "install", "in-verify"]);
   assert_eq!(code, 0, "install failed: {text}");
 
-  let stray = home.path().join(".claude/skills/in-debug/NOTES.md");
+  let stray = home.path().join(".claude/skills/in-verify/NOTES.md");
   std::fs::write(&stray, "the operator's own notes\n").expect("plant a stray file");
 
-  let (_, text) = run(home.path(), &["claude", "skills", "uninstall", "in-debug"]);
+  let (_, text) = run(home.path(), &["claude", "skills", "uninstall", "in-verify"]);
   assert!(
     text.contains("NOTES.md"),
     "the file it kept is no longer named: {text}"

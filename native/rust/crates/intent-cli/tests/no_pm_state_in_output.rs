@@ -667,17 +667,6 @@ fn collect_text_files(dir: &Path, out: &mut Vec<(PathBuf, String)>) {
   }
 }
 
-/// Files whose whole subject is the SHAPE of an acceptance record, where a
-/// `WP-01` or an `AC-01.1` is the format being taught rather than a pointer.
-///
-/// **THE EXEMPTION IS PROVEN, NOT ASSERTED** -- see
-/// [`the_template_exemption_covers_only_real_templates`]. It is also NARROW: it
-/// reaches thread-relative ids only, so a resolving `STnnnn` in one of these
-/// files still fires. That mattered because the acceptance template, deleted
-/// under issue 0331, DID carry one (`Exemption (ST0048)`), and an exemption
-/// keyed to the file rather than to the id class would have swallowed it.
-const FORMAT_TEMPLATES: [&str; 1] = ["intent/plugins/claude/skills/in-tca-synthesize/SKILL.md"];
-
 /// Every AT id that CITES a given payload file, read from the register.
 ///
 /// **THE REGISTER REQUIRES A CITED FILE TO NAME THE ROW THAT CITES IT** -- the
@@ -721,44 +710,9 @@ fn register_ids_for(rel: &str) -> BTreeSet<String> {
   out
 }
 
-/// A marker that a file is teaching a shape: a `{placeholder}`, a run of `X`
-/// standing for a count, or a `####` path segment that no thread id can match.
-fn looks_like_a_template(path: &str, text: &str) -> bool {
-  path.contains("####") || text.contains("| {") || text.contains("{name}")
-}
-
-/// **THE EXEMPTION CAN ONLY EVER COVER A TEMPLATE, AND ONLY EVER A
-/// THREAD-RELATIVE ID.** Both halves are checked here rather than trusted at
-/// the call site, so adding a path to `FORMAT_TEMPLATES` that is not a template,
-/// or one that later grows a real citation, fails loudly instead of quietly
-/// widening the hole.
-#[test]
-fn the_template_exemption_covers_only_real_templates() {
-  let real = real_thread_ids();
-  let root = repo_root();
-  for rel in FORMAT_TEMPLATES {
-    let path = root.join(rel);
-    let text = std::fs::read_to_string(&path)
-      .unwrap_or_else(|_| panic!("`{rel}` is exempted and must exist"));
-    assert!(
-      looks_like_a_template(rel, &text),
-      "`{rel}` is exempted as a format template and carries no template marker"
-    );
-    let resolving: Vec<String> = pm_identifiers(&text, Decisions::Ambiguous)
-      .into_iter()
-      .filter(|id| id.starts_with("ST") && real.contains(id))
-      .collect();
-    assert!(
-      resolving.is_empty(),
-      "`{rel}` is exempted for its PLACEHOLDERS and carries a real citation: {resolving:?}"
-    );
-  }
-}
-
 /// The citations in one payload file: identifiers that point into Intent's own
 /// tracker rather than teaching a consumer a shape.
 fn citations_in_at(path: &str, text: &str, real: &BTreeSet<String>) -> Vec<String> {
-  let exempt = FORMAT_TEMPLATES.contains(&path);
   let structural = if path.is_empty() {
     BTreeSet::new()
   } else {
@@ -772,10 +726,9 @@ fn citations_in_at(path: &str, text: &str, real: &BTreeSet<String>) -> Vec<Strin
         real.contains(id)
       } else {
         // `WP-nn`, `AC-n.n`, `AT-n.n`, `issue nnnn` -- no thread context, so nothing to
-        // resolve against and nothing it can be but a citation, EXCEPT in a
-        // file whose subject is the shape of an acceptance record, or where the
+        // resolve against and nothing it can be but a citation, EXCEPT where the
         // register itself demands the file name the row that cites it.
-        !exempt && !structural.contains(id)
+        !structural.contains(id)
       }
     })
     .collect()

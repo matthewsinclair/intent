@@ -168,23 +168,16 @@ All skills install to `~/.claude/skills/<name>/SKILL.md` and auto-load into ever
 | `/in-plan`                | Produce a plan before touching code                                  |
 | `/in-review`              | Two-stage review — general reviewer + language-specific critic       |
 | `/in-verify`              | Verification gate before declaring a task done                       |
-| `/in-debug`               | Systematic debugging flow                                            |
 | `/in-finish`              | Session wrap-up — updates wip.md, restart.md, prompts for commit     |
 | `/in-whiteboard`          | Cross-session coordination channel (opt-in by `intent/whiteboard/`)  |
 | `/in-detrope`             | Trope detection and remediation                                      |
 | `/in-autopsy`             | Post-session autopsy for recurring corrections                       |
-| `/in-cost-analysis`       | Analyse session costs                                                |
 | `/in-elixir-essentials`   | Elixir code rules                                                    |
 | `/in-elixir-testing`      | Elixir test rules                                                    |
 | `/in-ash-ecto-essentials` | Ash + Ecto conventions                                               |
 | `/in-phoenix-liveview`    | Phoenix + LiveView patterns                                          |
 | `/in-author-essentials`   | Authoring pipeline for prose + courseware (author pack)              |
 | `/in-content-essentials`  | Web content pipeline for pages, posts, marketing copy (content pack) |
-| `/in-tca-init`            | TCA (Total Codebase Audit) provisioning                              |
-| `/in-tca-audit`           | TCA audit execution                                                  |
-| `/in-tca-synthesize`      | TCA synthesis step                                                   |
-| `/in-tca-remediate`       | TCA remediation step                                                 |
-| `/in-tca-finish`          | TCA wrap-up                                                          |
 
 Run `/in-session` immediately after `/compact`, any context reset, or at session start.
 

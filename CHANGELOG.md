@@ -27,6 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`intent wb archive` names its address `id`, as `intent wb edit` does** (issue 0631). The two verbs take the same address, an item's number within its kind or a message's anchor, and `wb archive` called it `seq`, so over MCP a client sent `seq` to one and `id` to the other. The argument is `id` in the command's help, the dispatch table, the in-whiteboard skill and the MCP tool's input, and a client still sending `seq` meets the refusal every unknown key meets: no alias is kept.
 
+### Removed
+
+- **The Total Codebase Audit skills, `in-cost-analysis` and `in-debug` leave the skills catalogue** (ST0088). The five `in-tca-*` skills go with their scripts; the audit stays as the written procedure in `intent/docs/total-codebase-audit.md`, which names the critics and the verbs each phase runs. `in-cost-analysis` goes with its metrics script and its rates table, and `in-debug` goes with it.
+
 ### Fixed
 
 - **Intent.app's menu shows `Intent <version>` over its commit and kind, as Gtools' and menuz's do, and its Open item opens the web face with the daemon's token** (issue 0646). The app's version reader predated 3.2.7's version line, `intent <version> (<tree>, <sha>) at <root> <kind>`, so it took the whole line as the version and the top row showed it raw. It now reads that line, shows the sha's first eight characters, keeps `+dirty`, and never shows the root; the older shapes read as before. Open opened the bare address of `/estate/status`, which carries no token, so every read the page made was refused and the page showed the daemon's `Authorization: Bearer` refusal. Open now runs `intent estate status --browser` through the `intent` the app resolves, so the token arrives in the link, and the page, given no token or one the daemon no longer admits, says in one sentence how to open it.
