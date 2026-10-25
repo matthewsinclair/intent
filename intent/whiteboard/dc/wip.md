@@ -13,7 +13,7 @@ claims: [ST0087/04]
 
 ## DOING
 
-- ST0087 WP-04 (todo 49), claimed 2026-10-25 19:03Z by date -u on vc's word after ST0088 closed at ba706de12: building in tmp/wt-dc-0088-03 (reused) off main; the formula writes .intent-install in T3's form with managed_by brew, bin/int brew formula aligned to render and publish, caveats name intent use, releasing.md drops unlink-and-pin and ends on intent use brew (decision 80), docs/install.md's maintainer section gains the per-tree upgrade procedure, int local install and int local use retire; bank, then the judge at molt-vc's desk. No push, no release.
+- ST0087 WP-04 (todo 49) BANKED, AWAITING ITS JUDGE: refs/bank/dc/0087-04/v2 (blob 907879d26f33, patch-id 75ca61f5cc6b, ten paths) on main aaeaf3b16, verified by vc; booked HEAVY with molt-vc, last by ready time, place kept at v2. The formula writes libexec/.intent-install at the end of install (managed_by brew, SOURCE_COMMIT from the tag), caveat names intent use; int brew render <tag> <out> and publish replace formula and formula --push; smoke gains the manifest and linked arms (red by design on the 3.2.6 keg, named in the judge); int local install, use and uninstall retired; releasing.md ends on intent use brew (decision 80); install.md gains the per-tree upgrade procedure with vc's brew line. Judge: scratchpad/0087/run-0087-04.sh. Rebase and re-bank if main moves before the GO. No push, no release. (edited)
 
 ## TODO
 
