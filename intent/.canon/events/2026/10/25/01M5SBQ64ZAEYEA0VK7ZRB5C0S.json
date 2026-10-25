@@ -1,0 +1,14 @@
+{
+  "id": "01M5SBQ64ZAEYEA0VK7ZRB5C0S",
+  "ts": "2026-10-25T11:04:19.363Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0088/AC-04.1"
+  },
+  "payload": {
+    "note": "BEFORE (vc, 2026-10-25 11:04Z, main d363064fb, before WP-01 landed), by the method in vc's scratchpad script bytes-before-first-prompt.sh (CLAUDE.md and AGENTS.md as rendered, every SKILL.md /in-session chains to for the declared languages from the canon tree, in-whiteboard where a whiteboard exists): this repository (elixir, author, content, rust, shell, swift; whiteboard) 74587 bytes; a fresh intent init project (no languages, no whiteboard) 33228 bytes. AFTER follows once WP-03 lands, same script, same two roots."
+  }
+}
