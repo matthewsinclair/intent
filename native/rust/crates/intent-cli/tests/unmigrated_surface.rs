@@ -600,8 +600,11 @@ fn a_family_wide_exemption_covers_only_the_verbs_it_was_ruled_for() {
       &["logs", "restart", "run", "start", "status", "stop"],
     ),
     // The host estate (ST0086): every verb reads Claude Code's session files
-    // and the operator's state dir and opens no project store.
-    ("estate", &["prune", "status", "wip"]),
+    // or reads and writes the operator's state dir, and opens no project store.
+    (
+      "estate",
+      &["prune", "status", "statusline", "unwatch", "watch", "wip"],
+    ),
     ("mcp", &[]),
     ("plugin", &["list", "show"]),
   ];

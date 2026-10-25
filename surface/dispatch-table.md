@@ -4653,12 +4653,15 @@ Every Claude session on this host: who it is, where it stands, and what it is do
 - NEW SURFACE with no v2 antecedent, from ST0086 (the estate view). The estate is the HOST, not a project: these verbs answer the same wherever they are run, and none of them opens a project store.
 - Presence is Claude Code's own per-session file, read and never written (hv's ruling of 2026-10-24, ST0086 design.md); Intent adds only what that file lacks, and the one thing it writes per session is the WIP line `estate wip` sets for a session with no board. `status` renders what `intentsvcs::estate::status` returns, and `--format json` is that answer's own serialisation, the boundary the page and the TUI read too.
 
-| command         | args      | flags                             | help                                                                                               | disposition |
-| --------------- | --------- | --------------------------------- | -------------------------------------------------------------------------------------------------- | ----------- |
-| `estate`        | <command> | --                                | Every Claude session on this host: who it is, where it stands, and what it is doing                | new-surface |
-| `estate status` | --        | --format terminal/json, --browser | List every Claude session on this host with its project, node, state, claims and WIP or focus line | new-surface |
-| `estate wip`    | [line]    | --clear, --session                | Set or clear this session's WIP line, for a session that is not a whiteboard node                  | new-surface |
-| `estate prune`  | --        | --                                | Remove Intent's own WIP records for sessions that are gone; Claude Code's files are never touched  | new-surface |
+| command             | args              | flags                             | help                                                                                                         | disposition |
+| ------------------- | ----------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------ | ----------- |
+| `estate`            | <command>         | --                                | Every Claude session on this host: who it is, where it stands, and what it is doing                          | new-surface |
+| `estate status`     | --                | --format terminal/json, --browser | List every Claude session on this host with its project, node, state, claims and WIP or focus line           | new-surface |
+| `estate wip`        | [line]            | --clear, --session                | Set or clear this session's WIP line, for a session that is not a whiteboard node                            | new-surface |
+| `estate prune`      | --                | --                                | Remove Intent's own WIP records for sessions that are gone; Claude Code's files are never touched            | new-surface |
+| `estate watch`      | <class> <pattern> | --                                | Declare a census class, or change its pattern: the daemon counts the processes whose command line matches it | new-surface |
+| `estate unwatch`    | <class>           | --                                | Remove a census class: the daemon stops counting it and the page stops listing it                            | new-surface |
+| `estate statusline` | --                | --                                | Keep the plan usage a statusline input carries, read from stdin, as this host's usage fallback               | new-surface |
 
 ### `estate`
 
@@ -4736,6 +4739,53 @@ Remove Intent's own WIP records for sessions that are gone; Claude Code's files 
 - **basis:** ST0086 design.md, Cleanup: `intent estate prune` does what the daemon's reap does where no daemon runs.
 - **owner wp:** WP-01
 - **recoverability:** one-way
+
+### `estate watch`
+
+Declare a census class, or change its pattern: the daemon counts the processes whose command line matches it
+
+- **v2:** new-surface
+- **Arguments:**
+  - `class` (string, arity `1`)
+  - `pattern` (string, arity `1`)
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** not exposed -- **mutates**
+- **when to use:** USE IT as the host's controller, to add a process class to the estate's census, or to change the pattern of one already declared; the next census tick counts it, by project. The class is a name (letters, digits, `-`, `_`) and the pattern a regular expression matched against each process's command line. It prints the watch file it wrote. DO NOT USE IT to stop counting a class: that is `intent estate unwatch`.
+- **basis:** ST0086 design.md, the host census: the controller declares the classes, each a name and a pattern, written as census/watches/<class>.json (vc decision 75: a flat verb, the spine builds no third level).
+- **owner wp:** WP-02
+- **recoverability:** reversible
+- **recoverability anomaly:** REVERSIBLE AND WITHHELD, ON vc's RULING OF 2026-10-25 (decision 75): a new pattern replaces the old one and any pattern can be written back, which is `estate wip`'s class, but the declaration it writes or replaces is the controller's rather than the calling agent's own, so an agent re-patterning a class a person declared changes what the whole estate page counts; that is `set`'s authorship reason for withholding.
+
+### `estate unwatch`
+
+Remove a census class: the daemon stops counting it and the page stops listing it
+
+- **v2:** new-surface
+- **Arguments:**
+  - `class` (string, arity `1`)
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** not exposed -- **mutates**
+- **MCP note:** WITHHELD BECAUSE IT IS ONE-WAY (vc, 2026-10-25, decision 75): it removes a declaration whose pattern nothing else keeps. A repeat is a no-op, but the first run is the act that counts.
+- **when to use:** USE IT as the host's controller, to take a process class out of the estate's census. It prints the watch file it removed, or says the class was not declared and changes nothing. DO NOT USE IT to change a pattern: `intent estate watch` replaces it in place.
+- **basis:** ST0086 design.md, the host census: `unwatch <class>` (vc decision 75: a flat verb, the spine builds no third level).
+- **owner wp:** WP-02
+- **recoverability:** one-way
+
+### `estate statusline`
+
+Keep the plan usage a statusline input carries, read from stdin, as this host's usage fallback
+
+- **v2:** new-surface
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** not exposed -- **mutates**
+- **when to use:** USE IT as one step of a Claude Code statusline command: pipe the JSON Claude Code hands that command into it, with stdout untouched and the exit code ignored, `printf '%s' "$input" | intent estate statusline || :`, so a missing or broken intent never blanks the status bar, and the latest `rate_limits` it carries become the estate's usage fallback for that session. It prints its `wrote:` line on stderr, so the script's own stdout stays the status line. An input with no `rate_limits` (before the session's first API response, or on a plan that reports none) writes and prints nothing. DO NOT USE IT by hand: it refuses when stdin is a terminal, because the input is what Claude Code sends the statusline command and nothing else has it.
+- **basis:** ST0086 design.md, Plan usage: the fallback reaches the estate only through a statusline step that writes the latest copy into the session's Intent record; defining that step is WP-02's (hv's ruling of 2026-10-24, vc decision 74).
+- **owner wp:** WP-02
+- **recoverability:** idempotent
+- **recoverability anomaly:** IDEMPOTENT AND WITHHELD: the same input writes the same record, so a repeat changes nothing, which is the class MCP offers; but its only input is the JSON Claude Code pipes to a statusline command, which an agent does not hold, so a tool would only ever be called with an input it made up.
 
 ## Known exposures -- defects this file does not have, and is not protected against
 

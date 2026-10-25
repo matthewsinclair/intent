@@ -9553,7 +9553,61 @@
           "mcp_review": {
             "note": "WITHHELD BECAUSE IT IS ONE-WAY (vc, 2026-10-24): it deletes records nothing can restore. A repeat is a no-op, but the first run is the act that counts, and an agent should not start it unasked."
           }
+        },
+        {
+          "path": "estate watch",
+          "help": "Declare a census class, or change its pattern: the daemon counts the processes whose command line matches it",
+          "when_to_use": "USE IT as the host's controller, to add a process class to the estate's census, or to change the pattern of one already declared; the next census tick counts it, by project. The class is a name (letters, digits, `-`, `_`) and the pattern a regular expression matched against each process's command line. It prints the watch file it wrote. DO NOT USE IT to stop counting a class: that is `intent estate unwatch`.",
+          "args": [
+            { "name": "class", "type": "string", "arity": "1" },
+            { "name": "pattern", "type": "string", "arity": "1" }
+          ],
+          "v2": "new-surface",
+          "basis": "ST0086 design.md, the host census: the controller declares the classes, each a name and a pattern, written as census/watches/<class>.json (vc decision 75: a flat verb, the spine builds no third level).",
+          "owner_wp": "WP-02",
+          "target": { "state": "new-surface" },
+          "disposition": "new-surface",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible",
+          "recoverability_anomaly": "REVERSIBLE AND WITHHELD, ON vc's RULING OF 2026-10-25 (decision 75): a new pattern replaces the old one and any pattern can be written back, which is `estate wip`'s class, but the declaration it writes or replaces is the controller's rather than the calling agent's own, so an agent re-patterning a class a person declared changes what the whole estate page counts; that is `set`'s authorship reason for withholding.",
+          "flags": []
+        },
+        {
+          "path": "estate unwatch",
+          "help": "Remove a census class: the daemon stops counting it and the page stops listing it",
+          "when_to_use": "USE IT as the host's controller, to take a process class out of the estate's census. It prints the watch file it removed, or says the class was not declared and changes nothing. DO NOT USE IT to change a pattern: `intent estate watch` replaces it in place.",
+          "args": [{ "name": "class", "type": "string", "arity": "1" }],
+          "v2": "new-surface",
+          "basis": "ST0086 design.md, the host census: `unwatch <class>` (vc decision 75: a flat verb, the spine builds no third level).",
+          "owner_wp": "WP-02",
+          "target": { "state": "new-surface" },
+          "disposition": "new-surface",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate",
+          "recoverability": "one-way",
+          "flags": [],
+          "mcp_review": {
+            "note": "WITHHELD BECAUSE IT IS ONE-WAY (vc, 2026-10-25, decision 75): it removes a declaration whose pattern nothing else keeps. A repeat is a no-op, but the first run is the act that counts."
+          }
+        },
+        {
+          "path": "estate statusline",
+          "help": "Keep the plan usage a statusline input carries, read from stdin, as this host's usage fallback",
+          "when_to_use": "USE IT as one step of a Claude Code statusline command: pipe the JSON Claude Code hands that command into it, with stdout untouched and the exit code ignored, `printf '%s' \"$input\" | intent estate statusline || :`, so a missing or broken intent never blanks the status bar, and the latest `rate_limits` it carries become the estate's usage fallback for that session. It prints its `wrote:` line on stderr, so the script's own stdout stays the status line. An input with no `rate_limits` (before the session's first API response, or on a plan that reports none) writes and prints nothing. DO NOT USE IT by hand: it refuses when stdin is a terminal, because the input is what Claude Code sends the statusline command and nothing else has it.",
+          "args": [],
+          "v2": "new-surface",
+          "basis": "ST0086 design.md, Plan usage: the fallback reaches the estate only through a statusline step that writes the latest copy into the session's Intent record; defining that step is WP-02's (hv's ruling of 2026-10-24, vc decision 74).",
+          "owner_wp": "WP-02",
+          "target": { "state": "new-surface" },
+          "disposition": "new-surface",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate",
+          "recoverability": "idempotent",
+          "recoverability_anomaly": "IDEMPOTENT AND WITHHELD: the same input writes the same record, so a repeat changes nothing, which is the class MCP offers; but its only input is the JSON Claude Code pipes to a statusline command, which an agent does not hold, so a tool would only ever be called with an input it made up.",
+          "flags": []
         }
+
       ]
     }
   ],
@@ -10794,8 +10848,8 @@
     {
       "disposition": "new-surface",
       "target_state": "new-surface",
-      "n": 90,
-      "census_note": "90 since 2026-10-25: the `estate` family and its three verbs (`estate`, `estate status`, `estate wip`, `estate prune`), the host's Claude sessions answered from no project (ST0086 WP-01); 86 since 2026-10-23: `lang declared`, `lang of` and `guards`, the read verbs that print for a script what the binary already parses -- a project's declared languages, a path's language and the declared commit guards (issues 0618, 0617 and 0616); 83 since 2026-10-16: `deinit`, the door that strips what Intent wrote from a project being closed (ST0083 WP-06); 82 since 2026-10-15: `agents layout`, the door that moves the two agent contracts between the root and .claude/ and sets the contracts key (ST0083 WP-03); 81 since 2026-09-23: `wb edit`, the door that changes an item's text and keeps the old text out of any commit that does not hold it yet (issue 0523); 80 since 2026-09-21: `outstanding`, one table of the outstanding threads, work packages and issues (ST0079); 79 since 2026-09-21: `st relate` and `st unrelate`, the only doors to a thread's `related` links (issue 0460); 77 since 2026-09-18: `st renumber` and `issues renumber`, the verbs that move a thread or an issue to a free id after two clones minted the same one (ST0078 WP-02); 75 since 2026-09-17: `index resolve`, the verb that runs each language's toolchain over the project and stores the references that join a written one (ST0076 WP-05, vc decision 25); 74 since 2026-09-14: `st detach`, the verb that removes an attachment's record from the store and canon and leaves its file on disk (issue 0394); 73 earlier the same day: `wp gate`, the work package's own close-gate verdict (issue 0310); 72 earlier the same day: `daemon logs`, the verb Intent.app's Console tails, printing intentd's recent log lines and following them with `--follow` (ST0075 WP-01 AC-01.1); 71 since 2026-09-13: `discover`, the verb that finds Intent projects under a directory and registers the ones this build can serve (ST0074 WP-03 AC-03.3); 70 since 2026-09-12: `wb migrate`, the verb that carries a hand-authored board into the model (ST0069 WP-14 AC-14.9); 69 earlier the same day: `wb add`, the door the generated view would otherwise have closed (ST0069 WP-14); 68 earlier the same day: `wb archive` (ST0069 WP-14 AC-14.6, vc's ruling that the state change IS the schedule); 67 earlier the same day: `wb pickup`, `wb touch` and `wb release`, the lifecycle half of the `wb` family (ST0069 WP-14); 64 earlier the same day: `wb decide`, `wb claim` and `wb unclaim`, the item half of the `wb` family (ST0069 WP-14); 61 earlier the same day: `wb ask`, `wb announce` and `wb clear`, the message half of the `wb` family (ST0069 WP-14 AC-14.5); 58 earlier the same day: `wb status` and `wb show`, the read half of the `wb` family (ST0069 WP-14 AC-14.7); 56 earlier the same day: the `wb` family and `wb register` (the same criterion); 54 earlier the same day: the `index` family and its two verbs (`index`, `index status`, `index rebuild`, ST0069 WP-19 AC-19.6); 51 since 2026-09-11 with `set` (issues 0154 + 0185, vc's option (1)); 50 before it, with `ac show` (issue 0168, vc's option (a)).",
+      "n": 93,
+      "census_note": "93 since 2026-10-25: `estate watch`, `estate unwatch` and `estate statusline`, the census classes the controller declares and the statusline step (ST0086 WP-02, vc decisions 74 and 75); 90 earlier the same day: the `estate` family and its three verbs (`estate`, `estate status`, `estate wip`, `estate prune`), the host's Claude sessions answered from no project (ST0086 WP-01); 86 since 2026-10-23: `lang declared`, `lang of` and `guards`, the read verbs that print for a script what the binary already parses -- a project's declared languages, a path's language and the declared commit guards (issues 0618, 0617 and 0616); 83 since 2026-10-16: `deinit`, the door that strips what Intent wrote from a project being closed (ST0083 WP-06); 82 since 2026-10-15: `agents layout`, the door that moves the two agent contracts between the root and .claude/ and sets the contracts key (ST0083 WP-03); 81 since 2026-09-23: `wb edit`, the door that changes an item's text and keeps the old text out of any commit that does not hold it yet (issue 0523); 80 since 2026-09-21: `outstanding`, one table of the outstanding threads, work packages and issues (ST0079); 79 since 2026-09-21: `st relate` and `st unrelate`, the only doors to a thread's `related` links (issue 0460); 77 since 2026-09-18: `st renumber` and `issues renumber`, the verbs that move a thread or an issue to a free id after two clones minted the same one (ST0078 WP-02); 75 since 2026-09-17: `index resolve`, the verb that runs each language's toolchain over the project and stores the references that join a written one (ST0076 WP-05, vc decision 25); 74 since 2026-09-14: `st detach`, the verb that removes an attachment's record from the store and canon and leaves its file on disk (issue 0394); 73 earlier the same day: `wp gate`, the work package's own close-gate verdict (issue 0310); 72 earlier the same day: `daemon logs`, the verb Intent.app's Console tails, printing intentd's recent log lines and following them with `--follow` (ST0075 WP-01 AC-01.1); 71 since 2026-09-13: `discover`, the verb that finds Intent projects under a directory and registers the ones this build can serve (ST0074 WP-03 AC-03.3); 70 since 2026-09-12: `wb migrate`, the verb that carries a hand-authored board into the model (ST0069 WP-14 AC-14.9); 69 earlier the same day: `wb add`, the door the generated view would otherwise have closed (ST0069 WP-14); 68 earlier the same day: `wb archive` (ST0069 WP-14 AC-14.6, vc's ruling that the state change IS the schedule); 67 earlier the same day: `wb pickup`, `wb touch` and `wb release`, the lifecycle half of the `wb` family (ST0069 WP-14); 64 earlier the same day: `wb decide`, `wb claim` and `wb unclaim`, the item half of the `wb` family (ST0069 WP-14); 61 earlier the same day: `wb ask`, `wb announce` and `wb clear`, the message half of the `wb` family (ST0069 WP-14 AC-14.5); 58 earlier the same day: `wb status` and `wb show`, the read half of the `wb` family (ST0069 WP-14 AC-14.7); 56 earlier the same day: the `wb` family and `wb register` (the same criterion); 54 earlier the same day: the `index` family and its two verbs (`index`, `index status`, `index rebuild`, ST0069 WP-19 AC-19.6); 51 since 2026-09-11 with `set` (issues 0154 + 0185, vc's option (1)); 50 before it, with `ac show` (issue 0168, vc's option (a)).",
       "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
     },
     {
@@ -11013,6 +11067,10 @@
       {
         "path": "estate prune",
         "why": "writes WHEN INVOKED BARE -- it is a LEAF, so bare RUNS it, removing Intent's WIP records for gone sessions under the operator's state directory. The rest of the family is probeable by the same criterion: bare `estate` dispatches to help, bare `estate status` reads, and bare `estate wip` refuses before it reaches a session or a path (vc, 2026-10-25, ST0086)."
+      },
+      {
+        "path": "estate watch",
+        "why": "writes WHEN INVOKED with the probe's values -- the sentinel is a valid class name and a valid pattern, so the probe would declare a census class under the operator's state directory. `estate unwatch` stays probeable: the sentinel names no declared class, so it removes nothing; `estate statusline` refuses the empty stdin the probe gives it (vc decision 75, ST0086)."
       }
     ],
     "declared": [
@@ -11181,6 +11239,9 @@
       "estate status",
       "estate wip",
       "estate prune",
+      "estate watch",
+      "estate unwatch",
+      "estate statusline",
       "search",
       "sync",
       "schema",
@@ -11354,6 +11415,9 @@
       "estate status",
       "estate wip",
       "estate prune",
+      "estate watch",
+      "estate unwatch",
+      "estate statusline",
       "search",
       "sync",
       "schema",
@@ -11535,6 +11599,8 @@
       "estate",
       "estate status",
       "estate wip",
+      "estate unwatch",
+      "estate statusline",
       "search",
       "sync",
       "schema",

@@ -114,6 +114,8 @@ When more than one agent works the same checkout, the index, the stash and the r
 
 `intent estate status --browser` opens the same answer as a page served by a running `intentd`, at `/estate/status`. It shows the machine's load, the last hour of load and running slots, plan usage, the queue of requests for a slot, the lanes and the sessions, and it reads the estate again every few seconds while it is open. Each panel folds, and a folded panel's heading keeps its one-line reading. In the explorer, `/estate` shows the sessions as a list, as [the explorer guide](explorer.md) describes.
 
+The census on that page counts the process classes the machine's controller declares, and nothing is built in: `intent estate watch <class> <pattern>` declares a class, or changes its pattern, as a regular expression matched against each process's command line, and `intent estate unwatch <class>` removes it. Plan usage comes from the account's usage endpoint when the daemon can read it; the fallback is the statusline step, where a Claude Code statusline script pipes the JSON it is handed to `intent estate statusline || :`. That verb prints nothing on stdout, so the status line stays the script's own.
+
 ## What this buys, and what it does not
 
 **It buys a context file that does not silently drift**, because it is generated from something that would have to change first and `intent doctor` says when it is behind, and rules with one home that three consumers read.

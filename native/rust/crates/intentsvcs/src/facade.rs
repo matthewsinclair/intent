@@ -7995,8 +7995,7 @@ impl Facade {
     session_id: &str,
     line: Option<&str>,
   ) -> Result<crate::estate::WipWritten, FacadeError> {
-    let dirs = crate::userstate::dirs().map_err(crate::estate::EstateError::from)?;
-    Ok(crate::estate::wip(&dirs, session_id, line)?)
+    Ok(crate::estate::host_wip(session_id, line)?)
   }
 
   /// Declares a census class, or changes its pattern, and answers the watch
@@ -8006,14 +8005,12 @@ impl Facade {
     class: &str,
     pattern: &str,
   ) -> Result<std::path::PathBuf, FacadeError> {
-    let dirs = crate::userstate::dirs().map_err(crate::estate::EstateError::from)?;
-    Ok(crate::estate::census::watch(&dirs, class, pattern)?)
+    Ok(crate::estate::host_census_watch(class, pattern)?)
   }
 
   /// Removes a census class; the answer says whether one was declared.
   pub fn estate_census_unwatch(&self, class: &str) -> Result<bool, FacadeError> {
-    let dirs = crate::userstate::dirs().map_err(crate::estate::EstateError::from)?;
-    Ok(crate::estate::census::unwatch(&dirs, class)?)
+    Ok(crate::estate::host_census_unwatch(class)?)
   }
 
   /// Keeps the plan usage a statusline input carries, from `text`, the JSON
@@ -8023,8 +8020,7 @@ impl Facade {
     &self,
     text: &str,
   ) -> Result<Option<std::path::PathBuf>, FacadeError> {
-    let dirs = crate::userstate::dirs().map_err(crate::estate::EstateError::from)?;
-    Ok(crate::estate::usage::report(&dirs, text)?)
+    Ok(crate::estate::host_statusline_report(text)?)
   }
 
   pub fn boards(&self) -> Result<Vec<Board>, FacadeError> {

@@ -720,7 +720,7 @@
       } else if (!c.procs.length) {
         // An empty census is not an estate with no classes: until the daemon has
         // measured, load is empty too, and that is what this says.
-        rows.push(line([["k", "procs    "], ["muted", c.load.length ? "no classes declared (intent estate census watch)" : "not measured yet"]]));
+        rows.push(line([["k", "procs    "], ["muted", c.load.length ? "no classes declared (intent estate watch <class> <pattern>)" : "not measured yet"]]));
       }
       rows.push(line([["k", "sessions "], String(s.sessions.length)]));
       if (s.sessions.length) { rows.push(line([["k", "         "], tallyText(ix)])); }

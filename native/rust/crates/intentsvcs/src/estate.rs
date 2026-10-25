@@ -875,6 +875,21 @@ pub fn host_wip(session_id: &str, line: Option<&str>) -> Result<WipWritten, Esta
   wip(&crate::userstate::dirs()?, session_id, line)
 }
 
+/// [`census::watch`] under the operator's own directories.
+pub fn host_census_watch(class: &str, pattern: &str) -> Result<PathBuf, EstateError> {
+  census::watch(&crate::userstate::dirs()?, class, pattern)
+}
+
+/// [`census::unwatch`] under the operator's own directories.
+pub fn host_census_unwatch(class: &str) -> Result<bool, EstateError> {
+  census::unwatch(&crate::userstate::dirs()?, class)
+}
+
+/// [`usage::report`] under the operator's own directories.
+pub fn host_statusline_report(text: &str) -> Result<Option<PathBuf>, EstateError> {
+  usage::report(&crate::userstate::dirs()?, text)
+}
+
 /// One endpoint reading over the operator's Claude directory, for intentd's
 /// census tick.
 pub fn host_endpoint() -> Result<usage::Endpoint, EstateError> {

@@ -520,3 +520,144 @@ fn slash_estate_opens_the_estate_view_in_the_explorer() {
     app.notice
   );
 }
+
+impl Host {
+  /// `intent estate statusline` with `input` piped to it, as a statusline
+  /// command pipes the JSON Claude Code hands it.
+  fn statusline(&self, input: &str) -> std::process::Output {
+    use std::io::Write as _;
+    let mut child = self
+      .cmd()
+      .args(["estate", "statusline"])
+      .stdin(std::process::Stdio::piped())
+      .stdout(std::process::Stdio::piped())
+      .stderr(std::process::Stdio::piped())
+      .spawn()
+      .expect("run estate statusline");
+    child
+      .stdin
+      .take()
+      .expect("the piped stdin")
+      .write_all(input.as_bytes())
+      .expect("write the statusline input");
+    child
+      .wait_with_output()
+      .expect("wait for estate statusline")
+  }
+}
+
+const STATUSLINE_SESSION: &str = "00000000-0000-4000-8000-000000000000";
+
+#[test]
+fn watch_declares_a_class_the_status_lists_and_unwatch_removes_it() {
+  let host = Host::new();
+  let out = host
+    .cmd()
+    .args(["estate", "watch", "cargo", "cargo|rustc"])
+    .output()
+    .expect("run estate watch");
+  assert!(
+    out.status.success(),
+    "{}",
+    String::from_utf8_lossy(&out.stderr)
+  );
+  let file = String::from_utf8_lossy(&out.stdout)
+    .trim()
+    .strip_prefix("wrote: ")
+    .map(PathBuf::from)
+    .expect("watch names the file it wrote");
+  assert!(
+    file.ends_with("census/watches/cargo.json"),
+    "{}",
+    file.display()
+  );
+  assert!(file.exists(), "the watch file is written");
+
+  let removed = host
+    .cmd()
+    .args(["estate", "unwatch", "cargo"])
+    .output()
+    .expect("run estate unwatch");
+  assert!(removed.status.success());
+  assert_eq!(
+    String::from_utf8_lossy(&removed.stdout).trim(),
+    "removed: census class `cargo`"
+  );
+  assert!(!file.exists(), "unwatch removes the watch file");
+
+  let again = host
+    .cmd()
+    .args(["estate", "unwatch", "cargo"])
+    .output()
+    .expect("run estate unwatch again");
+  assert!(again.status.success(), "a repeat is a no-op, not a failure");
+  assert!(
+    String::from_utf8_lossy(&again.stdout).contains("was not declared; nothing changed"),
+    "{}",
+    String::from_utf8_lossy(&again.stdout)
+  );
+}
+
+#[test]
+fn watch_refuses_a_bad_class_and_a_bad_pattern_with_a_remedy() {
+  let host = Host::new();
+  for argv in [
+    ["estate", "watch", "../cargo", "cargo"],
+    ["estate", "watch", "cargo", "("],
+  ] {
+    let out = host.cmd().args(argv).output().expect("run estate watch");
+    let said = String::from_utf8_lossy(&out.stderr);
+    assert_eq!(out.status.code(), Some(1), "{argv:?}: {said}");
+    assert!(said.contains("remedy:"), "{argv:?} names a remedy: {said}");
+  }
+}
+
+#[test]
+fn statusline_keeps_the_usage_and_leaves_stdout_to_the_status_line() {
+  let host = Host::new();
+  let input = format!(
+    r#"{{"session_id":"{STATUSLINE_SESSION}","model":{{"id":"m"}},"rate_limits":{{"five_hour":{{"used_percentage":42.5,"resets_at":1792857600}}}}}}"#
+  );
+  let out = host.statusline(&input);
+  assert!(
+    out.status.success(),
+    "{}",
+    String::from_utf8_lossy(&out.stderr)
+  );
+  assert!(
+    out.stdout.is_empty(),
+    "stdout is the status line, so nothing goes there"
+  );
+  let record = String::from_utf8_lossy(&out.stderr)
+    .trim()
+    .strip_prefix("wrote: ")
+    .map(PathBuf::from)
+    .expect("the wrote: line goes to stderr");
+  assert!(record.exists(), "the usage record is written");
+}
+
+#[test]
+fn statusline_with_no_rate_limits_writes_and_prints_nothing() {
+  let host = Host::new();
+  let out = host.statusline(&format!(
+    r#"{{"session_id":"{STATUSLINE_SESSION}","model":{{"id":"m"}}}}"#
+  ));
+  assert!(out.status.success());
+  assert!(
+    out.stdout.is_empty() && out.stderr.is_empty(),
+    "nothing to keep, nothing said"
+  );
+}
+
+#[test]
+fn statusline_refuses_an_input_that_is_not_json_with_a_remedy() {
+  let host = Host::new();
+  let out = host.statusline("not json");
+  let said = String::from_utf8_lossy(&out.stderr);
+  assert_eq!(out.status.code(), Some(1), "{said}");
+  assert!(said.contains("remedy:"), "{said}");
+  assert!(
+    out.stdout.is_empty(),
+    "a refusal never reaches the status line"
+  );
+}

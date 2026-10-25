@@ -717,6 +717,33 @@ nothing installed to delete -- so it is now `lang init`'s exact inverse and belo
 init`'s bucket. `UNPROVEN` means we have not established what this writes; leaving it there after \
 establishing it would file a known answer as a debt.",
   ),
+  // **THE HOST ESTATE (ST0086) IS NOT THE THREAD ESTATE**: every verb below
+  // writes Intent's per-user state directory and nothing in any project, and
+  // intent-cli's `estate_surface.rs` drives each write and names its path.
+  (
+    "estate wip",
+    "$XDG_STATE_HOME/intent/estate/<session-id>.json (by default ~/.local/state/intent/estate/), \
+the session's WIP record, written or with `--clear` removed, and nothing in any project.",
+  ),
+  (
+    "estate prune",
+    "removes $XDG_STATE_HOME/intent/estate/<session-id>.json for each session that is gone, and \
+nothing else: Claude Code's own session files are read and never touched.",
+  ),
+  (
+    "estate watch",
+    "$XDG_STATE_HOME/intent/estate/census/watches/<class>.json, one census class's declaration, \
+written or replaced, and nothing in any project.",
+  ),
+  (
+    "estate unwatch",
+    "removes $XDG_STATE_HOME/intent/estate/census/watches/<class>.json, and nothing else.",
+  ),
+  (
+    "estate statusline",
+    "$XDG_STATE_HOME/intent/estate/<session-id>.usage.json, the latest plan usage a statusline \
+input carries, and nothing for an input with no `rate_limits`.",
+  ),
 ];
 
 /// **SHIPPED, WIRED, CLASSIFIED `mutate` ON THE SURFACE -- AND DRIVEN, THEY

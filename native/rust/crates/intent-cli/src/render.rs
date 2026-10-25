@@ -10066,6 +10066,9 @@ fn estate(m: &ArgMatches) -> Result<(), Failure> {
     Some(("status", sm)) => estate_status(sm),
     Some(("wip", sm)) => estate_wip(sm),
     Some(("prune", _)) => estate_prune(),
+    Some(("watch", sm)) => estate_watch(sm),
+    Some(("unwatch", sm)) => estate_unwatch(sm),
+    Some(("statusline", _)) => estate_statusline(),
     Some((verb, _)) => unwired("estate", verb),
     None => unwired("estate", ""),
   }
@@ -10423,6 +10426,52 @@ fn estate_prune() -> Result<(), Failure> {
     println!("removed: {}", path.display());
   }
   println!("done: {} removed", pruned.removed.len());
+  Ok(())
+}
+
+/// `intent estate watch <class> <pattern>`: declares a census class, or
+/// changes its pattern. The class and pattern are judged by the library.
+fn estate_watch(a: &ArgMatches) -> Result<(), Failure> {
+  let path = intentsvcs::estate::host_census_watch(&arg(a, "class")?, &arg(a, "pattern")?)
+    .map_err(estate_fail)?;
+  println!("wrote: {}", path.display());
+  Ok(())
+}
+
+/// `intent estate unwatch <class>`: removes a census class. A class that was
+/// never declared is said so, and nothing changes.
+fn estate_unwatch(a: &ArgMatches) -> Result<(), Failure> {
+  let class = arg(a, "class")?;
+  if intentsvcs::estate::host_census_unwatch(&class).map_err(estate_fail)? {
+    println!("removed: census class `{class}`");
+  } else {
+    println!("ok: census class `{class}` was not declared; nothing changed");
+  }
+  Ok(())
+}
+
+/// `intent estate statusline`: the statusline step (ST0086 WP-02). Reads the
+/// JSON Claude Code hands a statusline command, whole, from stdin, and keeps
+/// the plan usage it carries as the session's fallback record.
+///
+/// **THE `wrote:` LINE GOES TO STDERR**, as `edit`'s does: this runs inside a
+/// statusline command, whose stdout IS the status line, so stdout stays the
+/// script's. An input with no `rate_limits` writes and prints nothing.
+fn estate_statusline() -> Result<(), Failure> {
+  if std::io::IsTerminal::is_terminal(&std::io::stdin()) {
+    return Err(Failure::Error(
+      "error: nothing on stdin: this reads the JSON Claude Code pipes to a statusline command\n  remedy: call it from the statusline script, `printf '%s' \"$input\" | intent estate statusline`".to_string(),
+    ));
+  }
+  let mut text = String::new();
+  std::io::Read::read_to_string(&mut std::io::stdin(), &mut text).map_err(|e| {
+    Failure::Error(format!(
+      "error: could not read the statusline input from stdin: {e}\n  remedy: pipe the statusline JSON in whole, `printf '%s' \"$input\" | intent estate statusline`"
+    ))
+  })?;
+  if let Some(path) = intentsvcs::estate::host_statusline_report(&text).map_err(estate_fail)? {
+    eprintln!("wrote: {}", path.display());
+  }
   Ok(())
 }
 
