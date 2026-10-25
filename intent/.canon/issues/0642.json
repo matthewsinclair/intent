@@ -3,9 +3,10 @@
   "number": 642,
   "slug": "st-attach-prints-no-wrote-line-for-the-event-and",
   "title": "st attach prints no wrote: line for the event and canon row it writes",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-10-25",
+  "closed": "2026-10-25",
   "reporter": "Matthew Sinclair",
   "body": "`intent st attach <ID> <name> --from <file>` writes the thread's canon row (`intent/.canon/st/<ID>.json`, the attachments row) and an `attachment.put` event, and prints only `ok: <name> written to <ID>`: no `wrote:` line for either file. Measured on 2026-10-25 by vc while authoring ST0087 on the pair at fef91e6f8 (3.2.6 dev): of the verbs that run, `st new`, `set`, `wp new`, `st relate` and `st hydrate` each printed `wrote:` for their event and for every file they changed, and `st attach` alone did not; the event `01M5RT28T0FVRPP6DWKY2BY9X4` and the canon row were found by `git status` and read before they were committed, the rule issue 0632 closed for every other writer.\n\nTHE ASK: `st attach` names what it wrote through the one printer, in the shape every other verb uses: the event, the canon row, and, when the thread is hydrated and the daemon has not yet carried the attachment to disk, nothing on disk (the attachment is written to the store, never to disk, so no view line). One arm, red at the base, in the suite that holds 0632's arms (`every_verb_names_the_files_it_wrote`), driving `st attach` in a scratch project and comparing its `wrote:` lines with git's changed set. XS.\n"
 }
