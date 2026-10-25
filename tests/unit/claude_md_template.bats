@@ -41,7 +41,7 @@ AGENTS_TEMPLATE="${INTENT_PROJECT_ROOT}/lib/templates/llm/_AGENTS.md"
   assert_file_contains "$TEMPLATE" "session-hook-architecture"
 }
 
-# ST0088 WP-03: the file map has one home, _AGENTS.md, which _CLAUDE.md loads
+# ST0088 AT-03.1: the file map has one home, _AGENTS.md, which _CLAUDE.md loads
 # through its @AGENTS.md line.
 @test "the file map lives in _AGENTS.md, which _CLAUDE.md imports" {
   assert_file_contains "$AGENTS_TEMPLATE" "usage-rules.md"
@@ -52,7 +52,7 @@ AGENTS_TEMPLATE="${INTENT_PROJECT_ROOT}/lib/templates/llm/_AGENTS.md"
   assert_failure
 }
 
-# ST0088 WP-03: critic dispatch has one home, _AGENTS.md.
+# ST0088 AT-03.1: critic dispatch has one home, _AGENTS.md.
 @test "critic dispatch lives in _AGENTS.md, not _CLAUDE.md" {
   assert_file_contains "$AGENTS_TEMPLATE" "critic-"
   assert_file_contains "$AGENTS_TEMPLATE" "Task(subagent_type"

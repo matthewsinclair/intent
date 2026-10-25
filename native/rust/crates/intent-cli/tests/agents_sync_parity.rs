@@ -1,6 +1,9 @@
 //! AT-07.5 / ST0056 AC-07.5: **`intent agents sync` preserves v2's STRUCTURAL
 //! CONTRACT, and byte-parity against v2 is refused as the mechanism.**
 //!
+//! ST0088 AT-03.5 cites this file for AC-03.1: the root files rendered from
+//! the templates that thread cut keep this contract.
+//!
 //! # Why this file asserts properties and not bytes
 //!
 //! The criterion used to read *matches v2 for a corpus project, modulo ratified
