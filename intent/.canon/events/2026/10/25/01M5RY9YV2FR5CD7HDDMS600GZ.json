@@ -1,0 +1,15 @@
+{
+  "id": "01M5RY9YV2FR5CD7HDDMS600GZ",
+  "ts": "2026-10-25T07:09:54.542Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ST0086 WP-03 in 3.2.7 (decision 76, vc 07:08Z): the explorer's /estate page on the same reader as estate status; after ST0087 WP-03."
+  }
+}
