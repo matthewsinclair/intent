@@ -7251,7 +7251,7 @@ impl Facade {
       .filter(|s| s.path.starts_with(&home))
       .cloned()
       .collect();
-    let scoped = organize::Plan {
+    let mut scoped = organize::Plan {
       // **A SCOPED PLAN PRUNES NO v2 LEFTOVER.** This narrows an estate-wide
       // plan to one artefact's paths; the v2 prune is an estate-wide act with
       // an estate-wide refusal, so it belongs to the whole-tree run and never
@@ -7289,6 +7289,9 @@ impl Facade {
     }
 
     {
+      // A cover `plan` already found carrying an edit (issue 0641) is
+      // diverged by definition, and `run` would leave it unwritten; it is
+      // named here with the rest so the verb refuses rather than skip it.
       let diverged: Vec<std::path::PathBuf> = scoped
         .with(organize::Action::Verify)
         .filter(|step| {
@@ -7300,6 +7303,7 @@ impl Facade {
             std::fs::read(&step.path).is_ok_and(|disk| disk != *rendered)
           })
         })
+        .chain(scoped.with(organize::Action::CoverDiverged))
         .map(|step| self.project.relative(&step.path))
         .map(std::path::PathBuf::from)
         .collect();
@@ -7315,6 +7319,15 @@ impl Facade {
         // stop reporting. A run that destroys work and prints `wrote:` after
         // the fact is the defect this batch exists for, flag or no flag.
         announce(&diverged);
+        // The operator's word discards a cover's edit too, so its step is
+        // written as any other diverged view is.
+        for step in scoped
+          .steps
+          .iter_mut()
+          .filter(|step| step.action == organize::Action::CoverDiverged)
+        {
+          step.action = organize::Action::Verify;
+        }
       }
     }
 

@@ -98,6 +98,13 @@ pub enum Action {
   /// Present on disk and NOT what the store carries. **Reported, both remedies
   /// named, neither side touched** (AC-04.3).
   AttachmentDiverged,
+  /// A declared cover on disk whose Objective or Context differs from the
+  /// store's, in a form `intent sync --to-store` carries back (issue 0641).
+  /// **Reported, refused, never rendered over**: the cover's contract keeps a
+  /// hand edit there until the sync takes it in, and it has no exception for
+  /// how the file reached the path -- a copy put back at a dehydrated thread's
+  /// path and re-declared is protected like any other.
+  CoverDiverged,
 }
 
 impl Action {
@@ -119,6 +126,9 @@ impl Action {
     match self {
       Action::AttachmentDiverged => Some(
         "an attachment is authored ON DISK, so this means the STORE is stale: `intent sync --to-store` takes the disk copy. If the store is the one you want, restore the file instead. organize will not choose for you.",
+      ),
+      Action::CoverDiverged => Some(
+        "a cover's Objective and Context are authored on disk until the store takes them in: `intent sync --to-store <ID>` carries the edit and keeps it. If the store is the one you want, delete the file and re-run, and organize writes the store's cover. organize will not render over it.",
       ),
       Action::Unclaimed => Some(
         "nothing renders this and nothing carries it. Leave it, or make it an attachment -- organize is not the thing that decides an unrecognised file is rubbish.",
@@ -191,6 +201,14 @@ pub struct TreeState {
   /// one would be a second way to ask a question already answered exactly, and
   /// the second way is the one that goes stale.
   pub sha256: BTreeMap<PathBuf, String>,
+  /// The text of each thread cover (`info.md`) on disk, by path (issue 0641).
+  ///
+  /// **COVERS ONLY, BECAUSE A COVER IS THE ONE VIEW A HAND EDIT IS KEPT IN.**
+  /// Its Objective and Context are authored on disk until `intent sync
+  /// --to-store` takes them in, so `plan` has to ask what the file says before
+  /// it decides to render over it; every other view is the renderer's alone,
+  /// and its rendered bytes already answer.
+  pub covers: BTreeMap<PathBuf, String>,
 }
 
 /// A decided run, not yet applied.
@@ -390,6 +408,18 @@ pub enum OrganizeError {
   )]
   AttachmentDiverged { path: PathBuf },
 
+  /// A declared cover carries an edit to its Objective or Context that the
+  /// store has not taken in (issue 0641). `organize` writes nothing to it.
+  ///
+  /// **THE CONTRACT HAS NO EXCEPTION FOR HOW THE FILE GOT THERE.** A copy put
+  /// back at a dehydrated thread's path and re-declared was rendered over with
+  /// a `rewritten:` line, and the edit was gone; and nothing here can tell such
+  /// a copy from an older render either, so it is kept too, whichever it is.
+  #[error(
+    "refusing to render over {path}: its Objective or Context differs from the store's, in a form `intent sync --to-store` carries back, so it is kept as a hand edit to {thread}'s cover"
+  )]
+  CoverDiverged { thread: String, path: PathBuf },
+
   /// The tree could not be READ. Its own variant rather than folded into
   /// [`OrganizeError::Io`]: a failed walk means the plan was computed against a
   /// population that is not the estate, and every other refusal here is about a
@@ -470,6 +500,10 @@ impl crate::remedy::Remedy for OrganizeError {
       Self::TreeMoved { .. } => "re-run `intent organize`. It re-plans against the tree as it is now rather than resuming the plan it refused, so the second run is a fresh decision and not the first one forced through.".to_string(),
       Self::AttachmentDiverged { path } => format!(
         "choose, because `organize` will not: `intent sync --to-store` takes the copy at {} as authoritative, or restore the file from git if the store is right. An attachment is authored ON DISK, so this means the STORE is stale -- the opposite remedy from a divergent view.",
+        path.display()
+      ),
+      Self::CoverDiverged { thread, path } => format!(
+        "run `intent sync --to-store {thread}` to carry the edit into the store and keep it; if the store's cover is the one you want, delete {} and re-run `intent organize --apply`. Nothing was written to it.",
         path.display()
       ),
       // **NOT THE OPERATOR'S TO FIX, AND THE REMEDY SAYS SO RATHER THAN
@@ -568,11 +602,27 @@ pub fn observe(
 
   let mut present = BTreeSet::new();
   let mut sha256 = BTreeMap::new();
+  let mut covers = BTreeMap::new();
+  let st_dir = project.st_dir();
   // Sorted by construction: `scan` walks name-ordered, and both collections are
   // ordered maps. The digest below depends on that and must not depend on it
   // silently, so it re-derives its order from the map rather than the walk.
   for entry in &entries {
     let path = root.join(&entry.path);
+    // A cover is found by asking `Project` where a thread's cover lives, so the
+    // layout is spelled once. A cover that is not UTF-8 holds no section the
+    // sync could carry back, so it is not recorded and is rendered over as
+    // before.
+    let is_cover = thread_of(&st_dir, &path).is_some_and(|id| project.info_view(&id) == path);
+    if is_cover {
+      let bytes = std::fs::read(&path).map_err(|source| OrganizeError::Io {
+        path: path.clone(),
+        source,
+      })?;
+      if let Ok(text) = String::from_utf8(bytes) {
+        covers.insert(path.clone(), text);
+      }
+    }
     present.insert(path.clone());
     sha256.insert(path, entry.sha256.clone());
   }
@@ -589,7 +639,14 @@ pub fn observe(
     .map(|b| format!("{b:02x}"))
     .collect::<String>();
 
-  Ok((TreeState { present, sha256 }, digest))
+  Ok((
+    TreeState {
+      present,
+      sha256,
+      covers,
+    },
+    digest,
+  ))
 }
 
 /// Compute a plan without touching the tree.
@@ -652,13 +709,24 @@ pub fn plan(
   let present = &tree.present;
   let mut steps = Vec::new();
 
-  // Rows one and two: declared. Absent -> hydrate, present -> verify.
+  // Rows one and two: declared. Absent -> hydrate, present -> verify, unless
+  // the file is a cover carrying an edit the sync would take back (issue
+  // 0641). That is asked through `views::carriable_cover`, the predicate
+  // doctor's finding, `sync --apply`'s views step and the store's write guard
+  // already ask, so the four cannot disagree about which edits are kept.
   for path in &declared_paths {
     let content = renderable.get(path).cloned();
-    let action = if present.contains(path) {
-      Action::Verify
-    } else {
-      Action::Hydrate
+    let carriable = tree.covers.get(path).is_some_and(|disk| {
+      views::cover_thread(project, canon, path)
+        .is_some_and(|thread| views::carriable_cover(thread, ctx, disk))
+    });
+    // A `CoverDiverged` step keeps the render, which `run` never writes for it:
+    // `st hydrate --overwrite` is the one caller that discards such an edit on
+    // the operator's word, and it does so by making the step a `Verify` again.
+    let action = match (present.contains(path), carriable) {
+      (true, true) => Action::CoverDiverged,
+      (true, false) => Action::Verify,
+      (false, _) => Action::Hydrate,
     };
     steps.push(Step {
       path: path.clone(),
@@ -1465,6 +1533,19 @@ impl Plan {
         Action::Hydrate | Action::HydrateAttachment => {}
         Action::Unclaimed => report.unclaimed.push(step.path.clone()),
         Action::AttachmentDiverged => report.diverged.push(step.path.clone()),
+        // **REPORTED IN BOTH MODES**, as every refusal here is: the preview
+        // names the path `diverged` and the refusal its `--apply` would make,
+        // and neither mode writes it. The write loop above passed over it,
+        // because it is neither a write step nor a `Verify`. The path is a
+        // cover `plan` matched through `Project::info_view`, so it is under the
+        // estate root by construction and `thread_of` always names its thread.
+        Action::CoverDiverged => {
+          report.diverged.push(step.path.clone());
+          report.refused.push(OrganizeError::CoverDiverged {
+            thread: thread_of(&self.estate_root, &step.path).unwrap_or_default(),
+            path: step.path.clone(),
+          });
+        }
         // `Verify` was classified above, against the bytes as they were BEFORE
         // the write. Doing it here as well would overwrite a true answer with a
         // tautological one.

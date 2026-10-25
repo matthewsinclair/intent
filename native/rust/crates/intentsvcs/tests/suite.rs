@@ -400,6 +400,8 @@ mod organize_dehydration_gate;
 mod organize_five_rows;
 #[path = "organize_idempotent_mtime.rs"]
 mod organize_idempotent_mtime;
+#[path = "organize_keeps_a_hand_edited_cover.rs"]
+mod organize_keeps_a_hand_edited_cover;
 #[path = "organize_moment_of_act_digest.rs"]
 mod organize_moment_of_act_digest;
 #[path = "organize_preview_polarity.rs"]

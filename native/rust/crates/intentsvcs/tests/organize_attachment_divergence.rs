@@ -85,6 +85,7 @@ fn an_attachment_that_agrees_with_the_store_produces_no_step() {
   let tree = TreeState {
     present: [path.clone()].into_iter().collect(),
     sha256: BTreeMap::from([(path.clone(), carried_sha())]),
+    ..Default::default()
   };
   let steps = plan_in(&fx, DECLARED, tree);
   assert!(
@@ -100,6 +101,7 @@ fn a_divergent_attachment_is_reported_and_neither_side_is_touched() {
   let tree = TreeState {
     present: [path.clone()].into_iter().collect(),
     sha256: BTreeMap::from([(path.clone(), "0".repeat(64))]),
+    ..Default::default()
   };
   let steps = plan_in(&fx, DECLARED, tree);
   let step = step_for(&steps, &path).expect("a divergent attachment must be REPORTED");
@@ -146,6 +148,7 @@ fn an_unhashable_attachment_is_treated_as_divergent_not_as_agreeing() {
   let tree = TreeState {
     present: [path.clone()].into_iter().collect(),
     sha256: BTreeMap::new(),
+    ..Default::default()
   };
   let steps = plan_in(&fx, DECLARED, tree);
   assert_eq!(
@@ -196,6 +199,7 @@ fn an_undeclared_attachment_dehydrates_through_the_gate() {
   let tree = TreeState {
     present: [path.clone()].into_iter().collect(),
     sha256: BTreeMap::from([(path.clone(), carried_sha())]),
+    ..Default::default()
   };
   let steps = plan_in(&fx, DECLARES_NOTHING_PRESENT, tree);
   let step = step_for(&steps, &path).expect("an undeclared attachment must be decided");
@@ -228,6 +232,7 @@ fn opaque_removal(fx: &Fixture, path: &PathBuf, on_disk: &[u8]) -> Step {
   let tree = TreeState {
     present: [path.clone()].into_iter().collect(),
     sha256: BTreeMap::from([(path.clone(), intentsvcs::model::sha256_hex(on_disk))]),
+    ..Default::default()
   };
   let steps = plan_of(
     fx,

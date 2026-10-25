@@ -88,6 +88,7 @@ fn tree_after(hydrated: &[PathBuf], attachments: &[PathBuf]) -> TreeState {
           .map(|text| (p.clone(), Attachment::new("x", text).sha256))
       })
       .collect(),
+    ..Default::default()
   }
 }
 
