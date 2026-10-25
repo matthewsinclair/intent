@@ -24,8 +24,8 @@ title: Intent conforms to the dev, opt and brew contract
 
 - AC-02.1 `intent install [--prefix <dir>] [--force] [--managed-by brew]` runs in dev only and is refused by name from opt and brew; it refuses a dirty runtime set by name with no override while live project records never count; the prefix comes from `--prefix`, else `INTENT_INSTALL_PREFIX`, else it refuses by name; an existing prefix is replaced only with `--force` and only over a manifest saying `tool: intent`; and the layout it writes is the keg's libexec layout exactly. -- satisfied: no (computed)
 - AC-02.2 The manifest is `<root>/.intent-install` in T3's exact form: a header of `# key: value` lines carrying at least tool, version, source_commit as the full sha and managed_by, then one `shasum -a 256 -c` line per runtime file, path relative to the root, sorted by `LC_ALL=C sort`, the binaries checksummed as installed. -- satisfied: no (computed)
-- AC-02.3 Doctor in opt and brew checks the manifest body and names every file that drifted; a keg with no manifest whose root resolves under the opt link is a note naming `brew upgrade intent`, never a failure; and an opt prefix with no manifest is not Intent's, so `use opt` refuses it by name. -- satisfied: no (computed)
-- AC-02.4 A manifest written with `--managed-by brew` makes `intent install` and `intent use` refuse every write into that tree, naming brew as its manager. -- satisfied: no (computed)
+- AC-02.3 Doctor in opt and brew checks the manifest body and names every file that drifted, and names an opt manifest missing a header key as an old manifest with its remedy; a keg with no manifest whose root resolves under the opt link is a note naming `brew upgrade intent`, never a failure. -- satisfied: no (computed)
+- AC-02.4 A manifest written with `--managed-by brew` makes `intent install` refuse every write into that tree, naming brew as its manager; an existing opt prefix is replaced only with `--force`, and only over a manifest saying `tool: intent`. -- satisfied: no (computed)
 
 ### WP-03 -- intent use and the shadow check (status: Not Started)
 
@@ -33,6 +33,8 @@ title: Intent conforms to the dev, opt and brew contract
 - AC-03.2 The shadow check, in doctor and in bare `use`, fails when a link in the set exists but is not the first hit on PATH or when the set is split across trees, names what shadows or splits it, and compares resolved directories rather than path strings. -- satisfied: no (computed)
 - AC-03.3 `use dev` and `use opt` end by exec'ing the new link's `intent daemon restart` and print that binary's version line, never restarting in-process, so the old tree's daemon does not keep serving. -- satisfied: no (computed)
 - AC-03.4 Intent.app keeps the link path it resolved and follows it live at every spawn rather than a realpath taken at launch, its tests move off the realpath pin, and `VersionService` parses the new line's tree, sha, optional `+dirty`, root and provenance word, with tests over the new line, its `+dirty` form, the brew form and the `(dev, unknown)` form. -- satisfied: no (computed)
+- AC-03.5 `intent use opt` refuses an opt prefix with no manifest by name, since a prefix with no manifest is not Intent's, and names `intent install --prefix <dir>` as the step that makes one. -- satisfied: no (computed)
+- AC-03.6 `intent use` refuses every write into a tree whose manifest says `managed_by: brew`, naming brew as its manager, so a brew keg is never repointed or edited by the switch. -- satisfied: no (computed)
 
 ### WP-04 -- The formula, the release tooling and the docs (status: Not Started)
 

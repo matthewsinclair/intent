@@ -1,0 +1,14 @@
+{
+  "id": "01M5S5VN2J62XDGNBV1ESGY0DT",
+  "ts": "2026-10-25T09:21:54.262Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0087/AC-02.3"
+  },
+  "payload": {
+    "text": "Doctor in opt and brew checks the manifest body and names every file that drifted, and names an opt manifest missing a header key as an old manifest with its remedy; a keg with no manifest whose root resolves under the opt link is a note naming `brew upgrade intent`, never a failure."
+  }
+}

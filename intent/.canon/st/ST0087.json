@@ -113,7 +113,7 @@
     },
     {
       "id": "AC-02.3",
-      "text": "Doctor in opt and brew checks the manifest body and names every file that drifted; a keg with no manifest whose root resolves under the opt link is a note naming `brew upgrade intent`, never a failure; and an opt prefix with no manifest is not Intent's, so `use opt` refuses it by name.",
+      "text": "Doctor in opt and brew checks the manifest body and names every file that drifted, and names an opt manifest missing a header key as an old manifest with its remedy; a keg with no manifest whose root resolves under the opt link is a note naming `brew upgrade intent`, never a failure.",
       "kind": "test",
       "state": {
         "is": "computed"
@@ -121,7 +121,7 @@
     },
     {
       "id": "AC-02.4",
-      "text": "A manifest written with `--managed-by brew` makes `intent install` and `intent use` refuse every write into that tree, naming brew as its manager.",
+      "text": "A manifest written with `--managed-by brew` makes `intent install` refuse every write into that tree, naming brew as its manager; an existing opt prefix is replaced only with `--force`, and only over a manifest saying `tool: intent`.",
       "kind": "test",
       "state": {
         "is": "computed"
@@ -154,6 +154,22 @@
     {
       "id": "AC-03.4",
       "text": "Intent.app keeps the link path it resolved and follows it live at every spawn rather than a realpath taken at launch, its tests move off the realpath pin, and `VersionService` parses the new line's tree, sha, optional `+dirty`, root and provenance word, with tests over the new line, its `+dirty` form, the brew form and the `(dev, unknown)` form.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.5",
+      "text": "`intent use opt` refuses an opt prefix with no manifest by name, since a prefix with no manifest is not Intent's, and names `intent install --prefix <dir>` as the step that makes one.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.6",
+      "text": "`intent use` refuses every write into a tree whose manifest says `managed_by: brew`, naming brew as its manager, so a brew keg is never repointed or edited by the switch.",
       "kind": "test",
       "state": {
         "is": "computed"

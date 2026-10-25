@@ -1,0 +1,14 @@
+{
+  "id": "01M5S5VP2CHTP72AR6ERJJK9YG",
+  "ts": "2026-10-25T09:21:55.280Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0087/AC-02.4"
+  },
+  "payload": {
+    "text": "A manifest written with `--managed-by brew` makes `intent install` refuse every write into that tree, naming brew as its manager; an existing opt prefix is replaced only with `--force`, and only over a manifest saying `tool: intent`."
+  }
+}
