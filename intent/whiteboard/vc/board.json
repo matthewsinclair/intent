@@ -5,7 +5,7 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "78d66f67-02b7-4497-bbec-4466e2fcb852",
-    "heartbeat_at": "2026-10-25T16:28:08.527Z",
+    "heartbeat_at": "2026-10-25T16:37:05.053Z",
     "status": "active",
     "focus": "LOCALFOLD 8 at 2026-10-25 16:27Z for hv's compact; 0647 landed and closed, open issues 0644 (dc judge running) and 0648; build all READY heavy after hv's continue; ic WP-03 rerun and app install, dc 0644 landing, ST0088 WP-03/04, ST0086 WP-03/04 queued; no push, no release",
     "claims": [],
@@ -2163,6 +2163,14 @@
       "text": "RESUME STATE, LOCALFOLD 8 (2026-10-25 16:27Z, hv's call via molt-vc before a compact): 3.2.7 is the one release (decision 76). The installed pair is at 397d7568e (built 15:10Z) and prints +dirty because the runtime set moved since (ST0088), by design; BUILD ALL READY (heavy) at molt-vc's desk, GO only after hv says continue; on GO announce the restart to utilz-vc, devbin-vc, laksa-vc, conflab-vc, gtools-vc and molt-vc, then zsh $S/build-all-4.sh $S <HEAD>, END; it carries 0645 already built plus 0646 (app), 0647 (the line without its root), ST0088 (templates and skills), and 0644 if landed first. LANDED TODAY after the morning: 0645, 0646 (app masthead and Open), 0647 (decision 82), ST0087 WP-01+02 and ic's doc lines, ST0088 WP-01+02 (the cull, 15 skills) and its doc lines and rows (WP-01/02 done), the pipeline strip docs (decision 83, AC-04.7). OPEN ISSUES: 0644 (dc's judge RUNNING, started 16:24Z; on green END vc lands refs/bank/dc/0644/<ready> after hv's continue, closes it, then the build all also carries its doctor arm), 0648 (cc, XS to S, after continue: the critic's exit code when nothing asked, Swift proxies). QUEUE at molt-vc's desk after continue: dc 0644 landing (light), build all (heavy), ic's ST0087 WP-03 rerun at da46922af rebased over main (vc's word given; land via land-bank.sh with $S/wp03/bank.patch re-verified after the rebase, design ingest check, generator check; then AT-03.1..03.6 rows and ic's wp done), ic's app build and install (its own heavy, then hv sees the fixed menu), dc's ST0088 WP-03 (templates, critics, dead subagent files, AC-03.1..03.4), ST0088 WP-04 (vc+ic: the AFTER reading with $S/st88/measure/bytes-before-first-prompt.sh after WP-03; the skills sync measured in an isolated HOME, announced to every vc first), dc's ST0087 WP-04 (docs end on brew, decision 80; int local retired), ST0086 WP-03 (ic, TUI) and WP-04 (cc with ic; slots and the pipeline strip; ACs 04.1 to 04.7; the throwaway-session SIGKILL drive waits on hv's yes), ST0087 WP-05 proof (vc with dc; kovacs half after the tap), then the cut-side work (todo 50), the kovacs Linux check, hv's cut. RULINGS TODAY: 76 one release; 77; 78 (confirmed); 79 (critic leg; NOT-ASKED class; known positive first); 80 brew by default; 81 the cull; 82 the root off the line; 83 the pipeline strip. The contract's A1, A2 (SAME with vc's wording), A3 (SAME) land with devbin 0.1.15; the use-brew refusal clarification is a later round. Memories written today: GIT_DIR reaches other-tree spawns; a visible regression is never an interim; the critic leg; the head-pipe commit hazard. HOLDS: no push, no release, no heavy start until hv says continue; molt-vc's desk is the one host queue.",
       "state": "live",
       "recorded_at": "2026-10-25T16:28:00.438Z"
+    },
+    {
+      "node": "vc",
+      "kind": "decision",
+      "seq": 84,
+      "text": "(2026-10-25 16:46Z by date -u, hv first-hand in vc's window) hv's words: \"GO; drive for ST0086\". The GO is the continue every node folded for at LOCALFOLD 8: the desk at molt-vc resumes in the folded order (dc's 0644 landing light, the build all heavy with the restart announced to every estate's vc, ic's ST0087 WP-03 rerun after its rebase over 0647 then its app install, dc's ST0088 WP-03, cc's 0648, then the rest of doing 58's queue). \"drive for ST0086\" is hv's YES on the one question left with hv: cc's throwaway-session SIGKILL drive, ST0086's To-measure item, so the killed-session reading on the estate page is measured rather than inferred; cc runs it as its own host booking in a short isolated HOME and lands what the number saw and could not see on ST0086's design. Relayed at 16:46Z to molt-vc (with vc's READY for 0644), cc, ic and dc by name. No push, no release.",
+      "state": "live",
+      "recorded_at": "2026-10-25T16:47:17.162Z"
     }
   ],
   "sent": [
