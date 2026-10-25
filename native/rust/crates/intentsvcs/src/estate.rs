@@ -869,6 +869,12 @@ pub fn host_prune() -> Result<Pruned, EstateError> {
   prune(&dirs, &claude)
 }
 
+/// [`wip`] under the operator's own directories, for the CLI's verb and the
+/// facade, so neither resolves them.
+pub fn host_wip(session_id: &str, line: Option<&str>) -> Result<WipWritten, EstateError> {
+  wip(&crate::userstate::dirs()?, session_id, line)
+}
+
 /// One endpoint reading over the operator's Claude directory, for intentd's
 /// census tick.
 pub fn host_endpoint() -> Result<usage::Endpoint, EstateError> {

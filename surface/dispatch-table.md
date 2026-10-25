@@ -4642,6 +4642,101 @@ Resolve references to the definitions they name with each language's own toolcha
 - **recoverability anomaly:** IDEMPOTENT AND WITHHELD ANYWAY, AND THE GROUND IS THAT IT RUNS THE PROJECT'S OWN CODE -- recorded here rather than solved by bending the label, which is what this field is for. Running it twice over unchanged files stores the same rows. **What it does is run each language's toolchain over the project**: rust-analyzer's SCIP export runs the workspace's build scripts and proc macros, and no switch it has stops that (measured by cc, 2026-09-17), and a compile runs a project's macros. Where a Rust workspace root holds no `Cargo.lock`, cargo writes one there, as any cargo command would, and Intent leaves it. Where a Mix project's dependency must still be built in Intent's build directory, rebar3 writes its per-dependency cache files under `deps/`, and Intent leaves them. That is work an agent must not start unasked, which is vc decision 25 (1): never intentd, a reconcile or a hook, and not the MCP tool tier in this release.
 - **facade:** index_resolve
 
+## Family: `estate`
+
+Every Claude session on this host: who it is, where it stands, and what it is doing
+
+- **v2 source:** `new-surface`
+- **v2 help file:** none
+- **Owning work package:** WP-01
+
+- NEW SURFACE with no v2 antecedent, from ST0086 (the estate view). The estate is the HOST, not a project: these verbs answer the same wherever they are run, and none of them opens a project store.
+- Presence is Claude Code's own per-session file, read and never written (hv's ruling of 2026-10-24, ST0086 design.md); Intent adds only what that file lacks, and the one thing it writes per session is the WIP line `estate wip` sets for a session with no board. `status` renders what `intentsvcs::estate::status` returns, and `--format json` is that answer's own serialisation, the boundary the page and the TUI read too.
+
+| command         | args      | flags                             | help                                                                                               | disposition |
+| --------------- | --------- | --------------------------------- | -------------------------------------------------------------------------------------------------- | ----------- |
+| `estate`        | <command> | --                                | Every Claude session on this host: who it is, where it stands, and what it is doing                | new-surface |
+| `estate status` | --        | --format terminal/json, --browser | List every Claude session on this host with its project, node, state, claims and WIP or focus line | new-surface |
+| `estate wip`    | [line]    | --clear, --session                | Set or clear this session's WIP line, for a session that is not a whiteboard node                  | new-surface |
+| `estate prune`  | --        | --                                | Remove Intent's own WIP records for sessions that are gone; Claude Code's files are never touched  | new-surface |
+
+### `estate`
+
+Every Claude session on this host: who it is, where it stands, and what it is doing
+
+- **v2:** new-surface
+- **Arguments:**
+  - `command` (subcommand, arity `1`)
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** not exposed -- read-only
+- **MCP note:** The family head dispatches and does nothing itself.
+- **basis:** ST0086 design.md, The source of truth and Writers.
+- **owner wp:** WP-01
+
+### `estate status`
+
+List every Claude session on this host with its project, node, state, claims and WIP or focus line
+
+- **v2:** new-surface
+- **Flags:**
+  - `--format` `terminal|json` (enum) -- Output format
+    - **default:** terminal
+    - **disposition:** keep
+    - **exposed on mcp:** false
+    - **disposition basis:** `--format`, not `--json`, on hv's 2026-08-21 spelling ruling: new surface has no v2 alias to keep. The json form is the reader's answer serialised whole (ST0086's agreed boundary, `intent/estate-status@1`), so the terminal form, the page and the TUI cannot disagree about a field. The MCP tool always answers the structured form.
+  - `--browser` (bool) -- Open the estate page in the browser, served by intentd
+    - **disposition:** keep
+    - **exposed on mcp:** false
+    - **disposition basis:** The page is the same reader's answer, laid out for a wide screen and read again while it is open, at the address hv named for it, `/estate/status`. It opens through the door `edit --browser` uses, with the token in the fragment, and refuses when no daemon is answering rather than starting one. It is not offered over MCP: an agent reads the answer, and a browser opening on the human's screen is not something an agent asks for. Given with `--format` it refuses, because the two ask for opposite things.
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** exposed as an agent tool -- read-only
+- **when to use:** USE IT to see who else is working on this machine and what each session is doing before you start something that contends with them -- a heavy build, a commit on a shared checkout, a claim. It reads Claude Code's own session files and each project's board, so a session that is busy, idle, paused or gone says so whether or not it is a whiteboard node. DO NOT USE IT for one project's board in detail: `intent wb status` and `intent wb show` are that. A session file this build cannot read is listed under `unreadable` with the reason, never dropped.
+- **basis:** ST0086 design.md: `intent estate status --json` for Claudes, spelt `--format json` under hv's 2026-08-21 spelling ruling for new surface.
+- **owner wp:** WP-01
+- **facade:** estate_status
+- **note:** **A FILE IT CANNOT READ IS A WARNING, NOT A FAILURE.** Each unreadable session file goes to stderr as `warning: <path> -- <why>` and the verb exits 0, because one malformed file says nothing about the other sessions; the json form carries the same entries under `unreadable`. A refusal (exit 1) is reserved for the estate itself being unreachable, such as no HOME.
+
+### `estate wip`
+
+Set or clear this session's WIP line, for a session that is not a whiteboard node
+
+- **v2:** new-surface
+- **Arguments:**
+  - `line` (string, arity `0..1`)
+- **Flags:**
+  - `--clear` (bool) -- Remove this session's WIP line
+    - **disposition:** keep
+    - **exposed on mcp:** true
+  - `--session` (string) -- The Claude Code session to write for (default: the session this runs in)
+    - **disposition:** keep
+    - **exposed on mcp:** false
+    - **disposition basis:** The session defaults to `CLAUDE_CODE_SESSION_ID`, read through the one confined reader `render::pickup_session`, as `wb pickup --session` does. The MCP tool takes the same default from its own process, which Claude Code starts with that variable set, so the tool carries no session parameter an agent could misname.
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** exposed as an agent tool -- **mutates**
+- **MCP note:** REVERSIBLE AND EXPOSED, ON vc's RULING OF 2026-10-24: a new line replaces the old one and any value can be written back or cleared, which is `set`'s class, but what it replaces is the calling agent's own presence line rather than prose a human wrote, so `set`'s authorship reason for withholding does not apply.
+- **when to use:** USE IT when this session stands in no whiteboard -- a coordinator, a session outside any project -- so the estate view can say what it is doing. DO NOT USE IT in a session that is a whiteboard node: the estate view shows that node's board focus, set with `intent wb pickup --focus`. With no line and no `--clear` it refuses rather than guessing which was meant.
+- **basis:** ST0086 design.md, Writers: `intent estate wip "<line>"` (a session with no board).
+- **owner wp:** WP-01
+- **recoverability:** reversible
+- **facade:** estate_wip
+
+### `estate prune`
+
+Remove Intent's own WIP records for sessions that are gone; Claude Code's files are never touched
+
+- **v2:** new-surface
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** not exposed -- **mutates**
+- **MCP note:** WITHHELD BECAUSE IT IS ONE-WAY (vc, 2026-10-24): it deletes records nothing can restore. A repeat is a no-op, but the first run is the act that counts, and an agent should not start it unasked.
+- **when to use:** USE IT where no daemon runs, to clear the WIP records of sessions whose process has ended. With a daemon running it is not needed: the daemon reaps the same records on its tick. It never deletes anything under the Claude directory.
+- **basis:** ST0086 design.md, Cleanup: `intent estate prune` does what the daemon's reap does where no daemon runs.
+- **owner wp:** WP-01
+- **recoverability:** one-way
+
 ## Known exposures -- defects this file does not have, and is not protected against
 
 ### EXP-01 -- The generated view is formatter-stable today by accident, not by design

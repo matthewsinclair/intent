@@ -114,6 +114,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("set", m)) => set_verb(m),
     Some(("surface", m)) => surface(m),
     Some(("daemon", m)) => daemon(m),
+    Some(("estate", m)) => estate(m),
     Some(("app", m)) => app(m),
     Some(("graphql", m)) => graphql(m),
     // Serves until the MCP host closes stdin -- the row's `not_probed`
@@ -2192,7 +2193,17 @@ fn browser_url(address: &intentsvcs::address::Address) -> Result<String, Failure
   // a fact about the machine standing in for a fact about the argument.
   let facade = open()?;
   facade.entity_json(&address.entity).map_err(fail)?;
+  let (project, _) = context()?;
+  served_url(&view.path(), project.root())
+}
 
+/// The URL of one page `intentd` serves at `path`, with the token and `root`
+/// in the fragment (ST0086 WP-02 split it out of [`browser_url`], so an entity
+/// and the estate page reach a browser through one door).
+///
+/// **IT REFUSES WHEN NO DAEMON IS ANSWERING, RATHER THAN STARTING ONE**, for
+/// [`open_in_browser`]'s reason.
+fn served_url(path: &str, root: &std::path::Path) -> Result<String, Failure> {
   let dirs = intentsvcs::userstate::dirs().map_err(|e| {
     Failure::Error(format!(
       "error: cannot find your Intent state directory -- {e}\n  \
@@ -2239,12 +2250,10 @@ fn browser_url(address: &intentsvcs::address::Address) -> Result<String, Failure
   // the address bar on load. A path is not a secret, but a URL that carries
   // one and gets copied out to somebody is still leaking where this operator
   // keeps their work.
-  let (project, _) = context()?;
   Ok(format!(
-    "{}{}#token={secret}&root={}",
+    "{}{path}#token={secret}&root={}",
     intentsvcs::daemon::loopback_base_url(&addr),
-    view.path(),
-    urlencode(&project.root().to_string_lossy())
+    urlencode(&root.to_string_lossy())
   ))
 }
 
@@ -6385,6 +6394,9 @@ fn present(facade: &Facade, view: &intentsvcs::nav::View) -> bool {
     // **THE OUTSTANDING TABLE IS ALWAYS PRESENT**, for the search pane's
     // reason: nothing outstanding is the counts line alone, which is an answer.
     View::Outstanding => true,
+    // **THE ESTATE IS ALWAYS PRESENT**, for the same reason: no sessions is the
+    // summary line alone, and a reader that cannot answer is an error row.
+    View::Estate => true,
     // **THE PROJECTS LIST IS ALWAYS PRESENT, AND SO IS A PROJECT CHOSEN FROM
     // IT** (issue 0418): whether a root can be entered is answered by
     // `tui::views::switch_to`, in words that say why, rather than here as a
@@ -6453,6 +6465,9 @@ fn unprojected_rows(
         "label",
       )],
     },
+    // **THE HOST, NOT A PROJECT** (ST0086): the estate reads no store, so the
+    // lobby shows it as the explorer inside a project does.
+    View::Estate => estate_view(),
     // Never painted: the run loop switches before rows are read for it.
     View::Project { root } => vec![Row::new("project", root.clone(), "label")],
     _ => return None,
@@ -7047,7 +7062,7 @@ fn rows_for(
         Err(why) => vec![Row::new("search", format!("{why}"), "label")],
       }
     }
-    View::Help { .. } | View::Settings | View::Projects | View::Project { .. } => {
+    View::Help { .. } | View::Settings | View::Projects | View::Project { .. } | View::Estate => {
       unprojected_rows(table, view).unwrap_or_default()
     }
     View::Outstanding => outstanding_view(facade),
@@ -10039,6 +10054,376 @@ fn daemon(m: &ArgMatches) -> Result<(), Failure> {
     Some((verb, _)) => unwired("daemon", verb),
     None => unwired("daemon", ""),
   }
+}
+
+/// `intent estate` (ST0086): every Claude session on this host.
+///
+/// **THE ESTATE IS THE HOST, SO NOTHING HERE OPENS A PROJECT.** Every verb
+/// answers the same wherever it is run; the reading, the joins and the writes
+/// are `intentsvcs::estate`'s, and this family parses, calls and renders.
+fn estate(m: &ArgMatches) -> Result<(), Failure> {
+  match m.subcommand() {
+    Some(("status", sm)) => estate_status(sm),
+    Some(("wip", sm)) => estate_wip(sm),
+    Some(("prune", _)) => estate_prune(),
+    Some((verb, _)) => unwired("estate", verb),
+    None => unwired("estate", ""),
+  }
+}
+
+fn estate_fail(e: intentsvcs::estate::EstateError) -> Failure {
+  Failure::Error(e.render())
+}
+
+/// `intent estate status [--format terminal|json]`.
+///
+/// **BOTH FORMS RENDER ONE VALUE: THE READER'S ANSWER, SERIALISED.** The json
+/// form is that serialisation whole, and the terminal form is drawn from the
+/// same JSON rather than from the Rust types behind it, so this table, the
+/// page and the TUI read one contract (`intent/estate-status@1`) and cannot
+/// disagree about a field.
+///
+/// **A FILE THE READER COULD NOT READ IS A WARNING, NOT A FAILURE.** It goes to
+/// stderr naming the path and the reason, and the verb still exits 0: one
+/// malformed session file says nothing about the other sessions.
+fn estate_status(a: &ArgMatches) -> Result<(), Failure> {
+  let format = enum_flag(a, "estate status", "--format")?;
+  if given(a, "browser") {
+    if given(a, "format") {
+      return Err(Failure::Error(
+        "error: `--browser` and `--format` ask for opposite things\n  remedy: name one of them: the page, or the answer printed here".to_string(),
+      ));
+    }
+    return estate_browse();
+  }
+  let status = intentsvcs::estate::host_status().map_err(estate_fail)?;
+  let value = estate_value(&status)?;
+  if format == "json" {
+    println!("{value:#}");
+    return Ok(());
+  }
+  for line in estate_warnings(&value) {
+    eprintln!("{line}");
+  }
+  print!("{}", estate_table(&value, terminal_width()));
+  Ok(())
+}
+
+/// `intent estate status --browser`: the estate page (ST0086 WP-02), served by
+/// `intentd` at its own address, `/estate/status`.
+///
+/// **THE PAGE'S PATH IS THE NAV CONTRACT'S**, the estate segment and its one
+/// item, so this and the daemon's parse of it cannot come to disagree.
+/// **THE ROOT IN THE FRAGMENT IS ANY ROOT**: every request carries one and the
+/// daemon answers the estate without binding to it, so this run's project is
+/// sent when it stands in one and the home directory when it does not.
+fn estate_browse() -> Result<(), Failure> {
+  use intentsvcs::nav::{ESTATE_DEFAULT_ITEM, ESTATE_SEGMENT};
+  let root = match context() {
+    Ok((project, _)) => project.root().to_path_buf(),
+    Err(_) => intentsvcs::userstate::home().map_err(|e| Failure::Error(e.render()))?,
+  };
+  let url = served_url(&format!("/{ESTATE_SEGMENT}/{ESTATE_DEFAULT_ITEM}"), &root)?;
+  open_url(&url)
+}
+
+/// The reader's answer as the JSON every face reads (`intent/estate-status@1`).
+fn estate_value(status: &intentsvcs::estate::EstateStatus) -> Result<serde_json::Value, Failure> {
+  serde_json::to_value(status).map_err(|e| {
+    Failure::Error(format!(
+      "error: the estate answer could not be serialised: {e}\n  remedy: this is a defect in this build; report it with the command you ran"
+    ))
+  })
+}
+
+/// One `warning:` line per session file the reader could not read.
+fn estate_warnings(v: &serde_json::Value) -> Vec<String> {
+  v["unreadable"]
+    .as_array()
+    .map(|rows| {
+      rows
+        .iter()
+        .map(|u| {
+          format!(
+            "warning: {} -- {}",
+            u["path"].as_str().unwrap_or("?"),
+            u["why"].as_str().unwrap_or("unreadable")
+          )
+        })
+        .collect()
+    })
+    .unwrap_or_default()
+}
+
+/// How long before the status was taken the row's `key` stamp was, in the
+/// page's units.
+///
+/// **IT TAKES THE RECORDS AND READS NO CLOCK** (D42, vc decision 72): the
+/// reference is the status's own `taken_at`, the instant the reader joined, so
+/// both faces measure every age from the same reading.
+fn estate_age(status: &serde_json::Value, row: &serde_json::Value, key: &str) -> String {
+  use time::format_description::well_known::Rfc3339;
+  let at = |v: &serde_json::Value| {
+    v.as_str()
+      .and_then(|s| time::OffsetDateTime::parse(s, &Rfc3339).ok())
+  };
+  let (Some(taken), Some(then)) = (at(&status["taken_at"]), at(&row[key])) else {
+    // An age that cannot be computed shows the stamp itself, never a guess.
+    return row[key].as_str().unwrap_or("-").to_string();
+  };
+  let s = (taken - then).whole_seconds().max(0);
+  match s {
+    s if s < 60 => format!("{s}s"),
+    s if s < 3600 => format!("{}m{:02}", s / 60, s % 60),
+    s if s < 86400 => format!("{}h{:02}", s / 3600, s % 3600 / 60),
+    s => format!("{}d{:02}h", s / 86400, s % 86400 / 3600),
+  }
+}
+
+/// The estate table's columns, in the order both faces draw them.
+const ESTATE_HEADER: [&str; 9] = [
+  "NAME",
+  "PROJECT",
+  "NODE",
+  "STATE",
+  "SINCE",
+  "HB",
+  "SLOTS",
+  "CLAIMS",
+  "WIP / FOCUS",
+];
+
+/// The line over the estate table: the host, the build, when the reader looked
+/// and the sessions it found, tallied by state in the order the states appear.
+///
+/// **ONE HOME FOR THE VERB'S HEADER AND THE VIEW'S SUMMARY**, so the two faces
+/// count sessions in the same words.
+fn estate_summary(v: &serde_json::Value) -> String {
+  let sessions = v["sessions"].as_array().map(Vec::as_slice).unwrap_or(&[]);
+  let mut tally: Vec<(&str, usize)> = Vec::new();
+  for row in sessions {
+    let state = row["state"].as_str().unwrap_or("");
+    match tally.iter_mut().find(|(k, _)| *k == state) {
+      Some((_, n)) => *n += 1,
+      None => tally.push((state, 1)),
+    }
+  }
+  let tally = tally
+    .iter()
+    .map(|(k, n)| format!("{n} {k}"))
+    .collect::<Vec<_>>()
+    .join(", ");
+  format!(
+    "estate {}  {}  at {}  sessions {}{}",
+    // A host the reader could not name is said so; the reason is in `unreadable`.
+    v["host"].as_str().unwrap_or("(host unknown)"),
+    v["version"].as_str().unwrap_or(""),
+    v["taken_at"].as_str().unwrap_or(""),
+    sessions.len(),
+    if tally.is_empty() {
+      String::new()
+    } else {
+      format!(": {tally}")
+    }
+  )
+}
+
+/// What the estate says when no session is running.
+const NO_SESSIONS: &str = "no Claude Code sessions are running on this host";
+
+/// One row per session in the order the reader returned them (project, then
+/// name; no project last), written as the verb's cells and carried with what
+/// the explorer needs beside them.
+///
+/// **THE CELLS ARE WRITTEN HERE AND NOWHERE ELSE**: `intent estate status`
+/// prints them and `/estate` lays them out, so the two cannot disagree about
+/// what a session's row says or in which column.
+fn estate_lines(v: &serde_json::Value) -> Vec<tui::views::EstateLine> {
+  let s = |x: &serde_json::Value| x.as_str().unwrap_or("").to_string();
+  let list = |x: &serde_json::Value| {
+    x.as_array()
+      .map(|a| {
+        a.iter()
+          .map(|e| {
+            e.as_str()
+              .map(str::to_string)
+              .unwrap_or_else(|| e.to_string())
+          })
+          .collect::<Vec<_>>()
+          .join(",")
+      })
+      .filter(|j| !j.is_empty())
+      .unwrap_or_else(|| "-".to_string())
+  };
+  v["sessions"]
+    .as_array()
+    .map(Vec::as_slice)
+    .unwrap_or(&[])
+    .iter()
+    .map(|row| {
+      let mut project = match row["project"]["name"].as_str() {
+        Some(name) => name.to_string(),
+        None => "-".to_string(),
+      };
+      if row["worktree"].as_bool() == Some(true) {
+        project.push_str(" (wt)");
+      }
+      let line = s(&row["line"]);
+      let line = if line.is_empty() {
+        "-".to_string()
+      } else if row["line_is_wip"].as_bool() == Some(true) {
+        format!("wip: {line}")
+      } else {
+        line
+      };
+      let root = row["project"]["root"].as_str().map(str::to_string);
+      let detail = format!(
+        "session `{}`, pid {}, Claude Code {}\n\nproject {}\n\n{}",
+        s(&row["session_id"]),
+        row["pid"],
+        row["claude_status"].as_str().unwrap_or("-"),
+        root.as_deref().unwrap_or("-"),
+        line
+      );
+      tui::views::EstateLine {
+        session: s(&row["session_id"]),
+        cells: [
+          s(&row["name"]),
+          project,
+          row["node"].as_str().unwrap_or("-").to_string(),
+          s(&row["state"]),
+          estate_age(v, row, "started_at"),
+          estate_age(v, row, "updated_at"),
+          list(&row["slots"]),
+          list(&row["claims"]),
+          line,
+        ],
+        root,
+        detail,
+      }
+    })
+    .collect()
+}
+
+/// The terminal form: the summary line, then one row per session.
+///
+/// **THE LAST COLUMN IS CUT TO THE TERMINAL, AND ONLY THE LAST.** The WIP or
+/// focus line is the long one; every column before it is short and aligned.
+fn estate_table(v: &serde_json::Value, width: usize) -> String {
+  let mut out = format!("{}\n", estate_summary(v));
+  let lines = estate_lines(v);
+  if lines.is_empty() {
+    out.push_str(NO_SESSIONS);
+    out.push('\n');
+    return out;
+  }
+  let mut widths = ESTATE_HEADER.map(|h| h.chars().count());
+  for l in &lines {
+    for (i, cell) in l.cells.iter().enumerate().take(8) {
+      widths[i] = widths[i].max(cell.chars().count());
+    }
+  }
+  let lead: usize = widths.iter().take(8).map(|w| w + 2).sum();
+  let room = width.saturating_sub(lead).max(12);
+  let mut emit = |cells: [&str; 9]| {
+    let mut l = String::new();
+    for (i, cell) in cells.iter().take(8).enumerate() {
+      l.push_str(&format!("{cell:<w$}  ", w = widths[i]));
+    }
+    let last: String = if cells[8].chars().count() > room {
+      cells[8]
+        .chars()
+        .take(room.saturating_sub(3))
+        .collect::<String>()
+        + "..."
+    } else {
+      cells[8].to_string()
+    };
+    l.push_str(&last);
+    out.push_str(l.trim_end());
+    out.push('\n');
+  };
+  emit(ESTATE_HEADER);
+  for l in &lines {
+    emit(l.cells.each_ref().map(String::as_str));
+  }
+  out
+}
+
+/// The explorer's `/estate` view (ST0086 WP-03): the sessions `intent estate
+/// status` prints, from the same reader, written through the verb's own cells,
+/// each opening the project it stands in.
+///
+/// **A READER THAT CANNOT ANSWER IS AN ERROR ROW, NEVER AN EMPTY TABLE**, which
+/// would read as no sessions; a file it could not read is a row of its own, as
+/// the verb warns of it on stderr.
+fn estate_view() -> Vec<tui::layout::Row> {
+  use tui::layout::Row;
+  let value = intentsvcs::estate::host_status()
+    .map_err(estate_fail)
+    .and_then(|status| estate_value(&status));
+  match value {
+    Ok(v) => tui::views::estate_rows(
+      ESTATE_HEADER,
+      &estate_lines(&v),
+      &estate_summary(&v),
+      &estate_warnings(&v),
+      NO_SESSIONS,
+    ),
+    Err(why) => vec![Row::new(
+      "estate",
+      format!("unavailable -- {}", why.message().unwrap_or_default()),
+      "label",
+    )],
+  }
+}
+
+/// `intent estate wip [<line>] [--clear] [--session <id>]`.
+///
+/// **THE SESSION IS THE ONE THIS RUNS IN UNLESS NAMED**, read through
+/// [`pickup_session`], the one place that variable is read. With no line and
+/// no `--clear` it refuses: guessing which was meant would either erase a line
+/// or write an empty one.
+fn estate_wip(a: &ArgMatches) -> Result<(), Failure> {
+  let line = opt(a, "line")?;
+  let clear = given(a, "clear");
+  let line = match (line, clear) {
+    (Some(_), true) => {
+      return Err(Failure::Error(
+        "error: a WIP line and --clear were both given\n  remedy: give the line to set it, or --clear alone to remove it".to_string(),
+      ));
+    }
+    (None, false) => {
+      return Err(Failure::Error(
+        "error: nothing to write: give a WIP line, or --clear to remove this session's\n  remedy: `intent estate wip \"<what this session is doing>\"`, or `intent estate wip --clear`".to_string(),
+      ));
+    }
+    (Some(l), false) => Some(l),
+    (None, true) => None,
+  };
+  let Some(session) = pickup_session(opt(a, "session")?.as_deref()) else {
+    return Err(Failure::Error(
+      "error: no Claude Code session to write for: --session was not given and this process runs in no Claude Code session\n  remedy: run it from inside a Claude Code session, or name one with `--session <id>`".to_string(),
+    ));
+  };
+  let written = intentsvcs::estate::host_wip(&session, line.as_deref()).map_err(estate_fail)?;
+  if written.cleared {
+    println!("removed: {}", written.path.display());
+  } else {
+    println!("wrote: {}", written.path.display());
+  }
+  Ok(())
+}
+
+/// `intent estate prune`: Intent's own WIP records for sessions that are gone.
+/// Claude Code's files are never touched; the reader decides what is gone.
+fn estate_prune() -> Result<(), Failure> {
+  let pruned = intentsvcs::estate::host_prune().map_err(estate_fail)?;
+  for path in &pruned.removed {
+    println!("removed: {}", path.display());
+  }
+  println!("done: {} removed", pruned.removed.len());
+  Ok(())
 }
 
 /// `intent app` -- the CLI owns the menubar app's lifecycle, exactly as it owns

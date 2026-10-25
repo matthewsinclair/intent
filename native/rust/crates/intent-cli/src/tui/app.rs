@@ -47,10 +47,9 @@ use super::omnibox::{Entry, Go, Omnibox};
 /// How many matches the omnibox offers at once: enough to show a collision, few
 /// enough that the dropdown never eats the body. **It is also the resting
 /// palette, which must offer every act**
-/// (`an_empty_query_offers_the_top_of_the_vocabulary_in_declared_order`), so it
-/// went from eight to nine when `/outstanding` became the ninth act (ST0079
-/// WP-01).
-pub const MATCH_CAP: usize = 9;
+/// (`an_empty_query_offers_the_top_of_the_vocabulary_in_declared_order`), so a
+/// new act raises it, and that test fails until it does.
+pub const MATCH_CAP: usize = 10;
 
 /// What the loop should do next.
 ///
@@ -409,6 +408,21 @@ impl App {
         Step::Continue
       }
       Act::Outstanding => {
+        self.notice = format!(
+          "`/{}` opens the table and takes no argument",
+          self.commands[at].name
+        );
+        Step::Continue
+      }
+      // **THE ESTATE, AS A VIEW** (ST0086 WP-03), for `/outstanding`'s reasons:
+      // a push, already being there is not a push, and an argument is refused.
+      Act::Estate if argument.is_empty() => {
+        if self.stack.current() != &View::Estate {
+          self.push(View::Estate);
+        }
+        Step::Continue
+      }
+      Act::Estate => {
         self.notice = format!(
           "`/{}` opens the table and takes no argument",
           self.commands[at].name
@@ -1169,6 +1183,14 @@ impl App {
   /// tick does not re-run it under them.
   pub fn view_follows_the_store(&self) -> bool {
     !matches!(self.stack.current(), View::Search { .. })
+  }
+
+  /// Whether this view is re-read on a clock as well (ST0086 WP-03).
+  ///
+  /// **THE ESTATE ALONE**: it is the one view whose source is not a store, so
+  /// nothing tells the loop it moved.
+  pub fn view_follows_the_clock(&self) -> bool {
+    matches!(self.stack.current(), View::Estate)
   }
 
   /// Whether the omnibox may take new entities now: only while no query is
@@ -2687,6 +2709,7 @@ mod tests {
       "issues",
       "projects",
       "outstanding",
+      "estate",
       "help",
       "settings",
       "search",

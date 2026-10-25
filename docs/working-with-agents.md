@@ -108,6 +108,12 @@ For Claude Code, Intent installs procedural skills — a session bootstrap that 
 
 When more than one agent works the same checkout, the index, the stash and the reflog are shared objects, and a finished change that cannot land yet needs a home that is none of them. [Banking work](banking.md) is the policy: the change is a patch stored as a git blob under `refs/bank/`, judged at one patch-id, and landed on the director's word with `git commit --only`.
 
+## Every session on this machine
+
+`intent estate status` lists every Claude Code session running on this machine, whatever project it is in: its project and whiteboard node, whether it is busy, idle, in a heavy run, paused or gone, how long it has run, its last heartbeat, its claims and what it is doing. A session that is a whiteboard node shows its board's focus. A session outside any whiteboard can say what it is doing with `intent estate wip "<line>"`, and `--clear` removes the line. `--format json` prints the same answer for an agent, which reads it before starting something that contends with the others, such as a heavy build.
+
+`intent estate status --browser` opens the same answer as a page served by a running `intentd`, at `/estate/status`. It shows the machine's load, the last hour of load and running slots, plan usage, the queue of requests for a slot, the lanes and the sessions, and it reads the estate again every few seconds while it is open. Each panel folds, and a folded panel's heading keeps its one-line reading. In the explorer, `/estate` shows the sessions as a list, as [the explorer guide](explorer.md) describes.
+
 ## What this buys, and what it does not
 
 **It buys a context file that does not silently drift**, because it is generated from something that would have to change first and `intent doctor` says when it is behind, and rules with one home that three consumers read.

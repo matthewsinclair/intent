@@ -166,6 +166,18 @@ const DECLARED: &[(&str, &str, Why)] = &[
   ),
   (
     "intent-cli/src/render.rs",
+    "estate status",
+    Why::CheckedBy(
+      "`daemon status`'s class: the LOOKUP KEY `enum_flag(a, \"estate status\", \"--format\")` \
+     uses to find the row's declared values, and the same literal names the row back to the \
+     operator in the refusal. HELD AGAINST THE TABLE AT RUNTIME: an unresolved label takes \
+     `enum_flag`'s exit-2 branch, not the exit-1 refusal an undeclared VALUE gets. DRIVEN BY \
+     `format_roster_is_honoured::the_estate_status_lookup_resolves_and_refuses_by_name`, which \
+     asserts the exit CODE, through the one arm `daemon status` uses.",
+    ),
+  ),
+  (
+    "intent-cli/src/render.rs",
     "daemon status",
     Why::CheckedBy(
       "NOT A ROSTER AND NOT A COINCIDENCE: it is the LOOKUP KEY `enum_flag(a, \"daemon status\", \
@@ -241,6 +253,16 @@ const DECLARED: &[(&str, &str, Why)] = &[
   (
     "intent-cli/src/mcp.rs",
     "wb pickup",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "estate status",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "estate wip",
     Why::CheckedBy(MCP_SERVING_MATCH),
   ),
   (

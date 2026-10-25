@@ -9438,6 +9438,123 @@
           }
         }
       ]
+    },
+    {
+      "name": "estate",
+      "help": "Every Claude session on this host: who it is, where it stands, and what it is doing",
+      "v2_source": null,
+      "v2_help_file": null,
+      "owner_wp": "WP-01",
+      "family_notes": [
+        "NEW SURFACE with no v2 antecedent, from ST0086 (the estate view). The estate is the HOST, not a project: these verbs answer the same wherever they are run, and none of them opens a project store.",
+        "Presence is Claude Code's own per-session file, read and never written (hv's ruling of 2026-10-24, ST0086 design.md); Intent adds only what that file lacks, and the one thing it writes per session is the WIP line `estate wip` sets for a session with no board. `status` renders what `intentsvcs::estate::status` returns, and `--format json` is that answer's own serialisation, the boundary the page and the TUI read too."
+      ],
+      "entries": [
+        {
+          "path": "estate",
+          "help": "Every Claude session on this host: who it is, where it stands, and what it is doing",
+          "args": [{ "name": "command", "type": "subcommand", "arity": "1" }],
+          "v2": "new-surface",
+          "basis": "ST0086 design.md, The source of truth and Writers.",
+          "owner_wp": "WP-01",
+          "target": { "state": "new-surface" },
+          "disposition": "new-surface",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "read",
+          "flags": [],
+          "mcp_review": {
+            "note": "The family head dispatches and does nothing itself."
+          }
+        },
+        {
+          "path": "estate status",
+          "help": "List every Claude session on this host with its project, node, state, claims and WIP or focus line",
+          "when_to_use": "USE IT to see who else is working on this machine and what each session is doing before you start something that contends with them -- a heavy build, a commit on a shared checkout, a claim. It reads Claude Code's own session files and each project's board, so a session that is busy, idle, paused or gone says so whether or not it is a whiteboard node. DO NOT USE IT for one project's board in detail: `intent wb status` and `intent wb show` are that. A session file this build cannot read is listed under `unreadable` with the reason, never dropped.",
+          "args": [],
+          "v2": "new-surface",
+          "basis": "ST0086 design.md: `intent estate status --json` for Claudes, spelt `--format json` under hv's 2026-08-21 spelling ruling for new surface.",
+          "owner_wp": "WP-01",
+          "target": { "state": "new-surface" },
+          "disposition": "new-surface",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read",
+          "flags": [
+            {
+              "spellings": ["--format"],
+              "type": "enum",
+              "value": "terminal|json",
+              "default": "terminal",
+              "help": "Output format",
+              "disposition": "keep",
+              "exposed_on_mcp": false,
+              "disposition_basis": "`--format`, not `--json`, on hv's 2026-08-21 spelling ruling: new surface has no v2 alias to keep. The json form is the reader's answer serialised whole (ST0086's agreed boundary, `intent/estate-status@1`), so the terminal form, the page and the TUI cannot disagree about a field. The MCP tool always answers the structured form."
+            },
+            {
+              "spellings": ["--browser"],
+              "type": "bool",
+              "help": "Open the estate page in the browser, served by intentd",
+              "disposition": "keep",
+              "exposed_on_mcp": false,
+              "disposition_basis": "The page is the same reader's answer, laid out for a wide screen and read again while it is open, at the address hv named for it, `/estate/status`. It opens through the door `edit --browser` uses, with the token in the fragment, and refuses when no daemon is answering rather than starting one. It is not offered over MCP: an agent reads the answer, and a browser opening on the human's screen is not something an agent asks for. Given with `--format` it refuses, because the two ask for opposite things."
+            }
+          ],
+          "facade": "estate_status",
+          "note": "**A FILE IT CANNOT READ IS A WARNING, NOT A FAILURE.** Each unreadable session file goes to stderr as `warning: <path> -- <why>` and the verb exits 0, because one malformed file says nothing about the other sessions; the json form carries the same entries under `unreadable`. A refusal (exit 1) is reserved for the estate itself being unreachable, such as no HOME."
+        },
+        {
+          "path": "estate wip",
+          "help": "Set or clear this session's WIP line, for a session that is not a whiteboard node",
+          "when_to_use": "USE IT when this session stands in no whiteboard -- a coordinator, a session outside any project -- so the estate view can say what it is doing. DO NOT USE IT in a session that is a whiteboard node: the estate view shows that node's board focus, set with `intent wb pickup --focus`. With no line and no `--clear` it refuses rather than guessing which was meant.",
+          "args": [{ "name": "line", "type": "string", "arity": "0..1" }],
+          "v2": "new-surface",
+          "basis": "ST0086 design.md, Writers: `intent estate wip \"<line>\"` (a session with no board).",
+          "owner_wp": "WP-01",
+          "target": { "state": "new-surface" },
+          "disposition": "new-surface",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible",
+          "mcp_review": {
+            "note": "REVERSIBLE AND EXPOSED, ON vc's RULING OF 2026-10-24: a new line replaces the old one and any value can be written back or cleared, which is `set`'s class, but what it replaces is the calling agent's own presence line rather than prose a human wrote, so `set`'s authorship reason for withholding does not apply."
+          },
+          "flags": [
+            {
+              "spellings": ["--clear"],
+              "type": "bool",
+              "help": "Remove this session's WIP line",
+              "disposition": "keep",
+              "exposed_on_mcp": true
+            },
+            {
+              "spellings": ["--session"],
+              "type": "string",
+              "help": "The Claude Code session to write for (default: the session this runs in)",
+              "disposition": "keep",
+              "exposed_on_mcp": false,
+              "disposition_basis": "The session defaults to `CLAUDE_CODE_SESSION_ID`, read through the one confined reader `render::pickup_session`, as `wb pickup --session` does. The MCP tool takes the same default from its own process, which Claude Code starts with that variable set, so the tool carries no session parameter an agent could misname."
+            }
+          ],
+          "facade": "estate_wip"
+        },
+        {
+          "path": "estate prune",
+          "help": "Remove Intent's own WIP records for sessions that are gone; Claude Code's files are never touched",
+          "when_to_use": "USE IT where no daemon runs, to clear the WIP records of sessions whose process has ended. With a daemon running it is not needed: the daemon reaps the same records on its tick. It never deletes anything under the Claude directory.",
+          "args": [],
+          "v2": "new-surface",
+          "basis": "ST0086 design.md, Cleanup: `intent estate prune` does what the daemon's reap does where no daemon runs.",
+          "owner_wp": "WP-01",
+          "target": { "state": "new-surface" },
+          "disposition": "new-surface",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate",
+          "recoverability": "one-way",
+          "flags": [],
+          "mcp_review": {
+            "note": "WITHHELD BECAUSE IT IS ONE-WAY (vc, 2026-10-24): it deletes records nothing can restore. A repeat is a no-op, but the first run is the act that counts, and an agent should not start it unasked."
+          }
+        }
+      ]
     }
   ],
   "families_outstanding": [],
@@ -10227,7 +10344,7 @@
           "name": "address",
           "type": "address-or-id",
           "arity": "0..1",
-          "note": "Optional. Where to open: a view, an `intent://` address, or an id. A view is one of the explorer's own places, spelt as its `/` command: `threads`, `issues`, `projects`, `outstanding`, `help`, `settings` or `search`, or the start of one, so `outs` opens `outstanding`; it opens exactly as typing that command would, and a start that fits two views opens at the top and names both. A thread can be named `ST0000`, `ST0` or `st0`. A bare number, such as `4`, opens the one thread or issue in this project with that number; when a thread and an issue share it, `s4` or `i4` names the one you mean. A number that names both or neither, or anything else it cannot read, opens at the top instead. Omitted, it opens at the top."
+          "note": "Optional. Where to open: a view, an `intent://` address, or an id. A view is one of the explorer's own places, spelt as its `/` command: `threads`, `issues`, `projects`, `outstanding`, `estate`, `help`, `settings` or `search`, or the start of one, so `outs` opens `outstanding`; it opens exactly as typing that command would, and a start that fits two views opens at the top and names both. A thread can be named `ST0000`, `ST0` or `st0`. A bare number, such as `4`, opens the one thread or issue in this project with that number; when a thread and an issue share it, `s4` or `i4` names the one you mean. A number that names both or neither, or anything else it cannot read, opens at the top instead. Omitted, it opens at the top."
         }
       ],
       "v2": "new-surface",
@@ -10677,8 +10794,8 @@
     {
       "disposition": "new-surface",
       "target_state": "new-surface",
-      "n": 86,
-      "census_note": "86 since 2026-10-23: `lang declared`, `lang of` and `guards`, the read verbs that print for a script what the binary already parses -- a project's declared languages, a path's language and the declared commit guards (issues 0618, 0617 and 0616); 83 since 2026-10-16: `deinit`, the door that strips what Intent wrote from a project being closed (ST0083 WP-06); 82 since 2026-10-15: `agents layout`, the door that moves the two agent contracts between the root and .claude/ and sets the contracts key (ST0083 WP-03); 81 since 2026-09-23: `wb edit`, the door that changes an item's text and keeps the old text out of any commit that does not hold it yet (issue 0523); 80 since 2026-09-21: `outstanding`, one table of the outstanding threads, work packages and issues (ST0079); 79 since 2026-09-21: `st relate` and `st unrelate`, the only doors to a thread's `related` links (issue 0460); 77 since 2026-09-18: `st renumber` and `issues renumber`, the verbs that move a thread or an issue to a free id after two clones minted the same one (ST0078 WP-02); 75 since 2026-09-17: `index resolve`, the verb that runs each language's toolchain over the project and stores the references that join a written one (ST0076 WP-05, vc decision 25); 74 since 2026-09-14: `st detach`, the verb that removes an attachment's record from the store and canon and leaves its file on disk (issue 0394); 73 earlier the same day: `wp gate`, the work package's own close-gate verdict (issue 0310); 72 earlier the same day: `daemon logs`, the verb Intent.app's Console tails, printing intentd's recent log lines and following them with `--follow` (ST0075 WP-01 AC-01.1); 71 since 2026-09-13: `discover`, the verb that finds Intent projects under a directory and registers the ones this build can serve (ST0074 WP-03 AC-03.3); 70 since 2026-09-12: `wb migrate`, the verb that carries a hand-authored board into the model (ST0069 WP-14 AC-14.9); 69 earlier the same day: `wb add`, the door the generated view would otherwise have closed (ST0069 WP-14); 68 earlier the same day: `wb archive` (ST0069 WP-14 AC-14.6, vc's ruling that the state change IS the schedule); 67 earlier the same day: `wb pickup`, `wb touch` and `wb release`, the lifecycle half of the `wb` family (ST0069 WP-14); 64 earlier the same day: `wb decide`, `wb claim` and `wb unclaim`, the item half of the `wb` family (ST0069 WP-14); 61 earlier the same day: `wb ask`, `wb announce` and `wb clear`, the message half of the `wb` family (ST0069 WP-14 AC-14.5); 58 earlier the same day: `wb status` and `wb show`, the read half of the `wb` family (ST0069 WP-14 AC-14.7); 56 earlier the same day: the `wb` family and `wb register` (the same criterion); 54 earlier the same day: the `index` family and its two verbs (`index`, `index status`, `index rebuild`, ST0069 WP-19 AC-19.6); 51 since 2026-09-11 with `set` (issues 0154 + 0185, vc's option (1)); 50 before it, with `ac show` (issue 0168, vc's option (a)).",
+      "n": 90,
+      "census_note": "90 since 2026-10-25: the `estate` family and its three verbs (`estate`, `estate status`, `estate wip`, `estate prune`), the host's Claude sessions answered from no project (ST0086 WP-01); 86 since 2026-10-23: `lang declared`, `lang of` and `guards`, the read verbs that print for a script what the binary already parses -- a project's declared languages, a path's language and the declared commit guards (issues 0618, 0617 and 0616); 83 since 2026-10-16: `deinit`, the door that strips what Intent wrote from a project being closed (ST0083 WP-06); 82 since 2026-10-15: `agents layout`, the door that moves the two agent contracts between the root and .claude/ and sets the contracts key (ST0083 WP-03); 81 since 2026-09-23: `wb edit`, the door that changes an item's text and keeps the old text out of any commit that does not hold it yet (issue 0523); 80 since 2026-09-21: `outstanding`, one table of the outstanding threads, work packages and issues (ST0079); 79 since 2026-09-21: `st relate` and `st unrelate`, the only doors to a thread's `related` links (issue 0460); 77 since 2026-09-18: `st renumber` and `issues renumber`, the verbs that move a thread or an issue to a free id after two clones minted the same one (ST0078 WP-02); 75 since 2026-09-17: `index resolve`, the verb that runs each language's toolchain over the project and stores the references that join a written one (ST0076 WP-05, vc decision 25); 74 since 2026-09-14: `st detach`, the verb that removes an attachment's record from the store and canon and leaves its file on disk (issue 0394); 73 earlier the same day: `wp gate`, the work package's own close-gate verdict (issue 0310); 72 earlier the same day: `daemon logs`, the verb Intent.app's Console tails, printing intentd's recent log lines and following them with `--follow` (ST0075 WP-01 AC-01.1); 71 since 2026-09-13: `discover`, the verb that finds Intent projects under a directory and registers the ones this build can serve (ST0074 WP-03 AC-03.3); 70 since 2026-09-12: `wb migrate`, the verb that carries a hand-authored board into the model (ST0069 WP-14 AC-14.9); 69 earlier the same day: `wb add`, the door the generated view would otherwise have closed (ST0069 WP-14); 68 earlier the same day: `wb archive` (ST0069 WP-14 AC-14.6, vc's ruling that the state change IS the schedule); 67 earlier the same day: `wb pickup`, `wb touch` and `wb release`, the lifecycle half of the `wb` family (ST0069 WP-14); 64 earlier the same day: `wb decide`, `wb claim` and `wb unclaim`, the item half of the `wb` family (ST0069 WP-14); 61 earlier the same day: `wb ask`, `wb announce` and `wb clear`, the message half of the `wb` family (ST0069 WP-14 AC-14.5); 58 earlier the same day: `wb status` and `wb show`, the read half of the `wb` family (ST0069 WP-14 AC-14.7); 56 earlier the same day: the `wb` family and `wb register` (the same criterion); 54 earlier the same day: the `index` family and its two verbs (`index`, `index status`, `index rebuild`, ST0069 WP-19 AC-19.6); 51 since 2026-09-11 with `set` (issues 0154 + 0185, vc's option (1)); 50 before it, with `ac show` (issue 0168, vc's option (a)).",
       "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
     },
     {
@@ -10892,6 +11009,10 @@
       {
         "path": "app restart",
         "why": "acts on the operator's REAL GUI session and no sandbox contains it. `daemon stop` is probeable because a probe under a tempdir `$HOME` stops a daemon in that tempdir; this verb reaches LaunchServices by a FIXED BUNDLE ID, so a probe would quit or relaunch the developer's actual menubar app on the machine running the suite. The ground is that the side effect escapes the sandbox, not that the verb fails to return -- it returns perfectly well, which is what makes it dangerous to drive blind. Do NOT copy `daemon`'s disposition here: the two families look alike and their probes do not."
+      },
+      {
+        "path": "estate prune",
+        "why": "writes WHEN INVOKED BARE -- it is a LEAF, so bare RUNS it, removing Intent's WIP records for gone sessions under the operator's state directory. The rest of the family is probeable by the same criterion: bare `estate` dispatches to help, bare `estate status` reads, and bare `estate wip` refuses before it reaches a session or a path (vc, 2026-10-25, ST0086)."
       }
     ],
     "declared": [
@@ -11056,6 +11177,10 @@
       "index status",
       "index rebuild",
       "index resolve",
+      "estate",
+      "estate status",
+      "estate wip",
+      "estate prune",
       "search",
       "sync",
       "schema",
@@ -11225,6 +11350,10 @@
       "index status",
       "index rebuild",
       "index resolve",
+      "estate",
+      "estate status",
+      "estate wip",
+      "estate prune",
       "search",
       "sync",
       "schema",
@@ -11403,6 +11532,9 @@
       "index status",
       "index rebuild",
       "index resolve",
+      "estate",
+      "estate status",
+      "estate wip",
       "search",
       "sync",
       "schema",

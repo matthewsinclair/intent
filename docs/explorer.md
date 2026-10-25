@@ -27,7 +27,7 @@ To open at one of the explorer's views, name it as you would type its command:
   $ intent explore projects
 ```
 
-The views are `threads`, `issues`, `projects`, `outstanding`, `help`, `settings` and `search`. The start of a name is enough when only one view starts that way, so `intent explore outs` opens `outstanding`. The explorer opens exactly as if you had typed `/issues` into it, so Backspace takes you back to the top. When the start fits two views, such as `se` for `settings` and `search`, it opens at the top and the status row names both.
+The views are `threads`, `issues`, `projects`, `outstanding`, `estate`, `help`, `settings` and `search`. The start of a name is enough when only one view starts that way, so `intent explore outs` opens `outstanding`. The explorer opens exactly as if you had typed `/issues` into it, so Backspace takes you back to the top. When the start fits two views, such as `se` for `settings` and `search`, it opens at the top and the status row names both.
 
 To open somewhere other than the top, give it an id or a full address:
 
@@ -103,6 +103,12 @@ Intent's own commands run from the menu as well, as `/` followed by the command,
 
 Enter on a row opens the thread, work package or issue it names.
 
+## See every Claude session on this host
+
+`/estate` shows the table `intent estate status` prints: every Claude Code session running on this machine, with the project and whiteboard node it stands in, whether it is busy, idle, in a heavy run or gone, how long it has run, its last heartbeat, its claims and its WIP or focus line. The line under the table names the host and counts the sessions by state, and a session file the estate could not read gets a row of its own saying why.
+
+The estate is the machine rather than a project, so `/estate` works with no project open too. It is not in any project's store, so instead of following a store it is read again every few seconds while it is on screen. Enter on a session opens the project it stands in, and the pane under the list shows its whole WIP line.
+
 ## Search the project
 
 `/search` followed by some text searches the project's index and lists the hits in a pane. Enter on a hit opens it:
@@ -113,7 +119,7 @@ The search pane is the one view that does not follow the store. Its answer is th
 
 ## Keep up without pressing a key
 
-Every view except the search pane follows the project's store. When something else writes to it, such as a command in another terminal or an agent working beside you, the screen catches up within half a second:
+Every view except the search pane and the estate follows the project's store. When something else writes to it, such as a command in another terminal or an agent working beside you, the screen catches up within half a second:
 
 ![The issues list with issue 0004 at the top, added from another terminal while the list was open, and the selection still on the row it was on.](images/explorer/live.png)
 

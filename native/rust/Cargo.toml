@@ -210,7 +210,7 @@ notify-debouncer-full = "0.7"
 # records that reason. `intentsvcs` and `intent-cli` use this crate to format
 # times they were handed by a record, and read no clock with it;
 # `intentsvcs/tests/one_clock.rs` holds both halves.
-time = { version = "0.3", features = ["formatting", "macros"] }
+time = { version = "0.3", features = ["formatting", "macros", "parsing"] }
 # Content hashing for the sync engine's file index. AC-03.3 requires detecting
 # a same-size same-mtime rewrite, which stat cannot see by construction, so the
 # hash is computed on EVERY scan and stat is reporting metadata only.

@@ -302,6 +302,87 @@ pub fn outstanding_door(row: &intentsvcs::outstanding::Row) -> Option<View> {
   intentsvcs::nav::view_for(&entity)
 }
 
+/// One session of the estate, as the verb writes it (ST0086 WP-03).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EstateLine {
+  /// The Claude Code session id: what the cursor follows across a re-read.
+  pub session: String,
+  /// The verb's cells, in its column order.
+  pub cells: [String; 9],
+  /// The root of the project the session stands in, if any.
+  pub root: Option<String>,
+  /// What the pane under the list reads: the whole line and who is behind it.
+  pub detail: String,
+}
+
+/// The estate's rows (ST0086 WP-03): the verb's column heads, one row per
+/// session, then a rule, the summary line and a row per file the reader could
+/// not read.
+///
+/// **THE ROWS LEAVE IN THE ORDER THEY ARRIVE**, for [`outstanding_rows`]'
+/// reason: the order is [`intentsvcs::estate`]'s. **FOUR COLUMNS AND THE REST,
+/// IN THE TWO THE ROW MODEL HAS**: the name and project on the left, the node
+/// to the claims padded on the right with the WIP or focus line last, which is
+/// the one the layout cuts. The whole line is in the pane.
+///
+/// **A SESSION OPENS THE PROJECT IT STANDS IN**, which is choosing that
+/// project; a session in no project opens nothing.
+pub fn estate_rows(
+  header: [&str; 9],
+  lines: &[EstateLine],
+  summary: &str,
+  warnings: &[String],
+  none: &str,
+) -> Vec<Row> {
+  let widest = |at: usize| {
+    lines
+      .iter()
+      .map(|l| l.cells[at].chars().count())
+      .chain(std::iter::once(header[at].chars().count()))
+      .max()
+      .unwrap_or(0)
+  };
+  let widths: Vec<usize> = (0..8).map(widest).collect();
+  let left = |c: [&str; 9]| format!("{:<w$}  {}", c[0], c[1], w = widths[0]);
+  let right = |c: [&str; 9]| {
+    let mut out = String::new();
+    for (at, cell) in c.iter().enumerate().take(8).skip(2) {
+      out.push_str(&format!("{cell:<w$}  ", w = widths[at]));
+    }
+    out.push_str(c[8]);
+    out
+  };
+  let mut rows = Vec::new();
+  if lines.is_empty() {
+    rows.push(Row::named("estate sessions", "sessions", none, "label"));
+  } else {
+    rows.push(Row::named(
+      "estate columns",
+      left(header),
+      right(header),
+      "label",
+    ));
+    rows.extend(lines.iter().map(|l| {
+      let cells = l.cells.each_ref().map(String::as_str);
+      let row = Row::named(l.session.clone(), left(cells), right(cells), "button")
+        .reading(l.detail.clone());
+      match &l.root {
+        Some(root) => row.opening(View::Project { root: root.clone() }),
+        None => row,
+      }
+    }));
+  }
+  rows.push(Row::rule());
+  rows.push(Row::new("estate", summary, "label"));
+  rows.extend(
+    warnings
+      .iter()
+      .enumerate()
+      .map(|(at, w)| Row::named(format!("unreadable {at}"), "unreadable", w.clone(), "label")),
+  );
+  rows
+}
+
 /// The APP row's text for a view. **The trail and the exit key belong to the
 /// stack, not to this** -- see [`super::nav::Stack::trail`].
 pub fn app_line(view: &View) -> String {
@@ -324,6 +405,7 @@ pub fn app_line(view: &View) -> String {
     View::Projects => "projects".to_string(),
     View::Project { root } => format!("project  {root}"),
     View::Outstanding => "outstanding".to_string(),
+    View::Estate => "estate".to_string(),
   }
 }
 
@@ -736,5 +818,147 @@ mod tests {
       );
       seen.push(line);
     }
+  }
+
+  const HEADER: [&str; 9] = [
+    "NAME",
+    "PROJECT",
+    "NODE",
+    "STATE",
+    "SINCE",
+    "HB",
+    "SLOTS",
+    "CLAIMS",
+    "WIP / FOCUS",
+  ];
+
+  /// A session as the verb writes it, in `project` when one is given.
+  fn session(id: &str, name: &str, project: Option<&str>, line: &str) -> EstateLine {
+    EstateLine {
+      session: id.to_string(),
+      cells: [
+        name,
+        project.unwrap_or("-"),
+        "ic",
+        "busy",
+        "1h02",
+        "4s",
+        "-",
+        "ST0086/03",
+        line,
+      ]
+      .map(str::to_string),
+      root: project.map(|p| format!("/u/m/Devel/prj/{p}")),
+      detail: format!("the whole of {line}"),
+    }
+  }
+
+  /// ST0086 WP-03: the column heads, a row per session in the order given,
+  /// each opening its project and carrying its whole line, then the summary
+  /// and the files the reader could not read.
+  #[test]
+  fn the_estate_lays_out_the_verbs_cells_in_the_order_they_arrive() {
+    let lines = [
+      session("s-1", "intent-ic", Some("Intent"), "wip: the estate view"),
+      session("s-2", "scratch", None, "-"),
+    ];
+    let warnings = ["warning: /h/.claude/sessions/9.json -- not JSON".to_string()];
+    let rows = estate_rows(
+      HEADER,
+      &lines,
+      "estate rhadamanth  sessions 2",
+      &warnings,
+      "none",
+    );
+
+    let names: Vec<&str> = rows.iter().map(|r| r.name.as_str()).collect();
+    assert_eq!(
+      names,
+      ["estate columns", "s-1", "s-2", "", "estate", "unreadable 0"],
+      "the rows are not heads, sessions in order, rule, summary, warning"
+    );
+    assert!(
+      rows[0].title.starts_with("NAME") && rows[0].value.starts_with("NODE"),
+      "the column heads are not the verb's: {:?}",
+      rows[0]
+    );
+    assert!(
+      rows[1].title.contains("intent-ic") && rows[1].title.contains("Intent"),
+      "the left column is not the name and project: {}",
+      rows[1].title
+    );
+    assert!(
+      rows[1].value.ends_with("wip: the estate view") && rows[1].value.contains("ST0086/03"),
+      "the right column is not the node to the claims with the line last: {}",
+      rows[1].value
+    );
+    assert_eq!(
+      rows[1].door,
+      Some(View::Project {
+        root: "/u/m/Devel/prj/Intent".into()
+      }),
+      "a session does not open the project it stands in"
+    );
+    assert_eq!(
+      rows[2].door, None,
+      "a session in no project opens something"
+    );
+    assert_eq!(
+      rows[1].detail,
+      Some(super::super::layout::Detail::Contents(
+        "the whole of wip: the estate view".into()
+      )),
+      "the pane does not carry the session's whole line"
+    );
+    assert!(
+      rows[3].is_rule(),
+      "no rule between the sessions and the summary"
+    );
+    assert_eq!(rows[4].value, "estate rhadamanth  sessions 2");
+    assert_eq!(
+      rows[5].value, warnings[0],
+      "an unreadable file is not on the view"
+    );
+  }
+
+  /// ST0086 WP-03: the right column's cells line up under their heads, whatever
+  /// the widths of the sessions.
+  #[test]
+  fn the_estates_columns_line_up_under_their_heads() {
+    let mut wide = session("s-1", "a-much-longer-session-name", Some("Intent"), "x");
+    wide.cells[2] = "a-long-node".to_string();
+    let rows = estate_rows(
+      HEADER,
+      &[wide, session("s-2", "b", None, "y")],
+      "s",
+      &[],
+      "none",
+    );
+    let state_at = |r: &Row, cell: &str| r.value.find(cell).expect("the cell is in the row");
+    assert_eq!(state_at(&rows[0], "STATE"), state_at(&rows[1], "busy"));
+    assert_eq!(state_at(&rows[0], "STATE"), state_at(&rows[2], "busy"));
+    let project_at = |r: &Row, cell: &str| r.title.find(cell).expect("the cell is in the row");
+    assert_eq!(
+      project_at(&rows[0], "PROJECT"),
+      project_at(&rows[1], "Intent")
+    );
+  }
+
+  /// ST0086 WP-03: no sessions is said in words above the summary, never an
+  /// empty table that reads as a view that did not load.
+  #[test]
+  fn an_estate_with_no_sessions_says_so() {
+    let rows = estate_rows(
+      HEADER,
+      &[],
+      "estate rhadamanth  sessions 0",
+      &[],
+      "no sessions here",
+    );
+    let values: Vec<&str> = rows.iter().map(|r| r.value.as_str()).collect();
+    assert_eq!(
+      values,
+      ["no sessions here", "", "estate rhadamanth  sessions 0"]
+    );
   }
 }

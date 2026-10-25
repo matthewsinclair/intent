@@ -1,0 +1,244 @@
+{
+  "schema": "intent/estate-status@1",
+  "host": "rhadamanth",
+  "version": "intent 3.2.6 (88633fe93) release",
+  "taken_at": "2026-10-24T13:18:00Z",
+  "sessions": [
+    {
+      "session_id": "2f8d1a64-b0c3-4e9f-8d27-73a5e0b4c1f8",
+      "name": "intent-cc",
+      "pid": 41388,
+      "project": {
+        "root": "/Users/someone/Devel/prj/Intent",
+        "name": "Intent"
+      },
+      "worktree": false,
+      "node": "cc",
+      "claude_status": "busy",
+      "state": "heavy",
+      "started_at": "2026-10-23T21:50:12Z",
+      "updated_at": "2026-10-24T13:17:40Z",
+      "slots": ["01M5Q4X53K9CGEE1FG2M24C8W1"],
+      "claims": ["ST0086/01", "ST0086/04"],
+      "line": "ST0086 WP-01's engine: the full judge in slot 321",
+      "line_is_wip": false,
+      "line_at": "2026-10-24T13:10:02Z"
+    },
+    {
+      "session_id": "eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd",
+      "name": "intent-ic",
+      "pid": 41611,
+      "project": {
+        "root": "/Users/someone/Devel/prj/Intent",
+        "name": "Intent"
+      },
+      "worktree": true,
+      "node": "ic",
+      "claude_status": "busy",
+      "state": "busy",
+      "started_at": "2026-10-23T21:48:55Z",
+      "updated_at": "2026-10-24T13:17:58Z",
+      "slots": [],
+      "claims": ["ST0086/02", "ST0086/03"],
+      "line": "ST0086 WP-02's page: the /estate/status route in the shell",
+      "line_is_wip": false,
+      "line_at": "2026-10-24T13:16:20Z"
+    },
+    {
+      "session_id": "5be2d771-0d8a-4b8e-a0c4-91d7f3e2aa40",
+      "name": "intent-vc",
+      "pid": 41207,
+      "project": {
+        "root": "/Users/someone/Devel/prj/Intent",
+        "name": "Intent"
+      },
+      "worktree": false,
+      "node": "vc",
+      "claude_status": "idle",
+      "state": "idle",
+      "started_at": "2026-10-23T21:52:04Z",
+      "updated_at": "2026-10-24T13:15:41Z",
+      "slots": [],
+      "claims": [],
+      "line": "ST0086 building; every cargo run through the slot desk",
+      "line_is_wip": false,
+      "line_at": "2026-10-24T12:40:00Z"
+    },
+    {
+      "session_id": "c41f0e9a-6a1d-4f52-9d0b-2b7e6f1c0a11",
+      "name": "molt-vc",
+      "pid": 52044,
+      "project": { "root": "/Users/someone/Devel/prj/Molt", "name": "Molt" },
+      "worktree": false,
+      "node": "vc",
+      "claude_status": "busy",
+      "state": "busy",
+      "started_at": "2026-10-24T06:20:31Z",
+      "updated_at": "2026-10-24T13:17:12Z",
+      "slots": [],
+      "claims": [],
+      "line": "Slot desk for the machine: every heavy run books here",
+      "line_is_wip": false,
+      "line_at": "2026-10-24T09:40:12Z"
+    },
+    {
+      "session_id": "71c0f5a3-2e8b-4d19-a6f4-3b9d0e7c5a82",
+      "name": "devbin-vc",
+      "pid": 60112,
+      "project": {
+        "root": "/Users/someone/Devel/prj/Devbin",
+        "name": "Devbin"
+      },
+      "worktree": false,
+      "node": "vc",
+      "claude_status": "idle",
+      "state": "paused",
+      "started_at": "2026-10-23T18:30:00Z",
+      "updated_at": "2026-10-24T08:15:27Z",
+      "slots": [],
+      "claims": [],
+      "line": "0.1.13 released",
+      "line_is_wip": false,
+      "line_at": "2026-10-24T08:15:27Z"
+    },
+    {
+      "session_id": "a6e4c9d0-58b2-4f13-9c7e-1d0b8f3a2e64",
+      "name": "utilz-cc",
+      "pid": 53817,
+      "project": { "root": "/Users/someone/Devel/prj/Utilz", "name": "Utilz" },
+      "worktree": false,
+      "node": "cc",
+      "claude_status": "busy",
+      "state": "gone",
+      "started_at": "2026-10-24T07:05:10Z",
+      "updated_at": "2026-10-24T12:12:05Z",
+      "slots": ["01M5Q4X53K9CGEE1FG2M24C8W2"],
+      "claims": ["ST0019"],
+      "line": "clippy pass after the 3.2.6 pair",
+      "line_is_wip": false,
+      "line_at": "2026-10-24T11:58:00Z"
+    },
+    {
+      "session_id": "3e9a7c14-d6b0-4f82-b5a3-c7e1f0d92b48",
+      "name": "kovacs-sysadm",
+      "pid": 70033,
+      "project": null,
+      "worktree": false,
+      "node": null,
+      "claude_status": "idle",
+      "state": "idle",
+      "started_at": "2026-10-24T05:55:02Z",
+      "updated_at": "2026-10-24T13:00:15Z",
+      "slots": [],
+      "claims": [],
+      "line": "watching the preflight in the kovacs VM; brew 3.2.6 to kovacs after it",
+      "line_is_wip": true,
+      "line_at": "2026-10-24T12:59:10Z"
+    }
+  ],
+  "unreadable": [
+    {
+      "path": "/Users/someone/.claude/sessions/61377.json",
+      "why": "not JSON: expected value at line 1 column 1",
+      "pid": 61377
+    }
+  ],
+  "census": {
+    "load": [11.2, 10.16, 10.84],
+    "procs": [
+      {
+        "class": "cargo",
+        "count": 3,
+        "projects": [{ "project": "Intent", "count": 3 }]
+      },
+      { "class": "bats", "count": 0, "projects": [] },
+      {
+        "class": "mix",
+        "count": 3,
+        "projects": [
+          { "project": "Laksa", "count": 2 },
+          { "project": null, "count": 1 }
+        ]
+      },
+      { "class": "swift", "count": 0, "projects": [] }
+    ],
+    "history": [
+      { "at": "2026-10-24T13:13:00Z", "load1": 9.4, "slots_running": 1 },
+      { "at": "2026-10-24T13:14:00Z", "load1": 10.8, "slots_running": 1 },
+      { "at": "2026-10-24T13:15:00Z", "load1": 14.2, "slots_running": 2 },
+      { "at": "2026-10-24T13:16:00Z", "load1": 12.6, "slots_running": 2 },
+      { "at": "2026-10-24T13:17:00Z", "load1": 11.9, "slots_running": 2 },
+      { "at": "2026-10-24T13:18:00Z", "load1": 11.2, "slots_running": 2 }
+    ]
+  },
+  "usage": {
+    "source": { "kind": "endpoint", "session_id": null },
+    "error": null,
+    "read_at": "2026-10-24T13:17:30Z",
+    "five_hour": { "percent": 57, "resets_at": "2026-10-24T15:12:00Z" },
+    "seven_day": { "percent": 93, "resets_at": "2026-10-30T03:18:00Z" },
+    "models": [
+      { "name": "Fable", "percent": 43, "resets_at": "2026-10-30T03:18:00Z" }
+    ]
+  },
+  "controller": {
+    "session_id": "c41f0e9a-6a1d-4f52-9d0b-2b7e6f1c0a11",
+    "name": "molt-vc",
+    "pid": 52044,
+    "taken_at": "2026-10-24T09:40:12Z"
+  },
+  "lanes": [
+    {
+      "name": "cargo",
+      "type": "heavy",
+      "capacity": 1,
+      "granted": 0,
+      "running": 1
+    },
+    {
+      "name": "light",
+      "type": "light",
+      "capacity": 2,
+      "granted": 1,
+      "running": 1
+    }
+  ],
+  "queue": [
+    {
+      "id": "01M5Q4X53K9CGEE1FG2M24C8W2",
+      "type": "light",
+      "what": "mix format --check (utilz)",
+      "state": "running",
+      "lane": "light",
+      "asked_at": "2026-10-24T12:31:10Z",
+      "by": "a6e4c9d0-58b2-4f13-9c7e-1d0b8f3a2e64"
+    },
+    {
+      "id": "01M5Q4X53K9CGEE1FG2M24C8W1",
+      "type": "heavy",
+      "what": "cargo test --workspace (ST0086 WP-01 judge)",
+      "state": "running",
+      "lane": "cargo",
+      "asked_at": "2026-10-24T13:02:19Z",
+      "by": "2f8d1a64-b0c3-4e9f-8d27-73a5e0b4c1f8"
+    },
+    {
+      "id": "01M5Q4X53K9CGEE1FG2M24C8W3",
+      "type": "light",
+      "what": "mix test (fakes only)",
+      "state": "granted",
+      "lane": "light",
+      "asked_at": "2026-10-24T13:06:51Z",
+      "by": "c41f0e9a-6a1d-4f52-9d0b-2b7e6f1c0a11"
+    },
+    {
+      "id": "01M5Q4X53K9CGEE1FG2M24C8W4",
+      "type": "heavy",
+      "what": "cargo clippy --workspace (utilz)",
+      "state": "asked",
+      "lane": null,
+      "asked_at": "2026-10-24T13:12:02Z",
+      "by": "5be2d771-0d8a-4b8e-a0c4-91d7f3e2aa40"
+    }
+  ]
+}

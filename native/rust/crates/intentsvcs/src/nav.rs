@@ -54,6 +54,10 @@ pub const HELP_SEGMENT: &str = "help";
 pub const SEARCH_SEGMENT: &str = "search";
 pub const PROJECTS_SEGMENT: &str = "projects";
 pub const OUTSTANDING_SEGMENT: &str = "outstanding";
+pub const ESTATE_SEGMENT: &str = "estate";
+/// The estate's one item name: `/estate/status`, the page's address, is the
+/// estate itself.
+pub const ESTATE_DEFAULT_ITEM: &str = "status";
 
 /// Every segment the entity namespace may not use.
 ///
@@ -67,6 +71,7 @@ pub const RESERVED: &[&str] = &[
   SEARCH_SEGMENT,
   PROJECTS_SEGMENT,
   OUTSTANDING_SEGMENT,
+  ESTATE_SEGMENT,
 ];
 
 /// One level of the ladder `AC-17.7` names: entity-kind, collection, item,
@@ -184,6 +189,14 @@ pub enum View {
   /// [`crate::outstanding`]. Its segment is reserved for [`View::Settings`]'
   /// reason.
   Outstanding,
+  /// Every Claude Code session on this host: the rows `intent estate status`
+  /// prints (ST0086).
+  ///
+  /// **THE ESTATE IS THE HOST, NOT A PROJECT**, so like [`View::Projects`] it
+  /// reads no project's store and a face can show it with none open. A face
+  /// reads [`crate::estate::status`] and lays the sessions out in the order
+  /// they arrive. Its segment is reserved for [`View::Settings`]' reason.
+  Estate,
 }
 
 impl View {
@@ -208,6 +221,7 @@ impl View {
       View::Projects => format!("/{PROJECTS_SEGMENT}"),
       View::Project { root } => format!("/{PROJECTS_SEGMENT}/{root}"),
       View::Outstanding => format!("/{OUTSTANDING_SEGMENT}"),
+      View::Estate => format!("/{ESTATE_SEGMENT}"),
     }
   }
 
@@ -252,6 +266,11 @@ impl View {
       // depend on whether a form happened to be declared with this name.
       [seg] if *seg == SETTINGS_SEGMENT => Some(View::Settings),
       [seg] if *seg == OUTSTANDING_SEGMENT => Some(View::Outstanding),
+      [seg] if *seg == ESTATE_SEGMENT => Some(View::Estate),
+      // **THE PAGE'S ADDRESS IS THE SAME VIEW, NOT A SECOND ROUTER** (vc, under
+      // hv's pen, 2026-10-24): hv named `/estate/status` as the page, so `status`
+      // is the estate's default item and parses to the one place.
+      [seg, item] if *seg == ESTATE_SEGMENT && *item == ESTATE_DEFAULT_ITEM => Some(View::Estate),
       [seg] if *seg == HELP_SEGMENT => Some(View::Help { of: None }),
       // **THE RESERVATION REACHES THE SECOND SEGMENT TOO**, or `/help/st`
       // would parse as the ITEM `st` of an entity kind called `help` -- the

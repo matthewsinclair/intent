@@ -1257,22 +1257,28 @@ mod tests {
     // row carries subcommands as a bare `values` list -- no per-verb help, no
     // per-verb flags, and one `recoverability` for four verbs whose answers
     // differ. Counting the section against a claim about v2 would force this to
-    // say 28 when there are 27, which is the bent label the register's own
+    // claim the wrong section, which is the bent label the register's own
     // generator refuses elsewhere. v2-ness is DERIVED from `v2_source`.
-    assert_eq!(
-      t.families.iter().filter(|f| f.v2_source.is_some()).count(),
-      27,
-      "27 v2 families"
-    );
-    assert_eq!(
-      t.families.iter().filter(|f| f.v2_source.is_none()).count(),
-      4,
-      "four new-surface families (`daemon`, `app`, `index`, `wb`), stated separately so the v2 figure cannot silently absorb new surface"
-    );
-    assert!(
-      t.families.iter().flat_map(|f| f.entries.iter()).count() >= 85,
-      "the table carries the full entry set"
-    );
+    //
+    // **A RELATION OVER THE ROWS, NOT A COUNT** (vc, 2026-10-25): a written
+    // figure is deleted, never corrected. What the figures protected is that
+    // `v2_source` cannot absorb new surface, held here in both directions.
+    assert!(!t.families.is_empty(), "the table carries families");
+    for f in &t.families {
+      let all_new = f.entries.iter().all(|e| e.disposition == "new-surface");
+      match f.v2_source {
+        None => assert!(
+          all_new,
+          "`{}` has no v2 source, so every entry is new surface",
+          f.name
+        ),
+        Some(_) => assert!(
+          !all_new,
+          "`{}` names a v2 source, so some entry is not new surface",
+          f.name
+        ),
+      }
+    }
   }
 
   #[test]

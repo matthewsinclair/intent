@@ -143,6 +143,8 @@ mod edit_answers_about_the_entity_you_named;
 mod embedded_init;
 #[path = "error_literal_shape.rs"]
 mod error_literal_shape;
+#[path = "estate_surface.rs"]
+mod estate_surface;
 #[path = "events_are_queryable.rs"]
 mod events_are_queryable;
 #[path = "every_face_says_what_level_three_knows.rs"]

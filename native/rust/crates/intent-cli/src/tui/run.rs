@@ -561,6 +561,46 @@ fn dropdown(app: &App) -> Vec<(String, layout::Ink)> {
 /// the operator, who sees a write from anywhere else within half a second.
 const IDLE: std::time::Duration = std::time::Duration::from_millis(500);
 
+/// How often a view that is not in the store is re-read while it is on screen
+/// (ST0086 WP-03).
+///
+/// **THE ESTATE MOVES WITH NO WRITE TO ANY STORE**: a session starting or going
+/// idle is a file in Claude Code's directory, so [`follow_the_store`] never
+/// hears of it, and the ages in its rows move every second regardless.
+/// **FIVE SECONDS, BECAUSE A READ IS NOT FREE**: the reader confirms each
+/// session's process is the one its file names, which on macOS is a `ps` per
+/// session, on a host whose load is the thing the estate exists to show.
+const TICK: std::time::Duration = std::time::Duration::from_secs(5);
+
+/// Count one idle wait, and once the waits make a [`TICK`] re-read what is on
+/// screen, if it is a view that follows the clock; say whether the frame has
+/// anything new.
+///
+/// **IT COUNTS WAITS AND READS NO CLOCK** (D42): each call follows an [`IDLE`]
+/// poll that timed out, so the waits are the interval and nothing asks what
+/// time it is. **IT CARRIES ANSWERS AND DECIDES NOTHING**, for
+/// [`follow_the_store`]'s reason: which views follow the clock and whether a
+/// catch-up may run are the app's questions.
+pub fn follow_the_clock(
+  app: &mut App,
+  source: &mut impl Source,
+  rows: &mut Vec<Row>,
+  waits: &mut u32,
+) -> bool {
+  *waits = waits.saturating_add(1);
+  if !app.may_catch_up() || !app.view_follows_the_clock() || IDLE * *waits < TICK {
+    return false;
+  }
+  *waits = 0;
+  let after = source.rows(app.stack.current());
+  if after == *rows {
+    return false;
+  }
+  let before = std::mem::replace(rows, after);
+  app.follow(&before, rows);
+  true
+}
+
 /// Re-read what is on screen if the store moved under it, and say whether the
 /// frame has anything new to show (issue 0520).
 ///
@@ -643,6 +683,7 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
   app.keymap = source.keymap();
 
   let mut exit = Exit::Quit;
+  let mut waits = 0;
   loop {
     let area = term.size()?;
     let screen = screen_for(app, &rows, area.width as usize);
@@ -676,7 +717,9 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
       if event::poll(IDLE)? {
         break Some(event::read()?);
       }
-      if follow_the_store(app, source, &mut rows) {
+      if follow_the_store(app, source, &mut rows)
+        || follow_the_clock(app, source, &mut rows, &mut waits)
+      {
         break None;
       }
     };
@@ -2176,6 +2219,49 @@ mod tests {
       app.focused_row(&rows).map(|row| row.name.as_str()),
       Some("0001"),
       "the refresh moved the cursor off the row the operator was on"
+    );
+  }
+
+  /// ST0086 WP-03: `/estate` is re-read once a tick has passed, with the cursor
+  /// kept on its session, and no other view is re-read on the clock at all.
+  #[test]
+  fn the_estate_follows_the_clock_and_no_other_view_does() {
+    let per_tick = u32::try_from(TICK.as_millis() / IDLE.as_millis()).unwrap_or(u32::MAX);
+    let fresh = || Moved {
+      rows: issues(&["s-new", "s-two", "s-one"]),
+      pending: false,
+      asked: 0,
+    };
+
+    let mut app = App::rooted_at(View::Projects);
+    let mut rows = issues(&["s-two", "s-one"]);
+    let mut waits = per_tick;
+    assert!(
+      !follow_the_clock(&mut app, &mut fresh(), &mut rows, &mut waits),
+      "a view in the store was re-read on the clock"
+    );
+
+    let mut app = App::rooted_at(View::Estate);
+    app.point_at(rows.len());
+    app.focus = app.focus.and_then(|f| f.at(1));
+    let mut waits = per_tick - 2;
+    assert!(
+      !follow_the_clock(&mut app, &mut fresh(), &mut rows, &mut waits),
+      "the estate was re-read before a tick's worth of waits had passed"
+    );
+    assert!(
+      follow_the_clock(&mut app, &mut fresh(), &mut rows, &mut waits),
+      "a tick's worth of waits passed on the estate and the frame was not told"
+    );
+    assert_eq!(rows.len(), 3, "the re-read rows are not the ones on screen");
+    assert_eq!(
+      app.focused_row(&rows).map(|row| row.name.as_str()),
+      Some("s-one"),
+      "the re-read moved the cursor off the session the operator was on"
+    );
+    assert!(
+      !follow_the_clock(&mut app, &mut fresh(), &mut rows, &mut waits),
+      "the same tick re-read the estate twice"
     );
   }
 

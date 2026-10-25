@@ -49,6 +49,8 @@ fn every_view(l: &Loaded) -> Vec<View> {
     View::Project {
       root: "/Users/someone/Devel/prj/Laksa".into(),
     },
+    View::Outstanding,
+    View::Estate,
   ];
   for kind in kinds(l) {
     out.push(View::Collection { kind: kind.clone() });
@@ -494,4 +496,13 @@ fn a_zero_padded_wp_address_lands_on_the_row_its_descent_names() {
       item: "2".to_string(),
     })
   );
+}
+
+/// ST0086: `/estate/status`, the page's address, is the estate itself, and the
+/// estate's own path stays `/estate`, so one parse serves the TUI and the page.
+#[test]
+fn the_estate_page_address_is_the_estate_view() {
+  assert_eq!(View::parse("/estate/status"), Some(View::Estate));
+  assert_eq!(View::parse("/estate"), Some(View::Estate));
+  assert_eq!(View::Estate.path(), "/estate");
 }

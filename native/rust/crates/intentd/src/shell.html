@@ -109,6 +109,105 @@
       font-size: 0.75rem;
       line-height: 1.6;
     }
+
+  /* **THE ESTATE PAGE (ST0086 WP-02), LAID OUT AS THE MOCKUP hv APPROVED ON
+     2026-10-24**: one band (the host, the last hour, plan usage), then the
+     queue, the lanes and the sessions, every panel a native `<details>` whose
+     summary keeps a live reading while it is folded. It is wide and dense where
+     the rest of this document is a narrow column, so it widens the body only
+     while it is shown. */
+  :root {
+    --busy: #2f6f3e;
+    --heavy: #9a4a14;
+    --idle: #5d5d66;
+    --paused: #5a5f9a;
+    --gone: #b4453a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --busy: #7fc48d;
+      --heavy: #e8a066;
+      --idle: #9b9aa3;
+      --paused: #a3a8e6;
+      --gone: #e0786c;
+    }
+  }
+  body.estate { display: block; }
+  body.estate main { width: 100%; max-width: 120rem; padding: 1rem 16px 2rem; }
+  #estate { font: 13px/1.45 ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace; }
+  #estate .crumbs { font-family: ui-serif, Georgia, serif; font-size: .95rem; margin: 0 0 .75rem; }
+  #estate .crumbs button { margin-left: .5rem; font-size: .8rem; }
+  #estate pre.head { margin: 0; padding: 0; border: 0; background: none; white-space: pre; overflow-x: auto; }
+  #estate .k { color: var(--muted); }
+  #estate .warn { color: var(--gone); font-weight: 600; }
+  #estate .muted { color: var(--muted); }
+  #estate .unreadable { margin: .6rem 0 0; overflow-wrap: anywhere; }
+  #estate .stale { border: 1px solid var(--gone); border-radius: 6px; padding: .4rem .8rem; margin: 0 0 .8rem; color: var(--gone); }
+  #estate .scroll { overflow-x: auto; border: 1px solid var(--rule); border-radius: 6px; background: var(--card); }
+  #estate table { border-collapse: collapse; width: 100%; }
+  #estate th, #estate td { text-align: left; padding: .18rem .7rem; white-space: nowrap; vertical-align: top; }
+  #estate th { position: sticky; top: 0; background: var(--card); color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--rule); }
+  #estate tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--rule) 30%, transparent); }
+  #estate td.wide { white-space: normal; min-width: 22rem; max-width: 46rem; }
+  #estate td.num { text-align: right; }
+  #estate tr.lane td { border-top: 1px solid var(--rule); font-weight: 600; }
+  #estate tr.lane:first-child td { border-top: 0; }
+  #estate tr.req td:first-child { padding-left: 1.6rem; }
+  #estate .st-busy { color: var(--busy); }
+  #estate .st-heavy { color: var(--heavy); font-weight: 600; }
+  #estate .st-idle { color: var(--idle); }
+  #estate .st-paused { color: var(--paused); }
+  #estate .st-gone { color: var(--gone); }
+  #estate .st-asked { color: var(--muted); }
+  #estate .st-granted { color: var(--accent); }
+  #estate .st-running { color: var(--heavy); font-weight: 600; }
+  #estate .st-orphaned, #estate .orph { color: var(--gone); font-weight: 600; }
+  #estate tr.gone td { color: var(--gone); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--gone) 45%, transparent); }
+  #estate tr.gone td.state { text-decoration: none; }
+  #estate .bar { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; margin: 0 0 .35rem; }
+  #estate input[type=search] { font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--rule); border-radius: 5px; padding: .2rem .5rem; min-width: 16rem; }
+  #estate input[type=search]:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  #estate button { font: inherit; color: var(--muted); background: var(--card); border: 1px solid var(--rule); border-radius: 5px; padding: .15rem .55rem; cursor: pointer; }
+  #estate button:hover { color: var(--ink); }
+  #estate .band { display: grid; grid-template-columns: max-content minmax(0, 1fr) minmax(17rem, 25rem); gap: .8rem; align-items: stretch; }
+  @media (max-width: 70rem) { #estate .band { grid-template-columns: max-content minmax(0, 1fr); } #estate .band .usage { grid-column: 1 / -1; } }
+  @media (max-width: 44rem) { #estate .band { grid-template-columns: minmax(0, 1fr); } }
+  #estate .panel { background: var(--card); border: 1px solid var(--rule); border-radius: 6px; padding: .5rem .8rem .6rem; min-width: 0; }
+  #estate .cap { font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+  #estate .spark { display: flex; flex-direction: column; }
+  #estate .spark .row { flex: 1; display: grid; grid-template-columns: 6.5rem minmax(6rem, 1fr) 6rem; gap: .7rem; align-items: center; min-height: 2.6rem; }
+  #estate .spark svg { width: 100%; height: 100%; min-height: 2.4rem; display: block; }
+  #estate .spark .now { text-align: right; }
+  #estate .spark .lbl { color: var(--muted); }
+  #estate .line-load { fill: none; stroke: var(--accent); stroke-width: 1.5; }
+  #estate .area-load { fill: color-mix(in srgb, var(--accent) 16%, transparent); stroke: none; }
+  #estate .line-slots { fill: none; stroke: var(--heavy); stroke-width: 1.5; }
+  #estate .area-slots { fill: color-mix(in srgb, var(--heavy) 16%, transparent); stroke: none; }
+  #estate .uline { display: grid; grid-template-columns: 4.6rem minmax(3rem, 1fr) 2.8rem 4.2rem; gap: .55rem; align-items: center; padding: .12rem 0; }
+  #estate .uline .pct { text-align: right; font-weight: 600; }
+  #estate .uline .rst { text-align: right; color: var(--muted); }
+  #estate .uline.open { color: var(--muted); }
+  #estate .uline.open .track { background: repeating-linear-gradient(45deg, transparent 0 5px, color-mix(in srgb, var(--rule) 90%, transparent) 5px 10px); }
+  #estate .track { height: 7px; border-radius: 4px; background: color-mix(in srgb, var(--rule) 80%, transparent); overflow: hidden; }
+  #estate .fill { height: 100%; border-radius: 4px; }
+  #estate .lvl-ok { color: var(--busy); } #estate .fill.lvl-ok { background: var(--busy); }
+  #estate .lvl-warn { color: var(--heavy); } #estate .fill.lvl-warn { background: var(--heavy); }
+  #estate .lvl-high { color: var(--gone); } #estate .fill.lvl-high { background: var(--gone); }
+  #estate .src { color: var(--muted); font-size: .75rem; margin-top: .2rem; }
+  #estate details > summary { list-style: none; cursor: pointer; display: flex; align-items: baseline; gap: .6rem; flex-wrap: wrap; }
+  #estate details > summary::-webkit-details-marker { display: none; }
+  #estate details > summary::before { content: "\25B8"; color: var(--muted); font-size: .8rem; transition: transform .12s; display: inline-block; }
+  #estate details[open] > summary::before { transform: rotate(90deg); }
+  #estate details > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+  #estate .sum { color: var(--muted); font-size: .78rem; }
+  #estate details[open] > summary .sum { display: none; }
+  #estate details.panel[open] > summary { margin-bottom: .25rem; }
+  #estate .band > details:not([open]) { align-self: start; }
+  #estate details.sec { margin-top: 1.1rem; }
+  #estate details.sec > summary { margin-bottom: .35rem; }
+  #estate details.sec > summary .h { font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+  #estate .foot { color: var(--muted); margin-top: 1rem; font-size: .75rem; }
+  @media (max-width: 40rem) { #estate input[type=search] { min-width: 0; width: 100%; } }
   </style>
 
 <main>
@@ -117,6 +216,70 @@
        path and renders no domain HTML at all; which of these two is shown is
        decided in the browser, from the path, after asking `/op` for JSON. -->
   <div id="entity" hidden></div>
+
+  <!-- **THE ESTATE (ST0086 WP-02), THE THIRD SHAPE THIS ONE DOCUMENT TAKES.**
+       The daemon answers `/estate/status` with `{result: "estate_status"}`
+       rather than a form, from the one reader `intent estate status` prints,
+       and this skeleton is filled from it; nothing here is derived from raw
+       records. Every panel is a `<details>`: folding is the browser's, with no
+       script and no stored state. -->
+  <div id="estate" hidden>
+    <p class="crumbs"><a href="/">intentd</a> / estate / status
+      <button type="button" id="estate-pause">pause</button>
+      <button type="button" id="estate-fold">collapse all</button></p>
+    <div class="stale" id="estate-stale" hidden></div>
+
+    <div class="band">
+      <details open class="panel">
+        <summary><span class="cap">host</span><span class="sum" id="sum-head"></span></summary>
+        <pre class="head" id="estate-head"></pre>
+      </details>
+      <details open class="panel spark">
+        <summary><span class="cap">last hour</span><span class="sum" id="sum-spark"></span></summary>
+        <div id="estate-spark" class="spark" style="flex:1"></div>
+      </details>
+      <details open class="panel usage">
+        <summary><span class="cap">plan usage</span><span class="sum" id="sum-usage"></span></summary>
+        <div id="estate-usage"></div>
+      </details>
+    </div>
+    <div class="unreadable" id="estate-unreadable" hidden></div>
+
+    <details open class="sec">
+      <summary><span class="h">Queue</span><span class="sum" id="sum-queue"></span></summary>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>request</th><th>type</th><th>requester</th><th>what</th><th class="num">waiting</th></tr></thead>
+          <tbody id="estate-queue"></tbody>
+        </table>
+      </div>
+    </details>
+
+    <details open class="sec">
+      <summary><span class="h">Lanes</span><span class="sum" id="sum-lanes"></span></summary>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>lane / request</th><th>type</th><th>cap</th><th>state</th><th>holder</th><th>what</th><th class="num">asked</th></tr></thead>
+          <tbody id="estate-lanes"></tbody>
+        </table>
+      </div>
+    </details>
+
+    <details open class="sec">
+      <summary><span class="h">Sessions</span><span class="sum" id="sum-sessions"></span></summary>
+      <div class="bar">
+        <input type="search" id="estate-filter" placeholder="filter: name, project, node, state, line" aria-label="Filter sessions">
+      </div>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>name</th><th>project</th><th>node</th><th>state</th><th class="num">since</th><th class="num">hb</th><th>slots</th><th>claims</th><th>wip / focus</th></tr></thead>
+          <tbody id="estate-sessions"></tbody>
+        </table>
+      </div>
+    </details>
+
+    <p class="foot" id="estate-foot"></p>
+  </div>
 
   <div id="home">
   <div class="mark"><img src="/intent-logo.svg" alt="The Intent turtle"></div>
@@ -445,6 +608,443 @@
       document.title = form.entity + " -- intentd";
     }
 
+    // ========================================================================
+    // THE ESTATE (ST0086 WP-02). **IT DRAWS THE READER'S ANSWER AND DERIVES
+    // NOTHING FROM RAW RECORDS**: `intent/estate-status@1` is already joined
+    // (sessions with their boards and slots, the census per declared class,
+    // usage normalised from whichever source answered), so what is left here
+    // is presentation -- ages, bars, and looking a session id up by name.
+    // ========================================================================
+    var estate = document.getElementById("estate");
+    var ESTATE_EVERY = 5000;
+    var estateTimer = null;
+    var estatePaused = false;
+    var lastEstate = null;
+    var lastReadAt = 0;
+
+    function el(tag, cls, text) {
+      var n = document.createElement(tag);
+      if (cls) { n.className = cls; }
+      if (text !== undefined && text !== null) { n.textContent = text; }
+      return n;
+    }
+    function td(text, cls) { return el("td", cls, text); }
+    function put(id, text) { document.getElementById(id).textContent = text; }
+
+    // Seconds between two moments, never negative: a clock a little behind the
+    // daemon's must not print a negative age.
+    function secs(from, to) { return Math.max(0, Math.round((to - from) / 1000)); }
+
+    function age(s) {
+      if (s < 60) { return s + "s"; }
+      if (s < 3600) { return Math.floor(s / 60) + "m" + String(s % 60).padStart(2, "0"); }
+      if (s < 86400) { return Math.floor(s / 3600) + "h" + String(Math.floor(s % 3600 / 60)).padStart(2, "0"); }
+      return Math.floor(s / 86400) + "d" + String(Math.floor(s % 86400 / 3600)).padStart(2, "0") + "h";
+    }
+
+    // **EVERY AGE IS MEASURED FROM THE READER'S `taken_at`, NEVER FROM THIS
+    // BROWSER'S CLOCK** (hv's ruling, 2026-10-24: the estate has one clock). The
+    // browser's clock says only how long ago THIS PAGE last read an answer.
+    function momentOf(s) { return Date.parse(s.taken_at); }
+
+    function line(parts) {
+      var frag = document.createDocumentFragment();
+      parts.forEach(function (p) {
+        frag.appendChild(typeof p === "string" ? document.createTextNode(p) : el("span", p[0], p[1]));
+      });
+      frag.appendChild(document.createTextNode("\n"));
+      return frag;
+    }
+
+    // A ULID's head is its time, so two from one minute share it: the tail is
+    // what tells them apart on a narrow column. The whole id is the title.
+    function shortId(id) { return id.length > 8 ? id.slice(-6) : id; }
+
+    // Everything the page looks up, built once per answer.
+    function index(s) {
+      var byId = {};
+      s.sessions.forEach(function (x) { byId[x.session_id] = x; });
+      var byReq = {};
+      s.queue.forEach(function (q) { byReq[q.id] = q; });
+      var holding = function (q) { return q.state === "granted" || q.state === "running"; };
+      // **A HOLD WHOSE HOLDER IS GONE, OR NOT ON THIS HOST AT ALL, IS ORPHANED**:
+      // the slot is still counted against its lane, and saying so is the point.
+      var orphaned = function (q) {
+        var who = byId[q.by];
+        return holding(q) && (!who || who.state === "gone");
+      };
+      var who = function (id) { return byId[id] ? byId[id].name : id.slice(0, 8); };
+      var cap = 0, running = 0, held = 0;
+      s.lanes.forEach(function (l) { cap += l.capacity; running += l.running; held += l.granted + l.running; });
+      var tally = {};
+      s.sessions.forEach(function (x) { tally[x.state] = (tally[x.state] || 0) + 1; });
+      var ctl = s.controller;
+      var ctlState = !ctl ? "none" : (!byId[ctl.session_id] || byId[ctl.session_id].state === "gone") ? "orphaned" : "live";
+      return {
+        byId: byId, byReq: byReq, holding: holding, orphaned: orphaned, who: who,
+        cap: cap, running: running, held: held, tally: tally, ctlState: ctlState,
+        waiting: s.queue.filter(function (q) { return q.state === "asked"; }),
+        now: momentOf(s)
+      };
+    }
+
+    var STATES = ["heavy", "busy", "idle", "paused", "gone"];
+    function tallyText(ix) {
+      return STATES.filter(function (k) { return ix.tally[k]; })
+        .map(function (k) { return ix.tally[k] + " " + k; }).join(", ");
+    }
+    function loadText(s) { return s.census.load.length ? s.census.load[0].toFixed(2) : "--"; }
+    function ctlText(s, ix) {
+      return ix.ctlState === "none" ? "NO CONTROLLER" : s.controller.name + (ix.ctlState === "orphaned" ? " ORPHANED" : "");
+    }
+
+    function renderHead(s, ix) {
+      var c = s.census;
+      var rows = [
+        line([["k", "estate   "], s.host || "(host unknown)"]),
+        line([["k", "build    "], s.version]),
+        line([["k", "at       "], s.taken_at.replace("T", " ")]),
+        line([["k", "load     "], c.load.length ? c.load.map(function (x) { return x.toFixed(2); }).join(" ") : "not measured yet"])
+      ];
+      // One line per declared class that is running, with whose it is; the
+      // idle ones share a line, so a declared class never drops off the page.
+      var idle = [], first = true;
+      c.procs.forEach(function (p) {
+        if (!p.count) { idle.push(p.class); return; }
+        var whose = p.projects.map(function (b) { return (b.project || "(no project)") + " " + b.count; }).join(", ");
+        rows.push(line([["k", first ? "procs    " : "         "], p.class + " " + p.count, ["k", "  " + whose]]));
+        first = false;
+      });
+      if (idle.length) {
+        rows.push(line([["k", first ? "procs    " : "         "], ["muted", idle.join(" 0  ") + " 0"]]));
+      } else if (!c.procs.length) {
+        // An empty census is not an estate with no classes: until the daemon has
+        // measured, load is empty too, and that is what this says.
+        rows.push(line([["k", "procs    "], ["muted", c.load.length ? "no classes declared (intent estate census watch)" : "not measured yet"]]));
+      }
+      rows.push(line([["k", "sessions "], String(s.sessions.length)]));
+      if (s.sessions.length) { rows.push(line([["k", "         "], tallyText(ix)])); }
+      if (ix.ctlState === "none") {
+        rows.push(line([["k", "control  "], ["warn", "NO CONTROLLER"]]));
+        rows.push(line([["k", "         "], "asks queue, nothing is granted"]));
+      } else if (ix.ctlState === "orphaned") {
+        rows.push(line([["k", "control  "], ["warn", s.controller.name + " ORPHANED"]]));
+        rows.push(line([["k", "         "], "pid " + s.controller.pid + " is not a live session; the next take succeeds"]));
+      } else {
+        var ctl = ix.byId[s.controller.session_id];
+        rows.push(line([["k", "control  "], s.controller.name, ["k", " in "], ctl.project ? ctl.project.name + (ctl.node ? " / " + ctl.node : "") : "no project"]));
+        rows.push(line([["k", "         "], "since " + age(secs(Date.parse(s.controller.taken_at), ix.now)), ["k", " pid "], String(s.controller.pid)]));
+      }
+      if (s.unreadable.length) {
+        rows.push(line([["k", "files    "], ["warn", s.unreadable.length + " unreadable"], ["k", " (named below)"]]));
+      }
+      var head = document.getElementById("estate-head");
+      head.replaceChildren.apply(head, rows);
+    }
+
+    // **A FILE THE READER COULD NOT READ IS ON THE PAGE**, as the verb warns of
+    // it on stderr: one bad file is not an empty estate. Below the band rather
+    // than in it, because a path is long and the band's columns are not.
+    function renderUnreadable(s) {
+      var box = document.getElementById("estate-unreadable");
+      box.replaceChildren.apply(box, s.unreadable.map(function (u) {
+        var p = el("div");
+        p.append(el("span", "warn", "unreadable "), document.createTextNode(u.path), el("span", "k", " -- " + u.why));
+        return p;
+      }));
+      box.hidden = !s.unreadable.length;
+    }
+
+    var SVG = "http://www.w3.org/2000/svg";
+    function svgEl(tag, cls, attrs) {
+      var n = document.createElementNS(SVG, tag);
+      if (cls) { n.setAttribute("class", cls); }
+      Object.keys(attrs || {}).forEach(function (k) { n.setAttribute(k, attrs[k]); });
+      return n;
+    }
+    function sparkline(values, top, cls) {
+      var w = 300, h = 34, pad = 2;
+      var svg = svgEl("svg", "", { viewBox: "0 0 " + w + " " + h, preserveAspectRatio: "none", role: "img" });
+      if (values.length < 2 || !top) { return svg; }
+      var step = w / (values.length - 1);
+      var pts = values.map(function (v, i) {
+        return (i * step).toFixed(1) + "," + (h - pad - (Math.min(v, top) / top) * (h - 2 * pad)).toFixed(1);
+      });
+      svg.appendChild(svgEl("polygon", "area-" + cls, { points: "0," + h + " " + pts.join(" ") + " " + w + "," + h }));
+      svg.appendChild(svgEl("polyline", "line-" + cls, { points: pts.join(" ") }));
+      return svg;
+    }
+
+    function renderSpark(s, ix) {
+      var box = document.getElementById("estate-spark");
+      var hist = s.census.history;
+      // **AN EMPTY RING IS SAID, NOT DRAWN FLAT**: the ring is in the daemon's
+      // memory, so a restart starts it empty, and a flat line would read as an
+      // idle hour.
+      if (hist.length < 2) {
+        box.replaceChildren(el("div", "muted", "no history yet: the daemon keeps the last hour in memory, a sample a minute, and a restart starts it empty"));
+        return;
+      }
+      var load = hist.map(function (p) { return p.load1; });
+      var slots = hist.map(function (p) { return p.slots_running; });
+      var lmax = Math.max.apply(null, load.concat([1]));
+      var lmin = Math.min.apply(null, load);
+      function row(label, svg, now, range) {
+        var r = el("div", "row");
+        var right = el("span", "now");
+        right.appendChild(el("b", "", now));
+        right.appendChild(el("div", "muted", range));
+        r.append(el("span", "lbl", label), svg, right);
+        return r;
+      }
+      box.replaceChildren(
+        row("load 1m", sparkline(load, Math.ceil(lmax), "load"), loadText(s), "range " + lmin.toFixed(0) + "-" + lmax.toFixed(0)),
+        row("slots running", sparkline(slots, Math.max(ix.cap, Math.max.apply(null, slots)), "slots"), ix.running + " of " + ix.cap, "capacity " + ix.cap)
+      );
+    }
+
+    function renderUsage(s, ix) {
+      var box = document.getElementById("estate-usage");
+      var u = s.usage;
+      // A window with no reading draws an empty hatched bar; WHY it has none is
+      // the note under the bars, once, rather than squeezed into each line.
+      function uline(name, w) {
+        var m = el("div", "uline");
+        var track = el("div", "track");
+        m.append(el("span", "", name), track);
+        if (!w) {
+          m.className = "uline open";
+          m.append(el("span", "pct", "--"), el("span", "rst", ""));
+          return m;
+        }
+        var lvl = w.percent >= 90 ? "lvl-high" : w.percent >= 75 ? "lvl-warn" : "lvl-ok";
+        var fill = el("div", "fill " + lvl);
+        fill.style.width = Math.min(100, w.percent) + "%";
+        track.appendChild(fill);
+        m.append(el("span", "pct " + lvl, Math.round(w.percent) + "%"), el("span", "rst", age(secs(ix.now, Date.parse(w.resets_at)))));
+        return m;
+      }
+      var parts = [uline("5 hour", u.five_hour), uline("7 day", u.seven_day)];
+      if (u.models) {
+        u.models.forEach(function (m) { parts.push(uline(m.name, m)); });
+      } else {
+        parts.push(uline("models", null));
+      }
+      // **THE FAILURE PATH IS NAMED ON THE PAGE** (hv, 2026-10-24): which
+      // source answered, how old it is, and why the primary did not.
+      var note = el("div", "src");
+      var read = u.read_at ? ", read " + age(secs(Date.parse(u.read_at), ix.now)) + " ago" : "";
+      if (u.error) {
+        note.appendChild(el("span", "warn", "usage endpoint failed: " + u.error + ". "));
+      }
+      if (!u.source) {
+        note.appendChild(document.createTextNode(u.error ? "No fallback has reported either." : "Not read yet."));
+      } else if (u.source.kind === "endpoint") {
+        note.appendChild(document.createTextNode("usage endpoint" + read + "; the statusline fallback stands by."));
+      } else {
+        note.appendChild(document.createTextNode("5h and 7d from " + ix.who(u.source.session_id || "") + "'s statusline" + read + "; per-model figures need the endpoint."));
+      }
+      parts.push(note);
+      box.replaceChildren.apply(box, parts);
+    }
+
+    function renderQueue(s, ix) {
+      var body = document.getElementById("estate-queue");
+      var rows = document.createDocumentFragment();
+      if (!ix.waiting.length) {
+        var tr = el("tr");
+        var cell = td("nothing queued", "muted");
+        cell.colSpan = 5;
+        tr.appendChild(cell);
+        rows.appendChild(tr);
+      }
+      // The reader's order, which is oldest first.
+      ix.waiting.forEach(function (q) {
+        var tr = el("tr");
+        var id = td(shortId(q.id));
+        id.title = q.id;
+        tr.append(id, td(q.type), td(ix.who(q.by)), td(q.what, "wide"), td(age(secs(Date.parse(q.asked_at), ix.now)), "num st-asked"));
+        rows.appendChild(tr);
+      });
+      body.replaceChildren(rows);
+    }
+
+    function renderLanes(s, ix) {
+      var body = document.getElementById("estate-lanes");
+      var rows = document.createDocumentFragment();
+      if (!s.lanes.length) {
+        var none = el("tr");
+        var cell = td(s.controller ? "no lanes are open" : "no lanes: a controller opens them", "muted");
+        cell.colSpan = 7;
+        none.appendChild(cell);
+        rows.appendChild(none);
+      }
+      s.lanes.forEach(function (l) {
+        var used = l.granted + l.running;
+        var full = used >= l.capacity;
+        var tr = el("tr", "lane");
+        tr.append(td(l.name), td(l.type), td(used + "/" + l.capacity), td(full ? "full" : "open", full ? "st-running" : "muted"), td(""), td(""), td(""));
+        rows.appendChild(tr);
+        s.queue.filter(function (q) { return q.lane === l.name && ix.holding(q); }).forEach(function (q) {
+          var orph = ix.orphaned(q);
+          var state = orph ? "orphaned" : q.state;
+          var r = el("tr", "req");
+          var id = td(shortId(q.id));
+          id.title = q.id;
+          r.append(id, td(""), td(""), td(state, "st-" + state), td(ix.who(q.by), orph ? "orph" : ""), td(q.what, "wide"), td(age(secs(Date.parse(q.asked_at), ix.now)), "num"));
+          rows.appendChild(r);
+        });
+      });
+      body.replaceChildren(rows);
+    }
+
+    function renderSessions(s, ix) {
+      var q = document.getElementById("estate-filter").value.trim().toLowerCase();
+      var body = document.getElementById("estate-sessions");
+      var rows = document.createDocumentFragment();
+      var shown = 0;
+      s.sessions.forEach(function (x) {
+        var project = x.project ? x.project.name + (x.worktree ? " (wt)" : "") : "";
+        var hay = [x.name, project, x.node || "", x.state, x.line || "", x.claims.join(" ")].join(" ").toLowerCase();
+        if (q && hay.indexOf(q) < 0) { return; }
+        shown += 1;
+        var tr = el("tr", x.state === "gone" ? "gone" : "");
+        var slots = td("");
+        x.slots.forEach(function (id, i) {
+          var held = ix.byReq[id];
+          if (i) { slots.appendChild(document.createTextNode(" ")); }
+          var orph = held && ix.orphaned(held);
+          var span = el("span", orph ? "orph" : held ? "st-" + held.state : "muted",
+            (held && held.lane ? held.lane + ":" : "") + shortId(id) + (orph ? " ORPHANED" : ""));
+          span.title = id;
+          slots.appendChild(span);
+        });
+        var lineCell = td("", "wide");
+        if (x.line) {
+          if (x.line_is_wip) { lineCell.appendChild(el("span", "muted", "wip ")); }
+          lineCell.appendChild(document.createTextNode(x.line));
+        }
+        var name = td(x.name);
+        name.title = x.session_id + "  pid " + x.pid + "  Claude Code " + x.claude_status;
+        tr.append(
+          name, td(project || "--", project ? "" : "muted"), td(x.node || "--", x.node ? "" : "muted"),
+          td(x.state, "state st-" + x.state),
+          td(age(secs(Date.parse(x.started_at), ix.now)), "num"), td(age(secs(Date.parse(x.updated_at), ix.now)), "num"),
+          slots, td(x.claims.join(", ")), lineCell
+        );
+        rows.appendChild(tr);
+      });
+      if (!s.sessions.length) {
+        var none = el("tr");
+        var cell = td("no Claude Code sessions are running on this host", "muted");
+        cell.colSpan = 9;
+        none.appendChild(cell);
+        rows.appendChild(none);
+      }
+      body.replaceChildren(rows);
+      put("estate-foot", (q ? shown + " of " + s.sessions.length + " sessions match \"" + q + "\". " : "") +
+        (estatePaused ? "Paused: press resume to read the estate again." : "Read again every " + ESTATE_EVERY / 1000 + "s while this page is open."));
+    }
+
+    // The one line a folded panel still shows, from this answer, never stored.
+    function renderSummaries(s, ix) {
+      put("sum-head", (s.host || "(host unknown)") + "  load " + loadText(s) + "  control " + ctlText(s, ix));
+      put("sum-spark", "load " + loadText(s) + "  slots " + ix.running + " of " + ix.cap);
+      var u = s.usage;
+      put("sum-usage", (u.five_hour ? "5h " + Math.round(u.five_hour.percent) + "%" : "5h --") +
+        (u.seven_day ? "  7d " + Math.round(u.seven_day.percent) + "%" : "  7d --") +
+        (u.source && u.source.kind === "statusline" ? "  (fallback)" : "") + (u.error ? "  (endpoint failed)" : ""));
+      put("sum-queue", ix.waiting.length ? ix.waiting.length + " waiting, oldest " + age(secs(Date.parse(ix.waiting[0].asked_at), ix.now)) : "nothing queued");
+      put("sum-lanes", s.lanes.length + " lanes, " + ix.held + " of " + ix.cap + " slots held");
+      put("sum-sessions", s.sessions.length + " sessions" + ["heavy", "busy", "gone"].map(function (k) {
+        return ix.tally[k] ? ", " + ix.tally[k] + " " + k : "";
+      }).join(""));
+    }
+
+    function renderEstate(status) {
+      lastEstate = status;
+      lastReadAt = Date.now();
+      var ix = index(status);
+      renderSummaries(status, ix);
+      renderHead(status, ix);
+      renderUnreadable(status);
+      renderSpark(status, ix);
+      renderUsage(status, ix);
+      renderQueue(status, ix);
+      renderLanes(status, ix);
+      renderSessions(status, ix);
+      document.getElementById("estate-stale").hidden = true;
+      document.title = "estate " + (status.host || "") + " -- intentd";
+    }
+
+    // **A READ THAT FAILS AFTER ONE THAT WORKED KEEPS THE PAGE AND SAYS IT IS
+    // OLD**, rather than blanking a table someone is reading; a first read that
+    // fails is refused like any other view.
+    function estateFailed(what, remedy) {
+      if (!lastEstate) {
+        stopEstate();
+        refuse(what, remedy);
+        return;
+      }
+      var box = document.getElementById("estate-stale");
+      box.textContent = what + (remedy ? " -- " + remedy : "") + " The page shows the last answer it read, " +
+        age(secs(lastReadAt, Date.now())) + " ago, taken at " + lastEstate.taken_at.replace("T", " ") + ".";
+      box.hidden = false;
+    }
+
+    function stopEstate() {
+      if (estateTimer) { window.clearInterval(estateTimer); estateTimer = null; }
+    }
+
+    function readEstate() {
+      call({ op: "form", view: window.location.pathname }, function (body) {
+        if (body.result === "estate_status") {
+          renderEstate(body.status);
+        } else {
+          estateFailed("The daemon stopped answering this address with the estate", "");
+        }
+      }, estateFailed);
+    }
+
+    function showEstate(status) {
+      home.hidden = true;
+      entity.hidden = true;
+      estate.hidden = false;
+      document.body.classList.add("estate");
+      renderEstate(status);
+      if (!estateTimer) { estateTimer = window.setInterval(function () { if (!estatePaused) { readEstate(); } }, ESTATE_EVERY); }
+    }
+
+    document.getElementById("estate-filter").addEventListener("input", function () {
+      if (lastEstate) { renderSessions(lastEstate, index(lastEstate)); }
+    });
+    // Fold or open every panel at once; the button names what it will do.
+    document.getElementById("estate-fold").addEventListener("click", function (ev) {
+      var panels = estate.querySelectorAll("details");
+      var anyOpen = Array.prototype.some.call(panels, function (d) { return d.open; });
+      panels.forEach(function (d) { d.open = !anyOpen; });
+      ev.target.textContent = anyOpen ? "expand all" : "collapse all";
+    });
+    document.getElementById("estate-pause").addEventListener("click", function (ev) {
+      estatePaused = !estatePaused;
+      ev.target.textContent = estatePaused ? "resume" : "pause";
+      if (!estatePaused) { readEstate(); }
+      if (lastEstate) { renderSessions(lastEstate, index(lastEstate)); }
+    });
+
+    // **ONE CALL DECIDES WHICH OF THE THREE SHAPES THIS DOCUMENT TAKES, AND
+    // THE RESULT TAG DECIDES IT**, so the page learns no address grammar: the
+    // daemon parses the path through the one nav contract, and answers the
+    // estate's address with the estate.
+    function landed(body) {
+      if (body.result === "estate_status") {
+        showEstate(body.status);
+      } else {
+        renderForm(body);
+      }
+    }
+
+
     takeFragment();
 
     // **THE ROOT PATH KEEPS THE STATUS PAGE.** Everything else is a view, and
@@ -454,6 +1054,6 @@
       return;
     }
 
-    call({ op: "form", view: window.location.pathname }, renderForm, refuse);
+    call({ op: "form", view: window.location.pathname }, landed, refuse);
   })();
 </script>

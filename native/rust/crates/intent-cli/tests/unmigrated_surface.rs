@@ -79,6 +79,10 @@ fn exempt_from_the_migration_refusal(path: &str) -> Option<&'static str> {
     // an unmigrated one, and a bare directory, because none of the three is
     // its subject.
     "app" => Some("machine-level app lifecycle -- never reads the estate"),
+    // The host, not a project: every verb reads Claude Code's session files and
+    // the operator's state dir and opens no project store, which is why
+    // `Op::EstateStatus` answers before any project binding.
+    "estate" => Some("the host, not a project -- opens no project store"),
     "version" | "info" | "help" => Some("tool-level, not project-level"),
     // The agent guide is generated from the dispatch table compiled into this
     // binary -- the same category as `schema`, and verified rather than
@@ -340,13 +344,14 @@ fn exempt_from_the_migration_refusal(path: &str) -> Option<&'static str> {
 ///
 /// Each member below is family-wide on a property of the WHOLE family, stated
 /// at its own exemption row: `app` asks LaunchServices about this machine and
-/// never opens the estate, `plugin`'s verbs all read the install, and `daemon`
+/// never opens the estate, `estate` is the host and opens no project store,
+/// `plugin`'s verbs all read the install, and `daemon`
 /// and `mcp` are long-running servers this sweep must not start. **`llm` needs
 /// no carve-out any more** -- it is simply absent from this list, which is what
 /// exact-path now means, and `llm usage_rules` is swept again as its row always
 /// said it should be.
 fn exemption_is_family_wide(family: &str) -> bool {
-  matches!(family, "app" | "daemon" | "mcp" | "plugin")
+  matches!(family, "app" | "daemon" | "estate" | "mcp" | "plugin")
 }
 
 fn legacy_project() -> tempfile::TempDir {
@@ -568,8 +573,8 @@ fn the_surface_exemption_states_the_precondition_it_rests_on() {
 /// `surface` had a single leaf. The identical hazard applies to every member of
 /// `exemption_is_family_wide`: a verb added later inherits the exemption in
 /// silence while the sweep next door goes on reporting a pass. Inverting the
-/// default made that hazard SMALLER -- four families instead of every exempt
-/// family head -- and did not remove it, so it is pinned rather than argued.
+/// default made that hazard SMALLER -- the families listed instead of every
+/// exempt family head -- and did not remove it, so it is pinned rather than argued.
 ///
 /// **A FAILURE HERE IS A REQUEST FOR A RULING, NOT A DEFECT REPORT.** Either
 /// the new verb holds the family's stated ground and the pin extends, or it
@@ -594,6 +599,9 @@ fn a_family_wide_exemption_covers_only_the_verbs_it_was_ruled_for() {
       "daemon",
       &["logs", "restart", "run", "start", "status", "stop"],
     ),
+    // The host estate (ST0086): every verb reads Claude Code's session files
+    // and the operator's state dir and opens no project store.
+    ("estate", &["prune", "status", "wip"]),
     ("mcp", &[]),
     ("plugin", &["list", "show"]),
   ];

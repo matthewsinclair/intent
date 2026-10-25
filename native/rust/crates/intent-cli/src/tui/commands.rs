@@ -121,6 +121,12 @@ pub enum Act {
   /// STARTS**, so one act and one palette entry answer both of hv's spellings
   /// (`/outs[tanding]`), and a second entry would only list it twice.
   Outstanding,
+  /// `/estate`: every Claude Code session on this host, the table `intent
+  /// estate status` prints, as a view (ST0086 WP-03).
+  ///
+  /// **A PUSH, NOT A LEND, FOR [`Act::Outstanding`]'S REASON**, and it needs no
+  /// project open: the estate is the host, so the lobby offers it too.
+  Estate,
 }
 
 /// The `intent` verbs the palette will run: **AN ALLOW-LIST, AND THE ONLY
@@ -166,6 +172,8 @@ pub enum Act {
 /// - `outstanding` -- claimed by [`Act::Outstanding`] (ST0079 WP-01), for
 ///   `search`'s reason: a lend prints the table onto the real screen and the
 ///   next repaint takes it away.
+/// - `estate` -- claimed by [`Act::Estate`] (ST0086 WP-03), for `outstanding`'s
+///   reason.
 pub const CLI_ROSTER: &[&str] = &[
   "st", "wp", "ac", "at", "todo", "info", "config", "doctor", "agents", "claude", "critic", "lang",
   "llm", "learn", "modules", "plugin", "ext", "version", "sync", "schema", "export", "ingest",
@@ -291,6 +299,11 @@ fn acts() -> Vec<Command> {
       blurb: "what is outstanding -- the table `intent outs` prints".into(),
       act: Act::Outstanding,
     },
+    Command {
+      name: "estate".into(),
+      blurb: "every Claude session on this host -- the table `intent estate status` prints".into(),
+      act: Act::Estate,
+    },
   ]
 }
 
@@ -317,7 +330,8 @@ fn is_place(act: &Act) -> bool {
     | Act::Settings
     | Act::Search
     | Act::Collection { .. }
-    | Act::Outstanding => true,
+    | Act::Outstanding
+    | Act::Estate => true,
     Act::Quit | Act::Back | Act::Cli(_) => false,
   }
 }
@@ -872,6 +886,7 @@ mod tests {
       "issues",
       "projects",
       "outstanding",
+      "estate",
       "help",
       "settings",
       "search",

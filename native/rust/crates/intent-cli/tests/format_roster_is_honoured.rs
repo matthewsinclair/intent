@@ -87,6 +87,9 @@ const ARGV: &[(&str, &[&str])] = &[
   // `the_daemon_status_lookup_resolves_and_refuses_by_name` below drives the
   // refusal rather than leaving acceptance to stand for both verdicts.
   ("daemon status", &["daemon", "status"]),
+  // The host estate under the fixture HOME: no sessions, but both formats
+  // render the host header, so neither value passes over an empty answer.
+  ("estate status", &["estate", "status"]),
   ("st list", &["st", "list", "--status", "all"]),
   ("st sync", &["st", "sync"]),
   ("wp list", &["wp", "list", "ST0001"]),
@@ -170,13 +173,25 @@ fn it_can_fail() {
 /// exercises is a guard nobody runs.
 #[test]
 fn the_daemon_status_lookup_resolves_and_refuses_by_name() {
+  lookup_resolves_and_refuses_by_name("daemon status", "terminal");
+}
+
+/// `estate status`'s literal in `render.rs` is the same lookup key, so the same
+/// arm holds it to the table (ST0086).
+#[test]
+fn the_estate_status_lookup_resolves_and_refuses_by_name() {
+  lookup_resolves_and_refuses_by_name("estate status", "json");
+}
+
+fn lookup_resolves_and_refuses_by_name(path: &str, declared: &str) {
   let p = seeded();
-  let (out, code) = run(p.path(), &["daemon", "status", "--format", "zzz"]);
+  let argv: Vec<&str> = path.split(' ').collect();
+  let (out, code) = run(p.path(), &[argv.as_slice(), &["--format", "zzz"]].concat());
 
   assert_eq!(
     code, 1,
     "an undeclared `--format` value must refuse at 1 -- a 2 here means the literal \
-     `daemon status` in `render.rs` no longer resolves to a table row, so the roster lookup \
+     `{path}` in `render.rs` no longer resolves to a table row, so the roster lookup \
      is broken rather than the value being wrong: {out}"
   );
   assert!(
@@ -185,7 +200,7 @@ fn the_daemon_status_lookup_resolves_and_refuses_by_name() {
      disagree about how this row is spelled: {out}"
   );
   assert!(
-    out.contains("daemon status") && out.contains("zzz"),
+    out.contains(path) && out.contains("zzz"),
     "the refusal must name the row it refused for and the value it refused: {out}"
   );
 
@@ -193,10 +208,13 @@ fn the_daemon_status_lookup_resolves_and_refuses_by_name() {
   // because the verb refuses everything -- which is the shape a broken
   // `enum_flag` would produce and is indistinguishable from correctness
   // without this line.
-  let (_, ok_code) = run(p.path(), &["daemon", "status", "--format", "terminal"]);
+  let (_, ok_code) = run(
+    p.path(),
+    &[argv.as_slice(), &["--format", declared]].concat(),
+  );
   assert_eq!(
     ok_code, 0,
-    "the one declared value must still be accepted, or the refusal above proves nothing"
+    "a declared value must still be accepted, or the refusal above proves nothing"
   );
 }
 

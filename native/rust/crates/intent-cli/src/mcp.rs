@@ -431,7 +431,7 @@ impl ServeError {
 /// end-to-end by `tests::every_roster_path_reaches_an_arm`. A row gaining its
 /// door joins `tools()` by regeneration and this list by hand -- the gate is
 /// what makes forgetting either half a red test rather than a silent gap.
-pub const SERVED: [&str; 74] = [
+pub const SERVED: [&str; 76] = [
   "st new",
   "st start",
   "st done",
@@ -497,6 +497,8 @@ pub const SERVED: [&str; 74] = [
   "wb clear",
   "wb archive",
   "wb pickup",
+  "estate status",
+  "estate wip",
   "wb touch",
   "wb release",
   "wb claim",
@@ -1374,6 +1376,41 @@ fn tool_answer(
       let mut picked = json!(f.wb_pickup(node, session.as_deref(), focus, all)?);
       picked["notes"] = intentsvcs::facade::notes_json(&f.take_notes());
       Ok(picked)
+    }
+    // **THE ESTATE IS THE HOST, AND THE FACADE ONLY DELEGATES** (ST0086): the
+    // answer is the same from any project this server runs in. `estate status`
+    // answers the reader's value whole -- the same serialisation the CLI's
+    // `--format json` prints -- so an agent and the page read one contract.
+    "estate status" => Ok(json!(f.estate_status()?)),
+    "estate wip" => {
+      let line = opt_s(path, map, "line")?;
+      let clear = opt_b(path, map, "clear")?;
+      let line = match (line, clear) {
+        (Some(_), true) => {
+          return Err(args_err(
+            path,
+            "give `line` to set the WIP line, or `clear` alone to remove it, not both".to_string(),
+          ));
+        }
+        (None, false) => {
+          return Err(args_err(
+            path,
+            "nothing to write: give `line`, or `clear: true` to remove this session's WIP line"
+              .to_string(),
+          ));
+        }
+        (line, _) => line,
+      };
+      // The server runs as the session's child and carries its id (measured
+      // 2026-10-24 on every running `intent mcp`), so the tool takes no session
+      // parameter an agent could misname.
+      let Some(session) = crate::render::pickup_session(None) else {
+        return Err(args_err(
+          path,
+          "this server runs in no Claude Code session, so there is no session to write a WIP line for".to_string(),
+        ));
+      };
+      Ok(json!(f.estate_wip(&session, line)?))
     }
     "wb touch" => {
       let node = str_arg(args, "node", path)?;
