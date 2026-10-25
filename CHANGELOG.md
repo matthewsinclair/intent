@@ -32,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-- **The `intent` subagent leaves the subagents catalogue** (ST0088), together with `socrates`'s uninstalled `README.md` and the `metadata.json` files nothing read. It was a hand-written command reference that `intent llm guide` replaces. An installed copy is reported as source missing at the next `intent claude subagents sync`, and `intent claude subagents uninstall intent` removes it.
+- **The `intent` subagent leaves the subagents catalogue** (ST0088), together with `socrates`'s uninstalled `README.md` and the `metadata.json` files nothing read. It was a hand-written command reference that `intent llm guide` replaces. An installed copy is reported as source missing by every `intent claude subagents sync`, which exits 1 until `intent claude subagents uninstall intent` removes it.
 - **The Total Codebase Audit skills, `in-cost-analysis` and `in-debug` leave the skills catalogue** (ST0088). The five `in-tca-*` skills go with their scripts; the audit stays as the written procedure in `intent/docs/total-codebase-audit.md`, which names the critics and the verbs each phase runs. `in-cost-analysis` goes with its metrics script and its rates table, and `in-debug` goes with it.
 
 ### Fixed
