@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "worker",
     "session_id": "5abe68e1-b9b1-4003-9718-c8fbba772543",
-    "heartbeat_at": "2026-10-25T03:54:27.405Z",
+    "heartbeat_at": "2026-10-25T05:06:37.895Z",
     "status": "active",
-    "focus": "3.2.7: 0632 rebased onto e9464ad6c (after ic's ST0086 and cc's WP-02), bank unchanged (refs/bank/dc/0632/wip), step 1 at molt-vc's GO after build all; 0634 shell half done, Rust half unbuilt (refs/bank/dc/0634/wip); no push, no release",
+    "focus": "3.2.7: 0632 landed at 7c45f0cce and closed at 844a46ec9; 0634 next: rebase over cc's devbin re-vendor when it lands, patch-id to vc, then the judge booked with molt-vc (refs/bank/dc/0634/wip); no push, no release",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -2410,7 +2410,8 @@
       "kind": "doing",
       "seq": 138,
       "text": "0632 CODE written and banked, UNBUILT (hv's order; vc ruling (a): Written gains removed, the one printer prints removed: <path>). The drive is banked on refs/bank/dc/0632/drive.sh (blob 1e45c2580287). The WIP is banked on refs/bank/dc/0632/wip (blob 322e1f7dca26, patch-id 974333db124a). It was REBASED at 03:53Z on 2026-10-25 onto main e9464ad6c, the tip after ic's ST0086 bank and cc's WP-02 landed. The rebase was done in tmp/wt-dc-0632 (own target, hooks off) by git apply --3way of the bank. It applied clean and the patch-id is unchanged, so the bank blob stays and only its base moved. No new verb on that tip writes a project path. The estate verbs (status, browse, wip, prune) and cc's census and statusline doors write only under the operator's state dirs, and they print their own wrote: and removed: lines. vc ruled at 03:29Z that 0632's list stays closed as filed. It carries: facade.rs (pub written_from, the one split; removed drained with landed; dehydrate, organize --apply, renumber moves and stale files, agents_sync and claude_upgrade noted); render.rs (print_written ends hydrate, dehydrate, organize --apply, sync in every direction, both renumbers, agents sync, claude upgrade --apply, init and lang); vc's rulings applied: lang remove says undeclared:, and claude upgrade's written: list is gone on apply; new arms plus a no-op control in every_verb_names_the_files_it_wrote.rs, and two existing tests moved to the printer's form. NEXT: step 1 (scratchpad/0632/run-0632a.sh) at molt-vc's GO, after Intent's build all (hv's ruling), judged against the post-build pair. START and END go to molt-vc and vc by name. After that, the full judge and its control are booked through vc, and vc lands it. vc corrects restart.md and wip.md at the landing. A further move of main before step 1 gets the same rebase. No push, no release.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-25T05:06:27.050Z",
       "recorded_at": "2026-10-24T14:21:34.152Z",
       "edited_at": "2026-10-25T03:54:07.740Z"
     },
@@ -3260,6 +3261,16 @@
       "id": "01M5P823DDTNBWPPNBHY2YZ8PA",
       "sender": "vc",
       "handled_at": "2026-10-24T12:28:02.865Z"
+    },
+    {
+      "id": "01M5RKK2P8B5TB5S5C05SNZ7G4",
+      "sender": "vc",
+      "handled_at": "2026-10-25T05:06:43.921Z"
+    },
+    {
+      "id": "01M5RKNFTDDEJ32THF1B45VCTM",
+      "sender": "vc",
+      "handled_at": "2026-10-25T05:06:43.921Z"
     }
   ]
 }
