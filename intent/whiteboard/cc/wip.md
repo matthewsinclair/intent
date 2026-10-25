@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 66e84138-c919-405e-bed0-8057e34a7ac2
-heartbeat_at: 2026-10-25 11:43Z
+heartbeat_at: 2026-10-25 15:07Z
 status: active
-focus: "ST0087 WP-01 and WP-02 landed and done (08f29d29c); next ST0086 WP-04, built last after ic's and dc's packages; hold 33 stands until ST0087 has gone first; no push, no release"
+focus: "0645 landed (31e80eaa5) and closed; next ST0086 WP-04, built last after ic's and dc's packages, its To-measure items first; hold 33 stands until ST0087 has gone first; no push, no release"
 claims: [ST0081, ST0086/01, ST0086/04]
 ---
 
