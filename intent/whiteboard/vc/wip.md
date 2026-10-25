@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 78d66f67-02b7-4497-bbec-4466e2fcb852
-heartbeat_at: 2026-10-25 03:52Z
+heartbeat_at: 2026-10-25 04:51Z
 status: active
-focus: "ST0086: WP-02 whole on main at e9464ad6c (cc's daemon half and doors, ic's surface, page and TUI view); next bin/devbin build all at molt-vc's heavy GO after hv's Utilz upgrade, intentd restart announced to every estate's vc; then hv looks at /estate/status; metered line, no download unasked; no push, no release"
+focus: "ST0086: WP-02 whole on main at b01cec8aa (daemon half, doors, surface, page, TUI, census verbs, statusline step); pair at 7126f6832 serves the page; next build all once after dc's 0632 lands (one restart, announced first); hold 33 and the metered line stand; no push, no release"
 claims: []
 ---
 
