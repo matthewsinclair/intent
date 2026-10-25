@@ -1,0 +1,16 @@
+{
+  "id": "01M5SCGDCZ3NH3EZKBBERQ72VZ",
+  "ts": "2026-10-25T11:18:05.983Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 52,
+    "text": "ST0088 WP-03 (vc's assignment, 2026-10-25 10:57Z by date -u; thread on main at be553b1b4, review.md attached), M, AFTER 0644 (doing 141) AND BUILT OVER ic's WP-01 AND WP-02 BANKS ONCE THEY LAND (both edit _CLAUDE.md and _usage-rules.md; keeps my hunks off theirs): lib/templates/llm/_AGENTS.md, _CLAUDE.md and _usage-rules.md lose the Socrates and Diogenes FAQ, the security boilerplate, the v2-era interop prose and any instruction another loaded file owns, with the Rules of the Road table in one home; _AGENTS.md's critic exit-code list and doctor line point at in-essentials or intent llm guide rather than restate them (AC-02.4, AC-03.1; ic's find, added 11:17Z); each code critic's agent.md reduced to its language delta over rules/_schema/critic-contract.md, the Diogenes handoff in critic-elixir alone; subagents/intent, socrates/README.md and the eight metadata.json removed, payload.rs and the installer agreeing; plugin.json removed unless hv rules intent plugin list wanted; every hardcoded ~/.claude reads ${CLAUDE_CONFIG_DIR:-$HOME/.claude}, in the hook scripts and in subagents/critic-prose/agent.md, subagents/critic-elixir/agent.md and lib/templates/llm/_CLAUDE.md; intentsvcs rules.rs's doc comment naming /in-standards names in-essentials (in-standards is gone after ic's WP-02). Criteria AC-03.1 to AC-03.3. Judge: the intent-cli and intentsvcs suites, the template bats, prettier, the critic leg; heavy with molt-vc. Claim ST0088/03 when I take it up. No push, no release."
+  }
+}
