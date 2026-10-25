@@ -1,0 +1,16 @@
+{
+  "id": "01M5RZ8HAZ6PY9CP2W59J6VGQ7",
+  "ts": "2026-10-25T07:26:36.383Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 57,
+    "text": "ST0086 AC-02.2 and AC-02.6 arms, RULED by vc as proposed, owed before ST0086 closes. Order: v3 judge, ST0087 WP-03, ST0086 WP-03, then these. (1) read_endpoint takes a Source { security, curl, url }, and host_endpoint passes today's consts. Stub scripts in a tempdir: the security stub answers per -s (the naming condition both ways), the curl stub a canned status and body. One arm per EndpointFailure plus a bad body, fixture tokens only, never the real Keychain or api.anthropic.com. (2) Unit arms in intentd's census.rs: push past KEPT, held() arms ASKED, gather reads the endpoint only when asked; no interval knob. (3) Cite the parser and count arms against AC-02.2, add a cwd-attribution arm only where none measures it, and the reap arm is gather(true, _) calling prune."
+  }
+}

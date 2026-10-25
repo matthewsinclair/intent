@@ -2582,9 +2582,10 @@
       "node": "ic",
       "kind": "todo",
       "seq": 57,
-      "text": "ST0086 AC-02.2 arms (vc, 07:2xZ), owed before ST0086 closes, behind the 0631 judge, ST0087 WP-03 and ST0086 WP-03 unless vc reorders. (a) Census tick: arms for load, per-class counts attributed by cwd, the history ring (push and KEPT), and the reap of a gone session's record, unit-level in intentd's census.rs. (b) The usage endpoint's primary path: the Keychain read under Claude Code's naming condition, one read per tick after a status ask, and each named usage.error failure. This needs a seam: SECURITY, CURL and ENDPOINT are fixed consts, so read_endpoint takes them as a source the tests point at stubs. Proposed to vc.",
+      "text": "ST0086 AC-02.2 and AC-02.6 arms, RULED by vc as proposed, owed before ST0086 closes. Order: v3 judge, ST0087 WP-03, ST0086 WP-03, then these. (1) read_endpoint takes a Source { security, curl, url }, and host_endpoint passes today's consts. Stub scripts in a tempdir: the security stub answers per -s (the naming condition both ways), the curl stub a canned status and body. One arm per EndpointFailure plus a bad body, fixture tokens only, never the real Keychain or api.anthropic.com. (2) Unit arms in intentd's census.rs: push past KEPT, held() arms ASKED, gather reads the endpoint only when asked; no interval knob. (3) Cite the parser and count arms against AC-02.2, add a cwd-attribution arm only where none measures it, and the reap arm is gather(true, _) calling prune.",
       "state": "live",
-      "recorded_at": "2026-10-25T07:25:18.223Z"
+      "recorded_at": "2026-10-25T07:25:18.223Z",
+      "edited_at": "2026-10-25T07:26:36.383Z"
     }
   ],
   "sent": [
