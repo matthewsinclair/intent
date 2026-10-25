@@ -1,0 +1,15 @@
+{
+  "id": "01M5SAYGHTWZVNQ2HW2QXJ2Q25",
+  "ts": "2026-10-25T10:50:50.810Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-10-25 10:50Z by vc's clock; hv's selections in the TUI vc asked on the prompt-corpus review, each taking vc's recommendation except where marked; wording vc's) THE PROMPT CORPUS CULL, THREE RULINGS, in 3.2.7 under decision 76. The review (vc's subagent, read-only, report at vc's scratchpad review/prompt-corpus-review.md with its captures) found the corpus accurate but fat: every verb named ships, every rule id cited exists, every path exists; the fat is the same instruction living in three to five files loaded into one session, and about 74,600 bytes read before the first prompt in this repository. (1) THE in-tca FAMILY IS CULLED, the five skills and their scripts, and intent/docs/total-codebase-audit.md stays as the written procedure: reached from nothing but each other, and their reporting scripts parse rows the critics never emit. (2) in-cost-analysis IS CULLED AND DROPPED (hv's choice over vc's offer to Utilz): named by nothing, not about Intent, dated rates, a locator that cannot find a CLAUDE_CONFIG_DIR config. (3) THE CATALOGUE CARRIES SKILLS ABOUT INTENT AND THE DECLARED LANGUAGES ONLY, so in-debug is culled with its one caller line; the Elixir, author and content packs stay as declared-language skills. The rest of the review's dispositions are vc's under the pen and go into the cull thread vc authors next: in-standards merged into in-essentials; the critics trimmed to their delta over rules/_schema/critic-contract.md; the detrope section owned once by in-detrope; the intent subagent, socrates/README.md, the eight metadata.json and plugin.json culled; the _AGENTS.md FAQ and security boilerplate and the v2-era interop section culled; the hardcoded ~/.claude paths replaced by CLAUDE_CONFIG_DIR in seven prompts; and the missing items written once into in-essentials (the wrote:/removed: convention, intent outstanding, the estate verbs, the thread and package lifecycle verbs, doctor and the gate's exit codes). Every change keeps the corpus tests green (skills-triage.md rows, every skill with a live caller, the size cap, the cross-reference and renderer traps) and is judged by the intent-cli suite and the bats that pin them."
+  }
+}
