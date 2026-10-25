@@ -155,6 +155,68 @@
       }
     }
   ],
+  "tests": [
+    {
+      "id": "AT-01.1",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/skills_triage_covers_the_catalogue.rs",
+      "covers": [
+        "AC-01.1"
+      ],
+      "status": "green",
+      "note": "arms: every_skill_in_the_catalogue_has_a_triage_row_and_no_row_invents_one, with every_skill_has_a_live_caller.rs and skill_cross_references_resolve.rs holding the rest; green in ic's bats runs on 2026-10-25 (the new one-home arms red on planted violations and green restored, startup_skills_fit_a_compact and prior_art_route ok) and the corpus tests in the intent-cli suite of the ST0088 WP-01 and WP-02 judge at 1c8d893e3 and 89c40ffaf; cited by vc at the landing"
+    },
+    {
+      "id": "AT-02.1",
+      "kind": "test",
+      "file": "tests/unit/the_skill_corpus_keeps_one_home_each.bats",
+      "covers": [
+        "AC-02.1"
+      ],
+      "status": "green",
+      "note": "arms: in-standards gone, in-essentials present, no file under the corpus roots naming in-standards but the triage record; the index-first population by prior_art_route.bats; green in ic's bats runs on 2026-10-25 (the new one-home arms red on planted violations and green restored, startup_skills_fit_a_compact and prior_art_route ok) and the corpus tests in the intent-cli suite of the ST0088 WP-01 and WP-02 judge at 1c8d893e3 and 89c40ffaf; cited by vc at the landing"
+    },
+    {
+      "id": "AT-02.2",
+      "kind": "test",
+      "file": "tests/unit/the_skill_corpus_keeps_one_home_each.bats",
+      "covers": [
+        "AC-02.2"
+      ],
+      "status": "green",
+      "note": "arms: the Two forms, one home heading in in-detrope alone, both packs naming in-detrope; green in ic's bats runs on 2026-10-25 (the new one-home arms red on planted violations and green restored, startup_skills_fit_a_compact and prior_art_route ok) and the corpus tests in the intent-cli suite of the ST0088 WP-01 and WP-02 judge at 1c8d893e3 and 89c40ffaf; cited by vc at the landing"
+    },
+    {
+      "id": "AT-02.3",
+      "kind": "test",
+      "file": "tests/unit/the_skill_corpus_keeps_one_home_each.bats",
+      "covers": [
+        "AC-02.3"
+      ],
+      "status": "green",
+      "note": "arms: every skill file or script naming ~/.claude reads CLAUDE_CONFIG_DIR beside it; green in ic's bats runs on 2026-10-25 (the new one-home arms red on planted violations and green restored, startup_skills_fit_a_compact and prior_art_route ok) and the corpus tests in the intent-cli suite of the ST0088 WP-01 and WP-02 judge at 1c8d893e3 and 89c40ffaf; cited by vc at the landing"
+    },
+    {
+      "id": "AT-02.4",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/no_skill_names_an_unshipped_verb.rs",
+      "covers": [
+        "AC-02.4"
+      ],
+      "status": "green",
+      "note": "arms: the invariant arm: no skill names a verb this build does not ship, with in-essentials' new rules in its scan; green in ic's bats runs on 2026-10-25 (the new one-home arms red on planted violations and green restored, startup_skills_fit_a_compact and prior_art_route ok) and the corpus tests in the intent-cli suite of the ST0088 WP-01 and WP-02 judge at 1c8d893e3 and 89c40ffaf; cited by vc at the landing"
+    },
+    {
+      "id": "AT-02.5",
+      "kind": "test",
+      "file": "tests/unit/startup_skills_fit_a_compact.bats",
+      "covers": [
+        "AC-02.5"
+      ],
+      "status": "green",
+      "note": "arms: every skill /in-session chains to under the startup size cap; green in ic's bats runs on 2026-10-25 (the new one-home arms red on planted violations and green restored, startup_skills_fit_a_compact and prior_art_route ok) and the corpus tests in the intent-cli suite of the ST0088 WP-01 and WP-02 judge at 1c8d893e3 and 89c40ffaf; cited by vc at the landing"
+    }
+  ],
   "attachments": [
     {
       "path": "review.md",
