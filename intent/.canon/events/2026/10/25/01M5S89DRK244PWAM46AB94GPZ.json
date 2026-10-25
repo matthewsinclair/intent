@@ -1,0 +1,15 @@
+{
+  "id": "01M5S89DRK244PWAM46AB94GPZ",
+  "ts": "2026-10-25T10:04:22.675Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-10-25 10:04Z by vc's clock; hv first-hand through molt-vc to every vc; wording hv's where quoted) BREW BY DEFAULT, DEV OR OPT ONLY WHILE WORKING ON THAT PROJECT. hv, verbatim: \"As a general rule, I want to use the brew versions of things UNLESS I am working on a project. If I am working, then I'll use dev/opt as needed, and put brew back once done and the patch is released. I want to be sure to use the brew release versions of these tools wherever I can.\" So each tool's `use` switch sits at brew unless its project is being worked on, and every release's checklist ends with switching hv's sleeve back to brew and checking that the brew install answers; on rhadamanth Intent's switch is hv's to move. FOR INTENT: ST0087 WP-04's intent/docs/releasing.md gains that closing step (`intent use brew`, then the version line and `intent doctor` from the keg), docs/install.md's maintainer section states the default, and WP-05's proof ends on brew; the dev pair stays the delivery on this machine only while Intent is being worked on, which it is until 3.2.7 is cut and switched back. ALSO RECORDED: the estate census classes are declared by a session hv assigns as the controller; molt-vc's sanctioned writes on rhadamanth are issues add and edit alone, so it put the `intent estate watch` declarations to hv rather than run them."
+  }
+}
