@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "78d66f67-02b7-4497-bbec-4466e2fcb852",
-    "heartbeat_at": "2026-10-25T06:28:40.556Z",
+    "heartbeat_at": "2026-10-25T06:49:22.407Z",
     "status": "active",
-    "focus": "LOCALFOLD 5 at 2026-10-25 06:28Z; ST0086 WP-02 live on the pair at fef91e6f8 (/estate/status answers data; open with intent estate status --browser); 0632, 0638, 0639 closed today; ST0087 (dev/opt/brew conformance) authored, cc WP-01 next after its 0640 re-check; desk held by molt-vc until hv says continue; no push, no release",
+    "focus": "0640 landed e6ce2c5c1 and closed 9c28574c6 at 2026-10-25 06:49Z; pair at fef91e6f8 serves /estate/status (open with intent estate status --browser); open issues 0631 (behind the line), 0634 (dc, judge READY at molt-vc's desk after Laksa 0018fu), 0641 (hv to rule), 0642 (unassigned, XS); ST0087 WP-01 cc's now, WP-03 ic after it, WP-04 dc after 0634; next build all heavy when a landing changes daemon or CLI behaviour; no push, no release",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -2068,6 +2068,14 @@
       "text": "RESUME STATE (vc, 2026-10-25 06:28Z by date -u, localfold 5 on molt-vc's fold call for hv before hv's compact). THE PAIR: intent 3.2.6 (fef91e6f8) dev, intentd the same, restarted 05:43Z in molt-vc's slot 354; /estate/status answers data (measured: op form for /estate/status answers result estate_status with every session; the bare URL serves the shell without the token, so hv opens it with intent estate status --browser); the pair carries intent estate status|wip|prune|watch|unwatch|statusline and 0632's wrote: lines; the pair is BEHIND main by 0638, 0639, 0640 (unlanded), the lifeline test and ST0087's records, none of which changes daemon behaviour; next build all at the next landing that does. LANDED TODAY (all by vc from banks, each verified blob, sha256, patch-id, byte for byte the diff of its two commits, tree patch-id, critic, doctor, census): ST0086 WP-02 whole (cc 1dc84382d, 53a53a4b8; ic e9464ad6c, b01cec8aa; cc todo 41 in b01cec8aa; cc's estate form arm 4f6b504a8, the arm the page's data call needed, found missing by vc's token probe; ic's lifeline fix 7536f4009), 0632 (7c45f0cce, closed 844a46ec9), devbin 0.1.14 re-vendor (141dcf9ff), 0639 (6f2fc99a7, closed 2a389f899), 0638 (05f1f189b, closed 9c59cc586), ST0087 authored (e43fafbc0, design updated 9d0c2a9e2 and 6cb33b3ef), issue 0642 filed (be2b7d523). OPEN ISSUES: 0631 (behind the line, ic hold 13), 0634 (dc, bank refs/bank/dc/0634/wip blob bc368e29 patch-id 09c5ea990e98 over 141dcf9ff, judge READY at molt-vc after Laksa 0018fu), 0640 (cc, bank refs/bank/cc/0640 blob 49120cc8 over 7536f4009, tip 6ce61c580; judged at a87fe1873 with fmt red then amended; owes a light re-check, fmt plus the intentsvcs suite at 6ce61c580, next for Intent at the desk; then vc lands and closes), 0641 (cc filed: organize --apply overwrites a hand-written Objective on a re-declared dehydrated thread with no verdict; hv to rule whether a re-declared file is a stray by design), 0642 (st attach prints no wrote: for its event and canon row; XS, unassigned). ST0087 (Intent conforms to the dev, opt and brew contract; design.md is the spec, citing devbin's docs/dev-opt-brew.md at aeed31e4 with 0213 and 0216): cc WP-01 then WP-02 after 0640 (shape ruled: TreeId, one version_line formatter, intent install --print-runtime-set as the verb's first mode read from the pair the caller names); ic WP-03 after WP-01 (Swift half drafted at 830fedbe1 in tmp/wt-ic-0086: Intent.app follows the link, never realpaths; use execs the new link's daemon restart); dc WP-04 after 0634 and after WP-01 to WP-03; WP-05 vc with dc; Molt's PATH prepend landed (Molt-matts a258ad0, 91a71ff); a session started before it keeps Homebrew's bin first. DECISIONS TODAY: 75 (flat estate watch|unwatch, both withheld from MCP, statusline off MCP with wrote: on stderr; hv may veto the spelling before the cut). RULES LEARNED (in memory): grep the WHOLE crates tree incl tests/ before narrowing a judge; any change under crates/*/tests runs the intentd suite (the lifeline scanner); a stamp goes into a message only with a date -u read in that turn. DESK: molt-vc holds it; no new heavy until hv says continue; Intent's places: cc's 0640 re-check, then dc's 0634 after Laksa 0018fu. STANDING: no push, no release without hv at the terminal; the next cut is 3.2.7 after ST0087 and the open issues; kovacs preflight fresh before any cut.",
       "state": "live",
       "recorded_at": "2026-10-25T06:28:38.852Z"
+    },
+    {
+      "node": "vc",
+      "kind": "todo",
+      "seq": 64,
+      "text": "After the next build all: run rule_validator.bats and rule_pack_agnostic.bats once in a linked worktree with the dev pair as INTENT_BIN, the form issue 0640 reproduces, to prove the arms green on the installed pair (0640 landed at e6ce2c5c1, closed at 9c28574c6; the pair at fef91e6f8 predates it).",
+      "state": "live",
+      "recorded_at": "2026-10-25T06:49:21.382Z"
     }
   ],
   "sent": [

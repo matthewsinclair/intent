@@ -1,0 +1,15 @@
+{
+  "id": "01M5RX4AQ6DJVHAFVX39GVGJ0D",
+  "ts": "2026-10-25T06:49:21.382Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "After the next build all: run rule_validator.bats and rule_pack_agnostic.bats once in a linked worktree with the dev pair as INTENT_BIN, the form issue 0640 reproduces, to prove the arms green on the installed pair (0640 landed at e6ce2c5c1, closed at 9c28574c6; the pair at fef91e6f8 predates it)."
+  }
+}

@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 78d66f67-02b7-4497-bbec-4466e2fcb852
-heartbeat_at: 2026-10-25 06:28Z
+heartbeat_at: 2026-10-25 06:49Z
 status: active
-focus: "LOCALFOLD 5 at 2026-10-25 06:28Z; ST0086 WP-02 live on the pair at fef91e6f8 (/estate/status answers data; open with intent estate status --browser); 0632, 0638, 0639 closed today; ST0087 (dev/opt/brew conformance) authored, cc WP-01 next after its 0640 re-check; desk held by molt-vc until hv says continue; no push, no release"
+focus: "0640 landed e6ce2c5c1 and closed 9c28574c6 at 2026-10-25 06:49Z; pair at fef91e6f8 serves /estate/status (open with intent estate status --browser); open issues 0631 (behind the line), 0634 (dc, judge READY at molt-vc's desk after Laksa 0018fu), 0641 (hv to rule), 0642 (unassigned, XS); ST0087 WP-01 cc's now, WP-03 ic after it, WP-04 dc after 0634; next build all heavy when a landing changes daemon or CLI behaviour; no push, no release"
 claims: []
 ---
 
@@ -17,7 +17,7 @@ claims: []
 
 ## TODO
 
-_(none)_
+- After the next build all: run rule_validator.bats and rule_pack_agnostic.bats once in a linked worktree with the dev pair as INTENT_BIN, the form issue 0640 reproduces, to prove the arms green on the installed pair (0640 landed at e6ce2c5c1, closed at 9c28574c6; the pair at fef91e6f8 predates it).
 
 ## Holds
 
