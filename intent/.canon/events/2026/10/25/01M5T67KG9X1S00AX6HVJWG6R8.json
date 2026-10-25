@@ -1,0 +1,14 @@
+{
+  "id": "01M5T67KG9X1S00AX6HVJWG6R8",
+  "ts": "2026-10-25T18:47:40.304Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0088/AC-04.2"
+  },
+  "payload": {
+    "evidence": "vc, 2026-10-25 18:47Z on rhadamanth: announced at 18:43Z to molt-vc, utilz-vc, devbin-vc, laksa-vc, conflab-vc and gtools-vc, all six answering no hold; intent claude skills sync updated ten skills and skills uninstall removed the eight culled (in-standards, in-cost-analysis, in-debug, the five in-tca-*), leaving fifteen canon skills and a sync dry run settled; subagents sync updated the six critics and subagents uninstall removed intent. The fleet sweep that carries the new root templates to each estate is each estate's intent claude upgrade --apply (--skip-settings where it keeps its own settings), run by that estate's vc, at the latest in the fleet sweep after the cut."
+  }
+}
