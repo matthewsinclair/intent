@@ -1,7 +1,7 @@
 //! ST0087 WP-01: `intent install --print-runtime-set` prints the support paths
 //! of the runtime set from the one list in the binary, which the packaging
-//! reads from the pair it names; bare `install` refuses as not built until the
-//! publish modes land (WP-02).
+//! reads from the pair it names; a publish with no prefix is refused before
+//! anything is written (WP-02, whose arms are intentsvcs' `install_publishes`).
 
 use std::process::Output;
 
@@ -40,15 +40,23 @@ fn the_runtime_set_is_printed_one_path_per_line_from_the_one_list() {
 }
 
 #[test]
-fn bare_install_refuses_as_not_built_at_two() {
-  let out = run(&["install"]);
+fn a_publish_with_no_prefix_is_refused_and_writes_nothing() {
+  let out = crate::common::intent()
+    .arg("install")
+    .env_remove(intentsvcs::install::PREFIX_VAR)
+    .stdin(testkit::lifeline_for(&["install"]))
+    .output()
+    .expect("run the v3 binary");
 
-  assert_eq!(out.status.code(), Some(2));
+  assert_eq!(out.status.code(), Some(1));
   let stderr = String::from_utf8_lossy(&out.stderr);
   assert!(
-    stderr.contains("is a known command that is not implemented yet")
-      && stderr.contains("--print-runtime-set"),
-    "the refusal did not say what is built: {stderr}"
+    stderr.starts_with("error: intent install"),
+    "the refusal did not name the verb: {stderr}"
   );
-  assert!(out.stdout.is_empty(), "a refusal printed paths");
+  assert!(
+    out.stdout.is_empty(),
+    "a refusal printed: {}",
+    String::from_utf8_lossy(&out.stdout)
+  );
 }

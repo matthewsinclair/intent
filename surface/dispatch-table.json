@@ -10508,9 +10508,36 @@
     },
     {
       "path": "install",
-      "help": "Publish this checkout as an opt tree; this build has only --print-runtime-set",
+      "help": "Publish this dev tree's runtime set and pair as an opt tree, with its manifest",
       "args": [],
       "flags": [
+        {
+          "spellings": [
+            "--prefix"
+          ],
+          "type": "string",
+          "value": "<dir>",
+          "help": "Where to publish the opt tree; without it, INTENT_INSTALL_PREFIX, and with neither the publish is refused",
+          "disposition": "keep"
+        },
+        {
+          "spellings": [
+            "--force"
+          ],
+          "type": "bool",
+          "help": "Replace an opt tree Intent published at the prefix; nothing else is ever replaced",
+          "disposition": "keep"
+        },
+        {
+          "spellings": [
+            "--managed-by"
+          ],
+          "type": "enum",
+          "value": "intent|brew",
+          "default": "intent",
+          "help": "Who manages the published tree, written to its manifest; brew is the formula's, and a tree it writes refuses install and use writes",
+          "disposition": "keep"
+        },
         {
           "spellings": [
             "--print-runtime-set"
@@ -10524,24 +10551,24 @@
         "exit": [
           {
             "code": 0,
-            "when": "--print-runtime-set printed the support paths"
+            "when": "the runtime set and the pair were published to the prefix with its manifest, or --print-runtime-set printed the support paths"
           },
           {
-            "code": 2,
-            "when": "bare, or any mode but --print-runtime-set: publishing is not built yet (ST0087 WP-02), refused with `is a known command that is not implemented yet`"
+            "code": 1,
+            "when": "refused before anything is written: not a dev tree, a dirty runtime set, a pair built behind HEAD or from two commits, no prefix, a prefix overlapping the dev tree, or a prefix holding anything but an opt tree Intent published (and that only with --force); or a step of the publish failed, with the prefix left as it was"
           }
         ],
-        "stdout": "one support path per line, relative to the install root",
-        "stderr": "`error: ...` on stderr (INV-01)"
+        "stdout": "`created:` or `replaced:` for the prefix, `wrote:` for its manifest, then `ok:` and the published tree's version line; or one support path per line under --print-runtime-set",
+        "stderr": "`error: ...` with its remedy (INV-01)"
       },
       "v2": "new-surface",
-      "basis": "ST0087 WP-01 (vc's ruling of 2026-10-25 on cc's shape): the runtime set lives in the binary as one list (devbin's docs/dev-opt-brew.md, T1), and the packaging reads it from the pair the caller names rather than keeping SUPPORT_PATHS of its own. `--print-runtime-set` is the verb's first mode; the publish modes arrive in WP-02.",
-      "owner_wp": "ST0087 WP-01",
+      "basis": "ST0087 WP-01 and WP-02 (vc's rulings of 2026-10-25 on cc's shape), devbin's docs/dev-opt-brew.md T1 to T3: the runtime set lives in the binary as one list, which the packaging reads from the pair it names with `--print-runtime-set`; the publish copies the pair and that set from a clean dev tree into the keg's layout and writes the manifest in T3's form.",
+      "owner_wp": "ST0087 WP-01, WP-02",
       "disposition": "new-surface",
-      "read_or_mutate": "read",
-      "recoverability": null,
+      "read_or_mutate": "mutate",
+      "recoverability": "one-way",
       "exposed_on_mcp": false,
-      "acceptance": "ST0087 WP-01",
+      "acceptance": "ST0087 WP-01, WP-02",
       "target": {
         "state": "new-surface"
       }

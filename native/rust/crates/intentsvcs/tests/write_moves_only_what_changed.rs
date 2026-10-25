@@ -717,6 +717,13 @@ nothing installed to delete -- so it is now `lang init`'s exact inverse and belo
 init`'s bucket. `UNPROVEN` means we have not established what this writes; leaving it there after \
 establishing it would file a known answer as a debt.",
   ),
+  (
+    "install",
+    "the opt tree at --prefix (else $INTENT_INSTALL_PREFIX): the pair under bin/, the support paths \
+git names and the .intent-install manifest, staged beside the prefix and swapped in by rename, and \
+nothing in any project, the dev tree it publishes from included (ST0087 WP-02). \
+intentsvcs' `install_publishes_an_opt_tree.rs` drives each write and refusal.",
+  ),
   // **THE HOST ESTATE (ST0086) IS NOT THE THREAD ESTATE**: every verb below
   // writes Intent's per-user state directory and nothing in any project, and
   // intent-cli's `estate_surface.rs` drives each write and names its path.

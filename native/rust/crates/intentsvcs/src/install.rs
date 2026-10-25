@@ -76,6 +76,24 @@ pub enum InstallError {
     wrote: String,
     read: String,
   },
+  #[error(
+    "intent install publishes only from a dev tree, and this binary runs from the {tree} tree at {root}"
+  )]
+  NotDev { tree: Tree, root: String },
+  #[error("intent install publishes only a clean runtime set, and {root} is not: {why}")]
+  RuntimeSetDirty { root: String, why: String },
+  #[error("the pair at {dir} is not one build: intent names {intent} and intentd names {intentd}")]
+  SplitPair {
+    dir: String,
+    intent: String,
+    intentd: String,
+  },
+  #[error("intent install needs a prefix: none was given and INTENT_INSTALL_PREFIX is not set")]
+  NoPrefix,
+  #[error("intent install refuses the prefix {prefix}: {why}")]
+  PrefixRefused { prefix: String, why: String },
+  #[error("intent install could not publish to {prefix}: {why}")]
+  Publish { prefix: String, why: String },
 }
 
 /// **The remedy came OUT of the Display string, and that is the fix rather than
@@ -120,6 +138,24 @@ impl crate::remedy::Remedy for InstallError {
       // pointer that looks settled while two things disagree about it.
       Self::PointerDisagrees { .. } => {
         "something other than Intent is writing the install-root pointer -- do NOT re-run until you know what. The pointer has exactly one writer by design, and a retry here races the other one".to_string()
+      }
+      Self::NotDev { .. } => {
+        "run `intent install` with the dev checkout's own binary (its `native/rust/target/release/intent`); an opt tree is republished from dev with `intent install --force`, and a brew tree is upgraded with `brew upgrade intent`".to_string()
+      }
+      Self::RuntimeSetDirty { .. } => {
+        "commit the support paths' changes and rebuild the pair at HEAD with `bin/devbin build all`, then run this again; nothing was written".to_string()
+      }
+      Self::SplitPair { .. } => {
+        "rebuild both binaries from one commit with `bin/devbin build all`, then run this again; nothing was written".to_string()
+      }
+      Self::NoPrefix => {
+        "pass `--prefix <dir>`, or set INTENT_INSTALL_PREFIX in this sleeve's environment; there is no default, because a publish to the wrong place looks the same as one to the right place".to_string()
+      }
+      Self::PrefixRefused { .. } => {
+        "nothing was written. Choose a prefix Intent may publish to: a missing or empty directory, or an opt tree Intent published, with `--force` to replace it".to_string()
+      }
+      Self::Publish { .. } => {
+        "the detail above says which step failed; a prefix that was there before is left in place or moved back, and the staging directory beside it is removed".to_string()
       }
     }
   }
@@ -1087,7 +1123,519 @@ pub fn tree_findings(id: &TreeId) -> Vec<crate::finding::Finding> {
         &sha[..sha.len().min(12)]
       ),
     )],
+    (Tree::Opt | Tree::Brew, _, _) => manifest_findings(id),
     _ => Vec::new(),
+  }
+}
+
+/// The keys every manifest header carries (T3), in the order Intent writes
+/// them. A manifest missing one is in an older form.
+const MANIFEST_KEYS: [&str; 4] = ["tool", "version", "source_commit", "managed_by"];
+
+/// Where the opt tree goes when `--prefix` is not given, declared by the
+/// sleeve and read by `intent install` alone (T1). [`publish`] spells the read
+/// with the literal name, so `no_intent_home.rs` sees it in its one file.
+pub const PREFIX_VAR: &str = "INTENT_INSTALL_PREFIX";
+
+/// Who manages a published tree, the manifest's `managed_by`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ManagedBy {
+  Intent,
+  Brew,
+}
+
+impl ManagedBy {
+  pub fn as_str(self) -> &'static str {
+    match self {
+      Self::Intent => TOOL,
+      Self::Brew => "brew",
+    }
+  }
+}
+
+/// What `intent install` published.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Publication {
+  pub prefix: PathBuf,
+  /// An opt tree Intent published was there and `--force` replaced it.
+  pub replaced: bool,
+  /// Every runtime file, relative to the prefix, as the manifest lists them.
+  pub files: Vec<String>,
+}
+
+/// `intent install [--prefix <dir>] [--force] [--managed-by brew]` (T2): the
+/// running pair and the support paths git names, published into the keg's
+/// layout with a manifest. The prefix is `prefix`, else [`PREFIX_VAR`]; the
+/// pair is the running binary's own directory.
+pub fn publish(
+  build: &Build<'_>,
+  prefix: Option<&Path>,
+  force: bool,
+  managed_by: ManagedBy,
+) -> Result<Publication, InstallError> {
+  let root = home()?;
+  let exe = std::env::current_exe().map_err(InstallError::Exe)?;
+  let pair = canonical(&exe)
+    .parent()
+    .map(Path::to_path_buf)
+    .unwrap_or_default();
+  let prefix = prefix
+    .map(Path::to_path_buf)
+    .or_else(|| std::env::var_os("INTENT_INSTALL_PREFIX").map(PathBuf::from));
+  publish_at(&root, &pair, build, prefix.as_deref(), force, managed_by)
+}
+
+/// The pure-in-its-inputs half of [`publish`]: every refusal comes before the
+/// first write, the tree is staged beside the prefix and swapped in by rename,
+/// and a prefix that was there is moved back when the swap fails.
+pub fn publish_at(
+  root: &Path,
+  pair: &Path,
+  build: &Build<'_>,
+  prefix: Option<&Path>,
+  force: bool,
+  managed_by: ManagedBy,
+) -> Result<Publication, InstallError> {
+  let id = tree_at(root, build.commit);
+  if id.tree != Tree::Dev {
+    return Err(InstallError::NotDev {
+      tree: id.tree,
+      root: id.root.display().to_string(),
+    });
+  }
+  let dirty = |why: String| InstallError::RuntimeSetDirty {
+    root: root.display().to_string(),
+    why,
+  };
+  let Some(sha) = id.sha.clone() else {
+    return Err(dirty(id.why.clone().unwrap_or_default()));
+  };
+  if id.dirty {
+    return Err(dirty(
+      "a support path differs from the commit the pair was built from, or the pair was built from a dirty tree".to_string(),
+    ));
+  }
+  if id.head.as_deref() != Some(sha.as_str()) {
+    return Err(dirty(format!(
+      "HEAD ({}) has moved past the commit the pair was built from ({})",
+      id.head.as_deref().unwrap_or("unreadable"),
+      &sha[..12]
+    )));
+  }
+  // The prefix before the pair: its absence is the same answer from every
+  // route, where the pair is wherever the running binary happens to be.
+  let prefix = prefix.ok_or(InstallError::NoPrefix)?;
+  let daemon = pair.join("intentd");
+  let daemon_commit = embedded_marker(&daemon, "commit").unwrap_or_else(|| "no commit".to_string());
+  if !pair.join("intent").is_file() || daemon_commit != build.commit {
+    return Err(InstallError::SplitPair {
+      dir: pair.display().to_string(),
+      intent: build.commit.to_string(),
+      intentd: daemon_commit,
+    });
+  }
+  let refused = |why: String| InstallError::PrefixRefused {
+    prefix: prefix.display().to_string(),
+    why,
+  };
+  if !prefix.is_absolute() || prefix.parent().is_none() {
+    return Err(refused("it must be an absolute path below /".to_string()));
+  }
+  let landed = landed_path(prefix);
+  if landed.starts_with(root) || root.starts_with(&landed) {
+    return Err(refused(format!(
+      "it overlaps the dev tree {} it would publish",
+      root.display()
+    )));
+  }
+  let replaced = match prefix_fault(prefix, force, managed_by) {
+    Ok(replaced) => replaced,
+    Err(why) => return Err(refused(why.to_string())),
+  };
+  let mut files = git_files(root).map_err(|e| dirty(e.to_string()))?;
+  if files.is_empty() {
+    return Err(dirty("git names no file in the runtime set".to_string()));
+  }
+  files.extend(["bin/intent".to_string(), "bin/intentd".to_string()]);
+  files.sort();
+  let failed = |why: String| InstallError::Publish {
+    prefix: prefix.display().to_string(),
+    why,
+  };
+  let parent = prefix.parent().unwrap_or(prefix);
+  std::fs::create_dir_all(parent)
+    .map_err(|e| failed(format!("{} could not be made: {e}", parent.display())))?;
+  let stage = tempfile::Builder::new()
+    .prefix(".intent-install.")
+    .tempdir_in(parent)
+    .map_err(|e| {
+      failed(format!(
+        "no staging directory could be made in {}: {e}",
+        parent.display()
+      ))
+    })?;
+  for file in &files {
+    let from = match file.strip_prefix("bin/") {
+      Some(name) if file == "bin/intent" || file == "bin/intentd" => pair.join(name),
+      _ => root.join(file),
+    };
+    let to = stage.path().join(file);
+    if let Some(dir) = to.parent() {
+      std::fs::create_dir_all(dir).map_err(|e| failed(format!("{}: {e}", dir.display())))?;
+    }
+    std::fs::copy(&from, &to)
+      .map_err(|e| failed(format!("{} could not be copied: {e}", from.display())))?;
+  }
+  let manifest = render_manifest(stage.path(), build.version, &sha, managed_by, &files)
+    .map_err(|e| failed(format!("the manifest could not be written: {e}")))?;
+  std::fs::write(stage.path().join(MANIFEST), manifest)
+    .map_err(|e| failed(format!("the manifest could not be written: {e}")))?;
+  swap_in(stage, prefix).map_err(|e| failed(e.to_string()))?;
+  Ok(Publication {
+    prefix: prefix.to_path_buf(),
+    replaced,
+    files,
+  })
+}
+
+/// Where a path lands on disk: its nearest existing ancestor canonicalised,
+/// with the rest appended, so a prefix that does not exist yet still compares
+/// against the dev tree by where it would be.
+fn landed_path(path: &Path) -> PathBuf {
+  let mut rest = Vec::new();
+  let mut at = path;
+  loop {
+    if let Ok(real) = std::fs::canonicalize(at) {
+      return rest.iter().rev().fold(real, |p, c| p.join(c));
+    }
+    match (at.parent(), at.file_name()) {
+      (Some(up), Some(name)) => {
+        rest.push(name.to_os_string());
+        at = up;
+      }
+      _ => return path.to_path_buf(),
+    }
+  }
+}
+
+/// Why a prefix cannot take a publish; the refusal carries its text.
+#[derive(Debug, thiserror::Error)]
+enum PrefixFault {
+  #[error("it is not a directory")]
+  NotADirectory,
+  #[error("its {MANIFEST} says tool: {tool}, not intent, so it is left as it is")]
+  OtherTool { tool: String },
+  #[error("it is Homebrew's install of intent; upgrade it with `brew upgrade intent`")]
+  Brew,
+  #[error("it already holds an install of intent; pass --force to replace it")]
+  NeedsForce,
+  #[error(
+    "its {MANIFEST} says managed_by: {held}, which is neither intent nor brew, so it is left as it is"
+  )]
+  OtherManager { held: String },
+  #[error(
+    "its {MANIFEST} names no managed_by, so it is no install Intent can replace, and it is left as it is"
+  )]
+  NoManager,
+  #[error("it holds files Intent did not write ({held}), so it is left as it is")]
+  Foreign { held: String },
+  #[error("{what} cannot be read: {source}")]
+  Unreadable {
+    what: String,
+    #[source]
+    source: std::io::Error,
+  },
+}
+
+/// Why `prefix` cannot take this publish, or whether it replaces a tree.
+/// A missing or empty directory is fresh; an opt tree Intent wrote is replaced
+/// only with `--force`; a tree Homebrew manages only by Homebrew; anything
+/// else is refused, `--force` or not, since a replace removes what was there.
+fn prefix_fault(prefix: &Path, force: bool, managed_by: ManagedBy) -> Result<bool, PrefixFault> {
+  if prefix.exists() && !prefix.is_dir() {
+    return Err(PrefixFault::NotADirectory);
+  }
+  if !prefix.is_dir() {
+    return Ok(false);
+  }
+  match std::fs::read_to_string(prefix.join(MANIFEST)) {
+    Ok(text) => {
+      let header = manifest_header(&text);
+      let held = header.get("managed_by").map(String::as_str);
+      match header.get("tool").map(String::as_str) {
+        Some(TOOL) => {}
+        tool => {
+          return Err(PrefixFault::OtherTool {
+            tool: tool.unwrap_or("nothing").to_string(),
+          });
+        }
+      }
+      match held {
+        Some("brew") if managed_by != ManagedBy::Brew => Err(PrefixFault::Brew),
+        Some(TOOL | "brew") if !force => Err(PrefixFault::NeedsForce),
+        Some(TOOL | "brew") => Ok(true),
+        Some(other) => Err(PrefixFault::OtherManager {
+          held: other.to_string(),
+        }),
+        None => Err(PrefixFault::NoManager),
+      }
+    }
+    Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+      let held: Vec<String> = std::fs::read_dir(prefix)
+        .map_err(|source| PrefixFault::Unreadable {
+          what: "it".to_string(),
+          source,
+        })?
+        .filter_map(Result::ok)
+        .take(5)
+        .map(|entry| entry.file_name().to_string_lossy().into_owned())
+        .collect();
+      if held.is_empty() {
+        Ok(false)
+      } else {
+        Err(PrefixFault::Foreign {
+          held: held.join(" "),
+        })
+      }
+    }
+    Err(source) => Err(PrefixFault::Unreadable {
+      what: format!("its {MANIFEST}"),
+      source,
+    }),
+  }
+}
+
+/// The support files git names under [`RUNTIME_SET`], relative to `root`.
+fn git_files(root: &Path) -> Result<Vec<String>, GitRead> {
+  let mut args = vec!["ls-files", "--"];
+  args.extend_from_slice(RUNTIME_SET);
+  Ok(
+    git_out(root, &args)?
+      .lines()
+      .filter(|line| !line.is_empty())
+      .map(str::to_string)
+      .collect(),
+  )
+}
+
+/// T3's manifest for the files staged under `tree`: the header, then one
+/// `shasum -a 256 -c` line per file, in `files`' order (sorted by the caller,
+/// bytewise, as `LC_ALL=C sort` sorts the paths).
+fn render_manifest(
+  tree: &Path,
+  version: &str,
+  sha: &str,
+  managed_by: ManagedBy,
+  files: &[String],
+) -> std::io::Result<String> {
+  let mut out = String::new();
+  for (key, value) in MANIFEST_KEYS
+    .iter()
+    .zip([TOOL, version, sha, managed_by.as_str()])
+  {
+    out.push_str(&format!("# {key}: {value}\n"));
+  }
+  for file in files {
+    let bytes = std::fs::read(tree.join(file))?;
+    out.push_str(&format!("{}  {file}\n", crate::sync::sha256_of(&bytes)));
+  }
+  Ok(out)
+}
+
+/// Why the swap failed, and where anything it could not put back is.
+#[derive(Debug, thiserror::Error)]
+enum SwapFailed {
+  #[error("{prefix} could not be moved aside, so it is unchanged: {source}{left}")]
+  Aside {
+    prefix: String,
+    left: Left,
+    #[source]
+    source: std::io::Error,
+  },
+  #[error("the new tree could not be moved to {prefix}: {source}{left}")]
+  In {
+    prefix: String,
+    left: Left,
+    #[source]
+    source: std::io::Error,
+  },
+  #[error(
+    "the new tree could not be moved to {prefix} ({source}), nor the old one back; it is at {old}{left}"
+  )]
+  InAndBack {
+    prefix: String,
+    old: String,
+    left: Left,
+    #[source]
+    source: std::io::Error,
+  },
+  #[error("the new tree is in place and the old one could not be removed from {old}: {source}")]
+  RemoveOld {
+    old: String,
+    #[source]
+    source: std::io::Error,
+  },
+}
+
+/// A staging directory a failed swap could not remove, said rather than
+/// dropped: empty when the cleanup worked.
+#[derive(Debug)]
+struct Left(Option<PathBuf>);
+
+impl std::fmt::Display for Left {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    match &self.0 {
+      Some(stage) => write!(f, "; the staging directory is left at {}", stage.display()),
+      None => Ok(()),
+    }
+  }
+}
+
+/// Remove the staging directory after a failure, saying where it is left
+/// when that fails too.
+fn clean_up(staged: &Path) -> Left {
+  Left(
+    std::fs::remove_dir_all(staged)
+      .err()
+      .map(|_| staged.to_path_buf()),
+  )
+}
+
+/// Swap the staged tree in at `prefix`, moving a tree that was there aside
+/// first and back if the swap fails.
+fn swap_in(stage: tempfile::TempDir, prefix: &Path) -> Result<(), SwapFailed> {
+  let staged = stage.keep();
+  let old = PathBuf::from(format!("{}.old", staged.display()));
+  let had = prefix.is_dir();
+  let empty = had
+    && std::fs::read_dir(prefix)
+      .map(|mut d| d.next().is_none())
+      .unwrap_or(false);
+  if had {
+    let aside = if empty {
+      std::fs::remove_dir(prefix)
+    } else {
+      std::fs::rename(prefix, &old)
+    };
+    if let Err(source) = aside {
+      return Err(SwapFailed::Aside {
+        prefix: prefix.display().to_string(),
+        left: clean_up(&staged),
+        source,
+      });
+    }
+  }
+  if let Err(source) = std::fs::rename(&staged, prefix) {
+    let left = clean_up(&staged);
+    if had && !empty && std::fs::rename(&old, prefix).is_err() {
+      return Err(SwapFailed::InAndBack {
+        prefix: prefix.display().to_string(),
+        old: old.display().to_string(),
+        left,
+        source,
+      });
+    }
+    return Err(SwapFailed::In {
+      prefix: prefix.display().to_string(),
+      left,
+      source,
+    });
+  }
+  if had && !empty {
+    std::fs::remove_dir_all(&old).map_err(|source| SwapFailed::RemoveOld {
+      old: old.display().to_string(),
+      source,
+    })?;
+  }
+  Ok(())
+}
+
+/// Doctor's manifest arms in opt and brew (T3): every file the body lists is
+/// checked against its sum, and every runtime file the body does not list is
+/// named; a manifest in an older form is named with its remedy, a failure in
+/// opt and a note in brew, where a keg from before the contract has none.
+fn manifest_findings(id: &TreeId) -> Vec<crate::finding::Finding> {
+  use crate::finding::{Finding, FindingClass};
+  let path = id.root.join(MANIFEST);
+  let at = path.display().to_string();
+  let text = std::fs::read_to_string(&path).ok();
+  let header = text.as_deref().map(manifest_header).unwrap_or_default();
+  let current = MANIFEST_KEYS.iter().all(|k| header.contains_key(*k));
+  match (id.tree, current) {
+    (Tree::Brew, false) => {
+      return vec![Finding::new(
+        at,
+        FindingClass::Advisory,
+        "this keg's manifest is in an older form, or it has none: only a release whose formula writes the new form fixes it, with `brew upgrade intent`",
+      )];
+    }
+    (Tree::Opt, false) => {
+      return vec![Finding::new(
+        at,
+        FindingClass::InstallManifestOld,
+        format!(
+          "the manifest is in an older form, missing {}",
+          MANIFEST_KEYS
+            .iter()
+            .filter(|k| !header.contains_key(**k))
+            .copied()
+            .collect::<Vec<_>>()
+            .join(", ")
+        ),
+      )];
+    }
+    _ => {}
+  }
+  let mut listed = std::collections::BTreeSet::new();
+  let mut out = Vec::new();
+  for line in text.as_deref().unwrap_or_default().lines() {
+    let Some((sum, file)) = line.split_once("  ") else {
+      continue;
+    };
+    if line.starts_with('#') || sum.len() != 64 {
+      continue;
+    }
+    listed.insert(file.to_string());
+    let drift = match std::fs::read(id.root.join(file)) {
+      Err(_) => Some("is missing"),
+      Ok(bytes) if crate::sync::sha256_of(&bytes) != sum => Some("has changed"),
+      Ok(_) => None,
+    };
+    if let Some(drift) = drift {
+      out.push(Finding::new(
+        id.root.join(file).display().to_string(),
+        FindingClass::InstallManifestDrift,
+        format!("{file} {drift} since the tree was published"),
+      ));
+    }
+  }
+  let mut present = Vec::new();
+  for top in RUNTIME_SET.iter().copied().chain(["bin"]) {
+    walk_files(&id.root, &id.root.join(top), &mut present);
+  }
+  for file in present.into_iter().filter(|f| !listed.contains(f)) {
+    out.push(Finding::new(
+      id.root.join(&file).display().to_string(),
+      FindingClass::InstallManifestDrift,
+      format!("{file} is not in the manifest"),
+    ));
+  }
+  out
+}
+
+/// Every file at or under `at`, relative to `root`.
+fn walk_files(root: &Path, at: &Path, out: &mut Vec<String>) {
+  if at.is_file() {
+    if let Ok(rel) = at.strip_prefix(root) {
+      out.push(rel.to_string_lossy().into_owned());
+    }
+    return;
+  }
+  let Ok(entries) = std::fs::read_dir(at) else {
+    return;
+  };
+  for entry in entries.filter_map(Result::ok) {
+    walk_files(root, &entry.path(), out);
   }
 }
 

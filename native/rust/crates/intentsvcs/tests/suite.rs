@@ -271,6 +271,8 @@ mod info_round_trip;
 mod info_round_trip_reaches_the_store;
 #[path = "ingest_refusal.rs"]
 mod ingest_refusal;
+#[path = "install_publishes_an_opt_tree.rs"]
+mod install_publishes_an_opt_tree;
 #[path = "intentfiles_default_declaration.rs"]
 mod intentfiles_default_declaration;
 #[path = "intentfiles_grammar.rs"]

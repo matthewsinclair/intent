@@ -417,6 +417,13 @@ pub enum FindingClass {
   /// T4). The version line then says `unknown`, and nothing that asks which tree
   /// is running -- `use`, upgrade, the shadow check -- can answer.
   InstallTreeUnknown,
+  /// An opt tree's manifest (devbin's `docs/dev-opt-brew.md`, T3) is in an
+  /// older form, missing a header key, so nothing can say what it holds until
+  /// it is republished (ST0087 WP-02). A brew keg's is a note, not this.
+  InstallManifestOld,
+  /// A file an opt or brew tree's manifest lists has changed or gone, or a
+  /// runtime file is there that the manifest does not list (ST0087 WP-02).
+  InstallManifestDrift,
   /// A hygiene note, not a fault: the artefact is well-formed and nothing is
   /// blocked by it. Printed under `advisory:` and NOT counted toward the
   /// verdict -- hv, 2026-08-26, on Baize printing 66 of these at rc 1 under the
@@ -765,6 +772,18 @@ impl FindingClass {
         1,
         "install-tree-unknown",
         "the detail above says why the tree or its commit is unknown. A dev checkout needs a readable git (eg `git status` there must not refuse); anything else is not an install this binary recognises, so run the intent you mean from its own tree",
+      ),
+      // Beside it: a tree whose manifest cannot say what it holds is as unknown
+      // as one with no tree at all, and a drifted file is the bytes running.
+      Self::InstallManifestOld => (
+        1,
+        "install-manifest-old",
+        "republish the opt tree from the dev checkout with `intent install --force`, which writes the manifest in its current form",
+      ),
+      Self::InstallManifestDrift => (
+        1,
+        "install-manifest-drift",
+        "something other than `intent install` changed this tree. Republish it from the dev checkout with `intent install --force`, or for a brew keg reinstall it with `brew reinstall intent`",
       ),
       // Outside the verdict altogether: a state, not an obligation. It sorts last
       // so the totals line ends with what nobody has to act on.

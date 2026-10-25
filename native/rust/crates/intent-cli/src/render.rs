@@ -6019,21 +6019,50 @@ fn discover(m: &ArgMatches) -> Result<(), Failure> {
   Ok(())
 }
 
-/// `intent install --print-runtime-set` (ST0087 WP-01): the support paths of
-/// the runtime set, one per line, from the one list in
-/// `intentsvcs::install::RUNTIME_SET`. The packaging reads them from the pair
-/// it names. Publishing an opt tree is WP-02's, so any other mode refuses as
-/// not built.
+/// `intent install [--prefix <dir>] [--force] [--managed-by brew]` (ST0087
+/// WP-02) publishes this dev tree's runtime set and pair as an opt tree, and
+/// `--print-runtime-set` (WP-01) prints the support paths, one per line, from
+/// the one list in `intentsvcs::install::RUNTIME_SET`, which the packaging
+/// reads from the pair it names. Every decision is `install::publish`'s.
 fn install(m: &ArgMatches) -> Result<(), Failure> {
-  if !given(m, "print-runtime-set") {
-    return refuse_unwired(
-      "install",
-      "only `intent install --print-runtime-set` is built; publishing an opt tree arrives with ST0087 WP-02",
-    );
+  if given(m, "print-runtime-set") {
+    for path in intentsvcs::install::RUNTIME_SET {
+      println!("{path}");
+    }
+    return Ok(());
   }
-  for path in intentsvcs::install::RUNTIME_SET {
-    println!("{path}");
-  }
+  // Read only when given, and then checked against the table's values.
+  let managed_by = if given(m, "managed-by") && enum_flag(m, "install", "--managed-by")? == "brew" {
+    intentsvcs::install::ManagedBy::Brew
+  } else {
+    intentsvcs::install::ManagedBy::Intent
+  };
+  let prefix = m.get_one::<String>("prefix").map(std::path::PathBuf::from);
+  let published = intentsvcs::install::publish(
+    &crate::build(),
+    prefix.as_deref(),
+    given(m, "force"),
+    managed_by,
+  )
+  .map_err(|e| Failure::Error(e.render()))?;
+  let verb = if published.replaced {
+    "replaced"
+  } else {
+    "created"
+  };
+  println!("{verb}: {}", published.prefix.display());
+  println!(
+    "wrote: {}",
+    published
+      .prefix
+      .join(intentsvcs::install::MANIFEST)
+      .display()
+  );
+  let tree = intentsvcs::install::tree_at(&published.prefix, crate::SOURCE_COMMIT);
+  println!(
+    "ok: {}",
+    intentsvcs::install::version_line(&crate::build(), &tree)
+  );
   Ok(())
 }
 

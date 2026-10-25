@@ -92,12 +92,21 @@ use testkit::workspace_root;
 /// it is set, so `userstate::claude_dir` follows it, and the prompt gate's
 /// shell scripts read it beside it. Confined to `userstate.rs` below, for
 /// `HOME`'s reason.
+///
+/// **`INTENT_INSTALL_PREFIX` WAS RULED BY vc UNDER hv's PEN ON 2026-10-25, IN
+/// ST0087 WP-02**: hv adopted devbin's dev, opt and brew contract on
+/// 2026-10-24, whose T1 says the opt prefix comes from `--prefix`, else the
+/// tool's one configured place, named once in its docs, and ST0087's design
+/// names this variable, read by `intent install` alone. It names where to
+/// PUBLISH, never which tree is running, so the ground this file guards holds.
+/// Confined to `install.rs` below, for `HOME`'s reason.
 const ALLOWED: &[&str] = &[
   "CLAUDE_CODE_SESSION_ID",
   "CLAUDE_CONFIG_DIR",
   "COLUMNS",
   "EDITOR",
   "HOME",
+  "INTENT_INSTALL_PREFIX",
   "USER",
   "VISUAL",
   "XDG_CONFIG_HOME",
@@ -131,6 +140,9 @@ const CONFINED: &[(&str, &str)] = &[
   ("USER", "crates/intentsvcs/src/userstate.rs"),
   ("XDG_CONFIG_HOME", "crates/intentsvcs/src/userstate.rs"),
   ("XDG_DATA_HOME", "crates/intentsvcs/src/userstate.rs"),
+  // ST0087 WP-02, vc under hv's pen (the contract's T1 and ST0087's design):
+  // the opt prefix, read by `intent install` alone.
+  ("INTENT_INSTALL_PREFIX", "crates/intentsvcs/src/install.rs"),
   ("XDG_RUNTIME_DIR", "crates/intentsvcs/src/userstate.rs"),
   ("XDG_STATE_HOME", "crates/intentsvcs/src/userstate.rs"),
   // **`VISUAL` AND `EDITOR` FOLLOW FROM hv's RULING OF 2026-08-29, WHICH IS
