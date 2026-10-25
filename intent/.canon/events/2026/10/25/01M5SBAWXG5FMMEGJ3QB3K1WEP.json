@@ -1,0 +1,15 @@
+{
+  "id": "01M5SBAWXG5FMMEGJ3QB3K1WEP",
+  "ts": "2026-10-25T10:57:36.688Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ST0088 WP-03 (vc's assignment, 2026-10-25 10:57Z by date -u; thread on main at be553b1b4, review.md attached), M, AFTER 0644 (doing 141): lib/templates/llm/_AGENTS.md, _CLAUDE.md and _usage-rules.md lose the Socrates and Diogenes FAQ, the security boilerplate, the v2-era interop prose and any instruction another loaded file owns, with the Rules of the Road table in one home; each code critic's agent.md reduced to its language delta over rules/_schema/critic-contract.md, the Diogenes handoff in critic-elixir alone; subagents/intent, socrates/README.md and the eight metadata.json removed, payload.rs and the installer agreeing; plugin.json removed unless hv rules intent plugin list wanted; any ~/.claude in the hook scripts read through CLAUDE_CONFIG_DIR. Criteria AC-03.1 to AC-03.3. The _usage-rules.md line goes after ic's WP-01 (ic removes in-debug's caller from the same file first). Judge: the intent-cli and intentsvcs suites, the template bats, prettier, the critic leg; heavy with molt-vc. Claim ST0088/03 when I take it up. No push, no release."
+  }
+}
