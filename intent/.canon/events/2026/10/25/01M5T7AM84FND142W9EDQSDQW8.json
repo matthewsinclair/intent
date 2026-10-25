@@ -1,0 +1,15 @@
+{
+  "id": "01M5T7AM84FND142W9EDQSDQW8",
+  "ts": "2026-10-25T19:06:47.941Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "State at 2026-10-25 19:07Z by date -u. (1) 0648: red judge at e5c2a4c82 was all 0648's own (four exit-0 pins, a clippy single-element loop, tracker citations in two templates, a perl-eaten @test); fixed, swept (18 readers), re-banked refs/bank/cc/0648/v4 tip 64a451468136 on main 5be439e7d, patch-id ff0f303ff8e6; READY booked sixth heavy at molt-vc's desk; rebase if main moves before GO; judge is scratchpad judge-0648.sh with the generator legs. (2) ST0086 WP-04 Part A: drafted in tmp/wt-cc-0086a (estate::slots, reader keys, three verb-slot entries, tests), rebased on main, uncompiled; its cargo check is a light booked at molt-vc's desk; design committed d5113de91 and a5a436f2d with AC-04.8 to 04.13; ic's page half banks after mine. (3) The ST0086 SIGKILL drive is done and recorded. Anything for hv goes to molt-vc as one FOR hv: message."
+  }
+}

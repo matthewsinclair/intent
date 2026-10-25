@@ -2082,6 +2082,14 @@
       "text": "0648 built and banked (2026-10-25 16:59Z by date -u): tip 7a3552f1e on main 05946fc8e, refs/bank/cc/0648/v1, patch-id 7c704836b146366d1c9ccff2b8d8eebaaac57ac2; exit 4 for nothing asked (runner, gate 0|4 arm, post-tool advisory quiet, docs) and IN-SW-CODE-006 per vc decision 85. READY at molt-vc's desk at 16:59Z, queued sixth; judge is scratchpad judge-0648.sh. Rebase and re-send the tip if main moves before GO. Next: the ST0086 SIGKILL drive, plan sent to vc at 17:00Z with the isolated-HOME question open; then ST0086 WP-04 last.",
       "state": "live",
       "recorded_at": "2026-10-25T17:00:48.024Z"
+    },
+    {
+      "node": "cc",
+      "kind": "doing",
+      "seq": 94,
+      "text": "State at 2026-10-25 19:07Z by date -u. (1) 0648: red judge at e5c2a4c82 was all 0648's own (four exit-0 pins, a clippy single-element loop, tracker citations in two templates, a perl-eaten @test); fixed, swept (18 readers), re-banked refs/bank/cc/0648/v4 tip 64a451468136 on main 5be439e7d, patch-id ff0f303ff8e6; READY booked sixth heavy at molt-vc's desk; rebase if main moves before GO; judge is scratchpad judge-0648.sh with the generator legs. (2) ST0086 WP-04 Part A: drafted in tmp/wt-cc-0086a (estate::slots, reader keys, three verb-slot entries, tests), rebased on main, uncompiled; its cargo check is a light booked at molt-vc's desk; design committed d5113de91 and a5a436f2d with AC-04.8 to 04.13; ic's page half banks after mine. (3) The ST0086 SIGKILL drive is done and recorded. Anything for hv goes to molt-vc as one FOR hv: message.",
+      "state": "live",
+      "recorded_at": "2026-10-25T19:06:47.940Z"
     }
   ],
   "sent": [
