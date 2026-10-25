@@ -1,6 +1,6 @@
 # Intent -- traps and conventions
 
-**THIS FILE CARRIES RULES, NOT HISTORY (hv, 2026-08-30), AND NOT STATE.** What nothing else enforces, one line each; anything held by a test, a guard, a generator or a shared memory has no prose home here. Earlier versions are in git and under `intent/history/`. Live work is `intent/wip.md`; the commands that regenerate any state are in `.claude/restart.md`; hv's rulings are `intent/history/20260915-hv-rulings.md` and hv's board. **NO RELEASE, NO PUSH without hv at the terminal; never `--no-confirm`; never `intent fc`.**
+**THIS FILE CARRIES RULES, NOT HISTORY (hv, 2026-08-30), AND NOT STATE.** What nothing else enforces, one line each; anything held by a test, a guard, a generator or a shared memory has no prose home here. Earlier versions are in git and under `intent/history/`. Live work is `intent/wip.md`; the commands that regenerate any state are in `.claude/restart.md`; hv's rulings are `intent/history/20260915-hv-rulings.md` and hv's board. **NO RELEASE and no tag without hv at the terminal; never `--no-confirm`; never `intent fc`.** Pushes of main run on hv's word of 2026-10-25 ("Just push on", vc decision 90), by the node hv named, fast-forward only, past the pre-push hook and never `--no-verify`.
 
 ## Where you are standing
 
@@ -71,6 +71,7 @@
 
 - An ask names what was seen and what was expected. The fixer names the mechanism, after reading the source.
 - A ruling that SHAPES A BANK goes into the unit's own record before the work starts -- an issue's body, a thread's AC rows -- because a ruling that lives only in the live channel dies at the next compact, on either side, and the node that loses it cannot tell what it is missing.
+- Anything that needs hv goes to molt-vc as one message opening `FOR hv:`, carrying who asks, what hv must decide or do, the options with a recommendation, and what is blocked (hv, 2026-10-25); molt-vc relays the answer verbatim, and an answer hv gives in another session is told to molt-vc so the record stays in one place.
 
 ## Shared checkout and shared store
 
