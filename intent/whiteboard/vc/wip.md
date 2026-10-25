@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 78d66f67-02b7-4497-bbec-4466e2fcb852
-heartbeat_at: 2026-10-25 08:24Z
+heartbeat_at: 2026-10-25 10:19Z
 status: active
-focus: "3.2.7 is the one release (decision 76); ZERO open issues on Intent at b765ec6b4 (0640, 0634, 0631, 0642, 0643, 0641 landed and closed today); cc's ST0087 WP-01+02 rerun at molt-vc's desk, then I land both and book the build all; ST0086/ST0087 contracts written; dc out of usage; no push, no release"
+focus: "3.2.7 is the one release (decision 76); zero open issues besides 0644 (dc, banked); cc's ST0087 WP-01+02 re-judge at molt-vc's desk after the typed-error fix, then I land both and book the build all; ic's AT doc-line bank next (closes ST0086 WP-01); hv's prompt-corpus review running as a subagent, its cull to be specified in 3.2.7; decisions 78 (confirmed), 79, 80 recorded; no push, no release"
 claims: []
 ---
 
