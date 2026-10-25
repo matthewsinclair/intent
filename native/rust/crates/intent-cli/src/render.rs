@@ -1347,6 +1347,7 @@ fn sync(m: &ArgMatches) -> Result<(), Failure> {
       // that spelled it out would be a second answer beside the declared one,
       // free to drift the day the model changes and nothing to notice.
       println!("ok: {}", intentsvcs::sync::extract_written(count));
+      print_written(&f.take_landed());
       Ok(())
     }
     (false, true) => {
@@ -1443,6 +1444,7 @@ fn sync(m: &ArgMatches) -> Result<(), Failure> {
         "ok: {}",
         intentsvcs::sync::store_restored(&scope, overwrite.len())
       );
+      print_written(&f.take_landed());
       Ok(())
     }
     (false, false) => sync_plan(&scope),
@@ -1562,6 +1564,7 @@ fn sync_apply(m: &ArgMatches, scope: &intentsvcs::sync::Scope) -> Result<(), Fai
   if let Some(line) = intentsvcs::plan::left_line(&applied.left) {
     println!("left: {line}");
   }
+  print_written(&f.take_landed());
   match &applied.doctor {
     Some(report) => {
       println!("{}", doctor_summary(report));
@@ -2506,7 +2509,8 @@ fn hydrated(argument: &str, overwrite: bool) -> Result<(), Failure> {
   // exists and is idempotent -- true, and it made a restore and a no-op print
   // the same report, so the one question anyone runs this to answer could not
   // be read off it. The facade names the written subset from its own run, so a
-  // label here is a fact about this call rather than a guess from the disk.
+  // label here is a fact about this call rather than a guess from the disk; the
+  // `wrote:` half is the one printer's since issue 0632.
   // **THE URL RATHER THAN THE ARGUMENT, SO THE PROMOTION IS VISIBLE.** An
   // operator who typed `ST0000` is told what it was promoted to, which is the
   // one place the bare-id shorthand can be seen doing its work; echoing their
@@ -2519,14 +2523,13 @@ fn hydrated(argument: &str, overwrite: bool) -> Result<(), Failure> {
     done.paths.len(),
     done.wrote.len()
   );
-  for path in &done.paths {
-    let label = if done.wrote.contains(path) {
-      "wrote"
-    } else {
-      "exists"
-    };
-    println!("  {label}: {}", project.relative(path));
+  // **THE WRITTEN SUBSET IS THE ONE PRINTER'S, SO ONLY `exists` STAYS HERE**
+  // (issue 0632): a `wrote:` label of this verb's own beside the printer's
+  // would name each written file twice, in two shapes.
+  for path in done.paths.iter().filter(|path| !done.wrote.contains(path)) {
+    println!("  exists: {}", project.relative(path));
   }
+  print_written(&facade.take_landed());
   Ok(())
 }
 
@@ -2588,9 +2591,8 @@ fn dehydrated(argument: &str) -> Result<(), Failure> {
     // nothing here would let the run read as an ordinary delisting.
     println!("  unchanged: {manifest} -- the id was not listed, and the files were present anyway");
   }
-  for path in &done.removed {
-    println!("  removed: {}", project.relative(path));
-  }
+  // Each removed file is named by the one printer below, as `removed:` (issue
+  // 0632), so the past tense still answers the `to-remove:` lines above.
   for path in &done.pruned {
     println!(
       "  pruned: {} (emptied by the removal)",
@@ -2607,6 +2609,7 @@ fn dehydrated(argument: &str) -> Result<(), Failure> {
   for path in &done.left_in_place {
     println!("  left in place: {} (not empty)", project.relative(path));
   }
+  print_written(&facade.take_landed());
   Ok(())
 }
 
@@ -2884,8 +2887,14 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
     Some(("renumber", a)) => {
       let old = thread_arg(a, "old")?;
       let new = thread_arg(a, "new")?;
-      let done = open()?.st_renumber(&old, &new).map_err(fail)?;
-      print_renumbering(&done, &format!("{old} renumbered to {new}"), "thread");
+      let mut f = open()?;
+      let done = f.st_renumber(&old, &new).map_err(fail)?;
+      print_renumbering(
+        &mut f,
+        &done,
+        &format!("{old} renumbered to {new}"),
+        "thread",
+      );
       Ok(())
     }
     // Issue 0460: the only doors to a thread's `related` links.
@@ -4912,8 +4921,10 @@ fn report_wb_board(
 }
 
 /// The files one verb landed, after its `ok:` line: `wrote:` for the caller's
-/// own, which is what it commits, and `re-rendered:` for anyone else's, with
-/// whose each is. The board verbs' since issue 0612, every verb's since 0624.
+/// own, which is what it commits, `re-rendered:` for anyone else's, with whose
+/// each is, and `removed:` for each file it took off disk, the deletion half of
+/// the same commit. The board verbs' since issue 0612, every verb's since 0624,
+/// and removals since 0632.
 fn print_written(written: &intentsvcs::facade::Written) {
   for line in written_lines(written) {
     println!("{line}");
@@ -4935,6 +4946,12 @@ fn written_lines(written: &intentsvcs::facade::Written) -> Vec<String> {
       owner => format!("re-rendered: {} ({owner}'s)", file.path),
     });
   }
+  lines.extend(
+    written
+      .removed
+      .iter()
+      .map(|path| format!("removed: {path}")),
+  );
   lines
 }
 
@@ -7448,7 +7465,11 @@ fn organize(m: &ArgMatches) -> Result<(), Failure> {
     .organize_as_shown(intentsvcs::organize::Mode::Apply, Some(&shown))
     .map_err(fail)?;
   print_notes(&facade.take_notes(), "organize");
-  render_organize_report(&project, &report, Tense::Performed, verbosity)
+  // The report's verdict decides the exit, and the files the run wrote and
+  // removed are named either way, because they are on disk either way (0632).
+  let verdict = render_organize_report(&project, &report, Tense::Performed, verbosity);
+  print_written(&facade.take_landed());
+  verdict
 }
 
 /// The gate between a printed plan and the act.
@@ -9004,9 +9025,20 @@ fn init(a: &ArgMatches) -> Result<(), Failure> {
       config.display()
     );
   }
-  println!("  {}", config.display());
-  for p in &made.written {
-    println!("  {}", p.strip_prefix(&made.root).unwrap_or(p).display());
+  // **EVERY FILE INIT WROTE IS NAMED BY THE ONE PRINTER** (issue 0632), the
+  // config with them: init writes before any facade exists, so the paths go
+  // through the same split a facade's drain does. The project it just made is
+  // opened to name them, and if it will not open, that is said rather than the
+  // files going unnamed.
+  let landed: Vec<std::path::PathBuf> = std::iter::once(made.config.clone())
+    .chain(made.written.iter().cloned())
+    .collect();
+  match Project::open(&made.root) {
+    Ok(project) => print_written(&intentsvcs::facade::written_from(&project, &landed, &[])),
+    Err(e) => println!(
+      "warning: the project was created, and its files cannot be named as wrote: lines because it does not open: {}",
+      e.render()
+    ),
   }
   // **THE SKIPPED SET IS PRINTED, because a short file list is otherwise
   // indistinguishable from a truncated one.** Each line is a decision with a
@@ -9814,9 +9846,7 @@ fn declare_languages(project: &Project, langs: &[String]) -> Result<(), Failure>
   // **WRITTEN ONCE, AFTER THE LOOP, AND ONLY IF SOMETHING CHANGED.** A write per
   // language would rewrite the file N times for one command and leave a partial
   // declaration behind if the third name were rejected mid-loop.
-  intentsvcs::project::write_config(project.root(), &config)
-    .map_err(|e| Failure::Error(e.render()))?;
-
+  write_config_naming_it(project, &config)?;
   report_declarations(&outcomes, failed)
 }
 
@@ -9856,17 +9886,37 @@ fn lang_undeclare(m: &ArgMatches) -> Result<(), Failure> {
 
   for lang in &langs {
     if config.undeclare_language(lang) {
-      println!("removed: '{lang}' from intent/.config/config.json languages");
+      // `undeclared:`, not `removed:`, since issue 0632: `removed: <path>` is
+      // the one printer's line for a file taken off disk, and this names a
+      // language taken out of a file that stays.
+      println!("undeclared: '{lang}' from intent/.config/config.json languages");
     } else {
       println!("noop: '{lang}' not declared");
     }
   }
 
-  intentsvcs::project::write_config(project.root(), &config)
-    .map_err(|e| Failure::Error(e.render()))?;
+  write_config_naming_it(&project, &config)?;
 
   println!();
   println!("Summary: {} language(s) processed.", langs.len());
+  Ok(())
+}
+
+/// Write `config` into `project` and, when its bytes moved, name the file
+/// through the one printer (issue 0632): the `lang` verbs write before any
+/// facade exists, and `write_config` leaves an unchanged config's bytes alone,
+/// so a run that changed nothing names nothing.
+fn write_config_naming_it(
+  project: &Project,
+  config: &intentsvcs::project::Config,
+) -> Result<(), Failure> {
+  let path = Project::config_path(project.root());
+  let before = std::fs::read(&path).ok();
+  intentsvcs::project::write_config(project.root(), config)
+    .map_err(|e| Failure::Error(e.render()))?;
+  if std::fs::read(&path).ok() != before {
+    print_written(&intentsvcs::facade::written_from(project, &[path], &[]));
+  }
   Ok(())
 }
 
@@ -12192,11 +12242,10 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
     Some(("renumber", a)) => {
       let old = issue_arg(a, "old")?;
       let new = issue_arg(a, "new")?;
-      let done = issues_open(m, Answer::Write)?
-        .0
-        .issue_renumber(old, new)
-        .map_err(fail)?;
+      let mut f = issues_open(m, Answer::Write)?.0;
+      let done = f.issue_renumber(old, new).map_err(fail)?;
       print_renumbering(
+        &mut f,
         &done,
         &format!("issue {old:04} renumbered to {new:04}"),
         "issue",
@@ -12402,7 +12451,12 @@ fn reported(f: &mut Facade, outcome: &Outcome, subject: &str, moved: &str) {
 /// not lose what the transition had to say (issue 0209).
 /// A renumber's report: what moved, what was rewritten, and the prose left
 /// alone, which is the part the operator still has to read.
-fn print_renumbering(done: &intentsvcs::facade::Renumbering, what: &str, kind: &str) {
+fn print_renumbering(
+  f: &mut Facade,
+  done: &intentsvcs::facade::Renumbering,
+  what: &str,
+  kind: &str,
+) {
   report_notes(&done.outcome, &done.to);
   println!("ok: {what}");
   for line in &done.moved {
@@ -12426,6 +12480,7 @@ fn print_renumbering(done: &intentsvcs::facade::Renumbering, what: &str, kind: &
       kind
     );
   }
+  print_written(&f.take_landed());
 }
 
 fn report_notes(outcome: &Outcome, subject: &str) {
@@ -12856,9 +12911,15 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
       root.display()
     );
   }
-  let wrote = if report { "would write" } else { "written" };
-  for p in &applied.written {
-    println!("{wrote}: {}", rel(root, p));
+  // **A DRY RUN NAMES WHAT IT WOULD WRITE; AN APPLY NAMES WHAT IT WROTE ONCE,
+  // THROUGH THE ONE PRINTER** (issue 0632, vc's ruling): the `written:` list
+  // said what the printer's `wrote:` lines say, and two formats for one fact is
+  // the defect that issue closes. The printer has no word for a write that has
+  // not happened, so `would write:` stays.
+  if report {
+    for p in &applied.written {
+      println!("would write: {}", rel(root, p));
+    }
   }
   // **REPORTED, NOT SILENT.** A run that says nothing about a file it examined
   // cannot be told from one that skipped it -- and "already canonical" is the
@@ -12956,6 +13017,9 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
   println!(
     "note: this writes no generated view -- `intent organize --apply` is the one door for a stale one"
   );
+  // The files the caller commits, through the one printer (issue 0632). A dry
+  // run returned above, so it names none.
+  print_written(&f.take_landed());
 
   // **WHETHER THE GATE JUST INSTALLED CAN ACTUALLY RUN.** Everything above is a
   // claim about bytes on disk. The carrier is a shim whose entire behaviour is
@@ -14745,6 +14809,7 @@ fn agents(m: &ArgMatches) -> Result<(), Failure> {
         "ok: AGENTS.md updated at {}.",
         agents_at(f.project().config().contracts)
       );
+      print_written(&f.take_landed());
       Ok(())
     }
     // **`init` REFUSES OVER AN EXISTING FILE RATHER THAN OVERWRITING, and the

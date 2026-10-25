@@ -282,8 +282,8 @@ fn init_lang_with_an_undeclarable_name_refuses_and_leaves_nothing() {
 /// 0477): from the root the `created:` line prints. It was the one listed line
 /// printed absolute, so the file that makes the directory a project read as a
 /// path somewhere else. Asserted on the listed lines as a population -- every
-/// indented line that names a path is relative -- so a second absolute line
-/// fails here too, not only the config's.
+/// `wrote:` line, the one printer's since issue 0632 -- so a second absolute
+/// line fails here too, not only the config's.
 #[test]
 fn init_lists_the_config_relative_like_every_other_file() {
   let dir = empty_dir();
@@ -292,8 +292,7 @@ fn init_lists_the_config_relative_like_every_other_file() {
 
   let listed: Vec<&str> = out
     .lines()
-    .filter(|l| l.starts_with("  ") && !l.starts_with("  (") && !l.contains(" -- "))
-    .map(str::trim)
+    .filter_map(|l| l.strip_prefix("wrote: "))
     .collect();
   assert!(
     listed.contains(&"intent/.config/config.json"),

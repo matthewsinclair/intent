@@ -2664,10 +2664,15 @@ impl BoardRead {
 /// every inbox view it is the sender of, and the event the verb recorded --
 /// and `re_rendered` is anyone else's, beside its owner. Read off what landed,
 /// never predicted.
+///
+/// `removed` is every file the verb took off disk, a rename's source among
+/// them: the deletion half of what the caller commits, which a write set has
+/// no word for.
 #[derive(Debug, Clone, Default, PartialEq, Eq, serde::Serialize)]
 pub struct Written {
   pub wrote: Vec<String>,
   pub re_rendered: Vec<RerenderedFile>,
+  pub removed: Vec<String>,
 }
 
 /// A file a verb landed that is another node's to commit, or nobody's.
@@ -3912,6 +3917,45 @@ pub fn outcome_json(outcome: &Outcome, subject: &str) -> serde_json::Value {
   })
 }
 
+/// The files a verb wrote and removed, as the one printer names them: each
+/// written path is the caller's to commit unless a whiteboard file, which is
+/// named with its owner, and each removed path is the caller's. A path inside
+/// the repository's own `.git` directory, such as an installed hook, is no
+/// file anybody commits, so it is named as neither. Pure, so a verb that
+/// writes before any facade exists names its files through the same split as
+/// one that drains a facade.
+pub fn written_from(
+  project: &Project,
+  landed: &[std::path::PathBuf],
+  removed: &[std::path::PathBuf],
+) -> Written {
+  let git = project.root().join(".git");
+  let committable = |path: &&std::path::PathBuf| !path.starts_with(&git);
+  let mut landed: Vec<std::path::PathBuf> = landed.iter().filter(committable).cloned().collect();
+  landed.sort();
+  landed.dedup();
+  let mut written = Written::default();
+  for path in &landed {
+    let rel = project.relative(path);
+    match crate::views::whiteboard_writer(project, path) {
+      None => written.wrote.push(rel),
+      Some(owner) => written
+        .re_rendered
+        .push(RerenderedFile { path: rel, owner }),
+    }
+  }
+  let mut removed: Vec<String> = removed
+    .iter()
+    .filter(committable)
+    .filter(|path| !landed.contains(path))
+    .map(|path| project.relative(path))
+    .collect();
+  removed.sort();
+  removed.dedup();
+  written.removed = removed;
+  written
+}
+
 /// What a write landed as the machine faces carry it (issue 0624): one
 /// mapping for MCP's `written` and the daemon's `Response::Set`, as
 /// [`notes_json`] is for notes, so the daemon names no serialiser of its own.
@@ -4211,6 +4255,9 @@ pub struct Facade {
   /// server, the daemon and the explorer do, or it grows for the life of the
   /// process.
   landed: Vec<std::path::PathBuf>,
+  /// Every file a verb's disk act removed since the last drain, beside
+  /// `landed` and drained with it (issue 0632).
+  removed: Vec<std::path::PathBuf>,
   /// The generated views the last committed write set carried and found
   /// already holding its bytes, for [`Facade::record_landed`] to record as the
   /// store's render of them (issue 0630). [`Facade::note_landed`] replaces it at
@@ -4590,6 +4637,7 @@ impl Facade {
       resolvers: carried(&crate::index::resolved::readers()),
       after_write: Vec::new(),
       landed: Vec::new(),
+      removed: Vec::new(),
       unchanged_views: Vec::new(),
       seen,
     }
@@ -6090,6 +6138,11 @@ impl Facade {
   /// alone, the file reached disk and not the index, so a running daemon's
   /// canon watch read the rewrite as an external edit and ingested it.
   pub fn agents_sync(&mut self) -> Result<std::path::PathBuf, FacadeError> {
+    let target = self.project.root().join(crate::sync::root_file_path(
+      "AGENTS.md",
+      self.project.config().contracts,
+    ));
+    let before = std::fs::read(&target).ok();
     let path = crate::rootfiles::generate(
       self.project.root(),
       "AGENTS.md",
@@ -6097,6 +6150,11 @@ impl Facade {
       &self.ctx.version,
     )?;
     self.record_written(std::slice::from_ref(&path))?;
+    // The render rewrites the file whether or not its bytes move, so the drain
+    // is told of it only when they did (issue 0632).
+    if std::fs::read(&path).ok() != before {
+      self.landed.push(path.clone());
+    }
     Ok(path)
   }
 
@@ -6155,12 +6213,21 @@ impl Facade {
       formatter_exclusion_missing(&self.project)
     } else {
       self.record_written(&applied.written)?;
-      converge_formatter_exclusion(&self.project).map_err(|source| {
+      // Every path canon changed is the drain's, the hooks and settings the
+      // index keeps no row for among them (issue 0632).
+      self.landed.extend(applied.written.iter().cloned());
+      let added = converge_formatter_exclusion(&self.project).map_err(|source| {
         FacadeError::Canon(crate::canon::CanonError::Unwritable {
           path: self.project.root().join(".prettierignore"),
           source,
         })
-      })?
+      })?;
+      if !added.is_empty() {
+        self
+          .landed
+          .push(self.project.root().join(".prettierignore"));
+      }
+      added
     };
     Ok(ClaudeUpgraded { applied, excluded })
   }
@@ -6902,6 +6969,14 @@ impl Facade {
     // put a decision in the record of acts, which is the one distinction this
     // verb's two modes exist to keep.
     if mode.performs() {
+      // **AN ORGANIZE RUN WRITES THROUGH ITS PLAN, NOT A WRITE SET OF THIS
+      // FILE'S**, so the verb's drain is fed from the run's own answer, as a
+      // realise's is (issue 0632). A v2 leftover is the caller's to commit as a
+      // removal as surely as a dehydrated view.
+      self
+        .landed
+        .extend(report.hydrated.iter().chain(&report.rewritten).cloned());
+      self.note_removed(report.dehydrated.iter().chain(&report.pruned_legacy));
       let rel = |ps: &[std::path::PathBuf]| -> Vec<String> {
         let mut v: Vec<String> = ps.iter().map(|p| self.project.relative(p)).collect();
         v.sort();
@@ -7658,6 +7733,7 @@ impl Facade {
     }
 
     let removed: Vec<std::path::PathBuf> = run.dehydrated.clone();
+    self.note_removed(&removed);
     if was_listed || !removed.is_empty() {
       self.record_disk_act(
         "disk.dehydrate",
@@ -8095,6 +8171,8 @@ impl Facade {
         }),
       }
     }
+    let removed = std::mem::take(&mut self.removed);
+    written.removed = written_from(&self.project, &[], &removed).removed;
     written
   }
 
@@ -8113,9 +8191,11 @@ impl Facade {
     let mut landed = std::mem::take(&mut self.landed);
     landed.sort();
     landed.dedup();
+    let removed = std::mem::take(&mut self.removed);
     Written {
       wrote: landed.iter().map(|p| self.project.relative(p)).collect(),
       re_rendered: Vec::new(),
+      removed: written_from(&self.project, &[], &removed).removed,
     }
   }
 
@@ -8129,20 +8209,15 @@ impl Facade {
   /// `views::whiteboard_writer`, so a board the verb re-rendered is named with
   /// its owner and never taken as the caller's.
   pub fn take_landed(&mut self) -> Written {
-    let mut landed = std::mem::take(&mut self.landed);
-    landed.sort();
-    landed.dedup();
-    let mut written = Written::default();
-    for path in landed {
-      let rel = self.project.relative(&path);
-      match crate::views::whiteboard_writer(&self.project, &path) {
-        None => written.wrote.push(rel),
-        Some(owner) => written
-          .re_rendered
-          .push(RerenderedFile { path: rel, owner }),
-      }
-    }
-    written
+    let landed = std::mem::take(&mut self.landed);
+    let removed = std::mem::take(&mut self.removed);
+    written_from(&self.project, &landed, &removed)
+  }
+
+  /// Record files a verb's disk act removed, for the verb's drain to name as
+  /// `removed` (issue 0632), as [`Self::note_landed`] records what it wrote.
+  fn note_removed<'a>(&mut self, paths: impl IntoIterator<Item = &'a std::path::PathBuf>) {
+    self.removed.extend(paths.into_iter().cloned());
   }
 
   /// Record what a write set landed, for the verb's drain to name (issue
@@ -13916,10 +13991,28 @@ impl Facade {
         return Err(refused);
       }
     };
+    // **A MOVE IS A WRITE AT ITS TARGET AND A REMOVAL AT ITS SOURCE** (issue
+    // 0632), and both are the caller's to commit. Noted only now, after the
+    // write: a refusal above has put every move back, so it names none. A moved
+    // directory is named file by file, as git names it.
+    for (source_path, target) in &done {
+      if target.is_dir() {
+        for rel in Project::files_in(target) {
+          self.landed.push(target.join(&rel));
+          self.removed.push(source_path.join(&rel));
+        }
+      } else {
+        self.landed.push(target.clone());
+        self.removed.push(source_path.clone());
+      }
+    }
     let mut notes = Vec::new();
     for path in stale {
       match std::fs::remove_file(&path) {
-        Ok(()) => moved.push(format!("{} removed", self.project.relative(&path))),
+        Ok(()) => {
+          moved.push(format!("{} removed", self.project.relative(&path)));
+          self.removed.push(path);
+        }
         Err(source) if source.kind() == std::io::ErrorKind::NotFound => {}
         Err(source) => {
           let rel = self.project.relative(&path);

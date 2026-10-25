@@ -269,3 +269,141 @@ fn a_verb_that_moves_nothing_names_nothing() {
     "a no-op changed files"
   );
 }
+
+// **Issue 0632: the writers 0624 left reporting in shapes of their own.** Each
+// names the files it wrote on `wrote:` lines and the files it took off disk on
+// `removed:` lines, through the one printer, so a node's commit is read off
+// what the verb printed: the `wrote:` set is exactly the changed paths still
+// on disk, and the `removed:` set exactly the ones gone. Over the verbs of dc's
+// drive (refs/bank/dc/0632/drive.sh). Each arm is red on a binary without the
+// fix, which prints neither.
+
+/// The paths a run printed under `removed:`.
+fn removed(out: &str, err: &str) -> BTreeSet<String> {
+  out
+    .lines()
+    .chain(err.lines())
+    .filter_map(|line| line.strip_prefix("removed: "))
+    .map(str::to_string)
+    .collect()
+}
+
+/// Run one verb and hold it to its whole footprint, writes and removals: what
+/// it printed under `wrote:` is exactly what `git status` shows changed and
+/// still on disk, and what it printed under `removed:` exactly what shows
+/// changed and gone. Then commit, so the next verb's footprint stands alone.
+fn names_what_it_wrote_and_removed(dir: &Path, args: &[&str]) -> String {
+  let (out, err, code) = run(dir, args);
+  assert_eq!(code, 0, "{args:?}: {out}{err}");
+  let changed = crate::common::git_changed(dir);
+  assert!(
+    !changed.is_empty(),
+    "{args:?} changed nothing, so it proves nothing: {out}{err}"
+  );
+  let (present, gone): (BTreeSet<String>, BTreeSet<String>) = changed
+    .into_iter()
+    .partition(|path| dir.join(path).exists());
+  assert_eq!(wrote(&out, &err), present, "{args:?} printed:\n{out}{err}");
+  assert_eq!(removed(&out, &err), gone, "{args:?} printed:\n{out}{err}");
+  crate::common::git_commit_all(dir);
+  out
+}
+
+#[test]
+fn init_names_every_file_it_wrote() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  crate::common::git_init(dir.path());
+  names_what_it_wrote_and_removed(dir.path(), &["init", "probe"]);
+}
+
+#[test]
+fn the_language_verbs_name_the_config_they_wrote() {
+  let dir = project();
+  let d = dir.path();
+  names_what_it_wrote_and_removed(d, &["lang", "init", "rust"]);
+  names_what_it_wrote_and_removed(d, &["lang", "remove", "rust"]);
+  // THE CONTROL: a removal that changes nothing names nothing.
+  let (out, err, code) = run(d, &["lang", "remove", "rust"]);
+  assert_eq!(code, 0, "{out}{err}");
+  assert!(
+    wrote(&out, &err).is_empty() && removed(&out, &err).is_empty(),
+    "a no-op named files:\n{out}{err}"
+  );
+}
+
+#[test]
+fn hydrate_and_dehydrate_name_what_they_wrote_and_removed() {
+  let dir = project();
+  let d = dir.path();
+  setup(d, &["st", "new", "a probe thread"]);
+  names_what_it_wrote_and_removed(d, &["st", "hydrate", "ST0001"]);
+  let out = names_what_it_wrote_and_removed(d, &["st", "dehydrate", "ST0001"]);
+  assert!(
+    !removed(&out, "").is_empty(),
+    "dehydrating a realised thread removed nothing: {out}"
+  );
+}
+
+#[test]
+fn the_renumbers_name_what_they_moved_as_written_and_removed() {
+  let dir = project();
+  let d = dir.path();
+  setup(d, &["st", "new", "a probe thread"]);
+  setup(d, &["st", "hydrate", "ST0001"]);
+  names_what_it_wrote_and_removed(d, &["st", "renumber", "ST0001", "ST0002"]);
+  setup(d, &["issues", "add", "a probe issue"]);
+  names_what_it_wrote_and_removed(d, &["issues", "renumber", "0001", "0002"]);
+}
+
+#[test]
+fn organize_names_what_it_hydrated_and_removed() {
+  let dir = project();
+  let d = dir.path();
+  setup(d, &["st", "new", "a probe thread"]);
+  // Declared in the manifest and not on disk: organize realises it.
+  let manifest = d.join("intent/.intentfiles");
+  let text = std::fs::read_to_string(&manifest).expect("the manifest");
+  std::fs::write(&manifest, format!("{text}STEELTHREAD:ST0001\n")).expect("declare it");
+  crate::common::git_commit_all(d);
+  names_what_it_wrote_and_removed(d, &["organize", "--apply"]);
+  // Then undeclared while on disk: organize removes its views.
+  std::fs::write(&manifest, &text).expect("undeclare it");
+  crate::common::git_commit_all(d);
+  let out = names_what_it_wrote_and_removed(d, &["organize", "--apply"]);
+  assert!(
+    !removed(&out, "").is_empty(),
+    "organizing an undeclared realised thread removed nothing: {out}"
+  );
+}
+
+#[test]
+fn sync_names_what_it_wrote_in_each_direction() {
+  let dir = project();
+  let d = dir.path();
+  setup(d, &["st", "new", "a probe thread"]);
+  setup(d, &["st", "hydrate", "ST0001"]);
+  std::fs::remove_file(d.join("intent/st/ST0001/info.md")).expect("remove a view");
+  crate::common::git_commit_all(d);
+  names_what_it_wrote_and_removed(d, &["sync", "--to-disk"]);
+  let cover = d.join("intent/st/ST0001/info.md");
+  let text = std::fs::read_to_string(&cover).expect("the cover");
+  let edited = text.replacen(
+    "## Objective\n\n",
+    "## Objective\n\nan objective written by hand\n\n",
+    1,
+  );
+  assert_ne!(edited, text, "the cover has no Objective heading to edit");
+  std::fs::write(&cover, edited).expect("hand-edit the objective");
+  crate::common::git_commit_all(d);
+  names_what_it_wrote_and_removed(d, &["sync", "--to-store", "ST0001"]);
+}
+
+#[test]
+fn agents_sync_and_claude_upgrade_name_every_file_they_wrote() {
+  let dir = project();
+  let d = dir.path();
+  std::fs::remove_file(d.join("AGENTS.md")).expect("remove AGENTS.md");
+  crate::common::git_commit_all(d);
+  names_what_it_wrote_and_removed(d, &["agents", "sync"]);
+  names_what_it_wrote_and_removed(d, &["claude", "upgrade", "--apply"]);
+}

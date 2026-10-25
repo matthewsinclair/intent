@@ -335,6 +335,8 @@ fn dehydrate_reports_every_removed_path_and_the_manifest_it_changed() {
 /// **0083: `hydrate` says which files it WROTE, so a restore and a no-op read
 /// differently.** It labelled every path `exists:`, including one it had just
 /// recreated, so its report could not verify the restore it is run to perform.
+/// The written file is named by the one printer's `wrote:` line since issue
+/// 0632, and only the untouched ones keep the verb's own `exists:` label.
 #[test]
 fn hydrate_reports_the_file_it_restored_apart_from_the_ones_already_there() {
   let dir = project();
@@ -344,8 +346,9 @@ fn hydrate_reports_the_file_it_restored_apart_from_the_ones_already_there() {
 
   let restored = ok(root, &["st", "hydrate", "ST0002"]);
   assert!(
-    restored.contains("  wrote: intent/st/ST0002/acceptance.md\n")
-      && restored.contains("  exists: intent/st/ST0002/info.md\n"),
+    restored.contains("\nwrote: intent/st/ST0002/acceptance.md\n")
+      && restored.contains("  exists: intent/st/ST0002/info.md\n")
+      && !restored.contains("  exists: intent/st/ST0002/acceptance.md\n"),
     "the recreated file is reported as written and the untouched one as existing: {restored}"
   );
 
