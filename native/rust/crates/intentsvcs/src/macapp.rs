@@ -271,14 +271,16 @@ pub enum AppError {
 /// bundle and they are not interchangeable: one builds a Debug app for this
 /// tree, the other installs a Release one for the machine. Issue 0327:
 /// `bin/devbin` exists only in a source tree, so an installed Intent is sent to
-/// the release's own bundle instead. The root is a parameter so both branches
-/// can be driven; [`crate::install::home`] is the one ambient read, at the call.
+/// the release's own bundle instead, through the tap's cask first, so `brew
+/// upgrade` keeps it on the release, and by hand without Homebrew. The root is
+/// a parameter so both branches can be driven; [`crate::install::home`] is the
+/// one ambient read, at the call.
 fn not_installed_remedy(root: Option<&std::path::Path>) -> String {
   if root.is_some_and(|root| root.join("bin/devbin").is_file()) {
     "`bin/devbin macos app-build` builds the app for this tree; `bin/devbin macos app-install` builds Release and installs it to /Applications. `intent app status` will then say where it found it.".to_string()
   } else {
     format!(
-      "download `Intent.app.zip` from the v{v} release (https://github.com/matthewsinclair/intent/releases/tag/v{v}), unzip it and move `Intent.app` to /Applications. `intent app status` will then say where it found it.",
+      "`brew install --cask matthewsinclair/intent/intent-app` installs it, and `brew upgrade` keeps it on the release. Without Homebrew, download `Intent.app.zip` from the v{v} release (https://github.com/matthewsinclair/intent/releases/tag/v{v}), unzip it and move `Intent.app` to /Applications. `intent app status` will then say where it found it.",
       v = env!("CARGO_PKG_VERSION")
     )
   }
@@ -483,6 +485,10 @@ mod tests {
     let installed = not_installed_remedy(Some(keg.path()));
     let release = format!("releases/tag/v{}", env!("CARGO_PKG_VERSION"));
     assert!(installed.contains(&release), "{installed}");
+    assert!(
+      installed.contains("`brew install --cask matthewsinclair/intent/intent-app`"),
+      "{installed}"
+    );
     assert!(!installed.contains("devbin"), "{installed}");
     assert_eq!(not_installed_remedy(None), installed);
   }

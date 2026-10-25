@@ -54,6 +54,15 @@
 # unclassified artefact is now a refusal rather than a default.
 SUPPORT_ASSET="intent-support.tar.gz"
 
+# THE APP SHIPS AS A RELEASE ASSET BESIDE THE CLI (decision 7; hv: "Of course
+# the app ships"). A zip of the STAPLED bundle, made by `macos stage` with `ditto
+# -c -k --keepParent` so the signature, the ticket and the extended attributes
+# survive. NO TRIPLE: the bundle is universal (x86_64 arm64), so a host triple
+# would be false. NO VERSION, as for SUPPORT_ASSET: the tag carries it. Unlike
+# the support tarball it IS notarised, so `macos checksum` proves it before
+# hashing it. The formula stays CLI-only; the cask names this asset (issue 0634).
+APP_ASSET="Intent.app.zip"
+
 # WHERE THE ARTEFACTS GO AND WHERE THE CLAIM ABOUT THEM GOES. Separate repositories,
 # by hv's ruling of 2026-08-15 (D40): artefacts live on the source repo's own
 # releases, and the tap carries only the formula that names them.
@@ -627,12 +636,92 @@ brew_formula() {
   rm -rf "$tmp"
 }
 
-# brew_push_formula <formula> <version> <how> -- IMPURE. Commit <formula> to the
-# tap as Formula/intent.rb and push it, with <how> saying in the commit what made
-# it. THE ONE PUSH TO THE TAP: `int macos publish` calls it at hv's terminal, and
-# so does `int brew formula --push`, which asks there first.
-brew_push_formula() {
-  local formula="$1" version="$2" how="$3" work
+# THE CASK -- Casks/intent-app.rb, so Intent.app installs and upgrades through
+# Homebrew as the CLI does (issue 0634, hv's ruling). `brew upgrade` used to move
+# the CLI and leave the app on whatever version was unzipped by hand.
+#
+# RENDERED AND PUSHED BESIDE THE FORMULA, by the one push below, so a release
+# never carries a formula at one version and a cask at another. Its sha256 is
+# read from the bytes the release serves at cut time, as every formula hash is,
+# and with the release's own base it must equal the one SHA256SUMS.txt records.
+CASK_TOKEN="intent-app"
+# The floor is the app's deployment target, `deploymentTarget: macOS` in
+# native/macos/Intent/project.yml, in the symbol brew names that release by. A
+# bare symbol is the floor: `brew style` refuses the quoted ">= :tahoe" form.
+APP_MACOS_FLOOR=":tahoe"
+
+# brew_render_cask <version> <sha256> -- PURE. The cask for <version>, its zip at
+# the release's own download URL.
+brew_render_cask() {
+  cat <<CASK
+cask "$CASK_TOKEN" do
+  version "$1"
+  sha256 "$2"
+
+  url "https://github.com/$REPO/releases/download/v#{version}/$APP_ASSET"
+  name "Intent"
+  desc "Menubar app for Intent's steel thread process"
+  homepage "https://github.com/$REPO"
+
+  depends_on formula: "$BREW_TAP/intent"
+  depends_on macos: $APP_MACOS_FLOOR
+
+  app "Intent.app"
+end
+CASK
+}
+
+# brew_cask <version> <from> -- IMPURE. Casks/intent-app.rb on stdout, its sha256
+# read from the bytes of APP_ASSET at <from>, which is the release's download URL
+# for <version> when <from> is empty. When the zip is not there the return is 3,
+# with it named and its URL on stderr, and nothing is rendered. The cask's url is
+# always the release's: a dev tap's file:// base proves the hash, never the URL.
+brew_cask() {
+  local version="$1" from="$2" base tmp rc=0 got want staged
+  require_tool curl
+  if [ -z "$from" ]; then
+    base=release
+    from="https://github.com/$REPO/releases/download/v$version"
+  else
+    base="$from"
+  fi
+  tmp="$(mktemp -d)" || die "could not make a directory to fetch $APP_ASSET into"
+  brew_fetch "$from" "$tmp" "$APP_ASSET" >"$tmp/fetched.sums" 2>"$tmp/missing" || rc=$?
+  case "$rc" in
+    0) ;;
+    3)
+      cat "$tmp/missing" >&2
+      printf '%s: the cask needs %s, and it is not at %s, so no cask is rendered\n' "$DEVBIN_NAME" "$APP_ASSET" "$from" >&2
+      rm -rf "$tmp"
+      return 3
+      ;;
+    *)
+      cat "$tmp/missing" >&2
+      rm -rf "$tmp"
+      exit "$rc"
+      ;;
+  esac
+  got="$(brew_sum "$tmp/fetched.sums" "$APP_ASSET")"
+  staged="$STAGE_DIR/SHA256SUMS.txt"
+  if [ "$base" = release ] && [ -f "$staged" ]; then
+    want="$(brew_sum "$staged" "$APP_ASSET")"
+    if [ "$got" != "$want" ]; then
+      rm -rf "$tmp"
+      die "$APP_ASSET at $from hashes to ${got:-nothing}, and $staged records ${want:-nothing}: the release does not serve the bytes checksum proved, so no cask is rendered"
+    fi
+  fi
+  rm -rf "$tmp"
+  brew_render_cask "$version" "$got"
+}
+
+# brew_push_tap <formula> <cask> <version> <how> -- IMPURE. Commit <formula> to
+# the tap as Formula/intent.rb and <cask> as Casks/<CASK_TOKEN>.rb, in one commit,
+# and push it, with <how> saying in the commit what made it. THE ONE PUSH TO THE
+# TAP: `int macos publish` calls it at hv's terminal, and so does `int brew
+# formula --push`, which asks there first. One commit, so the tap never holds a
+# formula and a cask from different releases (issue 0634).
+brew_push_tap() {
+  local formula="$1" cask="$2" version="$3" how="$4" work
   require_tool gh "Install it with: brew install gh"
   gh repo view "$TAP" >/dev/null 2>&1 || die "cannot reach the tap $TAP -- check 'gh auth status'"
   work="$(mktemp -d)" || die "could not make a directory to clone the tap into"
@@ -640,17 +729,21 @@ brew_push_formula() {
     rm -rf "$work"
     die "could not clone $TAP"
   }
-  mkdir -p "$work/tap/Formula" || {
+  mkdir -p "$work/tap/Formula" "$work/tap/Casks" || {
     rm -rf "$work"
-    die "could not make Formula/ in the clone of $TAP"
+    die "could not make Formula/ and Casks/ in the clone of $TAP"
   }
   printf '%s\n' "$formula" >"$work/tap/Formula/intent.rb" || {
     rm -rf "$work"
     die "could not write the formula into the clone of $TAP"
   }
-  git -C "$work/tap" add Formula/intent.rb || {
+  printf '%s\n' "$cask" >"$work/tap/Casks/$CASK_TOKEN.rb" || {
     rm -rf "$work"
-    die "could not stage the formula in the clone of $TAP"
+    die "could not write the cask into the clone of $TAP"
+  }
+  git -C "$work/tap" add Formula/intent.rb "Casks/$CASK_TOKEN.rb" || {
+    rm -rf "$work"
+    die "could not stage the formula and the cask in the clone of $TAP"
   }
   git -C "$work/tap" commit -q -m "intent $version
 
@@ -658,11 +751,11 @@ $how
 
 (C) hello@matthewsinclair.com" || {
     rm -rf "$work"
-    die "nothing to commit -- the formula is unchanged"
+    die "nothing to commit -- the formula and the cask are unchanged"
   }
   git -C "$work/tap" push -q origin HEAD || {
     rm -rf "$work"
-    die "could not push the formula to $TAP"
+    die "could not push the formula and the cask to $TAP"
   }
   rm -rf "$work"
 }

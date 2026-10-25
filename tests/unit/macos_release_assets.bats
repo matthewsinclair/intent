@@ -37,10 +37,11 @@ BREW_LIB="${INTENT_BREW_LIB:-${INTENT_HOME:-${MACOS%/bin/.devbin/cmd/macos}}/bin
 # says something else.
 load_macos_fns() {
   local fns="${TEST_TEMP_DIR}/macosfns.sh"
-  sed -n '/^BINARIES=/p;/^APP_ASSET=/p;/^SUPPORT_PREFIX=/p' "$MACOS" >"$fns"
+  sed -n '/^BINARIES=/p;/^SUPPORT_PREFIX=/p' "$MACOS" >"$fns"
   # SUPPORT_ASSET lives in the library both release steps source since ST0081
-  # WP-06, and comes out of it for the same reason.
-  sed -n '/^SUPPORT_ASSET=/p' "$BREW_LIB" >>"$fns"
+  # WP-06, and APP_ASSET since issue 0634, and both come out of it for the same
+  # reason.
+  sed -n '/^SUPPORT_ASSET=/p;/^APP_ASSET=/p' "$BREW_LIB" >>"$fns"
   sed -n '/^is_binary_artefact() {/,/^}/p;/^staged_artefacts() {/,/^}/p;/^unclassified_artefacts() {/,/^}/p;/^support_archive() {/,/^}/p;/^support_tree_drift() {/,/^}/p;/^provenance_blockers() {/,/^}/p' \
     "$MACOS" >>"$fns"
   # shellcheck disable=SC1090

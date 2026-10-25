@@ -315,3 +315,77 @@ stage_release() {
   refute_output_contains "class Intent"
   [ -z "$(ls -A "$tmp")" ] || fail "the fetch directory was left behind: $(ls -A "$tmp")"
 }
+
+# THE CASK (issue 0634): Casks/intent-app.rb, rendered from the bytes of
+# Intent.app.zip at a base, its url always the release's, and pushed beside the
+# formula in the tap's one commit.
+
+@test "success: --cask renders the app's cask from the zip's own bytes, at the release's URL" {
+  local base="${TEST_TEMP_DIR}/app"
+  assets_in "$base" Intent.app.zip
+  brew_formula_verb --cask --from "file://$base" --version 9.9.9
+  assert_success
+  assert_output_contains 'cask "intent-app" do'
+  assert_output_contains '  version "9.9.9"'
+  assert_output_contains "  sha256 \"$(hash_of "$base/Intent.app.zip")\""
+  assert_output_contains '  url "https://github.com/matthewsinclair/intent/releases/download/v#{version}/Intent.app.zip"'
+  assert_output_contains '  depends_on formula: "matthewsinclair/intent/intent"'
+  assert_output_contains '  app "Intent.app"'
+  refute_output_contains "url \"file://"
+  refute_output_contains "class Intent"
+}
+
+@test "invariant: --cask with no app zip at the base refuses by name with its URL, and prints no cask" {
+  local base="${TEST_TEMP_DIR}/no-app"
+  # shellcheck disable=SC2086 # FIVE is space-free names, split on purpose
+  assets_in "$base" $FIVE
+  brew_formula_verb --cask --from "file://$base" --version 9.9.9
+  [ "$status" -ne 0 ] || fail "a base with no app zip rendered a cask: $output"
+  assert_output_contains "missing: Intent.app.zip from file://$base/Intent.app.zip"
+  refute_output_contains 'cask "intent-app"'
+}
+
+@test "invariant: with the release's base, a cask whose zip SHA256SUMS.txt does not record refuses" {
+  brew_sandbox
+  stage_release
+  CURL_FIXTURES="${TEST_TEMP_DIR}/served"
+  mkdir -p "$CURL_FIXTURES"
+  cp "$SB/native/rust/target/dist/Intent.app.zip" "$CURL_FIXTURES/Intent.app.zip"
+  # THE CONTROL FIRST: the staged zip, served, renders.
+  run env PATH="$SHIMS:$PATH" CURL_FIXTURES="$CURL_FIXTURES" bash -c 'cd "$1" && bin/int brew formula --cask' _ "$SB"
+  [ "$status" -eq 0 ] || fail "the control did not render: $output"
+  assert_output_contains "  sha256 \"$(hash_of "$CURL_FIXTURES/Intent.app.zip")\""
+  # Then the release serves a zip the proof did not cover.
+  printf 'other bytes\n' >"$CURL_FIXTURES/Intent.app.zip"
+  run env PATH="$SHIMS:$PATH" CURL_FIXTURES="$CURL_FIXTURES" bash -c 'cd "$1" && bin/int brew formula --cask' _ "$SB"
+  [ "$status" -ne 0 ] || fail "a served zip the sums do not record rendered: $output"
+  assert_output_contains "Intent.app.zip at https://github.com/matthewsinclair/intent/releases/download/v9.9.9 hashes to"
+  assert_output_contains "SHA256SUMS.txt records"
+  refute_output_contains 'cask "intent-app"'
+}
+
+@test "invariant: the tap push lands the formula and the cask in one commit" {
+  local bare="${TEST_TEMP_DIR}/tap.git" shims="${TEST_TEMP_DIR}/push-shims" seed="${TEST_TEMP_DIR}/seed"
+  git init -q --bare "$bare"
+  git init -q "$seed"
+  git -C "$seed" -c user.name=t -c user.email=t@t.invalid commit -q --allow-empty -m seed
+  git -C "$seed" push -q "$bare" HEAD:refs/heads/main
+  git -C "$bare" symbolic-ref HEAD refs/heads/main
+  mkdir -p "$shims"
+  # gh, stood in: `repo view` answers, and `repo clone <tap> <dir>` clones the bare tap.
+  cat >"$shims/gh" <<'SHIM'
+#!/bin/sh
+[ "$1 $2" = "repo view" ] && exit 0
+[ "$1 $2" = "repo clone" ] && exec git clone -q "$TAP_BARE" "$4"
+exit 1
+SHIM
+  chmod +x "$shims/gh"
+  run env PATH="$shims:$PATH" TAP_BARE="$bare" GIT_AUTHOR_NAME=t GIT_AUTHOR_EMAIL=t@t.invalid GIT_COMMITTER_NAME=t GIT_COMMITTER_EMAIL=t@t.invalid \
+    bash -c 'die() { printf "die: %s\n" "$*" >&2; exit 1; }; require_tool() { command -v "$1" >/dev/null; }; ROOT="$2"; . "$1"; brew_push_tap "the formula" "the cask" 9.9.9 "made by a test"' _ "$BREW_LIB" "$TEST_TEMP_DIR"
+  [ "$status" -eq 0 ] || fail "the push failed: $output"
+  [ "$(git -C "$bare" rev-list --count main)" = 2 ] || fail "the push did not land as one commit on the seed: $(git -C "$bare" log --oneline main)"
+  [ "$(git -C "$bare" diff-tree --no-commit-id --name-only -r main | sort | tr '\n' ' ')" = "Casks/intent-app.rb Formula/intent.rb " ] ||
+    fail "the one commit did not carry exactly the formula and the cask: $(git -C "$bare" diff-tree --no-commit-id --name-only -r main)"
+  [ "$(git -C "$bare" show main:Casks/intent-app.rb)" = "the cask" ] || fail "the cask's bytes are not what was pushed"
+  [ "$(git -C "$bare" show main:Formula/intent.rb)" = "the formula" ] || fail "the formula's bytes are not what was pushed"
+}
