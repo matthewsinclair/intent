@@ -1,0 +1,15 @@
+{
+  "id": "01M5STNJGN7VP8EP1FSGZT3HJM",
+  "ts": "2026-10-25T15:25:35.129Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0646"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "Intent.app's menu shows the raw version line in its masthead and its Open item lands on a token refusal: the parser predates ST0087's line and the item opens the page without the token"
+  }
+}
