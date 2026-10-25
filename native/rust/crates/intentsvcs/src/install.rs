@@ -1019,8 +1019,36 @@ fn support_differs(root: &Path, sha: &str) -> Result<bool, GitRead> {
   Ok(changed || !git_out(root, &others)?.is_empty())
 }
 
+/// The variables git exports into a hook that name the caller's repository.
+const CALLER_GIT_ENV: &[&str] = &[
+  "GIT_DIR",
+  "GIT_WORK_TREE",
+  "GIT_INDEX_FILE",
+  "GIT_COMMON_DIR",
+  "GIT_PREFIX",
+];
+
+/// THE spawn of git into a named tree other than the caller's repository
+/// (issue 0645): `git -C <root>` with [`CALLER_GIT_ENV`] removed from the
+/// child, so it resolves `root`'s own `.git` and nothing of the caller's.
+///
+/// **A hook in a linked worktree exports an absolute `GIT_DIR`**, and a child
+/// that inherits it reads that repository whatever `-C` says: the tree function
+/// read Molt's repository for Intent's commit, called it `bad object`, and
+/// doctor refused every gated commit from a worktree in every estate. The main
+/// checkout passed only because its `GIT_DIR` is the relative `.git`.
+///
+/// **The project-tree spawns must NOT use this** (`gitstate`, `critic`'s staged
+/// read, `canon`, and doctor's hook reads of the project): they run in the
+/// repository the hook belongs to, and the inherited environment is how git
+/// finds that worktree's own index, including the temporary one a
+/// `commit --only` hands its hook in `GIT_INDEX_FILE`.
 fn git(root: &Path, args: &[&str]) -> Result<std::process::Output, GitRead> {
-  std::process::Command::new("git")
+  let mut cmd = std::process::Command::new("git");
+  for var in CALLER_GIT_ENV {
+    cmd.env_remove(var);
+  }
+  cmd
     .arg("-C")
     .arg(root)
     .args(args)

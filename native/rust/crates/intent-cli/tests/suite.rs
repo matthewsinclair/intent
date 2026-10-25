@@ -51,6 +51,8 @@ mod a_creating_verb_names_what_it_overwrote;
 mod a_doctor_acknowledgement_stays_visible_and_leaves_the_verdict;
 #[path = "a_fresh_project_commits_clean.rs"]
 mod a_fresh_project_commits_clean;
+#[path = "a_hooks_git_dir_reaches_no_other_tree.rs"]
+mod a_hooks_git_dir_reaches_no_other_tree;
 #[path = "a_long_socket_path_is_refused_before_start.rs"]
 mod a_long_socket_path_is_refused_before_start;
 #[path = "a_multi_line_board_item_stays_one_item.rs"]

@@ -846,7 +846,7 @@ fn a_string_closing_a_generic_inside_a_result_is_not_its_error_type() {
 /// A project, which `critic` needs, and a synthetic rules root in it holding one
 /// grep-armed shell rule per `(id, applies_to)`, each firing on `PLANTED`. The
 /// arms below that use it prove the RUNNER, so they need no shellcheck.
-fn planted_rules(root: &std::path::Path, rules: &[(&str, &[&str])]) -> PathBuf {
+pub(crate) fn planted_rules(root: &std::path::Path, rules: &[(&str, &[&str])]) -> PathBuf {
   std::fs::create_dir_all(root.join("intent/.config")).expect("config dir");
   std::fs::write(
     root.join("intent/.config/config.json"),
@@ -869,7 +869,7 @@ fn planted_rules(root: &std::path::Path, rules: &[(&str, &[&str])]) -> PathBuf {
   lib
 }
 
-fn git_in(root: &std::path::Path, args: &[&str]) {
+pub(crate) fn git_in(root: &std::path::Path, args: &[&str]) {
   let st = Command::new("git")
     .args(args)
     .current_dir(root)
