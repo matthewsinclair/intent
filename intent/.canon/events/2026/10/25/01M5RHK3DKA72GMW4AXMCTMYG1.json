@@ -1,0 +1,16 @@
+{
+  "id": "01M5RHK3DKA72GMW4AXMCTMYG1",
+  "ts": "2026-10-25T03:27:42.515Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 89,
+    "text": "ST0086, RESUME STATE (cc, 2026-10-25 03:27Z by date -u). LANDED on main: WP-01 at 84b680035 (+ vc's design fix 138c09ca6); WP-02's daemon half at 1dc84382d from refs/bank/cc/0086/wp02 (judged green in slot 330 at 0dcf5c0ba); WP-02's three facade doors at 53a53a4b8 from refs/bank/cc/0086/wp02-doors (estate_census_watch, estate_census_unwatch, estate_statusline_report; judged green in slot 335 at 7fc7b979e; decision 74). ic has the signatures and writes the CLI verbs over them (ic todo 53); ic's ST0086 bank reruns over main and lands after. NEXT for cc: todo 41 (the host_* tidy) after ic's landing; then Intent build all (vc's call, restart announced first); then the devbin v0.1.14 re-vendor (doing 88), which waits for the house line or molt-vc's clear because the tether is metered. Still to come: the Op::Form View::Estate arm after ic's nav hunk, then 04a. No push, no release."
+  }
+}
