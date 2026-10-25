@@ -1,0 +1,15 @@
+{
+  "id": "01M5RXNCQ4R6ZX3MPRAFE0AFR8",
+  "ts": "2026-10-25T06:58:40.484Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "issue 0642 in 3.2.7 (vc, 06:56Z): st attach prints wrote: for its event and the canon row it writes, through the one printer, with one arm red at the base beside 0632's. XS; it ships in ONE bank with 0631 (todo 54), judged once, as a heavy at molt-vc's desk. vc ruled 0631 a hard rename to id with no seq alias."
+  }
+}

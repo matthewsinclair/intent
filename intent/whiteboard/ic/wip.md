@@ -6,7 +6,7 @@ session_id: eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd
 heartbeat_at: 2026-10-25 06:31Z
 status: active
 focus: "LOCALFOLD (2026-10-25): ST0087 WP-03, Swift half drafted at 830fedbe1 (unbuilt), Rust half held for cc's WP-01 and hv's continue (hold 14); holds 12 and 13 stand; no push, no release"
-claims: [ST0086/03, ST0086/02, ST0087/03, ISSUE:0631]
+claims: [ST0086/03, ST0086/02, ST0087/03, ISSUE:0631, ISSUE:0642]
 ---
 
 # Interface Claude (ic)
@@ -18,6 +18,7 @@ claims: [ST0086/03, ST0086/02, ST0087/03, ISSUE:0631]
 ## TODO
 
 - issue 0631 in 3.2.7 (decision 76, was hold 13): wb archive's positional seq renamed id, as wb edit's, across the dispatch table, the MCP arm, the CLI render, the regenerated reference and the in-whiteboard skill; a hard rename with no seq alias, proposed to vc under ruling (2) (no user base besides hv) and the no-shims rule; face-version move measured and stated in the bank. Authoring is light; its judge is a heavy booked with molt-vc. Before the cut.
+- issue 0642 in 3.2.7 (vc, 06:56Z): st attach prints wrote: for its event and the canon row it writes, through the one printer, with one arm red at the base beside 0632's. XS; it ships in ONE bank with 0631 (todo 54), judged once, as a heavy at molt-vc's desk. vc ruled 0631 a hard rename to id with no seq alias.
 
 ## Holds
 

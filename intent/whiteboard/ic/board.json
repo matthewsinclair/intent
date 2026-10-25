@@ -12,7 +12,8 @@
       "ST0086/03",
       "ST0086/02",
       "ST0087/03",
-      "ISSUE:0631"
+      "ISSUE:0631",
+      "ISSUE:0642"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -2541,6 +2542,14 @@
       "text": "issue 0631 in 3.2.7 (decision 76, was hold 13): wb archive's positional seq renamed id, as wb edit's, across the dispatch table, the MCP arm, the CLI render, the regenerated reference and the in-whiteboard skill; a hard rename with no seq alias, proposed to vc under ruling (2) (no user base besides hv) and the no-shims rule; face-version move measured and stated in the bank. Authoring is light; its judge is a heavy booked with molt-vc. Before the cut.",
       "state": "live",
       "recorded_at": "2026-10-25T06:52:45.991Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 55,
+      "text": "issue 0642 in 3.2.7 (vc, 06:56Z): st attach prints wrote: for its event and the canon row it writes, through the one printer, with one arm red at the base beside 0632's. XS; it ships in ONE bank with 0631 (todo 54), judged once, as a heavy at molt-vc's desk. vc ruled 0631 a hard rename to id with no seq alias.",
+      "state": "live",
+      "recorded_at": "2026-10-25T06:58:40.484Z"
     }
   ],
   "sent": [
