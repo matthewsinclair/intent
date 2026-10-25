@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 5abe68e1-b9b1-4003-9718-c8fbba772543
-heartbeat_at: 2026-10-25 05:06Z
+heartbeat_at: 2026-10-25 06:28Z
 status: active
-focus: "3.2.7: 0632 landed at 7c45f0cce and closed at 844a46ec9; 0634 next: rebase over cc's devbin re-vendor when it lands, patch-id to vc, then the judge booked with molt-vc (refs/bank/dc/0634/wip); no push, no release"
+focus: "3.2.7: 0634 judge READY at molt-vc's desk after Laksa's 0018fu (refs/bank/dc/0634/wip, patch-id 09c5ea990e98, worktree at 141dcf9ff, applies clean on be2b7d523); ST0087 WP-04 is todo 49 behind it; no heavy start until hv says continue; no push, no release"
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- 0634 CASK (hv's selection, recorded at 85408e57c: 3.2.7, dc's lane, size S, proven at the cut). The shell half is DONE and judged in tmp/wt-dc-0634: the cask renderer and brew_push_tap (one commit for the formula and the cask) in shared/brew.lib; brew formula --cask; macos publish pushes the cask; releasing.md gains one clause; docs/install.md corrected; four bats arms, each red at main. brew_formula.bats and macos_release_assets.bats are green whole; brew style is clean at a throwaway tap path. The Rust half (macapp.rs's remedy naming brew install --cask matthewsinclair/intent/intent-app, plus its unit assertion) is written and unbuilt. All of it is banked on refs/bank/dc/0634/wip (blob bc368e2930e9, patch-id 09c5ea990e98) over 45a21d8bd. NEXT: a cargo booking after 0632's, then the bank for vc to land; the proof is at the 3.2.7 cut on this Mac. No push, no release.
+- 0634 CASK (hv's selection, recorded at 85408e57c: 3.2.7, dc's lane, size S, proven at the cut). The shell half is DONE and judged: the cask renderer and brew_push_tap (one commit for the formula and the cask) in shared/brew.lib; brew formula --cask; macos publish pushes the cask; releasing.md gains one clause; docs/install.md corrected; four bats arms, each red at main. The Rust half (macapp.rs's remedy naming brew install --cask matthewsinclair/intent/intent-app, plus its unit assertion) is written and UNBUILT. The bank is refs/bank/dc/0634/wip (blob bc368e2930e9, patch-id 09c5ea990e98). It was REBASED at 05:10Z on 2026-10-25 onto main 141dcf9ff, cc's devbin 0.1.14 re-vendor, in tmp/wt-dc-0634 (own target, cold; hooks off) by git apply --3way. It applied clean and the patch-id is unchanged, so the bank and its ref stay. At this fold the bank still applies clean on main be2b7d523 (an apply --cached --check into a scratch index). The three bin/.devbin/cmd files are Intent's own, measured by bin/devbin vendor: stock devbin 0.1.14, no local patches, and none of them in devbin's manifest. vc confirmed this, so nothing goes upstream. The judge is READY and booked at molt-vc's desk, queued after Laksa's 0018fu. It is HEAVY, cargo plus bats, offline: scratchpad/0634/run-0634.sh runs both bats files, fmt, macapp's units and both clippy lines. NEXT: the judge at molt-vc's GO, once hv says continue. If main has moved under the worktree's files by then, rebase first. Then the bank goes to vc to land; the proof is at the 3.2.7 cut on this Mac. No push, no release. (edited)
 
 ## TODO
 
