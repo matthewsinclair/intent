@@ -13,7 +13,7 @@ claims: [ISSUE:0644]
 
 ## DOING
 
-_(none)_
+- ISSUE:0644 (vc's assignment, shape accepted as built): the chain block finds the main checkout's carrier from a linked worktree; canon::chain_carrier is doctor's one Rust spelling, over estate::main_checkout. Work-in-progress bank refs/bank/dc/0644/wip, blob f3c181575e302a22b6d365c098964bb959055e44, patch-id 19a598b7229b, at 290e6e4d0 in tmp/wt-dc-0644. Judge booked with molt-vc (scratchpad/0644/run-0644.sh), behind its heavy order; rebase and tell molt-vc if main moves first. AT READY, carry: the post-pull hooks take the same resolution (beyond vc's spec, closing the same hole for them); Intent's own .githooks/* dispatchers and pre-commit-hook.md's manual block are re-rendered to canon's bytes, held by intents_own_hooks_carry_canons_block; the bank's identity and the critic leg's count. No push, no release.
 
 ## TODO
 
