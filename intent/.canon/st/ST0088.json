@@ -14,7 +14,7 @@
       "seq": 1,
       "title": "The culls hv ruled: the in-tca family, in-cost-analysis, in-debug, with their triage rows and callers",
       "scope": "S",
-      "status": "not-started",
+      "status": "done",
       "objective": "Remove from `intent/plugins/claude/skills/` the five `in-tca-*` directories with their scripts, `in-cost-analysis` with its script and rates, and `in-debug`; remove each one's row from `intent/docs/skills-triage.md` and its caller lines (the `in-debug` line in `lib/templates/llm/_usage-rules.md`; the `in-tca-*` references in `intent/docs/total-codebase-audit.md`, which stays as the written procedure a session follows with the critics, naming no skill). Nothing else moves in this package. Judge: the intent-cli suite (its corpus tests: the triage doc covers the catalogue, every skill has a live caller, cross-references resolve, no unshipped verb, no PM state in output), the bats under tests/unit that pin the skills (the startup size cap, in_session_skill, docs_completeness), prettier on the two docs, the critic leg on any shell file; heavy, booked with molt-vc. Owner: ic. Size S.",
       "body": "",
       "preamble": ""
@@ -23,7 +23,7 @@
       "seq": 2,
       "title": "The skills merged, trimmed and completed: in-standards into in-essentials, the detrope section owned once, the trims, CLAUDE_CONFIG_DIR, and the missing items written once",
       "scope": "S",
-      "status": "not-started",
+      "status": "done",
       "objective": "In the skills that stay: `in-standards` merged into `in-essentials` (its one unique section, formatting standards, carried; its four copied sections dropped; every caller of `in-standards` repointed or cleared; the index-first paragraph keeps its authored population as `prior_art_route.bats` requires); the \"Detrope: two forms, one home\" section owned by `in-detrope` alone with `in-author-essentials` and `in-content-essentials` pointing at it; `in-finish`, `in-review`, `in-plan`, `in-whiteboard` and `lib/templates/prj/_wip.md` trimmed as the review names, each under the startup size cap; every `~/.claude` in a skill or script read as `${CLAUDE_CONFIG_DIR:-$HOME/.claude}` (`in-autopsy`, `in-detrope`, `in-cost-analysis` is gone, and the others the review lists); and written once into `in-essentials` what no prompt says today: commit what a verb printed under `wrote:`, `removed:` and `re-rendered:`; `intent outstanding` where the flat view is wanted; `intent estate status` before a heavy run and `intent estate wip` for a session with no board; the thread lifecycle (`triage`, `hold`, `resume`, `reopen`, `reinstate`, `cancel --reason`) and the package lifecycle (`cancel`, `reopen`, `unstart`, `rescope`); what `intent doctor` reports and the gate's exit codes (1 a verdict, 2 and 4 fail open, 3 blocks). Judge as WP-01's, plus `rule_reference_skills.bats`, `highlander_audit.bats`, `prior_art_route.bats`, `skill_renderer_trap.bats`. Owner: ic. Size M.",
       "body": "",
       "preamble": ""

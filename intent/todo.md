@@ -39,8 +39,8 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [ ] 04: The formula, the release tooling and the docs
   - [ ] 05: The proof, per tree, on rhadamanth and kovacs
 - [?] ST0088: Intent's prompt corpus is culled to what a session needs: one home per instruction, nothing it does not invoke, nothing the tool already does
-  - [ ] 01: The culls hv ruled: the in-tca family, in-cost-analysis, in-debug, with their triage rows and callers
-  - [ ] 02: The skills merged, trimmed and completed: in-standards into in-essentials, the detrope section owned once, the trims, CLAUDE_CONFIG_DIR, and the missing items written once
+  - [x] 01: The culls hv ruled: the in-tca family, in-cost-analysis, in-debug, with their triage rows and callers
+  - [x] 02: The skills merged, trimmed and completed: in-standards into in-essentials, the detrope section owned once, the trims, CLAUDE_CONFIG_DIR, and the missing items written once
   - [ ] 03: The templates, subagents and hooks: the root-file templates trimmed, the critics to their delta over the contract, the dead subagent files and plugin.json culled
   - [ ] 04: The measurement: bytes before the first prompt, before and after, on the record, and the installed skills re-synced
 
