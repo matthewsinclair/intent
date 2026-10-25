@@ -605,7 +605,12 @@ fn watch_refuses_a_bad_class_and_a_bad_pattern_with_a_remedy() {
     ["estate", "watch", "../cargo", "cargo"],
     ["estate", "watch", "cargo", "("],
   ] {
-    let out = host.cmd().args(argv).output().expect("run estate watch");
+    let out = host
+      .cmd()
+      .args(argv)
+      .stdin(testkit::lifeline_for(&argv))
+      .output()
+      .expect("run estate watch");
     let said = String::from_utf8_lossy(&out.stderr);
     assert_eq!(out.status.code(), Some(1), "{argv:?}: {said}");
     assert!(said.contains("remedy:"), "{argv:?} names a remedy: {said}");
