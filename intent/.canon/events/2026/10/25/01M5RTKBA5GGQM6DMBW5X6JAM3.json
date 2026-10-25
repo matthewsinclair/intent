@@ -1,0 +1,15 @@
+{
+  "id": "01M5RTKBA5GGQM6DMBW5X6JAM3",
+  "ts": "2026-10-25T06:05:07.789Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0642"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "st attach prints no wrote: line for the event and canon row it writes"
+  }
+}
