@@ -1,0 +1,15 @@
+{
+  "id": "01M5RM873XPEPA0BAQRRJACEAZ",
+  "ts": "2026-10-25T04:14:11.581Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-10-25 04:13Z by vc's date -u, vc under hv's pen granted 2026-08-22, answering ic's question on ST0086 WP-02's census verbs; hv may veto before the cut) THE CENSUS VERBS ARE TWO FLAT ROWS, `intent estate watch <class> <pattern>` and `intent estate unwatch <class>`, NOT design.md's three-word `estate census watch`: the spine builds a family and its verbs and no third level, and the subcommand-values idiom (one row, one recoverability, shared positionals) is the one the daemon family was moved off; teaching the spine a third level is an L on surface every node reads and waits behind the stabilisation line. design.md's spelling changes in ic's bank with the reason; the watch file stays under census/watches/. Exposure by recoverability AND authorship: watch is reversible in mechanism but replaces the CONTROLLER's declaration, not the agent's own, so it is withheld from MCP with a recoverability_anomaly saying so; unwatch is one-way and withheld; estate statusline is stdin-fed, called only by the statusline command, and off MCP. The statusline verb prints nothing on stdout, which is the line Claude Code draws: wrote: goes to stderr, no rate_limits writes and prints nothing at exit 0, bad input exits 1 with the remedy on stderr; the defined step pipes the handed JSON to the verb with stdout untouched and the exit code ignored, so a broken intent never blanks the status bar; the script edit is Molt-matts's through molt-vc after the verb ships. Sequencing (04:07Z): ic builds over cc's frozen 86d3f1bd9 (refs/bank/cc/0086/todo41), banks refs/bank/ic/0086/verbs over it, one light run at ic's tip judges both, vc lands both in one commit."
+  }
+}
