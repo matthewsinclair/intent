@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 78d66f67-02b7-4497-bbec-4466e2fcb852
-heartbeat_at: 2026-10-25 04:51Z
+heartbeat_at: 2026-10-25 05:45Z
 status: active
-focus: "ST0086: WP-02 whole on main at b01cec8aa (daemon half, doors, surface, page, TUI, census verbs, statusline step); pair at 7126f6832 serves the page; next build all once after dc's 0632 lands (one restart, announced first); hold 33 and the metered line stand; no push, no release"
+focus: "ST0086 WP-02 live on the pair at fef91e6f8: /estate/status answers data, estate watch|unwatch|statusline shipped; main carries 0632 closed, devbin 0.1.14; queue at molt-vc: ic lifeline XS, ic 0639, cc 0640 and 0638, dc 0634; vc next writes the dev/opt/brew conformance thread and WP-04's spec; no push, no release"
 claims: []
 ---
 
