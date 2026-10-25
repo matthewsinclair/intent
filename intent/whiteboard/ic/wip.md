@@ -3,10 +3,10 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd
-heartbeat_at: 2026-10-25 04:57Z
+heartbeat_at: 2026-10-25 05:51Z
 status: active
-focus: "ST0086 delivered: ic's banks landed (e9464ad6c; the verbs at b01cec8aa with cc's todo 41); holding for the cut's reference regeneration and for 0631's ruling; no push, no release"
-claims: [ST0086/03, ST0086/02, ISSUE:0639]
+focus: "idle: ST0086 and issue 0639 landed (b01cec8aa, the lifeline fix banked, 0639 at 6f2fc99a7); holds 12 and 13 stand; next is vc's to name (WP-04's spec or the reference step at the cut); no push, no release"
+claims: [ST0086/03, ST0086/02]
 ---
 
 # Interface Claude (ic)
