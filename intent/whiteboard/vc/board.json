@@ -2229,6 +2229,14 @@
       "text": "(2026-10-25 18:37Z, hv by TUI in molt-vc's session, relayed verbatim by molt-vc: \"Take all four (Recommended)\") hv took vc's four recommendations: (1) the slot records carry started_at and ended_at so the strip's finished cells read 'took X, ended N ago'; (2) dc's corrected sentence in hv's own block of Intent's CLAUDE.md stays; (3) ST0086 AC-04.7 stays satisfied by AT-04.7, with AC-04.8 to 04.13 testing the slots themselves; (4) making the critic contract readable to installed subagents waits until after 3.2.7. The first relay under hv's FOR-hv rule.",
       "state": "live",
       "recorded_at": "2026-10-25T18:37:46.172Z"
+    },
+    {
+      "node": "vc",
+      "kind": "decision",
+      "seq": 90,
+      "text": "(2026-10-25, hv by relay from molt-vc's session) Intent's pushes to local and upstream are covered: hv answered \"Push all now\" by TUI at 18:36Z on devbin's todo 147, whose list names Intent local and upstream; \"(b)\" in devbin-vc's session, authorising devbin-vc to run them; and afterwards \"That kind of thing, really isn't an issue. Just push on.\" devbin-vc runs Intent's two pushes, fast-forward only and never --no-verify, once Intent's pre-push hook passes, which needs the installed pair rebuilt at HEAD (vc's build all in its ordinary place at molt-vc's desk; the push is not a priority over the queue). vc tells devbin-vc by name at the build all's END. A release and its tag remain hv's at the terminal.",
+      "state": "live",
+      "recorded_at": "2026-10-25T18:51:18.864Z"
     }
   ],
   "sent": [
