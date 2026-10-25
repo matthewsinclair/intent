@@ -355,6 +355,8 @@ mod nav_is_the_shared_path_contract;
 mod no_function_takes_a_time;
 #[path = "rekinding_a_criterion_re_enters_its_state.rs"]
 mod rekinding_a_criterion_re_enters_its_state;
+#[path = "rules_validate_names_a_canon_rule_at_another_root.rs"]
+mod rules_validate_names_a_canon_rule_at_another_root;
 #[path = "rules_validate_reaches_an_ext_pack.rs"]
 mod rules_validate_reaches_an_ext_pack;
 #[path = "rust_references_resolve_through_rust_analyzer.rs"]

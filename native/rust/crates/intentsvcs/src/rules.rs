@@ -128,6 +128,24 @@ pub struct Library {
   ext: Option<PathBuf>,
 }
 
+/// Where an install keeps its canon rules, relative to its root.
+const CANON_RULES: &str = "intent/plugins/claude/rules";
+
+/// A rule file's path under the [`CANON_RULES`] directory of whichever tree
+/// holds it, or `None` for a file outside any such directory (a fixture).
+///
+/// **A RULE'S IDENTITY IS THIS PATH, NOT ITS ABSOLUTE ONE** (issue 0640): the
+/// same canon rule in a linked worktree and in the install root are one rule,
+/// and comparing absolute paths read them as two declarations of one id.
+fn canon_relative(path: &Path) -> Option<PathBuf> {
+  let path = path.canonicalize().unwrap_or_else(|_| path.to_path_buf());
+  path
+    .ancestors()
+    .find(|a| a.ends_with(CANON_RULES))
+    .and_then(|root| path.strip_prefix(root).ok())
+    .map(Path::to_path_buf)
+}
+
 impl Library {
   /// Rooted at an install, with the ext base resolved separately.
   ///
@@ -145,7 +163,7 @@ impl Library {
   /// pattern-matching bug into a pattern-matching bug, which is funnier than it
   /// is useful.
   pub fn new(install: &Path, ext: Option<PathBuf>) -> Self {
-    Self::at(&install.join("intent/plugins/claude/rules"), ext)
+    Self::at(&install.join(CANON_RULES), ext)
   }
 
   /// Rooted at a rules directory named directly rather than found through an
@@ -255,9 +273,18 @@ impl Library {
       (Ok(a), Ok(b)) => a == b,
       _ => a == b,
     };
+    //
+    // **AND A CANON RULE AT ANOTHER ROOT IS THAT RULE** (issue 0640): a file
+    // whose canon-relative path equals a library file's replaces the library's
+    // copy for this run, so a rule named in a linked worktree is not counted
+    // twice against the install root's. Two files with different canon-relative
+    // paths and one id are still two declarations, and still refused.
     if let Some(name) = subject {
       let path = Path::new(name);
       if path.is_file() && !docs.iter().any(|d| same_file(&d.path, path)) {
+        if let Some(named) = canon_relative(path) {
+          docs.retain(|d| d.path.strip_prefix(&self.canon).ok() != Some(named.as_path()));
+        }
         docs.push(self.doc(path, Provenance::Canon)?);
       }
     }
