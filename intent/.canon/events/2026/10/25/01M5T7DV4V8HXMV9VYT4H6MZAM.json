@@ -1,0 +1,15 @@
+{
+  "id": "01M5T7DV4V8HXMV9VYT4H6MZAM",
+  "ts": "2026-10-25T19:08:33.311Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0651"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "the no-PM-state guard does not read the agent guide, which prints the dispatch table's invariant and row text into every project"
+  }
+}
