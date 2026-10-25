@@ -1,0 +1,16 @@
+{
+  "id": "01M5SWKT0B0AWK5JFGZ6TAZ7DJ",
+  "ts": "2026-10-25T15:59:34.660Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "seq": 79,
+    "text": "(2026-10-25 09:43Z by vc's clock; molt-vc's desk rule after the refused ST0087 landing, vc under hv's pen) EVERY INTENT JUDGE RUNS THE CRITIC AS A LEG: `intent critic rust --files <f>` on every changed .rs, and `intent critic shell --files <f>` on every changed shell file (bin/.devbin/cmd/*, *.sh, *.bats), one file per call, before READY, and the judge is red on any finding at warning or above. A worktree commit runs no hook, so the gate's critic never meets a bank until vc applies it on main; this morning cc's two ST0087 banks went green through fmt, both clippy legs, three suites and the drives and were refused at vc's landing critic (IN-RS-CODE-004, three findings in install.rs). vc's landing critic stays as the backstop. Each node puts the leg into its own judge script; vc edits no node's tooling.\n CLARIFIED 2026-10-25 15:59Z on cc's question: NOT-ASKED (the runner's \"no <lang> rule was asked of any\" line) is its own class in every END, named file by file and never counted as clean; it is RED only where an armed rule should have reached the file (a src .rs, a shell script, a .swift once 0648 arms the pack) and did not, an instrument fault; a rust test file or a bats fixture no greppable rule reaches today is expected NOT-ASKED, reported and not red, judged by the suites that run it. So a judge is GREEN with its NOT-ASKED files named."
+  }
+}
