@@ -207,7 +207,9 @@ fn ac_new_reaches_what_a_canon_hand_edit_reaches() {
   let by_hand = Fixture::new();
   let mut thread = sample_thread("ST0001");
   thread.criteria.push(minted.clone());
-  thread.criteria.sort_by(|a, b| a.id.cmp(&b.id));
+  thread
+    .criteria
+    .sort_by(|a, b| intentsvcs::model::id_order(&a.id, &b.id));
   by_hand.write_thread(&thread);
 
   // Route 2: the addressed surface.
@@ -364,7 +366,9 @@ fn at_new_reaches_what_a_canon_hand_edit_reaches() {
   let by_hand = Fixture::new();
   let mut thread = sample_thread("ST0001");
   thread.tests.push(minted.clone());
-  thread.tests.sort_by(|a, b| a.id.cmp(&b.id));
+  thread
+    .tests
+    .sort_by(|a, b| intentsvcs::model::id_order(&a.id, &b.id));
   by_hand.write_thread(&thread);
 
   let by_surface = Fixture::new();
@@ -544,7 +548,9 @@ fn at_new_does_not_refuse_on_a_finding_that_is_not_about_this_row() {
     note: None,
     legacy: None,
   });
-  thread.tests.sort_by(|a, b| a.id.cmp(&b.id));
+  thread
+    .tests
+    .sort_by(|a, b| intentsvcs::model::id_order(&a.id, &b.id));
   fx.write_thread(&thread);
   let mut facade = fx.facade();
 
@@ -590,5 +596,163 @@ fn at_new_does_not_refuse_on_a_finding_that_is_not_about_this_row() {
     "the create silently repaired somebody else's row -- inherited breakage is `at lint`'s to \
      report, not this verb's to fix\n  findings: {:#?}",
     still.findings
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Issue 0643 -- a thread's criteria and tests keep their natural order
+// ---------------------------------------------------------------------------
+//
+// Every arm's fixture carries a two-digit minor (`AC-01.10`, `AT-01.10`) beside
+// a one-digit one: without it lexical and natural order agree and no arm could
+// fail. Each is red at a base that sorts by the id's bytes.
+
+/// `ST0001` holding `AC-01.1` to `AC-01.10` and `AT-01.1` to `AT-01.10`, each
+/// array in natural order, every test covering `AC-01.1`.
+fn numbered_thread() -> intentsvcs::model::Thread {
+  let mut thread = sample_thread("ST0001");
+  thread.criteria = (1..=10)
+    .map(|n| Criterion {
+      id: format!("AC-01.{n}"),
+      text: format!("criterion {n}"),
+      kind: AcKind::Test,
+      state: AcState::Computed {},
+    })
+    .collect();
+  thread.tests = (1..=10)
+    .map(|n| AcceptanceTest {
+      fiat: None,
+      id: format!("AT-01.{n}"),
+      kind: AtKind::Test,
+      file: None,
+      prose: None,
+      covers: vec!["AC-01.1".to_string()],
+      status: AtStatus::ToWrite,
+      note: None,
+      legacy: None,
+    })
+    .collect();
+  thread
+}
+
+/// The ids of a list of rows, in the order canon holds them.
+fn ids<'a>(rows: impl Iterator<Item = &'a str>) -> Vec<String> {
+  rows.map(str::to_string).collect()
+}
+
+/// `at new` of `AT-01.11` leaves every row where it was and puts the new one
+/// last, after `AT-01.10`, not between `AT-01.1` and `AT-01.2`.
+#[test]
+fn at_new_keeps_the_tests_in_natural_order() {
+  let fx = Fixture::new();
+  fx.write_thread(&numbered_thread());
+  let mut facade = fx.facade();
+  let before = ids(
+    facade.canon().threads[0]
+      .tests
+      .iter()
+      .map(|t| t.id.as_str()),
+  );
+
+  facade
+    .at_new(
+      "ST0001",
+      "AT-01.11",
+      AtKind::Test,
+      None,
+      None,
+      vec!["AC-01.1".to_string()],
+      None,
+    )
+    .expect("the verb creates it");
+
+  let after = ids(
+    facade.canon().threads[0]
+      .tests
+      .iter()
+      .map(|t| t.id.as_str()),
+  );
+  let mut expected = before.clone();
+  expected.push("AT-01.11".to_string());
+  assert_eq!(after, expected, "one new row, and nothing else moved");
+}
+
+/// The put arm's create keeps the tests in natural order, as `at new` does.
+#[test]
+fn put_keeps_the_tests_in_natural_order() {
+  let fx = Fixture::new();
+  fx.write_thread(&numbered_thread());
+  let mut facade = fx.facade();
+  let before = ids(
+    facade.canon().threads[0]
+      .tests
+      .iter()
+      .map(|t| t.id.as_str()),
+  );
+
+  facade
+    .put(
+      &intentsvcs::address::parse("intent:///threads/ST0001/at/AT-01.11?format=json")
+        .expect("resolves"),
+      r#"{"id":"AT-01.11","kind":"test","covers":["AC-01.1"],"status":"to-write"}"#,
+    )
+    .expect("PUT creates it");
+
+  let after = ids(
+    facade.canon().threads[0]
+      .tests
+      .iter()
+      .map(|t| t.id.as_str()),
+  );
+  let mut expected = before.clone();
+  expected.push("AT-01.11".to_string());
+  assert_eq!(after, expected, "one new row, and nothing else moved");
+}
+
+/// The put arm's create keeps the criteria in natural order too, so a thread's
+/// two arrays follow one order whichever verb last wrote each.
+#[test]
+fn put_keeps_the_criteria_in_natural_order() {
+  let fx = Fixture::new();
+  fx.write_thread(&numbered_thread());
+  let mut facade = fx.facade();
+  let before = ids(
+    facade.canon().threads[0]
+      .criteria
+      .iter()
+      .map(|c| c.id.as_str()),
+  );
+
+  let mut body: serde_json::Value = serde_json::from_str(
+    &serde_json::to_string(&facade.canon().threads[0].criteria[0]).expect("serialises"),
+  )
+  .expect("parses");
+  body["id"] = serde_json::json!("AC-01.11");
+  facade
+    .put(
+      &intentsvcs::address::parse("intent:///threads/ST0001/ac/AC-01.11").expect("resolves"),
+      &serde_json::to_string(&body).expect("serialises"),
+    )
+    .expect("PUT creates it");
+
+  let after = ids(
+    facade.canon().threads[0]
+      .criteria
+      .iter()
+      .map(|c| c.id.as_str()),
+  );
+  let mut expected = before.clone();
+  expected.push("AC-01.11".to_string());
+  assert_eq!(after, expected, "one new row, and nothing else moved");
+}
+
+/// The comparator itself: runs of digits compare as numbers, the rest as text.
+#[test]
+fn ids_order_naturally() {
+  let mut got = vec!["AT-01.10", "AC-10.1", "AT-01.2", "AC-1.1", "AC-2.1"];
+  got.sort_by(|a, b| intentsvcs::model::id_order(a, b));
+  assert_eq!(
+    got,
+    vec!["AC-1.1", "AC-2.1", "AC-10.1", "AT-01.2", "AT-01.10"]
   );
 }

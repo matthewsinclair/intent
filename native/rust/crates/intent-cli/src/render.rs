@@ -2855,6 +2855,8 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       let outcome = facade.put_attachment(&address, &bytes).map_err(fail)?;
       report_notes(&outcome, &id);
       println!("ok: {path} written to {id}");
+      // Issue 0642: its event and the canon row, through the one printer.
+      print_written(&facade.take_landed());
       Ok(())
     }
     // Issue 0394: the record leaves the store and canon; the file is the
@@ -2874,6 +2876,7 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       let outcome = facade.detach_attachment(&address).map_err(fail)?;
       report_notes(&outcome, &id);
       println!("ok: {path} detached from {id} -- its record is gone from the store and canon");
+      print_written(&facade.take_landed());
       let on_disk = facade.project().st_dir().join(&id).join(&path);
       if on_disk.exists() {
         println!(
@@ -4535,12 +4538,12 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
         )));
       }
       let kind = wb_item_kind(&kind)?;
-      if opt(m, "seq")?.is_none() {
+      if opt(m, "id")?.is_none() {
         return Err(archive_forms(
           "`wb archive <kind>` archives one of your items, so it needs the item's number",
         ));
       }
-      let seq = item_seq(m, "seq")?;
+      let seq = item_seq(m, "id")?;
       let mut f = open()?;
       // **WHAT MOVED, NOT WHAT WAS ASKED FOR.** Archiving something already
       // archived, or a number no item carries, moves nothing -- and saying
@@ -4995,7 +4998,7 @@ fn archive_messages(
   to: Option<&str>,
   handled: bool,
 ) -> Result<(), Failure> {
-  match (opt(m, "seq")?, handled) {
+  match (opt(m, "id")?, handled) {
     (Some(_), true) => Err(archive_forms(
       "`--handled` archives every message its recipient has handled, so it takes no address",
     )),
@@ -5057,7 +5060,7 @@ fn archive_messages(
 /// the reason [`edit_forms`] shows both of `wb edit`'s.
 fn archive_forms(why: &str) -> Failure {
   Failure::Error(format!(
-    "error: {why}\n  remedy: `intent wb archive <kind> <seq> --node <you>` archives one of your \
+    "error: {why}\n  remedy: `intent wb archive <kind> <id> --node <you>` archives one of your \
      items; `intent wb archive message <anchor> --to <recipient> --node <you>` archives a message \
      you sent once its recipient has handled it; `intent wb archive message --handled [--to \
      <recipient>] --node <you>` archives every such message"

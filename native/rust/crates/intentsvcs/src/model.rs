@@ -245,6 +245,51 @@ pub fn thread_seq(name: &str) -> Option<u32> {
     .flatten()
 }
 
+/// The one order for a thread's criterion and test ids (issue 0643): natural,
+/// not lexical. An id compares run by run, a run of digits as a number and any
+/// other run as text, so `AT-01.2` precedes `AT-01.10` and `AC-1.1` precedes
+/// `AC-10.1`. A byte comparison put `AT-01.10` first, and one new row re-sorted
+/// a whole array in canon. Ids that differ only in leading zeros (`AT-1.2`,
+/// `AT-01.2`) fall back to their bytes, so the order is total.
+pub fn id_order(a: &str, b: &str) -> std::cmp::Ordering {
+  fn runs(s: &str) -> impl Iterator<Item = &str> {
+    let mut rest = s;
+    std::iter::from_fn(move || {
+      let first = rest.chars().next()?;
+      let digits = first.is_ascii_digit();
+      let end = rest
+        .find(|c: char| c.is_ascii_digit() != digits)
+        .unwrap_or(rest.len());
+      let (run, tail) = rest.split_at(end);
+      rest = tail;
+      Some(run)
+    })
+  }
+  let number = |run: &str| run.trim_start_matches('0').to_string();
+  let mut left = runs(a);
+  let mut right = runs(b);
+  loop {
+    match (left.next(), right.next()) {
+      (None, None) => return a.cmp(b),
+      (None, Some(_)) => return std::cmp::Ordering::Less,
+      (Some(_), None) => return std::cmp::Ordering::Greater,
+      (Some(x), Some(y)) => {
+        let both_digits = x.starts_with(|c: char| c.is_ascii_digit())
+          && y.starts_with(|c: char| c.is_ascii_digit());
+        let order = if both_digits {
+          let (x, y) = (number(x), number(y));
+          x.len().cmp(&y.len()).then_with(|| x.cmp(&y))
+        } else {
+          x.cmp(y)
+        };
+        if order.is_ne() {
+          return order;
+        }
+      }
+    }
+  }
+}
+
 /// Which collection an operator's spelling names.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum IdKind {

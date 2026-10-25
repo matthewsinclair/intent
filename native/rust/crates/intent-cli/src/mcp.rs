@@ -1428,12 +1428,12 @@ fn tool_answer(
     }
     "wb archive" => {
       let node = str_arg(args, "node", path)?;
-      // Issue 0627: `message` is a message this node sent, by `seq` (its
+      // Issue 0627: `message` is a message this node sent, by `id` (its
       // address) and `to`, or every one its recipient has handled under
       // `handled`; the CLI arm takes the same three forms.
       if str_arg(args, "kind", path)? == "message" {
         let to = opt_s(path, map, "to")?;
-        return match (opt_s(path, map, "seq")?, opt_b(path, map, "handled")?, to) {
+        return match (opt_s(path, map, "id")?, opt_b(path, map, "handled")?, to) {
           (None, true, to) => {
             let sweep = f.wb_archive_handled(node, to)?;
             let stamped = |to: &str, at: &str| json!({ "to": to, "anchor": intentsvcs::views::board_stamp(at) });
@@ -1445,15 +1445,15 @@ fn tool_answer(
               "notes": intentsvcs::facade::notes_json(&f.take_notes()),
             }))
           }
-          (Some(seq), false, Some(to)) => {
-            let moved = f.wb_archive_message(node, to, seq)?;
+          (Some(id), false, Some(to)) => {
+            let moved = f.wb_archive_message(node, to, id)?;
             Ok(
               json!({ "node": node, "moved": moved, "written": f.take_written(node), "notes": intentsvcs::facade::notes_json(&f.take_notes()) }),
             )
           }
           _ => Err(args_err(
             path,
-            "`message` takes `seq`, the message's address, with `to`, or `handled` with no `seq`",
+            "`message` takes `id`, the message's address, with `to`, or `handled` with no `id`",
           )),
         };
       }
@@ -1466,9 +1466,9 @@ fn tool_answer(
       }
       let kind = crate::render::wb_item_kind(str_arg(args, "kind", path)?)
         .map_err(|e| failure_args(path, e))?;
-      let seq: u32 = str_arg(args, "seq", path)?
+      let seq: u32 = str_arg(args, "id", path)?
         .parse()
-        .map_err(|_| args_err(path, "`seq` is the item's number on the board"))?;
+        .map_err(|_| args_err(path, "`id` is the item's number on the board"))?;
       let moved = f.wb_archive(node, kind, seq)?;
       Ok(
         json!({ "node": node, "moved": moved, "written": f.take_written(node), "notes": intentsvcs::facade::notes_json(&f.take_notes()) }),

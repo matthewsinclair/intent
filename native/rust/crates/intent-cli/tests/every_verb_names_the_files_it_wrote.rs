@@ -407,3 +407,22 @@ fn agents_sync_and_claude_upgrade_name_every_file_they_wrote() {
   names_what_it_wrote_and_removed(d, &["agents", "sync"]);
   names_what_it_wrote_and_removed(d, &["claude", "upgrade", "--apply"]);
 }
+
+// **Issue 0642: `st attach` printed only its `ok:` line**, so its event and the
+// canon row it writes were found in `git status`, the rule 0632 closed for
+// every other writer; `st detach`, its inverse, printed the same way. Red on a
+// binary without the fix, which prints no `wrote:` line for either.
+#[test]
+fn attach_and_detach_name_every_file_they_wrote() {
+  let dir = project();
+  let d = dir.path();
+  setup(d, &["st", "new", "a probe thread"]);
+  // The source sits outside the project, so the only paths that move are the
+  // verb's own.
+  let source = tempfile::tempdir().expect("tempdir");
+  let from = source.path().join("design.md");
+  std::fs::write(&from, "# Design\n\nThe probe's design.\n").expect("write the source");
+  let from = from.to_str().expect("a UTF-8 path");
+  names_what_it_wrote(d, &["st", "attach", "ST0001", "design.md", "--from", from]);
+  names_what_it_wrote_and_removed(d, &["st", "detach", "ST0001", "design.md"]);
+}

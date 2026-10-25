@@ -289,3 +289,108 @@ fn an_edit_of_a_message_names_the_senders_staged_board() {
   );
   assert!(err.contains("  intent/whiteboard/cc/board.json"), "{err}");
 }
+
+/// One `intent_wb_archive` call over MCP in `dir`: the tool's own answer, the
+/// JSON document inside the frame's text, and the whole frame, which carries a
+/// refusal as well as an answer.
+fn mcp_archive(dir: &Path, args: &serde_json::Value) -> (serde_json::Value, String) {
+  let frames = [
+    r#"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"drive","version":"0"}}}"#.to_string(),
+    r#"{"jsonrpc":"2.0","method":"notifications/initialized"}"#.to_string(),
+    serde_json::json!({
+      "jsonrpc": "2.0", "id": 2, "method": "tools/call",
+      "params": { "name": "intent_wb_archive", "arguments": args },
+    })
+    .to_string(),
+  ];
+  let mut child = crate::common::intent()
+    .arg("mcp")
+    .current_dir(dir)
+    .env("HOME", testkit::fixture_home())
+    .stdin(std::process::Stdio::piped())
+    .stdout(std::process::Stdio::piped())
+    .stderr(std::process::Stdio::piped())
+    .spawn()
+    .expect("spawn intent mcp");
+  {
+    use std::io::Write as _;
+    let stdin = child.stdin.as_mut().expect("stdin");
+    for frame in &frames {
+      writeln!(stdin, "{frame}").expect("write frame");
+    }
+  }
+  drop(child.stdin.take());
+  let out = child.wait_with_output().expect("wait");
+  let frame: serde_json::Value = String::from_utf8_lossy(&out.stdout)
+    .lines()
+    .filter_map(|l| serde_json::from_str::<serde_json::Value>(l).ok())
+    .find(|v| v.get("id").and_then(|i| i.as_u64()) == Some(2))
+    .expect("an answer to the tool call");
+  let text = frame
+    .pointer("/result/content/0/text")
+    .and_then(|t| t.as_str())
+    .unwrap_or_default()
+    .to_string();
+  let payload = serde_json::from_str::<serde_json::Value>(&text).unwrap_or(serde_json::Value::Null);
+  (payload, frame.to_string())
+}
+
+/// **ISSUE 0631: THE ADDRESS IS `id` OVER MCP, AS `wb edit`'s IS.** A message
+/// is archived by `id` and `to`, and the old key `seq` meets the refusal every
+/// unknown key meets: no alias is kept. Red at a base whose table names the
+/// positional `seq`, where `id` is the unknown key.
+#[test]
+fn mcp_archives_a_message_by_id_and_refuses_seq() {
+  let dir = roster();
+  let d = dir.path();
+  ok(
+    d,
+    &[
+      "wb",
+      "ask",
+      "vc",
+      "the kestrel returns its first argument",
+      "--node",
+      "cc",
+    ],
+  );
+  ok(d, &["wb", "clear", "cc", "--node", "vc"]);
+  let address = first_address(d, "vc", "cc");
+
+  let (_, refused) = mcp_archive(
+    d,
+    &serde_json::json!({ "node": "cc", "kind": "message", "seq": address, "to": "vc" }),
+  );
+  assert!(refused.contains("no parameter named `seq`"), "{refused}");
+  assert!(
+    view(d, "vc", "cc").contains("the kestrel"),
+    "a refusal archives nothing"
+  );
+
+  let (answer, frame) = mcp_archive(
+    d,
+    &serde_json::json!({ "node": "cc", "kind": "message", "id": address, "to": "vc" }),
+  );
+  assert_eq!(answer["moved"], serde_json::json!(true), "{frame}");
+  assert!(!view(d, "vc", "cc").contains("the kestrel"), "{frame}");
+}
+
+/// **AN ITEM IS ARCHIVED BY `id` OVER MCP TOO**, its number within its kind.
+/// Red at the base for the same reason as the message arm.
+#[test]
+fn mcp_archives_an_item_by_id() {
+  let dir = roster();
+  let d = dir.path();
+  ok(
+    d,
+    &["wb", "add", "todo", "the item to retire", "--node", "cc"],
+  );
+
+  let (answer, frame) = mcp_archive(
+    d,
+    &serde_json::json!({ "node": "cc", "kind": "todo", "id": "1" }),
+  );
+  assert_eq!(answer["moved"], serde_json::json!(true), "{frame}");
+  let shown = ok(d, &["wb", "show", "cc"]);
+  assert!(!shown.contains("the item to retire"), "{shown}");
+}

@@ -2739,7 +2739,7 @@ impl crate::remedy::Remedy for FacadeError {
         "`{recipient}` clears it with `intent wb clear {sender}` once the messages are handled. The bound is per inbox, so this says nothing about anyone else's"
       ),
       Self::WbItemsFull { node, kind, .. } => format!(
-        "`intent wb archive --node {node} {kind} <seq>` moves one to archived: the state change IS the archival, the row is never deleted, and what it said stays readable after it stops counting"
+        "`intent wb archive --node {node} {kind} <id>` moves one to archived: the state change IS the archival, the row is never deleted, and what it said stays readable after it stops counting"
       ),
       Self::WbNoSuchItem { node, .. } => format!(
         "`intent wb show {node}` prints each live item as `[kind] seq text`. An archived item keeps its number, and `intent/whiteboard/{node}/board.json` lists every item with it. An item on another node's board is edited by that node"
@@ -15340,7 +15340,9 @@ impl Facade {
       Some(existing) => *existing = row.clone(),
       None => prospective.tests.push(row.clone()),
     }
-    prospective.tests.sort_by(|a, b| a.id.cmp(&b.id));
+    prospective
+      .tests
+      .sort_by(|a, b| crate::model::id_order(&a.id, &b.id));
 
     // NARROWED TO THE ROW BEING WRITTEN, and the narrowing is the point rather
     // than politeness: a thread carrying a finding about a DIFFERENT row would
@@ -16704,7 +16706,9 @@ impl Facade {
               });
             }
             holder.tests.push(row);
-            holder.tests.sort_by(|a, b| a.id.cmp(&b.id));
+            holder
+              .tests
+              .sort_by(|a, b| crate::model::id_order(&a.id, &b.id));
             Outcome::Moved
           }
         };
@@ -16771,7 +16775,9 @@ impl Facade {
               });
             }
             holder.criteria.push(row);
-            holder.criteria.sort_by(|a, b| a.id.cmp(&b.id));
+            holder
+              .criteria
+              .sort_by(|a, b| crate::model::id_order(&a.id, &b.id));
             Outcome::Moved
           }
         };

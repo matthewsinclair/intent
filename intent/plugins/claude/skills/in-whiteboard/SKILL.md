@@ -35,7 +35,7 @@ Every verb that writes as a node takes `--node <moniker>`; `status`, `show <node
 | Record what you are doing, or a watch-out, or a hold | `intent wb add <kind> <text>`                    |
 | Record a cross-node decision                         | `intent wb decide <text>`                        |
 | Take or drop a claim                                 | `intent wb claim` / `unclaim <id>`               |
-| Retire one of your own items                         | `intent wb archive <kind> <seq>`                 |
+| Retire one of your own items                         | `intent wb archive <kind> <id>`                  |
 | Retire a message you sent, once it is handled        | `intent wb archive message <anchor> --to <node>` |
 | Change or redact your item or a message you sent     | `intent wb edit <kind> <id> <text>`              |
 | Mark one sender's messages handled                   | `intent wb clear <sender>`                       |
@@ -143,7 +143,7 @@ The tool cannot work out `--node <moniker>`: use the moniker the invocation carr
 - **`decide`** puts a decision on your own board, where peers read it at pickup; no recipients, so no copies to diverge.
 - **`claim` / `unclaim`** take a thread as `ST0000`, a work package as `ST0000/01`, or an issue as `ISSUE:0000`. **Check who holds it first** (`intent wb status --json`); if an active peer does, surface the overlap to `hv` rather than claiming alongside.
 - **`clear <sender>`** marks that sender's live messages handled. **Clear an entry only if it was answered, actioned, or re-stated live on your board. Reading is not handling.** A cleared-but-unactioned entry makes the board affirmatively WRONG, and no guard can catch it: actioned-ness is judgement. Re-count live messages right before clearing, or a message that landed after your read is swept too.
-- **`archive <kind> <seq>`** retires your own item (seqs are numbered per kind); the answer says what moved. Whether the item IS finished with is your judgement (see Folding).
+- **`archive <kind> <id>`** retires your own item (ids are numbered per kind); the answer says what moved. Whether the item IS finished with is your judgement (see Folding).
 - **`archive message <anchor> --to <recipient>`** retires a message you SENT once its recipient has handled it: the recipient's inbox view drops it, and `wb show --all` and the JSON still carry it. Refused while the recipient holds it live, because only the recipient clears; one copy of an announce at a time; `--handled` archives everything you sent that its recipients have handled. A board carrying an archived message needs Intent 3.2.6 or later, so archive nothing while another machine reads the estate's boards with an older Intent.
 - **`edit <kind> <id> <text>`** changes your own item, live or archived; `edit message "<anchor>" "<text>" --to <recipient>` changes a message you sent (`<anchor>#<n>` for one of several in a minute; one copy of an announce edits all). An uncommitted event is amended in place; a committed one gets a `wb.edit` event and git keeps the old text. The answer names every file under `intent/` still holding the old text (HEAD, staged, unstaged) and gives the all-clear only when both searches found nothing. Edits render `(edited)`, never the old text.
 - **`touch`** stamps your heartbeat, nothing else.
@@ -155,7 +155,7 @@ The tool cannot work out `--node <moniker>`: use the moniker the invocation carr
 **localfold** = tidy your OWN node before a compact: archive what is finished with, clear what you have handled, and archive what you sent that its recipients have handled (`wb archive message --handled`). **It does NOT `release`.** **globalfold** = the project-wide snapshot (`intent/wip.md`, `restart.md`, `done.md`), usually the coordinating or validation node's job.
 
 - **An unexecuted ruling is live state, not history.** A fold archives the NARRATIVE of a ruling, never the ruling while it is unexecuted. Execution is the test, not the date; verify it against the ARTEFACT, not the board that records it.
-- **A hold is not archived while its condition stands unmet**; a released one goes back to TODO (`wb archive hold <seq>`, then `wb add todo`).
+- **A hold is not archived while its condition stands unmet**; a released one goes back to TODO (`wb archive hold <id>`, then `wb add todo`).
 - **A fold never archives a directive**; it leaves `hv`'s board when `hv` says it is spent.
 
 ## Node roles
