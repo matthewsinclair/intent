@@ -374,6 +374,36 @@
       ],
       "status": "green",
       "note": "arms: statusline_keeps_the_usage_and_leaves_stdout_to_the_status_line, statusline_with_no_rate_limits_writes_and_prints_nothing, statusline_refuses_an_input_that_is_not_json_with_a_remedy; green in the whole-suite judges that landed the estate work on 2026-10-25: ic at 4df0b005f (e9464ad6c), ic at 7ae5bbac9 (b01cec8aa), cc at 3d1d0a269 (4f6b504a8), ic at dad17961e (7536f4009), and the cc 0638 judge at cf1846543 (the intent-cli, intentsvcs and intentd suites whole); cited by vc at the contract's authoring"
+    },
+    {
+      "id": "AT-03.1",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/src/render.rs",
+      "covers": [
+        "AC-03.1"
+      ],
+      "status": "green",
+      "note": "The explorer's /estate host lines read the census, controller, queue and lanes from the keys /estate/status reads, and say what each empty key means: render::tests::the_estates_host_lines_say_what_an_empty_key_means and the_estates_host_lines_read_the_census_controller_queue_and_lanes; the view order in tui/views.rs the_estate_lays_out_the_verbs_cells_in_the_order_they_arrive. Green in ic's combined judge at e756e484a over ea94f91b0 (18:07Z to 18:11Z on 2026-10-25), run after the arm landed ahead of judge on hv's word: the intentsvcs, intent-cli and intentd suites with no failure."
+    },
+    {
+      "id": "AT-03.2",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/src/tui/run.rs",
+      "covers": [
+        "AC-03.2"
+      ],
+      "status": "green",
+      "note": "The explorer's /estate re-reads on the tick and no other view does (tui::run::tests::the_estate_follows_the_clock_and_no_other_view_does); /estate opens once and refuses an argument (tui/app.rs slash_estate_opens_the_estate_once_and_takes_no_argument); unreadable rows in the order test in tui/views.rs. Green in ic's combined judge at e756e484a over ea94f91b0 (18:07Z to 18:11Z on 2026-10-25), run after the arm landed ahead of judge on hv's word: the intentsvcs, intent-cli and intentd suites with no failure."
+    },
+    {
+      "id": "AT-04.7",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/the_estate_page_reads_the_keys_the_reader_sends.rs",
+      "covers": [
+        "AC-04.7"
+      ],
+      "status": "green",
+      "note": "The page reads no key the reader never sends: the strip's recent, queue and sessions reads are a subset of the reader's serialised keys, taken from estate::join rather than a list. Green in ic's combined judge at e756e484a over ea94f91b0 (18:07Z to 18:11Z on 2026-10-25), run after the arm landed ahead of judge on hv's word: the intentsvcs, intent-cli and intentd suites with no failure."
     }
   ],
   "attachments": [
