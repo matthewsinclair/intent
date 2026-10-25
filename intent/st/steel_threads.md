@@ -4,7 +4,6 @@ An index of every steel thread in the project. A steel thread is a self-containe
 
 | ID     | Title                                                                                                                                           | Status    | Created    | Completed            |
 | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ---------- | -------------------- |
-| ST0088 | Intent's prompt corpus is culled to what a session needs: one home per instruction, nothing it does not invoke, nothing the tool already does   | Triage    | 2026-10-25 |                      |
 | ST0087 | Intent conforms to the dev, opt and brew contract                                                                                               | Triage    | 2026-10-25 |                      |
 | ST0086 | Add an 'Estate' page to intentd that all intent-using Claudes on an estate can use to post status                                               | WIP       | 2026-10-24 |                      |
 | ST0085 | Passive prompt injection: prompt text Intent stores or ships is acted on only when it is live                                                   | Triage    | 2026-10-23 |                      |
@@ -13,6 +12,7 @@ An index of every steel thread in the project. A steel thread is a self-containe
 | ST0081 | Intent from Homebrew on Linux and macOS, with no source checkout: Linux binaries on every release                                               | WIP       | 2026-10-12 |                      |
 | ST0077 | Level 3 stores the references only the toolchain sees, and a roster of the targets it defines                                                   | Triage    | 2026-09-17 |                      |
 | ST0060 | Add 'intent vault' as a way for intent projects to manage local credentials                                                                     | Triage    | 2026-08-25 |                      |
+| ST0088 | Intent's prompt corpus is culled to what a session needs: one home per instruction, nothing it does not invoke, nothing the tool already does   | Completed | 2026-10-25 | 2026-10-25           |
 | ST0083 | Agent contracts at the root or in .claude/, chosen per project, and CLAUDE.md imports AGENTS.md                                                 | Completed | 2026-10-15 | 2026-10-22           |
 | ST0080 | Scheduled store backups that actually fire                                                                                                      | Completed | 2026-09-25 | 2026-09-25           |
 | ST0079 | Add 'outs[tanding]' verb to show all outstanding items from a single verb                                                                       | Completed | 2026-09-21 | 2026-09-22           |
