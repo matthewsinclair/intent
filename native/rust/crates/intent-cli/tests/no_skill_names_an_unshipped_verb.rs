@@ -323,6 +323,8 @@ fn skill_count(dir: &Path) -> usize {
     .unwrap_or(0)
 }
 
+/// ST0088 AT-02.4: in-essentials' lifecycle, doctor and estate verbs, written
+/// once by ST0088 WP-02, are claims this arm resolves against the surface.
 #[test]
 fn invariant_no_surviving_skill_names_a_verb_the_surface_does_not_carry() {
   let root = repo_root();

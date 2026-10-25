@@ -88,6 +88,9 @@ fn triage_rows(doc: &str) -> Vec<(String, String)> {
   out
 }
 
+/// ST0088 AT-01.1: the culled skills left the catalogue and the triage doc
+/// together, so this arm holds the cull; every_skill_has_a_live_caller.rs and
+/// skill_cross_references_resolve.rs hold the rest of AC-01.1's corpus tests.
 #[test]
 fn every_skill_in_the_catalogue_has_a_triage_row_and_no_row_invents_one() {
   let root = repo_root();

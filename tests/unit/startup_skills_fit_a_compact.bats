@@ -18,6 +18,7 @@ startup_skills() {
   sed -n '/^chains_to:/,/^---$/p' "$SKILLS/in-session/SKILL.md" | grep -oE '"in-[a-z-]+"' | tr -d '"'
 }
 
+# ST0088 AT-02.5: the trims keep every skill /in-session chains to under the cap.
 @test "every startup skill fits the characters a compact carries" {
   local skills
   skills="$(startup_skills)"
