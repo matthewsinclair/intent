@@ -1096,7 +1096,12 @@ fn manifest_header(text: &str) -> std::collections::BTreeMap<String, String> {
 }
 
 /// THE VERSION LINE (T4), one formatter for both printers:
-/// `<name> <version> (<tree>, <sha12>[+dirty]) at <root> <kind>`.
+/// `<name> <version> (<tree>, <sha12>[+dirty]) <kind>`.
+///
+/// **NO ROOT** (issue 0647, hv's ruling of 2026-10-25, decision 82): where
+/// the binary is, `which intent` already says, so the line names the build and
+/// nothing else; the tree's root stays in doctor's install-tree finding, whose
+/// subject it is.
 ///
 /// **THE PROVENANCE WORD STAYS LAST** so the fields before it read as the
 /// contract's line; it is read by no shell (the gate's self-provenance arm and
@@ -1116,12 +1121,8 @@ pub fn version_line(build: &Build<'_>, id: &TreeId) -> String {
     None => "unknown".to_string(),
   };
   format!(
-    "{} {} ({}, {sha}) at {} {}",
-    build.name,
-    build.version,
-    id.tree,
-    id.root.display(),
-    build.kind
+    "{} {} ({}, {sha}) {}",
+    build.name, build.version, id.tree, build.kind
   )
 }
 

@@ -72,11 +72,7 @@ fn a_git_checkout_with_no_manifest_is_dev_and_its_line_names_the_built_commit() 
   );
   assert_eq!(
     line(&sha, &id),
-    format!(
-      "intent 9.9.9 (dev, {}) at {} dev",
-      &sha[..12],
-      root.display()
-    )
+    format!("intent 9.9.9 (dev, {}) dev", &sha[..12])
   );
   assert!(
     install::tree_findings(&id).is_empty(),
@@ -168,7 +164,7 @@ fn a_dev_tree_whose_git_cannot_be_read_names_no_commit_and_doctor_fails() {
   assert_eq!(id.sha, None);
   assert_eq!(
     line("0123456789abcdef0123456789abcdef01234567", &id),
-    format!("intent 9.9.9 (dev, unknown) at {} dev", root.display())
+    "intent 9.9.9 (dev, unknown) dev"
   );
   let findings = install::tree_findings(&id);
   assert_eq!(findings.len(), 1, "{findings:?}");
@@ -193,7 +189,7 @@ fn a_manifest_naming_intent_is_opt_and_its_sha_is_the_manifests() {
   assert_eq!(id.tree, Tree::Opt);
   assert_eq!(
     line("0123456789abcdef0123456789abcdef01234567", &id),
-    format!("intent 9.9.9 (opt, abcdefabcdef) at {} dev", root.display())
+    "intent 9.9.9 (opt, abcdefabcdef) dev"
   );
 }
 
@@ -227,13 +223,10 @@ fn a_keg_with_no_manifest_is_brew_and_is_named_by_its_opt_link() {
   let id = install::tree_at(&root, sha);
 
   assert_eq!(id.tree, Tree::Brew);
-  assert_eq!(
-    line(sha, &id),
-    format!(
-      "intent 9.9.9 (brew, 0123456789ab) at {} dev",
-      prefix.join("opt/intent/libexec").display()
-    )
-  );
+  // The line names no root (issue 0647); the root a brew tree is named by,
+  // its opt link, is what doctor's install-tree finding names.
+  assert_eq!(id.root, prefix.join("opt/intent/libexec"));
+  assert_eq!(line(sha, &id), "intent 9.9.9 (brew, 0123456789ab) dev");
 }
 
 #[test]
@@ -246,7 +239,7 @@ fn a_root_with_no_manifest_and_no_git_is_unknown_and_doctor_fails() {
   assert_eq!(id.tree, Tree::Unknown);
   assert!(
     line("0123456789abcdef0123456789abcdef01234567", &id)
-      .starts_with("intent 9.9.9 (unknown, 0123456789ab) at /")
+      == "intent 9.9.9 (unknown, 0123456789ab) dev"
   );
   let findings = install::tree_findings(&id);
   assert_eq!(findings.len(), 1, "{findings:?}");

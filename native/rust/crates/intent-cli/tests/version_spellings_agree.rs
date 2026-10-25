@@ -47,7 +47,7 @@ fn stdout(out: &Output) -> String {
 }
 
 /// AT-01.3: **`--version` and `version` print the same line from one
-/// formatter, `intent <version> (<tree>, <sha12>[+dirty]) at <root> <kind>`.**
+/// formatter, `intent <version> (<tree>, <sha12>[+dirty]) <kind>`, with no root.**
 /// The arms below pin its shape and the built commit it names.
 ///
 /// The flag and its subcommand twin print the same bytes and both succeed.
@@ -134,14 +134,12 @@ fn the_version_string_names_the_build_and_not_only_the_line() {
     known_form,
     "the build marker's commit is not a sha12, `<sha12>+dirty` or `unknown`: {inside:?}"
   );
-  let after = printed.split_once(") at ").map(|(_, rest)| rest.trim_end());
-  let (root, kind) = after
-    .and_then(|rest| rest.rsplit_once(' '))
+  // Nothing follows the build marker but the kind (issue 0647): the root came
+  // off the line, so any word between them is a regression.
+  let kind = printed
+    .split_once(") ")
+    .map(|(_, rest)| rest.trim_end())
     .unwrap_or_default();
-  assert!(
-    root.starts_with('/'),
-    "the line does not name an absolute root after `at`: {printed}"
-  );
   assert!(
     ["release", "dev"].contains(&kind),
     "the line does not end in the build's kind, `release` or `dev`: {printed}"
@@ -185,20 +183,19 @@ fn the_version_line_ends_in_its_kind_and_a_release_names_a_clean_commit() {
   let commit = env!("INTENT_SOURCE_COMMIT");
   let kind = env!("INTENT_SOURCE_KIND");
 
-  // `intent <version> (<tree>, <sha12>[+dirty]) at <root> <kind>` (ST0087
-  // WP-01): the build marker names the commit this binary was built from, a
-  // `dirty-` build carries `+dirty`, and the kind comes last.
+  // `intent <version> (<tree>, <sha12>[+dirty]) <kind>` (ST0087 WP-01, issue
+  // 0647): the build marker names the commit this binary was built from, a
+  // `dirty-` build carries `+dirty`, and the kind follows it directly.
   let built = commit.strip_prefix("dirty-").unwrap_or(commit);
   let marker = match built.get(..12) {
-    Some(sha12) if commit.starts_with("dirty-") => format!(", {sha12}+dirty) at /"),
-    Some(sha12) => format!(", {sha12}"),
-    None => ", unknown) at /".to_string(),
+    Some(sha12) if commit.starts_with("dirty-") => format!(", {sha12}+dirty) {kind}\n"),
+    Some(sha12) => format!(", {sha12}) {kind}\n"),
+    None => format!(", unknown) {kind}\n"),
   };
   assert!(
     printed.starts_with(&format!("intent {} (", env!("CARGO_PKG_VERSION")))
-      && printed.contains(&marker)
-      && printed.ends_with(&format!(" {kind}\n")),
-    "the line is the version, the build marker naming {commit:?}, the root and then the kind: {printed}"
+      && printed.ends_with(&marker),
+    "the line is the version, the build marker naming {commit:?}, and then the kind: {printed}"
   );
   assert!(
     kind == "release" || kind == "dev",

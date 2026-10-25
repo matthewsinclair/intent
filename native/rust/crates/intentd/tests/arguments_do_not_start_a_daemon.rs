@@ -168,7 +168,7 @@ fn help_prints_usage_and_serves_nothing() {
 }
 
 /// AT-01.4: **intentd's own version print, a moved reader of the old line,
-/// reads the new one: the build, then `at <root>`, then the kind.**
+/// reads the new one: the build, then the kind, and no root (issue 0647).**
 #[test]
 fn version_still_answers_and_serves_nothing() {
   // The arm that already worked, kept so the new refusal cannot swallow it: a
@@ -205,19 +205,16 @@ fn version_still_answers_and_serves_nothing() {
      only the commit says which BUILD: {out}"
   );
   // Issue 0534: and whether that build is the release, as the word after it.
-  // `intentd <version> (<tree>, <sha12>[+dirty]) at <root> <kind>`, from the
-  // formatter `intent --version` calls too (ST0087 WP-01).
-  let line = out.trim_end();
-  assert!(
-    line.starts_with(&format!(
-      "intentd {} ({build}) at /",
-      env!("CARGO_PKG_VERSION")
-    )),
-    "`--version` must name the tree's absolute root after the build: {out}"
-  );
-  assert!(
-    line.ends_with(&format!(" {}", env!("INTENT_SOURCE_KIND"))),
-    "`--version` must end in the build's kind, `release` or `dev`: {out}"
+  // `intentd <version> (<tree>, <sha12>[+dirty]) <kind>`, from the formatter
+  // `intent --version` calls too (ST0087 WP-01, issue 0647).
+  assert_eq!(
+    out.trim_end(),
+    format!(
+      "intentd {} ({build}) {}",
+      env!("CARGO_PKG_VERSION"),
+      env!("INTENT_SOURCE_KIND")
+    ),
+    "`--version` must be the build and then its kind, `release` or `dev`, with no root: {out}"
   );
   assert!(!published(&home), "`--version` served");
 

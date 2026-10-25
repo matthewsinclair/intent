@@ -78,7 +78,7 @@ command -v cargo >/dev/null || die "no cargo on PATH" "install the Rust toolchai
 [ ! -e "$DEMO" ] \
   || die "$DEMO already exists" "a run is in progress, or one was kept with --keep: remove it with \`rm -rf $DEMO\` once nothing is using it"
 
-# `intent 3.2.7 (<tree>, <sha12>[+dirty]) at <root> dev` (ST0087 WP-01) -- the
+# `intent 3.2.7 (<tree>, <sha12>[+dirty]) dev` (ST0087 WP-01, issue 0647) -- the
 # version and the commit are the two things every shot must not show.
 LINE="$(intent --version)"
 read -r _ VERSION _ <<EOF
