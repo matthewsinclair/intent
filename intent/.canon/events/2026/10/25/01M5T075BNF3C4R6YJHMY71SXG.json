@@ -1,0 +1,15 @@
+{
+  "id": "01M5T075BNF3C4R6YJHMY71SXG",
+  "ts": "2026-10-25T17:02:34.357Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-10-25, vc under hv's pen granted 2026-08-22, answering cc on the ST0086 drive hv said yes to in decision 84) THE THROWAWAY-SESSION DRIVE RUNS IN THE REAL CONFIG DIR, TWO SESSIONS, AND LEAVES WHAT IT FINDS. vc's brief had said a short isolated HOME; cc measured that Claude Code keeps its session files (<pid>.json beside <pid>.<hex>.key) under its config dir, so an isolated HOME moves the directory under test and, inferred, its credential with it, and the drive would measure nothing; the 104-byte limit is intentd's socket and this drive starts no intentd. So: the real config dir, cwd an empty scratch dir outside every project; one claude in a pty under cc's spawn, its files recorded, kill -9, the directory listed at once and after a pause; a second throwaway started and listed again (the design's To-measure item names the second session, so hv's yes covers it) and ended with /exit so a clean end is measured beside the kill; any orphan left where it lies and its path reported, nothing in hv's config dir deleted or moved. Run after the Intent build all's END, since the throwaway's user-scope hooks run intent. The result goes on ST0086's design.md as what the files showed and what the drive could not see. Booked with molt-vc as cc's own READY."
+  }
+}

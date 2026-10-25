@@ -1,0 +1,16 @@
+{
+  "id": "01M5T06TZ9A7G4DB4XWTJ0E5T9",
+  "ts": "2026-10-25T17:02:23.722Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "seq": 85,
+    "text": "(2026-10-25, vc under hv's pen granted 2026-08-22, answering cc on 0648 item 2) THE SWIFT PACK GAINS IN-SW-CODE-006, NO FORCE OPERATIONS, WITH THREE PROXIES, AND ITEM 2'S PREMISE IS CORRECTED FORWARD. cc measured that none of the six Swift rules names a force operation and every one declares no greppable proxy authoritative, so 'proxies for the rules that have one' armed nothing; vc measured the app's own Swift (native/macos, tests included) before ruling: no try!, no as!, no fatalError( and no postfix force unwrap today, the bang grep positive-controlled, so the rule reds nothing that exists. The rule concretises IN-AG-NO-SILENT-001 for Swift (the force operations are Swift's panics) and relates to IN-RS-CODE-001, severity warning, applies_to every .swift file tests included because the runner reaches files by glob alone and the Xcode layout has no production-only glob, with try XCTUnwrap named as a test's remedy. Proxies: try!, as!, and a postfix ! after an identifier, ) or ] not followed by =, as extended regex. fatalError( is NOT armed: IN-SW-CODE-001 allows it as a guard exit and a line grep cannot see the guard; it stays in the prose Detection for the subagent. The Detection states the measured costs: a ! in a string literal after a word fires; x!= y with no space escapes through the = exclusion while x! = y with a space fires (corrected forward on cc's measurement, 2026-10-25); an implicitly unwrapped optional declaration fires and is in scope. Arms: one positive per proxy and one negative clean file in critic_surface.rs, tests of the product and not the planted positive devbin decision 68 withdrew; any count pinning the pack at six rules is deleted, never corrected (cc found the live pins in critic.rs and critic_refuses_an_empty_library.rs; the \"0 of 6\" at critic_surface.rs:544 is issue 0581's quoted shell headline, not a Swift pin, and stands). Sent to cc by name."
+  }
+}
