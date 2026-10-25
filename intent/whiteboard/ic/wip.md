@@ -6,7 +6,7 @@ session_id: eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd
 heartbeat_at: 2026-10-25 06:31Z
 status: active
 focus: "LOCALFOLD (2026-10-25): ST0087 WP-03, Swift half drafted at 830fedbe1 (unbuilt), Rust half held for cc's WP-01 and hv's continue (hold 14); holds 12 and 13 stand; no push, no release"
-claims: [ST0086/03, ST0086/02, ST0087/03, ISSUE:0631, ISSUE:0642, ISSUE:0643]
+claims: [ST0086/03, ST0086/02, ST0087/03]
 ---
 
 # Interface Claude (ic)
@@ -14,12 +14,9 @@ claims: [ST0086/03, ST0086/02, ST0087/03, ISSUE:0631, ISSUE:0642, ISSUE:0643]
 ## DOING
 
 - RESUME STATE (ic, localfold on hv's call via molt-vc and vc, 2026-10-25). ST0087 WP-03, intent use and the shadow check, claimed. SWIFT HALF DRAFTED, UNBUILT: WIP commit 830fedbe1c3126f810edfb421c4630efe6001d56 over main 9d0c2a9e2 in tmp/wt-ic-0086 (LoginShell keeps the command -v hit as found and the store re-captures when it no longer runs, vc's option (2); two new tests; swiftc -typecheck and swift format lint clean; xcodebuild test not run). RUST HALF NOT STARTED: intent use [dev|opt|brew] over the link set ~/.local/bin/{intent,intentd}, the shadow check by resolved directories in doctor and bare use, ending by exec'ing the NEW link's intent daemon restart (vc's ruling, the current_exe finding), the docs line naming the non-login-PATH Claude Code session hazard, and the intent u prefix note. One bank with both halves; the judge adds bin/devbin macos app-test. Measurements and rulings are in ST0087 design.md and with vc. ST0086 and issue 0639 are landed; the lifeline fix is banked at refs/bank/ic/0086/lifeline. No push, no release.
-- 0631+0642+0643 JUDGED GREEN 07:34Z on molt-vc's GO: refs/bank/ic/0631/v3 (blob a0ec030d91c1, patch-id c54074494f6d) at be110e062 over 6afb46998; every leg rc 0, six arms red at the base on their own assertions. READY to land with intent-vc, who closes the three issues. No push, no release. (edited)
 
 ## TODO
 
-- issue 0631 in 3.2.7 (decision 76, was hold 13): wb archive's positional seq renamed id, as wb edit's, across the dispatch table, the MCP arm, the CLI render, the regenerated reference and the in-whiteboard skill; a hard rename with no seq alias, proposed to vc under ruling (2) (no user base besides hv) and the no-shims rule; face-version move measured and stated in the bank. Authoring is light; its judge is a heavy booked with molt-vc. Before the cut.
-- issue 0642 in 3.2.7 (vc, 06:56Z): st attach prints wrote: for its event and the canon row it writes, through the one printer, with one arm red at the base beside 0632's. XS; it ships in ONE bank with 0631 (todo 54), judged once, as a heavy at molt-vc's desk. vc ruled 0631 a hard rename to id with no seq alias.
 - ST0086 WP-03 in 3.2.7 (decision 76, vc 07:08Z): the explorer's /estate page on the same reader as estate status; after ST0087 WP-03.
 - ST0086 AC-02.2 and AC-02.6 arms, RULED by vc as proposed, owed before ST0086 closes. Order: v3 judge, ST0087 WP-03, ST0086 WP-03, then these. (1) read_endpoint takes a Source { security, curl, url }, and host_endpoint passes today's consts. Stub scripts in a tempdir: the security stub answers per -s (the naming condition both ways), the curl stub a canned status and body. One arm per EndpointFailure plus a bad body, fixture tokens only, never the real Keychain or api.anthropic.com. (2) Unit arms in intentd's census.rs: push past KEPT, held() arms ASKED, gather reads the endpoint only when asked; no interval knob. (3) Cite the parser and count arms against AC-02.2, add a cwd-attribution arm only where none measures it, and the reap arm is gather(true, _) calling prune. (edited)
 

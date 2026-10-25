@@ -11,10 +11,7 @@
     "claims": [
       "ST0086/03",
       "ST0086/02",
-      "ST0087/03",
-      "ISSUE:0631",
-      "ISSUE:0642",
-      "ISSUE:0643"
+      "ST0087/03"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -2541,7 +2538,8 @@
       "kind": "todo",
       "seq": 54,
       "text": "issue 0631 in 3.2.7 (decision 76, was hold 13): wb archive's positional seq renamed id, as wb edit's, across the dispatch table, the MCP arm, the CLI render, the regenerated reference and the in-whiteboard skill; a hard rename with no seq alias, proposed to vc under ruling (2) (no user base besides hv) and the no-shims rule; face-version move measured and stated in the bank. Authoring is light; its judge is a heavy booked with molt-vc. Before the cut.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-25T08:16:18.529Z",
       "recorded_at": "2026-10-25T06:52:45.991Z"
     },
     {
@@ -2549,7 +2547,8 @@
       "kind": "todo",
       "seq": 55,
       "text": "issue 0642 in 3.2.7 (vc, 06:56Z): st attach prints wrote: for its event and the canon row it writes, through the one printer, with one arm red at the base beside 0632's. XS; it ships in ONE bank with 0631 (todo 54), judged once, as a heavy at molt-vc's desk. vc ruled 0631 a hard rename to id with no seq alias.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-25T08:16:19.496Z",
       "recorded_at": "2026-10-25T06:58:40.484Z"
     },
     {
@@ -2557,7 +2556,8 @@
       "kind": "doing",
       "seq": 128,
       "text": "0631+0642+0643 JUDGED GREEN 07:34Z on molt-vc's GO: refs/bank/ic/0631/v3 (blob a0ec030d91c1, patch-id c54074494f6d) at be110e062 over 6afb46998; every leg rc 0, six arms red at the base on their own assertions. READY to land with intent-vc, who closes the three issues. No push, no release.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-25T08:16:17.556Z",
       "recorded_at": "2026-10-25T07:05:18.739Z",
       "edited_at": "2026-10-25T07:36:50.128Z"
     },
