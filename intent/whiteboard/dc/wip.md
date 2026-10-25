@@ -6,7 +6,7 @@ session_id: 5abe68e1-b9b1-4003-9718-c8fbba772543
 heartbeat_at: 2026-10-25 10:05Z
 status: active
 focus: "3.2.7 (decision 76): 0634 and 0641 landed and closed; next ST0087 WP-04 (todo 49, carrying decisions 79 and 80) once cc's WP-01 and WP-02 and ic's WP-03 land; then the cut-side work (todo 50); no push, no release"
-claims: []
+claims: [ISSUE:0644]
 ---
 
 # DevX Claude (dc)

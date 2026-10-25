@@ -8,7 +8,9 @@
     "heartbeat_at": "2026-10-25T10:05:16.884Z",
     "status": "active",
     "focus": "3.2.7 (decision 76): 0634 and 0641 landed and closed; next ST0087 WP-04 (todo 49, carrying decisions 79 and 80) once cc's WP-01 and WP-02 and ic's WP-03 land; then the cut-side work (todo 50); no push, no release",
-    "claims": [],
+    "claims": [
+      "ISSUE:0644"
+    ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"
