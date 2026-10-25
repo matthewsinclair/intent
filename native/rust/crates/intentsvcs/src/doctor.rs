@@ -2418,7 +2418,7 @@ fn hook_findings(project: &Project) -> Vec<Finding> {
     return Vec::new();
   }
   let hooks = root.join(String::from_utf8_lossy(&out.stdout).trim());
-  let carrier_path = hooks.join("pre-commit.intent");
+  let carrier_path = crate::canon::chain_carrier(root, &hooks, "pre-commit");
   let chain_path = hooks.join("pre-commit");
   let shown = |p: &std::path::Path| project.relative(p);
 

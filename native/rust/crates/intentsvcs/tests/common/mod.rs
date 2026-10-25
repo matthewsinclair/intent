@@ -622,6 +622,45 @@ pub fn git_commit_all_at(root: &Path) {
   git_at(root, &["commit", "-q", "-m", "fixture estate"]);
 }
 
+/// A linked worktree of the repository at `main`, whose `pre-commit` under
+/// `core.hooksPath = .githooks` carries canon's chain block and nothing else.
+/// Everything at `main` is committed first, the hook included, so the worktree
+/// checks it out; a carrier written into `main/.githooks` afterwards is where
+/// `claude upgrade --apply` leaves it, gitignored and so never carried (issue
+/// `0644`). The worktree is the returned directory's `wt`.
+pub fn linked_worktree_at(main: &Path) -> (tempfile::TempDir, PathBuf) {
+  use std::os::unix::fs::PermissionsExt;
+  let hooks = main.join(".githooks");
+  std::fs::create_dir_all(&hooks).expect("mkdir .githooks");
+  let hook = hooks.join("pre-commit");
+  std::fs::write(
+    &hook,
+    intentsvcs::canon::insert_chain_block("pre-commit", "").expect("a hook with no block gets one"),
+  )
+  .expect("write the hook");
+  std::fs::set_permissions(&hook, std::fs::Permissions::from_mode(0o755)).expect("chmod");
+  git_at(main, &["config", "core.hooksPath", ".githooks"]);
+  git_at(main, &["add", "-A"]);
+  git_at(
+    main,
+    &["commit", "-q", "--no-verify", "-m", "fixture estate"],
+  );
+  let dir = tempfile::tempdir().expect("tempdir");
+  let wt = dir.path().join("wt");
+  git_at(
+    main,
+    &[
+      "worktree",
+      "add",
+      "-q",
+      "--detach",
+      &wt.display().to_string(),
+      "HEAD",
+    ],
+  );
+  (dir, wt)
+}
+
 /// Put the whiteboard's message tables back in the shape a store at schema 31
 /// holds (issue 0612): `wb_message` carrying the recipient's `state` and
 /// `handled_at` on the row and no `mid`, and no `wb_mark`. For a fixture that

@@ -88,6 +88,8 @@
 //! because templates grow, and disagrees only on an edit that changes what the
 //! guards do without changing how long the file is.
 
+use std::os::unix::fs::PermissionsExt;
+
 use intentsvcs::doctor::{self, CarrierShape, GateState, GateTemplates, carrier_shape, gate_state};
 use intentsvcs::finding::FindingClass;
 
@@ -839,5 +841,47 @@ fn a_shim_with_no_pointer_read_by_a_binary_outside_any_install_carries_its_error
   assert!(
     d.contains("cannot locate the install -- reinstall Intent"),
     "and bootstrap from THIS binary fails, so its own error and remedy are carried: {d}"
+  );
+}
+
+/// **DOCTOR IN A WORKTREE READS THE CARRIER ITS CHAIN WOULD RUN** (issue
+/// `0644`): the main checkout's, by [`intentsvcs::canon::chain_carrier`], the
+/// one Rust spelling of the block's rule. Before it, a worktree with its main
+/// checkout's gate wired was reported as calling a carrier that does not exist.
+/// The wired pass says nothing about the gate; the unwired pass is the control
+/// that the main checkout's carrier is the one read, since only that file can
+/// name no guard runner.
+#[test]
+fn doctor_in_a_worktree_reads_the_main_checkouts_carrier() {
+  let fx = crate::common::Fixture::new();
+  fx.git_init();
+  let (_dir, wt) = crate::common::linked_worktree_at(fx.root());
+  let project = intentsvcs::project::Project::open(&wt).expect("open the worktree's project");
+  let gate_findings = |carrier: &str| -> Vec<String> {
+    let path = fx.root().join(".githooks/pre-commit.intent");
+    std::fs::write(&path, carrier).expect("plant the carrier");
+    std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o755)).expect("chmod");
+    doctor::diagnose(
+      &project,
+      &crate::common::ctx(),
+      None,
+      intentsvcs::doctor::Scope::All,
+    )
+    .findings
+    .iter()
+    .filter(|f| f.class == FindingClass::GateNotRunning)
+    .map(|f| f.detail.clone())
+    .collect()
+  };
+
+  let wired = gate_findings(WIRED);
+  assert!(
+    !wired.iter().any(|d| d.contains("no such file exists")),
+    "the chain's carrier is found under the main checkout: {wired:?}"
+  );
+  let unwired = gate_findings(UNWIRED);
+  assert!(
+    unwired.len() == 1 && unwired[0].contains("names no guard runner"),
+    "the main checkout's carrier is the one judged: {unwired:?}"
   );
 }

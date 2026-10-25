@@ -628,3 +628,92 @@ fn a_hook_canon_cannot_rewrite_is_held_with_its_reason() {
     "its bytes are left as they were"
   );
 }
+
+/// Stage a new file in `wt` and commit it there through git, hooks and all: the
+/// commit's exit code and its stderr.
+fn commit_in(wt: &Path, name: &str) -> (Option<i32>, String) {
+  std::fs::write(wt.join(name), "x\n").expect("write the staged file");
+  let add = std::process::Command::new("git")
+    .args(["add", name])
+    .current_dir(wt)
+    .status()
+    .expect("git add");
+  assert!(add.success(), "git add {name} in {}", wt.display());
+  let out = std::process::Command::new("git")
+    .args(["commit", "-q", "-m", "worktree commit"])
+    .current_dir(wt)
+    .output()
+    .expect("git commit");
+  (
+    out.status.code(),
+    String::from_utf8_lossy(&out.stderr).into_owned(),
+  )
+}
+
+/// **A WORKTREE COMMIT IS GATED BY THE MAIN CHECKOUT'S CARRIER** (issue
+/// `0644`). The carrier is gitignored, so `git worktree add` never carries it,
+/// and the block used to look only at the worktree's own hooks path: every
+/// worktree commit met GATE ABSENT with a remedy that must not run there. The
+/// carrier now runs from the worktree, against the worktree's index, and its
+/// exit code is the commit's verdict in both directions.
+#[test]
+fn a_worktree_commit_runs_the_main_checkouts_carrier() {
+  let fx = crate::common::Fixture::new();
+  fx.git_init();
+  let (_dir, wt) = crate::common::linked_worktree_at(fx.root());
+  let carrier = fx.root().join(".githooks/pre-commit.intent");
+  assert!(
+    !wt.join(".githooks/pre-commit.intent").exists(),
+    "the arm requires the worktree to have no carrier of its own"
+  );
+  for (code, file, verdict) in [(0, "passes.txt", Some(0)), (3, "refused.txt", Some(1))] {
+    std::fs::write(
+      &carrier,
+      format!(
+        "#!/bin/sh\necho \"carrier-ran index=$(git diff --cached --name-only)\" >&2\nexit {code}\n"
+      ),
+    )
+    .expect("plant the carrier");
+    std::fs::set_permissions(&carrier, std::fs::Permissions::from_mode(0o755)).expect("chmod");
+    let (rc, stderr) = commit_in(&wt, file);
+    assert_eq!(rc, verdict, "the carrier's exit {code} decides: {stderr}");
+    assert!(
+      stderr.contains(&format!("carrier-ran index={file}")),
+      "the main checkout's carrier ran against the worktree's own index: {stderr}"
+    );
+    assert!(!stderr.contains("GATE"), "{stderr}");
+  }
+}
+
+/// **WITH NO CARRIER IN EITHER PLACE THE REFUSAL NAMES BOTH** (issue `0644`),
+/// and its remedy is the main checkout's to run, since the verb would write the
+/// worktree's canon.
+#[test]
+fn a_worktree_with_no_carrier_anywhere_names_both_paths() {
+  let fx = crate::common::Fixture::new();
+  fx.git_init();
+  let (_dir, wt) = crate::common::linked_worktree_at(fx.root());
+  let main = std::fs::canonicalize(fx.root()).expect("canonical main checkout");
+
+  let (rc, stderr) = commit_in(&wt, "staged.txt");
+  assert_eq!(rc, Some(1), "{stderr}");
+  assert!(stderr.contains("pre-commit: GATE ABSENT"), "{stderr}");
+  assert!(
+    stderr.contains(&format!(
+      "cannot find: {}/.githooks/pre-commit.intent",
+      main.display()
+    )),
+    "the main checkout's path is named: {stderr}"
+  );
+  assert!(
+    stderr.contains("nor at this worktree's own hooks path: .githooks/pre-commit.intent"),
+    "the worktree's own path is named: {stderr}"
+  );
+  assert!(
+    stderr.contains(&format!(
+      "remedy: intent claude upgrade --apply, in the main checkout {}",
+      main.display()
+    )),
+    "{stderr}"
+  );
+}

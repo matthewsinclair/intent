@@ -476,6 +476,16 @@ pub const POST_PULL_HOOKS: [&str; 3] = ["post-merge", "post-checkout", "post-rew
 /// through to that refusal: in a hook under `set -e`, as Intent's own are, the
 /// bare assignment aborted the hook first, at rc 128 with nothing printed.
 ///
+/// **A LINKED WORKTREE FINDS THE MAIN CHECKOUT'S CARRIER** (issue `0644`).
+/// With `core.hooksPath` relative, `--git-path hooks` names the worktree's own
+/// directory, where the gitignored carrier never is, so every worktree commit
+/// was refused with a remedy that must not run there. When the carrier is not
+/// at that path and the git dir is not the common dir, the block takes the same
+/// relative path under the main checkout, the common dir's parent, and runs it
+/// from the worktree, so the gate judges the worktree's own index. The refusal
+/// names both paths it tried, and its remedy names the main checkout.
+/// [`chain_carrier`] is the same rule for `doctor`.
+///
 /// **A POST-PULL HOOK WARNS AND EXITS 0.** It runs after git has changed the
 /// tree, so there is nothing left to refuse, and a `post-checkout` that exits
 /// non-zero becomes the exit code of `git checkout`, `git switch` and `git
@@ -509,14 +519,38 @@ fn chain_block(hook: &str) -> String {
       "else".to_string(),
       say("GATE ABSENT -- the Intent gate did NOT run: no guard, no critic, no doctor."),
       say("  this hook declares a gate it cannot find: $_intent_chain"),
+      "  if [ -n \"$_intent_own\" ]; then".to_string(),
+      format!("    echo \"{hook}:   nor at this worktree's own hooks path: $_intent_own\" >&2"),
+      "  fi".to_string(),
       say("  the carrier is gitignored, so no clone or worktree receives it."),
-      say("  remedy: intent claude upgrade --apply"),
+      "  if [ -n \"$_intent_own\" ]; then".to_string(),
+      format!(
+        "    echo \"{hook}:   remedy: intent claude upgrade --apply, in the main checkout ${{_intent_common%/*}}\" >&2"
+      ),
+      "  else".to_string(),
+      format!("    echo \"{hook}:   remedy: intent claude upgrade --apply\" >&2"),
+      "  fi".to_string(),
       "  exit 1".to_string(),
     ]
   };
   let mut lines = vec![
     CHAIN_START.to_string(),
-    format!("_intent_chain=\"$(git rev-parse --git-path hooks 2>/dev/null || :)/{hook}.intent\""),
+    "_intent_hooks=\"$(git rev-parse --git-path hooks 2>/dev/null || :)\"".to_string(),
+    format!("_intent_chain=\"$_intent_hooks/{hook}.intent\""),
+    "_intent_own=\"\"".to_string(),
+    "case \"$_intent_hooks\" in".to_string(),
+    "  /* | \"\") ;;".to_string(),
+    "  *)".to_string(),
+    "    _intent_common=\"$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null || :)\""
+      .to_string(),
+    "    if [ ! -e \"$_intent_chain\" ] && [ -n \"$_intent_common\" ] &&".to_string(),
+    "      [ \"$_intent_common\" != \"$(git rev-parse --path-format=absolute --git-dir 2>/dev/null || :)\" ]; then"
+      .to_string(),
+    "      _intent_own=\"$_intent_chain\"".to_string(),
+    "      _intent_chain=\"${_intent_common%/*}/$_intent_chain\"".to_string(),
+    "    fi".to_string(),
+    "    ;;".to_string(),
+    "esac".to_string(),
     "if [ -x \"$_intent_chain\" ]; then".to_string(),
     "  \"$_intent_chain\" \"$@\" || exit $?".to_string(),
   ];
@@ -1177,6 +1211,30 @@ pub fn hooks_dir(root: &Path) -> Option<PathBuf> {
   } else {
     root.join(path)
   })
+}
+
+/// The carrier `hook`'s chain block at `root` runs, given the `hooks`
+/// directory [`hooks_dir`] names there.
+///
+/// **THE SAME RULE [`chain_block`] SPELLS IN SHELL, AND ITS ONLY RUST SPELLING**
+/// (issue `0644`): the carrier under `hooks` when it is there; otherwise, in a
+/// linked worktree whose hooks path lies inside its own checkout, the same
+/// relative path under the main checkout, because the carrier is gitignored
+/// and `git worktree add` never carries it. Absent from both, the answer is the
+/// worktree's own path.
+pub fn chain_carrier(root: &Path, hooks: &Path, hook: &str) -> PathBuf {
+  let name = format!("{hook}.intent");
+  let own = hooks.join(&name);
+  if own.exists() {
+    return own;
+  }
+  hooks
+    .strip_prefix(root)
+    .ok()
+    .filter(|rel| !rel.as_os_str().is_empty())
+    .and_then(|rel| Some(crate::estate::main_checkout(root)?.join(rel).join(&name)))
+    .filter(|main| main.exists())
+    .unwrap_or(own)
 }
 
 /// Apply v3 canon to the project rooted at `root`.
