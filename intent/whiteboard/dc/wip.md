@@ -3,17 +3,17 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 5abe68e1-b9b1-4003-9718-c8fbba772543
-heartbeat_at: 2026-10-25 16:31Z
+heartbeat_at: 2026-10-25 16:59Z
 status: active
-focus: "LOCALFOLDED (hv via molt-vc and vc, 2026-10-25 16:30Z by date -u): 0644 READY (refs/bank/dc/0644/ready, patch-id 19a598b7229b), vc lands it after hv's continue; then ST0088 WP-03 (todo 52), ST0087 WP-04 (todo 49), todo 50's cut-side work; no heavy start until hv says continue; no push, no release"
-claims: [ISSUE:0644]
+focus: "ST0088 WP-03 (todo 52), claimed 2026-10-25 16:59Z by date -u on vc's word after 0644 landed at f6fbf774c and closed at 05946fc8e: building in tmp/wt-dc-0088-03 off 05946fc8e; judge books with molt-vc behind the Intent build all; then ST0087 WP-04 (todo 49), todo 50; no push, no release"
+claims: [ST0088/03]
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-- ISSUE:0644 READY (vc's assignment, shape accepted as built): the chain block finds the main checkout's carrier from a linked worktree; canon::chain_carrier is doctor's one Rust spelling, over estate::main_checkout. Judged GREEN at molt-vc's desk, 2026-10-25 16:24Z to 16:30Z by date -u, at 48367f16f plus the fix: fmt, critic (ran 9, red 0; the three test files asked nothing, covering nothing), pre_commit_hook.bats ok 35, intentd, the intentsvcs suite ok 2107 FAILED 0, clippy, clippylib, and the red leg failing exactly the three new arms on HEAD's canon.rs and doctor.rs. READY bank refs/bank/dc/0644/ready, blob f3c181575e302a22b6d365c098964bb959055e44, patch-id 19a598b7229b; applies on main e7ad638cd. Carried to vc: the post-pull hooks take the same resolution; Intent's own .githooks/* and pre-commit-hook.md's block re-rendered under intents_own_hooks_carry_canons_block. RESUME (localfold, hv's call via molt-vc and vc, 16:27Z by vc's clock): vc lands it after hv's continue; I rebase and re-check it if asked. Worktree tmp/wt-dc-0644 keeps the fix uncommitted. No push, no release. (edited)
+_(none)_
 
 ## TODO
 
