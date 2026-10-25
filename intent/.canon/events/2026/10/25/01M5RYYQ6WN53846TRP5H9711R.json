@@ -1,0 +1,16 @@
+{
+  "id": "01M5RYYQ6WN53846TRP5H9711R",
+  "ts": "2026-10-25T07:21:14.716Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 128,
+    "text": "0631+0642+0643 STACKED as one bank at refs/bank/ic/0631/v3 (blob a0ec030d91c1, patch-id c54074494f6d) over main 6afb46998, WIP be110e062 in tmp/wt-ic-0631 (11 files), by molt-vc's suggestion: one judge for three issues. intent-vc re-verifying. Judge /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd/scratchpad/0631v3/judge.sh, heavy, at molt-vc's GO, six arms red at the base. START and END to molt-vc, END copied to vc. No push, no release."
+  }
+}

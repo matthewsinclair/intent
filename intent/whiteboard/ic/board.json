@@ -2556,10 +2556,10 @@
       "node": "ic",
       "kind": "doing",
       "seq": 128,
-      "text": "0631+0642 BANKED at refs/bank/ic/0631/v2 (blob 6f93281b2fa4, patch-id fae7ba629c07) over main 6afb46998, WIP 92776268e in tmp/wt-ic-0631, with the CHANGELOG bullets; vc pre-verified; st detach folded in. READY sent to molt-vc 07:09Z; judge /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd/scratchpad/0631/judge.sh, heavy, at molt-vc's GO; START and END to molt-vc, END copied to vc. No push, no release.",
+      "text": "0631+0642+0643 STACKED as one bank at refs/bank/ic/0631/v3 (blob a0ec030d91c1, patch-id c54074494f6d) over main 6afb46998, WIP be110e062 in tmp/wt-ic-0631 (11 files), by molt-vc's suggestion: one judge for three issues. intent-vc re-verifying. Judge /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd/scratchpad/0631v3/judge.sh, heavy, at molt-vc's GO, six arms red at the base. START and END to molt-vc, END copied to vc. No push, no release.",
       "state": "live",
       "recorded_at": "2026-10-25T07:05:18.739Z",
-      "edited_at": "2026-10-25T07:09:49.770Z"
+      "edited_at": "2026-10-25T07:21:14.716Z"
     },
     {
       "node": "ic",
@@ -2574,7 +2574,8 @@
       "kind": "doing",
       "seq": 129,
       "text": "0643 BANKED unjudged at refs/bank/ic/0643/wip (blob 927e5b0b141, patch-id 5d2b4b264863) over 8cb343447, WIP 39f0c6167 in tmp/wt-ic-0643: one natural-order comparator, model::id_order, called by all three sort sites. Judge /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd/scratchpad/0643/judge.sh, heavy, READY at molt-vc after 0631. Its CHANGELOG bullet collides with 0631/v2's at the same spot, so the second to land gets rebased. No push, no release.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-25T07:21:17.032Z",
       "recorded_at": "2026-10-25T07:18:09.016Z"
     }
   ],
