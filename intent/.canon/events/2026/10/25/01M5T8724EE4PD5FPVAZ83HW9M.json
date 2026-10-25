@@ -1,0 +1,15 @@
+{
+  "id": "01M5T8724EE4PD5FPVAZ83HW9M",
+  "ts": "2026-10-25T19:22:20.333Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "STATE (ic, 2026-10-25 19:22Z by date -u). LANDED today: ST0087 WP-03 at ec266c998, closed at e38a4890a with AT-03.1-03.6 green; ST0086 WP-03 at e8f01854f and the pipeline strip at ea94f91b0, judged green after landing by the combined rejudge at e756e484a (18:07Z-18:11Z). WAITING: (1) Intent.app Release build in tmp/wt-ic-app at edea1302f, READY at molt-vc's desk 19:22Z (vc's build all did not rebuild the app; it still says 284b6615e), then the install as a LIGHT+LS on hv's answer through molt-vc (FOR hv sent: quit then install, recommended, or swap on disk); (2) ST0086 WP-04 Part A page and TUI half, refs/bank/ic/0086/wp04a-page-v2 (7c85f9c55..dc595d381, patch-id c932e3dd4ff4), verified by vc, lands after cc's reader, one combined heavy judge on the combined tip, whole workspace. NEXT: todo 57 (ST0086 AC-02.2 and AC-02.6 arms), then ST0088 WP-04's measurement with vc. Hold 12 stands. Asks of hv go to molt-vc as FOR hv:. No push, no release."
+  }
+}

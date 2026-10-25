@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd
-heartbeat_at: 2026-10-25 16:28Z
+heartbeat_at: 2026-10-25 19:21Z
 status: active
 focus: "LOCALFOLD (2026-10-25 16:28Z): WP-03 rerun booked (rebase over 0647 before GO), the app swap waits for hv, then ST0086 WP-03 and the AC-02.2/02.6 arms; no heavy start until hv says continue; no push, no release"
 claims: [ST0086/03, ST0086/02, ST0087/03]
@@ -13,7 +13,7 @@ claims: [ST0086/03, ST0086/02, ST0087/03]
 
 ## DOING
 
-- RESUME STATE (ic, localfold on hv's call via molt-vc and vc, 2026-10-25 16:28Z by date -u). QUEUE, in order: (1) ST0087 WP-03 judge RERUN, booked HEAVY+LS at molt-vc behind Intent 0644, utilz 0109, gtools WP-07, Laksa 118 and gtools-dc WP-04; vc cleared v3 (refs/bank/ic/0087/wp03-v3, tip da46922af over d5b837d16, patch-id e29f730502b3b27739e6e0f4b780268532dbe2bc, worktree tmp/wt-ic-0087, judge scratchpad st0087/judge.sh). BEFORE GO: rebase over main with 0647 (21b080fbd), re-bank, send molt-vc the new tip and patch-id, re-point judge.sh's base. The first run's nine reds are fixed; the shadow findings are exempt (vc's ruling). Legs: critic-control first, app-executed above zero, critics by absolute path. (2) Intent.app build and install, my own heavy: Release built at 284b6615e (build 8906) in tmp/wt-ic-app; app-install QUITS and relaunches the app, so it is never run while it runs; the swap WAITS for hv's answer (hv quits it, then the stock app-install; or keep it running, then the by-hand swap with no quit and no open), booked with molt-vc as LIGHT+LS when hv answers. (3) ST0086 WP-03, the page and TUI half, with the pipeline strip (AC-04.7, decision 83) and recent beside queue at WP-04. (4) ST0086 AC-02.2 and AC-02.6 arms (todo 57). (5) ST0088 WP-04's measurement, with vc. Bats runs, the red-and-green plants included, go through molt-vc's desk. Hold 12 stands. No heavy start until hv says continue. No push, no release.
+- STATE (ic, 2026-10-25 19:22Z by date -u). LANDED today: ST0087 WP-03 at ec266c998, closed at e38a4890a with AT-03.1-03.6 green; ST0086 WP-03 at e8f01854f and the pipeline strip at ea94f91b0, judged green after landing by the combined rejudge at e756e484a (18:07Z-18:11Z). WAITING: (1) Intent.app Release build in tmp/wt-ic-app at edea1302f, READY at molt-vc's desk 19:22Z (vc's build all did not rebuild the app; it still says 284b6615e), then the install as a LIGHT+LS on hv's answer through molt-vc (FOR hv sent: quit then install, recommended, or swap on disk); (2) ST0086 WP-04 Part A page and TUI half, refs/bank/ic/0086/wp04a-page-v2 (7c85f9c55..dc595d381, patch-id c932e3dd4ff4), verified by vc, lands after cc's reader, one combined heavy judge on the combined tip, whole workspace. NEXT: todo 57 (ST0086 AC-02.2 and AC-02.6 arms), then ST0088 WP-04's measurement with vc. Hold 12 stands. Asks of hv go to molt-vc as FOR hv:. No push, no release.
 
 ## TODO
 
