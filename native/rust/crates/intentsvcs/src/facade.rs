@@ -6976,7 +6976,7 @@ impl Facade {
       self
         .landed
         .extend(report.hydrated.iter().chain(&report.rewritten).cloned());
-      self.note_removed(report.dehydrated.iter().chain(&report.pruned_legacy));
+      self.note_removed(report.dehydrated.iter().chain(&report.pruned_legacy))?;
       let rel = |ps: &[std::path::PathBuf]| -> Vec<String> {
         let mut v: Vec<String> = ps.iter().map(|p| self.project.relative(p)).collect();
         v.sort();
@@ -7733,7 +7733,7 @@ impl Facade {
     }
 
     let removed: Vec<std::path::PathBuf> = run.dehydrated.clone();
-    self.note_removed(&removed);
+    self.note_removed(&removed)?;
     if was_listed || !removed.is_empty() {
       self.record_disk_act(
         "disk.dehydrate",
@@ -8216,8 +8216,22 @@ impl Facade {
 
   /// Record files a verb's disk act removed, for the verb's drain to name as
   /// `removed` (issue 0632), as [`Self::note_landed`] records what it wrote.
-  fn note_removed<'a>(&mut self, paths: impl IntoIterator<Item = &'a std::path::PathBuf>) {
-    self.removed.extend(paths.into_iter().cloned());
+  ///
+  /// **AND THE STORE FORGETS EXACTLY THOSE FILES** (issue 0638): the rows
+  /// deleted from the file index are the paths the drain prints as `removed`,
+  /// one set noted once, so the two cannot disagree.
+  fn note_removed<'a>(
+    &mut self,
+    paths: impl IntoIterator<Item = &'a std::path::PathBuf>,
+  ) -> Result<(), FacadeError> {
+    let paths: Vec<std::path::PathBuf> = paths.into_iter().cloned().collect();
+    let rel: Vec<String> = paths.iter().map(|p| self.project.relative(p)).collect();
+    self
+      .store
+      .forget_file_entries(&rel)
+      .map_err(FacadeError::Store)?;
+    self.removed.extend(paths);
+    Ok(())
   }
 
   /// Record what a write set landed, for the verb's drain to name (issue
@@ -13995,23 +14009,25 @@ impl Facade {
     // 0632), and both are the caller's to commit. Noted only now, after the
     // write: a refusal above has put every move back, so it names none. A moved
     // directory is named file by file, as git names it.
+    let mut sources = Vec::new();
     for (source_path, target) in &done {
       if target.is_dir() {
         for rel in Project::files_in(target) {
           self.landed.push(target.join(&rel));
-          self.removed.push(source_path.join(&rel));
+          sources.push(source_path.join(&rel));
         }
       } else {
         self.landed.push(target.clone());
-        self.removed.push(source_path.clone());
+        sources.push(source_path.clone());
       }
     }
+    self.note_removed(&sources)?;
     let mut notes = Vec::new();
     for path in stale {
       match std::fs::remove_file(&path) {
         Ok(()) => {
           moved.push(format!("{} removed", self.project.relative(&path)));
-          self.removed.push(path);
+          self.note_removed(std::iter::once(&path))?;
         }
         Err(source) if source.kind() == std::io::ErrorKind::NotFound => {}
         Err(source) => {

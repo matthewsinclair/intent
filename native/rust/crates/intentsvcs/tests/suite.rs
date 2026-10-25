@@ -372,6 +372,8 @@ mod the_source_tokeniser_is_measured;
 #[path = "upgrade_dehydrates_undeclared_thread_views.rs"]
 mod upgrade_dehydrates_undeclared_thread_views;
 
+#[path = "a_removed_file_leaves_the_file_index.rs"]
+mod a_removed_file_leaves_the_file_index;
 #[path = "no_orphan_suite_member.rs"]
 mod no_orphan_suite_member;
 #[path = "no_view_claims_to_be_truth.rs"]

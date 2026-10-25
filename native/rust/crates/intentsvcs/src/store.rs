@@ -6718,6 +6718,25 @@ impl Store {
     Ok(())
   }
 
+  /// Forget the files a verb just REMOVED from disk, leaving every other row
+  /// alone (issue 0638), as [`Store::record_file_entries`] records the files a
+  /// verb landed.
+  ///
+  /// The file index is what the store believes is on disk, so a row that
+  /// outlives the file a verb took away is a false belief whether or not a
+  /// reader trips on it. Not [`Store::replace_file_index`], which is the sync
+  /// scan's whole-set writer: a verb removes a handful of files and knows
+  /// nothing of the rest.
+  pub fn forget_file_entries(&mut self, paths: &[String]) -> Result<(), StoreError> {
+    let tx = Self::write_tx(&mut self.conn)?;
+    tx.execute(
+      "DELETE FROM file_index WHERE path IN (SELECT value FROM json_each(?1))",
+      params![serde_json::to_string(paths)?],
+    )?;
+    tx.commit()?;
+    Ok(())
+  }
+
   /// This connection's `PRAGMA data_version` (issue `0441`).
   ///
   /// **IT MOVES WHEN ANOTHER CONNECTION COMMITS AND NEVER FOR THIS ONE'S OWN
