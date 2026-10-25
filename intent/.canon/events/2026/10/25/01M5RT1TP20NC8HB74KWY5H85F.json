@@ -1,0 +1,15 @@
+{
+  "id": "01M5RT1TP20NC8HB74KWY5H85F",
+  "ts": "2026-10-25T05:55:33.701Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0087/03"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "intent use and the shadow check"
+  }
+}

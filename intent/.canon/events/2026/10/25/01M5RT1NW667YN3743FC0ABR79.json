@@ -1,0 +1,14 @@
+{
+  "id": "01M5RT1NW667YN3743FC0ABR79",
+  "ts": "2026-10-25T05:55:28.778Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "st.new",
+  "subject": {
+    "type": "thread",
+    "id": "ST0087"
+  },
+  "payload": {
+    "title": "Intent conforms to the dev, opt and brew contract"
+  }
+}
