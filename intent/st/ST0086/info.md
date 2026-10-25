@@ -21,7 +21,7 @@ The estate is the host (rhadamanth, kovacs and gyges each its own), not a projec
 | WP    | Title                                                                                                                                                                          | Size | Status      |
 | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---- | ----------- |
 | WP-01 | The estate record and its doors: directory, versioned record, one reader, the estate verbs, MCP exposure, the reap rule                                                        | S    | WIP         |
-| WP-02 | intentd serves /estate/status: watches the estate directory outside the ingest path, renders the live top-styled page with the host census                                     | S    | Not Started |
+| WP-02 | intentd serves /estate/status: watches the estate directory outside the ingest path, renders the live top-styled page with the host census                                     | S    | WIP         |
 | WP-03 | The intent explore TUI: /estate beside /projects, on the same reader                                                                                                           | S    | Not Started |
 | WP-04 | Slots: a generic pool, ask, grant, start, release protocol on the estate, records beside the status records, capacity enforced by the tool, policy with the controlling Claude | S    | Not Started |
 

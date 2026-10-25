@@ -2,7 +2,7 @@
 wp_id: WP-02
 title: intentd serves /estate/status: watches the estate directory outside the ingest path, renders the live top-styled page with the host census
 scope: S
-status: Not Started
+status: WIP
 ---
 
 # WP-02: intentd serves /estate/status: watches the estate directory outside the ingest path, renders the live top-styled page with the host census
