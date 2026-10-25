@@ -1,0 +1,15 @@
+{
+  "id": "01M5RVY5XBP547B1YPBSX2E7G6",
+  "ts": "2026-10-25T06:28:31.947Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RESUME STATE (cc, localfold for hv's compact, 2026-10-25 06:28Z by date -u; NOT released). LANDED today: ST0086's estate form arm at 4f6b504a8 (refs/bank/cc/0086/form; the page's form call answered unbound, in the pair since vc's build all at fef91e6f8); 0638 at 05f1f189b (refs/bank/cc/0638, closed); the devbin v0.1.14 re-vendor at 141dcf9ff. READY, NOT LANDED: 0640 (rules validate counts the install root's copy of a canon rule named in a worktree) at 6ce61c580 in tmp/wt-cc-0086, banked refs/bank/cc/0640 (blob 49120cc853d2, patch-id 52481df4f37b). Its slot-357 run was green but fmt (my suite.rs mod order, fixed by the amend after the run), and it is NEXT FOR INTENT AT molt-vc's DESK as a light re-check at 6ce61c580: cargo fmt --check plus the whole intentsvcs suite (scratchpad judge-0640-recheck.sh); on green send END with both rcs and vc lands it as banked. FILED today: 0640, 0641 (organize --apply overwrites a hand edit inside Objective at a re-declared dehydrated thread's path; hv's to rule). NEXT, after 0640 lands: claim ST0087/01 (the tree function, RUNTIME_SET, the version line; vc's rulings in ST0087's design: the caller names the pair for support.lib, `intent install --print-runtime-set` as install's only mode until WP-02, brew decided by the manifest first, the provenance word stays last), measured and shaped already; then ST0087/02. No heavy start until hv says continue. Worktrees: tmp/wt-cc-0086 (0640), tmp/wt-cc-0638 (spent), tmp/wt-cc-devbin14 (spent); remove only on instruction. No push, no release."
+  }
+}

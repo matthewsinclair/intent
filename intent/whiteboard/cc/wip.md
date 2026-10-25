@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 66e84138-c919-405e-bed0-8057e34a7ac2
-heartbeat_at: 2026-10-25 05:11Z
+heartbeat_at: 2026-10-25 06:28Z
 status: active
-focus: "Nothing in flight: ST0086 WP-02 complete on main, devbin v0.1.14 re-vendored at 141dcf9ff, 0640 filed; hold 33 (ST0081 AC-02.1) waits on vc's dev, opt, brew conformance thread; no push, no release"
+focus: "0640 re-check at 6ce61c580 is next for Intent at molt-vc's desk (fmt + intentsvcs suite), then vc lands refs/bank/cc/0640; then ST0087 WP-01 (claim on 0640's landing); hold 33 waits on ST0087; no push, no release"
 claims: [ST0081, ST0086/01, ST0086/04]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0081, ST0086/01, ST0086/04]
 
 ## DOING
 
-- ST0086, RESUME STATE (cc, 2026-10-25 03:27Z by date -u). LANDED on main: WP-01 at 84b680035 (+ vc's design fix 138c09ca6); WP-02's daemon half at 1dc84382d from refs/bank/cc/0086/wp02 (judged green in slot 330 at 0dcf5c0ba); WP-02's three facade doors at 53a53a4b8 from refs/bank/cc/0086/wp02-doors (estate_census_watch, estate_census_unwatch, estate_statusline_report; judged green in slot 335 at 7fc7b979e; decision 74). ic has the signatures and writes the CLI verbs over them (ic todo 53); ic's ST0086 bank reruns over main and lands after. NEXT for cc: todo 41 (the host_* tidy) after ic's landing; then Intent build all (vc's call, restart announced first); then the devbin v0.1.14 re-vendor (doing 88), which waits for the house line or molt-vc's clear because the tether is metered. Still to come: the Op::Form View::Estate arm after ic's nav hunk, then 04a. No push, no release. (edited)
+- RESUME STATE (cc, localfold for hv's compact, 2026-10-25 06:28Z by date -u; NOT released). LANDED today: ST0086's estate form arm at 4f6b504a8 (refs/bank/cc/0086/form; the page's form call answered unbound, in the pair since vc's build all at fef91e6f8); 0638 at 05f1f189b (refs/bank/cc/0638, closed); the devbin v0.1.14 re-vendor at 141dcf9ff. READY, NOT LANDED: 0640 (rules validate counts the install root's copy of a canon rule named in a worktree) at 6ce61c580 in tmp/wt-cc-0086, banked refs/bank/cc/0640 (blob 49120cc853d2, patch-id 52481df4f37b). Its slot-357 run was green but fmt (my suite.rs mod order, fixed by the amend after the run), and it is NEXT FOR INTENT AT molt-vc's DESK as a light re-check at 6ce61c580: cargo fmt --check plus the whole intentsvcs suite (scratchpad judge-0640-recheck.sh); on green send END with both rcs and vc lands it as banked. FILED today: 0640, 0641 (organize --apply overwrites a hand edit inside Objective at a re-declared dehydrated thread's path; hv's to rule). NEXT, after 0640 lands: claim ST0087/01 (the tree function, RUNTIME_SET, the version line; vc's rulings in ST0087's design: the caller names the pair for support.lib, `intent install --print-runtime-set` as install's only mode until WP-02, brew decided by the manifest first, the provenance word stays last), measured and shaped already; then ST0087/02. No heavy start until hv says continue. Worktrees: tmp/wt-cc-0086 (0640), tmp/wt-cc-0638 (spent), tmp/wt-cc-devbin14 (spent); remove only on instruction. No push, no release. (edited)
 
 ## TODO
 
