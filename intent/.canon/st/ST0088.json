@@ -32,7 +32,7 @@
       "seq": 3,
       "title": "The templates, subagents and hooks: the root-file templates trimmed, the critics to their delta over the contract, the dead subagent files and plugin.json culled",
       "scope": "S",
-      "status": "not-started",
+      "status": "done",
       "objective": "In `lib/templates/llm/`: `_AGENTS.md`, `_CLAUDE.md` and `_usage-rules.md` without the Socrates and Diogenes FAQ, the security boilerplate, the v2-era interop prose and any instruction another loaded file owns, the Rules of the Road table in one home, `agents_sync_parity.rs` and `claude_md_template.bats` green. In `intent/plugins/claude/subagents/`: each code critic's `agent.md` reduced to its language delta over `rules/_schema/critic-contract.md` and pointing at it, the Diogenes handoff in `critic-elixir` alone; `intent/agent.md`, `socrates/README.md` and the eight `metadata.json` removed, with `payload.rs` and the installer agreeing with the tree; `intent/plugins/claude/plugin.json` removed unless hv rules `intent plugin list` wanted, in which case its reader is named. In `lib/templates/.claude/scripts/`: any `~/.claude` read through `CLAUDE_CONFIG_DIR`. Judge: the intent-cli and intentsvcs suites (the templates and installer tests), the bats that pin the templates, prettier on the markdown, the critic leg on the scripts; heavy, booked with molt-vc. Owner: dc, after 0644. Size M.",
       "body": "",
       "preamble": ""
