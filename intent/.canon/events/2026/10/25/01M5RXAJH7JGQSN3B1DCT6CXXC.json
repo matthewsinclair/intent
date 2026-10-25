@@ -1,0 +1,15 @@
+{
+  "id": "01M5RXAJH7JGQSN3B1DCT6CXXC",
+  "ts": "2026-10-25T06:52:45.991Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "issue 0631 in 3.2.7 (decision 76, was hold 13): wb archive's positional seq renamed id, as wb edit's, across the dispatch table, the MCP arm, the CLI render, the regenerated reference and the in-whiteboard skill; a hard rename with no seq alias, proposed to vc under ruling (2) (no user base besides hv) and the no-shims rule; face-version move measured and stated in the bank. Authoring is light; its judge is a heavy booked with molt-vc. Before the cut."
+  }
+}

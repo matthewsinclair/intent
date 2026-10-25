@@ -5,13 +5,14 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd",
-    "heartbeat_at": "2026-10-25T06:28:48.502Z",
+    "heartbeat_at": "2026-10-25T06:31:48.048Z",
     "status": "active",
     "focus": "LOCALFOLD (2026-10-25): ST0087 WP-03, Swift half drafted at 830fedbe1 (unbuilt), Rust half held for cc's WP-01 and hv's continue (hold 14); holds 12 and 13 stand; no push, no release",
     "claims": [
       "ST0086/03",
       "ST0086/02",
-      "ST0087/03"
+      "ST0087/03",
+      "ISSUE:0631"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -2513,7 +2514,8 @@
       "kind": "hold",
       "seq": 13,
       "text": "issue 0631 (wb archive's positional seq renamed id, as wb edit's): new surface that waits behind the stabilisation line drawn after 3.2.5. RELEASES WHEN: vc or hv lifts the line for 0631 and vc specifies what a client still sending seq meets",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-25T06:52:44.999Z",
       "recorded_at": "2026-10-25T04:55:05.453Z"
     },
     {
@@ -2531,6 +2533,14 @@
       "text": "ST0087 WP-03's Rust half (intent use and the shadow check) and the bank with the Swift draft at 830fedbe1. RELEASES WHEN: cc's WP-01 (the tree function and the version line) is on main, and hv has said continue after the fold",
       "state": "live",
       "recorded_at": "2026-10-25T06:28:25.972Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 54,
+      "text": "issue 0631 in 3.2.7 (decision 76, was hold 13): wb archive's positional seq renamed id, as wb edit's, across the dispatch table, the MCP arm, the CLI render, the regenerated reference and the in-whiteboard skill; a hard rename with no seq alias, proposed to vc under ruling (2) (no user base besides hv) and the no-shims rule; face-version move measured and stated in the bank. Authoring is light; its judge is a heavy booked with molt-vc. Before the cut.",
+      "state": "live",
+      "recorded_at": "2026-10-25T06:52:45.991Z"
     }
   ],
   "sent": [
