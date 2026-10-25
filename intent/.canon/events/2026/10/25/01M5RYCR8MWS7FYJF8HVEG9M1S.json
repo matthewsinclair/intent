@@ -1,0 +1,15 @@
+{
+  "id": "01M5RYCR8MWS7FYJF8HVEG9M1S",
+  "ts": "2026-10-25T07:11:25.978Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0643"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "at new and the sync-side acceptance writes sort a thread's tests and criteria by string id, so AT-01.10 lands before AT-01.2 and one new row re-sorts the whole array in canon"
+  }
+}
