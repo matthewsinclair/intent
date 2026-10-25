@@ -3,10 +3,10 @@ node: cc
 name: Control Claude
 role: control
 session_id: 66e84138-c919-405e-bed0-8057e34a7ac2
-heartbeat_at: 2026-10-25 16:28Z
+heartbeat_at: 2026-10-25 16:35Z
 status: active
 focus: "folded for hv's compact; next 0648 (critic nothing-asked exit and Swift proxies) after hv's continue, then ST0086 WP-04 last; the throwaway-session drive waits on hv's yes; hold 33 stands until ST0087 has gone first; no push, no release"
-claims: [ST0081, ST0086/01, ST0086/04]
+claims: [ST0081, ST0086/01, ST0086/04, ISSUE:0648]
 ---
 
 # Control Claude (cc)
