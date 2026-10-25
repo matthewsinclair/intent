@@ -3,18 +3,17 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd
-heartbeat_at: 2026-10-25 10:51Z
+heartbeat_at: 2026-10-25 16:28Z
 status: active
-focus: "LOCALFOLD (2026-10-25 10:51Z): atdoc bank rides cc's re-judge (56d98e716, lands third); then ST0087 WP-03 behind cc's WP-01 (hold 14), ST0086 WP-03, the AC-02.2/02.6 arms; no heavy start until hv says continue; no push, no release"
-claims: [ST0086/03, ST0086/02, ST0087/03, ST0088/01, ST0088/02]
+focus: "LOCALFOLD (2026-10-25 16:28Z): WP-03 rerun booked (rebase over 0647 before GO), the app swap waits for hv, then ST0086 WP-03 and the AC-02.2/02.6 arms; no heavy start until hv says continue; no push, no release"
+claims: [ST0086/03, ST0086/02, ST0087/03]
 ---
 
 # Interface Claude (ic)
 
 ## DOING
 
-- RESUME STATE (ic, localfold on hv's call via molt-vc and vc, 2026-10-25 10:51Z by date -u). QUEUE, in order: (1) ST0086 doc-line bank refs/bank/ic/atdoc/v1 (blob a45efae68412d2fc76c4faa51e1d6f128aa0446a, patch-id ea308ad7882b7c5d3a9729aec640f5dfdf5bdf1a, diff d2c9aaa09..8ccce33e4 in tmp/wt-ic-atdoc) RIDES cc's ST0087 re-judge as its third commit 56d98e716 over 77ab9b78d in tmp/wt-cc-0087b; molt-vc dropped my own heavy place; it lands third after cc's 01b and 02b, then vc lets the daemon ingest, runs intent at lint ST0086 on main and closes ST0086 WP-01; after it lands I remove tmp/wt-ic-atdoc. (2) ST0087 WP-03 behind cc's WP-01 landing (hold 14): Swift half drafted, unbuilt, at 830fedbe1c3126f810edfb421c4630efe6001d56 in tmp/wt-ic-0086; Rust half (intent use [dev|opt|brew], the shadow check by resolved directories, exec of the new link's intent daemon restart, the non-login-PATH docs line, the intent u note, the VersionService.swift:91 masthead parser) not started; arms carry AT-03.k for AC-03.1 to AC-03.6, AC-03.1 asserting decision 80's brew-resting line both ways; one bank, judged with bin/devbin macos app-test and the critic leg (decision 79, scratchpad critic-leg.sh). (3) ST0086 WP-03, the /estate page (todo 56). (4) ST0086 AC-02.2 and AC-02.6 arms (todo 57). Holds 12 and 14 stand. No new heavy start until hv says continue. No push, no release. (edited)
-- ST0087 WP-03 building over main 49f54f308 (hold 14 released 2026-10-25: cc's WP-01 landed at 976fad577): intent use [dev|opt|brew], the shadow check, the masthead parser, with the Swift draft from 830fedbe1; one bank, judged on molt-vc's GO. Queued behind it: ST0088's stacked judge (tip 89c40ffaf, banks wp01b and wp02b), ST0086 WP-03, the AC-02.2 and AC-02.6 arms. No push, no release.
+- RESUME STATE (ic, localfold on hv's call via molt-vc and vc, 2026-10-25 16:28Z by date -u). QUEUE, in order: (1) ST0087 WP-03 judge RERUN, booked HEAVY+LS at molt-vc behind Intent 0644, utilz 0109, gtools WP-07, Laksa 118 and gtools-dc WP-04; vc cleared v3 (refs/bank/ic/0087/wp03-v3, tip da46922af over d5b837d16, patch-id e29f730502b3b27739e6e0f4b780268532dbe2bc, worktree tmp/wt-ic-0087, judge scratchpad st0087/judge.sh). BEFORE GO: rebase over main with 0647 (21b080fbd), re-bank, send molt-vc the new tip and patch-id, re-point judge.sh's base. The first run's nine reds are fixed; the shadow findings are exempt (vc's ruling). Legs: critic-control first, app-executed above zero, critics by absolute path. (2) Intent.app build and install, my own heavy: Release built at 284b6615e (build 8906) in tmp/wt-ic-app; app-install QUITS and relaunches the app, so it is never run while it runs; the swap WAITS for hv's answer (hv quits it, then the stock app-install; or keep it running, then the by-hand swap with no quit and no open), booked with molt-vc as LIGHT+LS when hv answers. (3) ST0086 WP-03, the page and TUI half, with the pipeline strip (AC-04.7, decision 83) and recent beside queue at WP-04. (4) ST0086 AC-02.2 and AC-02.6 arms (todo 57). (5) ST0088 WP-04's measurement, with vc. Bats runs, the red-and-green plants included, go through molt-vc's desk. Hold 12 stands. No heavy start until hv says continue. No push, no release.
 
 ## TODO
 

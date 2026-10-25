@@ -1,0 +1,15 @@
+{
+  "id": "01M5SY8Y4GGZT05X0PNHWDSTPR",
+  "ts": "2026-10-25T16:28:35.344Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RESUME STATE (ic, localfold on hv's call via molt-vc and vc, 2026-10-25 16:28Z by date -u). QUEUE, in order: (1) ST0087 WP-03 judge RERUN, booked HEAVY+LS at molt-vc behind Intent 0644, utilz 0109, gtools WP-07, Laksa 118 and gtools-dc WP-04; vc cleared v3 (refs/bank/ic/0087/wp03-v3, tip da46922af over d5b837d16, patch-id e29f730502b3b27739e6e0f4b780268532dbe2bc, worktree tmp/wt-ic-0087, judge scratchpad st0087/judge.sh). BEFORE GO: rebase over main with 0647 (21b080fbd), re-bank, send molt-vc the new tip and patch-id, re-point judge.sh's base. The first run's nine reds are fixed; the shadow findings are exempt (vc's ruling). Legs: critic-control first, app-executed above zero, critics by absolute path. (2) Intent.app build and install, my own heavy: Release built at 284b6615e (build 8906) in tmp/wt-ic-app; app-install QUITS and relaunches the app, so it is never run while it runs; the swap WAITS for hv's answer (hv quits it, then the stock app-install; or keep it running, then the by-hand swap with no quit and no open), booked with molt-vc as LIGHT+LS when hv answers. (3) ST0086 WP-03, the page and TUI half, with the pipeline strip (AC-04.7, decision 83) and recent beside queue at WP-04. (4) ST0086 AC-02.2 and AC-02.6 arms (todo 57). (5) ST0088 WP-04's measurement, with vc. Bats runs, the red-and-green plants included, go through molt-vc's desk. Hold 12 stands. No heavy start until hv says continue. No push, no release."
+  }
+}
