@@ -17,7 +17,7 @@ claims: []
 
 ## TODO
 
-_(none)_
+- ST0088 follow-up from AC-03.2's narrowing (2026-10-25): an installed critic subagent cannot reach rules/_schema/critic-contract.md, so each agent.md repeats the shared contract. Options dc measured: a read verb such as intent claude rules contract (S to M, new surface), or installing the contract beside the agents (changes payload's one-file shape). Not before 3.2.7's cut unless hv asks.
 
 ## Holds
 

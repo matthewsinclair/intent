@@ -1,0 +1,14 @@
+{
+  "id": "01M5T1CTB2K8FRPFZMW65PSVAR",
+  "ts": "2026-10-25T17:23:08.265Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0088/AC-03.2"
+  },
+  "payload": {
+    "text": "Each code critic's `agent.md` carries nothing that is wrong for its language (no non-Elixir Diogenes handoff, no description naming `rules/<lang>/`, no stale test line) and says that `intent critic <lang>` is what the commit gate runs; the Diogenes handoff appears in `critic-elixir` alone; `intent claude subagents list` and `critic.rs` agree with the tree. Narrowed 2026-10-25 by vc under hv's pen: the clause making each agent its delta over `rules/_schema/critic-contract.md` and pointing at it is out, because dc measured that an installed subagent is one file under the config dir and no verb or path lets it read the contract, so the shared text stays per agent; making the contract reachable is a follow-up on vc's board, not this thread."
+  }
+}
