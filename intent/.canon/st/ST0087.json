@@ -216,6 +216,88 @@
       }
     }
   ],
+  "tests": [
+    {
+      "id": "AT-01.1",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/the_tree_function_names_the_running_tree.rs",
+      "covers": [
+        "AC-01.1"
+      ],
+      "status": "green",
+      "note": "arms: a_manifest_managed_by_brew_is_brew_before_its_tool_is_read and the file's other arms over the four answers, the sha source, dirty both ways and unreadable git; green in cc's judge at 47eb2d2c7 on 2026-10-25 (fmt, build, both clippy legs, the intentsvcs, intent-cli and intentd suites whole, the two bats files, the drives; the critic leg 0 red of 12 judged), landed at 976fad577 and bb4bb4e70; cited by vc at the landing"
+    },
+    {
+      "id": "AT-01.2",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/the_install_verb_prints_the_runtime_set.rs",
+      "covers": [
+        "AC-01.2"
+      ],
+      "status": "green",
+      "note": "arms: the_runtime_set_is_printed_one_path_per_line_from_the_one_list; green in cc's judge at 47eb2d2c7 on 2026-10-25 (fmt, build, both clippy legs, the intentsvcs, intent-cli and intentd suites whole, the two bats files, the drives; the critic leg 0 red of 12 judged), landed at 976fad577 and bb4bb4e70; cited by vc at the landing"
+    },
+    {
+      "id": "AT-01.3",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/version_spellings_agree.rs",
+      "covers": [
+        "AC-01.3"
+      ],
+      "status": "green",
+      "note": "arms: the_flag_and_its_subcommand_twin_are_one_capability and the_version_line_ends_in_its_kind_and_a_release_names_a_clean_commit; green in cc's judge at 47eb2d2c7 on 2026-10-25 (fmt, build, both clippy legs, the intentsvcs, intent-cli and intentd suites whole, the two bats files, the drives; the critic leg 0 red of 12 judged), landed at 976fad577 and bb4bb4e70; cited by vc at the landing"
+    },
+    {
+      "id": "AT-01.4",
+      "kind": "test",
+      "file": "native/rust/crates/intentd/tests/arguments_do_not_start_a_daemon.rs",
+      "covers": [
+        "AC-01.4"
+      ],
+      "status": "green",
+      "note": "arms: version_still_answers_and_serves_nothing, with the bats fixtures macos_release_assets.bats and burn_subject_provenance.bats driven in the judge; green in cc's judge at 47eb2d2c7 on 2026-10-25 (fmt, build, both clippy legs, the intentsvcs, intent-cli and intentd suites whole, the two bats files, the drives; the critic leg 0 red of 12 judged), landed at 976fad577 and bb4bb4e70; cited by vc at the landing"
+    },
+    {
+      "id": "AT-02.1",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/install_publishes_an_opt_tree.rs",
+      "covers": [
+        "AC-02.1"
+      ],
+      "status": "green",
+      "note": "arms: each_refusal_names_its_cause_and_writes_nothing; green in cc's judge at 47eb2d2c7 on 2026-10-25 (fmt, build, both clippy legs, the intentsvcs, intent-cli and intentd suites whole, the two bats files, the drives; the critic leg 0 red of 12 judged), landed at 976fad577 and bb4bb4e70; cited by vc at the landing"
+    },
+    {
+      "id": "AT-02.2",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/install_publishes_an_opt_tree.rs",
+      "covers": [
+        "AC-02.2"
+      ],
+      "status": "green",
+      "note": "arms: a_publish_lays_out_the_keg_and_round_trips_through_shasum; green in cc's judge at 47eb2d2c7 on 2026-10-25 (fmt, build, both clippy legs, the intentsvcs, intent-cli and intentd suites whole, the two bats files, the drives; the critic leg 0 red of 12 judged), landed at 976fad577 and bb4bb4e70; cited by vc at the landing"
+    },
+    {
+      "id": "AT-02.3",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/install_publishes_an_opt_tree.rs",
+      "covers": [
+        "AC-02.3"
+      ],
+      "status": "green",
+      "note": "arms: doctor_names_every_drifted_file_and_an_old_manifest, and the keg-note arm beside it; green in cc's judge at 47eb2d2c7 on 2026-10-25 (fmt, build, both clippy legs, the intentsvcs, intent-cli and intentd suites whole, the two bats files, the drives; the critic leg 0 red of 12 judged), landed at 976fad577 and bb4bb4e70; cited by vc at the landing"
+    },
+    {
+      "id": "AT-02.4",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/install_publishes_an_opt_tree.rs",
+      "covers": [
+        "AC-02.4"
+      ],
+      "status": "green",
+      "note": "arms: an_existing_opt_tree_is_replaced_only_with_force_and_brew_only_by_brew; green in cc's judge at 47eb2d2c7 on 2026-10-25 (fmt, build, both clippy legs, the intentsvcs, intent-cli and intentd suites whole, the two bats files, the drives; the critic leg 0 red of 12 judged), landed at 976fad577 and bb4bb4e70; cited by vc at the landing"
+    }
+  ],
   "attachments": [
     {
       "path": "design.md",
