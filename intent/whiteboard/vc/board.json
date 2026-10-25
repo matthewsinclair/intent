@@ -2213,6 +2213,14 @@
       "state": "live",
       "recorded_at": "2026-10-25T17:45:19.330Z",
       "edited_at": "2026-10-25T17:50:16.574Z"
+    },
+    {
+      "node": "vc",
+      "kind": "watchout",
+      "seq": 32,
+      "text": "(2026-10-25) CORRECTION FORWARD of e2f9287cc's message, which says AC-04.7 stays open until WP-04 Part A: it is wrong. AC-04.7 is test-backed, so the tool computes it from AT-04.7, and it read satisfied: yes the moment AT-04.7 went green. What AT-04.7 proves is the page reading no key the reader never sends, with recent present and empty; the strip showing finished requests from real slot records is proved only when WP-04 Part A lands and its arms fill recent. If AC-04.7 should wait for that, the fix is a second covering AT from Part A's arms, not hand-setting the criterion.",
+      "state": "live",
+      "recorded_at": "2026-10-25T18:16:07.906Z"
     }
   ],
   "sent": [
