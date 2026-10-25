@@ -61,7 +61,8 @@
       "text": "`intent/docs/total-codebase-audit.md` stands alone as the audit procedure, naming the critics and no `in-tca` skill, and reads whole without them.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "vc's read on main at 57035bb63 after WP-01 landed: intent/docs/total-codebase-audit.md names no in-tca skill or script (grep count 0), names the critics in every step, and carries the feedback report's contents that only the removed tca-report.sh had stated (section 4.5); it reads whole as the procedure"
       }
     },
     {

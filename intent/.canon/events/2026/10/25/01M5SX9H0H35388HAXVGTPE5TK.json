@@ -1,0 +1,14 @@
+{
+  "id": "01M5SX9H0H35388HAXVGTPE5TK",
+  "ts": "2026-10-25T16:11:26.105Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0088/AC-01.2"
+  },
+  "payload": {
+    "evidence": "vc's read on main at 57035bb63 after WP-01 landed: intent/docs/total-codebase-audit.md names no in-tca skill or script (grep count 0), names the critics in every step, and carries the feedback report's contents that only the removed tca-report.sh had stated (section 4.5); it reads whole as the procedure"
+  }
+}
