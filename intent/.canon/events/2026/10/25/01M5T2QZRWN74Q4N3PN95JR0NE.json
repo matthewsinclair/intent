@@ -1,0 +1,16 @@
+{
+  "id": "01M5T2QZRWN74Q4N3PN95JR0NE",
+  "ts": "2026-10-25T17:46:42.844Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "seq": 88,
+    "text": "(2026-10-25, vc under hv's pen granted 2026-08-22, answering cc's plan for ST0086 WP-04 after hv saw the pipeline strip empty: 'It is now ... but not populated with any data') THE SLOT PROTOCOL IS BUILT FIRST, AS PLANNED, IN TWO PARTS. Records live under ~/.local/state/intent/estate/slots/: controller.json, lanes/<lane>.json, and requests/<ULID>/{ask,grant,deny,start,end,revoke}.json, with state as the fold and every stamp the service's. The desk maps across: READY=ask, GO=grant, START=start, END=release --result, refusals=deny or revoke; molt-vc takes control and opens lanes. Lanes are the scarce resources (cargo capacity 1 machine-wide including kovacs, bats, light, launchsvc), and a grant names every lane a run uses, with capacity checked in each; rows keep lane and gain lanes. --load-under refuses a grant above a load; --place-of keeps a hand-back's asked_at; --tag security is display only; --bytes on ask must match on start; --not-before is enforced; --hold is shown and judged by the controller. Order stays the controller's judgement. Part A (records, verbs, capacity, reader keys) lands first so the page fills; Part B (wait, watch, the prompt hook, estate init, TUI) follows. Design before code, row keys agreed with ic, each part its own heavy. molt-vc reads it before it stands; its desk stays by message until A lands and it agrees. AMENDED the same hour on molt-vc's read, all six in Part A: a heavy lane of capacity 1 that every heavy grant names, beside its resources; negligible runs ask with lane none so they show; kovacs start and release relayed by the requester with --relayed, stamps marked as relay time; the controller's revoke, or end --abandoned, frees a dead holder's capacity with a reason and kills nothing; control hold and lane hold refuse grants while they stand; only the controller's session may grant, deny, revoke, open lanes or hold, ENFORCED by session id, with --node recorded on every write."
+  }
+}
