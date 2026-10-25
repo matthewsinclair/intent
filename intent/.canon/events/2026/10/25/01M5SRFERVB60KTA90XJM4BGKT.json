@@ -1,0 +1,15 @@
+{
+  "id": "01M5SRFERVB60KTA90XJM4BGKT",
+  "ts": "2026-10-25T14:47:17.535Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0645"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "the pre-commit gate's doctor refuses every commit from a linked worktree: the tree function's git spawn into the install tree inherits the hook's absolute GIT_DIR and reads the wrong repository"
+  }
+}
