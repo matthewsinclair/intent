@@ -13,14 +13,14 @@ title: Intent conforms to the dev, opt and brew contract
 
 ## Acceptance Criteria
 
-### WP-01 -- The tree function, the runtime set and the version line (status: WIP)
+### WP-01 -- The tree function, the runtime set and the version line (status: Done)
 
 - AC-01.1 One function in intentsvcs names the running tree in the contract's order, brew when the manifest says `managed_by: brew`, opt when its `tool` is intent, dev when the root is a git work tree with no manifest, unknown otherwise, reading the manifest before the path and answering brew for a manifest-less keg whose root resolves under the opt link; every caller asks it, and doctor fails on unknown and on a dev tree whose git cannot be read. -- satisfied: yes (computed)
 - AC-01.2 One function lists the runtime set, the support paths git names plus the pair built from the same commit and nothing else, and install and doctor both read it; `intent install --print-runtime-set` prints it from the caller-named pair and is the verb's only mode until WP-02. -- satisfied: yes (computed)
 - AC-01.3 `intent --version`, `intent version`, intentd's own version print and doctor's first human line come from one formatter and read `intent <version> (<tree>, <sha12>[+dirty]) at <root> [<provenance>]`: the sha is the built commit read from the binary and never HEAD, `+dirty` appears only in dev and only when the support set differs from the built commit or the pair was built dirty, the root is absolute and brew's is the opt link, the provenance word stays last, and a dev tree whose git cannot be read prints `(dev, unknown)`. -- satisfied: yes (computed)
 - AC-01.4 Every reader of the old line is moved and driven against the new one: `gen_explorer_shots.sh`, `version_spellings_agree.rs`, `arguments_do_not_start_a_daemon.rs`, `macos_release_assets.bats` and `burn_subject_provenance.bats`; the gate's self-provenance arm and the build's pair verification still read the embedded source-commit marker, and readers of the version field alone are unchanged. -- satisfied: yes (computed)
 
-### WP-02 -- intent install and the manifest, with doctor's manifest arms (status: WIP)
+### WP-02 -- intent install and the manifest, with doctor's manifest arms (status: Done)
 
 - AC-02.1 `intent install [--prefix <dir>] [--force] [--managed-by brew]` runs in dev only and is refused by name from opt and brew; it refuses a dirty runtime set by name with no override while live project records never count; the prefix comes from `--prefix`, else `INTENT_INSTALL_PREFIX`, else it refuses by name; an existing prefix is replaced only with `--force` and only over a manifest saying `tool: intent`; and the layout it writes is the keg's libexec layout exactly. -- satisfied: yes (computed)
 - AC-02.2 The manifest is `<root>/.intent-install` in T3's exact form: a header of `# key: value` lines carrying at least tool, version, source_commit as the full sha and managed_by, then one `shasum -a 256 -c` line per runtime file, path relative to the root, sorted by `LC_ALL=C sort`, the binaries checksummed as installed. -- satisfied: yes (computed)
@@ -49,14 +49,14 @@ title: Intent conforms to the dev, opt and brew contract
 
 ## Acceptance Tests
 
-### WP-01 -- The tree function, the runtime set and the version line (status: WIP)
+### WP-01 -- The tree function, the runtime set and the version line (status: Done)
 
 - AT-01.1 `native/rust/crates/intentsvcs/tests/the_tree_function_names_the_running_tree.rs` -- covers AC-01.1 -- status: green -- arms: a_manifest_managed_by_brew_is_brew_before_its_tool_is_read and the file's other arms over the four answers, the sha source, dirty both ways and unreadable git; green in cc's judge at 47eb2d2c7 on 2026-10-25 (fmt, build, both clippy legs, the intentsvcs, intent-cli and intentd suites whole, the two bats files, the drives; the critic leg 0 red of 12 judged), landed at 976fad577 and bb4bb4e70; cited by vc at the landing
 - AT-01.2 `native/rust/crates/intent-cli/tests/the_install_verb_prints_the_runtime_set.rs` -- covers AC-01.2 -- status: green -- arms: the_runtime_set_is_printed_one_path_per_line_from_the_one_list; green in cc's judge at 47eb2d2c7 on 2026-10-25 (fmt, build, both clippy legs, the intentsvcs, intent-cli and intentd suites whole, the two bats files, the drives; the critic leg 0 red of 12 judged), landed at 976fad577 and bb4bb4e70; cited by vc at the landing
 - AT-01.3 `native/rust/crates/intent-cli/tests/version_spellings_agree.rs` -- covers AC-01.3 -- status: green -- arms: the_flag_and_its_subcommand_twin_are_one_capability and the_version_line_ends_in_its_kind_and_a_release_names_a_clean_commit; green in cc's judge at 47eb2d2c7 on 2026-10-25 (fmt, build, both clippy legs, the intentsvcs, intent-cli and intentd suites whole, the two bats files, the drives; the critic leg 0 red of 12 judged), landed at 976fad577 and bb4bb4e70; cited by vc at the landing
 - AT-01.4 `native/rust/crates/intentd/tests/arguments_do_not_start_a_daemon.rs` -- covers AC-01.4 -- status: green -- arms: version_still_answers_and_serves_nothing, with the bats fixtures macos_release_assets.bats and burn_subject_provenance.bats driven in the judge; green in cc's judge at 47eb2d2c7 on 2026-10-25 (fmt, build, both clippy legs, the intentsvcs, intent-cli and intentd suites whole, the two bats files, the drives; the critic leg 0 red of 12 judged), landed at 976fad577 and bb4bb4e70; cited by vc at the landing
 
-### WP-02 -- intent install and the manifest, with doctor's manifest arms (status: WIP)
+### WP-02 -- intent install and the manifest, with doctor's manifest arms (status: Done)
 
 - AT-02.1 `native/rust/crates/intentsvcs/tests/install_publishes_an_opt_tree.rs` -- covers AC-02.1 -- status: green -- arms: each_refusal_names_its_cause_and_writes_nothing; green in cc's judge at 47eb2d2c7 on 2026-10-25 (fmt, build, both clippy legs, the intentsvcs, intent-cli and intentd suites whole, the two bats files, the drives; the critic leg 0 red of 12 judged), landed at 976fad577 and bb4bb4e70; cited by vc at the landing
 - AT-02.2 `native/rust/crates/intentsvcs/tests/install_publishes_an_opt_tree.rs` -- covers AC-02.2 -- status: green -- arms: a_publish_lays_out_the_keg_and_round_trips_through_shasum; green in cc's judge at 47eb2d2c7 on 2026-10-25 (fmt, build, both clippy legs, the intentsvcs, intent-cli and intentd suites whole, the two bats files, the drives; the critic leg 0 red of 12 judged), landed at 976fad577 and bb4bb4e70; cited by vc at the landing

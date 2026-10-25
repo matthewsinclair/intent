@@ -2,7 +2,7 @@
 wp_id: WP-01
 title: The tree function, the runtime set and the version line
 scope: M
-status: WIP
+status: Done
 ---
 
 # WP-01: The tree function, the runtime set and the version line

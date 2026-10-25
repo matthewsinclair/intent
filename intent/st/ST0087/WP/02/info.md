@@ -2,7 +2,7 @@
 wp_id: WP-02
 title: intent install and the manifest, with doctor's manifest arms
 scope: M
-status: WIP
+status: Done
 ---
 
 # WP-02: intent install and the manifest, with doctor's manifest arms

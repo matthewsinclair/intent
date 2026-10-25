@@ -30,8 +30,8 @@ Today Intent's brew keg is unlinked and pinned so that the dev pair symlinked in
 
 | WP    | Title                                                        | Size | Status      |
 | ----- | ------------------------------------------------------------ | ---- | ----------- |
-| WP-01 | The tree function, the runtime set and the version line      | M    | WIP         |
-| WP-02 | intent install and the manifest, with doctor's manifest arms | M    | WIP         |
+| WP-01 | The tree function, the runtime set and the version line      | M    | Done        |
+| WP-02 | intent install and the manifest, with doctor's manifest arms | M    | Done        |
 | WP-03 | intent use and the shadow check                              | M    | Not Started |
 | WP-04 | The formula, the release tooling and the docs                | S    | Not Started |
 | WP-05 | The proof, per tree, on rhadamanth and kovacs                | S    | Not Started |
