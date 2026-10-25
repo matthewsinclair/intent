@@ -1,0 +1,15 @@
+{
+  "id": "01M5RYBHA6W8VVZYK74G222B7Q",
+  "ts": "2026-10-25T07:10:46.087Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "0641 (vc's assignment under decision 77, hv's TUI ruling, 2026-10-25 07:04Z by vc's clock; in 3.2.7): organize meeting a hand-edited cover put back at a dehydrated thread's path and re-declared previews it diverged and, under --apply, reports it refused naming intent sync --to-store <ID>, never rewritten; through the one comparison function the other render-over refusals use, no second copy. Arms in intentsvcs' organize tests, red at the base: cc's measured sequence (diverged, refused with remedy, the hand line still on disk) and the unedited control (rewritten). Judge heavy, booked with molt-vc: intentsvcs and intent-cli suites, fmt, clippy. Order: after 0634's judge, before ST0087 WP-04."
+  }
+}

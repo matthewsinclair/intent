@@ -6,7 +6,7 @@ session_id: 5abe68e1-b9b1-4003-9718-c8fbba772543
 heartbeat_at: 2026-10-25 06:54Z
 status: active
 focus: "3.2.7 (decision 76): 0634 judge READY, waiting on molt-vc's GO alone, behind Laksa's 0018fu (hv's continue given, per vc; refs/bank/dc/0634/wip, patch-id 09c5ea990e98, applies clean on c0ba2501d); then ST0087 WP-04 (todo 49), then the cut-side work (todo 50); no push, no release"
-claims: []
+claims: [ISSUE:0641]
 ---
 
 # DevX Claude (dc)
@@ -19,6 +19,7 @@ claims: []
 
 - ST0087 WP-04 (vc's assignment): the formula writes the manifest over the release assets with managed_by brew; bin/int brew formula aligned to render and publish; the caveats name intent use; releasing.md drops the unlink-and-pin step; docs/install.md gains the maintainer section with the upgrade procedure per tree. Spec: intent/st/ST0087/design.md, citing devbin's docs/dev-opt-brew.md. ORDER: after 0634 lands, and it lands after WP-01 to WP-03, because its doctor run must see a keg with no manifest answer brew with a note. Claim ST0087/04 when I start. WP-05, the proof, is vc's with dc once the rest is in. No push, no release.
 - 3.2.7 CUT-SIDE (vc's decision 76, hv via molt-vc, 2026-10-25 06:51Z by vc's clock: one release carrying everything; done, then tested at molt-vc's desk, then kovacs via kovacs-sysadm, then hv's cut): dc's share in the same release, not a later one: (a) re-run the 0632 drive with removed: lines counted beside wrote: (scratchpad/0632/drive.sh compares only wrote:); (b) the known-defects re-drive; (c) the release tooling steps dc owns. Each heavy books with molt-vc. Behind doing 139 (0634) and todo 49 (ST0087 WP-04).
+- 0641 (vc's assignment under decision 77, hv's TUI ruling, 2026-10-25 07:04Z by vc's clock; in 3.2.7): organize meeting a hand-edited cover put back at a dehydrated thread's path and re-declared previews it diverged and, under --apply, reports it refused naming intent sync --to-store <ID>, never rewritten; through the one comparison function the other render-over refusals use, no second copy. Arms in intentsvcs' organize tests, red at the base: cc's measured sequence (diverged, refused with remedy, the hand line still on disk) and the unedited control (rewritten). Judge heavy, booked with molt-vc: intentsvcs and intent-cli suites, fmt, clippy. Order: after 0634's judge, before ST0087 WP-04.
 
 ## Holds
 
