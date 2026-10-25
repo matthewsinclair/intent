@@ -207,6 +207,31 @@
   #estate details.sec > summary { margin-bottom: .35rem; }
   #estate details.sec > summary .h { font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
   #estate .foot { color: var(--muted); margin-top: 1rem; font-size: .75rem; }
+  /* THE PIPELINE (ST0086 AC-04.7): one row of cells read left to right as
+     time, finished, then a now marker, then running, then yet to run. */
+  #estate button.icon { display: inline-flex; align-items: center; padding: .15rem .35rem; line-height: 1; }
+  #estate .pipe { display: flex; flex-wrap: nowrap; overflow-x: auto; align-items: stretch; gap: .35rem; padding: 1.15rem .55rem .55rem; border: 1px solid var(--rule); border-radius: 6px; background: var(--card); }
+  #estate .cell { flex: 0 0 15rem; border: 1px solid var(--rule); border-radius: 6px; padding: .35rem .5rem; font-size: .82rem; line-height: 1.25; background: var(--ground); }
+  #estate .cell .what { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #estate .cell .meta { color: var(--muted); font-size: .74rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #estate .cell .tag { font-size: .66rem; text-transform: uppercase; letter-spacing: .07em; font-weight: 700; }
+  #estate .cell.done { opacity: .62; }
+  #estate .cell.done .tag { color: var(--busy); }
+  #estate .cell.stopped .tag { color: var(--gone); }
+  #estate .cell.running { border-color: var(--heavy); border-width: 2px; background: color-mix(in srgb, var(--heavy) 9%, var(--card)); }
+  #estate .cell.running .tag { color: var(--heavy); }
+  #estate .cell.running .tag::before { content: ""; display: inline-block; width: .5rem; height: .5rem; border-radius: 50%; background: var(--heavy); margin-right: .3rem; animation: estate-pulse 1.6s ease-in-out infinite; }
+  #estate .cell.orphaned { border-color: var(--gone); }
+  #estate .cell.orphaned .tag { color: var(--gone); }
+  #estate .cell.next { border-style: dashed; }
+  #estate .cell.next .tag { color: var(--muted); }
+  #estate .cell.next.granted .tag { color: var(--accent); }
+  #estate .pipe .arrow { flex: 0 0 auto; align-self: center; color: var(--muted); font-size: .9rem; }
+  #estate .pipe .now { flex: 0 0 2px; align-self: stretch; width: 2px; background: var(--accent); border-radius: 1px; margin: 0 .2rem; position: relative; }
+  #estate .pipe .now::after { content: "now"; position: absolute; top: -1rem; left: -.7rem; font-size: .62rem; color: var(--accent); text-transform: uppercase; letter-spacing: .07em; }
+  #estate .pipe .none { flex: 0 0 auto; align-self: center; color: var(--muted); font-style: italic; }
+  @keyframes estate-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+  @media (prefers-reduced-motion: reduce) { #estate .cell.running .tag::before { animation: none; } }
   @media (max-width: 40rem) { #estate input[type=search] { min-width: 0; width: 100%; } }
   </style>
 
@@ -244,6 +269,11 @@
       </details>
     </div>
     <div class="unreadable" id="estate-unreadable" hidden></div>
+
+    <details open class="sec">
+      <summary><span class="h">Pipeline</span><button type="button" id="estate-centre" class="icon" title="Centre the running jobs" aria-label="Centre the running jobs"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l5 5-5 5"></path><path d="M12 4v16"></path><path d="M21 7l-5 5 5 5"></path></svg></button><span class="sum" id="sum-pipeline"></span></summary>
+      <div class="pipe" id="estate-pipeline"></div>
+    </details>
 
     <details open class="sec">
       <summary><span class="h">Queue</span><span class="sum" id="sum-queue"></span></summary>
@@ -860,6 +890,56 @@
       box.replaceChildren.apply(box, parts);
     }
 
+    // **THE PIPELINE IS THE QUEUE AND `recent` LAID OUT AS TIME** (ST0086
+    // AC-04.7): finished (`recent`, ended, denied or revoked in the last hour,
+    // oldest end first), a now marker, running, then yet to run with granted
+    // before asked. It keeps no history of its own; the reader's order stands.
+    function pipelineOf(s) {
+      var state = function (k) { return s.queue.filter(function (q) { return q.state === k; }); };
+      return { finished: s.recent, running: state("running"), next: state("granted").concat(state("asked")) };
+    }
+
+    function cell(q, kind, tag, meta, ix) {
+      var c = el("div", "cell " + kind);
+      c.title = q.id + "  " + q.what + "  (" + ix.who(q.by) + ")";
+      c.append(el("div", "tag", tag), el("div", "what", q.what), el("div", "meta", meta));
+      return c;
+    }
+
+    function renderPipeline(s, ix) {
+      var p = pipelineOf(s);
+      var box = document.getElementById("estate-pipeline");
+      var since = function (q) { return age(secs(Date.parse(q.asked_at), ix.now)); };
+      var cells = [];
+      p.finished.forEach(function (q) {
+        var ok = q.state === "ended";
+        cells.push(cell(q, ok ? "done" : "done stopped", ok ? "done" : q.state,
+          ix.who(q.by) + " \u00b7 " + (q.lane || q.type) + " \u00b7 asked " + since(q) + " ago", ix));
+      });
+      cells.push(el("div", "now"));
+      p.running.forEach(function (q) {
+        var orph = ix.orphaned(q);
+        cells.push(cell(q, orph ? "orphaned" : "running", orph ? "orphaned" : "running",
+          ix.who(q.by) + " \u00b7 " + (q.lane || q.type) + " \u00b7 " + since(q), ix));
+      });
+      if (!p.running.length) { cells.push(el("div", "none", "nothing running")); }
+      p.next.forEach(function (q) {
+        cells.push(cell(q, "next " + q.state, q.state === "granted" ? "next" : "waiting",
+          ix.who(q.by) + " \u00b7 " + (q.lane || "any " + q.type) + " \u00b7 " + since(q), ix));
+      });
+      var out = document.createDocumentFragment();
+      cells.forEach(function (c, i) {
+        if (i > 0 && c.className !== "now" && cells[i - 1].className !== "now") { out.appendChild(el("span", "arrow", "\u203a")); }
+        out.appendChild(c);
+      });
+      box.replaceChildren(out);
+      // One line, scrolled sideways: every paint puts the now marker near the
+      // left, so running and next are in view and finished is a scroll away;
+      // once the reader has scrolled, their scroll is kept.
+      var mark = box.querySelector(".now");
+      if (mark && !box.dataset.scrolled) { box.scrollLeft = Math.max(0, mark.offsetLeft - box.offsetLeft - 160); }
+    }
+
     function renderQueue(s, ix) {
       var body = document.getElementById("estate-queue");
       var rows = document.createDocumentFragment();
@@ -966,6 +1046,8 @@
       put("sum-usage", (u.five_hour ? "5h " + Math.round(u.five_hour.percent) + "%" : "5h --") +
         (u.seven_day ? "  7d " + Math.round(u.seven_day.percent) + "%" : "  7d --") +
         (u.source && u.source.kind === "statusline" ? "  (fallback)" : "") + (u.error ? "  (endpoint failed)" : ""));
+      var p = pipelineOf(s);
+      put("sum-pipeline", p.finished.length + " finished in the last hour, " + p.running.length + " running, " + p.next.length + " yet to run");
       put("sum-queue", ix.waiting.length ? ix.waiting.length + " waiting, oldest " + age(secs(Date.parse(ix.waiting[0].asked_at), ix.now)) : "nothing queued");
       put("sum-lanes", s.lanes.length + " lanes, " + ix.held + " of " + ix.cap + " slots held");
       put("sum-sessions", s.sessions.length + " sessions" + ["heavy", "busy", "gone"].map(function (k) {
@@ -982,6 +1064,7 @@
       renderUnreadable(status);
       renderSpark(status, ix);
       renderUsage(status, ix);
+      renderPipeline(status, ix);
       renderQueue(status, ix);
       renderLanes(status, ix);
       renderSessions(status, ix);
@@ -1036,6 +1119,23 @@
       var anyOpen = Array.prototype.some.call(panels, function (d) { return d.open; });
       panels.forEach(function (d) { d.open = !anyOpen; });
       ev.target.textContent = anyOpen ? "expand all" : "collapse all";
+    });
+    // Centre: the running cells, orphaned included, centred in the strip, or
+    // the now marker when nothing runs. It sits in the summary, so the click
+    // must not fold the panel; the centred view then holds like any scroll.
+    var pipe = document.getElementById("estate-pipeline");
+    pipe.addEventListener("wheel", function () { pipe.dataset.scrolled = "1"; }, { passive: true });
+    pipe.addEventListener("pointerdown", function () { pipe.dataset.scrolled = "1"; });
+    document.getElementById("estate-centre").addEventListener("click", function (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      var run = pipe.querySelectorAll(".cell.running, .cell.orphaned");
+      var first = run.length ? run[0] : pipe.querySelector(".now");
+      var last = run.length ? run[run.length - 1] : first;
+      if (!first) { return; }
+      var mid = (first.offsetLeft + last.offsetLeft + last.offsetWidth) / 2 - pipe.offsetLeft;
+      pipe.dataset.scrolled = "1";
+      pipe.scrollTo({ left: Math.max(0, mid - pipe.clientWidth / 2), behavior: "smooth" });
     });
     document.getElementById("estate-pause").addEventListener("click", function (ev) {
       estatePaused = !estatePaused;

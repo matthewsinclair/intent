@@ -240,5 +240,34 @@
       "asked_at": "2026-10-24T13:12:02Z",
       "by": "5be2d771-0d8a-4b8e-a0c4-91d7f3e2aa40"
     }
+  ],
+  "recent": [
+    {
+      "id": "01M5Q4V1K9CGEE1FG2M24C8V1",
+      "type": "heavy",
+      "what": "cargo build -p intentd (ST0086 WP-01)",
+      "state": "ended",
+      "lane": "cargo",
+      "asked_at": "2026-10-24T12:20:04Z",
+      "by": "2f8d1a64-b0c3-4e9f-8d27-73a5e0b4c1f8"
+    },
+    {
+      "id": "01M5Q4V1K9CGEE1FG2M24C8V2",
+      "type": "light",
+      "what": "bats tests/unit/estate.bats",
+      "state": "denied",
+      "lane": null,
+      "asked_at": "2026-10-24T12:41:30Z",
+      "by": "eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd"
+    },
+    {
+      "id": "01M5Q4V1K9CGEE1FG2M24C8V3",
+      "type": "light",
+      "what": "swift test (Intent.app)",
+      "state": "ended",
+      "lane": "light",
+      "asked_at": "2026-10-24T12:58:12Z",
+      "by": "c41f0e9a-6a1d-4f52-9d0b-2b7e6f1c0a11"
+    }
   ]
 }

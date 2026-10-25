@@ -234,8 +234,11 @@ pub struct SessionRow {
 /// The estate, as every renderer receives it.
 ///
 /// **EVERY KEY IS PRESENT FROM WP-01**, so a renderer never branches on a
-/// missing one: `controller`, `lanes` and `queue` hold the agreed empty
-/// shapes until WP-04 fills and types them.
+/// missing one: `controller`, `lanes`, `queue` and `recent` hold the agreed
+/// empty shapes until WP-04 fills and types them. `recent` has `queue`'s row
+/// shape and holds what ended, was denied or was revoked in the last hour,
+/// oldest end first, so the page's pipeline draws its finished cells from the
+/// reader rather than keeping history of its own (AC-04.7).
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct EstateStatus {
   pub schema: String,
@@ -246,6 +249,7 @@ pub struct EstateStatus {
   pub controller: Value,
   pub lanes: Value,
   pub queue: Value,
+  pub recent: Value,
   pub usage: usage::Usage,
   pub sessions: Vec<SessionRow>,
   pub unreadable: Vec<Unreadable>,
@@ -577,6 +581,7 @@ pub fn join(gathered: Gathered, now: OffsetDateTime) -> EstateStatus {
     controller: Value::Null,
     lanes: json!([]),
     queue: json!([]),
+    recent: json!([]),
     usage,
     sessions: rows,
     unreadable,
@@ -1283,6 +1288,7 @@ mod tests {
       "controller",
       "lanes",
       "queue",
+      "recent",
       "usage",
       "sessions",
       "unreadable",

@@ -174,6 +174,7 @@ fn status_json_carries_every_key_of_the_boundary_from_the_first_work_package() {
     "controller",
     "lanes",
     "queue",
+    "recent",
     "usage",
     "sessions",
     "unreadable",
