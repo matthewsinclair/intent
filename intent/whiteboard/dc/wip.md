@@ -13,7 +13,7 @@ claims: [ST0088/03]
 
 ## DOING
 
-_(none)_
+- ST0088 WP-03 BANKED, AWAITING ITS JUDGE: refs/bank/dc/0088-03/v1 (blob ba194e85ef07, patch-id 322aaaf65217, 33 paths) on main 0f3f162df, booked with molt-vc as the ninth heavy; option B for AC-03.2 under vc's ruling (the delta clause descoped by vc, since no installed critic can reach critic-contract.md), plugin.json KEPT under decision 87; judge script scratchpad/0088/run-0088-03.sh (fmt, critic leg, build, the template and corpus bats on the worktree binary, both suites, clippy, the subagents sync drive, prettier). Rebase and re-bank if main moves before the GO. No push, no release.
 
 ## TODO
 
