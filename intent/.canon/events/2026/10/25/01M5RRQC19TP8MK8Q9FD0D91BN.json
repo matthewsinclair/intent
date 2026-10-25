@@ -1,0 +1,15 @@
+{
+  "id": "01M5RRQC19TP8MK8Q9FD0D91BN",
+  "ts": "2026-10-25T05:32:22.445Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0641"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "organize --apply writes the cover over a hand-edited info.md put back at a dehydrated thread's path, with no diverged or refused verdict"
+  }
+}

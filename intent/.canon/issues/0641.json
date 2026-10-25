@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 641,
+  "slug": "organize-apply-writes-the-cover-over-a-hand-edit",
+  "title": "organize --apply writes the cover over a hand-edited info.md put back at a dehydrated thread's path, with no diverged or refused verdict",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-10-25",
+  "reporter": "Matthew Sinclair",
+  "body": "## What happens\n\n`intent organize --apply` writes the store's cover over a hand-edited `info.md` put back at a dehydrated thread's path, with no `diverged` or `refused` verdict, so a hand edit to its Objective is lost.\n\n## Measured (cc, 2026-10-25)\n\nInstalled pair (intent 3.2.6 at 7126f6832), a scratch git project under an isolated short HOME, no cargo:\n\n1. `st new`, `st hydrate ST0001`, commit; keep a copy of `intent/st/ST0001/info.md`.\n2. `st dehydrate ST0001`.\n3. `intent set ST0001 objective --from <file>` with a new objective, while dehydrated.\n4. Put the kept copy back at `intent/st/ST0001/info.md` with a line added under `## Objective` (a hand edit inside the section the cover's contract keeps), and append `STEELTHREAD:ST0001` to `intent/.intentfiles`.\n5. `intent organize` previews `1 to hydrate, 1 to rewrite ... 0 diverged, 0 refused` (`to-rewrite: intent/st/ST0001/info.md`); `intent organize --apply` reports `rewritten: intent/st/ST0001/info.md`.\n6. The file now carries the store's objective, and the hand-written objective line is gone. Nothing else holds it.\n\nThe result is the same with the `file_index` rows `st dehydrate` leaves (issue 0638) and with those rows deleted by hand, so it does not turn on that issue.\n\n## The contract beside it\n\nThe cover's own contract, as `/in-essentials` states it: a hand edit to `info.md`'s Objective or Context is kept; after editing, `intent sync --to-store <ID>` carries it into the store, and until then an Intent command that would render the file over it refuses and names that step.\n\n## Open\n\nWhether a file put back at a dehydrated thread's path and then re-declared is a stray that the render may overwrite by design, or a hand edit the contract protects, is hv's to rule. This issue records the loss and the contract side by side and decides neither.\n"
+}
