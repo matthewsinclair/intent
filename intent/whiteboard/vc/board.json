@@ -2221,6 +2221,14 @@
       "text": "(2026-10-25) CORRECTION FORWARD of e2f9287cc's message, which says AC-04.7 stays open until WP-04 Part A: it is wrong. AC-04.7 is test-backed, so the tool computes it from AT-04.7, and it read satisfied: yes the moment AT-04.7 went green. What AT-04.7 proves is the page reading no key the reader never sends, with recent present and empty; the strip showing finished requests from real slot records is proved only when WP-04 Part A lands and its arms fill recent. If AC-04.7 should wait for that, the fix is a second covering AT from Part A's arms, not hand-setting the criterion.",
       "state": "live",
       "recorded_at": "2026-10-25T18:16:07.906Z"
+    },
+    {
+      "node": "vc",
+      "kind": "decision",
+      "seq": 89,
+      "text": "(2026-10-25 18:37Z, hv by TUI in molt-vc's session, relayed verbatim by molt-vc: \"Take all four (Recommended)\") hv took vc's four recommendations: (1) the slot records carry started_at and ended_at so the strip's finished cells read 'took X, ended N ago'; (2) dc's corrected sentence in hv's own block of Intent's CLAUDE.md stays; (3) ST0086 AC-04.7 stays satisfied by AT-04.7, with AC-04.8 to 04.13 testing the slots themselves; (4) making the critic contract readable to installed subagents waits until after 3.2.7. The first relay under hv's FOR-hv rule.",
+      "state": "live",
+      "recorded_at": "2026-10-25T18:37:46.172Z"
     }
   ],
   "sent": [

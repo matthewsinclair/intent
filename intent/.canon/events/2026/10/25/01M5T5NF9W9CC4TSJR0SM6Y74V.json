@@ -1,0 +1,15 @@
+{
+  "id": "01M5T5NF9W9CC4TSJR0SM6Y74V",
+  "ts": "2026-10-25T18:37:46.173Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-10-25 18:37Z, hv by TUI in molt-vc's session, relayed verbatim by molt-vc: \"Take all four (Recommended)\") hv took vc's four recommendations: (1) the slot records carry started_at and ended_at so the strip's finished cells read 'took X, ended N ago'; (2) dc's corrected sentence in hv's own block of Intent's CLAUDE.md stays; (3) ST0086 AC-04.7 stays satisfied by AT-04.7, with AC-04.8 to 04.13 testing the slots themselves; (4) making the critic contract readable to installed subagents waits until after 3.2.7. The first relay under hv's FOR-hv rule."
+  }
+}
