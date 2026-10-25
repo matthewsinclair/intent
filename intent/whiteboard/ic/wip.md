@@ -30,7 +30,7 @@ claims: [ST0086/03, ST0086/02, ST0087/03, ISSUE:0631, ISSUE:0642, ISSUE:0643]
 
 ## Watch-outs
 
-_(none)_
+- ST0086 AT doc lines owed in the AC-02.2/02.6 bank, not before (vc, 2026-10-25): intent at lint ST0086 fails until each cited arm carries its AT id as a literal doc line. The map is in /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd/scratchpad/at-map-0086.txt and in vc's message: estate_surface.rs AT-01.1, 01.3, 01.4, 01.5, 01.6, 01.7, 02.3 and 02.4; the session-fields reader AT-01.2; intentd's estate_unbound AT-02.1; the new arms take AT-02.2 and AT-02.6.
 
 ## Decisions
 
