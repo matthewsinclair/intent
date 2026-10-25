@@ -60,3 +60,57 @@ fn the_estate_is_answered_for_a_root_that_names_no_project() {
 
   let _ = std::fs::remove_dir_all(&claude);
 }
+
+/// The page asks for the estate's FORM, by both of its paths, and is answered
+/// with the status, unbound; a view that is not the estate still binds, so the
+/// same nowhere root refuses it.
+#[test]
+fn the_estate_form_is_answered_unbound_and_no_other_view_is() {
+  let claude = short_dir("estate-form");
+  std::fs::create_dir_all(claude.join("sessions")).expect("sessions dir");
+  std::fs::write(claude.join("sessions/12345.json"), session_fixture()).expect("session file");
+  let daemon = RunningDaemon::start_with(&[("CLAUDE_CONFIG_DIR", &claude)]);
+  let nowhere = PathBuf::from("/nonexistent/estate-form-root");
+
+  for view in ["/estate/status", "/estate"] {
+    match daemon.ask(Request {
+      root: nowhere.clone(),
+      op: Op::Form {
+        view: view.to_string(),
+      },
+    }) {
+      Response::EstateStatus { status } => {
+        assert_eq!(
+          status["schema"],
+          intentsvcs::estate::STATUS_SCHEMA,
+          "{view}"
+        )
+      }
+      other => panic!("expected the estate for the form {view}, got {other:?}"),
+    }
+  }
+
+  let refused = daemon.ask(Request {
+    root: nowhere.clone(),
+    op: Op::Form {
+      view: "/settings".to_string(),
+    },
+  });
+  assert!(
+    matches!(refused, Response::Error { .. }),
+    "a form that is not the estate was answered for a root that names no project: {refused:?}"
+  );
+
+  let Response::Registry { projects } = daemon.ask(Request {
+    root: nowhere.clone(),
+    op: Op::Registry,
+  }) else {
+    panic!("expected a registry listing");
+  };
+  assert!(
+    projects.iter().all(|p| p.root != nowhere),
+    "answering the estate's form registered the root it was sent: {projects:?}"
+  );
+
+  let _ = std::fs::remove_dir_all(&claude);
+}

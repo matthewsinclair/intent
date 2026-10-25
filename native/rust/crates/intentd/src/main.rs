@@ -831,7 +831,17 @@ async fn dispatch(registry: &Registry, bound: &mut Option<PathBuf>, line: &[u8])
   // estate is the host's, not a project's. The read runs `ps` and lists
   // directories, so it goes to the blocking pool; it always returns, which is
   // the property a blocking-pool task needs and the lifeline reader lacks.
-  if matches!(request.op, Op::EstateStatus) {
+  //
+  // **THE ESTATE'S PAGE ASKS FOR ITS FORM, AND GETS THE SAME ANSWER.** A form
+  // whose view parses to the estate (`/estate` and `/estate/status` alike) is
+  // the host's status, not an entity of any project, so it is answered here
+  // too, unbound and with no store opened; every other view still binds and
+  // goes through the store's `resolve_view`.
+  let estate_form = matches!(
+    &request.op,
+    Op::Form { view } if matches!(intentsvcs::nav::View::parse(view), Some(intentsvcs::nav::View::Estate))
+  );
+  if matches!(request.op, Op::EstateStatus) || estate_form {
     return Served::Reply(
       match tokio::task::spawn_blocking(|| intentsvcs::estate::host_status_with(census::held()))
         .await
