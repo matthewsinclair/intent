@@ -136,6 +136,12 @@ If a command fails with an error naming a path rather than an argument, this tab
 
 **From v3.0.0,** note that the v3.0.0 keg shipped without the rule library, the skills and `intent_claude_cwi`. The [v3.0.1 release notes](releases/3.0.1/RELEASE_NOTES.md) cover that migration.
 
+## For the maintainer of a dev checkout
+
+Everything above names Homebrew alone, which is the tree every user runs. A maintainer also has a dev tree, the git checkout and the pair `bin/devbin build all` builds in it, and an opt tree, which `intent install --prefix <dir>` publishes from dev. `intent use` reports which of them the links in `~/.local/bin` serve and runs the shadow check; `intent use dev` and `intent use opt` point both links, `intent` and `intentd`, at that tree, and `intent use brew` removes them so Homebrew's links answer. Each switch ends by restarting the daemon through the new `intent`, so the old tree's daemon does not keep serving. Brew is the resting state: switch to dev or opt while working, and back with `intent use brew` once the patch is released. `~/.local/bin` must come before the first Homebrew bin entry on PATH.
+
+**The switch governs login shells only.** A process started without the login PATH, such as the Claude Code desktop app, a Claude Code session resumed from before `~/.local/bin` was put first, or cron, has Homebrew's bin and not `~/.local/bin`. It runs Homebrew's `intent` for Claude Code's hooks (`intent claude hook ...` in `.claude/settings.json`) and its MCP server (`"command": "intent"` in `.mcp.json`) while the shell runs dev or opt, and `intent doctor` cannot see it. Start such a session again from a login shell after a switch. Relaunch Intent.app once after upgrading to the release that carries `intent use`; from then on it follows the link at every spawn.
+
 ## Known defects
 
 [Known defects](known-defects.md) lists every defect in the current release that a reader can reach by following the documentation correctly.

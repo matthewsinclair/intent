@@ -336,6 +336,8 @@ mod unmigrated_surface;
 mod upgrade_command;
 #[path = "upgrade_installs_the_gate_releaser.rs"]
 mod upgrade_installs_the_gate_releaser;
+#[path = "use_reports_the_tree_the_links_serve.rs"]
+mod use_reports_the_tree_the_links_serve;
 #[path = "verbosity_flags.rs"]
 mod verbosity_flags;
 #[path = "version_spellings_agree.rs"]

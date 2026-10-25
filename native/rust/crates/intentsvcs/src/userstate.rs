@@ -81,6 +81,12 @@ pub fn home() -> Result<PathBuf, UserStateError> {
   }
 }
 
+/// The per-user link directory, `~/.local/bin` (devbin's `docs/dev-opt-brew.md`,
+/// T5), where `intent use` keeps the link set. Read here because `$HOME` is.
+pub fn local_bin() -> Result<PathBuf, UserStateError> {
+  Ok(home()?.join(".local").join("bin"))
+}
+
 /// The four XDG variables as the environment gave them, before any default.
 #[derive(Debug, Default, Clone)]
 pub struct Xdg {

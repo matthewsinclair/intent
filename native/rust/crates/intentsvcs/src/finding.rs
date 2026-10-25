@@ -424,6 +424,14 @@ pub enum FindingClass {
   /// A file an opt or brew tree's manifest lists has changed or gone, or a
   /// runtime file is there that the manifest does not list (ST0087 WP-02).
   InstallManifestDrift,
+  /// A link of the set in `~/.local/bin` exists and is not the first hit on
+  /// PATH, so a login shell runs whatever shadows it (ST0087 WP-03; devbin's
+  /// `docs/dev-opt-brew.md`, T5, the shadow check).
+  InstallLinkShadowed,
+  /// The link set is split: its links serve different trees, or one is there
+  /// and the other is not, and the CLI finds the daemon only beside itself
+  /// (ST0087 WP-03, T5).
+  InstallLinkSplit,
   /// A hygiene note, not a fault: the artefact is well-formed and nothing is
   /// blocked by it. Printed under `advisory:` and NOT counted toward the
   /// verdict -- hv, 2026-08-26, on Baize printing 66 of these at rc 1 under the
@@ -785,6 +793,18 @@ impl FindingClass {
         "install-manifest-drift",
         "something other than `intent install` changed this tree. Republish it from the dev checkout with `intent install --force`, or for a brew keg reinstall it with `brew reinstall intent`",
       ),
+      // Beside them: a shadowed or split link set means a login shell runs a
+      // different tree from the one `intent use` reports.
+      Self::InstallLinkShadowed => (
+        1,
+        "install-link-shadowed",
+        "put `~/.local/bin` ahead of the directory named above on PATH (before the FIRST Homebrew bin entry, since `brew shellenv` can add it twice), or run `intent use brew` if Homebrew's intent is the one you mean",
+      ),
+      Self::InstallLinkSplit => (
+        1,
+        "install-link-split",
+        "point both links at one tree with `intent use dev` or `intent use opt`, or remove both with `intent use brew`",
+      ),
       // Outside the verdict altogether: a state, not an obligation. It sorts last
       // so the totals line ends with what nobody has to act on.
       // **A PER-CLASS STRING CANNOT NAME A SUBJECT, AND THIS ONE DID** (issue
@@ -899,6 +919,12 @@ impl FindingClass {
   /// found red, and a consumer that cannot tell those apart refuses the wrong
   /// thing.
   ///
+  /// `InstallLinkShadowed` and `InstallLinkSplit` (vc, 2026-10-25, ST0087
+  /// WP-03): the shadow check reads the PATH of the process running it, so a
+  /// commit made from a launchd or hook PATH would be refused for a reason that
+  /// says nothing about what it carries. Doctor reports them with their remedy,
+  /// and bare `intent use` exits non-zero on them.
+  ///
   /// What is NOT exempt: a canon that does not parse, a schema that does not
   /// validate, conflict markers, duplicate ids, view skew. Those are estates
   /// that are broken rather than estates that are early.
@@ -921,6 +947,8 @@ impl FindingClass {
         | Self::SettingsHookMissing
         | Self::AuthorPlaceholder
         | Self::HookScriptOrphaned
+        | Self::InstallLinkShadowed
+        | Self::InstallLinkSplit
     )
   }
 

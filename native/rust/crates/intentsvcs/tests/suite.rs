@@ -503,6 +503,8 @@ mod the_migrator_says_what_it_did_not_carry;
 mod the_semantic_tier_is_staged_and_its_seams_hold;
 #[path = "the_shell_page_reads_the_fields_the_wire_sends.rs"]
 mod the_shell_page_reads_the_fields_the_wire_sends;
+#[path = "the_switch_points_the_link_set.rs"]
+mod the_switch_points_the_link_set;
 #[path = "the_tree_function_names_the_running_tree.rs"]
 mod the_tree_function_names_the_running_tree;
 #[path = "thread_body_conservation.rs"]

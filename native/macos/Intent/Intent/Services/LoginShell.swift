@@ -10,8 +10,11 @@ import Foundation
 struct LoginShell: Sendable {
   /// The login shell's PATH, or a sane default if the shell said nothing.
   let path: String
-  /// `command -v intent`, realpath'd -- the ~/.local/bin symlink resolves to
-  /// native/rust/target/release/intent.
+  /// `command -v intent` AS FOUND, never resolved (ST0087): the per-user link
+  /// `~/.local/bin/intent` stays the link, so every spawn follows it to
+  /// whichever tree `intent use` last pointed it at. Resolving it here pinned
+  /// the app to the tree it saw at launch, and the menu's Restart then started
+  /// that tree's daemon, undoing a switch.
   let intent: String?
   /// How `intent` was found, written to the launch log line.
   let source: String
@@ -28,25 +31,26 @@ struct LoginShell: Sendable {
   static func parse(
     _ out: String,
     home: String = NSHomeDirectory(),
-    exists: (String) -> String? = realpath
+    isExecutable: (String) -> Bool = executable
   ) -> LoginShell {
     let lines = out.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
     let path = lines.first.flatMap { $0.isEmpty ? nil : $0 } ?? fallbackPath
     let found = lines.dropFirst().first { !$0.isEmpty }
 
-    if let found, let real = exists(found) {
-      return LoginShell(path: path, intent: real, source: "login shell: \(found)")
+    if let found, isExecutable(found) {
+      return LoginShell(path: path, intent: found, source: "login shell: \(found)")
     }
     let symlink = home + "/.local/bin/intent"
-    if let real = exists(symlink) {
-      return LoginShell(path: path, intent: real, source: "~/.local/bin/intent")
+    if isExecutable(symlink) {
+      return LoginShell(path: path, intent: symlink, source: "~/.local/bin/intent")
     }
     return LoginShell(path: path, intent: nil, source: "not on the login shell's PATH")
   }
 
-  static func realpath(_ p: String) -> String? {
-    let url = URL(fileURLWithPath: p).resolvingSymlinksInPath()
-    return FileManager.default.isExecutableFile(atPath: url.path) ? url.path : nil
+  /// Whether `p` runs: an executable file, or a link to one. The link is
+  /// followed to ANSWER this and is never what is kept.
+  static func executable(_ p: String) -> Bool {
+    FileManager.default.isExecutableFile(atPath: p)
   }
 
   private static func zsh(_ script: String) -> String {
@@ -67,26 +71,37 @@ struct LoginShell: Sendable {
   }
 }
 
-/// One capture per launch. `refresh()` re-captures on demand; nothing in the
-/// app calls it.
+/// One capture per launch, re-taken when the binary it found no longer runs:
+/// `intent use brew` removes the per-user links, and Homebrew's own `intent`
+/// then answers for a fresh login shell. `refresh()` re-captures on demand.
 final class LoginShellStore: @unchecked Sendable {
   static let shared = LoginShellStore()
 
   private let lock = NSLock()
   private var cached: LoginShell?
+  private let isExecutable: (String) -> Bool
+  private let capture: () -> LoginShell
+
+  init(
+    isExecutable: @escaping (String) -> Bool = LoginShell.executable,
+    capture: @escaping () -> LoginShell = LoginShell.capture
+  ) {
+    self.isExecutable = isExecutable
+    self.capture = capture
+  }
 
   func current() -> LoginShell {
     lock.lock()
     defer { lock.unlock() }
-    if let cached { return cached }
-    let shell = LoginShell.capture()
+    if let cached, cached.intent.map(isExecutable) ?? true { return cached }
+    let shell = capture()
     cached = shell
     return shell
   }
 
   @discardableResult
   func refresh() -> LoginShell {
-    let shell = LoginShell.capture()
+    let shell = capture()
     lock.lock()
     cached = shell
     lock.unlock()

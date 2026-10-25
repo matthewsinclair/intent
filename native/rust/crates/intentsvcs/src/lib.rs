@@ -103,6 +103,7 @@ pub mod search;
 pub mod settings;
 pub mod sql_gate;
 pub mod store;
+pub mod switch;
 pub mod sync;
 pub mod transitions;
 pub mod userstate;

@@ -424,6 +424,11 @@ const HAZARDS: &[(&str, &[Hazard])] = &[
   // doing it too. A row whose subject is the machine rather than the project
   // has nothing a route comparison can be about.
   ("bootstrap", &[Hazard::ActsOnAmbientUserState]),
+  // ST0087 WP-03: `use` reads the link set in `~/.local/bin` and the PATH that
+  // reaches it, and with a tree it rewrites that set and restarts the daemon,
+  // so in-process it would answer about, or repoint, this machine's `intent`.
+  // Its subject is the machine, as `bootstrap`'s is.
+  ("use", &[Hazard::ActsOnAmbientUserState]),
   (
     "daemon run",
     &[Hazard::NeverReturns, Hazard::ReplacesTheImage],

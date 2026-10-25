@@ -10574,6 +10574,60 @@
       }
     },
     {
+      "path": "use",
+      "help": "Report or switch the tree the per-user links in ~/.local/bin serve: dev, opt, or brew by removing them",
+      "args": [
+        {
+          "name": "tree",
+          "type": "enum",
+          "arity": "0..1",
+          "values": [
+            "dev",
+            "opt",
+            "brew"
+          ],
+          "note": "Which tree the link set serves: `dev` points `intent` and `intentd` in `~/.local/bin` at the release pair of the checkout holding the current directory (else the running dev tree), `opt` at an opt tree `intent install` published, and `brew` removes the set so Homebrew's links answer. Leave it out to report which tree each link serves and run the shadow check; that changes nothing."
+        }
+      ],
+      "flags": [
+        {
+          "spellings": [
+            "--prefix"
+          ],
+          "type": "string",
+          "value": "<dir>",
+          "help": "With `opt`: the opt tree to point the links at; without it, INTENT_INSTALL_PREFIX, and with neither `use opt` is refused",
+          "disposition": "keep"
+        }
+      ],
+      "observed": {
+        "exit": [
+          {
+            "code": 0,
+            "when": "bare: the set serves one tree, or none (brew), and the shadow check passes; or the set was pointed at the tree named, or removed for brew, and the new first hit's `intent daemon restart` ran"
+          },
+          {
+            "code": 1,
+            "when": "bare: the shadow check fails, a link not first on PATH or the set split across trees; or refused before any link was written: no dev checkout or no pair built in it, no opt prefix, a prefix with no manifest, a tree Homebrew manages, a link in the set that is not Intent's, or for `brew` no Homebrew intent left to answer; or the links were pointed and the daemon restart through them failed"
+          }
+        ],
+        "stdout": "one `use:` line per link naming the tree it serves, then `ok:` for the tree the set serves and, for dev or opt, a `note:` that brew is the resting state; after a switch, `linked:` or `unlinked:` per link, the restart's own output, and `ok:` with the new binary's version line",
+        "stderr": "`error: ...` with its remedy (INV-01)"
+      },
+      "v2": "new-surface",
+      "basis": "ST0087 WP-03 (vc's rulings of 2026-10-25), devbin's docs/dev-opt-brew.md T5: the links are the only record of which tree a user runs, `use` is the one verb that points them, the set moves as one because the CLI finds the daemon only beside its own executable, no link means brew, and the shadow check compares resolved directories. Intent's addition, ruled by vc: `use brew` refuses before removing anything when no Homebrew intent would answer afterwards.",
+      "owner_wp": "ST0087 WP-03",
+      "disposition": "new-surface",
+      "read_or_mutate": "mutate",
+      "recoverability": "reversible",
+      "recoverability_anomaly": "Reversible by another `intent use`, and withheld because it repoints the `intent` every login shell, hook and MCP server on the machine runs and restarts the one per-user daemon, which makes it a switch an agent runs because it was asked and never unasked (ST0087 WP-03).",
+      "exposed_on_mcp": false,
+      "acceptance": "ST0087 WP-03",
+      "target": {
+        "state": "new-surface"
+      }
+    },
+    {
       "path": "help",
       "help": "Show usage for Intent",
       "args": [],
@@ -11319,6 +11373,7 @@
       "discover",
       "deinit",
       "install",
+      "use",
       "help",
       "graphql",
       "set",
@@ -11496,6 +11551,7 @@
       "discover",
       "deinit",
       "install",
+      "use",
       "help",
       "graphql",
       "set",
@@ -11679,6 +11735,7 @@
       "discover",
       "deinit",
       "install",
+      "use",
       "help",
       "graphql",
       "set",

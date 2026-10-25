@@ -41,6 +41,7 @@ fn proofs() {
   implements::<intentsvcs::gitstate::GitStateError>();
   implements::<intentsvcs::ingest::IngestError>();
   implements::<intentsvcs::install::InstallError>();
+  implements::<intentsvcs::switch::SwitchError>();
   implements::<intentsvcs::launchagent::LaunchAgentError>();
   implements::<intentsvcs::macapp::AppError>();
   implements::<intentsvcs::embed::EmbedError>();

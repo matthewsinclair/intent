@@ -724,6 +724,12 @@ git names and the .intent-install manifest, staged beside the prefix and swapped
 nothing in any project, the dev tree it publishes from included (ST0087 WP-02). \
 intentsvcs' `install_publishes_an_opt_tree.rs` drives each write and refusal.",
   ),
+  (
+    "use",
+    "the link set in ~/.local/bin, intent and intentd, each staged beside itself and renamed in, or \
+removed for brew, and nothing in any tree or project; bare `use` writes nothing (ST0087 WP-03). \
+intentsvcs' `the_switch_points_the_link_set.rs` drives each write and refusal.",
+  ),
   // **THE HOST ESTATE (ST0086) IS NOT THE THREAD ESTATE**: every verb below
   // writes Intent's per-user state directory and nothing in any project, and
   // intent-cli's `estate_surface.rs` drives each write and names its path.

@@ -1162,7 +1162,7 @@ pub fn tree_findings(id: &TreeId) -> Vec<crate::finding::Finding> {
 const MANIFEST_KEYS: [&str; 4] = ["tool", "version", "source_commit", "managed_by"];
 
 /// Where the opt tree goes when `--prefix` is not given, declared by the
-/// sleeve and read by `intent install` alone (T1). [`publish`] spells the read
+/// sleeve and read by `intent install` and `intent use opt` (T1). [`opt_prefix`] spells the read
 /// with the literal name, so `no_intent_home.rs` sees it in its one file.
 pub const PREFIX_VAR: &str = "INTENT_INSTALL_PREFIX";
 
@@ -1208,10 +1208,17 @@ pub fn publish(
     .parent()
     .map(Path::to_path_buf)
     .unwrap_or_default();
-  let prefix = prefix
-    .map(Path::to_path_buf)
-    .or_else(|| std::env::var_os("INTENT_INSTALL_PREFIX").map(PathBuf::from));
+  let prefix = opt_prefix(prefix);
   publish_at(&root, &pair, build, prefix.as_deref(), force, managed_by)
+}
+
+/// The opt prefix (T1): `given`, else [`PREFIX_VAR`], else none, since the
+/// prefix has no default. `intent install` publishes to it and `intent use opt`
+/// points the link set into it, so both read it here.
+pub fn opt_prefix(given: Option<&Path>) -> Option<PathBuf> {
+  given
+    .map(Path::to_path_buf)
+    .or_else(|| std::env::var_os("INTENT_INSTALL_PREFIX").map(PathBuf::from))
 }
 
 /// The pure-in-its-inputs half of [`publish`]: every refusal comes before the

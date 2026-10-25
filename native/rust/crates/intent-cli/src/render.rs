@@ -87,6 +87,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("discover", m)) => discover(m),
     Some(("deinit", m)) => deinit(m),
     Some(("install", m)) => install(m),
+    Some(("use", m)) => use_verb(m),
     Some(("upgrade", _)) => upgrade(),
     Some(("bootstrap", m)) => bootstrap(m),
     Some(("init", m)) => init(m),
@@ -6066,6 +6067,98 @@ fn install(m: &ArgMatches) -> Result<(), Failure> {
   Ok(())
 }
 
+/// `intent use [dev|opt|brew] [--prefix <dir>]` (ST0087 WP-03, the contract's
+/// T5). Bare, it reports which tree each link in `~/.local/bin` serves and runs
+/// the shadow check, changing nothing; with a tree it points the link set
+/// there, or removes it for brew, then restarts the daemon through the NEW
+/// first hit, never in this process, and prints that binary's line. Every
+/// decision is `intentsvcs::switch`'s.
+fn use_verb(m: &ArgMatches) -> Result<(), Failure> {
+  use intentsvcs::remedy::Remedy;
+  use intentsvcs::switch;
+  let fail = |e: switch::SwitchError| Failure::Error(e.render());
+  let Some(word) = opt(m, "tree")? else {
+    let report = switch::read().map_err(fail)?;
+    for link in &report.links {
+      println!(
+        "use: {} {}",
+        link.path.display(),
+        switch::describe(&link.state)
+      );
+    }
+    match &report.serving {
+      switch::Serving::Brew => println!(
+        "ok: no link, so brew answers: {}",
+        report.first_hit.as_ref().map_or_else(
+          || "no intent is on PATH".to_string(),
+          |hit| format!("the first intent on PATH is {}", hit.display())
+        )
+      ),
+      switch::Serving::Tree { tree, root } => {
+        println!(
+          "ok: the link set serves the {tree} tree at {}",
+          root.display()
+        );
+      }
+      switch::Serving::Split => {}
+    }
+    if let Some(note) = report.resting_note() {
+      println!("note: {note}");
+    }
+    let findings = switch::findings(&report);
+    if findings.is_empty() {
+      return Ok(());
+    }
+    return Err(Failure::Error(
+      findings
+        .iter()
+        .map(|f| {
+          format!(
+            "error: the shadow check fails: {}\n  remedy: {}",
+            f.where_and_what(),
+            f.class.remedy()
+          )
+        })
+        .collect::<Vec<_>>()
+        .join("\n"),
+    ));
+  };
+  let word = check_enum(&word, "use", "tree")?;
+  let target = switch::Target::parse(&word).ok_or_else(|| {
+    Failure::Error(format!(
+      "error: `{word}` is not a tree\n  remedy: name one of dev, opt, brew"
+    ))
+  })?;
+  let prefix = m.get_one::<String>("prefix").map(std::path::PathBuf::from);
+  if prefix.is_some() && target != switch::Target::Opt {
+    return Err(Failure::Error(format!(
+      "error: `--prefix` names an opt tree, and `intent use {}` points at none\n  remedy: `intent use opt --prefix <dir>`",
+      target.as_str()
+    )));
+  }
+  let pointed = switch::point(target, prefix.as_deref()).map_err(fail)?;
+  for (link, to) in &pointed.linked {
+    println!("linked: {} -> {}", link.display(), to.display());
+  }
+  for link in &pointed.unlinked {
+    println!("unlinked: {}", link.display());
+  }
+  let restarted = switch::restart_through(&pointed.restart_with).map_err(fail)?;
+  if restarted.code != Some(0) {
+    return Err(Failure::Error(format!(
+      "error: the link set now serves the {} tree at {}, and `{} daemon restart` did not succeed ({})\n  remedy: run `intent daemon restart` so the new tree's daemon serves",
+      target.as_str(),
+      pointed.root.display(),
+      pointed.restart_with.display(),
+      restarted
+        .code
+        .map_or_else(|| "killed by a signal".to_string(), |c| format!("exit {c}"))
+    )));
+  }
+  println!("ok: {}", restarted.version);
+  Ok(())
+}
+
 /// `intent deinit [--apply] [--all]` (ST0083 WP-06): what Intent wrote into
 /// this project, listed, and with `--apply` removed or edited.
 ///
@@ -8431,6 +8524,17 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
   report
     .findings
     .extend(intentsvcs::install::tree_findings(&tree));
+  // **AND THE SHADOW CHECK** (ST0087 WP-03, T5): a link of the set that is not
+  // first on PATH, or a set split across trees, fails. A check that could not
+  // run says so rather than passing.
+  match intentsvcs::switch::read() {
+    Ok(links) => report.findings.extend(intentsvcs::switch::findings(&links)),
+    Err(e) => report.findings.push(intentsvcs::finding::Finding::new(
+      "~/.local/bin",
+      intentsvcs::finding::FindingClass::Advisory,
+      format!("the shadow check could not run: {e}"),
+    )),
+  }
   if format != "json" && !quiet {
     println!(
       "{}",

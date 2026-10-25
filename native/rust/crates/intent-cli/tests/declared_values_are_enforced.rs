@@ -139,6 +139,16 @@ const DECLARED: &[Slot] = &[
     disposition: Disposition::Enforced,
   },
   Slot {
+    // ST0087 WP-03: `check_enum` reads the table's roster before the switch
+    // runs, so a bad tree is refused at exit 1 naming dev, opt and brew, and no
+    // link is touched.
+    path: "use",
+    arg: "tree",
+    lead: &[],
+    trail: &[],
+    disposition: Disposition::Enforced,
+  },
+  Slot {
     path: "st show",
     arg: "file",
     lead: &["ST0001"],
