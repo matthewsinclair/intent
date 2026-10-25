@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 78d66f67-02b7-4497-bbec-4466e2fcb852
-heartbeat_at: 2026-10-25 06:49Z
+heartbeat_at: 2026-10-25 08:16Z
 status: active
-focus: "0640 landed e6ce2c5c1 and closed 9c28574c6 at 2026-10-25 06:49Z; pair at fef91e6f8 serves /estate/status (open with intent estate status --browser); open issues 0631 (behind the line), 0634 (dc, judge READY at molt-vc's desk after Laksa 0018fu), 0641 (hv to rule), 0642 (unassigned, XS); ST0087 WP-01 cc's now, WP-03 ic after it, WP-04 dc after 0634; next build all heavy when a landing changes daemon or CLI behaviour; no push, no release"
+focus: "3.2.7 is the one release (decision 76); today landed 0640, 0634, 0631, 0642, 0643 and the CHANGELOG; 0641 judged green and queued for my light landing; cc's ST0087 WP-01+02 rerun booked at molt-vc; contracts written for ST0086 and ST0087; next build all after cc lands; dc out of usage; no push, no release"
 claims: []
 ---
 
