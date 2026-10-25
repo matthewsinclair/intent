@@ -1,0 +1,14 @@
+{
+  "id": "01M5SXCM7MMYHJ27N2SB8HV9N9",
+  "ts": "2026-10-25T16:13:07.704Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0088/AC-02.3"
+  },
+  "payload": {
+    "text": "No skill or skill script hardcodes `~/.claude`; each reads the config dir as `${CLAUDE_CONFIG_DIR:-$HOME/.claude}`, so a machine with `CLAUDE_CONFIG_DIR` set is found by every skill locator. (The templates, subagents and the critic contract are AC-03.4, WP-03.)"
+  }
+}

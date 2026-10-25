@@ -83,7 +83,7 @@
     },
     {
       "id": "AC-02.3",
-      "text": "No skill, script or template hardcodes `~/.claude`; each reads the config dir as `${CLAUDE_CONFIG_DIR:-$HOME/.claude}`, and a machine with `CLAUDE_CONFIG_DIR` set is found by every locator.",
+      "text": "No skill or skill script hardcodes `~/.claude`; each reads the config dir as `${CLAUDE_CONFIG_DIR:-$HOME/.claude}`, so a machine with `CLAUDE_CONFIG_DIR` set is found by every skill locator. (The templates, subagents and the critic contract are AC-03.4, WP-03.)",
       "kind": "test",
       "state": {
         "is": "computed"
@@ -124,6 +124,14 @@
     {
       "id": "AC-03.3",
       "text": "`subagents/intent`, `subagents/socrates/README.md` and the eight `metadata.json` are gone, `payload.rs` and the installer agree, and `plugin.json` is gone or its reader is named by hv's ruling.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.4",
+      "text": "No template, subagent or critic-contract file hardcodes `~/.claude`: lib/templates/llm/_CLAUDE.md, subagents/critic-elixir/agent.md and rules/_schema/critic-contract.md read the config dir as `${CLAUDE_CONFIG_DIR:-$HOME/.claude}`, pinned by the corpus arm widened to those roots.",
       "kind": "test",
       "state": {
         "is": "computed"
