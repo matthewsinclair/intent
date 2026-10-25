@@ -3,10 +3,10 @@ node: cc
 name: Control Claude
 role: control
 session_id: 66e84138-c919-405e-bed0-8057e34a7ac2
-heartbeat_at: 2026-10-25 10:52Z
+heartbeat_at: 2026-10-25 11:43Z
 status: active
-focus: "ST0087 re-judge at 56d98e716 waits on molt-vc's GO and hv's continue; then banks 01b, 02b, ic's atdoc; ST0086 WP-04 last; hold 33 waits on ST0087; no push, no release"
-claims: [ST0081, ST0086/01, ST0086/04, ST0087/01, ST0087/02]
+focus: "ST0087 WP-01 and WP-02 landed and done (08f29d29c); next ST0086 WP-04, built last after ic's and dc's packages; hold 33 stands until ST0087 has gone first; no push, no release"
+claims: [ST0081, ST0086/01, ST0086/04]
 ---
 
 # Control Claude (cc)
