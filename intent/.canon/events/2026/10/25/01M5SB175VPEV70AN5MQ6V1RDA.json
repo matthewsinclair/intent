@@ -1,0 +1,14 @@
+{
+  "id": "01M5SB175VPEV70AN5MQ6V1RDA",
+  "ts": "2026-10-25T10:52:20.082Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "st.new",
+  "subject": {
+    "type": "thread",
+    "id": "ST0088"
+  },
+  "payload": {
+    "title": "Intent's prompt corpus is culled to what a session needs: one home per instruction, nothing it does not invoke, nothing the tool already does"
+  }
+}

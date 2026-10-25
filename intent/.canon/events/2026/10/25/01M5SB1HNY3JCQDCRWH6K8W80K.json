@@ -1,0 +1,15 @@
+{
+  "id": "01M5SB1HNY3JCQDCRWH6K8W80K",
+  "ts": "2026-10-25T10:52:31.879Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0088/04"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "The measurement: bytes before the first prompt, before and after, on the record, and the installed skills re-synced"
+  }
+}

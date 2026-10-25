@@ -1,0 +1,15 @@
+{
+  "id": "01M5SB1F08DXGR2P9C776R7C71",
+  "ts": "2026-10-25T10:52:27.532Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0088/02"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "The skills merged, trimmed and completed: in-standards into in-essentials, the detrope section owned once, the trims, CLAUDE_CONFIG_DIR, and the missing items written once"
+  }
+}
