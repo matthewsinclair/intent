@@ -1,0 +1,15 @@
+{
+  "id": "01M5S8J54TY98G9Q9W2TAC5D0S",
+  "ts": "2026-10-25T10:09:08.766Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0644"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "the commit gate's chain block cannot find its gitignored carrier from a linked worktree, so every worktree commit is refused with GATE ABSENT and a remedy that must not run there"
+  }
+}
