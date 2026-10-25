@@ -28,7 +28,6 @@ CLAUDE_MD="${INTENT_PROJECT_ROOT}/CLAUDE.md"
 
 @test "in-session references the universal skills unconditionally" {
   assert_file_contains "$SKILL" "/in-essentials"
-  assert_file_contains "$SKILL" "/in-standards"
 }
 
 # ====================================================================

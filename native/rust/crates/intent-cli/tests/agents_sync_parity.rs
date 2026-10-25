@@ -476,8 +476,7 @@ fn agents_validate_separates_absent_from_symlinked_from_well_formed() {
 /// reason was gone; hv retired it on 2026-10-16. A byte-identity check over one
 /// carrier would pass for free, so this arm asserts the arrangement instead:
 /// `_AGENTS.md` carries the index whole, `_CLAUDE.md` imports `AGENTS.md`, names
-/// the section, and carries no bullet of the index. `in-standards/SKILL.md`
-/// stays a declared rendering of the same index, outside this pair.
+/// the section, and carries no bullet of the index.
 #[test]
 fn the_four_rule_index_lives_in_agents_md_and_claude_md_points_at_it() {
   const BULLETS: [&str; 4] = [

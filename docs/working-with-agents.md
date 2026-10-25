@@ -96,11 +96,11 @@ Inside Claude Code the same critics are subagents:
 For Claude Code, Intent installs procedural skills — a session bootstrap that loads the right rule packs, a review pipeline, a verification pass.
 
 ```
-  $ intent claude skills install in-standards
+  $ intent claude skills install in-essentials
   $ intent claude skills sync
 ```
 
-**Never hand-copy a skill into `~/.claude/skills/`**, where Intent installs them. They are tracked by checksum: `intent claude skills sync` names a copy it did not write, and holds a skill modified since it was installed, rather than overwriting either.
+**Never hand-copy a skill into `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/`**, where Intent installs them. They are tracked by checksum: `intent claude skills sync` names a copy it did not write, and holds a skill modified since it was installed, rather than overwriting either.
 
 **Deeper:** [`intent/docs/creating-custom-agents.md`](../intent/docs/creating-custom-agents.md) for project-specific agents. User extensions at `~/.local/share/intent/ext/` are declared and not built: `intent ext` answers every subcommand with _a known command that is not implemented yet_.
 

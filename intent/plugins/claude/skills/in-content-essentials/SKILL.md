@@ -30,14 +30,9 @@ Detrope at every step -- do not save it for the end:
 4. **Structural check** -- front-matter meta present (title, description, canonical); one H1, no skipped heading levels; every content image has alt text; link text describes its destination.
 5. **CTA and reading-level pass** -- one clear primary call to action; language pitched to the audience.
 
-## Detrope: two forms, one home
+## Detrope
 
-detrope has one home -- `intent/plugins/claude/skills/in-detrope/data/trope-catalog.md` -- and two forms:
-
-- **Mechanical (default)** -- `IN-PR-STYLE-004` greps the catalogue's `detection: automated` regexes. critic-prose runs it on every `review`.
-- **Full LLM (on instruction)** -- `/in-detrope` does the contextual and stylometric diagnosis. Run it under direct instruction before publication; critic-prose only recommends it, never runs it.
-
-Never fork the trope catalogue; both forms read the one home.
+The trope catalogue has one home and two forms, a mechanical pass critic-prose runs on every `review` and the full diagnosis `/in-detrope` runs on instruction; both read `/in-detrope`'s `data/trope-catalog.md`, and that skill's "Two forms, one home" section says how they divide.
 
 ## Rules
 

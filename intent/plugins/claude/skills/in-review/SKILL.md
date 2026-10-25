@@ -51,31 +51,24 @@ Confirm no concretised-by rule is violated at the agnostic level:
 
 - [ ] `IN-AG-HIGHLANDER-001` -- no duplicated code paths. To check for prior art, ask the index first: `intent search --kind def <name>` answers whether a thing with that name already exists anywhere in the tree, and the answer carries the index's own freshness. When it says the index is not complete for the paths that matter, fall back to grep. Where the project keeps a registry, `intent modules find <name>` searches that as well.
 - [ ] `IN-AG-THIN-COORD-001` -- coordinators parse -> call -> render
-- [ ] `IN-AG-PFIC-001` -- Pure Function, Impure Coordination. **Read it before checking it: `intent claude rules show IN-AG-PFIC-001`.** This line used to say _pattern-match, pipe, tagged-tuple, compose idioms in play_, which is a different rule -- code can be fully idiomatic and still bury I/O three calls deep in a domain core, so the old check passed the violation and recorded the rule as examined.
+- [ ] `IN-AG-PFIC-001` -- Pure Function, Impure Coordination. **Read it before checking it: `intent claude rules show IN-AG-PFIC-001`.**
 - [ ] `IN-AG-NO-SILENT-001` -- no rescue-and-swallow, no discarded fallible results
 
 #### Delegate to `critic-<lang>`
 
-The critic reads the rule library, applies each rule's Detection heuristic, and emits a report grouped by severity (CRITICAL, WARNING, RECOMMENDATION, STYLE). The skill invokes the critic once for code and once for tests, then reports the union:
+The critic reads the rule library, applies each rule's Detection heuristic, and emits a report grouped by severity (CRITICAL, WARNING, RECOMMENDATION, STYLE). The skill invokes each critic with `review` on the code and `test-check` on the tests, then reports the union:
 
 ```
 Task(subagent_type="critic-elixir", prompt="review lib/**/*.ex")
 Task(subagent_type="critic-elixir", prompt="test-check test/**/*_test.exs")
-
 Task(subagent_type="critic-rust",   prompt="review src/**/*.rs")
-Task(subagent_type="critic-rust",   prompt="test-check tests/**/*.rs")
-
 Task(subagent_type="critic-swift",  prompt="review Sources/**/*.swift")
-Task(subagent_type="critic-swift",  prompt="test-check Tests/**/*.swift")
-
 Task(subagent_type="critic-lua",    prompt="review src/**/*.lua")
-Task(subagent_type="critic-lua",    prompt="test-check spec/**/*_spec.lua")
-
 Task(subagent_type="critic-shell",  prompt="review bin/* scripts/*")
-
-Task(subagent_type="critic-prose", prompt="review docs/**/*.md")
-Task(subagent_type="critic-prose", prompt="review content/**/*.md")
+Task(subagent_type="critic-prose",  prompt="review docs/**/*.md")
 ```
+
+The pre-commit gate runs the headless `intent critic <lang>` over the staged files at commit. It applies only the rules armed with a greppable proxy or a named tool, so it is a floor under this review, not a second copy of it.
 
 **Prose projects (`author` and/or `content` in `languages`)**: `critic-prose` reviews prose, not code, and resolves its discipline pack from the declared `languages`. Under `/in-review` run its mechanical `review` tier (house style, structure, the mechanical trope pass, plus the discipline's mechanics -- author front-matter/objectives, or content page-meta/alt-text/links) on the prose targets (`.md`/`.mdx`/`.html`). Its judgment tier -- `craft-check` (author: voice, continuity, citation; content: scannability, CTA, reading level) and the full `/in-detrope` diagnosis -- is on instruction, not part of the automatic pass. Per the per-language loop above, a prose-only project (`languages: [author]` or `[content]`) runs no code critic; a mixed project (eg `[elixir, content]`) runs `critic-elixir` on the code subtree and `critic-prose` on the prose subtree -- dispatch is scoped to the declared `languages`, so a critic whose language nobody declared never runs. A project declaring both `author` and `content` applies both discipline packs.
 

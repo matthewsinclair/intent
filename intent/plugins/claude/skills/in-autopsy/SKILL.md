@@ -22,7 +22,7 @@ Ask the user:
 The script lives alongside this SKILL.md:
 
 ```bash
-elixir "$(dirname "$(find ~/.claude/skills/in-autopsy -name autopsy.exs 2>/dev/null | head -1)")/autopsy.exs" \
+elixir "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/in-autopsy/scripts/autopsy.exs" \
   --days 7 \
   -o /tmp/autopsy-findings.json
 ```
@@ -41,9 +41,9 @@ The script outputs JSON to the specified file and progress to stderr.
 
 Read the JSON findings file. Also read:
 
-- The project's MEMORY.md (check `~/.claude/projects/*/memory/MEMORY.md`)
+- The project's MEMORY.md (check `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/projects/*/memory/MEMORY.md`)
 - The project's CLAUDE.md (in project root)
-- The user's global CLAUDE.md (`~/.claude/CLAUDE.md`)
+- The user's global CLAUDE.md (`${CLAUDE_CONFIG_DIR:-$HOME/.claude}/CLAUDE.md`)
 
 ### 4. Classify findings against memory
 
@@ -143,7 +143,7 @@ Note findings from both passes in the report.
 ## Important Notes
 
 - This skill requires Elixir to be installed (`elixir --version` to check)
-- Session files are at `~/.claude/projects/<project-key>/*.jsonl`
+- Session files are at `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/projects/<project-key>/*.jsonl`
 - The script reads files but never modifies them
 - The script reads each session line by line but holds every parsed session in memory; on a large corpus, narrow with `--days` or `--project`
 - The first run fetches Jason through `Mix.install`, so it needs network access to Hex

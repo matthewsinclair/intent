@@ -13,18 +13,17 @@
 # "tells a model how to find code" means, and the estate has ~20 RULE.md files
 # whose Detection heuristics grep as a CRITIC's mechanism rather than as advice
 # -- sweeping those would change what the critics detect, which is a different
-# criterion. So the six are named here, with the exclusions recorded in the
+# criterion. So the population is named here, with the exclusions recorded in the
 # commit that landed them.
 
 load "../lib/test_helper.bash"
 
-# The six. Each tells a model how to check for prior art, and each now routes
+# Each tells a model how to check for prior art, and each now routes
 # through the index.
 PRIOR_ART_ARTEFACTS=(
   "intent/plugins/claude/rules/agnostic/highlander/RULE.md"
   "intent/plugins/claude/skills/in-plan/SKILL.md"
   "intent/plugins/claude/skills/in-review/SKILL.md"
-  "intent/plugins/claude/skills/in-standards/SKILL.md"
   "lib/templates/llm/_AGENTS.md"
   "lib/templates/llm/_CLAUDE.md"
 )

@@ -26,7 +26,7 @@ Project-specific DO / NEVER rules. Terse and imperative. Examples:
 Auto-loaded by `/in-session`:
 
 - `/in-session` — session bootstrap. Run after `/compact`, context reset, or session start.
-- `/in-essentials`, `/in-standards` — universal workflow rules.
+- `/in-essentials` — universal workflow rules and formatting standards.
 - Per-language essentials for each declared language that has one (eg `/in-elixir-essentials`), read from `languages` in `intent/.config/config.json`. Not every language has one; those without get their rules from the rule library and the `critic-<lang>` family instead.
 - `/in-whiteboard`, when `intent/whiteboard/` exists.
 

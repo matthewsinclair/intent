@@ -3,7 +3,7 @@ description: "Multi-session coordination through `intent wb`: per-node boards an
 chains_to: []
 ---
 
-# Whiteboard -- Multi-Session Coordination (Protocol 3.0)
+# Whiteboard -- Multi-Session Coordination
 
 Coordinates several Claude Code sessions, and the human, on one Intent project. Each participant is a **node** with its own board. **`intent wb` is the only door**: the files under `intent/whiteboard/<node>/` are rendered views of the store.
 
@@ -21,73 +21,17 @@ The human is a node, conventionally `hv`, never named in protocol language. It a
 - **Standing directives**: `intent wb add directive "<text>" --node hv`. They render on `hv`'s board alone, every node honours them, and no other node can write one.
 - **Its inbox is the durable escalation surface**, required whenever a node cannot reach the human live (reachability belongs to a run, not a project). **A write surface with no named reader is a queue, not a channel**: the README MUST name who reads `hv/inbox.*` and surfaces it to the human. An escalation is done when that reader has it, not when the write returns; if nobody is named, fix that first.
 
-## The verbs at a glance
+## The verbs
 
-Every verb that writes as a node takes `--node <moniker>`; `status`, `show <node>` and `register` do not, and `migrate` takes the board as a positional.
-
-| What you want                                        | The verb                                         |
-| ---------------------------------------------------- | ------------------------------------------------ |
-| Start a session                                      | `intent wb pickup`                               |
-| See where every node stands                          | `intent wb status`                               |
-| Read one node's whole board                          | `intent wb show <node>`                          |
-| Message one node                                     | `intent wb ask <node> <body>`                    |
-| Broadcast to every peer                              | `intent wb announce <body>`                      |
-| Record what you are doing, or a watch-out, or a hold | `intent wb add <kind> <text>`                    |
-| Record a cross-node decision                         | `intent wb decide <text>`                        |
-| Take or drop a claim                                 | `intent wb claim` / `unclaim <id>`               |
-| Retire one of your own items                         | `intent wb archive <kind> <id>`                  |
-| Retire a message you sent, once it is handled        | `intent wb archive message <anchor> --to <node>` |
-| Change or redact your item or a message you sent     | `intent wb edit <kind> <id> <text>`              |
-| Mark one sender's messages handled                   | `intent wb clear <sender>`                       |
-| Say you are still alive                              | `intent wb touch`                                |
-| End a session                                        | `intent wb release`                              |
-| Put the project's nodes on the board                 | `intent wb register`                             |
-| Carry a hand-authored board into the store           | `intent wb migrate <node>`                       |
-
-`ask` also takes `--re <anchor>` (thread a reply) and `--fyi` (no reply expected). `pickup`, `status` and `show` take `--json`; `pickup` and `show` take `--all` (handled messages too). `pickup --focus <line>` is the only way to set the focus line; `--session <id>` records the session id (default `CLAUDE_CODE_SESSION_ID`).
+The help for `intent wb` lists every verb, and each verb's own help its flags. Every verb that writes as a node takes `--node <moniker>`; `status`, `show <node>` and `register` do not, and `migrate` takes the board as a positional. Two things the help does not say: `pickup --focus <line>` is the only way to set the focus line, and `pickup`, `status` and `show` take `--json` for a script.
 
 **Not every verb is one an agent reaches for unasked.** Each row's `exposed_on_mcp` follows its recoverability: reads, and writes whose repeat changes nothing, are offered; a verb that accumulates something permanent is done because you were asked. Exceptions say why in `recoverability_anomaly` (eg `wb register`). Read the field, never a list.
 
-## File layout
+## The files
 
-```
-intent/whiteboard/
-  README.md                 # protocol reference + the project's node roster (hand-authored)
-  <node>/
-    board.json              # the node's canon, tool-written: its items, the messages it SENT, its handled marks
-    wip.md                  # generated view: header block + DOING + TODO + Holds + Watch-outs + Decisions
-    inbox.<sender>.md       # generated view, one per OTHER registered node: messages FROM that sender
-    .history/
-      .gitkeep              # tracks the otherwise-empty archive dir (git ignores empty dirs)
-      YYYYMMDD/             # the hand-authored era's fold archives; not written any more
-      pre-migration/        # the copies `wb migrate` keeps of a hand-authored wip.md and any inbox it dropped a line from
-```
+`intent/whiteboard/<node>/` holds the node's `board.json`, its canon, and the views rendered from it: `wip.md` (a header block, then DOING, TODO, Holds, Watch-outs and Decisions, and on `hv`'s board its standing directives) and one `inbox.<sender>.md` per other registered node. **These files are generated views: never edit them.** A hand edit is skew that `intent doctor` reports and the next render drops. An inbox holds what one sender sent, rendered from the sender's `board.json` alone, so the sender is its one writer; `clear` marks messages handled in the recipient's own `board.json` and changes no inbox file. **Archived is a state, not a directory**: the row keeps its number and text, stays readable, and stops counting against the live bound. `.history/` holds the hand-authored era's archives and the copies `wb migrate` keeps, and is never reloaded.
 
-**These files are generated views: never edit them.** A hand edit is skew that `intent doctor` reports and the next render drops. **Archived is a state, not a directory**: the row keeps its number and text, stays readable, and stops counting against the live bound.
-
-**A node joins by being registered**: `intent wb register <moniker> --name "<display name>" --role <role>`. An unchanged repeat writes nothing, a changed value is refused, and `--correct` changes name and role on purpose; with no arguments it registers from each hand-authored board's header. `intent wb migrate <node>` carries a hand-authored board into the store, refusing every line it cannot carry unless `--drop-uncarried` (dropped lines kept under `<node>/.history/pre-migration/`). Until then, every write to its board and every message addressed to it is refused.
-
-## wip.md shape
-
-```
----
-node: <moniker>
-name: <display name>
-role: <role>
-session_id: <UUID|none>
-heartbeat_at: <UTC, read from `date -u` -- see "Every timestamp is READ FROM A CLOCK">
-status: active | paused
-focus: "<one-line current goal>"
-claims: [STxxxx, ...]
----
-# <Name> (<node>)
-## DOING        -- in-flight work (archived, as a state, when it is finished with)
-## TODO         -- queued / next
-## Holds        -- work you are NOT doing, each with the CONDITION that releases it
-## Standing directives -- hv's board only (see "The hv (hypervisor) node")
-## Watch-outs   -- durable cautions peers should know (standing; not archived)
-## Decisions    -- cross-node decisions, broadcast by being read at pickup
-```
+**A node joins by being registered**: `intent wb register <moniker> --name "<display name>" --role <role>`. An unchanged repeat writes nothing, a changed value is refused, and `--correct` changes name and role on purpose. `intent wb migrate <node>` carries a hand-authored board into the store, refusing every line it cannot carry unless `--drop-uncarried`. Until then, every write to its board and every message addressed to it is refused.
 
 ### `## Holds` -- the condition is the required field, not the item
 
@@ -95,25 +39,11 @@ claims: [STxxxx, ...]
 
 ### The header block is NOT YAML
 
-A line-oriented `key: value` block; these rules are the whole specification:
+`wip.md`'s header is a line-oriented `key: value` block the renderer writes: one line per key, the value running from the first `: ` to the end of the line, one surrounding pair of double quotes stripped as a display delimiter, and quotes inside literal and **never escaped** (`\"` puts a backslash on the board). `claims:` is a comma-separated list in square brackets. The header guard refuses escapes in a hand-authored block; the fix is to stop treating it as YAML, never a better escape.
 
-- **One line per key**: the value runs from the first `: ` to the end of the line. No multi-line values, nesting or comments.
-- **The double quote is a display delimiter**: one surrounding pair is stripped; quotes inside are literal and **never escaped** (`\"` puts a backslash on the board). Single quotes are never stripped.
-- **`claims:`** is a comma-separated list in square brackets.
+### An inbox entry's heading
 
-On a generated board the renderer writes it. The header guard refuses escapes in a hand-authored block; the fix is to stop treating it as YAML, never a better escape.
-
-## inbox.<sender>.md shape
-
-`<recipient>/inbox.<sender>.md` holds what `<sender>` sent `<recipient>`, rendered from `<sender>/board.json` alone, so the sender is its one writer; the recipient reads it and clears. An unused pair shows `# inbox: <sender> -> <recipient>` over `_(empty)_`. `clear` removes nothing and changes no inbox file: it puts a mark on each message in the recipient's own `board.json`, the message leaves the live count, and `wb pickup` and `wb show --all` say what is handled. The file never does. A handled message leaves the file only when its sender archives it (`wb archive message`).
-
-```
-## (YYYY-MM-DD HH:MMZ) [claimed <stamp>] [Re: <prior-anchor>] [FYI only -- no response needed.] [(edited)]
-
-<text>
-```
-
-The minute stamp is the anchor a reply threads against (`--re`). `Re:` marks a reply; `FYI only` marks no reply expected, and its absence means one is. A reply is a new entry in the opposite inbox. The renderer adds `claimed` (a migrated entry's claimed stamp) and `(edited)`. Field separators are not significant.
+`## (YYYY-MM-DD HH:MMZ) [Re: <prior-anchor>] [FYI only -- no response needed.] [(edited)]`: the minute stamp is the anchor a reply threads against with `--re`. `Re:` marks a reply; `FYI only` marks no reply expected, and its absence means one is. Every `announce` is FYI.
 
 ## Every timestamp is READ FROM A CLOCK, never written from memory
 
@@ -132,7 +62,7 @@ date -u +'%Y-%m-%d %H:%MZ'
 
 ## Node-identity discovery
 
-The tool cannot work out `--node <moniker>`: use the moniker the invocation carries; else infer it (the session's name, the working directory, the user's framing, which board names this session); else ask before writing. **A write under the wrong moniker is a write on somebody else's board**: the single-writer rule is enforced against the moniker passed. Later sessions of the node inherit it.
+A node session is started with `intent claude start <node>`, which binds it to its workstream, and `intent estate status` shows every Claude session on the machine, node or not. The tool cannot work out `--node <moniker>`: use the moniker the invocation carries; else infer it (the session's name, the working directory, the user's framing, which board names this session); else ask before writing. **A write under the wrong moniker is a write on somebody else's board**: the single-writer rule is enforced against the moniker passed. Later sessions of the node inherit it.
 
 ## Each verb, and the judgement it cannot carry
 
@@ -150,9 +80,9 @@ The tool cannot work out `--node <moniker>`: use the moniker the invocation carr
 - **`release`** sets you paused and stamps, so a clean stop differs from a dead session. **Session end only**: never for a localfold, a compact or a context reset.
 - **`status`** and **`show <node>`** write nothing.
 
-### Folding: localfold and globalfold
+### Folding
 
-**localfold** = tidy your OWN node before a compact: archive what is finished with, clear what you have handled, and archive what you sent that its recipients have handled (`wb archive message --handled`). **It does NOT `release`.** **globalfold** = the project-wide snapshot (`intent/wip.md`, `restart.md`, `done.md`), usually the coordinating or validation node's job.
+`/in-finish` defines localfold and globalfold. On a board, a localfold archives what is finished with, clears what you have handled, and archives what you sent that its recipients have handled (`wb archive message --handled`). **It does NOT `release`.**
 
 - **An unexecuted ruling is live state, not history.** A fold archives the NARRATIVE of a ruling, never the ruling while it is unexecuted. Execution is the test, not the date; verify it against the ARTEFACT, not the board that records it.
 - **A hold is not archived while its condition stands unmet**; a released one goes back to TODO (`wb archive hold <id>`, then `wb add todo`).
@@ -160,14 +90,7 @@ The tool cannot work out `--node <moniker>`: use the moniker the invocation carr
 
 ## Node roles
 
-Per-project; the README is the source of truth. A common shape: a **control** node doing the heavy lifting, a **validation** node, others as needed, and `hv`.
-
-### Validation / Verifier (optional)
-
-Checks that other nodes' landed or claimed work is **correct, complete, consistent, and faithful to what `hv` asked**. Advisory only: it posts findings, `hv` adjudicates, the owner fixes; it never mutates another node's code or blocks it.
-
-- **Sources, the triangle**: the ASK (the node's transcript, `~/.claude/projects/<project-dir>/<session_id>.jsonl`, read targeted; re-resolve `session_id` each audit), the PLAN (its plan file, often cited in `focus:`), REALITY (the whiteboard, `intent/st/**`, code, tests).
-- **Method**: fire on a claim (done, closed, frozen, green), not on in-flight edits; read the as-built, not the narrative (`file:line` from a real read); classify each finding (queued or fell through the cracks, severity, evidence); refute your own HIGH findings before posting; findings go to the owner's inbox, a compounding false "done" to `hv`'s; say what you checked AND what you did not.
+Per-project; the README is the source of truth. A common shape: a **control** node doing the heavy lifting, a **validation** node that checks landed or claimed work and posts findings for `hv` to adjudicate (advisory only: it never mutates another node's work or blocks it), others as needed, and `hv`.
 
 ## Protocol invariants
 
@@ -175,11 +98,11 @@ Checks that other nodes' landed or claimed work is **correct, complete, consiste
 2. **Live channel, not snapshot**: `<node>/wip.md` is live; `intent/wip.md` is the snapshot.
 3. **Claims by ST ID**, never glob paths.
 4. **Broadcast via `announce`**, never a shared file; announce before touching a shared platform layer.
-5. **A heartbeat older than 7 days marks a claim reclaimable**, with `hv`'s explicit acknowledgement; never `hv`'s own.
+5. **A long-stale heartbeat marks a claim reclaimable only with `hv`'s explicit acknowledgement**; never `hv`'s own.
 6. **`/compact` does NOT end a session**: status stays `active`; the next `pickup` touches the heartbeat.
 7. **You archive your own items only**; old `.history/YYYYMMDD/` trees are append-only, never reloaded.
 8. **The human is `hv`**, never named.
-9. **You commit what your verbs wrote, as each verb prints it on its `wrote:` lines**: your own `board.json` and `wip.md`, every `<peer>/inbox.<you>.md`, and your own event files. A `re-rendered:` line names another node's file and who owns it; leave it to that node. The one exception is the re-render a new board shape forces on every board at once, which is one mechanical commit by the coordinating node or `hv`, outside this rule. `wb register` and `wb migrate` are roster acts: each prints everything it rendered on `wrote:` lines, and whoever runs it commits all of it.
+9. **You commit what your verbs printed, as `/in-essentials` says**: on a board that is your own `board.json` and `wip.md`, every `<peer>/inbox.<you>.md`, and your own event files. The one exception is the re-render a new board shape forces on every board at once, which is one mechanical commit by the coordinating node or `hv`, outside this rule. `wb register` and `wb migrate` are roster acts: each prints everything it rendered on `wrote:` lines, and whoever runs it commits all of it.
 
 ## Red Flags
 

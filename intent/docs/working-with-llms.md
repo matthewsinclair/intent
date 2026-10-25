@@ -430,7 +430,7 @@ Full contract in `intent/docs/critics.md`.
 
 The session-bootstrap flow handled by the `/in-session` skill:
 
-1. Invoke `/in-essentials` and `/in-standards` (universal workflow rules), whatever the project's languages.
+1. Invoke `/in-essentials` (universal workflow rules and formatting standards), whatever the project's languages.
 2. Read the `languages` array from `intent/.config/config.json` (`jq -r '(.languages // []) | .[]' ...`). For each language listed, invoke its essentials skill if one exists. `elixir` has `/in-elixir-essentials` + `/in-elixir-testing`, `author` has `/in-author-essentials`, and `content` has `/in-content-essentials`; Rust, Swift, Lua, and shell carry their coding rules through the rule library the installed tool serves (`intent claude rules list --lang <lang>`) and the `critic-<lang>` subagent applied on demand.
 3. Elixir dep fan-out, when `mix.exs` is present:
    - `:ash` or `:ash_postgres` in `mix.exs` → `/in-ash-ecto-essentials`.
@@ -447,6 +447,7 @@ To extend:
 
 - **New language pack** — author rules under `intent/plugins/claude/rules/<lang>/`, ship a `critic-<lang>` subagent, and add the language to `LANGUAGES` in `native/rust/crates/intentsvcs/src/rules.rs`, which is the list `intent lang list` and `intent lang init` read. A headless critic for it is a separate list in `native/rust/crates/intentsvcs/src/critic.rs`, and its `AGENTS.md` blocks are `[[#lang <lang>]]` sections in `lib/templates/llm/_AGENTS.md`. Add a dispatch entry in `intent/docs/critics.md`. A per-language essentials skill at `intent/plugins/claude/skills/in-<lang>-essentials/` is optional; the rule pack + critic path is the working mechanism without it.
 - **New framework fan-out** — add a dep-based branch in `/in-session` step 3 (Elixir-specific today, extensible to other ecosystems).
+- **A skill file itself** — write no em dashes in a `SKILL.md`: the skill list display truncates multi-byte characters. Every skill `/in-session` chains to stays under the size a compact carries whole, which `tests/unit/startup_skills_fit_a_compact.bats` holds.
 
 ## Multi-session coordination
 
@@ -609,7 +610,7 @@ The v0.x argument form (`mix usage_rules.sync AGENTS.md --all --link-to-folder d
 
 The `usage_rules` skills mode writes into `.claude/skills/` -- the same directory, and the same domains, as Intent's own curated skills (`in-ash-ecto-essentials`, `in-phoenix-liveview`, `in-elixir-essentials`). Two tools writing dependency-rule skills into one directory is a live collision.
 
-Intent's policy is that an Intent project stays Intent-native: Intent's curated skills plus `/in-standards`' on-demand `deps/*/usage-rules{,/**}.md` reads are the source of truth for dependency rules. In an Intent project, leave the `usage_rules` `skills:` generation off, so the two tools are not writing the same `.claude/skills` domains. A project that specifically wants library-generated skills must scope them to non-overlapping names and owns that reconciliation.
+Intent's policy is that an Intent project stays Intent-native: Intent's curated skills plus `/in-elixir-essentials`' on-demand `deps/*/usage-rules{,/**}.md` reads are the source of truth for dependency rules. In an Intent project, leave the `usage_rules` `skills:` generation off, so the two tools are not writing the same `.claude/skills` domains. A project that specifically wants library-generated skills must scope them to non-overlapping names and owns that reconciliation.
 
 Aggregation into a file coexists fine and is additive: your project's root `usage-rules.md` describes project rules, the deps' files describe package rules, and they cover different domains. For `AGENTS.md` itself keep one generator as the source of truth -- Intent's `intent agents sync` for Intent projects -- and do not also point the `usage_rules` `file:` at `AGENTS.md`.
 

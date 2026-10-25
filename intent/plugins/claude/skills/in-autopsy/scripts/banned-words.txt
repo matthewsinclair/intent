@@ -38,7 +38,7 @@ in summary|filler
 to summarize|filler
 in conclusion|filler
 
-# Correction openers (IN-PR house style; ~/.claude/CLAUDE.md "Tone and Style").
+# Correction openers (IN-PR house style; the user's global CLAUDE.md "Tone and Style").
 # Measured 2026-08-24: 17 genuine assistant openers in a 10-day window on Intent
 # while the instrument scored this rule ZERO, because it had no pattern for it.
 # `overall` is deliberately NOT here: two autopsies four months apart measured

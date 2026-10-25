@@ -234,7 +234,7 @@ Skills cite rules by ID. The rule file owns the prose; the skill is a thin point
 
 The skill says "here are the rules that apply when this skill is loaded; read the RULE.md file when the situation matches". The skill never restates a rule's prose — that would create a Highlander violation between the skill and the rule.
 
-`tests/unit/rule_reference_skills.bats` checks that each rule-pointer skill (`in-elixir-essentials`, `in-elixir-testing`, `in-ash-ecto-essentials`, `in-phoenix-liveview`, `in-standards`) cites a fixed list of rule ids written into the test -- for `in-standards` the Highlander, PFIC, Thin Coordinator and No Silent Errors ids only -- so a rule added to a pack is caught only when that list is edited; and `tests/unit/highlander_audit.bats` checks a proxy for restated rule prose over those skills: they carry no fenced code blocks and stay thin.
+`tests/unit/rule_reference_skills.bats` checks that each rule-pointer skill (`in-elixir-essentials`, `in-elixir-testing`, `in-ash-ecto-essentials`, `in-phoenix-liveview`) cites a fixed list of rule ids written into the test, so a rule added to a pack is caught only when that list is edited; and `tests/unit/highlander_audit.bats` checks a proxy for restated rule prose over those skills: they carry no fenced code blocks and stay thin.
 
 ## How Critics consume rules
 

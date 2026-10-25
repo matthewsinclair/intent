@@ -1,16 +1,6 @@
 ---
-description: "Planning kickoff: show workplan, invoke coding skills, enforce rules before coding"
-chains_to:
-  [
-    "in-essentials",
-    "in-standards",
-    "in-elixir-essentials",
-    "in-elixir-testing",
-    "in-ash-ecto-essentials",
-    "in-phoenix-liveview",
-    "in-author-essentials",
-    "in-content-essentials",
-  ]
+description: "Planning kickoff: document the work, show the workplan, and wait for approval before coding"
+chains_to: []
 ---
 
 # Planning Kickoff
@@ -26,7 +16,7 @@ ALWAYS create or update steel thread and work package docs BEFORE coding:
 - If no ST exists for this work, create one: `intent st new "Title"`
 - If no WP exists, create one: `intent wp new <STID> "Title"`
 - Write the plan into the record: the thread's objective with `intent set <STID> objective --from <file>`, a WP's with `intent set intent:///threads/<STID>/wp/<NN> objective --from <file>`, or a design document attached with `intent st attach <STID> design.md --from <file>`. `WP/<NN>/info.md` is a generated view; never write into it
-- If the thread has an `acceptance.md`, ratify its Acceptance Criteria first -- the open-gate. The verifier owns the boundary; settle it before writing code. See the AC/AT five-step in `working-with-llms.md` (D11).
+- If the thread has an `acceptance.md`, ratify its Acceptance Criteria first -- the open-gate. The verifier owns the boundary; settle it before writing code. `/in-verify` carries the AC/AT steps.
 
 ### 2. Show detailed workplan
 
@@ -45,29 +35,15 @@ Every plan must meet these standards before presenting to the user:
 
 **Specific file paths**: Every step must name the files it will create or modify. "Update the config" is not a step. "Add pool_size to config/runtime.exs" is.
 
-**Small steps**: Each step should be independently verifiable. If a step modifies more than 3 files, split it. If a step is bigger than an XS, split it.
+**Small steps**: Each step should be independently verifiable. If a step is bigger than an XS, split it.
 
 **Verification per step**: Each step includes how to verify it worked (test command, build command, or manual check). A step without verification is not a step.
 
-### 4. Invoke relevant coding skills
+### 4. Apply the loaded rules
 
-Load the appropriate enforcement skills for the work:
+The skills `/in-session` loaded for the project's declared languages are the ones that apply, with the Rules of the Road `AGENTS.md` indexes. Check the plan against them before presenting it.
 
-- `/in-essentials` and `/in-standards` -- always
-- `/in-elixir-essentials`, `/in-elixir-testing`, `/in-ash-ecto-essentials`, `/in-phoenix-liveview` -- Elixir, tests, Ash/Ecto, LiveView
-- `/in-author-essentials`, `/in-content-essentials` -- prose and web content
-
-**Elixir, `author` and `content` are the only disciplines with an essentials skill.** Rust, Swift, Lua and shell get their rules from the rule library instead -- `intent claude rules list --lang <lang>`, `intent claude rules show <id>` -- applied on demand by the matching `critic-<lang>`. **There is nothing to load for them here, and that is not an omission.**
-
-### 5. Enforce project rules
-
-These rules apply to ALL languages (Elixir, Rust, Swift, Lua, shell):
-
-- **Highlander Rule**: No duplicated code paths. Search for an existing owner before adding one.
-- **Thin Coordinators**: Controllers, LiveViews, CLI commands are thin. Business logic in services.
-- **PFIC** (`IN-AG-PFIC-001`, Pure Function, Impure Coordination): read it before applying it -- `intent claude rules show IN-AG-PFIC-001`.
-
-### 6. Wait for user review
+### 5. Wait for user review
 
 Present the plan and wait for approval before proceeding. Do not start coding until the user confirms.
 
@@ -75,7 +51,7 @@ Present the plan and wait for approval before proceeding. Do not start coding un
 
 After planning is approved, pick the first work unit from the plan:
 
-- `intent todo` -- the flat DOING / TODO / DONE view, generated from real ST/WP status. Reach for it to see where things stand and to drive next steps.
+- `intent outstanding` -- the outstanding threads, work packages and issues in one table, read from their real status.
 
 ## Red Flags
 

@@ -57,15 +57,3 @@ SKILL_ROOT="${INTENT_PROJECT_ROOT}/intent/plugins/claude/skills"
     assert_file_contains "$skill" "$id"
   done
 }
-
-# ====================================================================
-# in-standards → agnostic rules
-# ====================================================================
-
-@test "in-standards references every agnostic rule by ID" {
-  local skill="$SKILL_ROOT/in-standards/SKILL.md"
-  local id
-  for id in IN-AG-HIGHLANDER-001 IN-AG-PFIC-001 IN-AG-THIN-COORD-001 IN-AG-NO-SILENT-001; do
-    assert_file_contains "$skill" "$id"
-  done
-}

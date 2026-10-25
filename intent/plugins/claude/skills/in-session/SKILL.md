@@ -3,7 +3,6 @@ description: "Session bootstrap: auto-load coding skills for the detected projec
 chains_to:
   [
     "in-essentials",
-    "in-standards",
     "in-elixir-essentials",
     "in-elixir-testing",
     "in-ash-ecto-essentials",
@@ -28,12 +27,11 @@ Thin coordinator that loads the right coding skills for the current project. Inv
 
 **After a `/compact`, invoke only the skills the compact did not carry whole.** The compact's summary carries each skill invoked before it, and a skill it carries in full is still active, so invoking it again loads it twice. Invoke a skill the summary marks as truncated or does not carry at all. When nothing in the summary says which skills it carried, invoke them all. Steps 4 to 6 run either way.
 
-### 1. Load universal skills
+### 1. Load the universal skill
 
-Invoke these skills via the Skill tool, whatever the project's languages:
+Invoke this skill via the Skill tool, whatever the project's languages:
 
-- `/in-essentials` -- Intent workflow rules (use the CLI, never edit generated files)
-- `/in-standards` -- agnostic coding discipline (Highlander, PFIC, Thin Coordinator, No Silent Errors)
+- `/in-essentials` -- Intent workflow rules (use the CLI, never edit generated files, commit what the verbs printed) and the formatting standards
 
 ### 2. Read the project's declared languages
 
@@ -97,9 +95,9 @@ Hold these regardless of which language skills get loaded above. They do not exp
 
 ## Red Flags
 
-| Rationalisation                                | Reality                                                                 |
-| ---------------------------------------------- | ----------------------------------------------------------------------- |
-| "The skills loaded once already this session." | Only a skill the compact carried whole is active. Invoke the rest.      |
-| "I can read each rule file on demand."         | Skills carry procedural orchestration, not just rule prose. Load them.  |
-| "Not a project, so run `intent init`."         | Never. Say `Not an Intent project, reestablishing context` and go on.   |
-| "Elixir-only -- no need for agnostic rules."   | Every language concretises the agnostic pack. Always load in-standards. |
+| Rationalisation                                | Reality                                                                   |
+| ---------------------------------------------- | ------------------------------------------------------------------------- |
+| "The skills loaded once already this session." | Only a skill the compact carried whole is active. Invoke the rest.        |
+| "I can read each rule file on demand."         | Skills carry procedural orchestration, not just rule prose. Load them.    |
+| "Not a project, so run `intent init`."         | Never. Say `Not an Intent project, reestablishing context` and go on.     |
+| "Elixir-only -- no need for agnostic rules."   | Every language concretises the agnostic Rules of the Road in `AGENTS.md`. |

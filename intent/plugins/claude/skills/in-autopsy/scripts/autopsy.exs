@@ -134,9 +134,17 @@ defmodule Autopsy.Parser do
     |> Enum.sort()
   end
 
+  @doc "Claude Code's config dir: CLAUDE_CONFIG_DIR, or ~/.claude when it is unset or empty."
+  def claude_config_dir do
+    case System.get_env("CLAUDE_CONFIG_DIR") do
+      dir when dir in [nil, ""] -> Path.expand("~/.claude")
+      dir -> Path.expand(dir)
+    end
+  end
+
   @doc "Resolve project directory from project name or use auto-detection."
   def resolve_project_dir(project_name) do
-    claude_projects = Path.expand("~/.claude/projects")
+    claude_projects = Path.join(claude_config_dir(), "projects")
 
     if project_name do
       # Find directories matching the project name

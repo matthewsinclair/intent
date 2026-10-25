@@ -8,6 +8,15 @@ Scans documents for LLM writing tropes and stylometric tells. Assesses findings 
 
 Trope catalog: [llm-tropes](https://github.com/matthewsinclair/llm-tropes) (vendored in data/trope-catalog.md; its Table of Contents lists every trope).
 
+## Two forms, one home
+
+The trope catalogue has one home, this skill's `data/trope-catalog.md`, and two forms read it:
+
+- **Mechanical (default)** -- `IN-PR-STYLE-004` greps the catalogue's `detection: automated` regexes. critic-prose runs it on every `review`.
+- **Full LLM (on instruction)** -- this skill does the contextual and stylometric diagnosis (`IN-AU-CRAFT-003` for the author pack). Run it under direct instruction before publication; critic-prose only recommends it, never runs it.
+
+Never fork the trope catalogue; both forms read the one home.
+
 ## Procedure
 
 ### Step 1 -- Gather parameters
@@ -42,7 +51,7 @@ This context drives Step 5's contextual assessment. A trope in a published blog 
 Read the vendored trope catalog:
 
 ```bash
-cat "$(find ~/.claude/skills/in-detrope -name trope-catalog.md 2>/dev/null | head -1)"
+cat "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/in-detrope/data/trope-catalog.md"
 ```
 
 If the file is too large to read at once, read the Table of Contents first, then read individual trope sections as needed during analysis.

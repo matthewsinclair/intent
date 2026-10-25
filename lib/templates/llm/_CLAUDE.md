@@ -6,7 +6,7 @@ This project is built with Intent -- run `intent --version` for the version it i
 
 ## Required on every session
 
-Run `/in-session` immediately after session start and after every `/compact` or context reset. It reads the project's declared languages and loads the right skills (`/in-essentials`, `/in-standards`, plus language-specific). Rationale: `intent/docs/working-with-llms.md#skills-and-in-session-auto-load` in the Intent source repository (https://github.com/matthewsinclair/intent).
+Run `/in-session` immediately after session start and after every `/compact` or context reset. It reads the project's declared languages and loads the right skills (`/in-essentials` plus language-specific). Rationale: `intent/docs/working-with-llms.md#skills-and-in-session-auto-load` in the Intent source repository (https://github.com/matthewsinclair/intent).
 
 ## Finding code
 

@@ -1,5 +1,5 @@
 ---
-description: "Core Intent workflow rules for steel threads, work packages, agents, skills, and session management"
+description: "Core Intent workflow rules for steel threads, work packages, agents, skills, commits, formatting, and session management"
 ---
 
 # Intent Essentials
@@ -24,6 +24,8 @@ intent st show ST0000
 intent st edit ST0000
 ```
 
+Beyond `new`, `start` and `done`, a thread moves with `intent st triage`, `hold`, `resume`, `reopen`, `reinstate` and `cancel`. `hold`, `reopen`, `reinstate` and `cancel` refuse without `--reason "<why>"`, which is recorded as the reason for the new state. The help for `intent st` lists them all.
+
 ### 2. Use `intent agents sync` to update AGENTS.md
 
 NEVER edit `AGENTS.md` directly -- it is auto-generated from project state by `intent agents sync`. Manual edits will be overwritten on the next sync. `AGENTS.md` lives at the project root, or in `.claude/` when the project's `contracts` key is `dotclaude`, as a real file (not a symlink); older projects may still have a legacy `intent/llm/AGENTS.md` which is retired and should be removed.
@@ -38,11 +40,11 @@ intent agents sync
 
 ### 3. Use `intent claude skills` for skill management
 
-NEVER manually create or edit files in `~/.claude/skills/`. Use the CLI for install, sync, and removal. Installs are tracked by a SHA256 manifest at `~/.local/share/intent/skills/installed-skills.v3.json`.
+NEVER manually create or edit files in `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/`. Use the CLI for install, sync, and removal. Installs are tracked by a SHA256 manifest at `~/.local/share/intent/skills/installed-skills.v3.json`.
 
 ```bash
 # BAD -- manual copy
-cp some-skill/SKILL.md ~/.claude/skills/my-skill/SKILL.md
+cp some-skill/SKILL.md "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/my-skill/SKILL.md"
 
 # GOOD -- use the CLI
 intent claude skills install in-elixir-essentials
@@ -67,12 +69,7 @@ Frontmatter is written by v3 from the store, so do not hand-author it: `info.md`
 
 ### 5. Session wrap-up workflow
 
-Before ending a session, update tracking files to preserve context for the next session:
-
-1. Update `intent/wip.md` with current state and what is next -- **DOING and TODO only; done work is illegal in it**
-2. Update `intent/restart.md` with session restart context
-3. **Leave `.claude/restart.md` alone** unless the entry procedure itself changed -- it is the ENTRY POINT and holds NO STATE (`/in-finish` step 4 says why)
-4. Commit changes before ending session
+Before ending a session, run `/in-finish`. It owns what the wrap-up updates and commits.
 
 ### 6. Use `intent wp` commands for work package management
 
@@ -90,15 +87,11 @@ intent wp start ST0000/01
 intent wp done ST0000/01
 ```
 
-### 7. Use `intent todo` for the flat work view
+Beyond those, a package moves with `intent wp cancel`, `reopen`, `reinstate`, `unstart` and `rescope <spec> <XS|S|M|L|XL|XXL>`. `cancel`, `reopen` and `reinstate` refuse without `--reason "<why>"`. The help for `intent wp` lists them all.
 
-`intent todo` projects a flat DOING / TODO / DONE view across all steel threads and work packages from their real status (into `intent/todo.md`). Reach for it to see where things stand and to drive next steps. It is GENERATED from ST/WP status -- do not hand-maintain a separate list that would drift from the threads.
+### 7. Use `intent outstanding` for where things stand
 
-```bash
-intent todo              # show the flat DOING / TODO / DONE view
-intent todo update       # regenerate from current ST/WP status
-intent todo --json       # machine-readable view
-```
+`intent outstanding` (alias `outs`) shows the outstanding steel threads, work packages and issues in one table, read from their real status; `--show st,wp,issue` narrows it. Do not hand-maintain a separate list that would drift from the threads. `intent todo` prints the flat DOING / TODO / DONE view and writes nothing; `intent todo update` writes it to `intent/todo.md`.
 
 ### 8. Never invoke `intent fc` -- fiat close is the human's verb
 
@@ -107,6 +100,24 @@ intent todo --json       # machine-readable view
 **Nothing stops you from running it.** You share the human's uid and their shell, so this is a contract you hold and not a wall you would hit -- and every invocation is attributable to you, permanently. Do not run it, do not put it in a script, a hook, a skill or a Makefile, and do not ask a peer to run it on your behalf.
 
 Proposing a fiat close to the human, with the reason you would give, is the correct move when a requirement genuinely is not worth finishing.
+
+### 9. Commit exactly what the verbs printed
+
+Every verb that writes a tracked file names it after its `ok:` line, one line per file: `wrote:` for a file it wrote that is yours to commit, `removed:` for a file it took off disk, which is the deletion half of the same commit, and `re-rendered:` for a file it re-rendered that belongs to someone else, with whose it is in brackets. Commit the `wrote:` and `removed:` paths by name, and leave a `re-rendered:` file to its owner. Never commit what `git status` happens to show: a shared checkout carries other sessions' work.
+
+### 10. Read the estate before a heavy run
+
+`intent estate status` lists every Claude session on this machine, whatever project it is in, with its node, state, claims and WIP or focus line. Read it before starting something that contends with the others, such as a full build or test suite. A session that is not a whiteboard node says what it is doing with `intent estate wip "<line>"`.
+
+### 11. What `intent doctor` and the gate's exit codes mean
+
+`intent doctor` diagnoses the project's Intent configuration and reports findings for the live threads by default (`--scope all|closed` widens it); a doctor exit 1 refuses a commit. Every exit code is a verdict about a particular subject: `1` the command ran and the answer is no, so act on it; `2` this build could not answer, nothing was said about your work, and the pre-commit gate fails open; `3` a rule the project armed could not be enforced, and the gate blocks; `4` doctor could not read the project, and the gate fails open. A passing gate is a claim about what ran, so read each skipped check's own line.
+
+### 12. Formatting standards
+
+- All markdown tables are column-aligned.
+- No non-printing characters (plain ASCII; emojis only when asked for).
+- 2-space indentation in all code, in all languages.
 
 ## Red Flags
 

@@ -21,7 +21,6 @@ in-elixir-essentials
 in-elixir-testing
 in-ash-ecto-essentials
 in-phoenix-liveview
-in-standards
 EOF
 }
 
