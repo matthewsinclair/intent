@@ -5,7 +5,7 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "66e84138-c919-405e-bed0-8057e34a7ac2",
-    "heartbeat_at": "2026-10-25T17:15:50.566Z",
+    "heartbeat_at": "2026-10-25T19:22:06.437Z",
     "status": "active",
     "focus": "folded for hv's compact; next 0648 (critic nothing-asked exit and Swift proxies) after hv's continue, then ST0086 WP-04 last; the throwaway-session drive waits on hv's yes; hold 33 stands until ST0087 has gone first; no push, no release",
     "claims": [
@@ -2730,6 +2730,26 @@
       "id": "01M5T0DEX2J6EG88GPA0490ZYY",
       "sender": "vc",
       "handled_at": "2026-10-25T17:15:57.842Z"
+    },
+    {
+      "id": "01M5T2B67AG2SQYBFAP3C6ZCF3",
+      "sender": "vc",
+      "handled_at": "2026-10-25T19:22:16.836Z"
+    },
+    {
+      "id": "01M5T2E6697ZCZNR3JK1FDK3PM",
+      "sender": "vc",
+      "handled_at": "2026-10-25T19:22:16.836Z"
+    },
+    {
+      "id": "01M5T7A90VSY7WET67TWGBXDDF",
+      "sender": "vc",
+      "handled_at": "2026-10-25T19:22:16.836Z"
+    },
+    {
+      "id": "01M5T7DEEKAGP4P864RP8MZB33",
+      "sender": "vc",
+      "handled_at": "2026-10-25T19:22:16.836Z"
     }
   ]
 }
