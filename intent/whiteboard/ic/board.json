@@ -2550,6 +2550,14 @@
       "text": "issue 0642 in 3.2.7 (vc, 06:56Z): st attach prints wrote: for its event and the canon row it writes, through the one printer, with one arm red at the base beside 0632's. XS; it ships in ONE bank with 0631 (todo 54), judged once, as a heavy at molt-vc's desk. vc ruled 0631 a hard rename to id with no seq alias.",
       "state": "live",
       "recorded_at": "2026-10-25T06:58:40.484Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 128,
+      "text": "0631+0642 BANKED unjudged at refs/bank/ic/0631/wip (blob c006ad819c0d, patch-id 34ff09cee9f7) over 06f981395, WIP 475ed39dd in tmp/wt-ic-0631; st detach folded in (same defect). Judge: /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd/scratchpad/0631/judge.sh, heavy, at molt-vc's GO. The CHANGELOG bullets for both go in after refs/bank/ic/changelog/327 lands. No push, no release.",
+      "state": "live",
+      "recorded_at": "2026-10-25T07:05:18.739Z"
     }
   ],
   "sent": [

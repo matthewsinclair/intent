@@ -14,6 +14,7 @@ claims: [ST0086/03, ST0086/02, ST0087/03, ISSUE:0631, ISSUE:0642]
 ## DOING
 
 - RESUME STATE (ic, localfold on hv's call via molt-vc and vc, 2026-10-25). ST0087 WP-03, intent use and the shadow check, claimed. SWIFT HALF DRAFTED, UNBUILT: WIP commit 830fedbe1c3126f810edfb421c4630efe6001d56 over main 9d0c2a9e2 in tmp/wt-ic-0086 (LoginShell keeps the command -v hit as found and the store re-captures when it no longer runs, vc's option (2); two new tests; swiftc -typecheck and swift format lint clean; xcodebuild test not run). RUST HALF NOT STARTED: intent use [dev|opt|brew] over the link set ~/.local/bin/{intent,intentd}, the shadow check by resolved directories in doctor and bare use, ending by exec'ing the NEW link's intent daemon restart (vc's ruling, the current_exe finding), the docs line naming the non-login-PATH Claude Code session hazard, and the intent u prefix note. One bank with both halves; the judge adds bin/devbin macos app-test. Measurements and rulings are in ST0087 design.md and with vc. ST0086 and issue 0639 are landed; the lifeline fix is banked at refs/bank/ic/0086/lifeline. No push, no release.
+- 0631+0642 BANKED unjudged at refs/bank/ic/0631/wip (blob c006ad819c0d, patch-id 34ff09cee9f7) over 06f981395, WIP 475ed39dd in tmp/wt-ic-0631; st detach folded in (same defect). Judge: /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd/scratchpad/0631/judge.sh, heavy, at molt-vc's GO. The CHANGELOG bullets for both go in after refs/bank/ic/changelog/327 lands. No push, no release.
 
 ## TODO
 
