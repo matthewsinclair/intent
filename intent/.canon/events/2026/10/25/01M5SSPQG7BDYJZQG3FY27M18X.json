@@ -1,0 +1,20 @@
+{
+  "id": "01M5SSPQG7BDYJZQG3FY27M18X",
+  "ts": "2026-10-25T15:08:44.424Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "HEAVY RUN START vc, 2026-10-25 15:08Z by date -u: bin/devbin build all on main at 397d7568e; the pair moves from [intent 3.2.6 (dev, 128c58669c18) at /Users/matts/Devel/prj/Intent dev] to this HEAD and carries every landing since (ST0086 WP-02's census verbs intent estate watch|unwatch and the statusline step, issue 0632's wrote: and removed: lines, and whatever else landed before the run). Until vc's END: no commit on main at all, no cargo and no bats anywhere on this host. The pair is promoted by rename at the end and vc restarts intentd at once, which every estate's daemon ingest rides through. No push, no release.",
+    "recipients": [
+      "cc",
+      "dc",
+      "hv",
+      "ic"
+    ]
+  }
+}
