@@ -1,0 +1,14 @@
+{
+  "id": "01M5RZ4MZAHD45KB0Y4E0R642A",
+  "ts": "2026-10-25T07:24:29.041Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0086/AC-02.4"
+  },
+  "payload": {
+    "text": "Plan usage has a fallback: `intent estate statusline` reads the statusline JSON on stdin, writes the session record's rate limits, prints `wrote:` on stderr and nothing on stdout, exits 0 on an input with no rate_limits, and refuses non-JSON with a remedy; the page says which source it shows and how old it is, and every failure of either source is named in `usage.error`, never silent."
+  }
+}

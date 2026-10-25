@@ -1,0 +1,14 @@
+{
+  "id": "01M5RZ5H6Z1T3ETE8RC1VYYQZK",
+  "ts": "2026-10-25T07:24:57.956Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0086/AC-02.5"
+  },
+  "payload": {
+    "evidence": "vc's drive on 2026-10-25 at 05:45Z against the pair at fef91e6f8 (intentd pid 34110): op form view=/estate/status answered result estate_status with 20 sessions and /settings was refused as the control; the layout is the attached estate-status-mockup.html hv approved on 2026-10-24; the browser open is intent estate status --browser (estate_surface.rs status_browser_refuses_with_no_daemon_and_beside_a_format pins its refusals)"
+  }
+}
