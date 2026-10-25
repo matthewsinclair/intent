@@ -1,0 +1,15 @@
+{
+  "id": "01M5T74GKAWW4E8DW9NR1DE974",
+  "ts": "2026-10-25T19:03:27.594Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST0087 WP-04 (todo 49), claimed 2026-10-25 19:03Z by date -u on vc's word after ST0088 closed at ba706de12: building in tmp/wt-dc-0088-03 (reused) off main; the formula writes .intent-install in T3's form with managed_by brew, bin/int brew formula aligned to render and publish, caveats name intent use, releasing.md drops unlink-and-pin and ends on intent use brew (decision 80), docs/install.md's maintainer section gains the per-tree upgrade procedure, int local install and int local use retire; bank, then the judge at molt-vc's desk. No push, no release."
+  }
+}

@@ -3,23 +3,22 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 5abe68e1-b9b1-4003-9718-c8fbba772543
-heartbeat_at: 2026-10-25 16:59Z
+heartbeat_at: 2026-10-25 19:03Z
 status: active
-focus: "ST0088 WP-03 (todo 52), claimed 2026-10-25 16:59Z by date -u on vc's word after 0644 landed at f6fbf774c and closed at 05946fc8e: building in tmp/wt-dc-0088-03 off 05946fc8e; judge books with molt-vc behind the Intent build all; then ST0087 WP-04 (todo 49), todo 50; no push, no release"
-claims: [ST0088/03]
+focus: "ST0087 WP-04 (todo 49), claimed on vc's word after ST0088 closed at ba706de12: the formula's manifest, int brew render and publish, the docs ending on brew (decision 80), int local retired; bank, judge at molt-vc's desk; then todo 50; no push, no release"
+claims: [ST0087/04]
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-- ST0088 WP-03 BANKED, AWAITING ITS JUDGE: refs/bank/dc/0088-03/v1 (blob ba194e85ef07, patch-id 322aaaf65217, 33 paths) on main 0f3f162df, booked with molt-vc as the ninth heavy; option B for AC-03.2 under vc's ruling (the delta clause descoped by vc, since no installed critic can reach critic-contract.md), plugin.json KEPT under decision 87; judge script scratchpad/0088/run-0088-03.sh (fmt, critic leg, build, the template and corpus bats on the worktree binary, both suites, clippy, the subagents sync drive, prettier). Rebase and re-bank if main moves before the GO. No push, no release.
+- ST0087 WP-04 (todo 49), claimed 2026-10-25 19:03Z by date -u on vc's word after ST0088 closed at ba706de12: building in tmp/wt-dc-0088-03 (reused) off main; the formula writes .intent-install in T3's form with managed_by brew, bin/int brew formula aligned to render and publish, caveats name intent use, releasing.md drops unlink-and-pin and ends on intent use brew (decision 80), docs/install.md's maintainer section gains the per-tree upgrade procedure, int local install and int local use retire; bank, then the judge at molt-vc's desk. No push, no release.
 
 ## TODO
 
 - ST0087 WP-04 (vc's assignment): the formula writes the manifest over the release assets with managed_by brew; bin/int brew formula aligned to render and publish; the caveats name intent use; releasing.md drops the unlink-and-pin step and its cut sequence ENDS, after the tap carries the release, with intent use brew, then the version line and intent doctor from the keg (decision 80); docs/install.md gains the maintainer section with the upgrade procedure per tree and states hv's default: brew unless working on Intent, dev or opt while working, back to brew once the patch is released (decision 80). RETIRED WITH THE RELEASE TOOLING (vc's ruling on ic's question, 2026-10-25 11:48Z by date -u): bin/.devbin/cmd/local's int local install (links ~/.local/bin) and int local use dev|prod (brew link and unlink), under the contract's T5 (use is the one verb that points links; intent use, ic's WP-03, is it), with their doc lines in intent/docs/releasing.md and docs/install.md; the keg stays linked under decision 80. Spec: intent/st/ST0087/design.md, citing devbin's docs/dev-opt-brew.md. ORDER: after cc's WP-01 and WP-02 and ic's WP-03 land, because its doctor run must see a keg with no manifest answer brew with a note. The judge carries the critic leg (decision 79, scratchpad/judge/critic-leg.sh). Claim ST0087/04 when I start. WP-05, the proof, is vc's with dc once the rest is in, and ends on brew. No push, no release. (edited)
 - 3.2.7 CUT-SIDE (vc's decision 76, hv via molt-vc, 2026-10-25 06:51Z by vc's clock: one release carrying everything; done, then tested at molt-vc's desk, then kovacs via kovacs-sysadm, then hv's cut): dc's share in the same release, not a later one: (a) re-run the 0632 drive with removed: lines counted beside wrote: (scratchpad/0632/drive.sh compares only wrote:); (b) the known-defects re-drive; (c) the release tooling steps dc owns. Each heavy books with molt-vc. Behind doing 139 (0634) and todo 49 (ST0087 WP-04).
-- ST0088 WP-03 (vc's assignment, 2026-10-25 10:57Z by date -u; thread on main at be553b1b4, review.md attached), M, AFTER 0644 (doing 141), BUILT OVER ic's WP-01 AND WP-02, now on main at e4154f506 and 57035bb63: lib/templates/llm/_AGENTS.md, _CLAUDE.md and _usage-rules.md lose the Socrates and Diogenes FAQ, the security boilerplate, the v2-era interop prose and any instruction another loaded file owns, with the Rules of the Road table in one home; _AGENTS.md's critic exit-code list and doctor line point at in-essentials or intent llm guide rather than restate them (AC-02.4, AC-03.1); each code critic's agent.md reduced to its language delta over rules/_schema/critic-contract.md, the Diogenes handoff in critic-elixir alone; subagents/intent, socrates/README.md and the eight metadata.json removed, payload.rs and the installer agreeing; plugin.json removed unless hv rules intent plugin list wanted; every hardcoded ~/.claude in the hook scripts reads ${CLAUDE_CONFIG_DIR:-$HOME/.claude}; AC-03.4 (vc, 16:13Z by vc's clock): the three sites lib/templates/llm/_CLAUDE.md, subagents/critic-elixir/agent.md and rules/_schema/critic-contract.md read it too, pinned by ic's tests/unit/the_skill_corpus_keeps_one_home_each.bats, whose config-dir arm grows those roots in my bank (one line); intentsvcs rules.rs's doc comment naming /in-standards names in-essentials. Criteria AC-03.1 to AC-03.4. Judge: the intent-cli and intentsvcs suites, the template bats with the corpus bats, prettier, the critic leg; heavy with molt-vc. Claim ST0088/03 when I take it up. No push, no release. (edited)
 
 ## Holds
 

@@ -5,11 +5,11 @@
     "name": "DevX Claude",
     "role": "worker",
     "session_id": "5abe68e1-b9b1-4003-9718-c8fbba772543",
-    "heartbeat_at": "2026-10-25T16:59:13.401Z",
+    "heartbeat_at": "2026-10-25T19:03:40.319Z",
     "status": "active",
-    "focus": "ST0088 WP-03 (todo 52), claimed 2026-10-25 16:59Z by date -u on vc's word after 0644 landed at f6fbf774c and closed at 05946fc8e: building in tmp/wt-dc-0088-03 off 05946fc8e; judge books with molt-vc behind the Intent build all; then ST0087 WP-04 (todo 49), todo 50; no push, no release",
+    "focus": "ST0087 WP-04 (todo 49), claimed on vc's word after ST0088 closed at ba706de12: the formula's manifest, int brew render and publish, the docs ending on brew (decision 80), int local retired; bank, judge at molt-vc's desk; then todo 50; no push, no release",
     "claims": [
-      "ST0088/03"
+      "ST0087/04"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -2477,7 +2477,8 @@
       "kind": "todo",
       "seq": 52,
       "text": "ST0088 WP-03 (vc's assignment, 2026-10-25 10:57Z by date -u; thread on main at be553b1b4, review.md attached), M, AFTER 0644 (doing 141), BUILT OVER ic's WP-01 AND WP-02, now on main at e4154f506 and 57035bb63: lib/templates/llm/_AGENTS.md, _CLAUDE.md and _usage-rules.md lose the Socrates and Diogenes FAQ, the security boilerplate, the v2-era interop prose and any instruction another loaded file owns, with the Rules of the Road table in one home; _AGENTS.md's critic exit-code list and doctor line point at in-essentials or intent llm guide rather than restate them (AC-02.4, AC-03.1); each code critic's agent.md reduced to its language delta over rules/_schema/critic-contract.md, the Diogenes handoff in critic-elixir alone; subagents/intent, socrates/README.md and the eight metadata.json removed, payload.rs and the installer agreeing; plugin.json removed unless hv rules intent plugin list wanted; every hardcoded ~/.claude in the hook scripts reads ${CLAUDE_CONFIG_DIR:-$HOME/.claude}; AC-03.4 (vc, 16:13Z by vc's clock): the three sites lib/templates/llm/_CLAUDE.md, subagents/critic-elixir/agent.md and rules/_schema/critic-contract.md read it too, pinned by ic's tests/unit/the_skill_corpus_keeps_one_home_each.bats, whose config-dir arm grows those roots in my bank (one line); intentsvcs rules.rs's doc comment naming /in-standards names in-essentials. Criteria AC-03.1 to AC-03.4. Judge: the intent-cli and intentsvcs suites, the template bats with the corpus bats, prettier, the critic leg; heavy with molt-vc. Claim ST0088/03 when I take it up. No push, no release.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-25T19:03:23.450Z",
       "recorded_at": "2026-10-25T10:57:36.688Z",
       "edited_at": "2026-10-25T16:14:43.891Z"
     },
@@ -2486,8 +2487,17 @@
       "kind": "doing",
       "seq": 142,
       "text": "ST0088 WP-03 BANKED, AWAITING ITS JUDGE: refs/bank/dc/0088-03/v1 (blob ba194e85ef07, patch-id 322aaaf65217, 33 paths) on main 0f3f162df, booked with molt-vc as the ninth heavy; option B for AC-03.2 under vc's ruling (the delta clause descoped by vc, since no installed critic can reach critic-contract.md), plugin.json KEPT under decision 87; judge script scratchpad/0088/run-0088-03.sh (fmt, critic leg, build, the template and corpus bats on the worktree binary, both suites, clippy, the subagents sync drive, prettier). Rebase and re-bank if main moves before the GO. No push, no release.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-25T19:03:22.261Z",
       "recorded_at": "2026-10-25T17:23:21.345Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 143,
+      "text": "ST0087 WP-04 (todo 49), claimed 2026-10-25 19:03Z by date -u on vc's word after ST0088 closed at ba706de12: building in tmp/wt-dc-0088-03 (reused) off main; the formula writes .intent-install in T3's form with managed_by brew, bin/int brew formula aligned to render and publish, caveats name intent use, releasing.md drops unlink-and-pin and ends on intent use brew (decision 80), docs/install.md's maintainer section gains the per-tree upgrade procedure, int local install and int local use retire; bank, then the judge at molt-vc's desk. No push, no release.",
+      "state": "live",
+      "recorded_at": "2026-10-25T19:03:27.594Z"
     }
   ],
   "sent": [
@@ -3367,6 +3377,26 @@
       "id": "01M5SSSAHEYGP284S05QE8E3TQ",
       "sender": "vc",
       "handled_at": "2026-10-25T16:31:25.406Z"
+    },
+    {
+      "id": "01M5T0A4YCMS4WJ2TYK8EZWBJ1",
+      "sender": "vc",
+      "handled_at": "2026-10-25T19:03:29.079Z"
+    },
+    {
+      "id": "01M5T0DEX2J6EG88GPA0490ZYZ",
+      "sender": "vc",
+      "handled_at": "2026-10-25T19:03:29.079Z"
+    },
+    {
+      "id": "01M5T2B67AG2SQYBFAP3C6ZCF4",
+      "sender": "vc",
+      "handled_at": "2026-10-25T19:03:29.079Z"
+    },
+    {
+      "id": "01M5T2E6697ZCZNR3JK1FDK3PN",
+      "sender": "vc",
+      "handled_at": "2026-10-25T19:03:29.079Z"
     }
   ]
 }
