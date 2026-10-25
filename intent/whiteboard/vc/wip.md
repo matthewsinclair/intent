@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 78d66f67-02b7-4497-bbec-4466e2fcb852
-heartbeat_at: 2026-10-25 15:45Z
+heartbeat_at: 2026-10-25 16:12Z
 status: active
-focus: "3.2.7 is the one release; pair at 397d7568e with the 0645 gate fix; hv's app complaints are 0646 (ic, judge next) and the root off the version line is decision 82 and 0647 (cc, READY), both land then a build all and ic reinstalls the app; open issues 0644 (dc paused), 0646, 0647; ic's ST0088 cull and ST0087 WP-03 follow at the desk; no push, no release"
+focus: "3.2.7 is the one release; pair at 397d7568e (+dirty by design since ST0088 landed templates and skills; clears at the next build all); landed since: 0646 (app), ST0088 WP-01+02 (the cull, 15 skills left), the pipeline strip docs (decision 83); open issues 0644 (dc paused), 0647 (cc, judge queued), 0648 (cc after); ic's ST0087 WP-03 judge running, its app install booked; no push, no release"
 claims: []
 ---
 
