@@ -1,0 +1,16 @@
+{
+  "id": "01M5RQGA0TQ5W7A7VBQYMQ437P",
+  "ts": "2026-10-25T05:11:02.426Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 33,
+    "text": "HOLD ST0081 AC-02.1 and WP-02 (Linux assets on each tag's release, one writer per release object) UNTIL the dev, opt, brew conformance thread has gone first, per hv's order (vc to specify it, citing devbin's docs/dev-opt-brew.md); AC-02.1 is proven at the first cut after that. MET, 2026-10-25: devbin v0.1.14 is re-vendored into Intent at 141dcf9ff (refs/bank/cc/devbin/v0.1.14), its macOS bats run at e255f734a green but for issue 0640's pre-existing worktree reds; the 3.2.6 tag condition (v3.2.6 at 88633fe93). D55 is ruled (hv, 2026-10-23: devbin's release core attaches the Linux assets, SHA256SUMS riding it), and devbin-vc's shape is the build: Intent declares `commands.release.enabled: true` with `release.verbs: [check, attach]`, `release.repo` and the assets keys; linux-release.yml triggers on tags matching `v[0-9]*`; the cut runs build release, macos prepare, macos publish, `bin/devbin release attach vX.Y.Z`, then brew formula --push. Every other ST0081 row is settled: AC-01.1, AC-01.2, AC-03.3 and AC-06.1 satisfied, WP-01, WP-03 and WP-06 done, and the gate reads BLOCKED on AC-02.1 alone. The release.remotes block is retired (vc), not owed."
+  }
+}

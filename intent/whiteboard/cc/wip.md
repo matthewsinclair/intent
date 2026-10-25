@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 66e84138-c919-405e-bed0-8057e34a7ac2
-heartbeat_at: 2026-10-25 04:55Z
+heartbeat_at: 2026-10-25 05:11Z
 status: active
-focus: "ST0086: WP-02, its facade doors and todo 41 landed (1dc84382d, 53a53a4b8, b01cec8aa), the page live on the pair at 7126f6832; next is the devbin v0.1.14 re-vendor (doing 88) behind molt-vc's clear of the metered line; hold 33 stands; no push, no release"
+focus: "Nothing in flight: ST0086 WP-02 complete on main, devbin v0.1.14 re-vendored at 141dcf9ff, 0640 filed; hold 33 (ST0081 AC-02.1) waits on vc's dev, opt, brew conformance thread; no push, no release"
 claims: [ST0081, ST0086/01, ST0086/04]
 ---
 
@@ -13,7 +13,6 @@ claims: [ST0081, ST0086/01, ST0086/04]
 
 ## DOING
 
-- RESUME STATE (cc, 2026-10-24 14:21Z by date -u), localfold before a compact. 3.2.6 is cut and pushed (tag v3.2.6 at 88633fe93) with cc's landings in it. WAITING ON: hv cutting devbin v0.1.14 privately (devbin 0213 landed at 76b3d790). NEXT, in 3.2.7 and after dc's 0635: re-vendor devbin v0.1.14 into Intent, with the macOS bats run a vendored devbin upgrade owes, booked through vc with molt-vc; it pre-empts ST0086 (doing 89) when it comes; then ST0081 WP-02's Intent half after the dev, opt, brew conformance thread (hold 33). vc's kovacs preflight ended green at 13:47Z, so the board-paths-only rule is lifted. tmp/wt-cc-0616t and tmp/wt-cc-0630 hold nothing unbanked and can be removed. No push, no release. (edited)
 - ST0086, RESUME STATE (cc, 2026-10-25 03:27Z by date -u). LANDED on main: WP-01 at 84b680035 (+ vc's design fix 138c09ca6); WP-02's daemon half at 1dc84382d from refs/bank/cc/0086/wp02 (judged green in slot 330 at 0dcf5c0ba); WP-02's three facade doors at 53a53a4b8 from refs/bank/cc/0086/wp02-doors (estate_census_watch, estate_census_unwatch, estate_statusline_report; judged green in slot 335 at 7fc7b979e; decision 74). ic has the signatures and writes the CLI verbs over them (ic todo 53); ic's ST0086 bank reruns over main and lands after. NEXT for cc: todo 41 (the host_* tidy) after ic's landing; then Intent build all (vc's call, restart announced first); then the devbin v0.1.14 re-vendor (doing 88), which waits for the house line or molt-vc's clear because the tether is metered. Still to come: the Op::Form View::Estate arm after ic's nav hunk, then 04a. No push, no release. (edited)
 
 ## TODO
@@ -22,7 +21,7 @@ _(none)_
 
 ## Holds
 
-- HOLD ST0081 AC-02.1 and WP-02 (Linux assets on each tag's release, one writer per release object) UNTIL devbin v0.1.14 is re-vendored into Intent (hv cuts it privately; devbin 0213 at 76b3d790), with the macOS bats run a vendored devbin upgrade owes before the cut that carries it, AND the dev, opt, brew conformance thread has gone first, per hv's order; AC-02.1 is proven at the first cut after the re-vendor. The 3.2.6 tag condition is met (v3.2.6 at 88633fe93). D55 is ruled (hv, 2026-10-23: devbin's release core attaches the Linux assets, SHA256SUMS riding it), and devbin-vc's shape is the build: Intent declares `commands.release.enabled: true` with `release.verbs: [check, attach]`, `release.repo` and the assets keys; linux-release.yml triggers on tags matching `v[0-9]*`; the cut runs build release, macos prepare, macos publish, `bin/devbin release attach vX.Y.Z`, then brew formula --push. Every other ST0081 row is settled: AC-01.1, AC-01.2, AC-03.3 and AC-06.1 satisfied, WP-01, WP-03 and WP-06 done, and the gate reads BLOCKED on AC-02.1 alone. The release.remotes block is retired (vc), not owed. (edited)
+- HOLD ST0081 AC-02.1 and WP-02 (Linux assets on each tag's release, one writer per release object) UNTIL the dev, opt, brew conformance thread has gone first, per hv's order (vc to specify it, citing devbin's docs/dev-opt-brew.md); AC-02.1 is proven at the first cut after that. MET, 2026-10-25: devbin v0.1.14 is re-vendored into Intent at 141dcf9ff (refs/bank/cc/devbin/v0.1.14), its macOS bats run at e255f734a green but for issue 0640's pre-existing worktree reds; the 3.2.6 tag condition (v3.2.6 at 88633fe93). D55 is ruled (hv, 2026-10-23: devbin's release core attaches the Linux assets, SHA256SUMS riding it), and devbin-vc's shape is the build: Intent declares `commands.release.enabled: true` with `release.verbs: [check, attach]`, `release.repo` and the assets keys; linux-release.yml triggers on tags matching `v[0-9]*`; the cut runs build release, macos prepare, macos publish, `bin/devbin release attach vX.Y.Z`, then brew formula --push. Every other ST0081 row is settled: AC-01.1, AC-01.2, AC-03.3 and AC-06.1 satisfied, WP-01, WP-03 and WP-06 done, and the gate reads BLOCKED on AC-02.1 alone. The release.remotes block is retired (vc), not owed. (edited)
 
 ## Watch-outs
 
