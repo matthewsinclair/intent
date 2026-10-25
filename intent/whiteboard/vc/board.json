@@ -2084,6 +2084,14 @@
       "text": "(2026-10-25 06:51Z by vc's clock; hv first-hand through molt-vc, which stamped hv's words 06:48Z on its own clock) ONE NEXT RELEASE PER PROJECT, CARRYING EVERYTHING. hv, verbatim: \"I DO NOT WANT TO KEEP MAKING MULTIPLE SMALL RELEASES for each project. It takes HOURS to go thru the full release process.\" (1) Each project ships one next release, carrying everything outstanding that is being worked on and has not been deferred; no patch, interim or point release before it. (2) There is no user base besides hv, so nothing is held back for compatibility or staging: get it all done. (3) The order is fixed: everything done, then everything tested at molt-vc's desk, then the Linux artefacts checked on kovacs through kovacs-sysadm (booked with molt-vc as a heavy), and only then the cut; cuts and tags stay hv's. (4) Anything left out is deferred on the record with hv's say; nothing drops out quietly. FOR INTENT the next release is 3.2.7 and it carries ST0086, ST0087 and every open issue hv has not deferred by name, so 0631's 'behind the line' standing is no longer a disposition: it is done before the cut or hv defers it on the record.",
       "state": "live",
       "recorded_at": "2026-10-25T06:51:59.096Z"
+    },
+    {
+      "node": "vc",
+      "kind": "decision",
+      "seq": 77,
+      "text": "(2026-10-25 07:04Z by vc's clock; hv's selections in the TUI vc asked just before hv went AFK; wording vc's, each choice hv's; vc's recommendation taken on all three) THREE RULINGS. (1) ISSUE 0641: a hand-edited cover put back at a dehydrated thread's path and then re-declared IS PROTECTED by the cover's contract, which has no exception for how the file reached the path: organize --apply refuses the render, reports the path as refused and names intent sync --to-store <ID>; XS/S, in 3.2.7 under decision 76, dc builds it. (2) ST0086 WP-04, THE SLOT PROTOCOL, IS IN 3.2.7, BUILT LAST: after every other item of the release, its design's open measurements closed first, so it never holds the rest of the release untested; cc builds the protocol and its records, ic the page and TUI half. (3) DECISION 75's SPELLING STANDS AS BUILT: estate watch, unwatch and statusline withheld from MCP for the reasons on their dispatch rows, estate status rows flat; the veto window is closed and the CHANGELOG entry states it.",
+      "state": "live",
+      "recorded_at": "2026-10-25T07:05:28.153Z"
     }
   ],
   "sent": [

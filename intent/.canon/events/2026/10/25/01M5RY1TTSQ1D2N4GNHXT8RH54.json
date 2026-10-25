@@ -1,0 +1,15 @@
+{
+  "id": "01M5RY1TTSQ1D2N4GNHXT8RH54",
+  "ts": "2026-10-25T07:05:28.153Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-10-25 07:04Z by vc's clock; hv's selections in the TUI vc asked just before hv went AFK; wording vc's, each choice hv's; vc's recommendation taken on all three) THREE RULINGS. (1) ISSUE 0641: a hand-edited cover put back at a dehydrated thread's path and then re-declared IS PROTECTED by the cover's contract, which has no exception for how the file reached the path: organize --apply refuses the render, reports the path as refused and names intent sync --to-store <ID>; XS/S, in 3.2.7 under decision 76, dc builds it. (2) ST0086 WP-04, THE SLOT PROTOCOL, IS IN 3.2.7, BUILT LAST: after every other item of the release, its design's open measurements closed first, so it never holds the rest of the release untested; cc builds the protocol and its records, ic the page and TUI half. (3) DECISION 75's SPELLING STANDS AS BUILT: estate watch, unwatch and statusline withheld from MCP for the reasons on their dispatch rows, estate status rows flat; the veto window is closed and the CHANGELOG entry states it."
+  }
+}
