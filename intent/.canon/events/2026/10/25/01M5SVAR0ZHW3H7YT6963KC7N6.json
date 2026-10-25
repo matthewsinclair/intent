@@ -1,0 +1,15 @@
+{
+  "id": "01M5SVAR0ZHW3H7YT6963KC7N6",
+  "ts": "2026-10-25T15:37:08.899Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0647"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "the version line drops ` at <root>`: hv ruled it idiotic beside `which intent`; the line is `intent <version> (<tree>, <sha12>[+dirty]) <provenance>`"
+  }
+}

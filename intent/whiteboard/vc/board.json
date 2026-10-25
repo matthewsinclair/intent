@@ -2136,6 +2136,14 @@
       "state": "live",
       "recorded_at": "2026-10-25T10:50:52.730Z",
       "edited_at": "2026-10-25T11:41:50.232Z"
+    },
+    {
+      "node": "vc",
+      "kind": "decision",
+      "seq": 82,
+      "text": "(2026-10-25 15:37Z by vc's clock; hv first-hand in ic's window, relayed verbatim by ic at 15:36Z, answering the question vc put to hv at 15:27Z) THE VERSION LINE DROPS ` at <root>`. hv, verbatim, shown `intent 3.2.6 (dev, 397d7568e1d8) at /Users/matts/Devel/prj/Intent dev`: \"YES! That info is idiotic. Why would that ever be necessary when you can just type which it!?\" So the line is `<tool> <version> (<tree>, <sha12>[+dirty])` with a compiled tool's optional provenance word after it (hv said nothing about the word; Gtools and menuz show the kind in their subheading, so it stays), and `which <tool>` answers where the binary is. This amends the contract's T4 for every tool (devbin's docs, Utilz's and devbin's lines, Molt's printer), carried to molt-vc and devbin-vc with hv's words; and it is Intent issue 0647, XS, cc's, with the readers of the line and design.md's T4 following; Intent.app's parser (0646 v2) already reads the line with or without the root.",
+      "state": "live",
+      "recorded_at": "2026-10-25T15:37:07.838Z"
     }
   ],
   "sent": [
