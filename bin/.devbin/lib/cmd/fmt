@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 #
 # The built-in `fmt`. `elixir` and `rust` are catalogue command lines and need
-# nothing here; `swift` and `md` are D18 tier 1 and are implemented below.
+# nothing here; `swift` and `md` need shipped code and are implemented below.
 #
 # `fmt` MUTATES. Its read-only counterpart is `check format`, and the two are
-# deliberately not the same command: see design D21 for why `fmt --check`,
-# which some corpus projects grew, does not ship.
+# deliberately not the same command: there is one formatting gate, and it is
+# `check format`, which is why `fmt --check`, which some corpus projects grew,
+# does not ship.
 #
 set -euo pipefail
 
@@ -47,7 +48,7 @@ builtin_fmt_swift() {
   #
   # The build directories are PRUNED, and the walk ignores an entry that
   # vanishes mid-walk, exactly as check's twin does, so the pair keeps one file
-  # set (critic-shell on 0139: a writer in .build/ failed the walk).
+  # set (issue 0139: a writer in .build/ failed the walk).
   # find-status: this function's, under pipefail, with find's error shown.
   find_walk . -ignore_readdir_race \
     \( -type d \( -name build -o -name .build -o -name Carthage \) \) -prune -o \

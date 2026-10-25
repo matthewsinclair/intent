@@ -29,7 +29,7 @@ name="${DEVBIN_NAME:?}"
 # convention, and the same <NAME>_* derivation the dispatcher uses for
 # <NAME>_ROOT. Indirect expansion rather than eval: the variable NAME is derived
 # from config, so eval would let a config file that can name a variable also run
-# code, which is the line D1 holds.
+# code, which is the line config must never cross.
 history_var="$(upper_snake "$name")_REPL_HISTORY"
 history="${!history_var:-}"
 [ -n "$history" ] || history="$HOME/.${name}_repl_history"

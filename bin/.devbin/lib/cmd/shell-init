@@ -65,11 +65,13 @@ usage: $DEVBIN_INVOKE shell-init <zsh|bash>
 
   BOOTSTRAPPING A PROJECT THAT HAS NO DEVBIN YET. The walk finds devbin through
   a project that already has one, so it cannot install into one that does not.
-  Set DEVBIN_SOURCE to a devbin checkout -- either the project root or the
-  launcher itself -- and dvb falls back to it when the walk finds nothing:
+  A dvb emitted by the install Homebrew placed (devbin shell-init zsh) falls
+  back to that install when the walk finds nothing:
 
-    export DEVBIN_SOURCE=/path/to/devbin
     cd ~/some/new/project && dvb install
+
+  DEVBIN_SOURCE, for the maintainer of a dev checkout, names a devbin checkout
+  -- its root or its launcher -- that dvb falls back to first.
 
   The fallback runs whatever you typed against that devbin and lets its cwd
   guard rule on it: install and shell-init are exempt, everything else is
@@ -105,10 +107,10 @@ USAGE
 #      level of care -- correct, and insufficient.
 _shell_init_body() {
   # The emitted comment must not begin `# devbin: `. tests/unit/help.bats greps
-  # lib/cmd for that prefix to hold down D23 -- a handler must not restate the
-  # summary its catalogue row owns -- and the grep cannot tell a header from a
-  # line inside a heredoc. Rewording the OUTPUT is cheaper than widening a check
-  # that is catching a real class.
+  # lib/cmd for that prefix to hold down one source per fact -- a handler must
+  # not restate the summary its catalogue row owns -- and the grep cannot tell a
+  # header from a line inside a heredoc. Rewording the OUTPUT is cheaper than
+  # widening a check that is catching a real class.
   cat <<'BODY'
 # devbin shell shortcut -- runs the nearest bin/devbin, walking up from $PWD.
 # Emitted by `bin/devbin shell-init @@SHELL@@` -- do not edit; re-run it instead.
@@ -174,7 +176,7 @@ dvb() {
   else
     printf '%s\n' "  (nowhere: $PWD is /)" >&2
   fi
-  printf '%s\n' "dvb: publish one with 'bin/devbin install' inside devbin, or set DEVBIN_INSTALL_PREFIX or DEVBIN_SOURCE." >&2
+  printf '%s\n' "dvb: install devbin with Homebrew and emit dvb from that install, or set DEVBIN_INSTALL_PREFIX or DEVBIN_SOURCE." >&2
   return 127
 }
 BODY
@@ -191,7 +193,7 @@ BODY
 # consumer project has no reason to know where the machine install lives, so it
 # emits a `dvb` with no machine-install fallback rather than one aimed at a path
 # invented from somebody's $HOME -- which is what the removed default did, in
-# every estate that vendored this file.
+# every project that vendored this file.
 #
 # A PROJECT THAT DECLARES `install.prefix` GETS IT, which is what the reference
 # has always promised. It never did until issue 0125: install_prefix_configured
@@ -251,7 +253,7 @@ _shell_init_render() {
     #
     # NB: no comment line above may BEGIN with the linter's own name, or it is
     # parsed as a malformed directive (SC1073) and takes the real one below
-    # down with it. Measured, 2026-09-07.
+    # down with it. Measured.
     # shellcheck disable=SC2016
     body="$(sed -e '/^dvb() {$/d' -e '/^}$/d' -e 's/^  //' \
       -e 's|^# Emitted by .*|# Emitted by `devbin shell-init zsh --autoload` -- do not edit; re-run it instead.|' \
@@ -307,7 +309,7 @@ cmd_shell_init() {
       #
       # AND THE USAGE GOES TO STDERR, because a shell rc evals this command's
       # stdout and the usage carries runnable examples: an eval, an export and
-      # a cd. Measured on 2026-09-23, an eval of the bare output ran none of
+      # a cd. Measured, an eval of the bare output ran none of
       # them only because the `<zsh>` on the usage's first line does not parse,
       # which fails the whole eval. That was luck, not a property; this is the
       # property.

@@ -170,10 +170,10 @@ EOF
     # and it stays silent until the first message flows. It is the sharpest
     # single check in this leg.
     for sender in $(infra_domain_senders "$handle"); do
-      # THE UNDEFINED-SENDER BRANCH WAS REMOVED HERE ON 2026-09-08, and the
-      # reason is that it could no longer go red. `infra_validate_profile` now
-      # refuses a domain naming a sender the profile never defines, before any
-      # network call, so this arm was unreachable through every path a caller
+      # THE UNDEFINED-SENDER BRANCH WAS REMOVED HERE, and the reason is that
+      # it could no longer go red. `infra_validate_profile` now refuses a
+      # domain naming a sender the profile never defines, before any network
+      # call, so this arm was unreachable through every path a caller
       # has -- and a check with no reachable red state carries zero bits while
       # still reading like coverage. It was also a second home for one rule:
       # the parse-time refusal and this report said the same thing in two
@@ -199,11 +199,11 @@ EOF
       if [ -z "$dmarc_txt" ]; then
         # `if`, NEVER `[ -n "$x" ] && cmd`. As the last statement of a branch
         # that form returns 1 when the test is false, and `set -e` kills the
-        # run before a single line is printed. Measured 2026-09-07: five arms
-        # red with EMPTY output and rc 1, every one a profile with no `dmarc:`
-        # block. Same trap as `die_install_prefix_unset` earlier the same day,
-        # which is the point -- knowing a rule and writing it down does not
-        # stop you reproducing it hours later in a different file.
+        # run before a single line is printed. Measured: five arms red with
+        # EMPTY output and rc 1, every one a profile with no `dmarc:` block.
+        # Same trap as `die_install_prefix_unset`, which is the point -- knowing
+        # a rule and writing it down does not stop you reproducing it later in
+        # a different file.
         if [ -n "$policy" ]; then
           _ic_drift "$fqdn" "dmarc" "profile declares \`policy: $policy\` and there is NO _dmarc record"
         fi

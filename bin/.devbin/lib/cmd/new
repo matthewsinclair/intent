@@ -9,9 +9,9 @@
 # of instructions someone follows by hand and gets subtly wrong.
 #
 # It writes NO metadata sidecar. The original deliverable asked for a
-# `cmd/<name>.yaml` alongside the handler, which predates D23: the handler's own
-# header is where a project's command declares its facts, and a sidecar would be
-# a third source for a field that is supposed to have one.
+# `cmd/<name>.yaml` alongside the handler, which predates the header rule: the
+# handler's own header is where a project's command declares its facts, and a
+# sidecar would be a third source for a field that is supposed to have one.
 #
 # TWO RULES FOR EDITING lib/tmpl/. Both are enforced, so neither is advice.
 #
@@ -51,7 +51,7 @@ EOF
 # THE REASON THIS IS NOT `${text//pat/val}`. Bash 5.2 made `&` in the
 # REPLACEMENT of a pattern substitution mean "the text that matched", as sed
 # does; bash 5.0 and 5.1 -- inside the >= 5 floor (issue 0022) -- treat it
-# literally, as did the 3.2 design D9 once targeted. So the obvious
+# literally, as did the bash 3.2 devbin once targeted. So the obvious
 # one-liner quietly does different things on the two bashes devbin ships to:
 # `new greet --summary "a/b & report"` scaffolded `a/b {{SUMMARY}} report` on
 # this Mac and would have been correct on an older one. Escaping the `&` fixes
@@ -97,7 +97,7 @@ render() {
 # roughly this.
 #
 # `all` is refused here even though the dispatcher intercepts it first -- it is
-# synthesised for every multi-option command (D8), so `devbin new all` is
+# synthesised for every multi-option command, so `devbin new all` is
 # answered by run_all before this function is reached. The case stays because
 # this is a predicate about NAMES, and a name validator that is complete only
 # for the paths that happen to reach it is the wrong shape to leave lying around.

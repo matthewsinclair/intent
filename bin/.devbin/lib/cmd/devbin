@@ -28,10 +28,10 @@ usage() {
 #
 # THE ABSENCE OF A MANIFEST AND AN INCOMPLETE MANIFEST ARE DIFFERENT FACTS AND
 # THIS USED TO CONFLATE THEM. No manifest at all means the dogfood checkout,
-# where D12 runs lib/ in place and the project's own version file IS devbin's --
+# which runs lib/ in place and where the project's own version file IS devbin's --
 # the fallback is correct there and nowhere else. A manifest that EXISTS but
 # carries no `# devbin_version:` is a broken install, and falling back there
-# printed the CONSUMER's version wearing devbin's label: a consumer estate would
+# printed the CONSUMER's version wearing devbin's label: a consumer project would
 # have answered `devbin 0.6.2` off its own mix.exs, which is not a near-miss but
 # a confident false statement about a different piece of software.
 #
@@ -47,14 +47,14 @@ runtime_version() {
     printf '%s' "$v"
     return 0
   fi
-  # No manifest: the dogfood checkout (D12). The bare call selects the
+  # No manifest: the dogfood checkout. The bare call selects the
   # version-file role on purpose.
   # shellcheck disable=SC2119
   read_version
 }
 
 # `<name> devbin --version` answers for the FRAMEWORK. Reported from a consumer
-# estate, where it printed a usage line and exited 1 -- the datum was already
+# project, where it printed a usage line and exited 1 -- the datum was already
 # here and the dispatcher simply had no arm for it. Asking a tool its version is
 # not a usage error, and the answer is devbin's rather than the project's, which
 # `<name> --version` already covers.
@@ -87,7 +87,7 @@ runtime_identity() {
     printf '%s' "$rec"
     return 0
   fi
-  # No manifest: the dogfood checkout (D12), where devbin's own tree IS the
+  # No manifest: the dogfood checkout, where devbin's own tree IS the
   # source and its HEAD is the honest answer.
   git_head_identity "${PROJECT_ROOT:-.}"
 }
@@ -135,7 +135,7 @@ show_overview() {
     printf "  bin/devbin, %s/   devbin's -- replaced wholesale by upgrade\n" "$(lib_rel)"
   else
     # The checkout has no vendored copy to replace: lib/ IS the source, and
-    # upgrade here replaces the machine install instead (D12).
+    # upgrade here replaces the machine install instead.
     printf "  bin/devbin, %s/               devbin's source -- this tree; nothing vendored\n" "$(lib_rel)"
   fi
   printf '  config.yaml, cmd/, help/       yours -- never written by install or upgrade\n\n'

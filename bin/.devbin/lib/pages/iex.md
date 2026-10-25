@@ -15,4 +15,4 @@ devbin replaces itself with iex rather than running it beneath itself, so the ex
     bin/.devbin/cmd/iex      a handler, when a command line cannot say it
     commands.iex.enabled     false stops offering it
 
-A `run:` line is split into words and never handed to a shell. Once the project declares either of the first two, `iex` is the project's, and `bin/devbin help iex` shows the project's own page at `bin/.devbin/help/iex.md`, or a generated answer, in place of this one.
+A `run:` line is split into words and never handed to a shell. Once the project declares a command line or a handler, `iex` is the project's, and `bin/devbin help iex` shows the project's own page at `bin/.devbin/help/iex.md`, or a generated answer, in place of this one.

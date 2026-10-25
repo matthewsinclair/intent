@@ -1,7 +1,9 @@
-# Licence
+MIT License
 
-Copyright (c) 2026 Geodica Ltd (geodica.com). All rights reserved.
+Copyright (c) 2026 Geodica Ltd (geodica.com)
 
-devbin is proprietary software owned by the copyright holder above. No right to use, copy, modify, merge, publish, distribute, sublicense or sell it, in whole or in part, is granted except as set out below or in a written agreement with the copyright holder.
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
-A client that receives a project carrying a vendored copy of devbin -- `bin/devbin` and everything under `bin/.devbin/lib/` -- as part of an engagement with the copyright holder may use, copy and run that copy as part of that project. The client takes no ownership of devbin, which remains the copyright holder's property wherever the project is delivered or published.
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

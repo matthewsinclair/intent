@@ -1,0 +1,166 @@
+#!/usr/bin/env bash
+#
+# The built-in `use` -- choose which of devbin's trees this machine runs: dev,
+# opt or brew (docs/dev-opt-brew.md, T5; issue 0213).
+#
+# THE LINK IS THE ONE RECORD. `use dev` and `use opt` point $HOME/.local/bin/devbin
+# (devbin_link_path) at that tree's bin/devbin; `use brew` removes it, so
+# Homebrew's own link answers, and no link means brew. Nothing else stores the
+# choice, and no other verb writes the link. Every project on the machine reads
+# the same link to find the tree its next upgrade comes from
+# (machine_install_chooser, T9), so the switch for the command line and for
+# every vendored project is this one verb.
+#
+# dev AND opt ARE CHOSEN FROM THE CHECKOUT. Only devbin's own source tree knows
+# where it is and what its config names as install.prefix; an opt install and a
+# Homebrew keg record neither. So `use dev` and `use opt` run in the dev tree
+# and are refused anywhere else, naming the command to run. `use brew` and a
+# bare `use` run from any tree, the keg on PATH included. Once the link names
+# the checkout, the `devbin` on PATH IS the checkout, so `devbin use opt` works.
+#
+set -euo pipefail
+
+# shellcheck source=lib/helpers
+. "${DEVBIN_LIB:?run me through bin/devbin}/helpers"
+# shellcheck source=lib/config
+# install.prefix, for `use opt`, read from devbin's own config: handlers are
+# reached by `exec` (lib/resolve), so the config the dispatcher loaded is gone
+# with its process.
+. "$DEVBIN_LIB/config"
+# shellcheck source=lib/install
+. "$DEVBIN_LIB/install"
+
+usage() {
+  cat <<EOF
+usage: $DEVBIN_INVOKE use [dev|opt|brew]
+
+  (none)  report which tree the link serves, and check it is the devbin a
+          login shell runs; changes nothing
+  dev     point the link at this checkout          (in the devbin checkout)
+  opt     point the link at its opt install        (in the devbin checkout)
+  brew    remove the link, so Homebrew's devbin answers
+
+The link is \$HOME/.local/bin/devbin. No link means brew.
+EOF
+}
+
+# _use_report -- the tree the switch chose, as its tree line, or what is
+# missing. rc 1 when the link cannot be followed or nothing answers.
+_use_report() {
+  local state root
+  state="$(machine_link_state)"
+  case "$state" in
+    "at "*)
+      printf 'use: the link %s names\n  %s\n' "$(devbin_link_path)" "$(devbin_tree_line "${state#at }")"
+      ;;
+    none)
+      if root="$(devbin_brew_root)"; then
+        printf 'use: no link, so brew\n  %s\n' "$(devbin_tree_line "$root")"
+      else
+        printf 'use: no link, so brew, and Homebrew has no devbin here (%s)\n' "$(brew_unplaced_why)"
+        printf '  install devbin with Homebrew, or run %s use dev or opt in the devbin checkout\n' "$DEVBIN_INVOKE"
+        return 1
+      fi
+      ;;
+    *)
+      warn "${state#bad }"
+      return 1
+      ;;
+  esac
+  return 0
+}
+
+# _use_shadowed -- the shadow check (devbin_link_shadow), said; rc 1 when the
+# link is not the devbin a login shell runs.
+_use_shadowed() {
+  local why
+  why="$(devbin_link_shadow)"
+  [ -n "$why" ] || return 0
+  warn "$why"
+  return 1
+}
+
+# _use_point <tree root> -- point the link at <tree root>/bin/devbin.
+#
+# A FILE STANDING WHERE THE LINK BELONGS IS REFUSED, never replaced: it is no
+# choice `use` made, and replacing it would delete what someone put there. An
+# existing link is removed and the new one made, never written through: `ln -sf`
+# onto a link that names a directory would make the link inside that directory.
+_use_point() {
+  local root="$1" p
+  p="$(devbin_link_path)" || die "there is no home directory to keep the link in"
+  if [ -e "$p" ] && [ ! -L "$p" ]; then
+    die "$p is not a link, so it is no choice devbin use made -- move it aside, then run this again"
+  fi
+  mkdir -p "${p%/*}" || die "cannot create ${p%/*} for the link"
+  if [ -L "$p" ]; then rm -f "$p" || die "cannot remove the link $p"; fi
+  ln -s "$root/bin/devbin" "$p" || die "cannot write the link $p"
+}
+
+# _use_in_checkout <word> -- refuse `use dev` or `use opt` outside the dev tree.
+_use_in_checkout() {
+  [ "$(devbin_tree "$PROJECT_ROOT")" = dev ] && return 0
+  die "devbin use $1 runs in the devbin checkout, which knows where it is and its opt install
+       this devbin is $(devbin_tree_line "$PROJECT_ROOT")
+       run:  bin/devbin use $1   in your devbin checkout"
+}
+
+main() {
+  local word="${1:-}" root p state
+  [ $# -le 1 ] || die "unexpected argument '$2' (try: $DEVBIN_INVOKE use --help)"
+  case "$word" in
+    -h | --help)
+      usage
+      return 0
+      ;;
+    "")
+      _use_report || return 1
+      _use_shadowed || return 1
+      return 0
+      ;;
+    dev)
+      _use_in_checkout dev
+      physical_dir "$PROJECT_ROOT" root || die "cannot resolve the checkout $PROJECT_ROOT"
+      ;;
+    opt)
+      _use_in_checkout opt
+      cfg_load "$DEVBIN_DIR/config.yaml" >/dev/null 2>&1 ||
+        die "cannot read devbin's own config at $DEVBIN_DIR/config.yaml"
+      root="$(install_prefix_configured)" || die_install_prefix_unset
+      if [ "$(devbin_tree "$root")" != opt ]; then
+        if devbin_install_old "$root"; then
+          die "the opt install at $root has the manifest form written before devbin's tree line
+       republish it:  bin/devbin install --force"
+        fi
+        die "there is no opt install at $root
+       publish one:  bin/devbin install"
+      fi
+      physical_dir "$root" root || die "cannot resolve the opt install $root"
+      ;;
+    brew)
+      p="$(devbin_link_path)" || die "there is no home directory to look for the link in"
+      if [ -L "$p" ]; then
+        # Only a link into one of devbin's trees is removed (T5), so a link
+        # someone made to anything else is left, and named.
+        state="$(machine_link_state)"
+        case "$state" in
+          "at "*) ;;
+          *) die "${state#bad }
+       it is not a link into a devbin tree, so use brew leaves it: remove it by hand" ;;
+        esac
+        rm -f "$p" || die "cannot remove the link $p"
+      elif [ -e "$p" ]; then
+        die "$p is not a link, so it is no choice devbin use made -- use brew leaves it: remove it by hand"
+      fi
+      _use_report || return 1
+      return 0
+      ;;
+    *) die "unknown tree '$word' -- devbin use takes dev, opt or brew (try: $DEVBIN_INVOKE use --help)" ;;
+  esac
+  _use_point "$root"
+  _use_report || return 1
+  _use_shadowed || return 1
+  return 0
+}
+
+main "$@"

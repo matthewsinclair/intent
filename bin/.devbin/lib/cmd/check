@@ -2,9 +2,9 @@
 #
 # The built-in `check` command. Most options are catalogue entries with a
 # command line (compile, format, deps, clippy) and need nothing here. Two are
-# D18 tier 1 -- real shared logic rather than a command line -- and are marked
-# `@builtin` in the catalogue, which resolves to the `builtin_check_*` functions
-# below.
+# tier 1 (lib/builtins) -- real shared logic rather than a command line -- and
+# are marked `@builtin` in the catalogue, which resolves to the
+# `builtin_check_*` functions below.
 #
 set -euo pipefail
 
@@ -60,9 +60,8 @@ set -euo pipefail
 #
 # What it does buy is the half that was actually complained about three separate
 # times: the leg no longer reports a silent `ok` having examined nothing. It
-# says so. That is the rule this estate already states in append-only-guard.sh
-# -- NOT APPLICABLE IS SILENT, AND ABSENT IS LOUD -- with the announcement doing
-# the work the exit code cannot.
+# says so. That is the rule NOT APPLICABLE IS SILENT, AND ABSENT IS LOUD, with
+# the announcement doing the work the exit code cannot.
 # builtin_check_critic_gateflags -- declare, BEFORE the gate starts, whether an
 # empty run is legitimate for THIS invocation. Prints gate flags, one per line;
 # printing nothing leaves run_gate's default promotion in force.
@@ -82,7 +81,7 @@ builtin_check_critic_gateflags() {
   # expects them examined -- so say nothing and let the promotion stand.
   [ $# -eq 0 ] || return 0
   # The default corpus may legitimately hold nothing a critic reads. Whether it
-  # does is the critic's knowledge, not this gate's; see the header.
+  # does is known to the critic, not to this gate; see the header.
   printf '%s\n' '--allow-empty'
   return 0
 }
@@ -205,7 +204,7 @@ builtin_check_format() {
   # arguments reached the tool (`check format lib/foo.ex` scoped the elixir
   # check), so the same invocation now appearing to work while checking
   # everything -- or nothing the caller meant -- is a scoped check that never
-  # happened (delta review, finding 7).
+  # happened.
   [ $# -eq 0 ] ||
     die "check format takes no arguments (got: $*)
        It verifies EVERY declared language's whole tree. Scope a single
@@ -222,10 +221,10 @@ builtin_check_format() {
   #   empty  -- the project genuinely declares no formattable language. A
   #             determinate fact, reported below, and it passes.
   #
-  # Found by re-reviewing this fix rather than by writing it: the first version
-  # collapsed both into "nothing to check" and passed for a project declaring
-  # elixir. `builtin_check_critic` above already dies in this situation, so the
-  # two adjacent gates were answering one failure in opposite directions.
+  # The first version of this fix collapsed both into "nothing to check" and
+  # passed for a project declaring elixir. `builtin_check_critic` above already
+  # dies in this situation, so the two adjacent gates were answering one
+  # failure in opposite directions.
   if [ -z "${DEVBIN_LANGUAGES+set}" ] || [ -z "${DEVBIN_FMT_ARMS+set}" ]; then
     die "DEVBIN_LANGUAGES / DEVBIN_FMT_ARMS not set -- run this through bin/devbin
        Reporting 'nothing to check' here would be a verdict about the project,
@@ -244,9 +243,9 @@ builtin_check_format() {
       overridden)
         # The project runs `fmt <lang>` -- config's own `run:` for it, or the
         # project owning `fmt` whole (issue 0128) -- and this gate derives its
-        # check from the CATALOGUE, so the pair D21 promises would hold in name
-        # only: the gate green-lighting a command line the formatter no longer
-        # runs (delta review, finding 5). No guessing a check flag onto a
+        # check from the CATALOGUE, so the fmt / check format pairing would hold
+        # in name only: the gate green-lighting a command line the formatter no
+        # longer runs. No guessing a check flag onto a
         # command devbin does not know; the project states the check side too.
         die "cannot verify $lang formatting -- 'fmt $lang' runs the project's own formatter here, not the catalogue's
        The catalogue-derived check would verify a DIFFERENT command line from
@@ -262,7 +261,7 @@ builtin_check_format() {
       continue
     fi
     # Split by run_words: a catalogue command line, read the way every other one
-    # is, and never eval'd (D1, and issue 0082's one helper). run_builtin_gate
+    # is, and never eval'd (issue 0082's one helper). run_builtin_gate
     # has already cd'd to the project root, which is where the words are matched.
     run_words words "the catalogue's format check for '$lang'" "$cmd" || {
       rc=1
@@ -316,8 +315,7 @@ builtin_check_format() {
 # NUL-delimited end to end, like builtin_fmt_swift: an intermediate
 # newline-joined string (`tr '\n' '\0'` over $(find)) split a path containing
 # a newline into two bogus arguments and counted it twice, so the twins
-# disagreed about the file set the whole D21 section is about (delta review,
-# finding 8).
+# disagreed about the file set the whole fmt / check format pairing is about.
 _check_format_swift() {
   local n
   command -v swift-format >/dev/null 2>&1 ||
@@ -329,7 +327,7 @@ _check_format_swift() {
   # process substitution, so a file beneath a directory it could not read went
   # unlinted and the gate passed. find_list reads the list whole, NUL-separated.
   #
-  # BUILD DIRECTORIES ARE PRUNED, NOT FILTERED (critic-shell on 0139). `-not
+  # BUILD DIRECTORIES ARE PRUNED, NOT FILTERED (issue 0139). `-not
   # -path` kept their files out of the list and walked into them all the same,
   # where a build running beside the check creates and deletes as it goes, and
   # an entry that vanished between listing and reading failed the walk: `check
@@ -406,7 +404,7 @@ builtin_check_toolchain() {
   # pin_erl to its major for the ACTIVE comparison, and the Dockerfile
   # comparison must not inherit that weakening -- the image tag is exact, so
   # 29.0.4 vs 29.0.5 is a different image and must be caught (one ported copy
-  # carried this; D13 takes the strongest).
+  # carried this; where ported copies differ, the strongest is taken).
   pin_erl_full="$pin_erl"
 
   if [ -z "$pin_ex" ] && [ -z "$pin_erl" ]; then
@@ -515,16 +513,15 @@ builtin_check_toolchain() {
 
 # _autotests_targets <crate dir> <array> -- the test targets cargo's
 # auto-discovery makes of the crate's tests/, into the named array, by asking
-# cargo's own question of each undotted entry directly in tests/ (critic-shell
-# on 0139, its fourth and fifth passes; re-driven with cargo metadata, cargo
-# 1.98.1): a real directory, not a link, is a target when <entry>/main.rs
-# exists, which the filesystem answers under its own case rules and through a
-# link, as cargo asks it; any other entry is a target when it is named *.rs --
-# a file, a link to one, a link naming nothing or naming a directory. A dotted
-# entry is never read. tests/ itself is read through a link (-H). It dies,
-# naming what it could not read, when find could not list tests/ whole or a
-# subdirectory cannot be searched: a count over part of it is not a verdict.
-# One home for both branches' counts.
+# cargo's own question of each undotted entry directly in tests/ (issue 0139;
+# re-driven with cargo metadata, cargo 1.98.1): a real directory, not a link,
+# is a target when <entry>/main.rs exists, which the filesystem answers under
+# its own case rules and through a link, as cargo asks it; any other entry is
+# a target when it is named *.rs -- a file, a link to one, a link naming nothing
+# or naming a directory. A dotted entry is never read. tests/ itself is read
+# through a link (-H). It dies, naming what it could not read, when find could
+# not list tests/ whole or a subdirectory cannot be searched: a count over part
+# of it is not a verdict. One home for both branches' counts.
 _autotests_targets() {
   local -n _at_out="$2"
   local -a _at_ent=()
@@ -596,9 +593,9 @@ builtin_check_autotests() {
   #   target/     -- crate sources vendored under a build tree are not ours, and
   #                  a gate that walked them would report breaches in other
   #                  people's code that nobody here can fix.
-  #   .worktrees/ -- a git worktree is the SAME crate seen a second time. That
-  #                  note records a census that counted each crate once per
-  #                  worktree copy of it; a gate doing that reports one breach
+  #   .worktrees/ -- a git worktree is the SAME crate seen a second time. A
+  #                  census once counted each crate once per worktree copy of
+  #                  it; a gate doing that reports one breach
   #                  per checkout of a single Cargo.toml.
   #
   # A WALK THAT ERRORED RETURNS NO CRATES, AND NO CRATES READS EXACTLY LIKE A
@@ -640,14 +637,14 @@ EOF
     # variation there is to allow for.
     if grep -Eq '^[[:space:]]*autotests[[:space:]]*=[[:space:]]*false' "$manifest"; then
       # WHAT "ONE TARGET PER CRATE" ACTUALLY POLICES, because the literal
-      # reading is wrong and the authoring estate is the proof. A review raised
-      # that this branch counted nothing, so `autotests = false` with ten
-      # [[test]] blocks passed while cargo reported ten targets -- a real
-      # divergence from the rule's NAME. But the estate that wrote the rule keeps
+      # reading is wrong and the project that wrote the rule is the proof. A
+      # review raised that this branch counted nothing, so `autotests = false`
+      # with ten [[test]] blocks passed while cargo reported ten targets -- a real
+      # divergence from the rule's NAME. But the project that wrote the rule keeps
       # TWO targets in two crates on purpose (one test mutates process cwd,
       # another drives a per-process watch stream, and merged targets are
       # threads in one process), so a `> 1 is a breach` rule turns
-      # the estate that wrote the rule red on a documented decision. A gate
+      # the project that wrote the rule red on a documented choice. A gate
       # red in the ordinary case is how a gate teaches people to ignore it.
       #
       # The defect being policed is SILENT GROWTH, not arithmetic. Auto-discovery
@@ -678,7 +675,7 @@ EOF
     # a main.rs, one target of several files; any other subdirectory is a
     # module of something. This said a subdirectory was never a target, and a
     # crate whose only target was tests/multi/main.rs passed as holding none
-    # (critic-shell on 0139, its fourth pass). _autotests_targets asks cargo's
+    # (issue 0139). _autotests_targets asks cargo's
     # question of each entry, as cargo asks it, rather than matching names.
     _autotests_targets "$dir" targets
     n="${#targets[@]}"
@@ -706,19 +703,18 @@ EOF
 
 # builtin_check_targetdir -- the cargo target directory is the shared one.
 #
-# 52G of one project's 113G target tree was per-session FORKS (one session's
-# 41G, another's 11G, private 919M): separate CARGO_TARGET_DIR trees, one per
-# working session, each a full copy of the same build.
+# 52G of one project's 113G target tree was private FORKS (one of 41G, another
+# of 11G, a third of 919M): separate CARGO_TARGET_DIR trees, one per build user,
+# each a full copy of the same build.
 #
 # THIS IS NOT A DISCIPLINE PROBLEM AND THE GATE MUST NOT READ LIKE IT THINKS IT
 # IS. Cargo's build lock works correctly and INVISIBLY, so a blocked build is
-# indistinguishable from a hung one -- there is no output either way. A node
-# waiting on the lock reasonably concludes it has hung and "fixes" it by
-# pointing CARGO_TARGET_DIR somewhere private, and one node reported doing so
+# indistinguishable from a hung one -- there is no output either way. A
+# developer waiting on the lock reasonably concludes it has hung and "fixes" it
+# by pointing CARGO_TARGET_DIR somewhere private, and one reported doing so
 # permanently, to be "one contender off the shared lock". An instance happened
-# in front of the operator while this was being measured: one session's
-# `cargo check` held the lock, the operator's test run queued behind it, and
-# the operator reported the tests looked hung. They were not.
+# while this was being measured: one `cargo check` held the lock, a test run
+# queued behind it, and the tests were reported as looking hung. They were not.
 #
 # So the fork is a RATIONAL RESPONSE TO AN INVISIBLE WAIT, and a prohibition
 # only holds if the wait is made visible -- both halves or neither. The visible
@@ -727,8 +723,8 @@ EOF
 # the narrower ground that a fork is currently invisible too: nothing anywhere
 # reports that a machine is holding N copies of one build tree. The message
 # below therefore names the CAUSE and not just the rule, because a gate that
-# tells a node to stop doing the only thing that made a hang legible to them is
-# a gate they will switch off.
+# tells a developer to stop doing the only thing that made a hang legible to
+# them is a gate they will switch off.
 # _targetdir_home_tree <tree-var> <rc-var> -- the machine's reading
 # (cargo_home_build_dir) into <tree-var> and its status into <rc-var>, asked of
 # cargo once per run: <rc-var> is empty until it has been. Every reader in
@@ -763,7 +759,7 @@ builtin_check_targetdir() {
   nottree="not its own target or the shared tree at $want"
   [ "$shared" = 1 ] || nottree="not its own target, and $want, with no Cargo.toml beside it, is no tree clean removes"
 
-  # 1. THE ENVIRONMENT. This is the measured per-session fork, and it is the
+  # 1. THE ENVIRONMENT. This is the measured private fork, and it is the
   # one that reaches 41G without ever being written down anywhere.
   #
   # An EMPTY value is set, and cargo refuses it, so it is refused here in
@@ -794,7 +790,7 @@ builtin_check_targetdir() {
       forkof="not the shared tree at $want"
       [ "$shared" = 1 ] || forkof="and with no Cargo.toml at the project root there is no shared tree to set it to: unset it, so each crate builds into its own workspace's target"
       warn "$var=${!var} -- a per-session fork of the build cache, $forkof.
-       Each fork is a full copy: one estate measured 52G across three of them.
+       Each fork is a full copy: one project measured 52G across three of them.
        If you set this because a build looked hung, it was almost certainly WAITING on cargo's build lock, which is silent and looks identical to a hang."
       rc=1
     fi
@@ -806,8 +802,8 @@ builtin_check_targetdir() {
   # (cargo_build_dirs), from its own directory, as `cd crate && cargo build`
   # runs, with both variables removed from cargo's environment, so a config's
   # verdict does not hang on the environment of whoever runs the check: a
-  # committer's own CARGO_TARGET_DIR hid a project-wide fork (critic-shell on
-  # 0150 v1). A tree that is the workspace's own target, or the shared one, is
+  # committer's own CARGO_TARGET_DIR hid a project-wide fork (issue 0150). A
+  # tree that is the workspace's own target, or the shared one, is
   # no fork. Each fork's cause is named, never decided, here, by the one
   # attribution fullcycle's refusal makes too (cargo_tree_cause): one the
   # project's config names (cargo_project_tree) fails, naming it; one the
@@ -856,7 +852,7 @@ builtin_check_targetdir() {
           ;;
         machine)
           # The machine's fork is reported, not failed, and a hole does not
-          # make it one: it is accounted for (critic-shell on 0150 v2d).
+          # make it one: it is accounted for.
           forks[i]=0
           printf '    machine  %s moves the build tree, and cargo builds %s into %s\n' "$home_cfg" "$crate" "$tree"
           printf '             this forks EVERY rust project on this machine. Not this project to fix, and not failed here.\n'
@@ -887,17 +883,16 @@ builtin_check_targetdir() {
   # cargo saw building into its own target. A hole no config applies at tells
   # nothing, since a config moves only crates beneath its directory. One the
   # walk can search but not list is asked from inside it, where cargo reads a
-  # config the walk could not see (critic-shell on 0163 v2); one deeper in it
-  # is unseen, since nothing there can be listed, as one in a hole find cannot
-  # read at all is (critic-shell on 0163 v3). One whose place
-  # the walk could not read back is asked of every config from its own
+  # config the walk could not see; one deeper in it is unseen, since nothing
+  # there can be listed, as one in a hole find cannot read at all is. One whose
+  # place the walk could not read back is asked of every config from its own
   # directory, and of one above the project from the project root, where the
   # project's own config is read first, as a crate here reads it. A probe that
   # cannot answer, or a machine tree that cannot be measured, puts the walk in
   # play, and the failure says why.
   #
   # A WORKSPACE WHOSE OWN CONFIG PINS target-dir = "target" FAILS OVER A HOLE
-  # BENEATH IT (critic-shell on 0163 v2, its W1, kept failing): a crate beneath
+  # BENEATH IT (issue 0163; kept failing): a crate beneath
   # the hole builds into that workspace's target whether it is a member or a
   # second workspace forked into it, and only what the hole hides tells which.
   # A verdict that cannot see stays closed, so the failure names the remedy:
@@ -925,8 +920,7 @@ builtin_check_targetdir() {
       esac
       for i in ${crates[@]+"${!crates[@]}"}; do
         # "${d%/}/"*, never "${d%/}"/*: with d=/, bash 5.3 matches nothing
-        # against a quoted expansion trimmed to empty before an unquoted glob
-        # (critic-shell on 0150 v2d).
+        # against a quoted expansion trimmed to empty before an unquoted glob.
         case "${crates[i]}/" in
           "${d%/}/"*) [ "${forks[i]:-0}" = 0 ] || inplay=1 ;;
         esac
@@ -977,7 +971,7 @@ builtin_check_targetdir() {
     done
     if [ "$inplay" = 1 ]; then
       # The remedy only where what the hole hides decides it: a probe that
-      # answered a tree here (critic-shell on 0163 v3). A config cargo cannot
+      # answered a tree here. A config cargo cannot
       # read, or a crate the walk answered forking, is cleared elsewhere.
       reach="check targetdir: a cargo config here names target-dir or include, and the walk for crates could not read everything (the error above names it), so a crate beneath it may build elsewhere unasked"
       [ -z "$forked" ] || reach="$reach -- $forked, and only what the directory hides tells whether that forks: make the directory readable to the user running this check, or move it out of the workspace.$unread"

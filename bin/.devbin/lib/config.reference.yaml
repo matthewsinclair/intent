@@ -183,7 +183,7 @@ devbin_version: "^1.0.0"
 #
 # REQUIRED TO PUBLISH, AND THERE IS NO DEFAULT. `lib/install` once fell back to
 # a path under `$HOME` -- one operator's directory layout, baked into the
-# runtime every estate vendors. A publish from any of them would have gone to a
+# runtime every project vendors. A publish from any of them would have gone to a
 # path named after somebody else's home directory and would have SUCCEEDED,
 # because a publish to the wrong place is indistinguishable from a publish to
 # the right one. Unset, `install` and `upgrade` refuse by name.
@@ -330,31 +330,31 @@ commands:
   # ever run a release build.
   #
   # `fullcycle` is destructive: `clean rust` removes `target/` INCLUDING
-  # `release/`, and `cargo test` builds debug binaries only. So on an estate
+  # `release/`, and `cargo test` builds debug binaries only. So in a project
   # where something on PATH resolves through `target/release/`, the cycle
   # darkens it. The verb watches for exactly that and reports what it could not
   # put back -- and with this key declared, it puts it back first.
   #
   # DEVBIN WILL NOT GUESS THE COMMAND, and the reason is a measurement rather
-  # than caution. It shipped for one day running `cargo build --release` at the
-  # project root, which is correct on most estates and is a new UNGUARDED
-  # ENTRANCE on one: an estate that guards its release path, because several
-  # sessions invoke that artefact and a build from a dirty tree poisons it for
-  # all of them. That estate's own guard named the line on the first commit
-  # that carried it. `build release` is not the portable spelling either -- at
-  # that estate the arm is interactive and pushes, so guessing a verb by NAME
-  # would turn a restore into a publish.
+  # than caution. It once shipped running `cargo build --release` at the project
+  # root, which is correct in most projects and is a new UNGUARDED ENTRANCE in
+  # one: a project that guards its release path, because several callers invoke
+  # that artefact and a build from a dirty tree poisons it for all of them. That
+  # project's own guard named the line on the first commit that carried it.
+  # `build release` is not the portable spelling either -- in that project the
+  # arm is interactive and pushes, so guessing a verb by NAME would turn a
+  # restore into a publish.
   #
   # Undeclared, the restore phase does not run and the cycle says so. That is
   # the fail-closed direction, and it is the same rule fullcycle already
   # applies when a project declares no build verb at all: it refuses rather
   # than proceeding without one.
   # THE EXAMPLE IS A PLACEHOLDER AND NOT A CARGO LINE, WHICH IS ITSELF THE
-  # POINT. This file is a reference meant to be copied, and the estate that
+  # POINT. This file is a reference meant to be copied, and the project that
   # most needs this key is the one where `cargo build --release` is exactly the
   # wrong answer -- its guard refused a vendored devbin carrying that literal
   # here, in a YAML file nothing executes, precisely because a reference gets
-  # copied into a live config. Naming one estate's answer as THE answer teaches
+  # copied into a live config. Naming one project's answer as THE answer teaches
   # the opposite of what the key exists for.
   fullcycle:
     restore: <this project's own release build -- the verb, not a raw toolchain call>
@@ -393,7 +393,7 @@ commands:
     #      dropped into cmd/ appears in help with no config edit at all
     #   3. the built-in catalogue, for a command devbin ships
     #
-    # Steps 2 and 3 never both answer: a command devbin ships is declared by its
+    # The handler's header and the catalogue never both answer: a command devbin ships is declared by its
     # catalogue row, one a project ships is declared by its handler file. So
     # there is no precedence question between those two to get wrong.
     summary: Phoenix dev server
@@ -531,17 +531,20 @@ commands:
 # and declares no block releases with all of them, and a block names only what
 # differs: every key has a default, and every default can be overridden. A
 # COMMENTED line is one of two things. For `remotes`, `derived`,
-# `ci.query`, `after`, `notes.run` and `repo` the default is empty or derived, and the line shows an
-# example value, not the default. `ci.wait` and `object_wait` are commented out
+# `ci.query`, `after`, `notes.run`, `repo` and `assets.workflow` the default is empty or derived, and the line shows an
+# example value, not the default. `ci.wait`, `object_wait` and `assets.wait` are commented out
 # because declaring them where the default mode never reads them is refused, not
-# ignored -- `ci.wait` without `ci.query`, `object_wait` outside object: ci --
+# ignored -- `ci.wait` without `ci.query`, `object_wait` outside object: ci,
+# `assets.wait` without `assets.workflow` --
 # and their lines show the default for the mode that does read them. The same
-# rule refuses `title` outside object: local and `notes.run` outside
-# notes.kind: command.
+# rule refuses `title` and `assets.workflow` outside object: local and `notes.run` outside
+# notes.kind: command, and a key no verb `verbs` offers reads: with `cut` and
+# `status` off, the gates, for one, are config nothing acts on.
 #
 # A list is declared EMPTY as the single item "-": the grammar has no `[]`.
-# `remotes` is the exception and refuses "-": undeclared already means every
-# remote, so an empty list could only mean pushing nowhere.
+# `remotes` and `verbs` are the exceptions and refuse "-": undeclared remotes
+# already means every remote, so an empty list could only mean pushing nowhere,
+# and a release that offers no verb is `commands.release.enabled: false`.
 release:
   tag: "v{version}"          # must contain {version}; a bare "{version}" is legal
   # remotes:                 # undeclared: every remote `git remote` lists, in that order
@@ -564,3 +567,12 @@ release:
   # object_wait: 20m         # object: ci only -- how long to wait for the workflow's release object
   # after:                   # commands run after the release object, reported, outside the core's guarantees
   #   - bin/announce
+  verbs:                     # the verbs of release this project offers; one left out is refused, exit 2
+    - cut                    # a cut: release <--patch|--minor|--major|vX.Y.Z>
+    - status
+    - notes
+    - check
+    - attach
+  # assets:                  # object: local only -- what release attach, and a cut's object step, attach to the release object
+  #   workflow: assets.yml   # the workflow in .github/workflows whose earliest successful run at the tag built them; declaring it turns the attach on
+  #   wait: 30m              # how long the attach waits for that run to be listed and to finish

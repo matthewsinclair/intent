@@ -14,7 +14,7 @@
 # which makes that domain's own legitimate mail bit-for-bit indistinguishable
 # from a forgery of it.
 #
-# THE CARDINAL CONSTRAINT, and every design decision here follows from it:
+# THE CARDINAL CONSTRAINT, and every choice made here follows from it:
 # EVERY CHECK MUST BE ABLE TO GO RED. The failures this estate has produced were
 # all controls that could only report success -- absent reporting that reads as
 # clean reporting, a cached TTL that reads as a configured one, `disposition=
@@ -46,19 +46,18 @@ set -euo pipefail
 # $DEVBIN_INFRA_PROFILE IS ESCAPED SO IT DOES NOT. Both halves are load-bearing
 # and the second is the one that bites: unquoting alone substitutes the env var
 # too, which is unset, so the help silently drops a resolution step and prints
-# `--profile <path>, , ./infra.yaml`. Measured on 2026-09-07, not reasoned
-# about.
+# `--profile <path>, , ./infra.yaml`. Measured, not reasoned about.
 #
 # THE NAME IS ${DEVBIN_INVOKE:-bin/devbin}, AS IN EVERY OTHER BUILT-IN (issue
-# 0107). From 2026-09-07 it was $DEVBIN_NAME, which replaced a
-# literal `devbin` that resolved to nothing in an estate: in one project, whose
-# dispatcher was then `demo`, it rendered `demo infra`. That launcher
-# is retired and bin/devbin is how every estate is typed, so $DEVBIN_NAME named
-# a command that no longer exists -- the defect the 2026-09-07 fix closed, come
+# 0107). For a time it was $DEVBIN_NAME, which replaced a literal
+# `devbin` that resolved to nothing in a vendored project: in one project, whose
+# dispatcher was then `demo`, it rendered `demo infra`. That launcher is
+# retired and bin/devbin is how every project types it, so $DEVBIN_NAME named a
+# command that no longer exists -- the defect the earlier fix closed, come
 # back. The infra.d children carry the same form. $DEVBIN_NAME stays the
 # diagnostic prefix `die` and `warn` print.
 #
-# THE VERB LIST WAS HALF THE SURFACE UNTIL 2026-09-07. `profiles` and `mail`
+# THE VERB LIST WAS ONCE HALF THE SURFACE. `profiles` and `mail`
 # are routed by devbin's `.d/` descent BEFORE this file is reached, which is the
 # right mechanism and exactly why they were missing here: nothing in the
 # dispatch path needs this list, so only a reader does, and no test could miss
@@ -67,9 +66,9 @@ set -euo pipefail
 # already knowing to look.
 #
 # THE REFERENCE'S PATH IS $(lib_rel), NOT SPELLED (issue 0121). It read
-# bin/.devbin/lib/infra.reference.yaml, which is right in every estate and names
-# nothing in devbin's own checkout, where lib/ runs in place -- the defect 0112
-# fixed in `devbin devbin`, in a second handler.
+# bin/.devbin/lib/infra.reference.yaml, which is right in every vendored
+# project and names nothing in devbin's own checkout, where lib/ runs in place
+# -- the defect 0112 fixed in `devbin devbin`, in a second handler.
 #
 # The lines below carry NO BACKTICKS on purpose. This heredoc is unquoted so
 # the dispatcher's name renders, which makes a backtick live command
@@ -147,7 +146,7 @@ case "$verb" in
         printf 'infra: %s unreviewed deviation(s) in the profile. Refusing to check.\n' \
           "$(printf '%s\n' "$unrev" | grep -c .)"
         printf '%s\n' "$unrev" | sed 's/^/  /'
-        # NOT "proposed by `init`", which is what this said until 2026-09-07:
+        # NOT "proposed by `init`", which is what this once said:
         # `infra` accepted show|check and there was NO init verb, so the sentence
         # named a command the tool refuses, in the same breath as refusing. It
         # also carried the only SC2016 breach left in the tree once lib/infra's

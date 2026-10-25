@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# The built-in `db`. D18 found this the widest-varying command in the corpus:
+# The built-in `db`. The corpus survey found this the widest-varying command:
 # the option NAMES agree three ways out of four and the commands behind them do
 # not (`mix ash.setup` / `mix setup` / `mix ecto.setup`). So devbin ships a
 # small declarative core and expects the rest to land as project handlers.
@@ -39,7 +39,7 @@ set -euo pipefail
 # `setup.run: mix ash.setup` ran under MIX_ENV=prod, sealed, exit 0. It is now a
 # row in lib/builtins' _DEVBIN_BUILTIN_REFUSALS, which bin/devbin asks before
 # ANY db path runs. A project that genuinely needs a production database
-# operation still writes a handler, which shadows this file totally (D2) and is
+# operation still writes a handler, which shadows this file totally and is
 # the one thing the refusal lets past -- deliberately a bigger and more visible
 # step than passing a flag.
 run_builtin_gate db "$@"

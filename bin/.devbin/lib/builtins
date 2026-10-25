@@ -10,24 +10,26 @@
 # Its readers ask `is_no_default` what the table's `-` means, and a missing
 # predicate does not fail there: `! is_no_default` turns "command not found"
 # into success, so `builtin_has_default_run` would claim a command line for a
-# row that has none, with no message (critic-shell, 2026-09-16).
+# row that has none, with no message.
 #
 # This replaces `_DEVBIN_BUILTIN_LANGS` and `_DEVBIN_BUILTIN_COMMANDS`, which
-# lived in lib/resolve as placeholders so D11 activation could be tested before
-# any built-in existed. They are MOVED here, not copied: two tables describing
-# the same built-ins would drift the moment one gained an entry, which is the
-# Highlander breach the WP-04 task notes flagged in advance.
+# lived in lib/resolve as placeholders so the activation rule could be tested
+# before any built-in existed. They are MOVED here, not copied: two tables
+# describing the same built-ins would drift the moment one gained an entry,
+# which is the Highlander breach the WP-04 task notes flagged in advance.
 #
-# What belongs in the table is settled by design D18's tier analysis:
+# What belongs in the table is settled by four tiers:
 #
-#   tier 1  real shared logic -- a script under lib/cmd/, marked @builtin below
-#   tier 2  the framework knows the option and its usual command line; a project
-#           that runs it differently overrides `run:` in one line of config
+#   tier 1  shipped code: real shared logic -- a script under lib/cmd/, marked
+#           @builtin below
+#   tier 2  a default command line: the framework knows the option and its
+#           usual command line; a project that runs it differently overrides
+#           `run:` in one line of config
 #   tier 3  a parameterised one-liner (iex, server, cli, repl)
-#   tier 4  present as a NAME with no command line -- projects' `build`
-#           targets are disjoint lists, so shipping an option set for it
-#           would impose one project's shape on every other. It gets a row
-#           for its summary and a `-` for what to run.
+#   tier 4  a name only: present as a NAME with no command line --
+#           projects' `build` targets are disjoint lists, so shipping an
+#           option set for it would impose one project's shape on every
+#           other. It gets a row for its summary and a `-` for what to run.
 #
 [ -n "${_DEVBIN_BUILTINS_LOADED:-}" ] && return 0
 if ! declare -F is_no_default >/dev/null; then
@@ -55,10 +57,10 @@ _DEVBIN_BUILTINS_LOADED=1
 # exactly the drift AC-08.1 exists to prevent. `builtin_options_for` filters on
 # `<cmd>.`, so a command row is correctly never reported as an option.
 #
-# language   the D11 activation key: the row is offered exactly when the
+# language   the activation key: the row is offered exactly when the
 #            project declares this language. `any` is offered everywhere
 #            unless its tree lacks what it needs (_DEVBIN_BUILTIN_NEEDS), and
-#            `opt-in` only when the project asks (D22).
+#            `opt-in` only when the project asks.
 # grammar    the WP-06 extraction grammar for the sealed .errors companion.
 # suffix     names the .out/.errors pair and the LATEST_* pointers.
 # group      the help heading this command sits under (WP-07). Option rows carry
@@ -68,7 +70,7 @@ _DEVBIN_BUILTINS_LOADED=1
 #
 # `-` in any of grammar, suffix, group or command means "devbin ships no default
 # for this". Grammar and suffix are both real or both `-`: a row is a sealed gate
-# or it is not, never half of one. A `-` command line is D18 tier 4 in the table
+# or it is not, never half of one. A `-` command line is tier 4 in the table
 # -- the command name resolves and the project supplies what it runs.
 #
 # Two fields carry spaces -- the command line and the summary -- so they are
@@ -96,8 +98,9 @@ publish          opt-in  -           -          Ship      - | Publish a release 
 macos            opt-in  -           -          Ship      - | macOS bundle and platform tasks
 which            opt-in  -           -          Install   - | Report which binary or build a name resolves to
 infra            any     -           -          Infra     @builtin | Profile and check this estate's DNS and mail configuration
-install          any     -           -          Devbin    @builtin | Vendor devbin into a project, or in devbin's own tree publish the machine install
-upgrade          any     -           -          Devbin    @builtin | Re-sync the vendored runtime, or in devbin's own tree replace the machine install
+install          any     -           -          Devbin    @builtin | Vendor devbin into a project, or in a dev checkout publish its opt install
+upgrade          any     -           -          Devbin    @builtin | Re-sync the vendored runtime from the install this machine's switch names
+use              any     -           -          Devbin    @builtin | Choose which devbin this machine runs: dev, opt or brew
 vendor           any     -           -          Devbin    @builtin | Compare the vendored runtime against the devbin it came from
 doctor           any     -           -          Devbin    @builtin | Check this install and report what is wrong with it
 new              any     -           -          Devbin    @builtin | Scaffold a new project command, ready to run
@@ -155,7 +158,7 @@ unset _bi_name _bi_rest
 
 # `check.parity` was in the placeholder table and is deliberately NOT here. It
 # exists in only some projects, and their implementations are bespoke contract
-# checks with nothing in common but the name -- D18 tier 4, in miniature. A
+# checks with nothing in common but the name -- tier 4, in miniature. A
 # project that wants it declares it, which is one line and cannot be wrong.
 
 # THE OPTIONS devbin SHIPS OUTSIDE `all` (issue 0132), as `<command>.<option>`.
@@ -193,8 +196,9 @@ docs.agents intent"
 # the refusal is about where the command points, not about whose line it runs.
 # Until 0132 db's lived inside lib/cmd/db, which only devbin's own lines reach,
 # so `setup.run: mix ash.setup` ran under MIX_ENV=prod. A project HANDLER is the
-# one way past it: D2 makes a handler a total shadow, and writing one is the
-# bigger, more visible step a production operation is meant to take.
+# one way past it: the resolution order makes a handler a total shadow, and
+# writing one is the bigger, more visible step a production operation is meant
+# to take.
 _DEVBIN_BUILTIN_REFUSALS="
 db  MIX_ENV  prod  these commands are the LOCAL dev database lifecycle, and 'db reset' drops the database
 "
@@ -279,10 +283,10 @@ builtin_option_run() {
 # `check format` runs to VERIFY what `fmt <arm>` would APPLY. Fails for an arm
 # that has no check form.
 #
-# THIS IS D21's RELATIONSHIP, and it lives here so there is one of it. `fmt`
-# formats four languages; `check format` used to verify one, and the test that
-# was supposed to police the pair bound it to `fmt elixir` alone -- true of the
-# arm it checked, silent about the rest, and reassuring enough to read that
+# THIS IS THE FMT/CHECK RELATIONSHIP, and it lives here so there is one of it.
+# `fmt` formats four languages; `check format` used to verify one, and the test
+# that was supposed to police the pair bound it to `fmt elixir` alone -- true of
+# the arm it checked, silent about the rest, and reassuring enough to read that
 # nobody looked further (issue 0003).
 #
 # DERIVED from the fmt row rather than restated, so editing `fmt rust` in the
@@ -290,10 +294,10 @@ builtin_option_run() {
 # is catalogue-wide and no wider: a CONFIG `run:` override replaces what
 # `fmt <lang>` runs without touching the catalogue, so the gate refuses to
 # derive for an overridden arm rather than verify a command line the formatter
-# no longer runs -- see DEVBIN_FMT_ARMS (bin/devbin) and builtin_check_format
-# (delta review, finding 5). The check FLAG is per-tool and not a uniform
-# suffix -- `--check-formatted`, `--check`, `--lint` -- which is why this is a
-# case rather than a string concatenation over the whole set.
+# no longer runs -- see DEVBIN_FMT_ARMS (bin/devbin) and builtin_check_format.
+# The check FLAG is per-tool and not a uniform suffix -- `--check-formatted`,
+# `--check`, `--lint` -- which is why this is a case rather than a string
+# concatenation over the whole set.
 #
 # `md` deliberately has NO check form. `fmt md` mutates root Markdown, but a
 # GATE over it would assert a verdict this project does not hold: prettier
@@ -332,7 +336,7 @@ builtin_option_summary() {
 }
 
 # builtin_options_for <command> -- the option names devbin ships for a command,
-# in catalogue order. Empty for a command that ships none (`build`, D18 tier 4).
+# in catalogue order. Empty for a command that ships none (`build`, tier 4).
 builtin_options_for() {
   local cmd="$1" name rest
   while read -r name rest; do
@@ -375,7 +379,7 @@ builtin_command_summary() { builtin_option_summary "$1" ""; }
 builtin_command_group() { builtin_option_group "$1" ""; }
 
 # builtin_has_default_run <command> [option] -- true when the catalogue ships a
-# command line, false when the row carries `-` (D18 tier 4) or `@builtin`, or
+# command line, false when the row carries `-` (tier 4) or `@builtin`, or
 # does not exist.
 #
 # `-` and "absent" are deliberately the same answer to a caller deciding what to

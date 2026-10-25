@@ -1,12 +1,13 @@
     bin/devbin install [--into <dir>] [--name <n>] [--alias <a>] [--lang <l>] [--force]
-    bin/devbin install [--prefix <dir>] [--managed-by brew]   (in devbin's own source checkout)
+    bin/devbin install [--prefix <dir>] [--managed-by brew] [--force]   (in devbin's own source checkout)
 
-Installs devbin into a project or, run from devbin's own source checkout, publishes a machine install for projects to vendor from. The mode depends on which `bin/devbin` you ran and on whether --into was given, not on the directory you stand in, and it is printed before anything is written, so a misdetection lands in the output rather than in the filesystem.
+Installs devbin into a project or, run from devbin's own source checkout, publishes a machine install for projects to vendor from. A user's install is the one Homebrew places (see An install Homebrew placed, below), and a project is seeded from it with `devbin install --into <project>`; publishing is for the maintainer of a dev checkout. The mode depends on which `bin/devbin` you ran and on whether --into was given, not on the directory you stand in, and it is printed before anything is written, so a misdetection lands in the output rather than in the filesystem.
 
     VENDOR    install devbin into a project. Always the mode when --into is
               given, and the only mode outside devbin's own source checkout.
     PUBLISH   run from devbin's own source checkout with no --into: publish
-              that checkout's runtime as a machine install.
+              that checkout's runtime as its opt install, and with --force
+              replace the one there, the one way to re-publish.
 
     --into <dir>   the project to install into (default: the current directory)
     --name <n>     the project name, lower case (default: the target directory's
@@ -14,7 +15,9 @@ Installs devbin into a project or, run from devbin's own source checkout, publis
     --alias <a>    a short name for the project, lower case. RECORDED ONLY --
                    devbin creates nothing for it
     --lang <l>     a language the project declares; repeatable or comma-separated
-    --force        VENDOR only: re-vendor over an existing install
+    --force        VENDOR: re-vendor over an existing install. PUBLISH:
+                   replace the opt install at the prefix, which must be one
+                   devbin wrote
     --prefix <dir> PUBLISH only: where to publish (default: install.prefix in that
                    checkout's bin/.devbin/config.yaml, a leading ~ expanded).
                    There is no built-in default: an unset prefix is refused
@@ -22,11 +25,6 @@ Installs devbin into a project or, run from devbin's own source checkout, publis
                    PUBLISH only: record that Homebrew owns this install, so
                    devbin's own install and upgrade refuse to write into it.
                    The Homebrew formula passes it
-    --point        PUBLISH only, to install.prefix: make this install the
-                   machine's, writing the machine pointer, where the machine's
-                   install is Homebrew's and would otherwise stay so (below).
-                   Elsewhere the pointer is written anyway, and --point
-                   changes nothing
 
 A flag that means nothing in the mode you are in is refused rather than ignored, and so is an upper-case --name or --alias.
 
@@ -80,24 +78,24 @@ PUBLISH writes a project-shaped tree with the project half missing:
                                  managed_by: brew when Homebrew placed it
     (no config.yaml, no cmd/, no help/)
 
-That absence is the mechanism rather than tidiness. In a tree with no config.yaml whose manifest says `kind: install`, `bin/devbin` answers only `install`, `shell-init` and its version (`version`, `--version`, `-v`); every other verb is refused with exit 5, naming how to seed a project and how to upgrade one. So an install can only ever be vendored FROM, never worked IN, and there is no check to disable and no flag to pass.
+That absence is the mechanism rather than tidiness. In a tree with no config.yaml whose manifest says `kind: install`, `bin/devbin` answers only `install`, `shell-init`, `use` and its version (`version`, `--version`, `-v`); every other verb is refused with exit 5, naming how to seed a project and how to upgrade one. So an install can only ever be vendored FROM, never worked IN, and there is no check to disable and no flag to pass.
 
     <install>/bin/devbin install --into <project>          seed a project from it
     cd <project> && bin/devbin upgrade --from <install>    move a project onto it
 
 Because an install is project-shaped, `bin/devbin upgrade --from` and `bin/devbin vendor --from` work on it unchanged, and its manifest is the ordinary one.
 
-A publish to `install.prefix` also records, outside every repository, that this is the machine's install, except on a machine whose install is Homebrew's (below): one line, its root, in `$XDG_DATA_HOME/devbin/home` (by default `~/.local/share/devbin/home`). A project vendored from an install records only that its source is `install`, never where, and finds it again through that line, or through `DEVBIN_INSTALL_PREFIX` over it, or, when neither names one, at the install Homebrew placed (below). `bin/devbin doctor`, run in the project, names the install it resolves to and what chose it. A publish to any other --prefix leaves the line as it was and says which install it still names, so a scratch publish cannot repoint every project on the machine. A line that cannot be written fails the publish by name, though the install is in place.
+A publish records nothing outside the install. Which of devbin's trees the machine reads -- the dev checkout, its opt install or the install Homebrew placed -- is chosen by `devbin use` alone (`bin/devbin help use`), whose one record is the link `~/.local/bin/devbin`. A project records only the kind of tree its bytes came from (`install`, `checkout` or `project`), never where, and its next upgrade reads the tree the switch names: `DEVBIN_INSTALL_PREFIX` when it is set, else the tree that link leads to, else the install Homebrew placed (below). `bin/devbin doctor`, run in the project, names that tree, by the line `--version` prints, and what chose it. So a publish, to `install.prefix` or to any other --prefix, moves no project until `devbin use opt` points the link at it.
+
+The install's manifest header carries `tool: devbin`, `version` and `managed_by` (`devbin`, or `brew` for a keg) beside devbin's own keys, so every tool released through Homebrew reads its installs alike. An install whose manifest predates those keys is named by doctor with its remedy: an opt install fails doctor until `install --force` from the checkout replaces it, and a keg is a note naming `brew upgrade devbin`, since only a release that writes the new form can fix it.
 
 ## An install Homebrew placed
 
 devbin's Homebrew formula makes a machine install like any other: at the release tag it runs devbin's own PUBLISH into the keg's `libexec`, with `--managed-by brew`, and links `bin/devbin` into Homebrew's `bin` as `devbin`. So `devbin install --into <project>` seeds a project from it, as from any install.
 
-A project finds it at `$HOMEBREW_PREFIX/opt/devbin/libexec` when no `DEVBIN_INSTALL_PREFIX` and no machine pointer names another install. Those two are read first, so a machine set up from a checkout keeps the install its pointer names, and installing the formula moves no project. The path is `opt/devbin`, which Homebrew moves to each new keg, never the versioned keg under `Cellar/devbin/`, which `brew upgrade` deletes; `shell-init` run from the keg bakes the `opt` path into `dvb` for the same reason. `HOMEBREW_PREFIX` is what `brew shellenv` exports, and nothing else is read: no `brew` is run and none is looked for on PATH. A process started without the login profile -- cron, a hook a GUI app launched, a bare ssh command -- has no `HOMEBREW_PREFIX`, so there the default is off, and the message that says no install was found names the variable.
+A project finds it at `$HOMEBREW_PREFIX/opt/devbin/libexec` when no `DEVBIN_INSTALL_PREFIX` and no `~/.local/bin/devbin` link names another tree. Those two are read first, so a machine whose link names a checkout or its opt install keeps it, and installing the formula moves no project; `devbin use brew` removes the link, and from then on the keg answers. The path is `opt/devbin`, which Homebrew moves to each new keg, never the versioned keg under `Cellar/devbin/`, which `brew upgrade` deletes; `shell-init` run from the keg bakes the `opt` path into `dvb` for the same reason. `HOMEBREW_PREFIX` is what `brew shellenv` exports, and nothing else is read: no `brew` is run and none is looked for on PATH. A process started without the login profile -- cron, a hook a GUI app launched, a bare ssh command -- has no `HOMEBREW_PREFIX`, so there the default is off, and the message that says no install was found names the variable.
 
 Homebrew replaces a keg whole at each version and deletes the one before, so bytes devbin wrote into a keg would be lost at the next upgrade. An install whose manifest records `managed_by: brew` is therefore refused by `install` and `upgrade` alike, before anything is written, and the refusal names `brew upgrade devbin`.
-
-On a machine whose install is Homebrew's -- no machine pointer and no `DEVBIN_INSTALL_PREFIX` -- a publish or publish-upgrade from a checkout to `install.prefix` still writes its files there, but leaves the machine pointer unwritten and says whose install the machine keeps: writing it would repoint every project on the machine at the checkout's install, and undo the move to Homebrew without a word. `install.prefix` is then where this checkout publishes, an install beside the machine's, for trying a build. To make it the machine's install instead, run `bin/devbin upgrade --point` from the checkout, which writes the pointer; from then on the pointer names it, and later publishes write it as on any machine set up from a checkout. `--point` is refused when vendoring, and for a `--prefix` that is not `install.prefix`, the one install a pointer is written for.
 
 ## PUBLISH: why an install is cut only from a clean tree
 
@@ -105,7 +103,17 @@ A project vendored straight from a working tree can carry bytes that match no co
 
 Clean means the whole tree: anything `git status --porcelain` lists refuses the publish. devbin's own half -- `bin/devbin` and the runtime beside it -- is asked harder than that: an ignored file, a symlink, or a file git was told not to watch there refuses too, reported as `seam: <state>`. A tree that is not a git repository is refused, since the commit the install would claim cannot be established, and so is a repository git cannot read, most often one another user owns, which git refuses unless `safe.directory` names it; the refusal says which of the two, and the second carries git's own first line.
 
-`install` publishes a NEW install and refuses to overwrite one; `upgrade` replaces an existing one and refuses when there is none. Whichever you reach for, the wrong one names the right one.
+`install` publishes a NEW install and refuses to overwrite one unless given --force (below); `upgrade` in the checkout publishes nothing and names `install --force`.
+
+## PUBLISH --force: replacing the opt install
+
+`install --force` in devbin's own checkout is the one way to re-publish. It uses the publish writer and the clean-tree gate a new publish does: the install's whole value is that its bytes came from a committed tree, so a replace cut from a dirty one would destroy exactly what it exists to provide. Only a tree devbin wrote is replaced: its manifest must say `tool: devbin`, or carry the older install form, which the replace brings up to date; anything else at the prefix is refused, and without --force an existing install is refused, naming `install --force`.
+
+An install Homebrew placed, whose manifest records `managed_by: brew`, is refused before the gate reads anything, and the refusal names `brew upgrade devbin`: Homebrew replaces the keg whole at each version, so bytes written into it would be lost at the next one.
+
+An install has no author, so nothing in it is preserved: every file the source ships is copied over it, and an edited file is NAMED before it is overwritten, since a file silently replaced is a change nobody can find afterwards. A file in the install that devbin cannot read is named the same way and replaced unread, and an install with no manifest, which cannot name an edit, says that every file is being replaced unchecked; one in the source it cannot read refuses the publish, and the install is left as it was. A file the source has stopped shipping is removed from the install, and named as it goes, so no project vendored from the install receives it afterwards. A file devbin renamed only in case is kept, under the new spelling, on a disk that folds case, where the two spellings are one file.
+
+Replacing the install moves no project: each keeps the bytes it has until it is upgraded.
 
 ## Provenance is transitive
 
@@ -118,6 +126,7 @@ install creates no `bin/<name>` or `bin/<alias>` link to `bin/devbin`: a launche
 ## See also
 
     bin/devbin help upgrade      keeping a vendored runtime current
+    bin/devbin help use          choosing which of devbin's trees this machine runs
     bin/devbin help vendor       comparing it with the devbin it came from
     bin/devbin help doctor       checking an install
     bin/devbin devbin            where devbin's long-form guides are kept,

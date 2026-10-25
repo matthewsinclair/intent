@@ -6,14 +6,14 @@
 # Sourced, not executed. Sits above lib/resolve in the layering: it asks what
 # resolves and renders the answer, and nothing below it may call back up here.
 #
-# This is design D4 built. It replaces ~92 KB of hand-maintained heredoc across
-# four launchers -- one `<project>_help` function apiece
-# -- each of which kept a command list its own dispatcher had to be kept in step
-# with by hand. There is nothing to keep in step now: the listing is whatever
+# This is the help design built. It replaces ~92 KB of hand-maintained heredoc
+# across four launchers -- one `<project>_help` function apiece -- each of
+# which kept a command list its own dispatcher had to be kept in step with by
+# hand. There is nothing to keep in step now: the listing is whatever
 # `known_commands` resolves, so a command cannot be dispatchable-but-unlisted or
 # listed-but-gone. AC-07.10 asserts both directions.
 #
-# The split D4 names, and the reason for it:
+# The split the design names, and the reason for it:
 #
 #   generated at the TOP    -- what exists, what group it is in, one line each.
 #                              A fact about the registry, so deriving it is
@@ -39,7 +39,7 @@ fi
 # out of alignment exactly because the width lived in each heredoc.
 _HELP_COL=24
 
-# --- metadata: one source per fact (design D23) ------------------------------
+# --- metadata: one source per fact -------------------------------------------
 #
 # Three fields describe a command in the listing -- summary, group and args --
 # and each is read from ONE place, in this order:
@@ -48,16 +48,17 @@ _HELP_COL=24
 #   2. the HANDLER's own `# devbin: <field> = ` header
 #   3. the CATALOGUE row, for a command devbin ships
 #
-# Steps 2 and 3 never both answer, and that is the point of D23 rather than an
-# accident: a command devbin ships is declared by its catalogue row, a command a
-# project ships is declared by its handler file, and the two sets are disjoint.
-# So there is no precedence question between them to get wrong later.
+# The handler's header and the catalogue row never both answer, and that is the point of the one-source rule
+# rather than an accident: a command devbin ships is declared by its catalogue
+# row, a command a project ships is declared by its handler file, and the two
+# sets are disjoint. So there is no precedence question between them to get
+# wrong later.
 #
 # It was not always so. Every lib/cmd handler carried a `# devbin: summary =`
 # header AND had a catalogue row carrying the same sentence, with nothing
 # reading the header -- and by the time WP-07 came to read one they had already
 # drifted: lib/cmd/test said "Run the project's test gates" where the catalogue
-# said "Run THIS project's test gates". Two copies, one session, one word apart.
+# said "Run THIS project's test gates". Two copies, one word apart.
 # The headers are gone from lib/cmd; the rows own it.
 
 # handler_meta <path> <field> -- read `# devbin: <field> = <value>` from a
@@ -106,8 +107,8 @@ cmd_meta() {
 }
 
 # opt_meta <command> <option> <field> -- the same three-step read, one level
-# down. A sub-handler describes itself by the same header its parent uses (D3:
-# one rule at every depth).
+# down. A sub-handler describes itself by the same header its parent uses (one
+# rule at every depth).
 opt_meta() {
   local cmd="$1" opt="$2" field="$3" v handler
   v="$(cfg_get "commands.$cmd.options.$opt.$field")"
@@ -132,9 +133,9 @@ opt_meta() {
 # "Test (SEALED gates -- the verdict is a FILE, not a scroll-past)", which is
 # authored prose doing real work, and `nothing authored is discarded` (AC-07.11)
 # has to mean it too. A sequence of maps would be the obvious way to carry a
-# name and a note separately and is OUTSIDE the config subset by D7, so the
-# annotation rides in the entry itself: everything before the first ` (` is the
-# name, the whole entry is the heading.
+# name and a note separately and is OUTSIDE the config subset devbin reads, so
+# the annotation rides in the entry itself: everything before the first ` (` is
+# the name, the whole entry is the heading.
 _group_name() {
   printf '%s\n' "${1%% (*}"
 }
@@ -259,9 +260,9 @@ EOF
 # --- provenance (--why) ------------------------------------------------------
 
 # command_origin <command> -- where this command resolved from, in the words of
-# D2's order. The whole value of `--why`: three of these four answers are
-# invisible from the listing alone, and the resolution order has been got wrong
-# three times in this codebase precisely because nothing displayed it.
+# the resolution order. The whole value of `--why`: three of these four answers
+# are invisible from the listing alone, and the resolution order has been got
+# wrong three times in this codebase precisely because nothing displayed it.
 command_origin() {
   local cmd="$1" tier
   # THE ORDER IS command_tier's (issue 0128): this function spelled the three
@@ -276,7 +277,7 @@ command_origin() {
     catalogue) printf 'devbin catalogue\n' ;;
     options) printf 'its options\n' ;;
     *)
-      # D18 tier 4, and worth its own sentence rather than being lumped in with
+      # Tier 4, and worth its own sentence rather than being lumped in with
       # a broken declaration. `build` reaching here is the design working:
       # projects' target lists are disjoint, so devbin ships the NAME and
       # the project says what it runs. Reporting that as "unrunnable" reads as a
@@ -303,7 +304,7 @@ option_origin() {
   # labelled `devbin catalogue` while `all` ran devbin's gate and a direct
   # `<cmd> <opt>` ran the project's line. A declared option is handed to the
   # project's handler itself (run_option), and only an undeclared word descends
-  # into its `.d/` sub-handler (exec_handler, D3), so the two are told apart.
+  # into its `.d/` sub-handler (exec_handler), so the two are told apart.
   leaf="$(option_leaf "$cmd" "$opt")" || die "devbin defect: option_leaf gave no answer for '$cmd $opt'"
   case "$leaf" in
     sub-handler | handler | mapped)
@@ -374,7 +375,7 @@ _print_command() {
 $(command_options "$cmd")
 EOF
   # `all` is listed because the FRAMEWORK provides it, not because config
-  # declares it (D8). Listed whenever the command has options, including when it
+  # declares it. Listed whenever the command has options, including when it
   # has exactly one: `all` works either way, and a working command that help
   # does not mention is worse than one redundant line.
   [ "$count" -ge 1 ] && _print_row '    ' 'all' 'every option above, one pass'
@@ -383,7 +384,7 @@ EOF
 
 # _print_shared_options -- the block the corpus carried as `--env` / `--bin`.
 #
-# Framework-owned options (D20) are listed alongside the project's own, because
+# Framework-owned options are listed alongside the project's own, because
 # they are parsed on every invocation whether or not config mentions them. An
 # option that works and is documented nowhere is the same discoverability
 # failure as a command that works and is not listed.
@@ -424,9 +425,9 @@ _print_shared_options() {
 
 # _print_unavailable -- everything devbin ships that is NOT offered here, and
 # why. The second half of `--why`, and the half that fixes a real failure: a
-# project where `test mix` is inactive shows nothing at all, so D11's language
-# scoping and D22's opt-in axis read as devbin being broken rather than as
-# configuration doing its job.
+# project where `test mix` is inactive shows nothing at all, so language scoping
+# and the opt-in axis read as devbin being broken rather than as configuration
+# doing its job.
 #
 # Config's commands and options are walked as well as the catalogue's: `all`'s
 # count line promises that `help --why` names every inactive option, and an
@@ -446,6 +447,10 @@ _print_unavailable() {
     [ -z "$only" ] || [ "$cmd" = "$only" ] || continue
     case "$seen" in *" $cmd "*) continue ;; esac
     seen="$seen$cmd "
+    # `use` outside devbin's own trees is no project command at all, so it is
+    # left out here as it is from the listing (devbin_tree_refusal, lib/resolve):
+    # a project offering everything it can still says so.
+    devbin_tree_refusal "$cmd" >/dev/null && continue
     if reason="$(command_unavailable_reason "$cmd")"; then
       [ -z "$shown" ] && printf '\nNot offered here:\n'
       shown=yes
@@ -551,7 +556,7 @@ EOF
 # or nothing.
 #
 # Descends `<root>/<cmd>.d/<sub>.md` by the SAME rule exec_handler descends
-# `cmd/<cmd>.d/<sub>` (D3), so `help test mix` finds authored prose for a
+# `cmd/<cmd>.d/<sub>`, so `help test mix` finds authored prose for a
 # sub-topic exactly where `test mix` finds its handler. A word with no file
 # behind it stops the descent, and the nearest enclosing topic answers.
 _help_walk() {
@@ -570,12 +575,12 @@ _help_walk() {
 # is: `project<TAB><path>` or `devbin<TAB><path>`, or nothing.
 #
 # TWO ROOTS, THE PROJECT'S FIRST (issue 0113). The project's help/ is the
-# project's (D5) and answers first, with the whole descent, so a project page
+# project's and answers first, with the whole descent, so a project page
 # for a command also answers its sub-topics even where devbin ships a deeper
 # one. Devbin's pages for its built-ins ship at lib/pages/, inside the vendored
-# runtime, so every estate has them without writing them. Until 0113 they lived
-# only in devbin's own help/, which no install writes, and every estate got the
-# stub for every built-in (measured 2026-09-23).
+# runtime, so every project has them without writing them. Until 0113 they
+# lived only in devbin's own help/, which no install writes, and every project
+# got the stub for every built-in.
 #
 # DEVBIN'S PAGE ANSWERS ONLY WHERE DEVBIN'S IMPLEMENTATION RUNS. A command the
 # project owns runs the project's code, and a page describing devbin's would be
@@ -608,9 +613,9 @@ help_file() {
 print_topic() {
   local cmd="$1" file reason opt count=0 args why=0
   if ! is_command "$cmd"; then
-    # Inactive is not unknown, and saying so is D11's whole point one more time.
-    # `devbin help iex` in a shell project should explain itself, not imply the
-    # reader misremembered the name.
+    # Inactive is not unknown, and saying so is language scoping's whole point
+    # one more time. `devbin help iex` in a shell project should explain
+    # itself, not imply the reader misremembered the name.
     if reason="$(command_unavailable_reason "$cmd")"; then
       warn "'$DEVBIN_INVOKE $cmd' is not available here: $reason"
     else
@@ -657,7 +662,7 @@ $(command_options "$cmd")
 EOF
   [ "$count" -ge 1 ] && _print_row '  ' 'all' 'every option above, one pass'
   # A BUILT-IN DEVBIN RUNS AND SHIPS NO PAGE FOR is not the project's to
-  # document, and until 0113 this line told every estate to write devbin's page
+  # document, and until 0113 this line told every project to write devbin's page
   # for it. Devbin's pages for those are issue 0115. A command the project owns,
   # or one devbin does not ship, is the project's, and the pointer to its own
   # help/ stays. help_file's status says which of the first two this is (0128).
@@ -745,7 +750,7 @@ help_main() {
   done
 
   # Guarded expansion: an empty array under `set -u` aborts on bash 3.2, the
-  # /bin/bash on every Mac (design D9, since reversed by issue 0022; idiom kept).
+  # /bin/bash on every Mac (a floor issue 0022 has since dropped; idiom kept).
   set -- "${topic[@]+"${topic[@]}"}"
   if [ $# -eq 0 ]; then
     if [ -n "$why" ]; then

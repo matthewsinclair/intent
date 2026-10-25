@@ -20,8 +20,8 @@ set -euo pipefail
 # declared `run:`. The dispatcher exec's this file without cd'ing.
 cd "${PROJECT_ROOT:?}" || die "cannot enter $PROJECT_ROOT"
 
-# DEVBIN_OPT_IEX is devbin's canonical name for a framework-owned option (D20).
-# It is set whatever the project called its own export, which is what lets this
+# DEVBIN_OPT_IEX is devbin's canonical name for a framework-owned option. It
+# is set whatever the project called its own export, which is what lets this
 # shipped handler read the flag without asking config anything.
 #
 # Two command lines, NOT one with a prefix. For `server` the iex form happens to

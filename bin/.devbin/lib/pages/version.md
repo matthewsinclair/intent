@@ -21,7 +21,7 @@ The version file is `project.version_from` (default `VERSION`). Sidecars are the
 
 That exits 0: a single version file is an ordinary setup, not a fault. A sidecar that is missing, or that devbin has no recipe for, fails `check`, and `set`, `bump` and `sync` refuse it before writing anything.
 
-## Two rules the writes follow
+## The rules the writes follow
 
 The version file is written LAST, after every sidecar. If a write fails partway, the version file has not moved, so re-running `bump patch` computes the same target and retries cleanly instead of bumping twice.
 

@@ -47,11 +47,25 @@ In this order:
     source          whether the devbin this project was vendored from has
                     moved: level, behind, ahead, differs or unknown, each
                     said apart; only behind suggests an upgrade. unknown
-                    names what this machine is missing to place the source
-                    the manifest records (see bin/devbin help upgrade). A
-                    project vendored from an install also gets the install
-                    it resolves to, and what named it: DEVBIN_INSTALL_PREFIX,
-                    the machine pointer, or HOMEBREW_PREFIX's opt/devbin
+                    names what this machine is missing, so that no switch
+                    names a source (see bin/devbin help upgrade). A
+                    project also gets the tree its next upgrade reads, by
+                    its tree line, and what named it: DEVBIN_INSTALL_PREFIX,
+                    the link ~/.local/bin/devbin, or HOMEBREW_PREFIX's
+                    opt/devbin
+    tree            in devbin's own checkout only: its tree line, as
+                    --version prints it. It fails when git cannot read the
+                    checkout, so the line names no commit
+    switch          the machine's choice among dev, opt and brew (bin/devbin
+                    help use). It fails when the link is not the first
+                    devbin on PATH, compared as resolved directories, when
+                    the link leads to no devbin tree, and when the opt
+                    install the switch names has the manifest form written
+                    before the tree line, naming install --force. A keg in
+                    that form is a note naming brew upgrade devbin, since
+                    only a later release fixes it. A machine pointer left
+                    from before the link is a note: nothing reads it, and it
+                    is removed by hand
     bash            which bash is running, against the >= 5 floor
     location        under WSL only: where the project sits. One on a
                     Windows drive (/mnt/<letter>) is a note naming the

@@ -3,13 +3,13 @@
 # `fullcycle` -- from a total clean: remove the cargo trees, rebuild, test.
 #
 # A TOP-LEVEL COMMAND AND DELIBERATELY NOT `build fullcycle`, which is where it
-# was first put and where it did not belong. `build` is D18 tier 4 -- universal
+# was first put and where it did not belong. `build` is tier 4 -- universal
 # in name only, shipping no option set, because the corpus projects' build
 # targets intersect at nothing and shipping any of them imposes one project's
 # shape on the rest. A `build.fullcycle` row broke that, and broke it in the way
 # the tier exists to prevent: `command_active` makes a command with no active
 # options inactive, so `build` would have resolved for the FIRST time in every
-# rust estate on the strength of a devbin-shipped option, with `build all` then
+# rust project on the strength of a devbin-shipped option, with `build all` then
 # being exactly one thing -- the destructive one.
 #
 # As a command it is STRUCTURALLY outside every `all`. `all` sweeps a command's
@@ -56,16 +56,15 @@ _fullcycle_usage() {
 #
 # THE REBUILD PHASE IS NOT OPTIONAL AND ITS ABSENCE WAS A REAL DEFECT, SHIPPED.
 # The first version of this ran `clean rust` then `test rust` and nothing else,
-# on the reasoning that devbin's `build` is D18 tier 4 and ships no options, so
+# on the reasoning that devbin's `build` is tier 4 and ships no options, so
 # a shipped cycle must not name it. That reasoning was about which verbs devbin
 # OWNS and never asked whether what remained was still a cycle. It was not:
 # `clean rust` removes `target/` INCLUDING `release/`, and `cargo test` builds
-# debug test binaries and never the release artefacts. On the estate this was
+# debug test binaries and never the release artefacts. On the project this was
 # specified from, a tool on PATH is a symlink into
 # `native/rust/target/release/`, so the two-phase cycle would have deleted the
 # binary every commit guard on the machine resolves through and not put it
-# back -- the 2026-08-29 outage, reproduced by the command written to prevent
-# its cause.
+# back -- an outage, reproduced by the command written to prevent its cause.
 #
 # So `build all` is a phase again, and it is UNCONDITIONAL. It used to be
 # emitted only when `_fullcycle_can_rebuild` passed, and that guard is gone from
@@ -128,11 +127,11 @@ _fullcycle_phases() {
 # WHO RUNS IT IS lib/resolve's ANSWER, NOT THIS FUNCTION'S (issue 0128):
 # arg_route says where `<command> all` goes and command_tier what the bare
 # command runs, and this maps their answers to words. `all` sweeps options
-# (run_all) or is handed to a project handler, a total shadow (D2); over a
+# (run_all) or is handed to a project handler, a total shadow; over a
 # command-level run: with no option to run it is refused (0128's option (b)), so
 # the phase is the bare command, which runs the line.
 #
-# AND "WILL RUN", NOT "A TIER EXISTS" (critic-shell on 0134 v1). v1 chose by
+# AND "WILL RUN", NOT "A TIER EXISTS" (0134). The first version chose by
 # which tier was there, and three configs passed its guard, let the clean
 # remove the trees, and then refused at the build phase, each knowable from
 # the config alone: a run: line with no words, a mapped handler that does not
@@ -166,9 +165,9 @@ _fullcycle_phase_check() {
         printf 'none\t%s\n' "$(all_excluded_why "$skipped")"
         return 0
       fi
-      # EACH OPTION `all` RUNS, ASKED WHETHER IT CAN (critic-shell on 0134
-      # v2 and v2c): one declared with nothing to run it, one whose devbin
-      # handler is missing, and one whose own run: -- or the command-level
+      # EACH OPTION `all` RUNS, ASKED WHETHER IT CAN (0134): one declared
+      # with nothing to run it, one whose devbin handler is missing, and one
+      # whose own run: -- or the command-level
       # run: it is handed to -- holds no words, each refuses inside `all`,
       # after the clean. run_all carries on past it and the phase still fails,
       # so ONE such option is enough, and every one is named, a line each, so a
@@ -259,11 +258,11 @@ _fullcycle_phase_for() {
 # have a verb, so such guarantee as exists is measured after the fact by
 # _fullcycle_path_links below rather than predicted here.
 #
-# AND THAT GUARANTEE IS CONDITIONAL, WHICH THIS COMMENT ASSERTED FLATLY UNTIL
-# 2026-09-01. `_fullcycle_path_links` measures PATH SYMLINKS. On an estate with
-# none, the after-half has an empty list to walk, so it fires nothing and the
-# cycle asserts NOTHING about whether the build restored anything -- while
-# still finishing rc=0. Found in the estate that proves it: one with no PATH
+# AND THAT GUARANTEE IS CONDITIONAL, WHICH THIS COMMENT ONCE ASSERTED FLATLY.
+# `_fullcycle_path_links` measures PATH SYMLINKS. In a project with none, the
+# after-half has an empty list to walk, so it fires nothing and the cycle
+# asserts NOTHING about whether the build restored anything -- while still
+# finishing rc=0. Found in the project that proves it: one with no PATH
 # symlinks, so the exact defect above would land there as a clean green, with
 # the tripwire that caught it the first time simply absent.
 #
@@ -324,7 +323,7 @@ _fullcycle_path_links() {
   #
   # This scanned every entry in PATH and forked `readlink` once per SYMLINK, so
   # its cost was a property of the OPERATOR'S ENVIRONMENT rather than of the
-  # project, and nothing in the output said so. Measured 2026-09-06: 1,429
+  # project, and nothing in the output said so. Measured: 1,429
   # symlinks in PATH (Homebrew's bin alone holds 1,301, nearly all links), 1,533
   # forks and 2.68s PER CALL, with fullcycle.bats at 142s for 33 tests and sys
   # time at nearly double user -- the signature of process churn rather than
@@ -367,7 +366,7 @@ _fullcycle_path_links() {
     # directory; the caller hears 1 and says the watch is incomplete.
     #
     # -H: A PATH ENTRY THAT IS ITSELF A LINK TO A DIRECTORY IS SEARCHED AS THAT
-    # DIRECTORY (issue 0134, critic-shell's W4(i) on 0139). Under find's default
+    # DIRECTORY (issues 0134 and 0139). Under find's default
     # it was listed as the one link it is, and every link inside it went
     # unwatched.
     physical_dir "$p" pr || pr="$p"
@@ -427,7 +426,7 @@ _fullcycle_link_in_tree() {
     while [ ! -d "$d" ]; do
       # A `..` BENEATH A NAME THAT IS NOT THERE CANNOT BE READ AS TEXT: the
       # kernel reads it after the name, which may be a link, so the path is
-      # not placed at all (critic-shell on 0134 v1: t/../../x read as in the
+      # not placed at all (0134: t/../../x read as in the
       # tree, and outside it once t existed). Only the report of links already
       # dark before the run reads this branch.
       [ "${d##*/}" != .. ] || return 1
@@ -511,7 +510,7 @@ _fullcycle_header() {
   # green report over the same damage.
   #
   # REPORTED, NOT FAILED. The cycle answers for what it broke; this is a fact
-  # about the tree it found, and failing on it would make an estate red for
+  # about the tree it found, and failing on it would make a project red for
   # somebody else's clean.
   local dead
   dead="$(_fullcycle_path_links dead)" ||
@@ -577,9 +576,9 @@ _fullcycle_launcher() {
 # AND `--refuse-partial`, SINCE 0131: a clean whose scan could not read the whole
 # project removes what it found and exits 1, and this cycle stops at the first
 # phase that fails -- so it stopped before the rebuild with the trees gone, and
-# a PATH binary resolving into one went dark (the critic's review of 0131,
-# driven). With the flag the clean refuses a partial scan before it removes
-# anything, and the cycle stops with every tree where it was.
+# a PATH binary resolving into one went dark (0131, driven). With the flag the
+# clean refuses a partial scan before it removes anything, and the cycle stops
+# with every tree where it was.
 _fullcycle_clean_flags() {
   printf '%s' "--force-blocked --force --refuse-partial"
 }
@@ -667,10 +666,10 @@ _fullcycle_consent_notice() {
 # part, which asks that of the name before it. It asked of the directory
 # holding the tree, through one link at most, and a chain of two into a
 # mode-000 directory read as gone at rc 0, and a parent never made as out of
-# reach (critic-shell on 0139, its fifth pass); it then split a link's content
-# itself, a newline in it ended the split, and a tree beneath one read as gone
-# at rc 0 (the same pass, on v2h). The split is by parameter expansion, which
-# keeps a newline in a name. The artefact check's tree loop turns each code into
+# reach (0139); it then split a link's content itself, a newline in it ended
+# the split, and a tree beneath one read as gone at rc 0 (also 0139). The
+# split is by parameter expansion, which keeps a newline in a name. The
+# artefact check's tree loop turns each code into
 # the cause it names, and one it has no branch for is named out of reach, so a
 # new code needs a branch there and the four places that loop's comment lists
 # (issue 0177).
@@ -729,7 +728,7 @@ _fullcycle_tree_gone() {
 # from the tree's own alone, `--release --target <triple>` beside a host debug
 # build read as release artefacts lost, and a debug build under a triple
 # whose release was lost read as fine. So a release lost, the tree's own or a
-# triple's, beside another one built is not seen (critic-shell on 0168 v1).
+# triple's, beside another one built is not seen (0168).
 _fullcycle_profile_built() {
   local _fpb_t
   local -a _fpb_triples=()
@@ -785,15 +784,15 @@ _fullcycle_tree_listed() {
 
 # _fullcycle_kept_release <array> [<tree>...] -- into <array>, each build tree
 # the artefact check will examine whose release/ still holds a binary once the
-# clean has run (issue 0148, critic-shell on v2d). Asked of the trees, after the clean,
-# rather than predicted before it: the clean removes a tree only beside a
+# clean has run (issue 0148). Asked of the trees, after the clean, rather than
+# predicted before it: the clean removes a tree only beside a
 # Cargo.toml, outside .git, node_modules and .direnv, and never a crate built
 # in place, and a project's own clean line removes what it removes, so no
 # model of it here could stay true. A release binary a tree kept through the
 # clean may be the last cycle's, so the check does not count it as this
 # one's. A walk that cannot read everything returns 1, having listed what it
 # found: a tree beneath the hole may have kept its release artefacts unseen,
-# and the check reads the hole as one (critic-shell on 0148 v2e: a project's
+# and the check reads the hole as one (0148: a project's
 # own clean line left a stale tree under a directory at mode 000, and a build
 # that opened it passed at rc 0 when this walk's status was dropped).
 _fullcycle_kept_release() {
@@ -812,15 +811,15 @@ _fullcycle_kept_release() {
 # artefacts through the clean, as one line (issue 0148). A tree
 # the clean does not recognise as cargo's is said to be one: it may not be a
 # build tree at all. Whether it does is asked of the clean's own question,
-# _clean_has_markers, never a second answer to it (critic-shell on 0148 v2f:
-# a copy called a tree marked by .fingerprint unrecognised). The tree
+# _clean_has_markers, never a second answer to it (0148: a copy called a
+# tree marked by .fingerprint unrecognised). The tree
 # CARGO_TARGET_DIR names with no Cargo.toml beside it, as for a crate nested
 # below the project root, is one the clean never removes, so unsetting the
 # variable, and building beside the manifest, is the remedy both this cycle
 # and check targetdir accept; beside one already, unsetting changes nothing.
 # "Beside" is the clean's own test, on the path as given (build_tree_rebuildable,
 # which _clean_scan and check targetdir ask too), not one resolved through a link, which answered otherwise
-# for a target reached through one (critic-shell on 0148 v2g). The marker
+# for a target reached through one (0148). The marker
 # question is asked only where its answer is used, so the clean's own warning
 # for a tree it cannot read is not printed over a remedy that did not need it.
 _fullcycle_kept_fix() {
@@ -838,7 +837,7 @@ _fullcycle_kept_fix() {
 }
 
 # _fullcycle_inside_tree -- the trees a remedy may point at, one clause for
-# every refusal that names them (critic-shell on 0164 v2: three copies, their
+# every refusal that names them (0164: three copies, their
 # wording already drifting).
 _fullcycle_inside_tree() {
   printf '%s\n' "a tree inside the project that clean rust removes (${DEVBIN_INVOKE:-bin/devbin} clean rust --dry-run lists them)"
@@ -884,7 +883,7 @@ _fullcycle_refuse_tree() {
 # check targetdir passes as the workspace's own target: the machine's config is
 # not this project's to change. CARGO_TARGET_DIR was the remedy, and check
 # targetdir fails every value of it but the shared tree, which the clean
-# removes only beside a Cargo.toml (critic-shell on 0164 v1). The probe is
+# removes only beside a Cargo.toml (0164). The probe is
 # asked only here, on the way to a refusal, and only where the project's config
 # does not account for the tree, as check targetdir asks it only for a fork.
 _fullcycle_refuse_config_tree() {
@@ -931,8 +930,8 @@ _fullcycle_run() {
   # all?" -- that is the operator's, and passing `--force` used to answer it for
   # them as a side effect of getting past the first.
   #
-  # Before this, the default invocation was UNUSABLE on exactly the estate class
-  # the verb exists for: a dev tree whose PATH resolves into its own
+  # Before this, the default invocation was UNUSABLE on exactly the class of
+  # project the verb exists for: a dev tree whose PATH resolves into its own
   # `target/release/` hit the blocked refusal every time, so the happy path
   # required `--force` precisely where the stakes were highest.
   read -r -a pass <<<"$(_fullcycle_clean_flags)"
@@ -1025,7 +1024,7 @@ _fullcycle_run() {
       printf '    STOPPING: %s failed. The remaining phases were NOT run.\n' "$phase"
       # SAY WHAT STATE THE TREE IS IN, because "stopping" understates it once
       # the clean has already succeeded. A build that fails after the delete
-      # leaves the estate with no release artefacts and no cycle left to
+      # leaves the project with no release artefacts and no cycle left to
       # restore them -- and the symptom an operator meets is not a missing
       # binary, it is a pre-commit gate that will not let them commit, with a
       # remedy line telling them to install the very tool that is absent.
@@ -1043,8 +1042,8 @@ _fullcycle_run() {
       # shape -- and the artefact check below runs only on a green cycle, so on
       # this path nothing measures it. The first cut of this fix said the failure
       # was "not in the rebuild", which overclaimed in the other direction and
-      # contradicted the link check below whenever a watched link was dark
-      # (critic-shell). The link check still reports what it can see.
+      # contradicted the link check below whenever a watched link was dark.
+      # The link check still reports what it can see.
       if [ "$cleaned" = 1 ] && [ -z "$rebuilt" ]; then
         printf '\n    THE BUILD TREES WERE ALREADY REMOVED AND HAVE NOT BEEN REBUILT.\n'
         printf '    Anything on PATH resolving through target/release/ is now dangling.\n'
@@ -1058,7 +1057,7 @@ _fullcycle_run() {
         # trees one at a time and dies on the first it cannot remove, so this
         # failure can follow deletions -- and it just as often follows none: its
         # no-tty refusal dies before any removal, and that is the refusal a cycle
-        # without --force meets (critic-shell). So this names no damage and no
+        # without --force meets. So this names no damage and no
         # remedy, which would be 0068's false alarm on the commonest failed clean.
         # It points at the evidence instead: clean prints a `removed` line for
         # each tree it finished BEFORE it can die on the next, and `rm -rf` can
@@ -1077,7 +1076,7 @@ _fullcycle_run() {
   # THE RESTORE HALF (issue 0050, the TARGETED option).
   #
   # WHY THIS EXISTS. `build all` is whatever the project declares, and on a
-  # dev-profile estate that is a debug build. So the cycle deleted `release/`,
+  # dev-profile project that is a debug build. So the cycle deleted `release/`,
   # rebuilt `debug/`, reported three green phases and went red on the
   # after-check -- correctly, and on EVERY invocation, permanently. One project
   # measured exactly that. A gate that is red in the ordinary case teaches people
@@ -1086,8 +1085,8 @@ _fullcycle_run() {
   # The cycle was missing its other half.
   #
   # TARGETED, WHICH IS THE WHOLE POINT OF THE OPTION CHOSEN. It runs only when
-  # something the snapshot was watching is actually dark. An estate with no PATH
-  # links into the tree pays nothing; an estate whose `build all` already builds
+  # something the snapshot was watching is actually dark. A project with no PATH
+  # links into the tree pays nothing; a project whose `build all` already builds
   # release finds nothing dangling and pays nothing either. The cost lands only
   # where the damage is.
   #
@@ -1101,7 +1100,7 @@ _fullcycle_run() {
   # GATED ON A BUILD HAVING PASSED SINCE THE CLEAN, NOT ON THE CYCLE'S RC (issue
   # 0070). The rc gate meant a TEST failure after a passing build left the
   # toolchain dark and said nothing about the restore it skipped -- in exactly
-  # the estates that had declared one so a cycle would put back what it darkens.
+  # the projects that had declared one so a cycle would put back what it darkens.
   # A passing build is what makes a restore meaningful; whether the tests passed
   # is a different question, and the failing phase's rc stays the run's verdict.
   if [ "$cleaned" = 1 ] && [ -n "$rebuilt" ] && [ "${#atrisk[@]}" -gt 0 ]; then
@@ -1123,12 +1122,12 @@ _fullcycle_run() {
       # perform.
       #
       # MEASURED, by the one instrument that could see it. One project
-      # guards `native/rust/target/release/` because four nodes invoke that
-      # artefact, and a build from a dirty tree poisons it for all of them --
-      # so every release build there must go through a guarded path that
-      # refuses a dirty tree. Vendored in, this line was a NEW UNGUARDED
+      # guards `native/rust/target/release/` because several callers invoke
+      # that artefact, and a build from a dirty tree poisons it for all of
+      # them -- so every release build there must go through a guarded path
+      # that refuses a dirty tree. Vendored in, this line was a NEW UNGUARDED
       # ENTRANCE, and the shared-artefact guard named it by file and line
-      # on the first commit that carried it. Other estates took the same
+      # on the first commit that carried it. Other projects took the same
       # bytes and have no such guard, which is not the same as having no such
       # exposure.
       #
@@ -1151,7 +1150,7 @@ _fullcycle_run() {
       if ! cfg_has commands.fullcycle.restore; then
         printf '    NO RESTORE COMMAND DECLARED -- this cycle cannot put them back.\n'
         printf '    devbin will not run a release build it cannot know is safe here:\n'
-        printf '    at least one estate guards its release path because several nodes\n'
+        printf '    at least one project guards its release path because several callers\n'
         printf '    invoke the artefact, and a build from a dirty tree poisons it.\n'
         printf '    Declare one and this phase runs:  commands.fullcycle.restore\n'
       else
@@ -1186,8 +1185,8 @@ _fullcycle_run() {
   # Checked on EVERY path, success included, and it makes the run RED. The
   # remedy an operator meets otherwise is a pre-commit gate refusing to let them
   # commit, with a message naming the tool that is absent.
-  # AN EMPTY WATCH LIST IS DECLARED, NOT PASSED OVER. Until 2026-09-01 the
-  # whole block below was skipped when atrisk was empty and nothing was said,
+  # AN EMPTY WATCH LIST IS DECLARED, NOT PASSED OVER. The whole block below
+  # was once skipped when atrisk was empty and nothing was said,
   # so a cycle that measured nothing and a cycle that measured everything
   # emitted the identical rc=0 and the identical silence.
   # THE ARTEFACT CHECK THAT NEEDS NO TRIPWIRE (issue 0048, option
@@ -1196,16 +1195,16 @@ _fullcycle_run() {
   # THE VACUITY DECLARATION USED TO STAND HERE AND DID NOT MEASURE ANYTHING. It
   # said, honestly, that a cycle watching nothing asserted nothing -- which
   # converted a silent empty-set green into a stated one and left the underlying
-  # property unmeasured. The session that filed it then held the acceptance
+  # property unmeasured. The issue filed for it then set the acceptance
   # condition that matters: a check that cannot fail against a dev-profile build
   # is the same instrument again with better wording.
   #
   # WHY THE BUILD TREE AND NOT DECLARED ARTEFACT NAMES. Asking a project to list
   # its artefacts in config.yaml protects the projects whose maintainer already
-  # thought about this, which is the wrong population -- the estates where this
+  # thought about this, which is the wrong population -- the projects where this
   # fails silently are exactly the ones that would never have configured
-  # anything. It is also the D18 tier-4 trap: per-project knowledge shipped into
-  # a framework used by thirteen. `release/` empty while `debug/` is populated
+  # anything. It is also the tier-4 trap: per-project knowledge shipped into a
+  # framework many projects use. `release/` empty while `debug/` is populated
   # is the dev-profile signature and it needs no configuration at all.
   #
   # SCOPED TO WHAT IT CAN ACTUALLY CLAIM. It fires only after a clean succeeded
@@ -1222,8 +1221,8 @@ _fullcycle_run() {
     while IFS= read -r tdir; do
       [ -n "$tdir" ] || continue
       found=$((found + 1))
-      # A TREE OR PROFILE THAT CANNOT BE LISTED IS NOT AN EMPTY ONE (critic-shell
-      # on 0139). _fullcycle_profile_built reads a profile through a glob,
+      # A TREE OR PROFILE THAT CANNOT BE LISTED IS NOT AN EMPTY ONE (issue
+      # 0139). _fullcycle_profile_built reads a profile through a glob,
       # which expands to nothing over a directory it cannot open, and the walk
       # prunes at target/ and never opens it: a mode-000 target/ read as a tree
       # with no binaries, INCONCLUSIVE at rc 0 -- a green cycle over the very
@@ -1232,11 +1231,11 @@ _fullcycle_run() {
       # not compared, and the walk is partial. The tree itself is only passed
       # through, to debug/ and release/ by name, so it needs search alone --
       # asking read of it too refused a target/ at 0111 whose profiles could be
-      # read (critic-shell on 0139 v2) -- while each profile is listed, so it
+      # read (0139) -- while each profile is listed, so it
       # needs both.
       #
-      # AND A TREE IS COUNTED EXAMINED ONLY WHEN IT WAS (critic-shell on 0139
-      # v2e): one named here as unsearchable or unlistable was also listed as
+      # AND A TREE IS COUNTED EXAMINED ONLY WHEN IT WAS (0139): one named
+      # here as unsearchable or unlistable was also listed as
       # examined, beside INCOMPLETE saying it was not. A tree that is gone -- one
       # the walk found and something removed, or a CARGO_TARGET_DIR the build
       # never made -- is named as gone, holds no profile to compare, and is no
@@ -1245,7 +1244,7 @@ _fullcycle_run() {
       # is gone only when _fullcycle_tree_gone can say so: `[ -e ]` fails for a
       # tree out of reach as for one that is not there, and one out of reach
       # may be there, so it is named out of reach and the check is incomplete
-      # (critic-shell on 0139 v2f: it read as absent, and a link to one was
+      # (0139: it read as absent, and a link to one was
       # dropped unsaid, INCONCLUSIVE at rc 0 both times). Each cause here that
       # sets unlisted has a line in the INCOMPLETE summary below, its words in
       # lib/pages/fullcycle.md and an arm in tests/unit/fullcycle.bats that
@@ -1336,7 +1335,7 @@ _fullcycle_run() {
       [ "$kept_found" = 0 ] && [ "$kept_partial" = 0 ]; then
       # SAY IT RATHER THAN PASS OVER IT. Only over a walk that read everything:
       # "no tree holds a binary" is a claim about every tree, and over a partial
-      # walk the INCOMPLETE verdict below is the true one (the 0139 v2 arm).
+      # walk the INCOMPLETE verdict below is the true one (an 0139 arm).
       # No tree carried a binary in either
       # profile, so there was nothing to compare and this cycle asserts nothing
       # about artefacts. An unremarked silence here would rebuild precisely the
@@ -1352,7 +1351,7 @@ _fullcycle_run() {
     # whose profiles could not be listed was not, so the check above cannot say
     # the rebuild put release/ back: it is incomplete, and a green over it is
     # the false one this check exists to stop. Each of these four is said for
-    # itself, and only when it holds (critic-shell on 0139 v2e); the partial
+    # itself, and only when it holds (0139); the partial
     # tree's line lists every cause a tree can be partial for, whichever held
     # (issue 0177).
     if [ "$walk_partial" = 1 ] || [ "$tree_partial" = 1 ] || [ "$kept_found" = 1 ] || [ "$kept_partial" = 1 ]; then
@@ -1408,7 +1407,8 @@ _fullcycle_run() {
         printf '    No build passed after the clean -- see the remedy above.\n'
       else
         # "MAY": the snapshot was taken before the clean, and trees are shared with
-        # other sessions, so a link can go dark in that window by another's hand.
+        # other processes, so a link can go dark in that window by another's
+        # hand.
         printf '    The clean failed and may have removed what these resolved through.\n'
         _fullcycle_rebuild_remedy
       fi
@@ -1523,7 +1523,7 @@ cmd_fullcycle() {
   #
   # `clean rust` removes `target/` including `release/`, and `cargo test` builds
   # debug binaries only. Without a rebuild phase this verb is net-destructive,
-  # and on at least one estate the deleted path is what a tool on PATH
+  # and in at least one project the deleted path is what a tool on PATH
   # resolves through -- so the cost is not a slow next build, it is every
   # commit guard on the machine going dark until somebody rebuilds by hand.
   #
@@ -1584,8 +1584,8 @@ cmd_fullcycle() {
     printf '\n'
     _fullcycle_consent_notice "$force"
     # WHAT IT CANNOT KNOW, SAID RATHER THAN GUESSED. Quoting a remembered
-    # "~35 minutes, frees 113G" would report another estate's measurement of
-    # another estate's tree as though it described this one.
+    # "~35 minutes, frees 113G" would report another project's measurement of
+    # another project's tree as though it described this one.
     printf '\n    Not shown: how long the clean takes, or how much it frees.\n'
     printf '    Neither is knowable without running it, and this tree is not the one those numbers came from.\n'
     return 0

@@ -8,7 +8,7 @@
 # is exactly the duplication this project exists to remove.
 #
 # The option's command line comes from lib/builtins unless config overrides it,
-# which is the D18 tier-2 shape: the framework knows `check compile` exists and
+# which is the tier-2 shape: the framework knows `check compile` exists and
 # what it usually runs, and a project that runs it differently says so in one
 # line rather than by writing a script.
 #
@@ -29,7 +29,7 @@ _DEVBIN_GATECMD_LOADED=1
 # run_builtin_gate <command> [option] [args...]
 #
 # The whole body of a built-in gate command. Resolution order for what to run,
-# which mirrors D2 one level down:
+# which mirrors the dispatcher's own resolution order one level down:
 #
 #   1. a `builtin_<command>_<option>` function, when the catalogue says @builtin
 #   2. the catalogue's default command line
@@ -42,10 +42,10 @@ _DEVBIN_GATECMD_LOADED=1
 # The ACTIVE set the dispatcher exported (issue 0007): the catalogue is the
 # menu, not what resolves in THIS project -- one project's line advertised three
 # arms that refuse, another's advertised four disabled ones and omitted the
-# only one that runs. The derivation (D11 language axis + config enabled: +
-# declared options) lives dispatcher-side as command_options; re-deriving it
-# here would be a second copy, so this reads the export and falls back to the
-# raw catalogue only when a handler drives gatecmd outside the dispatcher.
+# only one that runs. The derivation (language axis + config enabled: + declared
+# options) lives dispatcher-side as command_options; re-deriving it here would
+# be a second copy, so this reads the export and falls back to the raw
+# catalogue only when a handler drives gatecmd outside the dispatcher.
 usage_options_for() {
   local cmd="$1" active=""
   case "$cmd" in

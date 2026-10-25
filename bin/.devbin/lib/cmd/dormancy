@@ -60,7 +60,7 @@ _dormancy_usage() {
 # loud one: it would silently fall through to the catalogue default and report
 # a delta about `cargo test` in a project that runs something else entirely.
 #
-# A LOAD THAT FAILS IS REFUSED, NEVER SWALLOWED (critic-shell on 0135 v2c).
+# A LOAD THAT FAILS IS REFUSED, NEVER SWALLOWED (issue 0135).
 # This returned 0 over a missing or unparseable config, and
 # since 0135 option_leaf's refusals and option_seal's seal both read the
 # config: the empty cache made option_leaf answer inactive, and dormancy
@@ -224,8 +224,8 @@ _dormancy_leg() {
   # A WITNESS RUN MINTS ITS OWN ID UNLESS ITS PARENT IS ONE (bin/devbin's
   # boundary). The legs were child `bin/devbin test rust` runs,
   # which crossed it; run here, in dormancy's own process, they kept its id, and
-  # a parent `all` named a leg's seal as one of its failed gates (critic-shell
-  # on 0135). So each leg runs in a subshell under an id of its own.
+  # a parent `all` named a leg's seal as one of its failed gates (issue
+  # 0135). So each leg runs in a subshell under an id of its own.
   (
     if [ "${DEVBIN_RUN_WITNESS:-}" != 1 ]; then
       DEVBIN_RUN_ID="$(run_id_mint)"
@@ -253,7 +253,7 @@ cmd_dormancy() {
   done
 
   # REACHED ONLY BY A DIRECT INVOCATION, and kept for exactly that. Through the
-  # dispatcher, D11 language scoping refuses this command first and with a
+  # dispatcher, language scoping refuses this command first and with a
   # better message -- `'bin/devbin dormancy' is not available here: this project
   # does not declare the 'rust' language`. The handler is still executable on
   # its own path, as the clean suite demonstrates, and a verb that ran two cargo

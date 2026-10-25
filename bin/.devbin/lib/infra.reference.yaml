@@ -93,7 +93,7 @@ defaults:
   # `defaults.manual` and `domains.<handle>.manual` throughout. An honoured key
   # absent from the one annotated guide an operator has is the same defect as a
   # documented key that does nothing, and this file is VENDORED, so the omission
-  # reached every estate.
+  # reached every project that vendors devbin.
   manual:
     registrar: locked at the registrar; transfer auth off
 
@@ -108,8 +108,8 @@ defaults:
 # THE VALUES LIVE HERE, IN YOUR PROFILE, AND NEVER IN DEVBIN. devbin ships the
 # pair's SHAPE and never its contents: a vendor's published include is often
 # account-specific, so a shipped value is a confidently-wrong assertion -- a
-# check whose target was never the right target. Measured on a real estate,
-# where two domains on one vendor account carried disjoint includes.
+# check whose target was never the right target. Two domains on one vendor
+# account have been seen carrying disjoint includes.
 #
 # ONE DKIM RECORD OR SEVERAL. A sender publishing one record writes its fields
 # directly under `dkim:`, as `newsletter` does below. A sender publishing more

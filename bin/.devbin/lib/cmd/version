@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 #
-# The built-in `version`. D18 tiers it 1 -- every corpus project has the
+# The built-in `version`. Tier 1 -- every corpus project has the
 # same three sub-commands over the same semver logic -- and it is the family
 # with the most real code and the most risk in it.
 #
 # THE SUB-COMMANDS ARE NOT CATALOGUE OPTIONS, deliberately. An option set gets a
-# synthesised `all` (D8), and `version all` -- show, then set, then bump, then
+# synthesised `all`, and `version all` -- show, then set, then bump, then
 # sync -- is nonsense at best. These are sub-commands of a tier-1 handler.
 #
 #   (bare)     print "<name> <version>"
@@ -75,7 +75,7 @@ sidecars() {
 # happens to share the number. Taking the package names from the project's
 # declared `Cargo.toml` sidecars does work -- but it would have to work for the
 # READER too, and `read_version` lives in `lib/helpers`, which has no
-# dependencies by rule (D15) and so cannot consult config. A recipe present in
+# dependencies by rule and so cannot consult config. A recipe present in
 # the writer and absent from the reader is precisely the asymmetry the comment
 # above ("READING IS read_version's JOB") exists to prevent.
 #
@@ -106,8 +106,7 @@ sidecars() {
 # guard treats an empty sidecar as legal -- freshly created, nothing to destroy
 # -- so the drift reporter must classify the same file as DRIFTED, healable by
 # the `sync` that will legally fill it, and never as unreadable: unreadable's
-# advice is to un-declare the sidecar, which deletes config that works (delta
-# review, finding 4).
+# advice is to un-declare the sidecar, which deletes config that works.
 holds_nothing() {
   [ -z "$(tr -d '[:space:]' <"$1" 2>/dev/null)" ]
 }
@@ -138,7 +137,7 @@ assert_bare_version_sidecar() {
 # pass: with sidecars [Cargo.toml, Cargo.lock] the .toml was already rewritten
 # when the .lock was refused, while the refusal said "Nothing has been written"
 # -- the command that reported writing nothing had introduced exactly the drift
-# it polices, and `version check` then flagged it (delta review, finding 3).
+# it polices, and `version check` then flagged it.
 # Refusing every file before touching any is what makes the message true.
 write_version_into() {
   local file="$1" version="$2" role="${3:-sidecar}" phase="${4:-write}"
@@ -310,7 +309,7 @@ case "${1:-}" in
     if report_drift; then
       # ZERO IS A DIFFERENT VERDICT, NOT A QUIETER PASS. It stays exit 0 because
       # zero is the ORDINARY configuration rather than a misconfiguration --
-      # measured as the common case across estates, devbin's own included --
+      # measured as the common case across projects, devbin's own included --
       # so failing it would break `version check` in most of them, for projects
       # that are correctly set up with a single version file. That is the line
       # `infra check` already draws: a gate that COULD NOT examine fails, a gate

@@ -13,7 +13,7 @@ Scaffolds a new project command that resolves at once, with no config edit.
                                     bin/devbin help <command>
     <tests>/<command>.bats          a test stub, if this project has a bats suite
 
-All three are yours: `bin/devbin upgrade` replaces only devbin's own runtime and never touches them.
+All of them are yours: `bin/devbin upgrade` replaces only devbin's own runtime and never touches them.
 
 It refuses when `bin/.devbin/cmd/<command>` already exists, and keeps a help file or test stub that is already there. A name is lower-case letters, digits, `-` and `_`, starting with a letter; `all` is reserved, because devbin synthesises it.
 
@@ -28,7 +28,7 @@ The scaffolded handler prints "not implemented yet", names its own path, and ret
     # devbin: summary = Ship it
     # devbin: group = Ship
 
-Those two lines, in the handler's leading comment block, are the one place the command's summary and group are declared. Config can override them, with `summary:` and `group:` under `commands.<command>`; nothing else duplicates them. So a script dropped into `bin/.devbin/cmd/` appears in help with no config edit at all, as long as it is executable -- under the heading its header names, or under Other.
+Those lines, in the handler's leading comment block, are the one place the command's summary and group are declared. Config can override them, with `summary:` and `group:` under `commands.<command>`; nothing else duplicates them. So a script dropped into `bin/.devbin/cmd/` appears in help with no config edit at all, as long as it is executable -- under the heading its header names, or under Other.
 
 Commands devbin ships carry no such header: their wording lives in devbin's own catalogue, so the two sources can never both answer for one command.
 

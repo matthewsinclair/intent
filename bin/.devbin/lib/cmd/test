@@ -5,7 +5,7 @@
 # handing the option to the shared gate body.
 #
 # `test all` never reaches here: the dispatcher synthesises it from the ACTIVE
-# option list (D8) and calls each option in turn, so a project's declared
+# option list and calls each option in turn, so a project's declared
 # languages decide what `all` runs.
 #
 set -euo pipefail

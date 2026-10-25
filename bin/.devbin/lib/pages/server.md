@@ -25,4 +25,4 @@ Once the project owns `server`, what `--iex` does depends on how. A handler at `
     commands.server.enabled    false stops offering it, for an Elixir
                                project with no server
 
-A `run:` line is split into words and never handed to a shell. Once the project declares either of the first two, `server` is the project's, and `bin/devbin help server` shows the project's own page at `bin/.devbin/help/server.md`, or a generated answer, in place of this one.
+A `run:` line is split into words and never handed to a shell. Once the project declares a command line or a handler, `server` is the project's, and `bin/devbin help server` shows the project's own page at `bin/.devbin/help/server.md`, or a generated answer, in place of this one.

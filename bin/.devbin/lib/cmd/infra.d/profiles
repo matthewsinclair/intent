@@ -3,8 +3,8 @@
 #
 # `infra profiles` -- ONE DOMAIN, ONE PROFILE, ACROSS A DIRECTORY OF THEM.
 #
-# THE GAP THIS CLOSES, reported by a consumer on 2026-09-07 from the first real
-# multi-profile estate. `infra_validate_profile` enforces one-entry-per-domain
+# THE GAP THIS CLOSES, reported by a consumer from the first real multi-profile
+# estate. `infra_validate_profile` enforces one-entry-per-domain
 # WITHIN a file, for a stated reason: two handles on one FQDN can carry
 # contradictory expectations that `check` evaluates against the same live
 # records, so one goes green and one goes red on the same domain and ordering
@@ -45,7 +45,7 @@ USAGE
 }
 
 # ASKING FOR HELP AND FORGETTING THE ARGUMENT ARE DIFFERENT EVENTS, and
-# collapsing them is why this exited 0 on a missing directory until 2026-09-07.
+# collapsing them is why this once exited 0 on a missing directory.
 # This verb's whole argument is that an empty population is an ERROR -- "0
 # profiles, no collisions" is the shape of every false green this repository has
 # a name for -- and a caller who omitted the argument got usage text and a

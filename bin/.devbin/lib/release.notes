@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# lib/release.notes -- the notes providers of the release core (ST0007, D39).
+# lib/release.notes -- the notes providers of the release core (ST0007).
 #
 # Sourced, never executed. A release's notes live in one of three shapes, and
 # this file is the one place that knows each shape. The rest of the core asks a
@@ -9,6 +9,7 @@
 #   notes_select <kind> <run> <project>   choose releases, changelog or command
 #   notes_state <root> <version>          absent | open | dated YYYY-MM-DD
 #   notes_check <root> <version> <today>  ready to release today, or refused naming why
+#   notes_lint <root> <version>           refuse a note the generated views would carry wrongly
 #   notes_date <root> <version> <date>    date the note, printing each path written
 #   notes_body <root> <version>           the body: the tag message and the release notes
 #   notes_views <root>                    regenerate the generated views, printing each path
@@ -101,8 +102,8 @@ notes_select() {
       # on nothing else, and notes_select takes no root. run_words globs, so
       # asking it here would make this verb READ THE FILESYSTEM to answer a
       # question about a string -- which is the thing the header forbids, and
-      # which lib/helpers says in capitals about validation. The first cut did
-      # call run_words; critic-shell caught it.
+      # which lib/helpers says in capitals about validation. An earlier cut
+      # called run_words here.
       #
       # IT WAS HARMLESS AS WRITTEN, AND FOR A SHARPER REASON THAN THE ONE FIRST
       # WRITTEN HERE. The two readers can disagree only if a value
@@ -153,7 +154,7 @@ _notes_args() {
   fi
   # A RELATIVE ROOT IS REFUSED: it names wherever the caller happens to stand,
   # which is the one thing a root must not depend on, and a `cd` to one also
-  # consults CDPATH (ST0007 WP-02 review, K4).
+  # consults CDPATH (ST0007 WP-02).
   if [ "${1#/}" = "$1" ]; then
     warn "$verb: the root is not an absolute path: $1"
     return 1
@@ -193,8 +194,9 @@ notes_state() {
 }
 
 # notes_check <root> <version> <today> -- ready to release today: the note is
-# open, or already dated today (a run that dated it and stopped). Every kind
-# answers it the same way, so it is asked of the state rather than of each kind.
+# open, or already dated today (a run that dated it and stopped), and notes_lint
+# passes it. Every kind answers the dating the same way, so that is asked of the
+# state rather than of each kind.
 notes_check() {
   local state
   _notes_args notes_check "<root> <version> <today>" 3 "$@" || return 1
@@ -205,7 +207,7 @@ notes_check() {
   state="$(notes_state "$1" "$2")" || return 1
   case "$state" in
     open | "dated $3")
-      return 0
+      notes_lint "$1" "$2"
       ;;
     absent)
       warn "release notes: there is no $("_notes_${_notes_kind}_where" "$2") -- write the note before the release"
@@ -216,6 +218,15 @@ notes_check() {
       return 1
       ;;
   esac
+}
+
+# notes_lint <root> <version> -- refuse a note whose content the generated views
+# would carry wrongly, naming why. Asked by notes_check, so a cut refuses it
+# before it dates anything, and by `release check`. Only `releases` has views
+# rendered from a note's content; the other kinds answer it with nothing.
+notes_lint() {
+  _notes_args notes_lint "<root> <version>" 2 "$@" || return 1
+  "_notes_${_notes_kind}_lint" "$1" "$2"
 }
 
 # notes_date <root> <version> <YYYY-MM-DD> -- date an open note for release,
@@ -341,14 +352,14 @@ _notes_releases_where() {
 # _notes_releases_field <file> <key> -- the key's line from the note's header
 # block, as `=<value>`, or nothing when the header has no such line.
 #
-# Line-oriented `key: value`, the same shape the whiteboard protocol uses and
-# for the same reason: it is hand-written prose-heavy text, and a quoting-
-# sensitive format invites a `headline:` containing a colon to become invalid.
-# Everything after the first ': ' to end of line is the value. The `=` is what
-# tells a present-but-empty value from an absent one: read as bare values the
-# two were one answer, so an open note carrying an empty `date: ` line read as
-# carrying none, and dating it wrote a second date line (ST0007 WP-02 review,
-# K1). _notes_releases_header_ok has refused a header in any other shape first.
+# Line-oriented `key: value`, because it is hand-written prose-heavy text, and
+# a quoting-sensitive format invites a `headline:` containing a colon to become
+# invalid. Everything after the first ': ' to end of line is the value. The `=`
+# is what tells a present-but-empty value from an absent one: read as bare
+# values the two were one answer, so an open note carrying an empty `date: `
+# line read as carrying none, and dating it wrote a second date line (ST0007
+# WP-02). _notes_releases_header_ok has refused a header in any other shape
+# first.
 _notes_releases_field() {
   awk -v k="$2" '
     /^$/ { exit }
@@ -480,23 +491,105 @@ _notes_releases_versions() {
   printf '%s' "$found" | sort -V -r
 }
 
-# _notes_releases_section <file> <name> -- the body of one `## <name>` section.
+# _notes_releases_section <file> <name> -- the changelog's body for one section:
+# every `## ` heading of the note that is the section's, in the note's order.
+#
+# A HEADING IS THE SECTION'S WHEN ITS FIRST WORD IS THE SECTION'S NAME (issue
+# 0212): `## Fixed`, and `## Fixed -- reaches every project` too. This matched the
+# whole heading until issue 0212, and seven releases' notes all qualified
+# theirs, so each had an empty changelog entry and nothing said so. The
+# qualifier is information -- which fixes reach every project and which only
+# devbin's own tree -- so it is kept, as a `#### <qualifier>` line over its
+# block, with the separator before it (`--`, `-` or `:`) dropped. `## Fixedness`
+# is not Fixed's. Blank lines inside a block are dropped, and a block with
+# nothing in it is left out, heading and all; blocks are a blank line apart.
 _notes_releases_section() {
-  awk -v want="## $2" '
-    $0 == want { f = 1; next }
-    f && /^## / { exit }
-    f { print }
+  awk -v want="$2" '
+    function flush() {
+      if (n > 0) {
+        if (out++) print ""
+        if (q != "") { print "#### " q; print "" }
+        for (i = 1; i <= n; i++) print buf[i]
+      }
+      n = 0
+    }
+    /^## / {
+      if (f) flush()
+      f = 0
+      h = substr($0, 4)
+      if (h == want) { f = 1; q = ""; next }
+      if (index(h, want) == 1) {
+        rest = substr(h, length(want) + 1)
+        if (rest ~ /^[ :]/) {
+          sub(/^:/, "", rest)
+          sub(/^[ \t]+/, "", rest)
+          sub(/^-?-([ \t]+|$)/, "", rest)
+          f = 1; q = rest; next
+        }
+      }
+      next
+    }
+    f && /[^[:space:]]/ { buf[++n] = $0 }
+    END { if (f) flush() }
   ' "$1"
+}
+
+# _notes_releases_lint <root> <version> -- refuse a note the changelog would
+# render empty, unless its header says that is meant (issue 0212).
+#
+# A NOTE WITH NO SECTION THE CHANGELOG READS LEAVES ITS RELEASE OUT OF THE
+# CHANGELOG, AND NOTHING ELSE SAYS SO. For seven releases every note's headings
+# were qualified, the reader matched them whole, and seven releases each read
+# "No changelog sections" while `release check` passed them. So a note none of
+# whose `## ` headings is a section's is refused, naming its headings and the
+# sections. A release with nothing for a changelog says so in its header,
+# `changelog: none`, which only this reads; a note that says none and has a
+# section is refused too, since the header would then say something false.
+_notes_releases_lint() {
+  local rel="$_NOTES_RELEASES_DIR/$2.md" mark sec body found="" headings
+  [ -e "$1/$rel" ] || return 0
+  _notes_releases_header_ok "$1/$rel" "$rel" || return 1
+  if ! mark="$(_notes_releases_field "$1/$rel" changelog)"; then
+    warn "release notes: cannot read $rel"
+    return 1
+  fi
+  case "$mark" in
+    "" | =none) ;;
+    *)
+      warn "$rel has changelog: ${mark#=} -- the one value is none, for a release with nothing for the changelog"
+      return 1
+      ;;
+  esac
+  for sec in $_NOTES_SECTIONS; do
+    if ! body="$(_notes_releases_section "$1/$rel" "$sec")"; then
+      warn "release notes: cannot read $rel"
+      return 1
+    fi
+    [[ ! "$body" =~ [^[:space:]] ]] || found="$found $sec"
+  done
+  if [ -n "$found" ] && [ "$mark" = =none ]; then
+    warn "$rel carries changelog: none, and the changelog reads its$found -- drop the line or the section"
+    return 1
+  fi
+  if [ -z "$found" ] && [ -z "$mark" ]; then
+    if ! headings="$(awk '/^## / { printf "%s\047%s\047", (n++ ? ", " : ""), $0 }' "$1/$rel")"; then
+      warn "release notes: cannot read $rel"
+      return 1
+    fi
+    warn "$rel has no section the changelog reads, so its release would be left out of $_NOTES_CHANGELOG -- its headings are ${headings:-none}; a section's heading begins with one of: ${_NOTES_SECTIONS// /, }, or the header says changelog: none"
+    return 1
+  fi
+  return 0
 }
 
 # _notes_releases_changelog <root> -- CHANGELOG.md, on stdout: Keep a Changelog,
 # assembled from the notes.
 #
-# THE HEADER IS THE CORE'S AND NAMES THE PROJECT (ST0007 D39).
-# While this lived in devbin's project handler its header also
-# stated devbin's own semver deviation, which every project taking
-# `notes.kind: releases` would then have published about itself. That rule's one
-# home is docs/configuration.md, beside `devbin_version`.
+# THE HEADER IS THE CORE'S AND NAMES THE PROJECT (ST0007). While this lived in
+# devbin's project handler its header also stated devbin's own semver
+# deviation, which every project taking `notes.kind: releases` would then have
+# published about itself. That rule's one home is docs/configuration.md,
+# beside `devbin_version`.
 #
 # SC2016 is suppressed for the renderers, not line by line: every printf below
 # emits MARKDOWN, whose inline-code delimiter is the backtick, so a format
@@ -528,7 +621,7 @@ _notes_releases_changelog() {
       # "the note did not use this section".
       if [[ "$body" =~ [^[:space:]] ]]; then
         printf '### %s\n\n' "$sec"
-        printf '%s\n' "$body" | sed '/^[[:space:]]*$/d' || return 1
+        printf '%s\n' "$body"
         printf '\n'
         any=1
       fi
@@ -881,6 +974,10 @@ _notes_changelog_body() {
   printf '%s' "$body"
 }
 
+_notes_changelog_lint() {
+  return 0
+}
+
 _notes_changelog_views() {
   return 0
 }
@@ -897,10 +994,10 @@ _notes_changelog_paths() {
 # command -- `notes.run` does the work.
 # ============================================================================
 #
-# The general case the other two are special cases of (D39), named so its use is
+# The general case the other two are special cases of, named so its use is
 # visible in config. `notes.run` runs at the root with a verb and its arguments:
 # `state <v>`, `date <v> <date>`, `body <v>`, `views`, `views-check` and
-# `paths <v>`. It is split into words and never eval'd (D1), as `run:` is
+# `paths <v>`. It is split into words and never eval'd, as `run:` is
 # everywhere else.
 #
 # AT THE ROOT MEANS THE ENVIRONMENT TOO. The dispatcher exports the working
@@ -1023,7 +1120,7 @@ _notes_command_body() {
 #
 # SILENCE IS NOT AN ANSWER. A notes.run with no views arm printed nothing and
 # exited 0, which read as "generates no views", so `release check` passed over a
-# hand-edited view it never compared (ST0007 WP-02 review, K2) -- an unbuilt
+# hand-edited view it never compared (ST0007 WP-02) -- an unbuilt
 # step that exited 0 reading as a step that ran. Returns 0 on an answer to go on
 # reading, 2 on `none`, and 1 on a refusal.
 _notes_command_views_answer() {
@@ -1078,6 +1175,10 @@ _notes_command_views_check() {
     _notes_command_paths_ok views-check "${line#* }" || return 1
   done <<<"$out"
   _notes_lines "$out"
+}
+
+_notes_command_lint() {
+  return 0
 }
 
 _notes_command_paths() {

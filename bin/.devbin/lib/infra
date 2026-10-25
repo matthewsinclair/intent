@@ -10,8 +10,8 @@
 # on. Everything here is catchable before `check` resolves a single record.
 #
 # ONE YAML READER. This uses `lib/config`'s `cfg_load` and adds no parser of its
-# own (design D7: no yq; the Highlander rule does the rest). That constraint is
-# tighter than it looks and it SHAPED the schema rather than merely permitting
+# own (no yq; the Highlander rule does the rest). That constraint is tighter
+# than it looks and it SHAPED the schema rather than merely permitting
 # it -- see `infra_validate_profile` for the guarantee it cost us.
 #
 # WHY DOMAINS ARE KEYED BY A HANDLE AND NOT BY THEIR FQDN. The agreed schema
@@ -163,7 +163,7 @@ infra_assert_written_keys_visible() {
 # profile, one per line. THE one place that knows how a profile spells its
 # domains.
 #
-# Added 2026-09-07 with the cross-profile check, which needed the same walk.
+# Added with the cross-profile check, which needed the same walk.
 # Written as a shared function rather than a second loop because the shape it
 # encodes -- handle is the key, FQDN is a FIELD -- is exactly what the
 # documentation got wrong for the whole of 0.1.0, and two readers of it would be
@@ -200,18 +200,18 @@ infra_domain_pairs() {
 # (infra_sender_dkim_records); this asks for the include and at least one, and
 # infra_sender_dkim_shape holds each record's own form, for every sender.
 #
-# design.md settles that this is what the known-sender library ships -- the
+# The design settles that this is what the known-sender library ships -- the
 # pair's SHAPE, never its contents. A shipped SPF include for a provider WOULD
 # HAVE BEEN WRONG for a live domain sitting on the same provider's other
 # include, and nobody could establish whether that split is
 # account-specific or generational. Shipping a value commits to an answer
 # nobody has; the invariant is correct either way.
 #
-# WHAT THIS FIXES IS A MISCLASSIFICATION, measured against a real estate on
-# 2026-09-08. Two live domains name a sender in profiles that never define
-# it, and `check` reported "names sender `<label>` which the profile does
-# not define -- the matched-pair check CANNOT RUN for it" under COULD NOT
-# MEASURE, whose own header reads "gaps in the INSTRUMENT, not verdicts".
+# WHAT THIS FIXES IS A MISCLASSIFICATION, measured against a real estate. Two
+# live domains name a sender in profiles that never define it, and `check`
+# reported "names sender `<label>` which the profile does not define -- the
+# matched-pair check CANNOT RUN for it" under COULD NOT MEASURE, whose own
+# header reads "gaps in the INSTRUMENT, not verdicts".
 #
 # THAT IS THE WRONG CHANNEL AND IT UNDERSTATES THE FAULT. Nothing about the
 # instrument is missing: the profile is the TARGET STATE, and a target naming a
@@ -243,10 +243,10 @@ infra_sender_pair_complete() {
 # `lib/release.notes` suppresses it for its renderers: every message below
 # names a config KEY, and the delimiter this project writes a key in is the
 # backtick. Single quotes are correct here precisely because the contents must
-# NOT expand -- which is the thing shellcheck is warning about. Added 2026-09-07
-# after `check lint` was found red at HEAD: these two lines landed with WP-01 on
-# 2026-09-06 and CI could not have caught them, because CI runs on push and
-# nothing had been pushed since 2026-09-03.
+# NOT expand -- which is the thing shellcheck is warning about. Added after
+# `check lint` was found red at HEAD: these two lines landed with WP-01 and CI
+# could not have caught them, because CI runs on push and nothing had been
+# pushed since before they landed.
 # shellcheck disable=SC2016
 infra_validate_profile() {
   local rc=0 handle fqdn other sender seen="" warn_out=""
@@ -325,7 +325,7 @@ infra_validate_profile() {
 # never warn.
 infra_unreviewed_keys() { cfg_list unreviewed 2>/dev/null || true; }
 
-# --- inheritance, and it did not exist until 2026-09-07 ----------------------
+# --- inheritance, which did not exist at first -------------------------------
 #
 # THE SCHEMA PROMISED THIS FROM THE FIRST DRAFT AND NOTHING IMPLEMENTED IT.
 # `lib/infra.reference.yaml` says a handle carrying nothing but its `name:`

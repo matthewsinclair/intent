@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# The built-in `install` -- vendor this runtime into a project (design D5).
+# The built-in `install` -- vendor this runtime into a project.
 #
 # The source is whatever devbin is RUNNING, not a hard-coded checkout: a devbin
 # installed in project A can seed project B by the same path a fresh clone
@@ -23,7 +23,7 @@ set -euo pipefail
 usage() {
   cat <<EOF
 usage: $DEVBIN_INVOKE install [--into <dir>] [--name <n>] [--alias <a>] [--lang <l>] [--force]
-       $DEVBIN_INVOKE install [--prefix <dir>] [--managed-by brew] [--point]   (inside devbin's own tree)
+       $DEVBIN_INVOKE install [--prefix <dir>] [--managed-by brew] [--force]   (inside devbin's own tree)
 
   --into <dir>   the project to install into (default: the current directory)
   --prefix <dir> PUBLISH mode only: where to publish the machine install
@@ -33,15 +33,13 @@ usage: $DEVBIN_INVOKE install [--into <dir>] [--name <n>] [--alias <a>] [--lang 
                  PUBLISH mode only: record that Homebrew owns this install, so
                  devbin's install and upgrade refuse to write into it. The
                  Homebrew formula passes it
-  --point        PUBLISH mode only, to install.prefix: make this install the
-                 machine's, writing the machine pointer, where the machine's
-                 install is Homebrew's and would otherwise stay so. Elsewhere
-                 the pointer is written anyway, and --point changes nothing
   --name <n>     the project name (default: the target directory's name)
   --alias <a>    a short name this project may keep, eg 'dm' for demo.
                  RECORDED ONLY -- devbin creates no symlink for it
   --lang <l>     a language the project declares; repeatable, or comma-separated
-  --force        VENDOR mode only: re-vendor over an existing install
+  --force        VENDOR mode: re-vendor over an existing install. PUBLISH
+                 mode: replace the opt install devbin wrote at the prefix,
+                 the one way to re-publish
 
 Writes bin/devbin and bin/.devbin/lib/, scaffolds bin/.devbin/{cmd,help}, and
 writes a starter config.yaml IF THERE IS NONE. Your config, handlers and
@@ -51,8 +49,8 @@ TWO MODES, chosen by the tree you are standing in:
 
   PUBLISH   run inside devbin's own source tree with no --into. Publishes this
             runtime to the install prefix, which is what every consumer then
-            vendors from. Refuses on a dirty tree, and refuses to overwrite an
-            existing install -- use \`upgrade\` for that.
+            vendors from. Refuses on a dirty tree, and replaces an existing
+            install only with --force.
   VENDOR    everywhere else, and unchanged: install devbin into a project.
 
 The mode is printed before anything is written.
@@ -63,7 +61,7 @@ EOF
 # gets, on stdout.
 #
 # `languages:` is OMITTED rather than left empty when none was given. An empty
-# mapping is out of the config subset (D7) and `project.languages` with no index
+# mapping is out of the config subset and `project.languages` with no index
 # is not a schema path, so the tidier-looking empty key would make the very
 # first `devbin doctor` fail validation on a file devbin wrote itself.
 starter_config() {
@@ -89,7 +87,7 @@ starter_config() {
   return 0
 }
 
-# THE PER-PROJECT LAUNCHER SYMLINK IS RETIRED (2026-08-27, superseding D6).
+# THE PER-PROJECT LAUNCHER SYMLINK IS RETIRED.
 #
 # `link_alias` lived here and made `bin/<project>` and `bin/<alias>` point at
 # `bin/devbin`, so you typed `bin/demo test`. That convention collided with
@@ -106,8 +104,8 @@ starter_config() {
 # for `intent` and for a human, and nothing about that needed the symlink.
 
 main() {
-  local into="" name="" alias="" langs="" force="" prefix="" managed="" point="" srcroot dstroot version
-  local rel src count=0 config mode vendor_only="" record paths recorded removed configured="" why lf
+  local into="" name="" alias="" langs="" force="" prefix="" managed="" srcroot dstroot version
+  local rel src count=0 config mode vendor_only="" record paths recorded removed lf
 
   while [ $# -gt 0 ]; do
     case "$1" in
@@ -159,12 +157,7 @@ main() {
         esac
         ;;
       --force)
-        vendor_only="$vendor_only --force"
         force=yes
-        shift
-        ;;
-      --point)
-        point=point
         shift
         ;;
       -*) die "unknown option '$1' (try: $DEVBIN_INVOKE install --help)" ;;
@@ -177,7 +170,7 @@ main() {
   is_devbin_source "$srcroot" ||
     die "this devbin cannot be a source: no dispatcher or runtime at $srcroot"
 
-  # --- WHICH MODE (ST0005, D26) ----------------------------------------------
+  # --- WHICH MODE (ST0005) ---------------------------------------------------
   #
   # PUBLISH when standing in devbin's own source tree with no --into; VENDOR
   # everywhere else. An explicit --into is always VENDOR, because naming a target
@@ -188,7 +181,7 @@ main() {
   # carrying no vendored runtime of its OWN -- derived from the two predicates
   # that already exist rather than from a path or a project name, neither of
   # which is a fact about what the tree IS. The install tree reads as a consumer
-  # here, which is correct: it is consumer-shaped by D33.
+  # here, which is correct: it is consumer-shaped by design.
   if [ -z "$into" ] && is_devbin_dev_tree "$srcroot"; then
     mode=publish
   else
@@ -207,13 +200,9 @@ main() {
     die "--managed-by applies only when publishing from devbin's own source tree
        you are in VENDOR mode$([ -n "$into" ] && printf ' (--into was given)')"
   fi
-  if [ -n "$point" ] && [ "$mode" != publish ]; then
-    die "--point applies only when publishing from devbin's own source tree
-       you are in VENDOR mode$([ -n "$into" ] && printf ' (--into was given)')"
-  fi
   # AND THE MIRROR (issue 0103): a VENDOR flag while publishing was dropped in
-  # silence. Publishing writes no config and never re-vendors over an install,
-  # so --name, --alias, --lang and --force have nothing to act on.
+  # silence. Publishing writes no config, so --name, --alias and --lang have
+  # nothing to act on. --force is both modes': it replaces what is there.
   if [ -n "$vendor_only" ] && [ "$mode" = publish ]; then
     die "${vendor_only# } applies only when vendoring into a project
        you are in PUBLISH mode, in devbin's own source tree with no --into
@@ -234,28 +223,20 @@ main() {
     # down over the top of it.
     cfg_load "$DEVBIN_DIR/config.yaml" >/dev/null 2>&1 ||
       die "cannot read devbin's own config at $DEVBIN_DIR/config.yaml"
-    # Read now, while devbin's own config is the one loaded, for the machine
-    # pointer the publish writes (issue 0153); empty when none is configured.
-    configured="$(install_prefix_configured 2>/dev/null || true)"
     # `|| die_...` rather than a bare assignment, so the refusal happens HERE
     # rather than as an unexplained errexit death at the assignment. There is no
     # baked default any more: an unconfigured prefix is a configuration error,
-    # not a location to guess at (D32).
+    # not a location to guess at.
     if [ -z "$prefix" ]; then
       prefix="$(install_prefix_configured)" || die_install_prefix_unset '--prefix <dir>'
     fi
     dstroot="$prefix"
-    # Refused before anything is written (issue 0197).
-    if [ -n "$point" ]; then
-      why="$(point_refusal "$dstroot" "$configured")"
-      [ -z "$why" ] || die "$why"
-    fi
   else
     dstroot="$(cd "${into:-.}" 2>/dev/null && pwd)" ||
       die "no such directory: ${into:-.}"
   fi
 
-  # ANNOUNCED BEFORE ANYTHING IS WRITTEN (D26). A discriminator that is merely
+  # ANNOUNCED BEFORE ANYTHING IS WRITTEN. A discriminator that is merely
   # correct is not enough: a misdetection has to land in the output rather than
   # be discovered later in the filesystem.
   if [ "$mode" = publish ]; then
@@ -265,7 +246,7 @@ main() {
     printf 'mode: VENDOR -- installing devbin INTO a project\n\n'
   fi
 
-  # --- the dirty gate (D28) ---------------------------------------------------
+  # --- the dirty gate ---------------------------------------------------------
   #
   # WHOLE TREE, not just the vendored set. The manifest's claim is "these bytes
   # are commit X", and that is only true when nothing in the tree is uncommitted.
@@ -282,17 +263,17 @@ main() {
   fi
 
   # Refusing to install into the source is not fussiness. Devbin runs itself out
-  # of its own lib/ (D12); vendoring into bin/.devbin/lib/ would put a frozen
-  # copy AHEAD of the working tree in the dispatcher's own search order, so every
-  # edit to lib/ would stop taking effect and the test suite would go on passing
-  # against the copy.
+  # of its own lib/ (devbin uses devbin); vendoring into bin/.devbin/lib/ would
+  # put a frozen copy AHEAD of the working tree in the dispatcher's own search
+  # order, so every edit to lib/ would stop taking effect and the test suite
+  # would go on passing against the copy.
   # ANY dev tree, not just THIS one. The comparison was `dstroot = srcroot`,
   # which only catches installing a tree into itself -- and the harm above has
   # nothing to do with the two being the same. Installing from the machine
   # install into devbin's source tree has a different source and an identical
-  # consequence, and on 2026-09-07 it happened: bin/.devbin/lib/ and a manifest
-  # landed in the dev tree, past a guard that could not see them because the
-  # source was somewhere else.
+  # consequence, and it happened: bin/.devbin/lib/ and a manifest landed in the
+  # dev tree, past a guard that could not see them because the source was
+  # somewhere else.
   if is_devbin_dev_tree "$dstroot"; then
     die "cannot install devbin into a devbin SOURCE tree ($dstroot)
        It runs lib/ in place; a vendored copy would sit ahead of the
@@ -304,17 +285,20 @@ main() {
   # neither `upgrade` nor `--force`, the remedies below, may write into one.
   install_managed_refusal "$dstroot" || return 1
 
-  # PUBLISH refuses an existing install and names `upgrade`; VENDOR refuses and
-  # names `--force`. Same shape, different remedy -- and the shape is not new:
-  # this refusal already existed for consumers and is only being told which verb
-  # to point at.
+  # AN EXISTING INSTALL IS REPLACED ONLY WITH --force, in both modes, and in
+  # PUBLISH that is the one re-publish route (docs/dev-opt-brew.md, T2; issue
+  # 0213): replacing what every project vendors from is always a flag you typed.
+  # publish_replace refuses a tree devbin did not write.
   if is_devbin_installed "$dstroot" && [ "$mode" = publish ]; then
-    warn "devbin is already installed at $dstroot"
-    warn "  to update it:  $DEVBIN_INVOKE upgrade"
-    warn ""
-    warn "  \`install\` publishes a NEW install and will not overwrite one, so that"
-    warn "  replacing what the whole estate vendors from is always a verb you typed."
-    return 1
+    if [ -z "$force" ]; then
+      warn "devbin is already installed at $dstroot"
+      warn "  to replace it:  $DEVBIN_INVOKE install --force"
+      return 1
+    fi
+    publish_replace "$srcroot" "$dstroot" || return 1
+    printf '\nA project carries the OLD bytes until it upgrades from here:\n'
+    vendor_from_hint "$dstroot"
+    return 0
   fi
   if is_devbin_installed "$dstroot" && [ -z "$force" ]; then
     warn "devbin is already installed at $dstroot/bin/.devbin/lib"
@@ -418,11 +402,11 @@ main() {
     done <<<"$removed"
   fi
 
-  # THE PROJECT HALF IS EXACTLY WHAT AN INSTALL DOES NOT GET (D27, D33).
+  # THE PROJECT HALF IS EXACTLY WHAT AN INSTALL DOES NOT GET.
   #
   # No config.yaml, no cmd/, no help/ -- and that absence is not tidiness, it is
   # the mechanism. `bin/devbin` dies without a config.yaml, so an install tree
-  # cannot be run FROM; it can only be vendored from. D27's "always a --from,
+  # cannot be run FROM; it can only be vendored from. The rule "always a --from,
   # never a cwd" therefore needs no check of its own and has no flag that turns
   # it off, which is the only kind of rule this project trusts.
   if [ "$mode" = publish ]; then
@@ -456,7 +440,7 @@ main() {
   fi
   printf '  wrote      %s\n' "$DEVBIN_MANIFEST_REL"
 
-  # DEVBIN'S LINE-ENDING BLOCK IN THE PROJECT'S .gitattributes (ST0008 D46), so
+  # DEVBIN'S LINE-ENDING BLOCK IN THE PROJECT'S .gitattributes (ST0008), so
   # every clone checks the runtime out LF. A project's file, written only
   # between devbin's markers (lf_block_write). Not on a publish: an install is
   # vendored from, never cloned.
@@ -467,10 +451,6 @@ main() {
   fi
 
   if [ "$mode" = publish ]; then
-    # The install is published either way; a pointer it could not write is
-    # named and fails the run, since no project could find it (issue 0153).
-    install_pointer_write "$dstroot" "$configured" "$point" ||
-      die "the install is published at $dstroot, but the machine pointer was not written (above)"
     printf '\nPublished. Consumers vendor from here:\n'
     vendor_from_hint "$dstroot"
     return 0

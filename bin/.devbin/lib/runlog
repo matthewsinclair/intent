@@ -54,13 +54,13 @@ _create_exclusive() {
 #
 # It exists so `write_errors_file` can exclude devbin's own annotations from the
 # extraction grammars BY CONSTRUCTION, and that is not caution for its own sake.
-# Two of the six grammars print on UNANCHORED patterns -- credo's `\[[A-Z]\] `
+# Some of the grammars print on UNANCHORED patterns -- credo's `\[[A-Z]\] `
 # and xcodebuild's `: error: ` -- while a recorded command line is arbitrary text
 # out of a project's config. Credo's match also sets `inblock`, so one unlucky
 # argument would drag the entire remaining log into `.errors` and seal a verdict
 # assembled from the tool's ordinary output. A wrong seal is the single failure
-# this subsystem cannot detect after the fact (intent/llm/MODULES.md), so the
-# exclusion is structural rather than a matter of picking a prefix and hoping.
+# this subsystem cannot detect after the fact, so the exclusion is structural
+# rather than a matter of picking a prefix and hoping.
 # Driven red once with the filter removed, and the verdict duly filled with
 # devbin's own output -- the evidence is quoted in issue 0025.
 #
@@ -90,7 +90,7 @@ _DEVBIN_INVOKE_TAG='devbin| '
 # INHERITED BY A CHILD DEVBIN, EXCEPT ACROSS A WITNESS BOUNDARY.
 # This paragraph used to say the id was NOT EXPORTED and that a child got its
 # own, while `bin/devbin` exported it and tests/unit/runlog.bats held a child to
-# its parent's id: two answers. One estate patched its vendored copy to match
+# its parent's id: two answers. One project patched its vendored copy to match
 # the comment. Inheritance is the answer -- fullcycle spawning clean, build
 # and test is one thing the operator asked for -- except where a non-witness run
 # starts a witness one. `bin/devbin` owns the rule; this paragraph only reports it.
@@ -250,10 +250,11 @@ open_run_log() {
     # ordinary single-run case, which is what the ladder was for.
     #
     # The counter rung is NOT `$$`. A subshell inherits its parent's `$$` in
-    # bash (BASHPID would say otherwise, but that is bash 4 and D9 rules it
-    # out), so several concurrent gates spawned from one script all produce the
-    # same "unique" name and all but one fail to create it. Counting up is
-    # portable, terminates, and keeps the naming convention that purge globs on.
+    # bash (BASHPID would say otherwise, but that is bash 4, and the bash 3.2
+    # target excludes it), so several concurrent gates spawned from one script
+    # all produce the same "unique" name and all but one fail to create it.
+    # Counting up is portable, terminates, and keeps the naming convention that
+    # purge globs on.
     log=""
     # `date -u` for the seconds too. Seconds are zone-invariant so this is not a
     # correctness fix; it is so the whole stamp has ONE stated provenance and a
@@ -367,9 +368,9 @@ note_promotion() {
 #
 # `run_gate` teed the tool's output and never recorded what produced it, so a
 # gate that died on its own ARGUMENTS sealed the tool's complaint about them and
-# nothing else. Measured (issue 0025): a `run:` was
-# read while another session had the file mid-edit, `variant=Designed for iPad`
-# word-split into three arguments, and the seal read
+# nothing else. Measured (issue 0025): a `run:` was read while the file was
+# mid-edit, `variant=Designed for iPad` word-split into three arguments, and
+# the seal read
 #
 #   xcodebuild: error: Unknown build action 'for'
 #
@@ -422,8 +423,8 @@ note_invocation() {
 # when errors is unset (--no-out keeps no companion). Never alters the run's own
 # exit.
 #
-# THE PORT TAKES THE GUARDED COPY (design D13). Most of the projects lacked
-# the vanished-directory guard below; one grew it after a suite swept a fixture
+# THE PORT TAKES THE GUARDED COPY. Most of the projects lacked the
+# vanished-directory guard below; one grew it after a suite swept a fixture
 # directory that shared a parent with the log dir. That hardening never reached
 # the others, and could not, while each kept its own copy of this function --
 # which is the clearest single argument for the fold.
@@ -450,7 +451,7 @@ write_errors_file() {
   # below -- the file must end non-empty on a red run either way.
   #
   # DEVBIN'S OWN ANNOTATIONS ARE STRIPPED BEFORE THE GRAMMAR SEES THEM. The
-  # reason is in _DEVBIN_INVOKE_TAG: two grammars print on unanchored patterns
+  # reason is in _DEVBIN_INVOKE_TAG: some grammars print on unanchored patterns
   # and the recorded command line is arbitrary config text, so leaving it in the
   # grammar's view risks a verdict made of the tool's normal output. The pattern
   # is a POSIX BRE, where the tag's `|` is a literal.
@@ -490,10 +491,10 @@ write_errors_file() {
 # concern, and a grammar that drifts from the writer's expectations produces a
 # seal that is wrong rather than absent.
 #
-# All seven were byte-identical in every project that carried them -- unlike
-# write_errors_file above, these propagated cleanly. `shell` and `generic` are
-# new: the corpus had no shell-project gate, and nothing to fall back on for a
-# tool with no named grammar.
+# The corpus's grammars were byte-identical in every project that carried them
+# -- unlike write_errors_file above, these propagated cleanly. `shell` and
+# `generic` are new: the corpus had no shell-project gate, and nothing to fall
+# back on for a tool with no named grammar.
 
 # shellcheck disable=SC2016  # single-quoted awk source, expanded by awk not bash
 _DEVBIN_GRAMMAR_MIX='
@@ -613,7 +614,7 @@ inblock                     { print; next }
 
 # BATS TAP output and shellcheck diagnostics -- the two gates a shell project
 # actually runs. NEW in devbin: the corpus had no shell-language project, which
-# is precisely why Devbin needed it first (design D12, devbin uses devbin).
+# is precisely why Devbin needed it first (devbin uses devbin).
 #
 # A bats failure is `not ok N name` followed by `#`-prefixed detail; a passing
 # `ok` line closes the block. A shellcheck finding is an `In <file> line N:`
@@ -647,10 +648,10 @@ _DEVBIN_GRAMMAR_GENERIC='
 
 # grammar_for <name> -- the named-grammar reader.
 #
-# A case rather than an associative array: bash 3.2 was a hard target (D9,
-# since reversed by issue 0022; the case costs nothing and stays) and
-# has no `declare -A`. An unknown name falls back to `generic` with a warning
-# rather than sealing with an empty extraction, because an empty grammar makes
+# A case rather than an associative array: bash 3.2 was a hard target (since
+# reversed by issue 0022; the case costs nothing and stays) and has no
+# `declare -A`. An unknown name falls back to `generic` with a warning rather
+# than sealing with an empty extraction, because an empty grammar makes
 # every red run seal its log tail and look identical.
 grammar_for() {
   case "$1" in
@@ -739,9 +740,10 @@ END { if (seen) print total + 0 }
 # project before anyone wrote it down; the last observer had to say "passed
 # vacuously" by hand, because the gate would not say it.
 #
-# TWO FORMS, BOTH `exit 0`, both read off the critic's own source rather than off
-# one observed run: it prints `ok: no staged <lang> files to scan` (examined
-# nothing) and `ok: no <lang> findings at severity >= <sev> across <n> file(s)`.
+# TWO FORMS, BOTH `exit 0`, both read off the source of `intent critic` itself
+# rather than off one observed run: it prints
+# `ok: no staged <lang> files to scan` (examined nothing) and
+# `ok: no <lang> findings at severity >= <sev> across <n> file(s)`.
 # A run WITH findings exits non-zero, so it never reaches the promotion, which is
 # guarded on rc==0.
 #
@@ -793,7 +795,7 @@ END { if (seen) print total + 0 }
 # so it matches nothing, and every green swift-testing run reads as "nothing
 # ran" and is promoted to FAILED. That is the live trap this counter exists to
 # avoid, reintroduced by a spelling. Measured, not assumed: the bracket form
-# counted 1 of 3 real lines on this machine (delta review, finding 1).
+# counted 1 of 3 real lines on this machine.
 #
 # Counted lines are COMPLETIONS, and the trailers gate the verdict:
 #
@@ -805,8 +807,7 @@ END { if (seen) print total + 0 }
 #     the trailer BEFORE the per-test arms can count it.
 #   - `seen` is the same design as every counter above: no trailer, no verdict.
 #     A build-only run under this grammar (`** BUILD SUCCEEDED **`, no test
-#     system engaged) is the `check compile` shape and must not promote
-#     (delta review, finding 2).
+#     system engaged) is the `check compile` shape and must not promote.
 # shellcheck disable=SC2016
 _DEVBIN_COUNT_XCODEBUILD='
 /^Test Case .* passed/                          { total += 1; next }
@@ -912,7 +913,7 @@ KEEPSET
 # one question these files exist to answer: AN INTERMITTENT FAILURE IS DIAGNOSED
 # BY DIFFING A RED RUN AGAINST THE GREEN ONE BEFORE IT, and purging the previous
 # run destroys the differential at the moment it becomes interesting. Bitten
-# three times in one project before it was boarded (2026-08-20).
+# three times in one project before it was fixed.
 #
 # So purge keeps the newest RUNLOG_KEEP_RUNS run-pairs of the family rather than
 # one. RUNLOG_KEEP_RUNS=1 restores the old behaviour; 0 is REFUSED rather than
@@ -929,9 +930,9 @@ KEEPSET
 # `$(...)` kills only the subshell, so a validating reader used as
 # `want="$(runlog_keep_runs)"` prints its refusal, leaves `want` EMPTY, and the
 # purge then runs with NO retention at all -- deleting MORE on a bad setting
-# than on a good one. Measured on exactly that shape before it was split
-# (2026-08-20): RUNLOG_KEEP_RUNS=0 refused loudly and purged 16 of 18 files
-# anyway. Call the assert first, unsubstituted, then read the variable.
+# than on a good one. Measured on exactly that shape before it was split:
+# RUNLOG_KEEP_RUNS=0 refused loudly and purged 16 of 18 files anyway. Call the
+# assert first, unsubstituted, then read the variable.
 runlog_assert_keep_runs() {
   local n="${RUNLOG_KEEP_RUNS:-5}"
   case "$n" in
@@ -1145,7 +1146,7 @@ print_run_referent() {
 # the `.out` and never that tail.
 #
 # TAGGED, because it is written on EVERY run, which is precisely the condition
-# _DEVBIN_INVOKE_TAG exists for: two grammars match on unanchored patterns and
+# _DEVBIN_INVOKE_TAG exists for: some grammars match on unanchored patterns and
 # the referent is arbitrary consumer text, so an unfiltered `[deadbeef] +2
 # dirty` reads as a credo issue tag and seals a verdict assembled out of
 # devbin's own annotation. note_promotion needs no tag and says why in its own
@@ -1166,7 +1167,7 @@ note_referent() {
 # A runner's own `finished in` is a property of the ARTEFACT: it barely moves
 # between machines. Wall-clock is a property of the APPARATUS. **The ratio
 # between them measures the apparatus, and it needs no mechanism named** --
-# which is why it works where five successive explanations of a slow estate
+# which is why it works where five successive explanations of a slow machine
 # did not.
 #
 # The measurement that produced it, on one project, same tests throughout:
@@ -1266,7 +1267,7 @@ print_run_overhead() {
 # every time. That line is the point: it is how a caller resolves THE SEAL THIS
 # RUN WROTE rather than dereferencing LATEST_<GATE>.errors, which is re-pointed
 # by every run in the tree and is therefore last-writer-wins whenever more than
-# one node is working. The seals are always exact; it is only ever the pointer
+# one process is working. The seals are always exact; it is only ever the pointer
 # that races. The dangerous direction is the silent one: your run seals RED, a
 # peer's green run relinks a second later, and `[ -s LATEST_MIX.errors ]` reads
 # GREEN.
@@ -1276,10 +1277,9 @@ print_run_overhead() {
 # chatter instead of its artifact. The file is the verdict: empty means a
 # COMPLETED run was green. Read the file.
 #
-# The name print_run_verdict (D13) wins over the corpus's other
-# spelling, print_failed_log_line, because it is a strict superset and reads
-# colours as `${red:-}` so it survives `set -u` when init_colors was never
-# called.
+# The name print_run_verdict wins over the corpus's other spelling,
+# print_failed_log_line, because it is a strict superset and reads colours as
+# `${red:-}` so it survives `set -u` when init_colors was never called.
 print_run_verdict() {
   local rc="$1" keep="$2" log="$3" errors="${4:-}" why
   if [ "$keep" = 1 ] && [ -n "$errors" ]; then
@@ -1324,7 +1324,7 @@ print_run_verdict() {
 # record_seal <rc> <label> <errors> -- append EVERY gate's seal to the ledger,
 #   except a row from a run other than the one that owns it (see below).
 #
-# Exists so the synthesised `all` (D8) can end with one block naming every gate
+# Exists so the synthesised `all` can end with one block naming every gate
 # that failed AND where its seal is. Each gate already prints its own `verdict:`
 # line, but across a ten-option `all` those scroll past; the ledger is how the
 # summary points without re-deriving anything or dereferencing a LATEST_*
@@ -1353,7 +1353,7 @@ print_run_verdict() {
 record_seal() {
   local rc="$1" label="$2" errors="$3"
   [ -n "${DEVBIN_SEAL_LEDGER:-}" ] || return 0
-  # A ROW FROM ANOTHER RUN IS NOT WRITTEN (ported from a fix in one estate's
+  # A ROW FROM ANOTHER RUN IS NOT WRITTEN (ported from a fix in one project's
   # vendored copy). run_all EXPORTS its ledger, so a nested devbin inherits
   # it: a witness run failing on purpose put its red row into the PARENT's
   # ledger, and seal_failures named a seal the parent's gate never produced. A
@@ -1364,8 +1364,8 @@ record_seal() {
   #
   # A first cut keyed on the witness flag. The flag is inherited, so it also
   # emptied a witness `all`'s OWN ledger -- no FAILED seal lines and no
-  # disagreement check, a false green (critic-shell). A ledger with no owner
-  # recorded -- one not set by run_all -- takes every row, as before.
+  # disagreement check, a false green. A ledger with no owner recorded -- one
+  # not set by run_all -- takes every row, as before.
   if [ -n "${DEVBIN_SEAL_LEDGER_RUN:-}" ] && [ "$DEVBIN_SEAL_LEDGER_RUN" != "$(run_identity)" ]; then
     return 0
   fi
@@ -1396,7 +1396,7 @@ seal_failures() {
     [ -n "$path" ] || continue
     [ "$srr" = "0" ] && continue
     # Point at the SEAL, not at a LATEST_* pointer: those are re-pointed by every
-    # run in the tree, so with more than one session working they are
+    # run in the tree, so with more than one process working they are
     # last-writer-wins and can name a peer's run (see print_run_verdict). The
     # seals themselves are always exact.
     printf '  %s%-18s %s%s\n' "${dim:-}" "$label" "$path" "${reset:-}"
@@ -1438,7 +1438,7 @@ gate_out_dir() {
 #
 # NOTHING IGNORED THE LOGS. A project whose own .gitignore did not cover tmp/
 # read `?? tmp/` after its first gate, and `+dirty` in --version from then on,
-# and a release whose pre-flight passed could fail at step 5 because its own
+# and a release whose pre-flight passed could fail at its gates step because its own
 # gates had changed the tree. devbin still never writes the PROJECT's
 # .gitignore: this file sits inside devbin's own output directory.
 #
@@ -1468,7 +1468,7 @@ gate_out_ignore() {
 # not say -- its check-ignore failed, or git could not be run at all -- with
 # git's own first line, where it gave one, on stdout. Writes nothing.
 #
-# ONE ANSWER FOR THE DRY RUN AND THE CUT (critic-shell on 0157 v1). The release
+# ONE ANSWER FOR THE DRY RUN AND THE CUT (0157). The release
 # pre-flight asked git alone. A real cut had already opened its own log, which
 # wrote the ignore file, so it passed; a dry run had not, so it refused the same
 # tree. Asked here, both read the rule the writer follows.
@@ -1722,7 +1722,7 @@ option_seal_from() {
 #   --purge-only       purge without running anything; exits 0
 #   --no-color         disable colour (NO_COLOR is honoured regardless)
 #
-# This is what lets a gate be fully DECLARED (D1): `check compile` needs a
+# This is what lets a gate be fully DECLARED: `check compile` needs a
 # command line, a grammar and a log suffix, and nothing else. The corpus wrote
 # this sequence out by hand in eight runners -- colour init, spool open, the
 # teed pipeline, the tee-failure warning, the seal, the purge, the verdict --
@@ -1732,7 +1732,7 @@ option_seal_from() {
 # "genuinely different concerns": the per-tool terminal GRAMMAR (mix's glyph
 # feed off --trace, cargo's line-per-test) and the end-of-run report table. A
 # gate wanting either writes a handler and calls these functions directly --
-# which is the D1 boundary again, in a different place.
+# which is the declared-gate boundary again, in a different place.
 # ---------------------------------------------------------------------------
 # THE HEARTBEAT. Fixes no defect; makes correct behaviour legible.
 #
@@ -1743,11 +1743,11 @@ option_seal_from() {
 #
 # THE LAST OF THOSE IS WHY THIS IS NOT COSMETIC. Cargo's build lock works
 # correctly and invisibly, so a blocked build is indistinguishable from a hung
-# one -- and a node that "fixes the hang" by pointing CARGO_TARGET_DIR at a
-# private tree is behaving rationally. That is 52G of one estate's 113G. So
+# one -- and a user who "fixes the hang" by pointing CARGO_TARGET_DIR at a
+# private tree is behaving rationally. That is 52G of one machine's 113G. So
 # `check targetdir` and this heartbeat are two halves of one change: a
 # prohibition on forking only holds if the wait is made visible, and banning it
-# alone gets worked around by the next node that believes it has hung.
+# alone gets worked around by the next user who believes it has hung.
 #
 # FOUR THINGS IT DELIBERATELY DOES NOT DO.
 #
@@ -1947,8 +1947,8 @@ run_gate() {
   # a top-level script with errexit as its ambient state. As a library function
   # it is wrong: run_gate would silently switch errexit ON for a caller that had
   # deliberately turned it off, and the first red gate would then kill a loop
-  # that was written to run every gate (D8's `all`). A function must not change
-  # its caller's shell options.
+  # that was written to run every gate (the synthesised `all`). A function must
+  # not change its caller's shell options.
   local errexit_was_on=0
   case "$-" in *e*) errexit_was_on=1 ;; esac
   set +e
@@ -2007,9 +2007,8 @@ run_gate() {
         # Two escape routes for two kinds of intent: --allow-empty says THIS
         # run's emptiness is expected (a wrapper flag gate_split_args carries
         # from any gate's command line -- before that split existed, advising
-        # it sent users to their own tool's unknown-argument error: delta
-        # review, finding 6); `grammar: generic` says this gate is never a
-        # counted run at all.
+        # it sent users to their own tool's unknown-argument error);
+        # `grammar: generic` says this gate is never a counted run at all.
         note_promotion "$log" "${label:-$suffix}" \
           "0 tests executed -- check the filter (if intended: pass --allow-empty, or declare 'grammar: generic' on this option in config)"
         rc=1

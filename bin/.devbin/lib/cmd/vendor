@@ -90,9 +90,9 @@ main() {
 
   is_devbin_installed "$dstroot" || {
     # The same two shapes upgrade distinguishes, and for the same reason: the
-    # D12 checkout runs its own lib/ in place, so there is no vendored copy to
-    # compare and pointing it at `install --into` would name the command install
-    # refuses.
+    # devbin source checkout runs its own lib/ in place, so there is no vendored
+    # copy to compare and pointing it at `install --into` would name the command
+    # install refuses.
     if is_devbin_source "$dstroot"; then
       warn "devbin is not installed here -- this is the devbin source checkout, which runs lib/ in place"
       warn "  there is nothing vendored to compare; a project installed FROM it can ask its own $DEVBIN_INVOKE vendor"

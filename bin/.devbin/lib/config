@@ -5,7 +5,7 @@
 # Sourced, not executed: defines functions and sets no shell options (the
 # dispatcher owns those).
 #
-# ONE reader, no yq (design D7). The parse is a single awk pass that flattens
+# ONE reader, no yq. The parse is a single awk pass that flattens
 # the document into `path<TAB>value` lines; every subsequent lookup is pure bash
 # over that cached text. A whole dispatch therefore costs one fork, not one per
 # key -- which matters for a launcher that sits in front of every command a
@@ -31,8 +31,9 @@
 #   cfg_has <path>           true when the path has a value
 #   cfg_list <path>          immediate child keys under path, document order
 #   cfg_validate             schema check of the loaded config (needs lib/helpers)
-#   cfg_release_get <key>    a release: scalar, or its D37 default (ST0007)
+#   cfg_release_get <key>    a release: scalar, or its default (ST0007)
 #   cfg_release_list <key>   a release: list, one item per line, or its default
+#   cfg_release_verbs        every verb `release` has, one per line (ST0008 WP-08)
 #   cfg_dump                 the flattened form (debugging, doctor)
 #
 [ -n "${_DEVBIN_CONFIG_LOADED:-}" ] && return 0
@@ -197,8 +198,8 @@ _cfg_parse() {
 # can be perfectly valid YAML, but a wrong VALUE, which is then word-split into
 # a command line and executed.
 #
-# Measured (issue 0026). One session ran `test all` while
-# another edited config.yaml; the reader caught a transient state, the swift
+# Measured (issue 0026). One `test all` ran while another
+# process edited config.yaml; the reader caught a transient state, the swift
 # arm's destination read `variant=Designed for iPad`, and xcodebuild died on
 # `Unknown build action 'for'`. Nothing was wrong with the config that landed or
 # with the harness -- the reader had simply observed a half-written file and
@@ -293,7 +294,7 @@ EOF
 # cfg_list <path> -- immediate child keys under <path>, in document order,
 # de-duplicated. `cfg_list commands` gives the command names; `cfg_list ""`
 # gives the top-level keys. This is what makes the framework's synthesised `all`
-# (D8) possible: the option list is read, never hand-maintained.
+# possible: the option list is read, never hand-maintained.
 cfg_list() {
   local prefix="$1" k v rest child seen_list=""
   while IFS=$'\t' read -r k v; do
@@ -377,7 +378,8 @@ _cfg_path_known() {
         return 1
       fi
       # project.languages.<N> -- drives which built-ins are active by default
-      # (design D11). Same axis as Intent's own config.json languages array.
+      # (the activation rule). Same axis as Intent's own config.json languages
+      # array.
       [ "$n" -eq 3 ] && [ "${p[1]}" = languages ] && _cfg_is_index "${p[2]}" && return 0
       # project.version_sidecars.<N> -- files that mirror the version (WP-17).
       [ "$n" -eq 3 ] && [ "${p[1]}" = version_sidecars ] && _cfg_is_index "${p[2]}" && return 0
@@ -385,7 +387,7 @@ _cfg_path_known() {
       ;;
     install)
       # install.prefix -- where `devbin install` PUBLISHES to when run inside
-      # devbin's own source tree (ST0005, D32). In a consumer it publishes
+      # devbin's own source tree (ST0005). In a consumer it publishes
       # nothing, and its one reader is `shell-init`, which bakes it into `dvb`
       # as the machine-install fallback. This said the key was meaningless in a
       # consumer until issue 0125 made shell-init read it, as the reference had
@@ -436,9 +438,10 @@ _cfg_path_known() {
       if [ "$n" -eq 3 ]; then
         # `log` and `grammar` at COMMAND level, not just option level: a
         # command-level `run:` seals on exactly the terms an option-level one
-        # does (D19, extended by WP-14). They were readable by run_command and
-        # unknown to the schema, so the one thing that would have caught the
-        # mismatch -- validation -- rejected correct config instead.
+        # does (extended to command level by WP-14). They were readable by
+        # run_command and unknown to the schema, so the one thing that would
+        # have caught the mismatch -- validation -- rejected correct config
+        # instead.
         #
         # `args` is help's usage hint -- the `[--iex]` in `server [--iex]`. It
         # carries what the corpus put in column one beside the command name,
@@ -466,12 +469,21 @@ _cfg_path_known() {
   return 1
 }
 
-# --- the release: block (ST0007, design D37) -------------------------------
+# --- the release: block (ST0007) -------------------------------------------
 #
 # THE ONE STATEMENT OF THE RELEASE KEYS: shape, dotted key under `release.`,
-# and default. The schema branch above, the readers below and the value checks
-# all read it, so a key added here is known, defaulted and validated in one
-# edit. Every key has a default and every default can be overridden.
+# the verbs of `release` that read it, and default. The schema branch above,
+# the readers below and the value checks all read it, so a key added here is
+# known, defaulted and validated in one edit. Every key has a default and every
+# default can be overridden.
+#
+# THE READERS COLUMN (ST0008 WP-08) names, comma-separated, each verb that
+# reads the key, from `verbs`' own default: a cut (`cut`), `status`, `notes`,
+# `check` and `attach`. A declared key that no verb `release.verbs` offers reads
+# is refused as unread config, issue 0080's class. `<verb>!<key>` reads it only
+# while `release.<key>` is not declared: `attach` reads `remotes` only as
+# `repo`'s fallback (release_repo), so with `repo` declared it reads none.
+# Printing a key is not reading it: `release check` prints every one.
 #
 # A list's default items are separated by `|`. A project declares a list
 # EXPLICITLY EMPTY as the single item `-` (devbin's no-default sentinel): the
@@ -481,27 +493,30 @@ _cfg_path_known() {
 # cannot be declared `-`: a reader who learned `gates: -` means no gates would
 # take `remotes: -` to mean no remotes, and the release would push everywhere.
 _DEVBIN_RELEASE_SCHEMA="
-scalar tag         v{version}
-list   remotes
-scalar branch      main
-scalar notes.kind  changelog
-scalar notes.run
-list   derived
-list   gates       check all|test all
-scalar ci.query
-scalar ci.wait     20m
-scalar object      local
-scalar title       {tag}
-scalar repo
-scalar object_wait 20m
-list   after
+scalar tag             cut,status,attach              v{version}
+list   remotes         cut,status,attach!repo
+scalar branch          cut,status                     main
+scalar notes.kind      cut,status,notes,check         changelog
+scalar notes.run       cut,status,notes,check
+list   derived         cut
+list   gates           cut,status                     check all|test all
+scalar ci.query        cut,status
+scalar ci.wait         cut                            20m
+scalar object          cut,status,check,attach        local
+scalar title           cut,status                     {tag}
+scalar repo            cut,status,attach
+scalar object_wait     cut                            20m
+list   after           cut,status
+list   verbs           cut,status,notes,check,attach  cut|status|notes|check|attach
+scalar assets.workflow cut,status,attach
+scalar assets.wait     cut,attach                     30m
 "
 
 # _cfg_release_row <key> -- `<shape><TAB><default>` for a release key, or
 # non-zero when the schema has no such key.
 _cfg_release_row() {
   local want="$1" shape key def IFS=$' \t\n'
-  while read -r shape key def; do
+  while read -r shape key _ def; do
     [ -n "$shape" ] || continue
     if [ "$key" = "$want" ]; then
       printf '%s\t%s\n' "$shape" "$def"
@@ -593,6 +608,16 @@ cfg_release_list() {
   return 0
 }
 
+# cfg_release_verbs -- every verb `release` has, one per line, in the table's
+# order: the default of `release.verbs`, which offers them all. THE ONE
+# STATEMENT OF THE VERBS (ST0008 WP-08): the value check below, the readers
+# column's arm and the handler's argument loop and usage read them here.
+cfg_release_verbs() {
+  local def
+  def="$(_cfg_release_default verbs)" || return 1
+  printf '%s\n' "${def//|/$'\n'}"
+}
+
 # _cfg_release_value_problem <path> <value> -- print why a release value
 # cannot be read, and succeed; fail when the value is fine.
 _cfg_release_value_problem() {
@@ -610,9 +635,22 @@ _cfg_release_value_problem() {
       case "$v" in local | ci | none) return 1 ;; esac
       printf 'must be local, ci or none'
       ;;
-    ci.wait | object_wait)
+    ci.wait | object_wait | assets.wait)
       [[ "$v" =~ ^[0-9]+[smh]$ ]] && return 1
       printf 'must be a whole number of s, m or h, eg 20m'
+      ;;
+    verbs.*)
+      # "-" is _cfg_release_problems', which says what it would mean, as it
+      # does for remotes.
+      is_no_default "$v" && return 1
+      local all
+      all="$(cfg_release_verbs)"
+      _word_in "$v" "${all//$'\n'/ }" && return 1
+      printf 'must be one of %s' "${all//$'\n'/, }"
+      ;;
+    assets.workflow)
+      [[ "$v" =~ ^[^/[:space:]]+\.ya?ml$ ]] && return 1
+      printf 'must be the file name of a workflow in .github/workflows, eg assets.yml'
       ;;
     repo)
       [[ "$v" =~ ^([^/[:space:]]+/)?[^/[:space:]]+/[^/[:space:]]+$ ]] && return 1
@@ -631,7 +669,7 @@ _cfg_release_value_problem() {
 # default) mode never reads. A key nothing reads is silently ignored config,
 # the class issue 0080 closed for booleans.
 _cfg_release_problems() {
-  local rc=0 shape key i n sentinel kind object IFS=$' \t\n'
+  local rc=0 shape key readers i n sentinel kind object offered IFS=$' \t\n'
   # NO PIPELINE, AND NOT FOR STYLE. The items were read through
   # `... | grep -qx -- -`, and under pipefail, which every handler sets, a grep
   # that matches on the first line exits before the writer has finished: the
@@ -664,6 +702,12 @@ _cfg_release_problems() {
     printf 'config: %s: release.remotes: "-" would push the release to no remote -- leave the key out for every remote, or name the remotes\n' "$_DEVBIN_CFG_FILE" >&2
     rc=1
   fi
+  # `verbs: -` IS REFUSED TOO, for its own reason: a release that offers no
+  # verb is `commands.release.enabled: false`, which is where to say so.
+  if cfg_release_declared verbs && [ -z "$(cfg_release_list verbs)" ]; then
+    printf 'config: %s: release.verbs: "-" would offer no verb -- a release with none is commands.release.enabled: false\n' "$_DEVBIN_CFG_FILE" >&2
+    rc=1
+  fi
   kind="$(cfg_release_get notes.kind)"
   object="$(cfg_release_get object)"
   if [ "$kind" = command ] && ! cfg_has release.notes.run; then
@@ -690,7 +734,72 @@ _cfg_release_problems() {
     printf 'config: %s: release.object_wait is read only under object: ci, and object is %s\n' "$_DEVBIN_CFG_FILE" "$object" >&2
     rc=1
   fi
+  # THE ASSETS ARE ATTACHED UNDER object: local ALONE, as `title` is read:
+  # under `ci` the workflow writes the release object, and an attach would be
+  # its second writer; under `none` there is no object to attach to.
+  for key in assets.workflow assets.wait; do
+    if cfg_has "release.$key" && [ "$object" != local ]; then
+      printf 'config: %s: release.%s is read only under object: local, and object is %s\n' "$_DEVBIN_CFG_FILE" "$key" "$object" >&2
+      rc=1
+    fi
+  done
+  if cfg_has release.assets.wait && ! cfg_has release.assets.workflow; then
+    printf 'config: %s: release.assets.wait is read only when release.assets.workflow is declared\n' "$_DEVBIN_CFG_FILE" >&2
+    rc=1
+  fi
+  # A DECLARED KEY THAT NO OFFERED VERB READS IS REFUSED (ST0008 WP-08), read
+  # from the table's readers column: with `cut` and `status` both off, a gate or
+  # a title is config nothing acts on. An empty list is refused above, so it is
+  # not asked about every key a second time. A list that could not be read is
+  # said, never taken for an empty one.
+  if ! offered="$(cfg_release_list verbs)"; then
+    printf 'config: %s: release.verbs could not be read, so no key was checked against the verbs that read it\n' "$_DEVBIN_CFG_FILE" >&2
+    rc=1
+  elif [ -n "$offered" ]; then
+    while read -r shape key readers _; do
+      [ -n "$shape" ] || continue
+      cfg_release_declared "$key" || continue
+      _cfg_release_read_by "$readers" "$offered" && continue
+      printf 'config: %s: release.%s is read only by %s, and release.verbs offers %s\n' \
+        "$_DEVBIN_CFG_FILE" "$key" "$(_cfg_release_readers_said "$readers")" "${offered//$'\n'/, }" >&2
+      rc=1
+    done <<<"$_DEVBIN_RELEASE_SCHEMA"
+  fi
   return "$rc"
+}
+
+# _cfg_release_read_by <readers> <offered> -- true when a verb in <offered>, one
+# per line, reads a key whose readers column is <readers>: a verb named alone,
+# or `<verb>!<key>` while `release.<key>` is not declared.
+_cfg_release_read_by() {
+  local r v
+  local -a rs=()
+  IFS=',' read -r -a rs <<<"$1"
+  for r in "${rs[@]}"; do
+    v="${r%%!*}"
+    grep -qxF -- "$v" <<<"$2" || continue
+    [ "$r" = "$v" ] || ! cfg_release_declared "${r#*!}" || continue
+    return 0
+  done
+  return 1
+}
+
+# _cfg_release_readers_said <readers> -- a readers column in words, for a
+# refusal: `cut and status`, `cut, status and attach while release.repo is not
+# declared`.
+_cfg_release_readers_said() {
+  local r said="" last=""
+  local -a rs=()
+  IFS=',' read -r -a rs <<<"$1"
+  for r in "${rs[@]}"; do
+    [ -z "$last" ] || said+="${said:+, }$last"
+    if [ "$r" = "${r%%!*}" ]; then
+      last="$r"
+    else
+      last="${r%%!*} while release.${r#*!} is not declared"
+    fi
+  done
+  printf '%s\n' "${said:+$said and }$last"
 }
 
 # _cfg_path_boolean <path> -- true when devbin reads the path's value as a yes

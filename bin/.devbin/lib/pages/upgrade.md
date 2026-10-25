@@ -1,33 +1,14 @@
     bin/devbin upgrade [--from <dir>] [--force]
-    bin/devbin upgrade [--prefix <dir>]          (in devbin's own source checkout)
 
-Two modes, chosen by the tree you run it in.
+Re-syncs a project's vendored runtime from a devbin source. It changes only devbin's half -- bin/devbin, bin/.devbin/lib/ and the manifest -- and devbin's line-ending block in .gitattributes, and never touches config.yaml, cmd/ or help/. It names its source (`Upgrading from <dir>`) before it writes.
 
-    UPGRADE          in a project: re-sync its vendored runtime from a devbin
-                     source. Changes only devbin's half -- bin/devbin,
-                     bin/.devbin/lib/ and the manifest -- and devbin's
-                     line-ending block in .gitattributes, and never touches
-                     config.yaml, cmd/ or help/.
-    PUBLISH-UPGRADE  in devbin's own source checkout: replace the machine install
-                     that projects vendor from. Refuses on a dirty tree, and
-                     refuses when there is no install yet -- use install.
+    --from <dir>   the devbin to upgrade from (default: the tree this machine's
+                   switch names -- see The source)
+    --force        overwrite vendored files that were edited in place, and in an
+                   install with no manifest, or one whose manifest records no
+                   files, replace every one unchecked
 
-    --from <dir>   UPGRADE only: the devbin to upgrade from (default: the source
-                   the manifest records, placed on this machine -- see The source)
-    --force        UPGRADE only: overwrite vendored files that were edited in place,
-                   and in an install with no manifest, or one whose manifest
-                   records no files, replace every one unchecked
-    --prefix <dir> PUBLISH-UPGRADE only: the install to replace (default:
-                   install.prefix in that checkout's bin/.devbin/config.yaml).
-                   There is no built-in default: an unset prefix is refused
-    --point        PUBLISH-UPGRADE only, to install.prefix: make this install
-                   the machine's, writing the machine pointer, where the
-                   machine's install is Homebrew's and would otherwise stay so
-                   (bin/devbin help install, An install Homebrew placed).
-                   Elsewhere the pointer is written anyway, and --point
-                   changes nothing
-
-A flag from the other mode is refused rather than ignored. PUBLISH-UPGRADE prints a `mode:` line before it writes anything; UPGRADE names its source (`Upgrading from <dir>`) before it writes.
+In devbin's own source checkout it is refused, and writes nothing: a checkout publishes its opt install with `install`, and replaces it with `install --force` (`bin/devbin help install`).
 
 ## The refusal is the feature
 
@@ -89,17 +70,7 @@ It stays 0 when files were refused, because this command's status answers "did I
 
 ## The source
 
-With no --from, upgrade uses the source recorded in the manifest, which install writes and every upgrade rewrites. The manifest records the KIND of tree it came from, never where that tree is: `install`, `checkout` or `project`. The manifest is tracked in every project that vendors devbin, and a path in it named one machine's layout in all of them. This machine says where each kind is: an install through `DEVBIN_INSTALL_PREFIX`, or else the machine pointer, `$XDG_DATA_HOME/devbin/home` (by default `~/.local/share/devbin/home`), which publishing an install to `install.prefix` writes, or else, when neither names one, the install Homebrew placed, at `$HOMEBREW_PREFIX/opt/devbin/libexec` (see `bin/devbin help install`); a checkout through `DEVBIN_SOURCE`, as `dvb` reads it; a project through nothing, so --from is needed. When the kind cannot be placed here, upgrade says what is missing and asks for --from, and a pointer that is empty, a link to nothing, relative, or names a tree that is no install or whose manifest cannot be read is named as such rather than read as absent. A source DEVBIN_INSTALL_PREFIX places is taken as given, so a refusal of that tree, as no devbin or as one that cannot say what kind of tree it is, says the variable named it. Vendoring from an install other than the one this machine names says so as it writes: the manifest records `install`, which a later upgrade without --from reads as the machine's install. A source that is no checkout and has no manifest to say what it is is refused, since recording `project` for it would be a guess. A manifest written before this recorded a path, which still reads, and the kind replaces it only at an upgrade this runtime runs: an upgrade is run by the project's own vendored runtime, so the upgrade that installs this runtime over an older one is run by the older one and records the path again. A project upgraded from such a runtime needs a second upgrade, run by the new one, before its manifest records the kind. --from names a different source, and it is checked for a `bin/devbin` with a runtime beside it before anything is written.
-
-## PUBLISH-UPGRADE: replacing the machine install
-
-It shares install's publish writer and its clean-tree gate: the install's whole value is that its bytes came from a committed tree, so an upgrade cut from a dirty one would destroy exactly what it exists to provide.
-
-An install Homebrew placed, whose manifest records `managed_by: brew`, is refused before the gate reads anything, and the refusal names `brew upgrade devbin`: Homebrew replaces the keg whole at each version, so bytes written into it would be lost at the next one.
-
-An install has no author, so nothing in it is preserved: every file the source ships is copied over it, and an edited file is NAMED before it is overwritten, since a file silently replaced is a change nobody can find afterwards. A file in the install that devbin cannot read is named the same way and replaced unread, and an install with no manifest, which cannot name an edit, says that every file is being replaced unchecked; one in the source it cannot read refuses the publish, and the install is left as it was. A file the source has stopped shipping is removed from the install, and named as it goes, so no project vendored from the install receives it afterwards. A file devbin renamed only in case is kept, under the new spelling, on a disk that folds case, where the two spellings are one file.
-
-Replacing the install moves no project: each keeps the bytes it has until it is upgraded.
+With no --from, upgrade reads the tree this machine's switch names. The manifest records the KIND of tree its bytes came from, never where that tree is: `install`, `checkout` or `project`. The manifest is tracked in every project that vendors devbin, and a path in it named one machine's layout in all of them. The kind says where the bytes came from, never where the next upgrade goes: for every kind, the source is `DEVBIN_INSTALL_PREFIX` when it is set, else the tree the link `~/.local/bin/devbin` leads to, read by the link's own path, so cron and a hook with no login PATH still find it, else the install Homebrew placed, at `$HOMEBREW_PREFIX/opt/devbin/libexec`. The link is what `devbin use` writes (`bin/devbin help use`), so `use dev` makes the next upgrade vendor from the checkout, which the manifest then records as `checkout`, with `+dirty` when that tree is dirty. When nothing names a source here, upgrade says what is missing and asks for --from, and a link that leads nowhere, or to a tree that is neither an install nor devbin's checkout, or whose manifest cannot be read, is named as such rather than read as absent. A project that records no source at all asks for --from. A source DEVBIN_INSTALL_PREFIX places is taken as given, so a refusal of that tree, as no devbin or as one that cannot say what kind of tree it is, says the variable named it. Vendoring from a tree other than the one the switch names says so as it writes, since a later upgrade without --from reads the switch's tree. A source that is no checkout and has no manifest to say what it is is refused, since recording `project` for it would be a guess. A manifest written before this recorded a path, which still reads, and the kind replaces it only at an upgrade this runtime runs: an upgrade is run by the project's own vendored runtime, so the upgrade that installs this runtime over an older one is run by the older one and records the path again. A project upgraded from such a runtime needs a second upgrade, run by the new one, before its manifest records the kind. --from names a different source, and it is checked for a `bin/devbin` with a runtime beside it before anything is written.
 
 ## Uninstalling
 
@@ -116,5 +87,6 @@ What is left -- config.yaml, cmd/ and help/ -- is your half of the seam, intact.
 ## See also
 
     bin/devbin help install      what gets vendored, and what does not
+    bin/devbin help use          the switch an upgrade reads its source from
     bin/devbin help vendor       what an upgrade would change, before it does
     bin/devbin help doctor       checking the result

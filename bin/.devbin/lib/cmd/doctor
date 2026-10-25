@@ -36,8 +36,8 @@ NOTES=0
 
 # Three outcomes, not two. A FAILURE is something broken; a NOTE is something
 # true and worth saying that is not an error -- `build` offered with nothing
-# behind it is D18 tier 4 working as designed, and reporting it as a fault
-# would make devbin's own doctor red on a correct install.
+# behind it is tier 4, a name only, working as designed, and reporting it as a
+# fault would make devbin's own doctor red on a correct install.
 _pass() {
   CHECKS=$((CHECKS + 1))
   printf '  %sok%s    %s\n' "${green:-}" "${reset:-}" "$*"
@@ -83,9 +83,10 @@ check_runtime() {
   if is_devbin_installed "$PROJECT_ROOT"; then
     _pass "runtime: devbin $version, vendored at bin/.devbin/lib"
   else
-    # The D12 case. Worth SAYING rather than passing silently: a project that
-    # thinks it is installed and is really running out of a sibling checkout
-    # gets a different answer from `upgrade` than it expects.
+    # The devbin source checkout case. Worth SAYING rather than passing
+    # silently: a project that thinks it is installed and is really running out
+    # of a sibling checkout gets a different answer from `upgrade` than it
+    # expects.
     _pass "runtime: devbin $version, running from this checkout's own lib/ (not installed)"
   fi
   return 0
@@ -124,7 +125,7 @@ check_config() {
   return 0
 }
 
-# check_release -- a release: block that nothing reads (ST0007, design D35).
+# check_release -- a release: block that nothing reads (ST0007).
 #
 # `release` is opt-in, and a release: block does not enable it by being
 # present: that would be a second activation route for one row. So a block in
@@ -157,7 +158,7 @@ check_release() {
 # option unsealed.
 #
 # A FAILURE, NOT A NOTE: the project asked for a seal, or for none, and does not
-# get it. Measured before it shipped: every `log:` key in the estates it was
+# get it. Measured before it shipped: every `log:` key in the projects it was
 # measured on is read, so none of them turns red on this.
 #
 # WHETHER A RUN READS THE KEY IS command_tier's AND option_run_tier's ANSWER
@@ -262,9 +263,9 @@ check_languages() {
 # check_devbin_version -- the constraint the project declared, enforced.
 #
 # IT RE-READS THE CONFIG FOR THE SAME REASON check_languages DOES, four lines
-# up, and until 2026-09-22 it did not. An empty cache means either "declares no
-# constraint" or "could not read the constraint it declares", and only the
-# first may be said. This check said it unconditionally, so a project whose
+# up, and once did not. An empty cache means either "declares no constraint"
+# or "could not read the constraint it declares", and only the first may be
+# said. This check said it unconditionally, so a project whose
 # config does not parse was told `any runtime satisfies this project` -- the
 # most permissive verdict doctor can reach -- printed directly beneath a FAIL
 # naming that same file. 0062 wrote this guard for check_languages and it never
@@ -287,7 +288,7 @@ check_devbin_version() {
   else
     _fail "devbin_version: running $have, this project asks for $want"
     # An install with no manifest runs `unknown`, and a plain upgrade refuses
-    # it: the fix is the manifest check's, below (issue 0146, critic-shell). So
+    # it: the fix is the manifest check's, below (issue 0146). So
     # does one whose manifest records no files (issue 0159), whose header may
     # still name a version: upgrade refuses it all the same.
     if unvouched="$(manifest_unvouched "$PROJECT_ROOT")"; then
@@ -359,7 +360,7 @@ check_manifest() {
         [ "$bad" -eq 0 ] && _fail "manifest: vendored files have been edited in place"
         bad=$((bad + 1))
         # A FILE CHECKED OUT CRLF READS AS EDITED, so its cause is said beside
-        # it, and check_line_endings names it with the remedy (ST0008 D46). A
+        # it, and check_line_endings names it with the remedy (ST0008). A
         # read error here goes unsaid: a file devbin cannot read is
         # `unreadable`, not `modified`, failed below, and check_line_endings
         # notes it as unchecked.
@@ -458,7 +459,7 @@ EOF
 }
 
 # check_line_endings -- bin/devbin and every file under bin/.devbin/ held to LF
-# by the repository, and none carrying CR bytes already (ST0008 D46).
+# by the repository, and none carrying CR bytes already (ST0008).
 #
 # ASKED OF GIT, NOT READ OFF .gitattributes. `git check-attr eol` answers as
 # git itself will at the next checkout: devbin's block, a rule after it that
@@ -601,10 +602,10 @@ _command_runnable() {
 # check_shadowing -- project names standing where devbin ships its own (0024).
 #
 # OVERRIDING IS LEGAL AND LOAD-BEARING, and this check does not argue with it.
-# D2 and D5 exist so a project can put its own thing at any name devbin ships,
-# and the framework would be worse without that. What was missing is anyone
-# SAYING SO -- the substitution is invisible from the command line, and both
-# things answer to the same word.
+# The resolution order exists so a project can put its own thing at any name
+# devbin ships, and the framework would be worse without that. What was missing
+# is anyone SAYING SO -- the substitution is invisible from the command line,
+# and both things answer to the same word.
 #
 # TWO MEASURED INSTANCES IN ONE DAY, IN OPPOSITE DIRECTIONS, which is what makes
 # this a class rather than an anecdote:
@@ -695,7 +696,7 @@ CMDS
 
 # _ships_behind_name <command> -- true when devbin ships something a project
 # taking the command over would displace: a command line, a handler of its own,
-# or an option. False for a name-only built-in (D18 tier 4) such as precommit.
+# or an option. False for a name-only built-in (tier 4) such as precommit.
 _ships_behind_name() {
   builtin_has_default_run "$1" && return 0
   [ -x "$DEVBIN_LIB/cmd/$1" ] && return 0
@@ -707,7 +708,8 @@ _ships_behind_name() {
 # Two orphan shapes, both silent. A handler without its executable bit is
 # skipped by known_commands, so the command simply does not exist and nothing
 # says why. A `<name>.d/` with no `<name>` beside it holds sub-commands whose
-# parent never resolves, so the whole subtree is unreachable (D3).
+# parent never resolves, so the whole subtree is unreachable (sub-dispatch is
+# recursive).
 check_handlers() {
   local dir="$DEVBIN_DIR/cmd" f base orphans=0
   if [ ! -d "$dir" ]; then
@@ -745,9 +747,9 @@ check_handlers() {
 # check_symlinks -- the launcher, and the retired aliases that may still shadow
 # a project's own binary.
 #
-# THIS CHECK IS INVERTED FROM WHAT IT WAS (2026-08-27, superseding D6). It used
-# to require `bin/<project>` and `bin/<alias>` as symlinks to devbin, and to
-# tell you to create them. They are retired: `bin/devbin` is the invocation
+# THIS CHECK IS INVERTED FROM WHAT IT WAS. It used to require `bin/<project>`
+# and `bin/<alias>` as symlinks to devbin, and to tell you to create them.
+# They are retired: `bin/devbin` is the invocation
 # everywhere, because the old convention collided with the binaries these
 # projects BUILD -- a project named `demo` ships a `demo`.
 #
@@ -772,11 +774,10 @@ check_symlinks() {
 
   # THE TWO NAMES ARE DIFFERENT THINGS AND THIS LOOP USED TO CONFLATE THEM.
   # It iterated `project.name project.alias` together and called both retired,
-  # so it told every estate with a shortcut that its RATIFIED one was
-  # superseded. The convention (2026-08-27): bin/{project} is retired because it
-  # shadows the binary the project BUILDS; a 2-3 char shortcut pointing DIRECT
-  # at bin/devbin is a permitted per-project choice. Found by an audit of the
-  # estates.
+  # so it told every project with a shortcut that its RATIFIED one was
+  # superseded. The convention: bin/{project} is retired because it shadows the
+  # binary the project BUILDS; a 2-3 char shortcut pointing DIRECT at bin/devbin
+  # is a permitted per-project choice.
   pname="$(cfg_get project.name)"
   palias="$(cfg_get project.alias)"
 
@@ -796,7 +797,7 @@ check_symlinks() {
       # the word "note" does not survive the trip.
       #
       # Whether the alias goes is a PROJECT decision and devbin is not entitled
-      # to it -- in several estates it is named by CI.
+      # to it -- in several projects it is named by CI.
       _detail "whether to remove it is this project's call; devbin no longer creates it"
       # WHAT DOCTOR CAN DO THAT A CAUTION CANNOT: say who would break. It is
       # standing in bin/ and can simply look, so the risk is COMPUTED for this
@@ -885,22 +886,87 @@ check_source_currency() {
       _detail "this is not a clean bill -- nothing was established either way"
       ;;
   esac
-  # WHICH INSTALL, AND WHAT CHOSE IT (issue 0195). DEVBIN_INSTALL_PREFIX, the
-  # machine pointer and, when neither names one, Homebrew's opt/devbin can each
-  # name the install, and a project read against the wrong one reads level or
-  # behind against it all the same.
-  if [ "$(manifest_field "$PROJECT_ROOT" source 2>/dev/null || true)" = install ] &&
+  # WHICH INSTALL, AND WHAT CHOSE IT (issues 0195, 0213). DEVBIN_INSTALL_PREFIX,
+  # the link `devbin use` writes and, when neither names one, Homebrew's
+  # opt/devbin can each name the tree every kind of recorded source is upgraded
+  # from, and a project read against the wrong one reads level or behind
+  # against it all the same. The tree is named by its own line, so which of
+  # dev, opt and brew the switch chose is on the row.
+  if [ -n "$(manifest_field "$PROJECT_ROOT" source 2>/dev/null || true)" ] &&
     root="$(machine_install_root 2>/dev/null)"; then
     by="$(machine_install_by)"
-    [ "$(machine_install_chooser)" != brew ] || by="$by, since no DEVBIN_INSTALL_PREFIX or machine pointer names one"
-    _detail "install: $root, named by $by"
+    [ "$(machine_install_chooser)" != brew ] || by="$by, since no DEVBIN_INSTALL_PREFIX or link names one"
+    _detail "install: $(devbin_tree_line "$root"), named by $by"
   fi
+  return 0
+}
+
+# check_tree -- in devbin's own dev tree, the tree line (T4 of
+# docs/dev-opt-brew.md), which doctor prints as `--version` does. It fails when
+# git cannot read the checkout, since the line then carries `unknown` for the
+# commit and names no bytes. A project is not one of devbin's trees: its own
+# install is named under source.
+check_tree() {
+  local line
+  [ "$(devbin_tree "$PROJECT_ROOT")" = dev ] || return 0
+  line="$(devbin_tree_line "$PROJECT_ROOT")"
+  case "$line" in
+    *"(dev, unknown)"*) _fail "tree: $line -- git cannot read this checkout, so the line names no commit" ;;
+    *) _pass "tree: $line" ;;
+  esac
+  return 0
+}
+
+# check_switch -- the machine's switch among dev, opt and brew is sound
+# (docs/dev-opt-brew.md, T3 to T5; issue 0213).
+#
+# FAILS when the link is shadowed on PATH (devbin_link_shadow), when the link
+# cannot be followed to a devbin tree, and when the opt install the switch chose
+# is in the manifest form written before the contract, naming each remedy; a
+# keg in that form is a NOTE (below). A machine pointer still on disk is a NOTE:
+# nothing reads it, so it is named as retired with the step that replaces it,
+# and removed by hand.
+check_switch() {
+  local why state root p failed=""
+  why="$(devbin_link_shadow)"
+  if [ -n "$why" ]; then
+    _fail "switch: $why"
+    failed=yes
+  fi
+  state="$(machine_link_state)"
+  if [ "${state%% *}" = bad ]; then
+    _fail "switch: ${state#bad }"
+    failed=yes
+  fi
+  # AN OLD KEG IS A NOTE, AN OLD OPT INSTALL A FAILURE (T3). An opt install is
+  # fixed now, by `install --force` in the checkout. A keg is fixed only by
+  # `brew upgrade devbin` to a release that writes the new form, and a failure
+  # would stop that release's own cut, whose gates run doctor on the machine
+  # still holding the old keg.
+  if root="$(machine_install_root 2>/dev/null)" && devbin_install_old "$root"; then
+    if [ "$(devbin_tree "$root")" = brew ]; then
+      _note "switch: the install at $root has the manifest form written before devbin's tree line"
+      _detail "run: brew upgrade devbin, once a release that writes the new form is out"
+    else
+      _fail "switch: the install at $root has the manifest form written before devbin's tree line -- run: bin/devbin install --force in the devbin checkout"
+      failed=yes
+    fi
+  fi
+  if p="$(devbin_home_pointer 2>/dev/null)" && { [ -e "$p" ] || [ -L "$p" ]; }; then
+    _note "switch: $p is the retired machine pointer, and nothing reads it"
+    _detail "the link devbin use writes is the record now: run devbin use opt or devbin use brew, then remove $p"
+  fi
+  [ -z "$failed" ] || return 0
+  case "${state%% *}" in
+    at) _pass "switch: the link names ${state#at }" ;;
+    *) _pass "switch: no link, so brew" ;;
+  esac
   return 0
 }
 
 # check_bash -- the floor, asserted where a human reads it.
 #
-# Issue 0022 (2026-08-24) reversed design D9: devbin REQUIRES bash >= 5, and
+# Issue 0022 dropped bash 3.2 support: devbin REQUIRES bash >= 5, and
 # the dispatcher refuses older before doctor can run -- so a doctor reaching
 # this line is already on a compliant bash. The row still earns its place: it
 # names WHICH bash, and it is the check that goes red if the dispatcher guard
@@ -915,7 +981,7 @@ check_bash() {
 }
 
 # check_location <wsl> -- under WSL (<wsl> 1), whether the project sits on a
-# Windows drive (ST0008 D49). Off WSL there is nothing to say, so no row. main
+# Windows drive (ST0008). Off WSL there is nothing to say, so no row. main
 # asks is_wsl before the header, so a DEVBIN_WSL it refuses stops doctor
 # before any row rather than partway down the list.
 #
@@ -1069,6 +1135,8 @@ main() {
   check_shadowing
   check_symlinks
   check_source_currency
+  check_tree
+  check_switch
   check_bash
   check_location "$wsl"
   run_project_checks

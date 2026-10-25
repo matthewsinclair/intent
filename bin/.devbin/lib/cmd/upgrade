@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# The built-in `upgrade` -- re-sync the vendored runtime (design D5).
+# The built-in `upgrade` -- re-sync the vendored runtime.
 #
 # The manifest is what makes this safe to type. Every vendored file was
 # checksummed at install; a file whose checksum has moved since has been edited
@@ -15,43 +15,24 @@ set -euo pipefail
 
 # shellcheck source=lib/helpers
 . "${DEVBIN_LIB:?run me through bin/devbin}/helpers"
-# shellcheck source=lib/config
-# `install.prefix` is read here in PUBLISH-UPGRADE mode (ST0005). Handlers are
-# reached by `exec` (lib/resolve:173), so the config the dispatcher loaded is
-# gone with its process and this file needs the reader of its own.
-. "$DEVBIN_LIB/config"
 # shellcheck source=lib/install
 . "$DEVBIN_LIB/install"
 
 usage() {
   cat <<EOF
 usage: $DEVBIN_INVOKE upgrade [--from <dir>] [--force]
-       $DEVBIN_INVOKE upgrade [--prefix <dir>] [--point]          (inside devbin's own tree)
 
-  --from <dir>   the devbin to upgrade from (default: the source the manifest records)
-  --prefix <dir> PUBLISH-UPGRADE only: the machine install to replace
-                 (default: install.prefix in devbin's own config. There is no
-                 built-in default -- the location is configuration)
-  --point        PUBLISH-UPGRADE only, to install.prefix: make this install
-                 the machine's, writing the machine pointer, where the
-                 machine's install is Homebrew's and would otherwise stay so.
-                 Elsewhere the pointer is written anyway, and --point changes
-                 nothing
+  --from <dir>   the devbin to upgrade from (default: the install this
+                 machine's switch names -- see devbin use)
   --force        overwrite vendored files that were edited in place, and, in
                  an install with no manifest, replace every one unchecked
 
 Replaces bin/devbin and bin/.devbin/lib/. Never touches config.yaml, cmd/ or
 help/ -- those are yours.
 
-TWO MODES, chosen by the tree you are standing in:
-
-  PUBLISH-UPGRADE  run inside devbin's own source tree. Replaces the machine
-                   install that the estate vendors from. Refuses on a dirty tree,
-                   and refuses when there is no install yet -- use \`install\`.
-  UPGRADE          everywhere else, and unchanged: bring this project's vendored
-                   runtime forward from its recorded source.
-
-The mode is printed before anything is written.
+Brings this project's vendored runtime forward. In devbin's own source tree it
+is refused: a checkout publishes its opt install with \`install\`, and
+replaces one with \`install --force\`.
 EOF
 }
 
@@ -69,110 +50,6 @@ EOF
 _upgrade_provenance_lines() {
   warn "  vendored from: $(manifest_source_commit "$1" 2>/dev/null || printf 'unrecorded')"
   warn "  upgrading to:  $(source_commit_of "$2")"
-}
-
-# _upgrade_the_install <srcroot> <prefix-flag> [point] -- replace the machine
-# install; `point` is --point (issue 0197).
-#
-# The mirror of `install`'s PUBLISH mode and it shares that mode's single writer,
-# `publish_install`. What differs is the precondition and nothing else: `install`
-# refuses when an install already exists, this refuses when one does not, so
-# whichever verb you reach for, the wrong one names the right one.
-_upgrade_the_install() {
-  local srcroot="$1" prefix="$2" point="${3:-}" dstroot modified record rel states unreadable configured unvouched why
-
-  cfg_load "$DEVBIN_DIR/config.yaml" >/dev/null 2>&1 ||
-    die "cannot read devbin's own config at $DEVBIN_DIR/config.yaml"
-  # Read while devbin's own config is the one loaded, for the machine pointer
-  # below (issue 0153); empty when no prefix is configured.
-  configured="$(install_prefix_configured 2>/dev/null || true)"
-  # As in `install`, and through the same reader: no baked default, and the
-  # refusal is raised at the call site rather than left to errexit.
-  if [ -z "$prefix" ]; then
-    prefix="$(install_prefix_configured)" || die_install_prefix_unset '--prefix <dir>'
-  fi
-  dstroot="$prefix"
-  # Refused before anything is written (issue 0197).
-  if [ -n "$point" ]; then
-    why="$(point_refusal "$dstroot" "$configured")"
-    [ -z "$why" ] || die "$why"
-  fi
-
-  printf 'mode: PUBLISH-UPGRADE -- %s is devbin'"'"'s own source tree\n' "$srcroot"
-  printf '  replacing the install at: %s\n\n' "$dstroot"
-
-  if ! is_devbin_installed "$dstroot"; then
-    warn "there is no install at $dstroot to upgrade"
-    warn "  to publish one:  $DEVBIN_INVOKE install"
-    return 1
-  fi
-  # A HOMEBREW KEG IS HOMEBREW'S TO REPLACE (issue 0195), so this refuses before
-  # the gate reads anything: see install_managed_refusal.
-  install_managed_refusal "$dstroot" || return 1
-
-  # THE SAME GATE AS `install`, publish_gate in lib/install, and it is the reason
-  # the install tree is worth having at all (D28). An install cut from a dirty
-  # checkout launders the bytes through one more hop and gives them the LOOK of
-  # provenance.
-  publish_gate "$srcroot"
-
-  # AN EDITED INSTALL IS REPORTED BEFORE IT IS DISCARDED. Nobody should be
-  # editing an install and the replace is wholesale either way -- but a file
-  # silently overwritten is a change nobody can find afterwards, and saying so
-  # costs one manifest read that already has a reader.
-  # -F'\t' because manifest_check's contract is `<state><TAB><relpath>` and a
-  # vendored path containing a space would split into the wrong field under
-  # awk's default whitespace FS. No such path exists today, which is exactly the
-  # condition under which this would be found late.
-  # Its stderr is kept: each file it could not read is named there, with the
-  # checksum tool's reason, which the list below does not repeat. An install
-  # manifest it cannot read refuses before anything is written (issue 0144):
-  # publish carries the install's ancestry forward from it.
-  states="$(manifest_check "$dstroot")" ||
-    die "cannot read the install's manifest at $(manifest_path "$dstroot") (named above), so nothing was published"
-  modified="$(printf '%s\n' "$states" | awk -F'\t' '$1 == "modified" { print $2 }')"
-  if [ -n "$modified" ]; then
-    warn "this install has edited files; they are being REPLACED, not preserved:"
-    printf '%s\n' "$modified" | while IFS= read -r line; do warn "  $line"; done
-  fi
-  # AND ONE DEVBIN CANNOT READ IS NAMED THE SAME WAY (issue 0144). Replacing it
-  # needs no read of it -- the copy lands beside it and is renamed over it -- so
-  # this is the one writer an unreadable file does not stop, and the file is
-  # readable afterwards. What was in it is nobody's to recover, so it is said.
-  unreadable="$(printf '%s\n' "$states" | awk -F'\t' '$1 == "unreadable" { print $2 }')"
-  if [ -n "$unreadable" ]; then
-    warn "this install has files devbin cannot read; they are being REPLACED or removed, unread:"
-    printf '%s\n' "$unreadable" | while IFS= read -r line; do warn "  $line"; done
-  fi
-  # AND AN INSTALL WITH NO MANIFEST HAS NO EDIT IT CAN NAME (issue 0146): it
-  # read as none edited. Publishing replaces every file either way, so this is
-  # said rather than refused.
-  if unvouched="$(manifest_unvouched "$dstroot")"; then
-    if [ "$unvouched" = empty ]; then
-      warn "this install's manifest records no files, so an edit in it cannot be named; every file is being REPLACED unchecked"
-    else
-      warn "this install has no manifest, so an edit in it cannot be named; every file is being REPLACED unchecked"
-    fi
-  fi
-
-  record="$(publish_install "$srcroot" "$dstroot" "$(devbin_runtime_version)")" ||
-    die "failed to write the install at $dstroot"
-  printf '  replaced   %d files (bin/devbin, bin/.devbin/lib/)\n' "$(publish_copied "$record")"
-  # What the source stopped shipping leaves the install here, or every estate
-  # vendoring from it would keep receiving it as devbin's (issue 0123).
-  while IFS= read -r rel; do
-    [ -z "$rel" ] || printf '  removed    %s (devbin no longer ships it)\n' "$rel"
-  done <<<"$(publish_removed "$record")"
-  printf '  recorded   %s\n' "$(manifest_field "$dstroot" source_commit 2>/dev/null || printf 'unrecorded')"
-  # The install is replaced either way; a pointer it could not write is named
-  # and fails the run, since no project would find the install it just wrote.
-  install_pointer_write "$dstroot" "$configured" "$point" || {
-    warn "the install is replaced at $dstroot, but the machine pointer was not written (above)"
-    return 1
-  }
-  printf '\nA project carries the OLD bytes until it upgrades from here:\n'
-  vendor_from_hint "$dstroot"
-  return 0
 }
 
 # _refuse_unreadable <dstroot> <srcroot> <paths> <entries> <dst_sums> <src_sums>
@@ -213,7 +90,7 @@ _refuse_unreadable() {
 }
 
 main() {
-  local from="" force="" prefix="" point="" dstroot srcroot version states paths rel src state
+  local from="" force="" dstroot srcroot version states paths rel src state
   local recorded twin entries dst_sums src_sums dst_read src_read direction unvouched=""
   local added=0 updated=0 unchanged=0 skipped=0 removed=0 converged=0 sum_src sum_dst
   # Released files are counted inside `skipped`, whose summary line a caller
@@ -238,16 +115,8 @@ main() {
         from="${2:-}"
         shift 2 || die "--from needs a directory"
         ;;
-      --prefix)
-        prefix="${2:-}"
-        shift 2 || die "--prefix needs a directory"
-        ;;
       --force)
         force=yes
-        shift
-        ;;
-      --point)
-        point=point
         shift
         ;;
       -*) die "unknown option '$1' (try: $DEVBIN_INVOKE upgrade --help)" ;;
@@ -257,34 +126,25 @@ main() {
 
   dstroot="${PROJECT_ROOT:?}"
 
-  # --- PUBLISH-UPGRADE: the dev tree replaces the machine install (ST0005) -----
+  # --- devbin's own tree publishes with `install`, never with `upgrade` --------
   #
   # Must sit BEFORE the is_devbin_installed test below, because the dev tree
-  # deliberately fails that test -- it runs lib/ in place (D12) and has nothing
-  # vendored. What used to happen here was a refusal saying exactly that; the
-  # refusal was correct and there is now something to do instead.
-  # A FLAG FROM THE OTHER MODE IS A USAGE ERROR, as it is in `install` (issue
-  # 0103). Each was dropped in silence here: --prefix in a project upgraded from
-  # the manifest's source while the operator believed they had named another,
-  # and --from or --force in devbin's own tree did nothing at all.
+  # deliberately fails that test -- it runs lib/ in place and has nothing
+  # vendored. Upgrade replaced the opt install here until issue 0213; publishing
+  # now has one verb, `install`, and `install --force` is the one re-publish
+  # route (docs/dev-opt-brew.md, T2), so this names it and writes nothing.
   if is_devbin_dev_tree "$dstroot"; then
-    [ -z "$from" ] || die "--from applies only when upgrading a project
-       you are in devbin's own source tree, which PUBLISH-UPGRADEs the machine install"
-    [ -z "$force" ] || die "--force applies only when upgrading a project
-       you are in devbin's own source tree, which PUBLISH-UPGRADEs the machine install"
-    _upgrade_the_install "$dstroot" "$prefix" "$point"
-    return $?
+    warn "this is devbin's own source tree, which upgrade does not publish from"
+    warn "  to replace its opt install:  $DEVBIN_INVOKE install --force"
+    warn "  to publish a new one:        $DEVBIN_INVOKE install"
+    return 1
   fi
-  [ -z "$prefix" ] || die "--prefix applies only when publishing from devbin's own source tree
-       you are upgrading a project; its source is --from <dir> or the manifest's"
-  [ -z "$point" ] || die "--point applies only when publishing from devbin's own source tree
-       you are upgrading a project, and a project's upgrade writes no machine pointer"
 
   is_devbin_installed "$dstroot" || {
-    # Two un-installed shapes, and only one of them wants an install. The D12
-    # checkout runs its own lib/ in place, so there is nothing vendored to
-    # bring forward -- and advising `install --into` here pointed at the exact
-    # command install refuses (a vendored copy would shadow lib/): a
+    # Two un-installed shapes, and only one of them wants an install. The devbin
+    # source checkout runs its own lib/ in place, so there is nothing vendored
+    # to bring forward -- and advising `install --into` here pointed at the
+    # exact command install refuses (a vendored copy would shadow lib/): a
     # remediation string leading to a dead end.
     if is_devbin_source "$dstroot"; then
       warn "this is the devbin source checkout -- it runs lib/ in place, so there is nothing vendored to upgrade"
@@ -351,7 +211,7 @@ main() {
   fi
 
   # Said once the source is known to be one, so a --force run that then dies
-  # on its --from has not announced a replacement it never made (critic-shell).
+  # on its --from has not announced a replacement it never made.
   if [ -n "$unvouched" ]; then
     warn "$(manifest_unvouched_said "$unvouched"): --force replaces every vendored file unchecked, an edit included"
   fi
@@ -399,14 +259,14 @@ $entries")" || dst_read=""
   # AND THE CONSEQUENCE IS GATED ON BYTES, NOT ON COMMITS (issue 0053). The
   # direction above is a fact about history; `will REVERT the runtime` is a
   # claim about this tree, and the two came apart the moment a commit touched
-  # no vendored file. Measured: an estate installed from one commit, upgraded
+  # no vendored file. Measured: a project installed from one commit, upgraded
   # from that commit's parent -- zero seam paths differ between them -- was told
   # the runtime would be REVERTED, and then told `No vendored file differs` by
   # the same command four lines later. A loud line that fires when nothing will
   # change is how the loud line stops being read, and this one guards a real
   # defect (0021) that needs to be heard.
   #
-  # NOT OVER A MISSING MANIFEST (issue 0146, critic-shell). Only --force gets
+  # NOT OVER A MISSING MANIFEST (issue 0146). Only --force gets
   # here then, and the line above has said all that is true: with nothing
   # recorded the direction is `unknown`, seam_is_level fails closed on it, and
   # the `unknown` arm would send the reader to `vendor`, which refuses it.
@@ -457,9 +317,9 @@ $entries")" || dst_read=""
     die "the manifest stopped being readable after upgrade read it (named above); nothing was written -- run it again"
   # Every file was read above, so an unreadable state here is one that changed
   # in between. Refused before the first write, since the loops below act on a
-  # state and would copy over or remove a file nobody read (critic-shell). A
-  # bash match, not a reader: a here-string needs a temp file on bash 5.0, and
-  # a refusal must never read a match that could not run as no match.
+  # state and would copy over or remove a file nobody read. A bash match, not a
+  # reader: a here-string needs a temp file on bash 5.0, and a refusal must
+  # never read a match that could not run as no match.
   if [[ $'\n'$states == *$'\n'unreadable$'\t'* ]]; then
     die "a file here stopped being readable after upgrade read it (named above); nothing was written -- run it again"
   fi
@@ -577,12 +437,12 @@ EOF
   # change this tree: `source_commit` advances on its own whenever the source
   # has moved past what was vendored.
   #
-  # THE DEFECT THIS CLOSES, measured on 2026-08-27. On exactly that run the
-  # summary printed `Already up to date.` while leaving the tree MODIFIED --
-  # correct behaviour reported as no behaviour, and the single file it changed
-  # is the one that records where this runtime came from. A clean tree came back
-  # dirty under a message saying nothing had happened, which is the shape this
-  # project refuses everywhere else.
+  # THE DEFECT THIS CLOSES, measured. On exactly that run the summary printed
+  # `Already up to date.` while leaving the tree MODIFIED -- correct behaviour
+  # reported as no behaviour, and the single file it changed is the one that
+  # records where this runtime came from. A clean tree came back dirty under a
+  # message saying nothing had happened, which is the shape this project
+  # refuses everywhere else.
   manifest_was=""
   [ -f "$(manifest_path "$dstroot")" ] &&
     manifest_was="$(cat "$(manifest_path "$dstroot")" 2>/dev/null || true)"
@@ -597,7 +457,7 @@ EOF
 
   manifest_now="$(cat "$(manifest_path "$dstroot")" 2>/dev/null || true)"
 
-  # DEVBIN'S LINE-ENDING BLOCK, KEPT (ST0008 D46): written where it is missing
+  # DEVBIN'S LINE-ENDING BLOCK, KEPT (ST0008): written where it is missing
   # or differs, as install writes it, and said only then, as each file is.
   lf="$(lf_block_write "$dstroot")" ||
     die "the runtime is upgraded, but devbin's line-ending block is not in .gitattributes (above)"

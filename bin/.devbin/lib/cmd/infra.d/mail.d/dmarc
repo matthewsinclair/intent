@@ -88,7 +88,7 @@ _dmarc_cleanup() {
 
 # EVERY REAL REPORT IS A CONTAINER, and that was MEASURED rather than assumed.
 # Across a collection of 17 aggregate reports
-# from three reporters on 2026-09-06 and -07: Google and Outlook ship `.zip`,
+# from three reporters: Google and Outlook ship `.zip`,
 # mail.ru ships `.xml.gz`, and NOT ONE arrived as bare XML. A `parse` whose
 # argument is `<report.xml>` therefore reads nothing anybody actually receives
 # -- and it failed with a PARSER error naming the wrong problem, because the
@@ -177,7 +177,7 @@ $(unzip -Z1 "$src" 2>/dev/null | sed 's/^/         /')"
 
 # xq <xpath> -- evaluate one XPath expression against $SRC and print the result.
 #
-# XMLLINT'S EXIT CODE CANNOT CARRY THIS, measured 2026-09-06: an expression
+# XMLLINT'S EXIT CODE CANNOT CARRY THIS, as measured: an expression
 # whose string literal it refuses prints "XPath evaluation failure" to stderr
 # and EXITS 0, while an expression selecting an empty nodeset EXITS 10. Both
 # directions are wrong here -- a green that measured nothing, and a red on a
@@ -508,7 +508,7 @@ _dmarc_is_report() {
 # parse_dir <dir> -- every report under a directory, accounted for.
 #
 # REPORTS ARRIVE IN A FOLDER, WHICH IS THE WHOLE REASON THIS EXISTS. Measured
-# 2026-09-08 on a real collection of 17: they land in dated subdirectories, and
+# on a real collection of 17: they land in dated subdirectories, and
 # the folder also holds a `.DS_Store`, so the obvious `for f in dir/*` loop
 # dies on the first Mac that touches it. Until now `parse` took ONE file and a
 # caller had to write that loop themselves -- which is a second implementation

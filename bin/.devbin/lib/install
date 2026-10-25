@@ -10,7 +10,7 @@
 # `install_prefix_configured`, reads devbin's OWN config, which its caller has
 # loaded, for the publish prefix -- never a target's.
 #
-# THE SEAM, which is the whole of design D5 in one sentence: everything under
+# THE SEAM, which is the whole vendoring design in one sentence: everything under
 # `bin/.devbin/lib/` plus `bin/devbin` is DEVBIN's and is replaced wholesale;
 # everything else under `bin/.devbin/` -- `config.yaml`, `cmd/`, `help/` -- is
 # the PROJECT's and is never written by any function in this file. The one
@@ -30,85 +30,32 @@ _DEVBIN_INSTALL_LOADED=1
 # it has to survive the wholesale replacement of the directory it describes.
 # DEVBIN_MANIFEST_REL moved to lib/helpers beside the readers that use it.
 
-# devbin_lib_dir <root> -- where <root> keeps a devbin runtime, or return 1.
-#
-# The same two-place test the dispatcher makes on itself: the vendored copy
-# first, the checkout's own lib/ as the fallback that lets Devbin run itself
-# (D12). The dispatcher has its own inline copy because it runs BEFORE any
-# library is sourced -- it is the code that finds this file -- which is a real
-# bootstrap exception rather than a licence to have two of these. Everything
-# else asks here.
-devbin_lib_dir() {
-  local root="$1"
-  if [ -d "$root/bin/.devbin/lib" ]; then
-    printf '%s\n' "$root/bin/.devbin/lib"
-    return 0
-  fi
-  if [ -d "$root/lib" ]; then
-    printf '%s\n' "$root/lib"
-    return 0
-  fi
-  return 1
-}
-
-# is_devbin_source <root> -- true when <root> can be vendored FROM.
-#
-# The dispatcher and lib/helpers, because those are the two files whose absence
-# makes every other check meaningless. Checked before upgrade writes anything
-# (AC-09.9): a half-replaced runtime leaves a project that cannot run at all,
-# which is strictly worse than the stale one it was replacing.
-is_devbin_source() {
-  local root="$1" lib
-  [ -f "$root/bin/devbin" ] || return 1
-  lib="$(devbin_lib_dir "$root")" || return 1
-  [ -f "$lib/helpers" ] || return 1
-  return 0
-}
-
-# is_devbin_installed <root> -- true when <root> carries a VENDORED runtime.
-#
-# Deliberately not `devbin_lib_dir` succeeding: a devbin CHECKOUT answers that
-# too, via the D12 fallback, and calling the source tree "installed" would have
-# `upgrade` try to re-vendor Devbin into itself.
-is_devbin_installed() {
-  [ -d "$1/bin/.devbin/lib" ]
-}
-
+# devbin_lib_dir, is_devbin_source, is_devbin_installed and is_devbin_dev_tree
+# moved to lib/helpers beside devbin_tree, which the dispatcher asks.
 
 # --- the local install (ST0005) ----------------------------------------------
 #
 # devbin publishes itself to a local install tree, and consumers vendor FROM
 # that rather than from the development checkout it is edited in. The reason is
-# measured rather than theoretical: on 2026-09-06, estates were running bytes
-# stamped `+dirty -- THESE BYTES MATCH NO COMMIT`, and two vendors taken ten
-# minutes apart from the same dirty tree carried BYTE-IDENTICAL `source_commit`
-# lines over three differing files. The stamp cannot tell two dirty vendors
-# apart. See intent/st/ST0005/design.md.
+# measured rather than theoretical: projects were running bytes stamped
+# `+dirty -- THESE BYTES MATCH NO COMMIT`, and two vendors taken ten minutes
+# apart from the same dirty tree carried BYTE-IDENTICAL `source_commit` lines
+# over three differing files. The stamp cannot tell two dirty vendors apart.
 #
-# THE INSTALL TREE IS CONSUMER-SHAPED, WHICH IS WHY THIS SECTION IS SHORT (D33).
+# THE INSTALL TREE IS CONSUMER-SHAPED, WHICH IS WHY THIS SECTION IS SHORT.
 # `<prefix>/bin/devbin` + `<prefix>/bin/.devbin/lib/` + the ordinary manifest, so
 # `is_devbin_source`, `vendored_paths`, `copy_vendored`, `manifest_write` and
 # `upgrade --from` all apply UNCHANGED. What makes it an install rather than a
 # project is the ABSENCE of the project half -- no config.yaml, no cmd/, no
-# help/ -- and `bin/devbin` refuses to run without a config.yaml, so D27's "never
-# a cwd" is delivered by construction rather than by a check anyone can disable.
+# help/ -- and `bin/devbin` refuses to run without a config.yaml, so "an install
+# is never a cwd" is delivered by construction rather than by a check anyone can
+# disable.
 
-# is_devbin_dev_tree <root> -- true when <root> is devbin's own SOURCE checkout.
-#
-# Derived from the two predicates that already exist rather than from a name or
-# a path: a tree that can be vendored FROM but carries no VENDORED runtime of
-# its own is a source checkout, because a consumer always has `bin/.devbin/lib`.
-# The install tree has one too, so it reads as a consumer here -- which is
-# correct and is the point of D33.
-is_devbin_dev_tree() {
-  is_devbin_source "$1" || return 1
-  ! is_devbin_installed "$1"
-}
 
 # manifest_source_token <srcroot> -- what a manifest records as its source: the
 # KIND of tree it was vendored from, never where that tree is (issue 0153).
 #
-#   install    a machine install, which says so in its own manifest (D33)
+#   install    a machine install, which says so in its own manifest
 #   checkout   a devbin source checkout (is_devbin_dev_tree)
 #   project    another project's vendored runtime, which has a manifest of its own
 #
@@ -139,134 +86,29 @@ manifest_source_token() {
   fi
 }
 
-# source_token_note <srcroot> <token> -- one warning when a project is about to
-# record `install` for an install this machine does not name (issue 0153), and
-# nothing otherwise.
+# source_token_note <srcroot> <token> -- one warning when a project is vendored
+# from a tree other than the one this machine's switch names, and nothing
+# otherwise (issues 0153, 0213).
 #
-# A PROJECT FINDS ITS INSTALL THROUGH THE MACHINE, so vendored from a scratch
-# install, or from any install but the one the machine names, it would later
-# resolve to the machine's install -- or to none -- with nothing saying that the
-# tree it came from was another. Said at the write, never discovered at the
-# next upgrade.
+# THE NEXT UPGRADE GOES WHERE THE SWITCH POINTS, WHATEVER WAS RECORDED. The
+# manifest records the kind of tree the bytes came from (`install`, `checkout`
+# or `project`), and manifest_source places every kind through the switch, so a
+# project vendored from a scratch install, another project or a checkout the
+# switch does not name will later read the switch's tree -- or none -- with
+# nothing saying that the tree it came from was another. Said at the write,
+# never discovered at the next upgrade.
 source_token_note() {
   local src="$1" token="$2" m
-  [ "$token" = install ] || return 0
+  [ -n "$token" ] || return 0
   m="$(machine_install_state)"
   case "$m" in
     "at "*)
       [ "${m#at }" -ef "$src" ] && return 0
-      warn "$src is not the install $(machine_install_namer) names, so the source this project records, \`install\`, will read as ${m#at } -- vendor from that install, or pass --from to each later upgrade"
+      warn "$src is not the tree $(machine_install_namer) names, so this project's next upgrade reads ${m#at } -- vendor from that tree, or pass --from to each later upgrade"
       ;;
-    "bad "*) warn "this project records its source as \`install\`, and ${m#bad }, so a later upgrade will ask for --from until it names one" ;;
-    *) warn "this project records its source as \`install\`, and this machine names no devbin install ($(brew_unplaced_why)), so a later upgrade will ask for --from until one is named (install.prefix, DEVBIN_INSTALL_PREFIX, or a Homebrew install under HOMEBREW_PREFIX)" ;;
+    "bad "*) warn "${m#bad }, so this project's next upgrade will ask for --from until the switch names a devbin" ;;
+    *) warn "this machine names no devbin install ($(brew_unplaced_why)), so this project's next upgrade will ask for --from until one is named: install devbin with Homebrew, or run devbin use dev or opt in the devbin checkout" ;;
   esac
-  return 0
-}
-
-# is_install_prefix <dstroot> <configured-prefix> -- rc 0 when <dstroot> is the
-# configured install.prefix (empty when none is set): by its spelling, trailing
-# slashes aside, or as the same directory (-ef), which counts a prefix spelled
-# through a link only once both exist. One test, for the pointer below and for
-# --point's refusal before a publish, when <dstroot> may not exist yet, so a
-# first publish to a linked spelling of install.prefix is refused --point
-# rather than pointed at a path nobody asked for (issue 0197).
-is_install_prefix() {
-  local a="$1" b="$2"
-  [ -n "$b" ] || return 1
-  while [ "${a%/}" != "$a" ] && [ "${#a}" -gt 1 ]; do a="${a%/}"; done
-  while [ "${b%/}" != "$b" ] && [ "${#b}" -gt 1 ]; do b="${b%/}"; done
-  [ "$a" = "$b" ] || [ "$1" -ef "$2" ]
-}
-
-# point_refusal <dstroot> <configured-prefix> -- why --point cannot apply to a
-# publish to <dstroot>, as one line, or nothing when it can (issue 0197).
-# --point makes install.prefix the machine's install; only a publish there can
-# be pointed at, as only a publish there writes the pointer at all.
-point_refusal() {
-  if [ -z "$2" ]; then
-    printf '%s\n' "--point makes install.prefix the machine's install, and devbin's own config declares no install.prefix"
-  elif ! is_install_prefix "$1" "$2"; then
-    printf '%s\n' "--point makes install.prefix the machine's install, and --prefix names $1, which is not install.prefix ($2)"
-  fi
-}
-
-# install_pointer_write <dstroot> <configured-prefix> [point] -- record <dstroot>
-# as this machine's devbin install in the machine pointer (issue 0153), when it
-# is the configured install.prefix, which the caller read from devbin's own
-# config while it had it loaded (empty when none is set). Prints one line saying
-# what it did or did not do.
-#
-# A MACHINE WHOSE INSTALL IS HOMEBREW'S KEEPS IT (issue 0197). When
-# machine_install_chooser says brew -- no pointer and no DEVBIN_INSTALL_PREFIX,
-# so the keg at HOMEBREW_PREFIX's opt is the machine's install -- a publish to
-# install.prefix from a checkout writes its files and leaves the pointer
-# unwritten, saying whose install the machine keeps and how to change it:
-# writing it would repoint every project on the machine at the checkout's
-# install, undoing the move to Homebrew in silence. `point` is the explicit
-# override (--point), which writes it as on any other machine. The chooser is
-# the one place that decides, so nothing here tests HOMEBREW_PREFIX itself.
-#
-# ONLY install.prefix IS THE MACHINE'S INSTALL. A publish to any other --prefix
-# leaves the pointer alone and says which install it still names: otherwise a
-# scratch publish would repoint every project on the machine at the scratch
-# tree.
-# Compared with -ef, so a prefix spelled through a link or with `~` still counts,
-# and recorded through physical_dir, the one turn of a directory into an
-# absolute path: a bare `cd && pwd` followed CDPATH, and printed it.
-#
-# Written through replace_file, the one writer that replaces a file: a reader
-# never sees half a line, and a pointer that is a link keeps its link while the
-# file it names is rewritten. A pointer that cannot be written is a failure,
-# named, and the caller's: the install is published either way, and every
-# project on this machine will not find it until the pointer names it.
-install_pointer_write() {
-  local dstroot="$1" configured="$2" point="${3:-}" p root s
-  # Asked first: a publish anywhere but install.prefix writes no pointer, so it
-  # needs no home directory to keep one in.
-  if ! is_install_prefix "$dstroot" "$configured"; then
-    if ! p="$(devbin_home_pointer)"; then
-      printf '  pointer    none written: this is not install.prefix\n'
-      return 0
-    fi
-    s="$(machine_pointer_state)"
-    case "$s" in
-      "at "*) printf '  pointer    %s left as it was, naming %s: this is not install.prefix\n' "$(home_relative "$p")" "${s#at }" ;;
-      none) printf '  pointer    none written: this is not install.prefix, and %s names no install yet\n' "$(home_relative "$p")" ;;
-      *) printf '  pointer    left as it was: this is not install.prefix, and %s\n' "${s#bad }" ;;
-    esac
-    return 0
-  fi
-  if [ "$point" != point ] && [ "$(machine_install_chooser)" = brew ]; then
-    # Read with its status, never inside the printf: an opt link that leads to
-    # no devbin install still makes the chooser say brew, and its root then
-    # fails, with the reason warned (critic-shell on 0197).
-    if root="$(machine_install_root)"; then
-      printf "  pointer    none written: this machine's install is Homebrew's, %s, named by %s, so projects keep reading it\n" \
-        "$root" "$(machine_install_by)"
-    else
-      printf "  pointer    none written: this machine's install is chosen by %s, which names no devbin install (above), so a project here finds none until it does or the pointer names one\n" \
-        "$(machine_install_by)"
-    fi
-    printf "             to make this install the machine's instead: %s upgrade --point\n" "$DEVBIN_INVOKE"
-    return 0
-  fi
-  if ! p="$(devbin_home_pointer)"; then
-    warn "there is no home directory to keep the machine pointer in, so a project on this machine finds this install only through DEVBIN_INSTALL_PREFIX"
-    return 1
-  fi
-  if ! physical_dir "$dstroot" root; then
-    warn "cannot resolve $dstroot to record it in the machine pointer"
-    return 1
-  fi
-  if ! mkdir -p "$(dirname "$p")"; then
-    warn "cannot create $(dirname "$p") for the machine pointer"
-    return 1
-  fi
-  if ! replace_file "$p" printf '%s\n' "$root"; then
-    warn "cannot write the machine pointer $p"
-    return 1
-  fi
-  printf '  pointer    %s names this install\n' "$(home_relative "$p")"
   return 0
 }
 
@@ -275,13 +117,13 @@ install_pointer_write() {
 #
 # THERE IS NO DEFAULT, AND THE ONE THAT USED TO BE HERE IS WHY THIS NOTE IS
 # LONG. This function ended with a fallback to a fixed path under `$HOME` -- one
-# operator's directory layout, written into the runtime every estate vendors.
+# operator's directory layout, written into the runtime every project vendors.
 # Every consumer carried it; a publish from any of them would have gone to a
 # path named after somebody else's home directory, and it would have SUCCEEDED,
 # because a publish to the wrong place is indistinguishable from a publish to
 # the right one.
 #
-# D32 already said the location is CONFIGURATION. A default does not soften that
+# The location is already CONFIGURATION, by rule. A default does not soften that
 # rule, it relocates the decision: from a key somebody wrote to the absence of
 # one, which is the reading nobody makes deliberately. So unset returns 1 and
 # every caller that needs a prefix refuses by name -- see
@@ -345,7 +187,7 @@ die_install_prefix_unset() {
            prefix: ~/where/devbin/should/live$extra"
 }
 
-# publish_gate <srcroot> -- the dirty gate (D28): refuse, by die, to publish an
+# publish_gate <srcroot> -- the dirty gate: refuse, by die, to publish an
 # install from <srcroot> unless git says the whole tree is exactly its commit.
 # install and upgrade both publish through it, so their refusals cannot drift
 # apart; each had a copy of the whole gate until issue 0185.
@@ -376,7 +218,7 @@ publish_gate() {
 
 # tree_dirty_paths <root> -- porcelain lines for an unclean tree, empty when clean.
 #
-# WHOLE TREE, not just the vendored set (D28). The manifest's claim is "these
+# WHOLE TREE, not just the vendored set. The manifest's claim is "these
 # bytes are commit X", and that claim is only true when NOTHING in the tree is
 # uncommitted -- a dirty `.md` beside a clean `lib/` still means the recorded
 # commit does not describe the checkout the bytes came out of.
@@ -420,7 +262,7 @@ tree_dirty_paths() {
 #
 # A FULL REPLACE REMOVES AS WELL AS WRITES (issue 0123). This copied every file
 # the source ships and deleted nothing, so a file the source stopped shipping
-# stayed in the install -- and every estate vendors FROM the install, where
+# stayed in the install -- and every project vendors FROM the install, where
 # vendored_paths finds it with `find` and ships it on as devbin-owned. A
 # project upgrade retires a file its source stopped shipping, and that never
 # fired, because the file never stopped being shipped from the install. So
@@ -452,7 +294,7 @@ publish_install() {
     return 1
   fi
   # And the manifest it will rewrite, for the same reason: manifest_write
-  # refuses one it cannot read, and that comes after the copies (critic-shell).
+  # refuses one it cannot read, and that comes after the copies.
   if ! manifest_readable "$dstroot"; then
     warn "cannot read the manifest at $dstroot (named above), so the install there is left as it was"
     return 1
@@ -487,8 +329,8 @@ publish_install() {
 # read is not passed over as "not Homebrew's": every writer this guards refuses
 # one before it writes, in its own words -- publish (lib/install's
 # publish_install), publish-upgrade and install --into (issue 0144) -- so the
-# refusal is theirs, once, and localinstall.bats holds a keg unchanged under it
-# (critic-shell on 0195 asked that this check fail closed; the writers do).
+# refusal is theirs, once, and localinstall.bats holds a keg unchanged under it.
+# So the guard fails closed through the writers rather than in this check.
 install_managed_refusal() {
   [ "$(manifest_field "$1" managed_by 2>/dev/null || true)" = brew ] || return 0
   warn "$1 is the devbin Homebrew installed, and Homebrew replaces it whole at each version, so devbin will not write into it"
@@ -547,6 +389,90 @@ remove_unshipped() {
 publish_copied() { awk -F'\t' '$1 == "copied" { print $2 }' <<<"$1"; }
 publish_removed() { awk -F'\t' '$1 == "removed" { print $2 }' <<<"$1"; }
 
+# publish_replace <srcroot> <dstroot> -- replace the opt install at <dstroot>
+# with this checkout's runtime: `install --force` in devbin's own tree, the one
+# re-publish route (docs/dev-opt-brew.md, T2; issue 0213). It was
+# `upgrade`'s PUBLISH-UPGRADE mode, moved here whole so that publishing has one
+# verb and replacing has one writer, `publish_install`, as publishing a new
+# install does.
+#
+# ONLY A TREE DEVBIN WROTE IS REPLACED. <dstroot> must be an install whose
+# manifest says devbin wrote it, `tool: devbin`, or, in the manifest form
+# written before the contract, `kind: install` (devbin_install_old), which this
+# replace brings up to date. A keg Homebrew placed is refused first
+# (install_managed_refusal), and anything else is refused by name: replacing a
+# tree devbin did not write would delete what it held.
+publish_replace() {
+  local srcroot="$1" dstroot="$2" states modified unreadable unvouched record rel line
+  install_managed_refusal "$dstroot" || return 1
+  # A MANIFEST IT CANNOT READ IS NAMED AS THAT (issue 0144), first: read as a
+  # header with no `tool:` line, it would be called a tree devbin did not
+  # write.
+  manifest_readable "$dstroot" ||
+    die "cannot replace $dstroot: its manifest cannot be read (above), so whether devbin wrote it is unknown; nothing was published"
+  if [ "$(devbin_tree "$dstroot")" != opt ] && ! devbin_install_old "$dstroot"; then
+    warn "refusing to replace $dstroot: its manifest does not say devbin wrote it, so it is no opt install of devbin's"
+    warn "  move it aside, then run: $DEVBIN_INVOKE install"
+    return 1
+  fi
+
+  # THE SAME GATE AS A NEW PUBLISH, publish_gate, and it is the reason the
+  # install tree is worth having at all. An install cut from a dirty
+  # checkout launders the bytes through one more hop and gives them the LOOK of
+  # provenance.
+  publish_gate "$srcroot"
+
+  # AN EDITED INSTALL IS REPORTED BEFORE IT IS DISCARDED. Nobody should be
+  # editing an install and the replace is wholesale either way -- but a file
+  # silently overwritten is a change nobody can find afterwards, and saying so
+  # costs one manifest read that already has a reader.
+  # -F'\t' because manifest_check's contract is `<state><TAB><relpath>` and a
+  # vendored path containing a space would split into the wrong field under
+  # awk's default whitespace FS. No such path exists today, which is exactly the
+  # condition under which this would be found late.
+  # Its stderr is kept: each file it could not read is named there, with the
+  # checksum tool's reason, which the list below does not repeat. An install
+  # manifest it cannot read refuses before anything is written (issue 0144):
+  # publish carries the install's ancestry forward from it.
+  states="$(manifest_check "$dstroot")" ||
+    die "cannot read the install's manifest at $(manifest_path "$dstroot") (named above), so nothing was published"
+  modified="$(printf '%s\n' "$states" | awk -F'\t' '$1 == "modified" { print $2 }')"
+  if [ -n "$modified" ]; then
+    warn "this install has edited files; they are being REPLACED, not preserved:"
+    printf '%s\n' "$modified" | while IFS= read -r line; do warn "  $line"; done
+  fi
+  # AND ONE DEVBIN CANNOT READ IS NAMED THE SAME WAY (issue 0144). Replacing it
+  # needs no read of it -- the copy lands beside it and is renamed over it -- so
+  # this is the one writer an unreadable file does not stop, and the file is
+  # readable afterwards. What was in it is nobody's to recover, so it is said.
+  unreadable="$(printf '%s\n' "$states" | awk -F'\t' '$1 == "unreadable" { print $2 }')"
+  if [ -n "$unreadable" ]; then
+    warn "this install has files devbin cannot read; they are being REPLACED or removed, unread:"
+    printf '%s\n' "$unreadable" | while IFS= read -r line; do warn "  $line"; done
+  fi
+  # AND AN INSTALL WITH NO MANIFEST HAS NO EDIT IT CAN NAME (issue 0146): it
+  # read as none edited. Publishing replaces every file either way, so this is
+  # said rather than refused.
+  if unvouched="$(manifest_unvouched "$dstroot")"; then
+    if [ "$unvouched" = empty ]; then
+      warn "this install's manifest records no files, so an edit in it cannot be named; every file is being REPLACED unchecked"
+    else
+      warn "this install has no manifest, so an edit in it cannot be named; every file is being REPLACED unchecked"
+    fi
+  fi
+
+  record="$(publish_install "$srcroot" "$dstroot" "$(devbin_runtime_version)")" ||
+    die "failed to write the install at $dstroot"
+  printf '  replaced   %d files (bin/devbin, bin/.devbin/lib/)\n' "$(publish_copied "$record")"
+  # What the source stopped shipping leaves the install here, or every project
+  # vendoring from it would keep receiving it as devbin's (issue 0123).
+  while IFS= read -r rel; do
+    [ -z "$rel" ] || printf '  removed    %s (devbin no longer ships it)\n' "$rel"
+  done <<<"$(publish_removed "$record")"
+  printf '  recorded   %s\n' "$(manifest_field "$dstroot" source_commit 2>/dev/null || printf 'unrecorded')"
+  return 0
+}
+
 # vendored_paths <srcroot> -- every file devbin owns, as paths RELATIVE to a
 # project root, sorted. This is the file list, and the only one.
 #
@@ -585,7 +511,8 @@ vendored_paths() {
 #
 # The target-side twin of vendored_paths, and deliberately a separate function
 # rather than a parameter on that one: vendored_paths asks a SOURCE what it
-# ships, where the runtime is at `lib/` or `bin/.devbin/lib/` depending on D12;
+# ships, where the runtime is at `lib/` in the devbin source checkout and at
+# `bin/.devbin/lib/` elsewhere;
 # this asks an INSTALL what is on disk, where the answer is always
 # `bin/.devbin/lib/`. One is a statement of intent and the other an inventory --
 # comparing them is the entire point, so collapsing them would erase the
@@ -702,7 +629,7 @@ copy_vendored() {
   return 0
 }
 
-# --- line endings: devbin's block in a project's .gitattributes (ST0008 D46) --
+# --- line endings: devbin's block in a project's .gitattributes (ST0008) ------
 #
 # A CHECKOUT THAT CONVERTS LINE ENDINGS BREAKS THE VENDORED RUNTIME. git on
 # Windows checks text out with CRLF unless the repository says otherwise, and a
@@ -890,7 +817,7 @@ cr_files() {
 # not to read, so its silence certifies nothing: not watched. An ignored path
 # (`!!`) is runtime bytes a clone does not get: not tracked. Only when none of
 # the three appears is it committed. DIRTY was once checked LAST, so one ignored
-# `.DS_Store` beside a real edit hid the edit (critic-shell, 2026-09-16).
+# `.DS_Store` beside a real edit hid the edit.
 #
 # EVERY LINE IS READ, NOT ONLY THE FIRST. A test built with one offending file
 # puts it first by construction; the arms carry it on a later line as well.
@@ -997,8 +924,8 @@ seam_git_state() {
 #
 # THE ONE QUESTION BEHIND BOTH THE PUBLISH GATE AND THE STAMP (issue 0056). The
 # stamp was hardened and the gate was not, so a checkout holding an ignored
-# `lib/.DS_Store` passed the gate and was stamped `+dirty` -- an install D28
-# exists to refuse, published at exit 0. Asked through one
+# `lib/.DS_Store` passed the gate and was stamped `+dirty` -- an install the
+# dirty gate exists to refuse, published at exit 0. Asked through one
 # function, the gate and the stamp cannot disagree.
 seam_state_of() {
   local root="$1" scope_lines p
@@ -1040,10 +967,10 @@ SCOPE
 # DIRTY IS ASKED OF DEVBIN'S HALF, NOT OF THE TREE (issue 0033). The question
 # this field answers is what the VENDORED bytes correspond to, and a file
 # outside the seam cannot change that answer. A tree-wide `git status` made the
-# stamp true about the tree and false about the bytes: one open whiteboard board
-# in the source stamped consuming estates THESE BYTES MATCH NO COMMIT over a
+# stamp true about the tree and false about the bytes: one open planning file
+# in the source stamped consuming projects THESE BYTES MATCH NO COMMIT over a
 # surface that matched HEAD exactly. It erred safe, which is why it survived --
-# but in a project with a live whiteboard some node is always mid-edit, so the
+# but in a project with live planning files something is always mid-edit, so the
 # accurate stamp was close to unreachable and a warning that never clears stops
 # being read. Narrowed, it still errs safe: `vendored_scope` is a DIRECTORY
 # pathspec precisely so a deleted vendored file is still seen.
@@ -1057,7 +984,7 @@ SCOPE
 # An INSTALL tree is not a git checkout, so vendoring from one used to stamp the
 # consumer `not a git checkout -- these bytes name no commit` -- while the
 # install's OWN manifest recorded the exact sha it was cut from, one file away.
-# Every estate would have recorded LESS provenance than before the install tree
+# Every consumer would have recorded LESS provenance than before the install tree
 # existed, which is the precise opposite of what this thread is for.
 #
 # MEASURED, not anticipated: the first consumer upgraded from the first install
@@ -1125,7 +1052,11 @@ manifest_entries() {
   local path
   path="$(manifest_path "$1")"
   [ -f "$path" ] || return 1
-  if ! _two_space_to_tab <"$path"; then
+  # ASKED BEFORE THE REDIRECT, so the shell's own message about a file it
+  # cannot open never stands beside this one, saying the same thing in a form
+  # nobody can act on (issue 0215). A read that fails past a readable test
+  # still fails, and is still named.
+  if [ ! -r "$path" ] || ! _two_space_to_tab <"$path"; then
     warn "cannot read the manifest $path"
     return 1
   fi
@@ -1265,7 +1196,7 @@ manifest_write() {
     printf '# Files not listed here -- config.yaml, cmd/, help/ -- belong to the project.\n'
     printf '# devbin_version: %s\n' "$version"
     # `kind` is written ONLY for an install tree, and its absence is what marks a
-    # project (D33). An install is otherwise distinguished from a project by which
+    # project. An install is otherwise distinguished from a project by which
     # files are MISSING -- no config.yaml, no cmd/ -- and a reader who has to infer
     # a kind from an absence is a reader who will eventually infer it wrongly.
     #
@@ -1276,9 +1207,17 @@ manifest_write() {
     # because a comment claiming a break that does not happen is the defect this
     # project catalogues.
     if [ -n "$kind" ]; then printf '# kind: %s\n' "$kind"; fi
-    # What manages this install, when something else does: `brew` for the keg
-    # the formula publishes (issue 0195), which install_managed_refusal reads.
-    if [ -n "$managed" ]; then printf '# managed_by: %s\n' "$managed"; fi
+    # An install also carries the keys every tool's install manifest carries,
+    # under the names docs/dev-opt-brew.md fixes (T3, issue 0213): `tool` and
+    # `version` beside devbin's own, and `managed_by` always, `devbin` for an
+    # install devbin wrote and `brew` for the keg the formula publishes (issue
+    # 0195), which install_managed_refusal reads. devbin_tree reads `tool` and
+    # `managed_by` to tell opt from brew.
+    if [ "$kind" = install ]; then
+      printf '# tool: devbin\n'
+      printf '# version: %s\n' "$version"
+      printf '# managed_by: %s\n' "${managed:-devbin}"
+    fi
     # The KIND of source, never its place -- see manifest_source (issue 0153).
     printf '# source: %s\n' "$token"
     printf '# source_commit: %s\n' "$(source_commit_of "$srcroot")"
@@ -1369,8 +1308,8 @@ _sha256_of_set() {
   done <<EOF
 $rels
 EOF
-  # Guarded expansion: bash 3.2 aborted on an empty array under `set -u` (D9,
-  # since reversed by issue 0022 -- idiom kept as harmless).
+  # Guarded expansion: bash 3.2 aborted on an empty array under `set -u` (bash
+  # 3.2 support since dropped by issue 0022 -- idiom kept as harmless).
   [ "${#args[@]}" -gt 0 ] || return 0
   # The tool's status is not read, and not lost: every path it failed on has no
   # row, and the loop below names each one and sets this function's status.
@@ -1635,10 +1574,10 @@ EOF
 # is kept as `unknown`, so a later publish from a checkout that has it can still
 # place it.
 #
-# TWO LIMITS, DECLARED BECAUSE THE PARAGRAPHS ABOVE WOULD OTHERWISE OVERCLAIM
-# (critic-shell, 2026-09-16). A commit the checkout's HEAD does not contain is
-# known only once the install has held it, so one held before the table began is
-# not in it. And a publish runs the CHECKOUT's own lib, so rewinding the checkout
+# TWO LIMITS, DECLARED BECAUSE THE PARAGRAPHS ABOVE WOULD OTHERWISE OVERCLAIM.
+# A commit the checkout's HEAD does not contain is known only once the install
+# has held it, so one held before the table began is not in it. And a publish
+# runs the CHECKOUT's own lib, so rewinding the checkout
 # to a commit from before 0059 rewinds the publisher too, and that publish writes
 # no table at all -- the history carried until then is gone, and every consumer
 # reads `unknown`. upgrade says so out loud when the bytes would change
@@ -1859,11 +1798,11 @@ EOF
 # project there.
 #
 # The alternative -- a `lib/VERSION` stamped into the vendored copy -- would put
-# devbin's version in two files in the source repo, which is the drift D23 was
-# written about. This costs one branch and no new file.
+# devbin's version in two files in the source repo, which is the drift that one
+# source per fact rules out. This costs one branch and no new file.
 #
 # AN INSTALL WHOSE MANIFEST CANNOT BE READ IS `unknown`, NEVER ITS VERSION FILE
-# (issue 0144, critic-shell). The header read failed quietly and fell through to
+# (issue 0144). The header read failed quietly and fell through to
 # the PROJECT's VERSION, so doctor passed `runtime` and `devbin_version` on the
 # project's own number. Asked only on that fallback, so the ordinary path costs
 # nothing; the manifest is named by the caller that reads it whole.
