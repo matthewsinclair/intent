@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 78d66f67-02b7-4497-bbec-4466e2fcb852
-heartbeat_at: 2026-10-25 11:41Z
+heartbeat_at: 2026-10-25 13:46Z
 status: active
 focus: "LOCALFOLD 7b at 2026-10-25 11:41Z for hv's compact; ST0087 WP-01+02 and ic's doc lines LANDED (976fad577, bb4bb4e70, 5ee382c0b), ST0086 WP-01 Done; build all READY heavy at molt-vc's desk; ST0088 cull WP-01+02 banked and queued; 0644 queued; no push, no release"
 claims: []
@@ -17,7 +17,7 @@ claims: []
 
 ## TODO
 
-- After the next build all: run rule_validator.bats and rule_pack_agnostic.bats once in a linked worktree with the dev pair as INTENT_BIN, the form issue 0640 reproduces, to prove the arms green on the installed pair (0640 landed at e6ce2c5c1, closed at 9c28574c6; the pair at fef91e6f8 predates it).
+_(none)_
 
 ## Holds
 
