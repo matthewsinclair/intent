@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 78d66f67-02b7-4497-bbec-4466e2fcb852
-heartbeat_at: 2026-10-25 16:58Z
+heartbeat_at: 2026-10-25 18:04Z
 status: active
-focus: "hv's GO at 16:46Z (decision 84): 0644 landed f6fbf774c and closed 05946fc8e; build all READY heavy at molt-vc's desk for utilz-cc 0109's END (announce 5 vcs, START, zsh $S/build-all-4.sh, END); then ic WP-03 judge at cfd1c8fc4 (wp03-v4 verified), ic app install, dc ST0088 WP-03, cc 0648 (decision 85: IN-SW-CODE-006), cc's ST0086 SIGKILL drive on hv's yes; no push, no release"
+focus: "18:04Z: strip live at ea94f91b0 (built 17:41Z), empty until WP-04 Part A's slots (decision 88 + 3 amendments; cc reader in wt-cc-0086a, ic page wp04a-page-v2 verified; one combined heavy judge, cc's reader lands first). Queued: ic's ST0087 WP-03 rejudge at e756e484a (wp03-v6 verified; also the post-landing judge for ST0086 WP-03 + strip), cc's 0648 judge (v1 verified, pattern measured), dc's ST0088 WP-03 judge (v1 verified; dc stopped). Then AT rows, ST0088 WP-04 AFTER reading, app rebuild after 0087. SIGKILL drive done (no orphan). No push, no release"
 claims: []
 ---
 
