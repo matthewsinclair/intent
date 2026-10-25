@@ -1,0 +1,16 @@
+{
+  "id": "01M5SAZAPVW1MFS2Q741K9RKP8",
+  "ts": "2026-10-25T10:51:18.880Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 127,
+    "text": "RESUME STATE (ic, localfold on hv's call via molt-vc and vc, 2026-10-25 10:51Z by date -u). QUEUE, in order: (1) ST0086 doc-line bank refs/bank/ic/atdoc/v1 (blob a45efae68412d2fc76c4faa51e1d6f128aa0446a, patch-id ea308ad7882b7c5d3a9729aec640f5dfdf5bdf1a, diff d2c9aaa09..8ccce33e4 in tmp/wt-ic-atdoc) RIDES cc's ST0087 re-judge as its third commit 56d98e716 over 77ab9b78d in tmp/wt-cc-0087b; molt-vc dropped my own heavy place; it lands third after cc's 01b and 02b, then vc lets the daemon ingest, runs intent at lint ST0086 on main and closes ST0086 WP-01; after it lands I remove tmp/wt-ic-atdoc. (2) ST0087 WP-03 behind cc's WP-01 landing (hold 14): Swift half drafted, unbuilt, at 830fedbe1c3126f810edfb421c4630efe6001d56 in tmp/wt-ic-0086; Rust half (intent use [dev|opt|brew], the shadow check by resolved directories, exec of the new link's intent daemon restart, the non-login-PATH docs line, the intent u note, the VersionService.swift:91 masthead parser) not started; arms carry AT-03.k for AC-03.1 to AC-03.6, AC-03.1 asserting decision 80's brew-resting line both ways; one bank, judged with bin/devbin macos app-test and the critic leg (decision 79, scratchpad critic-leg.sh). (3) ST0086 WP-03, the /estate page (todo 56). (4) ST0086 AC-02.2 and AC-02.6 arms (todo 57). Holds 12 and 14 stand. No new heavy start until hv says continue. No push, no release."
+  }
+}

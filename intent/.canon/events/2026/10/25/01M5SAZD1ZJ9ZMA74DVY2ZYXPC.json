@@ -1,0 +1,15 @@
+{
+  "id": "01M5SAZD1ZJ9ZMA74DVY2ZYXPC",
+  "ts": "2026-10-25T10:51:19.999Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.archive",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "watchout",
+    "seq": 86
+  }
+}

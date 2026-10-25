@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd",
-    "heartbeat_at": "2026-10-25T06:31:48.048Z",
+    "heartbeat_at": "2026-10-25T10:51:21.698Z",
     "status": "active",
-    "focus": "LOCALFOLD (2026-10-25): ST0087 WP-03, Swift half drafted at 830fedbe1 (unbuilt), Rust half held for cc's WP-01 and hv's continue (hold 14); holds 12 and 13 stand; no push, no release",
+    "focus": "LOCALFOLD (2026-10-25 10:51Z): atdoc bank rides cc's re-judge (56d98e716, lands third); then ST0087 WP-03 behind cc's WP-01 (hold 14), ST0086 WP-03, the AC-02.2/02.6 arms; no heavy start until hv says continue; no push, no release",
     "claims": [
       "ST0086/03",
       "ST0086/02",
@@ -2521,9 +2521,10 @@
       "node": "ic",
       "kind": "doing",
       "seq": 127,
-      "text": "RESUME STATE (ic, localfold on hv's call via molt-vc and vc, 2026-10-25). ST0087 WP-03, intent use and the shadow check, claimed. SWIFT HALF DRAFTED, UNBUILT: WIP commit 830fedbe1c3126f810edfb421c4630efe6001d56 over main 9d0c2a9e2 in tmp/wt-ic-0086 (LoginShell keeps the command -v hit as found and the store re-captures when it no longer runs, vc's option (2); two new tests; swiftc -typecheck and swift format lint clean; xcodebuild test not run). RUST HALF NOT STARTED: intent use [dev|opt|brew] over the link set ~/.local/bin/{intent,intentd}, the shadow check by resolved directories in doctor and bare use, ending by exec'ing the NEW link's intent daemon restart (vc's ruling, the current_exe finding), the docs line naming the non-login-PATH Claude Code session hazard, and the intent u prefix note. One bank with both halves; the judge adds bin/devbin macos app-test. Measurements and rulings are in ST0087 design.md and with vc. ST0086 and issue 0639 are landed; the lifeline fix is banked at refs/bank/ic/0086/lifeline. No push, no release.",
+      "text": "RESUME STATE (ic, localfold on hv's call via molt-vc and vc, 2026-10-25 10:51Z by date -u). QUEUE, in order: (1) ST0086 doc-line bank refs/bank/ic/atdoc/v1 (blob a45efae68412d2fc76c4faa51e1d6f128aa0446a, patch-id ea308ad7882b7c5d3a9729aec640f5dfdf5bdf1a, diff d2c9aaa09..8ccce33e4 in tmp/wt-ic-atdoc) RIDES cc's ST0087 re-judge as its third commit 56d98e716 over 77ab9b78d in tmp/wt-cc-0087b; molt-vc dropped my own heavy place; it lands third after cc's 01b and 02b, then vc lets the daemon ingest, runs intent at lint ST0086 on main and closes ST0086 WP-01; after it lands I remove tmp/wt-ic-atdoc. (2) ST0087 WP-03 behind cc's WP-01 landing (hold 14): Swift half drafted, unbuilt, at 830fedbe1c3126f810edfb421c4630efe6001d56 in tmp/wt-ic-0086; Rust half (intent use [dev|opt|brew], the shadow check by resolved directories, exec of the new link's intent daemon restart, the non-login-PATH docs line, the intent u note, the VersionService.swift:91 masthead parser) not started; arms carry AT-03.k for AC-03.1 to AC-03.6, AC-03.1 asserting decision 80's brew-resting line both ways; one bank, judged with bin/devbin macos app-test and the critic leg (decision 79, scratchpad critic-leg.sh). (3) ST0086 WP-03, the /estate page (todo 56). (4) ST0086 AC-02.2 and AC-02.6 arms (todo 57). Holds 12 and 14 stand. No new heavy start until hv says continue. No push, no release.",
       "state": "live",
-      "recorded_at": "2026-10-25T06:28:24.766Z"
+      "recorded_at": "2026-10-25T06:28:24.766Z",
+      "edited_at": "2026-10-25T10:51:18.880Z"
     },
     {
       "node": "ic",
@@ -2592,7 +2593,8 @@
       "kind": "watchout",
       "seq": 86,
       "text": "ST0086 AT doc lines owed in the AC-02.2/02.6 bank, not before (vc, 2026-10-25): intent at lint ST0086 fails until each cited arm carries its AT id as a literal doc line. The map is in /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd/scratchpad/at-map-0086.txt and in vc's message: estate_surface.rs AT-01.1, 01.3, 01.4, 01.5, 01.6, 01.7, 02.3 and 02.4; the session-fields reader AT-01.2; intentd's estate_unbound AT-02.1; the new arms take AT-02.2 and AT-02.6.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-25T10:51:19.999Z",
       "recorded_at": "2026-10-25T07:33:17.136Z"
     }
   ],
