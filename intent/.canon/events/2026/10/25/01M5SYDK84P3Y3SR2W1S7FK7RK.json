@@ -1,0 +1,16 @@
+{
+  "id": "01M5SYDK84P3Y3SR2W1S7FK7RK",
+  "ts": "2026-10-25T16:31:08.036Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 141,
+    "text": "ISSUE:0644 READY (vc's assignment, shape accepted as built): the chain block finds the main checkout's carrier from a linked worktree; canon::chain_carrier is doctor's one Rust spelling, over estate::main_checkout. Judged GREEN at molt-vc's desk, 2026-10-25 16:24Z to 16:30Z by date -u, at 48367f16f plus the fix: fmt, critic (ran 9, red 0; the three test files asked nothing, covering nothing), pre_commit_hook.bats ok 35, intentd, the intentsvcs suite ok 2107 FAILED 0, clippy, clippylib, and the red leg failing exactly the three new arms on HEAD's canon.rs and doctor.rs. READY bank refs/bank/dc/0644/ready, blob f3c181575e302a22b6d365c098964bb959055e44, patch-id 19a598b7229b; applies on main e7ad638cd. Carried to vc: the post-pull hooks take the same resolution; Intent's own .githooks/* and pre-commit-hook.md's block re-rendered under intents_own_hooks_carry_canons_block. RESUME (localfold, hv's call via molt-vc and vc, 16:27Z by vc's clock): vc lands it after hv's continue; I rebase and re-check it if asked. Worktree tmp/wt-dc-0644 keeps the fix uncommitted. No push, no release."
+  }
+}
