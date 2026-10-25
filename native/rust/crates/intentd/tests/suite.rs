@@ -65,3 +65,5 @@ mod routing_against_a_real_daemon;
 mod the_daemon_answers_the_estate_unbound;
 #[path = "the_daemon_lists_the_project_registry.rs"]
 mod the_daemon_lists_the_project_registry;
+#[path = "the_page_without_a_token_says_how_to_open_it.rs"]
+mod the_page_without_a_token_says_how_to_open_it;

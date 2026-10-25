@@ -5,11 +5,15 @@ import Observation
 /// The CLI's build, as `intent version` names it: its version, its commit when
 /// the line carries one, and whether it is a release or a dev build when the
 /// line says (issue 0534). Gtools' `CLIVersion`, with the kind Intent's line
-/// carries.
+/// carries, and since ST0087 the tree and the root the line names.
 struct CLIVersion: Sendable, Equatable {
   let version: String
   let commit: String?
   let kind: String?
+  /// `dev`, `opt`, `brew` or `unknown`, from a 3.2.7 line on; nil before.
+  var tree: String? = nil
+  /// The absolute root the line names, from a 3.2.7 line on; nil before.
+  var root: String? = nil
 }
 
 /// What the app knows about the CLI's version. **A FAILED READ IS NOT A
@@ -88,10 +92,26 @@ final class VersionService {
   /// other shape, one that does not start with the program's name included, is
   /// all version, as the CLI printed it, rather than guessed at. Empty output is
   /// nil. Pure and `nonisolated`, so its tests run off the main actor.
+  ///
+  /// From 3.2.7 (ST0087 WP-01, the contract's T4) the line is `intent
+  /// <version> (<tree>, <sha12>[+dirty]) at <root> <kind>`: the tree is `dev`,
+  /// `opt`, `brew` or `unknown`, the sha is cut to eight with `+dirty` kept,
+  /// `(dev, unknown)` is a dev tree whose git could not be read, and the root
+  /// is absolute and may hold spaces. The root is optional: hv ruled on
+  /// 2026-10-25 that the line drops ` at <root>`, so both forms read alike.
   nonisolated static func parse(_ output: String) -> CLIVersion? {
     let line = output.split(whereSeparator: \.isNewline).first.map(String.init) ?? ""
     let trimmed = line.trimmingCharacters(in: .whitespaces)
     guard !trimmed.isEmpty else { return nil }
+    let treeShape = /^intent (\S+) \((dev|opt|brew|unknown), ([0-9a-f]{12}|unknown)(\+dirty)?\)(?: at (\/.*?))?(?: (release|dev))?$/
+    if let match = trimmed.wholeMatch(of: treeShape) {
+      let sha = String(match.output.3)
+      let short = sha == "unknown" ? sha : String(sha.prefix(8))
+      return CLIVersion(
+        version: String(match.output.1), commit: short + (match.output.4.map(String.init) ?? ""),
+        kind: match.output.6.map(String.init), tree: String(match.output.2),
+        root: match.output.5.map(String.init))
+    }
     let shape = /^intent (\S+)(?: \(([^()]+)\))?(?: (release|dev))?$/
     guard let match = trimmed.wholeMatch(of: shape) else {
       return CLIVersion(version: trimmed, commit: nil, kind: nil)

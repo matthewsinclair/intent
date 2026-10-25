@@ -113,6 +113,20 @@ struct MastheadTests {
     #expect(item.subtitle == nil)
   }
 
+  /// Issue 0646: the line the dev pair printed when hv read the row, through
+  /// the parser to the row. Version over commit and kind, as Gtools' and
+  /// menuz's read; the tree's root is parsed and never shown.
+  @Test("the 3.2.7 version line gives the row its version over its commit and kind, and no root")
+  func treeLine() throws {
+    let world = World()
+    let parsed = try #require(
+      VersionService.parse("intent 3.2.6 (dev, 397d7568e1d8) at /Users/matts/Devel/prj/Intent dev\n"))
+    world.state = .answered(parsed)
+    let item = row(world, under: folder())
+    #expect(item.title == "Intent 3.2.6")
+    #expect(item.subtitle == "397d7568 · dev")
+  }
+
   /// The positive control for the folder: the row reads the user's copy, and a
   /// copy that fails its checks is refused, logged, and leaves the bundle's.
   @Test("a masthead.yaml in the user's folder replaces the bundle's, and a broken one is refused, logged, and leaves the bundle's")

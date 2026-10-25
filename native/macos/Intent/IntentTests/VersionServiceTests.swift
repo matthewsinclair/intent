@@ -91,4 +91,65 @@ struct VersionServiceTests {
     #expect(VersionState.pending.failure == nil)
     #expect(VersionState.pending.answer == nil)
   }
+
+  /// AT-03.4: **THE 3.2.7 LINE** (ST0087 WP-01, the contract's T4) names its
+  /// tree, a twelve-character sha cut to eight, the root and the kind.
+  @Test("the tree line gives its tree, sha, root and kind")
+  func treeLineGivesEveryField() {
+    #expect(
+      VersionService.parse("intent 3.2.7 (dev, 8a48430ee9b8) at /Users/m/Devel/prj/Intent dev\n")
+        == CLIVersion(
+          version: "3.2.7", commit: "8a48430e", kind: "dev", tree: "dev",
+          root: "/Users/m/Devel/prj/Intent"))
+  }
+
+  /// AT-03.4: a dev tree whose support set differs from its build keeps its
+  /// `+dirty`, so it never reads as a clean build.
+  @Test("the tree line keeps +dirty")
+  func treeLineKeepsDirty() {
+    #expect(
+      VersionService.parse("intent 3.2.7 (dev, 8a48430ee9b8+dirty) at /src/Intent dev\n")
+        == CLIVersion(
+          version: "3.2.7", commit: "8a48430e+dirty", kind: "dev", tree: "dev",
+          root: "/src/Intent"))
+  }
+
+  /// AT-03.4: the brew form names the opt link as its root, and a root may
+  /// hold a space.
+  @Test("the brew line names its opt link, spaces and all")
+  func brewLineNamesItsRoot() {
+    #expect(
+      VersionService.parse(
+        "intent 3.2.7 (brew, 8a48430ee9b8) at /opt/homebrew/opt/intent/libexec release\n")
+        == CLIVersion(
+          version: "3.2.7", commit: "8a48430e", kind: "release", tree: "brew",
+          root: "/opt/homebrew/opt/intent/libexec"))
+    #expect(
+      VersionService.parse(
+        "intent 3.2.7 (opt, 8a48430ee9b8) at /Users/m/Application Support/intent release")
+        == CLIVersion(
+          version: "3.2.7", commit: "8a48430e", kind: "release", tree: "opt",
+          root: "/Users/m/Application Support/intent"))
+  }
+
+  /// Issue 0646: hv ruled on 2026-10-25 that the line drops ` at <root>`, so
+  /// the tree line without it reads the same fields, its root nil.
+  @Test("the tree line without a root gives its tree, sha and kind")
+  func treeLineWithoutRoot() {
+    #expect(
+      VersionService.parse("intent 3.2.7 (dev, 397d7568e1d8) dev\n")
+        == CLIVersion(version: "3.2.7", commit: "397d7568", kind: "dev", tree: "dev"))
+    #expect(
+      VersionService.parse("intent 3.2.7 (brew, 397d7568e1d8) release")
+        == CLIVersion(version: "3.2.7", commit: "397d7568", kind: "release", tree: "brew"))
+  }
+
+  /// AT-03.4: `(dev, unknown)` is a dev tree whose git could not be read.
+  @Test("the (dev, unknown) line keeps unknown as its commit")
+  func devUnknownLine() {
+    #expect(
+      VersionService.parse("intent 3.2.7 (dev, unknown) at /src/Intent dev\n")
+        == CLIVersion(
+          version: "3.2.7", commit: "unknown", kind: "dev", tree: "dev", root: "/src/Intent"))
+  }
 }

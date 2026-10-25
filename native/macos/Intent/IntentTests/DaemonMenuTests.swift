@@ -15,14 +15,24 @@ struct DaemonMenuTests {
   @Test("a live daemon offers Open, Stop and Restart, and holds Start")
   func live() {
     let entries = DaemonMenu.entries(busy: nil, health: .live(endpoint: "/tmp/x.sock", url: url))
-    let actions: [DaemonMenu.Action?] = [.open(url: url), .start, .stop, .restart]
+    let actions: [DaemonMenu.Action?] = [.open, .start, .stop, .restart]
     #expect(entries.map(\.title) == ["Open", "Start", "Stop", "Restart"])
     #expect(entries.map(\.action) == actions)
     #expect(entries.map(\.isEnabled) == [true, false, true, true])
   }
 
-  /// Open sends the browser to the address the daemon published, so a live
-  /// daemon that published none has nothing for it to open.
+  /// Issue 0646: Open runs the CLI's own `--browser`, which opens the page with
+  /// the daemon's token in the fragment, rather than a bare address the page's
+  /// every read refuses.
+  @Test("Open runs intent estate status --browser")
+  func openRunsTheCLIsBrowser() {
+    let entries = DaemonMenu.entries(busy: nil, health: .live(endpoint: "/tmp/x.sock", url: url))
+    #expect(entries.first?.action == .open)
+    #expect(IntentCLI.label(DaemonMenu.openCommand) == "intent estate status --browser")
+  }
+
+  /// Open opens the web face the daemon published, so a live
+  /// daemon that published none has no page for it to open.
   @Test("a live daemon that published no url holds Open")
   func liveWithoutAURL() {
     let entries = DaemonMenu.entries(busy: nil, health: .live(endpoint: "/tmp/x.sock", url: nil))
@@ -52,7 +62,7 @@ struct DaemonMenuTests {
     let entries = DaemonMenu.entries(busy: "Restarting…", health: .live(endpoint: "/tmp/x.sock", url: url))
     #expect(
       entries == [
-        Entry(title: "Open", action: .open(url: url), isEnabled: false),
+        Entry(title: "Open", action: .open, isEnabled: false),
         Entry(title: "Restarting…", action: nil, isEnabled: false),
       ])
   }

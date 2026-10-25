@@ -406,6 +406,13 @@
     var KEY_TOKEN = "intentd.token";
     var KEY_ROOT = "intentd.root";
 
+    // **WITHOUT THE TOKEN THIS PAGE SAYS HOW TO OPEN IT, AND NOTHING ELSE**
+    // (issue 0646). Its data needs the daemon's token, which arrives only in
+    // the link the opening verbs build, so a page opened from a bare address,
+    // a bookmark, or a link from an earlier run of the daemon gets this one
+    // sentence, not the daemon's refusal with its `Authorization` text.
+    var NO_TOKEN = "This page opens with `intent estate status --browser` or the Open item in Intent.app's intentd menu, and an entity's page with `intent browse`, because its data needs the daemon's token and only the link those open carries it.";
+
     // **THE FRAGMENT IS READ ONCE AND ERASED.** `intent browse` puts the
     // secret and the project root here because a fragment is never sent to the
     // server and never logged -- but that says nothing about the ADDRESS BAR,
@@ -455,10 +462,7 @@
       var token = stored(KEY_TOKEN, memory.token);
       var root = stored(KEY_ROOT, memory.root);
       if (!token || !root) {
-        failed(
-          "This page has no credentials",
-          "Run `intent browse` again from your project. The token and project root arrive in the link that verb opens, and are not part of the address you can bookmark."
-        );
+        failed(NO_TOKEN, "");
         return;
       }
       var body = { root: root };
@@ -495,6 +499,14 @@
         // **A CORRECT COMMENT ON TOP OF CODE THAT CONTRADICTS IT IS WORSE THAN
         // NO COMMENT**, because it tells the next reader the case is handled.
         // The comment above was right the whole time.
+        // **A REFUSED TOKEN IS A MISSING TOKEN TO THE READER**: a stored token
+        // from an earlier run of the daemon is refused at 401 exactly as no
+        // token is, and the way out is the same link. So it is named before the
+        // refusal's own text, which speaks to a `curl` caller, could be shown.
+        if (answer.status === 401) {
+          failed(NO_TOKEN, "");
+          return;
+        }
         if (answer.body && answer.body.result === "error") {
           failed(answer.body.message, answer.body.remedy || "");
           return;

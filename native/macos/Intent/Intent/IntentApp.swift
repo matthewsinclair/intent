@@ -211,11 +211,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
   /// owner to investigate, not remove (AC-01.6 / AC-08.12), and the second line
   /// names its pid.
   ///
-  /// **OPEN CARRIES THE ADDRESS THE OPERATOR READ, AND ONLY `live` HAS ONE.**
-  /// `stale`, `absent` and `unknown` carry no `url` by the CLI's own
-  /// iff-contract, so there is nothing for the entry to bind, and a lifecycle
-  /// verb in flight holds it, because mid-restart is exactly when the old
-  /// address is dead.
+  /// **OPEN IS LIVE ONLY WHILE THE DAEMON PUBLISHES A WEB FACE.** `stale`,
+  /// `absent` and `unknown` carry no `url` by the CLI's own iff-contract, so
+  /// there is no page to open, and a lifecycle verb in flight holds it, because
+  /// mid-restart is exactly when the old address is dead.
   private func daemonItem() -> NSMenuItem {
     let item = NSMenuItem(title: "intentd", action: nil, keyEquivalent: "")
     item.subtitle = daemon.health.menuSubtitle(busy: daemon.busy, threadCount: project.threadCount)
@@ -224,7 +223,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
       let row = NSMenuItem(title: entry.title, action: nil, keyEquivalent: "")
       if entry.isEnabled, let action = entry.action {
         row.action = selector(action)
-        if case .open(let url) = action { row.representedObject = url }
       }
       row.isEnabled = row.action != nil
       submenu.addItem(row)
@@ -236,7 +234,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
   /// What each flyout entry runs.
   private func selector(_ action: DaemonMenu.Action) -> Selector {
     switch action {
-    case .open: #selector(openWebFace(_:))
+    case .open: #selector(openWebFace)
     case .start: #selector(startDaemon)
     case .stop: #selector(stopDaemon)
     case .restart: #selector(restartDaemon)
@@ -348,26 +346,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
   }
 
-  /// Open the daemon's web face in whatever the operator's default browser is.
+  /// Open the daemon's web face through the CLI's `intent estate status
+  /// --browser` (issue 0646), the one builder of the page's address: it reads the
+  /// address and token the running daemon published and opens the page with the
+  /// token in the fragment, so the page can read the estate. The app opening a
+  /// bare address of its own landed on the page's token refusal.
   ///
-  /// **THE ADDRESS COMES OFF THE ITEM, WHICH IS THE ADDRESS THE OPERATOR READ.**
-  /// Re-asking the daemon here would open a page other than the one the menu
-  /// showed, on the one occasion the two differ -- a restart between paint and
-  /// click, which is exactly when the port changes.
-  ///
-  /// **NEITHER FAILURE IS SILENT** (AC-01.1's no-silent-errors sibling): a menu
-  /// item that does nothing when clicked is indistinguishable from one that
-  /// worked, so both paths log and the unopenable one tells the operator.
-  @objc private func openWebFace(_ sender: NSMenuItem) {
-    guard let raw = sender.representedObject as? String, let url = URL(string: raw) else {
-      let shown = (sender.representedObject as? String) ?? sender.title
-      Self.logger.error("web face is not a usable URL: \(shown, privacy: .public)")
-      return showAlert(
-        "Could not open the web face", message: "`\(shown)` is not a URL this app can open")
-    }
-    Self.logger.info("open web face \(raw, privacy: .public)")
-    if !NSWorkspace.shared.open(url) {
-      showAlert("Could not open \(raw)", message: "the system declined to open it")
+  /// **A FAILURE IS AN ALERT**, never a click that did nothing: the CLI's
+  /// own error and remedy are what the operator reads.
+  @objc private func openWebFace() {
+    let args = DaemonMenu.openCommand
+    Self.logger.info("open web face: \(IntentCLI.label(args), privacy: .public)")
+    Task {
+      do {
+        _ = try await IntentCLI.run(args)
+      } catch {
+        let reason = error.localizedDescription
+        Self.logger.error("could not open the web face: \(reason, privacy: .public)")
+        showAlert("Could not open the web face", message: reason)
+      }
     }
   }
 

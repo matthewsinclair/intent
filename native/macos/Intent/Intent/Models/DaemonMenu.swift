@@ -6,12 +6,17 @@ import Foundation
 /// holds, and pure, so what the flyout offers in each state is tested without
 /// AppKit; the AppDelegate renders it.
 enum DaemonMenu {
-  /// What an entry runs when it is chosen. Open carries the web face's url as
-  /// the daemon published it, so the click opens the address the operator read.
+  /// What an entry runs when it is chosen. Open runs `openCommand`; Start,
+  /// Stop and Restart are the daemon service's.
   enum Action: Sendable, Equatable {
-    case open(url: String)
-    case start, stop, restart
+    case open, start, stop, restart
   }
+
+  /// What Open runs, through the `intent` the app resolves (issue 0646): the
+  /// CLI's own `--browser`, the one builder of the page's address, which
+  /// carries the daemon's token in the fragment. A bare address opens the
+  /// page with no token, and every read it makes is refused.
+  static let openCommand = ["estate", "status", "--browser"]
 
   /// One entry of the flyout: a verb, enabled or held, or the caption that
   /// stands in for the verbs while one runs ("Restarting…"), which runs nothing.
@@ -30,7 +35,7 @@ enum DaemonMenu {
   /// caption stands in for the three.
   static func entries(busy: String?, health: Health) -> [Entry] {
     let url: String? = if case .live(_, let published) = health { published } else { nil }
-    let open = Entry(title: "Open", action: url.map { .open(url: $0) }, isEnabled: busy == nil && url != nil)
+    let open = Entry(title: "Open", action: url.map { _ in .open }, isEnabled: busy == nil && url != nil)
     if let busy { return [open, Entry(title: busy, action: nil, isEnabled: false)] }
     let (start, stop, restart): (Bool, Bool, Bool) =
       switch health {
