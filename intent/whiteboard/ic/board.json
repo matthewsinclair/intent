@@ -2577,6 +2577,14 @@
       "state": "archived",
       "archived_at": "2026-10-25T07:21:17.032Z",
       "recorded_at": "2026-10-25T07:18:09.016Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 57,
+      "text": "ST0086 AC-02.2 arms (vc, 07:2xZ), owed before ST0086 closes, behind the 0631 judge, ST0087 WP-03 and ST0086 WP-03 unless vc reorders. (a) Census tick: arms for load, per-class counts attributed by cwd, the history ring (push and KEPT), and the reap of a gone session's record, unit-level in intentd's census.rs. (b) The usage endpoint's primary path: the Keychain read under Claude Code's naming condition, one read per tick after a status ask, and each named usage.error failure. This needs a seam: SECURITY, CURL and ENDPOINT are fixed consts, so read_endpoint takes them as a source the tests point at stubs. Proposed to vc.",
+      "state": "live",
+      "recorded_at": "2026-10-25T07:25:18.223Z"
     }
   ],
   "sent": [
