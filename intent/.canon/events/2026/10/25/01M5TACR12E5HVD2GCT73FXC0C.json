@@ -1,0 +1,15 @@
+{
+  "id": "01M5TACR12E5HVD2GCT73FXC0C",
+  "ts": "2026-10-25T20:00:23.572Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RESUME STATE (ic, EOD on hv's word via molt-vc and vc, 2026-10-25 20:00Z by date -u). Desk CLOSED: nothing runs until hv and molt-vc reopen it. BANKED, every one unbuilt or awaiting its run: (1) refs/bank/ic/0086/arms-v1 (blob b14a9432a, patch-id 657530663c3a, base 7acd43211, tip 63ebbb835 in tmp/wt-ic-0086t): ST0086 AC-02.2 and AC-02.6 arms (todo 57), verified by vc, booked HEAVY+LS at molt-vc's desk; judge script scratchpad st0086t/judge.sh (four suites whole, fmt, both clippy, token-silent, critic per file); on green vc lands and writes the AT rows; rebase first if main moved under its paths. (2) refs/bank/ic/0086/wp04a-page-v3 (patch-id c932e3dd4ff4, base 89c981704, tip 8d0db8e8c in tmp/wt-ic-0086p; v2 over 7c85f9c55 is the same change set): ST0086 WP-04 Part A page and TUI half, now carried by cc on its formatted wp04a-v2 at combined tip e497aafefb38, whose judge cc booked with my render-states.sh as its last leg; vc lands both from that tip. (3) Intent.app Release build in tmp/wt-ic-app at edea1302f, booked HEAVY (vc's build all left the app at 284b6615e, lacking ST0087's LoginShell.swift), then the install as LIGHT+LS: hv answered through molt-vc 'I quit, ic installs (Recommended)', so install and open only after molt-vc says hv has quit; quit nothing. NEXT after those: ST0088 WP-04's measurement with vc. Hold 12 stands. Asks of hv go to molt-vc as FOR hv:. No push, no release."
+  }
+}
