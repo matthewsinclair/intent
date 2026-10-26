@@ -88,12 +88,12 @@ A node session is started with `intent claude start <node>`, which binds it to i
 - **A hold is not archived while its condition stands unmet**; a released one goes back to TODO (`wb archive hold <id>`, then `wb add todo`).
 - **A fold never archives a directive**; it leaves `hv`'s board when `hv` says it is spent.
 - **A landed unit's worktree is removed by its author**, at the chain END that lands the unit, or at the author's next fold if it is still on disk. Every check runs from outside the worktree, because a session that removes the tree it stands in loses its working directory:
-  - its index tree is its base with its landed banks applied;
+  - its index tree is its base with its landed banks applied, whether they are staged or committed;
   - nothing in it is unstaged or untracked;
   - its base is an ancestor of main;
   - no stash entry names it, because the stash is the repository's and outlives the worktree.
 
-  Then `git worktree remove <path>`, never with `--force`: read a refusal as a finding. A re-bank that supersedes a worktree removes the old one the same way.
+  The banks are then its one difference from its base, and main holds them, so `git -C <path> reset --hard` drops any still staged and `git worktree remove <path>` removes the tree with its build target. Never add `--force`: plain `remove` still refuses an untracked file that appeared after the checks, and that refusal is a finding. A build target linked into another tree reads as untracked: remove the link itself with a plain `rm`, never `rm -r` and never with a trailing slash, which follow the link into the other tree, then run the checks again. A mutant worktree, a bank plus a planted defect kept for a red run, goes with its unit's worktree once that red run's END is on the record, by the same checks, with the planted defect as its one expected difference. A re-bank that supersedes a worktree removes the old one the same way.
 
 ## Node roles
 
