@@ -84,7 +84,7 @@ intent st list      # list steel threads
 - Follow Rust conventions enforced by `cargo fmt`.
 - Follow Swift conventions enforced by `swift format`.
 - Shell scripts: 2-space indentation, POSIX-compliant where practical.
-- Markdown: no manual line wrapping; verblock frontmatter on hand-authored persistent docs such as `intent/wip.md` (generated views such as a thread's `info.md` carry none).
+- Markdown: no manual line wrapping; verblock frontmatter (`IN-PR-STYLE-005`) on hand-authored persistent docs such as `intent/wip.md` (generated views such as a thread's `info.md` carry none).
 - Where the project keeps one, `usage-rules.md` carries the terse "DO / NEVER" contract.
 
 ## Steel Thread + Work Package Process

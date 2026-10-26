@@ -98,6 +98,13 @@ GUARDS=(
   # path would dispatch it in a project whose config had been removed, where it
   # cannot answer at all, and `--list-guards` would report it applicable.
   'intent/.config/config.json|staged-format-guard.sh|staged bytes are UNCHECKED against the declared formatters|self'
+  # `intent` FOR THE REASON THE APPEND-ONLY ROW GIVES: the guard re-tests its
+  # subject itself. A verblock is house style in every Intent project, and its
+  # subject is whatever Markdown a commit stages, which no path can name, so the
+  # row dispatches it in every Intent project and the guard reads the staged
+  # `*.md` itself. A commit that stages none costs one `git diff --cached` and
+  # prints nothing.
+  'intent|verblock-guard.sh|a verblock carrying history or prose is UNCHECKED'
 )
 
 # ---- THE ROSTER ROW'S SHAPE HAS ONE HOME, AND THESE TWO FUNCTIONS ARE IT ----

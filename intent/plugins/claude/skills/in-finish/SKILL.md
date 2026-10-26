@@ -39,6 +39,7 @@ Update `intent/wip.md` with:
 
 - Current state of in-progress work
 - What's next
+- Its verblock, per `IN-PR-STYLE-005`
 
 **`wip.md` IS DOING AND TODO ONLY. DONE WORK IS ILLEGAL IN IT.**
 

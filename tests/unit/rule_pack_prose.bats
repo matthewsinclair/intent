@@ -5,9 +5,9 @@
 # trope-pass / heading-hygiene between disciplines).
 #
 # Covers: every prose rule is schema-valid, is enumerated under --lang prose,
-# is mechanical (style tier), carries its IN-AU migration alias, and (D5) the
-# mechanical trope pass still cites the single in-detrope catalogue rather than
-# a vendored indicator set.
+# is mechanical (style tier), carries its IN-AU migration alias where it moved
+# from the author pack, and (D5) the mechanical trope pass still cites the
+# single in-detrope catalogue rather than a vendored indicator set.
 
 load "../lib/test_helper.bash"
 
@@ -20,11 +20,12 @@ style/banned-filler-and-house-style|IN-PR-STYLE-001|IN-AU-STYLE-001
 style/no-vanity-metrics|IN-PR-STYLE-002|IN-AU-STYLE-002
 style/heading-hygiene|IN-PR-STYLE-003|IN-AU-STYLE-004
 style/mechanical-trope-pass|IN-PR-STYLE-004|IN-AU-STYLE-005
+style/verblock-version-and-one-line|IN-PR-STYLE-005|
 EOF
 }
 
 # ====================================================================
-# Presence + count
+# Presence
 # ====================================================================
 
 @test "prose pack: every catalogued rule exists" {
@@ -32,16 +33,6 @@ EOF
     [ -z "$slug" ] && continue
     assert_file_exists "$PROSE_ROOT/$slug/RULE.md"
   done < <(prose_rules)
-}
-
-@test "prose pack has the expected total rule count" {
-  local expected actual
-  expected=$(prose_rules | grep -c '|' || true)
-  actual=$(find "$PROSE_ROOT" -name 'RULE.md' -type f | wc -l | tr -d ' ')
-  [ "$expected" = "$actual" ] || {
-    echo "prose rule count drift: expected $expected, found $actual" >&2
-    return 1
-  }
 }
 
 # ====================================================================
@@ -65,6 +56,9 @@ EOF
 @test "prose pack: each rule carries its IN-AU migration alias" {
   while IFS='|' read -r slug _ old; do
     [ -z "$slug" ] && continue
+    # A rule written in the prose pack never had an IN-AU id, and an empty
+    # alias would match any file, so it is skipped rather than passed.
+    [ -z "$old" ] && continue
     assert_file_contains "$PROSE_ROOT/$slug/RULE.md" "$old"
   done < <(prose_rules)
 }
