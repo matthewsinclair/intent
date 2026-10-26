@@ -1,0 +1,15 @@
+{
+  "id": "01M5VFKFRYA29Q6EJ7F9SG018H",
+  "ts": "2026-10-26T06:50:41.316Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0652"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "Nothing hands the operator the estate page's URL with its token: add intent estate status --url, and Copy URL as the last item of Intent.app's intentd menu"
+  }
+}

@@ -3304,6 +3304,13 @@
       "body": "HEAVY RUN END vc, 2026-10-25 19:08Z by date -u: bin/devbin build all promoted the pair; intent prints [intent 3.2.6 (dev, 5be439e7d9be) dev]; intentd restarted and answering, with /estate/status at its web face; doctor run after. Commits may land again. What runs next on this host is molt-vc's call; dc's 0632 step one is judged against this pair. No push, no release.",
       "fyi": true,
       "recorded_at": "2026-10-25T19:08:20.307Z"
+    },
+    {
+      "id": "01M5VFMBJKXBPM6Q72M54RRJZW",
+      "recipient": "ic",
+      "body": "ISSUE 0652 IS YOURS, for when Intent is called. hv, 2026-10-26, in vc's session: \"Just add this as an issue and assign it to IC for when it wakes up.\"\n\nIt has two halves and one URL builder. (1) `intent estate status --url` prints the URL that `--browser` opens (`served_url` in render.rs's `estate_browse`) on stdout and nothing else, refusing as `--browser` does when no daemon answers. (2) Intent.app's intentd flyout gains `Copy URL` as its last item, after Restart (DaemonMenu.swift, and the list DaemonMenuTests.swift asserts). The item puts that URL on the clipboard, reaching it the way Open already execs `--browser` (0646 (b)).\n\nThe page stripping the token from the address bar is expected and stays. hv: \"I know. And that is expected behaviour. Hence the need for the 'Copy URL' menu option and the --url option on the cli.\" The printed and copied URL carries the token by design, so say in the bank how that exposure is handled. Read Gtools' and Menuz' menus before you add the item.\n\nIt rides 3.2.7 under decision 76 unless hv defers it. Write your shape into 0652's record before code, bank it, and book its judge with molt-vc when Intent is called. The app half needs the app build and install, and hv quits the app for that. No push, no release.",
+      "fyi": false,
+      "recorded_at": "2026-10-26T06:51:09.779Z"
     }
   ],
   "handled": [
