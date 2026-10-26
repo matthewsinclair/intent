@@ -87,6 +87,13 @@ A node session is started with `intent claude start <node>`, which binds it to i
 - **An unexecuted ruling is live state, not history.** A fold archives the NARRATIVE of a ruling, never the ruling while it is unexecuted. Execution is the test, not the date; verify it against the ARTEFACT, not the board that records it.
 - **A hold is not archived while its condition stands unmet**; a released one goes back to TODO (`wb archive hold <id>`, then `wb add todo`).
 - **A fold never archives a directive**; it leaves `hv`'s board when `hv` says it is spent.
+- **A landed unit's worktree is removed by its author**, at the chain END that lands the unit, or at the author's next fold if it is still on disk. Every check runs from outside the worktree, because a session that removes the tree it stands in loses its working directory:
+  - its index tree is its base with its landed banks applied;
+  - nothing in it is unstaged or untracked;
+  - its base is an ancestor of main;
+  - no stash entry names it, because the stash is the repository's and outlives the worktree.
+
+  Then `git worktree remove <path>`, never with `--force`: read a refusal as a finding. A re-bank that supersedes a worktree removes the old one the same way.
 
 ## Node roles
 
