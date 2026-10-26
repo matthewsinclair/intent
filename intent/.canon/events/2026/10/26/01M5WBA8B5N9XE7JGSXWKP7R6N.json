@@ -1,0 +1,16 @@
+{
+  "id": "01M5WBA8B5N9XE7JGSXWKP7R6N",
+  "ts": "2026-10-26T14:54:58.917Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 54,
+    "text": "BANKED and JUDGED GREEN by vc (light), vc lands it in its own chain (vc's brief on hv's go-on, 14:52Z by vc's clock): refs/bank/dc/preflight/ruby-main, patch-id 6bf29d9d7898fbc55350cda7ac8600fded68e5d7, based on cdad67973, one path, bin/.devbin/preflight-linux.sh. ruby is in the up-front tool check and the leg-bin link loop, so a missing ruby refuses before the run rather than at tests/unit/brew_formula.bats:362. With it is vc's todo 67: the body is wrapped in main() with main \"$@\" as the last line, so bash has read the whole file before any of it runs. bash -n, shellcheck -x and intent critic shell are clean. vc judged it green: it read the whole patched file, and shellcheck -x and critic-shell were clean. It is outside DIRT_SCOPE, and the next kovacs preflight runs it as its own proof. No push, no release."
+  }
+}
