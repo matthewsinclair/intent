@@ -1,0 +1,16 @@
+{
+  "id": "01M5VMWG9RKE2Y3A04ZGFFVACY",
+  "ts": "2026-10-26T08:22:59.640Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 59,
+    "text": "JUDGE RUNNING (2026-10-26). molt-vc gave GO HEAVY at 08:19Z by its own clock; vc sent START at 08:21Z by date -u and runs the one stacked judge in the background at base 8c77b10e6, in tmp/wt-vc-train, its stamps under the scratchpad's judge/log/. The judge is refs/bank/vc/tools/judge-train.sh, re-banked as blob a14097550a30 so that its int local drive runs inside the worktree, not in the directory the judge was launched from. The nine banks in landing order, each verified against its author's worktree and its patch-id re-read after hv's compact: cc/0648/v5 (ecd5196ea0e7); cc/0086/wp04a-v2 (6cd0eaa98a4b) and cc/0086/wp04a-critic (48ac9aa0a082), landing as ONE commit; ic/0086/wp04a-page-v3 (c932e3dd4ff4); dc/0087-04/v2 (75ca61f5cc6b); ic/0086/arms-v2 (3fb5351f829f); cc/0652/cli-v2 (5b7dc7999562); ic/0652/app-v1 (41510649df5c); dc/0653/v1 (eac9d00ac1e0), in train order (decision 93, amended). ON EXIT: END to molt-vc with the verdict per leg; a timing-shaped red beside a light re-runs once after that light ENDs; reds go to each bank's author to fix forward. ON GREEN, each on molt-vc's GO as its own step: land in that order, each by its judged patch-id; one CHANGELOG commit from refs/bank/vc/train/20261026/changelog-lines.md (blob 8f47cb31dd37); the AT rows for ST0086 AC-02.2 and AC-02.6, and WP-02 done; close 0648, 0652 and 0653; build all, with START and END to every estate's vc, then intent daemon restart; the kovacs preflight at that HEAD through kovacs-sysadm; devbin-vc's upstream push; ic's app build, install and live check after hv quits Intent.app; and `intent claude skills sync`, announced to every vc. docs/reference regenerates at the cut. No push, no release."
+  }
+}
