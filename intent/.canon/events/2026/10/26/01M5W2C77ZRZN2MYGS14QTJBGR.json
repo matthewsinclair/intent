@@ -1,0 +1,15 @@
+{
+  "id": "01M5W2C77ZRZN2MYGS14QTJBGR",
+  "ts": "2026-10-26T12:18:46.147Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0655"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent use brew refuses without naming the links it would have removed or why no Homebrew copy would answer (A4)"
+  }
+}
