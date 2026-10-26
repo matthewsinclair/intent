@@ -1,0 +1,15 @@
+{
+  "id": "01M5WWN0PH4TDJDKZPM6B1F4KA",
+  "ts": "2026-10-26T19:57:57.329Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ISSUE 0657 (filed by vc at 6d852eb04 on hv's \"A: file the fix now\"): install's HEAD check refuses only when commits past the built sha touch DIRT_SCOPE or a support path. Size S, cc's to bank when Intent's queue reaches it in the next train, after Part B's train (doing 96). Until it lands, a commit to main between a build and its install makes the fresh pair refuse, so main holds through every build all. Light work only under decision 92."
+  }
+}

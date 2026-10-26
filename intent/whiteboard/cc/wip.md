@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 1b8817f9-d0d6-4b3e-b2f5-d09c0a9a0577
-heartbeat_at: 2026-10-26 17:26Z
-status: active
-focus: "HOLD ON THE BOUNCE after molt-vc's round (hv's words relayed 2026-10-26): ST0086 WP-04 Part B's six-bank train (doing 96) is judged when molt-vc grants Intent's slot, behind Devbin and Utilz, then runs straight through; a red in cc's banks comes back to cc in tmp/wt-cc-0086b; owed after a green landing: the AT rows, design.md and pending's measured cost; hold 33 stands until ST0087 has gone first; no push, no release"
+heartbeat_at: 2026-10-26 19:58Z
+status: paused
+focus: "CLOSED FOR THE NIGHT on hv's end-of-day word (relayed by molt-vc 2026-10-26), holding until hv says go on: 0648's exit-0 revert landed at ddb749ca7 and upstream has it; ST0086 WP-04 Part B's six-bank train (doing 96) waits for Intent's slot behind Utilz's end-point; issue 0657 (todo 42) is banked after it; hold 33 stands until ST0087, now WIP, has gone first; tmp/wt-cc-0648r and tmp/wt-cc-0086b stay until molt-vc's Spotlight word; no push, no release"
 claims: [ST0081, ST0086/04]
 ---
 
@@ -17,11 +17,11 @@ claims: [ST0081, ST0086/04]
 
 ## TODO
 
-_(none)_
+- ISSUE 0657 (filed by vc at 6d852eb04 on hv's "A: file the fix now"): install's HEAD check refuses only when commits past the built sha touch DIRT_SCOPE or a support path. Size S, cc's to bank when Intent's queue reaches it in the next train, after Part B's train (doing 96). Until it lands, a commit to main between a build and its install makes the fresh pair refuse, so main holds through every build all. Light work only under decision 92.
 
 ## Holds
 
-- HOLD ST0081 AC-02.1 and WP-02 (Linux assets on each tag's release, one writer per release object) UNTIL ST0087 (Intent conforms to the dev, opt and brew contract, citing devbin's docs/dev-opt-brew.md) has gone first, per hv's order, with vc to specify it; at molt-vc's round on 2026-10-26 ST0087 reads Triage, so the condition is unmet. AC-02.1 is proven at the first cut after that. D55 is ruled (hv, 2026-10-23: devbin's release core attaches the Linux assets, SHA256SUMS riding it), and devbin-vc's shape is WP-02's plan, not yet built: Intent declares `commands.release.enabled: true` with `release.verbs: [check, attach]`, `release.repo` and the assets keys; linux-release.yml, which today is workflow_dispatch only, gains a trigger on tags matching `v[0-9]*`; the cut runs build release, macos prepare, macos publish, `bin/devbin release attach vX.Y.Z`, then brew formula --push. Every other ST0081 row is settled and the gate reads BLOCKED on AC-02.1 alone. The release.remotes block is retired (vc), not owed. (edited)
+- HOLD ST0081 AC-02.1 and WP-02 (Linux assets on each tag's release, one writer per release object) UNTIL ST0087 (Intent conforms to the dev, opt and brew contract, citing devbin's docs/dev-opt-brew.md) has gone first, per hv's order, with vc to specify it; ST0087 was started at 6d852eb04 on hv's yes (vc's decision 96) and reads WIP, so the condition, that it has gone first, is still unmet. AC-02.1 is proven at the first cut after that. D55 is ruled (hv, 2026-10-23: devbin's release core attaches the Linux assets, SHA256SUMS riding it), and devbin-vc's shape is WP-02's plan, not yet built: Intent declares `commands.release.enabled: true` with `release.verbs: [check, attach]`, `release.repo` and the assets keys; linux-release.yml, which today is workflow_dispatch only, gains a trigger on tags matching `v[0-9]*`; the cut runs build release, macos prepare, macos publish, `bin/devbin release attach vX.Y.Z`, then brew formula --push. Every other ST0081 row is settled and the gate reads BLOCKED on AC-02.1 alone. The release.remotes block is retired (vc), not owed. (edited)
 
 ## Watch-outs
 
