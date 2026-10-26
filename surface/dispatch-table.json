@@ -9495,7 +9495,15 @@
               "help": "Open the estate page in the browser, served by intentd",
               "disposition": "keep",
               "exposed_on_mcp": false,
-              "disposition_basis": "The page is the same reader's answer, laid out for a wide screen and read again while it is open, at the address hv named for it, `/estate/status`. It opens through the door `edit --browser` uses, with the token in the fragment, and refuses when no daemon is answering rather than starting one. It is not offered over MCP: an agent reads the answer, and a browser opening on the human's screen is not something an agent asks for. Given with `--format` it refuses, because the two ask for opposite things."
+              "disposition_basis": "The page is the same reader's answer, laid out for a wide screen and read again while it is open, at the address hv named for it, `/estate/status`. It opens through the door `edit --browser` uses, with the token in the fragment, and refuses when no daemon is answering rather than starting one. It is not offered over MCP: an agent reads the answer, and a browser opening on the human's screen is not something an agent asks for. Given with `--format` or `--url` it refuses, because each pair asks for a different answer."
+            },
+            {
+              "spellings": ["--url"],
+              "type": "bool",
+              "help": "Print the estate page's URL, its token included, instead of opening it",
+              "disposition": "keep",
+              "exposed_on_mcp": false,
+              "disposition_basis": "hv's ruling of 2026-10-26: the URL `--browser` opens, printed on stdout with one newline and nothing else, so it can be copied from the terminal into a second browser or piped. The page strips the token from the address bar on load, which stays, so the bar cannot be copied; Intent.app's Copy URL item runs this rather than composing the URL, so the URL has one builder. The URL carries the daemon's token in its fragment, because the page needs it to ask for anything: printing it is the operator's explicit request, it lands wherever the terminal's scrollback or a clipboard history keeps it, and `intentd` mints a new token at every start, which ends a printed URL's reach. It refuses as `--browser` does when no daemon is answering, opens no browser, and refuses beside `--browser` or `--format`. It is not offered over MCP: the token is the operator's to hand out, and an agent reads the answer itself."
             }
           ],
           "facade": "estate_status",

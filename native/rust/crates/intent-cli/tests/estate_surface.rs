@@ -19,7 +19,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use crate::common::level_three::INITIALIZE;
-use crate::common::{intent, mcp_session};
+use crate::common::{RealDaemon, intent, mcp_session};
 
 /// `pid`'s start in the form Claude Code writes as `procStart` on THIS OS.
 ///
@@ -401,6 +401,131 @@ fn status_browser_refuses_with_no_daemon_and_beside_a_format() {
   assert!(
     out.stdout.is_empty(),
     "it printed an answer as well as refusing"
+  );
+}
+
+/// `--url` refuses as `--browser` does when no daemon is answering, and beside
+/// `--browser` or `--format`, each of which asks for a different answer; no
+/// refusal prints a URL.
+#[test]
+fn status_url_refuses_with_no_daemon_and_beside_another_answer() {
+  let host = Host::new();
+  let out = host
+    .cmd()
+    .args(["estate", "status", "--url"])
+    .output()
+    .expect("run estate status --url");
+  assert_eq!(
+    out.status.code(),
+    Some(1),
+    "no daemon answers, so it refuses"
+  );
+  let err = String::from_utf8_lossy(&out.stderr);
+  assert!(
+    err.contains("no `intentd` is answering") && err.contains("intent daemon start"),
+    "the refusal does not say no daemon answers and how to start one:\n{err}"
+  );
+  assert!(
+    out.stdout.is_empty(),
+    "it printed a URL as well as refusing"
+  );
+
+  for other in [&["--browser"][..], &["--format", "json"][..]] {
+    let argv = [&["estate", "status", "--url"][..], other].concat();
+    let out = host
+      .cmd()
+      .args(&argv)
+      .stdin(testkit::lifeline_for(&argv))
+      .output()
+      .expect("run estate status --url beside another answer");
+    assert_eq!(
+      out.status.code(),
+      Some(1),
+      "{other:?} beside `--url` refuses"
+    );
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(
+      err.contains("--url") && err.contains(other[0]) && err.contains("remedy:"),
+      "the refusal does not name both flags and a remedy:\n{err}"
+    );
+    assert!(
+      out.stdout.is_empty(),
+      "{other:?}: it printed an answer as well as refusing"
+    );
+  }
+}
+
+/// `--url` prints exactly the URL `--browser` opens, then one newline, and
+/// nothing else on stdout, and opens no browser itself: Intent.app's Copy URL
+/// item copies that stdout whole.
+///
+/// **THE OPENER IS A STUB ON A `PATH` THAT HOLDS NOTHING ELSE**, so both flags
+/// run without a browser opening on the machine that runs this: `open` and
+/// `xdg-open` each append the URL they are handed to a file, and with no other
+/// directory on `PATH` a real opener cannot be reached even if a stub went
+/// missing.
+#[test]
+fn status_url_prints_the_url_browser_opens_and_opens_nothing() {
+  use std::os::unix::fs::PermissionsExt;
+
+  let daemon = RealDaemon::start();
+  let stubs = tempfile::tempdir().expect("the stub openers' directory");
+  let opened = stubs.path().join("opened");
+  for opener in ["open", "xdg-open"] {
+    let stub = stubs.path().join(opener);
+    std::fs::write(&stub, "#!/bin/sh\nprintf '%s\\n' \"$1\" >> \"$OPENED\"\n")
+      .expect("write a stub opener");
+    std::fs::set_permissions(&stub, std::fs::Permissions::from_mode(0o755))
+      .expect("make the stub opener executable");
+  }
+  let run = |flag: &str| {
+    intent()
+      .args(["estate", "status", flag])
+      .env("HOME", daemon.home())
+      .env("PATH", stubs.path())
+      .env("OPENED", &opened)
+      .current_dir(daemon.home())
+      .output()
+      .expect("run estate status")
+  };
+
+  let url = run("--url");
+  assert_eq!(
+    url.status.code(),
+    Some(0),
+    "`--url` exits 0:\n{}",
+    String::from_utf8_lossy(&url.stderr)
+  );
+  assert!(!opened.exists(), "`--url` ran an opener");
+
+  let browser = run("--browser");
+  assert_eq!(
+    browser.status.code(),
+    Some(0),
+    "`--browser` exits 0 through the stub:\n{}",
+    String::from_utf8_lossy(&browser.stderr)
+  );
+  let handed = std::fs::read_to_string(&opened).expect("`--browser` handed the stub a URL");
+  assert_eq!(
+    String::from_utf8(url.stdout).expect("`--url` prints UTF-8"),
+    handed,
+    "`--url` prints exactly the URL `--browser` opens, one newline after it, and nothing else"
+  );
+
+  let dirs = intentsvcs::userstate::Dirs::at_home(daemon.home());
+  let addr = intentsvcs::daemon::answering_loopback_under(&dirs)
+    .expect("read the daemon's published address")
+    .expect("the daemon answers on its loopback port");
+  let token = intentsvcs::daemon::Token::read_under(&dirs).expect("read the daemon's token");
+  let page = format!(
+    "{}/{}/{}#token={token}&root=",
+    intentsvcs::daemon::loopback_base_url(&addr),
+    intentsvcs::nav::ESTATE_SEGMENT,
+    intentsvcs::nav::ESTATE_DEFAULT_ITEM,
+  );
+  assert!(
+    handed.starts_with(&page),
+    "the URL is the daemon's estate page with its token in the fragment:\n{handed}"
   );
 }
 

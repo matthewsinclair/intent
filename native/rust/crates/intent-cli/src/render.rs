@@ -2212,7 +2212,7 @@ fn served_url(path: &str, root: &std::path::Path) -> Result<String, Failure> {
   let dirs = intentsvcs::userstate::dirs().map_err(|e| {
     Failure::Error(format!(
       "error: cannot find your Intent state directory -- {e}\n  \
-       remedy: `--browser` needs the address and token a running `intentd` publishes there"
+       remedy: a page's URL needs the address and token a running `intentd` publishes there"
     ))
   })?;
 
@@ -10306,13 +10306,8 @@ fn estate_fail(e: intentsvcs::estate::EstateError) -> Failure {
 /// malformed session file says nothing about the other sessions.
 fn estate_status(a: &ArgMatches) -> Result<(), Failure> {
   let format = enum_flag(a, "estate status", "--format")?;
-  if given(a, "browser") {
-    if given(a, "format") {
-      return Err(Failure::Error(
-        "error: `--browser` and `--format` ask for opposite things\n  remedy: name one of them: the page, or the answer printed here".to_string(),
-      ));
-    }
-    return estate_browse();
+  if given(a, "browser") || given(a, "url") {
+    return estate_page(a);
   }
   let status = intentsvcs::estate::host_status().map_err(estate_fail)?;
   let value = estate_value(&status)?;
@@ -10327,22 +10322,52 @@ fn estate_status(a: &ArgMatches) -> Result<(), Failure> {
   Ok(())
 }
 
-/// `intent estate status --browser`: the estate page (ST0086 WP-02), served by
-/// `intentd` at its own address, `/estate/status`.
+/// `intent estate status --browser` and `--url`: the estate page (ST0086
+/// WP-02), served by `intentd` at its own address, `/estate/status`, opened in
+/// the operator's browser or its URL printed.
+///
+/// **`--url` PRINTS WHAT `--browser` OPENS AND NOTHING ELSE**, the URL and one
+/// newline on stdout, so it can be copied from the terminal or piped. The page
+/// strips the token from the address bar on load, so the bar cannot be copied
+/// into a second browser, and Intent.app's Copy URL item runs this rather than
+/// composing the URL, so the URL has one builder. It carries the token by
+/// design: printing it is the operator's explicit request, and `intentd` mints
+/// a new token at every start, which ends a printed URL's reach.
+///
+/// **EACH OF THE THREE FLAGS REFUSES BESIDE ANOTHER**, because every pair asks
+/// for a different answer: the page, its URL, or the answer printed here.
+fn estate_page(a: &ArgMatches) -> Result<(), Failure> {
+  let asked: Vec<&str> = ["browser", "url", "format"]
+    .into_iter()
+    .filter(|id| given(a, id))
+    .collect();
+  if let [first, second, ..] = asked.as_slice() {
+    return Err(Failure::Error(format!(
+      "error: `--{first}` and `--{second}` ask for opposite things\n  remedy: name one of them: the page, its URL, or the answer printed here"
+    )));
+  }
+  let url = estate_url()?;
+  if given(a, "url") {
+    println!("{url}");
+    return Ok(());
+  }
+  open_url(&url)
+}
+
+/// The estate page's URL, which `--browser` opens and `--url` prints.
 ///
 /// **THE PAGE'S PATH IS THE NAV CONTRACT'S**, the estate segment and its one
 /// item, so this and the daemon's parse of it cannot come to disagree.
 /// **THE ROOT IN THE FRAGMENT IS ANY ROOT**: every request carries one and the
 /// daemon answers the estate without binding to it, so this run's project is
 /// sent when it stands in one and the home directory when it does not.
-fn estate_browse() -> Result<(), Failure> {
+fn estate_url() -> Result<String, Failure> {
   use intentsvcs::nav::{ESTATE_DEFAULT_ITEM, ESTATE_SEGMENT};
   let root = match context() {
     Ok((project, _)) => project.root().to_path_buf(),
     Err(_) => intentsvcs::userstate::home().map_err(|e| Failure::Error(e.render()))?,
   };
-  let url = served_url(&format!("/{ESTATE_SEGMENT}/{ESTATE_DEFAULT_ITEM}"), &root)?;
-  open_url(&url)
+  served_url(&format!("/{ESTATE_SEGMENT}/{ESTATE_DEFAULT_ITEM}"), &root)
 }
 
 /// The reader's answer as the JSON every face reads (`intent/estate-status@1`).
