@@ -1,0 +1,15 @@
+{
+  "id": "01M5W6EGDZEFM2J4FVC8JEVY8Z",
+  "ts": "2026-10-26T13:29:55.391Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-10-26, hv first-hand in vc's session, relayed to molt-vc at 13:16:57Z by date -u) THE DESK MOVES ONTO THE SLOT RECORDS AFTER THE KOVACS PREFLIGHT'S END. hv, verbatim: \"yes, have molt-vc take control after the preflight END.\" hv had asked why the estate page's pipeline strip read \"nothing running\" on the pair 2d4c941fa05d. The strip (AC-04.7) and Part A's records and verbs are installed, but ~/.local/state/intent/estate/slots/ did not exist, so there was no controller, no lane and no request, and every booking that day went by message at molt-vc's desk, which the page cannot see. So, as decision 88 planned, molt-vc runs `intent estate control take`, opens decision 88's lanes (heavy at capacity 1, named by every heavy grant; cargo at capacity 1 machine-wide including kovacs; bats; light; launchsvc; lane none for negligible runs), and books READY as `slots ask`, GO as a grant, START as a start, END as a release, refusals as a deny or revoke, with kovacs runs relayed by the requester. Part B's wait, watch, pending, prompt hook and init follow the push, and Part B's train is the first run booked through the records. EXECUTED: molt-vc took control at 13:19:49Z by its clock, after the preflight's END (which was red), and opened heavy, cargo, bats and launchsvc at capacity 1 and light at 4."
+  }
+}
