@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 1b8817f9-d0d6-4b3e-b2f5-d09c0a9a0577
-heartbeat_at: 2026-10-26 11:47Z
+heartbeat_at: 2026-10-26 12:00Z
 status: active
 focus: "LOCALFOLD 2026-10-26 (hv's word via vc, 11:45Z): ST0086 WP-04 Part B banked as four stacked banks (wp04b-status-v2 4ae2585f7479, wp04b-wait-v2 2421b3d9719d, ic's wp04b-page-v2 8126a568631b, wp04b-init-v1 e8aee9ac86d6), verified by vc on main 34c7046ad to tip tree b8c3025dd884; after the bounce vc runs the fold-text change, the kovacs preflight and the push, then Part B's judge; a red comes back to cc in tmp/wt-cc-0086b; owed after the landing: AT rows for AC-04.4, AC-04.5 and AC-04.6, design.md's key paragraph, pending's measured cost; hold 33 stands until ST0087 has gone first; no push, no release"
 claims: [ST0081, ST0086/04]
