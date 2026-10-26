@@ -407,6 +407,16 @@ RUBY
   assert_output_contains '`intent` with `intent use`, and `intent use brew` hands it back to this keg.'
 }
 
+@test "the formula's test do runs the version line" {
+  # `brew install` never runs this block and smoke drives the keg's binary
+  # directly, so the rendered text is the one place the clause is pinned.
+  run render_formula
+  assert_success
+  assert_output_contains '  test do
+    assert_match version.to_s, shell_output("#{bin}/intent --version")
+  end'
+}
+
 @test "invariant: brew render takes a release tag, and refuses a bare version" {
   brew_render_verb 9.9.9 -
   [ "$status" -ne 0 ] || fail "a bare version rendered: $output"
