@@ -1,0 +1,15 @@
+{
+  "id": "01M5VFRPN9SE1M6G64AEB4KK3F",
+  "ts": "2026-10-26T06:53:32.202Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-10-26, hv by TUI in molt-vc's session, relayed by molt-vc and received by vc before vc's clock read of 06:53Z; vc's proposal taken as recommended; wording vc's, each choice hv's) THE VERBLOCK RULE'S HOME IN INTENT. hv's words: \"The verblock just has 1-line (or less) text plus the version and NEVER has history in it. That is what version control is for!\" (2026-10-12), and \"THE VERBLOCK IS NOT A REPLACEMENT FOR VERSION CONTROL. DO NOT STORE PROSE IN THE VERBLOCK. Just the docs version and a short -- no more than 1-line -- text about the current version.\" (2026-10-26). It is going-forward only (\"This is going-forward only.\"), so records stay as they are. (a) A library rule, IN-PR-STYLE-005, holds hv's words verbatim. A shipped pre-commit guard, verblock-guard.sh, runs beside staged-format-guard.sh on STAGED markdown only. Two pointer lines cite the rule's ID: the Markdown line of lib/templates/llm/_AGENTS.md, and in-finish's wip.md step. (b) The guard refuses a verblock with a second version stamp, and a quoted value longer than 100 characters. (c) dc builds it in 3.2.7 when molt-vc calls Intent, in a detached worktree, banked and judged in Intent's train. The unit's record is issue 0653, sent to dc's inbox. Already done: the live docs' cull in dbfc3fc10 (ST0056's two on-disk attachments are live docs, per molt-vc), and hv's words in Intent's project memory until the rule lands."
+  }
+}

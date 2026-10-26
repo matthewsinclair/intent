@@ -1,0 +1,15 @@
+{
+  "id": "01M5VFQWKQKSRAFDCH1VWDH98S",
+  "ts": "2026-10-26T06:53:05.533Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0653"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "Verblocks carry history and prose against hv's rule, and nothing in Intent says or checks so: IN-PR-STYLE-005, a staged-markdown verblock guard, and two pointers"
+  }
+}
