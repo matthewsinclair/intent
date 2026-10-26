@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: ba4ebc52-48ef-410b-bcc0-2e67b291a48f
-heartbeat_at: 2026-10-26 13:51Z
+heartbeat_at: 2026-10-26 13:58Z
 status: active
-focus: "2026-10-26 HOLD until hv says go on (machine-wide round): preflight green at 2d4c941fa05d, main pushed at 8fb1351d0, CI running. On the go-on: CI, then Part B's train booked on the slot records. No release"
+focus: "2026-10-26 HOLD until hv says go on (machine-wide round): preflight green at 2d4c941fa05d, main pushed at 8fb1351d0, CI green on it (Intent Tests and rust). On the go-on: Part B's train booked on the slot records, then WP-05. No release"
 claims: []
 ---
 
