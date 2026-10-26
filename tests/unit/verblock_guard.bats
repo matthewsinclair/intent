@@ -17,6 +17,13 @@
 # exactly 100 characters and more than 100 bytes, so a guard counting bytes
 # would refuse it; the arm asserts the byte count first, so the fixture cannot
 # silently stop discriminating.
+#
+# A BLOB LARGER THAN A PIPE BUFFER, arm 5: git runs a hook with SIGPIPE
+# ignored, so the arm does too, and there a guard that piped the blob into a
+# reader stopping at the end of the frontmatter printed `write error: Broken
+# pipe`. It stages one such file with a verblock and one with no frontmatter,
+# which the reader leaves at line 1, and asserts both sizes first, for the same
+# reason as arm 4.
 
 load "../lib/test_helper.bash"
 
@@ -88,4 +95,19 @@ doc() {
   run bash "$GUARD"
   [ "$status" -eq 0 ]
   assert_output_contains "ok -- 1 verblock(s) in 1 staged Markdown file(s)"
+}
+
+@test "a staged Markdown file larger than a pipe buffer prints no broken pipe, with SIGPIPE ignored as git runs a hook" {
+  scratch_repo
+  local i
+  doc big.md "2026-10-26:v1.0: dc - one line"
+  for i in $(seq 1 4096); do printf 'Body line %s, past the frontmatter the guard reads.\n' "$i"; done >> big.md
+  for i in $(seq 1 4096); do printf 'Line %s of a document with no frontmatter.\n' "$i"; done > plain.md
+  [ "$(LC_ALL=C wc -c < big.md | tr -d ' ')" -gt 65536 ]
+  [ "$(LC_ALL=C wc -c < plain.md | tr -d ' ')" -gt 65536 ]
+  git add big.md plain.md
+  run bash -c 'trap "" PIPE; bash "$1"' _ "$GUARD"
+  [ "$status" -eq 0 ]
+  refute_output_contains "Broken pipe"
+  assert_output_contains "ok -- 1 verblock(s) in 2 staged Markdown file(s)"
 }

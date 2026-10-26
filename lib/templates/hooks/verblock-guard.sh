@@ -117,6 +117,11 @@ while IFS= read -r -d '' f; do
   fi
   FILES=$((FILES + 1))
   found=""
+  # The blob reaches values_of as a here-string, never down a pipe: values_of
+  # stops at the end of the frontmatter, or at line 1 when there is none, and
+  # git runs a hook with SIGPIPE ignored, so a printf still writing a blob
+  # larger than a pipe buffer printed `write error: Broken pipe` on every
+  # commit that staged one.
   while IFS= read -r v; do
     [ -n "$v" ] || continue
     CHECKED=$((CHECKED + 1))
@@ -127,7 +132,7 @@ while IFS= read -r -d '' f; do
     fi
     found="$found $(stamps_in "$v")"
   done <<EOF
-$(printf '%s\n' "$blob" | values_of)
+$(values_of <<<"$blob")
 EOF
   count="$(printf '%s\n' "$found" | awk '{ print NF }')"
   if [ "$count" -gt 1 ]; then
