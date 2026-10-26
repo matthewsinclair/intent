@@ -23,7 +23,7 @@
       "seq": 2,
       "title": "intentd serves /estate/status: watches the estate directory outside the ingest path, renders the live top-styled page with the host census",
       "scope": "S",
-      "status": "wip",
+      "status": "done",
       "objective": "intentd answers the estate over the one shell document: the page's data call `{\"op\":\"form\",\"view\":\"/estate/status\"}` returns `result: estate_status` carrying the reader's `intent/estate-status@1` JSON, /estate/status is a route in `shell.html` fed by `/op`, and the daemon renders no HTML for it (D56). The page is live and top-styled, laid out as the attached `estate-status-mockup.html` hv approved on 2026-10-24: one band across the top (the host block, the last hour as sparklines of the 1-minute load and the running slots, plan usage), then the queue, the lanes and the sessions, every panel a native `<details>` whose collapsed summary keeps a live one-line reading; it polls the reader every few seconds while open, so there is no watcher in this package and D20 keeps its two events. The daemon measures the host census itself on its tick: the load averages, one row per declared process class counting running processes attributed to the project whose tree holds each process's working directory, and a history ring; the classes are declared with `intent estate watch <class> <pattern>` and `intent estate unwatch <class>` as `census/watches/<class>.json`, nothing is built in, and the tick reaps gone sessions' WIP records (vc decision 73). Plan usage comes from the account's usage endpoint first, read through Claude Code's own Keychain item under Claude Code's own naming condition with no fallback between names, once per census tick after a status ask, and from `intent estate statusline` second, which a statusline step feeds the JSON it was handed (`printf '%s' \"$input\" | intent estate statusline || :`), printing `wrote:` on stderr and nothing on stdout; every failure is named in `usage.error`, never silent. `intent estate status --browser` opens the page. Decision 75: the rows of `estate status` are flat, and `watch`, `unwatch` and `statusline` are withheld from MCP with their reasons on the dispatch rows.",
       "body": "",
       "preamble": ""
@@ -356,6 +356,16 @@
       "note": "arms: the_estate_is_answered_for_a_root_that_names_no_project, the_estate_form_is_answered_unbound_and_no_other_view_is; green in the whole-suite judges that landed the estate work on 2026-10-25: ic at 4df0b005f (e9464ad6c), ic at 7ae5bbac9 (b01cec8aa), cc at 3d1d0a269 (4f6b504a8), ic at dad17961e (7536f4009), and the cc 0638 judge at cf1846543 (the intent-cli, intentsvcs and intentd suites whole); cited by vc at the contract's authoring"
     },
     {
+      "id": "AT-02.2",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/src/estate/census.rs",
+      "covers": [
+        "AC-02.2"
+      ],
+      "status": "green",
+      "note": "arms: both_load_forms_read_as_three_numbers, lsof_field_output_maps_each_pid_to_its_cwd, ps_args_keep_the_whole_command_line and every_declared_class_is_a_row_idle_ones_at_zero (the load averages; each process's cwd and whole command line; each declared class counted, its processes attributed to the project whose tree holds their cwd and the rest unattributed), and in native/rust/crates/intentd/src/census.rs the_ring_keeps_the_last_hour_oldest_first and a_round_reaps_on_the_tick_and_reads_the_endpoint_only_when_asked (the history ring, and the reap of a gone session's WIP record on the tick); green in vc's stacked train, run 3's workspace tests at base 51eb26da4 (tip tree 5f0ee67fabfb, none failed), with arms-v3 landed at bd3dbf682 on 2026-10-26"
+    },
+    {
       "id": "AT-02.3",
       "kind": "test",
       "file": "native/rust/crates/intent-cli/tests/estate_surface.rs",
@@ -374,6 +384,16 @@
       ],
       "status": "green",
       "note": "arms: statusline_keeps_the_usage_and_leaves_stdout_to_the_status_line, statusline_with_no_rate_limits_writes_and_prints_nothing, statusline_refuses_an_input_that_is_not_json_with_a_remedy; green in the whole-suite judges that landed the estate work on 2026-10-25: ic at 4df0b005f (e9464ad6c), ic at 7ae5bbac9 (b01cec8aa), cc at 3d1d0a269 (4f6b504a8), ic at dad17961e (7536f4009), and the cc 0638 judge at cf1846543 (the intent-cli, intentsvcs and intentd suites whole); cited by vc at the contract's authoring"
+    },
+    {
+      "id": "AT-02.6",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/the_usage_endpoint_names_each_failure.rs",
+      "covers": [
+        "AC-02.6"
+      ],
+      "status": "green",
+      "note": "arms: a_good_answer_is_read_and_the_token_rides_stdin_never_argv, the_keychain_item_is_named_by_whether_a_config_dir_is_set_with_no_fallback, a_keychain_that_cannot_run_or_holds_no_token_is_named, a_curl_that_cannot_run_or_reaches_nothing_is_named and a_status_other_than_200_and_an_unparsable_answer_are_named (stub security and curl scripts in a tempdir, fixture tokens only, never the real Keychain or the network), and in native/rust/crates/intentd/src/census.rs asking_for_the_estate_arms_the_endpoint_read (the endpoint is read after a status ask); green in vc's stacked train, run 3's workspace tests at base 51eb26da4 (tip tree 5f0ee67fabfb, none failed), with arms-v3 landed at bd3dbf682 on 2026-10-26"
     },
     {
       "id": "AT-03.1",
