@@ -1,0 +1,15 @@
+{
+  "id": "01M5W64GCTTRHMZQR0V3NXXP9A",
+  "ts": "2026-10-26T13:24:27.675Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "Remove tmp/wt-ic-a4, the worktree of A4 (issue 0655, landed at a6ce22c3b with patch-id 9dacf04295a4), by in-whiteboard's Folding step (0654, with 0656's fix-forward). First run the checks from outside it, then `git -C <path> reset --hard` and a plain `git worktree remove`, never --force. RELEASES WHEN: molt-vc says hv's ~/Devel Spotlight exclusion is in. Until then no node removes any worktree (vc's order after 0654)."
+  }
+}
