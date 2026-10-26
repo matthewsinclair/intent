@@ -1216,7 +1216,7 @@ pub fn hooks_dir(root: &Path) -> Option<PathBuf> {
 /// The carrier `hook`'s chain block at `root` runs, given the `hooks`
 /// directory [`hooks_dir`] names there.
 ///
-/// **THE SAME RULE [`chain_block`] SPELLS IN SHELL, AND ITS ONLY RUST SPELLING**
+/// **THE SAME RULE `chain_block` SPELLS IN SHELL, AND ITS ONLY RUST SPELLING**
 /// (issue `0644`): the carrier under `hooks` when it is there; otherwise, in a
 /// linked worktree whose hooks path lies inside its own checkout, the same
 /// relative path under the main checkout, because the carrier is gitignored
