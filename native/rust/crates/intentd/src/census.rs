@@ -99,10 +99,12 @@ struct Found {
 }
 
 fn gather(whole: bool, read_endpoint: bool) -> Found {
-  Found {
+  run(
+    whole,
+    read_endpoint,
     // The ring records how many slot requests are running (WP-04); a slot
     // read that fails is the sample's failure, never a silent zero.
-    sample: whole.then(|| {
+    || {
       estate::host_slots_running()
         .map_err(|e| intentsvcs::estate::Unreadable {
           path: "slots".to_string(),
@@ -110,9 +112,26 @@ fn gather(whole: bool, read_endpoint: bool) -> Found {
           pid: None,
         })
         .and_then(census::sample)
-    }),
-    pruned: whole.then(estate::host_prune),
-    endpoint: read_endpoint.then(estate::host_endpoint),
+    },
+    estate::host_prune,
+    estate::host_endpoint,
+  )
+}
+
+/// One round over the jobs it is handed: a whole tick samples and reaps, and
+/// the endpoint is read only when somebody asked. Separate from [`gather`] so
+/// a test can hand it jobs that count their calls rather than the host's.
+fn run(
+  whole: bool,
+  read_endpoint: bool,
+  sample: impl FnOnce() -> Result<Sample, intentsvcs::estate::Unreadable>,
+  prune: impl FnOnce() -> Result<estate::Pruned, estate::EstateError>,
+  endpoint: impl FnOnce() -> Result<usage::Endpoint, estate::EstateError>,
+) -> Found {
+  Found {
+    sample: whole.then(sample),
+    pruned: whole.then(prune),
+    endpoint: read_endpoint.then(endpoint),
   }
 }
 
@@ -184,7 +203,75 @@ pub async fn tick() {
 #[cfg(test)]
 mod tests {
   use super::*;
+  use std::cell::Cell;
 
+  /// ST0086 AT-02.2
+  ///
+  /// Which jobs one round runs, by what the round is: a whole tick samples
+  /// and reaps the WIP records of gone sessions, a wake for a first ask does
+  /// neither, and the endpoint is read only when the estate was asked for.
+  #[test]
+  fn a_round_reaps_on_the_tick_and_reads_the_endpoint_only_when_asked() {
+    for whole in [false, true] {
+      for asked in [false, true] {
+        let (sampled, pruned, read) = (Cell::new(0), Cell::new(0), Cell::new(0));
+        let found = run(
+          whole,
+          asked,
+          || {
+            sampled.set(sampled.get() + 1);
+            Err(intentsvcs::estate::Unreadable {
+              path: "fixture".to_string(),
+              why: "not measured in a test".to_string(),
+              pid: None,
+            })
+          },
+          || {
+            pruned.set(pruned.get() + 1);
+            Ok(estate::Pruned {
+              removed: Vec::new(),
+            })
+          },
+          || {
+            read.set(read.get() + 1);
+            Ok(Err(usage::EndpointFailure::Status { status: 401 }))
+          },
+        );
+        assert_eq!(
+          sampled.get(),
+          u32::from(whole),
+          "whole {whole}, asked {asked}: sampled"
+        );
+        assert_eq!(
+          pruned.get(),
+          u32::from(whole),
+          "whole {whole}, asked {asked}: reaped"
+        );
+        assert_eq!(
+          read.get(),
+          u32::from(asked),
+          "whole {whole}, asked {asked}: read"
+        );
+        assert_eq!(found.pruned.is_some(), whole);
+        assert_eq!(found.endpoint.is_some(), asked);
+      }
+    }
+  }
+
+  /// ST0086 AT-02.6
+  ///
+  /// Asking for the estate is what arms the next endpoint read.
+  #[test]
+  fn asking_for_the_estate_arms_the_endpoint_read() {
+    ASKED.store(false, Ordering::Relaxed);
+    let _ = held();
+    assert!(
+      ASKED.swap(false, Ordering::Relaxed),
+      "an ask did not arm the endpoint read"
+    );
+  }
+
+  /// ST0086 AT-02.2
   #[test]
   fn the_ring_keeps_the_last_hour_oldest_first() {
     let mut ring = VecDeque::new();

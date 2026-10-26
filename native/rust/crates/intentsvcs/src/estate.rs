@@ -938,6 +938,7 @@ pub fn host_statusline_report(text: &str) -> Result<Option<PathBuf>, EstateError
 /// census tick.
 pub fn host_endpoint() -> Result<usage::Endpoint, EstateError> {
   Ok(usage::read_endpoint(
+    &usage::EndpointTools::host(),
     &crate::userstate::claude_dir()?,
     crate::userstate::claude_dir_configured(),
   ))

@@ -52,8 +52,8 @@ const MAX_TIME: &str = "10";
 /// Why the endpoint gave no reading, carried into `usage.error`.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 pub enum EndpointFailure {
-  #[error("`{CURL}` could not run: {why}")]
-  NoCurl { why: String },
+  #[error("`{curl}` could not run: {why}")]
+  NoCurl { curl: String, why: String },
   #[error("the Keychain read failed: {why}")]
   Keychain { why: String },
   #[error("curl reached no answer: {why}")]
@@ -67,6 +67,29 @@ pub enum EndpointFailure {
 /// One reading of the endpoint: its usage, stamped when it was read, or why
 /// it gave none.
 pub type Endpoint = Result<Usage, EndpointFailure>;
+
+/// What [`read_endpoint`] runs and asks: the Keychain tool, curl, and the URL.
+///
+/// **THE HOST'S ARE [`EndpointTools::host`], AND NOTHING ELSE CALLS THE REAL
+/// ONES.** A test hands stubs in a temporary directory, so no arm reads the
+/// operator's Keychain or reaches the account's endpoint (ST0086 AC-02.6).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EndpointTools {
+  pub security: PathBuf,
+  pub curl: PathBuf,
+  pub url: String,
+}
+
+impl EndpointTools {
+  /// `/usr/bin/security`, `/usr/bin/curl` and [`ENDPOINT`].
+  pub fn host() -> Self {
+    Self {
+      security: PathBuf::from(SECURITY),
+      curl: PathBuf::from(CURL),
+      url: ENDPOINT.to_string(),
+    }
+  }
+}
 
 /// Where a reading came from.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -260,14 +283,18 @@ pub fn service(claude_dir: &Path, configured: bool) -> String {
 
 /// The OAuth access token, read from the config dir's own Keychain item. The
 /// value never leaves this process but on curl's stdin.
-fn read_token(claude_dir: &Path, configured: bool) -> Result<String, EndpointFailure> {
+fn read_token(
+  security: &Path,
+  claude_dir: &Path,
+  configured: bool,
+) -> Result<String, EndpointFailure> {
   let service = service(claude_dir, configured);
-  let out = Command::new(SECURITY)
+  let out = Command::new(security)
     .args(["find-generic-password", "-s", &service, "-w"])
     .stderr(Stdio::null())
     .output()
     .map_err(|e| EndpointFailure::Keychain {
-      why: format!("`{SECURITY}` could not run: {e}"),
+      why: format!("`{}` could not run: {e}", security.display()),
     })?;
   if !out.status.success() {
     return Err(EndpointFailure::Keychain {
@@ -294,14 +321,14 @@ fn quoted(value: &str) -> String {
 
 /// GETs `url` with the bearer token, the config on curl's stdin. Answers the
 /// status and the body; any status, since the caller judges it.
-pub(crate) fn fetch(url: &str, token: &str) -> Result<(u16, String), EndpointFailure> {
+fn fetch(curl: &Path, url: &str, token: &str) -> Result<(u16, String), EndpointFailure> {
   let config = format!(
     "url = {}\nheader = {}\nheader = {}\n",
     quoted(url),
     quoted(&format!("Authorization: Bearer {token}")),
     quoted("anthropic-beta: oauth-2025-04-20"),
   );
-  let mut child = Command::new(CURL)
+  let mut child = Command::new(curl)
     .args([
       "-sS",
       "--fail-with-body",
@@ -316,7 +343,10 @@ pub(crate) fn fetch(url: &str, token: &str) -> Result<(u16, String), EndpointFai
     .stdout(Stdio::piped())
     .stderr(Stdio::piped())
     .spawn()
-    .map_err(|e| EndpointFailure::NoCurl { why: e.to_string() })?;
+    .map_err(|e| EndpointFailure::NoCurl {
+      curl: curl.display().to_string(),
+      why: e.to_string(),
+    })?;
   if let Some(mut stdin) = child.stdin.take() {
     stdin
       .write_all(config.as_bytes())
@@ -400,12 +430,12 @@ pub fn from_endpoint(body: &str) -> Result<Usage, EndpointFailure> {
   })
 }
 
-/// One reading of the endpoint now, for intentd's census tick. `read_at` is
-/// the one clock reading of that tick.
-pub fn read_endpoint(claude_dir: &Path, configured: bool) -> Endpoint {
+/// One reading of the endpoint now, for intentd's census tick, through
+/// `tools`. `read_at` is the one clock reading of that tick.
+pub fn read_endpoint(tools: &EndpointTools, claude_dir: &Path, configured: bool) -> Endpoint {
   let read_at = iso(super::clock::now());
-  read_token(claude_dir, configured)
-    .and_then(|token| fetch(ENDPOINT, &token))
+  read_token(&tools.security, claude_dir, configured)
+    .and_then(|token| fetch(&tools.curl, &tools.url, &token))
     .and_then(|(status, body)| match status {
       200 => from_endpoint(&body),
       status => Err(EndpointFailure::Status { status }),
@@ -651,7 +681,7 @@ mod tests {
         .expect("answer");
       (authorised, leaked)
     });
-    let (status, body) = fetch(&url, &token).expect("curl reaches the listener");
+    let (status, body) = fetch(Path::new(CURL), &url, &token).expect("curl reaches the listener");
     let (authorised, leaked) = server.join().expect("the server thread");
     assert_eq!((status, body.as_str()), (200, "{}"));
     assert!(authorised, "the bearer header never reached the server");

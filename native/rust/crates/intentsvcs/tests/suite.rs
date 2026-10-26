@@ -373,6 +373,8 @@ mod sync_ingest_takes_only_what_the_store_did_not_write;
 mod test_target_topology_guard;
 #[path = "the_source_tokeniser_is_measured.rs"]
 mod the_source_tokeniser_is_measured;
+#[path = "the_usage_endpoint_names_each_failure.rs"]
+mod the_usage_endpoint_names_each_failure;
 #[path = "upgrade_dehydrates_undeclared_thread_views.rs"]
 mod upgrade_dehydrates_undeclared_thread_views;
 

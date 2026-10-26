@@ -437,6 +437,7 @@ mod tests {
     )
   }
 
+  /// ST0086 AT-02.2
   #[test]
   fn both_load_forms_read_as_three_numbers() {
     assert_eq!(
@@ -450,6 +451,7 @@ mod tests {
     assert_eq!(parse_load("{ 1.0 }"), None);
   }
 
+  /// ST0086 AT-02.2
   #[test]
   fn lsof_field_output_maps_each_pid_to_its_cwd() {
     let out = "p60698\nfcwd\nn/Users/someone/Devel/prj/A\np61213\nfcwd\nn/tmp/b\n";
@@ -461,6 +463,7 @@ mod tests {
     assert_eq!(cwds.get(&61213), Some(&PathBuf::from("/tmp/b")));
   }
 
+  /// ST0086 AT-02.2
   #[test]
   fn ps_args_keep_the_whole_command_line() {
     let out = "  101 /usr/bin/cargo test --workspace\n 2002 bats -r tests/\n";
@@ -473,6 +476,7 @@ mod tests {
     );
   }
 
+  /// ST0086 AT-02.2
   #[test]
   fn every_declared_class_is_a_row_idle_ones_at_zero() {
     let watches = [
