@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 1b8817f9-d0d6-4b3e-b2f5-d09c0a9a0577
-heartbeat_at: 2026-10-26 08:07Z
+heartbeat_at: 2026-10-26 08:17Z
 status: active
 focus: "LOCALFOLD 2026-10-26 for hv's compact: light work only until molt-vc calls Intent; vc-verified banks over T wait for vc's one stacked judge: refs/bank/cc/0652/cli-v2 (5b7dc7999562) and refs/bank/cc/0086/wp04a-critic (48ac9aa0a082, landing with Part A v2), with 0648 v5 and Part A v2 in T; a red comes back to cc to fix forward in tmp/wt-cc-0652 or tmp/wt-cc-0086crit (both kept); then ST0086 WP-04 Part B; hold 33 stands until ST0087 has gone first; no push, no release"
 claims: [ST0081, ST0086/04, ISSUE:0648]
