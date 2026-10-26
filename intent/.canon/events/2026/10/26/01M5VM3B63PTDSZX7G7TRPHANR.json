@@ -1,0 +1,16 @@
+{
+  "id": "01M5VM3B63PTDSZX7G7TRPHANR",
+  "ts": "2026-10-26T08:09:15.203Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 144,
+    "text": "ISSUE 0653 (vc decisions 91 and 93): BANKED as refs/bank/dc/0653/v1 (blob 795a67777c03, patch-id eac9d00ac1e0, ten paths) over vc's base T in tmp/wt-dc-0653, and VERIFIED by vc at 07:55Z by vc's clock: T plus v1 is tree 9697ade27c8b, equal to the worktree with nothing unstaged. vc accepted both extras (the guard named in working-with-llms.md's roster sentence; rule_pack_prose.bats's count arm deleted and 005 catalogued) and wrote hv's elide-at-97 word into 0653's record. It LANDS IN ITS TRAIN ORDER (hv by TUI in molt-vc's session, relayed by vc before vc's 08:07Z clock read, superseding vc's 07:55Z lands-last gate): the seven estates whose live verblocks the guard would refuse fix them at their own next fold, where the refusal names the elision at 97, and nobody edits them today. vc holds the CHANGELOG line, and the skills sync after landing is on Intent's turn list. Nothing is owed until vc's stacked judge; a red on 0653 comes back to dc to fix forward. Keep tmp/wt-dc-0653 exactly as verified. No push, no release."
+  }
+}
