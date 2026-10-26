@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: ba4ebc52-48ef-410b-bcc0-2e67b291a48f
-heartbeat_at: 2026-10-26 17:31Z
+heartbeat_at: 2026-10-26 17:38Z
 status: active
-focus: "2026-10-26 RESUMED on hv's go-on: Part B's judge (slot 01M5WB6E22WVTYWM6ZYB4CAN81) queued behind Devbin's turn, one project at a time; dc's preflight-linux.sh bank judged green and landing; three questions with hv (install issue, prefix var, ST0087's status). No push by vc, no release"
+focus: "HOLD ON THE BOUNCE after hv's compact, for molt-vc or hv: Part B's six-bank train (doing 59) is judged when molt-vc gives Intent its turn after Devbin and Utilz, with a fresh heavy slot (01M5WB6E22WVTYWM6ZYB4CAN81 was revoked); HV ITEMS are with molt-vc; nothing running; no push, no release"
 claims: []
 ---
 
