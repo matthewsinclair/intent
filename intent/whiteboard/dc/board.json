@@ -5,13 +5,10 @@
     "name": "DevX Claude",
     "role": "worker",
     "session_id": "4ec444b0-0ecb-4040-bd1e-6226cabee016",
-    "heartbeat_at": "2026-10-26T09:41:42.978Z",
+    "heartbeat_at": "2026-10-26T10:30:00.919Z",
     "status": "active",
-    "focus": "HOLD after hv's compact: dc's three banks (0644-doc v1, 0087-04 v3, 0653 v1) are green in vc's run 3, which vc ENDed at 09:32Z by vc's clock; vc lands them once pre_commit_hook.bats runs green alone, on molt-vc's standing GO; nothing is owed, and a red comes back to dc; after the landing: ST0087 AC-04.1 and AC-04.2 AT rows, wp done, WP-05 with vc, then todo 50; no push, no release",
-    "claims": [
-      "ST0087/04",
-      "ISSUE:0653"
-    ],
+    "focus": "ST0087 WP-04 DONE at 994fdba0c (AT-04.1 green, AC-04.2 satisfied); every dc bank of the day has landed: 0644-doc v1, 0087-04 v3, test-do-v1, at-id-v1, 0653 v1 and pipe-v1; next: ST0087 WP-05's proof with vc, then todo 50; no push, no release",
+    "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"
@@ -2433,7 +2430,8 @@
       "kind": "todo",
       "seq": 49,
       "text": "ST0087 WP-04 (vc's assignment): the formula writes the manifest over the release assets with managed_by brew; bin/int brew formula aligned to render and publish; the caveats name intent use; releasing.md drops the unlink-and-pin step and its cut sequence ENDS, after the tap carries the release, with intent use brew, then the version line and intent doctor from the keg (decision 80); docs/install.md gains the maintainer section with the upgrade procedure per tree and states hv's default: brew unless working on Intent, dev or opt while working, back to brew once the patch is released (decision 80). RETIRED WITH THE RELEASE TOOLING (vc's ruling on ic's question, 2026-10-25 11:48Z by date -u): bin/.devbin/cmd/local's int local install (links ~/.local/bin) and int local use dev|prod (brew link and unlink), under the contract's T5 (use is the one verb that points links; intent use, ic's WP-03, is it), with their doc lines in intent/docs/releasing.md and docs/install.md; the keg stays linked under decision 80. Spec: intent/st/ST0087/design.md, citing devbin's docs/dev-opt-brew.md. ORDER: after cc's WP-01 and WP-02 and ic's WP-03 land, because its doctor run must see a keg with no manifest answer brew with a note. The judge carries the critic leg (decision 79, scratchpad/judge/critic-leg.sh). Claim ST0087/04 when I start. WP-05, the proof, is vc's with dc once the rest is in, and ends on brew. No push, no release.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-26T10:29:29.572Z",
       "recorded_at": "2026-10-25T05:58:11.466Z",
       "edited_at": "2026-10-25T11:51:00.869Z"
     },
@@ -2497,7 +2495,8 @@
       "kind": "doing",
       "seq": 143,
       "text": "ST0087 WP-04 (todo 49): refs/bank/dc/0087-04/v3 (blob dc3e6676f7ed, patch-id 3c2713f1d2cd, ten paths, over aaeaf3b16; tree 6247aa4d0adb in tmp/wt-dc-0087-04v3) REPLACES v2 in vc's re-run and in the landing, with v2's CHANGELOG hunk, VERIFIED by vc. The stacked judge's bats #329 (intent_bin_retarget_guard.bats) refused v2's keg fixture line, which wrote bin/intent and never ran it; v3 restates the fixture as one loop over relative paths, on the guard's own case against a file allowlist, and changes nothing else. Bats #329 in the re-run gives the verdict; a red comes back to dc to fix forward. After it lands: the AT rows for ST0087 AC-04.1 and AC-04.2, wp done, then WP-05's proof with vc and todo 50. tmp/wt-dc-0088-03 holds v2 and is no longer the live worktree. No push, no release.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-26T10:29:27.704Z",
       "recorded_at": "2026-10-25T19:03:27.594Z",
       "edited_at": "2026-10-26T08:38:07.895Z"
     },
@@ -2506,7 +2505,8 @@
       "kind": "doing",
       "seq": 144,
       "text": "ISSUE 0653 (vc decisions 91 and 93): BANKED as refs/bank/dc/0653/v1 (blob 795a67777c03, patch-id eac9d00ac1e0, ten paths) over vc's base T in tmp/wt-dc-0653, and VERIFIED by vc at 07:55Z by vc's clock: T plus v1 is tree 9697ade27c8b, equal to the worktree with nothing unstaged. vc accepted both extras (the guard named in working-with-llms.md's roster sentence; rule_pack_prose.bats's count arm deleted and 005 catalogued) and wrote hv's elide-at-97 word into 0653's record. It LANDS IN ITS TRAIN ORDER (hv by TUI in molt-vc's session, relayed by vc before vc's 08:07Z clock read, superseding vc's 07:55Z lands-last gate): the seven estates whose live verblocks the guard would refuse fix them at their own next fold, where the refusal names the elision at 97, and nobody edits them today. vc holds the CHANGELOG line, and the skills sync after landing is on Intent's turn list. Nothing is owed until vc's stacked judge; a red on 0653 comes back to dc to fix forward. Keep tmp/wt-dc-0653 exactly as verified. No push, no release.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-26T10:29:28.635Z",
       "recorded_at": "2026-10-26T07:29:05.426Z",
       "edited_at": "2026-10-26T08:09:15.203Z"
     },
@@ -2515,8 +2515,17 @@
       "kind": "doing",
       "seq": 145,
       "text": "ISSUE 0644 follow-up, a fix to main itself (vc's red in the stacked judge's doc leg, 2026-10-26): rustdoc's private_intra_doc_links refused canon.rs:1219, where pub fn chain_carrier's doc linked to private chain_block. refs/bank/dc/0644-doc/v1 (blob d05cc31eaa4c, patch-id bb8b10095b77, one line, the link made plain code) over main's d5a513d2b in tmp/wt-dc-0644doc, VERIFIED by vc; it goes first in the re-run's stack, with no CHANGELOG line. The doc leg in the re-run gives the verdict; a red comes back to dc to fix forward. No push, no release.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-26T10:29:26.766Z",
       "recorded_at": "2026-10-26T08:38:08.906Z"
+    },
+    {
+      "node": "dc",
+      "kind": "todo",
+      "seq": 53,
+      "text": "ST0087 WP-05 (vc's, with dc): the proof, per tree, on rhadamanth and kovacs, once WP-01 to WP-04 are in (WP-04 done at 994fdba0c: AT-04.1 green, AC-04.2 satisfied); it ends on brew. No push, no release.",
+      "state": "live",
+      "recorded_at": "2026-10-26T10:29:35.607Z"
     }
   ],
   "sent": [

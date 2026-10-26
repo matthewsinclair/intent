@@ -1,0 +1,15 @@
+{
+  "id": "01M5VW4A7QF81FQEN7831AQHB8",
+  "ts": "2026-10-26T10:29:35.607Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ST0087 WP-05 (vc's, with dc): the proof, per tree, on rhadamanth and kovacs, once WP-01 to WP-04 are in (WP-04 done at 994fdba0c: AT-04.1 green, AC-04.2 satisfied); it ends on brew. No push, no release."
+  }
+}
