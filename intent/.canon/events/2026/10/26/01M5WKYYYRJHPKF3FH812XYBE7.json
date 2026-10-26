@@ -1,0 +1,16 @@
+{
+  "id": "01M5WKYYYRJHPKF3FH812XYBE7",
+  "ts": "2026-10-26T17:26:07.125Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 96,
+    "text": "ST0086 WP-04 Part B, a six-bank train in vc's order: refs/bank/cc/0086/wp04b-status-v2 (4ae2585f7479), AC-04.6's CLI share; refs/bank/cc/0086/wp04b-wait-v2 (2421b3d9719d), AC-04.4, with slots wait, slots watch and the hook's slots pending; ic's refs/bank/ic/0086/wp04b-page-v2 (8126a568631b), the page's half; refs/bank/cc/0086/wp04b-init-v1 (e8aee9ac86d6), AC-04.5; refs/bank/cc/0086/wp04b-ats-v1 (f649be3fa3ea), on vc's ruling of 2026-10-26: the AT markers on Part A's tests, a test for AC-04.2's lane re-open and LaneBusy close, and the NamedMismatch text asserted; and ic's pipeline-cell-width-v4 (e058514c0734), hv's ask on ic, CSS only. On main 00eb61a2e the tree after five is 2ca7692e71da and after six c45a889677a8 (ic's and vc's measurement, 17:17Z by their clocks); fmt, gen and critic were green over the five. The heavy judge was granted at 15:01:09Z and revoked at 15:01:34Z by vc's clock for load (hv: one project at a time), and runs when molt-vc grants Intent's slot, behind Devbin and Utilz, straight through with build all and the kovacs preflight. A red in cc's banks comes back to cc in tmp/wt-cc-0086b, detached on scratch tips dfb14c98c (four banks) and ddc43caba (with ats); a fix-forward bank carries no CHANGELOG hunk, its line goes to vc as text, and a bank that moves is told to ic. Owed after a green landing, in one chain: AT rows for AC-04.1 to AC-04.6 and AC-04.8 to AC-04.13 (slots.rs for all but 04.5, coordinator.rs for 04.5), with `intent at lint ST0086` before the commit; design.md through `intent st attach` with controller_unreadable, lanes[].queue and line 67's UNREADABLE, plus pending's cost measured with the judge's binary under `--lane none`, as dated figures, never as a bound; ic's todo 58 owes the pipeline cells' sentence in the same file, so the two attaches go in sequence. No node removes a worktree until molt-vc's Spotlight word; then cc removes tmp/wt-cc-0086b at the landing's END or the next fold. Light work only under decision 92. No push, no release."
+  }
+}
