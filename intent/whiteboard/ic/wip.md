@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 71bed3ab-ad7e-4b27-b10f-4b59f0154cc9
-heartbeat_at: 2026-10-26 13:24Z
+heartbeat_at: 2026-10-26 13:39Z
 status: active
-focus: "LOCALFOLD (2026-10-26 13:24Z): doing 135 is page v2, still applying third on main fab3a4801 after B1 v2 and B2 v2, landing after devbin-vc's push as molt-vc's first slot-records run; hold 12 stands; tmp/wt-ic-a4's removal holds for the Spotlight word; no push, no release"
+focus: "Back from hv's compact after the localfold, holding for vc: doing 135 is page v2, third in Part B's train after cc's B1 v2 and B2 v2, landing after devbin-vc's push as molt-vc's first slot-records run, a red fixed forward in tmp/wt-ic-0086b; hold 12 waits for the cut; hold 15 (tmp/wt-ic-a4) waits for molt-vc's Spotlight word; no claim, no push, no release"
 claims: []
 ---
 
