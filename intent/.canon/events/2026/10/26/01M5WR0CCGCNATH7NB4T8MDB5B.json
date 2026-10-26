@@ -1,0 +1,15 @@
+{
+  "id": "01M5WR0CCGCNATH7NB4T8MDB5B",
+  "ts": "2026-10-26T18:36:46.864Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-10-26, hv in the TUI, relayed verbatim by molt-vc) HV RULED VC'S ITEMS AND THE CRITIC'S EXIT. Critic: \"1..5: go with the recs\", item 1 (a): Intent jumps the queue for ONE bank, cc's refs/bank/cc/0648/exit0-v1, so `intent critic` exits 0 when nothing was judged and the text line plus files_asked/unasked carry it; build all follows as its own slot, then molt-vc reruns Utilz's dry run; devbin 0237 closed as not needed. vc's items: (1) install's HEAD check \"A: file the fix now\", filed as issue 0657 for the next train (cc banks), Part B runs at HEAD until it lands; (2) INTENT_INSTALL_PREFIX \"Yes, declare it\", declared in Molt-matts as $MOLT_OPT_DIR/intent (1bd41f2), AC-05.1 judged in a fresh login shell; (3) `intent st start ST0087`, done; (5) devbin-vc pushes Intent's main after each landing chain's build all, on vc's \"push\" with the full sha and build all's seal (devbin decision 76); ic regenerates docs/reference at the cut. (4) worktree removals wait on molt-vc's Spotlight read at 0. Part B's train still waits for Utilz's end-point."
+  }
+}

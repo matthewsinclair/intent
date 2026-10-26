@@ -1,0 +1,15 @@
+{
+  "id": "01M5WQZVJQKA111N0GPRW9KMWR",
+  "ts": "2026-10-26T18:36:29.658Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0657"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "install refuses on any HEAD past the built sha; judge currency by DIRT_SCOPE"
+  }
+}

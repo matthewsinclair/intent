@@ -1,7 +1,7 @@
 ---
 st_id: ST0087
 title: Intent conforms to the dev, opt and brew contract
-status: Triage
+status: WIP
 created: 2026-10-25
 completed:
 ---

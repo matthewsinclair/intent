@@ -21,6 +21,12 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 02: intentd serves /estate/status: watches the estate directory outside the ingest path, renders the live top-styled page with the host census
   - [x] 03: The intent explore TUI: /estate beside /projects, on the same reader
   - [-] 04: Slots: a generic pool, ask, grant, start, release protocol on the estate, records beside the status records, capacity enforced by the tool, policy with the controlling Claude
+- [-] ST0087: Intent conforms to the dev, opt and brew contract
+  - [x] 01: The tree function, the runtime set and the version line
+  - [x] 02: intent install and the manifest, with doctor's manifest arms
+  - [x] 03: intent use and the shadow check
+  - [x] 04: The formula, the release tooling and the docs
+  - [ ] 05: The proof, per tree, on rhadamanth and kovacs
 
 ## TODO
 
@@ -32,12 +38,6 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 - [?] ST0084: Relocate the parity tooling and reference generators out of intent/st/ST0056 so completed threads can leave the disk
 - [?] ST0085: Passive prompt injection: prompt text Intent stores or ships is acted on only when it is live
   - [x] 01: Inventory of every surface that feeds prompt text to an agent, live or historical
-- [?] ST0087: Intent conforms to the dev, opt and brew contract
-  - [x] 01: The tree function, the runtime set and the version line
-  - [x] 02: intent install and the manifest, with doctor's manifest arms
-  - [x] 03: intent use and the shadow check
-  - [x] 04: The formula, the release tooling and the docs
-  - [ ] 05: The proof, per tree, on rhadamanth and kovacs
 
 ## DONE:2026-09-10T00:00:51Z
 
