@@ -206,15 +206,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
   /// The intentd row, in the shape of Gtools' site row: `intentd` over its state
   /// as the row's second line (`Health.menuSubtitle`), and a flyout of Open,
-  /// Start, Stop and Restart (`DaemonMenu`), gated on the ONE health predicate:
-  /// a stale daemon offers Restart and NEVER an unlink -- the socket has an
-  /// owner to investigate, not remove (AC-01.6 / AC-08.12), and the second line
-  /// names its pid.
+  /// Start, Stop, Restart and Copy URL (`DaemonMenu`), gated on the ONE health
+  /// predicate: a stale daemon offers Restart and NEVER an unlink -- the socket
+  /// has an owner to investigate, not remove (AC-01.6 / AC-08.12), and the
+  /// second line names its pid.
   ///
-  /// **OPEN IS LIVE ONLY WHILE THE DAEMON PUBLISHES A WEB FACE.** `stale`,
-  /// `absent` and `unknown` carry no `url` by the CLI's own iff-contract, so
-  /// there is no page to open, and a lifecycle verb in flight holds it, because
-  /// mid-restart is exactly when the old address is dead.
+  /// **OPEN AND COPY URL ARE LIVE ONLY WHILE THE DAEMON PUBLISHES A WEB FACE.**
+  /// `stale`, `absent` and `unknown` carry no `url` by the CLI's own
+  /// iff-contract, so there is no page to open, and a lifecycle verb in flight
+  /// holds both, because mid-restart is exactly when the old address is dead.
   private func daemonItem() -> NSMenuItem {
     let item = NSMenuItem(title: "intentd", action: nil, keyEquivalent: "")
     item.subtitle = daemon.health.menuSubtitle(busy: daemon.busy, threadCount: project.threadCount)
@@ -238,6 +238,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     case .start: #selector(startDaemon)
     case .stop: #selector(stopDaemon)
     case .restart: #selector(restartDaemon)
+    case .copyURL: #selector(copyWebFaceURL)
     }
   }
 
@@ -364,6 +365,55 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let reason = error.localizedDescription
         Self.logger.error("could not open the web face: \(reason, privacy: .public)")
         showAlert("Could not open the web face", message: reason)
+      }
+    }
+  }
+
+  /// The nspasteboard.org marker by which a clipboard manager leaves an item
+  /// out of its history, since the copied URL carries the daemon's token.
+  private static let concealed = NSPasteboard.PasteboardType("org.nspasteboard.ConcealedType")
+
+  /// Copy the web face's URL through the CLI's `intent estate status --url`
+  /// (issue 0652): the address `--browser` opens, token and all, so the page
+  /// opens in a browser of the operator's choosing. The page strips the token
+  /// from its address bar on load, so a URL copied from there is refused.
+  ///
+  /// **THE URL CARRIES THE DAEMON'S TOKEN, SO THE COPY IS AS NARROW AS THE
+  /// PASTEBOARD ALLOWS.** It is for this Mac only (`.currentHostOnly`, so
+  /// Universal Clipboard does not carry it to the operator's other devices),
+  /// it is marked `concealed` for clipboard managers, and the log names the
+  /// command, never the URL. The token lives for one daemon run, since intentd
+  /// mints a fresh one at every start, so Restart revokes every URL copied
+  /// before it. Nothing clears it on a timer (hv: "it just copies the URL to
+  /// the clipboard").
+  ///
+  /// **A FAILURE IS AN ALERT**, as Open's is: the CLI's own error and remedy.
+  /// A run that prints no URL, or a pasteboard that refuses it, is an alert
+  /// too, and the clipboard is never left holding an unmarked token.
+  @objc private func copyWebFaceURL() {
+    let args = DaemonMenu.urlCommand
+    let failing = "Could not copy the web face's URL"
+    Self.logger.info("copy web face url: \(IntentCLI.label(args), privacy: .public)")
+    Task {
+      let url: String
+      do {
+        url = try await IntentCLI.run(args).trimmingCharacters(in: .whitespacesAndNewlines)
+      } catch {
+        let reason = error.localizedDescription
+        Self.logger.error("could not copy the web face's url: \(reason, privacy: .public)")
+        return showAlert(failing, message: reason)
+      }
+      guard !url.isEmpty else {
+        Self.logger.error("could not copy the web face's url: the CLI printed none")
+        return showAlert(failing, message: "\(IntentCLI.label(args)) exited 0 and printed no URL.")
+      }
+      let pasteboard = NSPasteboard.general
+      pasteboard.prepareForNewContents(with: .currentHostOnly)
+      let marked = pasteboard.setString("", forType: Self.concealed)
+      guard marked, pasteboard.setString(url, forType: .string) else {
+        pasteboard.clearContents()
+        Self.logger.error("could not copy the web face's url: the pasteboard refused it")
+        return showAlert(failing, message: "The clipboard did not take the URL.")
       }
     }
   }
