@@ -2,7 +2,7 @@
 wp_id: WP-04
 title: The formula, the release tooling and the docs
 scope: S
-status: Not Started
+status: Done
 ---
 
 # WP-04: The formula, the release tooling and the docs

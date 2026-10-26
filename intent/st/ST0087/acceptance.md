@@ -36,10 +36,10 @@ title: Intent conforms to the dev, opt and brew contract
 - AC-03.5 `intent use opt` refuses an opt prefix with no manifest by name, since a prefix with no manifest is not Intent's, and names `intent install --prefix <dir>` as the step that makes one. -- satisfied: yes (computed)
 - AC-03.6 `intent use` refuses every write into a tree whose manifest says `managed_by: brew`, naming brew as its manager, so a brew keg is never repointed or edited by the switch. -- satisfied: yes (computed)
 
-### WP-04 -- The formula, the release tooling and the docs (status: Not Started)
+### WP-04 -- The formula, the release tooling and the docs (status: Done)
 
-- AC-04.1 The formula is rendered, never typed, by `bin/int brew formula` with `render` and `publish` from the release's version and per-asset checksums; it installs the signed release assets, writes `<root>/.intent-install` in T3's form with `managed_by: brew`, links both binaries into Homebrew's bin, runs the version line in `test do`, and its caveats name `intent bootstrap` and `intent use`. -- satisfied: no (computed)
-- AC-04.2 (non-test) `intent/docs/releasing.md` no longer unlinks and pins the keg, `bin/int brew smoke --reinstall` leaves the keg linked, and `docs/install.md`'s maintainer section documents the three trees, the per-tree upgrade procedure of T6 and the PATH hazard the shadow check cannot see, while the user's docs name brew alone. -- satisfied: no
+- AC-04.1 The formula is rendered, never typed, by `bin/int brew formula` with `render` and `publish` from the release's version and per-asset checksums; it installs the signed release assets, writes `<root>/.intent-install` in T3's form with `managed_by: brew`, links both binaries into Homebrew's bin, runs the version line in `test do`, and its caveats name `intent bootstrap` and `intent use`. -- satisfied: yes (computed)
+- AC-04.2 (non-test) `intent/docs/releasing.md` no longer unlinks and pins the keg, `bin/int brew smoke --reinstall` leaves the keg linked, and `docs/install.md`'s maintainer section documents the three trees, the per-tree upgrade procedure of T6 and the PATH hazard the shadow check cannot see, while the user's docs name brew alone. -- evidence: 25d3730f7 (refs/bank/dc/0087-04/v3, judged in vc's run 3 and landed by vc): intent/docs/releasing.md has no unlink or pin step, and says brew is the resting state and nothing unlinks or pins the keg (decision 80); bin/int brew smoke --reinstall reinstalls cold from the tap, then its "the keg is linked" check asserts that Homebrew's bin/intent resolves into the keg; docs/install.md's "For the maintainer of a dev checkout" section names the dev, opt and brew trees, each tree's upgrade procedure, and the PATH hazard (the switch governs login shells only, and intent doctor cannot see a session started without the login PATH), and says everything above it names Homebrew alone, which the page's other sections do. -- satisfied: yes
 
 ### WP-05 -- The proof, per tree, on rhadamanth and kovacs (status: Not Started)
 
@@ -72,9 +72,9 @@ title: Intent conforms to the dev, opt and brew contract
 - AT-03.5 `native/rust/crates/intentsvcs/tests/the_switch_points_the_link_set.rs` -- covers AC-03.5 -- status: green -- row written after the arm landed; red is the machine's route to a verdict, not a failing run. Green in ic's combined rejudge at e756e484a (2026-10-25 18:07Z-18:11Z, molt-vc's desk), landed at ec266c998; AT-03.4's Swift arm passed app-test at f2f9c5779 (67 of 67)
 - AT-03.6 `native/rust/crates/intentsvcs/tests/the_switch_points_the_link_set.rs` -- covers AC-03.6 -- status: green -- row written after the arm landed; red is the machine's route to a verdict, not a failing run. Green in ic's combined rejudge at e756e484a (2026-10-25 18:07Z-18:11Z, molt-vc's desk), landed at ec266c998; AT-03.4's Swift arm passed app-test at f2f9c5779 (67 of 67)
 
-### WP-04 -- The formula, the release tooling and the docs (status: Not Started)
+### WP-04 -- The formula, the release tooling and the docs (status: Done)
 
-_(no tests in this group)_
+- AT-04.1 `tests/unit/brew_formula.bats` -- covers AC-04.1 -- status: green -- row written after the arms landed; red is the machine's route to a verdict, not a failing run. Green: brew_formula.bats in vc's stacked judge run 3 (END 09:32Z by vc's clock) with 0087-04 v3, landed at 25d3730f7, and again by vc on refs/bank/dc/0087-04/test-do-v1, landed at 5a75c673f. Arms by clause: render and publish from the release's version and per-asset checksums (a release formula carries the macOS branch and both Linux architectures; brew render takes a release tag; brew render writes <out>; a macOS hash SHA256SUMS.txt does not record refuses; publish leaves a release's other assets alone); the manifest in T3's form with managed_by brew (the two manifest arms); both binaries linked into Homebrew's bin (installs into libexec and symlinks bin); the version line in test do (its own arm, from test-do-v1); the caveats name intent bootstrap (issue 0527's caveat arm) and intent use (the intent use caveat arm).
 
 ### WP-05 -- The proof, per tree, on rhadamanth and kovacs (status: Not Started)
 

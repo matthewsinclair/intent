@@ -47,7 +47,7 @@
       "seq": 4,
       "title": "The formula, the release tooling and the docs",
       "scope": "S",
-      "status": "not-started",
+      "status": "done",
       "objective": "The brew tree conforms without a checkout in the keg: the formula goes on installing the signed, notarised release assets (the macOS pair, the Linux static packages, `intent-support.tar.gz`) as ST0081 built it, and after laying them out writes `.intent-install` itself in WP-02's exact form with `managed_by: brew` over the files it placed, which T3 allows since it fixes the form and not the writer. The formula's caveats name `intent use` for a maintainer with a dev or opt tree beside today's `intent bootstrap` line; `test do` keeps running the version line; `bin.install_symlink` keeps linking both binaries into Homebrew's bin. `bin/int brew formula` aligns its verbs to `render <tag> <out>` and `publish`, still rendering from the release's version and per-asset checksums, never a typed tag, commit or checksum. The docs move: `intent/docs/releasing.md` drops `brew unlink intent && brew pin intent && intent daemon restart`, and the cut's smoke step leaves the keg linked; `docs/install.md` names brew alone for a user and gains one maintainer section for dev and opt, with the upgrade procedure per tree (dev: `git pull` then `bin/devbin build all`; opt: `intent install --force` from dev; brew: `brew upgrade intent` under `HOMEBREW_NO_AUTO_UPDATE=1`, then `intent daemon restart`), since `intent upgrade` is the project verb and is not repurposed. Tests and lint are cargo and bats in the checkout only, so nothing is refused in opt or brew. This package is the cut-facing half: its formula change ships with the first release whose keg carries a manifest, and that release's cut runs doctor on a machine still holding the old keg.",
       "body": "",
       "preamble": ""
@@ -188,7 +188,8 @@
       "text": "`intent/docs/releasing.md` no longer unlinks and pins the keg, `bin/int brew smoke --reinstall` leaves the keg linked, and `docs/install.md`'s maintainer section documents the three trees, the per-tree upgrade procedure of T6 and the PATH hazard the shadow check cannot see, while the user's docs name brew alone.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "25d3730f7 (refs/bank/dc/0087-04/v3, judged in vc's run 3 and landed by vc): intent/docs/releasing.md has no unlink or pin step, and says brew is the resting state and nothing unlinks or pins the keg (decision 80); bin/int brew smoke --reinstall reinstalls cold from the tap, then its \"the keg is linked\" check asserts that Homebrew's bin/intent resolves into the keg; docs/install.md's \"For the maintainer of a dev checkout\" section names the dev, opt and brew trees, each tree's upgrade procedure, and the PATH hazard (the switch governs login shells only, and intent doctor cannot see a session started without the login PATH), and says everything above it names Homebrew alone, which the page's other sections do."
       }
     },
     {
@@ -356,6 +357,16 @@
       ],
       "status": "green",
       "note": "row written after the arm landed; red is the machine's route to a verdict, not a failing run. Green in ic's combined rejudge at e756e484a (2026-10-25 18:07Z-18:11Z, molt-vc's desk), landed at ec266c998; AT-03.4's Swift arm passed app-test at f2f9c5779 (67 of 67)"
+    },
+    {
+      "id": "AT-04.1",
+      "kind": "test",
+      "file": "tests/unit/brew_formula.bats",
+      "covers": [
+        "AC-04.1"
+      ],
+      "status": "green",
+      "note": "row written after the arms landed; red is the machine's route to a verdict, not a failing run. Green: brew_formula.bats in vc's stacked judge run 3 (END 09:32Z by vc's clock) with 0087-04 v3, landed at 25d3730f7, and again by vc on refs/bank/dc/0087-04/test-do-v1, landed at 5a75c673f. Arms by clause: render and publish from the release's version and per-asset checksums (a release formula carries the macOS branch and both Linux architectures; brew render takes a release tag; brew render writes <out>; a macOS hash SHA256SUMS.txt does not record refuses; publish leaves a release's other assets alone); the manifest in T3's form with managed_by brew (the two manifest arms); both binaries linked into Homebrew's bin (installs into libexec and symlinks bin); the version line in test do (its own arm, from test-do-v1); the caveats name intent bootstrap (issue 0527's caveat arm) and intent use (the intent use caveat arm)."
     }
   ],
   "attachments": [

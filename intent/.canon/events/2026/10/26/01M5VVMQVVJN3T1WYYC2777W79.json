@@ -1,0 +1,14 @@
+{
+  "id": "01M5VVMQVVJN3T1WYYC2777W79",
+  "ts": "2026-10-26T10:21:05.279Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0087/AC-04.2"
+  },
+  "payload": {
+    "evidence": "25d3730f7 (refs/bank/dc/0087-04/v3, judged in vc's run 3 and landed by vc): intent/docs/releasing.md has no unlink or pin step, and says brew is the resting state and nothing unlinks or pins the keg (decision 80); bin/int brew smoke --reinstall reinstalls cold from the tap, then its \"the keg is linked\" check asserts that Homebrew's bin/intent resolves into the keg; docs/install.md's \"For the maintainer of a dev checkout\" section names the dev, opt and brew trees, each tree's upgrade procedure, and the PATH hazard (the switch governs login shells only, and intent doctor cannot see a session started without the login PATH), and says everything above it names Homebrew alone, which the page's other sections do."
+  }
+}
