@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 71bed3ab-ad7e-4b27-b10f-4b59f0154cc9
-heartbeat_at: 2026-10-26 07:33Z
+heartbeat_at: 2026-10-26 07:46Z
 status: active
-focus: "2026-10-26: light work on vc's order of 07:23Z (decision 92). arms-v2 READY over T; 0652's Copy URL next, banked over T; the app build and install after the landing and build all; hold 12 stands; no push, no release"
+focus: "2026-10-26: arms-v2 and 0652 app-v1 banked over T and verified by vc; holding for Intent's turn (the stacked judge, the landing, build all), then the app build, install and live check; hold 12 stands; no push, no release"
 claims: [ST0086/02, ISSUE:0652]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0086/02, ISSUE:0652]
 
 ## DOING
 
-- TODAY (ic, 2026-10-26, on vc's order of 07:23Z under hv's (a), vc decision 92): light work only. Intent's one stacked judge runs when molt-vc calls Intent's turn, vc runs it, and a red comes back to its author to fix forward. (1) refs/bank/ic/0086/arms-v2 (blob 61f00b9675cf, patch-id 3fb5351f829f) over T (tree 05127fda654c, in tmp/wt-ic-arms2): READY to vc at 07:30Z. On green vc lands it and writes the AT rows for AC-02.2 and AC-02.6, then WP-02 closes on vc's word. (2) ISSUE:0652, the Copy URL app half (cc builds `intent estate status --url`): the shape is in 0652's record. Next is the bank over T, then READY naming the Swift legs the union lacks. (3) The app build and install follow the landing and vc's build all: LoginShell plus Copy URL. Install only after molt-vc says hv has quit; quit nothing. Page v3 is inside T and lands with Part A. Hold 12 stands. No push, no release.
+- TODAY (ic, 2026-10-26, on vc's order of 07:23Z under hv's (a), vc decision 92): light work only. Intent's one stacked judge runs when molt-vc calls Intent's turn, vc runs it, and a red comes back to its author to fix forward. BANKED OVER T (tree 05127fda654c) AND VERIFIED BY vc: (1) refs/bank/ic/0086/arms-v2 (blob 61f00b9675cf, patch-id 3fb5351f829f, in tmp/wt-ic-arms2). On green vc lands it and writes the AT rows for AC-02.2 and AC-02.6, then WP-02 closes on vc's word. (2) refs/bank/ic/0652/app-v1, Copy URL (blob f8d5ff817259, patch-id 41510649df5c, in tmp/wt-ic-0652), beside cc's cli-v2. Its legs beyond the union are `bin/devbin macos app-test` in the stacked judge and ic's live check after the install. Both worktrees stay as banked until the landing. Page v3's render drive is banked as refs/bank/ic/tools/render-states.sh and refs/bank/ic/tools/prelude.js. (3) After the landing and vc's build all: the app build and install, LoginShell plus Copy URL. Install only after molt-vc says hv has quit; quit nothing. Then the live check: pbpaste, the concealed marker, the page in Safari. Hold 12 stands. No push, no release. (edited)
 
 ## TODO
 
