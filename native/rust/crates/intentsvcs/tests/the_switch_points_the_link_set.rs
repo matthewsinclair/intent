@@ -86,6 +86,66 @@ impl Plant {
     std::fs::create_dir_all(&self.bin).expect("bin");
     symlink(to, self.bin.join(name)).expect("link");
   }
+
+  /// A dev checkout with its pair, and both links of the set pointed at it.
+  fn on_dev(&self) -> PathBuf {
+    let dev = self.dev("dev", true);
+    let pair = dev.join(intentsvcs::switch::DEV_PAIR);
+    for name in switch::LINKS {
+      self.link_into(name, &pair.join(name));
+    }
+    dev
+  }
+
+  /// A Homebrew prefix with its `brew`, and no intent keg in it.
+  fn homebrew(&self) -> PathBuf {
+    let prefix = self.base.join(PREFIX);
+    script(&prefix.join("bin/brew"), &self.log);
+    prefix
+  }
+
+  /// The intent keg in [`Plant::homebrew`]'s prefix, laid out as the formula
+  /// in `brew.lib` lays it out: the tree under `libexec` with its manifest,
+  /// the keg's own `bin/intent` link into it, and `opt/intent` linked to the
+  /// keg. It is not linked into the prefix's `bin` until [`Plant::brew_link`].
+  fn keg(&self) -> PathBuf {
+    let keg = self.base.join(PREFIX).join(KEG);
+    self.published(&format!("{PREFIX}/{KEG}/libexec"), "brew");
+    std::fs::create_dir_all(keg.join("bin")).expect("keg bin");
+    symlink("../libexec/bin/intent", keg.join("bin/intent")).expect("keg link");
+    std::fs::create_dir_all(self.base.join(PREFIX).join("opt")).expect("opt");
+    symlink(
+      format!("../{KEG}"),
+      self.base.join(PREFIX).join("opt/intent"),
+    )
+    .expect("opt link");
+    keg
+  }
+
+  /// `brew link`: the prefix's `bin/intent` linked into the keg.
+  fn brew_link(&self) {
+    symlink(
+      format!("../{KEG}/bin/intent"),
+      self.base.join(PREFIX).join("bin/intent"),
+    )
+    .expect("brew link");
+  }
+}
+
+/// Where [`Plant::homebrew`] puts its prefix.
+const PREFIX: &str = "homebrew";
+
+/// Where [`Plant::keg`] puts the keg inside the prefix.
+const KEG: &str = "Cellar/intent/9.9.9";
+
+/// A refusal removed nothing: every link of the set is still there.
+fn nothing_was_removed(p: &Plant) {
+  for name in switch::LINKS {
+    assert!(
+      std::fs::symlink_metadata(p.bin.join(name)).is_ok(),
+      "{name} was removed by a refusal"
+    );
+  }
 }
 
 /// A PATH stub over `dirs`, in order: every executable `name` in them.
@@ -267,23 +327,169 @@ fn use_brew_removes_the_set_and_nothing_else() {
 }
 
 /// Intent's addition to T5 (vc, 2026-10-25): `use brew` refuses before
-/// removing anything when no Homebrew intent would answer afterwards.
+/// removing anything when no Homebrew intent would answer afterwards. With no
+/// `brew` on PATH, as under a launchd PATH, whether Homebrew's intent is
+/// installed or linked cannot be read, so the refusal says that rather than
+/// guess (A4, issue 0655).
 #[test]
 fn use_brew_refuses_when_nothing_brew_would_answer() {
   let p = Plant::new();
-  let dev = p.dev("dev", true);
-  let pair = dev.join(intentsvcs::switch::DEV_PAIR);
-  for name in switch::LINKS {
-    p.link_into(name, &pair.join(name));
-  }
+  p.on_dev();
   let lookup = path_of(vec![p.bin.clone()]);
   let e =
     switch::point_at(Target::Brew, &p.bin, &p.base, None, None, &lookup).expect_err("no brew");
   assert!(matches!(e, SwitchError::NoBrew { .. }), "{e}");
+  let text = e.to_string();
+  assert!(text.contains("Homebrew's `brew` is not on PATH"), "{text}");
+  assert!(!text.contains("not installed"), "a guess: {text}");
+  assert!(
+    text.contains("nothing else would answer `intent` on PATH"),
+    "{text}"
+  );
+  assert!(
+    e.remedy().contains("put Homebrew's bin on PATH"),
+    "{}",
+    e.remedy()
+  );
+  assert!(e.remedy().contains("stay on dev or opt"), "{}", e.remedy());
+  nothing_was_removed(&p);
+}
+
+/// A4 (issue 0655): with `brew` on PATH and no keg of the formula, the
+/// refusal says the formula is not installed, where it looked, and what would
+/// answer instead. Its remedy installs the formula and never links it.
+#[test]
+fn use_brew_names_a_formula_that_is_not_installed() {
+  let p = Plant::new();
+  p.on_dev();
+  let prefix = p.homebrew();
+  let opt = p.published("opt", "intent");
+  let lookup = path_of(vec![p.bin.clone(), opt.join("bin"), prefix.join("bin")]);
+  let e = switch::point_at(Target::Brew, &p.bin, &p.base, None, None, &lookup)
+    .expect_err("not installed");
+  assert!(matches!(e, SwitchError::NoBrew { .. }), "{e}");
+  let text = e.to_string();
+  assert!(
+    text.contains(&format!(
+      "the intent formula is not installed (there is no keg at {})",
+      prefix.join("opt/intent").display()
+    )),
+    "{text}"
+  );
+  assert!(
+    text.contains(&format!(
+      "{} (the opt tree at {}) would answer instead",
+      opt.join("bin/intent").display(),
+      opt.display()
+    )),
+    "{text}"
+  );
+  assert!(e.remedy().contains("brew install intent"), "{}", e.remedy());
+  assert!(!e.remedy().contains("brew link intent"), "{}", e.remedy());
+  assert!(e.remedy().contains("stay on dev or opt"), "{}", e.remedy());
+  nothing_was_removed(&p);
+}
+
+/// A4 (issue 0655): with the keg installed and not linked, as `brew unlink`
+/// leaves it, the refusal names the keg, the link it lacks, and that nothing
+/// else would answer. Its remedy links the formula and never installs it.
+#[test]
+fn use_brew_names_a_keg_that_is_not_linked() {
+  let p = Plant::new();
+  p.on_dev();
+  let prefix = p.homebrew();
+  let keg = p.keg();
+  let lookup = path_of(vec![p.bin.clone(), prefix.join("bin")]);
+  let e =
+    switch::point_at(Target::Brew, &p.bin, &p.base, None, None, &lookup).expect_err("not linked");
+  assert!(matches!(e, SwitchError::NoBrew { .. }), "{e}");
+  let text = e.to_string();
+  assert!(
+    text.contains(&format!(
+      "the intent formula's keg at {} is not linked ({} does not lead into it)",
+      keg.display(),
+      prefix.join("bin/intent").display()
+    )),
+    "{text}"
+  );
+  assert!(
+    text.contains("nothing else would answer `intent` on PATH"),
+    "{text}"
+  );
   assert!(e.remedy().contains("brew link intent"), "{}", e.remedy());
-  for name in switch::LINKS {
-    assert!(p.bin.join(name).exists(), "{name} was removed by a refusal");
+  assert!(
+    !e.remedy().contains("brew install intent"),
+    "{}",
+    e.remedy()
+  );
+  assert!(e.remedy().contains("stay on dev or opt"), "{}", e.remedy());
+  nothing_was_removed(&p);
+}
+
+/// A4 (issue 0655): with Homebrew's intent linked behind another copy on
+/// PATH, the refusal names that copy with its tree, and Homebrew's behind it.
+/// Its remedy is the PATH, since installing or linking would change nothing.
+#[test]
+fn use_brew_names_the_copy_that_comes_first_on_path() {
+  let p = Plant::new();
+  p.on_dev();
+  let prefix = p.homebrew();
+  p.keg();
+  p.brew_link();
+  let opt = p.published("opt", "intent");
+  let lookup = path_of(vec![p.bin.clone(), opt.join("bin"), prefix.join("bin")]);
+  let e = switch::point_at(Target::Brew, &p.bin, &p.base, None, None, &lookup)
+    .expect_err("another copy first");
+  assert!(matches!(e, SwitchError::NoBrew { .. }), "{e}");
+  let text = e.to_string();
+  assert!(
+    text.contains(&format!(
+      "another copy comes first on PATH: {} (the opt tree at {}), ahead of Homebrew's {}",
+      opt.join("bin/intent").display(),
+      opt.display(),
+      prefix.join("bin/intent").display()
+    )),
+    "{text}"
+  );
+  assert!(e.remedy().contains("off PATH"), "{}", e.remedy());
+  assert!(
+    !e.remedy().contains("brew install intent"),
+    "{}",
+    e.remedy()
+  );
+  assert!(!e.remedy().contains("brew link intent"), "{}", e.remedy());
+  assert!(e.remedy().contains("stay on dev or opt"), "{}", e.remedy());
+  nothing_was_removed(&p);
+}
+
+/// A4 (issue 0655): the refusal names each link it would have removed with
+/// the tree that link serves, so a set split across trees names both.
+#[test]
+fn use_brew_names_each_link_it_would_have_removed_with_its_tree() {
+  let p = Plant::new();
+  let dev = p.dev("dev", true);
+  let opt = p.published("opt", "intent");
+  p.link_into(
+    "intent",
+    &dev.join(intentsvcs::switch::DEV_PAIR).join("intent"),
+  );
+  p.link_into("intentd", &opt.join("bin/intentd"));
+  let lookup = path_of(vec![p.bin.clone()]);
+  let e =
+    switch::point_at(Target::Brew, &p.bin, &p.base, None, None, &lookup).expect_err("no brew");
+  assert!(matches!(e, SwitchError::NoBrew { .. }), "{e}");
+  let text = e.to_string();
+  for (link, tree, root) in [("intent", "dev", &dev), ("intentd", "opt", &opt)] {
+    assert!(
+      text.contains(&format!(
+        "{} serves the {tree} tree at {}",
+        p.bin.join(link).display(),
+        root.display()
+      )),
+      "{text}"
+    );
   }
+  nothing_was_removed(&p);
 }
 
 /// A file in the set that is not Intent's link is never replaced.

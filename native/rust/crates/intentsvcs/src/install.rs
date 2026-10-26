@@ -207,7 +207,7 @@ fn canonical(p: &Path) -> PathBuf {
 
 /// The Homebrew formula this project ships as, which names its keg directory
 /// under `Cellar/` and its link under `opt/`.
-const BREW_FORMULA: &str = "intent";
+pub(crate) const BREW_FORMULA: &str = "intent";
 
 /// The path to RECORD for an install root. On a Homebrew install that is not
 /// the root [`resolve`] finds (issue `0527`).

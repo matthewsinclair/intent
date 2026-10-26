@@ -133,6 +133,63 @@ impl Report {
   }
 }
 
+/// Why no Homebrew intent would answer once the links are gone, as `use
+/// brew`'s refusal names it (A4, issue 0655). Each copy is named with its
+/// tree, and `instead` is what would answer in Homebrew's place, if anything.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum NoBrewCause {
+  /// No `brew` is on PATH, so whether its intent is installed or linked
+  /// cannot be read.
+  BrewNotOnPath { instead: Option<String> },
+  /// The formula has no keg behind its opt link.
+  NotInstalled {
+    opt: String,
+    instead: Option<String>,
+  },
+  /// The keg is installed and the prefix's `bin/intent` does not lead into
+  /// it.
+  NotLinked {
+    keg: String,
+    link: String,
+    instead: Option<String>,
+  },
+  /// Another copy comes first on PATH, ahead of Homebrew's linked one.
+  AnotherCopyFirst { by: String, brew: String },
+}
+
+impl std::fmt::Display for NoBrewCause {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    let answering = |instead: Option<&str>| match instead {
+      Some(copy) => format!("{copy} would answer instead"),
+      None => {
+        "nothing else would answer `intent` on PATH, so no hook, MCP server or shell would find one"
+          .to_string()
+      }
+    };
+    match self {
+      Self::BrewNotOnPath { instead } => write!(
+        f,
+        "Homebrew's `brew` is not on PATH, so whether its intent is installed or linked could not be read, and {}",
+        answering(instead.as_deref())
+      ),
+      Self::NotInstalled { opt, instead } => write!(
+        f,
+        "the intent formula is not installed (there is no keg at {opt}), and {}",
+        answering(instead.as_deref())
+      ),
+      Self::NotLinked { keg, link, instead } => write!(
+        f,
+        "the intent formula's keg at {keg} is not linked ({link} does not lead into it), and {}",
+        answering(instead.as_deref())
+      ),
+      Self::AnotherCopyFirst { by, brew } => write!(
+        f,
+        "another copy comes first on PATH: {by}, ahead of Homebrew's {brew}"
+      ),
+    }
+  }
+}
+
 #[derive(Debug, thiserror::Error)]
 pub enum SwitchError {
   #[error(transparent)]
@@ -160,8 +217,10 @@ pub enum SwitchError {
   NoOptPair { prefix: String, missing: String },
   #[error("{link} is not a link into an Intent tree ({what}), so intent use leaves it as it is")]
   NotOurs { link: String, what: String },
-  #[error("intent use brew would leave no Homebrew intent to answer: {left}")]
-  NoBrew { left: String },
+  #[error(
+    "intent use brew removed nothing: no Homebrew intent would answer once the links are gone, because {cause}. The links it would have removed: {links}"
+  )]
+  NoBrew { links: String, cause: NoBrewCause },
   #[error("{link} could not be written: {source}")]
   Write {
     link: String,
@@ -214,8 +273,29 @@ impl crate::remedy::Remedy for SwitchError {
       Self::NotOurs { .. } => {
         "move that file aside by hand if it is yours, then run this again; nothing was written".to_string()
       }
-      Self::NoBrew { .. } => {
-        "nothing was removed. Link Homebrew's intent first with `brew unpin intent && brew link intent` (or `brew install intent`), then run `intent use brew` again".to_string()
+      Self::NoBrew {
+        cause: NoBrewCause::BrewNotOnPath { .. },
+        ..
+      } => {
+        "put Homebrew's bin on PATH, then run `intent use brew` again; or stay on dev or opt".to_string()
+      }
+      Self::NoBrew {
+        cause: NoBrewCause::NotInstalled { .. },
+        ..
+      } => {
+        "install the formula with `brew install intent`, then run `intent use brew` again; or stay on dev or opt".to_string()
+      }
+      Self::NoBrew {
+        cause: NoBrewCause::NotLinked { .. },
+        ..
+      } => {
+        "link the formula with `brew unpin intent && brew link intent`, then run `intent use brew` again; or stay on dev or opt".to_string()
+      }
+      Self::NoBrew {
+        cause: NoBrewCause::AnotherCopyFirst { .. },
+        ..
+      } => {
+        "take the copy named above off PATH, or put Homebrew's bin ahead of it, then run `intent use brew` again; or stay on dev or opt".to_string()
       }
       Self::Write { .. } => {
         "nothing was changed: check that ~/.local/bin is writable, then run this again".to_string()
@@ -547,37 +627,92 @@ fn restore(link: &Path, was: Option<&Path>) -> std::io::Result<()> {
   }
 }
 
-/// `use brew`: remove every link of the set that points into an Intent tree,
-/// once a Homebrew intent is known to answer afterwards.
-fn unlink_for_brew(report: &Report, lookup: Lookup<'_>) -> Result<Pointed, SwitchError> {
-  let after = lookup("intent")?
-    .into_iter()
-    .find(|hit| hit.parent().map(canonical) != Some(canonical(&report.dir)));
-  let brew_root = after.as_deref().and_then(|hit| {
-    let root = install::resolve(hit).ok()?;
-    let id = install::tree_at(&root, &commit_of(hit));
-    (id.tree == Tree::Brew).then_some(id.root)
-  });
-  let (Some(hit), Some(root)) = (after.clone(), brew_root) else {
-    return Err(SwitchError::NoBrew {
-      left: match after {
-        Some(hit) => format!(
-          "the first intent on PATH after ~/.local/bin would be {}, which is not Homebrew's",
-          shadow_name(&hit)
-        ),
-        None => {
-          "nothing would answer `intent` on PATH, so no hook, MCP server or shell would find one"
-            .to_string()
-        }
-      },
-    });
-  };
-  let mut unlinked = Vec::new();
-  for link in report
+/// The links `use brew` removes: each one that points into an Intent tree.
+fn removable(report: &Report) -> impl Iterator<Item = &Link> {
+  report
     .links
     .iter()
     .filter(|l| matches!(l.state, LinkState::Serves { .. }))
-  {
+}
+
+/// The root of the Homebrew tree `binary` resolves into, or none when it is
+/// not Homebrew's: a keg by its manifest, or a keg from before the contract by
+/// its opt link (`install::tree_at`).
+fn brew_root(binary: &Path) -> Option<PathBuf> {
+  let id = install::tree_at(&install::resolve(binary).ok()?, &commit_of(binary));
+  (id.tree == Tree::Brew).then_some(id.root)
+}
+
+/// Why no Homebrew intent would answer (A4), read only once `use brew` has
+/// refused, and from the filesystem, so no `brew` runs. `hits` are the
+/// `intent`s on PATH outside the link directory, in PATH's order.
+fn no_brew_cause(hits: &[PathBuf], lookup: Lookup<'_>) -> Result<NoBrewCause, SwitchError> {
+  let behind = hits.split_first().and_then(|(first, rest)| {
+    rest
+      .iter()
+      .find(|hit| brew_root(hit).is_some())
+      .map(|brew| (first, brew))
+  });
+  if let Some((first, brew)) = behind {
+    return Ok(NoBrewCause::AnotherCopyFirst {
+      by: shadow_name(first),
+      brew: brew.display().to_string(),
+    });
+  }
+  let instead = hits.first().map(|hit| shadow_name(hit));
+  // Homebrew's prefix as brew takes it: the parent of the directory its
+  // `brew` is found in.
+  let Some(prefix) = lookup("brew")?
+    .into_iter()
+    .next()
+    .and_then(|brew| brew.parent().map(canonical))
+    .and_then(|bin| bin.parent().map(Path::to_path_buf))
+  else {
+    return Ok(NoBrewCause::BrewNotOnPath { instead });
+  };
+  let opt = prefix.join("opt").join(install::BREW_FORMULA);
+  // A linked keg's `bin/intent` is in the directory `brew` was found in, so it
+  // was one of `hits`: a keg found here is not linked.
+  Ok(match brew_root(&opt.join("bin/intent")) {
+    Some(_) => NoBrewCause::NotLinked {
+      keg: canonical(&opt).display().to_string(),
+      link: prefix.join("bin/intent").display().to_string(),
+      instead,
+    },
+    None => NoBrewCause::NotInstalled {
+      opt: opt.display().to_string(),
+      instead,
+    },
+  })
+}
+
+/// `use brew`: remove every link of the set that points into an Intent tree,
+/// once a Homebrew intent is known to answer afterwards. Otherwise it removes
+/// nothing, and names each of those links with its tree and why no Homebrew
+/// intent would answer (A4).
+fn unlink_for_brew(report: &Report, lookup: Lookup<'_>) -> Result<Pointed, SwitchError> {
+  let hits: Vec<PathBuf> = lookup("intent")?
+    .into_iter()
+    .filter(|hit| hit.parent().map(canonical) != Some(canonical(&report.dir)))
+    .collect();
+  let answers = hits
+    .first()
+    .and_then(|hit| brew_root(hit).map(|root| (hit.clone(), root)));
+  let Some((hit, root)) = answers else {
+    let links: Vec<String> = removable(report)
+      .map(|l| format!("{} {}", l.path.display(), describe(&l.state)))
+      .collect();
+    return Err(SwitchError::NoBrew {
+      links: if links.is_empty() {
+        "none, since no link of the set serves a tree".to_string()
+      } else {
+        links.join("; ")
+      },
+      cause: no_brew_cause(&hits, lookup)?,
+    });
+  };
+  let mut unlinked = Vec::new();
+  for link in removable(report) {
     std::fs::remove_file(&link.path).map_err(|source| SwitchError::Write {
       link: link.path.display().to_string(),
       source,
