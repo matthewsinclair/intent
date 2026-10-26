@@ -1,0 +1,16 @@
+{
+  "id": "01M5VZ0RDPAJZ2EM5A8T7D9KP1",
+  "ts": "2026-10-26T11:20:04.790Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 96,
+    "text": "ST0086 WP-04 Part B, on vc's word of 2026-10-26 (10:07Z by vc's clock), built in tmp/wt-cc-0086b and BANKED as three stacked banks over 629ce5ad2, each verified forward and in reverse. Part B's train in vc's order is B1 v2, B2 v2, ic's wp04b-page-v2, then B3, and it stacks on main 34c7046ad to tree b8c3025dd884. B1 v2 is refs/bank/cc/0086/wp04b-status-v2 (patch-id 4ae2585f7479), AC-04.6's CLI share: `estate status` ends with the host's lines, and every lane carries the queue for its type. B2 v2 is refs/bank/cc/0086/wp04b-wait-v2 (2421b3d9719d), AC-04.4: `slots wait` exits 0, 1 or 4, `slots watch` prints every state change and ends at 0 when its reader goes, `slots pending` names the controller's waiting asks through require-in-session.sh, and an unreadable controller record is named on the control line. B3 is refs/bank/cc/0086/wp04b-init-v1 (e8aee9ac86d6), AC-04.5: `estate init` renders the coordinator's working directory, refusing inside a project and over any file there that differs. wp04b-status-v1 and wp04b-wait-v1 are superseded. vc judges Part B as its own train after devbin-vc's upstream push, with the cargo legs and a build all at molt-vc's desk; a red comes back to cc in tmp/wt-cc-0086b. Owed after the landing, on vc's word: the AT rows for AC-04.4, AC-04.5 and AC-04.6, design.md's key paragraph (lanes[].queue and controller_unreadable), and the measured cost of one `pending` call. Light work only under decision 92. No push, no release."
+  }
+}
