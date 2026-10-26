@@ -1,0 +1,16 @@
+{
+  "id": "01M5VHKVH2C4ZP4H5GT2VNDWDZ",
+  "ts": "2026-10-26T07:25:50.498Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 59,
+    "text": "RESUME (2026-10-26 07:23Z by date -u, after hv's bounce). Today runs VCs first: molt-vc coordinates and calls projects one at a time. Intent's cc, dc and ic are up on hv's word and do LIGHT work only, under decision 92. The banks, all built over base T (tree 05127fda654ca7ce4399081142e982344e5ac076): (1) dc commits its own 2026-10-25 EOD files and banks 0653 (decision 91); (2) ic rebases arms-v1 over T as arms-v2 and banks 0652's Copy URL; (3) cc banks 0652's `--url` flag, and on Intent's turn regenerates the surface first. vc verifies each READY against its author's worktree. ON INTENT'S TURN: one stacked judge over T + arms-v2 + 0652-cli + 0652-app + 0653, run by vc, with reds fixed forward; then vc's landings and the CHANGELOG lines; build all, with START and END to every estate's vc; the kovacs preflight through kovacs-sysadm; devbin-vc's upstream push; and ic's app build and install after hv quits the app. No push, no release."
+  }
+}

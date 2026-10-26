@@ -1,0 +1,15 @@
+{
+  "id": "01M5VHKDP6235KPNWSR42KGZ3E",
+  "ts": "2026-10-26T07:25:36.327Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-10-26 07:23Z by date -u; hv first-hand in vc's session after booting cc, dc and ic: \"If your rec is (a) then go with that.\"; wording vc's) INTENT'S CYCLE: LIGHT WORK NOW, ONE HEAVY TURN LATER. cc, dc and ic do only light work now (edits, git, prettier, shellcheck, and one bats file run alone; no cargo, swift or devbin build). Intent's one full test cycle runs when molt-vc calls Intent's turn, and reds are fixed forward. THE BASE T for every new bank is HEAD e0c15d474 plus 0648 v5, Part A v2, page v3 and 0087-04 v2, in that order, giving tree 05127fda654ca7ce4399081142e982344e5ac076. New banks carry no CHANGELOG.md hunk, and vc writes their lines in one commit at landing. THE STACK is T + arms-v2 (ic, the gather() conflict resolved) + 0652's CLI half (cc, on hv's split) + its app half (ic) + 0653 (dc). vc verifies each bank against its author's worktree, books ONE heavy with molt-vc and runs the combined judge itself, after cc regenerates the surface as the turn's first step. Then vc lands the stack and writes the CHANGELOG lines; build all runs, with START and END to every estate's vc; the kovacs preflight runs at that HEAD through kovacs-sysadm; devbin-vc pushes upstream; and ic builds and installs the app once hv has quit it. THE CONTRACT for 0652: `intent estate status --url` prints exactly the URL `--browser` opens, followed by one newline, on stdout and nothing else, and exits 0; with no daemon answering, it refuses as `--browser` does. ic writes the contract into 0652's record."
+  }
+}
