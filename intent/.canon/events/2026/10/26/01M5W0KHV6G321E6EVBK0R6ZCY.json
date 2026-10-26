@@ -1,0 +1,16 @@
+{
+  "id": "01M5W0KHV6G321E6EVBK0R6ZCY",
+  "ts": "2026-10-26T11:47:49.222Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 96,
+    "text": "LOCALFOLD resume state (2026-10-26, on hv's word relayed by vc at 11:45Z by vc's clock). ST0086 WP-04 Part B, begun on vc's word at 10:07Z by vc's clock, is banked as four stacked banks in vc's train order. vc verified at 11:19Z by vc's clock that they apply at their patch-ids on main 34c7046ad, to tip tree b8c3025dd884. They are: refs/bank/cc/0086/wp04b-status-v2 (4ae2585f7479), AC-04.6's CLI share, `estate status` ending with the host's lines and every lane carrying the queue for its type; refs/bank/cc/0086/wp04b-wait-v2 (2421b3d9719d), AC-04.4, `slots wait` exiting 0, 1 or 4, `slots watch` printing every state change and ending at 0 when its reader goes, `slots pending` naming the controller's waiting asks through require-in-session.sh, and an unreadable controller record named on the control line; ic's refs/bank/ic/0086/wp04b-page-v2 (8126a568631b), the page's half; and refs/bank/cc/0086/wp04b-init-v1 (e8aee9ac86d6), AC-04.5, `estate init` rendering the coordinator's working directory and refusing inside a project or over any file there that differs. wp04b-status-v1 and wp04b-wait-v1 are superseded. The worktree is tmp/wt-cc-0086b, detached over 629ce5ad2 with hooks-off scratch tips e52f97bb6 (B1 v2), 88ccdd4d6 (B2 v2) and 99a9ced05 (B3). A red in Part B's judge comes back there to fix forward, and a bank that moves is told to ic, whose page bank sits on B1 v2 and B2 v2. After the bounce vc runs the fold-text change, the re-aimed kovacs preflight and devbin-vc's push, then Part B's judge with the cargo legs, bats and ic's render drive, the landings and a build all. Owed after the landing, on vc's word: the AT rows for AC-04.4, AC-04.5 and AC-04.6, each citing one marked file; design.md's key paragraph (lanes[].queue and controller_unreadable), through the attachment door; and the measured cost of one `pending` call with the judge's binary. Light work only under decision 92. No push, no release."
+  }
+}
