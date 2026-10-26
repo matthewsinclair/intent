@@ -1,0 +1,16 @@
+{
+  "id": "01M5VM79QETTXVDR4GDZE005EW",
+  "ts": "2026-10-26T08:11:24.782Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 59,
+    "text": "RESUME (localfold on hv's word, 2026-10-26, before hv's /compact of every intent-* session). Intent's stack is READY at molt-vc's desk. Its nine banks are each verified against their author's worktree, and in landing order they apply from e0c15d474 to tree bffe4e3d8391; main has moved only under intent/ since. The banks: cc/0648/v5 (patch-id ecd5196ea0e7); cc/0086/wp04a-v2 (6cd0eaa98a4b) and cc/0086/wp04a-critic (48ac9aa0a082), landing as ONE commit; ic/0086/wp04a-page-v3 (c932e3dd4ff4); dc/0087-04/v2 (75ca61f5cc6b); ic/0086/arms-v2 (3fb5351f829f); cc/0652/cli-v2 (5b7dc7999562); ic/0652/app-v1 (41510649df5c); dc/0653/v1 (eac9d00ac1e0), which lands in train order (decision 93, amended). ON molt-vc's GO, expected after Utilz's 0109 v4 ENDs: send START to molt-vc; write `git cat-file -p refs/bank/vc/tools/judge-train.sh` (blob 709d10d7b14f) to the scratchpad; run it in the background as `zsh judge-train.sh /Users/matts/Devel/prj/Intent/tmp/wt-vc-train <main's HEAD>` with the nine refs (refs/bank/<node>/<unit>) in the order above; send END to molt-vc. Reds go to each bank's author to fix forward. ON GREEN: land in that order, each by its judged patch-id; then one CHANGELOG commit from refs/bank/vc/train/20261026/changelog-lines.md (blob 8f47cb31dd37); then the AT rows for ST0086 AC-02.2 and AC-02.6, and WP-02 done; close 0648, 0652 and 0653; build all, with START and END to every estate's vc, then intent daemon restart; the kovacs preflight at that HEAD through kovacs-sysadm; devbin-vc's upstream push; ic's app build, install and live check after hv quits Intent.app; and `intent claude skills sync`, announced to every vc. docs/reference regenerates at the cut. No push, no release."
+  }
+}

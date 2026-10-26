@@ -1,0 +1,16 @@
+{
+  "id": "01M5VM78KXBSK8HFR4ABC28V9E",
+  "ts": "2026-10-26T08:11:23.645Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "seq": 93,
+    "text": "(2026-10-26 07:55Z by date -u; hv first-hand in dc's session, between dc's clock reads of 07:30Z and 07:47Z, relayed verbatim by dc; wording vc's except hv's quote) THE VERBLOCK GUARD'S REMEDY IS ELISION AT 97, AND 0653 LANDS LAST, GATED ON THE OTHER ESTATES. hv, verbatim: \"Just elide them at 97 chars if you need to. These verblock sections are NOT MEANT TO BE PROSE and EVEN MORE NOT MEANT TO BE VERSION CONTROL. We use git for commit messages, not the verblock. IT SHOULD DO WHAT IT SAYS ON THE TIN! It's a \"version block\". I really _fail_ to see why this instruction is so difficult to get right?!\" (1) verblock-guard.sh's refusal names the remedy: keep the current version stamp, and elide a line that will not fit to 97 characters ending in \"...\". The guard never writes. (2) Shipped guards are served live from Intent's working tree to every estate's commit gate, and dc's read of the estates (nothing written) found other estates' live fold targets that would refuse at their next fold. So 0653 lands LAST in Intent's train, and only on molt-vc's word that those docs pass after an elide-at-97 pass by each estate's own vc. The other eight banks do not wait for it. The record is in issue 0653's body. (3) Intent's stack is READY at molt-vc's desk: all nine banks are verified against their authors' worktrees, and in landing order they apply to tree bffe4e3d8391. Part A v2 and its critic fix land as one commit. After the landings: build all, the kovacs preflight, devbin-vc's push, ic's app build and install, and `intent claude skills sync`.\n   AMENDED 2026-10-26, before vc's clock read of 08:07Z (hv by TUI in molt-vc's session, relayed by molt-vc): (2)'s gate is withdrawn. The other estates' verblocks are fixed at their next fold, not now, because the guard reads only staged files and its refusal names the elision. So 0653 lands in its train order and waits on nothing, and nobody edits those estates for it. 0653's record says so."
+  }
+}
