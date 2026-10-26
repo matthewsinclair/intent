@@ -9606,7 +9606,230 @@
           "recoverability": "idempotent",
           "recoverability_anomaly": "IDEMPOTENT AND WITHHELD: the same input writes the same record, so a repeat changes nothing, which is the class MCP offers; but its only input is the JSON Claude Code pipes to a statusline command, which an agent does not hold, so a tool would only ever be called with an input it made up.",
           "flags": []
+        },
+        {
+          "path": "estate control",
+          "help": "Take, release or hold control of this host's slots: the controller alone grants, and holds stop every grant",
+          "when_to_use": "USE IT as the session hv assigns to control the host's workload. `take` makes this session the controller: it succeeds when no controller was ever recorded, when the last one released, or when its session is gone, and a take under a name other than the recorded controller's needs `--hv \"<hv's words>\"`, recorded verbatim. `release` hands control over cleanly. `hold \"<condition>\"` stops every grant on the desk until `unhold <id>`, which is the host's \"no GOs until hv says continue\". The caller is the Claude Code session this runs in, and its name is read from that session's own file. DO NOT USE IT to hold one lane: that is `intent estate lane hold`.",
+          "args": [
+            {
+              "name": "verb",
+              "type": "subcommand",
+              "arity": "1",
+              "values": ["take", "release", "hold", "unhold"],
+              "value_help": {
+                "take": "Take control: refused while the recorded controller is live",
+                "release": "Hand control over cleanly",
+                "hold": "Hold the whole desk: no grant until the hold is released",
+                "unhold": "Release a desk hold by its id"
+              }
+            },
+            { "name": "arg", "type": "string", "arity": "0..1", "note": "The condition for `hold`, the hold's id for `unhold`." }
+          ],
+          "v2": "new-surface",
+          "basis": "ST0086 design.md, The coordinator and Slots and lanes: control is a record, a take is a handover over a gone controller only, and a desk hold stops every grant (vc decision 88, amended on molt-vc's read; the spine builds three levels, so `control` is a verb slot).",
+          "owner_wp": "WP-04",
+          "target": { "state": "new-surface" },
+          "disposition": "new-surface",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate",
+          "recoverability": "one-way",
+          "mcp_review": {
+            "note": "WITHHELD BECAUSE IT IS ONE-WAY (vc decision 88): the slot verbs accumulate records nothing removes, and control is the authority over every other session's runs on the host, so an agent takes or holds it only because hv assigned it."
+          },
+          "flags": [
+            {
+              "spellings": ["--hv"],
+              "type": "string",
+              "help": "hv's words, verbatim, for a take under a name other than the recorded controller's",
+              "value": "<words>",
+              "disposition": "keep",
+              "exposed_on_mcp": false
+            },
+            {
+              "spellings": ["--node"],
+              "type": "string",
+              "help": "The whiteboard node this session is, recorded on the write",
+              "value": "<node>",
+              "disposition": "keep",
+              "exposed_on_mcp": false
+            }
+          ]
+        },
+        {
+          "path": "estate lane",
+          "help": "Open, close or hold a lane: a scarce resource with a running capacity that grants are checked against",
+          "when_to_use": "USE IT as the host's controller. `open <lane> --type <type> --capacity <n> [--load-under <n>]` opens a lane or changes its type, capacity or load admission; a lane is a resource a run holds (eg `heavy`, `cargo`, `bats`, `light`, `launchsvc`), and a run holds every lane its grant names. `close <lane>` refuses while anything is granted or running in it. `hold <lane> \"<condition>\"` stops every grant naming the lane until `unhold <lane> <id>`. The verbs are refused from any session but the controller's. DO NOT USE IT to hold the whole desk: that is `intent estate control hold`.",
+          "args": [
+            {
+              "name": "verb",
+              "type": "subcommand",
+              "arity": "1",
+              "values": ["open", "close", "hold", "unhold"],
+              "value_help": {
+                "open": "Open a lane, or change its type, capacity or load admission",
+                "close": "Close a lane: refused while anything is granted or running in it",
+                "hold": "Hold one lane: no grant naming it until the hold is released",
+                "unhold": "Release a lane hold by its id"
+              }
+            },
+            { "name": "lane", "type": "string", "arity": "1" },
+            { "name": "arg", "type": "string", "arity": "0..1", "note": "The condition for `hold`, the hold's id for `unhold`." }
+          ],
+          "v2": "new-surface",
+          "basis": "ST0086 design.md, Slots and lanes: a lane is a scarce resource with a capacity, and a run holds every lane it uses (vc decision 88; the spine builds three levels, so `lane` is a verb slot rather than `slots lane`).",
+          "owner_wp": "WP-04",
+          "target": { "state": "new-surface" },
+          "disposition": "new-surface",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate",
+          "recoverability": "one-way",
+          "mcp_review": {
+            "note": "WITHHELD BECAUSE IT IS ONE-WAY (vc decision 88): the controller's lane declarations decide what every session on the host may run, and the slot verbs stay CLI."
+          },
+          "flags": [
+            {
+              "spellings": ["--type"],
+              "type": "string",
+              "help": "The lane's type, the class the controller names (eg heavy, light, negligible)",
+              "value": "<type>",
+              "disposition": "keep",
+              "exposed_on_mcp": false
+            },
+            {
+              "spellings": ["--capacity"],
+              "type": "integer",
+              "help": "How many requests may be granted or running in the lane at once",
+              "value": "<n>",
+              "disposition": "keep",
+              "exposed_on_mcp": false
+            },
+            {
+              "spellings": ["--load-under"],
+              "type": "string",
+              "help": "Admit a grant into the lane only while the 1-minute load is under this",
+              "value": "<load>",
+              "disposition": "keep",
+              "exposed_on_mcp": false
+            },
+            {
+              "spellings": ["--node"],
+              "type": "string",
+              "help": "The whiteboard node this session is, recorded on the write",
+              "value": "<node>",
+              "disposition": "keep",
+              "exposed_on_mcp": false
+            }
+          ]
+        },
+        {
+          "path": "estate slots",
+          "help": "Ask for a slot and run in it, or, as the controller, grant, deny or revoke one",
+          "when_to_use": "USE IT to book a run on this host instead of a READY message. `ask <type> \"<what>\" [--lane <lane>] [--named k=v,...] [--tag t,...] [--not-before <id>,...] [--hold \"<condition>\"] [--place-of <id>]` queues a request and prints its id; `--named` records the bytes the booking runs, and `start` must name the same set. As the controller, `grant <id> --lane <lane>,<lane>,...` (or `--lane none` for a negligible run) grants into every lane named, refused over capacity, under a hold, before a `--not-before` request has ended, or over a lane's load admission; `deny <id> \"<why>\"` refuses an ask, and `revoke <id> \"<why>\"` ends any open request, freeing what it held. As the asker, `start <id> [--named ...] [--relayed]` starts a granted request and `release <id> [--result \"<text>\"] [--relayed]` ends it; the service stamps both. DO NOT USE IT to say where a run stands: `intent estate status` reads the requests.",
+          "args": [
+            {
+              "name": "verb",
+              "type": "subcommand",
+              "arity": "1",
+              "values": ["ask", "grant", "deny", "revoke", "start", "release"],
+              "value_help": {
+                "ask": "Queue a request and print its id",
+                "grant": "Grant a request into every lane named (the controller's)",
+                "deny": "Refuse a request still asked (the controller's)",
+                "revoke": "End an open request and free what it held (the controller's)",
+                "start": "Start a granted request (the asker's)",
+                "release": "End a granted or running request (the asker's)"
+              }
+            },
+            { "name": "subject", "type": "string", "arity": "1", "note": "The request type for `ask`, the request id for every other verb." },
+            { "name": "text", "type": "string", "arity": "0..1", "note": "What the run is, for `ask`; the reason, for `deny` and `revoke`." }
+          ],
+          "v2": "new-surface",
+          "basis": "ST0086 design.md, Slots and lanes: requests as the fold of files, one writer per file, the capacity refusal, the named-set match and the not-before gate (vc decision 88, amended on molt-vc's read).",
+          "owner_wp": "WP-04",
+          "target": { "state": "new-surface" },
+          "disposition": "new-surface",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate",
+          "recoverability": "one-way",
+          "mcp_review": {
+            "note": "WITHHELD BECAUSE IT IS ONE-WAY (ST0086 design.md: the slot verbs accumulate and stay CLI): every step is a file written once, and nothing removes a request."
+          },
+          "flags": [
+            {
+              "spellings": ["--lane"],
+              "type": "string",
+              "help": "For ask, the lane preferred; for grant, every lane the run holds, comma-separated, or `none`",
+              "value": "<lane,...>",
+              "disposition": "keep",
+              "exposed_on_mcp": false
+            },
+            {
+              "spellings": ["--named"],
+              "type": "string",
+              "help": "What the booking runs, as key=value pairs, comma-separated (eg tip=,patch_id=)",
+              "value": "<k=v,...>",
+              "disposition": "keep",
+              "exposed_on_mcp": false
+            },
+            {
+              "spellings": ["--tag"],
+              "type": "string",
+              "help": "Tags shown on the request, comma-separated; they order nothing",
+              "value": "<tag,...>",
+              "disposition": "keep",
+              "exposed_on_mcp": false
+            },
+            {
+              "spellings": ["--not-before"],
+              "type": "string",
+              "help": "Request ids that must end before this one is granted, comma-separated",
+              "value": "<id,...>",
+              "disposition": "keep",
+              "exposed_on_mcp": false
+            },
+            {
+              "spellings": ["--hold"],
+              "type": "string",
+              "help": "A condition the controller judges before granting, shown on the request",
+              "value": "<condition>",
+              "disposition": "keep",
+              "exposed_on_mcp": false
+            },
+            {
+              "spellings": ["--place-of"],
+              "type": "string",
+              "help": "A hand-back keeping its place: the request this one re-asks for",
+              "value": "<id>",
+              "disposition": "keep",
+              "exposed_on_mcp": false
+            },
+            {
+              "spellings": ["--result"],
+              "type": "string",
+              "help": "The run's result as the holder writes it, recorded on release",
+              "value": "<text>",
+              "disposition": "keep",
+              "exposed_on_mcp": false
+            },
+            {
+              "spellings": ["--relayed"],
+              "type": "bool",
+              "help": "The stamp is a relay's time, for a run on another host, not the run's own clock",
+              "disposition": "keep",
+              "exposed_on_mcp": false
+            },
+            {
+              "spellings": ["--node"],
+              "type": "string",
+              "help": "The whiteboard node this session is, recorded on the write",
+              "value": "<node>",
+              "disposition": "keep",
+              "exposed_on_mcp": false
+            }
+          ]
         }
+
 
       ]
     }
@@ -11185,6 +11408,18 @@
       {
         "path": "estate watch",
         "why": "writes WHEN INVOKED with the probe's values -- the sentinel is a valid class name and a valid pattern, so the probe would declare a census class under the operator's state directory. `estate unwatch` stays probeable: the sentinel names no declared class, so it removes nothing; `estate statusline` refuses the empty stdin the probe gives it (vc decision 75, ST0086)."
+      },
+      {
+        "path": "estate control",
+        "why": "writes WHEN INVOKED as a leaf -- `estate control take` run by a probe inside a Claude Code session would take control of the host's slots under the operator's state directory, which is the authority over every session's runs on the host (vc decision 88, ST0086 WP-04)."
+      },
+      {
+        "path": "estate lane",
+        "why": "writes WHEN INVOKED with the probe's values -- a lane name and the sentinel reach `lane open` and `lane hold`, which write the controller's lane and hold records under the operator's state directory when the probing session holds control (ST0086 WP-04)."
+      },
+      {
+        "path": "estate slots",
+        "why": "writes WHEN INVOKED with the probe's values -- `estate slots ask <sentinel> <sentinel>` is a valid ask, and would queue a request under the operator's state directory that the page and the controller then read (ST0086 WP-04)."
       }
     ],
     "declared": [
@@ -11356,6 +11591,9 @@
       "estate watch",
       "estate unwatch",
       "estate statusline",
+      "estate control",
+      "estate lane",
+      "estate slots",
       "search",
       "sync",
       "schema",
@@ -11534,6 +11772,9 @@
       "estate watch",
       "estate unwatch",
       "estate statusline",
+      "estate control",
+      "estate lane",
+      "estate slots",
       "search",
       "sync",
       "schema",

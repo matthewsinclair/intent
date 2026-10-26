@@ -693,3 +693,170 @@ fn statusline_refuses_an_input_that_is_not_json_with_a_remedy() {
     "a refusal never reaches the status line"
   );
 }
+
+/// Runs `intent estate <args>` as the Claude Code session `session_id`.
+fn slot(host: &Host, session_id: &str, args: &[&str]) -> std::process::Output {
+  let argv = [&["estate"][..], args].concat();
+  host
+    .cmd()
+    .env("CLAUDE_CODE_SESSION_ID", session_id)
+    .args(&argv)
+    .stdin(testkit::lifeline_for(&argv))
+    .output()
+    .expect("run an estate slot verb")
+}
+
+fn ok_out(o: &std::process::Output) -> String {
+  assert!(
+    o.status.success(),
+    "stdout: {}\nstderr: {}",
+    String::from_utf8_lossy(&o.stdout),
+    String::from_utf8_lossy(&o.stderr)
+  );
+  String::from_utf8_lossy(&o.stdout).into_owned()
+}
+
+/// AC-04.1 to AC-04.3 and AC-04.6 through the binary: a controller takes
+/// control and opens lanes, a session asks, the controller grants into two
+/// lanes, the holder starts and releases, and `estate status` shows each step
+/// in the reader's keys.
+#[test]
+fn a_booking_goes_from_ask_to_release_and_the_status_shows_every_step() {
+  let host = Host::new();
+  let me = std::process::id();
+  host.session(me, "s-ctl", "molt-vc", &host.project, "idle");
+
+  let took = ok_out(&slot(&host, "s-ctl", &["control", "take", "--node", "vc"]));
+  assert!(took.contains("ok: control taken by `molt-vc`"), "{took}");
+  for lane in ["heavy", "cargo"] {
+    ok_out(&slot(
+      &host,
+      "s-ctl",
+      &["lane", "open", lane, "--type", "heavy", "--capacity", "1"],
+    ));
+  }
+  let asked = ok_out(&slot(
+    &host,
+    "s-ctl",
+    &[
+      "slots",
+      "ask",
+      "heavy",
+      "0648 judge",
+      "--named",
+      "tip=7a3552f1e,patch_id=7c704836",
+      "--tag",
+      "security",
+    ],
+  ));
+  let id = asked
+    .lines()
+    .find_map(|l| l.strip_prefix("asked: "))
+    .expect("ask prints the id")
+    .to_string();
+
+  ok_out(&slot(
+    &host,
+    "s-ctl",
+    &["slots", "grant", &id, "--lane", "heavy,cargo"],
+  ));
+  let v = host.status_json();
+  assert_eq!(v["controller"]["name"], "molt-vc");
+  assert_eq!(v["controller"]["node"], "vc");
+  assert_eq!(v["queue"][0]["state"], "granted");
+  assert_eq!(
+    v["queue"][0]["lanes"],
+    serde_json::json!(["heavy", "cargo"])
+  );
+  assert_eq!(v["queue"][0]["tags"], serde_json::json!(["security"]));
+  assert_eq!(v["queue"][0]["named"]["tip"], "7a3552f1e");
+  assert_eq!(v["lanes"][1]["granted"], 1);
+
+  let refused = slot(
+    &host,
+    "s-ctl",
+    &[
+      "slots",
+      "start",
+      &id,
+      "--named",
+      "tip=deadbeef,patch_id=7c704836",
+    ],
+  );
+  assert!(
+    !refused.status.success(),
+    "a start on other bytes is refused"
+  );
+  ok_out(&slot(
+    &host,
+    "s-ctl",
+    &[
+      "slots",
+      "start",
+      &id,
+      "--named",
+      "tip=7a3552f1e,patch_id=7c704836",
+    ],
+  ));
+  let v = host.status_json();
+  assert_eq!(v["queue"][0]["state"], "running");
+  assert!(v["queue"][0]["started_at"].is_string(), "{v}");
+  assert_eq!(row(&v, "molt-vc")["state"], "heavy");
+  assert_eq!(
+    row(&v, "molt-vc")["slots"],
+    serde_json::json!([id.as_str()])
+  );
+
+  ok_out(&slot(
+    &host,
+    "s-ctl",
+    &["slots", "release", &id, "--result", "every leg rc 0"],
+  ));
+  let v = host.status_json();
+  assert_eq!(v["queue"], serde_json::json!([]));
+  assert_eq!(v["recent"][0]["id"], id.as_str());
+  assert_eq!(v["recent"][0]["state"], "ended");
+  assert!(v["recent"][0]["ended_at"].is_string(), "{v}");
+  assert_eq!(v["holds"], serde_json::json!([]));
+}
+
+/// vc decision 88: a flag foreign to the chosen verb is refused by name, and a
+/// slot verb run in no Claude Code session is refused before it writes.
+#[test]
+fn a_foreign_flag_and_a_run_outside_any_session_are_refused() {
+  let host = Host::new();
+  let me = std::process::id();
+  host.session(me, "s-ctl", "molt-vc", &host.project, "idle");
+
+  let foreign = slot(
+    &host,
+    "s-ctl",
+    &["slots", "grant", "01X", "--tag", "security"],
+  );
+  assert!(!foreign.status.success());
+  assert!(
+    String::from_utf8_lossy(&foreign.stderr)
+      .contains("`--tag` is not a flag of `estate slots grant`"),
+    "{}",
+    String::from_utf8_lossy(&foreign.stderr)
+  );
+
+  let outside = host
+    .cmd()
+    .args(["estate", "control", "take"])
+    .output()
+    .expect("run control take outside a session");
+  assert!(!outside.status.success());
+  assert!(
+    String::from_utf8_lossy(&outside.stderr).contains("runs in no Claude Code session"),
+    "{}",
+    String::from_utf8_lossy(&outside.stderr)
+  );
+  assert!(
+    !host
+      .home
+      .join(".local/state/intent/estate/slots/controller.json")
+      .exists(),
+    "nothing was written"
+  );
+}

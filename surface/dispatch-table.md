@@ -4653,15 +4653,18 @@ Every Claude session on this host: who it is, where it stands, and what it is do
 - NEW SURFACE with no v2 antecedent, from ST0086 (the estate view). The estate is the HOST, not a project: these verbs answer the same wherever they are run, and none of them opens a project store.
 - Presence is Claude Code's own per-session file, read and never written (hv's ruling of 2026-10-24, ST0086 design.md); Intent adds only what that file lacks, and the one thing it writes per session is the WIP line `estate wip` sets for a session with no board. `status` renders what `intentsvcs::estate::status` returns, and `--format json` is that answer's own serialisation, the boundary the page and the TUI read too.
 
-| command             | args              | flags                             | help                                                                                                         | disposition |
-| ------------------- | ----------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------ | ----------- |
-| `estate`            | <command>         | --                                | Every Claude session on this host: who it is, where it stands, and what it is doing                          | new-surface |
-| `estate status`     | --                | --format terminal/json, --browser | List every Claude session on this host with its project, node, state, claims and WIP or focus line           | new-surface |
-| `estate wip`        | [line]            | --clear, --session                | Set or clear this session's WIP line, for a session that is not a whiteboard node                            | new-surface |
-| `estate prune`      | --                | --                                | Remove Intent's own WIP records for sessions that are gone; Claude Code's files are never touched            | new-surface |
-| `estate watch`      | <class> <pattern> | --                                | Declare a census class, or change its pattern: the daemon counts the processes whose command line matches it | new-surface |
-| `estate unwatch`    | <class>           | --                                | Remove a census class: the daemon stops counting it and the page stops listing it                            | new-surface |
-| `estate statusline` | --                | --                                | Keep the plan usage a statusline input carries, read from stdin, as this host's usage fallback               | new-surface |
+| command             | args                    | flags                                                                                                                                                        | help                                                                                                         | disposition |
+| ------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ | ----------- |
+| `estate`            | <command>               | --                                                                                                                                                           | Every Claude session on this host: who it is, where it stands, and what it is doing                          | new-surface |
+| `estate status`     | --                      | --format terminal/json, --browser                                                                                                                            | List every Claude session on this host with its project, node, state, claims and WIP or focus line           | new-surface |
+| `estate wip`        | [line]                  | --clear, --session                                                                                                                                           | Set or clear this session's WIP line, for a session that is not a whiteboard node                            | new-surface |
+| `estate prune`      | --                      | --                                                                                                                                                           | Remove Intent's own WIP records for sessions that are gone; Claude Code's files are never touched            | new-surface |
+| `estate watch`      | <class> <pattern>       | --                                                                                                                                                           | Declare a census class, or change its pattern: the daemon counts the processes whose command line matches it | new-surface |
+| `estate unwatch`    | <class>                 | --                                                                                                                                                           | Remove a census class: the daemon stops counting it and the page stops listing it                            | new-surface |
+| `estate statusline` | --                      | --                                                                                                                                                           | Keep the plan usage a statusline input carries, read from stdin, as this host's usage fallback               | new-surface |
+| `estate control`    | <verb> [arg]            | --hv <words>, --node <node>                                                                                                                                  | Take, release or hold control of this host's slots: the controller alone grants, and holds stop every grant  | new-surface |
+| `estate lane`       | <verb> <lane> [arg]     | --type <type>, --capacity <n>, --load-under <load>, --node <node>                                                                                            | Open, close or hold a lane: a scarce resource with a running capacity that grants are checked against        | new-surface |
+| `estate slots`      | <verb> <subject> [text] | --lane <lane,...>, --named <k=v,...>, --tag <tag,...>, --not-before <id,...>, --hold <condition>, --place-of <id>, --result <text>, --relayed, --node <node> | Ask for a slot and run in it, or, as the controller, grant, deny or revoke one                               | new-surface |
 
 ### `estate`
 
@@ -4786,6 +4789,111 @@ Keep the plan usage a statusline input carries, read from stdin, as this host's 
 - **owner wp:** WP-02
 - **recoverability:** idempotent
 - **recoverability anomaly:** IDEMPOTENT AND WITHHELD: the same input writes the same record, so a repeat changes nothing, which is the class MCP offers; but its only input is the JSON Claude Code pipes to a statusline command, which an agent does not hold, so a tool would only ever be called with an input it made up.
+
+### `estate control`
+
+Take, release or hold control of this host's slots: the controller alone grants, and holds stop every grant
+
+- **v2:** new-surface
+- **Arguments:**
+  - `verb` (subcommand, arity `1`) -- one of: `take`, `release`, `hold`, `unhold`
+  - `arg` (string, arity `0..1`)
+    - The condition for `hold`, the hold's id for `unhold`.
+- **Flags:**
+  - `--hv` `<words>` (string) -- hv's words, verbatim, for a take under a name other than the recorded controller's
+    - **disposition:** keep
+    - **exposed on mcp:** false
+  - `--node` `<node>` (string) -- The whiteboard node this session is, recorded on the write
+    - **disposition:** keep
+    - **exposed on mcp:** false
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** not exposed -- **mutates**
+- **MCP note:** WITHHELD BECAUSE IT IS ONE-WAY (vc decision 88): the slot verbs accumulate records nothing removes, and control is the authority over every other session's runs on the host, so an agent takes or holds it only because hv assigned it.
+- **when to use:** USE IT as the session hv assigns to control the host's workload. `take` makes this session the controller: it succeeds when no controller was ever recorded, when the last one released, or when its session is gone, and a take under a name other than the recorded controller's needs `--hv "<hv's words>"`, recorded verbatim. `release` hands control over cleanly. `hold "<condition>"` stops every grant on the desk until `unhold <id>`, which is the host's "no GOs until hv says continue". The caller is the Claude Code session this runs in, and its name is read from that session's own file. DO NOT USE IT to hold one lane: that is `intent estate lane hold`.
+- **basis:** ST0086 design.md, The coordinator and Slots and lanes: control is a record, a take is a handover over a gone controller only, and a desk hold stops every grant (vc decision 88, amended on molt-vc's read; the spine builds three levels, so `control` is a verb slot).
+- **owner wp:** WP-04
+- **recoverability:** one-way
+
+### `estate lane`
+
+Open, close or hold a lane: a scarce resource with a running capacity that grants are checked against
+
+- **v2:** new-surface
+- **Arguments:**
+  - `verb` (subcommand, arity `1`) -- one of: `open`, `close`, `hold`, `unhold`
+  - `lane` (string, arity `1`)
+  - `arg` (string, arity `0..1`)
+    - The condition for `hold`, the hold's id for `unhold`.
+- **Flags:**
+  - `--type` `<type>` (string) -- The lane's type, the class the controller names (eg heavy, light, negligible)
+    - **disposition:** keep
+    - **exposed on mcp:** false
+  - `--capacity` `<n>` (integer) -- How many requests may be granted or running in the lane at once
+    - **disposition:** keep
+    - **exposed on mcp:** false
+  - `--load-under` `<load>` (string) -- Admit a grant into the lane only while the 1-minute load is under this
+    - **disposition:** keep
+    - **exposed on mcp:** false
+  - `--node` `<node>` (string) -- The whiteboard node this session is, recorded on the write
+    - **disposition:** keep
+    - **exposed on mcp:** false
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** not exposed -- **mutates**
+- **MCP note:** WITHHELD BECAUSE IT IS ONE-WAY (vc decision 88): the controller's lane declarations decide what every session on the host may run, and the slot verbs stay CLI.
+- **when to use:** USE IT as the host's controller. `open <lane> --type <type> --capacity <n> [--load-under <n>]` opens a lane or changes its type, capacity or load admission; a lane is a resource a run holds (eg `heavy`, `cargo`, `bats`, `light`, `launchsvc`), and a run holds every lane its grant names. `close <lane>` refuses while anything is granted or running in it. `hold <lane> "<condition>"` stops every grant naming the lane until `unhold <lane> <id>`. The verbs are refused from any session but the controller's. DO NOT USE IT to hold the whole desk: that is `intent estate control hold`.
+- **basis:** ST0086 design.md, Slots and lanes: a lane is a scarce resource with a capacity, and a run holds every lane it uses (vc decision 88; the spine builds three levels, so `lane` is a verb slot rather than `slots lane`).
+- **owner wp:** WP-04
+- **recoverability:** one-way
+
+### `estate slots`
+
+Ask for a slot and run in it, or, as the controller, grant, deny or revoke one
+
+- **v2:** new-surface
+- **Arguments:**
+  - `verb` (subcommand, arity `1`) -- one of: `ask`, `grant`, `deny`, `revoke`, `start`, `release`
+  - `subject` (string, arity `1`)
+    - The request type for `ask`, the request id for every other verb.
+  - `text` (string, arity `0..1`)
+    - What the run is, for `ask`; the reason, for `deny` and `revoke`.
+- **Flags:**
+  - `--lane` `<lane,...>` (string) -- For ask, the lane preferred; for grant, every lane the run holds, comma-separated, or `none`
+    - **disposition:** keep
+    - **exposed on mcp:** false
+  - `--named` `<k=v,...>` (string) -- What the booking runs, as key=value pairs, comma-separated (eg tip=,patch_id=)
+    - **disposition:** keep
+    - **exposed on mcp:** false
+  - `--tag` `<tag,...>` (string) -- Tags shown on the request, comma-separated; they order nothing
+    - **disposition:** keep
+    - **exposed on mcp:** false
+  - `--not-before` `<id,...>` (string) -- Request ids that must end before this one is granted, comma-separated
+    - **disposition:** keep
+    - **exposed on mcp:** false
+  - `--hold` `<condition>` (string) -- A condition the controller judges before granting, shown on the request
+    - **disposition:** keep
+    - **exposed on mcp:** false
+  - `--place-of` `<id>` (string) -- A hand-back keeping its place: the request this one re-asks for
+    - **disposition:** keep
+    - **exposed on mcp:** false
+  - `--result` `<text>` (string) -- The run's result as the holder writes it, recorded on release
+    - **disposition:** keep
+    - **exposed on mcp:** false
+  - `--relayed` (bool) -- The stamp is a relay's time, for a run on another host, not the run's own clock
+    - **disposition:** keep
+    - **exposed on mcp:** false
+  - `--node` `<node>` (string) -- The whiteboard node this session is, recorded on the write
+    - **disposition:** keep
+    - **exposed on mcp:** false
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** not exposed -- **mutates**
+- **MCP note:** WITHHELD BECAUSE IT IS ONE-WAY (ST0086 design.md: the slot verbs accumulate and stay CLI): every step is a file written once, and nothing removes a request.
+- **when to use:** USE IT to book a run on this host instead of a READY message. `ask <type> "<what>" [--lane <lane>] [--named k=v,...] [--tag t,...] [--not-before <id>,...] [--hold "<condition>"] [--place-of <id>]` queues a request and prints its id; `--named` records the bytes the booking runs, and `start` must name the same set. As the controller, `grant <id> --lane <lane>,<lane>,...` (or `--lane none` for a negligible run) grants into every lane named, refused over capacity, under a hold, before a `--not-before` request has ended, or over a lane's load admission; `deny <id> "<why>"` refuses an ask, and `revoke <id> "<why>"` ends any open request, freeing what it held. As the asker, `start <id> [--named ...] [--relayed]` starts a granted request and `release <id> [--result "<text>"] [--relayed]` ends it; the service stamps both. DO NOT USE IT to say where a run stands: `intent estate status` reads the requests.
+- **basis:** ST0086 design.md, Slots and lanes: requests as the fold of files, one writer per file, the capacity refusal, the named-set match and the not-before gate (vc decision 88, amended on molt-vc's read).
+- **owner wp:** WP-04
+- **recoverability:** one-way
 
 ## Known exposures -- defects this file does not have, and is not protected against
 

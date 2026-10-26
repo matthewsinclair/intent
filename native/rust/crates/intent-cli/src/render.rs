@@ -10281,6 +10281,9 @@ fn estate(m: &ArgMatches) -> Result<(), Failure> {
     Some(("watch", sm)) => estate_watch(sm),
     Some(("unwatch", sm)) => estate_unwatch(sm),
     Some(("statusline", _)) => estate_statusline(),
+    Some(("control", sm)) => estate_control(sm),
+    Some(("lane", sm)) => estate_lane(sm),
+    Some(("slots", sm)) => estate_slots(sm),
     Some((verb, _)) => unwired("estate", verb),
     None => unwired("estate", ""),
   }
@@ -10888,6 +10891,349 @@ fn estate_unwatch(a: &ArgMatches) -> Result<(), Failure> {
     println!("ok: census class `{class}` was not declared; nothing changed");
   }
   Ok(())
+}
+
+/// The caller of a slot verb: the Claude Code session this runs in, read from
+/// its own session file, with the node it says it is (ST0086 WP-04).
+///
+/// **THE SESSION IS `CLAUDE_CODE_SESSION_ID` AND NOTHING ELSE**: a slot verb
+/// takes no `--session`, so no caller can act as another.
+fn slot_caller(
+  a: &ArgMatches,
+) -> Result<
+  (
+    intentsvcs::userstate::Dirs,
+    intentsvcs::estate::slots::Caller,
+  ),
+  Failure,
+> {
+  let Some(session) = pickup_session(None) else {
+    return Err(Failure::Error(
+      "error: this runs in no Claude Code session, and a slot verb acts as the session it runs in\n  remedy: run it from inside a Claude Code session".to_string(),
+    ));
+  };
+  let (dirs, claude) = intentsvcs::estate::host_slot_dirs().map_err(estate_fail)?;
+  let node = opt(a, "node")?;
+  let caller = intentsvcs::estate::slots::caller(&claude, &session, node.as_deref())
+    .map_err(|e| estate_fail(e.into()))?;
+  Ok((dirs, caller))
+}
+
+fn slot_fail(e: intentsvcs::estate::slots::SlotError) -> Failure {
+  estate_fail(e.into())
+}
+
+/// **A FLAG FOREIGN TO THE CHOSEN VERB IS REFUSED BY NAME** (vc decision 88):
+/// the spine builds a verb slot's leaves with the entry's whole flag set, so
+/// each arm says which of them it reads.
+fn refuse_foreign(
+  a: &ArgMatches,
+  verb: &str,
+  all: &[&str],
+  allowed: &[&str],
+) -> Result<(), Failure> {
+  for flag in all.iter().filter(|f| !allowed.contains(f)) {
+    if given(a, flag) {
+      return Err(Failure::Error(format!(
+        "error: `--{flag}` is not a flag of `{verb}`\n  remedy: `intent {verb} --help` names the flags it reads"
+      )));
+    }
+  }
+  Ok(())
+}
+
+/// A comma list, trimmed, with empty items dropped.
+fn comma_list(raw: Option<String>) -> Vec<String> {
+  raw
+    .map(|r| {
+      r.split(',')
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .map(str::to_string)
+        .collect()
+    })
+    .unwrap_or_default()
+}
+
+/// `--named k=v,k=v`.
+fn named_set(raw: Option<String>) -> Result<std::collections::BTreeMap<String, String>, Failure> {
+  let mut out = std::collections::BTreeMap::new();
+  for item in comma_list(raw) {
+    let Some((k, v)) = item.split_once('=') else {
+      return Err(Failure::Error(format!(
+        "error: `--named` item `{item}` is not key=value\n  remedy: name what the booking runs as `--named tip=<sha>,patch_id=<id>`"
+      )));
+    };
+    if out
+      .insert(k.trim().to_string(), v.trim().to_string())
+      .is_some()
+    {
+      return Err(Failure::Error(format!(
+        "error: `--named` names `{}` twice\n  remedy: name each key once",
+        k.trim()
+      )));
+    }
+  }
+  Ok(out)
+}
+
+fn required(a: &ArgMatches, name: &str, verb: &str) -> Result<String, Failure> {
+  opt(a, name)?.ok_or_else(|| {
+    Failure::Error(format!(
+      "error: `{verb}` needs its {name}\n  remedy: `intent {verb} --help`"
+    ))
+  })
+}
+
+const CONTROL_FLAGS: &[&str] = &["hv", "node"];
+
+/// `intent estate control <take|release|hold|unhold>` (ST0086 WP-04).
+fn estate_control(m: &ArgMatches) -> Result<(), Failure> {
+  let Some((verb, a)) = m.subcommand() else {
+    return unwired("estate", "control");
+  };
+  let full = format!("estate control {verb}");
+  let allowed: &[&str] = if verb == "take" {
+    &["hv", "node"]
+  } else {
+    &["node"]
+  };
+  refuse_foreign(a, &full, CONTROL_FLAGS, allowed)?;
+  let (dirs, caller) = slot_caller(a)?;
+  use intentsvcs::estate::slots;
+  match verb {
+    "take" => {
+      if opt(a, "arg")?.is_some() {
+        return Err(Failure::Error(
+          "error: `estate control take` takes no argument\n  remedy: hv's words go in `--hv \"<words>\"`".to_string(),
+        ));
+      }
+      let (_, claude) = intentsvcs::estate::host_slot_dirs().map_err(estate_fail)?;
+      let taken = slots::control_take(&dirs, &claude, &caller, opt(a, "hv")?.as_deref())
+        .map_err(slot_fail)?;
+      if taken.unchanged {
+        println!(
+          "ok: `{}` already holds control; nothing changed",
+          caller.name
+        );
+        return Ok(());
+      }
+      println!("wrote: {}", taken.path.display());
+      match taken.predecessor {
+        Some(p) => println!(
+          "ok: control taken by `{}`, handed over from `{}`",
+          caller.name, p.name
+        ),
+        None => println!("ok: control taken by `{}`", caller.name),
+      }
+      Ok(())
+    }
+    "release" => {
+      let path = slots::control_release(&dirs, &caller).map_err(slot_fail)?;
+      println!("wrote: {}", path.display());
+      println!("ok: control released; NO CONTROLLER until the next take");
+      Ok(())
+    }
+    "hold" => {
+      let condition = required(a, "arg", &full)?;
+      let (id, path) = slots::hold(&dirs, &caller, None, &condition).map_err(slot_fail)?;
+      println!("wrote: {}", path.display());
+      println!("held: {id} (the desk: no grant until it is released)");
+      Ok(())
+    }
+    "unhold" => {
+      let id = required(a, "arg", &full)?;
+      let path = slots::unhold(&dirs, &caller, None, &id).map_err(slot_fail)?;
+      println!("wrote: {}", path.display());
+      println!("ok: hold {id} released");
+      Ok(())
+    }
+    other => unwired("estate", &format!("control {other}")),
+  }
+}
+
+const LANE_FLAGS: &[&str] = &["type", "capacity", "load-under", "node"];
+
+/// `intent estate lane <open|close|hold|unhold> <lane>` (ST0086 WP-04).
+fn estate_lane(m: &ArgMatches) -> Result<(), Failure> {
+  let Some((verb, a)) = m.subcommand() else {
+    return unwired("estate", "lane");
+  };
+  let full = format!("estate lane {verb}");
+  let allowed: &[&str] = if verb == "open" {
+    LANE_FLAGS
+  } else {
+    &["node"]
+  };
+  refuse_foreign(a, &full, LANE_FLAGS, allowed)?;
+  let lane = arg(a, "lane")?;
+  let (dirs, caller) = slot_caller(a)?;
+  use intentsvcs::estate::slots;
+  match verb {
+    "open" => {
+      let kind = required(a, "type", &full)?;
+      let raw = required(a, "capacity", &full)?;
+      let capacity = raw.parse::<u32>().map_err(|_| {
+        Failure::Error(format!(
+          "error: --capacity `{raw}` is not a whole number\n  remedy: give the lane's running capacity, eg `--capacity 1`"
+        ))
+      })?;
+      let load_under = match opt(a, "load-under")? {
+        None => None,
+        Some(raw) => Some(raw.parse::<f64>().map_err(|_| {
+          Failure::Error(format!(
+            "error: --load-under `{raw}` is not a number\n  remedy: give the 1-minute load a grant must be under, eg `--load-under 60`"
+          ))
+        })?),
+      };
+      let path =
+        slots::lane_open(&dirs, &caller, &lane, &kind, capacity, load_under).map_err(slot_fail)?;
+      println!("wrote: {}", path.display());
+      Ok(())
+    }
+    "close" => {
+      let path = slots::lane_close(&dirs, &caller, &lane).map_err(slot_fail)?;
+      println!("removed: {}", path.display());
+      Ok(())
+    }
+    "hold" => {
+      let condition = required(a, "arg", &full)?;
+      let (id, path) = slots::hold(&dirs, &caller, Some(&lane), &condition).map_err(slot_fail)?;
+      println!("wrote: {}", path.display());
+      println!("held: {id} (lane `{lane}`: no grant naming it until it is released)");
+      Ok(())
+    }
+    "unhold" => {
+      let id = required(a, "arg", &full)?;
+      let path = slots::unhold(&dirs, &caller, Some(&lane), &id).map_err(slot_fail)?;
+      println!("wrote: {}", path.display());
+      println!("ok: hold {id} on lane `{lane}` released");
+      Ok(())
+    }
+    other => unwired("estate", &format!("lane {other}")),
+  }
+}
+
+const SLOTS_FLAGS: &[&str] = &[
+  "lane",
+  "named",
+  "tag",
+  "not-before",
+  "hold",
+  "place-of",
+  "result",
+  "relayed",
+  "node",
+];
+
+/// `intent estate slots <ask|grant|deny|revoke|start|release>` (ST0086 WP-04).
+fn estate_slots(m: &ArgMatches) -> Result<(), Failure> {
+  let Some((verb, a)) = m.subcommand() else {
+    return unwired("estate", "slots");
+  };
+  let full = format!("estate slots {verb}");
+  let allowed: &[&str] = match verb {
+    "ask" => &[
+      "lane",
+      "named",
+      "tag",
+      "not-before",
+      "hold",
+      "place-of",
+      "node",
+    ],
+    "grant" => &["lane", "node"],
+    "start" => &["named", "relayed", "node"],
+    "release" => &["result", "relayed", "node"],
+    _ => &["node"],
+  };
+  refuse_foreign(a, &full, SLOTS_FLAGS, allowed)?;
+  let subject = arg(a, "subject")?;
+  let text = opt(a, "text")?;
+  let takes_text = matches!(verb, "ask" | "deny" | "revoke");
+  if text.is_some() && !takes_text {
+    return Err(Failure::Error(format!(
+      "error: `{full}` takes the request id alone\n  remedy: `intent {full} --help`"
+    )));
+  }
+  let (dirs, caller) = slot_caller(a)?;
+  use intentsvcs::estate::slots;
+  let wrote = |path: std::path::PathBuf| println!("wrote: {}", path.display());
+  match verb {
+    "ask" => {
+      let what = text.ok_or_else(|| {
+        Failure::Error(
+          "error: `estate slots ask` needs what the run is\n  remedy: `intent estate slots ask <type> \"<what>\"`".to_string(),
+        )
+      })?;
+      let lanes = comma_list(opt(a, "lane")?);
+      if lanes.len() > 1 {
+        return Err(Failure::Error(
+          "error: an ask names at most one preferred lane\n  remedy: the controller's grant names every lane the run holds".to_string(),
+        ));
+      }
+      let args = slots::AskArgs {
+        lane: lanes.into_iter().next(),
+        named: named_set(opt(a, "named")?)?,
+        tags: comma_list(opt(a, "tag")?),
+        not_before: comma_list(opt(a, "not-before")?),
+        holds: opt(a, "hold")?.into_iter().collect(),
+        place_of: opt(a, "place-of")?,
+      };
+      let (id, path) = slots::ask(&dirs, &caller, &subject, &what, args).map_err(slot_fail)?;
+      wrote(path);
+      println!("asked: {id}");
+      Ok(())
+    }
+    "grant" => {
+      let lanes = comma_list(opt(a, "lane")?);
+      let path = slots::grant(
+        &dirs,
+        &caller,
+        &subject,
+        &lanes,
+        &intentsvcs::estate::host_load1,
+      )
+      .map_err(slot_fail)?;
+      wrote(path);
+      Ok(())
+    }
+    "deny" | "revoke" => {
+      let why = text.ok_or_else(|| {
+        Failure::Error(format!(
+          "error: `{full}` needs the reason\n  remedy: `intent {full} <id> \"<why>\"`"
+        ))
+      })?;
+      let path = if verb == "deny" {
+        slots::deny(&dirs, &caller, &subject, &why)
+      } else {
+        slots::revoke(&dirs, &caller, &subject, &why)
+      }
+      .map_err(slot_fail)?;
+      wrote(path);
+      Ok(())
+    }
+    "start" => {
+      let named = named_set(opt(a, "named")?)?;
+      let path =
+        slots::start(&dirs, &caller, &subject, named, given(a, "relayed")).map_err(slot_fail)?;
+      wrote(path);
+      Ok(())
+    }
+    "release" => {
+      let path = slots::release(
+        &dirs,
+        &caller,
+        &subject,
+        opt(a, "result")?.as_deref(),
+        given(a, "relayed"),
+      )
+      .map_err(slot_fail)?;
+      wrote(path);
+      Ok(())
+    }
+    other => unwired("estate", &format!("slots {other}")),
+  }
 }
 
 /// `intent estate statusline`: the statusline step (ST0086 WP-02). Reads the

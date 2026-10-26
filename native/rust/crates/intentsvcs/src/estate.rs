@@ -23,7 +23,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use serde::{Deserialize, Serialize};
-use serde_json::{Value, json};
+use serde_json::Value;
 use thiserror::Error;
 use time::OffsetDateTime;
 
@@ -33,6 +33,7 @@ use crate::write_set::{WriteError, write_atomically};
 
 pub mod census;
 pub mod clock;
+pub mod slots;
 pub mod usage;
 
 /// The schema of the value [`status`] returns.
@@ -99,6 +100,8 @@ pub enum EstateError {
   BadPattern { pattern: String, why: String },
   #[error("the statusline input {why}")]
   BadStatusline { why: String },
+  #[error(transparent)]
+  Slot(#[from] slots::SlotError),
 }
 
 impl crate::remedy::Remedy for EstateError {
@@ -113,6 +116,7 @@ impl crate::remedy::Remedy for EstateError {
       Self::BadClass { .. } => "name the class with letters, digits, `-` and `_` only: it is the watch file's name. Nothing was written.".to_string(),
       Self::BadPattern { .. } => "give a regular expression in Rust's `regex` syntax, matched against the process's whole command line. Nothing was written.".to_string(),
       Self::BadStatusline { .. } => "hand it the JSON Claude Code gives a statusline command, unchanged, on stdin. Nothing was written.".to_string(),
+      Self::Slot(e) => e.remedy(),
       Self::NoLiveness { .. } => "prune must read which processes are running (`/bin/ps` on macOS, `/proc` on Linux) to tell a gone session from a live one, so nothing was removed. Run `intent estate status` to see what `ps` reported.".to_string(),
     }
   }
@@ -192,6 +196,8 @@ pub struct Gathered {
   pub records: BTreeMap<String, WipRecord>,
   pub census: census::Census,
   pub usage: usage::Usage,
+  /// The slot records ([`slots::read`]).
+  pub slots: slots::Slots,
   pub unreadable: Vec<Unreadable>,
 }
 
@@ -223,7 +229,7 @@ pub struct SessionRow {
   pub state: State,
   pub started_at: String,
   pub updated_at: String,
-  /// The slots this session holds (WP-04); empty until then.
+  /// The ids of the requests this session holds, granted or running (WP-04).
   pub slots: Vec<String>,
   pub claims: Vec<String>,
   pub line: Option<String>,
@@ -234,8 +240,9 @@ pub struct SessionRow {
 /// The estate, as every renderer receives it.
 ///
 /// **EVERY KEY IS PRESENT FROM WP-01**, so a renderer never branches on a
-/// missing one: `controller`, `lanes`, `queue` and `recent` hold the agreed
-/// empty shapes until WP-04 fills and types them. `recent` has `queue`'s row
+/// missing one: `controller`, `lanes`, `holds`, `queue` and `recent` are
+/// filled from the slot records ([`slots`], WP-04), and hold their empty
+/// shapes where there are none. `recent` has `queue`'s row
 /// shape and holds what ended, was denied or was revoked in the last hour,
 /// oldest end first, so the page's pipeline draws its finished cells from the
 /// reader rather than keeping history of its own (AC-04.7).
@@ -250,6 +257,7 @@ pub struct EstateStatus {
   pub lanes: Value,
   pub queue: Value,
   pub recent: Value,
+  pub holds: Value,
   pub usage: usage::Usage,
   pub sessions: Vec<SessionRow>,
   pub unreadable: Vec<Unreadable>,
@@ -508,6 +516,7 @@ pub fn join(gathered: Gathered, now: OffsetDateTime) -> EstateStatus {
     records,
     census,
     usage,
+    slots,
     mut unreadable,
   } = gathered;
   let starts = match liveness {
@@ -518,6 +527,10 @@ pub fn join(gathered: Gathered, now: OffsetDateTime) -> EstateStatus {
     }
     None => None,
   };
+  let held_by = slots.held_by();
+  let running_by = slots.running_by();
+  // `recent` keeps the hour back from this one reading of the clock (D42).
+  let since = now - time::Duration::seconds(slots::RECENT_SECONDS);
   let mut rows: Vec<SessionRow> = sessions
     .into_iter()
     .map(|session| {
@@ -536,11 +549,16 @@ pub fn join(gathered: Gathered, now: OffsetDateTime) -> EstateStatus {
         (None, Some(r)) => (Some(r.wip.clone()), true, r.wip_at.clone()),
         (None, None) => (None, false, None),
       };
+      let held = held_by
+        .get(&session.session_id)
+        .cloned()
+        .unwrap_or_default();
       SessionRow {
         state: state_of(
           is_alive,
           board.is_some_and(|b| b.status == "paused"),
-          false,
+          // AC-04.6: a session holding a running slot in any lane is heavy.
+          running_by.contains(&session.session_id),
           &session.status,
         ),
         node: board.map(|b| b.moniker.clone()),
@@ -556,7 +574,7 @@ pub fn join(gathered: Gathered, now: OffsetDateTime) -> EstateStatus {
         claude_status: session.status,
         started_at: session.started_at,
         updated_at: session.updated_at,
-        slots: Vec::new(),
+        slots: held,
         line,
         line_is_wip,
         line_at,
@@ -578,10 +596,11 @@ pub fn join(gathered: Gathered, now: OffsetDateTime) -> EstateStatus {
     version: crate::VERSION.to_string(),
     taken_at: iso(now).unwrap_or_default(),
     census,
-    controller: Value::Null,
-    lanes: json!([]),
-    queue: json!([]),
-    recent: json!([]),
+    controller: slots::controller_value(&slots),
+    lanes: slots::lanes_value(&slots),
+    queue: slots::queue_value(&slots),
+    recent: slots::recent_value(&slots, |at| at >= since),
+    holds: slots::holds_value(&slots),
     usage,
     sessions: rows,
     unreadable,
@@ -837,6 +856,7 @@ pub fn status_with(
   let records = read_records(dirs, &mut unreadable);
   let census = census::read(dirs, held.history, &mut unreadable);
   let usage = usage::resolve(held.endpoint.as_ref(), dirs, &mut unreadable);
+  let slots = slots::read(dirs, &mut unreadable);
   Ok(join(
     Gathered {
       host,
@@ -846,6 +866,7 @@ pub fn status_with(
       records,
       census,
       usage,
+      slots,
       unreadable,
     },
     clock::now(),
@@ -888,6 +909,24 @@ pub fn host_census_watch(class: &str, pattern: &str) -> Result<PathBuf, EstateEr
 /// [`census::unwatch`] under the operator's own directories.
 pub fn host_census_unwatch(class: &str) -> Result<bool, EstateError> {
   census::unwatch(&crate::userstate::dirs()?, class)
+}
+
+/// The operator's state and Claude directories, for the slot verbs: the one
+/// place they resolve, so the CLI and the facade cannot write two estates.
+pub fn host_slot_dirs() -> Result<(Dirs, PathBuf), EstateError> {
+  Ok((crate::userstate::dirs()?, crate::userstate::claude_dir()?))
+}
+
+/// How many slot requests are running now, for intentd's census ring.
+pub fn host_slots_running() -> Result<u32, EstateError> {
+  let mut ignored = Vec::new();
+  let running = slots::read(&crate::userstate::dirs()?, &mut ignored).running();
+  Ok(u32::try_from(running).unwrap_or(u32::MAX))
+}
+
+/// The 1-minute load for [`slots::grant`]'s load admission.
+pub fn host_load1() -> Result<f64, Unreadable> {
+  census::load1()
 }
 
 /// [`usage::report`] under the operator's own directories.
@@ -1020,6 +1059,7 @@ pub fn prune(dirs: &Dirs, claude_dir: &Path) -> Result<Pruned, EstateError> {
 #[cfg(test)]
 mod tests {
   use super::*;
+  use serde_json::json;
 
   fn session(pid: u32, id: &str, cwd: &str, status: &str) -> ClaudeSession {
     ClaudeSession {
@@ -1289,6 +1329,7 @@ mod tests {
       "lanes",
       "queue",
       "recent",
+      "holds",
       "usage",
       "sessions",
       "unreadable",

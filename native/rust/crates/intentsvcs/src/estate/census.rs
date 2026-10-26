@@ -329,6 +329,14 @@ pub fn sample(slots_running: u32) -> Result<Sample, Unreadable> {
   })
 }
 
+/// The 1-minute load now, for a lane's load admission (ST0086 WP-04).
+pub fn load1() -> Result<f64, Unreadable> {
+  read_load()?
+    .first()
+    .copied()
+    .ok_or_else(|| unread("load", "the load read held no averages".to_string()))
+}
+
 /// A tool or file the census could not read, listed against it.
 fn unread(path: &str, why: String) -> Unreadable {
   Unreadable {

@@ -100,8 +100,17 @@ struct Found {
 
 fn gather(whole: bool, read_endpoint: bool) -> Found {
   Found {
-    // Slots are WP-04's, so none are running until then.
-    sample: whole.then(|| census::sample(0)),
+    // The ring records how many slot requests are running (WP-04); a slot
+    // read that fails is the sample's failure, never a silent zero.
+    sample: whole.then(|| {
+      estate::host_slots_running()
+        .map_err(|e| intentsvcs::estate::Unreadable {
+          path: "slots".to_string(),
+          why: e.to_string(),
+          pid: None,
+        })
+        .and_then(census::sample)
+    }),
     pruned: whole.then(estate::host_prune),
     endpoint: read_endpoint.then(estate::host_endpoint),
   }

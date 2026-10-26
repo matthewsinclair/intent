@@ -757,6 +757,21 @@ written or replaced, and nothing in any project.",
     "$XDG_STATE_HOME/intent/estate/<session-id>.usage.json, the latest plan usage a statusline \
 input carries, and nothing for an input with no `rate_limits`.",
   ),
+  (
+    "estate control",
+    "$XDG_STATE_HOME/intent/estate/slots/controller.json on take and release, and \
+slots/holds/<id>.json and <id>.unheld.json on hold and unhold, and nothing else (ST0086 WP-04).",
+  ),
+  (
+    "estate lane",
+    "$XDG_STATE_HOME/intent/estate/slots/lanes/<lane>.json on open and close, and \
+slots/holds/<id>.json and <id>.unheld.json on hold and unhold, and nothing else (ST0086 WP-04).",
+  ),
+  (
+    "estate slots",
+    "one file of $XDG_STATE_HOME/intent/estate/slots/requests/<id>/ per verb, written once: \
+ask.json, grant.json, deny.json, revoke.json, start.json or end.json, and nothing else (ST0086 WP-04).",
+  ),
 ];
 
 /// **SHIPPED, WIRED, CLASSIFIED `mutate` ON THE SURFACE -- AND DRIVEN, THEY
