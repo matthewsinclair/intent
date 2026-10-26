@@ -9,6 +9,12 @@
 # against file:// fixtures in TEST_TEMP_DIR, and the arms that need the release's
 # own base or `publish` run a copy of bin/ in a sandbox, whose STAGE_DIR is the
 # sandbox's, with gh, curl and rustc stood in on PATH.
+#
+# ST0087 AT-04.1 cites this file for AC-04.1: the formula is rendered from the
+# release's version and per-asset checksums, installs the release's assets,
+# writes the keg's manifest with managed_by brew, links both binaries, runs the
+# version line in test do and names intent bootstrap and intent use in its
+# caveats, and an arm below pins each clause.
 
 load "../lib/test_helper.bash"
 
