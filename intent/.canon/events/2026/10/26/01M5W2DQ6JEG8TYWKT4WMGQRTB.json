@@ -1,0 +1,15 @@
+{
+  "id": "01M5W2DQ6JEG8TYWKT4WMGQRTB",
+  "ts": "2026-10-26T12:19:35.250Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ISSUE:0655, A4 for `intent use brew` (vc's assignment at about 12:10Z by vc's word, on hv's ruling relayed by molt-vc): the refusal names each link it would have removed with the tree it serves, and one cause (the formula is not installed, its keg is not linked, or another copy comes first on PATH, named with its tree), with a remedy for that cause that adds staying on dev or opt. The cause is read from the filesystem only after the refusal. Light only, on decision 92: a fresh worktree tmp/wt-ic-a4 at 20bf41abf, arms red-first in source, no CHANGELOG hunk. Bank refs/bank/ic/0655/a4-v1 and send vc the blob and patch-id; vc verifies and books the heavy judge with molt-vc, and a red comes back to ic. No push, no release."
+  }
+}

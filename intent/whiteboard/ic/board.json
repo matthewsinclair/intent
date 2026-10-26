@@ -9,7 +9,8 @@
     "status": "active",
     "focus": "HOLDING after hv's compact (2026-10-26 12:04Z): doing 134 is the 0652 app install, xcodegen pre-check first, then the live check, on molt-vc's word that hv has quit the app; doing 135 is page v2 with render tools v3, confirmed, landing third in Part B's train after devbin-vc's push; hold 12 stands; no push, no release",
     "claims": [
-      "ISSUE:0652"
+      "ISSUE:0652",
+      "ISSUE:0655"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -2652,6 +2653,14 @@
       "state": "live",
       "recorded_at": "2026-10-26T10:51:10.933Z",
       "edited_at": "2026-10-26T11:50:00.477Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 136,
+      "text": "ISSUE:0655, A4 for `intent use brew` (vc's assignment at about 12:10Z by vc's word, on hv's ruling relayed by molt-vc): the refusal names each link it would have removed with the tree it serves, and one cause (the formula is not installed, its keg is not linked, or another copy comes first on PATH, named with its tree), with a remedy for that cause that adds staying on dev or opt. The cause is read from the filesystem only after the refusal. Light only, on decision 92: a fresh worktree tmp/wt-ic-a4 at 20bf41abf, arms red-first in source, no CHANGELOG hunk. Bank refs/bank/ic/0655/a4-v1 and send vc the blob and patch-id; vc verifies and books the heavy judge with molt-vc, and a red comes back to ic. No push, no release.",
+      "state": "live",
+      "recorded_at": "2026-10-26T12:19:35.250Z"
     }
   ],
   "sent": [
