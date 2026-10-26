@@ -1,0 +1,16 @@
+{
+  "id": "01M5VNVKG3K30H4GRCF7S0VDZC",
+  "ts": "2026-10-26T08:39:58.723Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 95,
+    "text": "0652's CLI half (hv's split: cc builds `intent estate status --url`, ic the Copy URL menu item, and ic holds the issue's claim) and Part A's two fixes, banked over vc's base T (tree 05127fda654c) on vc's orders of 2026-10-26 and verified by vc: refs/bank/cc/0652/cli-v2 (patch-id 5b7dc7999562, its dispatch-table.md regenerated; cli-v1 superseded) and refs/bank/cc/0086/wp04a-critic-v2 (patch-id 75f38a4b2548), which lands in one commit with Part A v2. critic-v2 carries the IN-RS-CODE-004 fix and the clippy::manual_contains fix at slots.rs:1375, the red vc's stacked judge reported at 08:27Z by vc's clock, and it supersedes wp04a-critic (48ac9aa0a082). 0648 v5 and Part A v2 are in T as they stand. vc re-runs the judge over the fixed tip, and a red comes back to cc to fix forward. docs/reference regenerates on main after the landings. No push, no release."
+  }
+}
