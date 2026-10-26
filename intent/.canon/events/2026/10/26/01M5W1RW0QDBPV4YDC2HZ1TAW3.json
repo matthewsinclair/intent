@@ -1,0 +1,15 @@
+{
+  "id": "01M5W1RW0QDBPV4YDC2HZ1TAW3",
+  "ts": "2026-10-26T12:08:12.059Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0654"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "The fold text names no step that removes a landed unit's worktree, so landed worktrees and their build targets stay on disk"
+  }
+}
