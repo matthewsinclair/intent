@@ -3,17 +3,17 @@ node: cc
 name: Control Claude
 role: control
 session_id: 1b8817f9-d0d6-4b3e-b2f5-d09c0a9a0577
-heartbeat_at: 2026-10-26 09:45Z
+heartbeat_at: 2026-10-26 10:17Z
 status: active
-focus: "2026-10-26 after hv's compact: run 3 of vc's stacked judge ended at 09:32Z by vc's clock, green on every leg but bats #433, which refs/bank/cc/0648/v7 (4a58d2b660f8, verified by vc at 09:37Z) fixes in v6's place; beside it land refs/bank/cc/0086/wp04a-critic-v3 (a14ada02af63, one commit with Part A v2) and refs/bank/cc/0652/cli-v3 (b06751ee934a); next is vc's: pre_commit_hook.bats alone against run 3's release binary, then the landings; a red comes back to cc to fix forward in tmp/wt-cc-0086crit, tmp/wt-cc-0652 or tmp/wt-cc-0648v6; then ST0086 WP-04 Part B; hold 33 stands until ST0087 has gone first; no push, no release"
-claims: [ST0081, ST0086/04, ISSUE:0648]
+focus: "2026-10-26: cc's three units landed in vc's train and check intact (82546e69a 0648 v7, 9081080d8 Part A v2 with critic-v3, a6d058827 0652 cli-v3); ISSUE:0648 closed at 8abc428b4 and unclaimed, doing 95 archived; now ST0086 WP-04 Part B (AC-04.4, AC-04.5, the CLI share of AC-04.6) in tmp/wt-cc-0086b at 629ce5ad2, light work and banks only under decision 92; main is board-only until devbin-vc's upstream push; hold 33 stands until ST0087 has gone first; no push, no release"
+claims: [ST0081, ST0086/04]
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-- 0652's CLI half (hv's split: cc builds `intent estate status --url`, ic the Copy URL menu item, and ic holds the issue's claim), with Part A's fixes and 0648's, re-banked on vc's orders of 2026-10-26 after the stacked judge's runs 1, 2 and 3. refs/bank/cc/0086/wp04a-critic-v3 (patch-id a14ada02af63, over T 05127fda654c) lands in one commit with Part A v2. It carries the IN-RS-CODE-004 fix, run 1's clippy::manual_contains at slots.rs:1375, and run 2's D42 and daemon-lifeline reds: recent_value judges a window that join builds from its one clock reading, and Part A's slot test helper arms testkit::lifeline_for. refs/bank/cc/0652/cli-v3 (patch-id b06751ee934a, over T) arms the --url test's lifeline. vc verified both at 09:04Z by vc's clock. refs/bank/cc/0648/v7 (patch-id 4a58d2b660f8, over 4e2f16610) keeps main's critic unit test on its subject with files_asked 1, records the asked-nothing 4, has bats #433 read its count from the index, and narrows #433's refute to the critic gate's own two wordings, since doctor's line about the fixture's Intent 2.11.0 also says UNENFORCED. vc verified it at 09:37Z by vc's clock, and it replaces v6 in the landing. Run 3 (START 09:23Z, END 09:32Z by vc's clock) was green on every leg but #433, which v7 fixes. Next is vc's: pre_commit_hook.bats alone against run 3's release binary, then the landings, both on molt-vc's standing GO. A red comes back to cc to fix forward in tmp/wt-cc-0086crit, tmp/wt-cc-0652 or tmp/wt-cc-0648v6. docs/reference regenerates on main after the landings. No push, no release. (edited)
+- ST0086 WP-04 Part B, on vc's word of 2026-10-26 (10:07Z by vc's clock), in tmp/wt-cc-0086b detached at 629ce5ad2. AC-04.4: `slots wait <id>` blocks until a grant or a denial lands, with a timeout; `slots watch` emits one line per state change under slots/requests/ in the shape a Monitor consumes; and the UserPromptSubmit hook names the pending asks on the lane types the session controls. AC-04.5: `intent estate init [<dir>]` renders a coordinator's working directory from lib/templates/estate/ through the token expander. The CLI share of AC-04.6: `estate status` shows the controller or NO CONTROLLER, each lane with its type, capacity, holders and queue, and each session's held slots. Light work only under decision 92: edits and banks, nothing heavy without molt-vc's slot, banked for vc's judge. WP-04's record still reads Not Started although Part A landed at 9081080d8; `intent wp start ST0086/04` and the AT rows wait for vc's word after devbin-vc's upstream push, while main is board-only. No push, no release.
 
 ## TODO
 

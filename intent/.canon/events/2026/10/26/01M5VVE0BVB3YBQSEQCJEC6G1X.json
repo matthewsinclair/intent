@@ -1,0 +1,15 @@
+{
+  "id": "01M5VVE0BVB3YBQSEQCJEC6G1X",
+  "ts": "2026-10-26T10:17:24.604Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST0086 WP-04 Part B, on vc's word of 2026-10-26 (10:07Z by vc's clock), in tmp/wt-cc-0086b detached at 629ce5ad2. AC-04.4: `slots wait <id>` blocks until a grant or a denial lands, with a timeout; `slots watch` emits one line per state change under slots/requests/ in the shape a Monitor consumes; and the UserPromptSubmit hook names the pending asks on the lane types the session controls. AC-04.5: `intent estate init [<dir>]` renders a coordinator's working directory from lib/templates/estate/ through the token expander. The CLI share of AC-04.6: `estate status` shows the controller or NO CONTROLLER, each lane with its type, capacity, holders and queue, and each session's held slots. Light work only under decision 92: edits and banks, nothing heavy without molt-vc's slot, banked for vc's judge. WP-04's record still reads Not Started although Part A landed at 9081080d8; `intent wp start ST0086/04` and the AT rows wait for vc's word after devbin-vc's upstream push, while main is board-only. No push, no release."
+  }
+}
