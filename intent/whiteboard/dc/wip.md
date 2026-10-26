@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 4ec444b0-0ecb-4040-bd1e-6226cabee016
-heartbeat_at: 2026-10-26 14:54Z
+heartbeat_at: 2026-10-26 17:21Z
 status: active
-focus: "GO ON from hv (relayed by vc at 14:52Z by vc's clock): hold 33 released; todo 54 with vc's todo 67 is banked at refs/bank/dc/preflight/ruby-main (patch-id 6bf29d9d7898), judged green by vc, who lands it; the next kovacs preflight runs it; todo 53 (WP-05 per vc's todo 66) waits on hv's ruling on the install HEAD-check issue, which vc is putting to hv, and no install fix is banked before it; then todo 50; no claim; dc's worktrees wait for molt-vc's Spotlight word; no push, no release"
+focus: "LOCALFOLD for hv's round via molt-vc, then HOLD on the bounce for vc or molt-vc: todo 54 landed as 00eb61a2e (vc, byte-equal to the judged bank; the next kovacs preflight runs it); todo 53 (WP-05 per vc's todo 66) waits on hv's answers on the install HEAD check and INTENT_INSTALL_PREFIX, both sent to molt-vc as dc's HV ITEMS and already with vc; then todo 50; no claim, nothing running; dc's worktrees wait for molt-vc's Spotlight word; no push, no release"
 claims: []
 ---
 
@@ -19,7 +19,6 @@ _(none)_
 
 - 3.2.7 CUT-SIDE (vc's decision 76, hv via molt-vc, 2026-10-25 06:51Z by vc's clock: one release carrying everything; done, then tested at molt-vc's desk, then kovacs via kovacs-sysadm, then hv's cut): dc's share in the same release, not a later one: (a) re-run the 0632 drive with removed: lines counted beside wrote: (scratchpad/0632/drive.sh compares only wrote:); (b) the known-defects re-drive; (c) the release tooling steps dc owns. Each heavy books with molt-vc. Comes after todo 53. (edited)
 - ST0087 WP-05 (vc's, with dc): the proof, per tree, on rhadamanth and kovacs; it ends on brew. Its shape is vc's todo 66, WP-05's shape v2, which carries dc's deltas of 2026-10-26 13:46Z and is their one home. No push, no release. (edited)
-- BANKED and JUDGED GREEN by vc (light), vc lands it in its own chain (vc's brief on hv's go-on, 14:52Z by vc's clock): refs/bank/dc/preflight/ruby-main, patch-id 6bf29d9d7898fbc55350cda7ac8600fded68e5d7, based on cdad67973, one path, bin/.devbin/preflight-linux.sh. ruby is in the up-front tool check and the leg-bin link loop, so a missing ruby refuses before the run rather than at tests/unit/brew_formula.bats:362. With it is vc's todo 67: the body is wrapped in main() with main "$@" as the last line, so bash has read the whole file before any of it runs. bash -n, shellcheck -x and intent critic shell are clean. vc judged it green: it read the whole patched file, and shellcheck -x and critic-shell were clean. It is outside DIRT_SCOPE, and the next kovacs preflight runs it as its own proof. No push, no release. (edited)
 
 ## Holds
 
