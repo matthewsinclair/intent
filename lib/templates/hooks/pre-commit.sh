@@ -8,8 +8,7 @@
 #   declared in `intent/.config/config.json`, then `intent doctor`. Block the
 #   commit when a guard refuses, on findings at or above the configured
 #   severity threshold, on a critic refusal (exit 3), or when doctor exits 1;
-#   pass, printing the critic's own line, when it asked no rule of any staged
-#   file (exit 4); fail open when the critic or doctor answers a code the gate does not
+#   fail open when the critic or doctor answers a code the gate does not
 #   recognise (its own breakage); and refuse when the `intent` CLI cannot be
 #   run in an Intent project.
 #
@@ -563,7 +562,6 @@ fi
 #   0 = clean
 #   1 = findings at or above threshold          (BLOCKS)
 #   3 = REFUSED -- a rule this project armed could not be enforced here (BLOCKS)
-#   4 = nothing asked -- no rule reached any staged file (passes, says so)
 #   * = anything else. The gate does NOT know what it means. Fails open, LOUDLY.
 #
 # **`2` IS DELIBERATELY NOT LISTED, AND THAT IS THE FIX RATHER THAN AN OMISSION.**
@@ -616,14 +614,12 @@ if [ "${#LANGS[@]}" -gt 0 ]; then
     # remedies the developer owns -- install the tool, or disarm the rule. **A
     # gate should fail open on its own breakage and closed on yours.**
     case "$rc" in
-      0|4)
-        # **4 IS NO RULE ASKED OF ANY STAGED FILE, AND THE COMMIT PASSES ON IT**:
-        # a file no rule reaches must not block a commit, and a
-        # commit carrying no file of this language is the everyday case. The
-        # critic answers 4 rather than 0 so that its code alone tells nothing
-        # judged from judged and clean; this arm prints the critic's own line for
-        # it, so the pass never reads as a clean verdict.
-        [ "$rc" -eq 4 ] && printf '%s\n' "$out" | grep -E '^no [a-z]+ rule was asked of any ' >&2
+      0)
+        # **A RUN THAT ASKED NO RULE OF ANY STAGED FILE EXITS 0 TOO, AND SAYS SO
+        # IN ITS OWN LINE**, which this arm prints: a file no rule reaches must
+        # not block a commit, and the pass must not read as a judged clean one.
+        # The exit carries no coverage; the line does.
+        printf '%s\n' "$out" | grep -E '^no [a-z]+ rule was asked of any ' >&2
         #
         # **THE CRITIC'S DISABLED CENSUS WAS ALREADY IN `$out` HERE AND THIS ARM
         # THREW IT AWAY** (hv 2026-09-22). `critic::Report::exit_code`

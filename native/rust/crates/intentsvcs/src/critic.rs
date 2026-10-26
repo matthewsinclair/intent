@@ -31,18 +31,18 @@
 //!
 //! | code | meaning                                                    | gate    |
 //! | ---- | ---------------------------------------------------------- | ------- |
-//! | 0    | clean -- everything ASKED came back empty                  | passes  |
+//! | 0    | no finding among what was ASKED, which may be nothing      | passes  |
 //! | 1    | findings present                                           | BLOCKS  |
 //! | 2    | usage / invocation error -- the gate itself is broken      | fails open |
 //! | 3    | refused -- an ARMED rule's TOOL IS ABSENT on this machine  | BLOCKS  |
-//! | 4    | nothing asked -- no rule this run put reached any file     | passes  |
 //!
-//! **4 IS NOT 0, AND A JUDGE IS WHY** (issue 0648). A run that asked nothing of
-//! any file it was given exited 0, so a judge's critic leg read a Swift file
-//! every rule declined, and a file no armed rule's reach admitted, as judged and
-//! clean. The gate passes on 4, because a file no rule reaches must not block a
-//! commit; it is a separate code so that a reader of the code alone can tell
-//! nothing judged from judged and clean.
+//! **0 CARRIES NO COVERAGE; THE OUTPUT DOES.** A run that asked no rule of any
+//! file it was given exits 0, prints `no <lang> rule was asked of any of the
+//! <n> file(s) given` in place of an `ok:` line, and reports `files_asked: 0`
+//! in JSON, so a judge reads what was judged from those and never from the
+//! exit. Issue 0648 gave that run a code of its own, 4, and every caller that
+//! read nonzero as failure broke on it (devbin's `check critic` among them), so
+//! 4 is gone again and the line is the signal.
 //!
 //! The gate's own comment states the principle the table inverts: *a gate should
 //! fail open on its own breakage and closed on yours.* 2 means our breakage.
@@ -342,8 +342,8 @@ impl Report {
   }
 
   /// The exit code the gate will read. **See the module note: 1 is findings, 3
-  /// is an armed rule whose tool is absent, 2 is this runner being broken, and
-  /// 4 is a run that asked nothing of any file it was given.**
+  /// is an armed rule whose tool is absent, and 2 is this runner being broken.
+  /// A run that asked nothing of any file is 0, and says so in its output.**
   ///
   /// **THE ARMED COUNT IS READ BEFORE THE VERDICT, AND THAT ORDER IS THE WHOLE
   /// FIX.** An empty census makes `unenforced()` and `findings` VACUOUSLY empty,
@@ -394,9 +394,6 @@ impl Report {
       3
     } else if !self.findings.is_empty() {
       1
-    } else if self.files_asked == 0 {
-      // Nothing found because nothing was asked (issue 0648): not a clean run.
-      4
     } else {
       0
     }
@@ -2110,8 +2107,6 @@ mod tests {
         by: "-".into(),
         declined: Vec::new(),
       }],
-      // A file was asked of by some other rule: with none asked the run would
-      // be 4, nothing judged (issue 0648), which is not what this arm is about.
       files_asked: 1,
       ..base.clone()
     };
@@ -2132,7 +2127,6 @@ mod tests {
         by: "clippy".into(),
         declined: Vec::new(),
       }],
-      // As above: a file was asked of by some other rule (issue 0648).
       files_asked: 1,
       ..base
     };
@@ -2141,16 +2135,16 @@ mod tests {
       0,
       "a workspace analyser out of context must not block"
     );
-    // Alone, it asked nothing of any file: 4, nothing judged (issue 0648),
-    // which the gate passes as it passes 0, and never the 3 that blocks.
+    // Alone, it asked nothing of any file: still 0, which the gate passes, and
+    // never the 3 that blocks; `files_asked` carries the nothing.
     let ooc_alone = Report {
       files_asked: 0,
       ..ooc
     };
     assert_eq!(
       ooc_alone.exit_code(),
-      4,
-      "an analyser out of context asks nothing of a file, so alone it is not a clean 0"
+      0,
+      "an analyser out of context asks nothing of a file and must not block"
     );
   }
 
@@ -2189,14 +2183,14 @@ mod tests {
     };
     assert_eq!(base.exit_code(), 0);
 
-    // A rule that ran and reached no file asked nothing (issue 0648): 4, never
-    // the 0 a judge reads as judged and clean.
+    // A rule that ran and reached no file asked nothing: 0, with the nothing in
+    // `files_asked` and the unasked file named, never in the code.
     let nothing_asked = Report {
       files_asked: 0,
       unasked: vec!["x.swift".into()],
       ..base.clone()
     };
-    assert_eq!(nothing_asked.exit_code(), 4);
+    assert_eq!(nothing_asked.exit_code(), 0);
 
     // And the state the old fixture actually described, asserted rather than
     // left implicit: nothing loaded is a REFUSAL, not a pass.

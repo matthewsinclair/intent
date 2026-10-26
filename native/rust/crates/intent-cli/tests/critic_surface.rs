@@ -43,19 +43,19 @@
 //! the second divergence was fixed on 2026-09-12 and the arm reddened**, which
 //! is why this header changed in the same commit as the code.
 //!
-//! **(1) A BARE `intent critic <lang>` REPORTED CLEAN OVER ZERO FILES AT EXIT
-//! 0. CLOSED BY ISSUE 0648, AT 4 RATHER THAN v2's 2.** v2 exited 2 with _no files specified_ rather than guess a population.
+//! **(1) A BARE `intent critic <lang>` ASKS NOTHING OVER ZERO FILES AT EXIT 0,
+//! AND THE OUTPUT, NOT THE EXIT, SAYS SO.** v2 exited 2 with _no files specified_ rather than guess a population.
 //! Measured in this repository, which tracks many `.rs`, `.sh` and Elixir
 //! files: `critic rust`, `critic shell` and `critic elixir` each exit 0, and
 //! print `no <lang> rule was asked of any of the 0 file(s) given` -- until
 //! issue 0536 the line was `ok: no <lang> findings ... across 0 file(s)`, an
 //! `ok:` over nothing asked. **The population is not empty; the run examined
 //! none of it.** The stdout line says so, so this is not a silent zero to a
-//! human reading it -- but the EXIT CODE is what a caller branches on, and it
-//! said clean. It now answers 4, nothing asked, which a judge reads as nothing
-//! judged; it is not 2, because 2 is this runner's own breakage and the gate
-//! fails open on it, where a run that asked nothing is a pass. The
-//! shipped gate passes on 4: `lib/templates/hooks/pre-commit.sh` invokes
+//! human reading it, and `--format json` carries `files_asked: 0`. Issue 0648
+//! gave the run exit 4 so the code alone would say nothing was judged, and
+//! every caller that reads nonzero as failure broke on it (devbin's `check
+//! critic`), so it is 0 again: **a judge reads coverage from the output, never
+//! from the exit.** The shipped gate passes on 0 and prints the line: `lib/templates/hooks/pre-commit.sh` invokes
 //! `--staged`, where an empty population genuinely means nothing to check.
 //!
 //! **(2) AN UNKNOWN `--format` WAS ACCEPTED AT EXIT 0 AND SILENTLY RENDERED
@@ -397,10 +397,10 @@ fn staged_is_refused_outside_a_repository_and_clean_inside_one_with_nothing_stag
     .current_dir(dir.path())
     .output()
     .expect("run the v3 binary");
-  // Nothing staged is nothing asked: 4, which the gate passes (issue 0648).
+  // Nothing staged is nothing asked: 0, and the line says so.
   assert_eq!(
     inside.status.code(),
-    Some(4),
+    Some(0),
     "`--staged` with nothing staged is genuinely nothing to check.\nstderr: {}",
     String::from_utf8_lossy(&inside.stderr)
   );
@@ -649,16 +649,15 @@ fn a_decline_on_one_file_leaves_the_rule_asked_of_the_others() {
 /// the same purpose, and it did its job -- the `--format` half reddened here
 /// when the fix landed, and the header and this arm moved in that commit.
 #[test]
-fn a_bare_language_answers_nothing_asked_and_an_undeclared_format_is_refused() {
-  // (1) CLOSED BY ISSUE 0648. A bare language read none of a population this
-  // repository holds, so `0 file(s)` is a statement about the scan and not about
-  // the corpus, and the code says nothing was asked rather than clean.
+fn a_bare_language_says_nothing_was_asked_and_an_undeclared_format_is_refused() {
+  // (1) A bare language read none of a population this repository holds, so
+  // `0 file(s)` is a statement about the scan and not about the corpus. It
+  // exits 0, and the line and `files_asked` carry the nothing, never the code.
   let bare = critic(&["rust"]);
   assert_eq!(
     bare.status.code(),
-    Some(4),
-    "a run that asked nothing answers 4, never the 0 a judge reads as judged \
-     and clean (issue 0648): {}",
+    Some(0),
+    "a run that asked nothing exits 0, and its output says nothing was asked: {}",
     err(&bare)
   );
   assert!(
@@ -775,10 +774,10 @@ fn a_staged_rule_example_is_skipped_and_named_while_a_named_one_is_read() {
 
   let staged = drive(&["--staged"]);
   // The only staged file is skipped as a rule example, so nothing was asked:
-  // 4, which the gate passes (issue 0648).
+  // 0, with `files_asked` saying so.
   assert_eq!(
     staged.status.code(),
-    Some(4),
+    Some(0),
     "a staged rule example is not the project's code.\nstderr: {}",
     err(&staged)
   );
@@ -787,6 +786,10 @@ fn a_staged_rule_example_is_skipped_and_named_while_a_named_one_is_read() {
     v["skipped_library"],
     serde_json::json!(["rules/elixir/test/strong-assertions/bad_test.exs"]),
     "and the skip is named, not silent: {v}"
+  );
+  assert_eq!(
+    v["files_asked"], 0,
+    "nothing was asked, which the exit does not say: {v}"
   );
   assert!(v["findings"].as_array().is_some_and(Vec::is_empty), "{v}");
 
@@ -1038,7 +1041,7 @@ fn a_script_is_reached_by_its_shebang_and_a_file_nothing_asked_is_named() {
 
   // NOTHING ASKED IS NOT `ok`, AND THE FILE IS NAMED.
   let none = drive(&["notes.md"], "text");
-  assert_eq!(none.status.code(), Some(4), "{}", err(&none));
+  assert_eq!(none.status.code(), Some(0), "{}", err(&none));
   assert!(
     out(&none).contains("no shell rule was asked of any of the 1 file(s) given")
       && !out(&none).contains("ok:"),

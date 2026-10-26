@@ -665,9 +665,10 @@ EOF
   assert_output_contains "commit blocked by findings"
 }
 
-@test "a critic that asked nothing (exit 4) passes the commit and prints its own line (issue 0648)" {
-  # The real critic, not a shim: a staged file no rust rule reaches is the run
-  # that answers 4, and the line the gate prints is the critic's own. The
+@test "a critic that asked nothing (exit 0) passes the commit and prints its own line" {
+  # The real critic, not a shim: a staged file no rust rule reaches is a run
+  # that asked nothing and exits 0, and the line the gate prints is the
+  # critic's own, since the exit carries no coverage. The
   # critic is given every staged file, `declare_languages`'s config among them,
   # so the count it prints is read from the index rather than written here.
   declare_languages rust
@@ -679,7 +680,7 @@ EOF
   assert_output_contains "no rust rule was asked of any of the ${staged} file(s) given"
   assert_output_contains "1 of 1 declared language(s) enforced"
   # The critic's own unenforced lines, not doctor's: the fixture declares Intent
-  # 2.11.0, which doctor reads as unmigrated, and its exit 4 says UNENFORCED too.
+  # 2.11.0, which doctor reads as unmigrated, and doctor's exit 4 says UNENFORCED too.
   refute_output_contains "rust is UNENFORCED in this commit"
   refute_output_contains "went UNENFORCED"
   refute_output_contains "ok: no rust findings"

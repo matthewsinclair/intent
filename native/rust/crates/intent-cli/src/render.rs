@@ -15997,15 +15997,6 @@ fn critic(m: &ArgMatches) -> Result<(), Failure> {
       report.unenforced().join(" ")
     ))),
     1 => Err(Failure::Verdict),
-    // **NOTHING WAS ASKED OF ANY FILE GIVEN** (issue 0648). The text face has
-    // already said so on stdout, in place of an `ok:` line; this is the code a
-    // judge reads, apart from 0 so that nothing judged is never read as judged
-    // and clean. The gate passes on it: a file no rule reaches must not block.
-    4 => Err(Failure::Unjudgeable(format!(
-      "critic: {} -- nothing was judged: no rule this run put reached any of the {} file(s) given, so this is not a clean verdict",
-      report.lang,
-      files.len()
-    ))),
     _ => Ok(()),
   }
 }
@@ -16225,15 +16216,14 @@ fn render_critic_text(report: &intentsvcs::critic::Report, files: usize, severit
   // it is not a summary of what was covered, it is the opposite claim. No
   // findings is exactly what a run that could not ask has.
   if report.findings.is_empty() {
-    if verdict != 0 && verdict != 4 {
+    if verdict != 0 {
       return;
     }
     // **AND THE COUNT IS THE FILES SOMETHING WAS ASKED OF, NOT THE FILES GIVEN**
     // (issue 0536). Where nothing was asked of any of them there is no `ok:` to
     // print, only the statement that nothing was asked: an `ok:` there would be
-    // the green-over-nothing this census exists to deny. That run exits 4, not 0
-    // (issue 0648), and the gate passes on 4, which is what it reads for a commit
-    // carrying no file of this language.
+    // the green-over-nothing this census exists to deny. Exit 0 either way, which
+    // the gate reads for a commit carrying no file of this language.
     if report.files_asked == 0 {
       println!(
         "no {} rule was asked of any of the {} file(s) given",

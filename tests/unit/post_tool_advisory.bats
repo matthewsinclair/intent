@@ -56,13 +56,6 @@ stub_critic() {
   [ -z "$output" ] || fail "a clean run reached the model: $output"
 }
 
-@test "a critic that asked nothing of the file (exit 4) adds nothing (issue 0648)" {
-  stub_critic 4 "no shell rule was asked of any of the 1 file(s) given"
-  run --separate-stderr env PATH="$ADV_BIN:$PATH" CLAUDE_PROJECT_DIR="$ADV_PROJECT" bash "$SCRIPT" <<< "$ADV_PAYLOAD"
-  [ "$status" -eq 0 ]
-  [ -z "$output" ] || fail "a run that asked nothing reached the model: $output"
-}
-
 @test "a critic run with findings hands them to the model as additionalContext" {
   stub_critic 1 "x.sh:2 IN-SH-CODE-001 warning: FINDING-MARKER"
   run --separate-stderr env PATH="$ADV_BIN:$PATH" CLAUDE_PROJECT_DIR="$ADV_PROJECT" bash "$SCRIPT" <<< "$ADV_PAYLOAD"

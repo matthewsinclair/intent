@@ -135,9 +135,9 @@ disabled:
   - IN-SH-TEST-903 # reason: synthetic rule disabled for config test
 EOF
   run bash -c "cd '$PROJ' && '$INTENT_BIN' critic shell --rules '$RULES_DIR' --files target.sh --format text"
-  # The fixture's one rule is disabled, so nothing was asked of the file: 4, the
-  # code for a run that judged nothing, never 0 (issue 0648).
-  [ "$status" -eq 4 ]
+  [ "$status" -eq 0 ]
+  # The fixture's one rule is disabled, so nothing was asked of the file: exit 0,
+  # and the line, not the code, says nothing was judged.
   assert_output_contains "no shell rule was asked of any of the 1 file(s) given"
   refute_output_contains "IN-SH-TEST-903"
 }

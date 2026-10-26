@@ -65,9 +65,7 @@ const CONSUMERS: &[(&str, &str, Policy)] = &[
     "hooks/pre-commit.sh",
     "critic",
     Policy::Invokes(
-      "The gate loop. 0 = clean, **1 = findings, BLOCKS THE COMMIT**, **3 = refused, BLOCKS**, 4 = no rule \
-       asked of any staged file and PASSES with the critic's own line printed (issue 0648), any other code \
-       fails open. \
+      "The gate loop. 0 = clean, **1 = findings, BLOCKS THE COMMIT**, 2+ = invocation error and fails open. \
        Issue 0038 is this row: every v3 failure took 1, so an unimplemented command read as findings that \
        did not exist. Issue 0045 is this row too, from the other side -- anything answering 1 for a \
        PROJECT-STATE reason blocks every commit, which is why `critic` must not be built on `Facade::open`.",
@@ -148,8 +146,8 @@ const CONSUMERS: &[(&str, &str, Policy)] = &[
     Policy::Invokes(
       "the status decides whether the hook SPEAKS and never whether the tool call proceeds: 0 is a clean \
        run and adds nothing (issue 0578 -- the census made every clean run non-empty, so an empty-output \
-       test never fired), 4 is a run that asked no rule of the file and adds nothing too (issue 0648), 1 and 3 \
-       pass the critic's text on as `additionalContext`, and 2 prints nothing on stdout and adds nothing. An EXIT trap ends every path at 0, so no code can block. stderr is \
+       test never fired), 1 and 3 pass the critic's text on as `additionalContext`, and 2 prints nothing on \
+       stdout and adds nothing. An EXIT trap ends every path at 0, so no code can block. stderr is \
        discarded. Opt-in: it is wired into neither shipped `settings.json`.",
     ),
   ),
