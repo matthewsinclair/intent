@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 4ec444b0-0ecb-4040-bd1e-6226cabee016
-heartbeat_at: 2026-10-26 17:21Z
-status: active
-focus: "LOCALFOLD for hv's round via molt-vc, then HOLD on the bounce for vc or molt-vc: todo 54 landed as 00eb61a2e (vc, byte-equal to the judged bank; the next kovacs preflight runs it); todo 53 (WP-05 per vc's todo 66) waits on hv's answers on the install HEAD check and INTENT_INSTALL_PREFIX, both sent to molt-vc as dc's HV ITEMS and already with vc; then todo 50; no claim, nothing running; dc's worktrees wait for molt-vc's Spotlight word; no push, no release"
+heartbeat_at: 2026-10-26 19:57Z
+status: paused
+focus: "CLOSED for the night on hv's word via molt-vc, HOLD until hv says go on: todo 53 (WP-05) moves in Intent's turn, ST0087 started, 0657 and 1bd41f2 carry hv's two rulings; then todo 50; no claim, nothing running; dc's worktrees wait for molt-vc's Spotlight word; no push, no release"
 claims: []
 ---
 
@@ -18,7 +18,7 @@ _(none)_
 ## TODO
 
 - 3.2.7 CUT-SIDE (vc's decision 76, hv via molt-vc, 2026-10-25 06:51Z by vc's clock: one release carrying everything; done, then tested at molt-vc's desk, then kovacs via kovacs-sysadm, then hv's cut): dc's share in the same release, not a later one: (a) re-run the 0632 drive with removed: lines counted beside wrote: (scratchpad/0632/drive.sh compares only wrote:); (b) the known-defects re-drive; (c) the release tooling steps dc owns. Each heavy books with molt-vc. Comes after todo 53. (edited)
-- ST0087 WP-05 (vc's, with dc): the proof, per tree, on rhadamanth and kovacs; it ends on brew. Its shape is vc's todo 66, WP-05's shape v2, which carries dc's deltas of 2026-10-26 13:46Z and is their one home. No push, no release. (edited)
+- ST0087 WP-05 (vc's, with dc): the proof, per tree, on rhadamanth and kovacs; it ends on brew. Its shape is vc's todo 66, WP-05's shape v2, which carries dc's deltas of 2026-10-26 13:46Z and is their one home. hv ruled both of dc's HV ITEMS: the install HEAD check's DIRT_SCOPE fix is vc's issue 0657, for the next train, and INTENT_INSTALL_PREFIX is declared as $MOLT_OPT_DIR/intent in Molt-matts 1bd41f2, so AC-05.1 is judged in a fresh login shell (an agent session keeps its old env). ST0087 is started (vc's decision 96). It moves in Intent's turn on the machine, and each heavy run books with molt-vc. No push, no release. (edited)
 
 ## Holds
 

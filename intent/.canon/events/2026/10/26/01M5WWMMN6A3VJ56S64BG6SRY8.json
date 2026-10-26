@@ -1,0 +1,16 @@
+{
+  "id": "01M5WWMMN6A3VJ56S64BG6SRY8",
+  "ts": "2026-10-26T19:57:44.998Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 53,
+    "text": "ST0087 WP-05 (vc's, with dc): the proof, per tree, on rhadamanth and kovacs; it ends on brew. Its shape is vc's todo 66, WP-05's shape v2, which carries dc's deltas of 2026-10-26 13:46Z and is their one home. hv ruled both of dc's HV ITEMS: the install HEAD check's DIRT_SCOPE fix is vc's issue 0657, for the next train, and INTENT_INSTALL_PREFIX is declared as $MOLT_OPT_DIR/intent in Molt-matts 1bd41f2, so AC-05.1 is judged in a fresh login shell (an agent session keeps its old env). ST0087 is started (vc's decision 96). It moves in Intent's turn on the machine, and each heavy run books with molt-vc. No push, no release."
+  }
+}
