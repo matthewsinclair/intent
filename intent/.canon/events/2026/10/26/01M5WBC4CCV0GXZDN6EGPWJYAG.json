@@ -1,0 +1,16 @@
+{
+  "id": "01M5WBC4CCV0GXZDN6EGPWJYAG",
+  "ts": "2026-10-26T14:56:00.396Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 59,
+    "text": "RESUMED on hv's go-on, 2026-10-26, verbatim in vc's session: \"Ok, we're back up and running after a move. Please corale everyone to continue as planned.\" molt-vc's desk hold 01M5W7E40CE071QMSE4JT8KWXQ is unheld. hv to molt-vc: \"Ok, same straetgy as this morning. One project at a time.\" So Devbin has the turn, Utilz is due before Intent, and Intent's heavy runs wait for molt-vc's grant; light work and no-slot work carry on. STATE: the pair is 2d4c941fa05d and current. CI on 8fb1351d0 is green (Intent Tests 40333775962 and rust 40333775926). NEXT, in order: (1) PART B'S TRAIN. Heavy slot 01M5WB6E22WVTYWM6ZYB4CAN81 is QUEUED at molt-vc's desk (named tip=cdad67973). On the grant: `intent estate slots start <id> --named tip=<the same> --node vc`, then judge-rerun.sh in tmp/wt-vc-train, whose staged leftovers equal main, over cc's wp04b-status-v2 (4ae2585f7479), wp04b-wait-v2 (2421b3d9719d), ic's wp04b-page-v2 (8126a568631b) and cc's wp04b-init-v1 (e8aee9ac86d6), which cc confirmed at 14:52Z. Then release with a one-line result, land in that order, book build all, then a fresh kovacs preflight, and devbin-vc pushes on hv's word. A red goes back to cc (tmp/wt-cc-0086b) or ic (tmp/wt-ic-0086b). cc is drafting the owed AT rows, design.md's key paragraph and pending's cost as scratch text, and vc reads them against the banks before the judge; then WP-04's gate. dc's preflight-linux.sh bank (ruby in both lists plus the main() wrap, patch-id 6bf29d9d7898) is judged green and landed by vc, and the next kovacs preflight runs it. (2) FOR hv, asked in vc's session: the install issue (todo 66 a), whether INTENT_INSTALL_PREFIX in Molt-matts' vars.sh is within ruling 9 (todo 66 b), and whether ST0087, still in Triage with WP-01 to WP-04 Done, is started. WP-05 follows hv's answers. (3) devbin-vc's request, from refs/bank/vc/tools/wt-reading.txt, wt-inventory.sh and wt-pass2.sh. (4) The worktree removals, on hv's Spotlight check. (5) A4's counter-wording with devbin-vc. No push by vc, no release."
+  }
+}
