@@ -1,0 +1,16 @@
+{
+  "id": "01M5VSME0NTK8J9HC2W3H7WQSE",
+  "ts": "2026-10-26T09:45:58.037Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 95,
+    "text": "0652's CLI half (hv's split: cc builds `intent estate status --url`, ic the Copy URL menu item, and ic holds the issue's claim), with Part A's fixes and 0648's, re-banked on vc's orders of 2026-10-26 after the stacked judge's runs 1, 2 and 3. refs/bank/cc/0086/wp04a-critic-v3 (patch-id a14ada02af63, over T 05127fda654c) lands in one commit with Part A v2. It carries the IN-RS-CODE-004 fix, run 1's clippy::manual_contains at slots.rs:1375, and run 2's D42 and daemon-lifeline reds: recent_value judges a window that join builds from its one clock reading, and Part A's slot test helper arms testkit::lifeline_for. refs/bank/cc/0652/cli-v3 (patch-id b06751ee934a, over T) arms the --url test's lifeline. vc verified both at 09:04Z by vc's clock. refs/bank/cc/0648/v7 (patch-id 4a58d2b660f8, over 4e2f16610) keeps main's critic unit test on its subject with files_asked 1, records the asked-nothing 4, has bats #433 read its count from the index, and narrows #433's refute to the critic gate's own two wordings, since doctor's line about the fixture's Intent 2.11.0 also says UNENFORCED. vc verified it at 09:37Z by vc's clock, and it replaces v6 in the landing. Run 3 (START 09:23Z, END 09:32Z by vc's clock) was green on every leg but #433, which v7 fixes. Next is vc's: pre_commit_hook.bats alone against run 3's release binary, then the landings, both on molt-vc's standing GO. A red comes back to cc to fix forward in tmp/wt-cc-0086crit, tmp/wt-cc-0652 or tmp/wt-cc-0648v6. docs/reference regenerates on main after the landings. No push, no release."
+  }
+}
