@@ -68,7 +68,10 @@
       "session_id": "c41f0e9a-6a1d-4f52-9d0b-2b7e6f1c0a11",
       "name": "molt-vc",
       "pid": 52044,
-      "project": { "root": "/Users/someone/Devel/prj/Molt", "name": "Molt" },
+      "project": {
+        "root": "/Users/someone/Devel/prj/Molt",
+        "name": "Molt"
+      },
       "worktree": false,
       "node": "vc",
       "claude_status": "busy",
@@ -105,7 +108,10 @@
       "session_id": "a6e4c9d0-58b2-4f13-9c7e-1d0b8f3a2e64",
       "name": "utilz-cc",
       "pid": 53817,
-      "project": { "root": "/Users/someone/Devel/prj/Utilz", "name": "Utilz" },
+      "project": {
+        "root": "/Users/someone/Devel/prj/Utilz",
+        "name": "Utilz"
+      },
       "worktree": false,
       "node": "cc",
       "claude_status": "busy",
@@ -149,43 +155,106 @@
       {
         "class": "cargo",
         "count": 3,
-        "projects": [{ "project": "Intent", "count": 3 }]
+        "projects": [
+          {
+            "project": "Intent",
+            "count": 3
+          }
+        ]
       },
-      { "class": "bats", "count": 0, "projects": [] },
+      {
+        "class": "bats",
+        "count": 0,
+        "projects": []
+      },
       {
         "class": "mix",
         "count": 3,
         "projects": [
-          { "project": "Laksa", "count": 2 },
-          { "project": null, "count": 1 }
+          {
+            "project": "Laksa",
+            "count": 2
+          },
+          {
+            "project": null,
+            "count": 1
+          }
         ]
       },
-      { "class": "swift", "count": 0, "projects": [] }
+      {
+        "class": "swift",
+        "count": 0,
+        "projects": []
+      }
     ],
     "history": [
-      { "at": "2026-10-24T13:13:00Z", "load1": 9.4, "slots_running": 1 },
-      { "at": "2026-10-24T13:14:00Z", "load1": 10.8, "slots_running": 1 },
-      { "at": "2026-10-24T13:15:00Z", "load1": 14.2, "slots_running": 2 },
-      { "at": "2026-10-24T13:16:00Z", "load1": 12.6, "slots_running": 2 },
-      { "at": "2026-10-24T13:17:00Z", "load1": 11.9, "slots_running": 2 },
-      { "at": "2026-10-24T13:18:00Z", "load1": 11.2, "slots_running": 2 }
+      {
+        "at": "2026-10-24T13:13:00Z",
+        "load1": 9.4,
+        "slots_running": 1
+      },
+      {
+        "at": "2026-10-24T13:14:00Z",
+        "load1": 10.8,
+        "slots_running": 1
+      },
+      {
+        "at": "2026-10-24T13:15:00Z",
+        "load1": 14.2,
+        "slots_running": 2
+      },
+      {
+        "at": "2026-10-24T13:16:00Z",
+        "load1": 12.6,
+        "slots_running": 2
+      },
+      {
+        "at": "2026-10-24T13:17:00Z",
+        "load1": 11.9,
+        "slots_running": 2
+      },
+      {
+        "at": "2026-10-24T13:18:00Z",
+        "load1": 11.2,
+        "slots_running": 2
+      }
     ]
   },
   "usage": {
-    "source": { "kind": "endpoint", "session_id": null },
+    "source": {
+      "kind": "endpoint",
+      "session_id": null
+    },
     "error": null,
     "read_at": "2026-10-24T13:17:30Z",
-    "five_hour": { "percent": 57, "resets_at": "2026-10-24T15:12:00Z" },
-    "seven_day": { "percent": 93, "resets_at": "2026-10-30T03:18:00Z" },
+    "five_hour": {
+      "percent": 57,
+      "resets_at": "2026-10-24T15:12:00Z"
+    },
+    "seven_day": {
+      "percent": 93,
+      "resets_at": "2026-10-30T03:18:00Z"
+    },
     "models": [
-      { "name": "Fable", "percent": 43, "resets_at": "2026-10-30T03:18:00Z" }
+      {
+        "name": "Fable",
+        "percent": 43,
+        "resets_at": "2026-10-30T03:18:00Z"
+      }
     ]
   },
   "controller": {
     "session_id": "c41f0e9a-6a1d-4f52-9d0b-2b7e6f1c0a11",
     "name": "molt-vc",
     "pid": 52044,
-    "taken_at": "2026-10-24T09:40:12Z"
+    "node": "vc",
+    "taken_at": "2026-10-24T09:40:12Z",
+    "predecessor": {
+      "session_id": "5be2d771-0d8a-4b8e-a0c4-91d7f3e2aa40",
+      "name": "intent-vc",
+      "node": "vc"
+    },
+    "hv": "molt-vc runs the desk from now"
   },
   "lanes": [
     {
@@ -193,14 +262,16 @@
       "type": "heavy",
       "capacity": 1,
       "granted": 0,
-      "running": 1
+      "running": 1,
+      "load_under": 40
     },
     {
       "name": "light",
       "type": "light",
       "capacity": 2,
       "granted": 1,
-      "running": 1
+      "running": 1,
+      "load_under": null
     }
   ],
   "queue": [
@@ -209,8 +280,14 @@
       "type": "light",
       "what": "mix format --check (utilz)",
       "state": "running",
-      "lane": "light",
+      "lanes": ["light"],
+      "named": {},
+      "tags": [],
+      "gates": [],
       "asked_at": "2026-10-24T12:31:10Z",
+      "started_at": "2026-10-24T12:31:40Z",
+      "ended_at": null,
+      "relayed": false,
       "by": "a6e4c9d0-58b2-4f13-9c7e-1d0b8f3a2e64"
     },
     {
@@ -218,8 +295,16 @@
       "type": "heavy",
       "what": "cargo test --workspace (ST0086 WP-01 judge)",
       "state": "running",
-      "lane": "cargo",
+      "lanes": ["cargo"],
+      "named": {
+        "tip": "a4ef63178"
+      },
+      "tags": ["judge"],
+      "gates": [],
       "asked_at": "2026-10-24T13:02:19Z",
+      "started_at": "2026-10-24T13:02:30Z",
+      "ended_at": null,
+      "relayed": false,
       "by": "2f8d1a64-b0c3-4e9f-8d27-73a5e0b4c1f8"
     },
     {
@@ -227,8 +312,14 @@
       "type": "light",
       "what": "mix test (fakes only)",
       "state": "granted",
-      "lane": "light",
+      "lanes": ["light"],
+      "named": {},
+      "tags": [],
+      "gates": [],
       "asked_at": "2026-10-24T13:06:51Z",
+      "started_at": null,
+      "ended_at": null,
+      "relayed": false,
       "by": "c41f0e9a-6a1d-4f52-9d0b-2b7e6f1c0a11"
     },
     {
@@ -236,8 +327,25 @@
       "type": "heavy",
       "what": "cargo clippy --workspace (utilz)",
       "state": "asked",
-      "lane": null,
+      "lanes": [],
+      "named": {},
+      "tags": ["security"],
+      "gates": [
+        {
+          "kind": "not-before",
+          "text": "after the WP-01 judge",
+          "ref": "01M5Q4X53K9CGEE1FG2M24C8W1"
+        },
+        {
+          "kind": "hold",
+          "text": "after hv says continue",
+          "ref": null
+        }
+      ],
       "asked_at": "2026-10-24T13:12:02Z",
+      "started_at": null,
+      "ended_at": null,
+      "relayed": false,
       "by": "5be2d771-0d8a-4b8e-a0c4-91d7f3e2aa40"
     }
   ],
@@ -247,8 +355,14 @@
       "type": "heavy",
       "what": "cargo build -p intentd (ST0086 WP-01)",
       "state": "ended",
-      "lane": "cargo",
+      "lanes": ["cargo"],
+      "named": {},
+      "tags": [],
+      "gates": [],
       "asked_at": "2026-10-24T12:20:04Z",
+      "started_at": "2026-10-24T12:20:30Z",
+      "ended_at": "2026-10-24T12:26:10Z",
+      "relayed": false,
       "by": "2f8d1a64-b0c3-4e9f-8d27-73a5e0b4c1f8"
     },
     {
@@ -256,8 +370,14 @@
       "type": "light",
       "what": "bats tests/unit/estate.bats",
       "state": "denied",
-      "lane": null,
+      "lanes": [],
+      "named": {},
+      "tags": [],
+      "gates": [],
       "asked_at": "2026-10-24T12:41:30Z",
+      "started_at": null,
+      "ended_at": null,
+      "relayed": false,
       "by": "eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd"
     },
     {
@@ -265,9 +385,25 @@
       "type": "light",
       "what": "swift test (Intent.app)",
       "state": "ended",
-      "lane": "light",
+      "lanes": ["light"],
+      "named": {},
+      "tags": [],
+      "gates": [],
       "asked_at": "2026-10-24T12:58:12Z",
+      "started_at": "2026-10-24T12:58:40Z",
+      "ended_at": "2026-10-24T13:01:05Z",
+      "relayed": true,
       "by": "c41f0e9a-6a1d-4f52-9d0b-2b7e6f1c0a11"
+    }
+  ],
+  "holds": [
+    {
+      "id": "01M5Q4Z0K9CGEE1FG2M24CH0L1",
+      "scope": "lane",
+      "lane": "light",
+      "condition": "until the utilz release is cut",
+      "node": "vc",
+      "held_at": "2026-10-24T13:10:00Z"
     }
   ]
 }

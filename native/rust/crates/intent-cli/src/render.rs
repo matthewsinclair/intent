@@ -10574,12 +10574,12 @@ fn estate_host(v: &serde_json::Value) -> Vec<(String, String)> {
         ),
       ),
       Some(x) => {
-        let place = match x["project"]["name"].as_str() {
-          Some(name) => match x["node"].as_str() {
-            Some(node) => format!("{name} / {node}"),
-            None => name.to_string(),
-          },
-          None => "no project".to_string(),
+        // The node is the take's own, never the session's board, as the page
+        // reads it, so the two faces cannot disagree.
+        let project = x["project"]["name"].as_str().unwrap_or("no project");
+        let place = match ctl["node"].as_str() {
+          Some(node) => format!("{project} / {node}"),
+          None => project.to_string(),
         };
         push(
           "control",
@@ -10595,6 +10595,57 @@ fn estate_host(v: &serde_json::Value) -> Vec<(String, String)> {
     }
   }
 
+  let pre = &ctl["predecessor"];
+  if !pre.is_null() {
+    push(
+      "control",
+      &mut first,
+      match pre["node"].as_str() {
+        Some(node) => format!("took over from {} / {node}", s(&pre["name"])),
+        None => format!("took over from {}", s(&pre["name"])),
+      },
+    );
+  }
+  // hv's own words, verbatim, on a take that changed the controller's name or
+  // took a dead desk under another: the authority for the change.
+  if let Some(words) = ctl["hv"].as_str() {
+    push(
+      "control",
+      &mut first,
+      format!("hv: \u{201c}{words}\u{201d}"),
+    );
+  }
+  // **A STANDING DESK HOLD MEANS NOTHING IS GRANTED**, so it is said under
+  // the controller in capitals, as the page says it.
+  let holds = arr(&v["holds"]);
+  for h in holds.iter().filter(|h| h["scope"].as_str() == Some("desk")) {
+    push(
+      "control",
+      &mut first,
+      format!(
+        "HELD: {} ({}, {})",
+        s(&h["condition"]),
+        h["node"].as_str().unwrap_or("?"),
+        estate_age(v, h, "held_at")
+      ),
+    );
+  }
+
+  // A request's lanes are a list: a grant may hold several, a negligible run
+  // none, and an ask none yet, which its state tells apart.
+  let lanes_of =
+    |q: &serde_json::Value| -> Vec<String> { arr(&q["lanes"]).iter().map(s).collect() };
+  let lane_text = |q: &serde_json::Value| {
+    let names = lanes_of(q);
+    if !names.is_empty() {
+      names.join("+")
+    } else if q["state"].as_str() == Some("asked") {
+      format!("any {}", s(&q["type"]))
+    } else {
+      "no lane".to_string()
+    }
+  };
+
   // The queue is what waits, the reader's order, which is oldest first.
   let queue = arr(&v["queue"]);
   let waiting: Vec<_> = queue
@@ -10606,18 +10657,35 @@ fn estate_host(v: &serde_json::Value) -> Vec<(String, String)> {
     push("queue", &mut first, "nothing queued".to_string());
   }
   for q in waiting {
+    let tags: String = arr(&q["tags"])
+      .iter()
+      .map(|t| format!("  [{}]", s(t)))
+      .collect();
     push(
       "queue",
       &mut first,
       format!(
-        "{}  {}  {}  {}  {}",
+        "{}  {}  {}  {}  {}{tags}",
         short(&s(&q["id"])),
-        s(&q["type"]),
+        lane_text(q),
         who(&s(&q["by"])),
         s(&q["what"]),
         estate_age(v, q, "asked_at")
       ),
     );
+    // What it waits on besides capacity: another request to end, or a
+    // condition the controller judges.
+    for g in arr(&q["gates"]) {
+      push(
+        "queue",
+        &mut first,
+        if g["kind"].as_str() == Some("not-before") {
+          format!("  after {}", short(&s(&g["ref"])))
+        } else {
+          format!("  hold: {}", s(&g["text"]))
+        },
+      );
+    }
   }
 
   // Each lane, then what holds a slot in it; a hold whose holder is gone is
@@ -10638,18 +10706,35 @@ fn estate_host(v: &serde_json::Value) -> Vec<(String, String)> {
   for l in &lanes {
     let used = l["granted"].as_u64().unwrap_or(0) + l["running"].as_u64().unwrap_or(0);
     let capacity = l["capacity"].as_u64().unwrap_or(0);
+    let name = s(&l["name"]);
+    let held: Vec<String> = holds
+      .iter()
+      .filter(|h| h["scope"].as_str() == Some("lane") && h["lane"].as_str() == Some(name.as_str()))
+      .map(|h| format!("  HELD: {}", s(&h["condition"])))
+      .collect();
+    let under = match l["load_under"].as_f64() {
+      Some(n) => format!("  grants while load under {n}"),
+      None => String::new(),
+    };
     push(
       "lanes",
       &mut first,
       format!(
-        "{}  {}  {used}/{capacity}  {}",
-        s(&l["name"]),
+        "{name}  {}  {used}/{capacity}  {}{}{under}",
         s(&l["type"]),
-        if used >= capacity { "full" } else { "open" }
+        if !held.is_empty() {
+          "held"
+        } else if used >= capacity {
+          "full"
+        } else {
+          "open"
+        },
+        held.concat()
       ),
     );
+    // A hold on several lanes shows under each lane it holds.
     for q in queue.iter().filter(|q| {
-      q["lane"] == l["name"] && matches!(q["state"].as_str(), Some("granted" | "running"))
+      lanes_of(q).contains(&name) && matches!(q["state"].as_str(), Some("granted" | "running"))
     }) {
       let gone = by_id(&s(&q["by"])).is_none_or(|x| x["state"].as_str() == Some("gone"));
       push(
@@ -17346,16 +17431,18 @@ mod tests {
 
   /// ST0086 AT-03.1
   ///
-  /// ST0086 AC-03.1: a measured census, a live controller, a waiting ask and a
-  /// lane holding one live and one orphaned slot, each from the key the page
-  /// reads; a label is written once, on its first line.
+  /// ST0086 AC-03.1, on ST0086 WP-04's row shape: a measured census, a live
+  /// controller with its own node and the one it took over from, a desk hold,
+  /// a waiting ask with its tag and both gate kinds, a lane held with a load
+  /// threshold, and a request holding two lanes shown under each; a label is
+  /// written once, on its first line.
   #[test]
   fn the_estates_host_lines_read_the_census_controller_queue_and_lanes() {
     let v = serde_json::json!({
       "taken_at": "2026-10-25T17:00:00Z",
       "sessions": [
         {"session_id": "s-ctl", "name": "molt-vc", "state": "idle",
-         "project": {"name": "Molt", "root": "/p/Molt"}, "node": "vc"},
+         "project": {"name": "Molt", "root": "/p/Molt"}, "node": "board-node"},
         {"session_id": "s-ic", "name": "intent-ic", "state": "heavy",
          "project": {"name": "Intent", "root": "/p/Intent"}, "node": "ic"}
       ],
@@ -17368,15 +17455,36 @@ mod tests {
         ],
         "history": []
       },
-      "controller": {"session_id": "s-ctl", "name": "molt-vc", "pid": 7, "taken_at": "2026-10-25T16:00:00Z"},
-      "lanes": [{"name": "heavy", "type": "exclusive", "capacity": 2, "granted": 1, "running": 1}],
+      "controller": {"session_id": "s-ctl", "name": "molt-vc", "pid": 7, "node": "vc",
+        "taken_at": "2026-10-25T16:00:00Z",
+        "predecessor": {"session_id": "s-old", "name": "intent-vc", "node": "vc"},
+        "hv": "molt-vc runs the desk from now"},
+      "holds": [
+        {"id": "h-1", "scope": "desk", "lane": null, "condition": "until hv says continue",
+         "node": "vc", "held_at": "2026-10-25T16:55:00Z"},
+        {"id": "h-2", "scope": "lane", "lane": "bats", "condition": "the runner is being swapped",
+         "node": "vc", "held_at": "2026-10-25T16:50:00Z"}
+      ],
+      "lanes": [
+        {"name": "cargo", "type": "heavy", "capacity": 2, "load_under": 40, "granted": 1, "running": 1},
+        {"name": "bats", "type": "heavy", "capacity": 1, "load_under": null, "granted": 0, "running": 1}
+      ],
       "queue": [
         {"id": "01JAAAAAAAAAAAAAAAAAAQUEUE", "type": "heavy", "what": "the WP-03 judge",
-         "state": "asked", "lane": null, "asked_at": "2026-10-25T16:58:00Z", "by": "s-ic"},
+         "state": "asked", "lanes": [], "named": {}, "tags": ["security"],
+         "gates": [
+           {"kind": "not-before", "text": "after the build", "ref": "01JAAAAAAAAAAAAAAAAAARUNIC"},
+           {"kind": "hold", "text": "after hv says continue", "ref": null}],
+         "asked_at": "2026-10-25T16:58:00Z", "started_at": null, "ended_at": null,
+         "relayed": false, "by": "s-ic"},
         {"id": "01JAAAAAAAAAAAAAAAAAARUNIC", "type": "heavy", "what": "build all",
-         "state": "running", "lane": "heavy", "asked_at": "2026-10-25T16:30:00Z", "by": "s-ic"},
+         "state": "running", "lanes": ["cargo", "bats"], "named": {}, "tags": [], "gates": [],
+         "asked_at": "2026-10-25T16:30:00Z", "started_at": "2026-10-25T16:31:00Z",
+         "ended_at": null, "relayed": false, "by": "s-ic"},
         {"id": "01JAAAAAAAAAAAAAAAAAAGONE1", "type": "heavy", "what": "a dead judge",
-         "state": "granted", "lane": "heavy", "asked_at": "2026-10-25T16:10:00Z", "by": "s-gone"}
+         "state": "granted", "lanes": ["cargo"], "named": {}, "tags": [], "gates": [],
+         "asked_at": "2026-10-25T16:10:00Z", "started_at": null, "ended_at": null,
+         "relayed": false, "by": "s-gone"}
       ]
     });
     assert_eq!(
@@ -17386,10 +17494,26 @@ mod tests {
         ("procs", "cargo 2  Intent 1, (no project) 1"),
         ("", "bats 0"),
         ("control", "molt-vc in Molt / vc, since 1h00, pid 7"),
-        ("queue", "AQUEUE  heavy  intent-ic  the WP-03 judge  2m00"),
-        ("lanes", "heavy  exclusive  2/2  full"),
+        ("", "took over from intent-vc / vc"),
+        ("", "hv: \u{201c}molt-vc runs the desk from now\u{201d}"),
+        ("", "HELD: until hv says continue (vc, 5m00)"),
+        (
+          "queue",
+          "AQUEUE  any heavy  intent-ic  the WP-03 judge  2m00  [security]"
+        ),
+        ("", "  after ARUNIC"),
+        ("", "  hold: after hv says continue"),
+        (
+          "lanes",
+          "cargo  heavy  2/2  full  grants while load under 40"
+        ),
         ("", "  ARUNIC  running  intent-ic  build all  30m00"),
         ("", "  AGONE1  orphaned  s-gone  a dead judge  50m00"),
+        (
+          "",
+          "bats  heavy  1/1  held  HELD: the runner is being swapped"
+        ),
+        ("", "  ARUNIC  running  intent-ic  build all  30m00"),
       ]
       .map(|(l, t)| (l.to_string(), t.to_string()))
     );

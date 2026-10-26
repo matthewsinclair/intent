@@ -229,6 +229,9 @@
   #estate .pipe .arrow { flex: 0 0 auto; align-self: center; color: var(--muted); font-size: .9rem; }
   #estate .pipe .now { flex: 0 0 2px; align-self: stretch; width: 2px; background: var(--accent); border-radius: 1px; margin: 0 .2rem; position: relative; }
   #estate .pipe .now::after { content: "now"; position: absolute; top: -1rem; left: -.7rem; font-size: .62rem; color: var(--accent); text-transform: uppercase; letter-spacing: .07em; }
+  #estate .chip { display: inline-block; font-size: .66rem; padding: 0 .3rem; margin-left: .3rem; border: 1px solid var(--rule); border-radius: 3px; color: var(--muted); }
+  #estate .cell .gate { color: var(--accent); font-size: .74rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #estate .pipe .held { flex: 0 0 auto; align-self: center; color: var(--gone); font-weight: 700; font-size: .7rem; text-transform: uppercase; letter-spacing: .07em; }
   #estate .pipe .none { flex: 0 0 auto; align-self: center; color: var(--muted); font-style: italic; }
   @keyframes estate-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
   @media (prefers-reduced-motion: reduce) { #estate .cell.running .tag::before { animation: none; } }
@@ -702,6 +705,23 @@
     // what tells them apart on a narrow column. The whole id is the title.
     function shortId(id) { return id.length > 8 ? id.slice(-6) : id; }
 
+    // **A REQUEST'S LANES ARE A LIST** (ST0086 WP-04, decision 88 as amended):
+    // a grant may hold several, a negligible run holds none, and an ask holds
+    // none yet, which its state tells apart.
+    function laneText(q) {
+      if (q.lanes.length) { return q.lanes.join("+"); }
+      return q.state === "asked" ? "any " + q.type : "no lane";
+    }
+    // What a waiting request waits on besides capacity: another request to end,
+    // or a condition the controller judges.
+    function gateText(q, ix) {
+      return q.gates.map(function (g) {
+        return g.kind === "not-before" ? "after " + shortId(g.ref) + (ix.byReq[g.ref] ? " (" + ix.byReq[g.ref].what + ")" : "") : "hold: " + g.text;
+      }).join("; ");
+    }
+    // A relayed stamp is the relay's clock, not the run's, and says so.
+    function relayed(q) { return q.relayed ? " (relayed)" : ""; }
+
     // Everything the page looks up, built once per answer.
     function index(s) {
       var byId = {};
@@ -726,6 +746,7 @@
         byId: byId, byReq: byReq, holding: holding, orphaned: orphaned, who: who,
         cap: cap, running: running, held: held, tally: tally, ctlState: ctlState,
         waiting: s.queue.filter(function (q) { return q.state === "asked"; }),
+        deskHolds: s.holds.filter(function (h) { return h.scope === "desk"; }),
         now: momentOf(s)
       };
     }
@@ -773,10 +794,26 @@
         rows.push(line([["k", "control  "], ["warn", s.controller.name + " ORPHANED"]]));
         rows.push(line([["k", "         "], "pid " + s.controller.pid + " is not a live session; the next take succeeds"]));
       } else {
+        // The node is the take's own, never the session's board: the two must
+        // not disagree on screen.
         var ctl = ix.byId[s.controller.session_id];
-        rows.push(line([["k", "control  "], s.controller.name, ["k", " in "], ctl.project ? ctl.project.name + (ctl.node ? " / " + ctl.node : "") : "no project"]));
+        rows.push(line([["k", "control  "], s.controller.name, ["k", " in "], (ctl.project ? ctl.project.name : "no project") + (s.controller.node ? " / " + s.controller.node : "")]));
         rows.push(line([["k", "         "], "since " + age(secs(Date.parse(s.controller.taken_at), ix.now)), ["k", " pid "], String(s.controller.pid)]));
       }
+      if (s.controller && s.controller.predecessor) {
+        var pre = s.controller.predecessor;
+        rows.push(line([["k", "         "], ["k", "took over from "], pre.name + (pre.node ? " / " + pre.node : "")]));
+      }
+      // hv's own words, verbatim, on a take that changed the controller's name
+      // or took a dead desk under another: the authority for the change.
+      if (s.controller && s.controller.hv) {
+        rows.push(line([["k", "         "], ["k", "hv: "], "\u201c" + s.controller.hv + "\u201d"]));
+      }
+      // **A STANDING DESK HOLD MEANS NOTHING IS GRANTED**, so it is the loudest
+      // line in the band.
+      ix.deskHolds.forEach(function (h) {
+        rows.push(line([["k", "         "], ["warn", "HELD: " + h.condition], ["k", " (" + (h.node || "?") + ", " + age(secs(Date.parse(h.held_at), ix.now)) + ")"]]));
+      });
       if (s.unreadable.length) {
         rows.push(line([["k", "files    "], ["warn", s.unreadable.length + " unreadable"], ["k", " (named below)"]]));
       }
@@ -902,34 +939,46 @@
     function cell(q, kind, tag, meta, ix) {
       var c = el("div", "cell " + kind);
       c.title = q.id + "  " + q.what + "  (" + ix.who(q.by) + ")";
-      c.append(el("div", "tag", tag), el("div", "what", q.what), el("div", "meta", meta));
+      var head = el("div", "tag", tag);
+      q.tags.forEach(function (t) { head.appendChild(el("span", "chip", t)); });
+      c.append(head, el("div", "what", q.what), el("div", "meta", meta));
       return c;
     }
 
     function renderPipeline(s, ix) {
       var p = pipelineOf(s);
       var box = document.getElementById("estate-pipeline");
-      var since = function (q) { return age(secs(Date.parse(q.asked_at), ix.now)); };
+      var ms = function (k) { return Date.parse(k); };
+      var ago = function (at) { return age(secs(ms(at), ix.now)); };
       var cells = [];
+      // Finished: took and ended once the stamps exist; a request that never
+      // started says when it was asked.
       p.finished.forEach(function (q) {
         var ok = q.state === "ended";
+        var when = q.ended_at
+          ? (q.started_at ? (ok ? "took " : q.state + " after ") + age(secs(ms(q.started_at), ms(q.ended_at))) + ", " : "") + "ended " + ago(q.ended_at) + " ago" + relayed(q)
+          : "asked " + ago(q.asked_at) + " ago";
         cells.push(cell(q, ok ? "done" : "done stopped", ok ? "done" : q.state,
-          ix.who(q.by) + " \u00b7 " + (q.lane || q.type) + " \u00b7 asked " + since(q) + " ago", ix));
+          ix.who(q.by) + " \u00b7 " + laneText(q) + " \u00b7 " + when, ix));
       });
       cells.push(el("div", "now"));
+      if (ix.deskHolds.length) { cells.push(el("div", "held", "held")); }
       p.running.forEach(function (q) {
         var orph = ix.orphaned(q);
         cells.push(cell(q, orph ? "orphaned" : "running", orph ? "orphaned" : "running",
-          ix.who(q.by) + " \u00b7 " + (q.lane || q.type) + " \u00b7 " + since(q), ix));
+          ix.who(q.by) + " \u00b7 " + laneText(q) + " \u00b7 " + ago(q.started_at || q.asked_at) + relayed(q), ix));
       });
       if (!p.running.length) { cells.push(el("div", "none", "nothing running")); }
       p.next.forEach(function (q) {
-        cells.push(cell(q, "next " + q.state, q.state === "granted" ? "next" : "waiting",
-          ix.who(q.by) + " \u00b7 " + (q.lane || "any " + q.type) + " \u00b7 " + since(q), ix));
+        var c = cell(q, "next " + q.state, q.state === "granted" ? "next" : "waiting",
+          ix.who(q.by) + " \u00b7 " + laneText(q) + " \u00b7 " + ago(q.asked_at), ix);
+        if (q.gates.length) { c.appendChild(el("div", "gate", gateText(q, ix))); }
+        cells.push(c);
       });
       var out = document.createDocumentFragment();
       cells.forEach(function (c, i) {
-        if (i > 0 && c.className !== "now" && cells[i - 1].className !== "now") { out.appendChild(el("span", "arrow", "\u203a")); }
+        var bare = function (n) { return n.className === "now" || n.className === "held"; };
+        if (i > 0 && !bare(c) && !bare(cells[i - 1])) { out.appendChild(el("span", "arrow", "\u203a")); }
         out.appendChild(c);
       });
       box.replaceChildren(out);
@@ -955,7 +1004,10 @@
         var tr = el("tr");
         var id = td(shortId(q.id));
         id.title = q.id;
-        tr.append(id, td(q.type), td(ix.who(q.by)), td(q.what, "wide"), td(age(secs(Date.parse(q.asked_at), ix.now)), "num st-asked"));
+        var what = td(q.what, "wide");
+        q.tags.forEach(function (t) { what.appendChild(el("span", "chip", t)); });
+        if (q.gates.length) { what.appendChild(el("div", "muted", gateText(q, ix))); }
+        tr.append(id, td(q.type), td(ix.who(q.by)), what, td(age(secs(Date.parse(q.asked_at), ix.now)), "num st-asked"));
         rows.appendChild(tr);
       });
       body.replaceChildren(rows);
@@ -974,10 +1026,14 @@
       s.lanes.forEach(function (l) {
         var used = l.granted + l.running;
         var full = used >= l.capacity;
+        var held = s.holds.filter(function (h) { return h.scope === "lane" && h.lane === l.name; });
         var tr = el("tr", "lane");
-        tr.append(td(l.name), td(l.type), td(used + "/" + l.capacity), td(full ? "full" : "open", full ? "st-running" : "muted"), td(""), td(""), td(""));
+        var state = held.length ? td("held", "st-orphaned") : td(full ? "full" : "open", full ? "st-running" : "muted");
+        var note = td(held.map(function (h) { return "HELD: " + h.condition; }).join("; ") + (l.load_under !== null ? (held.length ? "; " : "") + "grants while load under " + l.load_under : ""), held.length ? "wide orph" : "wide muted");
+        tr.append(td(l.name), td(l.type), td(used + "/" + l.capacity), state, td(""), note, td(""));
         rows.appendChild(tr);
-        s.queue.filter(function (q) { return q.lane === l.name && ix.holding(q); }).forEach(function (q) {
+        // A hold on several lanes shows under each lane it holds.
+        s.queue.filter(function (q) { return q.lanes.indexOf(l.name) >= 0 && ix.holding(q); }).forEach(function (q) {
           var orph = ix.orphaned(q);
           var state = orph ? "orphaned" : q.state;
           var r = el("tr", "req");
@@ -1007,7 +1063,7 @@
           if (i) { slots.appendChild(document.createTextNode(" ")); }
           var orph = held && ix.orphaned(held);
           var span = el("span", orph ? "orph" : held ? "st-" + held.state : "muted",
-            (held && held.lane ? held.lane + ":" : "") + shortId(id) + (orph ? " ORPHANED" : ""));
+            (held && held.lanes.length ? held.lanes.join("+") + ":" : "") + shortId(id) + (orph ? " ORPHANED" : ""));
           span.title = id;
           slots.appendChild(span);
         });

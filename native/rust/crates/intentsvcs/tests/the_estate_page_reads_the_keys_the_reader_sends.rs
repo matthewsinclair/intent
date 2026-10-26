@@ -83,7 +83,7 @@ fn the_estate_page_reads_no_key_the_reader_never_sends() {
   // **VACUITY GUARD**: a page that bound the status to another name would
   // read nothing here, and the subset check below would pass over an empty
   // set exactly when it had stopped checking.
-  for key in ["recent", "queue", "sessions"] {
+  for key in ["recent", "queue", "holds", "sessions"] {
     assert!(
       reads.contains(key),
       "the page reads no `s.{key}`: the scan found {reads:?}"
