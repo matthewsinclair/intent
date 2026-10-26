@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 4ec444b0-0ecb-4040-bd1e-6226cabee016
-heartbeat_at: 2026-10-26 08:18Z
+heartbeat_at: 2026-10-26 08:38Z
 status: active
-focus: "LOCALFOLD on hv's word (2026-10-26 08:06Z by date -u): 0653 v1 verified by vc and lands in its train order, the other estates fixing their verblocks at their next fold; 0087-04 v2 rides T as banked; nothing owed until vc's stacked judge, and a red on either comes back to dc; then todo 50; no push, no release"
+focus: "RE-RUN at vc's desk: 0644-doc v1 (doing 145) and 0087-04 v3 (doing 143, replacing v2) verified by vc; 0653 v1 unchanged and lands in its train order; nothing owed unless the re-run reds, and a red comes back to dc; then todo 50; no push, no release"
 claims: [ST0087/04, ISSUE:0653]
 ---
 
@@ -13,8 +13,9 @@ claims: [ST0087/04, ISSUE:0653]
 
 ## DOING
 
-- ST0087 WP-04 (todo 49): refs/bank/dc/0087-04/v2 (blob 907879d26f33, patch-id 75ca61f5cc6b, ten paths, over aaeaf3b16) is in vc's base T as banked (vc's order of 2026-10-26, stamped 07:23Z by vc's clock; vc decision 92), and vc runs the one stacked judge itself when molt-vc calls Intent's turn; a red comes back to dc to fix forward. After it lands: the AT rows for ST0087 AC-04.1 and AC-04.2, wp done, then WP-05's proof with vc and todo 50. tmp/wt-dc-0088-03's working tree equals v2 byte for byte; its index lags by docs/install.md's brew update hunk (index patch-id a741dd7a7fe3), which matters only if main moves under the bank's paths. No push, no release. (edited)
+- ST0087 WP-04 (todo 49): refs/bank/dc/0087-04/v3 (blob dc3e6676f7ed, patch-id 3c2713f1d2cd, ten paths, over aaeaf3b16; tree 6247aa4d0adb in tmp/wt-dc-0087-04v3) REPLACES v2 in vc's re-run and in the landing, with v2's CHANGELOG hunk, VERIFIED by vc. The stacked judge's bats #329 (intent_bin_retarget_guard.bats) refused v2's keg fixture line, which wrote bin/intent and never ran it; v3 restates the fixture as one loop over relative paths, on the guard's own case against a file allowlist, and changes nothing else. Bats #329 in the re-run gives the verdict; a red comes back to dc to fix forward. After it lands: the AT rows for ST0087 AC-04.1 and AC-04.2, wp done, then WP-05's proof with vc and todo 50. tmp/wt-dc-0088-03 holds v2 and is no longer the live worktree. No push, no release. (edited)
 - ISSUE 0653 (vc decisions 91 and 93): BANKED as refs/bank/dc/0653/v1 (blob 795a67777c03, patch-id eac9d00ac1e0, ten paths) over vc's base T in tmp/wt-dc-0653, and VERIFIED by vc at 07:55Z by vc's clock: T plus v1 is tree 9697ade27c8b, equal to the worktree with nothing unstaged. vc accepted both extras (the guard named in working-with-llms.md's roster sentence; rule_pack_prose.bats's count arm deleted and 005 catalogued) and wrote hv's elide-at-97 word into 0653's record. It LANDS IN ITS TRAIN ORDER (hv by TUI in molt-vc's session, relayed by vc before vc's 08:07Z clock read, superseding vc's 07:55Z lands-last gate): the seven estates whose live verblocks the guard would refuse fix them at their own next fold, where the refusal names the elision at 97, and nobody edits them today. vc holds the CHANGELOG line, and the skills sync after landing is on Intent's turn list. Nothing is owed until vc's stacked judge; a red on 0653 comes back to dc to fix forward. Keep tmp/wt-dc-0653 exactly as verified. No push, no release. (edited)
+- ISSUE 0644 follow-up, a fix to main itself (vc's red in the stacked judge's doc leg, 2026-10-26): rustdoc's private_intra_doc_links refused canon.rs:1219, where pub fn chain_carrier's doc linked to private chain_block. refs/bank/dc/0644-doc/v1 (blob d05cc31eaa4c, patch-id bb8b10095b77, one line, the link made plain code) over main's d5a513d2b in tmp/wt-dc-0644doc, VERIFIED by vc; it goes first in the re-run's stack, with no CHANGELOG line. The doc leg in the re-run gives the verdict; a red comes back to dc to fix forward. No push, no release.
 
 ## TODO
 

@@ -1,0 +1,16 @@
+{
+  "id": "01M5VNR78QKYK1F0SFJ9CAJ5JS",
+  "ts": "2026-10-26T08:38:07.895Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 143,
+    "text": "ST0087 WP-04 (todo 49): refs/bank/dc/0087-04/v3 (blob dc3e6676f7ed, patch-id 3c2713f1d2cd, ten paths, over aaeaf3b16; tree 6247aa4d0adb in tmp/wt-dc-0087-04v3) REPLACES v2 in vc's re-run and in the landing, with v2's CHANGELOG hunk, VERIFIED by vc. The stacked judge's bats #329 (intent_bin_retarget_guard.bats) refused v2's keg fixture line, which wrote bin/intent and never ran it; v3 restates the fixture as one loop over relative paths, on the guard's own case against a file allowlist, and changes nothing else. Bats #329 in the re-run gives the verdict; a red comes back to dc to fix forward. After it lands: the AT rows for ST0087 AC-04.1 and AC-04.2, wp done, then WP-05's proof with vc and todo 50. tmp/wt-dc-0088-03 holds v2 and is no longer the live worktree. No push, no release."
+  }
+}

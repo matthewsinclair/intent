@@ -1,0 +1,15 @@
+{
+  "id": "01M5VNR88A22QVX81ZH53QM2XN",
+  "ts": "2026-10-26T08:38:08.906Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ISSUE 0644 follow-up, a fix to main itself (vc's red in the stacked judge's doc leg, 2026-10-26): rustdoc's private_intra_doc_links refused canon.rs:1219, where pub fn chain_carrier's doc linked to private chain_block. refs/bank/dc/0644-doc/v1 (blob d05cc31eaa4c, patch-id bb8b10095b77, one line, the link made plain code) over main's d5a513d2b in tmp/wt-dc-0644doc, VERIFIED by vc; it goes first in the re-run's stack, with no CHANGELOG line. The doc leg in the re-run gives the verdict; a red comes back to dc to fix forward. No push, no release."
+  }
+}
