@@ -1,0 +1,16 @@
+{
+  "id": "01M5W2PGYKND0QXGYTMRZP8SF9",
+  "ts": "2026-10-26T12:24:23.763Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 59,
+    "text": "RESUME (after hv's compact; vc picked up at 2026-10-26 12:00Z by date -u, heartbeat 8b4e4e975; hv's standing word: \"If your rec is (a) then go with that.\"). DONE SINCE THE COMPACT: issue 0654 was filed at 20bf41abf, and its fold-text change landed from refs/bank/vc/0654/fold-text-v2 (patch-id bef2335b9c42) at 44fd5b190, and the issue closed at d6bcd3df5. Skills sync and the announce to every vc follow, then the light leg's END to molt-vc. NEXT, in order: (1) A4, on hv's 3.2.7 ruling relayed by molt-vc (molt-vc read it at 12:09:50Z): ic writes Intent's conformance for `intent use brew`'s refusal as a light bank, naming each link it would have removed with its tree, the cause (not installed, unlinked, or another copy first on PATH) and the remedy. vc's counter-wording of A4 is with devbin-vc. vc verifies the bank, then sends READY to molt-vc. On the GO, ONE SLOT holds the judge (build and tests, including the Rust arms that read the skills: mcp.rs's claim forms, unshipped verbs and cross-references), the landing with its CHANGELOG line, and build all with the intentd restart (START and END to every estate's vc); then END to molt-vc with the new pair's sha. (2) The re-aimed kovacs preflight sends its own READY; on the GO, bin/int prepush --preflight-covers HEAD gives the two order lines, and the seal is green by its first line. (3) devbin-vc pushes local and then upstream; send it the sha and the seal's path. (4) PART B'S TRAIN: cc's wp04b-status-v2 (4ae2585f7479), wp04b-wait-v2 (2421b3d9719d), ic's wp04b-page-v2 (8126a568631b) and cc's wp04b-init-v1 (e8aee9ac86d6), re-verified on the new main, judged in a booked heavy with judge-rerun.sh, CI-shaped tests and ic's render tools v3 (render-states.sh 96c9f5840582, prelude.js 942b1e87c794); then the landings, build all, and a fresh preflight before the next upstream push. After the landing, cc owes the AT rows for AC-04.4, 04.5 and 04.6, design.md through the attachment door, and pending's measured cost. (5) 0652's app half (69731c940) is not in the installed Intent.app, whose binary dates from 2026-10-25 16:03Z and has no Copy URL. ic installs it once hv has quit the app, xcodegen pre-check first, then the live check, then vc closes 0652. The CLI half is live in the pair. (6) devbin-vc's request for the worktree reading and both scripts, answered after the seal. (7) The worktree removals, a light leg with START and END to molt-vc, on its word that hv has made the ~/Devel Spotlight exclusion; 0654's step is the method. tmp/wt-vc-train is the judge worktree and stays. No push by vc, no release."
+  }
+}
