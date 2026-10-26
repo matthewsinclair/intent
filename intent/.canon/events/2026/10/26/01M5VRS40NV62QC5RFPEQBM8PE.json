@@ -1,0 +1,16 @@
+{
+  "id": "01M5VRS40NV62QC5RFPEQBM8PE",
+  "ts": "2026-10-26T09:31:03.061Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 59,
+    "text": "RESUME (localfold on hv's word, 2026-10-26 09:30Z by date -u, before hv's /compact of every intent-* session): RUN 3 IS IN FLIGHT. molt-vc gave GO at 09:23Z by its own clock; vc sent START at 09:23Z by date -u. The run is background task b67mr6wqu in vc's session: refs/bank/vc/tools/judge-rerun.sh, blob 95a1615c26e7, in tmp/wt-vc-train at base 51eb26da4. Its stamps are in the scratchpad at judge/log-rerun/stamps, and run 1's and run 2's logs at judge/log and judge/log-run2. All eleven banks applied, to tip tree 5f0ee67fabfb. Green at 09:30Z: every light leg, both builds, both clippy legs, doc, the workspace tests (none failed) and the release build. Bats, with CI's PATH, then ic's render are still to report. ON EXIT: read the stamps, then send molt-vc END with every leg's verdict, run 1's bank legs included (app-test, the int local drive, brew render and style, the smoke). A red goes to its bank's author. THE ELEVEN BANKS, each verified against its author's worktree, in landing order: dc/0644-doc/v1 (bb8b10095b77) and ic/0086/tui-doc/v1 (41a01c51bc13), main's own doc fixes; cc/0648/v6 (5468f12de6e2); cc/0086/wp04a-v2 (6cd0eaa98a4b) and cc/0086/wp04a-critic-v3 (a14ada02af63) as ONE commit; ic/0086/wp04a-page-v3 (c932e3dd4ff4); dc/0087-04/v3 (3c2713f1d2cd); ic/0086/arms-v3 (e12307a84d1a); cc/0652/cli-v3 (b06751ee934a); ic/0652/app-v1 (41510649df5c); dc/0653/v1 (eac9d00ac1e0). ON GREEN, each on molt-vc's GO as its own step: one CHAIN START and END to cc, dc and ic around the landings; each unit lands with `zsh land-one.sh /Users/matts/Devel/prj/Intent <message-file> <ref>=<patch-id>...` (refs/bank/vc/tools/land-one.sh, blob 4b4a1d1ee590; the message file's @STAMP@ becomes the commit's clock read), which refuses a wrong patch-id or a non-empty index and puts the census in the commit; one CHANGELOG commit from refs/bank/vc/train/20261026/changelog-lines.md (blob 8f47cb31dd37), whose 0652 line still fits cli-v3, while 0648 v6, Part A and 0087-04 v3 carry their own hunks; the AT rows for ST0086 AC-02.2 and AC-02.6, and WP-02 done; close 0648, 0652 and 0653; build all, with START and END to every estate's vc, then intent daemon restart; the kovacs preflight at that HEAD through kovacs-sysadm; devbin-vc's upstream push; ic's app build, install and live check after hv quits Intent.app; and `intent claude skills sync`, announced to every vc. docs/reference regenerates at the cut. Not this train's: the_switch_points_the_link_set.rs's script() writes then execs, the ETXTBSY exposure ic reported. No push, no release."
+  }
+}
