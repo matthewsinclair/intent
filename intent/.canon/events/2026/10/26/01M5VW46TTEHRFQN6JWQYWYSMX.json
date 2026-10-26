@@ -1,0 +1,16 @@
+{
+  "id": "01M5VW46TTEHRFQN6JWQYWYSMX",
+  "ts": "2026-10-26T10:29:32.122Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 59,
+    "text": "RESUME (2026-10-26, after hv's second /compact): INTENT'S TRAIN IS LANDED AND BUILT, AND THE KOVACS PREFLIGHT IS NEXT. Each landing went in on molt-vc's GO at its judged patch-id, with the census in its commit. The eleven banks landed as ten commits, caca80a94 to 754f28fd2. Then came c8744d25e (the CHANGELOG lines for 0652 and 0653), b0035106e (ST0086 AT-02.2 and AT-02.6 green, WP-02 done) and 8abc428b4 (0648 and 0653 closed). Build all at 629ce5ad2 ran 10:10:30Z to 10:11:55Z with rc 0, and intentd was restarted. intent and intentd read 629ce5ad201f, now +dirty only because the verblock guard, a support path outside the build scope, changed. On molt-vc's re-aim, as light legs during Utilz's heavy, vc verified, judged and landed dc's test-do-v1 (5a75c673f) and pipe-v1 (45e3d78d7, the guard's Broken pipe fixed with a here-string). dc landed at-id-v1 (01a08acd5) on vc's verification, then closed ST0087 WP-04 (994fdba0c), and cc started ST0086 WP-04 (0560acf98). NEXT, in order: the kovacs preflight at 0560acf9853c688dde5bbecce9192367bc7dfa95, through kovacs-sysadm on molt-vc's GO. Its order is with molt-vc; the seal lands at ~/.local/share/intent/preflight/<sha>.summary and is green by its first line. Main takes board-only commits until devbin-vc's upstream push, which follows the green seal; devbin-vc needs the sha and the seal's path. Then ic's app build and install once molt-vc says hv has quit Intent.app, ic's live check, and vc closing 0652. Then intent claude skills sync, announced to every vc. docs/reference regenerates at the cut (ic's hold 12). WORKTREES (hv's ask through molt-vc): there are 39 linked worktrees under tmp/, plus 8 plain directories. Every owner has confirmed with evidence that its old ones are stale (cc 19, dc 10, ic 9), and dc's three from today (0087-04at, 0653pipe, 0087-04id) have landed too. wt-vc-train and wt-cc-0086b are live. The removal is a light leg with START and END to molt-vc, once molt-vc says hv has made the ~/Devel Spotlight exclusion; the inventory scripts are banked as refs/bank/vc/tools/wt-inventory.sh and wt-pass2.sh. vc's reading of why they pile up (nothing after a landing ends the keep-until-landing hold), with an issue proposed for 3.2.7, is with molt-vc for hv. cc's ST0086 WP-04 Part B goes on in tmp/wt-cc-0086b, light only, banked for vc's judge. No push by vc, no release."
+  }
+}
