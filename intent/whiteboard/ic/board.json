@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "71bed3ab-ad7e-4b27-b10f-4b59f0154cc9",
-    "heartbeat_at": "2026-10-26T14:53:53.839Z",
+    "heartbeat_at": "2026-10-26T17:23:06.530Z",
     "status": "active",
-    "focus": "Go-on from hv (relayed by vc at 14:52Z): doing 135 is page v2 (8126a568631b), third in Part B's train after cc's B1 v2 and B2 v2; the judge slot is queued behind Devbin and Utilz on molt-vc's records; a red is fixed forward in tmp/wt-ic-0086b; hold 12 waits for the cut; hold 15 (tmp/wt-ic-a4) waits for molt-vc's Spotlight word; no claim, no push, no release",
+    "focus": "Folded for molt-vc's round and holding for the compact: doing 135 is Part B's train, page v2 third and hv's pipeline-cell-width-v4 sixth, judged when molt-vc grants Intent's slot (behind Devbin and Utilz), a red fixed forward in tmp/wt-ic-0086b, then ic's live look at the cards; todo 58 owes design.md's cell sentence after the landing; hold 12 waits for the cut; hold 15 (ten stale ic worktrees) waits for molt-vc's Spotlight word; no claim, no push, no release",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -2647,10 +2647,10 @@
       "node": "ic",
       "kind": "doing",
       "seq": 135,
-      "text": "RESUME STATE (ic, localfold on hv's word, relayed by vc at 13:17:41Z by vc's clock: \"Ok, context is high. Let's corale a localfold across the nodes here, then we can continue with the plans on the bounce.\"): ST0086 WP-04 Part B, the page face of AC-04.6, on vc's orders at 10:40Z and 11:08Z (vc's word). refs/bank/ic/0086/wp04b-page-v2 (blob a10e09b24211, patch-id 8126a568631b) sits over cc's B1 v2 + B2 v2: refs/bank/cc/0086/wp04b-status-v2 (patch-id 4ae2585f7479) and wp04b-wait-v2 (patch-id 2421b3d9719d). ic measured during this fold that all three still apply in order on main fab3a4801, giving tree 2a0c64d3ac39. vc confirmed the bank at 11:14Z. It lands third in Part B's train, after B1 v2 and B2 v2 and before B3. The train goes after devbin-vc's push, as the first run molt-vc books through the slot records; hv ruled at 13:16Z that molt-vc takes control after the preflight's END (vc's word). What it does: each lane lists its queued asks under its holders (`lanes[].queue`). A controller.json that will not parse reads `control  record UNREADABLE (named below)` in the band, never NO CONTROLLER, with `controller record UNREADABLE <path> -- <why>` first below the band. The page-keys test requires `controller_unreadable` and carries the lane arm (ST0086 AT-04.6), and the fixture carries both keys. Render tools v3 (refs/bank/ic/tools/render-states.sh 96c9f5840582 and prelude.js 942b1e87c794) draw five states. On main, queued and ctlbad fail until Part B's keys land, as vc's A4 judge also saw. tmp/wt-ic-0086b (index tree 5505c7977f57) is kept until the landing. Part B's judge compiles the Rust arm; a red comes back to ic to fix forward there, and if B1 v2 or B2 v2 moves, ic re-banks over the new tree. No claim: the work package is cc's. No push, no release.",
+      "text": "RESUME STATE (ic, aggressive localfold for molt-vc's round on hv's word, 2026-10-26): ST0086 WP-04 Part B, the page face of AC-04.6, on vc's orders (vc's word). Part B's train, as vc records it, is six banks applied in order on main: cc's refs/bank/cc/0086/wp04b-status-v2 (patch-id 4ae2585f7479) and wp04b-wait-v2 (2421b3d9719d), then ic's refs/bank/ic/0086/wp04b-page-v2 (blob a10e09b24211, patch-id 8126a568631b), then cc's wp04b-init-v1 and wp04b-ats-v1, then ic's refs/bank/ic/0086/pipeline-cell-width-v4 (blob f2dc986d8c7c, patch-id e058514c0734). On 00eb61a2e the tree after five is 2ca7692e71da and after six is c45a889677a8 (ic's and vc's measurement, 17:17Z). Page v2: each lane lists its queued asks under its holders (`lanes[].queue`), and a controller.json that will not parse reads `control  record UNREADABLE (named below)` in the band, never NO CONTROLLER, with `controller record UNREADABLE <path> -- <why>` first below the band; the page-keys test requires `controller_unreadable` and carries the lane arm (ST0086 AT-04.6). Cell-width v4 is hv's direct ask in ic's session (\"We need to adjust the width of these things. That's bonkers.\", then four lines for the main line, 18rem, and two lines for the meta line): `.cell` is `flex: 0 0 18rem; min-width: 0`, `.what` clamps at four lines and `.meta` at two, CSS only in shell.html, no CHANGELOG hunk; v1 to v3 are superseded. The judge runs when molt-vc grants Intent's slot (Intent is behind Devbin and Utilz); its render leg runs ic's render tools v3 (refs/bank/ic/tools/render-states.sh 96c9f5840582, prelude.js 942b1e87c794). A red comes back to ic in tmp/wt-ic-0086b (kept until the landing); if a bank under ic's moves, ic re-banks over the new tree. After build all, ic looks at the cards on the live page. No claim: the work package is cc's. No push, no release.",
       "state": "live",
       "recorded_at": "2026-10-26T10:51:10.933Z",
-      "edited_at": "2026-10-26T13:24:26.620Z"
+      "edited_at": "2026-10-26T17:22:43.224Z"
     },
     {
       "node": "ic",
@@ -2666,9 +2666,18 @@
       "node": "ic",
       "kind": "hold",
       "seq": 15,
-      "text": "Remove tmp/wt-ic-a4, the worktree of A4 (issue 0655, landed at a6ce22c3b with patch-id 9dacf04295a4), by in-whiteboard's Folding step (0654, with 0656's fix-forward). First run the checks from outside it, then `git -C <path> reset --hard` and a plain `git worktree remove`, never --force. RELEASES WHEN: molt-vc says hv's ~/Devel Spotlight exclusion is in. Until then no node removes any worktree (vc's order after 0654).",
+      "text": "Remove ic's stale worktrees, all but tmp/wt-ic-0086b (Part B's, kept until the landing): tmp/wt-ic-0086, -0086p, -0086t, -0086w, -0087, -0652, -a4 (A4, issue 0655, landed at a6ce22c3b with patch-id 9dacf04295a4), -app, -arms2 and -tuidoc. 0652, arms2, a4 and tuidoc hold uncommitted files (counted 2026-10-26 17:20Z), so check each against its landed commit or bank from outside it first, by in-whiteboard's Folding step (0654, with 0656's fix-forward), then `git -C <path> reset --hard` and a plain `git worktree remove`, never --force. RELEASES WHEN: molt-vc says hv's ~/Devel Spotlight exclusion is in. Until then no node removes any worktree (vc's order after 0654).",
       "state": "live",
-      "recorded_at": "2026-10-26T13:24:27.674Z"
+      "recorded_at": "2026-10-26T13:24:27.674Z",
+      "edited_at": "2026-10-26T17:22:48.878Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 58,
+      "text": "After pipeline-cell-width-v4 lands with Part B's train, add the cells' shape to ST0086 design.md's pipeline paragraph (as-written lags as-built): each cell is 18rem whatever its text, its main line wraps to at most four lines and its meta line to two before either ends in an ellipsis, and the cell's title carries the full text. Through `intent st attach ST0086 design.md --from <file>` or the file plus `intent sync --to-store`, inside a chain, board and doc paths only.",
+      "state": "live",
+      "recorded_at": "2026-10-26T17:22:53.079Z"
     }
   ],
   "sent": [

@@ -1,0 +1,15 @@
+{
+  "id": "01M5WKS2GP1DV7A8T2PE81JHDG",
+  "ts": "2026-10-26T17:22:53.079Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "After pipeline-cell-width-v4 lands with Part B's train, add the cells' shape to ST0086 design.md's pipeline paragraph (as-written lags as-built): each cell is 18rem whatever its text, its main line wraps to at most four lines and its meta line to two before either ends in an ellipsis, and the cell's title carries the full text. Through `intent st attach ST0086 design.md --from <file>` or the file plus `intent sync --to-store`, inside a chain, board and doc paths only."
+  }
+}

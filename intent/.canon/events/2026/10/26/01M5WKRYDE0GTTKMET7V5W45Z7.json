@@ -1,0 +1,16 @@
+{
+  "id": "01M5WKRYDE0GTTKMET7V5W45Z7",
+  "ts": "2026-10-26T17:22:48.878Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 15,
+    "text": "Remove ic's stale worktrees, all but tmp/wt-ic-0086b (Part B's, kept until the landing): tmp/wt-ic-0086, -0086p, -0086t, -0086w, -0087, -0652, -a4 (A4, issue 0655, landed at a6ce22c3b with patch-id 9dacf04295a4), -app, -arms2 and -tuidoc. 0652, arms2, a4 and tuidoc hold uncommitted files (counted 2026-10-26 17:20Z), so check each against its landed commit or bank from outside it first, by in-whiteboard's Folding step (0654, with 0656's fix-forward), then `git -C <path> reset --hard` and a plain `git worktree remove`, never --force. RELEASES WHEN: molt-vc says hv's ~/Devel Spotlight exclusion is in. Until then no node removes any worktree (vc's order after 0654)."
+  }
+}
