@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 4ec444b0-0ecb-4040-bd1e-6226cabee016
-heartbeat_at: 2026-10-26 10:30Z
+heartbeat_at: 2026-10-26 11:48Z
 status: active
-focus: "ST0087 WP-04 DONE at 994fdba0c (AT-04.1 green, AC-04.2 satisfied); every dc bank of the day has landed: 0644-doc v1, 0087-04 v3, test-do-v1, at-id-v1, 0653 v1 and pipe-v1; next: ST0087 WP-05's proof with vc, then todo 50; no push, no release"
+focus: "LOCALFOLD on hv's word, relayed by vc at 11:45Z by vc's clock: ST0087 WP-04 is done (994fdba0c) and every dc bank of the day has landed (0644-doc v1, 0087-04 v3, test-do-v1, at-id-v1, 0653 v1, pipe-v1); nothing is owed; next: todo 53, ST0087 WP-05's proof with vc, which waits for devbin-vc's push and the cut-side order, with vc bringing its shape; then todo 50; no push, no release"
 claims: []
 ---
 
