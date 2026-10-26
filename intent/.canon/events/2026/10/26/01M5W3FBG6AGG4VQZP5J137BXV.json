@@ -1,0 +1,16 @@
+{
+  "id": "01M5W3FBG6AGG4VQZP5J137BXV",
+  "ts": "2026-10-26T12:37:57.382Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 136,
+    "text": "ISSUE:0655, A4 for `intent use brew` (vc's assignment at about 12:10Z by vc's word, on hv's ruling relayed by molt-vc). BANKED as refs/bank/ic/0655/a4-v1: blob 7bc74b39e479, patch-id 9dacf04295a4, three files over base tree d4d617240ffe (20bf41abf), giving tip tree cf0ca67e21a1. It applies on main 7014424aa and is held in tmp/wt-ic-a4's index. The refusal names each link it would have removed with the tree it serves. It names one of four causes: Homebrew's `brew` is not on PATH (vc's case, never guessed as not installed), the formula is not installed, its keg is not linked, or another copy comes first on PATH. Each cause has its own remedy, and each remedy adds staying on dev or opt. The cause is read from the filesystem only after the refusal, and no brew runs. The existing no-brew arm is restated and four new arms are added, each written to fail on the base at an assertion. vc verifies the bank against tmp/wt-ic-a4 and books the heavy judge with molt-vc; a red comes back to ic to fix forward there. ST0087 design.md's T5 paragraph goes stale at landing, and it is vc's text. No push, no release."
+  }
+}
