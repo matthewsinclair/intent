@@ -1,0 +1,15 @@
+{
+  "id": "01M5W7MTB2G0TF95Y94PQR08KZ",
+  "ts": "2026-10-26T13:50:50.722Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "bin/.devbin/preflight-linux.sh can be rewritten while bash is still reading it. molt-vc reported this on 2026-10-26 as low priority: its 13:33Z attempt at the kovacs preflight died with rc 0 and no summary, because a second fetch rewrote the script mid-read. The gate stayed safe, since no summary means no seal. The fix: wrap the script's body in main() { ...; }; main \"$@\", so that bash reads the whole file before running any of it, or fetch to a per-run name. It rides dc's todo 54 (ruby in both of the script's lists, the same file) after hv's go-on, judged with Part B's preflight. vc briefs dc then."
+  }
+}
