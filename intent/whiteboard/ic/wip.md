@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 71bed3ab-ad7e-4b27-b10f-4b59f0154cc9
-heartbeat_at: 2026-10-26 07:46Z
+heartbeat_at: 2026-10-26 08:10Z
 status: active
-focus: "2026-10-26: arms-v2 and 0652 app-v1 banked over T and verified by vc; holding for Intent's turn (the stacked judge, the landing, build all), then the app build, install and live check; hold 12 stands; no push, no release"
+focus: "LOCALFOLD (2026-10-26 08:10Z): arms-v2 and 0652 app-v1 banked over T and verified by vc; holding for Intent's turn (the stacked judge, the landing, build all), then the app build, install and live check; hold 12 stands; no push, no release"
 claims: [ST0086/02, ISSUE:0652]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0086/02, ISSUE:0652]
 
 ## DOING
 
-- TODAY (ic, 2026-10-26, on vc's order of 07:23Z under hv's (a), vc decision 92): light work only. Intent's one stacked judge runs when molt-vc calls Intent's turn, vc runs it, and a red comes back to its author to fix forward. BANKED OVER T (tree 05127fda654c) AND VERIFIED BY vc: (1) refs/bank/ic/0086/arms-v2 (blob 61f00b9675cf, patch-id 3fb5351f829f, in tmp/wt-ic-arms2). On green vc lands it and writes the AT rows for AC-02.2 and AC-02.6, then WP-02 closes on vc's word. (2) refs/bank/ic/0652/app-v1, Copy URL (blob f8d5ff817259, patch-id 41510649df5c, in tmp/wt-ic-0652), beside cc's cli-v2. Its legs beyond the union are `bin/devbin macos app-test` in the stacked judge and ic's live check after the install. Both worktrees stay as banked until the landing. Page v3's render drive is banked as refs/bank/ic/tools/render-states.sh and refs/bank/ic/tools/prelude.js. (3) After the landing and vc's build all: the app build and install, LoginShell plus Copy URL. Install only after molt-vc says hv has quit; quit nothing. Then the live check: pbpaste, the concealed marker, the page in Safari. Hold 12 stands. No push, no release. (edited)
+- RESUME STATE (ic, localfold before hv's compact, 2026-10-26 08:10Z by date -u; hv: "Ok, let's localfold+compact here now for all intent-* Claudes."). Light work only until molt-vc calls Intent's turn (vc's order of 07:23Z under hv's (a), vc decision 92). vc runs the one stacked judge, and a red on an ic bank comes back to ic to fix forward. BANKED OVER T (HEAD e0c15d474 plus 0648 v5, Part A v2, page v3 and 0087-04 v2; tree 05127fda654c) AND VERIFIED BY vc: (1) refs/bank/ic/0086/arms-v2 (blob 61f00b9675cf, patch-id 3fb5351f829f; worktree tmp/wt-ic-arms2, tree ac8aee0487d6), ST0086 AC-02.2 and AC-02.6's arms. On green vc lands it after Part A and cc's wp04a-critic and writes the AT rows, and WP-02 closes on vc's word; then ic unclaims ST0086/02 and archives todo 57. (2) refs/bank/ic/0652/app-v1 (blob f8d5ff817259, patch-id 41510649df5c; worktree tmp/wt-ic-0652, tree 50cc02288769), Copy URL, beside cc's refs/bank/cc/0652/cli-v2. vc holds ic's CHANGELOG line, and its extra leg is `bin/devbin macos app-test` in the stacked judge. T plus wp04a-critic, arms-v2, cli-v2 and app-v1 applies clean (tree 95926e35b6c1). dc's 0653 also adds a MODULES.md row, which vc checks at dc's READY. Page v3's render drive is banked as refs/bank/ic/tools/render-states.sh and prelude.js. Keep both worktrees as banked until the landing. (3) After vc's landing and build all: the app build and install (`bin/devbin macos app-install`, HEAVY, booked through molt-vc), LoginShell plus Copy URL. Install only after molt-vc says hv has quit the app; quit nothing. Then the live check: Copy URL; `pbpaste` shows the URL with its token; `osascript -e 'clipboard info'` lists org.nspasteboard.ConcealedType; and the pasted URL opens the page in Safari. Then vc closes 0652 and ic unclaims ISSUE:0652. Hold 12 stands. No push, no release. (edited)
 
 ## TODO
 
