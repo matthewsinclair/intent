@@ -1,0 +1,16 @@
+{
+  "id": "01M5WWMYZRGFFJG9CJ2PSFSVJ7",
+  "ts": "2026-10-26T19:57:55.576Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 59,
+    "text": "HELD FOR hv's GO TOMORROW (end of day 2026-10-26, hv via molt-vc: localfold, close, hold). One project at a time: Utilz has the turn, and Intent's heavy runs wait for molt-vc's word. STATE: main is ddb749ca7 (the critic's exit-0 revert, hv's queue-jump), pushed to local and upstream by devbin-vc after a green kovacs preflight (842 ok, 0 not ok). The installed pair is ddb749ca7932 and current. CI on ddb749ca7 (rust 40391278700, Intent Tests 40391278720) was in progress at the push, and devbin-vc reads it tomorrow. NEXT, in order:\n(1) PART B'S TRAIN, SIX BANKS, when molt-vc gives Intent the turn: `intent estate slots ask heavy \"<what>\" --named tip=<main HEAD> --node vc`, then start, then judge-rerun.sh in tmp/wt-vc-train over these banks, in order:\n  - cc's wp04b-status-v2 (4ae2585f7479)\n  - cc's wp04b-wait-v2 (2421b3d9719d)\n  - ic's wp04b-page-v2 (8126a568631b)\n  - cc's wp04b-init-v1 (e8aee9ac86d6)\n  - cc's wp04b-ats-v1 (f649be3fa3ea)\n  - ic's pipeline-cell-width-v4 (e058514c0734)\n  ic measured all six applying on ddb749ca7, giving tree 229c6053f4a2.\n  Then release with a one-line result, land the banks in order, book build all, run a kovacs preflight at the landed sha, and send devbin-vc \"push\" with the sha only after that preflight is green (decision 96). Until issue 0657 lands, nobody commits between build all and the push. ic takes a live look at the cells after the build.\n(2) AFTER A GREEN JUDGE: cc enters WP-04's AT rows in one chain, with `intent at lint` first. Then design.md's edits through `st attach`, pending's cost measured with the judge's binary, and WP-04's gate.\n(3) Issue 0657 (install currency by DIRT_SCOPE, S) goes to cc for the next train. ST0087 is started, and its WP-05 (todo 66) runs in Intent's turn. AC-05.1 is judged in a fresh login shell, since INTENT_INSTALL_PREFIX is declared in Molt-matts at 1bd41f2.\n(4) devbin-vc's wt-reading request, and A4's counter-wording with devbin-vc. The stale worktree removals wait for molt-vc's Spotlight read at 0.\nNo push by vc, no release."
+  }
+}

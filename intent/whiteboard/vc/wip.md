@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: ba4ebc52-48ef-410b-bcc0-2e67b291a48f
-heartbeat_at: 2026-10-26 17:38Z
-status: active
-focus: "HOLD ON THE BOUNCE after hv's compact, for molt-vc or hv: Part B's six-bank train (doing 59) is judged when molt-vc gives Intent its turn after Devbin and Utilz, with a fresh heavy slot (01M5WB6E22WVTYWM6ZYB4CAN81 was revoked); HV ITEMS are with molt-vc; nothing running; no push, no release"
+heartbeat_at: 2026-10-26 19:58Z
+status: paused
+focus: "CLOSED for hv's end of day 2026-10-26, holding for hv's go: main ddb749ca7 is pushed and its installed pair is current. Part B's six-bank train (doing 59) waits for Intent's turn after Utilz. Issue 0657 goes to cc next. No push by vc, no release"
 claims: []
 ---
 
@@ -13,25 +13,26 @@ claims: []
 
 ## DOING
 
-- HELD FOR hv's COMPACT (molt-vc's round of 2026-10-26: lean, HV ITEMS, doc parse, localfold, then hold on the bounce for molt-vc or hv). One project at a time: Utilz has the turn, and Intent's heavy runs wait for molt-vc's word. STATE: main is clean, and the pair is 2d4c941fa05d and current. CI on 8fb1351d0 is green. NEXT, in order: (edited)
-  (1) PART B'S TRAIN, SIX BANKS. Slot 01M5WB6E22WVTYWM6ZYB4CAN81 was revoked at 15:01:34Z under load. Only light legs had run, all clean, and a revoked request is not released. When molt-vc gives Intent the turn: `intent estate slots ask heavy "<what>" --named tip=<main HEAD> --node vc`, then start, then judge-rerun.sh in tmp/wt-vc-train over these banks, in order:
+- HELD FOR hv's GO TOMORROW (end of day 2026-10-26, hv via molt-vc: localfold, close, hold). One project at a time: Utilz has the turn, and Intent's heavy runs wait for molt-vc's word. STATE: main is ddb749ca7 (the critic's exit-0 revert, hv's queue-jump), pushed to local and upstream by devbin-vc after a green kovacs preflight (842 ok, 0 not ok). The installed pair is ddb749ca7932 and current. CI on ddb749ca7 (rust 40391278700, Intent Tests 40391278720) was in progress at the push, and devbin-vc reads it tomorrow. NEXT, in order: (edited)
+  (1) PART B'S TRAIN, SIX BANKS, when molt-vc gives Intent the turn: `intent estate slots ask heavy "<what>" --named tip=<main HEAD> --node vc`, then start, then judge-rerun.sh in tmp/wt-vc-train over these banks, in order:
     - cc's wp04b-status-v2 (4ae2585f7479)
     - cc's wp04b-wait-v2 (2421b3d9719d)
     - ic's wp04b-page-v2 (8126a568631b)
     - cc's wp04b-init-v1 (e8aee9ac86d6)
     - cc's wp04b-ats-v1 (f649be3fa3ea)
-    - ic's pipeline-cell-width-v4 (e058514c0734; v1 to v3 are dropped)
-    On 00eb61a2e the tree after five is 2ca7692e71da and after six c45a889677a8.
-    Then release with a one-line result, land the banks in order, book build all, and run a fresh kovacs preflight (the first run of the ruby/main() change at 00eb61a2e). devbin-vc pushes on hv's word. ic takes a live look at the cells after the build.
+    - ic's pipeline-cell-width-v4 (e058514c0734)
+    ic measured all six applying on ddb749ca7, giving tree 229c6053f4a2.
+    Then release with a one-line result, land the banks in order, book build all, run a kovacs preflight at the landed sha, and send devbin-vc "push" with the sha only after that preflight is green (decision 96). Until issue 0657 lands, nobody commits between build all and the push. ic takes a live look at the cells after the build.
   (2) AFTER A GREEN JUDGE: cc enters WP-04's AT rows in one chain, with `intent at lint` first. Then design.md's edits through `st attach`, pending's cost measured with the judge's binary, and WP-04's gate.
-  (3) hv's answers to vc's HV ITEMS, sent to molt-vc at 17:21Z: the install HEAD check, INTENT_INSTALL_PREFIX, ST0087's status, the worktree removals and push-per-landing. ST0087 WP-05 (todo 66) follows them.
-  (4) devbin-vc's wt-reading request, and A4's counter-wording with devbin-vc.
+  (3) Issue 0657 (install currency by DIRT_SCOPE, S) goes to cc for the next train. ST0087 is started, and its WP-05 (todo 66) runs in Intent's turn. AC-05.1 is judged in a fresh login shell, since INTENT_INSTALL_PREFIX is declared in Molt-matts at 1bd41f2.
+  (4) devbin-vc's wt-reading request, and A4's counter-wording with devbin-vc. The stale worktree removals wait for molt-vc's Spotlight read at 0.
   No push by vc, no release.
 
 ## TODO
 
 - ST0088 follow-up from AC-03.2's narrowing (2026-10-25): an installed critic subagent cannot reach rules/_schema/critic-contract.md, so each agent.md repeats the shared contract. Options dc measured: a read verb such as intent claude rules contract (S to M, new surface), or installing the contract beside the agents (changes payload's one-file shape). Not before 3.2.7's cut unless hv asks.
 - ST0087 WP-05's proof: vc's shape v2 for dc's todo 53, with dc's deltas of 2026-10-26 13:46Z folded in. Nothing runs before hv's go-on. BEFORE THE SLOT: (a) An issue, filed on hv's word: `intent install` refuses after any commit past the built sha, board-only ones included. install.rs:1253-1258 compares `git rev-parse HEAD` (dev_at, line 985) with the built sha by equality, while ST0087 design.md line 24 says live project records (`intent/`) never count. The fix judges the commits between them by the dirty check's scope, or by DIRT_SCOPE (S, a bank judged in the train). Until it lands, the slot runs build all at the exact HEAD, and every node's commits stay frozen until install has published. (b) molt-vc is asked to declare INTENT_INSTALL_PREFIX="$MOLT_OPT_DIR/intent" in Molt-matts' instances/rhadamanth/vars.sh, beside UTILZ_, GTOOLS_ and MOLT_INSTALL_PREFIX, so that install and `use opt` run with no flag, as AC-05.1 reads. Failing that, --prefix with that path, and the record says the declaration is still owed. (c) design.md line 18 says the variable is "read by `install` alone", but switch.rs (lines 205 and 262) reads it for `use opt` too. The line is corrected through the attachment door, with the issue. (d) Intent.app needs no quit: the running pid 79831 is build 9053 from 7014424aa, which carries WP-03's Swift change ec266c998. THE SLOT: on rhadamanth, in the launchsvc lane, asked by dc, run from the Intent checkout inside `zsh -l -c` (which puts ~/.local/bin first), captured by plain redirection with no pty. Install publishes opt. For dev, then opt: `intent use <tree>`, both links (`ls -l ~/.local/bin/intent ~/.local/bin/intentd`), the running intentd's path, `intent --version`, and `intent doctor` with the shadow check passing. `intent use brew` must refuse (A4: the keg is unlinked and pinned); then `intent use`, the links, the version line and doctor, so that "removes nothing" is on the record. `intent use dev` back, then the links, intentd's path, the version line and doctor. AC-05.3: run from a scratch clone outside ~/Devel (`git clone --local`, detached at the tip), never a worktree and never main. `bin/devbin doctor` runs with DEVBIN_NO_UPDATE_NOTICE=1 and plain redirection, because under a TTY devbin_offer_upgrade (helpers:4203) asks "Upgrade now?" and a yes runs upgrade. `bin/devbin upgrade` runs in the clone. Each of devbin's trees, switched by `devbin use`, needs devbin-vc's word and its own slot. RECORDS: each transcript is scrubbed of other estates' names (Intent is public), attached with `intent st attach ST0087 <name>.md --from <file>`, and proved past the ingest before the commit; vc reads it against its AC before satisfying it. AFTER THE CUT: AC-05.1's brew leg (`brew unpin intent`, `brew upgrade intent`, the keg linked, `intent use brew`, the version line and doctor), which is also hv's switch back to brew, and AC-05.2 on kovacs, with brew alone.
+- (2026-10-26, hv via molt-vc) AFTER INTENT'S CUT: run `intent claude upgrade --apply --skip-settings` in Intent's own tree and commit what it prints under wrote:, by path, as every project does. kovacs ruby: hv ruled the apt ruby stays until Intent's preflight links ruby itself. dc's edit has done that since 00eb61a2e, but kovacs has no Homebrew ruby, so the green preflight at ddb749ca7 linked apt's /usr/bin/ruby 3.3.8. The apt ruby stays until a brew ruby is installed, which is hv's call for another day. Nothing is removed. (edited)
 
 ## Holds
 

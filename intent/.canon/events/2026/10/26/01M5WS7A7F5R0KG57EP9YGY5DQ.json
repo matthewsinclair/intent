@@ -1,0 +1,15 @@
+{
+  "id": "01M5WS7A7F5R0KG57EP9YGY5DQ",
+  "ts": "2026-10-26T18:58:02.607Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "(2026-10-26, hv via molt-vc) AFTER INTENT'S CUT: run `intent claude upgrade --apply --skip-settings` in Intent's own tree and commit what it prints under wrote:, by path, as every project does. kovacs ruby: hv ruled the apt ruby stays until Intent's preflight links ruby itself. dc's edit has done that since 00eb61a2e, but kovacs has no Homebrew ruby, so the green preflight at ddb749ca7 linked apt's /usr/bin/ruby 3.3.8. The apt ruby stays until a brew ruby is installed, which is hv's call for another day. Nothing is removed."
+  }
+}
