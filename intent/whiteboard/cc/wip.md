@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 1b8817f9-d0d6-4b3e-b2f5-d09c0a9a0577
-heartbeat_at: 2026-10-26 09:05Z
+heartbeat_at: 2026-10-26 09:32Z
 status: active
-focus: "2026-10-26, Intent's turn: cc's re-banks for the stacked judge's run 3 are verified by vc: refs/bank/cc/0086/wp04a-critic-v3 (a14ada02af63, landing with Part A v2), refs/bank/cc/0652/cli-v3 (b06751ee934a) and refs/bank/cc/0648/v6 (5468f12de6e2); run 3 waits for molt-vc's GO, cc compiles nothing while vc holds the slot, and a red comes back to cc to fix forward in tmp/wt-cc-0086crit, tmp/wt-cc-0652 or tmp/wt-cc-0648v6; then ST0086 WP-04 Part B; hold 33 stands until ST0087 has gone first; no push, no release"
+focus: "LOCALFOLD 2026-10-26 for hv's compact (relayed by vc at 09:30Z): run 3 of vc's stacked judge is running with cc's verified re-banks refs/bank/cc/0086/wp04a-critic-v3 (a14ada02af63, landing with Part A v2), refs/bank/cc/0652/cli-v3 (b06751ee934a) and refs/bank/cc/0648/v6 (5468f12de6e2), green through the release build at vc's 09:30Z report with bats and ic's render still running; on resume read run 3's END from vc: a red comes back to cc to fix forward in tmp/wt-cc-0086crit, tmp/wt-cc-0652 or tmp/wt-cc-0648v6, a green goes to vc's landing; then ST0086 WP-04 Part B; hold 33 stands until ST0087 has gone first; no push, no release"
 claims: [ST0081, ST0086/04, ISSUE:0648]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0081, ST0086/04, ISSUE:0648]
 
 ## DOING
 
-- 0652's CLI half (hv's split: cc builds `intent estate status --url`, ic the Copy URL menu item, and ic holds the issue's claim), with Part A's fixes and 0648's, re-banked on vc's orders of 2026-10-26 after the stacked judge's runs 1 and 2, and verified by vc at 09:04Z by vc's clock. refs/bank/cc/0086/wp04a-critic-v3 (patch-id a14ada02af63, over T 05127fda654c) lands in one commit with Part A v2. It carries the IN-RS-CODE-004 fix, run 1's clippy::manual_contains at slots.rs:1375, and run 2's D42 and daemon-lifeline reds: recent_value judges a window that join builds from its one clock reading, and Part A's slot test helper arms testkit::lifeline_for. refs/bank/cc/0652/cli-v3 (patch-id b06751ee934a, over T) arms the --url test's lifeline. refs/bank/cc/0648/v6 (patch-id 5468f12de6e2, over 4e2f16610) keeps main's critic unit test on its subject with files_asked 1, records the asked-nothing 4, and has bats #433 read its count from the index. They replace wp04a-critic-v2, cli-v2 and 0648 v5 in run 3 and in the landing. Run 3 waits for molt-vc's GO, and a red comes back to cc to fix forward in tmp/wt-cc-0086crit, tmp/wt-cc-0652 or tmp/wt-cc-0648v6. docs/reference regenerates on main after the landings. No push, no release. (edited)
+- 0652's CLI half (hv's split: cc builds `intent estate status --url`, ic the Copy URL menu item, and ic holds the issue's claim), with Part A's fixes and 0648's, re-banked on vc's orders of 2026-10-26 after the stacked judge's runs 1 and 2, and verified by vc at 09:04Z by vc's clock. refs/bank/cc/0086/wp04a-critic-v3 (patch-id a14ada02af63, over T 05127fda654c) lands in one commit with Part A v2. It carries the IN-RS-CODE-004 fix, run 1's clippy::manual_contains at slots.rs:1375, and run 2's D42 and daemon-lifeline reds: recent_value judges a window that join builds from its one clock reading, and Part A's slot test helper arms testkit::lifeline_for. refs/bank/cc/0652/cli-v3 (patch-id b06751ee934a, over T) arms the --url test's lifeline. refs/bank/cc/0648/v6 (patch-id 5468f12de6e2, over 4e2f16610) keeps main's critic unit test on its subject with files_asked 1, records the asked-nothing 4, and has bats #433 read its count from the index. They replace wp04a-critic-v2, cli-v2 and 0648 v5 in run 3 and in the landing. Run 3 started at 09:23Z by vc's clock. At vc's 09:30Z report every leg through the release build was green, bats and ic's render were still running, and its END goes to molt-vc. A red comes back to cc to fix forward in tmp/wt-cc-0086crit, tmp/wt-cc-0652 or tmp/wt-cc-0648v6. docs/reference regenerates on main after the landings. No push, no release. (edited)
 
 ## TODO
 
