@@ -5,7 +5,7 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "1b8817f9-d0d6-4b3e-b2f5-d09c0a9a0577",
-    "heartbeat_at": "2026-10-26T09:32:21.120Z",
+    "heartbeat_at": "2026-10-26T09:39:43.608Z",
     "status": "active",
     "focus": "LOCALFOLD 2026-10-26 for hv's compact (relayed by vc at 09:30Z): run 3 of vc's stacked judge is running with cc's verified re-banks refs/bank/cc/0086/wp04a-critic-v3 (a14ada02af63, landing with Part A v2), refs/bank/cc/0652/cli-v3 (b06751ee934a) and refs/bank/cc/0648/v6 (5468f12de6e2), green through the release build at vc's 09:30Z report with bats and ic's render still running; on resume read run 3's END from vc: a red comes back to cc to fix forward in tmp/wt-cc-0086crit, tmp/wt-cc-0652 or tmp/wt-cc-0648v6, a green goes to vc's landing; then ST0086 WP-04 Part B; hold 33 stands until ST0087 has gone first; no push, no release",
     "claims": [
