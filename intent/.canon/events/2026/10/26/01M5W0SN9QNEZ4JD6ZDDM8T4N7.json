@@ -1,0 +1,15 @@
+{
+  "id": "01M5W0SN9QNEZ4JD6ZDDM8T4N7",
+  "ts": "2026-10-26T11:51:09.367Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-10-26, hv's ruling relayed by molt-vc, received by vc before vc's clock read of 11:45Z; molt-vc stamped hv's words about 11:40Z on its own clock) LANDED WORKTREES: TEXT IN INTENT NOW, TOOL IN DEVBIN. hv, verbatim: \"Text in Intent now, tool in devbin\". (1) Intent 3.2.7 adds the removal step to the fold text: /in-whiteboard's Folding section and /in-finish's localfold, as vc's reading proposed. The author removes a unit's worktree at the chain END that lands it, after checks run from outside the worktree: its index tree equals the landed bank; nothing is untracked; its base is an ancestor of main; no stash entry names it. A re-bank that supersedes a worktree removes the old one. It is a light leg, filed as an Intent issue and landed BEFORE the kovacs preflight, whose order is then re-aimed at the new HEAD, since hv approved it going in ahead of the kovacs check so that one preflight covers it. (2) The report-and-remove tool is a devbin issue for devbin's next release, after 0.1.15, so every estate gets it. vc's reading is its spec, and refs/bank/vc/tools/wt-inventory.sh and wt-pass2.sh are its measure; devbin-vc files it after hv's 0.1.15 cut. (3) The removals of the stale worktrees wait for hv's ~/Devel Spotlight exclusion, on molt-vc's word."
+  }
+}
