@@ -1,0 +1,16 @@
+{
+  "id": "01M5VTT8N65A21TSPSD7H96RS4",
+  "ts": "2026-10-26T10:06:37.734Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 59,
+    "text": "RESUME (2026-10-26, after hv's second /compact): INTENT'S TRAIN HAS LANDED. pre_commit_hook.bats ran green alone on the v7 stack (tree af53179f953d) against run 3's release binary at 09:48Z by date -u, with START and END to molt-vc. The landing chain (CHAIN START 09:54Z, START to molt-vc) put the eleven banks on main as ten commits at their judged patch-ids, each with the census in its commit: caca80a94 (dc 0644-doc v1), afead5725 (ic tui-doc v1), 82546e69a (cc 0648 v7), 9081080d8 (cc Part A v2 with critic-v3), 58fa7f9c9 (ic page-v3), 25d3730f7 (dc 0087-04 v3), bd3dbf682 (ic arms-v3), a6d058827 (cc 0652 cli-v3), 69731c940 (ic 0652 app-v1) and 754f28fd2 (dc 0653 v1). Then came c8744d25e (the held CHANGELOG lines for 0652 and 0653), b0035106e (ST0086 AT-02.2 and AT-02.6 green, WP-02 done) and 8abc428b4 (0648 and 0653 closed). Main differs from the judged tree only in board, store and view files and those CHANGELOG lines. 0652 stays OPEN until ic's live check of Copy URL. NEXT, in order: CHAIN END to cc, dc and ic, and END to molt-vc; READY to molt-vc for build all (heavy; the first READY goes); build all on its GO with START and END to every estate's vc, then intent daemon restart, so the installed pair carries the train (the gate's self-provenance line says the pair is behind until then); the kovacs preflight at that HEAD through kovacs-sysadm, relayed by molt-vc; devbin-vc's upstream push; ic's app build and install once molt-vc says hv has quit Intent.app, then ic's live check, then vc closes 0652; intent claude skills sync, announced to every vc; docs/reference regenerates at the cut (ic's hold 12). ALSO OWED: hv's ask through molt-vc (09:55Z by its clock): sort Intent's worktrees under tmp/ into live and stale, remove the stale ones with git worktree remove and a prune as a light leg with START and END to molt-vc, keep tmp/wt-vc-train until the release is done, and give molt-vc the reason they pile up, with an issue if the gap is small. Also: dc's test-do arm for ST0087 AC-04.1 (hv in dc's session: \"Ok, go with your rec: 1.\"), banked as refs/bank/dc/0087-04/test-do-v1 for vc to verify and land; dc's fix-forward of the verblock guard's Broken pipe at verblock-guard.sh:138 (cosmetic, verdict unchanged); and cc's ST0086 WP-04 Part B on vc's word. No push, no release."
+  }
+}
