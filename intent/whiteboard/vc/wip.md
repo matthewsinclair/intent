@@ -2,10 +2,10 @@
 node: vc
 name: Validation Claude
 role: validation
-session_id: 78d66f67-02b7-4497-bbec-4466e2fcb852
-heartbeat_at: 2026-10-25 18:04Z
+session_id: ba4ebc52-48ef-410b-bcc0-2e67b291a48f
+heartbeat_at: 2026-10-26 06:33Z
 status: active
-focus: "18:04Z: strip live at ea94f91b0 (built 17:41Z), empty until WP-04 Part A's slots (decision 88 + 3 amendments; cc reader in wt-cc-0086a, ic page wp04a-page-v2 verified; one combined heavy judge, cc's reader lands first). Queued: ic's ST0087 WP-03 rejudge at e756e484a (wp03-v6 verified; also the post-landing judge for ST0086 WP-03 + strip), cc's 0648 judge (v1 verified, pattern measured), dc's ST0088 WP-03 judge (v1 verified; dc stopped). Then AT rows, ST0088 WP-04 AFTER reading, app rebuild after 0087. SIGKILL drive done (no orphan). No push, no release"
+focus: "2026-10-26 06:32Z: holding for molt-vc on a VCs-only day; Intent is called fourth. With hv via molt-vc: where the verblock rule lives (vc's FOR hv message). On Intent's call: ic rebases its arms bank over cc's Part A and its page (they conflict in intentd census.rs), then one stacked judge for all five banks, the landings, and a build all. No push, no release"
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- RESUME STATE, LOCALFOLD 8 (2026-10-25 16:27Z, hv's call via molt-vc before a compact): 3.2.7 is the one release (decision 76). The installed pair is at 397d7568e (built 15:10Z) and prints +dirty because the runtime set moved since (ST0088), by design; BUILD ALL READY (heavy) at molt-vc's desk, GO only after hv says continue; on GO announce the restart to utilz-vc, devbin-vc, laksa-vc, conflab-vc, gtools-vc and molt-vc, then zsh $S/build-all-4.sh $S <HEAD>, END; it carries 0645 already built plus 0646 (app), 0647 (the line without its root), ST0088 (templates and skills), and 0644 if landed first. LANDED TODAY after the morning: 0645, 0646 (app masthead and Open), 0647 (decision 82), ST0087 WP-01+02 and ic's doc lines, ST0088 WP-01+02 (the cull, 15 skills) and its doc lines and rows (WP-01/02 done), the pipeline strip docs (decision 83, AC-04.7). OPEN ISSUES: 0644 (dc's judge RUNNING, started 16:24Z; on green END vc lands refs/bank/dc/0644/<ready> after hv's continue, closes it, then the build all also carries its doctor arm), 0648 (cc, XS to S, after continue: the critic's exit code when nothing asked, Swift proxies). QUEUE at molt-vc's desk after continue: dc 0644 landing (light), build all (heavy), ic's ST0087 WP-03 rerun at da46922af rebased over main (vc's word given; land via land-bank.sh with $S/wp03/bank.patch re-verified after the rebase, design ingest check, generator check; then AT-03.1..03.6 rows and ic's wp done), ic's app build and install (its own heavy, then hv sees the fixed menu), dc's ST0088 WP-03 (templates, critics, dead subagent files, AC-03.1..03.4), ST0088 WP-04 (vc+ic: the AFTER reading with $S/st88/measure/bytes-before-first-prompt.sh after WP-03; the skills sync measured in an isolated HOME, announced to every vc first), dc's ST0087 WP-04 (docs end on brew, decision 80; int local retired), ST0086 WP-03 (ic, TUI) and WP-04 (cc with ic; slots and the pipeline strip; ACs 04.1 to 04.7; the throwaway-session SIGKILL drive waits on hv's yes), ST0087 WP-05 proof (vc with dc; kovacs half after the tap), then the cut-side work (todo 50), the kovacs Linux check, hv's cut. RULINGS TODAY: 76 one release; 77; 78 (confirmed); 79 (critic leg; NOT-ASKED class; known positive first); 80 brew by default; 81 the cull; 82 the root off the line; 83 the pipeline strip. The contract's A1, A2 (SAME with vc's wording), A3 (SAME) land with devbin 0.1.15; the use-brew refusal clarification is a later round. Memories written today: GIT_DIR reaches other-tree spawns; a visible regression is never an interim; the critic leg; the head-pipe commit hazard. HOLDS: no push, no release, no heavy start until hv says continue; molt-vc's desk is the one host queue.
+_(none)_
 
 ## TODO
 
