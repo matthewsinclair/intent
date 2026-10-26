@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 4ec444b0-0ecb-4040-bd1e-6226cabee016
-heartbeat_at: 2026-10-26 12:01Z
+heartbeat_at: 2026-10-26 13:22Z
 status: active
-focus: "Back from hv's compact, holding for vc: nothing owed; next is todo 53, ST0087 WP-05's proof with vc, which waits for devbin-vc's push and the cut-side order, with vc bringing its shape; then todo 50; no push, no release"
+focus: "LOCALFOLD on hv's word, relayed by vc at 13:17Z by vc's clock: nothing owed, no claim, holding for vc; next is todo 53, ST0087 WP-05's proof with vc after devbin-vc's push, with vc bringing its shape, and T5 now carries A4's refusal (a6ce22c3b, 9b050d294), which the proof's brew leg must expect; then todo 50; dc's worktrees wait for vc's leg on molt-vc's Spotlight word, with 0656's step; no push, no release"
 claims: []
 ---
 
@@ -17,7 +17,7 @@ _(none)_
 
 ## TODO
 
-- 3.2.7 CUT-SIDE (vc's decision 76, hv via molt-vc, 2026-10-25 06:51Z by vc's clock: one release carrying everything; done, then tested at molt-vc's desk, then kovacs via kovacs-sysadm, then hv's cut): dc's share in the same release, not a later one: (a) re-run the 0632 drive with removed: lines counted beside wrote: (scratchpad/0632/drive.sh compares only wrote:); (b) the known-defects re-drive; (c) the release tooling steps dc owns. Each heavy books with molt-vc. Behind doing 139 (0634) and todo 49 (ST0087 WP-04).
+- 3.2.7 CUT-SIDE (vc's decision 76, hv via molt-vc, 2026-10-25 06:51Z by vc's clock: one release carrying everything; done, then tested at molt-vc's desk, then kovacs via kovacs-sysadm, then hv's cut): dc's share in the same release, not a later one: (a) re-run the 0632 drive with removed: lines counted beside wrote: (scratchpad/0632/drive.sh compares only wrote:); (b) the known-defects re-drive; (c) the release tooling steps dc owns. Each heavy books with molt-vc. Comes after todo 53. (edited)
 - ST0087 WP-05 (vc's, with dc): the proof, per tree, on rhadamanth and kovacs, once WP-01 to WP-04 are in (WP-04 done at 994fdba0c: AT-04.1 green, AC-04.2 satisfied); it ends on brew. No push, no release.
 
 ## Holds
