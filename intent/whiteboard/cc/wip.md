@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 1b8817f9-d0d6-4b3e-b2f5-d09c0a9a0577
-heartbeat_at: 2026-10-26 13:32Z
+heartbeat_at: 2026-10-26 13:55Z
 status: active
-focus: "LOCALFOLD 2026-10-26 (hv's word via vc, 13:17Z): ST0086 WP-04 Part B banked as a stack (wp04b-status-v2 4ae2585f7479, wp04b-wait-v2 2421b3d9719d, ic's wp04b-page-v2 8126a568631b, wp04b-init-v1 e8aee9ac86d6), still applying on main after 0654, 0656 and A4 by cc's measurement; its judge runs after devbin-vc's push as the first run molt-vc books through the slot records; a red comes back to cc in tmp/wt-cc-0086b, and a fix-forward bank carries no CHANGELOG hunk; owed after the landing: AT rows for WP-04's uncovered criteria (AC-04.1 to 04.6, 04.8 to 04.13), design.md's key paragraph, pending's measured cost; hold 33 stands until ST0087 has gone first; no push, no release"
+focus: "HOLD on hv's word, relayed by vc at 13:43Z by vc's clock, and molt-vc's machine-wide round (slots desk hold 01M5W7E40CE071QMSE4JT8KWXQ): no task, no slot ask, no run until hv says go on. On hv's go-on, ST0086 WP-04 Part B's judge is the first run molt-vc books through the slot records, on vc's word, over the stack wp04b-status-v2 4ae2585f7479, wp04b-wait-v2 2421b3d9719d, ic's wp04b-page-v2 8126a568631b, wp04b-init-v1 e8aee9ac86d6; a red comes back to cc in tmp/wt-cc-0086b, and a fix-forward bank carries no CHANGELOG hunk; owed after the landing: AT rows for WP-04's uncovered criteria (AC-04.1 to 04.6, 04.8 to 04.13), design.md's key paragraph, pending's measured cost; hold 33 stands until ST0087 has gone first; no push, no release"
 claims: [ST0081, ST0086/04]
 ---
 
