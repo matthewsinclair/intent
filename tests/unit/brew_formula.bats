@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# Guards for Intent's Homebrew formula, rendered by `bin/int brew formula` and by
+# Guards for Intent's Homebrew formula, rendered by `bin/int brew render` and by
 # `bin/int macos publish` through one renderer, `cmd/shared/brew.lib` (ST0081
 # WP-06). The formula names macOS arm64's intent, intentd and support tree and
 # the Linux x86_64 and aarch64 packages, and every sha256 in it is read from the
@@ -16,6 +16,8 @@ load "../lib/test_helper.bash"
 # testing without editing the shipped file, as INTENT_MACOS_SCRIPT does.
 BREW_LIB="${INTENT_BREW_LIB:-${INTENT_HOME}/bin/.devbin/cmd/shared/brew.lib}"
 FIVE="intent-aarch64-apple-darwin intentd-aarch64-apple-darwin intent-support.tar.gz intent-x86_64-unknown-linux-musl.tar.gz intent-aarch64-unknown-linux-musl.tar.gz"
+# The commit render_formula hands the renderer, as brew_source_commit would.
+PLANTED_COMMIT="0123456789abcdef0123456789abcdef01234567"
 
 # assets_in <dir> <asset>... -- a directory holding a small stand-in for each.
 assets_in() {
@@ -25,11 +27,11 @@ assets_in() {
   for a in "$@"; do printf 'stand-in for %s\n' "$a" >"$dir/$a"; done
 }
 
-# brew_formula_verb <arg>... -- the real verb, from the project root, which the
-# dispatcher requires.
-brew_formula_verb() {
+# brew_render_verb <arg>... -- the real `brew render`, from the project root,
+# which the dispatcher requires.
+brew_render_verb() {
   cd "$INTENT_PROJECT_ROOT" || return 1
-  run bin/int brew formula "$@"
+  run bin/int brew render "$@"
 }
 
 # render_formula -- the release's shape through the lib's own renderer, from a
@@ -50,7 +52,7 @@ render_formula() {
     printf 'aaa  intent-%s\nbbb  intentd-%s\nccc  %s\n' "$MACOS_TRIPLE" "$MACOS_TRIPLE" "$SUPPORT_ASSET"
     for t in $LINUX_TRIPLES; do printf 'ddd-%s  %s\n' "$t" "$(brew_linux_asset "$t")"; done
   } >"$sums"
-  brew_render_formula 9.9.9 0 release "$sums"
+  brew_render_formula 9.9.9 0 release "$sums" "$PLANTED_COMMIT"
 }
 
 # brew_sandbox -- SB, a copy of this checkout's bin/ whose STAGE_DIR is its own,
@@ -96,6 +98,17 @@ cp "$CURL_FIXTURES/${url##*/}" "$out"
 EOF
   chmod +x "$SHIMS/rustc" "$SHIMS/gh" "$SHIMS/curl"
 }
+
+# sandbox_tag -- make SB a repository whose one commit carries the annotated tag
+# v9.9.9, so a release formula has a commit for the keg's manifest to name, and
+# print that commit. The sandbox is untagged by default because `macos publish`
+# refuses there for want of the tag, and its arm asserts that refusal.
+sandbox_tag() {
+  local g=(git -C "$SB" -c user.name=t -c user.email=t@t.invalid -c core.hooksPath=/dev/null -c commit.gpgsign=false -c tag.gpgsign=false)
+  "${g[@]}" init -q && "${g[@]}" commit -q --allow-empty -m sandbox && "${g[@]}" tag -a v9.9.9 -m v9.9.9 &&
+    git -C "$SB" rev-parse 'v9.9.9^{commit}'
+}
+
 
 # hash_of <file> -- its sha256, from whichever tool this host has.
 hash_of() {
@@ -177,7 +190,7 @@ stage_release() {
     others="$(printf '%s\n' $FIVE | grep -vxF "$a" | tr '\n' ' ')"
     # shellcheck disable=SC2086
     assets_in "$base" $others
-    brew_formula_verb --from "file://$base" --version 9.9.9
+    brew_render_verb v9.9.9 - --from "file://$base"
     [ "$status" -ne 0 ] || fail "a base without $a rendered: $output"
     [[ "$output" == *"missing: $a from file://$base/$a"* ]] || fail "the refusal did not name $a with its URL: $output"
     [[ "$output" != *"class Intent"* ]] || fail "a partial formula was printed without $a: $output"
@@ -187,8 +200,10 @@ stage_release() {
 @test "success: --dev-tap with only the Linux aarch64 package renders that branch with a version line and names the rest" {
   local base="${TEST_TEMP_DIR}/arm"
   assets_in "$base" intent-aarch64-unknown-linux-musl.tar.gz
-  brew_formula_verb --from "file://$base" --version 9.9.9 --dev-tap
+  brew_render_verb v9.9.9 - --from "file://$base" --dev-tap
   assert_success
+  # No tag v9.9.9 in this checkout, so the dev tap's manifest names HEAD, and says so.
+  assert_output_contains "no tag v9.9.9 here, so the dev tap's manifest names HEAD"
   assert_output_contains "NOT THE RELEASE FORMULA"
   assert_output_contains '  version "9.9.9"'
   assert_output_contains "  depends_on :linux"
@@ -209,9 +224,10 @@ stage_release() {
   done
 }
 
-@test "invariant: brew formula --push refuses without a terminal, before fetching anything" {
-  brew_formula_verb --push </dev/null
-  [ "$status" -eq 1 ] || fail "--push without a terminal exited $status: $output"
+@test "invariant: brew publish refuses without a terminal, before fetching anything" {
+  cd "$INTENT_PROJECT_ROOT" || return 1
+  run bin/int brew publish </dev/null
+  [ "$status" -eq 1 ] || fail "publish without a terminal exited $status: $output"
   assert_output_contains "nobody to ask"
   assert_output_contains "Nothing was fetched and nothing was pushed"
   refute_output_contains "missing:"
@@ -221,6 +237,8 @@ stage_release() {
   local a
   brew_sandbox
   stage_release
+  local commit
+  commit="$(sandbox_tag)" || fail "the sandbox could not be tagged"
   CURL_FIXTURES="${TEST_TEMP_DIR}/served"
   mkdir -p "$CURL_FIXTURES"
   for a in intent-aarch64-apple-darwin intentd-aarch64-apple-darwin intent-support.tar.gz; do
@@ -229,12 +247,14 @@ stage_release() {
   assets_in "$CURL_FIXTURES" intent-x86_64-unknown-linux-musl.tar.gz intent-aarch64-unknown-linux-musl.tar.gz
   # THE CONTROL FIRST: served bytes equal to the staged ones render, from the
   # release's own URLs.
-  run env PATH="$SHIMS:$PATH" CURL_FIXTURES="$CURL_FIXTURES" bash -c 'cd "$1" && bin/int brew formula' _ "$SB"
+  run env PATH="$SHIMS:$PATH" CURL_FIXTURES="$CURL_FIXTURES" bash -c 'cd "$1" && bin/int brew render v9.9.9 -' _ "$SB"
   [ "$status" -eq 0 ] || fail "the control did not render: $output"
   assert_output_contains 'url "https://github.com/matthewsinclair/intent/releases/download/v#{RELEASE_VERSION}/intent-aarch64-apple-darwin"'
+  # The manifest names the tag's commit, read from git, never typed.
+  assert_output_contains "  SOURCE_COMMIT = \"$commit\".freeze"
   # Then the release serves a daemon the proof did not cover.
   printf 'other bytes\n' >"$CURL_FIXTURES/intentd-aarch64-apple-darwin"
-  run env PATH="$SHIMS:$PATH" CURL_FIXTURES="$CURL_FIXTURES" bash -c 'cd "$1" && bin/int brew formula' _ "$SB"
+  run env PATH="$SHIMS:$PATH" CURL_FIXTURES="$CURL_FIXTURES" bash -c 'cd "$1" && bin/int brew render v9.9.9 -' _ "$SB"
   [ "$status" -ne 0 ] || fail "a served daemon the sums do not record rendered: $output"
   assert_output_contains "intentd-aarch64-apple-darwin at https://github.com/matthewsinclair/intent/releases/download/v9.9.9 hashes to"
   assert_output_contains "SHA256SUMS.txt records"
@@ -295,7 +315,7 @@ stage_release() {
     end'
 }
 
-@test "invariant: with no sha256 tool on PATH, brew formula refuses and says why, where it exited in silence" {
+@test "invariant: with no sha256 tool on PATH, brew render refuses and says why, where it exited in silence" {
   # brew_fetch runs with its stderr in a file that brew_formula shows only on its
   # own way out, so a refusal that ended the subshell from inside the fetch was
   # written into that file and never shown, and the temp directory stayed (vc,
@@ -309,11 +329,117 @@ stage_release() {
     ln -s "$p" "$bin/$t"
   done
   cd "$INTENT_PROJECT_ROOT" || return 1
-  run env PATH="$bin" TMPDIR="$tmp" bin/int brew formula --from "file://$base" --version 9.9.9 --dev-tap
-  [ "$status" -ne 0 ] || fail "brew formula rendered with no sha256 tool on PATH: $output"
+  run env PATH="$bin" TMPDIR="$tmp" bin/int brew render v9.9.9 - --from "file://$base" --dev-tap
+  [ "$status" -ne 0 ] || fail "brew render rendered with no sha256 tool on PATH: $output"
   assert_output_contains "neither sha256sum nor shasum is on PATH"
   refute_output_contains "class Intent"
   [ -z "$(ls -A "$tmp")" ] || fail "the fetch directory was left behind: $(ls -A "$tmp")"
+}
+
+# THE KEG'S MANIFEST (ST0087 T3): the formula writes `.intent-install` over what
+# it laid out, because the keg has no checkout to run `intent install` in.
+
+@test "the formula writes the keg's manifest in T3's form, with managed_by brew" {
+  run render_formula
+  assert_success
+  assert_output_contains "  SOURCE_COMMIT = \"$PLANTED_COMMIT\".freeze"
+  assert_output_contains '    manifest = libexec/".intent-install"'
+  # In `install`: Homebrew 7's `brew style` refuses a post_install.
+  refute_output_contains "def post_install"
+  assert_output_contains '      "# tool: intent",
+      "# version: #{RELEASE_VERSION}",
+      "# source_commit: #{SOURCE_COMMIT}",
+      "# managed_by: brew",'
+}
+
+@test "the install block's manifest lists every file under libexec as shasum -c input" {
+  command -v ruby >/dev/null || fail "this arm runs the formula's own Ruby, and this host has no ruby"
+  local root="${TEST_TEMP_DIR}/keg/libexec" def="${TEST_TEMP_DIR}/manifest.rb" harness="${TEST_TEMP_DIR}/harness.rb" sum f
+  run render_formula
+  assert_success
+  # The manifest's lines as rendered, from its first statement to the write.
+  printf '%s\n' "$output" | awk '/^    manifest = libexec\/"\.intent-install"$/ {on=1} on {print} on && /^    manifest\.write/ {exit}' >"$def"
+  grep -q '^    manifest\.write' "$def" || fail "no manifest write in the rendered formula"
+  # The keg's libexec, stood in: its files are listed and summed, never run.
+  for f in bin/intent bin/intentd lib/templates/a.md intent/plugins/claude/.keep; do
+    mkdir -p "$root/${f%/*}"
+    printf '%s\n' "$f" >"$root/$f"
+  done
+  # Homebrew's own Pathname#sha256 and the formula's two constants, stood in.
+  cat >"$harness" <<'RUBY'
+require "pathname"
+require "digest"
+class Pathname
+  def sha256
+    Digest::SHA256.file(self).hexdigest
+  end
+end
+RELEASE_VERSION = "9.9.9".freeze
+SOURCE_COMMIT = "0123456789abcdef0123456789abcdef01234567".freeze
+def libexec
+  Pathname.new(ARGV[0])
+end
+eval(File.read(ARGV[1]))
+RUBY
+  run ruby "$harness" "$root" "$def"
+  assert_success
+  run cat "$root/.intent-install"
+  assert_output_contains "# tool: intent
+# version: 9.9.9
+# source_commit: $PLANTED_COMMIT
+# managed_by: brew"
+  assert_output_contains "  intent/plugins/claude/.keep"
+  refute_output_contains ".intent-install"
+  if command -v shasum >/dev/null 2>&1; then sum="shasum -a 256 -c"; else sum="sha256sum -c"; fi
+  run bash -c "cd \"\$1\" && grep -v '^#' .intent-install | $sum" _ "$root"
+  assert_success
+  [ "$(printf '%s\n' "$output" | grep -c ': OK$')" -eq "$(cd "$root" && find . -type f ! -name .intent-install | grep -c .)" ] ||
+    fail "the manifest does not list every file under libexec: $output"
+  # And the check can fail: a file changed after the manifest is a mismatch.
+  printf 'changed\n' >"$root/lib/templates/a.md"
+  run bash -c "cd \"\$1\" && grep -v '^#' .intent-install | $sum" _ "$root"
+  [ "$status" -ne 0 ] || fail "a changed file still matched the manifest: $output"
+}
+
+@test "the rendered caveat names intent use for a maintainer with a dev or opt tree" {
+  run render_formula
+  assert_success
+  assert_output_contains '`intent` with `intent use`, and `intent use brew` hands it back to this keg.'
+}
+
+@test "invariant: brew render takes a release tag, and refuses a bare version" {
+  brew_render_verb 9.9.9 -
+  [ "$status" -ne 0 ] || fail "a bare version rendered: $output"
+  assert_output_contains "brew render takes a release tag, v<version>, got '9.9.9'"
+  brew_render_verb v9.9.9
+  [ "$status" -ne 0 ] || fail "render with no <out> ran: $output"
+  assert_output_contains "usage: bin/devbin brew render <tag> <out>"
+}
+
+@test "invariant: a release formula in a checkout without its tag refuses by name and renders nothing" {
+  local a
+  brew_sandbox
+  stage_release
+  CURL_FIXTURES="${TEST_TEMP_DIR}/served"
+  mkdir -p "$CURL_FIXTURES"
+  for a in intent-aarch64-apple-darwin intentd-aarch64-apple-darwin intent-support.tar.gz; do
+    cp "$SB/native/rust/target/dist/$a" "$CURL_FIXTURES/$a"
+  done
+  assets_in "$CURL_FIXTURES" intent-x86_64-unknown-linux-musl.tar.gz intent-aarch64-unknown-linux-musl.tar.gz
+  run env PATH="$SHIMS:$PATH" CURL_FIXTURES="$CURL_FIXTURES" bash -c 'cd "$1" && bin/int brew render v9.9.9 -' _ "$SB"
+  [ "$status" -ne 0 ] || fail "a release formula rendered with no tag to name: $output"
+  assert_output_contains "no tag v9.9.9 in"
+  refute_output_contains "class Intent"
+}
+
+@test "success: brew render writes <out> and names it" {
+  local base="${TEST_TEMP_DIR}/arm" out="${TEST_TEMP_DIR}/intent.rb"
+  assets_in "$base" intent-aarch64-unknown-linux-musl.tar.gz
+  brew_render_verb v9.9.9 "$out" --from "file://$base" --dev-tap
+  assert_success
+  assert_output_contains "wrote: $out"
+  refute_output_contains "class Intent"
+  grep -q '^class Intent < Formula$' "$out" || fail "$out does not hold the formula"
 }
 
 # THE CASK (issue 0634): Casks/intent-app.rb, rendered from the bytes of
@@ -323,7 +449,7 @@ stage_release() {
 @test "success: --cask renders the app's cask from the zip's own bytes, at the release's URL" {
   local base="${TEST_TEMP_DIR}/app"
   assets_in "$base" Intent.app.zip
-  brew_formula_verb --cask --from "file://$base" --version 9.9.9
+  brew_render_verb v9.9.9 - --cask --from "file://$base"
   assert_success
   assert_output_contains 'cask "intent-app" do'
   assert_output_contains '  version "9.9.9"'
@@ -339,7 +465,7 @@ stage_release() {
   local base="${TEST_TEMP_DIR}/no-app"
   # shellcheck disable=SC2086 # FIVE is space-free names, split on purpose
   assets_in "$base" $FIVE
-  brew_formula_verb --cask --from "file://$base" --version 9.9.9
+  brew_render_verb v9.9.9 - --cask --from "file://$base"
   [ "$status" -ne 0 ] || fail "a base with no app zip rendered a cask: $output"
   assert_output_contains "missing: Intent.app.zip from file://$base/Intent.app.zip"
   refute_output_contains 'cask "intent-app"'
@@ -352,12 +478,12 @@ stage_release() {
   mkdir -p "$CURL_FIXTURES"
   cp "$SB/native/rust/target/dist/Intent.app.zip" "$CURL_FIXTURES/Intent.app.zip"
   # THE CONTROL FIRST: the staged zip, served, renders.
-  run env PATH="$SHIMS:$PATH" CURL_FIXTURES="$CURL_FIXTURES" bash -c 'cd "$1" && bin/int brew formula --cask' _ "$SB"
+  run env PATH="$SHIMS:$PATH" CURL_FIXTURES="$CURL_FIXTURES" bash -c 'cd "$1" && bin/int brew render v9.9.9 - --cask' _ "$SB"
   [ "$status" -eq 0 ] || fail "the control did not render: $output"
   assert_output_contains "  sha256 \"$(hash_of "$CURL_FIXTURES/Intent.app.zip")\""
   # Then the release serves a zip the proof did not cover.
   printf 'other bytes\n' >"$CURL_FIXTURES/Intent.app.zip"
-  run env PATH="$SHIMS:$PATH" CURL_FIXTURES="$CURL_FIXTURES" bash -c 'cd "$1" && bin/int brew formula --cask' _ "$SB"
+  run env PATH="$SHIMS:$PATH" CURL_FIXTURES="$CURL_FIXTURES" bash -c 'cd "$1" && bin/int brew render v9.9.9 - --cask' _ "$SB"
   [ "$status" -ne 0 ] || fail "a served zip the sums do not record rendered: $output"
   assert_output_contains "Intent.app.zip at https://github.com/matthewsinclair/intent/releases/download/v9.9.9 hashes to"
   assert_output_contains "SHA256SUMS.txt records"

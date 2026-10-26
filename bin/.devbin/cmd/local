@@ -1,21 +1,15 @@
 #!/usr/bin/env bash
 #
-# devbin: summary = The v3 install on THIS machine -- bindings, build, install, reversal
-# devbin: args = <status|build|install|use|uninstall>
-# bin/devbin local <status|build|install|use|uninstall>
+# devbin: summary = The v3 install on THIS machine -- bindings and the guarded build
+# devbin: args = <status|build>
+# bin/devbin local <status|build>
 #   status             every `intent` binding, PATH order, plus pair currency and store health
 #   build              the guarded release build, the same path as `build all`
-#   install --yes      symlink `intent`/`intentd` in $INTENT_LOCAL_BINDIR (default ~/.local/bin)
-#   use [dev|prod] [--yes]  switch which build answers `intent`: dev unlinks and
-#                      pins the brew formula and links this checkout's pair into
-#                      $INTENT_LOCAL_BINDIR (--yes when no formula is installed);
-#                      prod unpins and relinks the formula; bare reports
-#   uninstall          remove the links into this checkout's pair; the way back
 #
-# `install` without --yes verifies the pair, prints what it would do and
-# refuses. `use dev` needs --yes only when no brew formula is installed. The
-# links take their own names, `intent`/`intentd`, since 2026-08-27; before
-# that `install` minted `intent3` while the fleet was still v2.
+# `install`, `use` and `uninstall` retired with ST0087 WP-04: the links in
+# ~/.local/bin are `intent use`'s alone (the contract's T5), and `intent use
+# dev|opt|brew` moves them.
+#
 #
 # WHY `status` EXISTS, AND IT IS THE REASON FOR THE WHOLE COMMAND. On 2026-08-21
 # this estate's own record undercounted the `intent` bindings:
@@ -65,29 +59,7 @@ set -euo pipefail
 . "$(dirname "${BASH_SOURCE[0]}")/shared/releasebuild.lib"
 . "$(dirname "${BASH_SOURCE[0]}")/shared/runtime.lib"
 
-BINDIR="${INTENT_LOCAL_BINDIR:-$HOME/.local/bin}"
 # RELEASE_DIR and PRIVATE_RELEASE_DIR live in releasebuild.lib, sourced above.
-# The names v3 takes locally: its own. `<built>:<installed>`.
-#
-# THIS USED TO MINT `intent3`/`intentd3` AND THE REASON HAS EXPIRED. cmd_install
-# said, in these words, "NEVER `intent` -- installing v3 under that name shadows
-# v2 for every other project on this machine in one move". That was true while
-# the fleet was v2. As of 2026-08-27 every estate but Intentv2 was on v3.0.0,
-# and Intentv2 is frozen by ruling and never on the port list.
-#
-# The rule was also being kept by nobody in either direction: `~/.local/bin/
-# intent3` did not exist on this machine, so the name this minted was one no one
-# had -- while `~/.local/bin/intent -> target/release/intent`, the binding it
-# forbade, is what actually resolved, placed by hand. A rule that is neither
-# followed nor enforced is not protecting anything; it is just a stale comment
-# that makes the real state look deliberate.
-#
-# Reversibility does not depend on this name and never did. It is a per-project
-# DATA property (ST0058 AC-00.4): `intent upgrade` per project to go forward,
-# `git checkout . && git clean -fd && rm -rf intent/.cache` to go back. The live
-# switch between builds is `int local use dev|prod`, below.
-PAIR="intent:intent intentd:intentd"
-
 # path_hits <name> -- every executable of <name> on PATH, as "<position>\t<path>".
 #
 # Walks PATH itself rather than asking `which -a`, because the POSITION is the
@@ -145,7 +117,7 @@ cmd_status() {
 
   step "intent bindings on this machine, in PATH order (first one wins)"
   # THE RETIRED NAMES STAY IN THIS SCAN DELIBERATELY. `intent3`/`intentd3` are
-  # no longer minted (see PAIR above), but a machine that ran the old
+  # no longer minted by anything, but a machine that ran the long-retired
   # `int local install` still HAS them, pointing straight at the release dir
   # with no coherence guard. Dropping them from the scan would make this
   # command stop reporting the exact leftover it exists to surface.
@@ -361,284 +333,12 @@ cmd_build() {
   guarded_release_build
 }
 
-cmd_install() {
-  local yes="" pair src dst
-  [ "${1:-}" = "--yes" ] && yes=1
-
-  step "what this will do"
-  printf '    %s\n' "$BINDIR/intent   -> $RELEASE_DIR/intent"
-  printf '    %s\n' "$BINDIR/intentd  -> $RELEASE_DIR/intentd"
-  printf '\n'
-  printf '    UNDER THEIR OWN NAMES. This minted `intent3`/`intentd3` while the fleet\n'
-  printf '    was v2 and shadowing `intent` would have changed every project at once.\n'
-  printf '    That is over: the estate is on v3 and the only v2 checkout left is\n'
-  printf '    frozen and off the port list. The way back is `bin/devbin local use prod`.\n'
-  printf '\n'
-  printf '    SYMLINKS, NOT COPIES, and that is CORRECTNESS rather than convenience.\n'
-  printf '    `claude hook` finds its scripts by walking current_exe() ancestors for\n'
-  printf '    lib/templates/. A symlink is canonicalised first, so the walk still lands\n'
-  printf '    inside the checkout; a COPY has no marker above it and every hook refuses\n'
-  printf '    at EXIT 1 -- which Claude Code does not block on, so the strict in-session\n'
-  printf '    gate would silently stop enforcing in every project at once. Driven both\n'
-  printf '    ways 2026-08-21 (ic found it; dc measured the link and copy arms).\n'
-  printf '    They also track this checkout, so `cargo clean` breaks them loudly.\n'
-
-  verify_pair
-
-  if [ -z "$yes" ]; then
-    die "machine-wide change outside this checkout -- re-run with --yes if that is what you want"
-  fi
-
-  mkdir -p "$BINDIR" || die "cannot create $BINDIR"
-  for pair in $PAIR; do
-    src="$RELEASE_DIR/${pair%%:*}"
-    dst="$BINDIR/${pair##*:}"
-    [ -f "$src" ] || die "missing $src -- run 'bin/devbin local build' first"
-    [ ! -e "$dst" ] || [ -L "$dst" ] ||
-      die "$dst exists and is not a symlink -- refusing to replace a real file"
-    ln -sfn "$src" "$dst" || die "could not link $dst"
-    printf '    linked %s\n' "$dst"
-  done
-  step "done -- the way back is 'bin/devbin local uninstall'"
-  cmd_status
-}
-
-# ---------------------------------------------------------------------------
-# cmd_use -- switch which BUILD answers `intent` on this machine.
-#
-#   int local use          report what actually resolves (delegates to status)
-#   int local use prod     the brew-installed release
-#   int local use dev      this checkout's build
-#
-# MECHANISM: `brew link` / `brew unlink`. `/opt/homebrew/bin` sits ahead of the
-# dev symlinks (`~/.local/bin`, `~/bin`) on PATH, so while the formula is linked
-# brew wins and nothing built here is ever reached. Unlinking removes brew's symlinks and
-# PATH falls through. That is Homebrew's own sanctioned, reversible mechanism;
-# hand-editing `/opt/homebrew/bin` or reordering PATH is neither.
-#
-# WHY THIS IS NOT A PORT OF CONFLAB'S `use`, AND THE DIFFERENCE IS THE WHOLE RISK.
-# Conflab unlinks brew and falls through TO NOTHING. WE FALL THROUGH TO
-# WHATEVER `~/.local/bin/intent` and `~/bin/intent` point at, and when this was
-# written both were symlinks into the FROZEN v2 tree. Then a bare unlink does
-# not select the dev build, IT SELECTS v2 -- right binary name, wrong major
-# version, EXIT 0, no message. This file's own header states the general form:
-# a design that repoints "the symlink" moves one of two, and deleting the
-# recorded one hands resolution to the unrecorded one, which still answers v2
-# silently.
-#
-# SO THE VERIFY IS THE LOAD-BEARING PART, NOT THE REPOINT. This command repoints
-# what it owns and then MEASURES WHAT ACTUALLY RESOLVES, dying if it is not the
-# flavour asked for. That catches `~/bin`, and any position nobody has found yet,
-# WITHOUT NEEDING TO KNOW IT EXISTS. An enumeration of positions goes stale the
-# day someone adds one; a measurement of resolution cannot.
-
-# use_flavour -- which flavour actually answers `intent` on PATH: prod|dev|v2|none
-#
-# Reads the FIRST PATH hit, because position is what decides. Classifies by where
-# the link really lands, never by the file's name.
-use_flavour() {
-  local first target brew_prefix
-  first="$(path_hits intent | sed -n 1p | cut -f2)"
-  [ -n "$first" ] || { printf 'none'; return 0; }
-  target="$(describe_binding "$first" | cut -f2)"
-  brew_prefix="$(brew --prefix 2>/dev/null)"
-  case "$target" in
-    "$PROJECT_ROOT"/*) printf 'dev' ;;
-    *)
-      if [ -n "$brew_prefix" ] && [ "${target#"$brew_prefix"/}" != "$target" ]; then
-        printf 'prod'
-      else
-        printf 'v2'
-      fi
-      ;;
-  esac
-}
-
-# brew_has_intent -- is the formula INSTALLED?
-brew_has_intent() {
-  brew list --formula intent >/dev/null 2>&1
-}
-
-# brew_formula_available -- is a formula named `intent` RESOLVABLE by brew at all?
-#
-# A DIFFERENT QUESTION FROM `brew_has_intent`, AND CONFLATING THEM PRODUCED A
-# CONFIDENT WRONG DIAGNOSIS. `use prod` used to answer every not-installed case
-# with "the tap is empty until the first v3 release publishes a formula into it".
-# That was TRUE WHEN WRITTEN and became false the moment the tap was populated --
-# after which it sent the reader off to cut a release when what they needed was
-# one `brew install`. Measured on this machine the hour the tap gained a formula.
-#
-# DELIBERATELY DOES NOT NAME THE TAP. `cmd/macos` owns the tap spellings and
-# a second copy here would be a Highlander violation for a string that exists to
-# be stated once. Asking brew to resolve the bare name answers the question this
-# command actually has -- is there a formula to install -- without owning where it
-# comes from.
-brew_formula_available() {
-  brew info --formula intent >/dev/null 2>&1
-}
-
-# verify_hook_door -- does `intent claude hook` actually OPEN after the switch?
-#
-# A DIFFERENT PROPOSITION FROM "WHICH BINARY RESOLVES", AND THEY COME APART ON
-# THE PROD ARM (cc, 2026-08-26). The door finds its scripts by walking
-# `current_exe()` ancestors for `lib/templates/` (intentsvcs/src/install.rs). A
-# symlink canonicalises first and the walk lands inside the checkout. The brew
-# formula installs `libexec/lib/templates` beside `libexec/bin/intent`, so the
-# walk lands inside the keg; a bare COPY of the binary with no marker above it
-# refuses EVERY hook at exit 1 -- which Claude Code does NOT block on, so the
-# strict in-session gate stops enforcing SILENTLY, in every project, at once.
-# `verify_pair` and a resolution check BOTH PASS while that is true: both ask
-# which bytes are there, neither asks whether the door opens. (copy-vs-link
-# arms: ic's find, dc's measurement, 2026-08-21.)
-#
-# STDIN MUST BE CLOSED. `claude hook require-in-session` reads its payload from
-# stdin and BLOCKS FOREVER on an inherited one -- two minutes on cc's probe
-# today. `session-context` is the safe one to drive.
-verify_hook_door() {
-  local out rc
-  out="$(intent claude hook session-context </dev/null 2>&1)"
-  rc=$?
-  if [ "$rc" -ne 0 ]; then
-    printf '    %s\n' "$out" | sed -n '1,2p'
-    die "the binary resolves but its HOOK DOOR does not open (rc=$rc) -- lib/templates/ is not above the resolved executable, so every consumer hook would refuse at exit 1 and Claude Code would not block on it"
-  fi
-  printf '    hook door opens (rc=0)\n'
-}
-
-cmd_use() {
-  local want="${1:-}" got yes="" back=""
-  [ "${2:-}" = "--yes" ] && yes=1
-
-  case "$want" in
-    "")
-      # HIGHLANDER: `status` already walks PATH, already refuses a set that
-      # describes no single state, and already names the tool tree. A second
-      # PATH reporter is the exact defect `status` was built to end.
-      cmd_status
-      return 0
-      ;;
-    dev | prod) ;;
-    *) die "unknown flavour: $want (try 'dev', 'prod', or bare 'use' to report)" ;;
-  esac
-
-  step "switching to $want"
-
-  if [ "$want" = prod ]; then
-    if ! brew_has_intent; then
-      # SAY WHICH OF THE TWO IT IS. The remedies are a `brew install` and a whole
-      # release cut; a message that cannot tell them apart sends half its readers
-      # to the wrong one.
-      if brew_formula_available; then
-        die "the intent formula is available but NOT INSTALLED -- there is no prod to switch to. Run: brew install intent"
-      fi
-      die "no intent formula is installed and brew cannot resolve one -- there is no prod to switch to. The tap carries no formula until a release publishes one into it."
-    fi
-    brew unpin intent >/dev/null 2>&1 || true
-    brew link --overwrite intent >/dev/null 2>&1 ||
-      die "brew link intent failed -- run it by hand to see why; this command will not force it"
-    printf '    brew linked\n'
-  else
-    if brew_has_intent; then
-      brew unlink intent >/dev/null 2>&1 ||
-        die "brew unlink intent failed -- refusing to repoint anything while brew still wins on PATH"
-      # PIN so `brew upgrade` cannot silently re-link and put you back on prod
-      # without saying so. A switch that a later unrelated command can undo is
-      # not a switch.
-      brew pin intent >/dev/null 2>&1 || warn "could not pin intent -- a later 'brew upgrade' may re-link prod under you"
-      printf '    brew unlinked and pinned\n'
-    else
-      # NO PROD TO GO BACK TO, SO THIS IS NOT A TOGGLE -- IT IS THE CUTOVER.
-      # Nothing shadows `~/.local/bin` while the formula is absent, so repointing it
-      # changes which Intent EVERY project on this machine runs, and `use prod`
-      # cannot undo it because there is no formula to link. Machine-wide and
-      # one-way, so it asks, exactly as `install` does for the same reason.
-      [ -n "$yes" ] ||
-        die "no intent formula is installed, so nothing shadows $BINDIR -- repointing it switches EVERY project on this machine to this checkout's build, and 'use prod' cannot undo it until a formula exists. Re-run with --yes if that is what you want."
-      printf '    brew formula not installed -- nothing to unlink\n'
-    fi
-
-    # REPOINT WHAT WE OWN. Not an enumeration of every binding -- the verify
-    # below is what covers the ones we do not own.
-    local pair src dst
-    for pair in $PAIR; do
-      src="$RELEASE_DIR/${pair%%:*}"
-      dst="$BINDIR/${pair%%:*}"
-      [ -f "$src" ] || die "missing $src -- run 'bin/devbin local build' first"
-      [ ! -e "$dst" ] || [ -L "$dst" ] ||
-        die "$dst exists and is not a symlink -- refusing to replace a real file"
-      ln -sfn "$src" "$dst" || die "could not link $dst"
-      printf '    linked %s -> %s\n' "$dst" "$src"
-    done
-  fi
-
-  # VERIFY, NEVER ASSUME. The failure this catches is silent and plausible: PATH
-  # falling through to a v2 symlink answers at exit 0 under the right name.
-  step "what actually resolves now"
-  got="$(use_flavour)"
-  printf '    %s\n' "$got"
-  [ "$got" = "$want" ] ||
-    die "asked for $want and PATH resolves to $got -- the switch did NOT take. Run 'bin/devbin local status' to see every binding in precedence order."
-  verify_hook_door
-
-  # A dev switch is only as good as the artefacts it switched to, and the pair is
-  # routinely at a different commit from HEAD in a multi-writer tree.
-  if [ "$want" = dev ]; then
-    step "do the dev artefacts describe this tree?"
-    verify_pair
-  fi
-
-  # THE INVERSE, NAMED RATHER THAN SUBSTITUTED. This read
-  # `${want/dev/prod}`, which is a rewrite of `dev` into `prod` and not the
-  # opposite-of: on the dev arm it prints `prod` and is right, and on the prod
-  # arm there is no `dev` to rewrite, so it prints `prod` back at someone who is
-  # already on prod. **The one branch it gets wrong is the one read at 3am off a
-  # bad prod binary**, and it points at the thing being escaped from. Driven
-  # both ways 2026-08-26 at the v3.0.0 cutover, which is the first time `prod`
-  # existed to switch off.
-  case "$want" in
-    dev) back=prod ;;
-    prod) back=dev ;;
-  esac
-  step "done -- the way back is 'bin/devbin local use $back'"
-}
-
-cmd_uninstall() {
-  local pair dst removed=0
-  step "removing the v3 bindings this command made"
-  for pair in $PAIR; do
-    dst="$BINDIR/${pair##*:}"
-    # **ONLY A LINK INTO THIS CHECKOUT'S PAIR IS OURS.** `install` and `use dev`
-    # link to "$RELEASE_DIR/<name>"; a symlink named `intent` that points
-    # anywhere else -- another checkout, a keg, a v2 tree -- was not made here,
-    # and removing it on the strength of its name alone was the defect.
-    if [ -L "$dst" ] && [ "$(readlink "$dst")" = "$RELEASE_DIR/${pair%%:*}" ]; then
-      rm -f "$dst" || die "could not remove $dst"
-      printf '    removed %s\n' "$dst"
-      removed=$((removed + 1))
-    elif [ -L "$dst" ]; then
-      warn "$dst points at $(readlink "$dst"), not this checkout's pair -- left alone, this command did not make it"
-    elif [ -e "$dst" ]; then
-      warn "$dst is not a symlink -- left alone, this command did not make it"
-    fi
-  done
-  [ "$removed" -gt 0 ] || printf '    nothing to remove\n'
-  printf '\n'
-  printf '    THIS REVERSES THE INSTALL AND NOT A PROJECT. A project switched with\n'
-  printf '    `intent upgrade` is reversed separately, and the way back is git:\n'
-  printf '        git checkout . && git clean -fd && rm -rf intent/.cache\n'
-  printf '    A PROJECT WITH UNCOMMITTED WORK HAS NO WAY BACK. Commit before switching.\n'
-  cmd_status
-}
-
 case "${1:-}" in
   ""|-h|--help)
-    sed -n '5,13p' "${BASH_SOURCE[0]}" | sed -e 's/^# //' -e 's/^#$//'
+    sed -n '5,11p' "${BASH_SOURCE[0]}" | sed -e 's/^# //' -e 's/^#$//'
     exit 0
     ;;
   status) cmd_status ;;
   build) cmd_build ;;
-  install) shift; cmd_install "${1:-}" ;;
-  use) shift; cmd_use "$@" ;;
-  uninstall) cmd_uninstall ;;
-  *) die "unknown local target: $1 (try: status, build, install, use, uninstall)" ;;
+  *) die "unknown local target: $1 (try: status, build)" ;;
 esac

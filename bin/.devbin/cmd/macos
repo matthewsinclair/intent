@@ -72,7 +72,7 @@ KC_PREFIX="intent.apple"
 
 # SUPPORT_ASSET, APP_ASSET, REPO, TAP, BREW_TAP, STAGE_DIR, require_sums and staged_version
 # live in cmd/shared/brew.lib with the reasoning that shaped each, because the
-# formula reads them too and `int brew formula` renders it (ST0081 WP-06).
+# formula reads them too and `int brew render` renders it (ST0081 WP-06).
 . "$(dirname "${BASH_SOURCE[0]}")/shared/brew.lib"
 
 # APP_ASSET, the app zip every release ships, lives in cmd/shared/brew.lib with
@@ -1228,7 +1228,7 @@ cmd_prepare() {
 # reasoning that keeps a formula out of the tap until the release it names
 # exists: **a wrong artefact is not a neutral placeholder.**
 #
-# THE DEV-VERSION REFUSAL LIVES HERE, WHERE THE HARM IS. `int brew formula` will happily
+# THE DEV-VERSION REFUSAL LIVES HERE, WHERE THE HARM IS. `int brew render` will happily
 # print `RELEASE_VERSION = "3.0.0-dev"` to a terminal, and should -- that is text, and it is
 # self-evidently not a release. The same bytes in a tap install a build nobody
 # meant to ship. **A control belongs at the point of harm, not at the first point
@@ -1267,7 +1267,7 @@ cmd_publish() {
     die "refusing to publish '$version' -- this is a development build, not a release.
        A formula in the tap is not a document, it is an INSTALLER: whatever it
        names is what 'brew install intent' puts on a stranger's machine. Printing
-       one is harmless, and 'bin/devbin brew formula --help' says how.
+       one is harmless, and 'bin/devbin brew --help' says how.
        Set a real version in native/rust/Cargo.toml, rebuild, and re-run
        'bin/devbin macos prepare' so the staged binary reports it."
   fi
@@ -1526,7 +1526,7 @@ $(printf '%s\n' "$artefact_blockers" | sed 's/^/       /')
   # serves, both platforms' assets, and the macOS ones must equal SHA256SUMS.txt.
   # If the Linux packages are not on the release yet -- the order D55 leaves open
   # -- the artefacts above stay published with nothing pointing at them, which is
-  # inert, and the push waits for `bin/devbin brew formula --push` at a terminal.
+  # inert, and the push waits for `bin/devbin brew publish` at a terminal.
   step "rendering the formula from the published release"
   local formula frc=0
   formula="$(brew_formula "$version" 0 "" 0)" || frc=$?
@@ -1534,7 +1534,7 @@ $(printf '%s\n' "$artefact_blockers" | sed 's/^/       /')
     0) ;;
     3)
       die "$tag is published and NO FORMULA HAS BEEN PUSHED: a formula needs every asset named above, and $tag does not carry them yet.
-       Once they are on $tag, push it at a terminal: bin/devbin brew formula --push"
+       Once they are on $tag, push it at a terminal: bin/devbin brew publish"
       ;;
     *) exit "$frc" ;;
   esac
@@ -2277,8 +2277,8 @@ bin/devbin macos <subcommand>
                they hash to what we are about to publish, then render the
                formula from the release and push it to the tap -- a complete
                one only: when the release does not carry the Linux packages yet
-               it pushes nothing and says so, and `bin/devbin brew formula
-               --push` pushes once they are there. Refuses a dev version, any
+               it pushes nothing and says so, and `bin/devbin brew
+               publish` pushes once they are there. Refuses a dev version, any
                asset of its own already on the release (others are left
                alone), a missing tag, a checkout that was dirty at stage, a
                stage not taken at the tag, and binaries whose embedded source
@@ -2288,8 +2288,8 @@ bin/devbin macos <subcommand>
                check that needs no upload and publishes nothing; the
                re-download check needs the upload, so it does not run.
 
-  The formula and the check of an installed keg are `bin/devbin brew formula`
-  and `bin/devbin brew smoke`, one home for macOS and Linux (ST0081 WP-06).
+  The formula and the check of an installed keg are `bin/devbin brew render`,
+  `bin/devbin brew publish` and `bin/devbin brew smoke`, one home for macOS and Linux (ST0081 WP-06).
 
   doctor       Preflight: identity present, a real test-sign, notary creds, and
                the signing state of target/release's binaries

@@ -140,6 +140,14 @@ If a command fails with an error naming a path rather than an argument, this tab
 
 Everything above names Homebrew alone, which is the tree every user runs. A maintainer also has a dev tree, the git checkout and the pair `bin/devbin build all` builds in it, and an opt tree, which `intent install --prefix <dir>` publishes from dev. `intent use` reports which of them the links in `~/.local/bin` serve and runs the shadow check; `intent use dev` and `intent use opt` point both links, `intent` and `intentd`, at that tree, and `intent use brew` removes them so Homebrew's links answer. Each switch ends by restarting the daemon through the new `intent`, so the old tree's daemon does not keep serving. Brew is the resting state: switch to dev or opt while working, and back with `intent use brew` once the patch is released. `~/.local/bin` must come before the first Homebrew bin entry on PATH.
 
+**Each tree upgrades its own way.** Intent has no self-upgrade verb, and `intent upgrade` upgrades a project's `intent/` directory, not the tool:
+
+- dev: `git pull`, then `bin/devbin build all`.
+- opt: upgrade dev first, then `intent install --force` from it, which republishes the prefix over the manifest it wrote.
+- brew: `brew update`, then `brew upgrade matthewsinclair/intent/intent`, then `intent daemon restart`.
+
+The keg stays linked through all of it. `intent use` puts dev or opt in front of it, and nothing unlinks or pins it.
+
 **The switch governs login shells only.** A process started without the login PATH, such as the Claude Code desktop app, a Claude Code session resumed from before `~/.local/bin` was put first, or cron, has Homebrew's bin and not `~/.local/bin`. It runs Homebrew's `intent` for Claude Code's hooks (`intent claude hook ...` in `.claude/settings.json`) and its MCP server (`"command": "intent"` in `.mcp.json`) while the shell runs dev or opt, and `intent doctor` cannot see it. Start such a session again from a login shell after a switch. Relaunch Intent.app once after upgrading to the release that carries `intent use`; from then on it follows the link at every spawn.
 
 ## Known defects

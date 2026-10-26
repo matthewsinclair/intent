@@ -23,7 +23,7 @@
 # to anyone who looks; an unwired guard does not fail, it reports NOTHING, and
 # **reporting nothing is indistinguishable from passing.**
 #
-# THE BARE FORM REPORTS, deliberately (the `int local use` convention). An installer
+# THE BARE FORM REPORTS, deliberately (the `intent use` convention). An installer
 # someone forgets to run leaves you exactly where you started; a check turns
 # "did you run it?" into a measured fact. The check is the load-bearing half.
 #

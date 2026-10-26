@@ -7,7 +7,7 @@
 # WHY THIS IS SHARED. The formula lived in `cmd/macos` while the release was
 # macOS arm64 alone, and its header said it would move once Linux artefacts
 # arrived. They have: the formula names the Linux packages for x86_64 and aarch64
-# beside the macOS assets, so `int macos publish` and `int brew formula` both
+# beside the macOS assets, so `int macos publish` and `int brew render` both
 # render it here, and the formula a release pushes is the one the verb prints.
 #
 # FROM THE SOURCING HANDLER IT NEEDS: helpers (die, require_tool), rust_host from
@@ -296,13 +296,15 @@ brew_fetch() {
 # `macos` while hv's ruling of 2026-08-15 made the release macOS arm64 only, and
 # its note said Linux artefacts would end that limit and the reason for it. hv
 # widened the release to Linux on 2026-10-14, so the formula grew per-platform
-# URLs and moved here, where `int macos publish` and `int brew formula` both
+# URLs and moved here, where `int macos publish` and `int brew render` both
 # render it.
 
-# brew_render_formula <version> <revision> <base> <sums> -- PURE. The formula on
-# stdout, for the assets <sums> names (`<sha256>  <asset>` lines). <base> is
-# `release` for the release's own download URLs, written through
+# brew_render_formula <version> <revision> <base> <sums> <commit> -- PURE. The
+# formula on stdout, for the assets <sums> names (`<sha256>  <asset>` lines).
+# <base> is `release` for the release's own download URLs, written through
 # RELEASE_VERSION, or a literal base URL, which also gets a version line.
+# <commit> is the commit the assets were built from, read from git by the
+# caller and written into the manifest the keg carries (ST0087 T3).
 #
 # THE BRANCHES COME FROM WHAT <sums> CARRIES, so how complete a formula must be is
 # the caller's rule: the macOS branch needs all three macOS assets, and each Linux
@@ -311,7 +313,7 @@ brew_fetch() {
 # architecture depends on it, so a partial dev tap refuses on a platform it does
 # not describe rather than install the wrong bytes there.
 brew_render_formula() {
-  local version="$1" revision="$2" base="$3" sums="$4"
+  local version="$1" revision="$2" base="$3" sums="$4" commit="$5"
   local t pkg mac=1 linux="" sha_cli sha_daemon sha_support top_url top_sha
   sha_cli="$(brew_sum "$sums" "intent-$MACOS_TRIPLE")"
   sha_daemon="$(brew_sum "$sums" "intentd-$MACOS_TRIPLE")"
@@ -340,12 +342,13 @@ brew_render_formula() {
   if [ "$base" != release ]; then
     # The base is not repeated here: its url lines already name it, and `brew
     # style` lets a long url line pass and refuses a long comment.
-    printf '  # NOT THE RELEASE FORMULA. Rendered by `bin/int brew formula` for a tap that\n'
+    printf '  # NOT THE RELEASE FORMULA. Rendered by `bin/int brew render` for a tap that\n'
     printf '  # proves the formula before anything is pushed: the URLs below are not the\n'
     printf "  # release's.\n"
   fi
   cat <<FORMULA
   RELEASE_VERSION = "$version".freeze
+  SOURCE_COMMIT = "$commit".freeze
 
   desc "Steel thread process for helping LLMs help you work with your code"
   homepage "https://github.com/$REPO"
@@ -493,6 +496,31 @@ FORMULA
 
     bin.install_symlink libexec/"bin/intent"
     bin.install_symlink libexec/"bin/intentd"
+
+    # THE MANIFEST (ST0087 T3), WRITTEN HERE BECAUSE THE KEG HAS NO CHECKOUT.
+    # `intent install --managed-by brew` writes the same file for a tree it
+    # publishes, and it runs only in a dev checkout, so the formula writes it
+    # itself over what it laid out: the header, then one `shasum -a 256 -c` line
+    # per file, every regular file under libexec, sorted bytewise. T3 fixes the
+    # form and not the writer. `managed_by: brew` is what makes `intent doctor`
+    # and `intent use` read this keg as the brew tree and refuse to write into it.
+    # It is the end of `install` and not a post_install, because Homebrew 7's
+    # `brew style` refuses post_install for the declarative post_install_steps,
+    # which have no step that can hash a file. The binaries are prebuilt, signed
+    # and static, so nothing brew does after `install` rewrites them, and doctor
+    # names any listed file that changed or went missing since.
+    manifest = libexec/".intent-install"
+    files = Dir.glob("**/*", File::FNM_DOTMATCH, base: libexec).select do |f|
+      (libexec/f).file? && libexec/f != manifest
+    end
+    lines = [
+      "# tool: intent",
+      "# version: #{RELEASE_VERSION}",
+      "# source_commit: #{SOURCE_COMMIT}",
+      "# managed_by: brew",
+    ]
+    lines += files.sort.map { |f| "#{(libexec/f).sha256}  #{f}" }
+    manifest.write("#{lines.join("\n")}\n")
   end
 
   # A CAVEAT, NOT A post_install, AND THE CHOICE WAS DRIVEN (dc, 2026-09-11).
@@ -530,6 +558,9 @@ FORMULA
       keg, which `brew upgrade` removes, and from then on every commit in a project with the
       gate installed is refused. Later versions record a path that survives upgrades, and a
       file naming anything else, such as a source checkout, needs nothing.
+
+      A maintainer with a dev or opt tree beside this keg chooses which one answers
+      `intent` with `intent use`, and `intent use brew` hands it back to this keg.
     EOS
   end
 
@@ -567,6 +598,22 @@ end
 FORMULA
 }
 
+# brew_source_commit <version> <dev> -- the commit the keg's manifest names: the
+# tag v<version>'s, read from git, never typed (T8). A dev tap renders before
+# its tag exists, from packages built at HEAD, so with <dev> 1 and no tag it is
+# HEAD's, and stderr says so. A release formula refuses without its tag.
+brew_source_commit() {
+  local version="$1" dev="$2" sha
+  if sha="$(git -C "$ROOT" rev-parse --verify --quiet "v$version^{commit}")"; then
+    printf '%s\n' "$sha"
+  elif [ "$dev" -eq 1 ] && sha="$(git -C "$ROOT" rev-parse --verify --quiet HEAD)"; then
+    printf '%s: no tag v%s here, so the dev tap'"'"'s manifest names HEAD, %s\n' "$DEVBIN_NAME" "$version" "$sha" >&2
+    printf '%s\n' "$sha"
+  else
+    die "no tag v$version in $ROOT, so there is no commit for the keg's manifest to name: render a release formula in a checkout that carries the tag"
+  fi
+}
+
 # brew_formula <version> <revision> <from> <dev> -- IMPURE. Formula/intent.rb on
 # stdout, every sha256 read from the bytes at <from>, which is the release's
 # download URL for <version> when <from> is empty. A release formula needs all
@@ -584,7 +631,7 @@ FORMULA
 # substitution too, so a step that relied on it would carry on after failing.
 # Every step here checks its own status.
 brew_formula() {
-  local version="$1" revision="$2" from="$3" dev="$4" base tmp rc=0 a t got want staged assets
+  local version="$1" revision="$2" from="$3" dev="$4" base tmp rc=0 a t got want staged assets commit
   require_tool curl
   if [ -z "$from" ]; then
     base=release
@@ -629,7 +676,11 @@ brew_formula() {
       fi
     done
   fi
-  brew_render_formula "$version" "$revision" "$base" "$tmp/fetched.sums" || {
+  commit="$(brew_source_commit "$version" "$dev")" || {
+    rm -rf "$tmp"
+    exit 1
+  }
+  brew_render_formula "$version" "$revision" "$base" "$tmp/fetched.sums" "$commit" || {
     rm -rf "$tmp"
     exit 1
   }
@@ -718,7 +769,7 @@ brew_cask() {
 # the tap as Formula/intent.rb and <cask> as Casks/<CASK_TOKEN>.rb, in one commit,
 # and push it, with <how> saying in the commit what made it. THE ONE PUSH TO THE
 # TAP: `int macos publish` calls it at hv's terminal, and so does `int brew
-# formula --push`, which asks there first. One commit, so the tap never holds a
+# publish`, which asks there first. One commit, so the tap never holds a
 # formula and a cask from different releases (issue 0634).
 brew_push_tap() {
   local formula="$1" cask="$2" version="$3" how="$4" work
