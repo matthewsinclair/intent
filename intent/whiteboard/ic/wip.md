@@ -3,10 +3,10 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 71bed3ab-ad7e-4b27-b10f-4b59f0154cc9
-heartbeat_at: 2026-10-26 12:38Z
+heartbeat_at: 2026-10-26 12:56Z
 status: active
-focus: "WORKING (2026-10-26 12:38Z): doing 136 is A4 (issue 0655), banked as refs/bank/ic/0655/a4-v1 (patch-id 9dacf04295a4) for vc's verify and heavy judge, with a red fixed forward in tmp/wt-ic-a4; doing 135 is page v2 with render tools v3, landing third in Part B's train after devbin-vc's push; hold 12 stands; no push, no release"
-claims: [ISSUE:0655]
+focus: "HOLDING (2026-10-26 12:56Z): doing 135 is page v2 with render tools v3, landing third in Part B's train after devbin-vc's push, a red fixed forward in tmp/wt-ic-0086b; hold 12 stands; tmp/wt-ic-a4 is kept until the Spotlight word, then removed by 0656's step; no push, no release"
+claims: []
 ---
 
 # Interface Claude (ic)
@@ -14,7 +14,6 @@ claims: [ISSUE:0655]
 ## DOING
 
 - RESUME STATE (ic, localfold, same word): ST0086 WP-04 Part B, the page face of AC-04.6 (vc's orders at 10:40Z and 11:08Z, vc's word). refs/bank/ic/0086/wp04b-page-v2 (blob a10e09b24211, patch-id 8126a568631b) over cc's B1 v2 + B2 v2 (refs/bank/cc/0086/wp04b-status-v2, patch-id 4ae2585f7479, and wp04b-wait-v2, patch-id 2421b3d9719d; tree 2f7cef001a4d) gives tree 5505c7977f57. vc confirmed it at 11:14Z (vc's word); it lands third in Part B's train, after B1 v2 and B2 v2 and before B3, after devbin-vc's push. wp04b-page-v1 is superseded, a record only. What it does: each lane lists its queued asks under its holders (`lanes[].queue`); a controller.json that will not parse reads `control  record UNREADABLE (named below)` in the band, never NO CONTROLLER, with `controller record UNREADABLE <path> -- <why>` first below the band, on the CLI's precedence; the page-keys test requires `controller_unreadable` and carries the lane arm, its header marked ST0086 AT-04.6; the fixture carries both keys. Render tools v3, audited by vc: refs/bank/ic/tools/render-states.sh 96c9f5840582 and prelude.js 942b1e87c794, rendered-span markers with must-not-show lists, five states (empty, full, queued, deskhold, ctlbad); green on the worktree, and on main f8038ec21 green for empty, full and deskhold. Worktree tmp/wt-ic-0086b (B1 v2 + B2 v2 + page v2 in the index, tree 5505c7977f57) is kept until the landing. Part B's judge compiles the Rust arm; a red comes back to ic to fix forward there, and if B1 v2 or B2 v2 moves, ic re-banks over the new tree. No claim: the work package is cc's. No push, no release. (edited)
-- ISSUE:0655, A4 for `intent use brew` (vc's assignment at about 12:10Z by vc's word, on hv's ruling relayed by molt-vc). BANKED as refs/bank/ic/0655/a4-v1: blob 7bc74b39e479, patch-id 9dacf04295a4, three files over base tree d4d617240ffe (20bf41abf), giving tip tree cf0ca67e21a1. It applies on main 7014424aa and is held in tmp/wt-ic-a4's index. The refusal names each link it would have removed with the tree it serves. It names one of four causes: Homebrew's `brew` is not on PATH (vc's case, never guessed as not installed), the formula is not installed, its keg is not linked, or another copy comes first on PATH. Each cause has its own remedy, and each remedy adds staying on dev or opt. The cause is read from the filesystem only after the refusal, and no brew runs. The existing no-brew arm is restated and four new arms are added, each written to fail on the base at an assertion. vc verifies the bank against tmp/wt-ic-a4 and books the heavy judge with molt-vc; a red comes back to ic to fix forward there. ST0087 design.md's T5 paragraph goes stale at landing, and it is vc's text. No push, no release. (edited)
 
 ## TODO
 
