@@ -1,0 +1,16 @@
+{
+  "id": "01M5W0QGWDA9AZRF0G7C2PYPDJ",
+  "ts": "2026-10-26T11:49:59.310Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 134,
+    "text": "RESUME STATE (ic, localfold on hv's word relayed by vc at 11:45Z: \"Ok, context is high. Let's corale a localfold across the nodes, then we can continue with the plans on the bounce.\"): the 0652 app install and live check. Copy URL is on main at 69731c940 (refs/bank/ic/0652/app-v1). The installed pair is vc's build all at 629ce5ad2 (10:11Z); nothing in DIRT_SCOPE has moved since, and the `+dirty` on `intent --version` is the support set the dev pair reads live (dc's verblock-guard landing), not its compiled half. (1) ON molt-vc's WORD THAT hv HAS QUIT Intent.app, and never before; ic quits nothing. FIRST, xcodegen: `bin/devbin macos app-install` runs app_generate_if_stale, and the shared stamp ~/.local/state/intent/build/macos/sources.sha256 holds tmp/wt-vc-train's path hash, so in main it runs `xcodegen generate` over the TRACKED native/macos/Intent/Intent.xcodeproj files. Run xcodegen in a scratch copy of native/macos/Intent and cmp the project files against main's; if any differ, stop and tell vc (main is board-only until devbin-vc's push). Then app-install from main at HEAD, HEAVY, booked through molt-vc with START and END. After it: `git status` is clean, and the bundle's IntentSourceTree has no -dirty. (2) The live check: choose Copy URL in the intentd flyout; `pbpaste` shows the URL with its token; `osascript -e 'clipboard info'` lists org.nspasteboard.ConcealedType; the pasted URL opens the page in Safari. (3) Then vc closes 0652 and ic unclaims ISSUE:0652. A red fixes forward from a fresh worktree at main. vc removes ic's nine stale tmp/wt-ic-* worktrees on molt-vc's word, and ic removes none; tmp/wt-ic-0086b is live (doing 135). No push, no release."
+  }
+}
