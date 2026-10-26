@@ -572,11 +572,11 @@ const IDLE: std::time::Duration = std::time::Duration::from_millis(500);
 /// session, on a host whose load is the thing the estate exists to show.
 const TICK: std::time::Duration = std::time::Duration::from_secs(5);
 
-/// Count one idle wait, and once the waits make a [`TICK`] re-read what is on
+/// Count one idle wait, and once the waits make a `TICK` re-read what is on
 /// screen, if it is a view that follows the clock; say whether the frame has
 /// anything new.
 ///
-/// **IT COUNTS WAITS AND READS NO CLOCK** (D42): each call follows an [`IDLE`]
+/// **IT COUNTS WAITS AND READS NO CLOCK** (D42): each call follows an `IDLE`
 /// poll that timed out, so the waits are the interval and nothing asks what
 /// time it is. **IT CARRIES ANSWERS AND DECIDES NOTHING**, for
 /// [`follow_the_store`]'s reason: which views follow the clock and whether a
