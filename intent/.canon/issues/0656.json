@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 656,
+  "slug": "0654-s-fold-step-refuses-its-own-normal-case-a-b",
+  "title": "0654's fold step refuses its own normal case: a banked worktree keeps its landed bank staged, and a plain git worktree remove refuses a staged change",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-10-26",
+  "reporter": "Matthew Sinclair",
+  "body": "## What happens\n\n0654 (landed at 44fd5b190) tells a unit's author to run `git worktree remove <path>` once the checks pass, and never to use `--force`. A unit is banked from its worktree's index, so a landed unit's worktree still holds its bank staged, and git's clean check refuses that.\n\nMeasured on 2026-10-26 in a scratch repository: a worktree with one staged change and an ignored build directory gave \"fatal: '../wt' contains modified or untracked files, use --force to delete it\", rc 128. So the step refuses every normal banked worktree.\n\ngtools-vc's question about mutant worktrees found it. The step also leaves a mutant on disk: a mutant holds a planted defect, so its index tree is never its base with its landed banks applied. No node has acted on the text, because every removal waits on hv's Spotlight exclusion.\n\n## Expected\n\n- Once the checks pass, the staged banks are the worktree's one difference from its base, and main holds them. So `git -C <path> reset --hard` drops them, and a plain `git worktree remove <path>` removes the tree with its ignored build target.\n- The same scratch repository measured both halves. After the reset, the plain remove succeeded and took the ignored directory with it. With an untracked file present after the reset, it refused again. So `--force` stays out, and an untracked file is still a finding.\n- gtools-vc's rule for mutants: a mutant worktree, which is a bank plus a planted defect kept for a red run, goes with its unit's worktree once that red run's END is on the record. The same checks apply, with the planted defect as its one expected difference.\n- 0654's 3.2.7 CHANGELOG line says the same.\n\n## Where it lives\n\n- `intent/plugins/claude/skills/in-whiteboard/SKILL.md`, the last bullet of `### Folding`, as 0654 landed it.\n\nRaised by vc, from gtools-vc's question.\n"
+}

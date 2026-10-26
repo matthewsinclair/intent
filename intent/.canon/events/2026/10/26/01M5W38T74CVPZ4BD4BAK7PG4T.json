@@ -1,0 +1,15 @@
+{
+  "id": "01M5W38T74CVPZ4BD4BAK7PG4T",
+  "ts": "2026-10-26T12:34:23.085Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0656"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "0654's fold step refuses its own normal case: a banked worktree keeps its landed bank staged, and a plain git worktree remove refuses a staged change"
+  }
+}
