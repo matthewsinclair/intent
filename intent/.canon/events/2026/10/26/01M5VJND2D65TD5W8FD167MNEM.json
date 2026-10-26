@@ -1,0 +1,15 @@
+{
+  "id": "01M5VJND2D65TD5W8FD167MNEM",
+  "ts": "2026-10-26T07:44:09.805Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "0652's CLI half (hv's split: cc builds `intent estate status --url`, ic the Copy URL menu item, and ic holds the issue's claim) and the IN-RS-CODE-004 fix to Part A, both banked over vc's base T (tree 05127fda654c) on vc's orders of 2026-10-26 and verified by vc: refs/bank/cc/0652/cli-v2 (patch-id 5b7dc7999562, its dispatch-table.md regenerated; cli-v1 superseded) and refs/bank/cc/0086/wp04a-critic (patch-id 48ac9aa0a082, landing in one commit with Part A v2). 0648 v5 and Part A v2 are in T as they stand. All wait for vc's one stacked judge on Intent's turn, and a red comes back to cc to fix forward. docs/reference regenerates on main after the landings. No push, no release."
+  }
+}

@@ -2,18 +2,18 @@
 node: cc
 name: Control Claude
 role: control
-session_id: 66e84138-c919-405e-bed0-8057e34a7ac2
-heartbeat_at: 2026-10-25 19:22Z
+session_id: 1b8817f9-d0d6-4b3e-b2f5-d09c0a9a0577
+heartbeat_at: 2026-10-26 07:44Z
 status: active
-focus: "folded for hv's compact; next 0648 (critic nothing-asked exit and Swift proxies) after hv's continue, then ST0086 WP-04 last; the throwaway-session drive waits on hv's yes; hold 33 stands until ST0087 has gone first; no push, no release"
-claims: [ST0081, ST0086/01, ST0086/04, ISSUE:0648]
+focus: "2026-10-26: light work only on hv's word until molt-vc calls Intent; banks over T verified by vc wait for its stacked judge (0652 CLI cli-v2, wp04a-critic landing with Part A v2, 0648 v5 and Part A v2 in T); reds come back to cc; hold 33 stands until ST0087 has gone first; no push, no release"
+claims: [ST0081, ST0086/04, ISSUE:0648]
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-_(none)_
+- 0652's CLI half (hv's split: cc builds `intent estate status --url`, ic the Copy URL menu item, and ic holds the issue's claim) and the IN-RS-CODE-004 fix to Part A, both banked over vc's base T (tree 05127fda654c) on vc's orders of 2026-10-26 and verified by vc: refs/bank/cc/0652/cli-v2 (patch-id 5b7dc7999562, its dispatch-table.md regenerated; cli-v1 superseded) and refs/bank/cc/0086/wp04a-critic (patch-id 48ac9aa0a082, landing in one commit with Part A v2). 0648 v5 and Part A v2 are in T as they stand. All wait for vc's one stacked judge on Intent's turn, and a red comes back to cc to fix forward. docs/reference regenerates on main after the landings. No push, no release.
 
 ## TODO
 
