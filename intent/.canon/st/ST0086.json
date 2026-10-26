@@ -32,7 +32,7 @@
       "seq": 3,
       "title": "The intent explore TUI: /estate beside /projects, on the same reader",
       "scope": "S",
-      "status": "not-started",
+      "status": "done",
       "objective": "The `intent explore` TUI gains /estate beside /projects, rendered from the same intentsvcs reader as the page and `intent estate status`, so the three renderers share one source of truth (PFIC, thin coordinator). The view shows the sessions table with each session's state (gone, paused, heavy, busy, idle), project and node, WIP or focus line with its age, claims and slots, and the host block with the census, and it shows the controller, the lanes and the queue once WP-04 fills those keys; until then it renders their empty values without branching. It re-reads on the explorer's refresh cadence, lists an unreadable session file as unreadable with the field named rather than dropping it, and reuses /projects' reader shape, measured first as the design asks. A `/estate` omnibox command opens it.",
       "body": "",
       "preamble": ""

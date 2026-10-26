@@ -1,0 +1,15 @@
+{
+  "id": "01M5VH3V3QE0VF0TM75VYZYN0Y",
+  "ts": "2026-10-26T07:17:05.783Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RESUME (localfold before hv's bounce, 2026-10-26 07:16Z by date -u). Today runs VCs only: molt-vc coordinates and calls projects one at a time (Molt, Devbin, Utilz, Intent, Gtools, Conflab, Laksa), and Intent's builders stay down until Intent is called. ON INTENT'S CALL, in order: (1) dc commits its own EOD files from 2026-10-25; its board.json was re-created from the store on hv's (b). (2) ic rebases refs/bank/ic/0086/arms-v1 over cc's refs/bank/cc/0086/wp04a-v2 and ic's wp04a-page-v3, because arms and Part A conflict in intentd/src/census.rs gather(). (3) One stacked judge at molt-vc's desk covers 0648 v5 (patch-id ecd5196ea0e7), Part A v2 (6cd0eaa98a4b), page v3 (c932e3dd4ff4), dc's 0087-04 v2 (75ca61f5cc6b) and the rebased arms, plus 0652's bank (ic) and 0653's (dc, decision 91) if they are ready; each bank first re-confirms its bytes against the day's HEAD, and at 751ea00d6 each applied on its own. (4) vc lands them, then runs build all, with START and END to every estate's vc. (5) The kovacs preflight runs at that HEAD through kovacs-sysadm, before devbin-vc pushes upstream. (6) ic builds and installs the app: LoginShell, plus Copy URL if 0652 has landed. OPEN WITH hv: whether cc and ic start 0652 early; vc recommends riding the train. No push, no release."
+  }
+}

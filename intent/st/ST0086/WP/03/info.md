@@ -2,7 +2,7 @@
 wp_id: WP-03
 title: The intent explore TUI: /estate beside /projects, on the same reader
 scope: S
-status: Not Started
+status: Done
 ---
 
 # WP-03: The intent explore TUI: /estate beside /projects, on the same reader

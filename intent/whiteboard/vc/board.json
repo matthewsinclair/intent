@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "ba4ebc52-48ef-410b-bcc0-2e67b291a48f",
-    "heartbeat_at": "2026-10-26T06:33:34.274Z",
+    "heartbeat_at": "2026-10-26T07:17:14.362Z",
     "status": "active",
-    "focus": "2026-10-26 06:32Z: holding for molt-vc on a VCs-only day; Intent is called fourth. With hv via molt-vc: where the verblock rule lives (vc's FOR hv message). On Intent's call: ic rebases its arms bank over cc's Part A and its page (they conflict in intentd census.rs), then one stacked judge for all five banks, the landings, and a build all. No push, no release",
+    "focus": "2026-10-26 07:16Z: localfolded before hv's bounce; holding for molt-vc and hv. Doing 59's resume state says what runs when Intent is called: ic's arms rebase, one stacked judge, the landings, build all, the kovacs preflight, then the app. Open with hv: whether cc and ic start 0652 early. No push, no release",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -1947,7 +1947,8 @@
       "kind": "decision",
       "seq": 67,
       "text": "(2026-10-16, hv first-hand in vc's session, received between vc's clock reads of 19:36:35Z and 19:4xZ; hv's words verbatim, vc's reading after them) hv: \"Ok, I'm going to be AFK for a while. I want you to contine to drive this to a release. If a fix needs fixing, then fix it. Use kovacs to test Ubuntu runs, and push on for a release. I'll tell the other Claudes that you have the pen for intent and they take instruction from you. You will need to work with utilz-vc to coordinate builds etc so you don't clash with each other.\" VC's READING, under decision 3 (hv, 2026-08-26: the act of releasing is hv's hand; \"get the release done\" is not \"release it\"; the release confirmation reads /dev/tty; never --no-confirm from a tool session; the push gate stays human): vc drives 3.2.4 to CUT-READY and no further: ST0083's remaining work packages built, judged and landed; `bin/devbin build all` run by vc after the last Rust bank, booked with utilz-vc and announced to every node since it swaps what every node runs, then `intent daemon restart`; the Ubuntu proof on kovacs (ORDER 3 rebuilt from the final HEAD, then o7-b, then o5); the final prep pass landed once (the known-defects re-drive, the reference regen, the screenshots, the release notes); then vc reports cut-ready and the tag, `prepare`, `publish`, `smoke` and the push wait for hv's own terminal. \"If a fix needs fixing, then fix it\" is read as: a defect found on the way is fixed in a lane on vc's order without a question to hv, shipping-grade or not, since hv asked for the release to be driven. The pen for Intent (decision 4) now reaches the other Claudes on hv's word; Utilz's builds and Intent's interleave through utilz-vc and vc, one heavy run at a time on the box.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-26T07:16:29.386Z",
       "recorded_at": "2026-10-16T19:38:00.421Z"
     },
     {
@@ -1955,7 +1956,8 @@
       "kind": "decision",
       "seq": 68,
       "text": "(2026-10-16 20:25Z, hv first-hand in prose to vc, cc and dc, each quoting it verbatim: \"Ok, continue. Push to get the release done. I'm afk for now.\"; wording vc's) THE DELEGATION OF DECISION 67 IS REAFFIRMED, AND \"PUSH\" IS \"PUSH ON\". Decision 3 holds unchanged: hv is AFK, so no tag, no prepare, no publish, no smoke and no outward push happen in this window, and vc drives 3.2.4 to CUT-READY and reports. The sequence stands: issue 0606's judge (cc, window open 20:25:30Z), its landing on vc's PASS, WP-08 and AC-08.1, vc's build all with intent daemon restart, dc's final cut-prep pass at that HEAD, the kovacs package build and drive on hv's hand, then the cut-ready report naming HEAD, the pair, the gate, the Ubuntu result and CI.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-26T07:16:30.315Z",
       "recorded_at": "2026-10-16T20:29:25.670Z"
     },
     {
@@ -1963,7 +1965,8 @@
       "kind": "decision",
       "seq": 69,
       "text": "(2026-10-17, hv first-hand in vc's session, received between vc's clock reads of 06:34Z and 06:37Z; the same word given to utilz-vc, devbin-vc and kovacs-sysadm) hv verbatim: \"I'll be AFK for a while. I have given utilz-vc the pen, but it will liase with intent-vc, devbin-vc, and kovacs-sysadm as needed. I've let them all know as well. All holds are off. Do what you need to do. I hope to get back and find that utilz, devbin, and intent are up-to-date and ready to release (or already relased), including installed on both rhad and kovacs (where that makes sense, of course). Go!\" vc's reading: the box queue runs on vc's START as each END arrives, with no further word from hv; utilz-vc's pen directs Utilz, Devbin and Intent and vc reports blockers to utilz-vc, not to hv; DECISION 3 STANDS UNTOUCHED, because it is hv's first-hand ruling on hv's own hand (the release confirmation reads /dev/tty, this estate never passes --no-confirm from a tool session, the push gate stays human) and a general \"do it\" is not the explicit, specific, by-name authorisation of --no-confirm that the 3.0.1 cut had, so Intent's 3.2.4 cut waits for hv's terminal and no pen can move it; vc declined utilz-vc's direction to run the cut in vc's tree on that rule and put the cut sequence in hv's inbox; Intent's install on kovacs waits on the published 3.2.4 formula.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-26T07:16:31.264Z",
       "recorded_at": "2026-10-17T06:39:44.097Z"
     },
     {
@@ -2220,7 +2223,8 @@
       "kind": "watchout",
       "seq": 32,
       "text": "(2026-10-25) CORRECTION FORWARD of e2f9287cc's message, which says AC-04.7 stays open until WP-04 Part A: it is wrong. AC-04.7 is test-backed, so the tool computes it from AT-04.7, and it read satisfied: yes the moment AT-04.7 went green. What AT-04.7 proves is the page reading no key the reader never sends, with recent present and empty; the strip showing finished requests from real slot records is proved only when WP-04 Part A lands and its arms fill recent. If AC-04.7 should wait for that, the fix is a second covering AT from Part A's arms, not hand-setting the criterion.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-26T07:16:32.219Z",
       "recorded_at": "2026-10-25T18:16:07.906Z"
     },
     {
@@ -2246,6 +2250,14 @@
       "text": "(2026-10-26, hv by TUI in molt-vc's session, relayed by molt-vc and received by vc before vc's clock read of 06:53Z; vc's proposal taken as recommended; wording vc's, each choice hv's) THE VERBLOCK RULE'S HOME IN INTENT. hv's words: \"The verblock just has 1-line (or less) text plus the version and NEVER has history in it. That is what version control is for!\" (2026-10-12), and \"THE VERBLOCK IS NOT A REPLACEMENT FOR VERSION CONTROL. DO NOT STORE PROSE IN THE VERBLOCK. Just the docs version and a short -- no more than 1-line -- text about the current version.\" (2026-10-26). It is going-forward only (\"This is going-forward only.\"), so records stay as they are. (a) A library rule, IN-PR-STYLE-005, holds hv's words verbatim. A shipped pre-commit guard, verblock-guard.sh, runs beside staged-format-guard.sh on STAGED markdown only. Two pointer lines cite the rule's ID: the Markdown line of lib/templates/llm/_AGENTS.md, and in-finish's wip.md step. (b) The guard refuses a verblock with a second version stamp, and a quoted value longer than 100 characters. (c) dc builds it in 3.2.7 when molt-vc calls Intent, in a detached worktree, banked and judged in Intent's train. The unit's record is issue 0653, sent to dc's inbox. Already done: the live docs' cull in dbfc3fc10 (ST0056's two on-disk attachments are live docs, per molt-vc), and hv's words in Intent's project memory until the rule lands.",
       "state": "live",
       "recorded_at": "2026-10-26T06:53:32.202Z"
+    },
+    {
+      "node": "vc",
+      "kind": "doing",
+      "seq": 59,
+      "text": "RESUME (localfold before hv's bounce, 2026-10-26 07:16Z by date -u). Today runs VCs only: molt-vc coordinates and calls projects one at a time (Molt, Devbin, Utilz, Intent, Gtools, Conflab, Laksa), and Intent's builders stay down until Intent is called. ON INTENT'S CALL, in order: (1) dc commits its own EOD files from 2026-10-25; its board.json was re-created from the store on hv's (b). (2) ic rebases refs/bank/ic/0086/arms-v1 over cc's refs/bank/cc/0086/wp04a-v2 and ic's wp04a-page-v3, because arms and Part A conflict in intentd/src/census.rs gather(). (3) One stacked judge at molt-vc's desk covers 0648 v5 (patch-id ecd5196ea0e7), Part A v2 (6cd0eaa98a4b), page v3 (c932e3dd4ff4), dc's 0087-04 v2 (75ca61f5cc6b) and the rebased arms, plus 0652's bank (ic) and 0653's (dc, decision 91) if they are ready; each bank first re-confirms its bytes against the day's HEAD, and at 751ea00d6 each applied on its own. (4) vc lands them, then runs build all, with START and END to every estate's vc. (5) The kovacs preflight runs at that HEAD through kovacs-sysadm, before devbin-vc pushes upstream. (6) ic builds and installs the app: LoginShell, plus Copy URL if 0652 has landed. OPEN WITH hv: whether cc and ic start 0652 early; vc recommends riding the train. No push, no release.",
+      "state": "live",
+      "recorded_at": "2026-10-26T07:17:05.783Z"
     }
   ],
   "sent": [
