@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 4ec444b0-0ecb-4040-bd1e-6226cabee016
-heartbeat_at: 2026-10-26 13:34Z
+heartbeat_at: 2026-10-26 13:53Z
 status: active
-focus: "Back from hv's compact after the localfold: nothing owed, no claim, holding for vc; after devbin-vc's push, ruby in the preflight's tool check and leg-bin links (vc's ask, now a todo), then todo 53, ST0087 WP-05's proof with vc, with vc bringing its shape, whose brew leg must expect A4's refusal (a6ce22c3b, 9b050d294); then todo 50; dc's worktrees wait for vc's leg on molt-vc's Spotlight word, with 0656's step; no push, no release"
+focus: "HOLD until hv says go on (hv via vc at 13:43Z by vc's clock; molt-vc's machine-wide hold, the slots desk held since 13:47:11Z by molt-vc's clock): nothing running, nothing owed, no claim; devbin-vc's push is done (main 8fb1351d0 on both remotes, by vc); on the go-on, vc briefs dc: todo 54 with vc's todo 67 in the same file, riding Part B's preflight, and todo 53 per vc's todo 66, WP-05's shape v2 with dc's deltas; then todo 50; dc's worktrees wait for molt-vc's Spotlight word; no push, no release"
 claims: []
 ---
 
@@ -18,12 +18,12 @@ _(none)_
 ## TODO
 
 - 3.2.7 CUT-SIDE (vc's decision 76, hv via molt-vc, 2026-10-25 06:51Z by vc's clock: one release carrying everything; done, then tested at molt-vc's desk, then kovacs via kovacs-sysadm, then hv's cut): dc's share in the same release, not a later one: (a) re-run the 0632 drive with removed: lines counted beside wrote: (scratchpad/0632/drive.sh compares only wrote:); (b) the known-defects re-drive; (c) the release tooling steps dc owns. Each heavy books with molt-vc. Comes after todo 53. (edited)
-- ST0087 WP-05 (vc's, with dc): the proof, per tree, on rhadamanth and kovacs, once WP-01 to WP-04 are in (WP-04 done at 994fdba0c: AT-04.1 green, AC-04.2 satisfied); it ends on brew. No push, no release.
-- After devbin-vc's push, riding Part B's preflight (vc's ask in its fold END at 13:31Z by vc's clock, and its FYI at 13:34Z relaying molt-vc's measurement): ruby goes in bin/.devbin/preflight-linux.sh's up-front tool check (the `for t in git cargo ...` loop) and in its leg-bin link loop, so a missing ruby refuses before the run rather than at tests/unit/brew_formula.bats:362, where the kovacs preflight at 2d4c941fa05d went red, and a ruby outside the system directories, brew's included, reaches the arm, since the leg's PATH is leg-bin plus the system directories only. hv chose A1: kovacs now has /usr/bin/ruby from apt. LIGHT: the edit and shellcheck. No push, no release.
+- ST0087 WP-05 (vc's, with dc): the proof, per tree, on rhadamanth and kovacs; it ends on brew. Its shape is vc's todo 66, WP-05's shape v2, which carries dc's deltas of 2026-10-26 13:46Z and is their one home. No push, no release. (edited)
+- After devbin-vc's push, riding Part B's preflight (vc's ask in its fold END at 13:31Z by vc's clock, and its FYI at 13:34Z relaying molt-vc's measurement): ruby goes in bin/.devbin/preflight-linux.sh's up-front tool check (the `for t in git cargo ...` loop) and in its leg-bin link loop, so a missing ruby refuses before the run rather than at tests/unit/brew_formula.bats:362, where the kovacs preflight at 2d4c941fa05d went red, and a ruby outside the system directories, brew's included, reaches the arm, since the leg's PATH is leg-bin plus the system directories only. hv chose A1: kovacs now has /usr/bin/ruby from apt, and the rerun went green on it. vc's todo 67, molt-vc's finding that the script can be rewritten under a running bash, rides this edit in the same file (the body wrapped in a main function called with the script's arguments, or a fetch to a per-run name); vc briefs dc on hv's go-on. LIGHT: the edit and shellcheck. No push, no release. (edited)
 
 ## Holds
 
-_(none)_
+- Todos 54, 53 and 50 hold until hv says go on. hv's word, relayed by vc at 13:43Z by vc's clock: "ok, carry on. Then we need to hold as I need to move." Then molt-vc's machine-wide localfold, compact and hold on hv's word, with the slots desk held since 13:47:11Z by molt-vc's clock (01M5W7E40CE071QMSE4JT8KWXQ). Released when hv says go on and molt-vc lifts the desk's hold; the todos then go ahead as written.
 
 ## Watch-outs
 

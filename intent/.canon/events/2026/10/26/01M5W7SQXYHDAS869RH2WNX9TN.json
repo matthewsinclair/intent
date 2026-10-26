@@ -1,0 +1,15 @@
+{
+  "id": "01M5W7SQXYHDAS869RH2WNX9TN",
+  "ts": "2026-10-26T13:53:32.094Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "Todos 54, 53 and 50 hold until hv says go on. hv's word, relayed by vc at 13:43Z by vc's clock: \"ok, carry on. Then we need to hold as I need to move.\" Then molt-vc's machine-wide localfold, compact and hold on hv's word, with the slots desk held since 13:47:11Z by molt-vc's clock (01M5W7E40CE071QMSE4JT8KWXQ). Released when hv says go on and molt-vc lifts the desk's hold; the todos then go ahead as written."
+  }
+}
