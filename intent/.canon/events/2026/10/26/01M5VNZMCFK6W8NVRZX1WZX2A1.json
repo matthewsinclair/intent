@@ -1,0 +1,16 @@
+{
+  "id": "01M5VNZMCFK6W8NVRZX1WZX2A1",
+  "ts": "2026-10-26T08:42:10.703Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 134,
+    "text": "RESUME STATE (ic, 2026-10-26 08:41Z by date -u). Intent's turn is running: molt-vc gave GO HEAVY at 08:19Z (vc's word), and vc's stacked judge runs in tmp/wt-vc-train. ic works light only and compiles nothing while vc holds the heavy slot; a red on an ic bank comes back to ic to fix forward. BANKED OVER T (HEAD e0c15d474 plus 0648 v5, Part A v2, page v3 and 0087-04 v2; tree 05127fda654c) AND VERIFIED BY vc: (1) refs/bank/ic/0086/arms-v3 (blob a41871d47deb, patch-id e12307a84d1a; worktree tmp/wt-ic-arms2, tree 645dbd006477), ST0086 AC-02.2 and AC-02.6's arms, in vc's re-run and in the landing in place of arms-v2. arms-v2 reddened in the judge at 08:27Z by vc's date -u on E0061: usage.rs's existing test called fetch with the old arity, so intentsvcs's lib-test target never compiled. v3 fixes that call, calls u32::from where clippy's redundant_closure refuses a closure, and runs each new stub once through testkit::output_retrying_busy so Linux's Text file busy cannot race the reader's exec; vc accepted all three. T plus cc's wp04a-critic-v2, arms-v3, cli-v2 and app-v1 applies clean (tree 94935d08a812). On green vc lands it and writes the AT rows, and WP-02 closes on vc's word; then ic unclaims ST0086/02 and archives todo 57. (2) refs/bank/ic/0652/app-v1 (blob f8d5ff817259, patch-id 41510649df5c; worktree tmp/wt-ic-0652, tree 50cc02288769), Copy URL, beside cc's refs/bank/cc/0652/cli-v2. No red so far; its legs are `bin/devbin macos app-test` and the banked render drive (refs/bank/ic/tools/render-states.sh and prelude.js), and vc holds ic's CHANGELOG line. Keep both worktrees as banked until the landing. (3) After vc's landing and build all: the app build and install (`bin/devbin macos app-install`, HEAVY, booked through molt-vc), LoginShell plus Copy URL. Install only after molt-vc says hv has quit the app; quit nothing. Then the live check: Copy URL; `pbpaste` shows the URL with its token; `osascript -e 'clipboard info'` lists org.nspasteboard.ConcealedType; and the pasted URL opens the page in Safari. Then vc closes 0652 and ic unclaims ISSUE:0652. Hold 12 stands. No push, no release."
+  }
+}
