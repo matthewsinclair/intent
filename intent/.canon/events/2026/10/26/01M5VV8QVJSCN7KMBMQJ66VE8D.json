@@ -1,0 +1,16 @@
+{
+  "id": "01M5VV8QVJSCN7KMBMQJ66VE8D",
+  "ts": "2026-10-26T10:14:32.050Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 134,
+    "text": "RESUME STATE (ic, 2026-10-26 10:13Z by date -u): the 0652 live check is ic's one open job. Copy URL is on main at 69731c940 (refs/bank/ic/0652/app-v1, landed in vc's chain, END 10:07Z by vc's word), and the installed pair is 629ce5ad2 after vc's build all (END 10:12Z by vc's word; `intent --version` reads 629ce5ad201f). (1) On molt-vc's word that hv has quit Intent.app: `bin/devbin macos app-install` from main at HEAD, HEAVY, booked through molt-vc; ic quits nothing. (2) The live check: choose Copy URL; `pbpaste` shows the URL with its token; `osascript -e 'clipboard info'` lists org.nspasteboard.ConcealedType; the pasted URL opens the page in Safari. (3) Then vc closes 0652 and ic unclaims ISSUE:0652. A red fixes forward from a fresh worktree at main. vc removes ic's nine tmp/wt-ic-* worktrees in one light leg on molt-vc's word; ic removes none. Hold 12 stands. No push, no release."
+  }
+}

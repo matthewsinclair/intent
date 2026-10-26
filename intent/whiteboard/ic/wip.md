@@ -3,21 +3,21 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 71bed3ab-ad7e-4b27-b10f-4b59f0154cc9
-heartbeat_at: 2026-10-26 09:40Z
+heartbeat_at: 2026-10-26 10:14Z
 status: active
-focus: "LOCALFOLD (2026-10-26 09:34Z): run 3 ended green on every ic bank, the render drive included, and nothing is owed from ic; arms-v3, tui-doc v1 and app-v1 verified; then vc's landing and build all, the app install on molt-vc's word, and the live check; hold 12 stands; no push, no release"
-claims: [ST0086/02, ISSUE:0652]
+focus: "0652 LIVE CHECK (2026-10-26 10:13Z): Copy URL is on main at 69731c940 and the installed pair is 629ce5ad2; on molt-vc's word that hv has quit Intent.app, app-install from main at HEAD, then the live check; vc removes ic's worktrees; hold 12 stands; no push, no release"
+claims: [ISSUE:0652]
 ---
 
 # Interface Claude (ic)
 
 ## DOING
 
-- RESUME STATE (ic, localfold before hv's compact, 2026-10-26 09:34Z by date -u; hv, relayed by vc before 09:30Z: "Ok, let's localfold+compact here now for all intent-* Claudes."). Intent's turn: vc's run 3 (START 09:23Z, vc's word) has ended green except bats #433, for which cc owes 0648 v7 (vc's word at 09:33Z). EVERY ic BANK IS GREEN IN RUN 3, ic's render drive included (three states, marker present), and nothing is owed from ic. ic works light only and compiles nothing while vc holds the heavy slot; a red on an ic bank comes back to ic to fix forward. VERIFIED BY vc: (1) refs/bank/ic/0086/arms-v3 over T (HEAD e0c15d474 plus 0648 v5, Part A v2, page v3 and 0087-04 v2; tree 05127fda654c): blob a41871d47deb, patch-id e12307a84d1a; worktree tmp/wt-ic-arms2, tree 645dbd006477. ST0086 AC-02.2 and AC-02.6's arms. It replaced arms-v2, which reddened run 1 on E0061 (usage.rs's existing test called fetch with the old arity); v3 fixes that call, calls u32::from where clippy's redundant_closure refuses a closure, and runs each new stub once through testkit::output_retrying_busy so that Linux's Text file busy cannot race the reader's exec. On vc's landing vc writes the AT rows, and WP-02 closes on vc's word; then ic unclaims ST0086/02 and archives todo 57. (2) refs/bank/ic/0086/tui-doc/v1 over main's 2b9869496: blob 1177b99b0af6, patch-id 41a01c51bc13; worktree tmp/wt-ic-tuidoc, tree 002f511bec1e. Run 2's doc red was on main: follow_the_clock's doc (intent-cli tui/run.rs, from e9464ad6c) linked the private TICK and IDLE, which are now plain code. It lands second, after dc's 0644-doc, as main's own fix, with no CHANGELOG line. (3) refs/bank/ic/0652/app-v1 over T: blob f8d5ff817259, patch-id 41510649df5c; worktree tmp/wt-ic-0652, tree 50cc02288769. Copy URL, beside cc's 0652 CLI bank. Its legs are `bin/devbin macos app-test` and the banked render drive (refs/bank/ic/tools/render-states.sh and prelude.js), and vc holds ic's CHANGELOG line. Keep all three worktrees as banked until the landing. (4) After vc's landing and build all: the app build and install (`bin/devbin macos app-install`, HEAVY, booked through molt-vc), LoginShell plus Copy URL. Install only after molt-vc says hv has quit the app; quit nothing. Then the live check: Copy URL; `pbpaste` shows the URL with its token; `osascript -e 'clipboard info'` lists org.nspasteboard.ConcealedType; and the pasted URL opens the page in Safari. Then vc closes 0652 and ic unclaims ISSUE:0652. Hold 12 stands. No push, no release. (edited)
+- RESUME STATE (ic, 2026-10-26 10:13Z by date -u): the 0652 live check is ic's one open job. Copy URL is on main at 69731c940 (refs/bank/ic/0652/app-v1, landed in vc's chain, END 10:07Z by vc's word), and the installed pair is 629ce5ad2 after vc's build all (END 10:12Z by vc's word; `intent --version` reads 629ce5ad201f). (1) On molt-vc's word that hv has quit Intent.app: `bin/devbin macos app-install` from main at HEAD, HEAVY, booked through molt-vc; ic quits nothing. (2) The live check: choose Copy URL; `pbpaste` shows the URL with its token; `osascript -e 'clipboard info'` lists org.nspasteboard.ConcealedType; the pasted URL opens the page in Safari. (3) Then vc closes 0652 and ic unclaims ISSUE:0652. A red fixes forward from a fresh worktree at main. vc removes ic's nine tmp/wt-ic-* worktrees in one light leg on molt-vc's word; ic removes none. Hold 12 stands. No push, no release. (edited)
 
 ## TODO
 
-- ST0086 AC-02.2 and AC-02.6 arms, RULED by vc as proposed, owed before ST0086 closes. Order: v3 judge, ST0087 WP-03, ST0086 WP-03, then these. (1) read_endpoint takes a Source { security, curl, url }, and host_endpoint passes today's consts. Stub scripts in a tempdir: the security stub answers per -s (the naming condition both ways), the curl stub a canned status and body. One arm per EndpointFailure plus a bad body, fixture tokens only, never the real Keychain or api.anthropic.com. (2) Unit arms in intentd's census.rs: push past KEPT, held() arms ASKED, gather reads the endpoint only when asked; no interval knob. (3) Cite the parser and count arms against AC-02.2, add a cwd-attribution arm only where none measures it, and the reap arm is gather(true, _) calling prune. (edited)
+_(none)_
 
 ## Holds
 
