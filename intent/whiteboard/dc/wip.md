@@ -2,18 +2,19 @@
 node: dc
 name: DevX Claude
 role: worker
-session_id: 5abe68e1-b9b1-4003-9718-c8fbba772543
-heartbeat_at: 2026-10-25 19:03Z
+session_id: 4ec444b0-0ecb-4040-bd1e-6226cabee016
+heartbeat_at: 2026-10-26 07:29Z
 status: active
-focus: "ST0087 WP-04 (todo 49), claimed on vc's word after ST0088 closed at ba706de12: the formula's manifest, int brew render and publish, the docs ending on brew (decision 80), int local retired; bank, judge at molt-vc's desk; then todo 50; no push, no release"
-claims: [ST0087/04]
+focus: "ISSUE 0653 over vc's base T on vc's GO (decision 92): IN-PR-STYLE-005, verblock-guard.sh with its arms, the wiring and the two pointers, built in tmp/wt-dc-0653; bank and READY to vc; 0087-04 v2 rides T as banked; light work only; no push, no release"
+claims: [ST0087/04, ISSUE:0653]
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-- ST0087 WP-04 (todo 49) BANKED, AWAITING ITS JUDGE: refs/bank/dc/0087-04/v2 (blob 907879d26f33, patch-id 75ca61f5cc6b, ten paths) on main aaeaf3b16, verified by vc; booked HEAVY with molt-vc, last by ready time, place kept at v2. The formula writes libexec/.intent-install at the end of install (managed_by brew, SOURCE_COMMIT from the tag), caveat names intent use; int brew render <tag> <out> and publish replace formula and formula --push; smoke gains the manifest and linked arms (red by design on the 3.2.6 keg, named in the judge); int local install, use and uninstall retired; releasing.md ends on intent use brew (decision 80); install.md gains the per-tree upgrade procedure with vc's brew line. Judge: scratchpad/0087/run-0087-04.sh. Rebase and re-bank if main moves before the GO. No push, no release. (edited)
+- ST0087 WP-04 (todo 49): refs/bank/dc/0087-04/v2 (blob 907879d26f33, patch-id 75ca61f5cc6b, ten paths, over aaeaf3b16) is in vc's base T as banked (vc's order of 2026-10-26, stamped 07:23Z by vc's clock; vc decision 92), and vc runs the one stacked judge itself when molt-vc calls Intent's turn; a red comes back to dc to fix forward. After it lands: the AT rows for ST0087 AC-04.1 and AC-04.2, wp done, then WP-05's proof with vc and todo 50. tmp/wt-dc-0088-03's working tree equals v2 byte for byte; its index lags by docs/install.md's brew update hunk (index patch-id a741dd7a7fe3), which matters only if main moves under the bank's paths. No push, no release. (edited)
+- ISSUE 0653, hv's verblock rule into Intent (vc decision 91; vc's GO of 2026-10-26, stamped 07:23Z by vc's clock): built over vc's base T (e0c15d474, then 0648 v5, Part A v2, page v3 and dc's 0087-04 v2, applied in that order with git apply --index; write-tree 05127fda654c) in the detached worktree tmp/wt-dc-0653, because the template and the guard are live on save in every estate. The bank: the MODULES row first; IN-PR-STYLE-005 with hv's words verbatim; verblock-guard.sh beside staged-format-guard.sh, on staged markdown only, refusing a second version stamp or a quoted value over 100 characters, with one red and one green arm per refusal; the wiring that makes the gate run it; the two pointer lines (the Markdown line of lib/templates/llm/_AGENTS.md, and in-finish's wip.md step); AGENTS.md as agents sync renders it. No CHANGELOG hunk: its line goes in READY. Light work only. Bank on refs/bank/dc/0653/v1, READY to vc, who stacks and judges. No push, no release.
 
 ## TODO
 

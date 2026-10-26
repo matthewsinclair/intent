@@ -1,0 +1,16 @@
+{
+  "id": "01M5TABS7WFFHM7XDPG0GHRXVS",
+  "ts": "2026-10-25T19:59:52.014Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 143,
+    "text": "ST0087 WP-04 (todo 49): refs/bank/dc/0087-04/v2 (blob 907879d26f33, patch-id 75ca61f5cc6b, ten paths, over aaeaf3b16) is in vc's base T as banked (vc's order of 2026-10-26, stamped 07:23Z by vc's clock; vc decision 92), and vc runs the one stacked judge itself when molt-vc calls Intent's turn; a red comes back to dc to fix forward. After it lands: the AT rows for ST0087 AC-04.1 and AC-04.2, wp done, then WP-05's proof with vc and todo 50. tmp/wt-dc-0088-03's working tree equals v2 byte for byte; its index lags by docs/install.md's brew update hunk (index patch-id a741dd7a7fe3), which matters only if main moves under the bank's paths. No push, no release."
+  }
+}
