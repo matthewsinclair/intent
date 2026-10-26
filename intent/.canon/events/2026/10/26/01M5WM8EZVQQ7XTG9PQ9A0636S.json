@@ -1,0 +1,15 @@
+{
+  "id": "01M5WM8EZVQQ7XTG9PQ9A0636S",
+  "ts": "2026-10-26T17:31:18.557Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Decision 70(8) is unexecuted, measured 2026-10-26: `release.remotes: [local, upstream]` is not declared in bin/.devbin/config.yaml, and no other file in the repository declares it. Brief cc to bank it as XS for the next Intent train after Part B, judged light (config parse plus the release script's remotes check)."
+  }
+}

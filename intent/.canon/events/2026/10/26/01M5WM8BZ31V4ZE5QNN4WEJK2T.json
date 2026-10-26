@@ -1,0 +1,16 @@
+{
+  "id": "01M5WM8BZ31V4ZE5QNN4WEJK2T",
+  "ts": "2026-10-26T17:31:14.275Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 59,
+    "text": "HELD FOR hv's COMPACT (molt-vc's round of 2026-10-26: lean, HV ITEMS, doc parse, localfold, then hold on the bounce for molt-vc or hv). One project at a time: Utilz has the turn, and Intent's heavy runs wait for molt-vc's word. STATE: main is clean, and the pair is 2d4c941fa05d and current. CI on 8fb1351d0 is green. NEXT, in order:\n(1) PART B'S TRAIN, SIX BANKS. Slot 01M5WB6E22WVTYWM6ZYB4CAN81 was revoked at 15:01:34Z under load. Only light legs had run, all clean, and a revoked request is not released. When molt-vc gives Intent the turn: `intent estate slots ask heavy \"<what>\" --named tip=<main HEAD> --node vc`, then start, then judge-rerun.sh in tmp/wt-vc-train over these banks, in order:\n  - cc's wp04b-status-v2 (4ae2585f7479)\n  - cc's wp04b-wait-v2 (2421b3d9719d)\n  - ic's wp04b-page-v2 (8126a568631b)\n  - cc's wp04b-init-v1 (e8aee9ac86d6)\n  - cc's wp04b-ats-v1 (f649be3fa3ea)\n  - ic's pipeline-cell-width-v4 (e058514c0734; v1 to v3 are dropped)\n  On 00eb61a2e the tree after five is 2ca7692e71da and after six c45a889677a8.\n  Then release with a one-line result, land the banks in order, book build all, and run a fresh kovacs preflight (the first run of the ruby/main() change at 00eb61a2e). devbin-vc pushes on hv's word. ic takes a live look at the cells after the build.\n(2) AFTER A GREEN JUDGE: cc enters WP-04's AT rows in one chain, with `intent at lint` first. Then design.md's edits through `st attach`, pending's cost measured with the judge's binary, and WP-04's gate.\n(3) hv's answers to vc's HV ITEMS, sent to molt-vc at 17:21Z: the install HEAD check, INTENT_INSTALL_PREFIX, ST0087's status, the worktree removals and push-per-landing. ST0087 WP-05 (todo 66) follows them.\n(4) devbin-vc's wt-reading request, and A4's counter-wording with devbin-vc.\nNo push by vc, no release."
+  }
+}

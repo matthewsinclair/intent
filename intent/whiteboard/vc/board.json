@@ -5,7 +5,7 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "ba4ebc52-48ef-410b-bcc0-2e67b291a48f",
-    "heartbeat_at": "2026-10-26T14:56:01.444Z",
+    "heartbeat_at": "2026-10-26T17:31:35.213Z",
     "status": "active",
     "focus": "2026-10-26 RESUMED on hv's go-on: Part B's judge (slot 01M5WB6E22WVTYWM6ZYB4CAN81) queued behind Devbin's turn, one project at a time; dc's preflight-linux.sh bank judged green and landing; three questions with hv (install issue, prefix var, ST0087's status). No push by vc, no release",
     "claims": [],
@@ -1821,7 +1821,8 @@
       "kind": "decision",
       "seq": 62,
       "text": "(2026-10-15, hv first-hand in vc's session, \"Ok, proceed\" on vc's nine recommendations after hv's own words that the two layouts are the requirement, that the book is deleted and recreated on v3 rather than upgraded, and that it all ships in 3.2.4 for zeop; wording vc's, authority hv's) NINE RULINGS ON THE AGENT CONTRACTS, recorded in ST0083's context before any lane starts. (1) THE SIGNAL IS AN EXPLICIT KEY, `contracts: root | dotclaude` in config.json, never `languages: []`, because an empty `languages` is a legitimate state of a code repository and inferring a layout from it moves a code repository's AGENTS.md silently. (2) THE BOOK IN hv's SHARED ESTATE IS `dotclaude`: its root is a manuscript to the people who open it, and no cross-tool agent will open it. (3) THE IMPORT LANDS FIRST, XS, before 3.2.4's cut: under Claude Code's default a project with any CLAUDE.md never loads AGENTS.md, so `@AGENTS.md` is a defect fix in every Intent project. (4) EVERYTHING IN ST0083 SHIPS IN 3.2.4. (5) `intent deinit` is in the same thread. (6) THE TEMPLATED SETTINGS DENY editing the generated AGENTS.md, both paths, never CLAUDE.md. (7) ANOTHER ESTATE's v2.12 project rides the fleet sweep under decision 31, its two markers read before any `--force`. (8) INTENT MARKS `intent/.cache` DROPBOX-IGNORED ITSELF under a Dropbox root: every content tree the layout is for is a synced tree, and the key without this ships a family-synced SQLite WAL. (9) UNDER `dotclaude`, `usage-rules.md` IS NOT SEEDED; an authored one is left alone and reported. The measured brief is refs/bank/vc/contracts/contracts-layout-brief-measured.md (sha256 7363a9f5a607).",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-26T17:29:28.749Z",
       "recorded_at": "2026-10-15T10:06:39.645Z"
     },
     {
@@ -1848,7 +1849,8 @@
       "kind": "decision",
       "seq": 63,
       "text": "(2026-10-16, hv's selections in the TUI hv asked for, recorded at 2026-10-16T10:15:37Z by vc's clock; wording vc's, each choice hv's; vc's recommendation taken on ten of eleven) ELEVEN RULINGS. (1) ISSUE 0601's LANE IS cc's. (2) THE STRICT GATE IS THE DEFAULT FOR A FRESH USER: (a1), claude upgrade --apply installs in-session when it is absent (Payload::install; --skip-settings installs nothing), with (b)'s fail-open notice as the backstop. (3) A ! SHELL ESCAPE PASSES THE GATE AND AN INBOUND PEER MESSAGE STAYS GATED, built only once payloads.log from the TUI check shows the fields that mark each. (4) 3.2.4's SCOPE FOR dc's TRAIN: 0591, 0592, 0593, 0594, 0596 and 0597 in; 0590 waits on its design question (--project on issues alone or global). (5) ISSUE 0599 SHIPS IN 3.2.4, dc's lane after the train is judged. (6) kovacs's THREE REPOS, Molt-matts, Molt and Utilz, ARE contracts: root; an absent key reads as root, so nothing is written to them. (7) ST0083 WP-05 LANDS NOW on hv's word, in cc's session, as the judged patch-id edcada5fa2eb (bank refs/bank/cc/0083/wp05, blob 3fd6377f1c12). (8) THE BOOK IS RECREATED BY sinclair-vc IN ONE SESSION AFTER bin/devbin build all, from the banked steps (blob c03d21d900d0); vc sends the build-all signal after sinclair-vc's restart. (9) ISSUE 0600 RIDES 3.2.4 with its CHANGELOG line. (10) IN-SESSION IS REINSTALLED ON kovacs NOW from ORDER 3's package (hv's choice over vc's recommendation to wait for 0601's fix; the (a1) install path is then measured under a fresh HOME rather than on a bare kovacs). (11) ST0081 AC-07.1 SATISFIES NOW on hv's word, its note at cbc3aa079 keeping SessionStart as unconfirmed on screen; cc writes the satisfy as the lane owner, naming hv's word relayed by vc.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-26T17:29:32.156Z",
       "recorded_at": "2026-10-16T10:15:37.410Z"
     },
     {
@@ -1893,7 +1895,8 @@
       "kind": "decision",
       "seq": 64,
       "text": "(2026-10-16, hv's selections in the TUI vc asked, recorded at 2026-10-16T17:22:58Z by vc's clock, the first clock read after the answers; wording vc's, each choice hv's; each was vc's recommendation) THREE RULINGS FOR 3.2.4'S SECOND TRAIN. (1) ISSUE 0590: `--project <project>` belongs to the `issues` family ALONE in 3.2.4; the resolver lives once in intentsvcs beside the registry (exact tier: registered root or project_id; name tier: directory name or project_name case-insensitive, both, per hv's 2026-09-03 ruling that the directory name tells two checkouts apart; ambiguous and unmatched refused naming the candidates; never a cwd fallback), so a global flag later is wiring. (2) ISSUE 0598: the CLAUDE.md copy of the four-rule index is RETIRED in favour of the `@AGENTS.md` import; _CLAUDE.md points at the imported section; the byte-identity arm is rewritten to assert the pointer rather than left vacuous with one carrier; in-standards/SKILL.md stays the declared rendering; Intent's own CLAUDE.md regenerates in the same bank. (3) ISSUE 0602 REVERSES hv's 2026-09-09 ruling on 0218 for the empty shell only: after a skill's files go, uninstall removes the skill's directory WHEN EMPTY; a directory holding anything the manifest does not name is left and named, so the 0218 principle that the user's directory is theirs survives; the payload.rs comment block records the reversal; subagents are single files, nothing changes there.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-26T17:29:39.465Z",
       "recorded_at": "2026-10-16T17:22:58.902Z",
       "edited_at": "2026-10-16T17:23:23.572Z"
     },
@@ -1902,7 +1905,8 @@
       "kind": "decision",
       "seq": 65,
       "text": "(2026-10-16, hv's selection in the TUI vc asked, recorded at 2026-10-16T17:55:25Z by vc's clock, the first clock read after the answer; wording vc's, the choice hv's; vc's recommendation) THE SHIPPED SURFACE MAY READ `CLAUDE_CONFIG_DIR`, CONFINED to crates/intentsvcs/src/userstate.rs as HOME is: an ALLOWED row and a CONFINED row dated 2026-10-16 with the reason (issue 0604: skill and subagent installs land where Claude Code looks when the variable is set, and fall back to $HOME/.claude when it is not; require-in-session.sh, session-context.sh and the in-session release line read it in shell beside it, which the arm does not police). The arm no_intent_home::the_shipped_surface_reads_exactly_one_environment_variable then holds any second Rust reader of the variable red. cc asked the same question in its own session; this answer is the one ruling.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-26T17:29:45.096Z",
       "recorded_at": "2026-10-16T17:55:45.745Z"
     },
     {
@@ -1939,7 +1943,8 @@
       "kind": "decision",
       "seq": 66,
       "text": "(2026-10-16, vc under hv's pen granted 2026-08-22, answering cc's WP-04 and WP-06 shapes; vc's clock 19:30Z) SIX RULINGS ON ST0083's DOCTOR AND DEINIT, each measured at 9382bf1f9 before ruling. WP-04 (a) AC-04.1's REMEDY IS REWORDED BEFORE CODE: `intent agents layout` clears a doubled contract only when both copies hold the same bytes (canon::relayout refuses other bytes), so the AC's remedy misdirected; the finding names both paths and which one the `contracts` key reads, the remedy is removal of the stray (`git rm` tracked, `rm` untracked) and `intent agents layout <other>` only when the other layout is meant; relayout is unchanged, since a verb named layout must not delete bytes it did not write. (b) \"A CONTRACT EXISTS IN BOTH LAYOUTS\" COUNTS ONLY A COPY INTENT GENERATED, answered by canon's one predicate per file (the CLAUDE.md marker, the AGENTS.md footer), because Claude Code reads .claude/CLAUDE.md natively and a root-layout project may own one. (c) AC-04.3 IS SHOWN AND NOT COUNTED (the RootFileBehind tier): every v2 estate whose config reads \"Author Unknown\" would otherwise have every commit refused the day it upgrades; the AC says \"reports\", so no edit; the remedy names the field and the file. WP-06 (a) `intent deinit` DOES SURGERY ON .claude/settings.json AND .mcp.json rather than removing or keeping them whole: Intent's hook entries and WP-05's two deny rules go, the owner's keys stay, the file goes when nothing remains, an unparseable file is kept and named, the edit is named in both modes; a deinit that left `intent claude hook` wired would make the prompt gate refuse every prompt in a project that no longer has Intent. MEASURED BESIDE IT, an issue cc files after WP-06 banks: canon.rs:884 writes the template whole over any marker-carrying settings.json at every `claude upgrade --apply`, so the owner's keys in such a file survive only until the next upgrade. (b) usage-rules.md IS REMOVED WHEN BYTE-IDENTICAL TO ITS SEED, relayout's own test; AC-06.1 gains it. (c) `--all` ALSO REMOVES THE PROJECT'S ROW FROM projects.json, reversing cc's recommendation: the registry is Intent's own file, the row is provably Intent's, and `projects::resolve` would list the dead root in every `--project` refusal for ever; a remover is added beside `with_roots`. Both AC edits land before code, named in the bank messages.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-26T17:29:49.918Z",
       "recorded_at": "2026-10-16T19:32:49.039Z"
     },
     {
@@ -2037,7 +2042,8 @@
       "kind": "decision",
       "seq": 72,
       "text": "(2026-10-24 14:48Z by vc's clock, hv's selection in the TUI vc asked, received between vc's clock reads of 14:41Z and this one; wording vc's, the choice hv's; vc's recommendation taken) THE ESTATE GETS ONE CLOCK, BY RULING: the second file exempt from D42's one-clock guard. hv chose the option labelled 'One estate clock, by ruling (Recommended)', whose text was: one file, intentsvcs estate/clock.rs, read by the reader for taken_at and by intentd's census tick for the ring; every age derives from taken_at; join's now parameter is exempted by name as the PFIC seam; the reason is recorded at D42 beside the daemon log's. The reason: a reading of the live host is not a record and has no write to stamp it, and every idle age on the page, in intent estate status and in the TUI is measured from that reading's stamp. The WIP record is stamped by its own write, the file's mtime after the atomic rename, with no clock. The alternative hv did not take: no taken_at in @1, ages only in the browser, the terminal and TUI showing raw stamps. cc carries the exemption, the guard's change, the D42 record on ST0056's design and the clock file in ST0086 WP-01's bank.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-26T17:29:59.665Z",
       "recorded_at": "2026-10-24T14:48:22.929Z"
     },
     {
@@ -2045,7 +2051,8 @@
       "kind": "decision",
       "seq": 73,
       "text": "(2026-10-24 15:20Z, vc under the delegated pen, answering cc's two WP-02 questions; wording vc's, authority delegated per decision 4; ST0086) TWO RULINGS. (1) NO WATCHER IN WP-02: the estate page polls intentd's /op estate_status on the interval ic's page already uses, every read being fresh because the reader holds no state but the census ring (a read costs one ps, one lsof over the matched pids and the directory listings, about 0.05s each on this host); D20 keeps its two event names, and a third event (estate_changed) is hv's to add if a push is ever wanted; the daemon reaps Intent's WIP record for a gone session on its census tick, not on a watch; design.md line 62 and the open question at line 72 are struck to say so in cc's WP-02 bank. (2) PLAN USAGE OVER HTTPS BY /usr/bin/curl, NO TLS CRATE: the workspace has no HTTPS client and a rustls stack for one GET is a new third-party dependency under AC-08.10 that this does not need; intentd spawns /usr/bin/curl by absolute path, as it does /bin/ps, /usr/bin/uname and /usr/bin/security, with the URL, the headers and the bearer token in a config on stdin (-K -) so the token never enters argv, -sS --fail-with-body --max-time 10, status and body both captured, every failure named in usage.error (curl absent, the Keychain read, a status other than 200, a body that will not parse), read once per census tick and never per page read, the statusline fallback answering where the endpoint cannot; before the Keychain is read, cc positive-controls that ps -axo args= shows no token while a curl with a dummy token runs; recorded in design.md's usage paragraph and the MODULES row in the WP-02 bank.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-26T17:30:08.053Z",
       "recorded_at": "2026-10-24T15:20:14.968Z"
     },
     {
@@ -2053,7 +2060,8 @@
       "kind": "decision",
       "seq": 74,
       "text": "(2026-10-24 18:57Z by vc's date -u, hv first-hand in vc's session, taking vc's recommendations whole: \"yes, agree with your recs\"; wording vc's, authority hv's) ST0086 WP-02 LANDS AS JUDGED AND ITS DOORS FOLLOW. (1) ic's bank over 138c09ca6 at 12623685f lands first and cc's refs/bank/cc/0086/wp02 (blob e1bff518879343cc9884436f1434154481b7ff91, patch-id 80517ffd76f48efd2a2cd456c8694443d5f98a2f) second, each as judged with no edit at either tip before its run; then Intent's build all, with the intentd restart announced to every estate's vc first; hv looks at /estate/status on the running daemon. (2) The two WP-02 doors design.md assigns to the WP and neither bank carries come after, as two small banks over the new main, each a light run at molt-vc's desk: cc's facade arms first (estate census watch and unwatch, the statusline report taking stdin's JSON), then ic's verbs intent estate census watch <class> <pattern> and unwatch <class> and the statusline door with its step defined; the page's procs hint names the verb and may be softened in ic's follow-up. (3) ic's heavy run stays at molt-vc's slot 332 behind utilz-dc's 2.14.3 dry run under hv's cut-first rule. (4) Intent's re-vendor of devbin v0.1.14 is cc's, after build all and behind Laksa (3): the brew upgrade, then the macOS bats run the upgrade owes, each booked by name at molt-vc's desk; cc's hold 33 stands until the dev/opt/brew conformance thread has gone first.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-26T17:30:14.376Z",
       "recorded_at": "2026-10-24T18:57:36.420Z"
     },
     {
@@ -2061,7 +2069,8 @@
       "kind": "decision",
       "seq": 75,
       "text": "(2026-10-25 04:13Z by vc's date -u, vc under hv's pen granted 2026-08-22, answering ic's question on ST0086 WP-02's census verbs; hv may veto before the cut) THE CENSUS VERBS ARE TWO FLAT ROWS, `intent estate watch <class> <pattern>` and `intent estate unwatch <class>`, NOT design.md's three-word `estate census watch`: the spine builds a family and its verbs and no third level, and the subcommand-values idiom (one row, one recoverability, shared positionals) is the one the daemon family was moved off; teaching the spine a third level is an L on surface every node reads and waits behind the stabilisation line. design.md's spelling changes in ic's bank with the reason; the watch file stays under census/watches/. Exposure by recoverability AND authorship: watch is reversible in mechanism but replaces the CONTROLLER's declaration, not the agent's own, so it is withheld from MCP with a recoverability_anomaly saying so; unwatch is one-way and withheld; estate statusline is stdin-fed, called only by the statusline command, and off MCP. The statusline verb prints nothing on stdout, which is the line Claude Code draws: wrote: goes to stderr, no rate_limits writes and prints nothing at exit 0, bad input exits 1 with the remedy on stderr; the defined step pipes the handed JSON to the verb with stdout untouched and the exit code ignored, so a broken intent never blanks the status bar; the script edit is Molt-matts's through molt-vc after the verb ships. Sequencing (04:07Z): ic builds over cc's frozen 86d3f1bd9 (refs/bank/cc/0086/todo41), banks refs/bank/ic/0086/verbs over it, one light run at ic's tip judges both, vc lands both in one commit.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-26T17:30:17.720Z",
       "recorded_at": "2026-10-25T04:14:11.581Z"
     },
     {
@@ -2129,7 +2138,8 @@
       "kind": "decision",
       "seq": 81,
       "text": "(2026-10-25 10:50Z by vc's clock; hv's selections in the TUI vc asked on the prompt-corpus review, each taking vc's recommendation except where marked; wording vc's) THE PROMPT CORPUS CULL, THREE RULINGS, in 3.2.7 under decision 76. The review (vc's subagent, read-only, report at vc's scratchpad review/prompt-corpus-review.md with its captures) found the corpus accurate but fat: every verb named ships, every rule id cited exists, every path exists; the fat is the same instruction living in three to five files loaded into one session, and about 74,600 bytes read before the first prompt in this repository. (1) THE in-tca FAMILY IS CULLED, the five skills and their scripts, and intent/docs/total-codebase-audit.md stays as the written procedure: reached from nothing but each other, and their reporting scripts parse rows the critics never emit. (2) in-cost-analysis IS CULLED AND DROPPED (hv's choice over vc's offer to Utilz): named by nothing, not about Intent, dated rates, a locator that cannot find a CLAUDE_CONFIG_DIR config. (3) THE CATALOGUE CARRIES SKILLS ABOUT INTENT AND THE DECLARED LANGUAGES ONLY, so in-debug is culled with its one caller line; the Elixir, author and content packs stay as declared-language skills. The rest of the review's dispositions are vc's under the pen and go into the cull thread vc authors next: in-standards merged into in-essentials; the critics trimmed to their delta over rules/_schema/critic-contract.md; the detrope section owned once by in-detrope; the intent subagent, socrates/README.md, the eight metadata.json and plugin.json culled; the _AGENTS.md FAQ and security boilerplate and the v2-era interop section culled; the hardcoded ~/.claude paths replaced by CLAUDE_CONFIG_DIR in seven prompts; and the missing items written once into in-essentials (the wrote:/removed: convention, intent outstanding, the estate verbs, the thread and package lifecycle verbs, doctor and the gate's exit codes). Every change keeps the corpus tests green (skills-triage.md rows, every skill with a live caller, the size cap, the cross-reference and renderer traps) and is judged by the intent-cli suite and the bats that pin them.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-26T17:30:27.476Z",
       "recorded_at": "2026-10-25T10:50:50.810Z"
     },
     {
@@ -2147,7 +2157,8 @@
       "kind": "decision",
       "seq": 82,
       "text": "(2026-10-25 15:37Z by vc's clock; hv first-hand in ic's window, relayed verbatim by ic at 15:36Z, answering the question vc put to hv at 15:27Z) THE VERSION LINE DROPS ` at <root>`. hv, verbatim, shown `intent 3.2.6 (dev, 397d7568e1d8) at /Users/matts/Devel/prj/Intent dev`: \"YES! That info is idiotic. Why would that ever be necessary when you can just type of which it!?\" So the line is `<tool> <version> (<tree>, <sha12>[+dirty])` with a compiled tool's optional provenance word after it (hv said nothing about the word; Gtools and menuz show the kind in their subheading, so it stays), and `which <tool>` answers where the binary is. This amends the contract's T4 for every tool (devbin's docs, Utilz's and devbin's lines, Molt's printer), carried to molt-vc and devbin-vc with hv's words; and it is Intent issue 0647, XS, cc's, with the readers of the line and design.md's T4 following; Intent.app's parser (0646 v2) already reads the line with or without the root.\n CORRECTION 2026-10-25 15:38Z: the quote now reads exactly as relayed, with the word \"of\" vc had dropped.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-26T17:30:35.575Z",
       "recorded_at": "2026-10-25T15:37:07.838Z",
       "edited_at": "2026-10-25T15:38:33.406Z"
     },
@@ -2156,7 +2167,8 @@
       "kind": "decision",
       "seq": 83,
       "text": "(2026-10-25 16:02Z by vc's clock; hv first-hand in ic's window on ic's spike, relayed by ic at 16:01Z; wording vc's where not hv's) THE PIPELINE STRIP ON /estate/status, hv verbatim: \"Yeah, perect. Ship it. That's great.\" One horizontal line of cells under the band and above the queue, scrolling off the page both ways: finished jobs of the last hour (ended, revoked, denied) on the left, faded; a now marker; running jobs highlighted with a pulsing dot and orphaned ones in red; jobs yet to run, granted first then asked oldest first, dashed; the strip opens with now near the left edge, a centre button beside the heading, a viewer's scroll held through re-renders, the summary 'N finished in the last hour, N running, N yet to run'. It is ST0086 WP-04's page work (cc builds the protocol, ic the page and TUI half), with the reader carrying the requests that ended in the last hour under a `recent` key beside `queue`, which stays as planned; recorded as criterion AC-04.7; ic puts the section and the spike's cells into design.md and estate-status-mockup.html now as a docs bank vc lands.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-26T17:30:45.175Z",
       "recorded_at": "2026-10-25T16:02:54.656Z"
     },
     {
@@ -2181,7 +2193,8 @@
       "kind": "decision",
       "seq": 85,
       "text": "(2026-10-25, vc under hv's pen granted 2026-08-22, answering cc on 0648 item 2) THE SWIFT PACK GAINS IN-SW-CODE-006, NO FORCE OPERATIONS, WITH THREE PROXIES, AND ITEM 2'S PREMISE IS CORRECTED FORWARD. cc measured that none of the six Swift rules names a force operation and every one declares no greppable proxy authoritative, so 'proxies for the rules that have one' armed nothing; vc measured the app's own Swift (native/macos, tests included) before ruling: no try!, no as!, no fatalError( and no postfix force unwrap today, the bang grep positive-controlled, so the rule reds nothing that exists. The rule concretises IN-AG-NO-SILENT-001 for Swift (the force operations are Swift's panics) and relates to IN-RS-CODE-001, severity warning, applies_to every .swift file tests included because the runner reaches files by glob alone and the Xcode layout has no production-only glob, with try XCTUnwrap named as a test's remedy. Proxies: try!, as!, and a postfix ! after an identifier, ) or ] not followed by =, as extended regex. fatalError( is NOT armed: IN-SW-CODE-001 allows it as a guard exit and a line grep cannot see the guard; it stays in the prose Detection for the subagent. The Detection states the measured costs: a ! in a string literal after a word fires; x!= y with no space escapes through the = exclusion while x! = y with a space fires (corrected forward on cc's measurement, 2026-10-25); an implicitly unwrapped optional declaration fires and is in scope. Arms: one positive per proxy and one negative clean file in critic_surface.rs, tests of the product and not the planted positive devbin decision 68 withdrew; any count pinning the pack at six rules is deleted, never corrected (cc found the live pins in critic.rs and critic_refuses_an_empty_library.rs; the \"0 of 6\" at critic_surface.rs:544 is issue 0581's quoted shell headline, not a Swift pin, and stands). Sent to cc by name.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-26T17:30:53.080Z",
       "recorded_at": "2026-10-25T16:54:52.301Z",
       "edited_at": "2026-10-25T17:02:23.722Z"
     },
@@ -2198,7 +2211,8 @@
       "kind": "decision",
       "seq": 87,
       "text": "(2026-10-25, vc under hv's pen granted 2026-08-22, answering dc on ST0088 WP-03) intent/plugins/claude/plugin.json IS KEPT, and its reader is named: plugins::discover treats a directory as a plugin only when it holds plugin.json, so removing it would drop claude from intent plugin list and make intent plugin show claude answer no such plugin while the directory still ships every skill, subagent and rule. agents/plugin.json is install payload, and the roster test reads both. This satisfies AC-03.3's second arm, 'its reader is named by hv's ruling'. Retiring the plugin verbs is a surface removal outside WP-03, with no issue unless hv asks. The '>= 2' manifest literal in command_rosters_are_derived_or_declared.rs is a hardcoded count: respell it as a check naming both paths, or leave it named, but never change it to another number. Sent to dc by name.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-26T17:30:57.291Z",
       "recorded_at": "2026-10-25T17:04:32.188Z"
     },
     {
@@ -2232,7 +2246,8 @@
       "kind": "decision",
       "seq": 89,
       "text": "(2026-10-25 18:37Z, hv by TUI in molt-vc's session, relayed verbatim by molt-vc: \"Take all four (Recommended)\") hv took vc's four recommendations: (1) the slot records carry started_at and ended_at so the strip's finished cells read 'took X, ended N ago'; (2) dc's corrected sentence in hv's own block of Intent's CLAUDE.md stays; (3) ST0086 AC-04.7 stays satisfied by AT-04.7, with AC-04.8 to 04.13 testing the slots themselves; (4) making the critic contract readable to installed subagents waits until after 3.2.7. The first relay under hv's FOR-hv rule.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-26T17:31:05.439Z",
       "recorded_at": "2026-10-25T18:37:46.172Z"
     },
     {
@@ -2255,10 +2270,10 @@
       "node": "vc",
       "kind": "doing",
       "seq": 59,
-      "text": "RESUMED on hv's go-on, 2026-10-26, verbatim in vc's session: \"Ok, we're back up and running after a move. Please corale everyone to continue as planned.\" molt-vc's desk hold 01M5W7E40CE071QMSE4JT8KWXQ is unheld. hv to molt-vc: \"Ok, same straetgy as this morning. One project at a time.\" So Devbin has the turn, Utilz is due before Intent, and Intent's heavy runs wait for molt-vc's grant; light work and no-slot work carry on. STATE: the pair is 2d4c941fa05d and current. CI on 8fb1351d0 is green (Intent Tests 40333775962 and rust 40333775926). NEXT, in order: (1) PART B'S TRAIN. Heavy slot 01M5WB6E22WVTYWM6ZYB4CAN81 is QUEUED at molt-vc's desk (named tip=cdad67973). On the grant: `intent estate slots start <id> --named tip=<the same> --node vc`, then judge-rerun.sh in tmp/wt-vc-train, whose staged leftovers equal main, over cc's wp04b-status-v2 (4ae2585f7479), wp04b-wait-v2 (2421b3d9719d), ic's wp04b-page-v2 (8126a568631b) and cc's wp04b-init-v1 (e8aee9ac86d6), which cc confirmed at 14:52Z. Then release with a one-line result, land in that order, book build all, then a fresh kovacs preflight, and devbin-vc pushes on hv's word. A red goes back to cc (tmp/wt-cc-0086b) or ic (tmp/wt-ic-0086b). cc is drafting the owed AT rows, design.md's key paragraph and pending's cost as scratch text, and vc reads them against the banks before the judge; then WP-04's gate. dc's preflight-linux.sh bank (ruby in both lists plus the main() wrap, patch-id 6bf29d9d7898) is judged green and landed by vc, and the next kovacs preflight runs it. (2) FOR hv, asked in vc's session: the install issue (todo 66 a), whether INTENT_INSTALL_PREFIX in Molt-matts' vars.sh is within ruling 9 (todo 66 b), and whether ST0087, still in Triage with WP-01 to WP-04 Done, is started. WP-05 follows hv's answers. (3) devbin-vc's request, from refs/bank/vc/tools/wt-reading.txt, wt-inventory.sh and wt-pass2.sh. (4) The worktree removals, on hv's Spotlight check. (5) A4's counter-wording with devbin-vc. No push by vc, no release.",
+      "text": "HELD FOR hv's COMPACT (molt-vc's round of 2026-10-26: lean, HV ITEMS, doc parse, localfold, then hold on the bounce for molt-vc or hv). One project at a time: Utilz has the turn, and Intent's heavy runs wait for molt-vc's word. STATE: main is clean, and the pair is 2d4c941fa05d and current. CI on 8fb1351d0 is green. NEXT, in order:\n(1) PART B'S TRAIN, SIX BANKS. Slot 01M5WB6E22WVTYWM6ZYB4CAN81 was revoked at 15:01:34Z under load. Only light legs had run, all clean, and a revoked request is not released. When molt-vc gives Intent the turn: `intent estate slots ask heavy \"<what>\" --named tip=<main HEAD> --node vc`, then start, then judge-rerun.sh in tmp/wt-vc-train over these banks, in order:\n  - cc's wp04b-status-v2 (4ae2585f7479)\n  - cc's wp04b-wait-v2 (2421b3d9719d)\n  - ic's wp04b-page-v2 (8126a568631b)\n  - cc's wp04b-init-v1 (e8aee9ac86d6)\n  - cc's wp04b-ats-v1 (f649be3fa3ea)\n  - ic's pipeline-cell-width-v4 (e058514c0734; v1 to v3 are dropped)\n  On 00eb61a2e the tree after five is 2ca7692e71da and after six c45a889677a8.\n  Then release with a one-line result, land the banks in order, book build all, and run a fresh kovacs preflight (the first run of the ruby/main() change at 00eb61a2e). devbin-vc pushes on hv's word. ic takes a live look at the cells after the build.\n(2) AFTER A GREEN JUDGE: cc enters WP-04's AT rows in one chain, with `intent at lint` first. Then design.md's edits through `st attach`, pending's cost measured with the judge's binary, and WP-04's gate.\n(3) hv's answers to vc's HV ITEMS, sent to molt-vc at 17:21Z: the install HEAD check, INTENT_INSTALL_PREFIX, ST0087's status, the worktree removals and push-per-landing. ST0087 WP-05 (todo 66) follows them.\n(4) devbin-vc's wt-reading request, and A4's counter-wording with devbin-vc.\nNo push by vc, no release.",
       "state": "live",
       "recorded_at": "2026-10-26T07:17:05.783Z",
-      "edited_at": "2026-10-26T14:56:00.396Z"
+      "edited_at": "2026-10-26T17:31:14.275Z"
     },
     {
       "node": "vc",
@@ -2291,7 +2306,8 @@
       "kind": "decision",
       "seq": 95,
       "text": "(2026-10-26, hv first-hand in vc's session, relayed to molt-vc at 13:16:57Z by date -u) THE DESK MOVES ONTO THE SLOT RECORDS AFTER THE KOVACS PREFLIGHT'S END. hv, verbatim: \"yes, have molt-vc take control after the preflight END.\" hv had asked why the estate page's pipeline strip read \"nothing running\" on the pair 2d4c941fa05d. The strip (AC-04.7) and Part A's records and verbs are installed, but ~/.local/state/intent/estate/slots/ did not exist, so there was no controller, no lane and no request, and every booking that day went by message at molt-vc's desk, which the page cannot see. So, as decision 88 planned, molt-vc runs `intent estate control take`, opens decision 88's lanes (heavy at capacity 1, named by every heavy grant; cargo at capacity 1 machine-wide including kovacs; bats; light; launchsvc; lane none for negligible runs), and books READY as `slots ask`, GO as a grant, START as a start, END as a release, refusals as a deny or revoke, with kovacs runs relayed by the requester. Part B's wait, watch, pending, prompt hook and init follow the push, and Part B's train is the first run booked through the records. EXECUTED: molt-vc took control at 13:19:49Z by its clock, after the preflight's END (which was red), and opened heavy, cargo, bats and launchsvc at capacity 1 and light at 4.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-26T17:31:10.345Z",
       "recorded_at": "2026-10-26T13:29:55.391Z"
     },
     {
@@ -2316,8 +2332,17 @@
       "kind": "todo",
       "seq": 67,
       "text": "bin/.devbin/preflight-linux.sh can be rewritten while bash is still reading it. molt-vc reported this on 2026-10-26 as low priority: its 13:33Z attempt at the kovacs preflight died with rc 0 and no summary, because a second fetch rewrote the script mid-read. The gate stayed safe, since no summary means no seal. The fix: wrap the script's body in main() { ...; }; main \"$@\", so that bash reads the whole file before running any of it, or fetch to a per-run name. It rides dc's todo 54 (ruby in both of the script's lists, the same file) after hv's go-on, judged with Part B's preflight. vc briefs dc then.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-26T17:29:18.886Z",
       "recorded_at": "2026-10-26T13:50:50.722Z"
+    },
+    {
+      "node": "vc",
+      "kind": "todo",
+      "seq": 68,
+      "text": "Decision 70(8) is unexecuted, measured 2026-10-26: `release.remotes: [local, upstream]` is not declared in bin/.devbin/config.yaml, and no other file in the repository declares it. Brief cc to bank it as XS for the next Intent train after Part B, judged light (config parse plus the release script's remotes check).",
+      "state": "live",
+      "recorded_at": "2026-10-26T17:31:18.557Z"
     }
   ],
   "sent": [

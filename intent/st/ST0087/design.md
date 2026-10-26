@@ -15,7 +15,7 @@ The manifest (T3) is `<root>/.intent-install`. The link set (T5) is `~/.local/bi
 ## T1, the trees
 
 - dev is the git checkout; its runtime is the release pair cargo builds into `native/rust/target/release` (`bin/devbin build all` builds in staging, verifies the pair as a set and promotes by rename) plus the checkout's support paths. The root is found by walking up from the symlink-resolved executable to the first directory holding `lib/templates` (`intentsvcs::install::home`); no environment variable names the tree (`INTENT_HOME` is inert, measured). SAME.
-- opt is `intent install --prefix <dir>`, which does not exist today; its layout is the keg's `libexec` layout exactly. The configured place is `INTENT_INSTALL_PREFIX`, declared by the sleeve as Molt's is, read by `install` alone. No default. SAME.
+- opt is `intent install --prefix <dir>`, built in WP-02; its layout is the keg's `libexec` layout exactly. The configured place is `INTENT_INSTALL_PREFIX`, declared by the sleeve as Molt's is, read by `install` and by `use opt`, each when no `--prefix` is given. No default. SAME.
 - brew is `$(brew --prefix)/opt/intent/libexec`. Measured keg: `libexec/bin/{intent,intentd}`, `libexec/lib/templates`, `libexec/intent/plugins`, with Homebrew's `bin/intent` and `bin/intentd` as links into it. SAME, already true.
 - The compiled-tool reading: `source_commit` is the commit the pair was BUILT from, which in dev can lag HEAD. In the contract.
 
