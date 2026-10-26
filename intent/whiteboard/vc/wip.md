@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: ba4ebc52-48ef-410b-bcc0-2e67b291a48f
-heartbeat_at: 2026-10-26 13:30Z
+heartbeat_at: 2026-10-26 13:44Z
 status: active
-focus: "2026-10-26 localfold: pair 2d4c941fa05d; its kovacs preflight ran red (no ruby on kovacs), hv's A or B goes through molt-vc; then the green seal, devbin-vc's push, and Part B's train as the first run booked on the slot records (decision 95). Main board-only until the push. No release"
+focus: "2026-10-26 HOLD on hv's word until hv says go on: the kovacs preflight rerun (A1) finishes and, if green, devbin-vc pushes; nothing else starts. Then doing 59 resumes, Part B's train first. No release"
 claims: []
 ---
 
@@ -21,7 +21,7 @@ claims: []
 
 ## Holds
 
-_(none)_
+- Until hv says to go on. hv, verbatim in vc's session, read before vc's clock showed 2026-10-26 13:43:58Z: "ok, carry on. Then we need to hold as I need to move." The kovacs preflight rerun at 2d4c941fa05d, slot 01M5W6G6WBXG00TAWM2KAEM49V, finishes, and if its seal is green devbin-vc pushes local and then upstream. Then vc starts nothing: no Part B train, no WP-05 slot, no worktree removal, and no run for devbin-vc's request. cc, dc and ic were told the same, and molt-vc has hv's words for the desk. On hv's word, doing 59's order resumes unchanged, with Part B's train first.
 
 ## Watch-outs
 

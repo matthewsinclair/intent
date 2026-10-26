@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "ba4ebc52-48ef-410b-bcc0-2e67b291a48f",
-    "heartbeat_at": "2026-10-26T13:30:06.102Z",
+    "heartbeat_at": "2026-10-26T13:44:34.180Z",
     "status": "active",
-    "focus": "2026-10-26 localfold: pair 2d4c941fa05d; its kovacs preflight ran red (no ruby on kovacs), hv's A or B goes through molt-vc; then the green seal, devbin-vc's push, and Part B's train as the first run booked on the slot records (decision 95). Main board-only until the push. No release",
+    "focus": "2026-10-26 HOLD on hv's word until hv says go on: the kovacs preflight rerun (A1) finishes and, if green, devbin-vc pushes; nothing else starts. Then doing 59 resumes, Part B's train first. No release",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -2293,6 +2293,14 @@
       "text": "(2026-10-26, hv first-hand in vc's session, relayed to molt-vc at 13:16:57Z by date -u) THE DESK MOVES ONTO THE SLOT RECORDS AFTER THE KOVACS PREFLIGHT'S END. hv, verbatim: \"yes, have molt-vc take control after the preflight END.\" hv had asked why the estate page's pipeline strip read \"nothing running\" on the pair 2d4c941fa05d. The strip (AC-04.7) and Part A's records and verbs are installed, but ~/.local/state/intent/estate/slots/ did not exist, so there was no controller, no lane and no request, and every booking that day went by message at molt-vc's desk, which the page cannot see. So, as decision 88 planned, molt-vc runs `intent estate control take`, opens decision 88's lanes (heavy at capacity 1, named by every heavy grant; cargo at capacity 1 machine-wide including kovacs; bats; light; launchsvc; lane none for negligible runs), and books READY as `slots ask`, GO as a grant, START as a start, END as a release, refusals as a deny or revoke, with kovacs runs relayed by the requester. Part B's wait, watch, pending, prompt hook and init follow the push, and Part B's train is the first run booked through the records. EXECUTED: molt-vc took control at 13:19:49Z by its clock, after the preflight's END (which was red), and opened heavy, cargo, bats and launchsvc at capacity 1 and light at 4.",
       "state": "live",
       "recorded_at": "2026-10-26T13:29:55.391Z"
+    },
+    {
+      "node": "vc",
+      "kind": "hold",
+      "seq": 5,
+      "text": "Until hv says to go on. hv, verbatim in vc's session, read before vc's clock showed 2026-10-26 13:43:58Z: \"ok, carry on. Then we need to hold as I need to move.\" The kovacs preflight rerun at 2d4c941fa05d, slot 01M5W6G6WBXG00TAWM2KAEM49V, finishes, and if its seal is green devbin-vc pushes local and then upstream. Then vc starts nothing: no Part B train, no WP-05 slot, no worktree removal, and no run for devbin-vc's request. cc, dc and ic were told the same, and molt-vc has hv's words for the desk. On hv's word, doing 59's order resumes unchanged, with Part B's train first.",
+      "state": "live",
+      "recorded_at": "2026-10-26T13:44:33.248Z"
     }
   ],
   "sent": [

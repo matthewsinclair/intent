@@ -1,0 +1,15 @@
+{
+  "id": "01M5W799Q06DRQY9SV2KG2GAHD",
+  "ts": "2026-10-26T13:44:33.248Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "Until hv says to go on. hv, verbatim in vc's session, read before vc's clock showed 2026-10-26 13:43:58Z: \"ok, carry on. Then we need to hold as I need to move.\" The kovacs preflight rerun at 2d4c941fa05d, slot 01M5W6G6WBXG00TAWM2KAEM49V, finishes, and if its seal is green devbin-vc pushes local and then upstream. Then vc starts nothing: no Part B train, no WP-05 slot, no worktree removal, and no run for devbin-vc's request. cc, dc and ic were told the same, and molt-vc has hv's words for the desk. On hv's word, doing 59's order resumes unchanged, with Part B's train first."
+  }
+}
