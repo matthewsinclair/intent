@@ -1,0 +1,16 @@
+{
+  "id": "01M5VPKW1V4BGSX0ZAV422HSWX",
+  "ts": "2026-10-26T08:53:13.915Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 59,
+    "text": "JUDGED RED, AWAITING FIXES (2026-10-26). molt-vc gave GO HEAVY at 08:19Z by its own clock; vc sent START at 08:21Z and END at 08:51Z by date -u, verdict red, nothing landed. Run 1 (tip f8d36b26cd3b: base 8c77b10e6 plus the nine banks) and run 2 (tip 7ad5c2db8cf8: the same base plus dc/0644-doc/v1, then the train with the first fixes) are logged in the scratchpad under judge/log and judge/log-rerun. The judge is refs/bank/vc/tools/judge-train.sh, blob a14097550a30, whose int local drive now runs inside the worktree. The re-run is refs/bank/vc/tools/judge-rerun.sh, blob af7524acdb99. It resets tmp/wt-vc-train to the base, applies the banks, and re-runs the light legs, both builds, both clippy legs, doc, the tests, the release build, and bats with CI's PATH and git identity. VERIFIED FIX BANKS: dc/0644-doc/v1 (bb8b10095b77, main's canon.rs doc link from f6fbf774c), cc/0086/wp04a-critic-v2 (75f38a4b2548), dc/0087-04/v3 (3c2713f1d2cd) and ic/0086/arms-v3 (e12307a84d1a). OWED FROM cc: wp04a-critic-v3, for D42 (recent_value takes now) and the lifeline in Part A's slot test helper; cli-v3, for the lifeline in the --url test; and 0648 v6, for its exit 4 against main's critic unit test and bats #433. OWED FROM ic: 0086/tui-doc/v1, for tui/run.rs's private doc links, on main since e9464ad6c. LANDING ORDER: dc/0644-doc/v1 and ic/0086/tui-doc/v1 (main's own fixes); cc/0648/v6; cc/0086/wp04a-v2 and wp04a-critic-v3 as ONE commit; ic/0086/wp04a-page-v3; dc/0087-04/v3; ic/0086/arms-v3; cc/0652/cli-v3; ic/0652/app-v1; dc/0653/v1. NEXT: verify each re-bank against its author's worktree; send READY to molt-vc for the one re-run slot, which takes its place in the queue by READY time (molt-vc, 08:52Z: K115 holds the machine, with Utilz's 0111+0110 heavy next); on its GO, send START, run `zsh judge-rerun.sh /Users/matts/Devel/prj/Intent/tmp/wt-vc-train <base>` with the refs in landing order, and send END with every leg's verdict. Run 1's bank legs (render, app-test, int local, brew render and style, the smoke) stand unless a re-bank touches what they exercise. ON GREEN, each on molt-vc's GO as its own step: land in that order, each by its judged patch-id; one CHANGELOG commit from refs/bank/vc/train/20261026/changelog-lines.md (blob 8f47cb31dd37); the AT rows for ST0086 AC-02.2 and AC-02.6, and WP-02 done; close 0648, 0652 and 0653; build all, with START and END to every estate's vc, then intent daemon restart; the kovacs preflight at that HEAD through kovacs-sysadm; devbin-vc's upstream push; ic's app build, install and live check after hv quits Intent.app; and `intent claude skills sync`, announced to every vc. docs/reference regenerates at the cut. Not this train's: the_switch_points_the_link_set.rs's script() writes then execs, the ETXTBSY exposure ic reported. No push, no release."
+  }
+}
