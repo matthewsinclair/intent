@@ -12,6 +12,7 @@ code/optionals-over-sentinels|IN-SW-CODE-002
 code/structured-concurrency|IN-SW-CODE-003
 code/access-control-narrowest|IN-SW-CODE-004
 code/codable-over-manual-json|IN-SW-CODE-005
+code/no-force-operations|IN-SW-CODE-006
 test/xctassertequal-specific-values|IN-SW-TEST-001
 EOF
 }

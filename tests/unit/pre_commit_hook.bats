@@ -665,6 +665,26 @@ EOF
   assert_output_contains "commit blocked by findings"
 }
 
+@test "a critic that asked nothing (exit 4) passes the commit and prints its own line (issue 0648)" {
+  # The real critic, not a shim: a staged file no rust rule reaches is the run
+  # that answers 4, and the line the gate prints is the critic's own. The
+  # critic is given every staged file, `declare_languages`'s config among them,
+  # so the count it prints is read from the index rather than written here.
+  declare_languages rust
+  echo x > f.txt && git add f.txt
+  staged=$(git diff --cached --name-only | wc -l | tr -d ' ')
+  run git commit -m "nothing-asked"
+
+  assert_success
+  assert_output_contains "no rust rule was asked of any of the ${staged} file(s) given"
+  assert_output_contains "1 of 1 declared language(s) enforced"
+  # The critic's own unenforced lines, not doctor's: the fixture declares Intent
+  # 2.11.0, which doctor reads as unmigrated, and its exit 4 says UNENFORCED too.
+  refute_output_contains "rust is UNENFORCED in this commit"
+  refute_output_contains "went UNENFORCED"
+  refute_output_contains "ok: no rust findings"
+}
+
 # Put an `intent` on PATH whose `doctor` we control, deferring everything else to
 # the real CLI. The fixture project has no store, so the real `doctor` could not
 # produce either verdict here -- and a gate arm that has only ever seen one

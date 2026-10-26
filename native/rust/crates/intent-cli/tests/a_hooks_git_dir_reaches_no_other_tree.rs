@@ -178,9 +178,11 @@ fn a_project_tree_read_under_the_hooks_environment_sees_the_hooks_index() {
     "the staged read lost the hook's GIT_INDEX_FILE and judged another index:\n{}",
     text(&hooked)
   );
+  // The worktree's own index stages nothing, so no rule was asked of any file:
+  // 4, nothing judged, which the gate passes (issue 0648).
   assert_eq!(
     own.status.code(),
-    Some(0),
+    Some(4),
     "the worktree's own index holds nothing, so the finding above came from the \
      hook's index and not from the work tree:\n{}",
     text(&own)

@@ -29,6 +29,8 @@
 //! against a real shell script alike). Refusing on `armed == 0` would therefore
 //! block swift and lua on every commit of a correct install: a false refusal
 //! with a real population, which is the wrong-population error one layer up.
+//! Issue 0648 later armed one swift rule, IN-SW-CODE-006; lua still arms none,
+//! and the argument stands for any pack in that state.
 //!
 //! `total() == 0` has exactly one cause -- the census is empty, so the library
 //! did not load -- and no legitimate population among the declared languages.
@@ -159,16 +161,18 @@ fn a_loaded_library_never_reports_the_empty_library_refusal() {
   );
 }
 
-/// The swift and lua case, asserted rather than left to prose: a language whose
-/// rules all sit `Undeclared` loads a census and arms nothing, and **that is a
-/// healthy install** -- so it must not refuse.
+/// The lua case, asserted rather than left to prose: a language none of whose
+/// rules is armed loads a census and arms nothing, and **that is a healthy
+/// install** -- so it must not refuse. swift was its second subject until issue
+/// 0648 armed IN-SW-CODE-006, and lua is the subject that is left.
 ///
 /// This is the assertion that would go red if anyone later "simplifies" the
 /// predicate to `armed() == 0`.
 #[test]
 fn a_language_that_arms_nothing_from_a_loaded_library_still_does_not_refuse() {
   let lib = Library::new(&repo_root(), None);
-  for lang in ["swift", "lua"] {
+  {
+    let lang = "lua";
     let report = run(&lib, lang, &files(), Severity::Warning, &BTreeSet::new())
       .expect("the repo's own rule library must load");
 
@@ -179,7 +183,7 @@ fn a_language_that_arms_nothing_from_a_loaded_library_still_does_not_refuse() {
     assert_eq!(
       report.armed(),
       0,
-      "`{lang}`'s rules are all Undeclared today -- if this changes, the test \
+      "no `{lang}` rule is armed today -- if this changes, the test \
        below stops covering the armed-zero-but-healthy case and needs a new \
        subject rather than deletion"
     );

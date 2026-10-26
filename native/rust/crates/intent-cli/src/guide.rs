@@ -462,6 +462,7 @@ Read the codes as verdicts about DIFFERENT SUBJECTS rather than as degrees of ba
 - **`2` -- this build could not answer at all.** The tool is unavailable; nothing has been said about your work. **The shipped pre-commit gate fails OPEN on `2`**, deliberately, because a check that could not run must not block a commit it never examined.
 - **`3` -- a rule this project armed could not be enforced.** Not a flavour of `1`: `1` says the answer is no, `3` says part of the question went unanswered. **The gate BLOCKS on `3`**, because a rule that silently goes unenforced is the failure a gate exists to prevent.
 - **`4` -- the estate could not be judged.** `intent doctor` could not read the project it was asked about, so nothing it printed is a verdict. **The gate fails OPEN on `4`**, as it does on `2`: a check that could not look must not block a commit it never examined.
+  `intent critic` answers `4` too when it asked no rule of any file it was given: nothing was judged, so the run is never read as a clean `0`, and the gate passes on it and prints the critic's own line, because a file no rule reaches must not block a commit.
 
 **So a passing gate is a claim about what RAN, and no more than that.** A skipped check says so in its own line, and that line is not decoration: an instrument that cannot report its own blindness is worse than no instrument, because it converts an unknown into a green.
 ";
