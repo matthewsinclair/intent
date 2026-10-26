@@ -1,5 +1,5 @@
 ---
-verblock: "16 Oct 2026:v0.28: vc - the 3.2.4 train and 0601 landed unbuilt, 0605 found and fixed, the agent contracts thread four packages in"
+verblock: "16 Oct 2026:v0.28: vc - added the 2026-10-16 entry"
 intent_version: 3.2.3
 ---
 

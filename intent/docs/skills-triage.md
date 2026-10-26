@@ -1,6 +1,6 @@
 ---
 title: Skills catalogue triage
-verblock: "2026-10-25: v1.2 - Matthew Sinclair - the ST0088 cull of the TCA family, in-cost-analysis and in-debug"
+verblock: "2026-10-25: v1.2 - Matthew Sinclair - the ST0088 cull"
 ---
 
 # Skills catalogue triage

@@ -1,5 +1,5 @@
 ---
-verblock: "19 Sep 2026:v0.2: vc - the as-built notes re-read against the tree at 6d761cf69: the event canon and project.json rows, st fc and the renumber verbs on the manifest, agents template, two citations by name. 18 Aug 2026:v0.1: vc - selective realisation: .intentfiles, organize, edit"
+verblock: "19 Sep 2026:v0.2: vc - as-built notes re-read against the tree at 6d761cf69"
 ---
 
 # Selective realisation -- disk as a sparse projection of the store

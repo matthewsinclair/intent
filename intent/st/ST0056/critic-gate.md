@@ -1,5 +1,5 @@
 ---
-verblock: "19 Sep 2026:v0.4: citations re-synced to the tree at 6d761cf69 and the declared languages completed. 15 Sep 2026:v0.3: citations and the install-root pointer re-synced to the tree at a0c7300eb"
+verblock: "19 Sep 2026:v0.4: citations re-synced to the tree at 6d761cf69"
 ---
 
 # The pre-commit critic gate

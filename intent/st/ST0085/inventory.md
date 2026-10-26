@@ -1,5 +1,5 @@
 ---
-verblock: "23 Oct 2026:v0.1: ic - the first inventory for ST0085 WP-01, measured on the tree at 11606bf6d and reviewed by critic-prose"
+verblock: "23 Oct 2026:v0.1: ic - first inventory for WP-01"
 ---
 
 # Every surface that feeds prompt text to an agent

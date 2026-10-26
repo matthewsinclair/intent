@@ -1,5 +1,5 @@
 ---
-verblock: "2026-10-25:v3.24: vc - globalfold at hv's EOD: the desk is closed, every in-flight piece is banked and verified, and tomorrow starts by re-confirming each bank's bytes at molt-vc's desk"
+verblock: "2026-10-25:v3.24: vc - globalfold at hv's EOD"
 intent_version: 3.2.6
 ---
 
