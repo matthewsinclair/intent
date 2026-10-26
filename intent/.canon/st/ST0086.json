@@ -41,7 +41,7 @@
       "seq": 4,
       "title": "Slots: a generic pool, ask, grant, start, release protocol on the estate, records beside the status records, capacity enforced by the tool, policy with the controlling Claude",
       "scope": "S",
-      "status": "not-started",
+      "status": "wip",
       "objective": "A generic slot protocol on the estate with lanes and a named controller. The controller session, whichever session hv assigns, a dedicated one outside any project or a node inside one, takes control by writing `controller.json` (refused while a live holder's pid exists; a dead pid is succeeded) and declares lane types and lanes, each lane with a running capacity. Other sessions ask for a slot by lane type, the controller grants into a lane, denies or revokes, the holder starts and releases, and a grant over a lane's capacity is refused by the tool; policy beyond capacity stays with the controlling Claude. The records live beside the status records under `~/.local/state/intent/estate/slots/` (lanes, requests, the controller), each request a directory whose files are written one each by the acting party, so the state is the fold of the files and one writer per file holds. `slots wait` blocks a requester for its answer, `slots watch` streams state changes for the controller's monitor, and the UserPromptSubmit hook names pending asks to the controller. `intent estate init [<dir>]` renders a dedicated coordinator's working directory from Intent's own templates, contract and hook settings included, so the coordinator runs on Intent alone. The page and the TUI show the controller, every lane with its type, capacity, holders and queue, and each session's row shows the slots it holds.",
       "body": "",
       "preamble": ""
