@@ -4,14 +4,13 @@
     "moniker": "ic",
     "name": "Interface Claude",
     "role": "interface",
-    "session_id": "eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd",
-    "heartbeat_at": "2026-10-25T19:21:43.251Z",
+    "session_id": "71bed3ab-ad7e-4b27-b10f-4b59f0154cc9",
+    "heartbeat_at": "2026-10-26T07:33:10.432Z",
     "status": "active",
-    "focus": "LOCALFOLD (2026-10-25 16:28Z): WP-03 rerun booked (rebase over 0647 before GO), the app swap waits for hv, then ST0086 WP-03 and the AC-02.2/02.6 arms; no heavy start until hv says continue; no push, no release",
+    "focus": "2026-10-26: light work on vc's order of 07:23Z (decision 92). arms-v2 READY over T; 0652's Copy URL next, banked over T; the app build and install after the landing and build all; hold 12 stands; no push, no release",
     "claims": [
-      "ST0086/03",
       "ST0086/02",
-      "ST0087/03"
+      "ISSUE:0652"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -2569,7 +2568,8 @@
       "kind": "todo",
       "seq": 56,
       "text": "ST0086 WP-03 in 3.2.7 (decision 76, vc 07:08Z): the explorer's /estate page on the same reader as estate status; after ST0087 WP-03.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-26T07:32:55.868Z",
       "recorded_at": "2026-10-25T07:09:54.499Z"
     },
     {
@@ -2631,8 +2631,17 @@
       "kind": "doing",
       "seq": 133,
       "text": "RESUME STATE (ic, EOD on hv's word via molt-vc and vc, 2026-10-25 20:00Z by date -u). Desk CLOSED: nothing runs until hv and molt-vc reopen it. BANKED, every one unbuilt or awaiting its run: (1) refs/bank/ic/0086/arms-v1 (blob b14a9432a, patch-id 657530663c3a, base 7acd43211, tip 63ebbb835 in tmp/wt-ic-0086t): ST0086 AC-02.2 and AC-02.6 arms (todo 57), verified by vc, booked HEAVY+LS at molt-vc's desk; judge script scratchpad st0086t/judge.sh (four suites whole, fmt, both clippy, token-silent, critic per file); on green vc lands and writes the AT rows; rebase first if main moved under its paths. (2) refs/bank/ic/0086/wp04a-page-v3 (patch-id c932e3dd4ff4, base 89c981704, tip 8d0db8e8c in tmp/wt-ic-0086p; v2 over 7c85f9c55 is the same change set): ST0086 WP-04 Part A page and TUI half, now carried by cc on its formatted wp04a-v2 at combined tip e497aafefb38, whose judge cc booked with my render-states.sh as its last leg; vc lands both from that tip. (3) Intent.app Release build in tmp/wt-ic-app at edea1302f, booked HEAVY (vc's build all left the app at 284b6615e, lacking ST0087's LoginShell.swift), then the install as LIGHT+LS: hv answered through molt-vc 'I quit, ic installs (Recommended)', so install and open only after molt-vc says hv has quit; quit nothing. NEXT after those: ST0088 WP-04's measurement with vc. Hold 12 stands. Asks of hv go to molt-vc as FOR hv:. No push, no release.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-26T07:32:56.827Z",
       "recorded_at": "2026-10-25T20:00:23.572Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 134,
+      "text": "TODAY (ic, 2026-10-26, on vc's order of 07:23Z under hv's (a), vc decision 92): light work only. Intent's one stacked judge runs when molt-vc calls Intent's turn, vc runs it, and a red comes back to its author to fix forward. (1) refs/bank/ic/0086/arms-v2 (blob 61f00b9675cf, patch-id 3fb5351f829f) over T (tree 05127fda654c, in tmp/wt-ic-arms2): READY to vc at 07:30Z. On green vc lands it and writes the AT rows for AC-02.2 and AC-02.6, then WP-02 closes on vc's word. (2) ISSUE:0652, the Copy URL app half (cc builds `intent estate status --url`): the shape is in 0652's record. Next is the bank over T, then READY naming the Swift legs the union lacks. (3) The app build and install follow the landing and vc's build all: LoginShell plus Copy URL. Install only after molt-vc says hv has quit; quit nothing. Page v3 is inside T and lands with Part A. Hold 12 stands. No push, no release.",
+      "state": "live",
+      "recorded_at": "2026-10-26T07:32:57.711Z"
     }
   ],
   "sent": [
@@ -3319,6 +3328,16 @@
       "id": "01M5T7DEEKAGP4P864RP8MZB36",
       "sender": "vc",
       "handled_at": "2026-10-25T19:22:16.120Z"
+    },
+    {
+      "id": "01M5VFMBJKXBPM6Q72M54RRJZW",
+      "sender": "vc",
+      "handled_at": "2026-10-26T07:33:09.479Z"
+    },
+    {
+      "id": "01M5VHJ696XAT6B0S8BV9R9BPS",
+      "sender": "vc",
+      "handled_at": "2026-10-26T07:33:09.479Z"
     }
   ]
 }

@@ -2,22 +2,21 @@
 node: ic
 name: Interface Claude
 role: interface
-session_id: eacbb9b7-2b4c-4ee3-95ad-5049ed8390fd
-heartbeat_at: 2026-10-25 19:21Z
+session_id: 71bed3ab-ad7e-4b27-b10f-4b59f0154cc9
+heartbeat_at: 2026-10-26 07:33Z
 status: active
-focus: "LOCALFOLD (2026-10-25 16:28Z): WP-03 rerun booked (rebase over 0647 before GO), the app swap waits for hv, then ST0086 WP-03 and the AC-02.2/02.6 arms; no heavy start until hv says continue; no push, no release"
-claims: [ST0086/03, ST0086/02, ST0087/03]
+focus: "2026-10-26: light work on vc's order of 07:23Z (decision 92). arms-v2 READY over T; 0652's Copy URL next, banked over T; the app build and install after the landing and build all; hold 12 stands; no push, no release"
+claims: [ST0086/02, ISSUE:0652]
 ---
 
 # Interface Claude (ic)
 
 ## DOING
 
-- RESUME STATE (ic, EOD on hv's word via molt-vc and vc, 2026-10-25 20:00Z by date -u). Desk CLOSED: nothing runs until hv and molt-vc reopen it. BANKED, every one unbuilt or awaiting its run: (1) refs/bank/ic/0086/arms-v1 (blob b14a9432a, patch-id 657530663c3a, base 7acd43211, tip 63ebbb835 in tmp/wt-ic-0086t): ST0086 AC-02.2 and AC-02.6 arms (todo 57), verified by vc, booked HEAVY+LS at molt-vc's desk; judge script scratchpad st0086t/judge.sh (four suites whole, fmt, both clippy, token-silent, critic per file); on green vc lands and writes the AT rows; rebase first if main moved under its paths. (2) refs/bank/ic/0086/wp04a-page-v3 (patch-id c932e3dd4ff4, base 89c981704, tip 8d0db8e8c in tmp/wt-ic-0086p; v2 over 7c85f9c55 is the same change set): ST0086 WP-04 Part A page and TUI half, now carried by cc on its formatted wp04a-v2 at combined tip e497aafefb38, whose judge cc booked with my render-states.sh as its last leg; vc lands both from that tip. (3) Intent.app Release build in tmp/wt-ic-app at edea1302f, booked HEAVY (vc's build all left the app at 284b6615e, lacking ST0087's LoginShell.swift), then the install as LIGHT+LS: hv answered through molt-vc 'I quit, ic installs (Recommended)', so install and open only after molt-vc says hv has quit; quit nothing. NEXT after those: ST0088 WP-04's measurement with vc. Hold 12 stands. Asks of hv go to molt-vc as FOR hv:. No push, no release.
+- TODAY (ic, 2026-10-26, on vc's order of 07:23Z under hv's (a), vc decision 92): light work only. Intent's one stacked judge runs when molt-vc calls Intent's turn, vc runs it, and a red comes back to its author to fix forward. (1) refs/bank/ic/0086/arms-v2 (blob 61f00b9675cf, patch-id 3fb5351f829f) over T (tree 05127fda654c, in tmp/wt-ic-arms2): READY to vc at 07:30Z. On green vc lands it and writes the AT rows for AC-02.2 and AC-02.6, then WP-02 closes on vc's word. (2) ISSUE:0652, the Copy URL app half (cc builds `intent estate status --url`): the shape is in 0652's record. Next is the bank over T, then READY naming the Swift legs the union lacks. (3) The app build and install follow the landing and vc's build all: LoginShell plus Copy URL. Install only after molt-vc says hv has quit; quit nothing. Page v3 is inside T and lands with Part A. Hold 12 stands. No push, no release.
 
 ## TODO
 
-- ST0086 WP-03 in 3.2.7 (decision 76, vc 07:08Z): the explorer's /estate page on the same reader as estate status; after ST0087 WP-03.
 - ST0086 AC-02.2 and AC-02.6 arms, RULED by vc as proposed, owed before ST0086 closes. Order: v3 judge, ST0087 WP-03, ST0086 WP-03, then these. (1) read_endpoint takes a Source { security, curl, url }, and host_endpoint passes today's consts. Stub scripts in a tempdir: the security stub answers per -s (the naming condition both ways), the curl stub a canned status and body. One arm per EndpointFailure plus a bad body, fixture tokens only, never the real Keychain or api.anthropic.com. (2) Unit arms in intentd's census.rs: push past KEPT, held() arms ASKED, gather reads the endpoint only when asked; no interval knob. (3) Cite the parser and count arms against AC-02.2, add a cwd-attribution arm only where none measures it, and the reap arm is gather(true, _) calling prune. (edited)
 
 ## Holds

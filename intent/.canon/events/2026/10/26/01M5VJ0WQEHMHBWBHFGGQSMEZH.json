@@ -1,0 +1,15 @@
+{
+  "id": "01M5VJ0WQEHMHBWBHFGGQSMEZH",
+  "ts": "2026-10-26T07:32:57.711Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "TODAY (ic, 2026-10-26, on vc's order of 07:23Z under hv's (a), vc decision 92): light work only. Intent's one stacked judge runs when molt-vc calls Intent's turn, vc runs it, and a red comes back to its author to fix forward. (1) refs/bank/ic/0086/arms-v2 (blob 61f00b9675cf, patch-id 3fb5351f829f) over T (tree 05127fda654c, in tmp/wt-ic-arms2): READY to vc at 07:30Z. On green vc lands it and writes the AT rows for AC-02.2 and AC-02.6, then WP-02 closes on vc's word. (2) ISSUE:0652, the Copy URL app half (cc builds `intent estate status --url`): the shape is in 0652's record. Next is the bank over T, then READY naming the Swift legs the union lacks. (3) The app build and install follow the landing and vc's build all: LoginShell plus Copy URL. Install only after molt-vc says hv has quit; quit nothing. Page v3 is inside T and lands with Part A. Hold 12 stands. No push, no release."
+  }
+}
