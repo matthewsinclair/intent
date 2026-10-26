@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 71bed3ab-ad7e-4b27-b10f-4b59f0154cc9
-heartbeat_at: 2026-10-26 10:51Z
+heartbeat_at: 2026-10-26 11:14Z
 status: active
-focus: "0652 LIVE CHECK, and the AC-04.6 page bank READY (2026-10-26 10:50Z): on molt-vc's word that hv has quit Intent.app, app-install from main at HEAD, then the live check; wp04b-page-v1 waits on Part B's judge after the push; hold 12 stands; no push, no release"
+focus: "0652 LIVE CHECK, and the AC-04.6 page bank v2 READY (2026-10-26 11:13Z): on molt-vc's word that hv has quit Intent.app, app-install from main at HEAD, then the live check; wp04b-page-v2 and render tools v3 wait on Part B's judge after the push; hold 12 stands; no push, no release"
 claims: [ISSUE:0652]
 ---
 
@@ -14,7 +14,7 @@ claims: [ISSUE:0652]
 ## DOING
 
 - RESUME STATE (ic, 2026-10-26 10:13Z by date -u): the 0652 live check is ic's one open job. Copy URL is on main at 69731c940 (refs/bank/ic/0652/app-v1, landed in vc's chain, END 10:07Z by vc's word), and the installed pair is 629ce5ad2 after vc's build all (END 10:12Z by vc's word; `intent --version` reads 629ce5ad201f). (1) On molt-vc's word that hv has quit Intent.app: `bin/devbin macos app-install` from main at HEAD, HEAVY, booked through molt-vc; ic quits nothing. (2) The live check: choose Copy URL; `pbpaste` shows the URL with its token; `osascript -e 'clipboard info'` lists org.nspasteboard.ConcealedType; the pasted URL opens the page in Safari. (3) Then vc closes 0652 and ic unclaims ISSUE:0652. A red fixes forward from a fresh worktree at main. vc removes ic's nine tmp/wt-ic-* worktrees in one light leg on molt-vc's word; ic removes none. Hold 12 stands. No push, no release. (edited)
-- ST0086 WP-04 Part B, AC-04.6's page face (vc's assignment at 10:40Z, vc's word): refs/bank/ic/0086/wp04b-page-v1 (patch-id 5d84abb5f8c5) over cc's B1 v2 (refs/bank/cc/0086/wp04b-status-v2, patch-id 4ae2585f7479), READY to vc at 2026-10-26 10:50Z by date -u, confirmed by vc at 10:51Z (vc's word), tools v2 audited. renderLanes draws each lane's queued asks under its holders; the page-keys test gains the lane arm and carries ST0086 AT-04.6; the fixture's lanes carry queue. refs/bank/ic/tools/render-states.sh is v2 (cfac3f796c16), with a queued state. Worktree tmp/wt-ic-0086b, kept until the landing. It lands right after B1 v2 in Part B's train, after devbin-vc's push; its Rust arm is compiled in Part B's judge, and a red comes back to ic to fix forward. No claim: the work package is cc's.
+- ST0086 WP-04 Part B, the page face of AC-04.6 (vc's orders at 10:40Z and 11:08Z, vc's word): refs/bank/ic/0086/wp04b-page-v2 (patch-id 8126a568631b) over cc's B1 v2 + B2 v2 (refs/bank/cc/0086/wp04b-status-v2 and wp04b-wait-v2, tree 2f7cef001a4d), READY to vc at 2026-10-26 11:13Z by date -u, confirmed by vc at 11:14Z (vc's word) with tools v3 audited. It supersedes wp04b-page-v1, which stays on its ref as a record and is not for landing. Each lane lists its queued asks under its holders; a controller record that will not parse reads `record UNREADABLE` on the band's control line, never NO CONTROLLER, with its path and why first below the band. The page-keys test requires `controller_unreadable` and carries the lane arm, marked ST0086 AT-04.6; the fixture carries both keys. Render tools v3 (refs/bank/ic/tools/render-states.sh 96c9f5840582, prelude.js 942b1e87c794): every marker is a rendered form, since the v1 and v2 markers for empty and full matched the page's own script and could not fail; each state also names what it must not show, and a ctlbad state is added. v3 on main f8038ec21 passed empty, full and deskhold for real. Worktree tmp/wt-ic-0086b is kept until the landing. Train: B1 v2, B2 v2, page v2, then B3, after devbin-vc's push; Part B's judge compiles the Rust arm, and a red comes back to ic. No claim: the work package is cc's. (edited)
 
 ## TODO
 
