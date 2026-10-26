@@ -1,0 +1,16 @@
+{
+  "id": "01M5W4H3WC5WK8V0YJRSK0MW76",
+  "ts": "2026-10-26T12:56:23.692Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 59,
+    "text": "RESUME (vc picked up at 2026-10-26 12:00Z by date -u after hv's compact; hv's standing word: \"If your rec is (a) then go with that.\"). LANDED SINCE THE COMPACT: 0654's fold-text step (44fd5b190) and its fix-forward 0656 (26d8e1f39); after the checks, `git -C <path> reset --hard` drops a bank still staged and a plain remove follows, banks may be staged or committed, a linked build target is unlinked with a plain `rm`, and a mutant goes once its red run is recorded; skills synced at 12:37Z and every vc told. A4 (0655), ic's bank, was judged green in molt-vc's slot and landed at a6ce22c3b, with the CHANGELOG and ST0087 design.md's T5 sentence at 9b050d294 and the close at 2d4c941fa; build all and the daemon restart put the pair at 2d4c941fa05d, and the currency verdict reads ok. 0652 closed at d266077d9 on hv's live check of Copy URL and --url. NEXT, in order: (1) THE KOVACS PREFLIGHT at 2d4c941fa05daf4c11f6c747492605b6ff520f71: READY is with molt-vc; on its GO, through kovacs-sysadm if it runs, else ssh with no sudo, the two order lines `bin/int prepush --preflight-covers HEAD` prints; the seal lands at ~/.local/share/intent/preflight/<sha>.summary, green by its first line. Main takes board-only commits until the push. (2) devbin-vc pushes local and then upstream; send it the sha and the seal's path. (3) PART B'S TRAIN: cc's wp04b-status-v2 (4ae2585f7479), wp04b-wait-v2 (2421b3d9719d), ic's wp04b-page-v2 (8126a568631b) and cc's wp04b-init-v1 (e8aee9ac86d6); cc measured them still applying on 2d4c941fa; their CHANGELOG hunks are judged as written (vc's ruling to cc); judged in a booked heavy with judge-rerun.sh, CI-shaped tests and ic's render tools v3, whose queued and ctlbad states need Part B; then the landings, build all, and a fresh preflight before the next upstream push; after the landing cc owes the AT rows for AC-04.4, 04.5 and 04.6, design.md through the attachment door, and pending's measured cost. (4) devbin-vc's request for the worktree reading and both scripts, answered after the seal. (5) THE WORKTREE REMOVALS, a light leg with START and END to molt-vc, on its word that hv has made the ~/Devel Spotlight exclusion, by 0656's step; dc's three newly landed ones join the stale set; FOR hv with molt-vc: does the Spotlight wait cover every removal or only the stale set (vc's interim: every removal). (6) A4's counter-wording is with devbin-vc. tmp/wt-vc-train is the judge worktree and stays. No push by vc, no release."
+  }
+}
