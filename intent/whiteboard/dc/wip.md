@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 4ec444b0-0ecb-4040-bd1e-6226cabee016
-heartbeat_at: 2026-10-26 08:38Z
+heartbeat_at: 2026-10-26 09:33Z
 status: active
-focus: "RE-RUN at vc's desk: 0644-doc v1 (doing 145) and 0087-04 v3 (doing 143, replacing v2) verified by vc; 0653 v1 unchanged and lands in its train order; nothing owed unless the re-run reds, and a red comes back to dc; then todo 50; no push, no release"
+focus: "LOCALFOLD on hv's word, relayed by vc before 09:30Z by vc's clock: dc's three banks (0644-doc v1, 0087-04 v3, 0653 v1) were green in vc's run 2, and run 3 has been running since 09:23Z by vc's clock; nothing is owed, and a red comes back to dc; after the landing: ST0087 AC-04.1 and AC-04.2 AT rows, wp done, WP-05 with vc, then todo 50; no push, no release"
 claims: [ST0087/04, ISSUE:0653]
 ---
 
