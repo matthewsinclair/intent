@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "1b8817f9-d0d6-4b3e-b2f5-d09c0a9a0577",
-    "heartbeat_at": "2026-10-26T13:55:52.948Z",
+    "heartbeat_at": "2026-10-26T14:53:05.624Z",
     "status": "active",
-    "focus": "HOLD on hv's word, relayed by vc at 13:43Z by vc's clock, and molt-vc's machine-wide round (slots desk hold 01M5W7E40CE071QMSE4JT8KWXQ): no task, no slot ask, no run until hv says go on. On hv's go-on, ST0086 WP-04 Part B's judge is the first run molt-vc books through the slot records, on vc's word, over the stack wp04b-status-v2 4ae2585f7479, wp04b-wait-v2 2421b3d9719d, ic's wp04b-page-v2 8126a568631b, wp04b-init-v1 e8aee9ac86d6; a red comes back to cc in tmp/wt-cc-0086b, and a fix-forward bank carries no CHANGELOG hunk; owed after the landing: AT rows for WP-04's uncovered criteria (AC-04.1 to 04.6, 04.8 to 04.13), design.md's key paragraph, pending's measured cost; hold 33 stands until ST0087 has gone first; no push, no release",
+    "focus": "GO ON (hv's word relayed by vc at 14:52Z by vc's clock; the hold and molt-vc's desk hold released): ST0086 WP-04 Part B's judge is the first run vc books on the slot records, over the stack wp04b-status-v2 4ae2585f7479, wp04b-wait-v2 2421b3d9719d, ic's wp04b-page-v2 8126a568631b, wp04b-init-v1 e8aee9ac86d6, confirmed by cc at 14:52Z; a red comes back to cc in tmp/wt-cc-0086b, and a fix-forward bank carries no CHANGELOG hunk; owed after the landing: AT rows for WP-04's uncovered criteria (AC-04.1 to 04.6, 04.8 to 04.13), design.md's key paragraph, pending's measured cost; hold 33 stands until ST0087 has gone first; no push, no release",
     "claims": [
       "ST0081",
       "ST0086/04"
