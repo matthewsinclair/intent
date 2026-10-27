@@ -128,6 +128,13 @@ pub fn fixture_home() -> &'static Path {
 ///
 /// `CLAUDE_CONFIG_DIR` is here for the same reason (issue 0604): set, it
 /// moves `~/.claude`, where skills install and the prompt gate looks.
+///
+/// `INTENT_INSTALL_PREFIX` is here because, set, it names the operator's opt
+/// tree, which `intent install` publishes into and `intent use opt` points the
+/// links at when no `--prefix` is given (ST0087). No `HOME` scopes it, so a
+/// sweep driving bare `install` with it inherited publishes into the real
+/// tree. Absent, both refuse, which is the state a test naming no prefix was
+/// written for.
 const MOVERS: &[&str] = &[
   "XDG_CONFIG_HOME",
   "XDG_DATA_HOME",
@@ -135,6 +142,7 @@ const MOVERS: &[&str] = &[
   "XDG_CACHE_HOME",
   "XDG_RUNTIME_DIR",
   "CLAUDE_CONFIG_DIR",
+  "INTENT_INSTALL_PREFIX",
 ];
 
 /// A `Command` for `program` whose per-user state is the fixture's, never the

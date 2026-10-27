@@ -83,6 +83,28 @@ fn exempt_from_the_migration_refusal(path: &str) -> Option<&'static str> {
     // the operator's state dir and opens no project store, which is why
     // `Op::EstateStatus` answers before any project binding.
     "estate" => Some("the host, not a project -- opens no project store"),
+    // **`app`'s GROUND, AND THE SWEEP MUST NOT RUN EITHER ONE.** `install`
+    // publishes this install root into the opt prefix, `--prefix` else
+    // `INTENT_INSTALL_PREFIX`, and `use` reads or repoints the links in
+    // `~/.local/bin` and then restarts the daemon through the new link.
+    // Neither calls `Project::discover` or opens a facade, verified in
+    // `install.rs` and `switch.rs`, so there is no project for either to
+    // answer wrongly about.
+    //
+    // **THE SWEEP FOUND IT BY RUNNING ONE.** hv's `dvb test all` on main at
+    // cb664a6c5 went red twice on `intent use dev` SUCCEEDED (exit 0): main's
+    // checkout holds a release pair after `build all`, so `use dev` linked the
+    // fixture HOME's `~/.local/bin` into it and ran `daemon restart` through
+    // the new link, and each run left an `intentd` behind under the fixture
+    // HOME. A judge worktree builds no release pair before its tests, so the
+    // same arm read green there. Bare `install` refused only because
+    // `INTENT_INSTALL_PREFIX` was unset; exported, it would have published.
+    // (Exemptions added by cc on vc's order, 2026-10-27; ic owns this list and
+    // should reword if the framing is wrong.)
+    "install" => Some("publishes this install root into an opt prefix; it never reads a project"),
+    "use" => Some(
+      "points the links in ~/.local/bin at a tree and restarts the daemon; it never reads a project",
+    ),
     "version" | "info" | "help" => Some("tool-level, not project-level"),
     // The agent guide is generated from the dispatch table compiled into this
     // binary -- the same category as `schema`, and verified rather than
@@ -345,13 +367,17 @@ fn exempt_from_the_migration_refusal(path: &str) -> Option<&'static str> {
 /// Each member below is family-wide on a property of the WHOLE family, stated
 /// at its own exemption row: `app` asks LaunchServices about this machine and
 /// never opens the estate, `estate` is the host and opens no project store,
-/// `plugin`'s verbs all read the install, and `daemon`
-/// and `mcp` are long-running servers this sweep must not start. **`llm` needs
+/// `plugin`'s verbs all read the install, `daemon` and `mcp` are long-running
+/// servers this sweep must not start, and `install` and `use` write this
+/// machine's opt tree and links, which this sweep must not touch. **`llm` needs
 /// no carve-out any more** -- it is simply absent from this list, which is what
 /// exact-path now means, and `llm usage_rules` is swept again as its row always
 /// said it should be.
 fn exemption_is_family_wide(family: &str) -> bool {
-  matches!(family, "app" | "daemon" | "estate" | "mcp" | "plugin")
+  matches!(
+    family,
+    "app" | "daemon" | "estate" | "install" | "mcp" | "plugin" | "use"
+  )
 }
 
 fn legacy_project() -> tempfile::TempDir {
@@ -624,8 +650,12 @@ fn a_family_wide_exemption_covers_only_the_verbs_it_was_ruled_for() {
         "wip",
       ],
     ),
+    // ST0087's two machine-scoped rows, each one row with no verb beneath it;
+    // a verb added under either is re-ruled here before the sweep skips it.
+    ("install", &[]),
     ("mcp", &[]),
     ("plugin", &["list", "show"]),
+    ("use", &[]),
   ];
 
   for (family, expected) in pinned {

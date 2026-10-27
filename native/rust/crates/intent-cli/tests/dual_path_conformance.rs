@@ -429,6 +429,11 @@ const HAZARDS: &[(&str, &[Hazard])] = &[
   // so in-process it would answer about, or repoint, this machine's `intent`.
   // Its subject is the machine, as `bootstrap`'s is.
   ("use", &[Hazard::ActsOnAmbientUserState]),
+  // ST0087 WP-02: bare `install` publishes into `INTENT_INSTALL_PREFIX`, the
+  // operator's opt tree, and in-process that is read from THIS process's
+  // environment, which the testkit's door scrubs for the binary route and
+  // nothing scrubs here. Its subject is the machine, as `use`'s is.
+  ("install", &[Hazard::ActsOnAmbientUserState]),
   (
     "daemon run",
     &[Hazard::NeverReturns, Hazard::ReplacesTheImage],
