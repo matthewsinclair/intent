@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "worker",
     "session_id": "37fdad41-2838-4b8d-9a5e-d32fe5670a7d",
-    "heartbeat_at": "2026-10-27T12:24:48.826Z",
+    "heartbeat_at": "2026-10-27T15:25:48.757Z",
     "status": "active",
-    "focus": "Holding after hv's compact (round 3, 2026-10-27). WP-05 is WIP since e6d02c211 and claimed as ST0087/05, its scripts banked under refs/bank/dc/0087-05/, verified by vc, none run; it runs on the pair the second build all made at f06241f83b56, once INTENT_INSTALL_PREFIX is published, in Intent's turn after L1, on vc's word (todo 53). The 0632 drive v4 is banked under refs/bank/dc/0632/, verified by vc, not run (todo 50). No push, no release",
+    "focus": "Folded (round 4, 2026-10-27) and pushing on, since hv lifted the hold. NOW: the known-defects re-drive for 3.2.7 on the pair at f06241f83b56, on vc's assignment, in a light slot from molt-vc (todo 50 (b)). WP-05 is WIP since e6d02c211 and claimed as ST0087/05, its scripts banked under refs/bank/dc/0087-05/, verified by vc, none run: AC-05.1 runs once INTENT_INSTALL_PREFIX is published, in Intent's turn after L1; AC-05.3 needs no prefix, only devbin-vc's word per tree (todo 53). The 0632 drive v4 runs on the final pre-cut pair and the cut's --dry-run on the final HEAD (todo 50). No push, no release",
     "claims": [
       "ST0087/05"
     ],
