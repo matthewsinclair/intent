@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 42695459-0b6e-4f49-a7b4-96cfd9ab52ab
-heartbeat_at: 2026-10-27 12:06Z
+heartbeat_at: 2026-10-27 12:22Z
 status: active
-focus: "FOLDED for hv's compact (round 3, 2026-10-27): ST0086 WP-04's AT rows and design.md are in (a68374a07, gate PASS 28/28), vc judges the rows next and cc closes WP-04 on vc's word (doing 96); issue 0657 is closed and unclaimed; ST0081 WP-02 stays WIP to the 3.2.7 cut (doing 98); seven older worktrees stay for banking or a ruling (hold 34); after the compact, /in-session and carry on; no push, no release"
+focus: "Back from hv's compact (round 3, 2026-10-27): ST0086 WP-04's AT rows and design.md are in (a68374a07, gate PASS 28/28); vc judges the rows next and cc closes WP-04 on vc's word (doing 96); ST0081 WP-02 stays WIP to the 3.2.7 cut (doing 98); seven older worktrees stay for banking or a ruling (hold 34); no push, no release"
 claims: [ST0081, ST0086/04]
 ---
 
