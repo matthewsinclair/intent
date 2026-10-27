@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 42695459-0b6e-4f49-a7b4-96cfd9ab52ab
-heartbeat_at: 2026-10-27 15:22Z
+heartbeat_at: 2026-10-27 15:54Z
 status: active
 focus: "FOLDED (round 4, 2026-10-27) and carrying on under hv's "Push on" (hv AFK, molt-vc has the pen, vc coordinates): ST0086 is Done (3243d789f); ST0081 WP-02 stays WIP to the 3.2.7 cut (doing 98); seven older worktrees stay for banking or a ruling (hold 34); no push, no release"
 claims: [ST0081]
