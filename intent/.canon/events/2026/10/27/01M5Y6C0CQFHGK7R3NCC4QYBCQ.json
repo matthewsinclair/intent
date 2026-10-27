@@ -1,0 +1,16 @@
+{
+  "id": "01M5Y6C0CQFHGK7R3NCC4QYBCQ",
+  "ts": "2026-10-27T08:07:02.295Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 137,
+    "text": "ISSUE:0658, the estate page's plan usage (3.2.7 under decision 76; hv in ic's session, 2026-10-27: \"Ok, do 1 and 2.\"). v1 is banked at refs/bank/ic/0658/v1 (blob 876b862b11c2, patch-id 808f12b6d03e) over cc's scratch tip e22661b78, Part B's tree, from tmp/wt-ic-0658 (index tree bd9297ea51df), and vc accepted it at 07:21Z by vc's clock. BUT V1 WILL RED THE JUDGE, found by ic at its fold: intentsvcs/tests/one_clock.rs bans `Instant::now` in every src and tests file except daemon_log.rs and estate/clock.rs, and v1's census.rs calls it twice for the schedule. v2 is owed after the compact, as light work in tmp/wt-ic-0658: the schedule counted in census ticks with no clock read (a counter decremented on each whole tick, and after a read set to the wait divided by TICK, rounded up), the other workspace source guards re-read (exit_code_consumers, populations), re-banked over e22661b78 and reported to vc. The rest of v1 stands: usage::carry, usage::next_wait (READ_EVERY five minutes, doubling to WAIT_CAP an hour, never sooner than a 429's Retry-After; an HTTP-date Retry-After falls back to doubling), EndpointFailure::Throttled and four new AT-02.6 arms. The judge owes intentsvcs's and intentd's suites, fmt, both clippy legs and CI's doc command (new intra-doc links); the landing chain owes AC-02.6's wording, AT-02.6 re-cited and design.md's Primary paragraph. No CHANGELOG hunk; vc has the line. No push, no release."
+  }
+}
