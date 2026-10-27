@@ -147,7 +147,7 @@
     },
     {
       "id": "AC-02.6",
-      "text": "Plan usage's primary source is the account's usage endpoint, read by intentd once per census tick after a status ask through Claude Code's Keychain item under Claude Code's own service-name condition (the suffixed name when CLAUDE_CONFIG_DIR is set, the bare name when it is not, no fallback between them); the Keychain read failing, the endpoint unreached, a status other than 200 and an unparseable answer are each named in `usage.error`, and outside macOS the fallback is the source.",
+      "text": "Plan usage's primary source is the account's usage endpoint, read by intentd on a census tick after a status ask, at most every five minutes, and after a failed read no sooner than twice the previous wait, up to an hour, or a 429's Retry-After, through Claude Code's Keychain item under Claude Code's own service-name condition (the suffixed name when CLAUDE_CONFIG_DIR is set, the bare name when it is not, no fallback between them); the Keychain read failing, the endpoint unreached, a status other than 200 and an unparseable answer are each named in `usage.error`, and a failed read after a good one keeps that reading, with when it was read, beside the failure, until a newer statusline report replaces it; outside macOS the fallback is the source.",
       "kind": "test",
       "state": {
         "is": "computed"
@@ -219,7 +219,7 @@
     },
     {
       "id": "AC-04.7",
-      "text": "The page carries a pipeline strip under the band and above the queue: one horizontal line of cells scrolling off the page both ways, the requests that ended in the last hour (ended, revoked, denied) on the left and faded, a now marker, running requests highlighted and orphaned ones in red, then granted and asked requests yet to run in that order, dashed; it opens with now near the left edge, a button beside the heading centres the running cells, a scroll the viewer made holds through re-renders, and the summary reads how many finished in the last hour, are running and are yet to run. The reader supplies the finished requests under `recent` beside `queue` (hv's ruling of 2026-10-25, decision 83).",
+      "text": "The page carries a pipeline strip under the band and above the queue: one horizontal line of cells scrolling off the page both ways, the requests that ended in the last hour (ended, revoked, denied) on the left and faded, a now marker, at which requests running at the same time stack in one column, highlighted, with orphaned ones in red, then granted and asked requests yet to run in that order, dashed; it opens with now near the left edge, a button beside the heading centres the running cells, a scroll the viewer made holds through re-renders, and the summary reads how many finished in the last hour, are running and are yet to run. The reader supplies the finished requests under `recent` beside `queue` (hv's ruling of 2026-10-25, decision 83).",
       "kind": "test",
       "state": {
         "is": "computed"
@@ -393,7 +393,7 @@
         "AC-02.6"
       ],
       "status": "green",
-      "note": "arms: a_good_answer_is_read_and_the_token_rides_stdin_never_argv, the_keychain_item_is_named_by_whether_a_config_dir_is_set_with_no_fallback, a_keychain_that_cannot_run_or_holds_no_token_is_named, a_curl_that_cannot_run_or_reaches_nothing_is_named and a_status_other_than_200_and_an_unparsable_answer_are_named (stub security and curl scripts in a tempdir, fixture tokens only, never the real Keychain or the network), and in native/rust/crates/intentd/src/census.rs asking_for_the_estate_arms_the_endpoint_read (the endpoint is read after a status ask); green in vc's stacked train, run 3's workspace tests at base 51eb26da4 (tip tree 5f0ee67fabfb, none failed), with arms-v3 landed at bd3dbf682 on 2026-10-26"
+      "note": "arms: a_good_answer_is_read_and_the_token_rides_stdin_never_argv, the_keychain_item_is_named_by_whether_a_config_dir_is_set_with_no_fallback, a_keychain_that_cannot_run_or_holds_no_token_is_named, a_curl_that_cannot_run_or_reaches_nothing_is_named and a_status_other_than_200_and_an_unparsable_answer_are_named, and for issue 0658 a_429_is_named_with_the_retry_after_it_sent, a_failed_read_keeps_the_last_good_reading_beside_its_failure, a_good_read_waits_read_every_and_a_failure_backs_off and a_kept_reading_stands_until_a_newer_statusline_report (stub security and curl scripts in a tempdir, fixture tokens only, never the real Keychain or the network), and in native/rust/crates/intentd/src/census.rs asking_for_the_estate_arms_the_endpoint_read (the endpoint is read after a status ask) and, for issue 0658, the_endpoint_waits_its_wait_in_whole_ticks_and_one_more (the wait counted in census ticks, no clock read); green in vc's judge run 3 of 2026-10-27 (request 01M5YHGAPFKX6PEWMDREN5BGBY) at base b72f507ac, 3475 ok and 0 failed, each arm with its own ok line in refs/bank/vc/evidence/judge-run3/test.log (blob cd488c87a550); arms-v3 landed at bd3dbf682 on 2026-10-26, and 0658 v3 at a9cd50adc"
     },
     {
       "id": "AT-03.1",
@@ -483,7 +483,7 @@
         "AC-04.7"
       ],
       "status": "green",
-      "note": "The page reads no key the reader never sends: the strip's recent, queue and sessions reads are a subset of the reader's serialised keys, taken from estate::join rather than a list. Green in ic's combined judge at e756e484a over ea94f91b0 (18:07Z to 18:11Z on 2026-10-25), run after the arm landed ahead of judge on hv's word: the intentsvcs, intent-cli and intentd suites with no failure."
+      "note": "The page reads no key the reader never sends: the strip's recent, queue and sessions reads are a subset of the reader's serialised keys, taken from estate::join rather than a list. Green in ic's combined judge at e756e484a over ea94f91b0 (18:07Z to 18:11Z on 2026-10-25), run after the arm landed ahead of judge on hv's word: the intentsvcs, intent-cli and intentd suites with no failure. Green again over the stacking in vc's targeted run 4 (request 01M5YKGTAK325EY94E646KE2D5) on ic's pipeline-stack-v1, landed at f08a5d20d: this file's two arms each have their ok line in refs/bank/vc/evidence/judge-run4/test-intentsvcs-page.log (blob 3c4530a5724b). The stacking itself is layout, read rather than tested: in ic's render-states.sh render of the full fixture, the stack column holds exactly the orphaned and running cells and closes before the granted and asked ones (refs/bank/vc/evidence/judge-run4/estate-full.html, blob db2b8f43c943, and estate-full.png, blob ddbbeab99b7c)."
     },
     {
       "id": "AT-04.8",

@@ -1,0 +1,14 @@
+{
+  "id": "01M5YNFX69G7YZ7EBGQD8R2NHN",
+  "ts": "2026-10-27T12:31:18.737Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0086/AC-02.6"
+  },
+  "payload": {
+    "text": "Plan usage's primary source is the account's usage endpoint, read by intentd on a census tick after a status ask, at most every five minutes, and after a failed read no sooner than twice the previous wait, up to an hour, or a 429's Retry-After, through Claude Code's Keychain item under Claude Code's own service-name condition (the suffixed name when CLAUDE_CONFIG_DIR is set, the bare name when it is not, no fallback between them); the Keychain read failing, the endpoint unreached, a status other than 200 and an unparseable answer are each named in `usage.error`, and a failed read after a good one keeps that reading, with when it was read, beside the failure, until a newer statusline report replaces it; outside macOS the fallback is the source."
+  }
+}

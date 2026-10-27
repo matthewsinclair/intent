@@ -1,0 +1,14 @@
+{
+  "id": "01M5YNG1RJQT7ECAASXH8MZ1H3",
+  "ts": "2026-10-27T12:31:24.286Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0086/AC-04.7"
+  },
+  "payload": {
+    "text": "The page carries a pipeline strip under the band and above the queue: one horizontal line of cells scrolling off the page both ways, the requests that ended in the last hour (ended, revoked, denied) on the left and faded, a now marker, at which requests running at the same time stack in one column, highlighted, with orphaned ones in red, then granted and asked requests yet to run in that order, dashed; it opens with now near the left edge, a button beside the heading centres the running cells, a scroll the viewer made holds through re-renders, and the summary reads how many finished in the last hour, are running and are yet to run. The reader supplies the finished requests under `recent` beside `queue` (hv's ruling of 2026-10-25, decision 83)."
+  }
+}

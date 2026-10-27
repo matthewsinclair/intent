@@ -266,7 +266,7 @@
         "AC-02.1"
       ],
       "status": "green",
-      "note": "arms: each_refusal_names_its_cause_and_writes_nothing; green in cc's judge at 47eb2d2c7 on 2026-10-25 (fmt, build, both clippy legs, the intentsvcs, intent-cli and intentd suites whole, the two bats files, the drives; the critic leg 0 red of 12 judged), landed at 976fad577 and bb4bb4e70; cited by vc at the landing"
+      "note": "arms: each_refusal_names_its_cause_and_writes_nothing; green in cc's judge at 47eb2d2c7 on 2026-10-25 (fmt, build, both clippy legs, the intentsvcs, intent-cli and intentd suites whole, the two bats files, the drives; the critic leg 0 red of 12 judged), landed at 976fad577 and bb4bb4e70; and, for issue 0657, a_head_past_the_build_is_judged_by_what_moved (commits that change none of the build's inputs, a board file and a crate's own test, install and say so, the manifest still naming the built commit; a tests/ outside the cargo workspace, a support-path commit, a build that is not an ancestor of HEAD and a dev tree whose git cannot be read each refuse, naming why), green in vc's judge run 3 of 2026-10-27 (request 01M5YHGAPFKX6PEWMDREN5BGBY) at base b72f507ac, 3475 ok and 0 failed, its ok line in refs/bank/vc/evidence/judge-run3/test.log (blob cd488c87a550), landed at f764d2a8f; cited by vc at the landing"
     },
     {
       "id": "AT-02.2",
