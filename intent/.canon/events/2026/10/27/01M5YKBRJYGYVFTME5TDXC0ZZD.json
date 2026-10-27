@@ -1,0 +1,16 @@
+{
+  "id": "01M5YKBRJYGYVFTME5TDXC0ZZD",
+  "ts": "2026-10-27T11:54:05.790Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 53,
+    "text": "ST0087 WP-05, dc's and claimed by dc as ST0087/05, with vc judging its records against their ACs and holding no claim (vc, 2026-10-27): the proof, per tree, on rhadamanth and kovacs; it ends on brew. Its shape is vc's todo 66, which carries dc's env -i base. THE SCRIPTS ARE BANKED AND FINAL, each verified by vc by diff on 2026-10-27, none run: refs/bank/dc/0087-05/legs-v3.zsh 02c3db341df3, ac051-v2.sh c4098aaa90b8, ac053.sh ff5f36227d5c, record-v3.sh 2c80deb70fe2 and attach.sh dba0086eb2d2. At the slot the run directory is materialised from those blobs with git cat-file -p under the names the driver expects (legs.zsh, ac051.sh, ac053.sh, record.sh, attach.sh), and the slot's READY lists each file's sha256 beside its blob. THE PAIR IT RUNS ON IS BUILT: Intent's one landing put the ten on main as 1d38741ee..ef4eaf3bc, 0657 among them (vc decision 100), and its build all and intentd restart made the pair at 7efc01183c27, intentd restarting at 11:51:36Z by vc's clock (vc decision 101, hv's \"Unequivocally Yes\"); dc read intent and intentd at 7efc01183c27 at 11:52Z on 2026-10-27, current by DIRT_SCOPE, so 0657's exact-HEAD freeze no longer applies. STILL BEFORE IT: molt's env liberator publishes INTENT_INSTALL_PREFIX to ~/.config/molt/env.sh, which molt-vc does before L2 opens; dc found it still absent at 11:52Z on 2026-10-27, the file last written 2026-10-25 09:27Z. It moves in Intent's turn, after L1, booked at molt-vc's desk with START and END to every estate's vc. No push, no release. WP-05 IS WIP since e6d02c211, which ran intent wp start ST0087/05 on vc's word of 2026-10-27 in dc's own chain after hv's compact; AC-05.1, AC-05.2 and AC-05.3 stay unsatisfied until the runs."
+  }
+}
