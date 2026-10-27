@@ -1,0 +1,16 @@
+{
+  "id": "01M5Y3DEPHQDB7T8TTBJX236W9",
+  "ts": "2026-10-27T07:15:23.985Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 50,
+    "text": "3.2.7 CUT-SIDE (vc's decision 76, hv via molt-vc, 2026-10-25 06:51Z by vc's clock: one release carrying everything; done, then tested at molt-vc's desk, then kovacs via kovacs-sysadm, then hv's cut): dc's share in the same release, not a later one. (a) The 0632 drive v2, refs/bank/dc/0632/drive-v2.sh fdd6574e58ba, counts removed: lines beside wrote: (vc verified it, 2026-10-27). It runs in the light lane on the final pair before the cut, after the last landing's build all, and its short HOME under /tmp waits on hv's yes. (b) The known-defects re-drive, whole, at the cut's HEAD. (c) Defined with the cut's order, once Part B and the 0657 and WP-02 train have landed: vc proposes that dc runs the cut's --dry-run on the final HEAD, a heavy run, booked, and reads the brew steps' output beside hv at the cut, the firing hv's. Comes after todo 53."
+  }
+}

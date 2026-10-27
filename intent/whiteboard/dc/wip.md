@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 37fdad41-2838-4b8d-9a5e-d32fe5670a7d
-heartbeat_at: 2026-10-27 05:44Z
+heartbeat_at: 2026-10-27 07:15Z
 status: active
-focus: "CLOSED for the night on hv's word via molt-vc, HOLD until hv says go on: todo 53 (WP-05) moves in Intent's turn, ST0087 started, 0657 and 1bd41f2 carry hv's two rulings; then todo 50; no claim, nothing running; dc's worktrees wait for molt-vc's Spotlight word; no push, no release"
+focus: "L2 waits for L1 on hv's layer order (molt-vc decision 22): WP-05's scripts and the 0632 drive v2 are banked under refs/bank/dc/0087-05/ and refs/bank/dc/0632/, each verified by vc and none run; dc holds for Intent's turn and vc's word; no claim, no push, no release"
 claims: []
 ---
 
@@ -17,8 +17,8 @@ _(none)_
 
 ## TODO
 
-- 3.2.7 CUT-SIDE (vc's decision 76, hv via molt-vc, 2026-10-25 06:51Z by vc's clock: one release carrying everything; done, then tested at molt-vc's desk, then kovacs via kovacs-sysadm, then hv's cut): dc's share in the same release, not a later one: (a) re-run the 0632 drive with removed: lines counted beside wrote: (scratchpad/0632/drive.sh compares only wrote:); (b) the known-defects re-drive; (c) the release tooling steps dc owns. Each heavy books with molt-vc. Comes after todo 53. (edited)
-- ST0087 WP-05 (vc's, with dc): the proof, per tree, on rhadamanth and kovacs; it ends on brew. Its shape is vc's todo 66, WP-05's shape v2, which carries dc's deltas of 2026-10-26 13:46Z and is their one home. hv ruled both of dc's HV ITEMS: the install HEAD check's DIRT_SCOPE fix is vc's issue 0657, for the next train, and INTENT_INSTALL_PREFIX is declared as $MOLT_OPT_DIR/intent in Molt-matts 1bd41f2, so AC-05.1 is judged in a fresh login shell (an agent session keeps its old env). ST0087 is started (vc's decision 96). It moves in Intent's turn on the machine, and each heavy run books with molt-vc. No push, no release. (edited)
+- 3.2.7 CUT-SIDE (vc's decision 76, hv via molt-vc, 2026-10-25 06:51Z by vc's clock: one release carrying everything; done, then tested at molt-vc's desk, then kovacs via kovacs-sysadm, then hv's cut): dc's share in the same release, not a later one. (a) The 0632 drive v2, refs/bank/dc/0632/drive-v2.sh fdd6574e58ba, counts removed: lines beside wrote: (vc verified it, 2026-10-27). It runs in the light lane on the final pair before the cut, after the last landing's build all, and its short HOME under /tmp waits on hv's yes. (b) The known-defects re-drive, whole, at the cut's HEAD. (c) Defined with the cut's order, once Part B and the 0657 and WP-02 train have landed: vc proposes that dc runs the cut's --dry-run on the final HEAD, a heavy run, booked, and reads the brew steps' output beside hv at the cut, the firing hv's. Comes after todo 53. (edited)
+- ST0087 WP-05 (vc's, with dc): the proof, per tree, on rhadamanth and kovacs; it ends on brew. Its shape is vc's todo 66, which carries dc's env -i base. THE SCRIPTS ARE BANKED AND FINAL, each verified by vc by diff on 2026-10-27, none run: refs/bank/dc/0087-05/legs-v3.zsh 02c3db341df3, ac051-v2.sh c4098aaa90b8, ac053.sh ff5f36227d5c, record-v3.sh 2c80deb70fe2 and attach.sh dba0086eb2d2. At the slot the run directory is materialised from those blobs with git cat-file -p under the names the driver expects (legs.zsh, ac051.sh, ac053.sh, record.sh, attach.sh), and the slot's READY lists each file's sha256 beside its blob. Before it: molt's env liberator publishes INTENT_INSTALL_PREFIX to ~/.config/molt/env.sh, which molt-vc does before L2 opens (dc's finding: the file was last written 2026-10-25 09:27Z without it); while 0657 is open, build all runs at the exact HEAD and nobody commits until install has published. It moves in Intent's turn, after L1, booked at molt-vc's desk with START and END to every estate's vc. No push, no release. (edited)
 
 ## Holds
 
