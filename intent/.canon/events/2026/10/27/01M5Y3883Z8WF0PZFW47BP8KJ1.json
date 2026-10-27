@@ -1,0 +1,15 @@
+{
+  "id": "01M5Y3883Z8WF0PZFW47BP8KJ1",
+  "ts": "2026-10-27T07:12:33.408Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ISSUE:0658, the estate page's plan usage (3.2.7 under decision 76; hv in ic's session, 2026-10-27: \"Ok, do 1 and 2.\"): bank the fix as light work, edits and git only with no build and no suite, over Part B's tree, cc's scratch tip e22661b78. usage::carry keeps the last good reading beside a failure, usage::next_wait reads at most every five minutes and backs off after a failure, a 429 becomes EndpointFailure::Throttled carrying its Retry-After, and census.rs keeps the schedule in the tick. Files: usage.rs, census.rs and AT-02.6's test file. The record carries the shape, plus AC-02.6's new wording and the design.md correction, both owed in the landing chain. Judged in the train after Part B's, beside 0657 and ST0081 WP-02. No CHANGELOG hunk; vc writes the line at landing. No push, no release."
+  }
+}

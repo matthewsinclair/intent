@@ -1,0 +1,16 @@
+{
+  "id": "01M5Y3897N2SS4YB9MFAXNMRJS",
+  "ts": "2026-10-27T07:12:34.549Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 12,
+    "text": "docs/reference regeneration at the 3.2.7 cut (was todo 52): hv ruled on 2026-10-26 that ic regenerates docs/reference at the cut (vc relayed it in its chain for decision 96). The step is intent/docs/releasing.md's step 2, read 2026-10-27 on vc's order: from this tree, BASE is `git describe --tags --abbrev=0`; gen_reference.sh and gen_cut_surface.sh both run at `--rev HEAD --baseline \"$BASE\"`, the second with `--out` naming the file cut-surface.md, into scratch first with the diff read, and both halves land in ONE commit before the driver runs; reference_current_check.sh says when the set is current. Neither generator runs a binary, so the regeneration puts no load on the machine, but it sits on the cut's final HEAD, because Part B's wait-v2 and init-v1 move the register again. At 4bcfdf1e4 the check exits 1, stale against v3.2.6 on every page, with intent-estate.md new. The explorer's screenshots go with it (vc, 2026-10-27): gen_explorer_shots.sh, ic's generator under decision 70(3), runs in the same pass, but it compiles its example first, so it is a load and books its own slot with molt-vc at the cut, on the cut's final HEAD after the reference regeneration, building into a target of its own and never native/rust/target, which holds the installed pair. RELEASES WHEN: the 3.2.7 cut begins (hv's call) with everything it carries landed."
+  }
+}
