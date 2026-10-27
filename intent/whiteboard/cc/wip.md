@@ -3,28 +3,21 @@ node: cc
 name: Control Claude
 role: control
 session_id: 42695459-0b6e-4f49-a7b4-96cfd9ab52ab
-heartbeat_at: 2026-10-27 11:49Z
+heartbeat_at: 2026-10-27 12:06Z
 status: active
-focus: "Part B, 0657 and ST0081 WP-02 LANDED in vc's landing chain (END 11:46Z by vc's clock; doing 96, 97, 98); owed after the build all and intentd restart, in one store chain: WP-04's AT rows from landing-drafts-v2 and design.md's edits, then issue 0657 closed and unclaimed; seven older worktrees stay for banking or a ruling (hold 34); no push, no release"
-claims: [ST0081, ST0086/04, ISSUE:0657]
+focus: "FOLDED for hv's compact (round 3, 2026-10-27): ST0086 WP-04's AT rows and design.md are in (a68374a07, gate PASS 28/28), vc judges the rows next and cc closes WP-04 on vc's word (doing 96); issue 0657 is closed and unclaimed; ST0081 WP-02 stays WIP to the 3.2.7 cut (doing 98); seven older worktrees stay for banking or a ruling (hold 34); after the compact, /in-session and carry on; no push, no release"
+claims: [ST0081, ST0086/04]
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-- ST0086 WP-04 Part B LANDED in vc's landing chain (END 11:46Z by vc's clock), after decision 100's green run 3, each bank as its own commit at its judged patch-id: (edited)
-  - cc's status-v2: 1d38741ee.
-  - cc's wait-v3: 8da02c76e.
-  - ic's page-v2: eaad34d62.
-  - cc's init-v2: 4b49525e1.
-  - cc's ats-v1: 606aa1cbd.
-  - ic's cell-width-v4: 6afbef147.
-  OWED IN ONE STORE CHAIN after the build all and intentd restart (request 01M5YJSA6WBSFQAX4SK9TQJCSY, after Gtools' WP-04 on molt-vc's GO):
-  - The AT rows for AC-04.1 to AC-04.6 and AC-04.8 to AC-04.13, from refs/bank/cc/0086/landing-drafts-v2 (blob 51c459de4231), with run 3's evidence. Each arm is a `#[test]` in the landed tree. `intent at lint ST0086` and `intent ac status ST0086` run before the commit.
-  - design.md through `intent st attach`, in this order: ic's design-cells-v1; then E1 to E3; then E4, pending's cost measured with the built binary under `--lane none`, as dated figures and never as a bound; then 0658's four.
-  The worktrees that built Part B are gone, and hold 34 names the seven older ones that stay. No push, no release.
-- ISSUE 0657 LANDED as f764d2a8f in vc's landing chain (END 11:46Z by vc's clock). It is refs/bank/cc/0657/v3 (patch-id 6e3869af4ff3), judged green in decision 100's run 3. The same commit carries ST0056's canon for the guard script, ingested by intentd and matched by sha256. `intent install` now judges a HEAD past the build by the build's inputs, and the push gate hands git the same exclusion. OWED, once the build all and intentd restart have installed it (landed is not deployed): the issue closed and ISSUE:0657 unclaimed, in the same store chain as WP-04's AT rows (doing 96). No push, no release. (edited)
+- ST0086 WP-04 Part B LANDED in vc's landing chain (END 11:46Z by vc's clock): cc's status-v2 1d38741ee, wait-v3 8da02c76e, init-v2 4b49525e1 and ats-v1 606aa1cbd, and ic's page-v2 eaad34d62 and cell-width-v4 6afbef147. (edited)
+  ITS AT ROWS AND design.md ARE IN, as a68374a07 in cc's store chain (STARTed 12:01Z by date -u):
+  - AT-04.1 to AT-04.6 and AT-04.8 to AT-04.13 are green on judge run 3 (request 01M5YHGAPFKX6PEWMDREN5BGBY, evidence under refs/bank/vc/evidence/judge-run3/). `ac gate ST0086` moved from BLOCKED 16/28 to PASS 28/28.
+  - design.md went through `st attach` in vc's order: ic's cells, E1 to E4, 0658's four, then ic's S1. Canon's text for it matches the working copy by sha256. E4's figures for pending were measured in slot 01M5YKJ9K3M56Y03NB1G51TY7H, granted into no lane.
+  NEXT: vc judges the rows after cc's END and runs its own three items (ST0087 AT-02.1, and ST0086's AT-02.6 and AC-02.6). Then, on vc's word, cc closes WP-04 with `wp done ST0086/04` and unclaims it. No push, no release.
 - ST0081 WP-02 LANDED as 9f4994a1c in vc's landing chain (END 11:46Z by vc's clock). It is refs/bank/cc/0081/wp02-v1 (patch-id 901e9ee541d5), judged green in decision 100's run 3. Each release now carries the Linux packages its tag's workflow builds, and one SHA256SUMS over every asset, attached by `bin/devbin release attach`. `bin/int brew publish` alone writes the formula and cask. The package stays WIP until hv proves AC-02.1 at the 3.2.7 cut. No push, no release. (edited)
 
 ## TODO

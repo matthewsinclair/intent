@@ -1,0 +1,16 @@
+{
+  "id": "01M5YM2Q52MV71N1WR2ZVXZ2Q8",
+  "ts": "2026-10-27T12:06:37.986Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 96,
+    "text": "ST0086 WP-04 Part B LANDED in vc's landing chain (END 11:46Z by vc's clock): cc's status-v2 1d38741ee, wait-v3 8da02c76e, init-v2 4b49525e1 and ats-v1 606aa1cbd, and ic's page-v2 eaad34d62 and cell-width-v4 6afbef147.\nITS AT ROWS AND design.md ARE IN, as a68374a07 in cc's store chain (STARTed 12:01Z by date -u):\n- AT-04.1 to AT-04.6 and AT-04.8 to AT-04.13 are green on judge run 3 (request 01M5YHGAPFKX6PEWMDREN5BGBY, evidence under refs/bank/vc/evidence/judge-run3/). `ac gate ST0086` moved from BLOCKED 16/28 to PASS 28/28.\n- design.md went through `st attach` in vc's order: ic's cells, E1 to E4, 0658's four, then ic's S1. Canon's text for it matches the working copy by sha256. E4's figures for pending were measured in slot 01M5YKJ9K3M56Y03NB1G51TY7H, granted into no lane.\nNEXT: vc judges the rows after cc's END and runs its own three items (ST0087 AT-02.1, and ST0086's AT-02.6 and AC-02.6). Then, on vc's word, cc closes WP-04 with `wp done ST0086/04` and unclaims it. No push, no release."
+  }
+}
