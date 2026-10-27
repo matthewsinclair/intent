@@ -1,0 +1,16 @@
+{
+  "id": "01M5Z1YKA8M0NEZKQDMS7H1VF7",
+  "ts": "2026-10-27T16:09:03.048Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 50,
+    "text": "3.2.7 CUT-SIDE (vc's decision 76, hv via molt-vc, 2026-10-25 06:51Z by vc's clock: one release carrying everything; done, then tested at molt-vc's desk, then kovacs via kovacs-sysadm, then hv's cut): dc's share in the same release, not a later one. (a) and (b) ran on the pair at f06241f83b56. Since 9109e59eb (0087-hermetic, test-only) that pair reads behind HEAD under DIRT_SCOPE by native/rust/crates/testkit/src/lib.rs, a build input, so install refuses it until the next build all (cc and vc, 2026-10-27 16:05Z). vc rules the shipped code unmoved. If a build all makes a new pair before the cut, (a) and (b) re-run on it. (a) DONE ON f06241f83b56: the 0632 drive v4, refs/bank/dc/0632/drive-v4.sh 467d593edbaa, PASSED at 15:31Z on 2026-10-27 in molt-vc's light slot 01M5YZQ8TRFWT5CVFNCGGDW9SV. On every step, the control included, the wrote: and removed: lines together equal the changed set git sees, and no line contradicts its kind. The log is refs/bank/dc/0632/drive-v4-f06241f83b56.log e309ab3916bd. hv's yes to /tmp for this drive stands (vc decision 99). (b) DRIVEN ON f06241f83b56 AND BANKED, WITH vc TO LAND: the known-defects re-drive for 3.2.7 ran every entry from 15:53:42Z to 15:54:18Z on 2026-10-27 in molt-vc's light slot 01M5Z02WMYVZ0AF7MBDSEGQRPZ (refs/bank/dc/kd327/drive.sh eba3ad1f2d35, log drive-3.2.7.log 5a44ce6343a6). Diffed whole against 3.2.6's final log, recovered and banked as drive-3.2.6.log a5573aa38752, no verdict moved: no entry left or joined the page. The retired 0602 control broke at setup when ST0088 took in-debug out of the catalogue; drive-v2.sh 4cfa1a5716fe swaps its skill to in-verify, and that control, re-run alone at 15:59Z, holds. The page is refs/bank/dc/kd327/known-defects.md 7af428753cb6, patch page.patch d842bf62c4b3 (patch-id 6e7de2dfbea6). It is retitled v3.2.7, and its build sentence quotes `intent 3.2.6 (dev, f06241f83b56) dev`. 0443's five reconciled_at values come from this run; the 3.2.6 pass had left 3.2.5's. The stray entry declares 3.2.6. The version-line paragraph is rewritten for 3.2.7's `intent <version> (<tree>, <sha>) <kind>`, and the partition is v3.2.7. vc verifies it and lands it in the pre-cut content batch. (c) The cut's --dry-run on the final HEAD: a heavy run, booked, read beside hv at the cut, the firing hv's. vc sets its place once the content batch has landed. The pre-cut order (vc, 2026-10-27): content first (WP-05's records, CHANGELOG, known-defects), then docs/reference and the screenshots at that HEAD, then the kovacs preflight at the cut commit, then the push, then hv's cut."
+  }
+}
