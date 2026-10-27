@@ -2669,10 +2669,10 @@
       "node": "ic",
       "kind": "hold",
       "seq": 15,
-      "text": "Remove ic's stale worktrees, all but tmp/wt-ic-0086b (Part B's, kept until the landing): tmp/wt-ic-0086, -0086p, -0086t, -0086w, -0087, -0652, -a4 (A4, issue 0655, landed at a6ce22c3b with patch-id 9dacf04295a4), -app, -arms2 and -tuidoc. 0652, arms2, a4 and tuidoc hold uncommitted files (counted 2026-10-26 17:20Z), so check each against its landed commit or bank from outside it first, by in-whiteboard's Folding step (0654, with 0656's fix-forward), then `git -C <path> reset --hard` and a plain `git worktree remove`, never --force. RELEASES WHEN: molt-vc says hv's ~/Devel Spotlight exclusion is in. Until then no node removes any worktree (vc's order after 0654).",
+      "text": "Remove ic's stale worktrees, all but tmp/wt-ic-0086b (Part B's) and tmp/wt-ic-0658 (0658's bank), each kept until its landing. Checked read-only from outside each on 2026-10-27, with no stash entry naming any. READY, every Folding check passing: -a4 (staged patch-id 9dacf04295a4 = a6ce22c3b), -tuidoc (41a01c51bc13 = tui-doc/v1, landed afead5725), -0652 and -arms2 (each index tree is T plus its own bank exactly; app-v1 landed as 69731c940, arms-v3 as bd3dbf682), and -app (clean, base on main). SUPERSEDED DRAFTS: -0086, -0086p, -0086t, -0086w and -0087 are clean with their merge-bases on main, but carry worktree-only draft commits superseded by banks that landed later. On vc's ruling of 2026-10-27 07:21Z (vc's clock), each HEAD is kept under refs/attic/ic/<worktree name>, never under refs/bank/, before removal, and the attic ref stands in for the index-tree check; ic set all five on 2026-10-27 (0086 830fedbe1, 0086p 8d0db8e8c, 0086t 63ebbb835, 0086w 615701144, 0087 e756e484a). Then, for every one, re-run the other checks (nothing unstaged or untracked, merge-base on main, no stash entry naming it), `git -C <path> reset --hard`, and a plain `git worktree remove`, never --force. RELEASES WHEN: molt-vc says hv's ~/Devel Spotlight exclusion is in. Until then no node removes any worktree (vc's order after 0654).",
       "state": "live",
       "recorded_at": "2026-10-26T13:24:27.674Z",
-      "edited_at": "2026-10-26T17:22:48.878Z"
+      "edited_at": "2026-10-27T07:23:19.679Z"
     },
     {
       "node": "ic",
@@ -2687,9 +2687,10 @@
       "node": "ic",
       "kind": "doing",
       "seq": 137,
-      "text": "ISSUE:0658, the estate page's plan usage (3.2.7 under decision 76; hv in ic's session, 2026-10-27: \"Ok, do 1 and 2.\"): bank the fix as light work, edits and git only with no build and no suite, over Part B's tree, cc's scratch tip e22661b78. usage::carry keeps the last good reading beside a failure, usage::next_wait reads at most every five minutes and backs off after a failure, a 429 becomes EndpointFailure::Throttled carrying its Retry-After, and census.rs keeps the schedule in the tick. Files: usage.rs, census.rs and AT-02.6's test file. The record carries the shape, plus AC-02.6's new wording and the design.md correction, both owed in the landing chain. Judged in the train after Part B's, beside 0657 and ST0081 WP-02. No CHANGELOG hunk; vc writes the line at landing. No push, no release.",
+      "text": "ISSUE:0658, the estate page's plan usage (3.2.7 under decision 76; hv in ic's session, 2026-10-27: \"Ok, do 1 and 2.\"): BANKED at refs/bank/ic/0658/v1 (blob 876b862b11c2, patch-id 808f12b6d03e) over cc's scratch tip e22661b78, Part B's tree, from tmp/wt-ic-0658, whose index tree bd9297ea51df is the base plus the blob. vc verified it and accepted it for the train after Part B's at 07:21Z by vc's clock; it shares no file with cc's 0657 v2. It carries usage::carry, usage::next_wait (READ_EVERY five minutes, doubling to WAIT_CAP an hour, never sooner than a 429's Retry-After), EndpointFailure::Throttled, the schedule in census.rs, and four new AT-02.6 arms. A Retry-After sent as an HTTP-date parses to none, so the wait falls back to doubling, and one above WAIT_CAP is honoured past the cap. Light work only: rustfmt is clean, the critic asked one rule of each src file and none of the test file, and nothing is compiled. The judge in Intent's turn owes intentsvcs's and intentd's suites, fmt, both clippy legs and CI's doc command, for the new intra-doc links. The landing chain owes AC-02.6's wording (in 0658's body), AT-02.6 re-cited, and design.md's Primary paragraph. A red comes back to tmp/wt-ic-0658. No CHANGELOG hunk; vc has the line. No push, no release.",
       "state": "live",
-      "recorded_at": "2026-10-27T07:12:33.408Z"
+      "recorded_at": "2026-10-27T07:12:33.408Z",
+      "edited_at": "2026-10-27T07:23:18.454Z"
     }
   ],
   "sent": [

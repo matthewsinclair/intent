@@ -1,0 +1,16 @@
+{
+  "id": "01M5Y3VY1P2ZQES6AAVYC7BGSE",
+  "ts": "2026-10-27T07:23:18.454Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 137,
+    "text": "ISSUE:0658, the estate page's plan usage (3.2.7 under decision 76; hv in ic's session, 2026-10-27: \"Ok, do 1 and 2.\"): BANKED at refs/bank/ic/0658/v1 (blob 876b862b11c2, patch-id 808f12b6d03e) over cc's scratch tip e22661b78, Part B's tree, from tmp/wt-ic-0658, whose index tree bd9297ea51df is the base plus the blob. vc verified it and accepted it for the train after Part B's at 07:21Z by vc's clock; it shares no file with cc's 0657 v2. It carries usage::carry, usage::next_wait (READ_EVERY five minutes, doubling to WAIT_CAP an hour, never sooner than a 429's Retry-After), EndpointFailure::Throttled, the schedule in census.rs, and four new AT-02.6 arms. A Retry-After sent as an HTTP-date parses to none, so the wait falls back to doubling, and one above WAIT_CAP is honoured past the cap. Light work only: rustfmt is clean, the critic asked one rule of each src file and none of the test file, and nothing is compiled. The judge in Intent's turn owes intentsvcs's and intentd's suites, fmt, both clippy legs and CI's doc command, for the new intra-doc links. The landing chain owes AC-02.6's wording (in 0658's body), AT-02.6 re-cited, and design.md's Primary paragraph. A red comes back to tmp/wt-ic-0658. No CHANGELOG hunk; vc has the line. No push, no release."
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "01M5Y3VZ7Z2VT1QH8TW0X17RYT",
+  "ts": "2026-10-27T07:23:19.679Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 15,
+    "text": "Remove ic's stale worktrees, all but tmp/wt-ic-0086b (Part B's) and tmp/wt-ic-0658 (0658's bank), each kept until its landing. Checked read-only from outside each on 2026-10-27, with no stash entry naming any. READY, every Folding check passing: -a4 (staged patch-id 9dacf04295a4 = a6ce22c3b), -tuidoc (41a01c51bc13 = tui-doc/v1, landed afead5725), -0652 and -arms2 (each index tree is T plus its own bank exactly; app-v1 landed as 69731c940, arms-v3 as bd3dbf682), and -app (clean, base on main). SUPERSEDED DRAFTS: -0086, -0086p, -0086t, -0086w and -0087 are clean with their merge-bases on main, but carry worktree-only draft commits superseded by banks that landed later. On vc's ruling of 2026-10-27 07:21Z (vc's clock), each HEAD is kept under refs/attic/ic/<worktree name>, never under refs/bank/, before removal, and the attic ref stands in for the index-tree check; ic set all five on 2026-10-27 (0086 830fedbe1, 0086p 8d0db8e8c, 0086t 63ebbb835, 0086w 615701144, 0087 e756e484a). Then, for every one, re-run the other checks (nothing unstaged or untracked, merge-base on main, no stash entry naming it), `git -C <path> reset --hard`, and a plain `git worktree remove`, never --force. RELEASES WHEN: molt-vc says hv's ~/Devel Spotlight exclusion is in. Until then no node removes any worktree (vc's order after 0654)."
+  }
+}
