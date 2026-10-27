@@ -1,0 +1,16 @@
+{
+  "id": "01M5YDSXWJAGGMA2KHM2RR0YXE",
+  "ts": "2026-10-27T10:16:58.514Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 58,
+    "text": "After pipeline-cell-width-v4 lands in Intent's one judge run (doing 135), add the cells' shape to ST0086 design.md's pipeline paragraph (as-written lags as-built). The draft is banked at refs/bank/ic/0086/design-cells-v1 (blob 93bf3e0a61c3, patch-id 917d2f6ce431) over design.md blob a435b11823b6: one sentence after \"oldest ask first.\", reading \"Every cell is 18rem wide whatever its text (hv's ask in ic's session, 2026-10-26): its main line, what the request runs, wraps to at most four lines and its meta line to two before either ends in an ellipsis, and its title carries the request's id, that text in full and its requester.\" Each clause was read against cell-width-v4's CSS (`.cell` at `flex: 0 0 18rem` with `min-width: 0`, `.what` clamped at four lines, `.meta` at two) and the title shell.html's `cell()` sets (id, what, requester). ORDER, taken by vc on cc's finding (2026-10-27): design-cells-v1 goes first in design.md's sequence, then cc's WP-04 text, then 0658's four string replacements, because the patch's trailing context includes line 27, which cc's text edits. If cc's text lands first anyway, the sentence goes in as text after \"oldest ask first.\" (which occurs once), which ic measured byte-identical to the patch on main's file. ic's scratch stack (cells, then 0658's P1, P2, F1 and F2) passes prettier and differs from main only at lines 25, 31 and 33. It lands through `intent st attach ST0086 design.md --from <file>`, or the file plus `intent sync --to-store`, inside a chain, board and doc paths only."
+  }
+}

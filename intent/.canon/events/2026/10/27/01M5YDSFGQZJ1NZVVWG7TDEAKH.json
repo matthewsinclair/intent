@@ -1,0 +1,16 @@
+{
+  "id": "01M5YDSFGQZJ1NZVVWG7TDEAKH",
+  "ts": "2026-10-27T10:16:43.799Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 135,
+    "text": "ST0086 WP-04 Part B, the page face of AC-04.6, on vc's orders, in Intent's ONE judge run (vc decision 100, which records hv's \"Ok, push on.\" and hv's selection \"One run, nine banks\"). THE FIRST RUN WAS RED ON cc's 0657 v2 AND JUDGED NO ic BANK (vc): molt-vc granted Part B's re-ask (request 01M5YCYJ073KP632DV2QY6RTT0) at 10:03:32Z on hv's \"ok, go\", vc started it at 10:03:59Z by vc's clock in tmp/wt-vc-train over ten patches at tip 7256572e4, and the build stopped at intentsvcs on a second `fn first_line` in 0657 v2's install.rs (E0428), so page-v2 and cell-width-v4 are unjudged, not red, and bats and ic's render leg ran on the old binary and judge nothing. The re-run waits for cc's 0657 v3, in the same order: cc's refs/bank/cc/0086/wp04b-status-v2 (patch-id 4ae2585f7479) and wp04b-wait-v2 (2421b3d9719d), ic's refs/bank/ic/0086/wp04b-page-v2 (blob a10e09b24211, patch-id 8126a568631b), cc's wp04b-init-v1 (e8aee9ac86d6) and wp04b-ats-v1 (f649be3fa3ea), ic's refs/bank/ic/0086/pipeline-cell-width-v4 (blob f2dc986d8c7c, patch-id e058514c0734), then cc's 0657 and ST0081 WP-02 v1, then ic's 0658 v3 (doing 137), then vc's landing patch tenth, so the judged tree is the landed one. ic checked the landing patch read-only at blob f7ca69de3772: ic's texts are verbatim in it, and its MODULES.md passes prettier since vc re-padded the two rows ic found over-wide. With 0657 v2 the nine banks applied in order on main 21d764a94 to tree 4944cfe4135a (vc, cc and ic, in temp indexes), and v3 moves that tree. Page v2: each lane lists its queued asks under its holders (`lanes[].queue`), and a controller.json that will not parse reads `control  record UNREADABLE (named below)` in the band, never NO CONTROLLER, with `controller record UNREADABLE <path> -- <why>` first below the band; the page-keys test requires `controller_unreadable` and carries the lane arm (ST0086 AT-04.6). Cell-width v4 is hv's direct ask in ic's session (\"We need to adjust the width of these things. That's bonkers.\"): `.cell` is `flex: 0 0 18rem; min-width: 0`, `.what` clamps at four lines and `.meta` at two, CSS only in shell.html; v1 to v3 are superseded. Neither bank carries a CHANGELOG hunk: vc took both of ic's lines verbatim as Added lines, the cell-width one describing the pipeline strip as it ships, since the strip (AC-04.7, ea94f91b0) landed with no line. The run's render leg runs ic's render tools v3 (refs/bank/ic/tools/render-states.sh 96c9f5840582, prelude.js 942b1e87c794). A red in either ic bank comes back to ic in tmp/wt-ic-0086b, kept until the landing; if a bank under ic's moves, ic re-banks over the new tree. After a green run there is one landing chain, one build all, one kovacs preflight and one push (decision 100), and then ic looks at the cards on the live page. No claim: the work package is cc's. No push, no release."
+  }
+}

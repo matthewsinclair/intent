@@ -1,0 +1,16 @@
+{
+  "id": "01M5YDSQ5SPN2X8CTPHSFZ86GS",
+  "ts": "2026-10-27T10:16:51.641Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 137,
+    "text": "ISSUE:0658, the estate page's plan usage (3.2.7 under decision 76; hv in ic's session, 2026-10-27: \"Ok, do 1 and 2.\"). v3 is banked at refs/bank/ic/0658/v3 (blob 8b35ecc6c7db, patch-id 629db68722c0) over cc's scratch tip e22661b78, Part B's tree, from tmp/wt-ic-0658, whose index tree 96292f2c3d7a equals the bank over e22661b78 in a temp index. ic reported it READY at 08:38Z by ic's clock, and vc verified and booked it at 08:39Z by vc's clock. Under vc decision 100 it is the ninth bank of Intent's one judge run (doing 135), after Part B's six, cc's 0657 and ST0081 WP-02 v1, with vc's landing patch tenth. The first run, started at 10:03:59Z by vc's clock, was red on cc's 0657 v2 (E0428 in install.rs) and stopped at intentsvcs, so v3 is UNJUDGED, not red (vc); the re-run waits for 0657 v3, and a red in v3 comes back to ic in tmp/wt-ic-0658. v3 supersedes v2 (blob 29282d37ceb3), which vc checked at 08:34Z by vc's clock and did not book: v2 counted a read's wait from the tick the read began in, not from its answer, so a read made on a whole tick could send the next one early by its own duration, against v2's own \"never short\". v2 superseded v1 (blob 876b862b11c2), whose census.rs called `Instant::now` three times, which one_clock.rs bans. Every ref is kept. The schedule is counted in census ticks with no clock read: `ticks_left` drops by one on each whole tick, a read is due at zero with an armed ask, and after a read it is the wait rounded up to whole ticks and one tick more (vc's fix), so the next read goes out no sooner than the wait after the answer while the answer comes before the next tick; a unit arm in census.rs pins the count. The steady cadence is six minutes, which AC-02.6's landing wording, \"at most every five minutes\", allows. Before READY: the clock-needle grep on the bank counts nothing, a one_clock stand-in over every crate's src and tests is clean, the bank touches no shipped .sh, .json or .yml (exit_code_consumers) and no dispatch-table row (populations), rustfmt passes against a planted control, and cc's 0657 v2, then wp02-v1, then 0658 v3 apply in order over e22661b78. The rest stands from v1: usage::carry, usage::next_wait (READ_EVERY five minutes, doubling to WAIT_CAP an hour, never sooner than a 429's Retry-After; an HTTP-date Retry-After falls back to doubling), EndpointFailure::Throttled and the AT-02.6 file's new arms. The judge owes intentsvcs's and intentd's suites, fmt, both clippy legs and CI's doc command (new intra-doc links). The landing owes AC-02.6's wording and AT-02.6 re-cited with the new arms in both files. vc took all of ic's texts verbatim, which ic checked mechanically: the CHANGELOG line folds into the watch/statusline line and both MODULES.md sentences ride in vc's landing patch, while design.md's Primary paragraph (P1, P2) and failure-path bullet (F1, F2) are order-free string replacements on refs/bank/vc/train/landing-texts. The bank carries no CHANGELOG hunk. No push, no release."
+  }
+}
