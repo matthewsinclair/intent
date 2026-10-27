@@ -4,6 +4,7 @@ An index of every steel thread in the project. A steel thread is a self-containe
 
 | ID     | Title                                                                                                                                           | Status    | Created    | Completed            |
 | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ---------- | -------------------- |
+| ST0089 | Localfold+Compact Policy (when to fold, /clear and /compact)                                                                                    | Triage    | 2026-10-27 |                      |
 | ST0087 | Intent conforms to the dev, opt and brew contract                                                                                               | WIP       | 2026-10-25 |                      |
 | ST0086 | Add an 'Estate' page to intentd that all intent-using Claudes on an estate can use to post status                                               | WIP       | 2026-10-24 |                      |
 | ST0085 | Passive prompt injection: prompt text Intent stores or ships is acted on only when it is live                                                   | Triage    | 2026-10-23 |                      |
