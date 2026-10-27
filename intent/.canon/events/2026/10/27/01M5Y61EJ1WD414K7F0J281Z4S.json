@@ -1,0 +1,16 @@
+{
+  "id": "01M5Y61EJ1WD414K7F0J281Z4S",
+  "ts": "2026-10-27T08:01:16.353Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 96,
+    "text": "ST0086 WP-04 Part B, a six-bank train in vc's order:\n- refs/bank/cc/0086/wp04b-status-v2 (4ae2585f7479): AC-04.6's CLI share.\n- refs/bank/cc/0086/wp04b-wait-v2 (2421b3d9719d): AC-04.4, with slots wait, slots watch and the hook's slots pending.\n- ic's refs/bank/ic/0086/wp04b-page-v2 (8126a568631b): the page's half.\n- refs/bank/cc/0086/wp04b-init-v1 (e8aee9ac86d6): AC-04.5.\n- refs/bank/cc/0086/wp04b-ats-v1 (f649be3fa3ea): the AT markers on Part A's tests, a test for AC-04.2's lane re-open and LaneBusy close, and the NamedMismatch text asserted.\n- ic's pipeline-cell-width-v4 (e058514c0734): CSS only.\nRE-CONFIRMED 2026-10-27 at 05:47Z by cc's clock: every patch-id is as recorded. The six apply in order on main c664ea126 to tree 00c92522e4c3, which equals ic's 229c6053f4a2 outside intent/whiteboard and intent/.canon/events. Scratch tip e22661b78 (main 5d9b5e2be with the six applied) is the base of the train after this one.\nTHE JUDGE runs when molt-vc opens L2 for Intent, once L1 (devbin, molt, utilz, gtools) is cut, brewed and reinstalled (hv's layer order, molt-vc decision 22). It runs straight through, with build all and the kovacs preflight.\nA RED in cc's banks comes back to cc in tmp/wt-cc-0086b, detached on scratch tip ddc43caba. A fix-forward bank carries no CHANGELOG hunk, and its line goes to vc as text. A bank that moves is told to ic, and 0657 and WP-02 are then re-banked over the new tree.\nOWED AFTER A GREEN LANDING, in one chain:\n- AT rows for AC-04.1 to AC-04.6 and AC-04.8 to AC-04.13 (slots.rs for all but 04.5, coordinator.rs for 04.5), with `intent at lint ST0086` before the commit.\n- design.md through `intent st attach`: controller_unreadable, lanes[].queue and line 67's UNREADABLE, plus pending's cost measured with the judge's binary under `--lane none`, as dated figures and never as a bound. ic's refs/bank/ic/0086/design-cells-v1 carries the pipeline cells' sentence for the same file, so the two attaches go in sequence.\nWorktree removals wait for molt-vc's Spotlight word, under decision 98 as amended. No push, no release."
+  }
+}
