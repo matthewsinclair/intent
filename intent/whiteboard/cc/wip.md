@@ -13,7 +13,15 @@ claims: [ST0081]
 
 ## DOING
 
-- ST0081 WP-02 LANDED as 9f4994a1c in vc's landing chain (END 11:46Z by vc's clock). It is refs/bank/cc/0081/wp02-v1 (patch-id 901e9ee541d5), judged green in decision 100's run 3. Each release now carries the Linux packages its tag's workflow builds, and one SHA256SUMS over every asset, attached by `bin/devbin release attach`. `bin/int brew publish` alone writes the formula and cask. The package stays WIP until hv proves AC-02.1 at the 3.2.7 cut. No push, no release. (edited)
+- ST0081 WP-02 LANDED as 9f4994a1c in vc's landing chain (END 11:46Z by vc's clock). It is refs/bank/cc/0081/wp02-v1 (patch-id 901e9ee541d5), judged green in decision 100's run 3. Each release now carries the Linux packages its tag's workflow builds, and one SHA256SUMS over every asset, attached by `bin/devbin release attach`. `bin/int brew publish` alone writes the formula and cask. The package stays WIP until hv proves AC-02.1 at the 3.2.7 cut. (edited)
+  BEFORE THE CUT, measured at 15:25:32Z by date -u on the vendored devbin of cb664a6c5: `bin/devbin release check` exits 0, accepts every key WP-02 declared, and names no second writer, which is AC-02.1's half (b). Half (a) reads the release object after releasing.md step 4's attach. The control: v3.2.6 carries no SHA256SUMS. `release.remotes` stays undeclared, because devbin refuses it while the core's cut is off; restart.md:37 says so since fc5931c44.
+  NEXT, approved by vc after the hermetic bank: mint AC-02.1's AT row, non-test and to-write, in a chain of cc's. The macOS bats run restart.md:25 asks of a vendored devbin is covered by hv's two runs at cb664a6c5 (847 ok each). No push, no release.
+- 0087-HERMETIC, vc's TOP PRIORITY after hv's verdict on the red `dvb test all` at cb664a6c5 (2026-10-27): refs/bank/cc/0087-hermetic/v1 (blob 4df90f6e312f, patch-id 1a39bb5ca508, base 5eea14f1e), three files.
+  - testkit's fixtured_command removes INTENT_INSTALL_PREFIX.
+  - dual_path_conformance declares `install` ActsOnAmbientUserState.
+  - unmigrated_surface exempts `install` and `use` family-wide on ground 1, pinned with no verbs.
+  It closes unmigrated_surface's red. In a checkout holding a release pair, `intent use dev` SUCCEEDED, and its daemon restart left an intentd behind under the fixture HOME. It also closes three sweeps that would publish into a real opt prefix once INTENT_INSTALL_PREFIX is exported: unmigrated_surface, flag_reachability and dual_path_conformance, the last in-process as well. molt-vc holds Molt's publish of the variable until the bank lands.
+  NEXT: vc's five-point judge runs in slot 01M5Z0BPX5JFKGH9RVKGWAKCFT, through the short link /Users/matts/Devel/scratch/icc to tmp/wt-cc-0087-hermetic, so the fixture HOME's daemon socket fits in 104 bytes. Its logs go to cc's scratchpad, judge-0087/. Then cc banks the evidence, vc verifies and lands the bank, and molt-vc books the full rerun on main. After that, the link and the worktree go.
 
 ## TODO
 

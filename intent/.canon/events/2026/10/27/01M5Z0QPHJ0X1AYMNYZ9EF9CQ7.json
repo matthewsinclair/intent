@@ -1,0 +1,15 @@
+{
+  "id": "01M5Z0QPHJ0X1AYMNYZ9EF9CQ7",
+  "ts": "2026-10-27T15:47:48.402Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "0087-HERMETIC, vc's TOP PRIORITY after hv's verdict on the red `dvb test all` at cb664a6c5 (2026-10-27): refs/bank/cc/0087-hermetic/v1 (blob 4df90f6e312f, patch-id 1a39bb5ca508, base 5eea14f1e), three files.\n- testkit's fixtured_command removes INTENT_INSTALL_PREFIX.\n- dual_path_conformance declares `install` ActsOnAmbientUserState.\n- unmigrated_surface exempts `install` and `use` family-wide on ground 1, pinned with no verbs.\nIt closes unmigrated_surface's red. In a checkout holding a release pair, `intent use dev` SUCCEEDED, and its daemon restart left an intentd behind under the fixture HOME. It also closes three sweeps that would publish into a real opt prefix once INTENT_INSTALL_PREFIX is exported: unmigrated_surface, flag_reachability and dual_path_conformance, the last in-process as well. molt-vc holds Molt's publish of the variable until the bank lands.\nNEXT: vc's five-point judge runs in slot 01M5Z0BPX5JFKGH9RVKGWAKCFT, through the short link /Users/matts/Devel/scratch/icc to tmp/wt-cc-0087-hermetic, so the fixture HOME's daemon socket fits in 104 bytes. Its logs go to cc's scratchpad, judge-0087/. Then cc banks the evidence, vc verifies and lands the bank, and molt-vc books the full rerun on main. After that, the link and the worktree go."
+  }
+}
