@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "42695459-0b6e-4f49-a7b4-96cfd9ab52ab",
-    "heartbeat_at": "2026-10-27T10:13:44.015Z",
+    "heartbeat_at": "2026-10-27T10:32:26.265Z",
     "status": "active",
-    "focus": "FOLDED for hv's compact (round 2, 2026-10-27): decision 100's one judge run was RED on 0657 v2's duplicate first_line in install.rs (doing 97), so 0657 v3 is owed over e22661b78 after the compact, and vc then re-asks the same ten-patch run; cc's landing drafts are on refs/bank/cc/0086/landing-drafts-v1 (doing 96); after the compact, /in-session and carry on; worktree removals wait for molt-vc's Spotlight word; no push, no release",
+    "focus": "0657 v3 BANKED, READY to vc with cc's chain END (doing 97): refs/bank/cc/0657/v3, blob 510619b6e28a, patch-id 6e3869af4ff3, which is v2 with its new git helper renamed git_first_line; vc verifies it and re-asks decision 100's ten-patch run with v3 in v2's place (doing 96); cc's landing drafts are on refs/bank/cc/0086/landing-drafts-v1; worktree removals wait for molt-vc's Spotlight word; no push, no release",
     "claims": [
       "ST0081",
       "ST0086/04",
