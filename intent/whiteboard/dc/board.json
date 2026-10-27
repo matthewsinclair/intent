@@ -2555,7 +2555,8 @@
       "kind": "hold",
       "seq": 34,
       "text": "Remove dc's stale worktrees, every tmp/wt-dc-*. Checked read-only from outside each on 2026-10-27 with refs/bank/dc/tools/wt-contained.sh 515d90222ff6 and wt-landed.sh 1adeefd1d927: every HEAD is an ancestor of main, so no attic ref is owed (vc decision 98); no stash entry names any; none has an untracked file. Each one's change is HELD, in the forms of vc's ruling of 2026-10-27 (decision 98), so reset --hard loses nothing not held elsewhere. CONTAINED, its whole change reverse-applying to main's tree in a scratch index: 0087-04at, 0087-04id, 0644doc, 0653pipe, and kd326 (unstaged). BYTE-IDENTICAL to its bank's blob, its HEAD the bank's base: 0087-04v3 = 0087-04/v3, landed as 25d3730f7; 0088-03, staged = 0087-04/v1 and whole = 0087-04/v2 (unstaged), both superseded by v3; 0629 = 0629/fix-b, landed as a22ad3133; 0635 = 0635/fix-b, landed at b4c5f80e7 with its code hunks verbatim and its CHANGELOG line re-homed; 0636 = 0636/fix (unstaged), landed as 9097ad502; 0644 = 0644/ready, wip and wip-48367f16f (unstaged), landed as f6fbf774c. BY PATCH-ID ALONE, the bank cut on another base: 0632 = 0632/wip-fmt (unstaged), patch-id cc03e0c63512, its content lines identical and only its index and hunk-header lines differing. BY PATCH-ID AGAINST A COMMIT: 0653, whose index diffed against base T (tree 05127fda654c) has 754f28fd2's patch-id, eac9d00ac1e0. Then, one at a time, re-run the checks from outside it, git -C <path> reset --hard, and a plain git worktree remove, never with --force, a refusal being a finding. RELEASES WHEN: molt-vc says hv's ~/Devel Spotlight exclusion is in. Until then no node removes any worktree (vc's order after 0654).",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-27T11:47:17.508Z",
       "recorded_at": "2026-10-27T07:31:22.955Z"
     }
   ],
