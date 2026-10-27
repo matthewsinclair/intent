@@ -1,0 +1,16 @@
+{
+  "id": "01M5YNC8EQ89G245D7V64EAGM4",
+  "ts": "2026-10-27T12:29:19.191Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 135,
+    "text": "ST0086 WP-04 Part B, the page face of AC-04.6 and the pipeline's cells, on vc's orders under decision 100. LANDED after judge run 3 was green: ic's page-v2 as eaad34d62 and cell-width-v4 as 6afbef147, each at its judged patch-id. Build all and an intentd restart followed on hv's \"Unequivocally Yes.\", so the 18rem cells are live on hv's page since 11:51:36Z on 7efc01183c27, and ic's live look at 11:53Z confirmed it. hv's words in ic's session, 2026-10-27, verbatim: \"How come the pipeline _still_ looks like this? [a screenshot of the live pipeline] That is, with _ridiculously_ long tiles. How many build attempts have there been today and WHY was the fix to shorten the width of the tiles (and increase the height) not in _any_ of them?!? I just don't get it.\", then \"And when two jobs are running at the same time, they should stack vertically, not chain horizontally.\" THE STACKING: refs/bank/ic/0086/pipeline-stack-v1 (blob 95ceab615adb, patch-id 47e139be9fb3) passed vc's LIGHT targeted run 4 and landed as f08a5d20d with ic's CHANGELOG clause. It is LIVE on hv's page since the second build all and intentd restart (01M5YKR0JPP0V04F0JT3WVBK8Y): the new intentd (pid 6781) started at 12:15:56Z and ic's waiter saw it answering on f06241f83b56 at 12:16:44Z, both by date -u, the page it serves is main's shell.html (blob 8e7c98776046) byte for byte but for the {{VERSION}} and {{BUILD}} fills, and ic's headless render of hv's page at 12:18:37Z by date -u showed the new pair working, with nothing running. The page builds its running list from the whole queue (shell.html pipelineOf), so any two requests running at once stack under NOW, in any lanes. NEXT: ic's read-only watcher screenshots hv's page when two requests run at once; ic sends the screenshot to hv and its path to vc, and then this item is done. No claim: the work package is cc's. No push, no release."
+  }
+}
