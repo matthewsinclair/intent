@@ -1,0 +1,16 @@
+{
+  "id": "01M5Y5WN33KECRX4Y4BDX11AHX",
+  "ts": "2026-10-27T07:58:39.203Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 50,
+    "text": "3.2.7 CUT-SIDE (vc's decision 76, hv via molt-vc, 2026-10-25 06:51Z by vc's clock: one release carrying everything; done, then tested at molt-vc's desk, then kovacs via kovacs-sysadm, then hv's cut): dc's share in the same release, not a later one. (a) The 0632 drive v4, refs/bank/dc/0632/drive-v4.sh 467d593edbaa, counts removed: lines beside wrote:, and writes nothing outside the HOME it makes as /tmp/d632.XXXXXX, which it removes when it ends, and it stops before the trap and the export if mktemp gives no directory (vc). hv said yes to /tmp for this drive in vc's decision 99, and in dc's session before dc's clock read of 07:56Z on 2026-10-27: \"Ok, yes. Do it.\" It runs in the light lane on the final pair before the cut, after the last landing's build all, and vc has verified v4 against v3. (b) The known-defects re-drive, whole, at the cut's HEAD. (c) Defined with the cut's order, once Part B and the 0657 and WP-02 train have landed: vc proposes that dc runs the cut's --dry-run on the final HEAD, a heavy run, booked, and reads the brew steps' output beside hv at the cut, the firing hv's. Comes after todo 53."
+  }
+}
