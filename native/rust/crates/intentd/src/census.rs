@@ -1,13 +1,15 @@
 //! The census tick (ST0086 WP-02): once a minute it samples the host into
 //! the ring the estate page draws its sparklines from and reaps Intent's WIP
 //! records for gone sessions, and it reads the account's usage endpoint at
-//! most once (vc decision 73).
+//! most once, when that read is due (vc decision 73, issue 0658).
 //!
 //! **THE ENDPOINT IS READ ONLY FOR A DAEMON SOMEBODY ASKS.** A tick reads it
-//! when the estate was asked for since the last read, and the first ask of
-//! a daemon holding no reading wakes the tick at once. So a daemon whose
-//! estate nobody opens -- every test daemon -- never touches the Keychain or
-//! the network, and a page polling every few seconds costs one read a tick.
+//! when the estate was asked for since the last read and the read is due,
+//! and the first ask of a daemon holding no reading wakes the tick at once.
+//! So a daemon whose estate nobody opens -- every test daemon -- never
+//! touches the Keychain or the network, and a page polling every few seconds
+//! costs one read every `usage::READ_EVERY` and a tick, longer after a
+//! failure (`usage::next_wait`).
 //!
 //! **NOT A RECORD.** The ring and the endpoint reading live in memory, and a
 //! restart starts them empty (design.md). They are one per process by
@@ -135,22 +137,41 @@ fn run(
   }
 }
 
+/// The whole ticks the endpoint waits after a read, counted down a tick at a
+/// time so its schedule reads no clock (D42): `waited` rounded up, and one
+/// more for the tick the read itself runs in, since its answer comes some
+/// way into that tick. So the next read goes out no sooner than `waited`
+/// after the answer, as long as the answer came before the next tick.
+fn ticks_to_wait(waited: Duration) -> u64 {
+  waited.as_secs().div_ceil(TICK.as_secs()) + 1
+}
+
 /// Runs the tick for as long as the process runs.
 ///
 /// **A FAILED SAMPLE LEAVES A GAP IN THE RING** rather than a made-up point,
-/// and the page reads the gap. A failed endpoint reading is kept like a good
-/// one: it carries its failure, and the page names it in `usage.error`.
+/// and the page reads the gap. A failed endpoint reading after a good one
+/// keeps the good one, still stamped when it was read, with the failure
+/// named in `usage.error` (`usage::carry`); with nothing good behind it the
+/// failure is kept, and the page names it.
 pub async fn tick() {
   let mut every = tokio::time::interval(TICK);
   every.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
   let (mut sampling, mut pruning, mut reading) =
     (Noted::default(), Noted::default(), Noted::default());
+  // The endpoint's own schedule, in whole ticks left to wait: none at the
+  // start, so the first ask reads at once.
+  let (mut waited, mut ticks_left) = (usage::READ_EVERY, 0u64);
   loop {
     let whole = tokio::select! {
       _ = every.tick() => true,
       () = FIRST_ASK.notified() => false,
     };
-    let read_endpoint = ASKED.swap(false, Ordering::Relaxed);
+    if whole {
+      ticks_left = ticks_left.saturating_sub(1);
+    }
+    // An ask arms the read and the read waits until it is due, so an ask
+    // that comes early stays armed rather than being spent.
+    let read_endpoint = ticks_left == 0 && ASKED.swap(false, Ordering::Relaxed);
     if !whole && !read_endpoint {
       continue;
     }
@@ -190,9 +211,13 @@ pub async fn tick() {
     match found.endpoint {
       Some(Ok(endpoint)) => {
         reading.ok();
-        *ENDPOINT
+        waited = usage::next_wait(&endpoint, waited);
+        ticks_left = ticks_to_wait(waited);
+        let mut kept = ENDPOINT
           .lock()
-          .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(endpoint);
+          .unwrap_or_else(std::sync::PoisonError::into_inner);
+        let next = usage::carry(kept.as_ref(), endpoint);
+        *kept = Some(next);
       }
       Some(Err(e)) => reading.failed("read the account's usage", e.to_string(), &e.remedy()),
       None => {}
@@ -268,6 +293,23 @@ mod tests {
     assert!(
       ASKED.swap(false, Ordering::Relaxed),
       "an ask did not arm the endpoint read"
+    );
+  }
+
+  /// ST0086 AT-02.6
+  ///
+  /// The endpoint waits its wait rounded up to whole ticks and one tick more,
+  /// for the tick its own read runs in, so the next read goes out no sooner
+  /// than the wait after the answer while the answer comes before the next
+  /// tick; the count reads no clock.
+  #[test]
+  fn the_endpoint_waits_its_wait_in_whole_ticks_and_one_more() {
+    let ticks = |n: u32| TICK * n;
+    assert_eq!(ticks_to_wait(ticks(5)), 6, "a wait of whole ticks");
+    assert_eq!(
+      ticks_to_wait(ticks(5) + Duration::from_secs(1)),
+      7,
+      "a wait that is not whole ticks"
     );
   }
 

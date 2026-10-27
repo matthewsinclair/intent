@@ -11,17 +11,26 @@
 //! (D42). [`fallback`] reads the newest.
 //!
 //! **THE PRIMARY IS THE ACCOUNT'S USAGE ENDPOINT, READ BY intentd ALONE**
-//! (vc decision 73, 2026-10-24): once a census tick, never per page read, by
+//! (vc decision 73, 2026-10-24): on a census tick, never per page read, by
 //! [`read_endpoint`], which takes Claude Code's OAuth token from the Keychain
 //! through `/usr/bin/security` and sends it with `/usr/bin/curl`, the URL,
 //! the headers and the token in a config on curl's stdin (`-K -`), so no argv
 //! ever carries the token. The token is never written, logged or sent
 //! anywhere else. [`resolve`] answers with the endpoint's reading when it has
 //! one, else the fallback with the endpoint's failure named.
+//!
+//! **THE ENDPOINT IS SHARED, SO IT IS READ SPARINGLY AND A REFUSAL KEEPS WHAT
+//! WAS READ** (issue 0658). Every reader of the account's token asks the same
+//! endpoint, and it answered 429 while the census asked every minute, which
+//! blanked the page. So [`next_wait`] spaces the reads [`READ_EVERY`] apart
+//! and backs off after a failure, never sooner than a 429's `Retry-After`,
+//! and [`carry`] keeps the last good reading, still stamped when it was read,
+//! beside the failure that followed it.
 
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
+use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -49,6 +58,14 @@ const SERVICE: &str = "Claude Code-credentials";
 /// How long curl may take, in whole seconds.
 const MAX_TIME: &str = "10";
 
+/// The census reads the endpoint at most this often while the estate is
+/// asked for: the five-hour and seven-day windows move slowly, and the
+/// endpoint is shared with every other reader of the account's token.
+pub const READ_EVERY: Duration = Duration::from_secs(5 * 60);
+
+/// The longest wait a run of failures backs the next read off to.
+pub const WAIT_CAP: Duration = Duration::from_secs(60 * 60);
+
 /// Why the endpoint gave no reading, carried into `usage.error`.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 pub enum EndpointFailure {
@@ -60,6 +77,10 @@ pub enum EndpointFailure {
   Unreached { why: String },
   #[error("the endpoint answered {status}")]
   Status { status: u16 },
+  /// A 429, with the `Retry-After` it sent in whole seconds, if it sent one,
+  /// which [`next_wait`] waits at least.
+  #[error("the endpoint answered 429, too many requests")]
+  Throttled { retry_after: Option<u64> },
   #[error("the endpoint's answer would not parse: {why}")]
   Unparsable { why: String },
 }
@@ -219,20 +240,66 @@ pub fn from_report(report: &Report, read_at: Option<String>) -> Usage {
 
 /// The usage the estate reports: the endpoint's reading when there is one,
 /// else the fallback with why the endpoint gave none, or [`NO_ENDPOINT`] for
-/// a reader that is not intentd.
+/// a reader that is not intentd. A reading kept beside a later failure (see
+/// [`carry`]) stands until a statusline report is newer, and the report then
+/// shows, naming the same failure.
 pub fn resolve(
   endpoint: Option<&Endpoint>,
   dirs: &Dirs,
   unreadable: &mut Vec<Unreadable>,
 ) -> Usage {
   let why = match endpoint {
-    Some(Ok(usage)) => return usage.clone(),
+    Some(Ok(usage)) if usage.error.is_none() => return usage.clone(),
+    Some(Ok(kept)) => {
+      let newer = fallback(dirs, unreadable);
+      // ISO stamps of one form sort as the times they name.
+      return if newer.source.is_some() && newer.read_at > kept.read_at {
+        Usage {
+          error: kept.error.clone(),
+          ..newer
+        }
+      } else {
+        kept.clone()
+      };
+    }
     Some(Err(failure)) => failure.to_string(),
     None => NO_ENDPOINT.to_string(),
   };
   Usage {
     error: Some(why),
     ..fallback(dirs, unreadable)
+  }
+}
+
+/// What the census keeps after a reading: a good one as it is; a failure
+/// after a good reading as that reading, still stamped when it was read, with
+/// the failure named in `error`; a failure with nothing good behind it as the
+/// failure. Pure.
+pub fn carry(kept: Option<&Endpoint>, read: Endpoint) -> Endpoint {
+  match (read, kept) {
+    (Ok(usage), _) => Ok(usage),
+    (Err(failure), Some(Ok(usage))) => Ok(Usage {
+      error: Some(failure.to_string()),
+      ..usage.clone()
+    }),
+    (Err(failure), _) => Err(failure),
+  }
+}
+
+/// How long the census waits after a reading before it reads the endpoint
+/// again: [`READ_EVERY`] after a good one; after a failure, twice the wait
+/// that led to it, from [`READ_EVERY`] up to [`WAIT_CAP`], and never sooner
+/// than a 429's `Retry-After`. Pure.
+pub fn next_wait(read: &Endpoint, waited: Duration) -> Duration {
+  let Err(failure) = read else {
+    return READ_EVERY;
+  };
+  let doubled = waited.saturating_mul(2).clamp(READ_EVERY, WAIT_CAP);
+  match failure {
+    EndpointFailure::Throttled {
+      retry_after: Some(secs),
+    } => doubled.max(Duration::from_secs(*secs)),
+    _ => doubled,
   }
 }
 
@@ -320,8 +387,13 @@ fn quoted(value: &str) -> String {
 }
 
 /// GETs `url` with the bearer token, the config on curl's stdin. Answers the
-/// status and the body; any status, since the caller judges it.
-fn fetch(curl: &Path, url: &str, token: &str) -> Result<(u16, String), EndpointFailure> {
+/// status, the body and the `Retry-After` in whole seconds when the answer
+/// sent one; any status, since the caller judges it.
+fn fetch(
+  curl: &Path,
+  url: &str,
+  token: &str,
+) -> Result<(u16, String, Option<u64>), EndpointFailure> {
   let config = format!(
     "url = {}\nheader = {}\nheader = {}\n",
     quoted(url),
@@ -337,7 +409,7 @@ fn fetch(curl: &Path, url: &str, token: &str) -> Result<(u16, String), EndpointF
       "-K",
       "-",
       "-w",
-      "\n%{http_code}",
+      "\n%{http_code} %header{retry-after}",
     ])
     .stdin(Stdio::piped())
     .stdout(Stdio::piped())
@@ -358,9 +430,16 @@ fn fetch(curl: &Path, url: &str, token: &str) -> Result<(u16, String), EndpointF
     .wait_with_output()
     .map_err(|e| EndpointFailure::Unreached { why: e.to_string() })?;
   let stdout = String::from_utf8_lossy(&out.stdout);
-  let (body, code) = stdout.rsplit_once('\n').unwrap_or(("", &stdout));
-  match code.trim().parse::<u16>() {
-    Ok(status) if status != 0 => Ok((status, body.to_string())),
+  // The last line is the status, then the `Retry-After`, which is empty when
+  // the answer sent none and is kept only as whole seconds.
+  let (body, trailer) = stdout.rsplit_once('\n').unwrap_or(("", &stdout));
+  let mut fields = trailer.split_whitespace();
+  match fields.next().and_then(|code| code.parse::<u16>().ok()) {
+    Some(status) if status != 0 => Ok((
+      status,
+      body.to_string(),
+      fields.next().and_then(|secs| secs.parse::<u64>().ok()),
+    )),
     _ => Err(EndpointFailure::Unreached {
       why: String::from_utf8_lossy(&out.stderr).trim().to_string(),
     }),
@@ -436,8 +515,9 @@ pub fn read_endpoint(tools: &EndpointTools, claude_dir: &Path, configured: bool)
   let read_at = iso(super::clock::now());
   read_token(&tools.security, claude_dir, configured)
     .and_then(|token| fetch(&tools.curl, &tools.url, &token))
-    .and_then(|(status, body)| match status {
+    .and_then(|(status, body, retry_after)| match status {
       200 => from_endpoint(&body),
+      429 => Err(EndpointFailure::Throttled { retry_after }),
       status => Err(EndpointFailure::Status { status }),
     })
     .map(|usage| Usage { read_at, ..usage })
@@ -681,9 +761,10 @@ mod tests {
         .expect("answer");
       (authorised, leaked)
     });
-    let (status, body) = fetch(Path::new(CURL), &url, &token).expect("curl reaches the listener");
+    let (status, body, retry_after) =
+      fetch(Path::new(CURL), &url, &token).expect("curl reaches the listener");
     let (authorised, leaked) = server.join().expect("the server thread");
-    assert_eq!((status, body.as_str()), (200, "{}"));
+    assert_eq!((status, body.as_str(), retry_after), (200, "{}", None));
     assert!(authorised, "the bearer header never reached the server");
     assert!(!leaked, "the token was on a command line while curl ran");
   }
