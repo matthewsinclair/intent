@@ -212,10 +212,14 @@
      cell is 18rem whatever its text: a flex item is never narrower than its
      content unless it says so, so the cell says min-width: 0, its main line
      wraps to at most four lines and its meta line to two before either
-     ellipsizes. */
+     ellipsizes. Requests running at the same time stack in one column at
+     the now marker, since none of them follows another (hv, 2026-10-27),
+     and the row centres every cell on that column. */
   #estate button.icon { display: inline-flex; align-items: center; padding: .15rem .35rem; line-height: 1; }
-  #estate .pipe { display: flex; flex-wrap: nowrap; overflow-x: auto; align-items: stretch; gap: .35rem; padding: 1.15rem .55rem .55rem; border: 1px solid var(--rule); border-radius: 6px; background: var(--card); }
+  #estate .pipe { display: flex; flex-wrap: nowrap; overflow-x: auto; align-items: center; gap: .35rem; padding: 1.15rem .55rem .55rem; border: 1px solid var(--rule); border-radius: 6px; background: var(--card); }
   #estate .cell { flex: 0 0 18rem; min-width: 0; border: 1px solid var(--rule); border-radius: 6px; padding: .35rem .5rem; font-size: .82rem; line-height: 1.25; background: var(--ground); }
+  #estate .pipe .stack { flex: 0 0 18rem; min-width: 0; display: flex; flex-direction: column; gap: .35rem; }
+  #estate .pipe .stack > .cell { flex: 0 0 auto; }
   #estate .cell .what { font-weight: 600; overflow: hidden; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; line-clamp: 4; }
   #estate .cell .meta { color: var(--muted); font-size: .74rem; overflow: hidden; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
   #estate .cell .tag { font-size: .66rem; text-transform: uppercase; letter-spacing: .07em; font-weight: 700; }
@@ -982,12 +986,19 @@
       });
       cells.push(el("div", "now"));
       if (ix.deskHolds.length) { cells.push(el("div", "held", "held")); }
-      p.running.forEach(function (q) {
-        var orph = ix.orphaned(q);
-        cells.push(cell(q, orph ? "orphaned" : "running", orph ? "orphaned" : "running",
-          ix.who(q.by) + " \u00b7 " + laneText(q) + " \u00b7 " + ago(q.started_at || q.asked_at) + relayed(q), ix));
-      });
-      if (!p.running.length) { cells.push(el("div", "none", "nothing running")); }
+      // Running requests run at the same time, so they share one column at
+      // the now marker rather than chaining as if one followed another.
+      if (p.running.length) {
+        var stack = el("div", "stack");
+        p.running.forEach(function (q) {
+          var orph = ix.orphaned(q);
+          stack.appendChild(cell(q, orph ? "orphaned" : "running", orph ? "orphaned" : "running",
+            ix.who(q.by) + " \u00b7 " + laneText(q) + " \u00b7 " + ago(q.started_at || q.asked_at) + relayed(q), ix));
+        });
+        cells.push(stack);
+      } else {
+        cells.push(el("div", "none", "nothing running"));
+      }
       p.next.forEach(function (q) {
         var c = cell(q, "next " + q.state, q.state === "granted" ? "next" : "waiting",
           ix.who(q.by) + " \u00b7 " + laneText(q) + " \u00b7 " + ago(q.asked_at), ix);
