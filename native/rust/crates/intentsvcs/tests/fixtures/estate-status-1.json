@@ -256,6 +256,7 @@
     },
     "hv": "molt-vc runs the desk from now"
   },
+  "controller_unreadable": null,
   "lanes": [
     {
       "name": "cargo",
@@ -263,7 +264,8 @@
       "capacity": 1,
       "granted": 0,
       "running": 1,
-      "load_under": 40
+      "load_under": 40,
+      "queue": ["01M5Q4X53K9CGEE1FG2M24C8W4"]
     },
     {
       "name": "light",
@@ -271,7 +273,8 @@
       "capacity": 2,
       "granted": 1,
       "running": 1,
-      "load_under": null
+      "load_under": null,
+      "queue": []
     }
   ],
   "queue": [

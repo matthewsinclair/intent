@@ -741,7 +741,9 @@
       var tally = {};
       s.sessions.forEach(function (x) { tally[x.state] = (tally[x.state] || 0) + 1; });
       var ctl = s.controller;
-      var ctlState = !ctl ? "none" : (!byId[ctl.session_id] || byId[ctl.session_id].state === "gone") ? "orphaned" : "live";
+      // A controller record that will not parse is its own state, never no
+      // controller: the reader names it beside `controller`, which is null then.
+      var ctlState = !ctl ? (s.controller_unreadable ? "unreadable" : "none") : (!byId[ctl.session_id] || byId[ctl.session_id].state === "gone") ? "orphaned" : "live";
       return {
         byId: byId, byReq: byReq, holding: holding, orphaned: orphaned, who: who,
         cap: cap, running: running, held: held, tally: tally, ctlState: ctlState,
@@ -758,6 +760,7 @@
     }
     function loadText(s) { return s.census.load.length ? s.census.load[0].toFixed(2) : "--"; }
     function ctlText(s, ix) {
+      if (ix.ctlState === "unreadable") { return "record UNREADABLE"; }
       return ix.ctlState === "none" ? "NO CONTROLLER" : s.controller.name + (ix.ctlState === "orphaned" ? " ORPHANED" : "");
     }
 
@@ -787,7 +790,12 @@
       }
       rows.push(line([["k", "sessions "], String(s.sessions.length)]));
       if (s.sessions.length) { rows.push(line([["k", "         "], tallyText(ix)])); }
-      if (ix.ctlState === "none") {
+      if (ix.ctlState === "unreadable") {
+        // **THE CONTROLLER'S RECORD WILL NOT PARSE** (ST0086 AC-04.6): the band
+        // says so where it would say NO CONTROLLER, and the record's path and
+        // why are the first line below the band, where a long path has room.
+        rows.push(line([["k", "control  "], ["warn", "record UNREADABLE"], ["k", " (named below)"]]));
+      } else if (ix.ctlState === "none") {
         rows.push(line([["k", "control  "], ["warn", "NO CONTROLLER"]]));
         rows.push(line([["k", "         "], "asks queue, nothing is granted"]));
       } else if (ix.ctlState === "orphaned") {
@@ -826,12 +834,19 @@
     // than in it, because a path is long and the band's columns are not.
     function renderUnreadable(s) {
       var box = document.getElementById("estate-unreadable");
-      box.replaceChildren.apply(box, s.unreadable.map(function (u) {
+      // The controller's record comes first and says whose it is, since the
+      // band's control line points here. The reader lists it among the
+      // unreadable files too, so it moves to the top rather than showing twice,
+      // and it shows even where that list lacks it.
+      var cu = s.controller_unreadable;
+      var rest = s.unreadable.filter(function (u) { return !cu || u.path !== cu.path; });
+      var lines = (cu ? [{ path: cu.path, why: cu.why, ctl: true }] : []).concat(rest);
+      box.replaceChildren.apply(box, lines.map(function (u) {
         var p = el("div");
-        p.append(el("span", "warn", "unreadable "), document.createTextNode(u.path), el("span", "k", " -- " + u.why));
+        p.append(el("span", "warn", u.ctl ? "controller record UNREADABLE " : "unreadable "), document.createTextNode(u.path), el("span", "k", " -- " + u.why));
         return p;
       }));
-      box.hidden = !s.unreadable.length;
+      box.hidden = !lines.length;
     }
 
     var SVG = "http://www.w3.org/2000/svg";
@@ -1040,6 +1055,24 @@
           var id = td(shortId(q.id));
           id.title = q.id;
           r.append(id, td(""), td(""), td(state, "st-" + state), td(ix.who(q.by), orph ? "orph" : ""), td(q.what, "wide"), td(age(secs(Date.parse(q.asked_at), ix.now)), "num"));
+          rows.appendChild(r);
+        });
+        // **EACH LANE LISTS THE ASKS WAITING FOR ITS TYPE, OLDEST FIRST, UNDER
+        // ITS HOLDERS** (ST0086 AC-04.6). `l.queue` is the reader's: ids in its
+        // own order, so a heavy ask shows under every heavy lane. Each row is
+        // looked up in the queue, and the Queue panel stays the one place for an
+        // ask's gates and for asks no open lane serves. An id the queue lacks
+        // still shows, never dropped.
+        l.queue.forEach(function (id) {
+          var q = ix.byReq[id];
+          var r = el("tr", "req");
+          var cell = td(shortId(id));
+          cell.title = id;
+          if (q) {
+            r.append(cell, td(""), td(""), td("queued", "st-asked"), td(ix.who(q.by)), td(q.what, "wide"), td(age(secs(Date.parse(q.asked_at), ix.now)), "num"));
+          } else {
+            r.append(cell, td(""), td(""), td("queued", "st-asked"), td(""), td("not in the queue", "wide muted"), td(""));
+          }
           rows.appendChild(r);
         });
       });
