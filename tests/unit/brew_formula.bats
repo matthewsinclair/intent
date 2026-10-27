@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # Guards for Intent's Homebrew formula, rendered by `bin/int brew render` and by
-# `bin/int macos publish` through one renderer, `cmd/shared/brew.lib` (ST0081
+# `bin/int brew publish` through one renderer, `cmd/shared/brew.lib` (ST0081
 # WP-06). The formula names macOS arm64's intent, intentd and support tree and
 # the Linux x86_64 and aarch64 packages, and every sha256 in it is read from the
 # bytes at a base URL: the release's own, or a file:// directory for a dev tap.

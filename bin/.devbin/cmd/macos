@@ -1207,26 +1207,30 @@ cmd_prepare() {
   # was asserting over an artefact some of its words do not apply to.
   printf 'prepare: app-sign, app-notarize, stage, sign, notarize and checksum ran in\n'
   printf '  one pass; each step reported above what it did and did not cover.\n'
-  printf '  NEXT: bin/devbin macos publish, which renders the formula from the published release and pushes it\n'
+  printf '  NEXT: bin/devbin macos publish, which uploads them to the release, re-downloads them against SHA256SUMS.txt and prints the steps after it\n'
 }
 
-# cmd_publish -- put the proven artefacts where a user can reach them, and only
-# then make the claim that points at them.
+# cmd_publish -- put the proven artefacts where a user can reach them, and leave
+# the claim that points at them to the step that writes it.
 #
-# THE ORDER IS THE DESIGN. Upload, then DOWNLOAD WHAT WAS UPLOADED AND HASH IT,
-# then write the formula. AC-11.4 is not "we computed a checksum correctly", it
-# is "the published checksum matches the bytes the user downloads" -- and the
-# only way to assert that is to be the user for one round trip. Hashing the local
-# file and publishing that number asserts the same thing about a file nobody will
-# ever fetch. The extra cost is one download; the class of defect it removes is
-# the one that never fails for us and fails for every `brew install`.
+# THE ORDER IS THE DESIGN. Upload, then DOWNLOAD WHAT WAS UPLOADED AND HASH IT.
+# AC-11.4 is not "we computed a checksum correctly", it is "the published
+# checksum matches the bytes the user downloads" -- and the only way to assert
+# that is to be the user for one round trip. Hashing the local file and
+# publishing that number asserts the same thing about a file nobody will ever
+# fetch. The extra cost is one download; the class of defect it removes is the
+# one that never fails for us and fails for every `brew install`.
 #
-# AND IF THE DOWNLOAD DISAGREES, THE RELEASE STAYS AND THE FORMULA DOES NOT SHIP.
-# That asymmetry is deliberate. A release with no formula pointing at it is
-# inert -- nobody installs it by accident. A formula pointing at bytes whose hash
-# we could not confirm is a confident false statement, and it is the same
-# reasoning that keeps a formula out of the tap until the release it names
-# exists: **a wrong artefact is not a neutral placeholder.**
+# IT WRITES NO FORMULA AND NO CASK (ST0081 WP-02, vc's ruling of 2026-10-27).
+# The Linux packages reach the release after this, through `bin/devbin release
+# attach`, which also writes SHA256SUMS over every asset, so a formula rendered
+# here could only be refused for want of them: a red step on every cut. `bin/int
+# brew publish` renders both from the complete release and pushes them, their
+# one writer, and this ends by printing those steps in order. Until then the
+# release is inert -- nobody installs it by accident. A formula pointing at bytes
+# whose hash we could not confirm is a confident false statement, and it is the
+# same reasoning that keeps a formula out of the tap until the release it names
+# is complete: **a wrong artefact is not a neutral placeholder.**
 #
 # THE DEV-VERSION REFUSAL LIVES HERE, WHERE THE HARM IS. `int brew render` will happily
 # print `RELEASE_VERSION = "3.0.0-dev"` to a terminal, and should -- that is text, and it is
@@ -1442,9 +1446,6 @@ $(printf '%s\n' "$artefact_blockers" | sed 's/^/       /')
        signing REWRITES a binary, so a re-sign after 'checksum' leaves hashes that
        describe bytes no longer on disk."
 
-  gh repo view "$TAP" >/dev/null 2>&1 ||
-    die "cannot reach the tap $TAP -- check 'gh auth status'"
-
   # UPLOAD THE HASHED SET, NEVER A RESTATED ONE. Both this list and the
   # round-trip below iterate what `checksum` actually classified and hashed, so
   # "what gets published" and "what has a published hash" cannot drift apart. The
@@ -1460,13 +1461,12 @@ $(printf '%s\n' "$artefact_blockers" | sed 's/^/       /')
     printf '    release   %s %s (will be created)\n' "$REPO" "$tag"
   fi
   for a in $(staged_artefacts); do printf '    artefact  %s\n' "$a"; done
-  printf '    tap       %s (Formula/intent.rb, Casks/%s.rb)\n' "$TAP" "$CASK_TOKEN"
 
   if [ "$dry" -eq 1 ]; then
     printf '\n'
     printf 'dry run: nothing was published. Every check above passed.\n'
-    printf '  The steps NOT run: create or attach to the release, upload, re-download and hash,\n'
-    printf '  and push the formula. Re-run without --dry-run to do them.\n'
+    printf '  The steps NOT run: create or attach to the release, upload, and re-download and\n'
+    printf '  hash. Re-run without --dry-run to do them.\n'
     return 0
   fi
 
@@ -1521,49 +1521,17 @@ $(printf '%s\n' "$artefact_blockers" | sed 's/^/       /')
        publish again."
   fi
 
-  # THE FORMULA IS RENDERED FROM THE RELEASE, AND ONLY A COMPLETE ONE IS PUSHED
-  # (ST0081 WP-06). Every hash in it is read from the bytes the release now
-  # serves, both platforms' assets, and the macOS ones must equal SHA256SUMS.txt.
-  # If the Linux packages are not on the release yet -- the order D55 leaves open
-  # -- the artefacts above stay published with nothing pointing at them, which is
-  # inert, and the push waits for `bin/devbin brew publish` at a terminal.
-  step "rendering the formula from the published release"
-  local formula frc=0
-  formula="$(brew_formula "$version" 0 "" 0)" || frc=$?
-  case "$frc" in
-    0) ;;
-    3)
-      die "$tag is published and NO FORMULA HAS BEEN PUSHED: a formula needs every asset named above, and $tag does not carry them yet.
-       Once they are on $tag, push it at a terminal: bin/devbin brew publish"
-      ;;
-    *) exit "$frc" ;;
-  esac
-  ok
-
-  # THE CASK RIDES THE SAME PUSH (issue 0634), its sha256 read from the zip the
-  # release now serves, which must equal the one SHA256SUMS.txt records.
-  step "rendering the cask from the published release"
-  local cask crc=0
-  cask="$(brew_cask "$version" "")" || crc=$?
-  case "$crc" in
-    0) ;;
-    3) die "$tag is published and NO FORMULA HAS BEEN PUSHED: the cask needs $APP_ASSET, and $tag does not carry it (named above)" ;;
-    *) exit "$crc" ;;
-  esac
-  ok
-
-  step "pushing the formula and the cask to $TAP"
-  brew_push_tap "$formula" "$cask" "$version" "Generated by 'bin/devbin macos publish' from artefacts proven signed and notarised,
-and re-downloaded from the published release to confirm the hashes describe the
-bytes a user actually receives."
-  ok
-
+  # THE STEPS LEFT, IN ORDER, IN THE CUT'S FINISH-BY-HAND FORM (vc's ruling of
+  # 2026-10-27). The attach puts the Linux packages on the release and writes
+  # SHA256SUMS last, over every asset, these included; `brew publish` then
+  # renders the formula and the cask from the complete release and pushes both,
+  # their one writer. The attach is named whatever the release already carries:
+  # run before this one, it summed a release without these assets, and its
+  # re-run uploads nothing it holds and rewrites SHA256SUMS over them.
   printf '\n'
-  printf 'published: %s %s, artefacts verified from the published URL, formula and cask live in the tap.\n' "$REPO" "$tag"
-  printf '  STILL OWED, and this command cannot supply it: an install run on a machine\n'
-  printf '  that has never seen this repository. Everything above proves the artefacts\n'
-  printf '  and the formula agree; only that proves the tap works for a stranger.\n'
-  printf '    brew install %s/intent\n' "$BREW_TAP"
+  printf 'published: %s %s, the macOS artefacts verified from the published URL; no formula or cask points at them yet.\n' "$REPO" "$tag"
+  # shellcheck disable=SC2016 # the backticks are literal: they quote each command
+  printf '  Finish by hand, in order: `bin/devbin release attach %s`; `bin/int brew publish`.\n' "$tag"
 }
 
 cmd_store_creds() {
@@ -2274,11 +2242,11 @@ bin/devbin macos <subcommand>
   verify       Prove the staged CLI binaries without hashing them (read-only)
   publish      Upload the artefacts to the release (creating it, or attaching
                to the one the release cut made), RE-DOWNLOAD them and confirm
-               they hash to what we are about to publish, then render the
-               formula from the release and push it to the tap -- a complete
-               one only: when the release does not carry the Linux packages yet
-               it pushes nothing and says so, and `bin/devbin brew
-               publish` pushes once they are there. Refuses a dev version, any
+               they hash to what SHA256SUMS.txt records, then print the steps
+               left in order: `bin/devbin release attach vX.Y.Z`, which adds the
+               Linux packages and writes SHA256SUMS over every asset, then
+               `bin/int brew publish`, the one writer of the formula and the
+               cask. It writes neither. Refuses a dev version, any
                asset of its own already on the release (others are left
                alone), a missing tag, a checkout that was dirty at stage, a
                stage not taken at the tag, and binaries whose embedded source

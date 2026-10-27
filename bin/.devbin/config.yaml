@@ -339,3 +339,34 @@ commands:
     # sit beside it rather than being declared in a second style. `bin/devbin
     # build --help` lists them; `bin/devbin help build` does not, because help
     # enumerates only declared options.
+
+  # devbin's release core, ENABLED FOR TWO VERBS ONLY (ST0081 WP-02: devbin's
+  # D55 as hv ruled it on 2026-10-23, and vc's ruling of 2026-10-27). Intent cuts
+  # with its own `bin/devbin build release`; `release.verbs` below offers
+  # devbin's `check` and `attach` and nothing else, so its cut, status and notes
+  # refuse rather than open a second cut door.
+  release:
+    enabled: true
+
+# What `bin/devbin release check` and `bin/devbin release attach vX.Y.Z` read
+# (ST0081 WP-02). The defaults stand where they fit: `object: local`, since
+# Intent's cut makes the release object; `tag: "v{version}"`; `branch: main`;
+# and no `remotes`, which nothing reads with the cut off.
+#
+# `repo` IS DECLARED BECAUSE NEITHER REMOTE IS CALLED origin. Undeclared, it is
+# read off the url of the first `remotes` entry, else origin, else the only
+# remote, and this checkout has two.
+#
+# THE ASSETS ARE linux-release.yml's: its run at the tag builds the two Linux
+# packages, and `attach` uploads them and then writes SHA256SUMS over every
+# asset on the object. The bound is read off the tag runs, measured with `gh run
+# list` on 2026-10-27: v3.2.4's took 4m25s and v3.2.5's 4m26s, created to
+# completed, so 15m leaves room for a runner queue.
+release:
+  repo: matthewsinclair/intent
+  verbs:
+    - check
+    - attach
+  assets:
+    workflow: linux-release.yml
+    wait: 15m

@@ -28,9 +28,10 @@
 # builds the local pair at the tag only because its own push is refused over any
 # other pair (issue 0546); it does not sign, notarise, stage or upload a native
 # binary, and it does not
-# touch the Homebrew tap: `bin/devbin macos prepare` owns the artefacts and
-# `bin/devbin macos publish` owns the assets on the object this creates. No command
-# owns two of the three. What it DOES own for v3 is the version those artefacts
+# touch the Homebrew tap: `bin/devbin macos prepare` owns the artefacts,
+# `bin/devbin macos publish` the macOS assets on the object this creates,
+# `bin/devbin release attach` the Linux packages and SHA256SUMS on it, and
+# `bin/int brew publish` the tap (ST0081 WP-02). No command owns two of them. What it DOES own for v3 is the version those artefacts
 # will report -- `native/rust/Cargo.toml` carries `[workspace.package] version`
 # and the binary compiles its own version string from it, so a tag cut without
 # stamping it publishes a binary that disagrees with its own tag.

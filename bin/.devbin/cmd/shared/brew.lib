@@ -7,7 +7,7 @@
 # WHY THIS IS SHARED. The formula lived in `cmd/macos` while the release was
 # macOS arm64 alone, and its header said it would move once Linux artefacts
 # arrived. They have: the formula names the Linux packages for x86_64 and aarch64
-# beside the macOS assets, so `int macos publish` and `int brew render` both
+# beside the macOS assets, so `int brew render` and `int brew publish` both
 # render it here, and the formula a release pushes is the one the verb prints.
 #
 # FROM THE SOURCING HANDLER IT NEEDS: helpers (die, require_tool), rust_host from
@@ -296,7 +296,7 @@ brew_fetch() {
 # `macos` while hv's ruling of 2026-08-15 made the release macOS arm64 only, and
 # its note said Linux artefacts would end that limit and the reason for it. hv
 # widened the release to Linux on 2026-10-14, so the formula grew per-platform
-# URLs and moved here, where `int macos publish` and `int brew render` both
+# URLs and moved here, where `int brew render` and `int brew publish` both
 # render it.
 
 # brew_render_formula <version> <revision> <base> <sums> <commit> -- PURE. The
@@ -768,9 +768,9 @@ brew_cask() {
 # brew_push_tap <formula> <cask> <version> <how> -- IMPURE. Commit <formula> to
 # the tap as Formula/intent.rb and <cask> as Casks/<CASK_TOKEN>.rb, in one commit,
 # and push it, with <how> saying in the commit what made it. THE ONE PUSH TO THE
-# TAP: `int macos publish` calls it at hv's terminal, and so does `int brew
-# publish`, which asks there first. One commit, so the tap never holds a
-# formula and a cask from different releases (issue 0634).
+# TAP, and `int brew publish` its one caller, which asks at hv's terminal first;
+# `int macos publish` stopped pushing with ST0081 WP-02. One commit, so the tap
+# never holds a formula and a cask from different releases (issue 0634).
 brew_push_tap() {
   local formula="$1" cask="$2" version="$3" how="$4" work
   require_tool gh "Install it with: brew install gh"
