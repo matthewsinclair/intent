@@ -1,0 +1,15 @@
+{
+  "id": "01M5Y3ZS7DPPHAX96RBRW8XN5T",
+  "ts": "2026-10-27T07:25:24.589Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-10-27, vc under hv's pen granted 2026-08-22, answering ic's hold 15 read) A WORKTREE'S UNREACHABLE COMMITS ARE KEPT UNDER refs/attic/<node>/<worktree> BEFORE THE WORKTREE IS REMOVED. ic found five stale worktrees, each clean with its merge-base on main. Each carries draft commits that only that worktree reaches, superseded by banks that later landed. Removing the worktree would leave those commits to the next gc. A ref costs nothing where it sits, and losing a commit nothing else reaches cannot be undone; that is watchout 57's reasoning, applied here to commits. So before removing such a worktree, its node points `refs/attic/<node>/<worktree name>` at the worktree's HEAD. That ref stands in for the fold check \"its index tree is its base with its landed banks applied\". The other checks stand: nothing unstaged or untracked, the base an ancestor of main, and no stash entry naming the worktree. The attic is never refs/bank/, whose refs are patch blobs that tooling reads with `git apply`. Like a spent bank ref, an attic ref is never deleted. It binds cc's and dc's stale worktrees as well as ic's. ic set its five at 8a9f1b055's chain, each verified by vc against its worktree's HEAD. Nothing is removed before molt-vc's word on hv's ~/Devel Spotlight exclusion."
+  }
+}
