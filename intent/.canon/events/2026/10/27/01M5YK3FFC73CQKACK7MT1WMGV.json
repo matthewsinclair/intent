@@ -1,0 +1,16 @@
+{
+  "id": "01M5YK3FFC73CQKACK7MT1WMGV",
+  "ts": "2026-10-27T11:49:34.316Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 98,
+    "text": "ST0081 WP-02 LANDED as 9f4994a1c in vc's landing chain (END 11:46Z by vc's clock). It is refs/bank/cc/0081/wp02-v1 (patch-id 901e9ee541d5), judged green in decision 100's run 3. Each release now carries the Linux packages its tag's workflow builds, and one SHA256SUMS over every asset, attached by `bin/devbin release attach`. `bin/int brew publish` alone writes the formula and cask. The package stays WIP until hv proves AC-02.1 at the 3.2.7 cut. No push, no release."
+  }
+}

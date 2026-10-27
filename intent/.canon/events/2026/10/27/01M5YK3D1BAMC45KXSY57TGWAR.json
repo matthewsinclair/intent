@@ -1,0 +1,16 @@
+{
+  "id": "01M5YK3D1BAMC45KXSY57TGWAR",
+  "ts": "2026-10-27T11:49:31.819Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 96,
+    "text": "ST0086 WP-04 Part B LANDED in vc's landing chain (END 11:46Z by vc's clock), after decision 100's green run 3, each bank as its own commit at its judged patch-id:\n- cc's status-v2: 1d38741ee.\n- cc's wait-v3: 8da02c76e.\n- ic's page-v2: eaad34d62.\n- cc's init-v2: 4b49525e1.\n- cc's ats-v1: 606aa1cbd.\n- ic's cell-width-v4: 6afbef147.\nOWED IN ONE STORE CHAIN after the build all and intentd restart (request 01M5YJSA6WBSFQAX4SK9TQJCSY, after Gtools' WP-04 on molt-vc's GO):\n- The AT rows for AC-04.1 to AC-04.6 and AC-04.8 to AC-04.13, from refs/bank/cc/0086/landing-drafts-v2 (blob 51c459de4231), with run 3's evidence. Each arm is a `#[test]` in the landed tree. `intent at lint ST0086` and `intent ac status ST0086` run before the commit.\n- design.md through `intent st attach`, in this order: ic's design-cells-v1; then E1 to E3; then E4, pending's cost measured with the built binary under `--lane none`, as dated figures and never as a bound; then 0658's four.\nThe worktrees that built Part B are gone, and hold 34 names the seven older ones that stay. No push, no release."
+  }
+}

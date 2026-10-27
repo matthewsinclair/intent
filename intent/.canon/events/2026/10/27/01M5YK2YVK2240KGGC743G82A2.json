@@ -1,0 +1,15 @@
+{
+  "id": "01M5YK2YVK2240KGGC743G82A2",
+  "ts": "2026-10-27T11:49:17.299Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "cc's SEVEN OLDER WORKTREES STAY UNTIL EACH CHANGE IN THEM IS BANKED OR RULED HELD (vc decision 98 as amended):\n- tmp/wt-cc-0086crit: 42 files staged.\n- tmp/wt-cc-0652: 42 files staged.\n- tmp/wt-cc-0616t: 36 files staged.\n- tmp/wt-cc-0630: 11 files staged. Its 2 unstaged files are refs/bank/cc/0630/fix-s5.\n- tmp/wt-cc-0624: 21 files unstaged, 2 untracked.\n- tmp/wt-cc-0627: 19 files unstaged, 1 untracked. Its staged diff is refs/bank/cc/0616-0618/fix.\n- tmp/wt-cc-0627b: 27 files unstaged, 1 untracked. Its staged diff is fix-b.\nNone of those changes matches a bank or a main commit by patch-id or reverse-applies to main (measured at 11:35Z by cc's clock). Evidence for a ruling, which decision 98 does not count as held, measured at 11:39Z. Every path 0616t and 0624 change has that content on main, now or in its history. So does every path 0627b changes, apart from its CHANGELOG.md. 0086crit, 0652, 0630 and 0627 each change paths whose content main never had. The other sixteen of cc's worktrees went at 11:38Z to 11:47Z by cc's clock, after the fold checks: twelve with refs/attic/cc/<name> at their HEADs, and none with --force."
+  }
+}

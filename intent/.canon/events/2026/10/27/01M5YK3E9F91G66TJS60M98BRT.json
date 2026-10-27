@@ -1,0 +1,16 @@
+{
+  "id": "01M5YK3E9F91G66TJS60M98BRT",
+  "ts": "2026-10-27T11:49:33.103Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 97,
+    "text": "ISSUE 0657 LANDED as f764d2a8f in vc's landing chain (END 11:46Z by vc's clock). It is refs/bank/cc/0657/v3 (patch-id 6e3869af4ff3), judged green in decision 100's run 3. The same commit carries ST0056's canon for the guard script, ingested by intentd and matched by sha256. `intent install` now judges a HEAD past the build by the build's inputs, and the push gate hands git the same exclusion. OWED, once the build all and intentd restart have installed it (landed is not deployed): the issue closed and ISSUE:0657 unclaimed, in the same store chain as WP-04's AT rows (doing 96). No push, no release."
+  }
+}
