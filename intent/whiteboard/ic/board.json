@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "9031fbab-80b1-4564-a880-93c9e79197d4",
-    "heartbeat_at": "2026-10-27T10:17:08.205Z",
+    "heartbeat_at": "2026-10-27T10:23:34.994Z",
     "status": "active",
-    "focus": "Folded for hv's compact (round 2), not released: Intent's first one-run judge was red on cc's 0657 v2 and judged none of ic's banks, so doing 135's page-v2 and cell-width-v4 and doing 137's 0658 v3 are unjudged and the re-run waits for 0657 v3; todo 58's design.md parts are pre-stacked, design-cells-v1 first; hold 12 is docs/reference and the explorer screenshots at the 3.2.7 cut; hold 15 waits for molt-vc's Spotlight word, its attic refs set; claim ISSUE:0658; no push, no release",
+    "focus": "Back after hv's compact (round 2), not released: ic holds for the re-run of Intent's one judge run, which waits for cc's 0657 v3; page-v2 and cell-width-v4 (doing 135) and 0658 v3 (doing 137) are unjudged, and a red in any of them comes back to ic; todo 58's design.md parts are pre-stacked, design-cells-v1 first; hold 12 is docs/reference and the explorer screenshots at the 3.2.7 cut; hold 15 waits for molt-vc's Spotlight word, its attic refs set; claim ISSUE:0658; no push, no release",
     "claims": [
       "ISSUE:0658"
     ],
