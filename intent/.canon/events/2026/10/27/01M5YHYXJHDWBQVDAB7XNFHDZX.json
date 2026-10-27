@@ -1,0 +1,16 @@
+{
+  "id": "01M5YHYXJHDWBQVDAB7XNFHDZX",
+  "ts": "2026-10-27T11:29:36.337Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 137,
+    "text": "ISSUE:0658, the estate page's plan usage (3.2.7 under decision 76; hv in ic's session, 2026-10-27: \"Ok, do 1 and 2.\"). v3 is banked at refs/bank/ic/0658/v3 (blob 8b35ecc6c7db, patch-id 629db68722c0) over cc's scratch tip e22661b78, Part B's tree, from tmp/wt-ic-0658, and it is the ninth bank of Intent's one judge run (vc decision 100, doing 135). Run 1 stopped on cc's 0657 v2 before any Rust leg, run 2 passed v3 on every leg with its reds in other banks (vc), and run 3 judges it unchanged, since ic measured that it applies at its patch-id over cc's 0657 v3, wait-v3 and init-v2. v2 (blob 29282d37ceb3) and v1 (blob 876b862b11c2) are superseded and kept: v1 called `Instant::now`, which one_clock.rs bans, and v2 counted a read's wait from the tick the read began in. The schedule counts census ticks with no clock read: after a read, the wait rounded up to whole ticks and one tick more, so the next read goes out no sooner than the wait after the answer while the answer comes before the next tick, and a unit arm in census.rs pins the count. The rest: usage::carry, usage::next_wait (READ_EVERY five minutes, doubling to WAIT_CAP an hour, never sooner than a 429's Retry-After), EndpointFailure::Throttled and the AT-02.6 file's new arms. ic's rustfmt evidence was file mode with planted controls that fired, so vc's stdin note does not reach it. The landing owes AC-02.6's wording and AT-02.6 re-cited with the new arms in both files, and vc carries ic's CHANGELOG, MODULES.md and design.md texts verbatim on refs/bank/vc/train/landing-texts. A red in v3 comes back to ic in tmp/wt-ic-0658. No push, no release."
+  }
+}
