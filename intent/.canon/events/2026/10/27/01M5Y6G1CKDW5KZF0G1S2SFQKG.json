@@ -1,0 +1,16 @@
+{
+  "id": "01M5Y6G1CKDW5KZF0G1S2SFQKG",
+  "ts": "2026-10-27T08:09:14.387Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 66,
+    "text": "ST0087 WP-05's proof, in Intent's turn (dc with vc). It follows vc's shape v2 with dc's deltas, held to dc's final banks.\nTHE SCRIPTS, under refs/bank/dc/0087-05/, each read by vc: legs-v3.zsh 02c3db341df3, ac051-v2.sh c4098aaa90b8, ac053.sh ff5f36227d5c, record-v3.sh 2c80deb70fe2 and attach.sh dba0086eb2d2. The run directory holds them under the names the driver expects (legs.zsh, ac051.sh), and the slot's READY names each file's sha256 beside its blob. Each leg runs in its own `env -i HOME USER LOGNAME SHELL=/bin/zsh TERM=dumb /bin/zsh -l -c` login shell, with stdin from /dev/null and plain redirection. Install owns the currency check, and bare `use` owns the shadow check. A stop at or after leg opt puts dev back, and the restore is judged on both the links and the daemon.\nPRECONDITIONS: molt-vc's env liberator run publishes INTENT_INSTALL_PREFIX to ~/.config/molt/env.sh (declared at Molt-matts 1bd41f2). Until 0657 lands, build all runs at the exact HEAD, and main holds still until install has published.\nTHE SLOT: the launchsvc lane, booked with molt-vc, with START and END to every estate's vc, because `use opt` moves the intent every estate runs. AC-05.3 runs once per devbin tree, each on devbin-vc's word and in its own slot, from a scratch clone outside ~/Devel.\nRECORDS: record-v3.sh scrubs and checks each record. vc reads each against its AC before attach.sh attaches it and proves it past the ingest.\nAFTER THE CUT: AC-05.1's brew leg (brew unpin and upgrade, the keg linked, `intent use brew`, the version line and doctor), which is hv's switch back to brew (decision 80), and AC-05.2 on kovacs, with brew alone."
+  }
+}
