@@ -23,6 +23,8 @@ fn line(commit: &str, id: &install::TreeId) -> String {
       version: "9.9.9",
       commit,
       kind: BUILD_KIND,
+      scope: ":(top)native/rust",
+      unshipped: ":(top,exclude,glob)native/rust/crates/*/tests/**",
     },
     id,
   )

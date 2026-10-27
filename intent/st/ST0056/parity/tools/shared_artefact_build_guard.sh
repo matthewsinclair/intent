@@ -227,6 +227,19 @@ else
     fi
   fi
 
+  # ARM 6e -- CURRENCY'S EXCLUSION IS READ, NOT TYPED (issue 0657). currency.lib
+  # hands git the marker's UNSHIPPED pathspecs beside the scope through
+  # sharedtarget.lib's parser, and `intent install` hands git the same list from
+  # its own build. An unreadable constant leaves the push gate dropping nothing
+  # while install drops its list, two verdicts on one HEAD, so this arm reads it
+  # through the same parser and reds in the light.
+  unshipped="$(shared_target_unshipped "$MARKER_SRC" || true)"
+  if [ -z "$unshipped" ]; then
+    fail "arm 6e -- could not read UNSHIPPED from $MARKER_SRC; the constant moved, was renamed, changed shape or holds an entry that is not a :(top,exclude,glob) pathspec, so currency.lib drops nothing where install drops its list"
+  else
+    ok "arm 6e -- currency.lib hands git the marker's UNSHIPPED pathspecs, read from the one declaration ($(printf '%s' "$unshipped" | tr '\n' ' '))"
+  fi
+
   # ARM 6c -- THE MARKER ASKS IDENTITY OF THE CHECKOUT'S HEAD, UNSCOPED, AND
   # DIRT OVER DIRT_SCOPE (hv's ruling, 2026-09-13).
   #

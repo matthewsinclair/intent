@@ -198,6 +198,31 @@ use std::process::Command;
 #[rustfmt::skip]
 const DIRT_SCOPE: &[&str] = &[":(top)native/rust", ":(top)surface", ":(top)docs/design", ":(top)lib/templates/llm", ":(top)lib/templates/prj"];
 
+/// The paths under [`DIRT_SCOPE`] that no shipped binary compiles in, as git
+/// exclude pathspecs: each workspace crate's integration tests and benches,
+/// which build only into their own test binaries.
+///
+/// **CURRENCY IS ASKED WITHOUT THEM, DIRT IS NOT** (issue 0657). "Has a build
+/// input changed since the pair's commit" hands these to git beside the scope,
+/// in `intent install` (`install::inputs_moved`) and in the push gate
+/// (`currency.lib`'s `_build_inputs_changed`) alike, so one matcher, git's,
+/// gives the two one verdict on one HEAD. The marker's own `dirty-` is still
+/// asked over the whole scope: a test edited mid-build is dirt in the checkout,
+/// whatever it compiles into.
+///
+/// **ANCHORED AT CARGO'S LAYOUT, NOT AT ANY `tests/`.** `init` embeds
+/// `lib/templates/prj` at build, so a `tests/` there is an input. Under `glob`
+/// magic `*` stops at `/`, so these reach `native/rust/crates/<crate>/tests/`
+/// and `.../benches/` and neither a `src/tests/` module nor a crate named
+/// `tests`. A crate outside `crates/` has its tests counted, which refuses more.
+///
+/// **ONE LINE, PARSED BY THE SHELL, AS `DIRT_SCOPE` IS:** `sharedtarget.lib`'s
+/// `shared_target_unshipped` reads it with a single-line `sed`, refusing an
+/// entry that is not a top-anchored glob exclude, and arm 6e of
+/// `shared_artefact_build_guard.sh` reads it through that same function.
+#[rustfmt::skip]
+const UNSHIPPED: &[&str] = &[":(top,exclude,glob)native/rust/crates/*/tests/**", ":(top,exclude,glob)native/rust/crates/*/benches/**"];
+
 fn git(args: &[&str]) -> Option<String> {
   let out = Command::new("git").args(args).output().ok()?;
   if !out.status.success() {
@@ -311,7 +336,23 @@ fn emit_source_commit() {
   // The kind reads the value above, so the dirt is asked once (issue 0534).
   emit_source_kind(&value, &version);
 
+  emit_currency_scope();
+
   emit_rerun_triggers();
+}
+
+/// Emits `INTENT_DIRT_SCOPE` and `INTENT_UNSHIPPED` for the binary's own
+/// `install::Build` (issue 0657): `intent install` judges whether HEAD moved a
+/// build input over the scope this binary was built under, never over one a
+/// caller supplies. Space-separated, since no entry carries a space.
+///
+/// **ITS OWN FUNCTION, OUTSIDE `emit_source_commit`'s BODY,** because arm 6c
+/// of `shared_artefact_build_guard.sh` reads that body for `DIRT_SCOPE` to
+/// prove the dirt call reaches it, and a second mention there would pass the
+/// arm whether or not the dirt call still did.
+fn emit_currency_scope() {
+  println!("cargo:rustc-env=INTENT_DIRT_SCOPE={}", DIRT_SCOPE.join(" "));
+  println!("cargo:rustc-env=INTENT_UNSHIPPED={}", UNSHIPPED.join(" "));
 }
 
 /// Emits `INTENT_SOURCE_KIND` and `INTENT_SOURCE_KIND_MARKER`: whether this

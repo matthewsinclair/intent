@@ -5432,8 +5432,8 @@ Render a dedicated coordinator's working directory: the coordinator's contract a
   - `exit.0.code`: 0
   - `exit.0.when`: the runtime set and the pair were published to the prefix with its manifest, or --print-runtime-set printed the support paths
   - `exit.1.code`: 1
-  - `exit.1.when`: refused before anything is written: not a dev tree, a dirty runtime set, a pair built behind HEAD or from two commits, no prefix, a prefix overlapping the dev tree, or a prefix holding anything but an opt tree Intent published (and that only with --force); or a step of the publish failed, with the prefix left as it was
-  - `stdout`: `created:` or `replaced:` for the prefix, `wrote:` for its manifest, then `ok:` and the published tree's version line; or one support path per line under --print-runtime-set
+  - `exit.1.when`: refused before anything is written: not a dev tree, a dirty runtime set, a pair built behind HEAD by a commit that changed one of the build's inputs, or at a commit HEAD does not descend from, a pair built from two commits, no prefix, a prefix overlapping the dev tree, or a prefix holding anything but an opt tree Intent published (and that only with --force); or a step of the publish failed, with the prefix left as it was
+  - `stdout`: `created:` or `replaced:` for the prefix, `wrote:` for its manifest, a `note:` naming HEAD and the build's inputs when HEAD is past the commit the pair was built from by commits that change none of them, then `ok:` and the published tree's version line; or one support path per line under --print-runtime-set
   - `stderr`: `error: ...` with its remedy (INV-01)
 - **v2:** new-surface
 - **disposition:** new-surface

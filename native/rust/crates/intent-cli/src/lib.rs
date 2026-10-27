@@ -136,6 +136,8 @@ pub fn build() -> intentsvcs::install::Build<'static> {
     version: env!("CARGO_PKG_VERSION"),
     commit: SOURCE_COMMIT,
     kind: SOURCE_KIND,
+    scope: env!("INTENT_DIRT_SCOPE"),
+    unshipped: env!("INTENT_UNSHIPPED"),
   }
 }
 

@@ -168,16 +168,50 @@ shared_target_marker_scopes() {
   printf '%s\n' "$scopes"
 }
 
+# shared_target_unshipped <source_commit.rs>
+#
+# Prints the exclude pathspecs currency hands git beside the marker's scope,
+# one per line, parsed out of `const UNSHIPPED` beside `DIRT_SCOPE` (issue
+# 0657): each crate's tests and benches, which change no shipped byte. Each
+# entry is read as one quoted string, since glob magic carries commas. Returns 1
+# and prints nothing when the constant cannot be read, or when an entry is not
+# a `:(top,exclude,glob)` pathspec, because any other form could widen what
+# currency drops or, unanchored, match nothing.
+#
+# PARSED, NOT COPIED, for the scope's reason: `intent install` hands git the
+# same list from its own build, so a shell copy that drifted would give the
+# push gate and install two verdicts on one HEAD.
+shared_target_unshipped() {
+  local src="$1" specs
+  [ -r "$src" ] || return 1
+  specs="$(sed -n 's/^const UNSHIPPED: &\[&str\] = &\[\(.*\)\];$/\1/p' "$src" |
+    grep -o '"[^"]*"' | tr -d '"' || true)"
+  [ -n "$specs" ] || return 1
+  if printf '%s\n' "$specs" | grep -qv '^:(top,exclude,glob)[^[:space:]][^[:space:]]*$'; then
+    return 1
+  fi
+  printf '%s\n' "$specs"
+}
+
 # The marker scope as an array, loaded once when this lib is sourced, from the
 # source tree this lib belongs to. A parse failure leaves it EMPTY, and every
 # consumer refuses an empty scope by name, because an empty pathspec means the
 # whole repository. So a moved or renamed constant fails closed, in the light.
+#
+# THE UNSHIPPED PATHSPECS LOAD THE SAME WAY. An unread list leaves the array
+# EMPTY and currency drops nothing, which refuses more and is the safe
+# direction; arm 6e of shared_artefact_build_guard.sh reds on it at the next
+# commit.
 SHARED_TARGET_MARKER_SCOPES=()
+SHARED_TARGET_UNSHIPPED=()
 _st_marker_src="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)/native/rust/build-support/source_commit.rs"
 if _st_scopes="$(shared_target_marker_scopes "$_st_marker_src")"; then
   while IFS= read -r _st_s; do SHARED_TARGET_MARKER_SCOPES+=("$_st_s"); done <<< "$_st_scopes"
 fi
-unset _st_marker_src _st_scopes _st_s
+if _st_specs="$(shared_target_unshipped "$_st_marker_src")"; then
+  while IFS= read -r _st_s; do SHARED_TARGET_UNSHIPPED+=("$_st_s"); done <<< "$_st_specs"
+fi
+unset _st_marker_src _st_scopes _st_specs _st_s
 
 # shared_target_dirt <repo>
 #

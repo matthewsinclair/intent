@@ -165,12 +165,23 @@ artefact_currency_scope_phrase() {
 # fallback to the old narrow pathspec, because an empty pathspec means the WHOLE
 # repo and a defaulted one silently restores the defect this rename records.
 _build_inputs_changed() {
-  local repo="$1" base="$2" changed kept
+  local repo="$1" base="$2" changed
+  local -a specs
   # OVER THE MARKER'S SCOPE, NOT THE DIRT CHECK'S WIDER ONE: "changed since the
   # pair's commit" is a question about what the build compiles in, and a commit
   # touching only lib/templates/hooks changes no byte of the binary.
   if [ -z "${SHARED_TARGET_MARKER_SCOPES+x}" ] || [ "${#SHARED_TARGET_MARKER_SCOPES[@]}" -eq 0 ]; then
     printf 'noscope'; return 0
+  fi
+  # LESS THE MARKER'S `UNSHIPPED` PATHSPECS, each crate's tests/ and benches/,
+  # handed to git beside the scope (issue 0657). sharedtarget.lib parses them
+  # beside the scope and they are never typed here: `intent install` hands git
+  # the same list from its own build, so the push gate and install give one
+  # verdict on one HEAD. An unread list drops nothing, which refuses more, and
+  # arm 6e of shared_artefact_build_guard.sh reds on it.
+  specs=("${SHARED_TARGET_MARKER_SCOPES[@]}")
+  if [ -n "${SHARED_TARGET_UNSHIPPED+x}" ] && [ "${#SHARED_TARGET_UNSHIPPED[@]}" -gt 0 ]; then
+    specs+=("${SHARED_TARGET_UNSHIPPED[@]}")
   fi
   $GIT_ISOLATED -C "$repo" rev-parse --git-dir >/dev/null 2>&1 || { printf 'unknown'; return 0; }
   $GIT_ISOLATED -C "$repo" cat-file -e "${base}^{commit}" 2>/dev/null || { printf 'unreachable'; return 0; }
@@ -179,24 +190,18 @@ _build_inputs_changed() {
   # sentinel, and this line used to break that pattern. A swallowed failure left
   # `changed` empty, the count 0 and the verdict `ok` -- THE GUARD FAILING OPEN,
   # which is the one direction an ACTOR on PATH must never fail.
-  if ! changed="$($GIT_ISOLATED -C "$repo" diff --name-only "$base..HEAD" -- "${SHARED_TARGET_MARKER_SCOPES[@]}" 2>/dev/null)"; then
+  if ! changed="$($GIT_ISOLATED -C "$repo" diff --name-only "$base..HEAD" -- "${specs[@]}" 2>/dev/null)"; then
     printf 'nodiff'
     return 0
   fi
 
-  # COUNT WITHOUT LETTING `grep`'s NO-MATCH BECOME THIS FUNCTION'S EXIT STATUS.
-  # A range touching ONLY `tests/` or `benches/` is the documented `ok` case,
-  # and there `grep -v` selects nothing and exits 1. As the last command of the
-  # function that rc IS the function's rc, so a caller running under `set -e`
-  # WITHOUT wrapping the call in `$( )` dies on the healthiest possible answer.
-  # The one caller, `artefact_currency_verdict`, survives only because a command
-  # substitution DISARMS errexit in the subshell (`$-` measured: `ehuBc`
-  # outside, `huBc` inside) -- ACCIDENTAL PROTECTION, not design, and the header
-  # above promises that a library cannot kill its host. Found by critic-shell;
-  # the consequence it predicted did not reproduce, and the mechanism under it
-  # was real.
-  kept="$(printf '%s\n' "$changed" | grep -vE '(^|/)(tests|benches)/' || true)"
-  printf '%s\n' "$kept" | awk 'NF' | wc -l | tr -d ' '
+  # THE COUNT ENDS IN `tr`, WHICH EXITS 0 ON AN EMPTY RANGE. A range touching
+  # only a crate's tests/ or benches/ is the documented `ok` case. Until issue
+  # 0657 a `grep -v` here dropped those paths, and it exits 1 when it selects
+  # nothing: as the function's last command that was the function's rc, so a
+  # caller under `set -e` without `$( )` died on the healthiest possible answer
+  # (found by critic-shell). git drops them now, through the pathspecs above.
+  printf '%s\n' "$changed" | awk 'NF' | wc -l | tr -d ' '
 }
 
 # ARTEFACT_CURRENCY_UNREAD -- the reason prefix a `refuse:` verdict carries when

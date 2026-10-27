@@ -11,7 +11,13 @@ use std::path::{Path, PathBuf};
 use intentsvcs::finding::FindingClass;
 use intentsvcs::install::{self, Build, InstallError, MANIFEST, ManagedBy, Tree};
 
-use crate::common::{git_commit_all_at, git_init_at};
+use crate::common::{git_at, git_commit_all_at, git_init_at};
+
+/// The build-input scope the fixture's pair was built under, in the shape
+/// `INTENT_DIRT_SCOPE` carries, and the exclude pathspecs currency hands git
+/// beside it, in the shape `INTENT_UNSHIPPED` carries.
+const SCOPE: &str = ":(top)native/rust :(top)surface";
+const UNSHIPPED: &str = ":(top,exclude,glob)native/rust/crates/*/tests/** :(top,exclude,glob)native/rust/crates/*/benches/**";
 
 struct Dev {
   _dir: tempfile::TempDir,
@@ -27,6 +33,8 @@ impl Dev {
       version: "9.9.9",
       commit: &self.sha,
       kind: "dev",
+      scope: SCOPE,
+      unshipped: UNSHIPPED,
     }
   }
 
@@ -291,17 +299,20 @@ fn each_refusal_names_its_cause_and_writes_nothing() {
   std::fs::write(dev.root.join("lib/templates/README.md"), "edited\n").expect("write");
   refused(
     dev.publish(&out.path().join("dirty"), false, ManagedBy::Intent),
-    "clean runtime set",
+    "lib/templates/README.md, a support path",
   );
   std::fs::write(dev.root.join("lib/templates/README.md"), "templates\n").expect("write");
 
-  // HEAD moves on a commit outside the support set, so only the pair's age
-  // can refuse it.
-  std::fs::write(dev.root.join("NOTES.md"), "a later commit\n").expect("write");
+  // HEAD moves on a commit to one of the build's inputs, outside the support
+  // set, so the inputs alone can refuse it (issue 0657). A commit that changes
+  // none of them installs, in `a_head_past_the_build_is_judged_by_what_moved`.
+  let input = dev.root.join("native/rust/crates/c/src/lib.rs");
+  std::fs::create_dir_all(input.parent().expect("parent")).expect("dirs");
+  std::fs::write(&input, "pub fn f() {}\n").expect("write");
   git_commit_all_at(&dev.root);
   refused(
     dev.publish(&out.path().join("behind"), false, ManagedBy::Intent),
-    "moved past",
+    "native/rust/crates/c/src/lib.rs, one of the build's inputs",
   );
 
   for fresh in ["split", "dirty", "behind"] {
@@ -327,6 +338,111 @@ fn each_refusal_names_its_cause_and_writes_nothing() {
     ),
     "only from a dev tree",
   );
+}
+
+/// Issue 0657: **a HEAD past the build is judged by what moved.** Commits that
+/// change none of the build's inputs, a board file and a crate's own test,
+/// install and say so, the manifest still naming the built commit; a `tests/`
+/// outside the cargo workspace, a support-path commit, a build that is not an
+/// ancestor of HEAD and a dev tree whose git cannot be read each refuse, naming
+/// why. A commit to a crate's source refuses in
+/// `each_refusal_names_its_cause_and_writes_nothing`.
+#[test]
+fn a_head_past_the_build_is_judged_by_what_moved() {
+  let out = tempfile::tempdir().expect("tempdir");
+
+  let quiet = dev_tree();
+  for (path, body) in [
+    ("intent/whiteboard/cc/wip.md", "a board write\n"),
+    (
+      "native/rust/crates/c/tests/arm.rs",
+      "// a test, built into no shipped binary\n",
+    ),
+  ] {
+    let file = quiet.root.join(path);
+    std::fs::create_dir_all(file.parent().expect("parent")).expect("dirs");
+    std::fs::write(&file, body).expect("write");
+  }
+  git_commit_all_at(&quiet.root);
+  let at = head(&quiet.root);
+  let published = quiet
+    .publish(&out.path().join("quiet"), false, ManagedBy::Intent)
+    .expect("a HEAD moved only outside the build's inputs installs");
+  assert_eq!(published.head.as_deref(), Some(at.as_str()));
+  let manifest =
+    std::fs::read_to_string(out.path().join("quiet").join(MANIFEST)).expect("manifest");
+  assert!(
+    manifest.contains(&format!("# source_commit: {}\n", quiet.sha)),
+    "the manifest stopped naming the built commit:\n{manifest}"
+  );
+  assert_eq!(
+    install::head_note(&quiet.build(), &published).as_deref(),
+    Some(
+      format!(
+        "HEAD ({}) is past the commit the pair was built from ({}), and no commit between them changes the build's inputs (native/rust, surface, less native/rust/crates/*/tests/** and native/rust/crates/*/benches/**)",
+        &at[..12],
+        &quiet.sha[..12]
+      )
+      .as_str()
+    )
+  );
+
+  // A tests/ outside the cargo workspace is an input like any other, so only
+  // a crate's own tests/ and benches/ are dropped (vc's narrowing of v1).
+  let tested = dev_tree();
+  let file = tested.root.join("surface/tests/x.json");
+  std::fs::create_dir_all(file.parent().expect("parent")).expect("dirs");
+  std::fs::write(&file, "{}\n").expect("write");
+  git_commit_all_at(&tested.root);
+  refused(
+    tested.publish(&out.path().join("tested"), false, ManagedBy::Intent),
+    "surface/tests/x.json, one of the build's inputs",
+  );
+
+  let support = dev_tree();
+  std::fs::write(
+    support.root.join("intent/plugins/claude/README.md"),
+    "edited\n",
+  )
+  .expect("write");
+  git_commit_all_at(&support.root);
+  refused(
+    support.publish(&out.path().join("support"), false, ManagedBy::Intent),
+    "intent/plugins/claude/README.md, a support path",
+  );
+
+  // The built commit is rewritten into a sibling, so HEAD no longer descends
+  // from the commit the pair names.
+  let sideways = dev_tree();
+  std::fs::write(sideways.root.join("NOTES.md"), "a sibling\n").expect("write");
+  git_at(&sideways.root, &["add", "-A"]);
+  git_at(
+    &sideways.root,
+    &["commit", "-q", "--amend", "-m", "a sibling"],
+  );
+  refused(
+    sideways.publish(&out.path().join("sideways"), false, ManagedBy::Intent),
+    "not an ancestor of HEAD",
+  );
+
+  let blind = dev_tree();
+  std::fs::remove_dir_all(blind.root.join(".git")).expect("rm .git");
+  std::fs::write(
+    blind.root.join(".git"),
+    "gitdir: /nonexistent/.git/worktrees/gone\n",
+  )
+  .expect("write");
+  refused(
+    blind.publish(&out.path().join("blind"), false, ManagedBy::Intent),
+    "clean runtime set",
+  );
+
+  for fresh in ["tested", "support", "sideways", "blind"] {
+    assert!(
+      !out.path().join(fresh).exists(),
+      "a refused publish wrote {fresh}"
+    );
+  }
 }
 
 /// AT-02.3: **doctor names every file that drifted from an opt tree's

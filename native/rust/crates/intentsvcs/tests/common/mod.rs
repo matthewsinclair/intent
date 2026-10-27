@@ -712,7 +712,7 @@ pub fn git_out(root: &Path, args: &[&str]) -> String {
 /// Run a git command at `root`, RAISING on failure -- a silently failed git
 /// leaves the tree in a state the test did not ask for, and every assertion
 /// after it then measures the wrong world.
-fn git_at(root: &Path, args: &[&str]) {
+pub fn git_at(root: &Path, args: &[&str]) {
   let ok = std::process::Command::new("git")
     .args(args)
     .current_dir(root)

@@ -6059,6 +6059,9 @@ fn install(m: &ArgMatches) -> Result<(), Failure> {
       .join(intentsvcs::install::MANIFEST)
       .display()
   );
+  if let Some(note) = intentsvcs::install::head_note(&crate::build(), &published) {
+    println!("note: {note}");
+  }
   let tree = intentsvcs::install::tree_at(&published.prefix, crate::SOURCE_COMMIT);
   println!(
     "ok: {}",

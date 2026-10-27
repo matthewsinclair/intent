@@ -82,6 +82,10 @@ pub enum InstallError {
   NotDev { tree: Tree, root: String },
   #[error("intent install publishes only a clean runtime set, and {root} is not: {why}")]
   RuntimeSetDirty { root: String, why: String },
+  #[error(
+    "intent install publishes only a pair built from HEAD's build inputs, and the pair in {root} is not: {why}"
+  )]
+  PairBehindHead { root: String, why: String },
   #[error("the pair at {dir} is not one build: intent names {intent} and intentd names {intentd}")]
   SplitPair {
     dir: String,
@@ -144,6 +148,11 @@ impl crate::remedy::Remedy for InstallError {
       }
       Self::RuntimeSetDirty { .. } => {
         "commit the support paths' changes and rebuild the pair at HEAD with `bin/devbin build all`, then run this again; nothing was written".to_string()
+      }
+      // NOT RuntimeSetDirty's "commit the support paths' changes": what moved
+      // is already committed, so the one way through is a pair built at HEAD.
+      Self::PairBehindHead { .. } => {
+        "rebuild the pair at HEAD with `bin/devbin build all`, then run this again; nothing was written".to_string()
       }
       Self::SplitPair { .. } => {
         "rebuild both binaries from one commit with `bin/devbin build all`, then run this again; nothing was written".to_string()
@@ -838,8 +847,9 @@ impl std::fmt::Display for Tree {
 }
 
 /// What a binary knows about its own build: its name, `CARGO_PKG_VERSION`, and
-/// the commit and kind `build-support/source_commit.rs` stamped into it. Each
-/// binary passes its own, so the line names the build that is running.
+/// the commit, kind and build-input scope `build-support/source_commit.rs`
+/// stamped into it. Each binary passes its own, so the line names the build
+/// that is running.
 #[derive(Debug, Clone, Copy)]
 pub struct Build<'a> {
   pub name: &'a str,
@@ -848,6 +858,15 @@ pub struct Build<'a> {
   pub commit: &'a str,
   /// `release` or `dev`, the provenance word printed last.
   pub kind: &'a str,
+  /// The pathspecs the marker asked dirt over, space-separated, as
+  /// `INTENT_DIRT_SCOPE` carries them: the build's inputs, by which `intent
+  /// install` judges a HEAD past the build (issue 0657). It is a fact about how
+  /// this binary was built, so it rides the build and no caller supplies one.
+  pub scope: &'a str,
+  /// The exclude pathspecs currency hands git beside [`Build::scope`], each
+  /// crate's tests and benches, space-separated, as `INTENT_UNSHIPPED` carries
+  /// them.
+  pub unshipped: &'a str,
 }
 
 /// The running tree, as the one function [`tree_at`] reads it.
@@ -1019,6 +1038,89 @@ fn support_differs(root: &Path, sha: &str) -> Result<bool, GitRead> {
   Ok(changed || !git_out(root, &others)?.is_empty())
 }
 
+/// Why a dirty dev tree is refused, naming the first support path that
+/// differs from `sha`, tracked or not (issue 0657). With the support set equal
+/// to `sha`, the cause is the build's own `dirty-` stamp.
+fn support_fault(root: &Path, sha: &str, commit: &str) -> String {
+  let mut diff = vec!["diff", "--name-only", sha, "--"];
+  diff.extend_from_slice(RUNTIME_SET);
+  let mut others = vec!["ls-files", "--others", "--exclude-standard", "--"];
+  others.extend_from_slice(RUNTIME_SET);
+  let named = match git_first_line(root, &diff) {
+    Ok(None) => git_first_line(root, &others),
+    found => found,
+  };
+  match named {
+    Ok(Some(path)) => format!(
+      "{path}, a support path, differs from the commit the pair was built from ({})",
+      &sha[..12]
+    ),
+    Ok(None) => format!("the pair was built from a dirty tree: its commit reads `{commit}`"),
+    Err(e) => format!(
+      "a support path differs from the commit the pair was built from ({}), and git could not name it: {e}",
+      &sha[..12]
+    ),
+  }
+}
+
+/// The first of the build's inputs that a commit between `sha` and HEAD
+/// changed, or `None` when every changed path lies outside them (issue 0657).
+///
+/// **THE SHELL TWIN IS `_build_inputs_changed` in
+/// `bin/.devbin/cmd/shared/currency.lib`**, which the push gate asks. Both hand
+/// git `sha..HEAD` with the marker's `DIRT_SCOPE` and its `UNSHIPPED` exclude
+/// pathspecs, so one matcher, git's, gives install and the push gate one
+/// verdict on one HEAD. **WHERE THE TWIN REPORTS, THIS ACTS,** so what it
+/// cannot decide refuses: a build naming no scope (an empty pathspec is the
+/// whole repository), a sha that is not an ancestor of HEAD, and a git that
+/// does not answer, which the twin only warns about.
+fn inputs_moved(root: &Path, sha: &str, build: &Build<'_>) -> Result<Option<String>, String> {
+  let scope: Vec<&str> = build.scope.split_whitespace().collect();
+  if scope.is_empty() {
+    return Err(
+      "this binary names no build-input scope, and an empty pathspec is the whole repository, so whether HEAD moved an input cannot be decided".to_string(),
+    );
+  }
+  let ancestor = ["merge-base", "--is-ancestor", sha, "HEAD"];
+  let out = git(root, &ancestor).map_err(|e| e.to_string())?;
+  match out.status.code() {
+    Some(0) => {}
+    Some(1) => {
+      return Err(format!(
+        "the pair was built from {}, which is not an ancestor of HEAD, so it describes a tree this checkout is not standing on",
+        &sha[..12]
+      ));
+    }
+    _ => return Err(git_refusal(&ancestor, &out).to_string()),
+  }
+  let range = format!("{sha}..HEAD");
+  let mut diff = vec!["diff", "--name-only", range.as_str(), "--"];
+  diff.extend(scope);
+  diff.extend(build.unshipped.split_whitespace());
+  git_first_line(root, &diff).map_err(|e| e.to_string())
+}
+
+/// The build's inputs as a phrase, derived from [`Build::scope`] and
+/// [`Build::unshipped`] and never typed, the way the twin's
+/// `artefact_currency_scope_phrase` derives its own.
+fn inputs_phrase(build: &Build<'_>) -> String {
+  let scope: Vec<&str> = build
+    .scope
+    .split_whitespace()
+    .map(|spec| spec.trim_start_matches(":(top)"))
+    .collect();
+  let less: Vec<&str> = build
+    .unshipped
+    .split_whitespace()
+    .map(|spec| spec.trim_start_matches(":(top,exclude,glob)"))
+    .collect();
+  if less.is_empty() {
+    scope.join(", ")
+  } else {
+    format!("{}, less {}", scope.join(", "), less.join(" and "))
+  }
+}
+
 /// The variables git exports into a hook that name the caller's repository.
 const CALLER_GIT_ENV: &[&str] = &[
   "GIT_DIR",
@@ -1065,6 +1167,11 @@ fn git_out(root: &Path, args: &[&str]) -> Result<String, GitRead> {
     return Err(git_refusal(args, &out));
   }
   Ok(String::from_utf8_lossy(&out.stdout).trim().to_string())
+}
+
+/// The first line `git` prints for `args`, or `None` when it prints nothing.
+fn git_first_line(root: &Path, args: &[&str]) -> Result<Option<String>, GitRead> {
+  git_out(root, args).map(|out| out.lines().next().map(str::to_string))
 }
 
 fn git_refusal(args: &[&str], out: &std::process::Output) -> GitRead {
@@ -1190,6 +1297,10 @@ pub struct Publication {
   pub replaced: bool,
   /// Every runtime file, relative to the prefix, as the manifest lists them.
   pub files: Vec<String>,
+  /// HEAD, when it is past the commit the pair was built from by commits that
+  /// change none of the build's inputs (issue 0657); [`head_note`] says so.
+  /// The manifest's `source_commit` stays the built commit.
+  pub head: Option<String>,
 }
 
 /// `intent install [--prefix <dir>] [--force] [--managed-by brew]` (T2): the
@@ -1247,17 +1358,36 @@ pub fn publish_at(
     return Err(dirty(id.why.clone().unwrap_or_default()));
   };
   if id.dirty {
-    return Err(dirty(
-      "a support path differs from the commit the pair was built from, or the pair was built from a dirty tree".to_string(),
-    ));
+    return Err(dirty(support_fault(root, &sha, build.commit)));
   }
-  if id.head.as_deref() != Some(sha.as_str()) {
-    return Err(dirty(format!(
-      "HEAD ({}) has moved past the commit the pair was built from ({})",
-      id.head.as_deref().unwrap_or("unreadable"),
-      &sha[..12]
-    )));
-  }
+  let behind = |why: String| InstallError::PairBehindHead {
+    root: root.display().to_string(),
+    why,
+  };
+  // HEAD PAST THE BUILD IS JUDGED BY WHAT MOVED (issue 0657): commits that
+  // change none of the build's inputs leave the pair HEAD's, so a board or doc
+  // commit no longer refuses a pair built moments before it. The manifest
+  // still names the built commit, whose bytes these are.
+  let past = match id.head.as_deref() {
+    Some(head) if head == sha => None,
+    Some(head) => match inputs_moved(root, &sha, build) {
+      Ok(None) => Some(head.to_string()),
+      Ok(Some(path)) => {
+        return Err(behind(format!(
+          "HEAD ({}) has moved past the commit the pair was built from ({}), and {path}, one of the build's inputs, changed between them",
+          &head[..head.len().min(12)],
+          &sha[..12]
+        )));
+      }
+      Err(why) => return Err(behind(why)),
+    },
+    None => {
+      return Err(behind(format!(
+        "HEAD could not be read, so whether it moved past the commit the pair was built from ({}) cannot be decided",
+        &sha[..12]
+      )));
+    }
+  };
   // The prefix before the pair: its absence is the same answer from every
   // route, where the pair is wherever the running binary happens to be.
   let prefix = prefix.ok_or(InstallError::NoPrefix)?;
@@ -1331,7 +1461,23 @@ pub fn publish_at(
     prefix: prefix.to_path_buf(),
     replaced,
     files,
+    head: past,
   })
+}
+
+/// The line `intent install` prints when it published past the commit the
+/// pair was built from (issue 0657): HEAD, the built commit, and the build's
+/// inputs no commit between them changed. `None` when the publish was made at
+/// the built commit.
+pub fn head_note(build: &Build<'_>, published: &Publication) -> Option<String> {
+  let head = published.head.as_deref()?;
+  let sha = built_sha(build.commit)?;
+  Some(format!(
+    "HEAD ({}) is past the commit the pair was built from ({}), and no commit between them changes the build's inputs ({})",
+    &head[..head.len().min(12)],
+    &sha[..12],
+    inputs_phrase(build)
+  ))
 }
 
 /// Where a path lands on disk: its nearest existing ancestor canonicalised,
