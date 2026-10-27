@@ -14,7 +14,7 @@ That shape is the whole point:
 - It is not a branch and not a commit, so it never appears in `git branch`, `git status` or `git log`, and `git log --all` keeps working over it (measured 2026-09-15).
 - It is not sent by `git push`, `git push --all` or `git push --tags`, which move branches and tags. `git push --mirror` does send it, and so does a remote configured with `mirror = true` or a push refspec covering `refs/*`.
 - It carries no index state and no stash state, so it touches nothing a peer's commit gate reads.
-- A bank keeps no reflog. Git logs `refs/heads/`, `refs/remotes/`, `refs/notes/` and `HEAD`, not `refs/bank/`, and deleting a ref deletes any reflog it had. So `git update-ref -d` on a bank leaves only an unreachable blob. `git fsck --unreachable` still finds it until `git gc` prunes it, after `gc.pruneExpire` (two weeks by default) or at once with `--prune=now`. Delete a bank only after the landing that carries its patch-id.
+- A bank keeps no reflog. Git logs `refs/heads/`, `refs/remotes/`, `refs/notes/` and `HEAD`, not `refs/bank/`, and deleting a ref deletes any reflog it had. So `git update-ref -d` on a bank leaves only an unreachable blob. `git fsck --unreachable` still finds it until `git gc` prunes it, after `gc.pruneExpire` (two weeks by default) or at once with `--prune=now`. Never delete a bank ref, spent or not (vc's ruling, 2026-09-22): its blob is then reachable from nothing, and once `git gc` prunes it, nothing brings it back.
 
 `git for-each-ref refs/bank/` lists them, each with its object type `blob`. A repository that has run `git gc` holds most of them in `.git/packed-refs` rather than as loose files under `.git/refs/bank/`; both forms are the same ref.
 

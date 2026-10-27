@@ -301,7 +301,8 @@
       "kind": "decision",
       "seq": 18,
       "text": "(2026-09-16, hv first-hand in prose, answering vc) Three rulings. (1) devbin's whiteboard-store defects (devbin 1824c75, letters A to O, no K, sent through vc on hv's routing) are FIXED IN THIS RELEASE, as soon as possible: hv, verbatim, \"We can't ship this kind of defect so it needs fixing asap.\" They join the close-out; vc files one issue per letter and routes them. (2) Go on the landing queue vc judged green: cc's 0331 (b) as train 8, then dc's devbin twin, then dc's Decision A record, each on vc's word with the HEAD hash. (3) The pickup gap is fixed: wb pickup renders peers as headers only, so no node sees another board's watch-outs, decisions or standing directives at boot (found by dc, 2026-09-16).",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-27T12:54:13.751Z",
       "recorded_at": "2026-09-16T12:23:19.401Z"
     },
     {
@@ -309,7 +310,8 @@
       "kind": "decision",
       "seq": 19,
       "text": "(2026-09-17, hv first-hand in prose, taking vc's four recommendations; vc's clock read 09:39Z just after) Four rulings. (1) The rebuild runs now, before the go, and again after ST0076 WP-04 lands; hv ran it, intentd restarted at 12:00Z, and vc verified the pair at c800b8319 with the store at schema 28. (2) AC-00.1's search reads `intent search --subkind method --in AddressError` and WP-04 builds the search that runs on filters alone, with AC-04.1 carrying the clause; vc's split of --subkind from --kind stands. (3) The pickup session-id fix joins the close-out, as issue 0433. (4) The go is given as vc reviewed the three lanes' plans, with one whole-suite judging run per train in the worktree that already holds its stack, vc judging from the logs, the diff and a read-only check that the worktree equals the bank.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-27T12:54:19.058Z",
       "recorded_at": "2026-09-17T12:09:06.636Z"
     },
     {
@@ -352,7 +354,8 @@
       "kind": "decision",
       "seq": 24,
       "text": "(2026-09-17 19:01Z, hv first-hand in prose, taking all five of vc's recommendations at once: \"Ok, do all of those.\") FIVE RULINGS, wording vc's, authority hv's. (1) ST0076 CLOSES NOW on its gate, 14/14 with every work package Done; dc's AC-06.2 re-drive on the installed pair attaches as evidence to a closed thread rather than gating it, because holding a passing thread for a confirmation already ruled optional is how an option becomes a condition. (2) THE TRAWL: Part A is GO -- Riffle cc, Molt hv, Prolix hv and vc, arca_cli cc, Courses hv -- and Part B takes vc's disposition: drop all six classes, every dropped unit kept in its node's pre-migration copies, the 16 units that read as asks of hv plus Conflab cc's 12-row decision table returned as 12 holds on the asking node's own board, and Gtools' hv board registered. One mechanical commit per estate in its own repo, doctor after each, vc checks each. NO PUSH. (3) 0426 IS SATISFIED BY dc's REHEARSAL, which drove the mechanism to both verdicts; the LIVE guards adoption pass is a separate item and stays blocked behind the devbin `int hooks` defect, which nobody works around. (4) devbin#0083 AND dc's `int hooks` FINDING are routed by hv to the Devbin estate and NEITHER GATES THIS RELEASE; vc fixing them from here stays available as a named cross-estate exception if hv would rather they were simply done. (5) THE VERSION IS 3.1.0, a minor: ST0076 adds a verb and an index level that did not exist, which is new surface rather than a repair, and the fixes ride along. cc writes the CHANGELOG section and docs/releases/3.1.0/RELEASE_NOTES.md at that number instead of a placeholder.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-27T12:54:23.054Z",
       "recorded_at": "2026-09-17T19:01:38.858Z"
     },
     {
@@ -360,7 +363,8 @@
       "kind": "decision",
       "seq": 25,
       "text": "(2026-09-17 21:16Z, hv first-hand, answering vc's three questions in order: \"1: Both in / 2: Yes / 3: Tag\") THREE RULINGS, plus one instruction for after the bounce. (1) **THE `libsqlite3-sys` BUMP AND THE NEW DETECTOR ARE BOTH IN 3.1.0.** So `0442` closes on a repair, a detector and an honest unreproduced cause rather than on a known-defects line: the detector is a document present in the index with no row in the content table, plus fts5's own per-table check, against a rebuild of the same database, and it cannot be built on 3.46.0's checker, whose secure-delete allowance is one hard-coded leaf shape. One rebuild and one whole-suite run are owed with it. (2) **`docs/known-defects.md` IS RE-DRIVEN AGAINST 3.1.0 AT THE CUT** -- every entry driven against a fresh build the way the page was originally made, not a framing sentence over v3.0.1's driven record. That retitles the page and settles the nine entries quoting output that no longer renders, because a re-drive replaces a transcript rather than editing it. (3) **THE `docs/reference` BASELINE IS THE PREVIOUS RELEASE TAG**, `git describe --abbrev=0`, ruled with the concrete case in view: under this rule the v3.0.3 cut measured against v3.0.2, which was tagged and whose artefacts were never published. It does not bite the 3.1.0 cut, whose previous tag is v3.0.3. ic writes the sentence into the open section of `intent/docs/releasing.md` and the staleness check is unblocked. **AND THE INSTRUCTION, FOR AFTER THE BOUNCE**: hv, verbatim -- \"I recommend seriously and aggressively leaning out wip.md and restart.md back to bare bones basics. But do that post bounce.\"",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-27T12:54:28.600Z",
       "recorded_at": "2026-09-17T21:16:54.217Z"
     },
     {
@@ -376,7 +380,8 @@
       "kind": "decision",
       "seq": 27,
       "text": "(2026-09-21, between vc's clock reads of 22:19Z and 22:41Z; hv first-hand in prose, then hv's selections in the TUI hv asked for, each taking vc's recommendation; wording vc's) THE RE-STAGING FORMATTERS ARE KILLED FLEET-WIDE, BY vc, TONIGHT, AND DECISION 26's ITEM 10 (Lamplight's hook left to Lamplight) IS SUPERSEDED BY IT. hv, verbatim, on learning the class was fleet-wide: \"What the hell is this? Surely we need to kill that with fire. From space. And quickly. What's the right answer here?\" A pre-commit that formats the WORKTREE and `git add`s the result commits bytes nobody staged (0498's mechanism). Ten scripts did it: eight untracked hooks (Conflab, Lamplight, MicroGPTEx, Molt, Molt-matts, Pplr, Prolix, Utilz) and the tracked handlers of Laksa and Conflab. Each now checks the staged bytes and refuses, never writes, which is the contract Intent's own gate has held since 14dff1927. THE DURABLE HALF IS dc's: the guards adoption pass (hold 18, released) makes the staged-blob format check a declared, tracked guard shipped from canon, so no estate hand-wires a formatter again; a check judges and refuses, so decision 32's objection to a formatter as a guard does not apply to it.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-27T12:54:32.800Z",
       "recorded_at": "2026-09-21T22:57:02.879Z"
     },
     {
@@ -392,7 +397,8 @@
       "kind": "decision",
       "seq": 29,
       "text": "(2026-09-22, hv's selection in the TUI vc asked, recorded at 2026-09-22T16:12:18Z by vc's clock; wording vc's, the choice hv's; vc's recommendation taken) A BOARD MAY CLAIM AN ISSUE, IN THE FORM `ISSUE:0512`, AND THE WIDENING IS NOT ONE-SIDED. `is_claim_address` (model.rs) admits only ST0079 and ST0079/01 and never calls `is_issue_id`, which has existed unused beside it, so `claims:` is empty BY CONSTRUCTION for exactly the work that fills the time between releases -- and it is therefore silent precisely where two concurrent sessions would collide. The live case is the afternoon this was ruled: four nodes were dispatched onto four different issues and not one could say so on its board. THE SPELLING IS THE MANIFEST'S OWN, not a new one: `organize --default` writes `ISSUE:<NNNN>` per OPEN issue into `intent/.intentfiles` and this repository's own manifest carries them, so the system already records this address kind elsewhere and refused it only at this door. THE SECOND HALF, WHICH THE ISSUE BODY DOES NOT CARRY AND WHICH VC MEASURED BEFORE ASKING: `renumber::issue` deliberately rewrites NOTHING, on the stated ground that \"nothing structured refers to an issue -- `related` and claims both name threads -- so the only references it can have are prose\". Admitting issue claims FALSIFIES that sentence, so `issues renumber` must gain the claim-rewriting `renumber::thread` already has, or a renumber silently leaves a board claiming a number that moved; the comment stating the old reason is part of the change rather than a leftover. `moved_claims` is the implementation to copy, so the cost is bounded. WHAT WAS REFUSED AND WHY: free-text claims, because two claims could then be compared only by string equality and the field would stop answering the collision question it exists for; and the bare `0512` form, because the manifest already writes the prefixed one and two spellings of one address is the drift Highlander names, while saving nothing -- it carries the same renumber consequence either way.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-27T12:54:37.020Z",
       "recorded_at": "2026-09-22T16:12:18.599Z"
     },
     {
@@ -400,7 +406,8 @@
       "kind": "decision",
       "seq": 30,
       "text": "(2026-09-22, hv's selections in the TUI vc asked, recorded at 2026-09-22T17:29:22Z by vc's clock; wording vc's, each choice hv's; vc's recommendation taken on both) TWO RULINGS ON THE DEPLOYMENT PAIR, 0517 AND 0518. (1) A STALE DELIVERED PAIR IS REFUSED AT **PUSH**, NOT AT COMMIT AND NOT AT EVERY INVOCATION. The pre-push hook refuses when the pair's embedded commit is behind HEAD. The decisive evidence against the cheap option is that THE CHEAP OPTION HAS ALREADY BEEN TRIED AND FAILED: the pre-commit gate's `self-provenance: currency` arm already REPORTS this, in full, on every commit, and four nodes and vc read past it for an entire afternoon while two judged and landed fixes -- 0509's and 0513's -- ran in no estate on the machine. A push is a batch boundary and is hv's own hand, so one `build all` covers every Rust change since the last push, the refusal reaches the person who can act on it, and it cannot fire inside a node's judging run. Refusing at COMMIT was rejected because it forces a heavy rebuild, which has no dry run, between every bank and its landing; a WRAPPER on `~/.local/bin/intent` was rejected because it puts latency and a new failure mode in front of every tool call in every estate, including the hooks that run `intent` in every Claude session. (2) 0517 CLOSES AS RECORDED, WITH THE PROTOCOL AS ITS REMEDY: all `lib/templates/` work is built in a DETACHED WORKTREE, which is the only containment, because the install root pointer file contains this tree's path and THE AUTHOR'S SAVE IS THE DEPLOYMENT -- a hold on such a bank controls the record and not the running behaviour. Repointing the install root at a committed copy was rejected as the 2026-09-19 `publish_home` incident, where a scratch tree's root reached every estate's gate for hours; and the save-is-deployment property is deliberate and useful, since a template fix reaches every estate at once. THE HONEST COST, RECORDED RATHER THAN SOFTENED: this rests on discipline, and discipline failed twice on 2026-09-22 -- dc landed across a halt twice in one day. What makes it survivable is that the blast-radius check moved to the FRONT of judging for this directory, since it is the only thing bounding live-but-unjudged bytes while a suite is owed.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-27T12:54:41.827Z",
       "recorded_at": "2026-09-22T17:29:22.728Z"
     },
     {
@@ -416,7 +423,8 @@
       "kind": "decision",
       "seq": 32,
       "text": "(2026-09-23, hv first-hand in prose, answering vc's question on ic's F3; wording vc's) EVERYTHING FOUND GOES INTO 3.2.1. hv, verbatim: \"Yes, it's all got to go into 3.2.1. All of it.\" So F3, filed as 0532, is in the cut and dc builds it. Board views indent a multi-line item's continuation lines, and doctor reads the old shape as an uncounted StaleRender, so no estate's commits are refused while its boards wait for a re-render. It joins 0525, 0529, 0530 and 0531. VC READS \"ALL OF IT\" TO TAKE IN molt-vc's TWO ITEMS AS WELL. vc had carried them as post-3.2.1 backlog on its own classification and never on hv's: 0533 (ic: a supported query for where the gate's install root resolves) and 0534 (cc: `intent --version` says whether it is a release or a dev build). A finding made before the cut is fixed before the cut. WHAT THE RULING DOES NOT REACH, on vc's reading: ST0060 and ST0077, which hv put on hold by name on 2026-09-23 and did not lift.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-27T12:54:46.677Z",
       "recorded_at": "2026-09-23T12:28:36.320Z"
     },
     {
@@ -424,7 +432,8 @@
       "kind": "decision",
       "seq": 33,
       "text": "(2026-09-24, hv first-hand in vc's session, received before vc's 09:25Z clock read, taking all six of vc's recommendations: \"Ok, go with recs.\") THE 3.2.1 DOC AUDIT: SIX RULINGS, wording vc's, authority hv's. hv's aim, verbatim: \"The amin for today is to get the release cut, shipped, and active fleet wide, and then draw a line under new development for a while as the release stabilises. Note: we need to a thorough doc audit as the docs are all woefully out of date now and need a comprehensvive update. I want that doc update part of this release too. I particularly want a new doc section on the explorer TUI complete with screenshots, and I want a section (or whole doc) on 'using Intent in a team' (ie multi-user usage with git/github).\" NOTHING IS CUT BEFORE THE DOCS LAND. (1) A defect the audit finds is filed as an issue and the doc describes the as-built behaviour; only a shipping-grade defect (a broken install, data loss, a remedy that misdirects) comes into 3.2.1, named to hv first. This narrows decision 32's \"all of it\" for findings made during the audit. 0548 is the first case under that test, although devbin-vc found it and the audit did not: search answers \"complete\" while a declared language has no grammar, so its code half rides 3.2.1. 0549, the MCP envelope's stale-path list, is filed and does not. (2) The team guide is docs/concepts/working-in-a-team.md, extended into a GitHub walkthrough, re-driven with two clones of a scratch origin and promoted into the docs index's Start here, rather than a second page. (3) The explorer's screenshots are rendered from a pty through pyte to SVG and PNG, ic's method, with the generator committed so they regenerate at each cut. (4) The audit's scope is this repository, its skills, subagents and templates included; the fleet's own docs are out. (5) The stabilisation line goes on this board once the fleet sweep is done, and decision 28's Conflab and Baize record repair runs after the sweep. (6) Every register edit batches into ONE landing late in the audit, so the rebuild, the known-defects re-drive and the reference regeneration are paid once. The orders, protocol and lanes are in intent/wip.md DOING.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-27T12:54:51.576Z",
       "recorded_at": "2026-09-24T09:37:59.570Z"
     }
   ],
@@ -649,6 +658,96 @@
       "id": "01M54NVJH40005BRFY65V57ARA",
       "sender": "vc",
       "handled_at": "2026-10-23T12:09:40.473Z"
+    },
+    {
+      "id": "01M5N0ZCBVKR0FEJWKAVPN6CM4",
+      "sender": "vc",
+      "handled_at": "2026-10-27T12:54:57.243Z"
+    },
+    {
+      "id": "01M5N13M844AA4ZX68HNX8SH9S",
+      "sender": "vc",
+      "handled_at": "2026-10-27T12:54:57.243Z"
+    },
+    {
+      "id": "01M5P7ZDFEG52Q2ZN5NNKSQ8V6",
+      "sender": "vc",
+      "handled_at": "2026-10-27T12:54:57.243Z"
+    },
+    {
+      "id": "01M5P823DDTNBWPPNBHY2YZ8PB",
+      "sender": "vc",
+      "handled_at": "2026-10-27T12:54:57.243Z"
+    },
+    {
+      "id": "01M5RKK2P8B5TB5S5C05SNZ7G5",
+      "sender": "vc",
+      "handled_at": "2026-10-27T12:54:57.243Z"
+    },
+    {
+      "id": "01M5RKNFTDDEJ32THF1B45VCTN",
+      "sender": "vc",
+      "handled_at": "2026-10-27T12:54:57.243Z"
+    },
+    {
+      "id": "01M5RS8Y3CWN06ZSRVZMM58EFX",
+      "sender": "vc",
+      "handled_at": "2026-10-27T12:54:57.243Z"
+    },
+    {
+      "id": "01M5RSBKQ5KDX325BF4RGWSTRC",
+      "sender": "vc",
+      "handled_at": "2026-10-27T12:54:57.243Z"
+    },
+    {
+      "id": "01M5SP7RQS2TY3EVAM4X0Z95A3",
+      "sender": "vc",
+      "handled_at": "2026-10-27T12:54:57.243Z"
+    },
+    {
+      "id": "01M5SPAGFZ8389HYH235093H81",
+      "sender": "vc",
+      "handled_at": "2026-10-27T12:54:57.243Z"
+    },
+    {
+      "id": "01M5SSPQG8SQVNTBHWGGGCXJCN",
+      "sender": "vc",
+      "handled_at": "2026-10-27T12:54:57.243Z"
+    },
+    {
+      "id": "01M5SSSAHEYGP284S05QE8E3TR",
+      "sender": "vc",
+      "handled_at": "2026-10-27T12:54:57.243Z"
+    },
+    {
+      "id": "01M5T0A4YCMS4WJ2TYK8EZWBJ2",
+      "sender": "vc",
+      "handled_at": "2026-10-27T12:54:57.243Z"
+    },
+    {
+      "id": "01M5T0DEX2J6EG88GPA0490ZZ0",
+      "sender": "vc",
+      "handled_at": "2026-10-27T12:54:57.243Z"
+    },
+    {
+      "id": "01M5T2B67AG2SQYBFAP3C6ZCF5",
+      "sender": "vc",
+      "handled_at": "2026-10-27T12:54:57.243Z"
+    },
+    {
+      "id": "01M5T2E6697ZCZNR3JK1FDK3PP",
+      "sender": "vc",
+      "handled_at": "2026-10-27T12:54:57.243Z"
+    },
+    {
+      "id": "01M5T7A90VSY7WET67TWGBXDDH",
+      "sender": "vc",
+      "handled_at": "2026-10-27T12:54:57.243Z"
+    },
+    {
+      "id": "01M5T7DEEKAGP4P864RP8MZB35",
+      "sender": "vc",
+      "handled_at": "2026-10-27T12:54:57.243Z"
     }
   ]
 }

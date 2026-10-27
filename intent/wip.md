@@ -1,5 +1,5 @@
 ---
-verblock: "2026-10-27:v3.29: vc - ST0086 closed, the push on L1 next"
+verblock: "2026-10-27:v3.30: vc - hv's lean-board rulings, 0659 deferred"
 intent_version: 3.2.6
 ---
 
@@ -18,8 +18,7 @@ Intent is L2 under hv's layer order of 2026-10-27 (vc decision 97, molt-vc decis
 
 - **3.2.7's cut** (decision 76: one release): dc's cut-side work (todo 50), ic's docs/reference at the cut (hold 12), the Linux check on kovacs through kovacs-sysadm, and hv's cut at the terminal. After it: `intent claude upgrade --apply --skip-settings` here (vc todo 69), AC-05.1's brew leg as hv's switch back to brew (decision 80), AC-05.2 on kovacs, AC-02.1 from the release object, and every estate's own upgrade, run by its vc.
 - **ST0085, before the cut** (decision 76): it waits in Triage on hv's read of ic's inventory (its WP-01, Done), and then hv says in or out. ST0060, ST0077, ST0082 and ST0084 are deferred past 3.2.7 by hv (decision 99), each with the deferral in its own context.
-- **ISSUE 0659, IN 3.2.7 UNDER DECISION 76 (low; ic's find, hv the reporter):** before intentd's first read of the usage endpoint, the estate page words the missing reading as a failure. It is built before the cut unless hv defers it by name.
-- **ST0089, THE LOCALFOLD+COMPACT POLICY (hv, 2026-10-27):** raised by vc as the policy's home. A session folds at a task boundary, then resets with `/clear` by default, and uses `/compact` only for state not yet written down. Its first measurement is a `/clear` on one node at a quiet fold, reading the session id, the gate, the node's identity and the scratchpad. When it is built is hv's call; vc's default is after 3.2.7's cut.
-- **AFTER 3.2.7, low:** 0649, 0650, 0651, and making the critic contract readable to installed subagents (decision 89).
+- **ST0089, THE LOCALFOLD+COMPACT POLICY (hv, 2026-10-27):** raised by vc as the policy's home. A session folds at a task boundary, then resets with `/clear` by default, and uses `/compact` only for state not yet written down. Every localfold and EOD fold clears out what is spent, so that a pickup prints only live state (hv, vc decision 102), and the policy names who folds hv's board, and when. Its first measurement is a `/clear` on one node at a quiet fold, reading the session id, the gate, the node's identity and the scratchpad. hv: it is built after 3.2.7's cut.
+- **AFTER 3.2.7, low:** 0649, 0650, 0651, 0659 (deferred by hv, vc decision 102), and making the critic contract readable to installed subagents (decision 89).
 - **ON hv's ~/Devel SPOTLIGHT EXCLUSION (molt-vc's word; hv is adding it, decision 99):** every stale worktree's removal under vc decision 98, ic's hold 15 and dc's hold 34 among them.
 - **CARRIED, NOT RE-MEASURED TODAY:** hv's hand on Trellis's session hooks, Cdtempl's uncommitted work, the gyges clean-Mac re-proof and the Sinclair-Shared book recreate; hv decision 28's Conflab and Baize repairs; ic's `/refresh` in the explorer; a brew ruby on kovacs (vc todo 69).

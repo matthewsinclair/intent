@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "a3784f83-17e6-4dd3-bc37-0049e71bd0b4",
-    "heartbeat_at": "2026-10-27T12:19:06.035Z",
+    "heartbeat_at": "2026-10-27T12:58:45.160Z",
     "status": "active",
-    "focus": "Folded after hv's round-3 compact (2026-10-27): Intent's train and hv's stacking are landed and built, and the pair and intentd name f06241f83b56. Next: judge cc's ST0086 rows, run vc's three store edits, and close ST0086 on its gate. The kovacs preflight and the push wait for molt-vc's L1 word. No push by vc, no release",
+    "focus": "Folded for hv's round-4 compact (2026-10-27), and holding until hv compacts vc: ST0086 is closed, the pair and intentd name f06241f83b56, and hv's lean-board rulings are in (vc decision 102). Next, after the compact: the kovacs preflight and the push on molt-vc's L1 word, then ST0087 WP-05 once INTENT_INSTALL_PREFIX is published. No push by vc, no release",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -2278,10 +2278,10 @@
       "node": "vc",
       "kind": "doing",
       "seq": 59,
-      "text": "INTENT'S ONE TRAIN IS LANDED AND BUILT, AND ST0086 IS CLOSED; THE KOVACS PREFLIGHT AND THE PUSH WAIT FOR molt-vc'S L1 WORD (vc decisions 96 and 100). The pair and intentd name f06241f83b56.\n- Run 3 (01M5YHGAPFKX6PEWMDREN5BGBY) was green, and the ten landed 1d38741ee..ef4eaf3bc. Run 4 (01M5YKGTAK325EY94E646KE2D5) judged hv's stacking, which landed as f08a5d20d. Both builds and restarts ran ahead of L1 on decision 101, and hv has ic's screenshot of two live requests stacked under NOW.\n- vc's chain 1956da3bc put in AC-04.7's stacking, AT-04.7's run-4 citation, AC-02.6 as 0658's record words it, and the run-3 citations of AT-02.6 and ST0087 AT-02.1, each read back past the ingest. cc closed WP-04 and the thread at 3243d789f, its gate PASS 28/28.\nNEXT, in order:\n(1) On molt-vc's L1 word: the kovacs preflight at main's HEAD, then \"push\" to devbin-vc with the full sha (decision 96). Main holds still from the preflight to the push.\n(2) ST0087 WP-05, once INTENT_INSTALL_PREFIX is published (dc's todo 53).\n(3) Issue 0659 (ic's find, hv the reporter, low) is in 3.2.7 under decision 76 unless hv defers it by name.\n(4) hv's board: hv decides whether vc archives its executed August and September decisions, each verified against its artefact first, so that a pickup stops printing them.\nTOOLS, banked under refs/bank/vc/tools/: judge-rerun.sh v3 (with judge-canon.sh; build-support logs as NOT-ASKED), judge-shell.sh v2 (the targeted page judge, on ic's render-states-v2.sh) and land-one.sh. The evidence is under refs/bank/vc/evidence/judge-run3/ and judge-run4/. A judge is sized to the change (hv: \"Just do enough to prove it works\"). No push by vc, no release.",
+      "text": "INTENT'S ONE TRAIN IS LANDED AND BUILT, AND ST0086 IS CLOSED; THE KOVACS PREFLIGHT AND THE PUSH WAIT FOR molt-vc'S L1 WORD (vc decisions 96 and 100). The pair and intentd name f06241f83b56.\n- Run 3 (01M5YHGAPFKX6PEWMDREN5BGBY) was green, and the ten landed 1d38741ee..ef4eaf3bc. Run 4 (01M5YKGTAK325EY94E646KE2D5) judged hv's stacking, which landed as f08a5d20d. Both builds and restarts ran ahead of L1 on decision 101, and hv has ic's screenshot of two live requests stacked under NOW.\n- vc's chain 1956da3bc put in AC-04.7's stacking, AT-04.7's run-4 citation, AC-02.6 as 0658's record words it, and the run-3 citations of AT-02.6 and ST0087 AT-02.1, each read back past the ingest. cc closed WP-04 and the thread at 3243d789f, its gate PASS 28/28.\nNEXT, in order:\n(1) On molt-vc's L1 word: the kovacs preflight at main's HEAD, then \"push\" to devbin-vc with the full sha (decision 96). Main holds still from the preflight to the push.\n(2) ST0087 WP-05, once INTENT_INSTALL_PREFIX is published (dc's todo 53).\nTOOLS, banked under refs/bank/vc/tools/: judge-rerun.sh v3 (with judge-canon.sh; build-support logs as NOT-ASKED), judge-shell.sh v2 (the targeted page judge, on ic's render-states-v2.sh) and land-one.sh. The evidence is under refs/bank/vc/evidence/judge-run3/ and judge-run4/. A judge is sized to the change (hv: \"Just do enough to prove it works\"). No push by vc, no release.",
       "state": "live",
       "recorded_at": "2026-10-26T07:17:05.783Z",
-      "edited_at": "2026-10-27T12:42:39.115Z"
+      "edited_at": "2026-10-27T12:55:35.574Z"
     },
     {
       "node": "vc",
@@ -2414,6 +2414,14 @@
       "state": "archived",
       "archived_at": "2026-10-27T12:42:31.506Z",
       "recorded_at": "2026-10-27T11:44:45.366Z"
+    },
+    {
+      "node": "vc",
+      "kind": "decision",
+      "seq": 102,
+      "text": "(2026-10-27, hv first-hand in vc's session, answering vc's four questions, received before vc's clock read of 12:48:23Z; wording vc's, the rulings hv's) LEAN BOARDS, 0659 AND ST0089: FOUR RULINGS. (1) Every localfold and every EOD fold clears out what is spent, so that a pickup prints only live state. hv, verbatim: \"And this shouldn't be happening! Localfolds and EODs should clear this out.\" A fold archives each item and ruling that has been carried out, checked against its artefact first, and keeps every ruling with a part still to do. It clears handled inbox messages and archives the handled messages its node sent. The vc that writes hv's board folds that board the same way. vc relayed this to every estate's vc and to cc, dc and ic after 12:48:23Z. It archived hv's decisions 18, 19, 24, 25, 27, 29, 30, 32 and 33, each carried out. 26 and 28 stay live, because Baize's AC-01.2 correction and the Conflab and Baize repairs are still owed, and so do the standing rules. (2) vc's live messages in hv's inbox are swept: hv, \"Sweep them out, yes.\" (3) Issue 0659 is deferred past 3.2.7, with hv's words on its record as decision 76(4) asks: \"P3 or lower, defer\". (4) ST0089, the fold and compact policy, is built after 3.2.7's cut: hv, \"Ok\".",
+      "state": "live",
+      "recorded_at": "2026-10-27T12:55:06.896Z"
     }
   ],
   "sent": [
@@ -3056,7 +3064,8 @@
       "recipient": "hv",
       "body": "HEAVY RUN START vc, 2026-10-23 18:39Z by date -u: bin/devbin build all on main at c59e80779 (the verbs, 0627, 0624, 0623's generator, 0614; the pair moves from 3.2.5 at 2e0e9215d). Until vc's END: no commit on main at all, no cargo and no bats anywhere on this host. The pair is promoted by rename at the end, vc restarts intentd at once, and the store migrates 32 to 33 at the first open by the new pair. No push, no release.",
       "fyi": true,
-      "recorded_at": "2026-10-23T18:39:35.803Z"
+      "recorded_at": "2026-10-23T18:39:35.803Z",
+      "archived_at": "2026-10-27T12:55:01.690Z"
     },
     {
       "id": "01M5N0ZCBVKR0FEJWKAVPN6CM5",
@@ -3087,7 +3096,8 @@
       "recipient": "hv",
       "body": "HEAVY RUN END vc, 2026-10-23 18:41Z by date -u: bin/devbin build all promoted the verified pair at 18:41Z; intent and intentd both print 3.2.5 (c59e807790f3694b7449bed561bffa1ec31b3eac) dev; intentd restarted and answering; the store opened by the new pair, doctor 0 findings. Commits may land again. The cargo slot: ic's shots refresh now; then Utilz's window at the later of devbin-dc's 0206 END and ic's END; the templates landing's runs and the gate arm on vc's GO. No push, no release.",
       "fyi": true,
-      "recorded_at": "2026-10-23T18:41:54.948Z"
+      "recorded_at": "2026-10-23T18:41:54.948Z",
+      "archived_at": "2026-10-27T12:55:01.690Z"
     },
     {
       "id": "01M5N13M844AA4ZX68HNX8SH9T",
@@ -3118,7 +3128,8 @@
       "recipient": "hv",
       "body": "HEAVY RUN START vc, 2026-10-24 06:01Z by date -u: bin/devbin build all #2 on main at 09ac0e2f2, the final code HEAD of the 3.2.6 train (the templates landing, 0630, 0633, 0629 and the CHANGELOG audit; 0635 dropped to 3.2.7 on its red; the pair moves from c59e80779). Until vc's END: no commit on main at all, no cargo and no bats anywhere on this host. The pair is promoted by rename at the end and vc restarts intentd at once. No push, no release.",
       "fyi": true,
-      "recorded_at": "2026-10-24T06:01:11.406Z"
+      "recorded_at": "2026-10-24T06:01:11.406Z",
+      "archived_at": "2026-10-27T12:55:01.690Z"
     },
     {
       "id": "01M5P7ZDFEG52Q2ZN5NNKSQ8V7",
@@ -3149,7 +3160,8 @@
       "recipient": "hv",
       "body": "HEAVY RUN END vc, 2026-10-24 06:02Z by date -u: bin/devbin build all #2 promoted the verified pair; intent prints intent 3.2.5 (09ac0e2f228ffd008b40a3399160bf75f695e2b9) dev; intentd restarted and answering; doctor run after. Commits may land again. Next on vc's GO: dc's known-defects re-drive and ic's reference set and shots on this pair, cc's CHANGELOG audit, then the globalfold, the render chain and READY. No push, no release.",
       "fyi": true,
-      "recorded_at": "2026-10-24T06:02:39.405Z"
+      "recorded_at": "2026-10-24T06:02:39.405Z",
+      "archived_at": "2026-10-27T12:55:01.690Z"
     },
     {
       "id": "01M5P823DDTNBWPPNBHY2YZ8PC",
@@ -3180,7 +3192,8 @@
       "recipient": "hv",
       "body": "HEAVY RUN START vc, 2026-10-25 04:02Z by date -u: bin/devbin build all on main at 7126f6832, the ST0086 WP-02 HEAD (ic's estate surface, page and TUI view, cc's daemon half with the census engine and the usage read); the pair moves from [intent 3.2.6 (88633fe93e9d3d39493808bb229188a1f71eaed9) release] and will carry intent estate status|wip|prune and /estate/status at the daemon's web face. Until vc's END: no commit on main at all, no cargo and no bats anywhere on this host. The pair is promoted by rename at the end and vc restarts intentd at once, which every estate's daemon ingest rides through. No push, no release.",
       "fyi": true,
-      "recorded_at": "2026-10-25T04:02:38.920Z"
+      "recorded_at": "2026-10-25T04:02:38.920Z",
+      "archived_at": "2026-10-27T12:55:01.690Z"
     },
     {
       "id": "01M5RKK2P8B5TB5S5C05SNZ7G6",
@@ -3211,7 +3224,8 @@
       "recipient": "hv",
       "body": "HEAVY RUN END vc, 2026-10-25 04:03Z by date -u: bin/devbin build all promoted the pair; intent prints [intent 3.2.6 (7126f6832183963dc31108176295feef80d85868) dev]; intentd restarted and answering, with /estate/status at its web face; doctor run after. Commits may land again. What runs next on this host is molt-vc's call; dc's 0632 step one is judged against this pair. No push, no release.",
       "fyi": true,
-      "recorded_at": "2026-10-25T04:03:57.901Z"
+      "recorded_at": "2026-10-25T04:03:57.901Z",
+      "archived_at": "2026-10-27T12:55:01.690Z"
     },
     {
       "id": "01M5RKNFTDDEJ32THF1B45VCTP",
@@ -3242,7 +3256,8 @@
       "recipient": "hv",
       "body": "HEAVY RUN START vc, 2026-10-25 05:41Z by date -u: bin/devbin build all on main at fef91e6f8; the pair moves from [intent 3.2.6 (7126f6832183963dc31108176295feef80d85868) dev] to this HEAD and carries every landing since (ST0086 WP-02's census verbs intent estate watch|unwatch and the statusline step, issue 0632's wrote: and removed: lines, and whatever else landed before the run). Until vc's END: no commit on main at all, no cargo and no bats anywhere on this host. The pair is promoted by rename at the end and vc restarts intentd at once, which every estate's daemon ingest rides through. No push, no release.",
       "fyi": true,
-      "recorded_at": "2026-10-25T05:41:57.996Z"
+      "recorded_at": "2026-10-25T05:41:57.996Z",
+      "archived_at": "2026-10-27T12:55:01.690Z"
     },
     {
       "id": "01M5RS8Y3CWN06ZSRVZMM58EFY",
@@ -3273,7 +3288,8 @@
       "recipient": "hv",
       "body": "HEAVY RUN END vc, 2026-10-25 05:43Z by date -u: bin/devbin build all promoted the pair; intent prints [intent 3.2.6 (fef91e6f8490eda345659c55d95009147092739f) dev]; intentd restarted and answering, with /estate/status at its web face; doctor run after. Commits may land again. What runs next on this host is molt-vc's call; dc's 0632 step one is judged against this pair. No push, no release.",
       "fyi": true,
-      "recorded_at": "2026-10-25T05:43:25.669Z"
+      "recorded_at": "2026-10-25T05:43:25.669Z",
+      "archived_at": "2026-10-27T12:55:01.690Z"
     },
     {
       "id": "01M5RSBKQ5KDX325BF4RGWSTRD",
@@ -3304,7 +3320,8 @@
       "recipient": "hv",
       "body": "HEAVY RUN START vc, 2026-10-25 14:08Z by date -u: bin/devbin build all on main at 128c58669; the pair moves from [intent 3.2.6 (fef91e6f8490eda345659c55d95009147092739f) dev] to this HEAD and carries every landing since (ST0086 WP-02's census verbs intent estate watch|unwatch and the statusline step, issue 0632's wrote: and removed: lines, and whatever else landed before the run). Until vc's END: no commit on main at all, no cargo and no bats anywhere on this host. The pair is promoted by rename at the end and vc restarts intentd at once, which every estate's daemon ingest rides through. No push, no release.",
       "fyi": true,
-      "recorded_at": "2026-10-25T14:08:08.441Z"
+      "recorded_at": "2026-10-25T14:08:08.441Z",
+      "archived_at": "2026-10-27T12:55:01.690Z"
     },
     {
       "id": "01M5SP7RQS2TY3EVAM4X0Z95A4",
@@ -3335,7 +3352,8 @@
       "recipient": "hv",
       "body": "HEAVY RUN END vc, 2026-10-25 14:09Z by date -u: bin/devbin build all promoted the pair; intent prints [intent 3.2.6 (dev, 128c58669c18) at /Users/matts/Devel/prj/Intent dev]; intentd restarted and answering, with /estate/status at its web face; doctor run after. Commits may land again. What runs next on this host is molt-vc's call; dc's 0632 step one is judged against this pair. No push, no release.",
       "fyi": true,
-      "recorded_at": "2026-10-25T14:09:38.303Z"
+      "recorded_at": "2026-10-25T14:09:38.303Z",
+      "archived_at": "2026-10-27T12:55:01.690Z"
     },
     {
       "id": "01M5SPAGFZ8389HYH235093H82",
@@ -3366,7 +3384,8 @@
       "recipient": "hv",
       "body": "HEAVY RUN START vc, 2026-10-25 15:08Z by date -u: bin/devbin build all on main at 397d7568e; the pair moves from [intent 3.2.6 (dev, 128c58669c18) at /Users/matts/Devel/prj/Intent dev] to this HEAD and carries every landing since (ST0086 WP-02's census verbs intent estate watch|unwatch and the statusline step, issue 0632's wrote: and removed: lines, and whatever else landed before the run). Until vc's END: no commit on main at all, no cargo and no bats anywhere on this host. The pair is promoted by rename at the end and vc restarts intentd at once, which every estate's daemon ingest rides through. No push, no release.",
       "fyi": true,
-      "recorded_at": "2026-10-25T15:08:44.424Z"
+      "recorded_at": "2026-10-25T15:08:44.424Z",
+      "archived_at": "2026-10-27T12:55:01.690Z"
     },
     {
       "id": "01M5SSPQG8SQVNTBHWGGGCXJCP",
@@ -3397,7 +3416,8 @@
       "recipient": "hv",
       "body": "HEAVY RUN END vc, 2026-10-25 15:10Z by date -u: bin/devbin build all promoted the pair; intent prints [intent 3.2.6 (dev, 397d7568e1d8) at /Users/matts/Devel/prj/Intent dev]; intentd restarted and answering, with /estate/status at its web face; doctor run after. Commits may land again. What runs next on this host is molt-vc's call; dc's 0632 step one is judged against this pair. No push, no release.",
       "fyi": true,
-      "recorded_at": "2026-10-25T15:10:09.454Z"
+      "recorded_at": "2026-10-25T15:10:09.454Z",
+      "archived_at": "2026-10-27T12:55:01.690Z"
     },
     {
       "id": "01M5SSSAHEYGP284S05QE8E3TS",
@@ -3428,7 +3448,8 @@
       "recipient": "hv",
       "body": "HEAVY RUN START vc, 2026-10-25 17:04Z by date -u: bin/devbin build all on main at 21c127290; the pair moves from [intent 3.2.6 (dev, 397d7568e1d8+dirty) at /Users/matts/Devel/prj/Intent dev] to this HEAD and carries every landing since (ST0086 WP-02's census verbs intent estate watch|unwatch and the statusline step, issue 0632's wrote: and removed: lines, and whatever else landed before the run). Until vc's END: no commit on main at all, no cargo and no bats anywhere on this host. The pair is promoted by rename at the end and vc restarts intentd at once, which every estate's daemon ingest rides through. No push, no release.",
       "fyi": true,
-      "recorded_at": "2026-10-25T17:04:12.236Z"
+      "recorded_at": "2026-10-25T17:04:12.236Z",
+      "archived_at": "2026-10-27T12:55:01.690Z"
     },
     {
       "id": "01M5T0A4YCMS4WJ2TYK8EZWBJ3",
@@ -3459,7 +3480,8 @@
       "recipient": "hv",
       "body": "HEAVY RUN END vc, 2026-10-25 17:06Z by date -u: bin/devbin build all promoted the pair; intent prints [intent 3.2.6 (dev, 21c12729046e) dev]; intentd restarted and answering, with /estate/status at its web face; doctor run after. Commits may land again. What runs next on this host is molt-vc's call; dc's 0632 step one is judged against this pair. No push, no release.",
       "fyi": true,
-      "recorded_at": "2026-10-25T17:06:00.738Z"
+      "recorded_at": "2026-10-25T17:06:00.738Z",
+      "archived_at": "2026-10-27T12:55:01.690Z"
     },
     {
       "id": "01M5T0DEX2J6EG88GPA0490ZZ1",
@@ -3490,7 +3512,8 @@
       "recipient": "hv",
       "body": "HEAVY RUN START vc, 2026-10-25 17:39Z by date -u: bin/devbin build all on main at ea94f91b0; the pair moves from [intent 3.2.6 (dev, 21c12729046e) dev] to this HEAD and carries every landing since (ST0086 WP-02's census verbs intent estate watch|unwatch and the statusline step, issue 0632's wrote: and removed: lines, and whatever else landed before the run). Until vc's END: no commit on main at all, no cargo and no bats anywhere on this host. The pair is promoted by rename at the end and vc restarts intentd at once, which every estate's daemon ingest rides through. No push, no release.",
       "fyi": true,
-      "recorded_at": "2026-10-25T17:39:43.466Z"
+      "recorded_at": "2026-10-25T17:39:43.466Z",
+      "archived_at": "2026-10-27T12:55:01.690Z"
     },
     {
       "id": "01M5T2B67AG2SQYBFAP3C6ZCF6",
@@ -3521,7 +3544,8 @@
       "recipient": "hv",
       "body": "HEAVY RUN END vc, 2026-10-25 17:41Z by date -u: bin/devbin build all promoted the pair; intent prints [intent 3.2.6 (dev, ea94f91b0573) dev]; intentd restarted and answering, with /estate/status at its web face; doctor run after. Commits may land again. What runs next on this host is molt-vc's call; dc's 0632 step one is judged against this pair. No push, no release.",
       "fyi": true,
-      "recorded_at": "2026-10-25T17:41:21.737Z"
+      "recorded_at": "2026-10-25T17:41:21.737Z",
+      "archived_at": "2026-10-27T12:55:01.690Z"
     },
     {
       "id": "01M5T2E6697ZCZNR3JK1FDK3PQ",
@@ -3552,7 +3576,8 @@
       "recipient": "hv",
       "body": "HEAVY RUN START vc, 2026-10-25 19:06Z by date -u: bin/devbin build all on main at 5be439e7d; the pair moves from [intent 3.2.6 (dev, ea94f91b0573+dirty) dev] to this HEAD and carries every landing since (ST0086 WP-02's census verbs intent estate watch|unwatch and the statusline step, issue 0632's wrote: and removed: lines, and whatever else landed before the run). Until vc's END: no commit on main at all, no cargo and no bats anywhere on this host. The pair is promoted by rename at the end and vc restarts intentd at once, which every estate's daemon ingest rides through. No push, no release.",
       "fyi": true,
-      "recorded_at": "2026-10-25T19:06:36.443Z"
+      "recorded_at": "2026-10-25T19:06:36.443Z",
+      "archived_at": "2026-10-27T12:55:01.690Z"
     },
     {
       "id": "01M5T7A90VSY7WET67TWGBXDDJ",
@@ -3583,7 +3608,8 @@
       "recipient": "hv",
       "body": "HEAVY RUN END vc, 2026-10-25 19:08Z by date -u: bin/devbin build all promoted the pair; intent prints [intent 3.2.6 (dev, 5be439e7d9be) dev]; intentd restarted and answering, with /estate/status at its web face; doctor run after. Commits may land again. What runs next on this host is molt-vc's call; dc's 0632 step one is judged against this pair. No push, no release.",
       "fyi": true,
-      "recorded_at": "2026-10-25T19:08:20.307Z"
+      "recorded_at": "2026-10-25T19:08:20.307Z",
+      "archived_at": "2026-10-27T12:55:01.690Z"
     },
     {
       "id": "01M5T7DEEKAGP4P864RP8MZB36",

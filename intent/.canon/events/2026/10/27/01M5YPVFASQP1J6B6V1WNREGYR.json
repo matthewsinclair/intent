@@ -1,0 +1,15 @@
+{
+  "id": "01M5YPVFASQP1J6B6V1WNREGYR",
+  "ts": "2026-10-27T12:55:06.896Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-10-27, hv first-hand in vc's session, answering vc's four questions, received before vc's clock read of 12:48:23Z; wording vc's, the rulings hv's) LEAN BOARDS, 0659 AND ST0089: FOUR RULINGS. (1) Every localfold and every EOD fold clears out what is spent, so that a pickup prints only live state. hv, verbatim: \"And this shouldn't be happening! Localfolds and EODs should clear this out.\" A fold archives each item and ruling that has been carried out, checked against its artefact first, and keeps every ruling with a part still to do. It clears handled inbox messages and archives the handled messages its node sent. The vc that writes hv's board folds that board the same way. vc relayed this to every estate's vc and to cc, dc and ic after 12:48:23Z. It archived hv's decisions 18, 19, 24, 25, 27, 29, 30, 32 and 33, each carried out. 26 and 28 stay live, because Baize's AC-01.2 correction and the Conflab and Baize repairs are still owed, and so do the standing rules. (2) vc's live messages in hv's inbox are swept: hv, \"Sweep them out, yes.\" (3) Issue 0659 is deferred past 3.2.7, with hv's words on its record as decision 76(4) asks: \"P3 or lower, defer\". (4) ST0089, the fold and compact policy, is built after 3.2.7's cut: hv, \"Ok\"."
+  }
+}
