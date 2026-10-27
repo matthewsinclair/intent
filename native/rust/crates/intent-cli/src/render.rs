@@ -10779,6 +10779,27 @@ fn estate_host(v: &serde_json::Value) -> Vec<(String, String)> {
         ),
       );
     }
+    // **THE QUEUE FOR THE LANE'S TYPE, OLDEST FIRST** (AC-04.6), as the reader
+    // decides it: an ask waits on every lane of its type, so it shows under
+    // each. A row the queue lacks is drawn as its id, never dropped.
+    for id in arr(&l["queue"]) {
+      let id = s(&id);
+      let row = queue.iter().find(|q| q["id"].as_str() == Some(id.as_str()));
+      push(
+        "lanes",
+        &mut first,
+        match row {
+          Some(q) => format!(
+            "  {}  queued  {}  {}  {}",
+            short(&id),
+            who(&s(&q["by"])),
+            s(&q["what"]),
+            estate_age(v, q, "asked_at")
+          ),
+          None => format!("  {}  queued", short(&id)),
+        },
+      );
+    }
   }
   out
 }
@@ -10860,49 +10881,73 @@ fn estate_lines(v: &serde_json::Value) -> Vec<tui::views::EstateLine> {
     .collect()
 }
 
-/// The terminal form: the summary line, then one row per session.
+/// The terminal form: the summary line, one row per session, then the host's
+/// lines (ST0086 AC-04.6).
 ///
 /// **THE LAST COLUMN IS CUT TO THE TERMINAL, AND ONLY THE LAST.** The WIP or
 /// focus line is the long one; every column before it is short and aligned.
+///
+/// **THE HOST'S LINES ARE [`estate_host`]'s, THE EXPLORER'S OWN**: the load,
+/// the census, the controller or NO CONTROLLER, the queue oldest first and
+/// every lane with its holders, so the verb, `/estate` and the page say the
+/// same thing in the same words. They print with no session too, because a
+/// controller and a queue are the host's whether or not anyone is running.
 fn estate_table(v: &serde_json::Value, width: usize) -> String {
   let mut out = format!("{}\n", estate_summary(v));
   let lines = estate_lines(v);
   if lines.is_empty() {
     out.push_str(NO_SESSIONS);
     out.push('\n');
-    return out;
-  }
-  let mut widths = ESTATE_HEADER.map(|h| h.chars().count());
-  for l in &lines {
-    for (i, cell) in l.cells.iter().enumerate().take(8) {
-      widths[i] = widths[i].max(cell.chars().count());
+  } else {
+    let mut widths = ESTATE_HEADER.map(|h| h.chars().count());
+    for l in &lines {
+      for (i, cell) in l.cells.iter().enumerate().take(8) {
+        widths[i] = widths[i].max(cell.chars().count());
+      }
     }
-  }
-  let lead: usize = widths.iter().take(8).map(|w| w + 2).sum();
-  let room = width.saturating_sub(lead).max(12);
-  let mut emit = |cells: [&str; 9]| {
-    let mut l = String::new();
-    for (i, cell) in cells.iter().take(8).enumerate() {
-      l.push_str(&format!("{cell:<w$}  ", w = widths[i]));
-    }
-    let last: String = if cells[8].chars().count() > room {
-      cells[8]
-        .chars()
-        .take(room.saturating_sub(3))
-        .collect::<String>()
-        + "..."
-    } else {
-      cells[8].to_string()
+    let lead: usize = widths.iter().take(8).map(|w| w + 2).sum();
+    let room = width.saturating_sub(lead).max(12);
+    let mut emit = |cells: [&str; 9]| {
+      let mut l = String::new();
+      for (i, cell) in cells.iter().take(8).enumerate() {
+        l.push_str(&format!("{cell:<w$}  ", w = widths[i]));
+      }
+      l.push_str(&cut_to(cells[8], room));
+      out.push_str(l.trim_end());
+      out.push('\n');
     };
-    l.push_str(&last);
-    out.push_str(l.trim_end());
+    emit(ESTATE_HEADER);
+    for l in &lines {
+      emit(l.cells.each_ref().map(String::as_str));
+    }
+  }
+  let host = estate_host(v);
+  let pad = host
+    .iter()
+    .map(|(label, _)| label.chars().count())
+    .max()
+    .unwrap_or(0);
+  let room = width.saturating_sub(pad + 2).max(12);
+  out.push('\n');
+  for (label, text) in &host {
+    out.push_str(format!("{label:<pad$}  {}", cut_to(text, room)).trim_end());
     out.push('\n');
-  };
-  emit(ESTATE_HEADER);
-  for l in &lines {
-    emit(l.cells.each_ref().map(String::as_str));
   }
   out
+}
+
+/// `text` cut to `room` characters, its tail replaced by `...` when it is
+/// longer: the one cut the estate's terminal form makes.
+fn cut_to(text: &str, room: usize) -> String {
+  if text.chars().count() > room {
+    text
+      .chars()
+      .take(room.saturating_sub(3))
+      .collect::<String>()
+      + "..."
+  } else {
+    text.to_string()
+  }
 }
 
 /// The explorer's `/estate` view (ST0086 WP-03): the sessions `intent estate
@@ -17445,12 +17490,14 @@ mod tests {
   }
 
   /// ST0086 AT-03.1
+  /// ST0086 AT-04.6
   ///
   /// ST0086 AC-03.1, on ST0086 WP-04's row shape: a measured census, a live
   /// controller with its own node and the one it took over from, a desk hold,
   /// a waiting ask with its tag and both gate kinds, a lane held with a load
   /// threshold, and a request holding two lanes shown under each; a label is
-  /// written once, on its first line.
+  /// written once, on its first line. AC-04.6: each lane then shows the queue
+  /// for its type, so the waiting heavy ask is drawn under both heavy lanes.
   #[test]
   fn the_estates_host_lines_read_the_census_controller_queue_and_lanes() {
     let v = serde_json::json!({
@@ -17481,8 +17528,10 @@ mod tests {
          "node": "vc", "held_at": "2026-10-25T16:50:00Z"}
       ],
       "lanes": [
-        {"name": "cargo", "type": "heavy", "capacity": 2, "load_under": 40, "granted": 1, "running": 1},
-        {"name": "bats", "type": "heavy", "capacity": 1, "load_under": null, "granted": 0, "running": 1}
+        {"name": "cargo", "type": "heavy", "capacity": 2, "load_under": 40, "granted": 1, "running": 1,
+         "queue": ["01JAAAAAAAAAAAAAAAAAAQUEUE"]},
+        {"name": "bats", "type": "heavy", "capacity": 1, "load_under": null, "granted": 0, "running": 1,
+         "queue": ["01JAAAAAAAAAAAAAAAAAAQUEUE"]}
       ],
       "queue": [
         {"id": "01JAAAAAAAAAAAAAAAAAAQUEUE", "type": "heavy", "what": "the WP-03 judge",
@@ -17524,13 +17573,44 @@ mod tests {
         ),
         ("", "  ARUNIC  running  intent-ic  build all  30m00"),
         ("", "  AGONE1  orphaned  s-gone  a dead judge  50m00"),
+        ("", "  AQUEUE  queued  intent-ic  the WP-03 judge  2m00"),
         (
           "",
           "bats  heavy  1/1  held  HELD: the runner is being swapped"
         ),
         ("", "  ARUNIC  running  intent-ic  build all  30m00"),
+        ("", "  AQUEUE  queued  intent-ic  the WP-03 judge  2m00"),
       ]
       .map(|(l, t)| (l.to_string(), t.to_string()))
     );
+  }
+
+  /// ST0086 AT-04.6
+  ///
+  /// ST0086 AC-04.6, the verb's share: `intent estate status` ends with the
+  /// host's lines in the explorer's words, each label once and padded to the
+  /// longest, and prints them when no session is running.
+  #[test]
+  fn the_estate_status_table_ends_with_the_hosts_lines() {
+    let v = serde_json::json!({
+      "host": "rhadamanth",
+      "version": "3.2.7",
+      "taken_at": "2026-10-25T17:00:00Z",
+      "sessions": [],
+      "census": {"load": [], "procs": [], "history": []},
+      "controller": null,
+      "lanes": [],
+      "queue": []
+    });
+    let text = estate_table(&v, 100);
+    let lines: Vec<&str> = text.lines().collect();
+    assert_eq!(lines.get(1).copied(), Some(NO_SESSIONS), "{text}");
+    for line in [
+      "control  NO CONTROLLER: asks queue, nothing is granted",
+      "queue    nothing queued",
+      "lanes    no lanes: a controller opens them",
+    ] {
+      assert!(lines.contains(&line), "no `{line}` in:\n{text}");
+    }
   }
 }

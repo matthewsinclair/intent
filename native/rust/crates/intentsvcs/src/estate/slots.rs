@@ -1362,7 +1362,14 @@ pub fn controller_value(slots: &Slots) -> Value {
 }
 
 /// The reader's `lanes`, by name.
+///
+/// **EACH LANE CARRIES THE QUEUE FOR ITS TYPE** (AC-04.6): the ids of the
+/// requests asked for the lane's type and not yet answered, oldest first in
+/// the queue's own order. A request asks by type, so a heavy ask waits on
+/// every heavy lane and shows under each; membership and order are decided
+/// here, once, and every face only draws them.
 pub fn lanes_value(slots: &Slots) -> Value {
+  let asked = waiting(slots);
   Value::Array(
     slots
       .lanes
@@ -1375,6 +1382,11 @@ pub fn lanes_value(slots: &Slots) -> Value {
             .filter(|r| r.state() == state && r.lanes().contains(&l.name))
             .count()
         };
+        let queue: Vec<&str> = asked
+          .iter()
+          .filter(|r| r.ask.record.kind == l.kind)
+          .map(|r| r.id())
+          .collect();
         json!({
           "name": l.name,
           "type": l.kind,
@@ -1382,6 +1394,7 @@ pub fn lanes_value(slots: &Slots) -> Value {
           "load_under": l.load_under,
           "granted": in_lane(ReqState::Granted),
           "running": in_lane(ReqState::Running),
+          "queue": queue,
         })
       })
       .collect(),
@@ -1429,10 +1442,10 @@ fn row(r: &Request) -> Value {
   })
 }
 
-/// The reader's `queue`: every request not finished, oldest first by its sort
-/// key, which is its own `asked_at` or, for a hand-back, the `--place-of`
-/// request's.
-pub fn queue_value(slots: &Slots) -> Value {
+/// Every request not finished, oldest first by its sort key, which is its own
+/// `asked_at` or, for a hand-back, the `--place-of` request's: the one order
+/// the queue and every lane's queue share.
+fn queue_order(slots: &Slots) -> Vec<&Request> {
   let key = |r: &Request| {
     r.ask
       .record
@@ -1443,7 +1456,21 @@ pub fn queue_value(slots: &Slots) -> Value {
   };
   let mut open: Vec<&Request> = slots.requests.iter().filter(|r| !r.finished()).collect();
   open.sort_by(|a, b| key(a).cmp(&key(b)).then_with(|| a.id().cmp(b.id())));
-  Value::Array(open.into_iter().map(row).collect())
+  open
+}
+
+/// The reader's `queue`: every request not finished, in `queue_order`.
+pub fn queue_value(slots: &Slots) -> Value {
+  Value::Array(queue_order(slots).into_iter().map(row).collect())
+}
+
+/// The requests asked and not yet answered, oldest first in `queue_order`:
+/// what the controller has to judge.
+pub fn waiting(slots: &Slots) -> Vec<&Request> {
+  queue_order(slots)
+    .into_iter()
+    .filter(|r| r.state() == ReqState::Asked)
+    .collect()
 }
 
 /// The reader's `recent`: the requests that ended, were denied or were revoked
@@ -1822,5 +1849,47 @@ mod tests {
     let recent = recent_value(&read_strict(&h.dirs), |at| at >= since);
     assert_eq!(recent[0]["id"], first.as_str());
     assert_eq!(recent[0]["state"], "ended");
+  }
+
+  /// ST0086 AT-04.6
+  ///
+  /// AC-04.6, in the reader: every lane carries the queue for its type, the
+  /// asks not yet answered, oldest first in the queue's own order, so a heavy
+  /// ask waits on every heavy lane and on no lane of another type, and a
+  /// granted request has left every queue.
+  #[test]
+  fn every_lane_carries_the_queue_for_its_type_oldest_first() {
+    let h = host();
+    let ctl = desk(&h);
+    lane_open(&h.dirs, &ctl, "light", "light", 1, None).expect("open a light lane");
+    let me = who("me", "intent-cc", 1);
+    let (first, _) = ask(&h.dirs, &me, "heavy", "first", AskArgs::default()).expect("ask");
+    let (drive, _) = ask(&h.dirs, &me, "light", "a drive", AskArgs::default()).expect("ask");
+    let (second, _) = ask(&h.dirs, &me, "heavy", "second", AskArgs::default()).expect("ask");
+    let (held, _) = ask(&h.dirs, &me, "heavy", "held", AskArgs::default()).expect("ask");
+    grant(&h.dirs, &ctl, &held, &lanes(&["bats"]), &quiet).expect("grant");
+
+    let lanes_now = lanes_value(&read_strict(&h.dirs));
+    let queue_of = |name: &str| -> Vec<String> {
+      lanes_now
+        .as_array()
+        .expect("lanes")
+        .iter()
+        .find(|l| l["name"] == name)
+        .expect("the lane")["queue"]
+        .as_array()
+        .expect("a queue")
+        .iter()
+        .map(|id| id.as_str().expect("an id").to_string())
+        .collect()
+    };
+    for heavy in ["heavy", "cargo", "bats"] {
+      assert_eq!(
+        queue_of(heavy),
+        vec![first.clone(), second.clone()],
+        "{heavy}"
+      );
+    }
+    assert_eq!(queue_of("light"), vec![drive]);
   }
 }

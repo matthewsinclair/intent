@@ -841,10 +841,12 @@ fn ok_out(o: &std::process::Output) -> String {
   String::from_utf8_lossy(&o.stdout).into_owned()
 }
 
+/// ST0086 AT-04.6
+///
 /// AC-04.1 to AC-04.3 and AC-04.6 through the binary: a controller takes
 /// control and opens lanes, a session asks, the controller grants into two
 /// lanes, the holder starts and releases, and `estate status` shows each step
-/// in the reader's keys.
+/// in the reader's keys and, in its terminal form, the host's lines.
 #[test]
 fn a_booking_goes_from_ask_to_release_and_the_status_shows_every_step() {
   let host = Host::new();
@@ -896,6 +898,29 @@ fn a_booking_goes_from_ask_to_release_and_the_status_shows_every_step() {
   assert_eq!(v["queue"][0]["tags"], serde_json::json!(["security"]));
   assert_eq!(v["queue"][0]["named"]["tip"], "7a3552f1e");
   assert_eq!(v["lanes"][1]["granted"], 1);
+
+  // AT-04.6, the verb's share: the terminal form ends with the host's lines,
+  // the controller and the lane the grant fills among them, with its holder.
+  let status = host
+    .cmd()
+    .env("COLUMNS", "200")
+    .args(["estate", "status"])
+    .output()
+    .expect("run estate status");
+  let text = ok_out(&status);
+  // Lanes are read in name order, so `cargo` carries the label and `heavy`,
+  // the second, an empty one padded to it.
+  for start in [
+    "control  molt-vc in ",
+    "lanes    cargo  heavy  1/1  full",
+    "         heavy  heavy  1/1  full",
+  ] {
+    assert!(
+      text.lines().any(|l| l.starts_with(start)),
+      "no line opening `{start}` in:\n{text}"
+    );
+  }
+  assert!(text.contains("granted  molt-vc  0648 judge"), "{text}");
 
   let refused = slot(
     &host,
