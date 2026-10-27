@@ -18,6 +18,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
+use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -37,6 +38,10 @@ pub const NO_LANE: &str = "none";
 
 /// How long a finished request stays in `recent`.
 pub(crate) const RECENT_SECONDS: i64 = 3600;
+
+/// How long `slots wait` and `slots watch` pause between reads of the
+/// requests (ST0086 AC-04.4).
+pub const PAUSE: Duration = Duration::from_millis(500);
 
 #[derive(Debug, Error)]
 pub enum SlotError {
@@ -419,6 +424,11 @@ impl Request {
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Slots {
   pub controller: Option<Stamped<ControllerRecord>>,
+  /// Why `controller.json` would not parse, when it is there and will not:
+  /// then `controller` is `None` and nobody can tell who holds control, which
+  /// every face says on its control line rather than NO CONTROLLER (vc's
+  /// ruling, 2026-10-26).
+  pub controller_unreadable: Option<Unreadable>,
   pub lanes: Vec<LaneRecord>,
   /// Standing holds only, oldest first.
   pub holds: Vec<Stamped<HoldRecord>>,
@@ -551,7 +561,12 @@ pub fn read(dirs: &Dirs, unreadable: &mut Vec<Unreadable>) -> Slots {
       None
     }
   };
-  let controller = keep(load::<ControllerRecord>(&controller_path(dirs)));
+  let mut controller_unreadable = None;
+  let controller = keep(
+    load::<ControllerRecord>(&controller_path(dirs)).inspect_err(|u| {
+      controller_unreadable = Some(u.clone());
+    }),
+  );
   let mut lane_errors = Vec::new();
   let lanes: Vec<LaneRecord> = json_files(&lanes_dir(dirs), &mut lane_errors)
     .iter()
@@ -588,6 +603,7 @@ pub fn read(dirs: &Dirs, unreadable: &mut Vec<Unreadable>) -> Slots {
   unreadable.extend(request_errors);
   Slots {
     controller,
+    controller_unreadable,
     lanes,
     holds,
     requests,
@@ -1361,6 +1377,17 @@ pub fn controller_value(slots: &Slots) -> Value {
   })
 }
 
+/// The reader's `controller_unreadable`: null, or the path and reason of a
+/// `controller.json` that is there and will not parse, so a face says on its
+/// control line that nobody can tell who holds control, never NO CONTROLLER
+/// (vc's ruling, 2026-10-26).
+pub fn controller_unreadable_value(slots: &Slots) -> Value {
+  slots
+    .controller_unreadable
+    .as_ref()
+    .map_or(Value::Null, |u| json!({ "path": u.path, "why": u.why }))
+}
+
 /// The reader's `lanes`, by name.
 ///
 /// **EACH LANE CARRIES THE QUEUE FOR ITS TYPE** (AC-04.6): the ids of the
@@ -1492,6 +1519,183 @@ pub fn recent_value(slots: &Slots, in_window: impl Fn(OffsetDateTime) -> bool) -
       .then_with(|| a.id().cmp(b.id()))
   });
   Value::Array(done.into_iter().map(row).collect())
+}
+
+/// The controller's answer to an ask, which `slots wait` waits for.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Answer {
+  Granted,
+  Denied,
+  Revoked,
+}
+
+/// The answer a request carries, or `None` while it is still asked.
+///
+/// **A REVOKE ANSWERS WHENEVER IT LANDS**: the controller may end an ask it
+/// never granted, and the asker learns it the way it learns a denial. A
+/// request that has started or ended was granted first.
+pub fn answer(r: &Request) -> Option<Answer> {
+  match r.state() {
+    ReqState::Asked => None,
+    ReqState::Denied => Some(Answer::Denied),
+    ReqState::Revoked => Some(Answer::Revoked),
+    ReqState::Granted | ReqState::Running | ReqState::Ended => Some(Answer::Granted),
+  }
+}
+
+/// `slots wait`: re-reads the request every `pause` until the controller has
+/// answered it, and returns it as it then stands with the answer; `None` when
+/// `limit` passed with it still asked. An answer already there returns at
+/// once, and with no limit it waits as long as the ask stands.
+///
+/// **NO CLOCK IS READ** (D42): the time waited is the pauses counted, as the
+/// daemon's lock wait counts its own, so `limit` is reached by counting and
+/// the reads in between add a little to it.
+pub fn wait(
+  dirs: &Dirs,
+  id: &str,
+  limit: Option<Duration>,
+  pause: Duration,
+) -> Result<Option<(Request, Answer)>, SlotError> {
+  let mut waited = Duration::ZERO;
+  loop {
+    let slots = read_strict(dirs);
+    let r = request_of(&slots, id)?;
+    if let Some(said) = answer(r) {
+      return Ok(Some((r.clone(), said)));
+    }
+    if limit.is_some_and(|l| waited >= l) {
+      return Ok(None);
+    }
+    std::thread::sleep(pause);
+    waited += pause;
+  }
+}
+
+/// One state change under `slots/requests/`: the file a step wrote.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Step {
+  Asked,
+  Granted,
+  Denied,
+  Started,
+  Ended,
+  Revoked,
+}
+
+impl Step {
+  /// The word a `slots watch` line opens with, so a reader filters on it.
+  pub fn as_str(self) -> &'static str {
+    match self {
+      Self::Asked => "asked",
+      Self::Granted => "granted",
+      Self::Denied => "denied",
+      Self::Started => "started",
+      Self::Ended => "ended",
+      Self::Revoked => "revoked",
+    }
+  }
+}
+
+/// The steps a request's files record, in the order they are written.
+fn taken(r: &Request) -> Vec<Step> {
+  let mut out = vec![Step::Asked];
+  for (present, step) in [
+    (r.grant.is_some(), Step::Granted),
+    (r.deny.is_some(), Step::Denied),
+    (r.start.is_some(), Step::Started),
+    (r.end.is_some(), Step::Ended),
+    (r.revoke.is_some(), Step::Revoked),
+  ] {
+    if present {
+      out.push(step);
+    }
+  }
+  out
+}
+
+/// Every state change between two reads of `slots/`: each file that appeared
+/// is one step, in request id order and, within a request, in the order its
+/// files are written (vc's ruling, 2026-10-26: `slots watch` reports every
+/// change, the controller's own grants, denials and revokes among them, and a
+/// reader filters by the step).
+pub fn steps<'a>(before: &Slots, after: &'a Slots) -> Vec<(Step, &'a Request)> {
+  let mut out = Vec::new();
+  for r in &after.requests {
+    let had = before.request(r.id()).map(taken).unwrap_or_default();
+    for step in taken(r) {
+      if !had.contains(&step) {
+        out.push((step, r));
+      }
+    }
+  }
+  out
+}
+
+/// `slots watch`: hands `emit` every state change under `slots/requests/`,
+/// re-reading every `pause`, and returns when `emit` says to stop.
+///
+/// **IT OPENS WITH AN `Asked` STEP FOR EACH ASK ALREADY WAITING**, oldest
+/// first, so a watch armed after an ask still hears of it; from then on every
+/// file a step writes is one call, in [`steps`] order. `emit` returns `false`
+/// when its reader has gone, which is the one way a watch ends by itself.
+pub fn watch(dirs: &Dirs, pause: Duration, mut emit: impl FnMut(Step, &Request) -> bool) {
+  let mut before = read_strict(dirs);
+  for r in waiting(&before) {
+    if !emit(Step::Asked, r) {
+      return;
+    }
+  }
+  loop {
+    std::thread::sleep(pause);
+    let after = read_strict(dirs);
+    for (step, r) in steps(&before, &after) {
+      if !emit(step, r) {
+        return;
+      }
+    }
+    before = after;
+  }
+}
+
+/// The asks waiting for the controller, oldest first, when `session_id` holds
+/// control; `None` when it does not. A file that will not parse is pushed to
+/// `unreadable`, as [`read`] does.
+///
+/// **IT READS `controller.json` AND STOPS THERE FOR ANY OTHER SESSION** (vc's
+/// ruling, 2026-10-26): the prompt hook asks this on every prompt of every
+/// session on the host, so a session that is not the controller pays one small
+/// read and no more. It takes no lock and asks no daemon.
+pub fn pending(
+  dirs: &Dirs,
+  session_id: &str,
+  unreadable: &mut Vec<Unreadable>,
+) -> Option<Vec<Request>> {
+  let controller = match load::<ControllerRecord>(&controller_path(dirs)) {
+    Ok(controller) => controller,
+    Err(u) => {
+      unreadable.push(u);
+      return None;
+    }
+  };
+  if !controller.is_some_and(|c| !c.record.released && c.record.session_id == session_id) {
+    return None;
+  }
+  let slots = read(dirs, unreadable);
+  Some(waiting(&slots).into_iter().cloned().collect())
+}
+
+/// Each session's name by its id, from Claude Code's own session files: how
+/// `slots wait`, `slots watch` and `slots pending` name an asker. A session
+/// file that will not parse is left out, and its session's lines show its id.
+pub fn names(claude_dir: &Path) -> Result<BTreeMap<String, String>, super::EstateError> {
+  let mut ignored = Vec::new();
+  Ok(
+    super::read_sessions(claude_dir, &mut ignored)?
+      .into_iter()
+      .map(|s| (s.session_id, s.name))
+      .collect(),
+  )
 }
 
 #[cfg(test)]
@@ -1891,5 +2095,183 @@ mod tests {
       );
     }
     assert_eq!(queue_of("light"), vec![drive]);
+  }
+
+  /// ST0086 AT-04.4
+  ///
+  /// AC-04.4: every file a step writes is one state change between two reads,
+  /// the controller's own among them, and a request's answer is its grant,
+  /// denial or revoke, which a start or an end does not undo.
+  #[test]
+  fn every_file_a_step_writes_is_one_state_change_and_answers_follow_the_fold() {
+    let h = host();
+    let ctl = desk(&h);
+    let me = who("me", "intent-cc", 1);
+    let mut before = read_strict(&h.dirs);
+    let mut changes = |h: &Host| -> Vec<(Step, String)> {
+      let after = read_strict(&h.dirs);
+      let out = steps(&before, &after)
+        .into_iter()
+        .map(|(step, r)| (step, r.id().to_string()))
+        .collect();
+      before = after;
+      out
+    };
+
+    let (a, _) = ask(&h.dirs, &me, "heavy", "a judge", AskArgs::default()).expect("ask a");
+    assert_eq!(changes(&h), vec![(Step::Asked, a.clone())]);
+    let asked = read_strict(&h.dirs);
+    assert_eq!(answer(asked.request(&a).expect("a")), None);
+
+    grant(&h.dirs, &ctl, &a, &lanes(&["cargo"]), &quiet).expect("grant a");
+    assert_eq!(changes(&h), vec![(Step::Granted, a.clone())]);
+    start(&h.dirs, &me, &a, BTreeMap::new(), false).expect("start a");
+    assert_eq!(changes(&h), vec![(Step::Started, a.clone())]);
+    release(&h.dirs, &me, &a, Some("rc 0"), false).expect("release a");
+    assert_eq!(changes(&h), vec![(Step::Ended, a.clone())]);
+
+    let (b, _) = ask(&h.dirs, &me, "heavy", "b", AskArgs::default()).expect("ask b");
+    deny(&h.dirs, &ctl, &b, "not today").expect("deny b");
+    let (c, _) = ask(&h.dirs, &me, "heavy", "c", AskArgs::default()).expect("ask c");
+    revoke(&h.dirs, &ctl, &c, "the holder is gone").expect("revoke c");
+    assert_eq!(
+      changes(&h),
+      vec![
+        (Step::Asked, b.clone()),
+        (Step::Denied, b.clone()),
+        (Step::Asked, c.clone()),
+        (Step::Revoked, c.clone()),
+      ]
+    );
+    assert_eq!(
+      changes(&h),
+      Vec::<(Step, String)>::new(),
+      "nothing new, nothing reported"
+    );
+
+    let now = read_strict(&h.dirs);
+    let answer_of = |id: &str| answer(now.request(id).expect("the request"));
+    assert_eq!(
+      answer_of(a.as_str()),
+      Some(Answer::Granted),
+      "an ended run was granted"
+    );
+    assert_eq!(answer_of(b.as_str()), Some(Answer::Denied));
+    assert_eq!(answer_of(c.as_str()), Some(Answer::Revoked));
+  }
+
+  /// ST0086 AT-04.4
+  ///
+  /// AC-04.4: `wait` returns at the limit with the ask still standing, and at
+  /// once with the request when the controller has answered it.
+  #[test]
+  fn wait_returns_at_the_limit_unanswered_and_at_once_answered() {
+    let h = host();
+    let ctl = desk(&h);
+    let me = who("me", "intent-cc", 1);
+    let (a, _) = ask(&h.dirs, &me, "heavy", "a judge", AskArgs::default()).expect("ask");
+    let tick = Duration::from_millis(1);
+    assert_eq!(
+      wait(&h.dirs, &a, Some(Duration::ZERO), tick).expect("wait"),
+      None,
+      "still asked at a zero limit"
+    );
+    grant(&h.dirs, &ctl, &a, &lanes(&["heavy"]), &quiet).expect("grant");
+    let (answered, said) = wait(&h.dirs, &a, None, tick)
+      .expect("wait")
+      .expect("answered");
+    assert_eq!(said, Answer::Granted);
+    assert_eq!(answered.state(), ReqState::Granted);
+    assert_eq!(answered.lanes().to_vec(), vec!["heavy".to_string()]);
+    assert!(matches!(
+      wait(&h.dirs, "01NOSUCHREQUEST", Some(Duration::ZERO), tick),
+      Err(SlotError::NoRequest { .. })
+    ));
+  }
+
+  /// ST0086 AT-04.4
+  ///
+  /// AC-04.4: `watch` opens with the asks already waiting, reports the next
+  /// change it reads, and returns when its reader says stop.
+  #[test]
+  fn watch_opens_with_the_waiting_asks_and_ends_when_its_reader_stops() {
+    let h = host();
+    let ctl = desk(&h);
+    let me = who("me", "intent-cc", 1);
+    let (granted, _) = ask(&h.dirs, &me, "heavy", "running", AskArgs::default()).expect("ask");
+    grant(&h.dirs, &ctl, &granted, &lanes(&["cargo"]), &quiet).expect("grant");
+    let (a, _) = ask(&h.dirs, &me, "heavy", "a judge", AskArgs::default()).expect("ask");
+
+    let mut heard: Vec<(Step, String)> = Vec::new();
+    watch(&h.dirs, Duration::from_millis(5), |step, r| {
+      heard.push((step, r.id().to_string()));
+      if step == Step::Asked {
+        // A change made while the watch runs, which its next read reports.
+        grant(&h.dirs, &ctl, &a, &lanes(&["heavy"]), &quiet).expect("grant a");
+        return true;
+      }
+      false
+    });
+    assert_eq!(heard, vec![(Step::Asked, a.clone()), (Step::Granted, a)]);
+  }
+
+  /// ST0086 AT-04.4
+  ///
+  /// AC-04.4, the prompt hook's question: the waiting asks go to the session
+  /// holding control and to no other, and a controller record that will not
+  /// parse is reported and names nothing.
+  #[test]
+  fn pending_names_the_waiting_asks_to_the_controller_alone() {
+    let h = host();
+    let ctl = desk(&h);
+    let me = who("me", "intent-cc", 1);
+    let (a, _) = ask(&h.dirs, &me, "heavy", "a judge", AskArgs::default()).expect("ask");
+    let mut unreadable = Vec::new();
+    let to_ctl = pending(&h.dirs, &ctl.session_id, &mut unreadable).expect("the controller");
+    assert_eq!(
+      to_ctl.iter().map(Request::id).collect::<Vec<_>>(),
+      [a.as_str()]
+    );
+    assert_eq!(pending(&h.dirs, &me.session_id, &mut unreadable), None);
+    assert!(unreadable.is_empty(), "{unreadable:?}");
+    assert_eq!(
+      names(&h.claude).expect("names").get(&ctl.session_id),
+      Some(&"molt-vc".to_string())
+    );
+
+    std::fs::write(controller_path(&h.dirs), "not json").expect("break the record");
+    assert_eq!(pending(&h.dirs, &ctl.session_id, &mut unreadable), None);
+    assert_eq!(unreadable.len(), 1, "{unreadable:?}");
+  }
+
+  /// ST0086 AT-04.6
+  ///
+  /// vc's condition on the prompt hook: a `controller.json` that will not
+  /// parse is carried as `controller_unreadable`, so the control line names it,
+  /// while `controller` stays null and the record is still listed unreadable.
+  #[test]
+  fn an_unparsable_controller_record_is_carried_as_unreadable() {
+    let h = host();
+    desk(&h);
+    assert_eq!(
+      controller_unreadable_value(&read_strict(&h.dirs)),
+      Value::Null
+    );
+    std::fs::write(controller_path(&h.dirs), "not json").expect("break the record");
+    let mut unreadable = Vec::new();
+    let slots = read(&h.dirs, &mut unreadable);
+    assert!(slots.controller.is_none());
+    let u = controller_unreadable_value(&slots);
+    assert!(
+      u["path"]
+        .as_str()
+        .is_some_and(|p| p.ends_with("controller.json")),
+      "{u}"
+    );
+    assert!(
+      u["why"].as_str().is_some_and(|w| w.contains("not JSON")),
+      "{u}"
+    );
+    assert_eq!(unreadable.len(), 1, "{unreadable:?}");
   }
 }

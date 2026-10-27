@@ -311,6 +311,19 @@ const CONSUMERS: &[(&str, &str, Policy)] = &[
     ),
   ),
   (
+    ".claude/scripts/require-in-session.sh",
+    "estate",
+    Policy::Invokes(
+      "`intent estate slots pending`, the gate's second duty (ST0086 AC-04.4), on its two pass paths \
+       only: a slash command and the sentinel present. Its stdout is the waiting slot asks of the \
+       session that holds control of the host, which Claude Code adds to the prompt, and nothing in any \
+       other session. ITS CODE IS NEVER READ AND ITS STDERR IS DROPPED: the verb exits 0 on every path \
+       it has, an `intent` on PATH older than the verb refuses it on stderr, and on exit 0 a hook's \
+       stderr reaches nobody, so no answer of it can block a prompt. It is never run on a block, nor \
+       beside the fail-open notice, whose stdout is one JSON object.",
+    ),
+  ),
+  (
     ".claude/scripts/session-context.sh",
     "claude",
     Policy::Names(

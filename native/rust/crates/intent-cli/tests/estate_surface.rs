@@ -172,6 +172,7 @@ fn status_json_carries_every_key_of_the_boundary_from_the_first_work_package() {
     "taken_at",
     "census",
     "controller",
+    "controller_unreadable",
     "lanes",
     "queue",
     "recent",
@@ -990,6 +991,22 @@ fn a_foreign_flag_and_a_run_outside_any_session_are_refused() {
     "{}",
     String::from_utf8_lossy(&foreign.stderr)
   );
+  // Part B's verbs keep the rule: `--timeout` is `wait`'s alone, and `watch`
+  // names no request.
+  let timeout = slot(&host, "s-ctl", &["slots", "grant", "01X", "--timeout", "5"]);
+  assert!(
+    String::from_utf8_lossy(&timeout.stderr)
+      .contains("`--timeout` is not a flag of `estate slots grant`"),
+    "{}",
+    String::from_utf8_lossy(&timeout.stderr)
+  );
+  let named = slot(&host, "s-ctl", &["slots", "watch", "01X"]);
+  assert!(!named.status.success());
+  assert!(
+    String::from_utf8_lossy(&named.stderr).contains("`estate slots watch` takes no argument"),
+    "{}",
+    String::from_utf8_lossy(&named.stderr)
+  );
 
   let outside = host
     .cmd()
@@ -1009,4 +1026,255 @@ fn a_foreign_flag_and_a_run_outside_any_session_are_refused() {
       .exists(),
     "nothing was written"
   );
+}
+
+/// A controller with one heavy lane on `host`, and an ask for each `what`,
+/// whose ids come back in order.
+fn desk_with_asks(host: &Host, whats: &[&str]) -> Vec<String> {
+  host.session(
+    std::process::id(),
+    "s-ctl",
+    "molt-vc",
+    &host.project,
+    "idle",
+  );
+  ok_out(&slot(host, "s-ctl", &["control", "take"]));
+  ok_out(&slot(
+    host,
+    "s-ctl",
+    &[
+      "lane",
+      "open",
+      "heavy",
+      "--type",
+      "heavy",
+      "--capacity",
+      "1",
+    ],
+  ));
+  whats
+    .iter()
+    .map(|&what| {
+      ok_out(&slot(host, "s-ctl", &["slots", "ask", "heavy", what]))
+        .lines()
+        .find_map(|l| l.strip_prefix("asked: "))
+        .expect("ask prints the id")
+        .to_string()
+    })
+    .collect()
+}
+
+/// ST0086 AT-04.4
+///
+/// AC-04.4, `slots wait` through the binary: an ask still standing at the
+/// timeout says so and exits 4, and an answered one prints its line and exits
+/// 0 when granted and 1 when denied (vc's ruling: INV-04's codes).
+#[test]
+fn wait_prints_the_answer_and_exits_by_it() {
+  let host = Host::new();
+  let ids = desk_with_asks(&host, &["a judge", "a second judge", "a third judge"]);
+  let (kept, refused, left) = (&ids[0], &ids[1], &ids[2]);
+
+  let waited = slot(&host, "s-ctl", &["slots", "wait", left, "--timeout", "0"]);
+  assert_eq!(
+    waited.status.code(),
+    Some(4),
+    "{}",
+    String::from_utf8_lossy(&waited.stderr)
+  );
+  assert_eq!(
+    String::from_utf8_lossy(&waited.stdout).trim(),
+    format!("waiting: {left} is still asked after 0s")
+  );
+
+  ok_out(&slot(
+    &host,
+    "s-ctl",
+    &["slots", "grant", kept, "--lane", "heavy"],
+  ));
+  let granted = ok_out(&slot(&host, "s-ctl", &["slots", "wait", kept]));
+  assert_eq!(
+    granted.trim(),
+    format!("granted: {kept} heavy by molt-vc -- a judge (into heavy)")
+  );
+
+  ok_out(&slot(
+    &host,
+    "s-ctl",
+    &["slots", "deny", refused, "not today"],
+  ));
+  let denied = slot(&host, "s-ctl", &["slots", "wait", refused]);
+  assert_eq!(denied.status.code(), Some(1));
+  assert_eq!(
+    String::from_utf8_lossy(&denied.stdout).trim(),
+    format!("denied: {refused} heavy by molt-vc -- a second judge (why: not today)")
+  );
+}
+
+/// A child the arm kills if it ends while the child still runs, so a watch
+/// that failed to stop cannot outlive the test.
+struct Running(std::process::Child);
+
+impl Drop for Running {
+  fn drop(&mut self) {
+    let _ = self.0.kill();
+    let _ = self.0.wait();
+  }
+}
+
+/// ST0086 AT-04.4
+///
+/// AC-04.4, `slots watch` through the binary: it opens with the ask already
+/// waiting and prints the controller's grant as its next line, and when its
+/// reader goes away, as a stopped Monitor's or `| head -n 1`'s does, the next
+/// write ends it with exit 0 and no panic (vc's ruling, the broken-pipe class).
+#[test]
+fn watch_prints_each_change_and_ends_cleanly_when_its_reader_goes() {
+  use std::io::{BufRead, BufReader, Read};
+  let host = Host::new();
+  let ids = desk_with_asks(&host, &["a judge"]);
+  let id = &ids[0];
+
+  let mut watch = Running(
+    host
+      .cmd()
+      .args(["estate", "slots", "watch"])
+      .stdin(std::process::Stdio::null())
+      .stdout(std::process::Stdio::piped())
+      .stderr(std::process::Stdio::piped())
+      .spawn()
+      .expect("start the watch"),
+  );
+  let stdout = watch.0.stdout.take().expect("the watch's stdout");
+  let (tx, rx) = std::sync::mpsc::channel();
+  let reader = std::thread::spawn(move || {
+    for line in BufReader::new(stdout).lines().map_while(Result::ok) {
+      if tx.send(line).is_err() {
+        break;
+      }
+    }
+  });
+  let next = |rx: &std::sync::mpsc::Receiver<String>| {
+    rx.recv_timeout(std::time::Duration::from_secs(20))
+      .expect("a line from the watch")
+  };
+  assert_eq!(
+    next(&rx),
+    format!("asked: {id} heavy by molt-vc -- a judge")
+  );
+  ok_out(&slot(
+    &host,
+    "s-ctl",
+    &["slots", "grant", id, "--lane", "heavy"],
+  ));
+  assert_eq!(
+    next(&rx),
+    format!("granted: {id} heavy by molt-vc -- a judge (into heavy)")
+  );
+
+  // The reader goes: the forwarding thread stops at the next line it is
+  // handed and closes the pipe, so the write after that one meets no reader.
+  drop(rx);
+  ok_out(&slot(&host, "s-ctl", &["slots", "start", id]));
+  let pause = std::time::Duration::from_millis(50);
+  for _ in 0..400 {
+    if reader.is_finished() {
+      break;
+    }
+    std::thread::sleep(pause);
+  }
+  assert!(reader.is_finished(), "the reader never saw the start");
+  ok_out(&slot(&host, "s-ctl", &["slots", "release", id]));
+  let status = (0..400)
+    .find_map(|_| {
+      let done = watch.0.try_wait().expect("poll the watch");
+      if done.is_none() {
+        std::thread::sleep(pause);
+      }
+      done
+    })
+    .expect("the watch ended once its reader had gone");
+  let mut err = String::new();
+  watch
+    .0
+    .stderr
+    .take()
+    .expect("the watch's stderr")
+    .read_to_string(&mut err)
+    .expect("read the watch's stderr");
+  assert!(status.success(), "{status:?}: {err}");
+  assert!(!err.contains("panicked"), "{err}");
+}
+
+/// ST0086 AT-04.4
+///
+/// AC-04.4, the prompt hook's verb through the binary: `slots pending` names
+/// the waiting ask to the session holding control, prints nothing to any other
+/// session or outside one, and exits 0 every time.
+#[test]
+fn pending_names_the_waiting_ask_to_the_controller_and_nothing_to_others() {
+  let host = Host::new();
+  let ids = desk_with_asks(&host, &["a judge"]);
+  let id = &ids[0];
+
+  let to_ctl = ok_out(&slot(&host, "s-ctl", &["slots", "pending"]));
+  assert!(
+    to_ctl
+      .lines()
+      .any(|l| l == format!("asked: {id} heavy by molt-vc -- a judge")),
+    "{to_ctl}"
+  );
+  let to_other = ok_out(&slot(&host, "s-other", &["slots", "pending"]));
+  assert!(to_other.is_empty(), "{to_other}");
+  let outside = host
+    .cmd()
+    .args(["estate", "slots", "pending"])
+    .output()
+    .expect("run pending outside a session");
+  assert!(outside.status.success());
+  assert!(
+    outside.stdout.is_empty() && outside.stderr.is_empty(),
+    "{}{}",
+    String::from_utf8_lossy(&outside.stdout),
+    String::from_utf8_lossy(&outside.stderr)
+  );
+}
+
+/// ST0086 AT-04.6
+///
+/// vc's condition on the prompt hook, through the binary: a controller record
+/// that will not parse is the reader's `controller_unreadable` and the
+/// terminal form's control line, never NO CONTROLLER, so dropping the hook's
+/// stderr is never the only place it lands.
+#[test]
+fn an_unreadable_controller_record_is_named_where_a_person_looks() {
+  let host = Host::new();
+  let record = host
+    .home
+    .join(".local/state/intent/estate/slots/controller.json");
+  std::fs::create_dir_all(record.parent().expect("the slots dir")).expect("mkdir the slots dir");
+  std::fs::write(&record, "not json").expect("plant a broken record");
+
+  let v = host.status_json();
+  assert_eq!(v["controller"], serde_json::Value::Null);
+  assert!(
+    v["controller_unreadable"]["why"]
+      .as_str()
+      .is_some_and(|w| w.contains("not JSON")),
+    "{v:#}"
+  );
+  let status = host
+    .cmd()
+    .env("COLUMNS", "200")
+    .args(["estate", "status"])
+    .output()
+    .expect("run estate status");
+  let text = ok_out(&status);
+  assert!(
+    text
+      .lines()
+      .any(|l| l.starts_with("control  controller record UNREADABLE at ")),
+    "{text}"
+  );
+  assert!(!text.contains("NO CONTROLLER"), "{text}");
 }

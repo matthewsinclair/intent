@@ -54,7 +54,7 @@ Auto-insert mechanisms (the chain blocks) use marker pairs (`intent-chain-block:
 `.claude/settings.json` wires Claude Code lifecycle hooks shipped with the canon, each dispatching `intent claude hook <name>`, which execs `<install>/lib/templates/.claude/scripts/<name>.sh` (`install.rs`):
 
 - **SessionStart** (`session-context`) -- prints project context, branch and active steel thread.
-- **UserPromptSubmit** (`require-in-session.sh`) -- strict gate: blocks the first prompt until `/in-session` has run. Released cooperatively when the skill writes `/tmp/intent/in-session-<UUID>.sentinel`.
+- **UserPromptSubmit** (`require-in-session.sh`) -- strict gate: blocks the first prompt until `/in-session` has run. Released cooperatively when the skill writes `/tmp/intent/in-session-<UUID>.sentinel`. On a prompt that passes it also prints what `intent estate slots pending` prints: the slot asks waiting for the host's controller, and nothing in any other session (ST0086 AC-04.4).
 - **Stop** (`session-finish`) -- prints the `/in-finish` reminder at session wrap.
 
 This pattern means every coding session starts with `/in-session`, which loads the right language skills and Highlander/PFIC/Thin-Coordinator/No-Silent-Errors discipline before any code is written.

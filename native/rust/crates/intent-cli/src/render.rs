@@ -10581,7 +10581,21 @@ fn estate_host(v: &serde_json::Value) -> Vec<(String, String)> {
   // the page's reading: the next take succeeds, and saying so is the point.
   let ctl = &v["controller"];
   let mut first = true;
-  if ctl.is_null() {
+  // **A CONTROLLER RECORD THAT WILL NOT PARSE IS NOT NO CONTROLLER** (vc's
+  // ruling, 2026-10-26): nobody can tell who holds control, and this line is
+  // where a person looks, so it says so, the record's path and reason with it.
+  let unreadable = &v["controller_unreadable"];
+  if ctl.is_null() && !unreadable.is_null() {
+    push(
+      "control",
+      &mut first,
+      format!(
+        "controller record UNREADABLE at {}: {}",
+        s(&unreadable["path"]),
+        s(&unreadable["why"])
+      ),
+    );
+  } else if ctl.is_null() {
     push(
       "control",
       &mut first,
@@ -11278,10 +11292,17 @@ const SLOTS_FLAGS: &[&str] = &[
   "place-of",
   "result",
   "relayed",
+  "timeout",
   "node",
 ];
 
-/// `intent estate slots <ask|grant|deny|revoke|start|release>` (ST0086 WP-04).
+/// `intent estate slots <ask|grant|deny|revoke|start|release|wait|watch|pending>`
+/// (ST0086 WP-04).
+///
+/// **`wait`, `watch` AND `pending` WRITE NOTHING AND ACT AS NO CALLER** (Part
+/// B, AC-04.4): they read the requests and never a session file to build a
+/// caller, and `watch` and `pending` name no request, so the one positional
+/// slot the verbs share is optional and each verb says whether it takes it.
 fn estate_slots(m: &ArgMatches) -> Result<(), Failure> {
   let Some((verb, a)) = m.subcommand() else {
     return unwired("estate", "slots");
@@ -11300,16 +11321,38 @@ fn estate_slots(m: &ArgMatches) -> Result<(), Failure> {
     "grant" => &["lane", "node"],
     "start" => &["named", "relayed", "node"],
     "release" => &["result", "relayed", "node"],
+    "wait" => &["timeout"],
+    "watch" | "pending" => &[],
     _ => &["node"],
   };
   refuse_foreign(a, &full, SLOTS_FLAGS, allowed)?;
-  let subject = arg(a, "subject")?;
+  let subject = opt(a, "subject")?;
   let text = opt(a, "text")?;
+  if matches!(verb, "watch" | "pending") {
+    if subject.is_some() || text.is_some() {
+      return Err(Failure::Error(format!(
+        "error: `{full}` takes no argument\n  remedy: `intent {full} --help`"
+      )));
+    }
+    return if verb == "watch" {
+      slots_watch()
+    } else {
+      slots_pending()
+    };
+  }
+  let Some(subject) = subject else {
+    return Err(Failure::Error(format!(
+      "error: `{full}` needs its subject\n  remedy: `intent {full} --help`"
+    )));
+  };
   let takes_text = matches!(verb, "ask" | "deny" | "revoke");
   if text.is_some() && !takes_text {
     return Err(Failure::Error(format!(
       "error: `{full}` takes the request id alone\n  remedy: `intent {full} --help`"
     )));
+  }
+  if verb == "wait" {
+    return slots_wait(&subject, opt(a, "timeout")?);
   }
   let (dirs, caller) = slot_caller(a)?;
   use intentsvcs::estate::slots;
@@ -11389,6 +11432,203 @@ fn estate_slots(m: &ArgMatches) -> Result<(), Failure> {
     }
     other => unwired("estate", &format!("slots {other}")),
   }
+}
+
+/// Each session's name by its id, for the slot verbs' lines (ST0086 AC-04.4).
+///
+/// **A FAILED READ IS SAID, NOT SWALLOWED**: one `warning:` line on stderr,
+/// and the lines then show the asker's session id where its name would be, a
+/// visible degradation rather than a missing fact.
+fn slot_names(claude: &Path) -> std::collections::BTreeMap<String, String> {
+  match intentsvcs::estate::slots::names(claude) {
+    Ok(names) => names,
+    Err(e) => {
+      eprintln!(
+        "warning: the session names could not be read, so session ids stand in for them: {e}"
+      );
+      std::collections::BTreeMap::new()
+    }
+  }
+}
+
+/// One line for a request in a slot verb's output: the step word, the full id
+/// so it can be copied into a grant, the type, who asked and what, then what
+/// the step adds.
+///
+/// **ONE SHAPE FOR `wait`, `watch` AND `pending`, STEP WORD FIRST** (vc's
+/// ruling, 2026-10-26), so a Monitor filters on the first word and the prompt
+/// hook names an ask in the words the watch uses.
+fn slot_line(
+  step: intentsvcs::estate::slots::Step,
+  r: &intentsvcs::estate::slots::Request,
+  names: &std::collections::BTreeMap<String, String>,
+) -> String {
+  use intentsvcs::estate::slots::{GATE_HOLD, Step};
+  let a = &r.ask.record;
+  let who = names.get(&a.by).map_or(a.by.as_str(), String::as_str);
+  let tail = match step {
+    Step::Asked => {
+      let tags = a.tags.iter().map(|t| format!(" [{t}]"));
+      let gates = a.gates.iter().map(|g| {
+        if g.kind == GATE_HOLD {
+          format!(" (hold: {})", g.text)
+        } else {
+          format!(" ({})", g.text)
+        }
+      });
+      tags.chain(gates).collect::<String>()
+    }
+    Step::Granted => {
+      let lanes = r.lanes();
+      if lanes.is_empty() {
+        " (into no lane)".to_string()
+      } else {
+        format!(" (into {})", lanes.join("+"))
+      }
+    }
+    Step::Denied => r
+      .deny
+      .as_ref()
+      .map(|d| format!(" (why: {})", d.record.why))
+      .unwrap_or_default(),
+    Step::Revoked => r
+      .revoke
+      .as_ref()
+      .map(|v| format!(" (why: {})", v.record.why))
+      .unwrap_or_default(),
+    Step::Started => {
+      if r.start.as_ref().is_some_and(|s| s.record.relayed) {
+        " (relayed)".to_string()
+      } else {
+        String::new()
+      }
+    }
+    Step::Ended => r
+      .end
+      .as_ref()
+      .and_then(|e| e.record.result.as_deref())
+      .map(|result| format!(" (result: {result})"))
+      .unwrap_or_default(),
+  };
+  format!(
+    "{}: {} {} by {who} -- {}{tail}",
+    step.as_str(),
+    a.id,
+    a.kind,
+    a.what
+  )
+}
+
+/// `intent estate slots wait <id> [--timeout <s>]` (ST0086 AC-04.4): blocks
+/// until the controller answers the ask.
+///
+/// **ONE LINE ON STDOUT, AND THE EXIT CODE SAYS WHICH** (vc's ruling,
+/// 2026-10-26, INV-04): `granted:` exits 0; `denied:` and `revoked:` exit 1,
+/// because the answer is no; and `waiting:`, the ask still standing at the
+/// timeout, exits 4, because nothing was judged. With no `--timeout` it waits
+/// as long as the ask stands, and an ask already answered returns at once.
+fn slots_wait(id: &str, timeout: Option<String>) -> Result<(), Failure> {
+  use intentsvcs::estate::slots::{self, Answer, Step};
+  let limit = match timeout {
+    None => None,
+    Some(raw) => Some(std::time::Duration::from_secs(
+      raw.parse::<u64>().map_err(|_| {
+        Failure::Error(format!(
+          "error: --timeout `{raw}` is not a whole number of seconds\n  remedy: give the seconds to wait, eg `--timeout 600`"
+        ))
+      })?,
+    )),
+  };
+  let (dirs, claude) = intentsvcs::estate::host_slot_dirs().map_err(estate_fail)?;
+  let Some((r, said)) = slots::wait(&dirs, id, limit, slots::PAUSE).map_err(slot_fail)? else {
+    let secs = limit.map_or(0, |l| l.as_secs());
+    println!("waiting: {id} is still asked after {secs}s");
+    return Err(Failure::Unjudgeable(format!(
+      "error: the controller has not answered `{id}`\n  remedy: wait again with `intent estate slots wait {id}`, or read the queue with `intent estate status`"
+    )));
+  };
+  let step = match said {
+    Answer::Granted => Step::Granted,
+    Answer::Denied => Step::Denied,
+    Answer::Revoked => Step::Revoked,
+  };
+  println!("{}", slot_line(step, &r, &slot_names(&claude)));
+  match said {
+    Answer::Granted => Ok(()),
+    Answer::Denied | Answer::Revoked => Err(Failure::Verdict),
+  }
+}
+
+/// `intent estate slots watch` (ST0086 AC-04.4): one line per state change
+/// under `slots/requests/`, in the shape a Monitor consumes.
+///
+/// **EVERY STATE CHANGE, STEP WORD FIRST, FULL ID** (vc's ruling, 2026-10-26),
+/// the controller's own steps among them, opening with an `asked:` line for
+/// each ask already waiting so a watch armed after an ask still hears of it.
+///
+/// **A READER THAT GOES AWAY ENDS IT, EXIT 0** (vc's ruling, 2026-10-26).
+/// Rust ignores SIGPIPE, so a `println!` into a closed pipe panics, which
+/// issue 0613's hook turns into a filter's 141. A watch whose reader has gone,
+/// a stopped Monitor or `| head -n 1`, has done what it was asked, so every
+/// line is written with `writeln!` and the first write that fails ends it
+/// with 0.
+fn slots_watch() -> Result<(), Failure> {
+  use std::io::Write;
+  let (dirs, claude) = intentsvcs::estate::host_slot_dirs().map_err(estate_fail)?;
+  let mut names = slot_names(&claude);
+  let mut out = std::io::stdout().lock();
+  intentsvcs::estate::slots::watch(&dirs, intentsvcs::estate::slots::PAUSE, |step, r| {
+    // An asker that started after the names were read is read again.
+    if !names.contains_key(&r.ask.record.by) {
+      names = slot_names(&claude);
+    }
+    writeln!(out, "{}", slot_line(step, r, &names)).is_ok()
+  });
+  Ok(())
+}
+
+/// `intent estate slots pending` (ST0086 AC-04.4): the asks waiting for this
+/// session when it holds control of the host's slots, which the
+/// UserPromptSubmit hook prints into the controller's prompt.
+///
+/// **SILENT FOR EVERY OTHER SESSION, AND IT NEVER FAILS A PROMPT** (vc's
+/// ruling, 2026-10-26): one read of the controller's record, the requests only
+/// when this session holds control, no lock and no daemon. A read that fails
+/// is one `error:` line on stderr and exit 0, so nothing is put into a prompt
+/// and nothing is blocked.
+fn slots_pending() -> Result<(), Failure> {
+  let Some(session) = pickup_session(None) else {
+    return Ok(());
+  };
+  let (dirs, claude) = match intentsvcs::estate::host_slot_dirs() {
+    Ok(found) => found,
+    Err(e) => {
+      eprintln!("error: {e}");
+      return Ok(());
+    }
+  };
+  let mut unreadable = Vec::new();
+  let asks = intentsvcs::estate::slots::pending(&dirs, &session, &mut unreadable);
+  if let Some(u) = unreadable.first() {
+    eprintln!("error: {} could not be read: {}", u.path, u.why);
+  }
+  let Some(asks) = asks.filter(|asks| !asks.is_empty()) else {
+    return Ok(());
+  };
+  let names = slot_names(&claude);
+  println!(
+    "intent estate: this session holds control of the host's slots, and these asks wait for its judgement:"
+  );
+  for r in &asks {
+    println!(
+      "{}",
+      slot_line(intentsvcs::estate::slots::Step::Asked, r, &names)
+    );
+  }
+  println!(
+    "Judge each against the lanes and the load in `intent estate status`: `intent estate slots grant <id> --lane <lane>,...` grants it, and `intent estate slots deny <id> \"<why>\"` refuses it."
+  );
+  Ok(())
 }
 
 /// `intent estate statusline`: the statusline step (ST0086 WP-02). Reads the
@@ -17582,6 +17822,37 @@ mod tests {
         ("", "  AQUEUE  queued  intent-ic  the WP-03 judge  2m00"),
       ]
       .map(|(l, t)| (l.to_string(), t.to_string()))
+    );
+  }
+
+  /// ST0086 AT-04.6
+  ///
+  /// vc's condition on the prompt hook: a controller record that will not
+  /// parse is named on the control line, its path and reason with it, and is
+  /// never read as NO CONTROLLER.
+  #[test]
+  fn an_unreadable_controller_record_is_named_on_the_control_line() {
+    let v = serde_json::json!({
+      "taken_at": "2026-10-25T17:00:00Z",
+      "sessions": [],
+      "census": {"load": [], "procs": [], "history": []},
+      "controller": null,
+      "controller_unreadable": {
+        "path": "/s/estate/slots/controller.json",
+        "why": "not JSON: expected value at line 1 column 1"
+      },
+      "lanes": [],
+      "queue": []
+    });
+    let host = estate_host(&v);
+    let named = (
+      "control".to_string(),
+      "controller record UNREADABLE at /s/estate/slots/controller.json: not JSON: expected value at line 1 column 1".to_string(),
+    );
+    assert!(host.contains(&named), "{host:?}");
+    assert!(
+      !host.iter().any(|(_, t)| t.starts_with("NO CONTROLLER")),
+      "{host:?}"
     );
   }
 

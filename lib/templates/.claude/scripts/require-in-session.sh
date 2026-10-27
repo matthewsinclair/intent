@@ -8,6 +8,12 @@
 #   `/in-session` skill writes the sentinel in its final step (cooperating
 #   handoff).
 #
+#   Second duty: on a prompt that passes, name the slot
+#   asks waiting for this session when it holds control of the host's
+#   slots, by running `intent estate slots pending`. That prints nothing
+#   for any other session, takes no lock and asks no daemon, so every other
+#   prompt on the host pays one read of the controller's record.
+#
 # Contract:
 #   - Invoked by `.claude/settings.json` UserPromptSubmit hook.
 #   - Receives Claude Code UserPromptSubmit event JSON on stdin (includes
@@ -30,6 +36,10 @@
 #   - Stderr is surfaced to the user by Claude Code on exit 2. On exit 0 it
 #     reaches nobody, and plain stdout reaches only the model, which is why
 #     the fail-open notice is JSON.
+#   - On the two pass paths, a slash command and the sentinel present,
+#     stdout carries what `intent estate slots pending` prints; never on a
+#     block, and never beside the fail-open notice, whose stdout is one JSON
+#     object.
 
 # set -u only: -e and -o pipefail are deliberately omitted so a jq/cat hiccup
 # cannot turn this gate hook into a hard abort. The script decides pass/block
@@ -74,13 +84,26 @@ elif [ -n "$payload" ]; then
   fi
 fi
 
+# The second duty (see Purpose). `pending` always exits 0. Its stderr is
+# dropped, as the other hooks drop intent's: on exit 0 a hook's stderr
+# reaches nobody, and an intent on PATH older than the verb would refuse it
+# there on every prompt.
+name_pending_asks() {
+  command -v intent >/dev/null 2>&1 || return 0
+  intent estate slots pending 2>/dev/null || true
+}
+
 case "$prompt" in
-  /*) exit 0 ;;
+  /*)
+    name_pending_asks
+    exit 0
+    ;;
 esac
 
 sentinel="${SENTINEL_DIR}/in-session-${session_id}.sentinel"
 
 if [ -f "$sentinel" ]; then
+  name_pending_asks
   exit 0
 fi
 

@@ -240,9 +240,9 @@ pub struct SessionRow {
 /// The estate, as every renderer receives it.
 ///
 /// **EVERY KEY IS PRESENT FROM WP-01**, so a renderer never branches on a
-/// missing one: `controller`, `lanes`, `holds`, `queue` and `recent` are
-/// filled from the slot records ([`slots`], WP-04), and hold their empty
-/// shapes where there are none. `recent` has `queue`'s row
+/// missing one: `controller`, `controller_unreadable`, `lanes`, `holds`,
+/// `queue` and `recent` are filled from the slot records ([`slots`], WP-04),
+/// and hold their empty shapes where there are none. `recent` has `queue`'s row
 /// shape and holds what ended, was denied or was revoked in the last hour,
 /// oldest end first, so the page's pipeline draws its finished cells from the
 /// reader rather than keeping history of its own (AC-04.7).
@@ -254,6 +254,9 @@ pub struct EstateStatus {
   pub taken_at: String,
   pub census: census::Census,
   pub controller: Value,
+  /// Null, or the path and reason of a `controller.json` that will not parse
+  /// (ST0086 WP-04 Part B).
+  pub controller_unreadable: Value,
   pub lanes: Value,
   pub queue: Value,
   pub recent: Value,
@@ -597,6 +600,7 @@ pub fn join(gathered: Gathered, now: OffsetDateTime) -> EstateStatus {
     taken_at: iso(now).unwrap_or_default(),
     census,
     controller: slots::controller_value(&slots),
+    controller_unreadable: slots::controller_unreadable_value(&slots),
     lanes: slots::lanes_value(&slots),
     queue: slots::queue_value(&slots),
     recent: slots::recent_value(&slots, |at| at >= since),

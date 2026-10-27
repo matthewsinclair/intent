@@ -256,3 +256,85 @@ no_jq_path() {
   [[ "$stderr" == *"Expected sentinel:"* ]]
   teardown_gate
 }
+
+# --------------------------------------------------------------------
+# ST0086 AT-04.4
+#
+# The second duty: on a prompt that passes, the gate prints what
+# `intent estate slots pending` prints, the asks waiting for the host's
+# controller; on a block, or beside the fail-open notice, it prints none of
+# it, and a pending verb that fails reaches neither the prompt nor its
+# stderr. A stub `intent` first on PATH stands in for the verb.
+# --------------------------------------------------------------------
+
+stub_intent() {
+  STUB_BIN="$BATS_TEST_TMPDIR/stub-bin"
+  mkdir -p "$STUB_BIN"
+  cat > "$STUB_BIN/intent" <<'EOS'
+#!/usr/bin/env bash
+if [ "$1 $2 $3" = "estate slots pending" ]; then
+  out="${STUB_PENDING_OUT-asked: 01STUBASK heavy by molt-vc -- a judge}"
+  [ -n "$out" ] && printf '%s\n' "$out"
+  [ -n "${STUB_PENDING_ERR:-}" ] && printf '%s\n' "$STUB_PENDING_ERR" >&2
+  exit "${STUB_PENDING_RC:-0}"
+fi
+exit 0
+EOS
+  chmod +x "$STUB_BIN/intent"
+}
+
+@test "a prompt that passes on its sentinel names the controller's waiting asks" {
+  setup_gate
+  stub_intent
+  touch "$GATE_SENTINEL"
+  run --separate-stderr env PATH="$STUB_BIN:$PATH" CLAUDE_CODE_SESSION_ID="$GATE_SESSION_ID" \
+    bash "$SCRIPT" <<< '{"prompt":"hello"}'
+  [ "$status" -eq 0 ] || fail "status $status, stderr: $stderr"
+  [[ "$output" == *"asked: 01STUBASK heavy by molt-vc -- a judge"* ]] || fail "no asks: $output"
+  teardown_gate
+}
+
+@test "a slash command names the controller's waiting asks too" {
+  setup_gate
+  stub_intent
+  run --separate-stderr env PATH="$STUB_BIN:$PATH" CLAUDE_CODE_SESSION_ID="$GATE_SESSION_ID" \
+    bash "$SCRIPT" <<< '{"prompt":"/help"}'
+  [ "$status" -eq 0 ] || fail "status $status, stderr: $stderr"
+  [[ "$output" == *"asked: 01STUBASK"* ]] || fail "no asks: $output"
+  teardown_gate
+}
+
+@test "a blocked prompt names no asks" {
+  setup_gate
+  stub_intent
+  run --separate-stderr env PATH="$STUB_BIN:$PATH" CLAUDE_CODE_SESSION_ID="$GATE_SESSION_ID" \
+    bash "$SCRIPT" <<< '{"prompt":"hello"}'
+  [ "$status" -eq 2 ]
+  [ -z "$output" ] || fail "asks beside a block: $output"
+  teardown_gate
+}
+
+@test "the fail-open notice stays one JSON object while asks wait" {
+  setup_gate
+  stub_intent
+  rm -f "$HOME/.claude/skills/in-session/scripts/release-gate.sh"
+  run --separate-stderr env PATH="$STUB_BIN:$PATH" CLAUDE_CODE_SESSION_ID="$GATE_SESSION_ID" \
+    bash "$SCRIPT" <<< '{"prompt":"hello"}'
+  [ "$status" -eq 0 ] || fail "status $status, stderr: $stderr"
+  [[ "$output" == '{"systemMessage":'* ]] || fail "not the JSON notice: $output"
+  [[ "$output" != *"01STUBASK"* ]] || fail "asks beside the notice: $output"
+  teardown_gate
+}
+
+@test "a pending verb that fails neither blocks the prompt nor reaches it" {
+  setup_gate
+  stub_intent
+  touch "$GATE_SENTINEL"
+  run --separate-stderr env PATH="$STUB_BIN:$PATH" STUB_PENDING_OUT= \
+    STUB_PENDING_ERR="error: the controller's record could not be read" STUB_PENDING_RC=1 \
+    CLAUDE_CODE_SESSION_ID="$GATE_SESSION_ID" bash "$SCRIPT" <<< '{"prompt":"hello"}'
+  [ "$status" -eq 0 ] || fail "status $status"
+  [ -z "$output" ] || fail "text reached the prompt: $output"
+  [ -z "$stderr" ] || fail "stderr: $stderr"
+  teardown_gate
+}

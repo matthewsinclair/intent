@@ -9732,24 +9732,27 @@
         },
         {
           "path": "estate slots",
-          "help": "Ask for a slot and run in it, or, as the controller, grant, deny or revoke one",
-          "when_to_use": "USE IT to book a run on this host instead of a READY message. `ask <type> \"<what>\" [--lane <lane>] [--named k=v,...] [--tag t,...] [--not-before <id>,...] [--hold \"<condition>\"] [--place-of <id>]` queues a request and prints its id; `--named` records the bytes the booking runs, and `start` must name the same set. As the controller, `grant <id> --lane <lane>,<lane>,...` (or `--lane none` for a negligible run) grants into every lane named, refused over capacity, under a hold, before a `--not-before` request has ended, or over a lane's load admission; `deny <id> \"<why>\"` refuses an ask, and `revoke <id> \"<why>\"` ends any open request, freeing what it held. As the asker, `start <id> [--named ...] [--relayed]` starts a granted request and `release <id> [--result \"<text>\"] [--relayed]` ends it; the service stamps both. DO NOT USE IT to say where a run stands: `intent estate status` reads the requests.",
+          "help": "Ask for a slot, wait for the answer and run in it, or, as the controller, grant, deny or revoke one and watch them all",
+          "when_to_use": "USE IT to book a run on this host instead of a READY message. `ask <type> \"<what>\" [--lane <lane>] [--named k=v,...] [--tag t,...] [--not-before <id>,...] [--hold \"<condition>\"] [--place-of <id>]` queues a request and prints its id; `--named` records the bytes the booking runs, and `start` must name the same set. `wait <id> [--timeout <seconds>]` blocks until the controller answers it, printing one line: `granted:` exits 0, `denied:` or `revoked:` exits 1, and `waiting:` at the timeout exits 4. As the controller, `grant <id> --lane <lane>,<lane>,...` (or `--lane none` for a negligible run) grants into every lane named, refused over capacity, under a hold, before a `--not-before` request has ended, or over a lane's load admission; `deny <id> \"<why>\"` refuses an ask, and `revoke <id> \"<why>\"` ends any open request, freeing what it held. `watch` prints one line per state change under the requests, step word first and full id, opening with the asks already waiting, until its reader goes away: run it under a Monitor. `pending` names the asks waiting for this session when it holds control and prints nothing otherwise; the UserPromptSubmit hook runs it on every prompt. As the asker, `start <id> [--named ...] [--relayed]` starts a granted request and `release <id> [--result \"<text>\"] [--relayed]` ends it; the service stamps both. DO NOT USE IT to say where a run stands: `intent estate status` reads the requests.",
           "args": [
             {
               "name": "verb",
               "type": "subcommand",
               "arity": "1",
-              "values": ["ask", "grant", "deny", "revoke", "start", "release"],
+              "values": ["ask", "grant", "deny", "revoke", "start", "release", "wait", "watch", "pending"],
               "value_help": {
                 "ask": "Queue a request and print its id",
                 "grant": "Grant a request into every lane named (the controller's)",
                 "deny": "Refuse a request still asked (the controller's)",
                 "revoke": "End an open request and free what it held (the controller's)",
                 "start": "Start a granted request (the asker's)",
-                "release": "End a granted or running request (the asker's)"
+                "release": "End a granted or running request (the asker's)",
+                "wait": "Block until the controller answers a request: exit 0 granted, 1 denied or revoked, 4 still asked at --timeout",
+                "watch": "Print one line per state change under the requests until the reader goes away",
+                "pending": "Name the asks waiting for this session when it holds control, and nothing otherwise"
               }
             },
-            { "name": "subject", "type": "string", "arity": "1", "note": "The request type for `ask`, the request id for every other verb." },
+            { "name": "subject", "type": "string", "arity": "0..1", "note": "The request type for `ask`; the request id for `grant`, `deny`, `revoke`, `start`, `release` and `wait`, each of which refuses without it; `watch` and `pending` take none." },
             { "name": "text", "type": "string", "arity": "0..1", "note": "What the run is, for `ask`; the reason, for `deny` and `revoke`." }
           ],
           "v2": "new-surface",
@@ -9824,6 +9827,14 @@
               "spellings": ["--relayed"],
               "type": "bool",
               "help": "The stamp is a relay's time, for a run on another host, not the run's own clock",
+              "disposition": "keep",
+              "exposed_on_mcp": false
+            },
+            {
+              "spellings": ["--timeout"],
+              "type": "integer",
+              "help": "For wait, the seconds to wait for the controller's answer, with none waiting as long as the ask stands; wait exits 0 granted, 1 denied or revoked, and 4 with the ask still standing at the timeout",
+              "value": "<seconds>",
               "disposition": "keep",
               "exposed_on_mcp": false
             },
@@ -11427,7 +11438,7 @@
       },
       {
         "path": "estate slots",
-        "why": "writes WHEN INVOKED with the probe's values -- `estate slots ask <sentinel> <sentinel>` is a valid ask, and would queue a request under the operator's state directory that the page and the controller then read (ST0086 WP-04)."
+        "why": "writes WHEN INVOKED with the probe's values -- `estate slots ask <sentinel> <sentinel>` is a valid ask, and would queue a request under the operator's state directory that the page and the controller then read (ST0086 WP-04). And it NEVER RETURNS when invoked as `estate slots watch`, which reports every state change until its reader goes away (ST0086 AC-04.4)."
       }
     ],
     "declared": [
