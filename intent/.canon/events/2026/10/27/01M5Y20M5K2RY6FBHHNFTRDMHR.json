@@ -1,0 +1,16 @@
+{
+  "id": "01M5Y20M5K2RY6FBHHNFTRDMHR",
+  "ts": "2026-10-27T06:50:55.028Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 58,
+    "text": "After pipeline-cell-width-v4 lands with Part B's train, add the cells' shape to ST0086 design.md's pipeline paragraph (as-written lags as-built). The draft is banked at refs/bank/ic/0086/design-cells-v1 (blob 93bf3e0a61c3, patch-id 917d2f6ce431) over design.md blob a435b11823b6: one sentence after \"oldest ask first.\", reading \"Every cell is 18rem wide whatever its text (hv's ask in ic's session, 2026-10-26): its main line, what the request runs, wraps to at most four lines and its meta line to two before either ends in an ellipsis, and its title carries the request's id, that text in full and its requester.\" Each clause was read against cell-width-v4's CSS (`.cell` at `flex: 0 0 18rem` with `min-width: 0`, `.what` clamped at four lines, `.meta` at two) and the title shell.html's `cell()` sets (id, what, requester). The paragraph is one line, so if cc's design.md edits after the green judge reach it first, the sentence is re-applied by hand onto the new file. It lands through `intent st attach ST0086 design.md --from <file>`, or the file plus `intent sync --to-store`, inside a chain, board and doc paths only."
+  }
+}
