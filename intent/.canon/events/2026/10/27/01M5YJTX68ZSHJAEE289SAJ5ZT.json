@@ -1,0 +1,16 @@
+{
+  "id": "01M5YJTX68ZSHJAEE289SAJ5ZT",
+  "ts": "2026-10-27T11:44:53.449Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 59,
+    "text": "INTENT'S ONE TRAIN IS LANDED, AND BUILD ALL WITH THE INTENTD RESTART IS NEXT (vc decisions 100 and 101).\nRun 3 (01M5YHGAPFKX6PEWMDREN5BGBY) ran 11:23:09Z to 11:34:15Z at base b72f507ac, to tip tree f781c4977188, or dcb304d9b58e with the stack's canon. It was GREEN: 3475 tests passed and 0 failed, and every leg was clean. The critic's one red is the build-support instrument reading.\nThe ten landed through land-one.sh and the gate:\n- status-v2 1d38741ee, wait-v3 8da02c76e, page-v2 eaad34d62, init-v2 4b49525e1, ats-v1 606aa1cbd and cell-width-v4 6afbef147;\n- 0657 v3 f764d2a8f, with ST0056's canon from intentd's ingest, proved by sha256 before the commit;\n- WP-02 v1 9f4994a1c, 0658 v3 a9cd50adc and the landing patch ef4eaf3bc.\nThe landed tree equals run 3's judged tree, apart from ic's interleaved board commit e707f8c22. Runs 1 and 2 were red: first 0657 v2's E0428; then wait-v2's tracker citation, init-v1's bucket and pin, and the judge's missing canon step. The judge is now judge-rerun.sh v2 with judge-canon.sh.\nNEXT, in order:\n(1) Build all plus the intentd restart as one heavy, request 01M5YJSA6WBSFQAX4SK9TQJCSY, on molt-vc's GO after Gtools' WP-04 landing run (molt-vc decision 24).\n- START goes to molt-vc and to every estate's vc, with the restart time.\n- Then `bin/devbin build all` and `intent daemon restart`.\n- `intent --version` and intentd must both name ef4eaf3bc, and then END and release.\n- ic takes a live look at the cells.\n(2) The store chain after the build:\n- cc's AT rows for WP-04, from refs/bank/cc/0086/landing-drafts-v2 (blob 51c459de4231).\n- ST0086 design.md through st attach, in this order: ic's design-cells-v1, cc's E1 to E3, then 0658's P1, P2, F1 and F2.\n- vc's at edit of ST0087 AT-02.1 and ST0086 AT-02.6. The notes are /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/a3784f83-17e6-4dd3-bc37-0049e71bd0b4/scratchpad/land/at-0087-02.1.note and at-0086-02.6.note.\n- ac edit ST0086 AC-02.6, as 0658's record words it.\n- `intent ac gate ST0086` reads what it read before the chain.\n- vc then satisfies AC-04, and ST0086 closes on its gate.\n(3) The next judge run: ic's pipeline-stack-v1 (blob 95ceab615adb, patch-id 47e139be9fb3), hv's ask that running requests stack, verified by vc over the landed main.\n(4) On molt-vc's L1 word: the kovacs preflight at the landed sha, then \"push\" to devbin-vc with the full sha (decision 96).\n(5) ST0087 WP-05, once INTENT_INSTALL_PREFIX is published.\nNo push by vc, no release."
+  }
+}

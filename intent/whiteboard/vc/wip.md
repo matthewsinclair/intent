@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a3784f83-17e6-4dd3-bc37-0049e71bd0b4
-heartbeat_at: 2026-10-27 11:13Z
+heartbeat_at: 2026-10-27 11:44Z
 status: active
-focus: "Intent's judge run 2 (decision 100) was RED on 4 of 3475 tests, every other leg green: cc owes wait-v3 (AT-00.17) and init-v2 (vc's two rulings), and vc's judge now carries the canon step (judge-rerun.sh v2). Run 3 is asked fresh once vc verifies the re-banks (doing 59). ST0089, hv's Localfold+Compact Policy, is raised. Build all, the kovacs preflight and devbin-vc's push wait for molt-vc's L1 word. No push by vc, no release"
+focus: "Intent's one train is LANDED (1d38741ee..ef4eaf3bc) after run 3's green; build all and the intentd restart follow as one heavy (request 01M5YJSA6WBSFQAX4SK9TQJCSY) on molt-vc's GO after Gtools' WP-04, on hv's 'Unequivocally Yes' (decision 101); then the store chain, and ic's stacking bank in the next run. The kovacs preflight and the push wait for molt-vc's L1 word. No push by vc, no release"
 claims: []
 ---
 
@@ -13,34 +13,30 @@ claims: []
 
 ## DOING
 
-- INTENT'S ONE TRAIN, TEN PATCHES, RUN 3 AFTER cc'S TWO RE-BANKS (vc decision 100, under hv's "ok, go" ahead of L1, with molt-vc granting). STATE: main is past ddb749ca7, which local and upstream hold, by board and record commits only. CI is green on ddb749ca7 on both workflows (rust 40391278700, Intent Tests 40391278720). The installed pair ddb749ca7932 stays untouched until molt-vc closes L1. THE TRAIN, in order, with patch-ids: (edited)
-  - Part B's six: cc's wp04b-status-v2 (4ae2585f7479); cc's wp04b-wait-v2 (2421b3d9719d, v3 owed); ic's wp04b-page-v2 (8126a568631b); cc's wp04b-init-v1 (e8aee9ac86d6, v2 owed); cc's wp04b-ats-v1 (f649be3fa3ea); ic's pipeline-cell-width-v4 (e058514c0734).
-  - cc's 0657 v3 (blob 510619b6e28a, 6e3869af4ff3). It is v2 with its helper renamed git_first_line, verified by vc at 10:40Z.
-  - cc's ST0081 WP-02 v1 (blob 6f72fe1da6a8, 901e9ee541d5).
-  - ic's 0658 v3 (blob 8b35ecc6c7db, 629db68722c0).
-  - vc's landing patch (blob f7ca69de3772, eacf4ba10878; the blob is its identity), with its texts on refs/bank/vc/train/landing-texts (blob 8b7bab7a9c4c).
-  RUN 1 (01M5YCYJ073KP632DV2QY6RTT0) was red within seconds on 0657 v2's duplicate fn first_line (E0428). Its logs are in /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/a3784f83-17e6-4dd3-bc37-0049e71bd0b4/scratchpad/judge-run1-logs/.
-  RUN 2 (01M5YF4Z7RSW8X22PAZXVBQA90) ran 10:51:06Z to 11:04:21Z at base dc6e357f8, to tip tree 7d0437f04ed2. It was RED on 4 of 3475 workspace tests. Every other leg was green: fmt, gen, shellcheck, prettier, both builds, both clippy legs, doc, the release build, bats 847/0 and ic's render. The critic's one red is the build-support instrument reading. Its logs are in /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/ba4ebc52-48ef-410b-bcc0-2e67b291a48f/scratchpad/judge/log-rerun/.
-  - wait-v2 (AT-00.17): the comment in the live-served require-in-session.sh cites ST0086 AC-04.4. cc owes wait-v3, with the citation dropped.
-  - init-v1: `estate init` is in no mutator bucket, and vc ruled it into OUT_OF_ESTATE. It changes the estate family's pin, and vc ruled init INTO the pin, because Project::discover reads a config and never a store. cc owes init-v2.
-  - AT-03.4, attachment drift on ST0056's parity/tools/shared_artefact_build_guard.sh, which 0657 edits: vc's harness had no canon step. judge-rerun.sh v2 (48cfba7e7c68; v1 kept as judge-rerun.v1.sh) runs refs/bank/vc/tools/judge-canon.sh (5184fe5a0e96) after build-cli. That step is the worktree's own binary, an isolated HOME and XDG unset, then `sync --to-store` and `st attach`. It was rehearsed on run 2's tree, where canon then recorded the working copy's sha256.
+- INTENT'S ONE TRAIN IS LANDED, AND BUILD ALL WITH THE INTENTD RESTART IS NEXT (vc decisions 100 and 101). (edited)
+  Run 3 (01M5YHGAPFKX6PEWMDREN5BGBY) ran 11:23:09Z to 11:34:15Z at base b72f507ac, to tip tree f781c4977188, or dcb304d9b58e with the stack's canon. It was GREEN: 3475 tests passed and 0 failed, and every leg was clean. The critic's one red is the build-support instrument reading.
+  The ten landed through land-one.sh and the gate:
+  - status-v2 1d38741ee, wait-v3 8da02c76e, page-v2 eaad34d62, init-v2 4b49525e1, ats-v1 606aa1cbd and cell-width-v4 6afbef147;
+  - 0657 v3 f764d2a8f, with ST0056's canon from intentd's ingest, proved by sha256 before the commit;
+  - WP-02 v1 9f4994a1c, 0658 v3 a9cd50adc and the landing patch ef4eaf3bc.
+  The landed tree equals run 3's judged tree, apart from ic's interleaved board commit e707f8c22. Runs 1 and 2 were red: first 0657 v2's E0428; then wait-v2's tracker citation, init-v1's bucket and pin, and the judge's missing canon step. The judge is now judge-rerun.sh v2 with judge-canon.sh.
   NEXT, in order:
-  (1) cc banks wait-v3 and init-v2, and vc verifies them. Then vc re-asks fresh: /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/a3784f83-17e6-4dd3-bc37-0049e71bd0b4/scratchpad/partb-ask-v3.sh, with the two new patch-ids, and the run is judge-rerun.sh v2. Main holds still from the ask to the start. START and END go to molt-vc, and release takes the id alone.
-  (2) On green:
-  - Announce wait's change to require-in-session.sh to every estate's vc. The text is in that scratchpad's land/announce-gate.txt.
-  - Land the ten in order through land-one.sh, with the messages in land/msgs/.
-  - 0657's commit carries ST0056's canon. The source is intentd's ingest of the guard script, or `intent st attach ST0056 parity/tools/shared_artefact_build_guard.sh --from` that same path when no daemon runs. The ingest is proved before the commit: the working copy's sha256 equals canon's for that path. This replaces the old note to run `sync --to-store ST0056`, which reads canon INTO the store.
-  - Build all only on molt-vc's L1 word, with START and END to every estate's vc.
-  - The kovacs preflight runs at the landed sha. devbin-vc gets "push" with the full sha.
-  - ic takes a live look at the cells after the build.
-  (3) In the landing chain:
+  (1) Build all plus the intentd restart as one heavy, request 01M5YJSA6WBSFQAX4SK9TQJCSY, on molt-vc's GO after Gtools' WP-04 landing run (molt-vc decision 24).
+  - START goes to molt-vc and to every estate's vc, with the restart time.
+  - Then `bin/devbin build all` and `intent daemon restart`.
+  - `intent --version` and intentd must both name ef4eaf3bc, and then END and release.
+  - ic takes a live look at the cells.
+  (2) The store chain after the build:
   - cc's AT rows for WP-04, from refs/bank/cc/0086/landing-drafts-v2 (blob 51c459de4231).
   - ST0086 design.md through st attach, in this order: ic's design-cells-v1, cc's E1 to E3, then 0658's P1, P2, F1 and F2.
-  - vc's at edit of ST0087 AT-02.1 and ST0086 AT-02.6 (notes in land/at-*.note).
+  - vc's at edit of ST0087 AT-02.1 and ST0086 AT-02.6. The notes are /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/a3784f83-17e6-4dd3-bc37-0049e71bd0b4/scratchpad/land/at-0087-02.1.note and at-0086-02.6.note.
   - ac edit ST0086 AC-02.6, as 0658's record words it.
-  vc then satisfies AC-04, and ST0086 closes on its gate.
-  (4) ST0087 WP-05, once INTENT_INSTALL_PREFIX is published.
-  Before accepting a Rust bank, vc greps the module and the stacked train for every name it adds, reads the workspace's source guards, and runs rustfmt judged by its output, with a planted control. No push by vc, no release.
+  - `intent ac gate ST0086` reads what it read before the chain.
+  - vc then satisfies AC-04, and ST0086 closes on its gate.
+  (3) The next judge run: ic's pipeline-stack-v1 (blob 95ceab615adb, patch-id 47e139be9fb3), hv's ask that running requests stack, verified by vc over the landed main.
+  (4) On molt-vc's L1 word: the kovacs preflight at the landed sha, then "push" to devbin-vc with the full sha (decision 96).
+  (5) ST0087 WP-05, once INTENT_INSTALL_PREFIX is published.
+  No push by vc, no release.
 
 ## TODO
 
@@ -83,6 +79,7 @@ _(none)_
 - (2026-10-27, vc under hv's pen granted 2026-08-22, answering ic's hold 15 read) A WORKTREE'S UNREACHABLE COMMITS ARE KEPT UNDER refs/attic/<node>/<worktree> BEFORE THE WORKTREE IS REMOVED. ic found five stale worktrees, each clean with its merge-base on main. Each carries draft commits that only that worktree reaches, superseded by banks that later landed. Removing the worktree would leave those commits to the next gc. A ref costs nothing where it sits, and losing a commit nothing else reaches cannot be undone; that is watchout 57's reasoning, applied here to commits. So before removing such a worktree, its node points `refs/attic/<node>/<worktree name>` at the worktree's HEAD. That ref stands in for the fold check "its index tree is its base with its landed banks applied". The other checks stand: nothing unstaged or untracked, the base an ancestor of main, and no stash entry naming the worktree. The attic is never refs/bank/, whose refs are patch blobs that tooling reads with `git apply`. Like a spent bank ref, an attic ref is never deleted. It binds cc's and dc's stale worktrees as well as ic's. ic set its five at 8a9f1b055's chain, each verified by vc against its worktree's HEAD. Nothing is removed before molt-vc's word on hv's ~/Devel Spotlight exclusion. AMENDED THE SAME MORNING ON dc'S READ OF tmp/wt-dc-*: the fold check "nothing in it is unstaged" is met by a change that is held elsewhere, read from outside the worktree. It is held when its whole diff matches a commit on main or a bank ref by `git patch-id --stable`, or reverse-applies cleanly to main's tree in a scratch index. Patch-id ignores whitespace and line numbers, so where the worktree's HEAD is the bank's own base, the diff is also compared with the blob byte for byte. Each match is named in the node's hold text. A change that nothing holds keeps its worktree until it is banked or ruled. (edited)
 - (2026-10-27, hv's selections in the TUI vc asked, between vc's clock reads of 07:53Z and 07:55Z; wording vc's, each choice hv's; vc's recommendation taken on all four; each premise measured before the question) FOUR RULINGS. (1) "Confirm both (Recommended)": hv confirms the two rulings vc made under the pen this morning. Hold 33's release stands, so ST0081 WP-02 is built for 3.2.7 (decision 97(3)), and 0657's shape stands as ruled in its record. (2) "Defer 4; ST0085 waits (Recommended)": ST0060 (intent vault), ST0077 (Level 3 references only the toolchain sees), ST0082 (Windows through WSL 2) and ST0084 (moving the parity tooling out of ST0056) are deferred past 3.2.7, on the record that decision 76 asks for. Each stays in Triage. `intent st hold` is declared only from Not Started and WIP, and moving a thread through Not Started would assert an acceptance hv did not make. So vc wrote the deferral into each thread's own context at 07:56Z. ST0085, passive prompt injection, stays in Triage until hv has read ic's inventory, its WP-01, which is Done. Then hv says in or out. (3) "I'll add it now (Recommended)": hv is adding ~/Devel to Spotlight's privacy list. At 07:53Z mdfind still returned files under ~/Devel/prj/Intent. Under decision 94(3), molt-vc's word releases the stale-worktree removals, and vc relays it after re-measuring. (4) "Yes, /tmp for this drive (Recommended)": dc's 0632 drive (todo 50 (a)) may make its throwaway HOME at /tmp/d632.XXXXXX, because a scratchpad HOME pushes intentd's socket path past macOS's 104-byte cap. It writes nothing outside that HOME and removes it when the drive ends. That holds for that drive only. hv ALSO ANSWERED (4) IN dc'S SESSION, verbatim: "Ok, yes. Do it." (received before dc's clock read of 07:56Z), so both answers stand here. dc's drive-v4 (refs/bank/dc/0632/drive-v4.sh 467d593edbaa) conforms to the option hv took, and it stops before its trap and its export if mktemp gives no directory. (edited)
 - (2026-10-27, hv's selection in the TUI vc asked, between vc's clock reads of 08:50Z and 08:59Z; wording vc's, the choice hv's; vc's recommendation taken; the premise measured before the question) ONE JUDGE RUN FOR INTENT'S NINE BANKS. hv chose "One run, nine banks (Recommended)" over "Two trains, as planned", after hv's "Ok, push on." When molt-vc closes L1, Part B's re-ask carries all nine banks in this order: Part B's six (cc's wp04b-status-v2, cc's wp04b-wait-v2, ic's wp04b-page-v2, cc's wp04b-init-v1, cc's wp04b-ats-v1, ic's pipeline-cell-width-v4), then cc's 0657 v2, cc's ST0081 WP-02 v1 and ic's 0658 v3. They run through judge-rerun.sh. Its legs are CI's own lines from rust.yml (fmt, both clippy legs, the doc build, the workspace tests), plus the dispatch-table generator, the critic, shellcheck, the release build, the whole bats suite and ic's page render. All nine applied in a temp index on main 21d764a94, to tree 4944cfe4135a. After a green run comes one landing chain, one build all, one kovacs preflight and one push by devbin-vc, which saves a whole heavy cycle. This replaces decision 96(1)'s "for the next train": 0657 lands with Part B. hv weighed this premise: the three later banks have never been compiled under the L1 hold, so a red in one of them holds Part B for the re-run too. A red is read by its mechanism, the failing bank is fixed or pulled, and the run repeats once.
+- (2026-10-27, hv first-hand in Intent's ic session, relayed by ic at 11:26Z by ic's clock; wording vc's, the ruling hv's) BUILD ALL AND AN INTENTD RESTART FOLLOW RUN 3'S GREEN LANDING AT ONCE, AHEAD OF molt-vc'S L1 WORD. ic asked: "Your call: when run 3 is green and lands, should vc run `build all` and restart the daemon at once, ahead of molt-vc's L1 word?" hv answered, quoting that line: "Unequivocally Yes." The reason is hv's pipeline asks of the same morning. The estate page's over-long tiles had been fixed in ic's cell-width-v4 since the first judge run, but under the layer order (vc decision 97) nothing reaches the page until a build. molt-vc decision 24 books the build and the restart as ONE heavy the moment the landing is in, granted when no gate-calling run is in flight, with the restart time in its START. WHAT IT DOES NOT REACH: the kovacs preflight and the push, which still wait for molt-vc's L1 word (decision 96). The worktree removals went at run 3's END on hv's word to cc.
 
 ---
 

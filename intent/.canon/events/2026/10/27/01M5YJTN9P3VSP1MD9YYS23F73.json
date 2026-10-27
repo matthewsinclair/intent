@@ -1,0 +1,15 @@
+{
+  "id": "01M5YJTN9P3VSP1MD9YYS23F73",
+  "ts": "2026-10-27T11:44:45.366Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-10-27, hv first-hand in Intent's ic session, relayed by ic at 11:26Z by ic's clock; wording vc's, the ruling hv's) BUILD ALL AND AN INTENTD RESTART FOLLOW RUN 3'S GREEN LANDING AT ONCE, AHEAD OF molt-vc'S L1 WORD. ic asked: \"Your call: when run 3 is green and lands, should vc run `build all` and restart the daemon at once, ahead of molt-vc's L1 word?\" hv answered, quoting that line: \"Unequivocally Yes.\" The reason is hv's pipeline asks of the same morning. The estate page's over-long tiles had been fixed in ic's cell-width-v4 since the first judge run, but under the layer order (vc decision 97) nothing reaches the page until a build. molt-vc decision 24 books the build and the restart as ONE heavy the moment the landing is in, granted when no gate-calling run is in flight, with the restart time in its START. WHAT IT DOES NOT REACH: the kovacs preflight and the push, which still wait for molt-vc's L1 word (decision 96). The worktree removals went at run 3's END on hv's word to cc."
+  }
+}
