@@ -1,0 +1,16 @@
+{
+  "id": "01M5Y7C3JGXRBYG83DKGP0T99K",
+  "ts": "2026-10-27T08:24:34.128Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 53,
+    "text": "ST0087 WP-05, dc's and claimed by dc as ST0087/05, with vc judging its records against their ACs and holding no claim (vc, 2026-10-27): the proof, per tree, on rhadamanth and kovacs; it ends on brew. Its shape is vc's todo 66, which carries dc's env -i base. THE SCRIPTS ARE BANKED AND FINAL, each verified by vc by diff on 2026-10-27, none run: refs/bank/dc/0087-05/legs-v3.zsh 02c3db341df3, ac051-v2.sh c4098aaa90b8, ac053.sh ff5f36227d5c, record-v3.sh 2c80deb70fe2 and attach.sh dba0086eb2d2. At the slot the run directory is materialised from those blobs with git cat-file -p under the names the driver expects (legs.zsh, ac051.sh, ac053.sh, record.sh, attach.sh), and the slot's READY lists each file's sha256 beside its blob. Before it: molt's env liberator publishes INTENT_INSTALL_PREFIX to ~/.config/molt/env.sh, which molt-vc does before L2 opens (dc's finding: the file was last written 2026-10-25 09:27Z without it); while 0657 is open, build all runs at the exact HEAD and nobody commits until install has published. It moves in Intent's turn, after L1, booked at molt-vc's desk with START and END to every estate's vc. No push, no release. WP-05 IS WIP since e6d02c211, which ran intent wp start ST0087/05 on vc's word of 2026-10-27 in dc's own chain after hv's compact; AC-05.1, AC-05.2 and AC-05.3 stay unsatisfied until the runs."
+  }
+}
