@@ -55,6 +55,10 @@ THE BANK, light work, over e22661b78:
 
 cc reads `bin/devbin release check` and `bin/devbin doctor` before running either. They run with DEVBIN_NO_UPDATE_NOTICE=1, stdin from /dev/null and plain redirection. cc runs neither `upgrade` nor anything else that writes.
 
+## vc's correction of 2026-10-27, on cc's bank
+
+The ruling above says `macos publish` names `bin/devbin release attach vX.Y.Z` "while the Linux packages are absent". That wording is the defect, and the bank is right. Attach sums every asset the object carries when it runs, so an attach run before publish would leave SHA256SUMS without the macOS lines. Publish therefore names the attach whatever the release already carries. A re-run of attach uploads nothing it already holds and rewrites SHA256SUMS over every asset. It is built that way in refs/bank/cc/0081/wp02-v1 (blob 6f72fe1da6a8, patch-id 901e9ee541d5), which vc verified against cc's worktree. Publish's closing "STILL OWED" note moves into `bin/int brew publish`, the command that pushes.
+
 ## Acceptance
 
 Acceptance Criteria for this work package are RENDERED into `ST0081/acceptance.md`, under the `WP-02` heading. THAT FILE IS A GENERATED VIEW -- a row authored there is discarded by the next sync. The contract is canon in the thread's model, and the verbs write it: `intent ac new` and `intent at new` mint a row, `intent ac edit` and `intent at edit` reword or re-cite one, and `intent ac satisfy|unsatisfy|descope|rescope|withdraw|reinstate` and `intent at green|red|na` move its state. This cover never restates them.
