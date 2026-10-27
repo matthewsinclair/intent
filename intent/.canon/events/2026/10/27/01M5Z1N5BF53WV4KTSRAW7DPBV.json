@@ -1,0 +1,16 @@
+{
+  "id": "01M5Z1N5BF53WV4KTSRAW7DPBV",
+  "ts": "2026-10-27T16:03:53.839Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 99,
+    "text": "0087-HERMETIC LANDED as 9109e59eb in vc's chain (END 15:55Z by vc's clock), by the bank's patch-id 1a39bb5ca508: refs/bank/cc/0087-hermetic/v1, three files.\n- testkit's fixtured_command removes INTENT_INSTALL_PREFIX.\n- dual_path_conformance declares `install` ActsOnAmbientUserState.\n- unmigrated_surface exempts `install` and `use` family-wide on ground 1, pinned with no verbs.\nIt closes hv's red at cb664a6c5, where `intent use dev` SUCCEEDED in a checkout holding a release pair and its daemon restart left an intentd behind. It also closes three sweeps that would publish into a real opt prefix once Molt exports INTENT_INSTALL_PREFIX.\nJUDGE: vc's full rerun on main, since molt-vc denied cc's worktree slot as superseded (15:53:30Z by date -u). The rerun exports the variable to an empty scratch dir, runs clippy, and reads that dir and target/test-home. Then it runs the positive control: one bare `install` from the run's own debug pair into a second empty dir. vc sends the verdict. The worktree and the scratch/icc link went at 16:03Z by date -u, after the fold checks, without --force.\nNEXT: archived on a green verdict; on a red, cc re-banks against main."
+  }
+}

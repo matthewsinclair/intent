@@ -1,0 +1,16 @@
+{
+  "id": "01M5Z1N7E8QTG39031X8BK8EP1",
+  "ts": "2026-10-27T16:03:55.976Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 98,
+    "text": "ST0081 WP-02 LANDED as 9f4994a1c in vc's landing chain (END 11:46Z by vc's clock). It is refs/bank/cc/0081/wp02-v1 (patch-id 901e9ee541d5), judged green in decision 100's run 3. Each release now carries the Linux packages its tag's workflow builds, and one SHA256SUMS over every asset, attached by `bin/devbin release attach`. `bin/int brew publish` alone writes the formula and cask. The package stays WIP until hv proves AC-02.1 at the 3.2.7 cut.\nBEFORE THE CUT, measured at 15:25:32Z by date -u on the vendored devbin of cb664a6c5: `bin/devbin release check` exits 0, accepts every key WP-02 declared, and names no second writer, which is AC-02.1's half (b). Half (a) reads the release object after releasing.md step 4's attach. The control: v3.2.6 carries no SHA256SUMS. `release.remotes` stays undeclared, because devbin refuses it while the core's cut is off; restart.md:37 says so since fc5931c44.\nAT-02.1 COVERS AC-02.1 since cc's chain of 15:58Z by date -u. It is non-test, so it entered at n-a, and AC-02.1 stays unsatisfied until hv reads both halves at the cut. `intent ac status ST0081` reads BLOCKED, and AC-02.1 is its one unsatisfied criterion (`intent ac list ST0081`). The macOS bats run restart.md:25 asks of a vendored devbin is covered by hv's two runs at cb664a6c5 (847 ok each). No push, no release."
+  }
+}

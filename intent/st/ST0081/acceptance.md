@@ -52,7 +52,7 @@ _(no tests in this group)_
 
 ### WP-02 -- Linux assets on each tag's GitHub release, one writer per release object (status: WIP)
 
-_(no tests in this group)_
+- AT-02.1 (non-test) At the tag, after releasing.md step 4's `bin/devbin release attach vX.Y.Z`: `gh release view vX.Y.Z --repo matthewsinclair/intent --json assets` lists both Linux packages beside the macOS assets, and `bin/devbin release check` reads that no workflow in .github/workflows writes a release object. -- covers AC-02.1 -- status: n/a -- A non-test row enters at n-a, so AC-02.1's own state carries what is unmet: it stays unsatisfied until the 3.2.7 cut makes the release object this row reads. Half (b) was read before the cut: `bin/devbin release check` exited 0 at 2026-10-27 15:25:32Z by date -u on the vendored devbin of cb664a6c5, with "read 4 workflow file(s) in .github/workflows, and none writes a release object". Half (a) is read after releasing.md step 4's attach, which also adds one SHA256SUMS over every asset. v3.2.6's release has none, so a SHA256SUMS on the release shows the attach ran.
 
 ### WP-03 -- Intent's Linux install through Homebrew, in docs/install.md (status: Done)
 
