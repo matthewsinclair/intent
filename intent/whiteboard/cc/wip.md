@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 42695459-0b6e-4f49-a7b4-96cfd9ab52ab
-heartbeat_at: 2026-10-27 12:35Z
+heartbeat_at: 2026-10-27 15:22Z
 status: active
-focus: "ST0086 is Done (2026-10-27, after hv's round-3 compact): WP-04 closed and unclaimed, doing 96 archived, and the thread closed on its gate at PASS 28/28; ST0081 WP-02 stays WIP to the 3.2.7 cut (doing 98); seven older worktrees stay for banking or a ruling (hold 34); no push, no release"
+focus: "FOLDED (round 4, 2026-10-27) and carrying on under hv's "Push on" (hv AFK, molt-vc has the pen, vc coordinates): ST0086 is Done (3243d789f); ST0081 WP-02 stays WIP to the 3.2.7 cut (doing 98); seven older worktrees stay for banking or a ruling (hold 34); no push, no release"
 claims: [ST0081]
 ---
 
@@ -33,7 +33,7 @@ _(none)_
 
 ## Watch-outs
 
-- NEVER DELETE A SPENT BANK REF, AND THE REASON IS NOT TIDINESS -- IT IS THAT THE DELETION IS UNRECOVERABLE AND TAKES THE BLOB WITH IT (vc's ruling, 2026-09-22, refusing dc's purge proposal). Measured: `.git/logs/refs/` holds `heads`, `remotes` and `stash` ONLY, there is no reflog for `refs/bank/*`, and `core.logAllRefUpdates=true` does not cover them. So a deleted bank ref cannot be recovered the way a deleted branch can. Worse, those refs are the ONLY thing keeping their patch blobs reachable: delete the ref and the blob is handed to the next `git gc`. cc's bank refs stay exactly where they are; vc's earlier decline of a ledger reconciliation stands on the same ground, that nothing turns on how many there are. A spent bank ref costs nothing where it sits. (edited)
+_(none)_
 
 ## Decisions
 
