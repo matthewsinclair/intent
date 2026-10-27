@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a3784f83-17e6-4dd3-bc37-0049e71bd0b4
-heartbeat_at: 2026-10-27 12:58Z
+heartbeat_at: 2026-10-27 15:44Z
 status: active
-focus: "Folded for hv's round-4 compact (2026-10-27), and holding until hv compacts vc: ST0086 is closed, the pair and intentd name f06241f83b56, and hv's lean-board rulings are in (vc decision 102). Next, after the compact: the kovacs preflight and the push on molt-vc's L1 word, then ST0087 WP-05 once INTENT_INSTALL_PREFIX is published. No push by vc, no release"
+focus: "Compacted (hv's round 4) and pushing on under molt-vc's pen toward 3.2.7: cc banks the fix for hv's red with the prefix-hermetic tests (0087-hermetic); then the rerun, the kovacs preflight and the push; then the content batch, ic's reference set and the last preflight. The pair and intentd name f06241f83b56. No push by vc, no release"
 claims: []
 ---
 
@@ -13,13 +13,16 @@ claims: []
 
 ## DOING
 
-- INTENT'S ONE TRAIN IS LANDED AND BUILT, AND ST0086 IS CLOSED; THE KOVACS PREFLIGHT AND THE PUSH WAIT FOR molt-vc'S L1 WORD (vc decisions 96 and 100). The pair and intentd name f06241f83b56. (edited)
-  - Run 3 (01M5YHGAPFKX6PEWMDREN5BGBY) was green, and the ten landed 1d38741ee..ef4eaf3bc. Run 4 (01M5YKGTAK325EY94E646KE2D5) judged hv's stacking, which landed as f08a5d20d. Both builds and restarts ran ahead of L1 on decision 101, and hv has ic's screenshot of two live requests stacked under NOW.
-  - vc's chain 1956da3bc put in AC-04.7's stacking, AT-04.7's run-4 citation, AC-02.6 as 0658's record words it, and the run-3 citations of AT-02.6 and ST0087 AT-02.1, each read back past the ingest. cc closed WP-04 and the thread at 3243d789f, its gate PASS 28/28.
+- 3.2.7 UNDER molt-vc'S PEN (hv is AFK: "Push on"). molt-vc granted the kovacs preflight and devbin-vc's push of main ("devbin-vc's push goes any time"), and deferred ST0085 (fc5931c44). The pair and intentd name f06241f83b56, fixed until L1 closes. (edited)
+  - hv's red is real: unmigrated_surface fails wherever a release pair sits in the tree's target, because its sweep's `intent use dev` succeeds there and restarts a daemon in the test HOME. hv's two runs left two such daemons, which vc stopped at 15:37Z; hv's intentd was untouched. cc's prefix audit found three sweeps that would publish into a real opt tree once INTENT_INSTALL_PREFIX is exported, so Molt's publish waits. cc banks both fixes as refs/bank/cc/0087-hermetic/v1, against vc's judge spec of 15:38Z.
+  - Passed on this pair: dc's 0632 drive v4 (log e309ab3916bd), ST0087 AC-05.3's brew-tree leg (d4334f5757c0), and ic's shots rehearsal (menu.png and help.png change, from /estate).
   NEXT, in order:
-  (1) On molt-vc's L1 word: the kovacs preflight at main's HEAD, then "push" to devbin-vc with the full sha (decision 96). Main holds still from the preflight to the push.
-  (2) ST0087 WP-05, once INTENT_INSTALL_PREFIX is published (dc's todo 53).
-  TOOLS, banked under refs/bank/vc/tools/: judge-rerun.sh v3 (with judge-canon.sh; build-support logs as NOT-ASKED), judge-shell.sh v2 (the targeted page judge, on ic's render-states-v2.sh) and land-one.sh. The evidence is under refs/bank/vc/evidence/judge-run3/ and judge-run4/. A judge is sized to the change (hv: "Just do enough to prove it works"). No push by vc, no release.
+  (1) Land 0087-hermetic in a vc chain. Then molt-vc's full rerun on main and the kovacs preflight at that HEAD, one heavy run at a time, and the verdict to molt-vc for hv. On a green preflight, "push" to devbin-vc with the full sha. Then molt-vc publishes the prefix, and from then on tests run only in trees that carry the fix.
+  (2) The content batch: dc's known-defects page (kd327), WP-05's records (AC-05.3's opt and dev legs, and AC-05.1's dev and opt legs once the prefix is published), and cc's AT row for ST0081 AC-02.1 (its other half is read at the cut).
+  (3) ic regenerates docs/reference and the shots at the batch's HEAD in one commit (ic's hold 12).
+  (4) The kovacs preflight last, on the cut commit (releasing.md step 2), then the push. Main holds still from the preflight to the push.
+  (5) At the cut: dc's 0632 drive again if the pair moves, the cut's --dry-run beside hv, then hv's cut.
+  TOOLS, banked under refs/bank/vc/tools/: judge-rerun.sh v3 (with judge-canon.sh), judge-shell.sh v2 and land-one.sh. A judge is sized to the change (hv: "Just do enough to prove it works"). No push by vc, no release.
 
 ## TODO
 

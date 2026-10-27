@@ -1,0 +1,16 @@
+{
+  "id": "01M5Z0HFTSJT68TAQY7VJ99PP0",
+  "ts": "2026-10-27T15:44:24.921Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 59,
+    "text": "3.2.7 UNDER molt-vc'S PEN (hv is AFK: \"Push on\"). molt-vc granted the kovacs preflight and devbin-vc's push of main (\"devbin-vc's push goes any time\"), and deferred ST0085 (fc5931c44). The pair and intentd name f06241f83b56, fixed until L1 closes.\n- hv's red is real: unmigrated_surface fails wherever a release pair sits in the tree's target, because its sweep's `intent use dev` succeeds there and restarts a daemon in the test HOME. hv's two runs left two such daemons, which vc stopped at 15:37Z; hv's intentd was untouched. cc's prefix audit found three sweeps that would publish into a real opt tree once INTENT_INSTALL_PREFIX is exported, so Molt's publish waits. cc banks both fixes as refs/bank/cc/0087-hermetic/v1, against vc's judge spec of 15:38Z.\n- Passed on this pair: dc's 0632 drive v4 (log e309ab3916bd), ST0087 AC-05.3's brew-tree leg (d4334f5757c0), and ic's shots rehearsal (menu.png and help.png change, from /estate).\nNEXT, in order:\n(1) Land 0087-hermetic in a vc chain. Then molt-vc's full rerun on main and the kovacs preflight at that HEAD, one heavy run at a time, and the verdict to molt-vc for hv. On a green preflight, \"push\" to devbin-vc with the full sha. Then molt-vc publishes the prefix, and from then on tests run only in trees that carry the fix.\n(2) The content batch: dc's known-defects page (kd327), WP-05's records (AC-05.3's opt and dev legs, and AC-05.1's dev and opt legs once the prefix is published), and cc's AT row for ST0081 AC-02.1 (its other half is read at the cut).\n(3) ic regenerates docs/reference and the shots at the batch's HEAD in one commit (ic's hold 12).\n(4) The kovacs preflight last, on the cut commit (releasing.md step 2), then the push. Main holds still from the preflight to the push.\n(5) At the cut: dc's 0632 drive again if the pair moves, the cut's --dry-run beside hv, then hv's cut.\nTOOLS, banked under refs/bank/vc/tools/: judge-rerun.sh v3 (with judge-canon.sh), judge-shell.sh v2 and land-one.sh. A judge is sized to the change (hv: \"Just do enough to prove it works\"). No push by vc, no release."
+  }
+}
