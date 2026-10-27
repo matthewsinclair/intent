@@ -1,5 +1,5 @@
 ---
-verblock: "2026-10-27:v3.27: vc - the train landed, build all next"
+verblock: "2026-10-27:v3.28: vc - the train and the stacking built, ST0086's close next"
 intent_version: 3.2.6
 ---
 
@@ -9,9 +9,9 @@ Measure before believing anything below: `.claude/restart.md` carries the comman
 
 ## DOING
 
-Intent is L2 under hv's layer order of 2026-10-27 (vc decision 97, molt-vc decision 22). Until molt-vc says L1 (devbin, molt, utilz, gtools) is cut, brewed on rhadamanth and kovacs and answering `use brew`, Intent leaves the installed pair at ddb749ca7932 as it is: no install, no `use`, no build in the main checkout's target. Its one judge run, in its own worktree, goes ahead of L1 on hv's "ok, go" of 2026-10-27, with molt-vc granting the slot. Work with no load runs meanwhile.
+Intent is L2 under hv's layer order of 2026-10-27 (vc decision 97, molt-vc decision 22). Until molt-vc says L1 (devbin, molt, utilz, gtools) is cut, brewed on rhadamanth and kovacs and answering `use brew`, Intent runs no install and no `use`, and builds in the main checkout's target only on hv's word, with molt-vc granting the slot. On hv's "Unequivocally Yes" (vc decision 101), the installed pair and intentd are at f06241f83b56, ahead of L1. Judge runs go in their own worktrees. Work with no load runs meanwhile.
 
-- **INTENT'S ONE TRAIN IS LANDED; BUILD ALL AND THE INTENTD RESTART ARE NEXT (cc and ic built it; vc judged and landed it; vc decisions 100 and 101).** Judge run 3 was green, and the ten are landed (1d38741ee..ef4eaf3bc): ST0086 WP-04 Part B's six banks, then three more and vc's landing patch. Issue 0657 is install currency by DIRT_SCOPE (cc, v2). ST0081 WP-02 puts the Linux assets on each tag's release (cc, v1). Issue 0658 keeps plan usage and reads it sparingly (ic, v3, whose schedule counts census ticks with no clock read). Each bank is verified by vc against its author's worktree. The banks, their order, their stacked tree and what the landing chain owes are on vc's board, doing 59. On hv's "Unequivocally Yes" (vc decision 101), build all and an intentd restart follow as one heavy on molt-vc's GO, ahead of L1. The kovacs preflight and devbin-vc's push still wait for molt-vc's L1 word. ic's pipeline-stack bank, hv's ask that running requests stack, goes in the next judge run. Then cc's AT rows and design.md, ic's todo 58, and the landing items of 0657 and 0658; ST0086 closes on its gate. Hold 33's release and 0657's shape were confirmed by hv (vc decision 99). AC-02.1 is proven at the 3.2.7 cut.
+- **ST0086'S CLOSE, THEN THE PUSH ON L1 (vc, with cc; vc decisions 100 and 101).** What remains of Intent's one train: vc judges cc's WP-04 AT rows and design.md (`intent at lint ST0086`, `intent ac gate ST0086`), then runs its three store edits in one chain: `at edit` of ST0087 AT-02.1 and ST0086 AT-02.6, and `ac edit` of ST0086 AC-02.6 as 0658's record words it. vc then satisfies AC-04, cc closes WP-04 on vc's word, and ST0086 closes on its gate. The kovacs preflight at the landed sha and devbin-vc's push wait for molt-vc's L1 word (decision 96). vc's board, doing 59, carries the detail. Hold 33's release and 0657's shape were confirmed by hv (vc decision 99). AC-02.1 is proven at the 3.2.7 cut.
 - **ST0087 WP-05, THE PROOF PER TREE (dc with vc).** Its shape is vc's todo 66, with dc's `env -i` login-shell base. dc scripts it now and runs it in Intent's turn, once molt-vc's env liberator run publishes INTENT_INSTALL_PREFIX on rhadamanth. AC-05.3 and AC-05.1's dev and opt legs run before the cut; AC-05.1's brew leg and AC-05.2 on kovacs run after it.
 
 ## TODO

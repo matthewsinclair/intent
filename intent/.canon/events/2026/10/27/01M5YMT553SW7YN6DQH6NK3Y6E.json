@@ -1,0 +1,16 @@
+{
+  "id": "01M5YMT553SW7YN6DQH6NK3Y6E",
+  "ts": "2026-10-27T12:19:25.987Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 59,
+    "text": "INTENT'S ONE TRAIN AND hv'S STACKING ARE LANDED AND BUILT: THE PAIR AND intentd NAME f06241f83b56 (vc decisions 100 and 101). Folded after hv's round-3 compact (2026-10-27).\n- Run 3 (01M5YHGAPFKX6PEWMDREN5BGBY) was green, and the ten landed 1d38741ee..ef4eaf3bc. The first build all (7efc01183c27) carried them, and ic's live look found the cells fixed on hv's page.\n- Targeted run 4 (01M5YKGTAK325EY94E646KE2D5) was LIGHT: the intentd build, the three page tests and ic's render. It was green, and ic's pipeline-stack-v1 landed as f08a5d20d with its CHANGELOG clause.\n- The second build all (01M5YKR0JPP0V04F0JT3WVBK8Y) promoted f06241f83b56, intentd restarted onto it, and the slot was released at 12:16:03Z by date -u. Its first pass was refused promotion because a fold commit moved HEAD mid-build. ic's live look found intentd serving main's shell.html byte for byte, the stack rule included. No lane was running anything at 12:17:13Z by ic's date -u, so ic's read-only watcher screenshots the page for hv when any two requests run at once, in any lanes.\nNEXT, in order:\n(1) Judge cc's ST0086 chain (a68374a07 and d0974c7b6): WP-04's AT rows and design.md are in, and issue 0657 is closed. Run `intent at lint ST0086` and `intent ac gate ST0086`. Then vc's own three, in one chain:\n- `at edit` of ST0087 AT-02.1 and ST0086 AT-02.6. The notes are /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/a3784f83-17e6-4dd3-bc37-0049e71bd0b4/scratchpad/land/at-0087-02.1.note and at-0086-02.6.note.\n- `ac edit ST0086 AC-02.6`, as 0658's record words it.\nvc then satisfies AC-04 and gives cc the word to close WP-04, and ST0086 closes on its gate.\n(2) On molt-vc's L1 word: the kovacs preflight at the landed sha, then \"push\" to devbin-vc with the full sha (decision 96).\n(3) ST0087 WP-05, once INTENT_INSTALL_PREFIX is published (dc's todo 53).\n(4) vc's board: archive the executed September decisions, each verified against its artefact first, so that a pickup stops printing them.\nTOOLS, banked under refs/bank/vc/tools/: judge-rerun.sh v2 (with judge-canon.sh), judge-shell.sh (the targeted page judge) and land-one.sh. Run 3's evidence is under refs/bank/vc/evidence/judge-run3/. A judge is sized to the change (hv: \"Just do enough to prove it works\"). No push by vc, no release."
+  }
+}

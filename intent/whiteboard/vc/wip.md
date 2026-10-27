@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a3784f83-17e6-4dd3-bc37-0049e71bd0b4
-heartbeat_at: 2026-10-27 11:44Z
+heartbeat_at: 2026-10-27 12:19Z
 status: active
-focus: "Intent's one train is LANDED (1d38741ee..ef4eaf3bc) after run 3's green; build all and the intentd restart follow as one heavy (request 01M5YJSA6WBSFQAX4SK9TQJCSY) on molt-vc's GO after Gtools' WP-04, on hv's 'Unequivocally Yes' (decision 101); then the store chain, and ic's stacking bank in the next run. The kovacs preflight and the push wait for molt-vc's L1 word. No push by vc, no release"
+focus: "Folded after hv's round-3 compact (2026-10-27): Intent's train and hv's stacking are landed and built, and the pair and intentd name f06241f83b56. Next: judge cc's ST0086 rows, run vc's three store edits, and close ST0086 on its gate. The kovacs preflight and the push wait for molt-vc's L1 word. No push by vc, no release"
 claims: []
 ---
 
@@ -13,30 +13,19 @@ claims: []
 
 ## DOING
 
-- INTENT'S ONE TRAIN IS LANDED, AND BUILD ALL WITH THE INTENTD RESTART IS NEXT (vc decisions 100 and 101). (edited)
-  Run 3 (01M5YHGAPFKX6PEWMDREN5BGBY) ran 11:23:09Z to 11:34:15Z at base b72f507ac, to tip tree f781c4977188, or dcb304d9b58e with the stack's canon. It was GREEN: 3475 tests passed and 0 failed, and every leg was clean. The critic's one red is the build-support instrument reading.
-  The ten landed through land-one.sh and the gate:
-  - status-v2 1d38741ee, wait-v3 8da02c76e, page-v2 eaad34d62, init-v2 4b49525e1, ats-v1 606aa1cbd and cell-width-v4 6afbef147;
-  - 0657 v3 f764d2a8f, with ST0056's canon from intentd's ingest, proved by sha256 before the commit;
-  - WP-02 v1 9f4994a1c, 0658 v3 a9cd50adc and the landing patch ef4eaf3bc.
-  The landed tree equals run 3's judged tree, apart from ic's interleaved board commit e707f8c22. Runs 1 and 2 were red: first 0657 v2's E0428; then wait-v2's tracker citation, init-v1's bucket and pin, and the judge's missing canon step. The judge is now judge-rerun.sh v2 with judge-canon.sh.
+- INTENT'S ONE TRAIN AND hv'S STACKING ARE LANDED AND BUILT: THE PAIR AND intentd NAME f06241f83b56 (vc decisions 100 and 101). Folded after hv's round-3 compact (2026-10-27). (edited)
+  - Run 3 (01M5YHGAPFKX6PEWMDREN5BGBY) was green, and the ten landed 1d38741ee..ef4eaf3bc. The first build all (7efc01183c27) carried them, and ic's live look found the cells fixed on hv's page.
+  - Targeted run 4 (01M5YKGTAK325EY94E646KE2D5) was LIGHT: the intentd build, the three page tests and ic's render. It was green, and ic's pipeline-stack-v1 landed as f08a5d20d with its CHANGELOG clause.
+  - The second build all (01M5YKR0JPP0V04F0JT3WVBK8Y) promoted f06241f83b56, intentd restarted onto it, and the slot was released at 12:16:03Z by date -u. Its first pass was refused promotion because a fold commit moved HEAD mid-build. ic's live look found intentd serving main's shell.html byte for byte, the stack rule included. No lane was running anything at 12:17:13Z by ic's date -u, so ic's read-only watcher screenshots the page for hv when any two requests run at once, in any lanes.
   NEXT, in order:
-  (1) Build all plus the intentd restart as one heavy, request 01M5YJSA6WBSFQAX4SK9TQJCSY, on molt-vc's GO after Gtools' WP-04 landing run (molt-vc decision 24).
-  - START goes to molt-vc and to every estate's vc, with the restart time.
-  - Then `bin/devbin build all` and `intent daemon restart`.
-  - `intent --version` and intentd must both name ef4eaf3bc, and then END and release.
-  - ic takes a live look at the cells.
-  (2) The store chain after the build:
-  - cc's AT rows for WP-04, from refs/bank/cc/0086/landing-drafts-v2 (blob 51c459de4231).
-  - ST0086 design.md through st attach, in this order: ic's design-cells-v1, cc's E1 to E3, then 0658's P1, P2, F1 and F2.
-  - vc's at edit of ST0087 AT-02.1 and ST0086 AT-02.6. The notes are /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/a3784f83-17e6-4dd3-bc37-0049e71bd0b4/scratchpad/land/at-0087-02.1.note and at-0086-02.6.note.
-  - ac edit ST0086 AC-02.6, as 0658's record words it.
-  - `intent ac gate ST0086` reads what it read before the chain.
-  - vc then satisfies AC-04, and ST0086 closes on its gate.
-  (3) The next judge run: ic's pipeline-stack-v1 (blob 95ceab615adb, patch-id 47e139be9fb3), hv's ask that running requests stack, verified by vc over the landed main.
-  (4) On molt-vc's L1 word: the kovacs preflight at the landed sha, then "push" to devbin-vc with the full sha (decision 96).
-  (5) ST0087 WP-05, once INTENT_INSTALL_PREFIX is published.
-  No push by vc, no release.
+  (1) Judge cc's ST0086 chain (a68374a07 and d0974c7b6): WP-04's AT rows and design.md are in, and issue 0657 is closed. Run `intent at lint ST0086` and `intent ac gate ST0086`. Then vc's own three, in one chain:
+  - `at edit` of ST0087 AT-02.1 and ST0086 AT-02.6. The notes are /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/a3784f83-17e6-4dd3-bc37-0049e71bd0b4/scratchpad/land/at-0087-02.1.note and at-0086-02.6.note.
+  - `ac edit ST0086 AC-02.6`, as 0658's record words it.
+  vc then satisfies AC-04 and gives cc the word to close WP-04, and ST0086 closes on its gate.
+  (2) On molt-vc's L1 word: the kovacs preflight at the landed sha, then "push" to devbin-vc with the full sha (decision 96).
+  (3) ST0087 WP-05, once INTENT_INSTALL_PREFIX is published (dc's todo 53).
+  (4) vc's board: archive the executed September decisions, each verified against its artefact first, so that a pickup stops printing them.
+  TOOLS, banked under refs/bank/vc/tools/: judge-rerun.sh v2 (with judge-canon.sh), judge-shell.sh (the targeted page judge) and land-one.sh. Run 3's evidence is under refs/bank/vc/evidence/judge-run3/. A judge is sized to the change (hv: "Just do enough to prove it works"). No push by vc, no release.
 
 ## TODO
 
