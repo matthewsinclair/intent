@@ -1,0 +1,15 @@
+{
+  "id": "01M5Y35R19PKF29RBQCBEN4XKH",
+  "ts": "2026-10-27T07:11:11.969Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0658"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "the estate page's plan usage blanks on a 429, and intentd re-asks the endpoint every minute with no backoff"
+  }
+}
