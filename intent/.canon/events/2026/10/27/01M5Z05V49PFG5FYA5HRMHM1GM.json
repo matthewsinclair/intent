@@ -1,0 +1,16 @@
+{
+  "id": "01M5Z05V49PFG5FYA5HRMHM1GM",
+  "ts": "2026-10-27T15:38:03.273Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 53,
+    "text": "ST0087 WP-05, dc's and claimed by dc as ST0087/05, with vc judging its records against their ACs and holding no claim (vc, 2026-10-27): the proof, per tree, on rhadamanth and kovacs; it ends on brew. Its shape is vc's todo 66, which carries dc's env -i base. THE SCRIPTS ARE BANKED AND FINAL, verified by vc by diff on 2026-10-27: refs/bank/dc/0087-05/legs-v3.zsh 02c3db341df3, ac051-v2.sh c4098aaa90b8, ac053.sh ff5f36227d5c, record-v3.sh 2c80deb70fe2 and attach.sh dba0086eb2d2. The run directory is materialised from them under 0087-05/run in dc's scratchpad, each file byte-identical to its blob, and its READY.txt lists each file's sha256 (dc, 15:29Z on 2026-10-27). AC-05.3, IN EACH OF DEVBIN'S TREES, NEEDS NO PREFIX AND DOES NOT WAIT ON L1. Each tree is its own light slot at molt-vc's desk, asked by dc. THE BREW TREE PASSED at 15:34Z on 2026-10-27 in slot 01M5YZX5G4H70F42FA7STNG998, with no switch: bin/devbin doctor names devbin 0.1.15 (brew, 4efb6e173e70) and why, and bin/devbin upgrade reads that install. Its transcript is refs/bank/dc/0087-05/out/ac053-brew.txt d4334f5757c0. The opt and dev trees run inside devbin-vc's devbin-leg.sh (sha256 25aede7003bd), which switches, runs the leg and restores brew from a trap. They are asked as 01M5Z01F9JT64Q2JXABC4CYYB7 and 01M5Z01FA25BYNW9S9SAT8Q7Y2, dev after opt, each granted only while no Gtools run is in flight. dc tells devbin-vc at each grant, and devbin-vc holds devbin's landings through the dev leg. opt is read as it stands: devbin 0.1.14, the T3 manifest. Then record.sh over the three transcripts, vc's read, and attach.sh. AC-05.1, ON RHADAMANTH, waits on INTENT_INSTALL_PREFIX in ~/.config/molt/env.sh (absent at 15:37Z on 2026-10-27, the file last written 2026-10-25 09:27Z) and on L1, since install publishes opt and every use restarts the shared intentd. It runs on the pair at f06241f83b56, current by DIRT_SCOPE at 15:37Z, in Intent's turn after L1, booked at molt-vc's desk with START and END to every estate's vc. Its brew leg and AC-05.2 on kovacs come after the cut. No push, no release. WP-05 IS WIP since e6d02c211; AC-05.1, AC-05.2 and AC-05.3 stay unsatisfied until vc has read their records."
+  }
+}
