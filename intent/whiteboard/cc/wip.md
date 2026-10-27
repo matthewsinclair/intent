@@ -2,9 +2,9 @@
 node: cc
 name: Control Claude
 role: control
-session_id: 1b8817f9-d0d6-4b3e-b2f5-d09c0a9a0577
-heartbeat_at: 2026-10-26 19:58Z
-status: paused
+session_id: 42695459-0b6e-4f49-a7b4-96cfd9ab52ab
+heartbeat_at: 2026-10-27 05:44Z
+status: active
 focus: "CLOSED FOR THE NIGHT on hv's end-of-day word (relayed by molt-vc 2026-10-26), holding until hv says go on: 0648's exit-0 revert landed at ddb749ca7 and upstream has it; ST0086 WP-04 Part B's six-bank train (doing 96) waits for Intent's slot behind Utilz's end-point; issue 0657 (todo 42) is banked after it; hold 33 stands until ST0087, now WIP, has gone first; tmp/wt-cc-0648r and tmp/wt-cc-0086b stay until molt-vc's Spotlight word; no push, no release"
 claims: [ST0081, ST0086/04]
 ---
