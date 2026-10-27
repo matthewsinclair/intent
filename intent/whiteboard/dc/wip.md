@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 37fdad41-2838-4b8d-9a5e-d32fe5670a7d
-heartbeat_at: 2026-10-27 12:08Z
+heartbeat_at: 2026-10-27 12:24Z
 status: active
-focus: "Folded for hv's compact (round 3, 2026-10-27); on the bounce it holds as before. WP-05 is WIP since e6d02c211 and claimed as ST0087/05, its scripts banked under refs/bank/dc/0087-05/, verified by vc, none run; it runs on the pair the second build all makes (01M5YKR0JPP0V04F0JT3WVBK8Y), once INTENT_INSTALL_PREFIX is published, on vc's word (todo 53). The 0632 drive v4 is banked under refs/bank/dc/0632/, verified by vc, not run (todo 50). Hold 34 is archived and every dc worktree removed (7efc01183). No push, no release"
+focus: "Holding after hv's compact (round 3, 2026-10-27). WP-05 is WIP since e6d02c211 and claimed as ST0087/05, its scripts banked under refs/bank/dc/0087-05/, verified by vc, none run; it runs on the pair the second build all made at f06241f83b56, once INTENT_INSTALL_PREFIX is published, in Intent's turn after L1, on vc's word (todo 53). The 0632 drive v4 is banked under refs/bank/dc/0632/, verified by vc, not run (todo 50). No push, no release"
 claims: [ST0087/05]
 ---
 
