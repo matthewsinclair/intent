@@ -1,0 +1,16 @@
+{
+  "id": "01M5YKEXH1TGB1R0E6561SP5H5",
+  "ts": "2026-10-27T11:55:49.153Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 58,
+    "text": "pipeline-cell-width-v4 landed as 6afbef147 (doing 135), so after the build and the push, add the cells' shape to ST0086 design.md's pipeline paragraph (as-written lags as-built). The draft is banked at refs/bank/ic/0086/design-cells-v1 (blob 93bf3e0a61c3, patch-id 917d2f6ce431) over design.md blob a435b11823b6: one sentence after \"oldest ask first.\", reading \"Every cell is 18rem wide whatever its text (hv's ask in ic's session, 2026-10-26): its main line, what the request runs, wraps to at most four lines and its meta line to two before either ends in an ellipsis, and its title carries the request's id, that text in full and its requester.\" Each clause was read against cell-width-v4's CSS (`.cell` at `flex: 0 0 18rem` with `min-width: 0`, `.what` clamped at four lines, `.meta` at two) and the title shell.html's `cell()` sets (id, what, requester). ORDER, taken by vc on cc's finding (2026-10-27): design-cells-v1 goes first in design.md's sequence, then cc's WP-04 text, then 0658's four string replacements, because the patch's trailing context includes line 27, which cc's text edits. If cc's text lands first anyway, the sentence goes in as text after \"oldest ask first.\" (which occurs once), which ic measured byte-identical to the patch on main's file. ic's scratch stack (cells, then 0658's P1, P2, F1 and F2) passes prettier and differs from main only at lines 25, 31 and 33. When pipeline-stack-v1 lands as well, the sentence gains its clause, as sent to vc: \"Requests running at the same time stack in one column at the now marker, rather than chaining as if one followed another.\" cc applies design.md as WP-04's claimant, in one ST0086 store chain after the build (vc, 2026-10-27), in this order and verbatim: design-cells-v1 first, then cc's E1 to E4, then 0658's P1, P2, F1 and F2 from refs/bank/vc/train/landing-texts. One writer for the one attachment keeps the edits from colliding. ic reads the result after cc's END and sends cc any difference."
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "01M5YKETK5MAK4BZ5GV1N8Y79H",
+  "ts": "2026-10-27T11:55:46.149Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 135,
+    "text": "ST0086 WP-04 Part B, the page face of AC-04.6 and the pipeline's cells, on vc's orders under decision 100. LANDED at their judged patch-ids after judge run 3 was green (3475 passed and none failed, every leg clean, ic's render leg included): ic's page-v2 as eaad34d62 (patch-id 8126a568631b) and cell-width-v4 as 6afbef147 (patch-id e058514c0734), beside cc's status-v2, wait-v3, init-v2 and ats-v1 (vc's landing chain, END 11:46Z by vc's clock). hv in ic's session, 2026-10-27, verbatim: \"How come the pipeline _still_ looks like this? [a screenshot of the live pipeline] That is, with _ridiculously_ long tiles. How many build attempts have there been today and WHY was the fix to shorten the width of the tiles (and increase the height) not in _any_ of them?!? I just don't get it.\" On ic's question, hv ruled that build all and a daemon restart follow the green landing at once, ahead of L1's word: \"Unequivocally Yes.\" vc ran it as 01M5YJSA6WBSFQAX4SK9TQJCSY on molt-vc's GO, and intentd restarted at 11:51:36Z by vc's clock on 7efc01183c27. ic's live look at 11:53Z, a headless render of hv's estate page through `intent estate status --url`, shows every pipeline tile 18rem wide, with the running cell's text wrapped to four lines and then an ellipsis. hv's second ask, verbatim: \"And when two jobs are running at the same time, they should stack vertically, not chain horizontally.\" It is banked as refs/bank/ic/0086/pipeline-stack-v1 (blob 95ceab615adb, patch-id 47e139be9fb3) over run 3's tip, whose shell.html (f352b3889e32) main now holds. The running cells share one 18rem column at the now marker with no arrow between them, a cell inside it is as tall as its text, and the row centres every cell on that column. ic rendered it in all five states with run 3's fixture, the fixture's two running requests stacked under NOW, and sent vc READY with a CHANGELOG clause. vc verifies it over the landed main after the build, for the next run. A red in it comes back to ic, rebuilt in scratch, since tmp/wt-ic-0086b is removed. No claim: the work package is cc's. No push, no release."
+  }
+}

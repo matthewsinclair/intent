@@ -1,0 +1,16 @@
+{
+  "id": "01M5YKEVXA0SK0CSNVEWY91QAR",
+  "ts": "2026-10-27T11:55:47.498Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 137,
+    "text": "ISSUE:0658, the estate page's plan usage (3.2.7 under decision 76; hv in ic's session, 2026-10-27: \"Ok, do 1 and 2.\"). LANDED as a9cd50adc at its judged patch-id 629db68722c0 after judge run 3 was green (vc's landing chain, END 11:46Z by vc's clock), from refs/bank/ic/0658/v3 (blob 8b35ecc6c7db); v1 and v2 are superseded and kept, and tmp/wt-ic-0658's HEAD, cc's scratch tip e22661b78, is kept at refs/attic/ic/wt-ic-0658. Its CHANGELOG line rides the estate watch and statusline line, and its two MODULES.md sentences are in, both from vc's landing patch. It reaches the estate page with the build all and intentd restart vc asked as 01M5YJSA6WBSFQAX4SK9TQJCSY. OWED after the build and the push, each in a chain: AC-02.6's wording and AT-02.6 re-cited with the new arms in both files, and design.md's four string replacements, which cc applies in its ST0086 store chain with todo 58's sentence and ic reads after; then ISSUE:0658 closes. No push, no release."
+  }
+}
