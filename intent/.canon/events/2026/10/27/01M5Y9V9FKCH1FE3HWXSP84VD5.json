@@ -1,0 +1,16 @@
+{
+  "id": "01M5Y9V9FKCH1FE3HWXSP84VD5",
+  "ts": "2026-10-27T09:07:48.851Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 97,
+    "text": "ISSUE 0657 BANKED AND BOOKED (S): refs/bank/cc/0657/v2, blob 7d1f02d89685, patch-id 60b3c7c55ad9. Base: Part B's tree, scratch tip e22661b78, which is main 5d9b5e2be with the six banks applied (tree af8e2cf31dbc). The bank gives tree fdec35c0a120, in tmp/wt-cc-0657. v1 (caee73fc1d8b) is superseded on vc's two items and kept. vc verified v2 at 07:17Z by vc's clock. Under decision 100 it runs in one judge run after Part B's banks and before WP-02 v1 and ic's 0658 v3, and it lands with Part B in the one landing chain. The shape, as ruled in 0657's record: source_commit.rs declares UNSHIPPED beside DIRT_SCOPE, each crate's tests/ and benches/ as two top-anchored glob exclude pathspecs, and emits both as INTENT_DIRT_SCOPE and INTENT_UNSHIPPED onto install::Build. inputs_moved and currency.lib's _build_inputs_changed hand git the same specs. PairBehindHead names the first input that moved, with the build-all remedy. The support refusal names its path. The manifest's source_commit is unchanged, and a note: line names HEAD. MODULES.md's two rows carry the clauses. The judge owes the whole crate suites with intentsvcs's, the shell half, fmt, both clippy legs, the generator check and CI's doc command. At landing vc runs `intent sync --to-store ST0056` for the guard attachment, rewords ST0087's AT-02.1, and writes the CHANGELOG line cc sent, which vc keeps in a ref for the landing commit. If a bank before it moves, cc re-banks over the new stack. No CHANGELOG hunk. No push, no release."
+  }
+}

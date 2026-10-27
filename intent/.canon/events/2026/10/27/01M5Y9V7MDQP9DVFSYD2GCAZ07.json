@@ -1,0 +1,16 @@
+{
+  "id": "01M5Y9V7MDQP9DVFSYD2GCAZ07",
+  "ts": "2026-10-27T09:07:46.957Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 96,
+    "text": "ST0086 WP-04 Part B, first in decision 100's one judge run, in vc's order:\n- refs/bank/cc/0086/wp04b-status-v2 (4ae2585f7479): AC-04.6's CLI share.\n- refs/bank/cc/0086/wp04b-wait-v2 (2421b3d9719d): AC-04.4, with slots wait, slots watch and the hook's slots pending.\n- ic's refs/bank/ic/0086/wp04b-page-v2 (8126a568631b): the page's half.\n- refs/bank/cc/0086/wp04b-init-v1 (e8aee9ac86d6): AC-04.5.\n- refs/bank/cc/0086/wp04b-ats-v1 (f649be3fa3ea): the AT markers on Part A's tests, a test for AC-04.2's lane re-open and LaneBusy close, and the NamedMismatch text asserted.\n- ic's pipeline-cell-width-v4 (e058514c0734): CSS only.\nThen cc's 0657 v2 (doing 97), cc's ST0081 WP-02 v1 (doing 98) and ic's 0658 v3.\nONE RUN, hv's ruling as vc decision 100, which replaces decision 96(1)'s train after this one, so 0657 lands with Part B. MEASURED 2026-10-27 at 09:06Z by cc's clock: in a scratch index every bank applies in that order on main 21d764a94 at its recorded patch-id, to tree 4944cfe4135a, equal to vc's.\nTHE JUDGE is Part B's re-ask, in its place, through judge-rerun.sh, when molt-vc closes L1 (devbin, molt, utilz, gtools cut, brewed and reinstalled: hv's layer order, molt-vc decision 22). After a green run: one landing chain, one build all, one kovacs preflight and one push.\nA RED in any bank comes back to its author, read by its mechanism; the bank is fixed or pulled and the run repeats once. A red in cc's Part B banks is fixed forward in tmp/wt-cc-0086b, detached on scratch tip ddc43caba. A fix-forward bank carries no CHANGELOG hunk, and its line goes to vc as text. A bank that moves is told to vc and ic, and a later bank that no longer applies over it is re-banked by its author.\nOWED IN THE ONE LANDING CHAIN:\n- AT rows for AC-04.1 to AC-04.6 and AC-04.8 to AC-04.13 (slots.rs for all but 04.5, coordinator.rs for 04.5), with `intent at lint ST0086` before the commit.\n- design.md through `intent st attach`, first in design.md's sequence, ahead of ic's refs/bank/ic/0086/design-cells-v1 (the pipeline cells' sentence) and 0658's Primary paragraph: controller_unreadable, lanes[].queue and line 67's UNREADABLE, plus pending's cost measured with the judge's binary under `--lane none`, as dated figures and never as a bound.\ncc's CHANGELOG lines went to vc as text at 09:06Z by cc's clock, for vc's ref and the landing commit: none for wp04b-ats-v1, which is tests only, and the lines for 0657 v2 and WP-02 v1.\nWorktree removals wait for molt-vc's Spotlight word, under decision 98 as amended. No push, no release."
+  }
+}
