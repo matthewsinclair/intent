@@ -1,0 +1,15 @@
+{
+  "id": "01M5Y1TNF5T8VKCW9F1JXPKDNY",
+  "ts": "2026-10-27T06:47:39.749Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ISSUE 0657, install's HEAD check judged by the build-input scope (S), cc's bank on vc's ruling of 2026-10-27, written into 0657's record before code. DIRT_SCOPE stays on its one line at build-support/source_commit.rs:199, and emit_source_commit() also emits it as INTENT_DIRT_SCOPE, with the tests/ and benches/ exclusion declared once beside it and read from the build the same way. install::Build gains a scope field. A private inputs_moved() mirrors currency.lib's _build_inputs_changed and names it as its twin. The HEAD refusal is its own InstallError variant, naming the first path that moved and giving the build-all remedy, in place of RuntimeSetDirty there. An unreadable git refuses. The support refusal names its first path. The NOTES.md arm in install_publishes_an_opt_tree.rs inverts, since that move installs. The manifest's source_commit keeps its meaning, no manifest key is added, and the HEAD shows only on the note: line. If the arm holding DIRT_SCOPE's shell twin cannot read the exclusion, the bank report says so. Base: Part B's tree, main with the six banks applied in the train's order; re-banked if Part B's judge moves a bank. Light work in a detached worktree (edits and git, nothing built or run) under hv's layer order (vc decision 97). Judged in the train after Part B's, beside ST0081 WP-02, owing the whole crate suites, intentsvcs's whole suite and the shell half. No CHANGELOG hunk."
+  }
+}
