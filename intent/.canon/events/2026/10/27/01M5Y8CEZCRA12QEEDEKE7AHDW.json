@@ -1,0 +1,16 @@
+{
+  "id": "01M5Y8CEZCRA12QEEDEKE7AHDW",
+  "ts": "2026-10-27T08:42:14.380Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 98,
+    "text": "ST0081 WP-02 BANKED (S), the package WIP since 34689f61a: refs/bank/cc/0081/wp02-v1, blob 6f72fe1da6a8, patch-id 901e9ee541d5, over e22661b78 (tree af8e2cf31dbc). It gives tree 9d43e270c0d2 in tmp/wt-cc-0081; stacked after 0657 v2 the tree is 67761344455e. READY went to vc at 07:31Z by cc's clock, and vc verified and booked it at 07:32Z by vc's clock into the train after Part B's. That train's order (0657 v2, WP-02 v1, then 0658) and its stacked tree are vc's record, on vc's board as doing 59; 0658's versions are ic's, on ic's board as doing 137. Built on vc's ruling of 2026-10-27, in the package's record. The order: build release, whose tag push starts linux-release.yml through its new tag trigger; then macos prepare and macos publish; then `bin/devbin release attach vX.Y.Z`, which uploads the Linux packages and writes SHA256SUMS last over every asset; then `bin/int brew publish`, the one writer of the formula and cask; then brew smoke and `intent use brew`. macos publish writes no formula or cask: it ends with the cut's \"Finish by hand, in order:\" line and exits 0. config.yaml enables devbin's release core for check and attach only, with repo, assets.workflow and assets.wait 15m (from the v3.2.4 and v3.2.5 runs). releasing.md step 4 takes the order and names AC-02.1's evidence. The light checks were release check rc 0 with no second writer, doctor rc 0 with the config validating, shellcheck equal to the base, and the critic clean where asked. vc took both of cc's additions: publish names the attach whatever the release carries, and the STILL OWED note moved to brew publish. Judged in the train after Part B's, with 0657 and 0658, owing the whole crate suites and the shell half. No CHANGELOG hunk; the line went to vc as text. AC-02.1 is proven at the 3.2.7 cut. No push, no release."
+  }
+}
