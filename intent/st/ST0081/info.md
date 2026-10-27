@@ -56,15 +56,15 @@ kovacs as measured 2026-10-14 by kovacs-sysadm, read-only: Ubuntu 26.04.1 LTS on
 
 ## Work Packages
 
-| WP    | Title                                                                    | Size | Status      |
-| ----- | ------------------------------------------------------------------------ | ---- | ----------- |
-| WP-01 | Linux release binaries built by GitHub Actions                           | S    | Done        |
-| WP-02 | Linux assets on each tag's GitHub release, one writer per release object | S    | Not Started |
-| WP-03 | Intent's Linux install through Homebrew, in docs/install.md              | S    | Done        |
-| WP-04 | First install on a real Windows machine                                  | XS   | Cancelled   |
-| WP-05 | intent daemon start --at-login refuses on Linux before writing anything  | XS   | Done        |
-| WP-06 | The Homebrew formula installs Intent on Linux                            | M    | Done        |
-| WP-07 | Intent on Ubuntu from its Linux package, as a user uses it               | S    | Done        |
+| WP    | Title                                                                    | Size | Status    |
+| ----- | ------------------------------------------------------------------------ | ---- | --------- |
+| WP-01 | Linux release binaries built by GitHub Actions                           | S    | Done      |
+| WP-02 | Linux assets on each tag's GitHub release, one writer per release object | S    | WIP       |
+| WP-03 | Intent's Linux install through Homebrew, in docs/install.md              | S    | Done      |
+| WP-04 | First install on a real Windows machine                                  | XS   | Cancelled |
+| WP-05 | intent daemon start --at-login refuses on Linux before writing anything  | XS   | Done      |
+| WP-06 | The Homebrew formula installs Intent on Linux                            | M    | Done      |
+| WP-07 | Intent on Ubuntu from its Linux package, as a user uses it               | S    | Done      |
 
 ## Acceptance
 

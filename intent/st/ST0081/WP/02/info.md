@@ -2,7 +2,7 @@
 wp_id: WP-02
 title: Linux assets on each tag's GitHub release, one writer per release object
 scope: S
-status: Not Started
+status: WIP
 ---
 
 # WP-02: Linux assets on each tag's GitHub release, one writer per release object
