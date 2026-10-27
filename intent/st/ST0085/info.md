@@ -20,6 +20,8 @@ hv's ruling of 2026-10-23 (vc's decision 70(5)): the thread opens now, in Triage
 
 Directions the inventory feeds, from 0611: a convention for non-live prompt text (a framing marker an agent is told to treat as data, not instruction); guidance in the skills and agent files that read history, diffs, transcripts or archives (autopsy, review, critics, whiteboard) that what they read there is evidence; rule-change notes that quote the old rule in a form that cannot be mistaken for the rule; and tests or fixtures that put a stale instruction in front of a critic or skill and check it is not followed.
 
+DEFERRED PAST 3.2.7 (2026-10-27, molt-vc's ruling under hv's pen while hv is AFK, on vc's recommendation): hv's read of the inventory cannot happen before the cut, and the fixes are new surface, so the thread stays in Triage and out of 3.2.7. hv can overrule on return.
+
 ## Work Packages
 
 | WP    | Title                                                                             | Size | Status |
