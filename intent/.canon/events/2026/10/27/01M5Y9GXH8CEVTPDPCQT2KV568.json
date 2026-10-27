@@ -1,0 +1,15 @@
+{
+  "id": "01M5Y9GXH8CEVTPDPCQT2KV568",
+  "ts": "2026-10-27T09:02:08.936Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-10-27, hv's selection in the TUI vc asked, between vc's clock reads of 08:50Z and 08:59Z; wording vc's, the choice hv's; vc's recommendation taken; the premise measured before the question) ONE JUDGE RUN FOR INTENT'S NINE BANKS. hv chose \"One run, nine banks (Recommended)\" over \"Two trains, as planned\", after hv's \"Ok, push on.\" When molt-vc closes L1, Part B's re-ask carries all nine banks in this order: Part B's six (cc's wp04b-status-v2, cc's wp04b-wait-v2, ic's wp04b-page-v2, cc's wp04b-init-v1, cc's wp04b-ats-v1, ic's pipeline-cell-width-v4), then cc's 0657 v2, cc's ST0081 WP-02 v1 and ic's 0658 v3. They run through judge-rerun.sh. Its legs are CI's own lines from rust.yml (fmt, both clippy legs, the doc build, the workspace tests), plus the dispatch-table generator, the critic, shellcheck, the release build, the whole bats suite and ic's page render. All nine applied in a temp index on main 21d764a94, to tree 4944cfe4135a. After a green run comes one landing chain, one build all, one kovacs preflight and one push by devbin-vc, which saves a whole heavy cycle. This replaces decision 96(1)'s \"for the next train\": 0657 lands with Part B. hv weighed this premise: the three later banks have never been compiled under the L1 hold, so a red in one of them holds Part B for the re-run too. A red is read by its mechanism, the failing bank is fixed or pulled, and the run repeats once."
+  }
+}
