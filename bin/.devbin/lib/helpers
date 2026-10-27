@@ -196,7 +196,7 @@ cpu_count() {
 #
 # SC2034 (appears unused) is expected here and suppressed: these are globals for
 # the whole runtime, and shellcheck only sees this file. Exporting them to
-# satisfy the linter would push four colour variables into the environment of
+# satisfy the linter would push its colour variables into the environment of
 # every command devbin runs, which is a worse trade than one directive.
 # shellcheck disable=SC2034
 init_colors() {
@@ -206,6 +206,25 @@ init_colors() {
   fi
 }
 
+# log_awk <awk args...> -- awk over a captured log or a tool's output, read as
+# bytes.
+#
+# A log holds whatever bytes the tools and the tests wrote, and that need not be
+# valid UTF-8 (a latin1 byte from a tool, or from a test's own output). Under a
+# UTF-8 locale, macOS awk exits 2 at the first such byte on any regex, with
+# `towc: multibyte conversion failure`, and prints nothing more, so a counter
+# read an empty run as an uncounted one and it passed green (issue 0231).
+# Under LC_ALL=C every byte is a character, and the byte-literal rules (the
+# swift-testing glyphs and U+200B, spliced in as bytes) match byte for byte.
+#
+# LC_ALL is set on the awk command alone. It is never exported, so the gate's
+# tools still run in the person's locale. A grep over a log needs the same
+# `LC_ALL=C` on its command, as write_errors_file's has: GNU grep drops a line
+# holding such a byte and says only "binary file matches".
+log_awk() {
+  LC_ALL=C awk "$@"
+}
+
 # strip_ansi -- filter: remove CSI escape sequences from stdin.
 #
 # Byte-identical in every project it was folded from. Reads stdin, writes
@@ -213,9 +232,10 @@ init_colors() {
 #
 # The escape byte is passed in as an awk variable rather than written into the
 # pattern, because a literal ESC in source survives neither editors nor patches
-# reliably.
+# reliably. It reads through log_awk, because what it strips is a log's bytes:
+# under a UTF-8 locale a latin1 byte stopped it short (issue 0231).
 strip_ansi() {
-  awk -v esc="$(printf '\033')" '{ gsub(esc "\\[[0-9;?]*[A-Za-z]", ""); print }'
+  log_awk -v esc="$(printf '\033')" '{ gsub(esc "\\[[0-9;?]*[A-Za-z]", ""); print }'
 }
 
 # upper_snake <string> -- the environment-variable spelling of a name.
@@ -358,10 +378,11 @@ run_words() {
   # runs the arguments typed after the command, at exit 0. That is 0082 exactly.
   # Measured on bash 5.3: `_rw_o`, `_rw_on` and `IFS` each do it silently, and
   # `_rw_on` additionally hands the split words to `shopt -s`. No caller can
-  # reach it -- every site passes `words` or `restore_words` -- so this is a
+  # reach it -- no caller passes one of run_words's own names -- so this is a
   # trap for the next caller rather than a live bug, and status 2 marks it as a
   # programming error rather than the config error 1 means.
-  # TWO CHECKS, BECAUSE A BLACKLIST ALONE LEAVES 0082'S OWN SHAPE NEXT TO IT.
+  # A NAME CHECK AND A BLACKLIST, BECAUSE A BLACKLIST ALONE LEAVES 0082'S OWN
+  # SHAPE NEXT TO IT.
   # The first cut listed the colliding names and stopped, which left a hole:
   # `run_words 2bad ...` makes `local -n` fail with bash's own `invalid
   # variable name for name reference`, execution FALLS THROUGH, and run_words
@@ -384,8 +405,8 @@ run_words() {
   local IFS=$' \t\n' _rw_o _rw_on=""
   # The split lands in a local and is copied to the caller AFTER the shopts are
   # put back, so a target bash refuses to assign -- a readonly one -- cannot
-  # leave the six options unset in the caller's shell. Unreachable
-  # from the eight sites, which all pass a plain indexed array.
+  # leave the glob options it turned off unset in the caller's shell.
+  # Unreachable from every site, which all pass a plain indexed array.
   #
   # **AN INTEGER TARGET IS NOT REFUSED AND THE GUARD ABOVE CANNOT REFUSE IT**,
   # because `declare -ia w` carries a name that IS a name: the defect is the
@@ -604,7 +625,7 @@ physical_dir() {
 # asked of _wsl_probe against /proc.
 #
 # FOR REPORTING ONLY. WSL is Linux, so no command behaves differently under it
-# (ST0008, principle 1); doctor asks this to say where a project sits, and
+# (ST0008); doctor asks this to say where a project sits, and
 # nothing else may branch on it.
 #
 # DEVBIN_WSL overrides the probe, 1 for WSL and 0 for not, so an arm drives it
@@ -695,7 +716,7 @@ windows_drive_of() {
 #   which keeps this off stat, whose flags differ between BSD and GNU.
 # - ON A FAILURE IT RETURNS, THE FILE IS UNTOUCHED AND THE TEMPORARY REMOVED,
 #   and a failure of the mechanics is named here, so a caller adds only what it
-#   was doing. A failing <command> names its own failure. Two ways still leave a
+#   was doing. A failing <command> names its own failure. These still leave a
 #   temporary beside the file: a process killed before the rename, and a file
 #   flag that `cp -p` copies onto the temporary -- BSD's uchg refuses the write
 #   and the removal alike, so the helper returns 1 and rm's own error names the
@@ -753,8 +774,7 @@ stage_beside() {
 # passed while `bin/devbin test all` from a human's terminal stopped dead at
 # `replace_file replaces a read-only file` and stayed quiet for eight hours.
 # A false green that is green for everyone who can see it.
-# lib/install:379 already wrote `mv -f` for its own rename; this is the second
-# of the two mv calls in the runtime and it had not.
+# lib/install:379 already wrote `mv -f` for its own rename; this one had not.
 rename_staged() {
   local file="${1%.??????}"
   if ! mv -f "$1" "$file"; then
@@ -823,6 +843,77 @@ abs_path() {
   case "$1" in
     /*) printf '%s' "$1" ;;
     *) printf '%s/%s' "${PROJECT_ROOT:-.}" "$1" ;;
+  esac
+}
+
+# cargo_root_problem <project-root> <value> -- why `project.cargo_root` cannot
+# be <value>, printed, true when there is a problem; false, printing nothing,
+# when <value> names a directory below <project-root> holding a Cargo.toml.
+#
+# ONE RULE FOR BOTH PLACES THAT JUDGE THE VALUE (issue 0225): cfg_validate
+# refuses it for `doctor` and `release`, and cargo_root refuses it at the run, so
+# the two cannot accept different values. The path is named, since the value is
+# what the project typed and the path is where devbin looked.
+cargo_root_problem() {
+  local root="$1" value="$2"
+  case "$value" in
+    '')
+      printf 'is empty -- name the directory holding the workspace Cargo.toml, relative to the project root\n'
+      return 0
+      ;;
+    /*)
+      printf 'is absolute -- name the directory relative to the project root\n'
+      return 0
+      ;;
+  esac
+  if [ ! -d "$root/$value" ]; then
+    printf 'names %s, which is not a directory\n' "$root/$value"
+    return 0
+  fi
+  if [ ! -f "$root/$value/Cargo.toml" ]; then
+    printf 'names %s, which holds no Cargo.toml\n' "$root/$value"
+    return 0
+  fi
+  return 1
+}
+
+# cargo_root -- the directory devbin runs its catalogue's cargo lines in: the
+# project root, or the one `project.cargo_root` names below it (issue 0225).
+#
+# THE ONE OWNER OF THAT DIRECTORY. The run path (catalogue_line_root, below),
+# dormancy, and check targetdir's shared tree ask this function, and none of
+# them reads the setting. The dispatcher exports DEVBIN_CARGO_ROOT, the value as
+# written, only when config declares it, since lib/helpers reads no config and
+# a handler is a separate process. Unset is the setting absent, and the answer
+# is then the project root exactly as it was before the setting existed. Set,
+# the value is judged by cargo_root_problem on every call, so a Cargo.toml moved
+# away since the config was validated is refused here rather than handed to
+# cargo as a directory with no manifest.
+cargo_root() {
+  local why
+  if [ -z "${DEVBIN_CARGO_ROOT+set}" ]; then
+    printf '%s\n' "$PROJECT_ROOT"
+    return 0
+  fi
+  if why="$(cargo_root_problem "$PROJECT_ROOT" "$DEVBIN_CARGO_ROOT")"; then
+    warn "project.cargo_root '$DEVBIN_CARGO_ROOT' $why"
+    return 1
+  fi
+  printf '%s/%s\n' "$PROJECT_ROOT" "${DEVBIN_CARGO_ROOT%/}"
+}
+
+# catalogue_line_root <language> -- the directory a catalogue command line of
+# <language> runs in: cargo_root for rust, whose every catalogue line is a cargo
+# line (fmt rust, check clippy, test rust, and check format's rust arm derived
+# from fmt rust's), and the project root for every other language. Asked by the
+# catalogue's runner (run_builtin_gate), check format and dormancy, each with the
+# row's language, so no list of the cargo lines exists to fall behind the
+# catalogue. A project's own `run:` is never asked about: it runs at the project
+# root, as it always has.
+catalogue_line_root() {
+  case "$1" in
+    rust) cargo_root ;;
+    *) printf '%s\n' "$PROJECT_ROOT" ;;
   esac
 }
 
@@ -1020,7 +1111,7 @@ _clean_cargo_tag() {
 #
 # A TREE FOUND BY NAME IS READ HERE AND NOWHERE ELSE, since the walk prunes at
 # it (_clean_roots), so a directory or a tag that cannot be read is this
-# function's to report: 3, and the scan counts as partial. The four marker tests
+# function's to report: 3, and the scan counts as partial. The marker tests
 # are file tests, false on "permission denied", so a mode-000 target/ holding
 # every marker cargo writes was listed as unmarked at exit 0 with no word at all
 # (issue 0131).
@@ -2229,7 +2320,7 @@ sha256_of() {
 # These emit FACTS -- a string and a list of file paths -- and declare nothing.
 # Each build system states its own dependency in its own vocabulary: cargo's
 # `rerun-if-changed`, Elixir's `@external_resource`, a make prerequisite, a
-# Dockerfile COPY. That is what makes one function serve four toolchains.
+# Dockerfile COPY. That is what makes one function serve every toolchain.
 
 # git_readonly <args...> -- git, asked about a repository this process only reads.
 #
@@ -2511,15 +2602,15 @@ git_ceiling() {
 # THE ONE READING OF A FAILED GIT CALL (issue 0185). Readers took the failure
 # for no repository, so a project vendored from a checkout git refused to read
 # recorded `source: checkout` above "not a git checkout". Every reader of a
-# failed call asks this, and says which in its own words; the two whose answer
+# failed call asks this, and says which in its own words; the readers whose answer
 # is right either way, git_head_watch_paths and commit_direction, say why not.
 #
-# NOT A COPY OF GIT'S DISCOVERY. It walks further than git in three places, and
+# NOT A COPY OF GIT'S DISCOVERY. It walks further than git in these places, and
 # there it errs towards could-not-read: it does not stop at a filesystem
 # boundary (GIT_DISCOVERY_ACROSS_FILESYSTEM), it does not pass over a `.git` git
 # passes over as no repository (a dangling link, an empty directory), and it
-# reads GIT_CEILING_DIRECTORIES only up to a newline. It errs the other way in
-# one: a directory inside a bare repository holds no `.git`, so it reads as
+# reads GIT_CEILING_DIRECTORIES only up to a newline. It errs the other way
+# inside a bare repository: a directory there holds no `.git`, so it reads as
 # absent where git would refuse that repository or read it.
 git_repo_absent() {
   local d c rc=0
@@ -2634,7 +2725,7 @@ platform_identity() {
 
 # runtime_digest <launcher> <libdir> -- SHA256 of the RUNTIME BYTES, 12 hex.
 #
-# THE ONE HOME FOR "WHICH BYTES ARE THESE", and it now has two readers: the
+# THE ONE HOME FOR "WHICH BYTES ARE THESE", and it has more than one reader: the
 # `--version` line here, and a caller that reports a digest per tree, which had
 # this computation written out inside it. Two copies of a fingerprint is the
 # worst duplication available -- when they drift, the two surfaces report
@@ -2866,7 +2957,7 @@ git_head_watch_paths() {
 # assert_identifier <value> <what> -- refuse a value that cannot be a shell
 # variable name, or that would clobber one the shell needs.
 #
-# Devbin turns three CONFIG VALUES into variable names: `project.root_var`,
+# Devbin turns CONFIG VALUES into variable names: `project.root_var`,
 # `options.<name>.export`, and `<NAME>_ROOT` derived from `project.name`. The
 # config KEY charset is validated by the parser; these values were not, and the
 # failure was raw and unlocated -- a space in any of them produced bash's own
@@ -2880,12 +2971,12 @@ git_head_watch_paths() {
 # it. Refusing beats diagnosing.
 # is_identifier <value> -- true when <value> is a shell variable name: a letter
 # or underscore, then letters, digits and underscores. THE ONE DEFINITION, and
-# it is a predicate rather than a refusal because its two callers refuse
+# it is a predicate rather than a refusal because its callers refuse
 # differently: assert_identifier dies with a message naming which rule the value
-# broke, and run_words warns and returns, since nothing in the release library
-# may die. The charset lived only inside assert_identifier until run_words
-# needed the same question (issue 0082), and a second spelling of "is a name"
-# is exactly the divergence Highlander is about.
+# broke, and run_words and find_list warn and return, since nothing in the
+# release library may die. The charset lived only inside assert_identifier
+# until run_words needed the same question (issue 0082), and a second spelling
+# of "is a name" is exactly the divergence Highlander is about.
 is_identifier() {
   case "${1:-}" in
     '' | [!A-Za-z_]* | *[!A-Za-z0-9_]*) return 1 ;;
@@ -2916,7 +3007,7 @@ assert_identifier() {
     # own overreach failed here before it could reach a live project.
     #
     # EVERY NAME THE DISPATCHER EXPORTS TO A HANDLER, and a pattern only for the
-    # two families whose names it composes. The list is a copy of exports that
+    # families whose names it composes. The list is a copy of exports that
     # live in bin/devbin and lib/resolve, so it drifts each time one is added: it
     # fell six names and DEVBIN_ACTIVE_* behind, and root_var overwrote the run
     # id, the stamp, the referent and the cli task with the project root, rc 0
@@ -2925,7 +3016,7 @@ assert_identifier() {
     DEVBIN_NAME | DEVBIN_INVOKE | DEVBIN_LIB | DEVBIN_DIR | DEVBIN_ROOT_VAR | DEVBIN_COMMAND | DEVBIN_ARGS | \
       DEVBIN_SEAL_LEDGER | DEVBIN_SEAL_LEDGER_RUN | DEVBIN_RUN_ID | DEVBIN_RUN_STAMP | DEVBIN_RUN_WITNESS | \
       DEVBIN_RUN_REFERENT | DEVBIN_CLI_TASK | DEVBIN_VERSION_FILE | DEVBIN_VERSION_SIDECARS | DEVBIN_LANGUAGES | \
-      DEVBIN_FMT_ARMS | DEVBIN_ACTIVE_* | DEVBIN_OPT_* | PROJECT_ROOT | BIN_DIR)
+      DEVBIN_CARGO_ROOT | DEVBIN_FMT_ARMS | DEVBIN_ACTIVE_* | DEVBIN_OPT_* | PROJECT_ROOT | BIN_DIR)
       die "$what must not be '$value' -- that name belongs to devbin's own environment"
       ;;
   esac
@@ -3017,7 +3108,7 @@ rlwrap_exec() {
 }
 
 # ============================================================================
-# GENERATED DOCUMENTATION, AND THE FIVE REFUSALS THAT MAKE IT SAFE
+# GENERATED DOCUMENTATION, AND THE REFUSALS THAT MAKE IT SAFE
 # ============================================================================
 #
 # generated_doc_write --target FILE --begin MARKER --end MARKER \
@@ -3076,7 +3167,7 @@ generated_doc_write() {
   done
 
   # Usage errors DIE: they are the caller's bug and no run of this is correct.
-  # The five refusals below WARN, because they are facts about the world.
+  # The refusals below WARN, because they are facts about the world.
   [ -n "$target" ] || die "generated_doc_write: --target is required"
   [ -n "$begin" ] || die "generated_doc_write: --begin marker is required"
   [ -n "$end" ] || die "generated_doc_write: --end marker is required"
@@ -3177,7 +3268,7 @@ generated_doc_write() {
   # R3 -- ATOMIC REPLACE, through replace_file above: the temporary beside the
   # target (a temp under /tmp renaming onto a project path can fail
   # cross-device), the target's mode, the rename, and the temporary removed on
-  # a failure it returns -- the comment above stage_beside names the two ways
+  # a failure it returns -- the comment above stage_beside names the ways
   # one can still be left.
   #
   # What this gives and does NOT give: the reader sees the old file or the new
@@ -3227,7 +3318,7 @@ devbin_lib_dir() {
 
 # is_devbin_source <root> -- true when <root> can be vendored FROM.
 #
-# The dispatcher and lib/helpers, because those are the two files whose absence
+# The dispatcher and lib/helpers, because those are the files whose absence
 # makes every other check meaningless. Checked before upgrade writes anything
 # (AC-09.9): a half-replaced runtime leaves a project that cannot run at all,
 # which is strictly worse than the stale one it was replacing.
@@ -3261,7 +3352,7 @@ is_devbin_dev_tree() {
 }
 
 # MOVED HERE FROM lib/install AT THE UPDATE-NOTICE CHANGE. The dispatcher
-# needs to read two manifest header lines on every invocation, and it does
+# needs to read manifest header lines on every invocation, and it does
 # NOT source lib/install -- deliberately, because the install machinery has
 # no business on the hot path of a launcher that runs on every command. The
 # alternative was a second manifest reader in the dispatcher, which is the
@@ -3363,13 +3454,13 @@ _devbin_unmanifested_keg() {
 }
 
 # devbin_tree_line <root> -- the one line that says which devbin is running:
-# `devbin <version> (<tree>, <sha12>[+dirty]) at <root>` (T4). In brew and
-# opt the version and the commit are the manifest's; in dev they are the
-# checkout's VERSION and HEAD, and `+dirty` follows while the runtime set,
-# bin/devbin and lib/, has changes git has not committed. A dev tree whose git
-# cannot be read keeps the line's shape with `unknown` for the commit, and
-# doctor fails on it. <root> is absolute, and a Homebrew keg is named by its opt
-# link (install_named_root), never by the versioned keg `brew upgrade` deletes.
+# `devbin <version> (<tree>, <sha12>[+dirty])` (T4). In brew and opt the
+# version and the commit are the manifest's; in dev they are the checkout's
+# VERSION and HEAD, and `+dirty` follows while the runtime set, bin/devbin and
+# lib/, has changes git has not committed. A dev tree whose git cannot be read
+# keeps the line's shape with `unknown` for the commit, and doctor fails on it.
+# The line names no path (issue 0230): where the running copy lives is
+# `command -v devbin`'s answer, so no caller adds one back.
 devbin_tree_line() {
   local root="$1" tree ver sha state
   tree="$(devbin_tree "$root")"
@@ -3393,13 +3484,26 @@ devbin_tree_line() {
       ;;
   esac
   case "$sha" in unknown) ;; *) sha="${sha:0:12}${sha:40}" ;; esac
-  printf 'devbin %s (%s, %s) at %s\n' "${ver:-unknown}" "$tree" "$sha" "$(install_named_root "$root")"
+  printf 'devbin %s (%s, %s)\n' "${ver:-unknown}" "$tree" "$sha"
+}
+
+# tree_line_head <line> -- a version line as T4's reader rule reads it: up to
+# and including its first closing parenthesis, the rest ignored. So a line in
+# the shape before issue 0230, with ` at <root>` after the parenthesis, or one
+# with a compiled tool's provenance word there, reads as the same identity,
+# and no reader carries a second format. A line with no parenthesis is read
+# whole.
+tree_line_head() {
+  case "$1" in
+    *")"*) printf '%s)\n' "${1%%")"*}" ;;
+    *) printf '%s\n' "$1" ;;
+  esac
 }
 
 # vendor_from_hint <install root> -- the line that tells an operator how a
 # project vendors from an install: printed by publish and publish-upgrade, and
 # by the dispatcher's refusal to run from an install, which is why it lives
-# here rather than in lib/install. One home keeps the three from differing;
+# here rather than in lib/install. One home keeps its callers from differing;
 # what catches a WRONG line is the test, which runs the printed line in a
 # consumer. A keg is named by its opt link (install_named_root), so a line
 # copied from a brew install still runs after `brew upgrade`.
@@ -3416,8 +3520,9 @@ vendor_from_hint() {
 # did not exist, beneath a line announcing that this was the checkout.
 #
 # MOVED HERE FROM lib/cmd/devbin (issue 0121), when `infra --help` turned out to
-# spell the same path outright for its reference file. Two handlers need it, and
-# a second copy of a one-line derivation is how the first defect comes back.
+# spell the same path outright for its reference file. More than one handler
+# needs it, and a second copy of a one-line derivation is how the first defect
+# comes back.
 lib_rel() {
   printf '%s' "${DEVBIN_LIB#"$PROJECT_ROOT"/}"
 }
@@ -3511,6 +3616,9 @@ devbin_home_pointer() {
 # brew_keg_prefix <root> -- the Homebrew prefix whose keg <root> is, when <root>
 # is one, <prefix>/Cellar/devbin/<version>/libexec: rc 0 with the prefix, rc 1
 # otherwise. Pure.
+# brew_bin_link <homebrew prefix> -- the link `brew link` makes for devbin in
+# Homebrew's bin, <prefix>/bin/devbin, which answers on PATH once devbin's own
+# link is gone (0235). Pure.
 #
 # THE ONE SPELLING OF THE FORMULA'S LAYOUT (issue 0195). Discovery,
 # the sentence that says where it looked, and the opt link shell-init and the
@@ -3524,6 +3632,9 @@ brew_keg_prefix() {
     /*/Cellar/devbin/*/libexec) printf '%s\n' "${1%%/Cellar/devbin/*}" ;;
     *) return 1 ;;
   esac
+}
+brew_bin_link() {
+  printf '%s/bin/devbin\n' "${1%/}"
 }
 
 # install_named_root <root> -- the path to name the install at <root> by: when
@@ -3640,7 +3751,7 @@ machine_named_state() {
 }
 
 # machine_link_state -- what the link alone names, in machine_named_state's
-# three states: the half of it that never asks DEVBIN_INSTALL_PREFIX.
+# states: the half of it that never asks DEVBIN_INSTALL_PREFIX.
 #
 # READ BY THE LINK'S OWN PATH, NEVER THROUGH PATH (T9). A process started
 # without the login PATH -- cron, a hook a GUI app launched -- has no
@@ -3704,7 +3815,77 @@ devbin_link_shadow() {
   printf 'the link %s is shadowed: the first devbin on PATH is %s -- put %s ahead of %s on PATH\n' "$p" "$first" "${p%/*}" "${first%/*}"
 }
 
-# machine_install_state -- THREE states, on stdout, one word first:
+# brew_answer_state -- what would answer `devbin` on PATH once the link
+# devbin_link_path names is gone, asked by `use brew` before it removes the
+# link (docs/dev-opt-brew.md, T5, amendment A4). One line on stdout, one word
+# first:
+#
+#   brew <root>       the first devbin on PATH outside the link's directory is
+#                     the bin/devbin of Homebrew's keg, at <root>
+#   absent            Homebrew has no devbin here (devbin_brew_root finds none)
+#   other <path>      the first devbin on PATH outside the link's directory is
+#                     <path>, which is not Homebrew's
+#   offpath <bin>     none is on PATH outside it, though Homebrew's bin link
+#                     <bin> leads into the keg: Homebrew's bin is not on PATH
+#   unlinked <root>   none is on PATH outside it, and no devbin in Homebrew's
+#                     bin leads into the keg at <root>
+#
+# BY THE LOOKUP A SHELL MAKES ONCE THE LINK IS GONE. The PATH entries whose
+# directory resolves to the link's own are left out, and so are empty and
+# relative entries: each answers from the directory a command is typed in, so
+# none says what the machine runs, and with ./bin on PATH the checkout's own
+# launcher would read as another copy. bash's own search reads the rest, in
+# order. The hit and the keg's bin/devbin are each resolved (real_path) and
+# compared: Homebrew's bin link leads into the versioned keg, and
+# devbin_brew_root names the keg by its opt link.
+brew_answer_state() {
+  local root want got p ld e d first bin
+  local -a entries kept=()
+  if ! root="$(devbin_brew_root)"; then
+    printf 'absent\n'
+    return 0
+  fi
+  real_path "$root/bin/devbin" want
+  ld=""
+  if p="$(devbin_link_path)"; then
+    physical_dir "${p%/*}" ld || ld="${p%/*}"
+  fi
+  IFS=: read -r -a entries <<<"$PATH"
+  for e in "${entries[@]}"; do
+    case "$e" in
+      /*) ;;
+      *) continue ;;
+    esac
+    if [ -n "$ld" ] && physical_dir "$e" d && [ "$d" = "$ld" ]; then
+      continue
+    fi
+    kept+=("$e")
+  done
+  first=""
+  if [ "${#kept[@]}" -gt 0 ]; then
+    first="$(PATH="$(IFS=:; printf '%s' "${kept[*]}")" type -P devbin)" || first=""
+  fi
+  if [ -n "$first" ]; then
+    real_path "$first" got
+    if [ "$got" = "$want" ]; then
+      printf 'brew %s\n' "$root"
+    else
+      printf 'other %s\n' "$first"
+    fi
+    return 0
+  fi
+  bin="$(brew_bin_link "$HOMEBREW_PREFIX")"
+  if [ -e "$bin" ]; then
+    real_path "$bin" got
+    if [ "$got" = "$want" ]; then
+      printf 'offpath %s\n' "$bin"
+      return 0
+    fi
+  fi
+  printf 'unlinked %s\n' "$root"
+}
+
+# machine_install_state -- its states, on stdout, one word first:
 #
 #   at <root>       the machine names an install, or devbin's checkout, and
 #                   this is its root
@@ -3915,12 +4096,12 @@ _devbin_source_head() {
 #   unrelated  neither contains the other -- a different history
 #   unknown    the question cannot be answered from what is on disk
 #
-# UNKNOWN IS A REAL ANSWER AND MUST NEVER BE READ AS `forward`. There are four
-# ways to reach it and none of them is exotic: the field is ABSENT on a manifest
-# that predates the field, it is PROSE when the source was not a checkout, it
-# carries `+dirty` when the bytes matched no commit, and a fresh clone may
-# simply not HAVE the recorded commit. Collapsing any of those into "fine" is
-# the direction that costs something -- upgrade syncs from source
+# UNKNOWN IS A REAL ANSWER AND MUST NEVER BE READ AS `forward`. There are
+# several ways to reach it and none of them is exotic: the field is ABSENT on a
+# manifest that predates the field, it is PROSE when the source was not a
+# checkout, it carries `+dirty` when the bytes matched no commit, and a fresh
+# clone may simply not HAVE the recorded commit. Collapsing any of those into
+# "fine" is the direction that costs something -- upgrade syncs from source
 # unconditionally, so a downgrade prints `updated` per file and leaves doctor
 # green (issue 0021, measured at 11 files).
 #
@@ -3933,11 +4114,12 @@ _devbin_source_head() {
 # needs was in the checkout the install was PUBLISHED from, so that is where it
 # is asked; see install_ancestry.
 #
-# `+dirty` IS `unknown`, AS THE FIRST PARAGRAPH SAYS -- and until issue 0059
-# the code did not do it. It took the first word and compared the sha, so bytes
-# vendored from `C` plus uncommitted work read `same` against a source holding
-# `C`, and upgrade dropped the work with no direction line. The sha names where
-# the bytes STARTED, not what they are, so no direction follows from it.
+# `+dirty` IS `unknown`, AS "UNKNOWN IS A REAL ANSWER" SAYS -- and until issue
+# 0059 the code did not do it. It took the first word and compared the sha, so
+# bytes vendored from `C` plus uncommitted work read `same` against a source
+# holding `C`, and upgrade dropped the work with no direction line. The sha
+# names where the bytes STARTED, not what they are, so no direction follows from
+# it.
 source_direction() {
   local dstroot="$1" srcroot="$2" rec
   rec="$(manifest_source_commit "$dstroot" 2>/dev/null || true)"
@@ -4132,11 +4314,21 @@ gate_exec() {
     warn "gate_exec: no command to run"
     return 2
   fi
-  case "${DEVBIN_IN_GATE:-}:${DEVBIN_GATE_TTY:-}" in
-    1:0 | 1:1) _ge_tty="$DEVBIN_GATE_TTY" ;;
-    *) _ge_tty="$(stdin_tty_flag)" ;;
-  esac
+  _ge_tty="$(gate_tty_flag)"
   DEVBIN_IN_GATE=1 DEVBIN_GATE_TTY="$_ge_tty" "$@" </dev/null
+}
+
+# gate_tty_flag -- `1` when a person is at a terminal for this process, else
+# `0`, by gate_exec's rule: inside a gate the gate's own DEVBIN_GATE_TTY, which
+# it read from its stdin, and outside one this process's stdin (stdin_tty_flag).
+# THE ONE READING (issue 0158): gate_exec hands it on, and a command that asks a
+# person before or without a gate of its own (formula publish) reads it here, so
+# neither spells the flag's words.
+gate_tty_flag() {
+  case "${DEVBIN_IN_GATE:-}:${DEVBIN_GATE_TTY:-}" in
+    1:0 | 1:1) printf '%s\n' "$DEVBIN_GATE_TTY" ;;
+    *) stdin_tty_flag ;;
+  esac
 }
 
 # ask_person <question> -- ask a person at the terminal a yes/no question, from
@@ -4255,10 +4447,36 @@ devbin_offer_upgrade() {
   return 0
 }
 
-# devbin_source_state <projroot> -- FIVE states, on stdout, one word first.
+# _devbin_seam_is_level <projroot> <srcroot> -- seam_is_level, asked from
+# here (issue 0224).
+#
+# lib/install OWNS THE BYTE ANSWER and is loaded only when this is asked. The
+# dispatcher does not source lib/install, so the install machinery stays off
+# the hot path of every command: devbin_source_state reaches this only on a
+# forward move, and the notice asks that at most once a day.
+#
+# Its stderr is dropped ON PURPOSE. A comparison that cannot be made is not
+# level, so the answer stays `behind`, the verdict there was before the bytes
+# were asked; the reason (a manifest that vouches for nothing, a file nobody
+# can read) is what `bin/devbin vendor` reports, and printed here it would land
+# inside the notice or in the middle of doctor's rows.
+_devbin_seam_is_level() {
+  if [ -z "${_DEVBIN_INSTALL_LOADED:-}" ]; then
+    # NOT FOLLOWED BY SHELLCHECK. lib/install is checked on its own, and
+    # followed from here it would carry its names into every file that sources
+    # lib/helpers: its `seen` array read as SC2178 in lib/cmd/check, a lint
+    # finding in files that never load it.
+    # shellcheck source=/dev/null
+    . "${DEVBIN_LIB:?devbin_source_state needs DEVBIN_LIB set}/install" || return 1
+  fi
+  seam_is_level "$1" "$2" 2>/dev/null
+}
+
+# devbin_source_state <projroot> -- its states, on stdout, one word first.
 #
 #   level                           the vendored runtime is what the source holds
 #   behind <recorded> <now>         the source has moved FORWARD past this project
+#   moved <recorded> <now>          FORWARD in commits, with no vendored byte changed
 #   ahead <recorded> <now>          the source is BEHIND this project
 #   differs <recorded> <now> <why>  they differ, and in no direction anyone knows
 #   unknown <reason>                it could not be established
@@ -4280,9 +4498,16 @@ devbin_offer_upgrade() {
 # than the one this project vendored; whether any vendored FILE would change is
 # upgrade's question (seam_is_level, lib/install), and a source that moved only
 # outside the seam changes none. So the readers say which way the commits lie
-# and never that an upgrade would revert the runtime. `behind` has the mirror
-# limit, and has always had it: a forward move outside the seam is still
-# offered as an update.
+# and never that an upgrade would revert the runtime.
+#
+# `moved` IS THE MIRROR, AND IT IS NOT AN UPDATE (issue 0224). A forward move
+# was `behind` whatever it touched, so a devbin commit that moved only
+# coordination state told every project linked to the checkout to upgrade for
+# no change to any file it vendored. A forward move now asks seam_is_level, the
+# byte answer upgrade already reads, and one that changes no vendored byte is
+# `moved`: the commits still differ, so it is kept apart from `level`, and only
+# `behind` is offered as an update. The comparison FAILS CLOSED, as
+# seam_is_level does: when the bytes cannot be read the move stays `behind`.
 #
 # WHY THIS EXISTS SEPARATELY FROM THE NOTICE. `_devbin_update_line` prints or
 # stays quiet, and quiet is its answer for BOTH "level" and "cannot tell". That
@@ -4317,7 +4542,13 @@ devbin_source_state() {
 
   case "$(source_direction "$root" "$src")" in
     same) printf 'level\n' ;;
-    forward) printf 'behind %s %s\n' "$rec" "$cur" ;;
+    forward)
+      if _devbin_seam_is_level "$root" "$src"; then
+        printf 'moved %s %s\n' "$rec" "$cur"
+      else
+        printf 'behind %s %s\n' "$rec" "$cur"
+      fi
+      ;;
     backward) printf 'ahead %s %s\n' "$rec" "$cur" ;;
     unrelated) printf 'differs %s %s the source is on a different history\n' "$rec" "$cur" ;;
     *)
@@ -4405,7 +4636,7 @@ _devbin_update_line() {
 # new, only the moment it is made. What is new is that the answer reaches
 # someone who was not investigating.
 #
-# FOUR CONSTRAINTS, AND THE FIRST IS NOT OBVIOUS.
+# THE CONSTRAINTS, AND THE FIRST IS NOT OBVIOUS.
 #
 #   STDERR, NEVER STDOUT. devbin seals gate output and its extraction grammars
 #   parse it; some print on unanchored patterns. A version notice on stdout
@@ -4440,8 +4671,8 @@ devbin_update_notice() {
   stamp="$dir/$base"
   # -mtime is POSIX; -newermt is GNU-only, and devbin runs on macOS too.
   #
-  # find's errors go to /dev/null HERE ON PURPOSE, one of two finds in lib/ that
-  # may (issue 0139); the other is lib/install's seam check, which reads find's
+  # find's errors go to /dev/null HERE ON PURPOSE, one of the finds in lib/ that
+  # may (issue 0139); another is lib/install's seam check, which reads find's
   # status and answers UNREADABLE. This one asks only whether today's notice was
   # already shown, and a find that fails answers "not shown", which re-runs a
   # check that prints at most one line: the failure costs a repeat, never a

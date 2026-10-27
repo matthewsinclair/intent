@@ -1,35 +1,66 @@
-    bin/devbin macos [<option>|all] [args...]
+    bin/devbin macos <doctor|store-creds|app-sign|app-notarize|app-verify|publish>
 
-Run this project's macOS bundle and platform tasks. devbin ships the name `macos` and nothing behind it: those tasks belong to the project, so each project declares what `macos` runs.
+Release a macOS app: sign a staged copy of the project's `.app` with the Developer ID and the hardened runtime, notarise and staple it, check it as a download meets it, and attach it zipped to the release at its tag. devbin implements it, on macOS only, for the app the `macos:` block of `bin/.devbin/config.yaml` declares.
 
-It is also opt-in: absent until a project asks for it, with `commands.macos.enabled: true` or by filling it as below. `enabled: false` switches it off again, whatever fills it.
+It is opt-in: absent until a project asks for it with `commands.macos.enabled: true`. `enabled: false` switches it off again. A project's own `bin/.devbin/cmd/macos` handler, or a `commands.macos.run:` line, still wins over devbin's, as for any built-in, and then `bin/devbin help macos` prints the project's own page.
 
-## Until the project fills it
+## The declaration
 
-Run with nothing behind it, it refuses on stderr, saying it `resolves, but nothing here runs it` and naming what would make it run. It exits 3, devbin's code for a command that resolves but has nothing to run. `-h` and `bin/devbin macos all` get the same refusal. None of these writes anything.
+    macos.app           the .app bundle the build leaves, from the project
+                        root or absolute; required
+    macos.build         the command line that builds it, run at the root
+                        before app-sign stages; none: it is built already
+    macos.bundle_id     the bundle id the app carries and is signed as;
+                        required
+    macos.entitlements  the entitlements file signed in; none: signed without
+    macos.keychain      the login keychain's service prefix the notary
+                        credentials live under; default devbin.apple
+    macos.asset         the release asset's name; default the app's name
+                        with .zip, as Demo.app.zip
 
-That is not a fault: `bin/devbin doctor` notes it as offered with nothing to run, a note rather than a failure.
+Every `macos:` key is annotated in devbin's reference config, which `bin/devbin devbin` names.
 
-## Filling it
+## A release
 
-Any of these fills it, and switches it on with or without `enabled: true`:
+On the maintainer's machine, once the release core has made the release object, in a tree whose HEAD is the tag. Once main has moved past it, that is a worktree: `git worktree add --detach <dir> <tag>`. In order:
 
-    commands.macos.run          one command line, run at the project root
-    commands.macos.options.<o>  named tasks, each with its own run:, plus
-                                a synthesised `all` that runs every one
-    bin/.devbin/cmd/macos       an executable handler, for what a command
-                                line cannot say
+    app-sign      refused, building nothing, unless HEAD is the release tag
+                  of the project's version in a clean tree; then
+                  macos.build, a copy of macos.app staged under XDG state,
+                  outside the build tree, refused and removed, with nothing
+                  signed, unless its bundle id is macos.bundle_id and its
+                  version the project's; then signed inside-out (nested code,
+                  then the bundle) and its identifier, team and hardened
+                  runtime read back off the signature
+    app-notarize  submit the signed copy to Apple and wait; staple the ticket
+                  only when it is Accepted, else print Apple's log; then
+                  check a quarantined copy with spctl
+    publish       zip the stapled copy as macos.asset, unpack the zip as a
+                  user does and check the bundle inside, then attach it with
+                  `release attach <version> --from`, the release core's one
+                  way an asset reaches a release: it never replaces an asset,
+                  writes SHA256SUMS over every asset, and reads each upload
+                  back, so publish run again uploads nothing more
 
-`bin/devbin new macos` scaffolds that handler, which exits 3 until it is written, and a page for it at `bin/.devbin/help/macos.md`.
+    app-verify    the staged copy's signature and ticket; changes nothing
+    doctor        the platform, the declaration, the tools, the Developer ID
+                  identity (counted, with its team and a test-sign) and the
+                  notary credentials, each PRESENT or MISSING; exit 1 when
+                  anything is missing or the identity cannot sign
+    store-creds   store APPLE_ID, APPLE_APP_PASSWORD and APPLE_TEAM_ID in the
+                  login keychain under macos.keychain's prefix; interactive,
+                  in a terminal only
 
-A `run:` line is split into words and never handed to a shell, so quoting, pipes and redirection need a handler. Arguments after `macos` are added to the end of the line, except `all` when there is no option to run, none declared or every declared one switched off: `bin/devbin macos all` then says it has no options to run, names `bin/devbin macos` as what runs the line, and exits 1. A handler is handed every argument, `all` included when there is no option to run, and a leading word that names a sub-handler at `bin/.devbin/cmd/macos.d/<word>` runs that sub-handler with the rest.
+The stage is one per checkout, under `$XDG_STATE_HOME/devbin/macos/`, and a stage at or under the project root or the build product's directory is refused before it is made. Each copy the built-in makes has its Launch Services record dropped, so the bundle id opens only the installed app.
 
-With options declared and neither a `run:` nor a handler, a bare `macos` prints its usage and exits 1, because naming no option is a usage error, and `macos --help` prints the same usage and exits 0. `macos all` runs every active option not marked `in_all: false`, in the order config declares them, does not stop at a failure, and exits non-zero if any failed. With a handler as well, each option is passed to the handler as its first word and its `run:` is not used, so `all` calls the handler once per option.
+## The credentials
 
-## Any platform
+They live in the login keychain and nowhere else: no key material in the tree, in CI config or in any file the built-in writes, and nothing prints a value. They are read only by the subcommands that need them: app-sign reads the team id alone, to choose the identity, and app-notarize reads the Apple id and the app password too. `store-creds` hands each value to security(1), which prompts for it and echoes nothing, so no value passes through devbin. `doctor` names the identity by count and team, never whole.
 
-devbin does not check which platform it is running on, before offering `macos` or before running it: whether what fills it works on the machine at hand is up to what fills it.
+## Exit codes
 
-## When this page stops answering
-
-Once a `run:` or a handler fills it, the project owns `macos`, and `bin/devbin help macos` prints the project's own `bin/.devbin/help/macos.md` instead, or, until that exists, a generated answer saying where the command resolves from and where to write that page. Declared options leave this page in place, and the lines below it list them. A project's own page replaces this one whenever it exists.
+    0    done
+    1    refused or failed, naming why; or a usage error: no subcommand, an
+         unknown one, or an argument after one
+    2    not macOS: every subcommand refuses off macOS, before the config or
+         any tool is read; --help works anywhere

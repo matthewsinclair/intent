@@ -11,7 +11,7 @@ Format sources in place. `fmt` MUTATES files. Its read-only counterpart is `chec
               in every project
     all       every option above that is offered here, one pass
 
-Each runs at the project root as a sealed gate, logged under `tmp/fmt/`. Arguments after `md`, `elixir` or `rust` go to prettier, `mix format` or `cargo fmt`, and paths are relative to the root. `swift` ignores them, and skips `build`, `.build` and `Carthage` directories.
+Each runs at the project root as a sealed gate, logged under `tmp/fmt/`, apart from `rust`, which runs at `project.cargo_root` when the config names one, and whose seal then says so in an `at:` line. Arguments after `md`, `elixir` or `rust` go to prettier, `mix format` or `cargo fmt`, and paths are relative to the directory the option runs in. `swift` ignores them, and skips `build`, `.build` and `Carthage` directories.
 
 ## Why md is root-only
 

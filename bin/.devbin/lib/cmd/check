@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # The built-in `check` command. Most options are catalogue entries with a
-# command line (compile, format, deps, clippy) and need nothing here. Two are
+# command line (compile, format, deps, clippy) and need nothing here. Others are
 # tier 1 (lib/builtins) -- real shared logic rather than a command line -- and
 # are marked `@builtin` in the catalogue, which resolves to the
 # `builtin_check_*` functions below.
@@ -14,7 +14,7 @@ set -euo pipefail
 # builtin_check_critic -- run the Intent critic for every declared language that
 # actually has a headless critic.
 #
-# Ported from the corpus, where every project carried this. Two things it
+# Ported from the corpus, where every project carried this. What it
 # refuses to do quietly:
 #
 #   - A language declared in intent/.config/config.json with no headless critic
@@ -162,9 +162,10 @@ $lang
 # declares, one arm per declared language (issue 0003).
 #
 # It used to be a catalogue command line, `mix format --check-formatted`, scoped
-# to elixir. `fmt` has four arms; this had one. So in a mixed project -- say
-# elixir + rust + swift -- declaring Elixir activated a gate NAMED `format`,
-# summarised "Formatting is up to date", that never looked at Rust or Swift.
+# to elixir. `fmt` has an arm per formattable language; this had one. So in a
+# mixed project -- say elixir + rust + swift -- declaring Elixir activated a
+# gate NAMED `format`, summarised "Formatting is up to date", that never looked
+# at Rust or Swift.
 # Same exit code, same empty seal, two thirds of the project unexamined.
 #
 # Shaped after `builtin_check_critic` above, which had already answered the same
@@ -196,7 +197,7 @@ _fmt_arm_state() {
 }
 
 builtin_check_format() {
-  local lang cmd rc=0 ran=0
+  local lang cmd rc=0 ran=0 dir
   local -a words
 
   # This gate verifies whole trees, one arm per declared language. It used to
@@ -260,14 +261,23 @@ builtin_check_format() {
       _check_format_swift || rc=1
       continue
     fi
-    # Split by run_words: a catalogue command line, read the way every other one
-    # is, and never eval'd (issue 0082's one helper). run_builtin_gate
-    # has already cd'd to the project root, which is where the words are matched.
-    run_words words "the catalogue's format check for '$lang'" "$cmd" || {
+    # AT THE DIRECTORY ITS LANGUAGE'S LINES RUN IN (issue 0225), from
+    # catalogue_line_root: the project root, where run_builtin_gate has already
+    # cd'd, or for rust the cargo root, which the arm names when it is not the
+    # root. In a subshell, so the next arm starts at the project root.
+    if ! dir="$(catalogue_line_root "$lang")"; then
       rc=1
       continue
-    }
-    "${words[@]}" || rc=1
+    fi
+    [ "$dir" = "$PROJECT_ROOT" ] || printf '    at %s\n' "$dir"
+    # Split by run_words: a catalogue command line, read the way every other one
+    # is, and never eval'd (issue 0082's one helper), its words matched in the
+    # directory it runs in.
+    (
+      cd "$dir" || die "cannot enter $dir"
+      run_words words "the catalogue's format check for '$lang'" "$cmd" || exit 1
+      "${words[@]}"
+    ) || rc=1
   done
 
   # No formattable language declared. Devbin itself is this case -- it declares
@@ -363,7 +373,7 @@ builtin_check_toolchain() {
        It compares .tool-versions against the running toolchain, whole-project."
   # A MISSING .tool-versions IS THE SAME DETERMINATE FACT AS A PRESENT ONE THAT
   # PINS NOTHING, AND THIS FUNCTION ALREADY REPORT-AND-PASSES ON THE SECOND.
-  # Twenty lines below, a file with no elixir/erlang pin warns "nothing to
+  # Further down, a file with no elixir/erlang pin warns "nothing to
   # compare" and returns 0. No file at all was `die`-ing -- so one gate answered
   # "this project declares no pin" in two opposite ways depending on whether the
   # project expressed it by omitting a line or by omitting a file.
@@ -588,7 +598,7 @@ builtin_check_autotests() {
 
   # THE PRUNE LIST IS THE DEFINITION OF WHAT THIS GATE LOOKED AT, NOT AN
   # OPTIMISATION, so it is printed with the verdict rather than left in here to
-  # be discovered. Two entries are correctness rather than speed:
+  # be discovered. Some entries are correctness rather than speed:
   #
   #   target/     -- crate sources vendored under a build tree are not ours, and
   #                  a gate that walked them would report breaches in other
@@ -749,7 +759,11 @@ builtin_check_targetdir() {
     die "check targetdir takes no arguments (got: $*)
        It reads the environment and the cargo config, whole-project."
 
-  want="$PROJECT_ROOT/target"
+  # THE SHARED TREE IS THE CARGO ROOT'S (issue 0225): the project root's
+  # target, or the target of the workspace `project.cargo_root` names, from
+  # cargo_root, the one owner of that directory, where devbin runs its cargo lines.
+  want="$(cargo_root)" || die "check targetdir: the cargo root is refused (above)"
+  want="$want/target"
   # THE SHARED TREE IS ONE CLEAN REMOVES (issue 0167): <root>/target with a
   # Cargo.toml beside it (build_tree_rebuildable). With none, as for a crate
   # nested below the project root, clean never removes it, and fullcycle fails

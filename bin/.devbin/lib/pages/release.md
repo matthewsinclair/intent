@@ -2,7 +2,7 @@
     bin/devbin release status <vX.Y.Z>
     bin/devbin release notes
     bin/devbin release check
-    bin/devbin release attach <vX.Y.Z>
+    bin/devbin release attach <vX.Y.Z> [--from <dir>]
 
 Cut a release: stamp, commit, gate, confirm, tag, push, make the release object, then run `after:` and read the CI verdict. `release` is opt-in: a project enables it with `commands.release.enabled: true` and declares how it releases in the `release:` block of `bin/.devbin/config.yaml`, where every key has a default. Every `release:` key is annotated in devbin's reference config, and `bin/devbin devbin` names where that file and devbin's releasing guide are.
 
@@ -12,8 +12,9 @@ Cut a release: stamp, commit, gate, confirm, tag, push, make the release object,
 
     resolve      the version and the tag
     pre-flight   the branch, the tree, the note, every remote, gh signed in
-                 when the release object needs it, and tmp/ ignored by git;
-                 every refusal named in one run
+                 when the release object needs it, tmp/ ignored by git, and
+                 under ci.base CI green on the base commit; every refusal
+                 named in one run
     stamp        set the version, run any derived: commands, date the note,
                  regenerate the notes views
     commit       the release commit
@@ -35,6 +36,12 @@ Cut a release: stamp, commit, gate, confirm, tag, push, make the release object,
 The push step reads each remote back after pushing to it, and a remote is slowest straight after a push, so a read that does not answer is asked again every 15 seconds for about 2 minutes, the bound the push itself has. A remote that answers without the release fails the step at once, as one that does not hold the release after the push. An answer that cannot be read here, such as a branch moved to a commit this checkout does not hold, fails it at once too, as a read that could not tell whether the remote holds the release, since no later ask can clear it. One that has not answered in that time fails it as a read that could not tell, never as a remote without the release: running the same command again reads it back.
 
 Each step with a postcondition checks it first. Running the same command again after a failure therefore continues from where it stopped, and a step already done says `already`. A cut that stopped after its tag is resumed by naming the version: once the tag exists, `--patch` would name the NEXT version, so the summary prints the command to resume with. A dry run's prints the command to cut with.
+
+A project with a `formula` command, devbin's built-in enabled or its own handler, publishes to Homebrew, and there a released cut ends on one more line, a note (a cut whose `after:` failed or whose CI is not green ends on its remedy instead): once the tap has the tag, `brew upgrade <formula>`, then `<formula> use brew`, after which `<formula> --version` reads `<formula> <version> (brew, <sha12>)` at the released version. The switch among dev, opt and brew rests at brew, and this step puts the machine back there. The core runs no brew and points no link. The formula's name is `formula.name`, or `project.name` where that is not declared.
+
+## CI green before the cut
+
+With `release.ci.base: true` the order is: push the branch, wait for CI green on it, then cut; with `release.ci.tag: false` as well, the cut does not wait for the tag's run, so read that run once the cut is done and file what it finds. Pre-flight asks `ci.query` once about the base commit, the one the release commit is made on, and anything but green -- a failed run, one still going, none at all, or no answer -- refuses the cut, naming the commit and what the query said, before any stamp, commit or gate; a run still going says to wait for it and cut again. Once HEAD is the release commit, the base is the commit before it, which stands for it only while the release commit changes nothing outside what the release owns.
 
 ## Choosing the version
 
@@ -63,6 +70,13 @@ The confirm step asks a person. `--yes` answers it. With neither a terminal nor 
                  never makes the object, never dispatches a run, reads no run
                  once SHA256SUMS agrees with the object, and a re-run
                  continues where it stopped
+    attach <v> --from <dir>
+                 attach the files under <dir> instead, built on this machine,
+                 through the same checks, upload, SHA256SUMS and readback: the
+                 one way an asset reaches a release, which the built-in macos
+                 takes for its app. With release.assets.workflow declared, the
+                 run's attach must have finished first. A relative <dir> is
+                 read from the project root
 
 ## Exit codes
 

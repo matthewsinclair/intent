@@ -105,7 +105,7 @@ _dormancy_load_config() {
 # - and any other answer is not a line dormancy can run itself, and is named.
 _dormancy_declared() {
   local -n _dd_words="$1" _dd_src="$2"
-  local why run key leaf
+  local why run key leaf dir="$PROJECT_ROOT"
   _dormancy_load_config
   leaf="$(option_leaf test rust)" || die "dormancy: devbin could not tell what runs 'test rust' here"
   case "$leaf" in
@@ -138,6 +138,10 @@ _dormancy_declared() {
       key="the catalogue's command line for 'test rust'"
       run="$(builtin_option_run test rust)" || die "dormancy: devbin's catalogue has no line for 'test rust'"
       _dd_src="devbin's catalogue"
+      # Run where `test rust` runs it, at the cargo root (issue 0225), so the
+      # two legs measure the line the gate runs; a project's own line above
+      # stays at the project root, as `test rust` runs it there.
+      dir="$(catalogue_line_root rust)" || die "dormancy: the cargo root is refused (above)"
       ;;
     # `options` is the dispatcher's answer when devbin's own test handler is
     # missing from the install: test rust is then a word handed to a command
@@ -146,10 +150,10 @@ _dormancy_declared() {
     declared-unrunnable) die "dormancy: 'test rust' does not run here: $(option_unrunnable_why test rust)" ;;
     *) die "dormancy: 'test rust' runs as '$leaf' here, not a command line of its own dormancy can run" ;;
   esac
-  # Split at the project root, where its words are glob patterns matched, as
-  # every declared line is (issue 0082); run_words names the key it refuses.
+  # Split where it runs, where its words are glob patterns matched, as every
+  # declared line is (issue 0082); run_words names the key it refuses.
   local -a _dd_tmp=()
-  cd "$PROJECT_ROOT" || die "cannot enter $PROJECT_ROOT"
+  cd "$dir" || die "cannot enter $dir"
   run_words _dd_tmp "$key" "$run" || exit 1
   _dd_words=("${_dd_tmp[@]}")
 }
@@ -193,8 +197,23 @@ _dormancy_passes_all_features() {
 # counts every target. Prints nothing when the log carries no trailer at all,
 # and the caller must treat that as "not measured" rather than as zero -- a
 # build that never reached a test binary produces exactly that shape.
+#
+# The output is read as bytes, through log_awk: under a UTF-8 locale a latin1
+# byte in it made macOS awk exit 2, and the swallowed failure read as a leg
+# with no trailer (issue 0231). The awk's status is returned, and its stderr is
+# left alone, so a count that fails all the same is reported as one.
 _dormancy_count() {
-  printf '%s\n' "$1" | awk "$(count_for rust)" 2>/dev/null || true
+  printf '%s\n' "$1" | log_awk "$(count_for rust)"
+}
+
+# _dormancy_reading <count> <awk status> -- what an INCONCLUSIVE report says a
+# leg counted: the count, the absent trailer, or the count that failed.
+_dormancy_reading() {
+  if [ "$2" -ne 0 ]; then
+    printf 'count could not be read (awk exited %s)' "$2"
+  else
+    printf '%s' "${1:-no test trailer at all}"
+  fi
 }
 
 # _dormancy_leg <which> <source> <words-var> <suffix> <grammar> -- run one leg,
@@ -239,7 +258,7 @@ _dormancy_leg() {
 }
 
 cmd_dormancy() {
-  local arg declared maximum src="" out_dec out_max rc_dec=0 rc_max=0 n_dec n_max delta suffix grammar
+  local arg declared maximum src="" out_dec out_max rc_dec=0 rc_max=0 cnt_dec=0 cnt_max=0 n_dec n_max delta suffix grammar
   local -a words=() maxwords=()
 
   for arg in "$@"; do
@@ -319,8 +338,8 @@ cmd_dormancy() {
   out_max="$(_dormancy_leg maximum "$src" maxwords "$suffix" "$grammar")" || rc_max=$?
   printf '%s\n' "$out_max"
 
-  n_dec="$(_dormancy_count "$out_dec")"
-  n_max="$(_dormancy_count "$out_max")"
+  n_dec="$(_dormancy_count "$out_dec")" || cnt_dec=$?
+  n_max="$(_dormancy_count "$out_max")" || cnt_max=$?
 
   printf '\n'
   # A COUNT FROM A RUN THAT DID NOT FINISH IS NOT A COUNT OF TESTS. A feature
@@ -329,10 +348,11 @@ cmd_dormancy() {
   # ran and FAILED is equally uncomparable: its trailer is real, but the
   # difference between two suites of which one is broken says nothing about
   # feature flags.
-  if [ -z "$n_dec" ] || [ -z "$n_max" ] || [ "$rc_dec" -ne 0 ] || [ "$rc_max" -ne 0 ]; then
+  if [ -z "$n_dec" ] || [ -z "$n_max" ] || [ "$cnt_dec" -ne 0 ] || [ "$cnt_max" -ne 0 ] ||
+    [ "$rc_dec" -ne 0 ] || [ "$rc_max" -ne 0 ]; then
     printf '  DORMANCY INCONCLUSIVE -- one of the two legs is not a count of tests.\n'
-    printf '    declared:  %s (exit %s)\n' "${n_dec:-no test trailer at all}" "$rc_dec"
-    printf '    maximum:   %s (exit %s)\n' "${n_max:-no test trailer at all}" "$rc_max"
+    printf '    declared:  %s (exit %s)\n' "$(_dormancy_reading "$n_dec" "$cnt_dec")" "$rc_dec"
+    printf '    maximum:   %s (exit %s)\n' "$(_dormancy_reading "$n_max" "$cnt_max")" "$rc_max"
     printf '    A leg that failed to build reaches no test binary, and a leg that\n'
     printf '    ran red is a different suite rather than a larger one. Neither\n'
     printf '    difference would be about feature flags, so none is reported.\n'

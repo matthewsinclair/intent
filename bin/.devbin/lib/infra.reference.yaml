@@ -118,7 +118,7 @@ defaults:
 # them. A domain naming the sender must then carry EVERY record it declares,
 # and check asks for each
 # on the domain's own nameserver and names each one missing as a HALF PAIR. Each
-# record takes the same three fields in both forms: `name` (the name under the
+# record takes the same fields in both forms: `name` (the name under the
 # domain), `type` (CNAME when not given) and `value` (optional, compared when
 # given). The value is compared WHOLE with every record at that name, so a
 # second record there is drift, and so is a target the value is only part of. A

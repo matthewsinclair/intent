@@ -58,6 +58,26 @@ project:
   # one devbin exports to handlers itself.
   root_var: DEMO_ROOT
 
+  # Optional. The directory holding the cargo workspace's Cargo.toml, relative
+  # to the project root, for a project whose workspace sits below it. Default:
+  # the project root.
+  #
+  # devbin runs its catalogue's cargo lines there: `fmt rust`, the rust arm of
+  # `check format`, `check clippy`, `test rust`, and dormancy's legs. Each
+  # seal's invocation block names the directory in an `at:` line when it is not
+  # the project root. `check targetdir` takes the shared tree to be the target
+  # beside this Cargo.toml. A project's own `run:` for any of them still runs
+  # at the project root, as every `run:` does.
+  #
+  # A value naming no directory, or a directory holding no Cargo.toml, is
+  # refused by `devbin doctor`'s config check with the path it looked at, and
+  # by each cargo line before cargo is run.
+  #
+  # Shown commented, because a declared value is checked against the tree, and
+  # this reference has none.
+
+  # cargo_root: native
+
   # Optional. A COMMAND devbin runs once per invocation, whose stdout it prints
   # verbatim beneath every verdict as `measured: <answer>`.
   #
@@ -162,7 +182,8 @@ project:
     - swift
 
 # Optional. The devbin this project expects, ENFORCED by `devbin doctor` against
-# the version stamped into bin/.devbin/manifest.sha256 at install. Three forms:
+# the version stamped into bin/.devbin/manifest.sha256 at install. It takes
+# these forms:
 #
 #   ^X.Y.Z    same major, at least X.Y.Z   (the usual)
 #   >=X.Y.Z   at least X.Y.Z, any major
@@ -308,7 +329,7 @@ options:
     # Adding a command here extends the set; it never replaces devbin's own.
     #
     # This key describes WHO READS the option, not what SHAPE it has. Declaring
-    # only `commands:` leaves `--iex` a flag; the four shape keys (flag, export,
+    # only `commands:` leaves `--iex` a flag; the shape keys (flag, export,
     # value, values) are what hand shape to config.
     commands:
       - web
@@ -507,9 +528,9 @@ commands:
   # projects should never see them. Asking is `enabled: true`, or a `run:` or
   # options declared here, or a handler of that name in cmd/.
   #
-  # `release` is the one devbin implements itself (see `release:` below). It
-  # ships no command line for the other five: each is in only some of the source
-  # projects and encodes that project's shape. Enabling one means supplying what
+  # devbin implements `release` and `macos` itself (see `release:` and `macos:`
+  # below). It ships no command line for the others: each is in only some of the
+  # source projects and encodes that project's shape. Enabling one means supplying what
   # it runs, here or as a handler in cmd/.
   #
   # `precommit` RUNS a project's pre-commit gate; it never installs or wires a
@@ -530,11 +551,11 @@ commands:
 # EVERY UNCOMMENTED VALUE IS THE DEFAULT. A project that enables `release`
 # and declares no block releases with all of them, and a block names only what
 # differs: every key has a default, and every default can be overridden. A
-# COMMENTED line is one of two things. For `remotes`, `derived`,
+# COMMENTED line is one of these things. For `remotes`, `derived`,
 # `ci.query`, `after`, `notes.run`, `repo` and `assets.workflow` the default is empty or derived, and the line shows an
-# example value, not the default. `ci.wait`, `object_wait` and `assets.wait` are commented out
+# example value, not the default. `ci.wait`, `ci.tag`, `ci.base`, `object_wait` and `assets.wait` are commented out
 # because declaring them where the default mode never reads them is refused, not
-# ignored -- `ci.wait` without `ci.query`, `object_wait` outside object: ci,
+# ignored -- `ci.wait`, `ci.tag` and `ci.base` without `ci.query`, `object_wait` outside object: ci,
 # `assets.wait` without `assets.workflow` --
 # and their lines show the default for the mode that does read them. The same
 # rule refuses `title` and `assets.workflow` outside object: local and `notes.run` outside
@@ -561,6 +582,8 @@ release:
   # ci:                      # undeclared: CI is not consulted
   #   query: bin/ci-state    # run as `<query> <sha>` with DEVBIN_RELEASE_TAG set (read it as ${DEVBIN_RELEASE_TAG:-}; unset, every run on the sha): the tag's runs only, `none` until one exists; first line `<verdict>[TAB<detail>]`, verdict green, failed, pending, none or unknown
   #   wait: 20m              # how long the post-release verdict waits on pending or none
+  #   tag: true              # false: the ci step does not ask about the tag's run, which is read after the cut instead
+  #   base: false            # true: pre-flight refuses the cut unless ci.query answers green for the base commit, the one the release commit is made on, asked once with no tag -- push the branch, wait for CI green, then cut
   object: local              # local | ci | none -- who makes the release object
   title: "{tag}"             # object: local only. {tag} and {version} expand.
   # repo: owner/name         # object: local or ci. Undeclared: read off the url of the first declared remotes entry, else origin, else the only remote
@@ -576,3 +599,43 @@ release:
   # assets:                  # object: local only -- what release attach, and a cut's object step, attach to the release object
   #   workflow: assets.yml   # the workflow in .github/workflows whose earliest successful run at the tag built them; declaring it turns the attach on
   #   wait: 30m              # how long the attach waits for that run to be listed and to finish
+
+# The built-in macos: a macOS app's release, on macOS only --
+# sign a staged copy with the Developer ID, notarise, staple, verify, and
+# attach it zipped to the release at its tag through `release attach --from`.
+# OPT-IN, like `release`: enable it with `commands.macos.enabled: true`. A
+# project's own `macos` handler or `run:` still wins.
+#
+# EVERY UNCOMMENTED VALUE IS THE DEFAULT. `app` and `bundle_id` have no sound
+# default and are required to sign; the commented lines show example values.
+# The notary credentials live in the login keychain under `keychain`'s prefix
+# and nowhere else: no key here holds one.
+macos:
+  # app: build/Products/Release/<Name>.app    # the .app bundle the build leaves, from the root or absolute
+  # build: bin/build-app --release            # run at the root before app-sign stages; undeclared: built already
+  # bundle_id: com.example.demo               # the bundle id it carries and is signed as
+  # entitlements: native/macos/Demo.entitlements  # undeclared: signed without
+  keychain: devbin.apple       # the login keychain's service prefix: devbin.apple.APPLE_ID and the others
+  # asset: <Name>-mac.zip                      # undeclared: the app's name with .zip
+
+# The built-in formula: the project's Homebrew formula, rendered
+# from a template and a release, and published to its tap, with `render <tag>
+# <out>` and `publish`. OPT-IN, like `release`: enable it with
+# `commands.formula.enabled: true`. A project's own `formula` handler or `run:`
+# still wins.
+#
+# EVERY UNCOMMENTED VALUE IS THE DEFAULT; the commented lines show example
+# values. A key the mode does not read is refused, not ignored.
+formula:
+  mode: source                # source: brew builds from the tag's checkout; assets: it installs the release's assets
+  # name: demo                # undeclared: project.name
+  # template: packaging/homebrew/demo.rb   # undeclared: packaging/homebrew/<name>.rb
+  # tap: ssh://git@git.example/example/homebrew-demo.git   # undeclared: homebrew-<name> under the release repository's owner
+  # repo: example/demo-dist   # assets: undeclared: the release repository
+  sums: SHA256SUMS            # assets: the sums file's name on the release
+  # manifest: .demo-install   # assets: undeclared: .<name>-install, under libexec
+  # cask: packaging/homebrew/demo-app.rb   # assets: undeclared: no cask
+  # assets:                   # assets: each name may hold {version}
+  #   - demo-aarch64-apple-darwin
+  # bin:                      # assets: from libexec, each set 0755 and linked into bin
+  #   - bin/demo

@@ -2,8 +2,8 @@
 #
 # {{NAME}} -- scaffolded by `{{DEVBIN}} new {{NAME}}`.
 #
-# The first test asserts the command RESOLVES, which is the thing a scaffold can
-# know is true. The rest is yours.
+# The resolves-and-is-offered test asserts the command RESOLVES, which is the
+# thing a scaffold can know is true. The rest is yours.
 #
 # Test names are EVALUATED by bats, so no backticks and no $(...) in them.
 

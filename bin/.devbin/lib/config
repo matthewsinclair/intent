@@ -34,6 +34,10 @@
 #   cfg_release_get <key>    a release: scalar, or its default (ST0007)
 #   cfg_release_list <key>   a release: list, one item per line, or its default
 #   cfg_release_verbs        every verb `release` has, one per line (ST0008 WP-08)
+#   cfg_macos_get <key>      a macos: scalar, or its default (issue 0226)
+#   cfg_formula_get <key>    a formula: scalar, or its default (issue 0227)
+#   cfg_formula_list <key>   a formula: list, one item per line
+#   cfg_formula_name         the formula's name: formula.name, else project.name
 #   cfg_dump                 the flattened form (debugging, doctor)
 #
 [ -n "${_DEVBIN_CONFIG_LOADED:-}" ] && return 0
@@ -183,9 +187,9 @@ AWK
 
 # _cfg_parse <file> -- one awk pass, flattened.
 #
-# Split out of cfg_load for two reasons: the torn-read check below compares two
-# of them, and a test can stub this to stage a race deterministically. A race
-# cannot be staged by timing without being flaky, and a flaky test for a
+# Split out of cfg_load because the torn-read check below compares two of
+# them, and because a test can stub this to stage a race deterministically. A
+# race cannot be staged by timing without being flaky, and a flaky test for a
 # concurrency guard is worse than none -- it teaches people to re-run.
 _cfg_parse() {
   awk "$_DEVBIN_CFG_AWK" "$1"
@@ -347,7 +351,7 @@ _cfg_is_index() {
 
 # _cfg_path_known <path> -- true when the dotted path is a legal schema path.
 _cfg_path_known() {
-  local path="$1" n
+  local path="$1" n frow
   local -a p
   IFS='.' read -ra p <<<"$path"
   n="${#p[@]}"
@@ -373,8 +377,9 @@ _cfg_path_known() {
         # own runtime honours is worse than no gate**, because the failure names
         # the project's file and the defect is here. Same shape as the
         # `log`/`grammar` omission recorded above it: the feature landed, the
-        # allowlist did not follow.
-        case "${p[1]}" in name | alias | cli_task | root_var | version_from | referent) return 0 ;; esac
+        # allowlist did not follow. `cargo_root`: issue 0225's key, added in
+        # the same change as its reader, cargo_root (lib/helpers).
+        case "${p[1]}" in name | alias | cli_task | root_var | version_from | referent | cargo_root) return 0 ;; esac
         return 1
       fi
       # project.languages.<N> -- drives which built-ins are active by default
@@ -434,6 +439,22 @@ _cfg_path_known() {
       [ "$n" -ge 2 ] && _cfg_release_known "${path#release.}" && return 0
       return 1
       ;;
+    macos)
+      # Issue 0226's macos: block, the built-in macos's settings. Its keys and
+      # defaults are ONE table, _DEVBIN_MACOS_SCHEMA below, which this branch
+      # reads rather than listing the keys a second time.
+      [ "$n" -eq 2 ] && _cfg_macos_row "${p[1]}" >/dev/null && return 0
+      return 1
+      ;;
+    formula)
+      # Issue 0227's formula: block, the built-in formula's settings, ONE
+      # table, _DEVBIN_FORMULA_SCHEMA below: a scalar at formula.<key>, a list
+      # item at formula.<key>.<N>.
+      frow="$(_cfg_formula_row "${p[1]}")" || return 1
+      [ "$n" -eq 2 ] && [ "${frow%%$'\t'*}" = scalar ] && return 0
+      [ "$n" -eq 3 ] && [ "${frow%%$'\t'*}" = list ] && _cfg_is_index "${p[2]}" && return 0
+      return 1
+      ;;
     commands)
       if [ "$n" -eq 3 ]; then
         # `log` and `grammar` at COMMAND level, not just option level: a
@@ -449,13 +470,13 @@ _cfg_path_known() {
         #
         # `restore` is `fullcycle`'s and only `fullcycle` reads it: the command
         # line that puts back release artefacts the cycle deleted. It is here
-        # the same day it was added, which is not how the last two went --
-        # `referent` and the `log`/`grammar` pair both shipped READABLE BY THE
+        # the same day it was added, which is not how `referent` and the
+        # `log`/`grammar` pair went -- both shipped READABLE BY THE
         # RUNTIME AND UNKNOWN TO THIS LIST, so `doctor` reported correct config
         # as an unknown key while the feature worked perfectly. This one was
         # caught by the reference config failing its own validation test, which
         # is the control that exists for exactly this and had to fire twice
-        # before anyone put the third key in on time.
+        # before anyone put a key in on time.
         case "${p[2]}" in enabled | summary | group | args | run | handler | log | grammar | restore) return 0 ;; esac
         return 1
       fi
@@ -502,6 +523,8 @@ list   derived         cut
 list   gates           cut,status                     check all|test all
 scalar ci.query        cut,status
 scalar ci.wait         cut                            20m
+scalar ci.base         cut                            false
+scalar ci.tag          cut,status                     true
 scalar object          cut,status,check,attach        local
 scalar title           cut,status                     {tag}
 scalar repo            cut,status,attach
@@ -618,6 +641,144 @@ cfg_release_verbs() {
   printf '%s\n' "${def//|/$'\n'}"
 }
 
+# --- the macos: block (issue 0226) ------------------------------------------
+#
+# THE ONE STATEMENT OF THE MACOS KEYS, the built-in macos's settings: shape
+# (every one a scalar), the key under `macos.`, and its default. The schema
+# branch above and cfg_macos_get both read it. A key with no default here has
+# no sound one: the app and its bundle id are the project's, and the built-in
+# refuses to sign without them. The asset's default, the app's own name with
+# `.zip`, is derived by lib/cmd/macos from `app`, so it is empty here.
+#
+#   app           the .app bundle the build leaves, from the project root or absolute
+#   build         the command line that builds it, run at the root; none: built already
+#   bundle_id     the CFBundleIdentifier the bundle must carry and is signed as
+#   entitlements  the entitlements file signed in, from the root; none: signed without
+#   keychain      the login keychain's service prefix the notary credentials live under
+#   asset         the release asset's name
+_DEVBIN_MACOS_SCHEMA="
+scalar app
+scalar build
+scalar bundle_id
+scalar entitlements
+scalar keychain     devbin.apple
+scalar asset
+"
+
+# _cfg_macos_row <key> -- the default of a macos key (empty when it has none),
+# or non-zero when the schema has no such key.
+_cfg_macos_row() {
+  local want="$1" shape key def IFS=$' \t\n'
+  while read -r shape key def; do
+    [ -n "$shape" ] || continue
+    if [ "$key" = "$want" ]; then
+      printf '%s\n' "$def"
+      return 0
+    fi
+  done <<<"$_DEVBIN_MACOS_SCHEMA"
+  return 1
+}
+
+# cfg_macos_get <key> -- the declared value of a macos key, or its default.
+# Refuses, naming the key, one the schema lacks, so a misspelt read is never
+# taken for a key left at its default.
+cfg_macos_get() {
+  local def
+  if ! def="$(_cfg_macos_row "$1")"; then
+    printf 'config: the macos: schema has no key: %s\n' "$1" >&2
+    return 1
+  fi
+  cfg_get "macos.$1" "$def"
+}
+
+# --- the formula: block (issue 0227) ----------------------------------------
+#
+# THE ONE STATEMENT OF THE FORMULA KEYS, the built-in formula's settings: shape,
+# the key under `formula.`, and its default. The schema branch above and the two
+# readers below read it. A key with no default here has one lib/cmd/formula
+# derives (name, template, tap, repo, manifest), or none that is sound (assets,
+# bin, cask: the project's own).
+#
+#   mode      source (a formula built from the tag's checkout) or assets (one
+#             that installs the release's own assets)
+#   name      the formula's name; default project.name
+#   template  the formula template, from the project root; default
+#             packaging/homebrew/<name>.rb
+#   tap       the tap's git url; default github's homebrew-<name> under the
+#             release repository's owner
+#   repo      assets: the repository whose release carries the assets and its
+#             sums; default the release repository
+#   sums      assets: the sums file's name on that release
+#   manifest  assets: the keg's T3 manifest, under libexec; default .<name>-install
+#   cask      assets: a cask template, from the project root; none: no cask
+#   assets    assets: the asset names the templates take a sha256 of, each may
+#             hold {version}
+#   bin       assets: the keg's executables, from libexec, each set 0755 and
+#             linked into bin
+_DEVBIN_FORMULA_SCHEMA="
+scalar mode      source
+scalar name
+scalar template
+scalar tap
+scalar repo
+scalar sums      SHA256SUMS
+scalar manifest
+scalar cask
+list   assets
+list   bin
+"
+
+# _cfg_formula_row <key> -- the shape of a formula key, then a tab and its
+# default, or non-zero when the schema has no such key.
+_cfg_formula_row() {
+  local want="$1" shape key def IFS=$' \t\n'
+  while read -r shape key def; do
+    [ -n "$shape" ] || continue
+    if [ "$key" = "$want" ]; then
+      printf '%s\t%s\n' "$shape" "$def"
+      return 0
+    fi
+  done <<<"$_DEVBIN_FORMULA_SCHEMA"
+  return 1
+}
+
+# cfg_formula_get <key> -- the declared value of a formula scalar, or its
+# default. Refuses, naming the key, one the schema lacks or a list, so a
+# misspelt read is never taken for a key left at its default.
+cfg_formula_get() {
+  local row
+  if ! row="$(_cfg_formula_row "$1")" || [ "${row%%$'\t'*}" != scalar ]; then
+    printf 'config: the formula: schema has no scalar key: %s\n' "$1" >&2
+    return 1
+  fi
+  cfg_get "formula.$1" "${row#*$'\t'}"
+}
+
+# cfg_formula_list <key> -- a formula list's items, one per line, nothing when
+# it is not declared. Refuses a key the schema has no list for.
+cfg_formula_list() {
+  local row i
+  if ! row="$(_cfg_formula_row "$1")" || [ "${row%%$'\t'*}" != list ]; then
+    printf 'config: the formula: schema has no list key: %s\n' "$1" >&2
+    return 1
+  fi
+  cfg_list "formula.$1" | while IFS= read -r i; do
+    [ -n "$i" ] && cfg_get "formula.$1.$i"
+  done
+  return 0
+}
+
+# cfg_formula_name -- the formula's name: formula.name, or project.name where
+# it is not declared. THE ONE DERIVATION of that default (issue 0227): the
+# built-in formula asks it, and so does any other reader of the formula's name,
+# so none restates the fallback.
+cfg_formula_name() {
+  local n
+  n="$(cfg_formula_get name)" || return 1
+  [ -n "$n" ] || n="$(cfg_get project.name)"
+  printf '%s\n' "$n"
+}
+
 # _cfg_release_value_problem <path> <value> -- print why a release value
 # cannot be read, and succeed; fail when the value is fine.
 _cfg_release_value_problem() {
@@ -669,7 +830,7 @@ _cfg_release_value_problem() {
 # default) mode never reads. A key nothing reads is silently ignored config,
 # the class issue 0080 closed for booleans.
 _cfg_release_problems() {
-  local rc=0 shape key readers i n sentinel kind object offered IFS=$' \t\n'
+  local rc=0 shape key readers i n sentinel kind object offered ci_key IFS=$' \t\n'
   # NO PIPELINE, AND NOT FOR STYLE. The items were read through
   # `... | grep -qx -- -`, and under pipefail, which every handler sets, a grep
   # that matches on the first line exits before the writer has finished: the
@@ -720,6 +881,18 @@ _cfg_release_problems() {
   fi
   if cfg_has release.ci.wait && ! cfg_has release.ci.query; then
     printf 'config: %s: release.ci.wait is read only when release.ci.query is declared\n' "$_DEVBIN_CFG_FILE" >&2
+    rc=1
+  fi
+  for ci_key in ci.base ci.tag; do
+    if cfg_has "release.$ci_key" && ! cfg_has release.ci.query; then
+      printf 'config: %s: release.%s is read only when release.ci.query is declared -- it says when the query is asked\n' "$_DEVBIN_CFG_FILE" "$ci_key" >&2
+      rc=1
+    fi
+  done
+  # A QUERY NOTHING ASKS is config nothing acts on: with ci.tag off and ci.base
+  # off the cut asks it neither about the base nor about the tag.
+  if cfg_has release.ci.query && ! is_true_word "$(cfg_release_get ci.tag)" && ! is_true_word "$(cfg_release_get ci.base)"; then
+    printf 'config: %s: release.ci.query is never asked: ci.tag is off and ci.base is off -- turn one on, or leave the query out\n' "$_DEVBIN_CFG_FILE" >&2
     rc=1
   fi
   if cfg_has release.title && [ "$object" != local ]; then
@@ -821,6 +994,7 @@ _cfg_path_boolean() {
     3:commands) [ "${p[2]}" = enabled ] ;;
     5:commands) [ "${p[2]}" = options ] && case "${p[4]}" in enabled | in_all) return 0 ;; *) return 1 ;; esac ;;
     3:options) [ "${p[2]}" = flag ] ;;
+    3:release) case "${p[1]}.${p[2]}" in ci.base | ci.tag) return 0 ;; *) return 1 ;; esac ;;
     *) return 1 ;;
   esac
 }
@@ -843,6 +1017,8 @@ _cfg_path_command_line() {
   case "${#p[@]}:${p[0]}" in
     3:commands) case "${p[2]}" in run | restore) return 0 ;; *) return 1 ;; esac ;;
     5:commands) [ "${p[2]}" = options ] && [ "${p[4]}" = run ] ;;
+    # The macos built-in's build line (issue 0226), run at the root before app-sign.
+    2:macos) [ "${p[1]}" = build ] ;;
     # The release core's command lines (issue 0104): notes.run, ci.query, and
     # every derived:, after: and gates: item, which are read as `<key>.<n>`.
     3:release)
@@ -857,7 +1033,8 @@ _cfg_path_command_line() {
 }
 
 # cfg_validate -- every key is a schema path, project.name is present, and every
-# boolean key holds a word from lib/helpers's lists.
+# boolean key holds a word from lib/helpers's lists, and `project.cargo_root`
+# names a directory holding a Cargo.toml (cargo_root_problem, issue 0225).
 #
 # REFUSES WITHOUT lib/helpers rather than failing each check. `! is_true_word`
 # on a missing function is true, so every boolean value would be reported as
@@ -865,8 +1042,8 @@ _cfg_path_command_line() {
 cfg_validate() {
   local k v why rc=0
   if ! declare -F is_true_word >/dev/null || ! declare -F is_false_word >/dev/null ||
-    ! declare -F has_words >/dev/null; then
-    printf 'config: cfg_validate needs lib/helpers sourced first -- it reads the boolean words and has_words there\n' >&2
+    ! declare -F has_words >/dev/null || ! declare -F cargo_root_problem >/dev/null; then
+    printf 'config: cfg_validate needs lib/helpers sourced first -- it reads the boolean words, has_words and cargo_root_problem there\n' >&2
     return 1
   fi
   if ! cfg_has project.name; then
@@ -882,7 +1059,17 @@ cfg_validate() {
       printf 'config: %s: %s: "%s" is not a yes or a no -- use one of: %s (yes) or %s (no)\n' \
         "$_DEVBIN_CFG_FILE" "$k" "$v" "$_DEVBIN_TRUE_WORDS" "$_DEVBIN_FALSE_WORDS" >&2
       rc=1
+    elif [ "$k" = formula.mode ] && [ "$v" != source ] && [ "$v" != assets ]; then
+      printf 'config: %s: %s: "%s" is not a formula mode -- use source or assets\n' "$_DEVBIN_CFG_FILE" "$k" "$v" >&2
+      rc=1
     elif [ "${k%%.*}" = release ] && why="$(_cfg_release_value_problem "$k" "$v")"; then
+      printf 'config: %s: %s: "%s" %s\n' "$_DEVBIN_CFG_FILE" "$k" "$v" "$why" >&2
+      rc=1
+    elif [ "$k" = project.cargo_root ] && [ -z "${PROJECT_ROOT:-}" ]; then
+      printf 'config: %s: %s: "%s" cannot be judged -- PROJECT_ROOT is not set, so there is no root to find it below\n' \
+        "$_DEVBIN_CFG_FILE" "$k" "$v" >&2
+      rc=1
+    elif [ "$k" = project.cargo_root ] && why="$(cargo_root_problem "$PROJECT_ROOT" "$v")"; then
       printf 'config: %s: %s: "%s" %s\n' "$_DEVBIN_CFG_FILE" "$k" "$v" "$why" >&2
       rc=1
     elif _cfg_path_command_line "$k" && ! has_words "$v"; then

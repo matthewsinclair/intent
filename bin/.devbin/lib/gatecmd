@@ -64,7 +64,7 @@ usage_options_for() {
 }
 
 run_builtin_gate() {
-  local cmd="$1" opt="${2:-}" run suffix grammar fn
+  local cmd="$1" opt="${2:-}" run suffix grammar fn dir
   local -a words
   shift || true
   shift || true
@@ -142,7 +142,8 @@ run_builtin_gate() {
     # WHAT THIS SEAL IS OVER, said rather than left to be inferred (issue 0085):
     # a function in this process, so there is no command line and no config key,
     # and a reader who goes looking for one is looking for something that cannot
-    # exist. The other four openers name a key or the catalogue.
+    # exist. Openers that run a command line name the config key or the
+    # catalogue row it came from.
     run_gate --label "$cmd $opt" --suffix "$suffix" --grammar "$grammar" \
       --out-dir "$(gate_out_dir "$cmd")" \
       --source "devbin's own builtin $fn -- a function in this process, not a command line" \
@@ -158,8 +159,15 @@ run_builtin_gate() {
   # the two paths behaving differently would be worse than either behaviour on
   # its own, and a handler that sources this file under a strict-mode
   # `IFS=$'\n\t'` is where that stops being theoretical: the line would stay one
-  # word and resolve to nothing. The cd above is what the glob patterns are
+  # word and resolve to nothing. The cd below is what the glob patterns are
   # matched in.
+  #
+  # A RUST LINE IS RUN AT THE CARGO ROOT (issue 0225), which is the project root
+  # unless `project.cargo_root` names one below it: catalogue_line_root answers
+  # from the row's language, and the seal's `at:` line says where it ran.
+  dir="$(catalogue_line_root "$(builtin_option_lang "$cmd" "$opt")")" ||
+    die "cannot run '$cmd $opt' -- its cargo root is refused (above)"
+  cd "$dir" || die "cannot enter $dir"
   run_words words "the catalogue's command line for '$cmd $opt'" "$run" || return 1
   # The same phrase run_words is given for its refusal, for the same reason
   # (issue 0085): the catalogue is devbin's own data, so there is no config key

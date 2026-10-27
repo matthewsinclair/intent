@@ -128,12 +128,13 @@ run_id_mint() {
 
 # inflight_marker -- the single line `open_run_log` seeds a fresh `.errors` with.
 #
-# ONE HOME, because there are now two callers and they are in different files:
-# `open_run_log` writes it, and `run_all`'s disagreement arm (lib/resolve) reads
-# it to tell "returned 0 without sealing a verdict" from "returned 0 while its
-# seal records a failure". Those send a reader to different places -- one to a
-# killed or timed-out gate, the other to a test that actually failed -- and one
-# message for two causes is how a guard gets ignored.
+# ONE HOME, because a writer and a reader both need it:
+# `open_run_log` writes it, and `seal_is_inflight` reads it, for
+# seal_disagreement_reason, to tell "returned 0 without sealing a verdict"
+# from "returned 0 while its seal records a failure". Those send a reader to
+# different places -- one to a killed or timed-out gate, the other to a test
+# that actually failed -- and one message for two causes is how a guard gets
+# ignored.
 #
 # A copy of this string in the reader would drift in exactly the silent
 # direction: reword the marker here and the reader classifies every UNSEALED run
@@ -156,7 +157,7 @@ seal_is_inflight() {
 # seal_disagreement_reason <rc> <errors> -- WHY this run's return code and its
 # seal contradict each other, or NOTHING AT ALL when they agree.
 #
-# ONE HOME, TWO CALLERS, AND THE SECOND CALLER IS THE WHOLE POINT.
+# ONE HOME, AND THE CALLER IN print_run_verdict IS THE WHOLE POINT.
 # `seal_disagreements` reads the ledger, and the ledger is exported by `run_all`
 # and by nothing else -- so a check living only there sees `<cmd> all` and misses
 # every single-gate invocation. `print_run_verdict` runs on EVERY kept run. The
@@ -176,7 +177,7 @@ seal_is_inflight() {
 #
 # SILENCE MEANS THEY AGREE. Callers test for empty output rather than for a
 # status, so there is one obvious falsy value and no exit-code convention to
-# remember at two call sites.
+# remember at every call site.
 seal_disagreement_reason() {
   local rc="$1" errors="${2:-}"
   # A NON-ZERO rc IS NEVER A DISAGREEMENT. A red run is SUPPOSED to seal
@@ -405,6 +406,13 @@ note_invocation() {
     printf '%s  run: %s\n' "$_DEVBIN_INVOKE_TAG" "$(run_identity)"
     [ -z "$source" ] ||
       printf '%s  from: %s\n' "$_DEVBIN_INVOKE_TAG" "$source"
+    # WHERE IT RAN, when that is not the project root (issue 0225): a cargo
+    # line run at `project.cargo_root` says so, and a run at the root writes
+    # what it always wrote. $PWD, not `pwd -P`: every runner enters the
+    # directory by `cd` from PROJECT_ROOT as the dispatcher spelled it, so the
+    # two match at the root whatever links lie under it.
+    [ -z "${PROJECT_ROOT:-}" ] || [ "$PWD" = "$PROJECT_ROOT" ] ||
+      printf '%s  at: %s\n' "$_DEVBIN_INVOKE_TAG" "$PWD"
     for a in "$@"; do
       printf '%s  argv[%d]: %s\n' "$_DEVBIN_INVOKE_TAG" "$i" "$a"
       i=$((i + 1))
@@ -458,8 +466,13 @@ write_errors_file() {
   #
   # The tail fallback below deliberately does NOT strip: a red run with nothing
   # parseable is exactly when the reader most needs to see what was invoked.
-  grep -v "^$_DEVBIN_INVOKE_TAG" "$log" 2>/dev/null |
-    awk "$extract" 2>/dev/null | strip_ansi >"$errors" || true
+  #
+  # The log is read as bytes all the way, the grep as well as the grammar
+  # (issue 0231): under a UTF-8 locale macOS awk stopped at a latin1 byte and
+  # left the seal short of every block after it, and GNU grep (3.12, measured)
+  # drops the line holding the byte, saying only "binary file matches".
+  LC_ALL=C grep -v "^$_DEVBIN_INVOKE_TAG" "$log" 2>/dev/null |
+    log_awk "$extract" 2>/dev/null | strip_ansi >"$errors" || true
   if [ ! -s "$errors" ]; then
     {
       printf 'run FAILED (exit %s) with no parseable failure blocks -- log tail:\n\n' "$rc"
@@ -544,7 +557,7 @@ _DEVBIN_GRAMMAR_CARGO='
 infail                     { print; next }
 '
 
-# xcodebuild test output. FOUR shapes carry a Swift failure and they are not
+# xcodebuild test output. The shapes that carry a Swift failure are not
 # nested: a swift-testing issue (`recorded an issue at ...`), a compiler/XCTest
 # diagnostic (`<path>:<line>: error: ...`), the XCTest per-case verdict
 # (`Test Case '-[Suite test]' failed`), and the run verdict
@@ -565,7 +578,7 @@ infail                     { print; next }
 # or at 40 lines with a marker -- a truncated seal that does not SAY it
 # truncated is the same silent-cap failure in miniature.
 #
-# The three status glyphs are spliced in as DATA rather than written as escapes
+# The status glyphs are spliced in as DATA rather than written as escapes
 # inside the regex literals, for the same reason strip_ansi passes the ESC byte
 # in as a variable: `\xNN` is a gawk extension that mawk and BWK awk need not
 # honour, and a silently non-matching rule here would be indistinguishable from
@@ -575,9 +588,15 @@ infail                     { print; next }
 _DEVBIN_XC_FAIL="$(printf '\342\234\230')" # heavy ballot X   -- issue recorded
 _DEVBIN_XC_SKIP="$(printf '\342\227\207')" # white diamond    -- test started
 _DEVBIN_XC_PASS="$(printf '\342\234\224')" # heavy check mark -- test passed
+# swift-testing leads some lines with U+200B ZERO WIDTH SPACE before the glyph
+# (a parameterized test's case lines and its result line, issue 0229), so the
+# glyph rules here and in the counter read each line with it stripped first.
+# Spliced as bytes, like the glyphs, and never in a bracket.
+_DEVBIN_XC_ZWSP="$(printf '\342\200\213')" # zero width space -- leads some lines
 
 # shellcheck disable=SC2016
 _DEVBIN_GRAMMAR_XCODEBUILD='
+{ sub(/^'"$_DEVBIN_XC_ZWSP"'/, "") }
 /^'"$_DEVBIN_XC_FAIL"'/ {
   print
   inissue = ($0 ~ /recorded an issue/)
@@ -594,9 +613,9 @@ inissue {
 /^Test Suite .* started/                    { next }
 /: (error|warning): .* Compiling /          { next }
 /: error: /                                 { print; next }
-/^Test Case .* failed/                      { print; next }
+/^Test (Case|case) .* failed/               { print; next }
 /^ *(XCTAssert|Assertion Failure|failed -)/ { print; next }
-/^\*\* (TEST|BUILD) FAILED \*\*/            { print; next }
+/^\*\* (TEST|TEST EXECUTE|BUILD) FAILED \*\*/ { print; next }
 /^Testing failed:/                          { infail = 1; print; next }
 infail && /^\t/                             { print; next }
 infail                                      { infail = 0; next }
@@ -612,7 +631,7 @@ _DEVBIN_GRAMMAR_LUA='
 inblock                     { print; next }
 '
 
-# BATS TAP output and shellcheck diagnostics -- the two gates a shell project
+# BATS TAP output and shellcheck diagnostics -- the gates a shell project
 # actually runs. NEW in devbin: the corpus had no shell-language project, which
 # is precisely why Devbin needed it first (devbin uses devbin).
 #
@@ -710,7 +729,7 @@ grammar_for() {
 # every gate whose tool devbin has no reader for.
 
 # Elixir 1.20's ExUnit CLI formatter, which replaced "N tests, M failures".
-# Two forms: `Result: 13 passed, 9 excluded` and the failing `Result: 0/1
+# Its forms: `Result: 13 passed, 9 excluded` and the failing `Result: 0/1
 # passed`. Excluded and skipped are NOT executed, so they are deliberately not
 # counted -- a fully-excluded run IS an empty run and should promote.
 # shellcheck disable=SC2016
@@ -740,7 +759,7 @@ END { if (seen) print total + 0 }
 # project before anyone wrote it down; the last observer had to say "passed
 # vacuously" by hand, because the gate would not say it.
 #
-# TWO FORMS, BOTH `exit 0`, both read off the source of `intent critic` itself
+# ITS FORMS, ALL `exit 0`, all read off the source of `intent critic` itself
 # rather than off one observed run: it prints
 # `ok: no staged <lang> files to scan` (examined nothing) and
 # `ok: no <lang> findings at severity >= <sev> across <n> file(s)`.
@@ -808,16 +827,38 @@ END { if (seen) print total + 0 }
 #   - `seen` is the same design as every counter above: no trailer, no verdict.
 #     A build-only run under this grammar (`** BUILD SUCCEEDED **`, no test
 #     system engaged) is the `check compile` shape and must not promote.
+#   - XCTest's `Executed N tests` summary is INDENTED (a tab and a space), so
+#     the rule allows leading blanks; anchored at column 0 it never matched a
+#     real log, and every XCTest run was uncounted (issue 0229). Its N is not
+#     the count: xcodebuild prints one per suite level, so N would be counted
+#     twice. The completions are.
+#   - A completed TEST action (`** TEST SUCCEEDED **` or `** TEST FAILED **`,
+#     and test-without-building's `** TEST EXECUTE ... **`) is a test run even
+#     when neither framework printed a trailer, as when a selection matched
+#     nothing: it counts the tests it names, zero included, and zero is
+#     promoted. A run whose every XCTest case was skipped names no completion,
+#     so it is zero too: nothing executed. The exception is a test action whose
+#     BUILD failed (`The following build commands failed:`): no test system was
+#     reached, so it stays uncounted, and it fails on its exit code anyway.
+#     build-for-testing's `** TEST BUILD ... **` is a build, and not matched.
+#   - Because a completed action now promotes zero, every completion must be
+#     seen: parallel XCTest writes `Test case '...' passed on '<clone>'`, with
+#     a lower-case `case`, so both spellings count. swift-testing's
+#     `recorded an issue` lines are not completions, and are not counted.
 # shellcheck disable=SC2016
 _DEVBIN_COUNT_XCODEBUILD='
-/^Test Case .* passed/                          { total += 1; next }
-/^Test Case .* failed/                          { total += 1; next }
-/^Executed [0-9]+ test/                         { seen = 1; next }
+{ sub(/^'"$_DEVBIN_XC_ZWSP"'/, "") }
+/^Test (Case|case) .* passed/                   { total += 1; next }
+/^Test (Case|case) .* failed/                   { total += 1; next }
+/^[ \t]*Executed [0-9]+ test/                   { seen = 1; next }
 /^'"$_DEVBIN_XC_PASS"' Test run with /          { seen = 1; next }
 /^'"$_DEVBIN_XC_FAIL"' Test run with /          { seen = 1; next }
+/^'"$_DEVBIN_XC_FAIL"' Test .* recorded an issue/ { next }
 /^'"$_DEVBIN_XC_PASS"' Test /                   { total += 1; next }
 /^'"$_DEVBIN_XC_FAIL"' Test /                   { total += 1; next }
-END { if (seen) print total + 0 }
+/^\*\* TEST (EXECUTE )?(SUCCEEDED|FAILED) \*\*/ { action = 1; next }
+/^The following build commands failed:/         { buildfailed = 1; next }
+END { if (seen || (action && !buildfailed)) print total + 0 }
 '
 
 # Credo reports what it examined rather than what it ran. Zero source files is
@@ -1062,7 +1103,7 @@ warn_if_tee_failed() {
 # print_run_referent -- echo the opaque string the PROJECT handed us. Verbatim.
 #
 # THE ONE HOME for the referent line, called from `print_run_verdict` here and
-# from `run_all`'s summary in lib/resolve. Two sites, one spelling.
+# from `run_all`'s summary in lib/resolve. Every site, one spelling.
 #
 # WHY IT EXISTS. A leg's verdict is written as a claim about the project --
 # `FAILED: rust` -- but what it measured is one tree at one instant, and the run
@@ -1108,10 +1149,10 @@ warn_if_tee_failed() {
 # same claim, and devbin cannot choose between them without parsing.
 # _referent_line -- the line's ONE spelling, or rc 1 when there is no referent.
 #
-# Two sinks read it now -- the terminal, through print_run_referent, and the
-# run's own log, through note_referent -- and a second `printf 'measured: %s'`
+# Its sinks are the terminal, through print_run_referent, and the run's own
+# log, through note_referent -- and a second `printf 'measured: %s'`
 # anywhere is how two copies of a string devbin is FORBIDDEN TO PARSE start
-# disagreeing about it. Composition here; delivery in the two callers.
+# disagreeing about it. Composition here; delivery in the callers.
 _referent_line() {
   [ -n "${DEVBIN_RUN_REFERENT:-}" ] || return 1
   printf 'measured: %s\n' "$DEVBIN_RUN_REFERENT"
@@ -1181,7 +1222,7 @@ note_referent() {
 # ratio says "the apparatus is loud" without claiming to know why, and that is
 # the whole of its value.
 #
-# THREE LIMITS, ALL IN THE CODE RATHER THAN IN A NOTE, BECAUSE A READER MEETS
+# ITS LIMITS ARE ALL IN THE CODE RATHER THAN IN A NOTE, BECAUSE A READER MEETS
 # THE OUTPUT AND NEVER THE COMMENT.
 #
 #   1. It needs a runner that reports its own time. Where no recognised form
@@ -1234,7 +1275,8 @@ print_run_overhead() {
   # way: cargo rounds to two places, so a binary running a few fast tests also
   # reads 0.00s. So the count stays, and the line says how many read zero, in
 # words that are no one runner's spelling: ExUnit's zero is `0.0 seconds`.
-  parsed="$(awk '
+  # Read as bytes, through log_awk, like every reader of a log (issue 0231).
+  parsed="$(log_awk '
     {
       if (match($0, /[Ff]inished in [0-9]+(\.[0-9]+)?/)) {
         seg = substr($0, RSTART, RLENGTH)
@@ -1284,15 +1326,16 @@ print_run_verdict() {
   local rc="$1" keep="$2" log="$3" errors="${4:-}" why
   if [ "$keep" = 1 ] && [ -n "$errors" ]; then
     printf 'verdict: %s\n' "$(abs_path "$errors")"
-    # DELIBERATELY INSIDE THIS BLOCK, so the two lines appear together or not at
-    # all. A referent with no verdict beside it is noise; a verdict with no
-    # referent is the defect this exists to close. Tying them means a reader who
-    # sees a verdict always sees what it was about, and there is no third state
-    # to reason about later. The residue is honest and small: at keep=0 neither
-    # line prints, because at keep=0 there is no pointer block at all.
+    # DELIBERATELY INSIDE THIS BLOCK, so the verdict and referent lines appear
+    # together or not at all. A referent with no verdict beside it is noise; a
+    # verdict with no referent is the defect this exists to close. Tying them
+    # means a reader who sees a verdict always sees what it was about, and there
+    # is no third state to reason about later. The residue is honest and small:
+    # at keep=0 neither line prints, because at keep=0 there is no pointer block
+    # at all.
     print_run_referent
-    # Third member of the same block and for the same reason: a reader who sees
-    # a verdict sees what it was about AND how much of the run was not the work.
+    # In the same block and for the same reason: a reader who sees a verdict
+    # sees what it was about AND how much of the run was not the work.
     print_run_overhead "$log"
   fi
   if [ "$rc" -ne 0 ] && [ "$keep" = 1 ]; then
@@ -1342,7 +1385,7 @@ print_run_verdict() {
 # filters on it, and a reader that has to reach the end of the line to learn
 # which claim it is looking at will eventually stop looking.
 #
-# All three fields are non-empty by the guards above, so the empty-field collapse
+# Every field is non-empty by the guards above, so the empty-field collapse
 # `read -r` performs under IFS=<tab> cannot bite and no `-` placeholder is needed.
 # That is a property of the guards, not of the data: relax one and the
 # placeholder becomes required.
@@ -1616,7 +1659,7 @@ is_gate_flag() {
 # wrapper flags were typed at a site that runs UNSEALED, once gate_split_args
 # has found them. Prints nothing when none was typed.
 #
-# The three flags act on a seal, and an unsealed run has none, so devbin cannot
+# The wrapper flags act on a seal, and an unsealed run has none, so devbin cannot
 # act on them there -- and it used to say nothing, handing them to the tool as
 # if they were meant for it: `check bare --purge` ran `echo bare-ran --purge`
 # (issue 0122, 0087's class at the sites its fix missed). What should happen to
@@ -1749,7 +1792,7 @@ option_seal_from() {
 # prohibition on forking only holds if the wait is made visible, and banning it
 # alone gets worked around by the next user who believes it has hung.
 #
-# FOUR THINGS IT DELIBERATELY DOES NOT DO.
+# WHAT IT DELIBERATELY DOES NOT DO.
 #
 #   1. It NEVER writes into the captured stream. Grammars COUNT lines in the log
 #      and run_gate promotes a counted run that executed nothing to FAILED --
@@ -1856,7 +1899,7 @@ fmt_duration() {
 run_gate() {
   local label="" suffix="" grammar=generic out_dir="tmp/gate" source=""
   local keep_log=1 purge=0 purge_only=0 want_color=auto allow_empty=0
-  local rc=0 counter="" executed=0
+  local rc=0 counter="" executed=0 count_rc=0 count_why=""
   local -a rcs=()
 
   while [ $# -gt 0 ]; do
@@ -1999,12 +2042,28 @@ run_gate() {
     # `check compile` declares the mix grammar without ever being a test run.
     # Defaulting empty to 0 here is the bug that failed every clean compile: the
     # test is "a number, and that number is zero", never "not a number".
-    executed="$(awk "$counter" "$log" 2>/dev/null)" || executed=""
-    if [ -n "$executed" ] && [ "$executed" -eq 0 ] 2>/dev/null; then
+    #
+    # AN AWK THAT FAILED IS NOT "NO TRAILER" (issue 0231). Under a UTF-8 locale
+    # macOS awk exited 2 at a latin1 byte in the log, the count came back
+    # empty, and an empty run sealed green with this refusal skipped. The log
+    # is read as bytes now, and a counter that fails all the same is devbin's
+    # own counting failing: the run is unverified, so it is promoted and says
+    # why. --allow-empty does not cover it: it accepts a count of zero, not a
+    # count devbin could not read. The reason carries awk's own first line,
+    # read by running the counter once more for its stderr alone, so a
+    # passing count costs one read of the log.
+    executed="$(log_awk "$counter" "$log" 2>/dev/null)" || count_rc=$?
+    if [ "$count_rc" -ne 0 ]; then
+      count_why="$(log_awk "$counter" "$log" 2>&1 >/dev/null)" || true
+      count_why="${count_why%%$'\n'*}"
+      note_promotion "$log" "${label:-$suffix}" \
+        "the executed-test count could not be read (awk exited $count_rc on $log${count_why:+: $count_why}), so nothing says a test ran"
+      rc=1
+    elif [ -n "$executed" ] && [ "$executed" -eq 0 ] 2>/dev/null; then
       if [ "$allow_empty" = 1 ]; then
         printf '%sno tests ran (--allow-empty)%s\n' "${dim:-}" "${reset:-}"
       else
-        # Two escape routes for two kinds of intent: --allow-empty says THIS
+        # An escape route for each kind of intent: --allow-empty says THIS
         # run's emptiness is expected (a wrapper flag gate_split_args carries
         # from any gate's command line -- before that split existed, advising
         # it sent users to their own tool's unknown-argument error);

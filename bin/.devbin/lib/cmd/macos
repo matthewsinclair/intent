@@ -1,0 +1,723 @@
+#!/usr/bin/env bash
+#
+# The built-in `macos` (issue 0226): a macOS app's release, the one copy for
+# every project that ships a .app. Opt-in, like `release`: a project enables it
+# with `commands.macos.enabled: true` and declares the app in a `macos:` block.
+# A project's own `macos` handler or `run:` still wins, as for any built-in.
+#
+#   macos doctor        the platform, the declaration, the tools, the identity
+#                       and the notary credentials, each PRESENT or MISSING
+#   macos store-creds   the notary credentials into the login keychain
+#   macos app-sign      build (when macos.build says how), stage a copy, sign it
+#   macos app-notarize  submit the signed copy, wait, staple, check it
+#   macos app-verify    the staged copy's signature and ticket, changing nothing
+#   macos publish       zip the stapled copy, prove the zip, attach it to the
+#                       release at its tag through `release attach --from`
+#
+# THE APP HALF OF THE COMMANDS PROJECTS CARRIED, hoisted (issue 0226). Each
+# project read its credentials from the login keychain under its own prefix,
+# staged its own copy of the build product and attached its own asset, so a fix
+# to notarisation or stapling had to be made in each copy. What was a project's
+# shape is a key here: the app, how it is built, its bundle id, its
+# entitlements, the keychain prefix and the asset's name (lib/config's
+# _DEVBIN_MACOS_SCHEMA). What stays a project's is what a key cannot say: its
+# icons, its other build products, its own stamps.
+#
+# CREDENTIALS LIVE IN THE LOGIN KEYCHAIN AND NOWHERE ELSE: no key material in
+# the tree, in CI config or in any file this writes, and nothing here prints a
+# value. They are read only by the subcommands that need them, never at load:
+# app-sign reads the team id alone, to choose the identity; app-notarize reads
+# the Apple id and the app password as well. doctor reports each as PRESENT or
+# MISSING, and the signing identity by count and team, never whole.
+#
+# THE SUBJECT OF SIGNING IS A STAGED COPY OUTSIDE THE BUILD TREE, never the
+# build product, which any build on this machine can replace mid-notarisation.
+# The stage is under XDG state, one per checkout, and app-sign refuses a stage
+# at or under the project root or the product's own directory.
+#
+# MACOS ONLY. Off macOS every subcommand refuses with exit 2, devbin's code for
+# what is not available here, before the config or any tool is read. The
+# subcommand word is checked first, which reads nothing, so `macos all` is the
+# same usage error on every platform.
+#
+# EVERY ARGUMENT IS PARSED BEFORE ANYTHING ACTS, and `-h` or `--help` in any
+# position prints usage and exits 0 on any platform (issue 0064's rule, as in
+# lib/cmd/release).
+set -euo pipefail
+
+# shellcheck source=lib/helpers
+. "${DEVBIN_LIB:?run me through bin/devbin}/helpers"
+# shellcheck source=lib/config
+. "$DEVBIN_LIB/config"
+
+ME="${DEVBIN_INVOKE:-bin/devbin} macos"
+
+usage() {
+  cat <<USAGE
+usage: $ME <doctor|store-creds|app-sign|app-notarize|app-verify|publish>
+
+  A macOS app's release, on macOS only, for the app the macos: block of
+  bin/.devbin/config.yaml declares. On the maintainer's machine, after the
+  release core has made the release object, in a tree whose HEAD is the tag
+  (once main has moved past it, a worktree: git worktree add --detach <dir>
+  <tag>). In order:
+
+  app-sign      macos.build, when declared, at the project root; a copy of
+                macos.app staged under XDG state, outside the build tree; the
+                copy refused, with nothing signed, unless its bundle id is
+                macos.bundle_id and its version the project's; then signed
+                inside-out with the Developer ID identity and the hardened
+                runtime, and its identifier, team and runtime read back.
+                Refuses, building nothing, unless HEAD is the release tag of
+                the project's version, in a clean tree
+  app-notarize  Submit the signed copy to Apple and wait; staple the ticket
+                only when Accepted; check a quarantined copy with spctl
+  publish       Zip the stapled copy as macos.asset, prove the zip as a
+                download meets it, and attach it to the release at the tag
+                with release attach --from, the core's one way an asset
+                reaches a release, which writes SHA256SUMS over every asset
+
+  app-verify    The staged copy's signature and ticket; changes nothing
+  doctor        The platform, the declaration, the tools, the Developer ID
+                identity (counted, with its team and a test-sign) and the
+                notary credentials (PRESENT or MISSING, never a value). Exit 1
+                when anything is missing or the identity cannot sign
+  store-creds   Store the notary credentials in the login keychain under
+                macos.keychain's prefix; interactive, in a terminal only, and
+                each value is typed to security(1), never to this command
+
+  Off macOS every subcommand refuses as not available here. See
+  ${DEVBIN_INVOKE:-bin/devbin} help macos.
+USAGE
+}
+
+SUBCOMMANDS="doctor store-creds app-sign app-notarize app-verify publish"
+
+# --help first, over every argument, so no later word can act or refuse first.
+for arg in "$@"; do
+  case "$arg" in
+    -h | --help)
+      usage
+      exit 0
+      ;;
+  esac
+done
+
+if [ $# -eq 0 ]; then
+  usage >&2
+  exit 1
+fi
+
+# --- parse ----------------------------------------------------------------
+sub="$1"
+shift
+case "$sub" in
+  doctor | store-creds | app-sign | app-notarize | app-notarise | app-verify | publish) ;;
+  *)
+    usage >&2
+    printf '\n' >&2
+    die "macos: unknown subcommand '$sub' (one of: $SUBCOMMANDS)"
+    ;;
+esac
+[ $# -eq 0 ] || die "macos $sub takes no arguments, got: $* (try: $ME --help)"
+
+# --- the platform ---------------------------------------------------------
+# Before the config or any tool is read: nothing here runs off macOS.
+platform="$(uname -s 2>/dev/null)" || platform=""
+if [ "$platform" != Darwin ]; then
+  warn "macos: $sub runs on macOS only, and this is ${platform:-a platform uname cannot name} -- codesign, notarytool, stapler and the login keychain are Apple's"
+  # code-2: not available here, the dispatcher's code for a command that is not.
+  exit 2
+fi
+
+# --- the declaration ------------------------------------------------------
+# THE CONFIG CACHE DOES NOT CROSS INTO A HANDLER (lib/cmd/release says why), so
+# a config that does not load stops the command.
+ROOT="${PROJECT_ROOT:?}"
+cd "$ROOT" || die "cannot enter $ROOT"
+cfg_load "${DEVBIN_DIR:?}/config.yaml" || die "macos: cannot read $DEVBIN_DIR/config.yaml"
+# The release core's readers, for the tag a version is released under and the
+# names an asset may take, sourced as lib/cmd/release sources them.
+# shellcheck source=lib/runlog
+. "$DEVBIN_LIB/runlog"
+# shellcheck source=lib/release.notes
+. "$DEVBIN_LIB/release.notes"
+# shellcheck source=lib/release.steps
+. "$DEVBIN_LIB/release.steps"
+
+# macos_key <key> -- a macos: value, or the command stops naming the read.
+macos_key() { cfg_macos_get "$1" || die "macos: cannot read macos.$1"; }
+
+# from_root <path> -- <path> as an absolute path, a relative one read from the
+# project root; empty stays empty.
+from_root() {
+  case "$1" in
+    '' | /*) printf '%s' "$1" ;;
+    *) printf '%s/%s' "$ROOT" "$1" ;;
+  esac
+}
+
+APP_SRC="$(from_root "$(macos_key app)")"
+APP_BUILD="$(macos_key build)"
+APP_BUNDLE_ID="$(macos_key bundle_id)"
+APP_ENTITLEMENTS="$(from_root "$(macos_key entitlements)")"
+KC_PREFIX="$(macos_key keychain)"
+APP_NAME="${APP_SRC##*/}"
+APP_ASSET="$(macos_key asset)"
+[ -n "$APP_ASSET" ] || APP_ASSET="${APP_NAME:+$APP_NAME.zip}"
+
+# THE STAGE, one per checkout: two worktrees of one project, one of them at the
+# tag, must not sign each other's copy. Under XDG state, keyed by the project's
+# name and its root's sha256.
+stage_key() {
+  local sum
+  sum="$(printf '%s' "$ROOT" | sha256_stdin 2>/dev/null)" || sum=""
+  [ -n "$sum" ] || die "macos: could not hash the project root to name its stage"
+  printf '%s-%s' "${DEVBIN_NAME:-${ROOT##*/}}" "${sum:0:12}"
+}
+APP_STAGE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/devbin/macos/$(stage_key)"
+app_dist() { printf '%s' "$APP_STAGE_DIR/$APP_NAME"; }
+
+# require_declared -- the keys a release cannot be made without. Each one
+# missing is named, all at once.
+require_declared() {
+  local missing=""
+  [ -n "$APP_SRC" ] || missing+=", macos.app (the .app bundle the build leaves)"
+  [ -n "$APP_BUNDLE_ID" ] || missing+=", macos.bundle_id (the bundle id it is signed as)"
+  [ -z "$missing" ] || die "macos: $DEVBIN_DIR/config.yaml declares no ${missing#, } -- see ${DEVBIN_INVOKE:-bin/devbin} help macos"
+  case "$APP_NAME" in
+    *.app) ;;
+    *) die "macos: macos.app is $APP_SRC, which is not a .app bundle's path" ;;
+  esac
+  if [ -n "$APP_ENTITLEMENTS" ] && [ ! -f "$APP_ENTITLEMENTS" ]; then
+    die "macos: macos.entitlements is $APP_ENTITLEMENTS, and there is no such file"
+  fi
+  local why
+  if why="$(release_name_problem "$APP_ASSET")"; then
+    die "macos: the asset $APP_ASSET cannot be a release asset: $why -- declare macos.asset"
+  fi
+}
+
+# --- the keychain -----------------------------------------------------------
+
+# kc_get <name> -- one credential from the login keychain, never from the
+# environment or a file. Silent on a miss; the callers report presence.
+kc_get() { security find-generic-password -a "${USER:-$(id -un)}" -s "$KC_PREFIX.$1" -w 2>/dev/null || true; }
+
+# load_identity -- the signing identity, FOUND in the keychain, never composed:
+# the "Developer ID Application" identity whose team is the stored team id,
+# else the first one when no team id is stored yet (signing needs no notary
+# credentials). IDENTITY_COUNT is how many the keychain lists.
+load_identity() {
+  local listed
+  APPLE_TEAM_ID="$(kc_get APPLE_TEAM_ID)"
+  listed="$({ security find-identity -v -p codesigning 2>/dev/null || true; } |
+    sed -n 's/.*"\(Developer ID Application: [^"]*\)".*/\1/p' | sort -u)"
+  IDENTITY_COUNT="$(grep -c . <<<"$listed" || true)"
+  if [ -n "$APPLE_TEAM_ID" ]; then
+    IDENTITY="$(grep -F "($APPLE_TEAM_ID)" <<<"$listed" | sed -n 1p || true)"
+  else
+    IDENTITY="$(sed -n 1p <<<"$listed")"
+  fi
+}
+
+# load_creds -- the notary credentials, for app-notarize and doctor alone.
+load_creds() {
+  APPLE_ID="$(kc_get APPLE_ID)"
+  APPLE_APP_PASSWORD="$(kc_get APPLE_APP_PASSWORD)"
+}
+
+# identity_team -- the team the identity names, from its trailing "(TEAMID)".
+identity_team() {
+  local t="${IDENTITY##*(}"
+  printf '%s' "${t%)}"
+}
+
+require_identity() {
+  [ -n "$IDENTITY" ] || die "macos: no Developer ID Application identity in the login keychain${APPLE_TEAM_ID:+ for the stored team} -- run: $ME doctor"
+}
+
+require_creds() {
+  if [ -z "$APPLE_ID" ] || [ -z "$APPLE_APP_PASSWORD" ] || [ -z "$APPLE_TEAM_ID" ]; then
+    die "macos: notary credentials missing -- run: $ME store-creds (see: $ME doctor)"
+  fi
+}
+
+# --- the bundle -------------------------------------------------------------
+
+# plist_get <bundle> <key> -- one key of a bundle's Info.plist, or empty.
+plist_get() { plutil -extract "$2" raw -o - "$1/Contents/Info.plist" 2>/dev/null || true; }
+
+app_executable() { # $1 bundle
+  local name
+  name="$(plist_get "$1" CFBundleExecutable)"
+  printf '%s' "$1/Contents/MacOS/${name:-$(basename "$1" .app)}"
+}
+
+# ls_forget <bundle> -- drop the Launch Services record codesign, stapler or
+# spctl can make for a copy of ours, so the bundle id opens only the installed
+# app. lsregister exits non-zero on a path it holds no record for, which is the
+# usual answer for a fresh copy, so its exit decides nothing and is not read.
+LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
+ls_forget() {
+  local ls
+  ls="$(command -v lsregister 2>/dev/null)" || ls="$LSREGISTER"
+  [ -x "$ls" ] || return 0
+  "$ls" -u "$1" >/dev/null 2>&1 || true
+}
+
+# app_sign_nested <bundle> -- every Mach-O inside the bundle except its main
+# executable, deepest path first, so a container is signed after what it
+# holds; the main executable is sealed by the bundle signature, last. An app
+# with no nested code signs nothing and says so; the first framework or helper
+# added is then signed on the way through, rather than found by notarisation
+# refusing the bundle.
+app_sign_nested() {
+  local bundle="$1" main f ftype signed=0
+  local -a found=() files=() ent=()
+  [ -z "$APP_ENTITLEMENTS" ] || ent=(--entitlements "$APP_ENTITLEMENTS")
+  main="$(app_executable "$bundle")"
+  # Read whole, so a walk that could not read everything is never a short list
+  # signed as if it were all.
+  find_list found "$bundle" -type f -print0 || die "macos: the files under $bundle could not be listed (above) -- nothing more signed"
+  while IFS= read -r f; do files+=("$f"); done < <(printf '%s\n' ${found[@]+"${found[@]}"} | awk -F/ '{ print NF "\t" $0 }' | sort -t "$(printf '\t')" -k1,1nr | cut -f2-)
+  [ "${#files[@]}" -gt 0 ] || die "macos: no files under $bundle -- refusing to sign an empty bundle"
+  for f in "${files[@]}"; do
+    [ "$f" != "$main" ] || continue
+    # A classification error fails; it is never read as "not Mach-O" and
+    # skipped, which would let unsigned code into a notarised bundle.
+    ftype="$(file -b "$f")" || die "macos: file(1) could not classify $f"
+    case "$ftype" in
+      *Mach-O*executable*)
+        # An entry point: entitlements are not inherited across exec().
+        codesign --force --options runtime --timestamp ${ent[@]+"${ent[@]}"} --sign "$IDENTITY" "$f"
+        signed=$((signed + 1))
+        ;;
+      *Mach-O*)
+        codesign --force --options runtime --timestamp --sign "$IDENTITY" "$f"
+        signed=$((signed + 1))
+        ;;
+      *)
+        # An executable helper directly in Contents/MacOS is signed for the
+        # seal; resources are sealed, not signed.
+        if [ "$(dirname "$f")" = "$bundle/Contents/MacOS" ] && [ -x "$f" ]; then
+          codesign --force --timestamp --sign "$IDENTITY" "$f"
+          signed=$((signed + 1))
+        fi
+        ;;
+    esac
+  done
+  printf '  %-21s %s\n' "nested code signed" "$signed"
+}
+
+# app_signature_readback <bundle> -- what the bytes say, not what was asked for:
+# the identifier, the team and the hardened runtime read off the signature. A
+# bundle still carrying the build's signature names itself otherwise, and is
+# refused here.
+app_signature_readback() {
+  local bundle="$1" desc flags team ident want_team
+  codesign --verify --strict --deep "$bundle" >/dev/null 2>&1 ||
+    die "macos: $bundle does not verify -- its signature is broken or incomplete"
+  desc="$(codesign -d --verbose=2 "$bundle" 2>&1)" || true
+  flags="$(sed -n 's/.*flags=\([^ ]*\).*/\1/p' <<<"$desc" | sed -n 1p)"
+  team="$(sed -n 's/^TeamIdentifier=//p' <<<"$desc")"
+  ident="$(sed -n 's/^Identifier=//p' <<<"$desc")"
+  want_team="$(identity_team)"
+  printf '  %-21s %s\n' "identifier" "${ident:-<unreadable>}"
+  printf '  %-21s %s\n' "team" "${team:-<none>}"
+  printf '  %-21s %s\n' "flags" "${flags:-<unreadable>}"
+  [ "$ident" = "$APP_BUNDLE_ID" ] ||
+    die "macos: the bundle is signed as '${ident:-<none>}', not $APP_BUNDLE_ID -- it still carries the build's signature, not a Developer ID one"
+  [ "$team" = "$want_team" ] ||
+    die "macos: the bundle's team is '${team:-<none>}', not $want_team -- it is not signed with the Developer ID identity"
+  case "$flags" in
+    *runtime*) ;;
+    *) die "macos: the hardened runtime is not set on the bundle (flags=${flags:-<unreadable>}) -- notarisation would refuse it" ;;
+  esac
+}
+
+# app_verify_notarised <bundle> <dir> -- the ticket, checked the way a download
+# meets it: a quarantined copy under <dir>, the quarantine asserted before any
+# verdict is read, and spctl's source. The app is not launched. 0 when it
+# passes; the copy is removed and its Launch Services record dropped.
+app_verify_notarised() {
+  local bundle="$1" t="$2/verify" verdict rc=0
+  if xcrun stapler validate "$bundle" >/dev/null 2>&1; then
+    printf '  %-21s %s\n' "stapled ticket" "present, validates"
+  else
+    printf '  %-21s %s\n' "stapled ticket" "NONE (run: $ME app-notarize)"
+    rc=1
+  fi
+  mkdir "$t" || die "macos: could not make $t to check $bundle"
+  ditto "$bundle" "$t/$APP_NAME" || die "macos: could not copy $bundle to check it"
+  xattr -w com.apple.quarantine "0083;0;devbin-verify;" "$t/$APP_NAME" || true
+  if ! xattr -p com.apple.quarantine "$t/$APP_NAME" >/dev/null 2>&1; then
+    printf '  %-21s SKIPPED (could not set the quarantine attribute; no verdict)\n' "Gatekeeper"
+    rm -rf "$t"
+    return 1
+  fi
+  # spctl exits non-zero on a rejection, which is the verdict being read.
+  verdict="$(spctl -a -t exec -vv "$t/$APP_NAME" 2>&1 | sed -n 's/^source=//p')" || true
+  if [ "$verdict" = "Notarized Developer ID" ]; then
+    printf '  %-21s quarantined copy accepted, source=%s\n' "Gatekeeper" "$verdict"
+  else
+    printf '  %-21s FAILED, source=%s (expected: Notarized Developer ID)\n' "Gatekeeper" "${verdict:-<none>}"
+    rc=1
+  fi
+  ls_forget "$t/$APP_NAME"
+  rm -rf "$t"
+  return $rc
+}
+
+# --- the release --------------------------------------------------------------
+
+# The project's version and the tag the release core cuts it under.
+APP_VERSION=""
+APP_TAG=""
+release_names() {
+  APP_VERSION="$(read_version)"
+  [ "$APP_VERSION" != unknown ] || die "macos: the project's version cannot be read (project.version_from), so there is no release to sign for"
+  APP_TAG="$(release_tag_name "$(cfg_release_get tag)" "$APP_VERSION")"
+}
+
+# app_ship_blockers <bundle> -- why <bundle> cannot ship with the release, one
+# reason a line; empty means it may. Its bundle id, then its version against
+# the project's: a bundle built before the version moved passes every Apple
+# check and would ship last release's app inside this one.
+app_ship_blockers() {
+  local id version
+  id="$(plist_get "$1" CFBundleIdentifier)"
+  version="$(plist_get "$1" CFBundleShortVersionString)"
+  [ "$id" = "$APP_BUNDLE_ID" ] ||
+    printf 'its bundle id is %s, and macos.bundle_id is %s\n' "${id:-<unreadable>}" "$APP_BUNDLE_ID"
+  [ "$version" = "$APP_VERSION" ] ||
+    printf 'its version is %s, and the project is at %s -- it was built from another tree\n' "${version:-<unreadable>}" "$APP_VERSION"
+  return 0
+}
+
+# refuse_blockers <headline> <blockers> [<path>] -- refuse with the blockers
+# under the headline, removing <path> first; return when there are none.
+refuse_blockers() {
+  [ -n "$2" ] || return 0
+  [ -z "${3:-}" ] || rm -rf "$3"
+  die "$1:
+       ${2//$'\n'/$'\n       '}"
+}
+
+# require_tag_head -- HEAD is the release tag's commit, in a clean tree: what
+# app-sign builds and signs must be the release's own build. The refusal names
+# the route, a worktree at the tag.
+require_tag_head() {
+  local tagged head dirty
+  head="$(git rev-parse -q --verify HEAD 2>/dev/null)" || die "macos: $ROOT has no commit, so it is not at the release tag $APP_TAG"
+  if ! tagged="$(git rev-parse -q --verify "refs/tags/$APP_TAG^{commit}" 2>/dev/null)"; then
+    die "macos: there is no tag $APP_TAG here, the tag the project's version $APP_VERSION is released under -- cut the release first (or fetch its tag), then sign at it"
+  fi
+  dirty="$(git status --porcelain 2>/dev/null)" || die "macos: git status could not be read in $ROOT"
+  if [ "$head" != "$tagged" ] || [ -n "$dirty" ]; then
+    die "macos: app-sign signs only the release's build: HEAD at $APP_TAG (${tagged:0:12}), in a clean tree, and HEAD is ${head:0:12}$([ -z "$dirty" ] || printf ', with changes') -- nothing built or signed. Run the steps in a worktree at the tag:
+       git worktree add --detach <dir> $APP_TAG
+       cd <dir>, then $ME app-sign, app-notarize and publish
+       git worktree remove <dir>, once publish has run"
+  fi
+}
+
+# resolved <path> -- <path> as the filesystem names it (pwd -P), through its
+# nearest ancestor that exists, so a path not made yet is compared as it will
+# be once made and nothing is made to ask.
+resolved() {
+  local p="$1" rest=""
+  while [ ! -d "$p" ]; do
+    rest="/${p##*/}$rest"
+    p="${p%/*}"
+    [ -n "$p" ] || p=/
+  done
+  printf '%s%s' "$(cd "$p" && pwd -P)" "$rest"
+}
+
+# require_stage_outside -- the stage at or under neither the project root nor
+# the product's directory: a copy in the build tree is what the stage exists
+# not to be. Asked before the stage is made, so a refusal writes nothing.
+require_stage_outside() {
+  local stage root product
+  case "$APP_STAGE_DIR" in
+    /*) ;;
+    *) die "macos: the stage $APP_STAGE_DIR is not an absolute path -- XDG_STATE_HOME must be one" ;;
+  esac
+  stage="$(resolved "$APP_STAGE_DIR")"
+  root="$(cd "$ROOT" && pwd -P)"
+  product="$(cd "${APP_SRC%/*}" 2>/dev/null && pwd -P)" || product="${APP_SRC%/*}"
+  case "$stage/" in
+    "$root"/* | "$product"/*)
+      die "macos: the stage $stage is inside $([ "${stage#"$root"/}" != "$stage" ] && printf 'the project root %s' "$root" || printf 'the build products %s' "$product"), and the subject of signing is a copy outside the build tree -- point XDG_STATE_HOME elsewhere"
+      ;;
+  esac
+}
+
+# --- the subcommands --------------------------------------------------------
+
+# doctor: what the release needs, each PRESENT or MISSING. Exit 1 when the
+# declaration, a tool, the identity or a credential is missing, or the
+# identity cannot sign.
+cmd_doctor() {
+  local ok=1 t
+  printf 'platform: %s\n' "$platform"
+  printf '\ndeclaration (macos: in %s):\n' "$DEVBIN_DIR/config.yaml"
+  if [ -n "$APP_SRC" ]; then
+    printf '  %-21s %s (%s)\n' "app" "$APP_SRC" "$([ -d "$APP_SRC" ] && printf present || printf 'not built yet')"
+  else
+    printf '  %-21s MISSING (declare macos.app)\n' "app"
+    ok=0
+  fi
+  printf '  %-21s %s\n' "build" "${APP_BUILD:-none: the app is built already}"
+  if [ -n "$APP_BUNDLE_ID" ]; then
+    printf '  %-21s %s\n' "bundle id" "$APP_BUNDLE_ID"
+  else
+    printf '  %-21s MISSING (declare macos.bundle_id)\n' "bundle id"
+    ok=0
+  fi
+  if [ -z "$APP_ENTITLEMENTS" ]; then
+    printf '  %-21s none: signed without\n' "entitlements"
+  elif [ -f "$APP_ENTITLEMENTS" ]; then
+    printf '  %-21s %s\n' "entitlements" "$APP_ENTITLEMENTS"
+  else
+    printf '  %-21s MISSING (%s)\n' "entitlements" "$APP_ENTITLEMENTS"
+    ok=0
+  fi
+  printf '  %-21s %s\n' "keychain prefix" "$KC_PREFIX"
+  printf '  %-21s %s\n' "asset" "${APP_ASSET:-<none until macos.app is declared>}"
+  printf '  %-21s %s\n' "stage" "$APP_STAGE_DIR"
+  printf '\ntools:\n'
+  for t in codesign xcrun spctl ditto plutil xattr security gh; do
+    if command -v "$t" >/dev/null 2>&1; then
+      printf '  %-21s %s\n' "$t" "$(command -v "$t")"
+    else
+      printf '  %-21s MISSING\n' "$t"
+      ok=0
+    fi
+  done
+  load_identity
+  printf '\nsigning:\n'
+  if [ -n "$IDENTITY" ]; then
+    printf '  %-21s %s found, team %s\n' "Developer ID" "$IDENTITY_COUNT" "$(identity_team)"
+    # A real test-sign: an identity can be listed and still not sign (expired,
+    # revoked, its private key gone), and a release is too late to learn it.
+    local tmp
+    tmp="$(mktemp -d)"
+    if cp /bin/echo "$tmp/probe" 2>/dev/null &&
+      codesign --force --options runtime --timestamp --sign "$IDENTITY" "$tmp/probe" >/dev/null 2>&1 &&
+      codesign --verify --strict "$tmp/probe" >/dev/null 2>&1; then
+      printf '  %-21s signs and verifies\n' "test-sign"
+    else
+      printf '  %-21s FAILED (the identity is listed and cannot make a valid signature)\n' "test-sign"
+      ok=0
+    fi
+    rm -rf "$tmp"
+  else
+    printf '  %-21s MISSING (no "Developer ID Application" identity in the login keychain)\n' "Developer ID"
+    ok=0
+  fi
+  load_creds
+  printf '\nnotary credentials under %s.* (values are never printed):\n' "$KC_PREFIX"
+  local k v
+  for k in APPLE_ID APPLE_APP_PASSWORD APPLE_TEAM_ID; do
+    v="${!k}"
+    if [ -n "$v" ]; then
+      printf '  %-21s PRESENT\n' "$k"
+    else
+      printf '  %-21s MISSING (run: %s store-creds)\n' "$k" "$ME"
+      ok=0
+    fi
+  done
+  [ "$ok" = 1 ] || die "macos: incomplete -- see MISSING and FAILED above"
+}
+
+# store-creds: each value typed to security(1) itself, which prompts for it
+# when -w ends its command line, so no value passes through this command, its
+# arguments or its output.
+cmd_store_creds() {
+  [ -t 0 ] || die "macos: store-creds is interactive and reads the terminal; stdin is not one -- run it yourself in a terminal"
+  local k
+  printf 'Storing the Apple notary credentials in the login keychain under "%s.*".\n' "$KC_PREFIX"
+  printf 'security(1) prompts for each value and echoes none; nothing is written to the tree.\n'
+  printf '  APPLE_ID            the Apple account email\n'
+  printf '  APPLE_APP_PASSWORD  an app-specific password, not the account password\n'
+  printf '  APPLE_TEAM_ID       the team id the Developer ID identity names\n'
+  for k in APPLE_ID APPLE_APP_PASSWORD APPLE_TEAM_ID; do
+    printf '\n%s:\n' "$k"
+    security add-generic-password -U -a "${USER:-$(id -un)}" -s "$KC_PREFIX.$k" -w ||
+      die "macos: could not write $k to the keychain"
+  done
+  printf '\nStored. Check with: %s doctor\n' "$ME"
+}
+
+# app-sign: refused unless HEAD is the release tag in a clean tree; then
+# macos.build, a copy staged outside the build tree and refused, with nothing
+# signed, unless it is the release's; then signed inside-out and read back.
+cmd_app_sign() {
+  require_declared
+  load_identity
+  require_identity
+  release_names
+  step "checking HEAD is the release tag $APP_TAG, in a clean tree"
+  require_tag_head
+  if [ -n "$APP_BUILD" ]; then
+    local -a words=()
+    run_words words macos.build "$APP_BUILD" || die "macos: macos.build holds no command to run"
+    step "building: $APP_BUILD"
+    "${words[@]}" || die "macos: macos.build failed (exit $?) -- nothing signed"
+  fi
+  [ -f "$APP_SRC/Contents/Info.plist" ] ||
+    die "macos: there is no app at $APP_SRC (no Contents/Info.plist)${APP_BUILD:+ after macos.build ran} -- nothing signed"
+  local dist
+  dist="$(app_dist)"
+  step "staging a copy outside the build tree"
+  require_stage_outside
+  rm -rf "$APP_STAGE_DIR"
+  mkdir -p "$APP_STAGE_DIR"
+  ditto "$APP_SRC" "$dist" || die "macos: could not stage $APP_SRC -> $dist"
+  # codesign refuses "resource fork, Finder information, or similar detritus".
+  xattr -cr "$dist" || true
+  printf '  %s\n' "$dist"
+  step "checking the staged copy is the release's, as publish will"
+  refuse_blockers "macos: the staged $APP_NAME cannot ship with release $APP_TAG -- nothing signed" "$(app_ship_blockers "$dist")" "$APP_STAGE_DIR"
+  step "signing $APP_NAME inside-out (nested code, then the bundle), team $(identity_team)"
+  app_sign_nested "$dist"
+  local -a ent=()
+  [ -z "$APP_ENTITLEMENTS" ] || ent=(--entitlements "$APP_ENTITLEMENTS")
+  codesign --force --options runtime --timestamp ${ent[@]+"${ent[@]}"} --sign "$IDENTITY" "$dist" ||
+    die "macos: codesign could not sign $dist"
+  step "reading the signature back off the bundle"
+  app_signature_readback "$dist"
+  ls_forget "$dist"
+  printf '\nsigned: %s\nnext: %s app-notarize\n' "$dist" "$ME"
+}
+
+# app-notarize: the signed copy submitted with notarytool --wait; anything but
+# Accepted prints Apple's log and stops with nothing stapled; then the ticket
+# stapled and the bundle checked as a download meets it.
+cmd_app_notarize() {
+  require_declared
+  load_identity
+  require_identity
+  load_creds
+  require_creds
+  local dist staging zip out status id
+  dist="$(app_dist)"
+  [ -d "$dist" ] || die "macos: no signed bundle at $dist -- run: $ME app-sign"
+  step "checking the bundle is the signed one"
+  app_signature_readback "$dist"
+  staging="$(mktemp -d)"
+  zip="$staging/submission.zip"
+  # ditto, never zip(1): it keeps the signature and the extended attributes
+  # notarisation reads.
+  ditto -c -k --keepParent --sequesterRsrc "$dist" "$zip" || {
+    rm -rf "$staging"
+    die "macos: could not build the submission archive"
+  }
+  step "submitting to Apple (notarytool waits; usually minutes)"
+  # notarytool exits non-zero on an Invalid verdict, which is read below.
+  out="$(xcrun notarytool submit "$zip" \
+    --apple-id "$APPLE_ID" --password "$APPLE_APP_PASSWORD" --team-id "$APPLE_TEAM_ID" \
+    --wait 2>&1)" || true
+  printf '%s\n' "$out"
+  rm -rf "$staging"
+  status="$(awk '/^  status: / { s = $2 } END { print s }' <<<"$out")"
+  id="$(awk '/id: [0-9a-f-]+/ { print $2; exit }' <<<"$out")"
+  [ -n "$id" ] || die "macos: could not read a submission id from notarytool's output -- nothing stapled"
+  if [ "$status" != Accepted ]; then
+    xcrun notarytool log "$id" \
+      --apple-id "$APPLE_ID" --password "$APPLE_APP_PASSWORD" --team-id "$APPLE_TEAM_ID" 2>&1 | sed -n '1,40p' || true
+    die "macos: notarisation was not Accepted (status: ${status:-unknown}) -- nothing stapled"
+  fi
+  step "stapling the ticket to the bundle"
+  xcrun stapler staple "$dist" || die "macos: stapler could not staple the ticket to $dist"
+  step "checking the stapled bundle as a download meets it"
+  staging="$(mktemp -d)"
+  if ! app_verify_notarised "$dist" "$staging"; then
+    rm -rf "$staging"
+    die "macos: the bundle was Accepted and stapled, and does not pass the check above"
+  fi
+  rm -rf "$staging"
+  ls_forget "$dist"
+  printf '\nnotarised and stapled: %s\nnext: %s publish\n' "$dist" "$ME"
+}
+
+# app-verify: the staged copy's signature and ticket. Changes no bundle.
+cmd_app_verify() {
+  require_declared
+  load_identity
+  require_identity
+  local dist staging rc=0
+  dist="$(app_dist)"
+  [ -d "$dist" ] || die "macos: no signed bundle at $dist -- run: $ME app-sign"
+  printf '  %-21s %s\n' "bundle" "$dist"
+  app_signature_readback "$dist"
+  staging="$(mktemp -d)"
+  app_verify_notarised "$dist" "$staging" || rc=1
+  rm -rf "$staging"
+  ls_forget "$dist"
+  [ "$rc" -eq 0 ] || die "macos: the signed bundle is not notarised and stapled"
+}
+
+# The staging dir publish proves its zip in; a global, because bash runs an
+# EXIT trap with the function's locals already unwound.
+_PUBLISH_STAGING=""
+publish_cleanup() {
+  local rc=$?
+  if [ -n "$_PUBLISH_STAGING" ]; then
+    ls_forget "$_PUBLISH_STAGING/unpacked/$APP_NAME"
+    rm -rf "$_PUBLISH_STAGING" || warn "macos: could not remove the staging dir $_PUBLISH_STAGING; remove it with: rm -rf $_PUBLISH_STAGING"
+  fi
+  exit "$rc"
+}
+
+# publish: the stapled copy zipped as macos.asset, proven by unpacking it as a
+# user does and checking the bundle inside, then attached to the release at the
+# tag by `release attach --from`, the core's own path: its checks, its upload
+# that never replaces an asset, its SHA256SUMS over every asset and its
+# readback. Refused, with nothing uploaded, when the copy is not the
+# release's, when the tag is not here, or when the zip does not prove.
+cmd_publish() {
+  require_declared
+  release_names
+  local dist staging launcher
+  dist="$(app_dist)"
+  [ -d "$dist" ] || die "macos: no signed bundle at $dist -- run: $ME app-sign, then app-notarize"
+  git rev-parse -q --verify "refs/tags/$APP_TAG^{commit}" >/dev/null 2>&1 ||
+    die "macos: there is no tag $APP_TAG here, the tag the project's version $APP_VERSION is released under -- nothing uploaded"
+  refuse_blockers "macos: $APP_NAME cannot ship with release $APP_TAG -- nothing uploaded" "$(app_ship_blockers "$dist")"
+  launcher="$ROOT/bin/devbin"
+  [ -x "$launcher" ] || die "macos: no launcher at $launcher -- publish attaches through this project's release command"
+  if ! staging="$(mktemp -d)" || [ -z "$staging" ] || ! staging="$(cd "$staging" && pwd -P)"; then
+    die "macos: could not make a staging dir -- nothing uploaded"
+  fi
+  _PUBLISH_STAGING="$staging"
+  trap publish_cleanup EXIT
+  # An interrupt is the command's own failure, exit 1, through the EXIT trap,
+  # so the staging dir goes on every path out.
+  trap 'exit 1' INT TERM HUP
+  mkdir "$staging/asset" "$staging/unpacked" || die "macos: could not make the staging dirs -- nothing uploaded"
+  step "zipping the stapled bundle as $APP_ASSET"
+  ditto -c -k --keepParent "$dist" "$staging/asset/$APP_ASSET" || die "macos: could not zip $dist"
+  step "proving the zip as a download meets it"
+  if ! ditto -x -k "$staging/asset/$APP_ASSET" "$staging/unpacked" || [ ! -d "$staging/unpacked/$APP_NAME" ]; then
+    die "macos: $APP_ASSET does not unpack to $APP_NAME -- nothing uploaded"
+  fi
+  refuse_blockers "macos: the bundle inside $APP_ASSET cannot ship with release $APP_TAG -- nothing uploaded" "$(app_ship_blockers "$staging/unpacked/$APP_NAME")"
+  app_verify_notarised "$staging/unpacked/$APP_NAME" "$staging" ||
+    die "macos: the bundle inside $APP_ASSET is not notarised and stapled -- nothing uploaded"
+  step "attaching $APP_ASSET to release $APP_TAG through release attach --from"
+  "$launcher" release attach "$APP_VERSION" --from "$staging/asset" ||
+    die "macos: release attach did not finish (above) -- run publish again once what it names is fixed: the attach reads what is already done first"
+  printf '\npublished: %s on release %s\n' "$APP_ASSET" "$APP_TAG"
+}
+
+case "$sub" in
+  doctor) cmd_doctor ;;
+  store-creds) cmd_store_creds ;;
+  app-sign) cmd_app_sign ;;
+  app-notarize | app-notarise) cmd_app_notarize ;;
+  app-verify) cmd_app_verify ;;
+  publish) cmd_publish ;;
+esac

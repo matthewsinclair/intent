@@ -74,7 +74,8 @@
 # than one moment. R2 -- the stamp step's postcondition read against the release
 # commit's tree -- is the commit step's postcondition for `status` AND pre-flight's
 # tag-sanity refusal for a cut (the pre-flight step). Written twice, the resume map and
-# the resume come to disagree, which is the drift principle 2 exists to prevent.
+# the resume come to disagree, which is the drift that reading every step's
+# state from the repository, never from a record of its own, exists to prevent.
 
 [ -n "${_DEVBIN_RELEASE_STEPS_LOADED:-}" ] && return 0
 if ! declare -F warn >/dev/null || ! declare -F read_version >/dev/null ||
@@ -302,7 +303,7 @@ release_scratch() {
 # one `cat-file` per path, and it turns a future writer that skips a path into
 # a refusal, not a release read as unstamped.
 #
-# TWO LIMITS, declared, not checked:
+# LIMITS, declared, not checked:
 #   - checkout-index applies smudge and eol filters, so the bytes are the ones
 #     a checkout of the commit would hold under the commit's own attributes. A
 #     clone's own .git/info/attributes and core.attributesFile still apply, as
@@ -766,7 +767,7 @@ release_url_shown() {
 # url whose password holds a raw `/` does not parse, and git prints it whole,
 # or hands ssh all of it up to that `/` as the host, which ssh names when it
 # cannot resolve it; and asking for a password git names the user. So, with the
-# userinfo as release_url_shown reads it, four parts go: the userinfo whole,
+# userinfo as release_url_shown reads it, these parts go: the userinfo whole,
 # its lead up to its first `/`, each tail of it after one of its own @s, and
 # its user, the whole first, since the others are inside it. A userinfo holding
 # a `:` is a password's and goes wherever it stands, and so does its lead where
@@ -884,7 +885,7 @@ release_repo() {
 # and stdin from /dev/null, so a human at a terminal takes the path agents and
 # CI take (0088's rule): a missing answer fails loudly, never waits.
 #
-# An EMPTY <repo> passes no `--repo`, for the two calls that take none:
+# An EMPTY <repo> passes no `--repo`, for the calls that take none:
 # pre-flight's `auth status`, which gh refuses `--repo` on and which names the
 # host by --hostname instead; and `api` (release_run_artifacts), whose <verb> is
 # the endpoint's path, which names the repository, a host other than
@@ -900,7 +901,8 @@ release_gh() {
 }
 
 # release_read_object <object> <tag> <declared-repo> <declared-remote> --
-# the object step's postcondition. The last two are release_repo's. Under
+# the object step's postcondition. <declared-repo> and <declared-remote> are
+# release_repo's. Under
 # `local` and `ci` it asks gh whether a release object exists for the tag;
 # `gh release view` answers `release not found` for none. Any other failure,
 # gh missing included, is UNREADABLE -- never "no object". `none` is not read
@@ -1473,9 +1475,10 @@ release_wait() {
 }
 
 # release_ci_verdict <sha> <tag> <query-word>... -- the project's ci.query asked
-# about the release: <sha>, the release commit, and <tag>, the release tag, as
-# one line: `<verdict><TAB><detail>`, the verdict one of green, failed,
-# pending, none or unknown.
+# about <sha> and <tag>, as one line: `<verdict><TAB><detail>`, the verdict one
+# of green, failed, pending, none or unknown. The ci step asks about the release
+# commit and the release tag; pre-flight, under ci.base, about the base commit
+# with <tag> empty.
 #
 # THE CONTRACT A QUERY KEEPS: it is run as `<query-word>... <sha>`, the sha
 # appended as notes.run receives its verb and version, with the release tag in
@@ -1515,7 +1518,15 @@ release_ci_verdict() {
     }
     own=yes
   fi
-  DEVBIN_RELEASE_TAG="$tag" "$@" "$sha" >"$dir/ci.out" 2>"$dir/ci.err" </dev/null || rc=$?
+  # AN EMPTY <tag> IS NO TAG, AND THE QUERY IS RUN WITHOUT ONE (issue 0223):
+  # pre-flight asks about the base commit, whose runs are the branch's, and a
+  # query reads an unset tag as every run on the sha. The cut unset any inherited
+  # one when it started.
+  if [ -n "$tag" ]; then
+    DEVBIN_RELEASE_TAG="$tag" "$@" "$sha" >"$dir/ci.out" 2>"$dir/ci.err" </dev/null || rc=$?
+  else
+    "$@" "$sha" >"$dir/ci.out" 2>"$dir/ci.err" </dev/null || rc=$?
+  fi
   line="$(head -n 1 "$dir/ci.out")"
   if [ "$rc" -ne 0 ]; then
     detail="$(head -n 1 "$dir/ci.err")"

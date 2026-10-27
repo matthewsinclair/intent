@@ -2,7 +2,7 @@
 #
 # lib/infra -- the infra PROFILE: resolution, load, and parse-time validation.
 #
-# Sourced, never executed. It answers three questions and nothing else: which
+# Sourced, never executed. It answers these questions and nothing else: which
 # profile file applies, does it parse, and is it internally consistent. It makes
 # no network call and reads no live state, which is the whole point of the split
 # -- a malformed PROFILE and a wrong ESTATE are different problems with
@@ -329,7 +329,7 @@ infra_unreviewed_keys() { cfg_list unreviewed 2>/dev/null || true; }
 #
 # THE SCHEMA PROMISED THIS FROM THE FIRST DRAFT AND NOTHING IMPLEMENTED IT.
 # `lib/infra.reference.yaml` says a handle carrying nothing but its `name:`
-# inherits all of `defaults:`, and all three real profiles depend on it totally
+# inherits all of `defaults:`, and the real profiles all depend on it totally
 # -- every domain in them inherits `mail`, `ttl` and `dmarc` and spells almost
 # nothing. Measured on a two-line fixture: `defaults.ttl` read 300 and
 # `domains.alpha.ttl` read empty.
@@ -423,7 +423,7 @@ infra_sender_defined() {
 # one level down: `dmarc: quarantine` under a domain parsed, validated, and was
 # ignored, because only `none` was ever compared.
 #
-# TWO ROWS ARE DOCUMENTED AND READ BY NOTHING, and they are legal on purpose:
+# SOME ROWS ARE DOCUMENTED AND READ BY NOTHING, and they are legal on purpose:
 # `version`, which nothing reads yet, and the Fly `runtime` block, which every
 # check run names as not examined. Refusing them would refuse the reference.
 _INFRA_PROFILE_KEYS="
@@ -593,7 +593,7 @@ infra_profile_keys_known() {
 # infra_sender_dkim_records <sender> -- one PREFIX per DKIM record the sender
 # declares, under `senders.<sender>.`, in document order: `dkim` for the
 # one-record form, `dkim.<label>` for each labelled record. Nothing when the
-# sender declares none. THE one reader of the two spellings.
+# sender declares none. THE one reader of every spelling.
 #
 # THE FORMS ARE TOLD APART BY WHETHER `dkim` CARRIES A VALUE DIRECTLY, a test
 # _infra_dkim_children makes once for both this and infra_sender_dkim_shape.
@@ -622,7 +622,7 @@ infra_sender_dkim_records() {
 
 # _infra_dkim_children <sender> -- each key under `senders.<sender>.dkim`, one
 # per line as `field <key>` when it carries a value of its own and `label
-# <key>` when it does not. THE test that tells the two spellings apart, read by
+# <key>` when it does not. THE test that tells the spellings apart, read by
 # infra_sender_dkim_records and infra_sender_dkim_shape alike, so the reader and
 # the rules cannot classify one layout two ways.
 _infra_dkim_children() {
@@ -633,7 +633,7 @@ _infra_dkim_children() {
   return 0
 }
 
-# infra_sender_dkim_shape <sender> -- the rules the two spellings need, for any
+# infra_sender_dkim_shape <sender> -- the rules the spellings need, for any
 # sender, whether or not a domain names it:
 #
 #   - never both forms at once, which would leave the reader to choose

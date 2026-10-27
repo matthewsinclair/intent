@@ -45,8 +45,11 @@ In this order:
                     project.alias shortcut chained through that link is
                     noted with the command that repoints it
     source          whether the devbin this project was vendored from has
-                    moved: level, behind, ahead, differs or unknown, each
-                    said apart; only behind suggests an upgrade. unknown
+                    moved: level, behind, moved, ahead, differs or
+                    unknown, each said apart; only behind suggests an
+                    upgrade. moved is a source whose commit moved on
+                    while no vendored file changed: it passes, naming
+                    both commits, and is not offered as an update. unknown
                     names what this machine is missing, so that no switch
                     names a source (see bin/devbin help upgrade). A
                     project also gets the tree its next upgrade reads, by
@@ -108,7 +111,7 @@ A file there that is not executable, or a directory, is a note and is not run. A
 
 ## The upgrade offer
 
-At a terminal, `bin/devbin doctor` and bare `bin/devbin` first ask whether to upgrade, and only when the devbin this project was vendored from has moved forward past it -- the `behind` state above. A source that is behind the project, or differs in no known direction, is never offered: nothing says it is newer, and an upgrade from an older source can take the project backwards. Only `y` or `yes`, in any case, runs `bin/devbin upgrade`; any other answer, or none, leaves the project as it is. `DEVBIN_NO_UPDATE_NOTICE=1` turns the offer off, along with devbin's once-a-day update notice.
+At a terminal, `bin/devbin doctor` and bare `bin/devbin` first ask whether to upgrade, and only when the devbin this project was vendored from has moved forward past it and changed a vendored file -- the `behind` state above. A source whose commit moved on with no vendored file changed is not offered. A source that is behind the project, or differs in no known direction, is never offered: nothing says it is newer, and an upgrade from an older source can take the project backwards. Only `y` or `yes`, in any case, runs `bin/devbin upgrade`; any other answer, or none, leaves the project as it is. `DEVBIN_NO_UPDATE_NOTICE=1` turns the offer off, along with devbin's once-a-day update notice.
 
 ## A checkout on a Windows drive
 

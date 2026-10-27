@@ -71,8 +71,8 @@ _fullcycle_usage() {
 # here for a reason worth the paragraph (issue 0051).
 #
 # THE SAME PREDICATE WAS TESTED TWICE AND THE TWO COPIES FAILED IN OPPOSITE
-# DIRECTIONS. `cmd_fullcycle` tests it and REFUSES the whole verb, loudly, with
-# five lines of stderr -- it fails CLOSED. This function tested it and silently
+# DIRECTIONS. `cmd_fullcycle` tests it and REFUSES the whole verb, loudly, on
+# stderr -- it fails CLOSED. This function tested it and silently
 # dropped the rebuild, emitting `clean rust` + `test rust`, which IS the
 # net-destructive two-phase cycle described above -- it failed OPEN. The closed
 # copy won only because it runs first.
@@ -528,8 +528,9 @@ _fullcycle_header() {
 # is sealed and the heartbeat covers its silences -- which is the whole reason
 # this is not a plain handler: the clean is the longest silent operation devbin
 # has, and a silent 35 minutes is indistinguishable from a hang.
-# _fullcycle_rebuild_remedy -- the ONE rebuild remedy line. Two branches print it
-# (the loop's failed-build warning and the link check after a failed clean), and
+# _fullcycle_rebuild_remedy -- the ONE rebuild remedy line. Every branch that
+# prints it (the loop's failed-build warning and the link check after a failed
+# clean) calls this, and
 # 0071 exists because two remedies for one state had drifted apart. It names
 # the build phase this project runs (issue 0134): it named `build all`, which is
 # refused over a lone `commands.build.run` -- the very build that had failed.
@@ -671,7 +672,7 @@ _fullcycle_consent_notice() {
 # split is by parameter expansion, which keeps a newline in a name. The
 # artefact check's tree loop turns each code into
 # the cause it names, and one it has no branch for is named out of reach, so a
-# new code needs a branch there and the four places that loop's comment lists
+# new code needs a branch there and every place that loop's comment lists
 # (issue 0177).
 _fullcycle_tree_gone() {
   local p="$1" cur next s i j hops=0
@@ -1350,7 +1351,7 @@ _fullcycle_run() {
     # find could not read may never have been examined, and a tree it found
     # whose profiles could not be listed was not, so the check above cannot say
     # the rebuild put release/ back: it is incomplete, and a green over it is
-    # the false one this check exists to stop. Each of these four is said for
+    # the false one this check exists to stop. Each of these is said for
     # itself, and only when it holds (0139); the partial
     # tree's line lists every cause a tree can be partial for, whichever held
     # (issue 0177).
@@ -1599,11 +1600,12 @@ cmd_fullcycle() {
   # An n or a missing tty now stops before any log exists: nothing ran.
   _FULLCYCLE_WAITED=0
   if [ "$force" = 0 ]; then
-    # TWO REFUSALS LIVE IN clean AND THIS LINE NAMED THE WRONG ONE. The
+    # THE BLOCKED-BINARIES REFUSAL AND THE NO-TTY REFUSAL BOTH LIVE IN clean,
+    # AND THIS LINE NAMED THE WRONG ONE. The
     # blocked-binaries `die` fires FIRST and has no tty test in it at all;
     # `_clean_confirm`'s no-tty refusal is further down and is reached only when
     # nothing is blocked. The old wording -- "clean will ask, or refuse if there
-    # is no terminal" -- described the second, so the operator was refused
+    # is no terminal" -- described the no-tty one, so the operator was refused
     # WITH a terminal and sent hunting a tty problem that does not exist.
     # A WRONG MECHANISM IN AN ERROR PATH IS WORSE THAN NO MECHANISM: it is
     # actionable, in the wrong direction.

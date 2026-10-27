@@ -47,7 +47,7 @@ EOF
 #
 # Beside the state rather than in a legend at the bottom, because the reader's
 # actual question is "so do I run upgrade or not" and a legend makes them hold
-# seven words in their head to find out.
+# every state's word in their head to find out.
 _explain() {
   case "$1" in
     level) printf 'matches the source\n' ;;
@@ -89,7 +89,7 @@ main() {
   dstroot="${PROJECT_ROOT:?}"
 
   is_devbin_installed "$dstroot" || {
-    # The same two shapes upgrade distinguishes, and for the same reason: the
+    # The same shapes upgrade distinguishes, and for the same reason: the
     # devbin source checkout runs its own lib/ in place, so there is no vendored
     # copy to compare and pointing it at `install --into` would name the command
     # install refuses.

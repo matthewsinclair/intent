@@ -5,7 +5,7 @@
 #
 # {{NAME}} -- a devbin command handler, scaffolded by `{{DEVBIN}} new {{NAME}}`.
 #
-# The two `# devbin:` lines above are read by help. They are the ONE place this
+# The `# devbin:` lines above are read by help. They are the ONE place this
 # command's summary and group are declared -- config can override them, nothing
 # else duplicates them. Delete a line to drop that field.
 #
@@ -55,7 +55,7 @@ main() {
   printf '  edit: %s\n' "${BASH_SOURCE[0]}"
 
   # Exit 3 means "resolves but is not built yet", which is what this is until
-  # you replace the two lines above. Returning 0 from an unbuilt command is the
+  # you replace the lines above. Returning 0 from an unbuilt command is the
   # false green devbin's whole gate design exists to prevent.
   return 3
 }

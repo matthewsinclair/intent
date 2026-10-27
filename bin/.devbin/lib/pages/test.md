@@ -11,7 +11,7 @@ The project's test gates. Each option devbin ships exits non-zero when it fails 
     shell    shell   bats tests
     all      every active option in one pass
 
-Arguments after one of these options are added to its command line, apart from devbin's own flags: `bin/devbin test mix --trace` runs `mix test --trace`.
+Arguments after one of these options are added to its command line, apart from devbin's own flags: `bin/devbin test mix --trace` runs `mix test --trace`. Each runs at the project root, apart from `rust`, which runs at `project.cargo_root` when the config names one.
 
 ## The verdict is a file
 
@@ -21,7 +21,7 @@ The `.errors` file starts as an in-flight marker and is sealed when the run ends
 
 ## An empty run fails
 
-A run whose output shows it examined nothing (zero tests, or zero source files for credo) is PROMOTED TO FAILED, and the reason is written into the seal: a filter that matches nothing exits 0 and would otherwise read as a pass. Pass `--allow-empty` after the option when an empty run is intended, or declare `grammar: generic` on the option in config to stop the count. `lua` is never promoted, because devbin cannot count its output, and neither is output with no summary line to count.
+A run whose output shows it examined nothing (zero tests, or zero source files for credo) is PROMOTED TO FAILED, and the reason is written into the seal: a filter that matches nothing exits 0 and would otherwise read as a pass. Pass `--allow-empty` after the option when an empty run is intended, or declare `grammar: generic` on the option in config to stop the count. `lua` is never promoted, because devbin cannot count its output, and neither is output with no summary line to count. A run whose count devbin could not read, because its own reading of the output failed, is promoted too, with the failure named, and `--allow-empty` does not cover it.
 
 ## all
 

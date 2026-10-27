@@ -35,14 +35,14 @@ if [ -z "${_DEVBIN_RESOLVE_LOADED:-}" ]; then
 fi
 
 # Column at which the description starts in the generated listing. One constant
-# rather than a repeated literal in six printf formats: the corpus's help drifted
+# rather than a repeated literal in each printf format: the corpus's help drifted
 # out of alignment exactly because the width lived in each heredoc.
 _HELP_COL=24
 
 # --- metadata: one source per fact -------------------------------------------
 #
-# Three fields describe a command in the listing -- summary, group and args --
-# and each is read from ONE place, in this order:
+# The fields that describe a command in the listing -- summary, group and args --
+# are each read from ONE place, in this order:
 #
 #   1. config       commands.<cmd>.<field>       a project's own wording wins
 #   2. the HANDLER's own `# devbin: <field> = ` header
@@ -66,7 +66,7 @@ _HELP_COL=24
 #
 # Only the LEADING block is scanned, and scanning stops at the first line that
 # is neither a comment nor blank. A handler that mentions `# devbin: summary`
-# in prose three hundred lines down is discussing the convention, not declaring
+# in prose far down the file is discussing the convention, not declaring
 # one, and the difference is exactly where the line sits.
 handler_meta() {
   local path="$1" field="$2"
@@ -260,13 +260,13 @@ EOF
 # --- provenance (--why) ------------------------------------------------------
 
 # command_origin <command> -- where this command resolved from, in the words of
-# the resolution order. The whole value of `--why`: three of these four answers
+# the resolution order. The whole value of `--why`: most of these answers
 # are invisible from the listing alone, and the resolution order has been got
 # wrong three times in this codebase precisely because nothing displayed it.
 command_origin() {
   local cmd="$1" tier
-  # THE ORDER IS command_tier's (issue 0128): this function spelled the three
-  # project tiers and devbin's four out by hand, in the same order as
+  # THE ORDER IS command_tier's (issue 0128): this function spelled the
+  # project's tiers and devbin's out by hand, in the same order as
   # run_command, and nothing kept the copies in step. It labels the answer now.
   tier="$(command_tier "$cmd")" || die "devbin defect: command_tier gave no answer for '$cmd'"
   case "$tier" in
@@ -665,7 +665,7 @@ EOF
   # document, and until 0113 this line told every project to write devbin's page
   # for it. Devbin's pages for those are issue 0115. A command the project owns,
   # or one devbin does not ship, is the project's, and the pointer to its own
-  # help/ stays. help_file's status says which of the first two this is (0128).
+  # help/ stays. help_file's status says which of those this is (0128).
   if [ "$why" -eq 1 ] && is_builtin_command "$cmd"; then
     printf '\nNo authored detail yet: devbin ships no page for %s. %s help --why says what is and is not offered here.\n' \
       "$cmd" "$DEVBIN_INVOKE"

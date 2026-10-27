@@ -181,7 +181,7 @@ $(unzip -Z1 "$src" 2>/dev/null | sed 's/^/         /')"
 # whose string literal it refuses prints "XPath evaluation failure" to stderr
 # and EXITS 0, while an expression selecting an empty nodeset EXITS 10. Both
 # directions are wrong here -- a green that measured nothing, and a red on a
-# legitimately absent optional element. Two things follow, and both matter
+# legitimately absent optional element. What follows matters
 # here: every expression below returns a string or a number (concat, count,
 # string) and never a nodeset, so the empty-nodeset red cannot arise; and the
 # control on the silent direction is stderr being EMPTY, not the exit code.

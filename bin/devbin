@@ -80,10 +80,10 @@ require_path_bash_floor
 # The same resolution puts `clean --force` -- which walks PROJECT_ROOT with
 # `find` -- on a tree the caller never named and cannot see in the output.
 #
-# `install` IS THE ONE EXEMPTION, and it is exempt by definition rather than by
+# `install` IS EXEMPT, and by definition rather than by
 # concession: its target is `--into <dir>`, defaulting to the CURRENT
-# directory, so acting outside its own tree is the entire job. Every other
-# command writes to or reports on PROJECT_ROOT -- `upgrade` and `vendor`
+# directory, so acting outside its own tree is the entire job. Every command
+# not exempt below writes to or reports on PROJECT_ROOT -- `upgrade` and `vendor`
 # included, whose `--from` names a SOURCE and not a target. Reading that `--from`
 # as a target is what first sized this guard at four exemptions, so it is
 # written down here rather than left to be re-derived.
@@ -92,7 +92,7 @@ require_path_bash_floor
 # a flag anything can set, and the suite is fixed by standing in the project
 # (tests/lib/test_helper.bash: devbin_run) rather than by an escape hatch.
 case "${1:-}" in
-  # TWO EXEMPTIONS, BOTH BY DEFINITION RATHER THAN BY CONCESSION.
+  # THE EXEMPTIONS, EACH BY DEFINITION RATHER THAN BY CONCESSION.
   #   install     -- its target is `--into <dir>`, defaulting to the CURRENT
   #                  directory, so acting outside its own tree IS the job.
   #   shell-init  -- emits a shell function to stdout. It writes nothing, reads
@@ -237,8 +237,8 @@ if [ ! -f "$DEVBIN_DIR/config.yaml" ]; then
     # reads a project's VERSION file and its declared sidecars; in an install
     # there is neither, so routing to it would produce `unknown` from a tree
     # that knows the answer perfectly well -- the manifest records it. The
-    # framework word `devbin` is stripped first so all four spellings a user tried
-    # land here: `version`, `--version`, `devbin version`, `devbin --version`.
+    # framework word `devbin` is stripped first so every spelling a user tried
+    # lands here: `-v`, `--version` and `version`, alone or behind `devbin`.
     _devbin_vq="${1:-}"
     if [ "$_devbin_vq" = devbin ]; then _devbin_vq="${2:-}"; fi
     case "$_devbin_vq" in
@@ -435,7 +435,7 @@ unset _devbin_referent_cmd
 # the PARENT was a witness. Inside a witness run a child that
 # inherited the flag and one started as a witness on purpose are the same
 # environment, so both are part of that run. The seal ledger reads this same
-# answer through the id (lib/runlog, record_seal): one definition, two readers.
+# answer through the id (lib/runlog, record_seal): one definition, all readers.
 #
 # ACCEPTED, NOT OVERLOOKED: `devbin dormancy` runs both of its legs as witness
 # runs, so each carries its own id rather than dormancy's. Those legs are
@@ -523,6 +523,17 @@ export DEVBIN_ROOT_VAR="$PROJECT_ROOT_VAR"
 DEVBIN_VERSION_FILE="$(cfg_get project.version_from VERSION)"
 export DEVBIN_VERSION_FILE
 
+# The cargo workspace root, as written, for cargo_root (lib/helpers), the one
+# owner of the directory devbin's catalogue cargo lines run in (issue 0225).
+# Exported ONLY when config declares it, and unset otherwise, so an absent
+# setting is told apart from an empty one, and a value inherited from another
+# project's devbin never stands in for this one's.
+unset DEVBIN_CARGO_ROOT
+if cfg_has project.cargo_root; then
+  DEVBIN_CARGO_ROOT="$(cfg_get project.cargo_root)"
+  export DEVBIN_CARGO_ROOT
+fi
+
 # The files that MIRROR the version, newline-separated. Exported for the same
 # reason as the line above: lib/cmd/version is a separate process and cannot
 # read config. Config names the files; lib/cmd/version holds the recipe for
@@ -550,7 +561,7 @@ export DEVBIN_LANGUAGES
 
 # THE VENDORED RUNTIME MAY HAVE MOVED ON, OR BEHIND. Once a day, on a terminal only, to
 # stderr, never fatal -- see devbin_update_notice in lib/helpers for why each of
-# those four is load-bearing. Placed here so it precedes every command including
+# those is load-bearing. Placed here so it precedes every command including
 # help, and after config so DEVBIN_NAME is set for the remediation line.
 devbin_update_notice "$PROJECT_ROOT"
 
@@ -561,7 +572,8 @@ devbin_update_notice "$PROJECT_ROOT"
 # about upgrades before running somebody's tests is issue 0058 wearing a
 # friendlier face. The dispatcher cannot tell whether the command it is about to
 # run is a gate -- that is decided inside the handler, after dispatch -- so the
-# offer is scoped to the two invocations that are never gates BY CONSTRUCTION.
+# offer is scoped to the invocations that are never gates BY CONSTRUCTION: the
+# bare invocation, and `doctor`.
 #
 # The NOTICE above is unconditional and this is not. Everyone hears; only
 # someone looking at devbin itself gets asked.
@@ -730,7 +742,7 @@ fi
 # says where `all` is devbin's, and why it is refused over a command-level run:
 # with no options.
 route="$(arg_route "$command" "$@")" || die "devbin defect: arg_route gave no answer for '$command'"
-# THE ROUTE'S WORD, for the three routes that name one (all, inactive, option):
+# THE ROUTE'S WORD, for the routes that name one (all, inactive, option):
 # the argument route_word_at names, the same one arg_route asked, taken out,
 # with everything before and after it kept in order (`test --purge all`,
 # `rq --purge one`).

@@ -3,14 +3,16 @@
 # lib/infra.check -- the DNS and mail legs of `infra check` (ST0003 WP-02).
 #
 # Sourced, never executed. It compares a loaded profile against live
-# authoritative DNS and produces a verdict in FOUR channels, not two.
+# authoritative DNS and produces a verdict in separate channels, not a
+# pass/fail pair.
 #
 #   OK      measured, and it matches
 #   DRIFT   measured, and it differs -- the estate is wrong
 #   ERROR   NOT MEASURED -- the instrument failed, and nothing is known
 #   BLIND   not machine-checkable at all, declared and named every run
+#   MANUAL  declared under `manual:`, NEVER verified, named every run
 #
-# WHY FOUR AND NOT TWO, which is the whole design. Every failure this thread
+# WHY SEPARATE CHANNELS, which is the whole design. Every failure this thread
 # was built to catch is a control that could only report success. Fold ERROR
 # into OK and an unreachable nameserver reads as a clean domain; fold it into
 # DRIFT and the operator chases an estate fault that is really a network fault.
@@ -49,7 +51,7 @@
 [ -n "${_DEVBIN_INFRA_CHECK_LOADED:-}" ] && return 0
 _DEVBIN_INFRA_CHECK_LOADED=1
 
-# The four channels. Newline-delimited `<fqdn><TAB><facet><TAB><detail>`.
+# The channels. Newline-delimited `<fqdn><TAB><facet><TAB><detail>`.
 _IC_OK=0
 _IC_DRIFT=""
 _IC_ERROR=""
@@ -104,12 +106,12 @@ _ic_unread() {
 }
 
 # infra_check_domain <handle> <fqdn> -- every DNS and mail assertion for one
-# domain. Prints nothing; accumulates into the four channels.
+# domain. Prints nothing; accumulates into the channels.
 #
 # THE AUTHORITY READ GATES EVERYTHING. Each later read runs THROUGH it, so a
-# domain whose nameservers cannot be found is one ERROR rather than six DRIFTs:
-# reporting "no MX, no SPF, no DMARC" for a domain nobody could reach is a
-# verdict about an estate that was never read.
+# domain whose nameservers cannot be found is one ERROR rather than a DRIFT
+# for each record: reporting "no MX, no SPF, no DMARC" for a domain nobody
+# could reach is a verdict about an estate that was never read.
 infra_check_domain() {
   local handle="$1" fqdn="$2" ns mail ttl want_dmarc policy rua sp
   local mx spf dmarc_txt sender spf_rec n k v

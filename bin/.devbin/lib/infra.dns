@@ -21,16 +21,15 @@
 # WHY AUTHORITATIVE READS, AND IT IS NOT PURITY. A recursive resolver returns
 # the REMAINING ttl, not the CONFIGURED one, so a `ttl:` assertion read through
 # the cache reports drift that is an artefact of when the command ran.
-# Measured on three real domains, the third shown here under a placeholder
-# name:
+# Measured on real domains, one shown here under a placeholder name:
 #
 #   cloudflare.com   configured 1800   through the resolver  780
 #   amazon.com       configured  900   through the resolver  815
 #   example.com      configured  300   through the resolver  300
 #
-# The third row is why this is a rule rather than a preference: on an estate
-# like that one, the WRONG instrument returns the RIGHT answer, so nothing
-# local would ever have shown the defect.
+# The example.com row is why this is a rule rather than a preference: on an
+# estate like that one, the WRONG instrument returns the RIGHT answer, so
+# nothing local would ever have shown the defect.
 #
 # AND A READ IS AUTHORITATIVE ONLY WHEN THE REPLY SAYS SO. Addressing a
 # domain's own nameserver is not enough, since whatever answers at that
@@ -258,7 +257,7 @@ infra_dns_authority() {
 # infra_dns_no_authority <fqdn> <attempts> <what each attempt got> -- THE
 # sentence for a failed authority read, and the only place it is worded. check
 # lists it under COULD NOT MEASURE and init records it under `unreviewed:`, so
-# the two commands cannot describe one failure two ways. Each attempt reads as
+# the commands cannot describe one failure two ways. Each attempt reads as
 # what it got: the header status of a reply, `no status` for a reply that
 # carried none, `no reply` where dig heard nothing within its budget, or `dig
 # exit <n>: <why>` where dig could not run the query. "No NS record came from
@@ -375,7 +374,7 @@ infra_dns_cname() {
 # infra_dns_said <what a failed read printed> -- rc 0 when it is a line a caller
 # shows beside the read, a reply without AA's or a CNAME answer's, rc 1 for
 # anything else. Pure. THE ONE ANSWER TO WHICH LINES ARE SHOWN, for check and
-# init alike, so the two cannot show different lines for one read; each then
+# init alike, so they cannot show different lines for one read; each then
 # marks a reply without AA (infra_dns_noaa) for the probe on its own.
 infra_dns_said() { infra_dns_noaa "$1" || infra_dns_cname "$1"; }
 
@@ -388,7 +387,7 @@ _DEVBIN_INFRA_DNS_PROBE=198.51.100.1
 
 # infra_dns_cause <answered|unasked> <status|why> -- THE sentence a probe's
 # outcome is told in, and the only place it is worded. check prints it on its
-# Cause: line and init records it under `unreviewed:`, so the two commands give
+# Cause: line and init records it under `unreviewed:`, so the commands give
 # one cause in one set of words. Pure, as infra_dns_no_authority is for the
 # authority read.
 infra_dns_cause() {
@@ -472,7 +471,7 @@ infra_dns_rrset() {
 #
 # MOVED HERE FROM lib/infra.check when `init` became the second reader of the
 # same records. `init` proposes a target from what these return and `check`
-# compares a target against what they return, so two copies would let the two
+# compares a target against what they return, so two copies would let the
 # commands disagree about what a domain carries -- and the profile `init`
 # generates would then go red against the estate it was generated from for a
 # reason neither command could show.

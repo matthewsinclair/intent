@@ -28,7 +28,7 @@ With options declared and neither a `run:` nor a handler, a bare `publish` print
 
 ## publish and release
 
-`release`, the one opt-in command devbin implements itself, never runs `publish` of its own accord, and enabling either does not enable the other.
+`release`, an opt-in command devbin implements itself, never runs `publish` of its own accord, and enabling either does not enable the other.
 
 ## When this page stops answering
 

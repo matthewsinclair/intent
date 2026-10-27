@@ -148,7 +148,7 @@ check_release() {
 # check_log_keys -- every `log:` in config sits where something reads it
 # (issue 0133).
 #
-# `log:` is read in two places only: beside an option's own `run:`, which
+# `log:` is read only beside an option's own `run:`, which
 # run_option seals under it, and on a command whose own line runs -- config's
 # `commands.<cmd>.run`, or the catalogue's -- which run_command seals under it.
 # Everywhere else a handler runs the command, devbin's or the project's, and
@@ -705,7 +705,7 @@ _ships_behind_name() {
 
 # check_handlers -- files in cmd/ that will never be reached.
 #
-# Two orphan shapes, both silent. A handler without its executable bit is
+# Each orphan shape is silent. A handler without its executable bit is
 # skipped by known_commands, so the command simply does not exist and nothing
 # says why. A `<name>.d/` with no `<name>` beside it holds sub-commands whose
 # parent never resolves, so the whole subtree is unreachable (sub-dispatch is
@@ -860,6 +860,13 @@ check_source_currency() {
     level)
       _pass "source: level with the devbin it was vendored from"
       ;;
+    moved)
+      # NOT AN UPDATE, AND NOT LEVEL (issue 0224). The source's commit moved on
+      # and no vendored byte did, so there is nothing to upgrade, and the
+      # difference is still said: the commits are not the same.
+      _pass "source: every vendored file is level with the devbin it came from"
+      _detail "its commit has moved on outside them: vendored ${rec:0:12}, source now ${cur:0:12}"
+      ;;
     behind)
       _note "source: the devbin this project came from has moved on"
       _detail "vendored ${rec:0:12}, source now ${cur:0:12}"
@@ -910,8 +917,8 @@ check_tree() {
   local line
   [ "$(devbin_tree "$PROJECT_ROOT")" = dev ] || return 0
   line="$(devbin_tree_line "$PROJECT_ROOT")"
-  case "$line" in
-    *"(dev, unknown)"*) _fail "tree: $line -- git cannot read this checkout, so the line names no commit" ;;
+  case "$(tree_line_head "$line")" in
+    *"(dev, unknown)") _fail "tree: $line -- git cannot read this checkout, so the line names no commit" ;;
     *) _pass "tree: $line" ;;
   esac
   return 0
@@ -961,7 +968,41 @@ check_switch() {
     at) _pass "switch: the link names ${state#at }" ;;
     *) _pass "switch: no link, so brew" ;;
   esac
+  _switch_left_off_brew "$state"
   return 0
+}
+
+# _switch_left_off_brew <link state> -- a NOTE when the link names dev or opt
+# and Homebrew's devbin is at that tree's version or past it (issue 0228).
+#
+# THE SWITCH RESTS AT BREW (T5): the maintainer moves it to dev or opt only
+# while working on devbin, and back once the work is released and `brew
+# upgrade devbin` has taken it. A switch left behind breaks nothing, so this is
+# a note, never a failure: it names what was forgotten at the next doctor.
+# While the work is still going on, dev's VERSION is the release brew already
+# has, so the note says to go back once the work is released, not now. A
+# version that is not X.Y.Z, or that cannot be read (a VERSION or manifest
+# missing: the tree and manifest checks above report those), compares as
+# nothing, and says nothing.
+_switch_left_off_brew() {
+  local root tree brew have want
+  case "$1" in
+    "at "*) root="${1#at }" ;;
+    *) return 0 ;;
+  esac
+  tree="$(devbin_tree "$root")"
+  case "$tree" in
+    dev | opt) ;;
+    *) return 0 ;;
+  esac
+  brew="$(devbin_brew_root)" || return 0
+  [ "$(devbin_tree "$brew")" = brew ] || return 0
+  want="$(devbin_version_of "$root" 2>/dev/null)" || return 0
+  have="$(devbin_version_of "$brew" 2>/dev/null)" || return 0
+  is_semver "$want" && is_semver "$have" || return 0
+  ! semver_gt "$want" "$have" || return 0
+  _note "switch: on $tree, and Homebrew's devbin is $have, at or past $tree's $want -- the switch rests at brew"
+  _detail "once the work on $tree is released: brew upgrade devbin, then devbin use brew"
 }
 
 # check_bash -- the floor, asserted where a human reads it.

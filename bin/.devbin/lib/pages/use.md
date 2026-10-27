@@ -9,7 +9,7 @@ Choose which of devbin's trees this machine runs: the dev checkout, its opt inst
             checkout's bin/.devbin/config.yaml
     brew    remove the link, so Homebrew's own devbin answers
 
-Each prints the tree line after it, `devbin <version> (<tree>, <commit>) at <root>`, which `--version` prints too.
+Each prints the tree line after it, `devbin <version> (<tree>, <commit>)`, which `--version` prints too. It names no path: `command -v devbin` says where the running copy lives.
 
 ## Where each one runs
 
@@ -17,7 +17,7 @@ Each prints the tree line after it, `devbin <version> (<tree>, <commit>) at <roo
 
 A project with devbin vendored into it is not one of devbin's trees, so its `bin/devbin` does not offer `use`: it refuses with exit 6, naming `devbin use`, and its help leaves the command out. The switch is the machine's, thrown from devbin itself, never from a project.
 
-`use opt` refuses a prefix with no opt install, naming `install`, and one whose install has the manifest form written before the tree line, naming `install --force`. `use brew` removes only a link into one of devbin's trees: a link to anything else, or a file standing where the link belongs, is named and left for you to remove.
+`use opt` refuses a prefix with no opt install, naming `install`, and one whose install has the manifest form written before the tree line, naming `install --force`. `use brew` removes only a link into one of devbin's trees: a link to anything else, or a file standing where the link belongs, is named and left for you to remove. It also refuses, removing nothing, when no Homebrew devbin would answer once the link is gone (the formula is not installed, its keg is not linked, Homebrew's bin is not on PATH, or another devbin comes first on PATH), naming the link, the tree it serves, why, and what to do instead.
 
 ## The link is the one switch
 

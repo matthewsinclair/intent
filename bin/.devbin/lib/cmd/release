@@ -10,6 +10,7 @@
 #   release notes                                                   regenerate the notes views
 #   release check                                                   the declaration, the writers, the notes views
 #   release attach <vX.Y.Z>                                         CI-built assets onto the release object
+#   release attach <vX.Y.Z> --from <dir>                            the files in <dir> onto it (issue 0226)
 #   release                                                         usage, exit 1
 #
 # EVERY ARGUMENT IS PARSED BEFORE ANYTHING ACTS, and `-h` or `--help` in any
@@ -44,6 +45,9 @@ set -euo pipefail
 . "$DEVBIN_LIB/release.notes"
 # shellcheck source=lib/release.steps
 . "$DEVBIN_LIB/release.steps"
+# shellcheck source=lib/resolve
+# command_active, for the cut's note back to brew (cut_back_to_brew).
+. "$DEVBIN_LIB/resolve"
 
 # usage -- the forms of the verbs this project offers, and only those.
 usage() {
@@ -52,7 +56,8 @@ usage() {
     if [ -z "$v" ] || ! offered "$v"; then continue; fi
     case "$v" in
       cut) printf '%s %s <--patch|--minor|--major|vX.Y.Z> [--dry-run] [--yes]\n' "$lead" "$me" ;;
-      status | attach) printf '%s %s %s <vX.Y.Z>\n' "$lead" "$me" "$v" ;;
+      status) printf '%s %s %s <vX.Y.Z>\n' "$lead" "$me" "$v" ;;
+      attach) printf '%s %s %s <vX.Y.Z> [--from <dir>]\n' "$lead" "$me" "$v" ;;
       *) printf '%s %s %s\n' "$lead" "$me" "$v" ;;
     esac
     lead="      "
@@ -67,7 +72,8 @@ usage() {
   fi
   if offered attach; then
     printf '  attach: the assets release.assets.workflow'"'"'s run at the tag built, onto\n'
-    printf '  its release object, with one SHA256SUMS over every asset.\n'
+    printf '  its release object, with one SHA256SUMS over every asset. --from <dir>\n'
+    printf '  attaches the files in <dir> instead, as the built-in macos attaches its app.\n'
   fi
   if cfg_release_declared verbs; then
     printf '  This project'"'"'s release.verbs offers %s.\n' "${OFFERED//$'\n'/, }"
@@ -119,6 +125,7 @@ target=""
 version=""
 dry_run=0
 assume_yes=0
+from=""
 
 # Every verb but the cut has a word, read from the one list (cfg_release_verbs).
 if [ "$1" != cut ] && grep -qxF -- "$1" <<<"$ALL_VERBS"; then
@@ -163,6 +170,15 @@ while [ $# -gt 0 ]; do
     --yes)
       [ "$verb" = cut ] || refuse "--yes applies to a cut, not to release $verb"
       assume_yes=1
+      ;;
+    --from)
+      [ "$verb" = attach ] || refuse "--from applies to release attach, not to release $verb"
+      [ -z "$from" ] || refuse "--from once only, got $from and ${2:-nothing}"
+      [ $# -ge 2 ] && [ -n "$2" ] || refuse "--from needs a directory"
+      # Read from the project root, where the command runs (it entered it above).
+      [ -d "$2" ] || refuse "--from $2 is not a directory (a relative one is read from the project root)"
+      from="$(cd -- "$2" && pwd -P)" || refuse "--from $2 could not be entered"
+      shift
       ;;
     -*)
       refuse "unknown argument: $1"
@@ -324,7 +340,7 @@ check_notes() {
           stale=$((stale + 1))
           ;;
         *)
-          # Not reachable through the three kinds, which print only the two
+          # Not reachable through the shipped kinds, which print only the two
           # verdicts; refused here all the same, because an answer this reader
           # does not recognise must never count as current.
           warn "release check: the notes provider answered '$verdict $path', which is neither current nor STALE"
@@ -414,7 +430,8 @@ materialise() {
 # commit hook's) is printed as it happens, above that table.
 #
 # A FAILED STEP STOPS THE RUN, exit 1, and its row names what failed. The steps from
-# resolve to gates are local and reversible (principle 3), so a stop leaves nothing another
+# resolve to gates are local and reversible, and nothing irreversible runs before
+# them, so a stop leaves nothing another
 # machine has seen, and the remedy is forward: fix it and run the same target.
 #
 # PAST THE PUSH THE RULE CHANGES. The object step under `object: ci` fails as any step
@@ -434,6 +451,31 @@ cut_row() { CUT_ROWS+=("$(release_row "$1" "$2" "$3")"); }
 cut_summary() {
   printf '\n%s\n' "$CUT_HEAD"
   printf '%s\n' "${CUT_ROWS[@]}"
+}
+
+# cut_back_to_brew <tag> <version> <commit> -- a released cut's last line, for
+# a project that publishes a Homebrew formula (issue 0228): the steps that put
+# the maintainer back on the install the release made, since the switch rests
+# at brew (docs/dev-opt-brew.md, T5).
+#
+# A NOTE, NEVER AN ACTION. The core runs no brew and points no link: `use` is
+# the one verb that points links, and a change to the machine is the person's
+# to make. A project publishes a formula when its `formula` command is active
+# (command_active, the one rule): the built-in enabled, or the project's own
+# handler or run:. The formula's name is cfg_formula_name's, the one
+# derivation the built-in reads too. A project with no formula gets no line,
+# since brew has nothing of it to upgrade. A cut whose after: failed or whose
+# CI is not green gets none either: its last line stays the remedy (0181), and
+# the tap may not have the release, or should not be taken from.
+cut_back_to_brew() {
+  local name
+  command_active formula || return 0
+  if ! name="$(cfg_formula_name)" || [ -z "$name" ]; then
+    printf 'release: NOTE: the switch rests at brew -- once the tap has %s, upgrade it with brew and run use brew (the formula'"'"'s name could not be read: formula.name, or project.name)\n' "$1"
+    return 0
+  fi
+  printf 'release: NOTE: the switch rests at brew -- once the tap has %s: brew upgrade %s, then %s use brew, and %s --version reads %s %s (brew, %s)\n' \
+    "$1" "$name" "$name" "$name" "$name" "$2" "${3:0:12}"
 }
 
 # cut_fail <n> <detail> -- step <n> FAILED: its row, the table so far, and what
@@ -719,10 +761,62 @@ cut_run() {
     refusals+=("release.assets.workflow is $assets_wf, and ${commit:0:12} holds no .github/workflows/$assets_wf, so no run at the tag could build the assets")
   fi
 
+  # CI GREEN ON THE BASE BEFORE THE CUT (issue 0223, release.ci.base): the
+  # suite and the gates run on the maintainer's machine, so a defect only
+  # another platform shows was found by CI after the tag, more than once. With
+  # ci.base on, ci.query is asked once about the base, the commit the
+  # release commit is made on, and anything but green refuses the cut here,
+  # before any stamp, commit or gate. The base is HEAD, or, once HEAD is the
+  # release commit, the commit before it, which stands for the release commit
+  # only while that changes nothing outside what the release owns. Asked with
+  # no tag, so the query reads the branch's runs; asked once, never waited on:
+  # a run still going refuses, and the remedy is to wait for it. Once the tag
+  # exists the cut is past every step this guards.
+  local base_detail=""
+  if [ "$source" = HEAD ] && is_true_word "$(cfg_release_get ci.base)"; then
+    local base="$commit" base_note="" changed ci_secs remedy
+    local -a bq=()
+    remedy="ci.base needs CI green on the commit a cut starts from: push $branch, wait for CI green on it, then cut"
+    if [ "$head_is_release" = yes ]; then
+      if ! base="$(git rev-parse -q --verify "$commit^1")"; then
+        refusals+=("the release commit ${commit:0:12} has no parent, so no CI run can stand for it (ci.base)")
+        base=""
+      elif ! changed="$(git diff --name-only -z --no-renames "$base" "$commit" | tr '\0' '\n')"; then
+        refusals+=("git could not list what the release commit ${commit:0:12} changes (ci.base)")
+        base=""
+      else
+        outside="$(release_outside "$changed" "$owned")"
+        if [ -n "$outside" ]; then
+          refusals+=("the release commit ${commit:0:12} changes ${outside//$'\n'/, }, outside what this release owns, so CI on the commit before it does not stand for it (ci.base)$([ -z "$derived" ] || printf -- ' -- a derived: path is owned too, and only running derived: says which, which a cut resumed on its release commit does not')")
+          base=""
+        else
+          base_note=", which the release commit ${commit:0:12} changes only in what this release owns"
+        fi
+      fi
+    fi
+    if [ -n "$base" ]; then
+      if ! run_words bq release.ci.query "$(cfg_release_get ci.query)" 2>/dev/null; then
+        refusals+=("ci.query holds no words, so CI on the base cannot be asked (ci.base)")
+      elif ! ci_secs="$(release_seconds "$(cfg_release_get ci.wait)" 2>&1)"; then
+        refusals+=("$(one_line "$ci_secs")")
+      else
+        answer="$(release_wait "$ci_secs" "" unknown release_ci_verdict "$base" "" "${bq[@]}")"
+        case "${answer%%$'\t'*}" in
+          green) base_detail="; CI is green on the base commit ${base:0:12}$base_note: ${answer#*$'\t'}" ;;
+          # STILL GOING IS NOT A FAILURE, and the refusal says so: the remedy
+          # is to wait for the run and cut again.
+          pending) refusals+=("CI is still running on the base commit ${base:0:12}: ${answer#*$'\t'} -- wait for it to finish, then cut again (ci.base needs it green)") ;;
+          unknown) refusals+=("no verdict from ci.query for the base commit ${base:0:12}: ${answer#*$'\t'} -- $remedy") ;;
+          *) refusals+=("ci.query answers ${answer%%$'\t'*} for the base commit ${base:0:12}: ${answer#*$'\t'} -- $remedy") ;;
+        esac
+      fi
+    fi
+  fi
+
   if [ "${#refusals[@]}" -gt 0 ]; then
     cut_fail pre-flight "$(printf '%s; ' "${refusals[@]}" | sed 's/; $//')"
   fi
-  cut_row pre-flight "done" "on $branch; $nremote remote(s) can take the push; $([ "$source" = HEAD ] && printf 'the tree and the note are ready' || printf '%s carries the release' "$tag")"
+  cut_row pre-flight "done" "on $branch; $nremote remote(s) can take the push; $([ "$source" = HEAD ] && printf 'the tree and the note are ready' || printf '%s carries the release' "$tag")$base_detail"
   if [ -n "$deferred" ] && [ "$dry_run" = 1 ]; then
     CUT_UNREACHED+=("the stamp step checks ${deferred//$'\n'/, } against what derived: writes, after it runs")
   fi
@@ -840,7 +934,8 @@ cut_run() {
   # --- gates -------------------------------------------------------
   # In place, on the release commit, and checked rather than trusted:
   # the tree is read before and after, and a path any gate changed or created
-  # fails the step. Never `already` (principle 4).
+  # fails the step. Never `already`: the gates leave no postcondition the
+  # repository can show.
   if [ -z "$gates" ]; then
     cut_row gates skipped "no gates: declared"
   elif [ "$source" = tag ]; then
@@ -956,7 +1051,9 @@ cut_run() {
   yes_detail="--yes given: $work"
 
   # ask_next -- what a dry run's verdict says the cut does at this step (0181).
-  local confirmed=no ask_next=""
+  # prompted -- the tag a person said yes to AT THE PROMPT, and nothing under
+  # --yes: the after step hands it to its commands (issue 0227).
+  local confirmed=no ask_next="" prompted=""
   if [ "${#left[@]}" -eq 0 ]; then
     cut_row confirm "not re-run" "no irreversible step has work left"
     ask_next="the cut has nothing left to ask about"
@@ -980,6 +1077,7 @@ cut_run() {
     case "$asked" in
       0)
         confirmed=yes
+        prompted="$tag"
         cut_row confirm "done" "confirmed: $work"
         ;;
       1) cut_fail confirm "declined at the prompt" ;;
@@ -1172,6 +1270,8 @@ cut_run() {
   # postcondition, so a re-run of a finished release runs them again.
   local after cmd after_failed="" ran=0
   local -a aw=()
+  # A mark inherited from whatever started this cut is not this cut's yes.
+  unset DEVBIN_RELEASE_CONFIRMED
   after="$(cfg_release_list after)"
   if [ -z "$after" ]; then
     cut_row after skipped "no after: declared"
@@ -1190,10 +1290,20 @@ cut_run() {
       # inside run_gate, whose stdin is /dev/null for everything in it, and a dry
       # run never gets here. Through gate_exec the line keeps the flag the
       # release gate set, since it runs inside that gate (issue 0158): an
-      # `after:` command that asks a person through ask_person can still ask one
-      # who was there when the cut began. And the after step does not depend on its
-      # caller to keep stdin off the terminal.
-      gate_exec "${aw[@]}" 3<&- || arc=$?
+      # `after:` command that is a script asking through ask_person can still ask
+      # the person who was there when the cut began. A `bin/devbin` line cannot,
+      # since the dispatcher drops the gate's mark and reads the person from its
+      # own stdin, which is /dev/null here; it gets DEVBIN_RELEASE_CONFIRMED
+      # instead, the tag a person said yes to at the confirm step's prompt, and
+      # empty under --yes (issue 0227), which `formula publish` reads as the yes
+      # for the push the cut lists. Nothing but these commands is given it. And
+      # the after step does not depend on its caller to keep stdin off the
+      # terminal.
+      if [ -n "$prompted" ]; then
+        DEVBIN_RELEASE_CONFIRMED="$prompted" gate_exec "${aw[@]}" 3<&- || arc=$?
+      else
+        gate_exec "${aw[@]}" 3<&- || arc=$?
+      fi
       if [ "$arc" -eq 0 ]; then
         ran=$((ran + 1))
       else
@@ -1215,9 +1325,14 @@ cut_run() {
   # 0: a cut that could not confirm green must not exit as though it had. The
   # rows say what the query answered: the core cannot see whether it read the
   # tag.
+  # ci.tag OFF (issue 0223): the project's tag run takes longer than any wait a
+  # cut should hold, and under ci.base its base was green before the cut, so
+  # the tag's run is read after it instead.
   local verdict_failed=""
   if ! cfg_release_declared ci.query; then
     cut_row ci skipped "no ci.query declared"
+  elif ! is_true_word "$(cfg_release_get ci.tag)"; then
+    cut_row ci skipped "ci.tag is off: the cut does not wait for $tag's CI run -- read it once it has run"
   elif [ "$dry_run" = 1 ]; then
     cut_row ci would "ask ci.query about $tag ($rel_at) for up to $(cfg_release_get ci.wait) (ci.wait)"
   else
@@ -1272,6 +1387,7 @@ cut_run() {
     exit 1
   fi
   printf '\nrelease: %s is released.\n' "$tag"
+  cut_back_to_brew "$tag" "$v" "$commit"
 }
 
 # ---------------------------------------------------------------------------
@@ -1283,6 +1399,17 @@ cut_run() {
 # SUCCESSFUL run of release.assets.workflow at the tag built
 # (release_read_assets_run), and writes one SHA256SUMS over every asset on the
 # object. It never makes the release object and never dispatches a run.
+#
+# AND ONE WAY AN ASSET BUILT ON THIS MACHINE REACHES A RELEASE (issue 0226):
+# `release attach <v> --from <dir>` attaches the files in <dir> instead of a
+# run's, through the same checks, upload, SHA256SUMS and readback; the built-in
+# macos attaches its zipped app this way. Its stages are object, assets, files,
+# then upload, sums and readback as below. Its assets stage is not a finish
+# line: with release.assets.workflow declared it requires the run's attach to
+# have finished first, because an attach --from before it would leave
+# SHA256SUMS agreeing with the object, and the run's attach would then read
+# finished and attach nothing. Its files stage takes every file under <dir>, as
+# download takes every file of the run's artifacts.
 #
 # ITS STAGES, EACH READING ITS POSTCONDITION FIRST, so a re-run continues:
 #   object    the release object for the tag exists
@@ -1432,11 +1559,66 @@ attach_reads_back() {
   done <<<"$pairs"
 }
 
-# attach_assets <tag> <commit> <repo> <workflow> <wait> -- the stages above,
-# their rows printed as they run. 0 when every stage holds, 1 when one FAILED.
+# attach_take <stage> <place> <root> <none> -- every file of the caller's
+# `files`, each found under <root>, checked as an asset and held, for the
+# download stage and for --from's files stage alike: its name, sha256 and
+# directory appended to the caller's names, shas and dirs, then every one's
+# index in name order into the caller's order. <place> names the files' source
+# in each refusal, as "in run 101's artifacts", and <none> is the refusal when
+# there is no file at all. 0 when every file can be an asset, else <stage>'s
+# FAILED row and 1. Called in the caller's shell, which owns the arrays.
+attach_take() {
+  local stage="$1" place="$2" root="$3" none="$4" f rel name sha why j i
+  for f in "${files[@]}"; do
+    rel="${f#"$root"/}"
+    name="${f##*/}"
+    if [ ! -f "$f" ] || [ -L "$f" ]; then
+      attach_fail "$stage" "$rel, $place, is not a regular file"
+      return 1
+    fi
+    if [ "$name" = SHA256SUMS ]; then
+      attach_fail "$stage" "$rel, $place, cannot be an asset: SHA256SUMS is the name the attach writes its sums under"
+      return 1
+    fi
+    if why="$(release_name_problem "$name")"; then
+      attach_fail "$stage" "$rel, $place, cannot be an asset: $why"
+      return 1
+    fi
+    for j in "${names[@]}"; do
+      if [ "$j" = "$name" ]; then
+        attach_fail "$stage" "two files $place are named $name, and a release object holds one asset of a name"
+        return 1
+      fi
+    done
+    if ! sha="$(sha256_of "$f")" || [ -z "$sha" ]; then
+      attach_fail "$stage" "$rel could not be hashed"
+      return 1
+    fi
+    names+=("$name")
+    shas+=("$sha")
+    dirs+=("${f%/*}")
+  done
+  if [ "${#names[@]}" -eq 0 ]; then
+    attach_fail "$stage" "$none"
+    return 1
+  fi
+  # In name order, so the rows and the uploads do not follow find's. The order
+  # is checked whole: one shorter than the files would attach a part of them
+  # and read the rest as already there.
+  mapfile -t order < <(for i in "${!names[@]}"; do printf '%s\t%s\n' "${names[$i]}" "$i"; done | LC_ALL=C sort -t $'\t' -k1,1 | cut -f2)
+  if [ "${#order[@]}" -ne "${#names[@]}" ]; then
+    attach_fail "$stage" "the ${#names[@]} file(s) $place could not be put in order"
+    return 1
+  fi
+}
+
+# attach_assets <tag> <commit> <repo> <workflow> <wait> [<from>] -- the stages
+# above, their rows printed as they run. With <from>, a directory, the files
+# under it are attached instead of a run's (issue 0226). 0 when every stage
+# holds, 1 when one FAILED.
 attach_assets() {
-  local tag="$1" commit="$2" repo="$3" wf="$4" wait_for="$5"
-  local answer state rest id secs dl f rel name sha why i j digest sums_state n arts expired a
+  local tag="$1" commit="$2" repo="$3" wf="$4" wait_for="$5" from="${6:-}"
+  local answer state rest id secs dl f rel name sha why i j digest sums_state n arts expired a source files_of
   local -a files=() names=() shas=() dirs=() order=() todo=() uploaded=() already=()
   local conflicts="" others="" pairs="" upl_pairs="" upl_sha=""
   ATTACH_STAGE="" ATTACH_DETAIL="" ATTACH_OUTWARD="" ATTACH_WROTE=no
@@ -1456,132 +1638,123 @@ attach_assets() {
       ;;
   esac
 
-  # --- assets ---------------------------------------------------------------
-  # Read as the object row and a cut's confirm step read it, and as bounded: work is left only
-  # when the reader says pending.
-  answer="$(release_wait 0 "" UNREADABLE release_read_assets "$repo" "$tag")"
-  case "${answer%%$'\t'*}" in
-    already)
-      attach_row assets already "${answer#*$'\t'}"
-      ATTACH_DETAIL="finished already, so no run was read: ${answer#*$'\t'}"
-      return 0
-      ;;
-    pending) attach_row assets pending "${answer#*$'\t'}" ;;
-    *)
-      attach_fail assets "${answer#*$'\t'}"
-      return 1
-      ;;
-  esac
+  if [ -n "$from" ]; then
+    # --- assets, for --from ---------------------------------------------------
+    # The run's attach first, where there is one: see the header.
+    if [ -n "$wf" ]; then
+      answer="$(release_wait 0 "" UNREADABLE release_read_assets "$repo" "$tag")"
+      case "${answer%%$'\t'*}" in
+        already) attach_row assets already "the run's attach has finished: ${answer#*$'\t'}" ;;
+        pending)
+          attach_fail assets "${answer#*$'\t'} -- release.assets.workflow is $wf, and its run's attach comes first: attach without --from first, then with it"
+          return 1
+          ;;
+        *)
+          attach_fail assets "${answer#*$'\t'}"
+          return 1
+          ;;
+      esac
+    else
+      attach_row assets none "release.assets.workflow is not declared, so no run's attach comes first"
+    fi
 
-  # --- run -----------------------------------------------------------------
-  if ! secs="$(release_seconds "$wait_for" 2>&1)"; then
-    attach_fail run "$(one_line "$secs")"
-    return 1
-  fi
-  answer="$(release_wait "$secs" "pending UNREADABLE" UNREADABLE release_read_assets_run "$repo" "$wf" "$tag" "$commit")"
-  state="${answer%%$'\t'*}"
-  rest="${answer#*$'\t'}"
-  case "$state" in
-    already)
-      id="${rest%%$'\t'*}"
-      attach_row run already "${rest#*$'\t'}"
-      ;;
-    failed)
-      id="${rest%%$'\t'*}"
-      attach_fail run "${rest#*$'\t'} -- the attach never dispatches a run: rerun it (gh run rerun $id) or dispatch one at the tag (gh workflow run $wf --ref $tag), then attach again"
+    # --- files ------------------------------------------------------------------
+    if ! find_list files "$from" ! -type d -print0; then
+      attach_fail files "the files under $from could not be listed (above)"
       return 1
-      ;;
-    refused)
-      attach_fail run "$rest"
-      return 1
-      ;;
-    *)
-      attach_fail run "no successful run within $wait_for (assets.wait): $state, $rest -- the attach never dispatches a run: dispatch one at the tag (gh workflow run $wf --ref $tag), or rerun a failed one (gh run rerun <id>), then attach again"
-      return 1
-      ;;
-  esac
+    fi
+    attach_take files "in $from" "$from" "there is no file under $from, so there is nothing to attach" || return 1
+    source="$from's" files_of="$from"
+    attach_row files "done" "${#names[@]} file(s) under $from: $(for i in "${order[@]}"; do printf '%s, ' "${names[$i]}"; done | sed 's/, $//')"
+  else
+    # --- assets ---------------------------------------------------------------
+    # Read as the object row and a cut's confirm step read it, and as bounded: work is left only
+    # when the reader says pending.
+    answer="$(release_wait 0 "" UNREADABLE release_read_assets "$repo" "$tag")"
+    case "${answer%%$'\t'*}" in
+      already)
+        attach_row assets already "${answer#*$'\t'}"
+        ATTACH_DETAIL="finished already, so no run was read: ${answer#*$'\t'}"
+        return 0
+        ;;
+      pending) attach_row assets pending "${answer#*$'\t'}" ;;
+      *)
+        attach_fail assets "${answer#*$'\t'}"
+        return 1
+        ;;
+    esac
 
-  # --- download ------------------------------------------------------------
-  # THE RUN'S ARTIFACTS AS GITHUB LISTS THEM come first, and what gh run
-  # download wrote is held to them: it passes over an expired artifact and
-  # succeeds while any other downloads, which would attach part of the run and
-  # write SHA256SUMS over that part.
-  dl="$SCRATCH/assets/run-$id"
-  if ! mkdir -p "$SCRATCH/assets" || [ -e "$dl" ]; then
-    attach_fail download "no fresh directory under $SCRATCH for run $id's artifacts"
-    return 1
-  fi
-  if ! attach_call "listing run $id's artifacts" release_run_artifacts "$repo" "$id"; then
-    attach_fail download "$ATTACH_CALL"
-    return 1
-  fi
-  arts="$(cat "$SCRATCH/attach.out")"
-  if [ -z "$arts" ]; then
-    attach_fail download "run $id lists no artifact, so there is nothing to attach"
-    return 1
-  fi
-  expired="$(awk -F'\t' '$2 == "true" { printf "%s%s", sep, $1; sep = ", " }' <<<"$arts")"
-  if [ -n "$expired" ]; then
-    attach_fail download "run $id, the earliest successful run at $tag, has expired artifacts ($expired), and the attach ships that run's files alone -- a rerun of it (gh run rerun $id) is the one way that might give them back, and whether it does is not measured"
-    return 1
-  fi
-  if ! attach_call "gh run download $id" release_gh "$repo" run download "$id" --dir "$dl"; then
-    attach_fail download "$ATTACH_CALL"
-    return 1
-  fi
-  while IFS=$'\t' read -r a _; do
-    [ -n "$a" ] || continue
-    if [ ! -d "$dl/$a" ]; then
-      attach_fail download "run $id lists the artifact $a, and gh run download wrote no $a under $dl"
+    # --- run -----------------------------------------------------------------
+    if ! secs="$(release_seconds "$wait_for" 2>&1)"; then
+      attach_fail run "$(one_line "$secs")"
       return 1
     fi
-  done <<<"$arts"
-  if ! find_list files "$dl" ! -type d -print0; then
-    attach_fail download "the files of run $id's artifacts could not be listed under $dl (above)"
-    return 1
-  fi
-  for f in "${files[@]}"; do
-    rel="${f#"$dl"/}"
-    name="${f##*/}"
-    if [ ! -f "$f" ] || [ -L "$f" ]; then
-      attach_fail download "$rel, in run $id's artifacts, is not a regular file"
+    answer="$(release_wait "$secs" "pending UNREADABLE" UNREADABLE release_read_assets_run "$repo" "$wf" "$tag" "$commit")"
+    state="${answer%%$'\t'*}"
+    rest="${answer#*$'\t'}"
+    case "$state" in
+      already)
+        id="${rest%%$'\t'*}"
+        attach_row run already "${rest#*$'\t'}"
+        ;;
+      failed)
+        id="${rest%%$'\t'*}"
+        attach_fail run "${rest#*$'\t'} -- the attach never dispatches a run: rerun it (gh run rerun $id) or dispatch one at the tag (gh workflow run $wf --ref $tag), then attach again"
+        return 1
+        ;;
+      refused)
+        attach_fail run "$rest"
+        return 1
+        ;;
+      *)
+        attach_fail run "no successful run within $wait_for (assets.wait): $state, $rest -- the attach never dispatches a run: dispatch one at the tag (gh workflow run $wf --ref $tag), or rerun a failed one (gh run rerun <id>), then attach again"
+        return 1
+        ;;
+    esac
+
+    # --- download ------------------------------------------------------------
+    # THE RUN'S ARTIFACTS AS GITHUB LISTS THEM come first, and what gh run
+    # download wrote is held to them: it passes over an expired artifact and
+    # succeeds while any other downloads, which would attach part of the run and
+    # write SHA256SUMS over that part.
+    dl="$SCRATCH/assets/run-$id"
+    if ! mkdir -p "$SCRATCH/assets" || [ -e "$dl" ]; then
+      attach_fail download "no fresh directory under $SCRATCH for run $id's artifacts"
       return 1
     fi
-    if [ "$name" = SHA256SUMS ]; then
-      attach_fail download "$rel, in run $id's artifacts, cannot be an asset: SHA256SUMS is the name the attach writes its sums under"
+    if ! attach_call "listing run $id's artifacts" release_run_artifacts "$repo" "$id"; then
+      attach_fail download "$ATTACH_CALL"
       return 1
     fi
-    if why="$(release_name_problem "$name")"; then
-      attach_fail download "$rel, in run $id's artifacts, cannot be an asset: $why"
+    arts="$(cat "$SCRATCH/attach.out")"
+    if [ -z "$arts" ]; then
+      attach_fail download "run $id lists no artifact, so there is nothing to attach"
       return 1
     fi
-    for j in "${names[@]}"; do
-      if [ "$j" = "$name" ]; then
-        attach_fail download "two files in run $id's artifacts are named $name, and a release object holds one asset of a name"
+    expired="$(awk -F'\t' '$2 == "true" { printf "%s%s", sep, $1; sep = ", " }' <<<"$arts")"
+    if [ -n "$expired" ]; then
+      attach_fail download "run $id, the earliest successful run at $tag, has expired artifacts ($expired), and the attach ships that run's files alone -- a rerun of it (gh run rerun $id) is the one way that might give them back, and whether it does is not measured"
+      return 1
+    fi
+    if ! attach_call "gh run download $id" release_gh "$repo" run download "$id" --dir "$dl"; then
+      attach_fail download "$ATTACH_CALL"
+      return 1
+    fi
+    while IFS=$'\t' read -r a _; do
+      [ -n "$a" ] || continue
+      if [ ! -d "$dl/$a" ]; then
+        attach_fail download "run $id lists the artifact $a, and gh run download wrote no $a under $dl"
         return 1
       fi
-    done
-    if ! sha="$(sha256_of "$f")" || [ -z "$sha" ]; then
-      attach_fail download "$rel could not be hashed"
+    done <<<"$arts"
+    if ! find_list files "$dl" ! -type d -print0; then
+      attach_fail download "the files of run $id's artifacts could not be listed under $dl (above)"
       return 1
     fi
-    names+=("$name")
-    shas+=("$sha")
-    dirs+=("${f%/*}")
-  done
-  if [ "${#names[@]}" -eq 0 ]; then
-    attach_fail download "run $id's artifacts hold no file, so there is nothing to attach"
-    return 1
+    attach_take download "in run $id's artifacts" "$dl" "run $id's artifacts hold no file, so there is nothing to attach" || return 1
+    source="run $id's" files_of="run $id"
+    attach_row download "done" "${#names[@]} file(s) from run $id's $(grep -c . <<<"$arts") artifact(s): $(for i in "${order[@]}"; do printf '%s, ' "${names[$i]}"; done | sed 's/, $//')"
   fi
-  # In name order, so the rows and the uploads do not follow find's. The order
-  # is checked whole: one shorter than the files would attach a part of them
-  # and read the rest as already there.
-  mapfile -t order < <(for i in "${!names[@]}"; do printf '%s\t%s\n' "${names[$i]}" "$i"; done | LC_ALL=C sort -t $'\t' -k1,1 | cut -f2)
-  if [ "${#order[@]}" -ne "${#names[@]}" ]; then
-    attach_fail download "the ${#names[@]} file(s) of run $id's artifacts could not be put in order"
-    return 1
-  fi
-  attach_row download "done" "${#names[@]} file(s) from run $id's $(grep -c . <<<"$arts") artifact(s): $(for i in "${order[@]}"; do printf '%s, ' "${names[$i]}"; done | sed 's/, $//')"
 
   # --- upload ---------------------------------------------------------------
   if ! attach_listing "$repo" "$tag"; then
@@ -1644,7 +1817,7 @@ attach_assets() {
     attach_reads_back upload "$repo" "$tag" "$upl_pairs" " -- SHA256SUMS is not written" || return 1
     attach_row upload "done" "${#uploaded[@]} uploaded and read back (${uploaded[*]}), ${#already[@]} already"
   else
-    attach_row upload already "every file of run $id is on the release object at its sha256 (${already[*]})"
+    attach_row upload already "every file of $files_of is on the release object at its sha256 (${already[*]})"
   fi
 
   # --- sums -----------------------------------------------------------------
@@ -1717,34 +1890,42 @@ attach_assets() {
     attach_reads_back readback "$repo" "$tag" "$upl_pairs" || return 1
     attach_row readback "done" "$READ_BACK upload(s) read back at their sha256"
   fi
-  ATTACH_DETAIL="run $id's ${#names[@]} file(s): ${#uploaded[@]} uploaded, ${#already[@]} already; SHA256SUMS $([ "$sums_state" = "done" ] && printf written || printf current) over $n asset(s)"
+  ATTACH_DETAIL="$source ${#names[@]} file(s): ${#uploaded[@]} uploaded, ${#already[@]} already; SHA256SUMS $([ "$sums_state" = "done" ] && printf written || printf current) over $n asset(s)"
   return 0
 }
 
-# attach_verb <version> -- `release attach <version>`: the attach, for the tag
-# this project releases <version> under, which must be here. Refused outside
-# object: local, when release.assets.workflow names no workflow, and when the
-# tag's commit holds no such workflow. 0 when every stage holds, 1 when one
-# FAILED.
+# attach_verb <version> [<from>] -- `release attach <version> [--from <dir>]`:
+# the attach, for the tag this project releases <version> under, which must be
+# here. Refused outside object: local; without <from>, also when
+# release.assets.workflow names no workflow and when the tag's commit holds no
+# such workflow. With <from>, the files under it are attached (issue 0226). 0
+# when every stage holds, 1 when one FAILED.
 attach_verb() {
-  local v="$1" object wf tag commit repo
+  local v="$1" from="${2:-}" object wf tag commit repo
   object="$(cfg_release_get object)" || die "release attach: cannot read release.object"
   [ "$object" = local ] ||
     die "release attach: object is $object, and the core attaches assets under object: local alone -- under ci the workflow writes the release object, and an attach would be its second writer"
   wf="$(cfg_release_get assets.workflow)" || die "release attach: cannot read release.assets.workflow"
-  [ -n "$wf" ] ||
-    die "release attach: release.assets.workflow is not declared, so no run is named to attach the assets of -- declare the workflow whose run at the tag builds them"
+  [ -n "$wf" ] || [ -n "$from" ] ||
+    die "release attach: release.assets.workflow is not declared, so no run is named to attach the assets of -- declare the workflow whose run at the tag builds them, or attach files with --from <dir>"
   tag="$(release_tag_name "$(cfg_release_get tag)" "$v")"
   commit="$(git rev-parse -q --verify "refs/tags/$tag^{commit}" 2>/dev/null)" ||
-    die "release attach: there is no tag $tag here, and the assets are those its run built -- fetch the tags, or cut the release first"
-  git cat-file -e "$commit:.github/workflows/$wf" 2>/dev/null ||
-    die "release attach: release.assets.workflow is $wf, and $tag's commit (${commit:0:12}) holds no .github/workflows/$wf, so no run at the tag could have built the assets"
+    die "release attach: there is no tag $tag here, and the assets are those of the release at it -- fetch the tags, or cut the release first"
+  if [ -z "$from" ]; then
+    git cat-file -e "$commit:.github/workflows/$wf" 2>/dev/null ||
+      die "release attach: release.assets.workflow is $wf, and $tag's commit (${commit:0:12}) holds no .github/workflows/$wf, so no run at the tag could have built the assets"
+  fi
   repo="$(release_repo "$(cfg_release_get repo)" "$(declared_remote)" 2>&1)" ||
     die "release attach: $(one_line "${repo#*release: }")"
   open_scratch "release attach"
-  printf 'release: attach %s: the assets %s'"'"'s run at %s (%s) built, onto %s'"'"'s release object\n' \
-    "$tag" "$wf" "$tag" "${commit:0:12}" "$repo"
-  if attach_assets "$tag" "$commit" "$repo" "$wf" "$(cfg_release_get assets.wait)"; then
+  if [ -n "$from" ]; then
+    printf 'release: attach %s: the files under %s, onto %s'"'"'s release object for %s (%s)\n' \
+      "$tag" "$from" "$repo" "$tag" "${commit:0:12}"
+  else
+    printf 'release: attach %s: the assets %s'"'"'s run at %s (%s) built, onto %s'"'"'s release object\n' \
+      "$tag" "$wf" "$tag" "${commit:0:12}" "$repo"
+  fi
+  if attach_assets "$tag" "$commit" "$repo" "$wf" "$(cfg_release_get assets.wait)" "$from"; then
     printf 'release: attach %s: %s\n' "$tag" "$ATTACH_DETAIL"
     return 0
   fi
@@ -1867,7 +2048,8 @@ status_report() {
   fi
   row "$state" commit "$detail"
 
-  # The gates step: never already (principle 4).
+  # The gates step: never already, since it leaves no postcondition the
+  # repository can show.
   gates="$(cfg_release_list gates)"
   if [ -z "$gates" ]; then
     row skipped gates "no gates: declared"
@@ -1959,10 +2141,12 @@ status_report() {
   else
     row pending after "no postcondition: after: runs on every run that reaches it"
   fi
-  if cfg_release_declared ci.query; then
-    row pending ci "no postcondition: ci.query is read on every run that reaches it"
-  else
+  if ! cfg_release_declared ci.query; then
     row skipped ci "no ci.query declared"
+  elif ! is_true_word "$(cfg_release_get ci.tag)"; then
+    row skipped ci "ci.tag is off: a cut does not wait for the tag's CI run"
+  else
+    row pending ci "no postcondition: ci.query is read on every run that reaches it"
   fi
 
   return "$unreadable"
@@ -1992,7 +2176,7 @@ case "$verb" in
     # Validated first, as every verb is: the assets keys are refused outside
     # object: local, and a malformed block would name another run.
     cfg_validate || die "release attach: $DEVBIN_DIR/config.yaml does not validate (above)"
-    attach_verb "$version" || exit 1
+    attach_verb "$version" "$from" || exit 1
     ;;
   cut)
     # THE REAL CUT RUNS BEHIND A GATE, THE DRY RUN DOES NOT (WP-05). The confirm step asks

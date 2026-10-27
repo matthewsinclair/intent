@@ -3,10 +3,10 @@
 # lib/install -- vendoring, the checksum manifest, and what devbin owns.
 #
 # Sourced, not executed. Depends on lib/helpers ALONE, which is deliberate: the
-# three commands built on it (`install`, `upgrade`, `doctor`) each operate on a
-# project that is not necessarily the one whose config is loaded, so a function
-# here reads no config for the tree it is handed. Everything it needs about a
-# tree is passed in or read off that tree. The one `cfg_get` here,
+# commands built on it (`install`, `upgrade`, `doctor` among them) each operate
+# on a project that is not necessarily the one whose config is loaded, so a
+# function here reads no config for the tree it is handed. Everything it needs
+# about a tree is passed in or read off that tree. The one `cfg_get` here,
 # `install_prefix_configured`, reads devbin's OWN config, which its caller has
 # loaded, for the publish prefix -- never a target's.
 #
@@ -127,7 +127,7 @@ source_token_note() {
 # rule, it relocates the decision: from a key somebody wrote to the absence of
 # one, which is the reading nobody makes deliberately. So unset returns 1 and
 # every caller that needs a prefix refuses by name -- see
-# `die_install_prefix_unset`, which is the one message all three of them print.
+# `die_install_prefix_unset`, which is the one message every one of them prints.
 #
 # rc 1 RATHER THAN AN EMPTY STRING. A caller that forgets to check an empty
 # return proceeds with `""` and writes to `/bin`; a caller that forgets to check
@@ -342,7 +342,7 @@ install_managed_refusal() {
 # file that <shipped> does not name, and each directory that leaves empty;
 # print every path removed, one per line. Paths are project-relative.
 #
-# ONE REMOVAL, TWO CALLERS, which differ only in their CANDIDATES (issues 0123
+# ONE REMOVAL FOR ITS CALLERS, which differ only in their CANDIDATES (issues 0123
 # and 0129). Publish offers every file on disk under an install's lib/, since
 # an install has no author. `install --force` into a project offers only what
 # the previous manifest recorded: a file no manifest ever listed may be the
@@ -550,7 +550,7 @@ vendor_source_path() {
 # vendored_scope <srcroot> -- devbin's half as git PATHSPECS into the source,
 # one per line. The scope, not the roll-call.
 #
-# The third member of the vendored_paths / vendored_dir_files family, and a
+# A member of the vendored_paths / vendored_dir_files family, and a
 # separate function for the same reason those two are separate: it answers a
 # different question. `vendored_paths` asks WHICH FILES ship, `vendored_dir_files`
 # asks what is ON DISK, and this asks WHERE devbin's half lives -- which is the
@@ -800,12 +800,13 @@ cr_files() {
 #
 # `<sha256>  <path>` lines in the conventional shasum spelling, under a `#`
 # header carrying the facts the file itself cannot supply: which devbin wrote
-# it, where that devbin was, and WHICH COMMIT OF IT. The first two are read back
-# -- the version by doctor, the source by upgrade, which is what lets `devbin
-# upgrade` be typed with no arguments from inside the installed project.
+# it, where that devbin was, and WHICH COMMIT OF IT. The devbin and where it was
+# are read back -- the version by doctor, the source by upgrade, which is what
+# lets `devbin upgrade` be typed with no arguments from inside the installed
+# project.
 
 # The manifest readers live in lib/helpers -- see the note there. lib/install
-# remains their only heavy caller; the dispatcher needs two header lines.
+# remains their only heavy caller; the dispatcher needs only header lines.
 
 # seam_git_verdict <status-porcelain> <ls-files-v> -- the state those two outputs
 # describe: committed, DIRTY, not watched or not tracked. Pure, so every line
@@ -816,7 +817,7 @@ cr_files() {
 # assume-unchanged (a lowercase tag) or skip-worktree (`S`) is one git was told
 # not to read, so its silence certifies nothing: not watched. An ignored path
 # (`!!`) is runtime bytes a clone does not get: not tracked. Only when none of
-# the three appears is it committed. DIRTY was once checked LAST, so one ignored
+# these appears is it committed. DIRTY was once checked LAST, so one ignored
 # `.DS_Store` beside a real edit hid the edit.
 #
 # EVERY LINE IS READ, NOT ONLY THE FIRST. A test built with one offending file
@@ -1114,7 +1115,7 @@ manifest_unvouched() {
 }
 
 # manifest_unvouched_said <state> [<root>] -- the clause each reader puts in
-# front of its own consequence, so the two states are said one way everywhere.
+# front of its own consequence, so each state is said one way everywhere.
 # With <root>, the manifest is named by its full path, for a reader reporting on
 # a tree other than the one it runs in.
 manifest_unvouched_said() {
@@ -1409,7 +1410,7 @@ case_twin() {
 # EVERY mv HERE IS `mv -f --`, the form helpers.bats's mv arm drove safe: a bare
 # mv prompts on a terminal over a destination it cannot write, and blocks there.
 # rename_staged is not used because on a failure it removes what it was
-# renaming, which here is the only copy. The three lines are in that arm's list.
+# renaming, which here is the only copy. The mv lines are in that arm's list.
 keep_case_twin() {
   local shipped="$1" root="$2" rel="$3" to dir base tmp
   to="$(case_twin "$shipped" "$root" "$rel")" || return 1
@@ -1450,7 +1451,7 @@ _listed_as() {
 # ONE loop for what was three. A recorded checksum, a manifest state and
 # upgrade's per-path verdict are the same question asked of the same line shape,
 # and they were three spellings of it in two files -- the exact drift the header
-# of this file warns about, in miniature. The two named questions below are
+# of this file warns about, in miniature. The named questions below are
 # wrappers, because `_tab_lookup "$states" "$rel"` at a call site reads as a
 # mistake even when it is right.
 _tab_lookup() {
@@ -1499,9 +1500,9 @@ manifest_state_of() { _tab_lookup "$1" "$2" || printf 'new\n'; }
 #   ok          on disk and matching the recorded checksum
 #   modified    on disk and DIFFERENT -- edited in place since install
 #   missing     recorded and gone
-#   unreadable  on disk and cannot be read, so neither of the first two can be said
+#   unreadable  on disk and cannot be read, so neither ok nor modified holds
 #
-# The four states upgrade and doctor both need, computed once here rather than
+# The states upgrade and doctor both need, computed once here rather than
 # twice with two spellings of "different". Returns 0 whatever it finds: it is a
 # reporter, and its callers decide what a `modified` means to them. The one
 # exception is the manifest itself: one that is there and cannot be read
@@ -1574,7 +1575,7 @@ EOF
 # is kept as `unknown`, so a later publish from a checkout that has it can still
 # place it.
 #
-# TWO LIMITS, DECLARED BECAUSE THE PARAGRAPHS ABOVE WOULD OTHERWISE OVERCLAIM.
+# ITS LIMITS, DECLARED BECAUSE THE PARAGRAPHS ABOVE WOULD OTHERWISE OVERCLAIM.
 # A commit the checkout's HEAD does not contain is known only once the install
 # has held it, so one held before the table began is not in it. And a publish
 # runs the CHECKOUT's own lib, so rewinding the checkout
@@ -1753,8 +1754,9 @@ EOF
 # means nobody can say whether one does -- and so, closed (issue 0144).
 #
 # Costs two checksum passes over the vendored set. Called only where the answer
-# changes what is printed, which is the backward and unrelated arms of
-# upgrade's notice -- not on the ordinary forward path.
+# changes what is printed: the backward and unrelated arms of upgrade's notice,
+# and a forward move in devbin_source_state (lib/helpers), where a move that
+# changes no vendored byte is not called an update (issue 0224).
 seam_is_level() {
   local dstroot="$1" srcroot="$2" states line state
   states="$(vendor_states "$dstroot" "$srcroot")" || return 1
@@ -1837,7 +1839,7 @@ devbin_runtime_version() { devbin_version_of "${PROJECT_ROOT:-.}"; }
 # version_satisfies <version> <constraint> -- does <version> meet the config's
 # `devbin_version:` declaration?
 #
-# Three forms, which is all the config subset needs:
+# The forms, which are all the config subset needs:
 #
 #   ^X.Y.Z   same major, and at least X.Y.Z          (the usual)
 #   >=X.Y.Z  at least X.Y.Z, any major

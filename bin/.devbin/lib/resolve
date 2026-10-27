@@ -5,7 +5,7 @@
 #
 # Sourced, not executed.
 #
-# Three rules live here, and they are the framework:
+# The rules that live here are the framework:
 #
 #   resolution order: project handler -> config mapping -> built-in -> fail
 #   the synthesised `all`: built from the declared option list, never
@@ -68,14 +68,15 @@ command_env_refusal() {
 
 # project_owns_command <command> -- true when the PROJECT supplies what runs for
 # <command>: a handler of its own (a file, or a mapped `handler:`), or a
-# command-level `run:`. These are the first three tiers command_origin reports.
+# command-level `run:`. These are the project's own tiers among those
+# command_origin reports.
 #
-# ONE PREDICATE, TWO READERS (issue 0113). Doctor's shadow report asks whether a
-# project has taken a built-in over, and help asks whether devbin's shipped page
-# may speak for a command -- the same question, because a page describing
-# devbin's implementation is false wherever the project's runs instead (one
-# project's own `vendor`, measured). Doctor spelled it inline until then, and
-# help would have been the second copy.
+# ONE PREDICATE FOR EVERY READER (issue 0113). Doctor's shadow report asks
+# whether a project has taken a built-in over, and help asks whether devbin's
+# shipped page may speak for a command -- the same question, because a page
+# describing devbin's implementation is false wherever the project's runs
+# instead (one project's own `vendor`, measured). Doctor spelled it inline until
+# then, and help would have been the second copy.
 project_owns_command() {
   has_project_handler "$1" && return 0
   cfg_has "commands.$1.run"
@@ -88,9 +89,9 @@ project_owns_command() {
 # devbin's own trees: the dev checkout, an opt install and a keg (issue
 # 0213). A project with devbin vendored into it is none of them, and its
 # bin/devbin choosing the machine's devbin would make one project the place a
-# machine-wide switch is thrown. The one predicate for the dispatcher's
-# refusal, command_active and help's reason, so the three cannot disagree. A
-# project that owns a command of its own called `use` runs it.
+# machine-wide switch is thrown. The one predicate for every reader of the
+# question (the dispatcher's refusal, command_active, help), so they cannot
+# disagree. A project that owns a command of its own called `use` runs it.
 devbin_tree_refusal() {
   [ "$1" = use ] || return 1
   project_owns_command "$1" && return 1
@@ -129,7 +130,7 @@ project_tier() {
 #
 # THE ORDER run_command WALKS, STATED ONCE (issue 0128). run_command dispatches
 # on it, help's command_origin labels it, and doctor's _command_runnable asks
-# whether it is `none`. Each of the three spelled the order itself until 0128.
+# whether it is `none`. Each spelled the order itself until 0128.
 command_tier() {
   local t
   t="$(project_tier "$1")"
@@ -843,7 +844,7 @@ route_word_at() {
 # options compose with a project handler (each dispatches INTO it), so a handler
 # command with declared options keeps the sweep, and a sub-handler named all
 # cannot thin it out (AC-04.13). Over no options, `all` goes on as an ordinary
-# word to two shapes: a total shadow owns its whole argument list (AC-04.4)
+# word to these shapes: a total shadow owns its whole argument list (AC-04.4)
 # -- `which all` and `docs all` are real corpus invocations whose meaning lives
 # in the handler (WP-10) -- and a built-in devbin ships with no options answers
 # for itself, in its program (server, iex, cli, repl) or in its own refusal. The
@@ -989,10 +990,10 @@ option_seal() {
 # option_origin and fmt_arm_state ask it, and dormancy's _dormancy_declared,
 # which walked two tiers of its own until issue 0135. It asks what the
 # dispatcher, run_option and run_command ask -- command_active, arg_route,
-# resolve_handler, option_run_tier and command_tier -- and repeats two tests
+# resolve_handler, option_run_tier and command_tier -- and repeats the tests
 # the runners make for themselves: exec_handler's descent into a `.d/<word>`
 # sub-handler, and whether devbin's own handler was handed one of its
-# catalogue options. Those two are where it could name a run the dispatcher
+# catalogue options. Those are where it could name a run the dispatcher
 # does not make, and the funnel arm in dispatch.bats holds a row for each.
 option_leaf() {
   local cmd="$1" word="$2" route handler tier
@@ -1297,8 +1298,8 @@ run_option() {
     # here -- so a config-MAPPED handler (cmd/myls serving `ls`) saw
     # DEVBIN_COMMAND set when invoked directly and unset when invoked through a
     # declared option or through `all`. `$0` is the file's own path, so a mapped
-    # handler has no other way to learn the name it was called as. Three paths
-    # reach a handler; all three now tell it the same thing.
+    # handler has no other way to learn the name it was called as. Every path
+    # that reaches a handler now tells it the same thing.
     export DEVBIN_COMMAND="$cmd"
     "$handler" "$opt" "$@"
     return $?
@@ -1431,8 +1432,8 @@ run_command() {
 
   # THE ORDER IS command_tier's (issue 0128), and this function acts on its
   # answer rather than walking the tiers itself: help's command_origin and
-  # doctor's _command_runnable ask the same function, so none of the three can
-  # describe an order the others do not take.
+  # doctor's _command_runnable ask the same function, so no reader can describe
+  # an order the others do not take.
   tier="$(command_tier "$cmd")" || die "devbin defect: command_tier gave no answer for '$cmd'"
   case "$tier" in
     run)
@@ -1607,7 +1608,7 @@ option_unrunnable_why() {
 # unrunnable_why <command> [<option>] -- why something devbin knows resolves to
 # nothing runnable HERE, and what makes it run. One line, no trailing text.
 #
-# ONE SOURCE FOR TWO SURFACES (issue 0111). The dispatcher's refusal and `help
+# ONE SOURCE FOR EVERY SURFACE (issue 0111). The dispatcher's refusal and `help
 # --why` answer the same question about the same command, and once they
 # answered it differently: the refusal said `build` was "not built yet" and
 # "gated on" ST0001/WP-14 -- a thread already closed, and the wrong work
@@ -1615,7 +1616,7 @@ option_unrunnable_why() {
 # user meets the refusal, not --why, at exactly the moment they are blocked. So
 # --why's name-only line is printed by this function and so is the refusal's.
 #
-# TWO CASES, and the catalogue's run column is what tells them apart -- the same
+# ITS CASES, and the catalogue's run column is what tells them apart -- the same
 # distinction run_command already draws above. `-` is the catalogue's tier 4
 # working as designed: devbin ships the NAME and the project declares what it
 # runs, so the remedy is the project's. `@builtin` means devbin's own handler
@@ -1900,7 +1901,7 @@ _shared_option_declared() {
 # shape. Testing mere presence conflated the two: a project declaring only
 # `commands:` flipped a framework flag into a valued option, so `--iex` began
 # eating the next argument and `show --iex keep-me` lost `keep-me`. Presence is
-# not a claim; these four keys are.
+# not a claim; the shape keys below are.
 _shared_option_declares_shape() {
   local k
   for k in flag export value values; do

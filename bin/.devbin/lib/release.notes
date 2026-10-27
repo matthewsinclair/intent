@@ -2,7 +2,7 @@
 #
 # lib/release.notes -- the notes providers of the release core (ST0007).
 #
-# Sourced, never executed. A release's notes live in one of three shapes, and
+# Sourced, never executed. A release's notes live in one of the shapes below, and
 # this file is the one place that knows each shape. The rest of the core asks a
 # provider a question and never reads a note itself:
 #
@@ -994,7 +994,7 @@ _notes_changelog_paths() {
 # command -- `notes.run` does the work.
 # ============================================================================
 #
-# The general case the other two are special cases of, named so its use is
+# The general case the other providers are special cases of, named so its use is
 # visible in config. `notes.run` runs at the root with a verb and its arguments:
 # `state <v>`, `date <v> <date>`, `body <v>`, `views`, `views-check` and
 # `paths <v>`. It is split into words and never eval'd, as `run:` is

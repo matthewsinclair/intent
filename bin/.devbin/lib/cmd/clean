@@ -113,7 +113,7 @@ _clean_validate_path() {
 # which this verb takes BY DEFAULT. A comprehensive clean would have removed a
 # live binary in use machine-wide, both copies.
 #
-# TWO WAYS IN, AND THE SEARCH IS INVERTED FOR THE SECOND. The obvious shape --
+# THE WAYS IN, AND THE SEARCH IS INVERTED FOR ONE OF THEM. The obvious shape --
 # walk every PATH entry, resolve every symlink in it, test each against the tree
 # -- is correct and unusably slow: it is O(PATH entries x files per entry) with
 # a fork per test, and on a real machine that is tens of thousands of forks per
@@ -411,7 +411,7 @@ _clean_drop_nested() {
 
 # _clean_scan <name> <manifest> <markers> <removable> <nomanifest> <notbuild>
 # <unread> <inplace> -- classify every root into the caller's arrays, named by
-# the last five arguments:
+# its array arguments:
 #
 #   removable    markers present AND a sibling manifest to rebuild from
 #   nomanifest   built here, but nothing beside it can regenerate it
@@ -426,7 +426,7 @@ _clean_drop_nested() {
 # IN THIS SHELL, INTO ARRAYS (issue 0141). The result was TAB-joined text, read
 # back with `IFS=$'\t' read`, which strips a TAB that ends a name.
 #
-# EVERY REJECTION IS EMITTED, WHICH IS THE WHOLE POINT OF THE THREE STATUSES.
+# EVERY REJECTION IS EMITTED, WHICH IS THE POINT OF THE REJECTION STATUSES.
 # A skipped tree that prints nothing is indistinguishable from a tree that was
 # never there, and that is the empty-denominator shape this project keeps
 # finding: the caller reads a clean run as coverage. Rejections are printed with
@@ -600,13 +600,13 @@ _clean_verdict() {
 # _clean_run <label> <name> <manifest> <markers> [args...] -- the whole body of
 # one arm.
 #
-# One body for all three languages. They differ in the directory name, the
+# One body for every language. They differ in the directory name, the
 # manifest that proves rebuildability, and whether the toolchain marks its own
 # trees: <markers> is `cargo` for the one that does, whose markers are searched
-# for and whose release/ note is printed, and `none` for the two that do not.
+# for and whose release/ note is printed, and `none` for those that do not.
 # Each arm says which, once, where the body used to ask three times whether its
 # directory was named `target` (issue 0131). Writing the body
-# three times is the duplication this project exists to remove.
+# once per language is the duplication this project exists to remove.
 _clean_run() {
   local label="$1" name="$2" manifest="$3" markers="$4"
   # A POLICY THAT IS NOT ONE IS A DEVBIN DEFECT, said before `shift 4` takes the
@@ -656,7 +656,7 @@ _clean_run() {
   # a refusal raised inside the scan itself cannot stop the run.
   _clean_validate_path
 
-  # ONE SCAN, FIVE OUTCOMES, ALL OF THEM PRINTED. The rejected sets are the
+  # ONE SCAN, EVERY OUTCOME PRINTED. The rejected sets are the
   # denominator: a skipped tree that prints nothing cannot be told from a tree
   # that was never there, and the caller reads the silence as coverage.
   #
@@ -852,7 +852,7 @@ _clean_run() {
 
   # THE PREVIEW STOPS HERE, HAVING PRINTED EVERYTHING AND CHANGED NOTHING OUTSIDE
   # tmp/clean/, where the gate keeps every run's log, and it names which of the
-  # three states a real run would reach. A dry run that said only "nothing was
+  # states a real run would reach. A dry run that said only "nothing was
   # removed" would answer the easy half of the question and leave the asked half
   # -- would this have worked? -- unanswered. A partial scan under
   # --refuse-partial never reaches here: it stopped at the scan, above.

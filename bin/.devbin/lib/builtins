@@ -18,7 +18,7 @@
 # describing the same built-ins would drift the moment one gained an entry,
 # which is the Highlander breach the WP-04 task notes flagged in advance.
 #
-# What belongs in the table is settled by four tiers:
+# What belongs in the table is settled by these tiers:
 #
 #   tier 1  shipped code: real shared logic -- a script under lib/cmd/, marked
 #           @builtin below
@@ -73,9 +73,9 @@ _DEVBIN_BUILTINS_LOADED=1
 # or it is not, never half of one. A `-` command line is tier 4 in the table
 # -- the command name resolves and the project supplies what it runs.
 #
-# Two fields carry spaces -- the command line and the summary -- so they are
+# The fields that carry spaces -- the command line and the summary -- are
 # separated from each other by ` | `, with the command first. Everything before
-# the pipe past field five is what to run; everything after it is prose.
+# the pipe past the group field is what to run; everything after it is prose.
 _DEVBIN_BUILTIN_CATALOGUE="
 server           elixir  -           -          Surfaces  @builtin | Development server
 iex              elixir  -           -          Surfaces  iex -S mix | Interactive Elixir shell with the project loaded
@@ -95,7 +95,8 @@ content          opt-in  -           -          Docs      - | Content pipeline t
 version          any     -           -          Ship      @builtin | Show, set, bump, sync and check the project version
 release          opt-in  -           -          Ship      @builtin | Cut a release: stamp, commit, gate, confirm, tag, push, the release object, after: and the CI verdict
 publish          opt-in  -           -          Ship      - | Publish a release artifact
-macos            opt-in  -           -          Ship      - | macOS bundle and platform tasks
+macos            opt-in  -           -          Ship      @builtin | Sign, notarise and verify a macOS app, and attach it to the release at its tag
+formula          opt-in  -           -          Ship      @builtin | Render the Homebrew formula from a release, and publish it to the tap
 which            opt-in  -           -          Install   - | Report which binary or build a name resolves to
 infra            any     -           -          Infra     @builtin | Profile and check this estate's DNS and mail configuration
 install          any     -           -          Devbin    @builtin | Vendor devbin into a project, or in a dev checkout publish its opt install
@@ -184,7 +185,7 @@ _DEVBIN_BUILTIN_NOT_IN_ALL="db.reset"
 # config file: an Intent project that has lost its config still runs the
 # option and fails it loudly, naming the config. A project that declares the
 # option runs it whatever this says. Beside the table, as the list above is,
-# because two rows in thirty-odd carry it; builtins.bats holds each entry to a
+# because only a few catalogue rows carry it; builtins.bats holds each entry to a
 # real option row.
 _DEVBIN_BUILTIN_NEEDS="check.critic intent
 docs.agents intent"
@@ -284,7 +285,7 @@ builtin_option_run() {
 # that has no check form.
 #
 # THIS IS THE FMT/CHECK RELATIONSHIP, and it lives here so there is one of it.
-# `fmt` formats four languages; `check format` used to verify one, and the test
+# `fmt` formats several languages; `check format` used to verify one, and the test
 # that was supposed to police the pair bound it to `fmt elixir` alone -- true of
 # the arm it checked, silent about the rest, and reassuring enough to read that
 # nobody looked further (issue 0003).

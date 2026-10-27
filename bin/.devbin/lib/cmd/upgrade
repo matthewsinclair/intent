@@ -8,7 +8,7 @@
 # replacing someone's debugging line, or their fix.
 #
 # The refusal is the feature. An upgrade that always wins is a tool people stop
-# running, and a project that stops upgrading is the four hand-maintained
+# running, and a project that stops upgrading is back to the hand-maintained
 # launchers this framework exists to fold.
 #
 set -euo pipefail

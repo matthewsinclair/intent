@@ -60,9 +60,9 @@ When the source is a machine install, the direction is looked up, not computed. 
 
 ## Being told there is an update
 
-At most once a day, and only when stderr is a terminal, `bin/devbin` says on stderr that the source this project vendored from has moved, and which way. A source that moved forward is an update and names `upgrade`; a source BEHIND this project, or different in no known direction, names `vendor` and is never offered as an update. A source that is not on this machine says nothing.
+At most once a day, and only when stderr is a terminal, `bin/devbin` says on stderr that the source this project vendored from has moved, and which way. A source that moved forward is an update and names `upgrade`, unless no vendored file changed, when nothing is said; a source BEHIND this project, or different in no known direction, names `vendor` and is never offered as an update. A source that is not on this machine says nothing.
 
-Bare `bin/devbin` and `bin/devbin doctor`, typed at a terminal, go one step further and ask whether to upgrade now -- only when the source moved forward, and anything but a yes leaves the project as it is. Any non-empty `DEVBIN_NO_UPDATE_NOTICE` (eg `DEVBIN_NO_UPDATE_NOTICE=1`) silences the notice and the offer.
+Bare `bin/devbin` and `bin/devbin doctor`, typed at a terminal, go one step further and ask whether to upgrade now -- only when the source moved forward and changed a vendored file, and anything but a yes leaves the project as it is. Any non-empty `DEVBIN_NO_UPDATE_NOTICE` (eg `DEVBIN_NO_UPDATE_NOTICE=1`) silences the notice and the offer.
 
 ## The exit status says whether it completed
 

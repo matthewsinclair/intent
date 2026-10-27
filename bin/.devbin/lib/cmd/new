@@ -13,7 +13,7 @@
 # handler's own header is where a project's command declares its facts, and a
 # sidecar would be a third source for a field that is supposed to have one.
 #
-# TWO RULES FOR EDITING lib/tmpl/. Both are enforced, so neither is advice.
+# THE RULES FOR EDITING lib/tmpl/. Each is enforced, so none is advice.
 #
 # 1. `lib/tmpl/handler` lives under lib/ with a bash shebang, so `check syntax`
 #    and `check lint` scan it like any other script -- deliberately, because a
@@ -64,7 +64,7 @@ EOF
 #
 # A global rather than a return value because the alternative is a command
 # substitution per placeholder per line -- some hundreds of forks to render
-# three small files.
+# the small template files.
 _subst() {
   local text="$1" pat="$2" val="$3" out=""
   while [ "${text#*"$pat"}" != "$text" ]; do
@@ -93,7 +93,7 @@ render() {
 #
 # Lower case, starting with a letter. Not because devbin could not cope with
 # more, but because the name is simultaneously a filename, a shell word and a
-# help heading entry, and the intersection of what is safe in all three is
+# help heading entry, and the intersection of what is safe in all of them is
 # roughly this.
 #
 # `all` is refused here even though the dispatcher intercepts it first -- it is

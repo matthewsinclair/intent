@@ -82,7 +82,7 @@ USAGE
 # _shell_init_body -- the one true body, for zsh and for bash alike.
 #
 # ONE SOURCE RENDERS BOTH, and the function is written in the shared subset of
-# the two shells so that nothing but the header line naming the shell differs:
+# the shells so that nothing but the header line naming the shell differs:
 # `printf ... >&2` rather than zsh's `print -u2`, `${d%/*}` rather than its
 # `${d:h}`, and `printf '  %s\n' "${tried[@]}"` rather than `print -l
 # ${^tried[@]}`. A second body would drift, as the three copies of the snippet

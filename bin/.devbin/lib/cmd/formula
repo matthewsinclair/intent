@@ -1,0 +1,677 @@
+#!/usr/bin/env bash
+#
+# The built-in `formula` (issue 0227): render a project's Homebrew formula from
+# a release, and publish it to the project's tap. The dev/opt/brew contract's
+# T8 (docs/dev-opt-brew.md): the formula is RENDERED, NEVER TYPED, from a
+# template in the project, and the formula tool offers `render <tag> <out>` and
+# `publish`.
+#
+#   render <tag> <out> [<cask-out>] [--sums <file>]
+#                          write the formula for <tag> to <out>, and the cask to
+#                          <cask-out> where formula.cask names one
+#   publish [--tap <url>]  render the newest release into a fresh clone of the
+#                          tap, and, once a person says yes, commit it and push it
+#
+# TWO MODES, CHOSEN BY formula.mode, ONE TEMPLATE RULE FOR BOTH. The project
+# keeps its formula as a template (formula.template, default
+# packaging/homebrew/<name>.rb), so its own Ruby -- desc, caveats, a service
+# block, an install layout -- stays its own, and this fills placeholders in it
+# from the release, never from a person:
+#
+#   source   @@TAG@@ and @@REVISION@@, exactly one of each: the tag and the
+#            commit it names, read from git. brew builds from that checkout.
+#   assets   @@VERSION@@, the release's version, read from the tag through
+#            release.tag; @@SHA256:<asset>@@, one per asset in formula.assets,
+#            each read from the release's sums file, never computed here from
+#            a download; @@REVISION@@ where the template wants the tag's
+#            commit; and exactly one of @@INSTALL@@ or @@FINISH@@, the install
+#            body this generates (finish_ruby, below), which carries the
+#            executable bit, T3's manifest and the links.
+#
+# A placeholder left after filling is refused by name, so a misspelt one
+# cannot ship.
+#
+# THE TAG AND ITS COMMIT COME FROM GIT AND NOWHERE ELSE. brew checks out the tag
+# at install and stops when its commit is not the formula's revision, so a
+# wrong revision fails at every install, and the offline `brew audit` accepts
+# any 40 hex digits, so it would not have caught one. The commit is read with
+# `git rev-parse <tag>^{commit}`, and a tag that does not exist and a
+# lightweight one are refused: every release tag is annotated.
+#
+# PUBLISH IS HANDED NO TAG, because the release core runs each after: command
+# with no input and no tag in its environment. It publishes the newest release,
+# read by the rule the core's own --patch reads: release_versions under the
+# project's release.tag template. So a cut's after: step publishes the release
+# that cut made, and a person running it later brings the tap up to the newest
+# release. It refuses a template with changes no commit holds, and it writes
+# nothing in this tree; its clone of the tap is a temporary, removed when it
+# exits. A tap that already carries the render is left as it is, with nobody
+# asked, so an after: step re-run after a cut asks nothing. Otherwise it names
+# the tap and asks through ask_person, with no --yes: under a cut's after: step
+# it asks the person at the cut (the gate keeps DEVBIN_GATE_TTY, issue 0158),
+# and run by itself it asks the person at this terminal.
+#
+set -euo pipefail
+
+: "${DEVBIN_LIB:?run me through the devbin dispatcher}"
+# shellcheck source=lib/helpers
+. "$DEVBIN_LIB/helpers"
+# shellcheck source=lib/config
+# The formula: and release: blocks: the dispatcher's config cache does not
+# cross into a handler's process.
+. "$DEVBIN_LIB/config"
+# shellcheck source=lib/release.notes
+. "$DEVBIN_LIB/release.notes"
+# shellcheck source=lib/release.steps
+# release_versions and release_tag_name, the core's own reading of which tag is
+# the newest release; release_git_remote, which keeps every call to a remote off
+# the terminal; release_repo and release_gh for the assets' release.
+. "$DEVBIN_LIB/release.steps"
+
+# The formula's settings, read once by formula_settings.
+F_MODE="" F_NAME="" F_TEMPLATE="" F_CASK="" F_SUMS="" F_MANIFEST="" F_TPL=""
+F_ASSETS=() F_BIN=()
+# What assets_check found, read by render_assets.
+ASSETS_WHY="" ASSETS_SEEN=()
+
+usage() {
+  cat <<EOF
+usage: $DEVBIN_INVOKE formula render <tag> <out> [<cask-out>] [--sums <file>]
+       $DEVBIN_INVOKE formula publish [--tap <url>]
+
+  render <tag> <out>     write the Homebrew formula for <tag>, an annotated tag
+                         in this checkout, to <out>, and the cask to <cask-out>
+                         where formula.cask names one (a relative path is read
+                         from the project root, where devbin runs every command).
+                         In assets mode the sha256 of each asset is read from the
+                         release's sums file, or from <file> with --sums
+  publish [--tap <url>]  render the newest release into a fresh clone of the tap,
+                         and, once you say yes, commit it and push it; a tap that
+                         already carries it is left as it is
+                         (tap: formula.tap, or homebrew-<name> under the release
+                         repository's owner)
+EOF
+}
+
+# placeholder_count <text> <placeholder> -- how many times <placeholder> occurs
+# in <text>. Pure.
+placeholder_count() {
+  local rest="${1//"$2"/}"
+  printf '%s\n' "$(((${#1} - ${#rest}) / ${#2}))"
+}
+
+# formula_refusal <text> <tag> -- why the source template <text> cannot be
+# filled for <tag>, as one line, or nothing when it can. Pure.
+#
+# EXACTLY ONE OF EACH PLACEHOLDER: with two, which one is the pin is not
+# knowable, and with none there is nothing to fill. And a tag only of the
+# characters a release tag is made of, since it is written into a Ruby string
+# that brew evaluates: git allows `"`, `#` and `{` in a tag's name.
+formula_refusal() {
+  local tags revs
+  tags="$(placeholder_count "$1" @@TAG@@)"
+  revs="$(placeholder_count "$1" @@REVISION@@)"
+  if [ "$tags" != 1 ] || [ "$revs" != 1 ]; then
+    printf 'the template holds %s tag placeholder(s) and %s revision placeholder(s), and it is filled only when it holds exactly one of each\n' "$tags" "$revs"
+  elif [[ ! "$2" =~ ^[A-Za-z0-9._+/-]+$ ]]; then
+    printf "the tag '%s' holds a character a release tag never does, and it would be written into a Ruby string brew evaluates\n" "$2"
+  fi
+}
+
+# formula_fill <text> <tag> <commit> -- the source template <text> with its tag
+# placeholder and its revision placeholder filled, on stdout, byte for byte
+# otherwise. Pure; read formula_refusal first.
+formula_fill() {
+  local text="$1"
+  text="${text//"@@TAG@@"/"$2"}"
+  text="${text//"@@REVISION@@"/"$3"}"
+  printf '%s' "$text"
+}
+
+# leftover_placeholder <text> -- the first @@...@@ left in <text>, or nothing.
+# Pure. A filled template holding one is refused, so a misspelt placeholder
+# cannot ship as text brew evaluates.
+leftover_placeholder() {
+  if [[ "$1" =~ @@[^@[:space:]]+@@ ]]; then
+    printf '%s\n' "${BASH_REMATCH[0]}"
+  fi
+}
+
+# tag_commit <tag> -- the commit the annotated <tag> names in this checkout,
+# read from git. Dies on a tag that does not exist and on a lightweight one.
+tag_commit() {
+  local kind
+  # Asked first, so the rc 1 below means only that no such tag exists: a
+  # repository git refuses to read (safe.directory, issue 0179) would otherwise
+  # read as a missing tag (0195).
+  git_readonly -C "$PROJECT_ROOT" rev-parse --git-dir >/dev/null ||
+    die "cannot read the git repository at $PROJECT_ROOT (above)"
+  git_readonly -C "$PROJECT_ROOT" rev-parse -q --verify "refs/tags/$1" >/dev/null ||
+    die "no tag '$1' in $PROJECT_ROOT"
+  kind="$(git_readonly -C "$PROJECT_ROOT" cat-file -t "refs/tags/$1")" ||
+    die "cannot read what kind of tag '$1' is (above)"
+  [ "$kind" = tag ] ||
+    die "'$1' is a lightweight tag, and every release tag is annotated, so it is not a release"
+  git_readonly -C "$PROJECT_ROOT" rev-parse --verify "$1^{commit}" ||
+    die "cannot read the commit '$1' names (above)"
+}
+
+# file_text <rel> -- the file at <rel> under the project root, byte for byte,
+# its trailing newlines kept. The dot is what keeps them: a command substitution
+# strips trailing newlines, and the caller strips the dot.
+file_text() {
+  cat -- "$PROJECT_ROOT/$1" && printf .
+}
+
+# is_ruby_word <value> -- true when <value> is safe inside a Ruby string brew
+# evaluates: letters, digits and `._+/-`, and not empty. Pure.
+is_ruby_word() {
+  [[ "${1:-}" =~ ^[A-Za-z0-9._+/-]+$ ]]
+}
+
+# formula_settings -- read the formula: block into the F_ globals, refusing a
+# setting the mode does not read, so nothing declared is silently ignored.
+formula_settings() {
+  local k v
+  cfg_load "$DEVBIN_DIR/config.yaml" >/dev/null ||
+    die "cannot read the config at $DEVBIN_DIR/config.yaml (above)"
+  F_MODE="$(cfg_formula_get mode)" || exit 1
+  F_NAME="$(cfg_formula_name)" || exit 1
+  is_ruby_word "$F_NAME" && [[ "$F_NAME" != */* ]] ||
+    die "the formula's name '$F_NAME' holds a character a formula's name never does (formula.name, or project.name)"
+  F_TEMPLATE="$(cfg_formula_get template)" || exit 1
+  [ -n "$F_TEMPLATE" ] || F_TEMPLATE="packaging/homebrew/$F_NAME.rb"
+  F_TPL="$(cfg_release_get tag)" || exit 1
+  case "$F_MODE" in
+    source)
+      for k in repo manifest cask; do
+        v="$(cfg_formula_get "$k")" || exit 1
+        [ -z "$v" ] || die "formula.$k is declared, and formula.mode is source, which reads it nowhere"
+      done
+      for k in assets bin; do
+        [ -z "$(cfg_formula_list "$k")" ] ||
+          die "formula.$k is declared, and formula.mode is source, which reads it nowhere"
+      done
+      ;;
+    assets)
+      F_SUMS="$(cfg_formula_get sums)" || exit 1
+      F_CASK="$(cfg_formula_get cask)" || exit 1
+      F_MANIFEST="$(cfg_formula_get manifest)" || exit 1
+      [ -n "$F_MANIFEST" ] || F_MANIFEST=".$F_NAME-install"
+      is_ruby_word "$F_MANIFEST" || die "formula.manifest '$F_MANIFEST' holds a character a keg path never does"
+      mapfile -t F_ASSETS < <(cfg_formula_list assets)
+      mapfile -t F_BIN < <(cfg_formula_list bin)
+      [ "${#F_ASSETS[@]}" -gt 0 ] || die "formula.mode is assets, and formula.assets names no asset"
+      # As the release core names an asset (release_name_problem), {version}
+      # aside, which each name may hold and the release's version fills.
+      for v in "${F_ASSETS[@]}"; do
+        k="$(release_name_problem "${v//"{version}"/0.0.0}")" && die "formula.assets '$v': $k"
+      done
+      [ "${#F_BIN[@]}" -gt 0 ] || die "formula.mode is assets, and formula.bin names no executable for the keg"
+      for v in "${F_BIN[@]}"; do
+        is_ruby_word "$v" || die "formula.bin '$v' holds a character a keg path never does"
+      done
+      ;;
+    *) die "formula.mode '$F_MODE' is not a mode: use source or assets" ;;
+  esac
+}
+
+# tag_version <tag> -- the version <tag> names under the release.tag template,
+# read as the release core names a tag (release_tag_name). Dies on a tag the
+# template does not make.
+tag_version() {
+  local pre="${F_TPL%%"{version}"*}" post="${F_TPL#*"{version}"}" v
+  v="${1#"$pre"}"
+  v="${v%"$post"}"
+  is_semver "$v" && [ "$(release_tag_name "$F_TPL" "$v")" = "$1" ] ||
+    die "'$1' is not a tag the release tag template '$F_TPL' makes, so it names no release version"
+  printf '%s\n' "$v"
+}
+
+# --- source mode -----------------------------------------------------------
+
+# render_source <tag> <file> -- the formula for <tag>, filled from the template
+# and written to <file>, with the commit it names on stdout. Dies, writing
+# nothing, on a tag or a template it cannot fill.
+render_source() {
+  local tag="$1" file="$2" commit text why left
+  commit="$(tag_commit "$tag")"
+  text="$(file_text "$F_TEMPLATE")" || die "cannot read the formula template at $PROJECT_ROOT/$F_TEMPLATE"
+  text="${text%.}"
+  why="$(formula_refusal "$text" "$tag")"
+  [ -z "$why" ] || die "$F_TEMPLATE: $why"
+  left="$(leftover_placeholder "$(formula_fill "$text" "$tag" "$commit")")"
+  [ -z "$left" ] || die "$F_TEMPLATE: $left is no placeholder source mode fills, and it would ship as written"
+  replace_file "$file" formula_fill "$text" "$tag" "$commit" ||
+    die "cannot write the formula to $file (above)"
+  printf '%s\n' "$commit"
+}
+
+# --- assets mode -----------------------------------------------------------
+
+# sums_problem <text> -- why the sums file's <text> cannot be read, or nothing.
+# Pure. Each line is `<sha256>  <name>`, the form a sha256 check reads, and a
+# name it gives twice is refused, since which sum is the asset's is not knowable.
+sums_problem() {
+  local line names=$'\n'
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    if [[ ! "$line" =~ ^[0-9a-f]{64}\ \ (.+)$ ]]; then
+      printf "a line of it is not '<sha256>  <name>': %s\n" "$line"
+      return 0
+    fi
+    case "$names" in
+      *$'\n'"${BASH_REMATCH[1]}"$'\n'*)
+        printf 'it names %s twice\n' "${BASH_REMATCH[1]}"
+        return 0
+        ;;
+    esac
+    names+="${BASH_REMATCH[1]}"$'\n'
+  done <<<"$1"
+}
+
+# sums_of <text> <name> -- the sha256 the sums file's <text> gives <name>,
+# matched by the exact name, or nothing. Pure.
+sums_of() {
+  local line
+  while IFS= read -r line; do
+    [ "${line#*  }" = "$2" ] || continue
+    printf '%s\n' "${line%%  *}"
+    return 0
+  done <<<"$1"
+}
+
+# finish_ruby <version> <commit> -- the install body's closing lines, one per
+# line and unindented, for @@FINISH@@: 0755 on each of formula.bin, T3's
+# manifest under libexec, and a link in bin for each. Pure.
+#
+# EACH LINE ANSWERS A WAY A RELEASE-ASSET KEG FAILS. GitHub serves a release
+# asset with no executable bit, and
+# Homebrew's install keeps the mode it is given, so a keg without the chmod
+# installs and nothing in it runs. The manifest is T3's form (docs/dev-opt-brew.md):
+# `# key: value` header lines carrying tool, version, source_commit and
+# managed_by: brew, then one `<sha256>  <path>` line per file under libexec, the
+# manifest itself left out, sorted bytewise, as `LC_ALL=C sort` sorts and Ruby
+# sorts strings. It is written inside brew's install because the keg is where
+# the files are, and no devbin is there to list them: this Ruby is that lister's
+# one copy, generated here for every formula that asks.
+finish_ruby() {
+  local b
+  printf '%s\n' "# GENERATED by devbin's formula built-in from formula.bin and"
+  printf '%s\n' "# formula.manifest: the executable bit, which a release asset"
+  printf '%s\n' "# arrives without; the install's manifest in the dev/opt/brew contract's T3"
+  printf '%s\n' "# form; and the links."
+  for b in "${F_BIN[@]}"; do
+    printf 'chmod 0755, libexec/"%s"\n' "$b"
+  done
+  printf 'files = Dir.glob("**/*", File::FNM_DOTMATCH, base: libexec).select do |f|\n'
+  printf '  (libexec/f).file? && !(libexec/f).symlink? && f != "%s"\n' "$F_MANIFEST"
+  printf 'end\n'
+  printf 'lines = ["# tool: %s", "# version: %s", "# source_commit: %s", "# managed_by: brew"]\n' \
+    "$F_NAME" "$1" "$2"
+  printf 'lines += files.sort.map { |f| "#{(libexec/f).sha256}  #{f}" }\n'
+  printf '(libexec/"%s").write("#{lines.join("\\n")}\\n")\n' "$F_MANIFEST"
+  for b in "${F_BIN[@]}"; do
+    printf 'bin.install_symlink libexec/"%s"\n' "$b"
+  done
+}
+
+# install_ruby <version> <commit> -- the whole install body for @@INSTALL@@:
+# everything the release's archive holds into libexec, then finish_ruby's lines.
+# Pure. For an asset that is a tarball rooted at the install root; a template
+# whose assets need laying out writes its own install and ends it with @@FINISH@@.
+install_ruby() {
+  printf '%s\n' 'libexec.install Dir["*"]'
+  finish_ruby "$@"
+}
+
+# fill_block <text> <placeholder> <block> -- <text> with the line holding only
+# <placeholder> replaced by <block>, each of its lines indented as that line is.
+# Pure. Fails, printing nothing, when <placeholder> does not stand alone on its
+# line.
+fill_block() {
+  local text="$1" ph="$2" block="$3" head tail indent line out=""
+  head="${text%%"$ph"*}"
+  tail="${text#*"$ph"}"
+  indent="${head##*$'\n'}"
+  [[ "$indent" =~ ^[[:blank:]]*$ ]] || return 1
+  case "$tail" in "" | $'\n'*) ;; *) return 1 ;; esac
+  while IFS= read -r line; do
+    if [ -n "$line" ]; then out+="$indent$line"$'\n'; else out+=$'\n'; fi
+  done <<<"$block"
+  printf '%s' "${head%"$indent"}${out%$'\n'}$tail"
+}
+
+# assets_check <text> <what> <formula|cask> -- why the assets-mode template
+# <text> (named <what>) cannot be filled, into ASSETS_WHY, empty when it can; and
+# each asset placeholder it holds, appended to ASSETS_SEEN, which render_assets
+# counts across the formula and the cask. Reads and writes those two globals
+# only, so it runs in the caller's shell, never in a substitution.
+#
+# A formula keeps its url at TOP LEVEL, since `brew tap` validates every formula
+# under every simulated OS and arch, and one whose only url sits inside an
+# `on_macos` block has none on Linux, so the whole tap is refused. It carries no
+# top-level version line where that url names the version, since brew reads the
+# version from the url and `brew audit --strict` refuses the second statement.
+assets_check() {
+  local text="$1" what="$2" kind="$3" ph name ins fin rest url
+  ASSETS_WHY=""
+  if [ "$(placeholder_count "$text" @@VERSION@@)" = 0 ]; then
+    ASSETS_WHY="$what holds no @@VERSION@@, so nothing in it names the release"
+    return 0
+  fi
+  if [ "$(placeholder_count "$text" @@TAG@@)" != 0 ]; then
+    ASSETS_WHY="$what holds @@TAG@@, which only source mode fills"
+    return 0
+  fi
+  ins="$(placeholder_count "$text" @@INSTALL@@)"
+  fin="$(placeholder_count "$text" @@FINISH@@)"
+  if [ "$kind" = formula ]; then
+    if [ "$((ins + fin))" != 1 ]; then
+      ASSETS_WHY="$what holds $ins @@INSTALL@@ and $fin @@FINISH@@, and a formula holds exactly one of the two, the install body devbin generates"
+      return 0
+    fi
+    url="$(grep -E '^  url "' <<<"$text" || true)"
+    if [ -z "$url" ]; then
+      ASSETS_WHY="$what has no url at top level (two spaces in, inside the class), and brew refuses a tap whose formula has no url on some OS"
+      return 0
+    fi
+    if grep -qE '@@VERSION@@|#\{' <<<"$url" && grep -qE '^  version "' <<<"$text"; then
+      ASSETS_WHY="$what has a version line, and its top-level url names the version, which brew reads from it"
+      return 0
+    fi
+  elif [ "$((ins + fin))" != 0 ]; then
+    ASSETS_WHY="$what holds @@INSTALL@@ or @@FINISH@@, which only a formula holds"
+    return 0
+  fi
+  rest="$text"
+  while [[ "$rest" =~ @@SHA256:([^@[:space:]]+)@@ ]]; do
+    name="${BASH_REMATCH[1]}"
+    ph="${BASH_REMATCH[0]}"
+    rest="${rest#*"$ph"}"
+    case " ${F_ASSETS[*]} " in
+      *" $name "*) ;;
+      *)
+        ASSETS_WHY="$what holds $ph, and formula.assets names no asset $name"
+        return 0
+        ;;
+    esac
+    ASSETS_SEEN+=("$name")
+  done
+}
+
+# assets_fill <text> <version> <commit> <sums> <formula|cask> -- the template
+# <text> filled, on stdout. Pure; run assets_check first.
+assets_fill() {
+  local text="$1" version="$2" commit="$3" sums="$4" kind="$5" a sha
+  text="${text//"@@VERSION@@"/"$version"}"
+  text="${text//"@@REVISION@@"/"$commit"}"
+  for a in "${F_ASSETS[@]}"; do
+    sha="$(sums_of "$sums" "${a//"{version}"/"$version"}")"
+    text="${text//"@@SHA256:$a@@"/"$sha"}"
+  done
+  if [ "$kind" = formula ]; then
+    if [ "$(placeholder_count "$text" @@INSTALL@@)" = 1 ]; then
+      text="$(fill_block "$text" @@INSTALL@@ "$(install_ruby "$version" "$commit")" && printf .)" || return 1
+    else
+      text="$(fill_block "$text" @@FINISH@@ "$(finish_ruby "$version" "$commit")" && printf .)" || return 1
+    fi
+    text="${text%.}"
+  fi
+  printf '%s' "$text"
+}
+
+# release_sums <tag> <dir> [<file>] -- the sums file's text: <file> when given,
+# else the sums asset of <tag>'s release on formula.repo (default the release
+# repository), downloaded into <dir> through release_gh. Dies on one it cannot
+# read, naming it.
+release_sums() {
+  local tag="$1" dir="$2" file="${3:-}" repo why text
+  if [ -z "$file" ]; then
+    why="$(release_pattern_problem "$F_SUMS")" && die "formula.sums '$F_SUMS': $why"
+    repo="$(cfg_formula_get repo)" || exit 1
+    if [ -z "$repo" ]; then
+      repo="$(release_repo "$(cfg_release_get repo)" "")" || die "cannot name the repository whose release carries the assets (above)"
+    fi
+    release_gh "$repo" release download "$tag" --pattern "$F_SUMS" --dir "$dir" >/dev/null ||
+      die "cannot download $F_SUMS from $repo's release $tag (above)"
+    file="$dir/$F_SUMS"
+    [ -f "$file" ] || die "gh release download wrote no file named $F_SUMS from $repo's release $tag"
+  fi
+  text="$(cat -- "$file")" || die "cannot read the sums file at $file"
+  why="$(sums_problem "$text")"
+  [ -z "$why" ] || die "the sums file $file cannot be read: $why"
+  printf '%s\n' "$text"
+}
+
+# render_assets <tag> <file> <cask-file> <sums-text> -- the formula for <tag>,
+# and the cask where formula.cask names one, filled and written, with the commit
+# on stdout. Dies, writing nothing, on anything it cannot fill.
+render_assets() {
+  local tag="$1" file="$2" cfile="$3" sums="$4" version commit text ctext="" a seen n left out cout
+  ASSETS_SEEN=()
+  version="$(tag_version "$tag")"
+  commit="$(tag_commit "$tag")"
+  text="$(file_text "$F_TEMPLATE")" || die "cannot read the formula template at $PROJECT_ROOT/$F_TEMPLATE"
+  text="${text%.}"
+  assets_check "$text" "$F_TEMPLATE" formula
+  [ -z "$ASSETS_WHY" ] || die "$ASSETS_WHY"
+  if [ -n "$F_CASK" ]; then
+    ctext="$(file_text "$F_CASK")" || die "cannot read the cask template at $PROJECT_ROOT/$F_CASK"
+    ctext="${ctext%.}"
+    assets_check "$ctext" "$F_CASK" cask
+    [ -z "$ASSETS_WHY" ] || die "$ASSETS_WHY"
+  fi
+  # EACH ASSET ONCE, ACROSS THE FORMULA AND THE CASK, AND ITS SUM FROM THE FILE.
+  for a in "${F_ASSETS[@]}"; do
+    n=0
+    for seen in ${ASSETS_SEEN[@]+"${ASSETS_SEEN[@]}"}; do
+      [ "$seen" != "$a" ] || n=$((n + 1))
+    done
+    [ "$n" = 1 ] ||
+      die "formula.assets names $a, and the templates hold its @@SHA256:$a@@ $n time(s), where they hold it exactly once"
+    [ -n "$(sums_of "$sums" "${a//"{version}"/"$version"}")" ] ||
+      die "the release's sums file names no asset ${a//"{version}"/"$version"}, so its sha256 is not known and nothing was rendered"
+  done
+  out="$(assets_fill "$text" "$version" "$commit" "$sums" formula && printf .)" ||
+    die "$F_TEMPLATE: @@INSTALL@@ or @@FINISH@@ does not stand alone on its line"
+  out="${out%.}"
+  left="$(leftover_placeholder "$out")"
+  [ -z "$left" ] || die "$F_TEMPLATE: $left is no placeholder assets mode fills, and it would ship as written"
+  if [ -n "$F_CASK" ]; then
+    cout="$(assets_fill "$ctext" "$version" "$commit" "$sums" cask && printf .)"
+    cout="${cout%.}"
+    left="$(leftover_placeholder "$cout")"
+    [ -z "$left" ] || die "$F_CASK: $left is no placeholder assets mode fills, and it would ship as written"
+    replace_file "$cfile" printf '%s' "$cout" || die "cannot write the cask to $cfile (above)"
+  fi
+  replace_file "$file" printf '%s' "$out" || die "cannot write the formula to $file (above)"
+  printf '%s\n' "$commit"
+}
+
+# --- the verbs ---------------------------------------------------------------
+
+cmd_render() {
+  local tag="" out="" cout="" sums_file="" commit work sums
+  local -a pos=()
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --sums)
+        [ -n "${2:-}" ] || die "--sums needs the sums file's path"
+        sums_file="$2"
+        shift 2
+        ;;
+      *)
+        pos+=("$1")
+        shift
+        ;;
+    esac
+  done
+  formula_settings
+  if [ "$F_MODE" = source ]; then
+    [ "${#pos[@]}" -eq 2 ] && [ -z "$sums_file" ] || die "usage: $DEVBIN_INVOKE formula render <tag> <out>"
+    commit="$(render_source "${pos[0]}" "${pos[1]}")"
+    printf 'formula: wrote %s, %s %s at %s\n' "${pos[1]}" "$F_NAME" "${pos[0]}" "$commit"
+    return 0
+  fi
+  tag="${pos[0]:-}" out="${pos[1]:-}" cout="${pos[2]:-}"
+  if [ -n "$F_CASK" ]; then
+    [ "${#pos[@]}" -eq 3 ] || die "usage: $DEVBIN_INVOKE formula render <tag> <out> <cask-out> [--sums <file>] (formula.cask names a cask, so the cask needs a path too)"
+  else
+    [ "${#pos[@]}" -eq 2 ] || die "usage: $DEVBIN_INVOKE formula render <tag> <out> [--sums <file>]"
+  fi
+  work="$(mktemp -d "${TMPDIR:-/tmp}/devbin-formula.XXXXXX")" ||
+    die "cannot make a temporary directory for the release's sums file"
+  # shellcheck disable=SC2064 # expanded now: $work is this function's local
+  trap "rm -rf -- $(printf '%q' "$work")" EXIT
+  sums="$(release_sums "$tag" "$work" "$sums_file")"
+  commit="$(render_assets "$tag" "$out" "$cout" "$sums")"
+  printf 'formula: wrote %s, %s %s at %s\n' "$out" "$F_NAME" "$tag" "$commit"
+  [ -z "$F_CASK" ] || printf 'formula: wrote the cask to %s\n' "$cout"
+}
+
+# newest_release_tag -- the tag of the newest release in this checkout, read as
+# the core reads it for --patch. Dies when no tag names one.
+newest_release_tag() {
+  local versions
+  versions="$(release_versions "$F_TPL")" || die "cannot read which tags name a release (above)"
+  [ -n "$versions" ] || die "no tag matches the release tag template '$F_TPL', so there is no release to publish"
+  release_tag_name "$F_TPL" "${versions%%$'\n'*}"
+}
+
+# default_tap -- the tap Homebrew finds as <owner>/<name>: homebrew-<name> under
+# the release repository's owner, over ssh, on the host that repository names.
+default_tap() {
+  local repo host="github.com" owner
+  repo="$(release_repo "$(cfg_release_get repo)" "")" ||
+    die "cannot name the tap: formula.tap is not declared, and the release repository cannot be read (above)"
+  case "$repo" in
+    */*/*)
+      host="${repo%%/*}"
+      repo="${repo#*/}"
+      ;;
+  esac
+  owner="${repo%%/*}"
+  printf 'ssh://git@%s/%s/homebrew-%s.git\n' "$host" "$owner" "$F_NAME"
+}
+
+# committed <rel> -- refuse <rel> while it holds changes no commit holds.
+committed() {
+  local dirt
+  dirt="$(git_readonly -C "$PROJECT_ROOT" status --porcelain -- "$1")" ||
+    die "cannot read whether $1 is committed (above), so nothing was published"
+  [ -z "$dirt" ] ||
+    die "$1 has changes no commit holds, and publish renders only a committed template: commit it, then run publish again"
+}
+
+cmd_publish() {
+  local tap="" tag work clone commit dirt branch head fpath cpath="" sums="" asked=0 version
+  local -a paths=()
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --tap)
+        [ -n "${2:-}" ] || die "--tap needs the tap's git url"
+        tap="$2"
+        shift 2
+        ;;
+      *) die "publish takes --tap <url> and nothing else, not '$1'" ;;
+    esac
+  done
+  formula_settings
+  [ -n "$tap" ] || tap="$(cfg_formula_get tap)" || exit 1
+  [ -n "$tap" ] || tap="$(default_tap)"
+  tag="$(newest_release_tag)"
+  version="$(tag_version "$tag")"
+  # A COMMITTED TEMPLATE ONLY. render reads the template as it stands, which is
+  # what a person editing it wants to see; a formula pushed to the tap from
+  # bytes no commit holds is the provenance an install refuses to fake.
+  committed "$F_TEMPLATE"
+  [ -z "$F_CASK" ] || committed "$F_CASK"
+  work="$(mktemp -d "${TMPDIR:-/tmp}/devbin-formula.XXXXXX")" ||
+    die "cannot make a temporary directory for the tap's clone, so nothing was published"
+  # Expanded now, quoted for the shell that runs the trap: $work is this
+  # function's local, and is gone by the time the script exits.
+  # shellcheck disable=SC2064
+  trap "rm -rf -- $(printf '%q' "$work")" EXIT
+  clone="$work/tap"
+  release_git_remote clone -q -- "$tap" "$clone" ||
+    die "cannot clone the tap from $tap (above), so nothing was published"
+  fpath="Formula/$F_NAME.rb"
+  paths=("$fpath")
+  mkdir -p "$clone/Formula"
+  if [ "$F_MODE" = source ]; then
+    commit="$(render_source "$tag" "$clone/$fpath")"
+  else
+    [ -z "$F_CASK" ] || {
+      cpath="Casks/$(basename "$F_CASK")"
+      paths+=("$cpath")
+      mkdir -p "$clone/Casks"
+    }
+    mkdir -p "$work/sums"
+    sums="$(release_sums "$tag" "$work/sums")"
+    commit="$(render_assets "$tag" "$clone/$fpath" "${cpath:+$clone/$cpath}" "$sums")"
+  fi
+  # Read with its status, never inside the test: a status that failed would
+  # read as a tap already carrying the release.
+  dirt="$(git -C "$clone" status --porcelain -- "${paths[@]}")" ||
+    die "cannot read the tap's clone (above), so nothing was published"
+  if [ -z "$dirt" ]; then
+    printf 'formula: the tap at %s already carries %s %s at %s, so nothing was published\n' "$tap" "$F_NAME" "$tag" "$commit"
+    return 0
+  fi
+  # THE YES IS TO A NAMED TAP. A cut's after: step carries the yes its confirm
+  # step's prompt was given, as DEVBIN_RELEASE_CONFIRMED naming the tag, set
+  # only when a person answered there and never under --yes (lib/cmd/release);
+  # it is honoured only for exactly the tag being published, and said. Any
+  # other value is ignored and the person is asked: inside a gate the gate's
+  # own flag says whether one is there (issue 0158), outside one this
+  # process's stdin does, as gate_exec reads it. The mark is an environment
+  # variable a caller of the same user could set; the cut and the tap push are
+  # both the maintainer's own.
+  printf 'formula: %s %s at %s is ready to push to the tap at %s (%s)\n' "$F_NAME" "$tag" "$commit" "$tap" "${paths[*]}"
+  if [ "${DEVBIN_RELEASE_CONFIRMED:-}" = "$tag" ]; then
+    printf 'formula: confirmed at the cut of %s, so it is pushed without a second question\n' "$tag"
+  else
+    DEVBIN_GATE_TTY="$(gate_tty_flag)"
+    ask_person "formula: push it?" || asked=$?
+    case "$asked" in
+      0) ;;
+      1) die "declined at the prompt, so nothing was published" ;;
+      *) die "nobody to ask: no terminal, so nothing was published (publish asks a person before it pushes, and takes no --yes)" ;;
+    esac
+  fi
+  git -C "$clone" add -- "${paths[@]}" ||
+    die "cannot stage the formula in the tap's clone (above), so nothing was published"
+  git -C "$clone" commit -q -m "$F_NAME $version" </dev/null ||
+    die "cannot commit the formula in the tap's clone (above), so nothing was published"
+  branch="$(git -C "$clone" symbolic-ref --short HEAD)" ||
+    die "the tap's clone is on no branch, so nothing was published"
+  release_git_remote -C "$clone" push -q origin HEAD ||
+    die "cannot push the formula to the tap at $tap (above), so nothing was published"
+  head="$(git -C "$clone" rev-parse HEAD)"
+  printf 'formula: published %s %s at %s to %s, whose %s is now %s\n' "$F_NAME" "$tag" "$commit" "$tap" "$branch" "$head"
+}
+
+main() {
+  cd "$PROJECT_ROOT"
+  case "${1:-}" in
+    render)
+      shift
+      cmd_render "$@"
+      ;;
+    publish)
+      shift
+      cmd_publish "$@"
+      ;;
+    -h | --help) usage ;;
+    # Bare exits 1: naming no verb ran nothing, and a command that exits 0
+    # having run nothing reads as passed to every && chain.
+    "")
+      usage >&2
+      exit 1
+      ;;
+    *) die "formula has no verb '$1' (try: $DEVBIN_INVOKE formula --help)" ;;
+  esac
+}
+
+main "$@"
