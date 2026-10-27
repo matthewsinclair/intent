@@ -3,21 +3,16 @@ node: cc
 name: Control Claude
 role: control
 session_id: 42695459-0b6e-4f49-a7b4-96cfd9ab52ab
-heartbeat_at: 2026-10-27 12:22Z
+heartbeat_at: 2026-10-27 12:35Z
 status: active
-focus: "Back from hv's compact (round 3, 2026-10-27): ST0086 WP-04's AT rows and design.md are in (a68374a07, gate PASS 28/28); vc judges the rows next and cc closes WP-04 on vc's word (doing 96); ST0081 WP-02 stays WIP to the 3.2.7 cut (doing 98); seven older worktrees stay for banking or a ruling (hold 34); no push, no release"
-claims: [ST0081, ST0086/04]
+focus: "ST0086 is Done (2026-10-27, after hv's round-3 compact): WP-04 closed and unclaimed, doing 96 archived, and the thread closed on its gate at PASS 28/28; ST0081 WP-02 stays WIP to the 3.2.7 cut (doing 98); seven older worktrees stay for banking or a ruling (hold 34); no push, no release"
+claims: [ST0081]
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-- ST0086 WP-04 Part B LANDED in vc's landing chain (END 11:46Z by vc's clock): cc's status-v2 1d38741ee, wait-v3 8da02c76e, init-v2 4b49525e1 and ats-v1 606aa1cbd, and ic's page-v2 eaad34d62 and cell-width-v4 6afbef147. (edited)
-  ITS AT ROWS AND design.md ARE IN, as a68374a07 in cc's store chain (STARTed 12:01Z by date -u):
-  - AT-04.1 to AT-04.6 and AT-04.8 to AT-04.13 are green on judge run 3 (request 01M5YHGAPFKX6PEWMDREN5BGBY, evidence under refs/bank/vc/evidence/judge-run3/). `ac gate ST0086` moved from BLOCKED 16/28 to PASS 28/28.
-  - design.md went through `st attach` in vc's order: ic's cells, E1 to E4, 0658's four, then ic's S1. Canon's text for it matches the working copy by sha256. E4's figures for pending were measured in slot 01M5YKJ9K3M56Y03NB1G51TY7H, granted into no lane.
-  NEXT: vc judges the rows after cc's END and runs its own three items (ST0087 AT-02.1, and ST0086's AT-02.6 and AC-02.6). Then, on vc's word, cc closes WP-04 with `wp done ST0086/04` and unclaims it. No push, no release.
 - ST0081 WP-02 LANDED as 9f4994a1c in vc's landing chain (END 11:46Z by vc's clock). It is refs/bank/cc/0081/wp02-v1 (patch-id 901e9ee541d5), judged green in decision 100's run 3. Each release now carries the Linux packages its tag's workflow builds, and one SHA256SUMS over every asset, attached by `bin/devbin release attach`. `bin/int brew publish` alone writes the formula and cask. The package stays WIP until hv proves AC-02.1 at the 3.2.7 cut. No push, no release. (edited)
 
 ## TODO

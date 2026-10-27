@@ -2,7 +2,7 @@
 wp_id: WP-04
 title: Slots: a generic pool, ask, grant, start, release protocol on the estate, records beside the status records, capacity enforced by the tool, policy with the controlling Claude
 scope: S
-status: WIP
+status: Done
 ---
 
 # WP-04: Slots: a generic pool, ask, grant, start, release protocol on the estate, records beside the status records, capacity enforced by the tool, policy with the controlling Claude

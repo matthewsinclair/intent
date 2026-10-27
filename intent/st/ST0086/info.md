@@ -1,9 +1,9 @@
 ---
 st_id: ST0086
 title: Add an 'Estate' page to intentd that all intent-using Claudes on an estate can use to post status
-status: WIP
+status: Completed
 created: 2026-10-24
-completed:
+completed: 2026-10-27
 ---
 
 # ST0086: Add an 'Estate' page to intentd that all intent-using Claudes on an estate can use to post status
@@ -23,7 +23,7 @@ The estate is the host (rhadamanth, kovacs and gyges each its own), not a projec
 | WP-01 | The estate record and its doors: directory, versioned record, one reader, the estate verbs, MCP exposure, the reap rule                                                        | S    | Done   |
 | WP-02 | intentd serves /estate/status: watches the estate directory outside the ingest path, renders the live top-styled page with the host census                                     | S    | Done   |
 | WP-03 | The intent explore TUI: /estate beside /projects, on the same reader                                                                                                           | S    | Done   |
-| WP-04 | Slots: a generic pool, ask, grant, start, release protocol on the estate, records beside the status records, capacity enforced by the tool, policy with the controlling Claude | S    | WIP    |
+| WP-04 | Slots: a generic pool, ask, grant, start, release protocol on the estate, records beside the status records, capacity enforced by the tool, policy with the controlling Claude | S    | Done   |
 
 ## Acceptance
 

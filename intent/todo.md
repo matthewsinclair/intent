@@ -16,11 +16,6 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 05: intent daemon start --at-login refuses on Linux before writing anything
   - [x] 06: The Homebrew formula installs Intent on Linux
   - [x] 07: Intent on Ubuntu from its Linux package, as a user uses it
-- [-] ST0086: Add an 'Estate' page to intentd that all intent-using Claudes on an estate can use to post status
-  - [x] 01: The estate record and its doors: directory, versioned record, one reader, the estate verbs, MCP exposure, the reap rule
-  - [x] 02: intentd serves /estate/status: watches the estate directory outside the ingest path, renders the live top-styled page with the host census
-  - [x] 03: The intent explore TUI: /estate beside /projects, on the same reader
-  - [-] 04: Slots: a generic pool, ask, grant, start, release protocol on the estate, records beside the status records, capacity enforced by the tool, policy with the controlling Claude
 - [-] ST0087: Intent conforms to the dev, opt and brew contract
   - [x] 01: The tree function, the runtime set and the version line
   - [x] 02: intent install and the manifest, with doctor's manifest arms
@@ -147,6 +142,11 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 06: intent deinit: strip what Intent wrote from a project being closed
   - [x] 07: A store under Dropbox is marked ignored for the Dropbox client
   - [x] 08: Docs, reference and CHANGELOG for the two layouts, the import and deinit
+- [x] ST0086: Add an 'Estate' page to intentd that all intent-using Claudes on an estate can use to post status
+  - [x] 01: The estate record and its doors: directory, versioned record, one reader, the estate verbs, MCP exposure, the reap rule
+  - [x] 02: intentd serves /estate/status: watches the estate directory outside the ingest path, renders the live top-styled page with the host census
+  - [x] 03: The intent explore TUI: /estate beside /projects, on the same reader
+  - [x] 04: Slots: a generic pool, ask, grant, start, release protocol on the estate, records beside the status records, capacity enforced by the tool, policy with the controlling Claude
 - [x] ST0088: Intent's prompt corpus is culled to what a session needs: one home per instruction, nothing it does not invoke, nothing the tool already does
   - [x] 01: The culls hv ruled: the in-tca family, in-cost-analysis, in-debug, with their triage rows and callers
   - [x] 02: The skills merged, trimmed and completed: in-standards into in-essentials, the detrope section owned once, the trims, CLAUDE_CONFIG_DIR, and the missing items written once
