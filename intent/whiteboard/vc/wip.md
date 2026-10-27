@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a3784f83-17e6-4dd3-bc37-0049e71bd0b4
-heartbeat_at: 2026-10-27 09:02Z
+heartbeat_at: 2026-10-27 10:18Z
 status: active
-focus: "Back from hv's compact (2026-10-27): Intent is L2 behind L1. Its one train is banked, verified and booked for one judge run (decision 100): Part B's six banks, then 0657 v2, ST0081 WP-02 v1 and 0658 v3 (doing 59). Its re-ask is the first grant when molt-vc closes L1. WP-05's scripts are final (todo 66), the worktree removals wait for molt-vc's Spotlight word (decision 98), and the installed pair stays at ddb749ca7932. No push by vc, no release"
+focus: "FOLDED for hv's compact, round 2 (2026-10-27): Intent's one judge run (decision 100) went at 10:03Z on hv's "ok, go" and was RED, because 0657 v2 adds a second fn first_line to install.rs (E0428), so no Rust leg judged. cc owes 0657 v3 after the compact; vc then verifies it and re-asks the same ten-patch run fresh (doing 59). The landing patch and texts are banked, and build all, the preflight and the push wait for molt-vc's L1 word. No push by vc, no release"
 claims: []
 ---
 
@@ -13,23 +13,28 @@ claims: []
 
 ## DOING
 
-- INTENT'S ONE TRAIN, NINE BANKS, WAITS FOR L1 (hv's layer order, decision 97; one judge run for all nine, decision 100). STATE: main is past ddb749ca7, which local and upstream hold, by board and record commits only. CI is green on ddb749ca7 on both workflows (rust 40391278700, Intent Tests 40391278720). The installed pair ddb749ca7932 is current and stays untouched until molt-vc closes L1. THE TRAIN, in order: (edited)
+- INTENT'S ONE TRAIN, NINE BANKS, RE-RUNS ONCE 0657 v3 IS BANKED (one judge run for all nine, decision 100; hv's "ok, go" at 10:01Z by vc's clock ran it ahead of L1's close, with molt-vc granting). STATE: main is past ddb749ca7, which local and upstream hold, by board and record commits only. CI is green on ddb749ca7 on both workflows (rust 40391278700, Intent Tests 40391278720). The installed pair ddb749ca7932 stays untouched until molt-vc closes L1. THE TRAIN, in order: (edited)
   - Part B's six: cc's wp04b-status-v2 (4ae2585f7479), cc's wp04b-wait-v2 (2421b3d9719d), ic's wp04b-page-v2 (8126a568631b), cc's wp04b-init-v1 (e8aee9ac86d6), cc's wp04b-ats-v1 (f649be3fa3ea) and ic's pipeline-cell-width-v4 (e058514c0734).
-  - Then cc's 0657 v2 (blob 7d1f02d89685, patch-id 60b3c7c55ad9).
+  - Then cc's 0657, at v3 once it is banked. v2 (blob 7d1f02d89685, patch-id 60b3c7c55ad9) reds the build.
   - Then cc's ST0081 WP-02 v1 (blob 6f72fe1da6a8, patch-id 901e9ee541d5), under vc's ruling and correction in its record. The package has been WIP since 34689f61a.
   - Then ic's 0658 v3 (blob 8b35ecc6c7db, patch-id 629db68722c0). 0658 v1 (876b862b11c2) was withdrawn for calling `Instant::now`. v2 (29282d37ceb3) was superseded on vc's finding in 0658's record.
-  Part B's six on main 5d9b5e2be give tree af8e2cf31dbc, which is cc's scratch tip e22661b78. The three after them were banked over that tip and stack on disjoint paths to 5a031df1f5df. All nine apply on main 21d764a94 to 4944cfe4135a. vc's landing patch, refs/bank/vc/train/landing-patch (blob f7ca69de3772, patch-id eacf4ba10878, which ignores whitespace, so the blob and the tree are its identity), writes the CHANGELOG lines and 0658's two MODULES.md sentences where landing-texts places them, and moves install's staging paragraph back under install from under `use`. It applies over 4944cfe4135a to 198cccf6fd82, both its files pass the staged-format-guard's prettier check, and the judge runs it as the tenth patch, so the judged tree is the landed tree. Only status-v2, wait-v2 and init-v1 carry a CHANGELOG hunk. The lines for the other six came to vc as text and are on refs/bank/vc/train/landing-texts (blob 8b7bab7a9c4c), with where each goes and 0658's design.md edits. NEXT, in order:
-  (1) When molt-vc closes L1, ask with `intent estate slots ask heavy "<the nine banks, named>" --named "tip=<main HEAD>,patch_ids=<the ten patch-ids joined by +>" --place-of 01M5WB6E22WVTYWM6ZYB4CAN81 --node vc` (vc's scratchpad, partb-ask.sh), then start. Main holds still from the ask to the start. Then run judge-rerun.sh in tmp/wt-vc-train over the nine refs in order, then landing-patch.
-  (2) Release the slot with a one-line result. Land the nine in order, then landing-patch as one commit. Book build all, with START and END to every estate's vc. Run the kovacs preflight at the landed sha, and send devbin-vc "push" with the full sha only once it is green (decision 96). Main holds still from build all to the push. ic takes a live look at the cells after the build.
-  (3) After a green judge, in the landing chain:
-  - cc's AT rows for WP-04 (`intent at lint ST0086` first).
-  - ST0086 design.md through `st attach`: cc's WP-04 text, then ic's design-cells-v1 (917d2f6ce431, todo 58), then 0658's four edits (P1, P2, F1 and F2 in landing-texts).
+  - Then vc's landing patch, refs/bank/vc/train/landing-patch (blob f7ca69de3772, patch-id eacf4ba10878; patch-id ignores whitespace, so the blob and the tree are its identity). It writes the CHANGELOG lines and 0658's two MODULES.md sentences where landing-texts places them, and moves install's staging paragraph back under install. It applied over the nine to 198cccf6fd82, and both its files pass the staged-format-guard's prettier check. The texts are on refs/bank/vc/train/landing-texts (blob 8b7bab7a9c4c).
+  RUN 1 WAS RED. It was request 01M5YCYJ073KP632DV2QY6RTT0: granted 10:03:32Z, started 10:03:59Z, judged 10:04:07Z to 10:09:06Z, released 10:10:46Z. It ran at tip 7256572e4 over the ten patches, to tree cc89c4cb07c0.
+  - intentsvcs does not compile. 0657 v2 adds `fn first_line(root, args)` to install.rs beside main's `fn first_line(text: &str)` at line 725 (E0428), and its three call sites resolve to the old function (eight more errors, all in install.rs).
+  - No Rust leg judged any bank. intent-cli and intentd never compiled, so errors there may still be waiting. bats ran on the old release binary and judges nothing.
+  - The critic's one red, NOT-ASKED on native/rust/build-support/source_commit.rs, is an instrument reading. No per-file rust rule reaches build-support, and the rules armed there are clippy's, which the judge's clippy legs run.
+  NEXT, in order:
+  (1) cc banks 0657 v3 over e22661b78: the new helper and its three callers renamed, and install.rs grepped for every fn the bank adds. vc verifies it. Then vc re-asks fresh: the --place-of hand-back is refused for a request that was revoked rather than released. The ask is `intent estate slots ask heavy "<the banks, named>" --named "tip=<main HEAD>,patch_ids=<the ten joined by +>" --node vc` (vc's scratchpad, partb-ask-fresh.sh, with 0657's patch-id updated), started with `intent estate slots start <id> --named <the same set>`. Main holds still from the ask to the start. judge-rerun.sh runs in tmp/wt-vc-train over the ten refs in order. Release takes the request id alone: `intent estate slots release <id>`. START and END go to molt-vc.
+  (2) After a green run, land the nine in order and then landing-patch as one commit, each unit through land-one.sh. First, announce wait-v2's change to require-in-session.sh, the prompt gate every estate runs, to every estate's vc: its new `slots pending` call drops stderr and is silent under the old pair. Book build all only on molt-vc's L1 word, with START and END to every estate's vc. Run the kovacs preflight at the landed sha, and send devbin-vc "push" with the full sha only once it is green (decision 96). Main holds still from build all to the push. ic takes a live look at the cells after the build.
+  (3) In the landing chain:
+  - cc's AT rows for WP-04 (`intent at lint ST0086` first; cc's drafts are on refs/bank/cc/0086/landing-drafts-v1, blob 1a031c080c2a).
+  - ST0086 design.md through `st attach`, in cc's measured order: ic's design-cells-v1 (917d2f6ce431, todo 58), then cc's WP-04 text (E1 to E3 in the same blob), then 0658's four edits (P1, P2, F1 and F2 in landing-texts). ic's text-insertion form of the cells sentence makes the order free.
   - `intent sync --to-store ST0056` for 0657's guard.
-  - vc's `at edit` of ST0087 AT-02.1.
-  - `ac edit ST0086 AC-02.6` as 0658's record words it, with AT-02.6 re-cited for each new arm.
+  - vc's `at edit` of ST0087 AT-02.1 and ST0086 AT-02.6, with notes drafted in vc's scratchpad (land/at-*.note).
+  - `ac edit ST0086 AC-02.6` as 0658's record words it.
   vc then satisfies the AC-04 criteria, and ST0086 closes on its gate.
   (4) ST0087 WP-05 in Intent's turn (todo 66), once molt-vc's env liberator run publishes INTENT_INSTALL_PREFIX on rhadamanth. dc's final set is under refs/bank/dc/0087-05/: legs-v3.zsh 02c3db341df3, ac051-v2.sh c4098aaa90b8, ac053.sh ff5f36227d5c, record-v3.sh 2c80deb70fe2 and attach.sh dba0086eb2d2, each read by vc.
-  Before accepting a Rust bank, vc reads it against the workspace's source guards (one_clock, exit_code_consumers, the dispatch SSOT). No push by vc, no release.
+  Before accepting a Rust bank, vc reads it against the workspace's source guards (one_clock, exit_code_consumers, the dispatch SSOT) and greps the module for every fn it adds. No push by vc, no release.
 
 ## TODO
 
