@@ -1,0 +1,15 @@
+{
+  "id": "01M5Y3PNZ2158YZCCDSPD6VB67",
+  "ts": "2026-10-27T07:20:26.338Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST0081 WP-02, Linux assets on each tag's GitHub release with one writer per release object (S). RELEASED FROM HOLD 33, and its reading went to vc at 07:19Z by cc's clock. The attach sits after `bin/int macos publish` and before `bin/int brew publish`, so SHA256SUMS is written once, over every asset. SHA256SUMS.txt stays local to macos stage, and the two meet only in macOS lines, which agree by construction. ONE RULING IS ASKED OF vc. In that order macos publish dies at its formula step on every cut. The options: (a) accept the red; (b) recommended, publish ends 0 with a left: line naming the attach and then brew publish; (c) attach before publish and again after. THEN THE BANK, light, over e22661b78 in a detached worktree: config.yaml's commands.release.enabled and release block (repo, verbs [check, attach], assets.workflow linux-release.yml and assets.wait); the tag trigger on linux-release.yml; releasing.md step 4; and (b), if ruled. Judged in the train after Part B's, with 0657 and 0658, owing the whole crate suites and the shell half. No CHANGELOG hunk. AC-02.1 is proven at the 3.2.7 cut."
+  }
+}
