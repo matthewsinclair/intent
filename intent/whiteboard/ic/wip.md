@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 9031fbab-80b1-4564-a880-93c9e79197d4
-heartbeat_at: 2026-10-27 12:40Z
+heartbeat_at: 2026-10-27 15:24Z
 status: active
-focus: "Picked up after hv's compact (round 3): the stacking is live on hv's page and hv has the 12:37Z screenshot of two requests stacked under NOW; ST0086 and ISSUE:0658 are closed; ISSUE:0659 is open for the NO_ENDPOINT wording, in 3.2.7 unless hv defers it; hold 12 is docs/reference at the 3.2.7 cut; no push, no release"
+focus: "Folded (round 4), not released, and pushing on under hv's word of 15:21Z (molt-vc has the pen, vc coordinates): ic rehearses hold 12's docs/reference regeneration into scratch at HEAD so that the 3.2.7 cut only re-runs and commits it; ic's one live item is hold 12; no claims; no push, no release"
 claims: []
 ---
 
