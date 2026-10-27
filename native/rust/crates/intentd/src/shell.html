@@ -208,12 +208,16 @@
   #estate details.sec > summary .h { font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
   #estate .foot { color: var(--muted); margin-top: 1rem; font-size: .75rem; }
   /* THE PIPELINE (ST0086 AC-04.7): one row of cells read left to right as
-     time, finished, then a now marker, then running, then yet to run. */
+     time, finished, then a now marker, then running, then yet to run. A
+     cell is 18rem whatever its text: a flex item is never narrower than its
+     content unless it says so, so the cell says min-width: 0, its main line
+     wraps to at most four lines and its meta line to two before either
+     ellipsizes. */
   #estate button.icon { display: inline-flex; align-items: center; padding: .15rem .35rem; line-height: 1; }
   #estate .pipe { display: flex; flex-wrap: nowrap; overflow-x: auto; align-items: stretch; gap: .35rem; padding: 1.15rem .55rem .55rem; border: 1px solid var(--rule); border-radius: 6px; background: var(--card); }
-  #estate .cell { flex: 0 0 15rem; border: 1px solid var(--rule); border-radius: 6px; padding: .35rem .5rem; font-size: .82rem; line-height: 1.25; background: var(--ground); }
-  #estate .cell .what { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  #estate .cell .meta { color: var(--muted); font-size: .74rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #estate .cell { flex: 0 0 18rem; min-width: 0; border: 1px solid var(--rule); border-radius: 6px; padding: .35rem .5rem; font-size: .82rem; line-height: 1.25; background: var(--ground); }
+  #estate .cell .what { font-weight: 600; overflow: hidden; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; line-clamp: 4; }
+  #estate .cell .meta { color: var(--muted); font-size: .74rem; overflow: hidden; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
   #estate .cell .tag { font-size: .66rem; text-transform: uppercase; letter-spacing: .07em; font-weight: 700; }
   #estate .cell.done { opacity: .62; }
   #estate .cell.done .tag { color: var(--busy); }
