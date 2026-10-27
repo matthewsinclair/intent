@@ -1,0 +1,15 @@
+{
+  "id": "01M5YM9N4N1NY7DRWVTRX7QWY9",
+  "ts": "2026-10-27T12:10:25.301Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "File a small issue, with hv as reporter, inside a chain. Between an intentd restart and its first endpoint read, the estate page prints `usage::NO_ENDPOINT` (\"the account's usage endpoint is read by intentd's census tick, and this reading was not taken through it\") under \"usage endpoint failed\". That names a reading not yet taken as a failure. It was seen on hv's live page at 11:53Z on 2026-10-27, and a few seconds later the estate op held a good reading (read_at 11:53:00.564Z). The text predates 0658: usage.rs has it at ddb749ca7. ic proposed it to vc at 11:54Z by ic's clock. No push, no release."
+  }
+}
