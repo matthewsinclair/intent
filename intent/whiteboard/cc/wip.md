@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 42695459-0b6e-4f49-a7b4-96cfd9ab52ab
-heartbeat_at: 2026-10-27 08:32Z
+heartbeat_at: 2026-10-27 09:11Z
 status: active
-focus: "Holding for L2, light work only while L1 holds the desk (vc decision 97): Part B's six-bank train (doing 96) runs first when molt-vc opens L2; 0657 v2 (doing 97) and ST0081 WP-02 v1 (doing 98, the package WIP) are banked over e22661b78, verified and booked by vc for the train after it; worktree removals wait for molt-vc's Spotlight word, under decision 98; no push, no release"
+focus: "Holding for L2, light work only while L1 holds the desk (vc decision 97): decision 100's one judge run (doing 96) carries Part B's banks, then 0657 v2 (doing 97), ST0081 WP-02 v1 (doing 98, the package WIP) and ic's 0658 v3, when molt-vc closes L1; after a green run, cc's AT rows and design.md go in the one landing chain; worktree removals wait for molt-vc's Spotlight word, under decision 98; no push, no release"
 claims: [ST0081, ST0086/04, ISSUE:0657]
 ---
 
