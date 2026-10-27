@@ -37,6 +37,24 @@ ONE CORRECTION TO THE SECOND NOTE'S (3). Its cut order ends on `bin/int brew for
 
 HOW IT IS BUILT. While molt-vc's desk holds Intent behind L1 (hv's layer order, 2026-10-27), cc banks it in a detached worktree as light work: edits, git, prettier and shellcheck, with no build, no suite and no bats. It is judged in the train after Part B's, beside issue 0657. It touches CI configuration, so it owes the whole crate suites and the shell half. Like every new bank, it carries no CHANGELOG hunk (decision 92); vc writes its line at landing. AC-02.1 is proven at the 3.2.7 cut, by the evidence in cc's spec, item (6).
 
+## vc's ruling of 2026-10-27 on cc's reading of the cut
+
+Before any edit, cc read the cut as it stands on main: releasing.md step 4, bin/.devbin/cmd/build.d/release, cmd/macos, cmd/brew, and devbin 0.1.14's lib/cmd/release. vc rules on that reading under hv's pen (vc decision 4).
+
+THE ORDER. (3) `bin/devbin build release`. Its push of the tag starts linux-release.yml through the workflow's new `push: tags: ["v[0-9]*"]` trigger. (4) `bin/int macos prepare`, then `bin/int macos publish`, which upload the macOS assets. (5) `bin/devbin release attach vX.Y.Z`. It waits within `assets.wait` for the tag's earliest successful run, uploads the Linux packages, and writes SHA256SUMS last, over every asset on the object. (6) `bin/int brew publish`, which writes the formula and the cask. (7) `bin/int brew smoke --reinstall`, then `intent use brew` (decision 80). The attach runs after publish because it sums every asset the object carries when it runs. Run before publish, SHA256SUMS would describe the Linux packages alone, and attach's own postcondition would fail once publish uploaded.
+
+PUBLISH NEVER WRITES THE FORMULA OR THE CASK. This is cc's option (b), taken one step further. In this order the Linux packages always arrive after `macos publish`, so its formula step would die on every cut, and a documented sequence with a red step in it teaches the operator to read past a red. So `macos publish` uploads and verifies the macOS assets, prints the steps left in order with their exact commands, and exits 0. Those steps are `bin/devbin release attach vX.Y.Z` while the Linux packages are absent, then `bin/int brew publish`. Until then the release is inert, with no formula pointing at it, which is the state the die leaves today. Publish's render-and-push path is removed. It is not kept for a release that already carries every asset, because the cut never reaches that case, and two writers of the formula is what one writer per object refuses. `bin/int brew publish` already renders the formula and the cask from the release and pushes both in one tap commit, behind require_sums. It is their one writer.
+
+SHA256SUMS AND SHA256SUMS.txt STAY TWO FILES, each with one writer, and neither reads the other. SHA256SUMS.txt is local. `macos stage` writes it, and publish's re-download check, require_sums and the renderers read it. SHA256SUMS is a release asset. Attach alone writes it, and users and attach's postcondition read it. The two overlap only in the macOS lines, which agree by construction in this order.
+
+THE BANK, light work, over e22661b78:
+- bin/.devbin/config.yaml declares `commands.release.enabled: true` and a `release:` block with `repo`, `verbs: [check, attach]` and `assets: {workflow, wait}`. The wait bound is read from the v3.2.4 and v3.2.5 dispatch runs with `gh run list`; failing that, devbin's default.
+- linux-release.yml gains the tag trigger and a rewritten header.
+- cmd/macos's publish is changed as ruled above.
+- releasing.md step 4 takes this order, the by-hand Linux interim is retired, and AC-02.1's evidence is named.
+
+cc reads `bin/devbin release check` and `bin/devbin doctor` before running either. They run with DEVBIN_NO_UPDATE_NOTICE=1, stdin from /dev/null and plain redirection. cc runs neither `upgrade` nor anything else that writes.
+
 ## Acceptance
 
 Acceptance Criteria for this work package are RENDERED into `ST0081/acceptance.md`, under the `WP-02` heading. THAT FILE IS A GENERATED VIEW -- a row authored there is discarded by the next sync. The contract is canon in the thread's model, and the verbs write it: `intent ac new` and `intent at new` mint a row, `intent ac edit` and `intent at edit` reword or re-cite one, and `intent ac satisfy|unsatisfy|descope|rescope|withdraw|reinstate` and `intent at green|red|na` move its state. This cover never restates them.
