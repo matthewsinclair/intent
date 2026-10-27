@@ -1795,6 +1795,10 @@ mod tests {
     names.iter().map(|s| (*s).to_string()).collect()
   }
 
+  /// ST0086 AT-04.3
+  /// ST0086 AT-04.8
+  /// ST0086 AT-04.12
+  ///
   /// AC-04.3, AC-04.8 and AC-04.12: a request folds through its files, a grant
   /// is checked against every lane it names, and a start must name the set the
   /// ask named.
@@ -1837,10 +1841,13 @@ mod tests {
     }
 
     let wrong = named(&[("tip", "deadbeef")]);
-    assert!(matches!(
-      start(&h.dirs, &me, &a, wrong, false),
-      Err(SlotError::NamedMismatch { .. })
-    ));
+    match start(&h.dirs, &me, &a, wrong, false) {
+      Err(e @ SlotError::NamedMismatch { .. }) => assert_eq!(
+        e.to_string(),
+        format!("request `{a}` was asked naming tip=7a3552f1e, and this names tip=deadbeef")
+      ),
+      other => panic!("a start on another set must be refused naming both: {other:?}"),
+    }
     start(&h.dirs, &me, &a, set, false).expect("start a");
     assert_eq!(state(&h, &a), ReqState::Running);
     let slots = read_strict(&h.dirs);
@@ -1858,6 +1865,8 @@ mod tests {
     ));
   }
 
+  /// ST0086 AT-04.8
+  ///
   /// AC-04.8: `--lane none` grants a negligible run into no lane, counting
   /// against no capacity.
   #[test]
@@ -1878,6 +1887,8 @@ mod tests {
     ));
   }
 
+  /// ST0086 AT-04.9
+  ///
   /// AC-04.9: a desk hold refuses every grant and a lane hold every grant
   /// naming its lane, each naming the hold, until released.
   #[test]
@@ -1911,6 +1922,8 @@ mod tests {
     unhold(&h.dirs, &ctl, Some("bats"), &lane_hold).expect("unhold the lane");
   }
 
+  /// ST0086 AT-04.13
+  ///
   /// AC-04.13: a not-before gate refuses a grant until its request has ended.
   #[test]
   fn a_not_before_gate_refuses_a_grant_until_its_request_has_ended() {
@@ -1938,8 +1951,11 @@ mod tests {
     grant(&h.dirs, &ctl, &after, &lanes(&["bats"]), &quiet).expect("the gate is met");
   }
 
-  /// AC-04.10: the controller's writes are refused from any other session,
-  /// and a holder's from any session but the asker.
+  /// ST0086 AT-04.1
+  /// ST0086 AT-04.10
+  ///
+  /// AC-04.1 and AC-04.10: the controller's writes are refused from any other
+  /// session, and a holder's from any session but the asker.
   #[test]
   fn only_the_controller_grants_and_only_the_asker_starts() {
     let h = host();
@@ -1952,7 +1968,19 @@ mod tests {
       Err(SlotError::NotController { .. })
     ));
     assert!(matches!(
+      deny(&h.dirs, &other, &a, "not yours"),
+      Err(SlotError::NotController { .. })
+    ));
+    assert!(matches!(
+      revoke(&h.dirs, &other, &a, "not yours"),
+      Err(SlotError::NotController { .. })
+    ));
+    assert!(matches!(
       lane_open(&h.dirs, &other, "cargo", "heavy", 9, None),
+      Err(SlotError::NotController { .. })
+    ));
+    assert!(matches!(
+      lane_close(&h.dirs, &other, "cargo"),
       Err(SlotError::NotController { .. })
     ));
     assert!(matches!(
@@ -1964,8 +1992,64 @@ mod tests {
       start(&h.dirs, &other, &a, BTreeMap::new(), false),
       Err(SlotError::NotAsker { .. })
     ));
+    start(&h.dirs, &me, &a, BTreeMap::new(), false).expect("the asker starts");
+    assert!(matches!(
+      release(&h.dirs, &other, &a, None, false),
+      Err(SlotError::NotAsker { .. })
+    ));
   }
 
+  /// ST0086 AT-04.2
+  ///
+  /// AC-04.2: a repeated open changes the lane's capacity, a close is refused
+  /// while anything is granted in the lane and naming the count, a close of an
+  /// idle lane removes it, and a lane's type is whatever the controller names.
+  #[test]
+  fn a_lane_reopens_to_a_new_capacity_and_closes_only_when_idle() {
+    let h = host();
+    let ctl = desk(&h);
+    let me = who("me", "intent-cc", 1);
+    let lane_named = |name: &str| -> Value {
+      let all = lanes_value(&read_strict(&h.dirs));
+      all
+        .as_array()
+        .expect("lanes is an array")
+        .iter()
+        .find(|l| l["name"] == name)
+        .cloned()
+        .unwrap_or(Value::Null)
+    };
+
+    lane_open(&h.dirs, &ctl, "cargo", "heavy", 2, None).expect("re-open at two");
+    assert_eq!(lane_named("cargo")["capacity"], 2);
+
+    lane_open(&h.dirs, &ctl, "zebra", "zebra", 1, None).expect("open a lane of any type");
+    assert_eq!(lane_named("zebra")["type"], "zebra");
+
+    let (a, _) = ask(&h.dirs, &me, "heavy", "a", AskArgs::default()).expect("ask");
+    grant(&h.dirs, &ctl, &a, &lanes(&["cargo"]), &quiet).expect("grant into cargo");
+    match lane_close(&h.dirs, &ctl, "cargo") {
+      Err(SlotError::LaneBusy { lane, count }) => assert_eq!((lane.as_str(), count), ("cargo", 1)),
+      other => panic!("a busy lane must refuse its close: {other:?}"),
+    }
+    assert_eq!(
+      lane_named("cargo")["capacity"],
+      2,
+      "a refused close writes nothing"
+    );
+
+    release(&h.dirs, &me, &a, None, false).expect("end a");
+    lane_close(&h.dirs, &ctl, "cargo").expect("an idle lane closes");
+    assert_eq!(lane_named("cargo"), Value::Null);
+    assert!(matches!(
+      lane_close(&h.dirs, &ctl, "cargo"),
+      Err(SlotError::NoLane { .. })
+    ));
+  }
+
+  /// ST0086 AT-04.1
+  /// ST0086 AT-04.11
+  ///
   /// AC-04.1 and AC-04.11: a take is refused while the controller is live,
   /// passes over a gone one under its own name, and needs hv's words under
   /// another; the record names its predecessor.
