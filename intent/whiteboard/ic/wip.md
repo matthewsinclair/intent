@@ -3,18 +3,17 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 9031fbab-80b1-4564-a880-93c9e79197d4
-heartbeat_at: 2026-10-27 12:29Z
+heartbeat_at: 2026-10-27 12:40Z
 status: active
-focus: "Picked up after hv's compact (round 3): the stacking is live on hv's page since the 12:15:56Z restart onto f06241f83b56, and ic's watcher screenshots it for hv when two requests run at once; ISSUE:0659 filed for the NO_ENDPOINT wording; 0658's AC-02.6 wording and AT-02.6 re-cite follow the push; hold 12 is docs/reference at the 3.2.7 cut; claim ISSUE:0658; no push, no release"
-claims: [ISSUE:0658]
+focus: "Picked up after hv's compact (round 3): the stacking is live on hv's page and hv has the 12:37Z screenshot of two requests stacked under NOW; ST0086 and ISSUE:0658 are closed; ISSUE:0659 is open for the NO_ENDPOINT wording, in 3.2.7 unless hv defers it; hold 12 is docs/reference at the 3.2.7 cut; no push, no release"
+claims: []
 ---
 
 # Interface Claude (ic)
 
 ## DOING
 
-- ST0086 WP-04 Part B, the page face of AC-04.6 and the pipeline's cells, on vc's orders under decision 100. LANDED after judge run 3 was green: ic's page-v2 as eaad34d62 and cell-width-v4 as 6afbef147, each at its judged patch-id. Build all and an intentd restart followed on hv's "Unequivocally Yes.", so the 18rem cells are live on hv's page since 11:51:36Z on 7efc01183c27, and ic's live look at 11:53Z confirmed it. hv's words in ic's session, 2026-10-27, verbatim: "How come the pipeline _still_ looks like this? [a screenshot of the live pipeline] That is, with _ridiculously_ long tiles. How many build attempts have there been today and WHY was the fix to shorten the width of the tiles (and increase the height) not in _any_ of them?!? I just don't get it.", then "And when two jobs are running at the same time, they should stack vertically, not chain horizontally." THE STACKING: refs/bank/ic/0086/pipeline-stack-v1 (blob 95ceab615adb, patch-id 47e139be9fb3) passed vc's LIGHT targeted run 4 and landed as f08a5d20d with ic's CHANGELOG clause. It is LIVE on hv's page since the second build all and intentd restart (01M5YKR0JPP0V04F0JT3WVBK8Y): the new intentd (pid 6781) started at 12:15:56Z and ic's waiter saw it answering on f06241f83b56 at 12:16:44Z, both by date -u, the page it serves is main's shell.html (blob 8e7c98776046) byte for byte but for the {{VERSION}} and {{BUILD}} fills, and ic's headless render of hv's page at 12:18:37Z by date -u showed the new pair working, with nothing running. The page builds its running list from the whole queue (shell.html pipelineOf), so any two requests running at once stack under NOW, in any lanes. NEXT: ic's read-only watcher screenshots hv's page when two requests run at once; ic sends the screenshot to hv and its path to vc, and then this item is done. No claim: the work package is cc's. No push, no release. (edited)
-- ISSUE:0658, the estate page's plan usage (3.2.7 under decision 76; hv in ic's session, 2026-10-27: "Ok, do 1 and 2."). LANDED as a9cd50adc at its judged patch-id 629db68722c0 after judge run 3 was green (vc's landing chain, END 11:46Z by vc's clock), from refs/bank/ic/0658/v3 (blob 8b35ecc6c7db); v1 and v2 are superseded and kept, and tmp/wt-ic-0658's HEAD, cc's scratch tip e22661b78, is kept at refs/attic/ic/wt-ic-0658. Its CHANGELOG line rides the estate watch and statusline line, and its two MODULES.md sentences are in, both from vc's landing patch. It reaches the estate page with the build all and intentd restart vc asked as 01M5YJSA6WBSFQAX4SK9TQJCSY. OWED after the build and the push, in a chain: AC-02.6's wording and AT-02.6 re-cited with the new arms in both files; then ISSUE:0658 closes. design.md's four string replacements went in with cc's ST0086 store chain (a68374a07, design.md blob e2872f5b45d8), and ic read the result against its rehearsal. No push, no release. (edited)
+_(none)_
 
 ## TODO
 
