@@ -1240,6 +1240,89 @@ fn pending_names_the_waiting_ask_to_the_controller_and_nothing_to_others() {
   );
 }
 
+/// ST0086 AT-04.5
+///
+/// AC-04.5 through the binary: `estate init` renders a coordinator's working
+/// directory from the install's templates, the contract and the hooks, the
+/// hooks byte for byte the template every project gets; a re-run writes
+/// nothing, a file there that differs refuses the run, and so does a directory
+/// inside an Intent project (vc's rulings, 2026-10-26).
+#[test]
+fn estate_init_renders_a_coordinator_and_never_overwrites() {
+  let host = Host::new();
+  let desk = host.home.join("coordinator");
+  let first = host
+    .cmd()
+    .args(["estate", "init"])
+    .arg(&desk)
+    .output()
+    .expect("run estate init");
+  let out = ok_out(&first);
+  for name in ["AGENTS.md", "CLAUDE.md", ".claude/settings.json"] {
+    let line = format!("wrote: {}", desk.join(name).display());
+    assert!(out.lines().any(|l| l == line), "no `{line}` in:\n{out}");
+  }
+  assert_eq!(
+    std::fs::read(desk.join(".claude/settings.json")).expect("read the coordinator's settings"),
+    std::fs::read(testkit::repo_root().join("lib/templates/.claude/settings.json"))
+      .expect("read the project template's settings"),
+    "the coordinator's hooks are the project template's"
+  );
+  let agents = std::fs::read_to_string(desk.join("AGENTS.md")).expect("read AGENTS.md");
+  assert!(agents.contains("`intent estate control take`"), "{agents}");
+  assert!(!agents.contains("[["), "a token reached the file: {agents}");
+
+  let again = ok_out(
+    &host
+      .cmd()
+      .args(["estate", "init"])
+      .arg(&desk)
+      .output()
+      .expect("run estate init again"),
+  );
+  assert!(again.starts_with("ok: nothing changed"), "{again}");
+  assert!(!again.contains("wrote: "), "{again}");
+
+  std::fs::write(desk.join("CLAUDE.md"), "my own\n").expect("edit CLAUDE.md by hand");
+  let refused = host
+    .cmd()
+    .args(["estate", "init"])
+    .arg(&desk)
+    .output()
+    .expect("run estate init over an edit");
+  assert!(!refused.status.success());
+  assert!(
+    String::from_utf8_lossy(&refused.stderr)
+      .contains("differ from what `intent estate init` renders"),
+    "{}",
+    String::from_utf8_lossy(&refused.stderr)
+  );
+  assert_eq!(
+    std::fs::read_to_string(desk.join("CLAUDE.md")).expect("read CLAUDE.md"),
+    "my own\n",
+    "the edit stands"
+  );
+
+  let project_agents = std::fs::read(host.project.join("AGENTS.md")).ok();
+  let inside = host
+    .cmd()
+    .args(["estate", "init"])
+    .current_dir(&host.project)
+    .output()
+    .expect("run estate init inside a project");
+  assert!(!inside.status.success());
+  assert!(
+    String::from_utf8_lossy(&inside.stderr).contains("is inside an Intent project"),
+    "{}",
+    String::from_utf8_lossy(&inside.stderr)
+  );
+  assert_eq!(
+    std::fs::read(host.project.join("AGENTS.md")).ok(),
+    project_agents,
+    "nothing was written in the project"
+  );
+}
+
 /// ST0086 AT-04.6
 ///
 /// vc's condition on the prompt hook, through the binary: a controller record

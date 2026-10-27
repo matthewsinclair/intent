@@ -9847,6 +9847,22 @@
               "exposed_on_mcp": false
             }
           ]
+        },
+        {
+          "path": "estate init",
+          "help": "Render a dedicated coordinator's working directory: the coordinator's contract and the hooks a project gets",
+          "when_to_use": "USE IT once, when hv assigns a dedicated session to control the host's slots. `intent estate init [<dir>]` renders `AGENTS.md` and `CLAUDE.md`, the coordinator's contract (take control at session start, arm `intent estate slots watch` under a Monitor, judge asks against the lanes and the estate view, release control at session end), from Intent's own templates, and `.claude/settings.json` from the template every project gets, so a Claude Code session started there is the coordinator with only Intent installed. The directory is the current one unless named, and is made if absent. It refuses inside an Intent project, and refuses, writing nothing, when any of the three is there and differs from what it renders; a re-run over files that match writes nothing and says so. DO NOT USE IT to make a project's own session the controller: that session takes control with `intent estate control take`, and the prompt hook names its asks.",
+          "args": [{ "name": "dir", "type": "string", "arity": "0..1", "note": "The directory to render, made if absent; the current directory when none is named." }],
+          "v2": "new-surface",
+          "basis": "ST0086 design.md, The coordinator: `intent estate init [<dir>]` renders a dedicated coordinator's working directory from Intent's own templates (`lib/templates/estate/`, through the same token expander as every root file), with `.claude/settings.json` wiring the `intent claude hook` lifecycle hooks (AC-04.5; vc's rulings of 2026-10-26: read live from the install as the root files are, and refused over any of its files that differs).",
+          "owner_wp": "WP-04",
+          "target": { "state": "new-surface" },
+          "disposition": "new-surface",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate",
+          "recoverability": "idempotent",
+          "recoverability_anomaly": "IDEMPOTENT AND WITHHELD: a re-run over files that match writes nothing, which is the class MCP offers, but it writes a working directory's contract and hooks outside any project, and an agent makes a coordinator only because hv assigned one.",
+          "flags": []
         }
 
 
@@ -11439,6 +11455,10 @@
       {
         "path": "estate slots",
         "why": "writes WHEN INVOKED with the probe's values -- `estate slots ask <sentinel> <sentinel>` is a valid ask, and would queue a request under the operator's state directory that the page and the controller then read (ST0086 WP-04). And it NEVER RETURNS when invoked as `estate slots watch`, which reports every state change until its reader goes away (ST0086 AC-04.4)."
+      },
+      {
+        "path": "estate init",
+        "why": "writes WHEN INVOKED BARE outside a project -- it renders the coordinator's AGENTS.md, CLAUDE.md and .claude/settings.json into the current directory, or into the directory the probe's sentinel names (ST0086 AC-04.5)."
       }
     ],
     "declared": [
@@ -11613,6 +11633,7 @@
       "estate control",
       "estate lane",
       "estate slots",
+      "estate init",
       "search",
       "sync",
       "schema",
@@ -11794,6 +11815,7 @@
       "estate control",
       "estate lane",
       "estate slots",
+      "estate init",
       "search",
       "sync",
       "schema",

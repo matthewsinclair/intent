@@ -33,6 +33,7 @@ use crate::write_set::{WriteError, write_atomically};
 
 pub mod census;
 pub mod clock;
+pub mod coordinator;
 pub mod slots;
 pub mod usage;
 
@@ -102,6 +103,8 @@ pub enum EstateError {
   BadStatusline { why: String },
   #[error(transparent)]
   Slot(#[from] slots::SlotError),
+  #[error(transparent)]
+  Coordinator(#[from] coordinator::InitError),
 }
 
 impl crate::remedy::Remedy for EstateError {
@@ -117,6 +120,7 @@ impl crate::remedy::Remedy for EstateError {
       Self::BadPattern { .. } => "give a regular expression in Rust's `regex` syntax, matched against the process's whole command line. Nothing was written.".to_string(),
       Self::BadStatusline { .. } => "hand it the JSON Claude Code gives a statusline command, unchanged, on stdin. Nothing was written.".to_string(),
       Self::Slot(e) => e.remedy(),
+      Self::Coordinator(e) => e.remedy(),
       Self::NoLiveness { .. } => "prune must read which processes are running (`/bin/ps` on macOS, `/proc` on Linux) to tell a gone session from a live one, so nothing was removed. Run `intent estate status` to see what `ps` reported.".to_string(),
     }
   }
@@ -919,6 +923,16 @@ pub fn host_census_unwatch(class: &str) -> Result<bool, EstateError> {
 /// place they resolve, so the CLI and the facade cannot write two estates.
 pub fn host_slot_dirs() -> Result<(Dirs, PathBuf), EstateError> {
   Ok((crate::userstate::dirs()?, crate::userstate::claude_dir()?))
+}
+
+/// [`coordinator::init`] from the running install's templates (ST0086
+/// AC-04.5), `version` being the running tool's.
+pub fn host_coordinator_init(
+  dir: &Path,
+  version: &str,
+) -> Result<Vec<coordinator::Rendered>, EstateError> {
+  let home = crate::install::home().map_err(coordinator::InitError::from)?;
+  Ok(coordinator::init(dir, &home, version)?)
 }
 
 /// How many slot requests are running now, for intentd's census ring.

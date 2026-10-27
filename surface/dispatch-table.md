@@ -4665,6 +4665,7 @@ Every Claude session on this host: who it is, where it stands, and what it is do
 | `estate control`    | <verb> [arg]            | --hv <words>, --node <node>                                                                                                                                                       | Take, release or hold control of this host's slots: the controller alone grants, and holds stop every grant            | new-surface |
 | `estate lane`       | <verb> <lane> [arg]     | --type <type>, --capacity <n>, --load-under <load>, --node <node>                                                                                                                 | Open, close or hold a lane: a scarce resource with a running capacity that grants are checked against                  | new-surface |
 | `estate slots`      | <verb> [subject] [text] | --lane <lane,...>, --named <k=v,...>, --tag <tag,...>, --not-before <id,...>, --hold <condition>, --place-of <id>, --result <text>, --relayed, --timeout <seconds>, --node <node> | Ask for a slot, wait for the answer and run in it, or, as the controller, grant, deny or revoke one and watch them all | new-surface |
+| `estate init`       | [dir]                   | --                                                                                                                                                                                | Render a dedicated coordinator's working directory: the coordinator's contract and the hooks a project gets            | new-surface |
 
 ### `estate`
 
@@ -4901,6 +4902,23 @@ Ask for a slot, wait for the answer and run in it, or, as the controller, grant,
 - **basis:** ST0086 design.md, Slots and lanes: requests as the fold of files, one writer per file, the capacity refusal, the named-set match and the not-before gate (vc decision 88, amended on molt-vc's read).
 - **owner wp:** WP-04
 - **recoverability:** one-way
+
+### `estate init`
+
+Render a dedicated coordinator's working directory: the coordinator's contract and the hooks a project gets
+
+- **v2:** new-surface
+- **Arguments:**
+  - `dir` (string, arity `0..1`)
+    - The directory to render, made if absent; the current directory when none is named.
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** not exposed -- **mutates**
+- **when to use:** USE IT once, when hv assigns a dedicated session to control the host's slots. `intent estate init [<dir>]` renders `AGENTS.md` and `CLAUDE.md`, the coordinator's contract (take control at session start, arm `intent estate slots watch` under a Monitor, judge asks against the lanes and the estate view, release control at session end), from Intent's own templates, and `.claude/settings.json` from the template every project gets, so a Claude Code session started there is the coordinator with only Intent installed. The directory is the current one unless named, and is made if absent. It refuses inside an Intent project, and refuses, writing nothing, when any of the three is there and differs from what it renders; a re-run over files that match writes nothing and says so. DO NOT USE IT to make a project's own session the controller: that session takes control with `intent estate control take`, and the prompt hook names its asks.
+- **basis:** ST0086 design.md, The coordinator: `intent estate init [<dir>]` renders a dedicated coordinator's working directory from Intent's own templates (`lib/templates/estate/`, through the same token expander as every root file), with `.claude/settings.json` wiring the `intent claude hook` lifecycle hooks (AC-04.5; vc's rulings of 2026-10-26: read live from the install as the root files are, and refused over any of its files that differs).
+- **owner wp:** WP-04
+- **recoverability:** idempotent
+- **recoverability anomaly:** IDEMPOTENT AND WITHHELD: a re-run over files that match writes nothing, which is the class MCP offers, but it writes a working directory's contract and hooks outside any project, and an agent makes a coordinator only because hv assigned one.
 
 ## Known exposures -- defects this file does not have, and is not protected against
 

@@ -772,6 +772,17 @@ slots/holds/<id>.json and <id>.unheld.json on hold and unhold, and nothing else 
     "one file of $XDG_STATE_HOME/intent/estate/slots/requests/<id>/ per verb, written once: \
 ask.json, grant.json, deny.json, revoke.json, start.json or end.json, and nothing else (ST0086 WP-04).",
   ),
+  // `estate init` writes no state directory: it renders the directory its
+  // caller names, outside every project.
+  (
+    "estate init",
+    "AGENTS.md and CLAUDE.md, the coordinator's contract rendered from Intent's own templates, and \
+.claude/settings.json from the template every project gets, all in <dir> (the current directory \
+unless one is named, made if absent), and nothing in any project: it refuses inside one, and \
+refuses, writing nothing, over any of the three that is there and differs from what it renders, \
+while a re-run over files that match writes nothing (ST0086 WP-04). intent-cli's \
+`estate_surface.rs` drives the writes, the re-run and both refusals.",
+  ),
 ];
 
 /// **SHIPPED, WIRED, CLASSIFIED `mutate` ON THE SURFACE -- AND DRIVEN, THEY

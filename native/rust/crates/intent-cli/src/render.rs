@@ -10284,6 +10284,7 @@ fn estate(m: &ArgMatches) -> Result<(), Failure> {
     Some(("control", sm)) => estate_control(sm),
     Some(("lane", sm)) => estate_lane(sm),
     Some(("slots", sm)) => estate_slots(sm),
+    Some(("init", sm)) => estate_init(sm),
     Some((verb, _)) => unwired("estate", verb),
     None => unwired("estate", ""),
   }
@@ -11628,6 +11629,37 @@ fn slots_pending() -> Result<(), Failure> {
   println!(
     "Judge each against the lanes and the load in `intent estate status`: `intent estate slots grant <id> --lane <lane>,...` grants it, and `intent estate slots deny <id> \"<why>\"` refuses it."
   );
+  Ok(())
+}
+
+/// `intent estate init [<dir>]` (ST0086 AC-04.5): renders a dedicated
+/// coordinator's working directory, the current directory when none is named.
+///
+/// **THE `ok:` LINE, THEN ONE LINE PER FILE**: `wrote:` for a file this run
+/// wrote and `unchanged:` for one already as rendered, so a re-run over files
+/// that match says it wrote nothing.
+fn estate_init(a: &ArgMatches) -> Result<(), Failure> {
+  let dir = match opt(a, "dir")? {
+    Some(dir) => std::path::PathBuf::from(dir),
+    None => std::env::current_dir().map_err(|e| {
+      Failure::Error(format!(
+        "error: the current directory could not be read: {e}\n  remedy: name the directory, `intent estate init <dir>`"
+      ))
+    })?,
+  };
+  let rendered = intentsvcs::estate::host_coordinator_init(&dir, env!("CARGO_PKG_VERSION"))
+    .map_err(estate_fail)?;
+  if rendered.iter().any(|r| r.wrote) {
+    println!(
+      "ok: a coordinator's working directory: start Claude Code there to take control of this host's slots"
+    );
+  } else {
+    println!("ok: nothing changed");
+  }
+  for r in &rendered {
+    let kind = if r.wrote { "wrote" } else { "unchanged" };
+    println!("{kind}: {}", r.path.display());
+  }
   Ok(())
 }
 

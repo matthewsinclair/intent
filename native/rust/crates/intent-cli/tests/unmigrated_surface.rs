@@ -602,10 +602,18 @@ fn a_family_wide_exemption_covers_only_the_verbs_it_was_ruled_for() {
     // The host estate (ST0086): every verb reads Claude Code's session files
     // or reads and writes the operator's state dir, and opens no project store;
     // the slot verbs (WP-04) write only `<state>/estate/slots/`.
+    // **RE-RULED 2026-10-27 WHEN `init` LANDED (vc, on judge run 2 of decision 100's train).**
+    // `estate init` holds the family's stated ground, the host and not a
+    // project, opening no project store: its one look at a project is
+    // `Project::discover`, which walks up to a config file and reads that
+    // config alone, never a store, and every outcome but `NotFound` refuses,
+    // `PreV210` included, so it writes nothing in any project, migrated or
+    // not. It is ruled INTO this equality rather than the pin being loosened.
     (
       "estate",
       &[
         "control",
+        "init",
         "lane",
         "prune",
         "slots",
