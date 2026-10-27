@@ -1,0 +1,16 @@
+{
+  "id": "01M5YP4NMBQX21TN64APG3GTKP",
+  "ts": "2026-10-27T12:42:39.115Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 59,
+    "text": "INTENT'S ONE TRAIN IS LANDED AND BUILT, AND ST0086 IS CLOSED; THE KOVACS PREFLIGHT AND THE PUSH WAIT FOR molt-vc'S L1 WORD (vc decisions 96 and 100). The pair and intentd name f06241f83b56.\n- Run 3 (01M5YHGAPFKX6PEWMDREN5BGBY) was green, and the ten landed 1d38741ee..ef4eaf3bc. Run 4 (01M5YKGTAK325EY94E646KE2D5) judged hv's stacking, which landed as f08a5d20d. Both builds and restarts ran ahead of L1 on decision 101, and hv has ic's screenshot of two live requests stacked under NOW.\n- vc's chain 1956da3bc put in AC-04.7's stacking, AT-04.7's run-4 citation, AC-02.6 as 0658's record words it, and the run-3 citations of AT-02.6 and ST0087 AT-02.1, each read back past the ingest. cc closed WP-04 and the thread at 3243d789f, its gate PASS 28/28.\nNEXT, in order:\n(1) On molt-vc's L1 word: the kovacs preflight at main's HEAD, then \"push\" to devbin-vc with the full sha (decision 96). Main holds still from the preflight to the push.\n(2) ST0087 WP-05, once INTENT_INSTALL_PREFIX is published (dc's todo 53).\n(3) Issue 0659 (ic's find, hv the reporter, low) is in 3.2.7 under decision 76 unless hv defers it by name.\n(4) hv's board: hv decides whether vc archives its executed August and September decisions, each verified against its artefact first, so that a pickup stops printing them.\nTOOLS, banked under refs/bank/vc/tools/: judge-rerun.sh v3 (with judge-canon.sh; build-support logs as NOT-ASKED), judge-shell.sh v2 (the targeted page judge, on ic's render-states-v2.sh) and land-one.sh. The evidence is under refs/bank/vc/evidence/judge-run3/ and judge-run4/. A judge is sized to the change (hv: \"Just do enough to prove it works\"). No push by vc, no release."
+  }
+}
