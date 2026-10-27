@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 42695459-0b6e-4f49-a7b4-96cfd9ab52ab
-heartbeat_at: 2026-10-27 08:01Z
+heartbeat_at: 2026-10-27 08:16Z
 status: active
 focus: "FOLDED for hv's compact (2026-10-27), holding for L2: Part B's six-bank train (doing 96) runs first when molt-vc opens L2; 0657 v2 (doing 97) and ST0081 WP-02 v1 (doing 98) are banked over e22661b78, verified and booked by vc for the train after it; worktree removals wait for molt-vc's Spotlight word, under decision 98; after the compact, /in-session and carry on; no push, no release"
 claims: [ST0081, ST0086/04, ISSUE:0657]
