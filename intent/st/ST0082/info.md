@@ -38,6 +38,8 @@ hv's Ubuntu VM proves Linux and does not prove WSL (ST0081's context), so this t
 
 Out of scope: a native Windows build.
 
+DEFERRED PAST 3.2.7 (hv, 2026-10-27, by selection in vc's TUI; vc decision 99). This thread is new surface and no one is working on it, so it is deferred on the record that decision 76 asks for. It stays in Triage, because `intent st hold` is declared only from Not Started and WIP, and it resumes after the 3.2.7 cut on hv's word.
+
 ## Work Packages
 
 | WP    | Title                                   | Size | Status      |

@@ -1,0 +1,15 @@
+{
+  "id": "01M5Y5RF9ZD7681CF5ZVG3TSSZ",
+  "ts": "2026-10-27T07:56:22.208Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-10-27, hv's selections in the TUI vc asked, between vc's clock reads of 07:53Z and 07:55Z; wording vc's, each choice hv's; vc's recommendation taken on all four; each premise measured before the question) FOUR RULINGS. (1) \"Confirm both (Recommended)\": hv confirms the two rulings vc made under the pen this morning. Hold 33's release stands, so ST0081 WP-02 is built for 3.2.7 (decision 97(3)), and 0657's shape stands as ruled in its record. (2) \"Defer 4; ST0085 waits (Recommended)\": ST0060 (intent vault), ST0077 (Level 3 references only the toolchain sees), ST0082 (Windows through WSL 2) and ST0084 (moving the parity tooling out of ST0056) are deferred past 3.2.7, on the record that decision 76 asks for. Each stays in Triage. `intent st hold` is declared only from Not Started and WIP, and moving a thread through Not Started would assert an acceptance hv did not make. So vc wrote the deferral into each thread's own context at 07:56Z. ST0085, passive prompt injection, stays in Triage until hv has read ic's inventory, its WP-01, which is Done. Then hv says in or out. (3) \"I'll add it now (Recommended)\": hv is adding ~/Devel to Spotlight's privacy list. At 07:53Z mdfind still returned files under ~/Devel/prj/Intent. Under decision 94(3), molt-vc's word releases the stale-worktree removals, and vc relays it after re-measuring. (4) \"Yes, /tmp for this drive (Recommended)\": dc's 0632 drive (todo 50 (a)) may make its throwaway HOME at /tmp/d632.XXXXXX, because a scratchpad HOME pushes intentd's socket path past macOS's 104-byte cap. It writes nothing outside that HOME and removes it when the drive ends. That holds for that drive only."
+  }
+}
