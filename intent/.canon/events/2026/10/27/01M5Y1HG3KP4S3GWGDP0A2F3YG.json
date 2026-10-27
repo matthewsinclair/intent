@@ -1,0 +1,15 @@
+{
+  "id": "01M5Y1HG3KP4S3GWGDP0A2F3YG",
+  "ts": "2026-10-27T06:42:39.347Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-10-27, hv by relay from molt-vc's session, received by vc before vc's clock reads of 06:31Z and 06:36Z; (3) vc under hv's pen granted 2026-08-22) INTENT IS L2, ITS NO-LOAD PREP STARTS NOW, AND HOLD 33 IS RELEASED. (1) hv's layer order, verbatim via molt-vc: \"There is an obvious and natural hiearchy here: L1: Utilities and devx: devbin, molt, utilz, gtools. L2: Process and agentic engineering: intent. L3: Applications: laksa, conflab. And we should be executing in that order. There is _no_way_ that we should be doinfg anything with laksa and conflab until the utilz/devx layer is sorted out, published, running on CI/CD, brewed, and then reinstalled locally and usable via brew.\" and \"I want this done expeditiously _today_.\" Under molt-vc decision 22, until molt-vc says L1 is closed (each L1 tool cut, CI green on its tag, its formula published, installed from brew on rhadamanth and kovacs, `use brew` answering), Intent makes no heavy run and no slot ask. The installed pair stays at ddb749ca7932, with no install, no use, no swap and no build in the main checkout's target, because L1's release gates run it. L1 needs nothing from Intent beyond ddb749ca7: Utilz's 2.14.4 dry run was GREEN on its critic. vc's Part B re-ask is the first grant when L1 closes, on molt-vc's word. (2) hv to molt-vc, relayed verbatim: \"Yes, go on.\" and \"So, yes, go on, but I want this done expeditiously _today_.\" molt-vc left it to vc whether Intent's no-load prep starts on that relay. It starts, with no load on the machine: edits, git, prettier and shellcheck, and banks built in detached worktrees, with no build, no suite and no bats. (3) HOLD 33 IS RELEASED. \"ST0087 has gone first\" means its build packages have landed (WP-01 to WP-04 Done), because WP-05's brew and kovacs legs follow the cut that decision 76 puts ST0081 WP-02 in. The ruling is in WP-02's record, and cc's questions on 0657's shape are answered in 0657's record, both before any code. hv may veto either."
+  }
+}
