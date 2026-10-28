@@ -1,0 +1,16 @@
+{
+  "id": "01M61V2XX07PRWXP4A49HTCQ12",
+  "ts": "2026-10-28T18:06:48.224Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "seq": 103,
+    "text": "(2026-10-28, hv first-hand in vc's session, before vc's clock read of 18:02Z; the ratings are vc's, the rulings hv's) THE OPEN WORK IS RATED P0 TO P4, AND HV RULED. vc rated every open item. hv answered, verbatim: \"I agree with everything except: P2: if its small enough to ride, then do it / ST0060: it's a defer, not a why is this here. / ST0082: similar, defer for now rather than throw away\". The rulings:\n(1) P0 is the cut chain in doing 59.\n(2) ST0081 AC-02.1 is proven by the 3.2.7 release object.\n(3) ALL OF ST0087 AC-05.1 (dev, opt and brew) RUNS IN ONE RUN AFTER THE CUT, then AC-05.2 on kovacs. The pre-cut AC-05.1 step leaves the chain.\n(4) 0661 RIDES 3.2.7 ONLY IF SMALL. cc measured it M at 18:05Z: seven listed-and-refused flags per slots verb, the same in estate control and lane, and a dispatch-table shape change to fix. So it is DEFERRED PAST 3.2.7, with shape (B) on its record, and the stopgap is declined.\n(5) 0649, 0650, 0651 and 0660 ARE DEFERRED PAST 3.2.7, each recorded on its issue as 76(4) asks. 0659, ST0089 and ST0085 were already deferred.\n(6) ST0060 and ST0082 stay deferred (hv). ST0077 and ST0084 were vc's guessed P4s. Read after hv's answer, both are real work (level-3 references for fields, consts and fn values; moving the live guards out of ST0056 so completed threads can dehydrate), so vc keeps them deferred under decision 99 rather than cancelling them. Nothing is cancelled."
+  }
+}
