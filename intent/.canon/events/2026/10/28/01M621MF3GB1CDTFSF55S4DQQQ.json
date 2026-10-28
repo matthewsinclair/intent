@@ -1,0 +1,16 @@
+{
+  "id": "01M621MF3GB1CDTFSF55S4DQQQ",
+  "ts": "2026-10-28T20:01:14.352Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 50,
+    "text": "3.2.7 cut-side: after the build all at HEAD, re-run (a) the 0632 drive and (b) the known-defects re-drive on the new pair, then (c) the cut's --dry-run beside hv."
+  }
+}
