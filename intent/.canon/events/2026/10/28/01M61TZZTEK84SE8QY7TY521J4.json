@@ -1,0 +1,16 @@
+{
+  "id": "01M61TZZTEK84SE8QY7TY521J4",
+  "ts": "2026-10-28T18:05:11.886Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 53,
+    "text": "ST0087 WP-05, dc's and claimed by dc as ST0087/05, with vc judging its records against their ACs and holding no claim (vc, 2026-10-27): the proof, per tree, on rhadamanth and kovacs; it ends on brew. Its shape is vc's todo 66, which carries dc's env -i base. THE SCRIPTS ARE BANKED, verified by vc by diff on 2026-10-27: refs/bank/dc/0087-05/legs-v3.zsh 02c3db341df3, ac051-v2.sh c4098aaa90b8, ac053.sh ff5f36227d5c, record-v3.sh 2c80deb70fe2 and attach.sh dba0086eb2d2. vc also accepted record-v4.sh 9c2a0efab4db, record-v3 plus NOTES=<file>: a prose section that the same checks judge. The run directory is 0087-05/run in dc's scratchpad, each file byte-identical to its blob, and its READY.txt lists each sha256. AC-05.3 RAN IN ALL THREE OF DEVBIN'S TREES ON 2026-10-27, each in its own light slot at molt-vc's desk, and each passed: brew at 15:34Z (refs/bank/dc/0087-05/out/ac053-brew.txt d4334f5757c0), opt at 15:49Z (ac053-opt.txt bd984b68fb40) and dev at 15:51Z (ac053-dev.txt ee016c5b606b). opt and dev ran inside devbin-vc's devbin-leg.sh (sha256 25aede7003bd), started from a bare login shell, and each ended BREW RESTORED. A first opt attempt started the wrapper from the agent session, whose PATH puts Homebrew's bin first, so `devbin use opt` refused the link as shadowed before the leg ran; that says nothing about the trees. opt's upgrade moved its clone backwards, writing 0.1.14 over a vendored 0.1.15 after a 'cannot tell' warning. The AC still holds, and devbin-vc is filing that as a devbin issue (low, not in 0.1.16). THE RECORD, refs/bank/dc/0087-05/records/wp05-ac053.md e65e63a20954, verified by vc against AC-05.3, is ATTACHED to ST0087 as wp05-ac053.md in dc's chain of 2026-10-27, proved past the ingest. AC-05.3 IS SATISFIED: vc satisfied it on that record in its fold, 44b95ff55 (2026-10-28). AC-05.1 RUNS AFTER THE CUT, ALL THREE TREES IN ONE RUN (hv's ruling, vc decision 103 (3), f03a442bd, 2026-10-28): dev, opt and brew together, then AC-05.2 on kovacs. The pre-cut AC-05.1 step has left the chain. molt-vc published INTENT_INSTALL_PREFIX=/Users/matts/Devel/opt/intent to ~/.config/molt/env.sh at 05:13Z on 2026-10-28, so fresh login shells carry it. The run goes in its own slot from a bare login shell, with START and END to every estate's vc, since install publishes opt and every use restarts the shared intentd. Run tests only in trees that contain 9109e59eb. No push, no release. WP-05 IS WIP since e6d02c211; AC-05.1 and AC-05.2 stay unsatisfied until vc has read their records."
+  }
+}
