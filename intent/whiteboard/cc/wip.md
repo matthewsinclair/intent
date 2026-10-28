@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 42695459-0b6e-4f49-a7b4-96cfd9ab52ab
-heartbeat_at: 2026-10-28 13:45Z
+heartbeat_at: 2026-10-28 15:50Z
 status: active
-focus: "FOLDED (round 7, 2026-10-28) for hv's move, not released, holding until hv is home and says go: ra-target/v2 is banked and reviewed and lands at Intent's turn with land-one.sh, judged inside the build-all slot (doing 100); ST0081 WP-02 waits on hv's AC-02.1 reading at the 3.2.7 cut (doing 98); no push, no release"
+focus: "Holding for molt-vc's word that it is Intent's turn (desk order devbin, Molt, Gtools, then Intent): ra-target/v2 is banked and reviewed and lands at Intent's turn with land-one.sh, judged inside the build-all slot (doing 100); ST0081 WP-02 waits on hv's AC-02.1 reading at the 3.2.7 cut (doing 98); no push, no release"
 claims: [ST0081]
 ---
 
