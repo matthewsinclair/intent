@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a3784f83-17e6-4dd3-bc37-0049e71bd0b4
-heartbeat_at: 2026-10-28 13:49Z
+heartbeat_at: 2026-10-28 15:49Z
 status: active
 focus: "Folded (round 7, 2026-10-28) for hv's move, not released, holding: nothing starts until hv is home and says go. Then Intent waits for its turn after Utilz, devbin, Molt and Gtools in hv's one-project-at-a-time order, on molt-vc's word, and runs the chain in doing 59: ra-target/v2 lands; one slot runs build all at HEAD with the full judge; AC-05.1; dc's todo 50; ic's hold 12; the kovacs preflight and the push; the cut's --dry-run beside hv. No push by vc, no release"
 claims: []
