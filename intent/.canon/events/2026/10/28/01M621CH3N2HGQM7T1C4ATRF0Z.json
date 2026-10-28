@@ -1,0 +1,16 @@
+{
+  "id": "01M621CH3N2HGQM7T1C4ATRF0Z",
+  "ts": "2026-10-28T19:56:54.261Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "seq": 31,
+    "text": "NEVER truncate the output of `git remote -v` (hv, 2026-10-23): read and quote it whole."
+  }
+}

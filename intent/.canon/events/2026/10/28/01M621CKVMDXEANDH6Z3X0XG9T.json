@@ -1,0 +1,16 @@
+{
+  "id": "01M621CKVMDXEANDH6Z3X0XG9T",
+  "ts": "2026-10-28T19:56:57.076Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "seq": 78,
+    "text": "(hv confirmed, 2026-10-25) Intent adopts devbin 0227's shared formula renderer after 3.2.7, once it takes the assets shape."
+  }
+}

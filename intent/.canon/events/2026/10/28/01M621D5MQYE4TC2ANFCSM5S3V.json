@@ -1,0 +1,16 @@
+{
+  "id": "01M621D5MQYE4TC2ANFCSM5S3V",
+  "ts": "2026-10-28T19:57:15.287Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 66,
+    "text": "After the cut: ST0087 AC-05.1 (dev, opt, brew) in one run with dc, then AC-05.2 on kovacs and AC-02.1 from the release object."
+  }
+}

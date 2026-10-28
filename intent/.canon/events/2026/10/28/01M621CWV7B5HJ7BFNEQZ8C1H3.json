@@ -1,0 +1,16 @@
+{
+  "id": "01M621CWV7B5HJ7BFNEQZ8C1H3",
+  "ts": "2026-10-28T19:57:06.636Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 59,
+    "text": "3.2.7 on Intent's turn (molt-vc's word): land ra-target/v2; build all and the full judge in one slot; dc todo 50; ic hold 12; kovacs preflight and devbin-vc's push; --dry-run beside hv, then hv's cut."
+  }
+}

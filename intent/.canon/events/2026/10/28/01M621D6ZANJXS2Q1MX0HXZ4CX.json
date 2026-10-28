@@ -1,0 +1,16 @@
+{
+  "id": "01M621D6ZANJXS2Q1MX0HXZ4CX",
+  "ts": "2026-10-28T19:57:16.650Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 69,
+    "text": "After the cut: `intent claude upgrade --apply --skip-settings` here, committing its wrote: paths."
+  }
+}

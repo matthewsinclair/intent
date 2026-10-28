@@ -1,0 +1,16 @@
+{
+  "id": "01M621D4BMQ2M23HRYAP9QDB2R",
+  "ts": "2026-10-28T19:57:13.972Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "seq": 103,
+    "text": "(hv, 2026-10-28) P0 is doing 59; every open issue and ST0060, ST0077, ST0082, ST0084, ST0085 and ST0089 are deferred past 3.2.7; nothing is cancelled."
+  }
+}

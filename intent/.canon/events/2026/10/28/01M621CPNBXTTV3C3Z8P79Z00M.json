@@ -1,0 +1,16 @@
+{
+  "id": "01M621CPNBXTTV3C3Z8P79Z00M",
+  "ts": "2026-10-28T19:57:00.037Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "seq": 80,
+    "text": "(hv, 2026-10-25) Brew by default; dev or opt only while working on that project, and switch back to brew after its release."
+  }
+}

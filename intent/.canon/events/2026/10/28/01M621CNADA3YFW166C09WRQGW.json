@@ -1,0 +1,16 @@
+{
+  "id": "01M621CNADA3YFW166C09WRQGW",
+  "ts": "2026-10-28T19:56:58.573Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "seq": 79,
+    "text": "(2026-10-25) Every Intent judge runs `intent critic` on each changed .rs and shell file as a leg; red on warning or above; no planted positives."
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "01M621CFQN643VQJZ85647GW23",
+  "ts": "2026-10-28T19:56:52.853Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "seq": 70,
+    "text": "(hv, 2026-10-23) Molt never touches Intent on rhadamanth except `intent issues add|edit`, committing only what the verb wrote; no repo commits Python."
+  }
+}
