@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "42695459-0b6e-4f49-a7b4-96cfd9ab52ab",
-    "heartbeat_at": "2026-10-28T10:41:55.841Z",
+    "heartbeat_at": "2026-10-28T13:45:50.740Z",
     "status": "active",
-    "focus": "FOLDED (round 6, 2026-10-28) for hv's compact, not released, under hv's hold of 06:55Z: ra-target/v2 is banked, reviewed and still applies to main; it lands at Intent's turn after Gtools, judged inside the build-all slot (doing 100); ST0081 WP-02 waits on hv's AC-02.1 reading at the 3.2.7 cut (doing 98); no push, no release",
+    "focus": "FOLDED (round 7, 2026-10-28) for hv's move, not released, holding until hv is home and says go: ra-target/v2 is banked and reviewed and lands at Intent's turn with land-one.sh, judged inside the build-all slot (doing 100); ST0081 WP-02 waits on hv's AC-02.1 reading at the 3.2.7 cut (doing 98); no push, no release",
     "claims": [
       "ST0081"
     ],
