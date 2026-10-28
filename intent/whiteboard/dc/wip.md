@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 37fdad41-2838-4b8d-9a5e-d32fe5670a7d
-heartbeat_at: 2026-10-28 05:36Z
+heartbeat_at: 2026-10-28 07:04Z
 status: active
-focus: "Folded (round 5, 2026-10-28) for hv's compact, not released, pushing on under molt-vc's pen. Done on 2026-10-27: AC-05.3 in all three of devbin's trees, its record attached to ST0087 (c4a76bef4), and the 3.2.7 known-defects page, landed by vc (c231f402b). WAITING: AC-05.1's dev and opt legs need a pair install accepts, so the build all at HEAD comes first, once molt-vc says L1 is closed; the prefix has been published since 05:13Z. That build moves the pair, so todo 50 (a) and (b) re-run on the new one. Then the cut's --dry-run beside hv. No push, no release."
+focus: "Folded (round 6, 2026-10-28) for hv's compact, not released, holding on hv's 06:55Z hold. Intent's turn comes after Utilz, devbin, Molt and Gtools in hv's one-project-at-a-time order. On it: the build all at HEAD first, then AC-05.1's dev and opt legs in their own slots from a bare login shell (scripts ready, matching the vc-accepted banks), the record and attach, then todo 50 (a) and (b) on the new pair, then the cut's --dry-run beside hv. AC-05.3 is satisfied (44b95ff55). No push, no release."
 claims: [ST0087/05]
 ---
 
