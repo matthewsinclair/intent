@@ -1,5 +1,5 @@
 ---
-verblock: "2026-10-28:v3.35: vc - hv's P0 to P4 triage, five issues deferred, 0661 measured M"
+verblock: "2026-10-28:v3.36: vc - round-8 fold, deferred threads Not Started, hold"
 intent_version: 3.2.6
 ---
 
@@ -17,7 +17,7 @@ Intent is L2 under hv's layer order of 2026-10-27 (vc decision 97, molt-vc decis
 ## TODO
 
 - **3.2.7's cut** (decision 76: one release): dc's cut-side work (todo 50), ic's docs/reference at the cut (hold 12), the Linux check on kovacs through kovacs-sysadm, and hv's cut at the terminal. After it: `intent claude upgrade --apply --skip-settings` here (vc todo 69), AC-05.1's brew leg as hv's switch back to brew (decision 80), AC-05.2 on kovacs, AC-02.1 from the release object, and every estate's own upgrade, run by its vc.
-- **DEFERRED PAST 3.2.7:** ST0085, by molt-vc under hv's pen (fc5931c44). It stays in Triage until hv has read ic's inventory (its WP-01, Done), and hv can overrule on return. ST0060, ST0077, ST0082 and ST0084 were deferred by hv (decision 99). Each carries the deferral in its own context.
+- **DEFERRED PAST 3.2.7:** ST0085, by molt-vc under hv's pen (fc5931c44). It waits until hv has read ic's inventory (its WP-01, Done). ST0060, ST0077, ST0082 and ST0084 were deferred by hv (decision 99), and ST0089 below too. On hv's order of 2026-10-28 all six are Not Started, not Triage, each with its deferral and a target after 3.2.7 in its own context (60a794239).
 - **ST0089, THE LOCALFOLD+COMPACT POLICY (hv, 2026-10-27):** raised by vc as the policy's home. A session folds at a task boundary, then resets with `/clear` by default, and uses `/compact` only for state not yet written down. Every localfold and EOD fold clears out what is spent, so that a pickup prints only live state (hv, vc decision 102), and the policy names who folds hv's board, and when. Its first measurement is a `/clear` on one node at a quiet fold, reading the session id, the gate, the node's identity and the scratchpad. hv: it is built after 3.2.7's cut.
 - **AFTER 3.2.7, low, each deferred by hv on its record:** 0649, 0650, 0651 and 0660 (vc decision 103), 0661 (measured M, so it did not ride: vc decision 103 (4)), 0659 (vc decision 102), making the critic contract readable to installed subagents (decision 89), and why the shared intentd ran at 33 to 65% CPU on 2026-10-27's afternoon (gtools-vc's samples, via molt-vc).
 - **CARRIED, NOT RE-MEASURED TODAY:** hv's hand on Trellis's session hooks, Cdtempl's uncommitted work, the gyges clean-Mac re-proof and the Sinclair-Shared book recreate; hv decision 28's Conflab and Baize repairs; ic's `/refresh` in the explorer; a brew ruby on kovacs (vc todo 69).
