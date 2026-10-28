@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 42695459-0b6e-4f49-a7b4-96cfd9ab52ab
-heartbeat_at: 2026-10-28 05:27Z
+heartbeat_at: 2026-10-28 05:37Z
 status: active
 focus: "FOLDED (round 5, 2026-10-28) for hv's compact, not released: ra-target/v2 is banked and reviewed, landing in vc's next chain (doing 100); ST0081 WP-02 waits on hv's AC-02.1 reading at the 3.2.7 cut (doing 98); no push, no release"
 claims: [ST0081]
