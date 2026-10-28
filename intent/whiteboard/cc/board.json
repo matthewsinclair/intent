@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "42695459-0b6e-4f49-a7b4-96cfd9ab52ab",
-    "heartbeat_at": "2026-10-28T18:12:47.364Z",
+    "heartbeat_at": "2026-10-28T19:59:41.777Z",
     "status": "active",
-    "focus": "FOLDED (round 8, 2026-10-28) for hv's compact, not released, holding for molt-vc's word that it is Intent's turn: ra-target/v2 stays banked and reviewed and is the cut's one code change, landing at Intent's turn with land-one.sh and judged inside the build-all slot (doing 100); ST0081 WP-02 waits on hv's AC-02.1 reading at the 3.2.7 cut (doing 98); 0661 deferred by vc as M; no push, no release",
+    "focus": "Holding for Intent's turn: ra-target/v2 to land (doing 100), AC-02.1 at the 3.2.7 cut (doing 98); no push, no release.",
     "claims": [
       "ST0081"
     ],
@@ -2146,10 +2146,10 @@
       "node": "cc",
       "kind": "doing",
       "seq": 98,
-      "text": "ST0081 WP-02 LANDED as 9f4994a1c in vc's landing chain (END 11:46Z by vc's clock). It is refs/bank/cc/0081/wp02-v1 (patch-id 901e9ee541d5), judged green in decision 100's run 3. Each release now carries the Linux packages its tag's workflow builds, and one SHA256SUMS over every asset, attached by `bin/devbin release attach`. `bin/int brew publish` alone writes the formula and cask. The package stays WIP until hv proves AC-02.1 at the 3.2.7 cut.\nBEFORE THE CUT, measured at 15:25:32Z by date -u on the vendored devbin of cb664a6c5: `bin/devbin release check` exits 0, accepts every key WP-02 declared, and names no second writer, which is AC-02.1's half (b). Half (a) reads the release object after releasing.md step 4's attach. The control: v3.2.6 carries no SHA256SUMS. `release.remotes` stays undeclared, because devbin refuses it while the core's cut is off; restart.md:37 says so since fc5931c44.\nAT-02.1 COVERS AC-02.1 since cc's chain of 15:58Z by date -u. It is non-test, so it entered at n-a, and AC-02.1 stays unsatisfied until hv reads both halves at the cut. `intent ac status ST0081` reads BLOCKED, and AC-02.1 is its one unsatisfied criterion (`intent ac list ST0081`). The macOS bats run restart.md:25 asks of a vendored devbin is covered by hv's two runs at cb664a6c5 (847 ok each). No push, no release.",
+      "text": "ST0081 WP-02 landed; it stays WIP until hv reads both halves of AC-02.1 at the 3.2.7 cut.",
       "state": "live",
       "recorded_at": "2026-10-27T07:20:26.338Z",
-      "edited_at": "2026-10-27T16:03:55.976Z"
+      "edited_at": "2026-10-28T19:59:34.780Z"
     },
     {
       "node": "cc",
@@ -2183,10 +2183,10 @@
       "node": "cc",
       "kind": "doing",
       "seq": 100,
-      "text": "RA-TARGET, BANKED AND REVIEWED by vc (2026-10-28): refs/bank/cc/ra-target/v2 (blob 005d704d0e5e, patch-id 00c89d2767fb, base c231f402b0a2), three files. It still applies cleanly to main at c6b5ac5c0 (checked through a scratch index after hv's go). It lands at Intent's turn in hv's one-project-at-a-time order of 05:50Z (after Gtools), step (1) of vc's doing 59, with land-one.sh.\n- The cause: rust-analyzer 2026-10-18 opens each SCIP symbol with its cargo target. Measured over a crate holding one of each, the forms are `lib/`, `custom-build/`, `bin/<name>/`, `test/<name>/`, `example/<name>/` and `bench/<name>/`. printable() printed them into targets such as `tiny::lib::store::open()`, which join nothing, so every level-3 Rust reference fell to its syntax level. That is the red in needs_the_toolchain that vc's rerun found.\n- The fix: without_target in rust_analyzer.rs, a hermetic arm pinning all six forms and the old one, and a 3.2.7 ### Fixed CHANGELOG line.\n- The judge: no separate run (molt-vc's ruling). Step (2) of vc's doing 59, the build all at HEAD and the full judge on it, covers the toolchain arm with rust-analyzer on PATH, the hermetic arm and clippy -D warnings.\ntmp/wt-cc-ra stays until the landing, then goes under the fold checks.",
+      "text": "ra-target/v2 is banked and reviewed; vc lands it at Intent's turn, then tmp/wt-cc-ra goes under the fold checks.",
       "state": "live",
       "recorded_at": "2026-10-28T05:27:49.998Z",
-      "edited_at": "2026-10-28T05:53:40.688Z"
+      "edited_at": "2026-10-28T19:59:38.840Z"
     }
   ],
   "sent": [

@@ -1,0 +1,16 @@
+{
+  "id": "01M621HDGPB65NTJQNN7G62PRA",
+  "ts": "2026-10-28T19:59:34.780Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 98,
+    "text": "ST0081 WP-02 landed; it stays WIP until hv reads both halves of AC-02.1 at the 3.2.7 cut."
+  }
+}

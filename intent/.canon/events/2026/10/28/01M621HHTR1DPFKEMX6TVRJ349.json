@@ -1,0 +1,16 @@
+{
+  "id": "01M621HHTR1DPFKEMX6TVRJ349",
+  "ts": "2026-10-28T19:59:38.840Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 100,
+    "text": "ra-target/v2 is banked and reviewed; vc lands it at Intent's turn, then tmp/wt-cc-ra goes under the fold checks."
+  }
+}
