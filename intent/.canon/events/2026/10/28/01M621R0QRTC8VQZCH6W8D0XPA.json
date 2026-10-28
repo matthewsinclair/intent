@@ -1,0 +1,16 @@
+{
+  "id": "01M621R0QRTC8VQZCH6W8D0XPA",
+  "ts": "2026-10-28T20:03:10.774Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 12,
+    "text": "Regenerate docs/reference and the explorer shots at the 3.2.7 cut from the banked scripts refs/bank/ic/tools/hold12-cut-*.sh. RELEASES WHEN: it is Intent's turn, L1 has closed, the build all at HEAD has run, and vc gives the word."
+  }
+}
