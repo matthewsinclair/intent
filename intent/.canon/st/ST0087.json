@@ -213,7 +213,8 @@
       "text": "In this checkout, in each of devbin's trees, `bin/devbin doctor` names the install devbin's switch chose and why, and `bin/devbin upgrade` reads that install; the record is attached to this thread.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "intent/st/ST0087/wp05-ac053.md (record e65e63a20954, attached c4a76bef4; verified by vc 2026-10-27)"
       }
     }
   ],

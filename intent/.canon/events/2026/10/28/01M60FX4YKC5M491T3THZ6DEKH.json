@@ -1,0 +1,15 @@
+{
+  "id": "01M60FX4YKC5M491T3THZ6DEKH",
+  "ts": "2026-10-28T05:32:10.071Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0660"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "The currency scope counts testkit, a dev-only crate, as shipped, so a test-support change puts the delivered pair behind HEAD"
+  }
+}

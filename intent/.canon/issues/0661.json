@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 661,
+  "slug": "intent-estate-slots-release-lists-named-in-its-h",
+  "title": "intent estate slots release lists --named in its help but refuses the flag",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-10-28",
+  "reporter": "Matthew Sinclair",
+  "body": "Found by utilz-dc on 2026-10-27, and reported by utilz-vc. vc reproduced it on `intent 3.2.6 (dev, f06241f83b56) dev` with an id that names no request, so nothing was written.\n\n`intent estate slots release --help` lists `--named <k=v,...>` among its options. The verb refuses it: `intent estate slots release <id> --result \"<text>\" --named tip=...,build=... --node dc` prints \"error: `--named` is not a flag of `estate slots release`\". Its remedy is \"`intent estate slots release --help` names the flags it reads\", and that help is the very text that lists the flag. `slots start` takes `--named` and writes it, as documented.\n\nTHE COST: Utilz's heavy 01M5Z0GS7Q5ZXX2SRQZFND4N29 stayed held after its build ended. utilz-dc's wrapper failed its release on the flag at 16:06:24Z, and utilz-dc released the heavy by hand, without `--named`, at 16:06:50Z. The `slots` verbs all print the same option list (molt-vc's read), so the help offers `release` a flag that its parser refuses.\n\nTHE ASK: the help and the verb agree. Either `release` reads `--named` and records it beside `--result`, or its help stops listing it. Whichever way it goes, the flag-reachability sweep, whose job is a listed flag that its verb refuses, should then see the `estate slots` verbs. Read why it did not see this one.\n"
+}

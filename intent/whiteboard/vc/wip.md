@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a3784f83-17e6-4dd3-bc37-0049e71bd0b4
-heartbeat_at: 2026-10-27 15:44Z
+heartbeat_at: 2026-10-28 05:32Z
 status: active
-focus: "Compacted (hv's round 4) and pushing on under molt-vc's pen toward 3.2.7: cc banks the fix for hv's red with the prefix-hermetic tests (0087-hermetic); then the rerun, the kovacs preflight and the push; then the content batch, ic's reference set and the last preflight. The pair and intentd name f06241f83b56. No push by vc, no release"
+focus: "Folded (round 5, 2026-10-28) for hv's compact, not released. Under molt-vc's pen toward 3.2.7: hv's red is fixed and judged green (9109e59eb); the prefix is published; ra-target/v2 (the rust-analyzer product defect) lands first after the compact, with its warm judge; then L1, build all at HEAD, AC-05.1, ic's reference set, the last preflight and the push. No push by vc, no release"
 claims: []
 ---
 
@@ -13,16 +13,16 @@ claims: []
 
 ## DOING
 
-- 3.2.7 UNDER molt-vc'S PEN (hv is AFK: "Push on"). molt-vc granted the kovacs preflight and devbin-vc's push of main ("devbin-vc's push goes any time"), and deferred ST0085 (fc5931c44). The pair and intentd name f06241f83b56, fixed until L1 closes. (edited)
-  - hv's red is real: unmigrated_surface fails wherever a release pair sits in the tree's target, because its sweep's `intent use dev` succeeds there and restarts a daemon in the test HOME. hv's two runs left two such daemons, which vc stopped at 15:37Z; hv's intentd was untouched. cc's prefix audit found three sweeps that would publish into a real opt tree once INTENT_INSTALL_PREFIX is exported, so Molt's publish waits. cc banks both fixes as refs/bank/cc/0087-hermetic/v1, against vc's judge spec of 15:38Z.
-  - Passed on this pair: dc's 0632 drive v4 (log e309ab3916bd), ST0087 AC-05.3's brew-tree leg (d4334f5757c0), and ic's shots rehearsal (menu.png and help.png change, from /estate).
-  NEXT, in order:
-  (1) Land 0087-hermetic in a vc chain. Then molt-vc's full rerun on main and the kovacs preflight at that HEAD, one heavy run at a time, and the verdict to molt-vc for hv. On a green preflight, "push" to devbin-vc with the full sha. Then molt-vc publishes the prefix, and from then on tests run only in trees that carry the fix.
-  (2) The content batch: dc's known-defects page (kd327), WP-05's records (AC-05.3's opt and dev legs, and AC-05.1's dev and opt legs once the prefix is published), and cc's AT row for ST0081 AC-02.1 (its other half is read at the cut).
-  (3) ic regenerates docs/reference and the shots at the batch's HEAD in one commit (ic's hold 12).
-  (4) The kovacs preflight last, on the cut commit (releasing.md step 2), then the push. Main holds still from the preflight to the push.
-  (5) At the cut: dc's 0632 drive again if the pair moves, the cut's --dry-run beside hv, then hv's cut.
-  TOOLS, banked under refs/bank/vc/tools/: judge-rerun.sh v3 (with judge-canon.sh), judge-shell.sh v2 and land-one.sh. A judge is sized to the change (hv: "Just do enough to prove it works"). No push by vc, no release.
+- 3.2.7 UNDER molt-vc'S PEN (hv's word: "Push on"). Folded on 2026-10-28 for hv's compact. molt-vc deferred ST0085 (fc5931c44). The installed pair stays at f06241f83b56 until L1 closes; molt-vc rules that Intent's install is frozen during L1. (edited)
+  - hv's red is fixed. 0087-hermetic landed as 9109e59eb. Its judge, a full rerun on main at c231f402b on 2026-10-27, was green: main Rust and shell, clippy, an empty scratch prefix, and no test-home daemons. cc's control published 307 entries, so the door is proven. molt-vc then published INTENT_INSTALL_PREFIX=/Users/matts/Devel/opt/intent into Molt's env.sh. Tests run only in trees that contain 9109e59eb.
+  - The rerun's one red is a product defect, on hv's list: rust-analyzer 2026-10-18 opens each symbol with its cargo target, so every level-3 Rust reference fell back to its syntax level. cc's fix, refs/bank/cc/ra-target/v2 (patch-id 00c89d2767fb), is reviewed and its light legs are clean, with a 3.2.7 Fixed line. The landing message is in vc's scratchpad as msg-ra.txt.
+  - 9109e59eb changed testkit, a dev-only crate that the currency scope still counts. So the pair is behind HEAD, and `intent install` and the pre-push hook refuse until `build all` at HEAD after L1. doctor exits 0.
+  - The content batch so far: dc's known-defects page for 3.2.7 landed as c231f402b, and AC-05.3 is satisfied on its attached record. Two low issues are filed for after the cut: 0660, testkit counted as shipped, and 0661, `estate slots release --named`.
+  NEXT, after hv's compact and go:
+  (1) Land ra-target/v2 with land-one.sh. Then ask molt-vc for a warm cargo light on main: the intentsvcs suite with rust-analyzer on PATH, the new hermetic arm, and clippy -D warnings. Send the verdict to molt-vc for hv.
+  (2) After L1: `build all` at HEAD, AC-05.1's dev and opt legs with their record through dc's attach-v2, dc's todo 50 on the new pair, and ic's reference set and shots (ic's hold 12).
+  (3) The kovacs preflight last, on the cut commit, then devbin-vc's push. Main holds still from the preflight to the push. Then the cut's --dry-run and hv's cut.
+  TOOLS, banked under refs/bank/vc/tools/: judge-rerun.sh v3, judge-shell.sh v2 and land-one.sh. Release a heavy slot the moment its run ends: on 2026-10-27, vc held 01M5Z1EW8BTZERVKD4CP669QH5 overnight. No push by vc, no release.
 
 ## TODO
 

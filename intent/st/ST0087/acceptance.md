@@ -45,7 +45,7 @@ title: Intent conforms to the dev, opt and brew contract
 
 - AC-05.1 (non-test) On rhadamanth, from a login session started after Molt-matts' PATH prepend, `intent use dev`, `intent use opt` and `intent use brew` run in turn, each followed by the version line and `intent doctor` with the shadow check passing, and the transcript is attached to this thread. -- satisfied: no
 - AC-05.2 (non-test) On kovacs, with brew alone, the version line and `intent doctor` pass on the release that carries WP-04 once it reaches the tap, and the run's record is attached to this thread. -- satisfied: no
-- AC-05.3 (non-test) In this checkout, in each of devbin's trees, `bin/devbin doctor` names the install devbin's switch chose and why, and `bin/devbin upgrade` reads that install; the record is attached to this thread. -- satisfied: no
+- AC-05.3 (non-test) In this checkout, in each of devbin's trees, `bin/devbin doctor` names the install devbin's switch chose and why, and `bin/devbin upgrade` reads that install; the record is attached to this thread. -- evidence: intent/st/ST0087/wp05-ac053.md (record e65e63a20954, attached c4a76bef4; verified by vc 2026-10-27) -- satisfied: yes
 
 ## Acceptance Tests
 

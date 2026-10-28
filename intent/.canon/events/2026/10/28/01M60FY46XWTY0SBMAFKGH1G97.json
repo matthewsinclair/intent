@@ -1,0 +1,16 @@
+{
+  "id": "01M60FY46XWTY0SBMAFKGH1G97",
+  "ts": "2026-10-28T05:32:42.077Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 59,
+    "text": "3.2.7 UNDER molt-vc'S PEN (hv's word: \"Push on\"). Folded on 2026-10-28 for hv's compact. molt-vc deferred ST0085 (fc5931c44). The installed pair stays at f06241f83b56 until L1 closes; molt-vc rules that Intent's install is frozen during L1.\n- hv's red is fixed. 0087-hermetic landed as 9109e59eb. Its judge, a full rerun on main at c231f402b on 2026-10-27, was green: main Rust and shell, clippy, an empty scratch prefix, and no test-home daemons. cc's control published 307 entries, so the door is proven. molt-vc then published INTENT_INSTALL_PREFIX=/Users/matts/Devel/opt/intent into Molt's env.sh. Tests run only in trees that contain 9109e59eb.\n- The rerun's one red is a product defect, on hv's list: rust-analyzer 2026-10-18 opens each symbol with its cargo target, so every level-3 Rust reference fell back to its syntax level. cc's fix, refs/bank/cc/ra-target/v2 (patch-id 00c89d2767fb), is reviewed and its light legs are clean, with a 3.2.7 Fixed line. The landing message is in vc's scratchpad as msg-ra.txt.\n- 9109e59eb changed testkit, a dev-only crate that the currency scope still counts. So the pair is behind HEAD, and `intent install` and the pre-push hook refuse until `build all` at HEAD after L1. doctor exits 0.\n- The content batch so far: dc's known-defects page for 3.2.7 landed as c231f402b, and AC-05.3 is satisfied on its attached record. Two low issues are filed for after the cut: 0660, testkit counted as shipped, and 0661, `estate slots release --named`.\nNEXT, after hv's compact and go:\n(1) Land ra-target/v2 with land-one.sh. Then ask molt-vc for a warm cargo light on main: the intentsvcs suite with rust-analyzer on PATH, the new hermetic arm, and clippy -D warnings. Send the verdict to molt-vc for hv.\n(2) After L1: `build all` at HEAD, AC-05.1's dev and opt legs with their record through dc's attach-v2, dc's todo 50 on the new pair, and ic's reference set and shots (ic's hold 12).\n(3) The kovacs preflight last, on the cut commit, then devbin-vc's push. Main holds still from the preflight to the push. Then the cut's --dry-run and hv's cut.\nTOOLS, banked under refs/bank/vc/tools/: judge-rerun.sh v3, judge-shell.sh v2 and land-one.sh. Release a heavy slot the moment its run ends: on 2026-10-27, vc held 01M5Z1EW8BTZERVKD4CP669QH5 overnight. No push by vc, no release."
+  }
+}
