@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "worker",
     "session_id": "37fdad41-2838-4b8d-9a5e-d32fe5670a7d",
-    "heartbeat_at": "2026-10-28T18:05:20.450Z",
+    "heartbeat_at": "2026-10-28T18:13:56.463Z",
     "status": "active",
-    "focus": "Holding for molt-vc's word that it is Intent's turn (hv lifted the hold at 15:49Z on 2026-10-28; the desk serves devbin, then Molt and Gtools, then Intent). Not released. On Intent's turn: todo 50 (a) and (b) re-run on the new pair the build all at HEAD makes, then the cut's --dry-run beside hv. After the cut (vc decision 103 (3)): AC-05.1 in one run, dev, opt and brew together from a bare login shell (scripts ready, matching the vc-accepted banks), then AC-05.2 on kovacs, each with its record and attach. AC-05.3 is satisfied (44b95ff55). No push, no release.",
+    "focus": "Folded (round 8, 2026-10-28) for hv's compact, not released, holding for molt-vc's word that it is Intent's turn (the desk serves devbin, then Molt and Gtools, then Intent). On Intent's turn: todo 50 (a) and (b) re-run on the new pair the build all at HEAD makes, then the cut's --dry-run beside hv. After the cut (vc decision 103 (3)): AC-05.1 in one run, dev, opt and brew together from a bare login shell (scripts ready, matching the vc-accepted banks), then AC-05.2 on kovacs, each with its record and attach. AC-05.3 is satisfied (44b95ff55). No push, no release.",
     "claims": [
       "ST0087/05"
     ],
