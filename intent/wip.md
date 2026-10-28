@@ -1,5 +1,5 @@
 ---
-verblock: "2026-10-28:v3.32: vc - round-5 fold, ra-target next, push after L1's build"
+verblock: "2026-10-28:v3.33: vc - round-6 fold, one project at a time, Intent after Gtools"
 intent_version: 3.2.6
 ---
 
@@ -11,7 +11,7 @@ Measure before believing anything below: `.claude/restart.md` carries the comman
 
 Intent is L2 under hv's layer order of 2026-10-27 (vc decision 97, molt-vc decision 22). Until molt-vc says L1 (devbin, molt, utilz, gtools) is cut, brewed on rhadamanth and kovacs and answering `use brew`, Intent runs no install and no `use`, and builds in the main checkout's target only on hv's word, with molt-vc granting the slot. On hv's "Unequivocally Yes" (vc decision 101), the installed pair and intentd are at f06241f83b56, ahead of L1. Judge runs go in their own worktrees. Work with no load runs meanwhile.
 
-- **THE RUST-ANALYZER FIX, THEN THE PUSH (vc; vc decisions 96 and 100).** cc's ra-target/v2 fixes a product defect on hv's list: since rust-analyzer 2026-10-18, every level-3 Rust reference fell back to its syntax level. It lands first after hv's compact, then a warm cargo light on main judges it. The pre-push hook refuses while the installed pair is behind HEAD, which it has been since 9109e59eb touched testkit (issue 0660). So devbin-vc's push waits for `build all` at HEAD after L1. Then vc runs the kovacs preflight at main's HEAD and sends devbin-vc "push" with the full sha. Main holds still from the preflight to the push. vc's board, doing 59, carries the detail. Hold 33's release and 0657's shape were confirmed by hv (vc decision 99). AC-02.1 is proven at the 3.2.7 cut.
+- **THE RUST-ANALYZER FIX, THEN THE PUSH (vc; vc decisions 96 and 100).** cc's ra-target/v2 fixes a product defect on hv's list: since rust-analyzer 2026-10-18, every level-3 Rust reference fell back to its syntax level. hv's order of 2026-10-28 05:50Z runs one project at a time, Utilz, devbin, Molt and Gtools before Intent, so Intent holds until molt-vc says it is Intent's turn. It lands first on Intent's turn, and the full judge after `build all` at HEAD judges it, with no separate run (molt-vc). The pre-push hook refuses while the installed pair is behind HEAD, which it has been since 9109e59eb touched testkit (issue 0660), so devbin-vc's push follows that build and the kovacs preflight at main's HEAD. Main holds still from the preflight to the push. vc's board, doing 59, carries the chain. Hold 33's release and 0657's shape were confirmed by hv (vc decision 99). AC-02.1 is proven at the 3.2.7 cut.
 - **ST0087 WP-05, THE PROOF PER TREE (dc with vc).** Its shape is vc's todo 66, with dc's `env -i` login-shell base, and its scripts are banked. AC-05.3's opt and dev trees run in molt-vc's light slots. AC-05.1's dev and opt legs need the published INTENT_INSTALL_PREFIX and a pair that `intent install` accepts, so they run after L1's `build all` at HEAD. dc's attach-v2 attaches their record. All of these run before the cut. AC-05.1's brew leg and AC-05.2 on kovacs run after it.
 
 ## TODO
