@@ -1,0 +1,15 @@
+{
+  "id": "01M62273Z72VM34G9GEJBHDH2N",
+  "ts": "2026-10-28T20:11:25.547Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0662"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "Two board writes in the same second leave a store edit with no event file and a stale board.json"
+  }
+}
