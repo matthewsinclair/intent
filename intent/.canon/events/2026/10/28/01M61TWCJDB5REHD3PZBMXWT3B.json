@@ -1,0 +1,16 @@
+{
+  "id": "01M61TWCJDB5REHD3PZBMXWT3B",
+  "ts": "2026-10-28T18:03:13.869Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 59,
+    "text": "3.2.7 UNDER molt-vc'S PEN. hv's go of 2026-10-28 05:50Z, via molt-vc: \"one project at a time\", \"done and dusted asap\", in the order Utilz, devbin, Molt, Gtools, Intent (L2), Laksa, Conflab, each project to its end-point before the next starts. Intent holds, with no landing, no heavy run and no slot ask, until molt-vc says it is Intent's turn (after Gtools). Until then: only no-load review and banking. The installed pair stays at f06241f83b56.\n- hv's red is fixed. 0087-hermetic landed as 9109e59eb and was judged green on main at c231f402b on 2026-10-27. molt-vc published INTENT_INSTALL_PREFIX=/Users/matts/Devel/opt/intent. Tests run only in trees that contain 9109e59eb.\n- The rerun's one red is a product defect on hv's list: since rust-analyzer 2026-10-18, every level-3 Rust reference fell back to its syntax level. cc's fix, refs/bank/cc/ra-target/v2 (patch-id 00c89d2767fb), is reviewed and its light legs are clean, with a 3.2.7 Fixed line. Its landing message is msg-ra.txt in vc's scratchpad.\n- 9109e59eb changed testkit, which the currency scope counts as shipped (issue 0660). So `intent install` and the pre-push hook refuse until the build all at HEAD.\nINTENT'S CHAIN TO \"READY FOR hv TO CUT\", agreed with molt-vc at 05:51Z:\n(1) vc lands ra-target/v2 with land-one.sh, then cc's 0661 bank if it is banked and reviewed by then (hv, 2026-10-28: \"if its small enough to ride, then do it\").\n(2) One heavy slot: build all at HEAD, then the full judge on that build. The judge covers ra-target's warm legs: rust-analyzer on PATH, the hermetic arm and clippy -D warnings. molt-vc ruled that ra-target is not judged alone first.\n(3) dc's todo 50 on the new pair.\n(4) ic's hold 12: the reference set, the shots in a cargo slot, then one commit.\n(5) The kovacs preflight on the cut commit, then devbin-vc's push. Main holds still from the preflight to the push.\n(6) The cut's --dry-run beside hv. Then hv's cut. AFTER THE CUT: all of AC-05.1, dev, opt and brew in one run (hv agreed 2026-10-28, decision 103), then AC-05.2 on kovacs and AC-02.1 from the release object.\nTOOLS, banked under refs/bank/vc/tools/: judge-rerun.sh v3, judge-shell.sh v2 and land-one.sh. Release a heavy slot the moment its run ends: on 2026-10-27, vc held 01M5Z1EW8BTZERVKD4CP669QH5 overnight. No push by vc, no release."
+  }
+}
