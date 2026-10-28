@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 9031fbab-80b1-4564-a880-93c9e79197d4
-heartbeat_at: 2026-10-27 15:41Z
+heartbeat_at: 2026-10-28 05:31Z
 status: active
-focus: "Picked up after the compact, not released, pushing on under hv's word (molt-vc has the pen, vc coordinates): ic's one live item is hold 12, rehearsed with both halves accepted by vc; on vc's word that the content batch has landed (cc's hermetic test fix, dc's known-defects page, WP-05's records), ic regenerates docs/reference and the explorer's screenshots at that HEAD in a cargo slot and lands them as one commit before the kovacs preflight; free for light work meanwhile; no claims; no push, no release"
+focus: "Folded (round 5, 2026-10-28) for hv's compact, not released: ic's one live item is hold 12, rehearsed with both halves accepted by vc; the known-defects page has landed (c231f402b); the regeneration waits for L1 to close and the build all at HEAD that follows it, then vc's word, and runs from the banked scripts refs/bank/ic/tools/hold12-cut-*.sh (measure at -v2); no claims, no worktrees; no push, no release"
 claims: []
 ---
 
