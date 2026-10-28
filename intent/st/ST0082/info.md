@@ -1,7 +1,7 @@
 ---
 st_id: ST0082
 title: Intent on Windows through WSL 2: Intent's Linux install inside WSL, no native port
-status: Triage
+status: Not Started
 created: 2026-10-14
 completed:
 ---
@@ -39,6 +39,8 @@ hv's Ubuntu VM proves Linux and does not prove WSL (ST0081's context), so this t
 Out of scope: a native Windows build.
 
 DEFERRED PAST 3.2.7 (hv, 2026-10-27, by selection in vc's TUI; vc decision 99). This thread is new surface and no one is working on it, so it is deferred on the record that decision 76 asks for. It stays in Triage, because `intent st hold` is declared only from Not Started and WIP, and it resumes after the 3.2.7 cut on hv's word.
+
+MOVED TO NOT STARTED, STILL DEFERRED (2026-10-28, hv's order relayed by molt-vc at 18:08Z: "for the deferred ones, we mark them as deferred and put them back into not-started state"). Target: a release after 3.2.7. Any line above that keeps it in Triage is superseded.
 
 ## Work Packages
 

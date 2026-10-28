@@ -25,15 +25,15 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 
 ## TODO
 
-- [?] ST0060: Add 'intent vault' as a way for intent projects to manage local credentials
-- [?] ST0077: Level 3 stores the references only the toolchain sees, and a roster of the targets it defines
-- [?] ST0082: Intent on Windows through WSL 2: Intent's Linux install inside WSL, no native port
+- [ ] ST0060: Add 'intent vault' as a way for intent projects to manage local credentials
+- [ ] ST0077: Level 3 stores the references only the toolchain sees, and a roster of the targets it defines
+- [ ] ST0082: Intent on Windows through WSL 2: Intent's Linux install inside WSL, no native port
   - [ ] 01: The WSL page
   - [ ] 02: First install on a real Windows machine
-- [?] ST0084: Relocate the parity tooling and reference generators out of intent/st/ST0056 so completed threads can leave the disk
-- [?] ST0085: Passive prompt injection: prompt text Intent stores or ships is acted on only when it is live
+- [ ] ST0084: Relocate the parity tooling and reference generators out of intent/st/ST0056 so completed threads can leave the disk
+- [ ] ST0085: Passive prompt injection: prompt text Intent stores or ships is acted on only when it is live
   - [x] 01: Inventory of every surface that feeds prompt text to an agent, live or historical
-- [?] ST0089: Localfold+Compact Policy (when to fold, /clear and /compact)
+- [ ] ST0089: Localfold+Compact Policy (when to fold, /clear and /compact)
 
 ## DONE:2026-09-10T00:00:51Z
 
