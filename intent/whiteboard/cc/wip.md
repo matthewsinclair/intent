@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 42695459-0b6e-4f49-a7b4-96cfd9ab52ab
-heartbeat_at: 2026-10-27 15:54Z
+heartbeat_at: 2026-10-28 05:27Z
 status: active
-focus: "FOLDED (round 4, 2026-10-27) and carrying on under hv's "Push on" (hv AFK, molt-vc has the pen, vc coordinates): ST0086 is Done (3243d789f); ST0081 WP-02 stays WIP to the 3.2.7 cut (doing 98); seven older worktrees stay for banking or a ruling (hold 34); no push, no release"
+focus: "FOLDED (round 5, 2026-10-28) for hv's compact, not released: ra-target/v2 is banked and reviewed, landing in vc's next chain (doing 100); ST0081 WP-02 waits on hv's AC-02.1 reading at the 3.2.7 cut (doing 98); no push, no release"
 claims: [ST0081]
 ---
 
@@ -16,13 +16,11 @@ claims: [ST0081]
 - ST0081 WP-02 LANDED as 9f4994a1c in vc's landing chain (END 11:46Z by vc's clock). It is refs/bank/cc/0081/wp02-v1 (patch-id 901e9ee541d5), judged green in decision 100's run 3. Each release now carries the Linux packages its tag's workflow builds, and one SHA256SUMS over every asset, attached by `bin/devbin release attach`. `bin/int brew publish` alone writes the formula and cask. The package stays WIP until hv proves AC-02.1 at the 3.2.7 cut. (edited)
   BEFORE THE CUT, measured at 15:25:32Z by date -u on the vendored devbin of cb664a6c5: `bin/devbin release check` exits 0, accepts every key WP-02 declared, and names no second writer, which is AC-02.1's half (b). Half (a) reads the release object after releasing.md step 4's attach. The control: v3.2.6 carries no SHA256SUMS. `release.remotes` stays undeclared, because devbin refuses it while the core's cut is off; restart.md:37 says so since fc5931c44.
   AT-02.1 COVERS AC-02.1 since cc's chain of 15:58Z by date -u. It is non-test, so it entered at n-a, and AC-02.1 stays unsatisfied until hv reads both halves at the cut. `intent ac status ST0081` reads BLOCKED, and AC-02.1 is its one unsatisfied criterion (`intent ac list ST0081`). The macOS bats run restart.md:25 asks of a vendored devbin is covered by hv's two runs at cb664a6c5 (847 ok each). No push, no release.
-- 0087-HERMETIC LANDED as 9109e59eb in vc's chain (END 15:55Z by vc's clock), by the bank's patch-id 1a39bb5ca508: refs/bank/cc/0087-hermetic/v1, three files. (edited)
-  - testkit's fixtured_command removes INTENT_INSTALL_PREFIX.
-  - dual_path_conformance declares `install` ActsOnAmbientUserState.
-  - unmigrated_surface exempts `install` and `use` family-wide on ground 1, pinned with no verbs.
-  It closes hv's red at cb664a6c5, where `intent use dev` SUCCEEDED in a checkout holding a release pair and its daemon restart left an intentd behind. It also closes three sweeps that would publish into a real opt prefix once Molt exports INTENT_INSTALL_PREFIX.
-  JUDGE: vc's full rerun on main, since molt-vc denied cc's worktree slot as superseded (15:53:30Z by date -u). The rerun exports the variable to an empty scratch dir, runs clippy, and reads that dir and target/test-home. Then it runs the positive control: one bare `install` from the run's own debug pair into a second empty dir. vc sends the verdict. The worktree and the scratch/icc link went at 16:03Z by date -u, after the fold checks, without --force.
-  NEXT: archived on a green verdict; on a red, cc re-banks against main.
+- RA-TARGET, BANKED AND REVIEWED by vc (2026-10-28): refs/bank/cc/ra-target/v2 (blob 005d704d0e5e, patch-id 00c89d2767fb, base c231f402b0a2), three files. It lands in vc's next chain after hv's compact.
+  - The cause: rust-analyzer 2026-10-18 opens each SCIP symbol with its cargo target. Measured over a crate holding one of each, the forms are `lib/`, `custom-build/`, `bin/<name>/`, `test/<name>/`, `example/<name>/` and `bench/<name>/`. printable() printed them into targets such as `tiny::lib::store::open()`, which join nothing, so every level-3 Rust reference fell to its syntax level. That is the red in needs_the_toolchain that vc's rerun found.
+  - The fix: without_target in rust_analyzer.rs, a hermetic arm pinning all six forms and the old one, and a 3.2.7 ### Fixed CHANGELOG line.
+  - The judge: vc's warm run on main after landing covers the intentsvcs suite with the toolchain arm, clippy -D warnings and the hermetic arm.
+  tmp/wt-cc-ra stays until the landing, then goes under the fold checks.
 
 ## TODO
 
@@ -30,15 +28,7 @@ _(none)_
 
 ## Holds
 
-- cc's SEVEN OLDER WORKTREES STAY UNTIL EACH CHANGE IN THEM IS BANKED OR RULED HELD (vc decision 98 as amended):
-  - tmp/wt-cc-0086crit: 42 files staged.
-  - tmp/wt-cc-0652: 42 files staged.
-  - tmp/wt-cc-0616t: 36 files staged.
-  - tmp/wt-cc-0630: 11 files staged. Its 2 unstaged files are refs/bank/cc/0630/fix-s5.
-  - tmp/wt-cc-0624: 21 files unstaged, 2 untracked.
-  - tmp/wt-cc-0627: 19 files unstaged, 1 untracked. Its staged diff is refs/bank/cc/0616-0618/fix.
-  - tmp/wt-cc-0627b: 27 files unstaged, 1 untracked. Its staged diff is fix-b.
-  None of those changes matches a bank or a main commit by patch-id or reverse-applies to main (measured at 11:35Z by cc's clock). Evidence for a ruling, which decision 98 does not count as held, measured at 11:39Z. Every path 0616t and 0624 change has that content on main, now or in its history. So does every path 0627b changes, apart from its CHANGELOG.md. 0086crit, 0652, 0630 and 0627 each change paths whose content main never had. The other sixteen of cc's worktrees went at 11:38Z to 11:47Z by cc's clock, after the fold checks: twelve with refs/attic/cc/<name> at their HEADs, and none with --force.
+_(none)_
 
 ## Watch-outs
 

@@ -1,0 +1,15 @@
+{
+  "id": "01M60FN365K2D0VJ6S9RCXDZZR",
+  "ts": "2026-10-28T05:27:49.998Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RA-TARGET, BANKED AND REVIEWED by vc (2026-10-28): refs/bank/cc/ra-target/v2 (blob 005d704d0e5e, patch-id 00c89d2767fb, base c231f402b0a2), three files. It lands in vc's next chain after hv's compact.\n- The cause: rust-analyzer 2026-10-18 opens each SCIP symbol with its cargo target. Measured over a crate holding one of each, the forms are `lib/`, `custom-build/`, `bin/<name>/`, `test/<name>/`, `example/<name>/` and `bench/<name>/`. printable() printed them into targets such as `tiny::lib::store::open()`, which join nothing, so every level-3 Rust reference fell to its syntax level. That is the red in needs_the_toolchain that vc's rerun found.\n- The fix: without_target in rust_analyzer.rs, a hermetic arm pinning all six forms and the old one, and a 3.2.7 ### Fixed CHANGELOG line.\n- The judge: vc's warm run on main after landing covers the intentsvcs suite with the toolchain arm, clippy -D warnings and the hermetic arm.\ntmp/wt-cc-ra stays until the landing, then goes under the fold checks."
+  }
+}
