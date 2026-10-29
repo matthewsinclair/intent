@@ -163,6 +163,8 @@ mod claude_upgrade_merges_an_owners_settings;
 mod close_and_verdict_verbs_enforce_what_they_promise;
 #[path = "close_gate_parity.rs"]
 mod close_gate_parity;
+#[path = "concurrent_board_writes_land_every_board.rs"]
+mod concurrent_board_writes_land_every_board;
 #[path = "contention_wait_is_chosen.rs"]
 mod contention_wait_is_chosen;
 #[path = "contracts_layout.rs"]

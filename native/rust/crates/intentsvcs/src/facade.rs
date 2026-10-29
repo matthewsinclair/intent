@@ -8357,7 +8357,15 @@ impl Facade {
   /// board. So every file that node writes is left as it is, kept out of the
   /// record, and named with the remedy, by [`Self::leave_boards`], which the
   /// restore asks too. `acting`'s boards always land: they hold the act itself.
+  ///
+  /// **ONE BOARD WRITE LANDS AT A TIME, ACROSS PROCESSES** (issue 0662). Each
+  /// write renders every board from the store as it reads it, so two writes in
+  /// the same second could each read before the other committed, and the later
+  /// file write put the older read's board over the newer one. The lock is held
+  /// from the read to the record of what landed, so the write that lands second
+  /// reads the first one's commit and renders both.
   fn land_board_write(&mut self, acting: &[&str]) -> Result<(), FacadeError> {
+    let _held = self.lock_boards()?;
     self.reindex_boards()?;
     let Projection { set, canon_files } = self.projection(&self.canon, &[], &[], None, None)?;
     let whiteboard = self.project.whiteboard_dir();
@@ -8382,6 +8390,27 @@ impl Facade {
     self.note_landed(&applied);
     applied.keep();
     self.record_landed(&canon_files, &landed)
+  }
+
+  /// Wait for, and take, the lock [`Self::land_board_write`] holds (issue
+  /// 0662). The kernel releases it when the returned file closes, on drop or on
+  /// process death, so a crashed write cannot leave it held.
+  fn lock_boards(&self) -> Result<std::fs::File, FacadeError> {
+    let path = self.project.board_lock_path();
+    let refused = |source: std::io::Error| FacadeError::ViewsNotWritten {
+      cause: WriteError::Io {
+        path: path.display().to_string(),
+        source,
+      },
+    };
+    let file = std::fs::OpenOptions::new()
+      .create(true)
+      .truncate(false)
+      .write(true)
+      .open(&path)
+      .map_err(refused)?;
+    file.lock().map_err(refused)?;
+    Ok(file)
   }
 
   /// Take out of a write set, and out of the canon files it records, every

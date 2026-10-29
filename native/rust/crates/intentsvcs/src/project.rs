@@ -2121,6 +2121,12 @@ impl Project {
     self.intent_dir().join(".cache").join("intent.db")
   }
 
+  /// The lock a board write holds from reading the store to recording what it
+  /// landed (issue 0662), beside the store it serialises and gitignored with it.
+  pub fn board_lock_path(&self) -> PathBuf {
+    self.intent_dir().join(".cache").join("board.lock")
+  }
+
   /// Where a language's level-3 toolchain builds (ST0076 WP-05, vc decision 25
   /// (6)): a directory of Intent's own beside the store, and never the
   /// project's build directory, so resolving a project leaves its own build
