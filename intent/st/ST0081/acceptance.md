@@ -20,7 +20,7 @@ title: Intent from Homebrew on Linux and macOS, with no source checkout: Linux b
 
 ### WP-02 -- Linux assets on each tag's GitHub release, one writer per release object (status: WIP)
 
-- AC-02.1 (non-test) Every release tag's GitHub release carries the Linux assets beside the macOS assets, and `bin/devbin release check` names no second writer of the release object. -- satisfied: no
+- AC-02.1 (non-test) Every release tag's GitHub release carries the Linux assets beside the macOS assets, and `bin/devbin release check` names no second writer of the release object. -- evidence: v3.2.7 GitHub release, read by vc 2026-10-30: gh release view v3.2.7 --json assets names intent-aarch64-unknown-linux-musl.tar.gz and intent-x86_64-unknown-linux-musl.tar.gz beside intent-aarch64-apple-darwin, intentd-aarch64-apple-darwin, Intent.app.zip, intent-support.tar.gz and SHA256SUMS; hv's bin/devbin release check: none of the 4 workflows writes a release object -- satisfied: yes
 
 ### WP-03 -- Intent's Linux install through Homebrew, in docs/install.md (status: Done)
 
