@@ -8574,7 +8574,12 @@ impl Facade {
   /// The boards on disk ahead of this store, counting a board the store holds
   /// differently only when `moved` asks for it (issue 0554 (b)). Without it
   /// the answer is 0535's alone: a migrated board the store never took in.
+  ///
+  /// It reads under the lock [`Self::land_board_write`] holds (issue 0662):
+  /// between a write's file and its record, a board reads as ahead of a store
+  /// that holds it.
   fn boards_ahead(&self, moved: bool) -> Result<Vec<String>, FacadeError> {
+    let _held = self.lock_boards()?;
     let on_disk = ingest::boards_on_disk(&self.project)
       .map_err(FacadeError::Ingest)?
       .boards;
