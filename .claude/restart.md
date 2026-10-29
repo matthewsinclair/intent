@@ -1,6 +1,6 @@
 # Claude Code Session Restart
 
-This file is the entry point and holds no state: current work is `intent/wip.md`, and the rules every node works under are `intent/restart.md`. Never write a state or a count here: a number printed beside the command that regenerates it gets read instead of the command.
+This file is the entry point and holds no state: current work is `intent/wip.md`, and `intent/restart.md` indexes where the rules every node works under live. Never write a state or a count here: a number printed beside the command that regenerates it gets read instead of the command.
 
 ## Three measurements before any work
 

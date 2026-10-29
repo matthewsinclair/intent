@@ -1,5 +1,5 @@
 ---
-verblock: "2026-10-28:v3.37: vc - leaned to DOING and TODO, one line each"
+verblock: "2026-10-29:v3.38: vc - DOING marked to market for hv's compact"
 intent_version: 3.2.6
 ---
 
@@ -7,7 +7,7 @@ intent_version: 3.2.6
 
 ## DOING
 
-- 3.2.7, held until molt-vc says it is Intent's turn; then vc's doing 59: land ra-target/v2, build all and the full judge, dc todo 50, ic hold 12, kovacs preflight and push, hv's cut.
+- 3.2.7, vc's doing 59: hv runs every suite by hand and we fix forward; then build all on hv's word, dc todo 50, ic hold 12, kovacs preflight and push, hv's cut.
 
 ## TODO
 

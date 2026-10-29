@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a3784f83-17e6-4dd3-bc37-0049e71bd0b4
-heartbeat_at: 2026-10-28 19:57Z
+heartbeat_at: 2026-10-29 13:46Z
 status: active
-focus: "Holding for molt-vc's word that it is Intent's turn; then doing 59, ra-target/v2 first. No push, no release."
+focus: "Holding for hv's compact and hv's hand-run suite results; then doing 59. No push, no release."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- 3.2.7: ra-target/v2 landed (hv's merge-all GO, 2026-10-29); hv runs every suite by hand, we fix forward; then build all on hv's word, dc todo 50, ic hold 12, kovacs preflight and push, hv's cut. (edited)
+- 3.2.7: hv runs every suite by hand and we fix forward; then build all on hv's word, dc todo 50, ic hold 12, kovacs preflight and push, hv's cut. (edited)
 
 ## TODO
 
@@ -38,7 +38,6 @@ _(none)_
 - (hv, 2026-10-25) Brew by default; dev or opt only while working on that project, and switch back to brew after its release. (edited)
 - (hv, 2026-10-25) devbin-vc runs Intent's pushes to local and upstream, fast-forward only, on vc's "push" after build all at HEAD; cuts stay hv's. (edited)
 - (2026-10-27) Before a worktree is removed, its node points refs/attic/<node>/<worktree> at its HEAD; attic refs are never deleted. (edited)
-- (hv, 2026-10-27) dc's 0632 drive may use a throwaway HOME at /tmp/d632.XXXXXX, removed when the drive ends. (edited)
 - (hv, 2026-10-27) Every localfold and EOD fold archives what is spent, so a pickup prints only live state; ST0089 is built after the cut. (edited)
 - (hv, 2026-10-28) P0 is doing 59; every open issue and ST0060, ST0077, ST0082, ST0084, ST0085 and ST0089 are deferred past 3.2.7; nothing is cancelled. (edited)
 
