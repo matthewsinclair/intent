@@ -9,15 +9,16 @@ status: Done
 
 ## Objective
 
-The formula the release tooling writes for `matthewsinclair/homebrew-intent` carries Linux entries for x86_64 and aarch64 beside the macOS one, each pointing at that release's Linux package, so `brew install matthewsinclair/intent/intent` works on Linux with no source checkout, as it does on macOS. The 3.2.3 formula declares `depends_on :macos` and arm64, by hv's ruling of 2026-08-15, which hv widened to Linux on 2026-10-14. Until a release carries Linux packages, the formula is rehearsed on hv's Ubuntu VM from a local copy against the package the VM built. The install from the tap is proven once the first release with Linux packages is published, and the macOS install is re-proven on a Mac with no checkout when hv loops back to it. Shape agreed on 2026-10-14 (cc's proposal, vc's yes under hv's pen): the formula writer, and smoke beside it, move out of `cmd/macos` to one home both release steps call. `on_linux` entries for each architecture override the top-level url, which stays macOS arm64's because `brew tap` validates every simulated platform. `depends_on :macos` goes, and `arch: :arm64` moves inside `on_macos` with the intentd and support resources. The Linux branch installs the unpacked package into libexec and shares the chmod and symlink tail. Every sha256 is read from the bytes the release serves. A dev-tap input of base URL plus hashes lets hv's Ubuntu VM prove the formula from file:// URLs before any push. publish asks for its own assets by name instead of refusing any release that already carries assets, and its notes stop saying macOS-only.
+The formula the release tooling writes for `matthewsinclair/homebrew-intent` carries x86_64 and aarch64 Linux entries beside the macOS one, so `brew install matthewsinclair/intent/intent` works on Linux with no source checkout.
 
-## Closed on AC-06.1 (vc's ruling (a) under hv's pen, 2026-10-22)
+## As built
 
-The work package's one criterion, AC-06.1, is satisfied (6a5d06b5d) from kovacs ORDER 8. On aarch64 Linux with no Intent and no checkout of Intent's source, `brew install matthewsinclair/intent/intent` from the published tap at 1de8ca7e5 installed v3.2.5's aarch64 Linux package, the formula's `on_linux` `on_arm` entry (sha256 3ccb521acc97, which vc verified against the release's assets and brew checks on download), and the installed `intent --version` read `intent 3.2.5 (2e0e9215d67f67c665d1b8179a7888555551c8e7) release`. The run's lines are `refs/bank/cc/0081/evidence/o8-postcut-lines.txt` (blob b3fc943efce9).
+- The tap's formula keeps macOS arm64 under `on_macos` and points `on_linux`'s `on_intel` and `on_arm` at the release's musl packages; `depends_on :macos` is gone.
+- AC-06.1 is satisfied from kovacs: `brew install matthewsinclair/intent/intent` from the published tap installed v3.2.5's aarch64 package.
 
-The formula that run installed has the shape the objective describes, as read from the tap at 1de8ca7e5: the top-level url stays macOS arm64's, `on_macos` carries `depends_on arch: :arm64` with the intentd and support resources, `depends_on :macos` is gone, and `on_linux` has `on_intel` and `on_arm` entries pointing at the release's x86_64 and aarch64 musl packages.
+## Open
 
-The objective's macOS clause, that the macOS install is re-proven on a Mac with no checkout when hv loops back to it, is conditional on hv, and no criterion carries it. The clean-Mac install has been proven once, on gyges at 3.2.0 on 2026-09-21: ST0056's AC-00.5 and AC-11.1 are satisfied from `intent/st/ST0056/gyges-install.md`. A re-proof at 3.2.5 is hv's loop-back, carried in `intent/wip.md`'s TODO.
+A macOS re-proof on a Mac with no checkout is hv's loop-back, carried in `intent/wip.md`'s TODO; no criterion carries it.
 
 ## Acceptance
 

@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 42695459-0b6e-4f49-a7b4-96cfd9ab52ab
-heartbeat_at: 2026-10-29 13:42Z
+heartbeat_at: 2026-10-29 19:54Z
 status: active
-focus: "Folded and held for hv's compact: ST0081 WP-02 waits on hv's AC-02.1 reading at the 3.2.7 cut (doing 98); no push, no release."
+focus: "After the 3.2.7 cut: ST0081 WP-02 waits on hv's AC-02.1 reading after release attach (doing 98); no push by cc, no release."
 claims: [ST0081]
 ---
 
