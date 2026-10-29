@@ -2284,10 +2284,10 @@
       "node": "vc",
       "kind": "doing",
       "seq": 59,
-      "text": "3.2.7 on Intent's turn (molt-vc's word): land ra-target/v2; build all and the full judge in one slot; dc todo 50; ic hold 12; kovacs preflight and devbin-vc's push; --dry-run beside hv, then hv's cut.",
+      "text": "3.2.7: ra-target/v2 landed (hv's merge-all GO, 2026-10-29); hv runs every suite by hand, we fix forward; then build all on hv's word, dc todo 50, ic hold 12, kovacs preflight and push, hv's cut.",
       "state": "live",
       "recorded_at": "2026-10-26T07:17:05.783Z",
-      "edited_at": "2026-10-28T19:57:06.636Z"
+      "edited_at": "2026-10-29T06:00:44.633Z"
     },
     {
       "node": "vc",

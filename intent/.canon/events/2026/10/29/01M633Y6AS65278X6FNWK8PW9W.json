@@ -1,0 +1,16 @@
+{
+  "id": "01M633Y6AS65278X6FNWK8PW9W",
+  "ts": "2026-10-29T06:00:44.633Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 59,
+    "text": "3.2.7: ra-target/v2 landed (hv's merge-all GO, 2026-10-29); hv runs every suite by hand, we fix forward; then build all on hv's word, dc todo 50, ic hold 12, kovacs preflight and push, hv's cut."
+  }
+}

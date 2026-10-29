@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- 3.2.7 on Intent's turn (molt-vc's word): land ra-target/v2; build all and the full judge in one slot; dc todo 50; ic hold 12; kovacs preflight and devbin-vc's push; --dry-run beside hv, then hv's cut. (edited)
+- 3.2.7: ra-target/v2 landed (hv's merge-all GO, 2026-10-29); hv runs every suite by hand, we fix forward; then build all on hv's word, dc todo 50, ic hold 12, kovacs preflight and push, hv's cut. (edited)
 
 ## TODO
 
