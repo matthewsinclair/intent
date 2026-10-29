@@ -11673,11 +11673,17 @@ fn estate_init(a: &ArgMatches) -> Result<(), Failure> {
 /// **THE `wrote:` LINE GOES TO STDERR**, as `edit`'s does: this runs inside a
 /// statusline command, whose stdout IS the status line, so stdout stays the
 /// script's. An input with no `rate_limits` writes and prints nothing.
+///
+/// A terminal and an empty stdin are one refusal, so the answer does not depend
+/// on whether the caller's stdin is a terminal or closed.
 fn estate_statusline() -> Result<(), Failure> {
-  if std::io::IsTerminal::is_terminal(&std::io::stdin()) {
-    return Err(Failure::Error(
+  let nothing = || {
+    Failure::Error(
       "error: nothing on stdin: this reads the JSON Claude Code pipes to a statusline command\n  remedy: call it from the statusline script, `printf '%s' \"$input\" | intent estate statusline`".to_string(),
-    ));
+    )
+  };
+  if std::io::IsTerminal::is_terminal(&std::io::stdin()) {
+    return Err(nothing());
   }
   let mut text = String::new();
   std::io::Read::read_to_string(&mut std::io::stdin(), &mut text).map_err(|e| {
@@ -11685,6 +11691,9 @@ fn estate_statusline() -> Result<(), Failure> {
       "error: could not read the statusline input from stdin: {e}\n  remedy: pipe the statusline JSON in whole, `printf '%s' \"$input\" | intent estate statusline`"
     ))
   })?;
+  if text.trim().is_empty() {
+    return Err(nothing());
+  }
   if let Some(path) = intentsvcs::estate::host_statusline_report(&text).map_err(estate_fail)? {
     eprintln!("wrote: {}", path.display());
   }
