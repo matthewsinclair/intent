@@ -5,12 +5,10 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "42695459-0b6e-4f49-a7b4-96cfd9ab52ab",
-    "heartbeat_at": "2026-10-29T19:54:08.974Z",
+    "heartbeat_at": "2026-10-29T20:20:16.570Z",
     "status": "active",
-    "focus": "After the 3.2.7 cut: ST0081 WP-02 waits on hv's AC-02.1 reading after release attach (doing 98); no push by cc, no release.",
-    "claims": [
-      "ST0081"
-    ],
+    "focus": "3.2.7 is cut and published; cc has no live item and stands by for vc's next unit; no push by cc, no release.",
+    "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"
@@ -2147,7 +2145,8 @@
       "kind": "doing",
       "seq": 98,
       "text": "ST0081 WP-02 landed; it stays WIP until hv reads both halves of AC-02.1 at the 3.2.7 cut.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-29T20:20:14.636Z",
       "recorded_at": "2026-10-27T07:20:26.338Z",
       "edited_at": "2026-10-28T19:59:34.780Z"
     },

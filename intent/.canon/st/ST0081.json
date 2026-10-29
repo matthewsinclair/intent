@@ -23,9 +23,9 @@
       "seq": 2,
       "title": "Linux assets on each tag's GitHub release, one writer per release object",
       "scope": "S",
-      "status": "wip",
+      "status": "done",
       "objective": "Each release tag's GitHub release carries the Linux assets beside the macOS ones, with one writer per release object: devbin's release core attaches them, and `bin/devbin release check` names no second writer.",
-      "body": "## As built\n\n- `linux-release.yml` runs on each `v*` tag and builds the Linux packages.\n- `bin/devbin release attach vX.Y.Z` attaches them and writes `SHA256SUMS` over every asset the release carries; `bin/devbin release check` passes with `release.verbs: [check, attach]` declared in `bin/.devbin/config.yaml`.\n- `bin/int macos publish` uploads the macOS assets and never writes the formula or the cask; `bin/int brew publish` alone writes both.\n- `intent/docs/releasing.md` step 4 gives the order.\n\n## Open\n\nAC-02.1 stays unsatisfied until hv reads both halves at the 3.2.7 cut: (a) the release object carries the Linux assets beside the macOS assets, read after step 4's attach, and (b) `bin/devbin release check` names no second writer of the release object.\n",
+      "body": "## As built\n\n- `linux-release.yml` runs on each `v*` tag and builds the Linux packages.\n- `bin/devbin release attach vX.Y.Z` attaches them and writes `SHA256SUMS` over every asset the release carries; `bin/devbin release check` passes with `release.verbs: [check, attach]` declared in `bin/.devbin/config.yaml`.\n- `bin/int macos publish` uploads the macOS assets and never writes the formula or the cask; `bin/int brew publish` alone writes both.\n- `intent/docs/releasing.md` step 4 gives the order.\n\nAC-02.1 is satisfied from the v3.2.7 release object. Nothing is open.\n",
       "preamble": ""
     },
     {

@@ -2,7 +2,7 @@
 wp_id: WP-02
 title: Linux assets on each tag's GitHub release, one writer per release object
 scope: S
-status: WIP
+status: Done
 ---
 
 # WP-02: Linux assets on each tag's GitHub release, one writer per release object
@@ -18,9 +18,7 @@ Each release tag's GitHub release carries the Linux assets beside the macOS ones
 - `bin/int macos publish` uploads the macOS assets and never writes the formula or the cask; `bin/int brew publish` alone writes both.
 - `intent/docs/releasing.md` step 4 gives the order.
 
-## Open
-
-AC-02.1 stays unsatisfied until hv reads both halves at the 3.2.7 cut: (a) the release object carries the Linux assets beside the macOS assets, read after step 4's attach, and (b) `bin/devbin release check` names no second writer of the release object.
+AC-02.1 is satisfied from the v3.2.7 release object. Nothing is open.
 
 ## Acceptance
 

@@ -41,7 +41,7 @@ The thread's history is in git and in each work package's commits.
 | WP    | Title                                                                    | Size | Status    |
 | ----- | ------------------------------------------------------------------------ | ---- | --------- |
 | WP-01 | Linux release binaries built by GitHub Actions                           | S    | Done      |
-| WP-02 | Linux assets on each tag's GitHub release, one writer per release object | S    | WIP       |
+| WP-02 | Linux assets on each tag's GitHub release, one writer per release object | S    | Done      |
 | WP-03 | Intent's Linux install through Homebrew, in docs/install.md              | S    | Done      |
 | WP-04 | First install on a real Windows machine                                  | XS   | Cancelled |
 | WP-05 | intent daemon start --at-login refuses on Linux before writing anything  | XS   | Done      |
