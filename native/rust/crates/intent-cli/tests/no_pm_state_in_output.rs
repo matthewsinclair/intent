@@ -20,7 +20,7 @@
 //! either DRIVES the shipped binary and reads what came out, or establishes the
 //! reachability precondition it depends on -- never "is the string in there".
 //!
-//! Four surfaces, because the leak has four carriers and three of them were
+//! Five surfaces, because the leak has five carriers and four of them were
 //! invisible to the first specification of this test:
 //!
 //! 1. **The schema faces**, driven through `intent schema`. **This is the
@@ -44,6 +44,10 @@
 //!    [`the_roadmap_field_is_not_reachable_from_any_renderer`] for why this is
 //!    stronger than checking the values, and for the deviation from AC-00.9's
 //!    letter it implies.
+//! 5. **The agent guide**, driven through `intent llm guide`, which prints
+//!    text it reads from the dispatch table at run time, every invariant's
+//!    rule and every row's text among it, into every project (issue 0651).
+//!    None of the four surfaces above reaches that text.
 //!
 //! The model's own `Disposition::Unbuilt` carried the same thing as an
 //! `owed_by: "WP-06"` and **was removed rather than guarded**: `intentsvcs` is a
@@ -302,6 +306,43 @@ fn every_declared_commands_help_carries_no_pm_state() {
   // text. What remains is the planted-string proof in
   // `the_rule_keys_on_referent_and_not_on_shape` -- `ST0000` stays green,
   // `ST0056` goes red -- not a proof on what ships.
+}
+
+// ---------------------------------------------------------------------------
+// Surface 5 -- the agent guide
+// ---------------------------------------------------------------------------
+
+/// The guide every project's agent reads, driven rather than read.
+///
+/// `intent llm guide` renders the dispatch table's invariants and rows at run
+/// time, so a tracker id in an invariant's rule reaches every project through
+/// it and through no other surface here. The guide is prose about the reader's
+/// estate, so the D class is as ambiguous here as in help text.
+#[test]
+fn the_agent_guide_carries_no_pm_state() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let printed = run(dir.path(), &["llm", "guide"]);
+
+  // The precondition: the guide rendered the table, so the scan below read
+  // the table's text and not a refusal. Every shipped command has its heading.
+  let missing: Vec<String> = declared_paths()
+    .into_iter()
+    .filter(|path| !printed.contains(&format!("#### intent {path}\n")))
+    .collect();
+  assert!(
+    missing.is_empty(),
+    "precondition: `intent llm guide` renders every declared command; it has no heading for:\n  {}",
+    missing.join("\n  ")
+  );
+
+  let offenders = pm_identifiers(&printed, Decisions::Ambiguous);
+  assert!(
+    offenders.is_empty(),
+    "`intent llm guide` prints Intent's own project-management state into every project. The \
+     guide renders the dispatch table's invariants and rows, so say the rule and leave its \
+     provenance out of the table:\n  {}",
+    offenders.join("\n  ")
+  );
 }
 
 // ---------------------------------------------------------------------------
