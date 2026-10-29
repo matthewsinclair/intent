@@ -1,5 +1,5 @@
 ---
-verblock: "2026-10-29:v3.39: vc - after the 3.2.7 cut"
+verblock: "2026-10-30:v3.40: vc - 3.2.7 published, ST0081 done"
 intent_version: 3.2.7
 ---
 
@@ -7,11 +7,10 @@ intent_version: 3.2.7
 
 ## DOING
 
-- 3.2.7 publish (hv): macos prepare and publish, release attach, brew publish and smoke, `intent use brew`, the app swap, the intent.laksa.io push.
+- 3.2.7 is published; hv's `intent use brew` once Utilz's brew upgrade is clear.
 
 ## TODO
 
-- ST0081 WP-02: read AC-02.1 from the v3.2.7 release object (`gh release view v3.2.7 --json assets`, `bin/devbin release check`), then close it.
 - ST0087 WP-05: AC-05.1 (dev, opt, brew) in one run, then AC-05.2 on kovacs.
 - `intent claude upgrade --apply --skip-settings` here, and every estate's own upgrade by its vc.
 - Deferred (hv): issues 0649, 0650, 0661; threads ST0060, ST0077, ST0082, ST0084, ST0085, ST0089.

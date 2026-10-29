@@ -1,9 +1,9 @@
 ---
 st_id: ST0081
 title: Intent from Homebrew on Linux and macOS, with no source checkout: Linux binaries on every release
-status: WIP
+status: Completed
 created: 2026-10-12
-completed:
+completed: 2026-10-29
 ---
 
 # ST0081: Intent from Homebrew on Linux and macOS, with no source checkout: Linux binaries on every release

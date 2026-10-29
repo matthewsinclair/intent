@@ -8,14 +8,6 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 
 ## DOING
 
-- [-] ST0081: Intent from Homebrew on Linux and macOS, with no source checkout: Linux binaries on every release
-  - [x] 01: Linux release binaries built by GitHub Actions
-  - [x] 02: Linux assets on each tag's GitHub release, one writer per release object
-  - [x] 03: Intent's Linux install through Homebrew, in docs/install.md
-  - [~] 04: First install on a real Windows machine
-  - [x] 05: intent daemon start --at-login refuses on Linux before writing anything
-  - [x] 06: The Homebrew formula installs Intent on Linux
-  - [x] 07: Intent on Ubuntu from its Linux package, as a user uses it
 - [-] ST0087: Intent conforms to the dev, opt and brew contract
   - [x] 01: The tree function, the runtime set and the version line
   - [x] 02: intent install and the manifest, with doctor's manifest arms
@@ -133,6 +125,14 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 01: TUI Omnibox /outs[tanding]: the same table intent outs prints, inside the TUI
   - [x] 02: outs shows each open WP directly underneath its own ST
 - [x] ST0080: Scheduled store backups that actually fire
+- [x] ST0081: Intent from Homebrew on Linux and macOS, with no source checkout: Linux binaries on every release
+  - [x] 01: Linux release binaries built by GitHub Actions
+  - [x] 02: Linux assets on each tag's GitHub release, one writer per release object
+  - [x] 03: Intent's Linux install through Homebrew, in docs/install.md
+  - [~] 04: First install on a real Windows machine
+  - [x] 05: intent daemon start --at-login refuses on Linux before writing anything
+  - [x] 06: The Homebrew formula installs Intent on Linux
+  - [x] 07: Intent on Ubuntu from its Linux package, as a user uses it
 - [x] ST0083: Agent contracts at the root or in .claude/, chosen per project, and CLAUDE.md imports AGENTS.md
   - [x] 01: CLAUDE.md imports AGENTS.md: the @AGENTS.md line in _CLAUDE.md
   - [x] 02: The contracts key and contracts_dir: every writer, reader, the sync scope and the daemon watch derive the place from it
