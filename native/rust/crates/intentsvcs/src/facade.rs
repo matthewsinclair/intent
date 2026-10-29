@@ -8394,7 +8394,8 @@ impl Facade {
 
   /// Wait for, and take, the lock [`Self::land_board_write`] holds (issue
   /// 0662). The kernel releases it when the returned file closes, on drop or on
-  /// process death, so a crashed write cannot leave it held.
+  /// process death, so a crashed write cannot leave it held. Its directory is
+  /// made first, because a store opened in memory never made `.cache/`.
   fn lock_boards(&self) -> Result<std::fs::File, FacadeError> {
     let path = self.project.board_lock_path();
     let refused = |source: std::io::Error| FacadeError::ViewsNotWritten {
@@ -8403,6 +8404,9 @@ impl Facade {
         source,
       },
     };
+    if let Some(dir) = path.parent() {
+      std::fs::create_dir_all(dir).map_err(refused)?;
+    }
     let file = std::fs::OpenOptions::new()
       .create(true)
       .truncate(false)
