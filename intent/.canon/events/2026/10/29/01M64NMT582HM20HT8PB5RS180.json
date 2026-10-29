@@ -1,0 +1,16 @@
+{
+  "id": "01M64NMT582HM20HT8PB5RS180",
+  "ts": "2026-10-29T20:29:26.056Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 66,
+    "text": "ST0087 AC-05.1 (dev, opt, brew, starting and ending on brew; dc's reshape at refs/bank/dc/0087-05/reshape-20261029.md) with dc, then AC-05.2 on kovacs; then WP-05 and ST0087 close."
+  }
+}

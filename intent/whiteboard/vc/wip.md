@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a3784f83-17e6-4dd3-bc37-0049e71bd0b4
-heartbeat_at: 2026-10-29 19:58Z
+heartbeat_at: 2026-10-29 20:29Z
 status: active
-focus: "3.2.7 is cut; hv publishes. Then AC-02.1 closes ST0081, and dc's AC-05.1/05.2 close ST0087."
+focus: "Folded for hv's hard stop. 3.2.7 is published and on brew; next is ST0087's AC-05.1 and AC-05.2 on hv's go."
 claims: []
 ---
 
@@ -18,7 +18,7 @@ _(none)_
 ## TODO
 
 - After 3.2.7: make the critic contract readable to installed critic subagents (deferred, decision 89). (edited)
-- ST0087 AC-05.1 (dev, opt, brew) in one run with dc, then AC-05.2 on kovacs; ST0081 AC-02.1 from the v3.2.7 release object. (edited)
+- ST0087 AC-05.1 (dev, opt, brew, starting and ending on brew; dc's reshape at refs/bank/dc/0087-05/reshape-20261029.md) with dc, then AC-05.2 on kovacs; then WP-05 and ST0087 close. (edited)
 - `intent claude upgrade --apply --skip-settings` here, committing its wrote: paths. (edited)
 
 ## Holds
