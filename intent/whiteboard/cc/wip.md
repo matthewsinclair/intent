@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 42695459-0b6e-4f49-a7b4-96cfd9ab52ab
-heartbeat_at: 2026-10-28 19:59Z
+heartbeat_at: 2026-10-29 13:42Z
 status: active
-focus: "Holding for Intent's turn: ra-target/v2 to land (doing 100), AC-02.1 at the 3.2.7 cut (doing 98); no push, no release."
+focus: "Folded and held for hv's compact: ST0081 WP-02 waits on hv's AC-02.1 reading at the 3.2.7 cut (doing 98); no push, no release."
 claims: [ST0081]
 ---
 
@@ -14,7 +14,6 @@ claims: [ST0081]
 ## DOING
 
 - ST0081 WP-02 landed; it stays WIP until hv reads both halves of AC-02.1 at the 3.2.7 cut. (edited)
-- ra-target/v2 is banked and reviewed; vc lands it at Intent's turn, then tmp/wt-cc-ra goes under the fold checks. (edited)
 
 ## TODO
 
