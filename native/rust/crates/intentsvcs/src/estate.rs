@@ -840,7 +840,7 @@ pub fn status(dirs: &Dirs, claude_dir: &Path) -> Result<EstateStatus, EstateErro
 #[derive(Debug, Clone, Default)]
 pub struct Held {
   pub history: Vec<census::Sample>,
-  pub endpoint: Option<usage::Endpoint>,
+  pub endpoint: usage::Reading,
 }
 
 /// [`status`] with what a long-lived caller held.
@@ -863,7 +863,7 @@ pub fn status_with(
     .collect();
   let records = read_records(dirs, &mut unreadable);
   let census = census::read(dirs, held.history, &mut unreadable);
-  let usage = usage::resolve(held.endpoint.as_ref(), dirs, &mut unreadable);
+  let usage = usage::resolve(&held.endpoint, dirs, &mut unreadable);
   let slots = slots::read(dirs, &mut unreadable);
   Ok(join(
     Gathered {

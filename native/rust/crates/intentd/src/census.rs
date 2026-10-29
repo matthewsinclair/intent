@@ -52,9 +52,13 @@ pub fn held() -> Held {
     .lock()
     .unwrap_or_else(std::sync::PoisonError::into_inner)
     .clone();
-  if endpoint.is_none() {
-    FIRST_ASK.notify_one();
-  }
+  let endpoint = match endpoint {
+    Some(read) => usage::Reading::Read(read),
+    None => {
+      FIRST_ASK.notify_one();
+      usage::Reading::NotReadYet
+    }
+  };
   Held {
     history: RING
       .lock()

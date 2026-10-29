@@ -939,12 +939,14 @@
       if (u.error) {
         note.appendChild(el("span", "warn", "usage endpoint failed: " + u.error + ". "));
       }
+      // **NOT READ YET IS NO FAILURE** (issue 0659): before intentd's first
+      // endpoint read the reader sends no error, and the page says so.
       if (!u.source) {
-        note.appendChild(document.createTextNode(u.error ? "No fallback has reported either." : "Not read yet."));
+        note.appendChild(document.createTextNode(u.error ? "No fallback has reported either." : "usage endpoint not read yet; no fallback has reported."));
       } else if (u.source.kind === "endpoint") {
         note.appendChild(document.createTextNode("usage endpoint" + read + "; the statusline fallback stands by."));
       } else {
-        note.appendChild(document.createTextNode("5h and 7d from " + ix.who(u.source.session_id || "") + "'s statusline" + read + "; per-model figures need the endpoint."));
+        note.appendChild(document.createTextNode((u.error ? "" : "usage endpoint not read yet; ") + "5h and 7d from " + ix.who(u.source.session_id || "") + "'s statusline" + read + "; per-model figures need the endpoint."));
       }
       parts.push(note);
       box.replaceChildren.apply(box, parts);

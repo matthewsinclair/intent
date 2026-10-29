@@ -89,6 +89,20 @@ pub enum EndpointFailure {
 /// it gave none.
 pub type Endpoint = Result<Usage, EndpointFailure>;
 
+/// What a reader holds of the endpoint (issue 0659). Only intentd reads it,
+/// and intentd holds nothing until its census tick first does, which is a
+/// reading not taken yet and no failure.
+#[derive(Debug, Clone, Default)]
+pub enum Reading {
+  /// A reader that is not intentd, so never reads the endpoint.
+  #[default]
+  NotIntentd,
+  /// intentd before its census tick first reads the endpoint.
+  NotReadYet,
+  /// intentd's last reading, as [`carry`] keeps it.
+  Read(Endpoint),
+}
+
 /// What [`read_endpoint`] runs and asks: the Keychain tool, curl, and the URL.
 ///
 /// **THE HOST'S ARE [`EndpointTools::host`], AND NOTHING ELSE CALLS THE REAL
@@ -242,15 +256,18 @@ pub fn from_report(report: &Report, read_at: Option<String>) -> Usage {
 /// else the fallback with why the endpoint gave none, or [`NO_ENDPOINT`] for
 /// a reader that is not intentd. A reading kept beside a later failure (see
 /// [`carry`]) stands until a statusline report is newer, and the report then
-/// shows, naming the same failure.
-pub fn resolve(
-  endpoint: Option<&Endpoint>,
-  dirs: &Dirs,
-  unreadable: &mut Vec<Unreadable>,
-) -> Usage {
+/// shows, naming the same failure. Before intentd's first read the fallback
+/// stands with no error, because nothing failed (issue 0659).
+pub fn resolve(endpoint: &Reading, dirs: &Dirs, unreadable: &mut Vec<Unreadable>) -> Usage {
   let why = match endpoint {
-    Some(Ok(usage)) if usage.error.is_none() => return usage.clone(),
-    Some(Ok(kept)) => {
+    Reading::NotReadYet => {
+      return Usage {
+        error: None,
+        ..fallback(dirs, unreadable)
+      };
+    }
+    Reading::Read(Ok(usage)) if usage.error.is_none() => return usage.clone(),
+    Reading::Read(Ok(kept)) => {
       let newer = fallback(dirs, unreadable);
       // ISO stamps of one form sort as the times they name.
       return if newer.source.is_some() && newer.read_at > kept.read_at {
@@ -262,8 +279,8 @@ pub fn resolve(
         kept.clone()
       };
     }
-    Some(Err(failure)) => failure.to_string(),
-    None => NO_ENDPOINT.to_string(),
+    Reading::Read(Err(failure)) => failure.to_string(),
+    Reading::NotIntentd => NO_ENDPOINT.to_string(),
   };
   Usage {
     error: Some(why),
@@ -683,14 +700,59 @@ mod tests {
     let dirs = Dirs::at_home(Path::new("/nonexistent/estate-usage-resolve"));
     let mut unreadable = Vec::new();
     let usage = resolve(
-      Some(&Err(EndpointFailure::Status { status: 401 })),
+      &Reading::Read(Err(EndpointFailure::Status { status: 401 })),
       &dirs,
       &mut unreadable,
     );
     assert_eq!(usage.error.as_deref(), Some("the endpoint answered 401"));
     assert_eq!(usage.source, None);
-    let usage = resolve(None, &dirs, &mut unreadable);
+  }
+
+  #[test]
+  fn a_reader_that_is_not_intentd_names_no_endpoint() {
+    let dirs = Dirs::at_home(Path::new("/nonexistent/estate-usage-resolve"));
+    let mut unreadable = Vec::new();
+    let usage = resolve(&Reading::NotIntentd, &dirs, &mut unreadable);
     assert_eq!(usage.error.as_deref(), Some(NO_ENDPOINT));
+  }
+
+  /// Issue 0659: intentd before its first endpoint read reports no failure,
+  /// with no fallback and with one, whose own [`NO_ENDPOINT`] it drops.
+  #[test]
+  fn intentd_before_its_first_read_names_no_failure() {
+    let empty = Dirs::at_home(Path::new("/nonexistent/estate-usage-resolve"));
+    let mut unreadable = Vec::new();
+    assert_eq!(
+      resolve(&Reading::NotReadYet, &empty, &mut unreadable),
+      Usage::default()
+    );
+    let home = std::env::temp_dir().join(format!("estate-usage-0659-{}", std::process::id()));
+    let dirs = Dirs::at_home(&home);
+    report(&dirs, &input(r#"{"five_hour":{"used_percentage":20}}"#)).unwrap();
+    let usage = resolve(&Reading::NotReadYet, &dirs, &mut unreadable);
+    assert!(unreadable.is_empty(), "{unreadable:?}");
+    assert_eq!(usage.error, None);
+    assert_eq!(usage.source.map(|s| s.kind), Some("statusline".to_string()));
+    assert_eq!(usage.five_hour.map(|w| w.percent), Some(20.0));
+    let _ = std::fs::remove_dir_all(&home);
+  }
+
+  #[test]
+  fn intentd_after_a_good_read_reports_the_endpoint() {
+    let dirs = Dirs::at_home(Path::new("/nonexistent/estate-usage-resolve"));
+    let mut unreadable = Vec::new();
+    let good = Usage {
+      source: Some(Source {
+        kind: "endpoint".to_string(),
+        session_id: None,
+      }),
+      read_at: Some("2026-10-29T16:00:00.000Z".to_string()),
+      ..Usage::default()
+    };
+    assert_eq!(
+      resolve(&Reading::Read(Ok(good.clone())), &dirs, &mut unreadable),
+      good
+    );
   }
 
   #[test]
