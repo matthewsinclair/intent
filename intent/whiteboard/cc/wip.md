@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 42695459-0b6e-4f49-a7b4-96cfd9ab52ab
-heartbeat_at: 2026-10-29 20:20Z
+heartbeat_at: 2026-10-29 20:26Z
 status: active
-focus: "3.2.7 is cut and published; cc has no live item and stands by for vc's next unit; no push by cc, no release."
+focus: "FOLDED for hv's hard stop, not released: 3.2.7 is cut and published and ST0081 is done; cc has no live item, no claim and no worktree, and waits for vc's next unit; no push by cc, no release."
 claims: []
 ---
 
