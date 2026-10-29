@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 37fdad41-2838-4b8d-9a5e-d32fe5670a7d
-heartbeat_at: 2026-10-29 13:44Z
+heartbeat_at: 2026-10-29 19:55Z
 status: active
-focus: "Folded and held for hv's compact, not released; on hv's word, todo 50 at the cut, then todo 53 after it. No push, no release."
+focus: "3.2.7 is cut; next is todo 53, WP-05's proof on dev, opt and brew, then kovacs. No push, no release."
 claims: [ST0087/05]
 ---
 
@@ -17,8 +17,7 @@ _(none)_
 
 ## TODO
 
-- 3.2.7 cut-side: after the build all at HEAD, re-run (a) the 0632 drive and (b) the known-defects re-drive on the new pair, then (c) the cut's --dry-run beside hv. (edited)
-- ST0087 WP-05 (dc's, vc judges): after the cut, AC-05.1 in one run across dev, opt and brew from a bare login shell, then AC-05.2 on kovacs, each with its record for vc. (edited)
+- ST0087 WP-05 (dc's, vc judges): AC-05.1 across dev, opt and brew from a bare login shell, then AC-05.2 on kovacs, each with its record for vc. (edited)
 
 ## Holds
 

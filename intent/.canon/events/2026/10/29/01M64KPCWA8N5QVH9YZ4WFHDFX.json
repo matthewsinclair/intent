@@ -1,0 +1,16 @@
+{
+  "id": "01M64KPCWA8N5QVH9YZ4WFHDFX",
+  "ts": "2026-10-29T19:55:20.842Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 53,
+    "text": "ST0087 WP-05 (dc's, vc judges): AC-05.1 across dev, opt and brew from a bare login shell, then AC-05.2 on kovacs, each with its record for vc."
+  }
+}
