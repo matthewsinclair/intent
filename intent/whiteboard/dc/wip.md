@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 37fdad41-2838-4b8d-9a5e-d32fe5670a7d
-heartbeat_at: 2026-10-29 19:55Z
+heartbeat_at: 2026-10-29 20:27Z
 status: active
-focus: "3.2.7 is cut; next is todo 53, WP-05's proof on dev, opt and brew, then kovacs. No push, no release."
+focus: "Folded for hv's hard stop, not released; todo 53 runs tomorrow on hv's go, starting on brew and ending there. No push, no release."
 claims: [ST0087/05]
 ---
 
@@ -17,7 +17,7 @@ _(none)_
 
 ## TODO
 
-- ST0087 WP-05 (dc's, vc judges): AC-05.1 across dev, opt and brew from a bare login shell, then AC-05.2 on kovacs, each with its record for vc. (edited)
+- ST0087 WP-05 (dc's, vc judges): AC-05.1 across dev, opt and brew from a bare login shell, ending on brew, then AC-05.2 on kovacs; reshape the kit first per refs/bank/dc/0087-05/reshape-20261029.md. (edited)
 
 ## Holds
 
