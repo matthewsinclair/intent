@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "a3784f83-17e6-4dd3-bc37-0049e71bd0b4",
-    "heartbeat_at": "2026-10-29T13:46:35.360Z",
+    "heartbeat_at": "2026-10-29T19:58:26.106Z",
     "status": "active",
-    "focus": "Holding for hv's compact and hv's hand-run suite results; then doing 59. No push, no release.",
+    "focus": "3.2.7 is cut; hv publishes. Then AC-02.1 closes ST0081, and dc's AC-05.1/05.2 close ST0087.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -2101,7 +2101,8 @@
       "kind": "decision",
       "seq": 76,
       "text": "(hv, 2026-10-25) One next release per project carrying everything not deferred on the record; done, tested, kovacs-checked, then hv's cut.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-29T19:58:21.891Z",
       "recorded_at": "2026-10-25T06:51:59.096Z",
       "edited_at": "2026-10-28T19:56:55.688Z"
     },
@@ -2285,7 +2286,8 @@
       "kind": "doing",
       "seq": 59,
       "text": "3.2.7: hv runs every suite by hand and we fix forward; then build all on hv's word, dc todo 50, ic hold 12, kovacs preflight and push, hv's cut.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-29T19:58:20.976Z",
       "recorded_at": "2026-10-26T07:17:05.783Z",
       "edited_at": "2026-10-29T13:46:33.584Z"
     },
@@ -2339,10 +2341,10 @@
       "node": "vc",
       "kind": "todo",
       "seq": 66,
-      "text": "After the cut: ST0087 AC-05.1 (dev, opt, brew) in one run with dc, then AC-05.2 on kovacs and AC-02.1 from the release object.",
+      "text": "ST0087 AC-05.1 (dev, opt, brew) in one run with dc, then AC-05.2 on kovacs; ST0081 AC-02.1 from the v3.2.7 release object.",
       "state": "live",
       "recorded_at": "2026-10-26T13:50:49.751Z",
-      "edited_at": "2026-10-28T19:57:15.287Z"
+      "edited_at": "2026-10-29T19:58:23.895Z"
     },
     {
       "node": "vc",
@@ -2375,10 +2377,10 @@
       "node": "vc",
       "kind": "todo",
       "seq": 69,
-      "text": "After the cut: `intent claude upgrade --apply --skip-settings` here, committing its wrote: paths.",
+      "text": "`intent claude upgrade --apply --skip-settings` here, committing its wrote: paths.",
       "state": "live",
       "recorded_at": "2026-10-26T18:58:02.607Z",
-      "edited_at": "2026-10-28T19:57:16.650Z"
+      "edited_at": "2026-10-29T19:58:25.091Z"
     },
     {
       "node": "vc",
@@ -2440,7 +2442,8 @@
       "kind": "decision",
       "seq": 103,
       "text": "(hv, 2026-10-28) P0 is doing 59; every open issue and ST0060, ST0077, ST0082, ST0084, ST0085 and ST0089 are deferred past 3.2.7; nothing is cancelled.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-29T19:58:22.787Z",
       "recorded_at": "2026-10-28T18:03:12.655Z",
       "edited_at": "2026-10-28T19:57:13.972Z"
     }

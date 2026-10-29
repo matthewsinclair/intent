@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a3784f83-17e6-4dd3-bc37-0049e71bd0b4
-heartbeat_at: 2026-10-29 13:46Z
+heartbeat_at: 2026-10-29 19:58Z
 status: active
-focus: "Holding for hv's compact and hv's hand-run suite results; then doing 59. No push, no release."
+focus: "3.2.7 is cut; hv publishes. Then AC-02.1 closes ST0081, and dc's AC-05.1/05.2 close ST0087."
 claims: []
 ---
 
@@ -13,13 +13,13 @@ claims: []
 
 ## DOING
 
-- 3.2.7: hv runs every suite by hand and we fix forward; then build all on hv's word, dc todo 50, ic hold 12, kovacs preflight and push, hv's cut. (edited)
+_(none)_
 
 ## TODO
 
 - After 3.2.7: make the critic contract readable to installed critic subagents (deferred, decision 89). (edited)
-- After the cut: ST0087 AC-05.1 (dev, opt, brew) in one run with dc, then AC-05.2 on kovacs and AC-02.1 from the release object. (edited)
-- After the cut: `intent claude upgrade --apply --skip-settings` here, committing its wrote: paths. (edited)
+- ST0087 AC-05.1 (dev, opt, brew) in one run with dc, then AC-05.2 on kovacs; ST0081 AC-02.1 from the v3.2.7 release object. (edited)
+- `intent claude upgrade --apply --skip-settings` here, committing its wrote: paths. (edited)
 
 ## Holds
 
@@ -32,14 +32,12 @@ _(none)_
 ## Decisions
 
 - (hv, 2026-10-23) Molt never touches Intent on rhadamanth except `intent issues add|edit`, committing only what the verb wrote; no repo commits Python. (edited)
-- (hv, 2026-10-25) One next release per project carrying everything not deferred on the record; done, tested, kovacs-checked, then hv's cut. (edited)
 - (hv confirmed, 2026-10-25) Intent adopts devbin 0227's shared formula renderer after 3.2.7, once it takes the assets shape. (edited)
 - (2026-10-25) Every Intent judge runs `intent critic` on each changed .rs and shell file as a leg; red on warning or above; no planted positives. (edited)
 - (hv, 2026-10-25) Brew by default; dev or opt only while working on that project, and switch back to brew after its release. (edited)
 - (hv, 2026-10-25) devbin-vc runs Intent's pushes to local and upstream, fast-forward only, on vc's "push" after build all at HEAD; cuts stay hv's. (edited)
 - (2026-10-27) Before a worktree is removed, its node points refs/attic/<node>/<worktree> at its HEAD; attic refs are never deleted. (edited)
 - (hv, 2026-10-27) Every localfold and EOD fold archives what is spent, so a pickup prints only live state; ST0089 is built after the cut. (edited)
-- (hv, 2026-10-28) P0 is doing 59; every open issue and ST0060, ST0077, ST0082, ST0084, ST0085 and ST0089 are deferred past 3.2.7; nothing is cancelled. (edited)
 
 ---
 
