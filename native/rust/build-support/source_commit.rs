@@ -200,7 +200,12 @@ const DIRT_SCOPE: &[&str] = &[":(top)native/rust", ":(top)surface", ":(top)docs/
 
 /// The paths under [`DIRT_SCOPE`] that no shipped binary compiles in, as git
 /// exclude pathspecs: each workspace crate's integration tests and benches,
-/// which build only into their own test binaries.
+/// which build only into their own test binaries, and each crate that only
+/// dev-dependencies reach (issue 0660). `testkit` is one: intentsvcs, intent-cli
+/// and intentd take it under `[dev-dependencies]` alone, so a change to its
+/// `src/` moved no shipped byte and still put the pair behind HEAD. Arm 6f of
+/// `shared_artefact_build_guard.sh` refuses a crate listed here while any
+/// manifest takes it as a normal or build dependency.
 ///
 /// **CURRENCY IS ASKED WITHOUT THEM, DIRT IS NOT** (issue 0657). "Has a build
 /// input changed since the pair's commit" hands these to git beside the scope,
@@ -221,7 +226,7 @@ const DIRT_SCOPE: &[&str] = &[":(top)native/rust", ":(top)surface", ":(top)docs/
 /// entry that is not a top-anchored glob exclude, and arm 6e of
 /// `shared_artefact_build_guard.sh` reads it through that same function.
 #[rustfmt::skip]
-const UNSHIPPED: &[&str] = &[":(top,exclude,glob)native/rust/crates/*/tests/**", ":(top,exclude,glob)native/rust/crates/*/benches/**"];
+const UNSHIPPED: &[&str] = &[":(top,exclude,glob)native/rust/crates/*/tests/**", ":(top,exclude,glob)native/rust/crates/*/benches/**", ":(top,exclude,glob)native/rust/crates/testkit/**"];
 
 fn git(args: &[&str]) -> Option<String> {
   let out = Command::new("git").args(args).output().ok()?;

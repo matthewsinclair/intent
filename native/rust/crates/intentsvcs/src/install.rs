@@ -864,8 +864,8 @@ pub struct Build<'a> {
   /// this binary was built, so it rides the build and no caller supplies one.
   pub scope: &'a str,
   /// The exclude pathspecs currency hands git beside [`Build::scope`], each
-  /// crate's tests and benches, space-separated, as `INTENT_UNSHIPPED` carries
-  /// them.
+  /// crate's tests and benches and each crate only dev-dependencies reach,
+  /// space-separated, as `INTENT_UNSHIPPED` carries them.
   pub unshipped: &'a str,
 }
 

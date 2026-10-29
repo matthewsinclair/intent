@@ -240,6 +240,62 @@ else
     ok "arm 6e -- currency.lib hands git the marker's UNSHIPPED pathspecs, read from the one declaration ($(printf '%s' "$unshipped" | tr '\n' ' '))"
   fi
 
+  # ARM 6f -- A CRATE LISTED AS UNSHIPPED IS TAKEN AS A DEV-DEPENDENCY ONLY
+  # (issue 0660). UNSHIPPED names `testkit` whole because only
+  # `[dev-dependencies]` reach it. The day a manifest takes it under
+  # `[dependencies]` or `[build-dependencies]`, its source is compiled into a
+  # shipped binary while currency still drops it, so a change there leaves a stale
+  # pair reading as current. This arm reads every manifest under native/rust for
+  # each crate UNSHIPPED names whole, and three controls drive the same reader over
+  # planted manifests first.
+  #
+  # LIMIT: a dependency renamed through `package = "<crate>"` under another key is
+  # not matched; the key must be the crate's own name.
+  unshipped_normal_dependents() {
+    local root="$1" crates="$2" m
+    [ -n "$crates" ] || return 0
+    find "$root/native/rust" -name Cargo.toml -not -path '*/target/*' | sort | while IFS= read -r m; do
+      awk -v crates="$crates" -v file="${m#"$root"/}" '
+        BEGIN { n = split(crates, c, " "); for (i = 1; i <= n; i++) want[c[i]] = 1 }
+        /^[[:space:]]*\[/ {
+          sec = $0; gsub(/[[:space:]]/, "", sec); gsub(/^\[|\]$/, "", sec)
+          normal = (sec ~ /^(target\..*\.)?(build-)?dependencies$/)
+          sub_dep = ""
+          if (sec ~ /^(target\..*\.)?(build-)?dependencies\./) { sub_dep = sec; sub(/^.*dependencies\./, "", sub_dep) }
+          if (sub_dep in want) print file ": " sub_dep " under [" sec "]"
+          next
+        }
+        normal {
+          key = $0; sub(/^[[:space:]]*/, "", key); sub(/[[:space:]]*[=.].*$/, "", key)
+          if (key in want) print file ": " key " under [" sec "]"
+        }' "$m"
+    done
+  }
+  unshipped_crates="$(printf '%s\n' "$unshipped" | sed -n 's|^:(top,exclude,glob)native/rust/crates/\([^/*][^/*]*\)/\*\*$|\1|p' | tr '\n' ' ')"
+  unshipped_crates="${unshipped_crates% }"
+  ctl6f="$TMP/arm6f"
+  mkdir -p "$ctl6f/native/rust/crates/normal" "$ctl6f/native/rust/crates/dotted" "$ctl6f/native/rust/crates/devonly"
+  printf '[package]\nname = "normal"\n\n[dependencies]\nplanted = { path = "../planted" }\n' > "$ctl6f/native/rust/crates/normal/Cargo.toml"
+  printf '[package]\nname = "dotted"\n\n[build-dependencies.planted]\npath = "../planted"\n' > "$ctl6f/native/rust/crates/dotted/Cargo.toml"
+  printf '[package]\nname = "devonly"\n\n[dev-dependencies]\nplanted = { path = "../planted" }\n' > "$ctl6f/native/rust/crates/devonly/Cargo.toml"
+  found6f="$(unshipped_normal_dependents "$ctl6f" planted)"
+  ctl6f_bad=""
+  case "$found6f" in *"crates/normal/Cargo.toml: planted under [dependencies]"*) ;; *) ctl6f_bad="$ctl6f_bad a planted [dependencies] entry was not found;" ;; esac
+  case "$found6f" in *"crates/dotted/Cargo.toml: planted under [build-dependencies.planted]"*) ;; *) ctl6f_bad="$ctl6f_bad a planted [build-dependencies.planted] table was not found;" ;; esac
+  case "$found6f" in *devonly*) ctl6f_bad="$ctl6f_bad a [dev-dependencies] entry was reported as shipped;" ;; esac
+  if [ -n "$ctl6f_bad" ]; then
+    fail "arm 6f -- CONTROLS FAILED ($ctl6f_bad); no verdict is offered on the live manifests"
+  elif [ -z "$unshipped_crates" ]; then
+    printf 'shared-artefact-guard: arm 6f NOT EXAMINED -- UNSHIPPED names no whole crate, so no manifest can take one as a normal dependency.\n'
+  else
+    shipped6f="$(unshipped_normal_dependents "$ROOT" "$unshipped_crates")"
+    if [ -n "$shipped6f" ]; then
+      fail "arm 6f -- UNSHIPPED names a crate that a manifest takes as a normal or build dependency, so its source ships while currency drops it: $(printf '%s' "$shipped6f" | tr '\n' ';')"
+    else
+      ok "arm 6f -- no manifest under native/rust takes an UNSHIPPED crate ($unshipped_crates) as a normal or build dependency (all three controls fired)"
+    fi
+  fi
+
   # ARM 6c -- THE MARKER ASKS IDENTITY OF THE CHECKOUT'S HEAD, UNSCOPED, AND
   # DIRT OVER DIRT_SCOPE (hv's ruling, 2026-09-13).
   #
