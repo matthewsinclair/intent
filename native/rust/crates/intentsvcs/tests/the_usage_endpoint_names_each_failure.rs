@@ -18,8 +18,8 @@
 use std::path::{Path, PathBuf};
 
 use intentsvcs::estate::usage::{
-  Endpoint, EndpointFailure, EndpointTools, READ_EVERY, Source, Usage, WAIT_CAP, Window, carry,
-  next_wait, read_endpoint, report, resolve, service,
+  Endpoint, EndpointFailure, EndpointTools, READ_EVERY, Reading, Source, Usage, WAIT_CAP, Window,
+  carry, next_wait, read_endpoint, report, resolve, service,
 };
 use intentsvcs::userstate::Dirs;
 
@@ -347,9 +347,9 @@ fn a_kept_reading_stands_until_a_newer_statusline_report() {
     error: Some("the endpoint answered 429, too many requests".to_string()),
     ..good_reading()
   };
-  let endpoint: Endpoint = Ok(kept.clone());
+  let endpoint = Reading::Read(Ok(kept.clone()));
   assert_eq!(
-    resolve(Some(&endpoint), &dirs, &mut unreadable),
+    resolve(&endpoint, &dirs, &mut unreadable),
     kept,
     "with no report, the kept reading stands"
   );
@@ -358,7 +358,7 @@ fn a_kept_reading_stands_until_a_newer_statusline_report() {
     r#"{"session_id":"00000000-0000-4000-8000-000000000000","rate_limits":{"five_hour":{"used_percentage":30}}}"#,
   )
   .expect("the statusline report is kept");
-  let usage = resolve(Some(&endpoint), &dirs, &mut unreadable);
+  let usage = resolve(&endpoint, &dirs, &mut unreadable);
   assert_eq!(
     usage.source.as_ref().map(|s| s.kind.as_str()),
     Some("statusline")
