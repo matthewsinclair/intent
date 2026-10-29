@@ -105,6 +105,17 @@ fn project_path(root: &str, relative: &str) -> Option<String> {
 /// `facade/x.rs` prints its method as `intentsvcs::facade::x::Store::helper()`.
 /// SCIP does not carry the type's own module, so the path is not made
 /// canonical (vc, 2026-09-17).
+///
+/// **A CARGO TARGET DESCRIPTOR IS NOT A MODULE, SO IT DOES NOT PRINT.**
+/// rust-analyzer of 2026-10-18 opens each symbol with the target it belongs to,
+/// `lib/` for the library, `bin/<name>/` for a binary, and likewise for a
+/// test, example, bench and build script, where earlier
+/// exports began at the crate root: `tiny 0.1.0 lib/store/open().` is
+/// `tiny::store::open()` as before, and printing `tiny::lib::store::open()`
+/// joined no definition, so every level-3 Rust reference fell to its syntax
+/// level (cc, measured 2026-10-28). An older export's root module named like
+/// a target kind would lose that segment, which is the price of reading both
+/// forms.
 pub fn printable(symbol: &str) -> Option<String> {
   let mut parts = symbol.splitn(5, ' ');
   let (Some(_scheme), Some(_manager), Some(package), Some(_version), Some(descriptors)) = (
@@ -119,7 +130,7 @@ pub fn printable(symbol: &str) -> Option<String> {
   let mut segments = vec![package.replace('-', "_")];
   // An `impl#` descriptor waiting for its self type and trait.
   let mut open_impl: Option<(Option<String>, Option<String>)> = None;
-  let mut rest = descriptors;
+  let mut rest = without_target(descriptors)?;
   while !rest.is_empty() {
     if let Some(inner) = rest.strip_prefix('[') {
       let (name, after) = identifier(inner)?;
@@ -159,6 +170,30 @@ pub fn printable(symbol: &str) -> Option<String> {
     segments.push(impl_segment(open, true));
   }
   Some(segments.join("::"))
+}
+
+/// The cargo targets that carry no name in a symbol, and those followed by the
+/// target's name, as rust-analyzer of 2026-10-18 writes them (cc, measured
+/// 2026-10-28 over a crate holding one of each).
+const UNNAMED_TARGETS: &[&str] = &["lib/", "custom-build/"];
+const NAMED_TARGETS: &[&str] = &["bin/", "test/", "example/", "bench/"];
+
+/// The descriptors after a leading cargo target, or all of them when the
+/// export names none.
+fn without_target(descriptors: &str) -> Option<&str> {
+  if let Some(rest) = UNNAMED_TARGETS
+    .iter()
+    .find_map(|t| descriptors.strip_prefix(t))
+  {
+    return Some(rest);
+  }
+  match NAMED_TARGETS
+    .iter()
+    .find_map(|t| descriptors.strip_prefix(t))
+  {
+    Some(rest) => identifier(rest)?.1.strip_prefix('/'),
+    None => Some(descriptors),
+  }
 }
 
 /// An impl's segment: `Type` or `<Type as Trait>` before a member, and the

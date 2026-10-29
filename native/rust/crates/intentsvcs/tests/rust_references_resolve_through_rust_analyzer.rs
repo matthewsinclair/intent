@@ -168,6 +168,54 @@ fn a_missing_rust_analyzer_is_named_and_never_answers_as_an_empty_tier() {
   );
 }
 
+/// rust-analyzer of 2026-10-18 opens each symbol with its cargo target, which
+/// the checked-in export, made earlier, does not carry; both forms print as the
+/// one path a person writes, or the newer export joins nothing.
+#[test]
+fn a_cargo_target_descriptor_prints_as_the_path_it_opens() {
+  let cases = [
+    (
+      "rust-analyzer cargo tiny 0.1.0 store/open().",
+      "tiny::store::open()",
+    ),
+    (
+      "rust-analyzer cargo tiny 0.1.0 lib/store/open().",
+      "tiny::store::open()",
+    ),
+    (
+      "rust-analyzer cargo tiny 0.1.0 bin/tiny/helper().",
+      "tiny::helper()",
+    ),
+    (
+      "rust-analyzer cargo tiny 0.1.0 test/x/t_helper().",
+      "tiny::t_helper()",
+    ),
+    (
+      "rust-analyzer cargo tiny 0.1.0 example/e/e_helper().",
+      "tiny::e_helper()",
+    ),
+    (
+      "rust-analyzer cargo tiny 0.1.0 bench/b/b_helper().",
+      "tiny::b_helper()",
+    ),
+    (
+      "rust-analyzer cargo tiny 0.1.0 custom-build/build_helper().",
+      "tiny::build_helper()",
+    ),
+    (
+      "rust-analyzer cargo tiny 0.1.0 lib/impl#[Widget]size().",
+      "tiny::Widget::size()",
+    ),
+  ];
+  for (symbol, printed) in cases {
+    assert_eq!(
+      rust_analyzer::printable(symbol).as_deref(),
+      Some(printed),
+      "{symbol}"
+    );
+  }
+}
+
 #[test]
 fn a_project_holding_no_cargo_manifest_is_not_applicable() {
   let fx = Fixture::new();
