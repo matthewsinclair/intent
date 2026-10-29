@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 9031fbab-80b1-4564-a880-93c9e79197d4
-heartbeat_at: 2026-10-29 13:45Z
+heartbeat_at: 2026-10-29 16:12Z
 status: active
-focus: "Folded for hv's compact, not released: hold 12 (reference and shots at the 3.2.7 cut) is ic's one live item; no claims, no worktrees."
+focus: "Hold 12 done (docs/reference and the explorer shots regenerated at the cut); ic has no live item and is holding for vc's word; no claims, no worktrees."
 claims: []
 ---
 
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-- Regenerate docs/reference and the explorer shots at the 3.2.7 cut from the banked scripts refs/bank/ic/tools/hold12-cut-*.sh. RELEASES WHEN: it is Intent's turn, L1 has closed, the build all at HEAD has run, and vc gives the word. (edited)
+_(none)_
 
 ## Watch-outs
 
