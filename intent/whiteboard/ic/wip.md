@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 9031fbab-80b1-4564-a880-93c9e79197d4
-heartbeat_at: 2026-10-28 20:03Z
+heartbeat_at: 2026-10-29 13:45Z
 status: active
-focus: "Holding for Intent's turn: hold 12 (reference and shots at the cut) is ic's one live item; no claims, no worktrees."
+focus: "Folded for hv's compact, not released: hold 12 (reference and shots at the 3.2.7 cut) is ic's one live item; no claims, no worktrees."
 claims: []
 ---
 
