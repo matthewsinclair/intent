@@ -2,7 +2,7 @@
 wp_id: WP-05
 title: The proof, per tree, on rhadamanth and kovacs
 scope: S
-status: WIP
+status: Done
 ---
 
 # WP-05: The proof, per tree, on rhadamanth and kovacs

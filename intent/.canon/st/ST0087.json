@@ -56,7 +56,7 @@
       "seq": 5,
       "title": "The proof, per tree, on rhadamanth and kovacs",
       "scope": "S",
-      "status": "wip",
+      "status": "done",
       "objective": "The contract's proof, run and recorded as the thread's evidence. On rhadamanth, with the pair built from the thread's tip: `intent use dev`, `intent use opt` (into a scratch prefix published by `intent install`) and `intent use brew` in turn, each followed by the version line, doctor and the shadow check passing, `~/.local/bin` ahead of the first Homebrew bin on PATH as Molt-matts sets it; then `intent use dev` to restore this machine. On kovacs, brew alone: the version line, doctor and the shadow check with no link in `~/.local/bin`, run by kovacs-sysadm on vc's notice after the release carrying WP-04 reaches the tap. devbin's switch proven in this checkout: `bin/devbin doctor` names the install the switch chose and why, in each devbin tree, and `bin/devbin upgrade` reads that install, run in a scratch clone of Intent since it writes the vendored runtime. Every brew probe prefixed with `HOMEBREW_NO_AUTO_UPDATE=1`, every heavy run booked at molt-vc's desk with START and END by name. The record is the acceptance evidence attached to this thread, each line a measurement with its command.",
       "body": "",
       "preamble": ""
@@ -197,7 +197,8 @@
       "text": "On rhadamanth, from a login session started after Molt-matts' PATH prepend, `intent use dev`, `intent use opt` and `intent use brew` run in turn, each followed by the version line and `intent doctor` with the shadow check passing, and the transcript is attached to this thread.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "intent/st/ST0087/wp05-ac051.md (record 581f9e573696, attached 78f5ec3e9; run 2 verified by vc 2026-10-30, PASS at 18:59:05Z)"
       }
     },
     {

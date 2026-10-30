@@ -1,0 +1,14 @@
+{
+  "id": "01M67436XQVT6E3373WT2KB34S",
+  "ts": "2026-10-30T19:20:26.810Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0087/AC-05.1"
+  },
+  "payload": {
+    "evidence": "intent/st/ST0087/wp05-ac051.md (record 581f9e573696, attached 78f5ec3e9; run 2 verified by vc 2026-10-30, PASS at 18:59:05Z)"
+  }
+}
