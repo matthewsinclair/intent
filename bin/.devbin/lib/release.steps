@@ -87,12 +87,19 @@ _DEVBIN_RELEASE_STEPS_LOADED=1
 
 # The step names, in the release sequence's order: the one place the order is
 # written. Every step is named by its name, never by its place in this list, so
-# a step added anywhere renames nothing (issue 0209).
-_RELEASE_STEP_NAMES=(resolve pre-flight stamp commit gates confirm tag push object after ci)
+# a step added anywhere renames nothing (issue 0209). snapshot, candidate and
+# publish are `release publish`'s (issue 0240), which a project declaring
+# release.publish.url runs once its cut has pushed: its own run prints them
+# between pre-flight and object, its confirm step after its snapshot.
+_RELEASE_STEP_NAMES=(resolve pre-flight stamp commit gates confirm tag push snapshot candidate publish object after ci)
 
 # The states a row can be in, for the state column's width alone: a state
-# missing here still prints, a column out of line.
-_RELEASE_ROW_STATES=("done" already skipped "not re-run" FAILED would pending UNREADABLE)
+# missing here still prints, a column out of line. `not reached` is a
+# publishing cut's object, after and ci, which read the public repository, and
+# its cut stops before anything reaches it, and `not read` release status's
+# snapshot, candidate and publish, which read the public repository against a
+# snapshot status never makes (issue 0240).
+_RELEASE_ROW_STATES=("done" already skipped "not re-run" "not reached" "not read" FAILED would pending UNREADABLE)
 
 # release_step_known <name> -- rc 0 when <name> is one of the release steps.
 release_step_known() {
@@ -231,36 +238,13 @@ release_commit() {
 }
 
 # release_scratch <project-root> -- make and print a scratch directory under
-# $TMPDIR, refusing when $TMPDIR is inside the project.
-#
-# OUTSIDE THE PROJECT IS THE CONTRACT, NOT A PREFERENCE (AC-3.2). A tree
+# $TMPDIR, refusing when $TMPDIR is inside the project (AC-3.2). A tree
 # materialised under the project root is untracked, non-ignored dirt -- exactly
-# what the commit step's cleanliness clause and the tree rule read -- so a status run
-# would change the fact it reports. The check is made BEFORE anything is
-# created, on physical paths, so a symlinked $TMPDIR cannot hide inside, through
-# physical_dir, the one turn of a directory into one (issue 0162): its own
-# copies kept a leading //, so a root spelled that way walked past the check.
+# what the commit step's cleanliness clause and the tree rule read -- so a status
+# run would change the fact it reports. The check is scratch_outside's
+# (lib/helpers), the one copy `release` and `worktrees` both call.
 release_scratch() {
-  local root base dir
-  if ! physical_dir "$1" root; then
-    warn "release: cannot resolve the project root $1"
-    return 1
-  fi
-  if ! physical_dir "${TMPDIR:-/tmp}" base; then
-    warn "release: TMPDIR (${TMPDIR:-/tmp}) is not a directory, so there is nowhere to materialise a commit"
-    return 1
-  fi
-  case "$base/" in
-    "$root"/*)
-      warn "release: TMPDIR ($base) is inside the project ($root), and a tree materialised there is dirt this run would then report -- point TMPDIR outside the project"
-      return 1
-      ;;
-  esac
-  if ! dir="$(mktemp -d "$base/devbin-release.XXXXXX")"; then
-    warn "release: cannot make a scratch directory under $base"
-    return 1
-  fi
-  printf '%s\n' "$dir"
+  scratch_outside release "$1" devbin-release
 }
 
 # release_materialise <commit> <dir> <path>... -- write the commit's WHOLE
@@ -579,6 +563,110 @@ release_remote_urls() {
     git remote get-url --push --all "$r" 2>/dev/null || true
   done < <(git remote 2>/dev/null || true)
   return 0
+}
+
+# _release_repo_key <url> -- the repository <url> names, as one line:
+# `name<TAB><owner/name>`, read through url_host_path on any host, in lower case
+# as GitHub reads it, after any `/` its path opens with, which git's scp form
+# (`host:/owner/name`) and a doubled slash after the host both carry; or
+# `path<TAB><path>` for a url naming no host, a local path or a file:// url,
+# compared by what it resolves to. rc 1 when it names a host and no OWNER/NAME
+# can be read off it, so whose repository it is cannot be told.
+_release_repo_key() {
+  local url="$1" hp rc=0 rest host path
+  hp="$(url_host_path "$url")" || rc=$?
+  if [ "$rc" -eq 4 ]; then
+    # The path, its leading slashes dropped, read again.
+    case "$url" in
+      *://*)
+        rest="${url#*://}"
+        host="${rest%%/*}"
+        path="${rest#"$host"}"
+        url="${url%%://*}://$host/${path#"${path%%[!/]*}"}"
+        ;;
+      *:*)
+        host="${url%%:*}"
+        path="${url#*:}"
+        url="$host:${path#"${path%%[!/]*}"}"
+        ;;
+    esac
+    rc=0
+    hp="$(url_host_path "$url")" || rc=$?
+  fi
+  case "$rc" in
+    0)
+      hp="${hp#*$'\t'}"
+      printf 'name\t%s\n' "${hp,,}"
+      ;;
+    2) printf 'path\t%s\n' "${url#file://}" ;;
+    *) return 1 ;;
+  esac
+}
+
+# release_remote_naming <url> [<remote>...] -- the first remote of this
+# checkout, or of the <remote>s named, whose url names the repository <url>
+# names (_release_repo_key), printed as `<remote><TAB><what it names>`: each
+# remote's url and pushurl as configured, and as git rewrites them (`remote
+# get-url`), since an ssh host alias and github.com can name one repository.
+# OWNER/NAME is compared on any host and without case; a local path by
+# identity, `-ef` on what each resolves to, or as written where either is not
+# there. rc 1 when no remote names it. rc 2, with the reason printed, when
+# nobody can say: the remotes cannot be listed, or <url> or a remote's url names
+# a host and no OWNER/NAME that can be read, which a caller refuses rather than
+# reads as naming another repository. THE ONE TEST that a public repository's
+# url is not the project's own (issue 0239): a snapshot asks it before it takes
+# a parent, the publish flow's pre-flight before it publishes, of every remote,
+# and a publishing cut's pre-flight of each remote it pushes to (issue 0240).
+release_remote_naming() {
+  local want have remotes r u
+  if ! want="$(_release_repo_key "$1")"; then
+    printf 'release.publish.url (%s) names a host and no OWNER/NAME that can be read\n' "$(release_url_shown "$1")"
+    return 2
+  fi
+  shift
+  if [ "$#" -gt 0 ]; then
+    remotes="$(printf '%s\n' "$@")"
+  elif ! remotes="$(git remote)"; then
+    printf "this project's remotes cannot be listed\n"
+    return 2
+  fi
+  while IFS= read -r r; do
+    [ -n "$r" ] || continue
+    while IFS= read -r u; do
+      [ -n "$u" ] || continue
+      if ! have="$(_release_repo_key "$u")"; then
+        printf "remote %s's url %s names a host and no OWNER/NAME that can be read\n" "$r" "$(release_url_shown "$u")"
+        return 2
+      fi
+      [ "${have%%$'\t'*}" = "${want%%$'\t'*}" ] || continue
+      if [ "$have" = "$want" ] ||
+        { [ "${want%%$'\t'*}" = path ] && [ "${have#*$'\t'}" -ef "${want#*$'\t'}" ]; }; then
+        printf '%s\t%s\n' "$r" "${want#*$'\t'}"
+        return 0
+      fi
+    done < <(
+      git config --get-all "remote.$r.url" || true
+      git config --get-all "remote.$r.pushurl" || true
+      git remote get-url --all "$r" 2>/dev/null || true
+      git remote get-url --push --all "$r" 2>/dev/null || true
+    )
+  done <<<"$remotes"
+  return 1
+}
+
+# release_listed_tag <listing> <tag> -- what an ls-remote <listing>, asked for
+# refs/tags/<tag> and refs/tags/<tag>^{} by name, says of <tag>, as
+# `<commit><TAB>lightweight|annotated`: the commit the tag names, its peel where
+# it is annotated, and nothing where the tag is not there. ls-remote prints a
+# peel for no pattern but its own, so the caller asks for both. Pure. THE ONE
+# READER of a tag another repository carries: release publish reads the public
+# one through it, and so does the formula, for its revision (issue 0240).
+release_listed_tag() {
+  awk -v t="refs/tags/$2" -v p="refs/tags/$2^{}" '
+    $2 == t { r = $1 }
+    $2 == p { q = $1 }
+    END { if (r != "") printf "%s\t%s\n", (q != "" ? q : r), (q != "" ? "annotated" : "lightweight") }
+  ' <<<"$1"
 }
 
 # release_read_remote <remote> <branch> <tag> <commit> -- the push step's postcondition

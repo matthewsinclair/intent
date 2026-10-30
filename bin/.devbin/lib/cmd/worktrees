@@ -1,0 +1,1187 @@
+#!/usr/bin/env bash
+#
+# The built-in `worktrees` (issue 0245): which linked worktrees of this
+# repository hold work its branch already has, and the removal of the ones that
+# provably do.
+#
+#   worktrees [report] [--repo <dir>] [<path>...]
+#                       one block per linked worktree, or only the ones named:
+#                       its verdict, landed, held or unknown, and the evidence
+#                       for it; then the plain directories beside them
+#   worktrees remove-landed <path>...
+#                       remove each named worktree that reads landed, by the
+#                       steps below, and refuse each of the others, naming why
+#
+# WHY IT EXISTS. A unit built in its own linked worktree is held there on
+# purpose until it lands, and nothing ends the hold after: the landing reads the
+# bank, not the worktree. So worktrees whose work the branch already holds pile
+# up, each with its own build target, and removing one by hand is risky -- a
+# session standing in it loses its directory, and `--force` destroys unlanded
+# work whenever the measure was wrong.
+#
+# THE VERDICTS. landed only when every check holds, provably: nothing unstaged,
+# nothing untracked but linked build targets, no stash entry names it, no
+# process stands in it (and the check could tell), every own commit is on the
+# branch or has an equivalent there by patch-id, and a staged diff, when there
+# is one, is content the branch holds AND a change a branch commit or a bank
+# carries. held when a check fails over content the branch lacks. unknown, with
+# the evidence, where only the author can say: a staged diff a bank has and the
+# branch lacks (the bank may be live or superseded), one that matches nothing,
+# own commits that read not-on-the-branch though their content landed, landed
+# content left unstaged, untracked files, a process inside. Every reason found
+# is printed; the verdict is the strongest, held over unknown over landed.
+#
+# THE TWO LANDED TESTS ARE DIFFERENT QUESTIONS, and both are shown. The content
+# test asks whether the branch holds a diff: reverse-applied to an index of the
+# branch's tree, it applies (the branch holds it), or forward it applies (the
+# branch lacks it), or neither (it conflicts). The change test asks whether a
+# branch commit, from the worktree's base to the branch's tip, or a bank is the
+# same change, by `git patch-id --stable`. A unit landed with edits can pass the
+# first and fail the second.
+#
+# A WORKTREE KEPT ON PURPOSE reads landed, since no check can tell it from a
+# finished one. git's own marker for it is `git worktree lock --reason`: the
+# report shows the lock, and remove-landed refuses a locked worktree.
+#
+# READ-ONLY, BUT FOR remove-landed's WRITES. Every git read goes through
+# git_readonly, or git_readonly_index for the one scratch index (an index of the
+# branch's tree, under a scratch directory outside the project, removed by the
+# exit trap). remove-landed's only git writes are `git -C <path> reset --hard`,
+# which drops a staged diff the branch has just been shown to hold, and a plain
+# `git worktree remove <path>`, never `--force`; its one other write is the
+# `rm --` of a linked build target's link, the link alone. A refusal by git is
+# read as a finding and reported in git's words, never forced.
+#
+# EVERY ARGUMENT IS PARSED BEFORE ANYTHING IS READ, and `-h` or `--help` in any
+# position prints usage and exits 0.
+set -euo pipefail
+
+# shellcheck source=lib/helpers
+. "${DEVBIN_LIB:?run me through bin/devbin}/helpers"
+# shellcheck source=lib/config
+. "$DEVBIN_LIB/config"
+
+ME="${DEVBIN_INVOKE:-bin/devbin} worktrees"
+
+usage() {
+  cat <<USAGE
+usage: $ME [report] [--repo <dir>] [<path>...]
+       $ME remove-landed <path>...
+
+  report          One block per linked worktree of this repository, or only
+                  the ones named: landed, held or unknown, with the evidence --
+                  its HEAD and whether the branch holds it, its own commits by
+                  patch-id (git cherry), its staged and unstaged diffs (their
+                  patch-ids, whether a branch commit or a bank has them, and
+                  whether the branch holds their content), untracked files and
+                  linked build targets, stash entries naming it, processes
+                  standing in it, its lock and its index's last write. Then the
+                  plain directories beside them that git lists as no worktree,
+                  with their size and no verdict. Writes nothing.
+  --repo <dir>    report on the repository at <dir> in place of this
+                  project's, with this project's worktrees: keys. report only.
+  remove-landed   Remove each named worktree that reads landed, read again
+                  now: a linked build target's link with rm, a staged diff the
+                  branch holds with git reset --hard, then git worktree remove,
+                  never --force. Refuses any other worktree, a locked one, the
+                  main worktree, and one the caller stands in, naming why.
+
+  The branch landed work reaches is worktrees.branch (default main); the refs
+  that are banks are worktrees.banks, ref patterns as git for-each-ref reads
+  them (default none). Exit 0 when every worktree was read (report) or every
+  named one removed (remove-landed), 1 otherwise, --repo naming no git
+  checkout included, 2 where this project is not a git checkout.
+  See ${DEVBIN_INVOKE:-bin/devbin} help worktrees.
+USAGE
+}
+
+# --help first, over every argument, so no later word can act or refuse first.
+for arg in "$@"; do
+  case "$arg" in
+    -h | --help)
+      usage
+      exit 0
+      ;;
+  esac
+done
+
+# --- parse ----------------------------------------------------------------
+VERB=report
+case "${1:-}" in
+  report | remove-landed)
+    VERB="$1"
+    shift
+    ;;
+esac
+REPO_GIVEN=no
+REPO_ARG=""
+NAMED=()
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --repo)
+      [ $# -ge 2 ] && [ -n "$2" ] || die "worktrees: --repo names a directory (try: $ME --help)"
+      REPO_GIVEN=yes
+      REPO_ARG="$2"
+      shift 2
+      ;;
+    --repo=*)
+      REPO_GIVEN=yes
+      REPO_ARG="${1#--repo=}"
+      [ -n "$REPO_ARG" ] || die "worktrees: --repo names a directory (try: $ME --help)"
+      shift
+      ;;
+    --)
+      shift
+      NAMED+=("$@")
+      break
+      ;;
+    -*) die "worktrees: unknown option '$1' (try: $ME --help)" ;;
+    *)
+      NAMED+=("$1")
+      shift
+      ;;
+  esac
+done
+# REMOVAL STAYS WITH THE AUTHOR, IN THE AUTHOR'S OWN PROJECT: --repo reads
+# another repository and is report's alone.
+if [ "$VERB" = remove-landed ]; then
+  [ "$REPO_GIVEN" = no ] ||
+    die "worktrees: remove-landed takes no --repo: it removes worktrees of this project's own repository only, nothing was removed"
+  [ "${#NAMED[@]}" -gt 0 ] ||
+    die "worktrees: remove-landed removes only the worktrees it is named, and none was (try: $ME remove-landed <path>...)"
+fi
+
+# --- the repository -------------------------------------------------------
+# git's local variables are cleared from THIS shell, so commit_direction's git
+# and remove-landed's two writes act on the repository named, never one a hook
+# exported; every read clears them again for itself (git_readonly).
+git_local_env_clear ||
+  die "worktrees: git cannot list its local variables (git rev-parse --local-env-vars), so one inherited here could point every read at another repository -- check git is on PATH"
+# NOR MAY THE CALLER'S DIFF SETTINGS SHAPE A DIFF READ HERE. GIT_EXTERNAL_DIFF
+# and GIT_DIFF_OPTS are no local variables, so git_local_env_clear leaves them;
+# an external diff prints what it likes, and `true` as one printed nothing, so
+# real work read landed (issue 0245, measured).
+unset GIT_EXTERNAL_DIFF GIT_DIFF_OPTS
+
+# WT_DIFF_FLAGS -- what every diff and log -p below carries, and WT_APPLY_FLAGS
+# what every apply does, whatever the repository's or the caller's config says:
+# no external diff or textconv (each can print another text, or nothing), no
+# colour, no path relative to a subdirectory, and git's own a/ and b/ prefixes,
+# which apply and patch-id read. One statement, read by _wt_diff alone.
+WT_DIFF_FLAGS=(--no-ext-diff --no-textconv --no-color --no-relative --src-prefix=a/ --dst-prefix=b/)
+WT_APPLY_FLAGS=(--whitespace=nowarn)
+
+# _wt_diff <index> <dir> <subcommand> <args...> -- git <subcommand> in <dir>
+# under WT_DIFF_FLAGS (WT_APPLY_FLAGS for apply), read-only: through
+# git_readonly_index against the scratch <index>, or git_readonly when <index>
+# is empty.
+_wt_diff() {
+  local idx="$1" dir="$2" sub="$3"
+  local -a flags=("${WT_DIFF_FLAGS[@]}")
+  shift 3
+  [ "$sub" != apply ] || flags=("${WT_APPLY_FLAGS[@]}")
+  if [ -n "$idx" ]; then
+    git_readonly_index "$idx" -C "$dir" "$sub" "${flags[@]}" "$@"
+  else
+    git_readonly -C "$dir" "$sub" "${flags[@]}" "$@"
+  fi
+}
+
+ROOT="${PROJECT_ROOT:?}"
+cfg_load "${DEVBIN_DIR:?}/config.yaml" || die "worktrees: cannot read $DEVBIN_DIR/config.yaml"
+GITC="$ROOT"
+[ "$REPO_GIVEN" = no ] || GITC="$REPO_ARG"
+[ -d "$GITC" ] || die "worktrees: --repo $GITC is not a directory -- name the directory of a repository"
+if ! git_readonly -C "$GITC" rev-parse --git-dir >/dev/null 2>&1; then
+  if [ "$REPO_GIVEN" = no ] && git_repo_absent "$GITC"; then
+    warn "worktrees: $GITC is not a git checkout, so it has no linked worktrees to report"
+    # code-2: not available here, the dispatcher's code for a command that is not.
+    exit 2
+  fi
+  if git_repo_absent "$GITC"; then
+    die "worktrees: --repo $GITC is not a git checkout -- name the directory of a repository"
+  fi
+  die "worktrees: git cannot read the repository at $GITC: $(git_failure_line "$GITC" rev-parse --git-dir)"
+fi
+
+BRANCH="$(cfg_get worktrees.branch main)"
+BREF="refs/heads/$BRANCH"
+BSHA="$(git_readonly -C "$GITC" rev-parse -q --verify "$BREF^{commit}")" ||
+  die "worktrees: $BRANCH (worktrees.branch, default main) is no branch of the repository at $GITC -- set worktrees.branch in bin/.devbin/config.yaml to the branch landed work reaches"
+
+BANK_PATTERNS=()
+while IFS= read -r _wt_i; do
+  [ -n "$_wt_i" ] || continue
+  BANK_PATTERNS+=("$(cfg_get "worktrees.banks.$_wt_i")")
+done <<<"$(cfg_list worktrees.banks)"
+unset _wt_i
+
+# --- the worktree list ----------------------------------------------------
+
+# _wt_list_read -- `git worktree list --porcelain -z` into the WT_* arrays, the
+# main worktree (or the bare repository) first, as git lists it. ROOT becomes
+# the main worktree's path, which every path shown is read from. Fails, having
+# said why, when git cannot list them.
+_wt_list_read() {
+  local err="$SCRATCH/list.err" field n=-1
+  local -a fields=()
+  WT_PATH=() WT_HEAD=() WT_BRANCH=() WT_LOCKED=() WT_LOCK=() WT_PRUNE=() WT_PRUNABLE=()
+  # git's status is read by `wait` on this process substitution, the only one
+  # here, so a list git could not give is never read as an empty one.
+  mapfile -d '' -t fields < <(git_readonly -C "$GITC" worktree list --porcelain -z 2>"$err")
+  if ! wait "$!"; then
+    warn "worktrees: git cannot list the worktrees of $GITC: $(sed -n 1p "$err")"
+    return 1
+  fi
+  for field in ${fields[@]+"${fields[@]}"}; do
+    case "$field" in
+      "worktree "*)
+        n=$((n + 1))
+        WT_PATH[n]="${field#worktree }"
+        WT_HEAD[n]="" WT_BRANCH[n]="" WT_LOCKED[n]=no WT_LOCK[n]="" WT_PRUNABLE[n]=no WT_PRUNE[n]=""
+        ;;
+      "HEAD "*) WT_HEAD[n]="${field#HEAD }" ;;
+      "branch "*) WT_BRANCH[n]="${field#branch }" ;;
+      locked) WT_LOCKED[n]=yes ;;
+      "locked "*)
+        WT_LOCKED[n]=yes
+        WT_LOCK[n]="${field#locked }"
+        ;;
+      prunable) WT_PRUNABLE[n]=yes ;;
+      "prunable "*)
+        WT_PRUNABLE[n]=yes
+        WT_PRUNE[n]="${field#prunable }"
+        ;;
+    esac
+  done
+  if [ "$n" -lt 0 ]; then
+    warn "worktrees: git listed no worktree at all for $GITC, not even the main one -- a devbin defect"
+    return 1
+  fi
+  # A directory git still lists but that is gone reads prunable whether or not
+  # this git says so.
+  for ((n = 1; n < ${#WT_PATH[@]}; n++)); do
+    [ -d "${WT_PATH[n]}" ] || WT_PRUNABLE[n]=yes
+  done
+  ROOT="${WT_PATH[0]}"
+}
+
+# _wt_shown <path> -- <path> from the main worktree when it lies inside it.
+_wt_shown() {
+  case "$1" in
+    "$ROOT"/?*) printf '%s' "${1#"$ROOT"/}" ;;
+    *) printf '%s' "$1" ;;
+  esac
+}
+
+# _wt_index_of <path> <out-var> -- the WT_* index of the linked worktree at
+# <path>, read from the caller's directory, or 1 when it is none. A path whose
+# directory is gone is read through its parent, so a prunable one is found too.
+_wt_index_of() {
+  local _wio_p="$1" _wio_phys="" _wio_parent _wio_base _wio_k
+  local -n _wio_res="$2"
+  _wio_res=""
+  if ! physical_dir "$_wio_p" _wio_phys getcwd; then
+    _wio_p="${_wio_p%/}"
+    case "$_wio_p" in */*) _wio_parent="${_wio_p%/*}" ;; *) _wio_parent=. ;; esac
+    _wio_base="${_wio_p##*/}"
+    physical_dir "${_wio_parent:-/}" _wio_phys getcwd || return 1
+    _wio_phys="${_wio_phys%/}/$_wio_base"
+  fi
+  for ((_wio_k = 0; _wio_k < ${#WT_PATH[@]}; _wio_k++)); do
+    if [ "${WT_PATH[_wio_k]}" = "$_wio_phys" ]; then
+      _wio_res="$_wio_k"
+      return 0
+    fi
+  done
+  return 1
+}
+
+# --- the repository-wide reads, once a run --------------------------------
+
+# _wt_patch_ids <diff-file> -- every patch-id `git patch-id --stable` gives the
+# file, one a line, or nothing for a file with no change in it. git starts a
+# patch at each `commit <sha>` or `From <sha>` line, so a file of several
+# patches, as a bank blob can be, gives one id for each (issue 0290).
+_wt_patch_ids() {
+  local out
+  out="$(git_readonly -C "$GITC" patch-id --stable <"$1")" || return 1
+  [ -n "$out" ] || return 0
+  awk '{ print $1 }' <<<"$out"
+}
+
+# _wt_patch_id <diff-file> -- the patch-id of a diff that is one patch, a
+# worktree's staged or unstaged diff: the first _wt_patch_ids gives, or nothing.
+_wt_patch_id() {
+  local ids
+  ids="$(_wt_patch_ids "$1")" || return 1
+  printf '%s' "${ids%%$'\n'*}"
+}
+
+# _wt_banks_read -- every ref worktrees.banks matches, read as patches, into
+# BANK_IDS and BANK_REFS beside each other, one entry for each patch, so a bank
+# carrying several has an entry for each, all naming the bank (issue 0290).
+# BANK_READ counts the banks read; BANK_MULTI names each bank carrying more than
+# one patch, with its count; BANK_OTHER names a ref that is no patch. A blob is
+# read for every patch it holds; a commit is its diff against its first parent;
+# a tag is read as what it names.
+_wt_banks_read() {
+  local out ref type sha ptype psha f k=0 pid pids n
+  BANK_IDS=() BANK_REFS=() BANK_OTHER=() BANK_MULTI=() BANK_READ=0
+  [ "${#BANK_PATTERNS[@]}" -gt 0 ] || return 0
+  out="$(git_readonly -C "$GITC" for-each-ref \
+    --format='%(refname)%09%(objecttype)%09%(objectname)%09%(*objecttype)%09%(*objectname)' \
+    "${BANK_PATTERNS[@]}")" || {
+    warn "worktrees: git cannot list the refs worktrees.banks names (${BANK_PATTERNS[*]})"
+    return 1
+  }
+  while IFS=$'\t' read -r ref type sha ptype psha; do
+    [ -n "$ref" ] || continue
+    if [ "$type" = tag ]; then
+      type="$ptype" sha="$psha"
+    fi
+    k=$((k + 1))
+    f="$SCRATCH/bank.$k.diff"
+    case "$type" in
+      blob)
+        git_readonly -C "$GITC" cat-file blob "$sha" >"$f" || {
+          warn "worktrees: git cannot read the bank $ref"
+          return 1
+        }
+        ;;
+      commit)
+        if git_readonly -C "$GITC" rev-parse -q --verify "$sha^1" >/dev/null; then
+          _wt_diff "" "$GITC" diff "$sha^1" "$sha" >"$f" || {
+            warn "worktrees: git cannot read the bank $ref as a diff"
+            return 1
+          }
+        else
+          _wt_diff "" "$GITC" diff-tree -p --root "$sha" >"$f" || {
+            warn "worktrees: git cannot read the bank $ref as a diff"
+            return 1
+          }
+        fi
+        ;;
+      *)
+        BANK_OTHER+=("$ref (a $type, which is no patch)")
+        continue
+        ;;
+    esac
+    pids="$(_wt_patch_ids "$f")" || {
+      warn "worktrees: git cannot take the patch-id of the bank $ref"
+      return 1
+    }
+    if [ -z "$pids" ]; then
+      BANK_OTHER+=("$ref (it holds no change)")
+      continue
+    fi
+    n=0
+    while IFS= read -r pid; do
+      BANK_IDS+=("$pid")
+      BANK_REFS+=("$ref")
+      n=$((n + 1))
+    done <<<"$pids"
+    BANK_READ=$((BANK_READ + 1))
+    [ "$n" -eq 1 ] || BANK_MULTI+=("$ref holds $n patches, each read as this bank's")
+  done <<<"$out"
+}
+
+# _wt_stash_read -- every stash entry, into STASH_NAME, STASH_PARENT (its first
+# parent) and STASH_SUBJECT beside each other.
+_wt_stash_read() {
+  local out name parents subject
+  STASH_NAME=() STASH_PARENT=() STASH_SUBJECT=()
+  out="$(git_readonly -C "$GITC" stash list --format='%gd%x09%P%x09%gs')" || {
+    warn "worktrees: git cannot list the stash of $GITC"
+    return 1
+  }
+  while IFS=$'\t' read -r name parents subject; do
+    [ -n "$name" ] || continue
+    STASH_NAME+=("$name")
+    STASH_PARENT+=("${parents%% *}")
+    STASH_SUBJECT+=("$subject")
+  done <<<"$out"
+}
+
+# _wt_procs_read -- every process's working directory, into PROC_PID,
+# PROC_CMD and PROC_CWD beside each other, with PROC_STATE `read`; or
+# PROC_STATE `cannot` and PROC_WHY. From lsof where it is on PATH, else from
+# /proc on Linux. The report's own processes are left out -- this shell, the
+# dispatcher it was exec'd from, and every process it started, lsof included --
+# since they stand wherever the caller does; every other process is named, the
+# caller's own shell included, since a worktree the caller stands in cannot be
+# removed. THE LIMIT, DECLARED: a process of another user that this one cannot
+# read is not seen.
+_wt_procs_read() {
+  local out rc=0 line pid="" ppid="" cmd="" kind="" d c p
+  local -A parent=()
+  local -a pids=() cmds=() cwds=()
+  PROC_PID=() PROC_CMD=() PROC_CWD=() PROC_STATE=cannot PROC_WHY=""
+  if command -v lsof >/dev/null 2>&1; then
+    # `f` is named in the fields, since the loop keeps an `n` only under its
+    # `fcwd`: macOS's lsof 4.91 writes `f` unasked, and 4.99 on Linux does not.
+    out="$(lsof -w -d cwd -F pRcfn 2>"$SCRATCH/lsof.err")" || rc=$?
+    if [ "$rc" -ne 0 ]; then
+      PROC_WHY="lsof exited $rc: $(sed -n 1p "$SCRATCH/lsof.err")"
+      return 0
+    fi
+    while IFS= read -r line; do
+      case "$line" in
+        p*)
+          pid="${line#p}" ppid="" cmd="" kind=""
+          ;;
+        R*) ppid="${line#R}" ;;
+        c*) cmd="${line#c}" ;;
+        f*) kind="${line#f}" ;;
+        n*)
+          [ "$kind" = cwd ] && [ -n "$pid" ] || continue
+          pids+=("$pid")
+          cmds+=("$cmd")
+          cwds+=("${line#n}")
+          parent[$pid]="$ppid"
+          ;;
+      esac
+    done <<<"$out"
+  elif [ -r /proc/self/stat ]; then
+    for d in /proc/[0-9]*; do
+      pid="${d##*/}"
+      c="$(readlink "$d/cwd" 2>/dev/null)" || continue
+      line="$(cat "$d/stat" 2>/dev/null)" || continue
+      line="${line##*) }"
+      read -r _ ppid _ <<<"$line"
+      cmd="$(cat "$d/comm" 2>/dev/null)" || cmd="?"
+      pids+=("$pid")
+      cmds+=("$cmd")
+      cwds+=("$c")
+      parent[$pid]="$ppid"
+    done
+  else
+    PROC_WHY="neither lsof nor /proc is here to read each process's directory"
+    return 0
+  fi
+  if [ "${#pids[@]}" -eq 0 ]; then
+    PROC_WHY="no process's directory could be read, not even this one's"
+    return 0
+  fi
+  for ((d = 0; d < ${#pids[@]}; d++)); do
+    # Walk up from each process; one that reaches this shell is the report's.
+    p="${pids[d]}" c=0
+    while [ -n "$p" ] && [ "$p" != "$$" ] && [ "$c" -le "${#pids[@]}" ]; do
+      p="${parent[$p]-}"
+      c=$((c + 1))
+    done
+    [ "$p" != "$$" ] || continue
+    PROC_PID+=("${pids[d]}")
+    PROC_CMD+=("${cmds[d]}")
+    PROC_CWD+=("${cwds[d]}")
+  done
+  PROC_STATE="read"
+}
+
+# _wt_window <base> -- the path of a file of `<patch-id> <commit>` lines, one
+# per non-merge commit of the branch from <base> to its tip (all of it, when
+# <base> is empty), made once per base. The window is the branch's commits
+# since the worktree's base, never a span of dates.
+declare -A WINDOW=()
+_wt_window() {
+  local base="$1" key="${1:-root}" f range
+  if [ -n "${WINDOW[$key]-}" ]; then
+    printf '%s' "${WINDOW[$key]}"
+    return 0
+  fi
+  f="$SCRATCH/window.${#WINDOW[@]}"
+  range="$BREF"
+  [ -z "$base" ] || range="$base..$BREF"
+  _wt_diff "" "$GITC" log -p --no-merges --format='commit %H' "$range" >"$f.log" || return 1
+  git_readonly -C "$GITC" patch-id --stable <"$f.log" >"$f" || return 1
+  WINDOW[$key]="$f"
+  printf '%s' "$f"
+}
+
+# _wt_apply_refused <rc> <errfile> -- true when apply --check's failure was a
+# refusal of the patch itself, the content test's answer, and not git failing
+# to ask: exit 1 and only the refusal's own words, read in the C locale.
+_wt_apply_refused() {
+  [ "$1" -eq 1 ] || return 1
+  LC_ALL=C awk '
+    /^error: patch failed: / || /: patch does not apply$/ || /: does not exist in index$/ ||
+      /: already exists in index$/ || /: does not match index$/ { next }
+    { bad = 1 }
+    END { exit bad }
+  ' "$2"
+}
+
+# _wt_content <binary-diff-file> -- the content test, into WT_CONTENT: `holds`
+# when the diff reverse-applies to the branch's tree, `lacks` when it applies
+# forward, and `conflicts` when it does neither. A refusal is the answer, so
+# its words are not printed; any other failure -- no scratch index, git that
+# cannot be asked, a patch git cannot read -- returns 1, git's words left in
+# $SCRATCH/apply.err for the caller to report.
+_wt_content() {
+  local rc=0 err="$SCRATCH/apply.err"
+  WT_CONTENT=""
+  if [ ! -s "$IDX" ]; then
+    printf 'the scratch index of the branch is gone\n' >"$err"
+    return 1
+  fi
+  LC_ALL=C _wt_diff "$IDX" "$GITC" apply --cached --check -R <"$1" 2>"$err" || rc=$?
+  if [ "$rc" -eq 0 ]; then
+    WT_CONTENT=holds
+    return 0
+  fi
+  _wt_apply_refused "$rc" "$err" || return 1
+  rc=0
+  LC_ALL=C _wt_diff "$IDX" "$GITC" apply --cached --check <"$1" 2>"$err" || rc=$?
+  if [ "$rc" -eq 0 ]; then
+    WT_CONTENT=lacks
+    return 0
+  fi
+  _wt_apply_refused "$rc" "$err" || return 1
+  WT_CONTENT=conflicts
+}
+
+# _wt_change <patch-id> <base> -- the change test: `commit <sha>` for the first
+# branch commit in the window with that patch-id, else `bank <ref>`, else
+# `none`. Fails when the window cannot be read.
+_wt_change() {
+  local pid="$1" win line k
+  win="$(_wt_window "$2")" || return 1
+  while IFS=' ' read -r line k; do
+    if [ "$line" = "$pid" ]; then
+      printf 'commit %s' "$k"
+      return 0
+    fi
+  done <"$win"
+  for ((k = 0; k < ${#BANK_IDS[@]}; k++)); do
+    if [ "${BANK_IDS[k]}" = "$pid" ]; then
+      printf 'bank %s' "${BANK_REFS[k]}"
+      return 0
+    fi
+  done
+  printf 'none'
+}
+
+# --- one worktree's evidence ----------------------------------------------
+
+# _wt_ignored <index> <dir> -- the ignored files and directories of the
+# worktree at <dir>, NUL-separated, a directory once, read against <index>.
+_wt_ignored() {
+  git_readonly_index "$1" -C "$2" ls-files -z --others --ignored --exclude-standard --directory
+}
+
+# The evidence of the worktree _wt_eval last read:
+#   E_HELD, E_UNKNOWN  its reasons, by the verdict each gives
+#   E_FIELDS           `<field><TAB><value>` lines, in the order printed
+#   E_LINKS            its linked build targets, from the worktree's root
+#   E_STAGED           yes when it holds a staged diff
+#   E_UNTRACKED        how many untracked files it holds, linked targets aside
+#   E_FAIL             what could not be read, in git's words; non-empty is
+#                      no verdict at all
+
+_wt_field() { E_FIELDS+=("$1"$'\t'"$2"); }
+
+# _wt_fail <what> <errfile> -- record a read that failed, with git's first line.
+_wt_fail() {
+  E_FAIL+=("$1: $(sed -n 1p "$2" 2>/dev/null)")
+}
+
+# _wt_names <file> -- the newline-separated names in <file>, joined with `, `.
+_wt_names() {
+  local n out=""
+  while IFS= read -r n; do
+    [ -n "$n" ] || continue
+    out="${out:+$out, }$n"
+  done <"$1"
+  printf '%s' "$out"
+}
+
+# _wt_diff_eval <kind> <base> <binary-file> <plain-file> <names-file> -- the
+# fields and reasons of one diff of a worktree, staged or unstaged.
+_wt_diff_eval() {
+  local kind="$1" base="$2" bin="$3" plain="$4" names="$5"
+  local pid change content n=0 file change_said content_said
+  while IFS= read -r file; do
+    [ -z "$file" ] || n=$((n + 1))
+  done <"$names"
+  if ! pid="$(_wt_patch_id "$plain" 2>"$SCRATCH/err")"; then
+    _wt_fail "the $kind diff's patch-id" "$SCRATCH/err"
+    return 0
+  fi
+  if ! change="$(_wt_change "$pid" "$base" 2>"$SCRATCH/err")"; then
+    _wt_fail "$BRANCH's commits since the base" "$SCRATCH/err"
+    return 0
+  fi
+  if ! _wt_content "$bin"; then
+    _wt_fail "the $kind diff's content test" "$SCRATCH/apply.err"
+    return 0
+  fi
+  content="$WT_CONTENT"
+  case "$change" in
+    commit*) change_said="$BRANCH's commit $(printf '%.12s' "${change#commit }")" ;;
+    bank*) change_said="the bank ${change#bank }" ;;
+    *) change_said="no commit of $BRANCH since the base, and no bank" ;;
+  esac
+  case "$content" in
+    holds) content_said="$BRANCH holds its content" ;;
+    lacks) content_said="$BRANCH lacks its content" ;;
+    *) content_said="its content conflicts with $BRANCH's" ;;
+  esac
+  _wt_field "$kind" "$n file(s): $(_wt_names "$names")"
+  _wt_field "" "patch-id ${pid:0:12}: ${change_said} has the same change"
+  _wt_field "" "content: $content_said"
+  if [ "$kind" = staged ]; then
+    E_STAGED=yes
+    case "$content:${change%% *}" in
+      holds:commit | holds:bank) ;;
+      holds:none) E_UNKNOWN+=("its staged diff is content $BRANCH holds, but no commit of $BRANCH and no bank is the same change: landed with edits, or a copy -- the author's word decides") ;;
+      lacks:bank | conflicts:bank) E_UNKNOWN+=("its staged diff is ${change#bank }'s, which $BRANCH does not hold: whether that bank is live or superseded is the unit's to say") ;;
+      lacks:commit) E_HELD+=("its staged diff is the change $BRANCH's commit ${change_said##* } made, but $BRANCH no longer holds its content") ;;
+      lacks:none) E_HELD+=("unlanded staged work: no commit of $BRANCH and no bank is its change, and $BRANCH lacks its content") ;;
+      conflicts:commit) E_UNKNOWN+=("its staged diff is the change $BRANCH's commit ${change_said##* } made, and conflicts with $BRANCH's content now: it may have landed with edits -- the author's word decides") ;;
+      *) E_UNKNOWN+=("its staged diff matches no commit of $BRANCH and no bank, and conflicts with $BRANCH's content: landed with edits, a mutant, or unbanked work -- the author's word decides") ;;
+    esac
+  else
+    case "$content:${change%% *}" in
+      lacks:none) E_HELD+=("unstaged work: no commit of $BRANCH and no bank is its change, and $BRANCH lacks its content") ;;
+      holds:* | *:commit | *:bank) E_UNKNOWN+=("landed content left unstaged: by the letter of the checks it is held, and the author's word decides") ;;
+      *) E_UNKNOWN+=("an unstaged diff that conflicts with $BRANCH's content, and that no commit of $BRANCH and no bank carries") ;;
+    esac
+  fi
+}
+
+# _wt_eval <n> -- read the evidence of the linked worktree WT_*[<n>] into the
+# E_* variables above. PROC_*, STASH_* and BANK_* are read first.
+_wt_eval() {
+  local n="$1" w="${WT_PATH[$1]}" h="${WT_HEAD[$1]}" b="${WT_BRANCH[$1]}"
+  local err="$SCRATCH/err" dir on base="" out line plus=0 k content f t wphys short bshown=detached
+  local wi="" ix="$SCRATCH/worktree.index" readix=yes
+  local -a own=() untracked=()
+  E_HELD=() E_UNKNOWN=() E_FIELDS=() E_LINKS=() E_STAGED=no E_UNTRACKED=0 E_FAIL=()
+
+  # ITS INDEX IS READ THROUGH A COPY. `git diff` from the index to the working
+  # tree refreshes a stat-stale index and writes it back, --no-optional-locks
+  # or not (git 2.56, measured), so every read of a worktree's index asks a
+  # scratch copy of it through git_readonly_index, and a refresh lands there.
+  rm -f "$ix"
+  if ! wi="$(git_readonly -C "$w" rev-parse --path-format=absolute --git-path index 2>"$err")"; then
+    _wt_fail "where its index is" "$err"
+    wi="" readix=no
+  elif [ ! -e "$wi" ]; then
+    E_UNKNOWN+=("it has no index yet, so neither its staged nor its unstaged diff can be read")
+    readix=no
+  # -p KEEPS THE INDEX'S OWN MTIME, which git reads to tell a racy entry: a
+  # copy stamped now made an edit of the same size, in the second the index was
+  # written, read as unchanged (measured under GNU cp).
+  elif ! cp -p "$wi" "$ix"; then
+    E_FAIL+=("its index: it cannot be copied to be read, $wi (above)")
+    readix=no
+  fi
+
+  # HEAD, and whether the branch holds it.
+  short="${b#refs/heads/}"
+  if [ -z "$h" ] || ! git_readonly -C "$GITC" cat-file -e "$h^{commit}" 2>/dev/null; then
+    E_UNKNOWN+=("its HEAD names no commit")
+    _wt_field head "no commit${b:+ on $short}"
+  else
+    dir="$(commit_direction "$GITC" "$h" "$BREF")"
+    case "$dir" in
+      same | forward) on="on $BRANCH by ancestry" ;;
+      backward) on="ahead of $BRANCH" ;;
+      unrelated) on="not on $BRANCH, which has moved on beside it" ;;
+      *)
+        on="whether $BRANCH holds it cannot be read"
+        E_FAIL+=("whether $BRANCH holds its HEAD: commit_direction could not tell ($dir)")
+        ;;
+    esac
+    [ -z "$b" ] || bshown="$short"
+    _wt_field head "${h:0:12} $bshown, $on"
+    if out="$(git_readonly -C "$GITC" merge-base "$h" "$BREF" 2>"$err")"; then
+      base="$out"
+      _wt_field base "${base:0:12}"
+    else
+      _wt_field base "none: it shares no history with $BRANCH"
+      E_UNKNOWN+=("it shares no history with $BRANCH")
+    fi
+    # Its own commits, by patch-id, then by content (both landed tests).
+    case "$dir" in
+      same | forward) _wt_field commits "none of its own: $BRANCH holds its HEAD" ;;
+      *)
+        if [ -n "$base" ]; then
+          if ! out="$(git_readonly -C "$GITC" cherry -v "$BREF" "$h" 2>"$err")"; then
+            _wt_fail "its own commits (git cherry)" "$err"
+          else
+            while IFS= read -r line; do
+              [ -n "$line" ] || continue
+              own+=("$line")
+              case "$line" in "+ "*) plus=$((plus + 1)) ;; esac
+            done <<<"$out"
+            _wt_field commits "${#own[@]} of its own, $plus with no equivalent on $BRANCH by patch-id (+):"
+            for line in "${own[@]}"; do
+              _wt_field "" "${line:0:2}${line:2:12}${line:42}"
+            done
+            if [ "$plus" -gt 0 ]; then
+              f="$SCRATCH/own.diff"
+              if ! _wt_diff "" "$GITC" diff --binary "$base" "$h" >"$f" 2>"$err"; then
+                _wt_fail "its own commits' diff" "$err"
+              elif ! _wt_content "$f"; then
+                _wt_fail "its own commits' content test" "$SCRATCH/apply.err"
+              else
+                case "$WT_CONTENT" in
+                  holds)
+                    _wt_field "" "content: $BRANCH holds the content of base..HEAD"
+                    E_UNKNOWN+=("its own commits read not on $BRANCH by patch-id, and $BRANCH holds their content: landed with different hunks, or not -- the author's word decides")
+                    ;;
+                  lacks)
+                    _wt_field "" "content: $BRANCH lacks the content of base..HEAD"
+                    E_HELD+=("own commits $BRANCH lacks: no equivalent by patch-id, and $BRANCH lacks their content")
+                    ;;
+                  *)
+                    _wt_field "" "content: base..HEAD conflicts with $BRANCH's content"
+                    E_UNKNOWN+=("own commits with no equivalent on $BRANCH, whose content conflicts with $BRANCH's")
+                    ;;
+                esac
+              fi
+            fi
+          fi
+        fi
+        ;;
+    esac
+
+    # The staged diff: HEAD to the index.
+    if [ "$readix" = no ]; then
+      _wt_field staged "not read"
+    elif _wt_diff "$ix" "$w" diff --cached --binary "$h" >"$SCRATCH/staged.bin" 2>"$err" &&
+      _wt_diff "$ix" "$w" diff --cached "$h" >"$SCRATCH/staged.diff" 2>"$err" &&
+      _wt_diff "$ix" "$w" diff --cached --name-only "$h" >"$SCRATCH/staged.names" 2>"$err"; then
+      if [ -s "$SCRATCH/staged.bin" ]; then
+        _wt_diff_eval staged "$base" "$SCRATCH/staged.bin" "$SCRATCH/staged.diff" "$SCRATCH/staged.names"
+      else
+        _wt_field staged none
+      fi
+    else
+      _wt_fail "its staged diff" "$err"
+    fi
+  fi
+
+  # The unstaged diff: the index to the working tree.
+  if [ "$readix" = no ]; then
+    _wt_field unstaged "not read"
+  elif _wt_diff "$ix" "$w" diff --binary >"$SCRATCH/unstaged.bin" 2>"$err" &&
+    _wt_diff "$ix" "$w" diff >"$SCRATCH/unstaged.diff" 2>"$err" &&
+    _wt_diff "$ix" "$w" diff --name-only >"$SCRATCH/unstaged.names" 2>"$err"; then
+    if [ -s "$SCRATCH/unstaged.bin" ]; then
+      _wt_diff_eval unstaged "$base" "$SCRATCH/unstaged.bin" "$SCRATCH/unstaged.diff" "$SCRATCH/unstaged.names"
+    else
+      _wt_field unstaged none
+    fi
+  else
+    _wt_fail "its unstaged diff" "$err"
+  fi
+
+  # Untracked files, and the links among them that lead out of the worktree to
+  # a directory: a build target linked in from another tree, which is no work.
+  if ! physical_dir "$w" wphys getcwd; then
+    E_FAIL+=("its directory: it cannot be entered")
+    wphys="$w"
+  fi
+  if [ "$readix" = no ]; then
+    _wt_field untracked "not read"
+  elif ! git_readonly_index "$ix" -C "$w" ls-files -z --others --exclude-standard >"$SCRATCH/untracked" 2>"$err"; then
+    _wt_fail "its untracked files" "$err"
+  else
+    while IFS= read -r -d '' f; do
+      if [ -L "$w/$f" ] && [ -d "$w/$f" ] && physical_dir "$w/$f" t getcwd; then
+        case "$t/" in
+          "$wphys"/*) ;;
+          *)
+            E_LINKS+=("$f")
+            continue
+            ;;
+        esac
+      fi
+      untracked+=("$f")
+    done <"$SCRATCH/untracked"
+    E_UNTRACKED="${#untracked[@]}"
+    if [ "${#untracked[@]}" -eq 0 ]; then
+      _wt_field untracked none
+    else
+      _wt_field untracked "${#untracked[@]} file(s):"
+      for f in "${untracked[@]}"; do
+        _wt_field "" "$f"
+      done
+      E_UNKNOWN+=("untracked files, which may be real work: ${untracked[*]}")
+    fi
+    # Ignored files are evidence and no reason: a plain git worktree remove
+    # deletes them, --force or not, so each is listed with its size.
+    if ! _wt_ignored "$ix" "$w" >"$SCRATCH/ignored" 2>"$err"; then
+      _wt_fail "its ignored files" "$err"
+    elif [ ! -s "$SCRATCH/ignored" ]; then
+      _wt_field ignored none
+    else
+      out=ignored
+      while IFS= read -r -d '' f; do
+        _wt_field "$out" "${f%/} ($(_wt_size "$w/${f%/}"), deleted with the worktree)"
+        out=""
+      done <"$SCRATCH/ignored"
+    fi
+    if [ "${#E_LINKS[@]}" -eq 0 ]; then
+      _wt_field linked none
+    else
+      for f in "${E_LINKS[@]}"; do
+        physical_dir "$w/$f" t getcwd || t="?"
+        _wt_field linked "$f -> $t (a build target linked in, removed as the link alone)"
+      done
+    fi
+  fi
+
+  # Stash entries naming it. A stash records the branch it was made on, never
+  # the worktree, so a worktree on a branch is named by a stash made on that
+  # branch, and a detached one by a stash made detached whose first parent is
+  # its HEAD. THE LIMIT, DECLARED: detached worktrees at one commit are named by
+  # one another's stash, which reads held, the safe direction.
+  out=""
+  for ((k = 0; k < ${#STASH_NAME[@]}; k++)); do
+    if [ -n "$b" ]; then
+      case "${STASH_SUBJECT[k]}" in
+        "WIP on $short:"* | "On $short:"*) out="${out:+$out, }${STASH_NAME[k]}" ;;
+      esac
+    elif [ -n "$h" ] && [ "${STASH_PARENT[k]}" = "$h" ]; then
+      case "${STASH_SUBJECT[k]}" in
+        "WIP on (no branch):"* | "On (no branch):"*) out="${out:+$out, }${STASH_NAME[k]}" ;;
+      esac
+    fi
+  done
+  if [ -n "$out" ]; then
+    _wt_field stash "$out"
+    E_HELD+=("a stash entry names it: $out")
+  else
+    _wt_field stash none
+  fi
+
+  # Processes standing in it.
+  if [ "$PROC_STATE" = read ]; then
+    out=""
+    for ((k = 0; k < ${#PROC_PID[@]}; k++)); do
+      case "${PROC_CWD[k]}/" in
+        "$wphys"/*) out="${out:+$out, }pid ${PROC_PID[k]} (${PROC_CMD[k]})" ;;
+      esac
+    done
+    if [ -n "$out" ]; then
+      _wt_field processes "$out"
+      E_UNKNOWN+=("a process stands in it, a live session or a stale shell: $out")
+    else
+      _wt_field processes none
+    fi
+  else
+    _wt_field processes "cannot tell: $PROC_WHY"
+    E_UNKNOWN+=("the process check could not tell whether anything stands in it: $PROC_WHY")
+  fi
+
+  # Its lock, git's marker for a worktree kept on purpose.
+  if [ "${WT_LOCKED[n]}" = yes ]; then
+    _wt_field locked "yes: ${WT_LOCK[n]:-no reason given}"
+  else
+    _wt_field locked no
+  fi
+
+  # Its index's last write.
+  if [ -z "$wi" ]; then
+    _wt_field index "not read"
+  elif [ ! -e "$wi" ]; then
+    _wt_field index "none written yet"
+  elif t="$(mtime_epoch "$wi")" && t="$(utc_from_epoch "$t")"; then
+    _wt_field index "last written $t"
+  else
+    _wt_field index "its last write cannot be read: $wi"
+  fi
+}
+
+# _wt_verdict -- the verdict of the evidence _wt_eval last read: unread, held,
+# unknown or landed, the strongest reason winning.
+_wt_verdict() {
+  if [ "${#E_FAIL[@]}" -gt 0 ]; then
+    printf 'unread'
+  elif [ "${#E_HELD[@]}" -gt 0 ]; then
+    printf 'held'
+  elif [ "${#E_UNKNOWN[@]}" -gt 0 ]; then
+    printf 'unknown'
+  else
+    printf 'landed'
+  fi
+}
+
+# _wt_print <path> <verdict> -- one worktree's block: its path and verdict, its
+# reasons, then a `  <field>  <value>` line per piece of evidence.
+_wt_print() {
+  local r field value
+  printf '%s: %s\n' "$(_wt_shown "$1")" "$2"
+  for r in ${E_FAIL[@]+"${E_FAIL[@]}"}; do printf '  %-9s  unread: %s\n' why "$r"; done
+  for r in ${E_HELD[@]+"${E_HELD[@]}"}; do printf '  %-9s  held: %s\n' why "$r"; done
+  for r in ${E_UNKNOWN[@]+"${E_UNKNOWN[@]}"}; do printf '  %-9s  unknown: %s\n' why "$r"; done
+  [ "$2" != landed ] || printf '  %-9s  landed: every check holds\n' why
+  for r in ${E_FIELDS[@]+"${E_FIELDS[@]}"}; do
+    field="${r%%$'\t'*}" value="${r#*$'\t'}"
+    printf '  %-9s  %s\n' "$field" "$value"
+  done
+}
+
+# _wt_size <dir> -- its size as du -sk gives it, in KiB, with `(partial)` when
+# du could not read all of it; du's own error names what it could not.
+_wt_size() {
+  local out rc=0
+  out="$(du -sk -- "$1")" || rc=$?
+  out="${out%%[[:space:]]*}"
+  if [ "$rc" -ne 0 ]; then
+    printf '%s KiB (partial: du could not read all of it, above)' "${out:-?}"
+  else
+    printf '%s KiB' "${out:-?}"
+  fi
+}
+
+# _wt_plain_dirs -- every directory beside a linked worktree that git lists as
+# none, printed with its size and no verdict. Only a directory that holds a
+# linked worktree and lies below the main worktree is looked in, never the
+# main worktree itself (whose bin/ and lib/ would read as plain), and nothing
+# outside it. Prints how many it found on the last line, alone.
+_wt_plain_dirs() {
+  local n p d phys found=0 k listed
+  local -A seen=()
+  for ((n = 1; n < ${#WT_PATH[@]}; n++)); do
+    p="${WT_PATH[n]%/*}"
+    case "$p/" in "$ROOT"/?*/) ;; *) continue ;; esac
+    [ -z "${seen[$p]-}" ] || continue
+    seen[$p]=1
+    [ -d "$p" ] || continue
+    for d in "$p"/* "$p"/.[!.]* "$p"/..?*; do
+      [ -d "$d" ] && [ ! -L "$d" ] || continue
+      physical_dir "$d" phys getcwd || phys="$d"
+      listed=no
+      for ((k = 0; k < ${#WT_PATH[@]}; k++)); do
+        [ "${WT_PATH[k]}" != "$phys" ] || listed=yes
+      done
+      [ "$listed" = no ] || continue
+      printf '%s: plain directory, no verdict -- git lists no worktree here\n' "$(_wt_shown "$phys")"
+      printf '  %-9s  %s\n' size "$(_wt_size "$phys")"
+      found=$((found + 1))
+    done
+  done
+  printf '%s\n' "$found"
+}
+
+# --- the run --------------------------------------------------------------
+
+# The scratch first, outside the repository read, so even the list's error has
+# somewhere to go that is no dirt in it.
+SCRATCH="$(scratch_outside worktrees "$GITC" devbin-worktrees)" ||
+  die "worktrees: no scratch directory to test a diff in (above), so nothing was read"
+readonly SCRATCH
+trap 'rm -rf -- "$SCRATCH"' EXIT
+_wt_list_read || exit 1
+# AND OUTSIDE EVERY WORKTREE THE LIST NAMES. The check above knew only the
+# directory it was given, which for a linked worktree's project is not the main
+# worktree: a TMPDIR inside the main worktree, or inside another linked one,
+# passed it, and the scratch was then dirt in a tree this run reports.
+_wt_scratch_outside_all() {
+  local n phys
+  physical_dir "$SCRATCH" phys getcwd || return 1
+  for ((n = 0; n < ${#WT_PATH[@]}; n++)); do
+    case "$phys/" in
+      "${WT_PATH[n]%/}"/*)
+        warn "worktrees: TMPDIR (${phys%/*}) is inside the worktree ${WT_PATH[n]}, and a scratch made there is dirt this run would then report -- point TMPDIR outside every worktree of the repository"
+        return 1
+        ;;
+    esac
+  done
+}
+_wt_scratch_outside_all || die "worktrees: no scratch directory outside the repository's worktrees (above), so nothing was read"
+IDX="$SCRATCH/branch.index"
+git_readonly_index "$IDX" -C "$GITC" read-tree "$BSHA" ||
+  die "worktrees: git cannot read $BRANCH's tree into a scratch index, so no content test can be made"
+_wt_banks_read || die "worktrees: the banks could not be read (above), so nothing was reported"
+
+# _wt_header -- what every verdict below is measured against.
+_wt_header() {
+  local r
+  printf 'worktrees of %s, landing on %s at %s\n' "$ROOT" "$BRANCH" "${BSHA:0:12}"
+  if [ "${#BANK_PATTERNS[@]}" -eq 0 ]; then
+    printf 'banks: none declared (worktrees.banks), so the change test asks %s'"'"'s commits alone\n' "$BRANCH"
+  else
+    printf 'banks: %s, %s read, holding %s patches\n' "${BANK_PATTERNS[*]}" "$BANK_READ" "${#BANK_IDS[@]}"
+    for r in ${BANK_MULTI[@]+"${BANK_MULTI[@]}"}; do
+      printf '  %s\n' "$r"
+    done
+    for r in ${BANK_OTHER[@]+"${BANK_OTHER[@]}"}; do
+      printf '  not a bank: %s\n' "$r"
+    done
+  fi
+  printf '\n'
+}
+
+# _wt_report -- the report, of every linked worktree or of the NAMED ones.
+_wt_report() {
+  local n k v rc=0 plain out
+  local -a which=()
+  local -A tally=([landed]=0 [held]=0 [unknown]=0 [prunable]=0 [unread]=0)
+  for k in ${NAMED[@]+"${NAMED[@]}"}; do
+    if _wt_index_of "$k" n && [ "$n" -gt 0 ]; then
+      which+=("$n")
+    else
+      warn "worktrees: $k is not a linked worktree of $ROOT ($ME lists them)"
+      rc=1
+    fi
+  done
+  if [ "${#NAMED[@]}" -eq 0 ]; then
+    for ((n = 1; n < ${#WT_PATH[@]}; n++)); do which+=("$n"); done
+  fi
+  _wt_stash_read || return 1
+  _wt_procs_read
+  _wt_header
+  for n in ${which[@]+"${which[@]}"}; do
+    if [ "${WT_PRUNABLE[n]}" = yes ]; then
+      printf '%s: prunable\n' "$(_wt_shown "${WT_PATH[n]}")"
+      printf '  %-9s  prunable: its directory is gone%s -- remedy: git worktree prune\n' why "${WT_PRUNE[n]:+ (${WT_PRUNE[n]})}"
+      tally[prunable]=$((tally[prunable] + 1))
+      printf '\n'
+      continue
+    fi
+    _wt_eval "$n"
+    v="$(_wt_verdict)"
+    _wt_print "${WT_PATH[n]}" "$v"
+    tally[$v]=$((tally[$v] + 1))
+    [ "$v" != unread ] || rc=1
+    printf '\n'
+  done
+  plain=0
+  if [ "${#NAMED[@]}" -eq 0 ]; then
+    out="$(_wt_plain_dirs)"
+    plain="${out##*$'\n'}"
+    [ "$out" = "$plain" ] || printf '%s\n\n' "${out%$'\n'*}"
+  fi
+  printf 'worktrees: %s linked worktree(s) reported: %s landed, %s held, %s unknown, %s prunable, %s unread; %s plain director(ies)\n' \
+    "${#which[@]}" "${tally[landed]}" "${tally[held]}" "${tally[unknown]}" "${tally[prunable]}" "${tally[unread]}" "$plain"
+  return "$rc"
+}
+
+# _wt_refuse <path> <why> -- one refusal of remove-landed, said on stdout with
+# the rest of the run.
+_wt_refuse() {
+  printf 'refused  %s: %s\n' "$1" "$2"
+}
+
+# _wt_remove_one <path> -- remove-landed for one named worktree, by the steps
+# the contract gives; 0 when it was removed, 1 when it was refused or git
+# refused.
+_wt_remove_one() {
+  local p="$1" n w cwd v f err="$SCRATCH/err" why
+  # The list, the stash and the processes are read again for every path, never
+  # taken from an earlier report or an earlier path's removal.
+  _wt_list_read || {
+    _wt_refuse "$p" "the worktree list could not be read (above)"
+    return 1
+  }
+  if ! _wt_index_of "$p" n; then
+    _wt_refuse "$p" "not a linked worktree of $ROOT"
+    return 1
+  fi
+  if [ "$n" -eq 0 ]; then
+    _wt_refuse "$p" "the main worktree, which is never removed"
+    return 1
+  fi
+  w="${WT_PATH[n]}"
+  if [ "${WT_PRUNABLE[n]}" = yes ] || [ ! -d "$w" ]; then
+    _wt_refuse "$p" "not a directory: it is gone, and git worktree prune clears its record"
+    return 1
+  fi
+  if [ "${WT_LOCKED[n]}" = yes ]; then
+    _wt_refuse "$p" "locked, kept on purpose: ${WT_LOCK[n]:-no reason given} (git worktree unlock it first, if it is done)"
+    return 1
+  fi
+  if physical_dir "$PWD" cwd getcwd; then
+    case "$cwd/" in
+      "$w"/*)
+        _wt_refuse "$p" "you are standing in it ($cwd) -- run this from outside it"
+        return 1
+        ;;
+    esac
+  else
+    _wt_refuse "$p" "the directory you are standing in cannot be read, so whether it is inside the worktree cannot be told"
+    return 1
+  fi
+  # NOR THE TREE THIS RUN IS: the repository it was asked about, the project it
+  # serves, or the devbin runtime it is running from. A launcher inside the
+  # worktree, run from outside it, removed the very tree it ran from.
+  for f in "$GITC" "${PROJECT_ROOT:?}" "${DEVBIN_LIB:?}"; do
+    if ! physical_dir "$f" cwd getcwd; then
+      _wt_refuse "$p" "$f, which this run reads, cannot be resolved, so whether it is inside the worktree cannot be told"
+      return 1
+    fi
+    case "$cwd/" in
+      "$w"/*)
+        _wt_refuse "$p" "this run itself stands in it: $cwd is inside it -- run a devbin from outside it"
+        return 1
+        ;;
+    esac
+  done
+  _wt_stash_read || {
+    _wt_refuse "$p" "the stash could not be read (above)"
+    return 1
+  }
+  _wt_procs_read
+  _wt_eval "$n"
+  v="$(_wt_verdict)"
+  if [ "$v" != landed ]; then
+    why="$(_wt_print "$w" "$v" | awk '$1 == "why" { sub(/^  why +/, ""); printf "%s%s", sep, $0; sep = "; " }')"
+    _wt_refuse "$p" "$v -- $why"
+    return 1
+  fi
+  # A linked build target goes as the link alone: never -r, never a trailing
+  # slash, so nothing it leads to is touched. Then everything is read again.
+  if [ "${#E_LINKS[@]}" -gt 0 ]; then
+    for f in "${E_LINKS[@]}"; do
+      if ! rm -- "$w/$f"; then
+        _wt_refuse "$p" "its linked build target $f could not be removed as a link (above)"
+        return 1
+      fi
+      printf 'unlinked %s/%s\n' "$(_wt_shown "$w")" "$f"
+    done
+    _wt_eval "$n"
+    v="$(_wt_verdict)"
+    if [ "$v" != landed ] || [ "$E_UNTRACKED" -ne 0 ] || [ "${#E_LINKS[@]}" -ne 0 ]; then
+      _wt_refuse "$p" "it no longer reads landed with nothing untracked once its linked targets were removed: read it with $ME report $p"
+      return 1
+    fi
+  fi
+  # THE WRITE: a staged diff is dropped, the content test having just shown the
+  # branch holds it.
+  if [ "$E_STAGED" = yes ]; then
+    if ! git -C "$w" reset --hard --quiet 2>"$err"; then
+      _wt_refuse "$p" "git refused to drop its staged diff: $(sed -n 1p "$err")"
+      return 1
+    fi
+  fi
+  # THE WRITE: a plain remove, never --force. git's refusal is a finding.
+  if ! git -C "$GITC" worktree remove "$w" 2>"$err"; then
+    _wt_refuse "$p" "git refused to remove it, which is a finding, not something to force: $(sed -n 1p "$err")"
+    return 1
+  fi
+  printf 'removed  %s\n' "$(_wt_shown "$w")"
+}
+
+# _wt_remove_landed -- remove-landed over every NAMED path, in order.
+_wt_remove_landed() {
+  local p rc=0 removed=0
+  for p in "${NAMED[@]}"; do
+    if _wt_remove_one "$p"; then
+      removed=$((removed + 1))
+    else
+      rc=1
+    fi
+  done
+  printf 'worktrees: %s of %s named worktree(s) removed\n' "$removed" "${#NAMED[@]}"
+  return "$rc"
+}
+
+case "$VERB" in
+  report) _wt_report ;;
+  remove-landed) _wt_remove_landed ;;
+esac

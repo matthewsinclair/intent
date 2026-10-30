@@ -30,6 +30,7 @@
 #   cfg_get <path> [default] scalar at a dotted path, or default (or "")
 #   cfg_has <path>           true when the path has a value
 #   cfg_list <path>          immediate child keys under path, document order
+#   cfg_version_from         the version file: project.version_from, else VERSION
 #   cfg_validate             schema check of the loaded config (needs lib/helpers)
 #   cfg_release_get <key>    a release: scalar, or its default (ST0007)
 #   cfg_release_list <key>   a release: list, one item per line, or its default
@@ -38,6 +39,7 @@
 #   cfg_formula_get <key>    a formula: scalar, or its default (issue 0227)
 #   cfg_formula_list <key>   a formula: list, one item per line
 #   cfg_formula_name         the formula's name: formula.name, else project.name
+#   cfg_ident <v> [<n> <e>]  `Name <email>` as git writes an identity, split (issue 0239)
 #   cfg_dump                 the flattened form (debugging, doctor)
 #
 [ -n "${_DEVBIN_CONFIG_LOADED:-}" ] && return 0
@@ -328,6 +330,15 @@ cfg_dump() {
   printf '%s\n' "$_DEVBIN_CFG"
 }
 
+# cfg_version_from -- the version file: project.version_from, or VERSION where
+# it is not declared. THE ONE READING of the key and its default (issue 0259):
+# the dispatcher exports it as DEVBIN_VERSION_FILE for lib/helpers, which reads
+# no config, and doctor asks it of the config it loaded itself, so a verdict on
+# the version is never about a key nobody read.
+cfg_version_from() {
+  cfg_get project.version_from VERSION
+}
+
 # --- schema ----------------------------------------------------------------
 #
 # Validation splits the path into SEGMENTS and checks its structure. The obvious
@@ -455,6 +466,15 @@ _cfg_path_known() {
       [ "$n" -eq 3 ] && [ "${frow%%$'\t'*}" = list ] && _cfg_is_index "${p[2]}" && return 0
       return 1
       ;;
+    worktrees)
+      # Issue 0245's worktrees: block, the built-in worktrees's settings, read
+      # by lib/cmd/worktrees alone: `branch`, the branch landed work reaches
+      # (default main), and `banks.<N>`, the ref patterns whose refs are banks
+      # (default none). Added in the same change as the reader.
+      [ "$n" -eq 2 ] && [ "${p[1]}" = branch ] && return 0
+      [ "$n" -eq 3 ] && [ "${p[1]}" = banks ] && _cfg_is_index "${p[2]}" && return 0
+      return 1
+      ;;
     commands)
       if [ "$n" -eq 3 ]; then
         # `log` and `grammar` at COMMAND level, not just option level: a
@@ -500,11 +520,13 @@ _cfg_path_known() {
 #
 # THE READERS COLUMN (ST0008 WP-08) names, comma-separated, each verb that
 # reads the key, from `verbs`' own default: a cut (`cut`), `status`, `notes`,
-# `check` and `attach`. A declared key that no verb `release.verbs` offers reads
-# is refused as unread config, issue 0080's class. `<verb>!<key>` reads it only
-# while `release.<key>` is not declared: `attach` reads `remotes` only as
-# `repo`'s fallback (release_repo), so with `repo` declared it reads none.
-# Printing a key is not reading it: `release check` prints every one.
+# `check`, `attach`, `snapshot` and `publish`. A declared key that no verb
+# `release.verbs` offers reads is refused as unread config, issue 0080's class.
+# `<verb>!<key>` reads it only while `release.<key>` is not declared: `attach`
+# reads `remotes` only as `repo`'s fallback (release_repo), so with `repo`
+# declared it reads none, and `snapshot` and `publish` read `branch` only while
+# `publish.branch` is not. Printing a key is not reading it: `release check`
+# prints every one.
 #
 # A list's default items are separated by `|`. A project declares a list
 # EXPLICITLY EMPTY as the single item `-` (devbin's no-default sentinel): the
@@ -514,25 +536,31 @@ _cfg_path_known() {
 # cannot be declared `-`: a reader who learned `gates: -` means no gates would
 # take `remotes: -` to mean no remotes, and the release would push everywhere.
 _DEVBIN_RELEASE_SCHEMA="
-scalar tag             cut,status,attach              v{version}
+scalar tag             cut,status,attach,snapshot,publish v{version}
 list   remotes         cut,status,attach!repo
-scalar branch          cut,status                     main
-scalar notes.kind      cut,status,notes,check         changelog
-scalar notes.run       cut,status,notes,check
+scalar branch          cut,status,snapshot!publish.branch,publish!publish.branch main
+scalar notes.kind      cut,status,notes,check,publish changelog
+scalar notes.run       cut,status,notes,check,publish
 list   derived         cut
 list   gates           cut,status                     check all|test all
-scalar ci.query        cut,status
-scalar ci.wait         cut                            20m
+scalar ci.query        cut,status,publish
+scalar ci.wait         cut,publish                    20m
 scalar ci.base         cut                            false
-scalar ci.tag          cut,status                     true
-scalar object          cut,status,check,attach        local
-scalar title           cut,status                     {tag}
-scalar repo            cut,status,attach
-scalar object_wait     cut                            20m
-list   after           cut,status
-list   verbs           cut,status,notes,check,attach  cut|status|notes|check|attach
-scalar assets.workflow cut,status,attach
-scalar assets.wait     cut,attach                     30m
+scalar ci.tag          cut,status,publish             true
+scalar object          cut,status,check,attach,publish local
+scalar title           cut,status,publish             {tag}
+scalar repo            cut,status,attach,publish
+scalar object_wait     cut,publish                    20m
+list   after           cut,status,publish
+list   verbs           cut,status,notes,check,attach,snapshot,publish cut|status|notes|check|attach|snapshot|publish
+scalar assets.workflow cut,status,attach,publish
+scalar assets.wait     cut,attach,publish             30m
+scalar snapshot.list   snapshot,publish
+scalar snapshot.author snapshot,publish
+scalar snapshot.message snapshot,publish              {name} {version}
+scalar publish.url     cut,status,snapshot,publish
+scalar publish.branch  snapshot,publish
+scalar publish.candidate publish                      candidate/{tag}
 "
 
 # _cfg_release_row <key> -- `<shape><TAB><default>` for a release key, or
@@ -648,7 +676,11 @@ cfg_release_verbs() {
 # branch above and cfg_macos_get both read it. A key with no default here has
 # no sound one: the app and its bundle id are the project's, and the built-in
 # refuses to sign without them. The asset's default, the app's own name with
-# `.zip`, is derived by lib/cmd/macos from `app`, so it is empty here.
+# `.zip`, is derived by lib/cmd/macos from `app`, so it is empty here, as are
+# the defaults of version_from (project.version_from) and build_root (the
+# directory holding `app`), each derived there from another key (issue 0243).
+# A path may open with `~`, `$HOME` or an XDG base-directory variable
+# (path_expand, lib/helpers).
 #
 #   app           the .app bundle the build leaves, from the project root or absolute
 #   build         the command line that builds it, run at the root; none: built already
@@ -656,6 +688,11 @@ cfg_release_verbs() {
 #   entitlements  the entitlements file signed in, from the root; none: signed without
 #   keychain      the login keychain's service prefix the notary credentials live under
 #   asset         the release asset's name
+#   version_from  the file the app's version is read from, when it versions apart
+#   commit_stamp  the Info.plist key the build writes its commit into; none: not checked
+#   kind_stamp    the Info.plist key the build writes its kind into; none: not checked
+#   kind_value    the value kind_stamp must carry; read only with kind_stamp
+#   build_root    where publish's last Launch Services drop looks
 _DEVBIN_MACOS_SCHEMA="
 scalar app
 scalar build
@@ -663,6 +700,11 @@ scalar bundle_id
 scalar entitlements
 scalar keychain     devbin.apple
 scalar asset
+scalar version_from
+scalar commit_stamp
+scalar kind_stamp
+scalar kind_value   release
+scalar build_root
 "
 
 # _cfg_macos_row <key> -- the default of a macos key (empty when it has none),
@@ -779,6 +821,33 @@ cfg_formula_name() {
   printf '%s\n' "$n"
 }
 
+# cfg_ident <value> [<name-var> <email-var>] -- rc 0 when <value> is
+# `Name <email>` exactly as git writes an identity, with the name and the email
+# in the two variables when they are named: one space before the `<`, no
+# control character, no `<` or `>` but the pair around the email, an email with
+# no space and an @ inside it, and neither part beginning or ending with a
+# character git strips from an identity (a space, `,`, `:`, `;`, `"`, `'` or
+# `\`). What git would write differently is refused rather than read, so the
+# identity a person declares is the one every commit made under it carries, and
+# a history can be read against it byte for byte (issue 0239). THE ONE PARSER
+# of an identity: release.snapshot.author's value check and the snapshot
+# builder both ask it.
+cfg_ident() {
+  local _ci_v="$1" _ci_n _ci_e _ci_p _ci_strip=$' ,:;"\'\\'
+  [[ "$_ci_v" == *' <'*'>' && "$_ci_v" != *[[:cntrl:]]* ]] || return 1
+  _ci_n="${_ci_v%% <*}"
+  _ci_e="${_ci_v#* <}"
+  _ci_e="${_ci_e%>}"
+  [[ -n "$_ci_n" && "$_ci_n$_ci_e" != *[\<\>]* ]] || return 1
+  [[ "$_ci_e" =~ ^[^@[:space:]]+@[^[:space:]]+$ ]] || return 1
+  for _ci_p in "$_ci_n" "$_ci_e"; do
+    [[ "$_ci_strip" != *"${_ci_p:0:1}"* && "$_ci_strip" != *"${_ci_p: -1}"* ]] || return 1
+  done
+  [ -n "${2-}" ] || return 0
+  local -n _ci_name="$2" _ci_email="$3"
+  _ci_name="$_ci_n" _ci_email="$_ci_e"
+}
+
 # _cfg_release_value_problem <path> <value> -- print why a release value
 # cannot be read, and succeed; fail when the value is fine.
 _cfg_release_value_problem() {
@@ -816,6 +885,53 @@ _cfg_release_value_problem() {
     repo)
       [[ "$v" =~ ^([^/[:space:]]+/)?[^/[:space:]]+/[^/[:space:]]+$ ]] && return 1
       printf 'must be OWNER/NAME or HOST/OWNER/NAME, as gh --repo takes it'
+      ;;
+    # THE SNAPSHOT'S KEYS (issue 0239). The list is a file in the tree, read at
+    # the commit a snapshot is made from, so it is a path from the root and never
+    # one out of it. The author is the one identity every snapshot is made under,
+    # as git writes one (cfg_ident). The message names no placeholder the builder
+    # does not fill, so none reaches a published commit as text. The url is read
+    # from a repository of the build's own, so a relative path would name a
+    # different directory there: it is a url, an scp-style `host:path`, or an
+    # absolute path, and it never opens with `-`, which git would read as an
+    # option.
+    snapshot.list)
+      case "$v" in
+        '' | /* | .. | ../* | */.. | */../*) ;;
+        *) return 1 ;;
+      esac
+      printf 'must be a path in the project, from its root, eg tests/shipped.paths'
+      ;;
+    snapshot.author)
+      cfg_ident "$v" && return 1
+      printf 'must be Name <email> as git writes an identity, with one space before the < and nothing git strips at either end of the name or the email: the identity each snapshot is made under'
+      ;;
+    snapshot.message)
+      local rest="${v//\{name\}/}"
+      rest="${rest//\{version\}/}"
+      if [ -n "$v" ] && [[ "$rest" != *[{}]* ]] && [[ "$v" != *$'\n'* ]]; then return 1; fi
+      printf 'must be one line, with no placeholder but {name} and {version}'
+      ;;
+    publish.branch)
+      [[ "$v" =~ ^[^-[:space:]][^[:space:]]*$ ]] && return 1
+      printf 'must be a branch name'
+      ;;
+    publish.url)
+      if [[ "$v" =~ ^[^-[:space:]][^[:space:]]*$ ]]; then
+        case "$v" in
+          *://* | /*) return 1 ;;
+          *) [[ "${v%%/*}" != *:* ]] || return 1 ;;
+        esac
+      fi
+      printf 'must be the url of the public repository, an scp-style host:path or an absolute path, as git reads one'
+      ;;
+    # THE CANDIDATE'S BRANCH (issue 0240): a template holding {tag}, so each
+    # release has a branch of its own, and more than {tag} alone, since a branch
+    # named as the tag is would make the tag's name ambiguous. No blank, and no
+    # `-` first, which git would read as an option.
+    publish.candidate)
+      if [[ "$v" == *"{tag}"* ]] && [ "$v" != "{tag}" ] && [[ "$v" =~ ^[^-[:space:]][^[:space:]]*$ ]]; then return 1; fi
+      printf 'must be a branch name holding {tag} and more, eg candidate/{tag}'
       ;;
     *)
       [ -n "$v" ] && return 1
@@ -890,9 +1006,20 @@ _cfg_release_problems() {
     fi
   done
   # A QUERY NOTHING ASKS is config nothing acts on: with ci.tag off and ci.base
-  # off the cut asks it neither about the base nor about the tag.
-  if cfg_has release.ci.query && ! is_true_word "$(cfg_release_get ci.tag)" && ! is_true_word "$(cfg_release_get ci.base)"; then
+  # off the cut asks it neither about the base nor about the tag. Under
+  # publish.url, release publish asks it about the candidate whatever those say.
+  if cfg_has release.ci.query && ! cfg_has release.publish.url &&
+    ! is_true_word "$(cfg_release_get ci.tag)" && ! is_true_word "$(cfg_release_get ci.base)"; then
     printf 'config: %s: release.ci.query is never asked: ci.tag is off and ci.base is off -- turn one on, or leave the query out\n' "$_DEVBIN_CFG_FILE" >&2
+    rc=1
+  fi
+  # CI ON THE BASE IS REFUSED UNDER publish.url (issue 0240). ci.base reads CI
+  # on the workroom commit a cut is made on, and a publishing workroom pushes
+  # it nowhere CI runs. Its guarantee is the candidate step's: release publish
+  # reads CI on the snapshot itself, and nothing becomes public before that is
+  # green.
+  if cfg_has release.ci.base && cfg_has release.publish.url; then
+    printf 'config: %s: release.ci.base is refused under release.publish.url: it reads CI on the workroom commit a cut is made on, which a publishing workroom pushes nowhere CI runs, and release publish reads CI on the snapshot itself before anything is public -- leave ci.base out\n' "$_DEVBIN_CFG_FILE" >&2
     rc=1
   fi
   if cfg_has release.title && [ "$object" != local ]; then
@@ -920,6 +1047,34 @@ _cfg_release_problems() {
     printf 'config: %s: release.assets.wait is read only when release.assets.workflow is declared\n' "$_DEVBIN_CFG_FILE" >&2
     rc=1
   fi
+  # A SNAPSHOT NEEDS ITS LIST AND ITS IDENTITY (issue 0239): the list says what
+  # ships, the author who every snapshot is made by, and neither has a default.
+  # The other snapshot and publish keys say how and where a snapshot is made,
+  # so without a list they are config nothing acts on.
+  if cfg_has release.snapshot.list && ! cfg_has release.snapshot.author; then
+    printf 'config: %s: release.snapshot.author is required beside release.snapshot.list -- it is the identity each snapshot is made under, and it has no default\n' "$_DEVBIN_CFG_FILE" >&2
+    rc=1
+  fi
+  for key in snapshot.author snapshot.message publish.url; do
+    if cfg_has "release.$key" && ! cfg_has release.snapshot.list; then
+      printf 'config: %s: release.%s is read only when release.snapshot.list is declared\n' "$_DEVBIN_CFG_FILE" "$key" >&2
+      rc=1
+    fi
+  done
+  # A PROJECT THAT PUBLISHES DOES SO THROUGH release publish (issue 0240): its
+  # cut stops after the push, so with the verb left out of release.verbs
+  # nothing would ever make a release public.
+  if cfg_has release.publish.url && cfg_release_declared verbs &&
+    ! grep -qxF publish <<<"$(cfg_release_list verbs)"; then
+    printf 'config: %s: release.publish.url is declared, and release.verbs leaves out publish, so a cut would stop after its push and nothing would make the release public -- offer publish, or leave publish.url out\n' "$_DEVBIN_CFG_FILE" >&2
+    rc=1
+  fi
+  for key in publish.branch publish.candidate; do
+    if cfg_has "release.$key" && ! cfg_has release.publish.url; then
+      printf 'config: %s: release.%s is read only when release.publish.url is declared\n' "$_DEVBIN_CFG_FILE" "$key" >&2
+      rc=1
+    fi
+  done
   # A DECLARED KEY THAT NO OFFERED VERB READS IS REFUSED (ST0008 WP-08), read
   # from the table's readers column: with `cut` and `status` both off, a gate or
   # a title is config nothing acts on. An empty list is refused above, so it is
@@ -1082,6 +1237,17 @@ $_DEVBIN_CFG
 EOF
   if [ -n "$(cfg_list release)" ]; then
     _cfg_release_problems || rc=1
+  fi
+  # THE MACOS PAIR (issue 0243): kind_value is what kind_stamp must carry, so
+  # without kind_stamp it is config nothing reads, and empty it would pass a
+  # bundle that carries no kind at all.
+  if cfg_has macos.kind_value && ! cfg_has macos.kind_stamp; then
+    printf 'config: %s: macos.kind_value is read only when macos.kind_stamp is declared\n' "$_DEVBIN_CFG_FILE" >&2
+    rc=1
+  fi
+  if cfg_has macos.kind_value && [ -z "$(cfg_get macos.kind_value)" ]; then
+    printf 'config: %s: macos.kind_value is empty, so a bundle with no kind stamp would pass -- leave the key out to take its default, release\n' "$_DEVBIN_CFG_FILE" >&2
+    rc=1
   fi
   return "$rc"
 }

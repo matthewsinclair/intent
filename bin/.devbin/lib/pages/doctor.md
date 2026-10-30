@@ -2,6 +2,8 @@
 
 Checks this install and reports what it finds, then runs the project's own checks in `bin/.devbin/cmd/doctor.d/`. It exits 1 if anything failed. With `<check>`, it runs that one project check alone.
 
+In devbin's own checkout, doctor's first line is the version line, byte for byte as `bin/devbin --version` prints it there, on a line of its own. No row repeats it, and wherever doctor prints a version line, it prints it whole and with nothing added.
+
 ## What it checks
 
 In this order:
@@ -15,6 +17,10 @@ In this order:
                     and a release: value the block cannot take each fail
     languages       which languages project.languages arms devbin's
                     language-scoped built-ins for; a note when none
+    version         the project's version reads from project.version_from
+                    (VERSION by default); a note naming the key, and what
+                    to do for that file, when it does not, since version
+                    show and version check refuse
     release         a note when a release: block is declared and release
                     is not enabled
     log             every log: key sits where a run reads it: beside an
@@ -53,22 +59,31 @@ In this order:
                     names what this machine is missing, so that no switch
                     names a source (see bin/devbin help upgrade). A
                     project also gets the tree its next upgrade reads, by
-                    its tree line, and what named it: DEVBIN_INSTALL_PREFIX,
-                    the link ~/.local/bin/devbin, or HOMEBREW_PREFIX's
-                    opt/devbin
-    tree            in devbin's own checkout only: its tree line, as
-                    --version prints it. It fails when git cannot read the
-                    checkout, so the line names no commit
+                    its tree line alone, as this project's devbin reads that
+                    tree's tree line, which is what --version prints from
+                    the same devbin, and beneath it, on a row of its own,
+                    what named it: DEVBIN_INSTALL_PREFIX, the link
+                    ~/.local/bin/devbin, or HOMEBREW_PREFIX's opt/devbin,
+                    since no DEVBIN_INSTALL_PREFIX or link names one
+    tree            in devbin's own checkout only: the version line doctor
+                    printed first names this checkout's commit. It fails
+                    when git cannot read the checkout, so the line names no
+                    commit
     switch          the machine's choice among dev, opt and brew (bin/devbin
                     help use). It fails when the link is not the first
-                    devbin on PATH, compared as resolved directories, when
-                    the link leads to no devbin tree, and when the opt
-                    install the switch names has the manifest form written
-                    before the tree line, naming install --force. A keg in
-                    that form is a note naming brew upgrade devbin, since
-                    only a later release fixes it. A machine pointer left
-                    from before the link is a note: nothing reads it, and it
-                    is removed by hand
+                    devbin on PATH, compared as resolved directories; with
+                    no link, when the first devbin on PATH is not
+                    Homebrew's keg, or would not run, or none is on PATH
+                    at all; when the link leads to no devbin tree; and when
+                    the opt install the switch names has the manifest form
+                    written before the tree line, naming install --force.
+                    A keg in that form is a note naming brew upgrade
+                    devbin, since only a later release fixes it. A machine
+                    pointer left from before the link is a note: nothing
+                    reads it, and it is removed by hand. With no link and no
+                    Homebrew devbin, a note says so, why, and what to do:
+                    export HOMEBREW_PREFIX as brew shellenv does when it is
+                    unset or relative, or install devbin with Homebrew
     bash            which bash is running, against the >= 5 floor
     location        under WSL only: where the project sits. One on a
                     Windows drive (/mnt/<letter>) is a note naming the

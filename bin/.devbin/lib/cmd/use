@@ -44,13 +44,6 @@ The link is \$HOME/.local/bin/devbin. No link means brew.
 EOF
 }
 
-# _use_brew_none -- the one sentence for no Homebrew devbin here, with
-# brew_unplaced_why's clause: the report says it, and so does use brew's
-# refusal.
-_use_brew_none() {
-  printf 'Homebrew has no devbin here (%s)' "$(brew_unplaced_why)"
-}
-
 # _use_report -- the tree the switch chose, as its tree line, or what is
 # missing. rc 1 when the link cannot be followed or nothing answers.
 _use_report() {
@@ -64,8 +57,10 @@ _use_report() {
       if root="$(devbin_brew_root)"; then
         printf 'use: no link, so brew\n  %s\n' "$(devbin_tree_line "$root")"
       else
-        printf 'use: no link, so brew, and %s\n' "$(_use_brew_none)"
-        printf '  install devbin with Homebrew, or run %s use dev or opt in the devbin checkout\n' "$DEVBIN_INVOKE"
+        # The remedy for the cause, from one place (brew_unplaced_fix, 0250),
+        # with dev or opt only when this devbin is the maintainer's.
+        printf 'use: no link, so brew, and %s\n' "$(brew_none_why)"
+        printf '  %s\n' "$(brew_unplaced_fix "$PROJECT_ROOT")"
         return 1
       fi
       ;;
@@ -77,12 +72,24 @@ _use_report() {
   return 0
 }
 
-# _use_shadowed -- the shadow check (devbin_link_shadow), said; rc 1 when the
-# link is not the devbin a login shell runs.
+# _use_shadowed [<word>] -- the shadow check (devbin_link_shadow), said; rc 1
+# when the link is not the devbin a login shell runs.
+#
+# AFTER use dev OR use opt, THE LINK STAYS POINTED (issue 0275). The link is
+# the switch, and a shell that shadows it needs telling at once, with an exit a
+# script hears; so with <word>, the tree just chosen, the refusal says the link
+# was pointed and is left so, and how to go on, rather than read as nothing
+# changed.
 _use_shadowed() {
   local why
   why="$(devbin_link_shadow)"
   [ -n "$why" ] || return 0
+  if [ -n "${1:-}" ]; then
+    warn "use $1 pointed the link $(devbin_link_path), and it stays pointed, but a login shell does not run it
+       $why
+       fix PATH as that says, or run $DEVBIN_INVOKE use brew"
+    return 1
+  fi
   warn "$why"
   return 1
 }
@@ -114,30 +121,23 @@ _use_in_checkout() {
 
 # _use_no_brew <link> <tree root> <brew_answer_state> -- refuse `use brew`,
 # removing nothing, when no Homebrew devbin would answer once the link is gone
-# (T5, amendment A4): name the link, the tree it serves, why no Homebrew copy
-# would answer, and that case's remedy.
+# (T5; issue 0235): name the link, the tree it serves, why no Homebrew copy
+# would answer, and that case's remedy. A cause on PATH is said in
+# brew_path_why's words, which the shadow check gives with no link (0273).
 _use_no_brew() {
-  local p="$1" root="$2" state="$3" why fix b
+  local p="$1" root="$2" state="$3" why fix
   case "$state" in
     absent)
-      why="$(_use_brew_none)"
-      fix="install devbin with Homebrew, with HOMEBREW_PREFIX exported as brew shellenv exports it"
+      # No dev or opt clause: the refusal's own last line leaves them open.
+      why="$(brew_none_why)"
+      fix="$(brew_unplaced_fix "")"
       ;;
-    "unlinked "*)
-      b="$(brew_bin_link "$HOMEBREW_PREFIX")"
-      why="Homebrew's devbin at ${state#unlinked } is not linked: no devbin in ${b%/*} leads into it"
-      fix="link it (brew link devbin)"
+    *)
+      why="$(brew_path_why "$state" "$p")" ||
+        die "cannot tell what would answer devbin on PATH once the link $p is gone: $state"
+      fix="${why#*$'\n'}"
+      why="${why%%$'\n'*}"
       ;;
-    "offpath "*)
-      b="${state#offpath }"
-      why="Homebrew's devbin is linked at $b, and ${b%/*} is not on PATH"
-      fix="put ${b%/*} on PATH, after ${p%/*}"
-      ;;
-    "other "*)
-      why="with ${p%/*} left out, the first devbin on PATH would be ${state#other }, which is not Homebrew's devbin at $(devbin_brew_root || true)"
-      fix="move ${state#other } aside"
-      ;;
-    *) die "cannot tell what would answer devbin on PATH once the link $p is gone: $state" ;;
   esac
   die "use brew removes nothing: no Homebrew devbin would answer once the link is gone
        $why
@@ -188,8 +188,8 @@ main() {
           *) die "${state#bad }
        it is not a link into a devbin tree, so use brew leaves it: remove it by hand" ;;
         esac
-        # And only when a Homebrew devbin would answer in its place (T5,
-        # amendment A4): removing it otherwise leaves no devbin on PATH, and
+        # And only when a Homebrew devbin would answer in its place (T5;
+        # issue 0235): removing it otherwise leaves no devbin on PATH, and
         # nothing naming the tree it served.
         brew="$(brew_answer_state)"
         case "$brew" in
@@ -207,7 +207,7 @@ main() {
   esac
   _use_point "$root"
   _use_report || return 1
-  _use_shadowed || return 1
+  _use_shadowed "$word" || return 1
   return 0
 }
 

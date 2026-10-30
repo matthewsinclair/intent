@@ -40,7 +40,7 @@ A key the mode does not read is refused rather than ignored.
 
 ## Source mode
 
-The template holds exactly one `@@TAG@@` and one `@@REVISION@@`, and render fills them with the tag and the commit it names, read with `git rev-parse <tag>^{commit}`. brew checks out the tag at install and stops when its commit is not the formula's revision, so a wrong revision fails every install, and the offline `brew audit` accepts any 40 hex digits, so it does not catch one. render refuses:
+Below its header, the template holds exactly one `@@TAG@@` and one `@@REVISION@@`, and render fills them with the tag and the commit it names, read with `git rev-parse <tag>^{commit}`. brew checks out the tag at install and stops when its commit is not the formula's revision, so a wrong revision fails every install, and the offline `brew audit` accepts any 40 hex digits, so it does not catch one. render refuses:
 
 - a tag this checkout does not have;
 - a lightweight tag, since every release tag is annotated;
@@ -77,6 +77,12 @@ render also refuses:
 The cask, where formula.cask names one, is rendered from the same release and goes to the tap in the same commit as the formula, as `Casks/<template's name>`, so the tap never holds a formula and a cask from different releases.
 
 In both modes, a placeholder left after filling is refused by name, so a misspelt one cannot ship, and a refusal writes nothing.
+
+## The rendered file's header
+
+In both modes, each file that render writes opens with a header of its own, below any magic comment it keeps. The header says the file was rendered by devbin's formula built-in, names the template by its path from the project root, the tag and the commit the tag names, and says to edit the template rather than the file, which the next render replaces. A template declared with an absolute path is read under the project root too, and named without its leading slashes, so no path on the maintainer's machine reaches the tap.
+
+The template's own header, its leading run of `#` comment and blank lines, is about the template, so it is dropped; a `=begin` block is no part of it. Only what follows the header ships, so only that is validated and filled: a placeholder written in the header is neither counted nor filled, and a template with nothing after its header is refused. A Ruby magic comment in the header, such as `# frozen_string_literal: true`, an Emacs mode line, or an encoding named on the first line, is kept at the top with a blank line after it, since Ruby reads most of them only before the first code.
 
 ## Which release publish publishes
 

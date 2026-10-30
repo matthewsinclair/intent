@@ -21,6 +21,8 @@ In a project, devbin is vendored:
 
 `install` writes a starter `config.yaml` only where there is none. The overview prints where the runtime is, derived from where it is actually running.
 
+The long-form guides are named where they are on this machine: for Homebrew's devbin, the guides the formula installs beside its README, named through Homebrew's opt link for devbin; in a project, those of the install its upgrades read. Where no install this machine names carries them, the line says why.
+
 ## Whose version --version reports
 
 devbin's, as recorded in the install manifest, not the project's: that is `bin/devbin --version`. If a project's manifest exists but records no devbin version, the bare form and `--version` refuse with exit 1 rather than print the project's version under devbin's name. With no manifest at all they fall back to the project's version file: right in devbin's own source checkout, where the project is devbin, and wrong in a vendored project, where `bin/devbin doctor` fails the missing manifest.

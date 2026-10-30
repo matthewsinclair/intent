@@ -203,8 +203,9 @@ EOF
 #
 # The ungrouped set is deliberately NOT emitted here as a trailing empty line.
 # It was, and command substitution strips trailing newlines, so the catch-all
-# vanished exactly when it was the only thing left to print. print_help handles
-# it explicitly instead -- a sentinel that a `$(...)` can eat is not a sentinel.
+# vanished exactly when it was the only thing left to print. _print_grouped
+# handles it explicitly instead -- a sentinel that a `$(...)` can eat is not a
+# sentinel.
 _group_order() {
   local table="$1" entry name line g seen=" "
   while IFS= read -r entry; do
@@ -358,12 +359,19 @@ _print_row() {
   fi
 }
 
+# _print_command_row <command> -- the one row a command gets in a listing, its
+# name and args, then its summary: a project's listing (_print_command) and an
+# install's (install_help) both print it.
+_print_command_row() {
+  local args
+  args="$(cmd_meta "$1" args)"
+  _print_row '  ' "$1${args:+ $args}" "$(cmd_meta "$1" summary)"
+}
+
 # _print_command <command> <why> -- one command and its active options.
 _print_command() {
-  local cmd="$1" why="$2" left opt args count=0
-  args="$(cmd_meta "$cmd" args)"
-  left="$cmd${args:+ $args}"
-  _print_row '  ' "$left" "$(cmd_meta "$cmd" summary)"
+  local cmd="$1" why="$2" opt args count=0
+  _print_command_row "$cmd"
   [ -n "$why" ] && _print_row '  ' '' "from: $(command_origin "$cmd")"
   while IFS= read -r opt; do
     [ -n "$opt" ] || continue
@@ -476,9 +484,48 @@ EOF
   return 0
 }
 
+# _print_grouped <table> <printer> [<arg>...] -- every group of <table>
+# (_group_table) under its heading, in _group_order's order, then the commands
+# no group claims, each command printed by `<printer> <command> <arg>...`.
+#
+# THE ONE LISTING SHAPE, for a project's help and an install's (issue 0251), so
+# the two cannot order or drop commands differently.
+_print_grouped() {
+  local table="$1" printer="$2" group cmd shown
+  shift 2
+  while IFS= read -r group; do
+    [ -n "$group" ] || continue
+    printf '\n%s:\n' "$(_group_label "$group")"
+    while IFS= read -r cmd; do
+      [ -n "$cmd" ] || continue
+      "$printer" "$cmd" "$@"
+    done <<EOF
+$(_group_members "$table" "$group")
+EOF
+  done <<EOF
+$(_group_order "$table")
+EOF
+
+  # The catch-all, printed explicitly and last. A command with no group anywhere
+  # -- no config, no handler header, no catalogue row -- is a project handler
+  # somebody just dropped in, and dropping it from the listing for want of a
+  # heading is the one thing help must never do (AC-07.2).
+  shown="$(_group_members "$table" '')"
+  if [ -n "$shown" ]; then
+    printf '\nOther:\n'
+    while IFS= read -r cmd; do
+      [ -n "$cmd" ] || continue
+      "$printer" "$cmd" "$@"
+    done <<EOF
+$shown
+EOF
+  fi
+  return 0
+}
+
 # print_help [--why] -- the generated global listing.
 print_help() {
-  local why="" cmds table group cmd preamble tagline shown
+  local why="" cmds table preamble tagline
   [ "${1:-}" = --why ] && why=yes
 
   tagline="$(cfg_get help.tagline 'dev launcher')"
@@ -503,33 +550,7 @@ print_help() {
   fi
 
   table="$(_group_table "$cmds")"
-  while IFS= read -r group; do
-    [ -n "$group" ] || continue
-    printf '\n%s:\n' "$(_group_label "$group")"
-    while IFS= read -r cmd; do
-      [ -n "$cmd" ] || continue
-      _print_command "$cmd" "$why"
-    done <<EOF
-$(_group_members "$table" "$group")
-EOF
-  done <<EOF
-$(_group_order "$table")
-EOF
-
-  # The catch-all, printed explicitly and last. A command with no group anywhere
-  # -- no config, no handler header, no catalogue row -- is a project handler
-  # somebody just dropped in, and dropping it from the listing for want of a
-  # heading is the one thing help must never do (AC-07.2).
-  shown="$(_group_members "$table" '')"
-  if [ -n "$shown" ]; then
-    printf '\nOther:\n'
-    while IFS= read -r cmd; do
-      [ -n "$cmd" ] || continue
-      _print_command "$cmd" "$why"
-    done <<EOF
-$shown
-EOF
-  fi
+  _print_grouped "$table" _print_command "$why"
 
   printf '\nGlobal:\n'
   _print_row '  ' 'help [command]' 'This help, or detail for one command'
@@ -582,9 +603,11 @@ _help_walk() {
 # lived only in devbin's own help/, which no install writes, and every project
 # got the stub for every built-in.
 #
-# DEVBIN'S PAGE ANSWERS ONLY WHERE DEVBIN'S IMPLEMENTATION RUNS. A command the
-# project owns runs the project's code, and a page describing devbin's would be
-# false there, so it gets the generated answer, which names its true origin.
+# DEVBIN'S PAGE ANSWERS ONLY WHERE NO CODE OF THE PROJECT'S RUNS INSTEAD: where
+# devbin's implementation runs, or, for a command not offered here, where
+# nothing does (issue 0255). A command the project owns runs the project's
+# code, and a page describing devbin's would be false there, so it gets the
+# generated answer, which names its true origin.
 #
 # IT SAYS WHY IT RETURNED NOTHING (issue 0128): 2 when devbin's page is withheld
 # because the project owns the command, 1 when no root holds a page. print_topic
@@ -609,6 +632,27 @@ help_file() {
   return 0
 }
 
+# unoffered_page <command> [sub...] -- for a command this project does not
+# offer, the page help prints beneath the line saying why, as help_file prints
+# it; non-zero where help refuses instead (issue 0255).
+#
+# A COMMAND DEVBIN SHIPS IS STILL ITS PAGE AWAY. Every page is vendored, so a
+# reader learns release's `release:` block before enabling it. The page is
+# withheld, and help refuses as before:
+# - from a command devbin does not ship, or ships no page for;
+# - from one the project owns, which help_file withholds it from;
+# - where bin/.devbin/cmd/<command> is there but not executable, because the
+#   chmod +x the refusal names makes the project own the command, and devbin's
+#   page would then describe code that does not run;
+# - from devbin's `use`, which the listing leaves out too (devbin_tree_refusal):
+#   outside devbin's own trees it is the machine's, run as `devbin use`.
+unoffered_page() {
+  is_builtin_command "$1" || return 1
+  devbin_tree_refusal "$1" >/dev/null && return 1
+  nonexec_handler_hint "$1" >/dev/null && return 1
+  help_file "$@"
+}
+
 # print_topic <command> [sub...] -- authored long-form, or a generated answer.
 print_topic() {
   local cmd="$1" file reason opt count=0 args why=0
@@ -616,7 +660,18 @@ print_topic() {
     # Inactive is not unknown, and saying so is language scoping's whole point
     # one more time. `devbin help iex` in a shell project should explain
     # itself, not imply the reader misremembered the name.
+    #
+    # AND A COMMAND DEVBIN SHIPS IS STILL ITS PAGE AWAY (issue 0255): where
+    # unoffered_page has one, it prints under the line that says why the
+    # command is not offered here and what would offer it, at exit 0, since the
+    # page asked for was printed. No `In this project:` block follows, because
+    # nothing of the command runs here.
     if reason="$(command_unavailable_reason "$cmd")"; then
+      if file="$(unoffered_page "$@")"; then
+        printf "'%s %s' is not offered here: %s\n\n" "$DEVBIN_INVOKE" "$cmd" "$reason"
+        cat -- "${file#*$'\t'}" || return
+        return 0
+      fi
       warn "'$DEVBIN_INVOKE $cmd' is not available here: $reason"
     else
       warn "unknown command: $cmd (try: $DEVBIN_INVOKE help)"
@@ -673,6 +728,57 @@ EOF
     printf '\nNo authored detail yet. Write it at %s/help/%s.md\n' \
       "$(devbin_dir_shown)" "$cmd"
   fi
+  return 0
+}
+
+# install_help [-h | --help | --why] [<topic>...] -- help from a machine install
+# (issue 0251): a line saying what this tree is and how to seed a project from
+# it, then devbin's own page for <topic>, or with no topic every command devbin
+# ships. 0 when it prints; 2, printing no page, for a topic devbin ships none
+# for, or a flag help does not take.
+#
+# AN INSTALL HAS NO PROJECT, SO THIS READS NO PROJECT CONFIG. A project's help
+# lists what that project offers, and an install offers none of it: what it can
+# say is what devbin ships, by the catalogue's groups and summaries, and the
+# pages at lib/pages/ that every project vendors, found as help_file finds
+# devbin's (_help_walk). Its forms are a project's help's: -h, --help and the
+# --why flag are help's own, and every other word names the topic. An install
+# declares no shared option, so every other flag is refused, as a project's
+# help refuses one it has not declared.
+install_help() {
+  local launcher page="" cmds table
+  local -a topic=()
+  launcher="$(launcher_shown "$PROJECT_ROOT")"
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -h | --help | --why | why) ;;
+      -*)
+        warn "unknown help option: $1 (try: $launcher help)"
+        return 2
+        ;;
+      *) topic+=("$1") ;;
+    esac
+    shift
+  done
+  if [ "${#topic[@]}" -gt 0 ] && ! page="$(_help_walk "$DEVBIN_LIB/pages" "${topic[@]}")"; then
+    warn "devbin ships no page for '${topic[*]}' (try: $launcher help)"
+    return 2
+  fi
+  printf '%s -- a machine install, not a project.\n' "$(devbin_tree_line "$PROJECT_ROOT")"
+  printf 'In a project, bin/devbin help lists what that project offers. To seed one:\n'
+  seed_hint "$PROJECT_ROOT"
+  if [ -n "$page" ]; then
+    printf '\n'
+    cat -- "$page" || return
+    return 0
+  fi
+  # Captured with their status, never inside the call: a failed substitution in
+  # an argument would print a short listing at rc 0.
+  cmds="$(builtin_commands)" || return
+  table="$(_group_table "$cmds")" || return
+  printf '\nWhat devbin ships, for a project to offer:\n'
+  _print_grouped "$table" _print_command_row
+  printf '\nRun: %s help <command>   for its page.\n' "$launcher"
   return 0
 }
 

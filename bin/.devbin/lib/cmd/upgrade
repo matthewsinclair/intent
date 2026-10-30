@@ -48,8 +48,16 @@ EOF
 # `unknown` beside a warning that the install's own stamp had just made
 # possible -- and on a dirty checkout it named a commit the bytes are not.
 _upgrade_provenance_lines() {
+  local here there
   warn "  vendored from: $(manifest_source_commit "$1" 2>/dev/null || printf 'unrecorded')"
   warn "  upgrading to:  $(source_commit_of "$2")"
+  # Both versions, where both read: the witness when the commits could not
+  # say which way the source moved (issue 0276).
+  here="$(manifest_version "$1" 2>/dev/null)" || here=""
+  there="$(source_version "$2")" || there=""
+  if [ -n "$here" ] && [ -n "$there" ]; then
+    warn "  devbin $here vendored here, devbin $there in this source"
+  fi
 }
 
 # _refuse_unreadable <dstroot> <srcroot> <paths> <entries> <dst_sums> <src_sums>
@@ -183,11 +191,14 @@ main() {
   fi
 
   if [ -n "$from" ]; then
-    srcroot="$(cd "$from" 2>/dev/null && pwd)" || die "no such directory: $from"
+    # Read by logical_dir, from the current directory alone (issue 0267): a
+    # bare cd found a relative name through CDPATH and read `-` as $OLDPWD,
+    # and its printed line went into the source.
+    logical_dir "$from" srcroot 2>/dev/null || die "no such directory: $from"
   else
     srcroot="$(manifest_source "$dstroot" 2>/dev/null || true)"
     [ -n "$srcroot" ] ||
-      die "$(source_unplaced_why "$dstroot") -- name one with --from <dir>"
+      die "$(source_unplaced_why "$dstroot") -- $(source_unplaced_fix "$dstroot" "$PROJECT_ROOT")"
   fi
 
   # Validated BEFORE anything is written (AC-09.9). Half a runtime is a project

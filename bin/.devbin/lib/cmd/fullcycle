@@ -316,7 +316,7 @@ _fullcycle_no_phase_why() {
 _fullcycle_path_links() {
   local p pr f want="${1:-live}" found root bpat pbpat rc=0
   local -a elements=()
-  IFS=: read -r -a elements <<<"$PATH"
+  colon_split "$PATH" elements
 
   # `find` NARROWS, _fullcycle_link_in_tree DECIDES, and that split is the
   # whole point.
@@ -417,7 +417,7 @@ _fullcycle_link_in_tree() {
     e="$l"
     while [ -L "$e" ]; do
       n=$((n + 1))
-      if [ "$n" -gt 40 ] || ! e="$(link_step "$e")"; then
+      if [ "$n" -gt "$_DEVBIN_LINK_HOPS" ] || ! e="$(link_step "$e")"; then
         warn "cannot tell which file $l is a symbolic link to"
         return 1
       fi
@@ -661,7 +661,7 @@ _fullcycle_consent_notice() {
 # be followed, by this walk or by the kernel (2 is the dispatcher's code).
 # `[ -e ]` fails alike for a path that is not there and for one out of reach,
 # so the path is resolved a name at a time, each link replaced where it stands
-# by the path link_step reads from it, up to 40 links, and it is gone only when
+# by the path link_step reads from it, up to _DEVBIN_LINK_HOPS links, and it is gone only when
 # a directory that can be searched says a name in it is not there, or a name
 # that must be a directory is not one; a trailing slash leaves an empty last
 # part, which asks that of the name before it. It asked of the directory
@@ -698,7 +698,7 @@ _fullcycle_tree_gone() {
       if [ "$cur" = / ]; then next="/${parts[i]}"; else next="$cur/${parts[i]}"; fi
       if [ -L "$next" ]; then
         hops=$((hops + 1))
-        [ "$hops" -le 40 ] || return 3
+        [ "$hops" -le "$_DEVBIN_LINK_HOPS" ] || return 3
         p="$(link_step "$next")" || return 3
         for ((j = i + 1; j < ${#parts[@]}; j++)); do
           p="$p/${parts[j]}"

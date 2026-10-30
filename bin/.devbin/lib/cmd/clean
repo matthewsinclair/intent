@@ -19,7 +19,7 @@
 #
 # EVERY REFUSAL BELOW WAS PAID FOR BY A REAL FAILURE. They are refusals rather
 # than warnings because this command's mistake is not recoverable by re-running
-# it: usage-rules puts a false green above a failure, and the destructive
+# it: a false green is worse than a failure, and the destructive
 # analogue is that a clean which cannot prove it is safe must not proceed.
 #
 set -euo pipefail
@@ -36,7 +36,8 @@ _CLEAN_NEVER_INDEX=".metadata_never_index"
 # The PATH scan, and the control that makes its emptiness mean something
 # ---------------------------------------------------------------------------
 
-# _clean_path_elements -- print one PATH element per line. NO REFUSALS HERE.
+# _clean_path_elements -- print each non-empty PATH element, each ended by a NUL,
+# so an element holding a newline is still one (issue 0248). NO REFUSALS HERE.
 #
 # The validation lives in _clean_validate_path below and is deliberately NOT in
 # this function, because this one is consumed through `< <(...)`. A `die` inside
@@ -51,9 +52,9 @@ _CLEAN_NEVER_INDEX=".metadata_never_index"
 _clean_path_elements() {
   local -a split=()
   local e
-  IFS=: read -r -a split <<<"$PATH"
+  colon_split "$PATH" split
   for e in "${split[@]}"; do
-    [ -n "$e" ] && printf '%s\n' "$e"
+    [ -n "$e" ] && printf '%s\0' "$e"
   done
   return 0
 }
@@ -76,15 +77,20 @@ _clean_path_elements() {
 # this project has produced three times. So it is written against the GENERAL
 # failure: the scan yields nothing for any reason whatever.
 #
-# Two independent instruments, compared. `tr` counts separators; the array split
-# counts fields. They can only agree by both being right.
+# Two independent instruments, compared. One counts the separators and adds
+# one, as a shell reads a list (an empty entry and a trailing one are entries);
+# colon_split counts fields. They can only agree by both being right, on any
+# PATH, one holding a newline included (issue 0248): the line count this took
+# from `tr` disagreed with a correct split there, and refused a PATH a shell
+# reads.
 _clean_validate_path() {
   local -a split=()
-  local n_split n_count e found=0
+  local n_split n_count e seps found=0
 
-  IFS=: read -r -a split <<<"$PATH"
+  colon_split "$PATH" split
   n_split="${#split[@]}"
-  n_count="$(printf '%s' "$PATH" | tr ':' '\n' | grep -c '' || true)"
+  seps="${PATH//[!:]/}"
+  n_count="$((${#seps} + 1))"
 
   [ "$n_split" = "$n_count" ] ||
     die "PATH scan is unreliable: field split says $n_split element(s), separator count says $n_count.
@@ -153,7 +159,7 @@ _clean_live_binaries() {
 
   # (a) A PATH ENTRY THAT IS ITSELF INSIDE THE TREE. Few elements, so the
   # straightforward test is affordable here.
-  while IFS= read -r p; do
+  while IFS= read -r -d '' p; do
     [ -n "$p" ] || continue
     [ -d "$p" ] || continue
     real_path "$p" pr

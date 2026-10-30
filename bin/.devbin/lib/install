@@ -74,7 +74,7 @@ manifest_source_token() {
     warn "cannot tell what kind of tree $1 is, since its manifest cannot be read (above)"
     return 1
   fi
-  if [ "$(manifest_field "$1" kind 2>/dev/null || true)" = install ]; then
+  if is_install_tree "$1"; then
     printf 'install\n'
   elif is_devbin_dev_tree "$1"; then
     printf 'checkout\n'
@@ -107,7 +107,9 @@ source_token_note() {
       warn "$src is not the tree $(machine_install_namer) names, so this project's next upgrade reads ${m#at } -- vendor from that tree, or pass --from to each later upgrade"
       ;;
     "bad "*) warn "${m#bad }, so this project's next upgrade will ask for --from until the switch names a devbin" ;;
-    *) warn "this machine names no devbin install ($(brew_unplaced_why)), so this project's next upgrade will ask for --from until one is named: install devbin with Homebrew, or run devbin use dev or opt in the devbin checkout" ;;
+    # The remedy for the cause, from one place (brew_unplaced_fix, issue
+    # 0250), with dev or opt only when the devbin vendoring is the maintainer's.
+    *) warn "this machine names no devbin install ($(brew_unplaced_why)), so this project's next upgrade will ask for --from until one is named: $(brew_unplaced_fix "${PROJECT_ROOT:-}")" ;;
   esac
   return 0
 }
@@ -997,7 +999,7 @@ SCOPE
 # impossible anyway, since the commit is not reachable from a tree with no .git.
 source_commit_of() {
   local root="$1" sha state forwarded
-  if [ "$(manifest_field "$root" kind 2>/dev/null || true)" = install ]; then
+  if is_install_tree "$root"; then
     forwarded="$(manifest_field "$root" source_commit 2>/dev/null || true)"
     if [ -n "$forwarded" ]; then
       printf '%s\n' "$forwarded"

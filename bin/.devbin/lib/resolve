@@ -96,7 +96,7 @@ devbin_tree_refusal() {
   [ "$1" = use ] || return 1
   project_owns_command "$1" && return 1
   case "$(devbin_tree "$PROJECT_ROOT")" in dev | opt | brew) return 1 ;; esac
-  [ "$(manifest_field "$PROJECT_ROOT" kind 2>/dev/null || true)" = install ] && return 1
+  is_install_tree "$PROJECT_ROOT" && return 1
   printf "devbin use chooses which devbin this machine runs, so a project's bin/devbin does not offer it: run devbin use (the devbin on PATH)\n"
 }
 

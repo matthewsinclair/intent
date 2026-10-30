@@ -33,6 +33,10 @@ set -euo pipefail
 CHECKS=0
 FAILURES=0
 NOTES=0
+# The version line doctor prints first, in devbin's own dev tree only, and
+# empty anywhere else: read once, so the row check_tree prints is about the
+# line that was printed.
+TREE_LINE=""
 
 # Three outcomes, not two. A FAILURE is something broken; a NOTE is something
 # true and worth saying that is not an error -- `build` offered with nothing
@@ -257,6 +261,32 @@ check_languages() {
     return 0
   fi
   _pass "languages: devbin arms its language-scoped built-ins for $langs (project.languages)"
+  return 0
+}
+
+# check_version -- the project's version reads (issue 0259). `version show` and
+# `version check` refuse while it does not, so a project with none hears it here
+# first, with what to do. A NOTE, not a failure: no version file is where every
+# fresh install starts, and a project may have no use for one. The reason and
+# the remedy are version_unread's, the words `version show` refuses with.
+#
+# IT RE-READS THE CONFIG, as check_languages does, and takes the file from what
+# it loaded (cfg_version_from), never from the environment: a config that does
+# not load has no project.version_from anyone read, so nothing may be said of
+# the version it names.
+check_version() {
+  local file why
+  if ! cfg_load "$DEVBIN_DIR/config.yaml" >/dev/null 2>&1; then
+    _note "version: not checked -- the config did not load (see config above)"
+    return 0
+  fi
+  file="$(cfg_version_from)"
+  if why="$(version_unread why "$file")"; then
+    _note "version: $why -- version show and version check refuse until one reads"
+    _detail "$(version_unread fix "$file")"
+    return 0
+  fi
+  _pass "version: $(read_version "$file" version-file), from $file (project.version_from)"
   return 0
 }
 
@@ -899,27 +929,32 @@ check_source_currency() {
   # from, and a project read against the wrong one reads level or behind
   # against it all the same. The tree is named by its own line, so which of
   # dev, opt and brew the switch chose is on the row.
+  #
+  # THE LINE ALONE, AS THAT TREE'S --version PRINTS IT (T4; issue
+  # 0246): on a line of its own, with nothing added, so a reader compares it
+  # byte for byte. What chose the install, a path among its answers, is the
+  # detail row beneath it.
   if [ -n "$(manifest_field "$PROJECT_ROOT" source 2>/dev/null || true)" ] &&
     root="$(machine_install_root 2>/dev/null)"; then
     by="$(machine_install_by)"
     [ "$(machine_install_chooser)" != brew ] || by="$by, since no DEVBIN_INSTALL_PREFIX or link names one"
-    _detail "install: $(devbin_tree_line "$root"), named by $by"
+    devbin_tree_line "$root"
+    _detail "install: the line above, named by $by"
   fi
   return 0
 }
 
-# check_tree -- in devbin's own dev tree, the tree line (T4 of
-# docs/dev-opt-brew.md), which doctor prints as `--version` does. It fails when
+# check_tree -- in devbin's own dev tree, whether the tree line (T4 of
+# docs/dev-opt-brew.md) that doctor printed first names a commit. It fails when
 # git cannot read the checkout, since the line then carries `unknown` for the
-# commit and names no bytes. A project is not one of devbin's trees: its own
-# install is named under source.
+# commit and names no bytes. The row never repeats the line (T4,
+# issue 0246): the line stands alone, as `--version` prints it. A project is not
+# one of devbin's trees: its own install is named under source.
 check_tree() {
-  local line
-  [ "$(devbin_tree "$PROJECT_ROOT")" = dev ] || return 0
-  line="$(devbin_tree_line "$PROJECT_ROOT")"
-  case "$(tree_line_head "$line")" in
-    *"(dev, unknown)") _fail "tree: $line -- git cannot read this checkout, so the line names no commit" ;;
-    *) _pass "tree: $line" ;;
+  [ -n "$TREE_LINE" ] || return 0
+  case "$(tree_line_head "$TREE_LINE")" in
+    *"(dev, unknown)") _fail "tree: git cannot read this checkout, so the version line above names no commit" ;;
+    *) _pass "tree: the version line above names this checkout's commit" ;;
   esac
   return 0
 }
@@ -927,12 +962,13 @@ check_tree() {
 # check_switch -- the machine's switch among dev, opt and brew is sound
 # (docs/dev-opt-brew.md, T3 to T5; issue 0213).
 #
-# FAILS when the link is shadowed on PATH (devbin_link_shadow), when the link
-# cannot be followed to a devbin tree, and when the opt install the switch chose
-# is in the manifest form written before the contract, naming each remedy; a
-# keg in that form is a NOTE (below). A machine pointer still on disk is a NOTE:
-# nothing reads it, so it is named as retired with the step that replaces it,
-# and removed by hand.
+# FAILS when the link is shadowed on PATH (devbin_link_shadow), and with no
+# link when the first devbin on PATH is not Homebrew's keg (issue 0273), when
+# the link cannot be followed to a devbin tree, and when the opt install the
+# switch chose is in the manifest form written before the contract, naming each
+# remedy; a keg in that form is a NOTE (below). A machine pointer still on disk
+# is a NOTE: nothing reads it, so it is named as retired with the step that
+# replaces it, and removed by hand.
 check_switch() {
   local why state root p failed=""
   why="$(devbin_link_shadow)"
@@ -961,12 +997,29 @@ check_switch() {
   fi
   if p="$(devbin_home_pointer 2>/dev/null)" && { [ -e "$p" ] || [ -L "$p" ]; }; then
     _note "switch: $p is the retired machine pointer, and nothing reads it"
-    _detail "the link devbin use writes is the record now: run devbin use opt or devbin use brew, then remove $p"
+    # use brew alone to every reader, dev or opt only from a dev or opt tree
+    # (issue 0250).
+    _detail "the link devbin use writes is the record now: run devbin use brew$(devbin_checkout_clause "$PROJECT_ROOT"), then remove $p"
   fi
   [ -z "$failed" ] || return 0
+  # NO LINK IS BREW ONLY WHERE HOMEBREW HAS A DEVBIN (issue 0250). With none,
+  # the row said "no link, so brew" while the source row in the same run said
+  # this machine names no install, so it notes what is missing, why in
+  # brew_unplaced_why's words, and the remedy for that cause. While
+  # DEVBIN_INSTALL_PREFIX is set it names the install instead (T9): nothing is
+  # missing, so no Homebrew remedy is given.
   case "${state%% *}" in
     at) _pass "switch: the link names ${state#at }" ;;
-    *) _pass "switch: no link, so brew" ;;
+    *)
+      if devbin_brew_root >/dev/null; then
+        _pass "switch: no link, so brew"
+      elif [ "$(machine_install_chooser)" = prefix ]; then
+        _note "switch: no link, and $(brew_none_why); DEVBIN_INSTALL_PREFIX names $(home_expand "$DEVBIN_INSTALL_PREFIX") as this machine's install"
+      else
+        _note "switch: no link, and $(brew_none_why)"
+        _detail "$(brew_unplaced_fix "$PROJECT_ROOT")"
+      fi
+      ;;
   esac
   _switch_left_off_brew "$state"
   return 0
@@ -1013,10 +1066,10 @@ _switch_left_off_brew() {
 # names WHICH bash, and it is the check that goes red if the dispatcher guard
 # is ever removed while this one survives it.
 check_bash() {
-  if [ "${BASH_VERSINFO[0]:-0}" -ge 5 ]; then
-    _pass "bash: ${BASH_VERSION:-unknown} at ${BASH:-unknown} (floor >= 5)"
+  if bash_meets_floor "${BASH_VERSINFO[0]:-0}"; then
+    _pass "bash: ${BASH_VERSION:-unknown} at ${BASH:-unknown} (floor >= $_DEVBIN_BASH_FLOOR)"
   else
-    _fail "bash: ${BASH_VERSION:-unknown} is below the >= 5 floor -- brew install bash, or apt-get install bash"
+    _fail "bash: ${BASH_VERSION:-unknown} is below the >= $_DEVBIN_BASH_FLOOR floor -- brew install bash, or apt-get install bash"
   fi
   return 0
 }
@@ -1153,6 +1206,13 @@ main() {
   is_wsl && wsl=1
 
   init_colors auto
+  # THE VERSION LINE FIRST, IN devbin'S OWN DEV TREE (T4; issue
+  # 0246): byte for byte as `--version` prints it there, on a line of its own,
+  # as every tool under the contract prints it. check_tree reads it below.
+  if [ "$(devbin_tree "$PROJECT_ROOT")" = dev ]; then
+    TREE_LINE="$(devbin_tree_line "$PROJECT_ROOT")"
+    printf '%s\n' "$TREE_LINE"
+  fi
   printf 'devbin doctor -- %s\n\n' "$PROJECT_ROOT"
 
   if [ -n "$only" ]; then
@@ -1166,6 +1226,7 @@ main() {
   check_runtime
   check_config
   check_languages
+  check_version
   check_release
   check_log_keys
   check_devbin_version

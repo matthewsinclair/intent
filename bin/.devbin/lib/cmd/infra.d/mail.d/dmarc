@@ -367,8 +367,8 @@ REPORT_JQ='
 # ALWAYS AT LEAST ONE SPACE. The old form returned the value UNCHANGED once
 # it reached the column width, so an over-long field butted straight against
 # the next one. Seen on real output: an IPv6 source address is 22 characters
-# in an 18-wide column, and `2a00:1450:4864:20::431` followed by `1 msg`
-# rendered as `2a00:1450:4864:20::4311 msg` -- where `::4311` reads as a
+# in an 18-wide column, and `2001:db8:1234:567::890` followed by `1 msg`
+# rendered as `2001:db8:1234:567::8901 msg` -- where `::8901` reads as a
 # perfectly plausible address. A report that can silently join two fields
 # into one wrong-looking value is worse than one that misaligns.
 def pad($n): . + (" " * ([$n - length, 1] | max));

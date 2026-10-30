@@ -48,4 +48,4 @@ A new option is offered whatever the languages, and is sealed only if it declare
 
 ## What is active here
 
-Below this page, `bin/devbin help test` prints an "In this project:" block: where the command and each active option resolve from, then the options not offered here and why. `bin/devbin help --why` shows the same for every command. Asking for an option that is not offered here is refused with that reason.
+Where `test` is offered here, `bin/devbin help test` prints an "In this project:" block below this page: where the command and each active option resolve from, then the options not offered here and why. `bin/devbin help --why` shows the same for every command. Asking for an option that is not offered here is refused with that reason.

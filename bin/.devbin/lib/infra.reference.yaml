@@ -10,7 +10,7 @@
 #   --profile <path>
 #   $DEVBIN_INFRA_PROFILE
 #   <project root>/infra.yaml
-#   ~/.config/devbin/infra.yaml
+#   $XDG_CONFIG_HOME/devbin/infra.yaml (default ~/.config/devbin/infra.yaml)
 #
 # A MISS IS A HARD FAILURE NAMING EVERY PATH TRIED. Never a default, never an
 # empty estate, never a silent skip: an infra command that finds no profile and

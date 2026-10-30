@@ -92,4 +92,4 @@ A handler at `bin/.devbin/cmd/clean` replaces the whole command, `all` included,
 
 ## What is active here
 
-Below this page, `bin/devbin help clean` prints an "In this project:" block: where the command and each active option resolve from, then the options not offered here and why.
+Where `clean` is offered here, `bin/devbin help clean` prints an "In this project:" block below this page: where the command and each active option resolve from, then the options not offered here and why.

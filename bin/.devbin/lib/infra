@@ -35,13 +35,24 @@
 [ -n "${_DEVBIN_INFRA_LOADED:-}" ] && return 0
 _DEVBIN_INFRA_LOADED=1
 
+# infra_machine_profile -- the machine-wide profile, devbin/infra.yaml under
+# the XDG config directory (xdg_dir: XDG_CONFIG_HOME when it is absolute, else
+# ~/.config), the one statement of where it is (issue 0272). rc 1, printing
+# nothing, when there is no XDG config directory: neither XDG_CONFIG_HOME nor
+# HOME is absolute.
+infra_machine_profile() {
+  local d
+  d="$(xdg_dir config)" || return 1
+  printf '%s/devbin/infra.yaml\n' "${d%/}"
+}
+
 # infra_profile_paths -- the search order, one per line, most specific first.
 # Printed rather than returned so a failure can name EVERY path it tried: an
 # error naming only the last place looked sends the reader to the wrong file.
 infra_profile_paths() {
   printf '%s\n' "\$DEVBIN_INFRA_PROFILE${DEVBIN_INFRA_PROFILE:+ ($DEVBIN_INFRA_PROFILE)}"
   printf '%s\n' "${PROJECT_ROOT:-.}/infra.yaml"
-  printf '%s\n' "$HOME/.config/devbin/infra.yaml"
+  infra_machine_profile || printf '%s\n' "\$XDG_CONFIG_HOME/devbin/infra.yaml (not looked for: neither XDG_CONFIG_HOME nor HOME is an absolute path)"
 }
 
 # infra_resolve_profile [<explicit>] -- echo the profile path, or die naming
@@ -54,7 +65,7 @@ infra_profile_paths() {
 # so a typo in the variable checked a DIFFERENT profile and nothing said so,
 # while the same intent spelled as --profile was refused by name.
 infra_resolve_profile() {
-  local explicit="${1:-}" p
+  local explicit="${1:-}" p machine=""
   if [ -n "$explicit" ]; then
     [ -f "$explicit" ] || die "infra: no profile at $explicit (named with --profile)"
     printf '%s\n' "$explicit"
@@ -65,7 +76,8 @@ infra_resolve_profile() {
     printf '%s\n' "$DEVBIN_INFRA_PROFILE"
     return 0
   fi
-  for p in "${PROJECT_ROOT:-.}/infra.yaml" "$HOME/.config/devbin/infra.yaml"; do
+  machine="$(infra_machine_profile)" || machine=""
+  for p in "${PROJECT_ROOT:-.}/infra.yaml" ${machine:+"$machine"}; do
     [ -f "$p" ] && { printf '%s\n' "$p"; return 0; }
   done
   {

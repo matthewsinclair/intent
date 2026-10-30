@@ -86,6 +86,7 @@ fullcycle        rust    -           -          Build     @builtin | From a tota
 dormancy         rust    -           -          Test      @builtin | How many tests this project does NOT run: the delta against --all-features
 fmt              any     -           -          Build     - | Format sources in place
 clean            any     -           -          Build     - | Remove build artefacts this project can regenerate
+worktrees        any     -           -          Build     @builtin | Report linked worktrees, landed, held or unknown, and remove the landed ones
 test             any     -           -          Test      - | Run this project's test gates
 check            any     -           -          Check     - | Read-only gates; each exits non-zero on a breach
 precommit        opt-in  -           -          Check     - | The pre-commit gate
@@ -303,8 +304,8 @@ builtin_option_run() {
 # `md` deliberately has NO check form. `fmt md` mutates root Markdown, but a
 # GATE over it would assert a verdict this project does not hold: prettier
 # re-pads tables and this repository hand-aligns them, so `prettier --check`
-# fails on devbin's own README.md and usage-rules.md. A gate that goes red on
-# files the project keeps that way on purpose is wrong by construction.
+# fails on devbin's own README.md. A gate that goes red on files the
+# project keeps that way on purpose is wrong by construction.
 builtin_fmt_check_run() {
   local applied
   case "$1" in

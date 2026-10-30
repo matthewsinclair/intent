@@ -11,6 +11,9 @@
 #   release check                                                   the declaration, the writers, the notes views
 #   release attach <vX.Y.Z>                                         CI-built assets onto the release object
 #   release attach <vX.Y.Z> --from <dir>                            the files in <dir> onto it (issue 0226)
+#   release snapshot <vX.Y.Z> <new-dir> [--no-parent]               the tag's public snapshot, made in <new-dir> (issue 0239)
+#   release snapshot --commit <rev> <new-dir> [--no-parent]         the same of any commit, for an audit ahead of a cut
+#   release publish <vX.Y.Z> [--expect <sha>] [--dry-run] [--yes]   the tag's snapshot made public through CI (issue 0240)
 #   release                                                         usage, exit 1
 #
 # EVERY ARGUMENT IS PARSED BEFORE ANYTHING ACTS, and `-h` or `--help` in any
@@ -51,13 +54,15 @@ set -euo pipefail
 
 # usage -- the forms of the verbs this project offers, and only those.
 usage() {
-  local me="${DEVBIN_INVOKE:-bin/devbin} release" lead="usage:" v
+  local me="${DEVBIN_INVOKE:-bin/devbin} release" lead="usage:" v docs
   while IFS= read -r v; do
     if [ -z "$v" ] || ! offered "$v"; then continue; fi
     case "$v" in
       cut) printf '%s %s <--patch|--minor|--major|vX.Y.Z> [--dry-run] [--yes]\n' "$lead" "$me" ;;
       status) printf '%s %s %s <vX.Y.Z>\n' "$lead" "$me" "$v" ;;
       attach) printf '%s %s %s <vX.Y.Z> [--from <dir>]\n' "$lead" "$me" "$v" ;;
+      snapshot) printf '%s %s %s <vX.Y.Z | --commit <rev>> <new-dir> [--no-parent]\n' "$lead" "$me" "$v" ;;
+      publish) printf '%s %s %s <vX.Y.Z> [--expect <sha>] [--dry-run] [--yes]\n' "$lead" "$me" "$v" ;;
       *) printf '%s %s %s\n' "$lead" "$me" "$v" ;;
     esac
     lead="      "
@@ -75,11 +80,29 @@ usage() {
     printf '  its release object, with one SHA256SUMS over every asset. --from <dir>\n'
     printf '  attaches the files in <dir> instead, as the built-in macos attaches its app.\n'
   fi
+  if offered snapshot; then
+    printf '  snapshot: one commit holding the tag'"'"'s tracked files over\n'
+    printf '  release.snapshot.list, made in <new-dir>, which must not exist yet: on the\n'
+    printf '  tip of the publish branch at release.publish.url, or with no parent under\n'
+    printf '  --no-parent or when there is no tip. --commit <rev> snapshots any commit.\n'
+  fi
+  if offered publish; then
+    printf '  publish: under release.publish.url a cut stops after its push, and this\n'
+    printf '  makes the tag'"'"'s snapshot public: pushed to its candidate branch, then,\n'
+    printf '  once ci.query reads green on it, the publish branch and the tag. Nothing\n'
+    printf '  is forced. --expect refuses a snapshot of any other sha.\n'
+  fi
   if cfg_release_declared verbs; then
     printf '  This project'"'"'s release.verbs offers %s.\n' "${OFFERED//$'\n'/, }"
   fi
+  # THE GUIDE BY ITS PLACE IN THIS MACHINE'S INSTALL (issue 0254): a bare
+  # docs/configuration.md named a file in a checkout a brew user has not got.
   printf '  Declared in the release: block of bin/.devbin/config.yaml; see\n'
-  printf '  docs/configuration.md.\n'
+  if docs="$(devbin_docs_place "$PROJECT_ROOT")"; then
+    printf '  %s/configuration.md.\n' "$docs"
+  else
+    printf "  configuration.md among devbin's guides, which are not here: %s.\n" "$docs"
+  fi
 }
 
 # refuse <message> -- a usage refusal: usage on stderr, the reason, exit 1.
@@ -126,6 +149,11 @@ version=""
 dry_run=0
 assume_yes=0
 from=""
+snap_commit=""
+snap_dir=""
+no_parent=0
+snap_words=()
+expect=""
 
 # Every verb but the cut has a word, read from the one list (cfg_release_verbs).
 if [ "$1" != cut ] && grep -qxF -- "$1" <<<"$ALL_VERBS"; then
@@ -164,21 +192,44 @@ while [ $# -gt 0 ]; do
       target="$1"
       ;;
     --dry-run)
-      [ "$verb" = cut ] || refuse "--dry-run applies to a cut, not to release $verb"
+      [ "$verb" = cut ] || [ "$verb" = publish ] || refuse "--dry-run applies to a cut, not to release $verb: a cut and release publish take it"
       dry_run=1
       ;;
     --yes)
-      [ "$verb" = cut ] || refuse "--yes applies to a cut, not to release $verb"
+      [ "$verb" = cut ] || [ "$verb" = publish ] || refuse "--yes applies to a cut, not to release $verb: a cut and release publish take it"
       assume_yes=1
+      ;;
+    --expect)
+      # THE SHA WHOLE, as release snapshot prints it: a person approves one
+      # commit, and a prefix would let another that shares it through.
+      [ "$verb" = publish ] || refuse "--expect applies to release publish, not to release $verb"
+      [ -z "$expect" ] || refuse "--expect once only, got $expect and ${2:-nothing}"
+      [ $# -ge 2 ] && [[ "${2,,}" =~ ^[0-9a-f]{40}([0-9a-f]{24})?$ ]] ||
+        refuse "--expect takes the snapshot's whole sha, as release snapshot prints it, not ${2:-nothing}"
+      expect="${2,,}"
+      shift
       ;;
     --from)
       [ "$verb" = attach ] || refuse "--from applies to release attach, not to release $verb"
       [ -z "$from" ] || refuse "--from once only, got $from and ${2:-nothing}"
       [ $# -ge 2 ] && [ -n "$2" ] || refuse "--from needs a directory"
-      # Read from the project root, where the command runs (it entered it above).
+      # Read from the project root, where the command runs (it entered it
+      # above), by physical_dir: a bare cd found a relative name through
+      # CDPATH, and its printed line went into the path (issue 0267).
       [ -d "$2" ] || refuse "--from $2 is not a directory (a relative one is read from the project root)"
-      from="$(cd -- "$2" && pwd -P)" || refuse "--from $2 could not be entered"
+      physical_dir "$2" from || refuse "--from $2 could not be entered"
       shift
+      ;;
+    --commit)
+      [ "$verb" = snapshot ] || refuse "--commit applies to release snapshot, not to release $verb"
+      [ -z "$snap_commit" ] || refuse "--commit once only, got $snap_commit and ${2:-nothing}"
+      [ $# -ge 2 ] && [ -n "$2" ] || refuse "--commit needs a commit"
+      snap_commit="$2"
+      shift
+      ;;
+    --no-parent)
+      [ "$verb" = snapshot ] || refuse "--no-parent applies to release snapshot, not to release $verb"
+      no_parent=1
       ;;
     -*)
       refuse "unknown argument: $1"
@@ -190,11 +241,14 @@ while [ $# -gt 0 ]; do
           is_semver "${1#v}" || refuse "not a version: $1 (want vX.Y.Z or X.Y.Z)"
           target="v${1#v}"
           ;;
-        status | attach)
+        status | attach | publish)
           [ -z "$version" ] || refuse "release $verb takes one version, got $version and $1"
           is_semver "${1#v}" || refuse "not a version: $1 (want vX.Y.Z or X.Y.Z)"
           version="${1#v}"
           ;;
+        # Its words are read once all are in: with --commit the one word is
+        # the directory, without it the version and then the directory.
+        snapshot) snap_words+=("$1") ;;
         *)
           refuse "release $verb takes no argument, got: $1"
           ;;
@@ -206,7 +260,18 @@ done
 
 case "$verb" in
   cut) [ -n "$target" ] || refuse "a cut needs a target: --patch, --minor, --major or vX.Y.Z" ;;
-  status | attach) [ -n "$version" ] || refuse "release $verb needs a version" ;;
+  status | attach | publish) [ -n "$version" ] || refuse "release $verb needs a version" ;;
+  snapshot)
+    if [ -n "$snap_commit" ]; then
+      [ "${#snap_words[@]}" -eq 1 ] || refuse "release snapshot --commit <rev> takes the new directory alone"
+      snap_dir="${snap_words[0]}"
+    else
+      [ "${#snap_words[@]}" -eq 2 ] || refuse "release snapshot takes a version and a new directory, or --commit <rev> and a new directory"
+      is_semver "${snap_words[0]#v}" || refuse "not a version: ${snap_words[0]} (want vX.Y.Z or X.Y.Z)"
+      version="${snap_words[0]#v}"
+      snap_dir="${snap_words[1]}"
+    fi
+    ;;
 esac
 
 # --- act ------------------------------------------------------------------
@@ -625,6 +690,10 @@ cut_run() {
   gates="$(cfg_release_list gates)"
   # Read with its status: empty would turn the attach off in silence.
   assets_wf="$(cfg_release_get assets.workflow)" || die "release: cannot read release.assets.workflow"
+  # A PUBLISHING CUT (issue 0240) stops after its push: the public repository
+  # takes the snapshot, through release publish, and never the workroom.
+  local publish_url named rc
+  publish_url="$(cfg_release_get publish.url)" || die "release: cannot read release.publish.url"
   # ONE READ OF THE CLOCK, so the release carries one date (notes_date's rule).
   # The person's local date: the day they released on.
   today="$(date +%F)"
@@ -694,6 +763,26 @@ cut_run() {
       refusals+=("remote $(release_url_shown "$remote") is declared and does not exist")
       continue
     fi
+    # A PUBLISHING CUT NEVER PUSHES TO THE PUBLIC REPOSITORY (issue 0240): a
+    # cut pushes the workroom, its whole history, so a remote it pushes to that
+    # names the repository release.publish.url names, by OWNER/NAME on any host
+    # or as the same path, is refused, as the snapshot and the publish flow
+    # refuse one, and so is one whose url says too little to tell.
+    if [ -n "$publish_url" ]; then
+      rc=0
+      named="$(release_remote_naming "$publish_url" "$remote" 3<&-)" || rc=$?
+      case "$rc" in
+        0)
+          refusals+=("remote $remote names ${named#*$'\t'}, the repository release.publish.url names, and a cut pushes this workroom, its whole history, to every remote it pushes to -- the public repository takes the snapshot alone, through release publish: leave $remote out of release.remotes")
+          continue
+          ;;
+        1) ;;
+        *)
+          refusals+=("whether remote $remote names the repository release.publish.url names cannot be told: $named -- a cut never pushes the workroom where that is not known")
+          continue
+          ;;
+      esac
+    fi
     answer="$(release_read_remote "$remote" "$branch" "$tag" "$commit" "$mode" 3<&-)"
     case "${answer%%$'\t'*}" in
       already | pending) ;;
@@ -721,6 +810,17 @@ cut_run() {
     fi
     if ! out="$(notes_check "$PROJECT_ROOT" "$v" "$today" 2>&1)"; then
       refusals+=("$(one_line "$out")")
+    fi
+    # THE VERSION FILE MUST READ BEFORE A CUT STAMPS IT (issue 0259). The stamp
+    # step runs `version set`, which starts a missing VERSION: inside a cut that
+    # is a side effect, a release commit holding a version file the project
+    # never kept, while the file that does hold its version, a mix.exs that
+    # project.version_from was never pointed at, say, stays stale. So a version
+    # that does not read is refused here, in version_unread's words, before
+    # anything is written.
+    local unread
+    if unread="$(version_unread why)"; then
+      refusals+=("the version cannot be read: $unread -- $(version_unread fix)")
     fi
     # THE RUN LOGS MUST BE IGNORED. A cut runs behind its own gate, and its gates
     # are devbin verbs behind theirs, so every one writes a log under
@@ -991,105 +1091,24 @@ cut_run() {
     esac
   done 3<<<"$remotes"
   title="$(object_title "$tag" "$v")"
-  # THE OBJECT IS READ HERE, whole: whether it exists, and when it does, whether
-  # it carries this release's title and notes. A difference is work left, so it
-  # is named in the question and only a confirmed run changes it; no run reports
-  # `already` over an object that differs.
   local body_file="$SCRATCH/notes-body"
-  if [ "$object" = local ]; then
-    repo="$(release_repo "$declared_repo" "$drem" 2>&1)" || cut_fail confirm "$(one_line "$repo")"
-    answer="$(release_read_object local "$tag" "$declared_repo" "$drem")"
-    case "${answer%%$'\t'*}" in
-      already)
-        cut_notes_body "$commit" "$v" "$body_file" 6
-        answer="$(release_read_object_content "$repo" "$tag" "$title" "$body_file")"
-        case "${answer%%$'\t'*}" in
-          already) object_detail="${answer#*$'\t'}" ;;
-          pending)
-            object_work=edit
-            object_detail="${answer#*$'\t'}"
-            left+=("set the release object's title and notes: $object_detail")
-            ;;
-          *) cut_fail confirm "${answer#*$'\t'}" ;;
-        esac
-        ;;
-      pending)
-        object_work=create
-        left+=("make the release object \"$title\"")
-        ;;
-      *) cut_fail confirm "${answer#*$'\t'}" ;;
-    esac
-    # THE ASSETS (ST0008 WP-08) are work left unless the object is this
-    # release's and its SHA256SUMS agrees with it, read through the reader
-    # status reads the object row with (release_read_assets), so status and a cut cannot
-    # disagree, and bounded, as a resume past the push step reads a public release.
-    # An object still to be made or set has none attached yet.
-    if [ -n "$assets_wf" ]; then
-      if [ -n "$object_work" ]; then
-        attach_work=yes
-        left+=("attach the assets $assets_wf's run at $tag built, and SHA256SUMS")
-      else
-        answer="$(release_wait 0 "" UNREADABLE release_read_assets "$repo" "$tag")"
-        case "${answer%%$'\t'*}" in
-          already) assets_detail="${answer#*$'\t'}" ;;
-          pending)
-            attach_work=yes
-            left+=("attach the assets $assets_wf's run at $tag built, and SHA256SUMS: ${answer#*$'\t'}")
-            ;;
-          *) cut_fail confirm "${answer#*$'\t'}" ;;
-        esac
-      fi
-    fi
+  # A PUBLISHING CUT'S RELEASE OBJECT IS release publish's (issue 0240), made on
+  # the public repository once the snapshot is there, so it is no work of this
+  # cut's, and the cut does not ask about it.
+  if [ "$object" = local ] && [ -z "$publish_url" ]; then
+    cut_object_left
   fi
   [ "$how" = resume ] || left=("tag $tag at $rel_at" "${left[@]}")
 
-  # THE WORK LEFT, JOINED ONCE, and the --yes row's words built once (0181), so
-  # every row and the question name one list, and a dry run given --yes says
-  # what the cut's own row says.
-  local work="" yes_detail
-  [ "${#left[@]}" -eq 0 ] || work="$(printf '%s; ' "${left[@]}" | sed 's/; $//')"
-  yes_detail="--yes given: $work"
-
-  # ask_next -- what a dry run's verdict says the cut does at this step (0181).
-  # prompted -- the tag a person said yes to AT THE PROMPT, and nothing under
-  # --yes: the after step hands it to its commands (issue 0227).
+  # Set by cut_confirm, read by the steps after it.
   local confirmed=no ask_next="" prompted=""
-  if [ "${#left[@]}" -eq 0 ]; then
-    cut_row confirm "not re-run" "no irreversible step has work left"
-    ask_next="the cut has nothing left to ask about"
-  elif [ "$dry_run" = 1 ] && [ "$assume_yes" = 1 ]; then
-    # --YES ANSWERS THE QUESTION, so a dry run given it predicts the confirm step whole
-    # and leaves nothing of it unpredicted.
-    cut_row confirm would "$yes_detail"
-    ask_next="given --yes, the cut does not stop to ask"
-  elif [ "$dry_run" = 1 ]; then
-    cut_row confirm would "ask before: $work"
-    CUT_UNREACHED+=("the confirm step's confirmation: a dry run never asks")
-    ask_next="the cut stops to ask at the confirm step"
-  elif [ "$assume_yes" = 1 ]; then
-    confirmed=yes
-    cut_row confirm "done" "$yes_detail"
-  else
-    printf '\nrelease: %s, release commit %s. Still to do, and seen by other machines once done:\n' "$tag" "${commit:0:12}"
-    printf '  - %s\n' "${left[@]}"
-    local asked=0
-    ask_person "release: go ahead?" || asked=$?
-    case "$asked" in
-      0)
-        confirmed=yes
-        prompted="$tag"
-        cut_row confirm "done" "confirmed: $work"
-        ;;
-      1) cut_fail confirm "declined at the prompt" ;;
-      *) cut_fail confirm "nobody to ask: no terminal, and --yes was not given" ;;
-    esac
-  fi
+  cut_confirm "the cut" "release: $tag, release commit ${commit:0:12}"
 
   # --- tag ----------------------------------------------------------
   # Annotated, at the release commit's SHA and never HEAD, its message the notes
   # body read from the release commit's own tree. A tag found is reused
   # and reported, never rewritten (release_read_tag).
-  cut_notes_body "$commit" "$v" "$body_file" 7
+  cut_notes_body "$commit" "$v" "$body_file" tag
   if [ "$how" = resume ]; then
     answer="$(release_read_tag "$tag" "$SCRATCH/rel" "$v")"
     cut_row tag already "${answer#*$'\t'}"
@@ -1161,6 +1180,168 @@ cut_run() {
     cut_row push "done" "pushed to ${pushed#, }"
   fi
 
+  # --- snapshot, candidate, publish ----------------------------------
+  # release publish's steps (issue 0240). A project that declares
+  # release.publish.url makes its tag's snapshot public through CI once this
+  # cut has pushed, so its cut stops here; one that does not publishes no
+  # snapshot, and its cut goes on as it always has.
+  if [ -n "$publish_url" ]; then
+    cut_publish_stop
+    return 0
+  fi
+  local s
+  for s in snapshot candidate publish; do
+    cut_row "$s" skipped "no publish.url declared"
+  done
+  cut_tail
+}
+
+# cut_object_left -- the confirm step's read of the release object under
+# object: local, for a cut and for release publish (issue 0240) alike. THE
+# OBJECT IS READ HERE, whole: whether it exists, and when it does, whether it
+# carries this release's title and notes. A difference is work left, so it is
+# named in the question and only a confirmed run changes it; no run reports
+# `already` over an object that differs. Reads the caller's tag, v, commit
+# (whose tree the notes body is read from), title, declared_repo, drem,
+# assets_wf and body_file; sets its repo, object_work, object_detail,
+# attach_work and assets_detail, and adds to its left the work it finds. A read
+# that fails fails the confirm step.
+cut_object_left() {
+  local answer
+  repo="$(release_repo "$declared_repo" "$drem" 2>&1)" || cut_fail confirm "$(one_line "$repo")"
+  answer="$(release_read_object local "$tag" "$declared_repo" "$drem")"
+  case "${answer%%$'\t'*}" in
+    already)
+      cut_notes_body "$commit" "$v" "$body_file" confirm
+      answer="$(release_read_object_content "$repo" "$tag" "$title" "$body_file")"
+      case "${answer%%$'\t'*}" in
+        already) object_detail="${answer#*$'\t'}" ;;
+        pending)
+          object_work=edit
+          object_detail="${answer#*$'\t'}"
+          left+=("set the release object's title and notes: $object_detail")
+          ;;
+        *) cut_fail confirm "${answer#*$'\t'}" ;;
+      esac
+      ;;
+    pending)
+      object_work=create
+      left+=("make the release object \"$title\"")
+      ;;
+    *) cut_fail confirm "${answer#*$'\t'}" ;;
+  esac
+  # THE ASSETS (ST0008 WP-08) are work left unless the object is this
+  # release's and its SHA256SUMS agrees with it, read through the reader
+  # status reads the object row with (release_read_assets), so status and a cut cannot
+  # disagree, and bounded, as a resume past the push step reads a public release.
+  # An object still to be made or set has none attached yet.
+  if [ -n "$assets_wf" ]; then
+    if [ -n "$object_work" ]; then
+      attach_work=yes
+      left+=("attach the assets $assets_wf's run at $tag built, and SHA256SUMS")
+    else
+      answer="$(release_wait 0 "" UNREADABLE release_read_assets "$repo" "$tag")"
+      case "${answer%%$'\t'*}" in
+        already) assets_detail="${answer#*$'\t'}" ;;
+        pending)
+          attach_work=yes
+          left+=("attach the assets $assets_wf's run at $tag built, and SHA256SUMS: ${answer#*$'\t'}")
+          ;;
+        *) cut_fail confirm "${answer#*$'\t'}" ;;
+      esac
+    fi
+  fi
+}
+
+# cut_confirm <who> <heading> -- the confirm step's question, for a cut and for
+# release publish (issue 0240) alike. THE WORK LEFT, JOINED ONCE, and the
+# --yes row's words built once (0181), so every row and the question name one
+# list, and a dry run given --yes says what the run's own row says. <who> names
+# the run in a dry run's verdict (`the cut`), and <heading> opens the question
+# at a terminal. Reads the caller's left, tag, dry_run and assume_yes, and sets
+# its confirmed, ask_next and prompted, which it declares:
+#   ask_next  what a dry run's verdict says the run does at this step (0181)
+#   prompted  the tag a person said yes to AT THE PROMPT, and nothing under
+#             --yes: the after step hands it to its commands (issue 0227)
+cut_confirm() {
+  local who="$1" heading="$2" work="" yes_detail asked=0
+  [ "${#left[@]}" -eq 0 ] || work="$(printf '%s; ' "${left[@]}" | sed 's/; $//')"
+  yes_detail="--yes given: $work"
+  if [ "${#left[@]}" -eq 0 ]; then
+    cut_row confirm "not re-run" "no irreversible step has work left"
+    ask_next="$who has nothing left to ask about"
+  elif [ "$dry_run" = 1 ] && [ "$assume_yes" = 1 ]; then
+    # --YES ANSWERS THE QUESTION, so a dry run given it predicts the confirm step whole
+    # and leaves nothing of it unpredicted.
+    cut_row confirm would "$yes_detail"
+    ask_next="given --yes, $who does not stop to ask"
+  elif [ "$dry_run" = 1 ]; then
+    cut_row confirm would "ask before: $work"
+    CUT_UNREACHED+=("the confirm step's confirmation: a dry run never asks")
+    ask_next="$who stops to ask at the confirm step"
+  elif [ "$assume_yes" = 1 ]; then
+    confirmed=yes
+    cut_row confirm "done" "$yes_detail"
+  else
+    printf '\n%s. Still to do, and seen by other machines once done:\n' "$heading"
+    printf '  - %s\n' "${left[@]}"
+    ask_person "release: go ahead?" || asked=$?
+    case "$asked" in
+      0)
+        confirmed=yes
+        prompted="$tag"
+        cut_row confirm "done" "confirmed: $work"
+        ;;
+      1) cut_fail confirm "declined at the prompt" ;;
+      *) cut_fail confirm "nobody to ask: no terminal, and --yes was not given" ;;
+    esac
+  fi
+}
+
+# cut_publish_stop -- a publishing cut's end, past its push (issue 0240). The
+# snapshot, candidate and publish rows are pending on release publish, which
+# runs them, and the object, after and ci rows are not reached: each reads the
+# public repository, which holds nothing of this release until it is made
+# public. Exit 0, since the cut did all a cut does here. Reads the caller's v,
+# tag, dry_run and ask_next.
+cut_publish_stop() {
+  local cmd="${DEVBIN_INVOKE:-bin/devbin} release publish v$v" s
+  for s in snapshot candidate publish; do
+    cut_row "$s" pending "$cmd"
+  done
+  for s in object after ci; do
+    cut_row "$s" "not reached" "the public repository holds nothing of $tag until $cmd makes it public"
+  done
+  cut_summary
+  if [ "$dry_run" = 1 ]; then
+    cut_dry_verdict
+    return 0
+  fi
+  printf '\nrelease: %s is cut, and nothing of it is public yet: %s makes its snapshot public, once CI is green on it.\n' "$tag" "$cmd"
+}
+
+# cut_dry_verdict -- a dry run's last lines, under its table: what it could not
+# reach, then THE VERDICT AS THE LAST LINE (0181). A passing dry run ended on
+# "NOT REACHED" and "not predicted", and was read as a failure; a failing one
+# stops at cut_fail, exit 1, and never gets here. Reads the caller's tag and
+# ask_next.
+cut_dry_verdict() {
+  if [ "${#CUT_UNREACHED[@]}" -gt 0 ]; then
+    printf '\nrelease: NOT REACHED by this dry run, so not predicted:\n'
+    printf '  - %s\n' "${CUT_UNREACHED[@]}"
+  fi
+  printf '\nrelease: dry run of %s -- no step failed; %s\n' "$tag" "$ask_next"
+}
+
+# cut_tail -- the object, after and ci steps, and the run's end, for a cut and
+# for release publish (issue 0240) alike: what reads and writes the release
+# object, runs after:, and reads the CI verdict, against the repository
+# release.repo names, or the one read off the first remote. Run in the
+# caller's shell, it reads the caller's tag, v, commit (the commit the tag
+# names where CI and brew read it), rel_at, branch, object, title, repo,
+# declared_repo, drem, body_file, object_work, object_detail, attach_work,
+# assets_detail, assets_wf, confirmed, prompted, ask_next and dry_run.
+cut_tail() {
   # --- the release object ------------------------------------------
   case "$object" in
     none) cut_row object skipped "object: none" ;;
@@ -1364,14 +1545,7 @@ cut_run() {
 
   cut_summary
   if [ "$dry_run" = 1 ]; then
-    if [ "${#CUT_UNREACHED[@]}" -gt 0 ]; then
-      printf '\nrelease: NOT REACHED by this dry run, so not predicted:\n'
-      printf '  - %s\n' "${CUT_UNREACHED[@]}"
-    fi
-    # THE VERDICT IS THE LAST LINE (0181). A passing dry run ended on "NOT
-    # REACHED" and "not predicted", and was read as a failure; a failing one
-    # stops at cut_fail, exit 1, and never gets here.
-    printf '\nrelease: dry run of %s -- no step failed; %s\n' "$tag" "$ask_next"
+    cut_dry_verdict
     return 0
   fi
   if [ -n "$after_failed$verdict_failed" ]; then
@@ -1934,6 +2108,948 @@ attach_verb() {
   return 1
 }
 
+# --- the snapshot (issue 0239) ------------------------------------------------
+#
+# THE PUBLIC TREE IS ONE COMMIT OF THE PRODUCT (ST0010), made from a workroom
+# commit and the shipped list, never from a checkout. `release snapshot` makes
+# it, for an audit or a publication, and the publish flow (issue 0240) makes
+# the same commit again before it pushes, through snapshot_build, which reads
+# every input the sha depends on, so what was read is what goes public.
+#
+# PLUMBING THROUGHOUT. The commit's tree is read into an index of its own, the
+# list selects from it as git reads a pathspec, exactly the selected blobs are
+# copied into the new repository, and write-tree and commit-tree make the
+# commit there. Nothing is read from a working tree, so every mode and every
+# byte is the commit's, and the new repository holds no workroom object but the
+# shipped blobs. Not `git archive`: it applies export-ignore and export-subst,
+# and it writes files, whose modes and bytes would be read back off disk.
+#
+# DETERMINISTIC. Author and committer are release.snapshot.author, both dates
+# the source commit's committer date in UTC, the message the template filled
+# from the commit's own tree, and the commit is never signed, so the same
+# inputs give the same sha, and a person approves a snapshot by its sha.
+#
+# A PARENT AFTER THE FIRST. Every release publishes a snapshot, and a second
+# parentless commit is never a fast-forward of the first, so a snapshot is made
+# on the tip of the publish branch at release.publish.url when there is one. It
+# has no parent under --no-parent, or when the url is not declared, or when the
+# branch is not there. A tip that is already this commit's snapshot is found,
+# not built on (issue 0240), so a release published reads as the one sha.
+#
+# NEVER ON A HISTORY THAT IS NOT SNAPSHOTS. Until the public repository is
+# made, its url can resolve to the private workroom copy, and building on that
+# main would chain the workroom's whole history under the snapshot. So a
+# publish.url that names the repository one of the project's own remotes
+# names, by OWNER/NAME on any host (release_remote_naming), is refused before
+# anything is fetched: its history is the project's own, and a first snapshot
+# is made with --no-parent. Then the tip is fetched into the run's scratch,
+# never into the new directory, and every commit behind it must be made and
+# committed by snapshot.author, have one parent at most, and hold exactly its
+# own tree filtered by the list its own tree carries, or by the given list when
+# it carries none; only then does that history reach the new repository. The
+# path test is the one that tells a workroom commit from a snapshot when both
+# are made under one identity, for a copy of the history under a name no remote
+# carries, and it does so only where the workroom carries a path outside its
+# list, as devbin's carries intent/. Reading each commit's own list keeps an
+# older snapshot good after a path leaves the list. The walk always ends in a
+# parentless root: git's fetch takes nothing from a shallow history and refuses
+# a missing parent, and every call runs with git's local variables cleared,
+# GIT_SHALLOW_FILE and GIT_GRAFT_FILE among them.
+#
+# ONE SCRATCH, ONE TRAP. What the build reads and writes on the way, the
+# selection's index, the pack, the version file, and the tip with its history,
+# is under the release core's scratch root (open_scratch), outside the project,
+# which its trap removes at exit, an interrupt's included. The new directory is
+# made only once every refusal has been made, and a failure after that removes
+# it. An interrupt can leave it part-made, holding only shipped blobs and the
+# checked public history, for a rerun to refuse as existing. Its checkout is
+# written under the person's own git attributes and filters, as
+# release_materialise's is; the commit is made from the index, never from it.
+
+SNAPSHOT_WHY=""
+SNAPSHOT_DIR=""
+SNAPSHOT_COMMIT=""
+SNAPSHOT_TREE=""
+SNAPSHOT_PARENT=""
+SNAPSHOT_LIST=""
+SNAPSHOT_BRANCH=""
+
+# _snapshot_git [--index <file>] <git-args>... -- git with every one of its
+# repository-local variables cleared, as git lists them (git_local_env_clear),
+# and the pathspec variables, which that list leaves out, so each call acts on
+# the repository its -C names, walks its whole history, and reads a line of the
+# list as git reads a pathspec by default, whatever the caller exported.
+# --index names the index the call reads and writes; with none, a call has its
+# repository's own. No hook runs and no reflog is written, so a build's index
+# and ref writes run none of the person's hooks and record no identity but the
+# snapshot's. A subshell, never `env` or `exec`, so a caller's `git` that is a
+# shell function still answers, as git_remote keeps. snapshot_build primes the
+# list of variables in its own shell first, so git is asked for it once.
+_snapshot_git() {
+  local index=""
+  if [ "${1-}" = --index ]; then
+    index="$2"
+    shift 2
+  fi
+  git_readonly_prime || return 1
+  (
+    git_local_env_clear || exit 1
+    unset GIT_LITERAL_PATHSPECS GIT_GLOB_PATHSPECS GIT_NOGLOB_PATHSPECS GIT_ICASE_PATHSPECS
+    # shellcheck disable=SC2031 # the subshell is the point: the index is this call's alone
+    if [ -n "$index" ]; then export GIT_INDEX_FILE="$index"; fi
+    git -c core.hooksPath=/dev/null -c core.logAllRefUpdates=false "$@"
+  )
+}
+
+# _snapshot_remote <repo> <git-args>... -- a call to a remote, through
+# release_git_remote, made from <repo> with git's local variables cleared as
+# _snapshot_git clears them, so the url is read in that repository's context
+# alone: the ls-remote that finds the tip and the fetch that takes it read one
+# url one way.
+_snapshot_remote() {
+  local repo="$1"
+  shift
+  git_readonly_prime || return 1
+  (
+    git_local_env_clear || exit 1
+    release_git_remote -C "$repo" -c core.hooksPath=/dev/null -c core.logAllRefUpdates=false "$@"
+  )
+}
+
+# snapshot_publish_branch -- the public branch each release's snapshot follows:
+# release.publish.branch, else release.branch. THE ONE READER of it, the
+# snapshot's and the publish flow's (issue 0240), so the branch a snapshot is
+# made on is the branch it is published to.
+snapshot_publish_branch() {
+  if cfg_release_declared publish.branch; then
+    cfg_release_get publish.branch
+  else
+    cfg_release_get branch
+  fi
+}
+
+# _snapshot_commit_tree <repo> <tree> [<parent>] -- the snapshot's commit of
+# <tree> in <repo>, on <parent> when one is given, its sha printed: one
+# identity, one date, one message, and no encoding header a config could add,
+# so the same inputs give the same sha. commit-tree signs only under -S, which
+# is never given, and --no-gpg-sign says so on the line. THE ONE WAY a
+# snapshot's commit is made, the one asked of a publish branch's tip included
+# (issue 0240), from snapshot_build's name, email, date and message, read in
+# its shell.
+_snapshot_commit_tree() {
+  local -a ps=()
+  [ -z "${3:-}" ] || ps=(-p "$3")
+  GIT_AUTHOR_NAME="$name" GIT_AUTHOR_EMAIL="$email" GIT_AUTHOR_DATE="$date +0000" \
+    GIT_COMMITTER_NAME="$name" GIT_COMMITTER_EMAIL="$email" GIT_COMMITTER_DATE="$date +0000" \
+    _snapshot_git -C "$1" -c i18n.commitEncoding=UTF-8 \
+    commit-tree --no-gpg-sign "$2" ${ps[@]+"${ps[@]}"} -m "$message"
+}
+
+# _snapshot_select <repo> <commit> <index> <out> <spec>... -- <commit>'s tree
+# read into <index>, and the entries the specs select written to <out> as
+# `git ls-files -s -z` writes them. rc 1 with SNAPSHOT_WHY, carrying git's
+# first line, when either cannot be done.
+_snapshot_select() {
+  local repo="$1" commit="$2" index="$3" out="$4" err
+  shift 4
+  if ! err="$(_snapshot_git --index "$index" -C "$repo" read-tree "$commit" 2>&1)"; then
+    SNAPSHOT_WHY="git could not read the tree of ${commit:0:12}: ${err%%$'\n'*}"
+    return 1
+  fi
+  if ! err="$(_snapshot_git --index "$index" -C "$repo" ls-files -s -z -- "$@" 2>&1 >"$out")"; then
+    SNAPSHOT_WHY="git could not list what the list selects at ${commit:0:12}: ${err%%$'\n'*}"
+    return 1
+  fi
+}
+
+# _snapshot_norm <file> <ls-files|ls-tree> -- the NUL-ended records in <file>,
+# as `ls-files -s -z` or `ls-tree -r -z` writes them, as `<mode> <sha><TAB><path>`
+# records, so a selection and a tree read back compare byte for byte. Both are
+# in git's one order, a path's bytes, so neither is sorted.
+_snapshot_norm() {
+  local rec meta rest
+  while IFS= read -r -d '' rec; do
+    meta="${rec%%$'\t'*}"
+    case "$2" in
+      ls-files)
+        rest="${meta#* }"
+        printf '%s %s\t%s\0' "${meta%% *}" "${rest%% *}" "${rec#*$'\t'}"
+        ;;
+      *) printf '%s %s\t%s\0' "${meta%% *}" "${meta##* }" "${rec#*$'\t'}" ;;
+    esac
+  done <"$1"
+}
+
+# _snapshot_abort <made> <dir> <why> -- SNAPSHOT_WHY set to <why>, and <dir>
+# removed when this run made it (<made> yes), saying so, so a failure leaves
+# nothing behind that a rerun would refuse. The scratch is the trap's.
+_snapshot_abort() {
+  local shown
+  SNAPSHOT_WHY="$3"
+  [ "$1" = yes ] || return 0
+  if rm -rf -- "$2"; then
+    SNAPSHOT_WHY+="; $2, which this run made, was removed"
+  else
+    printf -v shown '%q' "$2"
+    SNAPSHOT_WHY+="; $2, which this run made, could not be removed: remove it with rm -rf $shown"
+  fi
+}
+
+# _snapshot_history <repo> <tip> <list> <author> <work> <spec>... -- rc 0 when
+# every commit behind <tip> in <repo>, <tip> included, is a snapshot: made and
+# committed by <author>, with one parent at most, and holding exactly its own
+# tree filtered by the list its tree carries at <list> (the given specs when it
+# carries none). rc 1 with SNAPSHOT_WHY naming the first commit that is not,
+# and who made it. Its scratch is under <work>.
+_snapshot_history() {
+  local repo="$1" tip="$2" list="$3" author="$4" work="$5" line c text who byline extra err
+  shift 5
+  local -a given=("$@") walk=() own=()
+  SNAPSHOT_WHY=""
+  if ! err="$(_snapshot_git -C "$repo" rev-list --parents "$tip" 2>&1 >"$work/walk")"; then
+    SNAPSHOT_WHY="git could not walk the history behind the publish branch's tip ${tip:0:12}: ${err%%$'\n'*}"
+    return 1
+  fi
+  while IFS= read -r line; do
+    read -r -a walk <<<"$line"
+    c="${walk[0]}"
+    if ! who="$(_snapshot_git -C "$repo" show -s --no-show-signature --format='%an <%ae>%n%cn <%ce>' "$c" 2>/dev/null)"; then
+      SNAPSHOT_WHY="git could not read who made ${c:0:12}, in the publish branch's history"
+      return 1
+    fi
+    byline="made by ${who%%$'\n'*} and committed by ${who#*$'\n'}"
+    if [ "${#walk[@]}" -gt 2 ]; then
+      SNAPSHOT_WHY="the publish branch's history holds ${c:0:12}, a merge, $byline, and a snapshot has one parent at most, so it is no snapshot"
+      return 1
+    fi
+    if [ "$who" != "$author"$'\n'"$author" ]; then
+      SNAPSHOT_WHY="the publish branch's history holds ${c:0:12}, $byline, not by release.snapshot.author ($author), so it is no snapshot"
+      return 1
+    fi
+    if text="$(_snapshot_git -C "$repo" cat-file blob "$c:$list" 2>/dev/null)"; then
+      mapfile -t own < <(pathlist_specs "$text")
+    else
+      own=("${given[@]}")
+    fi
+    if [ "${#own[@]}" -eq 0 ]; then
+      SNAPSHOT_WHY="the publish branch's history holds ${c:0:12}, $byline, whose list $list names no path, so it is no snapshot"
+      return 1
+    fi
+    _snapshot_select "$repo" "$c" "$work/hist.index" "$work/hist.sel" "${own[@]}" || return 1
+    if ! err="$(_snapshot_git --index "$work/hist.index" -C "$repo" ls-files -s -z 2>&1 >"$work/hist.all")"; then
+      SNAPSHOT_WHY="git could not list the tree of ${c:0:12}, in the publish branch's history: ${err%%$'\n'*}"
+      return 1
+    fi
+    if ! cmp -s "$work/hist.sel" "$work/hist.all"; then
+      # The first path, in byte order, that it carries outside its list, for
+      # the refusal to name.
+      extra=""
+      if tr '\0' '\n' <"$work/hist.all" | cut -f2- | LC_ALL=C sort >"$work/hist.all.txt" &&
+        tr '\0' '\n' <"$work/hist.sel" | cut -f2- | LC_ALL=C sort >"$work/hist.sel.txt" &&
+        LC_ALL=C comm -23 "$work/hist.all.txt" "$work/hist.sel.txt" >"$work/hist.extra.txt"; then
+        IFS= read -r extra <"$work/hist.extra.txt" || extra=""
+      fi
+      SNAPSHOT_WHY="the publish branch's history holds ${c:0:12}, $byline, which carries ${extra:-a path} outside the list its own tree carries, so it is no snapshot"
+      return 1
+    fi
+  done <"$work/walk"
+  return 0
+}
+
+# snapshot_build <commit> <dir> <no-parent> -- the snapshot of <commit>, a
+# workroom commit, made in <dir>, which must not exist yet and must be outside
+# the project, from the release keys the snapshot reads: on the tip of the
+# publish branch at release.publish.url, unless <no-parent> is 1, the url is not
+# declared or there is no such branch there. Every input the sha depends on is
+# read here, so the verb and the publish flow make one commit from one commit.
+# rc 0 with SNAPSHOT_DIR (where it was made, as it resolves), SNAPSHOT_COMMIT,
+# SNAPSHOT_TREE, SNAPSHOT_PARENT (empty for none), SNAPSHOT_LIST and
+# SNAPSHOT_BRANCH set; rc 1 with SNAPSHOT_WHY: a refusal writes nothing, and a
+# failure once <dir> is made removes it. Runs in the caller's shell, never in a
+# `$(...)`, because it opens the run's scratch and its trap (open_scratch).
+snapshot_build() {
+  local commit="$1" dir="$2" no_parent="$3"
+  local list author name email template url branch up root placed x work vfile ver pname message
+  local text spec rec mode rest fmt own rc heads sha ref tip="" got err date made=no
+  local parent="" tparent ttree trial
+  local -a specs=() blobs=()
+  SNAPSHOT_WHY="" SNAPSHOT_DIR="" SNAPSHOT_COMMIT="" SNAPSHOT_TREE="" SNAPSHOT_PARENT=""
+  SNAPSHOT_LIST="" SNAPSHOT_BRANCH=""
+  if ! git_readonly_prime; then
+    SNAPSHOT_WHY="git could not list its local variables, so none could be cleared -- nothing written"
+    return 1
+  fi
+
+  # THE KEYS, every one the sha depends on but the commit's own tree.
+  list="$(cfg_release_get snapshot.list)"
+  if [ -z "$list" ]; then
+    SNAPSHOT_WHY="release.snapshot.list is not declared, so nothing says what ships -- declare it in $DEVBIN_DIR/config.yaml (docs/configuration.md#release); nothing written"
+    return 1
+  fi
+  author="$(cfg_release_get snapshot.author)"
+  if ! cfg_ident "$author" name email; then
+    SNAPSHOT_WHY="release.snapshot.author is $author, not Name <email> as git writes an identity -- nothing written"
+    return 1
+  fi
+  template="$(cfg_release_get snapshot.message)"
+  url="$(cfg_release_get publish.url)"
+  branch="$(snapshot_publish_branch)"
+  if ! _snapshot_git check-ref-format "refs/heads/$branch"; then
+    SNAPSHOT_WHY="$branch is not a name git takes for a branch, so the snapshot has no branch to be made on -- nothing written"
+    return 1
+  fi
+
+  # THE DIRECTORY, refused before anything is made.
+  if [ -e "$dir" ] || [ -L "$dir" ]; then
+    SNAPSHOT_WHY="$dir already exists: a snapshot is made in a new directory, never rebuilt in place -- nothing written"
+    return 1
+  fi
+  up="${dir%/*}"
+  [ -n "$up" ] || up=/
+  if [ ! -d "$up" ]; then
+    SNAPSHOT_WHY="$up does not exist, so $dir cannot be made there -- nothing written"
+    return 1
+  fi
+  # A REPOSITORY INSIDE THE WORKROOM is one `git add -A` away from an embedded
+  # repository in it, so the snapshot is made outside the project. Placed as it
+  # resolves (cargo_place) and asked by identity up its ancestors, as
+  # cargo_tree_outside_why asks, never by comparing text: APFS ignores case, and
+  # a leading // or a `..` after a link spells the project's directory another
+  # way. What is made from here is the placed path.
+  if ! physical_dir "$PROJECT_ROOT" root; then
+    SNAPSHOT_WHY="cannot resolve the project root $PROJECT_ROOT -- nothing written"
+    return 1
+  fi
+  if ! cargo_place "$dir" placed; then
+    SNAPSHOT_WHY="$dir cannot be placed where it resolves, so whether it is inside the project cannot be known -- nothing written"
+    return 1
+  fi
+  x="$placed"
+  while :; do
+    if [ "$x" -ef "$root" ]; then
+      SNAPSHOT_WHY="$dir is inside the project $root, where a snapshot would be a repository inside the workroom -- make it outside; nothing written"
+      return 1
+    fi
+    _path_parent x || break
+  done
+
+  # THE MESSAGE, filled from the commit's own tree: {version} is the version
+  # its file project.version_from names declares, read through the one reader,
+  # written out under its own name so the reader's recipe for that kind of file
+  # applies. The replacements are quoted: bash 5.2's patsub_replacement reads an
+  # unquoted `&` as the matched text, so a name `R&D` would give two shas on two
+  # bashes (issue 0200 found the same in shell-init).
+  open_scratch "release snapshot"
+  if ! work="$(mktemp -d "$SCRATCH/snapshot.XXXXXX")"; then
+    SNAPSHOT_WHY="cannot make a directory under the run's scratch $SCRATCH -- nothing written"
+    return 1
+  fi
+  vfile="${DEVBIN_VERSION_FILE:-VERSION}"
+  ver=""
+  if mkdir -- "$work/version" &&
+    _snapshot_git -C "$PROJECT_ROOT" cat-file blob "$commit:$vfile" >"$work/version/${vfile##*/}" 2>/dev/null; then
+    ver="$(read_version "$work/version/${vfile##*/}" version-file)"
+  fi
+  if [ -z "$ver" ] || [ "$ver" = unknown ]; then
+    SNAPSHOT_WHY="${commit:0:12} declares no version in $vfile (project.version_from), so the message would carry none -- nothing written"
+    return 1
+  fi
+  pname="$(cfg_get project.name)"
+  message="${template//\{name\}/"$pname"}"
+  message="${message//\{version\}/"$ver"}"
+
+  # THE LIST, read from the commit's own tree, and what it selects.
+  if ! text="$(_snapshot_git -C "$PROJECT_ROOT" cat-file blob "$commit:$list" 2>/dev/null)"; then
+    SNAPSHOT_WHY="release.snapshot.list is $list, and ${commit:0:12} holds no such file to read -- nothing written"
+    return 1
+  fi
+  mapfile -t specs < <(pathlist_specs "$text")
+  if [ "${#specs[@]}" -eq 0 ]; then
+    SNAPSHOT_WHY="the list $list at ${commit:0:12} names no path -- nothing written"
+    return 1
+  fi
+  if ! _snapshot_select "$PROJECT_ROOT" "$commit" "$work/index" "$work/sel" "${specs[@]}"; then
+    SNAPSHOT_WHY+=" -- nothing written"
+    return 1
+  fi
+  # AN INCLUDE LINE THAT MATCHES NOTHING IS A LIST THAT DRIFTED from the tree,
+  # refused rather than shipped as a quietly smaller snapshot. An exclude that
+  # matches nothing leaves nothing out, and is let be.
+  for spec in "${specs[@]}"; do
+    pathspec_excludes "$spec" && continue
+    if ! _snapshot_git --index "$work/index" -C "$PROJECT_ROOT" ls-files --error-unmatch -- "$spec" >/dev/null 2>&1; then
+      SNAPSHOT_WHY="the list $list holds '$spec', which matches no file at ${commit:0:12} -- nothing written"
+      return 1
+    fi
+  done
+  while IFS= read -r -d '' rec; do
+    mode="${rec%% *}"
+    if [ "$mode" = 160000 ]; then
+      SNAPSHOT_WHY="the list selects ${rec#*$'\t'}, a gitlink, and the commit it names is not in the snapshot -- nothing written"
+      return 1
+    fi
+    rest="${rec#* }"
+    blobs+=("${rest%% *}")
+  done <"$work/sel"
+  if [ "${#blobs[@]}" -eq 0 ]; then
+    SNAPSHOT_WHY="the list $list selects no file at ${commit:0:12} -- nothing written"
+    return 1
+  fi
+  # The new repositories take the workroom's object format, whatever
+  # init.defaultObjectFormat or GIT_DEFAULT_HASH says, so its blobs unpack there.
+  if ! fmt="$(_snapshot_git -C "$PROJECT_ROOT" rev-parse --show-object-format)"; then
+    SNAPSHOT_WHY="git could not say the project's object format -- nothing written"
+    return 1
+  fi
+  # EXACTLY THE SELECTED BLOBS, packed once from the workroom: unpacked into the
+  # new repository, so no other workroom object reaches it, and into the
+  # scratch where the publish branch is read, for the commit asked of its tip.
+  if ! printf '%s\n' "${blobs[@]}" | LC_ALL=C sort -u >"$work/blobs" ||
+    ! _snapshot_git -C "$PROJECT_ROOT" pack-objects -q --stdout <"$work/blobs" >"$work/pack"; then
+    SNAPSHOT_WHY="git could not pack the shipped blobs of ${commit:0:12} -- nothing written"
+    return 1
+  fi
+  # THE DATE, the source's committer date, read once for every commit made.
+  if ! date="$(_snapshot_git -C "$PROJECT_ROOT" show -s --no-show-signature --format=%ct "$commit")"; then
+    SNAPSHOT_WHY="git could not read the date of ${commit:0:12} -- nothing written"
+    return 1
+  fi
+
+  # THE PARENT: the publish branch's tip, fetched with its history into the
+  # scratch and checked there, before the new directory exists, and never from
+  # a url naming the repository one of the project's own remotes names, asked
+  # with git's local variables cleared, so the remotes are this project's.
+  if [ "$no_parent" != 1 ] && [ -n "$url" ]; then
+    rc=0
+    own="$(
+      git_local_env_clear || exit 3
+      release_remote_naming "$url"
+    )" || rc=$?
+    case "$rc" in
+      0)
+        SNAPSHOT_WHY="release.publish.url names ${own#*$'\t'}, the repository this project's remote ${own%%$'\t'*} names, so its history is this project's own and a snapshot made on it would publish that history -- a first snapshot is made with --no-parent; nothing written"
+        return 1
+        ;;
+      1) ;;
+      *)
+        SNAPSHOT_WHY="whether release.publish.url names the repository one of this project's remotes names cannot be told: $own -- nothing written"
+        return 1
+        ;;
+    esac
+    if ! err="$(_snapshot_git init -q --bare --template= --object-format="$fmt" "$work/parent.git" 2>&1)"; then
+      SNAPSHOT_WHY="git could not make a repository in the run's scratch to read the publish branch in: ${err%%$'\n'*} -- nothing written"
+      return 1
+    fi
+    if ! heads="$(_snapshot_remote "$work/parent.git" ls-remote --heads --end-of-options "$url" "refs/heads/$branch")"; then
+      SNAPSHOT_WHY="cannot read the publish branch $branch at $(release_url_shown "$url"), so the snapshot's parent is unknown -- make it with --no-parent where there is no public repository yet; nothing written"
+      return 1
+    fi
+    while read -r sha ref; do
+      [ "$ref" != "refs/heads/$branch" ] || tip="$sha"
+    done <<<"$heads"
+    if [ -n "$tip" ]; then
+      if ! _snapshot_remote "$work/parent.git" fetch -q --no-tags --no-write-fetch-head --end-of-options "$url" "refs/heads/$branch:refs/snapshot/parent"; then
+        SNAPSHOT_WHY="cannot fetch the publish branch's tip ${tip:0:12} from $(release_url_shown "$url") -- nothing written"
+        return 1
+      fi
+      got="$(_snapshot_git -C "$work/parent.git" rev-parse -q --verify refs/snapshot/parent 2>/dev/null)" || got=""
+      if [ -z "$got" ]; then
+        SNAPSHOT_WHY="git wrote no ref for the publish branch's tip ${tip:0:12} from $(release_url_shown "$url"): it takes nothing from a shallow repository, whose history ends in no parentless root (its words are above) -- nothing written"
+        return 1
+      fi
+      if [ "$got" != "$tip" ]; then
+        SNAPSHOT_WHY="the publish branch moved from ${tip:0:12} to ${got:0:12} while it was read -- nothing written"
+        return 1
+      fi
+      if ! _snapshot_history "$work/parent.git" "$tip" "$list" "$author" "$work" "${specs[@]}"; then
+        SNAPSHOT_WHY+=" -- refusing to make a snapshot on it; nothing written"
+        return 1
+      fi
+      parent="$tip"
+      # A PUBLISHED SNAPSHOT IS FOUND, NEVER MADE TWICE (issue 0240). Where the
+      # tip is itself the snapshot of <commit>, the commit made on the tip's own
+      # parent is the tip, so the snapshot is the tip, on that parent: a publish
+      # that stopped once the branch had moved, or one run again once it
+      # finished, reads the same sha as the run that published it, and makes no
+      # second commit of one release. Asked by making that commit in the
+      # scratch, where the tip's history was read and checked, so the new
+      # repository holds no commit but the snapshot's.
+      tparent="$(_snapshot_git -C "$work/parent.git" rev-parse -q --verify "$tip^1" 2>/dev/null)" || tparent=""
+      if ! _snapshot_git -C "$work/parent.git" unpack-objects -q <"$work/pack" ||
+        ! _snapshot_git --index "$work/trial.index" -C "$work/parent.git" update-index -z --index-info <"$work/sel" ||
+        ! ttree="$(_snapshot_git --index "$work/trial.index" -C "$work/parent.git" write-tree)" ||
+        ! trial="$(_snapshot_commit_tree "$work/parent.git" "$ttree" "$tparent")"; then
+        SNAPSHOT_WHY="git could not ask whether the publish branch's tip ${tip:0:12} is already this snapshot -- nothing written"
+        return 1
+      fi
+      [ "$trial" != "$tip" ] || parent="$tparent"
+    fi
+  fi
+
+  # THE NEW REPOSITORY. From here a failure removes the directory it made.
+  if ! mkdir -- "$placed"; then
+    SNAPSHOT_WHY="cannot make $dir -- nothing written"
+    return 1
+  fi
+  made=yes
+  if ! err="$(_snapshot_git init -q --template= --object-format="$fmt" -b "$branch" "$placed" 2>&1)"; then
+    _snapshot_abort "$made" "$placed" "git could not make a repository in $dir: ${err%%$'\n'*}"
+    return 1
+  fi
+  # THE SELECTED BLOBS, packed above, unpacked here, and the checked history,
+  # taken from the scratch, where it was read.
+  if ! _snapshot_git -C "$placed" unpack-objects -q <"$work/pack"; then
+    _snapshot_abort "$made" "$placed" "git could not copy the shipped blobs into $dir"
+    return 1
+  fi
+  if [ -n "$tip" ] &&
+    ! _snapshot_git -C "$placed" fetch -q --no-tags --no-write-fetch-head "$work/parent.git" "refs/snapshot/parent:refs/snapshot/parent"; then
+    _snapshot_abort "$made" "$placed" "git could not take the checked publish branch into $dir"
+    return 1
+  fi
+  if ! _snapshot_git -C "$placed" update-index -z --index-info <"$work/sel" ||
+    ! SNAPSHOT_TREE="$(_snapshot_git -C "$placed" write-tree)"; then
+    _snapshot_abort "$made" "$placed" "git could not write the snapshot's tree in $dir"
+    return 1
+  fi
+
+  # THE COMMIT, made as _snapshot_commit_tree makes every snapshot's commit.
+  if ! SNAPSHOT_COMMIT="$(_snapshot_commit_tree "$placed" "$SNAPSHOT_TREE" "$parent")"; then
+    _snapshot_abort "$made" "$placed" "git could not make the snapshot's commit in $dir"
+    return 1
+  fi
+  if ! _snapshot_git -C "$placed" update-ref "refs/heads/$branch" "$SNAPSHOT_COMMIT" ||
+    { [ -n "$tip" ] && ! _snapshot_git -C "$placed" update-ref -d refs/snapshot/parent; } ||
+    ! _snapshot_git -C "$placed" reset -q --hard; then
+    _snapshot_abort "$made" "$placed" "git could not check the snapshot out in $dir"
+    return 1
+  fi
+
+  # READ BACK: the commit's tree is the selection, in paths, modes and blobs,
+  # its tree and parent are the ones made, and its author and committer are
+  # release.snapshot.author as declared, which the next release's history check
+  # reads it against.
+  if ! _snapshot_git -C "$placed" ls-tree -r -z --full-tree "$SNAPSHOT_COMMIT" >"$work/back" ||
+    ! _snapshot_norm "$work/sel" ls-files >"$work/want" ||
+    ! _snapshot_norm "$work/back" ls-tree >"$work/got" ||
+    [ ! -s "$work/want" ]; then
+    _snapshot_abort "$made" "$placed" "git could not read the snapshot in $dir back"
+    return 1
+  fi
+  if ! cmp -s "$work/want" "$work/got" ||
+    [ "$(_snapshot_git -C "$placed" show -s --no-show-signature --format='%T %P%n%an <%ae>%n%cn <%ce>' "$SNAPSHOT_COMMIT")" != "$SNAPSHOT_TREE $parent"$'\n'"$author"$'\n'"$author" ]; then
+    _snapshot_abort "$made" "$placed" "the snapshot in $dir does not read back as the selection, the parent and the identity it was made from"
+    return 1
+  fi
+  SNAPSHOT_DIR="$placed" SNAPSHOT_PARENT="$parent" SNAPSHOT_LIST="$list" SNAPSHOT_BRANCH="$branch"
+  return 0
+}
+
+# snapshot_verb -- `release snapshot`: the snapshot of the tag's commit, or of
+# --commit's, made in the new directory by snapshot_build, and its shas
+# printed. Refused, writing nothing, when the source is no commit.
+snapshot_verb() {
+  local commit from
+  git_readonly_prime || die "release snapshot: git could not list its local variables, so none could be cleared -- nothing written"
+  if [ -n "$snap_commit" ]; then
+    commit="$(_snapshot_git -C "$PROJECT_ROOT" rev-parse -q --verify "$snap_commit^{commit}" 2>/dev/null)" ||
+      die "release snapshot: $snap_commit is not a commit here -- nothing written"
+    from="$snap_commit"
+  else
+    from="$(release_tag_name "$(cfg_release_get tag)" "$version")"
+    commit="$(_snapshot_git -C "$PROJECT_ROOT" rev-parse -q --verify "refs/tags/$from^{commit}" 2>/dev/null)" ||
+      die "release snapshot: there is no tag $from here -- cut the release first, or name a commit with --commit; nothing written"
+  fi
+  # A relative directory is read from the project root, where the command runs.
+  case "$snap_dir" in /*) ;; *) snap_dir="$PROJECT_ROOT/$snap_dir" ;; esac
+  [ "$snap_dir" = / ] || snap_dir="${snap_dir%/}"
+  snapshot_build "$commit" "$snap_dir" "$no_parent" || die "release snapshot: $SNAPSHOT_WHY"
+  printf 'release snapshot: %s\n' "$SNAPSHOT_DIR"
+  printf '  from    %s (%s)\n' "$commit" "$from"
+  printf '  list    %s\n' "$SNAPSHOT_LIST"
+  printf '  tree    %s\n' "$SNAPSHOT_TREE"
+  printf '  commit  %s\n' "$SNAPSHOT_COMMIT"
+  printf '  parent  %s\n' "${SNAPSHOT_PARENT:-none}"
+  printf '  branch  %s\n' "$SNAPSHOT_BRANCH"
+}
+
+# --- the publish flow (issue 0240) --------------------------------------------
+#
+# A PROJECT THAT DECLARES release.publish.url PUBLISHES A SNAPSHOT, NEVER ITS
+# WORKROOM. Its cut pushes to release.remotes and stops, and `release publish
+# <vX.Y.Z>` makes the tag's snapshot public, through CI on that very commit.
+# Its steps, each reading its postcondition first, so a re-run continues:
+#
+#   resolve     the tag is here: the workroom commit the snapshot is made of
+#   pre-flight  no remote of this project names the publish repository, by
+#               OWNER/NAME on any host (release_remote_naming); the tag's
+#               commit carries the release and holds the list; ci.query is
+#               declared; and the url answers, its publish branch, candidate
+#               branch and tag read. Every refusal is named, nothing is
+#               written, and a url naming this project's own repository is
+#               never read
+#   snapshot    snapshot_build, in the run's scratch, on the public tip, where
+#               a tip that is this snapshot already is found. --expect refuses
+#               any other sha, and so are a public tag and a candidate holding
+#               another commit, here, before anything is pushed
+#   confirm     the work left, asked about once, as a cut asks (cut_confirm)
+#   candidate   the snapshot pushed to its candidate branch and read back, then
+#               ci.query asked about its sha, with no tag, up to ci.wait. Only
+#               green goes on: red, a run still going at the bound, or no
+#               verdict stops the run, and the publish branch and the tag stay
+#               where they were
+#   publish     the publish branch fast-forwarded to the snapshot, then the tag,
+#               lightweight, at it, each read back; then the candidate branch,
+#               its work done, deleted and its absence read back. A red
+#               candidate never gets here, and stays as the record of it
+#   object, after, ci
+#               a cut's (cut_tail), against the repository release.repo names,
+#               which is the public one, about the snapshot's sha
+#
+# NOTHING IS FORCED. A push the public repository refuses stops the run, naming
+# what this run already pushed: a branch moved under it, or a ref another
+# commit holds, is for a person to account for, and a tag is never moved.
+#
+# EVERY CALL TO THE PUBLIC REPOSITORY is made from a repository of the run's
+# own (_snapshot_remote), so the url is read as the person's git reads it,
+# never through this workroom's remotes or their rewrites, and every push is
+# bounded, as a cut's are (cut_call).
+
+# publish_read <repo> <url> <branch> <candidate> <tag> -- the public refs a
+# publish reads, in one ls-remote made from <repo>, as one line:
+# `read<TAB><branch><TAB><candidate><TAB><tag><TAB><kind>`, each the sha that
+# ref is at, the tag's the commit it names, or `-` where there is none, and
+# <kind> lightweight or annotated, `-` with no tag; or `UNANSWERED<TAB><why>`
+# when the url did not answer. A reader, for release_wait. The tag is read by
+# release_listed_tag, the one reader of a public tag, its peel asked for by
+# name, as that reader needs.
+publish_read() {
+  local repo="$1" url="$2" listing heads tagged
+  if ! listing="$(_snapshot_remote "$repo" ls-remote --end-of-options "$url" \
+    "refs/heads/$3" "refs/heads/$4" "refs/tags/$5" "refs/tags/$5^{}" 2>&1)"; then
+    printf 'UNANSWERED\t%s did not answer ls-remote: %s\n' "$(release_url_shown "$url")" "$(one_line "$listing")"
+    return 0
+  fi
+  heads="$(awk -v b="refs/heads/$3" -v c="refs/heads/$4" '
+    $2 == b { rb = $1 }
+    $2 == c { rc = $1 }
+    END { printf "%s\t%s\n", (rb == "" ? "-" : rb), (rc == "" ? "-" : rc) }
+  ' <<<"$listing")"
+  tagged="$(release_listed_tag "$listing" "$5")"
+  printf 'read\t%s\t%s\n' "$heads" "${tagged:-$'-\t-'}"
+}
+
+# publish_refs <line> -- publish_read's `read` line into the caller's
+# pub_branch, pub_cand and pub_tag, the commit the tag names, each empty for none,
+# and pub_tag_kind: lightweight, annotated, or empty for no tag.
+publish_refs() {
+  local _read
+  IFS=$'\t' read -r _read pub_branch pub_cand pub_tag pub_tag_kind <<<"$1"
+  dash_to_empty pub_branch pub_cand pub_tag pub_tag_kind
+}
+
+# publish_reread <step> <when> -- the public refs read again, <when> it is (eg
+# "after the push"), into the caller's pub_ names (publish_refs), from the
+# caller's url, pbranch, cand and tag. A read that does not answer is asked
+# again up to RELEASE_READBACK_SECONDS, as a cut's push step reads a remote
+# back (issue 0194); one that never answers fails <step> as a read that could
+# not tell, never as a ref that is not there.
+publish_reread() {
+  local answer
+  answer="$(release_wait "$RELEASE_READBACK_SECONDS" UNANSWERED UNANSWERED \
+    publish_read "$SCRATCH/public.git" "$url" "$pbranch" "$cand" "$tag")"
+  case "${answer%%$'\t'*}" in
+    read) publish_refs "$answer" ;;
+    *) cut_fail "$1" "could not read $(release_url_shown "$url") $2, in the ${RELEASE_READBACK_SECONDS}s a read-back waits: ${answer#*$'\t'}" ;;
+  esac
+}
+
+# publish_at <sha> -- `at <sha12>`, or `not there` for none.
+publish_at() {
+  if [ -z "$1" ]; then printf 'not there'; else printf 'at %s' "${1:0:12}"; fi
+}
+
+# publish_run -- `release publish <version>`: the steps above, their rows
+# printed as a cut's are, through the table a cut prints (release_row). With
+# --dry-run, every read and the snapshot, in the run's scratch, with every
+# push, wait and after: reported as `would`.
+publish_run() {
+  local v="$version" tpl tag commit url shown pbranch cand object declared_repo drem
+  local answer rc own out list ci_wait ci_secs="" cmd snap made_on cand_detail parts
+  local pub_branch="" pub_cand="" pub_tag="" pub_tag_kind="" published=no wrote=no
+  local moved tagged deleted want_kind ancestry
+  local -a refusals=() cq=() left=()
+  # The names a cut sets for cut_object_left, cut_confirm and cut_tail.
+  local branch rel_at title repo="" body_file assets_wf
+  local object_work="" object_detail="" attach_work=no assets_detail=""
+  local confirmed=no ask_next="" prompted=""
+
+  # The tag reaches ci.query alone (issue 0149), as in a cut.
+  unset DEVBIN_RELEASE_TAG
+  cfg_validate || die "release publish: $DEVBIN_DIR/config.yaml does not validate (above)"
+  url="$(cfg_release_get publish.url)" || die "release publish: cannot read release.publish.url"
+  [ -n "$url" ] ||
+    die "release publish: release.publish.url is not declared, so this project publishes no snapshot, and its cut releases it whole -- declare the public repository there to publish through it"
+  select_notes
+  git_readonly_prime || die "release publish: git could not list its local variables, so none could be cleared -- nothing written"
+  tpl="$(cfg_release_get tag)"
+  tag="$(release_tag_name "$tpl" "$v")"
+  branch="$(cfg_release_get branch)"
+  pbranch="$(snapshot_publish_branch)"
+  # Quoted, so bash 5.2's patsub_replacement cannot read an `&` as the match.
+  cand="$(cfg_release_get publish.candidate)"
+  cand="${cand//\{tag\}/"$tag"}"
+  object="$(cfg_release_get object)"
+  declared_repo="$(cfg_release_get repo)"
+  drem="$(declared_remote)"
+  assets_wf="$(cfg_release_get assets.workflow)" || die "release publish: cannot read release.assets.workflow"
+  list="$(cfg_release_get snapshot.list)"
+  ci_wait="$(cfg_release_get ci.wait)"
+  shown="$(release_url_shown "$url")"
+  cmd="${DEVBIN_INVOKE:-bin/devbin} release publish v$v"
+  open_scratch "release publish"
+  body_file="$SCRATCH/notes-body"
+  local dry_note="" next="resume with"
+  if [ "$dry_run" = 1 ]; then
+    dry_note=" (DRY RUN: nothing is pushed; the snapshot is made in the run's scratch)"
+    next="publish with"
+  fi
+  CUT_HEAD="release: publish $tag to $shown$dry_note -- $next: $cmd"
+
+  # --- resolve -----------------------------------------------------
+  commit="$(_snapshot_git -C "$PROJECT_ROOT" rev-parse -q --verify "refs/tags/$tag^{commit}" 2>/dev/null)" ||
+    cut_fail resolve "there is no tag $tag here -- cut the release first (${DEVBIN_INVOKE:-bin/devbin} release v$v), which under release.publish.url stops once it has pushed"
+  cut_row resolve "done" "$tag is here, at ${commit:0:12}, the commit its snapshot is made of"
+
+  # --- pre-flight --------------------------------------------------
+  # Every check runs and every refusal is named, so one run says everything
+  # that is wrong; nothing here writes. The remotes are this project's, asked
+  # with git's local variables cleared, as the snapshot asks them.
+  rc=0
+  own="$(
+    git_local_env_clear || exit 3
+    release_remote_naming "$url"
+  )" || rc=$?
+  case "$rc" in
+    0) refusals+=("this project's remote ${own%%$'\t'*} names ${own#*$'\t'}, the repository release.publish.url names, so a push or a fetch through it would carry this workroom's whole history there -- remove that remote, or point it at another repository, then publish") ;;
+    1) ;;
+    *) refusals+=("whether one of this project's remotes names the repository release.publish.url names cannot be told: $own") ;;
+  esac
+  # THE TAG MUST CARRY THE RELEASE, as a cut reads a tag it resumes: its
+  # commit's version is the target and its note is dated, read from its own tree.
+  answer="$(cut_stamp_read tag "$commit" "$v" name)"
+  [ "${answer%%$'\t'*}" = already ] ||
+    refusals+=("$tag's commit (${commit:0:12}) does not carry the release: ${answer#*$'\t'} -- a tag is never moved; release a later version")
+  _snapshot_git -C "$PROJECT_ROOT" cat-file -e "$commit:$list" 2>/dev/null ||
+    refusals+=("release.snapshot.list is $list, and $tag's commit (${commit:0:12}) holds no such file, so nothing says what ships")
+  # CI ON THE CANDIDATE IS THE GATE, so a project that cannot read it publishes
+  # nothing.
+  if ! cfg_release_declared ci.query; then
+    refusals+=("release.ci.query is not declared, so CI on the candidate cannot be read, and nothing is made public before it reads green")
+  elif ! run_words cq release.ci.query "$(cfg_release_get ci.query)" 2>/dev/null; then
+    refusals+=("ci.query holds no words, so CI on the candidate cannot be read")
+  elif ! ci_secs="$(release_seconds "$ci_wait" 2>&1)"; then
+    refusals+=("$(one_line "$ci_secs")")
+  fi
+  _snapshot_git check-ref-format "refs/heads/$cand" ||
+    refusals+=("$cand, release.publish.candidate for $tag, is not a name git takes for a branch")
+  # THE RELEASE OBJECT IS THE PUBLIC REPOSITORY'S, which no remote of this
+  # project names, so release.repo must: read off a remote, it would name
+  # another repository.
+  if [ "$object" != none ] && [ -z "$declared_repo" ]; then
+    refusals+=("release.repo is not declared, and object: $object reads the release object of the public repository, which no remote of this project names -- declare release.repo: OWNER/NAME")
+  elif ! out="$(cut_gh_signed_in "$object")"; then
+    refusals+=("$out")
+  fi
+  # THE URL ANSWERS, and its refs are read, unless it names this project's own
+  # repository, which is never read.
+  if [ "$rc" = 1 ]; then
+    if ! out="$(_snapshot_git init -q --bare --template= "$SCRATCH/public.git" 2>&1)"; then
+      refusals+=("git could not make a repository in the run's scratch to read $shown from: $(one_line "$out")")
+    else
+      answer="$(release_wait 0 "" UNANSWERED publish_read "$SCRATCH/public.git" "$url" "$pbranch" "$cand" "$tag")"
+      case "${answer%%$'\t'*}" in
+        read) publish_refs "$answer" ;;
+        *) refusals+=("${answer#*$'\t'}") ;;
+      esac
+    fi
+  fi
+  if [ "${#refusals[@]}" -gt 0 ]; then
+    cut_fail pre-flight "$(printf '%s; ' "${refusals[@]}" | sed 's/; $//')"
+  fi
+  cut_row pre-flight "done" "no remote of this project names the publish repository; $tag's commit carries the release and the list; $shown answers: $pbranch $(publish_at "$pub_branch"), $cand $(publish_at "$pub_cand"), $tag $(publish_at "$pub_tag")"
+
+  # --- snapshot ----------------------------------------------------
+  snapshot_build "$commit" "$SCRATCH/snapshot" 0 || cut_fail snapshot "$SNAPSHOT_WHY"
+  snap="$SNAPSHOT_COMMIT"
+  made_on="${SNAPSHOT_PARENT:0:12}"
+  [ -n "$made_on" ] || made_on="no parent"
+  # THE COMMIT APPROVED IS THE COMMIT PUBLISHED: a snapshot is approved by its
+  # sha, and the same inputs give the same sha.
+  if [ -n "$expect" ] && [ "$expect" != "$snap" ]; then
+    cut_fail snapshot "the snapshot of $tag is $snap, and --expect names $expect: what is published is the commit approved, so another sha needs its own approval -- nothing pushed"
+  fi
+  cut_row snapshot "done" "${snap:0:12}, made of $tag (${commit:0:12}) over $SNAPSHOT_LIST, on $made_on$([ "$snap" != "$pub_branch" ] || printf '; the tip of %s is this snapshot already' "$pbranch")$([ -z "$expect" ] || printf ', the sha --expect names')"
+  # A PUBLIC REF ANOTHER COMMIT HOLDS IS REFUSED BEFORE ANYTHING IS PUSHED: a
+  # tag is never moved, and a release has one candidate, so a candidate that
+  # holds another snapshot is a release changed after its candidate was pushed.
+  # A TAG ALREADY IN THE PUBLIC HISTORY is a release published before a later
+  # one was made on it: its snapshot on today's tip is another commit, and
+  # there is nothing of it left to publish.
+  if [ -n "$pub_tag" ] && [ "$pub_tag" != "$snap" ]; then
+    # Asked through commit_direction, with git's local variables cleared as
+    # every snapshot read is: the tag in the parent's history reads same or
+    # forward from it.
+    ancestry=""
+    [ -z "$SNAPSHOT_PARENT" ] ||
+      ancestry="$(git_local_env_clear && commit_direction "$SNAPSHOT_DIR" "$pub_tag" "$SNAPSHOT_PARENT")"
+    if [ "$ancestry" = same ] || [ "$ancestry" = forward ]; then
+      cut_fail publish "$tag is public already, at ${pub_tag:0:12}, in the history of $pbranch at $shown, which a later release was published on: nothing of it is left to publish, and a tag is never moved -- nothing pushed"
+    fi
+    cut_fail publish "$shown carries $tag at ${pub_tag:0:12}, and this release's snapshot is ${snap:0:12}: a tag is never moved -- nothing pushed"
+  fi
+  # PUBLISHED IS BOTH: the branch and the tag at the snapshot. A tag there with
+  # the branch still to move is a tag pushed by another hand, and the branch
+  # moves only once CI on the candidate reads green, in this run.
+  if [ "$pub_tag" = "$snap" ] && [ "$pub_branch" = "$snap" ]; then published=yes; fi
+  if [ "$published" = no ] && [ -n "$pub_cand" ] && [ "$pub_cand" != "$snap" ]; then
+    cut_fail candidate "$cand at $shown holds ${pub_cand:0:12}, not this release's snapshot ${snap:0:12}: $tag changed after its candidate was pushed, and a release has one candidate -- release a later version; nothing pushed"
+  fi
+
+  # --- confirm -----------------------------------------------------
+  if [ "$published" = no ]; then
+    [ "$pub_cand" = "$snap" ] || left+=("push ${snap:0:12} to $cand at $shown, for CI to run on")
+    [ "$pub_branch" = "$snap" ] || left+=("once ci.query reads green on it, fast-forward $pbranch at $shown to it")
+    [ "$pub_tag" = "$snap" ] || left+=("tag $tag at it, lightweight")
+    left+=("delete $cand, its work done")
+  elif [ "$pub_cand" = "$snap" ]; then
+    left+=("delete $cand at $shown, its work done")
+  fi
+  title="$(object_title "$tag" "$v")"
+  if [ "$object" = local ]; then
+    cut_notes_body "$commit" "$v" "$body_file" confirm
+    cut_object_left
+  fi
+  cut_confirm "the publish" "release: publish $tag, snapshot ${snap:0:12}, to $shown"
+
+  # --- candidate ---------------------------------------------------
+  if [ "$published" = yes ]; then
+    cut_row candidate already "$tag is at ${snap:0:12} at $shown, so its candidate has done its work"
+  elif [ "$dry_run" = 1 ]; then
+    if [ "$pub_cand" = "$snap" ]; then cand_detail="$cand holds ${snap:0:12} already"; else cand_detail="push ${snap:0:12} to $cand and read it back"; fi
+    cut_row candidate would "$cand_detail; then ask ci.query about ${snap:0:12} for up to $ci_wait (ci.wait), and go on on green alone"
+  else
+    if [ "$pub_cand" = "$snap" ]; then
+      cand_detail="$cand holds ${snap:0:12} already"
+    else
+      # Never --force: a candidate another commit holds was refused above, and
+      # one pushed since is someone else's, which a rejection names.
+      cut_call candidate "pushing ${snap:0:12} to $cand at $shown" \
+        _snapshot_remote "$SNAPSHOT_DIR" push -q --end-of-options "$url" "$snap:refs/heads/$cand"
+      CUT_OUTWARD+=", pushed ${snap:0:12} to $cand at $shown"
+      publish_reread candidate "after the push"
+      [ "$pub_cand" = "$snap" ] ||
+        cut_fail candidate "$cand at $shown is $(publish_at "$pub_cand") after the push, not at ${snap:0:12}"
+      cand_detail="pushed ${snap:0:12} to $cand and read it back"
+    fi
+    # ASKED ABOUT THE SNAPSHOT'S SHA, WITH NO TAG: the candidate branch's runs
+    # are its verdict, and no public tag exists yet. Waited on while it answers
+    # pending or none, up to ci.wait.
+    answer="$(release_wait "$ci_secs" "pending none" unknown release_ci_verdict "$snap" "" "${cq[@]}")"
+    case "${answer%%$'\t'*}" in
+      green) cut_row candidate "done" "$cand_detail; ci.query answers green for ${snap:0:12}: ${answer#*$'\t'}" ;;
+      pending | none)
+        cut_fail candidate "$cand_detail; ci.query gave no verdict within $ci_wait (ci.wait) for ${snap:0:12}; last: ${answer%%$'\t'*}, ${answer#*$'\t'} -- $pbranch and $tag did not move: run $cmd again, which reads CI on the candidate again"
+        ;;
+      unknown)
+        cut_fail candidate "$cand_detail; no verdict from ci.query for ${snap:0:12}: ${answer#*$'\t'} -- $pbranch and $tag did not move: run $cmd again once the query answers"
+        ;;
+      *)
+        cut_fail candidate "$cand_detail; ci.query answers ${answer%%$'\t'*} for ${snap:0:12}: ${answer#*$'\t'} -- $pbranch and $tag did not move, and $cand stays as the record of it: fix it, then release the next version"
+        ;;
+    esac
+  fi
+
+  # --- publish -----------------------------------------------------
+  if [ "$dry_run" = 1 ]; then
+    parts=""
+    [ "$pub_branch" = "$snap" ] || parts+="; fast-forward $pbranch to ${snap:0:12}"
+    [ "$pub_tag" = "$snap" ] || parts+="; tag $tag at it, lightweight"
+    if [ "$published" = no ] || [ -n "$pub_cand" ]; then parts+="; delete $cand"; fi
+    if [ -z "$parts" ]; then
+      cut_row publish already "$pbranch and $tag are at ${snap:0:12} at $shown, and $cand is not there"
+    else
+      cut_row publish would "${parts#; }, each read back"
+    fi
+  else
+    # Read again, after CI: what moved meanwhile is read, never assumed.
+    publish_reread publish "before anything moves"
+    # THE TAG FIRST, as a question: the branch does not move for a tag that
+    # could not follow it.
+    if [ -n "$pub_tag" ] && [ "$pub_tag" != "$snap" ]; then
+      cut_fail publish "$shown carries $tag at ${pub_tag:0:12}, not at the snapshot ${snap:0:12}: a tag is never moved -- $pbranch did not move"
+    fi
+    if [ "$pub_branch" = "$snap" ]; then
+      moved="$pbranch was at ${snap:0:12} already"
+    elif [ "$pub_branch" = "$SNAPSHOT_PARENT" ]; then
+      # A fast-forward, never --force: the snapshot was made on this tip.
+      cut_call publish "fast-forwarding $pbranch at $shown to ${snap:0:12}" \
+        _snapshot_remote "$SNAPSHOT_DIR" push -q --end-of-options "$url" "$snap:refs/heads/$pbranch"
+      CUT_OUTWARD+=", moved $pbranch at $shown to ${snap:0:12}"
+      moved="fast-forwarded $pbranch to ${snap:0:12}"
+      wrote=yes
+    else
+      cut_fail publish "$pbranch at $shown is $(publish_at "$pub_branch"), and the snapshot was made on $made_on, so it cannot fast-forward, and nothing is forced -- run $cmd again, which makes the snapshot on the new tip, a new sha, which --expect refuses until it is approved; $tag did not move"
+    fi
+    want_kind="$pub_tag_kind"
+    if [ "$pub_tag" = "$snap" ]; then
+      tagged="$tag was at ${snap:0:12} already, $pub_tag_kind"
+    else
+      # Lightweight: the commit pushed to the tag's ref, so it carries no
+      # tagger identity. Never --force: a tag is never moved.
+      cut_call publish "pushing $tag to $shown" \
+        _snapshot_remote "$SNAPSHOT_DIR" push -q --end-of-options "$url" "$snap:refs/tags/$tag"
+      CUT_OUTWARD+=", pushed $tag to $shown"
+      tagged="tagged $tag at ${snap:0:12}, lightweight"
+      want_kind=lightweight
+      wrote=yes
+    fi
+    publish_reread publish "after the push"
+    if [ "$pub_branch" != "$snap" ] || [ "$pub_tag" != "$snap" ] || [ "$pub_tag_kind" != "$want_kind" ]; then
+      cut_fail publish "$shown does not read back as published: $pbranch $(publish_at "$pub_branch"), $tag $(publish_at "$pub_tag")${pub_tag_kind:+, $pub_tag_kind}, where both are to be at ${snap:0:12}, the tag $want_kind"
+    fi
+    # THE CANDIDATE, ITS WORK DONE, deleted once the branch and the tag read
+    # back, and only while it holds the snapshot.
+    if [ -z "$pub_cand" ]; then
+      deleted="$cand is not there"
+    elif [ "$pub_cand" = "$snap" ]; then
+      # The lease makes the deletion conditional on the candidate still being
+      # the snapshot, as just read, and forces nothing: a branch another push
+      # moved since is left, and the push is refused.
+      cut_call publish "deleting $cand at $shown" \
+        _snapshot_remote "$SNAPSHOT_DIR" push -q "--force-with-lease=refs/heads/$cand:$snap" --end-of-options "$url" ":refs/heads/$cand"
+      CUT_OUTWARD+=", deleted $cand at $shown"
+      publish_reread publish "after deleting $cand"
+      [ -z "$pub_cand" ] || cut_fail publish "$cand at $shown is still there, $(publish_at "$pub_cand"), after it was deleted"
+      deleted="deleted $cand and read it back as gone"
+      wrote=yes
+    else
+      deleted="left $cand as it is: it holds ${pub_cand:0:12}, not the snapshot"
+    fi
+    if [ "$wrote" = yes ]; then
+      cut_row publish "done" "$moved; $tagged; each read back; $deleted"
+    else
+      cut_row publish already "$moved; $tagged; $deleted"
+    fi
+  fi
+
+  # --- object, after, ci -------------------------------------------
+  # A cut's, about the commit the public tag names, where CI and brew read it.
+  commit="$snap"
+  rel_at="${snap:0:12}"
+  cut_tail
+}
+
 # status_report <version> -- `release status`: every step of a cut, read from the
 # repository, its remotes and the release object, printed as the table a cut's
 # summary prints (release_row), writing nothing. Exit 0 when every row was
@@ -2120,10 +3236,14 @@ status_report() {
   object_state="${object_row%%$'\t'*}"
 
   # The confirm step: not re-run only when no irreversible step has work left.
-  # The object holds it only when it is the core's to make (object: local).
-  if [ "$push_state" = UNREADABLE ] || { [ "$object" = local ] && [ "$object_state" = UNREADABLE ]; }; then
+  # The object holds it only when it is the cut's to make: object: local, and
+  # no release.publish.url, under which release publish makes it (issue 0240).
+  local publish_url cut_object=no
+  publish_url="$(cfg_release_get publish.url)" || die "release status: cannot read release.publish.url"
+  if [ "$object" = local ] && [ -z "$publish_url" ]; then cut_object=yes; fi
+  if [ "$push_state" = UNREADABLE ] || { [ "$cut_object" = yes ] && [ "$object_state" = UNREADABLE ]; }; then
     row UNREADABLE confirm "whether an irreversible step has work left cannot be read (push or object, below)"
-  elif [ "$push_state" = already ] && { [ "$object" != local ] || [ "$object_state" = already ]; }; then
+  elif [ "$push_state" = already ] && { [ "$cut_object" = no ] || [ "$object_state" = already ]; }; then
     row "not re-run" confirm "no irreversible step has work left"
   else
     row pending confirm "never already: an irreversible step has work left"
@@ -2132,6 +3252,18 @@ status_report() {
   split "$tag_row"
   row "$state" tag "$detail"
   row "$push_state" push "$push_detail"
+  # The publish steps (issue 0240), release publish's under
+  # release.publish.url. That verb reads each against the snapshot it makes,
+  # and status makes none and reads no public repository, so each is `not
+  # read`: neither done nor to do, as far as status can say.
+  local s
+  for s in snapshot candidate publish; do
+    if [ -z "$publish_url" ]; then
+      row skipped "$s" "no publish.url declared"
+    else
+      row "not read" "$s" "${DEVBIN_INVOKE:-bin/devbin} release publish v$v reads it, against the snapshot it makes, which status does not"
+    fi
+  done
   split "$object_row"
   row "$state" object "$detail"
 
@@ -2177,6 +3309,25 @@ case "$verb" in
     # object: local, and a malformed block would name another run.
     cfg_validate || die "release attach: $DEVBIN_DIR/config.yaml does not validate (above)"
     attach_verb "$version" "$from" || exit 1
+    ;;
+  snapshot)
+    # Validated first, as every verb is: a key the snapshot reads beside one it
+    # needs is refused, and a malformed block would name another list.
+    cfg_validate || die "release snapshot: $DEVBIN_DIR/config.yaml does not validate (above)"
+    snapshot_verb
+    ;;
+  publish)
+    # BEHIND A GATE, AS A CUT IS, AND ITS DRY RUN NOT (issue 0240): the confirm
+    # step asks through ask_person, which answers only inside one, and the run's
+    # log is sealed beside a cut's. publish_run validates first, as cut_run does.
+    if [ "$dry_run" = 1 ]; then
+      publish_run
+    else
+      run_gate --label "release publish" --suffix PUBLISH --grammar generic \
+        --out-dir "$(gate_out_dir release)" \
+        --source "devbin's own publish sequence -- publish_run in this process, not a command line" \
+        -- publish_run
+    fi
     ;;
   cut)
     # THE REAL CUT RUNS BEHIND A GATE, THE DRY RUN DOES NOT (WP-05). The confirm step asks

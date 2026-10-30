@@ -86,7 +86,8 @@ usage: ${DEVBIN_INVOKE:-bin/devbin} infra <verb> [--profile <path>]
   mail      DMARC report handling: mail dmarc parse|report
 
 The profile is searched for in this order, and a miss names every path:
-  --profile <path>, \$DEVBIN_INFRA_PROFILE, <project root>/infra.yaml, ~/.config/devbin/infra.yaml
+  --profile <path>, \$DEVBIN_INFRA_PROFILE, <project root>/infra.yaml,
+  \$XDG_CONFIG_HOME/devbin/infra.yaml (default ~/.config/devbin/infra.yaml)
 
 The annotated worked example ships in devbin's runtime, in this project -- read
 it, copy it:

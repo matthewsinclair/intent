@@ -36,12 +36,79 @@
 # guarantee points at what actually runs. EVERYTHING FROM HERE TO THE LOAD GUARD
 # MUST STAY PARSEABLE BY BASH 3.2 -- the refusal cannot be allowed to arrive as
 # a syntax error that explains nothing.
+#
+# A BASH 5 THAT IS ON THE MACHINE BUT NOT AHEAD ON THIS PATH IS NAMED (issue
+# 0253). cron and a hook a GUI app launched run with the system's PATH, where
+# /bin/bash 3.2 answers though Homebrew's bash is installed, and "install a
+# current one" sent that reader to install what they had. So Homebrew's bash is
+# looked for, and the first that meets the floor is named with the PATH that
+# finds it: its directory ahead of the refusing bash's, which is /bin in the
+# cron case. Only where none meets it is the reader told to install one.
+#
+# HOMEBREW_PREFIX'S BASH ALONE WHEN THE PREFIX IS SET AND ABSOLUTE, and the
+# places Homebrew installs by default only when it is not, which is where
+# devbin_brew_root would not look: for it, an environment with no
+# HOMEBREW_PREFIX has no Homebrew default, because it picks the install a
+# project upgrades from, so a guess there would change what runs, and the
+# suite would find a real install. Here a guess only names a bash inside a
+# refusal that refuses either way, and an unset prefix is this refusal's own
+# case, cron or a GUI hook, where brew shellenv never ran. A relative prefix
+# counts as unset, as it does there and in path_hit.
+#
+# THE DEFAULTS ARE THE TWO MACOS PREFIXES ALONE. Homebrew's default Linux
+# prefix sits under /home, and every file devbin vendors must pass a
+# consumer's guard that refuses a home-shaped path (install.bats, issue
+# 0109), so this file cannot name it: Linuxbrew's bash is found through
+# HOMEBREW_PREFIX, which brew shellenv sets, and a Linux system bash meets
+# the floor on its own.
 bash_floor_refuse() {
-  printf '%s: bash >= 5 is required; this is bash %s (%s)\n' \
-    "${DEVBIN_NAME:-devbin}" "${1:-unknown}" "${2:-unknown}" >&2
+  local d=/bin
+  printf '%s: bash >= %s is required; this is bash %s (%s)\n' \
+    "${DEVBIN_NAME:-devbin}" "$_DEVBIN_BASH_FLOOR" "${1:-unknown}" "${2:-unknown}" >&2
   [ -z "${3:-}" ] || printf '  %s\n' "$3" >&2
-  printf '  macOS ships bash 3.2 permanently -- install a current one:  brew install bash, or apt-get install bash\n' >&2
+  case "${2:-}" in */*) d="${2%/*}" ;; esac
+  case "${HOMEBREW_PREFIX:-}" in
+    /*) _bash_floor_found "$d" "$HOMEBREW_PREFIX/bin/bash" ;;
+    *) _bash_floor_found "$d" /opt/homebrew/bin/bash /usr/local/bin/bash ;;
+  esac ||
+    printf '  macOS ships bash 3.2 permanently -- install a current one:  brew install bash, or apt-get install bash\n' >&2
   exit 1
+}
+
+# _bash_floor_found <dir> <bash>... -- name, on stderr, the first <bash> that
+# meets the floor, with the PATH that finds it: its directory ahead of <dir>.
+# Non-zero when none does.
+_bash_floor_found() {
+  local d="$1" b v
+  shift
+  for b in "$@"; do
+    [ -x "$b" ] || continue
+    # Single-quoted on purpose: the CHILD bash expands this, not this one.
+    # shellcheck disable=SC2016
+    v="$("$b" -c 'printf %s "${BASH_VERSINFO[0]}"' 2>/dev/null)" || continue
+    bash_meets_floor "$v" || continue
+    printf '  a bash >= %s is at %s -- put %s ahead of %s on PATH (for cron or a hook, in the job'"'"'s own PATH)\n' "$_DEVBIN_BASH_FLOOR" "$b" "${b%/bash}" "$d" >&2
+    return 0
+  done
+  return 1
+}
+
+# _DEVBIN_BASH_FLOOR -- devbin's floor, the major version of bash it runs on
+# (issue 0022). THE ONE SPELLING OF IT: bash_meets_floor compares against it,
+# and every message that states the floor prints it, so raising the floor is
+# this one line.
+_DEVBIN_BASH_FLOOR=5
+
+# bash_meets_floor <major> -- rc 0 when <major>, a bash's BASH_VERSINFO[0], is
+# at devbin's floor or above; non-zero for anything else, a word that is not a
+# number included. The one comparison with the floor: the load guard below,
+# the refusal's search, require_path_bash_floor and doctor's bash row all ask
+# it.
+bash_meets_floor() {
+  case "${1:-}" in
+    '' | *[!0-9]*) return 1 ;;
+  esac
+  [ "$1" -ge "$_DEVBIN_BASH_FLOOR" ]
 }
 
 # THE FLOOR IS CHECKED WHERE EVERY PROCESS PASSES (issue 0076). It lived in the
@@ -49,7 +116,7 @@ bash_floor_refuse() {
 # exec'd under a PATH that finds 3.2, ran on 3.2 with nothing refusing. Every
 # built-in handler and the dispatcher source this file, so the check sits here,
 # ahead of the load guard, and a handler below the floor stops at load.
-if [ "${BASH_VERSINFO[0]:-0}" -lt 5 ]; then
+if ! bash_meets_floor "${BASH_VERSINFO[0]:-0}"; then
   bash_floor_refuse "${BASH_VERSION:-}" "${BASH:-}"
 fi
 
@@ -85,7 +152,7 @@ require_path_bash_floor() {
   case "${answer%% *}" in
     '' | *[!0-9]*) die "$path_bash answered its version as '$answer', which is not a bash version" ;;
   esac
-  [ "${answer%% *}" -ge 5 ] && return 0
+  bash_meets_floor "${answer%% *}" && return 0
   bash_floor_refuse "${answer#* }" "$path_bash" \
     "PATH resolves bash to it, and every handler runs on the bash PATH resolves (this dispatcher is on $BASH_VERSION)"
 }
@@ -292,6 +359,16 @@ is_true_word() { _word_in "$1" "$_DEVBIN_TRUE_WORDS"; }
 is_false_word() { _word_in "$1" "$_DEVBIN_FALSE_WORDS"; }
 is_no_default() { _word_in "$1" "$_DEVBIN_NO_DEFAULT"; }
 
+# dash_to_empty <name>... -- each named variable holding `-`, the placeholder a
+# tab-separated line carries for an empty field, made empty. A tab is IFS
+# whitespace, so `read` would collapse an empty field and shift the rest.
+dash_to_empty() {
+  local n
+  for n in "$@"; do
+    [ "${!n}" != - ] || printf -v "$n" '%s' ''
+  done
+}
+
 # has_words <value> -- true when <value> holds a character bash would not split
 # on, which is the same question as "run_words would find at least one word".
 #
@@ -494,6 +571,15 @@ link_step() {
   printf '%s\n' "$t"
 }
 
+# _DEVBIN_LINK_HOPS -- the most links a walk of a chain follows: follow_links
+# and link_chain_reaches each stop there (issue 0247). Linux documents 40 and
+# macOS follows 32 (measured), so the kernel cannot resolve a chain longer
+# than this either: no lookup runs or writes through it. Reaching the bound is
+# therefore silent in link_chain_reaches, a chain that reaches nothing, and is
+# follow_links's refusal of a link it cannot follow, never a message of its
+# own.
+readonly _DEVBIN_LINK_HOPS=40
+
 # follow_links <path> -- print the path of the file <path> names: <path> itself
 # when it is not a symbolic link, otherwise the end of its chain of links.
 # Refuses, naming <path>, a link that leads to no file and a link it cannot
@@ -512,9 +598,8 @@ link_step() {
 #   throw the link away.
 # - EACH STEP IS link_step's, which refuses a link whose content it cannot read
 #   back exactly. The end of the walk must still be the file the kernel reaches
-#   (`-ef`), and the walk is bounded. A correct walk never meets the bound,
-#   because the link was reachable: macOS follows 32 links (measured) and Linux
-#   documents 40.
+#   (`-ef`), and the walk is bounded by _DEVBIN_LINK_HOPS. A correct walk never
+#   meets the bound, because the link was reachable.
 follow_links() {
   local path="$1" p="$1" t n=0
   if [ -L "$p" ] && [ ! -e "$p" ]; then
@@ -523,7 +608,7 @@ follow_links() {
   fi
   while [ -L "$p" ]; do
     n=$((n + 1))
-    if [ "$n" -gt 40 ] || ! t="$(link_step "$p")"; then
+    if [ "$n" -gt "$_DEVBIN_LINK_HOPS" ] || ! t="$(link_step "$p")"; then
       warn "cannot tell which file $path is a symbolic link to"
       return 1
     fi
@@ -536,9 +621,11 @@ follow_links() {
   printf '%s\n' "$p"
 }
 
-# real_path <path> <out-var> -- <path>, absolute and with symlinks resolved,
-# into the variable <out-var>. A relative <path> is read from the current
-# directory, which each caller makes the project root.
+# real_path <path> <out-var> [getcwd] -- <path>, absolute and with symlinks
+# resolved, into the variable <out-var>. A relative <path> is read from the
+# current directory, which each caller makes the project root. With `getcwd`
+# each directory is read in physical_dir's getcwd mode, spelled in the case the
+# disk stores, for a caller comparing two paths as strings (issue 0284).
 #
 # ONE HOME FOR WHERE A PATH RESOLVES (issue 0134): clean's scan for PATH
 # binaries in a tree it is about to remove, and fullcycle's PATH watch, which
@@ -565,7 +652,7 @@ real_path() {
     return 0
   fi
   if [ -d "$p" ]; then
-    physical_dir "$p" _crp_out || _crp_out="$p"
+    physical_dir "$p" _crp_out "${3-}" || _crp_out="$p"
     return 0
   fi
   f="$(follow_links "$p")" || f="$p"
@@ -574,7 +661,7 @@ real_path() {
     *) fd=. ;;
   esac
   [ -n "$fd" ] || fd=/
-  physical_dir "$fd" d || d="$fd"
+  physical_dir "$fd" d "${3-}" || d="$fd"
   _crp_out="$d/${f##*/}"
   return 0
 }
@@ -602,6 +689,9 @@ real_path() {
 # prefixes, so a root entered as //... missed every link into its trees, and a
 # PATH entry spelled from // was never the tree's.
 #
+# Its logical twin, logical_dir, keeps a path as the user's shell reads it
+# (issue 0267).
+#
 # Its locals carry its own prefix, since <out-var> is a caller's name reached
 # through bash's dynamic scope, and a local of the same name would take it.
 physical_dir() {
@@ -619,6 +709,72 @@ physical_dir() {
   _cpd_d="${_cpd_d%$'\n.'}"
   case "$_cpd_d" in //*) _cpd_d="${_cpd_d#/}" ;; esac
   _cpd_res="$_cpd_d"
+}
+
+# logical_dir <dir> <out-var> -- the absolute logical path of <dir>, as the
+# user's shell reads it from the current directory, or 1 when it cannot be
+# entered: physical_dir's logical twin. Links are kept as typed and a/../b is
+# tidied as text, as `cd && pwd` does, because a project's name is derived from
+# the path's last part, and the physical one would rename it under a linked
+# directory. cd's own reason for a directory it cannot enter is left on stderr,
+# for the caller to keep or silence.
+#
+# FROM WHERE THE PATH SAYS, AND NOTHING cd PRINTS (issue 0267). install's
+# --into and upgrade's and vendor's --from each captured a bare `cd <dir> &&
+# pwd`, and a logical cd reads a relative operand through an exported CDPATH
+# and a lone `-` as $OLDPWD, printing the directory it changed to: the capture
+# held that line above pwd's, and install wrote a project under a path holding
+# a newline, at exit 0. So a relative path is spelled from ./, which cd reads
+# from the current directory alone and never prints, and pwd's answer is read
+# past a sentinel, so a name ending in a newline keeps it, as physical_dir's
+# is (issues 0131, 0141, 0162). A leading // is spelled /, as there.
+#
+# Its locals carry its own prefix, as physical_dir's do.
+logical_dir() {
+  local _cld_dir="$1" _cld_d
+  local -n _cld_res="$2"
+  case "$_cld_dir" in
+    /*) ;;
+    *) _cld_dir="./$_cld_dir" ;;
+  esac
+  _cld_d="$(cd -L -- "$_cld_dir" && pwd -L && printf .)" || return 1
+  _cld_d="${_cld_d%$'\n.'}"
+  case "$_cld_d" in //*) _cld_d="${_cld_d#/}" ;; esac
+  _cld_res="$_cld_d"
+}
+
+# colon_split <list> <out-array> -- the entries of a colon-separated list, PATH
+# or GIT_CEILING_DIRECTORIES, into the array <out-array> names: one more entry
+# than <list> has colons, so an empty entry, a trailing one and the one entry of
+# an empty <list> are each kept, and a newline stays inside the entry it is in.
+# What an empty or a relative entry means is each caller's own reading.
+#
+# THE ONE COLON SPLIT (issue 0248). Each site wrote out a `read -r -a` with IFS
+# a colon, which reads one line and drops a trailing empty field: an entry
+# holding a newline ended the list there, so use brew read Homebrew's bin after
+# it as off PATH, git_ceiling and fullcycle's watch read nothing past it, and
+# clean refused such a PATH as unreliable; and path_without handed back a PATH
+# less its trailing empty entry, which a shell reads as the current directory.
+#
+# Its locals carry its own prefix, since <out-array> is a caller's name reached
+# through bash's dynamic scope, and a local of the same name would take it. So
+# an empty <out-array>, or one named with that prefix, is refused at rc 1 with a
+# line on stderr, and nothing is set.
+colon_split() {
+  case "${2-}" in
+    '' | _csp_*)
+      printf "colon_split: cannot split into '%s': name an array outside its _csp_ prefix\n" "${2-}" >&2
+      return 1
+      ;;
+  esac
+  local _csp_rest="$1"
+  local -n _csp_res="$2"
+  _csp_res=()
+  while [[ "$_csp_rest" == *:* ]]; do
+    _csp_res+=("${_csp_rest%%:*}")
+    _csp_rest="${_csp_rest#*:}"
+  done
+  _csp_res+=("$_csp_rest")
 }
 
 # is_wsl -- rc 0 when this session runs under WSL (ST0008), rc 1 otherwise,
@@ -790,6 +946,86 @@ replace_file() {
   rename_staged "$tmp"
 }
 
+# file_immutable <file> -- rc 0 when <file> carries the immutable flag, which no
+# write, rename or removal gets past while it is set: `uchg` or `schg` on
+# macOS, `i` on Linux. rc 1 when it does not, or its filesystem keeps no such
+# flag; rc 2 when this machine has no reader for it (no lsattr), so that a
+# caller says so rather than passing it (issue 0279).
+#
+# EACH PLATFORM IS ASKED IN ITS OWN SPELLING. macOS's flags are read with its
+# own /usr/bin/stat, by path, since GNU's `stat -f` on PATH is a filesystem's
+# status and no file's flags; only hex digits are an answer, UF_IMMUTABLE
+# (0x2) and SF_IMMUTABLE (0x20000) the bits asked. Linux's are lsattr's
+# first field.
+file_immutable() {
+  local out
+  case "$(uname -s 2>/dev/null)" in
+    Darwin | *BSD)
+      out="$(/usr/bin/stat -f %Xf -- "$1" 2>/dev/null)" || return 2
+      [[ "$out" =~ ^[0-9A-Fa-f]+$ ]] || return 2
+      (((16#$out & 16#20002) != 0)) && return 0
+      return 1
+      ;;
+    *)
+      command -v lsattr >/dev/null 2>&1 || return 2
+      # A filesystem lsattr cannot ask, tmpfs or overlayfs ("Inappropriate
+      # ioctl"), keeps no flag lsattr sets, so the file is not immutable there;
+      # saying it could not be checked would put a warning in every write.
+      out="$(lsattr -d -- "$1" 2>/dev/null)" || return 1
+      [[ "${out%% *}" == *i* ]] && return 0
+      return 1
+      ;;
+  esac
+}
+
+# replace_problem <why|fix> <file> -- when replace_file could not replace
+# <file>: rc 0 with why, as one clause, or what to do about it; rc 1, printing
+# nothing, when it could (issue 0260).
+#
+# IT ASKS WHAT stage_beside NEEDS, AND NOTHING ELSE: a link it can follow to
+# the file, that file readable where it exists, since it is copied and read,
+# and the file's directory one that takes a new file and a rename. The file's
+# own write bit is not asked: a read-only file is still replaced, and keeps its
+# mode (above).
+#
+# AND THAT THE FILE CAN BE REPLACED AT ALL (issue 0279). An immutable file
+# cannot be, and `-w` cannot tell it from a read-only one, which can: one
+# listed after a bare sidecar passed the preflight, and the write pass
+# half-wrote the set, leaving an immutable temporary beside it under BSD.
+# Where the flag cannot be read, that is said, on stderr, and the file is not
+# refused for it.
+replace_problem() {
+  local file dir why fix imm=1
+  if ! file="$(follow_links "$2" 2>/dev/null && printf x)"; then
+    why="is a link devbin cannot follow to its file"
+    fix="point the link at the file"
+  else
+    file="${file%$'\n'x}"
+    dir="$(dirname -- "$file")"
+    if [ -e "$file" ] && [ -r "$file" ]; then
+      file_immutable "$file" && imm=0 || imm=$?
+      [ "$imm" -ne 2 ] || [ "$1" != why ] ||
+        warn "cannot tell whether $file is immutable, so it was not checked for that"
+    fi
+    if [ -e "$file" ] && [ ! -r "$file" ]; then
+      why="cannot be read"
+      fix="let devbin read it"
+    elif [ "$imm" -eq 0 ]; then
+      why="is immutable, so no write can replace it"
+      fix="clear its immutable flag"
+    elif [ ! -w "$dir" ] || [ ! -x "$dir" ]; then
+      why="is in $dir, where devbin cannot make the copy it writes and renames over the file"
+      fix="let devbin write in $dir"
+    else
+      return 1
+    fi
+  fi
+  case "$1" in
+    why) printf '%s\n' "$why" ;;
+    fix) printf '%s\n' "$fix" ;;
+  esac
+}
+
 # sed_inplace <expression> <file> -- edit a file in place, portably.
 #
 # `sed -i` is not portable: BSD sed (macOS) requires an argument to -i and GNU
@@ -917,6 +1153,94 @@ catalogue_line_root() {
   esac
 }
 
+# version_line <file> -- where read_version reads <file>'s version, for the
+# kinds whose recipe rewrites one line: the line's number, a tab, and the
+# version it holds, and for npm a tab and which `"version": "..."` pair on the
+# line it is, counted as the recipe's sed counts them; nothing, and rc 1, where
+# there is none (issue 0263).
+#
+# THE ONE ANSWER TO WHICH LINE. read_version reads the version from that line,
+# and version set's recipe rewrites that line and no other, so a reader and a
+# writer cannot mean different lines: the recipes rewrote every line that
+# looked like a version, a dependency table's included, at exit 0, while the
+# reader read the first.
+#
+#   cargo  the first `version = "..."` line, and only in the [package] or
+#          [workspace.package] table, where cargo writes it. A manifest whose
+#          first version line is elsewhere, a dependency's say, holds no
+#          version devbin reads, and nor does one that gives the version
+#          otherwise: a dotted `package.version` key, an inline table, or
+#          `version.workspace = true`, which inherits the workspace's. A
+#          table header is read only outside an array: a line inside a
+#          multi-line array value opening with `[` is an element (issue
+#          0281), so the brackets of each value outside its strings and
+#          comment are counted until the array closes.
+#   mix    the first `version: "..."` line, as `def project` writes it.
+#   npm    the `"version"` key of the top-level object, wherever it sits on
+#          its line (issue 0280): the file is read token by token, its
+#          strings skipped, and the object's depth counted, so a nested
+#          `"version"` is never read and a one-line package.json is.
+version_line() {
+  local prog line
+  # Single-quoted on purpose: awk expands these programs' fields, not the shell.
+  # shellcheck disable=SC2016
+  case "$(version_kind "$1")" in
+    cargo)
+      prog='function brackets(s,   i, c, q, d) {
+  d = 0; q = ""
+  for (i = 1; i <= length(s); i++) {
+    c = substr(s, i, 1)
+    if (q != "") {
+      if (c == "\\" && q == "\"") { i++; continue }
+      if (c == q) q = ""
+      continue
+    }
+    if (c == "\"" || c == sq) { q = c; continue }
+    if (c == "#") break
+    if (c == "[") d++
+    else if (c == "]") d--
+  }
+  return d
+}
+BEGIN { sq = sprintf("%c", 39) }
+depth > 0 { depth += brackets($0); if (depth < 0) depth = 0; next }
+/^[[:space:]]*\[/ { t = $0; sub(/^[[:space:]]*\[+[[:space:]]*/, "", t); sub(/[[:space:]]*\].*$/, "", t); next }
+/^version *= *"/ { if (t == "package" || t == "workspace.package") print NR "\t" $2; exit }
+/=/ { v = $0; sub(/^[^=]*=/, "", v); depth += brackets(v); if (depth < 0) depth = 0 }'
+      ;;
+    mix) prog='/^ *version: *"/ { print NR "\t" $2; exit }' ;;
+    npm)
+      prog='{
+  s = $0; n = length(s); occ = 0
+  for (i = 1; i <= n; i++) {
+    c = substr(s, i, 1)
+    if (instr) {
+      if (c == "\\") { i++; continue }
+      if (c != "\"") continue
+      instr = 0
+      if (substr(s, start, i - start) != "version") continue
+      rest = substr(s, i + 1)
+      if (!match(rest, /^[[:space:]]*:[[:space:]]*"/)) continue
+      occ++
+      if (depth != 1) continue
+      rest = substr(rest, RLENGTH + 1)
+      match(rest, /^[^"]*/)
+      print NR "\t" substr(rest, 1, RLENGTH) "\t" occ
+      exit
+    }
+    if (c == "\"") { instr = 1; start = i + 1 }
+    else if (c == "{" || c == "[") depth++
+    else if (c == "}" || c == "]") depth--
+  }
+}'
+      ;;
+    *) return 1 ;;
+  esac
+  line="$(awk -F'"' "$prog" "$1" 2>/dev/null)" || return 1
+  [ -n "$line" ] || return 1
+  printf '%s\n' "$line"
+}
+
 # read_version [file] [role] -- the project version, or `unknown`.
 #
 # THE DRIFT: most projects read a VERSION file; one reads the version out of
@@ -944,24 +1268,26 @@ catalogue_line_root() {
 # Callers that pass a <file> are reading a SIDECAR; both forms are real and
 # in-file analysis cannot see the sidecar callers, which live in lib/cmd/version.
 read_version() {
-  local file="${1:-${DEVBIN_VERSION_FILE:-VERSION}}" role path v=""
+  local file="${1:-${DEVBIN_VERSION_FILE:-VERSION}}" role path v="" pb
   if [ $# -ge 1 ]; then role="${2:-sidecar}"; else role=version-file; fi
-  case "$file" in
-    /*) path="$file" ;;
-    *) path="${PROJECT_ROOT:-.}/$file" ;;
-  esac
+  path="$(version_path "$file")"
   if [ -f "$path" ]; then
-    case "${path##*/}" in
-      mix.exs) v="$(awk -F'"' '/^ *version: *"/ { print $2; exit }' "$path" 2>/dev/null)" || v="" ;;
-      Cargo.toml) v="$(awk -F'"' '/^version *= *"/ { print $2; exit }' "$path" 2>/dev/null)" || v="" ;;
-      package.json) v="$(awk -F'"' '/"version" *:/ { print $4; exit }' "$path" 2>/dev/null)" || v="" ;;
+    case "$(version_kind "$path")" in
+      # The line version_line names, and its version (issue 0263). cargo is
+      # named last, before the parenthesis: as a word after `| ` it reads as a
+      # cargo command to fullcycle.bats' scan of what lib/helpers runs (0165).
+      mix | npm | cargo)
+        v="$(version_line "$path")" || v=""
+        v="${v#*$'\t'}"
+        v="${v%%$'\t'*}"
+        ;;
       # Added by WP-17 so this stays the ONE reader. `version check` needs to
       # read a plist sidecar, and giving it its own extractor would put two
       # patterns on one file kind -- which is how a reader and a writer come to
       # disagree about which line they mean.
-      *.plist)
-        if [ -x /usr/libexec/PlistBuddy ]; then
-          v="$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$path" 2>/dev/null)" || v=""
+      plist)
+        if pb="$(plistbuddy_path)"; then
+          v="$("$pb" -c "Print :CFBundleShortVersionString" "$path" 2>/dev/null)" || v=""
         fi
         ;;
       # The bare-version default reads the WHOLE file, so a file devbin has no
@@ -972,7 +1298,9 @@ read_version() {
       # caller here already handles. SIDECAR reads only -- see the role note in
       # the header for why the version file itself reads raw.
       *)
-        v="$(tr -d '[:space:]' <"$path" 2>/dev/null)" || v=""
+        # stderr goes away before the file is opened: redirects are made in
+        # order, so a file that cannot be opened would print bash's own error.
+        v="$(tr -d '[:space:]' 2>/dev/null <"$path")" || v=""
         if [ "$role" = sidecar ]; then
           is_bare_version "$v" || v=""
         fi
@@ -981,6 +1309,257 @@ read_version() {
   fi
   [ -n "$v" ] || v=unknown
   printf '%s' "$v"
+}
+
+# version_kind <file> -- the kind of version file <file> is, by its name: cargo
+# (Cargo.toml), mix (mix.exs), npm (package.json), plist (*.plist), or bare, a
+# file holding the version and nothing else. Pure.
+#
+# THE ONE TABLE OF KINDS (issue 0259). read_version reads by it, version set
+# writes by it (write_version_into), and version_unread fits its remedy to it,
+# so a reader, a writer and the advice between them cannot disagree about what
+# a file is.
+version_kind() {
+  case "${1##*/}" in
+    Cargo.toml) printf 'cargo\n' ;;
+    mix.exs) printf 'mix\n' ;;
+    package.json) printf 'npm\n' ;;
+    *.plist) printf 'plist\n' ;;
+    *) printf 'bare\n' ;;
+  esac
+}
+
+# version_path <file> -- where read_version reads <file>: as given when it is
+# absolute, under the project root otherwise. One spelling, for read_version
+# and for version_file_state, so the reason a version cannot be read is always
+# about the file the reader read.
+version_path() {
+  case "$1" in
+    /*) printf '%s\n' "$1" ;;
+    *) printf '%s\n' "${PROJECT_ROOT:-.}/$1" ;;
+  esac
+}
+
+# plistbuddy_path -- the PlistBuddy devbin runs, which reads and writes a
+# plist's version: the first on PATH, as every other tool devbin runs is found,
+# else macOS's own at /usr/libexec, which no PATH names; rc 1, printing
+# nothing, where there is neither, off macOS (issue 0264). THE ONE SPELLING of
+# where it is, for the reader, the writer, the drift report and the version
+# file's state, so they cannot disagree about whether a plist can be handled.
+plistbuddy_path() {
+  command -v PlistBuddy 2>/dev/null && return 0
+  [ -x /usr/libexec/PlistBuddy ] || return 1
+  printf '%s\n' /usr/libexec/PlistBuddy
+}
+
+# version_file_state [file] [role] -- what stands at a version file, as one
+# word: the one project.version_from names, or <file>, in <role>,
+# `version-file` (the default) or `sidecar`, a file project.version_sidecars
+# declares (issue 0259, 0265). It writes nothing.
+#
+#   reads      read_version reads a version from it
+#   start      version file: nothing is there, it is of the bare kind, and
+#              its directory takes a new file, so `version set` starts it
+#   nodir      version file: nothing is there, it is of the bare kind, and its
+#              directory is not there or cannot be written in
+#   absent     version file: nothing is there, and it is of a structured kind,
+#              which holds more than the version, so devbin never starts one
+#   missing    sidecar: nothing is there
+#   dangling   a link to no file
+#   notfile    something there that is not a regular file, a directory say
+#   noread     a file devbin may not read
+#   notool     a plist where PlistBuddy, which reads one, is not: off macOS
+#   noversion  a file its kind reads no version from: an empty VERSION, or a
+#              structured file with no version devbin reads
+#   empty      sidecar: a file of the bare kind holding nothing, which a
+#              write fills, so `version sync` heals it
+#   norecipe   sidecar: a file of the bare kind holding more than a version,
+#              which devbin has no recipe for: the bare version written over
+#              it would destroy what it holds
+#
+# ONE ANSWER FOR EVERY READER AND THE WRITER, IN EITHER ROLE (issue 0265).
+# version show, version check, doctor and version set ask it, and say what it
+# answers through version_unread, so no reader decides a state for itself and
+# one state has one wording wherever it is reported. A failed read is never an
+# empty file: noread is asked first.
+version_file_state() {
+  local file="${1:-${DEVBIN_VERSION_FILE:-VERSION}}" role="${2:-version-file}" path dir
+  path="$(version_path "$file")"
+  if [ -L "$path" ] && [ ! -e "$path" ]; then
+    printf 'dangling\n'
+  elif [ ! -e "$path" ]; then
+    dir="$(dirname "$path")"
+    if [ "$role" = sidecar ]; then
+      printf 'missing\n'
+    elif [ "$(version_kind "$file")" != bare ]; then
+      printf 'absent\n'
+    elif [ -d "$dir" ] && [ -w "$dir" ]; then
+      printf 'start\n'
+    else
+      printf 'nodir\n'
+    fi
+  elif [ ! -f "$path" ]; then
+    printf 'notfile\n'
+  elif [ ! -r "$path" ]; then
+    printf 'noread\n'
+  elif [ "$(version_kind "$file")" = plist ] && ! plistbuddy_path >/dev/null; then
+    printf 'notool\n'
+  elif [ "$(read_version "$file" "$role")" != unknown ]; then
+    printf 'reads\n'
+  elif [ "$role" != sidecar ] || [ "$(version_kind "$file")" != bare ]; then
+    printf 'noversion\n'
+  elif [ -z "$(tr -d '[:space:]' 2>/dev/null <"$path")" ]; then
+    printf 'empty\n'
+  else
+    printf 'norecipe\n'
+  fi
+}
+
+# version_unwritten <why|fix> [file] -- when version set's write could not
+# change the version file, the one project.version_from names or <file>, as it
+# stands: rc 0 with why, as one clause, or what to do about it; rc 1, printing
+# nothing, when it could (issue 0260). A file that is not there yet is
+# version_file_state's question, not this one's.
+#
+# ASKED BY KIND, BECAUSE THE WRITES DIFFER. A bare file is written over by
+# printf and a plist edited in place by PlistBuddy, so each must be writable.
+# Cargo.toml, mix.exs and package.json are rewritten through replace_file, which
+# asks replace_problem's question: a read-only one is still rewritten and keeps
+# its mode, and one whose directory takes no new file is not.
+version_unwritten() {
+  local file="${2:-${DEVBIN_VERSION_FILE:-VERSION}}" path said
+  path="$(version_path "$file")"
+  [ -e "$path" ] || return 1
+  case "$(version_kind "$file")" in
+    bare | plist)
+      [ ! -w "$path" ] || return 1
+      case "$1" in
+        why) printf 'cannot be written\n' ;;
+        fix) printf 'let devbin write it\n' ;;
+      esac
+      ;;
+    *)
+      # A directory under the project is named from its root, as the file is.
+      said="$(replace_problem "$1" "$path")" || return 1
+      printf '%s\n' "${said//"${PROJECT_ROOT:-.}/"/}"
+      ;;
+  esac
+}
+
+# version_unread <why|fix|clause> [file] [role] [write] -- when a version file,
+# the one project.version_from names or <file>, in <role> (version_file_state's
+# roles), gives no version: rc 0 with why it does not, as one sentence naming
+# the file and the key that names it (why), what to do about it (fix), or the
+# reason alone (clause); rc 1, printing nothing, when it gives one (issue 0259).
+#
+# THE ONE WORDING, fitted to what stands at the file (version_file_state), to
+# its kind and to its role (issue 0265). version show, version check, doctor
+# and version set print it, so no two of them say different things about one
+# file. The remedy names `version set` only where set would start or fill the
+# file: a structured file holds more than the version, and set never writes one
+# that holds only the number. read_version's `unknown` is for a line that shows
+# the version as it stands; these readers never pass it on as a version.
+#
+# THE WRITER ASKS ONE THING MORE, AND LAST (issue 0260). With `write`, the
+# writer's question, which set, bump and sync ask through apply_version and
+# check asks of a sidecar it would tell sync to heal, it also answers for a
+# file its write could not change (version_unwritten), after every other
+# answer, so that remedy is never moot. A file set starts or fills is no
+# refusal of its own there.
+version_unread() {
+  local file="${2:-${DEVBIN_VERSION_FILE:-VERSION}}" role="${3:-version-file}"
+  local state ask=no set_it why fix dir elsewhere noun
+  if [ "$role" = sidecar ]; then
+    elsewhere="drop it from project.version_sidecars"
+    noun=sidecar
+  else
+    elsewhere="point project.version_from at the file that holds the version"
+    noun="version file"
+  fi
+  set_it="${DEVBIN_INVOKE:-bin/devbin} version set 0.1.0"
+  state="$(version_file_state "$file" "$role")"
+  if [ "${4:-}" = write ]; then
+    case "$state" in
+      reads | start | empty) ask=yes ;;
+      noversion) [ "$role" = sidecar ] || [ "$(version_kind "$file")" != bare ] || ask=yes ;;
+    esac
+    if [ "$ask" = yes ]; then
+      version_unwritten why "$file" >/dev/null || return 1
+      state=nowrite
+    fi
+  fi
+  case "$state" in
+    reads) return 1 ;;
+    start)
+      why="does not exist"
+      fix="start it with: $set_it"
+      ;;
+    nodir)
+      dir="$(dirname "$file")"
+      why="does not exist, and devbin cannot make a file in $dir"
+      fix="make $dir, or $elsewhere"
+      ;;
+    absent)
+      why="does not exist, and devbin never starts a $(basename "$file"), which holds more than the version"
+      fix="create it with the project's version in it, or $elsewhere"
+      ;;
+    missing)
+      why="does not exist"
+      fix="fix the path, or $elsewhere: a sidecar silently skipped is how a tree drifts"
+      ;;
+    dangling)
+      why="is a link to no file"
+      if [ "$role" != sidecar ] && [ "$(version_kind "$file")" = bare ]; then
+        fix="point the link at the $noun, or remove it and start one with: $set_it"
+      else
+        fix="point the link at the $noun, or $elsewhere"
+      fi
+      ;;
+    notfile)
+      why="is not a regular file"
+      fix="move it aside, or $elsewhere"
+      ;;
+    noread)
+      why="cannot be read"
+      fix="let devbin read it, or $elsewhere"
+      ;;
+    notool)
+      why="is a plist, and PlistBuddy, which reads one, is macOS-only"
+      fix="do this on macOS, or $elsewhere"
+      ;;
+    noversion)
+      if [ "$(version_kind "$file")" = bare ]; then
+        why="holds no version"
+        fix="set one with: $set_it"
+      else
+        why="holds no version devbin reads"
+        fix="add the project's version to it, or $elsewhere"
+      fi
+      ;;
+    empty)
+      why="holds nothing"
+      fix="fill it with: ${DEVBIN_INVOKE:-bin/devbin} version sync"
+      ;;
+    norecipe)
+      why="holds more than a version, and devbin has no recipe for this kind of file"
+      fix="have the project's own command sync it, or $elsewhere"
+      ;;
+    nowrite)
+      why="$(version_unwritten why "$file")"
+      fix="$(version_unwritten fix "$file"), or $elsewhere"
+      ;;
+  esac
+  case "$1" in
+    why)
+      if [ "$role" = sidecar ]; then
+        printf '%s, declared in project.version_sidecars, %s\n' "$file" "$why"
+      else
+        printf '%s, the file project.version_from names, %s\n' "$file" "$why"
+      fi
+      ;;
+    fix) printf '%s\n' "$fix" ;;
+    clause) printf '%s\n' "$why" ;;
+  esac
 }
 
 # sha256_files <file>... -- `<sum>  <path>` per file, in ONE process.
@@ -1358,6 +1937,12 @@ cargo_tree_outside_why() {
 # since where those land beneath a directory that does not exist yet cannot be
 # read. A `..` in the existing part is the kernel's, and is resolved with it,
 # so cargo's `native/cli/../../target` is placed at the project's target.
+#
+# GETCWD, an optional third argument, places the existing part as the
+# filesystem spells it (physical_dir's getcwd), not as it was typed: on a
+# case-insensitive volume the two differ, and a caller comparing against a path
+# another tool recorded, as macos does against Launch Services' records (issue
+# 0243), needs the filesystem's.
 cargo_place() {
   local _cp_t="$1" _cp_a _cp_rest="" _cp_pa
   local -n _cp_out="$2"
@@ -1382,7 +1967,7 @@ cargo_place() {
       return 2
       ;;
   esac
-  if ! physical_dir "$_cp_a" _cp_pa; then
+  if ! physical_dir "$_cp_a" _cp_pa "${3-}"; then
     _cp_out="$_cp_a"
     return 1
   fi
@@ -2285,6 +2870,59 @@ utc_from_epoch() {
   printf '%s' "$out"
 }
 
+# mtime_epoch <file> -- <file>'s last write, in seconds since the epoch, by
+# BSD's `stat -f %m` or GNU's `stat -c %Y`, or 1 when neither answers.
+#
+# EACH ARM IS CAPTURED, AND ONLY A NUMBER IS AN ANSWER. GNU's `stat -f` is a
+# FILESYSTEM's status: it prints that block to stdout and returns 1, and an
+# uncaptured `||` then appended the GNU arm's epoch after it, so every Linux
+# run read the time as unreadable while macOS never saw it. Nothing here
+# formats a time: utc_from_epoch does, with both of its arms. The one copy for
+# every reader, worktrees's index time among them (issue 0245).
+mtime_epoch() {
+  local out
+  out="$(stat -f %m "$1" 2>/dev/null)" || out="$(stat -c %Y "$1" 2>/dev/null)" || return 1
+  case "$out" in
+    '' | *[!0-9]*) return 1 ;;
+  esac
+  printf '%s' "$out"
+}
+
+# scratch_outside <who> <root> <name> -- make and print a scratch directory,
+# <name>.XXXXXX under $TMPDIR, refusing when $TMPDIR is <root> or inside it.
+# <who> opens each refusal, said on stderr.
+#
+# OUTSIDE THE PROJECT IS THE CONTRACT, NOT A PREFERENCE. A scratch under the
+# project root is untracked, non-ignored dirt, or a directory beside the
+# worktrees a report lists, so a read made there would change the fact it
+# reports. The check is made BEFORE anything is created, on physical paths, so
+# a symlinked $TMPDIR cannot hide inside, through physical_dir, the one turn of
+# a directory into one: a copy of its own kept a leading //, so a root spelled
+# that way walked past the check (issue 0162). `release` and `worktrees` both
+# make their scratch here (issue 0245).
+scratch_outside() {
+  local who="$1" root base dir
+  if ! physical_dir "$2" root; then
+    warn "$who: cannot resolve the project root $2"
+    return 1
+  fi
+  if ! physical_dir "${TMPDIR:-/tmp}" base; then
+    warn "$who: TMPDIR (${TMPDIR:-/tmp}) is not a directory, so there is nowhere to make a scratch directory"
+    return 1
+  fi
+  case "$base/" in
+    "$root"/*)
+      warn "$who: TMPDIR ($base) is inside the project ($root), and a scratch made there is dirt this run would then report -- point TMPDIR outside the project"
+      return 1
+      ;;
+  esac
+  if ! dir="$(mktemp -d "$base/$3.XXXXXX")"; then
+    warn "$who: cannot make a scratch directory under $base"
+    return 1
+  fi
+  printf '%s\n' "$dir"
+}
+
 # sha256_of <file> -- one file's SHA256, bare hex, or return 1.
 #
 # Built on sha256_files so the knowledge of which tool exists lives in exactly
@@ -2365,7 +3003,43 @@ git_readonly() {
   git_readonly_prime || return 1
   (
     git_local_env_clear || exit 1
-    exec git --no-optional-locks -c core.fsmonitor=false -c core.untrackedCache=false "$@"
+    _git_readonly_exec "$@"
+  )
+}
+
+# _git_readonly_exec <args...> -- exec git under the read-only flags, in the
+# subshell its caller opened: the one statement of the flags, for git_readonly
+# and git_readonly_index.
+_git_readonly_exec() {
+  exec git --no-optional-locks -c core.fsmonitor=false -c core.untrackedCache=false "$@"
+}
+
+# git_readonly_index <index> <args...> -- git_readonly, asking against the
+# scratch index <index> in place of a worktree's own (issue 0245).
+#
+# git_readonly clears GIT_INDEX_FILE with the rest of git's local variables, so
+# a read that needs an index of its own -- `read-tree` of a branch into a
+# scratch, then `apply --cached --check` against it -- cannot go through it.
+# This clears the same variables, then points GIT_INDEX_FILE at <index>, under
+# the same flags. <index> is an absolute path the caller made outside every
+# repository it reads, and the only file a call through here may write, so
+# core.splitIndex is off for the call: a split index would write its shared
+# half beside the repository's own index.
+git_readonly_index() {
+  local index="$1"
+  shift
+  case "$index" in
+    /*) ;;
+    *)
+      warn "git_readonly_index: the scratch index '$index' is not an absolute path -- a devbin defect"
+      return 1
+      ;;
+  esac
+  git_readonly_prime || return 1
+  (
+    git_local_env_clear || exit 1
+    export GIT_INDEX_FILE="$index"
+    _git_readonly_exec -c core.splitIndex=false "$@"
   )
 }
 
@@ -2387,6 +3061,75 @@ git_local_env_clear() {
   done <<VARS
 $_DEVBIN_GIT_LOCAL_VARS
 VARS
+}
+
+# pathlist_specs <text> -- the pathspecs of a path list such as
+# tests/shipped.paths, one a line: every line of <text> as written, but a blank
+# one or one whose first non-space character is `#`.
+# pathspec_excludes <spec> -- rc 0 for a pathspec that leaves paths out, in
+# every spelling git accepts: short magic holding `!` or `^`, in any order with
+# `/` (`:!x`, `:^x`, `:/!x`, `:!/x`, `:!:x`), or long magic naming exclude
+# (`:(exclude)x`, `:(top,exclude)x`).
+# pathspec_kept_out <spec> -- an exclude <spec> with its exclude magic taken
+# off and the rest kept, so `git ls-files -- <it>` lists what <spec> keeps out.
+# The magic is always written, empty when nothing is left of it (`::x`,
+# `:()x`), so a path that opens with `:`, or an empty one, stays the path.
+#
+# THE ONE READER OF A PATH LIST (issue 0261). The snapshot builder and the
+# workroom scan both read tests/shipped.paths through these, so what ships and
+# what is scanned come from one reading of one list; until 0261 each read it
+# its own way, and the scan knew `:(exclude)` alone. Pure.
+pathlist_specs() {
+  local line t
+  while IFS= read -r line; do
+    t="${line#"${line%%[![:space:]]*}"}"
+    case "$t" in '' | '#'*) continue ;; esac
+    printf '%s\n' "$line"
+  done <<<"$1"
+}
+
+pathspec_excludes() {
+  local magic
+  case "$1" in
+    ':('*')'*)
+      magic="${1#:(}"
+      magic=",${magic%%)*},"
+      [[ "$magic" == *,exclude,* ]]
+      return
+      ;;
+    ':'*)
+      magic="${1#:}"
+      magic="${magic%%[!/!^]*}"
+      [[ "$magic" == *'!'* || "$magic" == *'^'* ]]
+      return
+      ;;
+  esac
+  return 1
+}
+
+pathspec_kept_out() {
+  local magic rest kept="" m
+  case "$1" in
+    ':('*')'*)
+      magic="${1#:(}"
+      rest="${magic#*)}"
+      magic="${magic%%)*}"
+      while IFS= read -r -d , m; do
+        [ "$m" = exclude ] || kept="${kept:+$kept,}$m"
+      done <<<"$magic,"
+      printf ':(%s)%s\n' "$kept" "$rest"
+      ;;
+    ':'*)
+      magic="${1#:}"
+      rest="${magic#"${magic%%[!/!^]*}"}"
+      rest="${rest#:}"
+      magic="${magic%%[!/!^]*}"
+      kept="${magic//!/}"
+      kept="${kept//^/}"
+      printf ':%s:%s\n' "$kept" "$rest"
+      ;;
+    *) printf '%s\n' "$1" ;;
+  esac
 }
 
 # git_remote <git-args>... -- run git against a remote so it cannot ask for
@@ -2542,10 +3285,11 @@ git_marker_above() {
 # git_ceiling <dir> <out-var> -- the GIT_CEILING_DIRECTORIES entry git's own
 # discovery stops below when it starts in the physical <dir>: the longest entry
 # that is a proper ancestor of <dir>, or empty when none is. The list is read
-# as git reads it: entries part at `:`, a relative one is ignored, one before
-# an empty entry is resolved by physical_dir and dropped when it cannot be, one
-# after it is compared as written, and one trailing `/` is dropped, so `/`
-# keeps the walk out of the root alone. An entry equal to <dir> is no ceiling,
+# as git reads it: entries part at `:` alone (colon_split), so a newline is part
+# of the entry it is in; a relative one is ignored, one before an empty entry
+# is resolved by physical_dir and dropped when it cannot be, one after it is
+# compared as written, and one trailing `/` is dropped, so `/` keeps the walk
+# out of the root alone. An entry equal to <dir> is no ceiling,
 # since git always looks in the directory it starts in. An entry keeps the case
 # it is typed in, as git's does, and <dir> is to be spelled through getcwd
 # (physical_dir's getcwd form), as git's working directory is, so on a disk that
@@ -2562,7 +3306,7 @@ git_ceiling() {
   local _gcl_e _gcl_c _gcl_raw="" _gcl_len=-1 _gcl_list=()
   local -n _gcl_res="$2"
   _gcl_res=""
-  IFS=: read -r -a _gcl_list <<<"${GIT_CEILING_DIRECTORIES-}"
+  colon_split "${GIT_CEILING_DIRECTORIES-}" _gcl_list
   for _gcl_e in "${_gcl_list[@]}"; do
     case "$_gcl_e" in
       "")
@@ -2607,11 +3351,11 @@ git_ceiling() {
 #
 # NOT A COPY OF GIT'S DISCOVERY. It walks further than git in these places, and
 # there it errs towards could-not-read: it does not stop at a filesystem
-# boundary (GIT_DISCOVERY_ACROSS_FILESYSTEM), it does not pass over a `.git` git
-# passes over as no repository (a dangling link, an empty directory), and it
-# reads GIT_CEILING_DIRECTORIES only up to a newline. It errs the other way
-# inside a bare repository: a directory there holds no `.git`, so it reads as
-# absent where git would refuse that repository or read it.
+# boundary (GIT_DISCOVERY_ACROSS_FILESYSTEM), and it does not pass over a `.git`
+# git passes over as no repository (a dangling link, an empty directory). It
+# errs the other way inside a bare repository: a directory there holds no
+# `.git`, so it reads as absent where git would refuse that repository or read
+# it.
 git_repo_absent() {
   local d c rc=0
   physical_dir "$1" d getcwd || return 1
@@ -3382,6 +4126,16 @@ manifest_field() {
   ' "$path"
 }
 
+# is_install_tree <root> -- rc 0 when the manifest at <root> records a machine
+# install (`kind: install`), rc 1 otherwise, a manifest that is not there or
+# cannot be read included (issue 0262). THE ONE READING OF A TREE'S KIND AS AN
+# INSTALL: every reader that asks whether a tree is one asks this, so none
+# compares the kind itself, and none spells the read's failure its own way, as
+# the dispatcher's own guard once did.
+is_install_tree() {
+  [ "$(manifest_field "$1" kind 2>/dev/null || true)" = install ]
+}
+
 manifest_version() { manifest_field "$1" devbin_version; }
 manifest_source_commit() { manifest_field "$1" source_commit; }
 
@@ -3408,7 +4162,7 @@ manifest_source_commit() { manifest_field "$1" source_commit; }
 # record, and it answers unknown.
 devbin_tree() {
   local root="$1"
-  if [ "$(manifest_field "$root" kind 2>/dev/null || true)" = install ]; then
+  if is_install_tree "$root"; then
     if [ "$(manifest_field "$root" managed_by 2>/dev/null || true)" = brew ]; then
       printf 'brew\n'
     elif [ "$(manifest_field "$root" tool 2>/dev/null || true)" = devbin ]; then
@@ -3435,7 +4189,7 @@ devbin_tree() {
 # brew.
 devbin_install_old() {
   _devbin_unmanifested_keg "$1" && return 0
-  [ "$(manifest_field "$1" kind 2>/dev/null || true)" = install ] || return 1
+  is_install_tree "$1" || return 1
   [ -z "$(manifest_field "$1" tool 2>/dev/null || true)" ]
 }
 
@@ -3461,8 +4215,18 @@ _devbin_unmanifested_keg() {
 # keeps the line's shape with `unknown` for the commit, and doctor fails on it.
 # The line names no path (issue 0230): where the running copy lives is
 # `command -v devbin`'s answer, so no caller adds one back.
+#
+# THE FIELD IS BUILT FROM ITS PARTS (issue 0244): the commit's first twelve hex
+# digits, then `+dirty`, never a slice of a longer string, so a 64-digit
+# commit prints twelve. A recorded commit of fewer than twelve digits prints
+# `unknown`, the line's one shape for a commit it cannot name in full.
+#
+# A RECORDED +dirty IS KEPT (issue 0277). An install's manifest records a dirty
+# source as `<sha> +dirty -- THESE BYTES MATCH NO COMMIT`; the mark is read
+# before the value is cut to its commit, so the line says `<sha12>+dirty` as T4
+# has it, never the bare commit a clean tree at that commit prints.
 devbin_tree_line() {
-  local root="$1" tree ver sha state
+  local root="$1" tree ver sha dirty="" state
   tree="$(devbin_tree "$root")"
   case "$tree" in
     dev)
@@ -3472,18 +4236,22 @@ devbin_tree_line() {
         if ! state="$(git_readonly -C "$root" status --porcelain -- bin/devbin lib 2>/dev/null)"; then
           sha=unknown
         elif [ -n "$state" ]; then
-          sha="$sha+dirty"
+          dirty=+dirty
         fi
       fi
       ;;
     *)
       ver="$(manifest_version "$root" 2>/dev/null || true)"
       sha="$(manifest_source_commit "$root" 2>/dev/null || true)"
+      case "$sha" in *" +dirty"*) dirty=+dirty ;; esac
       sha="${sha%% *}"
       is_commit_sha "$sha" || sha=unknown
       ;;
   esac
-  case "$sha" in unknown) ;; *) sha="${sha:0:12}${sha:40}" ;; esac
+  case "$sha" in
+    unknown) ;;
+    *) if [ "${#sha}" -ge 12 ]; then sha="${sha:0:12}$dirty"; else sha=unknown; fi ;;
+  esac
   printf 'devbin %s (%s, %s)\n' "${ver:-unknown}" "$tree" "$sha"
 }
 
@@ -3500,15 +4268,66 @@ tree_line_head() {
   esac
 }
 
+# machine_names_install <install root> -- rc 0 when this machine's install
+# (machine_install_root) is the install at <root>, rc 1 otherwise, a machine
+# whose install cannot be read included.
+#
+# COMPARED AS THE INSTALL IS NAMED, AND PHYSICALLY (issue 0251): a keg the opt
+# link has moved past counts as the machine's once the opt link is what both
+# name (install_named_root). A relative DEVBIN_INSTALL_PREFIX counts for
+# nothing: a project's upgrade reads it from the project root, so the install it
+# names there is not the one it names here.
+machine_names_install() {
+  local named machine m n
+  named="$(install_named_root "$1")"
+  machine="$(machine_install_root 2>/dev/null)" || return 1
+  case "$machine" in
+    /*) ;;
+    *) return 1 ;;
+  esac
+  physical_dir "$machine" m && physical_dir "$named" n && [ "$m" = "$n" ]
+}
+
 # vendor_from_hint <install root> -- the line that tells an operator how a
-# project vendors from an install: printed by publish and publish-upgrade, and
-# by the dispatcher's refusal to run from an install, which is why it lives
-# here rather than in lib/install. One home keeps its callers from differing;
-# what catches a WRONG line is the test, which runs the printed line in a
-# consumer. A keg is named by its opt link (install_named_root), so a line
-# copied from a brew install still runs after `brew upgrade`.
+# project vendors from an install: printed by publish and publish-upgrade, by
+# the dispatcher's refusal to run from an install and by the install's own
+# overview (install_remedies), which is why it lives here rather than in
+# lib/install. One home keeps its callers from differing; what catches a WRONG
+# line is the test, which runs the printed line in a consumer. A keg is named by
+# its opt link (install_named_root), so a line copied from a brew install still
+# runs after `brew upgrade`.
+#
+# NO --from WHERE THE MACHINE NAMES THAT INSTALL ALREADY (issue 0251): a
+# project's upgrade reads the machine's install when it is given none
+# (manifest_source), for every project whose manifest records the kind of its
+# source, so the line it needs is the plain one. A project recording none is
+# told by upgrade to name one with --from. A machine whose install cannot be
+# read keeps --from, which works either way, and doctor names its fault.
 vendor_from_hint() {
+  if machine_names_install "$1"; then
+    printf '  cd <your project> && bin/devbin upgrade\n'
+    return 0
+  fi
   printf '  cd <your project> && bin/devbin upgrade --from %s\n' "$(install_named_root "$1")"
+}
+
+# seed_hint <install root> -- the line that tells a reader how a project with no
+# devbin yet is seeded from the install at <root>, by its launcher as the reader
+# types it (launcher_shown, issue 0252).
+seed_hint() {
+  printf '  %s install --into <your project>\n' "$(launcher_shown "$1")"
+}
+
+# install_remedies <install root> -- what a reader does with the install at
+# <root>: seed a project from it (seed_hint), or upgrade one that has devbin
+# already (vendor_from_hint), each under its heading. THE ONE BLOCK for the
+# dispatcher's refusal to run from an install and the install's own overview
+# (issue 0251), so the two cannot word it differently.
+install_remedies() {
+  printf 'To SEED a project that has no devbin yet:\n'
+  seed_hint "$1"
+  printf '\nTo UPGRADE a project that already has one:\n'
+  vendor_from_hint "$1"
 }
 
 # lib_rel -- where devbin's runtime lives, relative to the project root.
@@ -3590,6 +4409,127 @@ home_expand() {
   printf '%s\n' "$v"
 }
 
+# xdg_dir <state|data|config|cache> -- the XDG base directory: XDG_STATE_HOME,
+# XDG_DATA_HOME, XDG_CONFIG_HOME or XDG_CACHE_HOME when it is absolute, as the
+# XDG spec reads one, else its default under an absolute HOME: ~/.local/state,
+# ~/.local/share, ~/.config or ~/.cache. rc 1, printing nothing, when neither
+# is absolute (a HOME of `/` trims to empty, as home_expand reads it); rc 2 for
+# another word. THE ONE STATEMENT OF THE XDG DEFAULTS (issue 0243): path_expand
+# and the built-in macos's stage read them here. devbin_home_pointer keeps its
+# own reading of XDG_DATA_HOME, retired with it (issue 0213). lib/infra reads
+# its machine profile's directory here too (issue 0272).
+xdg_dir() {
+  local v d home="${HOME:-}"
+  case "$1" in
+    state) v="${XDG_STATE_HOME:-}" d=.local/state ;;
+    data) v="${XDG_DATA_HOME:-}" d=.local/share ;;
+    config) v="${XDG_CONFIG_HOME:-}" d=.config ;;
+    cache) v="${XDG_CACHE_HOME:-}" d=.cache ;;
+    *) return 2 ;;
+  esac
+  case "$v" in
+    /*)
+      [ "$v" = / ] || v="${v%/}"
+      printf '%s\n' "$v"
+      return 0
+      ;;
+  esac
+  home="${home%/}"
+  case "$home" in
+    /*) printf '%s/%s\n' "$home" "$d" ;;
+    *) return 1 ;;
+  esac
+}
+
+# path_expand <path> -- <path> with a leading `~` or `~/` (home_expand), `$HOME`
+# or `${HOME}`, or a leading XDG base-directory variable, `$XDG_STATE_HOME`,
+# `$XDG_DATA_HOME`, `$XDG_CONFIG_HOME` or `$XDG_CACHE_HOME` as `$X` or `${X}`,
+# expanded, and nothing else in it: so a config value names a directory
+# outside the project without one machine's own path (issue 0243). An XDG
+# variable reads as xdg_dir reads it, so `${XDG_STATE_HOME}/x` holds with the
+# variable unset, as it usually is on macOS. A variable is a whole leading
+# component, ending at a `/` or the path's end. A path that opens with neither
+# `~` nor `$` is printed as it is. rc 1, printing HOME, when a `~`, `$HOME` or
+# an XDG variable's default needs HOME and it is not an absolute path below /.
+# rc 2, printing what the path opens with, for any other leading `~` or `$`:
+# `~user`, `$FOO`, `${FOO}`, `${X:-...}`, `$1`, which a caller refuses by name
+# rather than read as a path in the project. Pure but for the environment it
+# reads.
+path_expand() {
+  local p="$1" name rest base head tail home="${HOME:-}"
+  home="${home%/}"
+  # shellcheck disable=SC2088
+  case "$p" in
+    '~' | '~/'*)
+      case "$home" in
+        /*)
+          home_expand "$p"
+          return 0
+          ;;
+      esac
+      printf 'HOME\n'
+      return 1
+      ;;
+    '~'*)
+      printf '%s\n' "${p%%/*}"
+      return 2
+      ;;
+    '$'*) ;;
+    *)
+      printf '%s\n' "$p"
+      return 0
+      ;;
+  esac
+  # The name, `${NAME}` to its first `}` or `$NAME` to its first `/`, is a name
+  # only as is_identifier reads one, and what follows it is nothing or a `/`.
+  # shellcheck disable=SC2016 # a literal ${, matched, not expanded
+  case "$p" in
+    '${'*'}'*)
+      name="${p:2}"
+      name="${name%%\}*}"
+      rest="${p:${#name}+3}"
+      ;;
+    *)
+      name="${p:1}"
+      name="${name%%/*}"
+      rest="${p:${#name}+1}"
+      ;;
+  esac
+  if ! is_identifier "$name" || { [ -n "$rest" ] && [ "${rest:0:1}" != / ]; }; then
+    # What it opens with: a `${...}` to its first `}` and on to the next `/`,
+    # or any other form to its first `/`.
+    # shellcheck disable=SC2016 # a literal ${, matched, not expanded
+    case "$p" in
+      '${'*'}'*)
+        head="${p%%\}*}}"
+        tail="${p#"$head"}"
+        printf '%s\n' "$head${tail%%/*}"
+        ;;
+      *) printf '%s\n' "${p%%/*}" ;;
+    esac
+    return 2
+  fi
+  case "$name" in
+    HOME)
+      base="$home"
+      case "$base" in /*) ;; *) base="" ;; esac
+      ;;
+    XDG_STATE_HOME) base="$(xdg_dir state)" || base="" ;;
+    XDG_DATA_HOME) base="$(xdg_dir data)" || base="" ;;
+    XDG_CONFIG_HOME) base="$(xdg_dir config)" || base="" ;;
+    XDG_CACHE_HOME) base="$(xdg_dir cache)" || base="" ;;
+    *)
+      printf '%s\n' "${p%%/*}"
+      return 2
+      ;;
+  esac
+  if [ -z "$base" ]; then
+    printf 'HOME\n'
+    return 1
+  fi
+  printf '%s%s\n' "$base" "$rest"
+}
+
 # devbin_home_pointer -- where the machine pointer was kept: one line, an
 # install's absolute root (issue 0153), in the XDG data directory, where
 # XDG_DATA_HOME counts only when it is absolute; otherwise ~/.local/share. An
@@ -3611,8 +4551,16 @@ devbin_home_pointer() {
   printf '%s\n' "${d%/}/devbin/home"
 }
 
+# brew_opt_link <homebrew prefix> -- Homebrew's opt link for devbin under
+# <prefix>, <prefix>/opt/devbin, which leads to the current keg. Its bin/devbin
+# is the keg's own launcher: the formula's env script on macOS, which puts the
+# formula's bash first on PATH, and a link to libexec's launcher on Linux
+# (issue 0266). Pure.
 # brew_opt_root <homebrew prefix> -- where Homebrew keeps devbin under <prefix>
 # across upgrades, <prefix>/opt/devbin/libexec. Pure.
+# brew_keg_root <libexec root> -- the keg a formula's libexec root sits in,
+# its parent, where Homebrew puts the README and the formula the guides
+# (issue 0254). Pure.
 # brew_keg_prefix <root> -- the Homebrew prefix whose keg <root> is, when <root>
 # is one, <prefix>/Cellar/devbin/<version>/libexec: rc 0 with the prefix, rc 1
 # otherwise. Pure.
@@ -3624,8 +4572,14 @@ devbin_home_pointer() {
 # the sentence that says where it looked, and the opt link shell-init and the
 # hints name a keg by each spelled it, so a formula that moved the runtime would
 # have been followed by one and missed by the others.
+brew_opt_link() {
+  printf '%s/opt/devbin\n' "${1%/}"
+}
 brew_opt_root() {
-  printf '%s/opt/devbin/libexec\n' "${1%/}"
+  printf '%s/libexec\n' "$(brew_opt_link "$1")"
+}
+brew_keg_root() {
+  printf '%s\n' "${1%/libexec}"
 }
 brew_keg_prefix() {
   case "$1" in
@@ -3638,25 +4592,221 @@ brew_bin_link() {
 }
 
 # install_named_root <root> -- the path to name the install at <root> by: when
-# <root> is a Homebrew keg and its prefix's opt link leads to this very keg, the
-# opt link; <root> otherwise.
+# <root> is a Homebrew keg, its prefix's opt link; <root> otherwise.
 #
 # A KEG IS NAMED BY ITS OPT LINK (issue 0195). The launcher resolves its own
 # links, so an install Homebrew placed runs from Cellar/devbin/<version>, which
 # `brew upgrade` and its cleanup delete: a path written into `dvb`, or copied
 # from a hint, would name a keg that is gone. opt/devbin follows each upgrade.
-# It is taken only when it leads to <root>, so an opt link still naming the last
-# keg, as it does while brew builds the next, leaves <root> as it is.
+#
+# WHICHEVER KEG THE OPT LINK LEADS TO (issue 0252). It is taken even while it
+# leads to another keg, as while brew builds the next, or when an old keg is
+# kept and run by its Cellar path: a hint is used later, a failed build's keg is
+# removed, and a keg left behind goes at cleanup, so the opt link is the one
+# name that still runs. It is named whether or not it is there yet: during
+# brew's first install it is the link brew is about to make, and a tree that
+# only sits at a keg's path is named by a link that may never exist.
 install_named_root() {
-  local brew opt real
+  local brew
   if brew="$(brew_keg_prefix "$1")"; then
-    opt="$(brew_opt_root "$brew")"
-    if physical_dir "$opt" real && [ "$real" = "$1" ]; then
-      printf '%s\n' "$opt"
-      return 0
-    fi
+    brew_opt_root "$brew"
+    return 0
   fi
   printf '%s\n' "$1"
+}
+
+# install_launcher_root <root> -- the tree whose bin/devbin is the launcher to
+# name for the install at <root>: for a Homebrew keg (brew_keg_prefix), its
+# prefix's opt link itself (brew_opt_link); <root> otherwise (issue 0266). A
+# keg run through its opt link arrives by its Cellar path, since PROJECT_ROOT
+# is read physically, and only that path says Homebrew placed the tree: an
+# install published at a path that merely ends opt/devbin/libexec is named as
+# it is, since the tree above it need hold no bin/devbin at all.
+#
+# A KEG'S LAUNCHER IS ITS OWN bin/devbin, NEVER libexec's. On macOS that is
+# the formula's env script, which runs under the formula's bash whatever PATH
+# holds; libexec's launcher, a `#!/usr/bin/env bash` script, is refused at the
+# floor from a PATH without Homebrew's bin, cron's and a GUI hook's, so a line
+# naming it led back to the refusal. The install itself, which --from and the
+# upgrade remedy name, is still install_named_root's libexec.
+install_launcher_root() {
+  local brew
+  if brew="$(brew_keg_prefix "$1")"; then
+    brew_opt_link "$brew"
+    return 0
+  fi
+  printf '%s\n' "$1"
+}
+
+# is_install_launcher <file> <root> -- rc 0 when <file> is the launcher of the
+# install at <root>, rc 1 otherwise.
+#
+# ONE ANSWER FOR BOTH OF A KEG'S LAYOUTS (issue 0252). A tree's launcher is
+# <root>/bin/devbin, and a file that resolves (real_path) to it is that
+# launcher: Homebrew's bin link does, through the keg's bin/devbin, when the
+# formula links that into libexec. A formula can instead write the keg's
+# bin/devbin as a script of its own (write_env_script), which resolves to
+# itself and runs libexec's launcher; a plain file at <keg>/bin/devbin, beside
+# <keg>/libexec, is then the launcher too. That second spelling counts only for
+# a root that is a keg's libexec (brew_keg_prefix), so no other tree's
+# neighbour passes for one.
+#
+# IN THE CASE THE DISK STORES (issue 0284). Both sides are compared as
+# strings, so each is read in physical_dir's getcwd mode: on a disk that folds
+# case, a PATH entry naming Homebrew's bin in another case resolved, in bash's
+# `pwd -P`, to a string that differed from the keg's, and use brew named
+# Homebrew's own link as another copy to move aside.
+#
+# NO LAUNCHER, NO MATCH. real_path hands back a path it cannot follow as it was
+# given, so two spellings of a file that is not there would compare equal: the
+# launcher is asked to exist first.
+is_install_launcher() {
+  local got want root
+  real_path "$2/bin/devbin" want getcwd
+  [ -f "$want" ] || return 1
+  real_path "$1" got getcwd
+  [ "$got" = "$want" ] && return 0
+  physical_dir "$2" root getcwd || return 1
+  brew_keg_prefix "$root" >/dev/null || return 1
+  [ "$got" = "${root%/libexec}/bin/devbin" ] && [ -f "$got" ] && [ ! -L "$got" ]
+}
+
+# path_absolute_entries <out-array> -- PATH's absolute entries, in order, into
+# the array <out-array> names: colon_split's entries less every empty and
+# relative one, which answers for no machine (path_hit says why). THE ONE READER
+# of the entries path_hit searches and path_searches compares (issue 0248), so
+# the two cannot come to read different lists.
+#
+# Its locals carry its own prefix, as colon_split's do, so an empty
+# <out-array>, or one named with that prefix, is refused at rc 1 with a line on
+# stderr, and nothing is set.
+path_absolute_entries() {
+  case "${1-}" in
+    '' | _pae_*)
+      printf "path_absolute_entries: cannot read into '%s': name an array outside its _pae_ prefix\n" "${1-}" >&2
+      return 1
+      ;;
+  esac
+  local -n _pae_res="$1"
+  local -a _pae_all
+  local _pae_e
+  colon_split "$PATH" _pae_all || return 1
+  _pae_res=()
+  for _pae_e in "${_pae_all[@]}"; do
+    case "$_pae_e" in
+      /*) _pae_res+=("$_pae_e") ;;
+    esac
+  done
+}
+
+# path_hit <command> [<dir>] -- the first <command> on PATH that would run,
+# searched over its absolute entries alone (path_absolute_entries), as a shell
+# finds it once <dir>/<command> is gone: rc 0 with its path, rc 1 when none
+# answers.
+#
+# AN EMPTY OR RELATIVE ENTRY ANSWERS FOR NO MACHINE. Each answers from the
+# directory a command is typed in, so none says what the machine runs: with
+# ./bin on PATH the checkout's own launcher would read as another copy, and a
+# hint naming `devbin` because ./bin held one would fail from every other
+# directory. bash's own search reads the rest, in order.
+#
+# ONCE <dir>/<command> IS GONE (issue 0247). An entry is left out when its
+# <command> is that file, or a link whose chain passes through it
+# (link_chain_reaches): once it is removed, the one is not there and the other
+# dangles, and a shell passes over both. Every directory is read in
+# physical_dir's getcwd mode, so an entry naming <dir> in another case, on a
+# disk that folds case, is <dir>, as the kernel reads it; bash's `pwd -P` keeps
+# the case an entry was typed in, and read so, the file about to be removed
+# answered for what would remain.
+#
+# A HIT COUNTS ONLY WHEN IT WOULD RUN (issue 0249). bash's search, finding no
+# executable <command>, prints one that is not and returns 0, and running that
+# fails with "Permission denied": a launcher without its execute bit read as
+# the devbin that answers. So the hit is asked to be executable, which -x reads
+# of the file it resolves to.
+path_hit() {
+  local e hit gone=""
+  local -a entries kept=()
+  if [ -n "${2:-}" ]; then
+    physical_dir "$2" gone getcwd || gone="$2"
+    gone="${gone%/}/$1"
+  fi
+  path_absolute_entries entries || return 1
+  for e in "${entries[@]}"; do
+    if [ -n "$gone" ] && link_chain_reaches "${e%/}/$1" "$gone"; then
+      continue
+    fi
+    kept+=("$e")
+  done
+  [ "${#kept[@]}" -gt 0 ] || return 1
+  hit="$(PATH="$(IFS=:; printf '%s' "${kept[*]}")" type -P "$1")" || return 1
+  [ -x "$hit" ] || return 1
+  printf '%s\n' "$hit"
+}
+
+# path_searches <dir> -- rc 0 when an absolute PATH entry, one path_hit
+# searches, is <dir>, rc 1 otherwise (issue 0249). Each is read in
+# physical_dir's getcwd mode, so an entry naming <dir> by a link, or in another
+# case on a disk that folds case, is <dir>; a <dir> that cannot be entered is
+# searched by no entry.
+path_searches() {
+  local e d want
+  local -a entries
+  physical_dir "$1" want getcwd || return 1
+  path_absolute_entries entries || return 1
+  for e in "${entries[@]}"; do
+    if physical_dir "$e" d getcwd && [ "$d" = "$want" ]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+# link_chain_reaches <path> <file> -- rc 0 when <path> is <file>, or a link
+# whose chain of links passes through it, rc 1 otherwise (issue 0247). <file>
+# is spelled as physical_dir's getcwd mode spells its directory, and each step
+# of the chain is read so before it is compared: its directory physically, in
+# the case the kernel stores, and its own name as written, so a name that
+# differs from <file>'s only in case is not <file>. Each step is link_step's,
+# and the walk stops at _DEVBIN_LINK_HOPS, as follow_links's does; a step it
+# cannot read exactly, or one past the bound, ends the chain there, unreached,
+# as a link that goes no further.
+link_chain_reaches() {
+  local p="$1" d n=0
+  while :; do
+    case "$p" in
+      */*) d="${p%/*}" ;;
+      *) d=. ;;
+    esac
+    [ -n "$d" ] || d=/
+    if physical_dir "$d" d getcwd && [ "${d%/}/${p##*/}" = "$2" ]; then
+      return 0
+    fi
+    [ -L "$p" ] || return 1
+    n=$((n + 1))
+    [ "$n" -le "$_DEVBIN_LINK_HOPS" ] || return 1
+    p="$(link_step "$p")" || return 1
+  done
+}
+
+# launcher_shown <root> -- the launcher of the install at <root>, as a hint
+# names it for a reader to type (issue 0252): `devbin` when the devbin on PATH
+# that would run (path_hit) is that launcher (is_install_launcher), else the
+# launcher
+# install_launcher_root names: for a keg, its own bin/devbin by the opt link
+# (issue 0266).
+#
+# NEVER THE VERSIONED KEG. The launcher resolves its own links, so an install
+# Homebrew placed runs from Cellar/devbin/<version>, and a line copied from a
+# hint that named it, an rc line among them, stops working at the next brew
+# upgrade.
+launcher_shown() {
+  local hit
+  if hit="$(path_hit devbin)" && is_install_launcher "$hit" "$1"; then
+    printf 'devbin\n'
+    return 0
+  fi
+  printf '%s/bin/devbin\n' "$(install_launcher_root "$1")"
 }
 
 # devbin_brew_root -- the root of the devbin Homebrew installed, at the path
@@ -3691,12 +4841,130 @@ devbin_brew_root() {
 # bare ssh command -- has no HOMEBREW_PREFIX, and there the default is off, so
 # the clause names the variable rather than leaving a bare "no install". Pure.
 brew_unplaced_why() {
-  local p="${HOMEBREW_PREFIX:-}"
-  case "$p" in
-    '') printf 'HOMEBREW_PREFIX is not set' ;;
-    /*) printf 'no devbin at %s, under HOMEBREW_PREFIX' "$(brew_opt_root "$p")" ;;
-    *) printf "HOMEBREW_PREFIX, '%s', is not an absolute path" "$p" ;;
+  case "$(_brew_unplaced_cause)" in
+    unset) printf 'HOMEBREW_PREFIX is not set' ;;
+    empty) printf 'no devbin at %s, under HOMEBREW_PREFIX' "$(brew_opt_root "$HOMEBREW_PREFIX")" ;;
+    *) printf "HOMEBREW_PREFIX, '%s', is not an absolute path" "$HOMEBREW_PREFIX" ;;
   esac
+}
+
+# devbin_docs_place <root> -- where devbin's long-form guides are for the tree
+# at <root> (issue 0254): rc 0 with the directory, a path the reader can open
+# on this machine; rc 1 with why there is none, one clause, on stdout.
+#
+#   dev       the checkout's own docs/, a checkout without a .git included
+#   brew      the keg's docs/, which the formula installs beside the README
+#             Homebrew puts in the keg: the parent of libexec, the install root
+#             devbin knows (brew_keg_root), of the keg install_named_root names,
+#             the opt link's, since brew upgrade deletes the versioned one; the
+#             directory checked is the one printed, whichever keg opt leads to
+#   opt       none: a publish copies the runtime, and the guides stay in the
+#             checkout it was published from
+#   project   the guides of the install its upgrades read (manifest_source),
+#             or, where that source is not there, a clause saying so
+#
+# THE ONE ANSWER TO "WHERE ARE THE GUIDES". The release usage and devbin devbin
+# named docs/ as a path under whatever directory the reader stood in, and a brew
+# user has no checkout to stand in: every message naming a guide asks here, so
+# none spells the place its own way. A docs/ that is not there is no place, as
+# in a keg an older formula built, so a line never names a directory the reader
+# cannot open.
+devbin_docs_place() {
+  local root="$1" keg
+  # THE CHECKOUT IS ASKED ITS OWN QUESTION. devbin_tree's dev is a checkout
+  # with a .git, since the tree line it feeds reports the commit; the guides
+  # need only the checkout's docs/, so an unpacked tree with no .git still has
+  # them, and is_devbin_dev_tree answers here, where devbin_tree says unknown.
+  if ! is_devbin_dev_tree "$root" && ! is_install_tree "$root" && [ "$(devbin_tree "$root")" = unknown ]; then
+    # A project. STDERR IS DROPPED ON PURPOSE: manifest_source's only stderr
+    # is machine_install_root's reason the link cannot be trusted, and
+    # source_unplaced_why words that reason again as this answer's clause.
+    if ! root="$(manifest_source "$1" 2>/dev/null)" || [ -z "$root" ]; then
+      source_unplaced_why "$1"
+      return 1
+    fi
+    # A recorded path from an older manifest can name a tree that is gone.
+    if [ ! -d "$root" ]; then
+      printf 'the devbin source this project records, %s, is not there' "$root"
+      return 1
+    fi
+  fi
+  if is_devbin_dev_tree "$root"; then
+    if [ -d "$root/docs" ]; then
+      printf '%s/docs\n' "$root"
+      return 0
+    fi
+    printf 'the devbin checkout at %s has no docs/' "$root"
+    return 1
+  fi
+  case "$(devbin_tree "$root")" in
+    brew)
+      keg="$(brew_keg_root "$(install_named_root "$root")")"
+      if [ -d "$keg/docs" ]; then
+        printf '%s/docs\n' "$keg"
+        return 0
+      fi
+      printf "Homebrew's devbin at %s carries none, and a formula that installs them comes with brew upgrade devbin" "$keg"
+      ;;
+    opt) printf 'an opt install carries none, and they are in docs/ of the devbin checkout it was published from' ;;
+    *) printf 'the devbin install at %s carries none' "$root" ;;
+  esac
+  return 1
+}
+
+# _brew_unplaced_cause -- which of brew_unplaced_why's causes holds, one word:
+# unset (HOMEBREW_PREFIX empty or not set), relative (not an absolute path) or
+# empty (absolute, with no devbin under it). The one branch, so the reason
+# brew_unplaced_why gives and the remedy brew_unplaced_fix gives cannot
+# disagree (issue 0250), as _source_unplaced_cause is for the source pair.
+_brew_unplaced_cause() {
+  case "${HOMEBREW_PREFIX:-}" in
+    '') printf 'unset\n' ;;
+    /*) printf 'empty\n' ;;
+    *) printf 'relative\n' ;;
+  esac
+}
+
+# brew_none_why -- the one sentence for no Homebrew devbin here, with
+# brew_unplaced_why's clause: a bare `use` says it, and so do use brew's
+# refusal and doctor's switch row. Pure.
+brew_none_why() {
+  printf 'Homebrew has no devbin here (%s)' "$(brew_unplaced_why)"
+}
+
+# brew_unplaced_fix <running root> [<trees>] -- the remedy for the cause
+# brew_unplaced_why names, as one clause (issue 0250): with HOMEBREW_PREFIX
+# unset or relative, export it as `brew shellenv` exports it, since devbin may
+# well be installed and only this process cannot see it; under an absolute
+# prefix with no devbin, install devbin with Homebrew. Keyed by
+# _brew_unplaced_cause, as the reason is, so the remedy and the cause cannot
+# part. devbin_checkout_clause adds dev or opt, for the maintainer alone.
+brew_unplaced_fix() {
+  local fix
+  case "$(_brew_unplaced_cause)" in
+    empty) fix='install devbin with Homebrew' ;;
+    *) fix='export HOMEBREW_PREFIX in the profile this process reads, as brew shellenv exports it' ;;
+  esac
+  printf '%s%s' "$fix" "$(devbin_checkout_clause "${1:-}" "${2:-}")"
+}
+
+# devbin_checkout_clause <running root> [<trees>] -- ", or run bin/devbin use
+# <trees> in your devbin checkout" when the devbin running, at <running root>,
+# is a dev or opt tree, and nothing otherwise, for the end of a remedy (issue
+# 0250). <trees> defaults to "dev or opt"; a reader that takes only an install
+# names "opt".
+#
+# dev AND opt ARE THE MAINTAINER'S (issue 0250). The clause names the
+# checkout's own bin/devbin, the one launcher `use dev` and `use opt` run from
+# (_use_in_checkout), never the running launcher or the devbin on PATH. From a
+# keg or a project, whose reader may be any user, it is nothing, and so it is
+# with no <running root>, for a caller that names dev and opt itself.
+devbin_checkout_clause() {
+  [ -n "${1:-}" ] || return 0
+  case "$(devbin_tree "$1")" in
+    dev | opt) printf ', or run bin/devbin use %s in your devbin checkout' "${2:-dev or opt}" ;;
+  esac
+  return 0
 }
 
 # devbin_link_path -- the link that records which devbin install this machine
@@ -3759,9 +5027,20 @@ machine_named_state() {
 # chain is walked by follow_links, the one walk, and the tree is the directory
 # above the bin/devbin it ends at.
 #
+# A KEG IS NAMED BY ITS OPT LINK (issue 0287), through install_named_root, as
+# every other reader names one. The walk ends in Cellar/devbin/<version>, which
+# the next `brew upgrade devbin` removes, so doctor's switch row named a path a
+# user copied from it and found gone.
+#
 # `bad` for a link that leads to no file, one that cannot be followed exactly, a
 # file standing where the link belongs (no choice `devbin use` made), and a link
 # to a file that is no tree's bin/devbin.
+#
+# A LINK TO NO FILE IS REMOVED BY HAND (issue 0250), and no link then means
+# brew: `use brew` leaves a link into no devbin tree, so it is not offered.
+# dev or opt, which replace the link, are offered only from a dev or opt tree
+# (devbin_checkout_clause, issue 0250), since this reaches every reader of
+# the switch, keg users included.
 machine_link_state() {
   local p f d
   if ! p="$(devbin_link_path)" || { [ ! -e "$p" ] && [ ! -L "$p" ]; }; then
@@ -3773,7 +5052,7 @@ machine_link_state() {
     return 0
   fi
   if ! f="$(follow_links "$p" 2>/dev/null)"; then
-    printf 'bad the link %s leads to no file it can follow -- run devbin use brew, or devbin use dev or opt in the devbin checkout\n' "$p"
+    printf 'bad the link %s leads to no file it can follow -- remove it, so no link means brew%s\n' "$p" "$(devbin_checkout_clause "${PROJECT_ROOT:-}")"
     return 0
   fi
   case "$f" in
@@ -3787,37 +5066,82 @@ machine_link_state() {
     printf 'bad cannot resolve the tree the link %s leads to\n' "$p"
     return 0
   fi
-  printf 'at %s\n' "$d"
+  printf 'at %s\n' "$(install_named_root "$d")"
 }
 
 # devbin_link_shadow -- why the link is not the devbin a login shell runs, as
-# one line, or nothing when it is, or when there is no link (T5's shadow check,
-# asked by doctor and by a bare `devbin use`).
+# one line, or nothing when it is (T5's shadow check, asked by doctor and by a
+# bare `devbin use`).
 #
 # BY RESOLVED DIRECTORY, NEVER BY PATH STRING. The link's directory and the
 # directory of the first `devbin` on PATH are each read physically, so a ~/bin
 # that is a link to ~/.local/bin is the same directory and passes, and an entry
 # spelled another way is not mistaken for a different one. A first hit in
 # another directory shadows the link, and is named; so is a PATH with no
-# devbin on it at all.
+# devbin on it at all. Each is read in physical_dir's getcwd mode (issue 0247),
+# so an entry naming ~/.local/bin in another case, on a disk that folds case,
+# is the link's own directory: bash's `pwd -P` keeps the case it was typed in,
+# and doctor failed on the link shadowing itself.
+#
+# A DEVBIN LINKED THROUGH THE LINK IS THE LINK, AND ONLY ABSOLUTE ENTRIES ARE
+# SEARCHED (issue 0285). A first hit whose chain of links passes through the
+# link (link_chain_reaches), eg a ~/bin/devbin made by hand to
+# ../.local/bin/devbin, runs the link's tree, so it passes, as a hit in a
+# directory that resolves to the link's does; doctor failed the switch on it.
+# The search reads the entries path_hit reads (path_absolute_entries): an empty
+# or relative entry answers from wherever a command is typed, so a ./bin
+# holding a devbin was a shadow from one directory and not from another.
+#
+# NO LINK MEANS BREW, AND BREW IS CHECKED TOO (issue 0273). T5 reports brew
+# when no link is left and the first devbin on PATH resolves into the keg, so
+# with no link this asks brew_answer_state, the one lookup of what answers on
+# PATH and of whether that is the keg's launcher: another copy first is named,
+# so is a keg's launcher that would not run (0249), and so is a PATH with no
+# devbin on it, each with use brew's remedy for the same cause (brew_path_why).
+# With no Homebrew devbin at all it says nothing, since that is no shadow: the
+# report says what is missing. A file standing where the link belongs says
+# nothing here either: the link's own state names it.
 devbin_link_shadow() {
-  local p first ld fd
+  local p first ld state why
+  local -a entries
   p="$(devbin_link_path)" || return 0
+  if [ ! -e "$p" ] && [ ! -L "$p" ]; then
+    state="$(brew_answer_state)"
+    case "$state" in
+      absent | "brew "*) ;;
+      "other "* | "noexec "*)
+        why="$(brew_path_why "$state")"
+        printf 'no link means brew, but %s -- %s\n' "${why%%$'\n'*}" "${why#*$'\n'}"
+        ;;
+      "offpath "* | "unlinked "*)
+        why="$(brew_path_why "$state")"
+        printf 'no link means brew, but no devbin is on PATH (%s) -- %s\n' "${why%%$'\n'*}" "${why#*$'\n'}"
+        ;;
+      *) printf 'no link means brew, but what answers devbin on PATH cannot be told: %s\n' "$state" ;;
+    esac
+    return 0
+  fi
   [ -L "$p" ] || return 0
-  first="$(type -P devbin 2>/dev/null || true)"
+  if ! path_absolute_entries entries; then
+    printf 'cannot read PATH, so whether a login shell runs the link %s cannot be told\n' "$p"
+    return 0
+  fi
+  first=""
+  if [ "${#entries[@]}" -gt 0 ]; then
+    first="$(PATH="$(IFS=:; printf '%s' "${entries[*]}")" type -P devbin 2>/dev/null || true)"
+  fi
   if [ -z "$first" ]; then
     printf '%s is not on PATH, so a login shell runs no devbin through the link -- put it on PATH ahead of Homebrew'"'"'s bin\n' "${p%/*}"
     return 0
   fi
-  physical_dir "${p%/*}" ld || ld="${p%/*}"
-  physical_dir "${first%/*}" fd || fd="${first%/*}"
-  [ "$ld" = "$fd" ] && return 0
+  physical_dir "${p%/*}" ld getcwd || ld="${p%/*}"
+  link_chain_reaches "$first" "${ld%/}/${p##*/}" && return 0
   printf 'the link %s is shadowed: the first devbin on PATH is %s -- put %s ahead of %s on PATH\n' "$p" "$first" "${p%/*}" "${first%/*}"
 }
 
 # brew_answer_state -- what would answer `devbin` on PATH once the link
 # devbin_link_path names is gone, asked by `use brew` before it removes the
-# link (docs/dev-opt-brew.md, T5, amendment A4). One line on stdout, one word
+# link (docs/dev-opt-brew.md T5; issue 0235). One line on stdout, one word
 # first:
 #
 #   brew <root>       the first devbin on PATH outside the link's directory is
@@ -3825,64 +5149,141 @@ devbin_link_shadow() {
 #   absent            Homebrew has no devbin here (devbin_brew_root finds none)
 #   other <path>      the first devbin on PATH outside the link's directory is
 #                     <path>, which is not Homebrew's
+#   noexec <file>     the devbin that would answer is Homebrew's, and <file>,
+#                     the keg's devbin or the libexec launcher it runs, is not
+#                     executable (brew_launcher_inert)
 #   offpath <bin>     none is on PATH outside it, though Homebrew's bin link
-#                     <bin> leads into the keg: Homebrew's bin is not on PATH
+#                     <bin> leads into the keg: Homebrew's bin is not among the
+#                     entries searched
 #   unlinked <root>   none is on PATH outside it, and no devbin in Homebrew's
 #                     bin leads into the keg at <root>
+#   vialink <bin>     none is on PATH outside it, and Homebrew's bin, which is
+#                     searched, holds <bin>, leading into the keg only through
+#                     the link itself, so it goes with the link
 #
-# BY THE LOOKUP A SHELL MAKES ONCE THE LINK IS GONE. The PATH entries whose
-# directory resolves to the link's own are left out, and so are empty and
-# relative entries: each answers from the directory a command is typed in, so
-# none says what the machine runs, and with ./bin on PATH the checkout's own
-# launcher would read as another copy. bash's own search reads the rest, in
-# order. The hit and the keg's bin/devbin are each resolved (real_path) and
-# compared: Homebrew's bin link leads into the versioned keg, and
-# devbin_brew_root names the keg by its opt link.
+# BY THE LOOKUP A SHELL MAKES ONCE THE LINK IS GONE: path_hit, passing over the
+# link itself, through an entry naming its directory in any case a disk that
+# folds case reads as it, and any devbin whose chain of links passes through
+# it, which would dangle (issue 0247), as well as the empty and relative
+# entries it never reads. Whether the hit, or Homebrew's bin link, is the keg's
+# devbin is is_install_launcher's answer, the one for both of a keg's layouts
+# (issue 0253): a link into libexec, and the script the formula writes at the
+# keg's bin/devbin on macOS (write_env_script), which resolves to itself.
+# Compared by resolved path, that script read as `other`, and `use brew`
+# refused on every macOS brew machine.
+#
+# WHAT HOMEBREW'S BIN HOLDS IS READ ONLY ONCE THE LOOKUP FINDS NOTHING THAT
+# RUNS (issue 0249), and offpath is answered only when that bin is not among
+# the entries searched (path_searches), never inferred from no hit: a keg's
+# launcher without its execute bit, in a bin on PATH, is noexec, which removing
+# the link would leave as the devbin that fails. A bin link into the keg that
+# is searched and would run, and still is no hit, was passed over because it
+# reaches the keg through the link, and is vialink, never unlinked: it is
+# linked, and leads nowhere once the link is gone.
 brew_answer_state() {
-  local root want got p ld e d first bin
-  local -a entries kept=()
+  local root p ld first bin file
   if ! root="$(devbin_brew_root)"; then
     printf 'absent\n'
     return 0
   fi
-  real_path "$root/bin/devbin" want
   ld=""
   if p="$(devbin_link_path)"; then
-    physical_dir "${p%/*}" ld || ld="${p%/*}"
+    ld="${p%/*}"
   fi
-  IFS=: read -r -a entries <<<"$PATH"
-  for e in "${entries[@]}"; do
-    case "$e" in
-      /*) ;;
-      *) continue ;;
-    esac
-    if [ -n "$ld" ] && physical_dir "$e" d && [ "$d" = "$ld" ]; then
-      continue
-    fi
-    kept+=("$e")
-  done
-  first=""
-  if [ "${#kept[@]}" -gt 0 ]; then
-    first="$(PATH="$(IFS=:; printf '%s' "${kept[*]}")" type -P devbin)" || first=""
-  fi
+  first="$(path_hit devbin "$ld")" || first=""
   if [ -n "$first" ]; then
-    real_path "$first" got
-    if [ "$got" = "$want" ]; then
-      printf 'brew %s\n' "$root"
-    else
+    if ! is_install_launcher "$first" "$root"; then
       printf 'other %s\n' "$first"
+    elif file="$(brew_launcher_inert "$first" "$root")"; then
+      printf 'noexec %s\n' "$file"
+    else
+      printf 'brew %s\n' "$root"
     fi
     return 0
   fi
   bin="$(brew_bin_link "$HOMEBREW_PREFIX")"
-  if [ -e "$bin" ]; then
-    real_path "$bin" got
-    if [ "$got" = "$want" ]; then
+  if [ -e "$bin" ] && is_install_launcher "$bin" "$root"; then
+    if ! path_searches "${bin%/*}"; then
       printf 'offpath %s\n' "$bin"
-      return 0
+    elif file="$(brew_launcher_inert "$bin" "$root")"; then
+      printf 'noexec %s\n' "$file"
+    else
+      printf 'vialink %s\n' "$bin"
     fi
+    return 0
   fi
   printf 'unlinked %s\n' "$root"
+}
+
+# brew_launcher_inert <file> <root> -- the first of <file>, a devbin that is
+# the keg's launcher (is_install_launcher), and the launcher of the keg at
+# <root> itself, <root>/bin/devbin, that is not executable, resolved
+# (real_path), on stdout: rc 0 with it, rc 1 when both are (issue 0249).
+#
+# BOTH HOPS. On macOS the keg's bin/devbin is the formula's env script, which
+# execs libexec's launcher, so an executable script in front of a launcher
+# without its execute bit still fails with "Permission denied". On Linux the
+# keg's bin/devbin is a link to that launcher, and the two are one file.
+brew_launcher_inert() {
+  local hop inert
+  for hop in "$1" "$2/bin/devbin"; do
+    [ -x "$hop" ] && continue
+    real_path "$hop" inert
+    printf '%s\n' "$inert"
+    return 0
+  done
+  return 1
+}
+
+# brew_path_why <brew_answer_state> [<link>] -- for a state in which Homebrew
+# has a devbin and the devbin a shell would run is not it, or would not run
+# (other, noexec, offpath, unlinked, vialink), two lines on stdout: why no
+# Homebrew devbin answers, and that cause's remedy (T5; issue 0235). rc 1,
+# printing nothing, for any other state, and for vialink with no <link>, which
+# names it. With <link>, the link `use brew` would remove, the reason reads
+# PATH with that link gone, as the shell will, and Homebrew's bin is to come
+# after its directory.
+#
+# ONE WORDING FOR EACH CAUSE (issue 0273). `use brew`'s refusal says it, and so
+# does the shadow check with no link, for a bare `use` and doctor's switch row,
+# so the remedy and the cause it answers cannot part.
+brew_path_why() {
+  local b
+  case "$1" in
+    "other "*)
+      if [ -n "${2:-}" ]; then
+        printf 'with %s left out, the first devbin on PATH would be %s' "${2%/*}" "${1#other }"
+      else
+        printf 'the first devbin on PATH is %s' "${1#other }"
+      fi
+      # Every state here is brew_answer_state's after devbin_brew_root found
+      # the keg, so it finds it again; `|| true` only keeps a keg removed in
+      # between from ending the sentence half said.
+      printf ', which is not Homebrew'"'"'s devbin at %s\n' "$(devbin_brew_root || true)"
+      printf 'move %s aside\n' "${1#other }"
+      ;;
+    "noexec "*)
+      printf 'Homebrew'"'"'s devbin would not run: %s is not executable\n' "${1#noexec }"
+      printf 'reinstall devbin with Homebrew (brew reinstall devbin)\n'
+      ;;
+    "offpath "*)
+      b="${1#offpath }"
+      printf 'Homebrew'"'"'s devbin is linked at %s, and %s is not on PATH\n' "$b" "${b%/*}"
+      printf 'put %s on PATH%s\n' "${b%/*}" "${2:+, after ${2%/*}}"
+      ;;
+    "unlinked "*)
+      b="$(brew_bin_link "${HOMEBREW_PREFIX:-}")"
+      printf 'Homebrew'"'"'s devbin at %s is not linked: no devbin in %s leads into it\n' "${1#unlinked }" "${b%/*}"
+      printf 'link it (brew link devbin)\n'
+      ;;
+    "vialink "*)
+      [ -n "${2:-}" ] || return 1
+      b="${1#vialink }"
+      printf 'Homebrew'"'"'s devbin is linked at %s, and it reaches the keg only through the link %s, so it goes with it\n' "$b" "$2"
+      printf 'point %s at the keg itself (brew link --overwrite devbin)\n' "$b"
+      ;;
+    *) return 1 ;;
+  esac
 }
 
 # machine_install_state -- its states, on stdout, one word first:
@@ -3912,7 +5313,7 @@ machine_install_state() {
       printf 'bad %s names %s, whose manifest cannot be read\n' "$by" "${s#at }"
       return 0
     fi
-    if [ "$(manifest_field "${s#at }" kind 2>/dev/null || true)" != install ] &&
+    if ! is_install_tree "${s#at }" &&
       [ "$(devbin_tree "${s#at }")" != dev ]; then
       printf 'bad %s names %s, which is not a devbin install or checkout\n' "$by" "${s#at }"
       return 0
@@ -3987,21 +5388,51 @@ machine_install_root() {
 # missing HERE: no override, no link and no Homebrew install. Only a project
 # that records no source at all has nothing for the switch to answer.
 source_unplaced_why() {
-  local kind m
-  kind="$(manifest_field "$1" source 2>/dev/null || true)"
-  case "$kind" in
-    "") printf 'this project records no source' ;;
-    install | checkout | project)
+  local m
+  case "$(_source_unplaced_cause "$1")" in
+    none) printf 'this project records no source' ;;
+    bad)
       m="$(machine_install_state)"
-      case "$m" in
-        "bad "*) printf '%s' "${m#bad }" ;;
-        *) printf 'this machine names no devbin install: no link at %s, DEVBIN_INSTALL_PREFIX is not set, and %s' \
-          "$(devbin_link_path 2>/dev/null || printf '(no home directory to keep it in)')" "$(brew_unplaced_why)" ;;
-      esac
+      printf '%s' "${m#bad }"
+      ;;
+    machine)
+      printf 'this machine names no devbin install: no link at %s, DEVBIN_INSTALL_PREFIX is not set, and %s' \
+        "$(devbin_link_path 2>/dev/null || printf '(no home directory to keep it in)')" "$(brew_unplaced_why)"
       ;;
     *) printf 'the source this project records cannot be read' ;;
   esac
   return 0
+}
+
+# source_unplaced_fix <root> [<running root>] -- what to do about the cause
+# source_unplaced_why names, as one clause, for a refusal that asks for --from
+# (issue 0250): where the machine names nothing, brew_unplaced_fix's remedy
+# for its cause, then --from; otherwise --from alone, since the cause names its
+# own (a link that cannot be followed) or has none here. <running root> is
+# brew_unplaced_fix's, for its dev or opt clause.
+source_unplaced_fix() {
+  case "$(_source_unplaced_cause "$1")" in
+    machine) printf '%s, or name one with --from <dir>' "$(brew_unplaced_fix "${2:-}")" ;;
+    *) printf 'name one with --from <dir>' ;;
+  esac
+  return 0
+}
+
+# _source_unplaced_cause <root> -- which of source_unplaced_why's causes holds
+# for <root>, one word: none (no source recorded), bad (the machine's link or
+# install cannot be trusted), machine (the machine names no install) or
+# unreadable. The one branch, so the reason and the remedy cannot disagree.
+_source_unplaced_cause() {
+  case "$(manifest_field "$1" source 2>/dev/null || true)" in
+    "") printf 'none\n' ;;
+    install | checkout | project)
+      case "$(machine_install_state)" in
+        "bad "*) printf 'bad\n' ;;
+        *) printf 'machine\n' ;;
+      esac
+      ;;
+    *) printf 'unreadable\n' ;;
+  esac
 }
 
 # manifest_source <root> -- the recorded source, as the absolute path it names.
@@ -4057,12 +5488,11 @@ manifest_source() {
 # the dirty gate, so it is the authority for what that install holds. `kind:`
 # is READ rather than the shape being inferred, which is why that header exists.
 _devbin_source_head() {
-  local src="${1:-}" kind sha
+  local src="${1:-}" sha
   [ -n "$src" ] || return 2
   [ -d "$src" ] || return 2
 
-  kind="$(manifest_field "$src" kind 2>/dev/null || true)"
-  if [ "$kind" = install ]; then
+  if is_install_tree "$src"; then
     sha="$(manifest_field "$src" source_commit 2>/dev/null || true)"
   else
     sha="$(git -C "$src" rev-parse HEAD 2>/dev/null)" || return 2
@@ -4120,7 +5550,21 @@ _devbin_source_head() {
 # holding `C`, and upgrade dropped the work with no direction line. The sha
 # names where the bytes STARTED, not what they are, so no direction follows from
 # it.
+#
+# WHERE THE COMMITS SAY `unknown`, THE VERSIONS ANSWER (issue 0276). An install
+# source's table was written when it was published, so it cannot name a later
+# commit a project records, and a project vendored from a newer install then
+# upgraded from an older one read `unknown` while both manifests' versions
+# said which way it moved. The commits stay the first witness; version_direction
+# is asked only where they cannot answer, and equal versions stay `unknown`.
 source_direction() {
+  local dir
+  dir="$(_commit_source_direction "$1" "$2")"
+  [ "$dir" = unknown ] && dir="$(version_direction "$1" "$2")"
+  printf '%s\n' "$dir"
+}
+
+_commit_source_direction() {
   local dstroot="$1" srcroot="$2" rec
   rec="$(manifest_source_commit "$dstroot" 2>/dev/null || true)"
   case "$rec" in *' +dirty'*) printf 'unknown\n'; return 0 ;; esac
@@ -4130,11 +5574,42 @@ source_direction() {
   rec="${rec%% *}"
   is_commit_sha "$rec" || { printf 'unknown\n'; return 0; }
 
-  if [ "$(manifest_field "$srcroot" kind 2>/dev/null || true)" = install ]; then
+  if is_install_tree "$srcroot"; then
     install_direction "$srcroot" "$rec"
     return 0
   fi
   commit_direction "$srcroot" "$rec"
+}
+
+# source_version <srcroot> -- the devbin version a source would vendor: an
+# install's manifest's, or a checkout's VERSION; nothing, and rc 1, where it
+# reads none.
+source_version() {
+  local v
+  if is_install_tree "$1"; then
+    v="$(manifest_version "$1" 2>/dev/null)" || v=""
+  else
+    v="$(read_version "$1/VERSION" version-file 2>/dev/null)" || v=""
+  fi
+  is_semver "$v" || return 1
+  printf '%s\n' "$v"
+}
+
+# version_direction <dstroot> <srcroot> -- `forward` when the source's version
+# (source_version) is higher than the one vendored at <dstroot>, `backward` when
+# it is lower, `unknown` when they are equal or either does not read: a dev
+# tree's version is not bumped per commit, so equal versions say nothing.
+version_direction() {
+  local here there
+  here="$(manifest_version "$1" 2>/dev/null)" || here=""
+  there="$(source_version "$2")" || there=""
+  if semver_gt "$there" "$here"; then
+    printf 'forward\n'
+  elif semver_gt "$here" "$there"; then
+    printf 'backward\n'
+  else
+    printf 'unknown\n'
+  fi
 }
 
 # is_commit_sha <word> -- true when <word> can name a commit: lowercase hex, at

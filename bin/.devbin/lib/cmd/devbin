@@ -38,10 +38,19 @@ usage() {
 # So the fallback is now reachable only from the no-manifest case, and the
 # broken-manifest case refuses. No Silent Errors: devbin does not guess its own
 # version out of a file that belongs to someone else.
+#
+# Read through manifest_version, manifest_field's reading of the header, the one
+# reader of a manifest's fields (issue 0283): this function's own awk read past
+# the header and kept the spacing manifest_field trims, so the two could read
+# one manifest two ways. The root is the one DEVBIN_DIR names.
 runtime_version() {
-  local mf="${DEVBIN_DIR:-}/manifest.sha256" v=""
-  if [ -n "${DEVBIN_DIR:-}" ] && [ -f "$mf" ]; then
-    v="$(awk -F': ' '/^# devbin_version:/ { print $2; exit }' "$mf")"
+  local root="" mf="" v=""
+  if [ -n "${DEVBIN_DIR:-}" ]; then
+    root="$(dirname "$(dirname "$DEVBIN_DIR")")"
+    mf="$(manifest_path "$root")"
+  fi
+  if [ -n "$mf" ] && [ -f "$mf" ]; then
+    v="$(manifest_version "$root")" || v=""
     [ -n "$v" ] ||
       die "manifest at $mf names no devbin_version -- this project's version file is NOT devbin's; re-run upgrade"
     printf '%s' "$v"
@@ -114,8 +123,49 @@ show_templates() {
   printf 'and `%s upgrade` never touches them.\n' "${DEVBIN_INVOKE:-bin/devbin}"
 }
 
+# show_guides -- where devbin's long-form guides are, for the tree this runs
+# in, as devbin_docs_place answers (issue 0254): in a keg, its docs/, beside
+# the README Homebrew installs; in the checkout, its own docs/; in a project,
+# those of the install its upgrades read. The line said "in docs/ of the devbin
+# source checkout; an install carries none", which named nothing a brew user
+# has. Where there is no place, the line says why.
+show_guides() {
+  local docs
+  printf 'The long-form guides (authoring-commands, configuration, migration, releasing)\n'
+  if docs="$(devbin_docs_place "$PROJECT_ROOT")"; then
+    printf 'are in %s/\n' "$docs"
+  else
+    printf 'are not here: %s.\n' "$docs"
+  fi
+}
+
+# show_install_overview -- the overview from a machine install (issue 0251),
+# which has no project to describe: what the tree is, how a project is seeded
+# from it and upgraded from it, and where the reference config and the guides
+# are. The remedies are the install refusal's own block (install_remedies), so
+# the two cannot differ, and the runtime's path is lib_rel's, never spelled.
+show_install_overview() {
+  local ver named
+  ver="$(runtime_version)" || exit 1
+  named="$(install_named_root "$PROJECT_ROOT")"
+  printf 'devbin %s -- a machine install, not a project\n\n' "$ver"
+  printf 'Projects vendor devbin from this install, at:\n  %s\n' "$named"
+  printf "It runs no project's commands itself: a project runs them, as bin/devbin <command>.\n\n"
+  install_remedies "$PROJECT_ROOT"
+  printf '\nReference config, every key annotated: %s/%s/config.reference.yaml\n' "$named" "$(lib_rel)"
+  show_guides
+}
+
 show_overview() {
   local src ver vendored=""
+  # AN INSTALL IS NO PROJECT, and the overview below describes one: its config,
+  # its seam, where its upgrades come from (issue 0251). Whether it is one is
+  # is_install_tree's answer, as it is for the dispatcher's guard (issue 0262),
+  # a manifest that is not there reading as no install.
+  if is_install_tree "$PROJECT_ROOT"; then
+    show_install_overview
+    return 0
+  fi
   # Captured rather than inlined: a refusal inside a command substitution does
   # not abort the printf that holds it, so an unanswerable version would have
   # printed as a blank and read as an answer.
@@ -148,11 +198,10 @@ show_overview() {
     else
       printf '\nUpgrades come from: nowhere this machine can place -- %s\n' "$(source_unplaced_why "$PROJECT_ROOT")"
     fi
-    printf 'The long-form guides (authoring-commands, configuration, migration, releasing)\n'
-    printf 'are in docs/ of the devbin source checkout; an install carries none.\n'
   else
-    printf '\nThis IS the devbin checkout, which runs devbin on itself -- the long-form guides are in docs/.\n'
+    printf '\nThis IS the devbin checkout, which runs devbin on itself.\n'
   fi
+  show_guides
 }
 
 case "${1:-}" in

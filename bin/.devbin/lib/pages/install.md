@@ -9,7 +9,8 @@ Installs devbin into a project or, run from devbin's own source checkout, publis
               that checkout's runtime as its opt install, and with --force
               replace the one there, the one way to re-publish.
 
-    --into <dir>   the project to install into (default: the current directory)
+    --into <dir>   the project to install into, a directory that is already
+                   there: install makes none (default: the current directory)
     --name <n>     the project name, lower case (default: the target directory's
                    name, lower-cased)
     --alias <a>    a short name for the project, lower case. RECORDED ONLY --
@@ -27,6 +28,8 @@ Installs devbin into a project or, run from devbin's own source checkout, publis
                    The Homebrew formula passes it
 
 A flag that means nothing in the mode you are in is refused rather than ignored, and so is an upper-case --name or --alias.
+
+A relative `--into` is read from the directory you run install in, as your shell reads it there: an exported CDPATH is never searched for it, and `--into -` names a directory called `-` there, never the one you were in before. The project's name is derived from the path as you typed it, a linked directory's own name included.
 
 ## VENDOR: what it writes, and what it will not touch
 
@@ -78,7 +81,7 @@ PUBLISH writes a project-shaped tree with the project half missing:
                                  managed_by: brew when Homebrew placed it
     (no config.yaml, no cmd/, no help/)
 
-That absence is the mechanism rather than tidiness. In a tree with no config.yaml whose manifest says `kind: install`, `bin/devbin` answers only `install`, `shell-init`, `use` and its version (`version`, `--version`, `-v`); every other verb is refused with exit 5, naming how to seed a project and how to upgrade one. So an install can only ever be vendored FROM, never worked IN, and there is no check to disable and no flag to pass.
+That absence is the mechanism rather than tidiness. In a tree with no config.yaml whose manifest says `kind: install`, `bin/devbin` answers only `install`, `shell-init`, `use`, its version (`version`, `--version`, `-v`) and its own help. `help`, `-h`, `--help` and a bare `devbin` list the commands devbin ships, `help <command>` prints devbin's page for one, and `devbin devbin` says what an install is. Every other verb is refused with exit 5, naming how to seed a project and how to upgrade one: `devbin install --into <your project>` when the devbin on PATH is this install, and `cd <your project> && bin/devbin upgrade` when the machine names it, with `--from` and the install's path otherwise. So an install can only ever be vendored FROM, never worked IN, and there is no check to disable and no flag to pass.
 
     <install>/bin/devbin install --into <project>          seed a project from it
     cd <project> && bin/devbin upgrade --from <install>    move a project onto it
@@ -93,7 +96,7 @@ The install's manifest header carries `tool: devbin`, `version` and `managed_by`
 
 devbin's Homebrew formula makes a machine install like any other: at the release tag it runs devbin's own PUBLISH into the keg's `libexec`, with `--managed-by brew`, and links `bin/devbin` into Homebrew's `bin` as `devbin`. So `devbin install --into <project>` seeds a project from it, as from any install.
 
-A project finds it at `$HOMEBREW_PREFIX/opt/devbin/libexec` when no `DEVBIN_INSTALL_PREFIX` and no `~/.local/bin/devbin` link names another tree. Those two are read first, so a machine whose link names a checkout or its opt install keeps it, and installing the formula moves no project; `devbin use brew` removes the link, and from then on the keg answers. The path is `opt/devbin`, which Homebrew moves to each new keg, never the versioned keg under `Cellar/devbin/`, which `brew upgrade` deletes; `shell-init` run from the keg bakes the `opt` path into `dvb` for the same reason. `HOMEBREW_PREFIX` is what `brew shellenv` exports, and nothing else is read: no `brew` is run and none is looked for on PATH. A process started without the login profile -- cron, a hook a GUI app launched, a bare ssh command -- has no `HOMEBREW_PREFIX`, so there the default is off, and the message that says no install was found names the variable.
+A project finds it at `$HOMEBREW_PREFIX/opt/devbin/libexec` when no `DEVBIN_INSTALL_PREFIX` and no `~/.local/bin/devbin` link names another tree. Those two are read first, so a machine whose link names a checkout or its opt install keeps it, and installing the formula moves no project; `devbin use brew` removes the link, and from then on the keg answers. The path is `opt/devbin`, which Homebrew moves to each new keg, never the versioned keg under `Cellar/devbin/`, which `brew upgrade` deletes; `shell-init` run from the keg bakes the `opt` path into `dvb` for the same reason. `HOMEBREW_PREFIX` is what `brew shellenv` exports, and nothing else is read: no `brew` is run and none is looked for on PATH. A process started without the login profile -- cron, a hook a GUI app launched, a bare ssh command -- has no `HOMEBREW_PREFIX`, so there the default is off, and the message that says no install was found names the variable, and tells you to export it as `brew shellenv` does, in the profile that process reads; under a `HOMEBREW_PREFIX` that holds no devbin, it tells you to install devbin with Homebrew.
 
 Homebrew replaces a keg whole at each version and deletes the one before, so bytes devbin wrote into a keg would be lost at the next upgrade. An install whose manifest records `managed_by: brew` is therefore refused by `install` and `upgrade` alike, before anything is written, and the refusal names `brew upgrade devbin`.
 

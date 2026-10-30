@@ -29,14 +29,19 @@
 #            executable bit, T3's manifest and the links.
 #
 # A placeholder left after filling is refused by name, so a misspelt one
-# cannot ship.
+# cannot ship. In both modes the file written opens with a header of its own,
+# in place of the template's, and only the template's body is validated and
+# filled (template_split and rendered_text, below).
 #
 # THE TAG AND ITS COMMIT COME FROM GIT AND NOWHERE ELSE. brew checks out the tag
 # at install and stops when its commit is not the formula's revision, so a
 # wrong revision fails at every install, and the offline `brew audit` accepts
 # any 40 hex digits, so it would not have caught one. The commit is read with
 # `git rev-parse <tag>^{commit}`, and a tag that does not exist and a
-# lightweight one are refused: every release tag is annotated.
+# lightweight one are refused: every release tag is annotated. Under
+# release.publish.url brew fetches the public repository, whose tag names the
+# release's snapshot, so the commit is read there, by ls-remote, and a release
+# not public yet is refused (formula_revision).
 #
 # PUBLISH IS HANDED NO TAG, because the release core runs each after: command
 # with no input and no tag in its environment. It publishes the newest release,
@@ -100,8 +105,9 @@ placeholder_count() {
   printf '%s\n' "$(((${#1} - ${#rest}) / ${#2}))"
 }
 
-# formula_refusal <text> <tag> -- why the source template <text> cannot be
-# filled for <tag>, as one line, or nothing when it can. Pure.
+# formula_refusal <text> <tag> -- why the source template's body <text>
+# (template_split) cannot be filled for <tag>, as one line, or nothing when it
+# can. Pure.
 #
 # EXACTLY ONE OF EACH PLACEHOLDER: with two, which one is the pin is not
 # knowable, and with none there is nothing to fill. And a tag only of the
@@ -112,7 +118,7 @@ formula_refusal() {
   tags="$(placeholder_count "$1" @@TAG@@)"
   revs="$(placeholder_count "$1" @@REVISION@@)"
   if [ "$tags" != 1 ] || [ "$revs" != 1 ]; then
-    printf 'the template holds %s tag placeholder(s) and %s revision placeholder(s), and it is filled only when it holds exactly one of each\n' "$tags" "$revs"
+    printf 'below its header, the template holds %s tag placeholder(s) and %s revision placeholder(s), and it is filled only when it holds exactly one of each\n' "$tags" "$revs"
   elif [[ ! "$2" =~ ^[A-Za-z0-9._+/-]+$ ]]; then
     printf "the tag '%s' holds a character a release tag never does, and it would be written into a Ruby string brew evaluates\n" "$2"
   fi
@@ -135,6 +141,109 @@ leftover_placeholder() {
   if [[ "$1" =~ @@[^@[:space:]]+@@ ]]; then
     printf '%s\n' "${BASH_REMATCH[0]}"
   fi
+}
+
+# is_magic_comment <line> -- true when <line> is a magic comment Ruby, or
+# Sorbet, reads: `# <key>: <value>` alone on its line, its key one of those
+# below, with `-` read as `_` and in any case; or an Emacs mode line,
+# `# -*- ... -*-`, which Ruby reads the same keys from. Pure.
+is_magic_comment() {
+  local key
+  [[ "$1" =~ ^[[:space:]]*#.*-\*-.*-\*- ]] && return 0
+  [[ "$1" =~ ^[[:space:]]*#[[:space:]]*([A-Za-z_-]+)[[:space:]]*:[[:space:]]*[^[:space:]]+[[:space:]]*$ ]] || return 1
+  key="${BASH_REMATCH[1],,}"
+  case "${key//-/_}" in
+    coding | encoding | frozen_string_literal | shareable_constant_value | typed | warn_indent) return 0 ;;
+  esac
+  return 1
+}
+
+# What template_split found, read by the render: the magic comments in the
+# template's header, which it keeps, and the template's body, every byte after
+# that header.
+TPL_MAGIC="" TPL_BODY=""
+
+# template_split <text> -- the template <text> split at its header into
+# TPL_MAGIC and TPL_BODY. Reads and writes those two globals only, so it runs in
+# the caller's shell, never in a substitution.
+#
+# THE TEMPLATE'S HEADER IS ABOUT THE TEMPLATE, SO THE RENDER WRITES ITS OWN
+# (issue 0257). devbin's says it is never installed from and holds
+# placeholders, and the tap's formula, which brew installs from with the tag and
+# the commit filled in, carried both sentences. The header is the leading run of
+# `#` comment and blank lines, every line before the first that is neither, so a
+# `=begin` block is no part of it. It is dropped, and the body is all a render
+# validates and fills: a placeholder that never ships is neither counted nor
+# filled. A magic comment in it stays (is_magic_comment, and on the first line
+# any comment naming a coding, as Ruby reads an encoding there), since Ruby
+# reads most of them only before the first code. Each line is cut off with a
+# prefix expansion, never read, so the body is the template's own bytes, its end
+# included; and under the C locale, so a byte that is no character in the
+# caller's locale reads the same for every caller.
+template_split() {
+  local LC_ALL=C rest="$1" line first=yes
+  TPL_MAGIC=""
+  while [ -n "$rest" ]; do
+    line="${rest%%$'\n'*}"
+    [[ "$line" =~ ^[[:space:]]*(#.*)?$ ]] || break
+    if is_magic_comment "$line" || { [ "$first" = yes ] && [[ "$line" =~ ^[[:space:]]*#.*coding[:=] ]]; }; then
+      TPL_MAGIC+="$line"$'\n'
+    fi
+    first=no
+    if [ "$line" = "$rest" ]; then rest=""; else rest="${rest#*$'\n'}"; fi
+  done
+  TPL_BODY="$rest"
+}
+
+# rendered_text <magic> <body> <tag> <commit> <template> -- the file a render
+# writes, on stdout: the template's kept <magic> comments (template_split) and a
+# blank line after them, which Homebrew's style asks for (rubocop's
+# Layout/EmptyLineAfterMagicComment); then a header of the render's own, naming
+# <template>, <tag> and the <commit> it names, and saying to edit the template;
+# then the filled <body>. Pure, and one printf: replace_file runs it inside an
+# `if`, where errexit is off, so a write that failed before the last would
+# otherwise return 0.
+#
+# THE TEMPLATE IS NAMED FROM THE PROJECT ROOT, NEVER BY A MACHINE PATH, since
+# the file goes to a tap. file_text reads a template under the project root,
+# an absolute value as well, so the name is that value without its leading
+# slashes: the path render read it from.
+rendered_text() {
+  local magic="$1" header shown="$5"
+  shown="${shown#"${shown%%[!/]*}"}"
+  printf -v header '%s\n' "# RENDERED by devbin's formula built-in from the template below, for the tag" \
+    "# below and the commit it names: edit the template, not this file, which the" \
+    "# next render replaces." \
+    "#   template  $shown" "#   tag       $3" "#   commit    $4"
+  [ -z "$magic" ] || magic+=$'\n'
+  printf '%s%s%s' "$magic" "$header" "$2"
+}
+
+# formula_revision <tag> -- the commit brew checks out for <tag>, read from git:
+# the one the tag names in this checkout (tag_commit), or, for a project that
+# declares release.publish.url, the one it names in that public repository
+# (issue 0240), which is what brew fetches, and where the tag names the
+# release's snapshot, a commit this checkout never holds. Read with ls-remote
+# through release_git_remote, so the read cannot stop to ask, and read by
+# release_listed_tag, the one reader of a public tag, its peel where it is
+# annotated. The tag must be a release in this checkout either way. Dies when
+# the public repository does not answer or carries no such tag: a formula
+# naming a commit brew cannot fetch fails every install.
+formula_revision() {
+  local url listing tagged
+  url="$(cfg_release_get publish.url)" ||
+    die "cannot read release.publish.url (above), so whether brew fetches the public repository is not known"
+  if [ -z "$url" ]; then
+    tag_commit "$1"
+    return
+  fi
+  tag_commit "$1" >/dev/null
+  listing="$(release_git_remote ls-remote --end-of-options "$url" "refs/tags/$1" "refs/tags/$1^{}")" ||
+    die "cannot read $1 at the public repository $(release_url_shown "$url") (above), so the commit brew checks out is not known"
+  tagged="$(release_listed_tag "$listing" "$1")"
+  [ -n "$tagged" ] ||
+    die "the public repository $(release_url_shown "$url") carries no tag $1, and brew checks the tag out there -- make the release public first: release publish $1"
+  printf '%s\n' "${tagged%%$'\t'*}"
 }
 
 # tag_commit <tag> -- the commit the annotated <tag> names in this checkout,
@@ -231,18 +340,23 @@ tag_version() {
 # --- source mode -----------------------------------------------------------
 
 # render_source <tag> <file> -- the formula for <tag>, filled from the template
-# and written to <file>, with the commit it names on stdout. Dies, writing
-# nothing, on a tag or a template it cannot fill.
+# and written to <file> under the render's own header (rendered_text), with the
+# commit it names on stdout. Dies, writing nothing, on a tag or a template it
+# cannot fill.
 render_source() {
-  local tag="$1" file="$2" commit text why left
-  commit="$(tag_commit "$tag")"
+  local tag="$1" file="$2" commit text why filled left
+  commit="$(formula_revision "$tag")"
   text="$(file_text "$F_TEMPLATE")" || die "cannot read the formula template at $PROJECT_ROOT/$F_TEMPLATE"
   text="${text%.}"
-  why="$(formula_refusal "$text" "$tag")"
+  template_split "$text"
+  [ -n "$TPL_BODY" ] || die "$F_TEMPLATE holds nothing after its header, so there is no formula to render"
+  why="$(formula_refusal "$TPL_BODY" "$tag")"
   [ -z "$why" ] || die "$F_TEMPLATE: $why"
-  left="$(leftover_placeholder "$(formula_fill "$text" "$tag" "$commit")")"
+  filled="$(formula_fill "$TPL_BODY" "$tag" "$commit" && printf .)"
+  filled="${filled%.}"
+  left="$(leftover_placeholder "$filled")"
   [ -z "$left" ] || die "$F_TEMPLATE: $left is no placeholder source mode fills, and it would ship as written"
-  replace_file "$file" formula_fill "$text" "$tag" "$commit" ||
+  replace_file "$file" rendered_text "$TPL_MAGIC" "$filled" "$tag" "$commit" "$F_TEMPLATE" ||
     die "cannot write the formula to $file (above)"
   printf '%s\n' "$commit"
 }
@@ -445,20 +559,25 @@ release_sums() {
 }
 
 # render_assets <tag> <file> <cask-file> <sums-text> -- the formula for <tag>,
-# and the cask where formula.cask names one, filled and written, with the commit
-# on stdout. Dies, writing nothing, on anything it cannot fill.
+# and the cask where formula.cask names one, filled and written, each under the
+# render's own header (rendered_text), with the commit on stdout. Dies, writing
+# nothing, on anything it cannot fill.
 render_assets() {
-  local tag="$1" file="$2" cfile="$3" sums="$4" version commit text ctext="" a seen n left out cout
+  local tag="$1" file="$2" cfile="$3" sums="$4" version commit text ctext="" fmagic cmagic="" a seen n left out cout
   ASSETS_SEEN=()
   version="$(tag_version "$tag")"
-  commit="$(tag_commit "$tag")"
+  commit="$(formula_revision "$tag")"
   text="$(file_text "$F_TEMPLATE")" || die "cannot read the formula template at $PROJECT_ROOT/$F_TEMPLATE"
-  text="${text%.}"
+  template_split "${text%.}"
+  [ -n "$TPL_BODY" ] || die "$F_TEMPLATE holds nothing after its header, so there is no formula to render"
+  fmagic="$TPL_MAGIC" text="$TPL_BODY"
   assets_check "$text" "$F_TEMPLATE" formula
   [ -z "$ASSETS_WHY" ] || die "$ASSETS_WHY"
   if [ -n "$F_CASK" ]; then
     ctext="$(file_text "$F_CASK")" || die "cannot read the cask template at $PROJECT_ROOT/$F_CASK"
-    ctext="${ctext%.}"
+    template_split "${ctext%.}"
+    [ -n "$TPL_BODY" ] || die "$F_CASK holds nothing after its header, so there is no cask to render"
+    cmagic="$TPL_MAGIC" ctext="$TPL_BODY"
     assets_check "$ctext" "$F_CASK" cask
     [ -z "$ASSETS_WHY" ] || die "$ASSETS_WHY"
   fi
@@ -483,9 +602,9 @@ render_assets() {
     cout="${cout%.}"
     left="$(leftover_placeholder "$cout")"
     [ -z "$left" ] || die "$F_CASK: $left is no placeholder assets mode fills, and it would ship as written"
-    replace_file "$cfile" printf '%s' "$cout" || die "cannot write the cask to $cfile (above)"
+    replace_file "$cfile" rendered_text "$cmagic" "$cout" "$tag" "$commit" "$F_CASK" || die "cannot write the cask to $cfile (above)"
   fi
-  replace_file "$file" printf '%s' "$out" || die "cannot write the formula to $file (above)"
+  replace_file "$file" rendered_text "$fmagic" "$out" "$tag" "$commit" "$F_TEMPLATE" || die "cannot write the formula to $file (above)"
   printf '%s\n' "$commit"
 }
 

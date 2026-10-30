@@ -122,11 +122,14 @@ main() {
   fi
 
   if [ -n "$from" ]; then
-    srcroot="$(cd "$from" 2>/dev/null && pwd)" || die "no such directory: $from"
+    # Read by logical_dir, from the current directory alone (issue 0267): a
+    # bare cd found a relative name through CDPATH and read `-` as $OLDPWD,
+    # and its printed line went into the source.
+    logical_dir "$from" srcroot 2>/dev/null || die "no such directory: $from"
   else
     srcroot="$(manifest_source "$dstroot" 2>/dev/null || true)"
     [ -n "$srcroot" ] ||
-      die "$(source_unplaced_why "$dstroot") -- name one with --from <dir>"
+      die "$(source_unplaced_why "$dstroot") -- $(source_unplaced_fix "$dstroot" "$PROJECT_ROOT")"
   fi
 
   is_devbin_source "$srcroot" || {

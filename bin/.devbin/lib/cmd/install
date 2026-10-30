@@ -25,7 +25,8 @@ usage() {
 usage: $DEVBIN_INVOKE install [--into <dir>] [--name <n>] [--alias <a>] [--lang <l>] [--force]
        $DEVBIN_INVOKE install [--prefix <dir>] [--managed-by brew] [--force]   (inside devbin's own tree)
 
-  --into <dir>   the project to install into (default: the current directory)
+  --into <dir>   the project to install into, a directory that is already
+                 there: install makes none (default: the current directory)
   --prefix <dir> PUBLISH mode only: where to publish the machine install
                  (default: install.prefix in devbin's own config. There is no
                  built-in default -- the location is configuration)
@@ -87,6 +88,34 @@ starter_config() {
   return 0
 }
 
+# target_refusal <dir> -- rc 0 when <dir> is a directory to install into, and
+# otherwise dies saying what is there. A relative <dir> is read from the
+# current directory, the user's, as their shell read it.
+#
+# A MISSING TARGET IS REFUSED, NEVER MADE (issue 0258): a directory made here
+# would make a mistyped path into a project. So only a path with nothing at it
+# is told to make one, by a line spelled from / and quoted to be pasted as it
+# is. A file, or a link to nothing, would fail that mkdir, and a leading ~ that
+# reached install quoted, and so unexpanded, would make a directory named ~ in
+# the current one.
+target_refusal() {
+  local d="$1" abs
+  [ -d "$d" ] && return 0
+  if [ -e "$d" ] || [ -L "$d" ]; then
+    die "not a directory: $d"
+  fi
+  # shellcheck disable=SC2088
+  case "$d" in
+    '~'*) die "no such directory: $d
+       its ~ was not expanded: a shell expands a leading ~ only outside quotes, and install expands none, so name the directory from \$HOME or /" ;;
+    /*) abs="$d" ;;
+    *) abs="$PWD/$d" ;;
+  esac
+  die "no such directory: $d
+       install makes none, so a path that is not there is refused rather than made into a project
+       make it, then run install again:  mkdir -p $(printf '%q' "$abs")"
+}
+
 # THE PER-PROJECT LAUNCHER SYMLINK IS RETIRED.
 #
 # `link_alias` lived here and made `bin/<project>` and `bin/<alias>` point at
@@ -114,8 +143,14 @@ main() {
         return 0
         ;;
       --into)
-        into="${2:-}"
-        shift 2 || die "--into needs a directory"
+        [ $# -ge 2 ] || die "--into needs a directory"
+        # AN EMPTY --into IS A USAGE ERROR, NEVER NO --into (issue 0268): the
+        # mode is chosen by whether --into was given, so an unset `--into
+        # "$dir"` vendored into the current directory, or, from devbin's own
+        # tree, selected PUBLISH and published it.
+        [ -n "$2" ] || die "--into is empty: name the directory to install into (an empty --into is refused, never read as no --into)"
+        into="$2"
+        shift 2
         ;;
       --name)
         vendor_only="$vendor_only --name"
@@ -232,8 +267,14 @@ main() {
     fi
     dstroot="$prefix"
   else
-    dstroot="$(cd "${into:-.}" 2>/dev/null && pwd)" ||
-      die "no such directory: ${into:-.}"
+    # A MISSING TARGET IS REFUSED, NEVER MADE (issue 0258): target_refusal
+    # says what is there instead. A directory cd cannot enter keeps cd's own
+    # reason, above the refusal. The target is read by logical_dir, from the
+    # current directory alone (issue 0267): a bare cd found a relative name
+    # through CDPATH and read `-` as $OLDPWD, and its printed line went into
+    # the path.
+    target_refusal "${into:-.}"
+    logical_dir "${into:-.}" dstroot || die "cannot enter ${into:-.} (above)"
   fi
 
   # ANNOUNCED BEFORE ANYTHING IS WRITTEN. A discriminator that is merely

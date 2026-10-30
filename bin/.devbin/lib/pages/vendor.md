@@ -7,6 +7,8 @@ How do these bytes compare to the devbin they came from, and what would upgrade 
 
 Exits 0 when the tree is LEVEL with its source and 1 when it is not; non-zero is an answer, not a fault. A run that cannot compare at all -- no vendored runtime here, a --from that is not a devbin -- also exits 1 and says why on stderr. devbin's own source checkout runs its runtime in place, so there is nothing vendored to compare there, and vendor says so.
 
+A relative --from is read from the directory you run vendor in, as your shell reads it there: an exported CDPATH is never searched for it, and `--from -` names a directory called `-` there, never the one you were in before.
+
 ## The question doctor cannot ask
 
 doctor compares the vendored tree against the checksums recorded by the LAST INSTALL OR UPGRADE. That is an internal check, and internal is the whole limitation: a re-vendor rewrites the files and the manifest together, so nothing in the pair can tell a local patch from a fresh copy. This command asks what the tree corresponds to OUTSIDE itself.

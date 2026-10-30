@@ -3,8 +3,8 @@
 # shell-init -- emit the shell function that finds the nearest bin/devbin.
 #
 # WHY THIS IS A COMMAND AND NOT A README SNIPPET. It was a snippet: prose in
-# README.md and again in usage-rules.md, with no code, no test and no doctor
-# coverage. A user installed it and it carried two defects, one of
+# README.md and again in a second document, with no code, no test and no
+# doctor coverage. A user installed it and it carried two defects, one of
 # which made it run a DIFFERENT project's launcher and report success. Within
 # an hour of a third copy existing the three had already diverged, because the
 # landed copy was fixed and the README's was not.
@@ -68,7 +68,7 @@ usage: $DEVBIN_INVOKE shell-init <zsh|bash>
   A dvb emitted by the install Homebrew placed (devbin shell-init zsh) falls
   back to that install when the walk finds nothing:
 
-    cd ~/some/new/project && dvb install
+    mkdir -p ~/some/new/project && cd ~/some/new/project && dvb install
 
   DEVBIN_SOURCE, for the maintainer of a dev checkout, names a devbin checkout
   -- its root or its launcher -- that dvb falls back to first.
@@ -182,12 +182,15 @@ dvb() {
 BODY
 }
 
-# _shell_init_prefix -- the machine install's location, for the emitted body,
-# or EMPTY when this tree has no opinion about one.
+# _shell_init_prefix -- the tree whose bin/devbin the emitted body runs as its
+# machine-install fallback, or EMPTY when this tree has no opinion about one.
 #
 # AN INSTALL KNOWS ITS OWN PREFIX WITHOUT BEING TOLD: it IS the prefix, so when
-# this runs from one the answer is PROJECT_ROOT and no config is consulted.
-# That matters because an install deliberately has no config.yaml.
+# this runs from one the answer is PROJECT_ROOT, or for a Homebrew keg the opt
+# link above it (below), and no config is consulted. That matters because an
+# install deliberately has no config.yaml. DEVBIN_INSTALL_PREFIX, which the
+# body reads first, names an install root, so for a keg the variable and this
+# default name different trees of one keg, each with a bin/devbin dvb can run.
 #
 # UNSET IS A LEGAL ANSWER HERE, and this is the only caller for which it is. A
 # consumer project has no reason to know where the machine install lives, so it
@@ -212,11 +215,14 @@ BODY
 # fill in _shell_init_render still checks the rc, so a failure added here later
 # is refused rather than emitted as a body with no fallback.
 _shell_init_prefix() {
-  if [ "$(manifest_field "$PROJECT_ROOT" kind 2>/dev/null || true)" = install ]; then
+  if is_install_tree "$PROJECT_ROOT"; then
     # A HOMEBREW KEG IS NAMED BY ITS OPT LINK (issue 0195): baked into `dvb`,
     # Cellar/devbin/<version> would leave every open shell aimed at a keg the
-    # next `brew upgrade` deletes. install_named_root says why, once.
-    install_named_root "$PROJECT_ROOT"
+    # next `brew upgrade` deletes. And dvb runs $prefix/bin/devbin, so for a keg
+    # the prefix is the opt link itself, whose bin/devbin is the keg's own
+    # launcher, never libexec, whose launcher a PATH without Homebrew's bin
+    # refuses at the floor (issue 0266). install_launcher_root says why, once.
+    install_launcher_root "$PROJECT_ROOT"
     return 0
   fi
   [ -f "${DEVBIN_DIR:-}/config.yaml" ] || return 0

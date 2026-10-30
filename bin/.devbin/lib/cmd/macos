@@ -35,6 +35,32 @@
 # The stage is under XDG state, one per checkout, and app-sign refuses a stage
 # at or under the project root or the product's own directory.
 #
+# AN APP MAY VERSION APART FROM ITS PROJECT (issue 0243). The tag and the
+# release are the project's whatever the app's version is; macos.version_from
+# names the file the app's own version is read from, and an app that versions
+# apart must declare macos.commit_stamp, the Info.plist key its build writes
+# its commit into, since its version cannot show a copy is the tag's build. A
+# declared kind stamp must carry macos.kind_value. Each is checked wherever the
+# version is: the staged copy at app-sign, and the stapled copy and the zip's
+# own at publish.
+#
+# EVERY COPY A STEP MAKES IS DROPPED FROM LAUNCH SERVICES ON EVERY PATH OUT
+# (issue 0243). codesign, stapler and spctl can register a copy, and a record
+# left makes the bundle id open a staged or deleted copy rather than the
+# installed app. One EXIT trap, drop_on_exit, drops the staged copy, the
+# Gatekeeper check's copy and publish's proof copy, ignoring INT, TERM and HUP
+# from its first line through every drop and removal, then reads the record
+# list back. A record left on the staged copy warns, since each step, publish
+# the last, drops it again and Launch Services can register it again on its
+# own. One left on the Gatekeeper check's copy or on publish's proof copy,
+# which are gone, fails the run. After publish's upload, every record at or
+# under macos.build_root is dropped too, and one that stays warns: a build can
+# register its product again after any drop. That drop is outside the hold, so
+# an interrupt during it exits 1 after publish has printed what it published. A
+# root that is /, or holds the home directory or a directory installed apps
+# live in, the system's own among them, is refused before anything is built or
+# uploaded.
+#
 # MACOS ONLY. Off macOS every subcommand refuses with exit 2, devbin's code for
 # what is not available here, before the config or any tool is read. The
 # subcommand word is checked first, which reads nothing, so `macos all` is the
@@ -65,7 +91,8 @@ usage: $ME <doctor|store-creds|app-sign|app-notarize|app-verify|publish>
   app-sign      macos.build, when declared, at the project root; a copy of
                 macos.app staged under XDG state, outside the build tree; the
                 copy refused, with nothing signed, unless its bundle id is
-                macos.bundle_id and its version the project's; then signed
+                macos.bundle_id, its version the app's (macos.version_from,
+                else the project's) and its declared stamps the tag's; then signed
                 inside-out with the Developer ID identity and the hardened
                 runtime, and its identifier, team and runtime read back.
                 Refuses, building nothing, unless HEAD is the release tag of
@@ -144,23 +171,49 @@ cfg_load "${DEVBIN_DIR:?}/config.yaml" || die "macos: cannot read $DEVBIN_DIR/co
 . "$DEVBIN_LIB/release.notes"
 # shellcheck source=lib/release.steps
 . "$DEVBIN_LIB/release.steps"
+# Validated whole, as the release core validates it, so a pair rule such as
+# macos.kind_value's holds here too and not only in doctor.
+cfg_validate || die "macos: $DEVBIN_DIR/config.yaml does not validate (above)"
 
 # macos_key <key> -- a macos: value, or the command stops naming the read.
 macos_key() { cfg_macos_get "$1" || die "macos: cannot read macos.$1"; }
 
-# from_root <path> -- <path> as an absolute path, a relative one read from the
-# project root; empty stays empty.
-from_root() {
-  case "$1" in
-    '' | /*) printf '%s' "$1" ;;
-    *) printf '%s/%s' "$ROOT" "$1" ;;
+# macos_path <key> -- macos.<key> as a path: a leading `~`, `$HOME` or XDG
+# base-directory variable expanded (path_expand), then a relative path read
+# from the project root; empty stays empty. A value that opens with a `~` or a
+# `$` that cannot be expanded stops the command, naming the key and what it
+# opens with, so it is never read as a path in the project.
+macos_path() {
+  local v p rc=0
+  v="$(macos_key "$1")"
+  [ -n "$v" ] || return 0
+  p="$(path_expand "$v")" || rc=$?
+  case "$rc" in
+    0) ;;
+    1) die "macos: macos.$1 is $v, and HOME (${HOME:-unset}) is not an absolute path below /, so it cannot be expanded" ;;
+    *) die "macos: macos.$1 is $v, which opens with $p, and only ~, \$HOME, \$XDG_STATE_HOME, \$XDG_DATA_HOME, \$XDG_CONFIG_HOME and \$XDG_CACHE_HOME are expanded, each written alone as \$NAME or \${NAME}: an XDG variable that is unset falls back to its XDG default" ;;
+  esac
+  case "$p" in
+    /*) printf '%s' "$p" ;;
+    *) printf '%s/%s' "$ROOT" "$p" ;;
   esac
 }
 
-APP_SRC="$(from_root "$(macos_key app)")"
+APP_SRC="$(macos_path app)"
 APP_BUILD="$(macos_key build)"
 APP_BUNDLE_ID="$(macos_key bundle_id)"
-APP_ENTITLEMENTS="$(from_root "$(macos_key entitlements)")"
+APP_ENTITLEMENTS="$(macos_path entitlements)"
+APP_COMMIT_STAMP="$(macos_key commit_stamp)"
+APP_KIND_STAMP="$(macos_key kind_stamp)"
+APP_KIND_VALUE="$(macos_key kind_value)"
+# Where publish's last Launch Services drop looks: macos.build_root, else the
+# directory holding the app, so the build product's own record is dropped for
+# any project.
+APP_BUILD_ROOT="$(macos_path build_root)"
+if [ -z "$APP_BUILD_ROOT" ] && [ -n "$APP_SRC" ]; then
+  APP_BUILD_ROOT="${APP_SRC%/*}"
+  [ -n "$APP_BUILD_ROOT" ] || APP_BUILD_ROOT=/
+fi
 KC_PREFIX="$(macos_key keychain)"
 APP_NAME="${APP_SRC##*/}"
 APP_ASSET="$(macos_key asset)"
@@ -175,7 +228,9 @@ stage_key() {
   [ -n "$sum" ] || die "macos: could not hash the project root to name its stage"
   printf '%s-%s' "${DEVBIN_NAME:-${ROOT##*/}}" "${sum:0:12}"
 }
-APP_STAGE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/devbin/macos/$(stage_key)"
+APP_STATE_BASE="$(xdg_dir state)" ||
+  die "macos: there is no XDG state directory to stage in: XDG_STATE_HOME is not an absolute path, and HOME (${HOME:-unset}) is not an absolute path below /"
+APP_STAGE_DIR="$APP_STATE_BASE/devbin/macos/$(stage_key)"
 app_dist() { printf '%s' "$APP_STAGE_DIR/$APP_NAME"; }
 
 # require_declared -- the keys a release cannot be made without. Each one
@@ -254,16 +309,275 @@ app_executable() { # $1 bundle
   printf '%s' "$1/Contents/MacOS/${name:-$(basename "$1" .app)}"
 }
 
-# ls_forget <bundle> -- drop the Launch Services record codesign, stapler or
-# spctl can make for a copy of ours, so the bundle id opens only the installed
-# app. lsregister exits non-zero on a path it holds no record for, which is the
-# usual answer for a fresh copy, so its exit decides nothing and is not read.
+# --- Launch Services --------------------------------------------------------
+#
+# Every copy of ours that codesign, stapler or spctl can register has its
+# record dropped on every path out, and the drop is checked: the record list is
+# read whole and must hold none at or under the copy (issue 0243). Every drop
+# of a copy runs with INT, TERM and HUP ignored and every read-back without, so
+# a signal can cut short only a read. publish's last drop, of the build's own
+# records under the build root, only warns, and runs without the hold. These
+# print and return, and each caller says a failure in its own voice.
+
+# Launch Services' registrar, not on PATH on macOS.
 LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
-ls_forget() {
-  local ls
-  ls="$(command -v lsregister 2>/dev/null)" || ls="$LSREGISTER"
-  [ -x "$ls" ] || return 0
-  "$ls" -u "$1" >/dev/null 2>&1 || true
+
+# ls_cmd -- lsregister: an executable one on PATH first (a test's fake), then
+# the system's.
+ls_cmd() {
+  local found
+  if found="$(command -v lsregister)" && [ -x "$found" ]; then
+    printf '%s\n' "$found"
+  else
+    printf '%s\n' "$LSREGISTER"
+  fi
+}
+
+# ls_records_parse <dir> -- from lsregister -dump's text on stdin, the paths of
+# the records at or under <dir>, one a line and each once, read without its
+# ` (0x...)` id. Exit 3 when the text holds no path: line at all: the real list always
+# holds the system's own apps, so none means it was not read. Any other
+# non-zero is awk's own failure.
+ls_records_parse() {
+  VALUE="$1" awk '
+    /^path:/ {
+      seen = 1
+      p = $0
+      sub(/^path:[ \t]+/, "", p); sub(/ \(0x[0-9a-fA-F]+\)$/, "", p)
+      if ((p == ENVIRON["VALUE"] || index(p, ENVIRON["VALUE"] "/") == 1) && !listed[p]++) print p
+    }
+    END { if (!seen) exit 3 }'
+}
+
+# ls_records <dir> -- ls_records_parse over lsregister -dump, read whole. rc 1,
+# printing why on one line, when the list cannot be read: a failed -dump, with
+# the first line it said, one that lists no path: line, or a search that failed.
+ls_records() {
+  local dump rc=0 found prc=0 said
+  dump="$("$(ls_cmd)" -dump 2>&1)" || rc=$?
+  if [ "$rc" -ne 0 ]; then
+    said="${dump%%$'\n'*}"
+    printf 'lsregister -dump failed (exit %s), saying %s\n' "$rc" "${said:-nothing}"
+    return 1
+  fi
+  found="$(ls_records_parse "$1" <<<"$dump")" || prc=$?
+  case "$prc" in
+    0) ;;
+    3)
+      printf 'lsregister -dump listed no record at all, so the list was not read\n'
+      return 1
+      ;;
+    *)
+      printf 'the record list could not be searched (exit %s)\n' "$prc"
+      return 1
+      ;;
+  esac
+  [ -z "$found" ] || printf '%s\n' "$found"
+}
+
+# ls_unregister <bundle> -- lsregister -u, its words in LS_ANSWER and its exit
+# in LS_URC for ls_report. The real lsregister exits non-zero on a path it holds
+# no record for, the usual answer for a fresh copy, so LS_URC alone decides
+# nothing: the record list does.
+LS_ANSWER=""
+LS_URC=0
+ls_unregister() {
+  LS_URC=0
+  LS_ANSWER="$("$(ls_cmd)" -u "$1" 2>&1)" || LS_URC=$?
+}
+
+# ls_report <bundle> <dir> <urc> <answer> -- after an lsregister -u <bundle>
+# that exited <urc> saying <answer>, the record list must hold no record at or
+# under <dir>. Prints nothing when it holds none; otherwise one line for each
+# record left, or one saying the list was not read, each naming the path and
+# the command that drops it, quoted as a shell reads it, and returns 1.
+ls_report() {
+  local bundle="$1" dir="$2" urc="$3" said="${4%%$'\n'*}" ls left rc=0 why path shown
+  printf -v ls '%q' "$(ls_cmd)"
+  left="$(ls_records "$dir")" || rc=$?
+  if [ "$rc" -ne 0 ]; then
+    printf -v shown '%q' "$bundle"
+    printf 'could not drop the Launch Services record for %s: %s, so whether it is gone is unknown; drop it with: %s -u %s\n' "$bundle" "$left" "$ls" "$shown"
+    return 1
+  fi
+  [ -n "$left" ] || return 0
+  if [ "$urc" -ne 0 ]; then
+    why="lsregister -u said: ${said:-nothing} (exit $urc)"
+  else
+    why="lsregister -u exited 0 and the record is still listed"
+  fi
+  while IFS= read -r path; do
+    printf -v shown '%q' "$path"
+    printf 'could not drop the Launch Services record for %s: %s; drop it with: %s -u %s\n' "$path" "$why" "$ls" "$shown"
+  done <<<"$left"
+  return 1
+}
+
+# ls_drop <bundle> <dir> <remove> -- with INT, TERM and HUP already ignored by
+# the caller: the record of our copy <bundle> dropped (ls_unregister), and <dir>
+# removed when <remove> is yes, each path as Launch Services lists it. A dir not
+# removed adds its line to LS_LINES and returns 1. Runs in the caller's shell,
+# never in a `$(...)`: the signals held are the caller's.
+LS_LINES=""
+ls_drop() {
+  local shown
+  ls_unregister "$1"
+  [ "$3" = yes ] || return 0
+  rm -rf -- "$2" && return 0
+  printf -v shown '%q' "$2"
+  LS_LINES+="could not remove $2; remove it with: rm -rf $shown"$'\n'
+  return 1
+}
+
+# ls_check <bundle> <dir> <urc> <answer> -- the read-back after ls_drop
+# (ls_report), its lines added to LS_LINES; rc 1 when there are any.
+ls_check() {
+  local said
+  said="$(ls_report "$@")" && return 0
+  LS_LINES+="$said"$'\n'
+  return 1
+}
+
+# ls_say -- each line of LS_LINES said on stderr, after whatever the run said.
+ls_say() {
+  local line
+  while IFS= read -r line; do
+    [ -z "$line" ] || warn "macos: $line"
+  done <<<"$LS_LINES"
+}
+
+# build_root_why <dir> -- why <dir>, as Launch Services lists it, cannot be the
+# root of publish's last drop, on one line with rc 0; rc 1 when it can be. The
+# drop unregisters every record at or under its root, so the root must not be
+# /, and must hold neither the home directory nor a directory installed apps
+# live in, the system's own among them, whose records would go with it.
+build_root_why() {
+  local p at home="${HOME:-}"
+  if [ "$1" = / ]; then
+    printf 'is /, so the drop would sweep every record on this Mac'
+    return 0
+  fi
+  for p in "$home" /Applications "${home:+$home/Applications}" /System/Applications /System/Library/CoreServices; do
+    [ -n "$p" ] || continue
+    cargo_place "$p" at getcwd || at="$p"
+    case "$at/" in
+      "$1"/*)
+        printf 'holds %s, so the drop would sweep the records of the apps installed there' "$at"
+        return 0
+        ;;
+    esac
+  done
+  return 1
+}
+
+# ls_drop_under <dir> -- every record at or under <dir> dropped, each drop
+# checked as ls_report reads it: publish's last step, for the build products a
+# build registers. The records go deepest first, so a record nested in a bundle,
+# a plugin's, is dropped before its container's read-back, which would
+# otherwise list it. Prints each line to say, and returns 1 when a record is left,
+# the list was not read, or <dir> cannot be resolved or is no root for it
+# (build_root_why), which drops nothing.
+ls_drop_under() {
+  local dir found path said why rc=0
+  if [ -z "$1" ] || ! cargo_place "$1" dir getcwd; then
+    printf 'could not resolve %s as Launch Services lists it, so the records under it were not read\n' "${1:-an empty build root}"
+    return 1
+  fi
+  if why="$(build_root_why "$dir")"; then
+    printf 'did not drop the Launch Services records under %s, which %s\n' "$dir" "$why"
+    return 1
+  fi
+  if ! found="$(ls_records "$dir")"; then
+    printf 'could not drop the Launch Services records under %s: %s\n' "$dir" "$found"
+    return 1
+  fi
+  while IFS= read -r path; do
+    [ -n "$path" ] || continue
+    ls_unregister "$path"
+    if ! said="$(ls_report "$path" "$path" "$LS_URC" "$LS_ANSWER")"; then
+      printf '%s\n' "$said"
+      rc=1
+    fi
+  done < <(LC_ALL=C sort -r <<<"$found")
+  return "$rc"
+}
+
+# The copies the EXIT trap drops, globals because bash runs an EXIT trap with a
+# function's locals already unwound: the staged copy, placed when the trap is
+# armed, whose record left warns with the exit standing, since the next step
+# drops it again and Launch Services can register it again on its own; the
+# Gatekeeper check's copy and its dir, set while they exist; and publish's
+# proof copy with its staging dir, and whether the attach finished. Either of
+# the last two left fails the run, leading with what is true when the asset is
+# already up.
+_DIST_TO_DROP=""
+_CHECK_DIR=""
+_PUBLISH_STAGING=""
+_PUBLISHED=no
+
+# drop_on_exit -- the EXIT trap of app-sign, app-notarize, app-verify and
+# publish (arm_drops). INT, TERM and HUP are ignored at once, before anything
+# forks, through every drop and removal, and one handled before that first line
+# does nothing (arm_drops); then they are put back to their defaults for the
+# read-backs, since the shell is already leaving. A copy left that fails
+# the run makes an exit of 0 an exit of 1; any other status stands.
+drop_on_exit() {
+  local rc=$? check_urc=0 check_said="" check_lines="" proof_urc=0 proof_said="" proof_lines="" dist_urc=0 dist_said=""
+  trap '' INT TERM HUP
+  if [ -n "$_CHECK_DIR" ]; then
+    LS_LINES=""
+    ls_drop "$_CHECK_DIR/$APP_NAME" "$_CHECK_DIR" yes || true
+    check_urc="$LS_URC" check_said="$LS_ANSWER" check_lines="$LS_LINES"
+  fi
+  if [ -n "$_PUBLISH_STAGING" ]; then
+    LS_LINES=""
+    ls_drop "$_PUBLISH_STAGING/unpacked/$APP_NAME" "$_PUBLISH_STAGING" yes || true
+    proof_urc="$LS_URC" proof_said="$LS_ANSWER" proof_lines="$LS_LINES"
+  fi
+  if [ -n "$_DIST_TO_DROP" ]; then
+    ls_unregister "$_DIST_TO_DROP"
+    dist_urc="$LS_URC" dist_said="$LS_ANSWER"
+  fi
+  trap - INT TERM HUP
+  if [ -n "$_PUBLISH_STAGING" ]; then
+    LS_LINES="$proof_lines"
+    ls_check "$_PUBLISH_STAGING/unpacked/$APP_NAME" "$_PUBLISH_STAGING" "$proof_urc" "$proof_said" || true
+    if [ -n "$LS_LINES" ]; then
+      [ "$_PUBLISHED" != yes ] ||
+        warn "macos: published $APP_ASSET on release $APP_TAG; could not drop its proof copy's Launch Services record or remove the dir it was proven in:"
+      ls_say
+      [ "$rc" -ne 0 ] || rc=1
+    fi
+  fi
+  if [ -n "$_CHECK_DIR" ]; then
+    LS_LINES="$check_lines"
+    ls_check "$_CHECK_DIR/$APP_NAME" "$_CHECK_DIR" "$check_urc" "$check_said" || true
+    if [ -n "$LS_LINES" ]; then
+      warn "macos: the Gatekeeper check's copy of $APP_NAME was not dropped from Launch Services and removed:"
+      ls_say
+      [ "$rc" -ne 0 ] || rc=1
+    fi
+  fi
+  if [ -n "$_DIST_TO_DROP" ]; then
+    LS_LINES=""
+    ls_check "$_DIST_TO_DROP" "$_DIST_TO_DROP" "$dist_urc" "$dist_said" || ls_say
+  fi
+  exit "$rc"
+}
+
+# arm_drops <left> -- drop_on_exit on EXIT, and an interrupt made the command's
+# own failure, exit 1, so the drops run on every path out. The staged copy is
+# placed as Launch Services lists it now (cargo_place), so the trap has nothing
+# to resolve before it holds the signals; when it cannot be, the command stops,
+# saying <left>. Armed before any copy is made. drop_on_exit runs with
+# _DROPPING set for its call, and the interrupt handler does nothing while it
+# is set, so a signal already pending as the trap starts cannot end the shell
+# before its first line holds the signals, with no copy dropped.
+arm_drops() {
+  cargo_place "$(app_dist)" _DIST_TO_DROP getcwd ||
+    die "macos: the staged copy's path $(app_dist) cannot be resolved as Launch Services lists it, so its record could not be checked$1"
+  trap '_DROPPING=yes drop_on_exit' EXIT
+  trap '[ "${_DROPPING:-}" = yes ] || exit 1' INT TERM HUP
 }
 
 # app_sign_nested <bundle> -- every Mach-O inside the bundle except its main
@@ -336,24 +650,30 @@ app_signature_readback() {
   esac
 }
 
-# app_verify_notarised <bundle> <dir> -- the ticket, checked the way a download
-# meets it: a quarantined copy under <dir>, the quarantine asserted before any
-# verdict is read, and spctl's source. The app is not launched. 0 when it
-# passes; the copy is removed and its Launch Services record dropped.
+# app_verify_notarised <bundle> <left> -- the ticket, checked the way a download
+# meets it: a quarantined copy in a dir of its own, the quarantine asserted
+# before any verdict is read, and spctl's source. The app is not launched. 0
+# when it passes. The copy's record is dropped and its dir removed before this
+# returns (drop_check_copy), and on any other path out by the EXIT trap, which
+# arm_drops has set; a record or the dir left stops the command, saying <left>
+# after the reason, since nothing is left to drop it later.
 app_verify_notarised() {
-  local bundle="$1" t="$2/verify" verdict rc=0
+  local bundle="$1" t verdict rc=0
   if xcrun stapler validate "$bundle" >/dev/null 2>&1; then
     printf '  %-21s %s\n' "stapled ticket" "present, validates"
   else
     printf '  %-21s %s\n' "stapled ticket" "NONE (run: $ME app-notarize)"
     rc=1
   fi
-  mkdir "$t" || die "macos: could not make $t to check $bundle"
-  ditto "$bundle" "$t/$APP_NAME" || die "macos: could not copy $bundle to check it"
+  if ! t="$(mktemp -d "${TMPDIR:-/tmp}/devbin-macos-check.XXXXXX")" || ! cargo_place "$t" t getcwd; then
+    die "macos: could not make a dir to check $bundle in$2"
+  fi
+  _CHECK_DIR="$t"
+  ditto "$bundle" "$t/$APP_NAME" || die "macos: could not copy $bundle to check it$2"
   xattr -w com.apple.quarantine "0083;0;devbin-verify;" "$t/$APP_NAME" || true
   if ! xattr -p com.apple.quarantine "$t/$APP_NAME" >/dev/null 2>&1; then
     printf '  %-21s SKIPPED (could not set the quarantine attribute; no verdict)\n' "Gatekeeper"
-    rm -rf "$t"
+    drop_check_copy "$2"
     return 1
   fi
   # spctl exits non-zero on a rejection, which is the verdict being read.
@@ -364,34 +684,131 @@ app_verify_notarised() {
     printf '  %-21s FAILED, source=%s (expected: Notarized Developer ID)\n' "Gatekeeper" "${verdict:-<none>}"
     rc=1
   fi
-  ls_forget "$t/$APP_NAME"
-  rm -rf "$t"
+  drop_check_copy "$2"
   return $rc
+}
+
+# drop_check_copy <left> -- the Gatekeeper check's copy dropped from Launch
+# Services and its dir (_CHECK_DIR) removed, mid-command: the caller's handlers
+# saved, INT, TERM and HUP ignored through the drop and the removal, the
+# handlers put back as they were saved, with no default between, then the
+# record list read back. _CHECK_DIR is cleared only after the read-back: until
+# then a signal exits through the EXIT trap, which drops the copy again and
+# reads the list itself. A record or the dir left stops the command, naming
+# each, then saying <left>.
+drop_check_copy() {
+  local t="$_CHECK_DIR" prev urc said rc=0
+  prev="$(trap -p INT TERM HUP)"
+  trap '' INT TERM HUP
+  LS_LINES=""
+  ls_drop "$t/$APP_NAME" "$t" yes || rc=1
+  urc="$LS_URC" said="$LS_ANSWER"
+  if [ -n "$prev" ]; then
+    eval "$prev"
+  else
+    trap - INT TERM HUP
+  fi
+  ls_check "$t/$APP_NAME" "$t" "$urc" "$said" || rc=1
+  _CHECK_DIR=""
+  [ "$rc" -ne 0 ] || return 0
+  ls_say
+  die "macos: the Gatekeeper check's copy of $APP_NAME was not dropped from Launch Services and removed (above)$1"
 }
 
 # --- the release --------------------------------------------------------------
 
-# The project's version and the tag the release core cuts it under.
+# The project's version and the tag the release core cuts it under, and the
+# app's version: the project's, unless macos.version_from names another file
+# than project.version_from (issue 0243), which makes the app one that
+# versions apart (APP_APART). The tag, the release and its attach stay the
+# project's.
+REL_VERSION=""
 APP_VERSION=""
 APP_TAG=""
+APP_VERSION_FILE=""
+APP_APART=no
 release_names() {
-  APP_VERSION="$(read_version)"
-  [ "$APP_VERSION" != unknown ] || die "macos: the project's version cannot be read (project.version_from), so there is no release to sign for"
-  APP_TAG="$(release_tag_name "$(cfg_release_get tag)" "$APP_VERSION")"
+  REL_VERSION="$(read_version)"
+  [ "$REL_VERSION" != unknown ] || die "macos: the project's version cannot be read (project.version_from), so there is no release to sign for"
+  APP_TAG="$(release_tag_name "$(cfg_release_get tag)" "$REL_VERSION")"
+  APP_VERSION="$REL_VERSION"
+  APP_VERSION_FILE="$(macos_path version_from)"
+  [ -n "$APP_VERSION_FILE" ] || return 0
+  ! [ "$APP_VERSION_FILE" -ef "$(version_path "${DEVBIN_VERSION_FILE:-VERSION}")" ] || return 0
+  APP_APART=yes
+  APP_VERSION="$(read_version "$APP_VERSION_FILE" version-file)"
+  [ -n "$APP_VERSION" ] && [ "$APP_VERSION" != unknown ] ||
+    die "macos: the app's version cannot be read from macos.version_from ($APP_VERSION_FILE)"
+}
+
+# require_freshness <what was not done> -- an app that versions apart has no
+# version that shows a copy is the tag's build, so its commit stamp, the one
+# proof left, must be declared: refused, before anything is built or uploaded,
+# naming the key.
+require_freshness() {
+  [ "$APP_APART" = yes ] && [ -z "$APP_COMMIT_STAMP" ] || return 0
+  die "macos: macos.version_from ($APP_VERSION_FILE) is not the project's version file, so the app's version cannot show a copy is release $APP_TAG's build -- declare macos.commit_stamp, the Info.plist key the build writes its commit into; $1"
+}
+
+# require_build_root <what was not done> -- the root of publish's last drop,
+# macos.build_root or the directory holding macos.app, refused before anything
+# is done when it cannot be resolved or would reach past the build's products
+# (build_root_why), since the drop unregisters every record under it.
+require_build_root() {
+  local dir why
+  if [ -z "$APP_BUILD_ROOT" ] || ! cargo_place "$APP_BUILD_ROOT" dir getcwd; then
+    die "macos: publish's last Launch Services drop has no root it can resolve (${APP_BUILD_ROOT:-empty}, from macos.build_root, else the directory holding macos.app) -- declare macos.build_root as the directory the build writes its products under; $1"
+  fi
+  why="$(build_root_why "$dir")" || return 0
+  die "macos: publish's last Launch Services drop would sweep $dir (macos.build_root, else the directory holding macos.app), which $why -- declare macos.build_root as the directory the build writes its products under; $1"
+}
+
+# tag_commit -- the commit the release tag $APP_TAG names; rc 1, printing
+# nothing, when the tag is not in this tree.
+tag_commit() {
+  git rev-parse -q --verify "refs/tags/$APP_TAG^{commit}" 2>/dev/null
 }
 
 # app_ship_blockers <bundle> -- why <bundle> cannot ship with the release, one
-# reason a line; empty means it may. Its bundle id, then its version against
-# the project's: a bundle built before the version moved passes every Apple
-# check and would ship last release's app inside this one.
+# reason a line; empty means it may. Its bundle id; its version against the
+# app's, the project's unless macos.version_from names another file; and the
+# stamps declared: the kind against macos.kind_value, and the commit, which must
+# be 8 to 40 lowercase hex characters and a prefix of the tag's commit, with
+# the tag in this tree. A bundle built before the version moved, or off the
+# tag, passes every Apple check and would ship another build inside this
+# release. A malformed commit is refused before any comparison, so a missing
+# or garbled one never matches by prefix.
 app_ship_blockers() {
-  local id version
+  local id version kind commit tagged formed=no
   id="$(plist_get "$1" CFBundleIdentifier)"
   version="$(plist_get "$1" CFBundleShortVersionString)"
   [ "$id" = "$APP_BUNDLE_ID" ] ||
     printf 'its bundle id is %s, and macos.bundle_id is %s\n' "${id:-<unreadable>}" "$APP_BUNDLE_ID"
-  [ "$version" = "$APP_VERSION" ] ||
-    printf 'its version is %s, and the project is at %s -- it was built from another tree\n' "${version:-<unreadable>}" "$APP_VERSION"
+  if [ "$APP_APART" = yes ]; then
+    [ "$version" = "$APP_VERSION" ] ||
+      printf 'its version is %s, and macos.version_from (%s) says %s -- it was built from another tree\n' "${version:-<unreadable>}" "$APP_VERSION_FILE" "$APP_VERSION"
+  else
+    [ "$version" = "$APP_VERSION" ] ||
+      printf 'its version is %s, and the project is at %s -- it was built from another tree\n' "${version:-<unreadable>}" "$APP_VERSION"
+  fi
+  if [ -n "$APP_KIND_STAMP" ]; then
+    kind="$(plist_get "$1" "$APP_KIND_STAMP")"
+    [ "$kind" = "$APP_KIND_VALUE" ] ||
+      printf 'its %s is %s, not %s -- it was built off the tag %s or from a dirty tree\n' "$APP_KIND_STAMP" "${kind:-<unreadable>}" "$APP_KIND_VALUE" "$APP_TAG"
+  fi
+  if [ -n "$APP_COMMIT_STAMP" ]; then
+    commit="$(plist_get "$1" "$APP_COMMIT_STAMP")"
+    if [[ "$commit" =~ ^[0-9a-f]{8,40}$ ]]; then
+      formed=yes
+    else
+      printf 'its %s is %s, not a commit of 8 to 40 lowercase hex characters, so it cannot be checked against the tag %s\n' "$APP_COMMIT_STAMP" "${commit:-<unreadable>}" "$APP_TAG"
+    fi
+    if ! tagged="$(tag_commit)"; then
+      printf 'the tag %s is not in this tree, so its %s cannot be checked against it\n' "$APP_TAG" "$APP_COMMIT_STAMP"
+    elif [ "$formed" = yes ] && [[ "$tagged" != "$commit"* ]]; then
+      printf 'its %s is %s, and the tag %s names %s -- it was built off the tag\n' "$APP_COMMIT_STAMP" "$commit" "$APP_TAG" "${tagged:0:12}"
+    fi
+  fi
   return 0
 }
 
@@ -410,8 +827,8 @@ refuse_blockers() {
 require_tag_head() {
   local tagged head dirty
   head="$(git rev-parse -q --verify HEAD 2>/dev/null)" || die "macos: $ROOT has no commit, so it is not at the release tag $APP_TAG"
-  if ! tagged="$(git rev-parse -q --verify "refs/tags/$APP_TAG^{commit}" 2>/dev/null)"; then
-    die "macos: there is no tag $APP_TAG here, the tag the project's version $APP_VERSION is released under -- cut the release first (or fetch its tag), then sign at it"
+  if ! tagged="$(tag_commit)"; then
+    die "macos: there is no tag $APP_TAG here, the tag the project's version $REL_VERSION is released under -- cut the release first (or fetch its tag), then sign at it"
   fi
   dirty="$(git status --porcelain 2>/dev/null)" || die "macos: git status could not be read in $ROOT"
   if [ "$head" != "$tagged" ] || [ -n "$dirty" ]; then
@@ -422,31 +839,38 @@ require_tag_head() {
   fi
 }
 
-# resolved <path> -- <path> as the filesystem names it (pwd -P), through its
-# nearest ancestor that exists, so a path not made yet is compared as it will
-# be once made and nothing is made to ask.
-resolved() {
-  local p="$1" rest=""
-  while [ ! -d "$p" ]; do
-    rest="/${p##*/}$rest"
-    p="${p%/*}"
-    [ -n "$p" ] || p=/
-  done
-  printf '%s%s' "$(cd "$p" && pwd -P)" "$rest"
-}
-
 # require_stage_outside -- the stage at or under neither the project root nor
 # the product's directory: a copy in the build tree is what the stage exists
 # not to be. Asked before the stage is made, so a refusal writes nothing.
+#
+# PLACED BY cargo_place, THE ONE STATEMENT OF WHERE A TREE DEVBIN DID NOT MAKE
+# LANDS (issue 0267). A copy of its walk here, `resolved`, appended the part
+# that does not exist yet as written, `.` and `..` included, so a stage spelled
+# <state>/nope/../<root> passed as outside and was made inside the project. So
+# the stage is refused for what cargo_place refuses, and the root and the
+# products are asked of physical_dir, where each was a `cd && pwd -P` of its
+# own. All three are spelled as the filesystem spells them (getcwd), as
+# macos's other placings are: on a volume that folds case, a stage typed
+# <state>/PROJ/... was compared as text against <root>/proj, passed as
+# outside, and was made inside the project.
 require_stage_outside() {
-  local stage root product
+  local stage root product shown rc=0
   case "$APP_STAGE_DIR" in
     /*) ;;
     *) die "macos: the stage $APP_STAGE_DIR is not an absolute path -- XDG_STATE_HOME must be one" ;;
   esac
-  stage="$(resolved "$APP_STAGE_DIR")"
-  root="$(cd "$ROOT" && pwd -P)"
-  product="$(cd "${APP_SRC%/*}" 2>/dev/null && pwd -P)" || product="${APP_SRC%/*}"
+  cargo_place "$APP_STAGE_DIR" stage getcwd || rc=$?
+  case "$rc" in
+    0) ;;
+    2) die "macos: the stage $APP_STAGE_DIR names . or .. beneath a directory that does not exist yet, so where it lands, in the build tree or outside it, cannot be known -- point XDG_STATE_HOME elsewhere" ;;
+    1)
+      printf -v shown '%q' "$stage"
+      die "macos: the stage $APP_STAGE_DIR cannot be placed: $shown cannot be entered, so where it lands cannot be known -- point XDG_STATE_HOME elsewhere"
+      ;;
+    *) die "macos: the stage $APP_STAGE_DIR cannot be placed: cargo_place answered $rc, a status this does not read" ;;
+  esac
+  physical_dir "$ROOT" root getcwd || die "macos: the project root $ROOT cannot be entered"
+  physical_dir "${APP_SRC%/*}" product getcwd || product="${APP_SRC%/*}"
   case "$stage/" in
     "$root"/* | "$product"/*)
       die "macos: the stage $stage is inside $([ "${stage#"$root"/}" != "$stage" ] && printf 'the project root %s' "$root" || printf 'the build products %s' "$product"), and the subject of signing is a copy outside the build tree -- point XDG_STATE_HOME elsewhere"
@@ -487,6 +911,20 @@ cmd_doctor() {
   printf '  %-21s %s\n' "keychain prefix" "$KC_PREFIX"
   printf '  %-21s %s\n' "asset" "${APP_ASSET:-<none until macos.app is declared>}"
   printf '  %-21s %s\n' "stage" "$APP_STAGE_DIR"
+  local root why
+  if [ -z "$APP_BUILD_ROOT" ]; then
+    printf '  %-21s %s\n' "build root" "<none until macos.app or macos.build_root is declared>"
+  elif cargo_place "$APP_BUILD_ROOT" root getcwd; then
+    if why="$(build_root_why "$root")"; then
+      printf '  %-21s REFUSED (%s %s; declare macos.build_root)\n' "build root" "$root" "$why"
+      ok=0
+    else
+      printf '  %-21s %s\n' "build root" "$root"
+    fi
+  else
+    printf '  %-21s REFUSED (%s cannot be resolved; declare macos.build_root)\n' "build root" "$APP_BUILD_ROOT"
+    ok=0
+  fi
   printf '\ntools:\n'
   for t in codesign xcrun spctl ditto plutil xattr security gh; do
     if command -v "$t" >/dev/null 2>&1; then
@@ -496,6 +934,13 @@ cmd_doctor() {
       ok=0
     fi
   done
+  # Not on PATH on macOS: ls_cmd names the one every drop runs.
+  if [ -x "$(ls_cmd)" ]; then
+    printf '  %-21s %s\n' "lsregister" "$(ls_cmd)"
+  else
+    printf '  %-21s MISSING (%s)\n' "lsregister" "$(ls_cmd)"
+    ok=0
+  fi
   load_identity
   printf '\nsigning:\n'
   if [ -n "$IDENTITY" ]; then
@@ -529,7 +974,7 @@ cmd_doctor() {
       ok=0
     fi
   done
-  [ "$ok" = 1 ] || die "macos: incomplete -- see MISSING and FAILED above"
+  [ "$ok" = 1 ] || die "macos: incomplete -- see MISSING, FAILED and REFUSED above"
 }
 
 # store-creds: each value typed to security(1) itself, which prompts for it
@@ -559,6 +1004,8 @@ cmd_app_sign() {
   load_identity
   require_identity
   release_names
+  require_freshness "nothing built or signed"
+  require_build_root "nothing built or signed"
   step "checking HEAD is the release tag $APP_TAG, in a clean tree"
   require_tag_head
   if [ -n "$APP_BUILD" ]; then
@@ -573,6 +1020,7 @@ cmd_app_sign() {
   dist="$(app_dist)"
   step "staging a copy outside the build tree"
   require_stage_outside
+  arm_drops " -- nothing signed"
   rm -rf "$APP_STAGE_DIR"
   mkdir -p "$APP_STAGE_DIR"
   ditto "$APP_SRC" "$dist" || die "macos: could not stage $APP_SRC -> $dist"
@@ -589,7 +1037,6 @@ cmd_app_sign() {
     die "macos: codesign could not sign $dist"
   step "reading the signature back off the bundle"
   app_signature_readback "$dist"
-  ls_forget "$dist"
   printf '\nsigned: %s\nnext: %s app-notarize\n' "$dist" "$ME"
 }
 
@@ -605,6 +1052,7 @@ cmd_app_notarize() {
   local dist staging zip out status id
   dist="$(app_dist)"
   [ -d "$dist" ] || die "macos: no signed bundle at $dist -- run: $ME app-sign"
+  arm_drops " -- nothing submitted"
   step "checking the bundle is the signed one"
   app_signature_readback "$dist"
   staging="$(mktemp -d)"
@@ -633,13 +1081,8 @@ cmd_app_notarize() {
   step "stapling the ticket to the bundle"
   xcrun stapler staple "$dist" || die "macos: stapler could not staple the ticket to $dist"
   step "checking the stapled bundle as a download meets it"
-  staging="$(mktemp -d)"
-  if ! app_verify_notarised "$dist" "$staging"; then
-    rm -rf "$staging"
+  app_verify_notarised "$dist" " -- $APP_NAME is Accepted and its ticket stapled at $dist, so check it again with $ME app-verify, not app-notarize, which would submit it again" ||
     die "macos: the bundle was Accepted and stapled, and does not pass the check above"
-  fi
-  rm -rf "$staging"
-  ls_forget "$dist"
   printf '\nnotarised and stapled: %s\nnext: %s publish\n' "$dist" "$ME"
 }
 
@@ -648,28 +1091,14 @@ cmd_app_verify() {
   require_declared
   load_identity
   require_identity
-  local dist staging rc=0
+  local dist rc=0
   dist="$(app_dist)"
   [ -d "$dist" ] || die "macos: no signed bundle at $dist -- run: $ME app-sign"
+  arm_drops " -- nothing checked"
   printf '  %-21s %s\n' "bundle" "$dist"
   app_signature_readback "$dist"
-  staging="$(mktemp -d)"
-  app_verify_notarised "$dist" "$staging" || rc=1
-  rm -rf "$staging"
-  ls_forget "$dist"
+  app_verify_notarised "$dist" "" || rc=1
   [ "$rc" -eq 0 ] || die "macos: the signed bundle is not notarised and stapled"
-}
-
-# The staging dir publish proves its zip in; a global, because bash runs an
-# EXIT trap with the function's locals already unwound.
-_PUBLISH_STAGING=""
-publish_cleanup() {
-  local rc=$?
-  if [ -n "$_PUBLISH_STAGING" ]; then
-    ls_forget "$_PUBLISH_STAGING/unpacked/$APP_NAME"
-    rm -rf "$_PUBLISH_STAGING" || warn "macos: could not remove the staging dir $_PUBLISH_STAGING; remove it with: rm -rf $_PUBLISH_STAGING"
-  fi
-  exit "$rc"
 }
 
 # publish: the stapled copy zipped as macos.asset, proven by unpacking it as a
@@ -677,26 +1106,29 @@ publish_cleanup() {
 # tag by `release attach --from`, the core's own path: its checks, its upload
 # that never replaces an asset, its SHA256SUMS over every asset and its
 # readback. Refused, with nothing uploaded, when the copy is not the
-# release's, when the tag is not here, or when the zip does not prove.
+# release's, when the tag is not here, or when the zip does not prove. The
+# staged copy, the Gatekeeper check's copy and the proof copy are dropped on
+# every path out (drop_on_exit).
 cmd_publish() {
   require_declared
   release_names
-  local dist staging launcher
+  require_freshness "nothing uploaded"
+  require_build_root "nothing uploaded"
+  local dist staging launcher said
   dist="$(app_dist)"
   [ -d "$dist" ] || die "macos: no signed bundle at $dist -- run: $ME app-sign, then app-notarize"
-  git rev-parse -q --verify "refs/tags/$APP_TAG^{commit}" >/dev/null 2>&1 ||
-    die "macos: there is no tag $APP_TAG here, the tag the project's version $APP_VERSION is released under -- nothing uploaded"
+  # An interrupt is the command's own failure, exit 1, through the EXIT trap,
+  # so every copy goes on every path out.
+  arm_drops " -- nothing uploaded"
+  tag_commit >/dev/null ||
+    die "macos: there is no tag $APP_TAG here, the tag the project's version $REL_VERSION is released under -- nothing uploaded"
   refuse_blockers "macos: $APP_NAME cannot ship with release $APP_TAG -- nothing uploaded" "$(app_ship_blockers "$dist")"
   launcher="$ROOT/bin/devbin"
   [ -x "$launcher" ] || die "macos: no launcher at $launcher -- publish attaches through this project's release command"
-  if ! staging="$(mktemp -d)" || [ -z "$staging" ] || ! staging="$(cd "$staging" && pwd -P)"; then
+  if ! staging="$(mktemp -d)" || [ -z "$staging" ] || ! cargo_place "$staging" staging getcwd; then
     die "macos: could not make a staging dir -- nothing uploaded"
   fi
   _PUBLISH_STAGING="$staging"
-  trap publish_cleanup EXIT
-  # An interrupt is the command's own failure, exit 1, through the EXIT trap,
-  # so the staging dir goes on every path out.
-  trap 'exit 1' INT TERM HUP
   mkdir "$staging/asset" "$staging/unpacked" || die "macos: could not make the staging dirs -- nothing uploaded"
   step "zipping the stapled bundle as $APP_ASSET"
   ditto -c -k --keepParent "$dist" "$staging/asset/$APP_ASSET" || die "macos: could not zip $dist"
@@ -705,12 +1137,21 @@ cmd_publish() {
     die "macos: $APP_ASSET does not unpack to $APP_NAME -- nothing uploaded"
   fi
   refuse_blockers "macos: the bundle inside $APP_ASSET cannot ship with release $APP_TAG -- nothing uploaded" "$(app_ship_blockers "$staging/unpacked/$APP_NAME")"
-  app_verify_notarised "$staging/unpacked/$APP_NAME" "$staging" ||
+  app_verify_notarised "$staging/unpacked/$APP_NAME" " -- nothing uploaded" ||
     die "macos: the bundle inside $APP_ASSET is not notarised and stapled -- nothing uploaded"
   step "attaching $APP_ASSET to release $APP_TAG through release attach --from"
-  "$launcher" release attach "$APP_VERSION" --from "$staging/asset" ||
+  # The project's version, whatever the app's: the release is the project's.
+  "$launcher" release attach "$REL_VERSION" --from "$staging/asset" ||
     die "macos: release attach did not finish (above) -- run publish again once what it names is fixed: the attach reads what is already done first"
+  _PUBLISHED=yes
   printf '\npublished: %s on release %s\n' "$APP_ASSET" "$APP_TAG"
+  # THE LAST DROP (issue 0243): every record at or under the build root, so the
+  # bundle id resolves to the installed app alone. A build can register its
+  # product again after any drop, so one left is a warning and the exit stands.
+  if ! said="$(ls_drop_under "$APP_BUILD_ROOT")"; then
+    LS_LINES="$said"
+    ls_say
+  fi
 }
 
 case "$sub" in

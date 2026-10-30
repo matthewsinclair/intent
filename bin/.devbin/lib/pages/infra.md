@@ -20,7 +20,7 @@ Write a profile describing what your estate's DNS and mail should be, and `infra
     --profile <path>                given after the verb
     $DEVBIN_INFRA_PROFILE
     <project root>/infra.yaml
-    ~/.config/devbin/infra.yaml
+    $XDG_CONFIG_HOME/devbin/infra.yaml  default ~/.config/devbin/infra.yaml
 
 A profile named by `--profile` or by `$DEVBIN_INFRA_PROFILE` is used or refused on that file alone: a missing one is never passed over for the next place in the order. Otherwise the first of the other places that exists is used, and finding none is a hard failure naming every path tried -- never a default, never an empty estate. `show` and `check` both refuse a malformed profile before any record is read. That includes a key the profile has no field for, or one written where nothing reads it, like `dmarc: none` under `defaults:`, and a key written with no value: each is named, with the file, rather than parsed and never read.
 
