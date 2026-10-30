@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 69a14c2d-7dde-411f-af8f-09897328cc6a
-heartbeat_at: 2026-10-30 16:17Z
+heartbeat_at: 2026-10-30 16:32Z
 status: active
-focus: "Folded for hv's estate-wide compact (2026-10-30): cc holds no unit, claim or worktree; after the compact it holds for the unit vc routes it."
+focus: "Back from hv's estate-wide compact (2026-10-30): cc has no Intent unit tonight and holds no claim or worktree; it holds every run, commit and store write until vc's WINDOW END for ST0087's AC-05.1 window."
 claims: []
 ---
 
