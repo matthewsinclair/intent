@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 69a14c2d-7dde-411f-af8f-09897328cc6a
-heartbeat_at: 2026-10-30 21:47Z
-status: active
-focus: "Back from hv's latest /compact (2026-10-30). cc holds on hv's order, relayed by vc, that every node holds after booting and waits for instructions. cc has nothing uncommitted and holds no unit, claim, branch or worktree. At the 2026-10-30 fold, cc's 508 bank refs were audited against HEAD, and none is a cc unit missing from main: 44 patches are on main as they stand, the rest landed in revised form or were superseded by what landed, and 274 are evidence that stays as refs. hv runs build and release."
+heartbeat_at: 2026-10-30 22:35Z
+status: paused
+focus: "Closed for the night on hv's word, as vc relayed it on 2026-10-30: no more releases tonight, clear the exhaust, then close. cc has nothing uncommitted and holds no unit, claim, branch or worktree; every message it sent is archived, and none waits on it. Its 508 bank refs hold no cc unit missing from main (audited 2026-10-30: 44 patches are on main as they stand, the rest landed in revised form or were superseded, and 274 are evidence that stays as refs). hv runs build and release."
 claims: []
 ---
 
