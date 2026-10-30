@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b0fe8042-26c3-4d97-b163-450ffe29d3b2
-heartbeat_at: 2026-10-30 19:21Z
+heartbeat_at: 2026-10-30 19:40Z
 status: active
-focus: "Folded for hv's compact (2026-10-30): AC-05.1 is satisfied (d7a213cc8) on its record wp05-ac051.md, attached at 78f5ec3e9 from run 2, which hv ran from intent-vc's session; WP-05 is done, ST0087 reads PASS -- 19/19, and its close is hv's word. dc holds no claim, worktree or open item, and is not released."
+focus: "Back from hv's compact (2026-10-30), holding for hv's instructions: AC-05.1 is satisfied (d7a213cc8) and WP-05 is done; ST0087 reads PASS -- 19/19 and its close is hv's word. dc holds no claim, worktree or open item."
 claims: []
 ---
 
