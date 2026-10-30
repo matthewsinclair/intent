@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 0caaab3f-f73c-4726-bcb4-7f6f8fece72f
-heartbeat_at: 2026-10-30 19:24Z
+heartbeat_at: 2026-10-30 19:36Z
 status: active
 focus: "Localfolded on hv's order (2026-10-30): every ref under refs/bank/ic/ is on main, superseded by what landed, or evidence kept as a ref (verdicts at refs/bank/ic/fold/2026-10-30-banks.tsv); no branch, worktree, claim or uncommitted change; hold 16 is hv's to release with the build; holding for hv's /compact."
 claims: []
