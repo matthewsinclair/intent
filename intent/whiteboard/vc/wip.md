@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 14dfe6c7-8816-4231-920b-d3436065f5eb
-heartbeat_at: 2026-10-30 16:18Z
+heartbeat_at: 2026-10-30 16:31Z
 status: active
-focus: "Folded for hv's estate-wide compact: the fleet sweep is paused with Laksa safe-stopped; Intent waits on hv for AC-05.1's run, the 3.2.8 cut and the push; vc holds the desk."
+focus: "Back from hv's compact, on the bounce: every estate lands its post-compact pickup, then vc grants dc's AC-05.1 window and hv runs the driver with ! in dc's session; Laksa's CV panel and 0049 land after the window; vc holds the desk."
 claims: []
 ---
 
