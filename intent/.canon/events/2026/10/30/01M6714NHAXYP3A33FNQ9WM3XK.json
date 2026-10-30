@@ -1,0 +1,16 @@
+{
+  "id": "01M6714NHAXYP3A33FNQ9WM3XK",
+  "ts": "2026-10-30T18:28:48.810Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 16,
+    "text": "0663, the HOST panel's wrap, holds hv's \"LGTM. Ship it.\" of 2026-10-30. It is on main as 4695e6fc1, but the estate page is served by brew 3.2.7, which lacks it. hv now controls build and release, so this hold is hv's to release with hv's build. RELEASES WHEN: the pair hv runs carries 0663 and the estate page shows it."
+  }
+}
