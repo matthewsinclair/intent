@@ -5,12 +5,10 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "0caaab3f-f73c-4726-bcb4-7f6f8fece72f",
-    "heartbeat_at": "2026-10-30T13:48:02.283Z",
+    "heartbeat_at": "2026-10-30T14:15:29.357Z",
     "status": "active",
-    "focus": "ISSUE:0663 for hv: the estate page's HOST panel wraps so LAST HOUR keeps its width; building in tmp/wt-ic-0663, then preview, bank and vc's LIGHT judge.",
-    "claims": [
-      "ISSUE:0663"
-    ],
+    "focus": "0663 landed as 4695e6fc1 and is in the dev pair 9b5e3e4fe8a1; its preview proxies stay up until hv's intent use dev; otherwise holding for vc's word.",
+    "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"
@@ -2711,8 +2709,17 @@
       "kind": "doing",
       "seq": 138,
       "text": "ISSUE:0663 (hv's report, on vc's GO): the estate page's HOST panel. Its grid column is sized to its longest line and its lines never wrap, so hv's words from tonight's control take widen it and squash LAST HOUR. The fix is in shell.html, in tmp/wt-ic-0663 at 9332a3353: every HOST line wraps under its value column, a free-text line never sizes the panel, and the column has a cap. Then a live preview through a throwaway proxy, with shots before and after at about 1900px and one narrow, a bank, and a LIGHT judge run on vc's GO after the desk's queue. It lands alone. No push, no release.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-30T14:15:26.932Z",
       "recorded_at": "2026-10-30T13:48:01.356Z"
+    },
+    {
+      "node": "ic",
+      "kind": "hold",
+      "seq": 16,
+      "text": "The 0663 preview proxies stay up on 127.0.0.1:51801 (before), :51802 (after) and :51803 (after, stressed): throwaway node servers in ic's scratchpad that serve copies of shell.html and pass /op through to intentd, so hv can see 0663 before the switch. RELEASES WHEN: hv has run intent use dev, so the shared intentd runs the dev pair 9b5e3e4fe8a1 that carries 0663, and vc says the page shows it; then ic stops them.",
+      "state": "live",
+      "recorded_at": "2026-10-30T14:15:27.785Z"
     }
   ],
   "sent": [

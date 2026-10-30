@@ -3,17 +3,17 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 0caaab3f-f73c-4726-bcb4-7f6f8fece72f
-heartbeat_at: 2026-10-30 13:48Z
+heartbeat_at: 2026-10-30 14:15Z
 status: active
-focus: "ISSUE:0663 for hv: the estate page's HOST panel wraps so LAST HOUR keeps its width; building in tmp/wt-ic-0663, then preview, bank and vc's LIGHT judge."
-claims: [ISSUE:0663]
+focus: "0663 landed as 4695e6fc1 and is in the dev pair 9b5e3e4fe8a1; its preview proxies stay up until hv's intent use dev; otherwise holding for vc's word."
+claims: []
 ---
 
 # Interface Claude (ic)
 
 ## DOING
 
-- ISSUE:0663 (hv's report, on vc's GO): the estate page's HOST panel. Its grid column is sized to its longest line and its lines never wrap, so hv's words from tonight's control take widen it and squash LAST HOUR. The fix is in shell.html, in tmp/wt-ic-0663 at 9332a3353: every HOST line wraps under its value column, a free-text line never sizes the panel, and the column has a cap. Then a live preview through a throwaway proxy, with shots before and after at about 1900px and one narrow, a bank, and a LIGHT judge run on vc's GO after the desk's queue. It lands alone. No push, no release.
+_(none)_
 
 ## TODO
 
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-_(none)_
+- The 0663 preview proxies stay up on 127.0.0.1:51801 (before), :51802 (after) and :51803 (after, stressed): throwaway node servers in ic's scratchpad that serve copies of shell.html and pass /op through to intentd, so hv can see 0663 before the switch. RELEASES WHEN: hv has run intent use dev, so the shared intentd runs the dev pair 9b5e3e4fe8a1 that carries 0663, and vc says the page shows it; then ic stops them.
 
 ## Watch-outs
 

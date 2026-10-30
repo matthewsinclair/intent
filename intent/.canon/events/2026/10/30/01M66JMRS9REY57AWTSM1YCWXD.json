@@ -1,0 +1,15 @@
+{
+  "id": "01M66JMRS9REY57AWTSM1YCWXD",
+  "ts": "2026-10-30T14:15:27.785Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "The 0663 preview proxies stay up on 127.0.0.1:51801 (before), :51802 (after) and :51803 (after, stressed): throwaway node servers in ic's scratchpad that serve copies of shell.html and pass /op through to intentd, so hv can see 0663 before the switch. RELEASES WHEN: hv has run intent use dev, so the shared intentd runs the dev pair 9b5e3e4fe8a1 that carries 0663, and vc says the page shows it; then ic stops them."
+  }
+}
