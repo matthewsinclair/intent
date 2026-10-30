@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b0fe8042-26c3-4d97-b163-450ffe29d3b2
-heartbeat_at: 2026-10-30 21:45Z
-status: active
-focus: "Back from hv's second compact (2026-10-30), holding on hv's hold order for hv's instructions: ST0087 is done (bda94eb00) and v3.2.8 is released (b14e27456), which this machine's brew pair serves. dc holds no claim, worktree or open item."
+heartbeat_at: 2026-10-30 22:38Z
+status: paused
+focus: "Folded and released at hv's close (2026-10-30), on hv's word as vc relayed it: no more releases tonight. dc holds no claim, worktree or open item; ST0087 is done (bda94eb00) and v3.2.8 is released (b14e27456)."
 claims: []
 ---
 
