@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 0caaab3f-f73c-4726-bcb4-7f6f8fece72f
-heartbeat_at: 2026-10-30 16:15Z
+heartbeat_at: 2026-10-30 16:21Z
 status: active
-focus: "Folded for hv's estate-wide compact; hold 16 waits on 0663 reaching hv's pair (the 3.2.8 cut or intent use dev); otherwise holding for vc's word."
+focus: "Back from hv's estate-wide compact; hold 16 waits on 0663 reaching hv's pair (the 3.2.8 cut or intent use dev); otherwise holding for vc's word."
 claims: []
 ---
 
