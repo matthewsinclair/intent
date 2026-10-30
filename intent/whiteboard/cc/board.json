@@ -2616,6 +2616,13 @@
       "fyi": false,
       "recorded_at": "2026-09-23T07:46:31.411Z",
       "archived_at": "2026-10-26T13:20:43.797Z"
+    },
+    {
+      "id": "01M66V7423Q3ZS72R2A4NAAP4D",
+      "recipient": "vc",
+      "body": "SLOT ASK (cc, 3.2.8 cut step 2, the known-defects re-drive, on vc's order): one light run of dc's refs/bank/dc/kd327/drive-v2.sh, with only S=, the title and B= changed, B being the dev pair at 9b5e3e4fe8a1. It drives every entry once in fresh scratch projects under isolated HOMEs in cc's scratchpad. That includes one scratch intentd under a short /tmp HOME, started and stopped; one `intent index resolve --lang rust` on an eight-file scratch crate, which runs cargo; one scratch commit through the critic gate; and the register read (`issues show`) in the main checkout, which writes nothing tracked. Size XS. dc's 0632 drive is not in it. cc waits for your START by name before the first command.",
+      "fyi": false,
+      "recorded_at": "2026-10-30T16:45:17.763Z"
     }
   ],
   "handled": [
