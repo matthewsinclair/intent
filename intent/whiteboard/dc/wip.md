@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b0fe8042-26c3-4d97-b163-450ffe29d3b2
-heartbeat_at: 2026-10-30 13:25Z
+heartbeat_at: 2026-10-30 16:12Z
 status: active
-focus: "Folded for hv's hard stop, not released; todo 53 runs tomorrow on hv's go, starting on brew and ending there. No push, no release."
+focus: "AC-05.1: the kit is verified in its run directory, and leg_pre passed as the predictor at 16:04Z against the dev pair 9b5e3e4fe8a1; it waits for vc's slot and hv's ! (todo 53). Folded for hv's compact, not released."
 claims: [ST0087/05]
 ---
 
@@ -17,7 +17,7 @@ _(none)_
 
 ## TODO
 
-- ST0087 WP-05 (dc's, vc judges): AC-05.1 across dev, opt and brew from a bare login shell, ending on brew, then AC-05.2 on kovacs; reshape the kit first per refs/bank/dc/0087-05/reshape-20261029.md. (edited)
+- ST0087 WP-05 (dc's, vc judges): AC-05.1 alone remains. Its kit is verified in dc's scratchpad, run directory 0087-05/run-ac051, as refs/bank/dc/0087-05/ac051-v3.sh and legs-v4.zsh. In order: re-run leg_pre as the predictor, and the pair's diff to HEAD over DIRT_SCOPE and the runtime set (both ok at 16:04Z, against the pair 9b5e3e4fe8a1), since vc's 0663 route (intent use dev, or the 3.2.8 cut) may move the machine, the keg or the tree first; then vc's slot; then hv runs the driver with ! in dc's session or adds a permission rule, since dc's classifier refused it at launch; then record-v5.sh, vc's read and attach-v2.sh. vc satisfies AC-05.1, and ST0087 closes on vc's sign-off. (edited)
 
 ## Holds
 
