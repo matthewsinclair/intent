@@ -1,0 +1,16 @@
+{
+  "id": "01M67FHPBAG8YE1ZJVFKXEC8CK",
+  "ts": "2026-10-30T22:40:35.690Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 16,
+    "text": "0663, the HOST panel's wrap, holds hv's \"LGTM. Ship it.\" of 2026-10-30. It shipped in 3.2.8 (4695e6fc1 is in v3.2.8), and at 2026-10-30 22:40Z by date -u the pair running here was brew 3.2.8 (b14e2745632d), CLI and daemon, so the build half of the condition is met. Nobody in ic has looked at the estate page since. RELEASES WHEN: the estate page shows the HOST panel's wrap. The ship order is then executed, so the hold is archived as spent, not returned to TODO."
+  }
+}

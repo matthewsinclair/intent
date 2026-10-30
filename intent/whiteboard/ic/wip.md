@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 0caaab3f-f73c-4726-bcb4-7f6f8fece72f
-heartbeat_at: 2026-10-30 21:44Z
-status: active
-focus: "Back from hv's compact (2026-10-30), holding for hv's instructions; ic holds no claim, branch, worktree or uncommitted unit. Hold 16 stays hv's to release: the running pair is brew 3.2.8 (b14e2745632d), which carries 0663 (4695e6fc1), and ic has not looked at the estate page's HOST panel."
+heartbeat_at: 2026-10-30 22:40Z
+status: paused
+focus: "Localfolded and released at the close on hv's word (2026-10-30): ic holds no claim, branch, worktree, live message or uncommitted change. Hold 16 stands until someone looks at the estate page's HOST panel; the running pair is brew 3.2.8, which carries 0663."
 claims: []
 ---
 
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-- 0663, the HOST panel's wrap, holds hv's "LGTM. Ship it." of 2026-10-30. It is on main as 4695e6fc1, but the estate page is served by brew 3.2.7, which lacks it. hv now controls build and release, so this hold is hv's to release with hv's build. RELEASES WHEN: the pair hv runs carries 0663 and the estate page shows it. (edited)
+- 0663, the HOST panel's wrap, holds hv's "LGTM. Ship it." of 2026-10-30. It shipped in 3.2.8 (4695e6fc1 is in v3.2.8), and at 2026-10-30 22:40Z by date -u the pair running here was brew 3.2.8 (b14e2745632d), CLI and daemon, so the build half of the condition is met. Nobody in ic has looked at the estate page since. RELEASES WHEN: the estate page shows the HOST panel's wrap. The ship order is then executed, so the hold is archived as spent, not returned to TODO. (edited)
 
 ## Watch-outs
 
