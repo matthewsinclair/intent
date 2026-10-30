@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 14dfe6c7-8816-4231-920b-d3436065f5eb
-heartbeat_at: 2026-10-30 19:29Z
+heartbeat_at: 2026-10-30 19:42Z
 status: active
-focus: "Folded on hv's order: Intent's nodes are folded and everything is on main; ST0087 is 19/19, its close hv's word; vc runs Utilz's suite on gyges and kovacs once Utilz's push reaches a remote and hv says go for lua; the desk is vc's, with nothing granted."
+focus: "Back from hv's compact and holding on hv's order (hold after booting, except gyges and kovacs); vc collects Utilz's suite results: kovacs is green, all 17 utilities with lua, and gyges is running; hv's lua brew-dep ruling is with utilz-vc; the desk is vc's, with nothing granted."
 claims: []
 ---
 
