@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 14dfe6c7-8816-4231-920b-d3436065f5eb
-heartbeat_at: 2026-10-30 19:42Z
+heartbeat_at: 2026-10-30 21:32Z
 status: active
-focus: "Back from hv's compact and holding on hv's order (hold after booting, except gyges and kovacs); vc collects Utilz's suite results: kovacs is green, all 17 utilities with lua, and gyges is running; hv's lua brew-dep ruling is with utilz-vc; the desk is vc's, with nothing granted."
+focus: "Localfolded for hv's compact (2026-10-30): Utilz 2.14.8 is cut and waits only on its tag CI re-run's verdict, and nobody re-runs its release; Gtools 0.8.3 waits for gtools-vc's next READY FOR CUT after its fold round; Laksa then Conflab come next on hv's order; the desk is vc's, with nothing booked."
 claims: []
 ---
 
