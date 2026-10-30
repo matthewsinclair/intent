@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.8] - in progress
+
+### Fixed
+
+- **The estate page's HOST panel wraps its lines, so a long value no longer widens the panel and squashes LAST HOUR beside it** (issue 0663). The panel's column was as wide as its longest line, and no line wrapped, so the words recorded by `intent estate control take --hv` pushed LAST HOUR's sparklines into a narrow strip. Each line now wraps under its value column, those words and a desk hold's condition add nothing to the panel's width, and the column is capped at the smaller of 36rem and half the row, so LAST HOUR keeps its width whatever the records hold.
+
 ## [3.2.7] - 2026-10-29
 
 ### Added

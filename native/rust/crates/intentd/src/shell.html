@@ -137,7 +137,14 @@
   #estate { font: 13px/1.45 ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace; }
   #estate .crumbs { font-family: ui-serif, Georgia, serif; font-size: .95rem; margin: 0 0 .75rem; }
   #estate .crumbs button { margin-left: .5rem; font-size: .8rem; }
-  #estate pre.head { margin: 0; padding: 0; border: 0; background: none; white-space: pre; overflow-x: auto; }
+  /* **NO VALUE IN THE HOST PANEL SIZES THE BAND** (issue 0663, hv, 2026-10-30):
+     every line wraps under its value column, a free-text line (hv's words on a
+     take, a desk hold's condition) adds nothing to the panel's width, and the
+     band caps the panel's column, so LAST HOUR keeps its width whatever a
+     record holds. hv's words are a record, so they wrap rather than truncate. */
+  #estate pre.head { margin: 0; padding: 0; border: 0; background: none; white-space: pre-wrap; overflow-wrap: anywhere; }
+  #estate pre.head .hl { display: block; padding-left: 9ch; text-indent: -9ch; }
+  #estate pre.head .hl.free { contain: inline-size; }
   #estate .k { color: var(--muted); }
   #estate .warn { color: var(--gone); font-weight: 600; }
   #estate .muted { color: var(--muted); }
@@ -169,8 +176,10 @@
   #estate input[type=search]:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
   #estate button { font: inherit; color: var(--muted); background: var(--card); border: 1px solid var(--rule); border-radius: 5px; padding: .15rem .55rem; cursor: pointer; }
   #estate button:hover { color: var(--ink); }
-  #estate .band { display: grid; grid-template-columns: max-content minmax(0, 1fr) minmax(17rem, 25rem); gap: .8rem; align-items: stretch; }
-  @media (max-width: 70rem) { #estate .band { grid-template-columns: max-content minmax(0, 1fr); } #estate .band .usage { grid-column: 1 / -1; } }
+  /* The host's column is as wide as its widest line up to a cap, and never
+     wider: see `pre.head` above. */
+  #estate .band { display: grid; grid-template-columns: fit-content(min(36rem, 50%)) minmax(0, 1fr) minmax(17rem, 25rem); gap: .8rem; align-items: stretch; }
+  @media (max-width: 70rem) { #estate .band { grid-template-columns: fit-content(min(36rem, 50%)) minmax(0, 1fr); } #estate .band .usage { grid-column: 1 / -1; } }
   @media (max-width: 44rem) { #estate .band { grid-template-columns: minmax(0, 1fr); } }
   #estate .panel { background: var(--card); border: 1px solid var(--rule); border-radius: 6px; padding: .5rem .8rem .6rem; min-width: 0; }
   #estate .cap { font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
@@ -700,13 +709,14 @@
     // browser's clock says only how long ago THIS PAGE last read an answer.
     function momentOf(s) { return Date.parse(s.taken_at); }
 
-    function line(parts) {
-      var frag = document.createDocumentFragment();
+    // One line of the host panel, a block that wraps under its value column.
+    // `free` marks free text, whose length must never size the panel.
+    function line(parts, free) {
+      var row = el("span", free ? "hl free" : "hl");
       parts.forEach(function (p) {
-        frag.appendChild(typeof p === "string" ? document.createTextNode(p) : el("span", p[0], p[1]));
+        row.appendChild(typeof p === "string" ? document.createTextNode(p) : el("span", p[0], p[1]));
       });
-      frag.appendChild(document.createTextNode("\n"));
-      return frag;
+      return row;
     }
 
     // A ULID's head is its time, so two from one minute share it: the tail is
@@ -821,14 +831,15 @@
         rows.push(line([["k", "         "], ["k", "took over from "], pre.name + (pre.node ? " / " + pre.node : "")]));
       }
       // hv's own words, verbatim, on a take that changed the controller's name
-      // or took a dead desk under another: the authority for the change.
+      // or took a dead desk under another: the authority for the change. They
+      // are free text, so they wrap inside the panel and never widen it.
       if (s.controller && s.controller.hv) {
-        rows.push(line([["k", "         "], ["k", "hv: "], "\u201c" + s.controller.hv + "\u201d"]));
+        rows.push(line([["k", "         "], ["k", "hv: "], "\u201c" + s.controller.hv + "\u201d"], true));
       }
       // **A STANDING DESK HOLD MEANS NOTHING IS GRANTED**, so it is the loudest
       // line in the band.
       ix.deskHolds.forEach(function (h) {
-        rows.push(line([["k", "         "], ["warn", "HELD: " + h.condition], ["k", " (" + (h.node || "?") + ", " + age(secs(Date.parse(h.held_at), ix.now)) + ")"]]));
+        rows.push(line([["k", "         "], ["warn", "HELD: " + h.condition], ["k", " (" + (h.node || "?") + ", " + age(secs(Date.parse(h.held_at), ix.now)) + ")"]], true));
       });
       if (s.unreadable.length) {
         rows.push(line([["k", "files    "], ["warn", s.unreadable.length + " unreadable"], ["k", " (named below)"]]));
