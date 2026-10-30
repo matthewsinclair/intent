@@ -205,7 +205,8 @@
       "text": "On kovacs, with brew alone, the version line and `intent doctor` pass on the release that carries WP-04 once it reaches the tap, and the run's record is attached to this thread.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "intent/st/ST0087/wp05-ac052.md (record a42670533a70, attached 5fbc128db; verified by vc 2026-10-30)"
       }
     },
     {
