@@ -11,7 +11,6 @@ intent_version: 3.2.8
 
 ## TODO
 
-- kovacs exhaust, for hv's `!` in kovacs-sysadm's session (its classifier refused the sweep): ~/work/intent-vc/ (its banked files match their refs) and the preflight's /tmp entries. Whether ~/work/intent-vc/o8-20261022T210253Z/o8.log goes is hv's.
 - Laksa's and Conflab's releases wait for hv's next word. On rhadamanth, Conflab runs its checkout's build (520987af, v0.6.2-468) through ~/.local/bin and ~/bin links, with brew's 0.6.2 installed but unlinked, so it moves to brew at its next release.
 - Devbin 0295, for the next devbin release: stamp first, test once, tag what passed. The kovacs run stays (hv).
 - Parked for hv, from 2026-10-30:
