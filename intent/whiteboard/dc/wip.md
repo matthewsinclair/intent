@@ -3,10 +3,10 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b0fe8042-26c3-4d97-b163-450ffe29d3b2
-heartbeat_at: 2026-10-30 18:26Z
+heartbeat_at: 2026-10-30 19:21Z
 status: active
-focus: "AC-05.1 FAILED at leg dev (2026-10-30 18:21Z, driver rc 1); brew is back, AC-05.1 is unsatisfied, and the run is banked as refs/bank/dc/0087-05/run1/. For hv to rule: the cause is not the legs' PATH, and not doctor's shadow check as defined, but the leg shell's command hash. On that PATH ~/.local/bin comes first, ahead of /opt/homebrew/bin (the run's own 1-pre.txt). zsh recorded /opt/homebrew/bin/intent when bare `intent use dev` ran before the link existed, and its next bare `intent --version` reused that path. So brew answered, although both links, intentd and use's own ok: line named the dev pair. A scratch probe reproduces it, and `rehash` clears it. Doctor's shadow check finds PATH's first intent through a child /bin/sh, which has no such hash, so its silence was right by its definition. What the run does expose in Intent: neither doctor nor bare `use` compares the binary running it with the one the link set serves, which would have named this exact state; and `use <tree>` does not tell a shell that already ran intent to rehash. The kit's fix would be a rehash after each use (legs-v5), not run tonight."
-claims: [ST0087/05]
+focus: "Folded for hv's compact (2026-10-30): AC-05.1 is satisfied (d7a213cc8) on its record wp05-ac051.md, attached at 78f5ec3e9 from run 2, which hv ran from intent-vc's session; WP-05 is done, ST0087 reads PASS -- 19/19, and its close is hv's word. dc holds no claim, worktree or open item, and is not released."
+claims: []
 ---
 
 # DevX Claude (dc)
@@ -17,7 +17,7 @@ _(none)_
 
 ## TODO
 
-- ST0087 WP-05 (dc's, vc judges): AC-05.1 alone remains, and it is unsatisfied. Its first run failed: slot 01M66SZECE7XQQPN8EX81ZEK64, 2026-10-30 18:21:19Z to 18:21:29Z, driver rc 1, stopped at leg dev. After `intent use dev`, both links, intentd and use's own check served the dev pair 9b5e3e4fe8a1, but the leg shell's next bare `intent --version` ran brew's binary through zsh's command hash. The driver put brew back and started Intent.app; opt stays published at ~/Devel/opt/intent. Every file is banked under refs/bank/dc/0087-05/run1/, with the hash probe that reproduces the cause. On hv's word through vc there is no re-run and no fix tonight, since hv holds build and release, and hv rules on the cause (dc's focus). A re-run needs a new kit (eg legs-v5, with a rehash after each use), vc's read, a new slot and hv's !. vc satisfies AC-05.1, and ST0087 closes on vc's sign-off. (edited)
+_(none)_
 
 ## Holds
 
