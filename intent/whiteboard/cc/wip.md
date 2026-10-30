@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 69a14c2d-7dde-411f-af8f-09897328cc6a
-heartbeat_at: 2026-10-30 14:24Z
+heartbeat_at: 2026-10-30 16:17Z
 status: active
-focus: "HOLDING on vc's fleet order (vc decision 104, hv's word of 2026-10-30): cc has no Intent unit tonight, and 0649, 0650 and 0661 are parked for hv. No claim, no worktree, no push, no release."
+focus: "Folded for hv's estate-wide compact (2026-10-30): cc holds no unit, claim or worktree; after the compact it holds for the unit vc routes it."
 claims: []
 ---
 
