@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b0fe8042-26c3-4d97-b163-450ffe29d3b2
-heartbeat_at: 2026-10-30 16:12Z
+heartbeat_at: 2026-10-30 16:23Z
 status: active
-focus: "AC-05.1: the kit is verified in its run directory, and leg_pre passed as the predictor at 16:04Z against the dev pair 9b5e3e4fe8a1; it waits for vc's slot and hv's ! (todo 53). Folded for hv's compact, not released."
+focus: "Back from hv's compact. AC-05.1 (todo 53): leg_pre passed again as the predictor at 16:21Z against the dev pair 9b5e3e4fe8a1, and slot ask 01M66SZECE7XQQPN8EX81ZEK64 waits on vc's grant; then hv runs the driver with ! in dc's session."
 claims: [ST0087/05]
 ---
 
