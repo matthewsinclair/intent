@@ -1,4 +1,4 @@
--- INTENT_VER: 3.2.7
+-- INTENT_VER: 3.2.8
 -- SCHEMA_DDL_VER: 28
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
