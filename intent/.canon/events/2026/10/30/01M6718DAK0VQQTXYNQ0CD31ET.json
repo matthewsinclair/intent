@@ -1,0 +1,16 @@
+{
+  "id": "01M6718DAK0VQQTXYNQ0CD31ET",
+  "ts": "2026-10-30T18:30:51.475Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 66,
+    "text": "ST0087 WP-05 (dc's, vc judges). AC-05.2 PASSED on kovacs on 2026-10-30 and is satisfied. AC-05.1 ran on hv's ! in dc's session at 18:21Z and FAILED at the dev leg (driver rc=1, banked under refs/bank/dc/0087-05/run1/): the leg shell's zsh command hash still held brew's intent from before the link existed, so the kit's legs owe a rehash after each switch (dc's probe, run1/hashprobe/). hv controls build and release from 18:12Z, so the fix and a re-run are hv's to order. ST0087 stays at 18/19."
+  }
+}

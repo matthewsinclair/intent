@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "14dfe6c7-8816-4231-920b-d3436065f5eb",
-    "heartbeat_at": "2026-10-30T16:31:12.701Z",
+    "heartbeat_at": "2026-10-30T18:30:52.449Z",
     "status": "active",
-    "focus": "Back from hv's compact, on the bounce: every estate lands its post-compact pickup, then vc grants dc's AC-05.1 window and hv runs the driver with ! in dc's session; Laksa's CV panel and 0049 land after the window; vc holds the desk.",
+    "focus": "Marked to market on hv's order of 18:12Z: hv controls build and release; ST0087 is 18/19, with AC-05.1 failed at the dev leg on a zsh hash in the kit, for hv; the 3.2.8 cut's step 2 is done; vc holds the desk with nothing granted.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -2341,10 +2341,10 @@
       "node": "vc",
       "kind": "todo",
       "seq": 66,
-      "text": "ST0087 WP-05 (dc's, vc judges). AC-05.2 PASSED on kovacs on 2026-10-30 (dc's v2 procedure, run by kovacs-sysadm 14:13Z to 14:14Z; v1 failed on our tags being lightweight); dc builds and attaches its record, then vc satisfies AC-05.2. AC-05.1 waits for hv: dc's session classifier refused the driver at launch (\"Interfere With Workloads\"), so hv runs the banked ac051-v3.sh with `!` in dc's session, or adds a permission rule, after dc's leg_pre predictor against the dev pair rebuilt at 9b5e3e4fe (it carries 0663). Then WP-05 done (dc) and ST0087 done (vc).",
+      "text": "ST0087 WP-05 (dc's, vc judges). AC-05.2 PASSED on kovacs on 2026-10-30 and is satisfied. AC-05.1 ran on hv's ! in dc's session at 18:21Z and FAILED at the dev leg (driver rc=1, banked under refs/bank/dc/0087-05/run1/): the leg shell's zsh command hash still held brew's intent from before the link existed, so the kit's legs owe a rehash after each switch (dc's probe, run1/hashprobe/). hv controls build and release from 18:12Z, so the fix and a re-run are hv's to order. ST0087 stays at 18/19.",
       "state": "live",
       "recorded_at": "2026-10-26T13:50:49.751Z",
-      "edited_at": "2026-10-30T14:17:22.935Z"
+      "edited_at": "2026-10-30T18:30:51.475Z"
     },
     {
       "node": "vc",
@@ -4236,6 +4236,11 @@
       "id": "01M5308RG20003NEFTRNY4AYFE",
       "sender": "dc",
       "handled_at": "2026-10-16T19:09:55.163Z"
+    },
+    {
+      "id": "01M66V7423Q3ZS72R2A4NAAP4D",
+      "sender": "cc",
+      "handled_at": "2026-10-30T18:30:50.406Z"
     }
   ]
 }
