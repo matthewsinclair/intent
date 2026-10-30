@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 14dfe6c7-8816-4231-920b-d3436065f5eb
-heartbeat_at: 2026-10-30 13:43Z
+heartbeat_at: 2026-10-30 16:18Z
 status: active
-focus: "Fleet desk tonight on hv's word (decision 104): closing issues and threads one project at a time, Intent P1 now; one release per project, cut by hv."
+focus: "Folded for hv's estate-wide compact: the fleet sweep is paused with Laksa safe-stopped; Intent waits on hv for AC-05.1's run, the 3.2.8 cut and the push; vc holds the desk."
 claims: []
 ---
 
