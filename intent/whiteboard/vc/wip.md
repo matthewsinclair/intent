@@ -2,10 +2,10 @@
 node: vc
 name: Validation Claude
 role: validation
-session_id: a3784f83-17e6-4dd3-bc37-0049e71bd0b4
-heartbeat_at: 2026-10-29 20:29Z
+session_id: 14dfe6c7-8816-4231-920b-d3436065f5eb
+heartbeat_at: 2026-10-30 13:43Z
 status: active
-focus: "Folded for hv's hard stop. 3.2.7 is published and on brew; next is ST0087's AC-05.1 and AC-05.2 on hv's go."
+focus: "Fleet desk tonight on hv's word (decision 104): closing issues and threads one project at a time, Intent P1 now; one release per project, cut by hv."
 claims: []
 ---
 
@@ -38,6 +38,7 @@ _(none)_
 - (hv, 2026-10-25) devbin-vc runs Intent's pushes to local and upstream, fast-forward only, on vc's "push" after build all at HEAD; cuts stay hv's. (edited)
 - (2026-10-27) Before a worktree is removed, its node points refs/attic/<node>/<worktree> at its HEAD; attic refs are never deleted. (edited)
 - (hv, 2026-10-27) Every localfold and EOD fold archives what is spent, so a pickup prints only live state; ST0089 is built after the cut. (edited)
+- (hv, 2026-10-30, first-hand in vc's session) TONIGHT'S FLEET SWEEP, ON hv'S WORD, verbatim in four messages. Before vc's 13:27Z clock read: "Ok, I'm putting you in charge of the whole fleet here tonight. You have the oen. Please let everyone else know and to hold for instructions." Between vc's 13:27Z and 13:34:43Z reads: "Ok, your job is to work thru, one project at a time, and clear out any remaining issues. We are not adding new functionality. We are not going looking for new things to do, we are closing issues and steel threads as and when we can. In this order: intent, utilz, gtools, laksa, comflab. Confalb is P4. Laksa is P3. Utils and Gtools are P2. Intent is P1. Devbin and Molt are already done and dusted, so you can leave those ones alone. If you find something other than a bug or an issue that can be fixed relatively easily and simply, or if something needs net new code, then just park it until I get back." After vc's 13:34:43Z read: "Are we clear?" and "Also: I DO NOT WANT MUTLTIPLE RELEASES. All work here tonight is to go onto a SINGLE next release for each project. DO NOT MAKE MULTIPLE BITTY PATCH RELEASES. Close out as much as can be closed out and then then and only then do the release. Ok?" hv gave utilz-vc, gtools-vc, laksa-vc and conflab-vc the same order directly. EXECUTED: the fleet hold went to every live session; vc took the estate desk at 13:34:43Z (`intent estate control take`, from molt-vc's orphaned control, with hv's first message as its --hv words); Devbin, geodica-estate, sinclair-estate and rhadamanth-sysadm were released from the hold. vc's reading, told to hv: a cut and a push still need hv at the terminal (decision 3), so each project ends release-ready and its one release waits for hv.
 
 ---
 

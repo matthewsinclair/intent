@@ -1,0 +1,15 @@
+{
+  "id": "01M66GTGNZPWD4CF6T63T5E1HC",
+  "ts": "2026-10-30T13:43:38.946Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0663"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "estate page: the HOST panel's hv: line does not wrap, so it widens the panel and squashes the LAST HOUR graph"
+  }
+}
