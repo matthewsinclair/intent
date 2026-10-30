@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 69a14c2d-7dde-411f-af8f-09897328cc6a
-heartbeat_at: 2026-10-30 19:14Z
+heartbeat_at: 2026-10-30 19:38Z
 status: active
 focus: "Localfolded (2026-10-30) for hv's compact: cc has nothing uncommitted and holds no unit, claim, branch or worktree. Its 508 bank refs were audited against HEAD at the fold and none is a cc unit missing from main: 44 patches are on main as they stand, the rest landed in revised form or were superseded by what landed, and 274 are evidence that stays as refs. The 3.2.8 known-defects page (745cd4365) pins the pair 9b5e3e4fe8a1, so a DIRT_SCOPE change before the tag needs a re-drive from refs/bank/cc/kd328/drive.sh. hv runs build and release; cc holds."
 claims: []
