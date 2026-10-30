@@ -1,9 +1,9 @@
 ---
 st_id: ST0087
 title: Intent conforms to the dev, opt and brew contract
-status: WIP
+status: Completed
 created: 2026-10-25
-completed:
+completed: 2026-10-30
 ---
 
 # ST0087: Intent conforms to the dev, opt and brew contract

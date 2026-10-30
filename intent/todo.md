@@ -8,12 +8,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 
 ## DOING
 
-- [-] ST0087: Intent conforms to the dev, opt and brew contract
-  - [x] 01: The tree function, the runtime set and the version line
-  - [x] 02: intent install and the manifest, with doctor's manifest arms
-  - [x] 03: intent use and the shadow check
-  - [x] 04: The formula, the release tooling and the docs
-  - [x] 05: The proof, per tree, on rhadamanth and kovacs
+_(none)_
 
 ## TODO
 
@@ -147,6 +142,12 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 02: intentd serves /estate/status: watches the estate directory outside the ingest path, renders the live top-styled page with the host census
   - [x] 03: The intent explore TUI: /estate beside /projects, on the same reader
   - [x] 04: Slots: a generic pool, ask, grant, start, release protocol on the estate, records beside the status records, capacity enforced by the tool, policy with the controlling Claude
+- [x] ST0087: Intent conforms to the dev, opt and brew contract
+  - [x] 01: The tree function, the runtime set and the version line
+  - [x] 02: intent install and the manifest, with doctor's manifest arms
+  - [x] 03: intent use and the shadow check
+  - [x] 04: The formula, the release tooling and the docs
+  - [x] 05: The proof, per tree, on rhadamanth and kovacs
 - [x] ST0088: Intent's prompt corpus is culled to what a session needs: one home per instruction, nothing it does not invoke, nothing the tool already does
   - [x] 01: The culls hv ruled: the in-tca family, in-cost-analysis, in-debug, with their triage rows and callers
   - [x] 02: The skills merged, trimmed and completed: in-standards into in-essentials, the detrope section owned once, the trims, CLAUDE_CONFIG_DIR, and the missing items written once
