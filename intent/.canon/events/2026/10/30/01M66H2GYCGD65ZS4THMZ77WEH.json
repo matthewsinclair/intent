@@ -1,0 +1,15 @@
+{
+  "id": "01M66H2GYCGD65ZS4THMZ77WEH",
+  "ts": "2026-10-30T13:48:01.356Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ISSUE:0663 (hv's report, on vc's GO): the estate page's HOST panel. Its grid column is sized to its longest line and its lines never wrap, so hv's words from tonight's control take widen it and squash LAST HOUR. The fix is in shell.html, in tmp/wt-ic-0663 at 9332a3353: every HOST line wraps under its value column, a free-text line never sizes the panel, and the column has a cap. Then a live preview through a throwaway proxy, with shots before and after at about 1900px and one narrow, a bank, and a LIGHT judge run on vc's GO after the desk's queue. It lands alone. No push, no release."
+  }
+}

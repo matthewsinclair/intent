@@ -2,18 +2,18 @@
 node: ic
 name: Interface Claude
 role: interface
-session_id: 9031fbab-80b1-4564-a880-93c9e79197d4
-heartbeat_at: 2026-10-29 19:57Z
+session_id: 0caaab3f-f73c-4726-bcb4-7f6f8fece72f
+heartbeat_at: 2026-10-30 13:48Z
 status: active
-focus: "No live item, no claims, no worktrees; holding for vc's word."
-claims: []
+focus: "ISSUE:0663 for hv: the estate page's HOST panel wraps so LAST HOUR keeps its width; building in tmp/wt-ic-0663, then preview, bank and vc's LIGHT judge."
+claims: [ISSUE:0663]
 ---
 
 # Interface Claude (ic)
 
 ## DOING
 
-_(none)_
+- ISSUE:0663 (hv's report, on vc's GO): the estate page's HOST panel. Its grid column is sized to its longest line and its lines never wrap, so hv's words from tonight's control take widen it and squash LAST HOUR. The fix is in shell.html, in tmp/wt-ic-0663 at 9332a3353: every HOST line wraps under its value column, a free-text line never sizes the panel, and the column has a cap. Then a live preview through a throwaway proxy, with shots before and after at about 1900px and one narrow, a bank, and a LIGHT judge run on vc's GO after the desk's queue. It lands alone. No push, no release.
 
 ## TODO
 
