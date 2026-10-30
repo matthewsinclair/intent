@@ -18,8 +18,7 @@ _(none)_
 ## TODO
 
 - After 3.2.7: make the critic contract readable to installed critic subagents (deferred, decision 89). (edited)
-- ST0087 AC-05.1 (dev, opt, brew, starting and ending on brew; dc's reshape at refs/bank/dc/0087-05/reshape-20261029.md) with dc, then AC-05.2 on kovacs; then WP-05 and ST0087 close. (edited)
-- `intent claude upgrade --apply --skip-settings` here, committing its wrote: paths. (edited)
+- ST0087 WP-05 (dc's, vc judges). AC-05.2 PASSED on kovacs on 2026-10-30 (dc's v2 procedure, run by kovacs-sysadm 14:13Z to 14:14Z; v1 failed on our tags being lightweight); dc builds and attaches its record, then vc satisfies AC-05.2. AC-05.1 waits for hv: dc's session classifier refused the driver at launch ("Interfere With Workloads"), so hv runs the banked ac051-v3.sh with `!` in dc's session, or adds a permission rule, after dc's leg_pre predictor against the dev pair rebuilt at 9b5e3e4fe (it carries 0663). Then WP-05 done (dc) and ST0087 done (vc). (edited)
 
 ## Holds
 
