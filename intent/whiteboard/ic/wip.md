@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 0caaab3f-f73c-4726-bcb4-7f6f8fece72f
-heartbeat_at: 2026-10-30 16:07Z
+heartbeat_at: 2026-10-30 16:15Z
 status: active
-focus: "0663 landed as 4695e6fc1 and is in the dev pair 9b5e3e4fe8a1; its preview proxies stay up until hv's intent use dev; otherwise holding for vc's word."
+focus: "Folded for hv's estate-wide compact; hold 16 waits on 0663 reaching hv's pair (the 3.2.8 cut or intent use dev); otherwise holding for vc's word."
 claims: []
 ---
 
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-- The 0663 preview proxies stay up on 127.0.0.1:51801 (before), :51802 (after) and :51803 (after, stressed): throwaway node servers in ic's scratchpad that serve copies of shell.html and pass /op through to intentd, so hv can see 0663 before the switch. RELEASES WHEN: hv has run intent use dev, so the shared intentd runs the dev pair 9b5e3e4fe8a1 that carries 0663, and vc says the page shows it; then ic stops them.
+- 0663 holds hv's "LGTM. Ship it." (2026-10-30, in ic's session). It is on main as 4695e6fc1 and in the dev pair 9b5e3e4fe8a1, but hv's page is served by brew 3.2.7 (/opt/homebrew/bin/intentd), which lacks it. The preview proxies are down. RELEASES WHEN: the pair hv runs carries 0663, by the 3.2.8 cut (hv's) or by hv's intent use dev, and the estate page shows it. (edited)
 
 ## Watch-outs
 

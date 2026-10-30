@@ -1,0 +1,16 @@
+{
+  "id": "01M66SGJR295VV12PZ50BS97AY",
+  "ts": "2026-10-30T16:15:30.562Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 16,
+    "text": "0663 holds hv's \"LGTM. Ship it.\" (2026-10-30, in ic's session). It is on main as 4695e6fc1 and in the dev pair 9b5e3e4fe8a1, but hv's page is served by brew 3.2.7 (/opt/homebrew/bin/intentd), which lacks it. The preview proxies are down. RELEASES WHEN: the pair hv runs carries 0663, by the 3.2.8 cut (hv's) or by hv's intent use dev, and the estate page shows it."
+  }
+}
