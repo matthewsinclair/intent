@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 14dfe6c7-8816-4231-920b-d3436065f5eb
-heartbeat_at: 2026-10-30 18:30Z
+heartbeat_at: 2026-10-30 19:29Z
 status: active
-focus: "Marked to market on hv's order of 18:12Z: hv controls build and release; ST0087 is 18/19, with AC-05.1 failed at the dev leg on a zsh hash in the kit, for hv; the 3.2.8 cut's step 2 is done; vc holds the desk with nothing granted."
+focus: "Folded on hv's order: Intent's nodes are folded and everything is on main; ST0087 is 19/19, its close hv's word; vc runs Utilz's suite on gyges and kovacs once Utilz's push reaches a remote and hv says go for lua; the desk is vc's, with nothing granted."
 claims: []
 ---
 
@@ -18,7 +18,6 @@ _(none)_
 ## TODO
 
 - After 3.2.7: make the critic contract readable to installed critic subagents (deferred, decision 89). (edited)
-- ST0087 WP-05 (dc's, vc judges). AC-05.2 PASSED on kovacs on 2026-10-30 and is satisfied. AC-05.1 ran on hv's ! in dc's session at 18:21Z and FAILED at the dev leg (driver rc=1, banked under refs/bank/dc/0087-05/run1/): the leg shell's zsh command hash still held brew's intent from before the link existed, so the kit's legs owe a rehash after each switch (dc's probe, run1/hashprobe/). hv controls build and release from 18:12Z, so the fix and a re-run are hv's to order. ST0087 stays at 18/19. (edited)
 
 ## Holds
 
