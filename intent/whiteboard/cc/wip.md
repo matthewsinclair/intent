@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 69a14c2d-7dde-411f-af8f-09897328cc6a
-heartbeat_at: 2026-10-30 16:32Z
+heartbeat_at: 2026-10-30 18:23Z
 status: active
-focus: "Back from hv's estate-wide compact (2026-10-30): cc has no Intent unit tonight and holds no claim or worktree; it holds every run, commit and store write until vc's WINDOW END for ST0087's AC-05.1 window."
+focus: "Marked to market (2026-10-30): cc has nothing uncommitted and holds no unit, claim or worktree. Its one unit tonight, the 3.2.8 known-defects page, landed as 745cd4365 (judged PASS) and pins the pair 9b5e3e4fe8a1, so a DIRT_SCOPE change before the tag needs a re-drive (refs/bank/cc/kd328/drive.sh). hv runs build and release; cc holds."
 claims: []
 ---
 
