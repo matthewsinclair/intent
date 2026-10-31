@@ -13,7 +13,7 @@ title: The index rebuild says what happened, in the CLI's report and Intent.app'
 
 ## Acceptance Criteria
 
-### WP-01 -- One level-3 state on every face, and the index report names its reconcile time (status: WIP)
+### WP-01 -- One level-3 state on every face, and the index report names its reconcile time (status: Done)
 
 - AC-01.1 One function in intentsvcs names a language's level-3 state from its stored run and the paths gone stale since: `current` only for a run that stored with nothing stale, `stale` for a stored run with stale paths, the extractor's move included, and the run's own `missing` or `failed` whatever is stale; the search envelope and the index report both ask it, and no face prints `Run::state` as the language's state. -- satisfied: yes (computed)
 - AC-01.2 `intent index status`, `intent index rebuild` and `intent index resolve` name that state on each language's first line, with the stored line, the dropped line, the extractor line and every stale path below it as today, and a search answer's `index.resolution` names the same state for the same run. -- satisfied: yes (computed)
@@ -29,7 +29,7 @@ title: The index rebuild says what happened, in the CLI's report and Intent.app'
 
 ## Acceptance Tests
 
-### WP-01 -- One level-3 state on every face, and the index report names its reconcile time (status: WIP)
+### WP-01 -- One level-3 state on every face, and the index report names its reconcile time (status: Done)
 
 - AT-01.1 `native/rust/crates/intent-cli/tests/the_index_report_names_level_three_as_search_does.rs` -- covers AC-01.1, AC-01.2, AC-01.3 -- status: green -- To write: vc minted the row when it raised ST0090 on 2026-10-31, and cc's WP-01 bank writes the arms its body names; red at the landing, ahead of green, as ST0087's rows were at 0b9c5082d, because green is reachable only from red: dc wrote the arms in its bank refs/bank/dc/st0090-wp01 to assert what the base d664d44fa did not print, the failure issue 0664 records, and no run saw them fail on the base; arms: a_stored_run_with_a_file_changed_since_reads_stale_on_every_face, a_stored_run_with_nothing_stale_reads_current_and_an_answer_names_nothing and a_run_that_did_not_store_keeps_its_own_word_whatever_is_stale; green in dc's judge run 01M696MPDJ812NRYHF3WRPBVPQ on 2026-10-31 at d664d44fa plus the bank (patch-id d8f76ab374d8): the format check, the build, the intentsvcs and intent-cli suites whole and workspace clippy at -D warnings, every leg exit 0; GREEN in vc's verdict of 14:56Z, with vc's critic leg clean; landed with this row
 - AT-01.2 `native/rust/crates/intent-cli/tests/the_index_report_names_its_reconcile_time.rs` -- covers AC-01.4 -- status: green -- To write: vc minted the row when it raised ST0090 on 2026-10-31, and cc's WP-01 bank writes the arms its body names; red at the landing, ahead of green, as ST0087's rows were at 0b9c5082d, because green is reachable only from red: dc wrote the arms in its bank refs/bank/dc/st0090-wp01 to assert a reconcile stamp the base d664d44fa never printed, and no run saw them fail on the base; arms: an_index_no_reconcile_has_stamped_names_none and the_report_names_the_stamp_the_last_reconcile_wrote; green in dc's judge run 01M696MPDJ812NRYHF3WRPBVPQ on 2026-10-31 at d664d44fa plus the bank (patch-id d8f76ab374d8): the format check, the build, the intentsvcs and intent-cli suites whole and workspace clippy at -D warnings, every leg exit 0; GREEN in vc's verdict of 14:56Z, with vc's critic leg clean; landed with this row

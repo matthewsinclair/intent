@@ -9,7 +9,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 ## DOING
 
 - [-] ST0090: The index rebuild says what happened, in the CLI's report and Intent.app's menu
-  - [-] 01: One level-3 state on every face, and the index report names its reconcile time
+  - [x] 01: One level-3 state on every face, and the index report names its reconcile time
   - [-] 02: Intent.app's Rebuild Search Index row copies Gtools' Refresh Search row
 
 ## TODO

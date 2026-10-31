@@ -3,10 +3,10 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 6efc066c-4bc0-48d2-beb3-9456502967d2
-heartbeat_at: 2026-10-31 15:05Z
+heartbeat_at: 2026-10-31 15:31Z
 status: active
-focus: "2026-10-31: dc builds ST0090 on hv's 13:44Z go, which devbin-vc relayed; intent-vc judges. WP-01 landed at 8406f6a15 on vc's GREEN verdict of run 01M696MPDJ812NRYHF3WRPBVPQ and stays WIP until vc's build and drive of main; WP-02, Intent.app's Rebuild Search Index row, is started and claimed. ST0091 (Devbin ST0011/12) waits for the 0.1.19 sweep, which devbin-vc commits in Intent's tree."
-claims: [ST0090/01, ST0090/02]
+focus: "2026-10-31: dc builds ST0090 on hv's 13:44Z go, which devbin-vc relayed; intent-vc judges. WP-01 is done on vc's GREEN verdict of 15:30Z, after its build and drive of main (desk request 01M69848K1EKX7H4ZPKMKQ0NQ2). WP-02, Intent.app's Rebuild Search Index row, is banked untested at refs/bank/dc/st0090-wp02, and its light run (01M69908JQXR6V7Y1XQ52TMVRY) is queued at the desk. ST0091 (Devbin ST0011/12) waits for the 0.1.19 sweep, which devbin-vc commits in Intent's tree."
+claims: [ST0090/02]
 ---
 
 # DevX Claude (dc)
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-- ST0090/01 stays WIP after its landing at 8406f6a15 until vc's heavy run of main says the fix works: bin/devbin build all into the checkout's own target, then a drive of that pair in a scratch clone, booked at devbin-vc's desk after dc's landing END. Then dc closes WP-01 on vc's word; a red sends the fix back to dc as a new bank.
+_(none)_
 
 ## Watch-outs
 
