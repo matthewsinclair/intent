@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "worker",
     "session_id": "6efc066c-4bc0-48d2-beb3-9456502967d2",
-    "heartbeat_at": "2026-10-31T14:26:36.131Z",
+    "heartbeat_at": "2026-10-31T14:44:40.677Z",
     "status": "active",
-    "focus": "2026-10-31: dc builds ST0090 on hv's 13:44Z go, which devbin-vc relayed; intent-vc judges. WP-01 is claimed and banked untested at refs/bank/dc/st0090-wp01 on d664d44fa, its worktree tmp/wt-dc-0090-01 kept, and its run held for hv's next go; WP-02 follows WP-01's landing. ST0091 (Devbin ST0011/12) waits for the 0.1.19 sweep, which devbin-vc commits in Intent's tree.",
+    "focus": "2026-10-31: dc builds ST0090 on hv's 13:44Z go, which devbin-vc relayed; intent-vc judges. On hv's next go (devbin-vc's 14:34Z stamp) dc asked the desk as 01M696MPDJ812NRYHF3WRPBVPQ for WP-01's run, which tests the bank refs/bank/dc/st0090-wp01 staged in tmp/wt-dc-0090-01 at d664d44fa; WP-02 follows WP-01's landing. ST0091 (Devbin ST0011/12) waits for the 0.1.19 sweep, which devbin-vc commits in Intent's tree.",
     "claims": [
       "ST0090/01"
     ],
@@ -2566,8 +2566,17 @@
       "kind": "hold",
       "seq": 35,
       "text": "ST0090/01's run waits for hv's next go through devbin-vc, which lifts the desk hold 01M694Y7ZGK0PKD94NVSHGCSCQ (intent estate status shows the desk). Then dc asks the desk afresh for one heavy run in tmp/wt-dc-0090-01 at d664d44fa: the cold build, WP-01's arms and their readers, fmt and clippy, with the four-core cap only while devbin's run 3 holds the bats lane. The bank refs/bank/dc/st0090-wp01 (blob 65043a8c1d73, patch-id d8f76ab374d8) is untested: the first run (01M69443Z91B8HJ0G0S92CWC8W) went red at a compile error in dc's edit, since fixed, and the re-ask (01M694VWR1MHWQP4KGNBPWW3KZ) was denied for hv's fold.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-10-31T14:44:38.721Z",
       "recorded_at": "2026-10-31T14:17:11.869Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 146,
+      "text": "ST0090/01's run on hv's go, relayed through devbin-vc and intent-vc (devbin-vc's 14:34Z stamp): desk request 01M696MPDJ812NRYHF3WRPBVPQ on the cargo lane under the four-core cap, in tmp/wt-dc-0090-01 at d664d44fa with the bank refs/bank/dc/st0090-wp01 staged (patch-id d8f76ab374d8). Its legs are WP-01's named judge as intent-vc set it: the format check, intentd and intent-cli built into the worktree's own target, the intentsvcs and intent-cli suites whole, and workspace clippy at -D warnings. At its END dc sends vc each leg's exit code and the log's path, and changes nothing in the worktree until vc has read them.",
+      "state": "live",
+      "recorded_at": "2026-10-31T14:44:39.707Z"
     }
   ],
   "sent": [

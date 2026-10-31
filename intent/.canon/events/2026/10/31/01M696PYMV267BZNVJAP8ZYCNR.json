@@ -1,0 +1,15 @@
+{
+  "id": "01M696PYMV267BZNVJAP8ZYCNR",
+  "ts": "2026-10-31T14:44:39.707Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST0090/01's run on hv's go, relayed through devbin-vc and intent-vc (devbin-vc's 14:34Z stamp): desk request 01M696MPDJ812NRYHF3WRPBVPQ on the cargo lane under the four-core cap, in tmp/wt-dc-0090-01 at d664d44fa with the bank refs/bank/dc/st0090-wp01 staged (patch-id d8f76ab374d8). Its legs are WP-01's named judge as intent-vc set it: the format check, intentd and intent-cli built into the worktree's own target, the intentsvcs and intent-cli suites whole, and workspace clippy at -D warnings. At its END dc sends vc each leg's exit code and the log's path, and changes nothing in the worktree until vc has read them."
+  }
+}
