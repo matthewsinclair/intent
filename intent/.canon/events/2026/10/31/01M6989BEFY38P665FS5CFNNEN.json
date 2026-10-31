@@ -1,0 +1,15 @@
+{
+  "id": "01M6989BEFY38P665FS5CFNNEN",
+  "ts": "2026-10-31T15:12:11.221Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0668"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "A controller's revoke before a start leaves the asker no --place-of hand-back, so a run pulled back for load loses its place"
+  }
+}
