@@ -1,0 +1,15 @@
+{
+  "id": "01M699QSW6J4V3E4JDS45QKMB0",
+  "ts": "2026-10-31T15:37:33.322Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0669"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "search's outline, context and listing doors never reconcile when answered in-process, while a text query does"
+  }
+}
