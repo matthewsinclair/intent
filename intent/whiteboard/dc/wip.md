@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 6efc066c-4bc0-48d2-beb3-9456502967d2
-heartbeat_at: 2026-10-31 15:31Z
+heartbeat_at: 2026-10-31 15:43Z
 status: active
-focus: "2026-10-31: dc builds ST0090 on hv's 13:44Z go, which devbin-vc relayed; intent-vc judges. WP-01 is done on vc's GREEN verdict of 15:30Z, after its build and drive of main (desk request 01M69848K1EKX7H4ZPKMKQ0NQ2). WP-02, Intent.app's Rebuild Search Index row, is banked untested at refs/bank/dc/st0090-wp02, and its light run (01M69908JQXR6V7Y1XQ52TMVRY) is queued at the desk. ST0091 (Devbin ST0011/12) waits for the 0.1.19 sweep, which devbin-vc commits in Intent's tree."
+focus: "2026-10-31: dc builds ST0090 on hv's 13:44Z go, which devbin-vc relayed; intent-vc judges. WP-01 is done; WP-02 landed at a54f2e9e0 on vc's GREEN verdict and stays WIP until hv sees the Rebuild Search Index row on the build that carries both packages (AC-02.4). ST0091 (Devbin ST0011/12) waits for the 0.1.19 sweep, which devbin-vc commits in Intent's tree."
 claims: [ST0090/02]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0090/02]
 
 ## DOING
 
-- ST0090/02 on hv's 13:44Z go, which devbin-vc relayed, named dc's next in intent-vc's 14:56Z verdict: Intent.app's Rebuild Search Index row copies Gtools' Refresh Search row (AC-02.1 to AC-02.4). dc builds it in a worktree of its own and banks it for intent-vc's judgement. AT-02.1 (native/macos/Intent/IntentTests/RebuildItemTests.swift) goes red and then green in the commit that lands its file, because the stale-AT guard refuses a to-write row whose cited test exists. No commit lands in main while vc's build of main runs.
+_(none)_
 
 ## TODO
 
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-_(none)_
+- ST0090/02 stays WIP after its landing at a54f2e9e0 until AC-02.4 is met: hv sees the Rebuild Search Index row's second line after a rebuild, on the build that carries WP-01 and WP-02, and vc records which build that was. vc tells hv through devbin-vc which build carries both packages. Then dc closes WP-02 on vc's word; a defect hv sees comes back to dc as a new bank.
 
 ## Watch-outs
 

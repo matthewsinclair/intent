@@ -1,0 +1,15 @@
+{
+  "id": "01M69A2N1Y6JSFRY1Z7RXJ4QHA",
+  "ts": "2026-10-31T15:43:28.830Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "ST0090/02 stays WIP after its landing at a54f2e9e0 until AC-02.4 is met: hv sees the Rebuild Search Index row's second line after a rebuild, on the build that carries WP-01 and WP-02, and vc records which build that was. vc tells hv through devbin-vc which build carries both packages. Then dc closes WP-02 on vc's word; a defect hv sees comes back to dc as a new bank."
+  }
+}
