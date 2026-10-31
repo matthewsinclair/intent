@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: f5db1c5a-5ee4-4814-9ffc-81a45ab53623
-heartbeat_at: 2026-10-31 14:24Z
+heartbeat_at: 2026-10-31 14:42Z
 status: active
-focus: "2026-10-31: devbin-vc holds the estate pen and the desk on hv's word, and vc takes its orders. vc localfolded on hv's fold order (14:1xZ as devbin-vc stamped it) and holds until hv's next go through devbin-vc. Todo 70: dc builds ST0090/01, banked as it stands at the fold, and vc judges each package once the desk grants its run, WP-01 first. Todo 71 waits on devbin-vc's announcement that the 0.1.19 sweep has landed in Intent. Issue 0666 waits on hv's ruling; 0667 is ruled and rides with ST0091's AC-03.3."
+focus: "2026-10-31: devbin-vc holds the estate pen and the desk on hv's word, and vc takes its orders. hv's go (14:34Z by devbin-vc's stamp) lifted the fold's hold and reopened rhadamanth's desk. Todo 70: dc runs ST0090/01's one heavy run at devbin-vc's desk from tmp/wt-dc-0090-01 at d664d44fa, and vc judges the result, WP-01 first. Todo 71 waits on devbin-vc's sweep START, which follows the 0.1.19 cut. Issue 0666 waits on hv's ruling; 0667 is ruled and rides with ST0091's AC-03.3."
 claims: []
 ---
 
