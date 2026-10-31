@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: f5db1c5a-5ee4-4814-9ffc-81a45ab53623
-heartbeat_at: 2026-10-31 21:04Z
-status: active
-focus: "2026-10-31: devbin-vc holds the estate pen and the desk on hv's word, and vc takes its orders. The lanes are open since hv's go after the fifth fold (devbin decision 116). Issue 0670 is filed (fe9313a99), and its fix shape is hv's to rule. On hv's 'Approved' in vc's window (20:54Z), vc dropped Intent's four stashes and removed tmp/check and tmp/test, keeping each: the stashes at refs/attic/vc/stash/, the logs and their manifest at refs/bank/vc/housekeep-20261031/. Nothing runnable is queued: ST0090's gate waits only on AC-02.4 (hold 6), and todo 71 waits on devbin-vc's sweep START after the 0.1.19 cut. Issues 0666, 0668 and 0669 wait on hv's rulings; 0667 is ruled and rides with ST0091's AC-03.3."
+heartbeat_at: 2026-10-31 21:16Z
+status: paused
+focus: "2026-10-31: vc closed for the day on hv's hard close (devbin decision 118, 21:11Z), with the globalfold of intent/wip.md, and released. devbin-vc holds the estate pen and the desk on hv's word, and vc takes its orders. Next session: hold 6 (ST0090 AC-02.4) waits on hv seeing Intent.app's Rebuild Search Index row on a build that carries both packages; todo 71 waits on devbin-vc's sweep START after the 0.1.19 cut; issues 0666, 0668 and 0669 wait on hv's rulings, and 0670's fix shape is hv's; Intent's push waits for hv's word."
 claims: []
 ---
 
