@@ -4,6 +4,7 @@ An index of every steel thread in the project. A steel thread is a self-containe
 
 | ID     | Title                                                                                                                                           | Status      | Created    | Completed            |
 | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ---------- | -------------------- |
+| ST0090 | The index rebuild says what happened, in the CLI's report and Intent.app's menu                                                                 | Not Started | 2026-10-31 |                      |
 | ST0089 | Localfold+Compact Policy (when to fold, /clear and /compact)                                                                                    | Not Started | 2026-10-27 |                      |
 | ST0085 | Passive prompt injection: prompt text Intent stores or ships is acted on only when it is live                                                   | Not Started | 2026-10-23 |                      |
 | ST0084 | Relocate the parity tooling and reference generators out of intent/st/ST0056 so completed threads can leave the disk                            | Not Started | 2026-10-17 |                      |

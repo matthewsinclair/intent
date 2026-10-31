@@ -1,0 +1,15 @@
+{
+  "id": "01M68E5WW1FZCS59R81Z2K1CNQ",
+  "ts": "2026-10-31T07:35:55.013Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "st.relate",
+  "subject": {
+    "type": "thread",
+    "id": "ST0090"
+  },
+  "payload": {
+    "note": "ST0076's AC-07.1 made one function own the search faces' level-3 words; ST0090 brings intent index status, rebuild and resolve under it",
+    "target": "ST0076"
+  }
+}

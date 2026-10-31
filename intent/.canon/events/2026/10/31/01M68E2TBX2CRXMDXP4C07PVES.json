@@ -1,0 +1,14 @@
+{
+  "id": "01M68E2TBX2CRXMDXP4C07PVES",
+  "ts": "2026-10-31T07:34:14.144Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "st.new",
+  "subject": {
+    "type": "thread",
+    "id": "ST0090"
+  },
+  "payload": {
+    "title": "The index rebuild says what happened, in the CLI's report and Intent.app's menu"
+  }
+}
