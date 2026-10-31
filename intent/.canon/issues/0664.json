@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 664,
+  "slug": "rebuilding-the-search-index-in-the-menubar-app-c",
+  "title": "Rebuilding the search index in the menubar app causes a silent crash only visible when viewing the log",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-10-31",
+  "reporter": "Matthew Sinclair",
+  "body": ""
+}

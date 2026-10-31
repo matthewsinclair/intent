@@ -1,0 +1,15 @@
+{
+  "id": "01M68CK52GVNDK8PYG4TAK4RN9",
+  "ts": "2026-10-31T07:08:12.243Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0664"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "Rebuilding the search index in the menubar app causes a silent crash only visible when viewing the log"
+  }
+}
