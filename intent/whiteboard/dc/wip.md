@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 6efc066c-4bc0-48d2-beb3-9456502967d2
-heartbeat_at: 2026-10-31 15:43Z
+heartbeat_at: 2026-10-31 18:46Z
 status: active
-focus: "2026-10-31: dc builds ST0090 on hv's 13:44Z go, which devbin-vc relayed; intent-vc judges. WP-01 is done; WP-02 landed at a54f2e9e0 on vc's GREEN verdict and stays WIP until hv sees the Rebuild Search Index row on the build that carries both packages (AC-02.4). ST0091 (Devbin ST0011/12) waits for the 0.1.19 sweep, which devbin-vc commits in Intent's tree."
+focus: "2026-10-31: dc localfolded on hv's fourth fold order (via devbin-vc and intent-vc) and holds until hv's next go through devbin-vc. ST0090 WP-01 is done; WP-02 landed at a54f2e9e0 and stays WIP until hv sees the Rebuild Search Index row on the build that carries both packages (AC-02.4, hold 37). dc's ST0090 run drivers and outputs are banked at refs/bank/dc/fold-20261031/. ST0091 (Devbin ST0011/12) waits for the 0.1.19 sweep."
 claims: [ST0090/02]
 ---
 
