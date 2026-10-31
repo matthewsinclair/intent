@@ -2,7 +2,7 @@
 wp_id: WP-01
 title: One level-3 state on every face, and the index report names its reconcile time
 scope: S
-status: Not Started
+status: WIP
 ---
 
 # WP-01: One level-3 state on every face, and the index report names its reconcile time

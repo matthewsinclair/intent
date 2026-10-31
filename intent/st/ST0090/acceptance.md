@@ -13,7 +13,7 @@ title: The index rebuild says what happened, in the CLI's report and Intent.app'
 
 ## Acceptance Criteria
 
-### WP-01 -- One level-3 state on every face, and the index report names its reconcile time (status: Not Started)
+### WP-01 -- One level-3 state on every face, and the index report names its reconcile time (status: WIP)
 
 - AC-01.1 One function in intentsvcs names a language's level-3 state from its stored run and the paths gone stale since: `current` only for a run that stored with nothing stale, `stale` for a stored run with stale paths, the extractor's move included, and the run's own `missing` or `failed` whatever is stale; the search envelope and the index report both ask it, and no face prints `Run::state` as the language's state. -- satisfied: no (computed)
 - AC-01.2 `intent index status`, `intent index rebuild` and `intent index resolve` name that state on each language's first line, with the stored line, the dropped line, the extractor line and every stale path below it as today, and a search answer's `index.resolution` names the same state for the same run. -- satisfied: no (computed)
@@ -29,7 +29,7 @@ title: The index rebuild says what happened, in the CLI's report and Intent.app'
 
 ## Acceptance Tests
 
-### WP-01 -- One level-3 state on every face, and the index report names its reconcile time (status: Not Started)
+### WP-01 -- One level-3 state on every face, and the index report names its reconcile time (status: WIP)
 
 - AT-01.1 `native/rust/crates/intent-cli/tests/the_index_report_names_level_three_as_search_does.rs` -- covers AC-01.1, AC-01.2, AC-01.3 -- status: to-write -- To write: vc minted the row when it raised ST0090 on 2026-10-31, and cc's WP-01 bank writes the arms its body names
 - AT-01.2 `native/rust/crates/intent-cli/tests/the_index_report_names_its_reconcile_time.rs` -- covers AC-01.4 -- status: to-write -- To write: vc minted the row when it raised ST0090 on 2026-10-31, and cc's WP-01 bank writes the arms its body names

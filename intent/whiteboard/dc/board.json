@@ -8,7 +8,9 @@
     "heartbeat_at": "2026-10-31T12:58:17.890Z",
     "status": "active",
     "focus": "2026-10-31: on devbin-vc's orders under hv's pen, dc builds ST0091 (Devbin ST0011 WP12: Intent releases through devbin's core) once the vendor sweep lands, claiming each WP at its wp start; intent-vc judges. Nothing is built or claimed before the sweep.",
-    "claims": [],
+    "claims": [
+      "ST0090/01"
+    ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"
