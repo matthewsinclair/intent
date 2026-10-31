@@ -51,8 +51,21 @@ final class LogService {
   /// How a record that cannot be written reaches the operator: the app's alert.
   @ObservationIgnored var reportUnwritable: (@MainActor (String) -> Void)?
 
+  /// How the logs reach the operator: `console` in the app, a recorder in the
+  /// tests, which can then say what a command opened and what it did not.
+  typealias Opener = @MainActor ([URL]) async throws -> Void
+  @ObservationIgnored var opener: Opener = LogService.console
+
   /// What runs a command: `IntentCLI.capture` in the app, a stub in the tests.
   typealias Capture = ([String]) async throws -> CLIRunResult
+
+  /// What one recorded run left (ST0090 WP-02): the app's log once the record
+  /// is written, for a caller that opens it, nil when it could not be, and the
+  /// command's result, so its exit reaches the caller.
+  struct Ran: Sendable {
+    let log: String?
+    let result: CLIRunResult
+  }
 
   /// Whether any log exists, for the menu's Log item. Nil while the CLI has not
   /// said where they are, when the item stays live, so a click asks again and
@@ -98,16 +111,20 @@ final class LogService {
     try await open(refreshPaths(capture: capture).all)
   }
 
-  /// Hands the logs that exist to the macOS Console app, named by its bundle
-  /// identifier rather than by whatever app owns `.log` files on this machine.
-  /// A log not written yet is passed over; none at all is `noLogYet`.
+  /// Hands the logs that exist to `opener`. A log not written yet is passed
+  /// over; none at all is `noLogYet`.
   func open(_ files: [String]) async throws {
     let present = files.filter { FileManager.default.fileExists(atPath: $0) }
     guard !present.isEmpty else { throw LogError.noLogYet }
-    guard let console = NSWorkspace.shared.urlForApplication(withBundleIdentifier: Self.consoleBundleID) else {
+    try await opener(present.map { URL(fileURLWithPath: $0) })
+  }
+
+  /// Hands the logs to the macOS Console app, named by its bundle identifier
+  /// rather than by whatever app owns `.log` files on this machine.
+  static func console(_ urls: [URL]) async throws {
+    guard let console = NSWorkspace.shared.urlForApplication(withBundleIdentifier: consoleBundleID) else {
       throw LogError.noConsole
     }
-    let urls = present.map { URL(fileURLWithPath: $0) }
     try await withCheckedThrowingContinuation { (opened: CheckedContinuation<Void, Error>) in
       NSWorkspace.shared.open(urls, withApplicationAt: console, configuration: NSWorkspace.OpenConfiguration()) {
         _, error in
@@ -119,18 +136,20 @@ final class LogService {
   // MARK: - Running and recording
 
   /// Runs a command for the operator and records it: `» intent doctor`, its
-  /// lines, `» exit 0 · 1.2s`. Returns the app's log once the record is
-  /// written, for the caller to open, and nil when it could not be.
+  /// lines, `» exit 0 · 1.2s`. Returns `Ran`: the app's log once the record is
+  /// written, for a caller that opens it, nil when it could not be, and the
+  /// command's result.
   ///
   /// **ONE AT A TIME, REFUSED RATHER THAN QUEUED**: a second command while one
   /// runs throws `busy`, naming the running one, before it records anything. A
   /// command that cannot launch is recorded as failed, and its reason thrown. A
-  /// non-zero exit is not thrown: the command's own lines say what went wrong.
+  /// non-zero exit is not thrown: it is in the result, and the command's own
+  /// lines say what went wrong.
   func run(
     _ args: [String],
     capture: Capture = IntentCLI.capture,
     now: () -> ContinuousClock.Instant = { ContinuousClock.now }
-  ) async throws -> String? {
+  ) async throws -> Ran {
     let label = IntentCLI.label(args)
     if let running { throw LogError.busy(running) }
     running = label
@@ -143,7 +162,8 @@ final class LogService {
       await record(LogBlock.failed(label, because: error.localizedDescription), capture: capture)
       throw error
     }
-    return await record(LogBlock.ran(label, result, after: now() - started), capture: capture)
+    let kept = await record(LogBlock.ran(label, result, after: now() - started), capture: capture)
+    return Ran(log: kept, result: result)
   }
 
   /// Appends one block to the app's log in one write, each line stamped with

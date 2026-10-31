@@ -22,12 +22,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
   private let project = ProjectService.shared
   private let version = VersionService.shared
   private let log = LogService.shared
+  private let index = IndexService.shared
   private var observation: ContinuousObservation?
   /// The menu's top row, made once at launch and kept at the top of each menu
   /// the app builds (`MastheadPlacement`), as Gtools' is.
   private var masthead: MastheadPlacement?
   /// menuz's Log item in the current menu, set again as the menu opens.
   private var logItem: NSMenuItem?
+  /// The Rebuild Search Index row in the current menu, its second line set
+  /// again as the menu opens.
+  private var rebuildItem: NSMenuItem?
 
   static let firstRunKey = "FirstRunDone"
 
@@ -68,6 +72,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     version.startPolling()  // one `intent version` read per poll, for the masthead row
     log.reportUnwritable = { [weak self] said in self?.showAlert("Could not write the log", message: said) }
     Task { [log] in await log.findPaths() }  // where the Log item looks, from the CLI
+    Task { [index] in await index.read() }  // the rebuild row's stamp, from the CLI
     startObserving()  // renders the current state immediately, then on every change
 
     if !UserDefaults.standard.bool(forKey: Self.firstRunKey) {
@@ -180,9 +185,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     menu.addItem(daemonItem())
     menu.addItem(.separator())
 
-    // --- search ---
-    menu.addItem(
-      commandItem("Rebuild Search Index", running: "Rebuilding Search Index…", ["index", "rebuild"], #selector(rebuildSearchIndex)))
+    // --- search: Gtools' Refresh Search row (ST0090 WP-02), its second line
+    // how long ago the index was reconciled ---
+    let rebuildItem = commandItem(
+      IndexStatus.rebuildTitle(rebuilding: false), running: IndexStatus.rebuildTitle(rebuilding: true),
+      IndexStatus.rebuildCommand, #selector(rebuildSearchIndex))
+    self.rebuildItem = rebuildItem
+    refreshRebuildItem()
+    menu.addItem(rebuildItem)
     menu.addItem(.separator())
 
     // --- the tools, where Gtools has Console… and Run Doctor ---
@@ -276,11 +286,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     logItem?.action = none ? nil : #selector(openLog)
   }
 
+  /// The rebuild row's second line, as Gtools' refresh row has it: how long ago
+  /// the index was reconciled, against the clock when the line is set.
+  private func refreshRebuildItem() {
+    rebuildItem?.subtitle = IndexStatus.rebuildSubtitle(status: index.status, now: Date())
+  }
+
   /// The masthead row stays in a menu while it is open, as Gtools' does, and
   /// the Log item reads the logs' presence as the menu opens, as menuz's does.
+  /// The rebuild row's age is set as it opens, and again once the CLI has named
+  /// the stamp, so a reconcile intentd's watcher made since is seen.
   func menuWillOpen(_ menu: NSMenu) {
     masthead?.willOpen(menu)
     refreshLogItem()
+    refreshRebuildItem()
+    Task { [weak self] in
+      await self?.index.read()
+      self?.refreshRebuildItem()
+    }
   }
 
   /// A menu rebuilt while this one was open took no masthead row, so the row
@@ -332,7 +355,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     runLifecycle("Restart failed") { try await self.daemon.restart() }
   }
   @objc private func runDoctor() { runLogged(["doctor"]) }
-  @objc private func rebuildSearchIndex() { runLogged(["index", "rebuild"]) }
+
+  /// Gtools' `refreshSearch` (gtools#0066): the rebuild is recorded in the app's
+  /// log and opens nothing, and one that fails, or cannot run, is an alert
+  /// carrying the CLI's own lines.
+  @objc private func rebuildSearchIndex() {
+    Task {
+      do {
+        try await index.rebuild(log: log)
+      } catch {
+        showAlert(IndexStatus.rebuildFailedTitle, message: error.localizedDescription)
+      }
+    }
+  }
 
   /// menuz's Log item: intentd's logs and the app's own, in the macOS Console
   /// app. A failure is an alert, never a click that did nothing.
@@ -424,18 +459,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
   }
 
-  /// Runs the command, records it in the app's log and opens that log in
-  /// Console, so a clean pass is seen as well as a failing one (ST0075's
-  /// trigger). An alert is raised when the command could not run at all -- no
-  /// binary, no project, or another command still running -- and when the log
-  /// cannot be opened; a record that cannot be written raises its own
-  /// (`LogService.reportUnwritable`). A non-zero exit is the command's own lines
-  /// to read.
+  /// Run Doctor's way, as Gtools' doctor shows its console: runs the command,
+  /// records it in the app's log and opens that log in Console, so a clean pass
+  /// is seen as well as a failing one (ST0075's trigger). An alert is raised
+  /// when the command could not run at all -- no binary, no project, or another
+  /// command still running -- and when the log cannot be opened; a record that
+  /// cannot be written raises its own (`LogService.reportUnwritable`). A
+  /// non-zero exit is the command's own lines to read.
   private func runLogged(_ args: [String]) {
     Task {
       let kept: String?
       do {
-        kept = try await log.run(args)
+        kept = try await log.run(args).log
       } catch {
         return showAlert("Could not run \(IntentCLI.label(args))", message: error.localizedDescription)
       }

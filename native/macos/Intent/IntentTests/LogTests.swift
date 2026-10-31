@@ -115,7 +115,8 @@ final class LogTests: XCTestCase {
     let log = LogService()
     let kept = try await log.run(
       ["doctor"], capture: Self.cli(dir, CLIRunResult(exitCode: 0, stdout: "ok: store intent/.cache/intent.db\n", stderr: "")),
-      now: Self.readings(.milliseconds(1_200)))
+      now: Self.readings(.milliseconds(1_200))
+    ).log
     let file = try XCTUnwrap(kept)
     XCTAssertEqual(file, dir.appendingPathComponent(LogPaths.appLogName).path)
     XCTAssertEqual(try Self.unstamped(file), ["» intent doctor", "ok: store intent/.cache/intent.db", "» exit 0 · 1.2s"])
@@ -147,7 +148,7 @@ final class LogTests: XCTestCase {
       XCTAssertEqual(error, .busy("intent index rebuild"))
     }
     await gate.open()
-    let kept = try await first.value
+    let kept = try await first.value.log
     XCTAssertEqual(try Self.unstamped(try XCTUnwrap(kept)), ["» intent index rebuild", "» exit 0 · 0.0s"])
   }
 
@@ -186,8 +187,8 @@ final class LogTests: XCTestCase {
     let unanswered: LogService.Capture = { _ in
       CLIRunResult(exitCode: 1, stdout: "", stderr: "error: the state directory could not be resolved\n")
     }
-    let first = try await log.run(["doctor"], capture: unanswered)
-    let second = try await log.run(["doctor"], capture: unanswered)
+    let first = try await log.run(["doctor"], capture: unanswered).log
+    let second = try await log.run(["doctor"], capture: unanswered).log
     XCTAssertNil(first)
     XCTAssertNil(second)
     let said =
@@ -198,16 +199,9 @@ final class LogTests: XCTestCase {
 
   // MARK: - Fixtures
 
-  /// A directory of the test's own, removed when it ends.
-  private func scratch() throws -> URL {
-    let dir = FileManager.default.temporaryDirectory.appendingPathComponent("LogTests-\(UUID().uuidString)")
-    try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-    addTeardownBlock { try FileManager.default.removeItem(at: dir) }
-    return dir
-  }
-
-  /// `intent daemon logs`'s header for logs under `dir`.
-  private static func header(_ dir: URL) -> CLIRunResult {
+  /// `intent daemon logs`'s header for logs under `dir`, shared with
+  /// `RebuildItemTests`.
+  static func header(_ dir: URL) -> CLIRunResult {
     CLIRunResult(exitCode: 0, stdout: "tailing \(dir.path)/intentd.log and \(dir.path)/intentd.err.log\n", stderr: "")
   }
 
@@ -224,13 +218,24 @@ final class LogTests: XCTestCase {
   }
 
   /// The app's log's lines with their stamps taken off, each stamp checked for
-  /// intentd's shape first.
-  private static func unstamped(_ file: String) throws -> [String] {
+  /// intentd's shape first; shared with `RebuildItemTests`.
+  static func unstamped(_ file: String) throws -> [String] {
     let text = try String(contentsOfFile: file, encoding: .utf8)
     return try text.split(separator: "\n").map { line in
       let stamp = try XCTUnwrap(line.prefixMatch(of: /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z[ ]/), String(line))
       return String(line[stamp.range.upperBound...])
     }
+  }
+}
+
+extension XCTestCase {
+  /// A directory of the test's own, removed when it ends; `LogTests` and
+  /// `RebuildItemTests` write their app logs here.
+  func scratch() throws -> URL {
+    let dir = FileManager.default.temporaryDirectory.appendingPathComponent("\(type(of: self))-\(UUID().uuidString)")
+    try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+    addTeardownBlock { try FileManager.default.removeItem(at: dir) }
+    return dir
   }
 }
 

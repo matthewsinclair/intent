@@ -22,9 +22,9 @@ title: The index rebuild says what happened, in the CLI's report and Intent.app'
 
 ### WP-02 -- Intent.app's Rebuild Search Index row copies Gtools' Refresh Search row (status: WIP)
 
-- AC-02.1 Intent.app's Rebuild Search Index item carries a second line, `reconciled <age> ago` in Gtools' age words, from the `reconciled_at` that `intent index status --json` names, and none when the CLI names none; its title and busy caption do not change. -- satisfied: no (computed)
-- AC-02.2 A rebuild that exits non-zero, or cannot be run, raises an alert titled `Rebuild failed` carrying the CLI's own `error:` and `remedy:` lines, as Gtools' `Refresh failed` does. -- satisfied: no (computed)
-- AC-02.3 Every rebuild is still recorded as one block in Intent.app.log, and a rebuild no longer opens the log by itself, while Run Doctor still opens it. -- satisfied: no (computed)
+- AC-02.1 Intent.app's Rebuild Search Index item carries a second line, `reconciled <age> ago` in Gtools' age words, from the `reconciled_at` that `intent index status --json` names, and none when the CLI names none; its title and busy caption do not change. -- satisfied: yes (computed)
+- AC-02.2 A rebuild that exits non-zero, or cannot be run, raises an alert titled `Rebuild failed` carrying the CLI's own `error:` and `remedy:` lines, as Gtools' `Refresh failed` does. -- satisfied: yes (computed)
+- AC-02.3 Every rebuild is still recorded as one block in Intent.app.log, and a rebuild no longer opens the log by itself, while Run Doctor still opens it. -- satisfied: yes (computed)
 - AC-02.4 (non-test) hv sees the Rebuild Search Index row's second line after a rebuild, on the build that carries WP-01 and WP-02, and vc records which build that was. -- satisfied: no
 
 ## Acceptance Tests
@@ -36,7 +36,7 @@ title: The index rebuild says what happened, in the CLI's report and Intent.app'
 
 ### WP-02 -- Intent.app's Rebuild Search Index row copies Gtools' Refresh Search row (status: WIP)
 
-- AT-02.1 `native/macos/Intent/IntentTests/RebuildItemTests.swift` -- covers AC-02.1, AC-02.2, AC-02.3 -- status: to-write -- To write: vc minted the row when it raised ST0090 on 2026-10-31, and ic's WP-02 bank writes the arms its body names
+- AT-02.1 `native/macos/Intent/IntentTests/RebuildItemTests.swift` -- covers AC-02.1, AC-02.2, AC-02.3 -- status: green -- To write: vc minted the row when it raised ST0090 on 2026-10-31, and ic's WP-02 bank writes the arms its body names; red at the landing, ahead of green, as AT-01.1 and AT-01.2 were at 8406f6a15 and ST0087's rows at 0b9c5082d, because green is reachable only from red: dc wrote the arms in its bank refs/bank/dc/st0090-wp02-v2 to assert a row the base e449dfa2e did not have (no second line, a rebuild that opened the log, no alert on a non-zero exit), and no run saw them fail on the base; arms: testTheSecondLineSaysHowLongAgoTheIndexWasReconciledInGtoolsWords, testNoStampIsNoSecondLine, testTheTitleAndTheBusyCaptionAreAsTheyWere, testAFailedRebuildIsTheAlertWithTheCLIsOwnErrorAndRemedyLines, testAFailureThatPrintedNoTokenIsNamedByItsExit, testARebuildThatCannotRunIsTheAlertWithWhy, testASuccessfulRebuildIsOneBlockInTheLogAndOpensNothing and testWithNoProjectConfiguredNoCommandRunsAndThereIsNoStamp; green in dc's light run 01M699SBBXNPEG3RJAWT9FRZ5H on 2026-10-31 at e449dfa2e plus the bank (patch-id 53cbee8fca2a): app-test's own xcodebuild line plus the desk's -jobs 4, exit 0, every test in the result bundle passed, LogTests' existing arms among them; GREEN in vc's verdict, read by 15:42Z on dc's date -u, with the swift-format lint delta zero and xcodegen's project matching the bank; landed with this row
 
 ---
 
