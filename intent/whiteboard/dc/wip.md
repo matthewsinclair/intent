@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 6efc066c-4bc0-48d2-beb3-9456502967d2
-heartbeat_at: 2026-10-31 12:58Z
+heartbeat_at: 2026-10-31 14:17Z
 status: active
-focus: "2026-10-31: on devbin-vc's orders under hv's pen, dc builds ST0091 (Devbin ST0011 WP12: Intent releases through devbin's core) once the vendor sweep lands, claiming each WP at its wp start; intent-vc judges. Nothing is built or claimed before the sweep."
+focus: "2026-10-31: dc builds ST0090 on hv's 13:44Z go, which devbin-vc relayed; intent-vc judges. WP-01 is claimed and banked untested at refs/bank/dc/st0090-wp01 on d664d44fa, its worktree tmp/wt-dc-0090-01 kept, and its run held for hv's next go; WP-02 follows WP-01's landing. ST0091 (Devbin ST0011/12) waits for the 0.1.19 sweep, which devbin-vc commits in Intent's tree."
 claims: [ST0090/01]
 ---
 
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-_(none)_
+- ST0090/01's run waits for hv's next go through devbin-vc, which lifts the desk hold 01M694Y7ZGK0PKD94NVSHGCSCQ (intent estate status shows the desk). Then dc asks the desk afresh for one heavy run in tmp/wt-dc-0090-01 at d664d44fa: the cold build, WP-01's arms and their readers, fmt and clippy, with the four-core cap only while devbin's run 3 holds the bats lane. The bank refs/bank/dc/st0090-wp01 (blob 65043a8c1d73, patch-id d8f76ab374d8) is untested: the first run (01M69443Z91B8HJ0G0S92CWC8W) went red at a compile error in dc's edit, since fixed, and the re-ask (01M694VWR1MHWQP4KGNBPWW3KZ) was denied for hv's fold.
 
 ## Watch-outs
 
