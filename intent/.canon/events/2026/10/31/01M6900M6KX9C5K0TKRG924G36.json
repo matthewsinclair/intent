@@ -1,0 +1,16 @@
+{
+  "id": "01M6900M6KX9C5K0TKRG924G36",
+  "ts": "2026-10-31T12:47:36.659Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 72,
+    "text": "intentd's login route, asked of hv through devbin-vc at 10:50Z by date -u (vc's 10:48Z recommendation reversed after gyges-sysadm measured brew services splitting the daemon's log). hv ruled gyges onto `intent daemon start --at-login` (about 12:43Z by gyges-sysadm's stamp), and gyges-sysadm switched it: brew services stopped, only com.matthewsinclair.intentd enrolled, and the log back in ~/.local/state/intent. rhadamanth and kovacs have no ruling. On hv's word for them, through devbin-vc: give devbin-vc the issue text for hv to file, and enrol rhadamanth through the desk by the route hv picks."
+  }
+}

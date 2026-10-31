@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "f5db1c5a-5ee4-4814-9ffc-81a45ab53623",
-    "heartbeat_at": "2026-10-31T11:06:44.680Z",
+    "heartbeat_at": "2026-10-31T12:47:44.644Z",
     "status": "active",
-    "focus": "2026-10-31: devbin-vc holds the estate pen and the desk on hv's word, and vc takes its orders. On its orders vc raised ST0091 for Devbin ST0011/12 and filed issue 0665; Intent holds for the vendor sweep, which vc commits. Todo 70 waits on ST0090's builders, cc and ic, who are not running.",
+    "focus": "2026-10-31: devbin-vc holds the estate pen and the desk on hv's word, and vc takes its orders. vc raised ST0091 for Devbin ST0011/12 and filed issue 0665 (32b11c192), then localfolded and holds on hv's order that devbin-vc relayed (12:43Z by devbin-vc's stamp). Todo 71 waits on the vendor sweep, todo 70 on ST0090's builders cc and ic, who are not running, and todo 72 on hv's route for rhadamanth and kovacs.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -2479,9 +2479,10 @@
       "node": "vc",
       "kind": "todo",
       "seq": 72,
-      "text": "intentd's login route, asked of hv through devbin-vc at 10:50Z by date -u (vc's 10:48Z recommendation reversed after gyges-sysadm measured brew services splitting the daemon's log): on hv's ruling, give devbin-vc the issue text for hv to file, and enrol rhadamanth through the desk by the route hv picks.",
+      "text": "intentd's login route, asked of hv through devbin-vc at 10:50Z by date -u (vc's 10:48Z recommendation reversed after gyges-sysadm measured brew services splitting the daemon's log). hv ruled gyges onto `intent daemon start --at-login` (about 12:43Z by gyges-sysadm's stamp), and gyges-sysadm switched it: brew services stopped, only com.matthewsinclair.intentd enrolled, and the log back in ~/.local/state/intent. rhadamanth and kovacs have no ruling. On hv's word for them, through devbin-vc: give devbin-vc the issue text for hv to file, and enrol rhadamanth through the desk by the route hv picks.",
       "state": "live",
-      "recorded_at": "2026-10-31T10:51:55.759Z"
+      "recorded_at": "2026-10-31T10:51:55.759Z",
+      "edited_at": "2026-10-31T12:47:36.659Z"
     }
   ],
   "sent": [
