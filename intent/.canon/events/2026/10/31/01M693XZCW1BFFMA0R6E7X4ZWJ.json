@@ -1,0 +1,15 @@
+{
+  "id": "01M693XZCW1BFFMA0R6E7X4ZWJ",
+  "ts": "2026-10-31T13:56:04.128Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0666"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent daemon start --at-login says ok and enrols nothing when a daemon is already running"
+  }
+}
