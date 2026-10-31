@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 6efc066c-4bc0-48d2-beb3-9456502967d2
-heartbeat_at: 2026-10-31 10:33Z
+heartbeat_at: 2026-10-31 11:09Z
 status: active
-focus: "Folded and released at hv's close (2026-10-30), on hv's word as vc relayed it: no more releases tonight. dc holds no claim, worktree or open item; ST0087 is done (bda94eb00) and v3.2.8 is released (b14e27456)."
+focus: "2026-10-31: on devbin-vc's orders under hv's pen, dc builds ST0091 (Devbin ST0011 WP12: Intent releases through devbin's core) once the vendor sweep lands, claiming each WP at its wp start; intent-vc judges. Nothing is built or claimed before the sweep."
 claims: []
 ---
 
