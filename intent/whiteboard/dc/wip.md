@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 6efc066c-4bc0-48d2-beb3-9456502967d2
-heartbeat_at: 2026-10-31 18:46Z
+heartbeat_at: 2026-10-31 20:22Z
 status: active
-focus: "2026-10-31: dc localfolded on hv's fourth fold order (via devbin-vc and intent-vc) and holds until hv's next go through devbin-vc. ST0090 WP-01 is done; WP-02 landed at a54f2e9e0 and stays WIP until hv sees the Rebuild Search Index row on the build that carries both packages (AC-02.4, hold 37). dc's ST0090 run drivers and outputs are banked at refs/bank/dc/fold-20261031/. ST0091 (Devbin ST0011/12) waits for the 0.1.19 sweep."
+focus: "2026-10-31: dc localfolded on hv's fifth fold order (via devbin-vc and intent-vc) and holds until hv's next go through devbin-vc. ST0090 WP-01 is done; WP-02 landed at a54f2e9e0 and stays WIP until hv sees the Rebuild Search Index row on the build that carries both packages (AC-02.4, hold 37). dc deleted 71 bank refs that no record cites; their list, with each blob and size, is banked at refs/bank/dc/fold5-20261031/deleted-refs.txt. ST0091's WP-12 issue draft is banked at refs/bank/dc/fold5-20261031/st0091-wp12-issue-body.md, and ST0091 (Devbin ST0011/12) waits for the 0.1.19 sweep."
 claims: [ST0090/02]
 ---
 
