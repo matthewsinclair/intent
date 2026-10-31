@@ -1,0 +1,15 @@
+{
+  "id": "01M68SCSZFWQHMSPT9S6YJK6Y7",
+  "ts": "2026-10-31T10:51:55.759Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "intentd's login route, asked of hv through devbin-vc at 10:50Z by date -u (vc's 10:48Z recommendation reversed after gyges-sysadm measured brew services splitting the daemon's log): on hv's ruling, give devbin-vc the issue text for hv to file, and enrol rhadamanth through the desk by the route hv picks."
+  }
+}
