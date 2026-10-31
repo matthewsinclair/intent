@@ -1,7 +1,7 @@
 ---
 st_id: ST0090
 title: The index rebuild says what happened, in the CLI's report and Intent.app's menu
-status: Not Started
+status: WIP
 created: 2026-10-31
 completed:
 ---

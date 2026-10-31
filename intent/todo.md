@@ -8,7 +8,9 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 
 ## DOING
 
-_(none)_
+- [-] ST0090: The index rebuild says what happened, in the CLI's report and Intent.app's menu
+  - [-] 01: One level-3 state on every face, and the index report names its reconcile time
+  - [ ] 02: Intent.app's Rebuild Search Index row copies Gtools' Refresh Search row
 
 ## TODO
 
@@ -21,9 +23,6 @@ _(none)_
 - [ ] ST0085: Passive prompt injection: prompt text Intent stores or ships is acted on only when it is live
   - [x] 01: Inventory of every surface that feeds prompt text to an agent, live or historical
 - [ ] ST0089: Localfold+Compact Policy (when to fold, /clear and /compact)
-- [ ] ST0090: The index rebuild says what happened, in the CLI's report and Intent.app's menu
-  - [-] 01: One level-3 state on every face, and the index report names its reconcile time
-  - [ ] 02: Intent.app's Rebuild Search Index row copies Gtools' Refresh Search row
 - [ ] ST0091: Intent releases through devbin's core: its driver, kovacs preflight and pre-push build retire
   - [ ] 01: The cut runs through devbin's core, and Intent's driver retires
   - [ ] 02: kovacs runs as the cut's remote leg, and prepush keeps only its push gates
