@@ -2,7 +2,7 @@
 wp_id: WP-02
 title: Intent.app's Rebuild Search Index row copies Gtools' Refresh Search row
 scope: S
-status: Not Started
+status: WIP
 ---
 
 # WP-02: Intent.app's Rebuild Search Index row copies Gtools' Refresh Search row

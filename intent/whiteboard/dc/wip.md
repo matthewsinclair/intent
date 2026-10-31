@@ -3,17 +3,17 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 6efc066c-4bc0-48d2-beb3-9456502967d2
-heartbeat_at: 2026-10-31 14:44Z
+heartbeat_at: 2026-10-31 15:05Z
 status: active
-focus: "2026-10-31: dc builds ST0090 on hv's 13:44Z go, which devbin-vc relayed; intent-vc judges. On hv's next go (devbin-vc's 14:34Z stamp) dc asked the desk as 01M696MPDJ812NRYHF3WRPBVPQ for WP-01's run, which tests the bank refs/bank/dc/st0090-wp01 staged in tmp/wt-dc-0090-01 at d664d44fa; WP-02 follows WP-01's landing. ST0091 (Devbin ST0011/12) waits for the 0.1.19 sweep, which devbin-vc commits in Intent's tree."
-claims: [ST0090/01]
+focus: "2026-10-31: dc builds ST0090 on hv's 13:44Z go, which devbin-vc relayed; intent-vc judges. WP-01 landed at 8406f6a15 on vc's GREEN verdict of run 01M696MPDJ812NRYHF3WRPBVPQ and stays WIP until vc's build and drive of main; WP-02, Intent.app's Rebuild Search Index row, is started and claimed. ST0091 (Devbin ST0011/12) waits for the 0.1.19 sweep, which devbin-vc commits in Intent's tree."
+claims: [ST0090/01, ST0090/02]
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-- ST0090/01's run on hv's go, relayed through devbin-vc and intent-vc (devbin-vc's 14:34Z stamp): desk request 01M696MPDJ812NRYHF3WRPBVPQ on the cargo lane under the four-core cap, in tmp/wt-dc-0090-01 at d664d44fa with the bank refs/bank/dc/st0090-wp01 staged (patch-id d8f76ab374d8). Its legs are WP-01's named judge as intent-vc set it: the format check, intentd and intent-cli built into the worktree's own target, the intentsvcs and intent-cli suites whole, and workspace clippy at -D warnings. At its END dc sends vc each leg's exit code and the log's path, and changes nothing in the worktree until vc has read them.
+- ST0090/02 on hv's 13:44Z go, which devbin-vc relayed, named dc's next in intent-vc's 14:56Z verdict: Intent.app's Rebuild Search Index row copies Gtools' Refresh Search row (AC-02.1 to AC-02.4). dc builds it in a worktree of its own and banks it for intent-vc's judgement. AT-02.1 (native/macos/Intent/IntentTests/RebuildItemTests.swift) goes red and then green in the commit that lands its file, because the stale-AT guard refuses a to-write row whose cited test exists. No commit lands in main while vc's build of main runs.
 
 ## TODO
 
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-_(none)_
+- ST0090/01 stays WIP after its landing at 8406f6a15 until vc's heavy run of main says the fix works: bin/devbin build all into the checkout's own target, then a drive of that pair in a scratch clone, booked at devbin-vc's desk after dc's landing END. Then dc closes WP-01 on vc's word; a red sends the fix back to dc as a new bank.
 
 ## Watch-outs
 

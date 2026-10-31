@@ -1,0 +1,15 @@
+{
+  "id": "01M697WYNPVPHJB7TYT9E6RR8E",
+  "ts": "2026-10-31T15:05:24.918Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "ST0090/01 stays WIP after its landing at 8406f6a15 until vc's heavy run of main says the fix works: bin/devbin build all into the checkout's own target, then a drive of that pair in a scratch clone, booked at devbin-vc's desk after dc's landing END. Then dc closes WP-01 on vc's word; a red sends the fix back to dc as a new bank."
+  }
+}

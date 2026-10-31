@@ -1,0 +1,15 @@
+{
+  "id": "01M697WZK75428Q7A4N6Q3ZERN",
+  "ts": "2026-10-31T15:05:25.863Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST0090/02 on hv's 13:44Z go, which devbin-vc relayed, named dc's next in intent-vc's 14:56Z verdict: Intent.app's Rebuild Search Index row copies Gtools' Refresh Search row (AC-02.1 to AC-02.4). dc builds it in a worktree of its own and banks it for intent-vc's judgement. AT-02.1 (native/macos/Intent/IntentTests/RebuildItemTests.swift) goes red and then green in the commit that lands its file, because the stale-AT guard refuses a to-write row whose cited test exists. No commit lands in main while vc's build of main runs."
+  }
+}

@@ -42,10 +42,10 @@ Issue 0664 closes when both packages are Done and hv has seen the row on the bui
 
 ## Work Packages
 
-| WP    | Title                                                                          | Size | Status      |
-| ----- | ------------------------------------------------------------------------------ | ---- | ----------- |
-| WP-01 | One level-3 state on every face, and the index report names its reconcile time | S    | WIP         |
-| WP-02 | Intent.app's Rebuild Search Index row copies Gtools' Refresh Search row        | S    | Not Started |
+| WP    | Title                                                                          | Size | Status |
+| ----- | ------------------------------------------------------------------------------ | ---- | ------ |
+| WP-01 | One level-3 state on every face, and the index report names its reconcile time | S    | WIP    |
+| WP-02 | Intent.app's Rebuild Search Index row copies Gtools' Refresh Search row        | S    | WIP    |
 
 ## Acceptance
 
