@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: f5db1c5a-5ee4-4814-9ffc-81a45ab53623
-heartbeat_at: 2026-10-31 14:42Z
+heartbeat_at: 2026-10-31 15:45Z
 status: active
-focus: "2026-10-31: devbin-vc holds the estate pen and the desk on hv's word, and vc takes its orders. hv's go (14:34Z by devbin-vc's stamp) lifted the fold's hold and reopened rhadamanth's desk. Todo 70: dc runs ST0090/01's one heavy run at devbin-vc's desk from tmp/wt-dc-0090-01 at d664d44fa, and vc judges the result, WP-01 first. Todo 71 waits on devbin-vc's sweep START, which follows the 0.1.19 cut. Issue 0666 waits on hv's ruling; 0667 is ruled and rides with ST0091's AC-03.3."
+focus: "2026-10-31: devbin-vc holds the estate pen and the desk on hv's word, and vc takes its orders. ST0090, issue 0664's fix, is judged and landed: WP-01 at 8406f6a15 (closed at ee612ba4f) and WP-02 at a54f2e9e0, and its gate waits only on AC-02.4, which vc's hold names. Todo 71 waits on devbin-vc's sweep START after the 0.1.19 cut. Issues 0666, 0668 and 0669 wait on hv's rulings; 0667 is ruled and rides with ST0091's AC-03.3."
 claims: []
 ---
 
@@ -18,12 +18,11 @@ _(none)_
 ## TODO
 
 - After 3.2.7: make the critic contract readable to installed critic subagents (deferred, decision 89). (edited)
-- Judge ST0090, issue 0664's fix, as each package banks. dc builds both packages on hv's go through devbin-vc ('Go with your recommendations', 13:4xZ as devbin-vc stamped it), in place of cc and ic, who are not running, until the sweep, when ST0091 takes dc's lane back. WP-01 is judged in one heavy run booked at devbin-vc's desk, WP-02 in a light run. Each lands alone, WP-01 first. Then tell hv, through devbin-vc, which build carries both, and record it on AC-02.4. (edited)
 - ST0091, Devbin ST0011/12 in Intent's tree. At the 0.1.19 sweep devbin-vc runs the upgrade in Intent's tree and commits the sweep pathspec itself (Devbin directive 10), inside an Intent chain with vc and dc; its announcement of the paths and the commit is the landing (devbin-vc's message, read by 13:12Z on vc's date -u). The sweep carries only devbin's vendored half, since Intent's config declares no ci.tag, ci.base or ci.query. vc answers that START with any Intent hold that stands, reads the commit, then judges ST0091's packages as dc banks them, every run booked through devbin-vc's desk. vc claims nothing. The inventory (dc's, checked by vc) went to devbin-vc at 10:46Z and the 3.2.8 baseline at 10:44Z by date -u. (edited)
 
 ## Holds
 
-_(none)_
+- ST0090 AC-02.4, issue 0664's last criterion: held until hv has seen Intent.app's Rebuild Search Index row show its second line, reconciled <age> ago, after a rebuild, on a build at or after a54f2e9e0 whose CLI carries 8406f6a15 (the 3.2.9 cut, or a dev app pointed at a dev CLI, which is the maintainer's alone). Then vc records that build on AC-02.4 and tells dc to close WP-02. vc told hv through devbin-vc at 15:45Z by date -u.
 
 ## Watch-outs
 

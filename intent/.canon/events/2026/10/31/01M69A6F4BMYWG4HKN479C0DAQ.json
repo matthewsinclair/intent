@@ -1,0 +1,15 @@
+{
+  "id": "01M69A6F4BMYWG4HKN479C0DAQ",
+  "ts": "2026-10-31T15:45:33.835Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "ST0090 AC-02.4, issue 0664's last criterion: held until hv has seen Intent.app's Rebuild Search Index row show its second line, reconciled <age> ago, after a rebuild, on a build at or after a54f2e9e0 whose CLI carries 8406f6a15 (the 3.2.9 cut, or a dev app pointed at a dev CLI, which is the maintainer's alone). Then vc records that build on AC-02.4 and tells dc to close WP-02. vc told hv through devbin-vc at 15:45Z by date -u."
+  }
+}
