@@ -1,0 +1,16 @@
+{
+  "id": "01M693FKJZ44V0S2GT639A9AY4",
+  "ts": "2026-10-31T13:48:13.279Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 70,
+    "text": "Judge ST0090, issue 0664's fix, as each package banks. dc builds both packages on hv's go through devbin-vc ('Go with your recommendations', 13:4xZ as devbin-vc stamped it), in place of cc and ic, who are not running, until the sweep, when ST0091 takes dc's lane back. WP-01 is judged in one heavy run booked at devbin-vc's desk, WP-02 in a light run. Each lands alone, WP-01 first. Then tell hv, through devbin-vc, which build carries both, and record it on AC-02.4."
+  }
+}

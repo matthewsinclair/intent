@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: f5db1c5a-5ee4-4814-9ffc-81a45ab53623
-heartbeat_at: 2026-10-31 13:13Z
+heartbeat_at: 2026-10-31 13:49Z
 status: active
-focus: "2026-10-31: devbin-vc holds the estate pen and the desk on hv's word, and vc takes its orders. hv lifted vc's hold in vc's session ('Ok, crack on.', by 12:57Z on vc's date -u). Todo 71 waits on devbin-vc's announcement that the 0.1.19 sweep has landed in Intent, which devbin-vc commits itself; todo 70 on hv's ruling on ST0090's builders, which devbin-vc relayed recommending dc; and todo 72 on hv's route for rhadamanth and kovacs."
+focus: "2026-10-31: devbin-vc holds the estate pen and the desk on hv's word, and vc takes its orders. hv lifted vc's hold in vc's session ('Ok, crack on.', by 12:57Z on vc's date -u). Todo 70: dc builds ST0090 on hv's go through devbin-vc, and vc judges each package as dc banks it, WP-01 first. Todo 71 waits on devbin-vc's announcement that the 0.1.19 sweep has landed in Intent, which devbin-vc commits itself. Todo 72: hv ruled the login route, the sysadm sessions enrol, and vc sends devbin-vc the issue text."
 claims: []
 ---
 
@@ -18,9 +18,9 @@ _(none)_
 ## TODO
 
 - After 3.2.7: make the critic contract readable to installed critic subagents (deferred, decision 89). (edited)
-- Judge ST0090, issue 0664's fix, as each package banks: cc's WP-01 in one heavy run at the desk, ic's WP-02 in a light run. Each lands alone, WP-01 first. Then tell hv which build carries both, and record it on AC-02.4.
+- Judge ST0090, issue 0664's fix, as each package banks. dc builds both packages on hv's go through devbin-vc ('Go with your recommendations', 13:4xZ as devbin-vc stamped it), in place of cc and ic, who are not running, until the sweep, when ST0091 takes dc's lane back. WP-01 is judged in one heavy run booked at devbin-vc's desk, WP-02 in a light run. Each lands alone, WP-01 first. Then tell hv, through devbin-vc, which build carries both, and record it on AC-02.4. (edited)
 - ST0091, Devbin ST0011/12 in Intent's tree. At the 0.1.19 sweep devbin-vc runs the upgrade in Intent's tree and commits the sweep pathspec itself (Devbin directive 10), inside an Intent chain with vc and dc; its announcement of the paths and the commit is the landing (devbin-vc's message, read by 13:12Z on vc's date -u). The sweep carries only devbin's vendored half, since Intent's config declares no ci.tag, ci.base or ci.query. vc answers that START with any Intent hold that stands, reads the commit, then judges ST0091's packages as dc banks them, every run booked through devbin-vc's desk. vc claims nothing. The inventory (dc's, checked by vc) went to devbin-vc at 10:46Z and the 3.2.8 baseline at 10:44Z by date -u. (edited)
-- intentd's login route, asked of hv through devbin-vc at 10:50Z by date -u (vc's 10:48Z recommendation reversed after gyges-sysadm measured brew services splitting the daemon's log). hv ruled gyges onto `intent daemon start --at-login` (about 12:43Z by gyges-sysadm's stamp), and gyges-sysadm switched it: brew services stopped, only com.matthewsinclair.intentd enrolled, and the log back in ~/.local/state/intent. rhadamanth and kovacs have no ruling. On hv's word for them, through devbin-vc: give devbin-vc the issue text for hv to file, and enrol rhadamanth through the desk by the route hv picks. (edited)
+- intentd's login route, ruled by hv's go through devbin-vc ('Go with your recommendations', 13:4xZ as devbin-vc stamped it) in vc's corrected form: `intent daemon start --at-login` on the Macs, brew services alone on Linux, never both. gyges is switched (gyges-sysadm); rhadamanth-sysadm enrols rhadamanth, and kovacs-sysadm enrols kovacs after devbin's proof run there, so vc enrols nothing and leaves the launchsvc lane free. vc's part: the issue text, sent to devbin-vc, who relays it to hv with the day's record. (edited)
 
 ## Holds
 

@@ -1,0 +1,16 @@
+{
+  "id": "01M693H1Z96NY1GX19SC1RNYAS",
+  "ts": "2026-10-31T13:49:00.778Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 72,
+    "text": "intentd's login route, ruled by hv's go through devbin-vc ('Go with your recommendations', 13:4xZ as devbin-vc stamped it) in vc's corrected form: `intent daemon start --at-login` on the Macs, brew services alone on Linux, never both. gyges is switched (gyges-sysadm); rhadamanth-sysadm enrols rhadamanth, and kovacs-sysadm enrols kovacs after devbin's proof run there, so vc enrols nothing and leaves the launchsvc lane free. vc's part: the issue text, sent to devbin-vc, who relays it to hv with the day's record."
+  }
+}
