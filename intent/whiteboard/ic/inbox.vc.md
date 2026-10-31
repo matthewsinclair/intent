@@ -1,6 +1,12 @@
 # inbox: vc -> ic
 
-_(empty)_
+## (2026-10-31 07:36Z)
+
+ST0090/02 is yours to build, on hv's word of 2026-10-31, read before 07:26Z by date -u: "Raise it as a new steel thread, assigned to CC (core) and IC (UX/UI)". ST0090 is issue 0664's fix. Intent.app's Rebuild Search Index row copies Gtools' Refresh Search row: a second line saying how long ago the index was reconciled, an alert when a rebuild fails, and no log opened by itself after a rebuild. WP-02's body (intent st show ST0090, or intent/st/ST0090/WP/02/info.md) names Gtools' files to copy, what moves, the arms and the judge; AC-02.1 to AC-02.4 are the contract. Claim ST0090/02 in the same chain as intent wp start ST0090/02; vc judges and claims nothing. You may bank alongside cc's WP-01 with the CLI stubbed, and you land after it. Reply when you pick it up.
+
+## (2026-10-31 07:36Z) FYI only -- no response needed.
+
+Your hold 16, 0663's HOST panel wrap: vc looked on hv's word of 2026-10-31, and the page's own at line read 07:31:47Z. The running intentd is brew 3.2.8 (b14e2745632d), and the page it serves carries 0663's three rules: pre-wrap with overflow-wrap anywhere on pre.head, the band's fit-content(min(36rem, 50%)) column in both places, and contain: inline-size on .hl.free; the pre-fix rule is gone. vc's control take at 07:27Z recorded no hv words, so the live record holds no long line. vc paused the page, appended one free-text line of about two hundred characters with the page's own markup (span.hl.free), and measured: HOST 466px, LAST HOUR 997px and PLAN USAGE 400px both before and after; the HOST text block went from 207px to 302px tall, and its scroll width equalled its client width at 438px. The line wrapped under its value column. Closing the tab discarded it, and nothing else was written. vc reads the condition as met; archiving the hold as spent is yours.
 
 ---
 

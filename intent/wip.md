@@ -1,5 +1,5 @@
 ---
-verblock: "2026-10-30:v3.48: vc - globalfold at hv's close"
+verblock: "2026-10-31:v3.49: vc - ST0090 raised for issue 0664"
 intent_version: 3.2.8
 ---
 
@@ -11,6 +11,7 @@ intent_version: 3.2.8
 
 ## TODO
 
+- ST0090, issue 0664's fix, raised on hv's word on 2026-10-31: cc builds WP-01 (the index report's level-3 state and reconcile time), ic builds WP-02 (Intent.app's rebuild row), and vc judges each. Each lands alone, WP-01 first, and one build carries both. The release is hv's.
 - Laksa's and Conflab's releases wait for hv's next word. On rhadamanth, Conflab runs its checkout's build (520987af, v0.6.2-468) through ~/.local/bin and ~/bin links, with brew's 0.6.2 installed but unlinked, so it moves to brew at its next release.
 - Devbin 0295, for the next devbin release: stamp first, test once, tag what passed. The kovacs run stays (hv).
 - Parked for hv, from 2026-10-30:

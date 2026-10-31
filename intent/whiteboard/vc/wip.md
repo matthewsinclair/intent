@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e1080862-0153-440c-b913-55c87403a625
-heartbeat_at: 2026-10-31 07:07Z
+heartbeat_at: 2026-10-31 07:37Z
 status: active
-focus: "Globalfolded at hv's close (2026-10-30): no more releases tonight; devbin, Utilz, Gtools and Intent are on brew's latest on every machine, daemons and apps included; on hv's halt every estate updates and leans its docs, closes what can close, clears exhaust, commits on main and pushes; the desk stays vc's until the last END."
+focus: "2026-10-31: on hv's word, ST0090 carries issue 0664's fix; cc builds WP-01, ic builds WP-02, vc judges each and holds the desk's control slot; holding for hv."
 claims: []
 ---
 
@@ -18,6 +18,7 @@ _(none)_
 ## TODO
 
 - After 3.2.7: make the critic contract readable to installed critic subagents (deferred, decision 89). (edited)
+- Judge ST0090, issue 0664's fix, as each package banks: cc's WP-01 in one heavy run at the desk, ic's WP-02 in a light run. Each lands alone, WP-01 first. Then tell hv which build carries both, and record it on AC-02.4.
 
 ## Holds
 

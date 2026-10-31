@@ -1,0 +1,15 @@
+{
+  "id": "01M68E7R7D1KGJKGR6H7YEGT5K",
+  "ts": "2026-10-31T07:36:55.789Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Judge ST0090, issue 0664's fix, as each package banks: cc's WP-01 in one heavy run at the desk, ic's WP-02 in a light run. Each lands alone, WP-01 first. Then tell hv which build carries both, and record it on AC-02.4."
+  }
+}

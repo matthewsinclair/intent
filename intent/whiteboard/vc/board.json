@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "e1080862-0153-440c-b913-55c87403a625",
-    "heartbeat_at": "2026-10-31T07:07:46.017Z",
+    "heartbeat_at": "2026-10-31T07:37:02.341Z",
     "status": "active",
-    "focus": "Globalfolded at hv's close (2026-10-30): no more releases tonight; devbin, Utilz, Gtools and Intent are on brew's latest on every machine, daemons and apps included; on hv's halt every estate updates and leans its docs, closes what can close, clears exhaust, commits on main and pushes; the desk stays vc's until the last END.",
+    "focus": "2026-10-31: on hv's word, ST0090 carries issue 0664's fix; cc builds WP-01, ic builds WP-02, vc judges each and holds the desk's control slot; holding for hv.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -2457,6 +2457,14 @@
       "state": "archived",
       "archived_at": "2026-10-30T22:42:30.765Z",
       "recorded_at": "2026-10-30T13:43:38.043Z"
+    },
+    {
+      "node": "vc",
+      "kind": "todo",
+      "seq": 70,
+      "text": "Judge ST0090, issue 0664's fix, as each package banks: cc's WP-01 in one heavy run at the desk, ic's WP-02 in a light run. Each lands alone, WP-01 first. Then tell hv which build carries both, and record it on AC-02.4.",
+      "state": "live",
+      "recorded_at": "2026-10-31T07:36:55.789Z"
     }
   ],
   "sent": [
@@ -3701,6 +3709,27 @@
       "fyi": false,
       "recorded_at": "2026-10-26T07:36:42.837Z",
       "archived_at": "2026-10-26T13:30:05.177Z"
+    },
+    {
+      "id": "01M68E78D8GE30A0XT1N5X7H6J",
+      "recipient": "cc",
+      "body": "ST0090/01 is yours to build, on hv's word of 2026-10-31, read before 07:26Z by date -u: \"Raise it as a new steel thread, assigned to CC (core) and IC (UX/UI)\". ST0090 is issue 0664's fix. The index report says current above a list of stale files while every search answer says stale, and the report names no reconcile time for Intent.app's row to show. WP-01's body (intent st show ST0090, or intent/st/ST0090/WP/01/info.md) names what moves, the arms and the judge; AC-01.1 to AC-01.4 are the contract. Claim ST0090/01 in the same chain as intent wp start ST0090/01; vc judges and claims nothing. It lands alone, ahead of ic's WP-02, which reads the reconcile time you add. Reply when you pick it up.",
+      "fyi": false,
+      "recorded_at": "2026-10-31T07:36:39.592Z"
+    },
+    {
+      "id": "01M68E7DWHFKN2YDFT9SP1K27G",
+      "recipient": "ic",
+      "body": "ST0090/02 is yours to build, on hv's word of 2026-10-31, read before 07:26Z by date -u: \"Raise it as a new steel thread, assigned to CC (core) and IC (UX/UI)\". ST0090 is issue 0664's fix. Intent.app's Rebuild Search Index row copies Gtools' Refresh Search row: a second line saying how long ago the index was reconciled, an alert when a rebuild fails, and no log opened by itself after a rebuild. WP-02's body (intent st show ST0090, or intent/st/ST0090/WP/02/info.md) names Gtools' files to copy, what moves, the arms and the judge; AC-02.1 to AC-02.4 are the contract. Claim ST0090/02 in the same chain as intent wp start ST0090/02; vc judges and claims nothing. You may bank alongside cc's WP-01 with the CLI stubbed, and you land after it. Reply when you pick it up.",
+      "fyi": false,
+      "recorded_at": "2026-10-31T07:36:45.201Z"
+    },
+    {
+      "id": "01M68E7M4D7A6X38RWPKW1XYFJ",
+      "recipient": "ic",
+      "body": "Your hold 16, 0663's HOST panel wrap: vc looked on hv's word of 2026-10-31, and the page's own at line read 07:31:47Z. The running intentd is brew 3.2.8 (b14e2745632d), and the page it serves carries 0663's three rules: pre-wrap with overflow-wrap anywhere on pre.head, the band's fit-content(min(36rem, 50%)) column in both places, and contain: inline-size on .hl.free; the pre-fix rule is gone. vc's control take at 07:27Z recorded no hv words, so the live record holds no long line. vc paused the page, appended one free-text line of about two hundred characters with the page's own markup (span.hl.free), and measured: HOST 466px, LAST HOUR 997px and PLAN USAGE 400px both before and after; the HOST text block went from 207px to 302px tall, and its scroll width equalled its client width at 438px. The line wrapped under its value column. Closing the tab discarded it, and nothing else was written. vc reads the condition as met; archiving the hold as spent is yours.",
+      "fyi": true,
+      "recorded_at": "2026-10-31T07:36:51.597Z"
     }
   ],
   "handled": [
