@@ -29,6 +29,7 @@ title: Intent releases through devbin's core: its driver, kovacs preflight and p
 
 - AC-03.1 The built-in formula writes Intent's formula and cask in assets mode under the cut's yes, with issue 0634's cask sha256 check and the brew smoke carried by the core, and `bin/.devbin/cmd/brew` and `bin/.devbin/cmd/shared/brew.lib` are gone. -- satisfied: no (computed)
 - AC-03.2 The built-in `macos publish` publishes the stage Intent's `macos prepare` makes, that stage carries `<stage>/commit` with HEAD's full sha, and `bin/.devbin/cmd/macos` carries no publish. -- satisfied: no (computed)
+- AC-03.3 (non-test) The service block in Intent's formula template points log_path and error_log_path at D19's intentd.log and intentd.err.log under the user's state dir, the files intent daemon logs reads, and its comment says intentd writes every line to stdout or stderr and names where each goes (issue 0667, ruled by hv on 2026-10-31). -- satisfied: no
 
 ### WP-04 -- The workflows fire on the candidate, and the docs describe the cut as built (status: Not Started)
 

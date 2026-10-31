@@ -113,6 +113,14 @@
       }
     },
     {
+      "id": "AC-03.3",
+      "text": "The service block in Intent's formula template points log_path and error_log_path at D19's intentd.log and intentd.err.log under the user's state dir, the files intent daemon logs reads, and its comment says intentd writes every line to stdout or stderr and names where each goes (issue 0667, ruled by hv on 2026-10-31).",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
       "id": "AC-04.1",
       "text": "`tests.yml`, `rust.yml` and `linux-release.yml` fire on `candidate/` refs and not on tags, the macOS legs included, and `bin/devbin release check` passes on Intent's tree.",
       "kind": "test",
