@@ -1,0 +1,140 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0091",
+  "title": "Intent releases through devbin's core: its driver, kovacs preflight and pre-push build retire",
+  "slug": "intent-releases-through-devbin-s-core-its-driver",
+  "status": "not-started",
+  "created": "2026-10-31",
+  "objective": "Intent cuts its releases with devbin's release core instead of its own driver, so one command takes the yes to a brew-installable artefact and no suite or build runs twice for one commit. This is Devbin ST0011's WP12, Intent's line in that thread's per-project remediations. devbin-vc ruled on 2026-10-31, under hv's pen, that this thread in Intent's store is the one place that work is written and claimed; Devbin's WP12 points here.\n\nConcretely:\n\n1. `bin/.devbin/cmd/build.d/release` retires into the core's cut. `release.verbs` gains `cut`; `derived:` carries the schema bless, the lock refresh, `agents sync`, `claude upgrade --apply`, `sync --to-disk` and the pair build; and a live intentd refuses the cut before anything is stamped. Intent's own checks are declared in `release.gates` rather than made core steps: the bats suite, the cargo gate with 0481's daemon-family re-run, the ST0056 contract and reference checks, and the provenance check (WP-01).\n2. `bin/.devbin/preflight-linux.sh` and `bin/.devbin/cmd/shared/preflight.lib` retire into `release.legs`, with kovacs as the leg. `bin/.devbin/cmd/prepush` loses its preflight cover and its clone-and-build, and keeps its frozen-remote refusal (WP-02).\n3. `cmd/brew` retires into the built-in formula, and `cmd/macos`'s publish half into the built-in `macos publish`. `macos prepare` stays as a shadow until the built-in stages more than one app, and writes the stage's commit record, `<stage>/commit` with HEAD's full sha, which the built-in publish requires (WP-03).\n4. `tests.yml`, `rust.yml` and `linux-release.yml` fire on `candidate/` refs and not on tags, so every leg, the macOS legs included, is green on the commit that ships before it is tagged. The five hand commands after the tag stop, and `intent/docs/releasing.md` and `.github/workflows/README.md` describe the cut as built (WP-04).\n5. Each package is judged and landed on top of the vendor commit that brings the new core into Intent's tree. hv cuts the first release through the core, and that cut's RELEASE seal is the re-read of the 3.2.8 baseline.",
+  "context": "**Why.** Devbin's ST0011 diagnosed the release cycle of every project that vendors devbin's release core (hv, 2026-10-31), and found the time goes to repetition rather than to the core's own steps. Intent's 3.2.8 cut on 2026-10-30 took 61m44s from the candidate's commit to the tap. The Ubuntu suite ran three times on GitHub, once on kovacs and once more in the driver on this Mac, and GitHub ran the release commit's workflows twice, once for the push to main and once for the tag. The tap commit went out 2m26s before the shipping commit's macOS CI finished, so no macOS verdict existed for that commit when the formula shipped.\n\n**What was measured, read-only, on 2026-10-31.** dc inventoried every path the remediation names, with its callers, at 7ff46b458, and vc checked the inventory against the tree; it went to devbin-vc at 10:46Z by date -u. vc's baseline of the 3.2.8 cut, read from GitHub, the git reflogs and file times, went at 10:44Z. Intent has no RELEASE seal to read, because the driver writes none.\n\n**devbin-vc's rulings, 2026-10-31, under hv's pen.** This thread is the one place Devbin's WP12 work is written and claimed in Intent; dc claims its packages, and Devbin's WP12 points here. The vendor commit is Devbin's WP09 sweep, committed by vc in Intent's tree, and these packages sit on top of it, so none starts before the sweep, and nothing slow or duplicated is fixed before it either. Of what must survive: 0634's cask sha and the brew smoke go to the built-in formula (Devbin WP08); the candidate is pushed to upstream only, found by its GitHub URL and never as the first remote (Devbin WP02b); the frozen-remote refusal stays in prepush; and 0481's re-run, the contract and reference checks and the provenance check are Intent's own gates, declared in `release.gates`.\n\n**The core's shape** is Devbin ST0011's design.md: the recommended shape (section 5), Intent's line in the per-project remediations (section 7), the leg contract (section 11) and decisions D57 to D68 (section 12), among them D57 (a sealed green for a commit and platform is not run again), D62 (remote legs) and D64 (test workflows fire on `candidate/` and not on tags). This thread does not restate them.",
+  "body": "",
+  "preamble": "",
+  "wps": [
+    {
+      "seq": 1,
+      "title": "The cut runs through devbin's core, and Intent's driver retires",
+      "scope": "S",
+      "status": "not-started",
+      "objective": "`bin/devbin release` cuts Intent with devbin's core, and `bin/.devbin/cmd/build.d/release` is gone. What the driver does that the core does becomes the core's, and what the core does not do is declared in Intent's config: its own gates in `release.gates` and its derived steps in `derived:`.",
+      "body": "## Builder and judge\n\ndc builds this package and claims `ST0091/01` in the same chain as `intent wp start ST0091/01`, once the vendor sweep has brought the new core into Intent's tree. vc judges it and claims nothing.\n\n## What moves\n\ndc's inventory, measured at 7ff46b458; line references are to that commit.\n\n- `bin/.devbin/cmd/build.d/release` (1524 lines) goes. Its pre-flight (:534) goes to the core's pre-flight and its version stamp (sidecar sync, :942) to the core's stamp. Its confirmation (:245), tag (:1418), push to both remotes (:1459, :1461) and GitHub release (:1468-1505) go to the core's one yes before anything runs, the tag on green, the push and the release object.\n- `release.verbs` gains `cut`.\n- `derived:` carries the schema-face bless (:1066), the lock refresh, the stamp CLI (:1188), `agents sync` (:1200), `claude upgrade --apply` (:1250), `sync --to-disk` (:1289) and the pair build at the release commit (`pair_at_tag`, :290). The pair keeps issue 0518's currency verdict green on the release push.\n- `release.gates` declares Intent's own checks, which stay Intent's: the bats suite (:725); the cargo gate (:767-847), with issue 0481's one re-run of intentd's load-sensitive family (:827) moving into Intent's own gate command, because the core re-runs nothing and a red local leg stops the cut; the ST0056 contract and reference checks (:638, :659), which ST0084 later moves; and the embedded-source-commit check `macos publish` makes today (`cmd/macos` :1405, against the string at `native/rust/crates/intentd/src/main.rs:75`), keyed on the release commit. A sealed green for a commit and platform is not run again (Devbin D57).\n- The refusal of a live intentd (:704) becomes a gate that refuses before anything is stamped.\n- `tests/unit/release_script.bats` and `release_sidecars.bats` follow what they test.\n\n## The judge\n\nOne heavy run on the bank's tip, booked through devbin-vc's desk: the whole bats tree and the whole cargo suites, because hook and scanner arms read shell and config files; `intent critic shell --files` on each changed shell file; `prettier --check` on each changed `.md`; `bin/int precommit` over the staged tree; and the core's dry run of Intent's cut, read for every derived step, gate and leg. dc mints this package's AT rows with its bank, and each arm carries its AT id from the start. dc may bank WP-01 to WP-04 as one train, judged in one run and landed in order.\n",
+      "preamble": ""
+    },
+    {
+      "seq": 2,
+      "title": "kovacs runs as the cut's remote leg, and prepush keeps only its push gates",
+      "scope": "S",
+      "status": "not-started",
+      "objective": "kovacs runs Intent's declared gates at the release commit as a `release.legs` leg inside the cut, instead of an order run by hand before it. `bin/.devbin/preflight-linux.sh` and `bin/.devbin/cmd/shared/preflight.lib` are gone, and `bin/int prepush` keeps its push gates but neither requires a kovacs summary nor clones and builds the workspace.",
+      "body": "## Builder and judge\n\ndc builds this package and claims `ST0091/02` in the same chain as `intent wp start ST0091/02`, once the vendor sweep has brought in the core's remote-leg runner (Devbin WP05). vc judges it and claims nothing.\n\n## What moves\n\ndc's inventory, measured at 7ff46b458; line references are to that commit.\n\n- `release.legs` names kovacs (Devbin D62): the core pushes the release commit to a scratch bare repo on kovacs, runs Intent's declared gates in a worktree there and copies the seal back. kovacs carries what those gates need, the tools `preflight-linux.sh` checks for today.\n- `bin/.devbin/preflight-linux.sh` (235 lines) and `bin/.devbin/cmd/shared/preflight.lib` (40) go.\n- `bin/.devbin/cmd/prepush` loses its Linux preflight cover (:204-265, :475) and its clone-and-build (:508-509). Its frozen-remote list (:140), which the driver checks at :594, stays as a push gate, and so do its other push checks.\n- The candidate goes to `upstream` only, the remote found by its URL, and `local` receives main and the tag on green. That is the core's (Devbin WP02b, with cc), and Intent's part is its config.\n- The preflight arms of `tests/unit/prepush_push_range.bats` (:440-576) follow what they test.\n\n## The judge\n\nAs WP-01's.\n",
+      "preamble": ""
+    },
+    {
+      "seq": 3,
+      "title": "The tap and the macOS assets publish through the built-ins, with prepare as a shadow",
+      "scope": "S",
+      "status": "not-started",
+      "objective": "The built-in formula writes Intent's tap and the built-in `macos publish` uploads its macOS assets, both under the cut's yes. `bin/.devbin/cmd/brew` and `bin/.devbin/cmd/shared/brew.lib` are gone, `bin/.devbin/cmd/macos` keeps no publish, and its `prepare` stays as a shadow that writes the stage's commit record the built-in publish requires.",
+      "body": "## Builder and judge\n\ndc builds this package and claims `ST0091/03` in the same chain as `intent wp start ST0091/03`, once the vendor sweep has brought in the core's formula under the yes, carrying issue 0634's cask sha256 check and `brew smoke` (Devbin WP08, with cc), and its macOS stage (Devbin WP06). vc judges it and claims nothing.\n\n## What moves\n\ndc's inventory, measured at 7ff46b458; line references are to that commit.\n\n- `bin/.devbin/cmd/brew` (669 lines) and `bin/.devbin/cmd/shared/brew.lib` (812) go. The built-in `formula` (the vendored `lib/cmd/formula`) writes Intent's formula and cask in assets mode under the cut's yes. `cmd/macos` sources `brew.lib` (:76), so that line goes with it.\n- `bin/.devbin/cmd/macos` (2349 lines) loses its publish half (`cmd_publish`, :1245-1536) to the built-in `macos publish`. Its `prepare` (:1192) stays as a shadow until the built-in stages more than one app, and writes `<stage>/commit`, HEAD's full sha, because the built-in publish refuses a stage without one (Devbin WP06a's note). Today neither `cmd/macos` nor the vendored `lib/cmd/macos` writes that file: the stage (:835) records `commit:` in `target/dist-provenance.txt` (:893) instead.\n- `tests/unit/brew_formula.bats` and `macos_release_assets.bats` follow what they test.\n\n## The judge\n\nAs WP-01's.\n",
+      "preamble": ""
+    },
+    {
+      "seq": 4,
+      "title": "The workflows fire on the candidate, and the docs describe the cut as built",
+      "scope": "S",
+      "status": "not-started",
+      "objective": "`tests.yml`, `rust.yml` and `linux-release.yml` fire on `candidate/` refs and not on tags (Devbin D64), so every leg, the macOS legs included, is green on the commit that ships before it is tagged. The five commands run by hand after the tag stop, and `intent/docs/releasing.md` and `.github/workflows/README.md` describe the cut as built.",
+      "body": "## Builder and judge\n\ndc builds this package and claims `ST0091/04` in the same chain as `intent wp start ST0091/04`, once the vendor sweep has brought in the core's candidate push (Devbin WP02b) and its attach keyed on the release commit (Devbin WP07). vc judges it and claims nothing. hv fires the first cut through the core in hv's own terminal, and vc records it on AC-04.3; Devbin's WP06 and WP07 are accepted at that cut (Devbin D66).\n\n## What moves\n\ndc's inventory, measured at 7ff46b458; line references are to that commit.\n\n- `tests.yml` (:8) and `rust.yml` (:31) lose their tag triggers and fire on `candidate/` refs, the macOS legs included, which today run only on a tag or a dispatch. `linux-release.yml` (:22-25) fires on `candidate/` instead of tags, and the attach reads its run by the release commit's sha (`bin/.devbin/config.yaml` :371-372 names the workflow).\n- The five commands run by hand after the tag stop: `bin/int macos prepare`, `bin/int macos publish`, `bin/devbin release attach vX.Y.Z`, `bin/int brew publish` and `bin/int brew smoke --reinstall` (`intent/docs/releasing.md` :119). They are the item parked for hv in `intent/wip.md`, \"Intent's cut wants one driver\", which this package retires.\n- `intent/docs/releasing.md` (:13, :101-140) describes the one command, and stops promising a dry run that runs the pre-flight gates for real: the core's dry run predicts and runs no gate (Devbin D63). `.github/workflows/README.md` (:55-57) follows; its linux-release section still says dispatch-only, though the workflow has fired on tags since 9f4994a1c.\n\n## The judge\n\nAs WP-01's, with `bin/devbin release check` run on the bank's tree.\n",
+      "preamble": ""
+    }
+  ],
+  "criteria": [
+    {
+      "id": "AC-01.1",
+      "text": "`bin/devbin release` cuts Intent through devbin's core: the schema bless, the lock refresh, `agents sync`, `claude upgrade --apply`, `sync --to-disk` and the pair build run as `derived:` steps, its dry run names every derived step, gate and leg and runs none of them, and `bin/.devbin/cmd/build.d/release` is gone.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.2",
+      "text": "Intent's own checks run as declared `release.gates`: the bats suite, the cargo gate with issue 0481's daemon-family re-run inside Intent's own gate command, the ST0056 contract and reference checks, and the embedded-source-commit check keyed on the release commit; a sealed green for the release commit on this platform is not run again.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.3",
+      "text": "The cut refuses while an intentd is live, before anything is stamped, and its remedy says how to stop the daemon.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.4",
+      "text": "The pair the cut builds at the release commit passes issue 0518's currency verdict when the release push runs.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.1",
+      "text": "kovacs runs Intent's declared gates at the release commit as a `release.legs` leg inside the cut, and `bin/.devbin/preflight-linux.sh` and `bin/.devbin/cmd/shared/preflight.lib` are gone.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.2",
+      "text": "`bin/int prepush` keeps its frozen-remote refusal, and a push neither requires a kovacs summary nor clones and builds the workspace.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.1",
+      "text": "The built-in formula writes Intent's formula and cask in assets mode under the cut's yes, with issue 0634's cask sha256 check and the brew smoke carried by the core, and `bin/.devbin/cmd/brew` and `bin/.devbin/cmd/shared/brew.lib` are gone.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.2",
+      "text": "The built-in `macos publish` publishes the stage Intent's `macos prepare` makes, that stage carries `<stage>/commit` with HEAD's full sha, and `bin/.devbin/cmd/macos` carries no publish.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-04.1",
+      "text": "`tests.yml`, `rust.yml` and `linux-release.yml` fire on `candidate/` refs and not on tags, the macOS legs included, and `bin/devbin release check` passes on Intent's tree.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-04.2",
+      "text": "`intent/docs/releasing.md` and `.github/workflows/README.md` describe the cut as built: one command from the yes to the tap with no step between them run by hand, a dry run that predicts and runs no gate, then `brew upgrade` and `intent use brew` on each machine.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-04.3",
+      "text": "hv cuts Intent's first release through the core with no hand step between the yes and the tap, and vc records that cut's RELEASE seal clock lines against the 3.2.8 baseline.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    }
+  ]
+}

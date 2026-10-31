@@ -1,0 +1,16 @@
+{
+  "id": "01M68T7X2ZRANW9NTGZXM4RGEP",
+  "ts": "2026-10-31T11:06:43.679Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 71,
+    "text": "ST0091, Devbin ST0011/12 in Intent's tree: after devbin's release, commit the vendor sweep (Devbin WP09) on devbin-vc's order, then judge ST0091's packages as dc banks them, every run booked through devbin-vc's desk. vc claims nothing. The inventory (dc's, checked by vc) went to devbin-vc at 10:46Z and the 3.2.8 baseline at 10:44Z by date -u."
+  }
+}

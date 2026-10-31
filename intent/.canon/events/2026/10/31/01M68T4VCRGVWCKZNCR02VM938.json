@@ -1,0 +1,15 @@
+{
+  "id": "01M68T4VCRGVWCKZNCR02VM938",
+  "ts": "2026-10-31T11:05:03.643Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0091/04"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "The workflows fire on the candidate, and the docs describe the cut as built"
+  }
+}

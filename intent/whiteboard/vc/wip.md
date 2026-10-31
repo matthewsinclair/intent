@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: f5db1c5a-5ee4-4814-9ffc-81a45ab53623
-heartbeat_at: 2026-10-31 10:51Z
+heartbeat_at: 2026-10-31 11:06Z
 status: active
-focus: "2026-10-31: devbin-vc holds the estate pen and the desk on hv's word, and vc takes its orders. vc sent devbin-vc ST0011/12's inventory (dc's, checked by vc) and Intent's 3.2.8 baseline, and holds for the sweep. Todo 70 waits on ST0090's builders, cc and ic, who are not running."
+focus: "2026-10-31: devbin-vc holds the estate pen and the desk on hv's word, and vc takes its orders. On its orders vc raised ST0091 for Devbin ST0011/12 and filed issue 0665; Intent holds for the vendor sweep, which vc commits. Todo 70 waits on ST0090's builders, cc and ic, who are not running."
 claims: []
 ---
 
@@ -19,7 +19,7 @@ _(none)_
 
 - After 3.2.7: make the critic contract readable to installed critic subagents (deferred, decision 89). (edited)
 - Judge ST0090, issue 0664's fix, as each package banks: cc's WP-01 in one heavy run at the desk, ic's WP-02 in a light run. Each lands alone, WP-01 first. Then tell hv which build carries both, and record it on AC-02.4.
-- ST0011/12, Devbin's thread landing in Intent's tree: after devbin's release and the vendor sweep, on devbin-vc's order, judge the vendor update and WP-12 as each banks. dc builds, vc claims nothing, and every run is booked through devbin-vc's desk. The inventory (dc's, checked by vc) went to devbin-vc at 10:46Z and the 3.2.8 baseline at 10:44Z by date -u.
+- ST0091, Devbin ST0011/12 in Intent's tree: after devbin's release, commit the vendor sweep (Devbin WP09) on devbin-vc's order, then judge ST0091's packages as dc banks them, every run booked through devbin-vc's desk. vc claims nothing. The inventory (dc's, checked by vc) went to devbin-vc at 10:46Z and the 3.2.8 baseline at 10:44Z by date -u. (edited)
 - intentd's login route, asked of hv through devbin-vc at 10:50Z by date -u (vc's 10:48Z recommendation reversed after gyges-sysadm measured brew services splitting the daemon's log): on hv's ruling, give devbin-vc the issue text for hv to file, and enrol rhadamanth through the desk by the route hv picks.
 
 ## Holds

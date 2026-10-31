@@ -1,5 +1,5 @@
 ---
-verblock: "2026-10-31:v3.49: vc - ST0090 raised for issue 0664"
+verblock: "2026-10-31:v3.50: vc - ST0091 raised for Devbin ST0011/12"
 intent_version: 3.2.8
 ---
 
@@ -12,17 +12,18 @@ intent_version: 3.2.8
 ## TODO
 
 - ST0090, issue 0664's fix, raised on hv's word on 2026-10-31: cc builds WP-01 (the index report's level-3 state and reconcile time), ic builds WP-02 (Intent.app's rebuild row), and vc judges each. Each lands alone, WP-01 first, and one build carries both. The release is hv's.
+- ST0091, Devbin ST0011's WP12 in Intent's tree, raised by vc on devbin-vc's ruling under hv's pen on 2026-10-31: Intent cuts through devbin's release core. Nothing starts before the vendor sweep, which vc commits as Devbin's WP09. dc then builds the four packages on top of it and vc judges each, every run booked through devbin-vc's desk. hv fires the first cut through the core.
 - Laksa's and Conflab's releases wait for hv's next word. On rhadamanth, Conflab runs its checkout's build (520987af, v0.6.2-468) through ~/.local/bin and ~/bin links, with brew's 0.6.2 installed but unlinked, so it moves to brew at its next release.
 - Devbin 0295, for the next devbin release: stamp first, test once, tag what passed. The kovacs run stays (hv).
 - Parked for hv, from 2026-10-30:
-  - Intent's cut wants one driver: five commands follow `build release`, and `bin/int brew publish` refuses under `!` because it confirms at a terminal.
+  - Intent's cut wants one driver: five commands follow `build release`, and `bin/int brew publish` refuses under `!` because it confirms at a terminal. ST0091 retires it.
   - `bin/devbin macos app-install` leaves an unsigned dev build in /Applications that nothing switches back. Intent.app's title and menu show the CLI's version; only About shows the bundle's.
   - Gtools.app has no brew route: brew's `gtools app install` refuses, and the release ships no app. On gyges it builds only from a GUI login session, since codesign cannot reach the keychain from gyges-sysadm's Background session. Brew warns that the gtools formula's `post_install` is deprecated.
   - Utilz's tests.yml Rust job has no `timeout-minutes`, and prez's Chrome render has no timeout.
   - Gtools CI got ubuntu-24.04 where Utilz and Intent got 26.04; pinning it is hv's call.
   - Both Macs' CoreSimulator (1174.9.2) is older than Xcode's (1174.21.0).
   - `utilz doctor` said "gh is not installed" with /opt/homebrew/bin/gh on PATH (seen once, not traced).
-- Parked for hv: issues 0649, 0650 and 0661; threads ST0060, ST0077, ST0082, ST0084, ST0085 and ST0089.
+- Parked for hv: issues 0649, 0650, 0661 and 0665; threads ST0060, ST0077, ST0082, ST0084, ST0085 and ST0089.
 - Parked for hv, from dc's mark at ST0087 (cb8ddf9d8):
   - Doctor and bare `intent use` do not compare the running binary with the link set's, and `intent use <tree>` does not say to `rehash`.
   - The home pointer names the dev tree while the machine rests on brew.
