@@ -306,6 +306,10 @@ mod the_daemon_harness_can_restart;
 mod the_daemon_takes_the_backup_itself;
 #[path = "the_event_log_travels.rs"]
 mod the_event_log_travels;
+#[path = "the_index_report_names_its_reconcile_time.rs"]
+mod the_index_report_names_its_reconcile_time;
+#[path = "the_index_report_names_level_three_as_search_does.rs"]
+mod the_index_report_names_level_three_as_search_does;
 #[path = "the_index_says_what_it_holds.rs"]
 mod the_index_says_what_it_holds;
 #[path = "the_install_verb_prints_the_runtime_set.rs"]

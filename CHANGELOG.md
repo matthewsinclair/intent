@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.9] - in progress
+
+### Changed
+
+- **`intent index status`, `intent index rebuild` and `intent index resolve` name a language's level 3 the way every search answer does** (issue 0664, ST0090 WP-01). A run that stored, with files changed since it resolved them, read `current` on its first line above the list of those files, while every search answer called the same run `stale`. It now reads `stale` there too, from the one function both ask. In the JSON of all three verbs and of the `intent_index_status` MCP tool, each language's `state` under `resolution` is that state, and the last run's own word, which `state` carried until now, is renamed `outcome`.
+
+### Added
+
+- **`intent index status` and `intent index rebuild` name when the index was last reconciled** (issue 0664, ST0090 WP-01): a `reconciled:` line in the text and `reconciled_at` in the JSON, both read from the stamp the last reconcile wrote to the store, never from a clock, and `none` (`null` in the JSON) for an index no reconcile has stamped. The `intent_index_status` MCP tool carries `reconciled_at` too.
+
 ## [3.2.8] - 2026-10-31
 
 ### Fixed

@@ -5373,12 +5373,20 @@ fn report_resolved(
 /// One language's level 3 as the lines a person reads, shared by `index
 /// status` and `index resolve` so the two cannot describe one run two ways.
 ///
+/// **THE FIRST LINE NAMES THE LANGUAGE'S STATE, AS EVERY SEARCH ANSWER DOES**
+/// (ST0090 WP-01, AC-01.2): `Run::language_state`, never the run's own word,
+/// which read `current` above the stale list below it (issue 0664).
+///
 /// **THE STALE PATHS ARE LISTED, NEVER COUNTED**, for the reason the skipped
 /// paths are: the reader wants to know whether the file in front of them is
 /// one of them.
 fn resolution_lines(lang: &str, run: &intentsvcs::index::resolved::Run) -> Vec<String> {
   let t = &run.tally;
-  let mut lines = vec![format!("resolution: {lang}  {}  {}", run.state, run.tool)];
+  let mut lines = vec![format!(
+    "resolution: {lang}  {}  {}",
+    run.language_state(),
+    run.tool
+  )];
   if let Some(detail) = &run.detail {
     let at = match (&run.path, run.line) {
       (Some(path), Some(line)) => format!("{path}:{line}: "),
@@ -5467,6 +5475,7 @@ fn report_index(
       "skipped": skipped,
       "sizes": status.sizes,
       "resolution": status.resolution,
+      "reconciled_at": status.reconciled_at,
       "empty": status.is_empty(),
       "rebuilt": rebuilt,
     }))
@@ -5491,6 +5500,13 @@ fn report_index(
   for (corpus, n) in &status.held {
     println!("{corpus}  {n}");
   }
+  // **WHEN THE INDEX WAS LAST BROUGHT IN LINE WITH THE TREE** (ST0090 WP-01,
+  // AC-01.4): the stamp the reconcile wrote to the store, never a clock read at
+  // render, and named as none, like an empty skip reason, when nothing stamped.
+  println!(
+    "reconciled: {}",
+    status.reconciled_at.as_deref().unwrap_or("none")
+  );
   // **A LANGUAGE THAT NAMES NO SYMBOLS SAYS WHY** (cc's `Status::grammars`).
   // Three different facts produce an empty structural answer -- no grammar in
   // this build, a grammar shipping no tags query, a language nothing supports
@@ -17742,6 +17758,50 @@ mod tests {
         "  stored: run 2 at 2026-09-17T12:00:00Z  joined 0 of 30 files  matched 0  unmatched 0  dropped 0  ambiguous 0".to_string(),
         "  stale: none".to_string(),
       ]
+    );
+  }
+
+  /// ST0090 WP-01, AC-01.2: the first line names the language's state as every
+  /// search answer does. A run that stored reads `stale` once a file it
+  /// resolved has changed, and a run that did not store keeps its own word
+  /// whatever is stale. `index resolve` prints these same lines, so this pins
+  /// its first line as well as `index status`'s and `index rebuild`'s.
+  #[test]
+  fn the_first_line_names_the_language_state_and_never_the_runs_own_word() {
+    use intentsvcs::index::resolved::{CURRENT, FAILED, Run, STALE, Tally};
+    let run = |state: &str, stale: &[&str]| Run {
+      state: state.to_string(),
+      tool: "rust-analyzer".to_string(),
+      path: None,
+      line: None,
+      detail: None,
+      resolved_at: Some("2026-09-17T12:00:00Z".to_string()),
+      run: 1,
+      files: 2,
+      joined: 2,
+      symbols_version: Some(intentsvcs::index::symbols::EXTRACTOR_VERSION),
+      tally: Tally::default(),
+      stale: stale.iter().map(|path| path.to_string()).collect(),
+    };
+    let first = |run: &Run| {
+      resolution_lines("rust", run)
+        .into_iter()
+        .next()
+        .expect("a first line")
+    };
+    assert_eq!(
+      first(&run(CURRENT, &["src/two.rs"])),
+      format!("resolution: rust  {STALE}  rust-analyzer"),
+      "a stored run with a stale path is stale, as the search answer says"
+    );
+    assert_eq!(
+      first(&run(CURRENT, &[])),
+      format!("resolution: rust  {CURRENT}  rust-analyzer")
+    );
+    assert_eq!(
+      first(&run(FAILED, &["src/two.rs"])),
+      format!("resolution: rust  {FAILED}  rust-analyzer"),
+      "a run that did not store keeps its own word whatever is stale"
     );
   }
 

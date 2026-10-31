@@ -111,8 +111,8 @@
         "AC-01.2",
         "AC-01.3"
       ],
-      "status": "to-write",
-      "note": "To write: vc minted the row when it raised ST0090 on 2026-10-31, and cc's WP-01 bank writes the arms its body names"
+      "status": "green",
+      "note": "To write: vc minted the row when it raised ST0090 on 2026-10-31, and cc's WP-01 bank writes the arms its body names; red at the landing, ahead of green, as ST0087's rows were at 0b9c5082d, because green is reachable only from red: dc wrote the arms in its bank refs/bank/dc/st0090-wp01 to assert what the base d664d44fa did not print, the failure issue 0664 records, and no run saw them fail on the base; arms: a_stored_run_with_a_file_changed_since_reads_stale_on_every_face, a_stored_run_with_nothing_stale_reads_current_and_an_answer_names_nothing and a_run_that_did_not_store_keeps_its_own_word_whatever_is_stale; green in dc's judge run 01M696MPDJ812NRYHF3WRPBVPQ on 2026-10-31 at d664d44fa plus the bank (patch-id d8f76ab374d8): the format check, the build, the intentsvcs and intent-cli suites whole and workspace clippy at -D warnings, every leg exit 0; GREEN in vc's verdict of 14:56Z, with vc's critic leg clean; landed with this row"
     },
     {
       "id": "AT-01.2",
@@ -121,8 +121,8 @@
       "covers": [
         "AC-01.4"
       ],
-      "status": "to-write",
-      "note": "To write: vc minted the row when it raised ST0090 on 2026-10-31, and cc's WP-01 bank writes the arms its body names"
+      "status": "green",
+      "note": "To write: vc minted the row when it raised ST0090 on 2026-10-31, and cc's WP-01 bank writes the arms its body names; red at the landing, ahead of green, as ST0087's rows were at 0b9c5082d, because green is reachable only from red: dc wrote the arms in its bank refs/bank/dc/st0090-wp01 to assert a reconcile stamp the base d664d44fa never printed, and no run saw them fail on the base; arms: an_index_no_reconcile_has_stamped_names_none and the_report_names_the_stamp_the_last_reconcile_wrote; green in dc's judge run 01M696MPDJ812NRYHF3WRPBVPQ on 2026-10-31 at d664d44fa plus the bank (patch-id d8f76ab374d8): the format check, the build, the intentsvcs and intent-cli suites whole and workspace clippy at -D warnings, every leg exit 0; GREEN in vc's verdict of 14:56Z, with vc's critic leg clean; landed with this row"
     },
     {
       "id": "AT-02.1",

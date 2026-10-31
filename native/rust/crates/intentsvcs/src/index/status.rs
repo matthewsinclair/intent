@@ -40,6 +40,13 @@ pub struct Status {
   /// last run's state and counts, and the paths gone stale since. A language no
   /// run has recorded is absent. Empty until the store fills it.
   pub resolution: BTreeMap<String, super::resolved::Run>,
+  /// When the index was last brought in line with the tree, as the reconcile
+  /// that did it stamped the store (ST0090 WP-01, AC-01.4): a rebuild, a
+  /// whole-scope refresh, or a watcher refresh that changed something. Read
+  /// from the store's `reconciled_at`, never from a clock at render (D42), and
+  /// `None` for an index no reconcile has stamped. `None` until the store
+  /// fills it.
+  pub reconciled_at: Option<String>,
 }
 
 impl Status {
@@ -102,6 +109,7 @@ pub fn summarise(rows: &[Row]) -> Status {
     skipped,
     sizes: BTreeMap::new(),
     resolution: BTreeMap::new(),
+    reconciled_at: None,
   }
 }
 

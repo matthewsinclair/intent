@@ -1511,6 +1511,9 @@ fn tool_answer(
         // Level 3 per language (ST0076 WP-05): an agent weighing a resolved
         // caller list needs the stale paths as much as the counts.
         "resolution": status.resolution,
+        // ST0090 WP-01: when the index was last reconciled, as the CLI's
+        // report names it.
+        "reconciled_at": status.reconciled_at,
         "empty": status.is_empty(),
       }))
     }

@@ -12796,15 +12796,7 @@ impl Facade {
       .map_err(FacadeError::Store)?;
     // Issue 0369: a rebuild is a whole-scope reconcile, and stamps.
     self.store.stamp_reconciled().map_err(FacadeError::Store)?;
-    let mut status = crate::index::status::summarise(&rows);
-    status.grammars = crate::index::status::grammars(&self.project.config().languages);
-    // Issue 0373: what the index costs, measured.
-    status.sizes = self.store.index_sizes().map_err(FacadeError::Store)?;
-    status.resolution = self
-      .store
-      .resolution(crate::index::symbols::EXTRACTOR_VERSION)
-      .map_err(FacadeError::Store)?;
-    Ok(status)
+    self.index_report(&rows)
   }
 
   /// Bring the index up to date under the paths one batch named, touching
@@ -12987,7 +12979,21 @@ impl Facade {
   /// [`crate::index::status::Status::is_empty`] states in its own words.
   pub fn index_status(&self) -> Result<crate::index::status::Status, FacadeError> {
     let rows = self.store.index_files().map_err(FacadeError::Store)?;
-    let mut status = crate::index::status::summarise(&rows);
+    self.index_report(&rows)
+  }
+
+  /// The report `index status` and `index rebuild` both print, over `rows`
+  /// and what the store holds beside them.
+  ///
+  /// **ONE HOME, SO THE TWO VERBS PRINT ONE REPORT** (ST0090 WP-01): each
+  /// filled the same fields in its own copy, and a field added to one copy
+  /// alone would make a status after a rebuild read differently from the
+  /// rebuild it follows.
+  fn index_report(
+    &self,
+    rows: &[crate::index::Row],
+  ) -> Result<crate::index::status::Status, FacadeError> {
+    let mut status = crate::index::status::summarise(rows);
     status.grammars = crate::index::status::grammars(&self.project.config().languages);
     // Issue 0373: what the index costs, measured.
     status.sizes = self.store.index_sizes().map_err(FacadeError::Store)?;
@@ -12995,6 +13001,8 @@ impl Facade {
       .store
       .resolution(crate::index::symbols::EXTRACTOR_VERSION)
       .map_err(FacadeError::Store)?;
+    // AC-01.4: the stamp the last reconcile wrote, never a clock read here.
+    status.reconciled_at = self.store.reconciled_at().map_err(FacadeError::Store)?;
     Ok(status)
   }
 

@@ -54,8 +54,8 @@ pub const MISSING: &str = "missing";
 /// language was asked for by name where the project holds nothing for it.
 pub const FAILED: &str = "failed";
 /// A language whose last run stored, with files changed since (ST0076 WP-07).
-/// A search answer says it; a run's record never holds it, because it moves
-/// when the files do.
+/// Every face names it through [`Run::language_state`]; a run's record never
+/// holds it, because it moves when the files do.
 pub const STALE: &str = "stale";
 /// A language this build resolves, which the project declares, and which no
 /// run has recorded (ST0076 WP-07). A search answer says it.
@@ -327,9 +327,14 @@ pub struct Joined {
 
 /// One language's level 3, as `intent index status` reports it: the record of
 /// its last run, and the paths gone stale since.
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Run {
   /// `current`, `missing` or `failed`: what the last run did.
+  ///
+  /// **NEVER THE LANGUAGE'S STATE** (ST0090 WP-01): a run that stored reads
+  /// `current` here for as long as no later run replaces it, whatever has gone
+  /// stale since. [`Run::language_state`] names the language's state, and the
+  /// JSON carries this word as `outcome`.
   pub state: String,
   pub tool: String,
   /// The last run's failure: the file and line the tool named, and what it
@@ -356,8 +361,8 @@ pub struct Run {
   /// against (vc, 2026-09-17). A build writing another version has
   /// re-extracted those rows, so every resolved path is stale.
   pub symbols_version: Option<i64>,
-  /// The counts of the last run that stored.
-  #[serde(flatten)]
+  /// The counts of the last run that stored, which the JSON carries flat
+  /// beside the rest (the `Serialize` impl below).
   pub tally: Tally,
   /// Paths whose rows were resolved against written rows the index no longer
   /// holds, in path order: the file's bytes moved, or the extractor did.
@@ -366,6 +371,88 @@ pub struct Run {
   /// files: a reader deciding whether a caller list can be trusted needs to
   /// know whether the file in front of them is one of them.
   pub stale: Vec<String>,
+}
+
+impl Run {
+  /// The language's level-3 state, which every face names (ST0090 WP-01,
+  /// AC-01.1): `current` only for a run that stored with nothing gone stale
+  /// since; `stale` for a stored run with stale paths, the extractor's move
+  /// included, since that makes every resolved path stale; and the run's own
+  /// `missing` or `failed` whatever is stale.
+  ///
+  /// **ONE DERIVATION FOR EVERY FACE** (issue 0664). The report printed the
+  /// run's own word while each search answer derived its own, so one run read
+  /// `current` above its list of stale files and `stale` in every answer. The
+  /// search envelope, the report's lines and every JSON face ask this.
+  ///
+  /// **A RUN THAT DID NOT STORE KEEPS ITS OWN WORD**, because its failure is
+  /// why nothing newer was stored, which is the fact a reader needs first.
+  pub fn language_state(&self) -> &str {
+    if self.state == CURRENT && !self.stale.is_empty() {
+      STALE
+    } else {
+      self.state.as_str()
+    }
+  }
+}
+
+/// **ONE STATE ON EVERY JSON FACE** (ST0090 WP-01, AC-01.3): `state` is
+/// [`Run::language_state`], the word the report's lines and every search answer
+/// name, and the last run's own word stays readable as `outcome`. The
+/// destructuring names every field, so a field added to `Run` does not compile
+/// until this says where it goes.
+impl serde::Serialize for Run {
+  fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+    #[derive(serde::Serialize)]
+    struct Shape<'a> {
+      state: &'a str,
+      outcome: &'a str,
+      tool: &'a str,
+      path: &'a Option<String>,
+      line: &'a Option<u32>,
+      detail: &'a Option<String>,
+      resolved_at: &'a Option<String>,
+      run: &'a u64,
+      files: &'a u64,
+      joined: &'a u64,
+      symbols_version: &'a Option<i64>,
+      #[serde(flatten)]
+      tally: &'a Tally,
+      stale: &'a [String],
+    }
+    let Run {
+      state,
+      tool,
+      path,
+      line,
+      detail,
+      resolved_at,
+      run,
+      files,
+      joined,
+      symbols_version,
+      tally,
+      stale,
+    } = self;
+    serde::Serialize::serialize(
+      &Shape {
+        state: self.language_state(),
+        outcome: state,
+        tool,
+        path,
+        line,
+        detail,
+        resolved_at,
+        run,
+        files,
+        joined,
+        symbols_version,
+        tally,
+        stale: stale.as_slice(),
+      },
+      serializer,
+    )
+  }
 }
 
 /// Whether a run must rebuild everything, whatever the caller asked (vc,
@@ -537,6 +624,43 @@ pub fn join(
 mod tests {
   use super::super::symbols::{Span, SymbolKind};
   use super::*;
+
+  /// ST0090 WP-01, AC-01.1 and AC-01.3: one derivation names the language's
+  /// state, and a run's JSON carries it as `state` with the run's own word
+  /// beside it as `outcome`, so no JSON face says `current` above stale paths.
+  #[test]
+  fn a_runs_json_names_the_language_state_and_keeps_the_runs_own_outcome() {
+    let run = |state: &str, stale: &[&str]| Run {
+      state: state.to_string(),
+      tool: "rust-analyzer".to_string(),
+      path: None,
+      line: None,
+      detail: None,
+      resolved_at: Some("2026-09-17T00:00:00Z".to_string()),
+      run: 1,
+      files: 2,
+      joined: 2,
+      symbols_version: Some(3),
+      tally: Tally::default(),
+      stale: stale.iter().map(|path| path.to_string()).collect(),
+    };
+    for (record, named) in [
+      (run(CURRENT, &["src/two.rs"]), STALE),
+      (run(CURRENT, &[]), CURRENT),
+      (run(FAILED, &["src/two.rs"]), FAILED),
+      (run(MISSING, &["src/two.rs"]), MISSING),
+    ] {
+      assert_eq!(record.language_state(), named, "{record:?}");
+      let json = serde_json::to_value(&record).expect("a run serialises");
+      assert_eq!(json["state"], named, "{json}");
+      assert_eq!(json["outcome"], record.state.as_str(), "{json}");
+      assert_eq!(json["stale"], serde_json::json!(record.stale), "{json}");
+      assert_eq!(
+        json["matched"], 0,
+        "the stored run's counts stay flat beside it: {json}"
+      );
+    }
+  }
 
   fn reference(path: Option<&str>, line: Option<u32>, name: &str, target: &str) -> Reference {
     Reference {

@@ -209,23 +209,20 @@ fn is_zero(n: &usize) -> bool {
 }
 
 impl ResolutionState {
-  /// A run's record as an answer reports it, or `None` when the run stored
-  /// and nothing it stored has gone stale.
+  /// A run's record as an answer reports it, or `None` when
+  /// [`Run::language_state`] names the language current.
   ///
-  /// **A RUN THAT FAILED KEEPS ITS STATE WHATEVER IS STALE**, and lists the
-  /// stale files beside it: the failure is why nothing newer was stored, which
-  /// is the fact a reader needs first.
+  /// **THE STATE IS THE ONE EVERY FACE NAMES** (ST0090 WP-01): the derivation
+  /// lives on `Run`, so this answer and `intent index status` cannot name one
+  /// run two ways. A run that failed keeps its state and lists the stale files
+  /// beside it.
   pub fn of(run: &Run) -> Option<Self> {
-    let current = run.state == resolved::CURRENT;
-    if current && run.stale.is_empty() {
+    let state = run.language_state();
+    if state == resolved::CURRENT {
       return None;
     }
     Some(Self {
-      state: if current {
-        resolved::STALE.to_string()
-      } else {
-        run.state.clone()
-      },
+      state: state.to_string(),
       tool: Some(run.tool.clone()).filter(|tool| !tool.is_empty()),
       path: run.path.clone(),
       line: run.line,
