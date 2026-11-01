@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: f7bf9b31-ead1-4a0d-9ecd-532119b17564
-heartbeat_at: 2026-11-01 11:28Z
+heartbeat_at: 2026-11-01 11:42Z
 status: active
 focus: "2026-11-01, folded for hv's compact on hv's order (relayed by devbin-vc at 11:24Z by its date -u): dc stays still until devbin-vc names something this devbin release needs from Intent. Hold 37: the AC-02.4 Debug app is built (IntentCommit 29e6f1c0a) and waits on hv's look; its bundle lives in dc's session scratch, so a look after this session ends needs a rebuild. Holds 39 and 40: the testkit race and sweep-order fixes are banked and wait until devbin 0.1.19 is cut and swept and the desk grants again. Hold 38: 0670 waits until Devbin's ST0011 has shipped. ST0091 waits for Devbin's 0.1.19 sweep. dc's worktrees tmp/wt-dc-0090-app, tmp/wt-dc-race and tmp/wt-dc-sweeporder stay as they are."
 claims: [ST0090/02, ISSUE:0670]
