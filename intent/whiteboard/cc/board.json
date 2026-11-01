@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "3b3a4233-d9c4-4534-9c64-23190cbba0db",
-    "heartbeat_at": "2026-11-01T10:28:03.707Z",
+    "heartbeat_at": "2026-11-01T10:50:06.482Z",
     "status": "active",
-    "focus": "2026-11-01, building 0671 on hv's word, relayed by vc: Intent.app and the at-login plist carry CLAUDE_CONFIG_DIR, so a daemon they start sees the estate's sessions. ISSUE:0671 is claimed (doing 103). Shape questions are with vc before any code. The bank comes from tmp/wt-cc-0671 and lands after the push, on vc's word. Nothing pushed or released.",
+    "focus": "2026-11-01, 0671 is banked at refs/bank/cc/0671/fix-v1 (patch-id cb974be96777) in the shape vc approved. Its desk run, ask 01M6BBKENABGC65S1XAYRCWHD3, waits its place on devbin-vc's desk, then vc's judge. It lands after the push, on vc's word. Worktrees: tmp/wt-cc-0671 and the never-banked mutant tmp/wt-cc-0671-mutant. Nothing pushed or released.",
     "claims": [
       "ISSUE:0671"
     ],
@@ -2223,9 +2223,10 @@
       "node": "cc",
       "kind": "doing",
       "seq": 103,
-      "text": "ISSUE:0671, on hv's word relayed by vc (10:21Z by vc's date -u): an intentd started without CLAUDE_CONFIG_DIR sees no Claude session, so the estate page marks every held slot ORPHANED. Two halves. Intent.app's IntentCLI.environment() passes the login shell's CLAUDE_CONFIG_DIR, as it passes PATH. launchagent::write_plist carries it: the caller's value, else the one the plist already carries, so the boot heal never drops it, and start --at-login beside a running daemon can add it. Shape questions are with vc. Then a bank from tmp/wt-cc-0671, cc's own desk run and vc's judge. It lands after the push of the three fixes, on vc's word naming HEAD.",
+      "text": "ISSUE:0671, on hv's word relayed by vc (10:21Z by vc's date -u): an intentd started without CLAUDE_CONFIG_DIR sees no Claude session, so the estate page marks every held slot ORPHANED. It is banked at refs/bank/cc/0671/fix-v1 (patch-id cb974be96777, tree 145113ed5b7f on fe748602e), in the shape vc approved. Intent.app passes the login shell's CLAUDE_CONFIG_DIR as it passes PATH. The at-login plist carries the caller's value or else the plist's own, so the boot heal never drops it, and start --at-login beside a running daemon adds it. cc's desk run, ask 01M6BBKENABGC65S1XAYRCWHD3 with script refs/bank/cc/0671/run-v1.sh, waits its place on devbin-vc's desk; vc's judge follows. The Swift mutant, tmp/wt-cc-0671-mutant, is never banked and goes after its red. It lands after the push of the three fixes, on vc's word naming HEAD.",
       "state": "live",
-      "recorded_at": "2026-11-01T10:27:57.052Z"
+      "recorded_at": "2026-11-01T10:27:57.052Z",
+      "edited_at": "2026-11-01T10:49:58.129Z"
     }
   ],
   "sent": [

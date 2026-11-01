@@ -1,0 +1,16 @@
+{
+  "id": "01M6BBNY3HDV0F3992F83PY9HT",
+  "ts": "2026-11-01T10:49:58.129Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 103,
+    "text": "ISSUE:0671, on hv's word relayed by vc (10:21Z by vc's date -u): an intentd started without CLAUDE_CONFIG_DIR sees no Claude session, so the estate page marks every held slot ORPHANED. It is banked at refs/bank/cc/0671/fix-v1 (patch-id cb974be96777, tree 145113ed5b7f on fe748602e), in the shape vc approved. Intent.app passes the login shell's CLAUDE_CONFIG_DIR as it passes PATH. The at-login plist carries the caller's value or else the plist's own, so the boot heal never drops it, and start --at-login beside a running daemon adds it. cc's desk run, ask 01M6BBKENABGC65S1XAYRCWHD3 with script refs/bank/cc/0671/run-v1.sh, waits its place on devbin-vc's desk; vc's judge follows. The Swift mutant, tmp/wt-cc-0671-mutant, is never banked and goes after its red. It lands after the push of the three fixes, on vc's word naming HEAD."
+  }
+}
