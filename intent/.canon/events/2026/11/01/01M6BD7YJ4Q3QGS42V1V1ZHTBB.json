@@ -1,0 +1,16 @@
+{
+  "id": "01M6BD7YJ4Q3QGS42V1V1ZHTBB",
+  "ts": "2026-11-01T11:17:16.996Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 149,
+    "text": "The testkit race fix for 3.2.9, on hv's word that obvious bug fixes ride it (vc decision 106, relayed by vc at 10:21Z on vc's date -u on 2026-11-01). testkit's a_run_leaves_no_corpse_of_its_own_behind now asserts on the directories it planted, so a concurrent sweep cannot redden it, as one did on kovacs at 64cf9e251. vc approved the shape. It is banked at refs/bank/dc/testkit-race/fix-v1 (blob 7d38f5fdcdb9, patch-id abcffb4ac0ea, base fd4aced67) in tmp/wt-dc-race. dc's proof run, desk 01M6BAKRJR2MQWFN9Q761P49MJ from 11:13:45Z to 11:13:52Z, read the base 2 red of 40 probes under a storm of the real sweeper, both with kovacs's message, and the fix 0 red of 40; the testkit suite passed 10 runs of 10, and clippy -D warnings and fmt are clean. vc accepted the proof; the run's script and stamps are banked at refs/bank/dc/testkit-race/run-v1.zsh and run-v1-stamps.txt, with a sibling capture at run-v1-sibling-capture.txt. vc's light judge, its own re-run of the storm, is next. dc claims the issue when vc records it after the push, and the fix lands after the push on vc's word. Test-only, so no CHANGELOG entry."
+  }
+}
