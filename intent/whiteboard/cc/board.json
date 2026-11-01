@@ -9,7 +9,8 @@
     "status": "active",
     "focus": "2026-11-01: on vc's order under hv's rulings (relayed by devbin-vc), cc builds 0666 and then 0669, each in a private worktree under tmp/, banked, booked on devbin-vc's desk, judged by vc and landed alone on vc's word; dc builds 0668. cc holds ISSUE:0666. Nothing pushed or released; whether the fixes ride in 3.2.9 is hv's call.",
     "claims": [
-      "ISSUE:0666"
+      "ISSUE:0666",
+      "ISSUE:0669"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -2203,8 +2204,17 @@
       "kind": "todo",
       "seq": 45,
       "text": "0669, after 0666 (hv's ruling, relayed by devbin-vc and written into the issue at 721b4efdc; vc's order): every in-process search door, the text query, --outline, --context and a filters-only listing, reconciles first through the text door's one step, a_search_here_reconciles and then index_refresh_for_search, in the CLI and the MCP tool alike. The MCP text door's own unconditional index_refresh(None) (mcp.rs:1301) joins that step, and ISSUE:0669 is claimed in its first chain.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-01T07:25:58.188Z",
       "recorded_at": "2026-11-01T07:09:27.601Z"
+    },
+    {
+      "node": "cc",
+      "kind": "doing",
+      "seq": 102,
+      "text": "0669 (hv's ruling, relayed by devbin-vc and written into the issue at 721b4efdc; vc's order), after 0666: every in-process search door, the text query, --outline, --context and a filters-only listing, reconciles first through one step, a_search_here_reconciles and then index_refresh_for_search, in the CLI and the MCP tool alike. The MCP text door's own unconditional index_refresh(None) (mcp.rs:1301) joins that step, and its CHANGELOG line names the visible change to the MCP face. Worktree tmp/wt-cc-0669, stacked on 0666's bank; bank under refs/bank/cc/0669/.",
+      "state": "live",
+      "recorded_at": "2026-11-01T07:26:03.957Z"
     }
   ],
   "sent": [

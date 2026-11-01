@@ -1,0 +1,15 @@
+{
+  "id": "01M6B00JNN9T0PA1WVD0G8X7EN",
+  "ts": "2026-11-01T07:26:03.957Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "0669 (hv's ruling, relayed by devbin-vc and written into the issue at 721b4efdc; vc's order), after 0666: every in-process search door, the text query, --outline, --context and a filters-only listing, reconciles first through one step, a_search_here_reconciles and then index_refresh_for_search, in the CLI and the MCP tool alike. The MCP text door's own unconditional index_refresh(None) (mcp.rs:1301) joins that step, and its CHANGELOG line names the visible change to the MCP face. Worktree tmp/wt-cc-0669, stacked on 0666's bank; bank under refs/bank/cc/0669/."
+  }
+}
