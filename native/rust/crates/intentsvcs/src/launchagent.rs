@@ -47,6 +47,8 @@ pub enum LaunchAgentError {
   Refused { verb: String, stderr: String },
   #[error("login enrolment is macOS's, through launchd, and this machine runs {os}")]
   NotMacOs { os: String },
+  #[error("intentd is already running (pid {pid}) and is not enrolled at login")]
+  RunningUnenrolled { pid: u32 },
   #[error(transparent)]
   UserState(#[from] userstate::UserStateError),
 }
@@ -76,6 +78,13 @@ impl Remedy for LaunchAgentError {
       // runs here exactly as it does unenrolled on a Mac.
       LaunchAgentError::NotMacOs { .. } => {
         "nothing was written. The daemon runs here without enrolment: `intent daemon start` without the enrolment flag starts it, and `intent daemon stop` stops it.".to_string()
+      }
+      // **NOTHING WAS WRITTEN AND NOTHING WAS STOPPED** (issue 0666). Loading
+      // a plist beside the running daemon has `launchd` start a second one,
+      // which races it for the socket, and stopping the running one is the
+      // operator's call, because every session on the machine is using it.
+      LaunchAgentError::RunningUnenrolled { .. } => {
+        "nothing was written, and the running daemon was left answering. To enrol it, stop it with `intent daemon stop`, then run `intent daemon start --at-login`, which writes the plist and has `launchd` start the daemon.".to_string()
       }
       LaunchAgentError::UserState(e) => e.remedy(),
     }
@@ -250,6 +259,71 @@ pub fn is_enrolled(dirs: &userstate::Dirs) -> bool {
   userstate::launch_agent_plist_under(dirs).is_file()
 }
 
+/// What the plist under `dirs` says about enrolment at login.
+///
+/// **THE THREE STATES `intent daemon start --at-login` ANSWERS DIFFERENTLY
+/// BESIDE A RUNNING DAEMON** (issue 0666). Read through [`is_enrolled`],
+/// [`is_stale`] and [`stamped_version`] rather than by a second reading of the
+/// file, so this and those predicates cannot disagree about one plist.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Enrolment {
+  /// No plist: never enrolled, or unenrolled since.
+  Absent,
+  /// A plist another build wrote, with the version its stamp names, or `None`
+  /// for one written before the stamp existed.
+  Stale { stamped: Option<String> },
+  /// A plist this build wrote.
+  Current,
+}
+
+/// Read [`Enrolment`] from the plist under `dirs`.
+pub fn enrolment(dirs: &userstate::Dirs) -> Enrolment {
+  if !is_enrolled(dirs) {
+    Enrolment::Absent
+  } else if is_stale(dirs) {
+    Enrolment::Stale {
+      stamped: stamped_version(dirs),
+    }
+  } else {
+    Enrolment::Current
+  }
+}
+
+/// What `intent daemon start --at-login` owes beside a daemon already running.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Beside {
+  /// This build's plist is in place, so the enrolment holds and nothing is
+  /// written.
+  Holds,
+  /// An enrolment another build wrote: rewrite the plist with [`write_plist`]
+  /// and load nothing. `was` is the version it replaces, `None` for a plist
+  /// with no stamp.
+  Rewrite { was: Option<String> },
+}
+
+/// The answer `intent daemon start --at-login` gives beside the daemon already
+/// running as `pid` (issue 0666).
+///
+/// **NO ANSWER STOPS, RESTARTS OR LOADS ANYTHING.** The plist carries
+/// `RunAtLoad`, so loading it beside the running daemon would have `launchd`
+/// start a second one that races it for the socket, and the running daemon is
+/// the one every session on the machine is using. So with no plist the answer
+/// is a refusal, never an `ok:` for an enrolment nothing made.
+///
+/// **A STALE PLIST IS REWRITTEN RATHER THAN REFUSED**, because repairing an
+/// enrolment that exists is not making a new one (see [`is_stale`]), and
+/// rewriting without loading is what the daemon's own boot does: `launchd`
+/// reads the file at the next login, and writing it starts nothing.
+///
+/// PURE in what it is handed, so every answer is driven on any host.
+pub fn beside_a_running_daemon(pid: u32, enrolment: Enrolment) -> Result<Beside, LaunchAgentError> {
+  match enrolment {
+    Enrolment::Absent => Err(LaunchAgentError::RunningUnenrolled { pid }),
+    Enrolment::Stale { stamped } => Ok(Beside::Rewrite { was: stamped }),
+    Enrolment::Current => Ok(Beside::Holds),
+  }
+}
+
 /// Remove the plist under `dirs`. `true` when there was one to remove.
 pub fn remove_plist(dirs: &userstate::Dirs) -> Result<bool, LaunchAgentError> {
   let path = userstate::launch_agent_plist_under(dirs);
@@ -319,6 +393,76 @@ mod tests {
       said.contains("`intent daemon start` without the enrolment flag"),
       "names no unenrolled start: {said}"
     );
+  }
+
+  #[test]
+  fn beside_a_running_daemon_this_builds_plist_holds() {
+    assert_eq!(
+      beside_a_running_daemon(4242, Enrolment::Current).expect("the enrolment holds"),
+      Beside::Holds
+    );
+  }
+
+  #[test]
+  fn beside_a_running_daemon_another_builds_plist_is_rewritten_naming_its_version() {
+    let stale = Enrolment::Stale {
+      stamped: Some("3.2.7".to_string()),
+    };
+    assert_eq!(
+      beside_a_running_daemon(4242, stale).expect("a stale plist is rewritten"),
+      Beside::Rewrite {
+        was: Some("3.2.7".to_string())
+      }
+    );
+  }
+
+  #[test]
+  fn beside_a_running_daemon_no_plist_is_refused_naming_the_pid_and_stop_then_enrol() {
+    let refused =
+      beside_a_running_daemon(4242, Enrolment::Absent).expect_err("nothing enrolled this machine");
+    let said = refused.render();
+
+    assert!(said.contains("pid 4242"), "names no running pid: {said}");
+    assert!(
+      said.contains("not enrolled at login"),
+      "names no missing enrolment: {said}"
+    );
+    assert!(
+      said.contains("nothing was written"),
+      "does not say nothing was written: {said}"
+    );
+    assert!(
+      said.contains("`intent daemon stop`") && said.contains("`intent daemon start --at-login`"),
+      "names no stop-then-enrol remedy: {said}"
+    );
+  }
+
+  #[test]
+  fn the_enrolment_is_read_as_absent_stale_or_current_from_the_plist() {
+    let home = root();
+    let dirs = userstate::Dirs::at_home(home.path());
+    assert_eq!(enrolment(&dirs), Enrolment::Absent);
+
+    let plist = userstate::launch_agent_plist_under(&dirs);
+    std::fs::create_dir_all(plist.parent().expect("a parent")).expect("create LaunchAgents");
+    std::fs::write(&plist, "<plist><dict><key>Label</key></dict></plist>\n")
+      .expect("plant a pre-stamp plist");
+    assert_eq!(enrolment(&dirs), Enrolment::Stale { stamped: None });
+
+    std::fs::write(
+      &plist,
+      format!("<plist>\n<!-- {STAMP_KEY}: 0.0.1\n-->\n</plist>\n"),
+    )
+    .expect("plant an older build's plist");
+    assert_eq!(
+      enrolment(&dirs),
+      Enrolment::Stale {
+        stamped: Some("0.0.1".to_string())
+      }
+    );
+
+    write_plist(&dirs, Path::new("/opt/intent/bin/intentd")).expect("write this build's plist");
+    assert_eq!(enrolment(&dirs), Enrolment::Current);
   }
 
   #[test]

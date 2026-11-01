@@ -9,6 +9,13 @@
 //! **`AT-08.7` / `AC-08.7` is arms 5-6, POLICY-STAMP SELF-HEALING:**
 //! `a_stale_launchagent_is_regenerated_when_the_daemon_boots` and
 //! `booting_does_not_enrol_a_machine_that_never_asked`.
+//! **Issue 0666's three arms are `start --at-login` BESIDE A RUNNING DAEMON:**
+//! `start_at_login_beside_a_running_daemon_with_no_plist_refuses`,
+//! `start_at_login_beside_a_running_daemon_with_this_builds_plist_writes_nothing`
+//! and `start_at_login_beside_a_running_daemon_rewrites_a_stale_plist`. They
+//! need a running daemon under an isolated `HOME`, which is this file's
+//! harness, and they run on macOS only, because elsewhere the flag is refused
+//! before the running check (`at_login_is_refused_off_macos.rs`).
 //!
 //! **NAMING THE ARMS IS LOAD-BEARING RATHER THAN TIDY.** Rows citing one
 //! file by bare filename means greening any one greens the others by
@@ -78,17 +85,66 @@ impl Machine {
   }
 
   fn run(&self, argv: &[&str]) -> Output {
-    crate::common::intent()
+    let mut command = crate::common::intent();
+    command
       .args(argv)
       .current_dir(&self.project)
       .env("HOME", &self.home)
-      .stdin(testkit::lifeline_for(argv))
-      .output()
-      .expect("the intent binary runs")
+      .stdin(testkit::lifeline_for(argv));
+    // Once an arm has asked for the `launchctl` stand-in, every run sees it
+    // first on `PATH` (issue 0666): see [`Machine::watch_launchctl`].
+    let stand_in = self.stand_in_bin();
+    if stand_in.is_dir() {
+      command.env(
+        "PATH",
+        format!(
+          "{}:{}",
+          stand_in.display(),
+          std::env::var("PATH").unwrap_or_default()
+        ),
+      );
+    }
+    command.output().expect("the intent binary runs")
   }
 
   fn state_dir(&self) -> PathBuf {
     self.home.join(".local/state/intent")
+  }
+
+  /// Where D19 puts this machine's LaunchAgent.
+  fn plist(&self) -> PathBuf {
+    self
+      .home
+      .join("Library/LaunchAgents/com.matthewsinclair.intentd.plist")
+  }
+
+  /// Where the `launchctl` stand-in lives, once [`Machine::watch_launchctl`]
+  /// has put it there.
+  fn stand_in_bin(&self) -> PathBuf {
+    self.home.join("stand-in-bin")
+  }
+
+  /// Put a `launchctl` that records each call and refuses it first on `PATH`
+  /// for every later [`Machine::run`], and return the file it records to.
+  ///
+  /// **AN ISOLATED `HOME` DOES NOT ISOLATE `launchd`.** `launchctl load` infers
+  /// its domain from the calling session, so a load from this fixture would
+  /// register a real job under the real label. The stand-in is how an arm says
+  /// nothing was loaded without asking the real `launchd`, and it lives in
+  /// `Machine::run` so the harness keeps one spawn path.
+  fn watch_launchctl(&self) -> PathBuf {
+    use std::os::unix::fs::PermissionsExt;
+    let bin = self.stand_in_bin();
+    std::fs::create_dir_all(&bin).expect("create the stand-in's directory");
+    let stand_in = bin.join("launchctl");
+    std::fs::write(
+      &stand_in,
+      "#!/bin/sh\necho \"$*\" >> \"$0.called\"\nexit 1\n",
+    )
+    .expect("write the stand-in launchctl");
+    std::fs::set_permissions(&stand_in, std::fs::Permissions::from_mode(0o755))
+      .expect("make the stand-in executable");
+    bin.join("launchctl.called")
   }
 }
 
@@ -112,6 +168,42 @@ fn text(out: &Output) -> String {
 
 fn answering(m: &Machine) -> bool {
   text(&m.run(&["daemon", "status"])).contains("is answering at")
+}
+
+/// Plant a plist with no stamp, the shape every plist written before the stamp
+/// existed has, so it reads as stale.
+fn plant_unstamped(m: &Machine) {
+  let plist = m.plist();
+  std::fs::create_dir_all(plist.parent().expect("a parent")).expect("dirs");
+  std::fs::write(&plist, "<plist><dict><key>Label</key></dict></plist>\n")
+    .expect("plant a pre-stamp plist");
+}
+
+/// The pid a line names as `(pid N)`.
+fn pid_named(said: &str) -> Option<&str> {
+  let at = said.find("(pid ")? + "(pid ".len();
+  let rest = &said[at..];
+  rest.find(')').map(|end| &rest[..end])
+}
+
+/// Start a daemon if none is running, and return the pid a second start names.
+///
+/// **A RESTART CHANGES THE PID, SO THIS IS HOW AN ARM SAYS THE DAEMON WAS LEFT
+/// ALONE.** [`answering`] is as true of a daemon that was stopped and started
+/// again as of one nobody touched.
+fn running_pid(m: &Machine) -> String {
+  let started = m.run(&["daemon", "start"]);
+  assert_eq!(
+    started.status.code(),
+    Some(0),
+    "start failed: {}",
+    text(&started)
+  );
+  let again = m.run(&["daemon", "start"]);
+  let said = text(&again);
+  pid_named(&said)
+    .unwrap_or_else(|| panic!("a second start names no pid: {said}"))
+    .to_string()
 }
 
 #[test]
@@ -461,12 +553,8 @@ fn the_logs_land_where_d19_put_them() {
 #[test]
 fn a_stale_launchagent_is_regenerated_when_the_daemon_boots() {
   let machine = Machine::new();
-  let plist = machine
-    .home
-    .join("Library/LaunchAgents/com.matthewsinclair.intentd.plist");
-  std::fs::create_dir_all(plist.parent().expect("a parent")).expect("dirs");
-  std::fs::write(&plist, "<plist><dict><key>Label</key></dict></plist>\n")
-    .expect("plant a pre-stamp plist");
+  let plist = machine.plist();
+  plant_unstamped(&machine);
 
   // **ANTI-VACUITY, AND IT IS NOT CEREMONY HERE.** If the planted file did not
   // read as stale, the arm below would pass on a daemon that healed nothing --
@@ -509,9 +597,7 @@ fn a_stale_launchagent_is_regenerated_when_the_daemon_boots() {
 #[test]
 fn booting_does_not_enrol_a_machine_that_never_asked() {
   let machine = Machine::new();
-  let plist = machine
-    .home
-    .join("Library/LaunchAgents/com.matthewsinclair.intentd.plist");
+  let plist = machine.plist();
   assert!(!plist.exists(), "the fixture is already enrolled");
 
   let started = machine.run(&["daemon", "start"]);
@@ -526,5 +612,179 @@ fn booting_does_not_enrol_a_machine_that_never_asked() {
     !plist.exists(),
     "starting a daemon enrolled this machine at login without being asked: {}",
     plist.display()
+  );
+}
+
+/// Issue 0666: **with no plist, `start --at-login` beside a running daemon
+/// refuses, naming its pid and the stop-then-enrol remedy, and writes, loads
+/// and stops nothing.** It used to say `ok: intentd is already running` and
+/// enrol nothing.
+#[test]
+#[cfg_attr(
+  not(target_os = "macos"),
+  ignore = "off macOS `--at-login` is refused before the running check"
+)]
+fn start_at_login_beside_a_running_daemon_with_no_plist_refuses() {
+  let machine = Machine::new();
+  let pid = running_pid(&machine);
+  assert!(!machine.plist().exists(), "the fixture is already enrolled");
+
+  let record = machine.watch_launchctl();
+  let asked = machine.run(&["daemon", "start", "--at-login"]);
+  let said = text(&asked);
+
+  assert_eq!(
+    asked.status.code(),
+    Some(1),
+    "start --at-login said yes beside a running daemon nothing enrolled: {said}"
+  );
+  assert_eq!(
+    pid_named(&said),
+    Some(pid.as_str()),
+    "the refusal does not name the running pid: {said}"
+  );
+  assert!(
+    said.contains("not enrolled at login"),
+    "the refusal does not say what is missing: {said}"
+  );
+  assert!(
+    said.contains("`intent daemon stop`") && said.contains("`intent daemon start --at-login`"),
+    "the refusal names no stop-then-enrol remedy: {said}"
+  );
+  assert!(
+    !machine.plist().exists(),
+    "a plist was written beside the running daemon: {said}"
+  );
+  assert_eq!(
+    std::fs::read_to_string(&record).ok(),
+    None,
+    "launchctl was run beside the running daemon"
+  );
+  assert_eq!(
+    running_pid(&machine),
+    pid,
+    "the running daemon was stopped or restarted"
+  );
+}
+
+/// Issue 0666: **with this build's plist in place, `start --at-login` beside a
+/// running daemon says it is enrolled at login and running, and writes
+/// nothing.**
+#[test]
+#[cfg_attr(
+  not(target_os = "macos"),
+  ignore = "off macOS `--at-login` is refused before the running check"
+)]
+fn start_at_login_beside_a_running_daemon_with_this_builds_plist_writes_nothing() {
+  let machine = Machine::new();
+  // **PLANTED BEFORE THE BOOT, SO THE DAEMON'S OWN HEAL WRITES THIS BUILD'S
+  // PLIST** through the writer the enrol path uses, rather than this arm
+  // forging one.
+  plant_unstamped(&machine);
+  let pid = running_pid(&machine);
+  let before = std::fs::read_to_string(machine.plist()).expect("read the healed plist");
+  assert!(
+    before.contains(&format!("INTENT_VER: {}", env!("CARGO_PKG_VERSION"))),
+    "the boot did not heal the planted plist, so nothing here is this build's: {before}"
+  );
+  let written = std::fs::metadata(machine.plist())
+    .and_then(|m| m.modified())
+    .expect("read the plist's mtime");
+
+  let record = machine.watch_launchctl();
+  let asked = machine.run(&["daemon", "start", "--at-login"]);
+  let said = text(&asked);
+
+  assert_eq!(
+    asked.status.code(),
+    Some(0),
+    "start --at-login refused an enrolment that holds: {said}"
+  );
+  assert!(
+    said.contains("enrolled at login and already running"),
+    "the answer does not say both facts: {said}"
+  );
+  assert_eq!(
+    pid_named(&said),
+    Some(pid.as_str()),
+    "the answer does not name the running pid: {said}"
+  );
+  assert!(
+    !said.contains("rewritten"),
+    "a plist this build wrote was reported rewritten: {said}"
+  );
+  assert_eq!(
+    std::fs::metadata(machine.plist())
+      .and_then(|m| m.modified())
+      .expect("read the plist's mtime again"),
+    written,
+    "the plist this build wrote was written again"
+  );
+  assert_eq!(
+    std::fs::read_to_string(&record).ok(),
+    None,
+    "launchctl was run beside the running daemon"
+  );
+  assert_eq!(
+    running_pid(&machine),
+    pid,
+    "the running daemon was stopped or restarted"
+  );
+}
+
+/// Issue 0666: **an older build's plist beside a running daemon is rewritten
+/// and not loaded, and the daemon is left alone**, as the daemon's own boot
+/// heals one.
+#[test]
+#[cfg_attr(
+  not(target_os = "macos"),
+  ignore = "off macOS `--at-login` is refused before the running check"
+)]
+fn start_at_login_beside_a_running_daemon_rewrites_a_stale_plist() {
+  let machine = Machine::new();
+  let pid = running_pid(&machine);
+  // **PLANTED AFTER THE BOOT**, so the daemon's own heal has not rewritten it.
+  plant_unstamped(&machine);
+
+  let record = machine.watch_launchctl();
+  let asked = machine.run(&["daemon", "start", "--at-login"]);
+  let said = text(&asked);
+
+  assert_eq!(
+    asked.status.code(),
+    Some(0),
+    "start --at-login did not repair an enrolment that exists: {said}"
+  );
+  assert!(
+    said.contains("enrolled at login and already running"),
+    "the answer does not say both facts: {said}"
+  );
+  assert!(
+    said.contains(&format!(
+      "rewritten (was unstamped, now {})",
+      env!("CARGO_PKG_VERSION")
+    )),
+    "the answer does not name the rewrite: {said}"
+  );
+  assert_eq!(
+    pid_named(&said),
+    Some(pid.as_str()),
+    "the answer does not name the running pid: {said}"
+  );
+  let after = std::fs::read_to_string(machine.plist()).expect("read the rewritten plist");
+  assert!(
+    after.contains(&format!("INTENT_VER: {}", env!("CARGO_PKG_VERSION")))
+      && after.contains("StandardOutPath"),
+    "the plist was not regenerated for this build: {after}"
+  );
+  assert_eq!(
+    std::fs::read_to_string(&record).ok(),
+    None,
+    "launchctl was run, so the rewritten plist was loaded beside the running daemon"
+  );
+  assert_eq!(
+    running_pid(&machine),
+    pid,
+    "the running daemon was stopped or restarted"
   );
 }

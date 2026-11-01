@@ -12051,7 +12051,14 @@ fn daemon_start(at_login: bool) -> Result<(), Failure> {
   // **IT STILL SAYS SO RATHER THAN PRETENDING IT STARTED ONE.** Silence here
   // would be the version of this that hides a daemon nobody meant to leave
   // running; naming the pid is what lets an operator notice.
+  //
+  // **WITH `--at-login` THE POSTCONDITION INCLUDES THE ENROLMENT** (issue
+  // 0666), so a running daemon answers for it only where a plist is in place:
+  // see [`enrolled_beside_a_running_daemon`].
   if let Some(pid) = running_daemon_pid(&dirs)? {
+    if at_login {
+      return enrolled_beside_a_running_daemon(&dirs, pid);
+    }
     println!("ok: intentd is already running (pid {pid})");
     return Ok(());
   }
@@ -12159,6 +12166,37 @@ fn daemon_start(at_login: bool) -> Result<(), Failure> {
     out.display(),
     err.display()
   )))
+}
+
+/// `intent daemon start --at-login` with a daemon already running as `pid`
+/// (issue 0666): the enrolment holds, or an older build's plist is rewritten,
+/// or the verb refuses, and the running daemon is never stopped, restarted or
+/// loaded beside. [`launchagent::beside_a_running_daemon`] decides which.
+fn enrolled_beside_a_running_daemon(
+  dirs: &intentsvcs::userstate::Dirs,
+  pid: u32,
+) -> Result<(), Failure> {
+  let answer = launchagent::beside_a_running_daemon(pid, launchagent::enrolment(dirs))
+    .map_err(|e| Failure::Error(e.render()))?;
+  let plist = match answer {
+    launchagent::Beside::Holds => {
+      println!("ok: intentd is enrolled at login and already running (pid {pid})");
+      intentsvcs::userstate::launch_agent_plist_under(dirs)
+    }
+    launchagent::Beside::Rewrite { was } => {
+      let binary = resolve_intentd()?;
+      let plist =
+        launchagent::write_plist(dirs, &binary).map_err(|e| Failure::Error(e.render()))?;
+      println!(
+        "ok: intentd is enrolled at login and already running (pid {pid}); the plist was rewritten (was {}, now {})",
+        was.as_deref().unwrap_or("unstamped"),
+        intentsvcs::faces::INTENT_VER
+      );
+      plist
+    }
+  };
+  println!("     plist: {}", plist.display());
+  Ok(())
 }
 
 /// How many times `start` and `stop` ask before giving up.

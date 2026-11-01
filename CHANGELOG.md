@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`intent index status` and `intent index rebuild` name when the index was last reconciled** (issue 0664, ST0090 WP-01): a `reconciled:` line in the text and `reconciled_at` in the JSON, both read from the stamp the last reconcile wrote to the store, never from a clock, and `none` (`null` in the JSON) for an index no reconcile has stamped. The `intent_index_status` MCP tool carries `reconciled_at` too.
 - **Intent.app's Rebuild Search Index row says how long ago the index was reconciled** (issue 0664, ST0090 WP-02): a second line, `reconciled <age> ago` in Gtools' age words, from the `reconciled_at` that `intent index status --json` names. The app reads it at launch, after each rebuild and as the menu opens, and a CLI that names no stamp leaves the row without a second line.
 
+### Fixed
+
+- **`intent daemon start --at-login` no longer says `ok:` beside a running daemon that nothing enrolled** (issue 0666). With a daemon running and no plist, it refuses, naming the running pid and the remedy, `intent daemon stop` and then `intent daemon start --at-login`; it writes nothing and leaves the daemon answering. With a daemon running and the plist this build writes already in place, it says the daemon is enrolled at login and already running, and writes nothing. With a daemon running and a plist an older build wrote, it rewrites the plist and loads nothing, as the daemon's own boot does, so the running daemon is left alone and `launchd` reads the new plist at the next login. It used to print `ok: intentd is already running` in all three cases and enrol nothing.
+
 ## [3.2.8] - 2026-10-31
 
 ### Fixed
