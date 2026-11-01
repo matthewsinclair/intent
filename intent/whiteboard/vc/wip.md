@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 096ec97d-7b3c-4dab-8be4-db54311270c3
-heartbeat_at: 2026-11-01 09:07Z
+heartbeat_at: 2026-11-01 09:11Z
 status: active
-focus: "2026-11-01: hv's 3.2.9 fixes 0666, 0668 and 0669 are landed and closed; build all at HEAD, the Linux preflight and the push follow (doing). 0670 is held for hv's word (hold). Hold 6 waits on hv's look, and todo 71 on Devbin 0.1.19."
+focus: "2026-11-01: hv's 3.2.9 fixes 0666, 0668 and 0669 are landed and closed, and build all at 64cf9e251 passed; the kovacs preflight at that HEAD and the push wait for hv's return (doing 61). 0670 is held for hv's word (hold 7). Hold 6 waits on hv's look, and todo 71 on Devbin 0.1.19."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- 3.2.9's push: its three fixes are on main (0666 cbdee221d, 0668 823cddabd, 0669 bb1efcec5, each judged green by vc and its issue closed). Next: build all at HEAD on devbin-vc's desk, then a Linux preflight at HEAD on kovacs (hv's `!` in kovacs-sysadm's session), then devbin-vc pushes local and upstream on vc's word naming that HEAD (decision 90). The cut is hv's.
+- 3.2.9's push: its three fixes are on main (0666 cbdee221d, 0668 823cddabd, 0669 bb1efcec5, each judged green by vc and its issue closed), and build all at 64cf9e251 passed (the pair names 64cf9e251e56 and is promoted; desk request 01M6B5WYC0WSD8DCVJZHAFW7Q7). Next: a Linux preflight at 64cf9e251 on kovacs, which devbin-vc books and whose `!` line waits for hv's return; then devbin-vc pushes local and upstream on vc's word naming the HEAD it covers (decision 90). Until then Intent commits only under intent/whiteboard/ and intent/.canon/events/. The cut is hv's. (edited)
 
 ## TODO
 
@@ -22,7 +22,7 @@ claims: []
 
 ## Holds
 
-- ST0090 AC-02.4, issue 0664's last criterion: held until hv has seen Intent.app's Rebuild Search Index row show its second line, reconciled <age> ago, after a rebuild, on a build at or after a54f2e9e0 whose CLI carries 8406f6a15: the 3.2.9 cut, or a dev app pointed at a dev CLI, which is the maintainer's alone. The dev CLI half is ready: build all at ef75832e7 promoted intent and intentd (dev, ef75832e719f) into native/rust/target/release on 2026-11-01. The app half is a Debug build at HEAD, dc's, by `bin/devbin macos app-build`, with hv setting IntentBinary to that CLI and deleting it after (dc's route, verified by vc). Then vc records that build on AC-02.4 and tells dc to close WP-02. (edited)
+- ST0090 AC-02.4, issue 0664's last criterion: held until hv has seen Intent.app's Rebuild Search Index row show its second line, reconciled <age> ago, after a rebuild, on a build at or after a54f2e9e0 whose CLI carries 8406f6a15: the 3.2.9 cut, or a dev app pointed at a dev CLI, which is the maintainer's alone. The dev CLI half is ready: build all at 64cf9e251 promoted intent and intentd (dev, 64cf9e251e56) into native/rust/target/release on 2026-11-01. The app half is a Debug build at HEAD, dc's, by `bin/devbin macos app-build`, with hv setting IntentBinary to that CLI and deleting it after (dc's route, verified by vc). Then vc records that build on AC-02.4 and tells dc to close WP-02. (edited)
 - Issue 0670, on hv's ruling of 2026-11-01 "ambiguous lines stop" (the 1-row shape, recorded in the issue): held until hv's word to build it, because hv's word for 2026-11-01, relayed by devbin-vc, is "ship ST0011, no new code and no new yaks". Then dc builds it (dc hold 38) after vc answers dc's shape questions (refs/bank/dc/0670/shape-questions.md), and vc judges it with the fleet census (refs/bank/vc/0670/) re-run against the build, which must redden Devbin ST0011 AT-3.5 and nothing else.
 
 ## Watch-outs
