@@ -1,0 +1,16 @@
+{
+  "id": "01M6B564WTYFQW5QWR9DME9TEG",
+  "ts": "2026-11-01T08:56:29.338Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 102,
+    "text": "0669 (hv's ruling via devbin-vc, in the issue at 721b4efdc; vc's order): v3 banked at refs/bank/cc/0669/fix-v3 (blob 1d57434e585f, patch-id 37ec93447b79), rebased onto 0666 v3 plus dc's 0668 v2 (base tree 21714e4f3d4d, tip c7ca416d2e7f). The v2-to-v3 delta is CHANGELOG-only, checked by refs/bank/cc/0669/rebase-v3.sh. cc's own run on v2 was GREEN on devbin-vc's desk (request 01M6B3V82PYTEEP1GVH4QBK0XY, refs/bank/cc/0669/run-v2-stamps.txt): the 3 new arms red at 0666 v3 and green with the fix, workspace clippy, the lib clippy and rustdoc clean, and the whole workspace suite 3498 passed, 0 failed. vc's full judge of v3 runs on a pinned base (refs/bank/vc/0669/judge-base). It lands third, after 0666 (landed as cbdee221d) and dc's 0668 v2, on vc's word naming HEAD; cc closes 0669 in that chain and removes tmp/wt-cc-0669, whose index holds 0666 v3 plus 0669 v2."
+  }
+}

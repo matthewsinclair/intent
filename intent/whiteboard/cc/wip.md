@@ -3,18 +3,17 @@ node: cc
 name: Control Claude
 role: control
 session_id: 3b3a4233-d9c4-4534-9c64-23190cbba0db
-heartbeat_at: 2026-11-01 08:12Z
+heartbeat_at: 2026-11-01 08:56Z
 status: active
-focus: "2026-11-01, folded on hv's fold order for the compact, holding for hv's go. 0666 is GREEN at refs/bank/cc/0666/fix-v3 (vc's judge, 3495 passed) and waits for upstream's push, then vc's land word. 0669 v2 is banked at refs/bank/cc/0669/fix-v2, stacked on 0666 v3, and its own run is booked after the compact. cc holds ISSUE:0666 and ISSUE:0669 and two worktrees, tmp/wt-cc-0666 and tmp/wt-cc-0669, and no stash or branch. Nothing pushed or released."
-claims: [ISSUE:0666, ISSUE:0669]
+focus: "2026-11-01, after hv's go: 0666 landed as cbdee221d on vc's word and is closed; it takes effect in 3.2.9. 0669 v3 is banked at refs/bank/cc/0669/fix-v3, a CHANGELOG-only rebase onto 0666 v3 plus 0668 v2; cc's own v2 run was GREEN (3498 passed) and vc's full judge of v3 is running. It lands after dc's 0668 v2, on vc's word. cc holds ISSUE:0669 and tmp/wt-cc-0669, and no stash or branch. Nothing pushed or released."
+claims: [ISSUE:0669]
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-- 0666 (hv's ruling via devbin-vc, in the issue at 721b4efdc; vc's reading for the plist cases): GREEN on vc's whole-workspace judge of refs/bank/cc/0666/fix-v3 (blob 6ce4a9f33b04, patch-id 95ecb259a433, tree a548571439ac on 086bfc9e1), 3495 passed and 0 failed, evidence at refs/bank/vc/0666/judge-v3.stamps. It waits for devbin-vc's report that upstream is pushed, then for vc's land word naming HEAD. cc lands it alone from tmp/wt-cc-0666 and closes 0666 in that chain, with a note saying where it takes effect. It lands before 0669. (edited)
-- 0669 (hv's ruling via devbin-vc, in the issue at 721b4efdc; vc's order): v2 banked at refs/bank/cc/0669/fix-v2 (blob 89fc4153a081, patch-id ad11fc0c2e6d), stacked on 0666 v3's tree a548571439ac, tip 2451ebde9d8e, in tmp/wt-cc-0669. v1's own run (refs/bank/cc/0669/run-v1-stamps.txt) was red on two legs. Workspace clippy failed on result_large_err in the new step; v2 replaces the closures with a SearchDoor enum and boxes the error. And a_search_by_target_asks_one_question's stale-file arm read the old default; v2 asks it --no-reconcile, the one state it is about. After the compact, cc books v2's own run on devbin-vc's desk, then vc judges it. It lands after 0666, on vc's word, once upstream is pushed. (edited)
+- 0669 (hv's ruling via devbin-vc, in the issue at 721b4efdc; vc's order): v3 banked at refs/bank/cc/0669/fix-v3 (blob 1d57434e585f, patch-id 37ec93447b79), rebased onto 0666 v3 plus dc's 0668 v2 (base tree 21714e4f3d4d, tip c7ca416d2e7f). The v2-to-v3 delta is CHANGELOG-only, checked by refs/bank/cc/0669/rebase-v3.sh. cc's own run on v2 was GREEN on devbin-vc's desk (request 01M6B3V82PYTEEP1GVH4QBK0XY, refs/bank/cc/0669/run-v2-stamps.txt): the 3 new arms red at 0666 v3 and green with the fix, workspace clippy, the lib clippy and rustdoc clean, and the whole workspace suite 3498 passed, 0 failed. vc's full judge of v3 runs on a pinned base (refs/bank/vc/0669/judge-base). It lands third, after 0666 (landed as cbdee221d) and dc's 0668 v2, on vc's word naming HEAD; cc closes 0669 in that chain and removes tmp/wt-cc-0669, whose index holds 0666 v3 plus 0669 v2. (edited)
 
 ## TODO
 
