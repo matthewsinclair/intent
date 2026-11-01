@@ -144,7 +144,7 @@ impl crate::remedy::Remedy for SlotError {
       Self::NamedMismatch { .. } => "start it naming the same set the ask named; different bytes are a new booking, `intent estate slots ask`. Nothing was written.".to_string(),
       Self::LaneBusy { .. } => "wait for those requests to end, or revoke them, before closing the lane. Nothing was written.".to_string(),
       Self::BadName { .. } => "use letters, digits, `-` and `_`: the name is a file name. Nothing was written.".to_string(),
-      Self::BadPlaceOf { .. } => "a hand-back keeps its place only from a request that was granted and released before it started, naming the same set; otherwise ask afresh. Nothing was written.".to_string(),
+      Self::BadPlaceOf { .. } => "a hand-back keeps its place only from a request that was granted and then released or revoked before it started, naming the same set; otherwise ask afresh. Nothing was written.".to_string(),
       Self::BadArg { .. } => "check the verb's arguments with `--help`. Nothing was written.".to_string(),
       Self::NoHold { .. } => "list the standing holds with `intent estate status`. Nothing was written.".to_string(),
       Self::Exists { .. } => "the step this writes has already been taken; check the request's state with `intent estate status`. Nothing was written.".to_string(),
@@ -1054,8 +1054,11 @@ pub fn ask(
   }
   if let Some(prior) = &args.place_of {
     let r = request_of(&slots, prior)?;
-    let why = if r.grant.is_none() || r.end.is_none() || r.start.is_some() || r.revoke.is_some() {
-      Some("was not granted and released before it started")
+    // A grant ended before its start keeps its place, whether its holder
+    // released it or the controller revoked it (issue 0668).
+    let unrun = r.grant.is_some() && r.start.is_none() && (r.end.is_some() || r.revoke.is_some());
+    let why = if !unrun {
+      Some("was not granted and then released or revoked before it started")
     } else if r.ask.record.named != args.named {
       Some("named a different set")
     } else {
@@ -1250,7 +1253,8 @@ pub fn deny(dirs: &Dirs, caller: &Caller, id: &str, why: &str) -> Result<PathBuf
 }
 
 /// `slots revoke`: ends an asked, granted or running request, freeing what it
-/// held. The tool kills no process.
+/// held. The tool kills no process. A grant it revokes before its start is
+/// one a `--place-of` ask re-asks from, as from an unrun release.
 pub fn revoke(dirs: &Dirs, caller: &Caller, id: &str, why: &str) -> Result<PathBuf, SlotError> {
   let slots = read_strict(dirs);
   ensure_controller(&slots, caller, "slots revoke")?;
@@ -2093,7 +2097,7 @@ mod tests {
   /// A hand-back keeps its place: `--place-of` re-asks from a request granted
   /// and released before it started, and sorts by its `asked_at`.
   #[test]
-  fn a_hand_back_keeps_its_place_only_from_a_request_released_unrun() {
+  fn a_hand_back_keeps_its_place_from_a_request_released_unrun() {
     let h = host();
     let ctl = desk(&h);
     let me = who("me", "intent-cc", 1);
@@ -2137,6 +2141,58 @@ mod tests {
     let recent = recent_value(&read_strict(&h.dirs), |at| at >= since);
     assert_eq!(recent[0]["id"], first.as_str());
     assert_eq!(recent[0]["state"], "ended");
+  }
+
+  /// Issue 0668: a controller's revoke before a start keeps the place as the
+  /// holder's own release does. `--place-of` re-asks from a grant the
+  /// controller revoked unrun and sorts by its `asked_at`; a request revoked
+  /// while still asked, or once it has started, still asks afresh.
+  #[test]
+  fn a_hand_back_keeps_its_place_from_a_grant_revoked_before_its_start() {
+    let h = host();
+    let ctl = desk(&h);
+    let me = who("me", "intent-cc", 1);
+    let re_ask = |prior: &str| {
+      ask(
+        &h.dirs,
+        &me,
+        "heavy",
+        "again",
+        AskArgs {
+          place_of: Some(prior.to_string()),
+          ..AskArgs::default()
+        },
+      )
+    };
+    let (first, _) = ask(&h.dirs, &me, "heavy", "first", AskArgs::default()).expect("ask");
+    let (later, _) = ask(&h.dirs, &me, "heavy", "later", AskArgs::default()).expect("ask");
+    grant(&h.dirs, &ctl, &first, &lanes(&["heavy"]), &quiet).expect("grant");
+    revoke(&h.dirs, &ctl, &first, "the load moved").expect("revoke before the start");
+    let (again, _) = re_ask(first.as_str()).expect("re-ask in place");
+    let queue = queue_value(&read_strict(&h.dirs));
+    let order: Vec<&str> = queue
+      .as_array()
+      .expect("rows")
+      .iter()
+      .filter_map(|r| r["id"].as_str())
+      .collect();
+    assert_eq!(order, vec![again.as_str(), later.as_str()]);
+
+    let (pulled, _) = ask(&h.dirs, &me, "heavy", "pulled", AskArgs::default()).expect("ask");
+    revoke(&h.dirs, &ctl, &pulled, "never granted").expect("revoke while asked");
+    assert!(matches!(
+      re_ask(pulled.as_str()),
+      Err(SlotError::BadPlaceOf { .. })
+    ));
+
+    let (ran, _) = ask(&h.dirs, &me, "heavy", "ran", AskArgs::default()).expect("ask");
+    grant(&h.dirs, &ctl, &ran, &lanes(&["heavy"]), &quiet).expect("grant");
+    start(&h.dirs, &me, &ran, BTreeMap::new(), false).expect("start");
+    revoke(&h.dirs, &ctl, &ran, "pulled mid-run").expect("revoke once started");
+    assert!(matches!(
+      re_ask(ran.as_str()),
+      Err(SlotError::BadPlaceOf { .. })
+    ));
   }
 
   /// ST0086 AT-04.6

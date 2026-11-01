@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **`intent daemon start --at-login` no longer says `ok:` beside a running daemon that nothing enrolled** (issue 0666). With a daemon running and no plist, it refuses, naming the running pid and the remedy, `intent daemon stop` and then `intent daemon start --at-login`; it writes nothing and leaves the daemon answering. With a daemon running and the plist this build writes already in place, it says the daemon is enrolled at login and already running, and writes nothing. With a daemon running and a plist an older build wrote, it rewrites the plist and loads nothing, as the daemon's own boot does, so the running daemon is left alone and `launchd` reads the new plist at the next login. It used to print `ok: intentd is already running` in all three cases and enrol nothing.
+- **`intent estate slots ask --place-of` keeps the place of a grant the controller revoked before its start, as it keeps the place of one its holder released unrun** (issue 0668). A run the controller pulled back for load, through no fault of its asker, had to ask afresh and wait behind every ask made after it. The re-ask still names the same set, and a request revoked while still asked, or after it started, still asks afresh.
 
 ## [3.2.8] - 2026-10-31
 
