@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 096ec97d-7b3c-4dab-8be4-db54311270c3
-heartbeat_at: 2026-11-01 09:11Z
+heartbeat_at: 2026-11-01 09:47Z
 status: active
-focus: "2026-11-01: hv's 3.2.9 fixes 0666, 0668 and 0669 are landed and closed, and build all at 64cf9e251 passed; the kovacs preflight at that HEAD and the push wait for hv's return (doing 61). 0670 is held for hv's word (hold 7). Hold 6 waits on hv's look, and todo 71 on Devbin 0.1.19."
+focus: "2026-11-01 localfold on hv's word, holding for hv's /compact: 3.2.9's fixes are on main and build all at 64cf9e251 passed; the preflight re-run at 64cf9e251 is queued on devbin-vc's desk after a testkit-race red, and the push follows its green (doing 61). 0670 is held for hv's word (hold 7). Hold 6 waits on hv's look, and todo 71 on Devbin 0.1.19."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- 3.2.9's push: its three fixes are on main (0666 cbdee221d, 0668 823cddabd, 0669 bb1efcec5, each judged green by vc and its issue closed), and build all at 64cf9e251 passed (the pair names 64cf9e251e56 and is promoted; desk request 01M6B5WYC0WSD8DCVJZHAFW7Q7). Next: a Linux preflight at 64cf9e251 on kovacs, which devbin-vc books and whose `!` line waits for hv's return; then devbin-vc pushes local and upstream on vc's word naming the HEAD it covers (decision 90). Until then Intent commits only under intent/whiteboard/ and intent/.canon/events/. The cut is hv's. (edited)
+- 3.2.9's push: its three fixes are on main (0666 cbdee221d, 0668 823cddabd, 0669 bb1efcec5, each judged green by vc and its issue closed), and build all at 64cf9e251 passed (the pair names 64cf9e251e56; desk 01M6B5WYC0WSD8DCVJZHAFW7Q7). The kovacs preflight at 64cf9e251 went RED (kovacs-sysadm's END 09:28:18Z) on a testkit race that predates today: abandoned_fixtures_are_swept::a_run_leaves_no_corpse_of_its_own_behind loses a probe to its sibling's sweep. testkit is unchanged since 721b4efdc's green, and devbin-vc verified the reading. The re-run at the same HEAD is desk ask 01M6B7CCN2SGDKXQ13ZWWRHTVC (heavy), queued; its `!` line goes to hv in turn. On its green, vc names the HEAD and devbin-vc pushes local and upstream (decision 90); until then Intent commits only under intent/whiteboard/ and intent/.canon/events/. After the push, vc records the race as an issue, recorded only, from refs/bank/vc/fold-20261101b/issue-records/testkit-race.title.txt and refs/bank/vc/fold-20261101b/issue-records/testkit-race.body.md. The cut is hv's. (edited)
 
 ## TODO
 
