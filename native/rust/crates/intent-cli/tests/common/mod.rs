@@ -224,6 +224,37 @@ pub fn mcp_session(
   (out, parsed)
 }
 
+/// The `intent_search` tool's envelope for one call with `arguments`, a JSON
+/// object, in an [`mcp_session`] of its own against `root`: the initialize
+/// frame, the one call, and the answer's text unwrapped and parsed.
+pub fn search_tool_answer(root: &Path, home: Option<&Path>, arguments: &str) -> serde_json::Value {
+  let call = format!(
+    r#"{{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{{"name":"intent_search","arguments":{arguments}}}}}"#
+  );
+  let (out, frames) = mcp_session(
+    root,
+    home,
+    &[
+      r#"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"drive","version":"0"}}}"#,
+      &call,
+    ],
+  );
+  assert!(
+    out.status.success(),
+    "the MCP session failed: {}",
+    String::from_utf8_lossy(&out.stderr)
+  );
+  let answer = frames
+    .iter()
+    .find(|frame| frame["id"] == 2)
+    .unwrap_or_else(|| panic!("no response to the call: {frames:?}"));
+  let text = answer["result"]["content"][0]["text"]
+    .as_str()
+    .unwrap_or_else(|| panic!("the tool answered no text-wrapped JSON: {answer}"));
+  serde_json::from_str(text)
+    .unwrap_or_else(|e| panic!("the tool's envelope is not JSON: {text}: {e}"))
+}
+
 /// The servable verbs that refuse without an argument.
 ///
 /// **THE LOOPS OVER [`crate::render::daemon_servable_paths`] SPLIT THE PATH AND

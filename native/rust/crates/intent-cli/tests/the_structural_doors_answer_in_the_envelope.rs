@@ -146,26 +146,129 @@ fn the_tool_and_json_answer_the_same_outline() {
     "the fixture must produce units, or this compares two empty answers"
   );
 
-  let home = testkit::fixture_home();
-  let (out, frames) = crate::common::mcp_session(
+  let from_mcp = crate::common::search_tool_answer(
     root,
-    Some(home),
-    &[
-      r#"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"drive","version":"0"}}}"#,
-      r#"{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"intent_search","arguments":{"outline":"src/lib.rs"}}}"#,
-    ],
+    Some(testkit::fixture_home()),
+    r#"{"outline":"src/lib.rs"}"#,
   );
+  // Each face reconciles before it answers (issue 0669), and each reconcile
+  // stamps the index (issue 0369), so the two envelopes carry two stamps. The
+  // stamp is when the index was reconciled, not part of the answer's shape.
+  assert_eq!(
+    without_the_stamp(from_cli),
+    without_the_stamp(from_mcp),
+    "the two faces answer differently"
+  );
+}
+
+/// An envelope without its reconcile stamp, which says when the index was
+/// reconciled rather than anything about the answer.
+#[cfg(feature = "lang-rust")]
+fn without_the_stamp(mut envelope: serde_json::Value) -> serde_json::Value {
   assert!(
-    out.status.success(),
-    "the MCP session failed: {}",
-    String::from_utf8_lossy(&out.stderr)
+    envelope["index"]["reconciled_at"].is_string(),
+    "the envelope carries no reconcile stamp: {envelope}"
   );
-  let text =
-    frames.iter().find(|f| f["id"] == 2).expect("a response")["result"]["content"][0]["text"]
-      .as_str()
-      .expect("text-wrapped JSON");
-  let from_mcp: serde_json::Value = serde_json::from_str(text).expect("JSON");
-  assert_eq!(from_cli, from_mcp, "the two faces answer differently");
+  envelope["index"]
+    .as_object_mut()
+    .expect("the freshness block is an object")
+    .remove("reconciled_at");
+  envelope
+}
+
+/// Give the fixture's source a function the index has not seen.
+#[cfg(feature = "lang-rust")]
+fn add_function(root: &Path, name: &str) {
+  let source = root.join("src/lib.rs");
+  let mut text = std::fs::read_to_string(&source).expect("read the fixture source");
+  text.push_str(&format!("\npub fn {name}() {{}}\n"));
+  std::fs::write(&source, text).expect("write the fixture source");
+}
+
+/// The door reconciled before it answered, so it names `name`, which the tree
+/// gained after the index was last reconciled.
+#[cfg(feature = "lang-rust")]
+fn assert_reconciled_and_names(answer: &serde_json::Value, name: &str) {
+  assert_eq!(
+    answer["index"]["reconciled"], true,
+    "the door answered without reconciling first: {answer}"
+  );
+  let named = answer["groups"]
+    .as_array()
+    .expect("groups")
+    .iter()
+    .filter_map(|group| group["hits"].as_array())
+    .flatten()
+    .any(|hit| hit["name"] == name);
+  assert!(
+    named,
+    "the door answered about the tree as the last reconcile left it, without `{name}`: {answer}"
+  );
+}
+
+/// Issue 0669: **EVERY IN-PROCESS DOOR OF `intent search` RECONCILES BEFORE IT
+/// ANSWERS.** Each door is asked straight after the tree gains a function the
+/// index has not seen, so it can name it only by reconciling for itself. Until
+/// 0669 only the text query did, and an outline, a caller list or a
+/// filters-only listing answered about the tree as the last reconcile left it.
+#[cfg(feature = "lang-rust")]
+#[test]
+fn every_door_of_the_terminal_reconciles_before_it_answers() {
+  let dir = estate();
+  let root = dir.path();
+
+  add_function(root, "added_before_the_outline");
+  assert_reconciled_and_names(
+    &envelope(&["search", "--outline", "src/lib.rs", "--json"], root),
+    "added_before_the_outline",
+  );
+
+  add_function(root, "added_before_the_context");
+  assert_reconciled_and_names(
+    &envelope(
+      &["search", "--context", "added_before_the_context", "--json"],
+      root,
+    ),
+    "added_before_the_context",
+  );
+
+  add_function(root, "added_before_the_listing");
+  assert_reconciled_and_names(
+    &envelope(&["search", "--subkind", "function", "--json"], root),
+    "added_before_the_listing",
+  );
+}
+
+/// Issue 0669, the tool's face: **THE SAME THREE DOORS OF `intent_search`
+/// RECONCILE THROUGH THE SAME STEP.**
+#[cfg(feature = "lang-rust")]
+#[test]
+fn every_door_of_the_search_tool_reconciles_before_it_answers() {
+  let dir = estate();
+  let root = dir.path();
+  let home = Some(testkit::fixture_home());
+
+  add_function(root, "added_before_the_tool_outline");
+  assert_reconciled_and_names(
+    &crate::common::search_tool_answer(root, home, r#"{"outline":"src/lib.rs"}"#),
+    "added_before_the_tool_outline",
+  );
+
+  add_function(root, "added_before_the_tool_context");
+  assert_reconciled_and_names(
+    &crate::common::search_tool_answer(
+      root,
+      home,
+      r#"{"context":"added_before_the_tool_context"}"#,
+    ),
+    "added_before_the_tool_context",
+  );
+
+  add_function(root, "added_before_the_tool_listing");
+  assert_reconciled_and_names(
+    &crate::common::search_tool_answer(root, home, r#"{"subkind":"function"}"#),
+    "added_before_the_tool_listing",
+  );
 }
 
 /// Issue 0548's script: bash with no extension, which is how Devbin ships every

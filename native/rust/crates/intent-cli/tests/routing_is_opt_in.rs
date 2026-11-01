@@ -635,6 +635,48 @@ fn a_search_skips_its_reconcile_where_a_daemon_watches_and_not_elsewhere() {
   let _ = std::fs::remove_dir_all(&untouched);
 }
 
+/// Issue 0669: **THE SEARCH TOOL TAKES THE TERMINAL'S ONE STEP, SO BESIDE A
+/// WATCHING DAEMON IT LEAVES THE INDEX TO THE WATCHER.** Until 0669 its text
+/// door reconciled by a step of its own that never asked whether a daemon
+/// watched the tree, so every search an agent made there was a second writer
+/// beside the watcher. The unwatched project is the control: there the tool
+/// still reconciles.
+#[test]
+fn the_search_tool_skips_its_reconcile_where_a_daemon_watches_and_not_elsewhere() {
+  let daemon = RealDaemon::start();
+  let watched = project();
+  let untouched = project();
+  let contacted = run(daemon.home(), &watched, &["--daemon", "st", "list"]);
+  assert_eq!(contacted.status.code(), Some(0), "{}", text(&contacted));
+  assert!(
+    daemon.watching(&watched),
+    "precondition: the daemon is watching the project the skip arm is about"
+  );
+
+  let before = settled_stamp(daemon.home(), &watched);
+  let answer =
+    crate::common::search_tool_answer(&watched, Some(daemon.home()), r#"{"query":"anything"}"#);
+  assert_eq!(
+    answer["index"]["reconciled"], false,
+    "the tool claimed a reconcile beside a watching daemon: {answer}"
+  );
+  assert_eq!(
+    settled_stamp(daemon.home(), &watched),
+    before,
+    "the tool reconciled the index itself beside the watcher -- a second writer"
+  );
+
+  let answer =
+    crate::common::search_tool_answer(&untouched, Some(daemon.home()), r#"{"query":"anything"}"#);
+  assert_eq!(
+    answer["index"]["reconciled"], true,
+    "the tool did not reconcile in a project no daemon watches: {answer}"
+  );
+
+  let _ = std::fs::remove_dir_all(&watched);
+  let _ = std::fs::remove_dir_all(&untouched);
+}
+
 /// `index.reconciled` in one search's `--json` envelope.
 fn reconciled(home: &Path, root: &Path, argv: &[&str]) -> bool {
   let mut args = vec!["search", "--json"];

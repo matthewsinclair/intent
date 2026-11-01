@@ -716,6 +716,89 @@ fn a_search_here_reconciles(root: &Path) -> bool {
   !watched_by_a_daemon(root).unwrap_or(false)
 }
 
+/// One in-process door of `intent search` and of the `intent_search` tool.
+pub(crate) enum SearchDoor<'a> {
+  /// A text query.
+  Text(&'a str),
+  /// `--outline <path>`: a file's symbols.
+  Outline(&'a str),
+  /// `--context <name>`: where a name is defined and where it occurs.
+  Context(&'a str),
+  /// A search asked only its filters (`SearchQuery::lists_symbols`).
+  Listing,
+}
+
+impl SearchDoor<'_> {
+  /// The question as the terminal spells it, so a reconcile that fails names
+  /// the one it could not answer.
+  fn asked(&self, ask: &intentsvcs::search::SearchQuery) -> String {
+    match self {
+      SearchDoor::Text(query) => (*query).to_string(),
+      SearchDoor::Outline(path) => format!("--outline {path}"),
+      SearchDoor::Context(name) => format!("--context {name}"),
+      SearchDoor::Listing => ask
+        .subkinds
+        .iter()
+        .map(|subkind| format!("--subkind {subkind}"))
+        .chain(
+          ask
+            .container
+            .iter()
+            .map(|container| format!("--in {container}")),
+        )
+        .chain(ask.target.iter().map(|target| format!("--target {target}")))
+        .collect::<Vec<_>>()
+        .join(" "),
+    }
+  }
+}
+
+/// Answer an in-process search through `door`, reconciling the index first
+/// when this process should (issue 0669).
+///
+/// **THE ONE STEP EVERY IN-PROCESS SEARCH DOOR TAKES**: the text query,
+/// `--outline`, `--context` and a filters-only listing, on the terminal and on
+/// the `intent_search` MCP tool alike. Until 0669 only the terminal's text door
+/// reconciled, so an outline or a caller list answered here could describe a
+/// tree that had moved since the last reconcile, and the MCP tool's text door
+/// reconciled by a step of its own that never asked
+/// [`a_search_here_reconciles`].
+///
+/// `wanted` is false when the caller asked for the index as it stands
+/// (`--no-reconcile`). The envelope is marked reconciled only when the
+/// reconcile ran (issue 0484), and the repair it ran, if any, is handed back for
+/// the door to say in its own face. The error is boxed because [`FacadeError`]
+/// is large, as the MCP face's own `ServeError::Refused` boxes it.
+pub(crate) fn answered_after_reconcile(
+  f: &mut Facade,
+  door: SearchDoor<'_>,
+  ask: &intentsvcs::search::SearchQuery,
+  wanted: bool,
+) -> Result<
+  (
+    intentsvcs::search::SearchAnswer,
+    Option<intentsvcs::index::IndexRepair>,
+  ),
+  Box<FacadeError>,
+> {
+  let reconciles = wanted && a_search_here_reconciles(f.project().root());
+  let repair = if reconciles {
+    f.index_refresh_for_search(&door.asked(ask))?
+  } else {
+    None
+  };
+  let mut answer = match door {
+    SearchDoor::Text(query) => f.search_all(query, ask),
+    SearchDoor::Outline(path) => f.outline(path, ask),
+    SearchDoor::Context(name) => f.context(name, ask),
+    SearchDoor::Listing => f.filtered(ask),
+  }?;
+  if reconciles {
+    answer.index.mark_reconciled();
+  }
+  Ok((answer, repair))
+}
+
 /// Is a daemon on this machine watching the tree at `root`?
 ///
 /// **THE SAME PREDICATE `engine()`'s CARVE-OUT ASKS, reached from a caller that
@@ -3942,21 +4025,20 @@ fn search(m: &ArgMatches) -> Result<(), Failure> {
     )));
   }
 
+  // **EVERY DOOR BELOW RECONCILES FIRST, THROUGH THE ONE STEP THE TEXT QUERY
+  // TAKES** (issue 0669): see [`answered_after_reconcile`].
   if let Some(path) = outline {
     let ask = search_ask(m)?;
-    let f = open()?;
-    let answer = f.outline(&path, &ask).map_err(fail)?;
+    let answer = answered_on_the_terminal(&mut open()?, m, SearchDoor::Outline(&path), &ask)?;
     return report_search(m, &answer);
   }
   if let Some(name) = context {
     let ask = search_ask(m)?;
-    let f = open()?;
-    let answer = f.context(&name, &ask).map_err(fail)?;
+    let answer = answered_on_the_terminal(&mut open()?, m, SearchDoor::Context(&name), &ask)?;
     return report_search(m, &answer);
   }
   if let Some(ask) = listing {
-    let f = open()?;
-    let answer = f.filtered(&ask).map_err(fail)?;
+    let answer = answered_on_the_terminal(&mut open()?, m, SearchDoor::Listing, &ask)?;
     return report_search(m, &answer);
   }
 
@@ -4004,23 +4086,32 @@ fn search(m: &ArgMatches) -> Result<(), Failure> {
       // **AND THE SAME REASON SKIPS IT WHEN A DAEMON IS WATCHING THIS PROJECT**
       // -- see [`a_search_here_reconciles`], which is also where the reading of
       // an unanswerable watching question is decided, and why it is the
-      // opposite of `sync`'s.
-      let reconciled = a_search_here_reconciles(f.project().root()) && !m.get_flag("no-reconcile");
-      // A search that repaired the index on its way says so, whatever it finds.
-      if reconciled && let Some(repair) = f.index_refresh_for_search(&query).map_err(fail)? {
-        eprintln!("note: {}", repair.sentence());
-      }
-      let mut answer = f.search_all(&query, &ask).map_err(fail)?;
-      // Issue 0484: the envelope says whether this answer reconciled first, so
-      // a `complete: true` over an index the watcher has not caught up with is
-      // told apart from one over a tree this search just walked.
-      if reconciled {
-        answer.index.mark_reconciled();
-      }
-      Ok(answer)
+      // opposite of `sync`'s. Every in-process door takes this one step
+      // (issue 0669): [`answered_after_reconcile`].
+      answered_on_the_terminal(&mut f, m, SearchDoor::Text(&query), &ask)
     },
   )?;
   report_search(m, &answer)
+}
+
+/// The terminal's face of [`answered_after_reconcile`], for every door of
+/// `intent search`: `--no-reconcile` asks for the index as it stands, and a
+/// search that repaired the index on its way says so on stderr, whatever it
+/// finds. Issue 0484: the envelope says whether the answer reconciled first, so
+/// a `complete: true` over an index the watcher has not caught up with is told
+/// apart from one over a tree this search just walked.
+fn answered_on_the_terminal(
+  f: &mut Facade,
+  m: &ArgMatches,
+  door: SearchDoor<'_>,
+  ask: &intentsvcs::search::SearchQuery,
+) -> Result<intentsvcs::search::SearchAnswer, Failure> {
+  let (answer, repair) =
+    answered_after_reconcile(f, door, ask, !m.get_flag("no-reconcile")).map_err(|e| fail(*e))?;
+  if let Some(repair) = repair {
+    eprintln!("note: {}", repair.sentence());
+  }
+  Ok(answer)
 }
 
 /// One rendering for every door that answers the envelope (AC-24.3, AC-19.2).

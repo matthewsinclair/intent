@@ -59,6 +59,7 @@
 //! context, and it needs the safety fact more, not less.
 
 use crate::dispatch::{Arg, Entry, Flag, Table};
+use crate::render::SearchDoor;
 use intentsvcs::contract::{Scope, Verdict};
 use intentsvcs::facade::{
   EventFilter, Exported, Facade, FacadeContext, FacadeError, ListEdit, outcome_json,
@@ -1275,17 +1276,31 @@ fn tool_answer(
           )
         })?),
       };
+      // **EVERY DOOR RECONCILES FIRST, THROUGH THE TERMINAL'S ONE STEP** (issue
+      // 0669): `render::answered_after_reconcile`, so these four doors and the
+      // terminal's four cannot disagree, and none reconciles beside a daemon
+      // watching this tree. A repair the reconcile ran travels beside the answer
+      // it preceded.
       if let Some(path_arg) = outline {
-        return search_json(path, &f.outline(path_arg, &ask)?);
+        let (answer, repaired) =
+          crate::render::answered_after_reconcile(f, SearchDoor::Outline(path_arg), &ask, true)
+            .map_err(ServeError::Refused)?;
+        return Ok(with_repair(search_json(path, &answer)?, repaired));
       }
       if let Some(name) = context {
-        return search_json(path, &f.context(name, &ask)?);
+        let (answer, repaired) =
+          crate::render::answered_after_reconcile(f, SearchDoor::Context(name), &ask, true)
+            .map_err(ServeError::Refused)?;
+        return Ok(with_repair(search_json(path, &answer)?, repaired));
       }
       // **A SEARCH ASKED ONLY ITS FILTERS** (ST0076 WP-04): the terminal's rule,
       // `SearchQuery::lists_symbols`, and the same facade call.
       let Some(query) = opt_s(path, map, "query")? else {
         if ask.lists_symbols() {
-          return search_json(path, &f.filtered(&ask)?);
+          let (answer, repaired) =
+            crate::render::answered_after_reconcile(f, SearchDoor::Listing, &ask, true)
+              .map_err(ServeError::Refused)?;
+          return Ok(with_repair(search_json(path, &answer)?, repaired));
         }
         return Err(args_err(
           path,
@@ -1296,11 +1311,12 @@ fn tool_answer(
       // **THE SAME FACADE CALL THE CLI MAKES, SERIALISED** (AC-19.2): one
       // envelope, two skins. Nothing is assembled here, so the tool cannot
       // answer a different shape from `--json` for the same question.
-      // Issue 0372: reconcile first, as the CLI's in-process path does, so a
-      // daemonless answer is not a confident subset of a tree that has moved.
-      let repaired = f.index_refresh(None)?.repaired;
-      let mut answer = f.search_all(query, &ask)?;
-      answer.index.mark_reconciled();
+      // Issue 0372: reconcile first, so a daemonless answer is not a confident
+      // subset of a tree that has moved -- and since 0669 through the CLI's own
+      // step, which leaves a tree a daemon is watching to its watcher.
+      let (answer, repaired) =
+        crate::render::answered_after_reconcile(f, SearchDoor::Text(query), &ask, true)
+          .map_err(ServeError::Refused)?;
       // The AC-06.4 distinction travels, and it is now READ OFF THE ENVELOPE
       // rather than asked as a second question: an empty result over an
       // unpopulated index is not a miss, and the envelope already says so.
@@ -1315,11 +1331,7 @@ fn tool_answer(
       if let (Some(object), Some(note)) = (envelope.as_object_mut(), note) {
         object.insert("note".to_string(), json!(note));
       }
-      // A repair the reconcile ran travels beside the answer it preceded.
-      if let (Some(object), Some(repair)) = (envelope.as_object_mut(), repaired) {
-        object.insert("repaired".to_string(), json!(repair.sentence()));
-      }
-      Ok(envelope)
+      Ok(with_repair(envelope, repaired))
     }
     // **THE READ HALF OF THE INDEX FAMILY IS EXPOSED AND THE WRITE HALF IS NOT**
     // (the register's rows say so; `index rebuild` carries its withhold reason).
@@ -1784,6 +1796,16 @@ fn promote(path: &str, raw: &str) -> Result<intentsvcs::address::Address, ServeE
 /// A search answer as the tool returns it: the envelope, and on an answer asked
 /// by target the note the terminal prints (ST0076 WP-07). What level 3 could
 /// not say is part of that answer, and the tool has no stderr to put it on.
+/// A search envelope with the repair its reconcile ran, if any, beside the
+/// answer it preceded: the one place every door of the tool says one (issue
+/// 0669).
+fn with_repair(mut envelope: Value, repaired: Option<intentsvcs::index::IndexRepair>) -> Value {
+  if let (Some(object), Some(repair)) = (envelope.as_object_mut(), repaired) {
+    object.insert("repaired".to_string(), json!(repair.sentence()));
+  }
+  envelope
+}
+
 fn search_json(path: &str, answer: &intentsvcs::search::SearchAnswer) -> Result<Value, ServeError> {
   let mut envelope = val(path, answer)?;
   if answer.target.is_some()

@@ -269,12 +269,14 @@ fn a_stale_file_gives_no_hit_and_the_answer_names_it() {
   resolve(root, Ok(both()));
 
   // Moved on disk and not yet read: the index still joins its reference.
+  // Since issue 0669 every in-process door reconciles first, so the index as
+  // it stands is what `--no-reconcile` asks for.
   std::fs::write(
     root.join("src/two.rs"),
     format!("{TWO}pub fn later() {{}}\n"),
   )
   .expect("edit");
-  let answer = envelope(root, &["--target", HELPER]);
+  let answer = envelope(root, &["--target", HELPER, "--no-reconcile"]);
   assert_eq!(
     (places(&answer), &answer["index"]["stale"]),
     (vec!["src/lib.rs:2".to_string()], &json!(["src/two.rs"])),
