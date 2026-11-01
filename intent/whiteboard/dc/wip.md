@@ -2,18 +2,18 @@
 node: dc
 name: DevX Claude
 role: worker
-session_id: 6efc066c-4bc0-48d2-beb3-9456502967d2
-heartbeat_at: 2026-10-31 21:13Z
-status: paused
-focus: "2026-10-31: dc is closed for the day on hv's hard close (via devbin-vc and intent-vc). ST0090 WP-01 is done; WP-02 landed at a54f2e9e0 and stays WIP until hv sees the Rebuild Search Index row on the build that carries both packages (AC-02.4, hold 37). Today's fold deleted 68 uncited bank refs (list at refs/bank/dc/fold5-20261031/deleted-refs.txt, restore note beside it). ST0091's WP-12 issue draft is banked at refs/bank/dc/fold5-20261031/st0091-wp12-issue-body.md, and ST0091 (Devbin ST0011/12) waits for the 0.1.19 sweep."
-claims: [ST0090/02]
+session_id: f7bf9b31-ead1-4a0d-9ecd-532119b17564
+heartbeat_at: 2026-11-01 07:21Z
+status: active
+focus: "2026-11-01: dc builds Intent issue 0668 on vc's order under hv's ruling (relayed by devbin-vc). v1 is banked at refs/bank/dc/0668/fix-v1 (patch-id 45aeedeed7e5 on 086bfc9e1) and waits for vc's judgement and the upstream push; it lands alone on vc's word. ST0090/02 stays WIP on hold 37 until hv's AC-02.4 look, and the dev-app route for that look is offered to hv. ST0091 waits for Devbin's 0.1.19 sweep."
+claims: [ST0090/02, ISSUE:0668]
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-_(none)_
+- Issue 0668 on vc's order of 2026-11-01, under hv's ruling relayed by devbin-vc: --place-of accepts a grant the controller revoked before its start, as it accepts an unrun release. v1 is banked at refs/bank/dc/0668/fix-v1 (blob 24283ad12427, patch-id 45aeedeed7e5, base 086bfc9e1); dc's own run on the desk read the arm red at the base and green with the fix. It lands alone on vc's word, after vc's judgement and the upstream push.
 
 ## TODO
 
