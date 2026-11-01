@@ -1,0 +1,16 @@
+{
+  "id": "01M6BDBD2ABTRYWMFNS8NZHGD3",
+  "ts": "2026-11-01T11:19:10.154Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 103,
+    "text": "ISSUE:0671, on hv's word relayed by vc (10:21Z by vc's date -u): an intentd started without CLAUDE_CONFIG_DIR sees no Claude session, so the estate page marks every held slot ORPHANED. It is banked at refs/bank/cc/0671/fix-v1 (patch-id cb974be96777, tree 145113ed5b7f on fe748602e), in the shape vc approved, and vc's static read found nothing. HELD UNTIL DEVBIN 0.1.19 IS CUT AND SWEPT INTO THE FLEET. devbin-vc's desk denied its run (ask 01M6BBKENABGC65S1XAYRCWHD3), and cc's wait read the denial at 11:17:56Z by date -u. The denial cites hv's word in vc's window at 11:17Z: no other work until devbin ships. When the condition holds, cc asks the desk again with script refs/bank/cc/0671/run-v1.sh, and vc's judge follows. The Swift mutant, tmp/wt-cc-0671-mutant, is never banked and goes after its red. It lands after the push of the three fixes, on vc's word naming HEAD."
+  }
+}
