@@ -1,5 +1,5 @@
 ---
-verblock: "2026-11-01:v3.52: vc - fold after hv's go: the rulings in their issues, their fixes landing"
+verblock: "2026-11-01:v3.53: vc - the 3.2.9 fixes are on main; build all, the preflight and the push next"
 intent_version: 3.2.8
 ---
 
@@ -7,7 +7,7 @@ intent_version: 3.2.8
 
 ## DOING
 
-- Issues 0666, 0668 and 0669, on hv's rulings of 2026-11-01, each recorded in its issue. 0666 (cc) and 0668 (dc) are judged green and land in that order on vc's word naming HEAD, 0668 re-banked as one CHANGELOG bullet under 0666's `### Fixed`. 0669 (cc) is rebased onto both and judged by vc before it lands. Each builder closes its issue in its landing chain (vc todo 73). hv ruled that 3.2.9 carries all three, each once judged green and landed; one not landed by the cut rides the next release.
+- 3.2.9's push: the fixes for issues 0666, 0668 and 0669, which 3.2.9 carries on hv's ruling of 2026-11-01, are on main. Build all at HEAD runs on devbin-vc's desk, then a Linux preflight at HEAD on kovacs (hv's `!` in kovacs-sysadm's session). Then devbin-vc pushes local and upstream on vc's word naming that HEAD (vc decision 90, vc doing 61). The cut is hv's.
 
 ## TODO
 
@@ -25,7 +25,6 @@ intent_version: 3.2.8
   - Both Macs' CoreSimulator (1174.9.2) is older than Xcode's (1174.21.0).
   - `utilz doctor` said "gh is not installed" with /opt/homebrew/bin/gh on PATH (seen once, not traced).
 - intentd's enrolment at login on rhadamanth is with hv in devbin-vc's TUI (2026-11-01). The 0666 fix does not change it by itself.
-- After the landings: build all at HEAD and a green Linux preflight covering it. Then devbin-vc pushes local and upstream, fast-forward only, on vc's word naming that HEAD (vc decision 90). `git rev-list --count upstream/main..main` says how far main is ahead.
 - Parked for hv: issues 0649, 0650, 0661, 0665 and 0671 (an intentd started without CLAUDE_CONFIG_DIR sees no Claude session, recorded only); threads ST0060, ST0077, ST0082, ST0084, ST0085 and ST0089.
 - Parked for hv, from dc's mark at ST0087 (cb8ddf9d8):
   - Doctor and bare `intent use` do not compare the running binary with the link set's, and `intent use <tree>` does not say to `rehash`.

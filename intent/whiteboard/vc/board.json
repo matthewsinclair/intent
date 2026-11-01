@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "096ec97d-7b3c-4dab-8be4-db54311270c3",
-    "heartbeat_at": "2026-11-01T08:52:36.322Z",
+    "heartbeat_at": "2026-11-01T09:07:42.026Z",
     "status": "active",
-    "focus": "2026-11-01 after hv's go: Intent's main d22305536 is pushed to local and upstream on the GREEN Linux preflight at 721b4efdc. 0666, 0668 v2 and 0669 v3 land in that order on vc's word naming HEAD, and vc's full judge of 0669 v3 runs on the desk (todo 73). 0670 is stopped on hv's word for the day. Hold 6 waits on hv's look, and todo 71 on Devbin 0.1.19.",
+    "focus": "2026-11-01: hv's 3.2.9 fixes 0666, 0668 and 0669 are landed and closed; build all at HEAD, the Linux preflight and the push follow (doing). 0670 is held for hv's word (hold). Hold 6 waits on hv's look, and todo 71 on Devbin 0.1.19.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -2501,7 +2501,8 @@
       "kind": "todo",
       "seq": 73,
       "text": "Land and judge the builds of hv's rulings of 2026-11-01; hv ruled that 3.2.9 carries 0666, 0668 and 0669, each once judged green and landed, and one not landed by the cut rides the next release. Each lands on vc's word naming HEAD, in the order 0666, 0668, 0669, and its builder closes the issue in its landing chain. 0666 (cc): refs/bank/cc/0666/fix-v3 (patch-id 95ecb259a433), GREEN on vc's judge (refs/bank/vc/0666/judge-v3.*). 0668 (dc): refs/bank/dc/0668/fix-v2 (patch-id 273a4f6a7dd3), v1's code with its CHANGELOG bullet under 0666's, GREEN on vc's light judge (refs/bank/vc/0668/judge-v2-light.txt) over v1's full one (refs/bank/vc/0668/judge-v1.*). 0669 (cc): refs/bank/cc/0669/fix-v3 (patch-id 37ec93447b79), v2's code rebased onto 0666 v3 and 0668 v2; vc's full judge is asked on the desk as 01M6B4E8CY746G8AQDNCSW1Y4Q, after cc's own run, on the pinned base refs/bank/vc/0669/judge-base (tree 21714e4f3d4d). 0670: stopped on hv's word for the day (dc hold 38, with dc's shape questions banked at refs/bank/dc/0670/shape-questions.md). vc claims nothing.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-01T09:07:32.934Z",
       "recorded_at": "2026-11-01T07:05:15.060Z",
       "edited_at": "2026-11-01T08:52:29.784Z"
     },
@@ -2513,6 +2514,22 @@
       "state": "archived",
       "archived_at": "2026-11-01T08:52:30.786Z",
       "recorded_at": "2026-11-01T07:59:09.379Z"
+    },
+    {
+      "node": "vc",
+      "kind": "hold",
+      "seq": 7,
+      "text": "Issue 0670, on hv's ruling of 2026-11-01 \"ambiguous lines stop\" (the 1-row shape, recorded in the issue): held until hv's word to build it, because hv's word for 2026-11-01, relayed by devbin-vc, is \"ship ST0011, no new code and no new yaks\". Then dc builds it (dc hold 38) after vc answers dc's shape questions (refs/bank/dc/0670/shape-questions.md), and vc judges it with the fleet census (refs/bank/vc/0670/) re-run against the build, which must redden Devbin ST0011 AT-3.5 and nothing else.",
+      "state": "live",
+      "recorded_at": "2026-11-01T09:07:34.516Z"
+    },
+    {
+      "node": "vc",
+      "kind": "doing",
+      "seq": 61,
+      "text": "3.2.9's push: its three fixes are on main (0666 cbdee221d, 0668 823cddabd, 0669 bb1efcec5, each judged green by vc and its issue closed). Next: build all at HEAD on devbin-vc's desk, then a Linux preflight at HEAD on kovacs (hv's `!` in kovacs-sysadm's session), then devbin-vc pushes local and upstream on vc's word naming that HEAD (decision 90). The cut is hv's.",
+      "state": "live",
+      "recorded_at": "2026-11-01T09:07:36.008Z"
     }
   ],
   "sent": [

@@ -1,0 +1,15 @@
+{
+  "id": "01M6B5TFB4C16MF7593FB3HQ97",
+  "ts": "2026-11-01T09:07:36.008Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "3.2.9's push: its three fixes are on main (0666 cbdee221d, 0668 823cddabd, 0669 bb1efcec5, each judged green by vc and its issue closed). Next: build all at HEAD on devbin-vc's desk, then a Linux preflight at HEAD on kovacs (hv's `!` in kovacs-sysadm's session), then devbin-vc pushes local and upstream on vc's word naming that HEAD (decision 90). The cut is hv's."
+  }
+}

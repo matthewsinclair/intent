@@ -1,0 +1,15 @@
+{
+  "id": "01M6B5TDX2XKXT1PHD5H9YJQJV",
+  "ts": "2026-11-01T09:07:34.516Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "Issue 0670, on hv's ruling of 2026-11-01 \"ambiguous lines stop\" (the 1-row shape, recorded in the issue): held until hv's word to build it, because hv's word for 2026-11-01, relayed by devbin-vc, is \"ship ST0011, no new code and no new yaks\". Then dc builds it (dc hold 38) after vc answers dc's shape questions (refs/bank/dc/0670/shape-questions.md), and vc judges it with the fleet census (refs/bank/vc/0670/) re-run against the build, which must redden Devbin ST0011 AT-3.5 and nothing else."
+  }
+}

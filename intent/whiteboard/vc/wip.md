@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 096ec97d-7b3c-4dab-8be4-db54311270c3
-heartbeat_at: 2026-11-01 08:52Z
+heartbeat_at: 2026-11-01 09:07Z
 status: active
-focus: "2026-11-01 after hv's go: Intent's main d22305536 is pushed to local and upstream on the GREEN Linux preflight at 721b4efdc. 0666, 0668 v2 and 0669 v3 land in that order on vc's word naming HEAD, and vc's full judge of 0669 v3 runs on the desk (todo 73). 0670 is stopped on hv's word for the day. Hold 6 waits on hv's look, and todo 71 on Devbin 0.1.19."
+focus: "2026-11-01: hv's 3.2.9 fixes 0666, 0668 and 0669 are landed and closed; build all at HEAD, the Linux preflight and the push follow (doing). 0670 is held for hv's word (hold). Hold 6 waits on hv's look, and todo 71 on Devbin 0.1.19."
 claims: []
 ---
 
@@ -13,17 +13,17 @@ claims: []
 
 ## DOING
 
-_(none)_
+- 3.2.9's push: its three fixes are on main (0666 cbdee221d, 0668 823cddabd, 0669 bb1efcec5, each judged green by vc and its issue closed). Next: build all at HEAD on devbin-vc's desk, then a Linux preflight at HEAD on kovacs (hv's `!` in kovacs-sysadm's session), then devbin-vc pushes local and upstream on vc's word naming that HEAD (decision 90). The cut is hv's.
 
 ## TODO
 
 - After 3.2.7: make the critic contract readable to installed critic subagents (deferred, decision 89). (edited)
 - ST0091, Devbin ST0011/12 in Intent's tree. At the 0.1.19 sweep devbin-vc runs the upgrade in Intent's tree and commits the sweep pathspec itself (Devbin directive 10), inside an Intent chain with vc and dc; its announcement of the paths and the commit is the landing (devbin-vc's message, read by 13:12Z on vc's date -u). The sweep carries only devbin's vendored half, since Intent's config declares no ci.tag, ci.base or ci.query. vc answers that START with any Intent hold that stands, reads the commit, then judges ST0091's packages as dc banks them, every run booked through devbin-vc's desk. vc claims nothing. The inventory (dc's, checked by vc) went to devbin-vc at 10:46Z and the 3.2.8 baseline at 10:44Z by date -u. (edited)
-- Land and judge the builds of hv's rulings of 2026-11-01; hv ruled that 3.2.9 carries 0666, 0668 and 0669, each once judged green and landed, and one not landed by the cut rides the next release. Each lands on vc's word naming HEAD, in the order 0666, 0668, 0669, and its builder closes the issue in its landing chain. 0666 (cc): refs/bank/cc/0666/fix-v3 (patch-id 95ecb259a433), GREEN on vc's judge (refs/bank/vc/0666/judge-v3.*). 0668 (dc): refs/bank/dc/0668/fix-v2 (patch-id 273a4f6a7dd3), v1's code with its CHANGELOG bullet under 0666's, GREEN on vc's light judge (refs/bank/vc/0668/judge-v2-light.txt) over v1's full one (refs/bank/vc/0668/judge-v1.*). 0669 (cc): refs/bank/cc/0669/fix-v3 (patch-id 37ec93447b79), v2's code rebased onto 0666 v3 and 0668 v2; vc's full judge is asked on the desk as 01M6B4E8CY746G8AQDNCSW1Y4Q, after cc's own run, on the pinned base refs/bank/vc/0669/judge-base (tree 21714e4f3d4d). 0670: stopped on hv's word for the day (dc hold 38, with dc's shape questions banked at refs/bank/dc/0670/shape-questions.md). vc claims nothing. (edited)
 
 ## Holds
 
 - ST0090 AC-02.4, issue 0664's last criterion: held until hv has seen Intent.app's Rebuild Search Index row show its second line, reconciled <age> ago, after a rebuild, on a build at or after a54f2e9e0 whose CLI carries 8406f6a15: the 3.2.9 cut, or a dev app pointed at a dev CLI, which is the maintainer's alone. The dev CLI half is ready: build all at ef75832e7 promoted intent and intentd (dev, ef75832e719f) into native/rust/target/release on 2026-11-01. The app half is a Debug build at HEAD, dc's, by `bin/devbin macos app-build`, with hv setting IntentBinary to that CLI and deleting it after (dc's route, verified by vc). Then vc records that build on AC-02.4 and tells dc to close WP-02. (edited)
+- Issue 0670, on hv's ruling of 2026-11-01 "ambiguous lines stop" (the 1-row shape, recorded in the issue): held until hv's word to build it, because hv's word for 2026-11-01, relayed by devbin-vc, is "ship ST0011, no new code and no new yaks". Then dc builds it (dc hold 38) after vc answers dc's shape questions (refs/bank/dc/0670/shape-questions.md), and vc judges it with the fleet census (refs/bank/vc/0670/) re-run against the build, which must redden Devbin ST0011 AT-3.5 and nothing else.
 
 ## Watch-outs
 
