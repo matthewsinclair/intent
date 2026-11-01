@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 096ec97d-7b3c-4dab-8be4-db54311270c3
-heartbeat_at: 2026-11-01 10:05Z
+heartbeat_at: 2026-11-01 10:22Z
 status: active
-focus: "2026-11-01: hv ruled that 3.2.9 goes through devbin's release core after Devbin 0.1.19 (todo 71) and that 0670 waits for ST0011 to ship (hold 7). The three fixes are on main and build all at 64cf9e251 passed; the preflight re-run at 64cf9e251 (hv's ! line) and the push follow (doing 61). dc builds a Debug app for hv's AC-02.4 look (hold 6)."
+focus: "2026-11-01: hv put obvious bug fixes in 3.2.9 (decision 106): cc builds 0671 and dc the testkit race (todo). 3.2.9 goes through devbin's core after Devbin 0.1.19 (decision 105, todo 71). The preflight re-run at 64cf9e251 and the push of the three fixes follow (doing 61). 0670 waits for ST0011 (hold 7), and hold 6 waits on hv's AC-02.4 look."
 claims: []
 ---
 
@@ -19,6 +19,7 @@ claims: []
 
 - After 3.2.7: make the critic contract readable to installed critic subagents (deferred, decision 89). (edited)
 - ST0091, Devbin ST0011/12 in Intent's tree. At the 0.1.19 sweep devbin-vc runs the upgrade in Intent's tree and commits the sweep pathspec itself (Devbin directive 10), inside an Intent chain with vc and dc; its announcement of the paths and the commit is the landing (devbin-vc's message, read by 13:12Z on vc's date -u). The sweep carries only devbin's vendored half, since Intent's config declares no ci.tag, ci.base or ci.query. vc answers that START with any Intent hold that stands, reads the commit, then judges ST0091's packages as dc banks them, every run booked through devbin-vc's desk. vc claims nothing. The inventory (dc's, checked by vc) went to devbin-vc at 10:46Z and the 3.2.8 baseline at 10:44Z by date -u. (edited)
+- Judge and land the obvious-bug fixes hv put in 3.2.9 (decision 106). 0671 (cc): the app passes CLAUDE_CONFIG_DIR from the login shell, and the at-login plist carries it without intentd's boot-time heal dropping it; the issue's addition is banked at refs/bank/vc/fold-20261101b/issue-records/0671.add.md. The testkit race (dc): abandoned_fixtures_are_swept::a_run_leaves_no_corpse_of_its_own_behind against its sibling's sweep, its issue recorded after the push from refs/bank/vc/fold-20261101b/issue-records/testkit-race.title.txt and refs/bank/vc/fold-20261101b/issue-records/testkit-race.body.md. Each builder claims its issue, banks, runs its own desk run, and lands after the push on vc's word naming HEAD; vc judges each on devbin-vc's desk and claims nothing.
 
 ## Holds
 
@@ -39,6 +40,7 @@ claims: []
 - (2026-10-27) Before a worktree is removed, its node points refs/attic/<node>/<worktree> at its HEAD; attic refs are never deleted. (edited)
 - (hv, 2026-10-27) Every localfold and EOD fold archives what is spent, so a pickup prints only live state; ST0089 is built after the cut. (edited)
 - (hv, 2026-11-01, first-hand by selection in vc's TUI, answered by 10:05Z on vc's date -u; wording vc's, each choice hv's and vc's recommendation) TWO RULINGS. (1) Issue 0670 is built after ST0011 ships and rides the release after 3.2.9; vc answers dc's banked shape questions (refs/bank/dc/0670/shape-questions.md) before dc builds. (2) Intent 3.2.9 is cut through devbin's release core, as Intent's first cut through the core (ST0091, Devbin ST0011's WP12), after Devbin 0.1.19 and its sweep into Intent's tree; until then Intent cuts nothing, and the push of the three landed fixes (0666, 0668, 0669) goes ahead on the Linux preflight at 64cf9e251.
+- (hv, 2026-11-01, first-hand in vc's session, read by 10:21Z on vc's date -u) OBVIOUS BUG FIXES ARE NOT "NEW CODE" AND RIDE THIS RELEASE. hv, verbatim, on 0671's lasting fix: "This can be done now." and "That's not 'net new code'. That's fixing an obvious bug. Fixing obvious bugs is what this release needs." So 3.2.9 carries 0671's fix (cc) and the testkit race fix (dc), each landing after the push of the three fixes on vc's word naming HEAD. 0670 stays as decision 105 ruled.
 
 ---
 

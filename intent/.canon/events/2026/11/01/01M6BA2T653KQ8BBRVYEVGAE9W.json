@@ -1,0 +1,15 @@
+{
+  "id": "01M6BA2T653KQ8BBRVYEVGAE9W",
+  "ts": "2026-11-01T10:22:02.949Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Judge and land the obvious-bug fixes hv put in 3.2.9 (decision 106). 0671 (cc): the app passes CLAUDE_CONFIG_DIR from the login shell, and the at-login plist carries it without intentd's boot-time heal dropping it; the issue's addition is banked at refs/bank/vc/fold-20261101b/issue-records/0671.add.md. The testkit race (dc): abandoned_fixtures_are_swept::a_run_leaves_no_corpse_of_its_own_behind against its sibling's sweep, its issue recorded after the push from refs/bank/vc/fold-20261101b/issue-records/testkit-race.title.txt and refs/bank/vc/fold-20261101b/issue-records/testkit-race.body.md. Each builder claims its issue, banks, runs its own desk run, and lands after the push on vc's word naming HEAD; vc judges each on devbin-vc's desk and claims nothing."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M6BA2S8R69YEAT3D9ABY6W4X",
+  "ts": "2026-11-01T10:22:02.008Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-01, first-hand in vc's session, read by 10:21Z on vc's date -u) OBVIOUS BUG FIXES ARE NOT \"NEW CODE\" AND RIDE THIS RELEASE. hv, verbatim, on 0671's lasting fix: \"This can be done now.\" and \"That's not 'net new code'. That's fixing an obvious bug. Fixing obvious bugs is what this release needs.\" So 3.2.9 carries 0671's fix (cc) and the testkit race fix (dc), each landing after the push of the three fixes on vc's word naming HEAD. 0670 stays as decision 105 ruled."
+  }
+}
