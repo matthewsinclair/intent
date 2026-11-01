@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "3b3a4233-d9c4-4534-9c64-23190cbba0db",
-    "heartbeat_at": "2026-11-01T07:09:34.456Z",
+    "heartbeat_at": "2026-11-01T08:05:19.010Z",
     "status": "active",
-    "focus": "2026-11-01: on vc's order under hv's rulings (relayed by devbin-vc), cc builds 0666 and then 0669, each in a private worktree under tmp/, banked, booked on devbin-vc's desk, judged by vc and landed alone on vc's word; dc builds 0668. cc holds ISSUE:0666. Nothing pushed or released; whether the fixes ride in 3.2.9 is hv's call.",
+    "focus": "2026-11-01, folded on hv's fold order for the compact, holding for hv's go. 0666 is GREEN at refs/bank/cc/0666/fix-v3 (vc's judge, 3495 passed) and waits for upstream's push, then vc's land word. 0669 v2 is banked at refs/bank/cc/0669/fix-v2, stacked on 0666 v3, and its own run is booked after the compact. cc holds ISSUE:0666 and ISSUE:0669 and two worktrees, tmp/wt-cc-0666 and tmp/wt-cc-0669, and no stash or branch. Nothing pushed or released.",
     "claims": [
       "ISSUE:0666",
       "ISSUE:0669"
@@ -2195,9 +2195,10 @@
       "node": "cc",
       "kind": "doing",
       "seq": 101,
-      "text": "0666 (hv's ruling, relayed by devbin-vc and written into the issue at 721b4efdc; vc's order): with a daemon running, intent daemon start --at-login refuses, naming the running pid and the stop-then-enrol remedy, and never says ok: for an enrolment it did not make. The logic goes in intentsvcs, as a typed error carrying a Remedy. The case of a running daemon with the plist already present is asked of vc (07:08Z by date -u). Worktree tmp/wt-cc-0666, bank under refs/bank/cc/0666/, runs booked on devbin-vc's desk, vc judges, and it lands alone on vc's word.",
+      "text": "0666 (hv's ruling via devbin-vc, in the issue at 721b4efdc; vc's reading for the plist cases): GREEN on vc's whole-workspace judge of refs/bank/cc/0666/fix-v3 (blob 6ce4a9f33b04, patch-id 95ecb259a433, tree a548571439ac on 086bfc9e1), 3495 passed and 0 failed, evidence at refs/bank/vc/0666/judge-v3.stamps. It waits for devbin-vc's report that upstream is pushed, then for vc's land word naming HEAD. cc lands it alone from tmp/wt-cc-0666 and closes 0666 in that chain, with a note saying where it takes effect. It lands before 0669.",
       "state": "live",
-      "recorded_at": "2026-11-01T07:09:26.524Z"
+      "recorded_at": "2026-11-01T07:09:26.524Z",
+      "edited_at": "2026-11-01T08:05:10.171Z"
     },
     {
       "node": "cc",
@@ -2212,9 +2213,10 @@
       "node": "cc",
       "kind": "doing",
       "seq": 102,
-      "text": "0669 (hv's ruling, relayed by devbin-vc and written into the issue at 721b4efdc; vc's order), after 0666: every in-process search door, the text query, --outline, --context and a filters-only listing, reconciles first through one step, a_search_here_reconciles and then index_refresh_for_search, in the CLI and the MCP tool alike. The MCP text door's own unconditional index_refresh(None) (mcp.rs:1301) joins that step, and its CHANGELOG line names the visible change to the MCP face. Worktree tmp/wt-cc-0669, stacked on 0666's bank; bank under refs/bank/cc/0669/.",
+      "text": "0669 (hv's ruling via devbin-vc, in the issue at 721b4efdc; vc's order): v2 banked at refs/bank/cc/0669/fix-v2 (blob 89fc4153a081, patch-id ad11fc0c2e6d), stacked on 0666 v3's tree a548571439ac, tip 2451ebde9d8e, in tmp/wt-cc-0669. v1's own run (refs/bank/cc/0669/run-v1-stamps.txt) was red on two legs. Workspace clippy failed on result_large_err in the new step; v2 replaces the closures with a SearchDoor enum and boxes the error. And a_search_by_target_asks_one_question's stale-file arm read the old default; v2 asks it --no-reconcile, the one state it is about. After the compact, cc books v2's own run on devbin-vc's desk, then vc judges it. It lands after 0666, on vc's word, once upstream is pushed.",
       "state": "live",
-      "recorded_at": "2026-11-01T07:26:03.957Z"
+      "recorded_at": "2026-11-01T07:26:03.957Z",
+      "edited_at": "2026-11-01T08:05:11.479Z"
     }
   ],
   "sent": [

@@ -1,0 +1,16 @@
+{
+  "id": "01M6B285WVHW11WHXWH55S5H3H",
+  "ts": "2026-11-01T08:05:10.171Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 101,
+    "text": "0666 (hv's ruling via devbin-vc, in the issue at 721b4efdc; vc's reading for the plist cases): GREEN on vc's whole-workspace judge of refs/bank/cc/0666/fix-v3 (blob 6ce4a9f33b04, patch-id 95ecb259a433, tree a548571439ac on 086bfc9e1), 3495 passed and 0 failed, evidence at refs/bank/vc/0666/judge-v3.stamps. It waits for devbin-vc's report that upstream is pushed, then for vc's land word naming HEAD. cc lands it alone from tmp/wt-cc-0666 and closes 0666 in that chain, with a note saying where it takes effect. It lands before 0669."
+  }
+}

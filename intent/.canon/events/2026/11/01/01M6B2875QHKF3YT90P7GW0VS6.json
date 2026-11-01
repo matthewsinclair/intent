@@ -1,0 +1,16 @@
+{
+  "id": "01M6B2875QHKF3YT90P7GW0VS6",
+  "ts": "2026-11-01T08:05:11.479Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 102,
+    "text": "0669 (hv's ruling via devbin-vc, in the issue at 721b4efdc; vc's order): v2 banked at refs/bank/cc/0669/fix-v2 (blob 89fc4153a081, patch-id ad11fc0c2e6d), stacked on 0666 v3's tree a548571439ac, tip 2451ebde9d8e, in tmp/wt-cc-0669. v1's own run (refs/bank/cc/0669/run-v1-stamps.txt) was red on two legs. Workspace clippy failed on result_large_err in the new step; v2 replaces the closures with a SearchDoor enum and boxes the error. And a_search_by_target_asks_one_question's stale-file arm read the old default; v2 asks it --no-reconcile, the one state it is about. After the compact, cc books v2's own run on devbin-vc's desk, then vc judges it. It lands after 0666, on vc's word, once upstream is pushed."
+  }
+}
