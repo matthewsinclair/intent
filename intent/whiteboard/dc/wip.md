@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: f7bf9b31-ead1-4a0d-9ecd-532119b17564
-heartbeat_at: 2026-11-01 07:21Z
+heartbeat_at: 2026-11-01 08:08Z
 status: active
-focus: "2026-11-01: dc builds Intent issue 0668 on vc's order under hv's ruling (relayed by devbin-vc). v1 is banked at refs/bank/dc/0668/fix-v1 (patch-id 45aeedeed7e5 on 086bfc9e1) and waits for vc's judgement and the upstream push; it lands alone on vc's word. ST0090/02 stays WIP on hold 37 until hv's AC-02.4 look, and the dev-app route for that look is offered to hv. ST0091 waits for Devbin's 0.1.19 sweep."
+focus: "2026-11-01, folded for hv's compact: issue 0668 v1 is judged GREEN by vc and banked at refs/bank/dc/0668/fix-v1, not yet landed; it lands alone on vc's word once upstream is pushed, and tmp/wt-dc-0668 stays until then. Nothing of dc's runs. ST0090/02 stays WIP on hold 37 until hv's AC-02.4 look, for which the dev-app route is offered to hv. ST0091 waits for Devbin's 0.1.19 sweep."
 claims: [ST0090/02, ISSUE:0668]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0090/02, ISSUE:0668]
 
 ## DOING
 
-- Issue 0668 on vc's order of 2026-11-01, under hv's ruling relayed by devbin-vc: --place-of accepts a grant the controller revoked before its start, as it accepts an unrun release. v1 is banked at refs/bank/dc/0668/fix-v1 (blob 24283ad12427, patch-id 45aeedeed7e5, base 086bfc9e1); dc's own run on the desk read the arm red at the base and green with the fix. It lands alone on vc's word, after vc's judgement and the upstream push.
+- Issue 0668 on vc's order of 2026-11-01, under hv's ruling relayed by devbin-vc: --place-of accepts a grant the controller revoked before its start, as it accepts an unrun release. v1 is banked at refs/bank/dc/0668/fix-v1 (blob 24283ad12427, patch-id 45aeedeed7e5, base 086bfc9e1) and applies on main at a352fa9d1. dc's own run on the desk read the arm red at the base and green with the fix (refs/bank/dc/0668/run1.zsh, refs/bank/dc/0668/run1-stamps.txt, refs/bank/dc/0668/fix-only.patch), and vc judged it GREEN with the workspace suite (refs/bank/vc/0668/judge-v1.stamps). It lands alone on vc's word to land, which names the HEAD and the order, once devbin-vc reports upstream pushed: apply the bank there, read back patch-id 45aeedeed7e5 from the diff of its two paths, and commit them with refs/bank/dc/0668/land-msg.tmpl, LANDHEAD and STAMP filled. Then close the issue, unclaim it and archive this item in one commit of what those verbs print, and remove tmp/wt-dc-0668 behind refs/attic/dc/wt-dc-0668; the worktree stays until then. v1 does not apply after cc's 0666 v3 (vc's measurement, 08:08Z): both open a new `### Fixed` section at CHANGELOG.md:17, and 0669 v2 already sits as a bullet under 0666's. So if 0666 lands first, re-bank under a new name with the CHANGELOG entry as one bullet under 0666's `### Fixed`, a CHANGELOG-only change, and send vc the new patch-id for a light judge. (edited)
 
 ## TODO
 
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-- ST0090/02 stays WIP after its landing at a54f2e9e0 until AC-02.4 is met: hv sees the Rebuild Search Index row's second line after a rebuild, on the build that carries WP-01 and WP-02, and vc records which build that was. vc tells hv through devbin-vc which build carries both packages. Then dc closes WP-02 on vc's word; a defect hv sees comes back to dc as a new bank.
+- ST0090/02 stays WIP after its landing at a54f2e9e0 until AC-02.4 is met: hv sees the Rebuild Search Index row's second line after a rebuild, on the build that carries WP-01 and WP-02, and vc records which build that was. vc tells hv through devbin-vc which build carries both packages. Then dc closes WP-02 on vc's word; a defect hv sees comes back to dc as a new bank. No app build carries WP-02 yet. The dev route for the look is offered to hv through devbin-vc (vc's hold 6): the dev CLI at native/rust/target/release (3.2.8 dev, ef75832e719f) carries WP-01, and dc builds a Debug app from a detached worktree with bin/devbin macos app-build and INTENT_MACOS_STATE_DIR in scratch, so xcodegen cannot rewrite the tracked project.pbxproj. hv points the IntentBinary default at the dev CLI, quits the installed app, runs the built one, and afterwards deletes the default and reopens /Applications/Intent.app. That build goes before 0668 lands if hv takes the route; otherwise the look waits for the 3.2.9 cut. (edited)
 
 ## Watch-outs
 

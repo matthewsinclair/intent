@@ -1,0 +1,16 @@
+{
+  "id": "01M6B2DYPA8M51KWSYS7ADHX6N",
+  "ts": "2026-11-01T08:08:19.402Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 37,
+    "text": "ST0090/02 stays WIP after its landing at a54f2e9e0 until AC-02.4 is met: hv sees the Rebuild Search Index row's second line after a rebuild, on the build that carries WP-01 and WP-02, and vc records which build that was. vc tells hv through devbin-vc which build carries both packages. Then dc closes WP-02 on vc's word; a defect hv sees comes back to dc as a new bank. No app build carries WP-02 yet. The dev route for the look is offered to hv through devbin-vc (vc's hold 6): the dev CLI at native/rust/target/release (3.2.8 dev, ef75832e719f) carries WP-01, and dc builds a Debug app from a detached worktree with bin/devbin macos app-build and INTENT_MACOS_STATE_DIR in scratch, so xcodegen cannot rewrite the tracked project.pbxproj. hv points the IntentBinary default at the dev CLI, quits the installed app, runs the built one, and afterwards deletes the default and reopens /Applications/Intent.app. That build goes before 0668 lands if hv takes the route; otherwise the look waits for the 3.2.9 cut."
+  }
+}
