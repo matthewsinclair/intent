@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "worker",
     "session_id": "f7bf9b31-ead1-4a0d-9ecd-532119b17564",
-    "heartbeat_at": "2026-11-01T10:35:24.205Z",
+    "heartbeat_at": "2026-11-01T11:21:23.713Z",
     "status": "active",
-    "focus": "2026-11-01: the Debug Intent.app for ST0090/02's AC-02.4 look is built (IntentCommit 29e6f1c0a) and waits on hv's look (hold 37; dc keeps tmp/wt-dc-0090-app until vc records it). Two testkit fixes for 3.2.9: the race fix is banked at refs/bank/dc/testkit-race/fix-v1 with its proof run queued on devbin-vc's desk (tmp/wt-dc-race), and the sweep-order fix follows it. 0670 waits until Devbin's ST0011 has shipped (hold 38). ST0091 waits for Devbin's 0.1.19 sweep.",
+    "focus": "2026-11-01: dc is quiet on hv's word \"no other work until devbin ships\"; the desk grants devbin's ST0011 runs alone until devbin 0.1.19 is cut and swept into the fleet. The AC-02.4 Debug app is built and waits on hv's look (hold 37). The testkit race and sweep-order fixes are banked and wait for the desk (holds 39 and 40). 0670 waits until Devbin's ST0011 has shipped (hold 38). ST0091 waits for Devbin's 0.1.19 sweep. dc's three worktrees stay as they are.",
     "claims": [
       "ST0090/02",
       "ISSUE:0670"
@@ -2631,7 +2631,8 @@
       "kind": "doing",
       "seq": 149,
       "text": "The testkit race fix for 3.2.9, on hv's word that obvious bug fixes ride it (vc decision 106, relayed by vc at 10:21Z on vc's date -u on 2026-11-01). testkit's a_run_leaves_no_corpse_of_its_own_behind now asserts on the directories it planted, so a concurrent sweep cannot redden it, as one did on kovacs at 64cf9e251. vc approved the shape. It is banked at refs/bank/dc/testkit-race/fix-v1 (blob 7d38f5fdcdb9, patch-id abcffb4ac0ea, base fd4aced67) in tmp/wt-dc-race. dc's proof run, desk 01M6BAKRJR2MQWFN9Q761P49MJ from 11:13:45Z to 11:13:52Z, read the base 2 red of 40 probes under a storm of the real sweeper, both with kovacs's message, and the fix 0 red of 40; the testkit suite passed 10 runs of 10, and clippy -D warnings and fmt are clean. vc accepted the proof; the run's script and stamps are banked at refs/bank/dc/testkit-race/run-v1.zsh and run-v1-stamps.txt, with a sibling capture at run-v1-sibling-capture.txt. vc's light judge, its own re-run of the storm, is next. dc claims the issue when vc records it after the push, and the fix lands after the push on vc's word. Test-only, so no CHANGELOG entry.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-01T11:20:44.705Z",
       "recorded_at": "2026-11-01T10:34:53.136Z",
       "edited_at": "2026-11-01T11:17:16.996Z"
     },
@@ -2640,9 +2641,26 @@
       "kind": "doing",
       "seq": 150,
       "text": "The testkit sweep-order fix for 3.2.9, assigned by vc at 10:32Z on vc's date -u on 2026-11-01 under hv's bug-fix word (vc decision 106). sweep_abandoned_fixtures took its live-pid snapshot before it listed /tmp (testkit/src/lib.rs:421-445), so a fixture whose process was born between the two was removed while its process lived. The fix lists the candidates first and takes the snapshot second, in one sweep body, sweep_abandoned_fixtures_around, through whose seam the new test a_fixture_planted_by_a_process_born_mid_sweep_survives_it plants a live child's fixture. vc approved the seam. It is banked at refs/bank/dc/testkit-sweep-order/fix-v1 (blob 6459397b30b4, patch-id 3e958d267455), stacked on fd4aced67 plus refs/bank/dc/testkit-race/fix-v1 (tree 4589b880e19b) in tmp/wt-dc-sweeporder, with its mutant at refs/bank/dc/testkit-sweep-order/red-v1 (patch-id f70636f75203) and its issue draft at refs/bank/dc/testkit-sweep-order/issue.title.txt and issue.body-v2.md (issue.body.md is the earlier draft). dc's run is desk ask 01M6BB981X1E5KDPVY3E7CBWK6, after the race proof in devbin-vc's order: the test 20 times red on the mutant and 20 times green on the fix, then the whole workspace suite, workspace clippy and fmt, since testkit's lib runs at every crate's test start. vc's judge follows under an exclusive grant, since until both fixes land an old-testkit sweeper elsewhere on the box can still take the test's fixture. vc records both testkit issues after the push and dc claims them then; both land after the push on vc's word. The race proof's storm also reproduced the defect without the seam: in a 2s capture after it, all 7 sibling failures of 160 runs were at :106, a LIVE fixture was deleted, which issue.body-v2.md records as observed evidence, and dc's run adds that sibling storm on the mutant and the fix, on vc's yes. No CHANGELOG entry, since testkit is unshipped.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-01T11:21:03.565Z",
       "recorded_at": "2026-11-01T10:35:06.068Z",
       "edited_at": "2026-11-01T11:17:27.603Z"
+    },
+    {
+      "node": "dc",
+      "kind": "hold",
+      "seq": 39,
+      "text": "The testkit race fix for 3.2.9 waits until devbin 0.1.19 is cut and swept into the fleet, and the desk grants again. hv's word \"no other work until devbin ships\", recorded by devbin-vc's desk at 11:17Z by its date -u on 2026-11-01, gives the desk to devbin's ST0011 runs alone, and the desk denied vc's judge of this fix on it. The fix is banked at refs/bank/dc/testkit-race/fix-v1 (blob 7d38f5fdcdb9, patch-id abcffb4ac0ea, base fd4aced67) in tmp/wt-dc-race, on hv's bug-fix word (vc decision 106). dc's proof run, desk 01M6BAKRJR2MQWFN9Q761P49MJ, read the base 2 red of 40 probes under a storm of the real sweeper, both with kovacs's message, and the fix 0 red of 40, with the testkit suite 10 runs of 10 and clippy and fmt clean; vc accepted it. Its script, stamps and a sibling capture are banked at refs/bank/dc/testkit-race/run-v1.zsh, run-v1-stamps.txt and run-v1-sibling-capture.txt. When the desk grants again, vc's light judge runs; vc records the issue after the push, dc claims it, and the fix lands on vc's word. Test-only, so no CHANGELOG entry.",
+      "state": "live",
+      "recorded_at": "2026-11-01T11:20:52.860Z"
+    },
+    {
+      "node": "dc",
+      "kind": "hold",
+      "seq": 40,
+      "text": "The testkit sweep-order fix for 3.2.9 waits until devbin 0.1.19 is cut and swept into the fleet, and the desk grants again. The desk denied its run, 01M6BB981X1E5KDPVY3E7CBWK6, on hv's word \"no other work until devbin ships\", recorded by devbin-vc's desk at 11:17Z by its date -u on 2026-11-01, and dc asks again then. sweep_abandoned_fixtures took its live-pid snapshot before it listed /tmp, so a fixture whose process was born between the two was removed while its process lived; the fix lists the candidates first, in one sweep body, sweep_abandoned_fixtures_around, through whose seam the test a_fixture_planted_by_a_process_born_mid_sweep_survives_it plants a live child's fixture. It is banked at refs/bank/dc/testkit-sweep-order/fix-v1 (blob 6459397b30b4, patch-id 3e958d267455), stacked on fd4aced67 plus refs/bank/dc/testkit-race/fix-v1 (tree 4589b880e19b) in tmp/wt-dc-sweeporder, uncompiled until its run, with its mutant at refs/bank/dc/testkit-sweep-order/red-v1 (patch-id f70636f75203), its run script at refs/bank/dc/testkit-sweep-order/run-v1.zsh, and its issue draft at issue.title.txt and issue.body-v2.md beside them. The race proof's storm already reproduced the defect without the seam: all 7 sibling failures a 2s capture kept were at :106, a LIVE fixture was deleted. The run is the test 20 times on the mutant and on the fix, the sibling storm on both, then the whole workspace suite, workspace clippy and fmt. vc's judge follows under an exclusive grant; vc records the issue after the push, dc claims it, and it lands on vc's word. No CHANGELOG entry, since testkit is unshipped.",
+      "state": "live",
+      "recorded_at": "2026-11-01T11:21:10.991Z"
     }
   ],
   "sent": [

@@ -1,0 +1,15 @@
+{
+  "id": "01M6BDF2M1ACSTC0W8N7BN6K36",
+  "ts": "2026-11-01T11:21:10.991Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "The testkit sweep-order fix for 3.2.9 waits until devbin 0.1.19 is cut and swept into the fleet, and the desk grants again. The desk denied its run, 01M6BB981X1E5KDPVY3E7CBWK6, on hv's word \"no other work until devbin ships\", recorded by devbin-vc's desk at 11:17Z by its date -u on 2026-11-01, and dc asks again then. sweep_abandoned_fixtures took its live-pid snapshot before it listed /tmp, so a fixture whose process was born between the two was removed while its process lived; the fix lists the candidates first, in one sweep body, sweep_abandoned_fixtures_around, through whose seam the test a_fixture_planted_by_a_process_born_mid_sweep_survives_it plants a live child's fixture. It is banked at refs/bank/dc/testkit-sweep-order/fix-v1 (blob 6459397b30b4, patch-id 3e958d267455), stacked on fd4aced67 plus refs/bank/dc/testkit-race/fix-v1 (tree 4589b880e19b) in tmp/wt-dc-sweeporder, uncompiled until its run, with its mutant at refs/bank/dc/testkit-sweep-order/red-v1 (patch-id f70636f75203), its run script at refs/bank/dc/testkit-sweep-order/run-v1.zsh, and its issue draft at issue.title.txt and issue.body-v2.md beside them. The race proof's storm already reproduced the defect without the seam: all 7 sibling failures a 2s capture kept were at :106, a LIVE fixture was deleted. The run is the test 20 times on the mutant and on the fix, the sibling storm on both, then the whole workspace suite, workspace clippy and fmt. vc's judge follows under an exclusive grant; vc records the issue after the push, dc claims it, and it lands on vc's word. No CHANGELOG entry, since testkit is unshipped."
+  }
+}

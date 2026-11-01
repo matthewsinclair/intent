@@ -1,0 +1,15 @@
+{
+  "id": "01M6BDEHBWVM2SEYH7X7NAWQ8C",
+  "ts": "2026-11-01T11:20:52.860Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "The testkit race fix for 3.2.9 waits until devbin 0.1.19 is cut and swept into the fleet, and the desk grants again. hv's word \"no other work until devbin ships\", recorded by devbin-vc's desk at 11:17Z by its date -u on 2026-11-01, gives the desk to devbin's ST0011 runs alone, and the desk denied vc's judge of this fix on it. The fix is banked at refs/bank/dc/testkit-race/fix-v1 (blob 7d38f5fdcdb9, patch-id abcffb4ac0ea, base fd4aced67) in tmp/wt-dc-race, on hv's bug-fix word (vc decision 106). dc's proof run, desk 01M6BAKRJR2MQWFN9Q761P49MJ, read the base 2 red of 40 probes under a storm of the real sweeper, both with kovacs's message, and the fix 0 red of 40, with the testkit suite 10 runs of 10 and clippy and fmt clean; vc accepted it. Its script, stamps and a sibling capture are banked at refs/bank/dc/testkit-race/run-v1.zsh, run-v1-stamps.txt and run-v1-sibling-capture.txt. When the desk grants again, vc's light judge runs; vc records the issue after the push, dc claims it, and the fix lands on vc's word. Test-only, so no CHANGELOG entry."
+  }
+}
