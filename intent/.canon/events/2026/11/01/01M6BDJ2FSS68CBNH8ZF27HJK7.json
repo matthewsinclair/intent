@@ -1,0 +1,16 @@
+{
+  "id": "01M6BDJ2FSS68CBNH8ZF27HJK7",
+  "ts": "2026-11-01T11:22:48.697Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 74,
+    "text": "Judge and land the obvious-bug fixes hv put in 3.2.9 (decision 106), once devbin-vc's desk grants Intent again: it grants only devbin's ST0011 runs until devbin 0.1.19 is cut and swept into the fleet, on hv's word by 11:17Z (\"no other work until devbin ships\"), and it denied cc's 0671 run 01M6BBKENABGC65S1XAYRCWHD3, dc's sweep-order run 01M6BB981X1E5KDPVY3E7CBWK6 and vc's race judge 01M6BD84EXF70MX346YDTSD3GW, each asked again then. 0671 (cc, doing 103): refs/bank/cc/0671/fix-v1 (patch-id cb974be96777), vc's static read clean; the app passes CLAUDE_CONFIG_DIR from the login shell and the at-login plist carries it without intentd's boot-time heal dropping it. The testkit race (dc, hold 39): refs/bank/dc/testkit-race/fix-v1 (patch-id abcffb4ac0ea); dc's storm run passed (refs/bank/dc/testkit-race/run-v1-stamps.txt, 2 red in 40 at the base, 0 with the fix); vc's light judge re-runs it in tmp/wt-vc-judge-race. The sweep-order fix (dc, hold 40): refs/bank/dc/testkit-sweep-order/fix-v1 (patch-id 3e958d267455) with its mutant red-v1 and run script refs/bank/dc/testkit-sweep-order/run-v1.zsh, stacked on the race fix, judged on the whole workspace suite. Each lands on vc's word naming HEAD; vc claims nothing."
+  }
+}
