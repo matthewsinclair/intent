@@ -1,0 +1,16 @@
+{
+  "id": "01M6B9H6KVCF9KS5Q3G0VP4N0V",
+  "ts": "2026-11-01T10:12:25.851Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 38,
+    "text": "ISSUE:0670 stays claimed and unbuilt until Devbin's ST0011 has shipped. hv ruled first-hand in vc's TUI on 2026-11-01, answering by 10:05Z on vc's date -u (vc decision 105, relayed to dc by vc), that 0670 is built after ST0011 ships and rides the release after 3.2.9. vc assigned it to dc at 08:31Z and stopped it at 08:38Z on hv's word for the day, \"ship ST0011, no new code and no new yaks\". Nothing of either half is written. Before dc builds, vc answers dc's two shape questions, banked word for word at refs/bank/dc/0670/shape-questions.md: (1) whether a rival row counts whatever its thread's status, and (2) what a `file:line` row asks of the file. dc's read-only map of the code is at refs/bank/dc/0670/rival-half-notes.md, and the ruling at refs/bank/vc/fold-20261101/issue-records/0670.add.md. vc judges the build with the fleet census re-run against it, which must redden Devbin ST0011 AT-3.5 and nothing else (vc hold 7)."
+  }
+}

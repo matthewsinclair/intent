@@ -1,0 +1,16 @@
+{
+  "id": "01M6B9HP008BCH3DED2NVHV07H",
+  "ts": "2026-11-01T10:12:41.600Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 37,
+    "text": "ST0090/02 stays WIP after its landing at a54f2e9e0 until AC-02.4 is met: hv sees the Rebuild Search Index row's second line after a rebuild, on a build that carries WP-01 and WP-02, and vc records which build that was. Then dc closes WP-02 on vc's word; a defect hv sees comes back to dc as a new bank. hv gave the word for the dev route on 2026-11-01, relayed by vc at 10:05Z on vc's date -u. vc chose dc's route over app-run in the main checkout, whose stale source stamp would rerun xcodegen over main's tracked project.pbxproj. dc builds the Debug app with bin/devbin macos app-build under nice -n 10 in tmp/wt-dc-0090-app, a worktree detached at 29e6f1c0a (native/macos tree f499694ed631), with INTENT_MACOS_STATE_DIR in dc's scratch. The build is desk ask 01M6B98VECQACNY319WVDEKD5A, fifth in devbin-vc's order. devbin-vc grants it on heavy only when nothing timing-sensitive runs beside it, since app-build takes no jobs cap. dc then sends vc the bundle's path and its IntentCommit and IntentSourceTree stamps. hv points the IntentBinary default at the dev CLI, native/rust/target/release/intent, which reads 3.2.8 (dev, 64cf9e251e56) and carries WP-01 (8406f6a15) and the fixes for 0666, 0668 and 0669. hv quits the installed app and launches the built bundle's executable directly, and afterwards deletes the default and reopens /Applications/Intent.app. dc removes the worktree once the look is recorded."
+  }
+}
