@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "3b3a4233-d9c4-4534-9c64-23190cbba0db",
-    "heartbeat_at": "2026-11-01T11:19:23.371Z",
+    "heartbeat_at": "2026-11-01T11:26:36.940Z",
     "status": "active",
-    "focus": "2026-11-01, 0671 is banked at refs/bank/cc/0671/fix-v1 and HELD: its desk run waits until Devbin 0.1.19 is cut and swept into the fleet, on hv's word that nothing else runs until devbin ships (the desk's denial of 01M6BBKENABGC65S1XAYRCWHD3). Then cc asks the desk again, and vc judges. Worktrees: tmp/wt-cc-0671 and the never-banked mutant tmp/wt-cc-0671-mutant. Nothing pushed or released.",
+    "focus": "2026-11-01, localfolded for hv's compact and holding still, on hv's order relayed by devbin-vc at 11:24Z by devbin-vc's date -u: nothing moves until devbin-vc names something this devbin release needs from Intent. 0671 is banked at refs/bank/cc/0671/fix-v1 and held (doing 103) until Devbin 0.1.19 is cut and swept into the fleet and the desk grants again. Then cc asks the desk again with refs/bank/cc/0671/run-v1.sh, and vc judges. Kept: claim ISSUE:0671, tmp/wt-cc-0671 and the never-banked mutant tmp/wt-cc-0671-mutant. No stash or branch. Nothing pushed or released.",
     "claims": [
       "ISSUE:0671"
     ],
