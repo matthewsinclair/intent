@@ -1,0 +1,16 @@
+{
+  "id": "01M6B4YTYR1Z2DGJVBGKP1VMRB",
+  "ts": "2026-11-01T08:52:29.784Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 73,
+    "text": "Land and judge the builds of hv's rulings of 2026-11-01; hv ruled that 3.2.9 carries 0666, 0668 and 0669, each once judged green and landed, and one not landed by the cut rides the next release. Each lands on vc's word naming HEAD, in the order 0666, 0668, 0669, and its builder closes the issue in its landing chain. 0666 (cc): refs/bank/cc/0666/fix-v3 (patch-id 95ecb259a433), GREEN on vc's judge (refs/bank/vc/0666/judge-v3.*). 0668 (dc): refs/bank/dc/0668/fix-v2 (patch-id 273a4f6a7dd3), v1's code with its CHANGELOG bullet under 0666's, GREEN on vc's light judge (refs/bank/vc/0668/judge-v2-light.txt) over v1's full one (refs/bank/vc/0668/judge-v1.*). 0669 (cc): refs/bank/cc/0669/fix-v3 (patch-id 37ec93447b79), v2's code rebased onto 0666 v3 and 0668 v2; vc's full judge is asked on the desk as 01M6B4E8CY746G8AQDNCSW1Y4Q, after cc's own run, on the pinned base refs/bank/vc/0669/judge-base (tree 21714e4f3d4d). 0670: stopped on hv's word for the day (dc hold 38, with dc's shape questions banked at refs/bank/dc/0670/shape-questions.md). vc claims nothing."
+  }
+}

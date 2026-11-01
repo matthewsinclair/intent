@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "096ec97d-7b3c-4dab-8be4-db54311270c3",
-    "heartbeat_at": "2026-11-01T08:14:05.929Z",
+    "heartbeat_at": "2026-11-01T08:52:36.322Z",
     "status": "active",
-    "focus": "2026-11-01, after hv's /compact: holding for hv's go. The upstream push waits on hv's `!` for the kovacs preflight (doing 60). 0668 v1 and 0666 v3 are GREEN and land after it, with one CHANGELOG re-bank; 0669 fix-v2 is judged after the go (todo 73). Hold 6 waits on hv's look, and todo 71 on Devbin 0.1.19. Intent's fold line is with devbin-vc.",
+    "focus": "2026-11-01 after hv's go: Intent's main d22305536 is pushed to local and upstream on the GREEN Linux preflight at 721b4efdc. 0666, 0668 v2 and 0669 v3 land in that order on vc's word naming HEAD, and vc's full judge of 0669 v3 runs on the desk (todo 73). 0670 is stopped on hv's word for the day. Hold 6 waits on hv's look, and todo 71 on Devbin 0.1.19.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -2500,17 +2500,18 @@
       "node": "vc",
       "kind": "todo",
       "seq": 73,
-      "text": "Judge the builds of hv's rulings of 2026-11-01, each run booked on devbin-vc's desk. The builder claims the issue, lands on vc's word naming HEAD after the upstream push (until then main stays board-only for the preflight's coverage), and closes the issue in its landing chain. 0668 (dc): v1 GREEN at 07:28Z (refs/bank/dc/0668/fix-v1, patch-id 45aeedeed7e5; evidence refs/bank/vc/0668/judge-v1.*). 0666 (cc): v1 returned on two static findings, v2 RED on intentd's lifeline guard (refs/bank/vc/0666/judge-v2.*), v3 GREEN at 07:57Z (refs/bank/cc/0666/fix-v3, patch-id 95ecb259a433; refs/bank/vc/0666/judge-v3.*); it lands before 0669. 0666 v3 and 0668 v1 each apply alone on main, but both open a `### Fixed` section at one spot in CHANGELOG.md, so whichever lands second re-banks that hunk as one bullet, for a light judge (vc, on a scratch index). 0669 (cc): fix-v2 (blob 89fc4153a081, patch-id ad11fc0c2e6d) supersedes fix-v1 and stacks on 0666 v3: applied to its tree a548571439ac it gives cc's tip 2451ebde9d8e (checked by vc). It is judged after the go, following cc's own desk run. 0670: hv ruled the measured 1-row shape, and its build is unassigned. vc claims nothing.",
+      "text": "Land and judge the builds of hv's rulings of 2026-11-01; hv ruled that 3.2.9 carries 0666, 0668 and 0669, each once judged green and landed, and one not landed by the cut rides the next release. Each lands on vc's word naming HEAD, in the order 0666, 0668, 0669, and its builder closes the issue in its landing chain. 0666 (cc): refs/bank/cc/0666/fix-v3 (patch-id 95ecb259a433), GREEN on vc's judge (refs/bank/vc/0666/judge-v3.*). 0668 (dc): refs/bank/dc/0668/fix-v2 (patch-id 273a4f6a7dd3), v1's code with its CHANGELOG bullet under 0666's, GREEN on vc's light judge (refs/bank/vc/0668/judge-v2-light.txt) over v1's full one (refs/bank/vc/0668/judge-v1.*). 0669 (cc): refs/bank/cc/0669/fix-v3 (patch-id 37ec93447b79), v2's code rebased onto 0666 v3 and 0668 v2; vc's full judge is asked on the desk as 01M6B4E8CY746G8AQDNCSW1Y4Q, after cc's own run, on the pinned base refs/bank/vc/0669/judge-base (tree 21714e4f3d4d). 0670: stopped on hv's word for the day (dc hold 38, with dc's shape questions banked at refs/bank/dc/0670/shape-questions.md). vc claims nothing.",
       "state": "live",
       "recorded_at": "2026-11-01T07:05:15.060Z",
-      "edited_at": "2026-11-01T08:14:01.831Z"
+      "edited_at": "2026-11-01T08:52:29.784Z"
     },
     {
       "node": "vc",
       "kind": "doing",
       "seq": 60,
       "text": "Intent's push, on hv's word of 2026-11-01 relayed by devbin-vc: local has 086bfc9e1 (07:17Z). upstream waits on the Linux preflight at 721b4efdc, desk slot 01M6AZMPV75Q5XT8HM48RKPH84, held for hv's `!` in kovacs-sysadm's session (its classifier refused the script); devbin-vc pushes upstream on the green summary. Until then Intent commits only paths under intent/whiteboard/ and intent/.canon/events/. After it: record hv's 0670 ruling and vc's readings on 0666 and 0668 from refs/bank/vc/fold-20261101/issue-records/, give the land words (0666, 0668, then 0669 once judged), and fold intent/wip.md.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-01T08:52:30.786Z",
       "recorded_at": "2026-11-01T07:59:09.379Z"
     }
   ],

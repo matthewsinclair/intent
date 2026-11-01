@@ -1,0 +1,15 @@
+{
+  "id": "01M6B4Y4QY0ZMTEFHW6HMV5Z43",
+  "ts": "2026-11-01T08:52:07.041Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0671"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intentd started without CLAUDE_CONFIG_DIR sees no Claude session, so the estate page marks every running slot ORPHANED"
+  }
+}
