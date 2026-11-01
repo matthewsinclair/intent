@@ -1,0 +1,16 @@
+{
+  "id": "01M6BAYRV99KKHGCJXXXGCG60T",
+  "ts": "2026-11-01T10:37:19.081Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 74,
+    "text": "Judge and land the obvious-bug fixes hv put in 3.2.9 (decision 106). 0671 (cc, doing 103): the app passes CLAUDE_CONFIG_DIR from the login shell, and the at-login plist carries it without intentd's boot-time heal dropping it, on vc's approved shape (one is_stale predicate, the caller's value else the plist's, userstate::claude_config_dir as the one reader); the issue's addition is banked at refs/bank/vc/fold-20261101b/issue-records/0671.add.md. The testkit race (dc, doing 149): refs/bank/dc/testkit-race/fix-v1 (patch-id abcffb4ac0ea), a light judge after dc's storm run 01M6BAKRJR2MQWFN9Q761P49MJ; its issue recorded after the push from refs/bank/vc/fold-20261101b/issue-records/testkit-race.title.txt and refs/bank/vc/fold-20261101b/issue-records/testkit-race.body.md. The sweep-order fix (dc, doing 150): sweep_abandoned_fixtures takes live_pids() before it reads /tmp (testkit/src/lib.rs:421-445), so a process born between them can lose a live fixture; the fix lists first and snapshots second, with a seam-driven red, judged on the whole workspace suite; its issue is dc's draft, recorded after the push. Each lands after the push on vc's word naming HEAD; vc judges each on devbin-vc's desk and claims nothing."
+  }
+}
