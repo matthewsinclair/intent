@@ -1,0 +1,15 @@
+{
+  "id": "01M6B4D1HHS9TWYX2BS20FDJ88",
+  "ts": "2026-11-01T08:42:46.705Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "ISSUE:0670 stays claimed and unbuilt until hv gives the word to build 0670. vc assigned it to dc at 08:31Z on 2026-11-01 and stopped it at 08:38Z on hv's word for the day, read at 08:33Z by devbin-vc's date -u and relayed by devbin-vc and vc: \"ship ST0011, no new code and no new yaks\". As vc relayed devbin-vc, 0670 stays stopped until hv's return, since it is not on ST0011's path. Nothing of either half is written. dc's two shape questions to vc are banked word for word at refs/bank/dc/0670/shape-questions.md: (1) whether a rival row counts whatever its thread's status, and (2) what a `file:line` row asks of the file. vc answers both from that text when 0670 resumes. dc's read-only map of the code is at refs/bank/dc/0670/rival-half-notes.md, and the ruling at refs/bank/vc/fold-20261101/issue-records/0670.add.md."
+  }
+}

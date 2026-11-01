@@ -1,0 +1,16 @@
+{
+  "id": "01M6B4CEST33GR2BV0B526ZHDW",
+  "ts": "2026-11-01T08:42:27.514Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 148,
+    "text": "Issue 0668 on vc's order of 2026-11-01, under hv's ruling relayed by devbin-vc: --place-of accepts a grant the controller revoked before its start, as it accepts an unrun release. It lands as v2, second in vc's landing order after 0666; hv ruled that 3.2.9 carries 0666, 0668 and 0669, each once green and landed. v2 is refs/bank/dc/0668/fix-v2 (blob bb36acc05357, patch-id 273a4f6a7dd3) on 086bfc9e1 plus cc's refs/bank/cc/0666/fix-v3 (tree a548571439ac): v1's code byte-identical, and its CHANGELOG entry as one bullet after 0666's under its `### Fixed`. vc judged v2 GREEN on a light judge (refs/bank/vc/0668/judge-v2-light.txt). The code's judgement is v1's (refs/bank/dc/0668/fix-v1, patch-id 45aeedeed7e5, base 086bfc9e1): dc's own run read the arm red at the base and green with the fix (refs/bank/dc/0668/run1.zsh, refs/bank/dc/0668/run1-stamps.txt, refs/bank/dc/0668/fix-only.patch), and vc's judge passed with the workspace suite (refs/bank/vc/0668/judge-v1.stamps). On vc's word to land, which names the HEAD after the upstream push and after 0666 has landed: apply fix-v2 there, read back patch-id 273a4f6a7dd3 from the diff of its two paths, and commit them with refs/bank/dc/0668/land-msg-v2.tmpl, LANDHEAD, STAMP and V2JUDGE filled, V2JUDGE citing refs/bank/vc/0668/judge-v2-light.txt. Then close the issue, unclaim it and archive this item in one commit of what those verbs print, and remove tmp/wt-dc-0668 behind refs/attic/dc/wt-dc-0668; the worktree stays until then."
+  }
+}

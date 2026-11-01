@@ -5,12 +5,13 @@
     "name": "DevX Claude",
     "role": "worker",
     "session_id": "f7bf9b31-ead1-4a0d-9ecd-532119b17564",
-    "heartbeat_at": "2026-11-01T08:08:27.296Z",
+    "heartbeat_at": "2026-11-01T08:42:54.961Z",
     "status": "active",
-    "focus": "2026-11-01, folded for hv's compact: issue 0668 v1 is judged GREEN by vc and banked at refs/bank/dc/0668/fix-v1, not yet landed; it lands alone on vc's word once upstream is pushed, and tmp/wt-dc-0668 stays until then. Nothing of dc's runs. ST0090/02 stays WIP on hold 37 until hv's AC-02.4 look, for which the dev-app route is offered to hv. ST0091 waits for Devbin's 0.1.19 sweep.",
+    "focus": "2026-11-01, after hv's go: issue 0668 v2 is banked on 0666 v3 and judged GREEN by vc; it lands second, after 0666, on vc's word once upstream is pushed, and tmp/wt-dc-0668 stays until then. 0670 is claimed and held for hv's word to build it, with nothing written. ST0090/02 stays WIP on hold 37 until hv's AC-02.4 look. ST0091 waits for Devbin's 0.1.19 sweep.",
     "claims": [
       "ST0090/02",
-      "ISSUE:0668"
+      "ISSUE:0668",
+      "ISSUE:0670"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -2611,10 +2612,18 @@
       "node": "dc",
       "kind": "doing",
       "seq": 148,
-      "text": "Issue 0668 on vc's order of 2026-11-01, under hv's ruling relayed by devbin-vc: --place-of accepts a grant the controller revoked before its start, as it accepts an unrun release. v1 is banked at refs/bank/dc/0668/fix-v1 (blob 24283ad12427, patch-id 45aeedeed7e5, base 086bfc9e1) and applies on main at a352fa9d1. dc's own run on the desk read the arm red at the base and green with the fix (refs/bank/dc/0668/run1.zsh, refs/bank/dc/0668/run1-stamps.txt, refs/bank/dc/0668/fix-only.patch), and vc judged it GREEN with the workspace suite (refs/bank/vc/0668/judge-v1.stamps). It lands alone on vc's word to land, which names the HEAD and the order, once devbin-vc reports upstream pushed: apply the bank there, read back patch-id 45aeedeed7e5 from the diff of its two paths, and commit them with refs/bank/dc/0668/land-msg.tmpl, LANDHEAD and STAMP filled. Then close the issue, unclaim it and archive this item in one commit of what those verbs print, and remove tmp/wt-dc-0668 behind refs/attic/dc/wt-dc-0668; the worktree stays until then. v1 does not apply after cc's 0666 v3 (vc's measurement, 08:08Z): both open a new `### Fixed` section at CHANGELOG.md:17, and 0669 v2 already sits as a bullet under 0666's. So if 0666 lands first, re-bank under a new name with the CHANGELOG entry as one bullet under 0666's `### Fixed`, a CHANGELOG-only change, and send vc the new patch-id for a light judge.",
+      "text": "Issue 0668 on vc's order of 2026-11-01, under hv's ruling relayed by devbin-vc: --place-of accepts a grant the controller revoked before its start, as it accepts an unrun release. It lands as v2, second in vc's landing order after 0666; hv ruled that 3.2.9 carries 0666, 0668 and 0669, each once green and landed. v2 is refs/bank/dc/0668/fix-v2 (blob bb36acc05357, patch-id 273a4f6a7dd3) on 086bfc9e1 plus cc's refs/bank/cc/0666/fix-v3 (tree a548571439ac): v1's code byte-identical, and its CHANGELOG entry as one bullet after 0666's under its `### Fixed`. vc judged v2 GREEN on a light judge (refs/bank/vc/0668/judge-v2-light.txt). The code's judgement is v1's (refs/bank/dc/0668/fix-v1, patch-id 45aeedeed7e5, base 086bfc9e1): dc's own run read the arm red at the base and green with the fix (refs/bank/dc/0668/run1.zsh, refs/bank/dc/0668/run1-stamps.txt, refs/bank/dc/0668/fix-only.patch), and vc's judge passed with the workspace suite (refs/bank/vc/0668/judge-v1.stamps). On vc's word to land, which names the HEAD after the upstream push and after 0666 has landed: apply fix-v2 there, read back patch-id 273a4f6a7dd3 from the diff of its two paths, and commit them with refs/bank/dc/0668/land-msg-v2.tmpl, LANDHEAD, STAMP and V2JUDGE filled, V2JUDGE citing refs/bank/vc/0668/judge-v2-light.txt. Then close the issue, unclaim it and archive this item in one commit of what those verbs print, and remove tmp/wt-dc-0668 behind refs/attic/dc/wt-dc-0668; the worktree stays until then.",
       "state": "live",
       "recorded_at": "2026-11-01T07:20:58.776Z",
-      "edited_at": "2026-11-01T08:09:29.490Z"
+      "edited_at": "2026-11-01T08:42:27.514Z"
+    },
+    {
+      "node": "dc",
+      "kind": "hold",
+      "seq": 38,
+      "text": "ISSUE:0670 stays claimed and unbuilt until hv gives the word to build 0670. vc assigned it to dc at 08:31Z on 2026-11-01 and stopped it at 08:38Z on hv's word for the day, read at 08:33Z by devbin-vc's date -u and relayed by devbin-vc and vc: \"ship ST0011, no new code and no new yaks\". As vc relayed devbin-vc, 0670 stays stopped until hv's return, since it is not on ST0011's path. Nothing of either half is written. dc's two shape questions to vc are banked word for word at refs/bank/dc/0670/shape-questions.md: (1) whether a rival row counts whatever its thread's status, and (2) what a `file:line` row asks of the file. vc answers both from that text when 0670 resumes. dc's read-only map of the code is at refs/bank/dc/0670/rival-half-notes.md, and the ruling at refs/bank/vc/fold-20261101/issue-records/0670.add.md.",
+      "state": "live",
+      "recorded_at": "2026-11-01T08:42:46.705Z"
     }
   ],
   "sent": [
