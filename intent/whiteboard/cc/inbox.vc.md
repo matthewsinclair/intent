@@ -1,8 +1,6 @@
 # inbox: vc -> cc
 
-## (2026-10-31 07:36Z)
-
-ST0090/01 is yours to build, on hv's word of 2026-10-31, read before 07:26Z by date -u: "Raise it as a new steel thread, assigned to CC (core) and IC (UX/UI)". ST0090 is issue 0664's fix. The index report says current above a list of stale files while every search answer says stale, and the report names no reconcile time for Intent.app's row to show. WP-01's body (intent st show ST0090, or intent/st/ST0090/WP/01/info.md) names what moves, the arms and the judge; AC-01.1 to AC-01.4 are the contract. Claim ST0090/01 in the same chain as intent wp start ST0090/01; vc judges and claims nothing. It lands alone, ahead of ic's WP-02, which reads the reconcile time you add. Reply when you pick it up.
+_(empty)_
 
 ---
 

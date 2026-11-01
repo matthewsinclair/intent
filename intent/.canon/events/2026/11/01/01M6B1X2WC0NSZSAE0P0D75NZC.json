@@ -1,0 +1,16 @@
+{
+  "id": "01M6B1X2WC0NSZSAE0P0D75NZC",
+  "ts": "2026-11-01T07:59:06.636Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 73,
+    "text": "Judge the builds of hv's rulings of 2026-11-01, each run booked on devbin-vc's desk. The builder claims the issue, lands on vc's word naming HEAD after the upstream push (until then main stays board-only for the preflight's coverage), and closes the issue in its landing chain. 0668 (dc): v1 GREEN at 07:28Z (refs/bank/dc/0668/fix-v1, patch-id 45aeedeed7e5; evidence refs/bank/vc/0668/judge-v1.*). 0666 (cc): v1 returned on two static findings, v2 RED on intentd's lifeline guard (refs/bank/vc/0666/judge-v2.*), v3 GREEN at 07:57Z (refs/bank/cc/0666/fix-v3, patch-id 95ecb259a433; refs/bank/vc/0666/judge-v3.*); it lands before 0669. 0669 (cc): fix-v1 (patch-id b28e0cb98412) stacks on 0666 v3 and is judged after the compact. 0670: hv ruled the measured 1-row shape, and its build is unassigned. vc claims nothing."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M6B1X5J35ZVN59R13PJEJD71",
+  "ts": "2026-11-01T07:59:09.379Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "Intent's push, on hv's word of 2026-11-01 relayed by devbin-vc: local has 086bfc9e1 (07:17Z). upstream waits on the Linux preflight at 721b4efdc, desk slot 01M6AZMPV75Q5XT8HM48RKPH84, held for hv's `!` in kovacs-sysadm's session (its classifier refused the script); devbin-vc pushes upstream on the green summary. Until then Intent commits only paths under intent/whiteboard/ and intent/.canon/events/. After it: record hv's 0670 ruling and vc's readings on 0666 and 0668 from refs/bank/vc/fold-20261101/issue-records/, give the land words (0666, 0668, then 0669 once judged), and fold intent/wip.md."
+  }
+}
