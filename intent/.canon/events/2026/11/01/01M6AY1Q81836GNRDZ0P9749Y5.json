@@ -1,0 +1,19 @@
+{
+  "id": "01M6AY1Q81836GNRDZ0P9749Y5",
+  "ts": "2026-11-01T06:51:44.257Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "anchor": "2026-10-31 07:36Z",
+    "event": "01M68E7DWHFKN2YDFT9SP1K27F",
+    "kind": "message",
+    "n": 1,
+    "text": "SPENT, do not act on this order (vc, 2026-11-01). hv's go of 2026-10-31 13:44Z in devbin-vc's window gave both ST0090 packages to dc: dc built WP-02, landed it at a54f2e9e0, and holds the ST0090/02 claim until AC-02.4 is met (dc hold 37). Do not claim ST0090/02. The order as first sent: ST0090/02 is yours to build, on hv's word of 2026-10-31, read before 07:26Z by date -u: \"Raise it as a new steel thread, assigned to CC (core) and IC (UX/UI)\". ST0090 is issue 0664's fix. Intent.app's Rebuild Search Index row copies Gtools' Refresh Search row: a second line saying how long ago the index was reconciled, an alert when a rebuild fails, and no log opened by itself after a rebuild. WP-02's body (intent st show ST0090, or intent/st/ST0090/WP/02/info.md) names Gtools' files to copy, what moves, the arms and the judge; AC-02.1 to AC-02.4 are the contract. Claim ST0090/02 in the same chain as intent wp start ST0090/02; vc judges and claims nothing. You may bank alongside cc's WP-01 with the CLI stubbed, and you land after it. Reply when you pick it up.",
+    "to": "ic"
+  }
+}

@@ -4,10 +4,10 @@
     "moniker": "vc",
     "name": "Validation Claude",
     "role": "validation",
-    "session_id": "f5db1c5a-5ee4-4814-9ffc-81a45ab53623",
-    "heartbeat_at": "2026-10-31T21:16:23.269Z",
-    "status": "paused",
-    "focus": "2026-10-31: vc closed for the day on hv's hard close (devbin decision 118, 21:11Z), with the globalfold of intent/wip.md, and released. devbin-vc holds the estate pen and the desk on hv's word, and vc takes its orders. Next session: hold 6 (ST0090 AC-02.4) waits on hv seeing Intent.app's Rebuild Search Index row on a build that carries both packages; todo 71 waits on devbin-vc's sweep START after the 0.1.19 cut; issues 0666, 0668 and 0669 wait on hv's rulings, and 0670's fix shape is hv's; Intent's push waits for hv's word.",
+    "session_id": "096ec97d-7b3c-4dab-8be4-db54311270c3",
+    "heartbeat_at": "2026-11-01T06:51:43.177Z",
+    "status": "active",
+    "focus": "2026-11-01: hv's go (devbin decision 119, stamped 06:46Z by devbin-vc) lifted the hard close. vc runs issue 0670's read-only measurement for devbin-vc, and books build all at HEAD on its desk once the boot commits have landed; the push waits for hv's word. Hold 6 (ST0090 AC-02.4) waits on hv's look at a build carrying both packages: a dev Debug app at HEAD pointed at the dev CLI 97f9f6694 (dc's route, verified by vc), or the 3.2.9 cut. Todo 71 waits on Devbin 0.1.19 and its sweep. The rulings on 0666, 0668, 0669 and 0670's fix shape go to hv in the TUI through devbin-vc.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -3749,9 +3749,10 @@
     {
       "id": "01M68E7DWHFKN2YDFT9SP1K27G",
       "recipient": "ic",
-      "body": "ST0090/02 is yours to build, on hv's word of 2026-10-31, read before 07:26Z by date -u: \"Raise it as a new steel thread, assigned to CC (core) and IC (UX/UI)\". ST0090 is issue 0664's fix. Intent.app's Rebuild Search Index row copies Gtools' Refresh Search row: a second line saying how long ago the index was reconciled, an alert when a rebuild fails, and no log opened by itself after a rebuild. WP-02's body (intent st show ST0090, or intent/st/ST0090/WP/02/info.md) names Gtools' files to copy, what moves, the arms and the judge; AC-02.1 to AC-02.4 are the contract. Claim ST0090/02 in the same chain as intent wp start ST0090/02; vc judges and claims nothing. You may bank alongside cc's WP-01 with the CLI stubbed, and you land after it. Reply when you pick it up.",
+      "body": "SPENT, do not act on this order (vc, 2026-11-01). hv's go of 2026-10-31 13:44Z in devbin-vc's window gave both ST0090 packages to dc: dc built WP-02, landed it at a54f2e9e0, and holds the ST0090/02 claim until AC-02.4 is met (dc hold 37). Do not claim ST0090/02. The order as first sent: ST0090/02 is yours to build, on hv's word of 2026-10-31, read before 07:26Z by date -u: \"Raise it as a new steel thread, assigned to CC (core) and IC (UX/UI)\". ST0090 is issue 0664's fix. Intent.app's Rebuild Search Index row copies Gtools' Refresh Search row: a second line saying how long ago the index was reconciled, an alert when a rebuild fails, and no log opened by itself after a rebuild. WP-02's body (intent st show ST0090, or intent/st/ST0090/WP/02/info.md) names Gtools' files to copy, what moves, the arms and the judge; AC-02.1 to AC-02.4 are the contract. Claim ST0090/02 in the same chain as intent wp start ST0090/02; vc judges and claims nothing. You may bank alongside cc's WP-01 with the CLI stubbed, and you land after it. Reply when you pick it up.",
       "fyi": false,
-      "recorded_at": "2026-10-31T07:36:45.201Z"
+      "recorded_at": "2026-10-31T07:36:45.201Z",
+      "edited_at": "2026-11-01T06:51:44.257Z"
     },
     {
       "id": "01M68E7M4D7A6X38RWPKW1XYFJ",

@@ -2,10 +2,10 @@
 node: vc
 name: Validation Claude
 role: validation
-session_id: f5db1c5a-5ee4-4814-9ffc-81a45ab53623
-heartbeat_at: 2026-10-31 21:16Z
-status: paused
-focus: "2026-10-31: vc closed for the day on hv's hard close (devbin decision 118, 21:11Z), with the globalfold of intent/wip.md, and released. devbin-vc holds the estate pen and the desk on hv's word, and vc takes its orders. Next session: hold 6 (ST0090 AC-02.4) waits on hv seeing Intent.app's Rebuild Search Index row on a build that carries both packages; todo 71 waits on devbin-vc's sweep START after the 0.1.19 cut; issues 0666, 0668 and 0669 wait on hv's rulings, and 0670's fix shape is hv's; Intent's push waits for hv's word."
+session_id: 096ec97d-7b3c-4dab-8be4-db54311270c3
+heartbeat_at: 2026-11-01 06:51Z
+status: active
+focus: "2026-11-01: hv's go (devbin decision 119, stamped 06:46Z by devbin-vc) lifted the hard close. vc runs issue 0670's read-only measurement for devbin-vc, and books build all at HEAD on its desk once the boot commits have landed; the push waits for hv's word. Hold 6 (ST0090 AC-02.4) waits on hv's look at a build carrying both packages: a dev Debug app at HEAD pointed at the dev CLI 97f9f6694 (dc's route, verified by vc), or the 3.2.9 cut. Todo 71 waits on Devbin 0.1.19 and its sweep. The rulings on 0666, 0668, 0669 and 0670's fix shape go to hv in the TUI through devbin-vc."
 claims: []
 ---
 
