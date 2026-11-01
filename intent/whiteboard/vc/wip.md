@@ -19,6 +19,7 @@ _(none)_
 
 - After 3.2.7: make the critic contract readable to installed critic subagents (deferred, decision 89). (edited)
 - ST0091, Devbin ST0011/12 in Intent's tree. At the 0.1.19 sweep devbin-vc runs the upgrade in Intent's tree and commits the sweep pathspec itself (Devbin directive 10), inside an Intent chain with vc and dc; its announcement of the paths and the commit is the landing (devbin-vc's message, read by 13:12Z on vc's date -u). The sweep carries only devbin's vendored half, since Intent's config declares no ci.tag, ci.base or ci.query. vc answers that START with any Intent hold that stands, reads the commit, then judges ST0091's packages as dc banks them, every run booked through devbin-vc's desk. vc claims nothing. The inventory (dc's, checked by vc) went to devbin-vc at 10:46Z and the 3.2.8 baseline at 10:44Z by date -u. (edited)
+- Judge the builds of hv's rulings of 2026-11-01 as they bank, each run booked on devbin-vc's desk: 0666 (start --at-login refuses, naming the pid and the stop-then-enrol remedy), 0669 (every in-process search door reconciles first, through the text door's one step), 0668 (--place-of accepts a request revoked before its start); then 0670 once hv rules its shape on the measurement banked at refs/bank/vc/0670/. The builder claims the issue; vc claims nothing.
 
 ## Holds
 

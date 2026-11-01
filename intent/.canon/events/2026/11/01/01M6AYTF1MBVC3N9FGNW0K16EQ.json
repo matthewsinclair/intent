@@ -1,0 +1,15 @@
+{
+  "id": "01M6AYTF1MBVC3N9FGNW0K16EQ",
+  "ts": "2026-11-01T07:05:15.060Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Judge the builds of hv's rulings of 2026-11-01 as they bank, each run booked on devbin-vc's desk: 0666 (start --at-login refuses, naming the pid and the stop-then-enrol remedy), 0669 (every in-process search door reconciles first, through the text door's one step), 0668 (--place-of accepts a request revoked before its start); then 0670 once hv rules its shape on the measurement banked at refs/bank/vc/0670/. The builder claims the issue; vc claims nothing."
+  }
+}
