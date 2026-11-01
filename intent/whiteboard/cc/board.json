@@ -5,7 +5,7 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "3b3a4233-d9c4-4534-9c64-23190cbba0db",
-    "heartbeat_at": "2026-11-01T08:05:19.010Z",
+    "heartbeat_at": "2026-11-01T08:12:34.957Z",
     "status": "active",
     "focus": "2026-11-01, folded on hv's fold order for the compact, holding for hv's go. 0666 is GREEN at refs/bank/cc/0666/fix-v3 (vc's judge, 3495 passed) and waits for upstream's push, then vc's land word. 0669 v2 is banked at refs/bank/cc/0669/fix-v2, stacked on 0666 v3, and its own run is booked after the compact. cc holds ISSUE:0666 and ISSUE:0669 and two worktrees, tmp/wt-cc-0666 and tmp/wt-cc-0669, and no stash or branch. Nothing pushed or released.",
     "claims": [
