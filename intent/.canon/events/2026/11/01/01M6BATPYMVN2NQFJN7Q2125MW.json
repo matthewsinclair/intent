@@ -1,0 +1,15 @@
+{
+  "id": "01M6BATPYMVN2NQFJN7Q2125MW",
+  "ts": "2026-11-01T10:35:06.069Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "The testkit sweep-order fix for 3.2.9, assigned by vc at 10:32Z on vc's date -u on 2026-11-01 under hv's bug-fix word (vc decision 106). sweep_abandoned_fixtures takes its live-pid snapshot before it lists /tmp (testkit/src/lib.rs:421-445), so a fixture whose process was born between the two is removed while its process lives. The fix lists the candidates first and takes the snapshot second. Its proof is deterministic: through a test seam between the two steps, a live child's fixture is planted, which the base sweeps and the fix keeps. It changes testkit's lib, which every crate's tests use at start, so dc's run and vc's judge are the whole workspace suite plus clippy and fmt. It gets a separate bank and its own desk ask, after the race fix's desk run. dc drafts its issue text; vc records both testkit issues after the push and dc claims them then, and both land after the push on vc's word. No CHANGELOG entry, since testkit is unshipped."
+  }
+}

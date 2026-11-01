@@ -1,0 +1,15 @@
+{
+  "id": "01M6BATAAGKKZGC70D4XY6RCN8",
+  "ts": "2026-11-01T10:34:53.136Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "The testkit race fix for 3.2.9, on hv's word that obvious bug fixes ride it (vc decision 106, relayed by vc at 10:21Z on vc's date -u on 2026-11-01). testkit's a_run_leaves_no_corpse_of_its_own_behind now asserts on the directories it planted, so a concurrent sweep cannot redden it, as one did on kovacs at 64cf9e251. vc approved the shape. It is banked at refs/bank/dc/testkit-race/fix-v1 (blob 7d38f5fdcdb9, patch-id abcffb4ac0ea, base fd4aced67) in tmp/wt-dc-race. dc's proof run is desk ask 01M6BAKRJR2MQWFN9Q761P49MJ: red at the base and green with the fix under a storm of the real sweeper, then the testkit suite 10 times, clippy and fmt. vc's light judge follows. dc claims the issue when vc records it after the push, and the fix lands after the push on vc's word. Test-only, so no CHANGELOG entry."
+  }
+}
