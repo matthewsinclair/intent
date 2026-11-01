@@ -3,17 +3,17 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: f7bf9b31-ead1-4a0d-9ecd-532119b17564
-heartbeat_at: 2026-11-01 08:42Z
+heartbeat_at: 2026-11-01 09:01Z
 status: active
-focus: "2026-11-01, after hv's go: issue 0668 v2 is banked on 0666 v3 and judged GREEN by vc; it lands second, after 0666, on vc's word once upstream is pushed, and tmp/wt-dc-0668 stays until then. 0670 is claimed and held for hv's word to build it, with nothing written. ST0090/02 stays WIP on hold 37 until hv's AC-02.4 look. ST0091 waits for Devbin's 0.1.19 sweep."
-claims: [ST0090/02, ISSUE:0668, ISSUE:0670]
+focus: "2026-11-01: issue 0668 landed as 823cddabd on vc's word, second after 0666, and is closed; it takes effect in 3.2.9. 0670 is claimed and held for hv's word to build it, with nothing written (hold 38). ST0090/02 stays WIP on hold 37 until hv's AC-02.4 look. ST0091 waits for Devbin's 0.1.19 sweep."
+claims: [ST0090/02, ISSUE:0670]
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-- Issue 0668 on vc's order of 2026-11-01, under hv's ruling relayed by devbin-vc: --place-of accepts a grant the controller revoked before its start, as it accepts an unrun release. It lands as v2, second in vc's landing order after 0666; hv ruled that 3.2.9 carries 0666, 0668 and 0669, each once green and landed. v2 is refs/bank/dc/0668/fix-v2 (blob bb36acc05357, patch-id 273a4f6a7dd3) on 086bfc9e1 plus cc's refs/bank/cc/0666/fix-v3 (tree a548571439ac): v1's code byte-identical, and its CHANGELOG entry as one bullet after 0666's under its `### Fixed`. vc judged v2 GREEN on a light judge (refs/bank/vc/0668/judge-v2-light.txt). The code's judgement is v1's (refs/bank/dc/0668/fix-v1, patch-id 45aeedeed7e5, base 086bfc9e1): dc's own run read the arm red at the base and green with the fix (refs/bank/dc/0668/run1.zsh, refs/bank/dc/0668/run1-stamps.txt, refs/bank/dc/0668/fix-only.patch), and vc's judge passed with the workspace suite (refs/bank/vc/0668/judge-v1.stamps). On vc's word to land, which names the HEAD after the upstream push and after 0666 has landed: apply fix-v2 there, read back patch-id 273a4f6a7dd3 from the diff of its two paths, and commit them with refs/bank/dc/0668/land-msg-v2.tmpl, LANDHEAD, STAMP and V2JUDGE filled, V2JUDGE citing refs/bank/vc/0668/judge-v2-light.txt. Then close the issue, unclaim it and archive this item in one commit of what those verbs print, and remove tmp/wt-dc-0668 behind refs/attic/dc/wt-dc-0668; the worktree stays until then. (edited)
+_(none)_
 
 ## TODO
 
