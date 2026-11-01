@@ -2,22 +2,22 @@
 node: cc
 name: Control Claude
 role: control
-session_id: 69a14c2d-7dde-411f-af8f-09897328cc6a
-heartbeat_at: 2026-10-30 22:35Z
-status: paused
-focus: "Closed for the night on hv's word, as vc relayed it on 2026-10-30: no more releases tonight, clear the exhaust, then close. cc has nothing uncommitted and holds no unit, claim, branch or worktree; every message it sent is archived, and none waits on it. Its 508 bank refs hold no cc unit missing from main (audited 2026-10-30: 44 patches are on main as they stand, the rest landed in revised form or were superseded, and 274 are evidence that stays as refs). hv runs build and release."
-claims: []
+session_id: 3b3a4233-d9c4-4534-9c64-23190cbba0db
+heartbeat_at: 2026-11-01 07:09Z
+status: active
+focus: "2026-11-01: on vc's order under hv's rulings (relayed by devbin-vc), cc builds 0666 and then 0669, each in a private worktree under tmp/, banked, booked on devbin-vc's desk, judged by vc and landed alone on vc's word; dc builds 0668. cc holds ISSUE:0666. Nothing pushed or released; whether the fixes ride in 3.2.9 is hv's call."
+claims: [ISSUE:0666]
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-_(none)_
+- 0666 (hv's ruling, relayed by devbin-vc and written into the issue at 721b4efdc; vc's order): with a daemon running, intent daemon start --at-login refuses, naming the running pid and the stop-then-enrol remedy, and never says ok: for an enrolment it did not make. The logic goes in intentsvcs, as a typed error carrying a Remedy. The case of a running daemon with the plist already present is asked of vc (07:08Z by date -u). Worktree tmp/wt-cc-0666, bank under refs/bank/cc/0666/, runs booked on devbin-vc's desk, vc judges, and it lands alone on vc's word.
 
 ## TODO
 
-_(none)_
+- 0669, after 0666 (hv's ruling, relayed by devbin-vc and written into the issue at 721b4efdc; vc's order): every in-process search door, the text query, --outline, --context and a filters-only listing, reconciles first through the text door's one step, a_search_here_reconciles and then index_refresh_for_search, in the CLI and the MCP tool alike. The MCP text door's own unconditional index_refresh(None) (mcp.rs:1301) joins that step, and ISSUE:0669 is claimed in its first chain.
 
 ## Holds
 

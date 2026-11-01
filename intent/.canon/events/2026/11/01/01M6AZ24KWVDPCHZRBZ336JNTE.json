@@ -1,0 +1,15 @@
+{
+  "id": "01M6AZ24KWVDPCHZRBZ336JNTE",
+  "ts": "2026-11-01T07:09:26.524Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "0666 (hv's ruling, relayed by devbin-vc and written into the issue at 721b4efdc; vc's order): with a daemon running, intent daemon start --at-login refuses, naming the running pid and the stop-then-enrol remedy, and never says ok: for an enrolment it did not make. The logic goes in intentsvcs, as a typed error carrying a Remedy. The case of a running daemon with the plist already present is asked of vc (07:08Z by date -u). Worktree tmp/wt-cc-0666, bank under refs/bank/cc/0666/, runs booked on devbin-vc's desk, vc judges, and it lands alone on vc's word."
+  }
+}
