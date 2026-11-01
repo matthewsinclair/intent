@@ -1,0 +1,16 @@
+{
+  "id": "01M6B953R9B6SDY612NN3Q0070",
+  "ts": "2026-11-01T10:05:49.705Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 7,
+    "text": "Issue 0670, on hv's ruling of 2026-11-01 \"ambiguous lines stop\" (the 1-row shape, recorded in the issue): held until ST0011 has shipped, on hv's ruling of 2026-11-01 in vc's TUI, and it rides the release after 3.2.9. Then vc answers dc's shape questions (refs/bank/dc/0670/shape-questions.md), dc builds it (dc hold 38), and vc judges it with the fleet census (refs/bank/vc/0670/) re-run against the build, which must redden Devbin ST0011 AT-3.5 and nothing else."
+  }
+}

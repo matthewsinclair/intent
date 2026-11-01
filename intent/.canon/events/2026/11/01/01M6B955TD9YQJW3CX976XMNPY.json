@@ -1,0 +1,16 @@
+{
+  "id": "01M6B955TD9YQJW3CX976XMNPY",
+  "ts": "2026-11-01T10:05:51.821Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 61,
+    "text": "The push of 3.2.9's three fixes (0666 cbdee221d, 0668 823cddabd, 0669 bb1efcec5, each judged green by vc and its issue closed); build all at 64cf9e251 passed (64cf9e251e56). The kovacs preflight at 64cf9e251 went RED (kovacs-sysadm's END 09:28:18Z) on a testkit race that predates today (abandoned_fixtures_are_swept::a_run_leaves_no_corpse_of_its_own_behind against its sibling's sweep; testkit unchanged since 721b4efdc's green; devbin-vc verified). Its re-run at the same HEAD is desk ask 01M6B7CCN2SGDKXQ13ZWWRHTVC, and hv has its ! line. On its green, vc names the HEAD and devbin-vc pushes local and upstream (decision 90); until then Intent commits only under intent/whiteboard/ and intent/.canon/events/. After the push, vc records the race as an issue, recorded only, from refs/bank/vc/fold-20261101b/issue-records/testkit-race.title.txt and refs/bank/vc/fold-20261101b/issue-records/testkit-race.body.md, and hv's two rulings of 2026-11-01 in issue 0670 and intent/wip.md. The 3.2.9 cut is hv's, through devbin's release core as Intent's first core cut (todo 71), after Devbin 0.1.19 and its sweep."
+  }
+}

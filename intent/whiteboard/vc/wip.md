@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 096ec97d-7b3c-4dab-8be4-db54311270c3
-heartbeat_at: 2026-11-01 09:47Z
+heartbeat_at: 2026-11-01 10:05Z
 status: active
-focus: "2026-11-01 localfold on hv's word, holding for hv's /compact: 3.2.9's fixes are on main and build all at 64cf9e251 passed; the preflight re-run at 64cf9e251 is queued on devbin-vc's desk after a testkit-race red, and the push follows its green (doing 61). 0670 is held for hv's word (hold 7). Hold 6 waits on hv's look, and todo 71 on Devbin 0.1.19."
+focus: "2026-11-01: hv ruled that 3.2.9 goes through devbin's release core after Devbin 0.1.19 (todo 71) and that 0670 waits for ST0011 to ship (hold 7). The three fixes are on main and build all at 64cf9e251 passed; the preflight re-run at 64cf9e251 (hv's ! line) and the push follow (doing 61). dc builds a Debug app for hv's AC-02.4 look (hold 6)."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- 3.2.9's push: its three fixes are on main (0666 cbdee221d, 0668 823cddabd, 0669 bb1efcec5, each judged green by vc and its issue closed), and build all at 64cf9e251 passed (the pair names 64cf9e251e56; desk 01M6B5WYC0WSD8DCVJZHAFW7Q7). The kovacs preflight at 64cf9e251 went RED (kovacs-sysadm's END 09:28:18Z) on a testkit race that predates today: abandoned_fixtures_are_swept::a_run_leaves_no_corpse_of_its_own_behind loses a probe to its sibling's sweep. testkit is unchanged since 721b4efdc's green, and devbin-vc verified the reading. The re-run at the same HEAD is desk ask 01M6B7CCN2SGDKXQ13ZWWRHTVC (heavy), queued; its `!` line goes to hv in turn. On its green, vc names the HEAD and devbin-vc pushes local and upstream (decision 90); until then Intent commits only under intent/whiteboard/ and intent/.canon/events/. After the push, vc records the race as an issue, recorded only, from refs/bank/vc/fold-20261101b/issue-records/testkit-race.title.txt and refs/bank/vc/fold-20261101b/issue-records/testkit-race.body.md. The cut is hv's. (edited)
+- The push of 3.2.9's three fixes (0666 cbdee221d, 0668 823cddabd, 0669 bb1efcec5, each judged green by vc and its issue closed); build all at 64cf9e251 passed (64cf9e251e56). The kovacs preflight at 64cf9e251 went RED (kovacs-sysadm's END 09:28:18Z) on a testkit race that predates today (abandoned_fixtures_are_swept::a_run_leaves_no_corpse_of_its_own_behind against its sibling's sweep; testkit unchanged since 721b4efdc's green; devbin-vc verified). Its re-run at the same HEAD is desk ask 01M6B7CCN2SGDKXQ13ZWWRHTVC, and hv has its ! line. On its green, vc names the HEAD and devbin-vc pushes local and upstream (decision 90); until then Intent commits only under intent/whiteboard/ and intent/.canon/events/. After the push, vc records the race as an issue, recorded only, from refs/bank/vc/fold-20261101b/issue-records/testkit-race.title.txt and refs/bank/vc/fold-20261101b/issue-records/testkit-race.body.md, and hv's two rulings of 2026-11-01 in issue 0670 and intent/wip.md. The 3.2.9 cut is hv's, through devbin's release core as Intent's first core cut (todo 71), after Devbin 0.1.19 and its sweep. (edited)
 
 ## TODO
 
@@ -23,7 +23,7 @@ claims: []
 ## Holds
 
 - ST0090 AC-02.4, issue 0664's last criterion: held until hv has seen Intent.app's Rebuild Search Index row show its second line, reconciled <age> ago, after a rebuild, on a build at or after a54f2e9e0 whose CLI carries 8406f6a15: the 3.2.9 cut, or a dev app pointed at a dev CLI, which is the maintainer's alone. The dev CLI half is ready: build all at 64cf9e251 promoted intent and intentd (dev, 64cf9e251e56) into native/rust/target/release on 2026-11-01. The app half is a Debug build at HEAD, dc's, by `bin/devbin macos app-build`, with hv setting IntentBinary to that CLI and deleting it after (dc's route, verified by vc). Then vc records that build on AC-02.4 and tells dc to close WP-02. (edited)
-- Issue 0670, on hv's ruling of 2026-11-01 "ambiguous lines stop" (the 1-row shape, recorded in the issue): held until hv's word to build it, because hv's word for 2026-11-01, relayed by devbin-vc, is "ship ST0011, no new code and no new yaks". Then dc builds it (dc hold 38) after vc answers dc's shape questions (refs/bank/dc/0670/shape-questions.md), and vc judges it with the fleet census (refs/bank/vc/0670/) re-run against the build, which must redden Devbin ST0011 AT-3.5 and nothing else.
+- Issue 0670, on hv's ruling of 2026-11-01 "ambiguous lines stop" (the 1-row shape, recorded in the issue): held until ST0011 has shipped, on hv's ruling of 2026-11-01 in vc's TUI, and it rides the release after 3.2.9. Then vc answers dc's shape questions (refs/bank/dc/0670/shape-questions.md), dc builds it (dc hold 38), and vc judges it with the fleet census (refs/bank/vc/0670/) re-run against the build, which must redden Devbin ST0011 AT-3.5 and nothing else. (edited)
 
 ## Watch-outs
 
@@ -38,6 +38,7 @@ claims: []
 - (hv, 2026-10-25) devbin-vc runs Intent's pushes to local and upstream, fast-forward only, on vc's "push" after build all at HEAD; cuts stay hv's. (edited)
 - (2026-10-27) Before a worktree is removed, its node points refs/attic/<node>/<worktree> at its HEAD; attic refs are never deleted. (edited)
 - (hv, 2026-10-27) Every localfold and EOD fold archives what is spent, so a pickup prints only live state; ST0089 is built after the cut. (edited)
+- (hv, 2026-11-01, first-hand by selection in vc's TUI, answered by 10:05Z on vc's date -u; wording vc's, each choice hv's and vc's recommendation) TWO RULINGS. (1) Issue 0670 is built after ST0011 ships and rides the release after 3.2.9; vc answers dc's banked shape questions (refs/bank/dc/0670/shape-questions.md) before dc builds. (2) Intent 3.2.9 is cut through devbin's release core, as Intent's first cut through the core (ST0091, Devbin ST0011's WP12), after Devbin 0.1.19 and its sweep into Intent's tree; until then Intent cuts nothing, and the push of the three landed fixes (0666, 0668, 0669) goes ahead on the Linux preflight at 64cf9e251.
 
 ---
 
