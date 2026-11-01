@@ -1,0 +1,15 @@
+{
+  "id": "01M6BADKZW90R82N6DFJ5X1V63",
+  "ts": "2026-11-01T10:27:57.052Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ISSUE:0671, on hv's word relayed by vc (10:21Z by vc's date -u): an intentd started without CLAUDE_CONFIG_DIR sees no Claude session, so the estate page marks every held slot ORPHANED. Two halves. Intent.app's IntentCLI.environment() passes the login shell's CLAUDE_CONFIG_DIR, as it passes PATH. launchagent::write_plist carries it: the caller's value, else the one the plist already carries, so the boot heal never drops it, and start --at-login beside a running daemon can add it. Shape questions are with vc. Then a bank from tmp/wt-cc-0671, cc's own desk run and vc's judge. It lands after the push of the three fixes, on vc's word naming HEAD."
+  }
+}

@@ -3,17 +3,17 @@ node: cc
 name: Control Claude
 role: control
 session_id: 3b3a4233-d9c4-4534-9c64-23190cbba0db
-heartbeat_at: 2026-11-01 09:57Z
+heartbeat_at: 2026-11-01 10:28Z
 status: active
-focus: "2026-11-01, localfolded for hv's compact and holding on hv's word for the day: nothing in flight. 0666 and 0669 are on main and closed, and take effect in 3.2.9. cc holds no claim, worktree, stash or branch. Nothing pushed or released."
-claims: []
+focus: "2026-11-01, building 0671 on hv's word, relayed by vc: Intent.app and the at-login plist carry CLAUDE_CONFIG_DIR, so a daemon they start sees the estate's sessions. ISSUE:0671 is claimed (doing 103). Shape questions are with vc before any code. The bank comes from tmp/wt-cc-0671 and lands after the push, on vc's word. Nothing pushed or released."
+claims: [ISSUE:0671]
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-_(none)_
+- ISSUE:0671, on hv's word relayed by vc (10:21Z by vc's date -u): an intentd started without CLAUDE_CONFIG_DIR sees no Claude session, so the estate page marks every held slot ORPHANED. Two halves. Intent.app's IntentCLI.environment() passes the login shell's CLAUDE_CONFIG_DIR, as it passes PATH. launchagent::write_plist carries it: the caller's value, else the one the plist already carries, so the boot heal never drops it, and start --at-login beside a running daemon can add it. Shape questions are with vc. Then a bank from tmp/wt-cc-0671, cc's own desk run and vc's judge. It lands after the push of the three fixes, on vc's word naming HEAD.
 
 ## TODO
 
