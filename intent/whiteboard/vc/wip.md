@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 096ec97d-7b3c-4dab-8be4-db54311270c3
-heartbeat_at: 2026-11-01 11:22Z
+heartbeat_at: 2026-11-01 11:37Z
 status: active
 focus: "2026-11-01: Intent is quiet on hv's word ("no other work until devbin ships"): devbin-vc's desk grants only ST0011 runs until devbin 0.1.19 is cut and swept, and denied Intent's four asks. The three 3.2.9 fixes are on main and their push is held (hold); 0671 and the two testkit fixes are banked (todo 74); 3.2.9 goes through the core after 0.1.19 (todo 71). Hold 6 waits on hv's AC-02.4 look, and hold 7 on ST0011's ship."
 claims: []
