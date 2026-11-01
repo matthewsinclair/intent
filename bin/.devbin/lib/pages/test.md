@@ -39,12 +39,18 @@ In `bin/.devbin/config.yaml`:
             log: true
             grammar: mix
             in_all: false    # runs by name, left out of `all`
+          app:               # a new option, run on macOS alone
+            run: xcodebuild test -scheme App
+            log: true
+            grammar: xcodebuild
+            platforms:       # inactive here on any other host
+              - macos
           mix:               # a new command line; keeps MIX and its grammar
             run: mix test --exclude e2e
           credo:
             enabled: false   # not offered here
 
-A new option is offered whatever the languages, and is sealed only if it declares `log:` (`true`, or a suffix of its own). `grammar:` names the reader that extracts its failures and counts what it ran, one of `mix`, `credo`, `cargo`, `xcodebuild`, `lua`, `shell`, `critic` or `generic`; `generic` is the default, and it and `lua` count nothing. `log: false` beside a `run:` of the option's own runs it unsealed; `log:` alone changes nothing, and `bin/devbin doctor` fails it. A `run:` is split into words and never given to a shell, so quotes, `$`, `;` and redirections are literal. `bin/devbin devbin` names the annotated reference config, which lists every key.
+A new option is offered whatever the languages, and is sealed only if it declares `log:` (`true`, or a suffix of its own). `grammar:` names the reader that extracts its failures and counts what it ran, one of `mix`, `credo`, `cargo`, `xcodebuild`, `lua`, `shell`, `critic` or `generic`; `generic` is the default, and it and `lua` count nothing. `log: false` beside a `run:` of the option's own runs it unsealed; `log:` alone changes nothing, and `bin/devbin doctor` fails it. `platforms:` lists the platform words an option runs on, `macos` or `linux`: on any other host it is inactive here, counted on `all`'s count line and named by `help --why`, never failed. A `run:` is split into words and never given to a shell, so quotes, `$`, `;` and redirections are literal. `bin/devbin devbin` names the annotated reference config, which lists every key.
 
 ## What is active here
 

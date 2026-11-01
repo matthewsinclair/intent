@@ -239,19 +239,28 @@ require_tool() {
   command -v "$1" >/dev/null 2>&1 || die "$1 not found. ${2:-}"
 }
 
-# cpu_count -- how many CPUs this machine has online, a whole number of at
+# cpu_probe -- how many CPUs this machine has online, a whole number of at
 # least 1: nproc where GNU coreutils provides it, getconf where it does not
-# (macOS ships no nproc), and 4 when neither answers, so a caller sizing a pool
-# of workers always gets a usable number. Taking 4 is said on stderr, since a
-# caller may print the number as this machine's.
+# (macOS ships no nproc). Returns 1, printing nothing, when neither answers with
+# a number, for a caller that must not size anything on a guess.
 #
 # ONE HOME FOR THE PROBE (issue 0190). Devbin's lint gate sizes its shellcheck
 # pool from it and devbin's own test handler its parallel lane; the probe was
-# written inline in the lint gate until the second caller came.
-cpu_count() {
+# written inline in the lint gate until the second caller came. cpu_count is
+# its lenient form.
+cpu_probe() {
   local n=""
   n="$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null)" || n=""
-  if ! [[ "$n" =~ ^[1-9][0-9]*$ ]]; then
+  [[ "$n" =~ ^[1-9][0-9]*$ ]] || return 1
+  printf '%s\n' "$n"
+}
+
+# cpu_count -- cpu_probe's count, or 4 when it has none, so a caller sizing a
+# pool of workers always gets a usable number. Taking 4 is said on stderr,
+# since a caller may print the number as this machine's.
+cpu_count() {
+  local n
+  if ! n="$(cpu_probe)"; then
     warn "could not count this machine's CPUs (neither nproc nor getconf answered with a number), so taking 4"
     n=4
   fi
@@ -286,8 +295,8 @@ init_colors() {
 #
 # LC_ALL is set on the awk command alone. It is never exported, so the gate's
 # tools still run in the person's locale. A grep over a log needs the same
-# `LC_ALL=C` on its command, as write_errors_file's has: GNU grep drops a line
-# holding such a byte and says only "binary file matches".
+# `LC_ALL=C` on its command, as _seal_failure_blocks's has: GNU grep drops a
+# line holding such a byte and says only "binary file matches".
 log_awk() {
   LC_ALL=C awk "$@"
 }
@@ -1080,6 +1089,41 @@ abs_path() {
     /*) printf '%s' "$1" ;;
     *) printf '%s/%s' "${PROJECT_ROOT:-.}" "$1" ;;
   esac
+}
+
+# dir_unreadable <dir> -- true when <dir> is not a directory this user can list
+# and search, so what is kept under it cannot be read. THE ONE TEST a reader
+# makes before it globs a directory it must read whole: a glob over a directory
+# it cannot list answers nothing at status 0, which reads as nothing kept there.
+# The run logs' readers ask it (seal_verdict), and the cache's verbs of its
+# registry (ST0011 WP-16). A link to nothing is no directory, so it is
+# unreadable here; whether a path that does not exist at all is an empty answer
+# is each caller's to say, before it asks.
+dir_unreadable() {
+  [ ! -d "$1" ] || [ ! -r "$1" ] || [ ! -x "$1" ]
+}
+
+# newest_first <out-var> <path>... -- set the array <out-var> to the paths,
+# newest first by their own time (-nt); of two the same age, the one given first
+# comes first. THE ONE ORDER BY TIME: newest_run_stems orders kept runs by it
+# and the cache's gc its entries (ST0011 WP-16), so no two readers order one tie
+# two ways. A selection sort, since each set is small, into an array, so a name
+# holding a newline stays one name. Its locals carry its own prefix, since
+# <out-var> is a caller's name reached through bash's dynamic scope.
+newest_first() {
+  local -n _nf_out="$1"
+  local _nf_i _nf_newest
+  local -a _nf_left=("${@:2}")
+  _nf_out=()
+  while [ "${#_nf_left[@]}" -gt 0 ]; do
+    _nf_newest=0
+    for _nf_i in "${!_nf_left[@]}"; do
+      if [ "${_nf_left[$_nf_i]}" -nt "${_nf_left[$_nf_newest]}" ]; then _nf_newest="$_nf_i"; fi
+    done
+    _nf_out+=("${_nf_left[$_nf_newest]}")
+    unset '_nf_left[_nf_newest]'
+    _nf_left=("${_nf_left[@]}")
+  done
 }
 
 # cargo_root_problem <project-root> <value> -- why `project.cargo_root` cannot
@@ -3063,6 +3107,42 @@ $_DEVBIN_GIT_LOCAL_VARS
 VARS
 }
 
+# git_local_env_set -- the names of git's repository-local variables set in the
+# CURRENT shell, one per line, from the same list git_local_env_clear reads:
+# what it would clear, read first, so a command that clears them can say which
+# it found rather than change repositories in silence (ST0011). Fails as
+# git_local_env_clear does when git cannot list them.
+git_local_env_set() {
+  local v
+  git_readonly_prime || return 1
+  while IFS= read -r v; do
+    [ -z "$v" ] || [ -z "${!v+set}" ] || printf '%s\n' "$v"
+  done <<VARS
+$_DEVBIN_GIT_LOCAL_VARS
+VARS
+}
+
+# git_local_env_clear_named <who> <root> -- git's local variables cleared from
+# THIS shell, as git_local_env_clear clears them, with any that were set named
+# on one line, `<who>: <names> inherited and cleared: every git read and write
+# here is in the repository at <root>`, so a command never changes repositories
+# in silence (ST0011). THE ONE CLEAR THAT SAYS WHAT IT CLEARED: the cut,
+# release status and release gates call it at their start, and lib/cmd/macos
+# before it reads the release commit. 1, having cleared nothing, when git
+# cannot list them; 2 when it cleared some and the line naming them could not
+# be written, which a caller stops on too, since a clear it cannot name is a
+# change of repository in silence.
+git_local_env_clear_named() {
+  local found
+  # Primed in this shell, so the list read below and the clear ask git once.
+  git_readonly_prime || return 1
+  found="$(git_local_env_set)" || return 1
+  git_local_env_clear || return 1
+  [ -n "$found" ] || return 0
+  printf '%s: %s inherited and cleared: every git read and write here is in the repository at %s\n' \
+    "$1" "${found//$'\n'/, }" "$2" || return 2
+}
+
 # pathlist_specs <text> -- the pathspecs of a path list such as
 # tests/shipped.paths, one a line: every line of <text> as written, but a blank
 # one or one whose first non-space character is `#`.
@@ -3375,12 +3455,21 @@ git_repo_absent() {
 # call was one (issue 0186). git_readonly clears GIT_INDEX_FILE, so a reason
 # asked through it comes from the repository's own index, not the one a commit
 # hook names, which is the one that failed.
+#
+# --all prints every line git wrote, not only the first, and nothing at all
+# when it wrote none, for a caller that passes git's words on whole: a corrupt
+# object's `fatal: loose object ... is corrupt` comes after its inflate errors
+# (release_commit, ST0011 WP-06).
 git_failure_line() {
-  local dir out plain=no
-  if [ "${1-}" = --plain ]; then
-    plain=yes
+  local dir out plain=no all=no
+  while :; do
+    case "${1-}" in
+      --plain) plain=yes ;;
+      --all) all=yes ;;
+      *) break ;;
+    esac
     shift
-  fi
+  done
   dir="$1"
   shift
   if [ "$plain" = yes ]; then
@@ -3388,7 +3477,11 @@ git_failure_line() {
   else
     out="$(LC_ALL=C git_readonly -C "$dir" "$@" 2>&1 >/dev/null)" || true
   fi
-  printf '%s\n' "${out%%$'\n'*}"
+  if [ "$all" = yes ]; then
+    [ -z "$out" ] || printf '%s\n' "$out"
+  else
+    printf '%s\n' "${out%%$'\n'*}"
+  fi
 }
 
 # git_head_sha [root] [short|full] -- the commit sha, or `unknown`.
@@ -3465,6 +3558,296 @@ git_head_sha() {
 platform_identity() {
   printf '%s / bash %s' "$(uname -srm 2>/dev/null || printf 'unknown')" \
     "${BASH_VERSION:-unknown}"
+}
+
+# THE PLATFORM WORDS (ST0011 WP-17): the words a gate's `platforms:` list takes,
+# one statement of them, read by validation and by the help that names them.
+_DEVBIN_PLATFORM_WORDS="macos linux"
+
+# platform_word_of <os> -- the platform word for an OS name as `uname -s`
+# prints it: `macos` for Darwin, `linux` for Linux; nothing, at status 1, for
+# any other, where an option whose `platforms:` lists only platform words runs
+# nowhere. THE ONE MAP FROM THE OS NAME TO THE WORDS: platform_word reads this
+# host's through it, and a cut reads each remote leg's host's, from the
+# `uname -s` its reach asks there (ST0011 WP-02c). Pure.
+platform_word_of() {
+  case "$1" in
+    Darwin) printf 'macos\n' ;;
+    Linux) printf 'linux\n' ;;
+    *) return 1 ;;
+  esac
+}
+
+# platform_word -- this host's platform word (platform_word_of), read from the
+# uname platform_identity reads: a reader that needs this host's word asks
+# here. platform_identity stays the seal's key, a different fact: the OS build
+# and the bash a run stood on.
+platform_word() {
+  # A uname that cannot answer names no OS, which maps to no word.
+  platform_word_of "$(uname -s 2>/dev/null)"
+}
+
+# is_platform_word <word> -- true when <word> is one of the platform words,
+# matched whole as the yes and no words are (_word_in), so a value holding two
+# of them, `macos linux`, is neither.
+is_platform_word() { _word_in "$1" "$_DEVBIN_PLATFORM_WORDS"; }
+
+# is_host_alias <word> -- true when <word> has a host alias's shape: letters,
+# digits, dot, dash and underscore, starting with a letter or a digit, so it
+# reaches ssh's command line, and a remote one, as itself and can be read there
+# as nothing else, an option least of all. THE ONE TEST OF THAT SHAPE (ST0011
+# WP-05): release.legs' value rule (lib/config) and the remote legs' runner
+# (lib/release.legs) both ask here, and the runner holds a project's name, the
+# repository it names on a host, to the same shape. Pure.
+is_host_alias() {
+  [[ "$1" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]
+}
+
+# is_branch_name <name> -- git's own word on whether <name> is a name it takes
+# for a branch (`git check-ref-format refs/heads/<name>`), its status passed
+# back: 0 when it is, 1 when it is not, and any other when git could not say,
+# which a caller that tells the two apart reads as unknown: 2 when git could not
+# be asked at all (git_readonly_prime), never read as "not a name". THE ONE
+# CHECK OF A BRANCH NAME (ST0011 WP-02c): the cut's candidate ref, the
+# snapshot's publish branch and ci-state --fires' <ref> each ask here. It reads
+# no repository, so it runs through git_readonly wherever its caller stands.
+is_branch_name() {
+  git_readonly_prime || return 2
+  git_readonly check-ref-format "refs/heads/$1"
+}
+
+# is_tag_name <name> -- git's own word on whether <name> is a name it takes for
+# a tag (`git check-ref-format refs/tags/<name>`), its status passed back as
+# is_branch_name's is: release.tag's value rule fills its template
+# (release_tag_name) and asks here, so a tag no push could carry, a skip
+# marker's brackets and spaces among what git refuses, is refused as config
+# (ST0011 WP-02c). A name that opens with a dash is not one: check-ref-format
+# takes it as a ref, and `git tag` reads it as an option.
+is_tag_name() {
+  case "$1" in -*) return 1 ;; esac
+  git_readonly_prime || return 2
+  git_readonly check-ref-format "refs/tags/$1"
+}
+
+# release_tag_name <template> <version> -- the tag a version is released under,
+# `{version}` substituted. THE ONE FILL OF THE TAG TEMPLATE, pure: the release
+# core names every tag through it, and release.tag's value rule (lib/config)
+# fills the template through it before it asks is_tag_name.
+release_tag_name() {
+  printf '%s\n' "${1//\{version\}/$2}"
+}
+
+# platform_arch -- this host's CPU architecture, one word, as `uname -m` names
+# it (arm64 or x86_64 on macOS, aarch64 or x86_64 on Linux): the cache key's
+# arch line (ST0011 WP-16), so an artefact built on one architecture is never
+# pulled on another of the same platform and toolchain. THE ONE PLACE THE KEY'S
+# WORD FOR IT IS TAKEN, from the uname platform_identity reads too: a reader
+# that needs the architecture as a word asks here. platform_identity stays the
+# seal's key, a different fact: the OS build and the bash a run stood on.
+# Nothing, at status 1, when uname cannot name it as one word.
+platform_arch() {
+  local m
+  m="$(uname -m 2>/dev/null)" || return 1
+  [[ "$m" =~ ^[A-Za-z0-9_]+$ ]] || return 1
+  printf '%s\n' "$m"
+}
+
+# cache_root_resolved -- the artefact registry's root (ST0011 WP-16) and how it
+# was named: `<root><TAB>declared` from DEVBIN_CACHE_HOME, or the XDG cache
+# directory's devbin, `<root><TAB>default`, when that is unset or empty. When the
+# default is asked for and the XDG cache directory cannot be named, it prints
+# why instead, at status 1. The cache command and doctor both ask it, so the two
+# name one root, and say one thing when there is none.
+cache_root_resolved() {
+  local base
+  if [ -n "${DEVBIN_CACHE_HOME:-}" ]; then
+    printf '%s\tdeclared\n' "$DEVBIN_CACHE_HOME"
+    return 0
+  fi
+  if ! base="$(xdg_dir cache)"; then
+    printf 'DEVBIN_CACHE_HOME is not set and the XDG cache directory cannot be named\n'
+    return 1
+  fi
+  printf '%s/devbin\tdefault\n' "$base"
+}
+
+# cache_root_problem <root> -- why <root> cannot hold the registry, or nothing,
+# at status 1, when it can. One that does not exist yet can when the first put
+# can make it, so the nearest directory above it that does exist is asked
+# instead: a root under an unmounted volume, or under a directory this user
+# cannot write, is said before a put trips on it. A link to nothing, the root
+# itself or one above it, stops that walk: no directory can be made through it,
+# though `-e` reads it as absent.
+cache_root_problem() {
+  local d="$1"
+  case "$1" in
+    /*) ;;
+    *)
+      printf 'is not an absolute path'
+      return 0
+      ;;
+  esac
+  if [ -e "$1" ]; then
+    if [ ! -d "$1" ]; then
+      printf 'is not a directory'
+      return 0
+    fi
+    if [ ! -w "$1" ] || [ ! -x "$1" ]; then
+      printf 'is not writable by this user'
+      return 0
+    fi
+    return 1
+  fi
+  until [ -e "$d" ] || [ -L "$d" ]; do
+    d="${d%/*}"
+    [ -n "$d" ] || d=/
+  done
+  if [ ! -e "$d" ]; then
+    printf 'cannot be made: %s is a link to nothing' "$d"
+    return 0
+  fi
+  if [ ! -d "$d" ]; then
+    printf 'cannot be made: %s is not a directory' "$d"
+    return 0
+  fi
+  if [ ! -w "$d" ] || [ ! -x "$d" ]; then
+    printf 'cannot be made: %s is not writable by this user' "$d"
+    return 0
+  fi
+  return 1
+}
+
+# cache_path_problem <path> -- why <path> cannot be one of a build: block's
+# paths (ST0011 WP-16), an input or an artefact's path, or nothing, at status 1,
+# when it can. A path is relative to the project root, below it and outside the
+# repository's own .git, in any case of its letters, since a case-folding
+# filesystem (macOS's) reads .GIT as .git, and written once, as git names it:
+# no empty, `.` or `..` segment. So a pull never writes, nor removes, anything
+# outside the project or over it, and one path never makes two keys. Config
+# validation asks it of every path the block declares, and cache_paths_overlap
+# of an artefact's path against every input path.
+cache_path_problem() {
+  case "${1,,}" in
+    '')
+      printf 'is empty -- name a path relative to the project root'
+      return 0
+      ;;
+    /*)
+      printf 'is absolute -- name a path relative to the project root'
+      return 0
+      ;;
+    .git | .git/*)
+      printf "names the repository's own .git -- name a path in the project's tree"
+      return 0
+      ;;
+  esac
+  case "/$1/" in
+    */./* | */../* | *//*)
+      printf 'has an empty, . or .. segment -- write the path once, as git names it, below the project root'
+      return 0
+      ;;
+  esac
+  return 1
+}
+
+# cache_paths_overlap <a> <b> -- true when two of a build: block's paths name
+# one path, or one lies below the other: compared a whole segment at a time,
+# and in any case of their letters, since a case-folding filesystem (macOS's)
+# reads src and Src as one directory. Both are paths cache_path_problem passed,
+# so neither holds an empty, `.` or `..` segment. Pure.
+cache_paths_overlap() {
+  local a="${1,,}" b="${2,,}"
+  [ "$a" != "$b" ] || return 0
+  case "$a/" in "$b"/*) return 0 ;; esac
+  case "$b/" in "$a"/*) return 0 ;; esac
+  return 1
+}
+
+# is_artefact_name <word> -- true when <word> has the form of a build: block
+# artefact's name (ST0011 WP-16): a config key's letters, digits, _ and -,
+# starting with a letter or a digit, so no name reads as an option (`--help` is
+# the cache's help wherever it stands) or names a dot directory. The cache asks
+# it of a name before a path is made from it, and config validation of every
+# name the block declares. Pure.
+is_artefact_name() {
+  [[ "$1" =~ ^[A-Za-z0-9][A-Za-z0-9_-]*$ ]]
+}
+
+# THE TOOLCHAIN TABLE (ST0011 WP-16): the tool words a build: artefact's `tool`
+# takes, one statement of them. cache_tool_version asks each its version and
+# cache_tool_line takes the key's `toolchain` line from the answer, so no
+# project writes a version anywhere.
+_DEVBIN_CACHE_TOOLS="cargo elixir swift xcodebuild"
+
+# is_cache_tool <word> -- true when <word> is a row of the toolchain table.
+is_cache_tool() {
+  [ -n "$1" ] || return 1
+  case " $_DEVBIN_CACHE_TOOLS " in
+    *" $1 "*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+# cache_tool_version <tool> -- the key's toolchain line for <tool>, asked of the
+# tool where its build runs: cargo in cargo_root, since rustup reads a
+# rust-toolchain file from where cargo is run, and every other tool at the
+# project root, so the key never depends on where the command was run from.
+# xcodebuild says its version with -version, every other tool with --version.
+# Status 1 when <tool> is no row or cannot answer, the tool's own words left on
+# stderr. The answer is read whole, so no reader stops before the tool is done.
+cache_tool_version() {
+  local dir="${PROJECT_ROOT:-}" flag=--version out
+  is_cache_tool "$1" || return 1
+  case "$1" in
+    cargo) dir="$(cargo_root)" || return 1 ;;
+    xcodebuild) flag=-version ;;
+  esac
+  [ -n "$dir" ] || return 1
+  out="$(cd "$dir" && "$1" "$flag")" || return 1
+  cache_tool_line "$1" "$out"
+}
+
+# cache_tool_line <tool> <output> -- the key's toolchain line from <tool>'s
+# version output, one line. Pure. cargo's and swift's first line; xcodebuild's
+# lines joined; elixir's Erlang/OTP release and its erts, then Elixir's own
+# line. The flags elixir's first line gives after erts ([smp:N:N], [ds:..],
+# [jit]) follow the host's CPU count and ERL_FLAGS, not what a build makes, so
+# the key leaves them out. Status 1, printing nothing, when <tool> is no row or
+# <output> does not hold what its row reads.
+cache_tool_line() {
+  local out="$2" first rest line w otp="" second=""
+  local -a words=()
+  is_cache_tool "$1" || return 1
+  first="${out%%$'\n'*}"
+  [ -n "$first" ] || return 1
+  case "$1" in
+    elixir)
+      read -r -a words <<<"$first"
+      for w in "${words[@]}"; do
+        case "$w" in
+          '[erts-'*)
+            otp+="${otp:+ }$w"
+            break
+            ;;
+          '['*) break ;;
+          *) otp+="${otp:+ }$w" ;;
+        esac
+      done
+      # Elixir's own line follows, after a blank one.
+      rest="${out#*$'\n'}"
+      [ "$rest" != "$out" ] || return 1
+      while IFS= read -r line; do
+        if [ -n "$line" ]; then
+          second="$line"
+          break
+        fi
+      done <<<"$rest"
+      if [ -z "$otp" ] || [ -z "$second" ]; then return 1; fi
+      printf '%s; %s\n' "$otp" "$second"
+      ;;
+    xcodebuild) printf '%s\n' "${out//$'\n'/; }" ;;
+    *) printf '%s\n' "$first" ;;
+  esac
 }
 
 # runtime_digest <launcher> <libdir> -- SHA256 of the RUNTIME BYTES, 12 hex.
@@ -3620,7 +4003,14 @@ git_head_identity() {
   # reason: an inherited GIT_DIR outranks `-C`, and with only one half cleared
   # the line would pair one repository's commit with another tree's `+dirty`.
   # A status git could not give is no clean tree (issue 0186).
-  if ! state="$(git_readonly -C "$root" status --porcelain 2>/dev/null)"; then
+  #
+  # THE UNTRACKED MODE IS PINNED, whatever status.showUntrackedFiles says, as
+  # the release core's tree rule pins its own (release_dirt): under `no` a bare
+  # status lists no untracked file, so a seal would name a commit whose bytes
+  # the tree was not, over a file the cut refuses (ST0011). `normal` answers
+  # whether there is any untracked file as `all` does, without listing each one
+  # inside an untracked directory.
+  if ! state="$(git_readonly -C "$root" status --porcelain --untracked-files=normal 2>/dev/null)"; then
     printf '%s +unreadable\n' "$sha"
   elif [ -n "$state" ]; then
     printf '%s +dirty\n' "$sha"
@@ -3628,6 +4018,15 @@ git_head_identity() {
     printf '%s\n' "$sha"
   fi
   return 0
+}
+
+# git_identity_clean <identity> -- rc 0 when <identity>, a line
+# git_head_identity printed, names one commit, clean: the sha alone, whole,
+# with no `+dirty` or `+unreadable` after it, and not `unknown`. THE ONE
+# READING OF THAT GRAMMAR'S "clean", beside its producer, so a caller asks it
+# rather than spelling the rule again (ST0011).
+git_identity_clean() {
+  is_commit_sha "${1:-}" full
 }
 
 # _git_path <root> <name> -- `git rev-parse --git-path <name>`, made ABSOLUTE,
@@ -5612,16 +6011,29 @@ version_direction() {
   fi
 }
 
-# is_commit_sha <word> -- true when <word> can name a commit: lowercase hex, at
-# least seven characters.
+# is_commit_sha <word> [full] -- true when <word> can name a commit: lowercase
+# hex, at least seven characters. With `full`, only a whole object name: exactly
+# 40 characters, or 64 in a sha256 repository, as gh matches a run's commit and
+# as a record of the commit something was built at holds it.
 #
 # ONE CHECK, because three copies of it had already drifted by the time issue
 # 0059 read them: one dropped the length test. The length test is not
 # redundant with the charset one -- `a checkout with no HEAD` reduces to `a` by
-# first word, and `a` is valid hex.
+# first word, and `a` is valid hex. The whole-name test is a FORM of this check,
+# a parameter as git_head_sha's form is (issue 0014), and not a second function:
+# ST0011 found it written out as a regex three times, each its own spelling. A
+# form this does not know is the caller's bug, so it stops rather than answers,
+# whatever the word: the form is read before the word is.
 is_commit_sha() {
+  case "${2:-}" in
+    '' | full) ;;
+    *) die "is_commit_sha: no form '$2' (the forms are full, or none)" ;;
+  esac
   case "$1" in '' | *[!0-9a-f]*) return 1 ;; esac
-  [ "${#1}" -ge 7 ]
+  case "${2:-}" in
+    full) [ "${#1}" -eq 40 ] || [ "${#1}" -eq 64 ] ;;
+    *) [ "${#1}" -ge 7 ] ;;
+  esac
 }
 
 # commit_direction <checkout> <sha> [<to>] -- which way <to> (default: the

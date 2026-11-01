@@ -1,0 +1,637 @@
+#!/usr/bin/env bash
+#
+# The built-in `cache` (ST0011 WP-16): this machine's registry of built
+# artefacts, keyed on the git objects of the inputs a build reads, so a build
+# whose inputs did not change pulls what it built before instead of building
+# again.
+#
+#   cache key <artefact> [--commit <sha>]   the artefact's key at <sha>, HEAD by default
+#   cache get <artefact> [--commit <sha>]   the artefact, written to its path from the registry
+#   cache put <artefact>                    record the artefact at its path under HEAD's key
+#   cache list [<artefact>]                 the registry's entries for this project
+#   cache rm <key>                          remove the entries under one key
+#   cache gc [--keep <n>]                   keep the newest <n> entries per artefact
+#
+# THE DECLARATION is the build: block of bin/.devbin/config.yaml: build.inputs,
+# the paths every artefact's key reads, and build.artefacts.<name>, each with
+# `tool` (a row of the toolchain table, cache_tool_version in lib/helpers),
+# `path` (what the project's build writes) and, where it reads fewer, its own
+# `inputs`. Every path is relative to the project root and below it, as config
+# validation holds it (cache_path_problem in lib/helpers).
+#
+# THE KEY is the sha256 of the sorted lines `<path><TAB><object id>` over the
+# artefact's input paths at the commit, the id being git's own (a tree for a
+# directory, a blob for a file), plus `toolchain<TAB><id>`,
+# `platform<TAB><word>` and `arch<TAB><word>`, the CPU architecture. A commit
+# that changes only what the inputs do not hold keeps every id, so the key
+# stands and the artefact is pulled. At HEAD, an input path with uncommitted
+# changes is no commit's object: it has no key, and a put records nothing. A
+# key is printed whole, and held to a key's form, 64 hex digits, before any path
+# is made from it.
+#
+# THE ROOT is DEVBIN_CACHE_HOME, an absolute path; unset or empty, the XDG
+# cache directory's devbin (xdg_dir). A root that does not exist yet is an empty
+# registry: get is a miss and put makes it. A root that cannot be used (not
+# absolute, a file, a link to nothing, not writable, or not to be made where it
+# would go) is said once on stderr, naming the root and why, before the key
+# asks the toolchain anything, and the verb is refused: the registry is a
+# cache, so its absence costs a build and nothing else.
+#
+# AN ENTRY is <root>/<project>/<artefact>/<key>/: the artefact, either a file
+# as cp -p copies it (its mode and times, and on macOS whatever extended
+# attributes or ACL it holds) with no file flags, or a tar of a directory's
+# contents and their mode bits alone (no owner, no extended attributes, no
+# ACLs, no file flags), since a flag such as uchg would leave an entry nothing
+# could replace or remove; manifest.yaml, its provenance (the key and its
+# lines, the commit and whether the tree was clean outside the inputs, the
+# host, the clock, the size, the artefact's sha256); and SHA256SUMS over the
+# two. A pull replaces what is at the artefact's path, so get refuses a path the
+# repository tracks files at, and config validation one that overlaps an input
+# path (cache_paths_overlap in lib/helpers), each in any case of its letters.
+#
+# ONE LINE, ONE WORD. get exits 0 with `pulled <artefact> <key>` and 1 when the
+# registry holds no entry under the key (absent); put prints `put <artefact>
+# <key>`. Whatever a verb cannot do, an argument it cannot read among them, is a
+# refusal (refuse): the reason on stderr and exit 7, so a build handler never
+# reads a failure as a miss. An entry whose SHA256SUMS or manifest key does not
+# verify is never pulled: it is removed with a line, and get answers absent, so
+# the build runs.
+#
+set -euo pipefail
+
+: "${DEVBIN_LIB:?run me through the devbin dispatcher}"
+# shellcheck source=lib/helpers
+. "$DEVBIN_LIB/helpers"
+# shellcheck source=lib/config
+. "$DEVBIN_LIB/config"
+# shellcheck source=lib/runlog
+# gate_out_dir, where the release's run logs, its seals among them, are kept;
+# newest_run_stems, which of them is the newest; runlog_clock, the clock a
+# record writes.
+. "$DEVBIN_LIB/runlog"
+
+# gc keeps this many newest entries per artefact when --keep is not given.
+CACHE_GC_KEEP=3
+
+# What the verbs work on: the project's name (cache_project), the artefact's
+# tool and path (cache_settings), and the keys the newest release seal names
+# (cache_seal_keys).
+CS_PROJECT="" CS_TOOL="" CS_PATH="" CS_SEALED=""
+
+# put's temporary entry while it is being written, removed on the way out
+# unless it was renamed into place (cache_tmp_drop).
+CACHE_TMP=""
+
+# What tar leaves out of a directory artefact, recording it and pulling it:
+# extended attributes and ACLs, words bsdtar and GNU tar both take, and on
+# bsdtar file flags too, since it records them and -p restores them, so a uchg
+# file would come back as one no later pull could remove. GNU tar records no
+# flags and refuses the word. Set by cache_tar_words.
+CACHE_TAR=()
+
+# The keys under one artefact's directory, newest first
+# (cache_keys_newest_first), and the artefact directories a verb reads
+# (cache_artefact_dirs).
+CS_KEYS=() CS_ARTS=()
+
+usage() {
+  cat <<EOF
+usage: $DEVBIN_INVOKE cache key <artefact> [--commit <sha>]
+       $DEVBIN_INVOKE cache get <artefact> [--commit <sha>]
+       $DEVBIN_INVOKE cache put <artefact>
+       $DEVBIN_INVOKE cache list [<artefact>]
+       $DEVBIN_INVOKE cache rm <key>
+       $DEVBIN_INVOKE cache gc [--keep <n>]
+
+  key    the artefact's key at the commit (HEAD by default): the sha256 of its
+         input paths' git objects, its toolchain, this platform and this CPU
+         architecture
+  get    write the artefact to its path from the registry: exit 0 pulled, 1
+         absent, 7 refused
+  put    record the artefact at its path under HEAD's key; a dirty input
+         records nothing
+  list   the registry's entries for this project
+  rm     remove the entries under one key
+  gc     keep the newest entries per artefact, $CACHE_GC_KEEP unless --keep says
+EOF
+}
+
+# refuse <reason> [usage] -- the one refusal: the reason on stderr, then the
+# usage where an argument could not be read, and exit 7, the cache's own code in
+# devbin's exit-code contract (docs/authoring-commands.md). Not 1, get's absent,
+# nor 2 or 3, the dispatcher's: a new refusal takes a new code.
+refuse() {
+  printf '%s: cache: %s\n' "$DEVBIN_NAME" "$1" >&2
+  if [ "${2:-}" = usage ]; then usage >&2; fi
+  exit 7
+}
+
+# cache_tmp_drop -- remove put's temporary entry when one is left, so a put that
+# stops at any step, refused or not, leaves nothing under the root. A removal
+# that fails is said and leaves the exit as it was: a plain failing command in
+# this trap would end the script under set -e with its own status, turning a
+# refusal's 7 into rm's.
+cache_tmp_drop() {
+  if [ -n "$CACHE_TMP" ] && ! rm -rf -- "$CACHE_TMP"; then
+    printf '%s: cache: the temporary entry %s could not be removed (above)\n' "$DEVBIN_NAME" "$CACHE_TMP" >&2
+  fi
+}
+trap 'cache_tmp_drop' EXIT
+
+# cache_tar_words -- set CACHE_TAR for the tar this machine runs. An answer to
+# --version that is not bsdtar's, or none, is read as GNU's: the tar run next
+# says its own failure, where it has one.
+cache_tar_words() {
+  local v
+  CACHE_TAR=(--no-xattrs --no-acls)
+  v="$(tar --version 2>/dev/null)" || v=""
+  case "$v" in
+    bsdtar*) CACHE_TAR+=(--no-fflags) ;;
+  esac
+}
+
+# cache_key_of <lines> -- the key of the lines (`<name><TAB><value>` each), the
+# sha256 of them sorted, one newline each. Pure.
+cache_key_of() {
+  LC_ALL=C sort <<<"$1" | sha256_stdin
+}
+
+# is_cache_key <word> -- true when <word> has a key's form, the whole of a
+# sha256 in lowercase hex. No path is made from a key that has not passed here.
+is_cache_key() {
+  [[ "$1" =~ ^[0-9a-f]{64}$ ]]
+}
+
+# cache_root -- the registry's root (cache_root_resolved, lib/helpers). Refuses,
+# naming the root and why, when there is none or it cannot be used
+# (cache_root_problem).
+cache_root() {
+  local line root how why
+  line="$(cache_root_resolved)" || refuse "no cache root: $line"
+  root="${line%%$'\t'*}"
+  how="${line#*$'\t'}"
+  if why="$(cache_root_problem "$root")"; then
+    refuse "the cache root $root $why ($how), so the registry cannot be used here"
+  fi
+  printf '%s\n' "$root"
+}
+
+# cache_project -- what every verb does first: read and validate the config,
+# then take the project's name as CS_PROJECT, the one directory under the root
+# that is this project's, so it must be one directory name. The dispatcher
+# already refuses a declared name it cannot make its root variable of, so an
+# empty one is what reaches here; the rest is held too, since gc removes under
+# the directory this names.
+cache_project() {
+  cfg_load "$DEVBIN_DIR/config.yaml" >/dev/null || refuse "cannot read the config at $DEVBIN_DIR/config.yaml (above)"
+  cfg_validate || refuse "$DEVBIN_DIR/config.yaml does not validate (above)"
+  CS_PROJECT="$(cfg_get project.name)"
+  case "$CS_PROJECT" in
+    '' | . | .. | */*) refuse "project.name '$CS_PROJECT' is not one directory name, so the registry has no place for this project" ;;
+  esac
+}
+
+# cache_artefact_name <name> -- refuse <name> unless it has the form of an
+# artefact's name (is_artefact_name in lib/helpers), before a path is made from
+# it.
+cache_artefact_name() {
+  is_artefact_name "$1" || refuse "'$1' is not an artefact name" usage
+}
+
+# cache_listable <dir> -- status 1 when nothing is at <dir>, so it holds no
+# entry; refuses when something is there that cannot be listed and searched
+# (dir_unreadable in lib/helpers), a link to nothing among them, since a glob
+# there would answer no entry at all and a verb would act on that answer;
+# status 0 when it can be read.
+cache_listable() {
+  if [ ! -e "$1" ] && [ ! -L "$1" ]; then return 1; fi
+  if dir_unreadable "$1"; then
+    refuse "the registry's directory $1 cannot be listed, so the entries under it cannot be read, and nothing is done"
+  fi
+}
+
+# cache_settings <artefact> -- cache_project, then check <artefact> is
+# declared, with a tool and a path: CS_TOOL and CS_PATH. Primes git's read-only
+# environment here, in the verb's own shell, so every read beneath shares it.
+cache_settings() {
+  cache_artefact_name "$1"
+  cache_project
+  [ -n "$(cfg_list build)" ] || refuse "this project declares no build: block, so it has no artefacts to cache"
+  [ -n "$(cfg_list "build.artefacts.$1")" ] || refuse "build.artefacts declares no artefact '$1'"
+  CS_TOOL="$(cfg_get "build.artefacts.$1.tool")"
+  CS_PATH="$(cfg_get "build.artefacts.$1.path")"
+  [ -n "$CS_TOOL" ] || refuse "build.artefacts.$1 names no tool"
+  [ -n "$CS_PATH" ] || refuse "build.artefacts.$1 names no path"
+  git_readonly_prime || refuse "git could not list its environment, so no input can be read"
+}
+
+# cache_key <artefact> <commit> <at-head> -- the artefact's key at <commit>;
+# with <at-head> yes, a dirty input path refuses. Prints the key, then the lines
+# it is the sha256 of, one a line. Refuses when any line, or the sha256 of them,
+# cannot be had, so no caller is handed a key that is not one.
+cache_key() {
+  local art="$1" commit="$2" head="$3" p oid lines="" inputs dirty tool word arch key
+  local -a paths=()
+  inputs="$(cfg_build_input_paths "$art")"
+  [ -n "$inputs" ] || refuse "build.artefacts.$art reads no input path: declare build.inputs or its own inputs"
+  # -q keeps git quiet on a name it does not hold; anything else it says, a
+  # repository it refuses outright among them, stays on stderr above the
+  # refusal.
+  git_readonly -C "$PROJECT_ROOT" rev-parse -q --verify "$commit^{commit}" >/dev/null ||
+    refuse "the commit ${commit:0:12} cannot be read in this repository (git's own words above, where it had any), so no input can be read at it"
+  while IFS= read -r p; do
+    [ -n "$p" ] || continue
+    oid="$(git_readonly -C "$PROJECT_ROOT" rev-parse -q --verify "$commit:$p")" ||
+      refuse "the commit ${commit:0:12} holds no input path '$p' (git's own words above, where it had any)"
+    lines+="$p"$'\t'"$oid"$'\n'
+    paths+=("$p")
+  done <<<"$inputs"
+  if [ "$head" = yes ]; then
+    dirty="$(git_readonly -C "$PROJECT_ROOT" status --porcelain=v1 --untracked-files=all -- "${paths[@]}" 2>/dev/null)" ||
+      refuse "git could not say whether the input paths are clean"
+    [ -z "$dirty" ] || refuse "an input path has uncommitted changes, so it is no commit's object and has no key: ${dirty%%$'\n'*}"
+  fi
+  tool="$(cache_tool_version "$CS_TOOL")" || refuse "the $CS_TOOL toolchain cannot say its version, so the key cannot name it"
+  word="$(platform_word)" || refuse "this host has no platform word, so the key cannot name its platform"
+  arch="$(platform_arch)" || refuse "this host's CPU architecture cannot be named as one word, so the key cannot name it"
+  lines+="toolchain"$'\t'"$tool"$'\n'"platform"$'\t'"$word"$'\n'"arch"$'\t'"$arch"
+  key="$(cache_key_of "$lines")" || refuse "the sha256 of the key's lines could not be taken (above), so the artefact has no key"
+  is_cache_key "$key" || refuse "the sha256 of the key's lines came back as '$key', which is no key, so the artefact has none"
+  printf '%s\n%s\n' "$key" "$lines"
+}
+
+# cache_entry <root> <artefact> <key> -- the entry's directory, made only from
+# a key of a key's form: anything else is refused before there is a path to act
+# on.
+cache_entry() {
+  is_cache_key "$3" || refuse "'$3' is no key, so it names no entry"
+  printf '%s/%s/%s/%s\n' "$1" "$CS_PROJECT" "$2" "$3"
+}
+
+# cache_entry_verifies <entry> <key> <name> -- true when the entry's SHA256SUMS
+# lists <name>, the artefact get will write, then manifest.yaml, as put writes
+# it, both check against it, and the manifest names <key>.
+cache_entry_verifies() {
+  local line listed="" re='^[0-9a-f]{64} [ *](.+)$'
+  [ -f "$1/SHA256SUMS" ] && [ -f "$1/manifest.yaml" ] && [ -f "$1/$3" ] || return 1
+  while IFS= read -r line; do
+    [[ "$line" =~ $re ]] || return 1
+    listed+="${BASH_REMATCH[1]}"$'\n'
+  done <"$1/SHA256SUMS"
+  [ "$listed" = "$3"$'\n'"manifest.yaml"$'\n' ] || return 1
+  (cd "$1" && sha256_run -c SHA256SUMS >/dev/null 2>&1) || return 1
+  grep -qxF "key: $2" "$1/manifest.yaml"
+}
+
+# cache_pull <entry> <name> <path> -- write the entry's artefact, <name>, at
+# <path>: a directory's contents from the tar into <path>, whatever name the
+# declaration gives it now, each with the mode bits it recorded whatever the
+# umask (-p) and nothing else, no owner and none of what CACHE_TAR leaves out;
+# a file copied with its mode.
+cache_pull() {
+  mkdir -p -- "${3%/*}" || return 1
+  if [ "$2" = artefact.tar ]; then
+    mkdir -p -- "$3" || return 1
+    cache_tar_words
+    tar -xpf "$1/artefact.tar" -C "$3" --no-same-owner "${CACHE_TAR[@]}"
+  else
+    cp -p -- "$1/artefact" "$3"
+  fi
+}
+
+# cmd_key, cmd_get, cmd_put, cmd_list, cmd_rm, cmd_gc -- the verbs.
+cmd_key() {
+  local art="$1" commit="$2" head="$3" out
+  cache_settings "$art"
+  out="$(cache_key "$art" "$commit" "$head")"
+  printf '%s\n' "${out%%$'\n'*}"
+}
+
+cmd_get() {
+  local art="$1" commit="$2" head="$3" root out key entry name=artefact dst tracked first what
+  cache_settings "$art"
+  root="$(cache_root)"
+  # A pull replaces what is at the path, so a path the repository tracks files
+  # at is a declaration's slip, refused before anything is read or removed. In
+  # any case of its letters (icase), on every platform, as cache_paths_overlap
+  # compares, since a case-folding filesystem (macOS's) reads readme and README
+  # as one file; git folds the ASCII letters. The names come NUL-ended (-z), as
+  # git holds them, never quoted.
+  tracked="$(git_readonly -C "$PROJECT_ROOT" ls-files -z -- ":(literal,icase)$CS_PATH" | tr '\0' '\n')" ||
+    refuse "git could not say whether the repository tracks files at $CS_PATH (above), so the entry for $art is not written there"
+  if [ -n "$tracked" ]; then
+    first="${tracked%%$'\n'*}"
+    what="files under $CS_PATH ($first among them)"
+    [ "${first,,}" != "${CS_PATH,,}" ] || what="$first"
+    refuse "the repository tracks $what, and a pull replaces what is at the path: declare the path the build writes, which git does not track"
+  fi
+  out="$(cache_key "$art" "$commit" "$head")"
+  key="${out%%$'\n'*}"
+  entry="$(cache_entry "$root" "$art" "$key")"
+  if [ ! -d "$entry" ]; then
+    printf 'absent %s %s\n' "$art" "$key"
+    exit 1
+  fi
+  if [ -f "$entry/artefact.tar" ]; then name=artefact.tar; fi
+  if ! cache_entry_verifies "$entry" "$key" "$name"; then
+    rm -rf -- "$entry" || refuse "the entry for $art $key did not verify, and could not be removed (above)"
+    printf '%s: cache: the entry for %s %s did not verify against its SHA256SUMS and key, and is removed; the build runs\n' "$DEVBIN_NAME" "$art" "$key" >&2
+    printf 'absent %s %s\n' "$art" "$key"
+    exit 1
+  fi
+  dst="$PROJECT_ROOT/$CS_PATH"
+  if [ -e "$dst" ] || [ -L "$dst" ]; then
+    rm -rf -- "$dst" || refuse "what is at $CS_PATH could not be removed (above), so the entry for $art $key cannot be written there"
+  fi
+  if ! cache_pull "$entry" "$name" "$dst"; then
+    if [ -e "$dst" ] || [ -L "$dst" ]; then
+      rm -rf -- "$dst" || refuse "the entry for $art $key could not be written to $CS_PATH, nor what was written of it removed (above)"
+    fi
+    refuse "the entry for $art $key could not be written to $CS_PATH (above), and nothing of it is left there"
+  fi
+  printf 'pulled %s %s\n' "$art" "$key"
+}
+
+cmd_put() {
+  local art="$1" root out key lines entry dir name src dirty tree=clean l commit size sum host clock
+  cache_settings "$art"
+  root="$(cache_root)"
+  out="$(cache_key "$art" HEAD yes)"
+  key="${out%%$'\n'*}"
+  lines="${out#*$'\n'}"
+  src="$PROJECT_ROOT/$CS_PATH"
+  [ -e "$src" ] || refuse "there is no artefact at $CS_PATH to record"
+  # The tree's cleanliness for the manifest: the inputs are clean (the key says
+  # so), so a tracked change anywhere else is the one doubt left to record. The
+  # artefact is usually untracked, so untracked files are not asked about.
+  dirty="$(git_readonly -C "$PROJECT_ROOT" status --porcelain=v1 --untracked-files=no 2>/dev/null)" ||
+    refuse "git could not say whether the tree is clean"
+  [ -z "$dirty" ] || tree="dirty outside the inputs"
+  commit="$(git_readonly -C "$PROJECT_ROOT" rev-parse HEAD)" || refuse "git could not name HEAD's commit"
+  entry="$(cache_entry "$root" "$art" "$key")"
+  dir="${entry%/*}"
+  mkdir -p -- "$dir" || refuse "the cache root $root cannot be written: $dir could not be made (above)"
+  CACHE_TMP="$(mktemp -d "$dir/.put.XXXXXX")" || refuse "the cache root $root cannot be written: no temporary entry could be made in $dir (above)"
+  if [ -d "$src" ]; then
+    name=artefact.tar
+    cache_tar_words
+    # The directory's contents, from its own `.`, so a pull writes them at the
+    # path the declaration names then: files and their mode bits alone, none of
+    # what CACHE_TAR leaves out, and on macOS no AppleDouble companions
+    # (COPYFILE_DISABLE).
+    COPYFILE_DISABLE=1 tar "${CACHE_TAR[@]}" -cf "$CACHE_TMP/$name" -C "$src" . ||
+      refuse "the artefact at $CS_PATH could not be recorded under the cache root $root: tar could not write it (above)"
+  else
+    name=artefact
+    cp -p -- "$src" "$CACHE_TMP/$name" ||
+      refuse "the artefact at $CS_PATH could not be recorded under the cache root $root: cp could not copy it (above)"
+    # The copy keeps no file flags, as a directory's tar records none: on macOS
+    # cp -p carries them, whichever cp runs, the flags of a link's target among
+    # them, and one such as uchg or uappnd would leave an entry no verb could
+    # replace or remove (issue 0279's class). Where there is no chflags (Linux),
+    # cp copies no flag.
+    if command -v chflags >/dev/null 2>&1; then
+      chflags 0 "$CACHE_TMP/$name" ||
+        refuse "the artefact at $CS_PATH was copied under the cache root $root with file flags that could not be cleared (above)"
+    fi
+  fi
+  size="$(wc -c <"$CACHE_TMP/$name")" || refuse "the recorded artefact's size could not be read (above)"
+  size="${size//[!0-9]/}"
+  sum="$(sha256_of "$CACHE_TMP/$name")" || refuse "the recorded artefact's sha256 could not be taken (above)"
+  host="$(uname -n 2>/dev/null)" || host=unknown
+  clock="$(runlog_clock)" || refuse "the clock could not be read for the entry's manifest (above)"
+  {
+    printf 'project: %s\n' "$CS_PROJECT"
+    printf 'artefact: %s\n' "$art"
+    printf 'key: %s\n' "$key"
+    printf 'lines:\n'
+    while IFS= read -r l; do printf '  - "%s"\n' "${l//$'\t'/\\t}"; done <<<"$lines"
+    printf 'commit: %s\n' "$commit"
+    printf 'tree: %s\n' "$tree"
+    printf 'host: %s\n' "$host"
+    printf 'clock: %s\n' "$clock"
+    printf 'size: %s\n' "$size"
+    printf 'sha256: %s\n' "$sum"
+  } >"$CACHE_TMP/manifest.yaml" || refuse "the entry's manifest could not be written under the cache root $root (above)"
+  (cd "$CACHE_TMP" && sha256_files "$name" manifest.yaml >SHA256SUMS) ||
+    refuse "the entry's SHA256SUMS could not be written under the cache root $root (above)"
+  rm -rf -- "$entry" || refuse "the entry for $art $key under the cache root $root could not be replaced (above)"
+  mv -f -- "$CACHE_TMP" "$entry" || refuse "the entry for $art $key could not be renamed into place under the cache root $root (above)"
+  # A put of the same key that made the entry between the rm and the rename
+  # keeps its own; this one, renamed inside it, goes.
+  if [ -d "$entry/${CACHE_TMP##*/}" ]; then
+    rm -rf -- "${entry:?}/${CACHE_TMP##*/}" || refuse "a copy of the entry for $art $key could not be removed from inside it (above)"
+  fi
+  CACHE_TMP=""
+  printf 'put %s %s\n' "$art" "$key"
+}
+
+# cache_artefact_dirs <project dir> [<artefact>] -- set CS_ARTS to the
+# artefact directories under <project dir> (each ending in /), or <artefact>'s
+# alone, every one of them listable (cache_listable), so a verb refuses before
+# it acts on any. Nothing at <project dir>, or at <artefact>'s, is none.
+cache_artefact_dirs() {
+  local a
+  CS_ARTS=()
+  cache_listable "$1" || return 0
+  if [ -n "${2:-}" ]; then
+    if cache_listable "$1/$2"; then CS_ARTS=("$1/$2/"); fi
+    return 0
+  fi
+  for a in "$1"/*/; do
+    [ -d "$a" ] || continue
+    if cache_listable "${a%/}"; then CS_ARTS+=("$a"); fi
+  done
+}
+
+cmd_list() {
+  local root a an e k
+  if [ -n "${1:-}" ]; then cache_artefact_name "$1"; fi
+  cache_project
+  root="$(cache_root)"
+  cache_artefact_dirs "$root/$CS_PROJECT" "${1:-}"
+  for a in "${CS_ARTS[@]}"; do
+    an="${a%/}"
+    an="${an##*/}"
+    for e in "$a"*/; do
+      [ -d "$e" ] || continue
+      k="${e%/}"
+      k="${k##*/}"
+      is_cache_key "$k" || continue
+      printf '%s %s\n' "$an" "$k"
+    done
+  done
+}
+
+cmd_rm() {
+  local root a e n=0
+  is_cache_key "$1" || refuse "'$1' is not a whole key" usage
+  cache_project
+  root="$(cache_root)"
+  cache_artefact_dirs "$root/$CS_PROJECT"
+  for a in "${CS_ARTS[@]}"; do
+    e="$a$1"
+    [ -d "$e" ] || continue
+    rm -rf -- "$e" || refuse "the entry $e could not be removed (above)"
+    a="${a%/}"
+    printf 'removed %s %s\n' "${a##*/}" "$1"
+    n=$((n + 1))
+  done
+  [ "$n" -gt 0 ] || printf 'absent %s\n' "$1"
+}
+
+# cache_seal_keys -- set CS_SEALED to every key the newest release seal names,
+# one a line, from its `cache<TAB><artefact><TAB><key>` lines (the line a cut
+# writes for each artefact it used, through note_line, so it may carry the log's
+# tag before it). The newest is the one newest_run_stems names, by its time, as
+# every reader of a kept run reads it. Status 1, CS_SEALED empty, when no seal
+# names a key, nothing at all at the directory the release's runs are kept in
+# among them; refuses when the newest seal cannot be read, or that directory
+# (dir_unreadable, the test seal_verdict makes), a link to nothing among them,
+# since a glob there would answer no seal and gc could not then say what it must
+# keep. Each named key is held to a key's form by is_cache_key, the one test of
+# it.
+cache_seal_keys() {
+  local dir stem named k
+  CS_SEALED=""
+  dir="$PROJECT_ROOT/$(gate_out_dir release)"
+  [ -e "$dir" ] || [ -L "$dir" ] || return 1
+  if dir_unreadable "$dir"; then
+    refuse "the release run logs at $dir cannot be read, so gc cannot say which keys the newest release seal keeps, and removes nothing"
+  fi
+  stem="$(newest_run_stems "$dir" RELEASE 1)"
+  [ -n "$stem" ] || return 1
+  named="$(awk -F '\t' 'NF >= 3 && $(NF - 2) ~ /cache$/ { print $NF }' "$stem.out")" ||
+    refuse "the newest release seal $stem.out cannot be read (above), so gc cannot say which keys it keeps, and removes nothing"
+  while IFS= read -r k; do
+    if is_cache_key "$k"; then CS_SEALED+="$k"$'\n'; fi
+  done <<<"$named"
+  [ -n "$CS_SEALED" ]
+}
+
+# cache_keys_newest_first <artefact dir> -- set CS_KEYS to the names under
+# <artefact dir> (ending in /, listable) that have a key's form, newest first by
+# each entry directory's own time (newest_first in lib/helpers, the one order by
+# time). The names are globbed and held to a key's form before anything is
+# ordered or counted, so no other name, one holding a newline among them, is
+# counted or acted on.
+cache_keys_newest_first() {
+  local e k
+  local -a found=() ordered=()
+  CS_KEYS=()
+  for e in "$1"*/; do
+    [ -d "$e" ] || continue
+    k="${e%/}"
+    k="${k##*/}"
+    if is_cache_key "$k"; then found+=("$1$k"); fi
+  done
+  newest_first ordered "${found[@]}"
+  for e in "${ordered[@]}"; do CS_KEYS+=("${e##*/}"); done
+}
+
+cmd_gc() {
+  local keep="$1" root a an e i t size freed=0
+  cache_project
+  root="$(cache_root)"
+  # Every directory gc reads is listable before anything is removed
+  # (cache_artefact_dirs); nothing at the project's is nothing to keep.
+  cache_artefact_dirs "$root/$CS_PROJECT"
+  if [ ! -e "$root/$CS_PROJECT" ]; then
+    printf 'freed 0 bytes\n'
+    return 0
+  fi
+  if ! cache_seal_keys; then
+    printf 'no release seal names a key: keeping the newest %s per artefact alone\n' "$keep"
+  fi
+  for a in "${CS_ARTS[@]}"; do
+    an="${a%/}"
+    an="${an##*/}"
+    cache_keys_newest_first "$a"
+    i=0
+    for e in "${CS_KEYS[@]}"; do
+      i=$((i + 1))
+      [ "$i" -gt "$keep" ] || continue
+      if [ -n "$CS_SEALED" ] && grep -qxF "$e" <<<"$CS_SEALED"; then
+        continue
+      fi
+      size="$(du -sk "$a$e")" || refuse "the size of the entry $a$e could not be read (above)"
+      size="${size%%[!0-9]*}"
+      rm -rf -- "$a$e" || refuse "the entry $a$e could not be removed (above)"
+      freed=$((freed + size * 1024))
+      printf 'removed %s %s\n' "$an" "$e"
+    done
+    # A put stopped before its rename (killed, say) leaves its temporary entry
+    # under a dot name, which no verb lists. gc names each and removes none,
+    # since one a put is still writing looks the same.
+    for t in "$a".put.*/; do
+      [ -d "$t" ] || continue
+      t="${t%/}"
+      printf 'left %s %s: a temporary entry from a put that did not finish, or is still writing; gc removes none, so remove it once no put is running\n' "$an" "${t##*/}"
+    done
+  done
+  printf 'freed %s bytes\n' "$freed"
+}
+
+main() {
+  local verb="${1:-}" art="" commit=HEAD head=yes keep="$CACHE_GC_KEEP" w
+  # -h or --help wherever it stands is the help, the usage at 0: the dispatcher
+  # hands it to an offered command wherever it stands, and the exit-code
+  # contract (docs/authoring-commands.md) has an explicit help exit 0.
+  for w in "$@"; do
+    case "$w" in
+      -h | --help)
+        usage
+        exit 0
+        ;;
+    esac
+  done
+  if [ -z "$verb" ]; then
+    # A bare command that needs a verb is a usage error: the contract's 1.
+    usage
+    exit 1
+  fi
+  shift
+  case "$verb" in
+    key | get)
+      [ "$#" -ge 1 ] || refuse "$verb needs an artefact" usage
+      art="$1"
+      shift
+      if [ "${1:-}" = --commit ]; then
+        is_commit_sha "${2:-}" full || refuse "--commit takes a full commit sha, and '${2:-}' is not one" usage
+        commit="$2"
+        head=no
+        shift 2
+      fi
+      [ "$#" -eq 0 ] || refuse "$verb cannot read '$*'" usage
+      "cmd_$verb" "$art" "$commit" "$head"
+      ;;
+    put)
+      [ "$#" -eq 1 ] || refuse "put takes one artefact" usage
+      cmd_put "$1"
+      ;;
+    list)
+      [ "$#" -le 1 ] || refuse "list takes at most one artefact" usage
+      cmd_list "${1:-}"
+      ;;
+    rm)
+      [ "$#" -eq 1 ] || refuse "rm takes one key" usage
+      cmd_rm "$1"
+      ;;
+    gc)
+      if [ "${1:-}" = --keep ]; then
+        # At most nine digits, so every comparison of a count stays inside the
+        # shell's integers, where a longer one fails each test and keeps all.
+        [[ "${2:-}" =~ ^[0-9]{1,9}$ ]] || refuse "--keep takes a count of at most nine digits, and '${2:-}' is not one" usage
+        keep="$2"
+        shift 2
+      fi
+      [ "$#" -eq 0 ] || refuse "gc cannot read '$*'" usage
+      cmd_gc "$keep"
+      ;;
+    *)
+      refuse "'$verb' is not a cache verb" usage
+      ;;
+  esac
+}
+
+main "$@"

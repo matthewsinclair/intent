@@ -490,6 +490,18 @@ commands:
         # Excluded from `test all`, and REPORTED AS SKIPPED rather than dropped
         # silently. The reference case: this gate has no CI counterpart.
         in_all: false
+        # Run on macOS alone. The platform words an option runs on, `macos`
+        # and `linux`, read from `uname -s`; absent, it runs everywhere. On a
+        # host whose word the list leaves out, the option is INACTIVE HERE, as
+        # one whose language is not declared is: counted on `all`'s count
+        # line, named by `help --why` with the platforms it runs on and this
+        # host's, refused with that reason when run by name, never failed. It
+        # says where a gate is meant to run, never whether a host can run it.
+        # `doctor` refuses a value that is not a platform word; until it is
+        # fixed, the command you run reads the list as absent, and the option
+        # runs everywhere.
+        platforms:
+          - macos
       # Drop a built-in option the declared languages pulled in but this project
       # does not want. `enabled: false` at option level is the fine-grained lever
       # -- the whole `test` command stays, only this gate goes.
@@ -552,16 +564,17 @@ commands:
 # and declares no block releases with all of them, and a block names only what
 # differs: every key has a default, and every default can be overridden. A
 # COMMENTED line is one of these things. For `remotes`, `derived`,
-# `ci.query`, `after`, `notes.run`, `repo` and `assets.workflow` the default is empty or derived, and the line shows an
-# example value, not the default. `ci.wait`, `ci.tag`, `ci.base`, `object_wait` and `assets.wait` are commented out
+# `ci.summary`, `after`, `notes.run`, `repo` and `assets.workflow` the default is empty or derived, and the line shows an
+# example value, not the default. `object_wait` and `assets.wait` are commented out
 # because declaring them where the default mode never reads them is refused, not
-# ignored -- `ci.wait`, `ci.tag` and `ci.base` without `ci.query`, `object_wait` outside object: ci,
+# ignored -- `ci.workflow` and `ci.summary` beside a query that is not the built-in `bin/devbin ci-state`, `-` among them,
+# `ci.wait` under `ci.query: -` with no host in `legs` and no macOS stage, `object_wait` outside object: ci,
 # `assets.wait` without `assets.workflow` --
 # and their lines show the default for the mode that does read them. The same
 # rule refuses `title` and `assets.workflow` outside object: local and `notes.run` outside
-# notes.kind: command, and a key no verb `verbs` offers reads: with `cut` and
-# `status` off, the gates, for one, are config nothing acts on. Under
-# `publish.url` it refuses `ci.base`, and `publish.candidate` without it.
+# notes.kind: command, and a key no verb `verbs` offers reads: with `cut`,
+# `status` and `gates` off, the gates, for one, are config nothing acts on.
+# Under `ci.query: -` it refuses `publish.candidate`, since only a cut with a candidate leg reads it.
 #
 # A list is declared EMPTY as the single item "-": the grammar has no `[]`.
 # `remotes` and `verbs` are the exceptions and refuse "-": undeclared remotes
@@ -577,14 +590,16 @@ release:
     # run: bin/release-notes # notes.kind: command only -- receives a verb (state, date, body, paths, views, views-check) and that verb's arguments, run at the root
   # derived:                 # commands that regenerate derived files, each printing the paths it wrote
   #   - cargo update --workspace
-  gates:                     # devbin verbs, run in order on the release commit; each must exit 0
+  gates:                     # devbin verbs, run in order on the release commit under one seal, tmp/release/<stamp>.GATES.*; each must exit 0, and a green that stands for the release commit on this platform is not run again
     - check all
     - test all
-  # ci:                      # undeclared: CI is not consulted
-  #   query: bin/ci-state    # run as `<query> <sha>` with DEVBIN_RELEASE_TAG set (read it as ${DEVBIN_RELEASE_TAG:-}; unset, every run on the sha): the tag's runs only, `none` until one exists; first line `<verdict>[TAB<detail>]`, verdict green, failed, pending, none or unknown
-  #   wait: 20m              # how long the post-release verdict waits on pending or none
-  #   tag: true              # false: the ci step does not ask about the tag's run, which is read after the cut instead
-  #   base: false            # true: pre-flight refuses the cut unless ci.query answers green for the base commit, the one the release commit is made on, asked once with no tag -- push the branch, wait for CI green, then cut; refused under publish.url, where release publish reads CI on the snapshot itself
+  # legs:                    # ssh host aliases, each running the gates above at the release commit as a leg of the cut, its seal copied back and read by the same reader; a host pre-flight cannot reach is named, recorded as not run, and never waited for
+  #   - buildbox
+  ci:                        # the candidate's CI, which every cut reads before it tags: query: "-" opts out, and a cut has no candidate
+    query: bin/devbin ci-state  # the built-in query (bin/devbin help ci-state), or any command run as `<query> <sha>` with DEVBIN_RELEASE_TAG set to the ref the run is read by, a cut's candidate branch (read it as ${DEVBIN_RELEASE_TAG:-}; unset, as when run by hand, every run on the sha): that ref's runs only, `none` until one exists; first line `<verdict>[TAB<detail>]`, verdict green, failed, pending, none or unknown
+    workflow: tests.yml    # the workflow file in .github/workflows whose runs bin/devbin ci-state reads
+    # summary: Test Summary # the job whose verdict is its run's, for bin/devbin ci-state; undeclared: the run's own conclusion
+    wait: 60m              # the legs loop's deadline, from its start, wherever a leg other than the local gates is waited on; the local gates alone run to their end
   object: local              # local | ci | none -- who makes the release object
   title: "{tag}"             # object: local only. {tag} and {version} expand.
   # repo: owner/name         # object: local or ci. Undeclared: read off the url of the first declared remotes entry, else origin, else the only remote
@@ -598,18 +613,18 @@ release:
     - check
     - attach
     - snapshot               # release snapshot <vX.Y.Z | --commit <rev>> <new-dir>
-    - publish                # release publish <vX.Y.Z>: the tag's snapshot made public, under publish.url
+    - gates                  # release gates: release.gates in place under one seal, the record a cut's legs step reads
   # assets:                  # object: local only -- what release attach, and a cut's object step, attach to the release object
-  #   workflow: assets.yml   # the workflow in .github/workflows whose earliest successful run at the tag built them; declaring it turns the attach on
+  #   workflow: assets.yml   # the workflow in .github/workflows whose earliest successful run at the release commit, on the candidate's branch or at the tag, built them; declaring it turns the attach on
   #   wait: 30m              # how long the attach waits for that run to be listed and to finish
   # snapshot:                # the public snapshot release snapshot makes: one commit of a tag's tracked files over the list
   #   list: tests/shipped.paths                   # the shipped list, one git pathspec a line, read in the commit's own tree; declaring it turns the snapshot on
   #   author: "A Person <a.person@example.com>"   # the author and committer of every snapshot; required beside list
   #   message: "{name} {version}"                 # {name} is project.name, {version} the version the commit's own tree declares
   # publish:                 # where snapshots are published
-  #   url: https://example.com/owner/name.git     # the public repository; a snapshot is made on the tip of its publish branch; declaring it makes a cut stop after its push, for release publish
+  #   url: https://example.com/owner/name.git     # the public repository; declaring it makes a cut publish its release as a snapshot there, made on the tip of its publish branch, once every leg is green; no remote a cut pushes to may name it
   #   branch: main           # the public branch each release's snapshot follows; default: release.branch
-  #   candidate: candidate/{tag}                  # the branch release publish pushes the snapshot to, and reads CI on, before the publish branch and the tag move; must hold {tag}
+  #   candidate: candidate/{tag}                  # the branch a cut pushes its candidate to, and reads CI on, before anything is tagged: the release commit, or under publish.url its snapshot, there; read unless ci.query is -; must hold {tag}
 
 # The built-in macos: a macOS app's release, on macOS only --
 # sign a staged copy with the Developer ID, notarise, staple, verify, and
@@ -665,3 +680,22 @@ worktrees:
   branch: main                # the branch landed work reaches, read as refs/heads/<branch>
   # banks:                    # ref patterns, as git for-each-ref reads them; undeclared: the branch's commits alone
   #   - refs/bank             # every ref beneath refs/bank, at any depth (refs/bank/* is one level only)
+
+# The built-in cache's declaration: the input paths a build reads
+# and each artefact it writes, so `bin/devbin cache` keys an artefact on its
+# inputs' git objects, its toolchain, this platform and its CPU architecture,
+# and a build whose inputs did not change pulls what it built before.
+# Undeclared: nothing is cached. Every path is relative to the project root. The
+# registry's root is DEVBIN_CACHE_HOME, or the XDG cache directory's devbin.
+#
+# build:
+#   inputs:                   # the input paths every artefact's key reads
+#     - Cargo.toml
+#     - Cargo.lock
+#     - src
+#   artefacts:
+#     app:
+#       tool: cargo           # a row of the toolchain table: cargo, elixir, swift or xcodebuild
+#       path: target/release/app  # what the build writes: recorded by put, written back by get
+#       inputs:               # this artefact's own input paths, where it reads fewer than build.inputs
+#         - src

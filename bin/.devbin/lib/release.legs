@@ -1,0 +1,561 @@
+#!/usr/bin/env bash
+#
+# lib/release.legs -- the release core's remote legs (ST0011 WP-05): each host
+# release.legs names runs the project's own declared gates at the release
+# commit R, and the GATES seal pair they leave there is copied back and read by
+# the one reader of a sealed verdict, seal_verdict (lib/runlog).
+#
+#   release_leg_dir <root> <host>                    where a host's pairs come back to
+#   release_leg_reach <host>                         whether pre-flight reaches the host, and its platform word
+#   release_leg_project_problem <project>            why the project's name cannot name a host's repository
+#   release_leg_start <root> <host> <project> <sha>  R onto the host, and its gates started there
+#   release_leg_read <root> <host> <project> <sha>   the leg's word on R, read from its copied pair
+#
+# Reach, start and read each print ONE line, `<word><TAB><detail>`, and
+# return 0 when they answered. The words are the seal's and ci-state's: green,
+# failed, pending, none or unknown, so the loop reads every leg alike, as
+# every leg of a cut answers; and release_leg_reach's `absent`, a sixth,
+# for a host pre-flight could not reach, which the loop reads as no leg this
+# cut has, distinct from unknown, a host reached that could not be read. A name
+# that is no host alias is absent at reach too, so pre-flight never starts it;
+# start and read run only for a host reach read as reached, and call such a
+# name unknown, a call that cannot be made. release.legs' value rule (lib/config)
+# refuses it before any cut, through the same test, is_host_alias.
+#
+# THE LIBRARY NEVER READS CONFIG, as lib/release.steps does not: the loop reads
+# release.legs and the project's name and passes each in.
+#
+# THE HOST is a name this machine reaches by ssh alone, an alias from its ssh
+# config, a plain word (is_host_alias, lib/helpers). What lives on it is this
+# file's recipe, never config: the bare repo work/<project>-leg.git under its
+# home, and each run's worktree work/<project>-leg-<sha12> beside it, with its
+# log and, once its gates have ended, their exit status. The runner installs
+# and adjusts nothing there: the host carries what the project's declared gates
+# need, on the PATH its own startup sets, and a gate that cannot run there is
+# the leg's failed, named in its seal.
+#
+# THE REMOTE HALF GOES OVER `ssh <host> 'bash -s'`, never wrapped in `bash -c`
+# or `bash -lc`: the host's own non-interactive startup sets the environment
+# the gates run in (on kovacs, zsh's ~/.zshenv), and bash -s inherits it. Each
+# remote half is a function here, sent by its own definition under
+# `set -euo pipefail` (release_leg_remote), so what runs on the host is what
+# this file holds and what shellcheck reads. The leg's log opens with PATH and
+# where each tool the gates use resolves, so a missing tool is read in the log
+# and the gate's own refusal is the red. Nothing in the remote half asks for a
+# GNU-only flag: a host's coreutils may be uutils.
+#
+# R GOES OVER BY `git send-pack`, NEVER `git push`. The bare repo is a
+# transport to a test machine: nothing public moves, and a project's pre-push
+# hooks guard its remotes, which this is not. send-pack is the plumbing under
+# push, moving the objects and the one ref refs/devbin/legs/<sha>, and runs no
+# hook; --no-verify stays banned, and is not what this is. Measured (git 2.56,
+# 2026-10-31): `git send-pack <repo> <sha>:refs/devbin/legs/<sha>` lands a raw
+# sha as that ref with no pre-push hook run, where `git push` to the same repo
+# runs the project's hook, which refuses it. Like every devbin call that
+# reaches a remote, it runs through git_remote, so it cannot stop on a question.
+#
+# THE RUN IS DETACHED on the host, its output in its own log, and the ssh exit
+# is never read as a verdict: the seal pair is the verdict. The gates write
+# their exit status beside the run when they end, by a rename, and a pair is
+# read only once that status is there, since run_gate writes a red seal after
+# its close line, emptying the seal first, and a pair copied while it is
+# written reads green. A start first removes any status an earlier run at R
+# left there, which would read as its own end. The pair is copied back with
+# `scp -p`, which keeps the times seal_verdict orders runs by, read for the
+# platform it names, and kept beside the host's other pairs only when its
+# verdict agrees with the status: `release gates` exits 0 only when its gates
+# passed, so a green seal beside another status is gates killed while their
+# seal was written. A run that ended with no pair, with its seal still in
+# flight, or with a seal its status contradicts, is unknown, naming its exit
+# status and the last line of its log. A run killed before it writes its
+# status reads running at every poll, so the loop's deadline ends it as a
+# timeout, and it is left on the host, to be looked at there. A run that ended
+# is cleared from the host, its worktree, log, status and ref, once its log is
+# copied back beside the pairs, and only then: a log that cannot be copied
+# keeps the run there for the next read. The bare repo is kept for the next
+# run. A run cleared with no pair kept reads unknown here from then on, from
+# its log, so a failure named once is never read later as no run at all.
+#
+# A MECHANISM FAILURE IS unknown, naming it: an ssh that cannot reach the host,
+# a send-pack or a copy that fails, a host that could not start the run. The
+# loop's deadline turns a lasting one into a timeout. No ssh call waits past
+# RELEASE_LEG_CONNECT_TIMEOUT to connect, so an unreachable host costs a poll
+# seconds, not minutes.
+
+[ -n "${_DEVBIN_RELEASE_LEGS_LOADED:-}" ] && return 0
+if ! declare -F warn >/dev/null || ! declare -F seal_verdict >/dev/null; then
+  printf 'lib/release.legs: source lib/helpers and lib/runlog first -- it reads warn and seal_verdict\n' >&2
+  return 1
+fi
+_DEVBIN_RELEASE_LEGS_LOADED=1
+
+# How long an ssh to a leg's host may take to connect, in seconds, before the
+# poll reads it as unknown and asks again on the next.
+RELEASE_LEG_CONNECT_TIMEOUT=10
+
+# How often an ssh or scp to a leg's host asks a host that has gone silent
+# whether it is there, in seconds, and how many asks may go unanswered before
+# it gives up: a host that stops answering mid-read, a suspended VM among
+# them, ends that read within their product, so the cut's loop reads its other
+# legs and keeps its deadline, never sitting in one read until TCP gives up,
+# hours by default.
+RELEASE_LEG_ALIVE_INTERVAL=15 RELEASE_LEG_ALIVE_COUNT=4
+
+# The options every ssh and scp here asks with, their one statement: no prompt
+# on this machine's terminal, a bounded connect, and a bounded silence.
+RELEASE_LEG_SSH_OPTS=(-o BatchMode=yes -o "ConnectTimeout=$RELEASE_LEG_CONNECT_TIMEOUT"
+  -o "ServerAliveInterval=$RELEASE_LEG_ALIVE_INTERVAL" -o "ServerAliveCountMax=$RELEASE_LEG_ALIVE_COUNT")
+
+# release_leg_dir <root> <host> -- where <host>'s pairs come back to: one
+# directory per host under the release's run logs, so every pair in it names
+# that host's platform.
+release_leg_dir() {
+  printf '%s/%s/legs/%s\n' "$1" "$(gate_out_dir release)" "$2"
+}
+
+# _release_leg_host_problem <host> -- why <host> is no ssh host alias, one
+# line, or nothing when it is one. Pure.
+_release_leg_host_problem() {
+  is_host_alias "$1" ||
+    printf "the host '%s' is no ssh host alias (letters, digits, dot, dash and underscore, starting with a letter or a digit)\n" "$1"
+}
+
+# release_leg_project_problem <project> -- why <project> cannot name the bare
+# repository a leg's host keeps, one line, or nothing when it can: it reaches a
+# remote command line as a word, so it is held to what a host alias may be.
+# Pure. THE ONE RULE for the name, which the cut's pre-flight asks before
+# anything is stamped, and each start asks again.
+release_leg_project_problem() {
+  is_host_alias "$1" ||
+    printf "the project's name '%s' cannot name a repository on a host (letters, digits, dot, dash and underscore, starting with a letter or a digit)\n" "$1"
+}
+
+# _release_leg_names_problem <host> <project> <sha> -- why the three cannot name
+# a run on a host, one line, or nothing when they can. Each reaches a remote
+# command line as a word, so each is held to what cannot be read as anything
+# else there. Pure.
+_release_leg_names_problem() {
+  local why
+  why="$(_release_leg_host_problem "$1")"
+  [ -n "$why" ] || why="$(release_leg_project_problem "$2")"
+  if [ -n "$why" ]; then
+    printf '%s\n' "$why"
+  elif ! is_commit_sha "$3" full; then
+    printf "'%s' is not a full commit sha\n" "$3"
+  fi
+}
+
+# --- the remote halves: run ON THE HOST, each sent by release_leg_remote ----
+#
+# Each answers in words on stdout and checks every step it takes. The run's
+# own logs are R's runtime's, under tmp/release in its worktree, which these
+# name as written, since only this file's functions travel.
+
+# _release_leg_remote_init <project> -- the bare repo work/<project>-leg.git,
+# made when missing; one line, `ready<TAB><path>` or `refused<TAB><why>`.
+_release_leg_remote_init() {
+  local repo="$HOME/work/$1-leg.git" err
+  if [ ! -d "$repo" ]; then
+    if ! err="$(mkdir -p "$HOME/work" 2>&1)"; then
+      printf 'refused\t%s/work could not be made: %s\n' "$HOME" "${err%%$'\n'*}"
+      return 0
+    fi
+    if ! err="$(git init -q --bare "$repo" 2>&1 >/dev/null)"; then
+      printf 'refused\tgit init --bare %s failed: %s\n' "$repo" "${err%%$'\n'*}"
+      return 0
+    fi
+  fi
+  printf 'ready\t%s\n' "$repo"
+}
+
+# _release_leg_remote_start <project> <sha> -- a worktree of the bare repo at
+# <sha>, and the project's gates started in it, detached, their output in the
+# worktree's log and their exit status written beside it when they end; one
+# line, `started<TAB><detail>` or `refused<TAB><why>`. A worktree already there
+# is a run already started, whose seal is the record. A status an earlier run
+# at <sha> left beside a worktree since removed is removed first, since it
+# would read as this run's end; and a worktree made here that the gates could
+# not be started in is removed again, since it would read as a run going.
+_release_leg_remote_start() {
+  local project="$1" sha="$2" repo wt log t err why=""
+  repo="$HOME/work/$project-leg.git"
+  wt="$HOME/work/$project-leg-${sha:0:12}"
+  log="$wt.log"
+  if [ -e "$wt" ]; then
+    printf 'started\ta run at %s was started there before, and its seal is the record\n' "${sha:0:12}"
+    return 0
+  fi
+  if ! err="$(rm -f "$wt.rc" "$wt.rc.part" 2>&1)"; then
+    printf 'refused\tthe status an earlier run left beside %s could not be removed: %s\n' "$wt" "${err%%$'\n'*}"
+    return 0
+  fi
+  if ! git -C "$repo" worktree add -q --detach "$wt" "$sha" >"$log" 2>&1; then
+    printf 'refused\tgit could not make a worktree at %s: %s\n' "${sha:0:12}" "$(tail -n 1 "$log")"
+    return 0
+  fi
+  if ! cd "$wt"; then
+    why="the worktree $wt could not be entered"
+  elif ! {
+    printf 'leg: %s at %s, started %s\n' "$project" "$sha" "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    printf 'PATH: %s\n' "$PATH"
+    for t in bash git intent bats shellcheck cargo; do
+      printf '%s: %s\n' "$t" "$(command -v "$t" || printf 'not on PATH')"
+    done
+  } >>"$log"; then
+    why="the log $log could not be written"
+  fi
+  if [ -n "$why" ]; then
+    if err="$(git -C "$repo" worktree remove --force "$wt" 2>&1 >/dev/null)"; then
+      printf 'refused\t%s, so the worktree is removed and nothing was started\n' "$why"
+    else
+      printf 'refused\t%s, and git could not remove the worktree it made: %s\n' "$why" "${err%%$'\n'*}"
+    fi
+    return 0
+  fi
+  # The gates' exit status, written by a rename once they end, so a reader
+  # never takes a half-written status, nor a pair whose seal is still written.
+  # No -e in it: the status is written whatever the gates returned. mv -f, as
+  # every mv in the runtime is, so the rename can never stop on a prompt
+  # (helpers.bats holds this line in its list of the runtime's mv lines).
+  # shellcheck disable=SC2016 # expanded by the shell that runs the gates
+  set -- bash -c 'bin/devbin release gates; printf "%s\n" "$?" >"$1.rc.part" && mv -f "$1.rc.part" "$1.rc"' release-leg "$wt"
+  if command -v setsid >/dev/null 2>&1; then
+    setsid nohup "$@" >>"$log" 2>&1 </dev/null &
+  else
+    nohup "$@" >>"$log" 2>&1 </dev/null &
+  fi
+  printf 'started\tthe gates at %s, pid %s, logging to %s\n' "${sha:0:12}" "$!" "$log"
+}
+
+# _release_leg_remote_probe <project> <sha> -- where the run at <sha> stands,
+# one line: `unstarted` when no run was started; `running` while its gates have
+# not ended; once they have, `sealed<TAB><status>` when a GATES pair is there to
+# copy, or `exited<TAB><status><TAB><its log's last line>` when none is.
+_release_leg_remote_probe() {
+  local wt="$HOME/work/$1-leg-${2:0:12}" rc last="no log"
+  if [ ! -d "$wt" ]; then
+    printf 'unstarted\n'
+    return 0
+  fi
+  if [ ! -f "$wt.rc" ]; then
+    printf 'running\n'
+    return 0
+  fi
+  rc="$(cat "$wt.rc")"
+  set -- "$wt"/tmp/release/*.GATES.out
+  if [ -e "$1" ]; then
+    printf 'sealed\t%s\n' "$rc"
+    return 0
+  fi
+  [ ! -f "$wt.log" ] || last="$(tail -n 1 "$wt.log")"
+  printf 'exited\t%s\t%s\n' "$rc" "$last"
+}
+
+# _release_leg_remote_clear <project> <sha> -- the ended run's worktree, log,
+# status and ref removed, the bare repo kept; one line, `cleared<TAB><path>` or
+# `refused<TAB><why>`. --force, because the runner made this worktree on a test
+# machine, and what it holds beyond R's tree is the gates' own output, copied
+# back before this runs.
+_release_leg_remote_clear() {
+  local repo="$HOME/work/$1-leg.git" wt="$HOME/work/$1-leg-${2:0:12}" err
+  if ! err="$(git -C "$repo" worktree remove --force "$wt" 2>&1 >/dev/null)"; then
+    printf 'refused\tgit could not remove the worktree %s: %s\n' "$wt" "${err%%$'\n'*}"
+    return 0
+  fi
+  if ! err="$(rm -f "$wt.log" "$wt.rc" "$wt.rc.part" 2>&1)"; then
+    printf 'refused\tthe log and status beside %s could not be removed: %s\n' "$wt" "${err%%$'\n'*}"
+    return 0
+  fi
+  if ! err="$(git -C "$repo" update-ref -d "refs/devbin/legs/$2" 2>&1 >/dev/null)"; then
+    printf 'refused\tgit could not delete refs/devbin/legs/%s in %s: %s\n' "$2" "$repo" "${err%%$'\n'*}"
+    return 0
+  fi
+  printf 'cleared\t%s\n' "$wt"
+}
+
+# --- this machine's half -----------------------------------------------------
+
+# release_leg_reach <host> -- whether pre-flight reaches <host>, one line:
+# `reached<TAB><word>` when `ssh <host> uname -s` answers within
+# RELEASE_LEG_CONNECT_TIMEOUT, <word> the host's platform word, its answer
+# read through platform_word_of, the one map, and empty for an OS that has
+# none, so the cut's pre-flight can ask which gates a leg there runs (ST0011
+# WP-02c); `absent<TAB><why>` when ssh cannot reach it (its own 255: no
+# route, no answer, no key it may use without a prompt) or the name is no
+# host alias; and `unknown<TAB><why>` when the host answered and `uname -s`
+# then failed there, a host reached that cannot be read. A host pre-flight
+# cannot reach is no leg this cut has: the plan names it absent, the cut goes
+# on without it, and the release's seal records the leg as not run and why,
+# so an absent machine never holds a release up.
+release_leg_reach() {
+  local host="$1" out rc=0 word
+  out="$(_release_leg_host_problem "$host")"
+  if [ -n "$out" ]; then
+    printf 'absent\t%s\n' "$out"
+    return 0
+  fi
+  # The host's answer and ssh's own words share one capture: on success the
+  # answer is the last line, after anything ssh warned of; on a failure the
+  # first line says why.
+  out="$(ssh -n "${RELEASE_LEG_SSH_OPTS[@]}" "$host" uname -s 2>&1)" || rc=$?
+  case "$rc" in
+    0)
+      word="$(platform_word_of "${out##*$'\n'}")" || word=""
+      printf 'reached\t%s\n' "$word"
+      ;;
+    255) printf 'absent\tssh could not reach %s: %s\n' "$host" "${out%%$'\n'*}" ;;
+    *) printf 'unknown\t%s answered, and uname -s failed there (exit %s): %s\n' "$host" "$rc" "${out%%$'\n'*}" ;;
+  esac
+  return 0
+}
+
+# release_leg_remote <host> <function> <word>... -- <function>, from this file,
+# run on <host> under `bash -s` with <word>s as its arguments: `set -euo
+# pipefail`, its definition and its call go over ssh's stdin, a here-string,
+# so no pipe can lose a write. Its stdout is the function's; its stderr ssh's
+# and the host's; its status ssh's, 255 when the host could not be reached.
+# Each <word> has been held to a plain word (_release_leg_names_problem), and
+# they are joined by single spaces whatever IFS the caller holds, so the
+# host's shell reads each as itself.
+release_leg_remote() {
+  local host="$1" fn="$2" def IFS=' '
+  shift 2
+  if ! def="$(declare -f "$fn")"; then
+    printf 'release: lib/release.legs holds no function %s to send\n' "$fn" >&2
+    return 1
+  fi
+  # shellcheck disable=SC2029 # the words are this side's, plain words, meant for the host's command line
+  ssh "${RELEASE_LEG_SSH_OPTS[@]}" "$host" "bash -s -- $*" <<<"set -euo pipefail
+$def
+$fn \"\$@\""
+}
+
+# _release_leg_failed <host> <err> <what> -- the leg's `unknown` line for a
+# step on <host> that failed: <what> names the step, and the first line of
+# <err>, what ssh, git or the host wrote, says why. An <err> this machine
+# cannot read is said to be that, never blamed on the host.
+_release_leg_failed() {
+  local host="$1" err="$2" what="$3" line
+  if [ -r "$err" ]; then
+    line="$(head -n 1 "$err")"
+  else
+    line="this machine could not read what was said, in $err"
+  fi
+  printf 'unknown\t%s on %s failed: %s\n' "$what" "$host" "${line:-nothing was written to stderr}"
+}
+
+# _release_leg_finish <host> <project> <sha> <dir> <err> -- an ended run's log
+# copied back into <dir> beside its pair, and only then the run cleared from
+# <host>: a log that cannot be copied keeps the run there, its only copy, and
+# the next read asks again. Either failing is warned of, naming it: the leg's
+# word is already read.
+_release_leg_finish() {
+  local host="$1" project="$2" sha="$3" dir="$4" err="$5" out why line rc=0
+  scp -p -q "${RELEASE_LEG_SSH_OPTS[@]}" "$host:work/$project-leg-${sha:0:12}.log" "$dir/${sha:0:12}.log" 2>"$err" || rc=$?
+  if [ "$rc" -ne 0 ]; then
+    warn "release: the leg's log on $host could not be copied back to $dir, so the run is left there for the next read: $(head -n 1 "$err")"
+    return 0
+  fi
+  rc=0
+  out="$(release_leg_remote "$host" _release_leg_remote_clear "$project" "$sha" 2>"$err")" || rc=$?
+  if [ "$rc" -ne 0 ] || [ "${out%%$'\t'*}" != cleared ]; then
+    why="${out#*$'\t'}"
+    line="$(head -n 1 "$err" 2>/dev/null)"
+    [ -z "$why" ] || [ -z "$line" ] || why="$why; "
+    [ -n "$why$line" ] || line="nothing was said"
+    warn "release: the ended run at ${sha:0:12} on $host was not cleared: $why$line"
+  fi
+}
+
+# release_leg_start <root> <host> <project> <sha> -- the bare repo on <host>
+# made when missing, R sent into it by git send-pack, and the project's gates
+# started there at R, detached. `pending` once they are started, with where
+# they log; `unknown`, naming it, when any of the three could not be done.
+release_leg_start() {
+  local root="$1" host="$2" project="$3" sha="$4" why scratch out rc
+  why="$(_release_leg_names_problem "$host" "$project" "$sha")"
+  if [ -n "$why" ]; then
+    printf 'unknown\t%s\n' "$why"
+    return 0
+  fi
+  scratch="$(mktemp -d "${TMPDIR:-/tmp}/devbin-leg.XXXXXX")" || {
+    printf 'unknown\tno scratch directory to start the leg on %s from\n' "$host"
+    return 0
+  }
+  rc=0
+  out="$(release_leg_remote "$host" _release_leg_remote_init "$project" 2>"$scratch/err")" || rc=$?
+  if [ "$rc" -ne 0 ]; then
+    _release_leg_failed "$host" "$scratch/err" "ssh, making the bare repo work/$project-leg.git,"
+    rm -rf "$scratch"
+    return 0
+  fi
+  if [ "${out%%$'\t'*}" != ready ]; then
+    printf 'unknown\t%s: %s\n' "$host" "${out#*$'\t'}"
+    rm -rf "$scratch"
+    return 0
+  fi
+  rc=0
+  # Through git_remote, the one runner of a call that reaches a remote, with
+  # the leg's own ssh options as its command: it appends BatchMode, shuts git's
+  # prompts and askpass, and gives git no stdin.
+  GIT_SSH_COMMAND="ssh $(printf '%q ' "${RELEASE_LEG_SSH_OPTS[@]}")" \
+    git_remote -C "$root" send-pack "$host:work/$project-leg.git" "$sha:refs/devbin/legs/$sha" >"$scratch/out" 2>"$scratch/err" || rc=$?
+  if [ "$rc" -ne 0 ]; then
+    _release_leg_failed "$host" "$scratch/err" "git send-pack of ${sha:0:12}"
+    rm -rf "$scratch"
+    return 0
+  fi
+  rc=0
+  out="$(release_leg_remote "$host" _release_leg_remote_start "$project" "$sha" 2>"$scratch/err")" || rc=$?
+  if [ "$rc" -ne 0 ]; then
+    _release_leg_failed "$host" "$scratch/err" "ssh, starting the gates at ${sha:0:12},"
+    rm -rf "$scratch"
+    return 0
+  fi
+  rm -rf "$scratch"
+  case "${out%%$'\t'*}" in
+    started) printf 'pending\t%s on %s\n' "${out#*$'\t'}" "$host" ;;
+    refused) printf 'unknown\t%s: %s\n' "$host" "${out#*$'\t'}" ;;
+    *) printf 'unknown\t%s answered the start with "%s", which is no answer it gives\n' "$host" "${out//$'\n'/ }" ;;
+  esac
+  return 0
+}
+
+# release_leg_read <root> <host> <project> <sha> -- the leg's word on R. A run
+# still going is pending. Once its gates have ended, their GATES pair is
+# copied back with its times and read by seal_verdict for the platform the
+# newest pair names, and kept in release_leg_dir, this machine's record, only
+# when its verdict agrees with the gates' exit status: green with 0, failed
+# with any other. An ended run with no pair, with its seal still in flight, or
+# with a seal its status contradicts, is unknown, naming its exit status. An
+# ended run is then cleared from the host once its log is copied back, and
+# only then. A run never started is none, unless this machine holds a record
+# for <sha>: a kept pair is read for its word, and the log of a run cleared
+# with no pair kept is unknown, naming its last line, so a run cleared from the
+# host stays this machine's record either way.
+release_leg_read() {
+  local root="$1" host="$2" project="$3" sha="$4" why dir log scratch out rc word status last="" agrees err
+  why="$(_release_leg_names_problem "$host" "$project" "$sha")"
+  if [ -n "$why" ]; then
+    printf 'unknown\t%s\n' "$why"
+    return 0
+  fi
+  dir="$(release_leg_dir "$root" "$host")"
+  log="$dir/${sha:0:12}.log"
+  scratch="$(mktemp -d "${TMPDIR:-/tmp}/devbin-leg.XXXXXX")" || {
+    printf 'unknown\tno scratch directory to read the leg on %s in\n' "$host"
+    return 0
+  }
+  rc=0
+  out="$(release_leg_remote "$host" _release_leg_remote_probe "$project" "$sha" 2>"$scratch/err")" || rc=$?
+  if [ "$rc" -ne 0 ]; then
+    _release_leg_failed "$host" "$scratch/err" "ssh, reading the run at ${sha:0:12},"
+    rm -rf "$scratch"
+    return 0
+  fi
+  word="${out%%$'\t'*}"
+  case "$word" in
+    unstarted)
+      rm -rf "$scratch"
+      out="$(seal_verdict "$dir" GATES "$sha" "")"
+      case "${out%%$'\t'*}" in
+        green | failed | unknown) printf '%s\n' "$out" ;;
+        # No pair kept here for <sha>. A run cleared with none left its log,
+        # the record of how it ended; with no log, no run of it was ever read.
+        *)
+          if [ -f "$log" ]; then
+            printf 'unknown\tthe gates at %s on %s ended with no seal kept, and were cleared there; their log, %s, ends: %s\n' \
+              "${sha:0:12}" "$host" "$log" "$(tail -n 1 "$log")"
+          else
+            printf 'none\tno run of the gates at %s on %s\n' "${sha:0:12}" "$host"
+          fi
+          ;;
+      esac
+      return 0
+      ;;
+    running)
+      rm -rf "$scratch"
+      printf 'pending\tthe gates at %s are running on %s\n' "${sha:0:12}" "$host"
+      return 0
+      ;;
+    sealed | exited) ;;
+    *)
+      rm -rf "$scratch"
+      printf 'unknown\t%s answered the read with "%s", which is no answer it gives\n' "$host" "${out//$'\n'/ }"
+      return 0
+      ;;
+  esac
+  status="${out#*$'\t'}"
+  if [ "$word" = exited ]; then
+    last="${status#*$'\t'}"
+    status="${status%%$'\t'*}"
+  fi
+  if ! mkdir -p "$dir"; then
+    rm -rf "$scratch"
+    printf 'unknown\t%s could not be made to copy the leg on %s into\n' "$dir" "$host"
+    return 0
+  fi
+  # The pairs and logs come back under the release's own run logs, which
+  # ignore themselves (issue 0157) whether or not a cut's own log made that so
+  # first: asked of <root>, the project the loop names, never an ambient one.
+  PROJECT_ROOT="$root" gate_out_ignore "$root/$(gate_out_dir release)"
+  if [ "$word" = exited ]; then
+    _release_leg_finish "$host" "$project" "$sha" "$dir" "$scratch/err"
+    rm -rf "$scratch"
+    printf 'unknown\tthe gates at %s on %s exited %s with no seal: %s\n' "${sha:0:12}" "$host" "$status" "$last"
+    return 0
+  fi
+  if ! mkdir "$scratch/pair"; then
+    rm -rf "$scratch"
+    printf 'unknown\tno scratch directory to copy the seal on %s into\n' "$host"
+    return 0
+  fi
+  rc=0
+  scp -p -q "${RELEASE_LEG_SSH_OPTS[@]}" \
+    "$host:work/$project-leg-${sha:0:12}/tmp/release/*.GATES.*" "$scratch/pair/" 2>"$scratch/err" || rc=$?
+  if [ "$rc" -ne 0 ]; then
+    _release_leg_failed "$host" "$scratch/err" "scp, copying the seal at ${sha:0:12} back,"
+    rm -rf "$scratch"
+    return 0
+  fi
+  # THE PLATFORM THE NEWEST COPIED PAIR NAMES DECIDES: every pair here came
+  # from this host, and seal_verdict reads an empty platform as that. The pair
+  # is read where it landed and kept only when its verdict agrees with the
+  # status: `release gates` exits 0 only when its gates passed (lib/cmd/release),
+  # so a green seal beside another status is gates killed while their seal was
+  # written, which empties it first, and a red one beside 0 is no run's word.
+  out="$(seal_verdict "$scratch/pair" GATES "$sha" "")"
+  word="${out%%$'\t'*}"
+  agrees=no
+  case "$word" in
+    green) [ "$status" != 0 ] || agrees=yes ;;
+    failed) [ "$status" = 0 ] || agrees=yes ;;
+  esac
+  case "$word" in
+    green | failed)
+      if [ "$agrees" = no ]; then
+        _release_leg_finish "$host" "$project" "$sha" "$dir" "$scratch/err"
+        out="$(printf 'unknown\tthe gates at %s on %s exited %s, and their seal reads %s, so it is not their verdict and is not kept' "${sha:0:12}" "$host" "$status" "$word")"
+      elif ! err="$(cp -p "$scratch/pair/"* "$dir/" 2>&1)"; then
+        # Left on the host, the run is copied and read again at the next read.
+        out="$(printf 'unknown\tthe seal at %s copied back from %s could not be kept in %s: %s' "${sha:0:12}" "$host" "$dir" "${err%%$'\n'*}")"
+      else
+        # Read again where it is kept, so the word names the record this
+        # machine keeps, of which the pair just kept is the newest.
+        out="$(seal_verdict "$dir" GATES "$sha" "")"
+        _release_leg_finish "$host" "$project" "$sha" "$dir" "$scratch/err"
+      fi
+      ;;
+    pending)
+      _release_leg_finish "$host" "$project" "$sha" "$dir" "$scratch/err"
+      out="$(printf 'unknown\tthe gates at %s on %s exited %s with their seal unwritten' "${sha:0:12}" "$host" "$status")"
+      ;;
+    # A pair that names no run at <sha> is no verdict on R; the run is left on
+    # the host, to be looked at there, as it is when seal_verdict cannot read
+    # the pair at all.
+    none) out="unknown${out#none}" ;;
+  esac
+  rm -rf "$scratch"
+  printf '%s\n' "$out"
+  return 0
+}

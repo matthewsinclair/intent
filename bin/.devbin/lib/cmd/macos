@@ -39,7 +39,7 @@
 # release are the project's whatever the app's version is; macos.version_from
 # names the file the app's own version is read from, and an app that versions
 # apart must declare macos.commit_stamp, the Info.plist key its build writes
-# its commit into, since its version cannot show a copy is the tag's build. A
+# its commit into, since its version cannot show a copy is the release's build. A
 # declared kind stamp must carry macos.kind_value. Each is checked wherever the
 # version is: the staged copy at app-sign, and the stapled copy and the zip's
 # own at publish.
@@ -83,26 +83,31 @@ usage() {
 usage: $ME <doctor|store-creds|app-sign|app-notarize|app-verify|publish>
 
   A macOS app's release, on macOS only, for the app the macos: block of
-  bin/.devbin/config.yaml declares. On the maintainer's machine, after the
-  release core has made the release object, in a tree whose HEAD is the tag
-  (once main has moved past it, a worktree: git worktree add --detach <dir>
-  <tag>). In order:
+  bin/.devbin/config.yaml declares. On the maintainer's machine, in a tree
+  whose HEAD is the release's commit: the tag's once it is cut, or before then
+  the release commit, where a cut's macos leg signs (once main has moved past
+  the tag, a worktree: git worktree add --detach <dir> <tag>). publish
+  attaches to the release object, so it runs once the tag is cut. In order:
 
   app-sign      macos.build, when declared, at the project root; a copy of
                 macos.app staged under XDG state, outside the build tree; the
                 copy refused, with nothing signed, unless its bundle id is
                 macos.bundle_id, its version the app's (macos.version_from,
-                else the project's) and its declared stamps the tag's; then signed
-                inside-out with the Developer ID identity and the hardened
-                runtime, and its identifier, team and runtime read back.
-                Refuses, building nothing, unless HEAD is the release tag of
-                the project's version, in a clean tree
+                else the project's) and its declared stamps the release's
+                commit's; then signed inside-out with the Developer ID
+                identity and the hardened runtime, its identifier, team and
+                runtime read back, and the commit it was signed at recorded.
+                Refuses, building nothing, unless HEAD, in a clean tree, is
+                the release's commit: the tag's, or before the tag is cut the
+                release commit of the project's version
   app-notarize  Submit the signed copy to Apple and wait; staple the ticket
                 only when Accepted; check a quarantined copy with spctl
-  publish       Zip the stapled copy as macos.asset, prove the zip as a
-                download meets it, and attach it to the release at the tag
-                with release attach --from, the core's one way an asset
-                reaches a release, which writes SHA256SUMS over every asset
+  publish       Refuses, uploading nothing, unless the stapled copy was
+                signed at the tag's commit, by app-sign's record; then zip it
+                as macos.asset, prove the zip as a download meets it, and
+                attach it to the release at the tag with release attach
+                --from, the core's one way an asset reaches a release, which
+                writes SHA256SUMS over every asset
 
   app-verify    The staged copy's signature and ticket; changes nothing
   doctor        The platform, the declaration, the tools, the Developer ID
@@ -149,10 +154,11 @@ esac
 [ $# -eq 0 ] || die "macos $sub takes no arguments, got: $* (try: $ME --help)"
 
 # --- the platform ---------------------------------------------------------
-# Before the config or any tool is read: nothing here runs off macOS.
-platform="$(uname -s 2>/dev/null)" || platform=""
-if [ "$platform" != Darwin ]; then
-  warn "macos: $sub runs on macOS only, and this is ${platform:-a platform uname cannot name} -- codesign, notarytool, stapler and the login keychain are Apple's"
+# Before the config or any tool is read: nothing here runs off macOS. The word
+# is platform_word's, the one map from the OS name to a platform word.
+platform="$(platform_word)" || platform=""
+if [ "$platform" != macos ]; then
+  warn "macos: $sub runs on macOS only, and this host is ${platform:-one with no platform word} -- codesign, notarytool, stapler and the login keychain are Apple's"
   # code-2: not available here, the dispatcher's code for a command that is not.
   exit 2
 fi
@@ -232,6 +238,12 @@ APP_STATE_BASE="$(xdg_dir state)" ||
   die "macos: there is no XDG state directory to stage in: XDG_STATE_HOME is not an absolute path, and HOME (${HOME:-unset}) is not an absolute path below /"
 APP_STAGE_DIR="$APP_STATE_BASE/devbin/macos/$(stage_key)"
 app_dist() { printf '%s' "$APP_STAGE_DIR/$APP_NAME"; }
+# THE COMMIT THE STAGED COPY WAS SIGNED AT (ST0011 WP-06), one full sha on one
+# line beside it, written by app-sign once the signature reads back. publish
+# ships the copy only when this is the tag's commit, so a copy signed at the
+# release commit before its tag was cut, as a cut's macos leg signs it, ships,
+# and one signed at any other commit does not.
+APP_STAGE_RECORD="$APP_STAGE_DIR/commit"
 
 # require_declared -- the keys a release cannot be made without. Each one
 # missing is named, all at once.
@@ -721,12 +733,21 @@ drop_check_copy() {
 # app's version: the project's, unless macos.version_from names another file
 # than project.version_from (issue 0243), which makes the app one that
 # versions apart (APP_APART). The tag, the release and its attach stay the
-# project's.
+# project's. APP_RELEASE_COMMIT and APP_RELEASE_STATE are the release's commit
+# and whether it is the tag's (read_release_commit); empty until read, so a
+# $(...) that expands them early under set -u still reaches app_ship_blockers,
+# which refuses a state it does not know, rather than ending empty and passing.
 REL_VERSION=""
 APP_VERSION=""
 APP_TAG=""
 APP_VERSION_FILE=""
 APP_APART=no
+APP_RELEASE_COMMIT=""
+APP_RELEASE_STATE=""
+# HEAD as read_head_state last read it: its line, its commit and its state.
+HEAD_LINE=""
+HEAD_SHA=""
+HEAD_STATE=""
 release_names() {
   REL_VERSION="$(read_version)"
   [ "$REL_VERSION" != unknown ] || die "macos: the project's version cannot be read (project.version_from), so there is no release to sign for"
@@ -742,7 +763,7 @@ release_names() {
 }
 
 # require_freshness <what was not done> -- an app that versions apart has no
-# version that shows a copy is the tag's build, so its commit stamp, the one
+# version that shows a copy is the release's build, so its commit stamp, the one
 # proof left, must be declared: refused, before anything is built or uploaded,
 # naming the key.
 require_freshness() {
@@ -763,23 +784,89 @@ require_build_root() {
   die "macos: publish's last Launch Services drop would sweep $dir (macos.build_root, else the directory holding macos.app), which $why -- declare macos.build_root as the directory the build writes its products under; $1"
 }
 
-# tag_commit -- the commit the release tag $APP_TAG names; rc 1, printing
-# nothing, when the tag is not in this tree.
-tag_commit() {
-  git rev-parse -q --verify "refs/tags/$APP_TAG^{commit}" 2>/dev/null
+# read_release_commit <suffix> -- APP_RELEASE_COMMIT and APP_RELEASE_STATE set
+# from release_commit (lib/release.steps), the one reader of the release's
+# commit, which the cut and release status ask too: tagged with the tag's
+# commit once $APP_TAG is cut, untagged with HEAD before it. A git that cannot
+# answer stops there with git's own words, and here with <suffix> saying what
+# was not done, never read as a tag not cut yet.
+#
+# git's local variables are cleared from THIS shell first, so every git read
+# after it asks the one repository at $ROOT: release_commit's, which honours
+# them as the release core's writes do, git_head_identity's, which clears them
+# for itself, and the release attach publish runs (ST0011 WP-06). An inherited
+# GIT_DIR would otherwise answer the tag from one repository and HEAD from
+# another. Cleared through git_local_env_clear_named, as the cut, release
+# status and release gates clear them, so one that was set is named, with
+# $ROOT, and never dropped in silence; a clear whose naming line could not be
+# written stops here too. Here, the first git read of app-sign and of publish,
+# and not at file scope, so doctor and the subcommands that read no git need
+# no git to run.
+read_release_commit() {
+  local line rc=0
+  git_local_env_clear_named macos "$ROOT" || rc=$?
+  case "$rc" in
+    0) ;;
+    2) die "macos: git's local variables were cleared and the line naming them could not be written, so this would change repositories in silence$1" ;;
+    *) die "macos: git cannot list its local variables (git rev-parse --local-env-vars), so one inherited here could point a read at another repository$1" ;;
+  esac
+  line="$(release_commit "$APP_TAG")" ||
+    die "macos: the release commit of $APP_TAG could not be read (above)$1"
+  APP_RELEASE_COMMIT="${line%%$'\t'*}"
+  case "${line#*$'\t'}" in
+    tag) APP_RELEASE_STATE=tagged ;;
+    HEAD) APP_RELEASE_STATE=untagged ;;
+    *) die "macos: release_commit answered '$line', neither tag nor HEAD$1" ;;
+  esac
 }
 
-# app_ship_blockers <bundle> -- why <bundle> cannot ship with the release, one
-# reason a line; empty means it may. Its bundle id; its version against the
-# app's, the project's unless macos.version_from names another file; and the
-# stamps declared: the kind against macos.kind_value, and the commit, which must
-# be 8 to 40 lowercase hex characters and a prefix of the tag's commit, with
-# the tag in this tree. A bundle built before the version moved, or off the
-# tag, passes every Apple check and would ship another build inside this
-# release. A malformed commit is refused before any comparison, so a missing
-# or garbled one never matches by prefix.
+# read_head_state -- HEAD_SHA and HEAD_STATE from git_head_identity's one line,
+# the one parse of it here: clean as git_identity_clean reads it, the reading
+# the release verbs ask too, dirty for `<sha> +dirty`, unreadable for `<sha>
+# +unreadable`, and unknown for anything else, `unknown` itself or a form this
+# does not know, so a form added to git_head_identity is refused here rather
+# than read as a clean tree. HEAD_LINE keeps the line as git_head_identity gave
+# it, for a refusal to name.
+read_head_state() {
+  HEAD_LINE="$(git_head_identity "$ROOT")"
+  HEAD_SHA="${HEAD_LINE%% *}"
+  if git_identity_clean "$HEAD_LINE"; then
+    HEAD_STATE=clean
+  elif is_commit_sha "$HEAD_SHA" full && [ "$HEAD_LINE" = "$HEAD_SHA +dirty" ]; then
+    HEAD_STATE=dirty
+  elif is_commit_sha "$HEAD_SHA" full && [ "$HEAD_LINE" = "$HEAD_SHA +unreadable" ]; then
+    HEAD_STATE=unreadable
+  else
+    HEAD_STATE=unknown
+  fi
+}
+
+# app_ship_blockers <bundle> <commit> <tagged|untagged> -- why <bundle> cannot
+# ship with the release, one reason a line; empty means it may. Its bundle id;
+# its version against the app's, the project's unless macos.version_from names
+# another file; and the stamps declared: the kind against macos.kind_value, and
+# the commit, which must be 8 to 40 lowercase hex characters and a prefix of
+# <commit>, the release's commit. The caller decides which commit that is and
+# says how it stands: tagged, the tag's, or untagged, the release commit before
+# its tag is cut (require_release_head; publish passes the tag's alone), so
+# no stamp is ever read against whatever HEAD happens to be. A bundle built
+# before the version moved, or off the release's commit, passes every Apple
+# check and would ship another build inside this release. A malformed commit
+# is refused before any comparison, so a missing or garbled one never matches
+# by prefix.
 app_ship_blockers() {
-  local id version kind commit tagged formed=no
+  local id version kind commit release
+  # Read in $(...) by refuse_blockers, where a die would end only the subshell
+  # and leave no blocker: a state it does not know is a blocker line, so the
+  # copy is refused rather than passed.
+  case "$3" in
+    tagged) release="the tag $APP_TAG's commit" ;;
+    untagged) release="the release commit, HEAD until the tag $APP_TAG is cut," ;;
+    *)
+      printf 'app_ship_blockers was given no state it knows (%s, not tagged or untagged), so its commit cannot be checked\n' "${3:-none}"
+      return 0
+      ;;
+  esac
   id="$(plist_get "$1" CFBundleIdentifier)"
   version="$(plist_get "$1" CFBundleShortVersionString)"
   [ "$id" = "$APP_BUNDLE_ID" ] ||
@@ -794,22 +881,60 @@ app_ship_blockers() {
   if [ -n "$APP_KIND_STAMP" ]; then
     kind="$(plist_get "$1" "$APP_KIND_STAMP")"
     [ "$kind" = "$APP_KIND_VALUE" ] ||
-      printf 'its %s is %s, not %s -- it was built off the tag %s or from a dirty tree\n' "$APP_KIND_STAMP" "${kind:-<unreadable>}" "$APP_KIND_VALUE" "$APP_TAG"
+      printf 'its %s is %s, not %s -- it was built off %s or from a dirty tree\n' "$APP_KIND_STAMP" "${kind:-<unreadable>}" "$APP_KIND_VALUE" "$release"
   fi
   if [ -n "$APP_COMMIT_STAMP" ]; then
     commit="$(plist_get "$1" "$APP_COMMIT_STAMP")"
-    if [[ "$commit" =~ ^[0-9a-f]{8,40}$ ]]; then
-      formed=yes
-    else
-      printf 'its %s is %s, not a commit of 8 to 40 lowercase hex characters, so it cannot be checked against the tag %s\n' "$APP_COMMIT_STAMP" "${commit:-<unreadable>}" "$APP_TAG"
-    fi
-    if ! tagged="$(tag_commit)"; then
-      printf 'the tag %s is not in this tree, so its %s cannot be checked against it\n' "$APP_TAG" "$APP_COMMIT_STAMP"
-    elif [ "$formed" = yes ] && [[ "$tagged" != "$commit"* ]]; then
-      printf 'its %s is %s, and the tag %s names %s -- it was built off the tag\n' "$APP_COMMIT_STAMP" "$commit" "$APP_TAG" "${tagged:0:12}"
+    if [[ ! "$commit" =~ ^[0-9a-f]{8,40}$ ]]; then
+      printf "its %s is %s, not a commit of 8 to 40 lowercase hex characters, so it cannot be checked against the release's commit %s\n" "$APP_COMMIT_STAMP" "${commit:-<unreadable>}" "${2:0:12}"
+    elif [[ "$2" != "$commit"* ]]; then
+      printf 'its %s is %s, and %s is %s -- it was built off another commit\n' "$APP_COMMIT_STAMP" "$commit" "$release" "${2:0:12}"
     fi
   fi
   return 0
+}
+
+# record_signed_at <bundle> -- APP_STAGE_RECORD written with the commit
+# require_release_head checked as the release's (APP_RELEASE_COMMIT), which is
+# what <bundle> was built and signed at, for publish to read back
+# (require_stage_signed_at_tag). HEAD and the tree are read again first, as
+# require_release_head read them: a HEAD that moved, or a tree the build left
+# with changes, means the copy is not the build of the commit that was checked,
+# and a git that cannot answer cannot show that it is; either way the stage is
+# removed and nothing is recorded.
+record_signed_at() {
+  local why=""
+  read_head_state
+  case "$HEAD_STATE" in
+    unknown) why="HEAD could not be read in $ROOT after $1 was built and signed (git_head_identity said: $HEAD_LINE)" ;;
+    unreadable) why="git status could not be read in $ROOT after $1 was built and signed, so the tree cannot be shown clean" ;;
+    dirty) why="the build left $ROOT with changes, so $1 is not ${APP_RELEASE_COMMIT:0:12}'s build" ;;
+    clean)
+      if [ "$HEAD_SHA" != "$APP_RELEASE_COMMIT" ]; then
+        why="HEAD moved while $1 was built and signed, from ${APP_RELEASE_COMMIT:0:12} to ${HEAD_SHA:0:12}, so the copy is no checked commit's build"
+      fi
+      ;;
+  esac
+  if [ -n "$why" ]; then
+    rm -rf "$APP_STAGE_DIR"
+    die "macos: $why -- the stage is removed and nothing recorded"
+  fi
+  printf '%s\n' "$APP_RELEASE_COMMIT" >"$APP_STAGE_RECORD" ||
+    die "macos: could not record the commit $1 was signed at in $APP_STAGE_RECORD, and publish ships no copy without one"
+}
+
+# require_stage_signed_at_tag <tag's commit> -- the staged copy was signed at
+# the tag's commit, by APP_STAGE_RECORD (record_signed_at): a copy signed at
+# any other commit is another commit's build, and a stage with no record, or
+# one that is not a whole commit name, is a build nobody can name, refused as
+# such rather than read as fine.
+require_stage_signed_at_tag() {
+  local signed=""
+  [ ! -f "$APP_STAGE_RECORD" ] || signed="$(<"$APP_STAGE_RECORD")"
+  is_commit_sha "$signed" full ||
+    die "macos: the staged $APP_NAME carries no record of the commit it was signed at ($APP_STAGE_RECORD), so whose build it is cannot be told -- nothing uploaded; sign it again at the tag: in a tree at $APP_TAG, $ME app-sign, then $ME app-notarize"
+  [ "$signed" = "$1" ] ||
+    die "macos: the staged $APP_NAME was signed at ${signed:0:12}, and $APP_TAG names ${1:0:12}: another commit's build -- nothing uploaded; sign it again at the tag: in a tree at $APP_TAG, $ME app-sign, then $ME app-notarize"
 }
 
 # refuse_blockers <headline> <blockers> [<path>] -- refuse with the blockers
@@ -821,18 +946,41 @@ refuse_blockers() {
        ${2//$'\n'/$'\n       '}"
 }
 
-# require_tag_head -- HEAD is the release tag's commit, in a clean tree: what
-# app-sign builds and signs must be the release's own build. The refusal names
-# the route, a worktree at the tag.
-require_tag_head() {
-  local tagged head dirty
-  head="$(git rev-parse -q --verify HEAD 2>/dev/null)" || die "macos: $ROOT has no commit, so it is not at the release tag $APP_TAG"
-  if ! tagged="$(tag_commit)"; then
-    die "macos: there is no tag $APP_TAG here, the tag the project's version $REL_VERSION is released under -- cut the release first (or fetch its tag), then sign at it"
-  fi
-  dirty="$(git status --porcelain 2>/dev/null)" || die "macos: git status could not be read in $ROOT"
-  if [ "$head" != "$tagged" ] || [ -n "$dirty" ]; then
-    die "macos: app-sign signs only the release's build: HEAD at $APP_TAG (${tagged:0:12}), in a clean tree, and HEAD is ${head:0:12}$([ -z "$dirty" ] || printf ', with changes') -- nothing built or signed. Run the steps in a worktree at the tag:
+# require_release_head -- HEAD is the release's commit, in a clean tree: the
+# tag's once the tag is cut, and before then the release commit, the one whose
+# version is the one being released ($REL_VERSION, read from this tree) and
+# whose tag $APP_TAG does not exist yet, where a cut's macos leg signs (ST0011
+# WP-06). What app-sign builds and signs must be the release's own build, and
+# publish ships it only when the commit it was signed at is the tag's
+# (APP_STAGE_RECORD), so a copy signed off the release commit never ships. A
+# HEAD past the tag is refused, naming the route, a worktree at the tag.
+#
+# The release's commit comes from release_commit, the one reader the cut and
+# release status ask too (read_release_commit), so the leg's R and the cut's R
+# are one answer. What is macos's own is the two checks on it: HEAD is that
+# commit, and the tree is clean. HEAD and the tree's state are read once,
+# through read_head_state's one parse of git_head_identity (issue 0094:
+# through git_readonly, so the clean-tree check takes no index lock).
+# APP_RELEASE_COMMIT and APP_RELEASE_STATE then carry what was checked, for
+# the stamp check and the record to use rather than read HEAD again.
+require_release_head() {
+  local head dirty=no
+  read_release_commit " -- nothing built or signed"
+  read_head_state
+  head="$HEAD_SHA"
+  case "$HEAD_STATE" in
+    unknown) die "macos: HEAD could not be read in $ROOT (git_head_identity said: $HEAD_LINE), so it is no commit of release $APP_TAG -- nothing built or signed" ;;
+    unreadable) die "macos: git status could not be read in $ROOT, so the tree cannot be shown clean -- nothing built or signed" ;;
+    dirty) dirty=yes ;;
+  esac
+  if [ "$APP_RELEASE_STATE" = untagged ]; then
+    [ "$head" = "$APP_RELEASE_COMMIT" ] ||
+      die "macos: HEAD moved while app-sign read it, from ${APP_RELEASE_COMMIT:0:12} to ${head:0:12} -- nothing built or signed"
+    [ "$dirty" = no ] ||
+      die "macos: app-sign signs only the release's build, in a clean tree: HEAD ${head:0:12}, the release commit of $APP_TAG until it is cut, has changes -- nothing built or signed"
+    printf '  no tag %s here: HEAD %s is taken as the release commit, and publish ships its build only under a tag cut there\n' "$APP_TAG" "${head:0:12}"
+  elif [ "$head" != "$APP_RELEASE_COMMIT" ] || [ "$dirty" = yes ]; then
+    die "macos: app-sign signs only the release's build: HEAD at $APP_TAG (${APP_RELEASE_COMMIT:0:12}), in a clean tree, and HEAD is ${head:0:12}$([ "$dirty" = no ] || printf ', with changes') -- nothing built or signed. Run the steps in a worktree at the tag:
        git worktree add --detach <dir> $APP_TAG
        cd <dir>, then $ME app-sign, app-notarize and publish
        git worktree remove <dir>, once publish has run"
@@ -996,9 +1144,43 @@ cmd_store_creds() {
   printf '\nStored. Check with: %s doctor\n' "$ME"
 }
 
-# app-sign: refused unless HEAD is the release tag in a clean tree; then
-# macos.build, a copy staged outside the build tree and refused, with nothing
-# signed, unless it is the release's; then signed inside-out and read back.
+# app_build_cached -- macos.build, through the artefact cache where the app is
+# one of the build: block's artefacts (cfg_macos_artefact; ST0011 WP-06, the
+# core calling the cache where the handler is its own): the artefact pulled at
+# the release commit when the cache holds it, and macos.build not run; else
+# macos.build, then the app put under the commit's key. The cache's own lines
+# say what it did, and a refusal costs the build alone: a get it refuses
+# builds, and a put it refuses, or that fails, leaves the build standing. With
+# no such artefact the app builds uncached, as it did before.
+app_build_cached() {
+  local -a words=()
+  local art s=0 rc=0 launcher="$ROOT/bin/devbin"
+  run_words words macos.build "$APP_BUILD" || die "macos: macos.build holds no command to run"
+  art="$(cfg_macos_artefact)" || s=$?
+  case "$s" in
+    0)
+      step "pulling $art from the artefact cache at ${APP_RELEASE_COMMIT:0:12}"
+      "$launcher" cache get "$art" --commit "$APP_RELEASE_COMMIT" || rc=$?
+      if [ "$rc" -eq 0 ]; then
+        printf '  pulled, so macos.build is not run\n'
+        return 0
+      fi
+      ;;
+    1) ;;
+    *) warn "macos: $art, so the app builds uncached" ;;
+  esac
+  step "building: $APP_BUILD"
+  "${words[@]}" || die "macos: macos.build failed (exit $?) -- nothing signed"
+  [ "$s" -eq 0 ] || return 0
+  step "putting $art into the artefact cache at ${APP_RELEASE_COMMIT:0:12}"
+  "$launcher" cache put "$art" || warn "macos: cache put $art did not record the app (above); the build stands"
+}
+
+# app-sign: refused unless HEAD is the release's commit in a clean tree, the
+# tag's or before the tag is cut the release commit; then macos.build, through
+# the artefact cache where the app is a build: artefact (app_build_cached), a
+# copy staged outside the build tree and refused, with nothing signed, unless it
+# is the release's; then signed inside-out, read back, and the commit recorded.
 cmd_app_sign() {
   require_declared
   load_identity
@@ -1006,14 +1188,9 @@ cmd_app_sign() {
   release_names
   require_freshness "nothing built or signed"
   require_build_root "nothing built or signed"
-  step "checking HEAD is the release tag $APP_TAG, in a clean tree"
-  require_tag_head
-  if [ -n "$APP_BUILD" ]; then
-    local -a words=()
-    run_words words macos.build "$APP_BUILD" || die "macos: macos.build holds no command to run"
-    step "building: $APP_BUILD"
-    "${words[@]}" || die "macos: macos.build failed (exit $?) -- nothing signed"
-  fi
+  step "checking HEAD is release $APP_TAG's commit, in a clean tree"
+  require_release_head
+  [ -z "$APP_BUILD" ] || app_build_cached
   [ -f "$APP_SRC/Contents/Info.plist" ] ||
     die "macos: there is no app at $APP_SRC (no Contents/Info.plist)${APP_BUILD:+ after macos.build ran} -- nothing signed"
   local dist
@@ -1028,7 +1205,7 @@ cmd_app_sign() {
   xattr -cr "$dist" || true
   printf '  %s\n' "$dist"
   step "checking the staged copy is the release's, as publish will"
-  refuse_blockers "macos: the staged $APP_NAME cannot ship with release $APP_TAG -- nothing signed" "$(app_ship_blockers "$dist")" "$APP_STAGE_DIR"
+  refuse_blockers "macos: the staged $APP_NAME cannot ship with release $APP_TAG -- nothing signed" "$(app_ship_blockers "$dist" "$APP_RELEASE_COMMIT" "$APP_RELEASE_STATE")" "$APP_STAGE_DIR"
   step "signing $APP_NAME inside-out (nested code, then the bundle), team $(identity_team)"
   app_sign_nested "$dist"
   local -a ent=()
@@ -1037,7 +1214,8 @@ cmd_app_sign() {
     die "macos: codesign could not sign $dist"
   step "reading the signature back off the bundle"
   app_signature_readback "$dist"
-  printf '\nsigned: %s\nnext: %s app-notarize\n' "$dist" "$ME"
+  record_signed_at "$dist"
+  printf '\nsigned: %s, at %s\nnext: %s app-notarize\n' "$dist" "${APP_RELEASE_COMMIT:0:12}" "$ME"
 }
 
 # app-notarize: the signed copy submitted with notarytool --wait; anything but
@@ -1120,9 +1298,11 @@ cmd_publish() {
   # An interrupt is the command's own failure, exit 1, through the EXIT trap,
   # so every copy goes on every path out.
   arm_drops " -- nothing uploaded"
-  tag_commit >/dev/null ||
-    die "macos: there is no tag $APP_TAG here, the tag the project's version $REL_VERSION is released under -- nothing uploaded"
-  refuse_blockers "macos: $APP_NAME cannot ship with release $APP_TAG -- nothing uploaded" "$(app_ship_blockers "$dist")"
+  read_release_commit " -- nothing uploaded"
+  [ "$APP_RELEASE_STATE" = tagged ] ||
+    die "macos: there is no tag $APP_TAG here, the tag the project's version $REL_VERSION is released under -- nothing uploaded; cut the release first (or fetch its tag), then publish"
+  require_stage_signed_at_tag "$APP_RELEASE_COMMIT"
+  refuse_blockers "macos: $APP_NAME cannot ship with release $APP_TAG -- nothing uploaded" "$(app_ship_blockers "$dist" "$APP_RELEASE_COMMIT" tagged)"
   launcher="$ROOT/bin/devbin"
   [ -x "$launcher" ] || die "macos: no launcher at $launcher -- publish attaches through this project's release command"
   if ! staging="$(mktemp -d)" || [ -z "$staging" ] || ! cargo_place "$staging" staging getcwd; then
@@ -1136,7 +1316,7 @@ cmd_publish() {
   if ! ditto -x -k "$staging/asset/$APP_ASSET" "$staging/unpacked" || [ ! -d "$staging/unpacked/$APP_NAME" ]; then
     die "macos: $APP_ASSET does not unpack to $APP_NAME -- nothing uploaded"
   fi
-  refuse_blockers "macos: the bundle inside $APP_ASSET cannot ship with release $APP_TAG -- nothing uploaded" "$(app_ship_blockers "$staging/unpacked/$APP_NAME")"
+  refuse_blockers "macos: the bundle inside $APP_ASSET cannot ship with release $APP_TAG -- nothing uploaded" "$(app_ship_blockers "$staging/unpacked/$APP_NAME" "$APP_RELEASE_COMMIT" tagged)"
   app_verify_notarised "$staging/unpacked/$APP_NAME" " -- nothing uploaded" ||
     die "macos: the bundle inside $APP_ASSET is not notarised and stapled -- nothing uploaded"
   step "attaching $APP_ASSET to release $APP_TAG through release attach --from"

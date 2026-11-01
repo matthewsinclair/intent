@@ -68,9 +68,10 @@ set -euo pipefail
 # shellcheck source=lib/release.notes
 . "$DEVBIN_LIB/release.notes"
 # shellcheck source=lib/release.steps
-# release_versions and release_tag_name, the core's own reading of which tag is
-# the newest release; release_git_remote, which keeps every call to a remote off
-# the terminal; release_repo and release_gh for the assets' release.
+# release_versions, the core's own reading of which tag is the newest release,
+# whose tag this file names with release_tag_name, which lib/helpers holds;
+# release_git_remote, which keeps every call to a remote off the terminal;
+# release_repo and release_gh for the assets' release.
 . "$DEVBIN_LIB/release.steps"
 
 # The formula's settings, read once by formula_settings.
@@ -223,14 +224,13 @@ rendered_text() {
 # the one the tag names in this checkout (tag_commit), or, for a project that
 # declares release.publish.url, the one it names in that public repository
 # (issue 0240), which is what brew fetches, and where the tag names the
-# release's snapshot, a commit this checkout never holds. Read with ls-remote
-# through release_git_remote, so the read cannot stop to ask, and read by
-# release_listed_tag, the one reader of a public tag, its peel where it is
-# annotated. The tag must be a release in this checkout either way. Dies when
-# the public repository does not answer or carries no such tag: a formula
-# naming a commit brew cannot fetch fails every install.
+# release's snapshot, a commit this checkout never holds: read by
+# release_public_tag_commit, the one read of it. The tag must be a release in
+# this checkout either way. Dies when the public repository does not answer or
+# carries no such tag: a formula naming a commit brew cannot fetch fails every
+# install.
 formula_revision() {
-  local url listing tagged
+  local url sha rc=0
   url="$(cfg_release_get publish.url)" ||
     die "cannot read release.publish.url (above), so whether brew fetches the public repository is not known"
   if [ -z "$url" ]; then
@@ -238,12 +238,12 @@ formula_revision() {
     return
   fi
   tag_commit "$1" >/dev/null
-  listing="$(release_git_remote ls-remote --end-of-options "$url" "refs/tags/$1" "refs/tags/$1^{}")" ||
-    die "cannot read $1 at the public repository $(release_url_shown "$url") (above), so the commit brew checks out is not known"
-  tagged="$(release_listed_tag "$listing" "$1")"
-  [ -n "$tagged" ] ||
-    die "the public repository $(release_url_shown "$url") carries no tag $1, and brew checks the tag out there -- make the release public first: release publish $1"
-  printf '%s\n' "${tagged%%$'\t'*}"
+  sha="$(release_public_tag_commit "$url" "$1")" || rc=$?
+  case "$rc" in
+    0) printf '%s\n' "$sha" ;;
+    1) die "the public repository $(release_url_shown "$url") carries no tag $1, and brew checks the tag out there -- a cut makes it public, once every leg is green: release $1" ;;
+    *) die "cannot read $1 at the public repository $(release_url_shown "$url") (above), so the commit brew checks out is not known" ;;
+  esac
 }
 
 # tag_commit <tag> -- the commit the annotated <tag> names in this checkout,
@@ -538,14 +538,18 @@ assets_fill() {
 # release_sums <tag> <dir> [<file>] -- the sums file's text: <file> when given,
 # else the sums asset of <tag>'s release on formula.repo (default the release
 # repository), downloaded into <dir> through release_gh. Dies on one it cannot
-# read, naming it.
+# read, naming it. The release repository is the cut's: release.repo, else the
+# first declared remotes entry's, else origin's or the only remote's (issue
+# 0296).
 release_sums() {
-  local tag="$1" dir="$2" file="${3:-}" repo why text
+  local tag="$1" dir="$2" file="${3:-}" repo remote why text
   if [ -z "$file" ]; then
     why="$(release_pattern_problem "$F_SUMS")" && die "formula.sums '$F_SUMS': $why"
     repo="$(cfg_formula_get repo)" || exit 1
     if [ -z "$repo" ]; then
-      repo="$(release_repo "$(cfg_release_get repo)" "")" || die "cannot name the repository whose release carries the assets (above)"
+      repo="$(cfg_release_get repo)" || exit 1
+      remote="$(cfg_release_first_remote)" || exit 1
+      repo="$(release_repo "$repo" "$remote")" || die "cannot name the repository whose release carries the assets (above)"
     fi
     release_gh "$repo" release download "$tag" --pattern "$F_SUMS" --dir "$dir" >/dev/null ||
       die "cannot download $F_SUMS from $repo's release $tag (above)"
@@ -660,9 +664,12 @@ newest_release_tag() {
 
 # default_tap -- the tap Homebrew finds as <owner>/<name>: homebrew-<name> under
 # the release repository's owner, over ssh, on the host that repository names.
+# The release repository is the cut's, as release_sums reads it (issue 0296).
 default_tap() {
-  local repo host="github.com" owner
-  repo="$(release_repo "$(cfg_release_get repo)" "")" ||
+  local repo remote host="github.com" owner
+  repo="$(cfg_release_get repo)" || exit 1
+  remote="$(cfg_release_first_remote)" || exit 1
+  repo="$(release_repo "$repo" "$remote")" ||
     die "cannot name the tap: formula.tap is not declared, and the release repository cannot be read (above)"
   case "$repo" in
     */*/*)
@@ -739,8 +746,9 @@ cmd_publish() {
     return 0
   fi
   # THE YES IS TO A NAMED TAP. A cut's after: step carries the yes its confirm
-  # step's prompt was given, as DEVBIN_RELEASE_CONFIRMED naming the tag, set
-  # only when a person answered there and never under --yes (lib/cmd/release);
+  # step was given, at its prompt or by --yes, whose question named the after:
+  # commands, as DEVBIN_RELEASE_CONFIRMED naming the tag, and none where that
+  # step had nothing to ask (lib/cmd/release, ST0011);
   # it is honoured only for exactly the tag being published, and said. Any
   # other value is ignored and the person is asked: inside a gate the gate's
   # own flag says whether one is there (issue 0158), outside one this

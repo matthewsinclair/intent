@@ -86,6 +86,7 @@ fullcycle        rust    -           -          Build     @builtin | From a tota
 dormancy         rust    -           -          Test      @builtin | How many tests this project does NOT run: the delta against --all-features
 fmt              any     -           -          Build     - | Format sources in place
 clean            any     -           -          Build     - | Remove build artefacts this project can regenerate
+cache            any     -           -          Build     @builtin | Reuse a built artefact while its inputs are unchanged: key, get, put, list, rm, gc
 worktrees        any     -           -          Build     @builtin | Report linked worktrees, landed, held or unknown, and remove the landed ones
 test             any     -           -          Test      - | Run this project's test gates
 check            any     -           -          Check     - | Read-only gates; each exits non-zero on a breach
@@ -94,10 +95,11 @@ db               elixir  -           -          Data      - | Database lifecycle
 docs             any     -           -          Docs      @builtin | Regenerate generated documentation (AGENTS.md, through Intent)
 content          opt-in  -           -          Docs      - | Content pipeline tasks
 version          any     -           -          Ship      @builtin | Show, set, bump, sync and check the project version
-release          opt-in  -           -          Ship      @builtin | Cut a release: stamp, commit, gate, confirm, tag, push, the release object, after: and the CI verdict
+release          opt-in  -           -          Ship      @builtin | Cut a release: confirm once, then stamp, commit, legs under one wait, tag, push, the release object and after:
 publish          opt-in  -           -          Ship      - | Publish a release artifact
 macos            opt-in  -           -          Ship      @builtin | Sign, notarise and verify a macOS app, and attach it to the release at its tag
 formula          opt-in  -           -          Ship      @builtin | Render the Homebrew formula from a release, and publish it to the tap
+ci-state         any     -           -          Ship      @builtin | Read CI's verdict on a commit: green, failed, pending, none or unknown
 which            opt-in  -           -          Install   - | Report which binary or build a name resolves to
 infra            any     -           -          Infra     @builtin | Profile and check this estate's DNS and mail configuration
 install          any     -           -          Devbin    @builtin | Vendor devbin into a project, or in a dev checkout publish its opt install

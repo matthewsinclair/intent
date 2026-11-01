@@ -4,7 +4,6 @@
 # of a step's row (ST0007, WP-03).
 #
 #   release_row <step> <state> <detail>          the row a cut's summary and status both print
-#   release_tag_name <template> <version>        the tag a version is released under
 #   release_commit <tag>                         `<sha><TAB>tag|HEAD`: the release commit
 #   release_versions <template>                  every version a matching tag names, newest first
 #   release_resolve <template> <target>          the resolve step: `<version><TAB><tag><TAB>new|resume`
@@ -15,6 +14,10 @@
 #   release_outside <paths> <owned>              the paths the owned set does not hold
 #   release_tree_state                           `<hash><TAB><path>` per dirty path, now
 #   release_tree_changed <before> <after>        the paths two tree states disagree on
+#   release_gates_run <gate>...                  the gates given, in place, failing one that writes or commits
+#   release_gates_verdict <sha>                  the gates' sealed verdict on <sha> on this platform
+#   release_gates_word <sha> <verdict>           the local gates' state from a verdict, the one mapping (pure)
+#   release_gates_state <sha>                    release_gates_word over a fresh read, for status and release gates
 #   release_read_stamp <root> <version> <views>  the stamp step's postcondition, read under <root>
 #   release_read_clean                           the commit step's cleanliness clause, the working tree
 #   release_read_tag <tag> <root> <version>      the tag step's postcondition, with the reuse report
@@ -23,19 +26,27 @@
 #   release_read_remote <remote> <branch> <tag> <commit> [preflight|preflight-new|push|push-new|readback]
 #                                                the push step's postcondition, one remote; pre-flight's
 #   release_git_remote <git-args>...             every git call that reaches a remote
+#   release_public_tag_commit <url> <tag>        the commit a tag names at release.publish.url
 #   release_remote_urls                          every url this checkout reaches a remote by
 #   release_url_shown <url>                      a url as a message may print it, its userinfo left out
 #   release_text_shown <text> <url>...           text as a message may print it, each url's userinfo left out
 #   release_repo <declared-repo> <declared-remote>
 #                                                the repository gh is told about
+#   release_repo_named <host-path>               a url's repository as one is written (pure)
+#   release_repo_folded <repo>                   a repository in the one form two of them compare in (pure)
+#   release_repo_host <repo>                     the host a repository stands on (pure)
+#   release_candidate_remote <repo> <remotes>    the remote a cut pushes its candidate to
+#   release_candidate_pick <repo> <lines>        that remote, of each remote's push urls (pure)
+#   release_candidate_ref <template> <tag>       the candidate's branch for a tag (pure)
 #   release_gh <repo> <group> <verb> [args...]   every gh call the release core makes
 #   release_read_object <object> <tag> <declared-repo> <declared-remote>
 #                                                the object step's postcondition
 #   release_read_object_content <repo> <tag> <title> <body-file>
 #                                                an existing object: this release's title and notes?
-#   release_assets_pick <commit>                 which run at the tag ships, from gh run list's rows on stdin
-#   release_read_assets_run <repo> <workflow> <tag> <commit>
-#                                                the attach's run: the earliest successful run at the tag
+#   release_assets_pick <commit> <tag> [<cand>]  which run ships, from gh run list's rows on stdin
+#   release_read_assets_run <repo> <workflow> <tag> <commit> [<candidate>]
+#                                                the attach's run: the earliest successful run at the
+#                                                commit, on the candidate's branch or at the tag
 #   release_object_assets <repo> <tag>           the release object's assets, `<name><TAB><state><TAB><digest>`
 #   release_asset_digest <assets> <name>         one asset's digest from that listing; 1 when it has none of that name
 #   release_run_artifacts <repo> <id>            a run's artifacts as GitHub lists them, `<name><TAB><expired>`
@@ -46,13 +57,20 @@
 #   release_read_assets <repo> <tag>             the object row's assets half: what the attach's last write says
 #   release_workflow_writers <file>              every release-writing step one workflow carries
 #   release_seconds <duration>                   a declared wait (ci.wait, object_wait, assets.wait), in seconds
+#   release_group_start <out> <err> <group> <cmd>...
+#                                                a run started in a process group of its own
+#   release_group_kill <group> [<signal>]        that run's whole group signalled
+#   release_job_running <pid> <table> <what>     whether that run is a running job of this shell
+#   release_run_stop <running> <pid> <group> <seconds> <unwritten>
+#                                                that run stopped, its whole group, for its caller to reap
+#   release_stopped_status <status>              whether a reaped status is a stop's TERM or KILL
 #   release_run_bounded <seconds> <out> <err> <cmd>...
 #                                                a call killed at a deadline, 124 when it was
 #   release_bound <name> <value>                 a bound's override; the default unless a whole number
 #   release_wait <seconds> <keep> <cutoff-state> <reader>...
 #                                                ask, bounded, until the answer leaves <keep>
 #   release_ci_verdict <sha> <tag> <query-word>...
-#                                                the ci step's reader: the project's ci.query, parsed
+#                                                the candidate leg's reader: the project's ci.query, parsed
 #
 # Every reader prints ONE line, `<state><TAB><detail>`, and returns 0 when it
 # answered, whatever the answer. The states are the release sequence's:
@@ -87,19 +105,16 @@ _DEVBIN_RELEASE_STEPS_LOADED=1
 
 # The step names, in the release sequence's order: the one place the order is
 # written. Every step is named by its name, never by its place in this list, so
-# a step added anywhere renames nothing (issue 0209). snapshot, candidate and
-# publish are `release publish`'s (issue 0240), which a project declaring
-# release.publish.url runs once its cut has pushed: its own run prints them
-# between pre-flight and object, its confirm step after its snapshot.
-_RELEASE_STEP_NAMES=(resolve pre-flight stamp commit gates confirm tag push snapshot candidate publish object after ci)
+# a step added anywhere renames nothing (issue 0209). THE CONFIRM COMES BEFORE
+# ANYTHING RUNS (ST0011): the one yes, right after pre-flight, and the stamp,
+# the commit and the legs under it. A publishing cut has the same steps: its
+# legs step makes the snapshot and reads CI on it, and its push step makes the
+# snapshot public (issue 0240, folded into the cut).
+_RELEASE_STEP_NAMES=(resolve pre-flight confirm stamp commit legs tag push object after)
 
 # The states a row can be in, for the state column's width alone: a state
-# missing here still prints, a column out of line. `not reached` is a
-# publishing cut's object, after and ci, which read the public repository, and
-# its cut stops before anything reaches it, and `not read` release status's
-# snapshot, candidate and publish, which read the public repository against a
-# snapshot status never makes (issue 0240).
-_RELEASE_ROW_STATES=("done" already skipped "not re-run" "not reached" "not read" FAILED would pending UNREADABLE)
+# missing here still prints, a column out of line.
+_RELEASE_ROW_STATES=("done" already skipped "not re-run" FAILED would pending UNREADABLE)
 
 # release_step_known <name> -- rc 0 when <name> is one of the release steps.
 release_step_known() {
@@ -135,11 +150,6 @@ release_row() {
   nw="$(_release_widest "${_RELEASE_STEP_NAMES[@]}")"
   sw="$(_release_widest "${_RELEASE_ROW_STATES[@]}")"
   printf '  %-*s  %-*s  %s\n' "$nw" "$step" "$sw" "$state" "$detail"
-}
-
-# release_tag_name <template> <version> -- the tag, `{version}` substituted.
-release_tag_name() {
-  printf '%s\n' "${1//\{version\}/$2}"
 }
 
 # release_versions <template> -- every version a tag matching <template> names,
@@ -224,17 +234,66 @@ release_resolve() {
 # `<sha><TAB>HEAD`. The release commit is HEAD while no tag for the target
 # exists and the tag's commit once it does, so a finished release read after
 # development has moved on still names the commit that was tagged.
+#
+# THE ONE READER OF IT (ST0011 WP-06): the cut, release status, and macos's
+# app-sign and publish, which sign at R as the cut's leg, all ask here. It
+# asks the repository first, then whether refs/tags/<tag> exists, unpeeled, and
+# only then the commit the tag names, as formula's tag_commit asks (issues 0179
+# and 0195). So "no tag" is the existence read's status 1 alone, and a tag
+# that names no commit, or one whose object the repository lacks, or any other
+# failure git reports, stops here rather than being read as a tag not cut yet,
+# which would name HEAD as the release commit. git itself reads a garbage or
+# unreadable loose ref as absent: a garbage one it warns of, and that warning
+# is passed on, HEAD then named; an unreadable one it says nothing of, and
+# that one this cannot tell from a tag not cut.
+#
+# Read with git --no-optional-locks, as release_dirt reads, so an inherited
+# GIT_DIR is honoured here as the core's writes honour it (release_dirt says
+# why). QUIET ON SUCCESS: git writes to stderr even when it answers (GIT_TRACE,
+# a warning), so each read sends its stderr to /dev/null, and its callers read
+# stdout alone. A read that fails, and the absence, are asked once more through
+# git_failure_line --all, so git's own words, untranslated (issue 0185), reach
+# stderr ahead of the refusal; an absence git has nothing to say of prints
+# nothing.
 release_commit() {
-  local sha
-  if sha="$(git rev-parse -q --verify "refs/tags/$1^{commit}" 2>/dev/null)"; then
-    printf '%s\ttag\n' "$sha"
-    return 0
-  fi
-  if ! sha="$(git rev-parse -q --verify 'HEAD^{commit}' 2>/dev/null)"; then
-    warn "release: this repository has no commit at HEAD, so there is no release commit"
+  local sha rc=0
+  if ! git --no-optional-locks rev-parse --git-dir >/dev/null 2>&1; then
+    git_failure_line --plain --all . rev-parse --git-dir >&2
+    warn "release: git cannot read this repository, so there is no release commit"
     return 1
   fi
-  printf '%s\tHEAD\n' "$sha"
+  git --no-optional-locks rev-parse -q --verify "refs/tags/$1" >/dev/null 2>&1 || rc=$?
+  case "$rc" in
+    0)
+      if ! sha="$(git --no-optional-locks rev-parse -q --verify "refs/tags/$1^{commit}" 2>/dev/null)"; then
+        git_failure_line --plain --all . rev-parse --verify "refs/tags/$1^{commit}" >&2
+        warn "release: the tag $1 exists, and git cannot read a commit it names, so the release commit is not known"
+        return 1
+      fi
+      printf '%s\ttag\n' "$sha"
+      return 0
+      ;;
+    1) git_failure_line --plain --all . rev-parse -q --verify "refs/tags/$1" >&2 ;;
+    *)
+      git_failure_line --plain --all . rev-parse --verify "refs/tags/$1" >&2
+      warn "release: git could not read the tag $1 (exit $rc), so the release commit is not known"
+      return 1
+      ;;
+  esac
+  rc=0
+  sha="$(git --no-optional-locks rev-parse -q --verify 'HEAD^{commit}' 2>/dev/null)" || rc=$?
+  case "$rc" in
+    0) printf '%s\tHEAD\n' "$sha" ;;
+    1)
+      warn "release: this repository has no commit at HEAD, so there is no release commit"
+      return 1
+      ;;
+    *)
+      git_failure_line --plain --all . rev-parse --verify 'HEAD^{commit}' >&2
+      warn "release: git could not read HEAD (exit $rc), so there is no release commit"
+      return 1
+      ;;
+  esac
 }
 
 # release_scratch <project-root> -- make and print a scratch directory under
@@ -401,9 +460,13 @@ release_owned() {
 #
 # WITHOUT THE OPTIONAL LOCK, AND NOTHING ELSE (issue 0094): `release check` is
 # read-only, and a plain `git status` rewrites a stale index under that lock. Not
-# through git_readonly, which also clears git's environment: release's WRITES --
-# `git add`, the commit, the tag -- honour an inherited GIT_DIR, so a read that
-# cleared it would check one repository and commit into another.
+# through git_readonly, which also clears git's environment for itself: this
+# reads the environment release's WRITES use -- `git add`, the commit, the tag
+# -- so a read and a write always ask the same repository. A cut, release status
+# and release gates clear git's local variables once, at their start, saying
+# which they found (lib/cmd/release), so that environment, git_head_identity's
+# and release_commit's all name the one repository at the project root
+# (ST0011).
 release_dirt() {
   local entry second=no
   while IFS= read -r -d '' entry; do
@@ -432,7 +495,7 @@ release_outside() {
 # release_tree_state -- `<hash><TAB><path>` for every dirty path, the hash of
 # its bytes now (`gone` for a path that is gone). Two states compared by
 # release_tree_changed name every path that changed between them, which is how
-# the gates step re-reads the tree after the gates: a path a gate modified,
+# release_gates_run re-reads the tree after the gates: a path a gate modified,
 # created, deleted or cleaned. A path dirty before the gates and rewritten by
 # them is caught by its hash, where `git status` alone would read the same.
 release_tree_state() {
@@ -454,6 +517,98 @@ release_tree_state() {
 release_tree_changed() {
   LC_ALL=C comm -3 <(LC_ALL=C sort <<<"$1") <(LC_ALL=C sort <<<"$2") |
     sed $'s/^\t//' | cut -f2- | sed '/^$/d' | LC_ALL=C sort -u
+}
+
+# release_gates_run <gate>... -- the gates given, each a release.gates line, in
+# order, in place, through the project's own launcher, stopping at the first
+# that fails; then the tree and HEAD are read again, and a gate that changed or
+# created a path git does not ignore, or that made a commit, fails the run.
+# Exit 0 only when at least one gate ran, every gate passed and nothing moved
+# (ST0011).
+#
+# THE ONE LOOP OVER THE GATES. Its callers each read release.gates once and
+# pass what they read, so this library reads no config (the rule above) and a
+# sealed run examined the list its caller named: the cut's local leg and
+# `release gates` run it under one seal, run_gate's, suffix GATES under
+# tmp/release/, and that pair is the record release_gates_verdict reads. A list
+# of no gate is refused here, since a run that examined nothing must never seal
+# green. Each refusal is printed, and when RELEASE_GATES_WHY names a file its
+# one line goes there too, for the cut's summary row: under the seal this runs
+# in a pipeline's subshell, where a row it made would be lost.
+release_gates_run() {
+  local launcher="${PROJECT_ROOT:?}/bin/devbin" gate before after changed head_before head_after rc n=0
+  local -a gw=()
+  [ "$#" -gt 0 ] || { _release_gates_refuse "release.gates declares no gate, so there is nothing to run"; return 1; }
+  before="$(release_tree_state)" || { _release_gates_refuse "the tree could not be read before the gates"; return 1; }
+  head_before="$(git rev-parse HEAD)" || { _release_gates_refuse "HEAD could not be read before the gates"; return 1; }
+  for gate in "$@"; do
+    run_words gw release.gates "$gate" 2>/dev/null || { _release_gates_refuse "the gate '$gate' holds no words"; return 1; }
+    printf '\nrelease: gate: %s %s\n' "${DEVBIN_INVOKE:-bin/devbin}" "$gate"
+    rc=0
+    "$launcher" "${gw[@]}" || rc=$?
+    [ "$rc" -eq 0 ] || { _release_gates_refuse "gate '$gate' failed (exit $rc)"; return 1; }
+    n=$((n + 1))
+  done
+  after="$(release_tree_state)" || { _release_gates_refuse "the tree could not be read after the gates"; return 1; }
+  changed="$(release_tree_changed "$before" "$after")" ||
+    { _release_gates_refuse "the tree could not be compared after the gates"; return 1; }
+  [ -z "$changed" ] ||
+    { _release_gates_refuse "a gate changed the tree: ${changed//$'\n'/, } -- the gates examine the release commit and must not write to it"; return 1; }
+  # A GATE THAT COMMITS leaves the tree clean and HEAD somewhere else, so the
+  # tree's re-read cannot see it: HEAD is read too (found by WP-05's mutants).
+  head_after="$(git rev-parse HEAD)" || { _release_gates_refuse "HEAD could not be read after the gates"; return 1; }
+  [ "$head_after" = "$head_before" ] ||
+    { _release_gates_refuse "a gate moved HEAD from ${head_before:0:12} to ${head_after:0:12} -- the gates examine the release commit and must not commit"; return 1; }
+  printf '\nrelease: gates: %s gate(s) passed on %s, and none wrote to the tree\n' "$n" "${head_before:0:12}"
+  return 0
+}
+
+# _release_gates_refuse <why> -- release_gates_run's refusal: printed, and its
+# one line into $RELEASE_GATES_WHY when that names a file.
+_release_gates_refuse() {
+  printf 'release: gates: %s\n' "$1"
+  [ -z "${RELEASE_GATES_WHY:-}" ] || printf '%s\n' "$1" >"$RELEASE_GATES_WHY" ||
+    warn "could not write the gates' refusal to $RELEASE_GATES_WHY"
+  return 0
+}
+
+# release_gates_verdict <sha> -- what the gates' sealed runs on this platform say
+# about <sha>: seal_verdict's word, a TAB and its detail, over the GATES pairs
+# under tmp/release/ (ST0011). release_gates_word maps it to the local gates'
+# state, and the cut's leg line carries the answer its legs step decided on.
+release_gates_verdict() {
+  seal_verdict "$(gate_out_dir release)" GATES "$1" "$(platform_identity)"
+}
+
+# release_gates_word <sha> <verdict> -- the local gates' state for <sha> on this
+# platform from <verdict>, release_gates_verdict's line for it, as a reader
+# prints one: `already` when a sealed green stands for it; `pending` when no
+# record does, whether the newest failed, is open, is none at all, or stands for
+# no commit; `UNREADABLE` when a record could not be read. The detail carries
+# seal_verdict's word and its detail, so the reason travels: the record, and why
+# it stands or does not, or what could not be read.
+#
+# THE ONE MAPPING FROM seal_verdict's WORD TO THE STEP, which a cut, release
+# status and release gates all read (ST0011): status prints it, exiting 1 on
+# UNREADABLE, and a cut is `already` on `already` and runs the gates on either
+# of the others, printing which and why. UNREADABLE is never folded into
+# pending. Pure: it reads its arguments alone, so a caller holding a verdict
+# maps that read rather than reading the record again.
+release_gates_word() {
+  local word="${2%%$'\t'*}" detail="${2#*$'\t'}"
+  case "$word" in
+    green) printf 'already\ta sealed green stands for %s on this platform: %s\n' "${1:0:12}" "$detail" ;;
+    failed | pending | none) printf 'pending\tno sealed green stands for %s on this platform (%s: %s)\n' "${1:0:12}" "$word" "$detail" ;;
+    unknown) printf 'UNREADABLE\twhether a sealed green stands for %s on this platform cannot be read: %s\n' "${1:0:12}" "$detail" ;;
+    *) printf 'UNREADABLE\tthe seal reader answered "%s", which is no word it gives\n' "${2//$'\t'/ }" ;;
+  esac
+}
+
+# release_gates_state <sha> -- release_gates_word over a fresh read of the
+# gates' record for <sha> (release_gates_verdict): the state release status and
+# release gates print.
+release_gates_state() {
+  release_gates_word "$1" "$(release_gates_verdict "$1")"
 }
 
 # release_read_clean -- the commit step's cleanliness clause over the working tree: no
@@ -508,11 +663,13 @@ release_tag_reuse_note() {
   fi
 }
 
-# release_git_remote <git-args>... -- every git call the release core makes to a
-# remote goes through here, so none can stop on a question at the terminal
-# (issue 0088, row 3). Measured: `ls-remote` BLOCKS on a pty for an HTTP 401
-# and fails loudly with no tty, so a human at a terminal would get a question
-# agents and CI never see. Every way git and ssh can ask is shut by git_remote
+# release_git_remote <git-args>... -- every git call the release core makes to
+# one of the project's remotes goes through here, so none can stop on a
+# question at the terminal (issue 0088, row 3). A leg's send-pack, to a test
+# host's bare repo, which is no remote of the project and whose url carries no
+# userinfo, runs through git_remote alone (lib/release.legs). Measured:
+# `ls-remote` BLOCKS on a pty for an HTTP 401 and fails loudly with no tty, so a
+# human at a terminal would get a question agents and CI never see. Every way git and ssh can ask is shut by git_remote
 # (lib/helpers, issue 0217), which this runs the call through, so the
 # terminal run fails the way the no-tty run does: loudly, never waiting.
 #
@@ -565,14 +722,16 @@ release_remote_urls() {
   return 0
 }
 
-# _release_repo_key <url> -- the repository <url> names, as one line:
-# `name<TAB><owner/name>`, read through url_host_path on any host, in lower case
-# as GitHub reads it, after any `/` its path opens with, which git's scp form
-# (`host:/owner/name`) and a doubled slash after the host both carry; or
-# `path<TAB><path>` for a url naming no host, a local path or a file:// url,
-# compared by what it resolves to. rc 1 when it names a host and no OWNER/NAME
-# can be read off it, so whose repository it is cannot be told.
-_release_repo_key() {
+# _release_url_named <url> -- <url> read as HOST<TAB>OWNER/NAME through
+# url_host_path, and read again with the `/`s its path opens with dropped where
+# that finds no OWNER/NAME, since git's scp form (`host:/owner/name`) and a
+# doubled slash after the host both carry one. Fails, with nothing printed, at
+# url_host_path's status where it cannot be read so: 2 for a url naming no
+# host, 3 for a host still holding an @, 4 for a path that is not OWNER/NAME.
+# Pure. THE ONE READING of a url as a repository: _release_repo_key,
+# release_repo and release_candidate_pick each ask it, so a url one of them
+# reads as naming a repository the others read the same.
+_release_url_named() {
   local url="$1" hp rc=0 rest host path
   hp="$(url_host_path "$url")" || rc=$?
   if [ "$rc" -eq 4 ]; then
@@ -593,12 +752,25 @@ _release_repo_key() {
     rc=0
     hp="$(url_host_path "$url")" || rc=$?
   fi
+  [ "$rc" -eq 0 ] || return "$rc"
+  printf '%s\n' "$hp"
+}
+
+# _release_repo_key <url> -- the repository <url> names, as one line:
+# `name<TAB><owner/name>`, read through _release_url_named on any host, in
+# lower case as GitHub reads it; or `path<TAB><path>` for a url naming no host,
+# a local path or a file:// url, compared by what it resolves to. rc 1 when it
+# names a host and no OWNER/NAME can be read off it, so whose repository it is
+# cannot be told.
+_release_repo_key() {
+  local hp rc=0
+  hp="$(_release_url_named "$1")" || rc=$?
   case "$rc" in
     0)
       hp="${hp#*$'\t'}"
       printf 'name\t%s\n' "${hp,,}"
       ;;
-    2) printf 'path\t%s\n' "${url#file://}" ;;
+    2) printf 'path\t%s\n' "${1#file://}" ;;
     *) return 1 ;;
   esac
 }
@@ -659,14 +831,33 @@ release_remote_naming() {
 # `<commit><TAB>lightweight|annotated`: the commit the tag names, its peel where
 # it is annotated, and nothing where the tag is not there. ls-remote prints a
 # peel for no pattern but its own, so the caller asks for both. Pure. THE ONE
-# READER of a tag another repository carries: release publish reads the public
-# one through it, and so does the formula, for its revision (issue 0240).
+# READER of a tag another repository carries: a publishing cut reads the
+# public one through it (publish_read), and so does release_public_tag_commit
+# (issue 0240).
 release_listed_tag() {
   awk -v t="refs/tags/$2" -v p="refs/tags/$2^{}" '
     $2 == t { r = $1 }
     $2 == p { q = $1 }
     END { if (r != "") printf "%s\t%s\n", (q != "" ? q : r), (q != "" ? "annotated" : "lightweight") }
   ' <<<"$1"
+}
+
+# release_public_tag_commit <url> <tag> -- the commit <tag> names at the public
+# repository <url>, release.publish.url, where a publishing cut tags its
+# snapshot: a commit this checkout never holds. Read with one ls-remote through
+# release_git_remote, so the read cannot stop to ask, and by
+# release_listed_tag, its peel where it is annotated. The one read of it
+# outside a cut, which the formula's revision and a standalone attach ask
+# (ST0011 WP07); a cut reads the same tag with its other public refs
+# (publish_read), from a repository of its own with git's local variables
+# cleared. 0 printing the sha; 1 when <url> carries no such tag; 2 when <url>
+# did not answer, git's words on stderr, or its answer could not be read.
+release_public_tag_commit() {
+  local listing tagged
+  listing="$(release_git_remote ls-remote --end-of-options "$1" "refs/tags/$2" "refs/tags/$2^{}")" || return 2
+  tagged="$(release_listed_tag "$listing" "$2")" || return 2
+  [ -n "$tagged" ] || return 1
+  printf '%s\n' "${tagged%%$'\t'*}"
 }
 
 # release_read_remote <remote> <branch> <tag> <commit> -- the push step's postcondition
@@ -916,7 +1107,7 @@ release_text_shown() {
 # can read it (issue 0189), and ssh's refusal still names its user, which is no
 # credential.
 release_repo() {
-  local repo="$1" remote="$2" all url host path hp rc=0
+  local repo="$1" remote="$2" all url hp rc=0
   if [ -n "$repo" ]; then
     printf '%s\n' "$repo"
     return 0
@@ -937,11 +1128,12 @@ release_repo() {
     warn "release: release.repo is not declared and remote $(release_url_shown "$remote") has no url -- declare release.repo: OWNER/NAME"
     return 1
   fi
-  # THE PARSE IS url_host_path's (lib/helpers), each refusal named here. A host
-  # holding an @ is refused (issue 0188): read at the first @, the rest of a
-  # password became the host, and reached gh's arguments and pre-flight's
-  # message as one, while release_url_shown reads at the last.
-  hp="$(url_host_path "$url")" || rc=$?
+  # THE PARSE IS _release_url_named's, url_host_path's (lib/helpers) with git's
+  # leading-slash forms read again, each refusal named here. A host holding an
+  # @ is refused (issue 0188): read at the first @, the rest of a password
+  # became the host, and reached gh's arguments and pre-flight's message as
+  # one, while release_url_shown reads at the last.
+  hp="$(_release_url_named "$url")" || rc=$?
   case "$rc" in
     0) ;;
     2)
@@ -957,13 +1149,153 @@ release_repo() {
       return 1
       ;;
   esac
-  host="${hp%%$'\t'*}"
-  path="${hp#*$'\t'}"
+  release_repo_named "$hp"
+}
+
+# release_repo_named <host-path> -- _release_url_named's HOST<TAB>OWNER/NAME as
+# a repository is written: OWNER/NAME on github.com, HOST/OWNER/NAME elsewhere.
+# THE ONE SPELLING of a repository read off a url, for release_repo and
+# release_candidate_pick; release_repo_host reads its host back. Pure.
+release_repo_named() {
+  local host="${1%%$'\t'*}" path="${1#*$'\t'}"
   if [ "$host" = github.com ]; then
     printf '%s\n' "$path"
   else
     printf '%s/%s\n' "$host" "$path"
   fi
+}
+
+# release_repo_folded <repo> -- <repo>, as release_repo or release.repo writes
+# one, in the one form two of them compare in: lowered, as GitHub reads a
+# repository's name whatever its case, and a github.com/ prefix dropped, so
+# OWNER/NAME and github.com/OWNER/NAME are one repository. Pure. (A url's
+# repository, host and all dropped but OWNER/NAME, is _release_repo_key's.)
+release_repo_folded() {
+  local r="${1,,}"
+  printf '%s\n' "${r#github.com/}"
+}
+
+# release_repo_host <repo> -- the host <repo>, as release_repo or release.repo
+# writes one, stands on: HOST for HOST/OWNER/NAME, github.com for OWNER/NAME,
+# release_repo_named's spelling read back. Pure. The host a cut reads for a
+# repository: gh is asked whether it is signed in there (cut_gh_signed_in),
+# and a cut's refusal of remotes that push to the candidate's OWNER/NAME on
+# other hosts names it.
+release_repo_host() {
+  case "$1" in
+    */*/*) printf '%s\n' "${1%%/*}" ;;
+    *) printf 'github.com\n' ;;
+  esac
+}
+
+# release_candidate_remote <repo> <remotes> -- the remote a cut pushes its
+# candidate to (ST0011), as release_candidate_pick decides it for <repo>, the
+# repository release_repo names, over every push url of the remotes in the
+# order searched: <remotes>, the cut's own, one per line in their order, then
+# every other git remote in git's order. A REMOTE IS JUDGED BY WHERE A PUSH TO
+# IT GOES, since the candidate goes there: its pushurls where it has any, else
+# all its urls, as git pushes to each. Read as configured, insteadOf and
+# pushInsteadOf not expanded, as release_repo reads a url: the configured url
+# names the repository, and an expanded one only where the bytes go. Prints
+# and answers as release_candidate_pick does, 0, 1 or 3; answers 2 when git
+# cannot list the remotes or read a remote's urls. A remote with no url names
+# no repository and is passed over.
+release_candidate_remote() {
+  local r all seen=$'\n' order="" urls u rc lines=""
+  all="$(git remote)" || return 2
+  while IFS= read -r r; do
+    [ -n "$r" ] || continue
+    case "$seen" in *$'\n'"$r"$'\n'*) continue ;; esac
+    seen+="$r"$'\n'
+    order+="$r"$'\n'
+  done <<<"$2"$'\n'"$all"
+  while IFS= read -r r; do
+    [ -n "$r" ] || continue
+    # Exit 1 is git's "not set". Any other is a config git could not read,
+    # which says nothing of where the remote pushes.
+    rc=0
+    urls="$(git config --get-all "remote.$r.pushurl")" || rc=$?
+    if [ "$rc" -eq 1 ]; then
+      rc=0
+      urls="$(git config --get-all "remote.$r.url")" || rc=$?
+    fi
+    case "$rc" in
+      0) ;;
+      1) continue ;;
+      *) return 2 ;;
+    esac
+    while IFS= read -r u; do
+      lines+="$r"$'\t'"$u"$'\n'
+    done <<<"$urls"
+  done <<<"$order"
+  release_candidate_pick "$1" "$lines"
+}
+
+# release_candidate_pick <repo> <lines> -- of <lines>, `<remote><TAB><url>` in
+# the order a cut searches, each url one a push to that remote goes to, the
+# remote a cut pushes its candidate to (ST0011), so the candidate runs where
+# <repo>'s CI reads it. Each url is read through _release_url_named: one naming
+# no host or no OWNER/NAME, or one whose host cannot be read (an `@` in its
+# user part not written %40), names no repository it can say and is passed
+# over, never compared as a host. ON ITS OWN HOST FIRST: the first remote with
+# a url naming <repo> itself, release_repo's reading run the other way,
+# whatever the case.
+# THEN <repo>'s OWNER/NAME ON ANY HOST, in any case, since an ssh host alias
+# and github.com can name one repository, so a remote pushing to
+# git@gh-alias:OWNER/NAME.git is the candidate's for a release.repo of
+# OWNER/NAME. BUT ONLY ON ONE HOST, read whatever its case, as DNS reads one,
+# where the first such remote is taken: on more than one, none is, since a
+# mirror elsewhere with the same OWNER/NAME would take the candidate's push
+# where CI never runs. Prints the remote; answers 1 when no url names <repo>,
+# and 3 when there is more than one host, printing `<remote><TAB><host>` once
+# for each remote and each host its urls name OWNER/NAME on, in the order
+# searched. Pure.
+release_candidate_pick() {
+  local want on r u hp host first="" one="" many=no seen=$'\n' hits=""
+  want="$(release_repo_folded "$1")"
+  # <repo>'s OWNER/NAME, its host dropped.
+  case "$want" in
+    */*/*) on="${want#*/}" ;;
+    *) on="$want" ;;
+  esac
+  while IFS=$'\t' read -r r u; do
+    [ -n "$r" ] || continue
+    hp="$(_release_url_named "$u")" || continue
+    [ "$(release_repo_folded "$(release_repo_named "$hp")")" = "$want" ] || continue
+    printf '%s\n' "$r"
+    return 0
+  done <<<"$2"
+  while IFS=$'\t' read -r r u; do
+    [ -n "$r" ] || continue
+    hp="$(_release_url_named "$u")" || continue
+    host="${hp%%$'\t'*}"
+    hp="${hp#*$'\t'}"
+    [ "${hp,,}" = "$on" ] || continue
+    case "$seen" in *$'\n'"$r"$'\t'"${host,,}"$'\n'*) continue ;; esac
+    seen+="$r"$'\t'"${host,,}"$'\n'
+    hits+="$r"$'\t'"$host"$'\n'
+    if [ -z "$first" ]; then
+      first="$r"
+      one="${host,,}"
+    elif [ "${host,,}" != "$one" ]; then
+      many=yes
+    fi
+  done <<<"$2"
+  [ -n "$first" ] || return 1
+  if [ "$many" = yes ]; then
+    printf '%s' "$hits"
+    return 3
+  fi
+  printf '%s\n' "$first"
+}
+
+# release_candidate_ref <template> <tag> -- the candidate's branch for <tag>:
+# <template>, release.publish.candidate as read, with {tag} filled in. THE ONE
+# EXPANSION, which a cut's legs step pushes its candidate to, the release
+# commit or in the publish shape its snapshot, its confirm naming it. Quoted, so bash
+# 5.2's patsub_replacement cannot read an `&` in <tag> as the match. Pure.
+release_candidate_ref() {
+  printf '%s\n' "${1//\{tag\}/"$2"}"
 }
 
 # release_gh <repo> <group> <verb> [args...] -- every gh call the release core
@@ -1052,7 +1384,8 @@ release_read_object_content() {
 # A project's CI builds assets its release object carries, and the core
 # attaches them, so the cut stays the one writer of the object. The run that
 # built them is the EARLIEST SUCCESSFUL run of release.assets.workflow at the
-# tag, because builds of one commit are not byte-identical: two runs of one
+# release commit, on the candidate's branch or at the tag (ST0011 WP07),
+# because builds of one commit are not byte-identical: two runs of one
 # workflow at one commit built different tarballs (measured), so
 # which run ships has to be a rule that a later run cannot change. The
 # coordinator is lib/cmd/release's attach_assets; what it reads is here.
@@ -1062,25 +1395,30 @@ release_read_object_content() {
 # field after it.
 # ---------------------------------------------------------------------------
 
-# release_assets_pick <commit> -- which run ships, from `gh run list` rows on
-# stdin, `<id><TAB><head-sha><TAB><status><TAB><created><TAB><conclusion>` a
-# line. Only runs AT <commit> count, oldest first. A run still going holds the
+# release_assets_pick <commit> <tag> [<candidate>] -- which run ships, from
+# `gh run list` rows on stdin,
+# `<id><TAB><head-sha><TAB><head-branch><TAB><status><TAB><created><TAB><conclusion>`
+# a line. Only runs AT <commit> count, on the branch <candidate> names or at
+# <tag>, oldest first: a run of the same commit on any other branch, the
+# release branch's above all, is never the one. A run still going holds the
 # answer, `pending<TAB><id><TAB><status>`, since it may yet succeed and be the
-# earliest; the first that succeeded is the one, `success<TAB><id><TAB><created>`;
-# a run that failed is passed over. With none succeeded and none going,
+# earliest; the first that succeeded is the one,
+# `success<TAB><id><TAB><created><TAB><head-branch>`; a run that failed is
+# passed over. With none succeeded and none going,
 # `failed<TAB><id><TAB><conclusion><TAB><n>` names the newest failure and how
-# many there were, and `none` says no run at <commit> is listed. Pure.
+# many there were, and `none` says no such run is listed. Pure.
 release_assets_pick() {
-  local commit="$1" rows id sha status created conclusion failed="" fconc="" nfailed=0
-  rows="$(LC_ALL=C sort -t $'\t' -k4,4 -k1,1n)" || return 1
-  while IFS=$'\t' read -r id sha status created conclusion; do
+  local commit="$1" tag="$2" cand="${3:-}" rows id sha branch status created conclusion failed="" fconc="" nfailed=0
+  rows="$(LC_ALL=C sort -t $'\t' -k5,5 -k1,1n)" || return 1
+  while IFS=$'\t' read -r id sha branch status created conclusion; do
     [ -n "$id" ] && [ "$sha" = "$commit" ] || continue
+    [ "$branch" = "$tag" ] || { [ -n "$cand" ] && [ "$branch" = "$cand" ]; } || continue
     if [ "$status" != completed ]; then
       printf 'pending\t%s\t%s\n' "$id" "$status"
       return 0
     fi
     if [ "$conclusion" = success ]; then
-      printf 'success\t%s\t%s\n' "$id" "$created"
+      printf 'success\t%s\t%s\t%s\n' "$id" "$created" "$branch"
       return 0
     fi
     failed="$id" fconc="${conclusion:-none}" nfailed=$((nfailed + 1))
@@ -1092,7 +1430,7 @@ release_assets_pick() {
   fi
 }
 
-# release_read_assets_run <repo> <workflow> <tag> <commit> -- the attach's run as
+# release_read_assets_run <repo> <workflow> <tag> <commit> [<candidate>] -- the attach's run as
 # a reader, one line: `already<TAB><id><TAB><detail>` for the run that ships
 # (release_assets_pick); `pending<TAB><detail>` while none has succeeded and
 # one may, or none is listed yet; `failed<TAB><id><TAB><detail>` when every run
@@ -1100,38 +1438,46 @@ release_assets_pick() {
 # conclusion alone, since a refusal before any job ran (billing, permissions)
 # concludes `failure` exactly as a failed build does; or UNREADABLE.
 #
-# THE KEY IS `--branch <tag>`, FILTERED TO <commit>. A run on the tag's ref,
-# pushed or dispatched, carries the tag's name as its head branch, while a
-# lookup by commit alone matched main's run too where main and the tag were
-# pushed at one sha. A list as long as the limit gh is given may lack the
-# oldest run, so it is `refused`, never
+# THE KEY IS THE RELEASE COMMIT'S SHA (ST0011 WP07), `--commit <commit>`, as
+# ci-state lists a commit's runs, kept to the runs on <candidate>'s branch or
+# at <tag> by their head branch. The assets workflow's run on the candidate,
+# the commit CI tested, is read, and a workflow that fires on the tag alone is
+# read as before; a lookup by commit alone also matched main's run where main
+# and the tag were pushed at one sha, so a run on any other branch never counts.
+# <candidate> is empty where the cut pushes no candidate. A list as long as the
+# limit gh is given may lack the oldest run, so it is `refused`, never
 # UNREADABLE: asking again cannot shorten it, so a wait must not spend its bound
 # on it.
 release_read_assets_run() {
-  local repo="$1" wf="$2" tag="$3" commit="$4" limit=200 rows n pick state id info count jobs cause
-  if ! rows="$(release_gh "$repo" run list --workflow "$wf" --branch "$tag" --limit "$limit" \
-    --json databaseId,headSha,status,createdAt,conclusion \
-    --jq '.[] | [.databaseId, .headSha, .status, .createdAt, .conclusion] | @tsv' 2>&1)"; then
-    printf 'UNREADABLE\tgh run list --workflow %s --branch %s failed: %s\n' "$wf" "$tag" "${rows//$'\n'/ }"
+  local repo="$1" wf="$2" tag="$3" commit="$4" cand="${5:-}" limit=200 rows n pick state id info extra jobs cause where
+  where="at $tag"
+  [ -z "$cand" ] || where="on $cand or at $tag"
+  if ! rows="$(release_gh "$repo" run list --workflow "$wf" --commit "$commit" --limit "$limit" \
+    --json databaseId,headSha,headBranch,status,createdAt,conclusion \
+    --jq '.[] | [.databaseId, .headSha, (.headBranch // "-"), .status, .createdAt, .conclusion] | @tsv' 2>&1)"; then
+    printf 'UNREADABLE\tgh run list --workflow %s --commit %s failed: %s\n' "$wf" "$commit" "${rows//$'\n'/ }"
     return 0
   fi
   n="$(grep -c . <<<"$rows")" || n=0
   if [ "$n" -ge "$limit" ]; then
-    printf 'refused\tgh lists %s runs of %s at %s, as many as it was asked for, so the earliest cannot be told\n' "$n" "$wf" "$tag"
+    printf 'refused\tgh lists %s runs of %s on %s, as many as it was asked for, so the earliest cannot be told\n' "$n" "$wf" "${commit:0:12}"
     return 0
   fi
-  if ! pick="$(release_assets_pick "$commit" <<<"$rows")"; then
-    printf 'UNREADABLE\tthe runs of %s at %s could not be sorted\n' "$wf" "$tag"
+  if ! pick="$(release_assets_pick "$commit" "$tag" "$cand" <<<"$rows")"; then
+    printf 'UNREADABLE\tthe runs of %s on %s could not be sorted\n' "$wf" "${commit:0:12}"
     return 0
   fi
-  IFS=$'\t' read -r state id info count <<<"$pick"
+  # The fourth field is the run's branch for a success, the failures' count
+  # for a failure (release_assets_pick).
+  IFS=$'\t' read -r state id info extra <<<"$pick"
   case "$state" in
     success)
-      printf 'already\t%s\trun %s, the earliest successful %s run at %s (%s), created %s\n' \
-        "$id" "$id" "$wf" "$tag" "${commit:0:12}" "$info"
+      if [ "$extra" = "$tag" ]; then where="at $tag"; else where="on $extra"; fi
+      printf 'already\t%s\trun %s, the earliest successful %s run %s (%s), created %s\n' \
+        "$id" "$id" "$wf" "$where" "${commit:0:12}" "$info"
       ;;
     pending)
-      printf 'pending\trun %s of %s at %s is %s, and may yet be the earliest to succeed\n' "$id" "$wf" "$tag" "$info"
+      printf 'pending\trun %s of %s %s is %s, and may yet be the earliest to succeed\n' "$id" "$wf" "$where" "$info"
       ;;
     failed)
       if jobs="$(release_gh "$repo" run view "$id" --json jobs \
@@ -1141,11 +1487,11 @@ release_read_assets_run() {
       else
         cause="its jobs could not be read: ${jobs//$'\n'/ }"
       fi
-      printf 'failed\t%s\tno run of %s at %s (%s) succeeded: the newest, run %s, %s%s\n' "$id" "$wf" "$tag" "${commit:0:12}" "$id" "$cause" \
-        "$([ "$count" -le 1 ] || printf '; %s runs failed' "$count")"
+      printf 'failed\t%s\tno run of %s %s (%s) succeeded: the newest, run %s, %s%s\n' "$id" "$wf" "$where" "${commit:0:12}" "$id" "$cause" \
+        "$([ "$extra" -le 1 ] || printf '; %s runs failed' "$extra")"
       ;;
     *)
-      printf 'pending\tno run of %s at %s (%s) is listed yet\n' "$wf" "$tag" "${commit:0:12}"
+      printf 'pending\tno run of %s %s (%s) is listed yet\n' "$wf" "$where" "${commit:0:12}"
       ;;
   esac
 }
@@ -1398,6 +1744,175 @@ release_seconds() {
   esac
 }
 
+# release_group_start <out> <err> <group> <cmd>... -- <cmd> started in the
+# background, in a process group of its own, with its stdout in <out>, its
+# stderr in <err>, or beside its stdout in <out> when <err> is empty, and no
+# stdin; the group's id is written to <group>, and the caller's $! is the
+# process to wait on, whose status is <cmd>'s own. THE ONE WAY A RELEASE STARTS
+# A RUN IT MAY HAVE TO STOP: release_run_bounded's call and a cut's local
+# gates both start here, and release_group_kill stops either, so a cut has one
+# way to stop a run.
+#
+# A GROUP OF ITS OWN, because a kill of the one process reaches none of its
+# children: a pipeline's other side, a script's own sleep, each holding every
+# descriptor it inherited. `set -m` in the wrapper puts <cmd> in a group of its
+# own; <cmd> is a shell function as often as a program, so a setsid-style exec
+# could not do it. A <cmd> that makes a session of its own is out of reach, as
+# it is for any group kill. The wrapper's own stderr goes nowhere, so a run
+# killed by a signal leaves no notice of the shell's in the caller's output;
+# a failed write of the group's id is silent here too, and the stop of a cut's
+# local gates names it, as a group it waited for and never found
+# (legs_local_stop).
+#
+# AND A GROUP OF ITS OWN IS NOT THE TERMINAL'S FOREGROUND GROUP (measured
+# under a pty): a <cmd> that opens /dev/tty to ask is stopped there (SIGTTIN)
+# until it is killed, instead of prompting.
+#
+# THE WRAPPER OUTLIVES ITS GROUP'S TERM AND HANGUP: it is an async list of the
+# caller's, in the caller's process group, so a TERM or a hangup sent to that
+# whole group, a closed terminal or a kill of the cut's job, ended it and not
+# <cmd>, and a caller whose bash had already reaped it read <cmd> as ended and
+# stopped nothing (measured, bash 5.3). It ignores both, so it waits on <cmd>
+# whatever reaches its group, the caller still finds it running, and the
+# status it passes back is <cmd>'s own. Signalled alone, where no group was
+# written, it takes KILL.
+#
+# INT, QUIT, TERM AND HUP AS THE CALLER HAD THEM: an async list starts with
+# INT and QUIT ignored, the wrapper adds TERM and HUP, and <cmd> would inherit
+# all four, refusing a gate's own trap of any (measured, bash 5.3). The run's
+# own process resets them (trap -) before <cmd>, so a gate behaves under a cut
+# as under `release gates`, and release_group_kill's TERM reaches it. A
+# terminal's Ctrl-C still reaches no group of its own.
+release_group_start() {
+  local out="$1" err="$2" group="$3"
+  shift 3
+  rm -f "$group"
+  (
+    trap '' TERM HUP
+    set -m
+    if [ -n "$err" ]; then
+      {
+        trap - INT QUIT TERM HUP
+        "$@"
+      } >"$out" 2>"$err" </dev/null &
+    else
+      {
+        trap - INT QUIT TERM HUP
+        "$@"
+      } >"$out" 2>&1 </dev/null &
+    fi
+    # A FAILED WRITE OF THE GROUP NEVER ENDS THE WRAPPER BEFORE ITS WAIT (issue
+    # 0304): under a caller's errexit it did, and <cmd> ran on in its group with
+    # nobody waiting on it. With no group written, release_group_kill answers 1
+    # and the wrapper alone is signalled: the local gates' stop says so
+    # (legs_local_stop), and release_run_bounded's deadline kills the wrapper
+    # alone, so a process <cmd> started may run on past it, unnamed.
+    printf '%s\n' "$!" >"$group" || :
+    wait "$!"
+  ) 2>/dev/null &
+}
+
+# release_group_kill <group> [<signal>] -- the process group <group> names
+# sent <signal>, TERM unless given. 1 when <group> names none yet. A group
+# that has ended is not an error: the kill's one job is that nothing of it
+# runs, and kill's own failure says only that nothing did.
+release_group_kill() {
+  local g
+  g="$(cat "$1" 2>/dev/null)" || g=""
+  [ -n "$g" ] || return 1
+  kill -"${2:-TERM}" -- "-$g" 2>/dev/null || true
+}
+
+# release_job_running <pid> <table> <what> -- 0 while <pid> is a running job
+# of this shell, 1 when it is not or <pid> is empty, 3 when the job table could
+# not be written to <table> to be read, which is said once a table, naming
+# <what>, the run it asks after. THE ONE READ OF WHETHER A RUN
+# release_group_start STARTED STILL RUNS, for every run a cut tracks: asked of
+# the job table (jobs -rp), never of the pid or its group, which another
+# process can hold once the job has ended and been reaped.
+#
+# THE TABLE IS WRITTEN BY THIS SHELL, through a redirection, and the file
+# read: `jobs` in a command or process substitution runs in a subshell, and
+# whether a subshell lists its parent's jobs is a bash version's to say, so no
+# version can read the table differently here. Asked in the shell that started
+# the run, never in a command substitution.
+declare -gA RELEASE_JOBS_SAID=()
+release_job_running() {
+  local p
+  [ -n "$1" ] || return 1
+  if ! jobs -rp >"$2"; then
+    if [ -z "${RELEASE_JOBS_SAID[$2]:-}" ]; then
+      RELEASE_JOBS_SAID[$2]=said
+      # A notice: a write that fails, the cut's output gone with the signal
+      # that ended it, must not end its exit trap before the stop (run_exit).
+      # stdout to stderr first, then bash's own write-error notice to nowhere.
+      printf 'release: legs: the job table could not be written to %s, so whether the run of %s has ended cannot be read from it: the cut waits for its end, and a stop still signals it\n' "$2" "$3" >&2 2>/dev/null || :
+    fi
+    return 3
+  fi
+  while IFS= read -r p; do
+    [ "$p" != "$1" ] || return 0
+  done <"$2"
+  return 1
+}
+
+# release_run_stop <running> <pid> <group> <seconds> <unwritten> -- the run
+# release_group_start started, job <pid> with its group's id written to
+# <group>, stopped while <running> (a function answering release_job_running's
+# 0, 1 or 3 for it) says it runs, and left for the caller to reap. THE ONE WAY
+# A CUT STOPS A RUN IT STARTED. A kill of the run's own process reaches none of
+# its children, so its whole group is sent TERM (release_group_kill), given
+# <seconds> to end, and sent KILL if it still runs, while the run's own process
+# still holds the group, so the group killed is the run's. THE GROUP IS WRITTEN
+# A MOMENT AFTER THE START, by the run's wrapper, within milliseconds as
+# measured: a stop in that moment waits for it, <seconds> at most, while the
+# run may still run. A group still unwritten then is named, the line
+# <unwritten> on stderr, and the wrapper's own process is sent KILL alone,
+# since it ignores TERM, so a process the run started may run on. A job table
+# that cannot be read (3) counts as running at each wait, so a stop still
+# signals the run and gives it its time. Status 0 when it signalled the run's
+# group, 1 when the group was never written, and 2 when the run had ended
+# before the stop, which signals nothing.
+release_run_stop() {
+  local running="$1" pid="$2" group="$3" secs="$4" unwritten="$5" n=0 rc=0 grouped=0
+  "$running" || rc=$?
+  [ "$rc" != 1 ] || return 2
+  while [ ! -s "$group" ] && [ "$rc" != 1 ] && [ "$n" -lt "$secs" ]; do
+    sleep 1
+    n=$((n + 1))
+    rc=0
+    "$running" || rc=$?
+  done
+  n=0
+  if [ ! -s "$group" ]; then
+    grouped=1
+    # A notice, as release_job_running's is: the kill below still runs.
+    printf '%s\n' "$unwritten" >&2 2>/dev/null || :
+  fi
+  # The run may end between the read above and a kill: one that finds nothing
+  # has nothing to do, so neither kill's failure is an error.
+  release_group_kill "$group" TERM || kill -KILL "$pid" 2>/dev/null || :
+  rc=0
+  "$running" || rc=$?
+  while [ "$rc" != 1 ] && [ "$n" -lt "$secs" ]; do
+    sleep 1
+    n=$((n + 1))
+    rc=0
+    "$running" || rc=$?
+  done
+  if [ "$rc" != 1 ]; then
+    release_group_kill "$group" KILL || kill -KILL "$pid" 2>/dev/null || :
+  fi
+  return "$grouped"
+}
+
+# release_stopped_status <status> -- 0 when <status> is a run's reaped status
+# after a TERM or a KILL, the two a stop (release_run_stop) sends, so a run
+# that ended on its own between a read and the stop keeps its own.
+release_stopped_status() {
+  [ "$1" -eq $((128 + $(kill -l TERM))) ] || [ "$1" -eq $((128 + $(kill -l KILL))) ]
+}
+
 # release_run_bounded <seconds> <out> <err> <cmd>... -- run <cmd> with its
 # stdout in <out>, its stderr in <err> and no stdin, and kill it at <seconds>.
 # Returns the command's own status, or 124 when the deadline killed it.
@@ -1415,31 +1930,21 @@ release_seconds() {
 # `sleep &` and `sleeper=$!` would otherwise leave that sleep holding it until
 # the deadline.
 #
-# THE CALL RUNS IN ITS OWN PROCESS GROUP, and the deadline kills the group. It
-# killed one level until WP-06: a query script's own `sleep` was
-# orphaned, and it held every descriptor it had inherited -- measured, bats's
-# fd 3, so one arm added a minute to every run -- and the kill landed before
-# the reader's own cleanup. `set -m` in the wrapper puts the call in a group of
-# its own; the call is a shell function as often as a program, so a setsid-style
-# exec could not do it. A call that makes a session of its own is out of reach,
-# as it is for any group kill.
-#
-# AND A GROUP OF ITS OWN IS NOT THE TERMINAL'S FOREGROUND GROUP (measured
-# under a pty): a call that opens /dev/tty to ask is stopped (SIGTTIN) until the
-# deadline, and reads as "did not finish within", instead of prompting. The core's
-# own calls never ask -- release_git_remote turns git's prompt off and runs ssh
-# in batch mode, and gh runs with GH_PROMPT_DISABLED -- so only a person's own
-# GIT_SSH program or git hook can reach this.
+# THE CALL RUNS IN ITS OWN PROCESS GROUP (release_group_start), and the
+# deadline kills the group (release_group_kill). It killed one level until
+# WP-06: a query script's own `sleep` was orphaned, and it held every
+# descriptor it had inherited -- measured, bats's fd 3, so one arm added a
+# minute to every run -- and the kill landed before the reader's own cleanup.
+# A call that opens /dev/tty to ask is stopped there until the deadline, and
+# reads as "did not finish within", instead of prompting (release_group_start).
+# The core's own calls never ask -- release_git_remote turns git's prompt off
+# and runs ssh in batch mode, and gh runs with GH_PROMPT_DISABLED -- so only a
+# person's own GIT_SSH program or git hook can reach this.
 release_run_bounded() {
   local seconds="$1" out="$2" err="$3" fired="$3.deadline" group="$3.group" pid watchdog rc=0
   shift 3
-  rm -f "$fired" "$group"
-  (
-    set -m
-    "$@" >"$out" 2>"$err" </dev/null &
-    printf '%s\n' "$!" >"$group"
-    wait "$!"
-  ) 2>/dev/null &
+  rm -f "$fired"
+  release_group_start "$out" "$err" "$group" "$@"
   pid=$!
   (
     sleeper=""
@@ -1449,9 +1954,10 @@ release_run_bounded() {
     wait "$sleeper"
     if kill -0 "$pid" 2>/dev/null; then
       : >"$fired"
-      g="$(cat "$group" 2>/dev/null)" || g=""
-      [ -z "$g" ] || kill -KILL -- "-$g" 2>/dev/null || true
-      kill -TERM "$pid" 2>/dev/null || true
+      # A group not written yet leaves the KILL below as the one kill: the
+      # wrapper ignores TERM (release_group_start).
+      release_group_kill "$group" KILL || true
+      kill -KILL "$pid" 2>/dev/null || true
     fi
   ) >/dev/null 2>&1 &
   watchdog=$!
@@ -1508,8 +2014,9 @@ RELEASE_READBACK_SECONDS="$(release_bound DEVBIN_RELEASE_READBACK_SECONDS "${DEV
 # release_wait <seconds> <keep> <cutoff-state> <reader>... -- ask <reader> until
 # its answer's state is not one of <keep> (space-separated) or <seconds> have
 # passed, and print the last answer. It asks at least once, and then every
-# min(RELEASE_POLL_SECONDS, time left). The push, object and ci steps wait through this,
-# so they cannot come to disagree about what a wait is.
+# min(RELEASE_POLL_SECONDS, time left). The push and object steps, each read
+# of the candidate leg and each read-back of the candidate ref wait through
+# this, so they cannot come to disagree about what a wait is.
 #
 # EVERY ASK IS BOUNDED (release_run_bounded), at the time left and never below
 # RELEASE_ASK_FLOOR_SECONDS, so even a zero wait gives a slow answer a moment.
@@ -1564,29 +2071,33 @@ release_wait() {
 
 # release_ci_verdict <sha> <tag> <query-word>... -- the project's ci.query asked
 # about <sha> and <tag>, as one line: `<verdict><TAB><detail>`, the verdict one
-# of green, failed, pending, none or unknown. The ci step asks about the release
-# commit and the release tag; pre-flight, under ci.base, about the base commit
-# with <tag> empty.
+# of green, failed, pending, none or unknown. The legs step asks about the
+# candidate's commit, the release commit or in the publish shape its snapshot,
+# with its ref, candidate/<tag>, as <tag>.
 #
 # THE CONTRACT A QUERY KEEPS: it is run as `<query-word>... <sha>`, the sha
-# appended as notes.run receives its verb and version, with the release tag in
-# its environment as DEVBIN_RELEASE_TAG, and no stdin; its first line of
-# output is `<verdict>[<TAB><detail>]`, the detail naming the run (an id or a
-# url) or the reason. That is a consumer's own install_ci_state shape, with the
-# core's own verdict words rather than gh's conclusion words.
+# appended as notes.run receives its verb and version, with the ref its run is
+# read by in its environment as DEVBIN_RELEASE_TAG, and no stdin. In a cut that
+# ref is the candidate's branch, candidate/<tag> by default, since ST0011 reads
+# CI before anything is tagged, so a query written to read a tag there (issue
+# 0149's ask) reads a branch now. Its first line of output is
+# `<verdict>[<TAB><detail>]`, the detail
+# naming the run (an id or a url) or the reason. That is a consumer's own
+# install_ci_state shape, with the core's own verdict words rather than gh's
+# conclusion words.
 #
-# A QUERY THAT READS DEVBIN_RELEASE_TAG ANSWERS FOR THAT TAG'S RUNS ONLY, and
-# `none` until one exists (issue 0149). A release pushes the release commit to
-# its branch and pushes the tag, and CI may run a workflow for each, on that
-# one sha. Asked about the sha alone, a query read every run on it, and one
-# project's cut ended green on the branch push's run (which skips the macOS
-# job) before the tag's run (which carries it) existed. The tag is the
-# release's identity, so its runs are the verdict.
+# A QUERY THAT READS DEVBIN_RELEASE_TAG ANSWERS FOR THAT REF'S RUNS ONLY, and
+# `none` until one exists (issue 0149). CI may run a workflow for each push of
+# one sha, a branch's as well as the ref the release is read by. Asked about
+# the sha alone, a query read every run on it, and one project's cut ended
+# green on the branch push's run (which skips the macOS job) before the tag's
+# run (which carries it) existed. So the ref is the verdict: since ST0011 the
+# candidate's, read before anything is tagged.
 #
 # THE TAG TRAVELS IN THE ENVIRONMENT, NOT AS AN ARGUMENT: consumers' own
 # queries, tools/ci-state scripts, refused any argument but the sha, so a second
-# one would have failed every cut of theirs at the ci step, after the tag, the push
-# and the release object. A query that does not read DEVBIN_RELEASE_TAG keeps
+# one would have failed every cut of theirs where CI was read, then after the
+# tag, the push and the release object. A query that does not read DEVBIN_RELEASE_TAG keeps
 # its old verdict, every run on the sha, and nothing here can tell it from one
 # that reads it: that is the declared limit, and the release note of issue 0149
 # asks each such project to read the tag.
@@ -1606,15 +2117,9 @@ release_ci_verdict() {
     }
     own=yes
   fi
-  # AN EMPTY <tag> IS NO TAG, AND THE QUERY IS RUN WITHOUT ONE (issue 0223):
-  # pre-flight asks about the base commit, whose runs are the branch's, and a
-  # query reads an unset tag as every run on the sha. The cut unset any inherited
-  # one when it started.
-  if [ -n "$tag" ]; then
-    DEVBIN_RELEASE_TAG="$tag" "$@" "$sha" >"$dir/ci.out" 2>"$dir/ci.err" </dev/null || rc=$?
-  else
-    "$@" "$sha" >"$dir/ci.out" 2>"$dir/ci.err" </dev/null || rc=$?
-  fi
+  # The ref the run is read by reaches the query alone, as DEVBIN_RELEASE_TAG
+  # (issue 0149); the cut unset any inherited one when it started.
+  DEVBIN_RELEASE_TAG="$tag" "$@" "$sha" >"$dir/ci.out" 2>"$dir/ci.err" </dev/null || rc=$?
   line="$(head -n 1 "$dir/ci.out")"
   if [ "$rc" -ne 0 ]; then
     detail="$(head -n 1 "$dir/ci.err")"

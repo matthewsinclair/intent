@@ -1,0 +1,183 @@
+#!/usr/bin/env bash
+#
+# lib/release.macos -- the release core's macOS stage as a leg (ST0011 WP-06):
+# where a project declares the built-in macos (commands.macos.enabled), a cut
+# signs and notarises its app at the release commit R as one of its legs, under
+# a sealed run of its own, read by the one reader of a sealed verdict,
+# seal_verdict (lib/runlog).
+#
+#   release_macos_verdict <root> <sha>          the stage's sealed runs' word on <sha> on this platform
+#   release_macos_start <root> <sha> <scratch>  the stage started at <sha>, or its green answered
+#   release_macos_reap                          the started run, once it has ended, reaped
+#   release_macos_read <root> <sha>             the stage's word on <sha>
+#   release_macos_stop <seconds>                the started run stopped, its whole group, and reaped
+#
+# Start and read each print ONE line, `<word><TAB><detail>`, in ci-state's
+# words, as every leg of a cut answers, and return 0 when they answered.
+#
+# THE SEAL IS THE VERDICT'S DETAIL, as a remote leg's copied pair is: the run
+# is `macos app-sign`, then `macos app-notarize`, through the project's own
+# launcher, under run_gate's seal with the suffix MACOS beside the release's
+# other runs, so a green at R is the next cut's `already` and is not run again.
+#
+# THE RUN IS TRACKED AS THE LOCAL GATES' RUN IS (lib/cmd/release): started in a
+# process group of its own (release_group_start), a job of the cut's shell, so
+# start, reap and stop run in that shell, never in a command substitution.
+# While the job runs the stage is pending, whatever the record says; once it
+# has ended and been reaped, its own status decides and the record gives the
+# detail, so neither the record an earlier run left nor a seal that stands for
+# no commit can be read as this run's verdict. Whether it runs is asked of the
+# job table (release_job_running), never of its pid or group, which another
+# process can hold once the job has ended, so a stop after its end signals
+# nothing. A stop (release_run_stop) sends its whole group TERM, gives it
+# <seconds> to end, and sends KILL if it has not. A notarisation already
+# submitted goes on at Apple; only the wait for it stops.
+#
+# THE LIBRARY NEVER READS CONFIG, as lib/release.legs does not: the cut reads
+# whether the stage is declared, and passes the root, R and its scratch in.
+
+[ -n "${_DEVBIN_RELEASE_MACOS_LOADED:-}" ] && return 0
+# seal_verdict stands for the whole of lib/runlog, run_gate included.
+if ! declare -F seal_verdict >/dev/null || ! declare -F release_group_start >/dev/null ||
+  ! declare -F release_run_stop >/dev/null; then
+  printf 'lib/release.macos: source lib/helpers, lib/runlog and lib/release.steps first -- it reads seal_verdict, run_gate, release_group_start and release_run_stop\n' >&2
+  return 1
+fi
+_DEVBIN_RELEASE_MACOS_LOADED=1
+
+# What release_macos_start started: its job's pid, the file its group's id is
+# written to, the file its output goes to, the file the job table is written
+# to, and its state, running and then ended with its status. Empty until a
+# start starts a run; the pid is let go once the run is reaped.
+RELEASE_MACOS_PID="" RELEASE_MACOS_GROUP="" RELEASE_MACOS_OUT="" RELEASE_MACOS_TABLE=""
+RELEASE_MACOS_STATE="" RELEASE_MACOS_RC=""
+
+# release_macos_verdict <root> <sha> -- what the stage's sealed runs on this
+# platform say about <sha>: seal_verdict's word, a TAB and its detail, over the
+# MACOS pairs under the release's run logs, as release_gates_verdict reads the
+# GATES pairs.
+release_macos_verdict() {
+  seal_verdict "$1/$(gate_out_dir release)" MACOS "$2" "$(platform_identity)"
+}
+
+# release_macos_start <root> <sha> <scratch> -- the stage at <sha>: a green
+# record answered as it stands, starting nothing; else the run started in a
+# process group of its own, a job of this shell, its group's id, its output
+# and the job table's file in <scratch>, and `pending`. Run in the cut's own
+# shell, never a command substitution, so the run is the cut's to reap and
+# stop.
+release_macos_start() {
+  local root="$1" sha="$2" scratch="$3" v
+  v="$(release_macos_verdict "$root" "$sha")"
+  if [ "${v%%$'\t'*}" = green ]; then
+    printf '%s\n' "$v"
+    return 0
+  fi
+  RELEASE_MACOS_OUT="$scratch/leg.macos.out" RELEASE_MACOS_GROUP="$scratch/leg.macos.group"
+  RELEASE_MACOS_TABLE="$scratch/leg.macos.jobs"
+  release_group_start "$RELEASE_MACOS_OUT" "" "$RELEASE_MACOS_GROUP" _release_macos_run "$root" "$sha"
+  RELEASE_MACOS_PID=$! RELEASE_MACOS_STATE=running
+  printf 'pending\tthe macOS stage (macos app-sign, then app-notarize) runs at %s under a seal of its own\n' "${sha:0:12}"
+}
+
+# _release_macos_run <root> <sha> -- the stage's run, in its own group: app-sign,
+# then app-notarize, through the project's launcher, under one sealed run of
+# its own at the root, standing on the commit the tree is, <sha>.
+_release_macos_run() {
+  cd "$1" || return 1
+  run_gate --label "release macos" --suffix MACOS --grammar generic --purge \
+    --out-dir "$(gate_out_dir release)" \
+    --source "the macOS stage at ${2:0:12} -- macos app-sign, then macos app-notarize, through bin/devbin" \
+    -- _release_macos_steps "$1/bin/devbin"
+}
+
+# _release_macos_steps <launcher> -- app-sign, then app-notarize; the first that
+# fails ends the run with its status.
+_release_macos_steps() {
+  "$1" macos app-sign || return
+  "$1" macos app-notarize
+}
+
+# release_macos_running -- 0 while the stage's run is a running job of this
+# shell, 1 when it is not or none was started, 3 when the job table could not
+# be written to be read, said once (release_job_running, the one read of it).
+release_macos_running() {
+  release_job_running "$RELEASE_MACOS_PID" "$RELEASE_MACOS_TABLE" "the macOS stage"
+}
+
+# release_macos_reap -- the stage's run, once it no longer runs, reaped in this
+# shell (_release_macos_wait). Nothing while it runs, or when none was started.
+# The cut's loop reaps it before it reads the leg, since the read runs in a
+# command substitution, which cannot wait for a job of the cut's.
+release_macos_reap() {
+  if [ "$RELEASE_MACOS_STATE" = running ] && ! release_macos_running; then
+    _release_macos_wait
+  fi
+}
+
+# _release_macos_wait -- wait for the stage's run and keep its status:
+# RELEASE_MACOS_RC, RELEASE_MACOS_STATE ended, and its pid let go, so nothing
+# later asks after or signals a number another process may hold by then.
+_release_macos_wait() {
+  RELEASE_MACOS_RC=0
+  wait "$RELEASE_MACOS_PID" || RELEASE_MACOS_RC=$?
+  RELEASE_MACOS_PID="" RELEASE_MACOS_STATE=ended
+}
+
+# release_macos_read <root> <sha> -- the stage's word on <sha>, from what the
+# cut's shell knows of its run. With no run of this cut's, the record as it
+# stands: a dry run's question, or a start that found green. While the run
+# runs, pending. Once it has ended (release_macos_reap), its status decides:
+# a run that failed is failed, named with its exit, the newest record's word
+# and detail, and its output's last line; one that passed is the record's
+# green, or failed naming the record's own word and detail when the record a
+# cut reads does not read green, a seal that stands for no commit among them.
+release_macos_read() {
+  local v
+  case "$RELEASE_MACOS_STATE" in
+    running)
+      printf 'pending\tthe macOS stage is running at %s\n' "${2:0:12}"
+      return 0
+      ;;
+    ended) ;;
+    *)
+      release_macos_verdict "$1" "$2"
+      return 0
+      ;;
+  esac
+  v="$(release_macos_verdict "$1" "$2")"
+  if [ "$RELEASE_MACOS_RC" != 0 ]; then
+    printf 'failed\tthe macOS stage ended (exit %s) at %s, and the newest record of it reads %s: %s -- its last line: %s\n' \
+      "$RELEASE_MACOS_RC" "${2:0:12}" "${v%%$'\t'*}" "${v#*$'\t'}" "$(_release_macos_last_line)"
+  elif [ "${v%%$'\t'*}" = green ]; then
+    printf '%s\n' "$v"
+  else
+    printf 'failed\tthe macOS stage passed, and the record a cut reads for %s does not read green: %s, %s\n' \
+      "${2:0:12}" "${v%%$'\t'*}" "${v#*$'\t'}"
+  fi
+}
+
+# _release_macos_last_line -- the last line of the started run's output that
+# holds anything, or what stands in for it.
+_release_macos_last_line() {
+  local l
+  l="$(awk 'NF { l = $0 } END { print l }' "$RELEASE_MACOS_OUT" 2>/dev/null)" || l=""
+  printf '%s\n' "${l:-its output, $RELEASE_MACOS_OUT, holds no line}"
+}
+
+# release_macos_stop <seconds> -- the stage's run stopped, if it still runs
+# (release_run_stop: its whole group sent TERM, given <seconds> to end, then
+# sent KILL), then reaped. Status 0 when this stop ended it: its group
+# signalled, and its reaped status the TERM's or the KILL's. 1 when no run was
+# started, it had ended on its own, its status kept and read as the loop reads
+# it, or its group was never written, which release_run_stop names. It prints
+# nothing else, so the cut says it in its own way (run_exit_say).
+release_macos_stop() {
+  local rc=0
+  [ "$RELEASE_MACOS_STATE" = running ] || return 1
+  release_run_stop release_macos_running "$RELEASE_MACOS_PID" "$RELEASE_MACOS_GROUP" "$1" \
+    "release: legs: the macOS stage's process group was never written to $RELEASE_MACOS_GROUP, so the stop signals its wrapper's own process alone, and a process its run started may run on" ||
+    rc=$?
+  _release_macos_wait
+  [ "$rc" = 0 ] && release_stopped_status "$RELEASE_MACOS_RC"
+}

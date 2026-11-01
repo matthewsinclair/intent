@@ -181,13 +181,16 @@ EOF
   return 1
 }
 
-# option_active <command> <option> -- the activation rule.
+# option_active <command> <option> [<word>] -- the activation rule.
 #
 # Explicit `enabled: false` always wins: it is the lever for dropping something
 # the languages pulled in. Otherwise an option declared in config is active
 # (that is how a project adds a gate devbin never shipped, eg bats), and a
 # built-in is active exactly when its language is declared and its tree holds
-# what it needs (_DEVBIN_BUILTIN_NEEDS, issue 0156).
+# what it needs (_DEVBIN_BUILTIN_NEEDS, issue 0156). Given <word>, the rule is
+# asked of a host whose platform word that is, empty for one with none, as
+# option_platforms_foreign takes it: a cut's pre-flight asks it of each leg's
+# host (legs_gate_unrun), so `all` and that check read one rule.
 # option_declared <command> <option> -- has config declared this option at all?
 #
 # ANY key under it counts. The alternative, and what was here, is a list of the
@@ -203,6 +206,10 @@ option_declared() {
 option_active() {
   local cmd="$1" opt="$2" lang
   is_false_word "$(cfg_get "commands.$cmd.options.$opt.enabled" true)" && return 1
+  # Declared for other platforms, it is inactive here, as an option whose
+  # language the project does not declare is: never failed (ST0011 WP-17).
+  # The word, where given, passes on as given, an empty one included.
+  option_platforms_foreign "$cmd" "$opt" "${@:3:1}" >/dev/null && return 1
   option_declared "$cmd" "$opt" && return 0
   # Past this point the option can only be a built-in, and a command the
   # project owns displaces the whole built-in option set (see builtin_options).
@@ -230,6 +237,84 @@ _options_all_need() {
 $(command_option_candidates "$cmd")
 EOF
   [ "$n" -gt 0 ] || return 1
+  printf '%s\n' "$said"
+}
+
+# option_platforms_foreign <command> <option> [<word>] -- when the option
+# declares `platforms:` and this host's platform word is not among them, print
+# why, in the words option_unavailable_reason says, and succeed; fail, printing
+# nothing, when it declares none or names this host's word (ST0011 WP-17).
+# Given <word>, the question is asked of a host whose word that is, empty for
+# one with none: a cut asks it of each leg's host, local and remote, so its
+# pre-flight refuses a gate active on none of them (ST0011 WP-02c), by the one
+# rule `all` and `help --why` read here.
+#
+# One question for option_active and for the sentence option_unavailable_reason
+# says, as option_needs_unmet is, so the two cannot disagree. `platforms:` says
+# where a gate is meant to run, never whether a host can run it: on a platform
+# the list names, a gate that cannot run fails as it always did. A host with no
+# platform word (platform_word) runs no option whose `platforms:` lists only
+# platform words.
+#
+# A LIST HOLDING A VALUE THAT IS NOT A PLATFORM WORD READS AS ABSENT, so the
+# option runs everywhere, as it would were the key misspelt: the command you
+# run does not validate config, and `doctor` refuses the value, naming the key
+# and the value. Read as another platform, the item `- Linux`, uname's
+# spelling, would make a gate never run and never fail, on every host. The
+# items are read as config holds them, an empty last one among them, so this
+# and doctor judge one list.
+option_platforms_foreign() {
+  local word p said="" last=""
+  local -a items=()
+  mapfile -t items < <(cfg_option_platforms "$1" "$2")
+  [ "${#items[@]}" -gt 0 ] || return 1
+  for p in "${items[@]}"; do
+    is_platform_word "$p" || return 1
+  done
+  if [ "$#" -ge 3 ]; then
+    word="$3"
+  else
+    word="$(platform_word)" || word=""
+  fi
+  for p in "${items[@]}"; do
+    [ "$p" != "$word" ] || return 1
+    [ -z "$last" ] || said+="${said:+, }$last"
+    last="$p"
+  done
+  if [ -n "$word" ]; then
+    printf 'it runs on %s, and this host is %s\n' "${said:+$said and }$last" "$word"
+  else
+    printf 'it runs on %s, and this host has no platform word\n' "${said:+$said and }$last"
+  fi
+}
+
+# _options_inactive_said <command> -- when EVERY option <command> could offer
+# here is inactive and `platforms:` holds back at least one of them, print each
+# as `<option>: <why>`, in option_unavailable_reason's own words, joined by
+# "; ", and succeed; otherwise fail, printing nothing (ST0011 WP-17). The
+# branches in command_unavailable_reason below each name one cause for the whole
+# command, so with platforms among the causes each option is named with its own.
+# A first walk asks platforms: alone and stops at the first option it holds
+# back, so a command no list holds back costs one read an option, never a
+# sentence each.
+_options_inactive_said() {
+  local cmd="$1" opt why said="" held="" cands
+  cands="$(command_option_candidates "$cmd")" || return 1
+  while IFS= read -r opt; do
+    [ -n "$opt" ] || continue
+    if option_platforms_foreign "$cmd" "$opt" >/dev/null; then
+      held=yes
+      break
+    fi
+  done <<<"$cands"
+  [ -n "$held" ] || return 1
+  while IFS= read -r opt; do
+    [ -n "$opt" ] || continue
+    option_active "$cmd" "$opt" && return 1
+    why="$(option_unavailable_reason "$cmd" "$opt")" ||
+      why="it is not active here, for a reason devbin cannot name -- $DEVBIN_INVOKE doctor reads its config"
+    said="${said:+$said; }$opt: $why"
+  done <<<"$cands"
   printf '%s\n' "$said"
 }
 
@@ -284,7 +369,7 @@ builtin_options() {
 # real answer is that this project never declared Elixir. A command that is
 # silently absent is indistinguishable from one that is broken.
 option_unavailable_reason() {
-  local cmd="$1" opt="$2" lang needs
+  local cmd="$1" opt="$2" lang needs why
   option_active "$cmd" "$opt" && return 1
   # A command the project owns OWNS its option set -- a handler (AC-04.4), or a
   # command-level `run:` (issue 0128) -- so devbin has no opinion about which
@@ -300,6 +385,12 @@ option_unavailable_reason() {
   # the project owned this said only that the option was not active).
   if is_false_word "$(cfg_get "commands.$cmd.options.$opt.enabled" true)"; then
     printf 'it is disabled in %s\n' "$(devbin_dir_shown)/config.yaml"
+    return 0
+  fi
+  # The platforms config declares are the project's own word too, so they are
+  # said whoever owns the command (ST0011 WP-17).
+  if why="$(option_platforms_foreign "$cmd" "$opt")"; then
+    printf '%s\n' "$why"
     return 0
   fi
   project_owns_command "$cmd" && return 1
@@ -413,11 +504,20 @@ nonexec_handler_hint() {
 # command" is indistinguishable from a typo. That got sharper when command rows
 # gained languages -- `iex` in a shell project is not unknown, it is Elixir's.
 command_unavailable_reason() {
-  local cmd="$1" lang off n_off n_all hint needs
+  local cmd="$1" lang off n_off n_all hint needs said
   command_active "$cmd" && return 1
   devbin_tree_refusal "$cmd" && return 0
   if is_false_word "$(cfg_get "commands.$cmd.enabled" true)"; then
     printf 'it is disabled in %s\n' "$(devbin_dir_shown)/config.yaml"
+    return 0
+  fi
+  # WHERE platforms: HOLDS AN OPTION BACK, EACH OPTION IS NAMED WITH ITS OWN
+  # REASON, whoever ships the command (ST0011 WP-17). The branches below name one
+  # cause for the whole command: a command of the project's own read as not
+  # active with no reason, and one of devbin's as wanting a language its config
+  # already declares.
+  if said="$(_options_inactive_said "$cmd")"; then
+    printf 'every option it offers is inactive here: %s\n' "$said"
     return 0
   fi
   is_builtin_command "$cmd" || return 1

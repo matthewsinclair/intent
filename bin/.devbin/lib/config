@@ -475,6 +475,19 @@ _cfg_path_known() {
       [ "$n" -eq 3 ] && [ "${p[1]}" = banks ] && _cfg_is_index "${p[2]}" && return 0
       return 1
       ;;
+    build)
+      # ST0011 WP-16's build: block, read by lib/cmd/cache alone:
+      # `inputs.<N>`, the input paths every artefact's key reads, and
+      # `artefacts.<name>` with its `tool` (a row of the toolchain table, held
+      # to it by cfg_validate), its `path` and its own `inputs.<N>`. Added in
+      # the same change as the reader.
+      [ "$n" -eq 3 ] && [ "${p[1]}" = inputs ] && _cfg_is_index "${p[2]}" && return 0
+      if [ "$n" -eq 4 ] && [ "${p[1]}" = artefacts ]; then
+        case "${p[3]}" in tool | path) return 0 ;; esac
+      fi
+      [ "$n" -eq 5 ] && [ "${p[1]}" = artefacts ] && [ "${p[3]}" = inputs ] && _cfg_is_index "${p[4]}" && return 0
+      return 1
+      ;;
     commands)
       if [ "$n" -eq 3 ]; then
         # `log` and `grammar` at COMMAND level, not just option level: a
@@ -504,6 +517,12 @@ _cfg_path_known() {
         case "${p[4]}" in run | grammar | log | in_all | summary | args | enabled) return 0 ;; esac
         return 1
       fi
+      # `platforms` (ST0011 WP-17): the list of platform words an option runs
+      # on, a list alone, so one written as a single word is unknown here. Its
+      # values are held to the words by cfg_validate (is_platform_word).
+      if [ "$n" -eq 6 ] && [ "${p[2]}" = options ] && [ "${p[4]}" = platforms ] && _cfg_is_index "${p[5]}"; then
+        return 0
+      fi
       return 1
       ;;
   esac
@@ -520,13 +539,15 @@ _cfg_path_known() {
 #
 # THE READERS COLUMN (ST0008 WP-08) names, comma-separated, each verb that
 # reads the key, from `verbs`' own default: a cut (`cut`), `status`, `notes`,
-# `check`, `attach`, `snapshot` and `publish`. A declared key that no verb
+# `check`, `attach`, `snapshot` and `gates`. A declared key that no verb
 # `release.verbs` offers reads is refused as unread config, issue 0080's class.
 # `<verb>!<key>` reads it only while `release.<key>` is not declared: `attach`
 # reads `remotes` only as `repo`'s fallback (release_repo), so with `repo`
-# declared it reads none, and `snapshot` and `publish` read `branch` only while
-# `publish.branch` is not. Printing a key is not reading it: `release check`
-# prints every one.
+# declared it reads none, and `snapshot` reads `branch` only while
+# `publish.branch` is not. A cut reads the snapshot's keys and the publish keys,
+# since under `publish.url` it makes its release public as that snapshot, and
+# `status` reads the publish keys, to read the public repository's refs.
+# Printing a key is not reading it: `release check` prints every one.
 #
 # A list's default items are separated by `|`. A project declares a list
 # EXPLICITLY EMPTY as the single item `-` (devbin's no-default sentinel): the
@@ -535,32 +556,47 @@ _cfg_path_known() {
 # which only the release command can read -- so `remotes` is the one list that
 # cannot be declared `-`: a reader who learned `gates: -` means no gates would
 # take `remotes: -` to mean no remotes, and the release would push everywhere.
+#
+# A SCALAR DECLARED `-` READS AS `-`, which only a reader that asks for it
+# means anything by: `ci.query: -` is the opt-out from the candidate leg
+# (cut_candidate_declared), since ci.query's default is the built-in query, so
+# every cut has a candidate unless its project says otherwise (ST0011 WP-02c).
+# `check` reads the query and its two settings, since release check asks the
+# built-in whether a push of the next cut's candidate starts its workflow.
+#
+# THE BUILT-IN QUERY, as a release.ci.query names it: the one spelling every
+# reader of it asks (cfg_ci_query_is_builtin and the refusals that name it),
+# and ci.query's default, stated here, above the table that names it. bin/devbin
+# is the invocation in every project, so an alias of it is no spelling of the
+# built-in.
+_DEVBIN_CI_BUILTIN_QUERY="bin/devbin ci-state"
 _DEVBIN_RELEASE_SCHEMA="
-scalar tag             cut,status,attach,snapshot,publish v{version}
+scalar tag             cut,status,attach,snapshot v{version}
 list   remotes         cut,status,attach!repo
-scalar branch          cut,status,snapshot!publish.branch,publish!publish.branch main
-scalar notes.kind      cut,status,notes,check,publish changelog
-scalar notes.run       cut,status,notes,check,publish
+scalar branch          cut,status,snapshot!publish.branch main
+scalar notes.kind      cut,status,notes,check changelog
+scalar notes.run       cut,status,notes,check
 list   derived         cut
-list   gates           cut,status                     check all|test all
-scalar ci.query        cut,status,publish
-scalar ci.wait         cut,publish                    20m
-scalar ci.base         cut                            false
-scalar ci.tag          cut,status,publish             true
-scalar object          cut,status,check,attach,publish local
-scalar title           cut,status,publish             {tag}
-scalar repo            cut,status,attach,publish
-scalar object_wait     cut,publish                    20m
-list   after           cut,status,publish
-list   verbs           cut,status,notes,check,attach,snapshot,publish cut|status|notes|check|attach|snapshot|publish
-scalar assets.workflow cut,status,attach,publish
-scalar assets.wait     cut,attach,publish             30m
-scalar snapshot.list   snapshot,publish
-scalar snapshot.author snapshot,publish
-scalar snapshot.message snapshot,publish              {name} {version}
-scalar publish.url     cut,status,snapshot,publish
-scalar publish.branch  snapshot,publish
-scalar publish.candidate publish                      candidate/{tag}
+list   gates           cut,status,gates               check all|test all
+list   legs            cut,status
+scalar ci.query        cut,status,check               $_DEVBIN_CI_BUILTIN_QUERY
+scalar ci.workflow     cut,check                      tests.yml
+scalar ci.summary      cut,check
+scalar ci.wait         cut                            60m
+scalar object          cut,status,check,attach local
+scalar title           cut,status                     {tag}
+scalar repo            cut,status,attach
+scalar object_wait     cut                            20m
+list   after           cut,status
+list   verbs           cut,status,notes,check,attach,snapshot,gates cut|status|notes|check|attach|snapshot|gates
+scalar assets.workflow cut,status,attach
+scalar assets.wait     cut,attach                     30m
+scalar snapshot.list   cut,snapshot
+scalar snapshot.author cut,snapshot
+scalar snapshot.message cut,snapshot                  {name} {version}
+scalar publish.url     cut,status,snapshot,attach
+scalar publish.branch  cut,status,snapshot
+scalar publish.candidate cut,status                   candidate/{tag}
 "
 
 # _cfg_release_row <key> -- `<shape><TAB><default>` for a release key, or
@@ -659,6 +695,73 @@ cfg_release_list() {
   return 0
 }
 
+# cfg_release_first_remote -- the first declared `remotes` entry, or nothing
+# when none is declared: release_repo's second argument, which names the
+# repository from the remote a release pushes to first. The cut
+# (declared_remote) and the built-in ci-state both read it here, so a cut and
+# the CI it reads name one repository. Returns 1 when the list cannot be read.
+cfg_release_first_remote() {
+  local list
+  if ! cfg_release_declared remotes; then
+    printf '\n'
+    return 0
+  fi
+  list="$(cfg_release_list remotes)" || return 1
+  printf '%s\n' "${list%%$'\n'*}"
+}
+
+# cfg_ci_query_is_builtin <query> -- true when <query>'s words are the built-in
+# query's, _DEVBIN_CI_BUILTIN_QUERY: split on space, tab and newline, as
+# run_words splits, and never globbed, since validation runs wherever doctor
+# stands (has_words, lib/helpers).
+cfg_ci_query_is_builtin() {
+  # IFS is this function's own, so the words join with one space whatever the
+  # caller's IFS is.
+  local IFS=' '
+  local -a w=()
+  # read -d '' meets the end of its input before any NUL, so it returns 1 with
+  # the words already in w; that 1 is the end of the input, not a failure.
+  IFS=$' \t\n' read -r -d '' -a w <<<"$1" || true
+  [ "${w[*]}" = "$_DEVBIN_CI_BUILTIN_QUERY" ]
+}
+
+# cut_candidate_declared -- 0 when a cut has a candidate leg: release.ci.query
+# reads a query, the built-in by default or one the project declares, and not
+# `-`, the opt-out (ST0011 WP-02c), in either shape: a publishing cut's
+# candidate is the release commit's snapshot, at release.publish.url, and any
+# other's is the release commit. THE ONE ANSWER to whether a candidate is in
+# effect, which validation, a cut's pre-flight and release status ask, and
+# release check and release attach where the cut is offered: it never asks
+# whether a cut is offered itself, so those two ask that first. It lives here,
+# beside the table it reads, so validation asks it too, and keeps the name the
+# release command gave it.
+cut_candidate_declared() {
+  local q
+  q="$(cfg_release_get ci.query)" || return 1
+  ! is_no_default "$q"
+}
+
+# THE SKIP MARKERS: a push whose commit's message holds one starts no run of a
+# workflow, whatever its trigger says (GitHub's rule for push events). One
+# statement of them, which _cfg_release_problems reads against
+# release.snapshot.message, filled as the snapshot carries it, since a
+# publishing cut's candidate is the snapshot (ST0011 WP-02c).
+_DEVBIN_CI_SKIP_MARKERS=('[skip ci]' '[ci skip]' '[no ci]' '[skip actions]' '[actions skip]')
+
+# cfg_ci_skip_marker <text> -- the first skip marker <text> holds, matched
+# without case, since GitHub does not say it matches with case, and status 0;
+# nothing, status 1, when it holds none. Pure.
+cfg_ci_skip_marker() {
+  local m lower="${1,,}"
+  for m in "${_DEVBIN_CI_SKIP_MARKERS[@]}"; do
+    if [[ "$lower" == *"$m"* ]]; then
+      printf '%s\n' "$m"
+      return 0
+    fi
+  done
+  return 1
+}
+
 # cfg_release_verbs -- every verb `release` has, one per line, in the table's
 # order: the default of `release.verbs`, which offers them all. THE ONE
 # STATEMENT OF THE VERBS (ST0008 WP-08): the value check below, the readers
@@ -731,6 +834,58 @@ cfg_macos_get() {
     return 1
   fi
   cfg_get "macos.$1" "$def"
+}
+
+# cfg_macos_declared -- 0 when the project declares the built-in macos
+# (commands.macos.enabled), whose stage is then a leg of every cut, signing and
+# notarising the app at the release commit (ST0011 WP-06). THE ONE TEST, which
+# a cut's pre-flight, release status and doctor ask.
+cfg_macos_declared() {
+  is_true_word "$(cfg_get "commands.macos.enabled" false)"
+}
+
+# cfg_macos_artefacts -- each build.artefacts entry whose path is macos.app's,
+# one name a line, and nothing when macos.app is undeclared or no entry's path
+# is it (ST0011 WP-06). Compared in any case of their letters, as
+# cache_paths_overlap compares, with a leading `./` and a trailing `/` dropped
+# from macos.app; an app written from home, from XDG or as an absolute path
+# names no entry, whose paths lie below the project root. The names split on
+# purpose: the config parser holds every key to letters, digits, _ and -.
+cfg_macos_artefacts() {
+  local app a p IFS=$' \t\n'
+  app="$(cfg_macos_get app)" || return 1
+  while [[ "$app" == ./* ]]; do app="${app#./}"; done
+  while [[ "$app" == */ ]]; do app="${app%/}"; done
+  [ -n "$app" ] || return 0
+  for a in $(cfg_list build.artefacts); do
+    p="$(cfg_get "build.artefacts.$a.path")"
+    [ "${p,,}" != "${app,,}" ] || printf '%s\n' "$a"
+  done
+}
+
+# cfg_macos_artefact -- the artefact the macOS stage caches (ST0011 WP-06), THE
+# ONE ANSWER app-sign, the cut and doctor read: the one entry
+# cfg_macos_artefacts names, at 0, which app-sign pulls from the cache before
+# macos.build and puts after it, and whose key a cut names in the release's
+# seal; nothing at 1 when no entry's path is the app's, so the stage builds
+# its app uncached; at 2 why there is none to take when two or more entries
+# name the app, which config validation refuses, so the stage never guesses
+# between them; and at 3 why there is none when macos.build is not declared,
+# since a stage that builds no app pulls and puts none.
+cfg_macos_artefact() {
+  local arts build
+  arts="$(cfg_macos_artefacts)" || return 1
+  if [ "$arts" != "${arts%%$'\n'*}" ]; then
+    printf "build.artefacts %s each have macos.app's path, so the macOS stage takes none of them -- declare the app's artefact once\n" "${arts//$'\n'/, }"
+    return 2
+  fi
+  build="$(cfg_macos_get build)" || return 1
+  if [ -z "$build" ]; then
+    printf 'macos.build is not declared, so the macOS stage builds no app, and pulls and puts none\n'
+    return 3
+  fi
+  [ -n "$arts" ] || return 1
+  printf '%s\n' "$arts"
 }
 
 # --- the formula: block (issue 0227) ----------------------------------------
@@ -849,13 +1004,37 @@ cfg_ident() {
 }
 
 # _cfg_release_value_problem <path> <value> -- print why a release value
-# cannot be read, and succeed; fail when the value is fine.
+# cannot be read, and succeed; fail when the value is fine. A value it cannot
+# check is accepted, failing, with a line of its own on stderr saying so:
+# release.tag, where git cannot be asked.
 _cfg_release_value_problem() {
   local v="$2" key="${1#release.}"
   case "$key" in
     tag)
-      case "$v" in *"{version}"*) return 1 ;; esac
-      printf 'must contain {version}, or every release would carry the same tag'
+      if [[ "$v" != *"{version}"* ]]; then
+        printf 'must contain {version}, or every release would carry the same tag'
+        return 0
+      fi
+      # THE FILLED TAG IS A NAME GIT TAKES (ST0011 WP-02c): filled with a
+      # stand-in version, digits and dots as a tree declares one, which no ref
+      # rule refuses, so a refusal is the template's own text. A tag git cannot
+      # make would stop a cut at its tag step, after its candidate's run, and
+      # git refuses brackets and spaces, so no skip marker such as [skip ci]
+      # can reach the release commit's message, `release: <tag>`. Where git
+      # cannot be asked at all (any status but 0 and 1), that is said on
+      # stderr and the template is accepted, never refused for a name git might
+      # take: a cut's tag step meets it.
+      local tag_rc=0
+      is_tag_name "$(release_tag_name "$v" 0.0.0)" || tag_rc=$?
+      case "$tag_rc" in
+        0) return 1 ;;
+        1) ;;
+        *)
+          printf 'config: %s: release.tag: not checked: git could not be asked whether "%s", filled, is a name it takes for a tag (exit %s), so a cut'"'"'s tag step meets it\n' "$_DEVBIN_CFG_FILE" "$v" "$tag_rc" >&2
+          return 1
+          ;;
+      esac
+      printf 'filled, is not a name git takes for a tag, so no cut could make it -- and a skip marker such as [skip ci] in it would reach the release commit'"'"'s message'
       ;;
     notes.kind)
       case "$v" in changelog | releases | command) return 1 ;; esac
@@ -869,6 +1048,15 @@ _cfg_release_value_problem() {
       [[ "$v" =~ ^[0-9]+[smh]$ ]] && return 1
       printf 'must be a whole number of s, m or h, eg 20m'
       ;;
+    legs.*)
+      # A REMOTE LEG IS A HOST ALIAS (ST0011 WP-05): ssh is handed the name as a
+      # word on its command line, so a value without an alias's shape
+      # (is_host_alias) could be read there as something else, an option first.
+      # `-` declares no remote leg, as leaving the key out does.
+      is_no_default "$v" && return 1
+      is_host_alias "$v" && return 1
+      printf 'is not a host alias -- name a host from your ssh config: letters, digits, dot, dash and underscore, starting with a letter or a digit'
+      ;;
     verbs.*)
       # "-" is _cfg_release_problems', which says what it would mean, as it
       # does for remotes.
@@ -876,11 +1064,11 @@ _cfg_release_value_problem() {
       local all
       all="$(cfg_release_verbs)"
       _word_in "$v" "${all//$'\n'/ }" && return 1
-      printf 'must be one of %s' "${all//$'\n'/, }"
+      printf 'must be one of %s%s' "${all//$'\n'/, }" "$(_cfg_retired_why "$1" "$v")"
       ;;
-    assets.workflow)
+    assets.workflow | ci.workflow)
       [[ "$v" =~ ^[^/[:space:]]+\.ya?ml$ ]] && return 1
-      printf 'must be the file name of a workflow in .github/workflows, eg assets.yml'
+      printf 'must be the file name of a workflow in .github/workflows, eg tests.yml or assets.yml'
       ;;
     repo)
       [[ "$v" =~ ^([^/[:space:]]+/)?[^/[:space:]]+/[^/[:space:]]+$ ]] && return 1
@@ -909,7 +1097,9 @@ _cfg_release_value_problem() {
     snapshot.message)
       local rest="${v//\{name\}/}"
       rest="${rest//\{version\}/}"
-      if [ -n "$v" ] && [[ "$rest" != *[{}]* ]] && [[ "$v" != *$'\n'* ]]; then return 1; fi
+      # A skip marker in the message, filled, is _cfg_release_problems' to
+      # refuse, since {name} is filled from project.name, beyond this value.
+      [ -z "$v" ] || [[ "$rest" == *[{}]* ]] || [[ "$v" == *$'\n'* ]] || return 1
       printf 'must be one line, with no placeholder but {name} and {version}'
       ;;
     publish.branch)
@@ -946,7 +1136,7 @@ _cfg_release_value_problem() {
 # default) mode never reads. A key nothing reads is silently ignored config,
 # the class issue 0080 closed for booleans.
 _cfg_release_problems() {
-  local rc=0 shape key readers i n sentinel kind object offered ci_key IFS=$' \t\n'
+  local rc=0 shape key readers i n sentinel kind object offered why legs_named IFS=$' \t\n'
   # NO PIPELINE, AND NOT FOR STYLE. The items were read through
   # `... | grep -qx -- -`, and under pipefail, which every handler sets, a grep
   # that matches on the first line exits before the writer has finished: the
@@ -995,33 +1185,42 @@ _cfg_release_problems() {
     printf 'config: %s: release.notes.run is read only under notes.kind: command, and kind is %s\n' "$_DEVBIN_CFG_FILE" "$kind" >&2
     rc=1
   fi
-  if cfg_has release.ci.wait && ! cfg_has release.ci.query; then
-    printf 'config: %s: release.ci.wait is read only when release.ci.query is declared\n' "$_DEVBIN_CFG_FILE" >&2
-    rc=1
-  fi
-  for ci_key in ci.base ci.tag; do
-    if cfg_has "release.$ci_key" && ! cfg_has release.ci.query; then
-      printf 'config: %s: release.%s is read only when release.ci.query is declared -- it says when the query is asked\n' "$_DEVBIN_CFG_FILE" "$ci_key" >&2
+  # THE KEYS A QUERY READS, READ FROM THE TABLE (ST0011 WP-03, WP-02c), as the
+  # list keys are above. release.ci.query reads the built-in when it is not
+  # declared, so a block of ci keys alone is valid, and a ci.* row added to the
+  # table takes the rule below with no word here. The built-in query's two
+  # settings, which workflow's runs and which job's verdict, are read only when
+  # the query is the built-in (cfg_ci_query_is_builtin): a project's own query
+  # reads neither, and `ci.query: -`, the opt-out, reads no CI at all.
+  local cq
+  cq="$(cfg_release_get ci.query)" || cq=""
+  while read -r _ key _; do
+    case "$key" in
+      ci.query) continue ;;
+      ci.*) ;;
+      *) continue ;;
+    esac
+    cfg_has "release.$key" || continue
+    if [ "$key" = ci.wait ]; then
+      # ci.wait bounds every leg of a cut but the local gates (ST0011 WP-05,
+      # WP-06): the candidate, a host release.legs names, and the macOS stage.
+      # A list whose shape is wrong is the value rules' refusal, so a read of
+      # it that fails here names no host.
+      cut_candidate_declared && continue
+      legs_named="$(cfg_release_list legs 2>/dev/null)" || legs_named=""
+      if [ -n "$legs_named" ] || cfg_macos_declared; then
+        continue
+      fi
+      printf 'config: %s: release.ci.wait is read only where a leg other than the local gates runs: a candidate, and release.ci.query is -, the opt-out; a host in release.legs; or the macOS stage (commands.macos.enabled)\n' "$_DEVBIN_CFG_FILE" >&2
+      rc=1
+    elif is_no_default "$cq"; then
+      printf 'config: %s: release.%s is read only by the built-in query, %s, and release.ci.query is -, the opt-out, which reads no CI\n' "$_DEVBIN_CFG_FILE" "$key" "$_DEVBIN_CI_BUILTIN_QUERY" >&2
+      rc=1
+    elif ! cfg_ci_query_is_builtin "$cq"; then
+      printf 'config: %s: release.%s is read only by the built-in query, %s, and release.ci.query is "%s", which reads neither it nor its sibling -- the built-in is spelled exactly so\n' "$_DEVBIN_CFG_FILE" "$key" "$_DEVBIN_CI_BUILTIN_QUERY" "$cq" >&2
       rc=1
     fi
-  done
-  # A QUERY NOTHING ASKS is config nothing acts on: with ci.tag off and ci.base
-  # off the cut asks it neither about the base nor about the tag. Under
-  # publish.url, release publish asks it about the candidate whatever those say.
-  if cfg_has release.ci.query && ! cfg_has release.publish.url &&
-    ! is_true_word "$(cfg_release_get ci.tag)" && ! is_true_word "$(cfg_release_get ci.base)"; then
-    printf 'config: %s: release.ci.query is never asked: ci.tag is off and ci.base is off -- turn one on, or leave the query out\n' "$_DEVBIN_CFG_FILE" >&2
-    rc=1
-  fi
-  # CI ON THE BASE IS REFUSED UNDER publish.url (issue 0240). ci.base reads CI
-  # on the workroom commit a cut is made on, and a publishing workroom pushes
-  # it nowhere CI runs. Its guarantee is the candidate step's: release publish
-  # reads CI on the snapshot itself, and nothing becomes public before that is
-  # green.
-  if cfg_has release.ci.base && cfg_has release.publish.url; then
-    printf 'config: %s: release.ci.base is refused under release.publish.url: it reads CI on the workroom commit a cut is made on, which a publishing workroom pushes nowhere CI runs, and release publish reads CI on the snapshot itself before anything is public -- leave ci.base out\n' "$_DEVBIN_CFG_FILE" >&2
-    rc=1
-  fi
+  done <<<"$_DEVBIN_RELEASE_SCHEMA"
   if cfg_has release.title && [ "$object" != local ]; then
     printf 'config: %s: release.title is read only under object: local, and object is %s\n' "$_DEVBIN_CFG_FILE" "$object" >&2
     rc=1
@@ -1061,20 +1260,36 @@ _cfg_release_problems() {
       rc=1
     fi
   done
-  # A PROJECT THAT PUBLISHES DOES SO THROUGH release publish (issue 0240): its
-  # cut stops after the push, so with the verb left out of release.verbs
-  # nothing would ever make a release public.
-  if cfg_has release.publish.url && cfg_release_declared verbs &&
-    ! grep -qxF publish <<<"$(cfg_release_list verbs)"; then
-    printf 'config: %s: release.publish.url is declared, and release.verbs leaves out publish, so a cut would stop after its push and nothing would make the release public -- offer publish, or leave publish.url out\n' "$_DEVBIN_CFG_FILE" >&2
-    rc=1
-  fi
-  for key in publish.branch publish.candidate; do
-    if cfg_has "release.$key" && ! cfg_has release.publish.url; then
-      printf 'config: %s: release.%s is read only when release.publish.url is declared\n' "$_DEVBIN_CFG_FILE" "$key" >&2
+  # NO SKIP MARKER IN THE SNAPSHOT'S MESSAGE (ST0011 WP-02c): the snapshot is
+  # the candidate a publishing cut pushes, and a marker in its message starts no
+  # run, whatever the trigger says, so the cut would wait out ci.wait for a
+  # verdict nothing gives. The message is read filled, as snapshot_build fills
+  # it, {name} from project.name and {version} with a stand-in, its default
+  # template among them, since either the template or the name can carry one.
+  if cfg_has release.snapshot.list; then
+    local filled marker
+    # A message that cannot be read is the value rules' refusal, above.
+    filled="$(cfg_release_get snapshot.message)" || filled=""
+    filled="${filled//\{name\}/"$(cfg_get project.name)"}"
+    filled="${filled//\{version\}/0.0.0}"
+    if marker="$(cfg_ci_skip_marker "$filled")"; then
+      printf 'config: %s: release.snapshot.message, filled, is "%s", which holds %s, a skip marker: a push of the snapshot would start no run of CI, whatever its trigger says\n' "$_DEVBIN_CFG_FILE" "$filled" "$marker" >&2
       rc=1
     fi
-  done
+  fi
+  if cfg_has release.publish.branch && ! cfg_has release.publish.url; then
+    printf 'config: %s: release.publish.branch is read only when release.publish.url is declared\n' "$_DEVBIN_CFG_FILE" >&2
+    rc=1
+  fi
+  # THE CANDIDATE'S REF IS READ WHERE A CUT HAS A CANDIDATE LEG (ST0011),
+  # unless the project opts out (cut_candidate_declared): the cut pushes its
+  # release commit to it for CI, or under publish.url the release commit's
+  # snapshot, at publish.url. Under `ci.query: -` there is no candidate, so
+  # nothing reads it.
+  if cfg_has release.publish.candidate && ! cut_candidate_declared; then
+    printf 'config: %s: release.publish.candidate is read only where a cut has a candidate, and release.ci.query is -, the opt-out\n' "$_DEVBIN_CFG_FILE" >&2
+    rc=1
+  fi
   # A DECLARED KEY THAT NO OFFERED VERB READS IS REFUSED (ST0008 WP-08), read
   # from the table's readers column: with `cut` and `status` both off, a gate or
   # a title is config nothing acts on. An empty list is refused above, so it is
@@ -1130,6 +1345,25 @@ _cfg_release_readers_said() {
   printf '%s\n' "${said:+$said and }$last"
 }
 
+# _cfg_path_platform <path> -- true when the path is an item of an option's
+# platforms: list, whose value must be a platform word (ST0011 WP-17).
+_cfg_path_platform() {
+  local -a p
+  IFS='.' read -ra p <<<"$1"
+  [ "${#p[@]}" -eq 6 ] && [ "${p[0]}" = commands ] && [ "${p[2]}" = options ] && [ "${p[4]}" = platforms ]
+}
+
+# cfg_option_platforms <command> <option> -- the option's platforms: list, one
+# word a line, in document order; nothing when it declares none (ST0011 WP-17).
+# IFS is pinned, as cfg_release_list pins it, since the item indices are split
+# from cfg_list's lines.
+cfg_option_platforms() {
+  local i IFS=$' \t\n'
+  for i in $(cfg_list "commands.$1.options.$2.platforms"); do
+    printf '%s\n' "$(cfg_get "commands.$1.options.$2.platforms.$i")"
+  done
+}
+
 # _cfg_path_boolean <path> -- true when devbin reads the path's value as a yes
 # or a no, through is_true_word or is_false_word (issue 0080).
 #
@@ -1149,8 +1383,24 @@ _cfg_path_boolean() {
     3:commands) [ "${p[2]}" = enabled ] ;;
     5:commands) [ "${p[2]}" = options ] && case "${p[4]}" in enabled | in_all) return 0 ;; *) return 1 ;; esac ;;
     3:options) [ "${p[2]}" = flag ] ;;
-    3:release) case "${p[1]}.${p[2]}" in ci.base | ci.tag) return 0 ;; *) return 1 ;; esac ;;
     *) return 1 ;;
+  esac
+}
+
+# _cfg_retired_why <path> [<value>] -- for a key a release of devbin retired,
+# or a value it retired from a key it keeps (a verb of release.verbs), a
+# clause saying what replaced it, for the refusal; nothing for any other key
+# or value. A retired key is refused as unknown, and a retired verb as no verb
+# of release, since nothing reads either, and a project upgrading devbin is
+# told why, not left to look it up.
+_cfg_retired_why() {
+  case "$1" in
+    release.ci.tag) printf ' -- retired: a cut reads CI before the tag, on its candidate ref, so no query is asked about the tag; leave it out' ;;
+    release.ci.base) printf ' -- retired: a cut reads CI on its release commit, through its candidate, before the tag, never on the commit it is cut from; leave it out' ;;
+    release.verbs.*)
+      [ "${2-}" != publish ] ||
+        printf ' -- retired: a cut whose release.publish.url is declared makes its snapshot public itself, once every leg is green; leave it out'
+      ;;
   esac
 }
 
@@ -1187,6 +1437,94 @@ _cfg_path_command_line() {
   esac
 }
 
+# cfg_build_input_paths [<artefact>] -- the build: block's input paths, one a
+# line, each once (ST0011 WP-16). With <artefact>, the paths its key reads: its
+# own inputs: when it declares any, else build.inputs. With none, every input
+# path the block declares, build.inputs and every artefact's own. THE ONE
+# READER of the declaration's inputs: the cache's key, config validation's
+# overlap check and doctor's row all read them here. An empty path is config
+# validation's to refuse, and is not listed. The indices split on purpose: the
+# config parser holds every key to letters, digits, _ and -. Its arrays carry
+# its own prefix, since shellcheck -x reads this file inside every file that
+# sources it and holds a name to one type across them, so a plain name that
+# one of them uses as a string or an indexed array is a breach there.
+# shellcheck disable=SC2120  # the bare call IS the point: every path the block
+# declares, for validation and doctor; the cache passes its artefact from
+# lib/cmd/cache, which in-file analysis cannot see.
+cfg_build_input_paths() {
+  local a i p IFS=$' \t\n'
+  local -a _bip_paths=()
+  local -A _bip_seen=()
+  if [ -n "${1:-}" ]; then
+    for i in $(cfg_list "build.artefacts.$1.inputs"); do
+      _bip_paths+=("$(cfg_get "build.artefacts.$1.inputs.$i")")
+    done
+  fi
+  if [ -z "${1:-}" ] || [ "${#_bip_paths[@]}" -eq 0 ]; then
+    for i in $(cfg_list build.inputs); do
+      _bip_paths+=("$(cfg_get "build.inputs.$i")")
+    done
+  fi
+  if [ -z "${1:-}" ]; then
+    for a in $(cfg_list build.artefacts); do
+      for i in $(cfg_list "build.artefacts.$a.inputs"); do
+        _bip_paths+=("$(cfg_get "build.artefacts.$a.inputs.$i")")
+      done
+    done
+  fi
+  for p in "${_bip_paths[@]}"; do
+    [ -n "$p" ] || continue
+    [ -z "${_bip_seen[$p]:-}" ] || continue
+    _bip_seen[$p]=1
+    printf '%s\n' "$p"
+  done
+}
+
+# _cfg_build_problems -- the build: block's checks across its keys (ST0011
+# WP-16). An artefact's name that is not one (is_artefact_name) is refused,
+# since the cache's own words, `--help` among them, would read it as an option.
+# An artefact's path that is one of the block's input paths, holds one or lies
+# in one (cache_paths_overlap) is refused, naming both, since a pull replaces
+# what is at the path and would take an input's working tree with it,
+# uncommitted edits and all. Every input path the block declares is asked
+# (cfg_build_input_paths), every artefact's own among them, since a pull
+# removes whatever is there whichever key reads it. A path cache_path_problem
+# refuses is left to that refusal. Status 1 when one is refused. The names
+# split on purpose: the config parser holds every key to letters, digits, _
+# and -.
+_cfg_build_problems() {
+  local a p q ins rc=0 IFS=$' \t\n'
+  # shellcheck disable=SC2119  # the bare call IS the point: every declared path.
+  ins="$(cfg_build_input_paths)"
+  for a in $(cfg_list build.artefacts); do
+    if ! is_artefact_name "$a"; then
+      printf 'config: %s: build.artefacts.%s: "%s" is no artefact name -- start it with a letter or a digit, so the cache never reads it as an option\n' \
+        "$_DEVBIN_CFG_FILE" "$a" "$a" >&2
+      rc=1
+    fi
+    p="$(cfg_get "build.artefacts.$a.path")"
+    if cache_path_problem "$p" >/dev/null; then continue; fi
+    while IFS= read -r q; do
+      [ -n "$q" ] || continue
+      if cache_path_problem "$q" >/dev/null; then continue; fi
+      if cache_paths_overlap "$p" "$q"; then
+        printf 'config: %s: build.artefacts.%s.path: "%s" overlaps the input path "%s" -- a pull replaces what is at the path, so it lies outside every input path the block declares\n' \
+          "$_DEVBIN_CFG_FILE" "$a" "$p" "$q" >&2
+        rc=1
+      fi
+    done <<<"$ins"
+  done
+  # THE APP IS ONE ARTEFACT (ST0011 WP-06): two entries whose path is
+  # macos.app's would leave the macOS stage to guess which to pull and put.
+  local said s=0
+  said="$(cfg_macos_artefact)" || s=$?
+  if [ "$s" -eq 2 ]; then
+    printf 'config: %s: %s\n' "$_DEVBIN_CFG_FILE" "$said" >&2
+    rc=1
+  fi
+  return "$rc"
+}
+
 # cfg_validate -- every key is a schema path, project.name is present, and every
 # boolean key holds a word from lib/helpers's lists, and `project.cargo_root`
 # names a directory holding a Cargo.toml (cargo_root_problem, issue 0225).
@@ -1197,8 +1535,11 @@ _cfg_path_command_line() {
 cfg_validate() {
   local k v why rc=0
   if ! declare -F is_true_word >/dev/null || ! declare -F is_false_word >/dev/null ||
-    ! declare -F has_words >/dev/null || ! declare -F cargo_root_problem >/dev/null; then
-    printf 'config: cfg_validate needs lib/helpers sourced first -- it reads the boolean words, has_words and cargo_root_problem there\n' >&2
+    ! declare -F has_words >/dev/null || ! declare -F cargo_root_problem >/dev/null ||
+    ! declare -F is_cache_tool >/dev/null || ! declare -F cache_path_problem >/dev/null ||
+    ! declare -F cache_paths_overlap >/dev/null || ! declare -F is_artefact_name >/dev/null ||
+    ! declare -F is_platform_word >/dev/null || ! declare -F is_host_alias >/dev/null; then
+    printf 'config: cfg_validate needs lib/helpers sourced first -- it reads the boolean words, the platform words, the toolchain table, has_words, cargo_root_problem, cache_path_problem, cache_paths_overlap, is_artefact_name and is_host_alias there\n' >&2
     return 1
   fi
   if ! cfg_has project.name; then
@@ -1208,11 +1549,23 @@ cfg_validate() {
   while IFS=$'\t' read -r k v; do
     [ -n "$k" ] || continue
     if ! _cfg_path_known "$k"; then
-      printf 'config: %s: unknown key: %s\n' "$_DEVBIN_CFG_FILE" "$k" >&2
+      printf 'config: %s: unknown key: %s%s\n' "$_DEVBIN_CFG_FILE" "$k" "$(_cfg_retired_why "$k")" >&2
       rc=1
     elif _cfg_path_boolean "$k" && ! is_true_word "$v" && ! is_false_word "$v"; then
       printf 'config: %s: %s: "%s" is not a yes or a no -- use one of: %s (yes) or %s (no)\n' \
         "$_DEVBIN_CFG_FILE" "$k" "$v" "$_DEVBIN_TRUE_WORDS" "$_DEVBIN_FALSE_WORDS" >&2
+      rc=1
+    elif [[ "$k" == build.artefacts.*.tool ]] && ! is_cache_tool "$v"; then
+      printf 'config: %s: %s: "%s" is no row of the toolchain table -- use one of: %s\n' \
+        "$_DEVBIN_CFG_FILE" "$k" "$v" "$_DEVBIN_CACHE_TOOLS" >&2
+      rc=1
+    elif [[ "$k" == build.inputs.* || "$k" == build.artefacts.*.path || "$k" == build.artefacts.*.inputs.* ]] &&
+      why="$(cache_path_problem "$v")"; then
+      printf 'config: %s: %s: "%s" %s\n' "$_DEVBIN_CFG_FILE" "$k" "$v" "$why" >&2
+      rc=1
+    elif _cfg_path_platform "$k" && ! is_platform_word "$v"; then
+      printf 'config: %s: %s: "%s" is not a platform word -- use one of: %s\n' \
+        "$_DEVBIN_CFG_FILE" "$k" "$v" "$_DEVBIN_PLATFORM_WORDS" >&2
       rc=1
     elif [ "$k" = formula.mode ] && [ "$v" != source ] && [ "$v" != assets ]; then
       printf 'config: %s: %s: "%s" is not a formula mode -- use source or assets\n' "$_DEVBIN_CFG_FILE" "$k" "$v" >&2
@@ -1237,6 +1590,9 @@ $_DEVBIN_CFG
 EOF
   if [ -n "$(cfg_list release)" ]; then
     _cfg_release_problems || rc=1
+  fi
+  if [ -n "$(cfg_list build)" ]; then
+    _cfg_build_problems || rc=1
   fi
   # THE MACOS PAIR (issue 0243): kind_value is what kind_stamp must carry, so
   # without kind_stamp it is config nothing reads, and empty it would pass a

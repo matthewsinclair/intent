@@ -30,22 +30,33 @@ A path key may open with `~`, `$HOME` or an XDG base-directory variable, expande
 
 ## A release
 
-On the maintainer's machine, once the release core has made the release object, in a tree whose HEAD is the tag. Once main has moved past it, that is a worktree: `git worktree add --detach <dir> <tag>`. In order:
+A cut runs app-sign, then app-notarize, itself, as its macOS stage, where `commands.macos.enabled` is true: a leg beside the gates at the release commit, under a seal of its own, so a green stage is not run again, and refused at the cut's pre-flight on a host that is not macOS. Where macos.app is the path of an artefact of the project's `build:` block, app-sign pulls the app from the artefact cache at the release commit and runs no macos.build, or builds it and puts it there (`bin/devbin help cache`).
 
-    app-sign      refused, building nothing, unless HEAD is the release tag
-                  of the project's version in a clean tree; then
+On the maintainer's machine, in a tree whose HEAD is the release's commit: the tag's once it is cut, or, before then, the release commit the cut's stamp made, where a cut's macos leg signs. Once main has moved past the tag, that is a worktree: `git worktree add --detach <dir> <tag>`. publish attaches to the release object, so it runs once the tag is cut and the object made. app-sign and publish read the release commit in the repository at the project root, as the cut, `release status` and `release gates` do: git's repository variables an outer command left set, such as `GIT_DIR` in a hook, are cleared first, and each one cleared is named, with the repository used instead. In order:
+
+    app-sign      refused, building nothing, unless HEAD, in a clean tree,
+                  is the release's commit: the tag's, or before the tag is
+                  cut the release commit of the project's version; then
                   macos.build, a copy of macos.app staged under XDG state,
                   outside the build tree, refused and removed, with nothing
                   signed, unless its bundle id is macos.bundle_id, its
-                  version the app's and its declared stamps the tag's build's
-                  (its kind macos.kind_value, its commit a prefix of the
-                  tag's); then signed inside-out (nested code,
-                  then the bundle) and its identifier, team and hardened
-                  runtime read back off the signature
+                  version the app's and its declared stamps the release's
+                  build's (its kind macos.kind_value, its commit a prefix of
+                  the release's commit); then signed inside-out (nested code,
+                  then the bundle), its identifier, team and hardened
+                  runtime read back off the signature, and the commit it was
+                  signed at recorded beside it; a build that moved HEAD or
+                  left the tree with changes, or a git that cannot then
+                  say, is refused there, its stage removed and nothing
+                  recorded
     app-notarize  submit the signed copy to Apple and wait; staple the ticket
                   only when it is Accepted, else print Apple's log; then
                   check a quarantined copy with spctl
-    publish       zip the stapled copy as macos.asset, unpack the zip as a
+    publish       refused, uploading nothing, unless the staged copy was
+                  signed at the tag's commit, by app-sign's record: a copy
+                  signed at another commit is another commit's build, and
+                  one with no record is a build nobody can name; then
+                  zip the stapled copy as macos.asset, unpack the zip as a
                   user does and check the bundle inside, then attach it with
                   `release attach <version> --from`, the release core's one
                   way an asset reaches a release: it never replaces an asset,

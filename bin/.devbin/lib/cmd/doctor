@@ -1074,6 +1074,85 @@ check_bash() {
   return 0
 }
 
+# check_cache -- for a project that declares a build: block, the artefact
+# registry's root the cache command resolves (cache_root_resolved), the default
+# marked, and whether it can be written (ST0011 WP-16), so a wrong value is read
+# before a cut rather than in one. A NOTE, NEVER A FAILURE, when it cannot: an
+# unusable registry costs a build and nothing else. Then the block's input
+# paths (check_cache_inputs). No row without a build: block, since nothing
+# reads the root then.
+check_cache() {
+  local line root how why
+  [ -n "$(cfg_list build)" ] || return 0
+  if ! line="$(cache_root_resolved)"; then
+    _note "cache: no root -- $line, so every build runs and none is recorded"
+  else
+    root="${line%%$'\t'*}"
+    how="${line#*$'\t'}"
+    if why="$(cache_root_problem "$root")"; then
+      _note "cache: the root $root ($how) $why, so every build runs and none is recorded -- set DEVBIN_CACHE_HOME to an absolute directory this user can write"
+    elif [ -d "$root" ]; then
+      _pass "cache: root $root ($how), writable"
+    else
+      _pass "cache: root $root ($how), made at the first put"
+    fi
+  fi
+  check_cache_inputs
+  return 0
+}
+
+# check_macos_cache -- where the macOS stage builds its app (the built-in macos
+# declared, cfg_macos_declared, with macos.build), whether that app is one of
+# the build: block's artefacts, which the stage pulls from the cache and puts
+# there, by the one answer app-sign and a cut read too (cfg_macos_artefact;
+# ST0011 WP-06): a pass naming it, or a NOTE that the stage builds uncached,
+# so an adoption whose artefact's path missed macos.app's sees it before a
+# cut. Two entries naming the app are config validation's to refuse, and a
+# stage that builds no app has nothing to cache, so this says nothing of them.
+check_macos_cache() {
+  local art s=0
+  cfg_macos_declared || return 0
+  art="$(cfg_macos_artefact)" || s=$?
+  case "$s" in
+    0) _pass "macos: the stage pulls and puts its app as the cache's build.artefacts.$art" ;;
+    1) _note "macos: the stage builds its app uncached -- no build.artefacts entry has macos.app's path ($(cfg_macos_get app))" ;;
+  esac
+  return 0
+}
+
+# check_cache_inputs -- each input path the build: block declares
+# (cfg_build_input_paths, the one reader of them, each once), held at HEAD: a
+# path HEAD does not hold has no object, so every key that reads it is refused
+# and the build runs uncached. A FAILURE, since the declaration is what is
+# wrong; a note where there is no commit to read the paths at yet. An empty path
+# is config validation's to refuse, and is not asked here.
+check_cache_inputs() {
+  local p
+  local -a declared=() missing=()
+  # shellcheck disable=SC2119  # the bare call IS the point: every declared path.
+  while IFS= read -r p; do
+    [ -n "$p" ] || continue
+    declared+=("$p")
+  done <<<"$(cfg_build_input_paths)"
+  [ "${#declared[@]}" -gt 0 ] || return 0
+  if ! git_readonly -C "$PROJECT_ROOT" rev-parse -q --verify 'HEAD^{commit}' >/dev/null 2>&1; then
+    _note "cache: no commit to read the input paths at, so no artefact has a key until there is one"
+    return 0
+  fi
+  for p in "${declared[@]}"; do
+    git_readonly -C "$PROJECT_ROOT" rev-parse -q --verify "HEAD:$p" >/dev/null 2>&1 || missing+=("$p")
+  done
+  if [ "${#missing[@]}" -eq 0 ]; then
+    _pass "cache: every declared input path is held at HEAD"
+    return 0
+  fi
+  _fail "cache: ${#missing[@]} declared input path(s) not held at HEAD, so every key that reads one is refused and the build runs uncached"
+  for p in "${missing[@]}"; do
+    _detail "not at HEAD: $p"
+  done
+  _detail "fix: commit the path, or correct build.inputs or the artefact's own inputs in bin/.devbin/config.yaml"
+}
+
 # check_location <wsl> -- under WSL (<wsl> 1), whether the project sits on a
 # Windows drive (ST0008). Off WSL there is nothing to say, so no row. main
 # asks is_wsl before the header, so a DEVBIN_WSL it refuses stops doctor
@@ -1240,6 +1319,8 @@ main() {
   check_tree
   check_switch
   check_bash
+  check_cache
+  check_macos_cache
   check_location "$wsl"
   run_project_checks
 

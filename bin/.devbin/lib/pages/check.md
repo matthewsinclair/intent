@@ -44,10 +44,14 @@ In `bin/.devbin/config.yaml`:
             run: mix compile --warnings-as-errors
           deps:
             in_all: false    # runs by name, left out of `all`
+          plist:             # a new option, run on macOS alone
+            run: plutil -lint Info.plist
+            platforms:       # inactive here on any other host
+              - macos
           critic:
             enabled: false   # not offered here
 
-A new option is offered whatever the languages, and is sealed only if it declares `log:` (`true`, or a suffix of its own); `grammar:` names the reader that extracts its failures, `generic` by default. `log: false` beside a `run:` of the option's own runs it unsealed; `log:` alone changes nothing, and `bin/devbin doctor` fails it. A `run:` is split into words and never given to a shell, so quotes, `$`, `;` and redirections are literal. If config replaces what `fmt <lang>` runs, `check format` refuses until `commands.check.options.format.run` says how to check it. `bin/devbin devbin` names the annotated reference config, which lists every key.
+A new option is offered whatever the languages, and is sealed only if it declares `log:` (`true`, or a suffix of its own); `grammar:` names the reader that extracts its failures, `generic` by default. `log: false` beside a `run:` of the option's own runs it unsealed; `log:` alone changes nothing, and `bin/devbin doctor` fails it. `platforms:` lists the platform words an option runs on, `macos` or `linux`: on any other host it is inactive here, counted on `all`'s count line and named by `help --why`, never failed. A `run:` is split into words and never given to a shell, so quotes, `$`, `;` and redirections are literal. If config replaces what `fmt <lang>` runs, `check format` refuses until `commands.check.options.format.run` says how to check it. `bin/devbin devbin` names the annotated reference config, which lists every key.
 
 ## check vs fmt
 
