@@ -3,7 +3,7 @@
 # Files not listed here -- config.yaml, cmd/, help/ -- belong to the project.
 # devbin_version: 0.1.19
 # source: install
-# source_commit: e532a0f6725091f7a884ff4907ce92e9d7acef98
+# source_commit: 0b5e4fa0f5406317a5d22a6d211c2649cc4135b1
 64e8f2f800e328a360f9ea10b659c2ad30643187e386c74706e22d1825aa34e1  bin/devbin
 4208a2a0c11e1d35b9d400c456af750883aef846db5d9fc04dbc9d299aebfde2  bin/.devbin/lib/LICENSE.md
 3ee83b80e935390a9525a504329e1538ef3c5e075bf4193d85e6c3fa91c5c1f2  bin/.devbin/lib/builtins
