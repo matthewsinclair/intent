@@ -1,0 +1,15 @@
+{
+  "id": "01M6GDZFHRHK91F9K1EHDBYX8W",
+  "ts": "2026-11-03T10:06:20.219Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0672"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent agents sync writes each declared language's default build and test commands into AGENTS.md, which are wrong for a project that builds another way"
+  }
+}
