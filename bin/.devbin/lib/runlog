@@ -2369,7 +2369,14 @@ run_gate() {
   # outside this either way.
   # The rule itself is gate_exec's, in lib/helpers, so a project's handler
   # running a gate tool directly applies the same one (issue 0158).
-  gate_exec "$@" 2>&1 | tee -a "$log"
+  #
+  # THE RUN'S OWN LOG IS NAMED TO WHAT IT RUNS, as DEVBIN_GATE_LOG (issue
+  # 0307), for that command alone: a line it writes once a signal has taken
+  # the tee below, as a cut's exit notes are, is appended to the log by path
+  # (release_say), where it would otherwise reach no log at all. This shell
+  # catches the signal and seals only once the command has ended, so such a
+  # line is in the log before the seal reads it.
+  DEVBIN_GATE_LOG="$log" gate_exec "$@" 2>&1 | tee -a "$log"
   # PIPESTATUS IS READ BEFORE THE BEAT IS STOPPED, and the order is load-bearing:
   # `kill` and `wait` both set $?, and PIPESTATUS is clobbered by the next
   # command to run. Stopping first would hand the gate the heartbeat's verdict.
@@ -2462,11 +2469,7 @@ run_gate() {
   # signal the caller handled takes its handler back, and only one it did not
   # goes back to the default. Then the signal this run caught is sent to this
   # process again (above).
-  local s
-  for s in INT TERM HUP PIPE; do
-    case "$traps_were" in *" SIG$s" | *" SIG$s"$'\n'* | *" $s" | *" $s"$'\n'*) ;; *) trap - "$s" ;; esac
-  done
-  [ -z "$traps_were" ] || eval "$traps_were"
+  traps_restore "$traps_were" INT TERM HUP PIPE
   [ -z "$caught" ] || kill -s "$caught" "$BASHPID"
   return "$rc"
 }

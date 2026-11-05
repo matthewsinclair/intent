@@ -10,6 +10,8 @@
 #   release_scratch <project-root>               a scratch directory OUTSIDE the project
 #   release_materialise <commit> <dir> <path>... a commit's whole tree, written into <dir>
 #   release_owned <root> <version>               the paths a release owns before derived: runs
+#   release_cargo_lock <version-file>            the Cargo.lock a stamp of a Cargo.toml brings in step (pure)
+#   release_lock_own_aside <lock>                a Cargo.lock with the crate's own version line set aside (pure)
 #   release_dirt                                 every dirty path in the working tree
 #   release_outside <paths> <owned>              the paths the owned set does not hold
 #   release_tree_state                           `<hash><TAB><path>` per dirty path, now
@@ -34,7 +36,9 @@
 #                                                the repository gh is told about
 #   release_repo_named <host-path>               a url's repository as one is written (pure)
 #   release_repo_folded <repo>                   a repository in the one form two of them compare in (pure)
+#   release_repo_split <repo>                    a repository as `<host><TAB><owner/name>`, no host for OWNER/NAME (pure)
 #   release_repo_host <repo>                     the host a repository stands on (pure)
+#   release_repo_path <repo>                     the OWNER/NAME a repository names (pure)
 #   release_candidate_remote <repo> <remotes>    the remote a cut pushes its candidate to
 #   release_candidate_pick <repo> <lines>        that remote, of each remote's push urls (pure)
 #   release_candidate_ref <template> <tag>       the candidate's branch for a tag (pure)
@@ -43,7 +47,9 @@
 #                                                the object step's postcondition
 #   release_read_object_content <repo> <tag> <title> <body-file>
 #                                                an existing object: this release's title and notes?
-#   release_assets_pick <commit> <tag> [<cand>]  which run ships, from gh run list's rows on stdin
+#   release_runs_list <repo> <workflow> <sha> <limit>
+#                                                a commit's runs of a workflow, as gh lists them
+#   release_assets_pick <commit> <tag> [<cand>]  which run ships, from release_runs_list's rows on stdin
 #   release_read_assets_run <repo> <workflow> <tag> <commit> [<candidate>]
 #                                                the attach's run: the earliest successful run at the
 #                                                commit, on the candidate's branch or at the tag
@@ -109,8 +115,12 @@ _DEVBIN_RELEASE_STEPS_LOADED=1
 # ANYTHING RUNS (ST0011): the one yes, right after pre-flight, and the stamp,
 # the commit and the legs under it. A publishing cut has the same steps: its
 # legs step makes the snapshot and reads CI on it, and its push step makes the
-# snapshot public (issue 0240, folded into the cut).
-_RELEASE_STEP_NAMES=(resolve pre-flight confirm stamp commit legs tag push object after)
+# snapshot public (issue 0240, folded into the cut). THE FORMULA STEP COMES
+# LAST OF THE CORE'S OWN (issue 0323): the formula published and this
+# machine's clone of the tap pulled once the object step, its attach
+# included, has succeeded, and before after:, which keeps whatever else a
+# project adds.
+_RELEASE_STEP_NAMES=(resolve pre-flight confirm stamp commit legs tag push object formula after)
 
 # The states a row can be in, for the state column's width alone: a state
 # missing here still prints, a column out of line.
@@ -448,6 +458,46 @@ release_owned() {
   done <<<"${DEVBIN_VERSION_SIDECARS:-}"
   notes="$(notes_paths "$root" "$v")" || return 1
   [ -z "$notes" ] || printf '%s\n' "$notes"
+}
+
+# release_cargo_lock <version-file> -- the Cargo.lock a stamp of
+# <version-file> brings in step (issue 0323), spelled as <version-file> is,
+# relative to the root: its sibling, where <version-file> is a Cargo.toml, and
+# nothing where it is not. Whether the lock is there is the caller's to read: a
+# Cargo.toml with no lock beside it has none to sync. Pure.
+release_cargo_lock() {
+  case "$1" in
+    Cargo.toml) printf 'Cargo.lock\n' ;;
+    */Cargo.toml) printf '%s/Cargo.lock\n' "${1%/Cargo.toml}" ;;
+  esac
+  return 0
+}
+
+# release_lock_own_aside <lock> -- <lock>, a Cargo.lock, with the crate's own
+# version line set aside: the `version = "..."` line of each [[package]] block
+# with no `source = ` line, which a crate of the lock's own workspace (or a
+# path dependency) lacks and every registry or git dependency has. Every other
+# line is printed as it is, so two locks that print the same differ in nothing
+# but those versions. A block is the lock's own, ended by a blank line. One
+# awk program, read alike by the BSD awk, gawk and mawk. Pure.
+release_lock_own_aside() {
+  awk '
+    function flush(  i) {
+      for (i = 1; i <= n; i++)
+        if (!(package && sourceless && block[i] ~ /^version = "/)) print block[i]
+      n = 0
+      sourceless = 1
+      package = 0
+    }
+    BEGIN { n = 0; sourceless = 1; package = 0 }
+    /^$/ { flush(); print; next }
+    {
+      block[++n] = $0
+      if (n == 1 && $0 == "[[package]]") package = 1
+      if ($0 ~ /^source = "/) sourceless = 0
+    }
+    END { flush() }
+  ' "$1"
 }
 
 # release_dirt -- every dirty path in the working tree, one per line: staged,
@@ -1155,7 +1205,7 @@ release_repo() {
 # release_repo_named <host-path> -- _release_url_named's HOST<TAB>OWNER/NAME as
 # a repository is written: OWNER/NAME on github.com, HOST/OWNER/NAME elsewhere.
 # THE ONE SPELLING of a repository read off a url, for release_repo and
-# release_candidate_pick; release_repo_host reads its host back. Pure.
+# release_candidate_pick; release_repo_split reads it back. Pure.
 release_repo_named() {
   local host="${1%%$'\t'*}" path="${1#*$'\t'}"
   if [ "$host" = github.com ]; then
@@ -1175,17 +1225,42 @@ release_repo_folded() {
   printf '%s\n' "${r#github.com/}"
 }
 
-# release_repo_host <repo> -- the host <repo>, as release_repo or release.repo
-# writes one, stands on: HOST for HOST/OWNER/NAME, github.com for OWNER/NAME,
-# release_repo_named's spelling read back. Pure. The host a cut reads for a
-# repository: gh is asked whether it is signed in there (cut_gh_signed_in),
-# and a cut's refusal of remotes that push to the candidate's OWNER/NAME on
-# other hosts names it.
-release_repo_host() {
+# release_repo_split <repo> -- <repo>, as release_repo or release.repo writes
+# one, as `<host><TAB><owner/name>`, the host empty where <repo> names none:
+# OWNER/NAME, which stands on github.com. THE SPLIT of a repository into its
+# host and its OWNER/NAME, and the one reading of whether it names a host:
+# release_repo_host and release_repo_path each read a field of it, and the
+# run's artifacts read it whole, since they name a host to gh api only where
+# the repository names one. Pure.
+release_repo_split() {
   case "$1" in
-    */*/*) printf '%s\n' "${1%%/*}" ;;
-    *) printf 'github.com\n' ;;
+    */*/*) printf '%s\t%s\n' "${1%%/*}" "${1#*/}" ;;
+    *) printf '\t%s\n' "$1" ;;
   esac
+}
+
+# release_repo_host <repo> -- the host <repo>, as release_repo or release.repo
+# writes one, stands on (release_repo_split): HOST for HOST/OWNER/NAME,
+# github.com for OWNER/NAME, release_repo_named's spelling read back. Pure. The
+# host a cut reads for a repository: gh is asked whether it is signed in there
+# (cut_gh_signed_in), a cut's refusal of remotes that push to the candidate's
+# OWNER/NAME on other hosts names it, and the default tap is on it.
+release_repo_host() {
+  local split
+  split="$(release_repo_split "$1")" || return 1
+  split="${split%%$'\t'*}"
+  printf '%s\n' "${split:-github.com}"
+}
+
+# release_repo_path <repo> -- the OWNER/NAME <repo>, as release_repo or
+# release.repo writes one, names (release_repo_split): <repo> itself for
+# OWNER/NAME, its host dropped for HOST/OWNER/NAME, its case kept. Pure. Asked
+# by the default tap, the candidate's remote pick and a cut's refusal of
+# remotes on other hosts.
+release_repo_path() {
+  local split
+  split="$(release_repo_split "$1")" || return 1
+  printf '%s\n' "${split#*$'\t'}"
 }
 
 # release_candidate_remote <repo> <remotes> -- the remote a cut pushes its
@@ -1197,7 +1272,7 @@ release_repo_host() {
 # all its urls, as git pushes to each. Read as configured, insteadOf and
 # pushInsteadOf not expanded, as release_repo reads a url: the configured url
 # names the repository, and an expanded one only where the bytes go. Prints
-# and answers as release_candidate_pick does, 0, 1 or 3; answers 2 when git
+# and answers as release_candidate_pick does, 0, 1, 3 or 4; answers 2 when git
 # cannot list the remotes or read a remote's urls. A remote with no url names
 # no repository and is passed over.
 release_candidate_remote() {
@@ -1235,11 +1310,12 @@ release_candidate_remote() {
 # the order a cut searches, each url one a push to that remote goes to, the
 # remote a cut pushes its candidate to (ST0011), so the candidate runs where
 # <repo>'s CI reads it. Each url is read through _release_url_named: one naming
-# no host or no OWNER/NAME, or one whose host cannot be read (an `@` in its
-# user part not written %40), names no repository it can say and is passed
-# over, never compared as a host. ON ITS OWN HOST FIRST: the first remote with
-# a url naming <repo> itself, release_repo's reading run the other way,
-# whatever the case.
+# no host or no OWNER/NAME names no repository and is passed over, never
+# compared as a host. ONE WHOSE HOST CANNOT BE READ (an `@` in its user part
+# not written %40) IS REFUSED, its remote printed, answering 4, since it may
+# push to <repo> on its own host, and passing it over would let a mirror take
+# the candidate. ON ITS OWN HOST FIRST: the first remote with a url naming
+# <repo> itself, release_repo's reading run the other way, whatever the case.
 # THEN <repo>'s OWNER/NAME ON ANY HOST, in any case, since an ssh host alias
 # and github.com can name one repository, so a remote pushing to
 # git@gh-alias:OWNER/NAME.git is the candidate's for a release.repo of
@@ -1247,20 +1323,30 @@ release_candidate_remote() {
 # where the first such remote is taken: on more than one, none is, since a
 # mirror elsewhere with the same OWNER/NAME would take the candidate's push
 # where CI never runs. Prints the remote; answers 1 when no url names <repo>,
-# and 3 when there is more than one host, printing `<remote><TAB><host>` once
-# for each remote and each host its urls name OWNER/NAME on, in the order
-# searched. Pure.
+# 3 when there is more than one host, printing `<remote><TAB><host>` once for
+# each remote and each host its urls name OWNER/NAME on, in the order searched,
+# and 4 when a url's host cannot be read, printing its remote alone, never the
+# url, whose user part may hold a password. Pure.
 release_candidate_pick() {
-  local want on r u hp host first="" one="" many=no seen=$'\n' hits=""
+  local want on r u hp host first="" one="" many=no seen=$'\n' hits="" rc
   want="$(release_repo_folded "$1")"
   # <repo>'s OWNER/NAME, its host dropped.
-  case "$want" in
-    */*/*) on="${want#*/}" ;;
-    *) on="$want" ;;
-  esac
+  on="$(release_repo_path "$want")"
+  # This pass reads each url in order until one names <repo> on its own host,
+  # so a url whose host cannot be read, met before that, stops the pick here,
+  # and the pass on OWNER/NAME alone runs only once this one has read them all.
   while IFS=$'\t' read -r r u; do
     [ -n "$r" ] || continue
-    hp="$(_release_url_named "$u")" || continue
+    rc=0
+    hp="$(_release_url_named "$u")" || rc=$?
+    case "$rc" in
+      0) ;;
+      3)
+        printf '%s\n' "$r"
+        return 4
+        ;;
+      *) continue ;;
+    esac
     [ "$(release_repo_folded "$(release_repo_named "$hp")")" = "$want" ] || continue
     printf '%s\n' "$r"
     return 0
@@ -1395,11 +1481,57 @@ release_read_object_content() {
 # field after it.
 # ---------------------------------------------------------------------------
 
-# release_assets_pick <commit> <tag> [<candidate>] -- which run ships, from
-# `gh run list` rows on stdin,
+# RELEASE_RUNS_LIMIT -- how many runs of one commit release_runs_list is asked
+# for, by ci-state's verdict and the attach's run alike: a list as long as it
+# is refused, since the run a reader needs could be one left out.
+RELEASE_RUNS_LIMIT=200
+
+# release_runs_list <repo> <workflow> <sha> <limit> -- the runs of the
+# workflow file <workflow> that gh lists at the commit <sha>, at most <limit>,
 # `<id><TAB><head-sha><TAB><head-branch><TAB><status><TAB><created><TAB><conclusion>`
-# a line. Only runs AT <commit> count, on the branch <candidate> names or at
-# <tag>, oldest first: a run of the same commit on any other branch, the
+# a line: a head branch the JSON holds as null is written `-`, which a reader
+# makes empty again (dash_to_empty), and the conclusion goes last, since it is
+# empty while a run is going. THE ONE LISTER of a commit's runs: ci-state's
+# verdict (lib/cmd/ci-state) and the attach's run (release_read_assets_run)
+# each keep their own pick over its rows. 1, printing why on one line, when gh
+# fails (`gh run list --workflow <workflow> --commit <sha> failed: <gh's
+# words>`) or no file for its words can be made (`... was not asked: ...`); 3
+# when gh lists as many runs as <limit>, so one may be left out (`gh lists <n>
+# runs of <workflow> on <sha12>, as many as it was asked for`), for its reader
+# to say what that leaves it unable to tell. gh's own words are read from a
+# file, so they never land among the rows: under a bounded reader the file is
+# in the wait's scratch (RELEASE_WAIT_DIR), which the wait removes, so a
+# reader killed at its bound leaves nothing behind; elsewhere it is in TMPDIR,
+# where a ci-state killed mid-list leaves it, as ci-state leaves its own words.
+release_runs_list() {
+  local repo="$1" wf="$2" sha="$3" limit="$4" dir="${RELEASE_WAIT_DIR:-${TMPDIR:-/tmp}}" err rows said rc=0
+  local -a _rrl_got=()
+  if ! err="$(mktemp "$dir/devbin-runs.XXXXXX")"; then
+    printf 'gh run list --workflow %s --commit %s was not asked: no file for its words could be made under %s\n' "$wf" "$sha" "$dir"
+    return 1
+  fi
+  rows="$(release_gh "$repo" run list --workflow "$wf" --commit "$sha" --limit "$limit" \
+    --json databaseId,headSha,headBranch,status,createdAt,conclusion \
+    --jq '.[] | [(.databaseId | tostring), .headSha, (.headBranch // "-"), .status, .createdAt, .conclusion] | @tsv' 2>"$err")" || rc=$?
+  said="$(<"$err")"
+  rm -f "$err"
+  if [ "$rc" -ne 0 ]; then
+    said="${said//$'\n'/ }"
+    printf 'gh run list --workflow %s --commit %s failed: %s\n' "$wf" "$sha" "${said:-it said nothing}"
+    return 1
+  fi
+  [ -z "$rows" ] || mapfile -t _rrl_got <<<"$rows"
+  if [ "${#_rrl_got[@]}" -ge "$limit" ]; then
+    printf 'gh lists %s runs of %s on %s, as many as it was asked for\n' "${#_rrl_got[@]}" "$wf" "${sha:0:12}"
+    return 3
+  fi
+  [ -z "$rows" ] || printf '%s\n' "$rows"
+}
+
+# release_assets_pick <commit> <tag> [<candidate>] -- which run ships, from
+# release_runs_list's rows on stdin. Only runs AT <commit> count, on the
+# branch <candidate> names or at <tag>, oldest first: a run of the same commit
+# on any other branch, the
 # release branch's above all, is never the one. A run still going holds the
 # answer, `pending<TAB><id><TAB><status>`, since it may yet succeed and be the
 # earliest; the first that succeeded is the one,
@@ -1449,20 +1581,21 @@ release_assets_pick() {
 # UNREADABLE: asking again cannot shorten it, so a wait must not spend its bound
 # on it.
 release_read_assets_run() {
-  local repo="$1" wf="$2" tag="$3" commit="$4" cand="${5:-}" limit=200 rows n pick state id info extra jobs cause where
+  local repo="$1" wf="$2" tag="$3" commit="$4" cand="${5:-}" rows rc=0 pick state id info extra jobs cause where
   where="at $tag"
   [ -z "$cand" ] || where="on $cand or at $tag"
-  if ! rows="$(release_gh "$repo" run list --workflow "$wf" --commit "$commit" --limit "$limit" \
-    --json databaseId,headSha,headBranch,status,createdAt,conclusion \
-    --jq '.[] | [.databaseId, .headSha, (.headBranch // "-"), .status, .createdAt, .conclusion] | @tsv' 2>&1)"; then
-    printf 'UNREADABLE\tgh run list --workflow %s --commit %s failed: %s\n' "$wf" "$commit" "${rows//$'\n'/ }"
-    return 0
-  fi
-  n="$(grep -c . <<<"$rows")" || n=0
-  if [ "$n" -ge "$limit" ]; then
-    printf 'refused\tgh lists %s runs of %s on %s, as many as it was asked for, so the earliest cannot be told\n' "$n" "$wf" "${commit:0:12}"
-    return 0
-  fi
+  rows="$(release_runs_list "$repo" "$wf" "$commit" "$RELEASE_RUNS_LIMIT")" || rc=$?
+  case "$rc" in
+    0) ;;
+    3)
+      printf 'refused\t%s, so the earliest cannot be told\n' "$rows"
+      return 0
+      ;;
+    *)
+      printf 'UNREADABLE\t%s\n' "$rows"
+      return 0
+      ;;
+  esac
   if ! pick="$(release_assets_pick "$commit" "$tag" "$cand" <<<"$rows")"; then
     printf 'UNREADABLE\tthe runs of %s on %s could not be sorted\n' "$wf" "${commit:0:12}"
     return 0
@@ -1523,18 +1656,15 @@ release_asset_digest() {
 # status, its words on stderr. gh run download passes over an expired artifact
 # and succeeds while any other downloads, so the attach holds what it wrote to
 # this list. `gh api` takes no --repo: a HOST/OWNER/NAME repository names its
-# host with --hostname.
+# host with --hostname, read off release_repo_split, and an OWNER/NAME one is
+# asked where gh asks by default, as --repo asks it.
 release_run_artifacts() {
-  local path="$1" host=""
+  local split host
   local -a where=()
-  case "$path" in
-    */*/*)
-      host="${path%%/*}"
-      path="${path#*/}"
-      where=(--hostname "$host")
-      ;;
-  esac
-  release_gh "" api "repos/$path/actions/runs/$2/artifacts" ${where[@]+"${where[@]}"} --paginate \
+  split="$(release_repo_split "$1")" || return 1
+  host="${split%%$'\t'*}"
+  [ -z "$host" ] || where=(--hostname "$host")
+  release_gh "" api "repos/${split#*$'\t'}/actions/runs/$2/artifacts" ${where[@]+"${where[@]}"} --paginate \
     --jq '.artifacts[] | [.name, (.expired | tostring)] | @tsv'
 }
 
@@ -1823,6 +1953,28 @@ release_group_kill() {
   kill -"${2:-TERM}" -- "-$g" 2>/dev/null || true
 }
 
+# release_say <line> -- one line of a cut's that may have no reader (issue
+# 0307): on stderr, where the gate's tee takes it into the run's log. Where
+# that write fails, the tee having gone with the signal that ended the run, as
+# a Ctrl-C, a hangup or a TERM to the cut's whole group takes it, the line is
+# appended by path to the run's own log, which run_gate names to what it runs
+# (DEVBIN_GATE_LOG), and goes to the terminal where a person is at one
+# (gate_tty_flag), so a Ctrl-C still shows it. THE ONE WRITER of such a line:
+# the cut's exit notes, its candidate note, and the notices a stop and a read
+# of the job table give as it ends. Its status is 0 whatever it could write,
+# since a failed write must not end an exit trap before the stop and the
+# scratch's removal.
+release_say() {
+  # stdout to stderr first, then bash's own write-error notice to nowhere.
+  printf '%s\n' "$1" >&2 2>/dev/null && return 0
+  if [ -n "${DEVBIN_GATE_LOG:-}" ]; then
+    { printf '%s\n' "$1" >>"$DEVBIN_GATE_LOG"; } 2>/dev/null || :
+  fi
+  [ "$(gate_tty_flag)" = 1 ] || return 0
+  # A terminal that cannot be written has nobody at it to read the line.
+  { printf '%s\n' "$1" >/dev/tty; } 2>/dev/null || :
+}
+
 # release_job_running <pid> <table> <what> -- 0 while <pid> is a running job
 # of this shell, 1 when it is not or <pid> is empty, 3 when the job table could
 # not be written to <table> to be read, which is said once a table, naming
@@ -1838,15 +1990,16 @@ release_group_kill() {
 # the run, never in a command substitution.
 declare -gA RELEASE_JOBS_SAID=()
 release_job_running() {
-  local p
+  local p line
   [ -n "$1" ] || return 1
   if ! jobs -rp >"$2"; then
     if [ -z "${RELEASE_JOBS_SAID[$2]:-}" ]; then
       RELEASE_JOBS_SAID[$2]=said
-      # A notice: a write that fails, the cut's output gone with the signal
-      # that ended it, must not end its exit trap before the stop (run_exit).
-      # stdout to stderr first, then bash's own write-error notice to nowhere.
-      printf 'release: legs: the job table could not be written to %s, so whether the run of %s has ended cannot be read from it: the cut waits for its end, and a stop still signals it\n' "$2" "$3" >&2 2>/dev/null || :
+      # A notice, said through release_say, so a write the signal that ended
+      # the cut left no reader for still reaches its log, and never ends its
+      # exit trap before the stop (run_exit).
+      printf -v line 'release: legs: the job table could not be written to %s, so whether the run of %s has ended cannot be read from it: the cut waits for its end, and a stop still signals it' "$2" "$3"
+      release_say "$line"
     fi
     return 3
   fi
@@ -1887,7 +2040,7 @@ release_run_stop() {
   if [ ! -s "$group" ]; then
     grouped=1
     # A notice, as release_job_running's is: the kill below still runs.
-    printf '%s\n' "$unwritten" >&2 2>/dev/null || :
+    release_say "$unwritten"
   fi
   # The run may end between the read above and a kill: one that finds nothing
   # has nothing to do, so neither kill's failure is an error.

@@ -51,11 +51,15 @@ In this order:
                     project.alias shortcut chained through that link is
                     noted with the command that repoints it
     source          whether the devbin this project was vendored from has
-                    moved: level, behind, moved, ahead, differs or
-                    unknown, each said apart; only behind suggests an
+                    moved: level, behind, moved, ahead, differs, matches
+                    or unknown, each said apart; only behind suggests an
                     upgrade. moved is a source whose commit moved on
                     while no vendored file changed: it passes, naming
-                    both commits, and is not offered as an update. unknown
+                    both commits, and is not offered as an update.
+                    matches is a source whose commit differs backward or
+                    in no known direction while no vendored file changed,
+                    as between installs of one release: it passes,
+                    naming both commits and why they differ. unknown
                     names what this machine is missing, so that no switch
                     names a source (see bin/devbin help upgrade). A
                     project also gets the tree its next upgrade reads, by

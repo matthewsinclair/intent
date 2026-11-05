@@ -556,7 +556,9 @@ open_scratch() {
 # cut's job reaches its whole group, the tee its output runs through
 # included, so stderr may lead to a pipe nobody reads. A write there would
 # end this trap with SIGPIPE before the scratch went (measured, bash 5.3), so
-# SIGPIPE is ignored first, and each line goes through run_exit_say.
+# SIGPIPE is ignored first, and each line goes through release_say
+# (lib/release.steps), which appends it to the run's own log by path when the
+# write fails (issue 0307).
 run_exit() {
   local stopped="$LEG_LOCAL_STOPPED" macos=no
   trap '' PIPE
@@ -565,23 +567,10 @@ run_exit() {
   if release_macos_stop "$RELEASE_POLL_SECONDS"; then macos=yes; fi
   rm -rf "$1"
   [ "$stopped" = yes ] || [ "$LEG_LOCAL_STOPPED" = no ] ||
-    run_exit_say 'release: legs: the local gates were stopped as the run ended, their whole process group'
+    release_say 'release: legs: the local gates were stopped as the run ended, their whole process group'
   [ "$macos" = no ] ||
-    run_exit_say 'release: legs: the macOS stage was stopped as the run ended, its whole process group'
+    release_say 'release: legs: the macOS stage was stopped as the run ended, its whole process group'
   legs_cand_note
-}
-
-# run_exit_say <line> -- one line of the run's exit on stderr, where tee takes
-# it into the run's log. When that write fails, the tee having gone with the
-# signal that ended the run, the line goes to the terminal where a person is
-# at one (gate_tty_flag), so a Ctrl-C still shows it. With neither, nobody can
-# read it, and the next cut of the release deletes a candidate it names.
-run_exit_say() {
-  # stdout to stderr first, then bash's own write-error notice to nowhere.
-  printf '%s\n' "$1" >&2 2>/dev/null && return 0
-  [ "$(gate_tty_flag)" = 1 ] || return 0
-  # A terminal that cannot be written has nobody at it to read the line.
-  { printf '%s\n' "$1" >/dev/tty; } 2>/dev/null || :
 }
 
 # materialise <name> <commit> <version> -- <commit>'s whole tree, written into
@@ -1066,37 +1055,44 @@ _leg_candidate_start() {
 
 # _leg_candidate_clear -- the candidate ref an earlier run left holding the
 # release commit, read red, deleted under a lease on that commit and read back
-# as gone, so the push after it makes a run of its own. 0, saying so on
-# stderr, when the ref is gone. 1 when the delete is refused, does not answer
-# or does not read back as gone, printing the leg's answer for that, failed
-# or unknown, which stops the cut at once, as a refused push does.
+# as gone (_legs_cand_lease_delete), so the push after it makes a run of its
+# own. 0, saying so on stderr, when the ref is gone. 1 when the delete is
+# refused, does not answer or does not read back as gone, printing the leg's
+# answer for that, failed or unknown, which stops the cut at once, as a
+# refused push does.
 _leg_candidate_clear() {
-  local rc=0 held
-  cut_call_rc --reads "git ls-remote $LEG_CAND_SHOWN refs/heads/$LEG_REF reads it" \
-    "deleting the candidate $LEG_REF an earlier run left on $LEG_CAND_SHOWN" _leg_cand_git push -q \
-    "--force-with-lease=refs/heads/$LEG_REF:$LEG_CAND_SHA" -- ":refs/heads/$LEG_REF" >&2 || rc=$?
-  case "$rc" in
-    0) ;;
-    124)
+  _legs_cand_lease_delete "deleting the candidate $LEG_REF an earlier run left on $LEG_CAND_SHOWN"
+  # ok, and the delete that went through, are the only ways on: any other
+  # answer stops the cut, as a refused push does.
+  case "$LEGS_CAND_DEL_ANSWER" in
+    ok | unreadable | held) ;;
+    unanswered)
       CUT_OUTWARD+=", tried to delete the candidate $LEG_REF an earlier run left on $LEG_CAND_SHOWN, which did not answer"
-      printf 'unknown\t%s\n' "$(one_line "$CUT_CALL_WHY")"
+      printf 'unknown\t%s\n' "$LEGS_CAND_DEL_DETAIL"
+      return 1
+      ;;
+    failed)
+      printf 'failed\t%s holds %s, read red, so a push of it would start no run, and deleting it failed: %s\n' \
+        "$LEG_REF" "${LEG_CAND_SHA:0:12}" "$LEGS_CAND_DEL_DETAIL"
       return 1
       ;;
     *)
-      printf 'failed\t%s holds %s, read red, so a push of it would start no run, and deleting it failed: %s\n' \
-        "$LEG_REF" "${LEG_CAND_SHA:0:12}" "$(one_line "$CUT_CALL_WHY")"
+      printf 'unknown\tdeleting the candidate %s an earlier run left on %s answered %s, which this does not read\n' \
+        "$LEG_REF" "$LEG_CAND_SHOWN" "${LEGS_CAND_DEL_ANSWER:-nothing}"
       return 1
       ;;
   esac
   CUT_OUTWARD+=", deleted the candidate $LEG_REF an earlier run left on $LEG_CAND_SHOWN"
-  if ! held="$(_legs_cand_held)"; then
-    printf 'unknown\tthe candidate %s an earlier run left on %s was deleted, and its ref could not be read back: %s\n' "$LEG_REF" "$LEG_CAND_SHOWN" "$held"
-    return 1
-  fi
-  if [ -n "$held" ]; then
-    printf 'unknown\tthe candidate %s an earlier run left on %s was deleted, and it reads back %s\n' "$LEG_REF" "$LEG_CAND_SHOWN" "${held:0:12}"
-    return 1
-  fi
+  case "$LEGS_CAND_DEL_ANSWER" in
+    unreadable)
+      printf 'unknown\tthe candidate %s an earlier run left on %s was deleted, and its ref could not be read back: %s\n' "$LEG_REF" "$LEG_CAND_SHOWN" "$LEGS_CAND_DEL_DETAIL"
+      return 1
+      ;;
+    held)
+      printf 'unknown\tthe candidate %s an earlier run left on %s was deleted, and it reads back %s\n' "$LEG_REF" "$LEG_CAND_SHOWN" "${LEGS_CAND_DEL_DETAIL:0:12}"
+      return 1
+      ;;
+  esac
   printf 'release: legs: the candidate %s an earlier run left on %s, holding %s and read red, was deleted, so this push makes a run of its own\n' \
     "$LEG_REF" "$LEG_CAND_SHOWN" "${LEG_CAND_SHA:0:12}" >&2
 }
@@ -1186,8 +1182,8 @@ legs_cand_delete() {
   return "$rc"
 }
 
-# _legs_cand_delete -- legs_cand_delete's read, delete and read-back, its
-# answer legs_cand_delete's.
+# _legs_cand_delete -- legs_cand_delete's read, then its delete and read-back
+# (_legs_cand_lease_delete), its answer legs_cand_delete's.
 _legs_cand_delete() {
   local held why="" remedy
   remedy=" -- delete it by hand: git push $LEG_CAND_SHOWN :refs/heads/$LEG_REF"
@@ -1199,22 +1195,65 @@ _legs_cand_delete() {
   elif [ "$held" != "$LEG_CAND_SHA" ]; then
     why="it holds ${held:0:12}, not this release's ${LEG_CAND_SHA:0:12}, so it was left as it is, not this run's to delete"
     remedy=""
-  elif ! cut_call_rc --reads "git ls-remote $LEG_CAND_SHOWN refs/heads/$LEG_REF reads it" \
-    "deleting the candidate $LEG_REF on $LEG_CAND_SHOWN" _leg_cand_git push -q \
-    "--force-with-lease=refs/heads/$LEG_REF:$LEG_CAND_SHA" -- ":refs/heads/$LEG_REF" >&2; then
-    why="$(one_line "$CUT_CALL_WHY")"
-  elif ! held="$(_legs_cand_held)"; then
-    why="the delete went through, and the ref could not be read back: $held"
-  elif [ -n "$held" ]; then
-    why="the delete went through, and the ref reads back ${held:0:12}"
   else
-    CUT_OUTWARD+=", deleted the candidate $LEG_REF from $LEG_CAND_SHOWN"
-    printf 'release: legs: the candidate %s was deleted from %s\n' "$LEG_REF" "$LEG_CAND_SHOWN"
-    return 0
+    _legs_cand_lease_delete "deleting the candidate $LEG_REF on $LEG_CAND_SHOWN"
+    case "$LEGS_CAND_DEL_ANSWER" in
+      ok)
+        CUT_OUTWARD+=", deleted the candidate $LEG_REF from $LEG_CAND_SHOWN"
+        printf 'release: legs: the candidate %s was deleted from %s\n' "$LEG_REF" "$LEG_CAND_SHOWN"
+        return 0
+        ;;
+      unreadable) why="the delete went through, and the ref could not be read back: $LEGS_CAND_DEL_DETAIL" ;;
+      held) why="the delete went through, and the ref reads back ${LEGS_CAND_DEL_DETAIL:0:12}" ;;
+      # unanswered or failed: cut_call_rc's words for the push.
+      *) why="$LEGS_CAND_DEL_DETAIL" ;;
+    esac
   fi
   LEGS_CAND_LEFT="the candidate $LEG_REF on $LEG_CAND_SHOWN was NOT deleted ($why)$remedy"
   printf 'release: legs: %s\n' "$LEGS_CAND_LEFT"
   return 1
+}
+
+# _legs_cand_lease_delete <what> -- the candidate ref deleted on its remote
+# under a lease on LEG_CAND_SHA, so a ref moved since is never deleted, then
+# read back (_legs_cand_held): THE DELETE of the candidate, which a stop or the
+# end (_legs_cand_delete) and the clear of a red candidate an earlier run left
+# (_leg_candidate_clear) each ask, each wording the answer in its own way.
+# <what> names the delete in cut_call_rc's words, and the push's own output
+# goes to stderr, as every write's does. The answer is left in
+# LEGS_CAND_DEL_ANSWER, and what it rests on in LEGS_CAND_DEL_DETAIL:
+#   ok          deleted, and read back as gone; no detail
+#   unanswered  the push did not finish within its bound, cut_call_rc's words
+#   failed      the push failed, cut_call_rc's words
+#   unreadable  deleted, and the ref could not be read back: why
+#   held        deleted, and the ref reads back a sha: the sha
+# Its status is 0 whatever the answer, which is the word it leaves. It runs in
+# the cut's own shell, as the push always has, never in a command
+# substitution, so what it sets is the caller's to read.
+LEGS_CAND_DEL_ANSWER="" LEGS_CAND_DEL_DETAIL=""
+_legs_cand_lease_delete() {
+  local rc=0 held
+  LEGS_CAND_DEL_ANSWER="" LEGS_CAND_DEL_DETAIL=""
+  cut_call_rc --reads "git ls-remote $LEG_CAND_SHOWN refs/heads/$LEG_REF reads it" "$1" _leg_cand_git push -q \
+    "--force-with-lease=refs/heads/$LEG_REF:$LEG_CAND_SHA" -- ":refs/heads/$LEG_REF" >&2 || rc=$?
+  case "$rc" in
+    0) ;;
+    124)
+      LEGS_CAND_DEL_ANSWER=unanswered LEGS_CAND_DEL_DETAIL="$(one_line "$CUT_CALL_WHY")"
+      return 0
+      ;;
+    *)
+      LEGS_CAND_DEL_ANSWER=failed LEGS_CAND_DEL_DETAIL="$(one_line "$CUT_CALL_WHY")"
+      return 0
+      ;;
+  esac
+  if ! held="$(_legs_cand_held)"; then
+    LEGS_CAND_DEL_ANSWER=unreadable LEGS_CAND_DEL_DETAIL="$held"
+  elif [ -n "$held" ]; then
+    LEGS_CAND_DEL_ANSWER=held LEGS_CAND_DEL_DETAIL="$held"
+  else
+    LEGS_CAND_DEL_ANSWER=ok
+  fi
 }
 
 # _legs_cand_held -- the sha the candidate ref holds on its remote, nothing
@@ -1253,7 +1292,7 @@ _legs_cand_read() {
 # legs_cand_note -- at the run's exit (run_exit), a candidate this run pushed,
 # tried to, or was pushing, whose delete never reached its verdict, a die or a
 # signal having ended the run before the delete or during it, named with the
-# command that removes it (run_exit_say). A stop and the end reach the delete
+# command that removes it (release_say). A stop and the end reach the delete
 # themselves (legs_cand_delete), which names what it could not do.
 legs_cand_note() {
   local what="" verdict="was NOT deleted: the run ended before its delete"
@@ -1264,7 +1303,7 @@ legs_cand_note() {
   esac
   [ "$LEGS_CAND_DELETED" = no ] || return 0
   [ "$LEGS_CAND_DELETE_STARTED" = no ] || verdict="may not be deleted: the run ended during its delete"
-  run_exit_say "release: legs: the candidate $LEG_REF on $LEG_CAND_SHOWN$what $verdict -- the next cut of this release deletes it, or delete it by hand: git push $LEG_CAND_SHOWN :refs/heads/$LEG_REF"
+  release_say "release: legs: the candidate $LEG_REF on $LEG_CAND_SHOWN$what $verdict -- the next cut of this release deletes it, or delete it by hand: git push $LEG_CAND_SHOWN :refs/heads/$LEG_REF"
 }
 
 # legs_lines -- the RELEASE seal's line per leg (cut_leg_line): its last
@@ -1622,7 +1661,8 @@ legs_step() {
 # from the one confirmed stops the run there, before anything is tagged.
 #
 # PAST THE PUSH THE RULE CHANGES. The object step under `object: ci` fails as any step
-# does, since a re-run continues it. The after step runs on a published
+# does, since a re-run continues it, and so does the formula step, which runs
+# only once the object step has succeeded. The after step runs on a published
 # release: a failed `after:`, or a candidate that would not be deleted, is
 # reported, undoes nothing, and ends the cut at exit 1 with the remedy, which
 # is forward -- the next release, never a moved tag. Every CI verdict is read
@@ -1992,13 +2032,58 @@ cut_stamp_read() {
   release_read_stamp "$SCRATCH/$1" "$3" "$4"
 }
 
+# cut_lock_sync <manifest> <lock> -- the lock beside <manifest>, a Cargo.toml
+# the stamp has just written, brought in step with it (issue 0323). CARGO
+# WRITES THE LOCK, through `cargo metadata`, which rewrites it as it resolves;
+# AND THE CHANGE IS BOUNDED: the lock before and after must agree once the
+# crate's own version line is set aside (release_lock_own_aside). Any other
+# change, or a cargo that could not resolve, puts the lock back from a copy in
+# the run's scratch, byte for byte, and is refused: rc 1, the reason on
+# stdout, naming the lock and what moved, so a resolver change never rides
+# into a release commit. rc 0 when the lock is in step. A path that is not
+# absolute is the root's. No --locked, since rewriting the lock is the point,
+# and no --offline, since the resolver may want the index for a target this
+# machine never builds. Run in a command substitution: it raises nothing.
+cut_lock_sync() {
+  local manifest="$1" lock="$2" lp mp before err moved what rc=0 back
+  case "$lock" in /*) lp="$lock" ;; *) lp="$PROJECT_ROOT/$lock" ;; esac
+  case "$manifest" in /*) mp="$manifest" ;; *) mp="$PROJECT_ROOT/$manifest" ;; esac
+  before="$SCRATCH/lock-sync.before"
+  if ! cp -p "$lp" "$before" 2>/dev/null; then
+    printf '%s could not be copied aside to be put back, so it was not brought in step with %s\n' "$lock" "$manifest"
+    return 1
+  fi
+  back="$lock is put back"
+  if ! err="$(CARGO_TERM_COLOR=never cargo metadata --format-version 1 --manifest-path "$mp" </dev/null 2>&1 >/dev/null)"; then
+    { cp -p "$before" "$lp" && cmp -s "$before" "$lp"; } 2>/dev/null ||
+      back="$lock could NOT be put back -- restore it with git checkout $lock"
+    printf 'cargo metadata could not resolve %s, so %s: %s\n' "$manifest" "$back" "$(one_line "$err")"
+    return 1
+  fi
+  moved="$(diff <(release_lock_own_aside "$before") <(release_lock_own_aside "$lp") 2>&1)" || rc=$?
+  [ "$rc" -ne 0 ] || return 0
+  { cp -p "$before" "$lp" && cmp -s "$before" "$lp"; } 2>/dev/null ||
+    back="$lock could NOT be put back -- restore it with git checkout $lock"
+  if [ "$rc" -eq 1 ]; then
+    what="$(sed -n -e 's/^< /was: /p' -e 's/^> /now: /p' <<<"$moved")"
+    printf 'cargo metadata changed %s beyond the crate'"'"'s own version, so %s: %s -- bring the lock up to date in a commit of its own, then cut again\n' "$lock" "$back" "${what//$'\n'/; }"
+  else
+    printf 'the lock before and after cargo metadata could not be compared, so %s: %s\n' "$back" "$(one_line "$moved")"
+  fi
+  return 1
+}
+
 # cut_run -- a cut of $target: the steps from resolve to after. With --dry-run, the
 # same reads, with every write, every wait, every gate and every after:
 # reported as `would`, and a verdict as the last line when no step failed.
 cut_run() {
   local tpl branch object today launcher line v tag how rc_line commit source
   local state detail remotes remote answer nremote=0 owned dirt outside="" deferred=""
-  local derived gates out written="" have n ignored_rc ignored_why assets_wf after_list
+  local derived gates out written="" have n ignored_rc ignored_why assets_wf after_list lock
+  local formula_on formula_step=no
+  # The binaries' archive (issue 0323): named at pre-flight where the object
+  # step runs macos bin-publish, and empty where it does not.
+  local bins_archive=""
   local -a refusals=() gl=()
   # The candidate's target, its ref and the target as a line names it, found
   # at pre-flight: the remote the legs step pushes it to, or in the publish
@@ -2028,6 +2113,16 @@ cut_run() {
   branch="$(cfg_release_get branch)" || die "release: cannot read release.branch"
   object="$(cfg_release_get object)" || die "release: cannot read release.object"
   derived="$(cfg_release_list derived)" || die "release: cannot read release.derived"
+  # THE LOCK A STAMP BRINGS IN STEP (issue 0323): where project.version_from is
+  # a Cargo.toml with a Cargo.lock beside it, the stamp step syncs the lock
+  # (cut_lock_sync), and names it as a written path, as a derived: command's
+  # is. Nothing is declared; a Cargo.toml with no lock beside it has none.
+  lock="$(release_cargo_lock "${DEVBIN_VERSION_FILE:-VERSION}")"
+  case "$lock" in
+    '') ;;
+    /*) [ -f "$lock" ] || lock="" ;;
+    *) [ -f "$PROJECT_ROOT/$lock" ] || lock="" ;;
+  esac
   # THE ONE READ OF release.gates IN A CUT (ST0011): the local leg runs the
   # list read here, and the seal names it. Read with its status, as every list
   # a step runs is: empty would skip the gates in silence.
@@ -2035,6 +2130,10 @@ cut_run() {
   gates_list "$gates"
   # Read once, for the confirm step's question and the after step's run.
   after_list="$(cfg_release_list after)" || die "release: cannot read release.after"
+  # Read once, for pre-flight, the confirm step's question and the formula
+  # step's run (issue 0323); a value that is neither word is config's refusal.
+  formula_on="$(cfg_release_get formula)" || die "release: cannot read release.formula"
+  if is_true_word "$formula_on"; then formula_step=yes; fi
   # Read with its status: empty would turn the attach off in silence.
   assets_wf="$(cfg_release_get assets.workflow)" || die "release: cannot read release.assets.workflow"
   # A PUBLISHING CUT (issue 0240, folded into the cut by ST0011): the public
@@ -2183,6 +2282,12 @@ cut_run() {
     elif [ -n "$outside" ]; then
       refusals+=("dirty outside what this release owns: ${outside//$'\n'/, } -- commit or stash it first")
     fi
+    # THE LOCK'S SYNC IS CARGO'S (issue 0323): where the stamp step will bring
+    # the lock in step, a cargo that is not here is refused before anything is
+    # stamped, never found at the stamp step or passed over.
+    if [ -n "$lock" ] && [ "$head_is_release" = no ] && ! command -v cargo >/dev/null 2>&1; then
+      refusals+=("project.version_from is ${DEVBIN_VERSION_FILE:-VERSION}, with $lock beside it, so the stamp step brings the lock in step through cargo metadata, and cargo is not on PATH -- put cargo on PATH")
+    fi
     if ! out="$(notes_check "$PROJECT_ROOT" "$v" "$today" 2>&1)"; then
       refusals+=("$(one_line "$out")")
     fi
@@ -2239,6 +2344,15 @@ cut_run() {
     refusals+=("release.assets.workflow is $assets_wf, and ${commit:0:12} holds no .github/workflows/$assets_wf, so no run at the tag could build the assets")
   fi
 
+  # THE FORMULA STEP RUNS THE PROJECT'S formula COMMAND (issue 0323), its
+  # publish with --pull, so release.formula with no formula command to run is
+  # refused here, before anything is stamped, where it would otherwise fail
+  # with the release public. command_active is the one rule of whether a
+  # command runs here, as the released cut's brew note reads it.
+  if [ "$formula_step" = yes ] && ! command_active formula; then
+    refusals+=("release.formula is true, and this project has no formula command for the formula step to run -- enable the built-in (commands.formula.enabled: true), or leave release.formula out")
+  fi
+
   # THE CANDIDATE'S TARGET AND REF (ST0011): where the cut has a candidate leg
   # (cut_candidate_declared), the legs step pushes it to its candidate ref
   # where CI reads it. The ref is named once (release_candidate_ref), for the
@@ -2272,12 +2386,17 @@ cut_run() {
             cand_named+=", $cand_hit on $cand_host"
           done <<<"$cand_remote"
           cand_remote=""
-          if ! cand_own="$(release_repo_host "$cand_repo")"; then
-            refusals+=("remotes push to the OWNER/NAME of $cand_repo on more than one host and none on its own, and its own host cannot be read from it: ${cand_named#, }")
+          if ! cand_own="$(release_repo_host "$cand_repo")" || ! cand_on="$(release_repo_path "$cand_repo")"; then
+            refusals+=("remotes push to the OWNER/NAME of $cand_repo on more than one host and none on its own, and its own host or its OWNER/NAME cannot be read from it: ${cand_named#, }")
           else
-            cand_on="${cand_repo#"$cand_own"/}"
             refusals+=("no remote pushes to $cand_on on $cand_own, the repository's own host, and remotes push to $cand_on on more than one other host: ${cand_named#, }; the candidate's push to a mirror would run no CI -- point a remote's push url at $cand_on on $cand_own: a cut takes that remote before any other")
           fi
+          ;;
+        # A push url whose host cannot be read is named by its remote alone:
+        # its user part may hold a password.
+        4)
+          refusals+=("remote $cand_remote has a push url whose host cannot be read, since an @ in its user part is not written %40, so whether it pushes to $cand_repo, where the candidate's CI runs, cannot be told -- write that @ as %40")
+          cand_remote=""
           ;;
         *) refusals+=("no remote of this repository pushes to $cand_repo, the repository whose CI runs the candidate -- add a remote for it, or declare release.repo as the repository a remote pushes to") ;;
       esac
@@ -2296,7 +2415,7 @@ cut_run() {
   # its refs read once here, from a repository of the run's own, for the
   # confirm's question and the legs step's refusal of a public tag at another
   # commit (publish_read).
-  local snap_list pf_repo shown_pub=""
+  local snap_list pf_repo shown_pub="" snap_sel_rc
   if [ -n "$publish_url" ]; then
     shown_pub="$(release_url_shown "$publish_url")"
     if ! pbranch="$(snapshot_publish_branch)" || [ -z "$pbranch" ]; then
@@ -2309,6 +2428,18 @@ cut_run() {
       refusals+=("release.snapshot.list is not declared, so nothing says what ships to $shown_pub")
     elif ! git cat-file -e "$commit:$snap_list" 2>/dev/null; then
       refusals+=("release.snapshot.list is $snap_list, and ${commit:0:12} holds no such file, so nothing says what ships")
+    elif [ -n "$assets_wf" ] && git cat-file -e "$commit:.github/workflows/$assets_wf" 2>/dev/null; then
+      # THE ASSETS' RUN IS ON THE SNAPSHOT (issue 0314): the workflow runs at
+      # the public repository on S, which holds only what the list selects, so
+      # a list that leaves it out passes the release commit's check above and
+      # leaves no run for the attach to find.
+      snap_sel_rc=0
+      snapshot_selects "$commit" "$snap_list" ".github/workflows/$assets_wf" "$SCRATCH" || snap_sel_rc=$?
+      case "$snap_sel_rc" in
+        0) ;;
+        1) refusals+=("release.assets.workflow is $assets_wf, and release.snapshot.list ($snap_list) does not select .github/workflows/$assets_wf, so the snapshot the public tag is on holds no such workflow and no run of it could build the assets -- add .github/workflows/$assets_wf to $snap_list") ;;
+        *) refusals+=("whether the snapshot carries .github/workflows/$assets_wf cannot be read: $SNAPSHOT_WHY") ;;
+      esac
     fi
     if ! pf_repo="$(cfg_release_get repo)"; then
       refusals+=("release.repo cannot be read")
@@ -2370,7 +2501,47 @@ cut_run() {
       LEGS_MACOS=yes
       legs_word="$(platform_word)" || legs_word=""
       [ "$legs_word" = macos ] ||
-        refusals+=("the macOS stage is declared (commands.macos.enabled), and this host is ${legs_word:-one devbin has no platform word for} -- cut the release on a macOS host, where the stage signs and notarises the app at the release commit")
+        refusals+=("the macOS stage is declared (commands.macos.enabled), and this host is ${legs_word:-one devbin has no platform word for} -- cut the release on a macOS host, where the stage signs and notarises what the macos: block declares at the release commit")
+      # THE STAGE'S PATHS MUST BE IGNORED BY GIT (issue 0313): macos.app, the
+      # bundle the build leaves, which is the path of the build: artefact the
+      # stage caches (cfg_macos_artefacts), and macos.build_root where it is
+      # declared, the directory the build writes its products under. The stage
+      # and the local gates share the tree at the release commit, so a path
+      # either leaves that git does not ignore fails the other's clean check,
+      # blamed on the leg that read it: each is refused here, before anything
+      # is stamped (release_macos_unignored). Where binaries are declared
+      # (issue 0323), macos.bin_dir too, where their build leaves them; it has
+      # a default, so a project with an app alone is not held to it.
+      local macos_k macos_p macos_why
+      local -a macos_keys=(app build_root)
+      [ -z "$(cfg_macos_binaries)" ] || macos_keys+=(bin_dir)
+      for macos_k in "${macos_keys[@]}"; do
+        if ! macos_p="$(cfg_macos_path "$macos_k" "$PROJECT_ROOT")"; then
+          refusals+=("macos.$macos_k cannot be read as a path, so whether git ignores it cannot be said -- ${DEVBIN_INVOKE:-bin/devbin} macos doctor names why")
+          continue
+        fi
+        [ -n "$macos_p" ] || continue
+        macos_why="$(release_macos_unignored "$PROJECT_ROOT" "macos.$macos_k is $(cfg_macos_get "$macos_k")" "$macos_p")" ||
+          refusals+=("$macos_why")
+      done
+    fi
+  fi
+  # THE BINARIES' ARCHIVE (issue 0323): under object: local, where the macOS
+  # stage is declared with macos.binaries, the object step runs macos
+  # bin-publish once the object is made, before the formula step, and reads
+  # the release for the archive by release_bin_archive's name, bin-publish's
+  # own. Named whether or not the tag exists, since a re-run past the tag reads
+  # it too, and only on a macOS host, since the name carries the host's triple:
+  # a cut elsewhere is refused above, with the stage, and a re-run past the tag
+  # here. A name that cannot be made is refused before anything is stamped.
+  if [ "$object" = local ] && cfg_macos_declared && [ -n "$(cfg_macos_binaries)" ]; then
+    local bins_word
+    bins_word="$(platform_word)" || bins_word=""
+    if [ "$bins_word" = macos ]; then
+      bins_archive="$(release_bin_archive "$(cfg_get project.name)" "$v")" ||
+        refusals+=("the binaries' archive cannot be named for the object step's macos bin-publish: project.name is not declared, or rustc -vV names no host triple")
+    elif [ "$source" = tag ]; then
+      refusals+=("macos.binaries is declared under object: local, so the object step packs the binaries' archive through macos bin-publish, whose name carries a macOS host's triple, and this host is ${bins_word:-one devbin has no platform word for} -- run the cut again on a macOS host")
     fi
   fi
   for legs_a in "${LEGS_ABSENT[@]}"; do
@@ -2473,7 +2644,7 @@ cut_run() {
   # about whether anything is left.
   local -a left=() push_plan=()
   local object_work="" object_detail="" title repo="" declared_repo drem
-  local attach_work=no assets_detail="" heading plan_words
+  local attach_work=no assets_detail="" bins_work=no bins_detail="" heading plan_words
   declared_repo="$(cfg_release_get repo)" || cut_fail confirm "release.repo cannot be read"
   drem="$(declared_remote)" || cut_fail confirm "the first declared remote cannot be read"
   cut_read_remotes "$push_mode" confirm
@@ -2549,16 +2720,23 @@ cut_run() {
     detail="${answer#*$'\t'}"
     if [ "$state" = UNREADABLE ]; then
       cut_fail stamp "$detail"
-    elif [ "$state" = already ] && [ -z "$derived" ]; then
+    elif [ "$state" = already ] && [ -z "$derived" ] && [ -z "$lock" ]; then
       cut_row stamp already "$detail"
     elif [ "$dry_run" = 1 ]; then
       have="$(read_version)" || cut_fail stamp "reading the version failed (exit $?)"
-      cut_row stamp would "$([ "$have" = "$v" ] || printf 'version set %s (it is %s); ' "$v" "$have")$([ -z "$derived" ] || printf 'run derived: (%s command(s)); ' "$(grep -c . <<<"$derived")")date the note $today; regenerate the views"
+      cut_row stamp would "$([ "$have" = "$v" ] || printf 'version set %s (it is %s); ' "$v" "$have")$([ -z "$lock" ] || printf 'bring %s in step (cargo metadata); ' "$lock")$([ -z "$derived" ] || printf 'run derived: (%s command(s)); ' "$(grep -c . <<<"$derived")")date the note $today; regenerate the views"
+      [ -z "$lock" ] || CUT_UNREACHED+=("the stamp step's sync of $lock: a dry run does not run cargo metadata")
       [ -z "$derived" ] || CUT_UNREACHED+=("the stamp step's owned-set check of what derived: writes: a dry run does not run derived: commands")
     else
       have="$(read_version)" || cut_fail stamp "reading the version failed (exit $?)"
       if [ "$have" != "$v" ]; then
         gate_exec "$launcher" version set "$v" || cut_fail stamp "version set $v failed (exit $?, above)"
+      fi
+      # THE LOCK IN STEP WITH THE STAMP (issue 0323), before any derived:
+      # command runs, and named as a path the stamp wrote.
+      if [ -n "$lock" ]; then
+        out="$(cut_lock_sync "${DEVBIN_VERSION_FILE:-VERSION}" "$lock")" || cut_fail stamp "$out"
+        written+="$lock"$'\n'
       fi
       local d
       local -a words=()
@@ -2592,7 +2770,7 @@ cut_run() {
       # because it is one read, and it holds for a writer that does not.
       answer="$(release_read_stamp "$PROJECT_ROOT" "$v" count)" || cut_fail stamp "reading the stamp back failed (exit $?)"
       [ "${answer%%$'\t'*}" = already ] || cut_fail stamp "the stamp did not take: ${answer#*$'\t'}"
-      cut_row stamp "done" "${answer#*$'\t'}$([ -z "$derived" ] || printf '; derived: ran')"
+      cut_row stamp "done" "${answer#*$'\t'}$([ -z "$lock" ] || printf '; %s in step' "$lock")$([ -z "$derived" ] || printf '; derived: ran')"
     fi
   fi
 
@@ -2864,9 +3042,10 @@ cut_push_public() {
 # named in the question and only a confirmed run changes it; no run reports
 # `already` over an object that differs. Reads the caller's tag, v, commit
 # (whose tree the notes body is read from), title, declared_repo, drem,
-# assets_wf, body_file and commit_to_make; sets its repo, object_work,
-# object_detail, attach_work and assets_detail, and adds to its left the work
-# it finds. A read that fails fails the confirm step.
+# assets_wf, bins_archive, body_file and commit_to_make; sets its repo,
+# object_work, object_detail, attach_work, assets_detail, bins_work and
+# bins_detail, and adds to its left the work it finds. A read that fails fails
+# the confirm step.
 #
 # WHILE THE COMMIT STEP HAS STILL TO MAKE THE RELEASE COMMIT (commit_to_make,
 # since the confirm step comes first, ST0011), the notes body that object must
@@ -2928,6 +3107,33 @@ cut_object_left() {
       esac
     fi
   fi
+  # THE BINARIES' ARCHIVE (issue 0323), named at pre-flight where the object
+  # step runs macos bin-publish, is work left unless the release carries it
+  # with SHA256SUMS naming it, read through bin-publish's own read
+  # (release_bins_read), so the question, the object step and bin-publish
+  # cannot disagree about whether it is done. One it carries with SHA256SUMS
+  # disagreeing is refused here, in bin-publish's own words
+  # (release_bins_pending), since bin-publish never packs over it: a dry run
+  # and a cut stop where bin-publish would. An object still to be made carries
+  # none yet; one to be set is read as it stands.
+  if [ -n "${bins_archive:-}" ]; then
+    if [ "$object_work" = create ]; then
+      bins_work=yes
+      left+=("pack and attach the binaries' archive $bins_archive through macos bin-publish, and SHA256SUMS")
+    else
+      answer="$(release_wait 0 "" UNREADABLE release_bins_read "$repo" "$tag" "$bins_archive")" ||
+        cut_fail confirm "reading whether $tag carries $bins_archive failed (exit $?)"
+      case "${answer%%$'\t'*}" in
+        already) bins_detail="$bins_archive attached, ${answer#*$'\t'}" ;;
+        absent)
+          bins_work=yes
+          left+=("pack and attach the binaries' archive $bins_archive through macos bin-publish, and SHA256SUMS: ${answer#*$'\t'}")
+          ;;
+        pending) cut_fail confirm "$(release_bins_pending "$tag" "$bins_archive" "${answer#*$'\t'}")" ;;
+        *) cut_fail confirm "${answer#*$'\t'}" ;;
+      esac
+    fi
+  fi
 }
 
 # cut_confirm <who> <heading> [<after>] -- the confirm step's question, for a
@@ -2937,18 +3143,26 @@ cut_object_left() {
 # <who> names the run in a dry run's verdict (`the cut`), and <heading> opens
 # the question at a terminal. <after> is release.after as read, one command a
 # line: THE after: COMMANDS RUN UNDER THIS YES (ST0011), so wherever there is
-# work to ask about the question and the row name them too. Reads the caller's
-# left, tag, dry_run and assume_yes, and sets its confirmed and ask_next, which
-# it declares:
+# work to ask about the question and the row name them too, and so does THE
+# FORMULA STEP where release.formula is true (issue 0323), named ahead of them.
+# Reads the caller's left, tag, dry_run, assume_yes and formula_step, and sets
+# its confirmed and ask_next, which it declares:
 #   confirmed  yes once this step was answered, at the prompt or by --yes: the
-#              after step hands the tag to its commands as
+#              formula and after steps hand the tag to what they run as
 #              DEVBIN_RELEASE_CONFIRMED. No yes is given where nothing is left
 #              to ask about.
 #   ask_next   what a dry run's verdict says the run does at this step (0181)
 cut_confirm() {
-  local who="$1" heading="$2" after="${3:-}" work="" then="" yes_detail asked=0
+  local who="$1" heading="$2" after="${3:-}" work="" then="" yes_detail asked=0 formula=""
   [ "${#left[@]}" -eq 0 ] || work="$(printf '%s; ' "${left[@]}" | sed 's/; $//')"
-  [ -z "$after" ] || then="; then, under this yes, after: ${after//$'\n'/; }"
+  [ "${formula_step:-no}" = no ] ||
+    formula="the formula published to its tap (formula publish --pull), and this machine's clone of the tap pulled"
+  if [ -n "$formula" ]; then
+    then="; then, under this yes, $formula"
+    [ -z "$after" ] || then+="; after: ${after//$'\n'/; }"
+  elif [ -n "$after" ]; then
+    then="; then, under this yes, after: ${after//$'\n'/; }"
+  fi
   yes_detail="--yes given: $work$then"
   if [ "${#left[@]}" -eq 0 ]; then
     cut_row confirm "not re-run" "no irreversible step has work left"
@@ -2968,6 +3182,7 @@ cut_confirm() {
   else
     printf '\n%s. Still to do, and seen by other machines once done:\n' "$heading"
     printf '  - %s\n' "${left[@]}"
+    [ -z "$formula" ] || printf '  - then, under this yes, %s\n' "$formula"
     [ -z "$after" ] || printf '  - then, under this yes, after: %s\n' "${after//$'\n'/; }"
     ask_person "release: go ahead?" || asked=$?
     case "$asked" in
@@ -2994,15 +3209,59 @@ cut_dry_verdict() {
   printf '\nrelease: dry run of %s -- no step failed; %s\n' "$tag" "$ask_next"
 }
 
-# cut_tail -- the object and after steps, and the run's end, for a cut and
-# in either shape, in the publish one about the snapshot: what reads and writes the release
-# object and runs after:, against the repository
-# release.repo names, or the one read off the first remote. Run in the
-# caller's shell, it reads the caller's tag, v, commit (the commit the tag
-# names, where the attach and brew read it), rel_at, branch, object, title,
-# repo, declared_repo, drem, body_file, object_work, object_detail,
-# attach_work, assets_detail, assets_wf, after_list, confirmed, ask_next and
-# dry_run.
+# cut_formula_step -- the formula step, run in cut_tail's shell (issue 0323):
+# where release.formula is true, the project's formula command's publish with
+# --pull, through the project's launcher and gated as an after: line is,
+# handed the tag as DEVBIN_RELEASE_CONFIRMED where the confirm step was
+# answered: the formula rendered from the release and pushed to its tap, then
+# this machine's clone of the tap pulled. A RE-RUN PUBLISHES NOTHING TWICE:
+# publish leaves a tap that carries the release as it is, asking nobody, and a
+# clone already current pulls nothing, so the step reads no postcondition of
+# its own. A FAILURE STOPS THE CUT HERE, exit 1, the release published and
+# standing, and after: unrun: the remedy is the same publish, once the cause
+# is fixed. Reads the caller's tag, confirmed, formula_step and dry_run.
+cut_formula_step() {
+  local out="$SCRATCH/formula.out" frc=0 last published
+  local -a pub=("$PROJECT_ROOT/bin/devbin" formula publish --pull)
+  if [ "$formula_step" != yes ]; then
+    cut_row formula skipped "release.formula is not declared"
+    return 0
+  fi
+  if [ "$dry_run" = 1 ]; then
+    cut_row formula would "run formula publish --pull under the confirm step's yes: the formula pushed to its tap, then this machine's clone of the tap pulled"
+    return 0
+  fi
+  # A mark inherited from whatever started this cut is not this cut's yes.
+  unset DEVBIN_RELEASE_CONFIRMED
+  printf '\nrelease: formula: %s formula publish --pull\n' "${DEVBIN_INVOKE:-bin/devbin}"
+  if [ "$confirmed" = yes ]; then
+    DEVBIN_RELEASE_CONFIRMED="$tag" gate_exec "${pub[@]}" >"$out" 2>&1 || frc=$?
+  else
+    gate_exec "${pub[@]}" >"$out" 2>&1 || frc=$?
+  fi
+  cat "$out"
+  last="$(awk 'NF { l = $0 } END { print l }' "$out")"
+  published="$(awk '/^formula: (published |the tap at .* already carries )/ { l = $0 } END { print l }' "$out")"
+  if grep -q '^formula: published ' "$out"; then CUT_OUTWARD+=", published the formula to its tap"; fi
+  [ "$frc" -eq 0 ] ||
+    cut_fail formula "formula publish --pull failed (exit $frc): ${last:-it said nothing} -- the release is published and stands, and after: did not run; run ${DEVBIN_INVOKE:-bin/devbin} formula publish --pull once the cause is fixed"
+  if [ -n "$published" ] && [ "$published" != "$last" ]; then
+    cut_row formula "done" "${published#formula: }; ${last#formula: }"
+  else
+    cut_row formula "done" "${last#formula: }"
+  fi
+}
+
+# cut_tail -- the object, formula and after steps, and the run's end, for a
+# cut and in either shape, in the publish one about the snapshot: what reads
+# and writes the release object, publishes the formula and runs after:,
+# against the repository release.repo names, or the one read off the first
+# remote. Run in the caller's shell, it reads the caller's tag, v, commit (the
+# commit the tag names, where the attach and brew read it), rel_at, branch,
+# object, title, repo, declared_repo, drem, body_file, object_work,
+# object_detail, attach_work, assets_detail, assets_wf, bins_archive,
+# bins_work, bins_detail, launcher, after_list, formula_step, confirmed,
+# ask_next and dry_run.
 cut_tail() {
   # --- the release object ------------------------------------------
   case "$object" in
@@ -3087,10 +3346,12 @@ cut_tail() {
       fi
       # THE ATTACH, THE SAME FUNCTION `release attach` RUNS (ST0008 WP-08), after
       # the object, and only where the confirm step named it as work left.
+      local row_state="$obj_state" row_detail="$obj_detail${assets_detail:+; $assets_detail}"
       if [ "$attach_work" != yes ]; then
-        cut_row object "$obj_state" "$obj_detail${assets_detail:+; $assets_detail}"
+        :
       elif [ "$dry_run" = 1 ]; then
-        cut_row object would "$obj_detail; then attach the assets $assets_wf's run at $tag built, and SHA256SUMS, waiting up to $(cfg_release_get assets.wait) (assets.wait) for the run"
+        row_state=would
+        row_detail="$obj_detail; then attach the assets $assets_wf's run at $tag built, and SHA256SUMS, waiting up to $(cfg_release_get assets.wait) (assets.wait) for the run"
         CUT_UNREACHED+=("the object step's attach: a dry run reads no run's files and attaches nothing")
       else
         # NO ARM REACHES IT: the attach is work left, so the confirm step has confirmed it
@@ -3103,13 +3364,55 @@ cut_tail() {
         fi
         [ -z "$ATTACH_OUTWARD" ] || CUT_OUTWARD+=", $ATTACH_OUTWARD"
         if [ "$obj_state" = already ] && [ "$ATTACH_WROTE" = no ]; then
-          cut_row object already "$obj_detail; the attach found $ATTACH_DETAIL"
+          row_state=already row_detail="$obj_detail; the attach found $ATTACH_DETAIL"
         else
-          cut_row object "done" "$obj_detail; attached $ATTACH_DETAIL"
+          row_state="done" row_detail="$obj_detail; attached $ATTACH_DETAIL"
         fi
       fi
+      # THE BINARIES' ARCHIVE (issue 0323), after the object and its attach and
+      # before the formula step, whose formula installs from it: macos
+      # bin-publish through the launcher, where the confirm step named it as
+      # work left, then read back by bin-publish's own read (release_bins_read).
+      # bin-publish reads the release first itself, so one that finds the
+      # archive there says already and packs nothing. A FAILURE STOPS THE CUT
+      # HERE, the object made and standing, and the formula step unrun.
+      if [ "$bins_work" != yes ]; then
+        row_detail+="${bins_detail:+; $bins_detail}"
+      elif [ "$dry_run" = 1 ]; then
+        row_state=would
+        row_detail+="; then pack and attach the binaries' archive $bins_archive through macos bin-publish, and SHA256SUMS"
+        CUT_UNREACHED+=("the object step's bin-publish: a dry run packs and attaches nothing")
+      else
+        # NO ARM REACHES IT: the archive is work left, so the confirm step has confirmed
+        # it or stopped the run. Kept so the object step never packs on its own say-so.
+        [ "$confirmed" = yes ] || cut_fail object "the binaries' archive has work left and nobody confirmed attaching it"
+        local bins_out="$SCRATCH/bin-publish.out" bins_rc=0 bins_last
+        printf '\nrelease: bin-publish: %s macos bin-publish, the binaries'"'"' archive %s\n' "${DEVBIN_INVOKE:-bin/devbin}" "$bins_archive"
+        gate_exec "$launcher" macos bin-publish >"$bins_out" 2>&1 || bins_rc=$?
+        cat "$bins_out"
+        if grep -q '^published: ' "$bins_out"; then CUT_OUTWARD+=", attached $bins_archive to the release object for $tag"; fi
+        bins_last="$(awk 'NF { l = $0 } END { print l }' "$bins_out")"
+        [ "$bins_rc" -eq 0 ] ||
+          cut_fail object "$row_detail; macos bin-publish did not attach $bins_archive (exit $bins_rc): ${bins_last:-it said nothing}"
+        answer="$(release_wait 0 "" UNREADABLE release_bins_read "$repo" "$tag" "$bins_archive")" ||
+          cut_fail object "reading back whether $tag carries $bins_archive failed (exit $?)"
+        [ "${answer%%$'\t'*}" = already ] ||
+          cut_fail object "macos bin-publish finished, and $tag does not read back as carrying $bins_archive: ${answer#*$'\t'}"
+        if grep -q '^published: ' "$bins_out"; then
+          row_state="done" row_detail+="; attached $bins_archive through macos bin-publish, ${answer#*$'\t'}"
+        else
+          row_detail+="; $bins_archive attached, ${answer#*$'\t'}"
+        fi
+      fi
+      cut_row object "$row_state" "$row_detail"
       ;;
   esac
+
+  # --- the formula -------------------------------------------------
+  # THE CORE'S LAST BUILT-IN STEP (issue 0323), reached only once the object
+  # step has succeeded, its attach and its bin-publish included, since any
+  # failure there stopped the cut (cut_fail).
+  cut_formula_step
 
   # --- after ------------------------------------------------------
   # Each command in order, reported. Outside the core's guarantees: the
@@ -3703,7 +4006,7 @@ attach_assets() {
 # such workflow. With <from>, the files under it are attached (issue 0226). 0
 # when every stage holds, 1 when one FAILED.
 attach_verb() {
-  local v="$1" from="${2:-}" object wf tag commit repo named url rc=0 cand=""
+  local v="$1" from="${2:-}" object wf tag commit repo named url list rc=0 cand=""
   object="$(cfg_release_get object)" || die "release attach: cannot read release.object"
   [ "$object" = local ] ||
     die "release attach: object is $object, and the core attaches assets under object: local alone -- under ci the workflow writes the release object, and an attach would be its second writer"
@@ -3733,6 +4036,21 @@ attach_verb() {
     # attach reads it (ST0011 WP07): release_public_tag_commit, the one read.
     url="$(cfg_release_get publish.url)" || die "release attach: cannot read release.publish.url"
     if [ -n "$url" ]; then
+      # THE SNAPSHOT HOLDS ONLY WHAT THE LIST SELECTS (issue 0314), so the
+      # workflow must be among it: the list read from the tag's commit, the
+      # release commit the cut made the snapshot of.
+      list="$(cfg_release_get snapshot.list)" || die "release attach: cannot read release.snapshot.list"
+      [ -n "$list" ] ||
+        die "release attach: release.publish.url is declared and release.snapshot.list is not, so what the snapshot the public tag is on holds cannot be read"
+      open_scratch "release attach"
+      rc=0
+      snapshot_selects "$commit" "$list" ".github/workflows/$wf" "$SCRATCH" || rc=$?
+      case "$rc" in
+        0) ;;
+        1) die "release attach: release.assets.workflow is $wf, and release.snapshot.list ($list) at $tag's commit (${commit:0:12}) does not select .github/workflows/$wf, so the snapshot the public tag is on holds no such workflow, and no run of it could have built the assets -- add .github/workflows/$wf to $list" ;;
+        *) die "release attach: whether the snapshot carries .github/workflows/$wf cannot be read: $SNAPSHOT_WHY" ;;
+      esac
+      rc=0
       commit="$(release_public_tag_commit "$url" "$tag")" || rc=$?
       case "$rc" in
         0) ;;
@@ -3912,6 +4230,36 @@ _snapshot_select() {
     SNAPSHOT_WHY="git could not list what the list selects at ${commit:0:12}: ${err%%$'\n'*}"
     return 1
   fi
+}
+
+# snapshot_selects <commit> <list> <path> <work> -- rc 0 when <list>, the
+# release.snapshot.list file in <commit>'s tree, selects <path> from that tree,
+# as a snapshot of <commit> carries it (_snapshot_select, the one selection);
+# rc 1 when it does not; rc 3, with SNAPSHOT_WHY, when that cannot be read: the
+# list is no file there, it names no path, or git could not select. Its
+# scratch, an index and a listing, is under <work>. Asked of
+# release.assets.workflow under release.publish.url (issue 0314), by the cut's
+# pre-flight and by release attach: the assets' run is on the snapshot, which
+# holds only what the list selects. 3, never 2, for what cannot be read: 2 is
+# the dispatcher's word under lib/cmd.
+snapshot_selects() {
+  local commit="$1" list="$2" want="$3" work="$4" text rec
+  local -a specs=()
+  SNAPSHOT_WHY=""
+  if ! text="$(_snapshot_git -C "$PROJECT_ROOT" cat-file blob "$commit:$list" 2>/dev/null)"; then
+    SNAPSHOT_WHY="release.snapshot.list is $list, and ${commit:0:12} holds no such file to read"
+    return 3
+  fi
+  mapfile -t specs < <(pathlist_specs "$text")
+  if [ "${#specs[@]}" -eq 0 ]; then
+    SNAPSHOT_WHY="the list $list at ${commit:0:12} names no path"
+    return 3
+  fi
+  _snapshot_select "$PROJECT_ROOT" "$commit" "$work/selects.index" "$work/selects.out" "${specs[@]}" || return 3
+  while IFS= read -r -d '' rec; do
+    [ "${rec#*$'\t'}" != "$want" ] || return 0
+  done <"$work/selects.out"
+  return 1
 }
 
 # _snapshot_norm <file> <ls-files|ls-tree> -- the NUL-ended records in <file>,
@@ -4747,6 +5095,16 @@ status_report() {
   row "$push_state" push "$push_detail"
   split "$object_row"
   row "$state" object "$detail"
+
+  # The formula step (issue 0323): status reads neither the tap nor this
+  # machine's clone of it, so a declared step is a cut's to run, as after: is.
+  local formula_on
+  formula_on="$(cfg_release_get formula)" || die "release status: cannot read release.formula"
+  if is_true_word "$formula_on"; then
+    row pending formula "a cut runs formula publish --pull, which leaves a tap that carries the release as it is: status reads neither the tap nor this machine's clone of it"
+  else
+    row skipped formula "release.formula is not declared"
+  fi
 
   # Checked as the gates read is: a list that could not be read is no list,
   # and would print `skipped` for a project that declares after: commands.

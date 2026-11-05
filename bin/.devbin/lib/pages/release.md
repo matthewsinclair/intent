@@ -31,8 +31,10 @@ Cut a release: confirm once, then stamp, commit, run every leg (the gates, here 
                  each remote's push, under release.publish.url the public
                  branch and tag, the object, its assets and the after:
                  commands, which run under the same yes
-    stamp        set the version, run any derived: commands, date the note,
-                 regenerate the notes views
+    stamp        set the version, bring a Cargo.lock beside a Cargo.toml
+                 version file in step through cargo metadata, refusing any
+                 change but the crate's own version, run any derived:
+                 commands, date the note, regenerate the notes views
     commit       the release commit
     legs         every leg at once, read by one wait loop: the declared
                  gates on the release commit (default: check all, test all),
@@ -62,6 +64,11 @@ Cut a release: confirm once, then stamp, commit, run every leg (the gates, here 
                  release.publish.url on the public repository; under
                  object: local, then the assets assets.workflow's run built,
                  as release attach attaches them
+    formula      where release.formula is true, and only once the object
+                 step has succeeded: formula publish --pull under the
+                 confirm step's yes, the formula pushed to its tap and this
+                 machine's clone of the tap pulled; a failure stops the cut
+                 here, the release standing, and after: does not run
     after        the declared after: commands
 
 The push step reads each remote back after pushing to it, and a remote is slowest straight after a push, so a read that does not answer is asked again every 15 seconds for about 2 minutes, the bound the push itself has. A remote that answers without the release fails the step at once, as one that does not hold the release after the push. An answer that cannot be read here, such as a branch moved to a commit this checkout does not hold, fails it at once too, as a read that could not tell whether the remote holds the release, since no later ask can clear it. One that has not answered in that time fails it as a read that could not tell, never as a remote without the release: running the same command again reads it back.
@@ -80,10 +87,12 @@ A project that declares `release.publish.url` publishes each release as a snapsh
 
     pre-flight   also: release.ci.query is not -, since CI on the
                  candidate is what stands before anything is public; the
-                 tree holds release.snapshot.list; release.repo names the
-                 public repository where the release object needs gh; and
-                 the url answers, its publish branch, candidate branch and
-                 tag read
+                 tree holds release.snapshot.list, and with
+                 release.assets.workflow declared the list selects that
+                 workflow, since the assets' run is on the snapshot;
+                 release.repo names the public repository where the release
+                 object needs gh; and the url answers, its publish branch,
+                 candidate branch and tag read
     legs         once the release commit exists, its snapshot is made in the
                  run's scratch, on the publish branch's tip, where a tip that
                  is this snapshot already is found, and a public tag at

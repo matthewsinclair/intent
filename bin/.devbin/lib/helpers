@@ -3143,6 +3143,23 @@ git_local_env_clear_named() {
     "$1" "${found//$'\n'/, }" "$2" || return 2
 }
 
+# require_git_local_env_cleared <who> <root> [<suffix>] -- git_local_env_clear_named,
+# stopping on either of its failures, each said one way, with <suffix> after
+# it: a git that cannot list the variables, so one inherited could point a
+# read or a write at another repository, and a clear whose naming line could
+# not be written, which would change repositories in silence. THE ONE HANDLING
+# OF THOSE FAILURES (issue 0305): the cut, release status, release gates,
+# macos and worktrees each wrote their own, and the wordings had drifted.
+require_git_local_env_cleared() {
+  local rc=0
+  git_local_env_clear_named "$1" "$2" || rc=$?
+  case "$rc" in
+    0) ;;
+    2) die "$1: git's local variables were cleared and the line naming them could not be written, so this would change repositories in silence${3:-}" ;;
+    *) die "$1: git cannot list its local variables (git rev-parse --local-env-vars), so one inherited here could point a read or a write at another repository${3:-}" ;;
+  esac
+}
+
 # pathlist_specs <text> -- the pathspecs of a path list such as
 # tests/shipped.paths, one a line: every line of <text> as written, but a blank
 # one or one whose first non-space character is `#`.
@@ -3494,7 +3511,9 @@ git_failure_line() {
 # point of this being issue 0014's one home: `git_head_sha_full` beside it would
 # be two readers of one fact, free to disagree about the failure string the
 # moment either is touched. `short` stays the default so every existing caller
-# is unchanged.
+# is unchanged. A form this does not know is the caller's bug, so it stops
+# rather than answers, as is_commit_sha's form does (issue 0298): read as short,
+# `full` misspelt answered a short sha with no complaint.
 git_head_sha() {
   # THROUGH git_readonly for the reason at git_head_identity (issue 0094): an
   # inherited GIT_DIR outranks `-C`, and the identity's two halves must read one
@@ -3502,7 +3521,8 @@ git_head_sha() {
   local root="${1:-${PROJECT_ROOT:-.}}" form="${2:-short}" sha
   case "$form" in
     full) sha="$(git_readonly -C "$root" rev-parse HEAD 2>/dev/null)" || sha="" ;;
-    *) sha="$(git_readonly -C "$root" rev-parse --short HEAD 2>/dev/null)" || sha="" ;;
+    short) sha="$(git_readonly -C "$root" rev-parse --short HEAD 2>/dev/null)" || sha="" ;;
+    *) die "git_head_sha: no form '$form' (the forms are short and full)" ;;
   esac
   [ -n "$sha" ] || sha=unknown
   printf '%s\n' "$sha"
@@ -4621,9 +4641,10 @@ _devbin_unmanifested_keg() {
 # `unknown`, the line's one shape for a commit it cannot name in full.
 #
 # A RECORDED +dirty IS KEPT (issue 0277). An install's manifest records a dirty
-# source as `<sha> +dirty -- THESE BYTES MATCH NO COMMIT`; the mark is read
-# before the value is cut to its commit, so the line says `<sha12>+dirty` as T4
-# has it, never the bare commit a clean tree at that commit prints.
+# source as `<sha> +dirty (<answer>) -- THESE BYTES MATCH NO COMMIT`, the answer
+# named since issue 0318 and absent before it; the mark is read before the value
+# is cut to its commit, so the line says `<sha12>+dirty` as T4 has it, never the
+# bare commit a clean tree at that commit prints.
 devbin_tree_line() {
   local root="$1" tree ver sha dirty="" state
   tree="$(devbin_tree "$root")"
@@ -5906,6 +5927,30 @@ _devbin_source_head() {
   return 0
 }
 
+# --- a caller's signal handlers, put back ----------------------------------------
+
+# traps_restore <saved> <signal>... -- the handlers `trap -p <signal>...` printed
+# into <saved> put back as they were saved, with no default between: a signal
+# <saved> names takes its handler back, and only one it does not name goes back
+# to the default. For a step that ignores signals for a while and must then
+# leave the caller's handling as it found it.
+#
+# EVERY SIGNAL NAMED IS RESET, NOT ONLY THOSE <saved> NAMES (issue 0311). `trap
+# -p` prints only the signals that have a handler, so evaluating <saved> alone
+# puts back what was saved and leaves every other signal as the step set it: a
+# caller that saved INT alone, under a step that ignored INT, TERM and HUP, was
+# left with TERM and HUP ignored. A signal that cannot be reset, or saved text
+# that does not evaluate, returns non-zero, so a restore that failed is never
+# read as done.
+traps_restore() {
+  local saved="$1" s
+  shift
+  for s in "$@"; do
+    case "$saved" in *" SIG$s" | *" SIG$s"$'\n'* | *" $s" | *" $s"$'\n'*) ;; *) trap - "$s" || return 1 ;; esac
+  done
+  [ -z "$saved" ] || eval "$saved"
+}
+
 # --- which way the source moved -------------------------------------------------
 #
 # MOVED HERE FROM lib/install (issue 0079). upgrade and vendor asked this and
@@ -6011,10 +6056,13 @@ version_direction() {
   fi
 }
 
-# is_commit_sha <word> [full] -- true when <word> can name a commit: lowercase
-# hex, at least seven characters. With `full`, only a whole object name: exactly
-# 40 characters, or 64 in a sha256 repository, as gh matches a run's commit and
-# as a record of the commit something was built at holds it.
+# is_commit_sha <word> [full|stamp] -- true when <word> can name a commit:
+# lowercase hex, at least seven characters. With `full`, only a whole object
+# name: exactly 40 characters, or 64 in a sha256 repository, as gh matches a
+# run's commit and as a record of the commit something was built at holds it.
+# With `stamp`, what a build may stamp its commit as: an abbreviation of eight
+# or more characters, up to a whole name of either format (issue 0299), so a
+# sha256 repository's 64-character stamp is a stamp, as its record is a record.
 #
 # ONE CHECK, because three copies of it had already drifted by the time issue
 # 0059 read them: one dropped the length test. The length test is not
@@ -6026,12 +6074,13 @@ version_direction() {
 # whatever the word: the form is read before the word is.
 is_commit_sha() {
   case "${2:-}" in
-    '' | full) ;;
-    *) die "is_commit_sha: no form '$2' (the forms are full, or none)" ;;
+    '' | full | stamp) ;;
+    *) die "is_commit_sha: no form '$2' (the forms are full and stamp, or none)" ;;
   esac
   case "$1" in '' | *[!0-9a-f]*) return 1 ;; esac
   case "${2:-}" in
     full) [ "${#1}" -eq 40 ] || [ "${#1}" -eq 64 ] ;;
+    stamp) [ "${#1}" -ge 8 ] && [ "${#1}" -le 64 ] ;;
     *) [ "${#1}" -ge 7 ] ;;
   esac
 }
@@ -6339,14 +6388,15 @@ devbin_offer_upgrade() {
 #
 # lib/install OWNS THE BYTE ANSWER and is loaded only when this is asked. The
 # dispatcher does not source lib/install, so the install machinery stays off
-# the hot path of every command: devbin_source_state reaches this only on a
-# forward move, and the notice asks that at most once a day.
+# the hot path of every command: devbin_source_state reaches this only when
+# the commits differ, and the notice asks that at most once a day.
 #
 # Its stderr is dropped ON PURPOSE. A comparison that cannot be made is not
-# level, so the answer stays `behind`, the verdict there was before the bytes
-# were asked; the reason (a manifest that vouches for nothing, a file nobody
-# can read) is what `bin/devbin vendor` reports, and printed here it would land
-# inside the notice or in the middle of doctor's rows.
+# level, so the answer stays `behind`, `ahead` or `differs`, the verdict there
+# was before the bytes were asked; the reason (a manifest that vouches for
+# nothing, a file nobody can read) is what `bin/devbin vendor` reports, and
+# printed here it would land inside the notice or in the middle of doctor's
+# rows.
 _devbin_seam_is_level() {
   if [ -z "${_DEVBIN_INSTALL_LOADED:-}" ]; then
     # NOT FOLLOWED BY SHELLCHECK. lib/install is checked on its own, and
@@ -6366,6 +6416,8 @@ _devbin_seam_is_level() {
 #   moved <recorded> <now>          FORWARD in commits, with no vendored byte changed
 #   ahead <recorded> <now>          the source is BEHIND this project
 #   differs <recorded> <now> <why>  they differ, and in no direction anyone knows
+#   matches <recorded> <now> <why>  the commits differ, BACKWARD or in no direction
+#                                   anyone knows, and no vendored byte does
 #   unknown <reason>                it could not be established
 #
 # ONLY `behind` IS AN UPDATE (issue 0079). This had three states and compared
@@ -6395,6 +6447,16 @@ _devbin_seam_is_level() {
 # `moved`: the commits still differ, so it is kept apart from `level`, and only
 # `behind` is offered as an update. The comparison FAILS CLOSED, as
 # seam_is_level does: when the bytes cannot be read the move stays `behind`.
+#
+# `matches` IS THE SAME ANSWER FOR EVERY OTHER DIFFERENCE (issue 0319). Two
+# installs of one release can name it by two commits nothing places one
+# against the other (an opt install published from the workroom records its
+# commit, Homebrew's the public snapshot's), so switching a machine between
+# them read `differs` in every project, and the notice spoke for files that
+# were level. A backward or undirected difference now asks seam_is_level too,
+# and one that changes no vendored byte is `matches`: quiet in the notice, a
+# pass in doctor that still names the two commits. It fails closed the same
+# way: bytes that cannot be read leave `ahead` or `differs` as they were.
 #
 # WHY THIS EXISTS SEPARATELY FROM THE NOTICE. `_devbin_update_line` prints or
 # stays quiet, and quiet is its answer for BOTH "level" and "cannot tell". That
@@ -6436,8 +6498,20 @@ devbin_source_state() {
         printf 'behind %s %s\n' "$rec" "$cur"
       fi
       ;;
-    backward) printf 'ahead %s %s\n' "$rec" "$cur" ;;
-    unrelated) printf 'differs %s %s the source is on a different history\n' "$rec" "$cur" ;;
+    backward)
+      if _devbin_seam_is_level "$root" "$src"; then
+        printf 'matches %s %s the source holds an older commit\n' "$rec" "$cur"
+      else
+        printf 'ahead %s %s\n' "$rec" "$cur"
+      fi
+      ;;
+    unrelated)
+      if _devbin_seam_is_level "$root" "$src"; then
+        printf 'matches %s %s the source is on a different history\n' "$rec" "$cur"
+      else
+        printf 'differs %s %s the source is on a different history\n' "$rec" "$cur"
+      fi
+      ;;
     *)
       # EQUAL SHAS WITH NO DIRECTION. Today that is a `+dirty` record at the
       # source's own commit: the bytes started there and are not it, and it read
@@ -6445,6 +6519,8 @@ devbin_source_state() {
       # compared. The reason names what is known rather than inferring the mark.
       if [ "$rec" = "$cur" ]; then
         printf 'unknown this project records the commit the source holds, but no direction could be established for it (a +dirty record reads this way)\n'
+      elif _devbin_seam_is_level "$root" "$src"; then
+        printf 'matches %s %s which way the source moved cannot be told from what is on disk\n' "$rec" "$cur"
       else
         printf 'differs %s %s which way the source moved cannot be told from what is on disk\n' "$rec" "$cur"
       fi

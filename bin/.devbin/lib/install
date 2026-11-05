@@ -1029,9 +1029,17 @@ source_commit_of() {
   # committed" (issue 0056). ANYTHING BUT committed IS DIRTY HERE: not watched,
   # not tracked and UNREADABLE are git declining to vouch for the bytes, and the
   # stamp's one job is never to name a commit those bytes might not be.
+  #
+  # THE STAMP NAMES THE ANSWER THAT MADE IT DIRTY (issue 0318), between +dirty
+  # and the warning: DIRTY, not tracked, not watched or UNREADABLE. A publish's
+  # gate once read a source committed and this read, a moment later in the same
+  # install, read it otherwise, and which answer it got was in no log. Named
+  # here, it travels wherever the stamp is read, a vendor's report among them.
+  # Every reader matches ` +dirty` and cuts the commit at the first space, so a
+  # stamp written before the answer was named reads as one written after.
   state="$(seam_state_of "$root")"
   if [ "$state" != committed ]; then
-    printf '%s +dirty -- THESE BYTES MATCH NO COMMIT\n' "$sha"
+    printf '%s +dirty (%s) -- THESE BYTES MATCH NO COMMIT\n' "$sha" "$state"
   else
     printf '%s\n' "$sha"
   fi
@@ -1757,8 +1765,9 @@ EOF
 #
 # Costs two checksum passes over the vendored set. Called only where the answer
 # changes what is printed: the backward and unrelated arms of upgrade's notice,
-# and a forward move in devbin_source_state (lib/helpers), where a move that
-# changes no vendored byte is not called an update (issue 0224).
+# and every difference of commits in devbin_source_state (lib/helpers), where
+# one that changes no vendored byte is `moved` or `matches`, never an update
+# or a note (issues 0224, 0319).
 seam_is_level() {
   local dstroot="$1" srcroot="$2" states line state
   states="$(vendor_states "$dstroot" "$srcroot")" || return 1

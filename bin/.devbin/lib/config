@@ -453,8 +453,12 @@ _cfg_path_known() {
     macos)
       # Issue 0226's macos: block, the built-in macos's settings. Its keys and
       # defaults are ONE table, _DEVBIN_MACOS_SCHEMA below, which this branch
-      # reads rather than listing the keys a second time.
+      # reads rather than listing the keys a second time. Beside it, issue
+      # 0323's binaries: one map a label, `binaries.<label>.<field>`, its fields
+      # the one list _DEVBIN_MACOS_BINARY_FIELDS holds.
       [ "$n" -eq 2 ] && _cfg_macos_row "${p[1]}" >/dev/null && return 0
+      [ "$n" -eq 4 ] && [ "${p[1]}" = binaries ] && _cfg_macos_binary_field "${p[3]}" && return 0
+      [ "$n" -eq 4 ] && [ "${p[1]}.${p[2]}" = pack.files ] && _cfg_is_index "${p[3]}" && return 0
       return 1
       ;;
     formula)
@@ -587,6 +591,7 @@ scalar object          cut,status,check,attach local
 scalar title           cut,status                     {tag}
 scalar repo            cut,status,attach
 scalar object_wait     cut                            20m
+scalar formula         cut,status                     false
 list   after           cut,status
 list   verbs           cut,status,notes,check,attach,snapshot,gates cut|status|notes|check|attach|snapshot|gates
 scalar assets.workflow cut,status,attach
@@ -789,25 +794,29 @@ cfg_release_verbs() {
 #   build         the command line that builds it, run at the root; none: built already
 #   bundle_id     the CFBundleIdentifier the bundle must carry and is signed as
 #   entitlements  the entitlements file signed in, from the root; none: signed without
-#   keychain      the login keychain's service prefix the notary credentials live under
+#   team          the team id that picks the Developer ID identity; required with more than one
+#   notary_profile  the notarytool keychain profile every notarisation submits under
 #   asset         the release asset's name
 #   version_from  the file the app's version is read from, when it versions apart
 #   commit_stamp  the Info.plist key the build writes its commit into; none: not checked
 #   kind_stamp    the Info.plist key the build writes its kind into; none: not checked
 #   kind_value    the value kind_stamp must carry; read only with kind_stamp
 #   build_root    where publish's last Launch Services drop looks
+#   bin_dir       where the build leaves macos.binaries, from the root (issue 0323)
 _DEVBIN_MACOS_SCHEMA="
 scalar app
 scalar build
 scalar bundle_id
 scalar entitlements
-scalar keychain     devbin.apple
+scalar team
+scalar notary_profile devbin
 scalar asset
 scalar version_from
 scalar commit_stamp
 scalar kind_stamp
 scalar kind_value   release
 scalar build_root
+scalar bin_dir      target/release
 "
 
 # _cfg_macos_row <key> -- the default of a macos key (empty when it has none),
@@ -834,6 +843,92 @@ cfg_macos_get() {
     return 1
   fi
   cfg_get "macos.$1" "$def"
+}
+
+# cfg_macos_path_of <value> <root> -- a macos: path value as a path: a leading
+# `~`, `$HOME` or XDG base-directory variable expanded (path_expand, lib/helpers),
+# then a relative path read from <root>; empty stays empty. THE ONE READING OF
+# A macos PATH (issue 0313): cfg_macos_path reads each path key through it, and
+# a value that is no key of its own, as a list entry's path, takes it alone.
+# rc 0 printing the path; rc 2 printing HOME, when a `~`, `$HOME` or an XDG
+# default needs HOME and it is not an absolute path below /; rc 3 printing what
+# the value opens with, for any other leading `~` or `$`, which a caller
+# refuses by name rather than read as a path in the project. Pure but for the
+# environment path_expand reads.
+cfg_macos_path_of() {
+  local p rc=0
+  [ -n "$1" ] || return 0
+  p="$(path_expand "$1")" || rc=$?
+  case "$rc" in
+    0) ;;
+    1)
+      printf '%s\n' "$p"
+      return 2
+      ;;
+    *)
+      printf '%s\n' "$p"
+      return 3
+      ;;
+  esac
+  case "$p" in
+    /*) printf '%s' "$p" ;;
+    *) printf '%s/%s' "$2" "$p" ;;
+  esac
+}
+
+# cfg_macos_path <key> <root> -- macos.<key> as a path, its value read by
+# cfg_macos_get and placed by cfg_macos_path_of, whose answers it gives; rc 1
+# when the key cannot be read, cfg_macos_get's words on stderr. Asked by macos
+# for every path key it reads and by the cut's pre-flight, which refuses a
+# macOS stage whose paths git does not ignore.
+cfg_macos_path() {
+  local v
+  v="$(cfg_macos_get "$1")" || return 1
+  cfg_macos_path_of "$v" "$2"
+}
+
+# THE BINARIES (issue 0323): what the built-in macos signs, notarises and packs
+# beside or instead of an app, one map a label under macos.binaries. The label
+# is a word that names the entry and nothing else, since a key cannot hold the
+# dots and spaces a file's name can, so `path` holds the file's name:
+#
+#   path          the binary or .app, under macos.bin_dir; required
+#   identifier    the identifier it is signed as; required
+#   entitlements  the entitlements file signed in, from the root; none: without
+#   requirement   its designated requirement; none: derived from identifier
+#                 and macos.team
+_DEVBIN_MACOS_BINARY_FIELDS="path identifier entitlements requirement"
+
+# _cfg_macos_binary_field <field> -- true when <field> is a binary's field.
+_cfg_macos_binary_field() {
+  case " $_DEVBIN_MACOS_BINARY_FIELDS " in *" $1 "*) return 0 ;; esac
+  return 1
+}
+
+# cfg_macos_binaries -- each declared binary's label, one a line, in document
+# order; nothing when the project declares none.
+cfg_macos_binaries() { cfg_list macos.binaries; }
+
+# cfg_macos_binary <label> <field> -- one field of one binary, or empty when it
+# is not declared. Refuses, naming it, a field the binaries do not have, so a
+# misspelt read is never taken for one left out.
+cfg_macos_binary() {
+  if ! _cfg_macos_binary_field "$2"; then
+    printf 'config: a macos binary has no field: %s\n' "$2" >&2
+    return 1
+  fi
+  cfg_get "macos.binaries.$1.$2"
+}
+
+# cfg_macos_pack_files -- macos.pack.files, the files bin-publish packs at the
+# archive's root beside the binaries, each from the project root, one a line in
+# the order declared; nothing when none is. IFS is pinned, as cfg_release_list
+# pins it, so a caller's IFS cannot join the indices into one.
+cfg_macos_pack_files() {
+  local i IFS=$' \t\n'
+  for i in $(cfg_list macos.pack.files); do
+    cfg_get "macos.pack.files.$i"
+  done
 }
 
 # cfg_macos_declared -- 0 when the project declares the built-in macos
@@ -1043,6 +1138,12 @@ _cfg_release_value_problem() {
     object)
       case "$v" in local | ci | none) return 1 ;; esac
       printf 'must be local, ci or none'
+      ;;
+    formula)
+      # A yes or a no, in the words every boolean of devbin's takes: another
+      # word, read as a no, would switch the cut's formula step off in silence.
+      if is_true_word "$v" || is_false_word "$v"; then return 1; fi
+      printf 'must be true or false'
       ;;
     ci.wait | object_wait | assets.wait)
       [[ "$v" =~ ^[0-9]+[smh]$ ]] && return 1
@@ -1395,6 +1496,7 @@ _cfg_path_boolean() {
 # told why, not left to look it up.
 _cfg_retired_why() {
   case "$1" in
+    macos.keychain) printf ' -- retired: every notarisation submits under one notarytool keychain profile, macos.notary_profile (default devbin), stored once with bin/devbin macos store-creds; leave it out' ;;
     release.ci.tag) printf ' -- retired: a cut reads CI before the tag, on its candidate ref, so no query is asked about the tag; leave it out' ;;
     release.ci.base) printf ' -- retired: a cut reads CI on its release commit, through its candidate, before the tag, never on the commit it is cut from; leave it out' ;;
     release.verbs.*)

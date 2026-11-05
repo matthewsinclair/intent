@@ -75,12 +75,12 @@ runtime_version() {
 # the consumer and would name a completely unrelated piece of software.
 #
 # THE RECORDED LINE IS PRINTED WHOLE. `source_commit_of` writes
-# `<sha> +dirty -- THESE BYTES MATCH NO COMMIT` when devbin's own half was
-# uncommitted at install, and words rather than a sha when the source was not a
-# checkout at all. Issue 0043 was a reader that kept the sha and threw the
-# sentence away, so provenance that said "no commit matches this" rendered as an
-# ordinary clean row. manifest_field already returns the line intact; this must
-# not helpfully trim it.
+# `<sha> +dirty (<answer>) -- THESE BYTES MATCH NO COMMIT` when devbin's own
+# half was uncommitted at install, and words rather than a sha when the source
+# was not a checkout at all. Issue 0043 was a reader that kept the sha and threw
+# the sentence away, so provenance that said "no commit matches this" rendered
+# as an ordinary clean row. manifest_field already returns the line intact;
+# this must not helpfully trim it.
 #
 # WHERE IT DIVERGES FROM runtime_version, DELIBERATELY: a manifest that exists
 # but records no version DIES there, because there is no honest placeholder for

@@ -897,6 +897,13 @@ check_source_currency() {
       _pass "source: every vendored file is level with the devbin it came from"
       _detail "its commit has moved on outside them: vendored ${rec:0:12}, source now ${cur:0:12}"
       ;;
+    matches)
+      # NOT AN UPDATE, AND NOT A NOTE (issue 0319). The commits differ backward
+      # or in no direction anyone knows, and no vendored byte does, as between
+      # installs of one release, so there is nothing to vendor or upgrade.
+      _pass "source: every vendored file is level with the devbin it came from"
+      _detail "its commit differs, $why: vendored ${rec:0:12}, source now ${cur:0:12}"
+      ;;
     behind)
       _note "source: the devbin this project came from has moved on"
       _detail "vendored ${rec:0:12}, source now ${cur:0:12}"

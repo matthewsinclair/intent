@@ -19,16 +19,17 @@
 # staged its own copy of the build product and attached its own asset, so a fix
 # to notarisation or stapling had to be made in each copy. What was a project's
 # shape is a key here: the app, how it is built, its bundle id, its
-# entitlements, the keychain prefix and the asset's name (lib/config's
+# entitlements, the team, the notary profile and the asset's name (lib/config's
 # _DEVBIN_MACOS_SCHEMA). What stays a project's is what a key cannot say: its
 # icons, its other build products, its own stamps.
 #
 # CREDENTIALS LIVE IN THE LOGIN KEYCHAIN AND NOWHERE ELSE: no key material in
 # the tree, in CI config or in any file this writes, and nothing here prints a
-# value. They are read only by the subcommands that need them, never at load:
-# app-sign reads the team id alone, to choose the identity; app-notarize reads
-# the Apple id and the app password as well. doctor reports each as PRESENT or
-# MISSING, and the signing identity by count and team, never whole.
+# value. Every notarisation submits under one notarytool keychain profile,
+# macos.notary_profile, which store-creds has notarytool store; the identity is
+# found in the keychain, picked by macos.team. doctor reports the profile as
+# PRESENT or NOT USABLE, and the signing identity by count and team, never
+# whole.
 #
 # THE SUBJECT OF SIGNING IS A STAGED COPY OUTSIDE THE BUILD TREE, never the
 # build product, which any build on this machine can replace mid-notarisation.
@@ -80,7 +81,7 @@ ME="${DEVBIN_INVOKE:-bin/devbin} macos"
 
 usage() {
   cat <<USAGE
-usage: $ME <doctor|store-creds|app-sign|app-notarize|app-verify|publish>
+usage: $ME <doctor|store-creds|app-sign|app-notarize|app-verify|publish|bin-sign|bin-notarize|bin-verify|bin-publish|leg>
 
   A macOS app's release, on macOS only, for the app the macos: block of
   bin/.devbin/config.yaml declares. On the maintainer's machine, in a tree
@@ -110,20 +111,48 @@ usage: $ME <doctor|store-creds|app-sign|app-notarize|app-verify|publish>
                 writes SHA256SUMS over every asset
 
   app-verify    The staged copy's signature and ticket; changes nothing
+
+  Command-line binaries, and a .app beside them, each under macos.binaries
+  and read from macos.bin_dir, in the same order:
+
+  bin-sign      macos.build, when declared and no macos.app is; each binary
+                staged under XDG state, outside the build tree; each signed
+                with the Developer ID identity, the hardened runtime and a
+                secure timestamp, and read back against its designated
+                requirement and its entitlements; the commit they were signed
+                at recorded. Refuses, building nothing, unless HEAD, in a
+                clean tree, is the release's commit, as app-sign does
+  bin-notarize  Submit every signed binary to Apple in one archive and wait;
+                once Accepted, Gatekeeper's verdict on each; nothing stapled
+  bin-publish   Refuses, uploading nothing, unless the binaries were signed at
+                the tag's commit, by bin-sign's record; then pack them as
+                <project>-<version>-<host triple>.tar.gz, a .app at the root,
+                every other binary under bin/ and macos.pack.files at the
+                root, and attach it with release attach --from. Already,
+                packing nothing, where the release carries the archive with
+                SHA256SUMS naming it; a cut runs it in its object step,
+                before the formula step, under release.object local
+  bin-verify    Each staged binary's signature and Gatekeeper's verdict;
+                changes nothing
+  leg           A cut's macOS stage: app-sign and app-notarize where macos.app
+                is declared, bin-sign and bin-notarize where macos.binaries is
+                declared under release.object local
+
   doctor        The platform, the declaration, the tools, the Developer ID
                 identity (counted, with its team and a test-sign) and the
-                notary credentials (PRESENT or MISSING, never a value). Exit 1
+                notary profile (PRESENT or NOT USABLE, never a value). Exit 1
                 when anything is missing or the identity cannot sign
-  store-creds   Store the notary credentials in the login keychain under
-                macos.keychain's prefix; interactive, in a terminal only, and
-                each value is typed to security(1), never to this command
+  store-creds   Store the notary profile macos.notary_profile names in the
+                login keychain, through notarytool store-credentials, which
+                prompts for each value and checks them with Apple; interactive,
+                in a terminal only, and no value passes through this command
 
   Off macOS every subcommand refuses as not available here. See
   ${DEVBIN_INVOKE:-bin/devbin} help macos.
 USAGE
 }
 
-SUBCOMMANDS="doctor store-creds app-sign app-notarize app-verify publish"
+SUBCOMMANDS="doctor store-creds app-sign app-notarize app-verify publish bin-sign bin-notarize bin-verify bin-publish leg"
 
 # --help first, over every argument, so no later word can act or refuse first.
 for arg in "$@"; do
@@ -145,6 +174,7 @@ sub="$1"
 shift
 case "$sub" in
   doctor | store-creds | app-sign | app-notarize | app-notarise | app-verify | publish) ;;
+  bin-sign | bin-notarize | bin-notarise | bin-verify | bin-publish | leg) ;;
   *)
     usage >&2
     printf '\n' >&2
@@ -177,6 +207,10 @@ cfg_load "${DEVBIN_DIR:?}/config.yaml" || die "macos: cannot read $DEVBIN_DIR/co
 . "$DEVBIN_LIB/release.notes"
 # shellcheck source=lib/release.steps
 . "$DEVBIN_LIB/release.steps"
+# The binaries' archive's one naming and its one read of a release (issue
+# 0323), shared with the cut's object step.
+# shellcheck source=lib/release.macos
+. "$DEVBIN_LIB/release.macos"
 # Validated whole, as the release core validates it, so a pair rule such as
 # macos.kind_value's holds here too and not only in doctor.
 cfg_validate || die "macos: $DEVBIN_DIR/config.yaml does not validate (above)"
@@ -184,24 +218,28 @@ cfg_validate || die "macos: $DEVBIN_DIR/config.yaml does not validate (above)"
 # macos_key <key> -- a macos: value, or the command stops naming the read.
 macos_key() { cfg_macos_get "$1" || die "macos: cannot read macos.$1"; }
 
-# macos_path <key> -- macos.<key> as a path: a leading `~`, `$HOME` or XDG
-# base-directory variable expanded (path_expand), then a relative path read
-# from the project root; empty stays empty. A value that opens with a `~` or a
-# `$` that cannot be expanded stops the command, naming the key and what it
-# opens with, so it is never read as a path in the project.
+# macos_path <key> -- macos.<key> as a path, read by lib/config's
+# cfg_macos_path_of, the one reading of a macos path: a leading `~`, `$HOME` or
+# XDG base-directory variable expanded, then a relative path read from the
+# project root; empty stays empty. A value that opens with a `~` or a `$` that
+# cannot be expanded stops the command, naming the key and what it opens with,
+# so it is never read as a path in the project.
 macos_path() {
-  local v p rc=0
+  local v
   v="$(macos_key "$1")"
-  [ -n "$v" ] || return 0
-  p="$(path_expand "$v")" || rc=$?
+  macos_path_value "macos.$1" "$v"
+}
+
+# macos_path_value <key's name> <value> -- <value>, the value of the key named,
+# as a path, by macos_path's one reading: the stop for a scalar key and for a
+# binary's field (issue 0323) alike.
+macos_path_value() {
+  local v="$2" p rc=0
+  p="$(cfg_macos_path_of "$v" "$ROOT")" || rc=$?
   case "$rc" in
-    0) ;;
-    1) die "macos: macos.$1 is $v, and HOME (${HOME:-unset}) is not an absolute path below /, so it cannot be expanded" ;;
-    *) die "macos: macos.$1 is $v, which opens with $p, and only ~, \$HOME, \$XDG_STATE_HOME, \$XDG_DATA_HOME, \$XDG_CONFIG_HOME and \$XDG_CACHE_HOME are expanded, each written alone as \$NAME or \${NAME}: an XDG variable that is unset falls back to its XDG default" ;;
-  esac
-  case "$p" in
-    /*) printf '%s' "$p" ;;
-    *) printf '%s/%s' "$ROOT" "$p" ;;
+    0) printf '%s' "$p" ;;
+    2) die "macos: $1 is $v, and HOME (${HOME:-unset}) is not an absolute path below /, so it cannot be expanded" ;;
+    *) die "macos: $1 is $v, which opens with $p, and only ~, \$HOME, \$XDG_STATE_HOME, \$XDG_DATA_HOME, \$XDG_CONFIG_HOME and \$XDG_CACHE_HOME are expanded, each written alone as \$NAME or \${NAME}: an XDG variable that is unset falls back to its XDG default" ;;
   esac
 }
 
@@ -220,7 +258,11 @@ if [ -z "$APP_BUILD_ROOT" ] && [ -n "$APP_SRC" ]; then
   APP_BUILD_ROOT="${APP_SRC%/*}"
   [ -n "$APP_BUILD_ROOT" ] || APP_BUILD_ROOT=/
 fi
-KC_PREFIX="$(macos_key keychain)"
+# THE NOTARY CREDENTIAL IS ONE notarytool KEYCHAIN PROFILE (issue 0323), the
+# one every notarisation submits under, an app's and a binary's alike, and the
+# team picks the Developer ID identity when the keychain holds more than one.
+NOTARY_PROFILE="$(macos_key notary_profile)"
+MACOS_TEAM="$(macos_key team)"
 APP_NAME="${APP_SRC##*/}"
 APP_ASSET="$(macos_key asset)"
 [ -n "$APP_ASSET" ] || APP_ASSET="${APP_NAME:+$APP_NAME.zip}"
@@ -244,6 +286,14 @@ app_dist() { printf '%s' "$APP_STAGE_DIR/$APP_NAME"; }
 # release commit before its tag was cut, as a cut's macos leg signs it, ships,
 # and one signed at any other commit does not.
 APP_STAGE_RECORD="$APP_STAGE_DIR/commit"
+# THE BINARIES' STAGE (issue 0323), a sibling of the app's and never inside it,
+# since app-sign removes its stage whole: the staged binaries under stage/, and
+# the commit bin-sign signed them at beside it, read by bin-publish as publish
+# reads the app's.
+BIN_DIR="$(macos_path bin_dir)"
+BIN_STATE_DIR="$APP_STAGE_DIR.bin"
+BIN_STAGE_DIR="$BIN_STATE_DIR/stage"
+BIN_STAGE_RECORD="$BIN_STATE_DIR/commit"
 
 # require_declared -- the keys a release cannot be made without. Each one
 # missing is named, all at once.
@@ -267,31 +317,33 @@ require_declared() {
 
 # --- the keychain -----------------------------------------------------------
 
-# kc_get <name> -- one credential from the login keychain, never from the
-# environment or a file. Silent on a miss; the callers report presence.
-kc_get() { security find-generic-password -a "${USER:-$(id -un)}" -s "$KC_PREFIX.$1" -w 2>/dev/null || true; }
-
 # load_identity -- the signing identity, FOUND in the keychain, never composed:
-# the "Developer ID Application" identity whose team is the stored team id,
-# else the first one when no team id is stored yet (signing needs no notary
-# credentials). IDENTITY_COUNT is how many the keychain lists.
+# the "Developer ID Application" identity whose team is macos.team, else the
+# one the keychain lists when it lists one. IDENTITY_COUNT is how many it
+# lists, and IDENTITY_TEAMS their teams, comma-separated.
+#
+# MORE THAN ONE AND NO TEAM IS NO PICK (issue 0323): signing with the first of
+# several is signing with an identity nobody chose, and the readback compares
+# the bundle with that same pick, so it could never catch a wrong one.
+# IDENTITY stays empty, and require_identity names the teams and the key.
 load_identity() {
-  local listed
-  APPLE_TEAM_ID="$(kc_get APPLE_TEAM_ID)"
+  local listed t
+  local -a teams=()
   listed="$({ security find-identity -v -p codesigning 2>/dev/null || true; } |
     sed -n 's/.*"\(Developer ID Application: [^"]*\)".*/\1/p' | sort -u)"
   IDENTITY_COUNT="$(grep -c . <<<"$listed" || true)"
-  if [ -n "$APPLE_TEAM_ID" ]; then
-    IDENTITY="$(grep -F "($APPLE_TEAM_ID)" <<<"$listed" | sed -n 1p || true)"
+  while IFS= read -r t; do
+    [ -z "$t" ] || teams+=("$t")
+  done < <(sed -n 's/.*(\([^()]*\))$/\1/p' <<<"$listed" | sort -u)
+  IDENTITY_TEAMS="$(printf '%s, ' ${teams[@]+"${teams[@]}"})"
+  IDENTITY_TEAMS="${IDENTITY_TEAMS%, }"
+  if [ -n "$MACOS_TEAM" ]; then
+    IDENTITY="$(grep -F "($MACOS_TEAM)" <<<"$listed" | sed -n 1p || true)"
+  elif [ "$IDENTITY_COUNT" -gt 1 ]; then
+    IDENTITY=""
   else
     IDENTITY="$(sed -n 1p <<<"$listed")"
   fi
-}
-
-# load_creds -- the notary credentials, for app-notarize and doctor alone.
-load_creds() {
-  APPLE_ID="$(kc_get APPLE_ID)"
-  APPLE_APP_PASSWORD="$(kc_get APPLE_APP_PASSWORD)"
 }
 
 # identity_team -- the team the identity names, from its trailing "(TEAMID)".
@@ -300,14 +352,47 @@ identity_team() {
   printf '%s' "${t%)}"
 }
 
+# identity_unpicked -- true when the keychain lists more than one identity and
+# no macos.team picks one.
+identity_unpicked() { [ -z "$MACOS_TEAM" ] && [ "${IDENTITY_COUNT:-0}" -gt 1 ]; }
+
 require_identity() {
-  [ -n "$IDENTITY" ] || die "macos: no Developer ID Application identity in the login keychain${APPLE_TEAM_ID:+ for the stored team} -- run: $ME doctor"
+  [ -z "$IDENTITY" ] || return 0
+  identity_unpicked &&
+    die "macos: the login keychain holds $IDENTITY_COUNT Developer ID Application identities, of the teams $IDENTITY_TEAMS, and no macos.team picks one -- declare macos.team as the team to sign with"
+  die "macos: no Developer ID Application identity in the login keychain${MACOS_TEAM:+ for the team macos.team names} -- run: $ME doctor"
 }
 
-require_creds() {
-  if [ -z "$APPLE_ID" ] || [ -z "$APPLE_APP_PASSWORD" ] || [ -z "$APPLE_TEAM_ID" ]; then
-    die "macos: notary credentials missing -- run: $ME store-creds (see: $ME doctor)"
+# notary_submit <zip> -- <zip> submitted to Apple under the notary profile,
+# waiting for the verdict: 0 when it is Accepted; 1 when it is anything else,
+# NOTARY_STATUS holding it and notarytool's log printed; 3 when notarytool gave
+# no submission id, as it gives none for a profile the keychain does not hold
+# (3, never 2, which is the dispatcher's word under lib/cmd).
+# notarytool's report is printed, and it exits non-zero on an Invalid verdict,
+# so the verdict is read from the report. Every notarisation goes through here,
+# an app's and a binary's, and each caller clears its own submission and says
+# what it did not do.
+notary_submit() {
+  local zip="$1" out id
+  out="$(xcrun notarytool submit "$zip" --keychain-profile "$NOTARY_PROFILE" --wait 2>&1)" || true
+  printf '%s\n' "$out"
+  NOTARY_STATUS="$(awk '/^  status: / { s = $2 } END { print s }' <<<"$out")"
+  id="$(awk '/id: [0-9a-f-]+/ { print $2; exit }' <<<"$out")"
+  [ -n "$id" ] || return 3
+  if [ "$NOTARY_STATUS" != Accepted ]; then
+    xcrun notarytool log "$id" --keychain-profile "$NOTARY_PROFILE" 2>&1 | sed -n '1,40p' || true
+    return 1
   fi
+  return 0
+}
+
+# notary_refused <rc> <what was not done> -- the stop for notary_submit's
+# non-zero answer, naming the profile when there was no submission at all.
+notary_refused() {
+  case "$1" in
+    3) die "macos: notarytool gave no submission id under the notary profile $NOTARY_PROFILE -- $2; store the profile with: $ME store-creds (see: $ME doctor)" ;;
+    *) die "macos: notarisation was not Accepted (status: ${NOTARY_STATUS:-unknown}) -- $2" ;;
+  esac
 }
 
 # --- the bundle -------------------------------------------------------------
@@ -715,11 +800,7 @@ drop_check_copy() {
   LS_LINES=""
   ls_drop "$t/$APP_NAME" "$t" yes || rc=1
   urc="$LS_URC" said="$LS_ANSWER"
-  if [ -n "$prev" ]; then
-    eval "$prev"
-  else
-    trap - INT TERM HUP
-  fi
+  traps_restore "$prev" INT TERM HUP
   ls_check "$t/$APP_NAME" "$t" "$urc" "$said" || rc=1
   _CHECK_DIR=""
   [ "$rc" -ne 0 ] || return 0
@@ -796,20 +877,15 @@ require_build_root() {
 # them as the release core's writes do, git_head_identity's, which clears them
 # for itself, and the release attach publish runs (ST0011 WP-06). An inherited
 # GIT_DIR would otherwise answer the tag from one repository and HEAD from
-# another. Cleared through git_local_env_clear_named, as the cut, release
+# another. Cleared through require_git_local_env_cleared, as the cut, release
 # status and release gates clear them, so one that was set is named, with
 # $ROOT, and never dropped in silence; a clear whose naming line could not be
 # written stops here too. Here, the first git read of app-sign and of publish,
 # and not at file scope, so doctor and the subcommands that read no git need
 # no git to run.
 read_release_commit() {
-  local line rc=0
-  git_local_env_clear_named macos "$ROOT" || rc=$?
-  case "$rc" in
-    0) ;;
-    2) die "macos: git's local variables were cleared and the line naming them could not be written, so this would change repositories in silence$1" ;;
-    *) die "macos: git cannot list its local variables (git rev-parse --local-env-vars), so one inherited here could point a read at another repository$1" ;;
-  esac
+  local line
+  require_git_local_env_cleared macos "$ROOT" "$1"
   line="$(release_commit "$APP_TAG")" ||
     die "macos: the release commit of $APP_TAG could not be read (above)$1"
   APP_RELEASE_COMMIT="${line%%$'\t'*}"
@@ -845,8 +921,8 @@ read_head_state() {
 # ship with the release, one reason a line; empty means it may. Its bundle id;
 # its version against the app's, the project's unless macos.version_from names
 # another file; and the stamps declared: the kind against macos.kind_value, and
-# the commit, which must be 8 to 40 lowercase hex characters and a prefix of
-# <commit>, the release's commit. The caller decides which commit that is and
+# the commit, which must be a stamp is_commit_sha's stamp form takes and a
+# prefix of <commit>, the release's commit. The caller decides which commit that is and
 # says how it stands: tagged, the tag's, or untagged, the release commit before
 # its tag is cut (require_release_head; publish passes the tag's alone), so
 # no stamp is ever read against whatever HEAD happens to be. A bundle built
@@ -885,8 +961,8 @@ app_ship_blockers() {
   fi
   if [ -n "$APP_COMMIT_STAMP" ]; then
     commit="$(plist_get "$1" "$APP_COMMIT_STAMP")"
-    if [[ ! "$commit" =~ ^[0-9a-f]{8,40}$ ]]; then
-      printf "its %s is %s, not a commit of 8 to 40 lowercase hex characters, so it cannot be checked against the release's commit %s\n" "$APP_COMMIT_STAMP" "${commit:-<unreadable>}" "${2:0:12}"
+    if ! is_commit_sha "$commit" stamp; then
+      printf "its %s is %s, not a commit of eight or more lowercase hex characters, up to a whole name, so it cannot be checked against the release's commit %s\n" "$APP_COMMIT_STAMP" "${commit:-<unreadable>}" "${2:0:12}"
     elif [[ "$2" != "$commit"* ]]; then
       printf 'its %s is %s, and %s is %s -- it was built off another commit\n' "$APP_COMMIT_STAMP" "$commit" "$release" "${2:0:12}"
     fi
@@ -901,9 +977,10 @@ app_ship_blockers() {
 # require_release_head read them: a HEAD that moved, or a tree the build left
 # with changes, means the copy is not the build of the commit that was checked,
 # and a git that cannot answer cannot show that it is; either way the stage is
-# removed and nothing is recorded.
+# removed and nothing is recorded. The binaries' stage (issue 0323) passes its
+# own stage, record and publishing subcommand; the app's are the defaults.
 record_signed_at() {
-  local why=""
+  local why="" stage="${2:-$APP_STAGE_DIR}" record="${3:-$APP_STAGE_RECORD}" publisher="${4:-publish}"
   read_head_state
   case "$HEAD_STATE" in
     unknown) why="HEAD could not be read in $ROOT after $1 was built and signed (git_head_identity said: $HEAD_LINE)" ;;
@@ -916,25 +993,26 @@ record_signed_at() {
       ;;
   esac
   if [ -n "$why" ]; then
-    rm -rf "$APP_STAGE_DIR"
+    rm -rf "$stage"
     die "macos: $why -- the stage is removed and nothing recorded"
   fi
-  printf '%s\n' "$APP_RELEASE_COMMIT" >"$APP_STAGE_RECORD" ||
-    die "macos: could not record the commit $1 was signed at in $APP_STAGE_RECORD, and publish ships no copy without one"
+  printf '%s\n' "$APP_RELEASE_COMMIT" >"$record" ||
+    die "macos: could not record the commit $1 was signed at in $record, and $publisher ships no copy without one"
 }
 
 # require_stage_signed_at_tag <tag's commit> -- the staged copy was signed at
 # the tag's commit, by APP_STAGE_RECORD (record_signed_at): a copy signed at
 # any other commit is another commit's build, and a stage with no record, or
 # one that is not a whole commit name, is a build nobody can name, refused as
-# such rather than read as fine.
+# such rather than read as fine. The binaries (issue 0323) pass their record,
+# what is staged and the steps that sign it again; the app's are the defaults.
 require_stage_signed_at_tag() {
-  local signed=""
-  [ ! -f "$APP_STAGE_RECORD" ] || signed="$(<"$APP_STAGE_RECORD")"
+  local signed="" record="${2:-$APP_STAGE_RECORD}" what="${3:-$APP_NAME}" redo="${4:-$ME app-sign, then $ME app-notarize}"
+  [ ! -f "$record" ] || signed="$(<"$record")"
   is_commit_sha "$signed" full ||
-    die "macos: the staged $APP_NAME carries no record of the commit it was signed at ($APP_STAGE_RECORD), so whose build it is cannot be told -- nothing uploaded; sign it again at the tag: in a tree at $APP_TAG, $ME app-sign, then $ME app-notarize"
+    die "macos: the staged $what carries no record of the commit it was signed at ($record), so whose build it is cannot be told -- nothing uploaded; sign it again at the tag: in a tree at $APP_TAG, $redo"
   [ "$signed" = "$1" ] ||
-    die "macos: the staged $APP_NAME was signed at ${signed:0:12}, and $APP_TAG names ${1:0:12}: another commit's build -- nothing uploaded; sign it again at the tag: in a tree at $APP_TAG, $ME app-sign, then $ME app-notarize"
+    die "macos: the staged $what was signed at ${signed:0:12}, and $APP_TAG names ${1:0:12}: another commit's build -- nothing uploaded; sign it again at the tag: in a tree at $APP_TAG, $redo"
 }
 
 # refuse_blockers <headline> <blockers> [<path>] -- refuse with the blockers
@@ -962,9 +1040,11 @@ refuse_blockers() {
 # through read_head_state's one parse of git_head_identity (issue 0094:
 # through git_readonly, so the clean-tree check takes no index lock).
 # APP_RELEASE_COMMIT and APP_RELEASE_STATE then carry what was checked, for
-# the stamp check and the record to use rather than read HEAD again.
+# the stamp check and the record to use rather than read HEAD again. The
+# binaries (issue 0323) name their own signer, steps and publisher; the app's
+# are the defaults.
 require_release_head() {
-  local head dirty=no
+  local head dirty=no signer="${1:-app-sign}" steps="${2:-app-sign, app-notarize and publish}" publisher="${3:-publish}"
   read_release_commit " -- nothing built or signed"
   read_head_state
   head="$HEAD_SHA"
@@ -975,15 +1055,15 @@ require_release_head() {
   esac
   if [ "$APP_RELEASE_STATE" = untagged ]; then
     [ "$head" = "$APP_RELEASE_COMMIT" ] ||
-      die "macos: HEAD moved while app-sign read it, from ${APP_RELEASE_COMMIT:0:12} to ${head:0:12} -- nothing built or signed"
+      die "macos: HEAD moved while $signer read it, from ${APP_RELEASE_COMMIT:0:12} to ${head:0:12} -- nothing built or signed"
     [ "$dirty" = no ] ||
-      die "macos: app-sign signs only the release's build, in a clean tree: HEAD ${head:0:12}, the release commit of $APP_TAG until it is cut, has changes -- nothing built or signed"
-    printf '  no tag %s here: HEAD %s is taken as the release commit, and publish ships its build only under a tag cut there\n' "$APP_TAG" "${head:0:12}"
+      die "macos: $signer signs only the release's build, in a clean tree: HEAD ${head:0:12}, the release commit of $APP_TAG until it is cut, has changes -- nothing built or signed"
+    printf '  no tag %s here: HEAD %s is taken as the release commit, and %s ships its build only under a tag cut there\n' "$APP_TAG" "${head:0:12}" "$publisher"
   elif [ "$head" != "$APP_RELEASE_COMMIT" ] || [ "$dirty" = yes ]; then
-    die "macos: app-sign signs only the release's build: HEAD at $APP_TAG (${APP_RELEASE_COMMIT:0:12}), in a clean tree, and HEAD is ${head:0:12}$([ "$dirty" = no ] || printf ', with changes') -- nothing built or signed. Run the steps in a worktree at the tag:
+    die "macos: $signer signs only the release's build: HEAD at $APP_TAG (${APP_RELEASE_COMMIT:0:12}), in a clean tree, and HEAD is ${head:0:12}$([ "$dirty" = no ] || printf ', with changes') -- nothing built or signed. Run the steps in a worktree at the tag:
        git worktree add --detach <dir> $APP_TAG
-       cd <dir>, then $ME app-sign, app-notarize and publish
-       git worktree remove <dir>, once publish has run"
+       cd <dir>, then $ME $steps
+       git worktree remove <dir>, once $publisher has run"
   fi
 }
 
@@ -1000,30 +1080,156 @@ require_release_head() {
 # own. All three are spelled as the filesystem spells them (getcwd), as
 # macos's other placings are: on a volume that folds case, a stage typed
 # <state>/PROJ/... was compared as text against <root>/proj, passed as
-# outside, and was made inside the project.
+# outside, and was made inside the project. The binaries (issue 0323) pass
+# their stage and macos.bin_dir; the app's stage and directory are the defaults.
 require_stage_outside() {
-  local stage root product shown rc=0
-  case "$APP_STAGE_DIR" in
+  local want="${1:-$APP_STAGE_DIR}" products="${2:-${APP_SRC%/*}}" stage root product shown rc=0
+  case "$want" in
     /*) ;;
-    *) die "macos: the stage $APP_STAGE_DIR is not an absolute path -- XDG_STATE_HOME must be one" ;;
+    *) die "macos: the stage $want is not an absolute path -- XDG_STATE_HOME must be one" ;;
   esac
-  cargo_place "$APP_STAGE_DIR" stage getcwd || rc=$?
+  cargo_place "$want" stage getcwd || rc=$?
   case "$rc" in
     0) ;;
-    2) die "macos: the stage $APP_STAGE_DIR names . or .. beneath a directory that does not exist yet, so where it lands, in the build tree or outside it, cannot be known -- point XDG_STATE_HOME elsewhere" ;;
+    2) die "macos: the stage $want names . or .. beneath a directory that does not exist yet, so where it lands, in the build tree or outside it, cannot be known -- point XDG_STATE_HOME elsewhere" ;;
     1)
       printf -v shown '%q' "$stage"
-      die "macos: the stage $APP_STAGE_DIR cannot be placed: $shown cannot be entered, so where it lands cannot be known -- point XDG_STATE_HOME elsewhere"
+      die "macos: the stage $want cannot be placed: $shown cannot be entered, so where it lands cannot be known -- point XDG_STATE_HOME elsewhere"
       ;;
-    *) die "macos: the stage $APP_STAGE_DIR cannot be placed: cargo_place answered $rc, a status this does not read" ;;
+    *) die "macos: the stage $want cannot be placed: cargo_place answered $rc, a status this does not read" ;;
   esac
   physical_dir "$ROOT" root getcwd || die "macos: the project root $ROOT cannot be entered"
-  physical_dir "${APP_SRC%/*}" product getcwd || product="${APP_SRC%/*}"
+  physical_dir "$products" product getcwd || product="$products"
   case "$stage/" in
     "$root"/* | "$product"/*)
       die "macos: the stage $stage is inside $([ "${stage#"$root"/}" != "$stage" ] && printf 'the project root %s' "$root" || printf 'the build products %s' "$product"), and the subject of signing is a copy outside the build tree -- point XDG_STATE_HOME elsewhere"
       ;;
   esac
+}
+
+# --- the binaries (issue 0323) ----------------------------------------------
+#
+# A project's command-line binaries, and a .app shipped beside them, released
+# as two of the maintainer's projects released theirs with scripts of their
+# own: each declared under macos.binaries and read from macos.bin_dir; staged
+# under XDG state beside the app's stage; signed with the Developer ID, the
+# hardened runtime and a secure timestamp; read back against its designated
+# requirement; notarised in one submission and assessed by Gatekeeper; then
+# packed as <project>-<version>-<host triple>.tar.gz, a .app at the archive's
+# root and every other binary under bin/, with macos.pack.files at the root,
+# and attached through release attach --from. Nothing is stapled: a bare
+# binary cannot carry a ticket, and Gatekeeper asks Apple for its verdict.
+
+# bin_labels -- the declared binaries' labels, one a line, in document order.
+bin_labels() { cfg_macos_binaries; }
+
+# bin_field <label> <field> -- one field of a binary, or the command stops.
+bin_field() { cfg_macos_binary "$1" "$2" || die "macos: cannot read macos.binaries.$1.$2"; }
+
+# bin_source <label> -- where the build left it: macos.bin_dir/<path>. Each
+# read here is an assignment that returns its failure, since bash turns
+# errexit off inside the command substitutions that call these.
+bin_source() {
+  local p
+  p="$(bin_field "$1" path)" || return 1
+  printf '%s/%s' "$BIN_DIR" "$p"
+}
+
+# bin_staged <label> -- its staged copy.
+bin_staged() {
+  local p
+  p="$(bin_field "$1" path)" || return 1
+  printf '%s/%s' "$BIN_STAGE_DIR" "$p"
+}
+
+# bin_entitlements <label> -- its entitlements file as a path, read from the
+# project root as every macos path is, or empty when it declares none.
+bin_entitlements() {
+  local v
+  v="$(bin_field "$1" entitlements)" || return 1
+  [ -n "$v" ] || return 0
+  macos_path_value "macos.binaries.$1.entitlements" "$v"
+}
+
+# bin_requirement <label> -- its designated requirement: its own when it
+# declares one, else the Developer ID form filled from its identifier and the
+# identity's team, which every requirement the projects declared by hand was.
+bin_requirement() {
+  local req id
+  req="$(bin_field "$1" requirement)" || return 1
+  if [ -n "$req" ]; then
+    printf '%s' "$req"
+    return 0
+  fi
+  id="$(bin_field "$1" identifier)" || return 1
+  printf 'identifier "%s" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] and certificate leaf[field.1.2.840.113635.100.6.1.13] and certificate leaf[subject.OU] = "%s"' \
+    "$id" "$(identity_team)"
+}
+
+# require_binaries -- at least one binary declared, each with a path that is a
+# name under macos.bin_dir and an identifier, and each entitlements file it
+# names present. Every problem is named, all at once.
+require_binaries() {
+  local label path ent n=0 missing="" wrong=""
+  while IFS= read -r label; do
+    [ -n "$label" ] || continue
+    n=$((n + 1))
+    path="$(bin_field "$label" path)"
+    [ -n "$path" ] || missing+=", macos.binaries.$label.path"
+    [ -n "$(bin_field "$label" identifier)" ] || missing+=", macos.binaries.$label.identifier"
+    case "$path" in
+      */* | . | ..) wrong+=$'\n'"  macos.binaries.$label.path is $path, and it must be a name in macos.bin_dir" ;;
+    esac
+    ent="$(bin_entitlements "$label")"
+    [ -z "$ent" ] || [ -f "$ent" ] || wrong+=$'\n'"  macos.binaries.$label.entitlements is $ent, and there is no such file"
+  done <<<"$(bin_labels)"
+  [ "$n" -gt 0 ] || die "macos: $DEVBIN_DIR/config.yaml declares no macos.binaries -- see ${DEVBIN_INVOKE:-bin/devbin} help macos"
+  [ -z "$missing" ] || die "macos: $DEVBIN_DIR/config.yaml declares no ${missing#, } -- see ${DEVBIN_INVOKE:-bin/devbin} help macos"
+  [ -z "$wrong" ] || die "macos: the binaries cannot be released:$wrong"
+}
+
+# bin_check <label> <yes|no> -- its staged copy read back: it meets its
+# designated requirement, carries the hardened runtime and every entitlement
+# its declared file names, and, with yes, Gatekeeper accepts it. The first that
+# fails stops the command; a pass prints one line of what was read.
+bin_check() {
+  local label="$1" f name req flags ent keys key sig
+  f="$(bin_staged "$label")"
+  name="$(bin_field "$label" path)"
+  req="$(bin_requirement "$label")"
+  # A requirement argument that opens with = is the requirement's text, not a
+  # file holding it.
+  codesign --verify --strict -R "=$req" "$f" >/dev/null 2>&1 ||
+    die "macos: $name does not meet its designated requirement: $req"
+  flags="$({ codesign -d --verbose=2 "$f" 2>&1 || true; } | sed -n 's/.*flags=\([^ ]*\).*/\1/p' | sed -n 1p)"
+  case "$flags" in
+    *runtime*) ;;
+    *) die "macos: $name carries no hardened runtime (flags=${flags:-<unreadable>}) -- notarisation would refuse it" ;;
+  esac
+  ent="$(bin_entitlements "$label")"
+  if [ -n "$ent" ]; then
+    keys="$(sed -n 's:.*<key>\(.*\)</key>.*:\1:p' "$ent")" || die "macos: could not read $ent"
+    [ -n "$keys" ] || die "macos: $ent names no entitlement, so there is nothing to sign $name with"
+    sig="$(codesign -d --entitlements - --xml "$f" 2>/dev/null)" || sig=""
+    while IFS= read -r key; do
+      [[ "$sig" == *"<key>$key</key>"* ]] ||
+        die "macos: $name is signed without $key, which $ent declares -- the hardened runtime would deny it"
+    done <<<"$keys"
+  fi
+  if [ "$2" = yes ]; then
+    spctl -a -t open --context context:primary-signature "$f" >/dev/null 2>&1 ||
+      die "macos: Gatekeeper refuses $name -- has it been notarised? run: $ME bin-notarize"
+  fi
+  printf '  %-21s requirement, hardened runtime%s%s\n' "$name" "${ent:+, entitlements}" "$([ "$2" = no ] || printf ', Gatekeeper')"
+}
+
+# bin_require_staged -- every declared binary is staged, or the command stops.
+bin_require_staged() {
+  local label f
+  while IFS= read -r label; do
+    f="$(bin_staged "$label")"
+    [ -e "$f" ] || die "macos: $(bin_field "$label" path) is not staged at $f -- run: $ME bin-sign"
+  done <<<"$(bin_labels)"
 }
 
 # --- the subcommands --------------------------------------------------------
@@ -1032,18 +1238,23 @@ require_stage_outside() {
 # declaration, a tool, the identity or a credential is missing, or the
 # identity cannot sign.
 cmd_doctor() {
-  local ok=1 t
+  local ok=1 t bins
+  bins="$(bin_labels)"
   printf 'platform: %s\n' "$platform"
   printf '\ndeclaration (macos: in %s):\n' "$DEVBIN_DIR/config.yaml"
   if [ -n "$APP_SRC" ]; then
     printf '  %-21s %s (%s)\n' "app" "$APP_SRC" "$([ -d "$APP_SRC" ] && printf present || printf 'not built yet')"
+  elif [ -n "$bins" ]; then
+    printf '  %-21s none: binaries alone\n' "app"
   else
-    printf '  %-21s MISSING (declare macos.app)\n' "app"
+    printf '  %-21s MISSING (declare macos.app, or macos.binaries)\n' "app"
     ok=0
   fi
   printf '  %-21s %s\n' "build" "${APP_BUILD:-none: the app is built already}"
   if [ -n "$APP_BUNDLE_ID" ]; then
     printf '  %-21s %s\n' "bundle id" "$APP_BUNDLE_ID"
+  elif [ -z "$APP_SRC" ] && [ -n "$bins" ]; then
+    printf '  %-21s none: no app\n' "bundle id"
   else
     printf '  %-21s MISSING (declare macos.bundle_id)\n' "bundle id"
     ok=0
@@ -1056,9 +1267,31 @@ cmd_doctor() {
     printf '  %-21s MISSING (%s)\n' "entitlements" "$APP_ENTITLEMENTS"
     ok=0
   fi
-  printf '  %-21s %s\n' "keychain prefix" "$KC_PREFIX"
+  printf '  %-21s %s\n' "team" "${MACOS_TEAM:-none: needed when the keychain holds more than one Developer ID identity}"
+  printf '  %-21s %s\n' "notary profile" "$NOTARY_PROFILE"
   printf '  %-21s %s\n' "asset" "${APP_ASSET:-<none until macos.app is declared>}"
   printf '  %-21s %s\n' "stage" "$APP_STAGE_DIR"
+  if [ -n "$bins" ]; then
+    local label path id ent src
+    printf '  %-21s %s\n' "bin dir" "$BIN_DIR"
+    printf '  %-21s %s\n' "binaries' stage" "$BIN_STAGE_DIR"
+    while IFS= read -r label; do
+      path="$(bin_field "$label" path)"
+      id="$(bin_field "$label" identifier)"
+      ent="$(bin_entitlements "$label")"
+      src="$BIN_DIR/$path"
+      if [ -z "$path" ] || [ -z "$id" ]; then
+        printf '  %-21s MISSING (declare macos.binaries.%s.path and .identifier)\n' "binary $label" "$label"
+        ok=0
+        continue
+      fi
+      printf '  %-21s %s as %s (%s)\n' "binary $label" "$path" "$id" "$([ -e "$src" ] && printf built || printf 'not built yet')"
+      if [ -n "$ent" ] && [ ! -f "$ent" ]; then
+        printf '  %-21s MISSING (%s)\n' "  entitlements" "$ent"
+        ok=0
+      fi
+    done <<<"$bins"
+  fi
   local root why
   if [ -z "$APP_BUILD_ROOT" ]; then
     printf '  %-21s %s\n' "build root" "<none until macos.app or macos.build_root is declared>"
@@ -1106,41 +1339,37 @@ cmd_doctor() {
       ok=0
     fi
     rm -rf "$tmp"
+  elif identity_unpicked; then
+    printf '  %-21s REFUSED (%s found, of the teams %s, and no macos.team picks one; declare macos.team)\n' "Developer ID" "$IDENTITY_COUNT" "$IDENTITY_TEAMS"
+    ok=0
   else
     printf '  %-21s MISSING (no "Developer ID Application" identity in the login keychain)\n' "Developer ID"
     ok=0
   fi
-  load_creds
-  printf '\nnotary credentials under %s.* (values are never printed):\n' "$KC_PREFIX"
-  local k v
-  for k in APPLE_ID APPLE_APP_PASSWORD APPLE_TEAM_ID; do
-    v="${!k}"
-    if [ -n "$v" ]; then
-      printf '  %-21s PRESENT\n' "$k"
-    else
-      printf '  %-21s MISSING (run: %s store-creds)\n' "$k" "$ME"
-      ok=0
-    fi
-  done
-  [ "$ok" = 1 ] || die "macos: incomplete -- see MISSING, FAILED and REFUSED above"
+  # The profile is read the one way notarytool offers, a history query under
+  # it, which asks Apple, as the test-sign's timestamp above does; its output
+  # is never printed, so no value can be.
+  printf '\nnotary profile (its values are never printed):\n'
+  if xcrun notarytool history --keychain-profile "$NOTARY_PROFILE" >/dev/null 2>&1; then
+    printf '  %-21s PRESENT\n' "$NOTARY_PROFILE"
+  else
+    printf '  %-21s NOT USABLE (notarytool could not query Apple under it: store it with %s store-creds, or check the network)\n' "$NOTARY_PROFILE" "$ME"
+    ok=0
+  fi
+  [ "$ok" = 1 ] || die "macos: incomplete -- see MISSING, NOT USABLE, FAILED and REFUSED above"
 }
 
-# store-creds: each value typed to security(1) itself, which prompts for it
-# when -w ends its command line, so no value passes through this command, its
-# arguments or its output.
+# store-creds: notarytool store-credentials itself prompts for each value and
+# checks them with Apple before it saves the profile to the login keychain, so
+# no value passes through this command, its arguments or its output.
 cmd_store_creds() {
   [ -t 0 ] || die "macos: store-creds is interactive and reads the terminal; stdin is not one -- run it yourself in a terminal"
-  local k
-  printf 'Storing the Apple notary credentials in the login keychain under "%s.*".\n' "$KC_PREFIX"
-  printf 'security(1) prompts for each value and echoes none; nothing is written to the tree.\n'
-  printf '  APPLE_ID            the Apple account email\n'
-  printf '  APPLE_APP_PASSWORD  an app-specific password, not the account password\n'
-  printf '  APPLE_TEAM_ID       the team id the Developer ID identity names\n'
-  for k in APPLE_ID APPLE_APP_PASSWORD APPLE_TEAM_ID; do
-    printf '\n%s:\n' "$k"
-    security add-generic-password -U -a "${USER:-$(id -un)}" -s "$KC_PREFIX.$k" -w ||
-      die "macos: could not write $k to the keychain"
-  done
+  printf 'Storing the notary profile "%s" in the login keychain, through notarytool.\n' "$NOTARY_PROFILE"
+  printf 'It prompts for the Apple ID, the team id and an app-specific password (not the\n'
+  printf 'account password), checks them with Apple, and saves them; nothing is written to\n'
+  printf 'the tree.\n\n'
+  xcrun notarytool store-credentials "$NOTARY_PROFILE" ||
+    die "macos: notarytool could not store the notary profile $NOTARY_PROFILE"
   printf '\nStored. Check with: %s doctor\n' "$ME"
 }
 
@@ -1225,9 +1454,7 @@ cmd_app_notarize() {
   require_declared
   load_identity
   require_identity
-  load_creds
-  require_creds
-  local dist staging zip out status id
+  local dist staging zip rc=0
   dist="$(app_dist)"
   [ -d "$dist" ] || die "macos: no signed bundle at $dist -- run: $ME app-sign"
   arm_drops " -- nothing submitted"
@@ -1242,20 +1469,9 @@ cmd_app_notarize() {
     die "macos: could not build the submission archive"
   }
   step "submitting to Apple (notarytool waits; usually minutes)"
-  # notarytool exits non-zero on an Invalid verdict, which is read below.
-  out="$(xcrun notarytool submit "$zip" \
-    --apple-id "$APPLE_ID" --password "$APPLE_APP_PASSWORD" --team-id "$APPLE_TEAM_ID" \
-    --wait 2>&1)" || true
-  printf '%s\n' "$out"
+  notary_submit "$zip" || rc=$?
   rm -rf "$staging"
-  status="$(awk '/^  status: / { s = $2 } END { print s }' <<<"$out")"
-  id="$(awk '/id: [0-9a-f-]+/ { print $2; exit }' <<<"$out")"
-  [ -n "$id" ] || die "macos: could not read a submission id from notarytool's output -- nothing stapled"
-  if [ "$status" != Accepted ]; then
-    xcrun notarytool log "$id" \
-      --apple-id "$APPLE_ID" --password "$APPLE_APP_PASSWORD" --team-id "$APPLE_TEAM_ID" 2>&1 | sed -n '1,40p' || true
-    die "macos: notarisation was not Accepted (status: ${status:-unknown}) -- nothing stapled"
-  fi
+  [ "$rc" = 0 ] || notary_refused "$rc" "nothing stapled"
   step "stapling the ticket to the bundle"
   xcrun stapler staple "$dist" || die "macos: stapler could not staple the ticket to $dist"
   step "checking the stapled bundle as a download meets it"
@@ -1334,6 +1550,223 @@ cmd_publish() {
   fi
 }
 
+# bin-sign: the binaries built (macos.build, when no macos.app is declared,
+# whose app-sign builds), staged outside the build tree, each signed with the
+# Developer ID, the hardened runtime and a secure timestamp, each read back,
+# and the commit they were signed at recorded for bin-publish. Refuses, building
+# nothing, unless HEAD, in a clean tree, is the release's commit, as app-sign.
+cmd_bin_sign() {
+  local label src staged id ent name names=""
+  local -a with_ent
+  require_binaries
+  load_identity
+  require_identity
+  release_names
+  step "checking HEAD is release $APP_TAG's commit, in a clean tree"
+  require_release_head bin-sign "bin-sign, bin-notarize and bin-publish" bin-publish
+  [ -n "$APP_SRC" ] || [ -z "$APP_BUILD" ] || app_build_cached
+  while IFS= read -r label; do
+    src="$(bin_source "$label")"
+    [ -e "$src" ] || die "macos: there is no build of $(bin_field "$label" path) at $src -- nothing signed"
+  done <<<"$(bin_labels)"
+  step "staging the binaries outside the build tree"
+  require_stage_outside "$BIN_STATE_DIR" "$BIN_DIR"
+  rm -rf "$BIN_STATE_DIR"
+  mkdir -p "$BIN_STAGE_DIR" || die "macos: could not make the stage $BIN_STAGE_DIR"
+  while IFS= read -r label; do
+    src="$(bin_source "$label")"
+    staged="$(bin_staged "$label")"
+    ditto "$src" "$staged" || die "macos: could not stage $src -> $staged"
+    # codesign refuses "resource fork, Finder information, or similar detritus".
+    xattr -cr "$staged" || die "macos: could not clear the extended attributes of $staged"
+  done <<<"$(bin_labels)"
+  while IFS= read -r label; do
+    staged="$(bin_staged "$label")"
+    name="$(bin_field "$label" path)"
+    id="$(bin_field "$label" identifier)"
+    ent="$(bin_entitlements "$label")"
+    with_ent=()
+    [ -z "$ent" ] || with_ent=(--entitlements "$ent")
+    step "signing $name as $id, team $(identity_team)"
+    # --force replaces the ad hoc signature the linker puts on every arm64
+    # binary; a .app is signed whole, as the projects signed theirs.
+    codesign --force --options runtime --timestamp --identifier "$id" ${with_ent[@]+"${with_ent[@]}"} --sign "$IDENTITY" "$staged" ||
+      die "macos: codesign could not sign $staged"
+    names+=", $name"
+  done <<<"$(bin_labels)"
+  step "reading each signature back"
+  while IFS= read -r label; do
+    bin_check "$label" no
+  done <<<"$(bin_labels)"
+  record_signed_at "the binaries" "$BIN_STATE_DIR" "$BIN_STAGE_RECORD" bin-publish
+  printf '\nsigned: %s, at %s\nnext: %s bin-notarize\n' "${names#, }" "${APP_RELEASE_COMMIT:0:12}" "$ME"
+}
+
+# bin-notarize: each staged binary checked as bin-sign left it, all of them
+# submitted to Apple in one archive under the notary profile, and once
+# Accepted, each assessed by Gatekeeper, every Apple verdict so before the tag.
+cmd_bin_notarize() {
+  local label staged staging payload zip project rc=0
+  require_binaries
+  load_identity
+  require_identity
+  bin_require_staged
+  step "checking each staged binary is the signed one"
+  while IFS= read -r label; do
+    bin_check "$label" no
+  done <<<"$(bin_labels)"
+  project="$(cfg_get project.name)"
+  staging="$(mktemp -d)" || die "macos: could not make a dir to build the submission in -- nothing submitted"
+  payload="$staging/${project:-binaries}-notary"
+  mkdir "$payload" || {
+    rm -rf "$staging"
+    die "macos: could not make $payload -- nothing submitted"
+  }
+  while IFS= read -r label; do
+    staged="$(bin_staged "$label")"
+    ditto "$staged" "$payload/${staged##*/}" || {
+      rm -rf "$staging"
+      die "macos: could not copy $staged into the submission -- nothing submitted"
+    }
+  done <<<"$(bin_labels)"
+  zip="$staging/submission.zip"
+  # ditto, never zip(1): it keeps the signatures notarisation reads.
+  ditto -c -k --keepParent --sequesterRsrc "$payload" "$zip" || {
+    rm -rf "$staging"
+    die "macos: could not build the submission archive -- nothing submitted"
+  }
+  step "submitting the binaries to Apple (notarytool waits; usually minutes)"
+  notary_submit "$zip" || rc=$?
+  rm -rf "$staging"
+  [ "$rc" = 0 ] || notary_refused "$rc" "nothing is assessed"
+  step "Gatekeeper's verdict on each notarised binary"
+  while IFS= read -r label; do
+    bin_check "$label" yes
+  done <<<"$(bin_labels)"
+  printf '\nnotarised: every staged binary, each accepted by Gatekeeper\nnext: %s bin-publish, once the tag is cut\n' "$ME"
+}
+
+# bin-verify: each staged binary's signature read back, with Gatekeeper's
+# verdict; changes nothing.
+cmd_bin_verify() {
+  local label
+  require_binaries
+  load_identity
+  require_identity
+  bin_require_staged
+  while IFS= read -r label; do
+    bin_check "$label" yes
+  done <<<"$(bin_labels)"
+}
+
+# bin-publish: refuses, uploading nothing, unless the tag is cut; answers
+# already, packing and uploading nothing, where the release carries its archive
+# with SHA256SUMS agreeing, and refuses where it carries it and SHA256SUMS
+# disagrees (release_bins_read, the read the cut's object step asks too); else
+# refuses unless the staged binaries were signed at the tag's commit (bin-sign's
+# record) and each passes its check with Gatekeeper, then packs them as
+# release_bin_archive names the archive, a .app at its root, every other binary
+# under bin/ and macos.pack.files at the root, and attaches it through release
+# attach --from, the core's one way an asset reaches a release.
+cmd_bin_publish() {
+  local label staged name f src staging tree out project archive launcher only repo answer
+  require_binaries
+  release_names
+  read_release_commit " -- nothing uploaded"
+  [ "$APP_RELEASE_STATE" = tagged ] ||
+    die "macos: there is no tag $APP_TAG here, the tag the project's version $REL_VERSION is released under -- nothing uploaded; cut the release first (or fetch its tag), then bin-publish"
+  project="$(cfg_get project.name)"
+  [ -n "$project" ] || die "macos: project.name is not declared, so the archive cannot be named -- nothing uploaded"
+  archive="$(release_bin_archive "$project" "$REL_VERSION")" ||
+    die "macos: rustc -vV names no host triple, so the archive cannot be named -- nothing uploaded"
+  # Read before any binary is checked, since the checks ask Apple: a finished
+  # release, the cut's re-run's included, asks nothing.
+  repo="$(release_repo "$(cfg_release_get repo)" "$(cfg_release_first_remote)" 2>&1)" ||
+    die "macos: the release's repository cannot be read: ${repo//$'\n'/ } -- nothing uploaded"
+  answer="$(release_wait 0 "" UNREADABLE release_bins_read "$repo" "$APP_TAG" "$archive")" ||
+    die "macos: whether release $APP_TAG carries $archive could not be read (exit $?) -- nothing uploaded"
+  case "${answer%%$'\t'*}" in
+    already)
+      printf '\nalready: %s on release %s, %s -- nothing packed or uploaded\n' "$archive" "$APP_TAG" "${answer#*$'\t'}"
+      return 0
+      ;;
+    absent) ;;
+    pending) die "macos: $(release_bins_pending "$APP_TAG" "$archive" "${answer#*$'\t'}")" ;;
+    *) die "macos: whether release $APP_TAG carries $archive cannot be read: ${answer#*$'\t'} -- nothing uploaded" ;;
+  esac
+  load_identity
+  require_identity
+  bin_require_staged
+  require_stage_signed_at_tag "$APP_RELEASE_COMMIT" "$BIN_STAGE_RECORD" binaries "$ME bin-sign, then $ME bin-notarize"
+  step "checking each staged binary as it ships"
+  while IFS= read -r label; do
+    bin_check "$label" yes
+  done <<<"$(bin_labels)"
+  launcher="$ROOT/bin/devbin"
+  [ -x "$launcher" ] || die "macos: no launcher at $launcher -- bin-publish attaches through this project's release command"
+  staging="$(mktemp -d)" || die "macos: could not make a staging dir -- nothing uploaded"
+  # Removed on every way out, a refusal's included: no app path's drops run
+  # here, so this command's EXIT is its own.
+  _BIN_STAGING="$staging"
+  trap 'rm -rf -- "$_BIN_STAGING"' EXIT
+  tree="$staging/tree"
+  out="$staging/asset"
+  mkdir "$tree" "$out" || die "macos: could not make the staging dirs in $staging -- nothing uploaded"
+  while IFS= read -r label; do
+    staged="$(bin_staged "$label")"
+    name="$(bin_field "$label" path)"
+    case "$name" in
+      *.app) ditto "$staged" "$tree/$name" ;;
+      *) mkdir -p "$tree/bin" && ditto "$staged" "$tree/bin/$name" ;;
+    esac || die "macos: could not place $name in the archive's tree -- nothing uploaded"
+  done <<<"$(bin_labels)"
+  while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    src="$(macos_path_value macos.pack.files "$f")"
+    [ -f "$src" ] || die "macos: macos.pack.files names $f, and there is no such file -- nothing uploaded"
+    cp "$src" "$tree/${src##*/}" || die "macos: could not place $src in the archive's tree -- nothing uploaded"
+  done <<<"$(cfg_macos_pack_files)"
+  # HOMEBREW INSTALLS FROM INSIDE AN ARCHIVE WHOSE ONE TOP-LEVEL ENTRY IS A
+  # DIRECTORY, so bin/ alone, or one .app alone, would put what is inside it at
+  # the keg's root, where a formula's bin/<name> or <name>.app finds nothing.
+  # find-walk: -maxdepth 1 -- the tree's top level alone; it never enters one
+  only="$(cd "$tree" && find . -mindepth 1 -maxdepth 1)" || die "macos: could not list the archive's tree -- nothing uploaded"
+  if [ "$(grep -c . <<<"$only")" -eq 1 ] && [ -d "$tree/${only#./}" ]; then
+    die "macos: the archive would hold ${only#./}/ alone, and Homebrew installs from inside an archive's one top-level directory -- declare macos.pack.files, or ship another binary beside it; nothing uploaded"
+  fi
+  step "packing $archive"
+  # dotglob, so a pack file whose name opens with a dot is packed too; the glob
+  # still takes neither . nor ..
+  (cd "$tree" && shopt -s dotglob && COPYFILE_DISABLE=1 tar -czf "$out/$archive" -- *) || die "macos: could not pack $archive -- nothing uploaded"
+  step "attaching $archive to release $APP_TAG through release attach --from"
+  "$launcher" release attach "$REL_VERSION" --from "$out" ||
+    die "macos: release attach did not finish (above) -- nothing more is uploaded"
+  rm -rf "$staging"
+  printf '\npublished: %s on release %s\n' "$archive" "$APP_TAG"
+}
+
+# leg: what a cut's macOS stage runs, before the tag, for what the project
+# declares: app-sign then app-notarize where macos.app is declared, and
+# bin-sign then bin-notarize where macos.binaries is declared and the release
+# object is the project's own (release.object local), each through the
+# project's launcher, the first that fails ending the leg.
+cmd_leg() {
+  local launcher="$ROOT/bin/devbin" ran=no
+  [ -x "$launcher" ] || die "macos: no launcher at $launcher -- the leg runs each step through it"
+  if [ -n "$APP_SRC" ]; then
+    "$launcher" macos app-sign || exit
+    "$launcher" macos app-notarize || exit
+    ran=yes
+  fi
+  if [ -n "$(bin_labels)" ] && [ "$(cfg_release_get object)" = local ]; then
+    "$launcher" macos bin-sign || exit
+    "$launcher" macos bin-notarize || exit
+    ran=yes
+  fi
+  [ "$ran" = yes ] ||
+    die "macos: $DEVBIN_DIR/config.yaml declares no macos.app, and no macos.binaries under release.object local -- the macOS stage has nothing to sign"
+}
+
 case "$sub" in
   doctor) cmd_doctor ;;
   store-creds) cmd_store_creds ;;
@@ -1341,4 +1774,9 @@ case "$sub" in
   app-notarize | app-notarise) cmd_app_notarize ;;
   app-verify) cmd_app_verify ;;
   publish) cmd_publish ;;
+  bin-sign) cmd_bin_sign ;;
+  bin-notarize | bin-notarise) cmd_bin_notarize ;;
+  bin-verify) cmd_bin_verify ;;
+  bin-publish) cmd_bin_publish ;;
+  leg) cmd_leg ;;
 esac

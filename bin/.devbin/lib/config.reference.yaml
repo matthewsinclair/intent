@@ -604,6 +604,7 @@ release:
   title: "{tag}"             # object: local only. {tag} and {version} expand.
   # repo: owner/name         # object: local or ci. Undeclared: read off the url of the first declared remotes entry, else origin, else the only remote
   # object_wait: 20m         # object: ci only -- how long to wait for the workflow's release object
+  formula: false             # true: the formula step, once the object step has succeeded and before after:, runs formula publish --pull under the cut's yes; needs a formula command
   # after:                   # commands run after the release object, reported, outside the core's guarantees
   #   - bin/announce
   verbs:                     # the verbs of release this project offers; one left out is refused, exit 2
@@ -634,20 +635,39 @@ release:
 #
 # EVERY UNCOMMENTED VALUE IS THE DEFAULT. `app` and `bundle_id` have no sound
 # default and are required to sign; the commented lines show example values.
-# The notary credentials live in the login keychain under `keychain`'s prefix
-# and nowhere else: no key here holds one.
+# The notary credential is one notarytool keychain profile in the login
+# keychain, stored once with `bin/devbin macos store-creds`: no key here holds
+# a value of it.
 macos:
   # app: build/Products/Release/<Name>.app    # the .app bundle the build leaves, from the root or absolute
   # build: bin/build-app --release            # run at the root before app-sign stages; undeclared: built already
   # bundle_id: com.example.demo               # the bundle id it carries and is signed as
   # entitlements: native/macos/Demo.entitlements  # undeclared: signed without
-  keychain: devbin.apple       # the login keychain's service prefix: devbin.apple.APPLE_ID and the others
+  # team: ABCDE12345                         # the team id that picks the Developer ID identity; required when the keychain holds more than one
+  notary_profile: devbin       # the notarytool keychain profile every notarisation submits under
   # asset: <Name>-mac.zip                      # undeclared: the app's name with .zip
   # version_from: app/VERSION                  # the app's own version, when it versions apart; undeclared: project.version_from
   # commit_stamp: AppCommit                    # the Info.plist key the build writes its commit into; required with version_from
   # kind_stamp: AppKind                        # the Info.plist key the build writes its kind into; undeclared: not checked
   # kind_value: release                        # what kind_stamp must carry; read only with kind_stamp
   # build_root: ${XDG_STATE_HOME}/demo/build   # where publish's last Launch Services drop looks; undeclared: the app's directory
+  #
+  # Command-line binaries, and a .app beside them: one map a label,
+  # the label naming the entry alone, since a key cannot hold a file's dots or
+  # spaces. bin-sign, bin-notarize and bin-publish read them.
+  bin_dir: target/release      # where the build leaves the binaries, from the root
+  # binaries:
+  #   cli:
+  #     path: demo                            # its name in bin_dir; required
+  #     identifier: com.example.demo          # the identifier it is signed as; required
+  #     entitlements: native/macos/demo.entitlements  # undeclared: signed without
+  #     requirement: identifier "com.example.demo" and anchor apple generic  # undeclared: the Developer ID form from identifier and team
+  #   links:
+  #     path: <Name>.app                      # a .app is packed at the archive's root, a binary under bin/
+  #     identifier: com.example.demo-links
+  # pack:
+  #   files:                                  # packed at the archive's root beside the binaries, each from the root
+  #     - examples/config.toml
 
 # The built-in formula: the project's Homebrew formula, rendered
 # from a template and a release, and published to its tap, with `render <tag>

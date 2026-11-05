@@ -11,12 +11,17 @@
 #   release_macos_reap                          the started run, once it has ended, reaped
 #   release_macos_read <root> <sha>             the stage's word on <sha>
 #   release_macos_stop <seconds>                the started run stopped, its whole group, and reaped
+#   release_macos_unignored <root> <what> <path>  a path the stage writes, refused where git does not ignore it in <root>'s tree
+#   release_bin_archive <project> <version>     the binaries' archive's name, its triple rustc's host (issue 0323)
+#   release_bins_read <repo> <tag> <archive>    whether <tag>'s release carries the archive, SHA256SUMS agreeing
+#   release_bins_pending <tag> <archive> <why>  the refusal of one it carries with SHA256SUMS disagreeing
 #
 # Start and read each print ONE line, `<word><TAB><detail>`, in ci-state's
 # words, as every leg of a cut answers, and return 0 when they answered.
 #
 # THE SEAL IS THE VERDICT'S DETAIL, as a remote leg's copied pair is: the run
-# is `macos app-sign`, then `macos app-notarize`, through the project's own
+# is `macos leg`, which signs and notarises what the project declares (its app,
+# and its binaries under release.object local; issue 0323), through its own
 # launcher, under run_gate's seal with the suffix MACOS beside the release's
 # other runs, so a green at R is the next cut's `already` and is not run again.
 #
@@ -52,6 +57,11 @@ _DEVBIN_RELEASE_MACOS_LOADED=1
 RELEASE_MACOS_PID="" RELEASE_MACOS_GROUP="" RELEASE_MACOS_OUT="" RELEASE_MACOS_TABLE=""
 RELEASE_MACOS_STATE="" RELEASE_MACOS_RC=""
 
+# The file release_macos_unignored names inside a path the stage writes, to ask
+# git whether what the build puts there is ignored: a name no build writes, so
+# a pattern reads it as ignored only when it covers the whole path.
+_RELEASE_MACOS_PROBE=devbin-check-ignore-probe
+
 # release_macos_verdict <root> <sha> -- what the stage's sealed runs on this
 # platform say about <sha>: seal_verdict's word, a TAB and its detail, over the
 # MACOS pairs under the release's run logs, as release_gates_verdict reads the
@@ -77,25 +87,27 @@ release_macos_start() {
   RELEASE_MACOS_TABLE="$scratch/leg.macos.jobs"
   release_group_start "$RELEASE_MACOS_OUT" "" "$RELEASE_MACOS_GROUP" _release_macos_run "$root" "$sha"
   RELEASE_MACOS_PID=$! RELEASE_MACOS_STATE=running
-  printf 'pending\tthe macOS stage (macos app-sign, then app-notarize) runs at %s under a seal of its own\n' "${sha:0:12}"
+  printf 'pending\tthe macOS stage (macos leg: the app and the binaries the project declares, signed and notarised) runs at %s under a seal of its own\n' "${sha:0:12}"
 }
 
-# _release_macos_run <root> <sha> -- the stage's run, in its own group: app-sign,
-# then app-notarize, through the project's launcher, under one sealed run of
-# its own at the root, standing on the commit the tree is, <sha>.
+# _release_macos_run <root> <sha> -- the stage's run, in its own group: macos
+# leg, through the project's launcher, under one sealed run of its own at the
+# root, standing on the commit the tree is, <sha>.
 _release_macos_run() {
   cd "$1" || return 1
   run_gate --label "release macos" --suffix MACOS --grammar generic --purge \
     --out-dir "$(gate_out_dir release)" \
-    --source "the macOS stage at ${2:0:12} -- macos app-sign, then macos app-notarize, through bin/devbin" \
+    --source "the macOS stage at ${2:0:12} -- macos leg, through bin/devbin" \
     -- _release_macos_steps "$1/bin/devbin"
 }
 
-# _release_macos_steps <launcher> -- app-sign, then app-notarize; the first that
-# fails ends the run with its status.
+# _release_macos_steps <launcher> -- macos leg: app-sign then app-notarize
+# where the project declares macos.app, bin-sign then bin-notarize where it
+# declares macos.binaries under release.object local (issue 0323), the first
+# that fails ending the run with its status. macos reads what is declared, so
+# this library still reads no config.
 _release_macos_steps() {
-  "$1" macos app-sign || return
-  "$1" macos app-notarize
+  "$1" macos leg
 }
 
 # release_macos_running -- 0 while the stage's run is a running job of this
@@ -171,7 +183,7 @@ _release_macos_last_line() {
 # signalled, and its reaped status the TERM's or the KILL's. 1 when no run was
 # started, it had ended on its own, its status kept and read as the loop reads
 # it, or its group was never written, which release_run_stop names. It prints
-# nothing else, so the cut says it in its own way (run_exit_say).
+# nothing else, so the cut says it in its own way (release_say).
 release_macos_stop() {
   local rc=0
   [ "$RELEASE_MACOS_STATE" = running ] || return 1
@@ -180,4 +192,105 @@ release_macos_stop() {
     rc=$?
   _release_macos_wait
   [ "$rc" = 0 ] && release_stopped_status "$RELEASE_MACOS_RC"
+}
+
+# release_macos_unignored <root> <what> <path> -- one refusal line on stdout,
+# rc 1, naming <path> as <what>, the cut's words for it (eg `macos.app is
+# dist/Demo.app`), where <path>, a path the macOS stage writes, lies in
+# <root>'s tree and git does not ignore it, or git could not say, or it cannot
+# be placed; nothing, rc 0, where git ignores it or it lies outside the tree,
+# where it can dirty nothing (issue 0313). THE STAGE AND THE LOCAL GATES RUN AT
+# ONCE IN ONE TREE at the release commit, and each reads it as clean, so a path
+# either leaves that git does not ignore fails the other's check, blamed on the
+# leg that read it. Asked of a file inside <path>, through git_readonly, as
+# gate_out_ignored asks of a run's log, so a directory-only pattern (`build/`,
+# `*.app/`) reads it before the build has made it; placed as cargo_place
+# places a path that need not exist yet, its longest existing part resolved
+# and the rest appended as written.
+release_macos_unignored() {
+  local root what="$2" path="$3" place rel probe rc=0 why
+  while [[ "$path" == */ && "$path" != / ]]; do path="${path%/}"; done
+  if ! physical_dir "$1" root; then
+    printf '%s, and the project root %s cannot be resolved, so whether git ignores it cannot be said\n' "$what" "$1"
+    return 1
+  fi
+  if ! cargo_place "$path" place; then
+    printf '%s, which cannot be placed, so whether git ignores it cannot be said\n' "$what"
+    return 1
+  fi
+  case "$place" in
+    "$root") rel="" ;;
+    "$root"/*) rel="${place#"$root"/}" ;;
+    *) return 0 ;;
+  esac
+  if [ -z "$rel" ]; then
+    printf '%s, the project root itself, which git cannot ignore -- declare the directory the build writes its products under\n' "$what"
+    return 1
+  fi
+  probe="$rel/$_RELEASE_MACOS_PROBE"
+  if git_readonly_prime; then
+    git_readonly -C "$root" check-ignore -q -- "$probe" 2>/dev/null || rc=$?
+  else
+    rc=127
+  fi
+  case "$rc" in
+    0) return 0 ;;
+    1) printf '%s, which git does not ignore, though the macOS stage builds there, in the tree the local gates read as clean at the release commit -- add %s/ to .gitignore\n' "$what" "$rel" ;;
+    *)
+      why="$(git_failure_line "$root" check-ignore -q -- "$probe")"
+      printf '%s, and git could not say whether it is ignored%s\n' "$what" "${why:+ -- $why}"
+      ;;
+  esac
+  return 1
+}
+
+# --- the binaries' archive (issue 0323) ---------------------------------------
+
+# release_bin_archive <project> <version> -- the name of the archive the built-in
+# macos packs a project's binaries in, `<project>-<version>-<host
+# triple>.tar.gz`, the triple rustc -vV's host line, as the projects that
+# shipped their binaries named theirs. THE ONE NAMING: bin-publish packs under
+# it, and the cut's confirm and object steps read the release for it. Prints
+# the name; answers 1, printing nothing, when an argument is empty or rustc
+# names no host, so each caller says why in its own words.
+release_bin_archive() {
+  local triple
+  [ -n "${1:-}" ] && [ -n "${2:-}" ] || return 1
+  triple="$({ rustc -vV 2>/dev/null || true; } | sed -n 's/^host: //p')"
+  [ -n "$triple" ] || return 1
+  printf '%s-%s-%s.tar.gz\n' "$1" "$2" "$triple"
+}
+
+# release_bins_read <repo> <tag> <archive> -- whether <tag>'s release object
+# carries <archive> with SHA256SUMS agreeing with every asset:
+# `already<TAB><detail>`; `absent<TAB><why>` when it carries no asset of that
+# name; `pending<TAB><why>` when it carries it and SHA256SUMS disagrees, the mark
+# of an attach that stopped part way; `UNREADABLE<TAB><why>` when a read fails.
+# A release_wait reader, through release_read_assets, the reader the assets'
+# attach and release status read. THE ONE READ: the cut's confirm and object
+# steps and bin-publish all ask it, so none can disagree.
+#
+# A RELEASE THAT CARRIES THE ARCHIVE IS NEVER PACKED AGAIN: a pack makes new
+# bytes every time, and release attach never replaces an asset with other
+# bytes, so `already` means nothing runs, and `pending` is refused, never packed
+# over.
+release_bins_read() {
+  local list
+  if ! list="$(release_object_assets "$1" "$2" 2>&1)"; then
+    printf 'UNREADABLE\tthe assets of %s'"'"'s release object could not be read: %s\n' "$2" "${list//$'\n'/ }"
+    return 0
+  fi
+  if ! release_asset_digest "$list" "$3" >/dev/null; then
+    printf 'absent\tthe release object for %s carries no %s\n' "$2" "$3"
+    return 0
+  fi
+  release_read_assets "$1" "$2"
+}
+
+# release_bins_pending <tag> <archive> <why> -- the one refusal of a release
+# that carries <archive> with SHA256SUMS disagreeing (release_bins_read's
+# `pending`, <why> its detail): its reason and its remedy, in the words
+# bin-publish and the cut's confirm step both refuse it in.
+release_bins_pending() {
+  printf 'release %s carries %s, and %s -- nothing packed or uploaded: a pack makes new bytes, and release attach never replaces an asset with other bytes, so the attach that put it there has to be finished or the asset removed first\n' "$1" "$2" "$3"
 }

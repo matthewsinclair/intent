@@ -152,11 +152,6 @@ if [ "$VERB" = remove-landed ]; then
 fi
 
 # --- the repository -------------------------------------------------------
-# git's local variables are cleared from THIS shell, so commit_direction's git
-# and remove-landed's two writes act on the repository named, never one a hook
-# exported; every read clears them again for itself (git_readonly).
-git_local_env_clear ||
-  die "worktrees: git cannot list its local variables (git rev-parse --local-env-vars), so one inherited here could point every read at another repository -- check git is on PATH"
 # NOR MAY THE CALLER'S DIFF SETTINGS SHAPE A DIFF READ HERE. GIT_EXTERNAL_DIFF
 # and GIT_DIFF_OPTS are no local variables, so git_local_env_clear leaves them;
 # an external diff prints what it likes, and `true` as one printed nothing, so
@@ -191,6 +186,14 @@ ROOT="${PROJECT_ROOT:?}"
 cfg_load "${DEVBIN_DIR:?}/config.yaml" || die "worktrees: cannot read $DEVBIN_DIR/config.yaml"
 GITC="$ROOT"
 [ "$REPO_GIVEN" = no ] || GITC="$REPO_ARG"
+# git's local variables are cleared from THIS shell before git is first asked,
+# so commit_direction's git and remove-landed's two writes act on the
+# repository at $GITC, never one a hook exported; every read clears them again
+# for itself (git_readonly). Through require_git_local_env_cleared, as the cut
+# and macos clear them (issue 0305): one that was set is named on a line with
+# the repository used, never dropped in silence, and either failure stops here,
+# saying which.
+require_git_local_env_cleared worktrees "$GITC"
 [ -d "$GITC" ] || die "worktrees: --repo $GITC is not a directory -- name the directory of a repository"
 if ! git_readonly -C "$GITC" rev-parse --git-dir >/dev/null 2>&1; then
   if [ "$REPO_GIVEN" = no ] && git_repo_absent "$GITC"; then

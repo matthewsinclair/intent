@@ -131,11 +131,6 @@ set -euo pipefail
 # exits.
 CS_REPO="" CS_WORKFLOW="" CS_SUMMARY="" CS_ERR=""
 
-# How many runs on one commit gh is asked for: release_read_assets_run's limit,
-# and a list as long as it is refused, since the worst run could be one left
-# out.
-CS_LIMIT=200
-
 usage() {
   cat <<EOF
 usage: $DEVBIN_INVOKE ci-state <sha>
@@ -174,18 +169,6 @@ cistate_workflow_path() {
   printf '.github/workflows/%s\n' "$CS_WORKFLOW"
 }
 
-# cistate_runs <sha> -- the workflow's runs gh lists on <sha>, one
-# `<id><TAB><headBranch><TAB><status><TAB><conclusion>` a line. The conclusion
-# is last because it is empty while a run is going, and read splits a run of
-# tabs as one. A head branch GitHub's record holds as null is `-`, which the
-# reader makes empty again (dash_to_empty): @tsv writes null as an empty field,
-# and read would have shifted the status into its place.
-cistate_runs() {
-  release_gh "$CS_REPO" run list --workflow "$CS_WORKFLOW" --commit "$1" --limit "$CS_LIMIT" \
-    --json databaseId,headBranch,status,conclusion \
-    --jq '.[] | [(.databaseId | tostring), (.headBranch // "-"), .status, .conclusion] | @tsv'
-}
-
 # cistate_jobs <id> -- each job of run <id>, one
 # `<name><TAB><status><TAB><conclusion>` a line, the conclusion empty while a
 # job is going. Returns 1, gh's words on stderr, when they cannot be read.
@@ -210,8 +193,8 @@ cistate_summary_in() {
   return 0
 }
 
-# cistate_rows <runs> <ref> -- each run of <runs> that counts, <ref>'s alone
-# when <ref> is given, as
+# cistate_rows <runs> <ref> -- each run of <runs>, release_runs_list's rows,
+# that counts, <ref>'s alone when <ref> is given, as
 # `<id><TAB><status><TAB><kind><TAB><jobs><TAB><conclusion>`, the conclusion
 # last since it can be empty and read splits a run of tabs as one: <kind> is
 # `summary` when the status and conclusion are the summary job's, `run` when
@@ -222,7 +205,8 @@ cistate_summary_in() {
 # run's jobs cannot be read.
 cistate_rows() {
   local ref="$2" id head st con jobs job fj jst jcon
-  while IFS=$'\t' read -r id head st con; do
+  # The head sha and the created time are the attach's to read, not this.
+  while IFS=$'\t' read -r id _ head st _ con; do
     [ -n "$id" ] || continue
     dash_to_empty head
     [ -z "$ref" ] || [ "$head" = "$ref" ] || continue
@@ -309,16 +293,19 @@ cistate_failed_jobs() {
 # cistate_rows read when a summary is declared, else read here, once. Returns
 # 1, the answer line `unknown` printed, when the runs cannot be read whole.
 cistate_verdict_on() {
-  local out rows n best id fj v jobs
-  if ! out="$(cistate_runs "$1" 2>"$CS_ERR")"; then
-    cistate_say unknown "gh run list failed for ${1:0:12}: $(cistate_err)"
-    return 1
-  fi
-  n="$(grep -c . <<<"$out")" || n=0
-  if [ "$n" -ge "$CS_LIMIT" ]; then
-    cistate_say unknown "gh lists $n runs of $CS_WORKFLOW on ${1:0:12}, as many as it was asked for, so the worst of them cannot be told"
-    return 1
-  fi
+  local out rows best id fj v jobs rc=0
+  out="$(release_runs_list "$CS_REPO" "$CS_WORKFLOW" "$1" "$RELEASE_RUNS_LIMIT")" || rc=$?
+  case "$rc" in
+    0) ;;
+    3)
+      cistate_say unknown "$out, so the worst of them cannot be told"
+      return 1
+      ;;
+    *)
+      cistate_say unknown "$out"
+      return 1
+      ;;
+  esac
   if ! rows="$(cistate_rows "$out" "$2" 2>"$CS_ERR")"; then
     cistate_say unknown "gh run view failed for ${1:0:12}: $(cistate_err)"
     return 1
