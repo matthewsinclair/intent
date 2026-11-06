@@ -1,0 +1,16 @@
+{
+  "id": "01M6RHJ3XN06KCX9CVJ033611E",
+  "ts": "2026-11-06T13:42:52.085Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 71,
+    "text": "ST0091, Devbin ST0011/12 in Intent's tree. The sweep half is done: devbin-vc swept devbin 0.1.19 into Intent's tree (066bd45bb, then dfef527a3 moving its source record to Homebrew's install) and then 0.1.20 (18a75d29c), each committed by devbin-vc by path, and vc read all three on 2026-11-06: each touches only bin/.devbin/. Left: dc builds ST0091's four packages (each S, Not Started) and vc judges each as dc banks it, every run booked through devbin-vc's desk; vc claims nothing. Before the first cut through the core, hv says which remotes it pushes to and release.remotes is declared (watchout 33). The inventory (dc's, checked by vc) went to devbin-vc at 10:46Z and the 3.2.8 baseline at 10:44Z by date -u on 2026-11-01."
+  }
+}

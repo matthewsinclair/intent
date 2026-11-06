@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: b0f2a48e-ca6f-4d4b-bf92-b708bc7ff5e0
-heartbeat_at: 2026-11-06 12:32Z
+heartbeat_at: 2026-11-06 13:42Z
 status: active
-focus: "2026-11-06: hv started vc for webber-dc's report on issue 0672, which vc folded in and triaged high (2183421cc, efeebce29), then hv banked the fix for 2026-11-07 with three decisions owed (todo 75). Devbin 0.1.19 and 0.1.20 have been swept into Intent's tree since the 2026-11-01 park (066bd45bb, 18a75d29c); holds 6 to 8 are not re-checked yet. No other Intent node is running."
+focus: "2026-11-06, folded for hv's compact before hv travels: nothing moves, and (devbin-vc's relay of hv's order) no desk asks, until hv's word after the travel. Issue 0672 is triaged high and its fix banked for hv's three decisions (todo 75). Holds checked at the fold: 6 stands (AC-02.4 unsatisfied), 7 stands (Devbin ST0011 is WIP), and 8's devbin half is met (0.1.19 and 0.1.20 swept, todo 71) while the desk's grant waits on hv. Watchout 33: a third remote and no release.remotes before ST0091's cut. No other Intent node is running."
 claims: []
 ---
 
@@ -18,7 +18,7 @@ _(none)_
 ## TODO
 
 - After 3.2.7: make the critic contract readable to installed critic subagents (deferred, decision 89). (edited)
-- ST0091, Devbin ST0011/12 in Intent's tree. At the 0.1.19 sweep devbin-vc runs the upgrade in Intent's tree and commits the sweep pathspec itself (Devbin directive 10), inside an Intent chain with vc and dc; its announcement of the paths and the commit is the landing (devbin-vc's message, read by 13:12Z on vc's date -u). The sweep carries only devbin's vendored half, since Intent's config declares no ci.tag, ci.base or ci.query. vc answers that START with any Intent hold that stands, reads the commit, then judges ST0091's packages as dc banks them, every run booked through devbin-vc's desk. vc claims nothing. The inventory (dc's, checked by vc) went to devbin-vc at 10:46Z and the 3.2.8 baseline at 10:44Z by date -u. (edited)
+- ST0091, Devbin ST0011/12 in Intent's tree. The sweep half is done: devbin-vc swept devbin 0.1.19 into Intent's tree (066bd45bb, then dfef527a3 moving its source record to Homebrew's install) and then 0.1.20 (18a75d29c), each committed by devbin-vc by path, and vc read all three on 2026-11-06: each touches only bin/.devbin/. Left: dc builds ST0091's four packages (each S, Not Started) and vc judges each as dc banks it, every run booked through devbin-vc's desk; vc claims nothing. Before the first cut through the core, hv says which remotes it pushes to and release.remotes is declared (watchout 33). The inventory (dc's, checked by vc) went to devbin-vc at 10:46Z and the 3.2.8 baseline at 10:44Z by date -u on 2026-11-01. (edited)
 - Judge and land the obvious-bug fixes hv put in 3.2.9 (decision 106), once devbin-vc's desk grants Intent again: it grants only devbin's ST0011 runs until devbin 0.1.19 is cut and swept into the fleet, on hv's word by 11:17Z ("no other work until devbin ships"), and it denied cc's 0671 run 01M6BBKENABGC65S1XAYRCWHD3, dc's sweep-order run 01M6BB981X1E5KDPVY3E7CBWK6 and vc's race judge 01M6BD84EXF70MX346YDTSD3GW, each asked again then. 0671 (cc, doing 103): refs/bank/cc/0671/fix-v1 (patch-id cb974be96777), vc's static read clean; the app passes CLAUDE_CONFIG_DIR from the login shell and the at-login plist carries it without intentd's boot-time heal dropping it. The testkit race (dc, hold 39): refs/bank/dc/testkit-race/fix-v1 (patch-id abcffb4ac0ea); dc's storm run passed (refs/bank/dc/testkit-race/run-v1-stamps.txt, 2 red in 40 at the base, 0 with the fix); vc's light judge re-runs it in tmp/wt-vc-judge-race. The sweep-order fix (dc, hold 40): refs/bank/dc/testkit-sweep-order/fix-v1 (patch-id 3e958d267455) with its mutant red-v1 and run script refs/bank/dc/testkit-sweep-order/run-v1.zsh, stacked on the race fix, judged on the whole workspace suite. Each lands on vc's word naming HEAD; vc claims nothing. (edited)
 - Issue 0672 (high), banked for 2026-11-07 on hv's word on 2026-11-06 ("we need to bank this and come back to it tomorrow"), with three decisions owed by hv. (1) The template-only fix (S) or the full shape (M), both sized in the issue. (2) dc builds and vc judges, or vc builds with a critic and a fresh reviewer as the judge leg. (3) The push now, which carries every commit upstream lacks, the three held 3.2.9 fixes among them (hold 8), or with the 3.2.9 train. Either fix reaches a project only at the next cut and that project's next agents sync, because brew's intent renders AGENTS.md from its keg, and 3.2.9 goes through ST0091 (Not Started, four S packages). Every run needs a slot from devbin-vc, the estate's controller. The instruments that re-measure the fleet against a build are refs/bank/vc/0672/survey-swift.zsh, survey-shell-tests.zsh and survey-imports.zsh.
 
@@ -31,6 +31,7 @@ _(none)_
 ## Watch-outs
 
 - NEVER truncate the output of `git remote -v` (hv, 2026-10-23): read and quote it whole. (edited)
+- Measured 2026-11-06: `git remote -v` lists a third remote beside local and upstream, and its main is an ancestor of Intent's main, so it has taken Intent's main before. bin/.devbin/config.yaml declares repo but no release.remotes, and its comment still says this checkout has two remotes; devbin's release core pushes to every listed remote when none is declared (cc's source read, 2026-10-23). So the first cut through the core (ST0091) would push to the third remote too. Which remotes a cut pushes to is hv's to say before that cut; decision 90's push names local and upstream.
 
 ## Decisions
 

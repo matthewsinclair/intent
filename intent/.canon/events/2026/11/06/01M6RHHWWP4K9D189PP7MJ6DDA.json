@@ -1,0 +1,15 @@
+{
+  "id": "01M6RHHWWP4K9D189PP7MJ6DDA",
+  "ts": "2026-11-06T13:42:44.886Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "Measured 2026-11-06: `git remote -v` lists a third remote beside local and upstream, and its main is an ancestor of Intent's main, so it has taken Intent's main before. bin/.devbin/config.yaml declares repo but no release.remotes, and its comment still says this checkout has two remotes; devbin's release core pushes to every listed remote when none is declared (cc's source read, 2026-10-23). So the first cut through the core (ST0091) would push to the third remote too. Which remotes a cut pushes to is hv's to say before that cut; decision 90's push names local and upstream."
+  }
+}
