@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "b0f2a48e-ca6f-4d4b-bf92-b708bc7ff5e0",
-    "heartbeat_at": "2026-11-06T11:17:26.351Z",
+    "heartbeat_at": "2026-11-06T12:32:31.252Z",
     "status": "active",
-    "focus": "2026-11-01: Intent is quiet on hv's word (\"no other work until devbin ships\"): devbin-vc's desk grants only ST0011 runs until devbin 0.1.19 is cut and swept, and denied Intent's four asks. The three 3.2.9 fixes are on main and their push is held (hold); 0671 and the two testkit fixes are banked (todo 74); 3.2.9 goes through the core after 0.1.19 (todo 71). Hold 6 waits on hv's AC-02.4 look, and hold 7 on ST0011's ship.",
+    "focus": "2026-11-06: hv started vc for webber-dc's report on issue 0672, which vc folded in and triaged high (2183421cc, efeebce29), then hv banked the fix for 2026-11-07 with three decisions owed (todo 75). Devbin 0.1.19 and 0.1.20 have been swept into Intent's tree since the 2026-11-01 park (066bd45bb, 18a75d29c); holds 6 to 8 are not re-checked yet. No other Intent node is running.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -2566,6 +2566,14 @@
       "text": "The push of 3.2.9's three fixes (0666 cbdee221d, 0668 823cddabd, 0669 bb1efcec5, each judged green by vc and its issue closed; build all at 64cf9e251 passed): held until devbin 0.1.19 is cut and swept into the fleet and devbin-vc's desk grants again. That is hv's word in devbin-vc's window, by 11:17Z on devbin-vc's clock, \"no other work until devbin ships\", under which the preflight re-run 01M6B7CCN2SGDKXQ13ZWWRHTVC was denied. Devbin's sweep into Intent's tree (todo 71) moves HEAD outside BOARD_PATHS, so the next Linux preflight is aimed at a later HEAD that carries the sweep and the judged fixes, with hv's ! line; devbin-vc then pushes local and upstream on vc's word naming it (decision 90). When the desk opens, vc also records the testkit race issue (refs/bank/vc/fold-20261101b/issue-records/testkit-race.title.txt, refs/bank/vc/fold-20261101b/issue-records/testkit-race.body.md), the sweep-order issue (refs/bank/dc/testkit-sweep-order/issue.title.txt, refs/bank/dc/testkit-sweep-order/issue.body-v2.md), 0671's addition (refs/bank/vc/fold-20261101b/issue-records/0671.add.md), and hv's rulings of 2026-11-01 in issue 0670 and intent/wip.md. The 3.2.9 cut is hv's, through devbin's release core (decision 105).",
       "state": "live",
       "recorded_at": "2026-11-01T11:22:47.567Z"
+    },
+    {
+      "node": "vc",
+      "kind": "todo",
+      "seq": 75,
+      "text": "Issue 0672 (high), banked for 2026-11-07 on hv's word on 2026-11-06 (\"we need to bank this and come back to it tomorrow\"), with three decisions owed by hv. (1) The template-only fix (S) or the full shape (M), both sized in the issue. (2) dc builds and vc judges, or vc builds with a critic and a fresh reviewer as the judge leg. (3) The push now, which carries every commit upstream lacks, the three held 3.2.9 fixes among them (hold 8), or with the 3.2.9 train. Either fix reaches a project only at the next cut and that project's next agents sync, because brew's intent renders AGENTS.md from its keg, and 3.2.9 goes through ST0091 (Not Started, four S packages). Every run needs a slot from devbin-vc, the estate's controller. The instruments that re-measure the fleet against a build are refs/bank/vc/0672/survey-swift.zsh, survey-shell-tests.zsh and survey-imports.zsh.",
+      "state": "live",
+      "recorded_at": "2026-11-06T12:32:21.509Z"
     }
   ],
   "sent": [

@@ -1,5 +1,5 @@
 ---
-verblock: "2026-11-01:v3.53: vc - the 3.2.9 fixes are on main; build all, the preflight and the push next"
+verblock: "2026-11-06:v3.54: vc - issue 0672 triaged high and banked for 2026-11-07"
 intent_version: 3.2.8
 ---
 
@@ -11,6 +11,7 @@ intent_version: 3.2.8
 
 ## TODO
 
+- Issue 0672 (high): `intent agents sync` writes language-default build and test lines into AGENTS.md that are wrong in most of the fleet. Triaged on 2026-11-06 and banked on hv's word for 2026-11-07, with three decisions owed by hv (vc todo 75): the template-only fix (S) or the full shape (M), who builds, and whether the push waits for the 3.2.9 train. A fix reaches a project only at the next cut and that project's next `intent agents sync`.
 - Issue 0670, on hv's ruling "ambiguous lines stop", the measured 1-row shape recorded in the issue: its build waits for hv's word, because hv's word for 2026-11-01 is "ship ST0011, no new code and no new yaks". dc builds it, and vc judges it with the fleet census re-run against the build, which must redden Devbin ST0011 AT-3.5 and nothing else.
 - ST0090, issue 0664's fix: one criterion is left, AC-02.4. hv sees Intent.app's Rebuild Search Index row show its second line, `reconciled <age> ago`, after a rebuild, on a build at or after a54f2e9e0 whose CLI carries 8406f6a15: the 3.2.9 cut, or a dev app pointed at a dev CLI, which is the maintainer's alone. vc then records that build on AC-02.4 and dc closes WP-02 (vc hold 6, dc hold 37). `intent ac gate ST0090` names what is left.
 - ST0091, Devbin ST0011's WP12 in Intent's tree: Intent cuts through devbin's release core. Its packages wait for Devbin's 0.1.19 cut and the sweep after it, in which devbin-vc runs the upgrade in Intent's tree and commits the sweep pathspec inside an Intent chain with vc and dc (vc todo 71). dc then builds the packages and vc judges each, every run booked through devbin-vc's desk. Issue 0667's fix rides with AC-03.3, and dc's issue draft for the thread is banked at refs/bank/dc/fold5-20261031/st0091-wp12-issue-body.md. hv fires the first cut through the core.

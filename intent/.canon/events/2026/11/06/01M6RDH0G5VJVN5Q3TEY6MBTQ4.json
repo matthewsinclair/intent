@@ -1,0 +1,15 @@
+{
+  "id": "01M6RDH0G5VJVN5Q3TEY6MBTQ4",
+  "ts": "2026-11-06T12:32:21.509Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Issue 0672 (high), banked for 2026-11-07 on hv's word on 2026-11-06 (\"we need to bank this and come back to it tomorrow\"), with three decisions owed by hv. (1) The template-only fix (S) or the full shape (M), both sized in the issue. (2) dc builds and vc judges, or vc builds with a critic and a fresh reviewer as the judge leg. (3) The push now, which carries every commit upstream lacks, the three held 3.2.9 fixes among them (hold 8), or with the 3.2.9 train. Either fix reaches a project only at the next cut and that project's next agents sync, because brew's intent renders AGENTS.md from its keg, and 3.2.9 goes through ST0091 (Not Started, four S packages). Every run needs a slot from devbin-vc, the estate's controller. The instruments that re-measure the fleet against a build are refs/bank/vc/0672/survey-swift.zsh, survey-shell-tests.zsh and survey-imports.zsh."
+  }
+}
