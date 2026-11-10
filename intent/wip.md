@@ -1,5 +1,5 @@
 ---
-verblock: "2026-11-10:v3.61: vc - the first train is judged and the spike's findings are recorded"
+verblock: "2026-11-10:v3.62: vc - localfold on hv's word; what hv owes is one TODO line"
 intent_version: 3.2.8
 ---
 
@@ -12,6 +12,7 @@ intent_version: 3.2.8
 
 ## TODO
 
+- Owed by hv to vc (vc todo 77), in the order it unblocks work: starting cc, dc and ic; the ratification of ST0092's terms document on the nine points WP-01's body lists; the shape of issue 0665; an answer on client names in Intent's committed record before the push (vc watchout 34); and whether Intent keeps an AT's own red-then-green on the code as it was.
 - The push of main to local and upstream (vc hold 8): after 3.3.0's first judged train is on main, with a build all at that HEAD on the controller's desk and a Linux preflight at that HEAD on kovacs (hv's `!` in kovacs-sysadm's session), devbin-vc pushes on vc's word naming that HEAD (vc decision 90). It carries the fixes for 0666, 0668 and 0669, which are on main. No release rides on it.
 - Issue 0672 (high), in 3.3.0: `intent agents sync` writes language-default build and test lines into AGENTS.md that are wrong in most of the fleet. ic builds it in the full shape (M), on vc's ruling under the pen (vc todo 75): the lines are rendered from what the project declares. A fix reaches a project at the 3.3.0 cut and that project's next `intent agents sync`.
 - Issues 0649, 0650, 0661 and 0665, in 3.3.0 (vc decision 109): 0661 and 0650 are ic's and 0649 is dc's (vc todo 77), and 0665 is dc's once hv has ruled its shape, which the issue leaves to its reporter. One that proves larger than it reads comes back to hv with its reason.

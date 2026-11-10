@@ -40,14 +40,22 @@ It is not the protocol: the `/in-whiteboard` skill keeps that and cites this doc
 
 ## For hv's eye at ratification
 
-These are vc's wordings where hv's rulings left room, and each is hv's to change:
+Nine points were put to hv on 2026-11-10, each with vc's recommendation. The first six are vc's wordings where hv's rulings left room, and vc recommends each as written:
 
 1. Only the mediator puts options to hv, and hv may speak to any seat directly. That is the strict reading of "mediated thru the VC".
 2. "No seat waits idle on hv. A seat that needs a ruling asks the mediator, holds only the work that depends on the answer, and carries on with the rest." The ruling's own words were that nobody waits on hv, which a literal reader could take as leave to go on without the ruling.
-3. On a hub the `supervisor` layer makes sc the mediator, and vc's default remit still ends "and the one route to hv". A hub sets vc's remit, or the default changes.
+3. On a hub the `supervisor` layer makes sc the mediator, and vc's default remit still ends "and the one route to hv". vc recommends leaving the default and letting a hub set its own vc remit.
 4. "sequencing" is in both vc's default remit and hv's, in hv's own words for each.
 5. The default remits of gc, sc and sv are vc's, and so is ac's "Authoring and content creation".
 6. `team` is called the standard Team and not the default, so that a whiteboard that declares nothing is not read as a `team` whiteboard.
+
+The next three come from the spike, and vc recommends adding each:
+
+7. cc's default remit. hv's words are "Back-end services and the non-user-facing implementation of services". A project that is still modelling has no service, so read literally the remit gives cc none of the work there is, and no seat owns the data model. Proposed: "The core: the model, its rules, and the back-end services that implement them, in whatever form they take at the time, documents and data included."
+8. The boundary between cc and ic on a contract. ic holds machine-facing interfaces and cc the implementation behind them, so nobody owns the contract itself. Proposed, one sentence after the seats table: "Where an interface has a contract, cc is authoritative on what it means and ic on its shape and transport, and a change to it needs both."
+9. A path for disagreement with the mediator. The mediator is the one filter, and on the spike's board it was the source of three errors in one day, each caught by hv or by the seat that had reported the matter and never by the structure. Proposed, one line in hv's section: "A seat that disagrees with what the mediator has put to hv says so to the mediator, and the mediator puts the disagreement to hv in the seat's own words."
+
+Until hv answers, the document holds points 1 to 6 as vc wrote them and none of 7 to 9. vc edits it to hv's answer.
 
 ## Depends on
 
