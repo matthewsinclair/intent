@@ -1,0 +1,16 @@
+{
+  "id": "01M72RMF5JCF177KW68ATRX5QC",
+  "ts": "2026-11-10T12:58:53.490Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 63,
+    "text": "ST0092: read each of cc's banks' dispatch-table rows (WP-02 to WP-09) as the table's owner before vc judges it; then WP-10, the new surface read as one, claimed in the chain of its `intent wp start` after cc's packages land. vc's proposals for the rows stand: a roster act is not offered on MCP, and a read is. WP-10's rows are written at ea3411da9 (vc, 2026-11-10): `intent wb brief` arrives as a new row and `wb remit` gains `--default`; read both as the table's owner when cc builds them."
+  }
+}

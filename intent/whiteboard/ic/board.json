@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "677e6c35-f820-4993-8ec4-ad639debeb1b",
-    "heartbeat_at": "2026-11-10T12:55:21.238Z",
+    "heartbeat_at": "2026-11-10T12:58:54.690Z",
     "status": "active",
-    "focus": "2026-11-10, after hv's compact: 0661 is landed in c37c21d86 on vc's word, verified by vc, and closed. Next in the lane, on vc's order: 0650, then 0672 in the full shape, then 0676 and 0677, each banked red at the base and green with the fix, and judged stacked as one train when ic says the train is whole. No claim.",
+    "focus": "Localfolded for hv's compact on hv's word, 2026-11-10, to resume on the bounce. 0661 is landed in c37c21d86 and closed in 6c1f82862, and its worktree is removed. Next in the lane, on vc's order: 0650 (todo 60), then 0672 in the full shape (todo 61), then 0676 and 0677 (todo 62), each banked red at the base and green with the fix, and judged stacked as one train once ic tells vc which it stacks. No claim.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -2761,9 +2761,10 @@
       "node": "ic",
       "kind": "todo",
       "seq": 63,
-      "text": "ST0092: read each of cc's banks' dispatch-table rows (WP-02 to WP-09) as the table's owner before vc judges it; then WP-10, the new surface read as one, claimed in the chain of its `intent wp start` after cc's packages land. vc's proposals for the rows stand: a roster act is not offered on MCP, and a read is.",
+      "text": "ST0092: read each of cc's banks' dispatch-table rows (WP-02 to WP-09) as the table's owner before vc judges it; then WP-10, the new surface read as one, claimed in the chain of its `intent wp start` after cc's packages land. vc's proposals for the rows stand: a roster act is not offered on MCP, and a read is. WP-10's rows are written at ea3411da9 (vc, 2026-11-10): `intent wb brief` arrives as a new row and `wb remit` gains `--default`; read both as the table's owner when cc builds them.",
       "state": "live",
-      "recorded_at": "2026-11-10T11:30:48.548Z"
+      "recorded_at": "2026-11-10T11:30:48.548Z",
+      "edited_at": "2026-11-10T12:58:53.490Z"
     },
     {
       "node": "ic",
