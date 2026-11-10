@@ -183,8 +183,8 @@
       "covers": [
         "AC-01.2"
       ],
-      "status": "to-write",
-      "note": "The cut's gates on the release commit, each run as the core runs it; banked at refs/bank/dc/st0091/wp01b-v1 (blob 3e81cb71c66c, patch-id 184485758ff4), on wp01a-v2, not yet on main; it stays to-write until the train lands, where it moves red then green against the judge run."
+      "status": "red",
+      "note": "The cut's gates on the release commit, each run as the core runs it; banked at refs/bank/dc/st0091/wp01b-v1 (blob 3e81cb71c66c, patch-id 184485758ff4), on wp01a-v2, not yet on main; it stays to-write until the train lands, where it moves red then green against the judge run. Moved red at its landing (2026-11-10, dc), in the commit that adds the file, with the file's id lines (vc's ruling). Red on the code as it was: all 8 arms red on bank (a)'s tree, driven by dc before banking; all 8 pass on this commit. Green is vc's, from its judged run of the train."
     },
     {
       "id": "AT-03.1",

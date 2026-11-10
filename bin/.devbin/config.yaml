@@ -280,9 +280,9 @@ commands:
       # narrower than CI is the drift the test exists to catch, so the scope of
       # the flag is ruled in rust.yml and followed here.
       #
-      # THE CUT'S GATES RUN IT (release.gates, issue 0501), with `format`,
-      # `clippy` and `panics` above, so a cut that passes its gates has passed
-      # every cargo step of rust.yml. The workflow's three setup steps
+      # THE CUT RUNS IT (`bin/devbin gate rust`, in release.gates; issue 0501),
+      # with `format`, `clippy` and `panics` above, so a cut that passes its gates
+      # has passed every cargo step of rust.yml. The workflow's three setup steps
       # (the toolchain record, shellcheck, prettier) are not cargo steps, and the
       # gate does not run them.
       doc:
@@ -396,6 +396,40 @@ commands:
         summary: the realised views re-rendered, folding in footer-only changes
         run: bin/.devbin/cut/stamp views
 
+  # THE CUT'S GATES ON THE RELEASE COMMIT, run by the core as `gate all` in
+  # release.gates. `all` runs every option active on this host, in this order:
+  # the reads first, then the suites, then the pair and what reads it. The pair
+  # and its two readers are held to macOS by `platforms:`, which the core's
+  # pre-flight honours per leg, so a Linux leg runs the reads and the suites.
+  gate:
+    group: Release
+    summary: The cut's gates on the release commit
+    options:
+      contract:
+        summary: data-model.md and the published schema faces describe the same fields
+        run: bin/.devbin/cmd/measured --exec bin/.devbin/cut/gate contract
+      reference:
+        summary: docs/reference describes the release commit
+        run: bin/.devbin/cmd/measured --exec bin/.devbin/cut/gate reference
+      rust:
+        summary: every cargo step of rust.yml in a private worktree, with 0481's one re-run
+        run: bin/.devbin/cmd/measured --exec bin/.devbin/cut/gate rust
+      pair:
+        summary: the pair built at the release commit (0518's currency verdict)
+        platforms:
+          - macos
+        run: bin/.devbin/cmd/measured --exec bin/.devbin/cut/gate pair
+      provenance:
+        summary: each binary of the pair names the release commit from its own bytes
+        platforms:
+          - macos
+        run: bin/.devbin/cmd/measured --exec bin/.devbin/cut/gate provenance
+      doctor:
+        summary: the pair's intent doctor is clean at the release commit
+        platforms:
+          - macos
+        run: bin/.devbin/cmd/measured --exec bin/.devbin/cut/gate doctor
+
   # devbin's release core cuts Intent (ST0091 WP-01): the release: block below
   # declares the cut, and `release.verbs` offers its verbs.
   release:
@@ -419,6 +453,10 @@ commands:
 # GITHUB. Undeclared, it is read off the url of the first `remotes` entry, and
 # `local` is a path on disk.
 #
+# `gates` ARE INTENT'S OWN CHECKS ON THE RELEASE COMMIT: `gate all` (the
+# reads, the cargo steps, and on macOS the pair; bin/.devbin/cut/gate) and the
+# shell suite. A red gate stops the cut before the tag.
+#
 # `derived` IS THE STAMP, in the order its steps run: bin/.devbin/cut/stamp says
 # what each writes, and why the lock comes before the schema.
 #
@@ -439,6 +477,9 @@ release:
     - local
     - upstream
   title: "Intent {tag}"
+  gates:
+    - gate all
+    - test shell
   derived:
     - bin/devbin stamp config
     - bin/devbin stamp lock

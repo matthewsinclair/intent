@@ -1,0 +1,213 @@
+#!/usr/bin/env bash
+#
+# bin/.devbin/cut/gate <check> -- one of the cut's gates on the release commit.
+#
+# Declared in bin/.devbin/config.yaml as `commands.gate`, one option per check,
+# so `bin/devbin gate <check>` runs one and `bin/devbin gate all` runs every
+# check active on this host. devbin's release core runs `release.gates` on each
+# leg after its commit step, so each check here judges the release commit: a
+# check whose truth depends on that commit is a gate, and a check that judges
+# the tree before the stamp belongs at the pre-flight seam (vc's split, ST0091
+# WP-01, and bin/.devbin/cut/preflight). A red gate stops the cut before the
+# tag, and the core re-runs nothing, so a re-run a check owes is its own.
+#
+# A pass prints one `ok:` line on stdout and exits 0. A refusal says what it
+# found and the remedy on stderr and exits 1. Where a check's own output is
+# long, it goes to a log the refusal names, and a pass removes it.
+#
+# MOVED FROM THE RETIRED DRIVER, cmd/build.d/release, with ST0091 WP-01:
+#
+#   contract    data-model.md and the published schema faces describe the same
+#               fields, both ways. The driver printed it and gated nothing; hv
+#               armed it as a gate (vc decision 117).
+#   reference   docs/reference describes this commit (hv, 2026-09-18, vc
+#               decision 38 Q5)
+#   rust        every cargo step of .github/workflows/rust.yml, in a private
+#               worktree, with issue 0481's one re-run of intentd's
+#               load-sensitive family
+#   pair        the pair built at this commit, so issue 0518's currency verdict
+#               holds on the release push (macOS only, by `platforms:`)
+#   provenance  each binary of the pair names this commit from its own bytes
+#               (macOS only)
+#   doctor      the pair's `intent doctor` is clean (macOS only)
+set -euo pipefail
+
+: "${PROJECT_ROOT:?run this as bin/devbin gate <check>, which exports the project root}"
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+shared="$here/../cmd/shared"
+# shellcheck source-path=SCRIPTDIR source=../cmd/shared/releasestamp.lib
+. "$shared/releasestamp.lib"
+
+CHECK="${1:-}"
+TOOLS="$PROJECT_ROOT/intent/st/ST0056/parity/tools"
+AGAIN="commit the fix, then cut again; nothing has been tagged"
+
+# refuse <what> [<remedy>] -- the check's refusal, exit 1.
+refuse() {
+  printf 'error: gate %s: %s\n' "$CHECK" "$1" >&2
+  [ -z "${2:-}" ] || printf '  remedy: %s\n' "$2" >&2
+  exit 1
+}
+
+# gate_log <name> -- a fresh log file for a check's own output, outside the
+# tree, so a gate leaves the release commit's tree as it found it.
+gate_log() {
+  mktemp "${TMPDIR:-/tmp}/intent-gate-$1.XXXXXX" ||
+    refuse "no temporary file for the $1 log under ${TMPDIR:-/tmp}" "make it writable, or point TMPDIR at a directory that is"
+}
+
+# Its three exits mean three things: 0 the two agree, 1 a finding that wants an
+# author, anything else no verdict, which refuses too: a gate that could not
+# run has not passed.
+check_contract() {
+  local log rc=0
+  log="$(gate_log contract)"
+  bash "$TOOLS/contract_check.sh" >"$log" 2>&1 || rc=$?
+  case "$rc" in
+    0)
+      rm -f "$log"
+      printf 'ok: data-model.md and the published schema faces describe the same fields\n'
+      ;;
+    1) refuse "data-model.md and the published schema faces disagree; the findings are in $log" "$AGAIN" ;;
+    *) refuse "contract_check.sh gave no verdict (rc=$rc), so nothing says the two agree; its output is in $log" "run it by hand to see why, $AGAIN" ;;
+  esac
+}
+
+# It regenerates both halves into scratch and diffs, writing nothing, so the
+# fix stays a human's commit. The core has no override for it, and the driver's
+# --allow-stale-reference has no successor: a cut that ships pages describing
+# another revision is the defect this exists to stop.
+check_reference() {
+  local log rc=0
+  log="$(gate_log reference)"
+  bash "$TOOLS/reference_current_check.sh" >"$log" 2>&1 || rc=$?
+  case "$rc" in
+    0)
+      rm -f "$log"
+      printf 'ok: docs/reference describes this commit against the previous release tag\n'
+      ;;
+    1) refuse "docs/reference does not describe this commit; the diff and the commands that fix it are in $log" "regenerate both halves and commit them (intent/docs/releasing.md), $AGAIN" ;;
+    *) refuse "reference_current_check.sh gave no verdict (rc=$rc); its output is in $log" "run it by hand to see why, $AGAIN" ;;
+  esac
+}
+
+# THE FAMILY IS A MECHANISM, NOT A LIST OF NAMES: arms that wait on an
+# FSEvents-driven event under a poll budget, so a host whose fseventsd is
+# saturated fails them with the code unchanged. An arm joins the pattern
+# because it waits on such an event, never because its name looks like these.
+LOAD_SENSITIVE='daemon_subscriptions|daemon_watch::|a_source_edit_reaches_the_index_and_costs_canon_nothing|the_daemon_lists_the_project_registry|a_daemon_outlives_nobody'
+
+# Issue 0389 (ruled): in a PRIVATE worktree at HEAD under an isolated HOME with
+# that worktree's own target dir, never in the shared checkout beside a live
+# daemon. The cargo steps rust.yml runs beyond build and test run as their
+# devbin twins, `bin/devbin check <name>`, which tests/unit/devbin_rust_gates.bats
+# holds equal to rust.yml flag for flag, so there is one pair of homes. A red
+# confined to the load-sensitive family re-runs intentd's tests ONCE (issue
+# 0481), because the core re-runs nothing and a red leg stops the cut.
+check_rust() {
+  local log dir native step="" reds twin
+  local real_cargo_home="${CARGO_HOME:-$HOME/.cargo}" real_rustup_home="${RUSTUP_HOME:-$HOME/.rustup}"
+  command -v cargo >/dev/null 2>&1 || refuse "cargo is not on PATH, and this cut ships a native tree this host cannot test" "install the toolchain rust-toolchain.toml names, $AGAIN"
+  log="$(gate_log rust)"
+  dir="$(mktemp -d "${TMPDIR:-/tmp}/intent-gate-tree.XXXXXX")" || refuse "no temporary directory for the gate's worktree under ${TMPDIR:-/tmp}"
+  git -C "$PROJECT_ROOT" worktree add --quiet --detach "$dir/tree" HEAD >>"$log" 2>&1 ||
+    refuse "could not add a private worktree at HEAD under $dir; git's answer is in $log"
+  native="$dir/tree/native/rust"
+  mkdir -p "$dir/home"
+  in_gate() {
+    (cd "$1" && shift && HOME="$dir/home" CARGO_HOME="$real_cargo_home" RUSTUP_HOME="$real_rustup_home" \
+      CARGO_TARGET_DIR="$native/target" "$@")
+  }
+  if ! in_gate "$native" cargo build -p intentd >>"$log" 2>&1; then
+    step="cargo build -p intentd"
+  else
+    for twin in format clippy panics doc; do
+      if ! in_gate "$dir/tree" bin/devbin check "$twin" >>"$log" 2>&1; then
+        step="bin/devbin check $twin"
+        break
+      fi
+    done
+  fi
+  if [ -z "$step" ] && ! in_gate "$native" cargo test --workspace --no-fail-fast >>"$log" 2>&1; then
+    step="cargo test --workspace"
+    reds="$(awk '/^ +Running /{target=$0} /^test .* \.\.\. FAILED$/{print target " :: " $2}' "$log")"
+    if [ -n "$reds" ] && ! printf '%s\n' "$reds" | grep -v -E "$LOAD_SENSITIVE" | grep -q .; then
+      printf 'gate rust: red only in the load-sensitive daemon family, so intentd'"'"'s tests run once more (issue 0481):\n' >&2
+      printf '%s\n' "$reds" | sed 's/^/  /' >&2
+      in_gate "$native" cargo test -p intentd --no-fail-fast >>"$log" 2>&1 && step=""
+    fi
+  fi
+  git -C "$PROJECT_ROOT" worktree remove --force "$dir/tree" >/dev/null 2>&1 ||
+    printf 'warn: gate rust: could not remove its worktree at %s; remove it with `git -C %s worktree remove --force %s`\n' "$dir/tree" "$PROJECT_ROOT" "$dir/tree" >&2
+  rm -rf "$dir"
+  [ -z "$step" ] || refuse "$step failed; the run is in $log" "$AGAIN"
+  rm -f "$log"
+  printf 'ok: cargo build -p intentd, bin/devbin check format, clippy, panics and doc, then cargo test --workspace\n'
+}
+
+# The pair built at the release commit, so the currency verdict the pre-push
+# hook asks on the release push reads current (issue 0518). Built before the
+# tag, it says `dev`; WP-03 builds the shipped pair again at the tag (F1).
+check_pair() {
+  local verdict
+  # shellcheck source-path=SCRIPTDIR source=../cmd/shared/artefact.lib
+  . "$shared/artefact.lib"
+  # shellcheck source-path=SCRIPTDIR source=../cmd/shared/sharedtarget.lib
+  . "$shared/sharedtarget.lib"
+  # shellcheck source-path=SCRIPTDIR source=../cmd/shared/currency.lib
+  . "$shared/currency.lib"
+  # shellcheck source-path=SCRIPTDIR source=../cmd/shared/releasebuild.lib
+  . "$shared/releasebuild.lib"
+  if ! verdict="$(pair_at_head)"; then
+    refuse "${verdict#refuse:}" "$AGAIN"
+  fi
+  printf 'ok: the pair is built at %s (%s)\n' "$(git -C "$PROJECT_ROOT" rev-parse --short HEAD)" "$verdict"
+}
+
+# Read from each binary's own bytes, not from a record written beside it, so a
+# self-consistent build from the wrong tree cannot satisfy it (the check `macos
+# publish` makes, keyed here on the release commit).
+check_provenance() {
+  local head bin named rc names=""
+  # shellcheck source-path=SCRIPTDIR source=../cmd/shared/artefact.lib
+  . "$shared/artefact.lib"
+  head="$(git -C "$PROJECT_ROOT" rev-parse HEAD)" || refuse "git could not read HEAD"
+  for bin in intent intentd; do
+    [ -f "$PROJECT_ROOT/native/rust/target/release/$bin" ] ||
+      refuse "there is no native/rust/target/release/$bin to read" "run \`bin/devbin gate pair\` first, $AGAIN"
+    rc=0
+    named="$(artefact_source_commit "$PROJECT_ROOT/native/rust/target/release/$bin")" || rc=$?
+    case "$rc" in
+      0) ;;
+      1) refuse "native/rust/target/release/$bin carries no source-commit marker" "run \`bin/devbin gate pair\` first, $AGAIN" ;;
+      *) refuse "native/rust/target/release/$bin could not be read; the reason is above" "$AGAIN" ;;
+    esac
+    [ "$named" = "$head" ] ||
+      refuse "native/rust/target/release/$bin names $named, and the release commit is $head" "run \`bin/devbin gate pair\` at the release commit, $AGAIN"
+    names="$names $bin"
+  done
+  printf 'ok:%s name the release commit %s\n' "$names" "$head"
+}
+
+check_doctor() {
+  local cli log
+  cli="$(release_built_cli "$PROJECT_ROOT")" || exit 1
+  log="$(gate_log doctor)"
+  (cd "$PROJECT_ROOT" && "$cli" doctor) >"$log" 2>&1 ||
+    refuse "intent doctor reported issues at the release commit; its report is in $log" "$AGAIN"
+  rm -f "$log"
+  printf 'ok: intent doctor is clean at the release commit\n'
+}
+
+case "$CHECK" in
+  contract) check_contract ;;
+  reference) check_reference ;;
+  rust) check_rust ;;
+  pair) check_pair ;;
+  provenance) check_provenance ;;
+  doctor) check_doctor ;;
+  *)
+    printf 'error: gate: no check %s\n  remedy: one of contract, reference, rust, pair, provenance, doctor\n' "${CHECK:-<none>}" >&2
+    exit 2
+    ;;
+esac
