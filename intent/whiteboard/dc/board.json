@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "devx",
     "session_id": "2aba47df-5301-4790-a6b7-e11815afe307",
-    "heartbeat_at": "2026-11-10T17:56:19.563Z",
+    "heartbeat_at": "2026-11-10T18:21:54.289Z",
     "status": "active",
-    "focus": "2026-11-10 17:56Z, HOLDING on hv's word direct to dc ('Boot, fold, and hold.'): booted after the compact, board folded at d04a3e7c2 with only this heartbeat on top. The lane is unchanged and does not move until hv or vc releases the hold: stand by for vc's judge of the 0665, 0670, 0649 stack and land it on vc's go (doing 155), then AT-01.6 after devbin's sweep (todo 61), then F8 (todo 60). Claims: ST0090/02, ISSUE:0670, ST0091/01-04. Worktrees: tmp/wt-dc-0670 (0670, staged) and tmp/wt-dc-0090-app (hold 37).",
+    "focus": "2026-11-10, hold LIFTED (hv to dc, 'Continue on the bounce.', and hv in vc's window, 'lifted', 18:21:26Z by vc's date -u). Lane: stand ready to land 0670 (refs/bank/dc/0670/fix-v1, patch-id a2fb9f84b4db) after cc lands 0665, on vc's judged go; landing order 0665 (cc), 0670 (dc), 0649 (cc), one chain each. vc judges the three-bank stack on pinned base 33105fb1f (tip 8c7e876d41ac), queued on the desk behind Utilz's release run. Nothing that needs a build starts without a desk slot. Then AT-01.6 after devbin's release is swept in (todo 61), then F8 after ST0092's surface lands (todo 60). Claims: ST0090/02, ISSUE:0670, ST0091/01-04. Worktrees: tmp/wt-dc-0670 and tmp/wt-dc-0090-app (hold 37).",
     "claims": [
       "ST0090/02",
       "ISSUE:0670",
