@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "124edee5-f105-45bd-8483-ee7dc6dd6fd9",
-    "heartbeat_at": "2026-11-10T13:15:33.865Z",
+    "heartbeat_at": "2026-11-10T13:16:48.803Z",
     "status": "active",
-    "focus": "2026-11-10, localfolded for hv's second compact of the day on hv's word (\"lets bank, localfold+compact here in intent-* and then continue on the bounce\"); vc stays active. Since the first compact: dc's ST0091 inventory and design are ruled (decisions 112 and 114), with WP-01 now L in two banks; hv's three rulings on the release core are recorded as relayed (decision 113), so 3.3.0's cut follows Devbin's next release; ST0092's package text carries vc's design rulings and three rounds of cc's builder notes; and issue 0661 is judged and on main at c37c21d86. FIRST AFTER THE BOUNCE: judge dc's ST0091 train and ic's next train as they bank; vc owes nothing else. cc holds for the ratification. Owed by hv: client names before the push, the ratification on twelve points, which remotes a cut pushes to, whether the contract check gates a cut, red-then-green, and 0665's shape (todo 77).",
+    "focus": "2026-11-10, after hv's second compact of the day; vc is active. The ruling on dc's fourth seam check, `preflight clean`, is in ST0091 WP-01's body and decision 115. NOW: vc judges dc's ST0091 train in one run when dc says it is whole (WP-04's trigger unit, then WP-01's two banks), and ic's train as it banks (0650, 0672, 0676, 0677); vc owes nothing else. cc holds for the ratification. Owed by hv: client names before the push, the ratification on twelve points, which remotes a cut pushes to, whether the contract check gates a cut, red-then-green, and 0665's shape (todo 77).",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -2684,6 +2684,14 @@
       "text": "(vc, 2026-11-10, under hv's pen; each ruling open to hv's reversal) RULINGS ON dc's DESIGN FOR ST0091 WP-01 (refs/bank/dc/st0091/wp01-design-v1.md, blob 87f6f82b59f7), read whole by vc. (1) WP-01 is L, and it is banked as two units on the one train, judged in one run: first the stamp verb, the seam checks, the config, the driver's deletion and pair_at_tag's move into the shared library that prepush already reads; then the gate verb and release.gates. Each bank leaves the tests it touches green on the bank before it, so main is never red between two landings, and each names the single bats files that prove it. (2) The seam takes three checks that write nothing: a live intentd, the schema faces carrying the current version, and the canon spill. They sit under a command of their own, `preflight`, and never as options of `check`, whose `all` is the everyday static run and must not refuse while intentd is live. (3) contract_check is HELD FOR hv. The driver's own comment says a release gate on it is hv's call, AC-01.2 lists it among the gates, and under the core it either refuses or does not run at a cut. vc ran it on 2026-11-10: clean, 17 of 17 entities, half a second, writing only in a temporary directory; vc recommends arming it. (4) The verbs are named for the stage of the cut each serves: preflight, stamp, gate. TAKEN AS DESIGNED: the lock refreshed before the schema is blessed, dc's reason for it being a source read; no change to prepush for the core's release commit; and the release-push arms taking an annotated tag.",
       "state": "live",
       "recorded_at": "2026-11-10T12:49:25.119Z"
+    },
+    {
+      "node": "vc",
+      "kind": "decision",
+      "seq": 115,
+      "text": "(vc, 2026-11-10, under hv's pen; open to hv's reversal) A FOURTH SEAM CHECK FOR ST0091 WP-01, `preflight clean`, on a point dc raised while building. vc gave it to dc by message after vc's fold at e1c20f969, and it is in WP-01's body. YES, in the first bank, writing nothing. With `derived:` declared, the 0.1.20 core puts off its own tree rule until the derived steps have run (bin/.devbin/lib/cmd/release L2280-2281), so a hand edit inside a step's scope would ride the release commit, which the driver refused at its pre-flight (L538). The check refuses dirty and untracked paths before the stamp. THE CONDITION: it does not refuse the core's own resume. A cut that fails inside the stamp leaves the version file and the stamp's paths dirty, and the same command run again sets the version only where it differs and runs the derived steps again (L2733-2748). So the check refuses only while the version file still reads as HEAD's does, the state before any stamp began; once it differs a stamp is in progress, and the core's tree rule judges what lies outside the owned set. vc read both places in the vendored source; dc drives the resume, and if the core does not resume that way the check refuses all dirt. The seam then holds four checks: clean, daemon, faces, spill. WHAT IT CANNOT SEE: the version file stands in for whether a stamp has begun, so one edited by hand before the cut reads as a stamp in progress.",
+      "state": "live",
+      "recorded_at": "2026-11-10T13:16:34.694Z"
     }
   ],
   "sent": [
