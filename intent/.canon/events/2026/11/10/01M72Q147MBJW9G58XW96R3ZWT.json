@@ -1,0 +1,15 @@
+{
+  "id": "01M72Q147MBJW9G58XW96R3ZWT",
+  "ts": "2026-11-10T12:30:51.125Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-10, ruled in devbin-vc's window and relayed to vc by devbin-vc before vc's clock read of 2026-11-10 12:30Z by date -u; not heard first-hand by vc, and the consequences marked vc's are vc's, under the pen) THREE RULINGS ON THE RELEASE CORE, each as devbin-vc recommended. (1) Devbin's next release carries a pre-flight seam for a project's own refusals, a declared release.preflight list of `bin/devbin <words>` lines run by a dry run and a cut alike (devbin 0327), and Intent's 3.3.0 waits for that release to be swept into its tree. (2) Intent's brew smoke runs as an `after:` command, with no core change and no devbin issue. (3) The release commit keeps hv's (C) line through a declared trailer in the core (devbin 0328), which Intent declares at the same sweep. vc's CONSEQUENCES: ST0091's AC-01.3 stands as written and is met through the seam; WP-03 and AC-03.1 are reworded to the core as built, the cask's sum by the sums fill and the smoke Intent's own; and 3.3.0's cut follows Devbin's next cut, which is hv's to fire. devbin-vc also withdrew, the same hour, its claim that a routing of 2026-11-05 put every vc's reports to hv through it: on Intent's board vc is the route to hv (decision 111)."
+  }
+}

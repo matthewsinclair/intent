@@ -1,0 +1,14 @@
+{
+  "id": "01M72Q1AB80W01EJX509K89Z8P",
+  "ts": "2026-11-10T12:30:57.388Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0091/AC-03.1"
+  },
+  "payload": {
+    "text": "The built-in formula writes Intent's formula and cask in assets mode under the cut's yes, each asset's sum filled from the release's sums file, which stands for issue 0634's cask sha256 check; Intent's own brew smoke runs as an `after:` command under the same yes, where it reports after publication and gates nothing; and `bin/.devbin/cmd/brew` keeps the smoke and nothing else, with no render or publish code left in it or in `bin/.devbin/cmd/shared/brew.lib`."
+  }
+}

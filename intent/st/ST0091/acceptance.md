@@ -27,7 +27,7 @@ title: Intent releases through devbin's core: its driver, kovacs preflight and p
 
 ### WP-03 -- The tap and the macOS assets publish through the built-ins, with prepare as a shadow (status: Not Started)
 
-- AC-03.1 The built-in formula writes Intent's formula and cask in assets mode under the cut's yes, with issue 0634's cask sha256 check and the brew smoke carried by the core, and `bin/.devbin/cmd/brew` and `bin/.devbin/cmd/shared/brew.lib` are gone. -- satisfied: no (computed)
+- AC-03.1 The built-in formula writes Intent's formula and cask in assets mode under the cut's yes, each asset's sum filled from the release's sums file, which stands for issue 0634's cask sha256 check; Intent's own brew smoke runs as an `after:` command under the same yes, where it reports after publication and gates nothing; and `bin/.devbin/cmd/brew` keeps the smoke and nothing else, with no render or publish code left in it or in `bin/.devbin/cmd/shared/brew.lib`. -- satisfied: no (computed)
 - AC-03.2 The built-in `macos publish` publishes the stage Intent's `macos prepare` makes, that stage carries `<stage>/commit` with HEAD's full sha, and `bin/.devbin/cmd/macos` carries no publish. -- satisfied: no (computed)
 - AC-03.3 (non-test) The service block in Intent's formula template points log_path and error_log_path at D19's intentd.log and intentd.err.log under the user's state dir, the files intent daemon logs reads, and its comment says intentd writes every line to stdout or stderr and names where each goes (issue 0667, ruled by hv on 2026-10-31). -- satisfied: no
 

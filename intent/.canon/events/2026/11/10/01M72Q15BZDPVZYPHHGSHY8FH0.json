@@ -1,0 +1,16 @@
+{
+  "id": "01M72Q15BZDPVZYPHHGSHY8FH0",
+  "ts": "2026-11-10T12:30:52.287Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 71,
+    "text": "ST0091, Devbin ST0011/12 in Intent's tree, is WIP since ca3af21d9 (2026-11-10): dc claims ST0091/01 and ST0091/04 and builds the four packages; vc judges each as dc banks it and claims nothing, every run booked with the estate's controller. vc's rulings on dc's WP-01 re-inventory are given (decision 112) and are in WP-01's body. dc builds WP-04's trigger change first, as the train's first unit, then WP-01's project commands. THE CUT WAITS ON DEVBIN'S NEXT RELEASE (decision 113): it carries the pre-flight seam (devbin 0327) that AC-01.3 needs and the release commit's trailer (devbin 0328), hv fires it, and its sweep into Intent's tree comes before dc wires either. WP-03 is reworded to the core as built: the cask's sum by the sums fill, and Intent's own smoke as an `after:` command. FOR hv, through vc: C3, which remotes a cut pushes to (built as local and upstream meanwhile; watchout 33); and, for hv to know, C9: tags are annotated from 3.3.0, because the core's formula step refuses a lightweight one. TO WATCH AT THE JUDGE: the cut reads one workflow's verdict (tests.yml), so dc's WP-04 design says what stands for rust.yml's on the candidate; and one arm takes an annotated tag through prepush's range reader. The sweeps that brought the core in: devbin 0.1.19 (066bd45bb, then dfef527a3) and 0.1.20 (18a75d29c), each touching only bin/.devbin/."
+  }
+}

@@ -9,17 +9,19 @@ status: Not Started
 
 ## Objective
 
-The built-in formula writes Intent's tap and the built-in `macos publish` uploads its macOS assets, both under the cut's yes. `bin/.devbin/cmd/brew` and `bin/.devbin/cmd/shared/brew.lib` are gone, `bin/.devbin/cmd/macos` keeps no publish, and its `prepare` stays as a shadow that writes the stage's commit record the built-in publish requires.
+The built-in formula writes Intent's tap and the built-in `macos publish` uploads its macOS assets, both under the cut's yes. `bin/.devbin/cmd/brew` keeps Intent's own smoke and nothing else, and the cut runs that smoke as an `after:` command. `bin/.devbin/cmd/macos` keeps no publish, and its `prepare` stays as a shadow that writes the stage's commit record the built-in publish requires.
 
 ## Builder and judge
 
-dc builds this package and claims `ST0091/03` in the same chain as `intent wp start ST0091/03`, once the vendor sweep has brought in the core's formula under the yes, carrying issue 0634's cask sha256 check and `brew smoke` (Devbin WP08, with cc), and its macOS stage (Devbin WP06). vc judges it and claims nothing.
+dc builds this package and claims `ST0091/03` in the same chain as `intent wp start ST0091/03`, once the vendor sweep has brought in the core's formula under the yes (Devbin WP08) and its macOS stage (Devbin WP06), both of which devbin 0.1.20 carries as vendored. vc judges it and claims nothing.
 
 ## What moves
 
 dc's inventory, measured at 7ff46b458; line references are to that commit.
 
-- `bin/.devbin/cmd/brew` (669 lines) and `bin/.devbin/cmd/shared/brew.lib` (812) go. The built-in `formula` (the vendored `lib/cmd/formula`) writes Intent's formula and cask in assets mode under the cut's yes. `cmd/macos` sources `brew.lib` (:76), so that line goes with it.
+- `bin/.devbin/cmd/brew` (669 lines) loses its render and its publish to the built-in `formula` (the vendored `lib/cmd/formula`), which writes Intent's formula and cask in assets mode under the cut's yes and fills each asset's sum from the release's sums file. That fill is what stands for issue 0634's cask sha256 check: no sum is kept by hand, and none is computed on this machine.
+- `cmd/brew` keeps its smoke (`cmd_smoke`, :265, about half the file). The core carries none: devbin-vc measured on 2026-11-10 that the smoke its ruling of 2026-10-31 named was never built. The cut runs Intent's as an `after:` command, where it reports after publication and gates nothing, as it does today after `brew publish`.
+- `bin/.devbin/cmd/shared/brew.lib` (812) keeps only what the smoke reads, or goes if the smoke reads nothing from it, and dc's bank says which. `cmd/macos` sources `brew.lib` (:76), and that line follows what is left of it.
 - `bin/.devbin/cmd/macos` (2349 lines) loses its publish half (`cmd_publish`, :1245-1536) to the built-in `macos publish`. Its `prepare` (:1192) stays as a shadow until the built-in stages more than one app, and writes `<stage>/commit`, HEAD's full sha, because the built-in publish refuses a stage without one (Devbin WP06a's note). Today neither `cmd/macos` nor the vendored `lib/cmd/macos` writes that file: the stage (:835) records `commit:` in `target/dist-provenance.txt` (:893) instead.
 - `tests/unit/brew_formula.bats` and `macos_release_assets.bats` follow what they test.
 
