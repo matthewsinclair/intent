@@ -12,7 +12,6 @@
       "ST0090/02",
       "ST0091/01",
       "ST0091/04",
-      "ISSUE:0667",
       "ST0092/08"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
@@ -2783,7 +2782,8 @@
       "kind": "doing",
       "seq": 156,
       "text": "ISSUE:0667, hv rules it into 3.3.0 and it is dc's (vc, 2026-11-10). The ruled formula fix landed with ST0091 WP-03 (f18bd6945), and AT-03.3 checks it. Left: on the brew route nothing creates the log's directory, because intent bootstrap never makes the state dir; and docs/install.md:22 still says brew's var/log. Shape sent to vc: bootstrap::run makes daemon_log_under's parent, an intentsvcs arm red on the code as it is, then the fix, plus the caveat line and install.md. WAITING ON vc's go on the shape and on where the arm is recorded. Every compiled run goes in a desk slot.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-10T20:56:14.216Z",
       "recorded_at": "2026-11-10T19:45:24.754Z"
     },
     {
