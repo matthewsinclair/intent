@@ -1429,3 +1429,206 @@ fn an_unreadable_controller_record_is_named_where_a_person_looks() {
   );
   assert!(!text.contains("NO CONTROLLER"), "{text}");
 }
+
+// ST0092 WP-08: the Desk is a hat. The duties have one template source, a
+// node that is not its board's mediator takes control only on hv's words, the
+// wearer's pickup and `wb status` show the hat, and a desk whose controller's
+// session is gone reads orphaned and shows on no board.
+
+/// Runs `intent wb <args>` in the host's project as the Claude Code session
+/// `session_id`.
+fn wb(host: &Host, session_id: &str, args: &[&str]) -> std::process::Output {
+  let argv = [&["wb"][..], args].concat();
+  host
+    .cmd()
+    .env("CLAUDE_CODE_SESSION_ID", session_id)
+    .current_dir(&host.project)
+    .args(&argv)
+    .stdin(testkit::lifeline_for(&argv))
+    .output()
+    .expect("run an intent wb verb")
+}
+
+/// Registers `node` and picks it up as `session_id`, whose session file is
+/// written with `pid`, so the board records the session the way a real node's
+/// pickup does.
+fn seat(host: &Host, node: &str, session_id: &str, pid: u32) {
+  host.session(
+    pid,
+    session_id,
+    &format!("intent-{node}"),
+    &host.project,
+    "idle",
+  );
+  ok_out(&wb(
+    host,
+    session_id,
+    &["register", node, "--name", "Test Node", "--role", "worker"],
+  ));
+  ok_out(&wb(host, session_id, &["pickup", "--node", node]));
+}
+
+/// The controller's duties as their one template holds them (AC-08.1).
+fn duties() -> String {
+  let path =
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../lib/templates/estate/_DUTIES.md");
+  std::fs::read_to_string(&path)
+    .unwrap_or_else(|e| panic!("the duties template at {}: {e}", path.display()))
+    .trim()
+    .to_string()
+}
+
+/// The `hats` a `wb status --json` row carries for `node`.
+fn hats(host: &Host, session_id: &str, node: &str) -> serde_json::Value {
+  let rows: serde_json::Value =
+    serde_json::from_str(&ok_out(&wb(host, session_id, &["status", "--json"])))
+      .expect("wb status --json is one JSON value");
+  rows
+    .as_array()
+    .expect("an array of nodes")
+    .iter()
+    .find(|r| r["moniker"] == node)
+    .unwrap_or_else(|| panic!("no row for {node}: {rows}"))["hats"]
+    .clone()
+}
+
+/// ST0092 AT-08.2
+///
+/// ST0092 AC-08.2: a session bound to a node that is not its board's mediator
+/// (an undeclared board's mediator is vc) is refused control with a remedy
+/// naming who may take it, and nothing is written; with `--hv` it takes it and
+/// the words are recorded.
+#[test]
+fn a_node_that_is_not_its_boards_mediator_takes_the_desk_only_on_hvs_words() {
+  let host = Host::new();
+  seat(&host, "cc", "s-cc", std::process::id());
+
+  let refused = slot(&host, "s-cc", &["control", "take"]);
+  let stderr = String::from_utf8_lossy(&refused.stderr);
+  assert!(
+    !refused.status.success(),
+    "a non-mediator's take is refused: {stderr}"
+  );
+  assert!(
+    stderr.contains("`cc`") && stderr.contains("`vc`") && stderr.contains("--hv"),
+    "the refusal names the node, the mediator and `--hv`: {stderr}"
+  );
+  assert!(
+    host.status_json()["controller"].is_null(),
+    "nothing was written"
+  );
+
+  let words = "hv: cc takes the desk";
+  ok_out(&slot(&host, "s-cc", &["control", "take", "--hv", words]));
+  assert_eq!(host.status_json()["controller"]["hv"], words);
+}
+
+/// ST0092 AT-08.1
+///
+/// ST0092 AC-08.1 and AC-08.3: the mediator takes control without words, its
+/// pickup prints that it wears the desk, the duties from their one template
+/// and the asks waiting, and `wb status` shows the hat in text and json;
+/// `estate init`'s AGENTS.md carries the same duties text.
+#[test]
+fn the_wearers_pickup_prints_the_hat_the_duties_and_the_asks_waiting() {
+  let host = Host::new();
+  seat(&host, "vc", "s-vc", std::process::id());
+  ok_out(&slot(&host, "s-vc", &["control", "take"]));
+  ok_out(&slot(
+    &host,
+    "s-vc",
+    &[
+      "lane",
+      "open",
+      "heavy",
+      "--type",
+      "heavy",
+      "--capacity",
+      "1",
+    ],
+  ));
+  let asked = ok_out(&slot(&host, "s-vc", &["slots", "ask", "heavy", "a build"]));
+  let id = asked
+    .lines()
+    .find_map(|l| l.strip_prefix("asked: "))
+    .expect("ask prints the id");
+
+  let pickup = ok_out(&wb(&host, "s-vc", &["pickup", "--node", "vc"]));
+  assert!(pickup.contains("wears the desk"), "{pickup}");
+  assert!(
+    pickup.contains(&duties()),
+    "the pickup carries the duties: {pickup}"
+  );
+  assert!(
+    pickup.contains(id),
+    "the pickup names the ask waiting: {pickup}"
+  );
+
+  let status = ok_out(&wb(&host, "s-vc", &["status"]));
+  let vc_line = status
+    .lines()
+    .find(|l| l.starts_with("vc "))
+    .unwrap_or_else(|| panic!("no vc line: {status}"));
+  assert!(vc_line.contains("wears the desk"), "{status}");
+  assert_eq!(hats(&host, "s-vc", "vc"), serde_json::json!(["desk"]));
+
+  let coordinator = tempfile::tempdir().expect("a coordinator dir");
+  ok_out(
+    &host
+      .cmd()
+      .args(["estate", "init"])
+      .arg(coordinator.path())
+      .output()
+      .expect("run estate init"),
+  );
+  let agents = std::fs::read_to_string(coordinator.path().join("AGENTS.md")).expect("AGENTS.md");
+  assert!(
+    agents.contains(&duties()),
+    "the coordinator's AGENTS.md carries the duties"
+  );
+}
+
+/// ST0092 AT-08.3
+///
+/// ST0092 AC-08.4: once the recorded controller's session is gone, `estate
+/// status` says the desk is orphaned and prints the step that takes it, and no
+/// board shows the hat, neither `wb status` nor a later pickup.
+#[test]
+fn a_desk_whose_controllers_session_is_gone_reads_orphaned_and_shows_on_no_board() {
+  let host = Host::new();
+  let me = std::process::id();
+  seat(&host, "vc", "s-vc", me);
+  ok_out(&slot(&host, "s-vc", &["control", "take"]));
+
+  // The session ends: its file now names a pid that has exited.
+  std::fs::remove_file(host.claude.join("sessions").join(format!("{me}.json")))
+    .expect("remove the live session file");
+  host.session(dead_pid(), "s-vc", "intent-vc", &host.project, "idle");
+
+  let status = host.status_json();
+  let orphaned = &status["controller_orphaned"];
+  assert!(
+    orphaned.is_object(),
+    "the json carries the orphaned desk: {status}"
+  );
+  assert!(
+    orphaned["take"]
+      .as_str()
+      .is_some_and(|t| t.starts_with("intent estate control take")),
+    "{orphaned}"
+  );
+  let text = ok_out(
+    &host
+      .cmd()
+      .args(["estate", "status"])
+      .output()
+      .expect("estate status"),
+  );
+  assert!(text.contains("ORPHANED"), "{text}");
+  assert!(text.contains("intent estate control take"), "{text}");
+
+  host.session(me, "s-vc2", "intent-vc", &host.project, "idle");
+  assert_eq!(hats(&host, "s-vc2", "vc"), serde_json::json!([]));
+  let pickup = ok_out(&wb(&host, "s-vc2", &["pickup", "--node", "vc"]));
+  assert!(!pickup.contains("wears the desk"), "{pickup}");
+}
