@@ -1,0 +1,16 @@
+{
+  "id": "01M73GQX0B6AWGCSEY46ZXN5R0",
+  "ts": "2026-11-10T20:00:11.788Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 65,
+    "text": "ST0092 WP-06, the launcher half, ic's on vc's word of 2026-11-10, route ruled by vc and written into WP-06's body (509e1bffa); cc keeps the claim of ST0092/06 and builds `wb brief`. ic's half: (a) the door `claude_cwi` (intent-cli/src/render.rs) calls cc's brief facade method with launch steps, in the block that reads `f.board(&ws)`, and passes the text to the script as an argument beside the display name; (b) `intent/plugins/claude/bin/intent_claude_cwi`'s `compose_ctx` prints that text and the restart context in place of its two hard-coded steps, never calls `intent`, keeps the session name and the exec, and its opening line says seat; (c) tests in intent-cli/tests/claude_cwi_door.rs and the launcher's test files, driven with CWI_DRY_RUN=full. The three edges are the facade's typed refusals at the door (no profile: exit 0 with today's two steps; retired seat: exit 1, `wb register`; human seat with --launch: exit 1). The `wb init` remedy is WbNodeNotRegistered's, which is cc's, and cc has been told. Built in a worktree off main ONLY once cc banks `wb brief` and sends its ref and the facade method's signature, then banked for vc's judging."
+  }
+}
