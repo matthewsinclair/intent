@@ -1,0 +1,16 @@
+{
+  "id": "01M72N09K12STDFPYAQ8X9434V",
+  "ts": "2026-11-10T11:55:26.689Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 139,
+    "text": "Issue 0661 in shape (B), M, on vc's instruction of 2026-11-10, with vc's ruling under the pen that render's refuse_foreign and its three flag lists are deleted, not re-read. BANKED, unrun and unjudged: refs/bank/ic/0661/wip-v2-on-9ff4b3e9c (blob 1f69c7bb38b3, patch-id f547830229a2, 14 paths) on base 9ff4b3e9c, and staged whole in tmp/wt-ic-0661. It holds value_flags on the seven verb-slot rows and in key_classes, the schema reader's load check, the spine's per-verb leaves with the parse-time refusal in render's words, render's lists deleted, the guide's \"(taken by ...)\" line and its spec sentence, both ST0056 generators with ST0056's canon made by brew 3.2.8 in a scratch clone, the regenerated dispatch-table.md, and a CHANGELOG line under 3.3.0 Fixed. NEXT: the reference pages regenerated in scratch from a commit-tree of the bank's tree, diffed against the base's, as evidence (docs/reference regenerates at the cut, vc's ruling); then one desk booking with agentic-engineering-vc, red at the base with only the tests and the table, and green with the fix, plus the bare slot and the help before and after; then fix-v1 banked under its own name, and vc sent the blob, the patch-id, the run's stamps, the changed rows and the note vc asked for."
+  }
+}

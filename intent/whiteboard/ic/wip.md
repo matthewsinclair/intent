@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 677e6c35-f820-4993-8ec4-ad639debeb1b
-heartbeat_at: 2026-11-10 11:30Z
+heartbeat_at: 2026-11-10 11:55Z
 status: active
-focus: "Building issue 0661 in shape (B) on vc's instruction of 2026-11-10, in tmp/wt-ic-0661: each verb's flags declared once in the dispatch table and hung only on that verb's leaf. Then 0650, 0672, 0676 and 0677, and ST0092's row reads and WP-10, as the TODOs say. Claim: ISSUE:0661."
+focus: "Localfolded for hv's compact on hv's word, 2026-11-10, to resume on the bounce. 0661 is banked, unrun, at refs/bank/ic/0661/wip-v2-on-9ff4b3e9c (patch-id f547830229a2) and staged in tmp/wt-ic-0661; next come its reference-page evidence and one desk run, red then green, as doing 139 says. Claim: ISSUE:0661."
 claims: [ISSUE:0661]
 ---
 
@@ -13,7 +13,7 @@ claims: [ISSUE:0661]
 
 ## DOING
 
-- Issue 0661 in shape (B), M, on vc's instruction of 2026-11-10 (hv had the seats hold for vc's instructions): each verb's flags are declared once on its verb slot in surface/dispatch-table.json, as a value_flags map beside value_help; the spine hangs only that verb's flags on its leaf and none on the slot's parent; render restates no flag set; and one parse-only arm compares every leaf's flags with its declaration, so it reaches the rows the flag sweep cannot drive. It owes the schema reader, the guide and the register (dispatch-table.md). Built in tmp/wt-ic-0661 on its own target, banked under refs/bank/ic/0661/, one desk run for the arms that prove it (vc decision 110), judged by vc. It lands before cc's ST0092 rows.
+- Issue 0661 in shape (B), M, on vc's instruction of 2026-11-10, with vc's ruling under the pen that render's refuse_foreign and its three flag lists are deleted, not re-read. BANKED, unrun and unjudged: refs/bank/ic/0661/wip-v2-on-9ff4b3e9c (blob 1f69c7bb38b3, patch-id f547830229a2, 14 paths) on base 9ff4b3e9c, and staged whole in tmp/wt-ic-0661. It holds value_flags on the seven verb-slot rows and in key_classes, the schema reader's load check, the spine's per-verb leaves with the parse-time refusal in render's words, render's lists deleted, the guide's "(taken by ...)" line and its spec sentence, both ST0056 generators with ST0056's canon made by brew 3.2.8 in a scratch clone, the regenerated dispatch-table.md, and a CHANGELOG line under 3.3.0 Fixed. NEXT: the reference pages regenerated in scratch from a commit-tree of the bank's tree, diffed against the base's, as evidence (docs/reference regenerates at the cut, vc's ruling); then one desk booking with agentic-engineering-vc, red at the base with only the tests and the table, and green with the fix, plus the bare slot and the help before and after; then fix-v1 banked under its own name, and vc sent the blob, the patch-id, the run's stamps, the changed rows and the note vc asked for. (edited)
 
 ## TODO
 
@@ -21,6 +21,7 @@ claims: [ISSUE:0661]
 - Issue 0672, M, in the full shape (vc todo 75): AGENTS.md's build and test lines are rendered from what the project declares, bin/devbin where the tree has one, else declared commands, else none. vc judges it with the survey instruments at refs/bank/vc/0672/. It reaches a project at the 3.3.0 cut and that project's next agents sync.
 - Issues 0676 and 0677, each S by vc's read. 0676: the session's record of its bootstrap carries the languages it loaded for, and the hook that runs on every prompt and `intent wb pickup` say when the project's declaration has moved (the wb init warning is cc's, in WP-03). 0677: FMT-02's set says what it means, every automated trope pattern runs under one named engine on a line that should match and one that should not, and the runner's comment names its engine.
 - ST0092: read each of cc's banks' dispatch-table rows (WP-02 to WP-09) as the table's owner before vc judges it; then WP-10, the new surface read as one, claimed in the chain of its `intent wp start` after cc's packages land. vc's proposals for the rows stand: a roster act is not offered on MCP, and a read is.
+- At the next pickup, tell vc in one line what hv's directive 2, the team brief, gives ic: its role and remit, the mediator and the route to hv (vc's ask with its CHAIN END of d09791705). Do not run a pickup for it before then.
 
 ## Holds
 

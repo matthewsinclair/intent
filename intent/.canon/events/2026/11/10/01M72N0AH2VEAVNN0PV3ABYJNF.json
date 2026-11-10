@@ -1,0 +1,15 @@
+{
+  "id": "01M72N0AH2VEAVNN0PV3ABYJNF",
+  "ts": "2026-11-10T11:55:27.650Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "At the next pickup, tell vc in one line what hv's directive 2, the team brief, gives ic: its role and remit, the mediator and the route to hv (vc's ask with its CHAIN END of d09791705). Do not run a pickup for it before then."
+  }
+}
