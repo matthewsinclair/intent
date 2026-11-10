@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "b6c81c66-6862-4b68-a61a-ac299e1bb7ce",
-    "heartbeat_at": "2026-11-10T11:22:36.664Z",
+    "heartbeat_at": "2026-11-10T11:43:30.740Z",
     "status": "active",
-    "focus": "2026-11-10, picked up after hv started the nodes; vc's order of 09:09Z (edited) lifts the hold of 2026-11-01, and cc holds for vc's instructions on hv's word in cc's window by 11:22Z by cc's date -u: \"Boot and hold for instructions from VC.\" Doing 103: 0671's one red is fixed and re-banked as fix-v2, run on agentic-engineering-vc's desk, then vc's land word naming HEAD. Hold: ST0092 WP-02 to WP-09, with 0675 beside WP-06, until hv ratifies the terms document (AC-01.5); cc reads and plans meanwhile. 0672 is ic's. Kept: claim ISSUE:0671, tmp/wt-cc-0671, and tmp/wt-cc-0671-mutant until the fold checks remove it. No stash or branch. Nothing pushed or released.",
+    "focus": "2026-11-10, on vc's instructions. Doing 103: 0671's fix-v2 is banked and read by vc. vc runs the three arms red at the base, then gives the land word, and cc lands it and closes 0671. Hold 35: ST0092 WP-02 to WP-09, with 0675 beside WP-06, wait on AC-01.5; cc's read-and-plan notes and five findings on the terms are with vc. Kept: claim ISSUE:0671 and tmp/wt-cc-0671. No stash or branch. Nothing pushed or released.",
     "claims": [
       "ISSUE:0671"
     ],
@@ -2223,10 +2223,10 @@
       "node": "cc",
       "kind": "doing",
       "seq": 103,
-      "text": "ISSUE:0671, on hv's word relayed by vc (2026-11-01 10:21Z by vc's date -u): an intentd started without CLAUDE_CONFIG_DIR sees no Claude session, so the estate page marks every held slot ORPHANED. It rides 3.3.0: vc's order of 2026-11-10 09:09Z (edited) lifts the hold of 2026-11-01. vc judged refs/bank/cc/0671/fix-v1 (patch-id cb974be96777, on fe748602e) on the whole workspace suite, stacked on main at 1dcd8928f993, and found one red of cc's: launchagent::tests::a_rewrite_names_the_stamp_it_replaced_and_the_value_it_added writes 3.2.8 as another build's stamp, and the build is 3.2.8. NEXT, on vc's instruction, since hv's word in cc's window by 11:22Z by cc's date -u was \"Boot and hold for instructions from VC.\": derive that stamp from the current version so the two can never be equal, and re-bank as refs/bank/cc/0671/fix-v2, leaving fix-v1 where it is. Then run, on agentic-engineering-vc's desk, only the arms that prove the bank, red at the base and green with the fix: the login-shell probe, the three daemon_lifecycle arms with launchagent's unit tests (green only, since they live in the fixed file), and the app's tests. run-v1.sh's legs 6 (the Swift mutant), 7 and 8 are dropped, so the never-banked mutant tmp/wt-cc-0671-mutant goes by the fold checks. vc then reads v2 against v1, runs that one unit test, and gives the land word naming HEAD, with no second whole-suite run.",
+      "text": "ISSUE:0671, on hv's word relayed by vc (2026-11-01 10:21Z by vc's date -u): an intentd started without CLAUDE_CONFIG_DIR sees no Claude session, so the estate page marks every held slot ORPHANED. It rides 3.3.0. FIX-V2 IS BANKED on vc's instruction of 2026-11-10: refs/bank/cc/0671/fix-v2 (blob 46b6cd199371, patch-id e5fb029d7ebf, tree 2c1fa842941f on fe748602e) is fix-v1 with its one red fixed, the other build's stamp in launchagent's unit test derived from this build's version. vc read v2 against v1 (one hunk) and ran launchagent's tests green on it. The mutant's planted diff is refs/bank/cc/0671/mutant-v1.patch (blob cb201537d9fc), and its worktree is removed by the fold checks, kept as refs/attic/cc/wt-cc-0671-mutant (47d0695a8b75). cc's own run is the probe alone, refs/bank/cc/0671/run-v4.sh and run-v4-stamps.txt: the login shell under env -i exports CLAUDE_CONFIG_DIR, and a HOME with no .zshenv does not. The cold build was withdrawn on vc's word, so vc runs the three daemon_lifecycle arms red at the base from its judge's warm target; run-v2.sh and run-v3.sh are banked and were never run. NEXT: vc's red, then vc's land word naming HEAD. cc then lands the nine paths, closes 0671, and removes tmp/wt-cc-0671 by the fold checks.",
       "state": "live",
       "recorded_at": "2026-11-01T10:27:57.052Z",
-      "edited_at": "2026-11-10T11:22:35.647Z"
+      "edited_at": "2026-11-10T11:43:29.768Z"
     },
     {
       "node": "cc",
