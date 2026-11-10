@@ -1,0 +1,15 @@
+{
+  "id": "01M72BC26X5HKJBNGYZ7E89YA0",
+  "ts": "2026-11-10T09:07:06.589Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-10, first-hand in prose in vc's session, read by 09:06Z on vc's date -u; the scope list and the four readings marked vc's are vc's, under the pen) THE NEXT RELEASE IS 3.3.0 AND IT CARRIES EVERYTHING OUTSTANDING. THERE IS NO 3.2.9. hv, verbatim: \"The current release is 3.2.8. I suggest we just put everything that is currently outstanding into the next release and call it 3.3.0.\" This replaces the release numbering in decisions 105 and 106 and hv's word of 2026-11-06 that nothing moves: the work moves now, as one release (hv directive 1). IN 3.3.0: the three fixes on main (0666, 0668, 0669); the banked fixes for 0671, the testkit race and the sweep order; ST0090's last criterion; ST0091, the cut through devbin's core, with 0667's fix; ST0092, Claude Team profiles; and issues 0670, 0672, 0649, 0650, 0661 and 0665. vc's READINGS, each open to hv's reversal. (1) 0670 rides 3.3.0: hv's ruling of 2026-11-01 put it after Devbin's ST0011, but ST0011 closes only when hv cuts Intent's first release through the core, which is 3.3.0 itself, so \"after ST0011\" and \"in the one next release\" cannot both hold, and today's word is the later one. (2) 0672 is built in the full shape, sized M in the issue: the build and test lines are rendered from what the project declares, `bin/devbin` where the tree has one, else declared commands, else none; cc builds it and vc judges. (3) The four issues that were parked for hv (0649, 0650, 0661, 0665) are in scope, and one that proves larger than it reads comes back to hv with its reason. (4) The Not Started threads ST0060, ST0077, ST0082, ST0084, ST0085 and ST0089 are not outstanding work and stay parked. The cut is hv's, once, through devbin's core (decision 105's second ruling stands on that), and ST0092's sweep runs after it, on the brew-installed release."
+  }
+}

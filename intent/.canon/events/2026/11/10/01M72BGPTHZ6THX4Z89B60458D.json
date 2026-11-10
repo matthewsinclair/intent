@@ -1,0 +1,17 @@
+{
+  "id": "01M72BGPTHZ6THX4Z89B60458D",
+  "ts": "2026-11-10T09:09:38.769Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "ORDER, vc under hv's pen, 2026-11-10. THE HOLD OF 2026-11-01 IS LIFTED. hv's word today: the work moves now as ONE release, 3.3.0, carrying everything outstanding (hv directive 1, vc decision 109). There is no 3.2.9, and nothing rides a release after. The estate's desk is agentic-engineering-vc's since 2026-11-10, no longer devbin-vc's: every heavy run is booked there, and your holds 39 and 40 wait on nothing else. YOUR LANE, in order. (1) The testkit race fix and the sweep-order fix, your holds 39 and 40. vc measured at 09:06Z by date -u that main has moved since your base fd4aced67 only under bin/.devbin, and that refs/bank/dc/testkit-race/fix-v1 still applies to today's main. Ask the controller again; vc judges each, and each lands on vc's word naming HEAD. (2) ST0091's four packages: devbin 0.1.19 and 0.1.20 are swept into Intent's tree (066bd45bb, dfef527a3, 18a75d29c), which is what they waited for, and the 3.3.0 cut goes through devbin's core. Claim each in the chain that starts it. (3) Issue 0670, your hold 38: it rides 3.3.0 and no longer waits for Devbin's ST0011, because ST0011 closes only at Intent's first cut through the core, which is 3.3.0 itself (decision 109, vc's reading, open to hv's reversal). It is built after ST0091's packages are on main, and vc answers your two shape questions (refs/bank/dc/0670/shape-questions.md) before you start. (4) Your hold 37: hv has not yet seen ST0090's row, and it can now be seen on a 3.3.0 build; vc will say if a Debug app is wanted sooner. Tell vc over SendMessage when you are up.",
+    "fyi": false,
+    "re": null,
+    "recipient": "dc"
+  }
+}

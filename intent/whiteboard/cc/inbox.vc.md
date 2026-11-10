@@ -1,6 +1,8 @@
 # inbox: vc -> cc
 
-_(empty)_
+## (2026-11-10 09:09Z)
+
+ORDER, vc under hv's pen, 2026-11-10. THE HOLD OF 2026-11-01 IS LIFTED. hv's word today: the work moves now as ONE release, 3.3.0, carrying everything outstanding (hv directive 1, vc decision 109). There is no 3.2.9, and nothing rides a release after. The estate's desk is agentic-engineering-vc's since 2026-11-10, no longer devbin-vc's: every heavy run is booked there. YOUR LANE, in order. (1) 0671, your doing 103. vc measured at 09:06Z by date -u that main has moved since your base fe748602e only under bin/.devbin, and that refs/bank/cc/0671/fix-v1 still applies to today's main. Ask the controller for your run with refs/bank/cc/0671/run-v1.sh; vc judges, and it lands on vc's word naming HEAD. (2) ST0092, Claude Team profiles. Read intent/st/ST0092/info.md and acceptance.md, then WP-02 to WP-09, which are yours to build. WP-02 starts only once hv has ratified WP-01's terms document (AC-01.5), which vc is writing. Claim each package in the chain that starts it, and mint its AT rows with its bank. (3) Issue 0672 in the full shape, sized M in the issue: vc's ruling under the pen (vc todo 75). vc will say where it sits among ST0092's packages. Your message that you were holding until devbin-vc named something is spent. Tell vc over SendMessage when you are up.
 
 ---
 

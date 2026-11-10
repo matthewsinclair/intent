@@ -1,0 +1,16 @@
+{
+  "id": "01M72BD5GZHDYQV8KQV32TD206",
+  "ts": "2026-11-10T09:07:42.751Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 75,
+    "text": "Issue 0672 (high) rides 3.3.0 (decision 109). Of the three decisions that were owed, two are made by vc under the pen on 2026-11-10, each open to hv's reversal: it is built in the full shape, sized M in the issue, where the build and test lines are rendered from what the project declares, `bin/devbin` where the tree has one, else declared commands, else none; and cc builds it and vc judges. The third, whether the push waits, is spent, because there is one release. A fix reaches a project at the 3.3.0 cut and that project's next agents sync, because brew's intent renders AGENTS.md from its keg. The instruments that re-measure the fleet against a build are refs/bank/vc/0672/survey-swift.zsh, survey-shell-tests.zsh and survey-imports.zsh."
+  }
+}

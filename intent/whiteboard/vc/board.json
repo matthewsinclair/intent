@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "124edee5-f105-45bd-8483-ee7dc6dd6fd9",
-    "heartbeat_at": "2026-11-10T08:33:21.886Z",
+    "heartbeat_at": "2026-11-10T09:10:08.834Z",
     "status": "active",
-    "focus": "2026-11-10, hv is back and in vc's session. ST0092 (Claude Team profiles: wb init, the enforced hv channel, the Desk as a hat, the fleet sweep) is raised and elaborated on hv's seven rulings (decision 107) and waits on hv's review of the elaboration (todo 76). Nothing else moves: the 3.2.9 train (holds 6 to 8, todos 71, 74 and 75) still waits on hv's word. Two facts under those holds changed while hv travelled: the estate's desk is agentic-engineering-vc's since 2026-11-10 on hv's word, no longer devbin-vc's, and devbin 0.1.19 and 0.1.20 are tagged and swept, so those holds now wait on hv's word alone. No other Intent node is running.",
+    "focus": "2026-11-10. ONE NEXT RELEASE, 3.3.0, carrying everything outstanding (hv directive 1, decision 109): there is no 3.2.9. The train is todo 77: the three banked fixes first (todo 74), then the push of main (hold 8); dc on ST0091 then 0670; cc on 0671, ST0092 and 0672; ic on ST0092's surface. cc, dc and ic have their lanes in their inboxes and no session running. ST0092 is WIP on hv's start, and vc writes its WP-01 next, for hv's ratification. A spike runs beside it in one swarm set up by hand in the thread's form, and its findings go into the thread as they arrive. The estate's desk is agentic-engineering-vc's since 2026-11-10.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -2491,10 +2491,10 @@
       "node": "vc",
       "kind": "hold",
       "seq": 6,
-      "text": "ST0090 AC-02.4, issue 0664's last criterion: held until hv has seen Intent.app's Rebuild Search Index row show its second line, reconciled <age> ago, after a rebuild, on a build at or after a54f2e9e0 whose CLI carries 8406f6a15: the 3.2.9 cut, or a dev app pointed at a dev CLI, which is the maintainer's alone. The dev CLI half is ready: build all at 64cf9e251 promoted intent and intentd (dev, 64cf9e251e56) into native/rust/target/release on 2026-11-01. The app half is a Debug build at HEAD, dc's, by `bin/devbin macos app-build`, with hv setting IntentBinary to that CLI and deleting it after (dc's route, verified by vc). Then vc records that build on AC-02.4 and tells dc to close WP-02.",
+      "text": "ST0090 AC-02.4, issue 0664's last criterion: held until hv has seen Intent.app's Rebuild Search Index row show its second line, reconciled <age> ago, after a rebuild, on a build at or after a54f2e9e0 whose CLI carries 8406f6a15: the 3.3.0 cut, or a dev app pointed at a dev CLI, which is the maintainer's alone. The dev CLI half is ready: build all at 64cf9e251 promoted intent and intentd (dev, 64cf9e251e56) into native/rust/target/release on 2026-11-01. The app half is a Debug build at HEAD, dc's, by `bin/devbin macos app-build`, with hv setting IntentBinary to that CLI and deleting it after (dc's route, verified by vc). Then vc records that build on AC-02.4 and tells dc to close WP-02.",
       "state": "live",
       "recorded_at": "2026-10-31T15:45:33.835Z",
-      "edited_at": "2026-11-01T09:11:51.149Z"
+      "edited_at": "2026-11-10T09:07:20.301Z"
     },
     {
       "node": "vc",
@@ -2520,7 +2520,8 @@
       "kind": "hold",
       "seq": 7,
       "text": "Issue 0670, on hv's ruling of 2026-11-01 \"ambiguous lines stop\" (the 1-row shape, recorded in the issue): held until ST0011 has shipped, on hv's ruling of 2026-11-01 in vc's TUI, and it rides the release after 3.2.9. Then vc answers dc's shape questions (refs/bank/dc/0670/shape-questions.md), dc builds it (dc hold 38), and vc judges it with the fleet census (refs/bank/vc/0670/) re-run against the build, which must redden Devbin ST0011 AT-3.5 and nothing else.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-10T09:07:27.602Z",
       "recorded_at": "2026-11-01T09:07:34.516Z",
       "edited_at": "2026-11-01T10:05:49.705Z"
     },
@@ -2554,26 +2555,28 @@
       "node": "vc",
       "kind": "todo",
       "seq": 74,
-      "text": "Judge and land the obvious-bug fixes hv put in 3.2.9 (decision 106), once devbin-vc's desk grants Intent again: it grants only devbin's ST0011 runs until devbin 0.1.19 is cut and swept into the fleet, on hv's word by 11:17Z (\"no other work until devbin ships\"), and it denied cc's 0671 run 01M6BBKENABGC65S1XAYRCWHD3, dc's sweep-order run 01M6BB981X1E5KDPVY3E7CBWK6 and vc's race judge 01M6BD84EXF70MX346YDTSD3GW, each asked again then. 0671 (cc, doing 103): refs/bank/cc/0671/fix-v1 (patch-id cb974be96777), vc's static read clean; the app passes CLAUDE_CONFIG_DIR from the login shell and the at-login plist carries it without intentd's boot-time heal dropping it. The testkit race (dc, hold 39): refs/bank/dc/testkit-race/fix-v1 (patch-id abcffb4ac0ea); dc's storm run passed (refs/bank/dc/testkit-race/run-v1-stamps.txt, 2 red in 40 at the base, 0 with the fix); vc's light judge re-runs it in tmp/wt-vc-judge-race. The sweep-order fix (dc, hold 40): refs/bank/dc/testkit-sweep-order/fix-v1 (patch-id 3e958d267455) with its mutant red-v1 and run script refs/bank/dc/testkit-sweep-order/run-v1.zsh, stacked on the race fix, judged on the whole workspace suite. Each lands on vc's word naming HEAD; vc claims nothing.",
+      "text": "Judge and land the three banked bug fixes, as 3.3.0's first train (decision 109; they are the fixes decision 106 put in the release). hv's word of 2026-11-10 moves them, and every run is booked with the estate's controller, agentic-engineering-vc since 2026-11-10. 0671 (cc, doing 103): refs/bank/cc/0671/fix-v1 (patch-id cb974be96777), vc's static read clean; the app passes CLAUDE_CONFIG_DIR from the login shell and the at-login plist carries it without intentd's boot-time heal dropping it; cc asks again with refs/bank/cc/0671/run-v1.sh. The testkit race (dc, hold 39): refs/bank/dc/testkit-race/fix-v1 (patch-id abcffb4ac0ea); dc's storm run passed (refs/bank/dc/testkit-race/run-v1-stamps.txt, 2 red in 40 at the base, 0 with the fix); vc's light judge re-runs it in tmp/wt-vc-judge-race. The sweep-order fix (dc, hold 40): refs/bank/dc/testkit-sweep-order/fix-v1 (patch-id 3e958d267455) with its mutant red-v1 and run script refs/bank/dc/testkit-sweep-order/run-v1.zsh, stacked on the race fix, judged on the whole workspace suite. Each bank's base is checked against today's main before its run, since main has moved since 2026-11-01. Each lands on vc's word naming HEAD; vc claims nothing. The earlier asks the desk denied on 2026-11-01 (01M6BBKENABGC65S1XAYRCWHD3, 01M6BB981X1E5KDPVY3E7CBWK6, 01M6BD84EXF70MX346YDTSD3GW) are spent.",
       "state": "live",
       "recorded_at": "2026-11-01T10:22:02.949Z",
-      "edited_at": "2026-11-01T11:22:48.697Z"
+      "edited_at": "2026-11-10T09:07:41.540Z"
     },
     {
       "node": "vc",
       "kind": "hold",
       "seq": 8,
-      "text": "The push of 3.2.9's three fixes (0666 cbdee221d, 0668 823cddabd, 0669 bb1efcec5, each judged green by vc and its issue closed; build all at 64cf9e251 passed): held until devbin 0.1.19 is cut and swept into the fleet and devbin-vc's desk grants again. That is hv's word in devbin-vc's window, by 11:17Z on devbin-vc's clock, \"no other work until devbin ships\", under which the preflight re-run 01M6B7CCN2SGDKXQ13ZWWRHTVC was denied. Devbin's sweep into Intent's tree (todo 71) moves HEAD outside BOARD_PATHS, so the next Linux preflight is aimed at a later HEAD that carries the sweep and the judged fixes, with hv's ! line; devbin-vc then pushes local and upstream on vc's word naming it (decision 90). When the desk opens, vc also records the testkit race issue (refs/bank/vc/fold-20261101b/issue-records/testkit-race.title.txt, refs/bank/vc/fold-20261101b/issue-records/testkit-race.body.md), the sweep-order issue (refs/bank/dc/testkit-sweep-order/issue.title.txt, refs/bank/dc/testkit-sweep-order/issue.body-v2.md), 0671's addition (refs/bank/vc/fold-20261101b/issue-records/0671.add.md), and hv's rulings of 2026-11-01 in issue 0670 and intent/wip.md. The 3.2.9 cut is hv's, through devbin's release core (decision 105).",
+      "text": "The push of main to local and upstream. No release rides on it: there is one, 3.3.0 (hv directive 1, decision 109). It goes after 3.3.0's first judged train, so that GitHub's Linux and macOS legs read main well before the cut. Held until three things are true: that train (0671, the testkit race fix and the sweep-order fix, todo 74) is on main; the estate's controller, agentic-engineering-vc since 2026-11-10, has granted a build all at that HEAD and it has passed; and a Linux preflight at that HEAD on kovacs has passed (hv's ! line in kovacs-sysadm's session). Then devbin-vc pushes local and upstream, fast-forward only, on vc's word naming that HEAD (decision 90). The three fixes it was first raised for (0666 cbdee221d, 0668 823cddabd, 0669 bb1efcec5) are judged green and on main. The cut is hv's, once, through devbin's core.",
       "state": "live",
-      "recorded_at": "2026-11-01T11:22:47.567Z"
+      "recorded_at": "2026-11-01T11:22:47.567Z",
+      "edited_at": "2026-11-10T09:07:26.562Z"
     },
     {
       "node": "vc",
       "kind": "todo",
       "seq": 75,
-      "text": "Issue 0672 (high), banked for 2026-11-07 on hv's word on 2026-11-06 (\"we need to bank this and come back to it tomorrow\"), with three decisions owed by hv. (1) The template-only fix (S) or the full shape (M), both sized in the issue. (2) dc builds and vc judges, or vc builds with a critic and a fresh reviewer as the judge leg. (3) The push now, which carries every commit upstream lacks, the three held 3.2.9 fixes among them (hold 8), or with the 3.2.9 train. Either fix reaches a project only at the next cut and that project's next agents sync, because brew's intent renders AGENTS.md from its keg, and 3.2.9 goes through ST0091 (Not Started, four S packages). Every run needs a slot from devbin-vc, the estate's controller. The instruments that re-measure the fleet against a build are refs/bank/vc/0672/survey-swift.zsh, survey-shell-tests.zsh and survey-imports.zsh.",
+      "text": "Issue 0672 (high) rides 3.3.0 (decision 109). Of the three decisions that were owed, two are made by vc under the pen on 2026-11-10, each open to hv's reversal: it is built in the full shape, sized M in the issue, where the build and test lines are rendered from what the project declares, `bin/devbin` where the tree has one, else declared commands, else none; and cc builds it and vc judges. The third, whether the push waits, is spent, because there is one release. A fix reaches a project at the 3.3.0 cut and that project's next agents sync, because brew's intent renders AGENTS.md from its keg. The instruments that re-measure the fleet against a build are refs/bank/vc/0672/survey-swift.zsh, survey-shell-tests.zsh and survey-imports.zsh.",
       "state": "live",
-      "recorded_at": "2026-11-06T12:32:21.509Z"
+      "recorded_at": "2026-11-06T12:32:21.509Z",
+      "edited_at": "2026-11-10T09:07:42.751Z"
     },
     {
       "node": "vc",
@@ -2595,9 +2598,10 @@
       "node": "vc",
       "kind": "todo",
       "seq": 76,
-      "text": "ST0092, Claude Team profiles, raised and elaborated on hv's go of 2026-11-10: eleven packages and their criteria, Not Started (`intent wp list ST0092`, `intent ac gate ST0092`). NEXT, in order. (1) hv reviews the elaboration: the package list, the builders vc proposed (cc WP-02 to WP-09, ic WP-10, vc WP-01 under the pen and WP-11 as director), and vc's four design calls on retirement in WP-04. (2) hv says which release carries the thread and where it sits against the held 3.2.9 train. (3) vc writes WP-01's terms document and hv ratifies it (AC-01.5); no code before that. (4) cc builds from WP-02, every run booked with the estate's controller; vc judges each bank and claims nothing. (5) The sweep, WP-11, runs only on a brew-installed release that carries WP-02 to WP-10, and Pipeliner's sc is confirmed with hv before any write there. The census instrument is refs/bank/vc/st0092/census-boards.zsh (a651ef150413), and its reading of 2026-11-10 is refs/bank/vc/st0092/census-20261110.txt.",
+      "text": "ST0092, Claude Team profiles, rides 3.3.0 (decision 109). Raised and elaborated on hv's go of 2026-11-10 and started by hv the same day; hv looked at it in the explorer and said \"it's there now, and looks good\". Eleven packages, none started or claimed (`intent wp list ST0092`, `intent ac gate ST0092`). NEXT, in order. (1) vc writes WP-01's terms document and hv ratifies it (AC-01.5); no code before that. (2) cc builds WP-02 to WP-09 and ic WP-10, every run booked with the estate's controller; vc judges each bank and claims nothing. (3) The spike hv proposed runs beside it: one swarm is set up by hand in the thread's form (vc's proposal went to its vc at 08:58Z by date -u and waits on hv's go there), and its findings come back keyed to the package they bear on; the first, a roster README that opens with a verblock, is already in WP-07 and AC-07.3. (4) The sweep, WP-11, runs after the 3.3.0 cut, on the brew-installed release, and Pipeliner's sc is confirmed with hv before any write there. The census instrument is refs/bank/vc/st0092/census-boards.zsh (a651ef150413), and its reading of 2026-11-10 is refs/bank/vc/st0092/census-20261110.txt.",
       "state": "live",
-      "recorded_at": "2026-11-10T08:33:14.700Z"
+      "recorded_at": "2026-11-10T08:33:14.700Z",
+      "edited_at": "2026-11-10T09:08:01.588Z"
     },
     {
       "node": "vc",
@@ -2606,6 +2610,22 @@
       "text": "(hv, 2026-11-10, first-hand in prose in vc's session, read by 08:48Z on vc's date -u) THE TREE HOLDS ONLY WHAT IS LIVE OR TO BE DONE. hv, verbatim: \"We _should_ tidy things up. If issues and ST/WPs are resolved, then lets clean them out of the tree now. We should only have stuff that is live or to be done, old stuff can be dehydrated.\" So a resolved artefact's realised files leave the tree, by `intent organize --apply` once its whole preview has been read. vc's reading of the boundary: a Not Started thread is to be done and stays, listed with `intent st hydrate` before the apply; ST0056 and ST0057 are Completed and stay, because tests, the reference docs and the pre-commit guards read their files, until ST0084 relocates them; and before an apply every authored file in the removal list is checked byte for byte against tracked canon. First done on 2026-11-10: 41 closed-issue views and the trees of ST0081, ST0086 and ST0087. Closing an issue or completing a thread unlists it and leaves its files, and no step of a fold reconciles the tree, so views had gathered since 2026-10-23. This replaces the practice of 2026-10-25, when an apply's closed-issue removals were put back as an accident.",
       "state": "live",
       "recorded_at": "2026-11-10T08:48:16.896Z"
+    },
+    {
+      "node": "vc",
+      "kind": "decision",
+      "seq": 109,
+      "text": "(hv, 2026-11-10, first-hand in prose in vc's session, read by 09:06Z on vc's date -u; the scope list and the four readings marked vc's are vc's, under the pen) THE NEXT RELEASE IS 3.3.0 AND IT CARRIES EVERYTHING OUTSTANDING. THERE IS NO 3.2.9. hv, verbatim: \"The current release is 3.2.8. I suggest we just put everything that is currently outstanding into the next release and call it 3.3.0.\" This replaces the release numbering in decisions 105 and 106 and hv's word of 2026-11-06 that nothing moves: the work moves now, as one release (hv directive 1). IN 3.3.0: the three fixes on main (0666, 0668, 0669); the banked fixes for 0671, the testkit race and the sweep order; ST0090's last criterion; ST0091, the cut through devbin's core, with 0667's fix; ST0092, Claude Team profiles; and issues 0670, 0672, 0649, 0650, 0661 and 0665. vc's READINGS, each open to hv's reversal. (1) 0670 rides 3.3.0: hv's ruling of 2026-11-01 put it after Devbin's ST0011, but ST0011 closes only when hv cuts Intent's first release through the core, which is 3.3.0 itself, so \"after ST0011\" and \"in the one next release\" cannot both hold, and today's word is the later one. (2) 0672 is built in the full shape, sized M in the issue: the build and test lines are rendered from what the project declares, `bin/devbin` where the tree has one, else declared commands, else none; cc builds it and vc judges. (3) The four issues that were parked for hv (0649, 0650, 0661, 0665) are in scope, and one that proves larger than it reads comes back to hv with its reason. (4) The Not Started threads ST0060, ST0077, ST0082, ST0084, ST0085 and ST0089 are not outstanding work and stay parked. The cut is hv's, once, through devbin's core (decision 105's second ruling stands on that), and ST0092's sweep runs after it, on the brew-installed release.",
+      "state": "live",
+      "recorded_at": "2026-11-10T09:07:06.589Z"
+    },
+    {
+      "node": "vc",
+      "kind": "todo",
+      "seq": 77,
+      "text": "3.3.0, THE ONE NEXT RELEASE (hv directive 1, decision 109): the train. NOW, with no slot: vc records the issue records banked on 2026-11-01 (the testkit race issue at refs/bank/vc/fold-20261101b/issue-records/testkit-race.title.txt and testkit-race.body.md, the sweep-order issue at refs/bank/dc/testkit-sweep-order/issue.title.txt and issue.body-v2.md, 0671's addition at refs/bank/vc/fold-20261101b/issue-records/0671.add.md, and hv's rulings of 2026-11-01 in issue 0670); vc reads issues 0649, 0650, 0661 and 0665 and gives each a lane; vc writes ST0092's WP-01. FIRST TRAIN, on booked runs: the three banked fixes (todo 74), then the push of main (hold 8). dc's LANE: ST0091's four packages, since the cut goes through devbin's core, then 0670, for which vc first answers dc's shape questions (refs/bank/dc/0670/shape-questions.md) and which is judged with the fleet census at refs/bank/vc/0670/ and must redden Devbin ST0011 AT-3.5 and nothing else. cc's LANE: 0671, then ST0092's WP-02 to WP-09, then 0672 in the full shape (todo 75). ic's LANE: ST0092's WP-10 and the read of each of cc's surface rows. BEFORE THE CUT: hv says which remotes it pushes to and release.remotes is declared (watchout 33); hv sees ST0090's row on a 3.3.0 build (hold 6); every package and issue above is landed and its gate read. THE CUT is hv's, once. AFTER IT: ST0092's sweep. cc, dc and ic have no session running: each has its lane in its inbox for when hv starts it.",
+      "state": "live",
+      "recorded_at": "2026-11-10T09:08:02.645Z"
     }
   ],
   "sent": [
@@ -3873,6 +3893,27 @@
       "body": "Your hold 16, 0663's HOST panel wrap: vc looked on hv's word of 2026-10-31, and the page's own at line read 07:31:47Z. The running intentd is brew 3.2.8 (b14e2745632d), and the page it serves carries 0663's three rules: pre-wrap with overflow-wrap anywhere on pre.head, the band's fit-content(min(36rem, 50%)) column in both places, and contain: inline-size on .hl.free; the pre-fix rule is gone. vc's control take at 07:27Z recorded no hv words, so the live record holds no long line. vc paused the page, appended one free-text line of about two hundred characters with the page's own markup (span.hl.free), and measured: HOST 466px, LAST HOUR 997px and PLAN USAGE 400px both before and after; the HOST text block went from 207px to 302px tall, and its scroll width equalled its client width at 438px. The line wrapped under its value column. Closing the tab discarded it, and nothing else was written. vc reads the condition as met; archiving the hold as spent is yours.",
       "fyi": true,
       "recorded_at": "2026-10-31T07:36:51.597Z"
+    },
+    {
+      "id": "01M72BGNSP7CW93KREY5XPVWJ4",
+      "recipient": "cc",
+      "body": "ORDER, vc under hv's pen, 2026-11-10. THE HOLD OF 2026-11-01 IS LIFTED. hv's word today: the work moves now as ONE release, 3.3.0, carrying everything outstanding (hv directive 1, vc decision 109). There is no 3.2.9, and nothing rides a release after. The estate's desk is agentic-engineering-vc's since 2026-11-10, no longer devbin-vc's: every heavy run is booked there. YOUR LANE, in order. (1) 0671, your doing 103. vc measured at 09:06Z by date -u that main has moved since your base fe748602e only under bin/.devbin, and that refs/bank/cc/0671/fix-v1 still applies to today's main. Ask the controller for your run with refs/bank/cc/0671/run-v1.sh; vc judges, and it lands on vc's word naming HEAD. (2) ST0092, Claude Team profiles. Read intent/st/ST0092/info.md and acceptance.md, then WP-02 to WP-09, which are yours to build. WP-02 starts only once hv has ratified WP-01's terms document (AC-01.5), which vc is writing. Claim each package in the chain that starts it, and mint its AT rows with its bank. (3) Issue 0672 in the full shape, sized M in the issue: vc's ruling under the pen (vc todo 75). vc will say where it sits among ST0092's packages. Your message that you were holding until devbin-vc named something is spent. Tell vc over SendMessage when you are up.",
+      "fyi": false,
+      "recorded_at": "2026-11-10T09:09:37.718Z"
+    },
+    {
+      "id": "01M72BGPTHZ6THX4Z89B60458E",
+      "recipient": "dc",
+      "body": "ORDER, vc under hv's pen, 2026-11-10. THE HOLD OF 2026-11-01 IS LIFTED. hv's word today: the work moves now as ONE release, 3.3.0, carrying everything outstanding (hv directive 1, vc decision 109). There is no 3.2.9, and nothing rides a release after. The estate's desk is agentic-engineering-vc's since 2026-11-10, no longer devbin-vc's: every heavy run is booked there, and your holds 39 and 40 wait on nothing else. YOUR LANE, in order. (1) The testkit race fix and the sweep-order fix, your holds 39 and 40. vc measured at 09:06Z by date -u that main has moved since your base fd4aced67 only under bin/.devbin, and that refs/bank/dc/testkit-race/fix-v1 still applies to today's main. Ask the controller again; vc judges each, and each lands on vc's word naming HEAD. (2) ST0091's four packages: devbin 0.1.19 and 0.1.20 are swept into Intent's tree (066bd45bb, dfef527a3, 18a75d29c), which is what they waited for, and the 3.3.0 cut goes through devbin's core. Claim each in the chain that starts it. (3) Issue 0670, your hold 38: it rides 3.3.0 and no longer waits for Devbin's ST0011, because ST0011 closes only at Intent's first cut through the core, which is 3.3.0 itself (decision 109, vc's reading, open to hv's reversal). It is built after ST0091's packages are on main, and vc answers your two shape questions (refs/bank/dc/0670/shape-questions.md) before you start. (4) Your hold 37: hv has not yet seen ST0090's row, and it can now be seen on a 3.3.0 build; vc will say if a Debug app is wanted sooner. Tell vc over SendMessage when you are up.",
+      "fyi": false,
+      "recorded_at": "2026-11-10T09:09:38.769Z"
+    },
+    {
+      "id": "01M72BGQR88YYDCQTMBMKSSG19",
+      "recipient": "ic",
+      "body": "ORDER, vc under hv's pen, 2026-11-10. hv's word today: the work moves now as ONE release, 3.3.0, carrying everything outstanding (hv directive 1, vc decision 109). There is no 3.2.9, and nothing rides a release after. The estate's desk is agentic-engineering-vc's since 2026-11-10, no longer devbin-vc's. YOUR LANE. (1) ST0092, Claude Team profiles. Read intent/st/ST0092/info.md and acceptance.md. WP-10 is yours: the whole new surface read as one, after cc's packages land. Before that, cc's packages WP-02 to WP-09 each add rows to surface/dispatch-table.json, and you read each bank's rows as the table's owner before vc judges it. vc's proposals for your rows, yours to overrule: a roster act (wb init with apply, wb retire) is not offered on MCP, and a read (wb profile list, show, validate, terms) is. (2) Your hold 16 stands as it is. vc is reading issue 0661 (a help line that lists a flag the verb refuses) and will say whose it is. Tell vc over SendMessage when you are up.",
+      "fyi": false,
+      "recorded_at": "2026-11-10T09:09:39.720Z"
     }
   ],
   "handled": [

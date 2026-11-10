@@ -1,0 +1,16 @@
+{
+  "id": "01M72BDQXMX1ACW9RBAPV5FMJJ",
+  "ts": "2026-11-10T09:08:01.588Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 76,
+    "text": "ST0092, Claude Team profiles, rides 3.3.0 (decision 109). Raised and elaborated on hv's go of 2026-11-10 and started by hv the same day; hv looked at it in the explorer and said \"it's there now, and looks good\". Eleven packages, none started or claimed (`intent wp list ST0092`, `intent ac gate ST0092`). NEXT, in order. (1) vc writes WP-01's terms document and hv ratifies it (AC-01.5); no code before that. (2) cc builds WP-02 to WP-09 and ic WP-10, every run booked with the estate's controller; vc judges each bank and claims nothing. (3) The spike hv proposed runs beside it: one swarm is set up by hand in the thread's form (vc's proposal went to its vc at 08:58Z by date -u and waits on hv's go there), and its findings come back keyed to the package they bear on; the first, a roster README that opens with a verblock, is already in WP-07 and AC-07.3. (4) The sweep, WP-11, runs after the 3.3.0 cut, on the brew-installed release, and Pipeliner's sc is confirmed with hv before any write there. The census instrument is refs/bank/vc/st0092/census-boards.zsh (a651ef150413), and its reading of 2026-11-10 is refs/bank/vc/st0092/census-20261110.txt."
+  }
+}

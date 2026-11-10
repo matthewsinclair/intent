@@ -1,0 +1,16 @@
+{
+  "id": "01M72BCNQ281TAKQWN5BEN8RRY",
+  "ts": "2026-11-10T09:07:26.562Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 8,
+    "text": "The push of main to local and upstream. No release rides on it: there is one, 3.3.0 (hv directive 1, decision 109). It goes after 3.3.0's first judged train, so that GitHub's Linux and macOS legs read main well before the cut. Held until three things are true: that train (0671, the testkit race fix and the sweep-order fix, todo 74) is on main; the estate's controller, agentic-engineering-vc since 2026-11-10, has granted a build all at that HEAD and it has passed; and a Linux preflight at that HEAD on kovacs has passed (hv's ! line in kovacs-sysadm's session). Then devbin-vc pushes local and upstream, fast-forward only, on vc's word naming that HEAD (decision 90). The three fixes it was first raised for (0666 cbdee221d, 0668 823cddabd, 0669 bb1efcec5) are judged green and on main. The cut is hv's, once, through devbin's core."
+  }
+}

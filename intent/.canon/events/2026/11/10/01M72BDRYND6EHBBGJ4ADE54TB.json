@@ -1,0 +1,15 @@
+{
+  "id": "01M72BDRYND6EHBBGJ4ADE54TB",
+  "ts": "2026-11-10T09:08:02.645Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "3.3.0, THE ONE NEXT RELEASE (hv directive 1, decision 109): the train. NOW, with no slot: vc records the issue records banked on 2026-11-01 (the testkit race issue at refs/bank/vc/fold-20261101b/issue-records/testkit-race.title.txt and testkit-race.body.md, the sweep-order issue at refs/bank/dc/testkit-sweep-order/issue.title.txt and issue.body-v2.md, 0671's addition at refs/bank/vc/fold-20261101b/issue-records/0671.add.md, and hv's rulings of 2026-11-01 in issue 0670); vc reads issues 0649, 0650, 0661 and 0665 and gives each a lane; vc writes ST0092's WP-01. FIRST TRAIN, on booked runs: the three banked fixes (todo 74), then the push of main (hold 8). dc's LANE: ST0091's four packages, since the cut goes through devbin's core, then 0670, for which vc first answers dc's shape questions (refs/bank/dc/0670/shape-questions.md) and which is judged with the fleet census at refs/bank/vc/0670/ and must redden Devbin ST0011 AT-3.5 and nothing else. cc's LANE: 0671, then ST0092's WP-02 to WP-09, then 0672 in the full shape (todo 75). ic's LANE: ST0092's WP-10 and the read of each of cc's surface rows. BEFORE THE CUT: hv says which remotes it pushes to and release.remotes is declared (watchout 33); hv sees ST0090's row on a 3.3.0 build (hold 6); every package and issue above is landed and its gate read. THE CUT is hv's, once. AFTER IT: ST0092's sweep. cc, dc and ic have no session running: each has its lane in its inbox for when hv starts it."
+  }
+}

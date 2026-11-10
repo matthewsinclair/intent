@@ -1,0 +1,15 @@
+{
+  "id": "01M72BBMX8BYKNSTTG0A4Y8CGH",
+  "ts": "2026-11-10T09:06:52.968Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "directive",
+    "text": "(2026-11-10, hv first-hand in prose in vc's session, read by 09:06Z on vc's date -u) ONE RELEASE CARRIES EVERYTHING OUTSTANDING. hv, verbatim: \"I DO NOT WANT MULTIPLE BITTY RELEASES. When I wake up a VC to do work, we're putting all of that work into the one, next release, not multiple releases one after the other. Cutting a full release to prodution quality takes _hours_ (itself a problem, but not one to solve today) and so as the user base is small (ie me) and we're making substantial updates to an unstable platform regularly, I want to get as much as I can into each release to amortise the time cost of the release over the most new functionality.\" And: \"If you want to break up the commits, then sure, do that. But I only want to pay the cost of cutting a single full release.\" So no node proposes a second release, a patch ahead of a feature, or work that rides the release after. What is outstanding when the work starts rides the next cut, landed in as many commits as it takes, and hv pays for one cut. hv said this was for the umpteenth time: until this line it was written nowhere a node reads at pickup."
+  }
+}

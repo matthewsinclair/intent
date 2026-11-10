@@ -1,0 +1,17 @@
+{
+  "id": "01M72BGQR88YYDCQTMBMKSSG18",
+  "ts": "2026-11-10T09:09:39.720Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "ORDER, vc under hv's pen, 2026-11-10. hv's word today: the work moves now as ONE release, 3.3.0, carrying everything outstanding (hv directive 1, vc decision 109). There is no 3.2.9, and nothing rides a release after. The estate's desk is agentic-engineering-vc's since 2026-11-10, no longer devbin-vc's. YOUR LANE. (1) ST0092, Claude Team profiles. Read intent/st/ST0092/info.md and acceptance.md. WP-10 is yours: the whole new surface read as one, after cc's packages land. Before that, cc's packages WP-02 to WP-09 each add rows to surface/dispatch-table.json, and you read each bank's rows as the table's owner before vc judges it. vc's proposals for your rows, yours to overrule: a roster act (wb init with apply, wb retire) is not offered on MCP, and a read (wb profile list, show, validate, terms) is. (2) Your hold 16 stands as it is. vc is reading issue 0661 (a help line that lists a flag the verb refuses) and will say whose it is. Tell vc over SendMessage when you are up.",
+    "fyi": false,
+    "re": null,
+    "recipient": "ic"
+  }
+}
