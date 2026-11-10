@@ -162,10 +162,21 @@ impl Fixture {
     let path = self.project().thread_json(&thread.id);
     std::fs::create_dir_all(path.parent().expect("thread dir")).expect("mkdir st");
     std::fs::write(&path, to_canonical_json(thread).expect("render canon")).expect("write thread");
+    // **ONE STUB PER FILE, CARRYING EVERY ROW THAT CITES IT** (issue 0665).
+    // A stub per ROW let the last row citing a shared file overwrite the ids
+    // of the rows before it, and only the close gate's L3 exemption for a
+    // Completed thread kept that from reading as a broken fixture.
+    let mut cited: std::collections::BTreeMap<&str, String> = std::collections::BTreeMap::new();
     for test in &thread.tests {
-      if let Some(cited) = test.file.as_deref() {
-        self.write_file(cited, &format!("// {}: a cited test file\n", test.id));
+      if let Some(file) = test.file.as_deref() {
+        cited
+          .entry(file)
+          .or_default()
+          .push_str(&format!("// {}: a cited test file\n", test.id));
       }
+    }
+    for (file, text) in cited {
+      self.write_file(file, &text);
     }
   }
 

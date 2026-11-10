@@ -845,15 +845,7 @@ pub fn contract_report(
       if !refs.resolves(path) {
         out.push(format!("{} cites a file that does not exist: {path}", t.id));
       } else if !completed {
-        match refs.carries_id(path, &t.id, &thread.id) {
-          Carries::Yes => {}
-          Carries::Absent => out.push(format!("{path} does not carry the literal id {}", t.id)),
-          Carries::OnlyUnder(others) => out.push(format!(
-            "{path} carries {} only on lines naming another thread ({}); at least one line carrying the id must not name a different thread, and a line naming no thread at all counts",
-            t.id,
-            others.join(", ")
-          )),
-        }
+        out.extend(literal_id_finding(path, &t.id, &thread.id, refs));
       }
     } else {
       un.no_readable_citation += 1;
@@ -904,6 +896,60 @@ pub fn contract_report(
     examined,
     unexamined: un,
   }
+}
+
+/// v2's L3 for one cited file: `None` when the file carries the row's literal
+/// id, else the finding that says how it does not.
+///
+/// **ONE HOME FOR THE RULE AND ITS WORDING** (issue 0665). The close gate asks it
+/// of a thread that is not Completed, through [`contract_report`], and `doctor`
+/// asks it of one that is, through [`completed_thread_drift`]. Two copies of the
+/// three arms would be two readings of what carrying an id means.
+pub fn literal_id_finding(
+  path: &str,
+  at_id: &str,
+  thread_id: &str,
+  refs: &dyn References,
+) -> Option<String> {
+  match refs.carries_id(path, at_id, thread_id) {
+    Carries::Yes => None,
+    Carries::Absent => Some(format!("{path} does not carry the literal id {at_id}")),
+    Carries::OnlyUnder(others) => Some(format!(
+      "{path} carries {at_id} only on lines naming another thread ({}); at least one line carrying the id must not name a different thread, and a line naming no thread at all counts",
+      others.join(", ")
+    )),
+  }
+}
+
+/// The green test rows of a COMPLETED thread whose cited file exists and does
+/// not carry the row's literal id, as `(AT id, finding)` pairs.
+///
+/// **THE CLOSE GATE'S L3 EXEMPTION STAYS, AND THIS IS WHAT IT HID** (issue 0665,
+/// hv's shape relayed by devbin-vc on 2026-11-10: doctor names the drift and
+/// nothing reopens). [`contract_report`] exempts a Completed thread from L3, so
+/// `at lint` and the gate pass such a row forever. That covers tests written
+/// before the label rule, and it also covered a test deleted from a file that
+/// survives, which every surface then read as conforming. This answers the same
+/// question for the rows the exemption skips, and the gate never calls it.
+///
+/// A missing file is not asked here: L2 still runs after close, so the gate
+/// already names it.
+pub fn completed_thread_drift(thread: &Thread, refs: &dyn References) -> Vec<(String, String)> {
+  if thread.status != ThreadStatus::Completed {
+    return Vec::new();
+  }
+  thread
+    .tests
+    .iter()
+    .filter(|t| t.kind == AtKind::Test && t.status == AtStatus::Green)
+    .filter_map(|t| {
+      let path = t.file.as_deref()?;
+      if !refs.resolves(path) {
+        return None;
+      }
+      literal_id_finding(path, &t.id, &thread.id, refs).map(|f| (t.id.clone(), f))
+    })
+    .collect()
 }
 
 /// What the AT contract check examined and what it found.

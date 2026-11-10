@@ -276,6 +276,23 @@ pub enum FindingClass {
   /// decision that was made; a `Not Started` beside it is a field nobody
   /// updated.
   StatusGateDisagreementOverFiat,
+  /// A COMPLETED thread's green test row cites a file that exists and does not
+  /// carry the row's literal id (issue 0665).
+  ///
+  /// **THE CLOSE GATE DOES NOT ASK THIS OF A COMPLETED THREAD, AND NOTHING
+  /// REOPENS.** Its L3 exemption is deliberate, because labelling an old
+  /// thread's tests is archaeology. But it also passed a test deleted after the
+  /// close from a file that survives, and every surface read the row as
+  /// conforming. hv's shape, relayed by devbin-vc on 2026-11-10: doctor names
+  /// it, and the thread stays closed. So it is shown and never counted, like
+  /// the status-gate classes above: a closed thread's history never refuses a
+  /// commit. A thread is closed, so the default scope withholds it and counts
+  /// it, and `--scope closed` prints it.
+  ///
+  /// **THE DETAIL SAYS WHAT WAS SEEN, AND THE REMEDY NAMES BOTH CAUSES.** A
+  /// test removed after the close and a row older than the label rule read the
+  /// same today, and only the file's history tells them apart.
+  ClosedContractDrift,
   /// The durable store has no recent restorable snapshot -- either none has
   /// ever succeeded, or the newest is older than the configured schedule.
   ///
@@ -703,6 +720,11 @@ impl FindingClass {
         "status-gate-disagreement-over-fiat",
         "a human closed part of this scope ON AUTHORITY, so the gate passes and it is the STATUS that is stale -- `intent wp done <ST>/<NN>` records the close the gate already allows, and from `Not Started` that needs `intent wp start <ST>/<NN>` first because `wp.done` is declared only from `wip`. Do NOT satisfy the fiat-closed rows or take them out of scope to tidy this: that converts a recorded ruling into an ordinary close and erases who decided, which is the one thing a fiat close exists to preserve. If the ruling itself was wrong, reverse it deliberately with `intent ac reinstate <ST> <AC>`, which puts the row back in scope unsatisfied and leaves the reversal on the record",
       ),
+      Self::ClosedContractDrift => (
+        7,
+        "closed-contract-drift",
+        "the close gate does not ask a completed thread's rows for their literal id, so nothing reopens and nothing is refused. Read the cited file's history (`git log -S<AT id> -- <file>`). If the id was there and has gone, a test was removed or renamed after the close: restore it, or re-cite the row with `intent at edit <ST> <AT>` to the test that covers it now. If the id was never there, the row predates the label rule, and labelling the test is optional",
+      ),
       Self::BackupStale => (
         8,
         "backup-stale",
@@ -937,6 +959,7 @@ impl FindingClass {
         | Self::StaleRender
         | Self::StatusGateDisagreement
         | Self::StatusGateDisagreementOverFiat
+        | Self::ClosedContractDrift
         | Self::AttachmentDrift
         | Self::BackupStale
         | Self::StoreStale
@@ -973,6 +996,7 @@ impl FindingClass {
       || matches!(
         self,
         Self::StoreStale
+          | Self::ClosedContractDrift
           | Self::RootFileBehind
           | Self::StoreTracked
           | Self::ProseIndexDuplicated

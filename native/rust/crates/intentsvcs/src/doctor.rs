@@ -667,6 +667,7 @@ fn examine(
   // silently skipped on exactly the estate a new reader is looking at, and a
   // check that does not run looks the same as one that found nothing.
   status_gate_disagreement(&canon, project, &mut report);
+  closed_contract_drift(&canon, project, &mut report);
   db_checks(&canon, project, &mut report.findings);
   event_checks(project, &mut report.findings);
   // **THE FILE INDEX IS READ BEFORE THE VIEWS** (issue 0630), so a view a
@@ -710,6 +711,36 @@ fn last_renders(
       .map(|row| (row.path, row.sha256))
       .collect(),
   )
+}
+
+/// Every Completed thread's green test row whose cited file no longer carries
+/// its literal id (issue 0665), one finding per row.
+///
+/// **IT READS CANON AND THE TREE AND NOTHING ELSE**, so it sits beside
+/// [`status_gate_disagreement`] and above `db_checks` for the reason given at
+/// the call: a cold store must not skip it. The rule is
+/// [`crate::contract::completed_thread_drift`]; this attributes each finding to
+/// its thread, and [`Report::admit`] scopes it, so the default run withholds it
+/// and counts it.
+fn closed_contract_drift(canon: &Canon, project: &Project, report: &mut Report) {
+  let refs = crate::contract::RepoFiles(project.root());
+  for thread in &canon.threads {
+    let file = project.relative(&project.thread_json(&thread.id));
+    let found = crate::contract::completed_thread_drift(thread, &refs)
+      .into_iter()
+      .map(|(at, finding)| {
+        Finding::new(
+          file.clone(),
+          FindingClass::ClosedContractDrift,
+          format!(
+            "{}'s {at} is green on a completed thread, and {finding}",
+            thread.id
+          ),
+        )
+      })
+      .collect();
+    report.admit(thread, found);
+  }
 }
 
 /// **A unit's recorded status must agree with its gate** -- hv, ratified

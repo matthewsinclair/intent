@@ -219,24 +219,27 @@ fn live_and_closed_partition_the_model_findings_exactly() {
 /// quantities this arm exists to separate collided at the fixture's own number,
 /// and nothing about the green read wrong.
 ///
-/// **THREE is the smallest fixture where findings, threads and admit calls are
-/// three different numbers** -- 3, 1 and 2. That is the whole reason for the
-/// count, and it is written down because the instinct is to trim it back.
+/// **THREE was the smallest fixture where findings, threads and admit calls
+/// were three different numbers** -- 3, 1 and 2. **Issue 0665 added a third
+/// admit call per thread** (the closed-contract drift arm), so three findings
+/// collided with three calls, and the fixture moved to FOUR: 4, 1 and 3. That
+/// is the whole reason for the count, and it is written down because the
+/// instinct is to trim it back.
 #[test]
 fn the_withheld_count_is_findings_and_not_threads() {
   let fx = Fixture::new();
-  seed(&fx, &[thread("ST0001", ThreadStatus::Completed, 3)]);
+  seed(&fx, &[thread("ST0001", ThreadStatus::Completed, 4)]);
   let expected = findings_under_all(&fx);
   assert_eq!(
-    expected, 3,
-    "ONE thread, THREE findings, TWO admit calls -- all three must differ or \
+    expected, 4,
+    "ONE thread, FOUR findings, THREE admit calls -- all three must differ or \
      the arm cannot tell which one the field counts"
   );
 
   let live = diagnose(&fx, Scope::Live);
   assert_eq!(
-    live.out_of_scope, 3,
-    "findings withheld -- not threads skipped (1) and not admit calls made (2)"
+    live.out_of_scope, 4,
+    "findings withheld -- not threads skipped (1) and not admit calls made (3)"
   );
 }
 
