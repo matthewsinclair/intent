@@ -1,0 +1,15 @@
+{
+  "id": "01M72K15PHYQAAXDJYGG890DRE",
+  "ts": "2026-11-10T11:20:58.321Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "ST0092 WP-02 to WP-09, cc's to build on vc's order of 2026-11-10 09:09Z (edited), with issue 0675, a reader's own stale pickup, beside WP-06 because it is the same code. HELD UNTIL AC-01.5 IS SATISFIED: hv has ratified the terms document, intent/plugins/claude/teams/TERMS.md, vc has recorded the ratification on hv's board, and vc says WP-02 starts. `intent ac list ST0092` shows AC-01.5 at every pickup. Until then cc reads and plans and writes no ST0092 code. Each package is claimed in the chain that starts it, and its AT rows are minted with its bank."
+  }
+}

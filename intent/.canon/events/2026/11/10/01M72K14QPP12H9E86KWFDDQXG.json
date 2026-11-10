@@ -1,0 +1,16 @@
+{
+  "id": "01M72K14QPP12H9E86KWFDDQXG",
+  "ts": "2026-11-10T11:20:57.334Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 103,
+    "text": "ISSUE:0671, on hv's word relayed by vc (2026-11-01 10:21Z by vc's date -u): an intentd started without CLAUDE_CONFIG_DIR sees no Claude session, so the estate page marks every held slot ORPHANED. It rides 3.3.0: vc's order of 2026-11-10 09:09Z (edited) lifts the hold of 2026-11-01. vc judged refs/bank/cc/0671/fix-v1 (patch-id cb974be96777, on fe748602e) on the whole workspace suite, stacked on main at 1dcd8928f993, and found one red of cc's: launchagent::tests::a_rewrite_names_the_stamp_it_replaced_and_the_value_it_added writes 3.2.8 as another build's stamp, and the build is 3.2.8. NEXT, on hv's go for cc's plan: derive that stamp from the current version so the two can never be equal, and re-bank as refs/bank/cc/0671/fix-v2, leaving fix-v1 where it is. Then run, on agentic-engineering-vc's desk, only the arms that prove the bank, red at the base and green with the fix: the login-shell probe, the three daemon_lifecycle arms with launchagent's unit tests (green only, since they live in the fixed file), and the app's tests. run-v1.sh's legs 6 (the Swift mutant), 7 and 8 are dropped, so the never-banked mutant tmp/wt-cc-0671-mutant goes by the fold checks. vc then reads v2 against v1, runs that one unit test, and gives the land word naming HEAD, with no second whole-suite run."
+  }
+}
