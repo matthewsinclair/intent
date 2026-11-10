@@ -11,6 +11,11 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 - [-] ST0090: The index rebuild says what happened, in the CLI's report and Intent.app's menu
   - [x] 01: One level-3 state on every face, and the index report names its reconcile time
   - [-] 02: Intent.app's Rebuild Search Index row copies Gtools' Refresh Search row
+- [-] ST0091: Intent releases through devbin's core: its driver, kovacs preflight and pre-push build retire
+  - [-] 01: The cut runs through devbin's core, and Intent's driver retires
+  - [ ] 02: kovacs runs as the cut's remote leg, and prepush keeps only its push gates
+  - [ ] 03: The tap and the macOS assets publish through the built-ins, with prepare as a shadow
+  - [ ] 04: The workflows fire on the candidate, and the docs describe the cut as built
 - [-] ST0092: A Claude Team is declared by a profile: wb init sets up its board, hv is reached through one node, and the fleet converges
   - [-] 01: The terms are defined once: Team, Swarm, profile, the seats, the mediator and the hat
   - [ ] 02: A Team Profile is a shipped resource: team, solo, supervisor and supervised
@@ -35,11 +40,6 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 - [ ] ST0085: Passive prompt injection: prompt text Intent stores or ships is acted on only when it is live
   - [x] 01: Inventory of every surface that feeds prompt text to an agent, live or historical
 - [ ] ST0089: Localfold+Compact Policy (when to fold, /clear and /compact)
-- [ ] ST0091: Intent releases through devbin's core: its driver, kovacs preflight and pre-push build retire
-  - [-] 01: The cut runs through devbin's core, and Intent's driver retires
-  - [ ] 02: kovacs runs as the cut's remote leg, and prepush keeps only its push gates
-  - [ ] 03: The tap and the macOS assets publish through the built-ins, with prepare as a shadow
-  - [ ] 04: The workflows fire on the candidate, and the docs describe the cut as built
 
 ## DONE:2026-09-10T00:00:51Z
 
