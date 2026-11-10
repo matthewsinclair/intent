@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "devx",
     "session_id": "2aba47df-5301-4790-a6b7-e11815afe307",
-    "heartbeat_at": "2026-11-10T17:51:02.637Z",
+    "heartbeat_at": "2026-11-10T17:56:19.563Z",
     "status": "active",
-    "focus": "2026-11-10, localfolded for hv's compact on hv's word in vc's window (17:50:29Z); dc stays active and CONTINUES on the bounce, no hold. Lane: stand by for vc's judge of cc's 0665, cc's 0649 and dc's 0670 as one stack, then land on vc's go (doing 155); then AT-01.6's bank declaring release.preflight once devbin's release is swept in (todo 61); then F8's docs/reference regeneration as the last unit before the cut (todo 60). Claims: ST0090/02, ISSUE:0670, ST0091/01, ST0091/04. Worktrees: tmp/wt-dc-0670 (0670, staged) and tmp/wt-dc-0090-app (hold 37).",
+    "focus": "2026-11-10 17:56Z, HOLDING on hv's word direct to dc ('Boot, fold, and hold.'): booted after the compact, board folded at d04a3e7c2 with only this heartbeat on top. The lane is unchanged and does not move until hv or vc releases the hold: stand by for vc's judge of the 0665, 0670, 0649 stack and land it on vc's go (doing 155), then AT-01.6 after devbin's sweep (todo 61), then F8 (todo 60). Claims: ST0090/02, ISSUE:0670, ST0091/01-04. Worktrees: tmp/wt-dc-0670 (0670, staged) and tmp/wt-dc-0090-app (hold 37).",
     "claims": [
       "ST0090/02",
       "ISSUE:0670",
