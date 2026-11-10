@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 124edee5-f105-45bd-8483-ee7dc6dd6fd9
-heartbeat_at: 2026-11-10 19:40Z
+heartbeat_at: 2026-11-10 19:46Z
 status: active
-focus: "2026-11-10, localfolded for hv's fifth compact of the day; vc stays active, with no hold. AFTER THE BOUNCE: /in-session, the pickup commit in its own chain, then CONTINUE: judge cc's WP-02 bank when it comes (ST0092, todo 76), sweep devbin 0.1.21 into Intent's tree when devbin-vc says the tap carries it and then give dc the go for the pre-flight wiring (todo 77), and put the Desk sentence and issues 0667 and 0678 to hv. The train 0665, 0670, 0649 is verified and closed; ST0092's terms are ratified (hv decision 34)."
+focus: "No hold. Judge cc's ST0092 WP-02 bank when it comes; rule dc's 0667 shape and judge its bank; sweep devbin 0.1.21 when devbin-vc says the tap carries it, then dc's preflight wiring; scrub the client's name from tracked files before the push; hv runs the one-message rewrite at the push."
 claims: []
 ---
 
