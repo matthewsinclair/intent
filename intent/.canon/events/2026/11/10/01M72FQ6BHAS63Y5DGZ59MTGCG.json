@@ -1,0 +1,16 @@
+{
+  "id": "01M72FQ6BHAS63Y5DGZ59MTGCG",
+  "ts": "2026-11-10T10:23:05.585Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 74,
+    "text": "Judge and land the three banked bug fixes, as 3.3.0's first train (decision 109; they are the fixes decision 106 put in the release). hv's word of 2026-11-10 moves them, and every run is booked with the estate's controller, agentic-engineering-vc since 2026-11-10. Issue 0671 (cc, doing 103): refs/bank/cc/0671/fix-v1 (patch-id cb974be96777), vc's static read clean; the app passes CLAUDE_CONFIG_DIR from the login shell and the at-login plist carries it without intentd's boot-time heal dropping it; cc asks again with refs/bank/cc/0671/run-v1.sh. The testkit race, issue 0673 (dc, hold 39): refs/bank/dc/testkit-race/fix-v1 (patch-id abcffb4ac0ea); dc's storm run passed (refs/bank/dc/testkit-race/run-v1-stamps.txt, 2 red in 40 at the base, 0 with the fix); vc's light judge re-runs it in tmp/wt-vc-judge-race. The sweep-order fix, issue 0674 (dc, hold 40): refs/bank/dc/testkit-sweep-order/fix-v1 (patch-id 3e958d267455) with its mutant red-v1 and run script refs/bank/dc/testkit-sweep-order/run-v1.zsh, stacked on the race fix, judged on the whole workspace suite. vc measured on 2026-11-10 that each of the three banks still applies to main at feca09585, and each bank's base is checked again before its run. Each lands on vc's word naming HEAD; vc claims nothing. The earlier asks the desk denied on 2026-11-01 (01M6BBKENABGC65S1XAYRCWHD3, 01M6BB981X1E5KDPVY3E7CBWK6, 01M6BD84EXF70MX346YDTSD3GW) are spent."
+  }
+}

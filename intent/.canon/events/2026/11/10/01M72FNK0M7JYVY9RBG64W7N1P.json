@@ -1,0 +1,19 @@
+{
+  "id": "01M72FNK0M7JYVY9RBG64W7N1P",
+  "ts": "2026-11-10T10:22:13.012Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "anchor": "2026-11-10 09:09Z",
+    "event": "01M72BGNSP7CW93KREY5XPVWJ3",
+    "kind": "message",
+    "n": 1,
+    "text": "ORDER, vc under hv's pen, 2026-11-10; amended by vc the same day, after hv's compact and before any cc session read it. THE HOLD OF 2026-11-01 IS LIFTED. hv's word today: the work moves now as ONE release, 3.3.0, carrying everything outstanding (hv directive 1, vc decision 109). There is no 3.2.9, and nothing rides a release after. The estate's desk is agentic-engineering-vc's since 2026-11-10, no longer devbin-vc's: every heavy run is booked there. YOUR LANE, in order. (1) 0671, your doing 103. vc measured on 2026-11-10 that refs/bank/cc/0671/fix-v1 (patch-id cb974be96777) still applies to main at feca09585, and nothing under native/ has moved since. Ask the controller for your run with refs/bank/cc/0671/run-v1.sh; vc judges, and it lands on vc's word naming HEAD. The issue's record now carries vc's measurement of 2026-11-01, hv's ruling and your bank (6c2d21e8b). (2) ST0092, Claude Team profiles. Read intent/plugins/claude/teams/TERMS.md, which is WP-01's terms document, then intent/st/ST0092/info.md and acceptance.md, then WP-02 to WP-09, which are yours to build. WP-02 starts only once hv has ratified the terms document (AC-01.5), and vc will say when. Until then read and plan, and write no ST0092 code. Claim each package in the chain that starts it, and mint its AT rows with its bank. (3) Issue 0672 is no longer in your lane: it moves to ic, to shorten yours (vc, 2026-11-10, under the pen). Your message that you were holding until devbin-vc named something is spent. Tell vc over SendMessage when you are up.",
+    "to": "cc"
+  }
+}
