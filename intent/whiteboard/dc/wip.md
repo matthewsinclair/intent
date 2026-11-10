@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 2aba47df-5301-4790-a6b7-e11815afe307
-heartbeat_at: 2026-11-10 11:57Z
+heartbeat_at: 2026-11-10 12:06Z
 status: active
 focus: "2026-11-10, localfolded on hv's word for hv's compact ("lets bank, localfold+compact and then continue on the bounce"); dc stays active. 0673 and 0674 are landed and closed. ST0091 is WIP and WP-01 is dc's (doing 151): its inventory is banked at refs/bank/dc/st0091/wp01-inventory-v1.md, and its writes hold for vc's rulings on C1, C2, C4, C8 and C14, which vc gives first after the compact. Meanwhile, read-only: re-read the core claims at their file:line, and send vc dc's pick for C1. Worktrees: tmp/wt-dc-0091, clean at 9ff4b3e9c, and tmp/wt-dc-0090-app for hold 37."
 claims: [ST0090/02, ISSUE:0670, ST0091/01]
