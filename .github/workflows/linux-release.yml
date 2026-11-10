@@ -11,18 +11,19 @@ name: linux release
 # VM's proof and this workflow's prove one set of steps rather than two copies of
 # them. What a step does is in `bin/.devbin/cmd/linux`, not here.
 #
-# A TAG STARTS IT, AND IT STILL WRITES NO RELEASE OBJECT (ST0081 WP-02, devbin's
-# D55). The cut's push of `vX.Y.Z` starts this run, and `bin/devbin release
-# attach vX.Y.Z` waits for it, takes the two packages from its artifacts,
-# uploads them to the release and writes SHA256SUMS over every asset there.
-# Nothing here runs `gh release`, so `bin/devbin release check`, which reads
-# every workflow, finds no second writer. The thread's rule that a tag is never
-# this workflow's first run was met by the dispatches at v3.2.4 and v3.2.5, and
-# `workflow_dispatch` stays for a run by hand at any ref.
+# A RELEASE'S CANDIDATE STARTS IT, AND IT STILL WRITES NO RELEASE OBJECT
+# (ST0081 WP-02, devbin's D55; ST0091 WP-04, devbin's D64). A cut pushes its
+# release commit to `candidate/<tag>`, which starts this run before anything is
+# tagged. The cut's object step takes the two packages from the run it finds on
+# that commit (release.assets.workflow), uploads them to the release and writes
+# SHA256SUMS over every asset there. Nothing here runs `gh release`, so
+# `bin/devbin release check`, which reads every workflow, finds no second
+# writer. No tag starts it, and `workflow_dispatch` stays for a run by hand at
+# any ref.
 on:
   workflow_dispatch:
   push:
-    tags: ["v[0-9]*"]
+    branches: ["candidate/**"]
 
 # The fleet's group, as rust.yml and tests.yml carry it.
 concurrency:

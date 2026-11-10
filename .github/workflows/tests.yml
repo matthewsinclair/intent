@@ -2,10 +2,15 @@ name: Intent Tests
 
 on:
   push:
-    branches: [main]
-    # A release tag runs every job whatever it touches: GitHub does not
-    # evaluate path filters for a tag push.
-    tags: ["v[0-9]*", "[0-9]*"]
+    # MAIN, AND A RELEASE'S CANDIDATE, NEVER ITS TAG (ST0091 WP-04, devbin's
+    # D64). A cut pushes its release commit to `candidate/<tag>` and reads this
+    # workflow's run there (release.ci.workflow) before it tags anything, so the
+    # commit that ships is green on every leg, macOS and rust.yml's included,
+    # before it is tagged; a run at the tag would test that commit again, after
+    # it is public. The release commit's files (VERSION, CHANGELOG.md) lie
+    # outside the ignore list below, so its candidate's push starts a run, which
+    # devbin's pre-flight asks of `ci-state --fires` before anything is stamped.
+    branches: [main, "candidate/**"]
     # IGNORE-LIST, DELIBERATELY, NOT AN ALLOW-LIST. `paths-ignore` fails safe:
     # forget an entry and the suite still runs. `paths:` fails SILENT -- forget
     # an entry and the suite stops running while reporting nothing, which is the
@@ -286,10 +291,11 @@ jobs:
 
   test-macos:
     name: Test on macOS
-    # ONLY FOR A RELEASE TAG OR BY HAND (hv, fleet decision 30, restated
-    # 2026-09-25): a push to main or a pull request runs Linux alone. Keyed on
-    # the ref's type, never a tag's spelling.
-    if: ${{ github.ref_type == 'tag' || github.event_name == 'workflow_dispatch' }}
+    # ONLY FOR A RELEASE OR BY HAND (hv, fleet decision 30, restated
+    # 2026-09-25): a push to main or a pull request runs Linux alone. A release
+    # is its candidate, the push the cut reads before it tags (ST0091 WP-04), so
+    # this keys on the candidate's ref, as the rust job and test-summary below do.
+    if: ${{ startsWith(github.ref, 'refs/heads/candidate/') || github.event_name == 'workflow_dispatch' }}
     runs-on: macos-latest
     # The suite points HOME at fixture directories, and Intent resolves its
     # per-user paths from the XDG_* variables before HOME. GitHub's Linux
@@ -536,10 +542,20 @@ jobs:
           done
           echo "ShellCheck analysis completed"
 
+  rust:
+    name: Rust
+    # rust.yml'S JOB, INSIDE THE RUN THE CUT READS (ST0091 WP-04). The cut reads
+    # one workflow's run on its candidate, this one's (release.ci.workflow), so a
+    # release calls rust.yml here rather than letting its own trigger start it
+    # beside this run, where nothing would read its verdict. On main and on a
+    # pull request rust.yml runs on its own path-filtered triggers.
+    if: ${{ startsWith(github.ref, 'refs/heads/candidate/') || github.event_name == 'workflow_dispatch' }}
+    uses: ./.github/workflows/rust.yml
+
   test-summary:
     name: Test Summary
     runs-on: ubuntu-latest
-    needs: [test-linux, test-macos]
+    needs: [test-linux, test-macos, rust]
     if: always()
 
     steps:
@@ -549,8 +565,12 @@ jobs:
           echo "All test jobs have completed."
           echo "Check individual job results above for details."
 
-          # Check job results
-          if [ "${{ needs.test-linux.result }}" == "success" ] && { [ "${{ needs.test-macos.result }}" == "success" ] || { [ "${{ needs.test-macos.result }}" == "skipped" ] && [ "${{ github.ref_type }}" != "tag" ] && [ "${{ github.event_name }}" != "workflow_dispatch" ]; }; }; then
+          # A RELEASE, OR A RUN BY HAND, NEEDS EVERY LEG. The macOS job and the
+          # rust job are skipped elsewhere by their `if:`, and only there is a
+          # skip no failure.
+          every_leg="${{ startsWith(github.ref, 'refs/heads/candidate/') || github.event_name == 'workflow_dispatch' }}"
+          leg_ok() { [ "$1" == "success" ] || { [ "$1" == "skipped" ] && [ "$every_leg" != "true" ]; }; }
+          if [ "${{ needs.test-linux.result }}" == "success" ] && leg_ok "${{ needs.test-macos.result }}" && leg_ok "${{ needs.rust.result }}"; then
             echo "✅ All tests passed!"
           else
             echo "❌ Some tests failed. Please review the logs."

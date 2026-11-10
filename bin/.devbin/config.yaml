@@ -357,11 +357,11 @@ commands:
 # read off the url of the first `remotes` entry, else origin, else the only
 # remote, and this checkout has two.
 #
-# THE ASSETS ARE linux-release.yml's: its run at the tag builds the two Linux
-# packages, and `attach` uploads them and then writes SHA256SUMS over every
-# asset on the object. The bound is read off the tag runs, measured with `gh run
-# list` on 2026-10-27: v3.2.4's took 4m25s and v3.2.5's 4m26s, created to
-# completed, so 15m leaves room for a runner queue.
+# THE ASSETS ARE linux-release.yml's: its run on the release's candidate builds
+# the two Linux packages, and `attach` uploads them and then writes SHA256SUMS
+# over every asset on the object. The bound is read off the tag runs, measured
+# with `gh run list` on 2026-10-27: v3.2.4's took 4m25s and v3.2.5's 4m26s,
+# created to completed, so 15m leaves room for a runner queue.
 release:
   repo: matthewsinclair/intent
   verbs:

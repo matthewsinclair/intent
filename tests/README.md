@@ -124,6 +124,6 @@ Tests run automatically via GitHub Actions on:
 
 - Every push to `main`
 - Every pull request targeting `main`
-- Both Ubuntu and macOS environments
+- Every push of a release candidate (`candidate/**`), whose run adds the macOS leg and `rust.yml`'s job to the Ubuntu leg; elsewhere they run only when the workflow is dispatched by hand
 
 A push or pull request whose changed paths all fall under `intent/whiteboard/**` or `intent/.canon/**` does not trigger the suite. A newer push to the same ref cancels the run it supersedes. Each leg builds the release binaries before running `tests/run_tests.sh`. See `.github/workflows/tests.yml` for the CI configuration.
