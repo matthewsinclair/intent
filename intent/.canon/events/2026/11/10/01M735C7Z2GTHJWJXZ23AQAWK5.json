@@ -1,0 +1,16 @@
+{
+  "id": "01M735C7Z2GTHJWJXZ23AQAWK5",
+  "ts": "2026-11-10T16:41:35.458Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 140,
+    "text": "Issue 0650, S: the upgrade that writes the tracked hook dispatchers keeps a marked export-ignore block in the project's .gitattributes, rewritten in place, appended when absent, and written nowhere a line of the project's own already decides; doctor's default root-file-behind line names a .gitattributes that lacks the block and decides nothing; Intent's own .gitattributes takes the block. Bank for vc's stacked judge: refs/bank/ic/0650/fix-v3-on-1fe4a4bec (blob e0e4240e49e0, patch_id 3bad045bdc6d), first of four. fix-v2's run was red at the base and green but for one rustfmt wrap, which v3 is. Worktree tmp/wt-ic-0650."
+  }
+}

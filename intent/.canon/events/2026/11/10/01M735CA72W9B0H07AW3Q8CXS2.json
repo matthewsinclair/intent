@@ -1,0 +1,16 @@
+{
+  "id": "01M735CA72W9B0H07AW3Q8CXS2",
+  "ts": "2026-11-10T16:41:37.763Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 142,
+    "text": "Issue 0676: /in-session's releaser records the languages it loaded skills for in the session's sentinel; the prompt gate and `wb pickup` name a session whose record differs from `intent lang declared`, with /in-session as the remedy, and a non-zero answer means no comparison. Bank: refs/bank/ic/0676/fix-v3-on-0672v2 (blob 38ce68fe3024, patch_id 567ecfeeb57e), third of four. v2's run was red at the base and green but for the CONSUMERS row v3 adds, and v3's run of that module and fmt was green. Worktree tmp/wt-ic-0676."
+  }
+}

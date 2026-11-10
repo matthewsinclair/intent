@@ -1,0 +1,16 @@
+{
+  "id": "01M735CBCCCNGNK14MYXVESE34",
+  "ts": "2026-11-10T16:41:38.956Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 143,
+    "text": "Issue 0677, on vc's ruling: IN-PR-STYLE-004 names one engine, a /usr/bin/perl program read from the rule, and every automated catalogue pattern is tested under it on probes in tests/fixtures/tropes/probes.tsv; trope_catalog_regex.bats moves onto the same program through one test helper. llm-tropes and the vendored catalogue are untouched; FMT-02's `[:[:space:]]` is parked with vc. Bank: refs/bank/ic/0677/fix-v2-on-0676v1 (blob 16f320c4591a, patch_id ba3c55bd9aad), fourth of four, applying unchanged on 0676 v3; its run was red at the base and green. Worktree tmp/wt-ic-0677."
+  }
+}

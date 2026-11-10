@@ -1,0 +1,16 @@
+{
+  "id": "01M735C934K8BKRZNZJ0RV11VK",
+  "ts": "2026-11-10T16:41:36.612Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 141,
+    "text": "Issue 0672, narrowed by vc to the devbin case: AGENTS.md's build and test lines come from the tree, `bin/devbin` with the controller's slot where it has one, otherwise a line that none is declared; no language default survives. Declared commands are issue 0678, not built. Bank: refs/bank/ic/0672/fix-v2-on-0650v3 (blob 68bf79619dfb, patch_id 5ebc27a9e50b), second of four, with Intent's own AGENTS.md re-rendered. fix-v1's run was red at the base and green on both whole suites, clippy and rustdoc but for rustfmt wraps, which v2 carries. Worktree tmp/wt-ic-0672."
+  }
+}

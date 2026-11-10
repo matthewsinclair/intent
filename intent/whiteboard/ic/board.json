@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "677e6c35-f820-4993-8ec4-ad639debeb1b",
-    "heartbeat_at": "2026-11-10T16:28:24.345Z",
+    "heartbeat_at": "2026-11-10T16:41:39.992Z",
     "status": "active",
-    "focus": "2026-11-10, the train on hv's move (relayed by vc, 15:54:25Z): 0650 fix-v3, 0672 fix-v1, 0676 fix-v1 and 0677 fix-v2 are banked, stacked in that order, and asked at the desk in that order; each run reports to vc, who judges the stack in one run. 0678 is filed and not built. Claims: ISSUE:0650, ISSUE:0672, ISSUE:0676, ISSUE:0677.",
+    "focus": "2026-11-10, the train on hv's move (relayed by vc, 15:54:25Z) is whole and with vc: 0650 fix-v3, 0672 fix-v2, 0676 fix-v3 and 0677 fix-v2, each run red then green, apply in that order on 1fe4a4bec for vc's stacked judge. ic waits on that judge, then lands what vc rules; 0678 is filed and not built; todo 63 (ST0092's dispatch rows and WP-10) follows. Claims: ISSUE:0650, ISSUE:0672, ISSUE:0676, ISSUE:0677.",
     "claims": [
       "ISSUE:0650",
       "ISSUE:0672",
@@ -2787,34 +2787,37 @@
       "node": "ic",
       "kind": "doing",
       "seq": 140,
-      "text": "Issue 0650, S, on vc's order of 2026-11-10: the upgrade that writes the tracked hook dispatchers keeps a marked export-ignore block in the project's .gitattributes, rewritten in place when present, appended when absent, and written nowhere a line of the project's own already decides export-ignore for the hooks directory; doctor's default root-file-behind line names a .gitattributes that lacks the block and decides nothing; Intent's own .gitattributes takes the block. Worktree tmp/wt-ic-0650 at base 1fe4a4bec. fix-v1's run (desk 01M732QB6A0531N5TTQ6WW2F1Z, 15:55:31Z to 15:58:01Z) was red at the base as intended and green but for ic's own doctor arm, whose Advisory finding a default doctor hides and which repeated root-file-behind; reading it found that the upgrade appended its block after a project's own opt-out and overturned it. fix-v2 is banked at refs/bank/ic/0650/fix-v2-on-1fe4a4bec (blob a8a3de1da063, patch_id 5bef374fa083, 9 files, +440 -4): gitstate::export_ignore_decided, no block where the project decided, doctor.rs back at the base, and the arm drives all three. Next: its run, asked as 01M73314CQ77HXA2DD7H0HHGM0 behind the Utilz release run that holds every heavy lane, then report to vc.",
+      "text": "Issue 0650, S: the upgrade that writes the tracked hook dispatchers keeps a marked export-ignore block in the project's .gitattributes, rewritten in place, appended when absent, and written nowhere a line of the project's own already decides; doctor's default root-file-behind line names a .gitattributes that lacks the block and decides nothing; Intent's own .gitattributes takes the block. Bank for vc's stacked judge: refs/bank/ic/0650/fix-v3-on-1fe4a4bec (blob e0e4240e49e0, patch_id 3bad045bdc6d), first of four. fix-v2's run was red at the base and green but for one rustfmt wrap, which v3 is. Worktree tmp/wt-ic-0650.",
       "state": "live",
       "recorded_at": "2026-11-10T13:14:42.699Z",
-      "edited_at": "2026-11-10T16:17:33.016Z"
+      "edited_at": "2026-11-10T16:41:35.458Z"
     },
     {
       "node": "ic",
       "kind": "doing",
       "seq": 141,
-      "text": "Issue 0672, on vc's ruling of 2026-11-10 that narrowed it to the devbin case: AGENTS.md's build and test lines come from the tree, `bin/devbin` where it has one, with the estate controller's slot, and otherwise a line that the project declares no build or test commands, pointing at its README and usage-rules.md; no language default survives, and a prerequisite keeps only the toolchain's name. The fact is RenderContext.devbin, read by rootfiles::has_devbin at every construction site, and the template takes [[#devbin]] and [[#nodevbin]] blocks. Declared commands are issue 0678, not built. Worktree tmp/wt-ic-0672 at 1fe4a4bec with 0650 fix-v2 staged beneath. fix-v1 is banked at refs/bank/ic/0672/fix-v1-on-0650v2 (blob 2ef806b9c93a, patch_id e21a92fe4f63, 17 files, +191 -98); its run, with whole suites since RenderContext reaches every view, is asked as 01M733Y6TGV1T31BPQ016BFTZX after 0650's. Intent's own AGENTS.md is re-rendered by that run's build into the bank.",
+      "text": "Issue 0672, narrowed by vc to the devbin case: AGENTS.md's build and test lines come from the tree, `bin/devbin` with the controller's slot where it has one, otherwise a line that none is declared; no language default survives. Declared commands are issue 0678, not built. Bank: refs/bank/ic/0672/fix-v2-on-0650v3 (blob 68bf79619dfb, patch_id 5ebc27a9e50b), second of four, with Intent's own AGENTS.md re-rendered. fix-v1's run was red at the base and green on both whole suites, clippy and rustdoc but for rustfmt wraps, which v2 carries. Worktree tmp/wt-ic-0672.",
       "state": "live",
-      "recorded_at": "2026-11-10T16:17:34.124Z"
+      "recorded_at": "2026-11-10T16:17:34.124Z",
+      "edited_at": "2026-11-10T16:41:36.612Z"
     },
     {
       "node": "ic",
       "kind": "doing",
       "seq": 142,
-      "text": "Issue 0676: /in-session's releaser records in the session's sentinel the languages it loaded skills for, under one header line; the prompt gate compares that with `intent lang declared` on every prompt that passes and `wb pickup` prints `languages moved:`, each naming both sets and /in-session. A test pins the header across the two scripts and canon::BOOTSTRAP_HEADER. Worktree tmp/wt-ic-0676 stacked on 0650 fix-v3 and 0672 fix-v1. fix-v1 is banked at refs/bank/ic/0676/fix-v1-on-0672v1 (blob bce631c2e5cd, patch_id 57c8bd2d96c9) and asked as 01M7349MXCH6W751Y25QRXP4FX, after 0672's run.",
+      "text": "Issue 0676: /in-session's releaser records the languages it loaded skills for in the session's sentinel; the prompt gate and `wb pickup` name a session whose record differs from `intent lang declared`, with /in-session as the remedy, and a non-zero answer means no comparison. Bank: refs/bank/ic/0676/fix-v3-on-0672v2 (blob 38ce68fe3024, patch_id 567ecfeeb57e), third of four. v2's run was red at the base and green but for the CONSUMERS row v3 adds, and v3's run of that module and fmt was green. Worktree tmp/wt-ic-0676.",
       "state": "live",
-      "recorded_at": "2026-11-10T16:28:20.280Z"
+      "recorded_at": "2026-11-10T16:28:20.280Z",
+      "edited_at": "2026-11-10T16:41:37.763Z"
     },
     {
       "node": "ic",
       "kind": "doing",
       "seq": 143,
-      "text": "Issue 0677, on vc's ruling of 2026-11-10: IN-PR-STYLE-004 names one engine, a /usr/bin/perl program that reads every catalogue pattern as written, and a pass under another tool says which; critic-prose, in-detrope and the runner's comment (the Rust regex crate) say the same. A Bats test runs every automated pattern under the rule's program on probes in tests/fixtures/tropes/probes.tsv, its count derived from the catalogue, and trope_catalog_regex.bats moves onto the same program through one helper. llm-tropes and the vendored catalogue are untouched; FMT-02's `[:[:space:]]` is parked with vc. Worktree tmp/wt-ic-0677 stacked on 0676. fix-v2 is banked at refs/bank/ic/0677/fix-v2-on-0676v1 (blob 16f320c4591a, patch_id ba3c55bd9aad) and asked as 01M734J8P6TH8JH6B9N2W4WYK8; fix-v1's ask is released unstarted when granted.",
+      "text": "Issue 0677, on vc's ruling: IN-PR-STYLE-004 names one engine, a /usr/bin/perl program read from the rule, and every automated catalogue pattern is tested under it on probes in tests/fixtures/tropes/probes.tsv; trope_catalog_regex.bats moves onto the same program through one test helper. llm-tropes and the vendored catalogue are untouched; FMT-02's `[:[:space:]]` is parked with vc. Bank: refs/bank/ic/0677/fix-v2-on-0676v1 (blob 16f320c4591a, patch_id ba3c55bd9aad), fourth of four, applying unchanged on 0676 v3; its run was red at the base and green. Worktree tmp/wt-ic-0677.",
       "state": "live",
-      "recorded_at": "2026-11-10T16:28:21.303Z"
+      "recorded_at": "2026-11-10T16:28:21.303Z",
+      "edited_at": "2026-11-10T16:41:38.956Z"
     }
   ],
   "sent": [
