@@ -34,10 +34,10 @@ Concretely:
 
 | WP    | Title                                                                                | Size | Status      |
 | ----- | ------------------------------------------------------------------------------------ | ---- | ----------- |
-| WP-01 | The cut runs through devbin's core, and Intent's driver retires                      | S    | WIP         |
+| WP-01 | The cut runs through devbin's core, and Intent's driver retires                      | M    | WIP         |
 | WP-02 | kovacs runs as the cut's remote leg, and prepush keeps only its push gates           | S    | Not Started |
 | WP-03 | The tap and the macOS assets publish through the built-ins, with prepare as a shadow | S    | Not Started |
-| WP-04 | The workflows fire on the candidate, and the docs describe the cut as built          | S    | Not Started |
+| WP-04 | The workflows fire on the candidate, and the docs describe the cut as built          | S    | WIP         |
 
 ## Acceptance
 

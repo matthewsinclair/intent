@@ -3,23 +3,23 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 2aba47df-5301-4790-a6b7-e11815afe307
-heartbeat_at: 2026-11-10 12:06Z
+heartbeat_at: 2026-11-10 12:22Z
 status: active
-focus: "2026-11-10, localfolded on hv's word for hv's compact ("lets bank, localfold+compact and then continue on the bounce"); dc stays active. 0673 and 0674 are landed and closed. ST0091 is WIP and WP-01 is dc's (doing 151): its inventory is banked at refs/bank/dc/st0091/wp01-inventory-v1.md, and its writes hold for vc's rulings on C1, C2, C4, C8 and C14, which vc gives first after the compact. Meanwhile, read-only: re-read the core claims at their file:line, and send vc dc's pick for C1. Worktrees: tmp/wt-dc-0091, clean at 9ff4b3e9c, and tmp/wt-dc-0090-app for hold 37."
-claims: [ST0090/02, ISSUE:0670, ST0091/01]
+focus: "2026-11-10, after hv's compact, on vc's direction. vc ruled on the ST0091 WP-01 inventory (decision 112, 7718a6248): WP-01 is M and its writes are released, except the intentd check's wiring, which waits for devbin's pre-flight seam (with hv). Next: WP-04's trigger unit in tmp/wt-dc-0091 as the train's first bank, then WP-01's design with the split of where each check lives. Claims: ST0090/02, ISSUE:0670, ST0091/01, ST0091/04. Worktrees: tmp/wt-dc-0091 and tmp/wt-dc-0090-app (hold 37)."
+claims: [ST0090/02, ISSUE:0670, ST0091/01, ST0091/04]
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-- ST0091/01, the cut runs through devbin's core and Intent's driver retires, dc's on vc's order of 2026-11-10 09:09Z; vc judges it and claims nothing. The read-only re-inventory against devbin 0.1.20's core is banked at refs/bank/dc/st0091/wp01-inventory-v1.md (blob ada9bfef2830), and vc has it. WP-01's writes hold until vc rules on its findings C1 (the live-intentd refusal has no pre-stamp home in the core), C2 (the core's dry run prints a count of derived steps and no gate list), C4 (the candidate CI trigger is WP-04's, and pre-flight refuses every cut until it lands), C8 (where the pair build at R goes) and C14 (WP-01 reads M or larger), and until hv's answers on C3 (remotes), C9 (an annotated tag) and C10 (no attribution line in the core's release commit) come through vc. Meanwhile, read-only and on vc's word: re-read the explorer's core claims against the source at their file:line, and send vc dc's pick among C1's four options with its reason. The build goes in tmp/wt-dc-0091, clean at 9ff4b3e9c. (edited)
+- ST0091/01, the cut runs through devbin's core and Intent's driver retires, dc's on vc's order of 2026-11-10 09:09Z; vc judges it and claims nothing. Rescoped to M on vc's ruling (C14). vc's rulings on the inventory (refs/bank/dc/st0091/wp01-inventory-v2.md, blob d580cc0220cf) are in WP-01's body under "Rulings on dc's re-inventory" (vc decision 112, 7718a6248). WP-01's writes in tmp/wt-dc-0091 are released, except the live-intentd check's wiring, which waits for devbin's pre-flight seam; whether that rides devbin's next release is with hv. WP-01 is built after WP-04's trigger unit, the train's first bank, and dc's design shows the split of where each check lives. If the design reads larger than M, dc tells vc so, with the reason, before building. (edited)
+- ST0091/04, the workflows fire on the candidate and the docs describe the cut as built, dc's; vc judges it and claims nothing. Started and claimed in this chain on vc's C4 ruling (decision 112). Its trigger part goes first: tests.yml, rust.yml and linux-release.yml fire on candidate/ refs and not on tags (AC-04.1). It is built in tmp/wt-dc-0091 and banked as the train's first unit, so WP-01's dry run is driven on a tree that has it. The bank's design says which workflow's verdict the cut reads (release.ci.workflow, tests.yml), what stands for rust.yml's verdict on the candidate, and how the candidate passes tests.yml's macOS `if:`. The docs part (AC-04.2) follows the rest of the train. AC-04.3 is hv's first cut through the core.
 
 ## TODO
 
 - ST0091/02, kovacs runs as the cut's remote leg and prepush keeps only its push gates (S): after WP-01, claimed in the chain that starts it.
-- ST0091/03, the tap and the macOS assets publish through the built-ins, with prepare as a shadow (S), and issue 0667's fix on AC-03.3: after WP-02. vc measures first whether the vendored core carries brew smoke and issue 0634's cask sha256 check, and tells dc; on 2026-11-10 dc found no smoke anywhere in devbin 0.1.20's vendored lib.
-- ST0091/04, the workflows fire on the candidate and the docs describe the cut as built (S): after WP-03. AC-04.3 is hv's first cut through the core, which vc records against the 3.2.8 baseline.
+- ST0091/03, the tap and the macOS assets publish through the built-ins, with prepare as a shadow (S), and issue 0667's fix on AC-03.3: after WP-02. devbin-vc's answer, relayed in vc's CHAIN END of 7718a6248: the cask's sha256 is filled from the sums across formula and cask, which stands for issue 0634's check. devbin never built a brew smoke and none is pending, so Intent keeps its own and `cmd/brew` does not go whole. vc rewords WP-03's body and AC-03.1 to that before dc reaches WP-03. (edited)
 - Issue 0665, a completed thread's green row that stays conforming after its cited test is deleted: after 0670 and in the same code, once hv has ruled its shape and vc says so.
 - Issue 0649, the lints the critic defers to clippy that no gate runs: measure first, with one booked run that counts each named lint's findings per crate, then propose to vc which lints are enabled where and which leave critic_tool_codes.
 

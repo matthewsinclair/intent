@@ -1,0 +1,15 @@
+{
+  "id": "01M72PJB2H5KCP1MHQPN78A4DS",
+  "ts": "2026-11-10T12:22:46.610Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST0091/04, the workflows fire on the candidate and the docs describe the cut as built, dc's; vc judges it and claims nothing. Started and claimed in this chain on vc's C4 ruling (decision 112). Its trigger part goes first: tests.yml, rust.yml and linux-release.yml fire on candidate/ refs and not on tags (AC-04.1). It is built in tmp/wt-dc-0091 and banked as the train's first unit, so WP-01's dry run is driven on a tree that has it. The bank's design says which workflow's verdict the cut reads (release.ci.workflow, tests.yml), what stands for rust.yml's verdict on the candidate, and how the candidate passes tests.yml's macOS `if:`. The docs part (AC-04.2) follows the rest of the train. AC-04.3 is hv's first cut through the core."
+  }
+}

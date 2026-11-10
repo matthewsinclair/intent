@@ -2,7 +2,7 @@
 wp_id: WP-04
 title: The workflows fire on the candidate, and the docs describe the cut as built
 scope: S
-status: Not Started
+status: WIP
 ---
 
 # WP-04: The workflows fire on the candidate, and the docs describe the cut as built

@@ -31,7 +31,7 @@ title: Intent releases through devbin's core: its driver, kovacs preflight and p
 - AC-03.2 The built-in `macos publish` publishes the stage Intent's `macos prepare` makes, that stage carries `<stage>/commit` with HEAD's full sha, and `bin/.devbin/cmd/macos` carries no publish. -- satisfied: no (computed)
 - AC-03.3 (non-test) The service block in Intent's formula template points log_path and error_log_path at D19's intentd.log and intentd.err.log under the user's state dir, the files intent daemon logs reads, and its comment says intentd writes every line to stdout or stderr and names where each goes (issue 0667, ruled by hv on 2026-10-31). -- satisfied: no
 
-### WP-04 -- The workflows fire on the candidate, and the docs describe the cut as built (status: Not Started)
+### WP-04 -- The workflows fire on the candidate, and the docs describe the cut as built (status: WIP)
 
 - AC-04.1 `tests.yml`, `rust.yml` and `linux-release.yml` fire on `candidate/` refs and not on tags, the macOS legs included, and `bin/devbin release check` passes on Intent's tree. -- satisfied: no (computed)
 - AC-04.2 (non-test) `intent/docs/releasing.md` and `.github/workflows/README.md` describe the cut as built: one command from the yes to the tap with no step between them run by hand, a dry run that predicts and runs no gate, then `brew upgrade` and `intent use brew` on each machine. -- satisfied: no
@@ -51,7 +51,7 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-04 -- The workflows fire on the candidate, and the docs describe the cut as built (status: Not Started)
+### WP-04 -- The workflows fire on the candidate, and the docs describe the cut as built (status: WIP)
 
 _(no tests in this group)_
 
