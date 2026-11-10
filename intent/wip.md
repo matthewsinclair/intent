@@ -1,5 +1,5 @@
 ---
-verblock: "2026-11-10:v3.58: vc - one release, 3.3.0, carries everything outstanding"
+verblock: "2026-11-10:v3.59: vc - localfold before hv's compact; WP-01 written"
 intent_version: 3.2.8
 ---
 
@@ -8,7 +8,7 @@ intent_version: 3.2.8
 ## DOING
 
 - 3.3.0, the one next release, carrying everything outstanding, on hv's word of 2026-11-10 (hv directive 1, vc decision 109): there is no 3.2.9, and nothing rides a release after. The train is vc todo 77. First the three banked fixes (0671, the testkit race and the sweep order; vc todo 74), then the push of main (vc hold 8). dc builds ST0091 and then issue 0670; cc builds ST0092's WP-02 to WP-09 and issue 0672; ic reads ST0092's surface (WP-10). Each has its lane in its inbox, and none has a session running. Every heavy run is booked with the estate's controller, agentic-engineering-vc since 2026-11-10.
-- ST0092, Claude Team profiles (vc decision 107, vc todo 76): WIP on hv's start, eleven packages, none started. vc writes WP-01's terms document next, and hv ratifies it before any code. A spike runs beside it: one swarm set up by hand in the thread's form, whose findings go into the thread as they arrive. `intent wp list ST0092` names the packages and `intent ac gate ST0092` what is left.
+- ST0092, Claude Team profiles (vc decision 107, vc todo 76): WIP on hv's start, eleven packages. WP-01 is WIP: its terms document is written at `intent/plugins/claude/teams/TERMS.md` and waits on hv's read and ratification, and no code starts before that (AC-01.5). A spike runs beside the thread: one swarm set up by hand in the thread's form, whose findings go into the thread as they arrive; five are in, and its cold-boot test is still owed. `intent wp list ST0092` names the packages and `intent ac gate ST0092` what is left.
 
 ## TODO
 

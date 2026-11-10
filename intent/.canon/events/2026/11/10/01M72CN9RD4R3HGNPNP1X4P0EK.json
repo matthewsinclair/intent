@@ -1,0 +1,15 @@
+{
+  "id": "01M72CN9RD4R3HGNPNP1X4P0EK",
+  "ts": "2026-11-10T09:29:37.805Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "Client names and Intent's committed record (vc, 2026-11-10; not yet ruled by hv). Intent's repository is public and is mirrored to the third remote (watchout 33), so from ST0092 on vc has kept a client's name and its initiatives' names out of committed prose: a client tree is called that, and a client's swarm is \"a swarm\". Two things predate the caution. Ten event files of October 2026 name one client supervisor's session. And vc's own boot commit of 2026-11-10, c1d7d163d, names four client sessions in its message and is unpushed. vc asked hv on 2026-11-10 whether client names stay out and what becomes of that message, and hv has not answered: the answer is owed before the push of main (hold 8). Refs under refs/bank are local, are not pushed, and may name them; refs/bank/vc/st0092/spike-form-v1.md does."
+  }
+}

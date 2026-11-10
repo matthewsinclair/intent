@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "124edee5-f105-45bd-8483-ee7dc6dd6fd9",
-    "heartbeat_at": "2026-11-10T09:10:08.834Z",
+    "heartbeat_at": "2026-11-10T09:31:04.672Z",
     "status": "active",
-    "focus": "2026-11-10. ONE NEXT RELEASE, 3.3.0, carrying everything outstanding (hv directive 1, decision 109): there is no 3.2.9. The train is todo 77: the three banked fixes first (todo 74), then the push of main (hold 8); dc on ST0091 then 0670; cc on 0671, ST0092 and 0672; ic on ST0092's surface. cc, dc and ic have their lanes in their inboxes and no session running. ST0092 is WIP on hv's start, and vc writes its WP-01 next, for hv's ratification. A spike runs beside it in one swarm set up by hand in the thread's form, and its findings go into the thread as they arrive. The estate's desk is agentic-engineering-vc's since 2026-11-10.",
+    "focus": "2026-11-10, localfolded for hv's compact and holding for hv's next word; vc stays active. ONE NEXT RELEASE, 3.3.0, carrying everything outstanding (hv directive 1, decision 109): there is no 3.2.9. The train is todo 77. cc, dc and ic have their lanes in their inboxes and no session running; hv starts them after the compact. ST0092 is WIP and its WP-01 terms document is written (f6e987017) and waits on hv's ratification (todo 76). A spike runs beside it in one swarm set up by hand; five findings are in the thread and its cold-boot test is owed. Owed by hv: the ratification, and an answer on client names in the record before the push (watchout 34). The estate's desk is agentic-engineering-vc's since 2026-11-10.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -2598,10 +2598,10 @@
       "node": "vc",
       "kind": "todo",
       "seq": 76,
-      "text": "ST0092, Claude Team profiles, rides 3.3.0 (decision 109). Raised and elaborated on hv's go of 2026-11-10 and started by hv the same day; hv looked at it in the explorer and said \"it's there now, and looks good\". Eleven packages, none started or claimed (`intent wp list ST0092`, `intent ac gate ST0092`). NEXT, in order. (1) vc writes WP-01's terms document and hv ratifies it (AC-01.5); no code before that. (2) cc builds WP-02 to WP-09 and ic WP-10, every run booked with the estate's controller; vc judges each bank and claims nothing. (3) The spike hv proposed runs beside it: one swarm is set up by hand in the thread's form (vc's proposal went to its vc at 08:58Z by date -u and waits on hv's go there), and its findings come back keyed to the package they bear on; the first, a roster README that opens with a verblock, is already in WP-07 and AC-07.3. (4) The sweep, WP-11, runs after the 3.3.0 cut, on the brew-installed release, and Pipeliner's sc is confirmed with hv before any write there. The census instrument is refs/bank/vc/st0092/census-boards.zsh (a651ef150413), and its reading of 2026-11-10 is refs/bank/vc/st0092/census-20261110.txt.",
+      "text": "ST0092, Claude Team profiles, rides 3.3.0 (decision 109). Raised and elaborated on hv's go of 2026-11-10 and started by hv the same day; hv looked at it in the explorer and said \"it's there now, and looks good\". Eleven packages (`intent wp list ST0092`, `intent ac gate ST0092`). WHERE IT STANDS. WP-01 is WIP: its terms document is written at intent/plugins/claude/teams/TERMS.md (f6e987017) on hv's \"Go ahead and write WP-01\", and none of its criteria is satisfied. NEXT, in order. (1) vc applies whatever critic-prose's report on the document asks for, then hv reads the document and ratifies it; vc records the ratification on hv's board and satisfies AC-01.1 to AC-01.5 with it. No code before that. (2) cc builds WP-02 to WP-09 and ic WP-10, every run booked with the estate's controller; vc judges each bank and claims nothing. (3) The spike runs beside it: one swarm set up by hand in the thread's form. Its first five findings are in the thread (e54f2cf92, 2f56f9224); its cold-boot test, the one that tests hv's actual pain, is still owed by that swarm's vc. The form and the findings are banked at refs/bank/vc/st0092/spike-form-v1.md. (4) The sweep, WP-11, runs after the 3.3.0 cut, on the brew-installed release, and Pipeliner's sc is confirmed with hv before any write there. The census instrument is refs/bank/vc/st0092/census-boards.zsh (a651ef150413), and its reading of 2026-11-10 is refs/bank/vc/st0092/census-20261110.txt.",
       "state": "live",
       "recorded_at": "2026-11-10T08:33:14.700Z",
-      "edited_at": "2026-11-10T09:08:01.588Z"
+      "edited_at": "2026-11-10T09:30:51.389Z"
     },
     {
       "node": "vc",
@@ -2626,6 +2626,14 @@
       "text": "3.3.0, THE ONE NEXT RELEASE (hv directive 1, decision 109): the train. NOW, with no slot: vc records the issue records banked on 2026-11-01 (the testkit race issue at refs/bank/vc/fold-20261101b/issue-records/testkit-race.title.txt and testkit-race.body.md, the sweep-order issue at refs/bank/dc/testkit-sweep-order/issue.title.txt and issue.body-v2.md, 0671's addition at refs/bank/vc/fold-20261101b/issue-records/0671.add.md, and hv's rulings of 2026-11-01 in issue 0670); vc reads issues 0649, 0650, 0661 and 0665 and gives each a lane; vc writes ST0092's WP-01. FIRST TRAIN, on booked runs: the three banked fixes (todo 74), then the push of main (hold 8). dc's LANE: ST0091's four packages, since the cut goes through devbin's core, then 0670, for which vc first answers dc's shape questions (refs/bank/dc/0670/shape-questions.md) and which is judged with the fleet census at refs/bank/vc/0670/ and must redden Devbin ST0011 AT-3.5 and nothing else. cc's LANE: 0671, then ST0092's WP-02 to WP-09, then 0672 in the full shape (todo 75). ic's LANE: ST0092's WP-10 and the read of each of cc's surface rows. BEFORE THE CUT: hv says which remotes it pushes to and release.remotes is declared (watchout 33); hv sees ST0090's row on a 3.3.0 build (hold 6); every package and issue above is landed and its gate read. THE CUT is hv's, once. AFTER IT: ST0092's sweep. cc, dc and ic have no session running: each has its lane in its inbox for when hv starts it.",
       "state": "live",
       "recorded_at": "2026-11-10T09:08:02.645Z"
+    },
+    {
+      "node": "vc",
+      "kind": "watchout",
+      "seq": 34,
+      "text": "Client names and Intent's committed record (vc, 2026-11-10; not yet ruled by hv). Intent's repository is public and is mirrored to the third remote (watchout 33), so from ST0092 on vc has kept a client's name and its initiatives' names out of committed prose: a client tree is called that, and a client's swarm is \"a swarm\". Two things predate the caution. Ten event files of October 2026 name one client supervisor's session. And vc's own boot commit of 2026-11-10, c1d7d163d, names four client sessions in its message and is unpushed. vc asked hv on 2026-11-10 whether client names stay out and what becomes of that message, and hv has not answered: the answer is owed before the push of main (hold 8). Refs under refs/bank are local, are not pushed, and may name them; refs/bank/vc/st0092/spike-form-v1.md does.",
+      "state": "live",
+      "recorded_at": "2026-11-10T09:29:37.805Z"
     }
   ],
   "sent": [
