@@ -1,0 +1,15 @@
+{
+  "id": "01M72FCNEG9WKT6BRH3RHB8FVV",
+  "ts": "2026-11-10T10:17:20.595Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0673"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "testkit's a_run_leaves_no_corpse_of_its_own_behind races its sibling's sweep, which can remove the probe's fixtures between planting and counting"
+  }
+}
