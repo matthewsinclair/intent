@@ -1,0 +1,16 @@
+{
+  "id": "01M72V61JRY2810JQZJW8S8KP8",
+  "ts": "2026-11-10T13:43:26.553Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 140,
+    "text": "Issue 0650, S, on vc's order of 2026-11-10: the upgrade that writes the tracked hook dispatchers also keeps a marked export-ignore block in the project's .gitattributes, edited in place when present and appended when absent, and only when the hooks directory is inside the work tree; doctor names a project whose hooks directory has tracked files and no export-ignore decision; one test reads git archive after an upgrade in a fresh repository; Intent's own .gitattributes takes the block in the same bank. The block anchors the directory at the root, `/<hooks dir> export-ignore`, because devbin's `<hooks dir>/` form matches a directory of that name at any depth. Worktree tmp/wt-ic-0650 at base 1fe4a4bec, not main bfb81c32d as this item first said. Done: fix-v1 is banked whole at refs/bank/ic/0650/fix-v1-on-1fe4a4bec (blob bda6c11cda55, patch_id 947d3cb74461, 9 files, +432 -4), and the worktree's index is exactly that bank. Not done: its red-then-green run. The desk granted that run, and ic released the grant unstarted on hv's hold by 13:42:04Z. Next, on hv's word: ask the desk afresh, run red at the base and green with the fix, and report to vc, who judges it stacked with 0672, 0676 and 0677."
+  }
+}

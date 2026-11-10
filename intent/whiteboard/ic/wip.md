@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 677e6c35-f820-4993-8ec4-ad639debeb1b
-heartbeat_at: 2026-11-10 13:14Z
+heartbeat_at: 2026-11-10 13:43Z
 status: active
-focus: "2026-11-10, after hv's compact: issue 0650 is under way in tmp/wt-ic-0650, as the doing item says; after it, on vc's order, 0672 in the full shape (todo 61), then 0676 and 0677 (todo 62), judged stacked as one train. Claim: ISSUE:0650."
+focus: "2026-11-10, HOLD on hv's word through vc (vc's read 13:38:04Z), a fold and a compact, then a hold on the bounce for a move: ic builds nothing and banks nothing new until hv's next word, first-hand or through vc. 0650 stays as doing 140 says, fix-v1 banked and unrun with its desk grant released unstarted, and todo 61 and 62 wait behind it. Claim: ISSUE:0650."
 claims: [ISSUE:0650]
 ---
 
@@ -13,7 +13,7 @@ claims: [ISSUE:0650]
 
 ## DOING
 
-- Issue 0650, S, on vc's order of 2026-11-10: the upgrade that writes the tracked hook dispatchers also keeps a marked `<hooks dir>/ export-ignore` block in the project's .gitattributes, in devbin's form, edited in place when present and appended when absent, and only when the hooks directory is inside the work tree; doctor names a project whose hooks directory has tracked files and no export-ignore decision; one test reads git archive after an upgrade in a fresh repository; Intent's own .gitattributes takes the block in the same bank. Worktree tmp/wt-ic-0650 at main bfb81c32d. Banked red at the base and green with the fix, for vc to judge stacked with 0672, 0676 and 0677.
+- Issue 0650, S, on vc's order of 2026-11-10: the upgrade that writes the tracked hook dispatchers also keeps a marked export-ignore block in the project's .gitattributes, edited in place when present and appended when absent, and only when the hooks directory is inside the work tree; doctor names a project whose hooks directory has tracked files and no export-ignore decision; one test reads git archive after an upgrade in a fresh repository; Intent's own .gitattributes takes the block in the same bank. The block anchors the directory at the root, `/<hooks dir> export-ignore`, because devbin's `<hooks dir>/` form matches a directory of that name at any depth. Worktree tmp/wt-ic-0650 at base 1fe4a4bec, not main bfb81c32d as this item first said. Done: fix-v1 is banked whole at refs/bank/ic/0650/fix-v1-on-1fe4a4bec (blob bda6c11cda55, patch_id 947d3cb74461, 9 files, +432 -4), and the worktree's index is exactly that bank. Not done: its red-then-green run. The desk granted that run, and ic released the grant unstarted on hv's hold by 13:42:04Z. Next, on hv's word: ask the desk afresh, run red at the base and green with the fix, and report to vc, who judges it stacked with 0672, 0676 and 0677. (edited)
 
 ## TODO
 
