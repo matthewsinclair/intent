@@ -1,7 +1,7 @@
 ---
 wp_id: WP-01
 title: The cut runs through devbin's core, and Intent's driver retires
-scope: M
+scope: L
 status: WIP
 ---
 

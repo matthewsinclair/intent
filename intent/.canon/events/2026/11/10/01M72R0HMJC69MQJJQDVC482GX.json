@@ -1,0 +1,16 @@
+{
+  "id": "01M72R0HMJC69MQJJQDVC482GX",
+  "ts": "2026-11-10T12:48:00.658Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 151,
+    "text": "ST0091/01, the cut runs through devbin's core and Intent's driver retires, dc's on vc's order of 2026-11-10 09:09Z; vc judges it and claims nothing. Rescoped to L on vc's ruling of dc's design (refs/bank/dc/st0091/wp01-design-v1.md, blob 87f6f82b59f7), and split into two banks on the train after WP-04's trigger unit. The two are judged in one run, and each leaves the tests it touches green on the bank before it. Bank (a) holds:\n- `stamp`, seven derived steps, each printing exactly the paths it wrote;\n- `preflight`, the daemon, faces and spill checks, each writing nothing, wired once devbin 0327 is swept in;\n- the release config;\n- the driver's deletion;\n- pair_at_tag, moved into releasebuild.lib as pair_at_head, with prepush_push_range.bats re-pointed and tagging annotated.\nBank (b) holds `gate` (pair and provenance on macOS, then doctor, reference and rust) and release.gates. contract_check's gate is held for hv. The trailer, devbin 0328, is one config line after the sweep."
+  }
+}
