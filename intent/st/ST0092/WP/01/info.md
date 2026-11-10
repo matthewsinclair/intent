@@ -17,31 +17,37 @@ vc writes this package under hv's pen: its content is hv's rulings of 2026-11-10
 
 ## What is written
 
-One hand-authored document in the plugin canon, beside where the profiles will ship (vc's proposal: `intent/plugins/claude/teams/TERMS.md`), registered in `intent/llm/MODULES.md` before it is created. It ships with the install, so a session in any project can be shown it, and WP-02 adds the verb that prints it. `intent/docs/working-with-llms.md` links to it and restates none of it. It holds:
+One hand-authored document in the plugin canon, `intent/plugins/claude/teams/TERMS.md`, registered in `intent/llm/MODULES.md` before it was created. It ships with the install, so a session in any project can be shown it, and WP-02 adds the verb that prints it. It carries no frontmatter, as its neighbours under `rules/_schema` carry none, and it names no command, because the verbs that will print and apply it are not built. `intent/docs/working-with-llms.md` links to it and restates none of it.
 
-- **The terms.** A Claude Team is the standing roster a profile registers on one project's board, every member registered whether started or not. A Claude Swarm is whichever of a Team's sessions are running at one time. A Team Profile is the Intent resource that declares a Team. A node is one seat on a board. Its moniker is its two-letter handle, routing key and directory; its name is its display name; its role is one word; and its session is named `<project>-<moniker>`. A moniker is never written as a name or as a role.
-- **The seats.** hv's names of 2026-10-21. The default remits of vc, cc, ic, ac, dc and hv are hv's own words of 2026-11-10, as the first swarm's roster records them; those of gc, sc and sv are vc's, for hv to edit at ratification:
-
-| Moniker | Name              | Role       | Driven by                | Default remit                                                                                                  |
-| ------- | ----------------- | ---------- | ------------------------ | -------------------------------------------------------------------------------------------------------------- |
-| `vc`    | Validation Claude | validation | a session                | Boss of the Claude team: sequencing, briefs, validation of landed and claimed work, and the one route to hv    |
-| `cc`    | Control Claude    | control    | a session                | Back-end services and the non-user-facing implementation of services                                           |
-| `ic`    | Interface Claude  | interface  | a session                | User-facing interfaces (UI and UX) and machine-facing interfaces (REST, GraphQL and the rest)                  |
-| `ac`    | Authoring Claude  | authoring  | a session                | Authoring and content creation                                                                                 |
-| `dc`    | DevX Claude       | devx       | a session                | The dev-x pipeline, end to end                                                                                 |
-| `hv`    | Hypervisor        | hypervisor | the human                | Scope, sequencing, release policy, and every ratified decision                                                 |
-| `gc`    | Generalist Claude | generalist | a session                | The whole project, alone: it builds and checks its own work and talks to hv directly                           |
-| `sc`    | Supervisor Claude | supervisor | a session                | Coordination across several projects' VCs: audits, briefs to each VC, and the route to hv on its own hub       |
-| `sv`    | Supervisor Claude | supervisor | the supervisor's session | The supervisor's seat on a supervised project's board: findings and briefs to that project's vc, and no builds |
-
-- **The mediator.** The one node through which hv is reached on a board: vc on a team, sc on a supervisor's hub, gc on a solo board.
-- **hv's contract.** hv rules, in a live session or in the TUI. The mediator records each ruling on hv's board with its date, the channel it came by and whose wording it is, and presents matters for hv's review without deciding them. hv reads no board unprompted and writes to no inbox. No node waits on hv: it asks the mediator and carries on with what does not depend on the answer. A directive leaves hv's board only on hv's word.
-- **The hat.** A duty a node carries on top of its role, worn by one node at a time within its scope, and taken and handed over by an explicit act. The Desk is the hat this thread defines; its duties are WP-08's.
-- **Other kinds.** A sleeve agent works on one machine and is Molt's (`molt agent`, roles sysadm, ops and docs). An estate agent works in one Gtools estate and is Gtools'. Neither is a node, neither has a profile, and this document defines neither's contract.
+It holds, in this order: the whiteboard, the board and the seat, with the seat's four labels, its remit, and registered, started and running; Team, Swarm and Profile, with base and layer and the four shipped profiles; the seats table; the mediator; hv's part and how every seat works with hv; the hat and the Desk; and the two kinds of Claude that hold no seat. The wording is the document's, and this package does not restate it.
 
 ## What it is not
 
-It is not the protocol: the `/in-whiteboard` skill keeps that and cites this document for the words. It is not the source of the seat rows once WP-02 lands: from then the shipped profiles are, and AC-02.5 fails a build in which this table and the profiles disagree.
+It is not the protocol: the `/in-whiteboard` skill keeps that and cites this document for the words. It is not the source of the seat rows once WP-02 lands: from then the shipped profiles are, and AC-02.5 fails a build in which the document's table and the profiles disagree.
+
+## The critic's read, 2026-11-10
+
+`critic-prose` read the first draft (f6e987017) with the author pack: no critical finding, the mechanical tier clean, and eight craft warnings, most of them one word carrying two senses. Its verdict was that the draft was close and not yet fit for ratification. vc applied all eight in the document's wording, with no ruling's meaning changed:
+
+- A project's **whiteboard** and a seat's **board** are now two words. The draft used board for both.
+- The four things that go with a seat are its labels, so that name means the display name alone.
+- A Team "exists whether or not any session is running", where the draft's "while no session is running" read as only then.
+- The mediator is named by the base profile, and the `supervisor` layer moves it to sc. The draft's three cases overlapped, because a hub is also a `team` whiteboard.
+- A supervisor "is not needed for one Team on its own", which is hv's verb.
+- A seat that hv rules to directly passes the ruling to the mediator, so who puts a matter to hv has one answer.
+- The sentence that every seat is a project's own is gone: sv and hv are seats and neither is.
+- Monikers are lower-case throughout.
+
+## For hv's eye at ratification
+
+These are vc's wordings where hv's rulings left room, and each is hv's to change:
+
+1. Only the mediator puts options to hv, and hv may speak to any seat directly. That is the strict reading of "mediated thru the VC".
+2. "No seat waits idle on hv. A seat that needs a ruling asks the mediator, holds only the work that depends on the answer, and carries on with the rest." The ruling's own words were that nobody waits on hv, which a literal reader could take as leave to go on without the ruling.
+3. On a hub the `supervisor` layer makes sc the mediator, and vc's default remit still ends "and the one route to hv". A hub sets vc's remit, or the default changes.
+4. "sequencing" is in both vc's default remit and hv's, in hv's own words for each.
+5. The default remits of gc, sc and sv are vc's, and so is ac's "Authoring and content creation".
+6. `team` is called the standard Team and not the default, so that a whiteboard that declares nothing is not read as a `team` whiteboard.
 
 ## Depends on
 

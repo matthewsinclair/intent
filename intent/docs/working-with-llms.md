@@ -497,6 +497,8 @@ The fork went this way because the block is hand-written by LLM nodes in prose-h
 
 ### Node identity
 
+The words for a team and its seats (Claude Team, Claude Swarm, Team Profile, moniker, name, role, mediator, hat) are defined once, in `intent/plugins/claude/teams/TERMS.md`. This section describes how a node is used and defers to that document for what each word means.
+
 A node is a durable identity (eg `control`, `ia-ux`, `hv`) named by a short moniker that is its routing key, its handle and the name of its rendered directory. The roster — monikers, display names, roles — is per-project: declared in `intent/whiteboard/README.md`, put on the board with `intent wb register <moniker> --name <display> --role <role>`, and read back with `intent wb status`; the skill bakes in no roster. Every verb that acts as a node takes `--node <moniker>` (`wb status`, `wb show`, `wb register` and `wb migrate` take none), and identity is resolved before the first write: (1) the moniker the invocation carries, (2) cues — the session's own name, the working directory, the user's framing, which node's board names this session, (3) ask the user. Subsequent sessions of a node inherit identity from its existing directory. The human is a first-class node, conventionally `hv` (the hypervisor): human-driven, `session_id` optional or `none`, and may carry a `## Standing directives` section peers honour.
 
 ### Claims are by ID, never by path
