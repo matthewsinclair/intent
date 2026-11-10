@@ -6,15 +6,13 @@ session_id: b6c81c66-6862-4b68-a61a-ac299e1bb7ce
 heartbeat_at: 2026-11-10 19:33Z
 status: active
 focus: "2026-11-10, folded for hv's compact of cc's window; NO HOLD on the bounce. hv RATIFIED ST0092's terms ("Ratified as recommended", read in vc's window at 19:26:54Z), vc landed it at 3ee4da245, and WP-02 MAY START on vc's word. ON THE BOUNCE: /in-session, commit the heartbeat-only pickup in its own chain, then (1) on vc's "verified" of the 0665/0670/0649 train (a08b6f03e, 03a820eb0, cedbc46fe; the attachment test at HEAD was the last leg), close issues 0665 and 0649 in one chain and remove tmp/wt-cc-0665 and tmp/wt-cc-0649 by the fold checks; (2) BUILD WP-02 (claimed, WIP) in a new worktree off main with its own target, booking a desk slot for every cargo run (a waiter's command goes in a script file, never in its command line). Read TERMS.md as landed FIRST: cc's default remit changed, the pen is a second hat, and "unseated session" is a defined word; AC-02.5 holds TERMS.md's seats table and seats.json to each other. Working copy of every ruling: refs/bank/cc/st0092/build-notes-v3.md (vc writes them into the WP bodies after this chain; until then the notes win over a body that disagrees). The MODULES.md row comes before teams.rs. Do NOT build around TERMS.md's Desk sentence ("One vc on a host wears it"): it goes to hv before WP-08. Nothing pushed or released."
-claims: [ISSUE:0665, ISSUE:0649, ST0092/02]
+claims: [ST0092/02]
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-- Issue 0665, on vc's order of 2026-11-10: intent doctor names a Completed thread's green AT row whose cited file no longer carries the row's literal id (the L3 exemption's drift); nothing reopens (hv's shape, relayed by devbin-vc, vc decision 117). Built in tmp/wt-cc-0665 on a pinned base, banked as a patch blob for vc's one-train judge. dc keeps 0670 in the same contract-report code, so cc tells dc before touching that path.
-- Issue 0649, built to vc's ruling (2026-11-10): needless_pass_by_value denied in CI and devbin over library and binary code (devbin check ownership), the restriction lints over intentd's binary (devbin check panics-intentd), redundant_clone dropped from IN-RS-CODE-002's tool codes and its 14 real sites fixed, testkit left out of IN-RS-CODE-001 on purpose, and the cut gate runs both new twins. Banked at refs/bank/cc/0649/fix-v1-on-0665v2-on-a86205eff, which vc's stack (0665, 0670, 0649) supersedes: re-bank on 0665 plus dc's 0670 after the bounce, re-run the checks, then record in issue 0649 what the rules now cover. (edited)
 - ST0092 WP-02, the shipped Team Profiles (seats.json beside TERMS.md, the team, solo, supervisor and supervised profiles, the strict loader teams.rs, and ), cc's to build on vc's word of 2026-11-10 after hv ratified the terms, and vc judges. Built in a worktree off main and banked; every cargo run takes a desk slot. Working copy of the rulings: refs/bank/cc/st0092/build-notes-v3.md. The MODULES.md row comes first. AT rows are minted with the bank. Then WP-03, WP-06 with 0675, WP-05, WP-07, WP-04 and WP-09, with WP-08 beside any; WP-08 waits on hv for TERMS.md's Desk sentence.
 
 ## TODO
