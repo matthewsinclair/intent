@@ -18,8 +18,8 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [-] 04: The workflows fire on the candidate, and the docs describe the cut as built
 - [-] ST0092: A Claude Team is declared by a profile: wb init sets up its board, hv is reached through one node, and the fleet converges
   - [x] 01: The terms are defined once: Team, Swarm, profile, the seats, the mediator and the hat
-  - [-] 02: A Team Profile is a shipped resource: team, solo, supervisor and supervised
-  - [ ] 03: wb init reconciles a board to its profile, and is a dry run until told to apply
+  - [x] 02: A Team Profile is a shipped resource: team, solo, supervisor and supervised
+  - [-] 03: wb init reconciles a board to its profile, and is a dry run until told to apply
   - [ ] 04: A seat can be retired, and a board can change its profile
   - [ ] 05: hv is reached through one node, and the tool enforces it
   - [ ] 06: A session is told its seat at pickup and at launch

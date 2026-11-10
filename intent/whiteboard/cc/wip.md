@@ -6,14 +6,14 @@ session_id: b6c81c66-6862-4b68-a61a-ac299e1bb7ce
 heartbeat_at: 2026-11-10 19:33Z
 status: active
 focus: "2026-11-10, folded for hv's compact of cc's window; NO HOLD on the bounce. hv RATIFIED ST0092's terms ("Ratified as recommended", read in vc's window at 19:26:54Z), vc landed it at 3ee4da245, and WP-02 MAY START on vc's word. ON THE BOUNCE: /in-session, commit the heartbeat-only pickup in its own chain, then (1) on vc's "verified" of the 0665/0670/0649 train (a08b6f03e, 03a820eb0, cedbc46fe; the attachment test at HEAD was the last leg), close issues 0665 and 0649 in one chain and remove tmp/wt-cc-0665 and tmp/wt-cc-0649 by the fold checks; (2) BUILD WP-02 (claimed, WIP) in a new worktree off main with its own target, booking a desk slot for every cargo run (a waiter's command goes in a script file, never in its command line). Read TERMS.md as landed FIRST: cc's default remit changed, the pen is a second hat, and "unseated session" is a defined word; AC-02.5 holds TERMS.md's seats table and seats.json to each other. Working copy of every ruling: refs/bank/cc/st0092/build-notes-v3.md (vc writes them into the WP bodies after this chain; until then the notes win over a body that disagrees). The MODULES.md row comes before teams.rs. Do NOT build around TERMS.md's Desk sentence ("One vc on a host wears it"): it goes to hv before WP-08. Nothing pushed or released."
-claims: [ST0092/02]
+claims: [ST0092/03]
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-- ST0092 WP-02, the shipped Team Profiles (seats.json beside TERMS.md, the team, solo, supervisor and supervised profiles, the strict loader teams.rs, and ), cc's to build on vc's word of 2026-11-10 after hv ratified the terms, and vc judges. Built in a worktree off main and banked; every cargo run takes a desk slot. Working copy of the rulings: refs/bank/cc/st0092/build-notes-v3.md. The MODULES.md row comes first. AT rows are minted with the bank. Then WP-03, WP-06 with 0675, WP-05, WP-07, WP-04 and WP-09, with WP-08 beside any; WP-08 waits on hv for TERMS.md's Desk sentence.
+- ST0092 WP-03, wb init and the declaration, cc's to build after WP-02 landed at 86e180439 (2026-11-10): board@4.1 with 4.0 read and named board-schema-behind, WbNode.remit, store rung 34 with wb_declaration, declaration.json, teams::resolve and plan, facade wb_init (one transaction, one event, one landing, the dry run's view list from a shadow projection) and wb_remit, register honouring the declaration, and the rows wb init and wb remit. Built in tmp/wt-cc-0092-wp03 and banked for vc's judge. Then WP-05, WP-06 and WP-09; dc takes WP-04 and WP-07 from WP-03's landing.
 
 ## TODO
 

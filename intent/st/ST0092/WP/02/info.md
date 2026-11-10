@@ -2,7 +2,7 @@
 wp_id: WP-02
 title: A Team Profile is a shipped resource: team, solo, supervisor and supervised
 scope: M
-status: WIP
+status: Done
 ---
 
 # WP-02: A Team Profile is a shipped resource: team, solo, supervisor and supervised
