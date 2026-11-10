@@ -1,0 +1,14 @@
+{
+  "id": "01M737T8AA3M71PW3YRXMWXEM8",
+  "ts": "2026-11-10T17:24:11.726Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0091/AC-04.2"
+  },
+  "payload": {
+    "evidence": "intent/docs/releasing.md and .github/workflows/README.md at b43aa6256, read by vc on 2026-11-10: one cut command from the confirm to the tap, a dry run that prints each step and writes nothing, the failed-publish remedy, then intent use brew"
+  }
+}

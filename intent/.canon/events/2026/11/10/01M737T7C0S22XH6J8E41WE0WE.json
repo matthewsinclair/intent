@@ -1,0 +1,14 @@
+{
+  "id": "01M737T7C0S22XH6J8E41WE0WE",
+  "ts": "2026-11-10T17:24:10.756Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0091/AC-03.3"
+  },
+  "payload": {
+    "evidence": "packaging/homebrew/intent.rb at f18bd6945: the service block's log_path and error_log_path name intentd.log and intentd.err.log under the user's state dir, with the comment; AT-03.3 green (brew_formula.bats arm 5)"
+  }
+}

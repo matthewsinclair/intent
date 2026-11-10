@@ -1,0 +1,15 @@
+{
+  "id": "01M737T98NR6A6DXRQ5RA2M4CC",
+  "ts": "2026-11-10T17:24:12.693Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(vc, 2026-11-10, under hv's pen) ST0091's TRAIN IS ON MAIN AND JUDGED: six commits by dc, 51684720a to b43aa6256, the four packages. vc judged the six banks stacked on main 1aada1a66 in one desk run (slot 01M735BRRKYPA217HGB3FW9KZ5, 16:43Z to 17:08Z, 24m40s): cargo test --workspace 3514 passed and 0 failed, workspace clippy, lib clippy and rustdoc clean, the release pair, precommit, app tests 79 of 79, release check, the gates contract, pair, provenance, doctor and rust passing and reference refusing as ruled until docs/reference is regenerated before the cut, and each file dc named passing at its bank. One fix came back as wp03-v3 (a shellcheck directive, and every arm's AT id), whose delta vc read and re-ran. dc landed with each row's id lines in the commit that adds its file, since the stale-row gate refuses a to-write row beside its file, and no commit skipped the gate. vc verified main against the judged commit 36b62b9f6e24 on all 42 paths, set AT-01.1 to AT-04.1 green, satisfied AC-03.3 and AC-04.2 by reading, and minted AT-01.6 to-write so that AC-01.3 waits on the sweep of devbin 0327. The gate reads 10 of 12: AC-01.3 waits on that sweep and AC-04.3 on hv's first cut. NOT PROVEN BY vc: the core's dry run, which stopped in the judge's worktree at a detached HEAD; it rests on dc's drive on a scratch clone. NOT THE TRAIN'S: two arms of tests/unit/post_tool_symbol_context.bats fail in the whole tree, and fail the same on main's tree with brew's 3.2.8; ic is asked to find why. ic's train was judged the same hour (slot 01M735CW632WTQF1RHEVDWG187) and came back red on AT-00.17: three shipped files cite Intent's own issue numbers; ic re-banks 0676 and 0677."
+  }
+}

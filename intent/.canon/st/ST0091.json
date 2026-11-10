@@ -117,7 +117,8 @@
       "text": "The service block in Intent's formula template points log_path and error_log_path at D19's intentd.log and intentd.err.log under the user's state dir, the files intent daemon logs reads, and its comment says intentd writes every line to stdout or stderr and names where each goes (issue 0667, ruled by hv on 2026-10-31).",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "packaging/homebrew/intent.rb at f18bd6945: the service block's log_path and error_log_path name intentd.log and intentd.err.log under the user's state dir, with the comment; AT-03.3 green (brew_formula.bats arm 5)"
       }
     },
     {
@@ -133,7 +134,8 @@
       "text": "`intent/docs/releasing.md` and `.github/workflows/README.md` describe the cut as built: one command from the yes to the tap with no step between them run by hand, a dry run that predicts and runs no gate, then `brew upgrade` and `intent use brew` on each machine.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "intent/docs/releasing.md and .github/workflows/README.md at b43aa6256, read by vc on 2026-11-10: one cut command from the confirm to the tap, a dry run that prints each step and writes nothing, the failed-publish remedy, then intent use brew"
       }
     },
     {
@@ -153,8 +155,8 @@
       "covers": [
         "AC-01.1"
       ],
-      "status": "red",
-      "note": "The cut's seven derived steps, each run as the core runs it; banked at refs/bank/dc/st0091/wp01a-v1 (blob c96b329f9f42, patch-id 6c2b14cb5b1c), not yet on main; it stays to-write until the train lands, where it moves red then green against the judge run. Moved red at its landing (2026-11-10, dc), in the commit that adds the file, with the file's id lines (vc's ruling). The bank that landed is wp01a-v2 (blob 91b283aadaca, patch-id 118866bca26c), which superseded the wp01a-v1 named above. Green is vc's, from its judged run of the train. Red on the code as it was: all 7 arms red on the tree before bank 2 (8770037a2), driven by dc at 17:1xZ; all 7 pass on this commit."
+      "status": "green",
+      "note": "The cut's seven derived steps, each run as the core runs it; banked at refs/bank/dc/st0091/wp01a-v1 (blob c96b329f9f42, patch-id 6c2b14cb5b1c), not yet on main; it stays to-write until the train lands, where it moves red then green against the judge run. Moved red at its landing (2026-11-10, dc), in the commit that adds the file, with the file's id lines (vc's ruling). The bank that landed is wp01a-v2 (blob 91b283aadaca, patch-id 118866bca26c), which superseded the wp01a-v1 named above. Green is vc's, from its judged run of the train. Red on the code as it was: all 7 arms red on the tree before bank 2 (8770037a2), driven by dc at 17:1xZ; all 7 pass on this commit. Green by vc's judge of the train's tip (2026-11-10, desk slot 01M735BRRKYPA217HGB3FW9KZ5, 16:43Z to 17:08Z, on main 1aada1a66 with the six banks stacked): the cited file passed in the whole bats tree and alone at its bank's commit, and again with wp03-v3's arm names; vc verified the landing at b43aa6256 against the judged commit on all 42 paths."
     },
     {
       "id": "AT-01.2",
@@ -163,8 +165,8 @@
       "covers": [
         "AC-01.1"
       ],
-      "status": "red",
-      "note": "The cut's helpers in releasestamp.lib, the lock and footer arms re-homed from the retired driver's tests; banked at refs/bank/dc/st0091/wp01a-v1 (blob c96b329f9f42, patch-id 6c2b14cb5b1c), not yet on main; it stays to-write until the train lands, where it moves red then green against the judge run. Moved red at its landing (2026-11-10, dc), in the commit that adds the file, with the file's id lines (vc's ruling). The bank that landed is wp01a-v2 (blob 91b283aadaca, patch-id 118866bca26c), which superseded the wp01a-v1 named above. Green is vc's, from its judged run of the train. Red on the code as it was: all 13 arms red on the tree before bank 2 (8770037a2); all 13 pass on this commit."
+      "status": "green",
+      "note": "The cut's helpers in releasestamp.lib, the lock and footer arms re-homed from the retired driver's tests; banked at refs/bank/dc/st0091/wp01a-v1 (blob c96b329f9f42, patch-id 6c2b14cb5b1c), not yet on main; it stays to-write until the train lands, where it moves red then green against the judge run. Moved red at its landing (2026-11-10, dc), in the commit that adds the file, with the file's id lines (vc's ruling). The bank that landed is wp01a-v2 (blob 91b283aadaca, patch-id 118866bca26c), which superseded the wp01a-v1 named above. Green is vc's, from its judged run of the train. Red on the code as it was: all 13 arms red on the tree before bank 2 (8770037a2); all 13 pass on this commit. Green by vc's judge of the train's tip (2026-11-10, desk slot 01M735BRRKYPA217HGB3FW9KZ5, 16:43Z to 17:08Z, on main 1aada1a66 with the six banks stacked): the cited file passed in the whole bats tree and alone at its bank's commit, and again with wp03-v3's arm names; vc verified the landing at b43aa6256 against the judged commit on all 42 paths."
     },
     {
       "id": "AT-01.3",
@@ -173,8 +175,8 @@
       "covers": [
         "AC-01.3"
       ],
-      "status": "red",
-      "note": "The cut's four read-only pre-flight checks, a live intentd refused with its remedy; banked at refs/bank/dc/st0091/wp01a-v1 (blob c96b329f9f42, patch-id 6c2b14cb5b1c), not yet on main; it stays to-write until the train lands, where it moves red then green against the judge run. Moved red at its landing (2026-11-10, dc), in the commit that adds the file, with the file's id lines (vc's ruling). The bank that landed is wp01a-v2 (blob 91b283aadaca, patch-id 118866bca26c), which superseded the wp01a-v1 named above. Green is vc's, from its judged run of the train. Red on the code as it was: all 9 arms red on the tree before bank 2 (8770037a2); all 9 pass on this commit."
+      "status": "green",
+      "note": "The cut's four read-only pre-flight checks, a live intentd refused with its remedy; banked at refs/bank/dc/st0091/wp01a-v1 (blob c96b329f9f42, patch-id 6c2b14cb5b1c), not yet on main; it stays to-write until the train lands, where it moves red then green against the judge run. Moved red at its landing (2026-11-10, dc), in the commit that adds the file, with the file's id lines (vc's ruling). The bank that landed is wp01a-v2 (blob 91b283aadaca, patch-id 118866bca26c), which superseded the wp01a-v1 named above. Green is vc's, from its judged run of the train. Red on the code as it was: all 9 arms red on the tree before bank 2 (8770037a2); all 9 pass on this commit. Green by vc's judge of the train's tip (2026-11-10, desk slot 01M735BRRKYPA217HGB3FW9KZ5, 16:43Z to 17:08Z, on main 1aada1a66 with the six banks stacked): the cited file passed in the whole bats tree and alone at its bank's commit, and again with wp03-v3's arm names; vc verified the landing at b43aa6256 against the judged commit on all 42 paths."
     },
     {
       "id": "AT-01.4",
@@ -183,8 +185,8 @@
       "covers": [
         "AC-01.4"
       ],
-      "status": "red",
-      "note": "The pair the cut builds at the release commit passes issue 0518's currency verdict at the release push, through pair_at_head; arms 5 to 7. Minted at its landing (2026-11-10, dc), in the commit that rewrites the file it cites with the file's id lines (vc's ruling); the file was on main before, so the row could not be minted before this commit. Red on the code as it was: arm 5 red on the tree before WP-02 (banks 1 to 3), where the push still engaged the clone-and-build; arms 6 and 7 hold pair_at_head's refusals, green before and after. All three pass on this commit. Green is vc's, from its judged run of the train."
+      "status": "green",
+      "note": "The pair the cut builds at the release commit passes issue 0518's currency verdict at the release push, through pair_at_head; arms 5 to 7. Minted at its landing (2026-11-10, dc), in the commit that rewrites the file it cites with the file's id lines (vc's ruling); the file was on main before, so the row could not be minted before this commit. Red on the code as it was: arm 5 red on the tree before WP-02 (banks 1 to 3), where the push still engaged the clone-and-build; arms 6 and 7 hold pair_at_head's refusals, green before and after. All three pass on this commit. Green is vc's, from its judged run of the train. Green by vc's judge of the train's tip (2026-11-10, desk slot 01M735BRRKYPA217HGB3FW9KZ5, 16:43Z to 17:08Z, on main 1aada1a66 with the six banks stacked): the cited file passed in the whole bats tree and alone at its bank's commit, and again with wp03-v3's arm names; vc verified the landing at b43aa6256 against the judged commit on all 42 paths."
     },
     {
       "id": "AT-01.5",
@@ -193,8 +195,17 @@
       "covers": [
         "AC-01.2"
       ],
-      "status": "red",
-      "note": "The cut's gates on the release commit, each run as the core runs it; banked at refs/bank/dc/st0091/wp01b-v1 (blob 3e81cb71c66c, patch-id 184485758ff4), on wp01a-v2, not yet on main; it stays to-write until the train lands, where it moves red then green against the judge run. Moved red at its landing (2026-11-10, dc), in the commit that adds the file, with the file's id lines (vc's ruling). Red on the code as it was: all 8 arms red on bank (a)'s tree, driven by dc before banking; all 8 pass on this commit. Green is vc's, from its judged run of the train."
+      "status": "green",
+      "note": "The cut's gates on the release commit, each run as the core runs it; banked at refs/bank/dc/st0091/wp01b-v1 (blob 3e81cb71c66c, patch-id 184485758ff4), on wp01a-v2, not yet on main; it stays to-write until the train lands, where it moves red then green against the judge run. Moved red at its landing (2026-11-10, dc), in the commit that adds the file, with the file's id lines (vc's ruling). Red on the code as it was: all 8 arms red on bank (a)'s tree, driven by dc before banking; all 8 pass on this commit. Green is vc's, from its judged run of the train. Green by vc's judge of the train's tip (2026-11-10, desk slot 01M735BRRKYPA217HGB3FW9KZ5, 16:43Z to 17:08Z, on main 1aada1a66 with the six banks stacked): the cited file passed in the whole bats tree and alone at its bank's commit, and again with wp03-v3's arm names; vc verified the landing at b43aa6256 against the judged commit on all 42 paths."
+    },
+    {
+      "id": "AT-01.6",
+      "kind": "test",
+      "file": "tests/unit/release_preflight_seam.bats",
+      "covers": [
+        "AC-01.3"
+      ],
+      "status": "to-write"
     },
     {
       "id": "AT-02.1",
@@ -203,8 +214,8 @@
       "covers": [
         "AC-02.1"
       ],
-      "status": "red",
-      "note": "release check names kovacs as the cut's leg, and preflight-linux.sh and preflight.lib are gone; arm 8. Minted at its landing (2026-11-10, dc), in the commit that rewrites the file it cites with the file's id lines (vc's ruling); the file was on main before, so the row could not be minted before this commit. Red on the code as it was: arm 8 red on the tree before WP-02; it passes on this commit. Green is vc's, from its judged run of the train."
+      "status": "green",
+      "note": "release check names kovacs as the cut's leg, and preflight-linux.sh and preflight.lib are gone; arm 8. Minted at its landing (2026-11-10, dc), in the commit that rewrites the file it cites with the file's id lines (vc's ruling); the file was on main before, so the row could not be minted before this commit. Red on the code as it was: arm 8 red on the tree before WP-02; it passes on this commit. Green is vc's, from its judged run of the train. Green by vc's judge of the train's tip (2026-11-10, desk slot 01M735BRRKYPA217HGB3FW9KZ5, 16:43Z to 17:08Z, on main 1aada1a66 with the six banks stacked): the cited file passed in the whole bats tree and alone at its bank's commit, and again with wp03-v3's arm names; vc verified the landing at b43aa6256 against the judged commit on all 42 paths."
     },
     {
       "id": "AT-02.2",
@@ -213,8 +224,8 @@
       "covers": [
         "AC-02.2"
       ],
-      "status": "red",
-      "note": "prepush keeps its frozen-remote refusal and the currency verdict, asks none of a candidate push, and neither clones, builds nor asks for a kovacs summary; arms 1 to 4. Minted at its landing (2026-11-10, dc), in the commit that rewrites the file it cites with the file's id lines (vc's ruling); the file was on main before, so the row could not be minted before this commit. Red on the code as it was: arms 1, 3 and 4 red on the tree before WP-02; arm 2, the stale pair refused on any push, holds what did not change and is green before and after. All four pass on this commit. Green is vc's, from its judged run of the train."
+      "status": "green",
+      "note": "prepush keeps its frozen-remote refusal and the currency verdict, asks none of a candidate push, and neither clones, builds nor asks for a kovacs summary; arms 1 to 4. Minted at its landing (2026-11-10, dc), in the commit that rewrites the file it cites with the file's id lines (vc's ruling); the file was on main before, so the row could not be minted before this commit. Red on the code as it was: arms 1, 3 and 4 red on the tree before WP-02; arm 2, the stale pair refused on any push, holds what did not change and is green before and after. All four pass on this commit. Green is vc's, from its judged run of the train. Green by vc's judge of the train's tip (2026-11-10, desk slot 01M735BRRKYPA217HGB3FW9KZ5, 16:43Z to 17:08Z, on main 1aada1a66 with the six banks stacked): the cited file passed in the whole bats tree and alone at its bank's commit, and again with wp03-v3's arm names; vc verified the landing at b43aa6256 against the judged commit on all 42 paths."
     },
     {
       "id": "AT-03.1",
@@ -223,8 +234,8 @@
       "covers": [
         "AC-03.1"
       ],
-      "status": "red",
-      "note": "The cut's publication as one after: command that stops at its first failure and is safe to run again; banked at refs/bank/dc/st0091/wp03-v1 (blob d168a870bb99, patch-id 6f6bb9badad3), on wp02-v1's tip tree, not yet on main; it stays to-write until the train lands. Run on the tree before WP-03, every arm of the file is red. Moved red at its landing (2026-11-10, dc), in the commit that adds the file, with the file's id lines (vc's ruling). The bank that landed is wp03-v3 (blob 70446cb16981, patch-id b38ca167b7cc), which superseded the wp03-v1 named above: v2 printed one delete command per held asset in the partial-release refusal, v3 the shellcheck directive and the arms' ids. Green is vc's, from its judged run of the train. Red on the code as it was: release_publish.bats arms 1 to 7 and brew_formula.bats arms 1 to 4 and 6 red on the tree before WP-03; all pass on this commit."
+      "status": "green",
+      "note": "The cut's publication as one after: command that stops at its first failure and is safe to run again; banked at refs/bank/dc/st0091/wp03-v1 (blob d168a870bb99, patch-id 6f6bb9badad3), on wp02-v1's tip tree, not yet on main; it stays to-write until the train lands. Run on the tree before WP-03, every arm of the file is red. Moved red at its landing (2026-11-10, dc), in the commit that adds the file, with the file's id lines (vc's ruling). The bank that landed is wp03-v3 (blob 70446cb16981, patch-id b38ca167b7cc), which superseded the wp03-v1 named above: v2 printed one delete command per held asset in the partial-release refusal, v3 the shellcheck directive and the arms' ids. Green is vc's, from its judged run of the train. Red on the code as it was: release_publish.bats arms 1 to 7 and brew_formula.bats arms 1 to 4 and 6 red on the tree before WP-03; all pass on this commit. Green by vc's judge of the train's tip (2026-11-10, desk slot 01M735BRRKYPA217HGB3FW9KZ5, 16:43Z to 17:08Z, on main 1aada1a66 with the six banks stacked): the cited file passed in the whole bats tree and alone at its bank's commit, and again with wp03-v3's arm names; vc verified the landing at b43aa6256 against the judged commit on all 42 paths."
     },
     {
       "id": "AT-03.2",
@@ -233,8 +244,8 @@
       "covers": [
         "AC-03.2"
       ],
-      "status": "red",
-      "note": "macos prepare refuses a pair that is not a release build of HEAD, and the formula names the stage's assets; banked at refs/bank/dc/st0091/wp03-v1 (blob d168a870bb99, patch-id 6f6bb9badad3), on wp02-v1's tip tree, not yet on main; it stays to-write until the train lands. Run on the tree before WP-03, every arm of the file is red. Moved red at its landing (2026-11-10, dc), in the commit that adds the file, with the file's id lines (vc's ruling). The bank that landed is wp03-v3 (blob 70446cb16981, patch-id b38ca167b7cc), which superseded the wp03-v1 named above: v2 printed one delete command per held asset in the partial-release refusal, v3 the shellcheck directive and the arms' ids. Green is vc's, from its judged run of the train. Red on the code as it was: release_publish.bats arms 8 and 9 red on the tree before WP-03; both pass on this commit."
+      "status": "green",
+      "note": "macos prepare refuses a pair that is not a release build of HEAD, and the formula names the stage's assets; banked at refs/bank/dc/st0091/wp03-v1 (blob d168a870bb99, patch-id 6f6bb9badad3), on wp02-v1's tip tree, not yet on main; it stays to-write until the train lands. Run on the tree before WP-03, every arm of the file is red. Moved red at its landing (2026-11-10, dc), in the commit that adds the file, with the file's id lines (vc's ruling). The bank that landed is wp03-v3 (blob 70446cb16981, patch-id b38ca167b7cc), which superseded the wp03-v1 named above: v2 printed one delete command per held asset in the partial-release refusal, v3 the shellcheck directive and the arms' ids. Green is vc's, from its judged run of the train. Red on the code as it was: release_publish.bats arms 8 and 9 red on the tree before WP-03; both pass on this commit. Green by vc's judge of the train's tip (2026-11-10, desk slot 01M735BRRKYPA217HGB3FW9KZ5, 16:43Z to 17:08Z, on main 1aada1a66 with the six banks stacked): the cited file passed in the whole bats tree and alone at its bank's commit, and again with wp03-v3's arm names; vc verified the landing at b43aa6256 against the judged commit on all 42 paths."
     },
     {
       "id": "AT-03.3",
@@ -243,8 +254,8 @@
       "covers": [
         "AC-03.3"
       ],
-      "status": "red",
-      "note": "The formula's service block sends intentd's stdout to intentd.log and its stderr to intentd.err.log under the user's state dir, and its comment says so (issue 0667); brew_formula.bats arm 5. Minted at its landing (2026-11-10, dc), in the commit that rewrites the file with its id lines (vc's ruling); the file was on main before. Red on the code as it was: arm 5 red on the tree before WP-03, where the formula sent both streams to one brew log; it passes on this commit. Green is vc's, from its judged run of the train."
+      "status": "green",
+      "note": "The formula's service block sends intentd's stdout to intentd.log and its stderr to intentd.err.log under the user's state dir, and its comment says so (issue 0667); brew_formula.bats arm 5. Minted at its landing (2026-11-10, dc), in the commit that rewrites the file with its id lines (vc's ruling); the file was on main before. Red on the code as it was: arm 5 red on the tree before WP-03, where the formula sent both streams to one brew log; it passes on this commit. Green is vc's, from its judged run of the train. Green by vc's judge of the train's tip (2026-11-10, desk slot 01M735BRRKYPA217HGB3FW9KZ5, 16:43Z to 17:08Z, on main 1aada1a66 with the six banks stacked): the cited file passed in the whole bats tree and alone at its bank's commit, and again with wp03-v3's arm names; vc verified the landing at b43aa6256 against the judged commit on all 42 paths."
     },
     {
       "id": "AT-04.1",
@@ -253,8 +264,8 @@
       "covers": [
         "AC-04.1"
       ],
-      "status": "red",
-      "note": "Minted by dc with the train's first bank, refs/bank/dc/st0091/wp04-trigger-v1 (blob ee3409fcdced, patch-id 2c4e9bc3ab35, base 991e92946). It stays to-write until the train lands: the file is in the bank and not yet on main, and `intent at red` refuses a row whose cited file is absent, since that would be a live absent_at finding. The judge of the train's tip sets its verdict. Its three tests: a push of the cut's candidate starts release.ci.workflow as committed at HEAD, asked of devbin's own reader (`ci-state --fires`); no tag push starts tests.yml, rust.yml or linux-release.yml; and a candidate's run carries the macOS leg and rust.yml's job, each keyed on the candidate prefix config names. Each test reads the candidate template from config, never a literal. Each red was driven, and each is the base's own line restored: test 1 with HEAD at 991e92946, whose committed tests.yml admits no candidate; test 2 with linux-release.yml's base L25, `tags: [\"v[0-9]*\"]`, back under push; test 3 with tests.yml's base L292, test-macos's tag condition, back. AC-04.1's release-check half is judged at the tip, once WP-01 offers cut. Moved red at its landing (2026-11-10, dc), in the commit that adds the file, on vc's ruling that a row leaves to-write with the file's id lines: this commit carries the file's AT-04.1 header and arm names, which wp03-v3 held. Red on the code as it was: the trigger bank drove each of the three arms against the base's own trigger lines, all three red. All three pass on this commit, run on a scratch commit of it before landing. Green is vc's, from its judged run of the train."
+      "status": "green",
+      "note": "Minted by dc with the train's first bank, refs/bank/dc/st0091/wp04-trigger-v1 (blob ee3409fcdced, patch-id 2c4e9bc3ab35, base 991e92946). It stays to-write until the train lands: the file is in the bank and not yet on main, and `intent at red` refuses a row whose cited file is absent, since that would be a live absent_at finding. The judge of the train's tip sets its verdict. Its three tests: a push of the cut's candidate starts release.ci.workflow as committed at HEAD, asked of devbin's own reader (`ci-state --fires`); no tag push starts tests.yml, rust.yml or linux-release.yml; and a candidate's run carries the macOS leg and rust.yml's job, each keyed on the candidate prefix config names. Each test reads the candidate template from config, never a literal. Each red was driven, and each is the base's own line restored: test 1 with HEAD at 991e92946, whose committed tests.yml admits no candidate; test 2 with linux-release.yml's base L25, `tags: [\"v[0-9]*\"]`, back under push; test 3 with tests.yml's base L292, test-macos's tag condition, back. AC-04.1's release-check half is judged at the tip, once WP-01 offers cut. Moved red at its landing (2026-11-10, dc), in the commit that adds the file, on vc's ruling that a row leaves to-write with the file's id lines: this commit carries the file's AT-04.1 header and arm names, which wp03-v3 held. Red on the code as it was: the trigger bank drove each of the three arms against the base's own trigger lines, all three red. All three pass on this commit, run on a scratch commit of it before landing. Green is vc's, from its judged run of the train. Green by vc's judge of the train's tip (2026-11-10, desk slot 01M735BRRKYPA217HGB3FW9KZ5, 16:43Z to 17:08Z, on main 1aada1a66 with the six banks stacked): the cited file passed in the whole bats tree and alone at its bank's commit, and again with wp03-v3's arm names; vc verified the landing at b43aa6256 against the judged commit on all 42 paths."
     }
   ]
 }
