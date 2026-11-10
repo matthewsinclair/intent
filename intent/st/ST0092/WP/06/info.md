@@ -69,7 +69,7 @@ Three edges of `wb brief`, each with an arm. On a board that declares no profile
 
 The INV-09 arm covers four faces from one library function: pickup's prose, its `--json`, MCP's answer and `wb brief`. The fresh-clone line is a `note:`.
 
-The launcher half is ic's, as a sub-unit of this package: `intent/plugins/claude/bin/intent_claude_cwi` takes its context from `wb brief <node> --launch` in place of the two hard-coded steps, passes the three edges through, and `claude start`'s unregistered-moniker remedy names `wb init`. ic builds it once `wb brief` is banked. cc keeps the package's claim and builds the rest.
+The launcher half is ic's, as a sub-unit of this package, and the script never calls `intent`. The door, `claude_cwi` in the CLI, fetches the brief through the facade, from the one function this package builds for `wb brief`, and hands the text to `intent/plugins/claude/bin/intent_claude_cwi` as an argument beside the display name. The script prints it with the restart context in place of the two hard-coded steps, and its opening line says seat. This replaces the route the text above names, a script calling `intent wb brief <node> --launch`: the binary on PATH may not be the one that resolved the project (issue 0609), and at the door the three edges are the facade's own typed refusals on exit 1 before any script runs. A board with no profile gets today's two steps from the same call. The unregistered-moniker remedy that names `wb init` is the library's `WbNodeNotRegistered` remedy, so it is cc's line and not the launcher's. ic builds its half once the brief function is banked. cc keeps the package's claim and builds the rest.
 
 ## Depends on
 
