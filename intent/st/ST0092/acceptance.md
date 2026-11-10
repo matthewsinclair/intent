@@ -21,7 +21,7 @@ title: A Claude Team is declared by a profile: wb init sets up its board, hv is 
 - AC-01.4 (non-test) It defines the hat and names the Desk as one, and it names sleeve agents and estate agents as kinds owned by Molt and Gtools without defining the contract of either. -- evidence: intent/plugins/claude/teams/TERMS.md, 'A hat' defines the hat and names the Desk and the pen as hats; 'Other kinds of Claude' names sleeve agents (Molt) and estate agents (Gtools) and defines the contract of neither. -- satisfied: yes
 - AC-01.5 (non-test) hv has read the document and ratified it, and vc has recorded the ratification on hv's board with its date and channel, before any other package of this thread starts. -- evidence: hv, 2026-11-10, first-hand in vc's session at 19:26:54Z: 'Ratified as recommended'. Recorded as hv decision 34 with its date and channel, before any other package of ST0092 started. -- satisfied: yes
 
-### WP-02 -- A Team Profile is a shipped resource: team, solo, supervisor and supervised (status: Not Started)
+### WP-02 -- A Team Profile is a shipped resource: team, solo, supervisor and supervised (status: WIP)
 
 - AC-02.1 The plugin canon ships the profiles team, solo, supervisor and supervised under one schema, and `intent wb profile validate` passes on the shipped set. -- satisfied: no (computed)
 - AC-02.2 Validation fails, naming the file and the field, on a base with no mediator, a mediator that is not one of the profile's seats, a duplicate moniker, a role equal to its moniker, a name written as a session name, a second seat driven by the human, a layer that declares a human seat, a profile that names a moniker the seat registry does not hold, a base that lacks any of the four sections its brief is printed from, and a layer that carries one. -- satisfied: no (computed)
@@ -117,7 +117,7 @@ title: A Claude Team is declared by a profile: wb init sets up its board, hv is 
 
 _(no tests in this group)_
 
-### WP-02 -- A Team Profile is a shipped resource: team, solo, supervisor and supervised (status: Not Started)
+### WP-02 -- A Team Profile is a shipped resource: team, solo, supervisor and supervised (status: WIP)
 
 _(no tests in this group)_
 
