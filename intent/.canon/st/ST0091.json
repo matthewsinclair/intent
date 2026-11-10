@@ -144,5 +144,17 @@
         "is": "unsatisfied"
       }
     }
+  ],
+  "tests": [
+    {
+      "id": "AT-04.1",
+      "kind": "test",
+      "file": "tests/unit/release_candidate_trigger.bats",
+      "covers": [
+        "AC-04.1"
+      ],
+      "status": "to-write",
+      "note": "Minted by dc with the train's first bank, refs/bank/dc/st0091/wp04-trigger-v1 (blob ee3409fcdced, patch-id 2c4e9bc3ab35, base 991e92946). It stays to-write until the train lands: the file is in the bank and not yet on main, and `intent at red` refuses a row whose cited file is absent, since that would be a live absent_at finding. The judge of the train's tip sets its verdict. Its three tests: a push of the cut's candidate starts release.ci.workflow as committed at HEAD, asked of devbin's own reader (`ci-state --fires`); no tag push starts tests.yml, rust.yml or linux-release.yml; and a candidate's run carries the macOS leg and rust.yml's job, each keyed on the candidate prefix config names. Each test reads the candidate template from config, never a literal. Each red was driven, and each is the base's own line restored: test 1 with HEAD at 991e92946, whose committed tests.yml admits no candidate; test 2 with linux-release.yml's base L25, `tags: [\"v[0-9]*\"]`, back under push; test 3 with tests.yml's base L292, test-macos's tag condition, back. AC-04.1's release-check half is judged at the tip, once WP-01 offers cut."
+    }
   ]
 }
