@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 2aba47df-5301-4790-a6b7-e11815afe307
-heartbeat_at: 2026-11-10 18:21Z
+heartbeat_at: 2026-11-10 19:32Z
 status: active
-focus: "2026-11-10, hold LIFTED (hv to dc, 'Continue on the bounce.', and hv in vc's window, 'lifted', 18:21:26Z by vc's date -u). Lane: stand ready to land 0670 (refs/bank/dc/0670/fix-v1, patch-id a2fb9f84b4db) after cc lands 0665, on vc's judged go; landing order 0665 (cc), 0670 (dc), 0649 (cc), one chain each. vc judges the three-bank stack on pinned base 33105fb1f (tip 8c7e876d41ac), queued on the desk behind Utilz's release run. Nothing that needs a build starts without a desk slot. Then AT-01.6 after devbin's release is swept in (todo 61), then F8 after ST0092's surface lands (todo 60). Claims: ST0090/02, ISSUE:0670, ST0091/01-04. Worktrees: tmp/wt-dc-0670 and tmp/wt-dc-0090-app (hold 37)."
+focus: "2026-11-10, localfolded for hv's compact on hv's word direct to dc ("Fold, then compact."); dc stays active and continues on the bounce. Lane, on vc's word: (1) on vc's "verified", close 0670 and remove tmp/wt-dc-0670 in one chain (doing 155); (2) AT-01.6's release.preflight wiring once devbin-vc says devbin's release (re-cutting after 0.1.21 went red) is swept in (todo 61); (3) F8's reference pages as the last unit before the cut, after ST0092's surface lands (todo 60). dc builds no ST0092 package for now; vc revisits when cc reaches WP-05. Claims: ST0090/02, ISSUE:0670, ST0091/01-04. Worktrees: tmp/wt-dc-0670 (v2, kept until verified) and tmp/wt-dc-0090-app (hold 37)."
 claims: [ST0090/02, ISSUE:0670, ST0091/01, ST0091/04, ST0091/02, ST0091/03]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0090/02, ISSUE:0670, ST0091/01, ST0091/04, ST0091/02, ST0091/03]
 
 ## DOING
 
-- ISSUE:0670, the AT citation check, to hv's ruling of 2026-11-01 and vc's shape of 2026-11-10 (the issue's record): a bare id line stops counting where another thread has a green or red row of the same id citing the same file, a row may cite its arm as file:line and then that line alone is read, and the id is matched as a whole token. BANKED AND BUILT: refs/bank/dc/0670/fix-v1 (blob b86ca7c0068b, patch-id a2fb9f84b4db), a diff from tree 49c919d3f193, main b43aa6256 with cc's 0665 bank applied; worktree tmp/wt-dc-0670. Every touched test module passes (at_citation_rivals 7 of 7), fmt, clippy, panics and doc are clean, the four parity guards and the roster pass, and SCHEMA_VERSION stays 33 (the faces' description alone). The census against the build, read-only on copies of the 9 projects under an isolated HOME, changes one line in 25 threads: Devbin ST0011 AT-3.5, as ruled. Next: vc judges cc's 0665, cc's 0649 and this as one stack after hv's compact, warns devbin-vc, and dc lands on vc's go; 0665 then 0670 on main e9e7e424c is tree e10a008f6992. (edited)
+- ISSUE:0670, the AT citation check (hv's ruling of 2026-11-01, vc's shape of 2026-11-10). LANDED as 03a820eb0 on main, v2 (refs/bank/dc/0670/fix-v2-on-0665v2-on-5aae9648d, patch-id 576f8fc56e02), between cc's 0665 (a08b6f03e) and cc's 0649 (cedbc46fe), on vc's go after its judge of the stack. v2 changed one thing from v1: Fixture::write_thread in tests/common/mod.rs writes each stub line naming its own thread and keeps other threads' lines, because vc's whole-suite judge found the seeded estate gave three threads one green AT-03.1 over a bare line. The commit also carried the five edited ST0056 tools and the new lib_citation.sh into the store as attachments; intentd ingested two of the six from disk first, which vc accepted. WAITING ON vc's "verified" from the attachment test at HEAD (desk request 01M73EB75QZHTW4QK9NS95DZA5, queued behind devbin's re-cut). ON VERIFIED, one chain: intent issues edit 0670 --from the resolution draft (scratchpad 0670-resolved.md, which appends RESOLVED FOR 3.3.0 to the prose), intent issues close 0670, archive this item, unclaim ISSUE:0670, and remove tmp/wt-dc-0670 by the fold checks. (edited)
 
 ## TODO
 
