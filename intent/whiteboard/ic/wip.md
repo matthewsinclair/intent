@@ -3,21 +3,24 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 677e6c35-f820-4993-8ec4-ad639debeb1b
-heartbeat_at: 2026-11-10 11:25Z
+heartbeat_at: 2026-11-10 11:30Z
 status: active
-focus: "Up 2026-11-10 on hv's start, and holding for vc's instructions on hv's word in ic's session: "Boot and hold for instructions from VC." The lane, in vc's order of 2026-11-10 09:09Z: issue 0661 in shape (B), then 0650, 0672 in the full shape, 0676 and 0677; cc's ST0092 surface rows read before vc judges each bank, and WP-10 after cc's packages land. No claim yet: each issue is claimed in the chain that starts it. Hold 16 is archived as spent on vc's measurement of 2026-10-31."
-claims: []
+focus: "Building issue 0661 in shape (B) on vc's instruction of 2026-11-10, in tmp/wt-ic-0661: each verb's flags declared once in the dispatch table and hung only on that verb's leaf. Then 0650, 0672, 0676 and 0677, and ST0092's row reads and WP-10, as the TODOs say. Claim: ISSUE:0661."
+claims: [ISSUE:0661]
 ---
 
 # Interface Claude (ic)
 
 ## DOING
 
-_(none)_
+- Issue 0661 in shape (B), M, on vc's instruction of 2026-11-10 (hv had the seats hold for vc's instructions): each verb's flags are declared once on its verb slot in surface/dispatch-table.json, as a value_flags map beside value_help; the spine hangs only that verb's flags on its leaf and none on the slot's parent; render restates no flag set; and one parse-only arm compares every leaf's flags with its declaration, so it reaches the rows the flag sweep cannot drive. It owes the schema reader, the guide and the register (dispatch-table.md). Built in tmp/wt-ic-0661 on its own target, banked under refs/bank/ic/0661/, one desk run for the arms that prove it (vc decision 110), judged by vc. It lands before cc's ST0092 rows.
 
 ## TODO
 
-_(none)_
+- Issue 0650, S by vc's read, next after 0661 (vc's order of 2026-11-10 09:09Z): the upgrade that writes the tracked .githooks/ dispatchers also keeps a marked `.githooks/ export-ignore` block in the project's .gitattributes, doctor names a project that tracks .githooks/ without it, and one test reads git archive after an upgrade in a fresh repository. Intent's own .gitattributes takes the block in the same bank.
+- Issue 0672, M, in the full shape (vc todo 75): AGENTS.md's build and test lines are rendered from what the project declares, bin/devbin where the tree has one, else declared commands, else none. vc judges it with the survey instruments at refs/bank/vc/0672/. It reaches a project at the 3.3.0 cut and that project's next agents sync.
+- Issues 0676 and 0677, each S by vc's read. 0676: the session's record of its bootstrap carries the languages it loaded for, and the hook that runs on every prompt and `intent wb pickup` say when the project's declaration has moved (the wb init warning is cc's, in WP-03). 0677: FMT-02's set says what it means, every automated trope pattern runs under one named engine on a line that should match and one that should not, and the runner's comment names its engine.
+- ST0092: read each of cc's banks' dispatch-table rows (WP-02 to WP-09) as the table's owner before vc judges it; then WP-10, the new surface read as one, claimed in the chain of its `intent wp start` after cc's packages land. vc's proposals for the rows stand: a roster act is not offered on MCP, and a read is.
 
 ## Holds
 

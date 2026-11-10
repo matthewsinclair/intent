@@ -1,0 +1,15 @@
+{
+  "id": "01M72KK1XFVRJWQ6F4T5SXJ8MR",
+  "ts": "2026-11-10T11:30:44.271Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "Issue 0661 in shape (B), M, on vc's instruction of 2026-11-10 (hv had the seats hold for vc's instructions): each verb's flags are declared once on its verb slot in surface/dispatch-table.json, as a value_flags map beside value_help; the spine hangs only that verb's flags on its leaf and none on the slot's parent; render restates no flag set; and one parse-only arm compares every leaf's flags with its declaration, so it reaches the rows the flag sweep cannot drive. It owes the schema reader, the guide and the register (dispatch-table.md). Built in tmp/wt-ic-0661 on its own target, banked under refs/bank/ic/0661/, one desk run for the arms that prove it (vc decision 110), judged by vc. It lands before cc's ST0092 rows."
+  }
+}

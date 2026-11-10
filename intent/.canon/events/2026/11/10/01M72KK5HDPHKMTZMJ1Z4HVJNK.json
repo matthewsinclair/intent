@@ -1,0 +1,15 @@
+{
+  "id": "01M72KK5HDPHKMTZMJ1Z4HVJNK",
+  "ts": "2026-11-10T11:30:48.548Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ST0092: read each of cc's banks' dispatch-table rows (WP-02 to WP-09) as the table's owner before vc judges it; then WP-10, the new surface read as one, claimed in the chain of its `intent wp start` after cc's packages land. vc's proposals for the rows stand: a roster act is not offered on MCP, and a read is."
+  }
+}

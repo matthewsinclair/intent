@@ -1,0 +1,15 @@
+{
+  "id": "01M72KK3NZZ279DHZ1H1V1WZPE",
+  "ts": "2026-11-10T11:30:46.079Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Issue 0672, M, in the full shape (vc todo 75): AGENTS.md's build and test lines are rendered from what the project declares, bin/devbin where the tree has one, else declared commands, else none. vc judges it with the survey instruments at refs/bank/vc/0672/. It reaches a project at the 3.3.0 cut and that project's next agents sync."
+  }
+}

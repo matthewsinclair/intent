@@ -1,0 +1,15 @@
+{
+  "id": "01M72KK2SZWWSZ1HM1HBXCHGHH",
+  "ts": "2026-11-10T11:30:45.183Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Issue 0650, S by vc's read, next after 0661 (vc's order of 2026-11-10 09:09Z): the upgrade that writes the tracked .githooks/ dispatchers also keeps a marked `.githooks/ export-ignore` block in the project's .gitattributes, doctor names a project that tracks .githooks/ without it, and one test reads git archive after an upgrade in a fresh repository. Intent's own .gitattributes takes the block in the same bank."
+  }
+}

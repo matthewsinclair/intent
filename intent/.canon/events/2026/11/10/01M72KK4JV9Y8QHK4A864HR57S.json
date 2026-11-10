@@ -1,0 +1,15 @@
+{
+  "id": "01M72KK4JV9Y8QHK4A864HR57S",
+  "ts": "2026-11-10T11:30:47.003Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Issues 0676 and 0677, each S by vc's read. 0676: the session's record of its bootstrap carries the languages it loaded for, and the hook that runs on every prompt and `intent wb pickup` say when the project's declaration has moved (the wb init warning is cc's, in WP-03). 0677: FMT-02's set says what it means, every automated trope pattern runs under one named engine on a line that should match and one that should not, and the runner's comment names its engine."
+  }
+}
