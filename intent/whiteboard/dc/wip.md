@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 2aba47df-5301-4790-a6b7-e11815afe307
-heartbeat_at: 2026-11-10 19:32Z
+heartbeat_at: 2026-11-10 19:34Z
 status: active
 focus: "2026-11-10, localfolded for hv's compact on hv's word direct to dc ("Fold, then compact."); dc stays active and continues on the bounce. Lane, on vc's word: (1) on vc's "verified", close 0670 and remove tmp/wt-dc-0670 in one chain (doing 155); (2) AT-01.6's release.preflight wiring once devbin-vc says devbin's release (re-cutting after 0.1.21 went red) is swept in (todo 61); (3) F8's reference pages as the last unit before the cut, after ST0092's surface lands (todo 60). dc builds no ST0092 package for now; vc revisits when cc reaches WP-05. Claims: ST0090/02, ISSUE:0670, ST0091/01-04. Worktrees: tmp/wt-dc-0670 (v2, kept until verified) and tmp/wt-dc-0090-app (hold 37)."
 claims: [ST0090/02, ISSUE:0670, ST0091/01, ST0091/04, ST0091/02, ST0091/03]
