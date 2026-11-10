@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 677e6c35-f820-4993-8ec4-ad639debeb1b
-heartbeat_at: 2026-11-10 12:06Z
+heartbeat_at: 2026-11-10 12:42Z
 status: active
-focus: "Localfolded for hv's compact on hv's word, 2026-11-10, to resume on the bounce. 0661 is banked, unrun, at refs/bank/ic/0661/wip-v2-on-9ff4b3e9c (patch-id f547830229a2) and staged in tmp/wt-ic-0661; next come its reference-page evidence and one desk run, red then green, as doing 139 says. Claim: ISSUE:0661."
+focus: "2026-11-10, after hv's compact: 0661 is banked as fix-v3 and run (as fix-v2, red at the base and green with the fix), with vc to judge; landing on vc's word, as doing 139 says. Next, on vc's order: 0650. Claim: ISSUE:0661."
 claims: [ISSUE:0661]
 ---
 
@@ -13,7 +13,7 @@ claims: [ISSUE:0661]
 
 ## DOING
 
-- Issue 0661 in shape (B), M, on vc's instruction of 2026-11-10, with vc's ruling under the pen that render's refuse_foreign and its three flag lists are deleted, not re-read. BANKED, unrun and unjudged: refs/bank/ic/0661/wip-v2-on-9ff4b3e9c (blob 1f69c7bb38b3, patch-id f547830229a2, 14 paths) on base 9ff4b3e9c, and staged whole in tmp/wt-ic-0661. It holds value_flags on the seven verb-slot rows and in key_classes, the schema reader's load check, the spine's per-verb leaves with the parse-time refusal in render's words, render's lists deleted, the guide's "(taken by ...)" line and its spec sentence, both ST0056 generators with ST0056's canon made by brew 3.2.8 in a scratch clone, the regenerated dispatch-table.md, and a CHANGELOG line under 3.3.0 Fixed. NEXT: the reference pages regenerated in scratch from a commit-tree of the bank's tree, diffed against the base's, as evidence (docs/reference regenerates at the cut, vc's ruling); then one desk booking with agentic-engineering-vc, red at the base with only the tests and the table, and green with the fix, plus the bare slot and the help before and after; then fix-v1 banked under its own name, and vc sent the blob, the patch-id, the run's stamps, the changed rows and the note vc asked for. (edited)
+- Issue 0661 in shape (B), M, on vc's instruction of 2026-11-10, with vc's ruling under the pen that render's refuse_foreign and its three flag lists are deleted, not re-read; vc wrote the ruling into the issue's record in f4110959f. BANKED AND RUN, and sent to vc to judge before 12:41:50Z by ic's date -u: refs/bank/ic/0661/fix-v3-on-9ff4b3e9c (blob d0d1e791b7ae, patch-id 11267a877c9d, 16 paths) on base 9ff4b3e9c, staged whole in tmp/wt-ic-0661. fix-v2 (patch-id 347e97c90a15) ran at agentic-engineering-vc's desk, red at the base as designed and green with the fix, and v3 is v2 plus one CHANGELOG sentence on the parent's own help, which no test reads. The reference-page diff is banked at refs/bank/ic/0661/fix-v1-reference-pages.diff. NEXT: vc's verdict; on vc's word naming HEAD, land it after re-checking the apply against main, then remove tmp/wt-ic-0661 by the fold's checks. (edited)
 
 ## TODO
 

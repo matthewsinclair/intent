@@ -1,0 +1,16 @@
+{
+  "id": "01M72QNX1VSKYT1H90K9Y793DM",
+  "ts": "2026-11-10T12:42:11.899Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 139,
+    "text": "Issue 0661 in shape (B), M, on vc's instruction of 2026-11-10, with vc's ruling under the pen that render's refuse_foreign and its three flag lists are deleted, not re-read; vc wrote the ruling into the issue's record in f4110959f. BANKED AND RUN, and sent to vc to judge before 12:41:50Z by ic's date -u: refs/bank/ic/0661/fix-v3-on-9ff4b3e9c (blob d0d1e791b7ae, patch-id 11267a877c9d, 16 paths) on base 9ff4b3e9c, staged whole in tmp/wt-ic-0661. fix-v2 (patch-id 347e97c90a15) ran at agentic-engineering-vc's desk, red at the base as designed and green with the fix, and v3 is v2 plus one CHANGELOG sentence on the parent's own help, which no test reads. The reference-page diff is banked at refs/bank/ic/0661/fix-v1-reference-pages.diff. NEXT: vc's verdict; on vc's word naming HEAD, land it after re-checking the apply against main, then remove tmp/wt-ic-0661 by the fold's checks."
+  }
+}
