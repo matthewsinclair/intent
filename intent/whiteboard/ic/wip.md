@@ -21,7 +21,6 @@ claims: [ISSUE:0661]
 - Issue 0672, M, in the full shape (vc todo 75): AGENTS.md's build and test lines are rendered from what the project declares, bin/devbin where the tree has one, else declared commands, else none. vc judges it with the survey instruments at refs/bank/vc/0672/. It reaches a project at the 3.3.0 cut and that project's next agents sync.
 - Issues 0676 and 0677, each S by vc's read. 0676: the session's record of its bootstrap carries the languages it loaded for, and the hook that runs on every prompt and `intent wb pickup` say when the project's declaration has moved (the wb init warning is cc's, in WP-03). 0677: FMT-02's set says what it means, every automated trope pattern runs under one named engine on a line that should match and one that should not, and the runner's comment names its engine.
 - ST0092: read each of cc's banks' dispatch-table rows (WP-02 to WP-09) as the table's owner before vc judges it; then WP-10, the new surface read as one, claimed in the chain of its `intent wp start` after cc's packages land. vc's proposals for the rows stand: a roster act is not offered on MCP, and a read is.
-- At the next pickup, tell vc in one line what hv's directive 2, the team brief, gives ic: its role and remit, the mediator and the route to hv (vc's ask with its CHAIN END of d09791705). Do not run a pickup for it before then.
 
 ## Holds
 

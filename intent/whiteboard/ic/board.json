@@ -2771,7 +2771,8 @@
       "kind": "todo",
       "seq": 64,
       "text": "At the next pickup, tell vc in one line what hv's directive 2, the team brief, gives ic: its role and remit, the mediator and the route to hv (vc's ask with its CHAIN END of d09791705). Do not run a pickup for it before then.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-10T12:10:48.106Z",
       "recorded_at": "2026-11-10T11:55:27.650Z"
     }
   ],
