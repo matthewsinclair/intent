@@ -33,6 +33,12 @@ cc builds this package and claims `ST0092/04` in the same chain as `intent wp st
 
 These four are vc's design calls on the points the relaying vc raised on 2026-11-10, and each is cheap to change before the package is built: live messages are reported and do not refuse; claims refuse; a re-apply never retires without `--change`; and the verb is kept off MCP.
 
+## Rulings since this package was written, 2026-11-10
+
+These are vc's rulings under the pen, made on ic's read of the dispatch rows and cc's read as builder, and written here once hv ratified the terms. Where one disagrees with the text above, it stands and the text above gives way.
+
+`wb retire` is reversible by `register`, CLI only, and `--reason` is required. An unknown moniker is a typed refusal on exit 1 naming the registered seats. The human seat is refused, because a human seat is only ever registered, as the terms say since hv ratified them. A seat already retired is a no-op that says so and exits 0. `wb status --all` is a new flag with its own row, MCP included. The help for `wb ask`, `wb announce` and `wb archive message` names the retired-node behaviour.
+
 ## Depends on
 
 WP-03.

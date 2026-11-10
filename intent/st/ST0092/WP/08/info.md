@@ -32,6 +32,12 @@ The desk's duties are written in one place, `lib/templates/estate/_AGENTS.md`, w
 
 The lanes, the slots and their verbs, and the dedicated coordinator `intent estate init` renders, which stays the other legal shape.
 
+## Rulings since this package was written, 2026-11-10
+
+These are vc's rulings under the pen, made on ic's read of the dispatch rows and cc's read as builder, and written here once hv ratified the terms. Where one disagrees with the text above, it stands and the text above gives way.
+
+"The mediator", read through WP-05's one identity function. An undeclared board keeps today's convention, the moniker vc, with no refusal. `control take` gains one typed refusal, and `--hv`'s words are recorded. `estate status --json` carries the orphaned state. The duties come from one template under `lib/templates/`.
+
 ## Depends on
 
 WP-01 for the term. It stands apart from WP-03 to WP-07 and can be built beside them; WP-06's brief gains the hats line when both have landed.

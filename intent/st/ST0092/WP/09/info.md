@@ -25,6 +25,12 @@ cc builds this package and claims `ST0092/09` in the same chain as `intent wp st
 
 A new guard is measured on the fleet, read-only, before it can refuse anyone's commit. On 2026-11-10 the first class alone would fire on all 32 live boards. vc runs the banked census (refs/bank/vc/st0092/census-boards.zsh) against a build that carries this package and records the count per class and per project. Whether any class gates after the sweep is hv's to say, with that table in front of hv.
 
+## Rulings since this package was written, 2026-11-10
+
+These are vc's rulings under the pen, made on ic's read of the dispatch rows and cc's read as builder, and written here once hv ratified the terms. Where one disagrees with the text above, it stands and the text above gives way.
+
+Class 1 goes: a board that declares no profile is no finding. The other classes join `is_shown_by_default`, shown and never counted, so doctor exits 0 and the gate passes, with an arm for each. Class names are stable kebab-case identifiers listed in the row. Each finding names the profile it measured against, and its remedy is the dry run, then `--apply`.
+
 ## Depends on
 
 WP-03 and WP-05.

@@ -38,6 +38,12 @@ Items, messages, handled marks, claims, archives, heartbeats, status and focus. 
 - An Intent that predates the new schema will meet these boards on any machine that has not upgraded. WP-11 measures what the released Intent does with one before any project is converged.
 - A build of this thread moves a project's store forward the first time it opens it, by a read or a dry run as much as by an apply, and every older reader of that store is then refused (cc's measurement of 2026-11-10: the migration runs in `Store::open`). So until the cut, this package and every one after it is driven on a clone of Intent's board, and never on the real one while a 3.2.8 session reads it.
 
+## Rulings since this package was written, 2026-11-10
+
+These are vc's rulings under the pen, made on ic's read of the dispatch rows and cc's read as builder, and written here once hv ratified the terms. Where one disagrees with the text above, it stands and the text above gives way.
+
+Without `--apply`, `wb init` writes no tracked file and no board row. The help says a store this build has not opened is upgraded at that first open, as by any verb, and AC-03.2's arm asserts the tracked tree unchanged by hash. The upgrade note lives once, in the CHANGELOG and the guide. The dry run exits 0. `wb init` is CLI only as a roster act, with the reason in `recoverability_anomaly`. `--change` takes its own flag disposition, because it retires seats. More refusals: the reinit (`--apply` with no profile) on a board with no recorded declaration, naming the shipped profiles; WP-05's live hv inbox; and WP-07's three README refusals. The roster-commit line is a `note:`. `wb remit` refuses both `<text>` and `--default`, and refuses neither; it is reversible and CLI only. The help for `wb register`'s `--name` and `--role` says a declared moniker takes the profile's values. The apply is one `wb_write_then_record` with one `wb.init` event and one landing, over refusal checks lifted out of `wb_register` and `wb_correct`. AC-03.9 lands green with its note.
+
 ## Depends on
 
 WP-02.

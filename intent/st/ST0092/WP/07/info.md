@@ -42,6 +42,12 @@ On 2026-11-10 Intent's own README was written by hand in this package's form (d0
 
 It is not where a session learns its seat: WP-06 is. It is not issue 0672's fix, which changes `lib/templates/llm/_AGENTS.md` and is ruled separately.
 
+## Rulings since this package was written, 2026-11-10
+
+These are vc's rulings under the pen, made on ic's read of the dispatch rows and cc's read as builder, and written here once hv ratified the terms. Where one disagrees with the text above, it stands and the text above gives way.
+
+A hand edit outside the block is a new doctor class, `roster-readme-edited`: shown, never counted, naming the lines and the remedy. The hard stop stays at `wb init --apply`. Out-of-date is `StaleRender`, with an arm proving it is never counted. The dropped verblock is a `note:`.
+
 ## Depends on
 
 WP-03.

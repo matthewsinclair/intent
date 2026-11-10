@@ -36,6 +36,12 @@ The first swarm set up by hand, on 2026-11-10, showed what the convention this p
 
 Nothing durable. An escalation that went to hv's inbox was read by nobody until the mediator ran, on every board whose README named one; it now goes to the mediator's inbox, which is read at the same moment. A node with a complaint about the mediator records it as a watch-out on its own board, which every pickup prints in full to every peer.
 
+## Rulings since this package was written, 2026-11-10
+
+These are vc's rulings under the pen, made on ic's read of the dispatch rows and cc's read as builder, and written here once hv ratified the terms. Where one disagrees with the text above, it stands and the text above gives way.
+
+The hv-write check sits in the facade, the identity door, so MCP's node-taking writes meet it, and one arm drives an MCP write as hv from a non-mediator session. It is stated once, in the table's invariants. The help for `wb ask` and `wb announce` says "on a board that declares a profile".
+
 ## Depends on
 
 WP-03.

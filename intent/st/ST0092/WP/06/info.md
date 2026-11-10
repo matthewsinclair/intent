@@ -53,6 +53,12 @@ A pickup reads no README and never has (hv's decision 28, ruling 5, on Conflab).
 
 AC-06.4 is not a test. A session is launched with `intent claude start <node>` on a converged board and hv types nothing to it. vc records, by session id, that it stated its own seat, which the launcher gave it, and its role, its remit, the mediator and its route to hv, which its pickup gave it.
 
+## Rulings since this package was written, 2026-11-10
+
+These are vc's rulings under the pen, made on ic's read of the dispatch rows and cc's read as builder, and written here once hv ratified the terms. Where one disagrees with the text above, it stands and the text above gives way.
+
+The facade returns one row per seat, which the CLI's `wb status`, its `--json` and MCP's `wb status` all render. It carries the live item count and the live message count, each labelled live, the last pickup stamp, the never-started mark (for session-driven seats only) and the desk hat (WP-08). MCP stops counting archived items and handled messages. `wb brief <moniker>` is a read, offered on MCP, with no `--node`, and the help for `--launch` says "prints the launch steps; launches nothing". Pickup's help, its `--json` and MCP carry the brief, with one arm comparing the three. The fresh-clone line is a `note:`, exit 0. `claude start`'s remedy names `wb init`.
+
 ## Depends on
 
 WP-03 for the declaration and the remit; WP-08 adds the hats line.

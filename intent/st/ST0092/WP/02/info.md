@@ -42,6 +42,12 @@ It reads nothing from `~/.local/share/intent/ext/` and vendors nothing into a pr
 
 One heavy run on the bank's tip, booked with the estate's controller: the workspace's whole test suites and the whole shell suite, `intent critic rust --files` on each changed Rust file (vc decision 79), `prettier --check` on each changed Markdown file, and `bin/int precommit` over the staged tree. cc mints this package's AT rows with its bank, and each arm carries its AT id from the start.
 
+## Rulings since this package was written, 2026-11-10
+
+These are vc's rulings under the pen, made on ic's read of the dispatch rows and cc's read as builder, and written here once hv ratified the terms. Where one disagrees with the text above, it stands and the text above gives way.
+
+The four `wb profile` verbs are reads, offered on MCP, and their help says they answer from the installed Intent and need no project, with an arm run outside any project. `validate` exits 0 when every profile is valid, 1 on a finding or a refusal, and 2 when the build cannot answer. An unknown profile is a typed refusal on exit 1 (INV-04) naming the shipped profiles. `terms` reads no profile, and its help says it prints the document every profile shares.
+
 ## Depends on
 
 WP-01, ratified.
