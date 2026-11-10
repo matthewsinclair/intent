@@ -3,17 +3,17 @@ node: cc
 name: Control Claude
 role: control
 session_id: b6c81c66-6862-4b68-a61a-ac299e1bb7ce
-heartbeat_at: 2026-11-10 11:43Z
+heartbeat_at: 2026-11-10 11:49Z
 status: active
-focus: "2026-11-10, on vc's instructions. Doing 103: 0671's fix-v2 is banked and read by vc. vc runs the three arms red at the base, then gives the land word, and cc lands it and closes 0671. Hold 35: ST0092 WP-02 to WP-09, with 0675 beside WP-06, wait on AC-01.5; cc's read-and-plan notes and five findings on the terms are with vc. Kept: claim ISSUE:0671 and tmp/wt-cc-0671. No stash or branch. Nothing pushed or released."
-claims: [ISSUE:0671]
+focus: "2026-11-10, on vc's instructions. Issue 0671 is landed in c2d171100 and closed, and tmp/wt-cc-0671 is removed, kept as refs/attic/cc/wt-cc-0671. Hold 35: ST0092 WP-02 to WP-09, with 0675 beside WP-06, wait on AC-01.5 and on vc's answers to cc's design notes, which follow vc normalising Intent's own board by hand. No claim, worktree, stash or branch. Nothing pushed or released."
+claims: []
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-- ISSUE:0671, on hv's word relayed by vc (2026-11-01 10:21Z by vc's date -u): an intentd started without CLAUDE_CONFIG_DIR sees no Claude session, so the estate page marks every held slot ORPHANED. It rides 3.3.0. FIX-V2 IS BANKED on vc's instruction of 2026-11-10: refs/bank/cc/0671/fix-v2 (blob 46b6cd199371, patch-id e5fb029d7ebf, tree 2c1fa842941f on fe748602e) is fix-v1 with its one red fixed, the other build's stamp in launchagent's unit test derived from this build's version. vc read v2 against v1 (one hunk) and ran launchagent's tests green on it. The mutant's planted diff is refs/bank/cc/0671/mutant-v1.patch (blob cb201537d9fc), and its worktree is removed by the fold checks, kept as refs/attic/cc/wt-cc-0671-mutant (47d0695a8b75). cc's own run is the probe alone, refs/bank/cc/0671/run-v4.sh and run-v4-stamps.txt: the login shell under env -i exports CLAUDE_CONFIG_DIR, and a HOME with no .zshenv does not. The cold build was withdrawn on vc's word, so vc runs the three daemon_lifecycle arms red at the base from its judge's warm target; run-v2.sh and run-v3.sh are banked and were never run. NEXT: vc's red, then vc's land word naming HEAD. cc then lands the nine paths, closes 0671, and removes tmp/wt-cc-0671 by the fold checks. (edited)
+_(none)_
 
 ## TODO
 
