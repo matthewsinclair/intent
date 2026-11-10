@@ -1,0 +1,15 @@
+{
+  "id": "01M72MXX8FW4T2723JEZA4D469",
+  "ts": "2026-11-10T11:54:08.527Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "At cc's next pickup, which is the first after hv's compact of 2026-11-10, send vc one line saying what the team brief (hv directive 2) gave cc: cc's role and remit, the mediator, and cc's route to hv. vc asked for it in its CHAIN END of 11:52Z by vc's date -u, after normalising Intent's board in d09791705. It measures whether the brief reaches a seat at pickup."
+  }
+}

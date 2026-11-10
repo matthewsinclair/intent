@@ -5,7 +5,7 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "b6c81c66-6862-4b68-a61a-ac299e1bb7ce",
-    "heartbeat_at": "2026-11-10T11:49:39.645Z",
+    "heartbeat_at": "2026-11-10T11:54:10.414Z",
     "status": "active",
     "focus": "2026-11-10, on vc's instructions. Issue 0671 is landed in c2d171100 and closed, and tmp/wt-cc-0671 is removed, kept as refs/attic/cc/wt-cc-0671. Hold 35: ST0092 WP-02 to WP-09, with 0675 beside WP-06, wait on AC-01.5 and on vc's answers to cc's design notes, which follow vc normalising Intent's own board by hand. No claim, worktree, stash or branch. Nothing pushed or released.",
     "claims": [],
@@ -2231,9 +2231,26 @@
       "node": "cc",
       "kind": "hold",
       "seq": 35,
-      "text": "ST0092 WP-02 to WP-09, cc's to build on vc's order of 2026-11-10 09:09Z (edited), with issue 0675, a reader's own stale pickup, beside WP-06 because it is the same code. HELD UNTIL AC-01.5 IS SATISFIED: hv has ratified the terms document, intent/plugins/claude/teams/TERMS.md, vc has recorded the ratification on hv's board, and vc says WP-02 starts. `intent ac list ST0092` shows AC-01.5 at every pickup. Until then cc reads and plans and writes no ST0092 code. Each package is claimed in the chain that starts it, and its AT rows are minted with its bank.",
+      "text": "ST0092 WP-02 to WP-09, cc's to build on vc's order of 2026-11-10 09:09Z (edited), with issue 0675, a reader's own stale pickup, beside WP-06 because it is the same code. HELD UNTIL AC-01.5 IS SATISFIED: hv has ratified the terms document, intent/plugins/claude/teams/TERMS.md, vc has recorded the ratification on hv's board, and vc says WP-02 starts. `intent ac list ST0092` shows AC-01.5 at every pickup. Until then cc reads and plans and writes no ST0092 code. The build order, vc's under the pen (2026-11-10): WP-02, WP-03, WP-06 with 0675, WP-05, WP-07, then WP-04 and WP-09, with WP-08 beside any. vc answered cc's design notes the same day and writes the answers into the packages' bodies: WP-02 has a JSON seat registry beside TERMS.md, with each profile a .md of flat frontmatter and a brief body; WP-03 has one declaration file under intent/whiteboard/, rendered from the store; WP-06 reads the last pickup from the store's own wb.pickup events, which never reach canon. Each package is claimed in the chain that starts it, and its AT rows are minted with its bank.",
       "state": "live",
-      "recorded_at": "2026-11-10T11:20:58.321Z"
+      "recorded_at": "2026-11-10T11:20:58.321Z",
+      "edited_at": "2026-11-10T11:54:07.521Z"
+    },
+    {
+      "node": "cc",
+      "kind": "todo",
+      "seq": 46,
+      "text": "At cc's next pickup, which is the first after hv's compact of 2026-11-10, send vc one line saying what the team brief (hv directive 2) gave cc: cc's role and remit, the mediator, and cc's route to hv. vc asked for it in its CHAIN END of 11:52Z by vc's date -u, after normalising Intent's board in d09791705. It measures whether the brief reaches a seat at pickup.",
+      "state": "live",
+      "recorded_at": "2026-11-10T11:54:08.527Z"
+    },
+    {
+      "node": "cc",
+      "kind": "todo",
+      "seq": 47,
+      "text": "While hold 35 stands, on vc's ask of 2026-11-10: read the hand-written intent/whiteboard/README.md and the team brief (hv directive 2), both from d09791705, against ST0092 WP-06 and WP-07 as their builder. Send vc whatever the hand form shows that the packages do not yet say. Read only, no code.",
+      "state": "live",
+      "recorded_at": "2026-11-10T11:54:09.455Z"
     }
   ],
   "sent": [

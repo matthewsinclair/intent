@@ -1,0 +1,15 @@
+{
+  "id": "01M72MXY5FCQ6YSSZB95ZNE3RK",
+  "ts": "2026-11-10T11:54:09.455Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "While hold 35 stands, on vc's ask of 2026-11-10: read the hand-written intent/whiteboard/README.md and the team brief (hv directive 2), both from d09791705, against ST0092 WP-06 and WP-07 as their builder. Send vc whatever the hand form shows that the packages do not yet say. Read only, no code."
+  }
+}

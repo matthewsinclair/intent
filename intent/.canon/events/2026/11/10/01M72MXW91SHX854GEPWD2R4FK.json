@@ -1,0 +1,16 @@
+{
+  "id": "01M72MXW91SHX854GEPWD2R4FK",
+  "ts": "2026-11-10T11:54:07.521Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 35,
+    "text": "ST0092 WP-02 to WP-09, cc's to build on vc's order of 2026-11-10 09:09Z (edited), with issue 0675, a reader's own stale pickup, beside WP-06 because it is the same code. HELD UNTIL AC-01.5 IS SATISFIED: hv has ratified the terms document, intent/plugins/claude/teams/TERMS.md, vc has recorded the ratification on hv's board, and vc says WP-02 starts. `intent ac list ST0092` shows AC-01.5 at every pickup. Until then cc reads and plans and writes no ST0092 code. The build order, vc's under the pen (2026-11-10): WP-02, WP-03, WP-06 with 0675, WP-05, WP-07, then WP-04 and WP-09, with WP-08 beside any. vc answered cc's design notes the same day and writes the answers into the packages' bodies: WP-02 has a JSON seat registry beside TERMS.md, with each profile a .md of flat frontmatter and a brief body; WP-03 has one declaration file under intent/whiteboard/, rendered from the store; WP-06 reads the last pickup from the store's own wb.pickup events, which never reach canon. Each package is claimed in the chain that starts it, and its AT rows are minted with its bank."
+  }
+}
