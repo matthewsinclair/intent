@@ -3,17 +3,17 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 677e6c35-f820-4993-8ec4-ad639debeb1b
-heartbeat_at: 2026-11-10 12:42Z
+heartbeat_at: 2026-11-10 12:55Z
 status: active
-focus: "2026-11-10, after hv's compact: 0661 is banked as fix-v3 and run (as fix-v2, red at the base and green with the fix), with vc to judge; landing on vc's word, as doing 139 says. Next, on vc's order: 0650. Claim: ISSUE:0661."
-claims: [ISSUE:0661]
+focus: "2026-11-10, after hv's compact: 0661 is landed in c37c21d86 on vc's word, verified by vc, and closed. Next in the lane, on vc's order: 0650, then 0672 in the full shape, then 0676 and 0677, each banked red at the base and green with the fix, and judged stacked as one train when ic says the train is whole. No claim."
+claims: []
 ---
 
 # Interface Claude (ic)
 
 ## DOING
 
-- Issue 0661 in shape (B), M, on vc's instruction of 2026-11-10, with vc's ruling under the pen that render's refuse_foreign and its three flag lists are deleted, not re-read; vc wrote the ruling into the issue's record in f4110959f. BANKED AND RUN, and sent to vc to judge before 12:41:50Z by ic's date -u: refs/bank/ic/0661/fix-v3-on-9ff4b3e9c (blob d0d1e791b7ae, patch-id 11267a877c9d, 16 paths) on base 9ff4b3e9c, staged whole in tmp/wt-ic-0661. fix-v2 (patch-id 347e97c90a15) ran at agentic-engineering-vc's desk, red at the base as designed and green with the fix, and v3 is v2 plus one CHANGELOG sentence on the parent's own help, which no test reads. The reference-page diff is banked at refs/bank/ic/0661/fix-v1-reference-pages.diff. NEXT: vc's verdict; on vc's word naming HEAD, land it after re-checking the apply against main, then remove tmp/wt-ic-0661 by the fold's checks. (edited)
+_(none)_
 
 ## TODO
 
