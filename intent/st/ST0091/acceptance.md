@@ -15,9 +15,9 @@ title: Intent releases through devbin's core: its driver, kovacs preflight and p
 
 ### WP-01 -- The cut runs through devbin's core, and Intent's driver retires (status: WIP)
 
-- AC-01.1 `bin/devbin release` cuts Intent through devbin's core: the schema bless, the lock refresh, `agents sync`, `claude upgrade --apply`, `sync --to-disk` and the pair build run as `derived:` steps, its dry run names every derived step, gate and leg and runs none of them, and `bin/.devbin/cmd/build.d/release` is gone. -- satisfied: no (computed)
-- AC-01.2 Intent's own checks run as declared `release.gates`: the bats suite, the cargo gate with issue 0481's daemon-family re-run inside Intent's own gate command, the ST0056 contract and reference checks, and the embedded-source-commit check keyed on the release commit; a sealed green for the release commit on this platform is not run again. -- satisfied: no (computed)
-- AC-01.3 The cut refuses while an intentd is live, before anything is stamped, and its remedy says how to stop the daemon. -- satisfied: no (computed)
+- AC-01.1 `bin/devbin release` cuts Intent through devbin's core: the schema bless, the lock refresh, `agents sync`, `claude upgrade --apply` and `sync --to-disk` run as `derived:` steps, `bin/devbin release check` names every derived step and gate, the dry run names every leg and runs no derived step and no gate, and `bin/.devbin/cmd/build.d/release` is gone. -- satisfied: no (computed)
+- AC-01.2 Intent's own checks run as declared `release.gates`: the bats suite, the cargo gate with issue 0481's daemon-family re-run inside Intent's own gate command, the ST0056 contract and reference checks, the embedded-source-commit check keyed on the release commit, and, on macOS alone, the pair build at the release commit; a sealed green for the release commit on this platform is not run again. -- satisfied: no (computed)
+- AC-01.3 The cut and its dry run refuse while an intentd is live, before anything is stamped, and the remedy says how to stop the daemon. -- satisfied: no (computed)
 - AC-01.4 The pair the cut builds at the release commit passes issue 0518's currency verdict when the release push runs. -- satisfied: no (computed)
 
 ### WP-02 -- kovacs runs as the cut's remote leg, and prepush keeps only its push gates (status: Not Started)

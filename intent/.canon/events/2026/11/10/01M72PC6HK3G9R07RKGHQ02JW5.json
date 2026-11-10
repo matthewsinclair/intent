@@ -1,0 +1,16 @@
+{
+  "id": "01M72PC6HK3G9R07RKGHQ02JW5",
+  "ts": "2026-11-10T12:19:25.363Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 71,
+    "text": "ST0091, Devbin ST0011/12 in Intent's tree, is WIP since ca3af21d9 (2026-11-10): dc claims ST0091/01 and builds the four packages; vc judges each as dc banks it and claims nothing, every run booked with the estate's controller. vc's RULINGS ON dc's WP-01 RE-INVENTORY ARE GIVEN (decision 112, 2026-11-10) and are in WP-01's body; dc's writes are released, and it designs the project commands in tmp/wt-dc-0091, building WP-04's trigger change first. WAITING ON devbin-vc, asked 2026-11-10 12:16Z by vc's date -u: (1) a pre-flight seam in the core for a project's own refusals, which AC-01.3 needs and which a devbin release and a vendor sweep must bring before 3.3.0 is cut; (2) where the brew smoke and issue 0634's cask sha check live, since the vendored lib holds neither by name, after which vc rewords WP-03's body and AC-03.1; (3) whether Devbin would take a declared trailer on the release commit's message, if hv wants the (C) line kept. FOR hv, through vc: C3, which remotes a cut pushes to (built as local and upstream meanwhile; watchout 33); C10, whether the core's release commit carries the (C) line; and, for hv to know, C9: tags are annotated from 3.3.0, because the core's formula step refuses a lightweight one. TO WATCH AT THE JUDGE: the cut reads one workflow's verdict (tests.yml), so dc's WP-04 design says what stands for rust.yml's on the candidate. The sweeps that brought the core in: devbin 0.1.19 (066bd45bb, then dfef527a3) and 0.1.20 (18a75d29c), each touching only bin/.devbin/."
+  }
+}

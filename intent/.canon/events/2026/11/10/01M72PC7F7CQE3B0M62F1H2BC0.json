@@ -1,0 +1,14 @@
+{
+  "id": "01M72PC7F7CQE3B0M62F1H2BC0",
+  "ts": "2026-11-10T12:19:26.315Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0091/AC-01.1"
+  },
+  "payload": {
+    "text": "`bin/devbin release` cuts Intent through devbin's core: the schema bless, the lock refresh, `agents sync`, `claude upgrade --apply` and `sync --to-disk` run as `derived:` steps, `bin/devbin release check` names every derived step and gate, the dry run names every leg and runs no derived step and no gate, and `bin/.devbin/cmd/build.d/release` is gone."
+  }
+}

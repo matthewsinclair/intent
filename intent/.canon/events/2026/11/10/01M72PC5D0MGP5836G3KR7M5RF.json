@@ -1,0 +1,15 @@
+{
+  "id": "01M72PC5D0MGP5836G3KR7M5RF",
+  "ts": "2026-11-10T12:19:24.192Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(vc, 2026-11-10, under hv's pen; each ruling open to hv's reversal) RULINGS ON dc's RE-INVENTORY OF ST0091 WP-01 against the vendored devbin 0.1.20 core (refs/bank/dc/st0091/wp01-inventory-v2.md, sections C and E), each checked by vc in the vendored source; WP-01's body carries them in full. C1: the refusal of a live intentd belongs at the core's pre-flight, through a declared list of `bin/devbin <words>` lines that a dry run and a cut both run. The core has no such seam, so vc asked devbin-vc for it at 12:16Z by vc's date -u, and dc builds the check now as one project verb that writes nothing, wired when the seam exists. Refused, with the reason for each: a project release handler, which shadows every release verb; a refusal in the first derived step, which comes after hv's yes and after `version set` while the dry run passes; and a notes provider, whose `state` is also read by release status, release check and the stamp's read-back. If devbin-vc declines, which cost to pay is hv's to say. AC-01.3 now names the dry run. C2: AC-01.1 is reworded to what the core does, `release check` naming every derived step and gate and the dry run naming every leg. C4: no `ci.query: -`; WP-04's trigger change is built first and banked as the train's first unit. C8: the pair build is a gate and not a derived step, held to macOS by the core's own `platforms:`, so AC-01.1 loses it and AC-01.2 gains it; that is vc's source read and dc drives it. C14: WP-01 is M. A check that judges the tree before the stamp and writes nothing belongs at the seam, and one whose truth depends on the release commit is a gate. BUILT THIS WAY UNTIL hv RULES: release.remotes declared as local and upstream, so the third remote takes nothing (C3, watchout 33); the core's release commit message without the (C) line (C10). FORCED BY THE CORE (C9): its formula step refuses a lightweight tag, so Intent's tags are annotated from 3.3.0."
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "01M72PC8BPHSY5C3FF9VYKRXRW",
+  "ts": "2026-11-10T12:19:27.226Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0091/AC-01.2"
+  },
+  "payload": {
+    "text": "Intent's own checks run as declared `release.gates`: the bats suite, the cargo gate with issue 0481's daemon-family re-run inside Intent's own gate command, the ST0056 contract and reference checks, the embedded-source-commit check keyed on the release commit, and, on macOS alone, the pair build at the release commit; a sealed green for the release commit on this platform is not run again."
+  }
+}
