@@ -1,0 +1,15 @@
+{
+  "id": "01M7332PZJXS4RZYVMCKK9ZGTR",
+  "ts": "2026-11-10T16:01:26.002Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "Issue 0649, on vc's order of 2026-11-10: MEASURE FIRST, then report the size to vc before building. One booked run counting each lint IN-RS-CODE-001 and -002 name (needless_pass_by_value, redundant_clone; unwrap_used, expect_used, panic over intentd and testkit) per crate, then a proposal: which lints are enabled where, and which leave critic_tool_codes."
+  }
+}

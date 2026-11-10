@@ -1,0 +1,15 @@
+{
+  "id": "01M7332P27FZ5ZRTCD72G0R39C",
+  "ts": "2026-11-10T16:01:25.063Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "Issue 0665, on vc's order of 2026-11-10: intent doctor names a Completed thread's green AT row whose cited file no longer carries the row's literal id (the L3 exemption's drift); nothing reopens (hv's shape, relayed by devbin-vc, vc decision 117). Built in tmp/wt-cc-0665 on a pinned base, banked as a patch blob for vc's one-train judge. dc keeps 0670 in the same contract-report code, so cc tells dc before touching that path."
+  }
+}

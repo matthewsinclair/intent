@@ -3,17 +3,18 @@ node: cc
 name: Control Claude
 role: control
 session_id: b6c81c66-6862-4b68-a61a-ac299e1bb7ce
-heartbeat_at: 2026-11-10 13:48Z
+heartbeat_at: 2026-11-10 16:01Z
 status: active
-focus: "2026-11-10, folded for hv's compact; on the bounce cc HOLDS. After /in-session and its heartbeat-only pickup committed in its own chain, cc starts nothing until hv's next word, which reaches cc first-hand or through vc. hv, verbatim in vc's window, relayed by vc: "Ok, let's do an intent-* fold+compact then hold on the bounce for a move." hv has not said what the move is. Hold 35 stands under it: ST0092 WP-02 to WP-09, with 0675 beside WP-06, wait on AC-01.5, which is hv's ratification of the terms on the twelve points WP-01's body lists, and on vc's word that WP-02 starts. No claim, worktree, stash or branch. Nothing pushed or released."
-claims: []
+focus: "2026-11-10, on vc's order (cc read it before its clock read of 16:01:00Z): cc builds issue 0665 (doctor names a completed thread's green AT row whose cited file no longer carries the row's id; nothing reopens, hv's shape relayed by devbin-vc) and measures issue 0649 before building it, each in its own worktree under tmp/ on a pinned base with its own cargo target, banked as a patch blob for vc's one-train judge. No schema rung and no write to the real store's schema; a rung stops and goes to vc. Hold 35 stands under it: no ST0092 code before AC-01.5. The WP-02 and WP-03 build notes are banked at refs/bank/cc/st0092/build-notes-wp02-wp03-v2.md. Nothing pushed or released."
+claims: [ISSUE:0665, ISSUE:0649]
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-_(none)_
+- Issue 0665, on vc's order of 2026-11-10: intent doctor names a Completed thread's green AT row whose cited file no longer carries the row's literal id (the L3 exemption's drift); nothing reopens (hv's shape, relayed by devbin-vc, vc decision 117). Built in tmp/wt-cc-0665 on a pinned base, banked as a patch blob for vc's one-train judge. dc keeps 0670 in the same contract-report code, so cc tells dc before touching that path.
+- Issue 0649, on vc's order of 2026-11-10: MEASURE FIRST, then report the size to vc before building. One booked run counting each lint IN-RS-CODE-001 and -002 name (needless_pass_by_value, redundant_clone; unwrap_used, expect_used, panic over intentd and testkit) per crate, then a proposal: which lints are enabled where, and which leave critic_tool_codes.
 
 ## TODO
 
