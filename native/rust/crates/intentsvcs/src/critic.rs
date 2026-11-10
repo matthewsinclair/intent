@@ -1549,11 +1549,15 @@ pub fn run(
         // is scoped to this rule and reset below.
         let mut hits: BTreeSet<(PathBuf, usize)> = BTreeSet::new();
         for pat in &patterns {
-          // **ALWAYS ERE, WHATEVER THE PROXY LINE'S FLAGS SAID.** v2 runs
-          // `grep -nE "$pattern" "$file"` and discards the proxy's own flags
-          // and path arguments entirely, so `-E` is not a property of the
-          // line, it is the engine. Honouring the flags here would make v3
-          // stricter than v2 on the BRE lines and diverge the gate.
+          // **THE ENGINE IS THE RUST `regex` CRATE, WHATEVER THE PROXY LINE'S
+          // FLAGS SAID** (its comment named "ERE" until issue 0677). v2 ran
+          // `grep -nE "$pattern" "$file"` and discarded the proxy's own flags
+          // and path arguments, so this reads the pattern alone, with no flag
+          // of the line's, and never as BRE. It is not POSIX ERE: the crate
+          // reads `\s`, `\w` and `\b` as classes and word boundaries, inside a
+          // bracket too, where a POSIX grep reads a backslash. A proxy pattern
+          // is therefore judged by this crate's dialect, and a rule whose
+          // pattern relies on POSIX bracket reading is read differently here.
           let re = regex::Regex::new(pat).map_err(|e| CriticError::Uncompilable {
             rule_id: rule.id.clone(),
             detail: e.to_string(),

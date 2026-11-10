@@ -7,7 +7,7 @@ title: No unremediated mechanical AI tropes
 summary: >
   The mechanically-detectable LLM tropes -- AI identity leaks, fourth-wall
   breaks, and the rest of the `detection: automated` set -- are caught by
-  grep before a human read. This is the default, mechanical form of detrope;
+  one named pattern engine before a human read. This is the default, mechanical form of detrope;
   the full contextual diagnosis is a separate, on-instruction pass.
 principles:
   - no-tells
@@ -40,11 +40,17 @@ The greppable AI tropes are caught mechanically before a human reads the draft.
 
 ## Problem
 
-LLM-assisted prose carries mechanical tells: direct AI-identity references ("as an AI"), fourth-wall breaks ("in this story"), dead metaphors, fractal summaries, and the rest of the trope catalogue. The subset marked `detection: automated` in the catalogue each carry a machine-readable regex -- they can and should be caught by grep before anyone spends a human read on the draft. Leaving them in marks the text as unedited machine output and costs the reader's trust.
+LLM-assisted prose carries mechanical tells: direct AI-identity references ("as an AI"), fourth-wall breaks ("in this story"), dead metaphors, fractal summaries, and the rest of the trope catalogue. The subset marked `detection: automated` in the catalogue each carry a machine-readable regex -- they can and should be caught mechanically before anyone spends a human read on the draft. Leaving them in marks the text as unedited machine output and costs the reader's trust.
 
 ## Detection
 
-Highlander: the trope knowledge lives in one place -- the `in-detrope` skill's trope catalogue, `data/trope-catalog.md`, which an installed Intent keeps at `~/.claude/skills/in-detrope/data/trope-catalog.md`. This rule does not restate it. For each trope whose frontmatter says `detection: automated`, the catalogue supplies a `**Regex**:` line; apply those patterns to the target prose with `LC_ALL=C.UTF-8 grep -iE` (drop the PCRE `(?i)` prefix -- `-i` covers it). The UTF-8 locale is what makes a curly quote in a pattern one character: plain BSD and GNU grep under `LC_ALL=C` read it byte by byte, so they miss it inside a phrase and flag any character that shares a byte with it. A hit is a candidate; confirm the document is not itself about AI and the text is not a verbatim quote.
+Highlander: the trope knowledge lives in one place -- the `in-detrope` skill's trope catalogue, `data/trope-catalog.md`, which an installed Intent keeps at `~/.claude/skills/in-detrope/data/trope-catalog.md`. This rule does not restate it. For each trope whose frontmatter says `detection: automated`, the catalogue supplies a `**Regex**:` line; apply each pattern, exactly as the catalogue writes it, with this one program and no other:
+
+```bash
+LC_ALL=C.UTF-8 /usr/bin/perl -CSDA -ne 'BEGIN { $re = shift; $re = qr/$re/i } print "$ARGV:$.: $_" if /$re/; close ARGV if eof' "$pattern" <files>
+```
+
+with `$pattern` holding the `**Regex**:` text between its backticks (read it from the file or a quoted heredoc, since patterns carry quotes). **One engine, because the patterns are written in its dialect:** they use `(?i)`, `\b`, `\s`, `\w` and `(?:...)`, which perl reads as written, while `grep -E` reads `\s` inside a bracket as a backslash and an `s` under BSD and GNU grep and as whitespace under ugrep, so the same file gave different verdicts on different machines. A pass run with any other tool says which tool in its report. `-CSDA` and the UTF-8 locale make a curly quote in a pattern or the text one character. A hit is a candidate; confirm the document is not itself about AI and the text is not a verbatim quote.
 
 This is the mechanical, default form of detrope. The full contextual / stylometric diagnosis (the non-automated tropes, density judgement, voice) is the active discipline's full-trope-diagnosis craft rule (eg `IN-AU-CRAFT-003` in the author pack) -- an on-instruction `/in-detrope` pass, not part of the default review.
 

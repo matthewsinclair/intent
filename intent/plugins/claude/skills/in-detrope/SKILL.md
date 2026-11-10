@@ -12,7 +12,7 @@ Trope catalog: [llm-tropes](https://github.com/matthewsinclair/llm-tropes) (vend
 
 The trope catalogue has one home, this skill's `data/trope-catalog.md`, and two forms read it:
 
-- **Mechanical (default)** -- `IN-PR-STYLE-004` greps the catalogue's `detection: automated` regexes. critic-prose runs it on every `review`.
+- **Mechanical (default)** -- `IN-PR-STYLE-004` applies the catalogue's `detection: automated` regexes with the one perl program the rule names. critic-prose runs it on every `review`.
 - **Full LLM (on instruction)** -- this skill does the contextual and stylometric diagnosis (`IN-AU-CRAFT-003` for the author pack). Run it under direct instruction before publication; critic-prose only recommends it, never runs it.
 
 Never fork the trope catalogue; both forms read the one home.

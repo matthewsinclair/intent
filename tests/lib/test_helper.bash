@@ -443,3 +443,11 @@ skip_no_witness() {
 skip_other_system() {
   skip "OTHER SYSTEM: $1"
 }
+
+# The one program IN-PR-STYLE-004 names for the trope catalogue's patterns
+# (issue 0677), read from the rule so a test runs what the rule says.
+trope_recipe_program() {
+  grep -m 1 '^LC_ALL=C.UTF-8 /usr/bin/perl -CSDA -ne ' \
+    "${INTENT_PROJECT_ROOT}/intent/plugins/claude/rules/prose/style/mechanical-trope-pass/RULE.md" |
+    sed -e "s/^LC_ALL=C.UTF-8 \/usr\/bin\/perl -CSDA -ne '//" -e "s/' \"\$pattern\" <files>\$//"
+}

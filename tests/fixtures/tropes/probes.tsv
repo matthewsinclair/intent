@@ -1,0 +1,27 @@
+# Probe lines for every trope the catalogue marks `detection: automated` (issue 0677).
+# One row per trope: its ID, a line its pattern must match and a line it must not,
+# tab-separated. tests/unit/trope_patterns_under_the_named_engine.bats runs each
+# pattern under IN-PR-STYLE-004's one program and fails on a trope with no row.
+ASR-01	As an AI, I find this topic fascinating.	She found the topic fascinating.
+ASR-02	In this story, the player enters a dark forest.	She entered the dark forest at dusk.
+ASR-03	That would exceed my context window, so I will be brief.	The window looked out over the harbour.
+CMP-06	In conclusion, the bridge held.	The bridge held through the storm.
+FMT-02	- **Bold lead** followed by a space	- a plain bullet with **bold** later
+FMT-01	The answer — or part of it — was clear.	The answer was clear, or part of it was.
+FMT-03	Next step → deploy.	Next step: deploy.
+NAR-05	*raises an eyebrow* Really?	She asked whether it was true.
+NAR-04	"Indeed," he intoned.	"Indeed," he said.
+NAR-07	Needless to say, the plan failed.	The plan failed on the second day.
+NAR-02	Truth be told, I was tired.	I was tired after the walk.
+NAR-01	Well, well, well, what do we have here?	Hello, she said, and sat down.
+NAR-06	Little did they know what waited for them.	They did not know what waited for them.
+SS-04	It's worth noting that the tests pass.	The tests pass on every platform.
+TN-10	Despite its challenges, the project shipped.	The project shipped in March.
+TN-01	Here's the kicker: nobody checked.	Nobody checked the second file.
+TN-03	Imagine a world where builds never fail.	Builds fail less often now.
+TN-07	Let's break this down into parts.	The parts are listed below.
+TN-02	Think of it like a library card.	The card opens the library.
+WC-02	We leverage the cache to speed things up.	The cache speeds things up.
+WC-01	This is incredibly useful.	This is useful.
+WC-04	The log serves as a record of every change.	The log records every change.
+WC-03	The tapestry of modern tooling is rich.	Modern tooling is rich.

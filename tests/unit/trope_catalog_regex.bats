@@ -1,8 +1,9 @@
 #!/usr/bin/env bats
 # The trope catalogue's regexes, run the way their consumer runs them.
-# IN-PR-STYLE-004 and critic-prose apply each `**Regex**:` line with
-# `LC_ALL=C.UTF-8 grep -iE`, so every arm here does exactly that, on text whose
-# curly characters are built from octal bytes so that this file stays ASCII.
+# IN-PR-STYLE-004 and critic-prose apply each `**Regex**:` line, as written,
+# with the one perl program the rule names (issue 0677), so every arm here runs
+# that program, read from the rule, on text whose curly characters are built
+# from octal bytes so that this file stays ASCII.
 #
 # Issue 0589: FMT-03's class held straight quotes where curly ones were meant,
 # so it flagged every ASCII quote and missed every curly one, and every
@@ -24,22 +25,21 @@ RSQUO=$(printf '\342\200\231') # U+2019
 APOS="'"
 DQUOTE='"'
 
-utf8_grep() {
-  LC_ALL=C.UTF-8 grep "$@"
-}
 
-# Without a UTF-8 locale grep reads a multibyte character byte by byte, and
-# every arm below would measure the locale instead of the catalogue. So the
-# arm stops here rather than blame a regex.
+# Without -CSDA perl would read a multibyte character byte by byte, and every
+# arm below would measure the decoding instead of the catalogue. So the arm
+# stops here rather than blame a regex.
 require_utf8_grep() {
-  printf 'x%sy\n' "$RSQUO" | utf8_grep -qE "x[${RSQUO}]y" && return 0
-  echo "grep under LC_ALL=C.UTF-8 does not read U+2019 as one character, so"
+  local probe="$BATS_TEST_TMPDIR/utf8-probe.txt"
+  printf 'x%sy\n' "$RSQUO" > "$probe"
+  [ -n "$(LC_ALL=C.UTF-8 /usr/bin/perl -CSDA -ne "$(trope_recipe_program)" "x[$RSQUO]y" "$probe")" ] && return 0
+  echo "the rule's program does not read U+2019 as one character, so"
   echo "the catalogue's quote classes cannot be measured on this machine."
   return 1
 }
 
-# The `**Regex**:` pattern of the trope whose frontmatter says `id: $1`, with
-# the PCRE `(?i)` prefix dropped as IN-PR-STYLE-004 says (`-i` covers it).
+# The `**Regex**:` pattern of the trope whose frontmatter says `id: $1`, as
+# written: the rule's program reads its `(?i)` prefix itself.
 catalog_regex() {
   local pattern
   pattern=$(awk -v id="$1" '
@@ -47,7 +47,7 @@ catalog_regex() {
     found && /^- \*\*Regex\*\*: `/ {
       sub(/^- \*\*Regex\*\*: `/, ""); sub(/`$/, ""); print; exit
     }' "$CATALOG")
-  printf '%s' "${pattern#'(?i)'}"
+  printf '%s' "$pattern"
 }
 
 # 0 when trope $1's regex matches the line $2 as the consumer runs it, 1 when
@@ -60,7 +60,9 @@ trope_matches() {
     echo "no Regex line under id: $1 in $CATALOG"
     return 2
   fi
-  printf '%s\n' "$2" | utf8_grep -qiE -e "$pattern"
+  local probe="$BATS_TEST_TMPDIR/trope-probe.txt"
+  printf '%s\n' "$2" > "$probe"
+  [ -n "$(LC_ALL=C.UTF-8 /usr/bin/perl -CSDA -ne "$(trope_recipe_program)" "$pattern" "$probe")" ]
 }
 
 # id|kind|a line carrying the trope. For kind apos, @ marks its apostrophe;
