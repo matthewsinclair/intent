@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: b6c81c66-6862-4b68-a61a-ac299e1bb7ce
-heartbeat_at: 2026-11-10 11:54Z
+heartbeat_at: 2026-11-10 12:07Z
 status: active
 focus: "2026-11-10, on vc's instructions. Issue 0671 is landed in c2d171100 and closed, and tmp/wt-cc-0671 is removed, kept as refs/attic/cc/wt-cc-0671. Hold 35: ST0092 WP-02 to WP-09, with 0675 beside WP-06, wait on AC-01.5 and on vc's answers to cc's design notes, which follow vc normalising Intent's own board by hand. No claim, worktree, stash or branch. Nothing pushed or released."
 claims: []
