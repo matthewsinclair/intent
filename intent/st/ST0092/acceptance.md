@@ -13,13 +13,13 @@ title: A Claude Team is declared by a profile: wb init sets up its board, hv is 
 
 ## Acceptance Criteria
 
-### WP-01 -- The terms are defined once: Team, Swarm, profile, the seats, the mediator and the hat (status: WIP)
+### WP-01 -- The terms are defined once: Team, Swarm, profile, the seats, the mediator and the hat (status: Done)
 
-- AC-01.1 (non-test) One document in the plugin canon, shipped with the install, defines Claude Team, Claude Swarm, Team Profile, node, moniker, name, role, session name, mediator and hat in the words hv ruled on 2026-11-10. -- satisfied: no
-- AC-01.2 (non-test) It gives the moniker, name, role, driver and default remit of each seat, vc, cc, ic, ac, dc, hv, gc, sc and sv, with the role words validation, control, interface, authoring, devx, hypervisor, generalist and supervisor, and it says a moniker is never written as a name or as a role. -- satisfied: no
-- AC-01.3 (non-test) It states hv's contract: hv rules live or in the TUI; the mediator records each ruling on hv's board with its date, its channel and whose wording it is, and presents for review without deciding; hv reads no board unprompted and writes to no inbox; no node waits on hv; and a directive leaves hv's board only on hv's word. -- satisfied: no
-- AC-01.4 (non-test) It defines the hat and names the Desk as one, and it names sleeve agents and estate agents as kinds owned by Molt and Gtools without defining the contract of either. -- satisfied: no
-- AC-01.5 (non-test) hv has read the document and ratified it, and vc has recorded the ratification on hv's board with its date and channel, before any other package of this thread starts. -- satisfied: no
+- AC-01.1 (non-test) One document in the plugin canon, shipped with the install, defines Claude Team, Claude Swarm, Team Profile, node, moniker, name, role, session name, mediator and hat in the words hv ruled on 2026-11-10. -- evidence: intent/plugins/claude/teams/TERMS.md, in the plugin canon and shipped with the install, defines Team, Swarm, Profile, node, moniker, name, role, session name, mediator and hat; hv ratified its wording on 2026-11-10 (hv decision 34). -- satisfied: yes
+- AC-01.2 (non-test) It gives the moniker, name, role, driver and default remit of each seat, vc, cc, ic, ac, dc, hv, gc, sc and sv, with the role words validation, control, interface, authoring, devx, hypervisor, generalist and supervisor, and it says a moniker is never written as a name or as a role. -- evidence: intent/plugins/claude/teams/TERMS.md, 'The seats': one row each for vc, cc, ic, ac, dc, hv, gc, sc and sv with moniker, name, role, driver and default remit, and 'A moniker is never written as a name or as a role.' -- satisfied: yes
+- AC-01.3 (non-test) It states hv's contract: hv rules live or in the TUI; the mediator records each ruling on hv's board with its date, its channel and whose wording it is, and presents for review without deciding; hv reads no board unprompted and writes to no inbox; no node waits on hv; and a directive leaves hv's board only on hv's word. -- evidence: intent/plugins/claude/teams/TERMS.md, 'hv': hv rules in prose or by choosing among the mediator's options; the mediator records each ruling with its date, channel and whose wording it is; hv reads no board unprompted and writes to no inbox; no seat waits idle on hv; a directive stays until hv withdraws it. -- satisfied: yes
+- AC-01.4 (non-test) It defines the hat and names the Desk as one, and it names sleeve agents and estate agents as kinds owned by Molt and Gtools without defining the contract of either. -- evidence: intent/plugins/claude/teams/TERMS.md, 'A hat' defines the hat and names the Desk and the pen as hats; 'Other kinds of Claude' names sleeve agents (Molt) and estate agents (Gtools) and defines the contract of neither. -- satisfied: yes
+- AC-01.5 (non-test) hv has read the document and ratified it, and vc has recorded the ratification on hv's board with its date and channel, before any other package of this thread starts. -- evidence: hv, 2026-11-10, first-hand in vc's session at 19:26:54Z: 'Ratified as recommended'. Recorded as hv decision 34 with its date and channel, before any other package of ST0092 started. -- satisfied: yes
 
 ### WP-02 -- A Team Profile is a shipped resource: team, solo, supervisor and supervised (status: Not Started)
 
@@ -113,7 +113,7 @@ title: A Claude Team is declared by a profile: wb init sets up its board, hv is 
 
 ## Acceptance Tests
 
-### WP-01 -- The terms are defined once: Team, Swarm, profile, the seats, the mediator and the hat (status: WIP)
+### WP-01 -- The terms are defined once: Team, Swarm, profile, the seats, the mediator and the hat (status: Done)
 
 _(no tests in this group)_
 

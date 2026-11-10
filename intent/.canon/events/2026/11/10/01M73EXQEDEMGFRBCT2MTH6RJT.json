@@ -1,0 +1,14 @@
+{
+  "id": "01M73EXQEDEMGFRBCT2MTH6RJT",
+  "ts": "2026-11-10T19:28:25.555Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0092/AC-01.4"
+  },
+  "payload": {
+    "evidence": "intent/plugins/claude/teams/TERMS.md, 'A hat' defines the hat and names the Desk and the pen as hats; 'Other kinds of Claude' names sleeve agents (Molt) and estate agents (Gtools) and defines the contract of neither."
+  }
+}

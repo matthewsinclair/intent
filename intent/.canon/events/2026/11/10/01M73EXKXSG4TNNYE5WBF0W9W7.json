@@ -1,0 +1,14 @@
+{
+  "id": "01M73EXKXSG4TNNYE5WBF0W9W7",
+  "ts": "2026-11-10T19:28:21.950Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0092/AC-01.2"
+  },
+  "payload": {
+    "evidence": "intent/plugins/claude/teams/TERMS.md, 'The seats': one row each for vc, cc, ic, ac, dc, hv, gc, sc and sv with moniker, name, role, driver and default remit, and 'A moniker is never written as a name or as a role.'"
+  }
+}

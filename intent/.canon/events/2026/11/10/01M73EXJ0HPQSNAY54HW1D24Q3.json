@@ -1,0 +1,14 @@
+{
+  "id": "01M73EXJ0HPQSNAY54HW1D24Q3",
+  "ts": "2026-11-10T19:28:19.991Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0092/AC-01.1"
+  },
+  "payload": {
+    "evidence": "intent/plugins/claude/teams/TERMS.md, in the plugin canon and shipped with the install, defines Team, Swarm, Profile, node, moniker, name, role, session name, mediator and hat; hv ratified its wording on 2026-11-10 (hv decision 34)."
+  }
+}

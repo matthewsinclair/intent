@@ -2,7 +2,7 @@
 wp_id: WP-01
 title: The terms are defined once: Team, Swarm, profile, the seats, the mediator and the hat
 scope: S
-status: WIP
+status: Done
 ---
 
 # WP-01: The terms are defined once: Team, Swarm, profile, the seats, the mediator and the hat
@@ -63,7 +63,7 @@ The last three are cc's, from reading the document against Intent's own board, a
 
 Two wording fixes go in with the ratification unless hv objects, both cc's. The session name is the project's name in lower case with the moniker, since the project is `Intent` and its sessions are `intent-cc`. And the Desk's scope covers a machine that books its runs on another host's desk, as a guest VM does.
 
-Until hv answers, the document holds points 1 to 6 as vc wrote them and none of 7 to 12. vc edits it to hv's answer.
+hv ratified the document on 2026-11-10, first-hand in vc's session, read at 19:26:54Z on vc's `date -u`, in these words: "Ratified as recommended". That takes all twelve points as vc recommended them and both wording fixes. vc edited the document to it the same day: points 1 to 6 stand as written, and points 7 to 12 and the two fixes are now in it. The pen of point 10 is defined as a hat whose scope is one whiteboard, and it does not reach scope, release policy, the ratification of a decision, or anything hv has said is hv's alone.
 
 ## Depends on
 

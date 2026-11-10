@@ -1,0 +1,15 @@
+{
+  "id": "01M73EX4P3B6BGY519F8ZD3JGA",
+  "ts": "2026-11-10T19:28:06.339Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-10, first-hand in prose in vc's session, read at 19:26:54Z on vc's date -u; recorded by vc, the wording of this record vc's and the ruling hv's) ST0092's TERMS ARE RATIFIED. hv, verbatim: \"Ratified as recommended\". It answered vc's account of how to ratify: read intent/plugins/claude/teams/TERMS.md, answer the twelve points listed with vc's recommendations in ST0092 WP-01 under \"For hv's eye at ratification\", and say so. So all twelve stand as vc recommended, with the two wording fixes. Points 1 to 6 stay as the document had them. Added to the document on this word: cc's default remit is \"The core: the model, its rules, and the back-end services that implement them, in whatever form they take at the time, documents and data included\" (7); where an interface has a contract, cc is authoritative on what it means and ic on its shape and transport, and a change needs both (8); a seat that disagrees with what the mediator has put to hv says so, and the mediator puts it to hv in the seat's own words (9); the pen is a hat whose scope is one whiteboard, worn by the mediator on hv's word, each ruling under it the wearer's and open to hv's reversal, and it does not reach scope, release policy, the ratification of a decision or anything hv has said is hv's alone (10, on which vc told hv its recommendation was an interested one); a session that holds no seat is an unseated session, and `solo` stays the profile's name (11); registered, started and running belong to a seat a session drives, and hv's seat is only ever registered (12); the session name takes the project's name in lower case; and a machine that books its runs on another host's desk is within that desk's scope. ST0092 AC-01.5 is met by this record, and the thread's other packages may start."
+  }
+}
