@@ -261,6 +261,9 @@ pub struct EstateStatus {
   /// Null, or the path and reason of a `controller.json` that will not parse
   /// (ST0086 WP-04 Part B).
   pub controller_unreadable: Value,
+  /// Null, or the recorded controller whose session is gone, with the step
+  /// that takes the desk (ST0092 AC-08.4).
+  pub controller_orphaned: Value,
   pub lanes: Value,
   pub queue: Value,
   pub recent: Value,
@@ -534,6 +537,17 @@ pub fn join(gathered: Gathered, now: OffsetDateTime) -> EstateStatus {
     }
     None => None,
   };
+  // The desk is read from the sessions and their starts already gathered, so
+  // the orphaned state answers to the same liveness every session row does.
+  let desk = crate::seat::desk_given(&slots, |id| {
+    let starts = starts.as_ref()?;
+    Some(
+      sessions
+        .iter()
+        .find(|s| s.session_id == id)
+        .is_some_and(|s| alive(s, starts)),
+    )
+  });
   let held_by = slots.held_by();
   let running_by = slots.running_by();
   // `recent` keeps the hour back from this one reading of the clock (D42).
@@ -605,6 +619,7 @@ pub fn join(gathered: Gathered, now: OffsetDateTime) -> EstateStatus {
     census,
     controller: slots::controller_value(&slots),
     controller_unreadable: slots::controller_unreadable_value(&slots),
+    controller_orphaned: crate::seat::orphaned_value(&desk),
     lanes: slots::lanes_value(&slots),
     queue: slots::queue_value(&slots),
     recent: slots::recent_value(&slots, |at| at >= since),
@@ -684,7 +699,7 @@ fn project_name_at(cwd: &Path) -> Option<String> {
 }
 
 /// The project a cwd stands in, folded out of a worktree.
-fn project_at(cwd: &Path, unreadable: &mut Vec<Unreadable>) -> Option<ProjectAt> {
+pub(crate) fn project_at(cwd: &Path, unreadable: &mut Vec<Unreadable>) -> Option<ProjectAt> {
   let (project, worktree) = match locate(cwd) {
     Ok(found) => found?,
     Err(e) => {
@@ -933,6 +948,24 @@ pub fn host_coordinator_init(
 ) -> Result<Vec<coordinator::Rendered>, EstateError> {
   let home = crate::install::home().map_err(coordinator::InitError::from)?;
   Ok(coordinator::init(dir, &home, version)?)
+}
+
+/// The Desk on this host (ST0092 WP-08): the control record read with the
+/// session files, as free, worn or orphaned. Nothing is stored about it.
+pub fn host_desk() -> Result<crate::seat::Desk, EstateError> {
+  let (dirs, claude) = host_slot_dirs()?;
+  let mut ignored = Vec::new();
+  Ok(crate::seat::desk(
+    &slots::read(&dirs, &mut ignored),
+    &claude,
+  ))
+}
+
+/// The controller's duties from the running install's template (ST0092
+/// AC-08.1), the text `intent estate init` puts in a coordinator's AGENTS.md.
+pub fn host_duties() -> Result<String, EstateError> {
+  let home = crate::install::home().map_err(coordinator::InitError::from)?;
+  Ok(coordinator::duties(&home)?)
 }
 
 /// How many slot requests are running now, for intentd's census ring.

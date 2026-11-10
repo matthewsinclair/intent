@@ -33,6 +33,26 @@ const FILES: &[(&str, &str)] = &[
   (".claude/settings.json", ".claude/settings.json"),
 ];
 
+/// The controller's duties, under the install's templates: one source for the
+/// coordinator's contract and the brief a node wearing the desk is given
+/// (ST0092 AC-08.1).
+const DUTIES: &str = "estate/_DUTIES.md";
+
+/// Where the coordinator's contract carries the duties.
+const DUTIES_TOKEN: &str = "[[ESTATE_DUTIES]]";
+
+/// The controller's duties, read from the templates under the install root
+/// `home`, with no trailing blank lines.
+pub fn duties(home: &Path) -> Result<String, InitError> {
+  let source = home.join(crate::install::MARKER).join(DUTIES);
+  std::fs::read_to_string(&source)
+    .map(|text| text.trim_end().to_string())
+    .map_err(|cause| InitError::Template {
+      path: source,
+      cause,
+    })
+}
+
 #[derive(Debug, thiserror::Error)]
 pub enum InitError {
   #[error(
@@ -160,6 +180,11 @@ pub fn init(dir: &Path, home: &Path, version: &str) -> Result<Vec<Rendered>, Ini
       path: source.clone(),
       cause,
     })?;
+    let text = if text.contains(DUTIES_TOKEN) {
+      text.replace(DUTIES_TOKEN, &duties(home)?)
+    } else {
+      text
+    };
     // The one expander for both: the Markdown rule for the contract, and the
     // expander alone for the JSON, as `rootfiles::expand` says.
     let rendered = if name.ends_with(".md") {

@@ -4423,7 +4423,14 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       let f = open()?;
       let boards = f.wb_status().map_err(fail)?;
       let live = f.wb_live_counts().map_err(fail)?;
-      report_wb_status(&boards, &live, m.get_flag("json"))
+      // The hat is read from the host's control record now, never stored on a
+      // board (ST0092 AC-08.3); a desk that cannot be read is said on stderr
+      // and the roster still prints, with no hat on it.
+      let desk = intentsvcs::estate::host_desk().unwrap_or_else(|e| {
+        eprintln!("error: the desk could not be read: {e}");
+        intentsvcs::seat::Desk::Free
+      });
+      report_wb_status(&boards, &live, &desk, m.get_flag("json"))
     }
     Some(("show", m)) => {
       let f = open()?;
@@ -4503,6 +4510,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
         return Ok(());
       }
       report_wb_board(&up.board, false, all)?;
+      desk_brief(&me, session.as_deref());
       // **A SESSION WHOSE SKILLS ARE FOR OTHER LANGUAGES SAYS SO HERE** (issue
       // 0676), at a moment the seat cannot skip, with what clears it.
       if let Some(moved) = &up.languages_moved {
@@ -4894,10 +4902,18 @@ pub(crate) fn pickup_session(flag: Option<&str>) -> Option<String> {
 fn report_wb_status(
   boards: &[intentsvcs::model::Board],
   live: &std::collections::BTreeMap<String, usize>,
+  desk: &intentsvcs::seat::Desk,
   json: bool,
 ) -> Result<(), Failure> {
   if json {
-    let rows: Vec<serde_json::Value> = boards.iter().map(|b| serde_json::json!(b.node)).collect();
+    let rows: Vec<serde_json::Value> = boards
+      .iter()
+      .map(|b| {
+        let mut row = serde_json::json!(b.node);
+        row["hats"] = serde_json::json!(hats(desk, &b.node));
+        row
+      })
+      .collect();
     println!(
       "{}",
       serde_json::to_string_pretty(&rows).map_err(|e| Failure::Error(e.to_string()))?
@@ -4924,7 +4940,7 @@ fn report_wb_status(
       format!(" -- {}", n.focus)
     };
     println!(
-      "{} ({}) {} {} heartbeat {} items {} messages {}{}",
+      "{} ({}) {} {} heartbeat {} items {} messages {}{}{}",
       n.moniker,
       n.role,
       n.name,
@@ -4935,10 +4951,24 @@ fn report_wb_status(
         .filter(|i| i.state == intentsvcs::model::WbItemState::Live)
         .count(),
       live.get(&n.moniker).copied().unwrap_or(0),
+      if hats(desk, n).is_empty() {
+        ""
+      } else {
+        " wears the desk"
+      },
       focus,
     );
   }
   Ok(())
+}
+
+/// The hats a node wears now, read from the host's desk: `desk` when the
+/// session its board records holds control and is running (ST0092 AC-08.3).
+fn hats(desk: &intentsvcs::seat::Desk, node: &intentsvcs::model::WbNode) -> Vec<&'static str> {
+  match node.session_id.as_deref() {
+    Some(session) if intentsvcs::seat::wears(desk, session) => vec!["desk"],
+    _ => Vec::new(),
+  }
 }
 
 fn status_word(s: &intentsvcs::model::WbNodeStatus) -> &'static str {
@@ -10758,6 +10788,25 @@ fn estate_host(v: &serde_json::Value) -> Vec<(String, String)> {
       &mut first,
       "NO CONTROLLER: asks queue, nothing is granted".to_string(),
     );
+  } else if !v["controller_orphaned"].is_null() {
+    // **THE READER SAYS ORPHANED, AND THE LINE PRINTS THE STEP THAT TAKES IT**
+    // (ST0092 AC-08.4), read from `controller_orphaned`, the same answer the
+    // json carries. The step is a line of its own, so a terminal narrow enough
+    // to cut the first line still shows it whole.
+    push(
+      "control",
+      &mut first,
+      format!(
+        "{} ORPHANED: pid {} is not a live session",
+        s(&ctl["name"]),
+        ctl["pid"]
+      ),
+    );
+    push(
+      "control",
+      &mut first,
+      format!("take it: {}", s(&v["controller_orphaned"]["take"])),
+    );
   } else {
     match by_id(&s(&ctl["session_id"])).filter(|x| x["state"].as_str() != Some("gone")) {
       None => push(
@@ -11727,6 +11776,61 @@ fn slots_pending() -> Result<(), Failure> {
     "Judge each against the lanes and the load in `intent estate status`: `intent estate slots grant <id> --lane <lane>,...` grants it, and `intent estate slots deny <id> \"<why>\"` refuses it."
   );
   Ok(())
+}
+
+/// The Desk brief a pickup prints when its session wears the desk (ST0092
+/// AC-08.3): that it wears it, the duties from their one template, and the asks
+/// waiting for its judgement. Read live from the control record and stored
+/// nowhere, so a session that does not wear the desk prints nothing here.
+///
+/// **A READ THAT FAILS IS ONE `error:` LINE ON STDERR AND THE PICKUP GOES ON**,
+/// as `slots pending` does: the board was already read and printed, and a
+/// desk nobody can read is said, never taken for no desk.
+fn desk_brief(node: &str, session: Option<&str>) {
+  let Some(session) = session else {
+    return;
+  };
+  let desk = match intentsvcs::estate::host_desk() {
+    Ok(desk) => desk,
+    Err(e) => {
+      eprintln!("error: the desk could not be read: {e}");
+      return;
+    }
+  };
+  if !intentsvcs::seat::wears(&desk, session) {
+    return;
+  }
+  println!();
+  println!("hat: {node} wears the desk, control of this host's slots");
+  match intentsvcs::estate::host_duties() {
+    Ok(duties) => println!("\n{duties}\n"),
+    Err(e) => eprintln!("error: the duties could not be read: {e}"),
+  }
+  let (dirs, claude) = match intentsvcs::estate::host_slot_dirs() {
+    Ok(found) => found,
+    Err(e) => {
+      eprintln!("error: the asks waiting could not be read: {e}");
+      return;
+    }
+  };
+  let mut unreadable = Vec::new();
+  let asks =
+    intentsvcs::estate::slots::pending(&dirs, session, &mut unreadable).unwrap_or_default();
+  if let Some(u) = unreadable.first() {
+    eprintln!("error: {} could not be read: {}", u.path, u.why);
+  }
+  if asks.is_empty() {
+    println!("asks waiting: none");
+    return;
+  }
+  let names = slot_names(&claude);
+  println!("asks waiting, oldest first:");
+  for r in &asks {
+    println!(
+      "{}",
+      slot_line(intentsvcs::estate::slots::Step::Asked, r, &names)
+    );
+  }
 }
 
 /// `intent estate init [<dir>]` (ST0086 AC-04.5): renders a dedicated

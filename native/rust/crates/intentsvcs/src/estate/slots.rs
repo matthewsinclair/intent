@@ -55,6 +55,10 @@ pub enum SlotError {
     "the controller was `{recorded}` and this session is `{caller}`: a take under another name needs hv's words"
   )]
   NeedsHv { recorded: String, caller: String },
+  #[error(
+    "this session sits as `{node}`, and the desk is worn by its board's mediator, `{mediator}`"
+  )]
+  NotMediator { node: String, mediator: String },
   #[error("no request `{id}`")]
   NoRequest { id: String },
   #[error("request `{id}` is {state}, so it cannot be {verb}")]
@@ -132,6 +136,7 @@ impl crate::remedy::Remedy for SlotError {
       Self::NotController { .. } => "ask the controller to do it, or take control with `intent estate control take` when the controller is gone. Nothing was written.".to_string(),
       Self::ControllerLive { .. } => "ask the controller to `intent estate control release`; a take succeeds over a gone controller only. Nothing was written.".to_string(),
       Self::NeedsHv { .. } => "take it under the recorded name, or pass `--hv \"<hv's words>\"` quoting hv's yes, which is recorded on the take. Nothing was written.".to_string(),
+      Self::NotMediator { mediator, .. } => format!("take it from `{mediator}`'s session, or pass `--hv \"<hv's words>\"` quoting hv's yes, which is recorded on the take. Nothing was written."),
       Self::NoRequest { .. } => "check the id with `intent estate status`. Nothing was written.".to_string(),
       Self::WrongState { .. } => "check the request's state with `intent estate status`; a finished request takes no further step, and a new booking is a new `intent estate slots ask`. Nothing was written.".to_string(),
       Self::NotAsker { .. } => "run it from the session that asked; the controller ends someone else's request with `revoke`. Nothing was written.".to_string(),
@@ -189,6 +194,10 @@ pub struct Caller {
   pub name: String,
   pub pid: u32,
   pub node: Option<String>,
+  /// The node the session sits as and its board's mediator, read from the
+  /// board that records its session id (ST0092 WP-08); `None` for a session
+  /// in no project or bound to no node.
+  pub seat: Option<crate::seat::Seat>,
 }
 
 /// The caller, from the session files under `claude_dir`.
@@ -208,11 +217,13 @@ pub fn caller(
     .ok_or_else(|| SlotError::NoSession {
       session_id: session_id.to_string(),
     })?;
+  let seat = crate::seat::seat_of(&found.cwd, &found.session_id);
   Ok(Caller {
     session_id: found.session_id,
     name: found.name,
     pid: found.pid,
     node: node.map(str::to_string),
+    seat,
   })
 }
 
@@ -756,7 +767,7 @@ fn wrong_state(r: &Request, verb: &str) -> SlotError {
 
 /// Whether a session is alive by the page's ORPHANED test: its session file is
 /// present and its pid is still the process Claude Code recorded.
-fn session_live(claude_dir: &Path, session_id: &str) -> Result<bool, SlotError> {
+pub(crate) fn session_live(claude_dir: &Path, session_id: &str) -> Result<bool, SlotError> {
   let mut ignored = Vec::new();
   let sessions: Vec<ClaudeSession> = super::read_sessions(claude_dir, &mut ignored)
     .map_err(|e| SlotError::NoLiveness { why: e.to_string() })?;
@@ -791,6 +802,18 @@ pub fn control_take(
 ) -> Result<Taken, SlotError> {
   if let Some(words) = hv {
     one_line("hv's words", words)?;
+  }
+  // **A SEAT TAKES THE DESK AS ITS BOARD'S MEDIATOR, OR ON hv'S WORDS**
+  // (ST0092 AC-08.2). TERMS.md: "One mediator on a host wears it, on hv's
+  // word." A session bound to no node, such as a coordinator standing in no
+  // project, takes it as before.
+  if hv.is_none()
+    && let Some(seat) = caller.seat.as_ref().filter(|s| !s.mediates())
+  {
+    return Err(SlotError::NotMediator {
+      node: seat.node.clone(),
+      mediator: seat.mediator.clone(),
+    });
   }
   let path = controller_path(dirs);
   let slots = read_strict(dirs);
@@ -1730,6 +1753,7 @@ mod tests {
       name: name.to_string(),
       pid,
       node: Some("cc".to_string()),
+      seat: None,
     }
   }
 

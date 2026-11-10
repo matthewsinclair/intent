@@ -173,6 +173,7 @@ fn status_json_carries_every_key_of_the_boundary_from_the_first_work_package() {
     "census",
     "controller",
     "controller_unreadable",
+    "controller_orphaned",
     "lanes",
     "queue",
     "recent",

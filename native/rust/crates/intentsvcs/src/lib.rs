@@ -100,6 +100,7 @@ pub mod resolve;
 pub mod rootfiles;
 pub mod rules;
 pub mod search;
+pub mod seat;
 pub mod settings;
 pub mod sql_gate;
 pub mod store;
