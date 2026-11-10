@@ -1,0 +1,16 @@
+{
+  "id": "01M72V1HNZVEVFFZ1B72X23JB9",
+  "ts": "2026-11-10T13:40:59.199Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 151,
+    "text": "ST0091/01, the cut runs through devbin's core and Intent's driver retires, dc's on vc's order of 2026-11-10 09:09Z; vc judges it and claims nothing. L, built as two banks on the train after WP-04's trigger unit, judged in one run, each leaving the tests it touches green on the bank before it (vc decisions 112 to 115; WP-01's body).\n\nBank (a) is IN PROGRESS and HELD on hv's word of 13:38:04Z, relayed by vc: dc builds nothing and banks nothing new until hv's next word. Its work is banked at refs/bank/dc/st0091/wp01a-wip-v2 (blob 2ad4b4bcb8b8, patch-id 0894808b7b66), which supersedes wp01a-wip-v1, and is held staged in tmp/wt-dc-0091 on HEAD 8770037a2, the trigger unit's scratch commit. Nothing of it lands. The progress note, refs/bank/dc/st0091/wp01a-progress-v3.md (blob 6cd162e2520a), says what is done and what is next, and how to rebuild the worktree.\n\nDone in the bank, not yet proved by any test run: pair_at_head in releasebuild.lib; the cut's helpers in releasestamp.lib; bin/.devbin/cut/preflight with its four checks, `clean` to vc decision 115; bin/.devbin/cut/stamp with its seven steps; both declared in config.yaml; and the release block, which offers cut, declares local and upstream as its remotes and lists the seven derived lines. `bin/devbin release check` passes and names them. The driver is deleted and its build arm gone, the comments and MODULES.md rows are corrected, and four test files are written (AT-01.1 to AT-01.4).\n\nNext, once hv's word releases the hold:\n- delete the driver's two test files;\n- run each single bats file;\n- drive the core's resume;\n- run the shared-artefact guard;\n- bank wp01a-v1 and mint AT-01.1 to AT-01.3;\n- then bank (b).\n\nThe note carries seven findings for vc. Two of them: the pair built before the tag says `dev`, so WP-03 must build the shipped pair at the tag; and the candidate push meets prepush's gates at the legs step."
+  }
+}
