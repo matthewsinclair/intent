@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 677e6c35-f820-4993-8ec4-ad639debeb1b
-heartbeat_at: 2026-11-10 11:16Z
+heartbeat_at: 2026-11-10 11:25Z
 status: active
-focus: "Localfolded and released at the close on hv's word (2026-10-30): ic holds no claim, branch, worktree, live message or uncommitted change. Hold 16 stands until someone looks at the estate page's HOST panel; the running pair is brew 3.2.8, which carries 0663."
+focus: "Up 2026-11-10 on hv's start, and holding for vc's instructions on hv's word in ic's session: "Boot and hold for instructions from VC." The lane, in vc's order of 2026-11-10 09:09Z: issue 0661 in shape (B), then 0650, 0672 in the full shape, 0676 and 0677; cc's ST0092 surface rows read before vc judges each bank, and WP-10 after cc's packages land. No claim yet: each issue is claimed in the chain that starts it. Hold 16 is archived as spent on vc's measurement of 2026-10-31."
 claims: []
 ---
 
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-- 0663, the HOST panel's wrap, holds hv's "LGTM. Ship it." of 2026-10-30. It shipped in 3.2.8 (4695e6fc1 is in v3.2.8), and at 2026-10-30 22:40Z by date -u the pair running here was brew 3.2.8 (b14e2745632d), CLI and daemon, so the build half of the condition is met. Nobody in ic has looked at the estate page since. RELEASES WHEN: the estate page shows the HOST panel's wrap. The ship order is then executed, so the hold is archived as spent, not returned to TODO. (edited)
+_(none)_
 
 ## Watch-outs
 
