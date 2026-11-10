@@ -1,0 +1,16 @@
+{
+  "id": "01M72N9WRHMGDJVENFZJS4BVXN",
+  "ts": "2026-11-10T12:00:41.233Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 6,
+    "text": "ST0090 AC-02.4, issue 0664's last criterion: held until hv has seen Intent.app's Rebuild Search Index row show its second line, reconciled <age> ago, after a rebuild, on a build at or after a54f2e9e0 whose CLI carries 8406f6a15: the 3.3.0 cut, or a dev app pointed at a dev CLI, which is the maintainer's alone. The dev CLI half: build all at 64cf9e251 promoted intent and intentd (dev, 64cf9e251e56) into native/rust/target/release on 2026-11-01, and the build all that precedes the push makes it again. The app half is a Debug build at HEAD, dc's, by `bin/devbin macos app-build`, and it must be built again: the bundle of 2026-11-01 went with that session's scratch (dc, 2026-11-10). dc builds it on vc's word, and hv sets IntentBinary to that CLI and deletes it after (dc's route, verified by vc). Then vc records that build on AC-02.4 and tells dc to close WP-02."
+  }
+}

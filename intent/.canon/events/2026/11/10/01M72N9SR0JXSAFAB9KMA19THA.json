@@ -1,0 +1,15 @@
+{
+  "id": "01M72N9SR0JXSAFAB9KMA19THA",
+  "ts": "2026-11-10T12:00:38.144Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-10, first-hand in prose in vc's session, each read by 11:45Z on vc's date -u; the reading marked vc's is vc's, under the pen) INTENT'S OWN BOARD IS NORMALISED TO THE TERMS BY HAND, FIRST, AND THE SEATS TAKE THEIR GO FROM vc. hv, verbatim, on ST0092: \"Let's crack on with ST0092. Might I make a suggestion that we do some auto-encephalopsy (I obvs just made that word up on the spot) on the Intent project itself first of all, to bring all of the Intent Claude config into line with the new way of working, and then we can live-drive it as we go?\" And, after reading vc's tables of the profiles and seats: \"We should normalise Intent so that it follows the canonical rules to the letter.\" And to cc, dc and ic in their own windows as each booted, relayed to vc by each of the three: \"Boot and hold for instructions from VC.\" DONE UNDER IT the same hour, by hand, in the form ST0092 specifies for a board on 3.2.8: ac registered as Authoring Claude with role authoring; dc's role word corrected from worker to devx; the team brief on hv's board as a standing directive, wording vc's; the roster README in the form `intent wb init` will generate; a Your seat section in .claude/restart.md. vc's READING of \"to the letter\", open to hv's reversal: Intent takes the team profile's default remits word for word and sets none of its own, and where each lands in this tree is a project note in the README; by the default remit Intent.app and the TUI are ic's. NOT RULED BY THIS: the terms document is not ratified, and twelve points wait on hv (todo 76). DRIVEN LIVE means on a clone of Intent's board until the cut, on cc's measurement of 2026-11-10: Board and WbNode refuse unknown fields and the store migrates on open, so the first touch of Intent's real store by a build with a newer schema stops every 3.2.8 reader."
+  }
+}

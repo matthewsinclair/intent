@@ -1,0 +1,16 @@
+{
+  "id": "01M72N9XZQFP27N1GT21MGRWPT",
+  "ts": "2026-11-10T12:00:42.487Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 71,
+    "text": "ST0091, Devbin ST0011/12 in Intent's tree, is WIP since ca3af21d9 (2026-11-10): dc started it, claims ST0091/01, and builds the four packages in order. vc judges each as dc banks it and claims nothing, every run booked with the estate's controller. OWED BY vc, FIRST AFTER hv's COMPACT: rulings on dc's WP-01 re-inventory, banked at refs/bank/dc/st0091/wp01-inventory-v1.md (blob ada9bfef2830), section C; dc holds WP-01's writes until then. C1: AC-01.3's live-intentd refusal before anything is stamped has no home in devbin 0.1.20's core, and dc gives four options, Intent's own notes provider, a project release handler that checks and then hands to the core, a devbin pre-flight hook (devbin-vc's lane), or a refusal in the first derived step with the criterion reworded. C2: AC-01.1's dry run that names every derived step, gate and leg, where 0.1.20 prints a count and names only the legs. C4: tests.yml fires on push to main only, so pre-flight's ci-state refuses every cut and dry run until WP-04's trigger change lands, so that half lands before WP-01 is driven or with it. C8: the pair build has no core stage between the commit and the push and needs a guard on the remote legs. C14: WP-01 reads M or larger, not S. AND THREE FOR hv, through vc: C3, undeclared remotes mean every remote, the third among them (watchout 33, confirmed); C9, the core cuts an annotated tag where Intent's tags are lightweight; C10, the core's release commit message carries no (C) line. ALSO TO SETTLE BEFORE WP-03: its body waits for a core formula carrying `brew smoke` (Devbin WP08), and neither the vendored core at 0.1.20 nor Devbin's own tree at v0.1.20-87-gf552e133 holds that word while Devbin's WP08 reads Done, so the likelier defect is WP-03's wording; vc confirms with devbin-vc. The sweeps that brought the core in: devbin 0.1.19 (066bd45bb, then dfef527a3) and 0.1.20 (18a75d29c), each touching only bin/.devbin/."
+  }
+}

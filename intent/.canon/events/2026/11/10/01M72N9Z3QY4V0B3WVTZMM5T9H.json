@@ -1,0 +1,16 @@
+{
+  "id": "01M72N9Z3QY4V0B3WVTZMM5T9H",
+  "ts": "2026-11-10T12:00:43.639Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 76,
+    "text": "ST0092, Claude Team profiles, rides 3.3.0 (decision 109). Eleven packages (`intent wp list ST0092`, `intent ac gate ST0092`). WHERE IT STANDS. Intent's own board is normalised to the terms by hand, on hv's word (decision 111, d09791705): six seats, the team brief as hv's directive 2, the roster README and .claude/restart.md. WP-01 is WIP: the terms document, intent/plugins/claude/teams/TERMS.md, is NOT ratified, and none of its criteria is satisfied. NEXT, in order. (1) hv ratifies it, on the twelve points WP-01's body lists with vc's recommendation on each: six wordings of vc's; three from the spike, which are cc's default remit widened, the sentence on cc and ic at a contract, and the line on disagreeing with the mediator; and three of cc's from reading it against Intent's board, which are the pen as a hat (vc's recommendation there is an interested one), solo's other meaning with the unseated session, and the human seat's states; with two wording fixes. vc edits the document to hv's answer, records the ratification on hv's board, satisfies AC-01.1 to AC-01.5 and tells cc that WP-02 may start; cc's hold 35 waits on that. (2) cc builds in this order: WP-02, WP-03, WP-06 with issue 0675, WP-05, WP-07, WP-04, WP-09, with WP-08 beside any. ic reads each bank's surface rows and builds WP-10. vc judges each and claims nothing. vc's RULINGS on cc's design notes of 2026-11-10, under the pen, STILL TO BE WRITTEN INTO THE PACKAGES. WP-02 takes one JSON seat registry beside TERMS.md, typed and strict, and each profile is a .md naming its seats by moniker, so AC-02.5's parity test compares the terms table with the registry. WP-03 keeps the declaration as one rendered canon file under intent/whiteboard/ and the remit on the seat's row. WP-06 reads the acting node's last pickup from the store's own wb.pickup events, which are machine-scoped and never reach canon, says so where the store holds none, and labels each peer's count as live. And WP-06's launcher half replaces compose_ctx's steps 4 and 5, show hv a plan and then stop, with the brief's: a seat other than the mediator sends its plan to the mediator. (3) DRIVEN LIVE means on a clone of Intent's board until the cut (decision 111). The first live drive on the real board is hv's: launch ac cold, type nothing, and see what it states. Each seat was asked on 2026-11-10 to send vc one line at its next pickup saying what the brief gave it. (4) The spike is banked at refs/bank/vc/st0092/spike-form-v1.md and spike-findings-v2.md, and a second pair of projects in the hand form is halted by hv. (5) The sweep, WP-11, runs after the 3.3.0 cut on the brew-installed release, and Pipeliner's sc is confirmed with hv before any write there. The census instrument is refs/bank/vc/st0092/census-boards.zsh, and its reading of 2026-11-10 is refs/bank/vc/st0092/census-20261110.txt."
+  }
+}

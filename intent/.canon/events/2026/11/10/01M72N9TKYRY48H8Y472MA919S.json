@@ -1,0 +1,15 @@
+{
+  "id": "01M72N9TKYRY48H8Y472MA919S",
+  "ts": "2026-11-10T12:00:39.038Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "refs/bank/vc/tools/land-one.sh (blob 4b4a1d1ee590) is UNFIT and is not to be used (dc's read, 2026-11-10, confirmed by vc): it stages with `git apply --index` and then commits the whole shared index with a plain `git commit -F`, so in a shared checkout it would carry any path a peer had staged. A landing is `git apply` to the working tree and `git commit --only` of the bank's own paths with the census in the command, as dc landed 0673 and 0674 and cc landed 0671 that day. The ref stays, because bank refs are never moved or deleted."
+  }
+}

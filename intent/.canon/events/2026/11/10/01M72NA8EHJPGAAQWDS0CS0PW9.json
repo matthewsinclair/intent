@@ -1,0 +1,16 @@
+{
+  "id": "01M72NA8EHJPGAAQWDS0CS0PW9",
+  "ts": "2026-11-10T12:00:53.201Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 74,
+    "text": "3.3.0's FIRST TRAIN IS ON MAIN (2026-11-10), each fix landed by its builder on vc's word and verified by vc. Issue 0673: 99cab60d3, patch-id abcffb4ac0ea, closed in e3f399402. Issue 0674: a65e0e21d, patch-id 3e958d267455, closed in 9ea1056a5. Issue 0671, as fix-v2: c2d171100, patch-id e5fb029d7ebf, closed in 9ff4b3e9c. After the third, the whole native/ tree at HEAD read aad200605afc and CHANGELOG.md read 2cd385a7b9ff, each equal to the judged tree c02e08121f81. The evidence is banked under refs/bank/vc/0673/, refs/bank/vc/0674/, refs/bank/vc/train1/ and refs/bank/vc/0671/: for 0671 the v2 interdiff, the one-module green, and the three daemon_lifecycle arms red at the base, each on the assertion that names the defect. The judge worktrees are removed and kept as refs/attic/vc/wt-vc-judge-train1 and refs/attic/vc/wt-vc-judge-race."
+  }
+}

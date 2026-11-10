@@ -40,7 +40,7 @@ It is not the protocol: the `/in-whiteboard` skill keeps that and cites this doc
 
 ## For hv's eye at ratification
 
-Nine points were put to hv on 2026-11-10, each with vc's recommendation. The first six are vc's wordings where hv's rulings left room, and vc recommends each as written:
+Twelve points are before hv, each with vc's recommendation. Nine were put on 2026-11-10 before any seat had read the document, and three came from cc's read of it against Intent's own board the same day. The first six are vc's wordings where hv's rulings left room, and vc recommends each as written:
 
 1. Only the mediator puts options to hv, and hv may speak to any seat directly. That is the strict reading of "mediated thru the VC".
 2. "No seat waits idle on hv. A seat that needs a ruling asks the mediator, holds only the work that depends on the answer, and carries on with the rest." The ruling's own words were that nobody waits on hv, which a literal reader could take as leave to go on without the ruling.
@@ -55,7 +55,15 @@ The next three come from the spike, and vc recommends adding each:
 8. The boundary between cc and ic on a contract. ic holds machine-facing interfaces and cc the implementation behind them, so nobody owns the contract itself. Proposed, one sentence after the seats table: "Where an interface has a contract, cc is authoritative on what it means and ic on its shape and transport, and a change to it needs both."
 9. A path for disagreement with the mediator. The mediator is the one filter, and on the spike's board it was the source of three errors in one day, each caught by hv or by the seat that had reported the matter and never by the structure. Proposed, one line in hv's section: "A seat that disagrees with what the mediator has put to hv says so to the mediator, and the mediator puts the disagreement to hv in the seat's own words."
 
-Until hv answers, the document holds points 1 to 6 as vc wrote them and none of 7 to 9. vc edits it to hv's answer.
+The last three are cc's, from reading the document against Intent's own board, and vc recommends each:
+
+10. The pen. The document says the mediator "presents a matter for hv's review and does not decide it". hv's decision of 2026-08-22 on Intent's board gives vc the pen, and vc rules under it daily, each ruling recorded as vc's and open to hv's reversal. cc's words: "on Intent's board its own mediator breaks the sentence that defines it". cc proposes naming the pen as a second hat, whose scope is one whiteboard, worn by the mediator on hv's word, with each ruling under it recorded as the wearer's and "does not decide" narrowed to what hv keeps. The other course is to withdraw the pen where a board converges. The point concerns vc's own authority, so vc's recommendation, the hat, is an interested one and hv weighs it as that.
+11. "Solo" is already used. `.claude/restart.md` called a session that holds no seat solo, and the shipped finish skill calls a project with one workstream solo, while the document makes `solo` the profile of one Claude and hv. Proposed: the profile keeps its name, the document defines the session that holds no seat under its own word, an unseated session, beside the sleeve and estate agents, and the two older lines are reworded. Intent's own was reworded on 2026-11-10.
+12. The human seat has no session. "Registered, started, running" are defined for every seat, and a seat is read as never started from the absence of a recorded session, so every board would print hv as never started. Proposed, one sentence: the three states belong to a seat a session drives, and hv's seat is only ever registered.
+
+Two wording fixes go in with the ratification unless hv objects, both cc's. The session name is the project's name in lower case with the moniker, since the project is `Intent` and its sessions are `intent-cc`. And the Desk's scope covers a machine that books its runs on another host's desk, as a guest VM does.
+
+Until hv answers, the document holds points 1 to 6 as vc wrote them and none of 7 to 12. vc edits it to hv's answer.
 
 ## Depends on
 
