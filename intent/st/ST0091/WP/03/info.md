@@ -2,7 +2,7 @@
 wp_id: WP-03
 title: The tap and the macOS assets publish through the built-ins, with prepare as a shadow
 scope: S
-status: Not Started
+status: WIP
 ---
 
 # WP-03: The tap and the macOS assets publish through the built-ins, with prepare as a shadow

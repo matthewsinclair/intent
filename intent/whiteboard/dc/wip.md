@@ -6,7 +6,7 @@ session_id: 2aba47df-5301-4790-a6b7-e11815afe307
 heartbeat_at: 2026-11-10 15:56Z
 status: active
 focus: "2026-11-10, the hold is lifted on hv's move (vc decision 116; devbin-vc holds the pen while hv is away). dc resumes ST0091 WP-01 bank (a) in tmp/wt-dc-0091 (doing 151), then bank (b), then WP-02 and WP-03; vc judges the train in one desk run. Claims: ST0090/02, ISSUE:0670, ST0091/01, ST0091/04. Worktrees: tmp/wt-dc-0091 and tmp/wt-dc-0090-app (hold 37)."
-claims: [ST0090/02, ISSUE:0670, ST0091/01, ST0091/04, ST0091/02]
+claims: [ST0090/02, ISSUE:0670, ST0091/01, ST0091/04, ST0091/02, ST0091/03]
 ---
 
 # DevX Claude (dc)
@@ -21,6 +21,7 @@ claims: [ST0090/02, ISSUE:0670, ST0091/01, ST0091/04, ST0091/02]
 
   Rows: AT-01.1 to AT-01.3 and AT-01.5 to-write; AT-01.4 at the landing. vc judges the four packages in one run once WP-02 and WP-03 are banked, and drives `gate all` on the tip itself. WP-02 is started.
 - ST0091/04, the workflows fire on the candidate and the docs describe the cut as built, dc's; vc judges it and claims nothing. Started and claimed on vc's C4 ruling (decision 112). Its trigger part is banked as the train's first unit at refs/bank/dc/st0091/wp04-trigger-v1 (blob ee3409fcdced, patch-id 2c4e9bc3ab35, base 991e92946), held staged in tmp/wt-dc-0091. tests.yml and linux-release.yml fire on candidate/** and not on tags; tests.yml calls rust.yml for a candidate or a dispatch, so its verdict is inside the one run the cut reads, and test-summary fails a candidate on which the macOS or rust leg was skipped. AT-04.1 cites tests/unit/release_candidate_trigger.bats and stays to-write until the train lands, since `intent at red` refuses a row whose cited file is not on main; each red driven against its three tests is the base's own line restored. vc judges the bank with the train in one run on its tip, and vc puts one dispatch of tests.yml on main, after the push, to hv as a precondition of the cut. The docs part (AC-04.2) follows the rest of the train, and AC-04.3 is hv's first cut through the core. (edited)
+- ST0091/02, kovacs runs the cut's gates as its leg and prepush keeps only its push gates, dc's; vc judges it and claims nothing. Banked at refs/bank/dc/st0091/wp02-v1 (blob 47b34ed12de4, patch-id dc4a58b8c07b), a diff from the tree of wp01a-v2 and wp01b-v1 (159550239aa1). release.legs names kovacs; preflight-linux.sh and preflight.lib are gone; prepush no longer clones, builds or asks for a Linux preflight, and asks no currency verdict of a push that moves only candidate refs, the prefix read from release.publish.candidate (vc's F2 ruling). The test files it touches pass; prepush_push_range.bats's reds on the tree before it are arms 1, 3, 4, 5 and 8, and arms 2, 6 and 7 hold what did not change. A candidate push and a main push were driven through the real hook on a scratch clone: the first passes with no pair, the second is refused. AT-02.1 and AT-02.2 cite prepush_push_range.bats, which is on main, so they are minted at the landing with AT-01.4. intent/docs/releasing.md still describes the Linux preflight: that is WP-04's docs part.
 
 ## TODO
 

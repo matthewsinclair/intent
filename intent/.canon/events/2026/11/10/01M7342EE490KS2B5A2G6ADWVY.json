@@ -1,0 +1,15 @@
+{
+  "id": "01M7342EE490KS2B5A2G6ADWVY",
+  "ts": "2026-11-10T16:18:45.828Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST0091/02, kovacs runs the cut's gates as its leg and prepush keeps only its push gates, dc's; vc judges it and claims nothing. Banked at refs/bank/dc/st0091/wp02-v1 (blob 47b34ed12de4, patch-id dc4a58b8c07b), a diff from the tree of wp01a-v2 and wp01b-v1 (159550239aa1). release.legs names kovacs; preflight-linux.sh and preflight.lib are gone; prepush no longer clones, builds or asks for a Linux preflight, and asks no currency verdict of a push that moves only candidate refs, the prefix read from release.publish.candidate (vc's F2 ruling). The test files it touches pass; prepush_push_range.bats's reds on the tree before it are arms 1, 3, 4, 5 and 8, and arms 2, 6 and 7 hold what did not change. A candidate push and a main push were driven through the real hook on a scratch clone: the first passes with no pair, the second is refused. AT-02.1 and AT-02.2 cite prepush_push_range.bats, which is on main, so they are minted at the landing with AT-01.4. intent/docs/releasing.md still describes the Linux preflight: that is WP-04's docs part."
+  }
+}

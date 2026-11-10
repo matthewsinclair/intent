@@ -25,7 +25,7 @@ title: Intent releases through devbin's core: its driver, kovacs preflight and p
 - AC-02.1 kovacs runs Intent's declared gates at the release commit as a `release.legs` leg inside the cut, and `bin/.devbin/preflight-linux.sh` and `bin/.devbin/cmd/shared/preflight.lib` are gone. -- satisfied: no (computed)
 - AC-02.2 `bin/int prepush` keeps its frozen-remote refusal, and a push neither requires a kovacs summary nor clones and builds the workspace. -- satisfied: no (computed)
 
-### WP-03 -- The tap and the macOS assets publish through the built-ins, with prepare as a shadow (status: Not Started)
+### WP-03 -- The tap and the macOS assets publish through the built-ins, with prepare as a shadow (status: WIP)
 
 - AC-03.1 The built-in formula writes Intent's formula and cask in assets mode under the cut's yes, each asset's sum filled from the release's sums file, which stands for issue 0634's cask sha256 check; Intent's own brew smoke runs as an `after:` command under the same yes, where it reports after publication and gates nothing; and `bin/.devbin/cmd/brew` keeps the smoke and nothing else, with no render or publish code left in it or in `bin/.devbin/cmd/shared/brew.lib`. -- satisfied: no (computed)
 - AC-03.2 The built-in `macos publish` publishes the stage Intent's `macos prepare` makes, that stage carries `<stage>/commit` with HEAD's full sha, and `bin/.devbin/cmd/macos` carries no publish. -- satisfied: no (computed)
@@ -50,7 +50,7 @@ title: Intent releases through devbin's core: its driver, kovacs preflight and p
 
 _(no tests in this group)_
 
-### WP-03 -- The tap and the macOS assets publish through the built-ins, with prepare as a shadow (status: Not Started)
+### WP-03 -- The tap and the macOS assets publish through the built-ins, with prepare as a shadow (status: WIP)
 
 _(no tests in this group)_
 
