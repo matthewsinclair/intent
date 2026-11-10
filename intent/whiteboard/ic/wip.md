@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 677e6c35-f820-4993-8ec4-ad639debeb1b
-heartbeat_at: 2026-11-10 17:39Z
+heartbeat_at: 2026-11-10 17:53Z
 status: active
-focus: "2026-11-10, ic's train and 0679 are landed on vc's go (0650 60751dfc9, 0672 004e5362a, 0676 ca6d2ebde, 0677 90a4d96b9, 0679 c1afc04b7), each issue closed. Next, on vc's word: todo 63, ST0092's surface read (WP-10), which needs no ratification to read. 0678 is filed and waits on hv. No claim."
+focus: "2026-11-10, localfolded for hv's compact on hv's word through vc (read at 17:50:29Z by vc's clock): "Ok, context is high here, lets bank, localfold+compact here in intent-* and then continue on the bounce." No hold: on the bounce ic runs /in-session, commits its heartbeat-only pickup in its own chain, then continues todo 63, the ST0092 row read, whose notes are banked at refs/bank/ic/st0092/row-read-notes-v1.md. ic's train and 0679 are landed and closed. No claim, worktree or stash."
 claims: []
 ---
 
@@ -17,7 +17,7 @@ _(none)_
 
 ## TODO
 
-- ST0092: read each of cc's banks' dispatch-table rows (WP-02 to WP-09) as the table's owner before vc judges it; then WP-10, the new surface read as one, claimed in the chain of its `intent wp start` after cc's packages land. vc's proposals for the rows stand: a roster act is not offered on MCP, and a read is. WP-10's rows are written at ea3411da9 (vc, 2026-11-10): `intent wb brief` arrives as a new row and `wb remit` gains `--default`; read both as the table's owner when cc builds them. (edited)
+- ST0092, on vc's word of 2026-11-10: ic reads the dispatch-table rows WP-02 to WP-09's bodies specify, as the table's owner, against the tool's voice and the exit-code contract, before cc builds them; one finding per message to cc, copied to vc; nothing written to ST0092's canon. Sent: finding 1, issue 0675's wb status row (the three renderers disagree: CLI text counts live, --json none, MCP everything). Drafted and banked, not sent: the WP-02 (wb profile) and WP-03 (wb init, wb remit, register) findings, at refs/bank/ic/st0092/row-read-notes-v1.md (blob aa06e7f02be6). AC-10.3's baseline is banked at refs/bank/ic/st0092/wp10-ac-10.3-baseline.md (blob 32fee803e560). Next: read WP-04 to WP-09, then send the findings one per message. WP-10 itself is started and claimed only after cc's packages land. (edited)
 
 ## Holds
 
