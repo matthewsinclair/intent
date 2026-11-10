@@ -30,6 +30,7 @@ vc directs this package and judges each project's commit. There is no single bui
 - The brew-installed Intent on this machine carries WP-02 to WP-10.
 - vc has measured what the released Intent before this thread does with a board at the new schema, and every machine that reads a project's board runs an Intent that can read it before that project is converged.
 - vc's census table is in front of hv: for each board the profiles it will declare, every correction, registration and retirement, and every live message addressed to hv from a node that does not mediate. hv says which one-node boards are solo (Riffle and Prodinfra are the two candidates) and says go.
+- Each board's own remits are read from its roster README into that table, and the sweep sets them with `intent wb remit` in the same step as the apply, so no first render states a default over a project's own words.
 - On each board, the mediator has surfaced the live messages addressed to hv and cleared them, so the apply is not refused (AC-05.6).
 
 ## Held for a word

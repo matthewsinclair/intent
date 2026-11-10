@@ -1,0 +1,14 @@
+{
+  "id": "01M72BPDVMNDYYJYN9X5JTE2JW",
+  "ts": "2026-11-10T09:12:46.200Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0092/AC-11.1"
+  },
+  "payload": {
+    "text": "vc's read-only census names every live board on this machine with the profiles it will declare, each correction, registration and retirement, each seat's own remit as its README states it, and each live message addressed to hv from a node that does not mediate; hv has said which one-node boards are solo and has said go."
+  }
+}

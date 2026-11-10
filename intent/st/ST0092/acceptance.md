@@ -38,7 +38,7 @@ title: A Claude Team is declared by a profile: wb init sets up its board, hv is 
 - AC-03.4 A second apply writes nothing and says so, and `intent wb init --apply` with no profile named re-applies the board's declaration. -- satisfied: no (computed)
 - AC-03.5 A base other than the declared one is refused and names `--change`; a layer on a board with no base is refused; and a hand-authored node that has not been migrated is refused before anything is written, naming `intent wb migrate`. -- satisfied: no (computed)
 - AC-03.6 `intent wb register` of a moniker the declared profiles name is taken only with the profile's name and role, and its refusal prints them; a moniker they do not name registers as before, and the dry run reports it as outside the profile. -- satisfied: no (computed)
-- AC-03.7 A remit set with `intent wb remit <moniker> "<text>"` survives every later apply, and the profile's default fills only an absent one. -- satisfied: no (computed)
+- AC-03.7 A remit set with `intent wb remit <moniker> "<text>"` survives every later apply and re-renders the roster README, the profile's default fills only an absent one, and the dry run names each seat whose remit would be the default. -- satisfied: no (computed)
 - AC-03.8 A clone of a project whose board was applied ingests the same declaration, seats and remits from the canon on disk. -- satisfied: no (computed)
 - AC-03.9 A build of this thread reads a board at schema `intent/board@4.0` unchanged. -- satisfied: no (computed)
 
@@ -65,7 +65,7 @@ title: A Claude Team is declared by a profile: wb init sets up its board, hv is 
 ### WP-06 -- A session is told its seat at pickup and at launch (status: Not Started)
 
 - AC-06.1 `intent wb pickup` on a board that declares a profile prints, ahead of the board, the declared profiles, this node's name, role and remit, the node hv is reached through, and one line for each other seat with its name, role and remit; `--json` and the MCP tool carry the same fields. -- satisfied: no (computed)
-- AC-06.2 A seat that is registered and has never run is listed like any other and marked as never started. -- satisfied: no (computed)
+- AC-06.2 A seat that no session has ever picked up is listed like any other and marked never started, in `intent wb pickup` and in `intent wb status`, read from the absence of any recorded session and never from its status or heartbeat, and the time it was registered is not printed as a heartbeat. -- satisfied: no (computed)
 - AC-06.3 `intent claude start <node>` hands the launched session the same brief, and its refusal of an unregistered moniker names `intent wb init`. -- satisfied: no (computed)
 - AC-06.4 (non-test) A session started on a converged board that hv did not brief states its own seat, its remit and its route to hv from the pickup alone, and vc records that boot by its session id. -- satisfied: no
 
@@ -76,6 +76,7 @@ title: A Claude Team is declared by a profile: wb init sets up its board, hv is 
 - AC-07.3 The first render over a README that has no marker carries the whole existing file below the marker and says so, except a frontmatter block that opens the existing file, which is dropped and named in the report. -- satisfied: no (computed)
 - AC-07.4 The generated part states nothing that the profiles and the store do not declare, which is issue 0672's lesson: rendered for two projects with the same declaration and remits, it differs only in the project's name. -- satisfied: no (computed)
 - AC-07.5 A hand edit above the marker is skew that `intent doctor` reports and the next render restores, and a re-render with nothing changed writes nothing. -- satisfied: no (computed)
+- AC-07.6 A seat whose remit was never set shows the profile's default, marked as the default, in the roster table, and a seat whose remit the project set shows the project's words. -- satisfied: no (computed)
 
 ### WP-08 -- The Desk is a hat with a written contract (status: Not Started)
 
@@ -99,7 +100,7 @@ title: A Claude Team is declared by a profile: wb init sets up its board, hv is 
 
 ### WP-11 -- Every live board converges, Intent's own first (status: Not Started)
 
-- AC-11.1 (non-test) vc's read-only census names every live board on this machine with the profiles it will declare, each correction, registration and retirement, and each live message addressed to hv from a node that does not mediate; hv has said which one-node boards are solo and has said go. -- satisfied: no
+- AC-11.1 (non-test) vc's read-only census names every live board on this machine with the profiles it will declare, each correction, registration and retirement, each seat's own remit as its README states it, and each live message addressed to hv from a node that does not mediate; hv has said which one-node boards are solo and has said go. -- satisfied: no
 - AC-11.2 (non-test) vc has measured what the released Intent before this thread does with a board at the new schema, and no project is converged while a machine that reads its board runs an Intent that cannot read it. -- satisfied: no
 - AC-11.3 (non-test) Intent's own board is converged first: ac is registered, dc reads devx, the README is rendered with its previous text below the marker, and the commit carries exactly what `intent wb init --apply` printed. -- satisfied: no
 - AC-11.4 (non-test) Every board with no running session is converged from vc's session, one commit for each project of exactly what the verb printed; every board whose vc or sc is running is converged by that node on vc's exact step; and vc has read each commit. -- satisfied: no

@@ -22,6 +22,12 @@ cc builds this package and claims `ST0092/06` in the same chain as `intent wp st
 - **The launcher.** `intent claude start <node>` hands the session the same brief through `intent/plugins/claude/bin/intent_claude_cwi`, which composes the session's context today. Its refusal of an unregistered moniker stays and now names `intent wb init`.
 - **The profile's prose** from WP-02 is what the brief prints after the seats: how hv is reached and what each seat owes the others.
 
+## What the spike showed
+
+On 2026-11-10 the first swarm set up by hand carried its brief as an hv standing directive, which today's pickup prints in full to every node. It reached every pickup, and it printed last, below the node's own items and live messages, where a 900-word message buried it. Ahead of the board is the requirement, as AC-06.1 says.
+
+It also showed that `intent wb register` stamps a heartbeat at registration, so `intent wb status` prints a seat that has never run exactly as one that ran and paused. The row already holds the difference: no session has ever been recorded for it, and on the 32 live boards 4 session seats read that way that day. So never started is read from the absence of any recorded session, never from status or heartbeat, and the time a seat was registered is not printed as a heartbeat.
+
 ## Why this and not the README
 
 A pickup reads no README and never has (hv's decision 28, ruling 5, on Conflab). The README is for a person reading the repository; the pickup is what a session reads at every boot.

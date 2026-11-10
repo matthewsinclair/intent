@@ -19,6 +19,8 @@ cc builds this package and claims `ST0092/05` in the same chain as `intent wp st
 
 Across the 32 live boards on 2026-11-10: 884 messages addressed to hv, of which 741 are copies of an `announce`; 5 messages sent by hv, ever; 112 inbox views pairing hv with a node that does not mediate, 100 of them empty. The cause is in the model: every registered node gets an inbox pair with every other, hv included, and an announce goes to every node but its sender.
 
+The first swarm set up by hand, on 2026-11-10, showed what the convention this package replaces costs. Clearing hv's copy of an announce took two verbs, a clear as hv and an archive by its sender, because a clear marks a message handled and leaves the sender's rendered view as it was. Its vc then found itself sending a session message where an announce was right, to escape the cleanup. An announce must cost the mediator nothing, which AC-05.3 gives it.
+
 ## What is built
 
 - **The pair.** The human seat has one inbox pair, with the mediator. No `<node>/inbox.hv.md` and no `hv/inbox.<node>.md` is rendered for any other node.
@@ -26,7 +28,7 @@ Across the 32 live boards on 2026-11-10: 884 messages addressed to hv, of which 
 - **The announce** goes to every registered session node but the sender, and not to the human seat.
 - **Writing as hv.** A write as the human seat from a Claude session bound to any node but the mediator is refused. The mediator's session writes hv's board under the pen, and a shell with no Claude session, which is hv's own terminal, writes it as before. The session's node is read from `CLAUDE_CODE_SESSION_ID`, the identity the pickup already records.
 - **The standing items.** hv's directives, decisions and watch-outs print in full at every node's pickup, as they do now.
-- **The crossing.** `intent wb init --apply` refuses to drop an hv inbox view that still holds a live message and names each one with its sender. The mediator surfaces them to hv and clears them as hv, and the apply then proceeds. Fleet-wide on 2026-11-10, 4 such messages come from a `dc` or a `cc`: 3 and 1. Every such message stays readable with `--all`.
+- **The crossing.** `intent wb init --apply` refuses to drop an hv inbox view that still holds a live message and names each one with its sender. The mediator surfaces them to hv and clears them as hv, and the apply then proceeds. Fleet-wide on 2026-11-10, 4 such messages come from a `dc` or a `cc`: 3 and 1. Every such message stays readable with `--all`. A message that is handled and not archived holds no view back: only a live one refuses.
 - **Opt-in by declaration.** A board that declares no profile behaves exactly as it does today, so nothing changes for a project until its own `wb init`.
 - **The skill.** `intent/plugins/claude/skills/in-whiteboard/SKILL.md` says what the tool now does, in the same landing: the hv section, the rule that the README must name hv's reader, which the profile's mediator replaces, and what `ask` and `announce` do.
 

@@ -20,16 +20,16 @@ vc writes this package under hv's pen: its content is hv's rulings of 2026-11-10
 One hand-authored document in the plugin canon, beside where the profiles will ship (vc's proposal: `intent/plugins/claude/teams/TERMS.md`), registered in `intent/llm/MODULES.md` before it is created. It ships with the install, so a session in any project can be shown it, and WP-02 adds the verb that prints it. `intent/docs/working-with-llms.md` links to it and restates none of it. It holds:
 
 - **The terms.** A Claude Team is the standing roster a profile registers on one project's board, every member registered whether started or not. A Claude Swarm is whichever of a Team's sessions are running at one time. A Team Profile is the Intent resource that declares a Team. A node is one seat on a board. Its moniker is its two-letter handle, routing key and directory; its name is its display name; its role is one word; and its session is named `<project>-<moniker>`. A moniker is never written as a name or as a role.
-- **The seats.** hv's names of 2026-10-21, with the role words Molt's roster and the relaying vc's roster already use, and default remits taken from the roster hv pointed to as the example:
+- **The seats.** hv's names of 2026-10-21. The default remits of vc, cc, ic, ac, dc and hv are hv's own words of 2026-11-10, as the first swarm's roster records them; those of gc, sc and sv are vc's, for hv to edit at ratification:
 
 | Moniker | Name              | Role       | Driven by                | Default remit                                                                                                  |
 | ------- | ----------------- | ---------- | ------------------------ | -------------------------------------------------------------------------------------------------------------- |
-| `vc`    | Validation Claude | validation | a session                | Boss of the team: sequencing, briefs, the independent check of finished work, and the one route to hv          |
-| `cc`    | Control Claude    | control    | a session                | Back-end services and core implementation                                                                      |
-| `ic`    | Interface Claude  | interface  | a session                | Everything user-facing and machine-facing: UI, the command surface and APIs                                    |
-| `ac`    | Authoring Claude  | authoring  | a session                | Prose and content                                                                                              |
-| `dc`    | DevX Claude       | devx       | a session                | The dev-x pipeline, end to end: build, test, CI and release mechanics                                          |
-| `hv`    | Hypervisor        | hypervisor | the human                | Scope, sequencing, release policy and every ratified decision                                                  |
+| `vc`    | Validation Claude | validation | a session                | Boss of the Claude team: sequencing, briefs, validation of landed and claimed work, and the one route to hv    |
+| `cc`    | Control Claude    | control    | a session                | Back-end services and the non-user-facing implementation of services                                           |
+| `ic`    | Interface Claude  | interface  | a session                | User-facing interfaces (UI and UX) and machine-facing interfaces (REST, GraphQL and the rest)                  |
+| `ac`    | Authoring Claude  | authoring  | a session                | Authoring and content creation                                                                                 |
+| `dc`    | DevX Claude       | devx       | a session                | The dev-x pipeline, end to end                                                                                 |
+| `hv`    | Hypervisor        | hypervisor | the human                | Scope, sequencing, release policy, and every ratified decision                                                 |
 | `gc`    | Generalist Claude | generalist | a session                | The whole project, alone: it builds and checks its own work and talks to hv directly                           |
 | `sc`    | Supervisor Claude | supervisor | a session                | Coordination across several projects' VCs: audits, briefs to each VC, and the route to hv on its own hub       |
 | `sv`    | Supervisor Claude | supervisor | the supervisor's session | The supervisor's seat on a supervised project's board: findings and briefs to that project's vc, and no builds |

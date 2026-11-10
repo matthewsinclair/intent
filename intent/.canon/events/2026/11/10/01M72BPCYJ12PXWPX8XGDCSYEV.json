@@ -1,0 +1,14 @@
+{
+  "id": "01M72BPCYJ12PXWPX8XGDCSYEV",
+  "ts": "2026-11-10T09:12:45.270Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0092/AC-06.2"
+  },
+  "payload": {
+    "text": "A seat that no session has ever picked up is listed like any other and marked never started, in `intent wb pickup` and in `intent wb status`, read from the absence of any recorded session and never from its status or heartbeat, and the time it was registered is not printed as a heartbeat."
+  }
+}
