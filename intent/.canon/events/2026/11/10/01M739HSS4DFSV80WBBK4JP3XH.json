@@ -1,0 +1,16 @@
+{
+  "id": "01M739HSS4DFSV80WBBK4JP3XH",
+  "ts": "2026-11-10T17:54:31.844Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 8,
+    "text": "The push of main to local and upstream alone (hv, decision 117). No release rides on it: there is one, 3.3.0 (hv directive 1, decision 109). HELD UNTIL four things: hv has run the one-message rewrite of c1d7d163d, with every seat held and the tree clean, since hv ruled a client's name confidential in Intent's public record (the command and its dry run are in decision 117); a build all at the HEAD to be pushed has passed on devbin-vc's desk, with every seat holding its commits; a Linux preflight at that HEAD has passed on kovacs; and vc has given devbin-vc the word naming that HEAD (decision 90). It carries everything on main since v3.2.8."
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "01M739HRK7R86R37Y7CD66FP9Q",
+  "ts": "2026-11-10T17:54:30.631Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 77,
+    "text": "3.3.0, THE ONE NEXT RELEASE (hv directive 1, decision 109), made ready on hv's word of 2026-11-10 (decision 116), with devbin-vc holding hv's pen and the desk while hv is away. ON MAIN SINCE: ST0091's four packages (decision 119); issues 0650, 0672 (narrowed to devbin-or-none), 0676, 0677 and 0679, each judged by vc and closed by ic. OWED BY hv: (1) the ratification of ST0092's terms, which hv reads first-hand (decision 117) and which sets 3.3.0's date, since no ST0092 code starts before it; (2) the run of the one-message rewrite just before the push (refs/bank/vc/rewrite/, decision 117), and a ruling on the client's name already public on upstream in 10 tracked files and 3 pushed commit messages; (3) whether issue 0678, declared build and test commands, rides 3.3.0 (vc recommends not); (4) whether Intent keeps an AT's own red-then-green (vc: keep it, a red being the code as it was; a regression arm lands green with a note); (5) hv's eye on ST0090's row on a 3.3.0 build (hold 6); (6) parked: the FMT-02 set in llm-tropes' shared catalogue. NEXT FOR vc: judge cc's 0665, dc's 0670 and cc's 0649 as ONE stack on main's HEAD in one desk run (order 0665, 0670, then 0649, which cc re-banks on the first two because 0649 and 0670 both touch facade.rs and model.rs; dc gives tree e10a008f6992 for the first two on e9e7e424c), warn devbin-vc before 0670 lands (it reddens Devbin ST0011 AT-3.5 and nothing else, by dc's census over 25 threads), and have the whole bats tree in that run confirm 0679 cleared the two arms 0669 left red. Then the sweep, the push (hold 8), and ST0092 once ratified. LANES: cc builds 0649 and holds ST0092's build notes (refs/bank/cc/st0092/build-notes-wp02-wp03-v2.md) with vc's rulings on WP-03's one transaction, AC-03.9 landing green and 0675's one status row with both live counts; dc stands by for the stack's landing, then the seam wiring and the reference pages; ic reads the rows of WP-02 to WP-09 and sends findings to cc. A LESSON vc TOOK: a fix is judged on the bats tree as well as the cargo suite; 0669 was not, and left two arms red on main for a day."
+  }
+}

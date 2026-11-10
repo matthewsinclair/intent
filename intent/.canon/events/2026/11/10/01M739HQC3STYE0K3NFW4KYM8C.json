@@ -1,0 +1,16 @@
+{
+  "id": "01M739HQC3STYE0K3NFW4KYM8C",
+  "ts": "2026-11-10T17:54:29.379Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 71,
+    "text": "ST0091, Intent's cut through devbin's core: THE FOUR PACKAGES ARE ON MAIN AND JUDGED (decision 119), dc's six commits 51684720a to b43aa6256, and the gate reads 10 of 12. WHAT IS LEFT. (1) AC-01.3 waits on the sweep of devbin's next release, which carries the pre-flight seam (devbin 0327) and the release commit's trailer (0328); devbin-vc tells vc when it is cut, vc sweeps it in, and dc then banks the wiring: `release.preflight` declared with the four checks, `preflight clean` comparing against DEVBIN_RELEASE_VERSION (the core hands that and DEVBIN_RELEASE_TARGET_TAG to every project command the cut runs), and the arm AT-01.6 cites, tests/unit/release_preflight_seam.bats. (2) AC-04.3 is hv's first cut. (3) docs/reference is regenerated against v3.2.8 as the last unit before the cut, after ST0092's surface is on main; until then `gate reference` refuses, which is correct (dc's todo). (4) WP-03 as reshaped (decision 118): Intent keeps cmd/macos and its asset names, and the cut publishes through `cut publish`, one after: command that stops at its first failure, then the smoke; a re-run of the cut runs after: again (devbin-vc's source read, not driven, since a real cut needs GitHub). (5) NOT PROVEN BY vc: the core's dry run on Intent's tree, which rests on dc's scratch-clone drive. The judge script is refs/bank/vc/judge/judge-0091.zsh-v2; it takes the expected tip tree on the base it is given, not on the builder's base."
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "01M739HTYF81RP513X5GGYGMFB",
+  "ts": "2026-11-10T17:54:33.039Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "seq": 34,
+    "text": "Client names and Intent's committed record. hv ruled on 2026-11-10 that a client's name is confidential in Intent's public record (decision 117). vc keeps a client's name and its sessions' names out of every commit message, board text and thread, and banks client-named notes only as local refs. The one unpushed message that names client sessions, c1d7d163d's, is rewritten by hv before the push (hold 8). STILL OPEN, for hv alone: upstream already carries the first word of the name in 10 tracked files (eight event files of 2026-10-14 to 16, and cc's and vc's board.json) and in 3 pushed commit messages; cleaning that means rewriting public history and a force push to every remote."
+  }
+}
