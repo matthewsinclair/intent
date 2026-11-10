@@ -6,14 +6,14 @@ session_id: 2aba47df-5301-4790-a6b7-e11815afe307
 heartbeat_at: 2026-11-10 19:34Z
 status: active
 focus: "2026-11-10, localfolded for hv's compact on hv's word direct to dc ("Fold, then compact."); dc stays active and continues on the bounce. Lane, on vc's word: (1) on vc's "verified", close 0670 and remove tmp/wt-dc-0670 in one chain (doing 155); (2) AT-01.6's release.preflight wiring once devbin-vc says devbin's release (re-cutting after 0.1.21 went red) is swept in (todo 61); (3) F8's reference pages as the last unit before the cut, after ST0092's surface lands (todo 60). dc builds no ST0092 package for now; vc revisits when cc reaches WP-05. Claims: ST0090/02, ISSUE:0670, ST0091/01-04. Worktrees: tmp/wt-dc-0670 (v2, kept until verified) and tmp/wt-dc-0090-app (hold 37)."
-claims: [ST0090/02, ST0091/01, ST0091/04]
+claims: [ST0090/02, ST0091/01, ST0091/04, ISSUE:0667]
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-_(none)_
+- ISSUE:0667, hv rules it into 3.3.0 and it is dc's (vc, 2026-11-10). The ruled formula fix landed with ST0091 WP-03 (f18bd6945), and AT-03.3 checks it. Left: on the brew route nothing creates the log's directory, because intent bootstrap never makes the state dir; and docs/install.md:22 still says brew's var/log. Shape sent to vc: bootstrap::run makes daemon_log_under's parent, an intentsvcs arm red on the code as it is, then the fix, plus the caveat line and install.md. WAITING ON vc's go on the shape and on where the arm is recorded. Every compiled run goes in a desk slot.
 
 ## TODO
 

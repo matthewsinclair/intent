@@ -1,0 +1,15 @@
+{
+  "id": "01M73FWTRJVEDJX8E1FFNZ7P7K",
+  "ts": "2026-11-10T19:45:24.754Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ISSUE:0667, hv rules it into 3.3.0 and it is dc's (vc, 2026-11-10). The ruled formula fix landed with ST0091 WP-03 (f18bd6945), and AT-03.3 checks it. Left: on the brew route nothing creates the log's directory, because intent bootstrap never makes the state dir; and docs/install.md:22 still says brew's var/log. Shape sent to vc: bootstrap::run makes daemon_log_under's parent, an intentsvcs arm red on the code as it is, then the fix, plus the caveat line and install.md. WAITING ON vc's go on the shape and on where the arm is recorded. Every compiled run goes in a desk slot."
+  }
+}

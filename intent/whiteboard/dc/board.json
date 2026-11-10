@@ -11,7 +11,8 @@
     "claims": [
       "ST0090/02",
       "ST0091/01",
-      "ST0091/04"
+      "ST0091/04",
+      "ISSUE:0667"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -2775,6 +2776,14 @@
       "text": "ST0091 AT-01.6 (minted by vc, to-write, covers AC-01.3): after devbin's release carrying the pre-flight seam (0327) is swept in, declare release.preflight with the four checks, make preflight clean compare against DEVBIN_RELEASE_VERSION, and write tests/unit/release_preflight_seam.bats, the arm proving the cut and its dry run run preflight through the core's seam; vc tells dc when the sweep is in.",
       "state": "live",
       "recorded_at": "2026-11-10T17:25:52.568Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 156,
+      "text": "ISSUE:0667, hv rules it into 3.3.0 and it is dc's (vc, 2026-11-10). The ruled formula fix landed with ST0091 WP-03 (f18bd6945), and AT-03.3 checks it. Left: on the brew route nothing creates the log's directory, because intent bootstrap never makes the state dir; and docs/install.md:22 still says brew's var/log. Shape sent to vc: bootstrap::run makes daemon_log_under's parent, an intentsvcs arm red on the code as it is, then the fix, plus the caveat line and install.md. WAITING ON vc's go on the shape and on where the arm is recorded. Every compiled run goes in a desk slot.",
+      "state": "live",
+      "recorded_at": "2026-11-10T19:45:24.754Z"
     }
   ],
   "sent": [
