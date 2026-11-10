@@ -70,9 +70,10 @@ RELEASE_DIR="$ROOT/native/rust/target/release"
 BINARIES="intent intentd"
 KC_PREFIX="intent.apple"
 
-# SUPPORT_ASSET, APP_ASSET, REPO, TAP, BREW_TAP, STAGE_DIR, require_sums and staged_version
-# live in cmd/shared/brew.lib with the reasoning that shaped each, because the
-# formula reads them too and `int brew render` renders it (ST0081 WP-06).
+# SUPPORT_ASSET, APP_ASSET, REPO, STAGE_DIR, require_sums and staged_version live
+# in cmd/shared/brew.lib with the reasoning that shaped each, because the
+# formula names the same assets and `bin/devbin cut publish` reads them (ST0091
+# WP-03).
 . "$(dirname "${BASH_SOURCE[0]}")/shared/brew.lib"
 
 # APP_ASSET, the app zip every release ships, lives in cmd/shared/brew.lib with
@@ -1189,7 +1190,44 @@ cmd_checksum() {
 # the staged commit IS the tag -- the stamp reads the release being cut. Left to
 # the operator as separate commands before this one, the app would be correct only
 # when somebody remembered, and `stage` would be the only thing that noticed.
+# release_pair_blockers <dir> <commit> -- one line for each binary in <dir> that
+# is not a `release` build of <commit>, read from its own embedded markers;
+# nothing when every one is. rc 2 when a binary could not be read, the reason
+# already on stderr.
+#
+# THE CHECK IS vc's RULING ON dc's FINDING F1 (ST0091 WP-03). A build reads
+# `release` only where its commit carries the version's tag when it is built
+# (issue 0534), and the cut's gates build the pair before the tag, so that pair
+# reads `dev`. The pair that ships is built again at the tag (`bin/devbin cut
+# publish` does it first). This refusal is what holds the order: no step of the
+# cut is trusted to have built the right pair, and a shipped asset that says
+# `dev` is a visible regression.
+release_pair_blockers() {
+  local dir="$1" commit="$2" b kind named rc
+  for b in $BINARIES; do
+    [ -f "$dir/$b" ] || { printf '%s: no binary at %s\n' "$b" "$dir/$b"; continue; }
+    rc=0
+    kind="$(artefact_source_kind "$dir/$b")" || rc=$?
+    [ "$rc" -le 1 ] || return 2
+    [ "$rc" -eq 0 ] || kind="<no kind marker>"
+    rc=0
+    named="$(artefact_source_commit "$dir/$b")" || rc=$?
+    [ "$rc" -le 1 ] || return 2
+    [ "$rc" -eq 0 ] || named="<no commit marker>"
+    [ "$kind" = release ] || printf '%s: a %s build, not a release build\n' "$b" "$kind"
+    [ "$named" = "$commit" ] || printf '%s: built at %s, not at HEAD %s\n' "$b" "$named" "$commit"
+  done
+}
+
 cmd_prepare() {
+  local head blockers
+  head="$(git -C "$ROOT" rev-parse HEAD)" || die "git could not read HEAD"
+  blockers="$(release_pair_blockers "$RELEASE_DIR" "$head")" || exit 2
+  [ -z "$blockers" ] ||
+    die "the pair under native/rust/target/release is not a release build of HEAD, so it cannot ship:
+$(printf '%s\n' "$blockers" | sed 's/^/       /')
+       remedy: with HEAD at the release tag, run \`bin/devbin build all\`, which cleans both
+       packages so the build sees the tag, then prepare again"
   cmd_app_sign
   printf '\n'
   cmd_app_notarize
@@ -1224,15 +1262,16 @@ cmd_prepare() {
 # IT WRITES NO FORMULA AND NO CASK (ST0081 WP-02, vc's ruling of 2026-10-27).
 # The Linux packages reach the release after this, through `bin/devbin release
 # attach`, which also writes SHA256SUMS over every asset, so a formula rendered
-# here could only be refused for want of them: a red step on every cut. `bin/int
-# brew publish` renders both from the complete release and pushes them, their
-# one writer, and this ends by printing those steps in order. Until then the
+# here could only be refused for want of them: a red step on every cut. devbin's
+# built-in `formula publish` renders both from the complete release and pushes
+# them, their one writer, and `bin/devbin cut publish` runs it after this and
+# the attach (ST0091 WP-03). Until then the
 # release is inert -- nobody installs it by accident. A formula pointing at bytes
 # whose hash we could not confirm is a confident false statement, and it is the
 # same reasoning that keeps a formula out of the tap until the release it names
 # is complete: **a wrong artefact is not a neutral placeholder.**
 #
-# THE DEV-VERSION REFUSAL LIVES HERE, WHERE THE HARM IS. `int brew render` will happily
+# THE DEV-VERSION REFUSAL LIVES HERE, WHERE THE HARM IS. A formula renderer will happily
 # print `RELEASE_VERSION = "3.0.0-dev"` to a terminal, and should -- that is text, and it is
 # self-evidently not a release. The same bytes in a tap install a build nobody
 # meant to ship. **A control belongs at the point of harm, not at the first point
@@ -1524,15 +1563,16 @@ $(printf '%s\n' "$artefact_blockers" | sed 's/^/       /')
 
   # THE STEPS LEFT, IN ORDER, IN THE CUT'S FINISH-BY-HAND FORM (vc's ruling of
   # 2026-10-27). The attach puts the Linux packages on the release and writes
-  # SHA256SUMS last, over every asset, these included; `brew publish` then
-  # renders the formula and the cask from the complete release and pushes both,
-  # their one writer. The attach is named whatever the release already carries:
+  # SHA256SUMS last, over every asset, these included; the built-in `formula
+  # publish` then renders the formula and the cask from the complete release
+  # and pushes both, their one writer. `bin/devbin cut publish` runs all three
+  # in the cut, and this line is for a run by hand. The attach is named whatever the release already carries:
   # run before this one, it summed a release without these assets, and its
   # re-run uploads nothing it holds and rewrites SHA256SUMS over them.
   printf '\n'
   printf 'published: %s %s, the macOS artefacts verified from the published URL; no formula or cask points at them yet.\n' "$REPO" "$tag"
   # shellcheck disable=SC2016 # the backticks are literal: they quote each command
-  printf '  Finish by hand, in order: `bin/devbin release attach %s`; `bin/int brew publish`.\n' "$tag"
+  printf '  Finish by hand, in order: `bin/devbin release attach %s`; `bin/devbin formula publish --pull`.\n' "$tag"
 }
 
 cmd_store_creds() {
@@ -2246,8 +2286,8 @@ bin/devbin macos <subcommand>
                they hash to what SHA256SUMS.txt records, then print the steps
                left in order: `bin/devbin release attach vX.Y.Z`, which adds the
                Linux packages and writes SHA256SUMS over every asset, then
-               `bin/int brew publish`, the one writer of the formula and the
-               cask. It writes neither. Refuses a dev version, any
+               `bin/devbin formula publish --pull`, the one writer of the
+               formula and the cask (`bin/devbin cut publish` runs all three). It writes neither. Refuses a dev version, any
                asset of its own already on the release (others are left
                alone), a missing tag, a checkout that was dirty at stage, a
                stage not taken at the tag, and binaries whose embedded source
@@ -2257,8 +2297,9 @@ bin/devbin macos <subcommand>
                check that needs no upload and publishes nothing; the
                re-download check needs the upload, so it does not run.
 
-  The formula and the check of an installed keg are `bin/devbin brew render`,
-  `bin/devbin brew publish` and `bin/devbin brew smoke`, one home for macOS and Linux (ST0081 WP-06).
+  The formula and the cask are devbin's built-in `formula`, from the templates
+  under packaging/homebrew/ (ST0091 WP-03); the check of an installed keg is
+  `bin/devbin brew smoke`, one home for macOS and Linux (ST0081 WP-06).
 
   doctor       Preflight: identity present, a real test-sign, notary creds, and
                the signing state of target/release's binaries

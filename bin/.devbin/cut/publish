@@ -1,0 +1,136 @@
+#!/usr/bin/env bash
+#
+# bin/.devbin/cut/publish -- the cut's publication, run by devbin's release core
+# as an `after:` command once the release object exists (vc's ruling on WP-03,
+# ST0091, decision 118).
+#
+# FOUR STEPS, IN ORDER, AND THE FIRST FAILURE STOPS THE REST:
+#
+#   pair      the pair built at the tag, so it reads `release` (issue 0534,
+#             vc's ruling on dc's finding F1)
+#   macos     Intent's `macos prepare` and `macos publish`, which ship the
+#             macOS assets under the names 3.2.8 shipped
+#   sums      `release attach <tag>`, which uploads nothing the release holds
+#             and writes SHA256SUMS last, over every asset, the macOS ones now
+#             included
+#   formula   the built-in `formula publish --pull`, which renders the formula
+#             and the cask from packaging/homebrew/ with each sum read from
+#             SHA256SUMS, and pushes the tap under the cut's yes
+#
+# WHY ONE COMMAND THAT STOPS. The core runs every after: command even when one
+# before it failed, so were these four lines a failed macOS publish would still
+# be followed by the formula, and the tap would send every `brew upgrade` to
+# assets the release does not hold. A release with no tap update harms nobody;
+# a tap ahead of its assets breaks every upgrade.
+#
+# SAFE TO RUN AGAIN AT THE TAG, which is the remedy every failure here prints:
+# running the same cut again runs its after: commands again, and so does running
+# this by hand. Each step reads what is already done first. The pair is not
+# rebuilt when it is already a release build of HEAD; the macOS assets are not
+# staged or uploaded when the release already holds all of them, and a release
+# holding some of them is refused by name, because `macos publish` refuses to
+# upload over its own assets; the attach uploads nothing the release holds; and
+# `formula publish` does nothing when the tap already carries the render.
+#
+# THE YES IS THE CUT'S. Under the core, DEVBIN_RELEASE_CONFIRMED names the tag
+# the person said yes to, and `formula publish` reads it; by hand there is no
+# such mark, and `formula publish` asks at the terminal.
+set -euo pipefail
+
+: "${PROJECT_ROOT:?run this as bin/devbin cut publish, which exports the project root}"
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+shared="$here/../cmd/shared"
+# brew.lib names the stage from ROOT, as the handlers that source it set it.
+# shellcheck disable=SC2034 # read by brew.lib, sourced below, not by this file
+ROOT="$PROJECT_ROOT"
+# shellcheck source-path=SCRIPTDIR source=../cmd/shared/artefact.lib
+. "$shared/artefact.lib"
+# shellcheck source-path=SCRIPTDIR source=../cmd/shared/brew.lib
+. "$shared/brew.lib"
+
+DEVBIN="$PROJECT_ROOT/bin/devbin"
+RELEASE_PAIR="$PROJECT_ROOT/native/rust/target/release"
+AGAIN="then run the same cut again, or \`bin/devbin cut publish\` at the tag; each step reads what is already done"
+
+# refuse <step> <what> [<remedy>] -- stop here, exit 1, saying which step and
+# that nothing after it ran.
+refuse() {
+  printf 'error: cut publish: %s: %s\n' "$1" "$2" >&2
+  printf '  remedy: %s\n' "${3:-$AGAIN}" >&2
+  printf '  nothing after the %s step ran, so the tap is as it was\n' "$1" >&2
+  exit 1
+}
+
+say() { printf 'cut publish: %s\n' "$*"; }
+
+# The tag at HEAD, the release this publishes: exactly one `v*` tag, and the
+# tag the cut confirmed where the core says which.
+head_commit="$(git -C "$PROJECT_ROOT" rev-parse HEAD)" || refuse tag "git could not read HEAD" "run it in Intent's checkout"
+tags="$(git -C "$PROJECT_ROOT" tag --points-at HEAD 'v*')" || refuse tag "git could not list the tags at HEAD" "run it in Intent's checkout"
+[ -n "$tags" ] || refuse tag "no release tag is at HEAD ($head_commit)" "check out the release tag, then run it again"
+[ "$(printf '%s\n' "$tags" | wc -l | tr -d ' ')" = 1 ] ||
+  refuse tag "more than one release tag is at HEAD: $(printf '%s' "$tags" | tr '\n' ' ')" "delete the tag that is not the release's"
+tag="$tags"
+if [ -n "${DEVBIN_RELEASE_CONFIRMED:-}" ] && [ "$DEVBIN_RELEASE_CONFIRMED" != "$tag" ]; then
+  refuse tag "the cut confirmed $DEVBIN_RELEASE_CONFIRMED, and HEAD carries $tag"
+fi
+
+# pair_ready -- 0 when both binaries of the pair are release builds of HEAD,
+# read from their own markers.
+pair_ready() {
+  local b kind named
+  for b in intent intentd; do
+    [ -f "$RELEASE_PAIR/$b" ] || return 1
+    kind="$(artefact_source_kind "$RELEASE_PAIR/$b" 2>/dev/null)" || return 1
+    named="$(artefact_source_commit "$RELEASE_PAIR/$b" 2>/dev/null)" || return 1
+    [ "$kind" = release ] && [ "$named" = "$head_commit" ] || return 1
+  done
+}
+
+if pair_ready; then
+  say "pair: already a release build of $tag ($head_commit), so it is not rebuilt"
+else
+  say "pair: building at $tag, both packages cleaned so the build sees the tag"
+  (cd "$PROJECT_ROOT" && "$DEVBIN" build all) ||
+    refuse pair "bin/devbin build all failed at $tag; its output is above"
+  pair_ready || refuse pair "the pair bin/devbin build all left is not a release build of $head_commit" \
+    "read why from \`bin/devbin build all\`'s output above (a dirty tree builds into a private target), $AGAIN"
+fi
+
+# The macOS assets, by the names 3.2.8 shipped: the CLI and the daemon for the
+# host triple, the support tree and the app.
+mac_assets="$(brew_macos_assets)
+$APP_ASSET"
+published="$(gh release view "$tag" --repo "$REPO" --json assets -q '.assets[].name')" ||
+  refuse macos "gh could not read the assets of $REPO $tag" "check \`gh auth status\` and that the release exists, $AGAIN"
+held="" missing=""
+while IFS= read -r a; do
+  [ -n "$a" ] || continue
+  if grep -qxF -- "$a" <<<"$published"; then held="$held $a"; else missing="$missing $a"; fi
+done <<<"$mac_assets"
+if [ -z "$missing" ]; then
+  say "macos: $tag already holds every macOS asset,$held, so nothing is staged or uploaded"
+elif [ -n "$held" ]; then
+  # The remedy is the commands themselves, one per held asset, so a person can
+  # run them as printed: `macos publish` will not upload over an asset it
+  # published, and the stage it would make is the whole set.
+  deletes=""
+  for a in $held; do
+    deletes="$deletes
+      gh release delete-asset $tag $a --repo $REPO --yes"
+  done
+  refuse macos "$tag holds some macOS assets and not others: held$held; missing$missing" \
+    "delete the held ones, which \`macos publish\` will not upload over:$deletes
+    then run the same cut again, or \`bin/devbin cut publish\` at the tag"
+else
+  (cd "$PROJECT_ROOT" && "$DEVBIN" macos prepare) || refuse macos "bin/devbin macos prepare failed; its output is above"
+  (cd "$PROJECT_ROOT" && "$DEVBIN" macos publish) || refuse macos "bin/devbin macos publish failed; its output is above"
+fi
+
+(cd "$PROJECT_ROOT" && "$DEVBIN" release attach "$tag") ||
+  refuse sums "bin/devbin release attach $tag failed; its output is above"
+
+(cd "$PROJECT_ROOT" && "$DEVBIN" formula publish --pull) ||
+  refuse formula "bin/devbin formula publish --pull failed; its output is above"
+
+say "published $tag: the macOS assets, SHA256SUMS over every asset, and the tap"

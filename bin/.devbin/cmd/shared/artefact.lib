@@ -72,7 +72,23 @@
 # its own: `strings` piped into `head` can die of SIGPIPE on a marker found
 # early, and `pipefail` would report that success as a failure.
 artefact_source_commit() {
-  local bin="$1" scan rc marker
+  artefact_marker "$1" source-commit
+}
+
+# artefact_source_kind <binary> -- `release` or `dev`, the kind `build.rs`
+# embeds as `[intent-source-kind:<kind>]` (issue 0534): `release` only where the
+# build's commit carried the version's tag when it was built. Its returns are
+# artefact_source_commit's, through the one reader below.
+artefact_source_kind() {
+  artefact_marker "$1" source-kind
+}
+
+# artefact_marker <binary> <key> -- the value of the binary's
+# `[intent-<key>:<value>]` marker, read as artefact_source_commit says above:
+# rc 1 with no output for no marker, rc 2 with a refusal when the file could not
+# be read.
+artefact_marker() {
+  local bin="$1" key="$2" scan rc marker
   scan="$(mktemp "${TMPDIR:-/tmp}/artefact-strings.XXXXXX")" || {
     printf 'error: no temporary file to read %s through\n  remedy: make %s writable, or point TMPDIR at a directory that is\n' "$bin" "${TMPDIR:-/tmp}" >&2
     return 2
@@ -81,12 +97,12 @@ artefact_source_commit() {
   if [ "$rc" -ne 0 ]; then
     # The backticks are literal: they quote a command for the reader to run.
     # shellcheck disable=SC2016
-    printf 'error: strings could not read %s (rc=%s), so its source-commit marker is unknown, not absent\n  caused by: %s\n  remedy: run `strings %s` to see the refusal; `strings` ships with the Xcode command line tools (`xcode-select --install`)\n' \
-      "$bin" "$rc" "$(head -3 "$scan" | tr '\n' ' ')" "$bin" >&2
+    printf 'error: strings could not read %s (rc=%s), so its %s marker is unknown, not absent\n  caused by: %s\n  remedy: run `strings %s` to see the refusal; `strings` ships with the Xcode command line tools (`xcode-select --install`)\n' \
+      "$bin" "$rc" "$key" "$(head -3 "$scan" | tr '\n' ' ')" "$bin" >&2
     rm -f "$scan"
     return 2
   fi
-  if marker="$(grep -o -m 1 '\[intent-source-commit:[^]]*\]' "$scan")"; then rc=0; else rc=$?; fi
+  if marker="$(grep -o -m 1 "\\[intent-$key:[^]]*\\]" "$scan")"; then rc=0; else rc=$?; fi
   rm -f "$scan"
   case "$rc" in
     0) ;;
@@ -97,6 +113,6 @@ artefact_source_commit() {
       ;;
   esac
   marker="${marker%%$'\n'*}"
-  marker="${marker#\[intent-source-commit:}"
+  marker="${marker#\[intent-$key:}"
   printf '%s' "${marker%\]}"
 }

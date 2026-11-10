@@ -430,6 +430,23 @@ commands:
           - macos
         run: bin/.devbin/cmd/measured --exec bin/.devbin/cut/gate doctor
 
+  # THE CUT'S PUBLICATION (ST0091 WP-03, vc decision 118): `cut publish` is the
+  # first of the cut's two after: commands, bin/.devbin/cut/publish, which
+  # builds the pair at the tag, ships the macOS assets, writes SHA256SUMS over
+  # every asset and pushes the tap, stopping at the first failure.
+  cut:
+    group: Release
+    summary: The cut's publication, after the release object exists
+    options:
+      publish:
+        summary: the pair at the tag, the macOS assets, SHA256SUMS and the tap, stopping at the first failure
+        run: bin/.devbin/cmd/measured --exec bin/.devbin/cut/publish
+
+  # devbin's built-in formula (lib/cmd/formula), opted into here and configured
+  # by the formula: block at the end of this file.
+  formula:
+    enabled: true
+
   # devbin's release core cuts Intent (ST0091 WP-01): the release: block below
   # declares the cut, and `release.verbs` offers its verbs.
   release:
@@ -490,6 +507,9 @@ release:
     - test shell
   legs:
     - kovacs
+  after:
+    - bin/devbin cut publish
+    - bin/devbin brew smoke --at-tag
   derived:
     - bin/devbin stamp config
     - bin/devbin stamp lock
@@ -501,3 +521,28 @@ release:
   assets:
     workflow: linux-release.yml
     wait: 15m
+
+# THE FORMULA AND THE CASK (ST0091 WP-03). devbin's built-in `formula` renders
+# them in assets mode from the templates under packaging/homebrew/, every sha256
+# read from the release's SHA256SUMS, and `bin/devbin cut publish` runs
+# `formula publish --pull` under the cut's yes once the macOS assets and the
+# sums are on the release. The tap is the default the built-in derives from
+# release.repo, matthewsinclair/homebrew-intent. `release.formula` stays false
+# (the default), because the core's formula step runs before Intent's macOS
+# assets exist. The asset names are the ones 3.2.8 shipped, so no installed keg
+# and no formula line changes name.
+formula:
+  mode: assets
+  template: packaging/homebrew/intent.rb
+  cask: packaging/homebrew/intent-app.rb
+  sums: SHA256SUMS
+  assets:
+    - intent-aarch64-apple-darwin
+    - intentd-aarch64-apple-darwin
+    - intent-support.tar.gz
+    - intent-x86_64-unknown-linux-musl.tar.gz
+    - intent-aarch64-unknown-linux-musl.tar.gz
+    - Intent.app.zip
+  bin:
+    - bin/intent
+    - bin/intentd

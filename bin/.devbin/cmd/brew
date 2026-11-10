@@ -1,198 +1,28 @@
 #!/usr/bin/env bash
 #
-# devbin: summary = Render Intent's Homebrew formula for macOS and Linux and the app's cask, publish both to the tap at a terminal, and smoke an installed keg
-# devbin: args = <subcommand>
-# bin/int brew <subcommand> -- Intent's Homebrew formula, and the check of an
-# installed keg (ST0081 WP-06).
+# devbin: summary = Smoke an installed Intent keg: the check whose subject is what brew installed
+# devbin: args = smoke [--at-tag | --reinstall] [--keg <dir>]
+# bin/int brew smoke -- the check of an installed keg (ST0081 WP-06). A
+# Linuxbrew keg on hv's Ubuntu VM needs the same arms as a keg on a Mac.
 #
-# ONE HOME FOR BOTH PLATFORMS. The formula lived in `cmd/macos` while the release
-# was macOS arm64 alone, and its own header said to move it once Linux artefacts
-# arrived. They have, so the renderer is `shared/brew.lib`, which `int macos
-# publish` sources too: the formula a release pushes is the one this prints.
-# smoke moved with it, because a Linuxbrew keg on hv's Ubuntu VM needs the same
-# arms as a keg on a Mac.
-#
-# THE VERBS ARE THE CONTRACT'S (ST0087 T8): `render <tag> <out>` and `publish`.
-# `render` reads the version from the tag and the manifest's commit from git, so
-# nobody types either.
+# WHAT LEFT (ST0091 WP-03). `render` and `publish` are gone: devbin's built-in
+# `formula` renders Intent's formula and cask from packaging/homebrew/ and
+# pushes the tap, run by `bin/devbin cut publish` under the cut's yes. The core
+# carries no brew smoke, so this one stays, and the cut runs it as its last
+# `after:` command, `bin/devbin brew smoke --at-tag`, where it reports after
+# publication and gates nothing.
 set -euo pipefail
 : "${DEVBIN_LIB:?run me through the devbin dispatcher}"
 . "$DEVBIN_LIB/helpers"
 
 ROOT="${PROJECT_ROOT:?}"
-SUBCOMMANDS="render publish smoke"
+SUBCOMMANDS="smoke"
 
 # SUPPORT_PATHS, and smoke's population: resolved_install_paths and
 # INSTALL_BINARY_PATHS.
 . "$(dirname "${BASH_SOURCE[0]}")/shared/support.lib"
-# rust_host, with which staged_version names the staged binary (issue 0595).
-. "$(dirname "${BASH_SOURCE[0]}")/shared/rusthost.lib"
-# The formula's names, its renderer, and the one push to the tap.
+# BREW_TAP, the tap's brew name, and REPO.
 . "$(dirname "${BASH_SOURCE[0]}")/shared/brew.lib"
-
-# brew_confirm_push -- ask the person at the terminal before --push, through
-# helpers' ask_person, the release core's own question. DEVBIN_GATE_TTY is set
-# from this process's stdin because no gate set it, so "is a person here" is
-# issue 0058's two-arm test: stdin is a terminal and /dev/tty can be read. There
-# is no --yes, by vc's ruling of 2026-10-14: a push to the tap changes what every
-# `brew install` gets, so no tool session pushes it and no node runs this.
-brew_confirm_push() {
-  local asked=0
-  DEVBIN_GATE_TTY="$(stdin_tty_flag)" ask_person "brew publish: render Formula/intent.rb and Casks/$CASK_TOKEN.rb from the published release and push them to $TAP?" || asked=$?
-  case "$asked" in
-    0) ;;
-    1) die "declined at the prompt: nothing was fetched and nothing was pushed" ;;
-    *) die "nobody to ask: --push confirms at the terminal, because a push to $TAP changes what every 'brew install' gets, and this process has no terminal. Nothing was fetched and nothing was pushed: run it at a terminal" ;;
-  esac
-}
-
-# brew_write <out> <text> -- the rendered file at <out>, or on stdout when <out>
-# is `-`. A relative <out> is read from the project root, where the dispatcher
-# runs every command.
-brew_write() {
-  if [ "$1" = - ]; then
-    printf '%s\n' "$2"
-  else
-    printf '%s\n' "$2" >"$1" || die "could not write $1"
-    printf 'wrote: %s\n' "$1" >&2
-  fi
-}
-
-# cmd_render -- `bin/int brew render <tag> <out>`: Formula/intent.rb, or with
-# --cask Casks/intent-app.rb, for the release <tag> names, every hash read from
-# the bytes at --from. The version is the tag's, so nobody types one (T8). See
-# usage() for the flags.
-cmd_render() {
-  local revision=0 from="" version="" dev=0 tap="" cask=0 formula frc=0 dir rendered crc=0 tag="" out="" positional=()
-  while [ $# -gt 0 ]; do
-    case "$1" in
-      --revision)
-        [ $# -ge 2 ] || die "brew render --revision needs a number"
-        revision="$2"
-        shift 2
-        case "$revision" in
-          '' | *[!0-9]*) die "brew render --revision takes a non-negative integer, got '${revision:-<empty>}'" ;;
-        esac
-        ;;
-      --from)
-        [ $# -ge 2 ] || die "brew render --from needs a base URL, eg file:///path/to/packages"
-        from="${2%/}"
-        shift 2
-        ;;
-      --dev-tap)
-        dev=1
-        shift
-        ;;
-      --tap)
-        [ $# -ge 2 ] || die "brew render --tap needs a tap name, eg intent-dev/intent"
-        tap="$2"
-        shift 2
-        ;;
-      --cask)
-        cask=1
-        shift
-        ;;
-      -)
-        positional+=("$1")
-        shift
-        ;;
-      -*) die "brew render takes <tag> <out> and --revision N, --from URL, --dev-tap, --tap NAME and --cask, got: $1 (try: bin/devbin brew --help)" ;;
-      *)
-        positional+=("$1")
-        shift
-        ;;
-    esac
-  done
-  [ "${#positional[@]}" -eq 2 ] || die "usage: bin/devbin brew render <tag> <out> [--revision N] [--from URL] [--dev-tap [--tap NAME]] [--cask]; <out> is a path, or - for stdout"
-  tag="${positional[0]}"
-  out="${positional[1]}"
-  case "$tag" in
-    v*) version="${tag#v}" ;;
-    *) die "brew render takes a release tag, v<version>, got '$tag'" ;;
-  esac
-  case "$version" in
-    '' | *[!A-Za-z0-9.+_-]*) die "brew render takes a tag whose version can sit in a URL, got '$tag'" ;;
-  esac
-  if [ "$cask" -eq 1 ]; then
-    [ "$dev" -eq 0 ] && [ "$revision" -eq 0 ] ||
-      die "brew render --cask renders the cask alone: it takes --from, and no --dev-tap, --tap or --revision"
-  fi
-  [ -z "$tap" ] || [ "$dev" -eq 1 ] || die "brew render --tap writes a dev tap, so it needs --dev-tap"
-  [ "$dev" -eq 0 ] || [ -n "$from" ] ||
-    die "brew render --dev-tap renders from local packages, so it needs --from, eg file:///path/to/packages"
-
-  if [ "$cask" -eq 1 ]; then
-    rendered="$(brew_cask "$version" "$from")" || crc=$?
-    case "$crc" in
-      0) ;;
-      3) die "no cask: $APP_ASSET has to be there (named above)" ;;
-      *) exit "$crc" ;;
-    esac
-    brew_write "$out" "$rendered"
-    printf 'rendered from %s, its sha256 the hash of the bytes fetched from there\n' "${from:-the release $tag}" >&2
-    return 0
-  fi
-
-  formula="$(brew_formula "$version" "$revision" "$from" "$dev")" || frc=$?
-  case "$frc" in
-    0) ;;
-    3) die "no formula: every asset named above has to be there, and --dev-tap renders only the platforms that are" ;;
-    *) exit "$frc" ;;
-  esac
-  brew_write "$out" "$formula"
-  printf 'rendered from %s, every sha256 the hash of the bytes fetched from there\n' "${from:-the release $tag}" >&2
-
-  if [ -n "$tap" ]; then
-    require_tool brew
-    dir="$(brew --repository "$tap")" || die "brew --repository $tap failed, so there is nowhere to write the dev tap"
-    if [ ! -d "$dir" ]; then
-      brew tap-new "$tap" >/dev/null || die "brew tap-new $tap failed, so the dev tap does not exist"
-    fi
-    mkdir -p "$dir/Formula" || die "could not make $dir/Formula"
-    printf '%s\n' "$formula" >"$dir/Formula/intent.rb" || die "could not write $dir/Formula/intent.rb"
-    printf 'dev tap: wrote %s/Formula/intent.rb\n  Homebrew 7 loads formulae only from taps it trusts, so trust this one and install:\n    brew trust --tap %s\n    brew install %s/intent\n' "$dir" "$tap" "$tap" >&2
-  fi
-}
-
-# cmd_publish -- `bin/int brew publish`: render the newest release's formula,
-# and its cask beside it, and push both to the tap in one commit, after asking
-# at the terminal. The newest release is the one the staged binary reports, the
-# release this checkout just cut, so it is handed no tag (T8). THE ONE WRITER OF
-# BOTH (ST0081 WP-02, vc's ruling of 2026-10-27): `macos publish` uploads the
-# macOS assets and stops, and `release attach` adds the Linux packages and
-# SHA256SUMS, so this runs on the complete release and nothing else pushes.
-cmd_publish() {
-  local version formula frc=0 rendered crc=0
-  [ $# -eq 0 ] || die "brew publish takes no arguments: it publishes the release the staged binary reports, got: $*"
-  brew_confirm_push
-  require_sums
-  version="$(staged_version)"
-  formula="$(brew_formula "$version" 0 "" 0)" || frc=$?
-  case "$frc" in
-    0) ;;
-    3) die "nothing was pushed: publish needs a complete formula, and the release v$version does not carry every asset yet (named above)" ;;
-    *) exit "$frc" ;;
-  esac
-  rendered="$(brew_cask "$version" "")" || crc=$?
-  case "$crc" in
-    0) ;;
-    3) die "nothing was pushed: publish pushes the cask beside the formula, and the release v$version does not carry $APP_ASSET (named above)" ;;
-    *) exit "$crc" ;;
-  esac
-  step "pushing Formula/intent.rb and Casks/$CASK_TOKEN.rb for v$version to $TAP"
-  brew_push_tap "$formula" "$rendered" "$version" "Generated by 'bin/devbin brew publish' at a terminal, every hash read
-from the bytes the published release serves."
-  ok
-
-  # Moved here from `macos publish` with the push (ST0081 WP-02): the note
-  # belongs to the command that puts the formula in the tap.
-  printf '\n'
-  printf 'published: Formula/intent.rb and Casks/%s.rb for v%s are in %s.\n' "$CASK_TOKEN" "$version" "$TAP"
-  printf '  STILL OWED, and this command cannot supply it: an install run on a machine\n'
-  printf '  that has never seen this repository. Everything above proves the release and\n'
-  printf '  the formula agree; only that proves the tap works for a stranger.\n'
-  printf '    brew install %s/intent\n' "$BREW_TAP"
-}
 
 # smoke -- the only check whose subject is the INSTALLED KEG.
 #
@@ -262,11 +92,28 @@ smoke_views_fixture() {
   ) >/dev/null 2>&1 || true
 }
 
+# tap_formula_version -- the version Formula/intent.rb in the tap carries, read
+# from the tap's GitHub repository (BREW_TAP `<owner>/<name>` is
+# `<owner>/homebrew-<name>` there), not from this machine's clone of it, which
+# lags until a `brew update`. Prints nothing when the formula carries no
+# RELEASE_VERSION line; returns 1 when gh could not read it.
+tap_formula_version() {
+  local repo="${BREW_TAP%%/*}/homebrew-${BREW_TAP#*/}" text
+  text="$(gh api "repos/$repo/contents/Formula/intent.rb" -H 'Accept: application/vnd.github.raw')" || return 1
+  printf '%s\n' "$text" | sed -n 's/^  RELEASE_VERSION = "\([^"]*\)".*/\1/p'
+}
+
 cmd_smoke() {
-  local reinstall=0 keg_override=""
+  local reinstall=0 keg_override="" at_tag=0
   while [ $# -gt 0 ]; do
     case "$1" in
       --reinstall) reinstall=1 ;;
+      # `--at-tag` IS THE CUT'S FORM, its last after: command. It smokes the
+      # release at HEAD's tag, cold from the tap, and only once the tap carries
+      # that version: the core runs every after: command even when `cut
+      # publish` failed before it, and a smoke of the previous release would
+      # read green over a publication that never happened (vc's ruling).
+      --at-tag) at_tag=1 reinstall=1 ;;
       # `--keg <dir>` EXISTS SO THE GREEN PATH CAN BE DRIVEN WITHOUT A RELEASE,
       # following this file's own precedent for `unclassified_artefacts`: a
       # check whose first exercise is a release is one nobody has tested. It is
@@ -276,10 +123,23 @@ cmd_smoke() {
       # what its formula installs. That is the drift class, not a repair.
       --keg) shift; keg_override="${1:-}"
         [ -n "$keg_override" ] || die "--keg needs a directory" ;;
-      *) die "unknown smoke option: $1 (only --reinstall, --keg <dir>)" ;;
+      *) die "unknown smoke option: $1 (only --at-tag, --reinstall, --keg <dir>)" ;;
     esac
     shift
   done
+
+  if [ "$at_tag" -eq 1 ]; then
+    local tag tapped
+    tag="$(git -C "$ROOT" tag --points-at HEAD 'v*')" || die "git could not list the tags at HEAD"
+    case "$tag" in
+      "" | *[[:space:]]*) die "--at-tag needs exactly one release tag at HEAD, and HEAD carries: ${tag:-none}" ;;
+    esac
+    tapped="$(tap_formula_version)" || die "the tap's formula could not be read, so the smoke cannot say which release it would test"
+    if [ "$tapped" != "${tag#v}" ]; then
+      printf 'brew smoke: the tap is not at %s: the publish step did not finish (the tap carries %s). Nothing was smoked.\n' "${tag#v}" "${tapped:-no version}" >&2
+      exit 1
+    fi
+  fi
 
   SMOKE_FAILURES=""
   SMOKE_FAIL_COUNT=0
@@ -596,55 +456,30 @@ $SMOKE_FAILURES"
   fi
 }
 
+
 usage() {
   cat <<'USAGE'
-bin/devbin brew <subcommand>
+bin/devbin brew smoke [--at-tag | --reinstall] [--keg <dir>]
 
-  Intent's Homebrew formula, and the check of an installed keg (ST0081 WP-06).
-  One formula serves macOS arm64 and Linux x86_64 and aarch64, and `publish`
-  below is the one command that pushes it, with the cask beside it.
+  Assert the INSTALLED KEG, which is the only subject that has been through
+  the network hop (ST0081 WP-06). Reads -x back off both binaries, checks
+  every install-root path v3 resolves is present, that the rule library ARMS
+  rather than merely existing, and drives INTENT_HOME and the session hooks
+  from outside any checkout. It also builds a throwaway project whose tracked
+  view carries bytes the store did not render, and asserts a READ verb leaves
+  it alone -- with a WRITE verb beside it that must dirty the tree, because an
+  assertion that nothing happened passes on a broken fixture too.
 
-  render <tag> <out>
-               Write Formula/intent.rb for the release <tag> names, v<version>,
-               to <out>, or to stdout when <out> is -. Every sha256 is the hash
-               of the bytes fetched from --from, the release's own download URL
-               unless given, and the keg's manifest names the tag's commit, read
-               from git. A release formula needs all five assets -- macOS
-               arm64's intent, intentd and support tree, and the Linux x86_64
-               and aarch64 packages -- and refuses, naming each missing one with
-               its URL, rather than write a partial formula. From the release's
-               own URL, the macOS hashes must equal those SHA256SUMS.txt records
-               when it is staged.
-    --revision N  a revision line, for a formula fix at an unchanged version
-    --from URL    another base, eg file:///path/to/linux-dist; the formula then
-                  states its version on a line of its own
-    --dev-tap     render only the platforms whose assets are all at --from,
-                  naming the rest, and depend on those platforms so it refuses
-                  the others; needs --from. With no tag <tag> here, the
-                  manifest names HEAD, and stderr says so
-    --tap NAME    with --dev-tap, write it into the local tap NAME as well, made
-                  with `brew tap-new` if it does not exist, so `brew install
-                  NAME/intent` proves it before anything is pushed
-    --cask        write Casks/intent-app.rb instead, its sha256 the hash of
-                  Intent.app.zip fetched from --from; its url is always the
-                  release's. Takes --from only
-  publish      Render the formula of the release the staged binary reports, and
-               the cask beside it, and push both to the tap in one commit, after
-               asking at the terminal: their one writer, run once `bin/devbin
-               release attach vX.Y.Z` has put the Linux packages and SHA256SUMS
-               on the release. Refuses with no terminal, and takes no arguments
-  smoke        Assert the INSTALLED KEG, which is the only subject that has been
-               through the network hop. Reads -x back off both binaries, checks
-               every install-root path v3 resolves is present, that the rule
-               library ARMS rather than merely existing, and drives INTENT_HOME
-               and the session hooks from outside any checkout. It also builds
-               a throwaway project whose tracked view carries bytes the store
-               did not render, and asserts a READ verb leaves it alone -- with a
-               WRITE verb beside it that must dirty the tree, because an
-               assertion that nothing happened passes on a broken fixture too.
-               `--reinstall` does the cold tap install first -- it unlinks the
-               binary other sessions are using, so it is opt-in.
-               `--keg <dir>` asserts a keg directory other than the installed one
+    --at-tag     the cut's form, its last after: command: once the tap carries
+                 the version of HEAD's release tag, the cold install below and
+                 the smoke; when it does not, say that the publish step did not
+                 finish and smoke nothing
+    --reinstall  do the cold tap install first -- it unlinks the binary other
+                 sessions are using, so it is opt-in
+    --keg <dir>  assert a keg directory other than the installed one
+
+  The formula and the cask are rendered and pushed by devbin's built-in
+  `formula` (`bin/devbin formula --help`), which `bin/devbin cut publish` runs.
 USAGE
 }
 
@@ -652,14 +487,6 @@ case "${1:-}" in
   "" | -h | --help)
     usage
     exit 0
-    ;;
-  render)
-    shift
-    cmd_render "$@"
-    ;;
-  publish)
-    shift
-    cmd_publish "$@"
     ;;
   smoke)
     shift
