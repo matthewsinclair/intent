@@ -67,7 +67,7 @@ The **mediator** is the one seat through which hv is reached on a whiteboard. Th
 
 A **hat** is a duty a seat carries on top of its role. One seat wears a hat at a time within the hat's scope, and a hat is taken and handed over by an explicit act.
 
-The **Desk** is a hat whose scope is one host: control of that host's slots, which decides how much heavy work runs on the machine at once. One vc on a host wears it, on hv's word. A machine that books its runs on another host's desk, as a guest virtual machine does, is within that desk's scope. Its duties are written with the slots themselves, not here.
+The **Desk** is a hat whose scope is one host: control of that host's slots, which decides how much heavy work runs on the machine at once. One mediator on a host wears it, on hv's word. A machine that books its runs on another host's desk, as a guest virtual machine does, is within that desk's scope. Its duties are written with the slots themselves, not here.
 
 The **pen** is a hat whose scope is one whiteboard: hv's leave for the mediator to rule where hv has not. The mediator wears it only on hv's word. A ruling made under it is recorded as the wearer's and never as hv's, and hv may reverse it. The pen does not reach what hv keeps: scope, release policy, the ratification of a decision, and anything hv has said is hv's alone. Those the mediator still presents and does not decide.
 

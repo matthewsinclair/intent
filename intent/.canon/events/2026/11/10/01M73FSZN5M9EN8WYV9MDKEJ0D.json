@@ -1,0 +1,15 @@
+{
+  "id": "01M73FSZN5M9EN8WYV9MDKEJ0D",
+  "ts": "2026-11-10T19:43:51.461Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-10, by selection in the TUI hv asked for in vc's session, \"give me these as TUI questions with context, options, and a rec\", answered between 19:41Z and 19:43:23Z on vc's date -u; wording vc's, each choice hv's and each vc's recommendation) SIX RULINGS. (1) Issue 0667, intentd's log under brew services, rides 3.3.0. (2) Issue 0678, declared build and test commands, does not: it waits until after 3.3.0. (3) The Desk is worn by a mediator: the terms now read \"One mediator on a host wears it, on hv's word\", in place of \"One vc\". (4) Intent keeps an acceptance test's own red-then-green: a red is the code as it was, never a planted fault, and a regression arm for something already fixed lands green with a note. (5) The client's name already public on upstream is fixed forward only: the tracked files that carry it are scrubbed in an ordinary commit before the push, and public history is not rewritten or force-pushed. (6) The one-message rewrite of the unpushed commit c1d7d163d runs just before the push, with every seat held, as planned."
+  }
+}

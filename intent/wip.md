@@ -1,5 +1,5 @@
 ---
-verblock: "2026-11-10:v3.67: vc - ST0092's terms are ratified and cc builds WP-02"
+verblock: "2026-11-10:v3.68: vc - hv ruled six open items; 0667 rides 3.3.0 and is dc's"
 intent_version: 3.2.8
 ---
 
@@ -13,9 +13,9 @@ intent_version: 3.2.8
 
 ## TODO
 
-- Owed by hv to vc (vc todo 77): the run of the one-message rewrite just before the push, and a ruling on the client's name that upstream already carries (vc watchout 34); whether issues 0678 and 0667 ride 3.3.0 (vc recommends 0678 does not, and 0667 is unbuilt and unassigned); the Desk sentence in the ratified terms, which says one vc on a host where vc's ruling for WP-08 says the board's mediator; whether Intent keeps an AT's own red-then-green; and hv's eye on ST0090's row on a 3.3.0 build.
+- Owed by hv to vc (vc todo 77): the run of the one-message rewrite just before the push, and hv's eye on ST0090's row on a 3.3.0 build. Ruled by hv on 2026-11-10 (hv decision 35): issue 0667 rides 3.3.0 and is dc's; the client's name already public is fixed forward, so vc scrubs the tracked files that carry it in an ordinary commit before the push (vc watchout 34).
 - The push of main to local and upstream alone (vc hold 8) waits on four things. hv runs the rewrite of one commit message, with every seat held. A build all at the HEAD to be pushed passes on the desk, with every seat holding its commits until the push. A Linux preflight at that HEAD passes on kovacs. Then devbin-vc pushes on vc's word naming that HEAD (vc decision 90). It carries everything on main since v3.2.8. No release rides on it.
-- Issue 0678, declared build and test commands: filed by ic when 0672 was narrowed, not built, and hv's to place (vc recommends after 3.3.0). The FMT-02 set in the shared trope catalogue belongs to llm-tropes first and is parked for hv.
+- Issue 0678, declared build and test commands: filed by ic when 0672 was narrowed, not built, and after 3.3.0 on hv's ruling of 2026-11-10 (hv decision 35). The FMT-02 set in the shared trope catalogue belongs to llm-tropes first and is parked for hv.
 - ST0090, issue 0664's fix: one criterion is left, AC-02.4. hv sees Intent.app's Rebuild Search Index row show its second line, `reconciled <age> ago`, after a rebuild, on a build at or after a54f2e9e0 whose CLI carries 8406f6a15: the 3.3.0 cut, or a dev app pointed at a dev CLI, which is the maintainer's alone and which dc builds again on vc's word, since the Debug app of 2026-11-01 is gone. vc then records that build on AC-02.4 and dc closes WP-02 (vc hold 6, dc hold 37). `intent ac gate ST0090` names what is left.
 - Laksa's and Conflab's releases wait for hv's next word. On rhadamanth, Conflab runs its checkout's build (520987af, v0.6.2-468) through ~/.local/bin and ~/bin links, with brew's 0.6.2 installed but unlinked, so it moves to brew at its next release.
 - Devbin 0295, for the next devbin release: stamp first, test once, tag what passed. The kovacs run stays (hv).
