@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-_(none)_
+- Held until hv lifts ic's hold (hv's word to ic at 18:00Z on 2026-11-10: "Boot, fold, and hold."): file, on vc's ask, a low issue with hv as reporter. The refusal of `intent claude rules validate NO-SUCH-RULE-XYZ` prints a capitalised "Error:", against INV-01's lowercase `error:`, and exits 1, the same code as a finding. The measurement is in refs/bank/ic/st0092/row-read-notes-v2.md. File it only; do not build it.
 
 ## Watch-outs
 
