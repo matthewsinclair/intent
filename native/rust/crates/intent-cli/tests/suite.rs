@@ -65,6 +65,8 @@ mod a_pull_is_reflected_by_the_next_verb;
 mod a_pull_is_repaired_by_one_command;
 #[path = "a_read_verb_leaves_a_legacy_home.rs"]
 mod a_read_verb_leaves_a_legacy_home;
+#[path = "a_release_archive_carries_no_hook_dispatcher.rs"]
+mod a_release_archive_carries_no_hook_dispatcher;
 #[path = "a_search_by_target_asks_one_question.rs"]
 mod a_search_by_target_asks_one_question;
 #[path = "a_skewed_views_printed_remedy_clears_it.rs"]

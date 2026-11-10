@@ -884,6 +884,12 @@ pub enum BlockHeld {
   RetiredMarker,
   /// An opener with no end marker, so there is no bound to rewrite within.
   Unclosed,
+  /// Two `.gitattributes` archive blocks (issue 0650): which one stands is a
+  /// human's call.
+  ArchiveDoubled,
+  /// A `.gitattributes` archive block with no closing marker, so there is no
+  /// bound to rewrite within.
+  ArchiveUnclosed,
 }
 
 impl std::fmt::Display for BlockHeld {
@@ -894,7 +900,27 @@ impl std::fmt::Display for BlockHeld {
         "it carries the retired `# >>> intent-chain-block >>>` marker, left by a doubling a human has to repair"
       }
       Self::Unclosed => "its chain block has no `# intent-chain-block:end`, so there is no bound to rewrite within",
+      Self::ArchiveDoubled => {
+        "it carries two `# >>> intent: hooks export-ignore >>>` blocks, and which one stands is a human's call"
+      }
+      Self::ArchiveUnclosed => {
+        "its `# >>> intent: hooks export-ignore >>>` block has no `# <<< intent: hooks export-ignore <<<`, so there is no bound to rewrite within"
+      }
     })
+  }
+}
+
+impl BlockHeld {
+  /// What holding the block leaves standing, for the line that names it.
+  pub fn consequence(&self) -> &'static str {
+    match self {
+      Self::Doubled | Self::RetiredMarker | Self::Unclosed => {
+        "its chain block was not rewritten, so it may still say nothing when its carrier is missing"
+      }
+      Self::ArchiveDoubled | Self::ArchiveUnclosed => {
+        "its archive block was not rewritten, so `git archive` may still carry the hook dispatchers"
+      }
+    }
   }
 }
 
@@ -1441,6 +1467,10 @@ pub fn apply(
       install_post_pull_carrier(home, hooks, name, opts.report, &mut applied)?;
       chain_hook(&hooks.join(name), name, opts.report, &mut applied)?;
     }
+
+    // 6. The dispatchers just written stay out of every release archive
+    //    (issue 0650), wherever the project tracks them.
+    keep_hooks_out_of_archives(root, hooks, opts.report, &mut applied)?;
   }
 
   Ok(applied)
@@ -1478,6 +1508,146 @@ fn chain_hook(
     make_executable(hook)?;
   }
   Ok(())
+}
+
+/// The markers of the `.gitattributes` block that keeps the commit gate's
+/// tracked dispatchers out of every release archive (issue 0650), in the form
+/// devbin's line-endings block takes in the same file.
+const ARCHIVE_BLOCK_OPEN: &str = "# >>> intent: hooks export-ignore >>>";
+const ARCHIVE_BLOCK_CLOSE: &str = "# <<< intent: hooks export-ignore <<<";
+
+/// The hooks directory as a `/`-separated path inside the work tree, when the
+/// project keeps its hooks there and so tracks them: `.githooks` or
+/// `bin/hooks` behind `core.hooksPath`. `None` for git's own `.git/hooks`,
+/// which no clone and no archive carries, and for a directory outside `root`,
+/// such as a linked worktree's, which is the main repository's.
+pub fn tracked_hooks_rel(root: &Path, hooks: &Path) -> Option<String> {
+  let rel = hooks.strip_prefix(root).ok()?;
+  let mut parts = Vec::new();
+  for part in rel.components() {
+    match part {
+      std::path::Component::Normal(name) => parts.push(name.to_str()?),
+      std::path::Component::CurDir => {}
+      _ => return None,
+    }
+  }
+  match parts.first() {
+    None | Some(&".git") => None,
+    Some(_) => Some(parts.join("/")),
+  }
+}
+
+/// The archive block for hooks at `rel`.
+///
+/// **ANCHORED, AND WITH NO TRAILING SLASH, BOTH MEASURED.** `.githooks/`
+/// matches a `.githooks` directory at any depth, so it would drop a nested one
+/// the project ships; `/.githooks` drops the root's alone. `git archive` honours
+/// either on the directory, and `.githooks/**` would leave an empty
+/// `.githooks/` entry in the archive.
+pub fn archive_block(rel: &str) -> String {
+  format!(
+    "{ARCHIVE_BLOCK_OPEN}\n\
+     # Written by `intent claude upgrade --apply` and kept by it, which replaces\n\
+     # what is between these two lines: the commit gate's tracked dispatchers\n\
+     # stay out of every release archive. A project that wants them there says\n\
+     # so in a line of its own after this block, eg `/{rel} -export-ignore`.\n\
+     /{rel} export-ignore\n\
+     {ARCHIVE_BLOCK_CLOSE}\n"
+  )
+}
+
+/// What `.gitattributes` becomes with the archive block for hooks at `rel`:
+/// `Ok(Some(text))` to write, `Ok(None)` when it already carries the block as
+/// canon writes it, and `Err` with the reason when its block is not one this
+/// code can bound.
+///
+/// **THE BLOCK IS REWRITTEN WHERE IT STANDS, AND APPENDED ONLY WHEN ABSENT.**
+/// In `.gitattributes` the last line that matches a path wins, so a project's
+/// own `/.githooks -export-ignore` after the block keeps the last word through
+/// every later upgrade.
+pub fn with_archive_block(existing: &str, rel: &str) -> Result<Option<String>, BlockHeld> {
+  let block = archive_block(rel);
+  let lines: Vec<&str> = existing.split_inclusive('\n').collect();
+  let opens: Vec<usize> = lines
+    .iter()
+    .enumerate()
+    .filter(|(_, line)| line.trim_end() == ARCHIVE_BLOCK_OPEN)
+    .map(|(at, _)| at)
+    .collect();
+  let updated = match opens.as_slice() {
+    [] => {
+      let mut text = existing.to_string();
+      if !text.is_empty() {
+        if !text.ends_with('\n') {
+          text.push('\n');
+        }
+        if !text.ends_with("\n\n") {
+          text.push('\n');
+        }
+      }
+      text.push_str(&block);
+      text
+    }
+    [open] => {
+      let close = lines
+        .iter()
+        .skip(*open)
+        .position(|line| line.trim_end() == ARCHIVE_BLOCK_CLOSE)
+        .map(|n| open + n)
+        .ok_or(BlockHeld::ArchiveUnclosed)?;
+      let mut text: String = lines.iter().take(*open).copied().collect();
+      text.push_str(&block);
+      text.extend(lines.iter().skip(close + 1).copied());
+      text
+    }
+    _ => return Err(BlockHeld::ArchiveDoubled),
+  };
+  Ok((updated != existing).then_some(updated))
+}
+
+/// Keep the commit gate's tracked dispatchers out of every release archive
+/// (issue 0650): where the hooks directory is inside the work tree, the
+/// upgrade that writes the dispatchers keeps `.gitattributes`' archive block
+/// too, creating the file when it is absent. Hooks under `.git/` get nothing,
+/// since no clone and no archive carries them.
+///
+/// **A PROJECT THAT ALREADY DECIDED GETS NO BLOCK.** Where no block stands and
+/// a line of the project's own decides `export-ignore` for the directory,
+/// either way, appending the block after it would overturn that line, since
+/// the last line that matches a path wins. So the file is left as it is.
+fn keep_hooks_out_of_archives(
+  root: &Path,
+  hooks: &Path,
+  report: bool,
+  applied: &mut Applied,
+) -> Result<(), CanonError> {
+  let Some(rel) = tracked_hooks_rel(root, hooks) else {
+    return Ok(());
+  };
+  let path = root.join(".gitattributes");
+  let existing = match std::fs::read_to_string(&path) {
+    Ok(text) => text,
+    Err(e) if e.kind() == std::io::ErrorKind::NotFound => String::new(),
+    Err(source) => return Err(CanonError::Unreadable { path, source }),
+  };
+  let has_block = existing
+    .lines()
+    .any(|line| line.trim_end() == ARCHIVE_BLOCK_OPEN);
+  if !has_block && crate::gitstate::export_ignore_decided(root, &rel).map_err(CanonError::Git)? {
+    applied.unchanged.push(path);
+    return Ok(());
+  }
+  match with_archive_block(&existing, &rel) {
+    Ok(Some(updated)) => write_if_changed(&path, &updated, report, applied),
+    Ok(None) => {
+      applied.unchanged.push(path);
+      Ok(())
+    }
+    Err(why) => {
+      applied.blocks_held.push((path, why));
+      Ok(())
+    }
+  }
 }
 
 /// Install `hooks/post-pull.sh` as `<hooks>/<hook>.intent`, the carrier the

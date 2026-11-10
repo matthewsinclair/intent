@@ -216,6 +216,27 @@ pub fn is_tracked(root: &Path, path: &str) -> Result<bool, GitStateError> {
   run(root, &["ls-files", "-z", "--", path]).map(|out| !out.is_empty())
 }
 
+/// Does a `.gitattributes` line decide `export-ignore` for the directory `dir`
+/// (issue 0650)? `set` and `unset` are both a decision; only `unspecified` is
+/// none. Outside a work tree nothing decides.
+///
+/// **ASKED OF `<dir>/`, WITH THE TRAILING SLASH, AND THAT IS MEASURED.**
+/// Without it `git check-attr` cannot know the path is a directory, so a
+/// project's own `.githooks/ export-ignore`, which `git archive` honours,
+/// would read `unspecified`.
+pub fn export_ignore_decided(root: &Path, dir: &str) -> Result<bool, GitStateError> {
+  if !is_work_tree(root) {
+    return Ok(false);
+  }
+  let asked = format!("{dir}/");
+  let out = run(root, &["check-attr", "export-ignore", "--", &asked])?;
+  Ok(
+    !String::from_utf8_lossy(&out)
+      .trim_end()
+      .ends_with(": unspecified"),
+  )
+}
+
 /// Which of `paths` the index holds staged changes for -- bytes that differ
 /// from HEAD's -- relative to the project root. Outside a work tree nothing is
 /// staged.

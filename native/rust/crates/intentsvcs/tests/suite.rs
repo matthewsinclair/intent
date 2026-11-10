@@ -489,6 +489,8 @@ mod sync_to_store_keeps_board_rows;
 mod template_pins;
 #[path = "text_realisation.rs"]
 mod text_realisation;
+#[path = "the_archive_block_is_kept_in_place.rs"]
+mod the_archive_block_is_kept_in_place;
 #[path = "the_backup_cycle_has_one_home.rs"]
 mod the_backup_cycle_has_one_home;
 #[path = "the_editor_gets_the_model_bytes.rs"]

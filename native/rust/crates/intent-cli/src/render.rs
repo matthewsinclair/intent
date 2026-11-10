@@ -14220,11 +14220,10 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
   // **A HOOK WHOSE CHAIN BLOCK CANON COULD NOT REWRITE IS NAMED, WITH WHY**
   // (issue `0538`): it keeps the block it had, which may be one that passes a
   // commit in silence, and a count alone would never say which hook that is.
+  // `.gitattributes`' archive block is held the same way (issue 0650), and
+  // each says what its own hold leaves standing.
   for (p, why) in &applied.blocks_held {
-    println!(
-      "held: {} -- {why}; its chain block was not rewritten, so it may still say nothing when its carrier is missing",
-      rel(root, p)
-    );
+    println!("held: {} -- {why}; {}", rel(root, p), why.consequence());
   }
   // Named, like every other disposition: a skipped file must not read as one
   // canon forgot (issue `0143`).

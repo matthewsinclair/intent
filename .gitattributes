@@ -15,3 +15,11 @@
 bin/devbin text=auto eol=lf
 bin/.devbin/** text=auto eol=lf
 # <<< devbin: line endings <<<
+
+# >>> intent: hooks export-ignore >>>
+# Written by `intent claude upgrade --apply` and kept by it, which replaces
+# what is between these two lines: the commit gate's tracked dispatchers
+# stay out of every release archive. A project that wants them there says
+# so in a line of its own after this block, eg `/.githooks -export-ignore`.
+/.githooks export-ignore
+# <<< intent: hooks export-ignore <<<
