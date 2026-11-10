@@ -1,0 +1,15 @@
+{
+  "id": "01M73GHX2ZMQW8E999DMXYCPQV",
+  "ts": "2026-11-10T19:56:55.263Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ST0092 WP-06, the launcher half, ic's on vc's word of 2026-11-10 (cc keeps the claim of ST0092/06 and builds `wb brief`): `intent/plugins/claude/bin/intent_claude_cwi` takes its context from `intent wb brief <node> --launch` in place of `compose_ctx`'s two hard-coded steps, its opening line says seat, it passes through the three ruled edges (a board with no profile answers exit 0 with today's two steps; a retired seat refuses exit 1 with `wb register` as remedy; the human seat refuses `--launch` exit 1), and `claude start`'s unregistered-moniker remedy names `wb init`. Built in a worktree off main ONLY once cc's `wb brief` is banked, then banked for vc's judging. Until then: read the script and shape the tests, no bank."
+  }
+}

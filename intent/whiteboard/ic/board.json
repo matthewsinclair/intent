@@ -2764,10 +2764,10 @@
       "node": "ic",
       "kind": "todo",
       "seq": 63,
-      "text": "ST0092, on vc's word of 2026-11-10: ic reads the dispatch-table rows WP-02 to WP-09's bodies specify, as the table's owner. All nine findings were sent to cc, each copied to vc, and nothing was written to ST0092's canon; the notes are at refs/bank/ic/st0092/row-read-notes-v2.md (blob f6b65de54ccc). On cc's shape question for WP-02, ic ruled and vc let it stand: `wb profile` is one row with a valued slot (list|show|validate|terms), as `claude rules` is built, and the MCP tier publishes one tool per value through new per-value fields `value_facades` and `value_args`, held to `value_flags`' load checks. The rule is stated once as INV-11 in the table's invariants, which cc carries in WP-02's bank with the code that holds it; ic's draft text is in the message to cc. NEXT: when cc sends WP-02's surface rows, read them and INV-11 before vc judges the bank, with findings one per message to cc, copied to vc. WP-10 is started and claimed only after cc's packages land, and then AC-10.3's baseline is re-run (refs/bank/ic/st0092/wp10-ac-10.3-baseline.md, blob 32fee803e560).",
+      "text": "ST0092, on vc's word of 2026-11-10: ic reads the dispatch-table rows ST0092's packages specify, as the table's owner. All six per-package reads (WP-03 to WP-07 and WP-09) went to vc and were RULED as ic recommended. vc writes them into the bodies in one chain. They add: INV-11 (one MCP tool per value of a valued slot, `value_facades` and `value_args`) riding cc's WP-02 bank, and INV-12 (only the mediator's session or a sessionless shell writes as the human seat, checked in the facade) riding cc's WP-05 bank. Further rulings: `wb retire` and `wb init` carry a recoverability_anomaly pointing at `wb register`'s; `--all` means 'include what the default hides'; `wb init` takes one positional `profile` 0..n; a dry run that meets a refusal exits 1; new doctor classes `roster-readme-edited` and `roster-readme-behind`, ids in FindingClass::as_str; and the three `wb brief` edges. NEXT: read each package's surface rows as cc or dc banks it, INV-11 and INV-12 among them, before vc judges, with findings one per message to the builder, copied to vc. Nothing is written to ST0092's canon. WP-10 is started and claimed only after cc's packages land, then AC-10.3's baseline is re-run (refs/bank/ic/st0092/wp10-ac-10.3-baseline.md, blob 32fee803e560). Earlier notes: refs/bank/ic/st0092/row-read-notes-v2.md.",
       "state": "live",
       "recorded_at": "2026-11-10T11:30:48.548Z",
-      "edited_at": "2026-11-10T19:48:12.139Z"
+      "edited_at": "2026-11-10T19:57:04.658Z"
     },
     {
       "node": "ic",
@@ -2835,6 +2835,22 @@
       "state": "archived",
       "archived_at": "2026-11-10T18:04:48.098Z",
       "recorded_at": "2026-11-10T18:01:50.719Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 65,
+      "text": "ST0092 WP-06, the launcher half, ic's on vc's word of 2026-11-10 (cc keeps the claim of ST0092/06 and builds `wb brief`): `intent/plugins/claude/bin/intent_claude_cwi` takes its context from `intent wb brief <node> --launch` in place of `compose_ctx`'s two hard-coded steps, its opening line says seat, it passes through the three ruled edges (a board with no profile answers exit 0 with today's two steps; a retired seat refuses exit 1 with `wb register` as remedy; the human seat refuses `--launch` exit 1), and `claude start`'s unregistered-moniker remedy names `wb init`. Built in a worktree off main ONLY once cc's `wb brief` is banked, then banked for vc's judging. Until then: read the script and shape the tests, no bank.",
+      "state": "live",
+      "recorded_at": "2026-11-10T19:56:55.263Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 66,
+      "text": "PARKED UNTIL AFTER THE 3.3.0 CUT, on vc's word of 2026-11-10: the dispatch table's `doctor` row still has target state `pending-hv` on \"Should doctor exit non-zero when it finds something?\", which the shipped exit contract (INV-04, doctor exits 1 on a counted finding) answered long ago. ic, as the table's owner, brings the row's correction to vc after the cut.",
+      "state": "live",
+      "recorded_at": "2026-11-10T19:56:56.268Z"
     }
   ],
   "sent": [

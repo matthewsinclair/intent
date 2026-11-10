@@ -1,0 +1,16 @@
+{
+  "id": "01M73GJ68J3C4JQ2GS00PENQ74",
+  "ts": "2026-11-10T19:57:04.658Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 63,
+    "text": "ST0092, on vc's word of 2026-11-10: ic reads the dispatch-table rows ST0092's packages specify, as the table's owner. All six per-package reads (WP-03 to WP-07 and WP-09) went to vc and were RULED as ic recommended. vc writes them into the bodies in one chain. They add: INV-11 (one MCP tool per value of a valued slot, `value_facades` and `value_args`) riding cc's WP-02 bank, and INV-12 (only the mediator's session or a sessionless shell writes as the human seat, checked in the facade) riding cc's WP-05 bank. Further rulings: `wb retire` and `wb init` carry a recoverability_anomaly pointing at `wb register`'s; `--all` means 'include what the default hides'; `wb init` takes one positional `profile` 0..n; a dry run that meets a refusal exits 1; new doctor classes `roster-readme-edited` and `roster-readme-behind`, ids in FindingClass::as_str; and the three `wb brief` edges. NEXT: read each package's surface rows as cc or dc banks it, INV-11 and INV-12 among them, before vc judges, with findings one per message to the builder, copied to vc. Nothing is written to ST0092's canon. WP-10 is started and claimed only after cc's packages land, then AC-10.3's baseline is re-run (refs/bank/ic/st0092/wp10-ac-10.3-baseline.md, blob 32fee803e560). Earlier notes: refs/bank/ic/st0092/row-read-notes-v2.md."
+  }
+}
