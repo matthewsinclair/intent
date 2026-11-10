@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 124edee5-f105-45bd-8483-ee7dc6dd6fd9
-heartbeat_at: 2026-11-10 12:00Z
+heartbeat_at: 2026-11-10 12:11Z
 status: active
 focus: "2026-11-10, localfolded for hv's compact on hv's word ("lets bank, localfold+compact and then continue on the bounce"); vc stays active. 3.3.0's first train is on main and verified. cc, dc and ic run under vc's direction on hv's word, and Intent's own board is normalised to the terms by hand (decision 111). FIRST AFTER THE BOUNCE, in order: rule on dc's ST0091 WP-01 inventory, which holds dc's writes (todo 71); write vc's design rulings into WP-02, WP-06, AC-02.5 and issue 0661's record (todos 76 and 77); judge ic's 0661 when it banks as fix-v1. Owed by hv: client names before the push, the ratification on twelve points, red-then-green, 0665's shape, and three points from dc's inventory (remotes, the annotated tag, the release commit's attribution line). The push waits on the client-names answer, a build all and the kovacs preflight (hold 8)."
 claims: []
