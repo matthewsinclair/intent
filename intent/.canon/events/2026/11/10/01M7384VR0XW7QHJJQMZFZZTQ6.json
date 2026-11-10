@@ -1,0 +1,15 @@
+{
+  "id": "01M7384VR0XW7QHJJQMZFZZTQ6",
+  "ts": "2026-11-10T17:29:59.296Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "Issue 0679, on vc's word of 2026-11-10: arms 12 and 13 of tests/unit/post_tool_symbol_context.bats test the hook's freshness gate as it was before 0669 made `intent search --context` reconcile first, so they have been red on main since 0669 landed. A test change, the hook stays: arm 12 asserts the answer after a move is current, and the gate's silence arms get a stale index the way a watched project has one. Banked on main after the train's landing with its red (the two arms on main as it stands); vc judges it on that file and the hook's other files, a light run."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M73846CQW2DJM0T7ERFNH4ZH",
+  "ts": "2026-11-10T17:29:38.040Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0679"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "Two arms of post_tool_symbol_context.bats test the hook's freshness gate as it was before 0669 made a search reconcile first"
+  }
+}
