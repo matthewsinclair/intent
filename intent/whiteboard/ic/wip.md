@@ -3,17 +3,18 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 677e6c35-f820-4993-8ec4-ad639debeb1b
-heartbeat_at: 2026-11-10 13:51Z
+heartbeat_at: 2026-11-10 16:17Z
 status: active
-focus: "2026-11-10, HOLD on hv's word through vc (vc's read 13:38:04Z), a fold and a compact, then a hold on the bounce for a move: ic builds nothing and banks nothing new until hv's next word, first-hand or through vc. 0650 stays as doing 140 says, fix-v1 banked and unrun with its desk grant released unstarted, and todo 61 and 62 wait behind it. Claim: ISSUE:0650."
-claims: [ISSUE:0650]
+focus: "2026-11-10, the train on hv's move (relayed by vc, 15:54:25Z): 0650 fix-v2 and 0672 fix-v1 are banked and asked at the desk, behind the Utilz release run; then 0676 and 0677, stacked, for vc to judge in one run. 0678 (declared commands) is filed and not built. Claims: ISSUE:0650, ISSUE:0672."
+claims: [ISSUE:0650, ISSUE:0672]
 ---
 
 # Interface Claude (ic)
 
 ## DOING
 
-- Issue 0650, S, on vc's order of 2026-11-10: the upgrade that writes the tracked hook dispatchers also keeps a marked export-ignore block in the project's .gitattributes, edited in place when present and appended when absent, and only when the hooks directory is inside the work tree; doctor names a project whose hooks directory has tracked files and no export-ignore decision; one test reads git archive after an upgrade in a fresh repository; Intent's own .gitattributes takes the block in the same bank. The block anchors the directory at the root, `/<hooks dir> export-ignore`, because devbin's `<hooks dir>/` form matches a directory of that name at any depth. Worktree tmp/wt-ic-0650 at base 1fe4a4bec, not main bfb81c32d as this item first said. Done: fix-v1 is banked whole at refs/bank/ic/0650/fix-v1-on-1fe4a4bec (blob bda6c11cda55, patch_id 947d3cb74461, 9 files, +432 -4), and the worktree's index is exactly that bank. Not done: its red-then-green run. The desk granted that run, and ic released the grant unstarted on hv's hold by 13:42:04Z. Next, on hv's word: ask the desk afresh, run red at the base and green with the fix, and report to vc, who judges it stacked with 0672, 0676 and 0677. (edited)
+- Issue 0650, S, on vc's order of 2026-11-10: the upgrade that writes the tracked hook dispatchers keeps a marked export-ignore block in the project's .gitattributes, rewritten in place when present, appended when absent, and written nowhere a line of the project's own already decides export-ignore for the hooks directory; doctor's default root-file-behind line names a .gitattributes that lacks the block and decides nothing; Intent's own .gitattributes takes the block. Worktree tmp/wt-ic-0650 at base 1fe4a4bec. fix-v1's run (desk 01M732QB6A0531N5TTQ6WW2F1Z, 15:55:31Z to 15:58:01Z) was red at the base as intended and green but for ic's own doctor arm, whose Advisory finding a default doctor hides and which repeated root-file-behind; reading it found that the upgrade appended its block after a project's own opt-out and overturned it. fix-v2 is banked at refs/bank/ic/0650/fix-v2-on-1fe4a4bec (blob a8a3de1da063, patch_id 5bef374fa083, 9 files, +440 -4): gitstate::export_ignore_decided, no block where the project decided, doctor.rs back at the base, and the arm drives all three. Next: its run, asked as 01M73314CQ77HXA2DD7H0HHGM0 behind the Utilz release run that holds every heavy lane, then report to vc. (edited)
+- Issue 0672, on vc's ruling of 2026-11-10 that narrowed it to the devbin case: AGENTS.md's build and test lines come from the tree, `bin/devbin` where it has one, with the estate controller's slot, and otherwise a line that the project declares no build or test commands, pointing at its README and usage-rules.md; no language default survives, and a prerequisite keeps only the toolchain's name. The fact is RenderContext.devbin, read by rootfiles::has_devbin at every construction site, and the template takes [[#devbin]] and [[#nodevbin]] blocks. Declared commands are issue 0678, not built. Worktree tmp/wt-ic-0672 at 1fe4a4bec with 0650 fix-v2 staged beneath. fix-v1 is banked at refs/bank/ic/0672/fix-v1-on-0650v2 (blob 2ef806b9c93a, patch_id e21a92fe4f63, 17 files, +191 -98); its run, with whole suites since RenderContext reaches every view, is asked as 01M733Y6TGV1T31BPQ016BFTZX after 0650's. Intent's own AGENTS.md is re-rendered by that run's build into the bank.
 
 ## TODO
 

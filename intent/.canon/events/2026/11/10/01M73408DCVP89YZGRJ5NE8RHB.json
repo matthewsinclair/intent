@@ -1,0 +1,15 @@
+{
+  "id": "01M73408DCVP89YZGRJ5NE8RHB",
+  "ts": "2026-11-10T16:17:34.124Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "Issue 0672, on vc's ruling of 2026-11-10 that narrowed it to the devbin case: AGENTS.md's build and test lines come from the tree, `bin/devbin` where it has one, with the estate controller's slot, and otherwise a line that the project declares no build or test commands, pointing at its README and usage-rules.md; no language default survives, and a prerequisite keeps only the toolchain's name. The fact is RenderContext.devbin, read by rootfiles::has_devbin at every construction site, and the template takes [[#devbin]] and [[#nodevbin]] blocks. Declared commands are issue 0678, not built. Worktree tmp/wt-ic-0672 at 1fe4a4bec with 0650 fix-v2 staged beneath. fix-v1 is banked at refs/bank/ic/0672/fix-v1-on-0650v2 (blob 2ef806b9c93a, patch_id e21a92fe4f63, 17 files, +191 -98); its run, with whole suites since RenderContext reaches every view, is asked as 01M733Y6TGV1T31BPQ016BFTZX after 0650's. Intent's own AGENTS.md is re-rendered by that run's build into the bank."
+  }
+}
