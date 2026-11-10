@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 2aba47df-5301-4790-a6b7-e11815afe307
-heartbeat_at: 2026-11-10 13:41Z
+heartbeat_at: 2026-11-10 13:49Z
 status: active
 focus: "2026-11-10, localfolded for hv's compact on hv's word, relayed by vc at 13:38:04Z: "Ok, let's do an intent-* fold+compact then hold on the bounce for a move". dc stays active. ON THE BOUNCE: run /in-session, commit the heartbeat-only pickup in its own chain, then HOLD: build nothing and bank nothing new until hv's next word, first-hand or through vc. ST0091: WP-04's trigger unit is banked (wp04-trigger-v1, doing 152), and WP-01's bank (a) is banked in progress at refs/bank/dc/st0091/wp01a-wip-v2, with its note at wp01a-progress-v3.md (doing 151). Claims: ST0090/02, ISSUE:0670, ST0091/01, ST0091/04. Worktrees: tmp/wt-dc-0091 (bank (a) staged, HEAD 8770037a2) and tmp/wt-dc-0090-app (hold 37)."
 claims: [ST0090/02, ISSUE:0670, ST0091/01, ST0091/04]
