@@ -202,6 +202,8 @@ mod dropbox_cache_mark;
 #[path = "init_keeps_the_store_out_of_git.rs"]
 mod init_keeps_the_store_out_of_git;
 
+#[path = "at_citation_rivals.rs"]
+mod at_citation_rivals;
 #[path = "doctor_checks.rs"]
 mod doctor_checks;
 #[path = "doctor_names_closed_contract_drift.rs"]

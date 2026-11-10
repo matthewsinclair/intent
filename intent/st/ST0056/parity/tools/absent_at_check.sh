@@ -128,7 +128,8 @@ die() {
 # Walk up to the project root by its marker rather than counting `..` levels --
 # `stale_at_check.sh`'s lesson, inherited: the tool sits five directories down
 # and a wrong count fails as a missing thread rather than a missing root.
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$HERE"
 while [ "$ROOT" != "/" ] && [ ! -f "$ROOT/intent/.config/config.json" ]; do
   ROOT="$(dirname "$ROOT")"
 done
@@ -138,6 +139,9 @@ done
 
 cd "$ROOT" || exit 2
 command -v jq >/dev/null 2>&1 || die "jq is required to read the canon extract" "install jq"
+# The one reading of a citation, `<file>` or `<file>:<line>` (issue 0670).
+# shellcheck source=lib_citation.sh
+. "$HERE/lib_citation.sh" || { echo "error: cannot read lib_citation.sh beside this tool" >&2; exit 2; }
 
 CANON_DIR="intent/.canon/st"
 [ -d "$CANON_DIR" ] || die "no canon extract at $CANON_DIR" \
@@ -161,7 +165,7 @@ while IFS= read -r f; do THREADS+=("$f"); done < <(find "$CANON_DIR" -name '*.js
 # so a jq filter that silently matches nothing is distinguishable from a corpus
 # that genuinely holds nothing.
 SCAN="$(
-  jq -r '
+  jq -r --arg line_re "$CITATION_LINE_RE" '
     input_filename as $f
     | ($f | split("/") | last | sub("\\.json$"; "")) as $tid
     | (.tests // []) as $rows
@@ -171,7 +175,7 @@ SCAN="$(
         | . as $r
         | (($r.status // "") | tostring) as $st
         | (($r.kind // "") | tostring) as $kind
-        | (($r.file // "") | tostring) as $file
+        | (($r.file // "") | tostring | sub($line_re; "")) as $file
         | if ($r | has("status")) then empty else ("BAD\t" + $tid + "\t" + ($r.id // "?")) end
         , ( if $kind == "test" and $file != "" and ($st == "green" or $st == "red")
             then "ROW\t" + $tid + "\t" + ($r.id // "?") + "\t" + $st + "\t" + $file

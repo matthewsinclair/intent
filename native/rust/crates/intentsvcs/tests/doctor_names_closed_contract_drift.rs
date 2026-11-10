@@ -93,7 +93,12 @@ fn seed(fx: &Fixture, threads: &[Thread]) {
   // **AFTER `write_thread`, WHICH WRITES A STUB CARRYING EVERY CITING ROW'S ID.**
   // These two replace the stubs: the kept file still carries its row's id, and
   // the dropped file is what is left when the labelled test was deleted.
-  fx.write_file(KEPT, "// AT-01.1 covers AC-01.1\n#[test]\nfn kept() {}\n");
+  // Both threads cite KEPT for a green AT-01.1, so since issue 0670 a bare
+  // id line cannot count for either: each thread is named on a line of its own.
+  fx.write_file(
+    KEPT,
+    "// ST0001 AT-01.1 covers AC-01.1\n// ST0002 AT-01.1 covers AC-01.1\n#[test]\nfn kept() {}\n",
+  );
   fx.write_file(DROPPED, "// the test that carried the id was deleted\n");
   let project = fx.project();
   let canon = intentsvcs::ingest::read(&project).expect("fixture canon reads");

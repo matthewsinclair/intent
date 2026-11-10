@@ -1829,7 +1829,9 @@ pub struct AcceptanceTest {
   pub id: String,
   pub kind: AtKind,
   /// Test kind: the repo-relative test file (the 0017 reference rules --
-  /// at least one `/`, no `:`).
+  /// at least one `/`), or `<file>:<line>` naming the line of the row's own
+  /// arm.
+  // The `:<line>` form is issue 0670's, read through `contract::citation`.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub file: Option<String>,
   /// Non-test kind: what was read / eyeballed.

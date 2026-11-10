@@ -166,16 +166,37 @@ impl Fixture {
     // A stub per ROW let the last row citing a shared file overwrite the ids
     // of the rows before it, and only the close gate's L3 exemption for a
     // Completed thread kept that from reading as a broken fixture.
-    let mut cited: std::collections::BTreeMap<&str, String> = std::collections::BTreeMap::new();
+    //
+    // **AND EACH LINE NAMES ITS OWN THREAD, KEEPING THE OTHER THREADS' LINES**
+    // (issue 0670). Fixtures seed several threads from `sample_thread`, so
+    // ST0001, ST0002 and ST0003 each carry a green AT-03.1 citing one file. A
+    // bare `// AT-03.1` line there is the ambiguity the contract check
+    // refuses: it cannot say which thread's arm it is, and a real estate in
+    // that shape is refused the same way. So the stub writes the line a real
+    // shared file would need, `// <thread> <AT>`, and adds it to what the
+    // file already carries instead of replacing another thread's line.
+    let mut cited: std::collections::BTreeMap<&str, Vec<String>> =
+      std::collections::BTreeMap::new();
     for test in &thread.tests {
       if let Some(file) = test.file.as_deref() {
         cited
           .entry(file)
           .or_default()
-          .push_str(&format!("// {}: a cited test file\n", test.id));
+          .push(format!("// {} {}: a cited test file", thread.id, test.id));
       }
     }
-    for (file, text) in cited {
+    for (file, lines) in cited {
+      let mut text = match std::fs::read_to_string(self.path(file)) {
+        Ok(text) => text,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => String::new(),
+        Err(e) => panic!("read the cited stub {file}: {e}"),
+      };
+      for line in lines {
+        if !text.lines().any(|l| l == line) {
+          text.push_str(&line);
+          text.push('\n');
+        }
+      }
       self.write_file(file, &text);
     }
   }

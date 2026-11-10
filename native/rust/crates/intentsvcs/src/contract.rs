@@ -299,6 +299,142 @@ pub enum Carries {
   /// The id is present, but every line carrying it names another thread --
   /// these, sorted and without repeats.
   OnlyUnder(Vec<String>),
+  /// The id is present only on lines that name no thread, and another thread
+  /// has a green or red row of the same id citing the same file -- these, its
+  /// rivals, sorted and without repeats -- so no such line can say whose arm it
+  /// is over (issue `0670`).
+  Ambiguous(Vec<String>),
+  /// The row cites `<file>:<line>`, and that line does not carry the id: the
+  /// line asked for, and the lines of the file that do carry it, each 1-based.
+  NotOnLine { line: usize, carrying: Vec<usize> },
+}
+
+/// A row's citation, `<file>` or `<file>:<line>` (issue `0670`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Citation<'a> {
+  /// The repo-relative file.
+  pub path: &'a str,
+  /// The 1-based line of the row's own arm, where the row names one.
+  pub line: Option<usize>,
+}
+
+/// THE ONE PARSER of a row's cited `file` (issue `0670`): `<file>:<line>` is
+/// the file and the line of the row's own arm, and anything else is a file.
+/// The suffix counts only as a positive decimal line after the last `:`, so a
+/// path that holds a `:` of its own and no line reads as it always did. Every
+/// reader of a citation asks this: the gate's existence check and its
+/// literal-id check, the existence refusal of `at red` and `at green`, and
+/// doctor through both, so none of them can read `x.bats:161` as a file
+/// called that.
+pub fn citation(file: &str) -> Citation<'_> {
+  if let Some((path, line)) = file.rsplit_once(':') {
+    // A positive decimal with no leading zero, `[1-9][0-9]*`: the same
+    // pattern the shell guards read through `lib_citation.sh`, so the two sides
+    // cannot disagree about what a line is.
+    if !path.is_empty()
+      && line.starts_with(|c: char| ('1'..='9').contains(&c))
+      && line.bytes().all(|b| b.is_ascii_digit())
+      && let Ok(n) = line.parse::<usize>()
+    {
+      return Citation {
+        path,
+        line: Some(n),
+      };
+    }
+  }
+  Citation {
+    path: file,
+    line: None,
+  }
+}
+
+/// Whether `line` carries `at_id` as a whole token (issue `0670`): an
+/// occurrence counts only where the character after it is not a digit, so
+/// `AT-3.5` is not found inside `AT-3.50`. The census at `refs/bank/vc/0670/`
+/// measured that this reddens no row.
+fn carries_token(line: &str, at_id: &str) -> bool {
+  line
+    .match_indices(at_id)
+    .any(|(i, _)| !line[i + at_id.len()..].starts_with(|c: char| c.is_ascii_digit()))
+}
+
+/// L3's answer for one file's text: whether it carries `at_id` for `thread`'s
+/// row citing `cited`, given the threads whose green or red row of the same id
+/// cites the same file. Pure: the readers hand it the text and the rivals.
+///
+/// **A ROW THAT CITES A LINE IS READ AT THAT LINE AND NOWHERE ELSE.** The line
+/// passes when it carries the id and does not name only other threads, and a
+/// bare id there counts even where the row has rivals, because the row has
+/// said which line is its own. A narrower read can be widened later without
+/// turning a row red; a wider one cannot be narrowed so (vc's shape, 0670).
+///
+/// **A ROW THAT CITES A FILE READS EVERY LINE, AS 0267 SHAPED IT, WITH ONE
+/// CHANGE (hv, 2026-11-01).** A line that names this thread counts; a line
+/// that names only other threads does not; and a line that names no thread
+/// counts unless the row has a rival, because in a file two threads cite, a
+/// bare id belongs to whichever arm it sits over and nothing on the line says
+/// which. Measured before the ruling: one row reddens across the estate, the
+/// exhibit.
+fn judge_text(
+  text: &str,
+  cited: Citation<'_>,
+  at_id: &str,
+  thread: &str,
+  rivals: &[String],
+) -> Carries {
+  let others_on = |lines: &[&str]| -> Vec<String> {
+    let mut others: Vec<String> = lines
+      .iter()
+      .flat_map(|line| threads_named(line))
+      .filter(|named| *named != thread)
+      .map(str::to_string)
+      .collect();
+    others.sort();
+    others.dedup();
+    others
+  };
+  if let Some(n) = cited.line {
+    let asked = text.lines().nth(n - 1);
+    return match asked {
+      Some(line) if carries_token(line, at_id) => {
+        if names_another_thread(line, thread) {
+          Carries::OnlyUnder(others_on(&[line]))
+        } else {
+          Carries::Yes
+        }
+      }
+      _ => Carries::NotOnLine {
+        line: n,
+        carrying: text
+          .lines()
+          .enumerate()
+          .filter(|(_, l)| carries_token(l, at_id))
+          .map(|(i, _)| i + 1)
+          .collect(),
+      },
+    };
+  }
+  let carrying: Vec<&str> = text
+    .lines()
+    .filter(|line| carries_token(line, at_id))
+    .collect();
+  if carrying.is_empty() {
+    return Carries::Absent;
+  }
+  if carrying
+    .iter()
+    .any(|line| threads_named(line).contains(&thread))
+  {
+    return Carries::Yes;
+  }
+  if carrying.iter().any(|line| threads_named(line).is_empty()) {
+    return if rivals.is_empty() {
+      Carries::Yes
+    } else {
+      Carries::Ambiguous(rivals.to_vec())
+    };
+  }
+  Carries::OnlyUnder(others_on(&carrying))
 }
 
 pub trait References {
@@ -325,7 +461,7 @@ pub struct RepoFiles<'a>(pub &'a std::path::Path);
 
 impl References for RepoFiles<'_> {
   fn resolves(&self, path: &str) -> bool {
-    self.0.join(path).exists()
+    self.0.join(citation(path).path).exists()
   }
 
   /// **At least one line carrying the id must not name a DIFFERENT thread**
@@ -342,28 +478,88 @@ impl References for RepoFiles<'_> {
   /// zero worth having because the predicate was driven on 0267's own exhibit
   /// first -- the exhibit reddens, three legitimate shapes stay green.
   fn carries_id(&self, path: &str, at_id: &str, thread: &str) -> Carries {
-    let Ok(text) = std::fs::read_to_string(self.0.join(path)) else {
-      return Carries::Absent;
-    };
-    let carrying: Vec<&str> = text.lines().filter(|line| line.contains(at_id)).collect();
-    if carrying.is_empty() {
-      return Carries::Absent;
-    }
-    if carrying
+    read_and_judge(self.0, path, at_id, thread, &[])
+  }
+}
+
+/// Read a row's cited file under `root` and judge it, [`judge_text`] over the
+/// text. A file that cannot be read carries nothing.
+fn read_and_judge(
+  root: &std::path::Path,
+  file: &str,
+  at_id: &str,
+  thread: &str,
+  rivals: &[String],
+) -> Carries {
+  let cited = citation(file);
+  match std::fs::read_to_string(root.join(cited.path)) {
+    Ok(text) => judge_text(&text, cited, at_id, thread, rivals),
+    Err(_) => Carries::Absent,
+  }
+}
+
+/// Resolve references against a real repository root, knowing every thread's
+/// armed rows, so a bare id line stops counting for a row with rivals (issue
+/// `0670`, hv's ruling of 2026-11-01). Every production reader of the
+/// contract builds this one: the gate, `at lint`, the refusal of `at new` and
+/// `at edit`, and doctor. [`RepoFiles`] knows no other thread and stays for the
+/// readers that have none to give.
+///
+/// **A ROW'S RIVALS** are the rows of kind test, status green or red, with the
+/// same id, on any OTHER thread whatever that thread's status, citing the same
+/// file once any `:<line>` is taken off either side. A thread's status is
+/// ignored because the exhibit's rival, Devbin ST0007, is completed; a to-write
+/// row is no rival because it has no arm yet (vc's shape, 0670).
+pub struct ProjectRefs<'a> {
+  root: &'a std::path::Path,
+  /// `(thread, id, file)` for every armed row: the rival population.
+  armed: Vec<(String, String, String)>,
+}
+
+impl<'a> ProjectRefs<'a> {
+  pub fn new(root: &'a std::path::Path, threads: &[Thread]) -> Self {
+    let armed = threads
       .iter()
-      .any(|line| !names_another_thread(line, thread))
-    {
-      return Carries::Yes;
-    }
-    let mut others: Vec<String> = carrying
-      .iter()
-      .flat_map(|line| threads_named(line))
-      .filter(|named| *named != thread)
-      .map(str::to_string)
+      .flat_map(|t| {
+        t.tests.iter().filter_map(move |r| {
+          let armed = r.kind == AtKind::Test && matches!(r.status, AtStatus::Green | AtStatus::Red);
+          let file = r.file.as_deref().filter(|_| armed)?;
+          Some((t.id.clone(), r.id.clone(), citation(file).path.to_string()))
+        })
+      })
       .collect();
-    others.sort();
-    others.dedup();
-    Carries::OnlyUnder(others)
+    Self { root, armed }
+  }
+
+  /// The threads other than `thread` with an armed `at_id` citing `file`'s
+  /// path, sorted and without repeats.
+  pub fn rivals(&self, file: &str, at_id: &str, thread: &str) -> Vec<String> {
+    let path = citation(file).path;
+    let mut rivals: Vec<String> = self
+      .armed
+      .iter()
+      .filter(|(t, id, p)| t != thread && id == at_id && p == path)
+      .map(|(t, _, _)| t.clone())
+      .collect();
+    rivals.sort();
+    rivals.dedup();
+    rivals
+  }
+}
+
+impl References for ProjectRefs<'_> {
+  fn resolves(&self, path: &str) -> bool {
+    self.root.join(citation(path).path).exists()
+  }
+
+  fn carries_id(&self, path: &str, at_id: &str, thread: &str) -> Carries {
+    read_and_judge(
+      self.root,
+      path,
+      at_id,
+      thread,
+      &self.rivals(path, at_id, thread),
+    )
   }
 }
 
@@ -918,6 +1114,32 @@ pub fn literal_id_finding(
       "{path} carries {at_id} only on lines naming another thread ({}); at least one line carrying the id must not name a different thread, and a line naming no thread at all counts",
       others.join(", ")
     )),
+    // The two refusals 0670 adds, each naming its remedies (vc's shape).
+    Carries::Ambiguous(rivals) => {
+      let file = citation(path).path;
+      Some(format!(
+        "{file} carries {at_id} only on lines that name no thread, and {} also has a green or red {at_id} citing it, so no such line says whose arm it is over; name {thread_id} on the line that carries the id over this row's own arm, or cite that line as `{file}:<line>`",
+        rivals.join(", ")
+      ))
+    }
+    Carries::NotOnLine { line, carrying } => {
+      let file = citation(path).path;
+      let lines = if carrying.is_empty() {
+        "no line of the file carries it".to_string()
+      } else {
+        format!(
+          "the lines that carry it are {}",
+          carrying
+            .iter()
+            .map(usize::to_string)
+            .collect::<Vec<_>>()
+            .join(", ")
+        )
+      };
+      Some(format!(
+        "{path} cites line {line}, which does not carry {at_id}; {lines}, so re-cite the row as `{file}:<line>` at the line over its own arm"
+      ))
+    }
   }
 }
 

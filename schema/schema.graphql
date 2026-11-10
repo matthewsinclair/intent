@@ -95,7 +95,8 @@ type AcceptanceTest {
   kind: AtKind!
   """
   Test kind: the repo-relative test file (the 0017 reference rules --
-  at least one `/`, no `:`).
+  at least one `/`), or `<file>:<line>` naming the line of the row's own
+  arm.
   """
   file: String
   """

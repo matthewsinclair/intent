@@ -90,6 +90,9 @@
 set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# The one reading of a citation, `<file>` or `<file>:<line>` (issue 0670).
+# shellcheck source=lib_citation.sh
+. "$HERE/lib_citation.sh" || { echo "error: cannot read lib_citation.sh beside this tool" >&2; exit 2; }
 ROOT="${ROOT:-$(cd "$HERE/../../../../.." && pwd)}"
 
 CITES=""
@@ -128,11 +131,11 @@ else
   # that `basename` was being spawned to supply. Cost is a disposition argument,
   # so a tool asking to be gated does not get to be gratuitously slow first.
   CITE_TSV="$(
-    jq -r '
+    jq -r --arg line_re "$CITATION_LINE_RE" '
       (input_filename | sub(".*/"; "") | sub("\\.json$"; "")) as $t
       | (.tests // [])[]
       | select((.file // "") != "")
-      | [$t, .id, .status, .file] | @tsv
+      | [$t, .id, .status, (.file | sub($line_re; ""))] | @tsv
     ' "$CANON_DIR"/*.json
   )"
 fi

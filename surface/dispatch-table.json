@@ -3477,7 +3477,7 @@
                 "--file"
               ],
               "type": "string",
-              "help": "The test file this row cites",
+              "help": "The test file this row cites, or <file>:<line> to name the line of its own arm",
               "value": "<path>",
               "disposition": "keep"
             },
@@ -3572,7 +3572,7 @@
                 "--file"
               ],
               "type": "string",
-              "help": "The repo-relative test file",
+              "help": "The repo-relative test file, or <file>:<line> to name the line of its own arm",
               "value": "<path>",
               "disposition": "keep"
             },

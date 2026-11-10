@@ -76,6 +76,9 @@
 set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# The one reading of a citation, `<file>` or `<file>:<line>` (issue 0670).
+# shellcheck source=lib_citation.sh
+. "$HERE/lib_citation.sh" || { echo "error: cannot read lib_citation.sh beside this tool" >&2; exit 2; }
 ROOT="${ROOT:-$(cd "$HERE/../../../../.." && pwd)}"
 cd "$ROOT" || { echo "error: cannot enter ${ROOT}" >&2; exit 2; }
 
@@ -210,10 +213,10 @@ fi
 # that check's own denominator, and this author's amendment would make this
 # author's red row greenable.
 
-CLAIMS_TSV="$(jq -rs '
+CLAIMS_TSV="$(jq -rs --arg line_re "$CITATION_LINE_RE" '
   [ .[] | .id as $st | (.tests // [])[]
     | select((.file // "") | length > 0)
-    | .file as $f | (.covers // [])[] | "\($st)/\(.)\t\($f)" ]
+    | (.file | sub($line_re; "")) as $f | (.covers // [])[] | "\($st)/\(.)\t\($f)" ]
   | unique | .[]' intent/.canon/st/*.json 2>/dev/null)"
 
 nclaims="$(printf '%s\n' "$CLAIMS_TSV" | awk -F'\t' 'NF==2 {print $1}' | sort -u | grep -c . )"

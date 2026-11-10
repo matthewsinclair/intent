@@ -5270,7 +5270,7 @@ impl Facade {
     Ok(contract::contract_report(
       thread,
       None,
-      &contract::RepoFiles(self.project.root()),
+      &contract::ProjectRefs::new(self.project.root(), &self.canon.threads),
     ))
   }
 
@@ -13515,7 +13515,7 @@ impl Facade {
     Ok(contract::gate(
       self.st_show(st)?,
       scope,
-      &contract::RepoFiles(self.project.root()),
+      &contract::ProjectRefs::new(self.project.root(), &self.canon.threads),
     ))
   }
 
@@ -15435,11 +15435,15 @@ impl Facade {
     // than politeness: a thread carrying a finding about a DIFFERENT row would
     // otherwise make every write on it impossible.
     let about_this_row = |t: &Thread| -> Vec<String> {
-      contract::contract_report(t, None, &contract::RepoFiles(self.project.root()))
-        .findings
-        .into_iter()
-        .filter(|f| f.contains(&row.id))
-        .collect()
+      contract::contract_report(
+        t,
+        None,
+        &contract::ProjectRefs::new(self.project.root(), &self.canon.threads),
+      )
+      .findings
+      .into_iter()
+      .filter(|f| f.contains(&row.id))
+      .collect()
     };
     let before = about_this_row(&current);
     let introduced: Vec<String> = about_this_row(&prospective)
@@ -16269,7 +16273,9 @@ impl Facade {
     // is this door, armed.
     if matches!(status, AtStatus::Green | AtStatus::Red)
       && let Some(path) = cited.as_deref()
-      && !self.project.root().join(path).exists()
+      // Through the one parser of a citation, so `<file>:<line>` asks after
+      // the file (issue 0670).
+      && !self.project.root().join(contract::citation(path).path).exists()
     {
       return Err(FacadeError::VerdictCitesAbsentFile {
         st: st.to_string(),

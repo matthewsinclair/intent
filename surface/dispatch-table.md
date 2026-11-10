@@ -1646,7 +1646,7 @@ Create an acceptance test (caller-assigned id; refuses an id that is taken)
     - **arity:** 1..n
     - **required:** true
     - **disposition:** keep
-  - `--file` `<path>` (string) -- The test file this row cites
+  - `--file` `<path>` (string) -- The test file this row cites, or <file>:<line> to name the line of its own arm
     - **disposition:** keep
   - `--prose` `<text>` (string) -- What a non-test row asserts instead of a file
     - **disposition:** keep
@@ -1688,7 +1688,7 @@ Re-cite an acceptance test; a field you do not name is a field it does not chang
   - `stid` (st-id, arity `1`)
   - `atid` (at-id, arity `1`)
 - **Flags:**
-  - `--file` `<path>` (string) -- The repo-relative test file
+  - `--file` `<path>` (string) -- The repo-relative test file, or <file>:<line> to name the line of its own arm
     - **disposition:** keep
   - `--prose` `<text>` (string) -- What was read or eyeballed (non-test rows)
     - **disposition:** keep

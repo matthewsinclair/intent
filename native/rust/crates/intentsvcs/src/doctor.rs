@@ -723,7 +723,7 @@ fn last_renders(
 /// its thread, and [`Report::admit`] scopes it, so the default run withholds it
 /// and counts it.
 fn closed_contract_drift(canon: &Canon, project: &Project, report: &mut Report) {
-  let refs = crate::contract::RepoFiles(project.root());
+  let refs = crate::contract::ProjectRefs::new(project.root(), &canon.threads);
   for thread in &canon.threads {
     let file = project.relative(&project.thread_json(&thread.id));
     let found = crate::contract::completed_thread_drift(thread, &refs)
@@ -759,7 +759,7 @@ fn closed_contract_drift(canon: &Canon, project: &Project, report: &mut Report) 
 /// what `wp done` consults. Recomputing the same arithmetic here would be a
 /// second answer to one question, and the two would disagree the first time
 /// either changed -- with this arm reporting the disagreement as a defect in
-/// the estate rather than in itself. `RepoFiles` is passed for the same reason:
+/// the estate rather than in itself. `ProjectRefs` is passed for the same reason:
 /// it is what the facade's own `gate` passes, so this reports what `wp done`
 /// would decide and not what some other reference resolver would.
 ///
@@ -780,7 +780,7 @@ fn closed_contract_drift(canon: &Canon, project: &Project, report: &mut Report) 
 /// the second-answer problem in a different direction. It is named here so the
 /// gap is a stated limit rather than something a reader assumes is covered.
 fn status_gate_disagreement(canon: &Canon, project: &Project, report: &mut Report) {
-  let refs = crate::contract::RepoFiles(project.root());
+  let refs = crate::contract::ProjectRefs::new(project.root(), &canon.threads);
   for thread in &canon.threads {
     // Accumulated per THREAD, not per WP, because that is the unit
     // [`Report::admit`] scopes by and the unit whose status decides it.

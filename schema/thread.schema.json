@@ -195,7 +195,7 @@
           "description": "The fiat close, present exactly when [`status`] is [`AtStatus::Fiat`].\n\n**Absent and empty are the same fact, so only one is representable** --\nthe field is skipped when there is nothing to record, and every AT written\nbefore this existed serialises to the bytes it always did. That is what\nmakes the addition free under hv's DO-NOT-BUMP ruling rather than a\nrewrite of every extract.\n\n[`status`]: AcceptanceTest::status"
         },
         "file": {
-          "description": "Test kind: the repo-relative test file (the 0017 reference rules --\nat least one `/`, no `:`).",
+          "description": "Test kind: the repo-relative test file (the 0017 reference rules --\nat least one `/`), or `<file>:<line>` naming the line of the row's own\narm.",
           "type": [
             "string",
             "null"

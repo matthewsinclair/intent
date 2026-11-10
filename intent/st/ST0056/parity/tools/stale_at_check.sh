@@ -81,7 +81,8 @@ STID="${1:-}"
 # Counting is what broke this on its first run: the tool sits five directories
 # down, not four, and a wrong count fails as "no acceptance.md for <ST>", which
 # reads like a missing thread rather than a missing root.
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$HERE"
 while [ "$ROOT" != "/" ] && [ ! -f "$ROOT/intent/.config/config.json" ]; do
   ROOT="$(dirname "$ROOT")"
 done
@@ -93,6 +94,10 @@ if [ ! -f "$ROOT/intent/.config/config.json" ]; then
 fi
 
 cd "$ROOT" || exit 1
+
+# The one reading of a citation, `<file>` or `<file>:<line>` (issue 0670).
+# shellcheck source=lib_citation.sh
+. "$HERE/lib_citation.sh" || { echo "error: cannot read lib_citation.sh beside this tool" >&2; exit 1; }
 
 ACC=()
 SKIPPED=()
@@ -168,7 +173,7 @@ fi
 # flag sweep losing three flags to a `@tsv` escape while printing agreement.
 # "Nothing violated anything" and "nothing was examined" are the same output
 # unless the count is on the line.
-awk '
+awk -v line_re="$CITATION_LINE_RE" '
   /^- AT-/ {
     matched++
     id = $2
@@ -198,6 +203,8 @@ awk '
     if (match(head, /`[^`]+`/)) {
       ref = substr(head, RSTART + 1, RLENGTH - 2)
     }
+    # A row that cites a line is checked for its file (issue 0670).
+    sub(line_re, "", ref)
     if (match($0, /status: [a-z-]+/)) {
       st = substr($0, RSTART + 8, RLENGTH - 8)
     } else {
