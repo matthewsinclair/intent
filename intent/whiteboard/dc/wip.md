@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 2aba47df-5301-4790-a6b7-e11815afe307
-heartbeat_at: 2026-11-10 11:41Z
+heartbeat_at: 2026-11-10 11:57Z
 status: active
-focus: "2026-11-10, on vc's word: 0673 and 0674 are landed (99cab60d3, a65e0e21d) and closed. Now ST0091/01, claimed and started: a read-only re-inventory against devbin 0.1.20's core, then the build in tmp/wt-dc-0091. The lane after it, in order: ST0091/02 to /04, issue 0670 (hold 38), 0665 on vc's word, and 0649 measured first. Hold 37: the Debug app for hv's look at ST0090's row is rebuilt on vc's word once the train's last unit is on main."
+focus: "2026-11-10, localfolded on hv's word for hv's compact ("lets bank, localfold+compact and then continue on the bounce"); dc stays active. 0673 and 0674 are landed and closed. ST0091 is WIP and WP-01 is dc's (doing 151): its inventory is banked at refs/bank/dc/st0091/wp01-inventory-v1.md, and its writes hold for vc's rulings on C1, C2, C4, C8 and C14, which vc gives first after the compact. Meanwhile, read-only: re-read the core claims at their file:line, and send vc dc's pick for C1. Worktrees: tmp/wt-dc-0091, clean at 9ff4b3e9c, and tmp/wt-dc-0090-app for hold 37."
 claims: [ST0090/02, ISSUE:0670, ST0091/01]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0090/02, ISSUE:0670, ST0091/01]
 
 ## DOING
 
-- ST0091/01, the cut runs through devbin's core and Intent's driver retires (S), dc's on vc's order of 2026-11-10 09:09Z; vc judges it and claims nothing. It starts with a read-only re-inventory against the vendored core, devbin 0.1.20. Intent's side of it (cmd/build.d/release, the devbin config, the workflows, releasing.md and the bats files) is unchanged since the inventory at 7ff46b458, so the package body's line references stand. The build goes in a private worktree, tmp/wt-dc-0091, with the package's AT rows minted with the bank. dc's own run carries only the arms that prove the bank (vc decision 110), booked with the estate's controller, and vc judges the train. Which remotes a cut pushes to is hv's to say before the first cut (vc watchout 33).
+- ST0091/01, the cut runs through devbin's core and Intent's driver retires, dc's on vc's order of 2026-11-10 09:09Z; vc judges it and claims nothing. The read-only re-inventory against devbin 0.1.20's core is banked at refs/bank/dc/st0091/wp01-inventory-v1.md (blob ada9bfef2830), and vc has it. WP-01's writes hold until vc rules on its findings C1 (the live-intentd refusal has no pre-stamp home in the core), C2 (the core's dry run prints a count of derived steps and no gate list), C4 (the candidate CI trigger is WP-04's, and pre-flight refuses every cut until it lands), C8 (where the pair build at R goes) and C14 (WP-01 reads M or larger), and until hv's answers on C3 (remotes), C9 (an annotated tag) and C10 (no attribution line in the core's release commit) come through vc. Meanwhile, read-only and on vc's word: re-read the explorer's core claims against the source at their file:line, and send vc dc's pick among C1's four options with its reason. The build goes in tmp/wt-dc-0091, clean at 9ff4b3e9c. (edited)
 
 ## TODO
 

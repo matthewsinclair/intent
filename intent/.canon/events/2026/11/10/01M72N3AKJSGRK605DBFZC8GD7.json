@@ -1,0 +1,16 @@
+{
+  "id": "01M72N3AKJSGRK605DBFZC8GD7",
+  "ts": "2026-11-10T11:57:06.034Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 151,
+    "text": "ST0091/01, the cut runs through devbin's core and Intent's driver retires, dc's on vc's order of 2026-11-10 09:09Z; vc judges it and claims nothing. The read-only re-inventory against devbin 0.1.20's core is banked at refs/bank/dc/st0091/wp01-inventory-v1.md (blob ada9bfef2830), and vc has it. WP-01's writes hold until vc rules on its findings C1 (the live-intentd refusal has no pre-stamp home in the core), C2 (the core's dry run prints a count of derived steps and no gate list), C4 (the candidate CI trigger is WP-04's, and pre-flight refuses every cut until it lands), C8 (where the pair build at R goes) and C14 (WP-01 reads M or larger), and until hv's answers on C3 (remotes), C9 (an annotated tag) and C10 (no attribution line in the core's release commit) come through vc. Meanwhile, read-only and on vc's word: re-read the explorer's core claims against the source at their file:line, and send vc dc's pick among C1's four options with its reason. The build goes in tmp/wt-dc-0091, clean at 9ff4b3e9c."
+  }
+}
