@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: b6c81c66-6862-4b68-a61a-ac299e1bb7ce
-heartbeat_at: 2026-11-10 12:14Z
+heartbeat_at: 2026-11-10 12:57Z
 status: active
 focus: "2026-11-10, after hv's compact, holding for vc. Hold 35: ST0092 WP-02 to WP-09, with 0675 beside WP-06, wait on AC-01.5, which is hv's ratification of the terms on the twelve points WP-01's body lists, and on vc's word that WP-02 starts. vc's two asks from the roster normalisation are answered: what the brief gave cc at pickup, and seven notes on the hand form against WP-06 and WP-07. No claim, worktree, stash or branch. Nothing pushed or released."
 claims: []
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-- ST0092 WP-02 to WP-09, cc's to build on vc's order of 2026-11-10 09:09Z (edited), with issue 0675, a reader's own stale pickup, beside WP-06 because it is the same code. HELD UNTIL AC-01.5 IS SATISFIED: hv has ratified the terms document, intent/plugins/claude/teams/TERMS.md, vc has recorded the ratification on hv's board, and vc says WP-02 starts. `intent ac list ST0092` shows AC-01.5 at every pickup. Until then cc reads and plans and writes no ST0092 code. The build order, vc's under the pen (2026-11-10): WP-02, WP-03, WP-06 with 0675, WP-05, WP-07, then WP-04 and WP-09, with WP-08 beside any. vc answered cc's design notes the same day and writes the answers into the packages' bodies: WP-02 has a JSON seat registry beside TERMS.md, with each profile a .md of flat frontmatter and a brief body; WP-03 has one declaration file under intent/whiteboard/, rendered from the store; WP-06 reads the last pickup from the store's own wb.pickup events, which never reach canon. Each package is claimed in the chain that starts it, and its AT rows are minted with its bank. (edited)
+- ST0092 WP-02 to WP-09, cc's to build on vc's order of 2026-11-10 09:09Z (edited), with issue 0675, a reader's own stale pickup, beside WP-06 because it is the same code. HELD UNTIL AC-01.5 IS SATISFIED: hv has ratified the terms document, intent/plugins/claude/teams/TERMS.md, on the twelve points WP-01's body lists, vc has recorded the ratification on hv's board, and vc says WP-02 starts. `intent ac list ST0092` shows AC-01.5 at every pickup. Until then cc reads and plans and writes no ST0092 code. The build order, vc's under the pen (2026-11-10): WP-02, WP-03, WP-06 with 0675, WP-05, WP-07, then WP-04 and WP-09, with WP-08 beside any. The packages' bodies and criteria carry vc's rulings on cc's design notes, on cc's seven notes on the hand form and on cc's two builder reads (f4110959f, ea3411da9). vc's fold of 2026-11-10 writes the last ruling into WP-03 and WP-07: each render of the roster README records, in the declaration's canon file, the sha256 of the README's text outside the preserved block, which is how a first render, an edit and a stale render are told apart. With that in, every package builds as written by cc's own read. Each package is claimed in the chain that starts it, and its AT rows are minted with its bank. (edited)
 
 ## Watch-outs
 
