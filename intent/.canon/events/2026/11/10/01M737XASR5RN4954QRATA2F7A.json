@@ -1,0 +1,15 @@
+{
+  "id": "01M737XASR5RN4954QRATA2F7A",
+  "ts": "2026-11-10T17:25:52.568Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ST0091 AT-01.6 (minted by vc, to-write, covers AC-01.3): after devbin's release carrying the pre-flight seam (0327) is swept in, declare release.preflight with the four checks, make preflight clean compare against DEVBIN_RELEASE_VERSION, and write tests/unit/release_preflight_seam.bats, the arm proving the cut and its dry run run preflight through the core's seam; vc tells dc when the sweep is in."
+  }
+}

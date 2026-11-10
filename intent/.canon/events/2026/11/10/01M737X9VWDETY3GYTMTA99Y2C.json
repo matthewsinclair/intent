@@ -1,0 +1,15 @@
+{
+  "id": "01M737X9VWDETY3GYTMTA99Y2C",
+  "ts": "2026-11-10T17:25:51.612Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ISSUE:0670, the AT citation check: a bare id line stops counting where another thread has a green or red row of the same id citing the same file, a row may cite its arm as file:line and then that line alone is read, and the id is matched as a whole token (hv's ruling of 2026-11-01, vc's shape of 2026-11-10 in the issue's record). Built in tmp/wt-dc-0670, stacked on cc's 0665 bank (refs/bank/cc/0665/fix-v1-on-df1de057c), the new Carries arms and their refusals in cc's literal_id_finding, the one place. vc judges it with the census at refs/bank/vc/0670/ run again, which must redden Devbin ST0011 AT-3.5 and nothing else; dc tells vc before it lands, so devbin-vc is warned first (devbin-vc's watchout 39)."
+  }
+}
