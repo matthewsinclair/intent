@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "worker",
     "session_id": "2aba47df-5301-4790-a6b7-e11815afe307",
-    "heartbeat_at": "2026-11-10T11:16:35.366Z",
+    "heartbeat_at": "2026-11-10T11:36:36.672Z",
     "status": "active",
-    "focus": "2026-11-01, folded for hv's compact on hv's order (relayed by devbin-vc at 11:24Z by its date -u): dc stays still until devbin-vc names something this devbin release needs from Intent. Hold 37: the AC-02.4 Debug app is built (IntentCommit 29e6f1c0a) and waits on hv's look; its bundle lives in dc's session scratch, so a look after this session ends needs a rebuild. Holds 39 and 40: the testkit race and sweep-order fixes are banked and wait until devbin 0.1.19 is cut and swept and the desk grants again. Hold 38: 0670 waits until Devbin's ST0011 has shipped. ST0091 waits for Devbin's 0.1.19 sweep. dc's worktrees tmp/wt-dc-0090-app, tmp/wt-dc-race and tmp/wt-dc-sweeporder stay as they are.",
+    "focus": "2026-11-10, on vc's word: 0673 and 0674 are landed (99cab60d3, a65e0e21d) and closed, and testkit's tree at HEAD reads the judged stack's 03ead543be13. Next in dc's lane, vc's order of 09:09Z: ST0091's four packages, WP-01 first, each claimed in the chain that starts it; then issue 0670 (hold 38) once ST0091's packages are on main; then 0665 once vc says; and 0649, measured first. Hold 37: the Debug app for hv's look at ST0090's row is rebuilt on vc's word once the train's last unit is on main.",
     "claims": [
       "ST0090/02",
       "ISSUE:0670"
@@ -2660,7 +2660,8 @@
       "kind": "hold",
       "seq": 40,
       "text": "The testkit sweep-order fix for 3.2.9 waits until devbin 0.1.19 is cut and swept into the fleet, and the desk grants again. The desk denied its run, 01M6BB981X1E5KDPVY3E7CBWK6, on hv's word \"no other work until devbin ships\", recorded by devbin-vc's desk at 11:17Z by its date -u on 2026-11-01, and dc asks again then. sweep_abandoned_fixtures took its live-pid snapshot before it listed /tmp, so a fixture whose process was born between the two was removed while its process lived; the fix lists the candidates first, in one sweep body, sweep_abandoned_fixtures_around, through whose seam the test a_fixture_planted_by_a_process_born_mid_sweep_survives_it plants a live child's fixture. It is banked at refs/bank/dc/testkit-sweep-order/fix-v1 (blob 6459397b30b4, patch-id 3e958d267455), stacked on fd4aced67 plus refs/bank/dc/testkit-race/fix-v1 (tree 4589b880e19b) in tmp/wt-dc-sweeporder, uncompiled until its run, with its mutant at refs/bank/dc/testkit-sweep-order/red-v1 (patch-id f70636f75203), its run script at refs/bank/dc/testkit-sweep-order/run-v1.zsh, and its issue draft at issue.title.txt and issue.body-v2.md beside them. The race proof's storm already reproduced the defect without the seam: all 7 sibling failures a 2s capture kept were at :106, a LIVE fixture was deleted. The run is the test 20 times on the mutant and on the fix, the sibling storm on both, then the whole workspace suite, workspace clippy and fmt. vc's judge follows under an exclusive grant; vc records the issue after the push, dc claims it, and it lands on vc's word. No CHANGELOG entry, since testkit is unshipped.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-10T11:36:25.766Z",
       "recorded_at": "2026-11-01T11:21:10.991Z"
     }
   ],
