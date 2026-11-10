@@ -102,7 +102,26 @@ esac
 
 sentinel="${SENTINEL_DIR}/in-session-${session_id}.sentinel"
 
+# The third duty: /in-session's releaser records in the sentinel
+# the languages it loaded skills for, under this header, and a project's
+# declaration can move after that. On a prompt that passes, say so when the
+# two differ, naming /in-session. A sentinel without the header, an `intent`
+# not on PATH or one that cannot answer says nothing.
+BOOTSTRAP_HEADER="# intent: languages /in-session loaded skills for"
+name_moved_languages() {
+  [ "$(head -n 1 "$sentinel" 2>/dev/null)" = "$BOOTSTRAP_HEADER" ] || return 0
+  command -v intent >/dev/null 2>&1 || return 0
+  local now loaded
+  now="$(intent lang declared 2>/dev/null)" || return 0
+  loaded="$(tail -n +2 "$sentinel")"
+  [ "$(printf '%s\n' "$loaded" | sort -u)" = "$(printf '%s\n' "$now" | sort -u)" ] && return 0
+  printf 'Intent: this session ran /in-session when the project declared [%s], and it now declares [%s], so the skills and critics loaded are not the project'"'"'s. Run /in-session again.\n' \
+    "$(printf '%s' "$loaded" | tr '\n' ' ' | sed 's/ $//')" \
+    "$(printf '%s' "$now" | tr '\n' ' ' | sed 's/ $//')"
+}
+
 if [ -f "$sentinel" ]; then
+  name_moved_languages
   name_pending_asks
   exit 0
 fi

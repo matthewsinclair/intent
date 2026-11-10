@@ -66,7 +66,7 @@ When `mix.exs` is present, read it and invoke by dependency:
 
 ### 4. Release the UserPromptSubmit gate
 
-Where `.claude/settings.json` was installed by `intent claude upgrade --apply`, a strict `UserPromptSubmit` hook (`intent claude hook require-in-session`, whose body `require-in-session.sh` is served from the Intent install) blocks the first prompt until `/in-session` has run. Releasing the gate is cooperative: this skill writes a per-session sentinel that the hook looks for.
+Where `.claude/settings.json` was installed by `intent claude upgrade --apply`, a strict `UserPromptSubmit` hook (`intent claude hook require-in-session`, whose body `require-in-session.sh` is served from the Intent install) blocks the first prompt until `/in-session` has run. Releasing the gate is cooperative: this skill writes a per-session sentinel that the hook looks for. The sentinel records the languages this run loaded skills for, and when the project's declaration moves later, the hook and `intent wb pickup` say so on every prompt and pickup until `/in-session` runs again.
 
 Run the helper script (idempotent, fast):
 

@@ -135,3 +135,83 @@ fn a_pickup_with_no_hv_board_carries_no_standing_list() {
   assert_eq!(up.standing, None, "no hv board, so nothing was read");
   assert_eq!(up.peers.len(), 1, "cc is still a peer");
 }
+
+/// Issue 0676: a pickup names a session whose `/in-session` loaded skills for
+/// other languages than the project now declares, read from the sentinel the
+/// releaser writes, and says nothing when they agree or the sentinel records
+/// nothing.
+#[test]
+fn a_pickup_names_a_session_whose_skills_are_for_other_languages() {
+  let fx = Fixture::new();
+  let mut f = fx.facade();
+  f.wb_register("ic", "Interface Claude", "interface")
+    .expect("register ic");
+  let declared = fx.project().config().languages.clone();
+  assert!(
+    !declared.is_empty(),
+    "the fixture declares no language, so the arms below cannot tell a moved set from an empty one"
+  );
+  let session = format!("issue-0676-probe-{}", std::process::id());
+  let sentinel = std::path::Path::new(intentsvcs::canon::GATE_SENTINEL_DIR)
+    .join(format!("in-session-{session}.sentinel"));
+  std::fs::create_dir_all(intentsvcs::canon::GATE_SENTINEL_DIR).expect("sentinel dir");
+  let record = |languages: &[String]| {
+    let mut text = format!("{}\n", intentsvcs::canon::BOOTSTRAP_HEADER);
+    for l in languages {
+      text.push_str(&format!("{l}\n"));
+    }
+    std::fs::write(&sentinel, text).expect("write the sentinel");
+  };
+
+  record(&[]);
+  let up = f
+    .wb_pickup("ic", Some(&session), None, false)
+    .expect("pick up");
+  assert_eq!(
+    up.languages_moved,
+    Some(intentsvcs::facade::LanguagesMoved {
+      loaded: Vec::new(),
+      declared: declared.clone(),
+    }),
+    "a session that booted before the declaration was not named"
+  );
+
+  record(&declared);
+  let up = f
+    .wb_pickup("ic", Some(&session), None, false)
+    .expect("pick up");
+  assert_eq!(up.languages_moved, None, "a session that agrees was named");
+
+  std::fs::write(&sentinel, "").expect("an older releaser's empty sentinel");
+  let up = f
+    .wb_pickup("ic", Some(&session), None, false)
+    .expect("pick up");
+  assert_eq!(
+    up.languages_moved, None,
+    "a sentinel that records nothing was compared"
+  );
+
+  let _ = std::fs::remove_file(&sentinel);
+}
+
+/// Issue 0676: the releaser that writes the sentinel's header, the gate that
+/// reads it and the pickup that reads it carry one line, so none of the three
+/// can stop recognising the others' record.
+#[test]
+fn the_releaser_the_gate_and_the_pickup_carry_one_bootstrap_header() {
+  let root = testkit::repo_root();
+  let line = format!(
+    "BOOTSTRAP_HEADER=\"{}\"",
+    intentsvcs::canon::BOOTSTRAP_HEADER
+  );
+  for script in [
+    "intent/plugins/claude/skills/in-session/scripts/release-gate.sh",
+    "lib/templates/.claude/scripts/require-in-session.sh",
+  ] {
+    let text = std::fs::read_to_string(root.join(script)).expect("read the script");
+    assert!(
+      text.lines().any(|l| l == line),
+      "{script} does not carry `{line}`"
+    );
+  }
+}

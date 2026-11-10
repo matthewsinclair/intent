@@ -2570,9 +2570,23 @@ pub struct Pickup {
   /// for a board this read never looked at.
   pub standing: Option<Vec<crate::model::WbItem>>,
   pub peers: Vec<PeerRead>,
+  /// The languages this session ran `/in-session` for and the ones the project
+  /// declares now, **PRESENT ONLY WHEN THEY DIFFER** (issue 0676): a seat that
+  /// booted before the project declared its languages loaded no language
+  /// skills, and a pickup is a moment it cannot skip. Absent when no session is
+  /// named or its sentinel records nothing.
+  pub languages_moved: Option<LanguagesMoved>,
   /// The files this pickup landed, by whose they are to commit (issue 0612),
   /// as every board verb's answer carries them.
   pub written: Written,
+}
+
+/// What a session loaded skills for against what its project declares now
+/// (issue 0676).
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+pub struct LanguagesMoved {
+  pub loaded: Vec<String>,
+  pub declared: Vec<String>,
 }
 
 /// The item kinds a booting node is obliged to read on `hv`'s board: what `hv`
@@ -8921,10 +8935,19 @@ impl Facade {
         }
       })
       .collect();
+    let declared = &self.project.config().languages;
+    let languages_moved = session_id
+      .and_then(crate::canon::bootstrap_languages)
+      .filter(|loaded| crate::canon::languages_moved(loaded, declared))
+      .map(|loaded| LanguagesMoved {
+        loaded,
+        declared: declared.clone(),
+      });
     Ok(Pickup {
       board: self.board_read_of(board, all)?,
       standing,
       peers,
+      languages_moved,
       written: self.take_written(node),
     })
   }

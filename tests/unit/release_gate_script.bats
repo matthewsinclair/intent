@@ -98,3 +98,54 @@ SCRIPT="${INTENT_PROJECT_ROOT}/intent/plugins/claude/skills/in-session/scripts/r
         "/tmp/intent-claude-session-current-id-${poison_key}" \
         "/tmp/intent-claude-session-current-id"
 }
+
+# --------------------------------------------------------------------
+# Issue 0676: the session's sentinel records the languages /in-session loaded
+# skills for, so the prompt gate and `intent wb pickup` can say when the
+# project's declaration moves after it. A stub `intent` first on PATH stands
+# in for `intent lang declared`.
+# --------------------------------------------------------------------
+
+BOOTSTRAP_HEADER="# intent: languages /in-session loaded skills for"
+
+stub_declared() {
+  STUB_BIN="$BATS_TEST_TMPDIR/stub-bin"
+  mkdir -p "$STUB_BIN"
+  cat > "$STUB_BIN/intent" <<'EOS'
+#!/usr/bin/env bash
+[ "$1 $2" = "lang declared" ] || exit 0
+[ -n "${STUB_DECLARED-}" ] && printf '%s\n' "$STUB_DECLARED"
+exit "${STUB_DECLARED_RC:-0}"
+EOS
+  chmod +x "$STUB_BIN/intent"
+}
+
+@test "release-gate.sh records the declared languages under the header" {
+  stub_declared
+  sid="test-uuid-$$-ddd"
+  rm -f "/tmp/intent/in-session-${sid}.sentinel"
+  CLAUDE_CODE_SESSION_ID="$sid" STUB_DECLARED=$'elixir\nrust' PATH="$STUB_BIN:$PATH" run bash "$SCRIPT"
+  [ "$status" -eq 0 ]
+  [ "$(cat "/tmp/intent/in-session-${sid}.sentinel")" = "$BOOTSTRAP_HEADER"$'\nelixir\nrust' ]
+  rm -f "/tmp/intent/in-session-${sid}.sentinel"
+}
+
+@test "release-gate.sh records an empty declaration as the header alone" {
+  stub_declared
+  sid="test-uuid-$$-eee"
+  CLAUDE_CODE_SESSION_ID="$sid" STUB_DECLARED= PATH="$STUB_BIN:$PATH" run bash "$SCRIPT"
+  [ "$status" -eq 0 ]
+  [ "$(cat "/tmp/intent/in-session-${sid}.sentinel")" = "$BOOTSTRAP_HEADER" ]
+  rm -f "/tmp/intent/in-session-${sid}.sentinel"
+}
+
+@test "release-gate.sh still releases, recording nothing, when intent cannot answer" {
+  stub_declared
+  sid="test-uuid-$$-fff"
+  CLAUDE_CODE_SESSION_ID="$sid" STUB_DECLARED=rust STUB_DECLARED_RC=4 PATH="$STUB_BIN:$PATH" run bash "$SCRIPT"
+  [ "$status" -eq 0 ]
+  [ -f "/tmp/intent/in-session-${sid}.sentinel" ]
+  [ ! -s "/tmp/intent/in-session-${sid}.sentinel" ]
+  [ ! -s "/tmp/intent/in-session-unknown.sentinel" ] || [ "$(head -n 1 /tmp/intent/in-session-unknown.sentinel)" != "$BOOTSTRAP_HEADER" ]
+  rm -f "/tmp/intent/in-session-${sid}.sentinel"
+}

@@ -32,9 +32,26 @@ set -u
 SENTINEL_DIR="/tmp/intent"
 mkdir -p "$SENTINEL_DIR"
 
+# The session's sentinel records the languages /in-session loaded skills for:
+# this header, then `intent lang declared`'s lines. The prompt
+# gate and `intent wb pickup` compare it with what the project declares now,
+# because a seat that booted before the declaration loaded no language skills
+# and nothing else would ever say so. A sentinel without the header records
+# nothing, and nothing compares it. The `unknown` fallback is shared by every
+# session without an id, so it records nothing either.
+BOOTSTRAP_HEADER="# intent: languages /in-session loaded skills for"
+
 sid="${CLAUDE_CODE_SESSION_ID:-}"
 
-[ -n "$sid" ] && touch "${SENTINEL_DIR}/in-session-${sid}.sentinel"
+if [ -n "$sid" ]; then
+  sentinel="${SENTINEL_DIR}/in-session-${sid}.sentinel"
+  if declared="$(intent lang declared 2>/dev/null)"; then
+    printf '%s\n' "$BOOTSTRAP_HEADER" > "$sentinel"
+    [ -n "$declared" ] && printf '%s\n' "$declared" >> "$sentinel"
+  else
+    touch "$sentinel"
+  fi
+fi
 touch "${SENTINEL_DIR}/in-session-unknown.sentinel"
 
 echo "released sentinels: session=${sid:-(none)} +unknown"

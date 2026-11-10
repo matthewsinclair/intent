@@ -4496,6 +4496,22 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
         return Ok(());
       }
       report_wb_board(&up.board, false, all)?;
+      // **A SESSION WHOSE SKILLS ARE FOR OTHER LANGUAGES SAYS SO HERE** (issue
+      // 0676), at a moment the seat cannot skip, with what clears it.
+      if let Some(moved) = &up.languages_moved {
+        let list = |l: &[String]| {
+          if l.is_empty() {
+            "none".to_string()
+          } else {
+            l.join(", ")
+          }
+        };
+        println!(
+          "languages moved: this session ran /in-session for [{}], and the project now declares [{}] -- run /in-session again to load the skills for what it declares",
+          list(&moved.loaded),
+          list(&moved.declared)
+        );
+      }
       // **`hv`'s STANDING CONTENT, IN FULL, BEFORE THE PEERS** (issue 0416): the
       // kinds every node is obliged to honour. Printed even when empty, so an
       // empty board and a left-out one read differently; the facade decides

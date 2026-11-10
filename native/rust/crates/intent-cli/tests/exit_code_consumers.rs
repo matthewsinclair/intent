@@ -324,6 +324,19 @@ const CONSUMERS: &[(&str, &str, Policy)] = &[
     ),
   ),
   (
+    ".claude/scripts/require-in-session.sh",
+    "lang",
+    Policy::Invokes(
+      "`intent lang declared`, the gate's third duty (issue 0676), on the sentinel-present pass path \
+       only, and only when the sentinel carries the header `/in-session`'s releaser writes. Its lines \
+       are compared with the languages the sentinel records, and a difference prints one notice naming \
+       both and `/in-session`. A NON-ZERO CODE MEANS NO COMPARISON: an `intent` that cannot read the \
+       project's declaration has no answer to hold the record against, so the gate prints nothing for \
+       it and passes the prompt, and its stderr is dropped. A difference never blocks either: the \
+       session has already run `/in-session`, and the notice says what clears it.",
+    ),
+  ),
+  (
     ".claude/scripts/session-context.sh",
     "claude",
     Policy::Names(

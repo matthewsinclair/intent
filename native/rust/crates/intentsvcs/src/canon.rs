@@ -216,6 +216,41 @@ pub fn releaser_under(skills_dir: &Path) -> PathBuf {
   skills_dir.join(GATE_SKILL).join(GATE_RELEASER)
 }
 
+/// Where the prompt gate's per-session sentinels live, as [`GATE_RELEASER`]
+/// and `require-in-session.sh` both name it (issue 0676).
+pub const GATE_SENTINEL_DIR: &str = "/tmp/intent";
+
+/// The first line of a sentinel that records the languages `/in-session`
+/// loaded skills for (issue 0676). [`GATE_RELEASER`] writes it and
+/// `require-in-session.sh` reads it, each carrying this same line.
+pub const BOOTSTRAP_HEADER: &str = "# intent: languages /in-session loaded skills for";
+
+/// The languages session `session_id` ran `/in-session` for, read from its
+/// sentinel (issue 0676). `None` when the sentinel is absent or cannot be
+/// read, or records nothing, as an older releaser's empty file does: the
+/// answer feeds a notice, and a notice with no record behind it says nothing.
+pub fn bootstrap_languages(session_id: &str) -> Option<Vec<String>> {
+  let sentinel = Path::new(GATE_SENTINEL_DIR).join(format!("in-session-{session_id}.sentinel"));
+  let text = std::fs::read_to_string(sentinel).ok()?;
+  let mut lines = text.lines();
+  (lines.next()? == BOOTSTRAP_HEADER).then(|| {
+    lines
+      .map(str::trim)
+      .filter(|l| !l.is_empty())
+      .map(str::to_string)
+      .collect()
+  })
+}
+
+/// Whether a session loaded skills for other languages than its project now
+/// declares (issue 0676): the two as sets, so order and repetition are no
+/// difference.
+pub fn languages_moved(loaded: &[String], declared: &[String]) -> bool {
+  let loaded: std::collections::BTreeSet<&String> = loaded.iter().collect();
+  let declared: std::collections::BTreeSet<&String> = declared.iter().collect();
+  loaded != declared
+}
+
 /// What a `.claude/settings.json` that wires the prompt gate carries.
 pub const GATE_HOOK: &str = "intent claude hook require-in-session";
 

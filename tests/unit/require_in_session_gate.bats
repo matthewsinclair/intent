@@ -272,6 +272,10 @@ stub_intent() {
   mkdir -p "$STUB_BIN"
   cat > "$STUB_BIN/intent" <<'EOS'
 #!/usr/bin/env bash
+if [ "$1 $2" = "lang declared" ]; then
+  [ -n "${STUB_DECLARED-}" ] && printf '%s\n' "$STUB_DECLARED"
+  exit "${STUB_DECLARED_RC:-0}"
+fi
 if [ "$1 $2 $3" = "estate slots pending" ]; then
   out="${STUB_PENDING_OUT-asked: 01STUBASK heavy by molt-vc -- a judge}"
   [ -n "$out" ] && printf '%s\n' "$out"
@@ -336,5 +340,66 @@ EOS
   [ "$status" -eq 0 ] || fail "status $status"
   [ -z "$output" ] || fail "text reached the prompt: $output"
   [ -z "$stderr" ] || fail "stderr: $stderr"
+  teardown_gate
+}
+
+# --------------------------------------------------------------------
+# Issue 0676
+#
+# The third duty: /in-session's releaser records in the sentinel the
+# languages it loaded skills for, under a header line, and on a prompt that
+# passes the gate says so when the project's declaration has moved since.
+# --------------------------------------------------------------------
+
+BOOTSTRAP_HEADER="# intent: languages /in-session loaded skills for"
+
+@test "a prompt names a session whose skills are for other languages" {
+  setup_gate
+  stub_intent
+  printf '%s\n%s\n' "$BOOTSTRAP_HEADER" "rust" > "$GATE_SENTINEL"
+  run --separate-stderr env PATH="$STUB_BIN:$PATH" STUB_DECLARED=$'elixir\nrust' \
+    CLAUDE_CODE_SESSION_ID="$GATE_SESSION_ID" bash "$SCRIPT" <<< '{"prompt":"hello"}'
+  [ "$status" -eq 0 ] || fail "status $status, stderr: $stderr"
+  [[ "$output" == *"declared [rust], and it now declares [elixir rust]"* ]] || fail "no notice: $output"
+  [[ "$output" == *"Run /in-session again."* ]] || fail "the notice names no remedy: $output"
+  teardown_gate
+}
+
+@test "a session booted before any declaration is named once languages are declared" {
+  setup_gate
+  stub_intent
+  printf '%s\n' "$BOOTSTRAP_HEADER" > "$GATE_SENTINEL"
+  run --separate-stderr env PATH="$STUB_BIN:$PATH" STUB_DECLARED="shell" \
+    CLAUDE_CODE_SESSION_ID="$GATE_SESSION_ID" bash "$SCRIPT" <<< '{"prompt":"hello"}'
+  [ "$status" -eq 0 ] || fail "status $status, stderr: $stderr"
+  [[ "$output" == *"declared [], and it now declares [shell]"* ]] || fail "no notice: $output"
+  teardown_gate
+}
+
+@test "a session whose languages agree in another order is not named" {
+  setup_gate
+  stub_intent
+  printf '%s\n%s\n%s\n' "$BOOTSTRAP_HEADER" "rust" "elixir" > "$GATE_SENTINEL"
+  run --separate-stderr env PATH="$STUB_BIN:$PATH" STUB_DECLARED=$'elixir\nrust' STUB_PENDING_OUT= \
+    CLAUDE_CODE_SESSION_ID="$GATE_SESSION_ID" bash "$SCRIPT" <<< '{"prompt":"hello"}'
+  [ "$status" -eq 0 ] || fail "status $status, stderr: $stderr"
+  [ -z "$output" ] || fail "a notice for languages that agree: $output"
+  teardown_gate
+}
+
+@test "a sentinel that records nothing, or an intent that cannot answer, names nothing" {
+  setup_gate
+  stub_intent
+  touch "$GATE_SENTINEL"
+  run --separate-stderr env PATH="$STUB_BIN:$PATH" STUB_DECLARED="shell" STUB_PENDING_OUT= \
+    CLAUDE_CODE_SESSION_ID="$GATE_SESSION_ID" bash "$SCRIPT" <<< '{"prompt":"hello"}'
+  [ "$status" -eq 0 ] || fail "status $status"
+  [ -z "$output" ] || fail "an empty sentinel was compared: $output"
+
+  printf '%s\n%s\n' "$BOOTSTRAP_HEADER" "rust" > "$GATE_SENTINEL"
+  run --separate-stderr env PATH="$STUB_BIN:$PATH" STUB_DECLARED="shell" STUB_DECLARED_RC=4 STUB_PENDING_OUT= \
+    CLAUDE_CODE_SESSION_ID="$GATE_SESSION_ID" bash "$SCRIPT" <<< '{"prompt":"hello"}'
+  [ "$status" -eq 0 ] || fail "status $status"
+  [ -z "$output" ] || fail "a failed read of the declaration was compared: $output"
   teardown_gate
 }
