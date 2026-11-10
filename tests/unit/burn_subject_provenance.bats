@@ -30,8 +30,7 @@ load "../lib/test_helper.bash"
 
 # INTENT_BURN_SCRIPT redirects every test in this file at another copy of the
 # script, so these guards can be mutation-tested -- pointed at a deliberately
-# broken copy to confirm they go red -- without editing the shipped one. The
-# idiom is INTENT_RELEASE_SCRIPT's, in tests/unit/release_script.bats.
+# broken copy to confirm they go red -- without editing the shipped one.
 BURN="${INTENT_BURN_SCRIPT:-${INTENT_HOME}/intent/st/ST0056/parity/tools/burn.sh}"
 
 @test "burn.sh is syntactically valid" {

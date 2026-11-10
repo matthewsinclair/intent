@@ -1,0 +1,154 @@
+#!/usr/bin/env bash
+#
+# bin/.devbin/cut/preflight <check> -- one of the cut's read-only checks before
+# anything is stamped.
+#
+# Declared in bin/.devbin/config.yaml as `commands.preflight`, one option per
+# check, so `bin/devbin preflight <check>` runs one and `bin/devbin preflight
+# all` runs the four. They are the cut's pre-flight seam: devbin's release core
+# runs `release.preflight` at its pre-flight, a dry run included, and a check
+# that refuses joins the refusals pre-flight collects, before the confirm step
+# asks and before anything is stamped (devbin 0327). Until Intent sweeps in the
+# devbin release that carries the seam, they run by hand.
+#
+# EACH CHECK WRITES NOTHING: the seam refuses a change one of them makes to the
+# tree, as it refuses a gate's, and git is read without its optional locks. A
+# pass prints one `ok:` line on stdout and exits 0. A refusal says what it found
+# and the remedy on stderr and exits 1, and nothing has been stamped.
+#
+# MOVED FROM THE RETIRED DRIVER, cmd/build.d/release, with ST0091 WP-01:
+#
+#   clean    no dirty or untracked path, while no stamp has begun (vc decision
+#            115; the driver refused any dirt)
+#   daemon   no intentd running, since the cut replaces the pair it executes
+#   faces    the published schema faces carry the version HEAD carries
+#   spill    `claude upgrade --apply` would write nothing outside the
+#            release's files
+set -euo pipefail
+
+: "${PROJECT_ROOT:?run this as bin/devbin preflight <check>, which exports the project root}"
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source-path=SCRIPTDIR source=../cmd/shared/releasestamp.lib
+. "$here/../cmd/shared/releasestamp.lib"
+
+CHECK="${1:-}"
+AGAIN="then cut again; nothing has been stamped"
+
+WORK=""
+trap '[ -z "$WORK" ] || rm -rf "$WORK"' EXIT
+
+# refuse <what> [<remedy>] -- the check's refusal, exit 1.
+refuse() {
+  printf 'error: preflight %s: %s\n' "$CHECK" "$1" >&2
+  [ -z "${2:-}" ] || printf '  remedy: %s\n' "$2" >&2
+  exit 1
+}
+
+# A HAND EDIT INSIDE A STAMP STEP'S SCOPE MUST NOT RIDE A COMMIT THAT SAYS
+# "release: vX". The core judges dirt against what the release owns, and with
+# `derived:` declared it defers that rule until the derived steps have run and
+# named their paths, so an edit to config.json made before the cut would be
+# committed as the stamp. This refuses it before anything is stamped.
+#
+# BUT NOT ONCE A STAMP HAS BEGUN (vc decision 115). A cut that stops inside the
+# stamp leaves the version file and the stamp's files dirty, and the same cut
+# run again continues it: `version set` runs only where the version differs,
+# then every derived step again. Refusing that dirt would refuse the core's own
+# resume, so the check stands down while the version file differs from HEAD's,
+# and the core's tree rule judges what lies outside the release's files. The
+# version file stands in for whether a stamp has begun: one edited by hand
+# before the cut reads as a stamp in progress.
+check_clean() {
+  local have head dirt
+  have="$(release_version_file "$PROJECT_ROOT")" || exit 1
+  head="$(release_head_version "$PROJECT_ROOT")" || exit 1
+  if [ "$have" != "$head" ]; then
+    printf 'ok: %s reads %s and HEAD has %s, so a stamp has begun and the core judges the dirt\n' \
+      "${DEVBIN_VERSION_FILE:-VERSION}" "$have" "$head"
+    return 0
+  fi
+  dirt="$(git -C "$PROJECT_ROOT" --no-optional-locks status --porcelain=v1 --untracked-files=all)" ||
+    refuse "git status failed, so nothing says whether the tree is clean"
+  [ -z "$dirt" ] ||
+    refuse "the tree is not clean, and no stamp has begun:
+$(printf '%s\n' "$dirt" | sed 's/^/  /')" \
+      "commit these or set them aside, $AGAIN"
+  printf 'ok: the tree is clean at %s\n' "$have"
+}
+
+# A LIVE intentd REFUSES THE CUT BEFORE ANYTHING IS STAMPED (issue 0468; vc's
+# ruling, 2026-09-19). The cut builds the pair at the release commit
+# (pair_at_head, releasebuild.lib), and that replaces the binaries in
+# native/rust/target/release that a running intentd executes. This never stops
+# or starts the daemon: its restart is the human's hand, and a release runs in
+# the human's terminal on purpose.
+check_daemon() {
+  local cli out
+  cli="$(release_built_cli "$PROJECT_ROOT")" || exit 1
+  out="$("$cli" daemon status --format json 2>&1)" || {
+    printf '%s\n' "$out" >&2
+    refuse "intent daemon status failed (its output is above), so nothing says whether intentd is running" \
+      "run \`intent daemon status\` to see why, $AGAIN"
+  }
+  case "$out" in
+    *'"state":"live"'*)
+      refuse "intentd is running, and the cut replaces the binary it executes when it builds the pair at the release commit" \
+        "run \`intent daemon stop\`, cut again, then \`intent daemon start\` once the release has finished" ;;
+  esac
+  printf 'ok: no intentd is running\n'
+}
+
+# THE PUBLISHED FACES AGREE WITH THE VERSION, BEFORE ANYTHING MOVES. Faces that
+# name another version are already the v3.0.1 defect, and the stamp's
+# regeneration would bury it. The faces and the version are read as HEAD has
+# them, which is what the release starts from, so the answer is the same
+# whether or not a stamp has begun.
+check_faces() {
+  local head stale
+  head="$(release_head_version "$PROJECT_ROOT")" || exit 1
+  WORK="$(mktemp -d)" || refuse "could not make a scratch directory"
+  git -C "$PROJECT_ROOT" --no-optional-locks archive --format=tar HEAD -- schema | tar -x -C "$WORK" ||
+    refuse "could not read schema/ at HEAD"
+  stale="$(schema_faces_version_blockers "$WORK" "$head")"
+  [ -z "$stale" ] ||
+    refuse "the published schema faces at HEAD do not carry its version, $head:
+$stale" \
+      "regenerate them, (cd native/rust && INTENT_BLESS=1 cargo test -p intentsvcs schema_faces_drift), and commit that on its own, $AGAIN"
+  printf 'ok: the schema faces carry %s\n' "$head"
+}
+
+# THE CANON SPILL, READ FROM `claude upgrade`'S OWN DRY RUN (issue 0386). The
+# stamp's upgrade step runs `--apply`, which re-provisions everything the canon
+# engine owns, and of that only CLAUDE.md and AGENTS.md are the release's. A
+# tracked file the apply would rewrite outside them is refused here, where the
+# tree is still as it was found. The dry run's own failure is a refusal, never
+# "no spill" (issue 0466).
+check_spill() {
+  local cli out p tracked spill=""
+  cli="$(release_built_cli "$PROJECT_ROOT")" || exit 1
+  out="$(cd "$PROJECT_ROOT" && "$cli" claude upgrade 2>&1)" || {
+    printf '%s\n' "$out" >&2
+    refuse "the dry run of intent claude upgrade failed (its output is above), so nothing says what --apply would write" \
+      "fix what it names, $AGAIN"
+  }
+  while IFS= read -r p; do
+    [ -n "$p" ] || continue
+    release_is_sidecar "$p" && continue
+    tracked="$(git -C "$PROJECT_ROOT" --no-optional-locks ls-files -- "$p")" ||
+      refuse "git could not say whether $p is tracked"
+    [ -z "$tracked" ] || spill+="  $p"$'\n'
+  done <<<"$(printf '%s\n' "$out" | sed -n 's/^would write: //p')"
+  [ -z "$spill" ] ||
+    refuse "intent claude upgrade --apply would rewrite tracked files that are not the release's:
+$spill" \
+      "bring them into line with canon on a commit of their own (\`intent claude upgrade --apply\` writes them), $AGAIN"
+  printf "ok: the canon engine would write nothing outside the release's files\n"
+}
+
+case "$CHECK" in
+  clean | daemon | faces | spill) "check_$CHECK" ;;
+  *)
+    printf 'error: preflight: no check %s -- one of clean, daemon, faces, spill\n' "${CHECK:-(none)}" >&2
+    exit 2
+    ;;
+esac

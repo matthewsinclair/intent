@@ -238,9 +238,16 @@ normalise() {
   # `int measured` prints NONE RECORDED for such a run rather than omitting it,
   # so the loss is visible -- but visible at read time, to whoever thinks to
   # look. This is the check that does not rely on someone looking.
+  #
+  # THE CUT'S STAMP STEPS ARE THE ONE EXCEPTION (ST0091 WP-01). devbin's release
+  # core reads a derived step's stdout as the paths the release owns, and the
+  # wrapper prints its referent on stdout, so a wrapped step would hand the core
+  # a path that is not one. A stamp step writes the release's files and seals no
+  # verdict, so there is no verdict for the referent to name.
   local line found=0
   while IFS= read -r line; do
     [ -n "$line" ] || continue
+    [[ "$line" != bin/.devbin/cut/stamp\ * ]] || continue
     found=$((found + 1))
     if [[ "$line" != "${DEVBIN_RUN_WRAPPER}"* ]]; then
       echo "this gate seals a verdict that names no tree -- it lacks the referent wrapper:" >&2

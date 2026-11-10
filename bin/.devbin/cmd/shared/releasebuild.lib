@@ -272,6 +272,43 @@ verify_pair() {
   ok
 }
 
+# pair_at_head -- build the pair at HEAD and take the verdict the pre-push hook
+# will take, before anything is pushed.
+#
+# MOVED FROM THE RETIRED RELEASE DRIVER, where it was `pair_at_tag` (issue
+# 0546), when the cut moved onto devbin's release core (ST0091). The release
+# commit bumps the workspace version in native/rust/Cargo.toml, which is a build
+# input, so the pair built before it is behind that commit, and the currency
+# verdict refuses the release's own push over it. The cut's local gates run in
+# place at the release commit, before the tag, so a gate that calls this builds
+# the pair the tag will name.
+#
+# `build all` exits 0 without promoting anything when the build-input tree is
+# dirty -- it builds into target/private/release instead -- so its exit code
+# cannot say that the pair the hook will read is current.
+# `artefact_currency_verdict` can, and it is the function the hook calls, so
+# this refuses exactly when the push would be refused, and says so before the
+# push rather than at it.
+#
+# Requires artefact.lib, sharedtarget.lib and currency.lib sourced first, as
+# verify_pair does. The build's own output goes to stderr, so the caller can
+# capture the one verdict line this prints on stdout. Returns 0 on `ok` or
+# `warn:` (the hook passes both) and 1 on anything else, the build's own failure
+# included.
+pair_at_head() {
+  local verdict
+  if ! (cd "$PROJECT_ROOT" && ./bin/devbin build all) >&2; then
+    printf 'refuse:bin/devbin build all failed -- its output is above\n'
+    return 1
+  fi
+  verdict="$(artefact_currency_verdict "$PROJECT_ROOT/native/rust/target/release" "$PROJECT_ROOT")"
+  printf '%s\n' "$verdict"
+  case "$verdict" in
+    ok | warn:*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 # refuse_single_package_release <verb> -- a one-binary RELEASE build must not
 # land in the shared target.
 #

@@ -12,10 +12,10 @@
 #   --force        build the clone even when no native/ or build-manifest path
 #                  changed
 #   --list-frozen  (first argument only) print FROZEN_REMOTES, one per line,
-#                  and exit 0; `bin/devbin build release` reads it
+#                  and exit 0
 #   --preflight-covers <rev>  (first argument only) exit 0 when a green Linux
 #                  preflight covers <rev>, and 1 with the order to run when none
-#                  does; `bin/devbin build release` asks it before it stamps
+#                  does
 #   INTENT_ALLOW_FROZEN_PUSH=1  let one push reach a frozen remote
 #
 # Exits 0 when the clone builds and its binaries run (or when no build input
@@ -118,9 +118,9 @@ done
 # to upstream so as not to trigger a CI/CD run given the GitHub budget was
 # exhausted. It doesn't matter now, as the runs just failed immediately."
 #
-# The mechanism stays because `int build release` consumes `--list-frozen` and
-# an empty list is the correct answer to "what is frozen". Add a remote name
-# here to close one again; that is the whole interface.
+# The mechanism stays because an empty list is the correct answer to "what is
+# frozen". Add a remote name here to close one again; that is the whole
+# interface.
 #
 # ONE NOTE FROM hv WORTH KEEPING, because it is about this file rather than
 # about the freeze: "I don't know why we have this formal/technical freeze like
@@ -131,12 +131,13 @@ done
 # reading before the next control gets built here.
 FROZEN_REMOTES=""
 
-# DECLARED ONCE, CONSUMED TWICE -- the same arrangement `precommit --list-guards`
-# uses, and for the same reason. `int build release` pushes to every remote and
-# must refuse BEFORE it tags rather than dying at the push with a tag already
-# cut; it needs this list to do that, and a second copy of the list in the
-# release orchestrator is two homes for one fact. The runner that enforces the
-# rule is the authority on what the rule is; everyone else asks.
+# DECLARED ONCE, ASKED BY ANY CALLER -- the same arrangement `precommit
+# --list-guards` uses, and for the same reason: the runner that enforces the
+# rule is the authority on what the rule is, and everyone else asks. The retired
+# release driver asked it before it tagged. devbin's core, which cuts since
+# ST0091, pushes to `release.remotes` alone and asks nothing here, so a frozen
+# remote it declares is refused at its push, after the tag; ST0091 WP-02 settles
+# which of prepush's gates the cut asks first.
 if [ "${1:-}" = "--list-frozen" ]; then
   for frozen in $FROZEN_REMOTES; do printf '%s\n' "$frozen"; done
   exit 0
@@ -165,7 +166,7 @@ PREFLIGHT_REMOTES="upstream"
 
 # A green summary at S covers a commit C when S is C, or when S is reached from
 # C by first parents through commits that each change only BOARD_PATHS, or that
-# are the release driver's own stamp (`release_stamp_only`) -- vc's reading of
+# are the cut's own release commit (`release_stamp_only`) -- vc's reading of
 # the ruling under hv's pen. Read literally, the rule refused every cut, whose
 # release commit no preflight can have seen, and every push made after a
 # node's board commit.
@@ -253,9 +254,10 @@ preflight_refusal() {
   } >&2
 }
 
-# DECLARED ONCE, ASKED TWICE, as --list-frozen is: `int build release` asks it
-# before it stamps anything, so a cut no preflight covers stops before its tag
-# rather than at its own upstream push.
+# DECLARED ONCE AND ASKED BY ANY CALLER, as --list-frozen is. The retired
+# release driver asked it before it stamped anything, so a cut no preflight
+# covered stopped before its tag rather than at its own upstream push; under
+# devbin's core the Linux preflight becomes the cut's remote leg (ST0091 WP-02).
 if [ "${1:-}" = "--preflight-covers" ]; then
   [ -n "${2:-}" ] || die "usage: int prepush --preflight-covers <rev>"
   commit="$(git -C "$ROOT" rev-parse --verify --quiet "$2^{commit}")" || die "'$2' names no commit in $ROOT"

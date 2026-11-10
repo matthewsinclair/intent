@@ -153,8 +153,8 @@
       "covers": [
         "AC-01.1"
       ],
-      "status": "to-write",
-      "note": "The cut's seven derived steps, each run as the core runs it; banked at refs/bank/dc/st0091/wp01a-v1 (blob c96b329f9f42, patch-id 6c2b14cb5b1c), not yet on main; it stays to-write until the train lands, where it moves red then green against the judge run."
+      "status": "red",
+      "note": "The cut's seven derived steps, each run as the core runs it; banked at refs/bank/dc/st0091/wp01a-v1 (blob c96b329f9f42, patch-id 6c2b14cb5b1c), not yet on main; it stays to-write until the train lands, where it moves red then green against the judge run. Moved red at its landing (2026-11-10, dc), in the commit that adds the file, with the file's id lines (vc's ruling). The bank that landed is wp01a-v2 (blob 91b283aadaca, patch-id 118866bca26c), which superseded the wp01a-v1 named above. Green is vc's, from its judged run of the train. Red on the code as it was: all 7 arms red on the tree before bank 2 (8770037a2), driven by dc at 17:1xZ; all 7 pass on this commit."
     },
     {
       "id": "AT-01.2",
@@ -163,8 +163,8 @@
       "covers": [
         "AC-01.1"
       ],
-      "status": "to-write",
-      "note": "The cut's helpers in releasestamp.lib, the lock and footer arms re-homed from the retired driver's tests; banked at refs/bank/dc/st0091/wp01a-v1 (blob c96b329f9f42, patch-id 6c2b14cb5b1c), not yet on main; it stays to-write until the train lands, where it moves red then green against the judge run."
+      "status": "red",
+      "note": "The cut's helpers in releasestamp.lib, the lock and footer arms re-homed from the retired driver's tests; banked at refs/bank/dc/st0091/wp01a-v1 (blob c96b329f9f42, patch-id 6c2b14cb5b1c), not yet on main; it stays to-write until the train lands, where it moves red then green against the judge run. Moved red at its landing (2026-11-10, dc), in the commit that adds the file, with the file's id lines (vc's ruling). The bank that landed is wp01a-v2 (blob 91b283aadaca, patch-id 118866bca26c), which superseded the wp01a-v1 named above. Green is vc's, from its judged run of the train. Red on the code as it was: all 13 arms red on the tree before bank 2 (8770037a2); all 13 pass on this commit."
     },
     {
       "id": "AT-01.3",
@@ -173,8 +173,8 @@
       "covers": [
         "AC-01.3"
       ],
-      "status": "to-write",
-      "note": "The cut's four read-only pre-flight checks, a live intentd refused with its remedy; banked at refs/bank/dc/st0091/wp01a-v1 (blob c96b329f9f42, patch-id 6c2b14cb5b1c), not yet on main; it stays to-write until the train lands, where it moves red then green against the judge run."
+      "status": "red",
+      "note": "The cut's four read-only pre-flight checks, a live intentd refused with its remedy; banked at refs/bank/dc/st0091/wp01a-v1 (blob c96b329f9f42, patch-id 6c2b14cb5b1c), not yet on main; it stays to-write until the train lands, where it moves red then green against the judge run. Moved red at its landing (2026-11-10, dc), in the commit that adds the file, with the file's id lines (vc's ruling). The bank that landed is wp01a-v2 (blob 91b283aadaca, patch-id 118866bca26c), which superseded the wp01a-v1 named above. Green is vc's, from its judged run of the train. Red on the code as it was: all 9 arms red on the tree before bank 2 (8770037a2); all 9 pass on this commit."
     },
     {
       "id": "AT-01.5",

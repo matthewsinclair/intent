@@ -1283,10 +1283,11 @@ cmd_publish() {
   #
   # **THE TEST IS ASSETS, NOT EXISTENCE, AND THAT DISTINCTION IS THE WHOLE v3
   # RELEASE.** This check used to refuse any release with this tag, which is
-  # broader than the reason above and made a v3 cut impossible: `int build
-  # release` creates the tag AND the GitHub release in one step (`gh release
-  # create` in build.d/release), while the next line here requires the tag to
-  # already exist because the cut owns tagging. So publish demanded a state --
+  # broader than the reason above and made a v3 cut impossible: the cut creates
+  # the tag AND the GitHub release (the retired `int build release` did both in
+  # one step, and devbin's core, which cuts since ST0091, makes both too), while
+  # the next line here requires the tag to already exist because the cut owns
+  # tagging. So publish demanded a state --
   # tag present, release absent -- that the only thing which creates the tag
   # cannot leave behind. **Each command was individually correct and the
   # composition was impossible**, which is the failure this estate keeps finding
@@ -2210,9 +2211,9 @@ bin/devbin macos <subcommand>
   signing identity from the login Keychain at load (read-only; nothing is
   printed).
 
-  THE PIPELINE, in order, after `bin/devbin build release` has cut and tagged
-  the release (it builds the pair at the tag itself, with `bin/devbin build
-  all`). Every
+  THE PIPELINE, in order, after `bin/devbin release vX.Y.Z` has cut and tagged
+  the release and `bin/devbin build all` has built the pair at the tag, which
+  is what makes the pair say `release` (source_commit.rs). Every
   step after `stage` acts on the staged copies in native/rust/target/dist --
   never on target/release, which every session in this clone shares and any
   `cargo build --release` will overwrite underneath you.

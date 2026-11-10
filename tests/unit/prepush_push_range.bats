@@ -163,7 +163,6 @@ setup() {
   # match any` -- 29 consecutive red runs of the `Intent Tests` leg while the
   # `rust` leg stayed green. The test was passing on this machine because of a
   # line in a personal config file, not because the gate under it was correct.
-  # `release_script.bats:34` already writes it this way.
   git init -q -b main --bare "$TEST_TEMP_DIR/local.git"
   git init -q -b main --bare "$TEST_TEMP_DIR/upstream.git"
   git init -q -b main "$REPO"
@@ -305,24 +304,29 @@ seed_pushed_to_upstream_only() {
     fail "expected the rebuild remedy; got status $status: $output"
 }
 
-# A RELEASE PUSH, THE WAY `bin/devbin build release` MAKES ONE (issue 0546). The
-# release commit bumps the workspace version in native/rust/Cargo.toml, which is
-# a build input, and tags it; the pair on disk was built before that commit. So
+# A RELEASE PUSH, THE WAY THE CUT MAKES ONE (issue 0546).
+#
+# ST0091 AT-01.4 cites this file for AC-01.4.
+#
+# The release commit bumps the workspace version in native/rust/Cargo.toml,
+# which is a build input, and the pair on disk was built before that commit. So
 # the release's own push is refused by the verdict above unless something builds
-# the pair at the tag first, which is what the release step's `pair_at_tag` now
-# does. The arms below run THAT function, lifted from the shipped script, in a
-# repository laid out as this one is: the three currency libraries at their real
-# path, `source_commit.rs` beside the workspace so the libraries read the real
-# build-input scope, and a `bin/devbin` that stands in for the dispatcher.
-# `build all` in the stand-in stamps the pair at HEAD, which is what a promoted
-# build names; DEVBIN_STUB_FAIL makes it fail, and DEVBIN_STUB_NOPROMOTE makes
-# it exit 0 without touching the pair, as the real one does on a dirty tree.
-RELEASE_SCRIPT="${INTENT_PROJECT_ROOT}/bin/.devbin/cmd/build.d/release"
-
+# the pair at the release commit first, which is what `pair_at_head` does: the
+# retired driver's `pair_at_tag`, moved into releasebuild.lib when devbin's core
+# took the cut (ST0091). The arms below run THAT function, sourced as its
+# callers source it, in a repository laid out as this one is: the currency
+# libraries and releasebuild.lib at their real path, `source_commit.rs` beside
+# the workspace so the libraries read the real build-input scope, and a
+# `bin/devbin` that stands in for the dispatcher. `build all` in the stand-in
+# stamps the pair at HEAD, which is what a promoted build names;
+# DEVBIN_STUB_FAIL makes it fail, and DEVBIN_STUB_NOPROMOTE makes it exit 0
+# without touching the pair, as the real one does on a dirty tree. The tag is
+# annotated, as the core makes it (`git tag -a`), so the hook is handed the tag
+# object's sha and the range reader must peel it.
 cut_release() {
   local shared="$REPO/bin/.devbin/cmd/shared" lib
   mkdir -p "$shared" "$REPO/native/rust/build-support" "$REPO/bin"
-  for lib in artefact sharedtarget currency; do
+  for lib in artefact sharedtarget currency releasebuild; do
     cp "${INTENT_PROJECT_ROOT}/bin/.devbin/cmd/shared/$lib.lib" "$shared/"
   done
   cp "${INTENT_PROJECT_ROOT}/native/rust/build-support/source_commit.rs" "$REPO/native/rust/build-support/"
@@ -344,30 +348,32 @@ STUB
   git -C "$REPO" push -q upstream main
   stamp_pair "$(at HEAD)"
 
-  # The release commit and its tag, as the release step makes them.
+  # The release commit and its tag, as the core makes them: the commit is
+  # "release: <tag>", and the tag is annotated.
   printf '[workspace.package]\nversion = "3.2.1"\n' >"$REPO/native/rust/Cargo.toml"
   git -C "$REPO" commit -qam "release: v3.2.1"
-  git -C "$REPO" tag v3.2.1
-
-  sed -n '/^pair_at_tag() {/,/^}/p' "$RELEASE_SCRIPT" >"$TEST_TEMP_DIR/pair_at_tag.sh"
-  grep -q '^pair_at_tag() {' "$TEST_TEMP_DIR/pair_at_tag.sh" ||
-    fail "no pair_at_tag() in $RELEASE_SCRIPT -- the release step no longer builds the pair at the tag"
+  git -C "$REPO" tag -a v3.2.1 -m v3.2.1
+  [ "$(git -C "$REPO" cat-file -t v3.2.1)" = tag ] || fail "v3.2.1 is not an annotated tag, so these arms would not ask the range reader to peel one"
 }
 
-# The two ref pairs git hands the hook for `git push local main v3.2.1`.
+# The two ref pairs git hands the hook for `git push local main v3.2.1`. For an
+# annotated tag the local sha is the tag object's, as git hands it.
 release_refs() {
   printf 'refs/heads/main %s refs/heads/main %s\nrefs/tags/v3.2.1 %s refs/tags/v3.2.1 %s' \
     "$(at HEAD)" "$(at local/main)" "$(at v3.2.1)" "$ZERO"
 }
 
-# Run pair_at_tag as the release step does, with only the stand-in's switches
-# added to a clean environment.
-pair_at_tag_run() {
+# Run pair_at_head as its callers do, the libraries it requires sourced first,
+# with only the stand-in's switches added to a clean environment. A library
+# that does not define it fails the arm rather than passing it.
+pair_at_head_run() {
   env -i HOME="$HOME" PATH="$TRIMMED_PATH" PROJECT_ROOT="$REPO" "$@" \
-    bash -c '. "$1" && pair_at_tag' _ "$TEST_TEMP_DIR/pair_at_tag.sh" 2>&1
+    bash -c 'for lib in artefact sharedtarget currency releasebuild; do . "$1/$lib.lib" || exit 2; done
+      declare -F pair_at_head >/dev/null || { echo "releasebuild.lib defines no pair_at_head"; exit 2; }
+      pair_at_head' _ "$REPO/bin/.devbin/cmd/shared" 2>&1
 }
 
-@test "a release push passes the pre-push check once the release step has built the pair at the tag" {
+@test "a release push passes the pre-push check once the cut has built the pair at the release commit" {
   cut_release
 
   # The defect, as vc measured it: over the pair built before the release
@@ -377,30 +383,30 @@ pair_at_tag_run() {
   [[ "$output" == *"BLOCKED: the delivered pair"* ]] ||
     fail "expected the currency refusal; got status $status: $output"
 
-  run pair_at_tag_run
-  [ "$status" -eq 0 ] || fail "expected pair_at_tag to pass the pair it built, got status $status: $output"
+  run pair_at_head_run
+  [ "$status" -eq 0 ] || fail "expected pair_at_head to pass the pair it built, got status $status: $output"
   [ "$output" = "ok" ] || fail "expected the verdict 'ok'; got: $output"
 
-  # The same push over the pair built at the tag reaches the range decision,
+  # The same push over the pair built at the release commit reaches the range decision,
   # and the release commit carries native/, so the gate engages.
   run runner "$(release_refs)"
   expect_engaged
 }
 
-@test "a build at the tag that fails refuses before the push, naming the build" {
+@test "a pair build that fails refuses before the push, naming the build" {
   cut_release
-  run pair_at_tag_run DEVBIN_STUB_FAIL=1
-  [ "$status" -eq 1 ] || fail "expected pair_at_tag to refuse a failed build, got status $status: $output"
+  run pair_at_head_run DEVBIN_STUB_FAIL=1
+  [ "$status" -eq 1 ] || fail "expected pair_at_head to refuse a failed build, got status $status: $output"
   [[ "$output" == *"refuse:bin/devbin build all failed"* ]] ||
     fail "expected the refusal to name the build; got: $output"
 }
 
-@test "a build at the tag that promotes nothing refuses before the push, with the hook's own verdict" {
+@test "a pair build that promotes nothing refuses before the push, with the hook's own verdict" {
   # `build all` exits 0 into target/private/release on a dirty tree, so its exit
   # code is not the answer; the verdict the hook takes is.
   cut_release
-  run pair_at_tag_run DEVBIN_STUB_NOPROMOTE=1
-  [ "$status" -eq 1 ] || fail "expected pair_at_tag to refuse an unpromoted pair, got status $status: $output"
+  run pair_at_head_run DEVBIN_STUB_NOPROMOTE=1
+  [ "$status" -eq 1 ] || fail "expected pair_at_head to refuse an unpromoted pair, got status $status: $output"
   [[ "$output" == *"refuse:"*"behind HEAD"* ]] ||
     fail "expected the currency verdict naming the pair as behind; got: $output"
 }
@@ -437,8 +443,8 @@ preflight_push() {
       bash "$RUNNER" "$1" "$TEST_TEMP_DIR/$1.git" 2>&1
 }
 
-# preflight_covers_q <rev> -- the question `bin/devbin build release` asks
-# before it stamps anything.
+# preflight_covers_q <rev> -- the question the retired release driver asked
+# before it stamped anything.
 preflight_covers_q() {
   env -i HOME="$TEST_TEMP_DIR/home" PATH="$TRIMMED_PATH" DEVBIN_NAME=int \
     DEVBIN_LIB="${INTENT_PROJECT_ROOT}/bin/.devbin/lib" \

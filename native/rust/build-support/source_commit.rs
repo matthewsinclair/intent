@@ -375,8 +375,10 @@ fn emit_currency_scope() {
 /// not that commit, is not the release whatever a tag says.
 ///
 /// **THE TAGS ARE READ WITH `tag --points-at`, NOT `describe --exact-match`.**
-/// This repository's release tags are lightweight, and `describe` without
-/// `--tags` sees annotated tags only; `--points-at` lists both kinds.
+/// This repository's release tags are lightweight to v3.2.8 and annotated from
+/// v3.3.0, whose release core tags with `git tag -a`. `describe` without
+/// `--tags` sees annotated tags only; `--points-at` lists both kinds, so the
+/// two eras read the same.
 ///
 /// **IT NAMES THE SOURCE, NOT CARGO'S PROFILE.** A debug build at the tag says
 /// `release` as well, because its source is the release's.

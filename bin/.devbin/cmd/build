@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
 #
-# devbin: summary = Build this project's artefacts, and cut its releases
-# devbin: args = <all|cli|daemon|release> ...
-# bin/devbin build <all|cli|daemon|release> ...
+# devbin: summary = Build this project's artefacts
+# devbin: args = <all|cli|daemon> ...
+# bin/devbin build <all|cli|daemon> ...
 #
 #   all      [--debug] [cargo opts]  intent + intentd, release profile by default
 #   cli      [--debug] [cargo opts]  the intent CLI binary (cargo -p intent-cli)
 #   daemon   [--debug] [cargo opts]  the intentd daemon binary (cargo -p intentd)
-#   release  <--patch|--minor|--major|vX.Y.Z> [flags]  cut, tag and publish
 #
 # `all` without --debug is the guarded release build: a tree with uncommitted
 # changes under its build inputs (native/rust, surface, docs/design,
@@ -16,11 +15,11 @@
 # refuse a release build of one binary unless CARGO_TARGET_DIR is set. Extra
 # arguments reach cargo as given only with --debug: without it `all` cleans and
 # verifies the pair around them, so --help is no way to reach cargo's help.
-# `release` answers its own --help. Each arm is a handler under cmd/build.d/,
-# and this file answers only bare, -h/--help and unknown targets.
+# Each arm is a handler under cmd/build.d/, and this file answers only bare,
+# -h/--help and unknown targets.
 #
-# `all` means all BINARIES and pointedly not `release`: one arm compiles a
-# binary and the other publishes a release, and no one wants both in one pass.
+# A release is cut by devbin's release core, `bin/devbin release vX.Y.Z`, and
+# not here: `all` compiles the binaries and nothing in this command publishes.
 #
 set -euo pipefail
 : "${DEVBIN_LIB:?run me through the devbin dispatcher}"
@@ -28,10 +27,10 @@ set -euo pipefail
 
 case "${1:-}" in
   ""|-h|--help)
-    sed -n '5,23p' "${BASH_SOURCE[0]}" | sed -e 's/^# //' -e 's/^#$//'
+    sed -n '5,22p' "${BASH_SOURCE[0]}" | sed -e 's/^# //' -e 's/^#$//'
     exit 0
     ;;
   *)
-    die "unknown build target: $1 (try: cli, daemon, all, release)"
+    die "unknown build target: $1 (try: cli, daemon, all; a release is \`bin/devbin release vX.Y.Z\`)"
     ;;
 esac

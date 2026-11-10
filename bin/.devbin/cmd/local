@@ -218,9 +218,9 @@ EOF
   # IT REPORTS AND DOES NOT REFUSE, DELIBERATELY. `status` is read-only and
   # every caller reads its exit code as "did the status run", not as a verdict.
   # Enforcement stays where it already is. This is NOT the warn-and-continue
-  # form `build.d/release` rules against in its own words -- *a fallback that
-  # warns is a fallback that gets ignored* -- because nothing here is falling
-  # back to a second-choice binary; the verdict is the whole product of the verb.
+  # form the cut's stages rule against in their own words (release_built_cli,
+  # shared/releasestamp.lib) -- *a fallback that warns is a fallback that gets
+  # ignored* -- because nothing here is falling back to a second-choice binary; the verdict is the whole product of the verb.
   local verdict
   verdict="$(artefact_currency_verdict "$RELEASE_DIR" "$PROJECT_ROOT" 2>/dev/null || echo 'refuse:the currency verdict could not be taken')"
   case "$verdict" in
