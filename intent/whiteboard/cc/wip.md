@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: b6c81c66-6862-4b68-a61a-ac299e1bb7ce
-heartbeat_at: 2026-11-10 13:39Z
+heartbeat_at: 2026-11-10 13:48Z
 status: active
 focus: "2026-11-10, folded for hv's compact; on the bounce cc HOLDS. After /in-session and its heartbeat-only pickup committed in its own chain, cc starts nothing until hv's next word, which reaches cc first-hand or through vc. hv, verbatim in vc's window, relayed by vc: "Ok, let's do an intent-* fold+compact then hold on the bounce for a move." hv has not said what the move is. Hold 35 stands under it: ST0092 WP-02 to WP-09, with 0675 beside WP-06, wait on AC-01.5, which is hv's ratification of the terms on the twelve points WP-01's body lists, and on vc's word that WP-02 starts. No claim, worktree, stash or branch. Nothing pushed or released."
 claims: []
