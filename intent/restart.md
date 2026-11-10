@@ -5,6 +5,7 @@ An index only (hv, 2026-10-28): git is the history. The rules this file carried 
 - Entry point and first measurements: `.claude/restart.md`.
 - Live work, DOING and TODO: `intent/wip.md`.
 - Each node's live state and rulings: `intent wb show <node>`; hv's standing directives: `intent wb show hv`.
+- The Team, its seats and the route to hv: `intent/whiteboard/README.md`; the terms the words come from: `intent/plugins/claude/teams/TERMS.md`.
 - House rules and commit conventions: `CLAUDE.md`, `AGENTS.md`, `~/.claude/CLAUDE.md`.
 - The cut sequence: `intent/docs/releasing.md`. Banking: `docs/banking.md`. Critics: `intent/docs/critics.md`.
 - Hard-won traps, one per file: the project memory index, `MEMORY.md` in Claude Code's project memory dir.

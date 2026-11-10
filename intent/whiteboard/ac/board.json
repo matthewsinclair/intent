@@ -1,0 +1,17 @@
+{
+  "schema": "intent/board@4.0",
+  "node": {
+    "moniker": "ac",
+    "name": "Authoring Claude",
+    "role": "authoring",
+    "heartbeat_at": "2026-11-10T11:51:16.894Z",
+    "status": "paused",
+    "focus": "",
+    "claims": [],
+    "recorded_at": "2026-11-10T11:51:16.894Z",
+    "migrated_at": "2026-11-10T11:51:16.894Z"
+  },
+  "items": [],
+  "sent": [],
+  "handled": []
+}

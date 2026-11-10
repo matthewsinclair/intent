@@ -1,7 +1,7 @@
 ---
 node: dc
 name: DevX Claude
-role: worker
+role: devx
 session_id: 2aba47df-5301-4790-a6b7-e11815afe307
 heartbeat_at: 2026-11-10 11:41Z
 status: active

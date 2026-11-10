@@ -1,0 +1,15 @@
+{
+  "id": "01M72MRNMYN97WJ4N49GRNG2Z9",
+  "ts": "2026-11-10T11:51:16.894Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.register",
+  "subject": {
+    "type": "node",
+    "id": "ac"
+  },
+  "payload": {
+    "name": "Authoring Claude",
+    "role": "authoring"
+  }
+}
