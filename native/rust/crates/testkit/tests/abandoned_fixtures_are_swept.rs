@@ -131,44 +131,47 @@ fn a_dead_fixture_is_removed_and_a_live_one_survives_the_same_sweep() {
 /// corpses that nothing else can create, sweep, require none to survive. That is
 /// the mechanism that makes the global claim true, tested where it is
 /// deterministic.
+///
+/// **THE SECOND VERSION COUNTED THAT FAMILY, AND THE COUNT WAS RACY TOO: KOVACS
+/// READ `left: 2, right: 3` IN THE LINUX PREFLIGHT AT `64cf9e251` ON 2026-11-01**
+/// (kovacs-sysadm's END 09:28:18Z). Nothing else can CREATE the family, but
+/// anything can SWEEP it: the sibling above runs the same sweep on another test
+/// thread, every `/tmp` creation site sweeps at start, and the sweep removes
+/// every dead-pid fixture whatever the rest of its name says. One landed between
+/// the planting and the count. **So the probe asserts on the directories it
+/// planted, as its sibling does**: each name is checked against the sweep's own
+/// predicate without reading `/tmp`, and after the sweep every planted directory
+/// must be gone. A concurrent sweeper can only remove a corpse, which is the
+/// property holding; a sweep that removes nothing still fails this whenever no
+/// other sweeper ran.
 #[test]
 fn a_run_leaves_no_corpse_of_its_own_behind() {
   let tag = format!("sweepgrowth-{}", std::process::id());
-  let before = population_tagged(&tag);
-  assert_eq!(before, 0, "the probe family is not unique to this process");
-
-  for n in 0..3 {
-    plant(&format!("intent-fixture-{tag}-{}-{n}", a_dead_pid()));
-  }
-  assert_eq!(
-    population_tagged(&tag),
-    3,
-    "the probe did not grow its own family, so it measures nothing"
-  );
+  let planted: Vec<PathBuf> = (0..3)
+    .map(|n| {
+      let pid = a_dead_pid();
+      let name = format!("intent-fixture-{tag}-{pid}-{n}");
+      assert_eq!(
+        testkit::abandoned_fixture_pid(&name),
+        Some(pid),
+        "the probe planted a name the sweep does not match, so it measures nothing: {name}"
+      );
+      plant(&name)
+    })
+    .collect();
 
   // The WORKER, not `sweep_once`: the hook is `Once`-guarded, so by this point
   // another test in this binary may already have consumed it and the call would
   // be a silent no-op. A test that cannot tell a no-op from a sweep is not one.
   testkit::sweep_abandoned_fixtures();
 
-  assert_eq!(
-    population_tagged(&tag),
-    0,
-    "a run left its own corpses behind: {} of 3 survived the sweep",
-    population_tagged(&tag)
+  let survivors: Vec<&PathBuf> = planted.iter().filter(|dir| dir.exists()).collect();
+  assert!(
+    survivors.is_empty(),
+    "a run left its own corpses behind: {} of {} survived the sweep: {survivors:?}",
+    survivors.len(),
+    planted.len()
   );
-}
-
-fn population_tagged(tag: &str) -> usize {
-  std::fs::read_dir("/tmp")
-    .expect("read /tmp")
-    .flatten()
-    .filter(|e| {
-      e.file_name()
-        .to_str()
-        .is_some_and(|n| n.contains(tag) && testkit::abandoned_fixture_pid(n).is_some())
-    })
-    .count()
 }
 
 /// **THE ANTI-ROT ARM: EVERY `/tmp` CREATION SITE SWEEPS AT START.**
