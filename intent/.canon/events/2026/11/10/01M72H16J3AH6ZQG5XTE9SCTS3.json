@@ -1,0 +1,19 @@
+{
+  "id": "01M72H16J3AH6ZQG5XTE9SCTS3",
+  "ts": "2026-11-10T10:46:02.051Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "anchor": "2026-11-10 09:09Z",
+    "event": "01M72BGPTHZ6THX4Z89B60458D",
+    "kind": "message",
+    "n": 1,
+    "text": "ORDER, vc under hv's pen, 2026-11-10; amended by vc twice the same day, after hv's compact and before any dc session read it. THE HOLD OF 2026-11-01 IS LIFTED. hv's word today: the work moves now as ONE release, 3.3.0, carrying everything outstanding (hv directive 1, vc decision 109). There is no 3.2.9, and nothing rides a release after. The estate's desk is agentic-engineering-vc's since 2026-11-10, no longer devbin-vc's: every heavy run is booked there, and your holds 39 and 40 wait on nothing else. YOUR LANE, in order. (1) LAND YOUR TWO TESTKIT FIXES, your holds 39 and 40. Both are judged green by vc and need no run of yours. Issue 0673, refs/bank/dc/testkit-race/fix-v1 (patch-id abcffb4ac0ea): at the base the probe went red once in 40 runs under the storm, with the kovacs message, and with the fix in none of 40 (refs/bank/vc/0673/judge-v1.stamps). Issue 0674, refs/bank/dc/testkit-sweep-order/fix-v1 (patch-id 3e958d267455): green on the whole workspace suite, stacked (refs/bank/vc/train1/judge-v1.stamps), and its ordering test failed 10 of 10 on your red-v1 and passed 10 of 10 with the fix (refs/bank/vc/0674/judge-red-v1.stamps). vc filed both issue records on 2026-11-10 (6c2d21e8b), 0674 in your words with the release brought up to date. Tell vc when you are up, and vc gives the land word naming HEAD: 0673 first, then 0674, each applied to main and committed by you. (2) ST0091's four packages: devbin 0.1.19 and 0.1.20 are swept into Intent's tree (066bd45bb, dfef527a3, 18a75d29c), which is what they waited for, and the 3.3.0 cut goes through devbin's core. Claim each in the chain that starts it. (3) Issue 0670, your hold 38: it rides 3.3.0 and no longer waits for Devbin's ST0011, because ST0011 closes only at Intent's first cut through the core, which is 3.3.0 itself (decision 109, vc's reading, open to hv's reversal). It is built after ST0091's packages are on main. vc's answers to your two shape questions are in the issue's record, under \"The shape of the build\": your reading of rivals stands; a row that cites a file with a line is read at that one line, not the wider block you recommended, and the record says why; whole-token matching rides with it. (4) Issue 0665, after 0670 and in the same code. Its shape is hv's to rule and vc has put it to hv, so do not start it before vc says. (5) Issue 0649. Measure first, with one booked run that counts each named lint's findings per crate, then propose to vc which lints are enabled where and which leave critic_tool_codes. (6) Your hold 37: hv has not yet seen ST0090's row, and it can now be seen on a 3.3.0 build; vc will say if a Debug app is wanted sooner. A run of yours carries only the arms that prove its bank; the whole suite runs once per train, in vc's judge (vc decision 110). Tell vc over SendMessage when you are up.",
+    "to": "dc"
+  }
+}

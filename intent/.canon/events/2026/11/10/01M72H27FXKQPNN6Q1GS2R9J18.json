@@ -1,0 +1,16 @@
+{
+  "id": "01M72H27FXKQPNN6Q1GS2R9J18",
+  "ts": "2026-11-10T10:46:35.773Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 77,
+    "text": "3.3.0, THE ONE NEXT RELEASE (hv directive 1, decision 109): the train. OWED BY hv, in the order it unblocks work: starting cc, dc and ic; the ratification of ST0092's terms document on the nine points vc listed (todo 76); the shape of issue 0665, which the issue leaves to its reporter (by the census of 2026-11-01 the exemption it names passes 241 rows on completed threads across the fleet, so a check that reads every completed thread would name all of them); the answer on client names (watchout 34); and whether Intent keeps an AT's own red-then-green on the code as it was, which is vc's reading of hv's word of 2026-09-13, given that the desk reports hv ruled \"no planted faults\" in another estate on 2026-11-05. FIRST TRAIN: todo 74; then the push of main (hold 8). cc's LANE: issue 0671's one fix, then ST0092's WP-02 to WP-09, with issue 0675 beside WP-06. dc's LANE: landing issues 0673 and 0674; ST0091's four packages, since the cut goes through devbin's core; issue 0670 in the shape its record carries since 6c2d21e8b, judged with the fleet census at refs/bank/vc/0670/ and bound to redden Devbin ST0011 AT-3.5 and nothing else; issue 0665 once hv has ruled its shape; and issue 0649, measured first. ic's LANE: issue 0661 in the shape its record calls (B), then 0650, then 0672 in the full shape (todo 75), then 0676 and 0677, and for ST0092 the read of each of cc's surface rows and WP-10. BEFORE THE CUT: hv says which remotes it pushes to and release.remotes is declared (watchout 33); hv sees ST0090's row on a 3.3.0 build (hold 6); every package and issue above is landed and its gate read. THE CUT is hv's, once. AFTER IT: ST0092's sweep. Each lane's order is in its inbox, amended twice on 2026-11-10 before any session had read it; cc, dc and ic have no session running until hv starts them."
+  }
+}

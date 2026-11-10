@@ -1,0 +1,16 @@
+{
+  "id": "01M72H26C4K0G9A8F2ERTWHMYW",
+  "ts": "2026-11-10T10:46:34.628Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 76,
+    "text": "ST0092, Claude Team profiles, rides 3.3.0 (decision 109). Eleven packages (`intent wp list ST0092`, `intent ac gate ST0092`). WHERE IT STANDS. WP-01 is WIP: its terms document is at intent/plugins/claude/teams/TERMS.md, critic-prose's findings are applied (d72e40018), its citation of a thread id is removed (3616f55e0), and none of its criteria is satisfied. NEXT, in order. (1) hv ratifies the document. vc put nine points to hv on 2026-11-10, each with a recommendation: the six wordings WP-01's body lists, and three from the spike, which are cc's default remit widened to the model and its rules, one sentence giving cc the meaning of a contract and ic its shape and transport, and one line obliging the mediator to put a seat's disagreement to hv in the seat's own words. vc edits the document to hv's answer, records the ratification on hv's board and satisfies AC-01.1 to AC-01.5 with it. No code before that. (2) cc builds WP-02 to WP-09 and ic WP-10; vc judges each bank and claims nothing. (3) THE SPIKE, one swarm set up by hand in the thread's form. Its cold boot is in: a partial pass, recorded in WP-06's body with its confound, and AC-06.4 now asks the launcher for the seat and the pickup for the rest (3616f55e0). Its later findings became issues 0675, 0676 and 0677. A second pair of new projects is to be set up in the same hand form by that swarm's dc, to whom vc sent the form on 2026-11-10; hv has them halted for now. The form and the first findings are banked at refs/bank/vc/st0092/spike-form-v1.md. (4) The sweep, WP-11, runs after the 3.3.0 cut, on the brew-installed release, and Pipeliner's sc is confirmed with hv before any write there. The census instrument is refs/bank/vc/st0092/census-boards.zsh (a651ef150413), and its reading of 2026-11-10 is refs/bank/vc/st0092/census-20261110.txt."
+  }
+}

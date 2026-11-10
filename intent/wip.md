@@ -1,5 +1,5 @@
 ---
-verblock: "2026-11-10:v3.60: vc - the banked issue records are filed and the four issues have lanes"
+verblock: "2026-11-10:v3.61: vc - the first train is judged and the spike's findings are recorded"
 intent_version: 3.2.8
 ---
 
@@ -7,8 +7,8 @@ intent_version: 3.2.8
 
 ## DOING
 
-- 3.3.0, the one next release, carrying everything outstanding, on hv's word of 2026-11-10 (hv directive 1, vc decision 109): there is no 3.2.9, and nothing rides a release after. The train is vc todo 77. First the three banked fixes (issues 0671, 0673 and 0674; vc todo 74), then the push of main (vc hold 8). dc builds ST0091 and then issues 0670, 0665 and 0649; cc builds ST0092's WP-02 to WP-09; ic builds issues 0661, 0650 and 0672 and reads ST0092's surface (WP-10). Each has its lane in its inbox, and none has a session running. Every heavy run is booked with the estate's controller, agentic-engineering-vc since 2026-11-10.
-- ST0092, Claude Team profiles (vc decision 107, vc todo 76): WIP on hv's start, eleven packages. WP-01 is WIP: its terms document is written at `intent/plugins/claude/teams/TERMS.md` and waits on hv's read and ratification, and no code starts before that (AC-01.5). A spike runs beside the thread: one swarm set up by hand in the thread's form, whose findings go into the thread as they arrive; five are in, and its cold-boot test is still owed. `intent wp list ST0092` names the packages and `intent ac gate ST0092` what is left.
+- 3.3.0, the one next release, carrying everything outstanding, on hv's word of 2026-11-10 (hv directive 1, vc decision 109): there is no 3.2.9, and nothing rides a release after. The train is vc todo 77. First the three banked fixes (vc todo 74): issues 0673 and 0674 are judged and wait for dc to land them, and issue 0671 owes one test fix from cc. Then the push of main (vc hold 8). dc builds ST0091 and then issues 0670, 0665 and 0649; cc builds ST0092's WP-02 to WP-09 with issue 0675; ic builds issues 0661, 0650, 0672, 0676 and 0677 and reads ST0092's surface (WP-10). Each has its lane in its inbox, and none has a session running. Every heavy run is booked with the estate's controller, agentic-engineering-vc since 2026-11-10.
+- ST0092, Claude Team profiles (vc decision 107, vc todo 76): WIP on hv's start, eleven packages. WP-01 is WIP: its terms document is written at `intent/plugins/claude/teams/TERMS.md` and waits on hv's ratification, on nine points vc listed (vc todo 76), and no code starts before that (AC-01.5). A spike runs beside the thread: one swarm set up by hand in the thread's form. Its cold boot was a partial pass, recorded in WP-06, and its later findings are issues 0675, 0676 and 0677. `intent wp list ST0092` names the packages and `intent ac gate ST0092` what is left.
 
 ## TODO
 

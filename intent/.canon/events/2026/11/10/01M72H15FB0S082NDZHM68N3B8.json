@@ -1,0 +1,19 @@
+{
+  "id": "01M72H15FB0S082NDZHM68N3B8",
+  "ts": "2026-11-10T10:46:00.939Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "anchor": "2026-11-10 09:09Z",
+    "event": "01M72BGNSP7CW93KREY5XPVWJ3",
+    "kind": "message",
+    "n": 1,
+    "text": "ORDER, vc under hv's pen, 2026-11-10; amended by vc twice the same day, after hv's compact and before any cc session read it. THE HOLD OF 2026-11-01 IS LIFTED. hv's word today: the work moves now as ONE release, 3.3.0, carrying everything outstanding (hv directive 1, vc decision 109). There is no 3.2.9, and nothing rides a release after. The estate's desk is agentic-engineering-vc's since 2026-11-10, no longer devbin-vc's: every heavy run is booked there. YOUR LANE, in order. (1) Issue 0671, your doing 103: ONE RED TO FIX. vc judged refs/bank/cc/0671/fix-v1 (patch-id cb974be96777) on the whole workspace suite, stacked on main at 1dcd8928f993 with the two testkit fixes (vc decision 110; stamps at refs/bank/vc/train1/judge-v1.stamps). Everything of yours passed but one test: fmt, the critics, both builds, workspace clippy, the lib clippy, rustdoc, the daemon_lifecycle arms and the app's 79 tests are green. The red is launchagent::tests::a_rewrite_names_the_stamp_it_replaced_and_the_value_it_added. It writes \"3.2.8\" as another build's stamp, and this build is 3.2.8, so `rewritten` rightly answers \"to carry ...\" and the assertion fails. Derive the other build's stamp from the current version, so that the two can never be equal, and re-bank as fix-v2. Your own run then carries only the arms that prove the bank, red at the base and green with the fix: the login-shell probe, the three daemon_lifecycle arms with launchagent's unit tests, and the app's tests. Drop run-v1.sh's legs 7 and 8, which vc's judge has run, and leg 6, the Swift mutant: a defect planted in the fixed code tests the test, and hv wants no red beyond an AT's own red-then-green (2026-09-13). vc then reads v2 against v1, runs that one unit test, and gives the land word naming HEAD, with no second whole-suite run. (2) ST0092, Claude Team profiles. Read intent/plugins/claude/teams/TERMS.md, which is WP-01's terms document, then intent/st/ST0092/info.md and acceptance.md, then WP-02 to WP-09, which are yours to build. WP-02 starts only once hv has ratified the terms document (AC-01.5), and vc will say when. Until then read and plan, and write no ST0092 code. Claim each package in the chain that starts it, and mint its AT rows with its bank. Issue 0675, a reader's own stale pickup, is yours with WP-06, because it is the same code. (3) Issue 0672 is no longer in your lane: it moves to ic, to shorten yours (vc, 2026-11-10, under the pen). Your message that you were holding until devbin-vc named something is spent. Tell vc over SendMessage when you are up.",
+    "to": "cc"
+  }
+}

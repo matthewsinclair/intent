@@ -1,0 +1,16 @@
+{
+  "id": "01M72H257R2QJ6B903MM1JKT8Q",
+  "ts": "2026-11-10T10:46:33.464Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 74,
+    "text": "3.3.0's FIRST TRAIN, the three banked bug fixes (decisions 106, 109 and 110). Every run is booked with the estate's controller, agentic-engineering-vc since 2026-11-10. ISSUES 0673 AND 0674 ARE JUDGED WHOLE AND WAIT ONLY FOR dc TO LAND THEM, on vc's word naming HEAD, 0673 first. 0673, refs/bank/dc/testkit-race/fix-v1 (patch-id abcffb4ac0ea): the reason it holds is the mechanism, that the probe now asserts on the directories it planted, so a concurrent sweep can only remove a corpse; the measurement beside it is 1 red of 40 at the base with the kovacs message and 0 of 40 with the fix (refs/bank/vc/0673/judge-v1.stamps). 0674, refs/bank/dc/testkit-sweep-order/fix-v1 (patch-id 3e958d267455): green on the whole workspace suite, stacked (refs/bank/vc/train1/judge-v1.stamps), and its ordering test failed 10 of 10 on the old order through the fix's seam and passed 10 of 10 with the fix (refs/bank/vc/0674/judge-red-v1.stamps). ISSUE 0671 OWES ONE FIX, cc's: in refs/bank/cc/0671/fix-v1 (patch-id cb974be96777) the unit test launchagent::tests::a_rewrite_names_the_stamp_it_replaced_and_the_value_it_added writes 3.2.8 as another build's stamp and this build is 3.2.8. Everything else of the bank passed the whole-suite judge: 3504 tests passed, clippy, rustdoc and both builds at rc 0, and the app's 79 tests. cc re-banks as fix-v2 and runs its own red-then-green arms without its Swift mutant leg; vc reads v2 against v1 and runs that one test, with no second whole-suite run. The judge's other red was vc's own: the terms document cited a thread id, fixed at 3616f55e0 and proven from the judge's built binary. The judge worktree tmp/wt-vc-judge-train1 holds the stack at main 1dcd8928f993, tip tree 02a85dfbe805, and goes at the fold after the train lands; tmp/wt-vc-judge-race goes with it. vc claims nothing."
+  }
+}
