@@ -73,7 +73,7 @@ title: A Claude Team is declared by a profile: wb init sets up its board, hv is 
 
 - AC-07.1 An apply renders `intent/whiteboard/README.md` from one template under `lib/templates/`: the declared profiles, a roster table with each seat's moniker, name, role, driver and remit, the route to hv, and the verb that prints the terms. -- satisfied: no (computed)
 - AC-07.2 Everything below the template's marker is carried byte for byte across every re-render, by the function that carries CLAUDE.md's block and by no copy of it. -- satisfied: no (computed)
-- AC-07.3 The first render over a README that has no marker carries the whole existing file below the marker and says so. -- satisfied: no (computed)
+- AC-07.3 The first render over a README that has no marker carries the whole existing file below the marker and says so, except a frontmatter block that opens the existing file, which is dropped and named in the report. -- satisfied: no (computed)
 - AC-07.4 The generated part states nothing that the profiles and the store do not declare, which is issue 0672's lesson: rendered for two projects with the same declaration and remits, it differs only in the project's name. -- satisfied: no (computed)
 - AC-07.5 A hand edit above the marker is skew that `intent doctor` reports and the next render restores, and a re-render with nothing changed writes nothing. -- satisfied: no (computed)
 
