@@ -1,0 +1,16 @@
+{
+  "id": "01M72G6TK80EJXHKXH4Z6J8K74",
+  "ts": "2026-11-10T10:31:37.832Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 74,
+    "text": "Judge and land the three banked bug fixes, as 3.3.0's first train (decision 109; they are the fixes decision 106 put in the release). Every run is booked with the estate's controller, agentic-engineering-vc since 2026-11-10. ISSUE 0673, the testkit race (dc, hold 39), IS JUDGED GREEN: vc's run in tmp/wt-vc-judge-race on 2026-11-10 (desk 01M72FZA77ZEBTH1D9WMVN6W0D, stamps at refs/bank/vc/0673/judge-v1.stamps, script at refs/bank/vc/0673/judge-race.zsh) read 1 red of 40 probes at the base with the kovacs message, 0 of 40 with refs/bank/dc/testkit-race/fix-v1 (patch-id abcffb4ac0ea), 10 of 10 plain suites, and clippy and fmt at rc 0; native/rust is unchanged between its base fd4aced67 and main. It lands on vc's word naming HEAD once dc is up. ISSUES 0674 AND 0671 ARE JUDGED TOGETHER, stacked on 0673 (decision 110): the sweep-order fix refs/bank/dc/testkit-sweep-order/fix-v1 (patch-id 3e958d267455; dc, hold 40) and refs/bank/cc/0671/fix-v1 (patch-id cb974be96777; cc, doing 103), on main at 1dcd8928f993, tip tree 02a85dfbe805, by vc's script in a fresh worktree tmp/wt-vc-judge-train1; the desk ask is 01M72G5W4GZTMNV9D9A89WBCVC. Still owed by the builders, each in a small run of its own: dc's ordering test red on its mutant red-v1 and green with the fix, and cc's three daemon_lifecycle arms and the app's tests red at the base and green with the fix, with its Swift mutant. Each bank lands on vc's word naming HEAD; vc claims nothing. The asks the desk denied on 2026-11-01 are spent."
+  }
+}
