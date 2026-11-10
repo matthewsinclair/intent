@@ -1,0 +1,15 @@
+{
+  "id": "01M72SHE4B9WDXPWE1G43P5W0M",
+  "ts": "2026-11-10T13:14:42.699Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "Issue 0650, S, on vc's order of 2026-11-10: the upgrade that writes the tracked hook dispatchers also keeps a marked `<hooks dir>/ export-ignore` block in the project's .gitattributes, in devbin's form, edited in place when present and appended when absent, and only when the hooks directory is inside the work tree; doctor names a project whose hooks directory has tracked files and no export-ignore decision; one test reads git archive after an upgrade in a fresh repository; Intent's own .gitattributes takes the block in the same bank. Worktree tmp/wt-ic-0650 at main bfb81c32d. Banked red at the base and green with the fix, for vc to judge stacked with 0672, 0676 and 0677."
+  }
+}

@@ -3,21 +3,20 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 677e6c35-f820-4993-8ec4-ad639debeb1b
-heartbeat_at: 2026-11-10 13:12Z
+heartbeat_at: 2026-11-10 13:14Z
 status: active
-focus: "Localfolded for hv's compact on hv's word, 2026-11-10, to resume on the bounce. 0661 is landed in c37c21d86 and closed in 6c1f82862, and its worktree is removed. Next in the lane, on vc's order: 0650 (todo 60), then 0672 in the full shape (todo 61), then 0676 and 0677 (todo 62), each banked red at the base and green with the fix, and judged stacked as one train once ic tells vc which it stacks. No claim."
-claims: []
+focus: "2026-11-10, after hv's compact: issue 0650 is under way in tmp/wt-ic-0650, as the doing item says; after it, on vc's order, 0672 in the full shape (todo 61), then 0676 and 0677 (todo 62), judged stacked as one train. Claim: ISSUE:0650."
+claims: [ISSUE:0650]
 ---
 
 # Interface Claude (ic)
 
 ## DOING
 
-_(none)_
+- Issue 0650, S, on vc's order of 2026-11-10: the upgrade that writes the tracked hook dispatchers also keeps a marked `<hooks dir>/ export-ignore` block in the project's .gitattributes, in devbin's form, edited in place when present and appended when absent, and only when the hooks directory is inside the work tree; doctor names a project whose hooks directory has tracked files and no export-ignore decision; one test reads git archive after an upgrade in a fresh repository; Intent's own .gitattributes takes the block in the same bank. Worktree tmp/wt-ic-0650 at main bfb81c32d. Banked red at the base and green with the fix, for vc to judge stacked with 0672, 0676 and 0677.
 
 ## TODO
 
-- Issue 0650, S by vc's read, next after 0661 (vc's order of 2026-11-10 09:09Z): the upgrade that writes the tracked .githooks/ dispatchers also keeps a marked `.githooks/ export-ignore` block in the project's .gitattributes, doctor names a project that tracks .githooks/ without it, and one test reads git archive after an upgrade in a fresh repository. Intent's own .gitattributes takes the block in the same bank.
 - Issue 0672, M, in the full shape (vc todo 75): AGENTS.md's build and test lines are rendered from what the project declares, bin/devbin where the tree has one, else declared commands, else none. vc judges it with the survey instruments at refs/bank/vc/0672/. It reaches a project at the 3.3.0 cut and that project's next agents sync.
 - Issues 0676 and 0677, each S by vc's read. 0676: the session's record of its bootstrap carries the languages it loaded for, and the hook that runs on every prompt and `intent wb pickup` say when the project's declaration has moved (the wb init warning is cc's, in WP-03). 0677: FMT-02's set says what it means, every automated trope pattern runs under one named engine on a line that should match and one that should not, and the runner's comment names its engine.
 - ST0092: read each of cc's banks' dispatch-table rows (WP-02 to WP-09) as the table's owner before vc judges it; then WP-10, the new surface read as one, claimed in the chain of its `intent wp start` after cc's packages land. vc's proposals for the rows stand: a roster act is not offered on MCP, and a read is. WP-10's rows are written at ea3411da9 (vc, 2026-11-10): `intent wb brief` arrives as a new row and `wb remit` gains `--default`; read both as the table's owner when cc builds them. (edited)

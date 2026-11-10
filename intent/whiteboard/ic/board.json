@@ -5,10 +5,12 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "677e6c35-f820-4993-8ec4-ad639debeb1b",
-    "heartbeat_at": "2026-11-10T13:12:32.397Z",
+    "heartbeat_at": "2026-11-10T13:14:44.641Z",
     "status": "active",
-    "focus": "Localfolded for hv's compact on hv's word, 2026-11-10, to resume on the bounce. 0661 is landed in c37c21d86 and closed in 6c1f82862, and its worktree is removed. Next in the lane, on vc's order: 0650 (todo 60), then 0672 in the full shape (todo 61), then 0676 and 0677 (todo 62), each banked red at the base and green with the fix, and judged stacked as one train once ic tells vc which it stacks. No claim.",
-    "claims": [],
+    "focus": "2026-11-10, after hv's compact: issue 0650 is under way in tmp/wt-ic-0650, as the doing item says; after it, on vc's order, 0672 in the full shape (todo 61), then 0676 and 0677 (todo 62), judged stacked as one train. Claim: ISSUE:0650.",
+    "claims": [
+      "ISSUE:0650"
+    ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"
@@ -2738,7 +2740,8 @@
       "kind": "todo",
       "seq": 60,
       "text": "Issue 0650, S by vc's read, next after 0661 (vc's order of 2026-11-10 09:09Z): the upgrade that writes the tracked .githooks/ dispatchers also keeps a marked `.githooks/ export-ignore` block in the project's .gitattributes, doctor names a project that tracks .githooks/ without it, and one test reads git archive after an upgrade in a fresh repository. Intent's own .gitattributes takes the block in the same bank.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-10T13:14:43.675Z",
       "recorded_at": "2026-11-10T11:30:45.183Z"
     },
     {
@@ -2774,6 +2777,14 @@
       "state": "archived",
       "archived_at": "2026-11-10T12:10:48.106Z",
       "recorded_at": "2026-11-10T11:55:27.650Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 140,
+      "text": "Issue 0650, S, on vc's order of 2026-11-10: the upgrade that writes the tracked hook dispatchers also keeps a marked `<hooks dir>/ export-ignore` block in the project's .gitattributes, in devbin's form, edited in place when present and appended when absent, and only when the hooks directory is inside the work tree; doctor names a project whose hooks directory has tracked files and no export-ignore decision; one test reads git archive after an upgrade in a fresh repository; Intent's own .gitattributes takes the block in the same bank. Worktree tmp/wt-ic-0650 at main bfb81c32d. Banked red at the base and green with the fix, for vc to judge stacked with 0672, 0676 and 0677.",
+      "state": "live",
+      "recorded_at": "2026-11-10T13:14:42.699Z"
     }
   ],
   "sent": [
