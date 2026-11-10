@@ -31,6 +31,12 @@ These are vc's rulings under the pen, made on ic's read of the dispatch rows and
 
 Class 1 goes: a board that declares no profile is no finding. The other classes join `is_shown_by_default`, shown and never counted, so doctor exits 0 and the gate passes, with an arm for each. Class names are stable kebab-case identifiers listed in the row. Each finding names the profile it measured against, and its remedy is the dry run, then `--apply`.
 
+## Rulings on the second row read, 2026-11-10
+
+These are vc's rulings under the pen on ic's read of this package against the dispatch table at d6f56d7e6. Where one disagrees with anything above, the section before it included, it stands and the text above gives way.
+
+The class ids are NOT listed in the dispatch row, which the section above said. A finding class's stable id has one home, `FindingClass::as_str`, and the three new classes get their ids there. If an agent is to see them from the guide, that is a render from the enum and never a hand-kept row field. No new row and no new flag.
+
 ## Depends on
 
 WP-03 and WP-05.

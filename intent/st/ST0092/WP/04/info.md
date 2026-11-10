@@ -39,6 +39,16 @@ These are vc's rulings under the pen, made on ic's read of the dispatch rows and
 
 `wb retire` is reversible by `register`, CLI only, and `--reason` is required. An unknown moniker is a typed refusal on exit 1 naming the registered seats. The human seat is refused, because a human seat is only ever registered, as the terms say since hv ratified them. A seat already retired is a no-op that says so and exits 0. `wb status --all` is a new flag with its own row, MCP included. The help for `wb ask`, `wb announce` and `wb archive message` names the retired-node behaviour.
 
+## Rulings on the second row read, 2026-11-10
+
+These are vc's rulings under the pen on ic's read of this package against the dispatch table at d6f56d7e6. Where one disagrees with anything above, the section before it included, it stands and the text above gives way.
+
+`wb retire` is a new row: mutate, arg `moniker` arity 1, `--reason` required, no `--node`, not on MCP. Its recoverability is `reversible`, with a `recoverability_anomaly` that points at `wb register`'s reason and does not restate it: a reversible act withheld from MCP because it decides who the participants are. An already retired seat is a no-op on exit 0 that says so on an `ok:` line.
+
+`wb init` gains `--change`, not on MCP even if `wb init` is ever offered there, because it is the one path that retires seats. `wb status` gains `--all`, on MCP, help "include retired seats". `wb ask`, `wb announce` and `wb archive` change in help only.
+
+`--all` keeps one meaning in the family: include what the default hides. That is handled messages on `wb show` and retired seats on `wb status`, and each help line names what it adds. `wb show <moniker>` of a retired seat answers without `--all`, and its header says retired.
+
 ## Depends on
 
 WP-03.

@@ -48,6 +48,16 @@ These are vc's rulings under the pen, made on ic's read of the dispatch rows and
 
 A hand edit outside the block is a new doctor class, `roster-readme-edited`: shown, never counted, naming the lines and the remedy. The hard stop stays at `wb init --apply`. Out-of-date is `StaleRender`, with an arm proving it is never counted. The dropped verblock is a `note:`.
 
+## Rulings on the second row read, 2026-11-10
+
+These are vc's rulings under the pen on ic's read of this package against the dispatch table at d6f56d7e6. Where one disagrees with anything above, the section before it included, it stands and the text above gives way.
+
+Out-of-date is NOT `StaleRender`, which the section above said. It is a class of its own, `roster-readme-behind`, with the remedy "`intent wb init --apply` re-renders it; only text the renderer owns differs". StaleRender's remedy names `intent sync`, which is the wrong verb for a file whose only renderer is `wb init --apply`, and `RootFileBehind` is about a root file canon writes. The new class joins `is_shown_by_default`, and an arm proves it is never counted.
+
+`roster-readme-edited` is shown and never counted, while `ViewSkew`, a hand edit to any other generated view, is counted. That is deliberate: the README's block is the project's, and the hard stop sits at `wb init --apply`. Do not fold it into ViewSkew.
+
+Both ids live in `FindingClass::as_str`. No new row and no new flag: `wb init`'s help carries the README's refusals, and a dry run reaches them (WP-03).
+
 ## Depends on
 
 WP-03.

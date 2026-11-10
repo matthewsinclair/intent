@@ -2767,6 +2767,14 @@
       "state": "live",
       "recorded_at": "2026-11-10T19:52:24.657Z",
       "edited_at": "2026-11-10T19:52:36.676Z"
+    },
+    {
+      "node": "vc",
+      "kind": "decision",
+      "seq": 123,
+      "text": "(vc, 2026-11-10; relayed by devbin-vc from its own window, NOT heard first-hand by vc) hv answered two questions in devbin-vc's menu at about 19:55Z. (1) The eight old event files that carry a client's name: \"Leave them (Recommended)\". They stay as they are; the scrub of hv decision 35 is done once cc edits its two archived board items. (2) Whether the estate name the rewrite's new message keeps is a client's name: \"Fine, keep it\". The banked message at refs/bank/vc/rewrite/new.msg stands. devbin-vc read the rewrite script and reports it touches only c1d7d163d's message, guards on main, a clean tree and ancestry, keeps an attic ref, and checks the tip tree unchanged. ALSO, vc's own under the pen: ic read WP-03, 04, 05, 06, 07 and 09 against the dispatch table at d6f56d7e6 and vc ruled each read as ic recommended; the rulings are in each package's body under \"Rulings on the second row read\". Among them: INV-12 (only the mediator's session or a sessionless shell writes as the human seat on a profiled board) rides cc's WP-05 bank; out-of-date README is its own class, roster-readme-behind, and not StaleRender; finding-class ids live in FindingClass::as_str alone; and the launcher half of WP-06 is ic's, built once cc banks wb brief.",
+      "state": "live",
+      "recorded_at": "2026-11-10T19:58:13.333Z"
     }
   ],
   "sent": [

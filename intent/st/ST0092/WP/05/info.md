@@ -42,6 +42,18 @@ These are vc's rulings under the pen, made on ic's read of the dispatch rows and
 
 The hv-write check sits in the facade, the identity door, so MCP's node-taking writes meet it, and one arm drives an MCP write as hv from a non-mediator session. It is stated once, in the table's invariants. The help for `wb ask` and `wb announce` says "on a board that declares a profile".
 
+## Rulings on the second row read, 2026-11-10
+
+These are vc's rulings under the pen on ic's read of this package against the dispatch table at d6f56d7e6. Where one disagrees with anything above, the section before it included, it stands and the text above gives way.
+
+The rule is the table's INV-12, carried in this package's bank with the facade check: "On a board that declares a profile, only the mediator's session or a shell with no session writes as the human seat". A write that takes `--node <human seat>` is refused unless the session it comes from is bound to the mediator, or no Claude session is present. The check sits in the facade, so the CLI and every MCP tool that takes a node meet the one check and no dispatch arm repeats it. The refusal is exit 1 with `error:`, and its remedy names the mediator. A board that declares no profile is unaffected.
+
+The session-to-node read is one library function, `session_node`, with `mediator_of(board)` beside it. dc builds both in WP-08, and this package calls them and extends `mediator_of` to read a declared profile through `teams.rs`: the last layer that names a mediator wins, else the base's.
+
+Twelve rows take `--node`, and seven of them are on MCP: archive, pickup, touch, release, claim, unclaim and clear. The MCP arm drives one of those seven. It also asserts that an MCP caller always carries a session id, since the server inherits `CLAUDE_CODE_SESSION_ID` from the session that started it, so "no session" is never an MCP path.
+
+No new row and no new flag. `wb ask`, `wb announce` and `wb init --apply` change in help and behaviour as the section above says.
+
 ## Depends on
 
 WP-03.

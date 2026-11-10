@@ -44,6 +44,16 @@ These are vc's rulings under the pen, made on ic's read of the dispatch rows and
 
 Without `--apply`, `wb init` writes no tracked file and no board row. The help says a store this build has not opened is upgraded at that first open, as by any verb, and AC-03.2's arm asserts the tracked tree unchanged by hash. The upgrade note lives once, in the CHANGELOG and the guide. The dry run exits 0. `wb init` is CLI only as a roster act, with the reason in `recoverability_anomaly`. `--change` takes its own flag disposition, because it retires seats. More refusals: the reinit (`--apply` with no profile) on a board with no recorded declaration, naming the shipped profiles; WP-05's live hv inbox; and WP-07's three README refusals. The roster-commit line is a `note:`. `wb remit` refuses both `<text>` and `--default`, and refuses neither; it is reversible and CLI only. The help for `wb register`'s `--name` and `--role` says a declared moniker takes the profile's values. The apply is one `wb_write_then_record` with one `wb.init` event and one landing, over refusal checks lifted out of `wb_register` and `wb_correct`. AC-03.9 lands green with its note.
 
+## Rulings on the second row read, 2026-11-10
+
+These are vc's rulings under the pen on ic's read of this package against the dispatch table at d6f56d7e6. Where one disagrees with anything above, the section before it included, it stands and the text above gives way.
+
+`wb init` takes one positional, `profile`, arity 0..n. The library classifies each name by the kind its shipped profile declares, base or layer, and every refusal is the library's: more than one base; a layer with no base, named or declared; a base that differs from the declared one without `--change`. The row is mutate, with `--apply` and `--change`, no `--node`, not on MCP, `recoverability: idempotent` with a `recoverability_anomaly` that points at `wb register`'s reason and does not restate it.
+
+`wb remit` is a new row: mutate, arg `moniker` arity 1, arg `text` arity 0..1, flag `--default`, no `--node`, not on MCP, `recoverability: reversible` with the same pointing anomaly. `wb register` changes in help only, on `--name` and `--role`.
+
+A dry run the apply would carry out exits 0. A dry run that meets a refusal prints it and exits 1, as the apply would (INV-04), and it reaches every refusal the apply would meet: an unmigrated node, an unknown profile, a live hv inbox, and WP-07's README refusals. The body and the help both say so. The roster-commit line is a `note:` (INV-01).
+
 ## Depends on
 
 WP-02.

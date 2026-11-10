@@ -59,6 +59,18 @@ These are vc's rulings under the pen, made on ic's read of the dispatch rows and
 
 The facade returns one row per seat, which the CLI's `wb status`, its `--json` and MCP's `wb status` all render. It carries the live item count and the live message count, each labelled live, the last pickup stamp, the never-started mark (for session-driven seats only) and the desk hat (WP-08). MCP stops counting archived items and handled messages. `wb brief <moniker>` is a read, offered on MCP, with no `--node`, and the help for `--launch` says "prints the launch steps; launches nothing". Pickup's help, its `--json` and MCP carry the brief, with one arm comparing the three. The fresh-clone line is a `note:`, exit 0. `claude start`'s remedy names `wb init`.
 
+## Rulings on the second row read, 2026-11-10
+
+These are vc's rulings under the pen on ic's read of this package against the dispatch table at d6f56d7e6. Where one disagrees with anything above, the section before it included, it stands and the text above gives way.
+
+`wb brief` is a new row: read, arg `moniker` arity 1, `--launch` (on MCP, help "prints the launch steps; launches nothing") and `--json` (not on MCP, with the family's terminal-channel note), no `--node`, on MCP.
+
+Three edges of `wb brief`, each with an arm. On a board that declares no profile it answers on exit 0 with today's two steps and the node's name and role, and never refuses, so an unprofiled project's `claude start` is unchanged. For a retired seat it refuses on exit 1, naming the retirement with `wb register` as the remedy, and the launcher passes the refusal through. For the human seat, `--launch` refuses on exit 1 saying the seat is the human's, and without `--launch` it prints the seat's line. An unknown moniker refuses on exit 1 naming the registered seats.
+
+The INV-09 arm covers four faces from one library function: pickup's prose, its `--json`, MCP's answer and `wb brief`. The fresh-clone line is a `note:`.
+
+The launcher half is ic's, as a sub-unit of this package: `intent/plugins/claude/bin/intent_claude_cwi` takes its context from `wb brief <node> --launch` in place of the two hard-coded steps, passes the three edges through, and `claude start`'s unregistered-moniker remedy names `wb init`. ic builds it once `wb brief` is banked. cc keeps the package's claim and builds the rest.
+
 ## Depends on
 
 WP-03 for the declaration and the remit; WP-08 adds the hats line.
