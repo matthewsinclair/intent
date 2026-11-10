@@ -1,0 +1,15 @@
+{
+  "id": "01M73P10Q80F4WSFC970HFFJR7",
+  "ts": "2026-11-10T21:32:33.384Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ST0092 WP-10 prep, read against WP-08 as landed (470e15cd9) and ruled by vc on 2026-11-10; nothing written until WP-10 starts (after cc's packages land). dc's inventory is banked at refs/bank/ic/st0092/wp10-dc-inventory-on-7c16cffef.md. (1) `estate control`'s when_to_use takes, after 'recorded verbatim.': 'A session bound to a whiteboard node takes it only as its board's mediator (vc on a board that declares no profile) or with `--hv`; a session bound to no node, in a project or not, takes it as before.' (2) `wb pickup`'s line ('a session that wears the desk is also told so, with the controller's duties and the asks waiting') and (3) `wb status`'s line ('a node whose session wears the desk shows it on its line and in `hats`, read live from the host's control record') go in ONLY once dc's follow-up lands, which moves the desk brief and `hats` from render.rs into the facade so MCP's wb_pickup and wb_status carry them, since a row's when_to_use is published as the MCP tool's description."
+  }
+}
