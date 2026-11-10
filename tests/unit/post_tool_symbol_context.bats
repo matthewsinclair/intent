@@ -47,6 +47,29 @@ fire() {
   printf '%s' "$1" | CLAUDE_PROJECT_DIR="$PROJ" bash "$SCRIPT"
 }
 
+# **A STALE INDEX THE WAY A WATCHED PROJECT HAS ONE.** Where intentd watches a
+# project, `intent search` leaves the reconcile to the watcher and answers from
+# the index as it stands, saying `reconciled: false` and naming what moved;
+# everywhere else it reconciles first and cannot answer stale. A shim first on
+# `PATH` makes the hook's search answer as the watched case does, through the
+# CLI's own `--no-reconcile`, so the gate's silence is driven without a daemon.
+watched() {
+  local shim="${TEST_TEMP_DIR}/watched-bin"
+  mkdir -p "$shim"
+  cat > "$shim/intent" <<EOS
+#!/usr/bin/env bash
+if [ "\$1" = "search" ]; then exec "$INTENT_BIN" "\$@" --no-reconcile; fi
+exec "$INTENT_BIN" "\$@"
+EOS
+  chmod +x "$shim/intent"
+  export PATH="$shim:$PATH"
+}
+
+# The file rewritten under the index the setup built.
+move_the_file() {
+  printf 'pub fn kestrel(a: u32, _b: u32) -> u32 { a }\n\npub fn caller() -> u32 { kestrel(1, 2) }\n\n// moved underneath the index\n' > "$PROJ/src/lib.rs"
+}
+
 @test "the hook exists and shellcheck-clean bash parses it" {
   [ -f "$SCRIPT" ]
   bash -n "$SCRIPT"
@@ -146,13 +169,24 @@ fire() {
   [ -z "$output" ]
 }
 
+@test "a search that reconciles first answers for a moved file, so the hook speaks" {
+  # Where no daemon watches, the hook's search reconciles the index before it
+  # answers, so a file moved under the index is read again and the answer is
+  # current: the hook appends it, and the stale-path gate has nothing to hold.
+  move_the_file
+  run fire '{"tool_name":"Grep","tool_input":{"pattern":"kestrel"}}'
+  [ "$status" -eq 0 ]
+  [ -n "$output" ]
+}
+
 @test "it appends NOTHING once a path in its own answer has moved" {
   # The control first: the same payload answers while the index is current, so a
   # silence below is the freshness rule and not a hook that never spoke.
+  watched
   run fire '{"tool_name":"Grep","tool_input":{"pattern":"kestrel"}}'
   [ -n "$output" ]
 
-  printf 'pub fn kestrel(a: u32, _b: u32) -> u32 { a }\n\npub fn caller() -> u32 { kestrel(1, 2) }\n\n// moved underneath the index\n' > "$PROJ/src/lib.rs"
+  move_the_file
 
   run fire '{"tool_name":"Grep","tool_input":{"pattern":"kestrel"}}'
   [ "$status" -eq 0 ]
@@ -170,7 +204,8 @@ fire() {
   # grep confined to docs/ pass on the strength of docs/ being clean, and then
   # append hits in a src/ file that had moved. The subject of "complete for the
   # paths involved" is what the APPENDED ANSWER names.
-  printf 'pub fn kestrel(a: u32, _b: u32) -> u32 { a }\n\npub fn caller() -> u32 { kestrel(1, 2) }\n\n// moved underneath the index\n' > "$PROJ/src/lib.rs"
+  watched
+  move_the_file
   run fire '{"tool_name":"Grep","tool_input":{"pattern":"kestrel","path":"docs"}}'
   [ "$status" -eq 0 ]
   [ -z "$output" ]
