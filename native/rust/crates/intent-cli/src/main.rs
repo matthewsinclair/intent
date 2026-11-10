@@ -16,7 +16,8 @@ fn main() -> ExitCode {
   // explorer's `/{cmd} ...` runs commands too, and two copies of parse-then-run
   // would be two homes for one thing. What is left in this function is what
   // only a process can do: write to stderr and exit.
-  let outcome = intent_cli::dispatch(std::env::args().collect());
+  let argv: Vec<String> = std::env::args().collect();
+  let outcome = intent_cli::dispatch(&argv);
   // The gate writes its own verdict to stdout, because it is read by machines
   // via the exit code -- v2 does the same -- so `Verdict` carries no message and
   // printing an empty line would add noise to a contract other tools parse. The

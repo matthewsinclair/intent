@@ -18,6 +18,19 @@
 //! home, and a different concern from it: a build script may carry two calls,
 //! but a file must not carry a name that stops describing what is in it.
 
+// IN-RS-CODE-001 governs library code, and a build script's panic fails the build
+// the way `main.rs` exits (vc, 2026-09-15). CI's step denying the rule's lints
+// reaches this script because cargo lints a package's build script under the
+// same flags, and since issue 0649 that step covers intentd's binary as it covers
+// intent-cli's library, so the scope is stated here as `intent-cli/build.rs`
+// states it.
+#![allow(
+  clippy::unwrap_used,
+  clippy::expect_used,
+  clippy::panic,
+  reason = "IN-RS-CODE-001 covers library code, and a build script is not library code"
+)]
+
 include!("../../build-support/source_commit.rs");
 include!("../../build-support/version_parity.rs");
 

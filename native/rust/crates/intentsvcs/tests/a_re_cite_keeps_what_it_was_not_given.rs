@@ -283,7 +283,12 @@ fn a_note_lands_on_a_row_whose_status_does_not_move() {
   let extended = format!("{existing} -- green on the first run is not evidence");
 
   facade
-    .at_set("ST0001", "AT-03.1", AtStatus::Green, Some(extended.clone()))
+    .at_set(
+      "ST0001",
+      "AT-03.1",
+      AtStatus::Green,
+      Some(extended.as_str()),
+    )
     .expect("a note-only write is legal");
 
   let after = row(&facade, "AT-03.1");

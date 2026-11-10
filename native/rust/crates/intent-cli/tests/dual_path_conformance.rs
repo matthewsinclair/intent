@@ -212,7 +212,7 @@ fn via_library(root: &Path, argv: &[String]) -> Answer {
   // route NOTHING SHIPPED: a third copy that agreed with `main` only for as
   // long as nobody changed either. Calling the real entry point is what makes
   // the conformance claim about the code an operator runs. (`AC-17.15`.)
-  let outcome = dispatch(full);
+  let outcome = dispatch(&full);
   match outcome.message {
     None => Answer {
       code: outcome.code,

@@ -1072,6 +1072,7 @@ pub fn canon_bytes(
   }
 }
 
+#[derive(Clone, Copy)]
 struct Template<'a> {
   home: &'a Path,
   rel: &'a str,

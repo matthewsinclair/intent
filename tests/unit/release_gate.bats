@@ -123,7 +123,7 @@ write_pair() {
   make_repo
   check rust
   assert_success
-  for twin in format clippy panics doc; do
+  for twin in format clippy panics panics-intentd ownership doc; do
     grep -qx "twin $twin" "$STUB_LOG" || fail "the twin '$twin' did not run: $(cat "$STUB_LOG")"
   done
   [ "$(git -C "$REPO" worktree list | wc -l)" -eq 1 ] || fail "the gate left a worktree: $(git -C "$REPO" worktree list)"

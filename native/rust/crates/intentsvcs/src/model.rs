@@ -1217,7 +1217,7 @@ impl WorkPackage {
   /// markdown reached the same answer by two routes that nothing compared.
   pub fn scope_display(&self) -> String {
     match (&self.scope, &self.scope_legacy) {
-      (Some(scope), _) => enum_str(scope).to_string(),
+      (Some(scope), _) => enum_str(scope),
       (None, Some(legacy)) => format!("{} (legacy)", legacy.raw),
       (None, None) => String::new(),
     }

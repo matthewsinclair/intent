@@ -1355,7 +1355,7 @@ pub fn publish_at(
     why,
   };
   let Some(sha) = id.sha.clone() else {
-    return Err(dirty(id.why.clone().unwrap_or_default()));
+    return Err(dirty(id.why.unwrap_or_default()));
   };
   if id.dirty {
     return Err(dirty(support_fault(root, &sha, build.commit)));

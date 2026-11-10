@@ -864,14 +864,14 @@ fn placeholder(value: &str) -> &str {
 /// a different contract from v2's single `error: ...` line, and the BATS estate
 /// asserts v2's. Help and version are the exception: they are not failures, so
 /// they print and exit 0.
-pub fn parse(argv: Vec<String>) -> Result<clap::ArgMatches, i32> {
+pub fn parse(argv: &[String]) -> Result<clap::ArgMatches, i32> {
   let table = dispatch::table();
   let root = build(&table);
-  match root.clone().try_get_matches_from(argv.clone()) {
+  match root.clone().try_get_matches_from(argv) {
     Ok(matches) => {
       // Before any verb runs, so a refusal here writes nothing: no row, no
       // event, no file. See `title_token_refusal` (issue 0223).
-      if let Some(refusal) = title_token_refusal(&root, &matches, &argv) {
+      if let Some(refusal) = title_token_refusal(&root, &matches, argv) {
         eprintln!("{refusal}");
         return Err(EXIT_ERROR);
       }
@@ -895,7 +895,7 @@ pub fn parse(argv: Vec<String>) -> Result<clap::ArgMatches, i32> {
           // earlier than the code that chooses a meaningful answer -- and the
           // careful work in `d2b8e76d` was unreachable for exactly the class a
           // migration hits most.
-          if let Some(refusal) = retired_refusal(&table, &argv) {
+          if let Some(refusal) = retired_refusal(&table, argv) {
             eprintln!("{refusal}");
             return Err(EXIT_UNAVAILABLE);
           }
@@ -906,12 +906,12 @@ pub fn parse(argv: Vec<String>) -> Result<clap::ArgMatches, i32> {
           // already found. **A gate that cannot say WHICH of two things went
           // wrong eventually says the wrong one**, and here it says the one
           // that starts a search instead of ending it.
-          if let Some(refusal) = ambiguous_prefix_refusal(&build(&table), &argv) {
+          if let Some(refusal) = ambiguous_prefix_refusal(&build(&table), argv) {
             eprintln!("{refusal}");
             return Err(EXIT_ERROR);
           }
           if e.kind() == ErrorKind::UnknownArgument
-            && let Some(refusal) = slot_flag_refusal(&table, &root, &argv, &e)
+            && let Some(refusal) = slot_flag_refusal(&table, &root, argv, &e)
           {
             eprintln!("{refusal}");
             return Err(EXIT_ERROR);

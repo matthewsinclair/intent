@@ -7278,7 +7278,7 @@ impl Facade {
       steps: mine,
       digest: whole.digest.clone(),
       preconditions: whole.preconditions.clone(),
-      estate_root: whole.estate_root.clone(),
+      estate_root: whole.estate_root,
       held: Vec::new(),
     };
     // **THE BYTES THAT WOULD GO ARE READ BEFORE ANY ARE WRITTEN.** A `Verify`
@@ -7300,7 +7300,7 @@ impl Facade {
         .collect();
       if !removing.is_empty() {
         return Err(FacadeError::RealisationWouldRemove {
-          id: id.clone(),
+          id,
           paths: removing,
         });
       }
@@ -7328,7 +7328,7 @@ impl Facade {
       if !diverged.is_empty() {
         if !overwrite {
           return Err(FacadeError::HydrationWouldOverwrite {
-            id: id.clone(),
+            id,
             paths: diverged,
           });
         }
@@ -7694,7 +7694,7 @@ impl Facade {
       .collect();
     if !refusals.is_empty() {
       return Err(FacadeError::DehydrationRefused {
-        id: id.clone(),
+        id,
         count: refusals.len(),
         detail: refusals.join("\n  "),
       });
@@ -7709,7 +7709,7 @@ impl Facade {
       steps: mine,
       digest: whole.digest.clone(),
       preconditions: whole.preconditions.clone(),
-      estate_root: whole.estate_root.clone(),
+      estate_root: whole.estate_root,
       held: Vec::new(),
     };
     // **ANNOUNCED HERE, WHICH IS THE LAST MOMENT BEFORE ANYTHING IS
@@ -7806,7 +7806,7 @@ impl Facade {
 
     Ok(Dehydrated {
       removed,
-      pruned: run.pruned.clone(),
+      pruned: run.pruned,
       unlisted: was_listed,
       left_in_place,
     })
@@ -10892,7 +10892,7 @@ impl Facade {
   pub fn sync_apply(
     &mut self,
     scope: &SyncScope,
-    asking: crate::plan::Asking,
+    asking: &crate::plan::Asking,
     ask: &mut dyn FnMut(&crate::plan::Step) -> crate::plan::Decision,
   ) -> Result<SyncApplied, FacadeError> {
     use crate::plan::{Action, Decision, Gate, Left, LeftBecause, Step};
@@ -10902,7 +10902,7 @@ impl Facade {
     {
       return Err(FacadeError::SyncPlanMoved {
         shown: shown.to_string(),
-        now: plan.digest.clone(),
+        now: plan.digest,
       });
     }
     let unmerged_views: Vec<String> = plan
@@ -13781,7 +13781,7 @@ impl Facade {
         Some(&because),
         ListEdit::AsDeclared,
         None,
-        Some(record),
+        Some(&record),
       )
       .map_err(|cause| match (cause, standing) {
         // **The standing reason is what the operator needs before replacing one
@@ -13829,7 +13829,7 @@ impl Facade {
         WpStatus::Done,
         "wp.fc",
         Some(&because),
-        Some(record),
+        Some(&record),
       )
       .map_err(|cause| match (cause, standing) {
         (FacadeError::IllegalTransition { .. }, Some(because)) => FacadeError::AlreadyFiatClosed {
@@ -14081,7 +14081,7 @@ impl Facade {
       done.push((source_path, target));
     }
     let applied = match self.apply_envelopes(
-      vec![envelope],
+      &[envelope],
       model.canon,
       crate::store::ProjectStateEdit::Unchanged,
     ) {
@@ -14411,7 +14411,7 @@ impl Facade {
     reason: Option<&str>,
     list: ListEdit,
     on: Option<&str>,
-    fiat: Option<crate::model::FiatRecord>,
+    fiat: Option<&crate::model::FiatRecord>,
   ) -> Result<Outcome, FacadeError> {
     let from = self.st_show(id)?.status;
 
@@ -14487,7 +14487,7 @@ impl Facade {
     thread.status = status;
     // See this function's own doc: unconditional, because the record describes
     // the state being left.
-    thread.fiat = fiat.clone();
+    thread.fiat = fiat.cloned();
     // **WRITTEN ONLY WHEN THE CALLER SAID SOMETHING, WHICH MAKES CLEARING AN ACT
     // RATHER THAN A DEFAULT** (vc's ruling, 2026-08-25). It read
     // `thread.status_reason = reason.clone()` unconditionally, and `check_reason`
@@ -14573,7 +14573,7 @@ impl Facade {
     // carries one, so any verb that ever does will cascade by construction
     // rather than by remembering to -- the same reason the CLEAR lives in this
     // door rather than in each verb.
-    if let Some(record) = fiat.clone() {
+    if let Some(record) = fiat {
       let ancestor_event = envelopes[0].id.clone();
       let ctx = self.ctx.clone();
       let thread = find_thread_mut(&mut next, id)?;
@@ -14583,7 +14583,7 @@ impl Facade {
         None,
         id,
         &ancestor_event,
-        &record,
+        record,
       ));
     }
     // **A REMOVAL IS EDITED AFTER `apply` AND AN ADDITION BEFORE IT** (issue
@@ -14603,7 +14603,7 @@ impl Facade {
       self.edit_list(op, id, list)?;
     }
     let foreign =
-      match self.apply_envelopes(envelopes, next, crate::store::ProjectStateEdit::Unchanged) {
+      match self.apply_envelopes(&envelopes, next, crate::store::ProjectStateEdit::Unchanged) {
         Ok(foreign) => foreign,
         Err(refused) => {
           // The status did not move, so neither may the list it follows.
@@ -15016,7 +15016,7 @@ impl Facade {
     status: WpStatus,
     op: &'static str,
     reason: Option<&str>,
-    fiat: Option<crate::model::FiatRecord>,
+    fiat: Option<&crate::model::FiatRecord>,
   ) -> Result<Outcome, FacadeError> {
     let label = format!("{st}/{seq:02}");
     let from = self
@@ -15065,7 +15065,7 @@ impl Facade {
     wp.status = status;
     // Unconditional, because the record describes the state being left -- see
     // [`Facade::set_thread_status_fiat`].
-    wp.fiat = fiat.clone();
+    wp.fiat = fiat.cloned();
     // **WRITTEN ONLY WHEN THE CALLER SAID SOMETHING, WHICH MAKES CLEARING AN ACT
     // RATHER THAN A DEFAULT** (vc's ruling, 2026-08-25). It read
     // `wp.status_reason = reason.clone()` unconditionally, and `check_reason`
@@ -15117,7 +15117,7 @@ impl Facade {
     // [`crate::contract::Scope::WorkPackage`] does for the gate, which is why
     // this needed no new scoping rule -- the question *which criteria belong to
     // this package* was already answered and had one home.
-    if let Some(record) = fiat.clone() {
+    if let Some(record) = fiat {
       let ancestor_event = envelopes[0].id.clone();
       let ctx = self.ctx.clone();
       let ancestor = format!("{st}/{seq:02}");
@@ -15128,7 +15128,7 @@ impl Facade {
         Some(seq),
         &ancestor,
         &ancestor_event,
-        &record,
+        record,
       ));
     }
     // Issue 0337: a close on an unwritten objective warns rather than passing in silence.
@@ -15140,7 +15140,7 @@ impl Facade {
         .find(|w| w.seq == seq)
         .is_some_and(|w| w.objective.trim().is_empty());
     self
-      .apply_envelopes(envelopes, next, crate::store::ProjectStateEdit::Unchanged)
+      .apply_envelopes(&envelopes, next, crate::store::ProjectStateEdit::Unchanged)
       .map(|foreign| {
         let moved = if unwritten {
           Outcome::MovedWith {
@@ -16230,7 +16230,7 @@ impl Facade {
     st: &str,
     at: &str,
     status: AtStatus,
-    note: Option<String>,
+    note: Option<&str>,
   ) -> Result<Outcome, FacadeError> {
     let row_now = self
       .st_show(st)?
@@ -16320,7 +16320,7 @@ impl Facade {
       return Err(FacadeError::VerdictWrongForKind {
         st: st.to_string(),
         at: at.to_string(),
-        kind: crate::model::enum_str(&kind).to_string(),
+        kind: crate::model::enum_str(&kind),
         status: status.display().to_string(),
       });
     }
@@ -16335,7 +16335,7 @@ impl Facade {
         return Err(FacadeError::IllegalTransition {
           verb: "at.set",
           subject: format!("{st} {at}"),
-          from: from_s.to_string(),
+          from: from_s,
           legal: transitions::accepted_from_to("AcceptanceTest", "status", "at.set", &to_s)
             .join(", "),
         });
@@ -16363,7 +16363,7 @@ impl Facade {
       if status != AtStatus::Fiat {
         row.fiat = None;
       }
-      if let Some(text) = note.as_ref() {
+      if let Some(text) = note {
         // **THE NOTE IS EXTENDED OR IT IS REFUSED** (issue 0207). `--note`
         // replaced this field wholesale and silently, on the three verbs
         // someone reaches for at close -- which is the moment they write down
@@ -16406,7 +16406,7 @@ impl Facade {
             opening,
           });
         }
-        row.note = Some(text.clone());
+        row.note = Some(text.to_string());
       }
     }
     self
@@ -18295,7 +18295,7 @@ impl Facade {
       subject,
       payload,
     );
-    self.apply_envelopes(vec![envelope], next, project_state)
+    self.apply_envelopes(&[envelope], next, project_state)
   }
 
   /// Apply an ancestor's fiat close DOWNWARD, to exactly the children the
@@ -18451,7 +18451,7 @@ impl Facade {
   /// one note along).
   fn apply_envelopes(
     &mut self,
-    envelopes: Vec<Envelope>,
+    envelopes: &[Envelope],
     mut next: Canon,
     project_state: crate::store::ProjectStateEdit,
   ) -> Result<Applied, FacadeError> {

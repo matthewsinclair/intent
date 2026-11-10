@@ -247,6 +247,21 @@ commands:
         grammar: cargo
         run: bin/.devbin/cmd/measured --exec cargo clippy -p intentsvcs -p intent-cli --lib --manifest-path native/rust/Cargo.toml -- -D clippy::unwrap_used -D clippy::expect_used -D clippy::panic
 
+      # CI'S TWO STEPS ADDED BY ISSUE 0649, COPIED FLAG FOR FLAG, and declared with
+      # `log:` for the reason `panics` gives above. `panics-intentd` reaches the
+      # binary the library step cannot, since intentd has no library target;
+      # `ownership` is IN-RS-CODE-002's stable lint over library and binary code.
+      panics-intentd:
+        summary: the panic-path restriction lints CI runs (unwrap_used, expect_used, panic), over intentd's binary
+        log: true
+        grammar: cargo
+        run: bin/.devbin/cmd/measured --exec cargo clippy -p intentd --bins --manifest-path native/rust/Cargo.toml -- -D clippy::unwrap_used -D clippy::expect_used -D clippy::panic
+      ownership:
+        summary: needless_pass_by_value over the workspace's library and binary code, as CI runs it (IN-RS-CODE-002)
+        log: true
+        grammar: cargo
+        run: bin/.devbin/cmd/measured --exec cargo clippy --workspace --lib --bins --manifest-path native/rust/Cargo.toml -- -D clippy::needless_pass_by_value
+
       # DECLARED BECAUSE `fmt rust` IS DECLARED, and devbin will not let it be
       # otherwise: builtin_check_format REFUSES a language whose `fmt` arm the
       # config has overridden, rather than verifying a command line the

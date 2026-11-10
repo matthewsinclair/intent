@@ -319,7 +319,7 @@ impl<L: FnMut(&Path) -> Result<(), Refused>> Session for Files<L> {
     // HALF.** No second argv parser and no second dispatch table -- this is
     // the same function `main` calls, so a command run from the palette IS the
     // command a shell would have run.
-    crate::dispatch(argv)
+    crate::dispatch(&argv)
   }
 
   fn wait_for_operator(&mut self) {

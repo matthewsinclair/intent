@@ -33,6 +33,10 @@ use intentsvcs::wire::{self, Op, Request, Response, ThreadSummary};
 /// Everything a rendered failure says. The facade's own rendering already
 /// carries the message, the full cause chain and the remedy (AC-04.4), so this
 /// adds nothing and hides nothing.
+#[allow(
+  clippy::needless_pass_by_value,
+  reason = "a `map_err` adapter: `Result::map_err` hands the error over by value, so this signature is the closure's"
+)]
 fn fail(e: FacadeError) -> Failure {
   Failure::Error(e.render())
 }
@@ -717,6 +721,7 @@ fn a_search_here_reconciles(root: &Path) -> bool {
 }
 
 /// One in-process door of `intent search` and of the `intent_search` tool.
+#[derive(Clone, Copy)]
 pub(crate) enum SearchDoor<'a> {
   /// A text query.
   Text(&'a str),
@@ -1638,7 +1643,7 @@ fn sync_apply(m: &ArgMatches, scope: &intentsvcs::sync::Scope) -> Result<(), Fai
     shown: Some(shown),
   };
   let applied = f
-    .sync_apply(scope, asking, &mut ask_sync_step)
+    .sync_apply(scope, &asking, &mut ask_sync_step)
     .map_err(fail)?;
   for line in &applied.said {
     println!("note: {line}");
@@ -3689,7 +3694,9 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
         _ => AtStatus::Na,
       };
       let mut f = open()?;
-      let outcome = f.at_set(&st, &id, status, opt(a, "note")?).map_err(fail)?;
+      let outcome = f
+        .at_set(&st, &id, status, opt(a, "note")?.as_deref())
+        .map_err(fail)?;
       reported(&mut f, &outcome, &id, &format!("-> {}", status.display()));
       Ok(())
     }
@@ -9846,6 +9853,10 @@ fn plugin_install() -> Result<std::path::PathBuf, Failure> {
   intentsvcs::install::home().map_err(|e| Failure::Error(e.render()))
 }
 
+#[allow(
+  clippy::needless_pass_by_value,
+  reason = "a `map_err` adapter: `Result::map_err` hands the error over by value, so this signature is the closure's"
+)]
 fn plugin_error(e: intentsvcs::plugins::PluginError) -> Failure {
   Failure::Error(e.render())
 }
@@ -10417,6 +10428,10 @@ fn estate(m: &ArgMatches) -> Result<(), Failure> {
   }
 }
 
+#[allow(
+  clippy::needless_pass_by_value,
+  reason = "a `map_err` adapter: `Result::map_err` hands the error over by value, so this signature is the closure's"
+)]
 fn estate_fail(e: intentsvcs::estate::EstateError) -> Failure {
   Failure::Error(e.render())
 }
@@ -11809,6 +11824,10 @@ fn app_start() -> Result<(), Failure> {
 /// An app lifecycle error with its remedy. **ONE HOME FOR THE THREE VERBS**, so
 /// `start` and `restart` say the same thing when a launch does not register in
 /// time (issue 0423).
+#[allow(
+  clippy::needless_pass_by_value,
+  reason = "a `map_err` adapter: `Result::map_err` hands the error over by value, so this signature is the closure's"
+)]
 fn app_fail(e: macapp::AppError) -> Failure {
   Failure::Error(app_message(&e))
 }
@@ -14564,6 +14583,10 @@ fn named_units(a: &ArgMatches) -> Vec<String> {
     .unwrap_or_default()
 }
 
+#[allow(
+  clippy::needless_pass_by_value,
+  reason = "a `map_err` adapter: `Result::map_err` hands the error over by value, so this signature is the closure's"
+)]
 fn payload_fail(e: intentsvcs::payload::PayloadError) -> Failure {
   Failure::Error(format!("error: {e}\n  remedy: {}", e.remedy()))
 }

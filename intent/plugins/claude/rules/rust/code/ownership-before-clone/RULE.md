@@ -31,7 +31,7 @@ tags:
   - performance
 critic_tool: clippy
 critic_tool_context: workspace
-critic_tool_codes: [clippy::clone_on_copy, clippy::needless_pass_by_value, clippy::redundant_clone]
+critic_tool_codes: [clippy::clone_on_copy, clippy::needless_pass_by_value]
 status: active
 version: 1
 ---
@@ -55,11 +55,11 @@ Static signals:
 - `.to_owned()` immediately after `.clone()` — double allocation.
 - `.clone()` on iterator elements inside `.map(|x| x.clone())` where `.copied()` or `.cloned()` with a borrow would be cheaper.
 
-Clippy lints: `clippy::needless_pass_by_value`, `clippy::redundant_clone`, `clippy::clone_on_copy`.
+Clippy lints: `clippy::needless_pass_by_value` and `clippy::clone_on_copy` answer for this rule. `clippy::redundant_clone` reads its primary signal but is not one of its tool codes (below).
 
 **TOOL-ARMED AT A STATED COST, AND THE COST IS THE STABILITY OF THE LINT THAT ANSWERS THE RULE BEST.** `clone_on_copy` is in `clippy::all` and is free. `needless_pass_by_value` is `pedantic` -- opt-in, but stable. **`redundant_clone` is NURSERY: unstable by clippy's own classification, known for false positives, and it is the lint answering this rule's PRIMARY signal, which is a `.clone()` that exists only to quiet the borrow checker.**
 
-**ARMING NAMES THE LINTS; NO GATE RUNS THEM.** The headless critic reports this rule ARMED but NOT RUN HERE and never invokes clippy, and the workspace clippy runs (CI, `bin/devbin check clippy`) do not enable `pedantic` or `nursery`, so `needless_pass_by_value` and `redundant_clone` are enforced nowhere. The lints are named so a reader can see which part of the rule is stable, which is opt-in, and which is not fit to gate on. **A prediction made before this partition was re-derived said this rule was cleanly armable; it is not, and predicting "armable" from the mere PRESENCE of a lint name skipped the question of whether the lint is FIT to gate on.** Naming a parser is the start of the question, not the end of it.
+**WHAT RUNS THEM.** The headless critic reports this rule ARMED but NOT RUN HERE and never invokes clippy, so each tool code is answered by a workspace run. `clone_on_copy` is in `clippy::all`, which CI and `bin/devbin check clippy` deny. `needless_pass_by_value` has its own CI step and devbin twin, `cargo clippy --workspace --lib --bins -- -D clippy::needless_pass_by_value`: library and binary code only, so tests and colocated `#[cfg(test)]` code stay out, as they do for IN-RS-CODE-001. Where a signature is a `map_err` adapter, `Result::map_err` hands the error over by value, and the site carries `#[allow(clippy::needless_pass_by_value, reason = "...")]`. **`redundant_clone` IS NOT A TOOL CODE, ON PURPOSE** (vc, 2026-11-10): a gate that moves with clippy's nursery group is not one to trust, so no gate runs it and the census does not claim it. A reviewer reads for the clone it would catch, and the pass that armed this rule fixed every site it raised in library and binary code. **A prediction made before this partition was re-derived said this rule was cleanly armable; it was not, and predicting "armable" from the mere PRESENCE of a lint name skipped the question of whether the lint is FIT to gate on.** Naming a parser is the start of the question, not the end of it.
 
 **Context is `workspace`.** Reported as ARMED but NOT RUN HERE in a per-file run.
 

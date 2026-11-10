@@ -824,7 +824,7 @@ fn tool_answer(
     "wp rescope" => {
       let (st, seq) = wp_scope(path, map)?;
       let raw = need_s(path, map, "size")?;
-      let size = crate::render::t_shirt(raw).map_err(|e| failure_args(path, e))?;
+      let size = crate::render::t_shirt(raw).map_err(|e| failure_args(path, &e))?;
       Ok(outcome_json(
         &f.wp_rescope(&st, seq, size)?,
         &format!("{st}/{seq:02}"),
@@ -867,14 +867,14 @@ fn tool_answer(
       let target = spec(path, need_s(path, map, "stid")?)?;
       let (st, scope) = crate::render::scope_of(&target);
       let verdict = f.gate(&st, scope)?;
-      Ok(verdict_json(&verdict, verdict.line(&target)))
+      Ok(verdict_json(&verdict, &verdict.line(&target)))
     }
     "ac status" => {
       let target = spec(path, need_s(path, map, "stid")?)?;
       let (st, scope) = crate::render::scope_of(&target);
       let verdict = f.gate(&st, scope)?;
       // `status_line`, like the CLI: the count-first shape, exit-code-free.
-      Ok(verdict_json(&verdict, verdict.status_line()))
+      Ok(verdict_json(&verdict, &verdict.status_line()))
     }
     "ac new" => {
       let st = spec(path, need_s(path, map, "stid")?)?;
@@ -969,7 +969,7 @@ fn tool_answer(
         "at red" => AtStatus::Red,
         _ => AtStatus::Na,
       };
-      let note = opt_s(path, map, "note")?.map(str::to_string);
+      let note = opt_s(path, map, "note")?;
       Ok(outcome_json(&f.at_set(&st, id, status, note)?, id))
     }
     "at new" => {
@@ -1477,7 +1477,7 @@ fn tool_answer(
         ));
       }
       let kind = crate::render::wb_item_kind(str_arg(args, "kind", path)?)
-        .map_err(|e| failure_args(path, e))?;
+        .map_err(|e| failure_args(path, &e))?;
       let seq: u32 = str_arg(args, "id", path)?
         .parse()
         .map_err(|_| args_err(path, "`id` is the item's number on the board"))?;
@@ -1683,7 +1683,7 @@ fn str_arg<'a>(args: &'a Value, name: &str, path: &str) -> Result<&'a str, Serve
 }
 
 /// A renderer-side refusal (`Failure`) rephrased as this surface's `Args`.
-fn failure_args(path: &str, e: crate::spine::Failure) -> ServeError {
+fn failure_args(path: &str, e: &crate::spine::Failure) -> ServeError {
   args_err(path, e.message().unwrap_or("refused").to_string())
 }
 
@@ -1761,7 +1761,7 @@ fn strings(
 
 /// A thread spelling, canonicalised through the ONE thread door.
 fn spec(path: &str, raw: &str) -> Result<String, ServeError> {
-  crate::render::thread_spec(raw).map_err(|e| failure_args(path, e))
+  crate::render::thread_spec(raw).map_err(|e| failure_args(path, &e))
 }
 
 /// A `<ST>/<NN>` spelling resolved to its work-package scope, refusing a bare
@@ -1831,7 +1831,7 @@ fn val<T: serde::Serialize + ?Sized>(path: &str, value: &T) -> Result<Value, Ser
 /// The gate's verdict, projected: the word, the fiat count, the waiting ids,
 /// and the face's own line (`line` for `ac gate`, `status_line` for
 /// `ac status` -- the caller picks, this shape carries it).
-fn verdict_json(verdict: &Verdict, line: String) -> Value {
+fn verdict_json(verdict: &Verdict, line: &str) -> Value {
   let word = match verdict {
     Verdict::Pass { .. } => "pass",
     Verdict::Exempt { .. } => "exempt",

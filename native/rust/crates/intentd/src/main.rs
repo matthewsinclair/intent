@@ -267,16 +267,16 @@ async fn main() -> ExitCode {
 
   let dirs = match userstate::dirs() {
     Ok(dirs) => dirs,
-    Err(e) => return refuse(StartupError::NoUserState(e)),
+    Err(e) => return refuse(&StartupError::NoUserState(e)),
   };
 
   match serve_under(&dirs, lifeline).await {
     Ok(()) => ExitCode::SUCCESS,
-    Err(e) => refuse(e),
+    Err(e) => refuse(&e),
   }
 }
 
-fn refuse(e: StartupError) -> ExitCode {
+fn refuse(e: &StartupError) -> ExitCode {
   elogln!("error: {e}");
   elogln!("  remedy: {}", e.remedy());
   ExitCode::FAILURE
@@ -320,7 +320,7 @@ async fn serve_under(dirs: &userstate::Dirs, lifeline: Lifeline) -> Result<(), S
   // AFTER IT** (ST0074 `AC-03.4`). A daemon that cannot watch the file still
   // serves every project and lists the file as it read it at start, and says so.
   let _listed = match listed::start(
-    userstate::project_registry_under(dirs),
+    &userstate::project_registry_under(dirs),
     Arc::clone(&registry),
   ) {
     Ok(watching) => Some(watching),

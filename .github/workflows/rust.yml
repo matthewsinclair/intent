@@ -174,6 +174,20 @@ jobs:
         # 2026-09-15). The three lints are in clippy's restriction group, so this
         # step is the only thing that turns them on.
         run: cargo clippy -p intentsvcs -p intent-cli --lib -- -D clippy::unwrap_used -D clippy::expect_used -D clippy::panic
+      - name: clippy, IN-RS-CODE-001 over intentd's binary
+        # intentd has no library target, so the step above cannot reach it, and
+        # until issue 0649 nothing did. Its build script stays out behind the same
+        # crate-level allow as intent-cli's. testkit is left out on purpose: it
+        # is test support, and its panic is how the calling test fails (the
+        # rule's When This Does Not Apply says so).
+        run: cargo clippy -p intentd --bins -- -D clippy::unwrap_used -D clippy::expect_used -D clippy::panic
+      - name: clippy, IN-RS-CODE-002 (no argument taken by value only to be borrowed)
+        # needless_pass_by_value is pedantic, so default clippy never runs it, and
+        # the critic deferred the rule to a clippy that never asked (issue 0649).
+        # Library and binary code only, as the step above: tests stay out. The
+        # rule's third lint, redundant_clone, is nursery and is deliberately not
+        # gated.
+        run: cargo clippy --workspace --lib --bins -- -D clippy::needless_pass_by_value
       - name: doc (every intra-doc link resolves, issue 0451)
         # Broken links accumulated with nothing reporting them -- links to items
         # that were renamed, to test functions, to private items from public docs

@@ -589,7 +589,7 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       "ST0056",
       "AT-03.1",
       AtStatus::Green,
-      Some(format!(
+      Some(&format!(
         "{existing} -- the adjudication history this row carries, at a length that makes the loss unambiguous."
       )),
     )
@@ -597,12 +597,7 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
   out.push((
     "a --note that would drop the note it replaces",
     facade
-      .at_set(
-        "ST0056",
-        "AT-03.1",
-        AtStatus::Green,
-        Some("shorter".to_string()),
-      )
+      .at_set("ST0056", "AT-03.1", AtStatus::Green, Some("shorter"))
       .expect_err("a note that does not contain the existing one is refused"),
   ));
   // The two export refusals a bad ARGUMENT can reach. Provoked here rather
@@ -1125,7 +1120,7 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
     .facade()
     .sync_apply(
       &intentsvcs::sync::Scope::All,
-      intentsvcs::plan::Asking {
+      &intentsvcs::plan::Asking {
         yes: false,
         terminal: false,
         shown: Some("a plan nobody printed".to_string()),

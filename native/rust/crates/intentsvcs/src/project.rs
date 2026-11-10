@@ -911,7 +911,7 @@ pub fn write_config(root: &Path, config: &Config) -> Result<(), ConfigWriteError
         serde_json::Value::Object(map) => map,
         _ => return Err(unreadable("a project config is a JSON object".to_string())),
       };
-      changed_members(file, &read, wanted)
+      changed_members(&file, &read, wanted)
     }
   };
   // Two-space pretty, plus the trailing newline `init.rs` writes, so a config
@@ -989,7 +989,7 @@ impl<'de> Deserialize<'de> for Members {
 /// typed value says the caller meant it; the file saying nothing is the honest
 /// record of that.
 fn changed_members(
-  file: Members,
+  file: &Members,
   read: &serde_json::Map<String, serde_json::Value>,
   wanted: Members,
 ) -> Members {

@@ -36,7 +36,7 @@ This directory holds the workflows GitHub runs for the Intent project: the bats 
 
 - Installs the stable toolchain with rustfmt and clippy, restores the cargo cache, and records `rustc --version` and `cargo --version` to the job summary
 - Installs shellcheck (macOS only) and `prettier@3` (both legs); the test suite needs both on PATH
-- Runs `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, IN-RS-CODE-001's own step `cargo clippy -p intentsvcs -p intent-cli --lib -- -D clippy::unwrap_used -D clippy::expect_used -D clippy::panic` (the library targets only, never `--all-targets`), `cargo doc --no-deps --document-private-items` under `RUSTDOCFLAGS=-Dwarnings` so every intra-doc link must resolve (issue 0451; the same command as devbin's `doc` gate, which `tests/unit/devbin_rust_gates.bats` holds them to), and `cargo test --workspace --no-fail-fast`
+- Runs `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, IN-RS-CODE-001's own step `cargo clippy -p intentsvcs -p intent-cli --lib -- -D clippy::unwrap_used -D clippy::expect_used -D clippy::panic` (the library targets only, never `--all-targets`) and its step over intentd's binary `cargo clippy -p intentd --bins -- -D clippy::unwrap_used -D clippy::expect_used -D clippy::panic` (testkit is left out on purpose), IN-RS-CODE-002's step `cargo clippy --workspace --lib --bins -- -D clippy::needless_pass_by_value` (issue 0649), `cargo doc --no-deps --document-private-items` under `RUSTDOCFLAGS=-Dwarnings` so every intra-doc link must resolve (issue 0451; the same command as devbin's `doc` gate, which `tests/unit/devbin_rust_gates.bats` holds them to), and `cargo test --workspace --no-fail-fast`
 
 ### 3. PR Checks (`pr-checks.yml`)
 
@@ -85,6 +85,8 @@ cd native/rust
 cargo fmt --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo clippy -p intentsvcs -p intent-cli --lib -- -D clippy::unwrap_used -D clippy::expect_used -D clippy::panic
+cargo clippy -p intentd --bins -- -D clippy::unwrap_used -D clippy::expect_used -D clippy::panic
+cargo clippy --workspace --lib --bins -- -D clippy::needless_pass_by_value
 RUSTDOCFLAGS=-Dwarnings cargo doc --no-deps --document-private-items
 cargo test --workspace --no-fail-fast
 ```

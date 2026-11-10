@@ -441,7 +441,7 @@ fn a_canon_content_conflict_needs_a_person_and_yes_does_not_answer_it() {
   let applied = facade
     .sync_apply(
       &intentsvcs::sync::Scope::All,
-      intentsvcs::plan::Asking {
+      &intentsvcs::plan::Asking {
         yes: false,
         terminal: true,
         shown: None,

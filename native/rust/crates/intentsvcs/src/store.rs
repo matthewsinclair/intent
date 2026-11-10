@@ -3026,6 +3026,7 @@ pub struct StoredDates {
   pub event_ts: String,
 }
 
+#[derive(Clone, Copy)]
 pub struct Mutation<'a> {
   pub threads: &'a [&'a Thread],
   pub issues: &'a [&'a Issue],

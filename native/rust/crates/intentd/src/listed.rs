@@ -8,7 +8,7 @@
 //! it.
 
 use crate::daemon_log::elogln;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -41,8 +41,8 @@ pub struct Listed {
 /// **A REFUSAL IS A `Response`, AS `watch::start`'s IS**, so the two fallible
 /// watch constructors in this crate report a failure the same way: what went
 /// wrong, and what to do.
-pub fn start(path: PathBuf, registry: Arc<Registry>) -> Result<Listed, Response> {
-  reload(&path, &registry);
+pub fn start(path: &Path, registry: Arc<Registry>) -> Result<Listed, Response> {
+  reload(path, &registry);
   let Some(dir) = path.parent().map(Path::to_path_buf) else {
     return Err(Response::error(
       format!("`{}` has no directory to watch", path.display()),
@@ -55,7 +55,7 @@ pub fn start(path: PathBuf, registry: Arc<Registry>) -> Result<Listed, Response>
       UNWATCHED,
     )
   })?;
-  let watched = path.clone();
+  let watched = path.to_path_buf();
   let mut debouncer = new_debouncer(
     QUIET,
     None,

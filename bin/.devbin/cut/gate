@@ -121,7 +121,7 @@ check_rust() {
   if ! in_gate "$native" cargo build -p intentd >>"$log" 2>&1; then
     step="cargo build -p intentd"
   else
-    for twin in format clippy panics doc; do
+    for twin in format clippy panics panics-intentd ownership doc; do
       if ! in_gate "$dir/tree" bin/devbin check "$twin" >>"$log" 2>&1; then
         step="bin/devbin check $twin"
         break
@@ -142,7 +142,7 @@ check_rust() {
   rm -rf "$dir"
   [ -z "$step" ] || refuse "$step failed; the run is in $log" "$AGAIN"
   rm -f "$log"
-  printf 'ok: cargo build -p intentd, bin/devbin check format, clippy, panics and doc, then cargo test --workspace\n'
+  printf 'ok: cargo build -p intentd, bin/devbin check format, clippy, panics, panics-intentd, ownership and doc, then cargo test --workspace\n'
 }
 
 # The pair built at the release commit, so the currency verdict the pre-push

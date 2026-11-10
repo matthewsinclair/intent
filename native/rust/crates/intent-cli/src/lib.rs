@@ -89,7 +89,7 @@ pub struct Outcome {
 /// exits, and the TUI is mid-repaint with a terminal it has lent -- and a
 /// function that both dispatches and reports would force one of them to work
 /// around the other's choice.
-pub fn dispatch(argv: Vec<String>) -> Outcome {
+pub fn dispatch(argv: &[String]) -> Outcome {
   let matches = match spine::parse(argv) {
     Ok(matches) => matches,
     // `parse` has already written clap's own error or help text to the
