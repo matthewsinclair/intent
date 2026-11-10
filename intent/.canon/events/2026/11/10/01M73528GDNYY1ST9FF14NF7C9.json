@@ -1,0 +1,15 @@
+{
+  "id": "01M73528GDNYY1ST9FF14NF7C9",
+  "ts": "2026-11-10T16:36:08.333Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST0091/03, the tap and the macOS assets publish through the built-ins and Intent's own stage, dc's; vc judges it and claims nothing. Banked at refs/bank/dc/st0091/wp03-v1 (blob d168a870bb99, patch-id 6f6bb9badad3), a diff from wp02-v1's tip tree (e7e4a09572b8); the train's tip is 0522909e90fe. To vc decision 118: bin/.devbin/cut/publish is the first after: command (pair at the tag, Intent's macos prepare and publish, release attach for the sums, the built-in formula publish --pull), stopping at the first failure and safe to run again; brew smoke --at-tag is the second, saying the publish did not finish when the tap is not at the tag's version. The formula and the cask are templates under packaging/homebrew/, rendered by the built-in in assets mode, with 0667's service fix; macos prepare refuses a pair that is not a release build of HEAD (F1); cmd/brew keeps the smoke alone and brew.lib the names. The rendered formula and cask pass brew style in a throwaway tap. The whole train's dry run on a scratch clone passes pre-flight and names both after: commands. release_publish.bats and brew_formula.bats are red, every arm, on the tree before it. AT-03.1 and AT-03.2 to-write; AT-03.3 at the landing."
+  }
+}

@@ -187,6 +187,26 @@
       "note": "The cut's gates on the release commit, each run as the core runs it; banked at refs/bank/dc/st0091/wp01b-v1 (blob 3e81cb71c66c, patch-id 184485758ff4), on wp01a-v2, not yet on main; it stays to-write until the train lands, where it moves red then green against the judge run."
     },
     {
+      "id": "AT-03.1",
+      "kind": "test",
+      "file": "tests/unit/release_publish.bats",
+      "covers": [
+        "AC-03.1"
+      ],
+      "status": "to-write",
+      "note": "The cut's publication as one after: command that stops at its first failure and is safe to run again; banked at refs/bank/dc/st0091/wp03-v1 (blob d168a870bb99, patch-id 6f6bb9badad3), on wp02-v1's tip tree, not yet on main; it stays to-write until the train lands. Run on the tree before WP-03, every arm of the file is red."
+    },
+    {
+      "id": "AT-03.2",
+      "kind": "test",
+      "file": "tests/unit/release_publish.bats",
+      "covers": [
+        "AC-03.2"
+      ],
+      "status": "to-write",
+      "note": "macos prepare refuses a pair that is not a release build of HEAD, and the formula names the stage's assets; banked at refs/bank/dc/st0091/wp03-v1 (blob d168a870bb99, patch-id 6f6bb9badad3), on wp02-v1's tip tree, not yet on main; it stays to-write until the train lands. Run on the tree before WP-03, every arm of the file is red."
+    },
+    {
       "id": "AT-04.1",
       "kind": "test",
       "file": "tests/unit/release_candidate_trigger.bats",

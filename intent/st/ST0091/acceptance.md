@@ -52,7 +52,8 @@ _(no tests in this group)_
 
 ### WP-03 -- The tap and the macOS assets publish through the built-ins, with prepare as a shadow (status: WIP)
 
-_(no tests in this group)_
+- AT-03.1 `tests/unit/release_publish.bats` -- covers AC-03.1 -- status: to-write -- The cut's publication as one after: command that stops at its first failure and is safe to run again; banked at refs/bank/dc/st0091/wp03-v1 (blob d168a870bb99, patch-id 6f6bb9badad3), on wp02-v1's tip tree, not yet on main; it stays to-write until the train lands. Run on the tree before WP-03, every arm of the file is red.
+- AT-03.2 `tests/unit/release_publish.bats` -- covers AC-03.2 -- status: to-write -- macos prepare refuses a pair that is not a release build of HEAD, and the formula names the stage's assets; banked at refs/bank/dc/st0091/wp03-v1 (blob d168a870bb99, patch-id 6f6bb9badad3), on wp02-v1's tip tree, not yet on main; it stays to-write until the train lands. Run on the tree before WP-03, every arm of the file is red.
 
 ### WP-04 -- The workflows fire on the candidate, and the docs describe the cut as built (status: WIP)
 
