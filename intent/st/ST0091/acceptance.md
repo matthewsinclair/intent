@@ -41,7 +41,9 @@ title: Intent releases through devbin's core: its driver, kovacs preflight and p
 
 ### WP-01 -- The cut runs through devbin's core, and Intent's driver retires (status: WIP)
 
-_(no tests in this group)_
+- AT-01.1 `tests/unit/release_stamp.bats` -- covers AC-01.1 -- status: to-write -- The cut's seven derived steps, each run as the core runs it; banked at refs/bank/dc/st0091/wp01a-v1 (blob c96b329f9f42, patch-id 6c2b14cb5b1c), not yet on main; it stays to-write until the train lands, where it moves red then green against the judge run.
+- AT-01.2 `tests/unit/releasestamp_lib.bats` -- covers AC-01.1 -- status: to-write -- The cut's helpers in releasestamp.lib, the lock and footer arms re-homed from the retired driver's tests; banked at refs/bank/dc/st0091/wp01a-v1 (blob c96b329f9f42, patch-id 6c2b14cb5b1c), not yet on main; it stays to-write until the train lands, where it moves red then green against the judge run.
+- AT-01.3 `tests/unit/release_preflight.bats` -- covers AC-01.3 -- status: to-write -- The cut's four read-only pre-flight checks, a live intentd refused with its remedy; banked at refs/bank/dc/st0091/wp01a-v1 (blob c96b329f9f42, patch-id 6c2b14cb5b1c), not yet on main; it stays to-write until the train lands, where it moves red then green against the judge run.
 
 ### WP-02 -- kovacs runs as the cut's remote leg, and prepush keeps only its push gates (status: Not Started)
 
