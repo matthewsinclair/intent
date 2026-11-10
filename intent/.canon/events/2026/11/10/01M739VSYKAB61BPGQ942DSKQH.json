@@ -1,0 +1,16 @@
+{
+  "id": "01M739VSYKAB61BPGQ942DSKQH",
+  "ts": "2026-11-10T17:59:59.699Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 63,
+    "text": "ST0092, on vc's word of 2026-11-10: ic read the dispatch-table rows WP-02 to WP-09's bodies specify, as the table's owner. All nine findings are sent to cc, each copied to vc, and nothing was written to ST0092's canon. The notes are at refs/bank/ic/st0092/row-read-notes-v2.md (blob f6b65de54ccc). Next: answer cc's questions on the findings. WP-10 is started and claimed only after cc's packages land, and then AC-10.3's baseline is re-run (refs/bank/ic/st0092/wp10-ac-10.3-baseline.md, blob 32fee803e560)."
+  }
+}

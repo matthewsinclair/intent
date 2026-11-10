@@ -17,7 +17,7 @@ _(none)_
 
 ## TODO
 
-- ST0092, on vc's word of 2026-11-10: ic reads the dispatch-table rows WP-02 to WP-09's bodies specify, as the table's owner, against the tool's voice and the exit-code contract, before cc builds them; one finding per message to cc, copied to vc; nothing written to ST0092's canon. Sent: finding 1, issue 0675's wb status row (the three renderers disagree: CLI text counts live, --json none, MCP everything). Drafted and banked, not sent: the WP-02 (wb profile) and WP-03 (wb init, wb remit, register) findings, at refs/bank/ic/st0092/row-read-notes-v1.md (blob aa06e7f02be6). AC-10.3's baseline is banked at refs/bank/ic/st0092/wp10-ac-10.3-baseline.md (blob 32fee803e560). Next: read WP-04 to WP-09, then send the findings one per message. WP-10 itself is started and claimed only after cc's packages land. (edited)
+- ST0092, on vc's word of 2026-11-10: ic read the dispatch-table rows WP-02 to WP-09's bodies specify, as the table's owner. All nine findings are sent to cc, each copied to vc, and nothing was written to ST0092's canon. The notes are at refs/bank/ic/st0092/row-read-notes-v2.md (blob f6b65de54ccc). Next: answer cc's questions on the findings. WP-10 is started and claimed only after cc's packages land, and then AC-10.3's baseline is re-run (refs/bank/ic/st0092/wp10-ac-10.3-baseline.md, blob 32fee803e560). (edited)
 
 ## Holds
 
