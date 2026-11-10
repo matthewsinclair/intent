@@ -6,14 +6,14 @@ session_id: 2aba47df-5301-4790-a6b7-e11815afe307
 heartbeat_at: 2026-11-10 19:34Z
 status: active
 focus: "2026-11-10, localfolded for hv's compact on hv's word direct to dc ("Fold, then compact."); dc stays active and continues on the bounce. Lane, on vc's word: (1) on vc's "verified", close 0670 and remove tmp/wt-dc-0670 in one chain (doing 155); (2) AT-01.6's release.preflight wiring once devbin-vc says devbin's release (re-cutting after 0.1.21 went red) is swept in (todo 61); (3) F8's reference pages as the last unit before the cut, after ST0092's surface lands (todo 60). dc builds no ST0092 package for now; vc revisits when cc reaches WP-05. Claims: ST0090/02, ISSUE:0670, ST0091/01-04. Worktrees: tmp/wt-dc-0670 (v2, kept until verified) and tmp/wt-dc-0090-app (hold 37)."
-claims: [ST0090/02, ISSUE:0670, ST0091/01, ST0091/04, ST0091/02, ST0091/03]
+claims: [ST0090/02, ST0091/01, ST0091/04]
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-- ISSUE:0670, the AT citation check (hv's ruling of 2026-11-01, vc's shape of 2026-11-10). LANDED as 03a820eb0 on main, v2 (refs/bank/dc/0670/fix-v2-on-0665v2-on-5aae9648d, patch-id 576f8fc56e02), between cc's 0665 (a08b6f03e) and cc's 0649 (cedbc46fe), on vc's go after its judge of the stack. v2 changed one thing from v1: Fixture::write_thread in tests/common/mod.rs writes each stub line naming its own thread and keeps other threads' lines, because vc's whole-suite judge found the seeded estate gave three threads one green AT-03.1 over a bare line. The commit also carried the five edited ST0056 tools and the new lib_citation.sh into the store as attachments; intentd ingested two of the six from disk first, which vc accepted. WAITING ON vc's "verified" from the attachment test at HEAD (desk request 01M73EB75QZHTW4QK9NS95DZA5, queued behind devbin's re-cut). ON VERIFIED, one chain: intent issues edit 0670 --from the resolution draft (scratchpad 0670-resolved.md, which appends RESOLVED FOR 3.3.0 to the prose), intent issues close 0670, archive this item, unclaim ISSUE:0670, and remove tmp/wt-dc-0670 by the fold checks. (edited)
+_(none)_
 
 ## TODO
 

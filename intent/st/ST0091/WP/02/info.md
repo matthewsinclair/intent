@@ -2,7 +2,7 @@
 wp_id: WP-02
 title: kovacs runs as the cut's remote leg, and prepush keeps only its push gates
 scope: S
-status: WIP
+status: Done
 ---
 
 # WP-02: kovacs runs as the cut's remote leg, and prepush keeps only its push gates
