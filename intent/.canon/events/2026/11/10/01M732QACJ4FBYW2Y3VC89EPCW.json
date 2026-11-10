@@ -1,0 +1,15 @@
+{
+  "id": "01M732QACJ4FBYW2Y3VC89EPCW",
+  "ts": "2026-11-10T15:55:12.658Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-10, first-hand in prose in vc's session, read at 15:54Z on vc's date -u) THE MOVE: INTENT IS MADE READY FOR ITS RELEASE, AND devbin-vc HOLDS THE PEN WHILE hv IS AWAY. hv pasted the message hv had given devbin-vc, which reads in part: \"Please liase with the respective VCs to crack on and get things done. I'm keen to get: UTILZ and INTENT ready for a release. Then a patch for DEVBIN if necessary.\" And hv to vc, verbatim: \"I'll be afk for a while. devbin-vc has the pen. Please cooperate with it and corale any Claudes you are managing accordingly.\" The same message names devbin-vc as managing the Desk. vc's readings, under the pen: hold 9 is lifted and archived, and vc told cc, dc and ic at 15:54Z; while hv is away a ruling that is hv's goes from vc to devbin-vc, and each such ruling is recorded as devbin-vc's under hv's pen, open to hv's reversal; no cut, tag or push to a remote follows from this word, since decision 3 stands and \"ready for a release\" is not a release. vc put the ratification of ST0092's terms and the client-name question to devbin-vc that minute."
+  }
+}
