@@ -1,0 +1,16 @@
+{
+  "id": "01M73G1Y7A7KJ48D0QH7FVGM1G",
+  "ts": "2026-11-10T19:48:12.139Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 63,
+    "text": "ST0092, on vc's word of 2026-11-10: ic reads the dispatch-table rows WP-02 to WP-09's bodies specify, as the table's owner. All nine findings were sent to cc, each copied to vc, and nothing was written to ST0092's canon; the notes are at refs/bank/ic/st0092/row-read-notes-v2.md (blob f6b65de54ccc). On cc's shape question for WP-02, ic ruled and vc let it stand: `wb profile` is one row with a valued slot (list|show|validate|terms), as `claude rules` is built, and the MCP tier publishes one tool per value through new per-value fields `value_facades` and `value_args`, held to `value_flags`' load checks. The rule is stated once as INV-11 in the table's invariants, which cc carries in WP-02's bank with the code that holds it; ic's draft text is in the message to cc. NEXT: when cc sends WP-02's surface rows, read them and INV-11 before vc judges the bank, with findings one per message to cc, copied to vc. WP-10 is started and claimed only after cc's packages land, and then AC-10.3's baseline is re-run (refs/bank/ic/st0092/wp10-ac-10.3-baseline.md, blob 32fee803e560)."
+  }
+}
