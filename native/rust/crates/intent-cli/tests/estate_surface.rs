@@ -1028,6 +1028,74 @@ fn a_foreign_flag_and_a_run_outside_any_session_are_refused() {
   );
 }
 
+/// Issue 0661: a flag a sibling verb declares is refused at parse now that
+/// each verb's leaf carries only its own flags, and the refusal keeps the two
+/// lines and the exit it had when render made it. One verb of each slot row.
+#[test]
+fn a_sibling_verbs_flag_is_refused_with_both_lines_at_exit_1() {
+  let host = Host::new();
+  let me = std::process::id();
+  host.session(me, "s-ctl", "molt-vc", &host.project, "idle");
+  for (args, verb, flag) in [
+    (
+      &["slots", "release", "01X", "--named", "tip=x"][..],
+      "estate slots release",
+      "--named",
+    ),
+    (
+      &["control", "release", "--hv", "words"][..],
+      "estate control release",
+      "--hv",
+    ),
+    (
+      &["lane", "close", "builds", "--capacity", "1"][..],
+      "estate lane close",
+      "--capacity",
+    ),
+  ] {
+    let out = slot(&host, "s-ctl", args);
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    assert_eq!(out.status.code(), Some(1), "{args:?}: {stderr}");
+    assert!(
+      stderr.contains(&format!("error: `{flag}` is not a flag of `{verb}`")),
+      "{args:?}: {stderr}"
+    );
+    assert!(
+      stderr.contains(&format!(
+        "remedy: `intent {verb} --help` names the flags it reads"
+      )),
+      "{args:?}: {stderr}"
+    );
+  }
+}
+
+/// Issue 0661: a flag given before the verb used to be parsed onto the slot's
+/// parent, where no verb read it, and the verb ran without it. It is refused
+/// by name at parse now, before anything is written.
+#[test]
+fn a_flag_given_before_the_verb_is_refused_by_name() {
+  let host = Host::new();
+  let me = std::process::id();
+  host.session(me, "s-ctl", "molt-vc", &host.project, "idle");
+  let out = slot(
+    &host,
+    "s-ctl",
+    &["slots", "--named", "tip=x", "release", "01X"],
+  );
+  let stderr = String::from_utf8_lossy(&out.stderr);
+  assert_eq!(out.status.code(), Some(1), "{stderr}");
+  assert!(
+    stderr.contains("error: `--named` is not a flag of `estate slots`"),
+    "{stderr}"
+  );
+  assert!(
+    stderr.contains(
+      "remedy: a flag goes after the verb that reads it; `intent estate slots <verb> --help` names that verb's flags"
+    ),
+    "{stderr}"
+  );
+}
+
 /// A controller with one heavy lane on `host`, and an ask for each `what`,
 /// whose ids come back in order.
 fn desk_with_asks(host: &Host, whats: &[&str]) -> Vec<String> {

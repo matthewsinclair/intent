@@ -77,6 +77,8 @@ mod a_stale_store_shows_on_a_default_doctor_run;
 mod a_store_under_dropbox_is_marked_ignored;
 #[path = "a_tool_description_comes_from_its_row.rs"]
 mod a_tool_description_comes_from_its_row;
+#[path = "a_verb_takes_only_the_flags_its_slot_declares.rs"]
+mod a_verb_takes_only_the_flags_its_slot_declares;
 #[path = "a_write_keeps_a_cover_edit_it_could_carry.rs"]
 mod a_write_keeps_a_cover_edit_it_could_carry;
 #[path = "a_write_names_the_view_it_rewrote.rs"]

@@ -5874,6 +5874,13 @@
                    "sync": "Sync installed subagents with latest versions",
                    "uninstall": "Remove Intent-managed subagents",
                    "show": "Display detailed subagent information"
+                 },
+                 "value_flags": {
+                   "list": ["-v"],
+                   "install": ["--force", "--dry-run", "--all"],
+                   "sync": ["--force", "--dry-run", "--all"],
+                   "uninstall": ["--force", "--dry-run", "--all"],
+                   "show": []
                  }
             },
             {
@@ -5986,6 +5993,13 @@
                    "sync": "Sync installed skills with latest versions",
                    "uninstall": "Remove Intent-managed skills",
                    "show": "Display detailed skill information"
+                 },
+                 "value_flags": {
+                   "list": ["-v"],
+                   "install": ["--force", "--dry-run", "--all"],
+                   "sync": ["--force", "--dry-run", "--all"],
+                   "uninstall": ["--force", "--dry-run", "--all"],
+                   "show": []
                  }
             },
             {
@@ -6097,6 +6111,11 @@
                    "list": "List every rule in the canon rule library",
                    "show": "Print a rule's Markdown body",
                    "validate": "Validate frontmatter: keys, ids, citations and principle links"
+                 },
+                 "value_flags": {
+                   "list": ["--lang"],
+                   "show": [],
+                   "validate": []
                  }
             },
             {
@@ -9630,6 +9649,12 @@
                 "release": "Hand control over cleanly",
                 "hold": "Hold the whole desk: no grant until the hold is released",
                 "unhold": "Release a desk hold by its id"
+              },
+              "value_flags": {
+                "take": ["--hv", "--node"],
+                "release": ["--node"],
+                "hold": ["--node"],
+                "unhold": ["--node"]
               }
             },
             { "name": "arg", "type": "string", "arity": "0..1", "note": "The condition for `hold`, the hold's id for `unhold`." }
@@ -9679,6 +9704,12 @@
                 "close": "Close a lane: refused while anything is granted or running in it",
                 "hold": "Hold one lane: no grant naming it until the hold is released",
                 "unhold": "Release a lane hold by its id"
+              },
+              "value_flags": {
+                "open": ["--type", "--capacity", "--load-under", "--node"],
+                "close": ["--node"],
+                "hold": ["--node"],
+                "unhold": ["--node"]
               }
             },
             { "name": "lane", "type": "string", "arity": "1" },
@@ -9750,6 +9781,17 @@
                 "wait": "Block until the controller answers a request: exit 0 granted, 1 denied or revoked, 4 still asked at --timeout",
                 "watch": "Print one line per state change under the requests until the reader goes away",
                 "pending": "Name the asks waiting for this session when it holds control, and nothing otherwise"
+              },
+              "value_flags": {
+                "ask": ["--lane", "--named", "--tag", "--not-before", "--hold", "--place-of", "--node"],
+                "grant": ["--lane", "--node"],
+                "deny": ["--node"],
+                "revoke": ["--node"],
+                "start": ["--named", "--relayed", "--node"],
+                "release": ["--result", "--relayed", "--node"],
+                "wait": ["--timeout"],
+                "watch": [],
+                "pending": []
               }
             },
             { "name": "subject", "type": "string", "arity": "0..1", "note": "The request type for `ask`; the request id for `grant`, `deny`, `revoke`, `start`, `release` and `wait`, each of which refuses without it; `watch` and `pending` take none." },
@@ -10567,6 +10609,9 @@
           ],
           "value_help": {
             "retired": "List the commands this build has retired"
+          },
+          "value_flags": {
+            "retired": ["--format"]
           }
         }
       ],
@@ -11349,6 +11394,7 @@
         "name",
         "required_unless",
         "type",
+        "value_flags",
         "value_help",
         "values"
       ],

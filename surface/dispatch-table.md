@@ -2788,6 +2788,7 @@ Manage Claude Code subagents
 - **v2:** bin/intent claude arm -> plugin
 - **Arguments:**
   - `verb` (subcommand, arity `1`) -- one of: `list`, `install`, `sync`, `uninstall`, `show`
+    - flags by verb: `list`: `-v`; `install`: `--force`, `--dry-run`, `--all`; `sync`: `--force`, `--dry-run`, `--all`; `uninstall`: `--force`, `--dry-run`, `--all`; `show`: none
   - `name` (string, arity `0..n`)
 - **Flags:**
   - `-v` (bool) -- Show full descriptions in `list`
@@ -2825,6 +2826,7 @@ Manage Claude Code skills
 - **v2:** bin/intent claude arm -> plugin
 - **Arguments:**
   - `verb` (subcommand, arity `1`) -- one of: `list`, `install`, `sync`, `uninstall`, `show`
+    - flags by verb: `list`: `-v`; `install`: `--force`, `--dry-run`, `--all`; `sync`: `--force`, `--dry-run`, `--all`; `uninstall`: `--force`, `--dry-run`, `--all`; `show`: none
   - `name` (string, arity `0..n`)
 - **Flags:**
   - `-v` (bool) -- Show full descriptions in `list`
@@ -2866,6 +2868,7 @@ List and show rule-library rules
 - **v2:** bin/intent claude arm
 - **Arguments:**
   - `verb` (subcommand, arity `0..1`), default `list` -- one of: `list`, `show`, `validate`
+    - flags by verb: `list`: `--lang`; `show`: none; `validate`: none
   - `id` (rule-id, arity `0..1`)
 - **Flags:**
   - `--lang` `<lang>` (string) -- Filter to one language
@@ -4802,6 +4805,7 @@ Take, release or hold control of this host's slots: the controller alone grants,
 - **v2:** new-surface
 - **Arguments:**
   - `verb` (subcommand, arity `1`) -- one of: `take`, `release`, `hold`, `unhold`
+    - flags by verb: `take`: `--hv`, `--node`; `release`: `--node`; `hold`: `--node`; `unhold`: `--node`
   - `arg` (string, arity `0..1`)
     - The condition for `hold`, the hold's id for `unhold`.
 - **Flags:**
@@ -4827,6 +4831,7 @@ Open, close or hold a lane: a scarce resource with a running capacity that grant
 - **v2:** new-surface
 - **Arguments:**
   - `verb` (subcommand, arity `1`) -- one of: `open`, `close`, `hold`, `unhold`
+    - flags by verb: `open`: `--type`, `--capacity`, `--load-under`, `--node`; `close`: `--node`; `hold`: `--node`; `unhold`: `--node`
   - `lane` (string, arity `1`)
   - `arg` (string, arity `0..1`)
     - The condition for `hold`, the hold's id for `unhold`.
@@ -4859,6 +4864,7 @@ Ask for a slot, wait for the answer and run in it, or, as the controller, grant,
 - **v2:** new-surface
 - **Arguments:**
   - `verb` (subcommand, arity `1`) -- one of: `ask`, `grant`, `deny`, `revoke`, `start`, `release`, `wait`, `watch`, `pending`
+    - flags by verb: `ask`: `--lane`, `--named`, `--tag`, `--not-before`, `--hold`, `--place-of`, `--node`; `grant`: `--lane`, `--node`; `deny`: `--node`; `revoke`: `--node`; `start`: `--named`, `--relayed`, `--node`; `release`: `--result`, `--relayed`, `--node`; `wait`: `--timeout`; `watch`: none; `pending`: none
   - `subject` (string, arity `0..1`)
     - The request type for `ask`; the request id for `grant`, `deny`, `revoke`, `start`, `release` and `wait`, each of which refuses without it; `watch` and `pending` take none.
   - `text` (string, arity `0..1`)

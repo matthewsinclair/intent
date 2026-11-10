@@ -381,6 +381,19 @@ pub struct Arg {
   /// entry renders without one, and `spine`'s test names every such leaf.
   #[serde(default)]
   pub value_help: std::collections::BTreeMap<String, String>,
+  /// The flags each verb reads, keyed by the verb, each flag named by one of
+  /// its spellings (issue 0661). A verb that takes no flag has an empty list.
+  ///
+  /// **A VERB'S FLAG SET IS DECLARED HERE AND NOWHERE ELSE.** The spine hangs
+  /// only these on the verb's leaf, so `--help` lists what the verb reads and
+  /// the parser refuses any other flag by name. Every leaf used to carry the
+  /// entry's whole flag set while render kept each verb's real set in lists of
+  /// its own, so `estate slots release --help` offered seven flags its verb
+  /// refused. `check_vocabularies` refuses a key that is not a verb, a spelling
+  /// that names no shipped flag of the entry, a verb with no key while the
+  /// entry ships flags, and a shipped flag no verb takes.
+  #[serde(default)]
+  pub value_flags: std::collections::BTreeMap<String, Vec<String>>,
   /// What the slot means when the caller leaves it out.
   ///
   /// **Deserialized and validated, deliberately not rendered as a clap
@@ -469,6 +482,14 @@ impl Arg {
   /// `git log --follow` nobody runs before trusting a green.
   pub fn repeated(&self) -> bool {
     matches!(arity_bounds(&self.arity), Some((_, None)))
+  }
+
+  /// The spellings of the flags `verb` reads, from [`value_flags`](Self::value_flags);
+  /// empty for a verb that takes none, and for a verb with no key, so a gap in
+  /// the table builds a leaf that refuses a flag rather than one that accepts
+  /// every flag the entry declares.
+  pub fn flags_of(&self, verb: &str) -> &[String] {
+    self.value_flags.get(verb).map_or(&[], Vec::as_slice)
   }
 }
 
@@ -649,6 +670,12 @@ impl Flag {
   pub fn ships(&self) -> bool {
     self.disposition == "keep"
   }
+
+  /// Whether `spelling` is one of this flag's spellings, as written in the
+  /// table (`--force`, `-f`).
+  pub fn answers_to(&self, spelling: &str) -> bool {
+    self.spellings.iter().any(|s| s == spelling)
+  }
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
@@ -775,6 +802,30 @@ impl Entry {
           .unwrap_or(alias)
       })
       .collect()
+  }
+
+  /// The `subcommand` arg whose `values` are this entry's verbs -- the
+  /// surface's third level, eg `install` in `intent claude skills install` --
+  /// or `None` when the entry has no such slot.
+  pub fn valued_slot(&self) -> Option<&Arg> {
+    self
+      .args
+      .iter()
+      .find(|a| a.kind == "subcommand" && !a.values.is_empty())
+  }
+
+  /// The flags the bare command reads when its verb slot is left out: the
+  /// default verb's, where the slot is optional and names one, and none
+  /// otherwise, since a required slot refuses the bare command and an optional
+  /// one with no default runs no verb.
+  pub fn bare_flags(&self) -> &[String] {
+    match self.valued_slot() {
+      Some(slot) if !slot.required() => slot
+        .default
+        .as_deref()
+        .map_or(&[][..], |verb| slot.flags_of(verb)),
+      _ => &[],
+    }
   }
 }
 
@@ -954,6 +1005,7 @@ fn check_vocabularies(table: &Table) -> Result<(), Vec<String>> {
         ));
       }
     }
+    unknown.extend(value_flag_defects(entry));
   }
 
   // **A default on a CLOSED domain has to name a member of it.** Run with the
@@ -1039,6 +1091,77 @@ fn unreachable_defaults(entry: &Entry, siblings: &[&str]) -> Vec<String> {
         default,
         arg.kind,
         domain.join(", ")
+      ));
+    }
+  }
+  bad
+}
+
+/// What is wrong with this entry's per-verb flag sets, one line per defect
+/// (issue 0661).
+///
+/// **TOTAL WHERE THE ENTRY SHIPS FLAGS.** Every verb names its list, empty when
+/// it takes none, and every shipped flag is in some verb's list. A verb with no
+/// key would build a leaf that refuses every flag, and a flag in no list would
+/// be declared, listed by no `--help` and read by no verb.
+fn value_flag_defects(entry: &Entry) -> Vec<String> {
+  let mut bad = Vec::new();
+  for arg in &entry.args {
+    if !arg.value_flags.is_empty() && (arg.kind != "subcommand" || arg.values.is_empty()) {
+      bad.push(format!(
+        "`{}` arg `{}` declares value_flags, which only a `subcommand` arg with values can carry",
+        entry.path, arg.name
+      ));
+    }
+  }
+  let Some(slot) = entry.valued_slot() else {
+    return bad;
+  };
+  let shipped: Vec<&Flag> = entry.flags.iter().filter(|f| f.ships()).collect();
+  for (verb, spellings) in &slot.value_flags {
+    if !slot.values.contains(verb) {
+      bad.push(format!(
+        "`{}` value_flags names `{verb}`, which is not one of its verbs ({})",
+        entry.path,
+        slot.values.join(", ")
+      ));
+    }
+    let mut named: Vec<usize> = Vec::new();
+    for spelling in spellings {
+      match shipped.iter().position(|f| f.answers_to(spelling)) {
+        None => bad.push(format!(
+          "`{}` value_flags gives `{verb}` the flag `{spelling}`, which is no shipped flag of this entry",
+          entry.path
+        )),
+        Some(i) if named.contains(&i) => bad.push(format!(
+          "`{}` value_flags names one flag twice for `{verb}`, the second time as `{spelling}`",
+          entry.path
+        )),
+        Some(i) => named.push(i),
+      }
+    }
+  }
+  if shipped.is_empty() {
+    return bad;
+  }
+  for verb in &slot.values {
+    if !slot.value_flags.contains_key(verb) {
+      bad.push(format!(
+        "`{}` ships flags and value_flags has no list for its verb `{verb}`; give the verb its list, empty when it takes none",
+        entry.path
+      ));
+    }
+  }
+  for flag in shipped {
+    if !slot
+      .value_flags
+      .values()
+      .flatten()
+      .any(|s| flag.answers_to(s))
+    {
+      bad.push(format!(
+        "`{}` flag {:?} is in no verb's value_flags, so no `--help` lists it and no verb reads it",
+        entry.path, flag.spellings
       ));
     }
   }
@@ -1196,6 +1319,75 @@ mod tests {
     );
   }
 
+  /// Issue 0661: a verb slot's `value_flags` is the one home of each verb's
+  /// flags, so the load refuses every way the map can disagree with its row.
+  #[test]
+  fn a_verbs_flags_are_declared_whole_and_only_once() {
+    assert!(
+      check_vocabularies(&table()).is_ok(),
+      "the committed table is conformant, or every case below passes for the wrong reason"
+    );
+    fn slots(t: &mut Table) -> &mut Arg {
+      t.families
+        .iter_mut()
+        .flat_map(|f| f.entries.iter_mut())
+        .chain(t.new_surface.iter_mut())
+        .find(|e| e.path == "estate slots")
+        .expect("`estate slots` is a row")
+        .args
+        .iter_mut()
+        .find(|a| a.kind == "subcommand")
+        .expect("its verb slot")
+    }
+    let refused = |mutate: &dyn Fn(&mut Arg), says: &str| {
+      let mut bad = table();
+      mutate(slots(&mut bad));
+      let err = check_vocabularies(&bad).expect_err(says);
+      assert!(
+        err
+          .iter()
+          .any(|e| e.contains("`estate slots`") && e.contains(says)),
+        "{says}: {err:?}"
+      );
+    };
+    refused(
+      &|s| {
+        s.value_flags.remove("wait");
+      },
+      "no list for its verb `wait`",
+    );
+    refused(
+      &|s| {
+        s.value_flags.insert("wait".to_string(), vec![]);
+      },
+      "is in no verb's value_flags",
+    );
+    refused(
+      &|s| {
+        s.value_flags.insert("fly".to_string(), vec![]);
+      },
+      "names `fly`, which is not one of its verbs",
+    );
+    refused(
+      &|s| {
+        s.value_flags
+          .entry("grant".to_string())
+          .or_default()
+          .push("--bogus".to_string())
+      },
+      "gives `grant` the flag `--bogus`",
+    );
+    refused(
+      &|s| {
+        s.value_flags
+          .entry("grant".to_string())
+          .or_default()
+          .push("--node".to_string())
+      },
+      "names one flag twice for `grant`",
+    );
+  }
+
   /// **`banana` on `st start` passed every check in the repo** (vc's probe,
   /// 2026-08-15), because these are bare `String`s with `#[serde(default)]` and
   /// nothing compared them to the vocabulary that declares them.
@@ -1342,6 +1534,7 @@ mod tests {
       values: values.iter().map(|v| v.to_string()).collect(),
       default: Some(default.to_string()),
       value_help: Default::default(),
+      value_flags: Default::default(),
       required_unless: None,
     };
     let with = |arg: Arg| Entry {
@@ -1566,6 +1759,7 @@ mod tests {
       values: vec![],
       default: None,
       value_help: Default::default(),
+      value_flags: Default::default(),
       required_unless: None,
     };
 

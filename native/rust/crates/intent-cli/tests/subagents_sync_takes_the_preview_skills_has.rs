@@ -147,10 +147,14 @@ fn subagents_install_refuses_dry_run_rather_than_writing_under_it() {
 /// and since batch 2 `--force` is what discards that edit. A flag whose help
 /// does not name what it destroys is how batch 2's defect read as intended
 /// behaviour for so long.
+///
+/// It reads `sync --help`, one of the three verbs that take `--force`: since
+/// issue 0661 a verb lists only the flags it reads, and bare
+/// `claude subagents --help` lists the verbs and none of their flags.
 #[test]
 fn the_force_help_names_the_file_it_discards() {
   let home = tempfile::tempdir().expect("tempdir");
-  let (code, text) = run(home.path(), &["claude", "subagents", "--help"]);
+  let (code, text) = run(home.path(), &["claude", "subagents", "sync", "--help"]);
   assert_eq!(code, 0, "--help failed: {text}");
   assert!(
     !text.contains("agent manifest"),

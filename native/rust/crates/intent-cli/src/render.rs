@@ -11203,25 +11203,6 @@ fn slot_fail(e: intentsvcs::estate::slots::SlotError) -> Failure {
   estate_fail(e.into())
 }
 
-/// **A FLAG FOREIGN TO THE CHOSEN VERB IS REFUSED BY NAME** (vc decision 88):
-/// the spine builds a verb slot's leaves with the entry's whole flag set, so
-/// each arm says which of them it reads.
-fn refuse_foreign(
-  a: &ArgMatches,
-  verb: &str,
-  all: &[&str],
-  allowed: &[&str],
-) -> Result<(), Failure> {
-  for flag in all.iter().filter(|f| !allowed.contains(f)) {
-    if given(a, flag) {
-      return Err(Failure::Error(format!(
-        "error: `--{flag}` is not a flag of `{verb}`\n  remedy: `intent {verb} --help` names the flags it reads"
-      )));
-    }
-  }
-  Ok(())
-}
-
 /// A comma list, trimmed, with empty items dropped.
 fn comma_list(raw: Option<String>) -> Vec<String> {
   raw
@@ -11265,20 +11246,15 @@ fn required(a: &ArgMatches, name: &str, verb: &str) -> Result<String, Failure> {
   })
 }
 
-const CONTROL_FLAGS: &[&str] = &["hv", "node"];
-
 /// `intent estate control <take|release|hold|unhold>` (ST0086 WP-04).
+///
+/// Each verb's flags are the ones its slot declares in the dispatch table, and
+/// the spine refuses any other at parse (issue 0661), so no arm here lists them.
 fn estate_control(m: &ArgMatches) -> Result<(), Failure> {
   let Some((verb, a)) = m.subcommand() else {
     return unwired("estate", "control");
   };
   let full = format!("estate control {verb}");
-  let allowed: &[&str] = if verb == "take" {
-    &["hv", "node"]
-  } else {
-    &["node"]
-  };
-  refuse_foreign(a, &full, CONTROL_FLAGS, allowed)?;
   let (dirs, caller) = slot_caller(a)?;
   use intentsvcs::estate::slots;
   match verb {
@@ -11332,20 +11308,13 @@ fn estate_control(m: &ArgMatches) -> Result<(), Failure> {
   }
 }
 
-const LANE_FLAGS: &[&str] = &["type", "capacity", "load-under", "node"];
-
-/// `intent estate lane <open|close|hold|unhold> <lane>` (ST0086 WP-04).
+/// `intent estate lane <open|close|hold|unhold> <lane>` (ST0086 WP-04). Each
+/// verb's flags are its slot's in the dispatch table (issue 0661).
 fn estate_lane(m: &ArgMatches) -> Result<(), Failure> {
   let Some((verb, a)) = m.subcommand() else {
     return unwired("estate", "lane");
   };
   let full = format!("estate lane {verb}");
-  let allowed: &[&str] = if verb == "open" {
-    LANE_FLAGS
-  } else {
-    &["node"]
-  };
-  refuse_foreign(a, &full, LANE_FLAGS, allowed)?;
   let lane = arg(a, "lane")?;
   let (dirs, caller) = slot_caller(a)?;
   use intentsvcs::estate::slots;
@@ -11394,19 +11363,6 @@ fn estate_lane(m: &ArgMatches) -> Result<(), Failure> {
   }
 }
 
-const SLOTS_FLAGS: &[&str] = &[
-  "lane",
-  "named",
-  "tag",
-  "not-before",
-  "hold",
-  "place-of",
-  "result",
-  "relayed",
-  "timeout",
-  "node",
-];
-
 /// `intent estate slots <ask|grant|deny|revoke|start|release|wait|watch|pending>`
 /// (ST0086 WP-04).
 ///
@@ -11414,29 +11370,14 @@ const SLOTS_FLAGS: &[&str] = &[
 /// B, AC-04.4): they read the requests and never a session file to build a
 /// caller, and `watch` and `pending` name no request, so the one positional
 /// slot the verbs share is optional and each verb says whether it takes it.
+///
+/// Each verb's flags are its slot's in the dispatch table, and the spine
+/// refuses any other at parse (issue 0661).
 fn estate_slots(m: &ArgMatches) -> Result<(), Failure> {
   let Some((verb, a)) = m.subcommand() else {
     return unwired("estate", "slots");
   };
   let full = format!("estate slots {verb}");
-  let allowed: &[&str] = match verb {
-    "ask" => &[
-      "lane",
-      "named",
-      "tag",
-      "not-before",
-      "hold",
-      "place-of",
-      "node",
-    ],
-    "grant" => &["lane", "node"],
-    "start" => &["named", "relayed", "node"],
-    "release" => &["result", "relayed", "node"],
-    "wait" => &["timeout"],
-    "watch" | "pending" => &[],
-    _ => &["node"],
-  };
-  refuse_foreign(a, &full, SLOTS_FLAGS, allowed)?;
   let subject = opt(a, "subject")?;
   let text = opt(a, "text")?;
   if matches!(verb, "watch" | "pending") {

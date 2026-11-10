@@ -1406,6 +1406,7 @@ for i in $(seq 0 $((FAMILY_COUNT - 1))); do
        (if .help then " -- \(.help)" else "" end) +
        (if .default then ", default `\(.default)`" else "" end) +
        (if .values then " -- one of: " + (.values | map("`" + . + "`") | join(", ")) else "" end) +
+       (if .value_flags then "\n    - flags by verb: " + (.value_flags as $vf | .values | map("`" + . + "`: " + (($vf[.] // []) | if length > 0 then map("`" + . + "`") | join(", ") else "none" end)) | join("; ")) else "" end) +
        (if .note then "\n    - " + .note else "" end)
      ) | join("\n"))) else empty end),
     (flagblock // empty),

@@ -35,7 +35,7 @@ Not the projection a human help screen wants. An agent needs the safety constrai
 1. **safety** -- `read_or_mutate`, declared over the WHOLE entry, so a command is a mutation if any invocation of it, under any flag, can change durable state. A mutation also says whether the surface can put the estate back: reversible, idempotent, or ONE-WAY. **An unrecognised value renders AS ITSELF**, never folded into `read` or `mutate`: defaulting to `read` would present an unclassified command as safe to call unattended, and defaulting to `mutate` would hide the defect.
 2. **call** -- the path and its positional arguments. `<x>` is required, `[x]` optional, `...` repeatable. A `subcommand` slot is rendered only on a LEAF row, using `spine.rs`'s own discriminator: a family's verbs are sibling entries, while a leaf's slot values become real subcommands.
 3. **does** -- what the command is for.
-4. **flags** -- the `keep` set only, which is `Flag::ships()`. Omitted when the command takes none.
+4. **flags** -- the `keep` set only, which is `Flag::ships()`. Omitted when the command takes none. On a row whose verb slot declares each verb's flags (`value_flags`), each flag's line ends by naming the verbs that take it, because each verb's leaf takes only its own.
 5. **mcp** -- whether the MCP tool surface also carries the row.
 
 Rows group by FIRST APPEARANCE rather than by the `families` array, so `new_surface` rows sit beside their siblings: `intent llm guide` is itself a `new_surface` row, and an agent looking under `llm` must find it.

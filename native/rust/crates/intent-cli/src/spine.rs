@@ -437,7 +437,7 @@ pub fn build(table: &Table) -> Command {
       // Not routed through `with_args`, deliberately: that function also
       // expands a slot's `values` into subcommands, and here the verbs are
       // sibling ENTRIES rather than slot values, so it would build them twice.
-      cmd = flags(positionals(cmd, family_entry), family_entry);
+      cmd = flags(positionals(cmd, family_entry), family_entry, None);
 
       // **`subcommand_required` COMES FROM THE DECLARED ARITY**, and was
       // hardcoded `true`. `arity: "0..1"` with a default verb means the bare
@@ -559,11 +559,13 @@ fn with_args(mut cmd: Command, entry: &Entry) -> Command {
   // `name` at arity `0..n` -- it silently swallowed whatever was typed, so
   // `intent claude skills bogus-verb` was ACCEPTED. A surface that accepts an
   // invented verb is a No Silent Errors failure, not a gap.
-  if let Some(slot) = entry
-    .args
-    .iter()
-    .find(|a| a.kind == "subcommand" && !a.values.is_empty())
-  {
+  //
+  // **EACH LEAF CARRIES ITS OWN VERB'S FLAGS AND NO OTHER** (issue 0661), as
+  // the slot's `value_flags` declares them. Every leaf used to carry the
+  // entry's whole flag set, so `--help` listed flags the verb refused, and the
+  // parent carried them too, where a flag given before the verb was parsed and
+  // never read. The parent now carries only what the bare command reads.
+  if let Some(slot) = entry.valued_slot() {
     for value in &slot.values {
       let mut leaf = Command::new(value.clone());
       // Issue 0332: each verb says what it does in its parent's `--help`.
@@ -571,18 +573,22 @@ fn with_args(mut cmd: Command, entry: &Entry) -> Command {
         leaf = leaf.about(help.clone());
       }
       leaf = positionals(leaf, entry);
-      leaf = flags(leaf, entry);
+      leaf = flags(leaf, entry, Some(slot.flags_of(value)));
       cmd = cmd.subcommand(leaf);
     }
     // The slot must be filled, or the bare command is legal and does something
     // of its own. Read through [`Arg::required`] like every other arity
     // question in this file -- the inline `arity == "1"` that used to be here
     // was the second of three copies of one rule.
-    return flags(cmd.subcommand_required(slot.required()), entry);
+    return flags(
+      cmd.subcommand_required(slot.required()),
+      entry,
+      Some(entry.bare_flags()),
+    );
   }
 
   cmd = positionals(cmd, entry);
-  flags(cmd, entry)
+  flags(cmd, entry, None)
 }
 
 fn positionals(mut cmd: Command, entry: &Entry) -> Command {
@@ -674,12 +680,19 @@ fn positionals(mut cmd: Command, entry: &Entry) -> Command {
   cmd
 }
 
+/// The entry's shipped flags, as clap args on `cmd`: every one of them, or with
+/// `only`, those answering to one of its spellings -- a verb leaf's own set.
 #[allow(
   clippy::panic,
   reason = "INVARIANT: a flag with no usable spelling is refused as a table defect, so reaching the panic is a build defect"
 )]
-fn flags(mut cmd: Command, entry: &Entry) -> Command {
+fn flags(mut cmd: Command, entry: &Entry, only: Option<&[String]>) -> Command {
   for flag in &entry.flags {
+    if let Some(only) = only
+      && !only.iter().any(|s| flag.answers_to(s))
+    {
+      continue;
+    }
     // `help` spellings are clap's own; re-declaring them collides. This is a
     // fact about clap rather than a policy, so it stays even though the table
     // now also marks those rows `intrinsic` -- `ships()` would skip them
@@ -897,6 +910,12 @@ pub fn parse(argv: Vec<String>) -> Result<clap::ArgMatches, i32> {
             eprintln!("{refusal}");
             return Err(EXIT_ERROR);
           }
+          if e.kind() == ErrorKind::UnknownArgument
+            && let Some(refusal) = slot_flag_refusal(&table, &root, &argv, &e)
+          {
+            eprintln!("{refusal}");
+            return Err(EXIT_ERROR);
+          }
           // **A USAGE ERROR IN `critic` EXITS 2** (issue 0328, vc's ruling), as the
           // critic arm documents: a critic that cannot parse its own invocation
           // is the gate's breakage, and the gate fails open on 2. Every other
@@ -911,6 +930,79 @@ pub fn parse(argv: Vec<String>) -> Result<clap::ArgMatches, i32> {
       }
     }
   }
+}
+
+/// A flag refused on a row with a verb slot, named with the command it was
+/// given to, as two lines: the refusal and how to see that command's flags
+/// (issue 0661).
+///
+/// **THE REFUSAL MOVED HERE FROM RENDER, AND KEPT ITS WORDS AND ITS EXIT.** A
+/// verb's leaf now carries only the flags the table declares for that verb, so
+/// clap refuses any other at parse, and clap's own line, `unexpected argument
+/// '--x' found`, names neither the verb nor a remedy. Render used to refuse a
+/// sibling verb's flag after parsing it, with the words below; with the flag
+/// no longer on the leaf, that arm could not fire, and it went.
+///
+/// `None` sends the error to the generic usage line: a flag refused outside a
+/// verb-slot row, or one this walk cannot place.
+fn slot_flag_refusal(
+  table: &Table,
+  root: &Command,
+  argv: &[String],
+  e: &clap::Error,
+) -> Option<String> {
+  use clap::error::{ContextKind, ContextValue};
+  let Some(ContextValue::String(given)) = e.get(ContextKind::InvalidArg) else {
+    return None;
+  };
+  let flag = given
+    .split_once('=')
+    .map_or(given.as_str(), |(head, _)| head);
+  // The command the flag was given to: every subcommand named before it. A
+  // token that names no subcommand here is a positional or a flag's value.
+  let mut cmd = root;
+  let mut path: Vec<&str> = Vec::new();
+  let mut reached = false;
+  for token in argv.iter().skip(1) {
+    if token == given || token == flag || token.starts_with(&format!("{flag}=")) {
+      reached = true;
+      break;
+    }
+    if let Some(sub) = cmd.find_subcommand(token.as_str()) {
+      cmd = sub;
+      path.push(sub.get_name());
+    }
+  }
+  if !reached {
+    return None;
+  }
+  let (row, verb) = match path.split_last() {
+    Some((last, head)) if !head.is_empty() => match dispatch::entry(table, &head.join(" ")) {
+      Some(row)
+        if row
+          .valued_slot()
+          .is_some_and(|s| s.values.iter().any(|v| v == last)) =>
+      {
+        (row, Some(*last))
+      }
+      _ => (dispatch::entry(table, &path.join(" "))?, None),
+    },
+    Some(_) => (dispatch::entry(table, &path.join(" "))?, None),
+    None => return None,
+  };
+  row.valued_slot()?;
+  Some(match verb {
+    Some(verb) => {
+      let full = format!("{} {verb}", row.path);
+      format!(
+        "error: `{flag}` is not a flag of `{full}`\n  remedy: `intent {full} --help` names the flags it reads"
+      )
+    }
+    None => format!(
+      "error: `{flag}` is not a flag of `{}`\n  remedy: a flag goes after the verb that reads it; `intent {} <verb> --help` names that verb's flags",
+      row.path, row.path
+    ),
+  })
 }
 
 /// What an unrecognised token was ambiguous BETWEEN, when that is why it failed.

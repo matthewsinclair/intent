@@ -207,7 +207,11 @@ fn entry_block(entry: &Entry) -> String {
   if !flags.is_empty() {
     out.push_str("- **flags:**\n");
     for flag in flags {
-      out.push_str(&format!("  - {}\n", flag_line(flag)));
+      out.push_str(&format!(
+        "  - {}{}\n",
+        flag_line(flag),
+        taken_by(entry, flag)
+      ));
     }
   }
 
@@ -232,6 +236,25 @@ fn entry_block(entry: &Entry) -> String {
     }
   ));
   out
+}
+
+/// ` (taken by `ask`, `start`)`: the verbs that take a flag, on a row whose
+/// verb slot declares each verb's flags (issue 0661), and nothing elsewhere.
+///
+/// The row's flags are listed once for the whole row, and each verb's leaf
+/// takes only its own, so a flag line that named no verb would offer a flag to
+/// verbs that refuse it -- the defect the declaration was made to end.
+fn taken_by(entry: &Entry, flag: &Flag) -> String {
+  let Some(slot) = entry.valued_slot().filter(|s| !s.value_flags.is_empty()) else {
+    return String::new();
+  };
+  let verbs: Vec<String> = slot
+    .values
+    .iter()
+    .filter(|verb| slot.flags_of(verb).iter().any(|s| flag.answers_to(s)))
+    .map(|verb| format!("`{verb}`"))
+    .collect();
+  format!(" (taken by {})", verbs.join(", "))
 }
 
 /// `read` and `mutate` are the two declared values, and an unrecognised third
@@ -847,6 +870,7 @@ mod tests {
       values: vec![],
       default: None,
       value_help: Default::default(),
+      value_flags: Default::default(),
       required_unless: None,
     };
     assert_eq!(delimit("x", &arg("1")), "<x>");
@@ -926,6 +950,19 @@ mod tests {
       bogus.contains("banana") && bogus.contains("UNDECLARED"),
       "an unrecognised value must reach the reader who can fix it, got: {bogus}"
     );
+  }
+
+  /// Issue 0661: on a row whose verb slot declares each verb's flags, a flag's
+  /// line names the verbs that take it, so the guide offers no verb a flag its
+  /// leaf refuses.
+  #[test]
+  fn a_verb_slots_flag_names_the_verbs_that_take_it() {
+    let text = guide();
+    let named = text
+      .lines()
+      .find(|l| l.contains("`--named`") && l.contains("What the booking runs"))
+      .expect("`estate slots` renders its `--named` flag");
+    assert!(named.ends_with("(taken by `ask`, `start`)"), "{named}");
   }
 
   /// The third level of the surface has no rows of its own, so the alternation

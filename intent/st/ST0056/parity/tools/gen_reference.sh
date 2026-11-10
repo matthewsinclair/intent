@@ -245,12 +245,29 @@ def takes:
       else (decorate($v) | bt) end
   end;
 
+# The verbs that take a flag, on a row whose verb slot declares each verb's
+# flags (`value_flags`, issue 0661); null on a row with no such slot. The cell
+# says it in the guide's words, ` (taken by `ask`, `start`)` (`taken_by` in
+# guide.rs), so this page and `intent llm guide` say it one way.
+def verbs_taking($flag):
+  ([ (.args // [])[] | select(.value_flags) ] | first) as $slot
+  | if $slot == null then null
+    else [ $slot.values[] as $v
+           | select(any(($slot.value_flags[$v] // [])[]; . as $s | any($flag.spellings[]; . == $s)))
+           | $v ]
+    end;
+
 def flag_rows:
-  [ live_flags[]
+  . as $entry
+  | [ live_flags[]
+    | . as $flag
+    | ($entry | verbs_taking($flag)) as $verbs
     | "| " + ([ .spellings[] | bt ] | join(", ") | cell)
       + " | " + (takes | cell)
       + " | " + (if (.default // "") == "" then "" else ((.default | tostring) | bt | cell) end)
-      + " | " + ((.help // "") | cell)
+      + " | " + (((.help // "")
+                  + (if $verbs == null then "" else " (taken by " + ($verbs | map(bt) | join(", ")) + ")" end))
+                 | cell)
       + " |" ];
 
 # **THE HONEST-EXIT RULE.** See the header. `observed` is v2 and on 28 rows it is
