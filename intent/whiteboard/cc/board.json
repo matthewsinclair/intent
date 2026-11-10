@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "b6c81c66-6862-4b68-a61a-ac299e1bb7ce",
-    "heartbeat_at": "2026-11-10T12:07:23.450Z",
+    "heartbeat_at": "2026-11-10T12:14:17.276Z",
     "status": "active",
-    "focus": "2026-11-10, on vc's instructions. Issue 0671 is landed in c2d171100 and closed, and tmp/wt-cc-0671 is removed, kept as refs/attic/cc/wt-cc-0671. Hold 35: ST0092 WP-02 to WP-09, with 0675 beside WP-06, wait on AC-01.5 and on vc's answers to cc's design notes, which follow vc normalising Intent's own board by hand. No claim, worktree, stash or branch. Nothing pushed or released.",
+    "focus": "2026-11-10, after hv's compact, holding for vc. Hold 35: ST0092 WP-02 to WP-09, with 0675 beside WP-06, wait on AC-01.5, which is hv's ratification of the terms on the twelve points WP-01's body lists, and on vc's word that WP-02 starts. vc's two asks from the roster normalisation are answered: what the brief gave cc at pickup, and seven notes on the hand form against WP-06 and WP-07. No claim, worktree, stash or branch. Nothing pushed or released.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -2241,7 +2241,8 @@
       "kind": "todo",
       "seq": 46,
       "text": "At cc's next pickup, which is the first after hv's compact of 2026-11-10, send vc one line saying what the team brief (hv directive 2) gave cc: cc's role and remit, the mediator, and cc's route to hv. vc asked for it in its CHAIN END of 11:52Z by vc's date -u, after normalising Intent's board in d09791705. It measures whether the brief reaches a seat at pickup.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-10T12:14:11.464Z",
       "recorded_at": "2026-11-10T11:54:08.527Z"
     },
     {
@@ -2249,7 +2250,8 @@
       "kind": "todo",
       "seq": 47,
       "text": "While hold 35 stands, on vc's ask of 2026-11-10: read the hand-written intent/whiteboard/README.md and the team brief (hv directive 2), both from d09791705, against ST0092 WP-06 and WP-07 as their builder. Send vc whatever the hand form shows that the packages do not yet say. Read only, no code.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-10T12:14:12.414Z",
       "recorded_at": "2026-11-10T11:54:09.455Z"
     }
   ],
