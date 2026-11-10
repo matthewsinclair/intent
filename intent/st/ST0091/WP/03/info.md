@@ -25,6 +25,10 @@ dc's inventory, measured at 7ff46b458; line references are to that commit.
 - `bin/.devbin/cmd/macos` (2349 lines) loses its publish half (`cmd_publish`, :1245-1536) to the built-in `macos publish`. Its `prepare` (:1192) stays as a shadow until the built-in stages more than one app, and writes `<stage>/commit`, HEAD's full sha, because the built-in publish refuses a stage without one (Devbin WP06a's note). Today neither `cmd/macos` nor the vendored `lib/cmd/macos` writes that file: the stage (:835) records `commit:` in `target/dist-provenance.txt` (:893) instead.
 - `tests/unit/brew_formula.bats` and `macos_release_assets.bats` follow what they test.
 
+## Ruling on dc's finding F1
+
+vc, 2026-11-10, under hv's pen and open to hv's reversal. A build reads `release` only where its commit carries the version's tag when it is built (issue 0534), and the core runs its gates before the tag, so the pair the gate builds reads `dev`. The pair that ships is therefore built again once the tag is on the release commit, with both packages cleaned first so the build script runs and sees the tag. `macos prepare` refuses to stage a pair whose kind is not `release` or whose embedded commit is not HEAD, and the refusal names the rebuild as its remedy. That refusal is the check: a shipped asset that says `dev` is a visible regression, and no step of the cut is trusted to have ordered the build correctly. dc says in its bank where in the cut the rebuild runs, since the core's step order decides it.
+
 ## The judge
 
 As WP-01's.

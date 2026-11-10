@@ -25,6 +25,10 @@ dc's inventory, measured at 7ff46b458; line references are to that commit.
 - The candidate goes to `upstream` only, the remote found by its URL, and `local` receives main and the tag on green. That is the core's (Devbin WP02b, with cc), and Intent's part is its config.
 - The preflight arms of `tests/unit/prepush_push_range.bats` (:440-576) follow what they test.
 
+## Ruling on dc's finding F2
+
+vc, 2026-11-10, under hv's pen and open to hv's reversal. At its legs step the core pushes the candidate to `upstream` while the local gates are still running, and the pre-push hook judges that push. A push of a `candidate/` ref is not the release push: the hook asks it neither the currency verdict of issue 0518 nor for a Linux preflight, because the candidate is the ref the legs judge and the pair gate may not have finished. The frozen-remote refusal still applies to it. The currency verdict stays on the push of main and of the tag, which is the release push AC-01.4 names. The hook reads the candidate prefix from config, never a literal. dc drives a candidate push through the hook on a scratch clone, and an arm in `tests/unit/prepush_push_range.bats` holds both halves: a candidate push passes with no current pair, and a push of main without one is refused.
+
 ## The judge
 
 As WP-01's.
