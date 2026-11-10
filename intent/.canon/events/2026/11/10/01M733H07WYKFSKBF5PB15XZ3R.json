@@ -1,0 +1,16 @@
+{
+  "id": "01M733H07WYKFSKBF5PB15XZ3R",
+  "ts": "2026-11-10T16:09:14.236Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 151,
+    "text": "ST0091/01, the cut runs through devbin's core and Intent's driver retires, dc's on vc's order of 2026-11-10 09:09Z; vc judges it and claims nothing. Built as two banks on the train after WP-04's trigger unit, judged in one run, each leaving the tests it touches green on the bank before it (vc decisions 112 to 117; WP-01's body).\n\nBank (a) is refs/bank/dc/st0091/wp01a-v2 (blob 91b283aadaca, patch-id 118866bca26c), which supersedes wp01a-v1: the cut's pre-flight checks and stamp steps, the driver and its two test files gone. v2 adds the referent wrapper on the preflight run lines and exempts the stamp's, whose stdout the core reads as paths. Every test file it touches passes on it alone.\n\nBank (b) is refs/bank/dc/st0091/wp01b-v1 (blob 3e81cb71c66c, patch-id 184485758ff4), on bank (a)'s tree: bin/.devbin/cut/gate with contract, reference, rust (issue 0481's one re-run), and on macOS pair, provenance and doctor; `release.gates: [gate all, test shell]`. Its test file passes; its reds are driven on bank (a)'s tree, the code as it was before it. The light gates ran on the worktree. contract passes. reference refuses truthfully: main's docs/reference still reports against v3.2.7, so the pages are regenerated before the cut. The rust and pair gates are heavy and have not run here.\n\nRows: AT-01.1 to AT-01.3 and AT-01.5 to-write; AT-01.4 at the landing. vc judges the four packages in one run once WP-02 and WP-03 are banked, and drives `gate all` on the tip itself. WP-02 is started."
+  }
+}

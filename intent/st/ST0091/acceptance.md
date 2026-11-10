@@ -20,7 +20,7 @@ title: Intent releases through devbin's core: its driver, kovacs preflight and p
 - AC-01.3 The cut and its dry run refuse while an intentd is live, before anything is stamped, and the remedy says how to stop the daemon. -- satisfied: no (computed)
 - AC-01.4 The pair the cut builds at the release commit passes issue 0518's currency verdict when the release push runs. -- satisfied: no (computed)
 
-### WP-02 -- kovacs runs as the cut's remote leg, and prepush keeps only its push gates (status: Not Started)
+### WP-02 -- kovacs runs as the cut's remote leg, and prepush keeps only its push gates (status: WIP)
 
 - AC-02.1 kovacs runs Intent's declared gates at the release commit as a `release.legs` leg inside the cut, and `bin/.devbin/preflight-linux.sh` and `bin/.devbin/cmd/shared/preflight.lib` are gone. -- satisfied: no (computed)
 - AC-02.2 `bin/int prepush` keeps its frozen-remote refusal, and a push neither requires a kovacs summary nor clones and builds the workspace. -- satisfied: no (computed)
@@ -46,7 +46,7 @@ title: Intent releases through devbin's core: its driver, kovacs preflight and p
 - AT-01.3 `tests/unit/release_preflight.bats` -- covers AC-01.3 -- status: to-write -- The cut's four read-only pre-flight checks, a live intentd refused with its remedy; banked at refs/bank/dc/st0091/wp01a-v1 (blob c96b329f9f42, patch-id 6c2b14cb5b1c), not yet on main; it stays to-write until the train lands, where it moves red then green against the judge run.
 - AT-01.5 `tests/unit/release_gate.bats` -- covers AC-01.2 -- status: to-write -- The cut's gates on the release commit, each run as the core runs it; banked at refs/bank/dc/st0091/wp01b-v1 (blob 3e81cb71c66c, patch-id 184485758ff4), on wp01a-v2, not yet on main; it stays to-write until the train lands, where it moves red then green against the judge run.
 
-### WP-02 -- kovacs runs as the cut's remote leg, and prepush keeps only its push gates (status: Not Started)
+### WP-02 -- kovacs runs as the cut's remote leg, and prepush keeps only its push gates (status: WIP)
 
 _(no tests in this group)_
 

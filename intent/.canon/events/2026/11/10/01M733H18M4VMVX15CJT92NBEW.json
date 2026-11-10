@@ -1,0 +1,15 @@
+{
+  "id": "01M733H18M4VMVX15CJT92NBEW",
+  "ts": "2026-11-10T16:09:15.284Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ST0091 F8 (vc, 2026-11-10): regenerate docs/reference against v3.2.8 and commit it as the last unit before the cut, after ST0092's surface is on main, since those pages change with it. Until then `gate reference` refuses, which is correct; it is not a derived step."
+  }
+}
