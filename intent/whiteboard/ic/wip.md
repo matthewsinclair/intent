@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 677e6c35-f820-4993-8ec4-ad639debeb1b
-heartbeat_at: 2026-11-10 11:55Z
+heartbeat_at: 2026-11-10 12:06Z
 status: active
 focus: "Localfolded for hv's compact on hv's word, 2026-11-10, to resume on the bounce. 0661 is banked, unrun, at refs/bank/ic/0661/wip-v2-on-9ff4b3e9c (patch-id f547830229a2) and staged in tmp/wt-ic-0661; next come its reference-page evidence and one desk run, red then green, as doing 139 says. Claim: ISSUE:0661."
 claims: [ISSUE:0661]
