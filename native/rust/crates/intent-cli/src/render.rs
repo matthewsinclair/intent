@@ -9488,6 +9488,20 @@ fn bootstrap(m: &ArgMatches) -> Result<(), Failure> {
     }
   }
 
+  for dir in &report.log_dirs {
+    match dir {
+      intentsvcs::bootstrap::LogDir::Kept { path } => {
+        println!(
+          "ok: daemon log directory already exists -- {}",
+          path.display()
+        );
+      }
+      intentsvcs::bootstrap::LogDir::Created { path } => {
+        println!("created: daemon log directory -- {}", path.display());
+      }
+    }
+  }
+
   // **NO `export INTENT_HOME` / PATH BLOCK, WHICH v2 PRINTS AND v3 MUST NOT.**
   // `install.rs` reads no environment at all; that advice would teach a model
   // of the tool that is wrong, and the pointer just written is what replaced

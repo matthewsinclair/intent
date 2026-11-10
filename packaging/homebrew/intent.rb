@@ -124,6 +124,10 @@ class Intent < Formula
       gate installed is refused. Later versions record a path that survives upgrades, and a
       file naming anything else, such as a source checkout, needs nothing.
 
+      `brew services start` logs to intentd.log and intentd.err.log under ~/.local/state/intent,
+      the files `intent daemon logs` reads, and `intent bootstrap` makes that directory, so run
+      it once before the first `brew services start`.
+
       A maintainer with a dev or opt tree beside this keg chooses which one answers
       `intent` with `intent use`, and `intent use brew` hands it back to this keg.
     EOS

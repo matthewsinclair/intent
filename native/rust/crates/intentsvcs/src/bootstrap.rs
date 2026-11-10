@@ -103,6 +103,18 @@ pub enum Config {
 pub struct Report {
   pub pointer: Published,
   pub config: Config,
+  /// The directories the daemon's log goes in, in the order [`log_dirs`] names
+  /// them.
+  pub log_dirs: Vec<LogDir>,
+}
+
+/// One directory the daemon's log goes in, and whether this run made it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum LogDir {
+  /// It was already there.
+  Kept { path: PathBuf },
+  /// This run made it.
+  Created { path: PathBuf },
 }
 
 /// Set this machine up.
@@ -116,7 +128,54 @@ pub fn run(force: bool) -> Result<Report, BootstrapError> {
   let pointer = install::publish_home()?;
   let path = crate::userstate::global_config()?;
   let config = write_config(&path, crate::userstate::author(), force)?;
-  Ok(Report { pointer, config })
+  let log_dirs = make_log_dirs(&crate::userstate::dirs()?)?;
+  Ok(Report {
+    pointer,
+    config,
+    log_dirs,
+  })
+}
+
+/// The directories the daemon's log goes in: the one under the default state
+/// dir, then the one `XDG_STATE_HOME` resolves to where that differs.
+///
+/// **THE DEFAULT IS ALWAYS ONE OF THEM (issue 0667).** The formula's service
+/// block points stdout and stderr at the daemon's log files under the default
+/// state dir, because a service's environment carries no `XDG_STATE_HOME`, and
+/// the service manager opens them before intentd runs, so a missing directory
+/// fails the job at spawn. `intent daemon start` and the LaunchAgent writer
+/// make their own; on the brew route `intent bootstrap` is the one step the
+/// formula's caveat asks for. The resolved directory is the one `intent daemon
+/// logs` reads, so a shell that sets `XDG_STATE_HOME` gets both.
+pub fn log_dirs(dirs: &crate::userstate::Dirs) -> Vec<PathBuf> {
+  let under = |d: &crate::userstate::Dirs| {
+    let log = crate::userstate::daemon_log_under(d);
+    log.parent().map_or(log.clone(), Path::to_path_buf)
+  };
+  let default = under(&crate::userstate::Dirs::at_home(&dirs.home));
+  let resolved = under(dirs);
+  if resolved == default {
+    vec![default]
+  } else {
+    vec![default, resolved]
+  }
+}
+
+/// Make each of [`log_dirs`], reporting which were already there.
+pub fn make_log_dirs(dirs: &crate::userstate::Dirs) -> Result<Vec<LogDir>, BootstrapError> {
+  log_dirs(dirs)
+    .into_iter()
+    .map(|path| {
+      if path.is_dir() {
+        return Ok(LogDir::Kept { path });
+      }
+      std::fs::create_dir_all(&path).map_err(|source| BootstrapError::Write {
+        path: path.display().to_string(),
+        source,
+      })?;
+      Ok(LogDir::Created { path })
+    })
+    .collect()
 }
 
 /// The config half, with the path and identity handed in.
