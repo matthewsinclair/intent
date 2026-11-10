@@ -1,0 +1,16 @@
+{
+  "id": "01M73FJTT9PJC06R6H50G2GZRR",
+  "ts": "2026-11-10T19:39:57.599Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 77,
+    "text": "3.3.0, THE ONE NEXT RELEASE (hv directive 1, decision 109). ON MAIN, local and unpushed: ST0091's four packages (decision 119); issues 0650, 0672, 0676, 0677 and 0679, closed; and the train 0665 (a08b6f03e), 0670 v2 (03a820eb0) and 0649 (cedbc46fe), judged and VERIFIED by vc (decisions 120 and 121), with cc closing 0665 and 0649 and dc closing 0670 and ST0091 WP-02 and WP-03 on vc's word of 19:35Z. WHAT STANDS BETWEEN HERE AND THE CUT. (1) ST0092, todo 76. (2) The sweep of devbin's release into Intent's tree: devbin 0.1.21 went red before its tag and re-cut; vc waits on devbin-vc's word that the tap carries it, then sweeps, and dc banks the release.preflight wiring and AT-01.6's arm (ST0091 AC-01.3). (3) dc regenerates docs/reference after ST0092's surface is in, the last unit before the cut; gate reference refuses until then. (4) The push, hold 8. (5) hv's first cut through devbin, ST0091 AC-04.3. OWED BY hv: the run of the one-message rewrite just before the push (refs/bank/vc/rewrite/, decision 117) and a ruling on the client's name already public on upstream in 10 tracked files and 3 pushed commit messages; whether issue 0678 rides 3.3.0 (vc recommends not); whether issue 0667, open since 2026-10-31, medium, unbuilt and unassigned, rides 3.3.0 (as outstanding work it does unless hv says otherwise, and ic or dc could take it); whether Intent keeps an AT's own red-then-green (vc: keep it); hv's eye on ST0090's row on a 3.3.0 build (hold 6); the Desk sentence (todo 76); parked, the FMT-02 set in llm-tropes' shared catalogue. LESSONS vc TOOK: a fix is judged on the bats tree as well as the cargo suite; a bank that edits a file canon records as an attachment owes the attach at landing, and the judge reads that as its one expected red; a judge with the cut gates takes about 26 minutes; a waiter's command goes in a script file, because the census reads a build word in a waiting shell's command line as a heavy run in Intent and refuses every seat's commit."
+  }
+}

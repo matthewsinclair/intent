@@ -1,0 +1,16 @@
+{
+  "id": "01M73FJRPK8H7RV5JJD9G31JEV",
+  "ts": "2026-11-10T19:39:54.963Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 76,
+    "text": "ST0092, Claude Team profiles, rides 3.3.0 (decision 109). WHERE IT STANDS: hv RATIFIED the terms on 2026-11-10 (\"Ratified as recommended\", hv decision 34, vc decision 121); intent/plugins/claude/teams/TERMS.md carries all twelve points and the two wording fixes (3ee4da245); WP-01 is done and AC-01.1 to AC-01.5 satisfied, gate 5 of 65. The rulings made since are in the bodies of WP-02 to WP-09, one section before each Depends on (47b4ddc91), taken from cc's refs/bank/cc/st0092/build-notes-v3.md. cc has claimed and started WP-02 (ea6772cbf). NEXT. (1) cc builds in this order: WP-02, WP-03, WP-06 with issue 0675, WP-05, WP-07, WP-04, WP-09, with WP-08 beside any; every cargo run in a desk slot. ic reads each bank's surface rows as they grow and builds WP-10. vc judges each bank and claims nothing. dc builds no ST0092 package for now; vc revisits WP-08 for dc when cc reaches WP-05. (2) OWED BY hv before WP-08: the ratified document says of the Desk \"One vc on a host wears it\", and vc's ruling on ic's finding 8.1 says its board's mediator, so a solo project's gc could take it. That changes a ratified sentence, so it is hv's; vc has not edited it. (3) NOT DONE, hv told: Intent's own roster README and hv's directive 2 still show cc's old default remit; a project may set its own, and a directive changes on hv's word. (4) DRIVEN LIVE means on a clone of Intent's board until the cut (decision 111); the first live drive on the real board is hv's: launch ac cold, type nothing, and see what it states. (5) The sweep, WP-11, runs after the 3.3.0 cut on the brew-installed release, and Pipeliner's sc is confirmed with hv before any write there. The census instrument is refs/bank/vc/st0092/census-boards.zsh and its reading refs/bank/vc/st0092/census-20261110.txt; the spike is refs/bank/vc/st0092/spike-form-v1.md and spike-findings-v2.md."
+  }
+}

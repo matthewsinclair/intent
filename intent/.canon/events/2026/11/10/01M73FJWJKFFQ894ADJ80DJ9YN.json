@@ -1,0 +1,15 @@
+{
+  "id": "01M73FJWJKFFQ894ADJ80DJ9YN",
+  "ts": "2026-11-10T19:39:58.931Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(vc, 2026-11-10, under the pen; hv's word first-hand in vc's session, read at 19:26:54Z on vc's date -u) THE TRAIN IS VERIFIED AND ST0092's TERMS ARE RATIFIED. THE TRAIN: dc re-banked 0670 as v2 (patch-id 576f8fc56e02), one hunk in intentsvcs' test fixture so each stub line names its thread, on dc's reading that the seed and not the rule was wrong, which vc accepted. vc's light re-judge, desk request 01M73DRMKC5VH49ZB86PTACCGE, 19:08Z to 19:12Z on 2a4274521, tip tree 3c63b67c3743: clippy --all-targets green, intentsvcs 2186 passed and 1 failed, the attachment drift alone. The seats landed in order: a08b6f03e (0665, cc), 03a820eb0 (0670 v2, dc, with ST0056's canon for six tools), cedbc46fe (0649, cc), 3d10b42c0 (issue 0649's record). In dc's landing intentd took two of the six files into the store itself between the attaches, so they have no attachment.put event; canon equals the files on bytes, sha256 and text for all six, and vc accepted it. HEAD differed from the judged tip by canon and records only, and attachment_drift_detected read 7 passed at 43a3d8303 in desk request 01M73EB75QZHTW4QK9NS95DZA5. vc called it verified at 19:35Z and told cc and dc to close 0665, 0649 and 0670 and ST0091 WP-02 and WP-03. THE RATIFICATION: hv, verbatim, \"Ratified as recommended\", recorded as hv decision 34; vc edited TERMS.md, satisfied AC-01.1 to AC-01.5 and closed WP-01 (3ee4da245), wrote the rulings since into WP-02 to WP-09 (47b4ddc91), and gave cc the go for WP-02. devbin-vc reports devbin 0.1.21 red before its tag and re-cut, so Intent's sweep waits on its word."
+  }
+}
