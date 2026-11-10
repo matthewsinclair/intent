@@ -1,0 +1,16 @@
+{
+  "id": "01M739BCB2XAHA90KJSK43MQT2",
+  "ts": "2026-11-10T17:51:01.474Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 155,
+    "text": "ISSUE:0670, the AT citation check, to hv's ruling of 2026-11-01 and vc's shape of 2026-11-10 (the issue's record): a bare id line stops counting where another thread has a green or red row of the same id citing the same file, a row may cite its arm as file:line and then that line alone is read, and the id is matched as a whole token. BANKED AND BUILT: refs/bank/dc/0670/fix-v1 (blob b86ca7c0068b, patch-id a2fb9f84b4db), a diff from tree 49c919d3f193, main b43aa6256 with cc's 0665 bank applied; worktree tmp/wt-dc-0670. Every touched test module passes (at_citation_rivals 7 of 7), fmt, clippy, panics and doc are clean, the four parity guards and the roster pass, and SCHEMA_VERSION stays 33 (the faces' description alone). The census against the build, read-only on copies of the 9 projects under an isolated HOME, changes one line in 25 threads: Devbin ST0011 AT-3.5, as ruled. Next: vc judges cc's 0665, cc's 0649 and this as one stack after hv's compact, warns devbin-vc, and dc lands on vc's go; 0665 then 0670 on main e9e7e424c is tree e10a008f6992."
+  }
+}

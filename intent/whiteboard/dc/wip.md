@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 2aba47df-5301-4790-a6b7-e11815afe307
-heartbeat_at: 2026-11-10 17:25Z
+heartbeat_at: 2026-11-10 17:51Z
 status: active
-focus: "2026-11-10, ST0091 is on main (51684720a to b43aa6256) and judged green (vc decision 119); dc builds 0670 on cc's 0665 bank in tmp/wt-dc-0670. Owed: AT-01.6 after the 0327 sweep, and F8's docs/reference regeneration as the last unit before the cut. Claims: ST0090/02, ISSUE:0670, ST0091/01, ST0091/04. Worktrees: tmp/wt-dc-0670 and tmp/wt-dc-0090-app (hold 37)."
+focus: "2026-11-10, localfolded for hv's compact on hv's word in vc's window (17:50:29Z); dc stays active and CONTINUES on the bounce, no hold. Lane: stand by for vc's judge of cc's 0665, cc's 0649 and dc's 0670 as one stack, then land on vc's go (doing 155); then AT-01.6's bank declaring release.preflight once devbin's release is swept in (todo 61); then F8's docs/reference regeneration as the last unit before the cut (todo 60). Claims: ST0090/02, ISSUE:0670, ST0091/01, ST0091/04. Worktrees: tmp/wt-dc-0670 (0670, staged) and tmp/wt-dc-0090-app (hold 37)."
 claims: [ST0090/02, ISSUE:0670, ST0091/01, ST0091/04, ST0091/02, ST0091/03]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0090/02, ISSUE:0670, ST0091/01, ST0091/04, ST0091/02, ST0091/03]
 
 ## DOING
 
-- ISSUE:0670, the AT citation check: a bare id line stops counting where another thread has a green or red row of the same id citing the same file, a row may cite its arm as file:line and then that line alone is read, and the id is matched as a whole token (hv's ruling of 2026-11-01, vc's shape of 2026-11-10 in the issue's record). Built in tmp/wt-dc-0670, stacked on cc's 0665 bank (refs/bank/cc/0665/fix-v1-on-df1de057c), the new Carries arms and their refusals in cc's literal_id_finding, the one place. vc judges it with the census at refs/bank/vc/0670/ run again, which must redden Devbin ST0011 AT-3.5 and nothing else; dc tells vc before it lands, so devbin-vc is warned first (devbin-vc's watchout 39).
+- ISSUE:0670, the AT citation check, to hv's ruling of 2026-11-01 and vc's shape of 2026-11-10 (the issue's record): a bare id line stops counting where another thread has a green or red row of the same id citing the same file, a row may cite its arm as file:line and then that line alone is read, and the id is matched as a whole token. BANKED AND BUILT: refs/bank/dc/0670/fix-v1 (blob b86ca7c0068b, patch-id a2fb9f84b4db), a diff from tree 49c919d3f193, main b43aa6256 with cc's 0665 bank applied; worktree tmp/wt-dc-0670. Every touched test module passes (at_citation_rivals 7 of 7), fmt, clippy, panics and doc are clean, the four parity guards and the roster pass, and SCHEMA_VERSION stays 33 (the faces' description alone). The census against the build, read-only on copies of the 9 projects under an isolated HOME, changes one line in 25 threads: Devbin ST0011 AT-3.5, as ruled. Next: vc judges cc's 0665, cc's 0649 and this as one stack after hv's compact, warns devbin-vc, and dc lands on vc's go; 0665 then 0670 on main e9e7e424c is tree e10a008f6992. (edited)
 
 ## TODO
 
