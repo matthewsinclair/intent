@@ -1,0 +1,16 @@
+{
+  "id": "01M72V8PD83YSEVYKCAJ4E4WV6",
+  "ts": "2026-11-10T13:44:53.416Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 8,
+    "text": "The push of main to local and upstream. No release rides on it: there is one, 3.3.0 (hv directive 1, decision 109). Its first condition is met: 3.3.0's first train is on main since 9ff4b3e9c (2026-11-10). HELD UNTIL three more things are true. hv has answered on client names in the committed record (watchout 34). The estate's controller, agentic-engineering-vc, has granted a build all at the HEAD to be pushed and it has passed, with every seat holding its commits from the build's start to the push. And a Linux preflight at that HEAD on kovacs has passed (hv's ! line in kovacs-sysadm's session). Then devbin-vc pushes local and upstream, fast-forward only, on vc's word naming that HEAD (decision 90). It carries the fixes for 0661, 0666, 0668, 0669, 0671, 0673 and 0674. The cut is hv's, once, through devbin's core."
+  }
+}

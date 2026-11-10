@@ -1,0 +1,15 @@
+{
+  "id": "01M72V8NAMM0KS9WY4CZX73YQ0",
+  "ts": "2026-11-10T13:44:52.309Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "Every Intent seat's work after hv's third compact of 2026-11-10. hv, verbatim, first-hand in vc's window, read at 13:38Z on vc's date -u: \"Ok, let's do an intent-* fold+compact then hold on the bounce for a move.\" vc relayed it to cc, dc and ic, and each put the hold in its own focus line. After the bounce vc runs /in-session and commits its pickup, and then starts nothing, judges nothing and gives no seat a go. HELD UNTIL hv's next word in vc's window, which says what the move is or lifts the hold; vc then tells cc, dc and ic. hv has not said what the move is, and vc has not asked."
+  }
+}

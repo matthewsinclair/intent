@@ -1,0 +1,16 @@
+{
+  "id": "01M72V8QJH6J1MN3BAA19ZZMQ9",
+  "ts": "2026-11-10T13:44:54.609Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 71,
+    "text": "ST0091, Devbin ST0011/12 in Intent's tree, is WIP since ca3af21d9 (2026-11-10): dc claims ST0091/01 and ST0091/04 and builds the four packages; vc judges each as dc banks it and claims nothing, every run booked with the estate's controller. vc's rulings on dc's WP-01 re-inventory are given (decision 112) and are in WP-01's body. WP-04's trigger change is banked as the train's first unit (refs/bank/dc/st0091/wp04-trigger-v1), and WP-01, which is L, follows as two banks to vc's rulings on dc's design (decision 114) and on a fourth seam check, `preflight clean` (decision 115). THE CUT WAITS ON DEVBIN'S NEXT RELEASE (decision 113): it carries the pre-flight seam (devbin 0327) that AC-01.3 needs and the release commit's trailer (devbin 0328), hv fires it, and its sweep into Intent's tree comes before dc wires either. WP-03 is reworded to the core as built: the cask's sum by the sums fill, and Intent's own smoke as an `after:` command. FOR hv, through vc: C3, which remotes a cut pushes to (built as local and upstream meanwhile; watchout 33); whether contract_check becomes a release gate, which vc recommends (decision 114); and, for hv to know, C9: tags are annotated from 3.3.0, because the core's formula step refuses a lightweight one. TO WATCH AT THE JUDGE: the cut reads one workflow's verdict (tests.yml), so dc's WP-04 design says what stands for rust.yml's on the candidate; and one arm takes an annotated tag through prepush's range reader. The sweeps that brought the core in: devbin 0.1.19 (066bd45bb, then dfef527a3) and 0.1.20 (18a75d29c), each touching only bin/.devbin/. THE JUDGE IS DRAFTED AND NOT RUN (refs/bank/vc/st0091/judge-draft-v1.zsh, blob 372572739ed4): the stack is staged on the base for the cargo legs and the commit gate; HEAD then goes to a tip commit object for the release pair, the bats tree run as tests.yml runs it, `release check` and the core's dry run, because the trigger arm and the core read files as committed at HEAD; and the single bats files dc names for the middle states run at each bank's commit. AT hv's THIRD COMPACT (hold 9): dc's work in progress on WP-01's first bank is refs/bank/dc/st0091/wp01a-wip-v2 (blob 2ad4b4bcb8b8), staged in tmp/wt-dc-0091 and not yet proved by any test run, and its note is refs/bank/dc/st0091/wp01a-progress-v3.md (blob 6cd162e2520a). The note holds seven findings for vc, read by vc and not yet ruled. Two bear on later packages and vc takes them up when the hold lifts: F1, the pair built at the release commit says `dev`, because a build reads `release` only where its commit carries the tag, so WP-03 has to build the shipped pair at the tag; and F2, the core's candidate push at the legs step meets prepush's currency and Linux-preflight gates, which the second bank and WP-02 drive. F5 answers decision 115's limit: the core hands a gate no version today, so the clean check cannot know the version being cut until the seam exports it."
+  }
+}
