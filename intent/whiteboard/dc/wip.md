@@ -15,19 +15,23 @@ claims: [ST0090/02, ISSUE:0670, ST0091/01, ST0091/04]
 
 - ST0091/01, the cut runs through devbin's core and Intent's driver retires, dc's on vc's order of 2026-11-10 09:09Z; vc judges it and claims nothing. L, built as two banks on the train after WP-04's trigger unit, judged in one run, each leaving the tests it touches green on the bank before it (vc decisions 112 to 114; WP-01's body, "Rulings on dc's design"). (edited)
 
-  Bank (a) is IN PROGRESS. Its work so far is banked at refs/bank/dc/st0091/wp01a-wip-v1 (blob c0edf8e7b26c, patch-id acbc126c7e7c), against the trigger unit. tmp/wt-dc-0091 holds it unstaged, on HEAD 8770037a2, a scratch commit of the trigger unit. The plan, the layout and a recipe to rebuild the worktree are banked at refs/bank/dc/st0091/wp01a-progress-v1.md (blob ad60beff9398).
+  Bank (a) is IN PROGRESS. Its work so far is banked at refs/bank/dc/st0091/wp01a-wip-v1 (blob c0edf8e7b26c, patch-id acbc126c7e7c), against the trigger unit. tmp/wt-dc-0091 holds it unstaged, on HEAD 8770037a2, a scratch commit of the trigger unit. The plan, the layout and a recipe to rebuild the worktree are banked at refs/bank/dc/st0091/wp01a-progress-v2.md (blob b87e61ae7d9b), which adds vc's ruling below to v1.
 
   Done: releasestamp.lib takes the driver's stamp helpers and three new ones, and MODULES.md names the core, preflight and stamp.
 
   Next, in order:
   - pair_at_head in releasebuild.lib;
-  - the scripts bin/.devbin/cut/preflight/{daemon,faces,spill} and bin/.devbin/cut/stamp/{config,lock,schema,cli,agents,upgrade,views}, declared as commands in config.yaml;
+  - the scripts bin/.devbin/cut/preflight/{clean,daemon,faces,spill} and bin/.devbin/cut/stamp/{config,lock,schema,cli,agents,upgrade,views}, declared as commands in config.yaml;
   - the release config;
   - the driver's deletion;
   - the comments;
   - the tests.
 
   Then bank (b), the gates, with contract_check's handler held for hv.
+
+  vc's ruling after vc's fold (not yet on vc's board; vc writes it into WP-01's body after the bounce): `preflight clean` is built in bank (a) as the fourth seam check, writing nothing, so that a hand edit inside a stamp step's scope cannot ride the release commit. The driver refused it at L538.
+
+  The condition is that it must not refuse the core's own resume. It refuses dirty and untracked paths only while VERSION reads as HEAD's, the state before any stamp began. Once VERSION differs, a stamp is in progress and the core's own tree rule judges. dc drives the resume, and if the core does not resume as vc reads it, dc says so and the check refuses all dirt.
 - ST0091/04, the workflows fire on the candidate and the docs describe the cut as built, dc's; vc judges it and claims nothing. Started and claimed on vc's C4 ruling (decision 112). Its trigger part is banked as the train's first unit at refs/bank/dc/st0091/wp04-trigger-v1 (blob ee3409fcdced, patch-id 2c4e9bc3ab35, base 991e92946), held staged in tmp/wt-dc-0091. tests.yml and linux-release.yml fire on candidate/** and not on tags; tests.yml calls rust.yml for a candidate or a dispatch, so its verdict is inside the one run the cut reads, and test-summary fails a candidate on which the macOS or rust leg was skipped. AT-04.1 cites tests/unit/release_candidate_trigger.bats and stays to-write until the train lands, since `intent at red` refuses a row whose cited file is not on main; each red driven against its three tests is the base's own line restored. vc judges the bank with the train in one run on its tip, and vc puts one dispatch of tests.yml on main, after the push, to hv as a precondition of the cut. The docs part (AC-04.2) follows the rest of the train, and AC-04.3 is hv's first cut through the core. (edited)
 
 ## TODO

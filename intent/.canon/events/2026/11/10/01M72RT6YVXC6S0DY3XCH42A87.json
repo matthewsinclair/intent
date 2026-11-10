@@ -1,0 +1,16 @@
+{
+  "id": "01M72RT6YVXC6S0DY3XCH42A87",
+  "ts": "2026-11-10T13:02:01.691Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 151,
+    "text": "ST0091/01, the cut runs through devbin's core and Intent's driver retires, dc's on vc's order of 2026-11-10 09:09Z; vc judges it and claims nothing. L, built as two banks on the train after WP-04's trigger unit, judged in one run, each leaving the tests it touches green on the bank before it (vc decisions 112 to 114; WP-01's body, \"Rulings on dc's design\").\n\nBank (a) is IN PROGRESS. Its work so far is banked at refs/bank/dc/st0091/wp01a-wip-v1 (blob c0edf8e7b26c, patch-id acbc126c7e7c), against the trigger unit. tmp/wt-dc-0091 holds it unstaged, on HEAD 8770037a2, a scratch commit of the trigger unit. The plan, the layout and a recipe to rebuild the worktree are banked at refs/bank/dc/st0091/wp01a-progress-v2.md (blob b87e61ae7d9b), which adds vc's ruling below to v1.\n\nDone: releasestamp.lib takes the driver's stamp helpers and three new ones, and MODULES.md names the core, preflight and stamp.\n\nNext, in order:\n- pair_at_head in releasebuild.lib;\n- the scripts bin/.devbin/cut/preflight/{clean,daemon,faces,spill} and bin/.devbin/cut/stamp/{config,lock,schema,cli,agents,upgrade,views}, declared as commands in config.yaml;\n- the release config;\n- the driver's deletion;\n- the comments;\n- the tests.\n\nThen bank (b), the gates, with contract_check's handler held for hv.\n\nvc's ruling after vc's fold (not yet on vc's board; vc writes it into WP-01's body after the bounce): `preflight clean` is built in bank (a) as the fourth seam check, writing nothing, so that a hand edit inside a stamp step's scope cannot ride the release commit. The driver refused it at L538.\n\nThe condition is that it must not refuse the core's own resume. It refuses dirty and untracked paths only while VERSION reads as HEAD's, the state before any stamp began. Once VERSION differs, a stamp is in progress and the core's own tree rule judges. dc drives the resume, and if the core does not resume as vc reads it, dc says so and the check refuses all dirt."
+  }
+}
