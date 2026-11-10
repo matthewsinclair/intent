@@ -1,0 +1,14 @@
+{
+  "id": "01M72R521C0NZ1P8Y63TAJ6TBK",
+  "ts": "2026-11-10T12:50:28.528Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0092/AC-03.3"
+  },
+  "payload": {
+    "text": "On a board whose nodes hold items, messages, handled marks, claims, archives, heartbeats, status, focus and remits, an apply changes names, roles and the roster set and nothing else: those fields of every `board.json` are byte for byte what they were."
+  }
+}

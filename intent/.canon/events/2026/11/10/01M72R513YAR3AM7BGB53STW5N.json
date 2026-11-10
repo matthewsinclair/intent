@@ -1,0 +1,14 @@
+{
+  "id": "01M72R513YAR3AM7BGB53STW5N",
+  "ts": "2026-11-10T12:50:27.586Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0092/AC-03.1"
+  },
+  "payload": {
+    "text": "In a project with no whiteboard, `intent wb init team --apply` registers every seat the profile declares with the profile's name and role, writes no remit, records the declaration in the store and as canon under `intent/whiteboard/`, and prints every file it wrote on a `wrote:` line."
+  }
+}

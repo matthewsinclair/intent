@@ -1,0 +1,14 @@
+{
+  "id": "01M72R5306CXV8AMX6GYZCB4AJ",
+  "ts": "2026-11-10T12:50:29.514Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0092/AC-03.7"
+  },
+  "payload": {
+    "text": "A remit set with `intent wb remit <moniker> \"<text>\"` is the project's own: it survives every later apply and re-renders the roster README, and `intent wb remit <moniker> --default` removes it. A seat with none shows its profile's default wherever a remit is shown, read from the installed profile, marked as the default and never written to the row, and the dry run names each such seat."
+  }
+}

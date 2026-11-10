@@ -1,0 +1,14 @@
+{
+  "id": "01M72R56RY97FGC43VSEGWK8HV",
+  "ts": "2026-11-10T12:50:33.378Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0092/AC-07.5"
+  },
+  "payload": {
+    "text": "A hand edit outside the preserved block is skew that `intent doctor` reports, and an apply refuses to render over it, before anything is written, naming the lines and the remedy; a README that is only out of date re-renders; and a re-render with nothing changed writes nothing."
+  }
+}

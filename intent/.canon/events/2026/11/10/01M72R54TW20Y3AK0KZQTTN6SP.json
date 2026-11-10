@@ -1,0 +1,14 @@
+{
+  "id": "01M72R54TW20Y3AK0KZQTTN6SP",
+  "ts": "2026-11-10T12:50:31.392Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0092/AC-07.1"
+  },
+  "payload": {
+    "text": "An apply renders `intent/whiteboard/README.md` from one template under `lib/templates/`: a title, the declared profiles, a roster table with each seat's moniker, name, role, driver and remit, its columns padded so that the project's formatter leaves it unchanged, the route to hv, which names the mediator as the one reader of hv's inbox, and the verb that prints the terms."
+  }
+}

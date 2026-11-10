@@ -17,7 +17,7 @@ ic builds this package and claims `ST0092/10` in the same chain as `intent wp st
 
 ## What is read, and corrected where it is wrong
 
-- **The rows.** `wb init`, `wb remit`, `wb retire`, `wb profile list`, `wb profile show`, `wb profile validate` and `wb profile terms`, and the changed `wb ask`, `wb announce`, `wb register`, `wb pickup` and `estate control take`: each row's recoverability, its `when_to_use`, and its `exposed_on_mcp`, which follows the recoverability unless the row says why. A read is offered. A roster act, `wb init --apply` or `wb retire`, is done because someone was asked.
+- **The rows.** `wb init`, `wb remit` with its `--default`, `wb retire`, `wb brief`, `wb profile list`, `wb profile show`, `wb profile validate` and `wb profile terms`, and the changed `wb ask`, `wb announce`, `wb register`, `wb pickup` and `estate control take`: each row's recoverability, its `when_to_use`, and its `exposed_on_mcp`, which follows the recoverability unless the row says why. A read is offered. A roster act, `wb init --apply` or `wb retire`, is done because someone was asked.
 - **The refusals.** Each new refusal is a typed error with a remedy that can be run as written, in the tool's own prefixes.
 - **The exit codes** agree with the contract `intent llm guide` prints.
 - **The guide.** `intent llm guide` carries every new verb and says of each whether it reads or mutates and whether it can be undone.

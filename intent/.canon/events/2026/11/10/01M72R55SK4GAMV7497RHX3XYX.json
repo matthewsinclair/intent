@@ -1,0 +1,14 @@
+{
+  "id": "01M72R55SK4GAMV7497RHX3XYX",
+  "ts": "2026-11-10T12:50:32.375Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0092/AC-07.3"
+  },
+  "payload": {
+    "text": "The first render, over a README that Intent has never rendered, carries the whole existing file inside the preserved block and says so, except a frontmatter block that opens the existing file, which is dropped and named in the report."
+  }
+}
