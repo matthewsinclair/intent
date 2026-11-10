@@ -1,0 +1,15 @@
+{
+  "id": "01M729DW1Z0049HY5PV95C8ACJ",
+  "ts": "2026-11-10T08:33:08.671Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-10, first-hand by selection in the TUI hv asked for in vc's session, the first four answered between 08:07Z and 08:11Z and the last three by 08:13Z on vc's date -u; wording vc's, each choice hv's and vc's recommendation) SEVEN RULINGS FOR ST0092, Claude Team profiles. (1) A Claude Team is the standing roster a profile registers on a project's board, every member registered whether started or not; a Claude Swarm is whichever of a Team's sessions are running at one time. (2) The Supervisor has its own profile, shipped in ST0092; hv in prose the same hour: \"SC is only needed on larger projects where we need multi-project coordination that goes across multiple VCs.\" (3) The single Claude is gc, Generalist Claude, role generalist. (4) Sleeve agents and estate agents stay out of the profile mechanism and are named in the terms, with Molt and Gtools as their owners. (5) hv's mediation through the VC is enforced by the tool. (6) The roster README is generated, with a preserved block. (7) The sweep writes directly where a project has no running session and through its vc or sc where one is running: all 32 live boards, Intent's own first. AND IN PROSE, the same morning: the default Team is VC, CC, IC, AC and DC, all registered whether started or not; hv's words on the Desk, an extra \"hat\" that one VC wears, and \"we need to institutionalise the way that role works in addition to the other VC roles\" (WP-08); and on Pipeliner's sc, \"I think that was a mistake and probably needs to be revoked\", confirmed with hv before any write there (AC-11.5). hv's go for the thread, verbatim: \"You are free to make a new ST and elaborate the WPs for that ST now to make this right.\" ST0092's context holds each quotation whole."
+  }
+}

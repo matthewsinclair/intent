@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "124edee5-f105-45bd-8483-ee7dc6dd6fd9",
-    "heartbeat_at": "2026-11-10T07:30:41.583Z",
+    "heartbeat_at": "2026-11-10T08:33:21.886Z",
     "status": "active",
-    "focus": "2026-11-06, folded for hv's compact before hv travels: nothing moves, and (devbin-vc's relay of hv's order) no desk asks, until hv's word after the travel. Issue 0672 is triaged high and its fix banked for hv's three decisions (todo 75). Holds checked at the fold: 6 stands (AC-02.4 unsatisfied), 7 stands (Devbin ST0011 is WIP), and 8's devbin half is met (0.1.19 and 0.1.20 swept, todo 71) while the desk's grant waits on hv. Watchout 33: a third remote and no release.remotes before ST0091's cut. No other Intent node is running.",
+    "focus": "2026-11-10, hv is back and in vc's session. ST0092 (Claude Team profiles: wb init, the enforced hv channel, the Desk as a hat, the fleet sweep) is raised and elaborated on hv's seven rulings (decision 107) and waits on hv's review of the elaboration (todo 76). Nothing else moves: the 3.2.9 train (holds 6 to 8, todos 71, 74 and 75) still waits on hv's word. Two facts under those holds changed while hv travelled: the estate's desk is agentic-engineering-vc's since 2026-11-10 on hv's word, no longer devbin-vc's, and devbin 0.1.19 and 0.1.20 are tagged and swept, so those holds now wait on hv's word alone. No other Intent node is running.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -2582,6 +2582,22 @@
       "text": "Measured 2026-11-06: `git remote -v` lists a third remote beside local and upstream, and its main is an ancestor of Intent's main, so it has taken Intent's main before. bin/.devbin/config.yaml declares repo but no release.remotes, and its comment still says this checkout has two remotes; devbin's release core pushes to every listed remote when none is declared (cc's source read, 2026-10-23). So the first cut through the core (ST0091) would push to the third remote too. Which remotes a cut pushes to is hv's to say before that cut; decision 90's push names local and upstream.",
       "state": "live",
       "recorded_at": "2026-11-06T13:42:44.886Z"
+    },
+    {
+      "node": "vc",
+      "kind": "decision",
+      "seq": 107,
+      "text": "(hv, 2026-11-10, first-hand by selection in the TUI hv asked for in vc's session, the first four answered between 08:07Z and 08:11Z and the last three by 08:13Z on vc's date -u; wording vc's, each choice hv's and vc's recommendation) SEVEN RULINGS FOR ST0092, Claude Team profiles. (1) A Claude Team is the standing roster a profile registers on a project's board, every member registered whether started or not; a Claude Swarm is whichever of a Team's sessions are running at one time. (2) The Supervisor has its own profile, shipped in ST0092; hv in prose the same hour: \"SC is only needed on larger projects where we need multi-project coordination that goes across multiple VCs.\" (3) The single Claude is gc, Generalist Claude, role generalist. (4) Sleeve agents and estate agents stay out of the profile mechanism and are named in the terms, with Molt and Gtools as their owners. (5) hv's mediation through the VC is enforced by the tool. (6) The roster README is generated, with a preserved block. (7) The sweep writes directly where a project has no running session and through its vc or sc where one is running: all 32 live boards, Intent's own first. AND IN PROSE, the same morning: the default Team is VC, CC, IC, AC and DC, all registered whether started or not; hv's words on the Desk, an extra \"hat\" that one VC wears, and \"we need to institutionalise the way that role works in addition to the other VC roles\" (WP-08); and on Pipeliner's sc, \"I think that was a mistake and probably needs to be revoked\", confirmed with hv before any write there (AC-11.5). hv's go for the thread, verbatim: \"You are free to make a new ST and elaborate the WPs for that ST now to make this right.\" ST0092's context holds each quotation whole.",
+      "state": "live",
+      "recorded_at": "2026-11-10T08:33:08.671Z"
+    },
+    {
+      "node": "vc",
+      "kind": "todo",
+      "seq": 76,
+      "text": "ST0092, Claude Team profiles, raised and elaborated on hv's go of 2026-11-10: eleven packages and their criteria, Not Started (`intent wp list ST0092`, `intent ac gate ST0092`). NEXT, in order. (1) hv reviews the elaboration: the package list, the builders vc proposed (cc WP-02 to WP-09, ic WP-10, vc WP-01 under the pen and WP-11 as director), and vc's four design calls on retirement in WP-04. (2) hv says which release carries the thread and where it sits against the held 3.2.9 train. (3) vc writes WP-01's terms document and hv ratifies it (AC-01.5); no code before that. (4) cc builds from WP-02, every run booked with the estate's controller; vc judges each bank and claims nothing. (5) The sweep, WP-11, runs only on a brew-installed release that carries WP-02 to WP-10, and Pipeliner's sc is confirmed with hv before any write there. The census instrument is refs/bank/vc/st0092/census-boards.zsh (a651ef150413), and its reading of 2026-11-10 is refs/bank/vc/st0092/census-20261110.txt.",
+      "state": "live",
+      "recorded_at": "2026-11-10T08:33:14.700Z"
     }
   ],
   "sent": [

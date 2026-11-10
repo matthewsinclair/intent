@@ -1,0 +1,15 @@
+{
+  "id": "01M729E1YBGJR9DPHZ3Q1HKFP2",
+  "ts": "2026-11-10T08:33:14.700Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ST0092, Claude Team profiles, raised and elaborated on hv's go of 2026-11-10: eleven packages and their criteria, Not Started (`intent wp list ST0092`, `intent ac gate ST0092`). NEXT, in order. (1) hv reviews the elaboration: the package list, the builders vc proposed (cc WP-02 to WP-09, ic WP-10, vc WP-01 under the pen and WP-11 as director), and vc's four design calls on retirement in WP-04. (2) hv says which release carries the thread and where it sits against the held 3.2.9 train. (3) vc writes WP-01's terms document and hv ratifies it (AC-01.5); no code before that. (4) cc builds from WP-02, every run booked with the estate's controller; vc judges each bank and claims nothing. (5) The sweep, WP-11, runs only on a brew-installed release that carries WP-02 to WP-10, and Pipeliner's sc is confirmed with hv before any write there. The census instrument is refs/bank/vc/st0092/census-boards.zsh (a651ef150413), and its reading of 2026-11-10 is refs/bank/vc/st0092/census-20261110.txt."
+  }
+}

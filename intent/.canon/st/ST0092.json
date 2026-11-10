@@ -1,0 +1,611 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0092",
+  "title": "A Claude Team is declared by a profile: wb init sets up its board, hv is reached through one node, and the fleet converges",
+  "slug": "a-claude-team-is-declared-by-a-profile-wb-init-s",
+  "status": "not-started",
+  "created": "2026-11-10",
+  "objective": "A project's Claude Team is declared once, by naming a profile, and the tool does the rest: `intent wb init <profile>` registers every seat with its canonical name, role and remit, the board says who reaches hv, and a session that boots on that board is told its own seat without hv typing it. This is hv's ask of 2026-11-10, relayed by the vc of a swarm hv had just started and ruled in vc's session the same day. hv was writing the same roster brief by hand at the start of every swarm, and the fleet's boards show what that has cost.\n\nConcretely:\n\n1. The terms are defined once, in Intent: Claude Team, Claude Swarm, Team Profile, the seats with their monikers, names and roles, the mediator, and the hat (WP-01).\n2. A Team Profile is a shipped Intent resource of config and prose. `team` declares vc, cc, ic, ac, dc and hv; `solo` declares gc and hv; `supervisor` and `supervised` add the cross-project layer (WP-02).\n3. `intent wb init <profile>` reconciles a board to its profile. It is a dry run by default; it registers what is missing, corrects what drifted and leaves everything else on the board alone; and running it again is the reinit (WP-03). A seat can be retired, and a board can change its profile (WP-04).\n4. hv is reached through one node, and the tool enforces it: hv's only inbox pair is with the mediator, an ask to hv from any other node is refused with the mediator named, and an announce no longer copies hv (WP-05).\n5. A session reads its brief at pickup: its seat, its remit, the route to hv and the hats it wears (WP-06). The roster README is rendered from the profile and keeps a block that is the project's own (WP-07).\n6. The Desk is a hat with a written contract, worn by one VC on a host (WP-08).\n7. Doctor reports a board that has left its profile (WP-09), the surface reads as one (WP-10), and every live board on this machine is converged, Intent's own first (WP-11).",
+  "context": "**Why.** hv, 2026-11-10, to the vc of a swarm he had just started on a client project: \"I seem to have to write this same message every time I start a new Claude Swarm, which is a bit frustrating.\" The message is the roster and its mandates: who the nodes are, what each is for, and how hv is reached. Nothing in Intent holds it. `intent wb register` takes one node at a time, with a name and a role typed by hand; the roster README is hand-authored and has no single writer; and a pickup reads neither. hv's shape for the fix, in the same message: \"A profile should be an Intent resource that is just some simple config plus possibly some text that we can give to the LLM on init to set up the whiteboard\", and \"This needs to work with the existing \"intent wb register...\" workflow, too.\"\n\n**What was measured, read-only, on 2026-11-10.** vc read every live whiteboard on rhadamanth: 32 boards (18 under `~/Devel/prj`, 3 under `prj/Arca`, 9 in a client tree and 2 under `~/Devel/writing`), holding 130 node rows.\n\n- 38 rows carry their moniker as their role and 26 carry a session name as their display name. `intent wb register --help` warns against both.\n- One moniker has several role words. `dc` is `dc` on 13 boards, `devx` on 7 and `worker` on 3, Intent's own among them. `ac` is `ac` on 5, `authoring` on 2 and `author` on 1. `hv` is `hypervisor` on all 24 boards that have it.\n- The 32 boards hold 17 different rosters. 3 hold all five of vc, cc, ic, ac and dc. 8 have no `hv` node, so no escalation surface, and 6 have no roster README, so no named reader of hv's inbox.\n- 10 boards carry a Supervisor Claude: `sc` on a hub's own board in 3, and `sv`, the supervisor's seat on a supervised project's board, in 7.\n- 884 board messages have been addressed to hv, and 741 of them are copies of an `announce` (883 and 740 at vc's first reading half an hour earlier, the figures hv's question quoted). hv has sent 5. 112 inbox views pair hv with a node that does not mediate, and 100 of those are empty.\n- `intent claude start` registers nothing: it reads the node and refuses an absent one. `intent wb register <moniker>` refuses without `--name` and `--role`. So the drifted rows were typed or migrated, and no launcher wrote them.\n- The Desk's duties are written in one place, `lib/templates/estate/_AGENTS.md`, for a dedicated coordinator that stands in no project. No skill names the desk, so each VC that has worn it learned it from hv's prose.\n\nThe instrument and its output are banked as refs/bank/vc/st0092/census-boards.zsh (a651ef150413) and refs/bank/vc/st0092/census-20261110.txt (cf5d0de46fd7), read at 08:29Z by `date -u`.\n\n**hv's rulings, 2026-11-10.** Seven by selection in the TUI hv asked for, each of them vc's recommendation; the first four were answered between 08:07Z and 08:11Z and the last three by 08:13Z, on vc's `date -u`. The wording is vc's and each choice is hv's.\n\n1. A Claude Team is the standing roster a profile registers on a project's board, every member registered whether started or not. A Claude Swarm is whichever of a Team's sessions are running at one time.\n2. The Supervisor has its own profile, shipped in this thread. hv, in prose the same hour: \"SC is only needed on larger projects where we need multi-project coordination that goes across multiple VCs. Its not needed for a single swarm/tean.\"\n3. The single Claude is `gc`, Generalist Claude, role `generalist`.\n4. Sleeve agents and estate agents stay out of the profile mechanism. The terms name them, with Molt and Gtools as their owners.\n5. hv's mediation is enforced by the tool.\n6. The roster README is generated, with a preserved block.\n7. The sweep writes directly where a project has no running session and through its vc or sc where one is running: all 32 boards, Intent's own first.\n\nAnd hv's prose in vc's session, the same morning:\n\n- The default Team: \"a Claude Swarm (or Team) has, by default: VC, CC, IC, AC, and DC. The fact that not all of the Team is started at any one time is just a detail of use, they all should be registered and ready to be used if needed. If there is a case where just need 1 Claude and not a swarm, then that should be a different profile with a differnt role, abbreviation, and remit.\"\n- The terms: \"we canonically define the terms: Claude Swarm vs Claude Team; the correct abbreviations CC vs Control, etc; and the same definitions in each case for what the roles do.\"\n- hv's own role: \"We need to tidy up the HV / Hypervisor role and actions. It's ad-hoc right now, and needs to be made explicit. If you look at how the projects work, HV interactions are (or shouild be!) mediated thru the VC. Having HV detritous in the other Claude's inbox/whiteboards is a distraction at best, and intellectual pollution at worst.\"\n- The sweep: \"When done, we do an estate sweep and reach in thru each project's spinal cord and just do some brain surgery so that they are in line with this profile based approach.\"\n- Pipeliner's `sc`: \"I think that was a mistake and probably needs to be revoked and just back to a normal VC/CC/IC/DC/AC mix.\"\n- The Desk: \"The way I have been using this is as an extra \"hat\" that one VC wears. That _seems_ to be working, but we need to institutionalise the way that role works in addition to the other VC roles.\"\n\nThe seat names are hv's of 2026-10-21, recorded until now in Molt's roster README and nowhere in Intent.\n\n**What this thread does not do.**\n\n- It ships no user-authored profile. `intent ext` is declared and not built, and nothing reads `~/.local/share/intent/ext/`. A profile is Intent's canon, the same on every machine that runs the same Intent.\n- It gives no sleeve agent or estate agent a profile or a board, and it installs Intent in no project that lacks it (hv, 2026-09-23).\n- It does not fix issue 0672. It carries that issue's lesson as AC-07.4: a generated contract states what was declared, and never a default guessed for the project.\n- It renames no node. A seat that must change its moniker is retired and its successor registered.\n\n**Order and release.** WP-01 lands first, and no code is written before hv has ratified its document (AC-01.5). WP-02 and WP-03 follow in that order, and WP-04 to WP-09 stand on them. WP-11 runs only once the brew-installed Intent on this machine carries WP-02 to WP-10. The thread adds verbs. Which release carries it, and where it sits against the held 3.2.9 train, is hv's to say.\n\n**Builders and judge.** cc builds WP-02 to WP-09 and ic builds WP-10, each claiming its package in the chain that starts it. vc writes WP-01 under hv's pen and directs WP-11. vc judges every bank and claims nothing, and each builder mints its package's AT rows with its bank. These assignments are vc's proposal, for hv's review of this elaboration.",
+  "body": "",
+  "preamble": "",
+  "wps": [
+    {
+      "seq": 1,
+      "title": "The terms are defined once: Team, Swarm, profile, the seats, the mediator and the hat",
+      "scope": "S",
+      "status": "not-started",
+      "objective": "Intent holds one document that defines the words this thread uses and every project's board will use: Claude Team, Claude Swarm, Team Profile, node, moniker, name, role, session name, mediator and hat, with each seat's moniker, name, role and default remit, and hv's own contract. Everything else cites it. It is written and ratified before any code, because every later package renders or enforces what it says.",
+      "body": "## Builder and judge\n\nvc writes this package under hv's pen: its content is hv's rulings of 2026-11-10 and hv's seat names of 2026-10-21, written down. It is written in cc's tree, and cc reads it when it starts WP-02. The judge is `critic-prose` on the document, `prettier --check`, and hv's own read, which AC-01.5 records. vc claims nothing.\n\n## What is written\n\nOne hand-authored document in the plugin canon, beside where the profiles will ship (vc's proposal: `intent/plugins/claude/teams/TERMS.md`), registered in `intent/llm/MODULES.md` before it is created. It ships with the install, so a session in any project can be shown it, and WP-02 adds the verb that prints it. `intent/docs/working-with-llms.md` links to it and restates none of it. It holds:\n\n- **The terms.** A Claude Team is the standing roster a profile registers on one project's board, every member registered whether started or not. A Claude Swarm is whichever of a Team's sessions are running at one time. A Team Profile is the Intent resource that declares a Team. A node is one seat on a board. Its moniker is its two-letter handle, routing key and directory; its name is its display name; its role is one word; and its session is named `<project>-<moniker>`. A moniker is never written as a name or as a role.\n- **The seats.** hv's names of 2026-10-21, with the role words Molt's roster and the relaying vc's roster already use, and default remits taken from the roster hv pointed to as the example:\n\n| Moniker | Name              | Role       | Driven by                | Default remit                                                                                                  |\n| ------- | ----------------- | ---------- | ------------------------ | -------------------------------------------------------------------------------------------------------------- |\n| `vc`    | Validation Claude | validation | a session                | Boss of the team: sequencing, briefs, the independent check of finished work, and the one route to hv          |\n| `cc`    | Control Claude    | control    | a session                | Back-end services and core implementation                                                                      |\n| `ic`    | Interface Claude  | interface  | a session                | Everything user-facing and machine-facing: UI, the command surface and APIs                                    |\n| `ac`    | Authoring Claude  | authoring  | a session                | Prose and content                                                                                              |\n| `dc`    | DevX Claude       | devx       | a session                | The dev-x pipeline, end to end: build, test, CI and release mechanics                                          |\n| `hv`    | Hypervisor        | hypervisor | the human                | Scope, sequencing, release policy and every ratified decision                                                  |\n| `gc`    | Generalist Claude | generalist | a session                | The whole project, alone: it builds and checks its own work and talks to hv directly                           |\n| `sc`    | Supervisor Claude | supervisor | a session                | Coordination across several projects' VCs: audits, briefs to each VC, and the route to hv on its own hub       |\n| `sv`    | Supervisor Claude | supervisor | the supervisor's session | The supervisor's seat on a supervised project's board: findings and briefs to that project's vc, and no builds |\n\n- **The mediator.** The one node through which hv is reached on a board: vc on a team, sc on a supervisor's hub, gc on a solo board.\n- **hv's contract.** hv rules, in a live session or in the TUI. The mediator records each ruling on hv's board with its date, the channel it came by and whose wording it is, and presents matters for hv's review without deciding them. hv reads no board unprompted and writes to no inbox. No node waits on hv: it asks the mediator and carries on with what does not depend on the answer. A directive leaves hv's board only on hv's word.\n- **The hat.** A duty a node carries on top of its role, worn by one node at a time within its scope, and taken and handed over by an explicit act. The Desk is the hat this thread defines; its duties are WP-08's.\n- **Other kinds.** A sleeve agent works on one machine and is Molt's (`molt agent`, roles sysadm, ops and docs). An estate agent works in one Gtools estate and is Gtools'. Neither is a node, neither has a profile, and this document defines neither's contract.\n\n## What it is not\n\nIt is not the protocol: the `/in-whiteboard` skill keeps that and cites this document for the words. It is not the source of the seat rows once WP-02 lands: from then the shipped profiles are, and AC-02.5 fails a build in which this table and the profiles disagree.\n\n## Depends on\n\nNothing. Every other package waits on AC-01.5.\n",
+      "preamble": ""
+    },
+    {
+      "seq": 2,
+      "title": "A Team Profile is a shipped resource: team, solo, supervisor and supervised",
+      "scope": "M",
+      "status": "not-started",
+      "objective": "The four profiles ship in Intent's plugin canon as files of config and prose under one schema, and the installed tool lists, shows and validates them the way it serves the rule library. No project vendors a profile, so a project names one and never copies it.",
+      "body": "## Builder and judge\n\ncc builds this package and claims `ST0092/02` in the same chain as `intent wp start ST0092/02`, once AC-01.5 is recorded. vc judges it and claims nothing.\n\n## What is built\n\n- **The profile files**, beside the rule library in the plugin canon under `intent/plugins/claude/`, one file per profile: frontmatter for the config and a body for the brief. The config names the profile, its kind (a base or a layer), the mediator it sets, and its seats, each with a moniker, a name, a role, who drives it and a default remit. The body is the prose a session is given: what the team is, how hv is reached, and what each seat owes the others.\n- **The four profiles.** `team` is a base: vc, cc, ic, ac, dc and hv, with vc the mediator. `solo` is a base: gc and hv, with gc the mediator. `supervisor` is a layer for a hub: it adds sc and makes sc the mediator. `supervised` is a layer for a project under a supervisor: it adds sv and leaves the mediator alone.\n- **A schema** for the profile file, beside the rule schema, and a loader in the library crate (`native/rust/crates/intentsvcs/`) whose every failure is a typed error with a remedy.\n- **Four read-only verbs**, `intent wb profile list`, `intent wb profile show <name>`, `intent wb profile validate` and `intent wb profile terms`, which prints WP-01's document. The dispatch is in `intent-cli` and the logic in the library. They answer from the install and need no project.\n- **Validation** refuses a base with no mediator, a mediator that is not one of the profile's seats, a duplicate moniker, a role equal to its moniker, a name written as a session name, a second seat driven by the human, and a layer that declares a human seat.\n- **The parity test** of AC-02.5, which reads the seats table in the terms document and the shipped profiles and fails on any difference.\n- **The surface rows** for the four verbs in `surface/dispatch-table.json`, which ic reads as the table's owner before the bank is judged.\n\n`intent/llm/MODULES.md` gains each new module's row before the module is created.\n\n## What it must not do\n\nIt reads nothing from `~/.local/share/intent/ext/` and vendors nothing into a project. A user-authored profile is out of this thread.\n\n## The judge\n\nOne heavy run on the bank's tip, booked with the estate's controller: the workspace's whole test suites and the whole shell suite, `intent critic rust --files` on each changed Rust file (vc decision 79), `prettier --check` on each changed Markdown file, and `bin/int precommit` over the staged tree. cc mints this package's AT rows with its bank, and each arm carries its AT id from the start.\n\n## Depends on\n\nWP-01, ratified.\n",
+      "preamble": ""
+    },
+    {
+      "seq": 3,
+      "title": "wb init reconciles a board to its profile, and is a dry run until told to apply",
+      "scope": "M",
+      "status": "not-started",
+      "objective": "`intent wb init <profile>` brings a board to what its profiles declare and touches nothing else on it. Without `--apply` it writes nothing and says what it would do. It works where a project has no whiteboard yet and on a board that has been live for months, and running it again is the reinit hv asked for.",
+      "body": "## Builder and judge\n\ncc builds this package and claims `ST0092/03` in the same chain as `intent wp start ST0092/03`. vc judges it and claims nothing.\n\n## What is built\n\n- **`intent wb init <base> [<layer>...] [--apply]`**, in the facade, as a coordinator over the identity door that already exists. For each seat the profiles declare it registers an absent one (`wb_register`), corrects a name or role that differs (`wb_correct`) and leaves a matching one alone. A registered node that no profile names is reported as outside the profile and left as it is. It is the third way onto the roster beside the two `intent wb register` has: one node from its arguments, and every node from its own board header.\n- **The declaration.** The board's base, its layers, its mediator and its human seat are recorded in the store and as canon on disk under `intent/whiteboard/`, so a clone ingests the same team. `intent wb init --apply` with no profile named re-applies the declaration: that is the reinit.\n- **The remit.** The node row gains a remit. An apply fills an absent one from the profile's default and never overwrites one that is set. `intent wb remit <moniker> \"<text>\"` sets a project's own.\n- **`register` honours the declaration.** A moniker the declared profiles name registers only with the profile's name and role, and the refusal prints them. A moniker they do not name registers as it does today. This is what stops the drift where it starts: 38 of 130 rows fleet-wide carry a role typed in as the moniker.\n- **The dry run.** For each seat one of `register`, `correct` with the old and the new value, `unchanged` or `outside the profile`, then every view it would write or remove.\n- **The apply's report.** Every path on a `wrote:` or `removed:` line, and one line saying that this is the roster's own mechanical commit, the carve-out in the protocol's ninth invariant, made by the coordinating node or hv. The vc that relayed hv's ask measured the reach by hand on 2026-11-10: registering `hv` wrote ten files across four boards.\n- **The refusals**, each a typed error with a remedy: a hand-authored node that has not been migrated (`intent wb migrate`); a base other than the one declared (`--change`, WP-04); an unknown profile, with the shipped names; a layer on a board with no base.\n- **The schema.** `board.json` moves on from `intent/board@4.0` for the new fields. A build of this thread reads a board at 4.0 unchanged.\n- **The surface rows** for `wb init` and `wb remit`, read by ic.\n\n## What it never touches\n\nItems, messages, handled marks, claims, archives, heartbeats, status and focus. AC-03.3 compares the bytes.\n\n## Risks\n\n- An apply is many roster writes at once, and a running intentd ingests disk over store after a quiet period (issue 0216). The apply is one store transaction and one landing of views, and its test reads the result back after the ingest.\n- A registration re-renders every other board's inbox set, so the apply's file list is long on a large team. It is printed whole.\n- An Intent that predates the new schema will meet these boards on any machine that has not upgraded. WP-11 measures what the released Intent does with one before any project is converged.\n\n## Depends on\n\nWP-02.\n",
+      "preamble": ""
+    },
+    {
+      "seq": 4,
+      "title": "A seat can be retired, and a board can change its profile",
+      "scope": "S",
+      "status": "not-started",
+      "objective": "Intent has had no way to take a node off a roster, so a roster only grows. One supervisor hub's roster says so twice in prose and keeps a `vc` it calls paused and retired beside the `sc` that replaced it, and on 2026-11-10 the vc that relayed hv's ask registered four of the five seats hv declared and left `ac` out because a registration could not be undone. This package adds retirement as a state, never a deletion, and with it the move from one base profile to another, which is the other half of hv's reinit.",
+      "body": "## Builder and judge\n\ncc builds this package and claims `ST0092/04` in the same chain as `intent wp start ST0092/04`. vc judges it and claims nothing.\n\n## What is built\n\n- **`intent wb retire <moniker> --reason \"<why>\"`**, a roster act like `register`. Retired is a state on the roster, as archived is a state on a board. A retired node keeps its board, its items and every message it sent or received, all readable with `--all`. It is no longer a recipient: an ask to it is refused and names the retirement, and an announce skips it. `intent wb status` lists it only with `--all`, and a profile is reconciled against the roster without it.\n- **Claims stop a retirement.** A node that holds a claim on a thread, a work package or an issue is refused, with each claim named: a node cannot take its claims with it.\n- **Live messages do not stop it; they are reported.** A message the leaver sent stays in its recipient's inbox until the recipient handles it, and that pair's view is dropped only when it holds nothing live. A message addressed to the leaver that it never handled is named in the retirement's report and at its sender's next pickup, and the sender, who is that message's one writer, sends it on to another node or archives it: `intent wb archive message` no longer refuses when the recipient is retired. Nobody acts as the retired node.\n- **The mediator is not retired** while it is the mediator. It goes only in a change of profile that names another.\n- **Reinstatement** is `register` again: the same moniker comes back as the same node with its board, and a second node is never made.\n- **`intent wb init <base> --change [--apply]`** moves a board from one base to another, eg from `solo` to `team` when a project grows. It registers the new base's seats and retires the seats of the old base that the new one does not declare, under the rules above, and its dry run lists both. It is the only way `wb init` retires anything: a plain re-apply reports a node outside the profile and leaves it.\n- **The surface row** for `wb retire`, read by ic. vc's proposal for ic's row: a roster act is done because someone was asked, so it is not offered on MCP.\n\n## Why retire and not rename\n\n`register --correct` changes a node's name and role and keeps its moniker. A moniker is a routing key, a directory and a field in every message and event that names the node, so renaming one rewrites history across every board. Retiring the old seat and registering its successor changes no record: a hub's `vc` that became `sc`, and Riffle's and Prodinfra's `cc` if hv rules those boards solo at the sweep.\n\n## Open for hv's review\n\nThese four are vc's design calls on the points the relaying vc raised on 2026-11-10, and each is cheap to change before the package is built: live messages are reported and do not refuse; claims refuse; a re-apply never retires without `--change`; and the verb is kept off MCP.\n\n## Depends on\n\nWP-03.\n",
+      "preamble": ""
+    },
+    {
+      "seq": 5,
+      "title": "hv is reached through one node, and the tool enforces it",
+      "scope": "M",
+      "status": "not-started",
+      "objective": "On a board that declares a profile, hv has one channel: with the mediator. The inbox pairs between hv and every other node stop being rendered, an ask to hv from any other node is refused with the mediator named, and an announce no longer copies hv. hv's directives, decisions and watch-outs still reach every node at pickup, because they are the team's law and not traffic.",
+      "body": "## Builder and judge\n\ncc builds this package and claims `ST0092/05` in the same chain as `intent wp start ST0092/05`. vc judges it and claims nothing.\n\n## What was measured\n\nAcross the 32 live boards on 2026-11-10: 884 messages addressed to hv, of which 741 are copies of an `announce`; 5 messages sent by hv, ever; 112 inbox views pairing hv with a node that does not mediate, 100 of them empty. The cause is in the model: every registered node gets an inbox pair with every other, hv included, and an announce goes to every node but its sender.\n\n## What is built\n\n- **The pair.** The human seat has one inbox pair, with the mediator. No `<node>/inbox.hv.md` and no `hv/inbox.<node>.md` is rendered for any other node.\n- **The ask.** `intent wb ask hv` from any other node is refused with a typed error whose remedy names the mediator and gives the same message as an ask to it. A message from the human seat to a node that is not the mediator is refused the same way: hv speaks to a node live, or the mediator carries it.\n- **The announce** goes to every registered session node but the sender, and not to the human seat.\n- **Writing as hv.** A write as the human seat from a Claude session bound to any node but the mediator is refused. The mediator's session writes hv's board under the pen, and a shell with no Claude session, which is hv's own terminal, writes it as before. The session's node is read from `CLAUDE_CODE_SESSION_ID`, the identity the pickup already records.\n- **The standing items.** hv's directives, decisions and watch-outs print in full at every node's pickup, as they do now.\n- **The crossing.** `intent wb init --apply` refuses to drop an hv inbox view that still holds a live message and names each one with its sender. The mediator surfaces them to hv and clears them as hv, and the apply then proceeds. Fleet-wide on 2026-11-10, 4 such messages come from a `dc` or a `cc`: 3 and 1. Every such message stays readable with `--all`.\n- **Opt-in by declaration.** A board that declares no profile behaves exactly as it does today, so nothing changes for a project until its own `wb init`.\n- **The skill.** `intent/plugins/claude/skills/in-whiteboard/SKILL.md` says what the tool now does, in the same landing: the hv section, the rule that the README must name hv's reader, which the profile's mediator replaces, and what `ask` and `announce` do.\n\n## What a node loses, and does not\n\nNothing durable. An escalation that went to hv's inbox was read by nobody until the mediator ran, on every board whose README named one; it now goes to the mediator's inbox, which is read at the same moment. A node with a complaint about the mediator records it as a watch-out on its own board, which every pickup prints in full to every peer.\n\n## Depends on\n\nWP-03.\n",
+      "preamble": ""
+    },
+    {
+      "seq": 6,
+      "title": "A session is told its seat at pickup and at launch",
+      "scope": "S",
+      "status": "not-started",
+      "objective": "This is the package that ends the retyping. A session that boots on a profiled board reads, from the pickup alone, which team it is on, its own seat, name, role and remit, the node hv is reached through, the hats it wears, and every other seat with its remit, whether that seat has ever run or not.",
+      "body": "## Builder and judge\n\ncc builds this package and claims `ST0092/06` in the same chain as `intent wp start ST0092/06`. vc judges it and claims nothing.\n\n## What is built\n\n- **The brief in `intent wb pickup`.** Ahead of the board it prints the declared profiles, this node's name, role and remit, the mediator, and one line for each other seat with its name, role, remit and whether it has ever run. `--json` carries the same fields. The MCP tool answers the same.\n- **A seat that has never run** is listed like any other and marked never started. hv, 2026-11-10: \"they all should be registered and ready to be used if needed.\"\n- **The launcher.** `intent claude start <node>` hands the session the same brief through `intent/plugins/claude/bin/intent_claude_cwi`, which composes the session's context today. Its refusal of an unregistered moniker stays and now names `intent wb init`.\n- **The profile's prose** from WP-02 is what the brief prints after the seats: how hv is reached and what each seat owes the others.\n\n## Why this and not the README\n\nA pickup reads no README and never has (hv's decision 28, ruling 5, on Conflab). The README is for a person reading the repository; the pickup is what a session reads at every boot.\n\n## The proof that matters\n\nAC-06.4 is not a test. A session is started on a converged board that hv did not brief, and vc records, by session id, that it stated its own seat, remit and route to hv from the pickup alone.\n\n## Depends on\n\nWP-03 for the declaration and the remit; WP-08 adds the hats line.\n",
+      "preamble": ""
+    },
+    {
+      "seq": 7,
+      "title": "The roster README is rendered from the profile and keeps the project's own block",
+      "scope": "M",
+      "status": "not-started",
+      "objective": "`intent/whiteboard/README.md` becomes a generated view with one writer. `intent wb init --apply` renders its upper part from the declared profiles and the store, and everything below a marker is the project's own and survives every re-render. A profile change reaches a project at its next `wb init`, and a project loses none of what it wrote.",
+      "body": "## Builder and judge\n\ncc builds this package and claims `ST0092/07` in the same chain as `intent wp start ST0092/07`. vc judges it and claims nothing.\n\n## What was measured\n\n26 of the 32 live boards have a roster README and 6 have none. 5 carry a verblock. Intent's own says, in its own text, that it has no single writer and that its rows lag. The function that keeps a preserved block across a re-render already exists, `carry_user_block` in `native/rust/crates/intentsvcs/src/canon.rs`, wired today to `CLAUDE.md` alone.\n\n## What is built\n\n- **One template** under `lib/templates/`, rendered through the token expander (`intentsvcs::rootfiles::substitute`): the declared profiles, the roster table with each seat's moniker, name, role, who drives it and remit, the route to hv, and the verb that prints the terms. The roster table arrives as one token filled from the store, so the expander needs no new block kind.\n- **The preserved block.** A marker line, and below it the project's own prose, carried by `carry_user_block`. The function is reused, not copied.\n- **The first render.** Over a README that has no marker, the whole existing file is carried below the marker and the verb says so. No hand-written line is lost, and the project prunes what the generated part now says.\n- **Skew.** A hand edit above the marker is skew that `intent doctor` reports, as it is for a board's `wip.md`, and the next render restores it.\n- **Nothing guessed.** Every generated line has a declared source, the profile or the store. This is the lesson of issue 0672, where a template wrote a language's default build lines into a contract and was wrong in most of the fleet. AC-07.4 states it as a test.\n\n## What it is not\n\nIt is not where a session learns its seat: WP-06 is. It is not issue 0672's fix, which changes `lib/templates/llm/_AGENTS.md` and is ruled separately.\n\n## Depends on\n\nWP-03.\n",
+      "preamble": ""
+    },
+    {
+      "seq": 8,
+      "title": "The Desk is a hat with a written contract",
+      "scope": "M",
+      "status": "not-started",
+      "objective": "The Desk, control of a host's slots, is worn as a hat by one VC, and that is how hv has run it: devbin-vc, then webber-vc, then agentic-engineering-vc. The tool documents only the other shape, a dedicated coordinator that stands in no project. This package makes the hat a defined thing: one source for its duties, a brief the wearer is given, a board that shows who wears it, and a written answer for the day the wearer's session is gone.",
+      "body": "## Builder and judge\n\ncc builds this package and claims `ST0092/08` in the same chain as `intent wp start ST0092/08`. vc judges it and claims nothing.\n\n## What was measured\n\nThe desk's duties are written in one place, `lib/templates/estate/_AGENTS.md`, which `intent estate init` renders for a session that \"stands in no Intent project and has no whiteboard node\", and whose last section says it edits no project. No skill names the desk. On 2026-11-10 the estate's control record read: took over from webber-vc, with hv's words \"Asked who takes the orphaned desk, hv chose: vc takes it.\" So the shape in use is the one nothing describes, and each wearer has learned it from hv's prose and from what its predecessor left.\n\n## What is built\n\n- **One source for the duties.** What a controller does (take control, arm the watch, judge an ask against the lanes and the estate view, grant, deny, revoke, hold, release) moves to one template file. The dedicated coordinator's `AGENTS.md` and the hat's brief are both rendered from it, so the two shapes cannot drift.\n- **Who may take it.** `intent estate control take` from a Claude session bound to a whiteboard node is refused unless that node is its board's vc, and the remedy says who may. `--hv \"<words>\"` overrides on hv's quoted word and records it, as it does today for a take under another name. A session in no project takes control as before.\n- **The wearer's brief.** While a node's session holds control, its pickup prints that it wears the desk, the duties, and the asks waiting. The prompt hook already names waiting asks to a controller.\n- **The board shows it.** The wearer's board header and `intent wb status` show the hat. It is read from the estate's control record at render time and stored nowhere else, so there is no second record to go stale.\n- **The orphaned desk.** When the recorded controller's session is gone, `intent estate status` says the desk is orphaned and prints the step that takes it, and no pickup claims the hat.\n- **How the hat sits with a VC's own work**, written into the duties: an ask that is waiting is answered before the VC's own next step; the wearer's own project books its runs through the same queue and is granted by the same judgement, on the record like any other; the hat is released at session end; and it passes to another VC on hv's word, quoted on the take.\n\n## What it does not change\n\nThe lanes, the slots and their verbs, and the dedicated coordinator `intent estate init` renders, which stays the other legal shape.\n\n## Depends on\n\nWP-01 for the term. It stands apart from WP-03 to WP-07 and can be built beside them; WP-06's brief gains the hats line when both have landed.\n",
+      "preamble": ""
+    },
+    {
+      "seq": 9,
+      "title": "Doctor reports a board that has left its profile",
+      "scope": "S",
+      "status": "not-started",
+      "objective": "Once a board declares a profile, leaving it is a finding that `intent doctor` names, with `intent wb init` as the remedy. The classes report from the day they ship and refuse nothing until the fleet has been converged and their reach has been measured.",
+      "body": "## Builder and judge\n\ncc builds this package and claims `ST0092/09` in the same chain as `intent wp start ST0092/09`. vc judges it and claims nothing.\n\n## What is built\n\n- **Four classes**, each its own finding with its own remedy: a board that declares no profile; a seat whose name or role differs from its profile's; a seat its profile declares that is not registered; and an hv inbox view outside the mediator's pair.\n- **Each names `intent wb init`** as the step that repairs it, with the dry run first.\n- **They report and do not gate.** None of the four is actionable for the pre-commit gate when it ships.\n\n## The blast radius comes first\n\nA new guard is measured on the fleet, read-only, before it can refuse anyone's commit. On 2026-11-10 the first class alone would fire on all 32 live boards. vc runs the banked census (refs/bank/vc/st0092/census-boards.zsh) against a build that carries this package and records the count per class and per project. Whether any class gates after the sweep is hv's to say, with that table in front of him.\n\n## Depends on\n\nWP-03 and WP-05.\n",
+      "preamble": ""
+    },
+    {
+      "seq": 10,
+      "title": "The new surface reads as one",
+      "scope": "S",
+      "status": "not-started",
+      "objective": "This thread adds verbs across four packages built by one node, and each lands with its own rows in the dispatch table. ic, the table's owner, reads the finished surface whole: every help line, refusal, exit code, MCP disposition and guide entry, against the voice and the contract the rest of the tool keeps.",
+      "body": "## Builder and judge\n\nic builds this package and claims `ST0092/10` in the same chain as `intent wp start ST0092/10`. vc judges it and claims nothing.\n\n## What is read, and corrected where it is wrong\n\n- **The rows.** `wb init`, `wb remit`, `wb retire`, `wb profile list`, `wb profile show`, `wb profile validate` and `wb profile terms`, and the changed `wb ask`, `wb announce`, `wb register`, `wb pickup` and `estate control take`: each row's recoverability, its `when_to_use`, and its `exposed_on_mcp`, which follows the recoverability unless the row says why. A read is offered. A roster act, `wb init --apply` or `wb retire`, is done because someone was asked.\n- **The refusals.** Each new refusal is a typed error with a remedy that can be run as written, in the tool's own prefixes.\n- **The exit codes** agree with the contract `intent llm guide` prints.\n- **The guide.** `intent llm guide` carries every new verb and says of each whether it reads or mutates and whether it can be undone.\n- **The terminal.** Where the TUI lists board verbs, it lists these.\n\n## Depends on\n\nWP-02 to WP-09, landed.\n",
+      "preamble": ""
+    },
+    {
+      "seq": 11,
+      "title": "Every live board converges, Intent's own first",
+      "scope": "L",
+      "status": "not-started",
+      "objective": "hv, 2026-11-10: \"When done, we do an estate sweep and reach in thru each project's spinal cord and just do some brain surgery so that they are in line with this profile based approach.\" Every live board on this machine declares a profile, carries the canonical names and roles, reaches hv through one node and has a rendered roster, and the census that found the drift reads clean.",
+      "body": "## Director and judge\n\nvc directs this package and judges each project's commit. There is no single builder: each board is converged by whoever the route below names, and vc claims nothing.\n\n## The population\n\n32 live boards on rhadamanth, measured on 2026-11-10: 18 under `~/Devel/prj`, 3 under `prj/Arca`, 9 in a client tree and 2 under `~/Devel/writing`. Backups, archives and vendored `deps/` copies are not boards. The census is re-run on the day, because the count is a reading and not a constant.\n\n## The route, on hv's ruling of 2026-11-10\n\n- **Intent's own board first.** `ac` is registered, `dc` becomes devx where it reads worker, and the roster README is rendered with its present text carried below the marker.\n- **A project with no running session** is converged from vc's session: the dry run is read, `intent wb init --apply` is run, and one commit carries exactly what the verb printed.\n- **A project whose vc or sc is running** is converged by that node. It is sent the exact step, runs it inside its own chain, and reports its sha, which vc reads. This is the rule since the Gtools release hold of 2026-09-25: only that node knows its project's holds.\n\n## Before any write\n\n- The brew-installed Intent on this machine carries WP-02 to WP-10.\n- vc has measured what the released Intent before this thread does with a board at the new schema, and every machine that reads a project's board runs an Intent that can read it before that project is converged.\n- vc's census table is in front of hv: for each board the profiles it will declare, every correction, registration and retirement, and every live message addressed to hv from a node that does not mediate. hv says which one-node boards are solo (Riffle and Prodinfra are the two candidates) and says go.\n- On each board, the mediator has surfaced the live messages addressed to hv and cleared them, so the apply is not refused (AC-05.6).\n\n## Held for a word\n\n- **Pipeliner's `sc`.** hv, 2026-11-10: \"I think that was a mistake and probably needs to be revoked and just back to a normal VC/CC/IC/DC/AC mix.\" It reverses rulings 9 and 10 of the writing-estate plan of 2026-11-05, so it is confirmed with hv and put to Pipeliner's own nodes before any write. Until then Pipeliner converges with `sc` as it stands.\n- **The supervisor layers.** The three hubs that carry `sc` declare `supervisor`, Pipeliner among them until the word above, and the seven boards that carry `sv` declare `supervised`.\n\n## What the sweep never does\n\nIt installs Intent nowhere and makes a board in no project that has none (hv, 2026-09-23). It pushes nothing. It writes nothing in a project but what `intent wb init --apply` printed.\n\n## Molt\n\nMolt's guide `docs/guides/sleeve-agents.md` and its roster README record the project suffixes hv named on 2026-10-21. They come to cite Intent's terms and record the suffixes nowhere, by molt-vc's hand.\n\n## Done\n\nThe census re-run reads: every board declares a profile; no seat's role is its moniker and no seat's name is a session name; every board has hv and a mediator; and no hv inbox view exists outside a mediator's pair. A board hv exempts is named with his words.\n\n## Depends on\n\nWP-02 to WP-10 in a brew-installed release.\n",
+      "preamble": ""
+    }
+  ],
+  "criteria": [
+    {
+      "id": "AC-01.1",
+      "text": "One document in the plugin canon, shipped with the install, defines Claude Team, Claude Swarm, Team Profile, node, moniker, name, role, session name, mediator and hat in the words hv ruled on 2026-11-10.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-01.2",
+      "text": "It gives the moniker, name, role, driver and default remit of each seat, vc, cc, ic, ac, dc, hv, gc, sc and sv, with the role words validation, control, interface, authoring, devx, hypervisor, generalist and supervisor, and it says a moniker is never written as a name or as a role.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-01.3",
+      "text": "It states hv's contract: hv rules live or in the TUI; the mediator records each ruling on hv's board with its date, its channel and whose wording it is, and presents for review without deciding; hv reads no board unprompted and writes to no inbox; no node waits on hv; and a directive leaves hv's board only on hv's word.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-01.4",
+      "text": "It defines the hat and names the Desk as one, and it names sleeve agents and estate agents as kinds owned by Molt and Gtools without defining the contract of either.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-01.5",
+      "text": "hv has read the document and ratified it, and vc has recorded the ratification on hv's board with its date and channel, before any other package of this thread starts.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-02.1",
+      "text": "The plugin canon ships the profiles team, solo, supervisor and supervised under one schema, and `intent wb profile validate` passes on the shipped set.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.2",
+      "text": "Validation fails, naming the file and the field, on a base with no mediator, a mediator that is not one of the profile's seats, a duplicate moniker, a role equal to its moniker, a name written as a session name, a second seat driven by the human, and a layer that declares a human seat.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.3",
+      "text": "`intent wb profile list` names each shipped profile and whether it is a base or a layer, `intent wb profile show <name>` prints its seats, its mediator and its brief, and `intent wb profile terms` prints the terms document; all three answer in a directory that is no Intent project.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.4",
+      "text": "team declares vc, cc, ic, ac, dc and hv with vc the mediator; solo declares gc and hv with gc the mediator; supervisor adds sc and makes it the mediator; and supervised adds sv and leaves the mediator as it was.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.5",
+      "text": "The seats table in the terms document and the shipped profiles agree seat for seat in moniker, name, role and default remit, and a test fails on any difference.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.6",
+      "text": "An unknown profile name is refused with the shipped names in its remedy, and nothing is read from `~/.local/share/intent/ext/`.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.1",
+      "text": "In a project with no whiteboard, `intent wb init team --apply` registers every seat the profile declares with the profile's name, role and default remit, records the declaration in the store and as canon under `intent/whiteboard/`, and prints every file it wrote on a `wrote:` line.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.2",
+      "text": "Without `--apply` it writes nothing and prints, for each seat, register, correct with the old and the new value, unchanged, or outside the profile, and then every view it would write or remove.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.3",
+      "text": "On a board whose nodes hold items, messages, handled marks, claims, archives, heartbeats, status and focus, an apply changes names, roles, absent remits and the roster set and nothing else: those fields of every `board.json` are byte for byte what they were.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.4",
+      "text": "A second apply writes nothing and says so, and `intent wb init --apply` with no profile named re-applies the board's declaration.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.5",
+      "text": "A base other than the declared one is refused and names `--change`; a layer on a board with no base is refused; and a hand-authored node that has not been migrated is refused before anything is written, naming `intent wb migrate`.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.6",
+      "text": "`intent wb register` of a moniker the declared profiles name is taken only with the profile's name and role, and its refusal prints them; a moniker they do not name registers as before, and the dry run reports it as outside the profile.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.7",
+      "text": "A remit set with `intent wb remit <moniker> \"<text>\"` survives every later apply, and the profile's default fills only an absent one.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.8",
+      "text": "A clone of a project whose board was applied ingests the same declaration, seats and remits from the canon on disk.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.9",
+      "text": "A build of this thread reads a board at schema `intent/board@4.0` unchanged.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-04.1",
+      "text": "`intent wb retire <moniker> --reason \"<why>\"` retires a node: `intent wb status` lists it only with `--all`, an ask to it is refused and names the retirement, an announce skips it, and its board and every message it sent or received stay readable.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-04.2",
+      "text": "It refuses without `--reason`, refuses a node that holds a claim and names each claim, and refuses the board's mediator.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-04.3",
+      "text": "A live message does not refuse a retirement: one the leaver sent stays in its recipient's inbox until that recipient handles it, and one addressed to the leaver is named in the retirement's report and at its sender's next pickup, where `intent wb archive message` then accepts it.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-04.4",
+      "text": "A pair's inbox views are removed, on `removed:` lines, only when they hold no live message.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-04.5",
+      "text": "Registering a retired moniker again reinstates the same node with its board and never makes a second.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-04.6",
+      "text": "`intent wb init <base> --change --apply` registers the new base's seats and retires those of the old base that the new one does not declare, its dry run lists both, and a re-apply without `--change` retires nothing.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-05.1",
+      "text": "On a board that declares a profile, the human seat's only inbox pair is with the mediator: no `inbox.hv.md` is rendered in any other node's directory and no `hv/inbox.<node>.md` for any other node.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-05.2",
+      "text": "`intent wb ask hv` from any other node is refused with a remedy that names the mediator and can be run as written, and a message from the human seat to any node but the mediator is refused the same way.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-05.3",
+      "text": "`intent wb announce` sends no copy to the human seat.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-05.4",
+      "text": "A write as the human seat from a Claude session bound to any node but the mediator is refused, and the same write from the mediator's session, or from a shell with no Claude session, is taken.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-05.5",
+      "text": "hv's directives, decisions and watch-outs print in full at every node's pickup.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-05.6",
+      "text": "An apply refuses to drop an hv inbox view that holds a live message and names each one with its sender, proceeds once the mediator has cleared them, and leaves every one readable with `--all`.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-05.7",
+      "text": "A board that declares no profile renders every pair and takes every ask, as it did before this thread.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-05.8",
+      "text": "The `/in-whiteboard` skill says what the tool does about hv, `ask` and `announce` in the same landing as this package, cites the terms document for its words, and no longer requires the README to name hv's reader.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-06.1",
+      "text": "`intent wb pickup` on a board that declares a profile prints, ahead of the board, the declared profiles, this node's name, role and remit, the node hv is reached through, and one line for each other seat with its name, role and remit; `--json` and the MCP tool carry the same fields.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-06.2",
+      "text": "A seat that is registered and has never run is listed like any other and marked as never started.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-06.3",
+      "text": "`intent claude start <node>` hands the launched session the same brief, and its refusal of an unregistered moniker names `intent wb init`.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-06.4",
+      "text": "A session started on a converged board that hv did not brief states its own seat, its remit and its route to hv from the pickup alone, and vc records that boot by its session id.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-07.1",
+      "text": "An apply renders `intent/whiteboard/README.md` from one template under `lib/templates/`: the declared profiles, a roster table with each seat's moniker, name, role, driver and remit, the route to hv, and the verb that prints the terms.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-07.2",
+      "text": "Everything below the template's marker is carried byte for byte across every re-render, by the function that carries CLAUDE.md's block and by no copy of it.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-07.3",
+      "text": "The first render over a README that has no marker carries the whole existing file below the marker and says so.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-07.4",
+      "text": "The generated part states nothing that the profiles and the store do not declare, which is issue 0672's lesson: rendered for two projects with the same declaration and remits, it differs only in the project's name.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-07.5",
+      "text": "A hand edit above the marker is skew that `intent doctor` reports and the next render restores, and a re-render with nothing changed writes nothing.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-08.1",
+      "text": "The controller's duties have one template source: the coordinator's `AGENTS.md` that `intent estate init` renders and the brief a hat-wearing node is given carry the same duties text from it.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-08.2",
+      "text": "`intent estate control take` from a Claude session bound to a node that is not its board's vc is refused with a remedy naming who may take it; with `--hv \"<words>\"` it is taken and the words are recorded; and a session in no project takes it as before.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-08.3",
+      "text": "While a node's session holds control, its pickup prints that it wears the desk, with the duties and the asks waiting, and its board header and `intent wb status` show the hat, read from the control record and stored nowhere else.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-08.4",
+      "text": "When the recorded controller's session is gone, `intent estate status` says the desk is orphaned and prints the step that takes it, and no node's pickup or board shows the hat.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-08.5",
+      "text": "The duties say how the hat sits with a VC's own work: a waiting ask is answered before the VC's own next step, the wearer's own project books through the same queue on the record, the hat is released at session end, and it passes to another VC on hv's quoted word.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-09.1",
+      "text": "`intent doctor` reports, each as its own class with `intent wb init` in its remedy: a board that declares no profile, a seat whose name or role differs from its profile's, a seat its profile declares that is not registered, and an hv inbox view outside the mediator's pair.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-09.2",
+      "text": "None of the four classes refuses a commit: the pre-commit gate passes a tree that carries each.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-09.3",
+      "text": "vc has run the banked census against a build that carries this package and recorded the count of each class for each project, and whether any class gates after the sweep is ruled by hv with that table in front of him.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-10.1",
+      "text": "Every verb this thread adds has a dispatch-table row that states its recoverability, its `when_to_use` and its MCP disposition, and `intent llm guide` prints it.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-10.2",
+      "text": "ic has read every new help line, refusal and exit code against the tool's voice and its exit-code contract, corrected what differed, and recorded the read on its board.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-10.3",
+      "text": "No shipped file defines one of the terms a second time: the `/in-whiteboard` skill, the guide and the roster template cite the terms document, and ic has recorded the search that shows it.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-11.1",
+      "text": "vc's read-only census names every live board on this machine with the profiles it will declare, each correction, registration and retirement, and each live message addressed to hv from a node that does not mediate; hv has said which one-node boards are solo and has said go.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-11.2",
+      "text": "vc has measured what the released Intent before this thread does with a board at the new schema, and no project is converged while a machine that reads its board runs an Intent that cannot read it.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-11.3",
+      "text": "Intent's own board is converged first: ac is registered, dc reads devx, the README is rendered with its previous text below the marker, and the commit carries exactly what `intent wb init --apply` printed.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-11.4",
+      "text": "Every board with no running session is converged from vc's session, one commit for each project of exactly what the verb printed; every board whose vc or sc is running is converged by that node on vc's exact step; and vc has read each commit.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-11.5",
+      "text": "Pipeliner's sc is retired and its board is a team with vc the mediator, once hv has confirmed it and Pipeliner's own nodes have been told; until then its board is converged with sc as it stands.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-11.6",
+      "text": "Molt's guide and its roster README cite Intent's terms for the project suffixes and record them nowhere, by molt-vc's hand.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-11.7",
+      "text": "The census re-run after the sweep reads: every board declares a profile, no seat's role is its moniker, no seat's name is a session name, every board has hv and a mediator, and no hv inbox view exists outside a mediator's pair; a board hv exempts is named with his words.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-11.8",
+      "text": "The sweep installed Intent in no project, made a board in no project that had none, pushed nothing, and wrote nothing in any project but what `intent wb init --apply` printed.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    }
+  ]
+}

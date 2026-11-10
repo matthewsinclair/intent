@@ -1,0 +1,15 @@
+{
+  "id": "01M728WZY509RRXQKK09JS192J",
+  "ts": "2026-11-10T08:23:55.592Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0092/07"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "The roster README is rendered from the profile and keeps the project's own block"
+  }
+}

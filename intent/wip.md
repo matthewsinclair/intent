@@ -1,5 +1,5 @@
 ---
-verblock: "2026-11-06:v3.55: vc - folded for hv's compact before travel"
+verblock: "2026-11-10:v3.56: vc - ST0092 raised: Claude Team profiles"
 intent_version: 3.2.8
 ---
 
@@ -7,11 +7,12 @@ intent_version: 3.2.8
 
 ## DOING
 
-- Nothing, on hv's order of 2026-11-06 before travelling: nothing moves, and no desk asks, until hv's word after the travel.
+- ST0092, Claude Team profiles, raised and elaborated on hv's go of 2026-11-10: `intent wb init <profile>` declares a team's roster, hv is reached through one node, the Desk becomes a hat with a written contract, and every live board is converged. Eleven packages, Not Started. It waits on hv's review of the elaboration, then on WP-01's terms document and hv's ratification before any code (vc decision 107, vc todo 76). `intent wp list ST0092` names the packages and `intent ac gate ST0092` what is left.
+- The 3.2.9 train does not move: hv's order of 2026-11-06, nothing moves and no desk asks until hv's word, stands for everything but ST0092's elaboration.
 
 ## TODO
 
-- 3.2.9's push: the fixes for issues 0666, 0668 and 0669, which 3.2.9 carries on hv's ruling of 2026-11-01, are on main. It is held (vc hold 8) until devbin-vc's desk grants Intent again, after hv's word. Then build all at HEAD on devbin-vc's desk, a Linux preflight at HEAD on kovacs (hv's `!` in kovacs-sysadm's session), and devbin-vc pushes local and upstream on vc's word naming that HEAD (vc decision 90). The cut is hv's.
+- 3.2.9's push: the fixes for issues 0666, 0668 and 0669, which 3.2.9 carries on hv's ruling of 2026-11-01, are on main. It is held (vc hold 8) until the estate's controller grants Intent again, after hv's word. The desk passed from devbin-vc to agentic-engineering-vc on 2026-11-10 on hv's word, and devbin 0.1.19 and 0.1.20 are tagged and swept, so the hold waits on hv's word alone. Then build all at HEAD on the controller's desk, a Linux preflight at HEAD on kovacs (hv's `!` in kovacs-sysadm's session), and devbin-vc pushes local and upstream on vc's word naming that HEAD (vc decision 90). The cut is hv's.
 - Issue 0672 (high): `intent agents sync` writes language-default build and test lines into AGENTS.md that are wrong in most of the fleet. Triaged on 2026-11-06 and banked on hv's word for 2026-11-07, with three decisions owed by hv (vc todo 75): the template-only fix (S) or the full shape (M), who builds, and whether the push waits for the 3.2.9 train. A fix reaches a project only at the next cut and that project's next `intent agents sync`.
 - Issue 0670, on hv's ruling "ambiguous lines stop", the measured 1-row shape recorded in the issue: its build waits for hv's word, because hv's word for 2026-11-01 is "ship ST0011, no new code and no new yaks". dc builds it, and vc judges it with the fleet census re-run against the build, which must redden Devbin ST0011 AT-3.5 and nothing else.
 - ST0090, issue 0664's fix: one criterion is left, AC-02.4. hv sees Intent.app's Rebuild Search Index row show its second line, `reconciled <age> ago`, after a rebuild, on a build at or after a54f2e9e0 whose CLI carries 8406f6a15: the 3.2.9 cut, or a dev app pointed at a dev CLI, which is the maintainer's alone. vc then records that build on AC-02.4 and dc closes WP-02 (vc hold 6, dc hold 37). `intent ac gate ST0090` names what is left.

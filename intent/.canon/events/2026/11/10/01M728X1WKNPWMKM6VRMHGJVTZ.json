@@ -1,0 +1,15 @@
+{
+  "id": "01M728X1WKNPWMKM6VRMHGJVTZ",
+  "ts": "2026-11-10T08:23:58.161Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0092/09"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "Doctor reports a board that has left its profile"
+  }
+}
