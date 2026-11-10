@@ -1,0 +1,14 @@
+{
+  "id": "01M72QE3ZB2QYG1HQDKDXBXVJV",
+  "ts": "2026-11-10T12:37:56.847Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0091/AC-04.1"
+  },
+  "payload": {
+    "text": "`tests.yml` and `linux-release.yml` fire on `candidate/` refs and not on tags; `rust.yml` runs inside `tests.yml`'s run on a candidate, so the cut reads one verdict, and no tag starts it; the macOS legs run on a candidate, and a candidate's run that skipped a leg does not read green; and `bin/devbin release check` passes on Intent's tree."
+  }
+}

@@ -33,7 +33,7 @@ title: Intent releases through devbin's core: its driver, kovacs preflight and p
 
 ### WP-04 -- The workflows fire on the candidate, and the docs describe the cut as built (status: WIP)
 
-- AC-04.1 `tests.yml`, `rust.yml` and `linux-release.yml` fire on `candidate/` refs and not on tags, the macOS legs included, and `bin/devbin release check` passes on Intent's tree. -- satisfied: no (computed)
+- AC-04.1 `tests.yml` and `linux-release.yml` fire on `candidate/` refs and not on tags; `rust.yml` runs inside `tests.yml`'s run on a candidate, so the cut reads one verdict, and no tag starts it; the macOS legs run on a candidate, and a candidate's run that skipped a leg does not read green; and `bin/devbin release check` passes on Intent's tree. -- satisfied: no (computed)
 - AC-04.2 (non-test) `intent/docs/releasing.md` and `.github/workflows/README.md` describe the cut as built: one command from the yes to the tap with no step between them run by hand, a dry run that predicts and runs no gate, then `brew upgrade` and `intent use brew` on each machine. -- satisfied: no
 - AC-04.3 (non-test) hv cuts Intent's first release through the core with no hand step between the yes and the tap, and vc records that cut's RELEASE seal clock lines against the 3.2.8 baseline. -- satisfied: no
 

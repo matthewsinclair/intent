@@ -19,9 +19,13 @@ dc builds this package and claims `ST0091/04` in the same chain as `intent wp st
 
 dc's inventory, measured at 7ff46b458; line references are to that commit.
 
-- `tests.yml` (:8) and `rust.yml` (:31) lose their tag triggers and fire on `candidate/` refs, the macOS legs included, which today run only on a tag or a dispatch. `linux-release.yml` (:22-25) fires on `candidate/` instead of tags, and the attach reads its run by the release commit's sha (`bin/.devbin/config.yaml` :371-372 names the workflow).
+- `tests.yml` (:8) loses its tag trigger and fires on `candidate/` refs, the macOS legs included, which today run only on a tag or a dispatch. `rust.yml` (:31) loses its tag trigger too and is called from `tests.yml` on a candidate, because the cut reads one workflow's run (`release.ci.workflow`) and a run of `rust.yml` beside it would be read by nothing. The run's summary fails a candidate on which the macOS leg or the rust job was skipped, so a run that is missing a leg cannot read green. `linux-release.yml` (:22-25) fires on `candidate/` instead of tags, and the attach reads its run by the release commit's sha (`bin/.devbin/config.yaml` :371-372 names the workflow).
 - The five commands run by hand after the tag stop: `bin/int macos prepare`, `bin/int macos publish`, `bin/devbin release attach vX.Y.Z`, `bin/int brew publish` and `bin/int brew smoke --reinstall` (`intent/docs/releasing.md` :119). They are the item parked for hv in `intent/wip.md`, "Intent's cut wants one driver", which this package retires.
 - `intent/docs/releasing.md` (:13, :101-140) describes the one command, and stops promising a dry run that runs the pre-flight gates for real: the core's dry run predicts and runs no gate (Devbin D63). `.github/workflows/README.md` (:55-57) follows; its linux-release section still says dispatch-only, though the workflow has fired on tags since 9f4994a1c.
+
+## What only GitHub can prove
+
+No local run exercises the call from `tests.yml` into `rust.yml`, the concurrency group the called workflow takes, or the summary's rule. dc proposed the proof on 2026-11-10 and vc took it: once the train is on main and main is pushed, one manual dispatch of `tests.yml` on main takes every leg, as a candidate does, and its run is read before hv's first cut. vc puts it to hv with the cut's other preconditions.
 
 ## The judge
 
