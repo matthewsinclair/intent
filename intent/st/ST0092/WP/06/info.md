@@ -13,14 +13,17 @@ This is the package that ends the retyping. A session that boots on a profiled b
 
 ## Builder and judge
 
-cc builds this package and claims `ST0092/06` in the same chain as `intent wp start ST0092/06`. vc judges it and claims nothing.
+cc builds this package and claims `ST0092/06` in the same chain as `intent wp start ST0092/06`. vc judges it and claims nothing. Issue 0675 is built with it, because both change what a pickup prints.
 
 ## What is built
 
 - **The brief in `intent wb pickup`.** Ahead of the board it prints the declared profiles, this node's name, role and remit, the mediator, and one line for each other seat with its name, role, remit and whether it has ever run. `--json` carries the same fields. The MCP tool answers the same.
-- **A seat that has never run** is listed like any other and marked never started. hv, 2026-11-10: "they all should be registered and ready to be used if needed."
+- **The mediator's own brief.** For the mediator the route is not a node to go through. Its brief says that it is the mediator, that it reaches hv directly, and that the other seats' requests for hv come to it.
+- **A seat that has never run** is listed like any other and marked never started. hv, 2026-11-10: "they all should be registered and ready to be used if needed." The human seat carries no such mark, because no session drives it: the rule reads a seat's recorded session, hv's row never holds one, and so the exemption keys on the driver the seat registry declares (WP-02).
+- **The reader's own age**, which is issue 0675. `intent wb pickup` and `intent wb status` print how long ago the acting node last picked up on this machine. It is read from the store's own `wb.pickup` events, before this pickup writes its own. Those events are machine-scoped and never reach canon, so a store ingested fresh from canon holds none: there the line says that no pickup of the node is recorded on this machine, and prints no age. One arm pins what a fresh clone prints. Each peer's line gives the number of live messages addressed to that peer, labelled live.
 - **The launcher.** `intent claude start <node>` hands the session the same brief through `intent/plugins/claude/bin/intent_claude_cwi`, which composes the session's context today. Its refusal of an unregistered moniker stays and now names `intent wb init`.
-- **The profile's prose** from WP-02 is what the brief prints after the seats: how hv is reached and what each seat owes the others.
+- **The launch steps come from the profile.** Today `compose_ctx` ends every launch on two steps written for a session that hv directs: show hv a detailed plan, then stop and wait for hv's instructions. On a board with a mediator that is wrong for every seat but one. The steps are the profile's (WP-02): a seat other than the mediator sends its plan to the mediator and takes its go from it, unless hv speaks to it directly, and the mediator shows its plan to hv. The launcher's opening line calls the session a seat, the terms' word, where today it says a workstream node.
+- **The profile's prose** from WP-02 is what the brief prints after the seats: how hv is reached and what each seat owes the others. It is the one source of those words, for the pickup, the launcher and the roster README (WP-07).
 
 ## What the spike showed
 
@@ -31,6 +34,15 @@ It also showed that `intent wb register` stamps a heartbeat at registration, so 
 Its cold boot, the same day, was a partial pass. A seat that was registered and had never run was launched after the brief was in place. From its pickup alone it read its role, its remit, the mediator and the route to hv, and it followed the route without stating all of it. It did not get its own moniker from the pickup. Its start prompt named the seat, and no pickup can infer one, because the verb takes the moniker as an argument. So the launcher is the only source of the seat, and of this package's two halves the launcher's is the one the proof rests on. By the seat's own account the boot was not a clean one: its start prompt told it to run a pickup and read its inboxes, and hv typed to it while it booted, though neither named the role, the remit, the mediator or the route.
 
 The remit reached that seat only inside the brief, because its own board holds a name and a role and no remit (AC-03.7). And the brief's line for it said registered and never started, which was false by the time the seat read it. So whether a seat has run is computed at the read and is never written into the brief's text.
+
+## What the hand form showed
+
+On 2026-11-10 Intent's own board was put into this thread's form by hand (d09791705): the brief as hv's directive 2, the roster README, and a "Your seat" section in `.claude/restart.md`. cc read it as this package's builder, and vc took its findings under hv's pen.
+
+- The launcher's own steps contradicted the brief, and the hand form needed two patches over them: a paragraph of the directive, and the section in `.claude/restart.md`. That is why the launch steps come from the profile.
+- The hand form handled the mediator with a special case in prose, "a seat other than vc". That is why the mediator has a brief of its own.
+- The board became a control for the never-started mark. `ac`, registered that day and never launched, printed as paused with a heartbeat, and `hv`, which no session drives, printed as active with a heartbeat eight weeks old. Neither row holds a session.
+- The route to hv was written by hand three times, in three wordings. The generated brief replaces all three, and WP-11 says how each hand copy is retired on Intent's own board.
 
 ## Why this and not the README
 

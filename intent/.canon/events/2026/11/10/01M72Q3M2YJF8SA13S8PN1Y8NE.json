@@ -1,0 +1,14 @@
+{
+  "id": "01M72Q3M2YJF8SA13S8PN1Y8NE",
+  "ts": "2026-11-10T12:32:13.475Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0092/AC-07.3"
+  },
+  "payload": {
+    "text": "The first render over a README that has no preserved block carries the whole existing file inside the block and says so, except a frontmatter block that opens the existing file, which is dropped and named in the report."
+  }
+}

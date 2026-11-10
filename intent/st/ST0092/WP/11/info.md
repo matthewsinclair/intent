@@ -21,7 +21,7 @@ vc directs this package and judges each project's commit. There is no single bui
 
 ## The route, on hv's ruling of 2026-11-10
 
-- **Intent's own board first.** `ac` is registered, `dc` becomes devx where it reads worker, and the roster README is rendered with its present text carried below the marker.
+- **Intent's own board first.** `ac` was registered and `dc`'s role corrected from worker to devx by hand on 2026-11-10 (d09791705), on hv's word, so the apply reads both as unchanged. What is left is the hand form's retirement. The roster README is rendered with its present text carried inside the preserved block, and Intent prunes from it what the generated part now says. `.claude/restart.md` loses its "Your seat" section in the same commit, because the launcher appends that file to every launch and the section would repeat the generated brief in other words. And vc asks hv to retire directive 2, the brief written by hand, which leaves hv's board only on hv's word.
 - **A project with no running session** is converged from vc's session: the dry run is read, `intent wb init --apply` is run, and one commit carries exactly what the verb printed.
 - **A project whose vc or sc is running** is converged by that node. It is sent the exact step, runs it inside its own chain, and reports its sha, which vc reads. This is the rule since the Gtools release hold of 2026-09-25: only that node knows its project's holds.
 

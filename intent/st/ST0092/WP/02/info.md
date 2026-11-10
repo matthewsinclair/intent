@@ -17,15 +17,20 @@ cc builds this package and claims `ST0092/02` in the same chain as `intent wp st
 
 ## What is built
 
-- **The profile files**, beside the rule library in the plugin canon under `intent/plugins/claude/`, one file per profile: frontmatter for the config and a body for the brief. The config names the profile, its kind (a base or a layer), the mediator it sets, and its seats, each with a moniker, a name, a role, who drives it and a default remit. The body is the prose a session is given: what the team is, how hv is reached, and what each seat owes the others.
+- **The seat registry**, one JSON file beside `TERMS.md` in the plugin canon under `intent/plugins/claude/`, read by a typed, strict reader. It holds each seat once: its moniker, its name, its role, who drives it and its default remit. hv's row is written once, and a moniker cannot carry two names.
+- **The profile files**, beside the registry, one `.md` per profile. The frontmatter is flat: the profile's kind (a base or a layer), the mediator it sets, and the monikers of its seats. The body is the brief, the prose a session is given: what the team is, how hv is reached, what each seat owes the others, and what a seat does at launch. The route to hv and the launch steps are each a section of their own, because the pickup's brief, the launcher and the roster README print them whole (WP-06, WP-07) and nothing else states them. They name the mediator from the board's declaration and never as a moniker written into the prose, because a layer can move it.
 - **The four profiles.** `team` is a base: vc, cc, ic, ac, dc and hv, with vc the mediator. `solo` is a base: gc and hv, with gc the mediator. `supervisor` is a layer for a hub: it adds sc and makes sc the mediator. `supervised` is a layer for a project under a supervisor: it adds sv and leaves the mediator alone.
-- **A schema** for the profile file, beside the rule schema, and a loader in the library crate (`native/rust/crates/intentsvcs/`) whose every failure is a typed error with a remedy.
+- **A schema** for the registry and one for the profile file, beside the rule schema, and a loader in the library crate (`native/rust/crates/intentsvcs/`) whose every failure is a typed error with a remedy.
 - **Four read-only verbs**, `intent wb profile list`, `intent wb profile show <name>`, `intent wb profile validate` and `intent wb profile terms`, which prints WP-01's document. The dispatch is in `intent-cli` and the logic in the library. They answer from the install and need no project.
-- **Validation** refuses a base with no mediator, a mediator that is not one of the profile's seats, a duplicate moniker, a role equal to its moniker, a name written as a session name, a second seat driven by the human, and a layer that declares a human seat.
-- **The parity test** of AC-02.5, which reads the seats table in the terms document and the shipped profiles and fails on any difference.
+- **Validation** refuses a base with no mediator, a mediator that is not one of the profile's seats, a duplicate moniker, a role equal to its moniker, a name written as a session name, a second seat driven by the human, a layer that declares a human seat, and a profile that names a moniker the registry does not hold.
+- **The parity test** of AC-02.5, which reads the seats table in the terms document and the seat registry and fails on any difference.
 - **The surface rows** for the four verbs in `surface/dispatch-table.json`, which ic reads as the table's owner before the bank is judged.
 
 `intent/llm/MODULES.md` gains each new module's row before the module is created.
+
+## vc's ruling on the design
+
+On 2026-11-10 cc proposed the registry in its design notes, and vc took it under hv's pen. A seat written into each profile that uses it gives hv's row two homes, in `team` and in `solo`, and gives the parity test two tables to hold against the terms. The registry gives each seat one. The file's format is cc's to choose, within what the workspace already parses.
 
 ## What it must not do
 

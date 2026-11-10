@@ -1,0 +1,14 @@
+{
+  "id": "01M72Q3HBAX1YT3CKJPFC5T71E",
+  "ts": "2026-11-10T12:32:10.094Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0092/AC-06.3"
+  },
+  "payload": {
+    "text": "`intent claude start <node>` hands the launched session the same brief and takes its launch steps from the profile, so that on a board with a mediator a seat other than the mediator is told to send its plan to the mediator and take its go from it, and its refusal of an unregistered moniker names `intent wb init`."
+  }
+}

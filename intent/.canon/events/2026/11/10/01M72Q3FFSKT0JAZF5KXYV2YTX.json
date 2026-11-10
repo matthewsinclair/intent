@@ -1,0 +1,14 @@
+{
+  "id": "01M72Q3FFSKT0JAZF5KXYV2YTX",
+  "ts": "2026-11-10T12:32:08.189Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0092/AC-06.1"
+  },
+  "payload": {
+    "text": "`intent wb pickup` on a board that declares a profile prints, ahead of the board, the declared profiles, this node's name, role and remit, the node hv is reached through, or for the mediator that it is the mediator and reaches hv directly, and one line for each other seat with its name, role and remit; `--json` and the MCP tool carry the same fields."
+  }
+}

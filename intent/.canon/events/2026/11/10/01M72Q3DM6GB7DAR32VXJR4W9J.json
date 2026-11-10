@@ -1,0 +1,14 @@
+{
+  "id": "01M72Q3DM6GB7DAR32VXJR4W9J",
+  "ts": "2026-11-10T12:32:06.281Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0092/AC-02.2"
+  },
+  "payload": {
+    "text": "Validation fails, naming the file and the field, on a base with no mediator, a mediator that is not one of the profile's seats, a duplicate moniker, a role equal to its moniker, a name written as a session name, a second seat driven by the human, a layer that declares a human seat, and a profile that names a moniker the seat registry does not hold."
+  }
+}
