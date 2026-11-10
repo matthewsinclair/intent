@@ -24,7 +24,7 @@ Concretely:
 
 ## Context
 
-**Why.** hv, 2026-11-10, to the vc of a swarm he had just started on a client project: "I seem to have to write this same message every time I start a new Claude Swarm, which is a bit frustrating." The message is the roster and its mandates: who the nodes are, what each is for, and how hv is reached. Nothing in Intent holds it. `intent wb register` takes one node at a time, with a name and a role typed by hand; the roster README is hand-authored and has no single writer; and a pickup reads neither. hv's shape for the fix, in the same message: "A profile should be an Intent resource that is just some simple config plus possibly some text that we can give to the LLM on init to set up the whiteboard", and "This needs to work with the existing "intent wb register..." workflow, too."
+**Why.** hv, 2026-11-10, to the vc of a swarm hv had just started on a client project: "I seem to have to write this same message every time I start a new Claude Swarm, which is a bit frustrating." The message is the roster and its mandates: who the nodes are, what each is for, and how hv is reached. Nothing in Intent holds it. `intent wb register` takes one node at a time, with a name and a role typed by hand; the roster README is hand-authored and has no single writer; and a pickup reads neither. hv's shape for the fix, in the same message: "A profile should be an Intent resource that is just some simple config plus possibly some text that we can give to the LLM on init to set up the whiteboard", and "This needs to work with the existing "intent wb register..." workflow, too."
 
 **What was measured, read-only, on 2026-11-10.** vc read every live whiteboard on rhadamanth: 32 boards (18 under `~/Devel/prj`, 3 under `prj/Arca`, 9 in a client tree and 2 under `~/Devel/writing`), holding 130 node rows.
 
@@ -74,7 +74,7 @@ The seat names are hv's of 2026-10-21, recorded until now in Molt's roster READM
 
 | WP    | Title                                                                                 | Size | Status      |
 | ----- | ------------------------------------------------------------------------------------- | ---- | ----------- |
-| WP-01 | The terms are defined once: Team, Swarm, profile, the seats, the mediator and the hat | S    | Not Started |
+| WP-01 | The terms are defined once: Team, Swarm, profile, the seats, the mediator and the hat | S    | WIP         |
 | WP-02 | A Team Profile is a shipped resource: team, solo, supervisor and supervised           | M    | Not Started |
 | WP-03 | wb init reconciles a board to its profile, and is a dry run until told to apply       | M    | Not Started |
 | WP-04 | A seat can be retired, and a board can change its profile                             | S    | Not Started |

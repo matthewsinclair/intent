@@ -48,7 +48,7 @@ Molt's guide `docs/guides/sleeve-agents.md` and its roster README record the pro
 
 ## Done
 
-The census re-run reads: every board declares a profile; no seat's role is its moniker and no seat's name is a session name; every board has hv and a mediator; and no hv inbox view exists outside a mediator's pair. A board hv exempts is named with his words.
+The census re-run reads: every board declares a profile; no seat's role is its moniker and no seat's name is a session name; every board has hv and a mediator; and no hv inbox view exists outside a mediator's pair. A board hv exempts is named with hv's words.
 
 ## Depends on
 

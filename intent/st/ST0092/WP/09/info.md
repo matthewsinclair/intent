@@ -23,7 +23,7 @@ cc builds this package and claims `ST0092/09` in the same chain as `intent wp st
 
 ## The blast radius comes first
 
-A new guard is measured on the fleet, read-only, before it can refuse anyone's commit. On 2026-11-10 the first class alone would fire on all 32 live boards. vc runs the banked census (refs/bank/vc/st0092/census-boards.zsh) against a build that carries this package and records the count per class and per project. Whether any class gates after the sweep is hv's to say, with that table in front of him.
+A new guard is measured on the fleet, read-only, before it can refuse anyone's commit. On 2026-11-10 the first class alone would fire on all 32 live boards. vc runs the banked census (refs/bank/vc/st0092/census-boards.zsh) against a build that carries this package and records the count per class and per project. Whether any class gates after the sweep is hv's to say, with that table in front of hv.
 
 ## Depends on
 

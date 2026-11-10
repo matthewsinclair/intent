@@ -13,7 +13,7 @@ title: A Claude Team is declared by a profile: wb init sets up its board, hv is 
 
 ## Acceptance Criteria
 
-### WP-01 -- The terms are defined once: Team, Swarm, profile, the seats, the mediator and the hat (status: Not Started)
+### WP-01 -- The terms are defined once: Team, Swarm, profile, the seats, the mediator and the hat (status: WIP)
 
 - AC-01.1 (non-test) One document in the plugin canon, shipped with the install, defines Claude Team, Claude Swarm, Team Profile, node, moniker, name, role, session name, mediator and hat in the words hv ruled on 2026-11-10. -- satisfied: no
 - AC-01.2 (non-test) It gives the moniker, name, role, driver and default remit of each seat, vc, cc, ic, ac, dc, hv, gc, sc and sv, with the role words validation, control, interface, authoring, devx, hypervisor, generalist and supervisor, and it says a moniker is never written as a name or as a role. -- satisfied: no
@@ -90,7 +90,7 @@ title: A Claude Team is declared by a profile: wb init sets up its board, hv is 
 
 - AC-09.1 `intent doctor` reports, each as its own class with `intent wb init` in its remedy: a board that declares no profile, a seat whose name or role differs from its profile's, a seat its profile declares that is not registered, and an hv inbox view outside the mediator's pair. -- satisfied: no (computed)
 - AC-09.2 None of the four classes refuses a commit: the pre-commit gate passes a tree that carries each. -- satisfied: no (computed)
-- AC-09.3 (non-test) vc has run the banked census against a build that carries this package and recorded the count of each class for each project, and whether any class gates after the sweep is ruled by hv with that table in front of him. -- satisfied: no
+- AC-09.3 (non-test) vc has run the banked census against a build that carries this package and recorded the count of each class for each project, and whether any class gates after the sweep is ruled by hv with that table in front of hv. -- satisfied: no
 
 ### WP-10 -- The new surface reads as one (status: Not Started)
 
@@ -106,12 +106,12 @@ title: A Claude Team is declared by a profile: wb init sets up its board, hv is 
 - AC-11.4 (non-test) Every board with no running session is converged from vc's session, one commit for each project of exactly what the verb printed; every board whose vc or sc is running is converged by that node on vc's exact step; and vc has read each commit. -- satisfied: no
 - AC-11.5 (non-test) Pipeliner's sc is retired and its board is a team with vc the mediator, once hv has confirmed it and Pipeliner's own nodes have been told; until then its board is converged with sc as it stands. -- satisfied: no
 - AC-11.6 (non-test) Molt's guide and its roster README cite Intent's terms for the project suffixes and record them nowhere, by molt-vc's hand. -- satisfied: no
-- AC-11.7 (non-test) The census re-run after the sweep reads: every board declares a profile, no seat's role is its moniker, no seat's name is a session name, every board has hv and a mediator, and no hv inbox view exists outside a mediator's pair; a board hv exempts is named with his words. -- satisfied: no
+- AC-11.7 (non-test) The census re-run after the sweep reads: every board declares a profile, no seat's role is its moniker, no seat's name is a session name, every board has hv and a mediator, and no hv inbox view exists outside a mediator's pair; a board hv exempts is named with hv's words. -- satisfied: no
 - AC-11.8 (non-test) The sweep installed Intent in no project, made a board in no project that had none, pushed nothing, and wrote nothing in any project but what `intent wb init --apply` printed. -- satisfied: no
 
 ## Acceptance Tests
 
-### WP-01 -- The terms are defined once: Team, Swarm, profile, the seats, the mediator and the hat (status: Not Started)
+### WP-01 -- The terms are defined once: Team, Swarm, profile, the seats, the mediator and the hat (status: WIP)
 
 _(no tests in this group)_
 

@@ -1,0 +1,14 @@
+{
+  "id": "01M72CJGJ4M9S6X1CXJB75CZVK",
+  "ts": "2026-11-10T09:28:06.472Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0092/AC-09.3"
+  },
+  "payload": {
+    "text": "vc has run the banked census against a build that carries this package and recorded the count of each class for each project, and whether any class gates after the sweep is ruled by hv with that table in front of hv."
+  }
+}

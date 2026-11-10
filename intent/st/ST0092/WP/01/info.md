@@ -2,7 +2,7 @@
 wp_id: WP-01
 title: The terms are defined once: Team, Swarm, profile, the seats, the mediator and the hat
 scope: S
-status: Not Started
+status: WIP
 ---
 
 # WP-01: The terms are defined once: Team, Swarm, profile, the seats, the mediator and the hat

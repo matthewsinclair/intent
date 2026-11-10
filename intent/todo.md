@@ -12,7 +12,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 01: One level-3 state on every face, and the index report names its reconcile time
   - [-] 02: Intent.app's Rebuild Search Index row copies Gtools' Refresh Search row
 - [-] ST0092: A Claude Team is declared by a profile: wb init sets up its board, hv is reached through one node, and the fleet converges
-  - [ ] 01: The terms are defined once: Team, Swarm, profile, the seats, the mediator and the hat
+  - [-] 01: The terms are defined once: Team, Swarm, profile, the seats, the mediator and the hat
   - [ ] 02: A Team Profile is a shipped resource: team, solo, supervisor and supervised
   - [ ] 03: wb init reconciles a board to its profile, and is a dry run until told to apply
   - [ ] 04: A seat can be retired, and a board can change its profile

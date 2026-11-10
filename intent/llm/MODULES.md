@@ -10,6 +10,7 @@
 | Concern                   | THE Module                                    | Notes                                                                                                                   |
 | ------------------------- | --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | MAAC launcher + lifecycle | `intent/plugins/claude/bin/intent_claude_cwi` | `start` (session launch) + `ws new/list/archive/hygiene`; whiteboard provisioner; `CWI_WB`/`CWI_DRY_RUN` seams (ST0047) |
+| Claude Team terms         | `intent/plugins/claude/teams/TERMS.md`        | Team, Swarm, profile, the seats, mediator and hat, defined once; cited, never restated (ST0092 WP-01)                   |
 
 ## Templates
 

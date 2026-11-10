@@ -1,0 +1,14 @@
+{
+  "id": "01M72CJHFENAHTZN90TYSGB958",
+  "ts": "2026-11-10T09:28:07.410Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0092/AC-11.7"
+  },
+  "payload": {
+    "text": "The census re-run after the sweep reads: every board declares a profile, no seat's role is its moniker, no seat's name is a session name, every board has hv and a mediator, and no hv inbox view exists outside a mediator's pair; a board hv exempts is named with hv's words."
+  }
+}
