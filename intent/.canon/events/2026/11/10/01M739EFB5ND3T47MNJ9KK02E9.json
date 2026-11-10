@@ -1,0 +1,16 @@
+{
+  "id": "01M739EFB5ND3T47MNJ9KK02E9",
+  "ts": "2026-11-10T17:52:42.853Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 105,
+    "text": "Issue 0649, built to vc's ruling (2026-11-10): needless_pass_by_value denied in CI and devbin over library and binary code (devbin check ownership), the restriction lints over intentd's binary (devbin check panics-intentd), redundant_clone dropped from IN-RS-CODE-002's tool codes and its 14 real sites fixed, testkit left out of IN-RS-CODE-001 on purpose, and the cut gate runs both new twins. Banked at refs/bank/cc/0649/fix-v1-on-0665v2-on-a86205eff, which vc's stack (0665, 0670, 0649) supersedes: re-bank on 0665 plus dc's 0670 after the bounce, re-run the checks, then record in issue 0649 what the rules now cover."
+  }
+}
