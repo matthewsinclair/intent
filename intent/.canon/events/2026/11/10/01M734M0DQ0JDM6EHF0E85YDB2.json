@@ -1,0 +1,15 @@
+{
+  "id": "01M734M0DQ0JDM6EHF0E85YDB2",
+  "ts": "2026-11-10T16:28:21.303Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "Issue 0677, on vc's ruling of 2026-11-10: IN-PR-STYLE-004 names one engine, a /usr/bin/perl program that reads every catalogue pattern as written, and a pass under another tool says which; critic-prose, in-detrope and the runner's comment (the Rust regex crate) say the same. A Bats test runs every automated pattern under the rule's program on probes in tests/fixtures/tropes/probes.tsv, its count derived from the catalogue, and trope_catalog_regex.bats moves onto the same program through one helper. llm-tropes and the vendored catalogue are untouched; FMT-02's `[:[:space:]]` is parked with vc. Worktree tmp/wt-ic-0677 stacked on 0676. fix-v2 is banked at refs/bank/ic/0677/fix-v2-on-0676v1 (blob 16f320c4591a, patch_id ba3c55bd9aad) and asked as 01M734J8P6TH8JH6B9N2W4WYK8; fix-v1's ask is released unstarted when granted."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M734KZDR52NPFZA7VZW0MZ00",
+  "ts": "2026-11-10T16:28:20.280Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "Issue 0676: /in-session's releaser records in the session's sentinel the languages it loaded skills for, under one header line; the prompt gate compares that with `intent lang declared` on every prompt that passes and `wb pickup` prints `languages moved:`, each naming both sets and /in-session. A test pins the header across the two scripts and canon::BOOTSTRAP_HEADER. Worktree tmp/wt-ic-0676 stacked on 0650 fix-v3 and 0672 fix-v1. fix-v1 is banked at refs/bank/ic/0676/fix-v1-on-0672v1 (blob bce631c2e5cd, patch_id 57c8bd2d96c9) and asked as 01M7349MXCH6W751Y25QRXP4FX, after 0672's run."
+  }
+}
