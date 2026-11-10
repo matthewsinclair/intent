@@ -555,3 +555,94 @@ fn info_prints_the_gate_root_and_keeps_its_line_and_code() {
   );
   assert!(stdout.contains("  Gate root:       <none> -- "), "{stdout}");
 }
+
+/// The directory the daemon's log goes in, under `dirs`.
+fn log_dir(dirs: &intentsvcs::userstate::Dirs) -> PathBuf {
+  intentsvcs::userstate::daemon_log_under(dirs)
+    .parent()
+    .expect("the log has a directory")
+    .to_path_buf()
+}
+
+/// **BOOTSTRAP MAKES THE DIRECTORY `brew services` LOGS INTO (issue 0667).**
+///
+/// The formula's service block points stdout and stderr at the daemon's two log
+/// files under the default state dir, and the service manager opens them
+/// before intentd runs, so a missing directory fails the job at spawn
+/// (launchagent.rs says so for launchd). `intent daemon start` and the
+/// LaunchAgent writer each make the directory; on the brew route the one step
+/// the formula's caveat asks for is `intent bootstrap`, so bootstrap makes it.
+#[test]
+fn it_makes_the_directory_the_brew_service_logs_into() {
+  let home = tempfile::tempdir().expect("fixture home");
+  let (stdout, stderr, code) = run(home.path(), &[], Some("matts"));
+  assert_eq!(code, 0, "stdout={stdout}\nstderr={stderr}");
+
+  let dir = log_dir(&intentsvcs::userstate::Dirs::at_home(home.path()));
+  assert!(
+    dir.is_dir(),
+    "no log directory at {}: {stdout}",
+    dir.display()
+  );
+  assert!(
+    stdout.contains(&dir.display().to_string()),
+    "the report names the directory it made: {stdout}"
+  );
+
+  // A second run finds it there and says so, and is still a success.
+  let (again, stderr, code) = run(home.path(), &[], Some("matts"));
+  assert_eq!(code, 0, "stdout={again}\nstderr={stderr}");
+  assert!(
+    again.contains(&dir.display().to_string()),
+    "a re-run names the directory too: {again}"
+  );
+}
+
+/// **WITH `XDG_STATE_HOME` SET, BOTH DIRECTORIES (issue 0667, vc's shape).**
+///
+/// `intent daemon logs` reads the state dir `XDG_STATE_HOME` resolves to, and
+/// the brew service writes under the default one, because a service's
+/// environment carries no `XDG_STATE_HOME`. A bootstrap run from such a shell
+/// that made only the resolved directory would leave the one the service opens
+/// missing, which is the fault 0667 names.
+#[test]
+fn with_xdg_state_home_set_it_makes_the_default_directory_and_the_resolved_one() {
+  let home = tempfile::tempdir().expect("fixture home");
+  let state_home = home.path().join("xdg-state");
+  let mut cmd = crate::common::intent();
+  cmd
+    .arg("bootstrap")
+    .env("HOME", home.path())
+    .env("USER", "matts")
+    .env("XDG_STATE_HOME", &state_home);
+  let out = cmd.output().expect("run intent bootstrap");
+  let stdout = String::from_utf8_lossy(&out.stdout);
+  assert_eq!(
+    out.status.code(),
+    Some(0),
+    "stdout={stdout}\nstderr={}",
+    String::from_utf8_lossy(&out.stderr)
+  );
+
+  let default = log_dir(&intentsvcs::userstate::Dirs::at_home(home.path()));
+  let resolved = log_dir(&intentsvcs::userstate::Dirs::resolve(
+    home.path(),
+    &intentsvcs::userstate::Xdg {
+      state_home: Some(state_home.display().to_string()),
+      ..Default::default()
+    },
+  ));
+  assert_ne!(default, resolved, "the fixture must make the two differ");
+  for dir in [&default, &resolved] {
+    assert!(
+      dir.is_dir(),
+      "no log directory at {}: {stdout}",
+      dir.display()
+    );
+    assert!(
+      stdout.contains(&dir.display().to_string()),
+      "the report names {}: {stdout}",
+      dir.display()
+    );
+  }
+}
