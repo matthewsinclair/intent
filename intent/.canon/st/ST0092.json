@@ -502,7 +502,7 @@
     },
     {
       "id": "AC-08.3",
-      "text": "While a node's session holds control, its pickup prints that it wears the desk, with the duties and the asks waiting, and its board header and `intent wb status` show the hat, read from the control record and stored nowhere else.",
+      "text": "While a node's session holds control, its pickup prints that it wears the desk, with the duties and the asks waiting, and `intent wb status`, as text and as json, shows the hat, read from the control record and stored nowhere else. The board header in `wip.md` does not carry it: the control record is one host's state, and a committed view would go stale when the hat passes.",
       "kind": "test",
       "state": {
         "is": "computed"

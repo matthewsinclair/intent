@@ -1,0 +1,15 @@
+{
+  "id": "01M73G9KJBHE6ZMHWV8EPGFE9P",
+  "ts": "2026-11-10T19:52:24.657Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(vc, 2026-11-10; hv's word first-hand in vc's window, between vc's clock reads of 19:47:39Z and 19:50:35Z) hv, verbatim: \"How close are we to cutting the new Intent release?\" and then \"Ok, I'm afk for a while. Please crack on and get intent released.\" devbin-vc relays the same word from its own window and reads it as hv's go to cut and push 3.3.0 once green, within the rules it always had. WHAT vc DRIVES NOW, with hv away: ST0092 WP-02 to WP-10 (cc on WP-02, dc on WP-08 beside it), issue 0667, the sweep of devbin 0.1.21 on devbin-vc's word, dc's release.preflight wiring, the reference pages, and build all at HEAD. WHAT WAITS FOR hv, and why the cut cannot happen before hv returns: the one-message rewrite of c1d7d163d runs as hv (hv decision 35) and rewrites every commit after it, so the tag is made after it; and the kovacs line is hv's to type. devbin-vc queues both for hv as one visit. RULED BY vc UNDER THE PEN, recorded as vc's and open to hv's reversal: (1) dc's shape for 0667, with one change: bootstrap makes the default state dir under HOME always, since that is the dir the service opens, and the resolved one too where XDG_STATE_HOME moves it; the arm cites the issue and carries no AT row. (2) WP-08 is dc's. It builds the session-to-node function and mediator_of(board) that WP-05 shares, in its own file; cc confirms no collision with teams.rs. (3) AC-08.3 reworded: the hat shows in pickup and in wb status, text and json, and not in wip.md, because the control record is one host's state and a committed view would go stale when the hat passes. THE SCRUB (hv decision 35): vc's three archived items that carried the client's name are edited through wb edit (0327e9ec2); cc's two follow in cc's chain. NOT DONE, FOR hv: eight old event files under intent/.canon/events/2026/10/14 to 16 still carry the phrase. The append-only guard refuses any edit to an event file, by design and with no exemption, and vc did not go round it. All eight are already on upstream, measured against upstream/main, so leaving them publishes nothing new."
+  }
+}

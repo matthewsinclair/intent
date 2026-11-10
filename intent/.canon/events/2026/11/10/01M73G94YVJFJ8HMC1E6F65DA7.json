@@ -1,0 +1,14 @@
+{
+  "id": "01M73G94YVJFJ8HMC1E6F65DA7",
+  "ts": "2026-11-10T19:52:08.415Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0092/AC-08.3"
+  },
+  "payload": {
+    "text": "While a node's session holds control, its pickup prints that it wears the desk, with the duties and the asks waiting, and `intent wb status`, as text and as json, shows the hat, read from the control record and stored nowhere else. The board header in `wip.md` does not carry it: the control record is one host's state, and a committed view would go stale when the hat passes."
+  }
+}
