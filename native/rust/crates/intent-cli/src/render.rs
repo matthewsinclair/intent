@@ -6297,6 +6297,7 @@ fn deinit(m: &ArgMatches) -> Result<(), Failure> {
   let ctx = intentsvcs::views::RenderContext {
     version: env!("CARGO_PKG_VERSION"),
     todo_watermark: None,
+    devbin: intentsvcs::rootfiles::has_devbin(&root),
   };
   let scope = deinit::Scope {
     project: &project,

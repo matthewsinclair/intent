@@ -14,6 +14,7 @@ use std::path::{Path, PathBuf};
 const CTX: RenderContext<'static> = RenderContext {
   version: env!("CARGO_PKG_VERSION"),
   todo_watermark: None,
+  devbin: false,
 };
 
 struct Fixture {

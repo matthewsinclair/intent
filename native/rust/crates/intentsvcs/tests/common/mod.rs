@@ -27,6 +27,7 @@ pub fn ctx() -> RenderContext<'static> {
   RenderContext {
     version: VERSION,
     todo_watermark: None,
+    devbin: false,
   }
 }
 

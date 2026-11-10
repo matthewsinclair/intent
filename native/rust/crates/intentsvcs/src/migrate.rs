@@ -493,6 +493,7 @@ fn assemble(
   let ctx_render = RenderContext {
     version: &ctx.version,
     todo_watermark,
+    devbin: crate::rootfiles::has_devbin(project.root()),
   };
 
   // `render_all` reads only `threads`, and `sections` is authored prose that

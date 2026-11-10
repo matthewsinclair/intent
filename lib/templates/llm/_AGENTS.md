@@ -14,20 +14,19 @@ This is the primary tool-agnostic config file for AI coding agents working on th
 
 [[#lang elixir]]
 
-- Elixir / Erlang / OTP (see `mix.exs` for version)
+- Elixir / Erlang / OTP
   [[/lang]]
   [[#lang rust]]
-- Rust toolchain (see `Cargo.toml` for edition)
+- Rust toolchain
   [[/lang]]
   [[#lang swift]]
-- Swift toolchain (see `Package.swift` for the tools version)
+- Swift toolchain
   [[/lang]]
   [[#lang lua]]
-- Lua (see the project's own docs for the target version)
+- Lua
   [[/lang]]
   [[#lang shell]]
-- Bash or Zsh (see the project's own docs for the target version)
-- Bats testing framework
+- Bash or Zsh
   [[/lang]]
   [[#nolang]]
 - None declared. Declare the project's languages with `intent lang init <lang>`.
@@ -39,85 +38,18 @@ This is the primary tool-agnostic config file for AI coding agents working on th
 intent doctor     # verify Intent configuration
 ```
 
-[[#lang elixir]]
-
-```bash
-mix deps.get
-mix compile
-```
-
-[[/lang]]
-[[#lang rust]]
-
-```bash
-cargo build
-```
-
-[[/lang]]
-[[#lang swift]]
-
-```bash
-swift build
-```
-
-[[/lang]]
-
 ## Build and Test Commands
 
-### Test commands
+[[#devbin]]
 
-[[#lang elixir]]
+This project builds and tests through `bin/devbin`, and only through it: `bin/devbin --help` lists its verbs. Do not run a language's own build or test tools directly. `bin/devbin` books no slot itself, so where `intent estate status` shows the estate has a controller, ask it for one with `intent estate slots ask` before a build or a test.
 
-```bash
-mix test
-```
+[[/devbin]]
+[[#nodevbin]]
 
-[[/lang]]
-[[#lang rust]]
+This project declares no build or test commands, so none is listed here. Its README, and its `usage-rules.md` where it keeps one, say how it builds and tests.
 
-```bash
-cargo test
-```
-
-[[/lang]]
-[[#lang swift]]
-
-```bash
-swift test
-```
-
-[[/lang]]
-[[#lang shell]]
-
-```bash
-bats -r tests/
-```
-
-[[/lang]]
-
-### Building
-
-[[#lang elixir]]
-
-```bash
-mix compile
-```
-
-[[/lang]]
-[[#lang rust]]
-
-```bash
-cargo build
-```
-
-[[/lang]]
-[[#lang swift]]
-
-```bash
-swift build
-```
-
-[[/lang]]
+[[/nodevbin]]
 
 ### Validation
 
@@ -203,7 +135,7 @@ What is installed is read live, never listed here: `intent claude skills list` a
 
 ## Testing Instructions
 
-1. Run the test suite before making changes -- establish a baseline.
+1. Run the project's tests, as Build and Test Commands says, before making changes -- establish a baseline.
 2. Make changes.
 3. Run the suite again; confirm no regressions.
 4. Add new tests for new functionality.

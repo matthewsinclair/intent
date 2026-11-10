@@ -371,6 +371,7 @@ fn invariant_a_version_bump_is_not_mistaken_for_an_edit() {
   let older = views::RenderContext {
     version: "2.99.0-yesterday",
     todo_watermark: None,
+    devbin: false,
   };
   let on_disk = views::info(&thread, &older);
 

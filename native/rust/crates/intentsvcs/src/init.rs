@@ -555,6 +555,7 @@ pub fn init_with_languages(
     // carry: this is what the facade's own render context reads from a fresh
     // store, so the aggregate views below match what `sync --to-disk` writes.
     todo_watermark: None,
+    devbin: crate::rootfiles::has_devbin(root),
   };
   for (dest, body) in &generated {
     let content = crate::rootfiles::substitute(body, project.config(), &ctx)

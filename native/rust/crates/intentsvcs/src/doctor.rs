@@ -2222,6 +2222,7 @@ fn root_file_findings(project: &Project, ctx: &RenderContext<'_>) -> Vec<Finding
   let render = RenderContext {
     version: ctx.version,
     todo_watermark: None,
+    devbin: crate::rootfiles::has_devbin(root),
   };
   let opts = crate::canon::Options {
     report: true,

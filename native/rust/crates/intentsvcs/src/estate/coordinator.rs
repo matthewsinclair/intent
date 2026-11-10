@@ -150,6 +150,7 @@ pub fn init(dir: &Path, home: &Path, version: &str) -> Result<Vec<Rendered>, Ini
   let ctx = RenderContext {
     version,
     todo_watermark: None,
+    devbin: crate::rootfiles::has_devbin(&dir),
   };
   let mut planned: Vec<(PathBuf, String)> = Vec::with_capacity(FILES.len());
   let mut differs = Vec::new();

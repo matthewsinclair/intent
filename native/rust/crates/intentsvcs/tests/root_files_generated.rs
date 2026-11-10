@@ -42,6 +42,15 @@ fn ctx() -> RenderContext<'static> {
     version: "3.0.0-probe",
     // Root files only; nothing here renders todo.md.
     todo_watermark: None,
+    devbin: false,
+  }
+}
+
+/// [`ctx`] for a project whose tree has `bin/devbin` (issue 0672).
+fn ctx_devbin() -> RenderContext<'static> {
+  RenderContext {
+    devbin: true,
+    ..ctx()
   }
 }
 
@@ -117,24 +126,24 @@ fn a_declared_language_is_carried_and_an_undeclared_one_is_absent() {
     .expect("the elixir-only project renders");
 
   assert!(
-    rust_only.contains("cargo test"),
+    rust_only.contains("- Rust toolchain"),
     "a project declaring `rust` did not get the rust section"
   );
   assert!(
-    elixir_only.contains("mix test"),
+    elixir_only.contains("- Elixir / Erlang / OTP"),
     "a project declaring `elixir` did not get the elixir section"
   );
 
   // **THE CONTROL, and without it the two arms above pass on a generator that
   // emits every section to everyone.**
   assert!(
-    !rust_only.contains("mix test"),
-    "a project declaring only `rust` was told to run `mix test` -- the blocks are not being \
+    !rust_only.contains("- Elixir / Erlang / OTP"),
+    "a project declaring only `rust` was given the elixir prerequisite -- the blocks are not being \
      resolved at all, and the positive arms above prove nothing"
   );
   assert!(
-    !elixir_only.contains("cargo test"),
-    "a project declaring only `elixir` was told to run `cargo test`, same defect in the other \
+    !elixir_only.contains("- Rust toolchain"),
+    "a project declaring only `elixir` was given the rust prerequisite, same defect in the other \
      direction"
   );
 
@@ -204,17 +213,89 @@ fn no_declared_language_set_renders_a_blank_line_run() {
     &["elixir", "author", "content", "rust", "shell"][..],
     &["elixir", "rust", "swift", "lua", "shell"][..],
   ] {
-    let rendered = rootfiles::render(&home, "AGENTS.md", &config(languages), &ctx())
-      .expect("AGENTS.md renders for every declared language set");
-    assert_eq!(
-      surplus_blank_lines(&rendered),
-      0,
-      "AGENTS.md rendered {} surplus blank line(s) for languages {languages:?} -- the output is \
+    for ctx in [ctx(), ctx_devbin()] {
+      let rendered = rootfiles::render(&home, "AGENTS.md", &config(languages), &ctx)
+        .expect("AGENTS.md renders for every declared language set");
+      assert_eq!(
+        surplus_blank_lines(&rendered),
+        0,
+        "AGENTS.md rendered {} surplus blank line(s) for languages {languages:?} with devbin {} -- the output is \
        not formatter-stable, so `claude upgrade --apply` oscillates forever on any project that \
        formats markdown",
-      surplus_blank_lines(&rendered)
+        surplus_blank_lines(&rendered),
+        ctx.devbin
+      );
+    }
+  }
+}
+
+/// **NO LANGUAGE'S DEFAULT BUILD OR TEST COMMAND REACHES A PROJECT** (issue
+/// 0672). The template cannot know a project's own commands, so it names
+/// `bin/devbin` where the tree has one and says none is declared where it does
+/// not. Every language this template has a block for is declared, so a default
+/// that survived anywhere would show.
+#[test]
+fn the_build_and_test_lines_come_from_the_tree_and_never_from_a_language() {
+  let home = repo_root();
+  let every = config(&["elixir", "rust", "swift", "lua", "shell"]);
+  let defaults = [
+    "mix compile",
+    "mix test",
+    "mix deps.get",
+    "cargo build",
+    "cargo test",
+    "swift build",
+    "swift test",
+    "bats -r",
+    "Bats testing framework",
+    "Package.swift",
+    "mix.exs",
+    "Cargo.toml",
+  ];
+  let devbin_line = "builds and tests through `bin/devbin`";
+  let none_line = "declares no build or test commands";
+
+  let with = rootfiles::render(&home, "AGENTS.md", &every, &ctx_devbin()).expect("renders");
+  let without = rootfiles::render(&home, "AGENTS.md", &every, &ctx()).expect("renders");
+
+  assert!(
+    with.contains(devbin_line) && !with.contains(none_line),
+    "a project with bin/devbin was not pointed at it:\n{with}"
+  );
+  assert!(
+    without.contains(none_line) && !without.contains(devbin_line),
+    "a project without bin/devbin was not told that none is declared:\n{without}"
+  );
+  for (name, page) in [("with bin/devbin", &with), ("without bin/devbin", &without)] {
+    let kept: Vec<&&str> = defaults.iter().filter(|d| page.contains(**d)).collect();
+    assert!(
+      kept.is_empty(),
+      "the page {name} still carries language defaults {kept:?}"
     );
   }
+}
+
+/// The renderer's fact is the tree's (issue 0672): `has_devbin` reads
+/// `bin/devbin` as a file, and nothing else stands for it.
+#[test]
+fn has_devbin_reads_the_tree() {
+  let tree = tempfile::tempdir().expect("tempdir");
+  assert!(
+    !rootfiles::has_devbin(tree.path()),
+    "an empty tree read as having bin/devbin"
+  );
+  std::fs::create_dir_all(tree.path().join("bin/devbin")).expect("a directory named bin/devbin");
+  assert!(
+    !rootfiles::has_devbin(tree.path()),
+    "a directory named bin/devbin read as the dispatcher"
+  );
+  let other = tempfile::tempdir().expect("tempdir");
+  std::fs::create_dir_all(other.path().join("bin")).expect("bin");
+  std::fs::write(other.path().join(rootfiles::DEVBIN), "#!/bin/sh\n").expect("write bin/devbin");
+  assert!(
+    rootfiles::has_devbin(other.path()),
+    "a tree with bin/devbin read as having none"
+  );
 }
 
 /// Blank lines beyond the first in each run -- so a lone separating blank

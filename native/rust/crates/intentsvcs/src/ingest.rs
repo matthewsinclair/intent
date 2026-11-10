@@ -1447,6 +1447,7 @@ fn carry_info_round_trip(
   let ctx = crate::views::RenderContext {
     version: crate::faces::INTENT_VER,
     todo_watermark: None,
+    devbin: crate::rootfiles::has_devbin(project.root()),
   };
   let mut findings = Vec::new();
 

@@ -127,6 +127,18 @@ pub enum Fault {
 /// [`crate::sync::ROOT_FILES`] is the one list of which files these are, and a
 /// table here pairing each name with its template would be that list wearing a
 /// different constant -- with nothing to notice on the day the two disagree.
+/// Where a project keeps the dispatcher it builds and tests through (issue
+/// 0672), relative to its root.
+pub const DEVBIN: &str = "bin/devbin";
+
+/// Whether the project at `root` builds and tests through [`DEVBIN`] (issue
+/// 0672). A template cannot know a project's own build and test commands, so
+/// a root file names `bin/devbin` where the tree has one and says that none
+/// is declared where it does not, and never a language's default.
+pub fn has_devbin(root: &Path) -> bool {
+  root.join(DEVBIN).is_file()
+}
+
 pub fn template_path(home: &Path, name: &str) -> PathBuf {
   home
     .join(crate::install::MARKER)
@@ -141,7 +153,7 @@ pub fn template_path(home: &Path, name: &str) -> PathBuf {
 /// expander: [`substitute`] is this plus a Markdown rule, so a template in any
 /// other format is expanded here and nowhere else.
 pub fn expand(template: &str, cfg: &Config, ctx: &RenderContext<'_>) -> Result<String, Fault> {
-  let kept = resolve_blocks(template, &cfg.languages)?;
+  let kept = resolve_blocks(template, &cfg.languages, ctx.devbin)?;
   expand_tokens(&kept, cfg, ctx)
 }
 
@@ -332,6 +344,7 @@ pub fn generate(
   let ctx = RenderContext {
     version,
     todo_watermark: None,
+    devbin: has_devbin(root),
   };
   sync(root, &home, name, cfg, &ctx)
 }
@@ -353,10 +366,12 @@ fn opener(line: &str) -> Option<Block> {
   {
     return Some(Block::Lang(rest.trim().to_string()));
   }
-  if t == "[[#nolang]]" {
-    return Some(Block::NoLang);
+  match t {
+    "[[#nolang]]" => Some(Block::NoLang),
+    "[[#devbin]]" => Some(Block::Devbin),
+    "[[#nodevbin]]" => Some(Block::NoDevbin),
+    _ => None,
   }
-  None
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -367,13 +382,19 @@ enum Block {
   /// template must be able to say what to print for a project that has not
   /// declared any, and there is no language name that means "none".
   NoLang,
+  /// Kept when the project builds and tests through `bin/devbin` (issue 0672).
+  Devbin,
+  /// Kept when it does not: the build and test lines a template cannot know.
+  NoDevbin,
 }
 
 impl Block {
-  fn keeps(&self, languages: &[String]) -> bool {
+  fn keeps(&self, languages: &[String], devbin: bool) -> bool {
     match self {
       Self::Lang(name) => languages.iter().any(|l| l == name),
       Self::NoLang => languages.is_empty(),
+      Self::Devbin => devbin,
+      Self::NoDevbin => !devbin,
     }
   }
 
@@ -381,11 +402,13 @@ impl Block {
     match self {
       Self::Lang(name) => format!("[[#lang {name}]]"),
       Self::NoLang => "[[#nolang]]".to_string(),
+      Self::Devbin => "[[#devbin]]".to_string(),
+      Self::NoDevbin => "[[#nodevbin]]".to_string(),
     }
   }
 }
 
-fn resolve_blocks(template: &str, languages: &[String]) -> Result<String, Fault> {
+fn resolve_blocks(template: &str, languages: &[String], devbin: bool) -> Result<String, Fault> {
   let mut out = String::with_capacity(template.len());
   let mut open: Option<Block> = None;
 
@@ -427,7 +450,10 @@ fn resolve_blocks(template: &str, languages: &[String]) -> Result<String, Fault>
       continue;
     }
 
-    if t == "[[/lang]]" || t == "[[/nolang]]" {
+    if matches!(
+      t,
+      "[[/lang]]" | "[[/nolang]]" | "[[/devbin]]" | "[[/nodevbin]]"
+    ) {
       let Some(block) = open.take() else {
         return Err(Fault::Unopened(t.to_string()));
       };
@@ -440,7 +466,7 @@ fn resolve_blocks(template: &str, languages: &[String]) -> Result<String, Fault>
       continue;
     }
 
-    let keep = open.as_ref().is_none_or(|b| b.keeps(languages));
+    let keep = open.as_ref().is_none_or(|b| b.keeps(languages, devbin));
     if keep {
       if t.is_empty() {
         // A blank the reader would meet as a second one, standing here only

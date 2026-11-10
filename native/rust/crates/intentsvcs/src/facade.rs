@@ -5005,6 +5005,7 @@ impl Facade {
     Ok(RenderContext {
       version: &self.ctx.version,
       todo_watermark: self.store.todo_watermark().map_err(FacadeError::Store)?,
+      devbin: crate::rootfiles::has_devbin(self.project.root()),
     })
   }
 
@@ -6113,6 +6114,7 @@ impl Facade {
     let ctx = RenderContext {
       version: &self.ctx.version,
       todo_watermark: None,
+      devbin: crate::rootfiles::has_devbin(self.project.root()),
     };
     Ok(crate::rootfiles::render(
       &home,
@@ -6171,6 +6173,7 @@ impl Facade {
     let ctx = RenderContext {
       version: &self.ctx.version,
       todo_watermark: None,
+      devbin: crate::rootfiles::has_devbin(self.project.root()),
     };
     let root = self.project.root().to_path_buf();
     let done = crate::canon::relayout(&root, &home, self.project.config(), &ctx, target)
@@ -6197,6 +6200,7 @@ impl Facade {
     let ctx = RenderContext {
       version: &self.ctx.version,
       todo_watermark: None,
+      devbin: crate::rootfiles::has_devbin(self.project.root()),
     };
     let applied = crate::canon::apply(
       self.project.root(),
@@ -13225,6 +13229,7 @@ impl Facade {
       &RenderContext {
         version: &ctx.version,
         todo_watermark,
+        devbin: crate::rootfiles::has_devbin(project.root()),
       },
       store,
       scope,

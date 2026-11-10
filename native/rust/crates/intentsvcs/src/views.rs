@@ -85,6 +85,12 @@ pub struct RenderContext<'a> {
   /// hand-edited on every project that had ever flushed, permanently, with
   /// nothing wrong.
   pub todo_watermark: Option<String>,
+  /// Whether the project builds and tests through `bin/devbin` (issue 0672),
+  /// read by whoever builds this context from the project's root with
+  /// [`crate::rootfiles::has_devbin`]: a root file's `[[#devbin]]` blocks are
+  /// kept on it, and its `[[#nodevbin]]` blocks on its absence. A fact about
+  /// the project's tree, never about the moment of rendering.
+  pub devbin: bool,
 }
 
 /// One rendered view: where it goes and what it says.
@@ -608,6 +614,7 @@ pub fn info_read_back(
   let ctx = RenderContext {
     version: stamped.unwrap_or(ctx.version),
     todo_watermark: ctx.todo_watermark.clone(),
+    devbin: ctx.devbin,
   };
   let rendered = info(thread, &ctx);
 
@@ -2969,6 +2976,7 @@ mod tests {
     RenderContext {
       version: "3.0.0-test",
       todo_watermark: None,
+      devbin: false,
     }
   }
 
@@ -2982,6 +2990,7 @@ mod tests {
       &RenderContext {
         version: "3.2.1",
         todo_watermark: None,
+        devbin: false,
       },
     );
     let at_minor = info(
@@ -2989,6 +2998,7 @@ mod tests {
       &RenderContext {
         version: "3.3.0",
         todo_watermark: None,
+        devbin: false,
       },
     );
     assert!(
@@ -3337,6 +3347,7 @@ mod tests {
       &RenderContext {
         version: "2.9.9-test",
         todo_watermark: None,
+        devbin: false,
       },
     ));
     assert!(
@@ -3380,6 +3391,7 @@ mod tests {
       &RenderContext {
         version: "2.9.9-test",
         todo_watermark: None,
+        devbin: false,
       },
     );
     for kind in [ViewKind::Board, ViewKind::Inbox, ViewKind::Other] {
@@ -3432,6 +3444,7 @@ mod tests {
       &RenderContext {
         version: "3.2.4-test",
         todo_watermark: None,
+        devbin: false,
       },
     )
     .replacen(heading, marked, 1);
@@ -3464,6 +3477,7 @@ mod tests {
     RenderContext {
       version: "3.0.0-test",
       todo_watermark: Some(mark.to_string()),
+      devbin: false,
     }
   }
 

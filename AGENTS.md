@@ -12,11 +12,10 @@ Intent -- an Intent project. See `CLAUDE.md` for the Claude-specific overlay.
 
 ### Prerequisites
 
-- Elixir / Erlang / OTP (see `mix.exs` for version)
-- Rust toolchain (see `Cargo.toml` for edition)
-- Swift toolchain (see `Package.swift` for the tools version)
-- Bash or Zsh (see the project's own docs for the target version)
-- Bats testing framework
+- Elixir / Erlang / OTP
+- Rust toolchain
+- Swift toolchain
+- Bash or Zsh
 
 ### Setup
 
@@ -24,52 +23,9 @@ Intent -- an Intent project. See `CLAUDE.md` for the Claude-specific overlay.
 intent doctor     # verify Intent configuration
 ```
 
-```bash
-mix deps.get
-mix compile
-```
-
-```bash
-cargo build
-```
-
-```bash
-swift build
-```
-
 ## Build and Test Commands
 
-### Test commands
-
-```bash
-mix test
-```
-
-```bash
-cargo test
-```
-
-```bash
-swift test
-```
-
-```bash
-bats -r tests/
-```
-
-### Building
-
-```bash
-mix compile
-```
-
-```bash
-cargo build
-```
-
-```bash
-swift build
-```
+This project builds and tests through `bin/devbin`, and only through it: `bin/devbin --help` lists its verbs. Do not run a language's own build or test tools directly. `bin/devbin` books no slot itself, so where `intent estate status` shows the estate has a controller, ask it for one with `intent estate slots ask` before a build or a test.
 
 ### Validation
 
@@ -143,7 +99,7 @@ What is installed is read live, never listed here: `intent claude skills list` a
 
 ## Testing Instructions
 
-1. Run the test suite before making changes -- establish a baseline.
+1. Run the project's tests, as Build and Test Commands says, before making changes -- establish a baseline.
 2. Make changes.
 3. Run the suite again; confirm no regressions.
 4. Add new tests for new functionality.

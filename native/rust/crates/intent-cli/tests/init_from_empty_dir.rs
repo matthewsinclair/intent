@@ -210,7 +210,7 @@ fn init_lang_writes_an_agent_contract_that_names_the_languages() {
     "AGENTS.md says no language is declared, beside a config that declares two:\n{agents}"
   );
   assert!(
-    agents.contains("Bats testing framework"),
+    agents.contains("- Bash or Zsh"),
     "AGENTS.md does not carry the shell block the declared language selects:\n{agents}"
   );
   for line in [
@@ -220,6 +220,39 @@ fn init_lang_writes_an_agent_contract_that_names_the_languages() {
   ] {
     assert!(out.contains(line), "the report lost `{line}`: {out}");
   }
+}
+
+/// **THE CONTRACT'S BUILD AND TEST LINES FOLLOW THE TREE** (issue 0672): a
+/// project is told it declares no build or test commands until it has
+/// `bin/devbin`, and `intent agents sync` then points it there, whatever
+/// languages it declares.
+#[test]
+fn agents_sync_points_a_project_at_its_devbin_once_the_tree_has_one() {
+  let dir = empty_dir();
+  let (out, err, code) = run(&["init", "p", "--lang", "rust,shell,swift"], dir.path());
+  assert_eq!(code, 0, "init --lang refused: {out}{err}");
+  let read = || std::fs::read_to_string(dir.path().join("AGENTS.md")).expect("no AGENTS.md");
+  let devbin_line = "builds and tests through `bin/devbin`";
+  let none_line = "declares no build or test commands";
+  let before = read();
+  assert!(
+    before.contains(none_line) && !before.contains(devbin_line),
+    "a project without bin/devbin was not told that none is declared:\n{before}"
+  );
+
+  std::fs::create_dir_all(dir.path().join("bin")).expect("bin");
+  std::fs::write(dir.path().join("bin/devbin"), "#!/bin/sh\n").expect("write bin/devbin");
+  let (out, err, code) = run(&["agents", "sync"], dir.path());
+  assert_eq!(code, 0, "agents sync refused: {out}{err}");
+  let after = read();
+  assert!(
+    after.contains(devbin_line) && !after.contains(none_line),
+    "agents sync did not point a project with bin/devbin at it:\n{after}"
+  );
+  assert!(
+    !after.contains("cargo test") && !after.contains("swift build") && !after.contains("bats -r"),
+    "a language default survived beside bin/devbin:\n{after}"
+  );
 }
 
 /// A name given twice is declared once and reported as `lang init` reports it.
