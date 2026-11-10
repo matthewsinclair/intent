@@ -113,7 +113,27 @@ impl Remedy for LaunchAgentError {
 /// the operator's own command is worse than no supervisor**, and the daemon has
 /// nothing to supervise it through: it holds no state a restart would recover,
 /// because the store is on disk and every client reconnects.
-pub fn plist(binary: &Path, log: &Path, error_log: &Path) -> String {
+///
+/// **`EnvironmentVariables` CARRIES `CLAUDE_CONFIG_DIR` AND NOTHING ELSE**
+/// (issue 0671). `launchd` starts the job with an environment of its own, so a
+/// daemon started at login has no variable its plist does not name, and one
+/// without this variable looks for Claude Code's sessions under `$HOME/.claude`.
+/// On a machine that moves that directory it sees none, and the estate page
+/// marks every running slot ORPHANED. With no value to carry the dict is left
+/// out, and the plist is the one every earlier build wrote.
+pub fn plist(
+  binary: &Path,
+  log: &Path,
+  error_log: &Path,
+  claude_config_dir: Option<&str>,
+) -> String {
+  let environment = claude_config_dir.map_or_else(String::new, |dir| {
+    format!(
+      "  <key>EnvironmentVariables</key>\n  <dict>\n    <key>{key}</key>\n    <string>{dir}</string>\n  </dict>\n",
+      key = userstate::CLAUDE_CONFIG_DIR_VAR,
+      dir = escape(dir),
+    )
+  });
   format!(
     r#"<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -131,7 +151,7 @@ pub fn plist(binary: &Path, log: &Path, error_log: &Path) -> String {
   <array>
     <string>{binary}</string>
   </array>
-  <key>RunAtLoad</key>
+{environment}  <key>RunAtLoad</key>
   <true/>
   <key>KeepAlive</key>
   <false/>
@@ -173,17 +193,55 @@ pub fn stamped_version(dirs: &userstate::Dirs) -> Option<String> {
   Some(rest[..end].trim().to_string())
 }
 
-/// Does the plist under `dirs` need regenerating?
+/// Does the plist under `dirs` need regenerating, for a caller whose
+/// `CLAUDE_CONFIG_DIR` is `claude_config_dir`?
 ///
 /// **NOT ENROLLED IS NOT STALE.** An absent plist is an operator who never
 /// enrolled, and healing it would enrol them -- turning a repair into a
 /// decision they did not make. `AC-08.7` is about artefacts that EXIST being
 /// brought up to date, never about creating ones that do not.
-pub fn is_stale(dirs: &userstate::Dirs) -> bool {
+///
+/// **A STAMP FROM ANOTHER BUILD IS STALE, AND SO IS A PLIST THAT DOES NOT CARRY
+/// THE CALLER'S VALUE** (issue 0671). A daemon booted without the variable heals
+/// an old plist into one stamped by this build and carrying nothing, which a
+/// stamp alone then reads as current, so `intent daemon start --at-login` from a
+/// shell that has the variable could never add it. For a caller with no value
+/// a plist is never stale on content, so a daemon without one leaves a current
+/// plist alone. [`write_plist`] keeps the value a plist carries when the caller
+/// has none, so a rewrite never drops one.
+pub fn is_stale(dirs: &userstate::Dirs, claude_config_dir: Option<&str>) -> bool {
   if !is_enrolled(dirs) {
     return false;
   }
   stamped_version(dirs).as_deref() != Some(crate::faces::INTENT_VER)
+    || adds(dirs, claude_config_dir).is_some()
+}
+
+/// The `CLAUDE_CONFIG_DIR` the plist under `dirs` carries, if it carries one.
+///
+/// Read back as [`plist`] writes it, the first `<string>` after the key, with
+/// the XML escape undone, so a value with `&` in it reads back as it was given.
+pub fn carried_claude_config_dir(dirs: &userstate::Dirs) -> Option<String> {
+  let body = std::fs::read_to_string(userstate::launch_agent_plist_under(dirs)).ok()?;
+  carried_in(&body)
+}
+
+/// [`carried_claude_config_dir`] over a plist's text. `None` unless the key's
+/// own value follows it, with nothing but whitespace between them.
+fn carried_in(body: &str) -> Option<String> {
+  let key = format!("<key>{}</key>", userstate::CLAUDE_CONFIG_DIR_VAR);
+  let after = &body[body.find(&key)? + key.len()..];
+  let rest = after.trim_start().strip_prefix("<string>")?;
+  let value = unescape(&rest[..rest.find("</string>")?]);
+  (!value.is_empty()).then_some(value)
+}
+
+/// The value a rewrite for this caller would add to the plist under `dirs`:
+/// the caller's own, when it is set and the plist does not already carry it.
+/// `None` when the caller has none, or the plist carries the same.
+fn adds(dirs: &userstate::Dirs, claude_config_dir: Option<&str>) -> Option<String> {
+  let dir = claude_config_dir.filter(|dir| !dir.is_empty())?;
+  (carried_claude_config_dir(dirs).as_deref() != Some(dir)).then(|| dir.to_string())
 }
 
 /// XML-escape a value going into the plist.
@@ -200,6 +258,15 @@ fn escape(raw: &str) -> String {
     .replace('&', "&amp;")
     .replace('<', "&lt;")
     .replace('>', "&gt;")
+}
+
+/// [`escape`] undone, `&amp;` last, so a value that held the text `&lt;` reads
+/// back as that text rather than as `<`.
+fn unescape(escaped: &str) -> String {
+  escaped
+    .replace("&lt;", "<")
+    .replace("&gt;", ">")
+    .replace("&amp;", "&")
 }
 
 /// Whether this machine can enrol the daemon at login. Only macOS can: enrolment
@@ -221,7 +288,21 @@ pub fn enrolment_supported(os: &str) -> Result<(), LaunchAgentError> {
 /// Write the plist under `dirs`, creating `~/Library/LaunchAgents/` if absent.
 ///
 /// Returns the path written. Does NOT tell `launchd` about it -- see [`load`].
-pub fn write_plist(dirs: &userstate::Dirs, binary: &Path) -> Result<PathBuf, LaunchAgentError> {
+///
+/// **THE PLIST CARRIES THE CALLER'S `CLAUDE_CONFIG_DIR`, OR ELSE THE ONE IT
+/// ALREADY CARRIES** (issue 0671). The caller's wins when both are set. The
+/// daemon's boot heal is a caller too, and one that may have been started
+/// without the variable, so a rewrite with no value keeps the old file's value
+/// rather than dropping it.
+pub fn write_plist(
+  dirs: &userstate::Dirs,
+  binary: &Path,
+  claude_config_dir: Option<&str>,
+) -> Result<PathBuf, LaunchAgentError> {
+  let carries = claude_config_dir
+    .filter(|dir| !dir.is_empty())
+    .map(str::to_string)
+    .or_else(|| carried_claude_config_dir(dirs));
   let path = userstate::launch_agent_plist_under(dirs);
   if let Some(parent) = path.parent() {
     std::fs::create_dir_all(parent).map_err(|cause| LaunchAgentError::Unwritable {
@@ -240,7 +321,12 @@ pub fn write_plist(dirs: &userstate::Dirs, binary: &Path) -> Result<PathBuf, Lau
       cause,
     })?;
   }
-  let body = plist(binary, &log, &userstate::daemon_error_log_under(dirs));
+  let body = plist(
+    binary,
+    &log,
+    &userstate::daemon_error_log_under(dirs),
+    carries.as_deref(),
+  );
   std::fs::write(&path, body).map_err(|cause| LaunchAgentError::Unwritable {
     path: path.clone(),
     cause,
@@ -269,20 +355,27 @@ pub fn is_enrolled(dirs: &userstate::Dirs) -> bool {
 pub enum Enrolment {
   /// No plist: never enrolled, or unenrolled since.
   Absent,
-  /// A plist another build wrote, with the version its stamp names, or `None`
-  /// for one written before the stamp existed.
-  Stale { stamped: Option<String> },
-  /// A plist this build wrote.
+  /// A plist a rewrite would change: `stamped` is the version its stamp names,
+  /// `None` for one written before the stamp existed, and `adds` the
+  /// `CLAUDE_CONFIG_DIR` a rewrite would bring that it does not carry, `None`
+  /// when it already carries the caller's or the caller has none.
+  Stale {
+    stamped: Option<String>,
+    adds: Option<String>,
+  },
+  /// A plist this build wrote, carrying the caller's value when it has one.
   Current,
 }
 
-/// Read [`Enrolment`] from the plist under `dirs`.
-pub fn enrolment(dirs: &userstate::Dirs) -> Enrolment {
+/// Read [`Enrolment`] from the plist under `dirs`, for a caller whose
+/// `CLAUDE_CONFIG_DIR` is `claude_config_dir` (see [`is_stale`]).
+pub fn enrolment(dirs: &userstate::Dirs, claude_config_dir: Option<&str>) -> Enrolment {
   if !is_enrolled(dirs) {
     Enrolment::Absent
-  } else if is_stale(dirs) {
+  } else if is_stale(dirs, claude_config_dir) {
     Enrolment::Stale {
       stamped: stamped_version(dirs),
+      adds: adds(dirs, claude_config_dir),
     }
   } else {
     Enrolment::Current
@@ -295,10 +388,14 @@ pub enum Beside {
   /// This build's plist is in place, so the enrolment holds and nothing is
   /// written.
   Holds,
-  /// An enrolment another build wrote: rewrite the plist with [`write_plist`]
-  /// and load nothing. `was` is the version it replaces, `None` for a plist
-  /// with no stamp.
-  Rewrite { was: Option<String> },
+  /// An enrolment a rewrite would change: rewrite the plist with
+  /// [`write_plist`] and load nothing. `was` is the version it replaces, `None`
+  /// for a plist with no stamp, and `adds` the `CLAUDE_CONFIG_DIR` the rewrite
+  /// brings, as [`Enrolment::Stale`] names them.
+  Rewrite {
+    was: Option<String>,
+    adds: Option<String>,
+  },
 }
 
 /// The answer `intent daemon start --at-login` gives beside the daemon already
@@ -319,8 +416,31 @@ pub enum Beside {
 pub fn beside_a_running_daemon(pid: u32, enrolment: Enrolment) -> Result<Beside, LaunchAgentError> {
   match enrolment {
     Enrolment::Absent => Err(LaunchAgentError::RunningUnenrolled { pid }),
-    Enrolment::Stale { stamped } => Ok(Beside::Rewrite { was: stamped }),
+    Enrolment::Stale { stamped, adds } => Ok(Beside::Rewrite { was: stamped, adds }),
     Enrolment::Current => Ok(Beside::Holds),
+  }
+}
+
+/// What a rewrite of a stale plist changed, in the words `intent daemon start
+/// --at-login` and the daemon's boot heal both print after "rewritten" and
+/// "regenerated" (issue 0671).
+///
+/// A stamp from another build reads `(was <stamped>, now <this build>)`, and
+/// `unstamped` stands in for no stamp. A value the rewrite adds reads `and now
+/// carries CLAUDE_CONFIG_DIR <value>` after that, or `to carry
+/// CLAUDE_CONFIG_DIR <value>` alone when the stamp was already this build's,
+/// where `(was 3.2.9, now 3.2.9)` would say nothing. PURE, so every wording is
+/// driven on any host.
+pub fn rewritten(stamped: Option<&str>, adds: Option<&str>) -> String {
+  let now = crate::faces::INTENT_VER;
+  let restamped =
+    (stamped != Some(now)).then(|| format!("(was {}, now {now})", stamped.unwrap_or("unstamped")));
+  let carried = adds.map(|dir| format!("{} {dir}", userstate::CLAUDE_CONFIG_DIR_VAR));
+  match (restamped, carried) {
+    (Some(restamped), Some(carried)) => format!("{restamped} and now carries {carried}"),
+    (Some(restamped), None) => restamped,
+    (None, Some(carried)) => format!("to carry {carried}"),
+    (None, None) => format!("(was {now}, now {now})"),
   }
 }
 
@@ -407,11 +527,13 @@ mod tests {
   fn beside_a_running_daemon_another_builds_plist_is_rewritten_naming_its_version() {
     let stale = Enrolment::Stale {
       stamped: Some("3.2.7".to_string()),
+      adds: None,
     };
     assert_eq!(
       beside_a_running_daemon(4242, stale).expect("a stale plist is rewritten"),
       Beside::Rewrite {
-        was: Some("3.2.7".to_string())
+        was: Some("3.2.7".to_string()),
+        adds: None,
       }
     );
   }
@@ -441,13 +563,19 @@ mod tests {
   fn the_enrolment_is_read_as_absent_stale_or_current_from_the_plist() {
     let home = root();
     let dirs = userstate::Dirs::at_home(home.path());
-    assert_eq!(enrolment(&dirs), Enrolment::Absent);
+    assert_eq!(enrolment(&dirs, None), Enrolment::Absent);
 
     let plist = userstate::launch_agent_plist_under(&dirs);
     std::fs::create_dir_all(plist.parent().expect("a parent")).expect("create LaunchAgents");
     std::fs::write(&plist, "<plist><dict><key>Label</key></dict></plist>\n")
       .expect("plant a pre-stamp plist");
-    assert_eq!(enrolment(&dirs), Enrolment::Stale { stamped: None });
+    assert_eq!(
+      enrolment(&dirs, None),
+      Enrolment::Stale {
+        stamped: None,
+        adds: None
+      }
+    );
 
     std::fs::write(
       &plist,
@@ -455,14 +583,16 @@ mod tests {
     )
     .expect("plant an older build's plist");
     assert_eq!(
-      enrolment(&dirs),
+      enrolment(&dirs, None),
       Enrolment::Stale {
-        stamped: Some("0.0.1".to_string())
+        stamped: Some("0.0.1".to_string()),
+        adds: None
       }
     );
 
-    write_plist(&dirs, Path::new("/opt/intent/bin/intentd")).expect("write this build's plist");
-    assert_eq!(enrolment(&dirs), Enrolment::Current);
+    write_plist(&dirs, Path::new("/opt/intent/bin/intentd"), None)
+      .expect("write this build's plist");
+    assert_eq!(enrolment(&dirs, None), Enrolment::Current);
   }
 
   #[test]
@@ -470,7 +600,7 @@ mod tests {
     let home = root();
     let binary = std::path::Path::new("/opt/intent/bin/intentd");
     let written =
-      write_plist(&userstate::Dirs::at_home(home.path()), binary).expect("write the plist");
+      write_plist(&userstate::Dirs::at_home(home.path()), binary, None).expect("write the plist");
     let body = std::fs::read_to_string(&written).expect("read it back");
 
     assert!(body.contains(LAUNCH_AGENT_LABEL), "no label: {body}");
@@ -513,6 +643,7 @@ mod tests {
     let written = write_plist(
       &userstate::Dirs::at_home(&awkward),
       std::path::Path::new("/bin/intentd"),
+      None,
     )
     .expect("write under an awkward root");
     let body = std::fs::read_to_string(&written).expect("read it back");
@@ -547,6 +678,7 @@ mod tests {
     write_plist(
       &userstate::Dirs::at_home(home.path()),
       std::path::Path::new("/bin/intentd"),
+      None,
     )
     .expect("write");
 
@@ -571,6 +703,7 @@ mod tests {
     write_plist(
       &userstate::Dirs::at_home(home.path()),
       std::path::Path::new("/bin/intentd"),
+      None,
     )
     .expect("write");
     assert_eq!(
@@ -579,7 +712,7 @@ mod tests {
       "a plist this build just wrote does not name this build"
     );
     assert!(
-      !is_stale(&userstate::Dirs::at_home(home.path())),
+      !is_stale(&userstate::Dirs::at_home(home.path()), None),
       "a plist this build just wrote reports as stale, so every boot would rewrite it forever"
     );
   }
@@ -604,7 +737,7 @@ mod tests {
       "an unstamped plist reported a version"
     );
     assert!(
-      is_stale(&userstate::Dirs::at_home(home.path())),
+      is_stale(&userstate::Dirs::at_home(home.path()), None),
       "a plist from before the stamp existed is not being healed, which is the whole population the criterion names"
     );
   }
@@ -615,6 +748,7 @@ mod tests {
     write_plist(
       &userstate::Dirs::at_home(home.path()),
       std::path::Path::new("/bin/intentd"),
+      None,
     )
     .expect("write");
     let path = userstate::launch_agent_plist_under(&userstate::Dirs::at_home(home.path()));
@@ -631,7 +765,7 @@ mod tests {
       Some("0.0.1-from-another-build")
     );
     assert!(
-      is_stale(&userstate::Dirs::at_home(home.path())),
+      is_stale(&userstate::Dirs::at_home(home.path()), None),
       "a plist naming another build is not stale"
     );
   }
@@ -651,7 +785,7 @@ mod tests {
       "the fixture is already enrolled"
     );
     assert!(
-      !is_stale(&userstate::Dirs::at_home(home.path())),
+      !is_stale(&userstate::Dirs::at_home(home.path()), None),
       "a machine that never enrolled reports as stale, so booting would enrol it without being asked"
     );
   }
@@ -663,17 +797,18 @@ mod tests {
     std::fs::create_dir_all(path.parent().expect("a parent")).expect("dirs");
     std::fs::write(&path, "<plist><dict></dict></plist>\n").expect("write an old plist");
     assert!(
-      is_stale(&userstate::Dirs::at_home(home.path())),
+      is_stale(&userstate::Dirs::at_home(home.path()), None),
       "the fixture is not stale to begin with"
     );
 
     write_plist(
       &userstate::Dirs::at_home(home.path()),
       std::path::Path::new("/bin/intentd"),
+      None,
     )
     .expect("regenerate");
     assert!(
-      !is_stale(&userstate::Dirs::at_home(home.path())),
+      !is_stale(&userstate::Dirs::at_home(home.path()), None),
       "regenerating left the plist stale, so the healing does not converge"
     );
   }
@@ -689,6 +824,7 @@ mod tests {
     write_plist(
       &userstate::Dirs::at_home(home.path()),
       std::path::Path::new("/bin/intentd"),
+      None,
     )
     .expect("write");
     assert!(
@@ -712,6 +848,94 @@ mod tests {
     assert!(
       !remove_plist(&userstate::Dirs::at_home(home.path())).expect("second remove"),
       "removing an absent plist reported that it removed one"
+    );
+  }
+
+  /// Issue 0671: **the value goes in escaped and reads back as it was given**,
+  /// and a plist with no value to carry names no environment at all.
+  #[test]
+  fn a_claude_config_dir_is_carried_escaped_and_reads_back_as_given() {
+    let home = root();
+    let dirs = userstate::Dirs::at_home(home.path());
+    let binary = Path::new("/bin/intentd");
+    let plist = userstate::launch_agent_plist_under(&dirs);
+
+    write_plist(&dirs, binary, None).expect("write with no value");
+    let bare = std::fs::read_to_string(&plist).expect("read the plist");
+    assert!(
+      !bare.contains("EnvironmentVariables"),
+      "a plist with no value to carry names an environment: {bare}"
+    );
+    assert_eq!(carried_claude_config_dir(&dirs), None);
+
+    let awkward = "/Users/a&b/R&D <lab>/.config/claude";
+    write_plist(&dirs, binary, Some(awkward)).expect("write with a value");
+    let body = std::fs::read_to_string(&plist).expect("read the plist again");
+    assert!(
+      body.contains("<key>CLAUDE_CONFIG_DIR</key>")
+        && body.contains("<string>/Users/a&amp;b/R&amp;D &lt;lab&gt;/.config/claude</string>"),
+      "the value is not carried, escaped, under its key: {body}"
+    );
+    assert_eq!(carried_claude_config_dir(&dirs).as_deref(), Some(awkward));
+  }
+
+  /// Issue 0671: **a plist that lacks the caller's value is stale, a caller with
+  /// none never finds one stale on content, and a rewrite with none keeps the
+  /// value the plist carries**, which is the daemon's boot heal without the
+  /// variable.
+  #[test]
+  fn a_plist_lacking_the_callers_value_is_stale_and_a_rewrite_without_one_keeps_it() {
+    let home = root();
+    let dirs = userstate::Dirs::at_home(home.path());
+    let binary = Path::new("/bin/intentd");
+    let dir = "/Users/test/.config/claude";
+
+    write_plist(&dirs, binary, None).expect("write this build's plist with no value");
+    assert!(
+      !is_stale(&dirs, None),
+      "a caller with no value found this build's plist stale"
+    );
+    assert_eq!(
+      enrolment(&dirs, Some(dir)),
+      Enrolment::Stale {
+        stamped: Some(crate::faces::INTENT_VER.to_string()),
+        adds: Some(dir.to_string()),
+      },
+      "a plist lacking the caller's value is not stale for that caller"
+    );
+
+    write_plist(&dirs, binary, Some(dir)).expect("write the caller's value");
+    assert_eq!(enrolment(&dirs, Some(dir)), Enrolment::Current);
+
+    write_plist(&dirs, binary, None).expect("rewrite with no value");
+    assert_eq!(
+      carried_claude_config_dir(&dirs).as_deref(),
+      Some(dir),
+      "a rewrite with no value dropped the one the plist carried"
+    );
+    assert!(
+      is_stale(&dirs, Some("/Users/test/elsewhere")),
+      "a plist carrying another value is not stale for a caller with a different one"
+    );
+  }
+
+  /// Issue 0671: **a rewrite names what it changed**: another build's stamp as
+  /// before, a value it adds after that, and the value alone when the stamp was
+  /// already this build's. The other build's stamp is derived from this build's
+  /// version, so the two can never be equal whatever version is cut.
+  #[test]
+  fn a_rewrite_names_the_stamp_it_replaced_and_the_value_it_added() {
+    let now = crate::faces::INTENT_VER;
+    let other = format!("{now}-another-build");
+    let dir = "/Users/test/.config/claude";
+    assert_eq!(rewritten(None, None), format!("(was unstamped, now {now})"));
+    assert_eq!(
+      rewritten(Some(other.as_str()), Some(dir)),
+      format!("(was {other}, now {now}) and now carries CLAUDE_CONFIG_DIR {dir}")
+    );
+    assert_eq!(
+      rewritten(Some(now), Some(dir)),
+      format!("to carry CLAUDE_CONFIG_DIR {dir}")
     );
   }
 }

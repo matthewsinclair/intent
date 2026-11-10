@@ -18,16 +18,31 @@ struct LoginShell: Sendable {
   let intent: String?
   /// How `intent` was found, written to the launch log line.
   let source: String
+  /// The login shell's `CLAUDE_CONFIG_DIR`, or nil when it sets none (issue
+  /// 0671). Claude Code keeps its sessions there when it is set, and a daemon
+  /// this app starts finds them only if it is handed the same value.
+  let claudeConfigDir: String?
 
   static let fallbackPath = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
+  /// The variable the probe reads besides PATH, and the tag on its line.
+  static let claudeConfigDirVariable = "CLAUDE_CONFIG_DIR"
+  static let claudeConfigDirTag = claudeConfigDirVariable + "="
+
   static func capture() -> LoginShell {
-    let out = zsh("printf '%s\\n' \"$PATH\"; command -v intent || true")
+    let out = zsh(
+      "printf '%s\\n' \"$PATH\"; command -v intent || true; "
+        + "printf '\(claudeConfigDirTag)%s\\n' \"${\(claudeConfigDirVariable)-}\""
+    )
     return parse(out)
   }
 
-  /// First line is PATH, the next non-empty line (if any) is where the shell
-  /// found intent. Separated from `capture` so it is testable without a shell.
+  /// First line is PATH, the next non-empty untagged line (if any) is where
+  /// the shell found intent, and the line tagged `CLAUDE_CONFIG_DIR=` is that
+  /// variable, empty when the shell sets none. Tagged rather than placed: when
+  /// `command -v` finds nothing it prints no line, so a third line by position
+  /// would be read as intent's. Separated from `capture` so it is testable
+  /// without a shell.
   static func parse(
     _ out: String,
     home: String = NSHomeDirectory(),
@@ -35,16 +50,23 @@ struct LoginShell: Sendable {
   ) -> LoginShell {
     let lines = out.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
     let path = lines.first.flatMap { $0.isEmpty ? nil : $0 } ?? fallbackPath
-    let found = lines.dropFirst().first { !$0.isEmpty }
+    let rest = lines.dropFirst()
+    let found = rest.first { !$0.isEmpty && !$0.hasPrefix(claudeConfigDirTag) }
+    let tagged = rest.first(where: { $0.hasPrefix(claudeConfigDirTag) })
+    let value = tagged.map { String($0.dropFirst(claudeConfigDirTag.count)) }
+    let dir = value.flatMap { $0.isEmpty ? nil : $0 }
 
     if let found, isExecutable(found) {
-      return LoginShell(path: path, intent: found, source: "login shell: \(found)")
+      return LoginShell(
+        path: path, intent: found, source: "login shell: \(found)", claudeConfigDir: dir)
     }
     let symlink = home + "/.local/bin/intent"
     if isExecutable(symlink) {
-      return LoginShell(path: path, intent: symlink, source: "~/.local/bin/intent")
+      return LoginShell(
+        path: path, intent: symlink, source: "~/.local/bin/intent", claudeConfigDir: dir)
     }
-    return LoginShell(path: path, intent: nil, source: "not on the login shell's PATH")
+    return LoginShell(
+      path: path, intent: nil, source: "not on the login shell's PATH", claudeConfigDir: dir)
   }
 
   /// Whether `p` runs: an executable file, or a link to one. The link is

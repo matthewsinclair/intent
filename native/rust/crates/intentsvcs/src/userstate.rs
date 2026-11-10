@@ -374,15 +374,37 @@ pub fn author() -> Option<String> {
 /// two scripts and the in-session release line resolve the same way, so the
 /// install, the release and the check read one path.
 pub fn claude_dir() -> Result<PathBuf, UserStateError> {
-  pick_claude_dir(std::env::var("CLAUDE_CONFIG_DIR").ok(), home)
+  pick_claude_dir(claude_config_dir(), home)
 }
 
 /// Whether `$CLAUDE_CONFIG_DIR` chose [`claude_dir`], by the same test
 /// [`claude_dir`] applies. Claude Code keys its Keychain item on this, not on
 /// the path, so a variable set to `$HOME/.claude` explicitly still counts.
 pub fn claude_dir_configured() -> bool {
-  configured(std::env::var("CLAUDE_CONFIG_DIR").ok().as_deref())
+  claude_config_dir().is_some()
 }
+
+/// `$CLAUDE_CONFIG_DIR` when it answers, set and non-empty, and `None`
+/// otherwise.
+///
+/// **THE ONE READER OF THE VARIABLE** (issue 0671). [`claude_dir`] and
+/// [`claude_dir_configured`] read through it, and so do `intent daemon start
+/// --at-login` and the daemon's boot heal, which write it into the
+/// LaunchAgent: a daemon `launchd` starts at login has only the environment
+/// the plist gives it, and one started without the variable looks for Claude
+/// Code's sessions under `$HOME/.claude` and finds none.
+pub fn claude_config_dir() -> Option<String> {
+  std::env::var("CLAUDE_CONFIG_DIR")
+    .ok()
+    .filter(|dir| configured(Some(dir)))
+}
+
+/// The variable's name, for a file that writes it rather than reads it: the
+/// key the LaunchAgent's `EnvironmentVariables` carries it under (issue 0671).
+///
+/// [`claude_config_dir`] spells the name again, literally, because
+/// `no_intent_home.rs` refuses an environment read whose name it cannot see.
+pub const CLAUDE_CONFIG_DIR_VAR: &str = "CLAUDE_CONFIG_DIR";
 
 /// Set and non-empty: the one test of whether the variable answers.
 fn configured(config_dir: Option<&str>) -> bool {

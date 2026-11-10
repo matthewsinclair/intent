@@ -1075,7 +1075,8 @@ async fn shutdown() -> &'static str {
 }
 
 /// Regenerate this machine's LaunchAgent if an older build wrote it
-/// (`AC-08.7`).
+/// (`AC-08.7`), or if it lacks the `CLAUDE_CONFIG_DIR` this process has (issue
+/// 0671).
 ///
 /// **THE STAMP IS THE TRIGGER AND THE CONTENT IS WHAT HEALS.** A version bump
 /// alone rewrites a byte-identical file, which is a no-op and fine; what the
@@ -1102,10 +1103,17 @@ fn heal_the_policy_stamp() {
     // elsewhere when it matters. There is no plist to heal.
     return;
   };
-  if !launchagent::is_stale(&dirs) {
+  // **THIS PROCESS'S OWN `CLAUDE_CONFIG_DIR`, WHICH MAY BE NONE** (issue 0671).
+  // A daemon started without the variable finds a current plist current and
+  // keeps the value an old one carries when it rewrites it, so the heal never
+  // drops a value; one started with it adds it to a plist that lacks it.
+  let claude_config_dir = userstate::claude_config_dir();
+  let launchagent::Enrolment::Stale { stamped, adds } =
+    launchagent::enrolment(&dirs, claude_config_dir.as_deref())
+  else {
     return;
-  }
-  let was = launchagent::stamped_version(&dirs).unwrap_or_else(|| "unstamped".to_string());
+  };
+  let was = stamped.as_deref().unwrap_or("unstamped");
   // **THE PLIST NAMES THIS BINARY, WHICH IS THE ONE FACT AN OLD PLIST IS MOST
   // LIKELY TO HAVE WRONG.** Resolved from `current_exe` rather than from
   // anything ambient, on `install.rs`'s precedent: a path read from the
@@ -1117,11 +1125,11 @@ fn heal_the_policy_stamp() {
     );
     return;
   };
-  match launchagent::write_plist(&dirs, &binary) {
+  match launchagent::write_plist(&dirs, &binary, claude_config_dir.as_deref()) {
     Ok(path) => logln!(
-      "intentd: regenerated the LaunchAgent at {} (was {was}, now {})",
+      "intentd: regenerated the LaunchAgent at {} {}",
       path.display(),
-      intentsvcs::faces::INTENT_VER
+      launchagent::rewritten(stamped.as_deref(), adds.as_deref())
     ),
     Err(e) => elogln!(
       "warning: this machine's LaunchAgent was written by {was} and could not be regenerated: {e}\n  remedy: `intent daemon start --at-login` rewrites it. The daemon is running and unaffected; the stale plist only matters at the next login."

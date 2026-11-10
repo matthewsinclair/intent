@@ -16,6 +16,11 @@
 //! need a running daemon under an isolated `HOME`, which is this file's
 //! harness, and they run on macOS only, because elsewhere the flag is refused
 //! before the running check (`at_login_is_refused_off_macos.rs`).
+//! **Issue 0671's three arms are the plist's `CLAUDE_CONFIG_DIR`:**
+//! `start_at_login_writes_the_shells_claude_config_dir_into_the_plist`,
+//! `a_daemon_without_claude_config_dir_heals_a_stale_plist_keeping_the_one_it_carries`
+//! and `start_at_login_beside_a_running_daemon_adds_the_shells_claude_config_dir`.
+//! The two that pass `--at-login` run on macOS only, for the same reason.
 //!
 //! **NAMING THE ARMS IS LOAD-BEARING RATHER THAN TIDY.** Rows citing one
 //! file by bare filename means greening any one greens the others by
@@ -50,6 +55,9 @@ use std::sync::atomic::{AtomicU32, Ordering};
 struct Machine {
   home: PathBuf,
   project: PathBuf,
+  /// The `CLAUDE_CONFIG_DIR` every later [`Machine::run`] hands the binary,
+  /// once an arm has set one with [`Machine::carry_claude_config_dir`].
+  claude_config_dir: Option<PathBuf>,
 }
 
 impl Machine {
@@ -81,7 +89,11 @@ impl Machine {
       "the fixture project was not created: {}",
       String::from_utf8_lossy(&made.stderr)
     );
-    Machine { home, project }
+    Machine {
+      home,
+      project,
+      claude_config_dir: None,
+    }
   }
 
   fn run(&self, argv: &[&str]) -> Output {
@@ -104,7 +116,23 @@ impl Machine {
         ),
       );
     }
+    // `testkit::fixtured_command` removes the operator's `CLAUDE_CONFIG_DIR`,
+    // so a run has one only once an arm has set it (issue 0671).
+    if let Some(dir) = &self.claude_config_dir {
+      command.env("CLAUDE_CONFIG_DIR", dir);
+    }
     command.output().expect("the intent binary runs")
+  }
+
+  /// Hand every later [`Machine::run`] a `CLAUDE_CONFIG_DIR` inside this
+  /// machine's `HOME`, and return it as a plist names it (issue 0671). A daemon
+  /// already running keeps the environment it was started with.
+  fn carry_claude_config_dir(&mut self) -> String {
+    let dir = self.home.join(".config/claude");
+    std::fs::create_dir_all(&dir).expect("create the Claude directory");
+    let named = dir.display().to_string();
+    self.claude_config_dir = Some(dir);
+    named
   }
 
   fn state_dir(&self) -> PathBuf {
@@ -177,6 +205,27 @@ fn plant_unstamped(m: &Machine) {
   std::fs::create_dir_all(plist.parent().expect("a parent")).expect("dirs");
   std::fs::write(&plist, "<plist><dict><key>Label</key></dict></plist>\n")
     .expect("plant a pre-stamp plist");
+}
+
+/// Plant a plist with no stamp that carries `dir` as its `CLAUDE_CONFIG_DIR`,
+/// under the key this build writes (issue 0671).
+fn plant_unstamped_carrying(m: &Machine, dir: &str) {
+  let plist = m.plist();
+  std::fs::create_dir_all(plist.parent().expect("a parent")).expect("dirs");
+  std::fs::write(
+    &plist,
+    format!(
+      "<plist><dict><key>Label</key><key>EnvironmentVariables</key><dict><key>CLAUDE_CONFIG_DIR</key><string>{dir}</string></dict></dict></plist>\n"
+    ),
+  )
+  .expect("plant a pre-stamp plist carrying a value");
+}
+
+/// Whether a plist's text carries `dir` as its `CLAUDE_CONFIG_DIR`.
+fn carries(plist: &str, dir: &str) -> bool {
+  plist.contains(&format!(
+    "<key>CLAUDE_CONFIG_DIR</key>\n    <string>{dir}</string>"
+  ))
 }
 
 /// The pid a line names as `(pid N)`.
@@ -781,6 +830,130 @@ fn start_at_login_beside_a_running_daemon_rewrites_a_stale_plist() {
     std::fs::read_to_string(&record).ok(),
     None,
     "launchctl was run, so the rewritten plist was loaded beside the running daemon"
+  );
+  assert_eq!(
+    running_pid(&machine),
+    pid,
+    "the running daemon was stopped or restarted"
+  );
+}
+
+/// Issue 0671: **an enrolment writes the shell's `CLAUDE_CONFIG_DIR` into the
+/// plist it hands `launchctl`**, so the daemon `launchd` starts at login looks
+/// for Claude Code's sessions where the shell does. The `launchctl` stand-in
+/// refuses the load, so nothing registers, and the arm reads the plist the verb
+/// wrote before it.
+#[test]
+#[cfg_attr(
+  not(target_os = "macos"),
+  ignore = "off macOS `--at-login` is refused before anything is written"
+)]
+fn start_at_login_writes_the_shells_claude_config_dir_into_the_plist() {
+  let mut machine = Machine::new();
+  assert!(!machine.plist().exists(), "the fixture is already enrolled");
+  let dir = machine.carry_claude_config_dir();
+  let record = machine.watch_launchctl();
+
+  let asked = machine.run(&["daemon", "start", "--at-login"]);
+  let said = text(&asked);
+
+  assert!(
+    !asked.status.success() && said.contains("`launchctl load` refused"),
+    "the stand-in's refusal was not reported: {said}"
+  );
+  let called = std::fs::read_to_string(&record).unwrap_or_default();
+  assert!(
+    called.starts_with("load -w "),
+    "the plist was not handed to launchctl: {called}"
+  );
+  let plist = std::fs::read_to_string(machine.plist()).expect("read the plist the enrolment wrote");
+  assert!(
+    carries(&plist, &dir),
+    "the enrolment's plist does not carry the shell's CLAUDE_CONFIG_DIR {dir}: {plist}"
+  );
+}
+
+/// Issue 0671: **the boot heal of a daemon started without `CLAUDE_CONFIG_DIR`
+/// keeps the value a stale plist carries.** A heal that dropped it would leave
+/// the next login's daemon looking for Claude Code's sessions under
+/// `$HOME/.claude`, blind to every one of them on a machine that moves it.
+#[test]
+fn a_daemon_without_claude_config_dir_heals_a_stale_plist_keeping_the_one_it_carries() {
+  let machine = Machine::new();
+  let dir = "/Users/test/.config/claude";
+  plant_unstamped_carrying(&machine, dir);
+
+  let started = machine.run(&["daemon", "start"]);
+  assert_eq!(
+    started.status.code(),
+    Some(0),
+    "start failed: {}",
+    text(&started)
+  );
+
+  let after = std::fs::read_to_string(machine.plist()).expect("read the plist after boot");
+  assert!(
+    after.contains(&format!("INTENT_VER: {}", env!("CARGO_PKG_VERSION"))),
+    "the daemon booted and did not heal the planted plist: {after}"
+  );
+  assert!(
+    carries(&after, dir),
+    "the heal dropped the CLAUDE_CONFIG_DIR the plist carried: {after}"
+  );
+}
+
+/// Issue 0671: **`start --at-login` beside a running daemon rewrites this
+/// build's plist when it lacks the shell's `CLAUDE_CONFIG_DIR`, says so, and
+/// loads and stops nothing.** A daemon booted without the variable heals an old
+/// plist into one stamped by this build and carrying nothing, which a stamp
+/// alone reads as current, so the enrolment used to hold and write nothing.
+#[test]
+#[cfg_attr(
+  not(target_os = "macos"),
+  ignore = "off macOS `--at-login` is refused before the running check"
+)]
+fn start_at_login_beside_a_running_daemon_adds_the_shells_claude_config_dir() {
+  let mut machine = Machine::new();
+  // **PLANTED BEFORE THE BOOT, SO THE HEAL OF A DAEMON WITHOUT THE VARIABLE
+  // WRITES THIS BUILD'S PLIST CARRYING NOTHING**, which is the state this arm
+  // is about.
+  plant_unstamped(&machine);
+  let pid = running_pid(&machine);
+  let before = std::fs::read_to_string(machine.plist()).expect("read the healed plist");
+  assert!(
+    before.contains(&format!("INTENT_VER: {}", env!("CARGO_PKG_VERSION")))
+      && !before.contains("CLAUDE_CONFIG_DIR"),
+    "the boot did not leave this build's plist carrying nothing, so nothing here lacks the value: {before}"
+  );
+
+  let dir = machine.carry_claude_config_dir();
+  let record = machine.watch_launchctl();
+  let asked = machine.run(&["daemon", "start", "--at-login"]);
+  let said = text(&asked);
+
+  assert_eq!(
+    asked.status.code(),
+    Some(0),
+    "start --at-login refused an enrolment it could repair: {said}"
+  );
+  assert!(
+    said.contains(&format!("rewritten to carry CLAUDE_CONFIG_DIR {dir}")),
+    "the answer does not name the value the rewrite added: {said}"
+  );
+  assert_eq!(
+    pid_named(&said),
+    Some(pid.as_str()),
+    "the answer does not name the running pid: {said}"
+  );
+  let after = std::fs::read_to_string(machine.plist()).expect("read the rewritten plist");
+  assert!(
+    carries(&after, &dir),
+    "the plist does not carry the shell's CLAUDE_CONFIG_DIR {dir}: {after}"
+  );
+  assert_eq!(
+    std::fs::read_to_string(&record).ok(),
+    None,
+    "launchctl was run beside the running daemon"
   );
   assert_eq!(
     running_pid(&machine),

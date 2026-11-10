@@ -12166,8 +12166,16 @@ fn daemon_start(at_login: bool) -> Result<(), Failure> {
   // carries `RunAtLoad`, so loading it starts the daemon -- which means the
   // enrolled path must not ALSO spawn one, or two processes race for the socket
   // and the loser's refusal is reported as a failure to start.
+  //
+  // **THE PLIST CARRIES THIS SHELL'S `CLAUDE_CONFIG_DIR`** (issue 0671), so the
+  // daemon `launchd` starts reads Claude Code's sessions where this shell does.
   if at_login {
-    let plist = launchagent::write_plist(&dirs, &binary).map_err(|e| Failure::Error(e.render()))?;
+    let plist = launchagent::write_plist(
+      &dirs,
+      &binary,
+      intentsvcs::userstate::claude_config_dir().as_deref(),
+    )
+    .map_err(|e| Failure::Error(e.render()))?;
     launchagent::load(&plist).map_err(|e| Failure::Error(e.render()))?;
     for _ in 0..START_ATTEMPTS {
       if let daemon::Route::Daemon(endpoint) = route_now()? {
@@ -12260,28 +12268,34 @@ fn daemon_start(at_login: bool) -> Result<(), Failure> {
 }
 
 /// `intent daemon start --at-login` with a daemon already running as `pid`
-/// (issue 0666): the enrolment holds, or an older build's plist is rewritten,
-/// or the verb refuses, and the running daemon is never stopped, restarted or
+/// (issue 0666): the enrolment holds, or a plist an older build wrote, or one
+/// that lacks this shell's `CLAUDE_CONFIG_DIR` (issue 0671), is rewritten, or
+/// the verb refuses, and the running daemon is never stopped, restarted or
 /// loaded beside. [`launchagent::beside_a_running_daemon`] decides which.
 fn enrolled_beside_a_running_daemon(
   dirs: &intentsvcs::userstate::Dirs,
   pid: u32,
 ) -> Result<(), Failure> {
-  let answer = launchagent::beside_a_running_daemon(pid, launchagent::enrolment(dirs))
-    .map_err(|e| Failure::Error(e.render()))?;
+  // **THIS SHELL'S `CLAUDE_CONFIG_DIR`** (issue 0671): a plist that does not
+  // carry it is rewritten to, and a shell without one leaves the plist's own.
+  let claude_config_dir = intentsvcs::userstate::claude_config_dir();
+  let answer = launchagent::beside_a_running_daemon(
+    pid,
+    launchagent::enrolment(dirs, claude_config_dir.as_deref()),
+  )
+  .map_err(|e| Failure::Error(e.render()))?;
   let plist = match answer {
     launchagent::Beside::Holds => {
       println!("ok: intentd is enrolled at login and already running (pid {pid})");
       intentsvcs::userstate::launch_agent_plist_under(dirs)
     }
-    launchagent::Beside::Rewrite { was } => {
+    launchagent::Beside::Rewrite { was, adds } => {
       let binary = resolve_intentd()?;
-      let plist =
-        launchagent::write_plist(dirs, &binary).map_err(|e| Failure::Error(e.render()))?;
+      let plist = launchagent::write_plist(dirs, &binary, claude_config_dir.as_deref())
+        .map_err(|e| Failure::Error(e.render()))?;
       println!(
-        "ok: intentd is enrolled at login and already running (pid {pid}); the plist was rewritten (was {}, now {})",
-        was.as_deref().unwrap_or("unstamped"),
-        intentsvcs::faces::INTENT_VER
+        "ok: intentd is enrolled at login and already running (pid {pid}); the plist was rewritten {}",
+        launchagent::rewritten(was.as_deref(), adds.as_deref())
       );
       plist
     }

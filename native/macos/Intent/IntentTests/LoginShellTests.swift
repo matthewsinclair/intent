@@ -71,4 +71,41 @@ final class LoginShellTests: XCTestCase {
     XCTAssertEqual(store.current().intent, "/opt/homebrew/bin/intent")
     XCTAssertEqual(captures, 2)
   }
+
+  /// Issue 0671: the probe's tagged line is the login shell's
+  /// CLAUDE_CONFIG_DIR, and intent's line is read as before.
+  func testTheTaggedLineIsTheLoginShellsClaudeConfigDir() {
+    let out = "/usr/bin\n/opt/homebrew/bin/intent\nCLAUDE_CONFIG_DIR=/Users/test/.config/claude\n"
+    let shell = LoginShell.parse(out, home: "/Users/test") { _ in true }
+    XCTAssertEqual(shell.claudeConfigDir, "/Users/test/.config/claude")
+    XCTAssertEqual(shell.intent, "/opt/homebrew/bin/intent")
+  }
+
+  /// Issue 0671: an empty tagged line is a shell that sets no
+  /// CLAUDE_CONFIG_DIR, and with no `command -v` line it is never read as
+  /// where intent is, even where every path "runs".
+  func testAnEmptyTaggedLineIsNoValueAndNeverWhereIntentIs() {
+    let out = "/usr/bin\nCLAUDE_CONFIG_DIR=\n"  // no `command -v intent` line
+    let shell = LoginShell.parse(out, home: "/Users/test") { _ in true }
+    XCTAssertNil(shell.claudeConfigDir)
+    XCTAssertEqual(shell.intent, "/Users/test/.local/bin/intent")
+  }
+
+  /// Issue 0671: every child is handed the login shell's CLAUDE_CONFIG_DIR, as
+  /// it is handed its PATH, so a daemon it starts finds Claude Code's sessions;
+  /// a shell that sets none leaves the app's own value alone.
+  func testEveryChildIsHandedTheLoginShellsClaudeConfigDir() {
+    let out = "/usr/bin\n/opt/homebrew/bin/intent\nCLAUDE_CONFIG_DIR=/Users/test/.config/claude\n"
+    let set = LoginShell.parse(out, home: "/Users/test") { _ in true }
+    let env = IntentCLI.environment(base: ["HOME": "/Users/test"], shell: set)
+    XCTAssertEqual(env["CLAUDE_CONFIG_DIR"], "/Users/test/.config/claude")
+    XCTAssertEqual(env["PATH"], "/usr/bin")
+    XCTAssertEqual(env["HOME"], "/Users/test")
+
+    let bare = "/usr/bin\n/opt/homebrew/bin/intent\nCLAUDE_CONFIG_DIR=\n"
+    let unset = LoginShell.parse(bare, home: "/Users/test") { _ in true }
+    let kept = IntentCLI.environment(base: ["CLAUDE_CONFIG_DIR": "/from/launchd"], shell: unset)
+    XCTAssertEqual(kept["CLAUDE_CONFIG_DIR"], "/from/launchd")
+    XCTAssertNil(IntentCLI.environment(base: [:], shell: unset)["CLAUDE_CONFIG_DIR"])
+  }
 }

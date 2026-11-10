@@ -88,8 +88,21 @@ enum IntentCLI {
   }
 
   static func environment() -> [String: String] {
-    var env = ProcessInfo.processInfo.environment
-    env["PATH"] = LoginShellStore.shared.current().path
+    environment(base: ProcessInfo.processInfo.environment, shell: LoginShellStore.shared.current())
+  }
+
+  /// `base` with the login shell's PATH and, when the shell sets one, its
+  /// `CLAUDE_CONFIG_DIR` (issue 0671). A daemon a child starts inherits it, and
+  /// without it looks for Claude Code's sessions under `~/.claude`, which on a
+  /// machine that moves them holds none. A shell that sets none leaves `base`'s
+  /// own value, which `launchctl setenv` may have given the app. Separated from
+  /// `environment()` so it is testable without a shell.
+  static func environment(base: [String: String], shell: LoginShell) -> [String: String] {
+    var env = base
+    env["PATH"] = shell.path
+    if let dir = shell.claudeConfigDir {
+      env[LoginShell.claudeConfigDirVariable] = dir
+    }
     return env
   }
 
