@@ -1,5 +1,5 @@
 ---
-verblock: "2026-11-10:v3.56: vc - ST0092 raised: Claude Team profiles"
+verblock: "2026-11-10:v3.57: vc - ST0092 started on hv's word"
 intent_version: 3.2.8
 ---
 
@@ -7,7 +7,7 @@ intent_version: 3.2.8
 
 ## DOING
 
-- ST0092, Claude Team profiles, raised and elaborated on hv's go of 2026-11-10: `intent wb init <profile>` declares a team's roster, hv is reached through one node, the Desk becomes a hat with a written contract, and every live board is converged. Eleven packages, Not Started. It waits on hv's review of the elaboration, then on WP-01's terms document and hv's ratification before any code (vc decision 107, vc todo 76). `intent wp list ST0092` names the packages and `intent ac gate ST0092` what is left.
+- ST0092, Claude Team profiles, raised and elaborated on hv's go of 2026-11-10: `intent wb init <profile>` declares a team's roster, hv is reached through one node, the Desk becomes a hat with a written contract, and every live board is converged. hv started the thread on 2026-11-10 so that it shows in the explorer's outstanding view, and its eleven packages are Not Started. It waits on hv's review of the elaboration, then on WP-01's terms document and hv's ratification before any code (vc decision 107, vc todo 76). `intent wp list ST0092` names the packages and `intent ac gate ST0092` what is left.
 - The 3.2.9 train does not move: hv's order of 2026-11-06, nothing moves and no desk asks until hv's word, stands for everything but ST0092's elaboration.
 
 ## TODO

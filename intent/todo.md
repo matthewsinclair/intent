@@ -11,6 +11,18 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 - [-] ST0090: The index rebuild says what happened, in the CLI's report and Intent.app's menu
   - [x] 01: One level-3 state on every face, and the index report names its reconcile time
   - [-] 02: Intent.app's Rebuild Search Index row copies Gtools' Refresh Search row
+- [-] ST0092: A Claude Team is declared by a profile: wb init sets up its board, hv is reached through one node, and the fleet converges
+  - [ ] 01: The terms are defined once: Team, Swarm, profile, the seats, the mediator and the hat
+  - [ ] 02: A Team Profile is a shipped resource: team, solo, supervisor and supervised
+  - [ ] 03: wb init reconciles a board to its profile, and is a dry run until told to apply
+  - [ ] 04: A seat can be retired, and a board can change its profile
+  - [ ] 05: hv is reached through one node, and the tool enforces it
+  - [ ] 06: A session is told its seat at pickup and at launch
+  - [ ] 07: The roster README is rendered from the profile and keeps the project's own block
+  - [ ] 08: The Desk is a hat with a written contract
+  - [ ] 09: Doctor reports a board that has left its profile
+  - [ ] 10: The new surface reads as one
+  - [ ] 11: Every live board converges, Intent's own first
 
 ## TODO
 
@@ -28,18 +40,6 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [ ] 02: kovacs runs as the cut's remote leg, and prepush keeps only its push gates
   - [ ] 03: The tap and the macOS assets publish through the built-ins, with prepare as a shadow
   - [ ] 04: The workflows fire on the candidate, and the docs describe the cut as built
-- [ ] ST0092: A Claude Team is declared by a profile: wb init sets up its board, hv is reached through one node, and the fleet converges
-  - [ ] 01: The terms are defined once: Team, Swarm, profile, the seats, the mediator and the hat
-  - [ ] 02: A Team Profile is a shipped resource: team, solo, supervisor and supervised
-  - [ ] 03: wb init reconciles a board to its profile, and is a dry run until told to apply
-  - [ ] 04: A seat can be retired, and a board can change its profile
-  - [ ] 05: hv is reached through one node, and the tool enforces it
-  - [ ] 06: A session is told its seat at pickup and at launch
-  - [ ] 07: The roster README is rendered from the profile and keeps the project's own block
-  - [ ] 08: The Desk is a hat with a written contract
-  - [ ] 09: Doctor reports a board that has left its profile
-  - [ ] 10: The new surface reads as one
-  - [ ] 11: Every live board converges, Intent's own first
 
 ## DONE:2026-09-10T00:00:51Z
 

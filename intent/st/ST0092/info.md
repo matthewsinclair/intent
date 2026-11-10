@@ -1,7 +1,7 @@
 ---
 st_id: ST0092
 title: A Claude Team is declared by a profile: wb init sets up its board, hv is reached through one node, and the fleet converges
-status: Not Started
+status: WIP
 created: 2026-11-10
 completed:
 ---
