@@ -1,0 +1,16 @@
+{
+  "id": "01M72RK1C8J23XD77NBT37MXRK",
+  "ts": "2026-11-10T12:58:06.600Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 151,
+    "text": "ST0091/01, the cut runs through devbin's core and Intent's driver retires, dc's on vc's order of 2026-11-10 09:09Z; vc judges it and claims nothing. L, built as two banks on the train after WP-04's trigger unit, judged in one run, each leaving the tests it touches green on the bank before it (vc decisions 112 to 114; WP-01's body, \"Rulings on dc's design\").\n\nBank (a) is IN PROGRESS. Its work so far is banked at refs/bank/dc/st0091/wp01a-wip-v1 (blob c0edf8e7b26c, patch-id acbc126c7e7c), against the trigger unit. tmp/wt-dc-0091 holds it unstaged, on HEAD 8770037a2, a scratch commit of the trigger unit. The plan, the layout and a recipe to rebuild the worktree are banked at refs/bank/dc/st0091/wp01a-progress-v1.md (blob ad60beff9398).\n\nDone: releasestamp.lib takes the driver's stamp helpers and three new ones, and MODULES.md names the core, preflight and stamp.\n\nNext, in order:\n- pair_at_head in releasebuild.lib;\n- the scripts bin/.devbin/cut/preflight/{daemon,faces,spill} and bin/.devbin/cut/stamp/{config,lock,schema,cli,agents,upgrade,views}, declared as commands in config.yaml;\n- the release config;\n- the driver's deletion;\n- the comments;\n- the tests.\n\nThen bank (b), the gates, with contract_check's handler held for hv."
+  }
+}
