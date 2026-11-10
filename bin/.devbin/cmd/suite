@@ -89,7 +89,7 @@ if [ "$WITH_BUILD" -eq 1 ]; then
   step "suite: cold-building the clone (debug profile -- the suite reads native/rust/target/release/intent, which this does not produce)"
   workspace="$(clone_workspace "$TMP/clone")"
   ( cd "$workspace" && cargo build --workspace --bins ) ||
-    die "the pushed repository does not build -- run 'bin/devbin prepush --force' for the full diagnosis"
+    die "the committed repository does not build in a clone -- the build output above is the diagnosis"
 fi
 
 step "suite: running tests/run_tests.sh inside the clone"

@@ -5,8 +5,7 @@
 #
 # What the stamp's steps trust and cannot check for themselves: the lock's
 # non-member check, which `stamp lock` refuses with; `footer_only`, which
-# `stamp views` folds with and prepush's `release_stamp_only` recognises the
-# release commit with; and the one test of membership in the sidecar list. The
+# `stamp views` folds with; and the one test of membership in the sidecar list. The
 # lock and footer arms moved here from release_sidecars.bats when the release
 # driver retired. They source the library whole, which runs nothing, where
 # they used to lift each function out of the driver with sed.

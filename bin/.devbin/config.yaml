@@ -457,6 +457,14 @@ commands:
 # reads, the cargo steps, and on macOS the pair; bin/.devbin/cut/gate) and the
 # shell suite. A red gate stops the cut before the tag.
 #
+# `legs` RUNS THOSE GATES ON kovacs TOO (ST0091 WP-02), the Ubuntu VM on this
+# machine: the core pushes the release commit to a scratch repository there,
+# runs `release.gates` in a worktree and copies the seal back. It is the Linux
+# run the retired preflight-linux.sh ordered by hand before a push. On Linux the
+# pair and its readers are inactive (`platforms:`), so the leg runs the reads,
+# the cargo steps and the shell suite. A host the pre-flight cannot reach is
+# named and recorded as not run.
+#
 # `derived` IS THE STAMP, in the order its steps run: bin/.devbin/cut/stamp says
 # what each writes, and why the lock comes before the schema.
 #
@@ -480,6 +488,8 @@ release:
   gates:
     - gate all
     - test shell
+  legs:
+    - kovacs
   derived:
     - bin/devbin stamp config
     - bin/devbin stamp lock

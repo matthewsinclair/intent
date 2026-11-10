@@ -177,6 +177,16 @@
       "note": "The cut's four read-only pre-flight checks, a live intentd refused with its remedy; banked at refs/bank/dc/st0091/wp01a-v1 (blob c96b329f9f42, patch-id 6c2b14cb5b1c), not yet on main; it stays to-write until the train lands, where it moves red then green against the judge run. Moved red at its landing (2026-11-10, dc), in the commit that adds the file, with the file's id lines (vc's ruling). The bank that landed is wp01a-v2 (blob 91b283aadaca, patch-id 118866bca26c), which superseded the wp01a-v1 named above. Green is vc's, from its judged run of the train. Red on the code as it was: all 9 arms red on the tree before bank 2 (8770037a2); all 9 pass on this commit."
     },
     {
+      "id": "AT-01.4",
+      "kind": "test",
+      "file": "tests/unit/prepush_push_range.bats",
+      "covers": [
+        "AC-01.4"
+      ],
+      "status": "red",
+      "note": "The pair the cut builds at the release commit passes issue 0518's currency verdict at the release push, through pair_at_head; arms 5 to 7. Minted at its landing (2026-11-10, dc), in the commit that rewrites the file it cites with the file's id lines (vc's ruling); the file was on main before, so the row could not be minted before this commit. Red on the code as it was: arm 5 red on the tree before WP-02 (banks 1 to 3), where the push still engaged the clone-and-build; arms 6 and 7 hold pair_at_head's refusals, green before and after. All three pass on this commit. Green is vc's, from its judged run of the train."
+    },
+    {
       "id": "AT-01.5",
       "kind": "test",
       "file": "tests/unit/release_gate.bats",
@@ -185,6 +195,26 @@
       ],
       "status": "red",
       "note": "The cut's gates on the release commit, each run as the core runs it; banked at refs/bank/dc/st0091/wp01b-v1 (blob 3e81cb71c66c, patch-id 184485758ff4), on wp01a-v2, not yet on main; it stays to-write until the train lands, where it moves red then green against the judge run. Moved red at its landing (2026-11-10, dc), in the commit that adds the file, with the file's id lines (vc's ruling). Red on the code as it was: all 8 arms red on bank (a)'s tree, driven by dc before banking; all 8 pass on this commit. Green is vc's, from its judged run of the train."
+    },
+    {
+      "id": "AT-02.1",
+      "kind": "test",
+      "file": "tests/unit/prepush_push_range.bats",
+      "covers": [
+        "AC-02.1"
+      ],
+      "status": "red",
+      "note": "release check names kovacs as the cut's leg, and preflight-linux.sh and preflight.lib are gone; arm 8. Minted at its landing (2026-11-10, dc), in the commit that rewrites the file it cites with the file's id lines (vc's ruling); the file was on main before, so the row could not be minted before this commit. Red on the code as it was: arm 8 red on the tree before WP-02; it passes on this commit. Green is vc's, from its judged run of the train."
+    },
+    {
+      "id": "AT-02.2",
+      "kind": "test",
+      "file": "tests/unit/prepush_push_range.bats",
+      "covers": [
+        "AC-02.2"
+      ],
+      "status": "red",
+      "note": "prepush keeps its frozen-remote refusal and the currency verdict, asks none of a candidate push, and neither clones, builds nor asks for a kovacs summary; arms 1 to 4. Minted at its landing (2026-11-10, dc), in the commit that rewrites the file it cites with the file's id lines (vc's ruling); the file was on main before, so the row could not be minted before this commit. Red on the code as it was: arms 1, 3 and 4 red on the tree before WP-02; arm 2, the stale pair refused on any push, holds what did not change and is green before and after. All four pass on this commit. Green is vc's, from its judged run of the train."
     },
     {
       "id": "AT-03.1",

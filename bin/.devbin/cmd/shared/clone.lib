@@ -9,8 +9,9 @@
 # revision, with nobody's uncommitted work in it. That is a GENERAL answer to
 # "which revision does this figure describe", and at first it had exactly one
 # consumer, `cargo build`, because it lived inside a command about pushing and
-# nobody arrives there thinking about test suites. It now serves `prepush`,
-# `suite` and, through shared/measure.lib, `hosting`.
+# nobody arrives there thinking about test suites. It now serves `suite` and,
+# through shared/measure.lib, `hosting`; `prepush` stopped cloning with ST0091
+# WP-02, when the cut's legs took the build.
 #
 # **A GENERAL MECHANISM INSIDE A SPECIFIC COMMAND IS A PRIVATE METHOD WITH A
 # PUBLIC CLAIM** (dc, 2026-08-21). Its discoverability is bounded by the name of

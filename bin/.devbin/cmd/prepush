@@ -1,85 +1,49 @@
 #!/usr/bin/env bash
 #
-# devbin: summary = Clone what you are about to push and build it (post-move check)
-# devbin: args = [--force] [<remote-name> <remote-url>]
-# bin/devbin prepush [--force] [<remote-name> <remote-url>] -- clone THIS
-# repository at HEAD into a temp dir and build it, to check that the artefact a
-# stranger receives is coherent. Invoked by .githooks/pre-push (the tracked
-# hooks directory core.hooksPath points at) as `bin/int prepush "$@"`, which
-# forwards git's destination arguments and the ref pairs on stdin; safe to run
-# by hand.
+# devbin: summary = The push gates: frozen remotes, and the delivered pair's currency
+# devbin: args = [<remote-name> <remote-url>]
+# bin/devbin prepush [<remote-name> <remote-url>] -- the gates a push meets.
+# Invoked by .githooks/pre-push (the tracked hooks directory core.hooksPath
+# points at) as `bin/int prepush "$@"`, which forwards git's destination
+# arguments and the ref pairs on stdin; safe to run by hand.
 #
-#   --force        build the clone even when no native/ or build-manifest path
-#                  changed
 #   --list-frozen  (first argument only) print FROZEN_REMOTES, one per line,
 #                  and exit 0
-#   --preflight-covers <rev>  (first argument only) exit 0 when a green Linux
-#                  preflight covers <rev>, and 1 with the order to run when none
-#                  does
 #   INTENT_ALLOW_FROZEN_PUSH=1  let one push reach a frozen remote
 #
-# Exits 0 when the clone builds and its binaries run (or when no build input
-# changed), 1 on a frozen remote, a push to upstream no green Linux preflight
-# covers, a delivered pair the currency verdict refuses, or any failure.
+# Exits 0 when the push may go, and 1 on a frozen remote, a delivered pair the
+# currency verdict refuses, or any failure.
 #
-# THE FAILURE THIS EXISTS FOR, and it is not hypothetical. On 2026-08-15 a
-# commit titled "all native code moves to native/rust/" committed the additions
-# and left the originals plus the root build files at HEAD, then pushed to both
-# remotes. Some of the duplicated files were DIVERGENT rather than
-# stale-identical, and the root Cargo.toml still pointed a workspace at the
-# stale copy -- so a fresh clone would have built a second implementation
-# nobody knew existed.
-#
-# Every local instrument was green throughout: the test suite, fmt, clippy,
-# lint and the acceptance gates. None of them could have caught it, and that is
-# the point rather than an oversight. `--only` commits the paths you NAME and a rename is
-# TWO index entries; name the addition and the deletion stays staged. The
-# working tree was correct. Only the repository was wrong.
-#
-# **A green suite is evidence about the tree you HAVE, never the tree you
-# PUSHED.** The only instrument that can tell the difference is one that reads
-# the repository rather than the working tree, which means cloning it.
-#
-# WHY PRE-PUSH AND NOT PRE-COMMIT OR CI. A depth-1 local clone plus a cold
-# `cargo build --workspace --bins` is too slow to sit in front of every
-# commit -- and a slow gate gets --no-verify'd, which
-# is cry-wolf arriving through a different door. CI does clone fresh, but it is
-# path-filtered and it reports AFTER the push has already landed on remotes;
-# this failure's whole cost is that the bad state is public. Push is the moment
-# the repository stops being private to one machine, so push is where the check
-# belongs.
-#
-# PATH-TRIGGERED for the same reason. The failure class is a move or a
-# restructure of native code and build files. A whiteboard-only push -- which is
-# most pushes on this project -- cannot produce it, and charging those the
-# clone-and-build would guarantee the gate gets bypassed. Sound rather than a fudge: the build cannot
-# break unless something the build reads has changed.
+# TWO GATES, AND WHAT LEFT (ST0091 WP-02). This used to clone HEAD and build it
+# cold on any push that changed a build input, and to refuse a push to upstream
+# that no green Linux preflight on kovacs covered. devbin's release core now
+# cuts Intent, and runs Intent's declared gates on kovacs as a leg of the cut
+# (`release.legs`) on the release commit, which is the build and the Linux run
+# those two existed for, at the one moment they decide anything. CI clones
+# fresh on every push to main and every candidate. The failure the clone was
+# for, a half-committed move of native code that builds in the working tree and
+# not in the repository (2026-08-15), is a failure of the repository, and CI and
+# the cut's legs both build the repository.
 #
 set -euo pipefail
 : "${DEVBIN_LIB:?run me through the devbin dispatcher}"
 . "$DEVBIN_LIB/helpers"
+. "$DEVBIN_LIB/config"
 
-# `--help` prints the usage block above and runs nothing; it ran the push check, which clones HEAD and may build it.
+# `--help` prints the usage block above and runs nothing.
 case "${1:-}" in
   -h | --help)
     awk 'NR < 5 { next } /^#$/ || !/^#/ { exit } { sub(/^# ?/, ""); print }' "${BASH_SOURCE[0]}"
     exit 0
     ;;
 esac
-# The single-writer clone, shared with `int suite` and `int hosting`. Extracted
-# from HERE 2026-08-22 (dc): it was the general answer to "which revision does
-# this figure describe" and had only this consumer from 2026-08-15, because it
-# lived inside a command about pushing. See the file for why that is its own
-# defect class.
-. "$(dirname "${BASH_SOURCE[0]}")/shared/clone.lib"
 
 # THE CURRENCY VERDICT'S OWN SOURCES, in the order `currency.lib` demands:
 # `artefact.lib` then `sharedtarget.lib`, then the verdict. `releasebuild.lib`
 # is here for `RELEASE_DIR` alone, so the delivered pair has one spelling. A
 # HARD DEPENDENCY for the reason `cmd/cli` gives: a gate that drops its check
-# when a file goes missing still looks like a gate. `releasestamp.lib` and
-# `preflight.lib` carry the Linux preflight's rule, further down.
-for lib in artefact sharedtarget currency releasebuild releasestamp preflight; do
+# when a file goes missing still looks like a gate.
+for lib in artefact sharedtarget currency releasebuild; do
   libpath="$(dirname "${BASH_SOURCE[0]}")/shared/$lib.lib"
   [ -r "$libpath" ] || die "cannot read $libpath -- refusing to push without the checks it carries"
   # shellcheck disable=SC1090
@@ -89,16 +53,14 @@ done
 ROOT="${PROJECT_ROOT:?}"
 
 # git calls a pre-push hook as `<hook> <remote-name> <remote-url>`, so the two
-# positional arguments are the DESTINATION and everything else is a flag. By
-# hand there is no destination and `--force` may be the only argument, so the
-# parse cannot be positional.
-FORCE=0
+# positional arguments are the DESTINATION and everything else is a flag, which
+# is ignored: the retired `--force` built the clone, and an older hook line or a
+# hand may still pass it.
 REMOTE=""
 REMOTE_URL=""
 for arg in "$@"; do
   case "$arg" in
-    --force) FORCE=1 ;;
-    -*) ;; # unknown flags ignored, as before
+    -*) ;;
     *)
       if [ -z "$REMOTE" ]; then
         REMOTE="$arg"
@@ -135,18 +97,17 @@ FROZEN_REMOTES=""
 # --list-guards` uses, and for the same reason: the runner that enforces the
 # rule is the authority on what the rule is, and everyone else asks. The retired
 # release driver asked it before it tagged. devbin's core, which cuts since
-# ST0091, pushes to `release.remotes` alone and asks nothing here, so a frozen
-# remote it declares is refused at its push, after the tag; ST0091 WP-02 settles
-# which of prepush's gates the cut asks first.
+# ST0091, pushes to `release.remotes` alone and asks nothing here: its pushes
+# meet this hook as any push does, so a frozen remote it declares refuses its
+# candidate push, before the tag (ST0091 WP-02).
 if [ "${1:-}" = "--list-frozen" ]; then
   for frozen in $FROZEN_REMOTES; do printf '%s\n' "$frozen"; done
   exit 0
 fi
 
 # push_reaches <remote> -- whether this push goes to <remote>, by its name or by
-# its configured URL. The frozen check and the preflight check below ask the
-# same question, so it is answered once. By hand there is no destination, and a
-# push with none reaches nothing.
+# its configured URL. By hand there is no destination, and a push with none
+# reaches nothing.
 push_reaches() {
   local name=$1 url
   [ -n "$REMOTE" ] || return 1
@@ -154,120 +115,6 @@ push_reaches() {
   url="$(git -C "$ROOT" config --get "remote.$name.url" 2>/dev/null || true)"
   [ -n "$url" ] && { [ "$REMOTE" = "$url" ] || [ "$REMOTE_URL" = "$url" ]; }
 }
-
-# ---------------------------------------------------------------------------
-# THE LINUX PREFLIGHT -- refuse a push to upstream that no green kovacs run of
-# CI's Ubuntu leg covers (hv's ruling, 2026-10-23, after a cut went red on
-# GitHub for a Linux-only shell failure that one run on kovacs would have
-# found). The order is bin/.devbin/preflight-linux.sh, run on kovacs; it copies
-# its summary back to ~/$PREFLIGHT_SUMMARY_REL/<sha>.summary on the machine it
-# cloned from, and preflight.lib says what green is. A push to local needs none.
-PREFLIGHT_REMOTES="upstream"
-
-# A green summary at S covers a commit C when S is C, or when S is reached from
-# C by first parents through commits that each change only BOARD_PATHS, or that
-# are the cut's own release commit (`release_stamp_only`) -- vc's reading of
-# the ruling under hv's pen. Read literally, the rule refused every cut, whose
-# release commit no preflight can have seen, and every push made after a
-# node's board commit.
-#
-# BOARD_PATHS STAND ON AN OUTCOME ARGUMENT, NOT ON A READ ONE. The leg does read
-# them: arms such as docs_completeness.bats and config_undefined.bats run intent
-# verbs in the repository root, and a verb in a fresh clone warms its store
-# from every canon record. They reach the leg only as input to that warm, in
-# arms that assert on other things, so a board or event commit can red the leg
-# only by breaking the warm, which no platform escapes and which is not the
-# Linux-only class the preflight exists for. The record paths stay out because
-# the leg reads them directly: `devbin canon` reads intent/.canon/issues/, and
-# the parity tools under intent/st/ are run.
-BOARD_PATHS="intent/whiteboard/ intent/.canon/events/"
-
-# board_only <parent> <commit> -- exit 0 when <commit> changes nothing outside
-# BOARD_PATHS against <parent>.
-board_only() {
-  local paths path prefix hit
-  paths="$(git -C "$ROOT" diff --name-only "$1" "$2")" || return 1
-  while IFS= read -r path; do
-    [ -n "$path" ] || continue
-    hit=0
-    for prefix in $BOARD_PATHS; do
-      case "$path" in "$prefix"*) hit=1 && break ;; esac
-    done
-    [ "$hit" -eq 1 ] || return 1
-  done <<<"$paths"
-}
-
-# preflight_covers <commit> -- prints `covered <sha>`, naming the commit whose
-# green summary covers <commit>, and exits 0; or prints `wanted <sha> <why>` and
-# exits 1, naming the commit to run the order at: the deepest the walk reached,
-# so its summary covers <commit> and every board commit after it. A red summary
-# stops the walk, because it is evidence and the gate does not route around it.
-preflight_covers() {
-  local c=$1 file state parent
-  while :; do
-    file="$HOME/$PREFLIGHT_SUMMARY_REL/$c.summary"
-    state="$(preflight_state "$file" "$c")"
-    case "$state" in
-      green)
-        printf 'covered %s\n' "$c"
-        return 0
-        ;;
-      red)
-        printf 'wanted %s its summary is red: %s\n' "$c" "$file"
-        return 1
-        ;;
-    esac
-    if parent="$(git -C "$ROOT" rev-parse --verify --quiet "$c^1")" &&
-      { board_only "$parent" "$c" || release_stamp_only "$ROOT" "$parent" "$c"; }; then
-      c=$parent
-      continue
-    fi
-    printf 'wanted %s no summary at %s\n' "$c" "$file"
-    return 1
-  done
-}
-
-# preflight_order <sha> -- the two lines that run the order on kovacs at <sha>,
-# cloning from this checkout, which is where its summary comes back to.
-preflight_order() {
-  local host path
-  host="$(scutil --get LocalHostName 2>/dev/null || hostname -s).local"
-  path="${ROOT#"$HOME"/}"
-  printf '      ssh %s git -C %s show %s:bin/.devbin/preflight-linux.sh > ~/work/preflight-linux.sh\n' "$host" "$path" "$1"
-  printf '      bash ~/work/preflight-linux.sh %s %s:%s\n' "$1" "$host" "$path"
-}
-
-# preflight_refusal <commit> <answer> [<remote>] -- why no preflight covers
-# <commit>, and the order that would, on stderr.
-preflight_refusal() {
-  local commit=$1 answer=${2#wanted } dest=${3:-} wanted why
-  wanted="${answer%% *}"
-  why="${answer#* }"
-  {
-    printf '\nBLOCKED: no green Linux preflight covers %s' "$commit"
-    [ -z "$dest" ] || printf ", and this push would reach '%s'" "$dest"
-    printf '.\n\n  %s: %s\n\n' "$wanted" "$why"
-    printf '  Run the preflight order on kovacs at %s, in a terminal there:\n\n' "$wanted"
-    preflight_order "$wanted"
-    printf '\n  It copies its summary to ~/%s/ here when it ends.\n' "$PREFLIGHT_SUMMARY_REL"
-    printf '  A push to local needs none.\n\n'
-  } >&2
-}
-
-# DECLARED ONCE AND ASKED BY ANY CALLER, as --list-frozen is. The retired
-# release driver asked it before it stamped anything, so a cut no preflight
-# covered stopped before its tag rather than at its own upstream push; under
-# devbin's core the Linux preflight becomes the cut's remote leg (ST0091 WP-02).
-if [ "${1:-}" = "--preflight-covers" ]; then
-  [ -n "${2:-}" ] || die "usage: int prepush --preflight-covers <rev>"
-  commit="$(git -C "$ROOT" rev-parse --verify --quiet "$2^{commit}")" || die "'$2' names no commit in $ROOT"
-  if answer="$(preflight_covers "$commit")"; then
-    printf 'prepush: the green Linux preflight at %s covers %s\n' "${answer#covered }" "$commit"
-    exit 0
-  fi
-  preflight_refusal "$commit" "$answer"
-  exit 1
-fi
 
 if [ -n "$REMOTE" ] && [ -z "${INTENT_ALLOW_FROZEN_PUSH:-}" ]; then
   for frozen in $FROZEN_REMOTES; do
@@ -301,6 +148,63 @@ EOF
 fi
 
 # ---------------------------------------------------------------------------
+# A CANDIDATE PUSH IS NOT THE RELEASE PUSH (vc's ruling on dc's finding F2,
+# ST0091 WP-02). At its legs step devbin's core pushes the release commit to
+# upstream as a `candidate/` ref, for CI, while the local gates are still
+# running, so the pair gate may not have finished and the pair may not yet
+# describe that commit. The legs judge the candidate; the currency verdict below
+# is asked of the push of main and of the tag, the release push. So a push that
+# moves only candidate refs is asked no currency verdict. The frozen check above
+# still applies to it.
+#
+# THE PREFIX IS READ FROM CONFIG, never written here: release.publish.candidate,
+# declared or the core's default, up to its first `{`. A template whose prefix
+# is empty would make every ref a candidate, so it refuses instead.
+candidate_prefix() {
+  local tmpl prefix
+  cfg_load "$ROOT/bin/.devbin/config.yaml" || return 1
+  tmpl="$(cfg_release_get publish.candidate)" || return 1
+  prefix="${tmpl%%\{*}"
+  [ -n "$prefix" ] && [ "$prefix" != "$tmpl" ] || return 1
+  printf 'refs/heads/%s\n' "$prefix"
+}
+
+# The ref pairs git hands a pre-push hook on stdin, one per ref:
+#
+#   <local ref> <local sha> <remote ref> <remote sha>
+#
+# MOVED counts the refs this push creates or moves, and CANDIDATES those of them
+# under the candidate prefix. A deletion moves no tree. By hand there are no
+# pairs, and the push is taken to be the release push.
+MOVED=0
+CANDIDATES=0
+if [ ! -t 0 ]; then
+  prefix=""
+  while read -r _lref lsha rref _rsha; do
+    [ -n "${lsha:-}" ] || continue
+    # An all-zero sha is git's "this ref does not exist", matched by shape so
+    # sha256 repositories read the same.
+    case "$lsha" in
+      *[!0]*) ;;
+      *) continue ;;
+    esac
+    MOVED=$((MOVED + 1))
+    if [ -z "$prefix" ]; then
+      prefix="$(candidate_prefix)" ||
+        die "release.publish.candidate cannot be read as a ref prefix, so this push cannot be told from the release push -- refusing rather than guessing"
+    fi
+    case "$rref" in
+      "$prefix"*) CANDIDATES=$((CANDIDATES + 1)) ;;
+    esac
+  done
+fi
+
+if [ "$MOVED" -gt 0 ] && [ "$CANDIDATES" -eq "$MOVED" ]; then
+  printf 'prepush: this push moves only candidate refs, which the cut'"'"'s legs judge -- no currency verdict asked (F2)\n'
+  exit 0
+fi
+
+# ---------------------------------------------------------------------------
 # A STALE DELIVERED PAIR IS REFUSED HERE (issue 0518, hv decision 30).
 #
 # `~/.local/bin/intent` is a symlink into `RELEASE_DIR`, so what every estate on
@@ -331,8 +235,8 @@ fi
 # disarms the REFUSE rows with it. The other `warn:` is no git, which is a fact
 # about the environment and not the pair.
 #
-# RUN BEFORE THE PATH TRIGGER BELOW, deliberately: that trigger exits early on a
-# push with no native/ change, and a stale pair is exactly as stale then.
+# THE PUSH ITSELF IS NOT THE QUESTION: a push with no native/ change is asked
+# too, because a stale pair is exactly as stale then.
 currency="$(artefact_currency_verdict "$RELEASE_DIR" "$ROOT")"
 case "$currency" in
   ok) ;;
@@ -354,204 +258,5 @@ case "$currency" in
     ;;
 esac
 
-# What is about to be pushed -- and "about to be pushed" is a property of THIS
-# PUSH, not of the tracked remote.
-#
-# THE DEFECT THIS REPLACES, measured by cc 2026-08-15: the gate printed
-# `no native/ or build-manifest change in this push` on a push whose diff
-# touched `native/` and `schema/`. The grep was fine. The RANGE was wrong.
-#
-# The old computation was `git diff --name-only @{upstream}...HEAD`, and
-# `@{upstream}` names exactly ONE remote -- `upstream/main` here. **This hook
-# fires for a push to EITHER remote, and this project's standing instruction is
-# to push both.** So the moment `git push upstream main` succeeds, `upstream/main`
-# IS HEAD, and the `git push local main` that follows carries every one of those
-# commits while computing an EMPTY range and opening the gate. **The second push
-# of the standard two-push sequence has been ungated by construction**, and it
-# failed in the direction nobody watches: quietly, with a confident message,
-# saying the true thing about the wrong question.
-#
-# A pre-push hook is handed the ref pairs on stdin, one per ref:
-#
-#   <local ref> <local sha> <remote ref> <remote sha>
-#
-# `<remote sha>` is what THAT remote currently holds for the ref, so it yields a
-# range that is per-push and per-remote **without needing to know which remote it
-# is** -- so the RANGE needs no argv even though the DESTINATION check above
-# does. Two questions, two sources: stdin says what is moving, argv says where
-# to. (The hook did not forward argv at all until the frozen-remote check needed
-# it; `int hooks --install` now writes `bin/int prepush "$@"` and converges an
-# older line that does not.)
-#
-# `|| true` and the FORCE fallbacks throughout: a new branch, a shallow history,
-# a sha the remote has and we do not, no remotes at all -- every one is a
-# legitimate state, and under `set -e` any of them would abort the gate rather
-# than let it decide. **Where a range cannot be computed honestly, pay for the
-# check.** An expensive right answer beats a cheap wrong one at the boundary this
-# gate exists to protect.
-CHANGED=""
-pairs=0
-# What each ref pair moves, for the Linux preflight below.
-PUSHED=""
-
-# NOT a pipeline: `CHANGED`, `pairs` and `PUSHED` must survive the loop, and
-# `cmd | while` would run the body in a subshell and discard them.
-if [ ! -t 0 ]; then
-  while read -r _lref lsha _rref rsha; do
-    [ -n "${lsha:-}" ] || continue
-    pairs=$((pairs + 1))
-    # An all-zero sha is git's "this ref does not exist". Matched by shape
-    # rather than against a 40-character literal, so sha256 repositories read
-    # the same.
-    case "$lsha" in
-      *[!0]*) ;;
-      *) continue ;; # deleting a ref pushes no tree, so nothing can fail to build
-    esac
-    PUSHED="$PUSHED $lsha"
-    case "$rsha" in
-      *[!0]*)
-        # The remote has this ref. If we cannot resolve its sha locally the
-        # remote holds history we do not -- git will reject the push anyway, but
-        # a gate that guesses at that moment is worse than one that checks.
-        if git -C "$ROOT" cat-file -e "$rsha" 2>/dev/null; then
-          CHANGED="$CHANGED
-$(git -C "$ROOT" diff --name-only "$rsha"..."$lsha" 2>/dev/null || true)"
-        else
-          FORCE=1
-        fi
-        ;;
-      *)
-        # New ref on this remote: every commit is arriving, and there is no
-        # bounded range to compute. Check.
-        FORCE=1
-        ;;
-    esac
-  done
-fi
-
-# NAMED, NOT SILENT. `pairs > 0` means git invoked this as a hook, so a missing
-# REMOTE means the hook line did not forward argv. The tracked
-# `.githooks/pre-push` does forward it; what does not is an older, untracked
-# `.git/hooks/pre-push` in a clone whose core.hooksPath is unset, written before
-# that generator changed. The frozen-remote and Linux preflight checks then do
-# NOTHING, and they do nothing in the shape that looks exactly like passing -- a
-# guard that is quietly inactive is worse than one that was never written.
-if [ "$pairs" -gt 0 ] && [ -z "$REMOTE" ]; then
-  warn "this clone's pre-push hook does not forward argv, so the frozen-remote and Linux preflight checks are INACTIVE."
-  warn "  fix: bin/int hooks --install   (rewrites the line to \`bin/int prepush \"\$@\"\`)"
-fi
-
-if [ "$pairs" -eq 0 ]; then
-  # Run by hand rather than as a hook. "What would go if I pushed now" has a
-  # DIFFERENT ANSWER PER REMOTE, so answer for the remote that is furthest
-  # behind: the union across all of them. Under-reporting is the entire failure
-  # this change is about, and a by-hand run that answers for one remote would
-  # reintroduce it wearing a different name.
-  branch="$(git -C "$ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
-  remotes="$(git -C "$ROOT" remote 2>/dev/null || true)"
-  if [ -z "$remotes" ] || [ -z "$branch" ] || [ "$branch" = HEAD ]; then
-    FORCE=1
-  else
-    for r in $remotes; do
-      if git -C "$ROOT" rev-parse --verify --quiet "refs/remotes/$r/$branch" >/dev/null 2>&1; then
-        CHANGED="$CHANGED
-$(git -C "$ROOT" diff --name-only "refs/remotes/$r/$branch"...HEAD 2>/dev/null || true)"
-      else
-        # This remote has never seen the branch: pushing there sends everything.
-        FORCE=1
-      fi
-    done
-  fi
-fi
-
-# THE LINUX PREFLIGHT, for a push that reaches upstream: every commit the push
-# moves, or HEAD when run by hand with upstream named. Before the path trigger
-# below, because a push that changes no build input can still change what the
-# Ubuntu leg runs.
-for target in $PREFLIGHT_REMOTES; do
-  push_reaches "$target" || continue
-  [ "$pairs" -gt 0 ] || PUSHED="$(git -C "$ROOT" rev-parse HEAD)"
-  for sha in $PUSHED; do
-    commit="$(git -C "$ROOT" rev-parse --verify --quiet "$sha^{commit}")" ||
-      die "this push moves $sha, which names no commit, so no preflight can cover it"
-    answer="$(preflight_covers "$commit")" || {
-      preflight_refusal "$commit" "$answer" "$target"
-      exit 1
-    }
-    printf 'prepush: the green Linux preflight at %s covers %s\n' "${answer#covered }" "$commit"
-  done
-done
-
-if [ "$FORCE" -eq 0 ]; then
-  # The build's inputs: the native tree and anything that tells cargo where the
-  # workspace is. Anchored on `native/` and root manifests rather than a longer
-  # prefix, because a prefix needle stops matching the moment the prefix moves
-  # and then passes in SILENCE -- which is exactly how the tree moved twice in
-  # one morning without the tooling noticing.
-  if ! grep -qE '^(native/|Cargo\.(toml|lock)$|rust-toolchain)' <<<"$CHANGED"; then
-    printf 'prepush: no native/ or build-manifest change in this push -- clone check not needed.\n'
-    exit 0
-  fi
-fi
-
-command -v cargo >/dev/null 2>&1 || die "cargo not on PATH -- cannot verify the clone builds"
-
-TMP="$(mktemp -d)" || die "cannot create a temp dir"
-# shellcheck disable=SC2064
-trap "rm -rf '$TMP'" EXIT
-
-step "prepush: cloning HEAD -- reading the repository, not the working tree"
-single_writer_clone "$ROOT" "$TMP/clone"
-
-step "prepush: building the clone (cold, no shared target dir)"
-# The structural check runs inside clone_workspace, before any build, for the
-# reason it always did: it is instant and it names the half-committed-move
-# signature directly rather than leaving it to be inferred from a compiler error.
-workspace="$(clone_workspace "$TMP/clone")"
-( cd "$workspace" && cargo build --workspace --bins ) \
-  || die "the pushed repository does not build -- your working tree does, which is the whole point of this check"
-
-# A build that produces nothing runnable is a green that means nothing, so the
-# binaries are executed rather than merely tested for existence.
-built=0
-for b in "$workspace"/target/debug/*; do
-  [ -x "$b" ] && [ ! -d "$b" ] || continue
-  case "$(basename "$b")" in
-    *.d | *.rlib) continue ;;
-  esac
-  if "$b" --version >/dev/null 2>&1; then
-    printf '    ok: %s runs from a fresh clone\n' "$(basename "$b")"
-    built=$((built + 1))
-  fi
-done
-[ "$built" -gt 0 ] || die "the clone built but produced no runnable binary"
-
-# THE FORMAT AND LINT ARMS WERE REMOVED FROM THIS GATE ON 2026-08-29 (hv's
-# ruling, executed by vc). They were `cargo fmt --all --check` and `cargo clippy
-# --workspace --all-targets -- -D warnings`, added 2026-08-20 after CI went red.
-#
-# THEY WERE NOT WRONG, THEY WERE A SECOND HOME. The `fmt` and `clippy` steps of
-# `.github/workflows/rust.yml` run the same checks (`cargo fmt --check` and the
-# identical clippy line, in native/rust), on macos AND ubuntu, on every push to
-# main and every PR that touches native/rust, schema, surface or the workflow
-# itself. CI is the authority and always was; this pair only moved the same
-# verdict earlier, on one machine, at one operator's expense.
-#
-# WHAT DECIDED IT WAS THE CADENCE, NOT THE COST. The removed comment argued that
-# a push gate is "the right moment, not merely a safe one" -- which is true when
-# pushes are frequent, and this estate's are far apart. Over a window that long
-# the arm stops being early warning and becomes a wall: hv met it holding a
-# backlog of accumulated findings at the moment they wanted to publish, the
-# most expensive moment it could have picked. CI would have returned the same
-# verdict minutes later and cost nobody a session.
-#
-# DO NOT RE-ADD THEM WITHOUT RE-ANSWERING THE CADENCE QUESTION. If pushes become
-# frequent, and a red `upstream/main` starts costing something -- which it will
-# once upstream is the delivery path rather than the dev tree -- a local arm
-# earns its keep again. Until then the check has a
-# dispatcher in CI, so this is NOT a return of the 2026-08-20 defect these arms
-# were built to fix: a check nothing dispatches. One that something else
-# dispatches is a different thing, and the distinction is the whole ruling.
-
-printf 'prepush: the repository you are about to push clones, builds, and runs (%s binaries). Format and lints belong to CI (.github/workflows/rust.yml).\n' "$built"
+printf 'prepush: the push gates pass\n'
 exit 0

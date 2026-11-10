@@ -1,69 +1,26 @@
 #!/usr/bin/env bats
-# `int prepush` decides from THIS push's range, not from the tracked remote.
+# `int prepush`, the push gates: a frozen remote, and the delivered pair's
+# currency (issue 0518), asked of every push but a candidate's.
 #
-# THE DEFECT, measured by cc 2026-08-15. The gate printed `no native/ or
-# build-manifest change in this push` on a push whose diff carried files under
-# `native/` and `schema/`. The grep was right; the RANGE was wrong. It computed
-# `git diff --name-only @{upstream}...HEAD`, and `@{upstream}` names exactly ONE
-# remote -- while the hook fires for a push to EITHER, and this project's
-# standing instruction is to push both.
+# ST0091 AT-02.2 cites this file for AC-02.2.
 #
-# So after `git push upstream main` succeeds, `upstream/main` IS HEAD, and the
-# `git push local main` that follows carries every commit while computing an
-# EMPTY range. **The second push of the standard two-push sequence was ungated
-# by construction**, and it failed in the direction nobody watches: quietly,
-# exiting 0, with a confident message that said a true thing about the wrong
-# question.
+# WHAT LEFT (ST0091 WP-02). This file used to hold the range arms of the
+# clone-and-build check and the arms of the Linux preflight. devbin's release
+# core now runs Intent's gates on the release commit and on kovacs as legs of
+# the cut, so the hook clones nothing, builds nothing and asks for no kovacs
+# summary. The arms below hold what the hook still does, and that it does
+# nothing more.
 #
-# HOW THE ASSERTION AVOIDS THE 16s BUILD. The gate's expensive half clones HEAD
-# and cold-builds it. What is under test here is the DECISION, not the build, so
-# every case runs with `cargo` off PATH. That splits the two outcomes cleanly and
-# instantly:
+# THE PAIR IS STAMPED, NOT BUILT. The verdict reads each binary's
+# `[intent-source-commit:<sha>]` marker through `strings`, which reads a plain
+# file as readily as a binary, so two small files carrying the marker are a pair
+# to it. They sit where the real pair does, and `setup` ignores
+# `native/rust/target/` as this repository does. Every assertion carries the
+# runner's own output (issue 0521).
 #
-#   skipped -> exit 0, prints `no native/ or build-manifest change`
-#   engaged -> exit non-zero, dies `cargo not on PATH`
-#
-# `setup` asserts that lever actually took. A fixture whose lever silently fails
-# reports "nothing failed", which is indistinguishable from a test that does not
-# check -- so if cargo is reachable on the trimmed PATH these SKIP loudly rather
-# than quietly cloning and passing for the wrong reason.
-#
-# MUTATION-PROVEN, and the run CORRECTED this file rather than confirming it.
-# The mutation is the runner as it stood at HEAD, in a sacrificial worktree,
-# against this suite. Some tests discriminate; the rest pass under the defect:
-#
-#   1 gated at the remote that is behind      FAILS -- the empty range
-#   2 answer follows each remote's position   FAILS -- only after the rewrite below
-#   5 new ref on the remote                   FAILS -- stdin ignored entirely
-#   7 by hand, furthest-behind remote         FAILS -- the by-hand path had it too
-#   3, 4, 6, 8                                pass: correct for reasons the defect
-#                                             happens to share
-#
-# **Test 2 was first written as cc phrased the ask -- "a push carrying native/ is
-# gated regardless of which remote it goes to" -- and PASSED ON THE BROKEN
-# RUNNER.** With both remotes behind, the old range is non-empty and the gate
-# engages for the wrong reason; and since the defect never reads stdin, "the same
-# answer whichever remote" is a property the BUG satisfies perfectly. It is now
-# one HEAD against two remotes in different states, which the old computation
-# cannot express. **A property stated in the words of the report is not
-# necessarily a property that catches the defect being reported.**
-#
-# THE CASES THAT MUST STILL SKIP CARRY EQUAL WEIGHT, even though they do not
-# discriminate. A gate that fires on every push gets `--no-verify`'d, which is
-# cry-wolf arriving through a different door, so the board-only and already-level
-# cases are as load-bearing as the regression -- they are what keeps the fix from
-# being "make it always check", which would pass tests 1, 2, 5 and be useless.
-#
-# AND SINCE 0518 EVERY ARM RUNS OVER A DELIVERED PAIR, WHICH THIS FIXTURE STAMPS.
-# The runner takes `artefact_currency_verdict` BEFORE the path trigger, because a
-# whiteboard-only push over a stale pair is exactly as stale -- 0518's judged
-# placement, kept by hv's ruling on issue 0521. A fixture repo holding no pair
-# is therefore refused before the range is read. Measured as 0521: every arm red
-# on both CI legs and on this host, each printing `no intent binary at
-# <repo>/native/rust/target/release/intent` -- and CI showed none of that,
-# because no assertion here printed the runner's output. So `gate` stamps a pair
-# the verdict passes before every run, every assertion carries `$output`, and
-# the last arm holds the placement itself.
+# THE CANDIDATE PREFIX IS DECLARED IN THE FIXTURE'S CONFIG AS `rc/{tag}`, not the
+# core's default `candidate/{tag}`, so an arm that passes a candidate push proves
+# the prefix is read from config and not written into the hook.
 
 load "../lib/test_helper.bash"
 
@@ -71,22 +28,9 @@ RUNNER="${INTENT_PROJECT_ROOT}/bin/.devbin/cmd/prepush"
 ZERO="0000000000000000000000000000000000000000"
 
 # THE TRIMMED PATH CARRIES ONE THING MORE THAN /usr/bin:/bin -- A BASH AT THE
-# FLOOR. devbin 0.1.2 refuses at load on any bash below 5 (helpers, issue 0076),
-# and macOS ships /bin/bash 3.2 permanently, so a PATH of /usr/bin:/bin alone
-# resolves `bash` to a runner that refuses before it reads a ref pair. Measured
-# in the 3.2.0 cut's dry run, 2026-09-21: every arm red, each with `int: bash >=
-# 5 is required; this is bash 3.2.57(1)-release (/bin/bash)`. The bash this
-# suite runs on clears the floor, but on this host it lives in the same
-# directory as cargo, so that directory cannot join the PATH without handing
-# back the lever. A private directory holding ONE link, `bash`, is what joins,
-# and `setup` asserts the floor the same way it asserts the lever.
-
-# THE PAIR, AS THE CURRENCY VERDICT READS IT. The verdict takes each binary's
-# `[intent-source-commit:<sha>]` marker through `strings`, which reads a plain
-# file as readily as a binary, so two small files carrying the marker are a pair
-# to it and no build is needed. They sit where the real pair does, and `setup`
-# ignores `native/rust/target/` as this repository does, so no `git add -A` in
-# an arm commits them into a range.
+# FLOOR. devbin refuses at load on any bash below 5 (helpers, issue 0076), and
+# macOS ships /bin/bash 3.2, so a private directory holding one link, `bash`,
+# joins the PATH, and `setup` asserts the floor.
 stamp_pair() {
   local dir="$REPO/native/rust/target/release" b
   mkdir -p "$dir"
@@ -95,48 +39,35 @@ stamp_pair() {
   done
 }
 
-# Run the runner the way git's pre-push hook does: ref pairs on stdin, no argv.
-# Pass "" for stdin to exercise the by-hand path. `runner` runs over whatever
-# pair is stamped; `gate` stamps one at HEAD first, which is the state every
-# range arm describes.
-gate() {
-  stamp_pair "$(at HEAD)"
-  runner "$1"
-}
-
+# runner <stdin> [<remote>] -- the runner as git's pre-push hook runs it: the
+# ref pairs on stdin and the destination as argv. "" for stdin is the by-hand
+# path. RUNNER_FILE, when set, is the runner to run.
 runner() {
-  local stdin_content="$1"
-  if [ -z "$stdin_content" ]; then
+  local stdin_content="$1" remote="${2:-}"
+  local -a argv=()
+  [ -z "$remote" ] || argv=("$remote" "$(git -C "$REPO" config --get "remote.$remote.url")")
+  printf '%s\n' "$stdin_content" | {
+    if [ -z "$stdin_content" ]; then exec </dev/null; fi
     env -i HOME="$HOME" PATH="$TRIMMED_PATH" DEVBIN_NAME=int \
       DEVBIN_LIB="${INTENT_PROJECT_ROOT}/bin/.devbin/lib" \
-      PROJECT_ROOT="$REPO" \
-      bash "$RUNNER" </dev/null 2>&1
-  else
-    printf '%s\n' "$stdin_content" |
-      env -i HOME="$HOME" PATH="$TRIMMED_PATH" DEVBIN_NAME=int \
-        DEVBIN_LIB="${INTENT_PROJECT_ROOT}/bin/.devbin/lib" \
-        PROJECT_ROOT="$REPO" \
-        bash "$RUNNER" 2>&1
-  fi
+      PROJECT_ROOT="$REPO" ${ALLOW_FROZEN:+INTENT_ALLOW_FROZEN_PUSH=1} \
+      bash "${RUNNER_FILE:-$RUNNER}" "${argv[@]}" 2>&1
+  }
 }
 
 refpair() { printf 'refs/heads/main %s refs/heads/main %s' "$1" "$2"; }
 at() { git -C "$REPO" rev-parse "$1"; }
 
-# EVERY ASSERTION CARRIES THE RUNNER'S OWN WORDS. 0521 went red on CI with none
-# of them, and the one line that named the cause had to be fetched by running
-# the file again here. Each outcome is asserted in one place, so no arm can
-# state it without printing what the runner said.
-expect_engaged() {
-  [ "$status" -ne 0 ] || fail "expected the gate to ENGAGE, got status 0: $output"
-  [[ "$output" == *"cargo not on PATH"* ]] ||
-    fail "expected the build half, dying 'cargo not on PATH'; got status $status: $output"
+expect_passed() {
+  [ "$status" -eq 0 ] || fail "expected the push gates to pass, got status $status: $output"
+  [[ "$output" == *"prepush: the push gates pass"* ]] ||
+    fail "expected 'the push gates pass'; got status $status: $output"
 }
 
-expect_skipped() {
-  [ "$status" -eq 0 ] || fail "expected the gate to SKIP, got status $status: $output"
-  [[ "$output" == *"no native/ or build-manifest change"* ]] ||
-    fail "expected 'no native/ or build-manifest change'; got status $status: $output"
+expect_stale() {
+  [ "$status" -ne 0 ] || fail "expected the stale pair to be REFUSED, got status 0: $output"
+  [[ "$output" == *"BLOCKED: the delivered pair"* ]] ||
+    fail "expected the currency refusal; got status $status: $output"
 }
 
 setup() {
@@ -149,35 +80,26 @@ setup() {
   PATH="$TRIMMED_PATH" command -v git >/dev/null 2>&1 ||
     skip_other_system "git is not on the trimmed PATH -- this fixture cannot run"
   env -i PATH="$TRIMMED_PATH" bash -c '[ "${BASH_VERSINFO[0]}" -ge 5 ]' 2>/dev/null ||
-    skip_other_system "the bash on the trimmed PATH is below devbin's floor of 5 -- the runner would refuse at load, before it reads a ref pair, and every arm would fail for that reason alone"
-  PATH="$TRIMMED_PATH" command -v cargo >/dev/null 2>&1 &&
-    skip_other_system "cargo IS on the trimmed PATH -- the lever that separates skipped from engaged does not take here, and a run that cannot distinguish them would pass for the wrong reason"
+    skip_other_system "the bash on the trimmed PATH is below devbin's floor of 5 -- the runner would refuse at load"
 
-  # TWO remotes, which is the whole point: one bare repo per remote, named the
-  # way this project names them, with `upstream` tracked exactly as here.
-  # Name the branch EXPLICITLY on all three, because the default is not ours to
-  # assume: bare `git init` takes its branch name from `init.defaultBranch` in the
-  # user's own `~/.gitconfig`. matts has that set to `main`, so this fixture built
-  # `main` here and passed; the CI runners do not set it, so they built `master`
-  # and every test in this file died in `setup` with `src refspec main does not
-  # match any` -- 29 consecutive red runs of the `Intent Tests` leg while the
-  # `rust` leg stayed green. The test was passing on this machine because of a
-  # line in a personal config file, not because the gate under it was correct.
+  # Two remotes, named as this project names them. The branch is named
+  # explicitly on all three: bare `git init` takes it from the user's own
+  # `init.defaultBranch`, which the CI runners do not set.
   git init -q -b main --bare "$TEST_TEMP_DIR/local.git"
   git init -q -b main --bare "$TEST_TEMP_DIR/upstream.git"
   git init -q -b main "$REPO"
   git -C "$REPO" config user.email t@t
   git -C "$REPO" config user.name t
-  mkdir -p "$REPO/native/rust" "$REPO/intent/whiteboard"
+  mkdir -p "$REPO/native/rust" "$REPO/intent/whiteboard" "$REPO/bin/.devbin"
   printf 'base\n' >"$REPO/README.md"
   printf 'native/rust/target/\n' >"$REPO/.gitignore"
+  printf 'release:\n  publish:\n    candidate: rc/{tag}\n' >"$REPO/bin/.devbin/config.yaml"
   git -C "$REPO" add -A
   git -C "$REPO" commit -qm base
   git -C "$REPO" remote add local "$TEST_TEMP_DIR/local.git"
   git -C "$REPO" remote add upstream "$TEST_TEMP_DIR/upstream.git"
   git -C "$REPO" push -q local main
   git -C "$REPO" push -q upstream main
-  git -C "$REPO" branch --set-upstream-to=upstream/main main >/dev/null 2>&1
 }
 
 teardown() {
@@ -185,123 +107,81 @@ teardown() {
   return 0
 }
 
-# The state cc measured: a native/ change already pushed to `upstream`, so the
-# tracked remote is level with HEAD while `local` is still behind. Asserts the
-# rig reached that state before any test trusts it.
-seed_pushed_to_upstream_only() {
+# native_change -- a commit under native/, so a pair stamped before it is
+# behind HEAD.
+native_change() {
   printf '[workspace]\n' >"$REPO/native/rust/Cargo.toml"
   git -C "$REPO" add -A
   git -C "$REPO" commit -qm "native change"
-  git -C "$REPO" push -q upstream main
-  git -C "$REPO" fetch -q --all
-  [ "$(at HEAD)" = "$(at upstream/main)" ] || {
-    echo "rig did not reach the measured state: upstream is not level with HEAD" >&2
-    return 1
-  }
-  [ -z "$(git -C "$REPO" diff --name-only upstream/main...HEAD)" ] || {
-    echo "rig did not reach the measured state: the old range is not empty" >&2
-    return 1
-  }
 }
 
-@test "a push carrying native/ is gated at the remote that is behind" {
-  # THE REGRESSION. The old computation saw an empty range here and exited 0.
-  seed_pushed_to_upstream_only
-  run gate "$(refpair "$(at HEAD)" "$(at local/main)")"
-  expect_engaged
+@test "AT-02.2: a push over a current pair passes, and neither clones, builds nor asks for a Linux preflight" {
+  native_change
+  stamp_pair "$(at HEAD)"
+  run runner "$(refpair "$(at HEAD)" "$(at upstream/main)")" upstream
+  expect_passed
+  [[ "$output" != *"clon"* ]] || fail "the hook still speaks of a clone: $output"
+  [[ "$output" != *"preflight"* ]] || fail "the hook still asks for a Linux preflight: $output"
 }
 
-@test "the answer follows each remote's own position, not the tracked remote's" {
-  # cc asked for "a push carrying native/ is gated regardless of which remote it
-  # goes to". Written literally -- both remotes behind, assert both gate -- that
-  # PASSES ON THE BROKEN RUNNER, twice over: the old range is non-empty when
-  # both are behind, and the defect ignores stdin entirely, so "the same answer
-  # whichever remote" is trivially satisfied by the bug. Measured, not reasoned:
-  # the literal form was written first and survived the mutation.
-  #
-  # The property with teeth is the one below. ONE HEAD, two remotes in DIFFERENT
-  # states, two different answers -- each correct for its own remote. A runner
-  # that consults `@{upstream}` cannot produce two answers here at all.
-  seed_pushed_to_upstream_only
-  run gate "$(refpair "$(at HEAD)" "$(at local/main)")"
-  expect_engaged
-  run gate "$(refpair "$(at HEAD)" "$(at upstream/main)")"
-  expect_skipped
-}
-
-@test "a push to a remote already level is skipped" {
-  seed_pushed_to_upstream_only
-  run gate "$(refpair "$(at HEAD)" "$(at upstream/main)")"
-  expect_skipped
-}
-
-@test "a board-only push is skipped even when the remote is behind" {
-  # No false positives: the range is genuinely non-empty here, and the path
-  # trigger is what must decide. A gate that fires on every push gets bypassed.
-  local prev
-  prev="$(at HEAD)"
+@test "AT-02.2: a stale pair is refused on any push, a board-only one included, and by hand" {
+  # 0518's own property: the push's contents are not the question, whether the
+  # pair describes what is being published is.
+  local before
+  before="$(at HEAD)"
+  native_change
   printf 'note\n' >"$REPO/intent/whiteboard/note.md"
   git -C "$REPO" add -A
   git -C "$REPO" commit -qm "board only"
-  [ -n "$(git -C "$REPO" diff --name-only "$prev"...HEAD)" ] ||
-    fail "rig did not reach the measured state: the board-only range is empty"
-  run gate "$(refpair "$(at HEAD)" "$prev")"
-  expect_skipped
+  stamp_pair "$before"
+  run runner "$(refpair "$(at HEAD)" "$(at HEAD~1)")" local
+  expect_stale
+  [[ "$output" == *"behind HEAD"* ]] || fail "expected the pair named as BEHIND; got: $output"
+  [[ "$output" == *"remedy: bin/devbin build all"* ]] || fail "expected the rebuild remedy; got: $output"
+  run runner "" ""
+  expect_stale
 }
 
-@test "a push creating a new ref on the remote is gated" {
-  # Every commit is arriving and there is no bounded range to compute, so the
-  # gate pays for the check rather than guessing a narrow one.
-  run gate "$(refpair "$(at HEAD)" "$ZERO")"
-  expect_engaged
+# vc's ruling on dc's finding F2: a candidate push is not the release push.
+@test "AT-02.2: a push of candidate refs alone passes over a stale pair, and main or a mixed push does not" {
+  local before
+  before="$(at HEAD)"
+  native_change
+  stamp_pair "$before"
+  run runner "refs/heads/main $(at HEAD) refs/heads/rc/v3.2.1 $ZERO" upstream
+  [ "$status" -eq 0 ] || fail "expected the candidate push to pass over a stale pair, got status $status: $output"
+  [[ "$output" == *"only candidate refs"* ]] || fail "expected the candidate named; got: $output"
+  run runner "$(refpair "$(at HEAD)" "$(at upstream/main)")" upstream
+  expect_stale
+  run runner "refs/heads/main $(at HEAD) refs/heads/rc/v3.2.1 $ZERO
+refs/heads/main $(at HEAD) refs/heads/main $(at upstream/main)" upstream
+  expect_stale
+  # The core's default prefix is not the declared one, so it is not exempt.
+  run runner "refs/heads/main $(at HEAD) refs/heads/candidate/v3.2.1 $ZERO" upstream
+  expect_stale
 }
 
-@test "deleting a ref is skipped -- no tree is pushed" {
-  run gate "$(refpair "$ZERO" "$(at local/main)")"
-  expect_skipped
-}
-
-@test "run by hand it answers for the remote that is furthest behind" {
-  # No stdin, so there are no ref pairs and no single right answer -- "what
-  # would go if I pushed now" differs per remote. The union is what keeps the
-  # by-hand path from reintroducing the same under-report wearing another name.
-  seed_pushed_to_upstream_only
-  run gate ""
-  expect_engaged
-}
-
-@test "run by hand with no remotes at all, it checks rather than guesses" {
-  git -C "$REPO" remote remove local
-  git -C "$REPO" remote remove upstream
-  run gate ""
-  expect_engaged
-}
-
-@test "a stale pair is refused before the path trigger, on a push that would skip" {
-  # 0518's own property, and the placement hv's ruling on 0521 keeps. ONE push,
-  # two pairs: over a current pair this board-only push skips, and over a pair
-  # built before the native change it is refused -- so the pair is the only thing
-  # that moved the answer. Put the verdict after the path trigger, or take it
-  # out, and the second run exits 0 like the first.
-  seed_pushed_to_upstream_only
-  local before_native
-  before_native="$(at HEAD~1)"
-  printf 'note\n' >"$REPO/intent/whiteboard/note.md"
-  git -C "$REPO" add -A
-  git -C "$REPO" commit -qm "board only"
-
-  run gate "$(refpair "$(at HEAD)" "$(at upstream/main)")"
-  expect_skipped
-
-  stamp_pair "$before_native"
-  run runner "$(refpair "$(at HEAD)" "$(at upstream/main)")"
-  [ "$status" -ne 0 ] || fail "expected the stale pair to be REFUSED, got status 0: $output"
-  [[ "$output" == *"BLOCKED: the delivered pair"* ]] ||
-    fail "expected the currency refusal; got status $status: $output"
-  [[ "$output" == *"behind HEAD"* ]] ||
-    fail "expected the pair named as BEHIND, not missing or unread; got status $status: $output"
-  [[ "$output" == *"remedy: bin/devbin build all"* ]] ||
-    fail "expected the rebuild remedy; got status $status: $output"
+@test "AT-02.2: a frozen remote refuses the push, a candidate's included, and the escape lets one through" {
+  native_change
+  stamp_pair "$(at HEAD)"
+  # FROZEN_REMOTES is the hook's one interface for closing a remote: the list
+  # in the runner. A copy of the runner with upstream on it is a frozen estate.
+  # The copy sits in a tree laid out as this one is, its libraries and the
+  # source_commit.rs they read the build-input scope from linked to the real ones.
+  local frozen="$TEST_TEMP_DIR/frozen"
+  mkdir -p "$frozen/bin/.devbin/cmd" "$frozen/native/rust"
+  ln -s "${INTENT_PROJECT_ROOT}/bin/.devbin/cmd/shared" "$frozen/bin/.devbin/cmd/shared"
+  ln -s "${INTENT_PROJECT_ROOT}/native/rust/build-support" "$frozen/native/rust/build-support"
+  RUNNER_FILE="$frozen/bin/.devbin/cmd/prepush"
+  sed 's/^FROZEN_REMOTES=""$/FROZEN_REMOTES="upstream"/' "$RUNNER" >"$RUNNER_FILE"
+  grep -qx 'FROZEN_REMOTES="upstream"' "$RUNNER_FILE" || fail "the runner declares no empty FROZEN_REMOTES to set"
+  run runner "refs/heads/main $(at HEAD) refs/heads/rc/v3.2.1 $ZERO" upstream
+  [ "$status" -ne 0 ] || fail "expected the frozen remote to refuse the candidate push, got status 0: $output"
+  [[ "$output" == *"BLOCKED: 'upstream' is a FROZEN remote"* ]] || fail "expected the frozen refusal; got: $output"
+  run runner "$(refpair "$(at HEAD)" "$(at local/main)")" local
+  expect_passed
+  ALLOW_FROZEN=1 run runner "$(refpair "$(at HEAD)" "$(at upstream/main)")" upstream
+  expect_passed
 }
 
 # A RELEASE PUSH, THE WAY THE CUT MAKES ONE (issue 0546).
@@ -322,7 +202,7 @@ seed_pushed_to_upstream_only() {
 # DEVBIN_STUB_FAIL makes it fail, and DEVBIN_STUB_NOPROMOTE makes it exit 0
 # without touching the pair, as the real one does on a dirty tree. The tag is
 # annotated, as the core makes it (`git tag -a`), so the hook is handed the tag
-# object's sha and the range reader must peel it.
+# object's sha, as it is at a real cut.
 cut_release() {
   local shared="$REPO/bin/.devbin/cmd/shared" lib
   mkdir -p "$shared" "$REPO/native/rust/build-support" "$REPO/bin"
@@ -353,7 +233,7 @@ STUB
   printf '[workspace.package]\nversion = "3.2.1"\n' >"$REPO/native/rust/Cargo.toml"
   git -C "$REPO" commit -qam "release: v3.2.1"
   git -C "$REPO" tag -a v3.2.1 -m v3.2.1
-  [ "$(git -C "$REPO" cat-file -t v3.2.1)" = tag ] || fail "v3.2.1 is not an annotated tag, so these arms would not ask the range reader to peel one"
+  [ "$(git -C "$REPO" cat-file -t v3.2.1)" = tag ] || fail "v3.2.1 is not an annotated tag, as the core makes one"
 }
 
 # The two ref pairs git hands the hook for `git push local main v3.2.1`. For an
@@ -373,7 +253,7 @@ pair_at_head_run() {
       pair_at_head' _ "$REPO/bin/.devbin/cmd/shared" 2>&1
 }
 
-@test "a release push passes the pre-push check once the cut has built the pair at the release commit" {
+@test "AT-01.4: a release push passes the pre-push check once the cut has built the pair at the release commit" {
   cut_release
 
   # The defect, as vc measured it: over the pair built before the release
@@ -387,13 +267,12 @@ pair_at_head_run() {
   [ "$status" -eq 0 ] || fail "expected pair_at_head to pass the pair it built, got status $status: $output"
   [ "$output" = "ok" ] || fail "expected the verdict 'ok'; got: $output"
 
-  # The same push over the pair built at the release commit reaches the range decision,
-  # and the release commit carries native/, so the gate engages.
+  # The same push over the pair built at the release commit passes.
   run runner "$(release_refs)"
-  expect_engaged
+  expect_passed
 }
 
-@test "a pair build that fails refuses before the push, naming the build" {
+@test "AT-01.4: a pair build that fails refuses before the push, naming the build" {
   cut_release
   run pair_at_head_run DEVBIN_STUB_FAIL=1
   [ "$status" -eq 1 ] || fail "expected pair_at_head to refuse a failed build, got status $status: $output"
@@ -401,7 +280,7 @@ pair_at_head_run() {
     fail "expected the refusal to name the build; got: $output"
 }
 
-@test "a pair build that promotes nothing refuses before the push, with the hook's own verdict" {
+@test "AT-01.4: a pair build that promotes nothing refuses before the push, with the hook's own verdict" {
   # `build all` exits 0 into target/private/release on a dirty tree, so its exit
   # code is not the answer; the verdict the hook takes is.
   cut_release
@@ -411,198 +290,14 @@ pair_at_head_run() {
     fail "expected the currency verdict naming the pair as behind; got: $output"
 }
 
-# ---------------------------------------------------------------------------
-# THE LINUX PREFLIGHT (hv's ruling, 2026-10-23, after the 3.2.5 cut went red on
-# GitHub for a Linux-only shell failure that one run on kovacs would have
-# found): a push to upstream that no green preflight summary covers is refused,
-# naming the order to run and the commit to run it at. A push to local needs
-# none. These arms live here because they need this file's fixture: the two
-# remotes, the pair stamped at HEAD, and cargo off PATH, so a push the
-# preflight passes ends at the path trigger and one that wrongly engaged the
-# clone-and-build dies at once instead of building.
-#
-# THE COVERAGE RULE, as vc read the ruling under hv's pen: a green summary at S
-# covers a pushed commit C when S is C, or S is reached from C by first parents
-# through commits that change only intent/whiteboard/ and intent/.canon/events/,
-# or through the release driver's own stamp, known by its diff. A red summary
-# stops the walk.
-#
-# Every summary is written with the order's own line from preflight.lib, under
-# a HOME inside the fixture, so the only summaries the runner can read are the
-# arm's.
 
-# preflight_push <remote> <local-sha> -- the runner as git's pre-push hook runs
-# it for `git push <remote> main`: the ref pair on stdin and the destination as
-# argv, over a pair stamped at HEAD.
-preflight_push() {
-  stamp_pair "$(at HEAD)"
-  printf '%s\n' "$(refpair "$2" "$(at "$1/main")")" |
-    env -i HOME="$TEST_TEMP_DIR/home" PATH="$TRIMMED_PATH" DEVBIN_NAME=int \
-      DEVBIN_LIB="${INTENT_PROJECT_ROOT}/bin/.devbin/lib" \
-      PROJECT_ROOT="$REPO" \
-      bash "$RUNNER" "$1" "$TEST_TEMP_DIR/$1.git" 2>&1
-}
-
-# preflight_covers_q <rev> -- the question the retired release driver asked
-# before it stamped anything.
-preflight_covers_q() {
-  env -i HOME="$TEST_TEMP_DIR/home" PATH="$TRIMMED_PATH" DEVBIN_NAME=int \
-    DEVBIN_LIB="${INTENT_PROJECT_ROOT}/bin/.devbin/lib" \
-    PROJECT_ROOT="$REPO" \
-    bash "$RUNNER" --preflight-covers "$1" </dev/null 2>&1
-}
-
-# summary_at <sha> <rc> <ok> <not-ok> -- the summary the order copies back for
-# <sha>.
-summary_at() {
-  # shellcheck disable=SC1091
-  . "${INTENT_PROJECT_ROOT}/bin/.devbin/cmd/shared/preflight.lib" ||
-    fail "no preflight.lib to write a summary with"
-  mkdir -p "$TEST_TEMP_DIR/home/$PREFLIGHT_SUMMARY_REL"
-  preflight_summary_line "$@" >"$TEST_TEMP_DIR/home/$PREFLIGHT_SUMMARY_REL/$1.summary"
-}
-
-# commit_file <path> <text> -- one commit writing <text> to <path>.
-commit_file() {
-  mkdir -p "$(dirname "$REPO/$1")"
-  printf '%s\n' "$2" >"$REPO/$1"
-  git -C "$REPO" add -A
-  git -C "$REPO" commit -qm "$1"
-}
-
-expect_covered() { # <summary's sha> <pushed sha>
-  [ "$status" -eq 0 ] || fail "expected the push PASSED, got status $status: $output"
-  [[ "$output" == *"the green Linux preflight at $1 covers $2"* ]] ||
-    fail "expected the summary at $1 named as covering $2; got: $output"
-}
-
-expect_blocked() { # <the commit the order should run at>
-  [ "$status" -eq 1 ] || fail "expected the push BLOCKED, got status $status: $output"
-  [[ "$output" == *"BLOCKED: no green Linux preflight covers"* ]] ||
-    fail "expected the preflight refusal; got: $output"
-  [[ "$output" == *"preflight-linux.sh $1 "* ]] ||
-    fail "expected the order named at $1; got: $output"
-}
-
-@test "preflight: a push to upstream that no summary covers is refused, naming the order at that commit" {
-  local pushed
-  commit_file README.md "a change"
-  pushed="$(at HEAD)"
-  run preflight_push upstream "$pushed"
-  expect_blocked "$pushed"
-  [[ "$output" == *"this push would reach 'upstream'"* ]] || fail "expected upstream named; got: $output"
-}
-
-@test "preflight: a push to local needs no preflight" {
-  commit_file README.md "a change"
-  run preflight_push local "$(at HEAD)"
-  expect_skipped
-  [[ "$output" != *"BLOCKED"* ]] || fail "expected no refusal on a push to local; got: $output"
-}
-
-@test "preflight: a green summary for the pushed commit passes it" {
-  local pushed
-  commit_file README.md "a change"
-  pushed="$(at HEAD)"
-  summary_at "$pushed" 0 12 0
-  run preflight_push upstream "$pushed"
-  expect_covered "$pushed" "$pushed"
-  expect_skipped
-}
-
-@test "preflight: a red summary refuses, and the walk does not route around it" {
-  local tested pushed
-  commit_file README.md "a change"
-  tested="$(at HEAD)"
-  summary_at "$tested" 0 12 0
-  commit_file intent/whiteboard/dc/board.json '{"after": "the green run"}'
-  pushed="$(at HEAD)"
-  summary_at "$pushed" 1 11 1
-  run preflight_push upstream "$pushed"
-  expect_blocked "$pushed"
-  [[ "$output" == *"its summary is red"* ]] || fail "expected the red summary named; got: $output"
-}
-
-@test "preflight: a green summary covers the board and event commits after it" {
-  local tested
-  commit_file README.md "a change"
-  tested="$(at HEAD)"
-  summary_at "$tested" 0 12 0
-  commit_file intent/whiteboard/dc/board.json '{"after": "the run"}'
-  commit_file intent/.canon/events/2026/10/23/01TEST.json '{"op": "wb.touch"}'
-  run preflight_push upstream "$(at HEAD)"
-  expect_covered "$tested" "$(at HEAD)"
-}
-
-@test "preflight: a commit that changes anything else after the green summary needs its own run" {
-  local tested pushed
-  commit_file README.md "a change"
-  tested="$(at HEAD)"
-  summary_at "$tested" 0 12 0
-  commit_file intent/whiteboard/dc/board.json '{"after": "the run"}'
-  commit_file intent/.canon/issues/0001.json '{"status": "closed"}'
-  pushed="$(at HEAD)"
-  run preflight_push upstream "$pushed"
-  expect_blocked "$pushed"
-}
-
-@test "preflight: the release commit is covered by its candidate's summary, known by its diff" {
-  local candidate
-  commit_file VERSION "3.2.0"
-  commit_file CHANGELOG.md "## [3.2.1] - in progress"
-  commit_file intent/st/ST0001/info.md "_Generated by Intent v3.2.0 from intent/st/ST0001_"
-  candidate="$(at HEAD)"
-  summary_at "$candidate" 0 12 0
-  printf '3.2.1\n' >"$REPO/VERSION"
-  printf '## [3.2.1] - 2026-10-23\n' >"$REPO/CHANGELOG.md"
-  printf '_Generated by Intent v3.2.1 from intent/st/ST0001_\n' >"$REPO/intent/st/ST0001/info.md"
-  git -C "$REPO" commit -qam "release: v3.2.1"
-  run preflight_push upstream "$(at HEAD)"
-  expect_covered "$candidate" "$(at HEAD)"
-}
-
-@test "preflight: a release commit that carries anything beyond the stamp is not covered by its candidate" {
-  local pushed
-  commit_file VERSION "3.2.0"
-  summary_at "$(at HEAD)" 0 12 0
-  printf '3.2.1\n' >"$REPO/VERSION"
-  printf 'a change the stamp never makes\n' >"$REPO/README.md"
-  git -C "$REPO" commit -qam "release: v3.2.1"
-  pushed="$(at HEAD)"
-  run preflight_push upstream "$pushed"
-  expect_blocked "$pushed"
-}
-
-@test "preflight: --preflight-covers answers the release driver before it stamps" {
-  local tested
-  commit_file README.md "a change"
-  tested="$(at HEAD)"
-  run preflight_covers_q HEAD
-  [ "$status" -eq 1 ] || fail "expected no cover before the run, got status $status: $output"
-  [[ "$output" == *"preflight-linux.sh $tested "* ]] || fail "expected the order named at $tested; got: $output"
-  summary_at "$tested" 0 12 0
-  run preflight_covers_q HEAD
-  [ "$status" -eq 0 ] || fail "expected the summary to cover HEAD, got status $status: $output"
-  [[ "$output" == *"the green Linux preflight at $tested covers $tested"* ]] || fail "expected the cover named; got: $output"
-}
-
-@test "preflight: a commit carrying an event beside code is not a board commit" {
-  # The shape every landing and every close has: an event file beside the change.
-  # git lists the event first, so a check that judged a commit by its first path,
-  # or kept a match from one path to the next, would carry the green summary over
-  # the code; this arm refuses it.
-  local tested pushed first
-  commit_file README.md "a change"
-  tested="$(at HEAD)"
-  summary_at "$tested" 0 12 0
-  mkdir -p "$REPO/intent/.canon/events/2026/10/23" "$REPO/tests"
-  printf '{"op": "issues.close"}\n' >"$REPO/intent/.canon/events/2026/10/23/01MIXED.json"
-  printf 'echo code\n' >"$REPO/tests/probe.sh"
-  git -C "$REPO" add -A
-  git -C "$REPO" commit -qm "an event beside code"
-  first="$(git -C "$REPO" diff --name-only HEAD~1 HEAD | sed -n 1p)"
-  [[ "$first" == intent/.canon/events/* ]] || fail "control: expected the event listed first; got $first"
-  pushed="$(at HEAD)"
-  run preflight_push upstream "$pushed"
-  expect_blocked "$pushed"
+# ST0091 AT-02.1 cites this file for AC-02.1: the cut's leg on kovacs is
+# declared, and the Linux preflight it replaces is gone.
+@test "AT-02.1: release check names kovacs as the cut's leg, and the Linux preflight's two files are gone" {
+  local row
+  row="$(cd "$INTENT_PROJECT_ROOT" && bin/devbin release check 2>/dev/null | awk '$1 == "legs"')"
+  [[ "$row" == *kovacs* ]] || fail "release check's legs row does not name kovacs: $row"
+  for f in bin/.devbin/preflight-linux.sh bin/.devbin/cmd/shared/preflight.lib; do
+    [ ! -e "${INTENT_PROJECT_ROOT}/$f" ] || fail "$f is back, and the Linux run is the cut's leg"
+  done
 }
