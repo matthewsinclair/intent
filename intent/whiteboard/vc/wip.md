@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 124edee5-f105-45bd-8483-ee7dc6dd6fd9
-heartbeat_at: 2026-11-10 13:44Z
+heartbeat_at: 2026-11-10 13:50Z
 status: active
 focus: "2026-11-10, localfolded for hv's third compact of the day on hv's word ("let's do an intent-* fold+compact then hold on the bounce for a move"); vc stays active. AFTER THE BOUNCE: /in-session, the pickup commit in its own chain, then HOLD (hold 9): vc starts nothing, judges nothing and gives no seat a go until hv's next word, and then tells cc, dc and ic. Since the second compact: the ruling on dc's fourth seam check, `preflight clean`, is in ST0091 WP-01 and decision 115; the judge for dc's train is drafted and not run (todo 71); dc's work in progress and its seven findings are banked, read and not yet ruled; and ic's fix for 0650 is banked and not yet run. cc holds for the ratification. Owed by hv, each put with vc's recommendation and none answered: the ratification, client names before the push, the cut's remotes, the contract check, red-then-green and 0665's shape (todo 77)."
 claims: []
