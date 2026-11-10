@@ -82,10 +82,10 @@ title: A Claude Team is declared by a profile: wb init sets up its board, hv is 
 
 ### WP-08 -- The Desk is a hat with a written contract (status: WIP)
 
-- AC-08.1 The controller's duties have one template source: the coordinator's `AGENTS.md` that `intent estate init` renders and the brief a hat-wearing node is given carry the same duties text from it. -- satisfied: no (computed)
-- AC-08.2 `intent estate control take` from a Claude session bound to a node that is not its board's vc is refused with a remedy naming who may take it; with `--hv "<words>"` it is taken and the words are recorded; and a session in no project takes it as before. -- satisfied: no (computed)
-- AC-08.3 While a node's session holds control, its pickup prints that it wears the desk, with the duties and the asks waiting, and `intent wb status`, as text and as json, shows the hat, read from the control record and stored nowhere else. The board header in `wip.md` does not carry it: the control record is one host's state, and a committed view would go stale when the hat passes. -- satisfied: no (computed)
-- AC-08.4 When the recorded controller's session is gone, `intent estate status` says the desk is orphaned and prints the step that takes it, and no node's pickup or board shows the hat. -- satisfied: no (computed)
+- AC-08.1 The controller's duties have one template source: the coordinator's `AGENTS.md` that `intent estate init` renders and the brief a hat-wearing node is given carry the same duties text from it. -- satisfied: yes (computed)
+- AC-08.2 `intent estate control take` from a Claude session bound to a node that is not its board's vc is refused with a remedy naming who may take it; with `--hv "<words>"` it is taken and the words are recorded; and a session in no project takes it as before. -- satisfied: yes (computed)
+- AC-08.3 While a node's session holds control, its pickup prints that it wears the desk, with the duties and the asks waiting, and `intent wb status`, as text and as json, shows the hat, read from the control record and stored nowhere else. The board header in `wip.md` does not carry it: the control record is one host's state, and a committed view would go stale when the hat passes. -- satisfied: yes (computed)
+- AC-08.4 When the recorded controller's session is gone, `intent estate status` says the desk is orphaned and prints the step that takes it, and no node's pickup or board shows the hat. -- satisfied: yes (computed)
 - AC-08.5 (non-test) The duties say how the hat sits with a VC's own work: a waiting ask is answered before the VC's own next step, the wearer's own project books through the same queue on the record, the hat is released at session end, and it passes to another VC on hv's quoted word. -- satisfied: no
 
 ### WP-09 -- Doctor reports a board that has left its profile (status: Not Started)
@@ -143,9 +143,9 @@ _(no tests in this group)_
 
 ### WP-08 -- The Desk is a hat with a written contract (status: WIP)
 
-- AT-08.1 `native/rust/crates/intent-cli/tests/estate_surface.rs` -- covers AC-08.1, AC-08.3 -- status: red -- red at b64665225 on the code as it was, desk run 01M73J11PV8GCHWZGF7M97J64H: the mediator's pickup printed no hat, no duties and no asks waiting
-- AT-08.2 `native/rust/crates/intent-cli/tests/estate_surface.rs` -- covers AC-08.2 -- status: red -- red at b64665225 on the code as it was, desk run 01M73J11PV8GCHWZGF7M97J64H: cc's control take succeeded with no hv words
-- AT-08.3 `native/rust/crates/intent-cli/tests/estate_surface.rs` -- covers AC-08.4 -- status: red -- red at b64665225 on the code as it was, desk run 01M73J11PV8GCHWZGF7M97J64H: estate status json carried no controller_orphaned
+- AT-08.1 `native/rust/crates/intent-cli/tests/estate_surface.rs` -- covers AC-08.1, AC-08.3 -- status: green -- red at b64665225 on the code as it was, desk run 01M73J11PV8GCHWZGF7M97J64H: the mediator's pickup printed no hat, no duties and no asks waiting; green at 806a81a66, judged by vc on tree 78028952b20f (desk run 01M73MB6F43GHCQNPN4DWRDJEC)
+- AT-08.2 `native/rust/crates/intent-cli/tests/estate_surface.rs` -- covers AC-08.2 -- status: green -- red at b64665225 on the code as it was, desk run 01M73J11PV8GCHWZGF7M97J64H: cc's control take succeeded with no hv words; green at 806a81a66, judged by vc on tree 78028952b20f (desk run 01M73MB6F43GHCQNPN4DWRDJEC)
+- AT-08.3 `native/rust/crates/intent-cli/tests/estate_surface.rs` -- covers AC-08.4 -- status: green -- red at b64665225 on the code as it was, desk run 01M73J11PV8GCHWZGF7M97J64H: estate status json carried no controller_orphaned; green at 806a81a66, judged by vc on tree 78028952b20f (desk run 01M73MB6F43GHCQNPN4DWRDJEC)
 
 ### WP-09 -- Doctor reports a board that has left its profile (status: Not Started)
 

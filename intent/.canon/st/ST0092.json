@@ -646,8 +646,8 @@
         "AC-08.1",
         "AC-08.3"
       ],
-      "status": "red",
-      "note": "red at b64665225 on the code as it was, desk run 01M73J11PV8GCHWZGF7M97J64H: the mediator's pickup printed no hat, no duties and no asks waiting"
+      "status": "green",
+      "note": "red at b64665225 on the code as it was, desk run 01M73J11PV8GCHWZGF7M97J64H: the mediator's pickup printed no hat, no duties and no asks waiting; green at 806a81a66, judged by vc on tree 78028952b20f (desk run 01M73MB6F43GHCQNPN4DWRDJEC)"
     },
     {
       "id": "AT-08.2",
@@ -656,8 +656,8 @@
       "covers": [
         "AC-08.2"
       ],
-      "status": "red",
-      "note": "red at b64665225 on the code as it was, desk run 01M73J11PV8GCHWZGF7M97J64H: cc's control take succeeded with no hv words"
+      "status": "green",
+      "note": "red at b64665225 on the code as it was, desk run 01M73J11PV8GCHWZGF7M97J64H: cc's control take succeeded with no hv words; green at 806a81a66, judged by vc on tree 78028952b20f (desk run 01M73MB6F43GHCQNPN4DWRDJEC)"
     },
     {
       "id": "AT-08.3",
@@ -666,8 +666,8 @@
       "covers": [
         "AC-08.4"
       ],
-      "status": "red",
-      "note": "red at b64665225 on the code as it was, desk run 01M73J11PV8GCHWZGF7M97J64H: estate status json carried no controller_orphaned"
+      "status": "green",
+      "note": "red at b64665225 on the code as it was, desk run 01M73J11PV8GCHWZGF7M97J64H: estate status json carried no controller_orphaned; green at 806a81a66, judged by vc on tree 78028952b20f (desk run 01M73MB6F43GHCQNPN4DWRDJEC)"
     }
   ]
 }
