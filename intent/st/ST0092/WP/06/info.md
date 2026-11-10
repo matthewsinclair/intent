@@ -28,13 +28,17 @@ On 2026-11-10 the first swarm set up by hand carried its brief as an hv standing
 
 It also showed that `intent wb register` stamps a heartbeat at registration, so `intent wb status` prints a seat that has never run exactly as one that ran and paused. The row already holds the difference: no session has ever been recorded for it, and on the 32 live boards 4 session seats read that way that day. So never started is read from the absence of any recorded session, never from status or heartbeat, and the time a seat was registered is not printed as a heartbeat.
 
+Its cold boot, the same day, was a partial pass. A seat that was registered and had never run was launched after the brief was in place. From its pickup alone it read its role, its remit, the mediator and the route to hv, and it followed the route without stating all of it. It did not get its own moniker from the pickup. Its start prompt named the seat, and no pickup can infer one, because the verb takes the moniker as an argument. So the launcher is the only source of the seat, and of this package's two halves the launcher's is the one the proof rests on. By the seat's own account the boot was not a clean one: its start prompt told it to run a pickup and read its inboxes, and hv typed to it while it booted, though neither named the role, the remit, the mediator or the route.
+
+The remit reached that seat only inside the brief, because its own board holds a name and a role and no remit (AC-03.7). And the brief's line for it said registered and never started, which was false by the time the seat read it. So whether a seat has run is computed at the read and is never written into the brief's text.
+
 ## Why this and not the README
 
 A pickup reads no README and never has (hv's decision 28, ruling 5, on Conflab). The README is for a person reading the repository; the pickup is what a session reads at every boot.
 
 ## The proof that matters
 
-AC-06.4 is not a test. A session is started on a converged board that hv did not brief, and vc records, by session id, that it stated its own seat, remit and route to hv from the pickup alone.
+AC-06.4 is not a test. A session is launched with `intent claude start <node>` on a converged board and hv types nothing to it. vc records, by session id, that it stated its own seat, which the launcher gave it, and its role, its remit, the mediator and its route to hv, which its pickup gave it.
 
 ## Depends on
 

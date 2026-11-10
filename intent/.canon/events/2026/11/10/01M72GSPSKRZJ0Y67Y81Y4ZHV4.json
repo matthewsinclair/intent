@@ -1,0 +1,15 @@
+{
+  "id": "01M72GSPSKRZJ0Y67Y81Y4ZHV4",
+  "ts": "2026-11-10T10:41:57.107Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0677"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "A trope pattern is read by whichever grep the shell supplies: FMT-02's `[:\\s]` misses the space form under POSIX grep and matches it under ugrep"
+  }
+}

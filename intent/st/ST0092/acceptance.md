@@ -67,7 +67,7 @@ title: A Claude Team is declared by a profile: wb init sets up its board, hv is 
 - AC-06.1 `intent wb pickup` on a board that declares a profile prints, ahead of the board, the declared profiles, this node's name, role and remit, the node hv is reached through, and one line for each other seat with its name, role and remit; `--json` and the MCP tool carry the same fields. -- satisfied: no (computed)
 - AC-06.2 A seat that no session has ever picked up is listed like any other and marked never started, in `intent wb pickup` and in `intent wb status`, read from the absence of any recorded session and never from its status or heartbeat, and the time it was registered is not printed as a heartbeat. -- satisfied: no (computed)
 - AC-06.3 `intent claude start <node>` hands the launched session the same brief, and its refusal of an unregistered moniker names `intent wb init`. -- satisfied: no (computed)
-- AC-06.4 (non-test) A session started on a converged board that hv did not brief states its own seat, its remit and its route to hv from the pickup alone, and vc records that boot by its session id. -- satisfied: no
+- AC-06.4 (non-test) A session launched with `intent claude start <node>` on a converged board, to which hv types nothing, states its own seat, which only the launcher can give it, and its role, its remit, the mediator and its route to hv, which its pickup gives it; vc records that boot by its session id. -- satisfied: no
 
 ### WP-07 -- The roster README is rendered from the profile and keeps the project's own block (status: Not Started)
 

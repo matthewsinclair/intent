@@ -1,0 +1,14 @@
+{
+  "id": "01M72GSK7NAYSJYGSZQ90FRBYN",
+  "ts": "2026-11-10T10:41:52.889Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0092/AC-06.4"
+  },
+  "payload": {
+    "text": "A session launched with `intent claude start <node>` on a converged board, to which hv types nothing, states its own seat, which only the launcher can give it, and its role, its remit, the mediator and its route to hv, which its pickup gives it; vc records that boot by its session id."
+  }
+}

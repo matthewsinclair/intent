@@ -1,0 +1,15 @@
+{
+  "id": "01M72GSNVJ7VRCSNVBJRKC020C",
+  "ts": "2026-11-10T10:41:55.573Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0676"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "A seat that boots before the project's languages are declared loads no language skills, and nothing compares the two again"
+  }
+}

@@ -1,6 +1,6 @@
 # Claude Teams: the terms
 
-This document defines the words Intent uses for the Claudes that work on a project together, and for the human they work for. It is the one place they are defined: a skill, a guide or a roster that uses one of these words cites this document and does not define it again, so a word means the same thing in every project. The terms follow rulings Intent's maintainer made on 2026-11-10 (Intent ST0092), and the seat names date from 2026-10-21.
+This document defines the words Intent uses for the Claudes that work on a project together, and for the human they work for. It is the one place they are defined: a skill, a guide or a roster that uses one of these words cites this document and does not define it again, so a word means the same thing in every project. The terms follow rulings Intent's maintainer made on 2026-11-10, and the seat names date from 2026-10-21.
 
 ## Whiteboard, board and seat
 

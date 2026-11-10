@@ -1,0 +1,15 @@
+{
+  "id": "01M72GSMZ3VRVG0A6DMJAF2HP4",
+  "ts": "2026-11-10T10:41:54.662Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0675"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "A seat reads its board once at boot and holds that read for hours: pickup and status do not say how old the reader's own last read is"
+  }
+}
