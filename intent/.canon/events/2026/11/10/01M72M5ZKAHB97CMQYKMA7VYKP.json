@@ -1,0 +1,15 @@
+{
+  "id": "01M72M5ZKAHB97CMQYKMA7VYKP",
+  "ts": "2026-11-10T11:41:04.490Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Issue 0649, the lints the critic defers to clippy that no gate runs: measure first, with one booked run that counts each named lint's findings per crate, then propose to vc which lints are enabled where and which leave critic_tool_codes."
+  }
+}

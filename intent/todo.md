@@ -36,7 +36,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 01: Inventory of every surface that feeds prompt text to an agent, live or historical
 - [ ] ST0089: Localfold+Compact Policy (when to fold, /clear and /compact)
 - [ ] ST0091: Intent releases through devbin's core: its driver, kovacs preflight and pre-push build retire
-  - [ ] 01: The cut runs through devbin's core, and Intent's driver retires
+  - [-] 01: The cut runs through devbin's core, and Intent's driver retires
   - [ ] 02: kovacs runs as the cut's remote leg, and prepush keeps only its push gates
   - [ ] 03: The tap and the macOS assets publish through the built-ins, with prepare as a shadow
   - [ ] 04: The workflows fire on the candidate, and the docs describe the cut as built

@@ -1,0 +1,16 @@
+{
+  "id": "01M72M5SX4C2NC8E1RA928AK7S",
+  "ts": "2026-11-10T11:40:58.660Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 38,
+    "text": "ISSUE:0670 stays claimed and unbuilt until ST0091's four packages are on main (vc's order of 2026-11-10 09:09Z). It rides 3.3.0 (hv directive 1, vc decision 109), and it no longer waits for Devbin's ST0011, which closes only at Intent's first cut through the core, 3.3.0 itself (vc's reading, open to hv's reversal). vc's answers to dc's two shape questions are in the issue's record under The shape of the build: rivals as dc read them, a file:line row read at that one line, and whole-token matching beside it. vc judges the build with the fleet census at refs/bank/vc/0670/ re-run against it, which must redden Devbin ST0011 AT-3.5 and nothing else (vc todo 77)."
+  }
+}

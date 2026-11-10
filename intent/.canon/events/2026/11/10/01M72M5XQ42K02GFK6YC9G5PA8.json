@@ -1,0 +1,15 @@
+{
+  "id": "01M72M5XQ42K02GFK6YC9G5PA8",
+  "ts": "2026-11-10T11:41:02.564Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ST0091/04, the workflows fire on the candidate and the docs describe the cut as built (S): after WP-03. AC-04.3 is hv's first cut through the core, which vc records against the 3.2.8 baseline."
+  }
+}

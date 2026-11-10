@@ -13,7 +13,7 @@ title: Intent releases through devbin's core: its driver, kovacs preflight and p
 
 ## Acceptance Criteria
 
-### WP-01 -- The cut runs through devbin's core, and Intent's driver retires (status: Not Started)
+### WP-01 -- The cut runs through devbin's core, and Intent's driver retires (status: WIP)
 
 - AC-01.1 `bin/devbin release` cuts Intent through devbin's core: the schema bless, the lock refresh, `agents sync`, `claude upgrade --apply`, `sync --to-disk` and the pair build run as `derived:` steps, its dry run names every derived step, gate and leg and runs none of them, and `bin/.devbin/cmd/build.d/release` is gone. -- satisfied: no (computed)
 - AC-01.2 Intent's own checks run as declared `release.gates`: the bats suite, the cargo gate with issue 0481's daemon-family re-run inside Intent's own gate command, the ST0056 contract and reference checks, and the embedded-source-commit check keyed on the release commit; a sealed green for the release commit on this platform is not run again. -- satisfied: no (computed)
@@ -39,7 +39,7 @@ title: Intent releases through devbin's core: its driver, kovacs preflight and p
 
 ## Acceptance Tests
 
-### WP-01 -- The cut runs through devbin's core, and Intent's driver retires (status: Not Started)
+### WP-01 -- The cut runs through devbin's core, and Intent's driver retires (status: WIP)
 
 _(no tests in this group)_
 

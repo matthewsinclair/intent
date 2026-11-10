@@ -5,12 +5,13 @@
     "name": "DevX Claude",
     "role": "worker",
     "session_id": "2aba47df-5301-4790-a6b7-e11815afe307",
-    "heartbeat_at": "2026-11-10T11:36:36.672Z",
+    "heartbeat_at": "2026-11-10T11:41:15.102Z",
     "status": "active",
-    "focus": "2026-11-10, on vc's word: 0673 and 0674 are landed (99cab60d3, a65e0e21d) and closed, and testkit's tree at HEAD reads the judged stack's 03ead543be13. Next in dc's lane, vc's order of 09:09Z: ST0091's four packages, WP-01 first, each claimed in the chain that starts it; then issue 0670 (hold 38) once ST0091's packages are on main; then 0665 once vc says; and 0649, measured first. Hold 37: the Debug app for hv's look at ST0090's row is rebuilt on vc's word once the train's last unit is on main.",
+    "focus": "2026-11-10, on vc's word: 0673 and 0674 are landed (99cab60d3, a65e0e21d) and closed. Now ST0091/01, claimed and started: a read-only re-inventory against devbin 0.1.20's core, then the build in tmp/wt-dc-0091. The lane after it, in order: ST0091/02 to /04, issue 0670 (hold 38), 0665 on vc's word, and 0649 measured first. Hold 37: the Debug app for hv's look at ST0090's row is rebuilt on vc's word once the train's last unit is on main.",
     "claims": [
       "ST0090/02",
-      "ISSUE:0670"
+      "ISSUE:0670",
+      "ST0091/01"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -2602,10 +2603,10 @@
       "node": "dc",
       "kind": "hold",
       "seq": 37,
-      "text": "ST0090/02 stays WIP after its landing at a54f2e9e0 until AC-02.4 is met: hv sees the Rebuild Search Index row's second line after a rebuild, on a build that carries WP-01 and WP-02, and vc records which build that was. Then dc closes WP-02 on vc's word; a defect hv sees comes back to dc as a new bank. On hv's word (relayed by vc at 10:05Z on vc's date -u on 2026-11-01), dc built the Debug app on desk grant 01M6B98VECQACNY319WVDEKD5A (10:25:07Z to 10:25:25Z, rc 0, under nice -n 10) in tmp/wt-dc-0090-app at 29e6f1c0a, with its build state in dc's scratch. The bundle is /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/f7bf9b31-ead1-4a0d-9ecd-532119b17564/scratchpad/app0090/state/build/macos/Build/Products/Debug/Intent.app, stamped IntentCommit 29e6f1c0a and IntentSourceTree f499694ed631 (clean), 3.2.8 build 9395; xcodegen reproduced the committed project.pbxproj exactly, and vc has the path and stamps. hv points the IntentBinary default at the dev CLI, native/rust/target/release/intent, which reads 3.2.8 (dev, 64cf9e251e56) and carries WP-01 (8406f6a15) and the fixes for 0666, 0668 and 0669. hv quits the installed app and launches the bundle's executable directly, and afterwards deletes the default and reopens /Applications/Intent.app. dc removes the worktree once the look is recorded. The bundle lives in dc's session scratch, so a look after dc's session ends needs a rebuild.",
+      "text": "ST0090/02 stays WIP after its landing at a54f2e9e0 until AC-02.4 is met: hv sees the Rebuild Search Index row's second line after a rebuild, on a build that carries WP-01 and WP-02, and vc records which build that was. Then dc closes WP-02 on vc's word; a defect hv sees comes back to dc as a new bank. The Debug app dc built on 2026-11-01 (IntentCommit 29e6f1c0a) went with that session's scratch. dc rebuilds it on vc's word once 3.3.0's first train's last unit is on main (vc, 2026-11-10), at the HEAD vc names, booked as a light run with the estate's controller, for hv's look by the route vc hold 6 records. dc removes tmp/wt-dc-0090-app once the look is recorded.",
       "state": "live",
       "recorded_at": "2026-10-31T15:43:28.830Z",
-      "edited_at": "2026-11-01T10:34:41.437Z"
+      "edited_at": "2026-11-10T11:40:57.480Z"
     },
     {
       "node": "dc",
@@ -2621,10 +2622,10 @@
       "node": "dc",
       "kind": "hold",
       "seq": 38,
-      "text": "ISSUE:0670 stays claimed and unbuilt until Devbin's ST0011 has shipped. hv ruled first-hand in vc's TUI on 2026-11-01, answering by 10:05Z on vc's date -u (vc decision 105, relayed to dc by vc), that 0670 is built after ST0011 ships and rides the release after 3.2.9. vc assigned it to dc at 08:31Z and stopped it at 08:38Z on hv's word for the day, \"ship ST0011, no new code and no new yaks\". Nothing of either half is written. Before dc builds, vc answers dc's two shape questions, banked word for word at refs/bank/dc/0670/shape-questions.md: (1) whether a rival row counts whatever its thread's status, and (2) what a `file:line` row asks of the file. dc's read-only map of the code is at refs/bank/dc/0670/rival-half-notes.md, and the ruling at refs/bank/vc/fold-20261101/issue-records/0670.add.md. vc judges the build with the fleet census re-run against it, which must redden Devbin ST0011 AT-3.5 and nothing else (vc hold 7).",
+      "text": "ISSUE:0670 stays claimed and unbuilt until ST0091's four packages are on main (vc's order of 2026-11-10 09:09Z). It rides 3.3.0 (hv directive 1, vc decision 109), and it no longer waits for Devbin's ST0011, which closes only at Intent's first cut through the core, 3.3.0 itself (vc's reading, open to hv's reversal). vc's answers to dc's two shape questions are in the issue's record under The shape of the build: rivals as dc read them, a file:line row read at that one line, and whole-token matching beside it. vc judges the build with the fleet census at refs/bank/vc/0670/ re-run against it, which must redden Devbin ST0011 AT-3.5 and nothing else (vc todo 77).",
       "state": "live",
       "recorded_at": "2026-11-01T08:42:46.705Z",
-      "edited_at": "2026-11-01T10:12:25.851Z"
+      "edited_at": "2026-11-10T11:40:58.660Z"
     },
     {
       "node": "dc",
@@ -2663,6 +2664,54 @@
       "state": "archived",
       "archived_at": "2026-11-10T11:36:25.766Z",
       "recorded_at": "2026-11-01T11:21:10.991Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 151,
+      "text": "ST0091/01, the cut runs through devbin's core and Intent's driver retires (S), dc's on vc's order of 2026-11-10 09:09Z; vc judges it and claims nothing. It starts with a read-only re-inventory against the vendored core, devbin 0.1.20. Intent's side of it (cmd/build.d/release, the devbin config, the workflows, releasing.md and the bats files) is unchanged since the inventory at 7ff46b458, so the package body's line references stand. The build goes in a private worktree, tmp/wt-dc-0091, with the package's AT rows minted with the bank. dc's own run carries only the arms that prove the bank (vc decision 110), booked with the estate's controller, and vc judges the train. Which remotes a cut pushes to is hv's to say before the first cut (vc watchout 33).",
+      "state": "live",
+      "recorded_at": "2026-11-10T11:40:59.674Z"
+    },
+    {
+      "node": "dc",
+      "kind": "todo",
+      "seq": 55,
+      "text": "ST0091/02, kovacs runs as the cut's remote leg and prepush keeps only its push gates (S): after WP-01, claimed in the chain that starts it.",
+      "state": "live",
+      "recorded_at": "2026-11-10T11:41:00.603Z"
+    },
+    {
+      "node": "dc",
+      "kind": "todo",
+      "seq": 56,
+      "text": "ST0091/03, the tap and the macOS assets publish through the built-ins, with prepare as a shadow (S), and issue 0667's fix on AC-03.3: after WP-02. vc measures first whether the vendored core carries brew smoke and issue 0634's cask sha256 check, and tells dc; on 2026-11-10 dc found no smoke anywhere in devbin 0.1.20's vendored lib.",
+      "state": "live",
+      "recorded_at": "2026-11-10T11:41:01.615Z"
+    },
+    {
+      "node": "dc",
+      "kind": "todo",
+      "seq": 57,
+      "text": "ST0091/04, the workflows fire on the candidate and the docs describe the cut as built (S): after WP-03. AC-04.3 is hv's first cut through the core, which vc records against the 3.2.8 baseline.",
+      "state": "live",
+      "recorded_at": "2026-11-10T11:41:02.564Z"
+    },
+    {
+      "node": "dc",
+      "kind": "todo",
+      "seq": 58,
+      "text": "Issue 0665, a completed thread's green row that stays conforming after its cited test is deleted: after 0670 and in the same code, once hv has ruled its shape and vc says so.",
+      "state": "live",
+      "recorded_at": "2026-11-10T11:41:03.518Z"
+    },
+    {
+      "node": "dc",
+      "kind": "todo",
+      "seq": 59,
+      "text": "Issue 0649, the lints the critic defers to clippy that no gate runs: measure first, with one booked run that counts each named lint's findings per crate, then propose to vc which lints are enabled where and which leave critic_tool_codes.",
+      "state": "live",
+      "recorded_at": "2026-11-10T11:41:04.490Z"
     }
   ],
   "sent": [
@@ -3674,6 +3723,11 @@
       "id": "01M5VHJ779TM78Y385ZW39WGYR",
       "sender": "vc",
       "handled_at": "2026-10-26T07:29:26.624Z"
+    },
+    {
+      "id": "01M72BGPTHZ6THX4Z89B60458E",
+      "sender": "vc",
+      "handled_at": "2026-11-10T11:41:14.191Z"
     }
   ]
 }

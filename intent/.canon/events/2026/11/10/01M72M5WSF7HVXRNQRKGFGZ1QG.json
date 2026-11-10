@@ -1,0 +1,15 @@
+{
+  "id": "01M72M5WSF7HVXRNQRKGFGZ1QG",
+  "ts": "2026-11-10T11:41:01.615Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ST0091/03, the tap and the macOS assets publish through the built-ins, with prepare as a shadow (S), and issue 0667's fix on AC-03.3: after WP-02. vc measures first whether the vendored core carries brew smoke and issue 0634's cask sha256 check, and tells dc; on 2026-11-10 dc found no smoke anywhere in devbin 0.1.20's vendored lib."
+  }
+}

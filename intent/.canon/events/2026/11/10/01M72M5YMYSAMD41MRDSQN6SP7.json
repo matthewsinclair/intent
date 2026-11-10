@@ -1,0 +1,15 @@
+{
+  "id": "01M72M5YMYSAMD41MRDSQN6SP7",
+  "ts": "2026-11-10T11:41:03.518Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Issue 0665, a completed thread's green row that stays conforming after its cited test is deleted: after 0670 and in the same code, once hv has ruled its shape and vc says so."
+  }
+}

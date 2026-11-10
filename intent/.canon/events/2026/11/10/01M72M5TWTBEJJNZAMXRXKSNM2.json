@@ -1,0 +1,15 @@
+{
+  "id": "01M72M5TWTBEJJNZAMXRXKSNM2",
+  "ts": "2026-11-10T11:40:59.674Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST0091/01, the cut runs through devbin's core and Intent's driver retires (S), dc's on vc's order of 2026-11-10 09:09Z; vc judges it and claims nothing. It starts with a read-only re-inventory against the vendored core, devbin 0.1.20. Intent's side of it (cmd/build.d/release, the devbin config, the workflows, releasing.md and the bats files) is unchanged since the inventory at 7ff46b458, so the package body's line references stand. The build goes in a private worktree, tmp/wt-dc-0091, with the package's AT rows minted with the bank. dc's own run carries only the arms that prove the bank (vc decision 110), booked with the estate's controller, and vc judges the train. Which remotes a cut pushes to is hv's to say before the first cut (vc watchout 33)."
+  }
+}
