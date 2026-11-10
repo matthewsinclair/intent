@@ -29,6 +29,32 @@ fn plant(name: &str) -> PathBuf {
   dir
 }
 
+/// A live child, killed and reaped when it drops, on every path out of a test,
+/// so a red leaves no sleeper behind.
+struct Sleeper(std::process::Child);
+
+impl Sleeper {
+  fn spawn() -> Self {
+    Self(
+      Command::new("/bin/sleep")
+        .arg("60")
+        .spawn()
+        .expect("spawn a live child"),
+    )
+  }
+
+  fn pid(&self) -> u32 {
+    self.0.id()
+  }
+}
+
+impl Drop for Sleeper {
+  fn drop(&mut self) {
+    let _ = self.0.kill();
+    let _ = self.0.wait();
+  }
+}
+
 /// **THE NAMING CONTRACT, CHECKED WITHOUT TOUCHING `/tmp`.**
 ///
 /// The two exclusions are the load-bearing arms and neither is hypothetical.
@@ -113,6 +139,42 @@ fn a_dead_fixture_is_removed_and_a_live_one_survives_the_same_sweep() {
     "the sweep matched nothing at all, so it proves nothing"
   );
   let _ = std::fs::remove_dir_all(&live);
+}
+
+/// **A FIXTURE PLANTED BY A PROCESS BORN MID-SWEEP IS NOT THE SWEEP'S TO TAKE.**
+///
+/// The sweep used to read the live set first and list `/tmp` second, so a
+/// process born between the two was missing from the set, and a fixture it
+/// planted before the listing reached it was removed while its process ran.
+/// This plants exactly that fixture through the seam between the two steps: the
+/// child spawned there is newer than anything the sweep read before the seam, so
+/// the old order sweeps its fixture every time and the fixed order never does. A
+/// concurrent sweeper on the fixed code cannot take it either: if its listing
+/// sees the fixture at all, its live set is read later and names the child.
+#[test]
+fn a_fixture_planted_by_a_process_born_mid_sweep_survives_it() {
+  let (report, (child, dir)) = testkit::sweep_abandoned_fixtures_around(|| {
+    let child = Sleeper::spawn();
+    let dir = plant(&format!(
+      "intent-fixture-sweeporder-{}-{}-0",
+      std::process::id(),
+      child.pid()
+    ));
+    (child, dir)
+  });
+  let survived = dir.exists();
+  drop(child);
+  let _ = std::fs::remove_dir_all(&dir);
+
+  assert!(
+    !report.refused,
+    "the live-pid set could not be read, so nothing was swept"
+  );
+  assert!(
+    survived,
+    "a LIVE process's fixture was swept: the process was born mid-sweep and the sweep read its pid as dead: {}",
+    dir.display()
+  );
 }
 
 /// **`AC-04.1`'s OWN CLAUSE: A RUN LEAVES THE POPULATION NO LARGER THAN IT

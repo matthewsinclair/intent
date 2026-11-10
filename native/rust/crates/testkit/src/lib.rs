@@ -405,10 +405,21 @@ pub struct SweepReport {
 /// deletes anyway is worse than the leak**: the live fixtures belong to test
 /// runs in progress, including other developers' on a shared machine.
 ///
-/// Pid reuse can only make this KEEP an abandoned directory (its dead pid now
-/// names some live process), never delete a live one -- a live fixture's own
-/// process is alive by construction. The failure direction is a leak that
-/// persists, which is safe.
+/// # The candidates are listed BEFORE the live set is read
+///
+/// **That order is what makes "never delete a live fixture" true.** A fixture
+/// the listing finds already existed, so the process that created it was born
+/// before the live set is read, and if it is still alive the set names it. The
+/// other order loses exactly the newest processes' fixtures, and this sweep ran
+/// in it until 2026-11-01: a process born after the snapshot is missing from it,
+/// so a fixture it planted before the listing reached that entry named a pid the
+/// sweep read as dead, and was removed while its process ran.
+/// `a_fixture_planted_by_a_process_born_mid_sweep_survives_it` plants exactly
+/// that fixture through [`sweep_abandoned_fixtures_around`].
+///
+/// Pid reuse can still only make this KEEP an abandoned directory (its dead pid
+/// now names some live process) for one more round, never delete a live one.
+/// The failure direction is a leak that persists, which is safe.
 ///
 /// # `/tmp` literally, not `temp_dir()`
 ///
@@ -418,31 +429,48 @@ pub struct SweepReport {
 /// population-mismatch defect; this deliberately matches the writers. When
 /// `WP-03` gives spawning one home, this constant collapses with theirs.
 pub fn sweep_abandoned_fixtures() -> SweepReport {
+  sweep_abandoned_fixtures_around(|| ()).0
+}
+
+/// [`sweep_abandoned_fixtures`] with `between` run after the candidates are
+/// listed and before the live set is read, handing back what it returns.
+///
+/// **The seam the ordering test plants through, and the only sweep body**: the
+/// plain sweep is this with nothing between, so the order the test proves is the
+/// order every caller runs.
+pub fn sweep_abandoned_fixtures_around<T>(between: impl FnOnce() -> T) -> (SweepReport, T) {
   let mut report = SweepReport::default();
+  let candidates = fixture_candidates();
+  let seam = between();
   let Some(live) = live_pids() else {
     report.refused = true;
-    return report;
+    return (report, seam);
   };
-  let Ok(entries) = std::fs::read_dir("/tmp") else {
-    return report;
-  };
-  for entry in entries.flatten() {
-    let name = entry.file_name();
-    let Some(name) = name.to_str() else { continue };
-    let Some(pid) = abandoned_fixture_pid(name) else {
-      continue;
-    };
-    if !entry.path().is_dir() {
-      continue;
-    }
+  for (dir, pid) in candidates {
     report.examined += 1;
     if live.contains(&pid) {
       report.kept_live += 1;
-    } else if std::fs::remove_dir_all(entry.path()).is_ok() {
+    } else if std::fs::remove_dir_all(&dir).is_ok() {
       report.removed += 1;
     }
   }
-  report
+  (report, seam)
+}
+
+/// Every directory in `/tmp` whose name is a fixture's, with the pid its name
+/// carries. A `/tmp` that cannot be read lists nothing, so nothing is swept.
+fn fixture_candidates() -> Vec<(PathBuf, u32)> {
+  let Ok(entries) = std::fs::read_dir("/tmp") else {
+    return Vec::new();
+  };
+  entries
+    .flatten()
+    .filter_map(|entry| {
+      let pid = entry.file_name().to_str().and_then(abandoned_fixture_pid)?;
+      let dir = entry.path();
+      dir.is_dir().then_some((dir, pid))
+    })
+    .collect()
 }
 
 /// The creating pid of a fixture directory name, or `None` if the name is not
