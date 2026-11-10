@@ -6,7 +6,7 @@ This directory holds the workflows GitHub runs for the Intent project: the bats 
 
 ### 1. Intent Tests (`tests.yml`)
 
-**Triggers**: push to `main` and pull requests targeting `main`, except when every changed path is under `intent/whiteboard/**` or `intent/.canon/**` (`paths-ignore`).
+**Triggers**: push to `main`, push to a release candidate `candidate/**`, pull requests targeting `main`, and `workflow_dispatch`, except when every changed path is under `intent/whiteboard/**` or `intent/.canon/**` (`paths-ignore`). Never a tag (ST0091 WP-04): devbin's release core pushes the release commit to `candidate/vX.Y.Z` and reads this workflow's run there (`release.ci.workflow`) before it tags, so the commit that ships is green on every leg before it is public.
 
 **Concurrency**: a newer run of the same workflow for the same event and ref cancels the one in progress.
 
@@ -19,15 +19,16 @@ This directory holds the workflows GitHub runs for the Intent project: the bats 
 **Jobs**:
 
 - `test-linux` (Test on Ubuntu): installs bats-core v1.12.0 from its GitHub source archive and jq from apt, puts `bin/` and `native/rust/target/release` on PATH, sets a CI git identity, clones the bats libraries into `tests/lib`, installs the stable Rust toolchain (rustfmt, clippy), Erlang/OTP 29 and Elixir 1.20 (`erlef/setup-beam`) and prettier 3 (npm), blanks the XDG_* variables, builds the pair, then runs `tests/run_tests.sh`.
-- `test-macos` (Test on macOS): the same, with bats-core, jq, shellcheck and bash from Homebrew; Homebrew's bash goes first on PATH because devbin's handlers refuse macOS's `/bin/bash` 3.2
+- `test-macos` (Test on macOS): only for a candidate or a run by hand (hv, fleet decision 30); a push to main or a pull request runs Linux alone. Otherwise the same, with bats-core, jq, shellcheck and bash from Homebrew; Homebrew's bash goes first on PATH because devbin's handlers refuse macOS's `/bin/bash` 3.2
+- `rust`: only for a candidate or a run by hand, it calls `rust.yml` (`workflow_call`), so a release's cargo verdict is inside the one run the cut reads.
 - `shellcheck` (Shell Script Analysis): runs `shellcheck` on `bin/devbin`, `bin/int`, and every file under `bin/.devbin/cmd/` and `lib/templates/hooks/` that `file` reports as a shell script; findings never fail the job. The sourced libraries under `bin/.devbin/cmd/shared/` carry no shebang, so `file` reports them as text and they are not checked.
-- `test-summary` (Test Summary): runs after `test-linux` and `test-macos` whatever their result, and fails unless both succeeded. It does not wait on `shellcheck`.
+- `test-summary` (Test Summary): runs after `test-linux`, `test-macos` and `rust` whatever their result. For a candidate or a run by hand it fails unless every one succeeded, so a skipped macOS or rust leg fails a release; elsewhere a skip is no failure. It does not wait on `shellcheck`.
 
 `tests/run_tests.sh` with no argument runs every `.bats` file under `tests/` (excluding `tests/lib/`) in one `bats` invocation and exits non-zero if any test fails, so a failing test fails the job.
 
 ### 2. rust (`rust.yml`)
 
-**Triggers**: push to `main` and pull requests, only when a changed path is under `native/rust/**`, `schema/**` or `surface/**`, or is `rust.yml` itself.
+**Triggers**: push to `main` and pull requests, only when a changed path is under `native/rust/**`, `schema/**` or `surface/**`, or is `rust.yml` itself; and `workflow_call` from `tests.yml` for a release candidate or a run by hand, whatever changed.
 
 **Concurrency**: a newer run of the same workflow for the same event and ref cancels the one in progress.
 
@@ -54,7 +55,7 @@ No concurrency group: every run completes.
 
 ### 4. linux release (`linux-release.yml`)
 
-**Triggers**: `workflow_dispatch` only (ST0081). A tag never runs it first, and it writes no release object; how a tag's packages reach the GitHub release is ST0081's WP-02, not yet ruled.
+**Triggers**: push to a release candidate `candidate/**` (ST0091 WP-04), and `workflow_dispatch`. Never a tag, and it writes no release object: devbin's release core reads this run at the release commit at its object step and attaches the packages (`release.assets.workflow`), then writes `SHA256SUMS` over every asset.
 
 **Concurrency**: a newer run of the same workflow for the same event and ref cancels the one in progress.
 
