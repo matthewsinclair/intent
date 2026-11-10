@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 2aba47df-5301-4790-a6b7-e11815afe307
-heartbeat_at: 2026-11-10 13:49Z
+heartbeat_at: 2026-11-10 15:56Z
 status: active
-focus: "2026-11-10, localfolded for hv's compact on hv's word, relayed by vc at 13:38:04Z: "Ok, let's do an intent-* fold+compact then hold on the bounce for a move". dc stays active. ON THE BOUNCE: run /in-session, commit the heartbeat-only pickup in its own chain, then HOLD: build nothing and bank nothing new until hv's next word, first-hand or through vc. ST0091: WP-04's trigger unit is banked (wp04-trigger-v1, doing 152), and WP-01's bank (a) is banked in progress at refs/bank/dc/st0091/wp01a-wip-v2, with its note at wp01a-progress-v3.md (doing 151). Claims: ST0090/02, ISSUE:0670, ST0091/01, ST0091/04. Worktrees: tmp/wt-dc-0091 (bank (a) staged, HEAD 8770037a2) and tmp/wt-dc-0090-app (hold 37)."
+focus: "2026-11-10, the hold is lifted on hv's move (vc decision 116; devbin-vc holds the pen while hv is away). dc resumes ST0091 WP-01 bank (a) in tmp/wt-dc-0091 (doing 151), then bank (b), then WP-02 and WP-03; vc judges the train in one desk run. Claims: ST0090/02, ISSUE:0670, ST0091/01, ST0091/04. Worktrees: tmp/wt-dc-0091 and tmp/wt-dc-0090-app (hold 37)."
 claims: [ST0090/02, ISSUE:0670, ST0091/01, ST0091/04]
 ---
 
@@ -15,19 +15,11 @@ claims: [ST0090/02, ISSUE:0670, ST0091/01, ST0091/04]
 
 - ST0091/01, the cut runs through devbin's core and Intent's driver retires, dc's on vc's order of 2026-11-10 09:09Z; vc judges it and claims nothing. L, built as two banks on the train after WP-04's trigger unit, judged in one run, each leaving the tests it touches green on the bank before it (vc decisions 112 to 115; WP-01's body). (edited)
 
-  Bank (a) is IN PROGRESS and HELD on hv's word of 13:38:04Z, relayed by vc: dc builds nothing and banks nothing new until hv's next word. Its work is banked at refs/bank/dc/st0091/wp01a-wip-v2 (blob 2ad4b4bcb8b8, patch-id 0894808b7b66), which supersedes wp01a-wip-v1, and is held staged in tmp/wt-dc-0091 on HEAD 8770037a2, the trigger unit's scratch commit. Nothing of it lands. The progress note, refs/bank/dc/st0091/wp01a-progress-v3.md (blob 6cd162e2520a), says what is done and what is next, and how to rebuild the worktree.
+  The hold is LIFTED: hv named the move in vc's window, relayed by vc at 15:54:25Z by vc's date -u (vc decision 116). devbin-vc holds the pen while hv is away, and the desk is devbin-vc's, so a heavy run is asked through `intent estate slots`. Nothing is wired that needs devbin 0327 or 0328 until the sweep.
 
-  Done in the bank, not yet proved by any test run: pair_at_head in releasebuild.lib; the cut's helpers in releasestamp.lib; bin/.devbin/cut/preflight with its four checks, `clean` to vc decision 115; bin/.devbin/cut/stamp with its seven steps; both declared in config.yaml; and the release block, which offers cut, declares local and upstream as its remotes and lists the seven derived lines. `bin/devbin release check` passes and names them. The driver is deleted and its build arm gone, the comments and MODULES.md rows are corrected, and four test files are written (AT-01.1 to AT-01.4).
+  Bank (a) is resumed in tmp/wt-dc-0091 from refs/bank/dc/st0091/wp01a-wip-v2, with its note at wp01a-progress-v3.md. Since the hold: the driver's two test files are deleted and two comments that named them corrected. Each single test file the bank touches passes on the worktree: releasestamp_lib, release_stamp, release_preflight, prepush_push_range, release_candidate_trigger and burn_subject_provenance. shellcheck at warning level and the shell critic are clean on the changed shell files.
 
-  Next, once hv's word releases the hold:
-  - delete the driver's two test files;
-  - run each single bats file;
-  - drive the core's resume;
-  - run the shared-artefact guard;
-  - bank wp01a-v1 and mint AT-01.1 to AT-01.3;
-  - then bank (b).
-
-  The note carries seven findings for vc. Two of them: the pair built before the tag says `dev`, so WP-03 must build the shipped pair at the tag; and the candidate push meets prepush's gates at the legs step.
+  Next: drive the core's resume on a scratch clone (decision 115); run the shared-artefact guard; bank wp01a-v1 and mint AT-01.1 to AT-01.3 as to-write; then bank (b). vc rules F1 and F2 into WP-03's and WP-02's bodies and tells dc when they are in.
 - ST0091/04, the workflows fire on the candidate and the docs describe the cut as built, dc's; vc judges it and claims nothing. Started and claimed on vc's C4 ruling (decision 112). Its trigger part is banked as the train's first unit at refs/bank/dc/st0091/wp04-trigger-v1 (blob ee3409fcdced, patch-id 2c4e9bc3ab35, base 991e92946), held staged in tmp/wt-dc-0091. tests.yml and linux-release.yml fire on candidate/** and not on tags; tests.yml calls rust.yml for a candidate or a dispatch, so its verdict is inside the one run the cut reads, and test-summary fails a candidate on which the macOS or rust leg was skipped. AT-04.1 cites tests/unit/release_candidate_trigger.bats and stays to-write until the train lands, since `intent at red` refuses a row whose cited file is not on main; each red driven against its three tests is the base's own line restored. vc judges the bank with the train in one run on its tip, and vc puts one dispatch of tests.yml on main, after the push, to hv as a precondition of the cut. The docs part (AC-04.2) follows the rest of the train, and AC-04.3 is hv's first cut through the core. (edited)
 
 ## TODO

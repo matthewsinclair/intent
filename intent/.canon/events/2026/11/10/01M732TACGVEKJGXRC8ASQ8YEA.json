@@ -1,0 +1,16 @@
+{
+  "id": "01M732TACGVEKJGXRC8ASQ8YEA",
+  "ts": "2026-11-10T15:56:50.960Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 151,
+    "text": "ST0091/01, the cut runs through devbin's core and Intent's driver retires, dc's on vc's order of 2026-11-10 09:09Z; vc judges it and claims nothing. L, built as two banks on the train after WP-04's trigger unit, judged in one run, each leaving the tests it touches green on the bank before it (vc decisions 112 to 115; WP-01's body).\n\nThe hold is LIFTED: hv named the move in vc's window, relayed by vc at 15:54:25Z by vc's date -u (vc decision 116). devbin-vc holds the pen while hv is away, and the desk is devbin-vc's, so a heavy run is asked through `intent estate slots`. Nothing is wired that needs devbin 0327 or 0328 until the sweep.\n\nBank (a) is resumed in tmp/wt-dc-0091 from refs/bank/dc/st0091/wp01a-wip-v2, with its note at wp01a-progress-v3.md. Since the hold: the driver's two test files are deleted and two comments that named them corrected. Each single test file the bank touches passes on the worktree: releasestamp_lib, release_stamp, release_preflight, prepush_push_range, release_candidate_trigger and burn_subject_provenance. shellcheck at warning level and the shell critic are clean on the changed shell files.\n\nNext: drive the core's resume on a scratch clone (decision 115); run the shared-artefact guard; bank wp01a-v1 and mint AT-01.1 to AT-01.3 as to-write; then bank (b). vc rules F1 and F2 into WP-03's and WP-02's bodies and tells dc when they are in."
+  }
+}
