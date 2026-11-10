@@ -177,6 +177,16 @@
       "note": "The cut's four read-only pre-flight checks, a live intentd refused with its remedy; banked at refs/bank/dc/st0091/wp01a-v1 (blob c96b329f9f42, patch-id 6c2b14cb5b1c), not yet on main; it stays to-write until the train lands, where it moves red then green against the judge run."
     },
     {
+      "id": "AT-01.5",
+      "kind": "test",
+      "file": "tests/unit/release_gate.bats",
+      "covers": [
+        "AC-01.2"
+      ],
+      "status": "to-write",
+      "note": "The cut's gates on the release commit, each run as the core runs it; banked at refs/bank/dc/st0091/wp01b-v1 (blob 3e81cb71c66c, patch-id 184485758ff4), on wp01a-v2, not yet on main; it stays to-write until the train lands, where it moves red then green against the judge run."
+    },
+    {
       "id": "AT-04.1",
       "kind": "test",
       "file": "tests/unit/release_candidate_trigger.bats",
