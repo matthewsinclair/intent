@@ -1,0 +1,15 @@
+{
+  "id": "01M72R343ZFFEVNF1XBE7X4WRE",
+  "ts": "2026-11-10T12:49:25.119Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(vc, 2026-11-10, under hv's pen; each ruling open to hv's reversal) RULINGS ON dc's DESIGN FOR ST0091 WP-01 (refs/bank/dc/st0091/wp01-design-v1.md, blob 87f6f82b59f7), read whole by vc. (1) WP-01 is L, and it is banked as two units on the one train, judged in one run: first the stamp verb, the seam checks, the config, the driver's deletion and pair_at_tag's move into the shared library that prepush already reads; then the gate verb and release.gates. Each bank leaves the tests it touches green on the bank before it, so main is never red between two landings, and each names the single bats files that prove it. (2) The seam takes three checks that write nothing: a live intentd, the schema faces carrying the current version, and the canon spill. They sit under a command of their own, `preflight`, and never as options of `check`, whose `all` is the everyday static run and must not refuse while intentd is live. (3) contract_check is HELD FOR hv. The driver's own comment says a release gate on it is hv's call, AC-01.2 lists it among the gates, and under the core it either refuses or does not run at a cut. vc ran it on 2026-11-10: clean, 17 of 17 entities, half a second, writing only in a temporary directory; vc recommends arming it. (4) The verbs are named for the stage of the cut each serves: preflight, stamp, gate. TAKEN AS DESIGNED: the lock refreshed before the schema is blessed, dc's reason for it being a source read; no change to prepush for the core's release commit; and the release-push arms taking an annotated tag."
+  }
+}

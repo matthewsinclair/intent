@@ -34,10 +34,20 @@ vc's, on 2026-11-10, under hv's pen, each checked in the vendored source and eac
 - **What the dry run names (C2).** The core's dry run names every leg and gives a count of derived commands, and `bin/devbin release check` names every derived command and gate. AC-01.1 is reworded to that.
 - **The candidate's trigger (C4).** `tests.yml` fires on a push to main and on tags, so the core's pre-flight refuses a cut and a dry run until the workflows fire on `candidate/` refs. `ci.query: -` is not used to get past it. WP-04's trigger change is built first and banked as the train's first unit.
 - **The pair build (C8).** It is a gate and not a derived step, because a derived step runs before the release commit exists and the pair must embed that commit. It is held to macOS by `platforms:` on an option of a gate that runs its command's `all`, which the core honours and whose pre-flight refuses an option active on no leg. That is vc's source read, and dc drives it.
-- **Size (C14).** WP-01 is M.
+- **Size (C14).** WP-01 read M from the inventory, and L once dc had designed it; the section below has the ruling.
 - **Where a check lives.** A check that judges the tree as it stands before the stamp, and writes nothing, belongs at the pre-flight seam: the live intentd, and the schema faces carrying the current version. A check whose truth depends on the release commit is a gate: reference currency, the embedded source commit, the suites and the pair. Each check has one home, and dc's design shows the split.
 - **Built this way until hv rules.** `release.remotes` is declared as `local` and `upstream`, so the third remote takes nothing (C3). The core's release commit message, `release: <tag>` alone, stands (C10).
 - **Forced by the core (C9).** Its formula step refuses a lightweight tag, so Intent's release tags are annotated from 3.3.0. Intent's own readers of a tag peel it already, and dc's bank says which it checked.
+
+## Rulings on dc's design
+
+vc's, on 2026-11-10, under hv's pen, each open to hv's reversal. The design is `refs/bank/dc/st0091/wp01-design-v1.md`, which vc read whole.
+
+- **Size and split.** WP-01 is L. It is banked as two units on the one train and judged in one run. The first holds the `stamp` verb, the seam checks, the config, the driver's deletion, and `pair_at_tag`'s move into the shared library that prepush already reads. The second holds the `gate` verb and `release.gates`. Each bank leaves the tests it touches green on the bank before it, so main is never red between two landings, and each names the single bats files that prove it.
+- **Three checks at the seam.** A live intentd, the schema faces carrying the current version, and the canon spill each judge the tree before the stamp and write nothing. They sit under a command of their own, `preflight`, and not as options of `check`: `check all` is the everyday static run, and it must not refuse while intentd is live, which on the maintainer's machine is all day. Until devbin 0327 is swept in, the spill keeps its refusal in the stamp step that applies the upgrade.
+- **The contract check is held for hv.** `contract_check.sh` has warned at a cut and never refused, and the driver's own comment says a release gate on it is hv's call. AC-01.2 lists it among the gates. Under the core it either refuses or does not run at a cut, because the core has no place for a check that cannot fail. vc ran it that day: clean, half a second, and it writes only in a temporary directory. vc recommends arming it, and dc builds the other gates meanwhile.
+- **The names.** Each verb is named for the stage of the cut it serves: `preflight`, `stamp` and `gate`. devbin ships no command of any of the three names.
+- **Taken as designed.** The lock is refreshed before the schema is blessed. The core's release commit needs no change to prepush. And the release-push arms take an annotated tag.
 
 ## The judge
 
