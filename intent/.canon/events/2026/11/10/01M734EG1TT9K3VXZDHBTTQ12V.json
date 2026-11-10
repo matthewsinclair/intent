@@ -1,0 +1,14 @@
+{
+  "id": "01M734EG1TT9K3VXZDHBTTQ12V",
+  "ts": "2026-11-10T16:25:20.702Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0091/AC-03.2"
+  },
+  "payload": {
+    "text": "Intent's `macos prepare` refuses to stage a pair whose kind is not `release` or whose embedded commit is not HEAD, and names the rebuild at the tag as its remedy; Intent's `macos publish` ships the stage under the asset names 3.2.8 shipped, so no installed keg and no formula line changes name; and the built-in macOS publish is not adopted until a devbin stages after the tag and ships a project's several assets."
+  }
+}

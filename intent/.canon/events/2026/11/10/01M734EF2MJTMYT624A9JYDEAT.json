@@ -1,0 +1,14 @@
+{
+  "id": "01M734EF2MJTMYT624A9JYDEAT",
+  "ts": "2026-11-10T16:25:19.704Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0091/AC-03.1"
+  },
+  "payload": {
+    "text": "The cut publishes through one `after:` command that stops at its first failure and is safe to run again at the tag: it builds the pair at the tag, stages, publishes the macOS assets, and then runs the built-in `formula publish`, which renders Intent's formula and cask from templates under `packaging/homebrew/` in assets mode under the cut's yes, each asset's sum filled from the release's sums file, which stands for issue 0634's cask sha256 check; the tap is not written when an earlier step failed; Intent's own brew smoke runs as the next `after:` command, where it reports after publication and gates nothing; and `bin/.devbin/cmd/brew` keeps the smoke and nothing else, with no render or publish code left in it or in `bin/.devbin/cmd/shared/brew.lib`."
+  }
+}

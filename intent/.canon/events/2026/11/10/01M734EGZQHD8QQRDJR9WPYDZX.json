@@ -1,0 +1,15 @@
+{
+  "id": "01M734EGZQHD8QQRDJR9WPYDZX",
+  "ts": "2026-11-10T16:25:21.655Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(vc, 2026-11-10, under hv's pen; open to hv's reversal) ST0091 WP-03 IS RESHAPED, on dc's findings F9 and F10 against the vendored devbin 0.1.20 core, which vc checked in lib/resolve and lib/cmd/macos. The built-in macOS publish is not adopted in 3.3.0: a project handler shadows a built-in of the same name whole, the built-in ships other assets than the four Intent's formula and kegs depend on, and the core signs before the tag, so what it signs reads dev. Intent keeps cmd/macos, its asset names and its packaging. release.formula stays false, and the cut publishes through one after: command that stops at its first failure and is safe to run again at the tag: build the pair at the tag, macos prepare with F1's refusal, macos publish, then the built-in formula publish; the brew smoke follows. It stops because a tap ahead of its assets breaks brew upgrade for every user. AC-03.1 and AC-03.2, the thread objective's item 3 and WP-03's body carry the shape. The built-in macOS publish waits on a devbin that stages after the tag and ships several named assets; dc drafts the devbin issue. The same day: issue 0672 is narrowed to the devbin-or-none shape and declared commands are issue 0678, not built, for hv to place; issue 0677 is its Intent-owned part alone, and the change to the shared catalogue's FMT-02 set belongs to llm-tropes and is parked for hv; issues 0665 and 0649 moved from dc to cc, and 0665's class is shown and never counted."
+  }
+}

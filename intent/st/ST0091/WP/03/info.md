@@ -13,21 +13,27 @@ The built-in formula writes Intent's tap and the built-in `macos publish` upload
 
 ## Builder and judge
 
-dc builds this package and claims `ST0091/03` in the same chain as `intent wp start ST0091/03`, once the vendor sweep has brought in the core's formula under the yes (Devbin WP08) and its macOS stage (Devbin WP06), both of which devbin 0.1.20 carries as vendored. vc judges it and claims nothing.
+dc builds this package and claims `ST0091/03` in the same chain as `intent wp start ST0091/03`. vc judges it and claims nothing.
 
 ## What moves
 
-dc's inventory, measured at 7ff46b458; line references are to that commit.
+vc ruled this shape on 2026-11-10, under hv's pen and open to hv's reversal, after dc measured the vendored devbin 0.1.20 core (dc's findings F9 and F10). It replaces the plan this body carried before, which had the built-in `macos publish` ship a stage Intent's `prepare` made.
 
-- `bin/.devbin/cmd/brew` (669 lines) loses its render and its publish to the built-in `formula` (the vendored `lib/cmd/formula`), which writes Intent's formula and cask in assets mode under the cut's yes and fills each asset's sum from the release's sums file. That fill is what stands for issue 0634's cask sha256 check: no sum is kept by hand, and none is computed on this machine.
-- `cmd/brew` keeps its smoke (`cmd_smoke`, :265, about half the file). The core carries none: devbin-vc measured on 2026-11-10 that the smoke its ruling of 2026-10-31 named was never built. The cut runs Intent's as an `after:` command, where it reports after publication and gates nothing, as it does today after `brew publish`.
-- `bin/.devbin/cmd/shared/brew.lib` (812) keeps only what the smoke reads, or goes if the smoke reads nothing from it, and dc's bank says which. `cmd/macos` sources `brew.lib` (:76), and that line follows what is left of it.
-- `bin/.devbin/cmd/macos` (2349 lines) loses its publish half (`cmd_publish`, :1245-1536) to the built-in `macos publish`. Its `prepare` (:1192) stays as a shadow until the built-in stages more than one app, and writes `<stage>/commit`, HEAD's full sha, because the built-in publish refuses a stage without one (Devbin WP06a's note). Today neither `cmd/macos` nor the vendored `lib/cmd/macos` writes that file: the stage (:835) records `commit:` in `target/dist-provenance.txt` (:893) instead.
+- The built-in macOS publish is not adopted in 3.3.0, for three measured reasons. A project handler shadows a built-in of the same name whole (`lib/resolve`, `resolve_handler`), so Intent's `cmd/macos` and the built-in cannot both answer `macos`. The built-in ships one app zip and one tarball per project, where Intent ships `intent-aarch64-apple-darwin`, `intentd-aarch64-apple-darwin`, `intent-support.tar.gz` and `Intent.app.zip`, names the formula and every installed keg depend on. And the core signs during its legs step, before the tag, so what it signs reads `dev`. Intent keeps `cmd/macos`, its asset names and its packaging unchanged.
+- `release.formula` stays false, and the cut's `after:` list is two commands: one Intent command that publishes, then the brew smoke.
+- The publish command runs four steps in order and stops at the first that fails: a build of the pair at the tag; `macos prepare`; `macos publish` under today's asset names; and the built-in `formula publish --pull`, which takes the cut's yes from the core. It stops because a tap that names assets which do not exist breaks `brew upgrade` for every user, where a release with no tap update harms nobody.
+- The command is safe to run again by hand at the tag: each step sees what is already done and carries on. Its failure prints that as the remedy. dc drives what the core does after a failed `after:` and records it here.
+- The built-in formula renders from templates under `packaging/homebrew/`, taken out of `brew.lib`'s heredocs, and fills each asset's sum from the release's sums file. That fill stands for issue 0634's cask sha256 check: no sum is kept by hand, and none is computed on this machine. Issue 0667's service fix is made in the template (AC-03.3).
+- `cmd/brew` keeps its smoke alone, and `brew.lib` keeps only what `cmd/macos` reads. The smoke reports after publication and gates nothing, as it does today.
 - `tests/unit/brew_formula.bats` and `macos_release_assets.bats` follow what they test.
 
 ## Ruling on dc's finding F1
 
-vc, 2026-11-10, under hv's pen and open to hv's reversal. A build reads `release` only where its commit carries the version's tag when it is built (issue 0534), and the core runs its gates before the tag, so the pair the gate builds reads `dev`. The pair that ships is therefore built again once the tag is on the release commit, with both packages cleaned first so the build script runs and sees the tag. `macos prepare` refuses to stage a pair whose kind is not `release` or whose embedded commit is not HEAD, and the refusal names the rebuild as its remedy. That refusal is the check: a shipped asset that says `dev` is a visible regression, and no step of the cut is trusted to have ordered the build correctly. dc says in its bank where in the cut the rebuild runs, since the core's step order decides it.
+vc, 2026-11-10, under hv's pen and open to hv's reversal. A build reads `release` only where its commit carries the version's tag when it is built (issue 0534), and the core runs its gates before the tag, so the pair the gate builds reads `dev`. The pair that ships is therefore built again once the tag is on the release commit, with both packages cleaned first so the build script runs and sees the tag. `macos prepare` refuses to stage a pair whose kind is not `release` or whose embedded commit is not HEAD, and the refusal names the rebuild as its remedy. That refusal is the check: a shipped asset that says `dev` is a visible regression, and no step of the cut is trusted to have ordered the build correctly. The rebuild is the publish command's first step. WP-01's pair gate stays a gate: it proves the release commit builds, and its output does not ship.
+
+## What waits on devbin
+
+The built-in macOS publish comes back when devbin stages after the tag and ships a project's several named assets. dc drafts that as a devbin issue, and vc passes it to devbin-vc.
 
 ## The judge
 
