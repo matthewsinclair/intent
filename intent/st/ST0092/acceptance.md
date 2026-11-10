@@ -143,7 +143,9 @@ _(no tests in this group)_
 
 ### WP-08 -- The Desk is a hat with a written contract (status: WIP)
 
-_(no tests in this group)_
+- AT-08.1 `native/rust/crates/intent-cli/tests/estate_surface.rs` -- covers AC-08.1, AC-08.3 -- status: red -- red at b64665225 on the code as it was, desk run 01M73J11PV8GCHWZGF7M97J64H: the mediator's pickup printed no hat, no duties and no asks waiting
+- AT-08.2 `native/rust/crates/intent-cli/tests/estate_surface.rs` -- covers AC-08.2 -- status: red -- red at b64665225 on the code as it was, desk run 01M73J11PV8GCHWZGF7M97J64H: cc's control take succeeded with no hv words
+- AT-08.3 `native/rust/crates/intent-cli/tests/estate_surface.rs` -- covers AC-08.4 -- status: red -- red at b64665225 on the code as it was, desk run 01M73J11PV8GCHWZGF7M97J64H: estate status json carried no controller_orphaned
 
 ### WP-09 -- Doctor reports a board that has left its profile (status: Not Started)
 
