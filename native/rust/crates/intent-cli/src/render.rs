@@ -4367,6 +4367,9 @@ fn register_refusal(problem: &str, moniker: Option<&String>, tail: &str) -> Fail
 /// `Facade::register_roster`, which is where that reasoning lives.
 fn wb(m: &ArgMatches) -> Result<(), Failure> {
   match m.subcommand() {
+    // Before every arm that opens a project: the profiles belong to the
+    // install, so this answers from any directory (ST0092 WP-02).
+    Some(("profile", m)) => wb_profile(m),
     Some(("register", m)) => {
       let mut f = open()?;
       let moniker = m.get_one::<String>("moniker");
@@ -15230,6 +15233,125 @@ fn rules(m: &ArgMatches) -> Result<(), Failure> {
     Some((verb, _)) => unwired("claude", &format!("rules {verb}")),
     None => rules_list(m),
   }
+}
+
+/// `intent wb profile <list|show|validate|terms>` (ST0092 WP-02).
+///
+/// **NO PROJECT IS OPENED.** The Team Profiles belong to the install, as the
+/// rule library does, so these answer from any directory. Parse, call
+/// [`intentsvcs::teams`], render.
+fn wb_profile(m: &ArgMatches) -> Result<(), Failure> {
+  let teams = teams()?;
+  match m.subcommand() {
+    Some(("list", _)) => wb_profile_list(&teams),
+    Some(("show", a)) => wb_profile_show(&teams, &arg(a, "name")?),
+    Some(("validate", _)) => wb_profile_validate(&teams),
+    Some(("terms", _)) => {
+      // `print!`: the document ends with whatever it ends with.
+      print!("{}", teams.terms().map_err(teams_unavailable)?);
+      Ok(())
+    }
+    Some((verb, _)) => unwired("wb", &format!("profile {verb}")),
+    // The slot is required, so clap refuses the bare command first.
+    None => unwired("wb", "profile"),
+  }
+}
+
+/// The install's profiles. An install that cannot be found cannot answer, so
+/// it is exit 2, the code for "this build cannot answer".
+fn teams() -> Result<intentsvcs::teams::Teams, Failure> {
+  intentsvcs::teams::installed()
+    .map_err(|e| Failure::Unavailable(format!("error: {e}\n  remedy: {}", e.remedy())))
+}
+
+/// A profile asked for by a name the install does not ship is a refusal on exit
+/// 1 (INV-04). Anything else is exit 2, this build cannot answer: a profiles
+/// directory it cannot read, and a shipped file that does not parse, because a
+/// list or a show has no "no" to give. `validate` collects a malformed file as
+/// a finding instead, where it is the answer.
+#[allow(
+  clippy::needless_pass_by_value,
+  reason = "a `map_err` adapter: `Result::map_err` hands the error over by value, so this signature is the closure's"
+)]
+fn teams_unavailable(e: intentsvcs::teams::TeamsError) -> Failure {
+  let line = format!("error: {e}\n  remedy: {}", e.remedy());
+  match e {
+    intentsvcs::teams::TeamsError::UnknownProfile { .. } => Failure::Error(line),
+    intentsvcs::teams::TeamsError::Malformed { .. }
+    | intentsvcs::teams::TeamsError::Absent { .. }
+    | intentsvcs::teams::TeamsError::Io { .. } => Failure::Unavailable(line),
+  }
+}
+
+fn kind_word(kind: intentsvcs::teams::ProfileKind) -> &'static str {
+  match kind {
+    intentsvcs::teams::ProfileKind::Base => "base",
+    intentsvcs::teams::ProfileKind::Layer => "layer",
+  }
+}
+
+/// One line per shipped profile: its name, whether it is a base or a layer,
+/// the mediator it sets, and its seats.
+fn wb_profile_list(teams: &intentsvcs::teams::Teams) -> Result<(), Failure> {
+  let profiles = teams.profiles().map_err(teams_unavailable)?;
+  println!("{:<12} {:<6} {:<9} seats", "profile", "kind", "mediator");
+  for p in &profiles {
+    println!(
+      "{:<12} {:<6} {:<9} {}",
+      p.name,
+      kind_word(p.front.kind),
+      p.front.mediator.as_deref().unwrap_or("-"),
+      p.front.seats.join(", ")
+    );
+  }
+  Ok(())
+}
+
+/// One profile: its kind, its mediator, each seat from the registry, then its
+/// brief whole.
+fn wb_profile_show(teams: &intentsvcs::teams::Teams, name: &str) -> Result<(), Failure> {
+  let profile = teams.profile(name).map_err(teams_unavailable)?;
+  let registry = teams.registry().map_err(teams_unavailable)?;
+  println!(
+    "profile: {} ({})",
+    profile.name,
+    kind_word(profile.front.kind)
+  );
+  match &profile.front.mediator {
+    Some(m) => println!("mediator: {m}"),
+    None => println!("mediator: as the base declares it"),
+  }
+  println!("seats:");
+  for seat in intentsvcs::teams::seats_of(&profile, &registry) {
+    println!(
+      "  {:<3} {:<18} {:<11} {:<25} {}",
+      seat.moniker,
+      seat.name,
+      seat.role,
+      seat.driver.phrase(),
+      seat.remit
+    );
+  }
+  println!();
+  print!("{}", profile.brief);
+  Ok(())
+}
+
+/// Every finding to stderr, naming the file and the field, and the summary to
+/// stdout on both verdicts (INV-01). Exit 0 when every profile is valid, 1 on
+/// a finding, 2 when this build cannot read its profiles.
+fn wb_profile_validate(teams: &intentsvcs::teams::Teams) -> Result<(), Failure> {
+  let (findings, examined) = teams.validate().map_err(teams_unavailable)?;
+  for f in &findings {
+    eprintln!("error: {f}");
+  }
+  if findings.is_empty() {
+    let names = teams.names().map_err(teams_unavailable)?;
+    println!("ok: {examined} profile(s) valid: {}", names.join(", "));
+    return Ok(());
+  }
+  println!("{} finding(s) across {examined} profile(s)", findings.len());
+  Err(Failure::Verdict)
 }
 
 /// `intent claude rules validate [<id>|<path>]`.

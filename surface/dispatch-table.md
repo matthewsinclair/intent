@@ -50,6 +50,7 @@ Rules that hold across the whole command surface. They are stated once here rath
 | INV-08 | Some commands accept an unknown flag silently at exit 0                             | corrected   |
 | INV-09 | Every spelling of one capability agrees about whether it exists                     | new-surface |
 | INV-10 | `edit`'s four output modes are mutually exclusive and the default is the terminal's | new-surface |
+| INV-11 | A valued verb slot publishes on MCP as one tool per value, never as a parameter     | new-surface |
 
 ### INV-01 -- Voice: lowercase `ok:` / `error:` prefixes, no banners
 
@@ -173,6 +174,14 @@ Two shapes: usage to STDOUT with exit 1 (`init`, `st`, `wp`, `todo`, `treeindex`
 - **v2:** not-applicable -- `st edit` had one output and no modes
 - **Target:** `new-surface` -- ratified: hv, 2026-08-29, selecting the TTY form WITH explicit overrides from three options
 - **held by:** the four modes are refused pairwise; `--path` is a documented output contract under test in docs/getting-started.md
+
+### INV-11 -- A valued verb slot publishes on MCP as one tool per value, never as a parameter
+
+A `subcommand` slot is how the table spells a third level, and it is never a published parameter. When a row with a valued slot (`values` non-empty) is `exposed_on_mcp`, the MCP tier publishes ONE TOOL PER VALUE, named as the path `<row path> <value>` would be, described from `value_help`, served through that value's `value_facades` entry, and taking that value's `value_args` and `value_flags` alone. A value with no facade on an exposed row is refused at tool derivation, as a row with no `facade` is. `value_facades` and `value_args` are held to the same load checks as `value_flags`: only on a valued slot, every key a value, every named arg or flag on the row. The reason is the agent's: one tool with a `verb` enum cannot say which args a verb takes, so the agent would learn it from a refusal.
+
+- **v2:** not-applicable -- v2 had no MCP surface
+- **Target:** `new-surface` -- ratified: ic as the dispatch table's owner, 2026-11-10, on cc's shape question for ST0092 WP-02's `wb profile`; vc let it stand the same day and asked that the table say it once
+- **held by:** dispatch::table()'s load checks on `value_facades` and `value_args`, and mcp.rs's expansion test with its positive control, beside a_subcommand_slot_is_not_published
 
 ## Family: `st`
 
@@ -4138,6 +4147,7 @@ The whiteboard: read the node boards, and send between them
 | `wb claim`    | <id>               | --node                                    | Add a steel thread, work package or issue to the acting node's claims                                     | new-surface |
 | `wb unclaim`  | <id>               | --node                                    | Drop a steel thread, work package or issue from the acting node's claims                                  | new-surface |
 | `wb clear`    | <sender>           | --node                                    | Mark every live message one sender sent the acting node handled                                           | new-surface |
+| `wb profile`  | <verb> <name>      | --                                        | List, show and validate the Team Profiles this install ships, and print the terms they share              | new-surface |
 | `wb register` | [moniker]          | --name, --role, --correct                 | Register a node from its arguments, or the roster from each node's own board header                       | new-surface |
 | `wb migrate`  | <node>             | --drop-uncarried                          | Carry one node's hand-authored board into the model                                                       | new-surface |
 
@@ -4491,6 +4501,29 @@ Mark every live message one sender sent the acting node handled
 - **recoverability:** idempotent
 - **facade:** wb_clear
 - **note:** **ONLY THE RECIPIENT CLEARS, AND THE RECIPIENT IS WHOEVER `--node` NAMES**, so the ownership half of the single-writer invariant stands exactly as far as the sender half does -- see `wb ask` for why that is a convention at this layer. The rows are not deleted: `state` moves live to handled with `handled_at` stamped by the store, so what was said stays readable and stops counting against the bound.
+
+### `wb profile`
+
+List, show and validate the Team Profiles this install ships, and print the terms they share
+
+- **v2:** new-surface
+- **Arguments:**
+  - `verb` (subcommand, arity `1`) -- one of: `list`, `show`, `validate`, `terms`
+    - flags by verb: `list`: none; `show`: none; `validate`: none; `terms`: none
+  - `name` (string, arity `1`) -- The profile to show, as `wb profile list` names it
+- **Exit codes:**
+  - `0` -- listed, shown or printed; validate found every profile valid
+  - `1` -- validate found a finding, or show named a profile the install does not ship (INV-04)
+  - `2` -- this build cannot answer: the install, its profiles directory or a shipped profile could not be read
+- **stdout:** the profile table, one profile with its brief, the terms document, or validate's summary
+- **stderr:** `error: ...` on stderr (INV-01); validate's findings, one per line naming the file and the field
+- **Target:** `new-surface`
+- **MCP:** exposed as an agent tool -- read-only
+- **when to use:** USE IT to see which Team Profiles Intent ships, what seats and mediator each declares, and the brief a session in a seat is given. It answers from the installed Intent and needs no project, so it works in a directory that is no Intent project. DO NOT USE IT to see who is registered on this project's board: `wb status` reads the roster, and a profile is the resource a roster is declared from, not the roster itself.
+- **basis:** ST0092/WP/02 info.md: a Team Profile is a shipped resource, and the installed tool lists, shows and validates the profiles the way it serves the rule library. There is no v2 antecedent.
+- **owner wp:** ST0092 WP-02
+- **acceptance:** ST0092 AC-02.1, AC-02.3, AC-02.6
+- **note:** **THE PROFILES BELONG TO THE INSTALL, SO NO PROJECT IS OPENED** (vc's ruling, 2026-11-10). A user-authored profile is out of ST0092, so nothing is read from the extension base. Each verb is its own MCP tool under INV-11.
 
 ### `wb register`
 

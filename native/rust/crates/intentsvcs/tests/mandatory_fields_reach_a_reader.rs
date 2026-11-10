@@ -71,6 +71,9 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     | FacadeError::Sync(_)
     // The estate refuses a session id or a line, never a field left out.
     | FacadeError::Estate(_)
+    // A Team Profile is refused by its name or for its install, never for a
+    // field left out.
+    | FacadeError::Teams(_)
     | FacadeError::SqlMoreThanOneStatement
     | FacadeError::SqlNoStatement
     | FacadeError::SqlUnterminated

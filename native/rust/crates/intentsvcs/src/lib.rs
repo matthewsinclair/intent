@@ -106,6 +106,7 @@ pub mod sql_gate;
 pub mod store;
 pub mod switch;
 pub mod sync;
+pub mod teams;
 pub mod transitions;
 pub mod userstate;
 pub mod views;

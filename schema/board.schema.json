@@ -279,5 +279,5 @@
   "title": "Board",
   "type": "object",
   "x-intent-ver": "3.2.8",
-  "x-schema-json-ver": 24
+  "x-schema-json-ver": 25
 }

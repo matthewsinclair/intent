@@ -49,6 +49,14 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .estate_wip("../x", Some("a line"))
       .expect_err("not a session id"),
   ));
+  // A Team Profile the install does not ship is refused by name (ST0092
+  // WP-02, INV-04), before any profile is read.
+  out.push((
+    "an unknown Team Profile",
+    facade
+      .wb_profile_show("no-such-profile")
+      .expect_err("no such profile"),
+  ));
   // The census and statusline doors refuse their input before anything is
   // read or written, so each is provokable by a bad call too.
   out.push((
@@ -1231,6 +1239,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::Ingest(_) => "Ingest",
     FacadeError::Sync(_) => "Sync",
     FacadeError::Estate(_) => "Estate",
+    FacadeError::Teams(_) => "Teams",
     FacadeError::NoSuchFormat { .. } => "NoSuchFormat",
     FacadeError::LossyFormat { .. } => "LossyFormat",
     FacadeError::ExportRoundTripFailed { .. } => "ExportRoundTripFailed",
@@ -1372,6 +1381,7 @@ const ALL_VARIANTS: &[&str] = &[
   "Ingest",
   "Sync",
   "Estate",
+  "Teams",
   "NoSuchFormat",
   "LossyFormat",
   "WriteNotAddressable", // PUT to a server-assigned id -- `mutation_create_splits_two_ways.rs`

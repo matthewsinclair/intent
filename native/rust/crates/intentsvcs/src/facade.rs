@@ -1997,6 +1997,10 @@ pub enum FacadeError {
   /// The host's estate could not be read or written (ST0086).
   #[error(transparent)]
   Estate(#[from] crate::estate::EstateError),
+  /// The install's Team Profiles could not be read, or a profile was asked
+  /// for by a name the install does not ship (ST0092 WP-02).
+  #[error(transparent)]
+  Teams(#[from] crate::teams::TeamsError),
   #[error("no export format named `{format}`")]
   NoSuchFormat {
     format: String,
@@ -3287,6 +3291,7 @@ impl crate::remedy::Remedy for FacadeError {
       Self::Embed(cause) => cause.remedy(),
       Self::Sync(cause) => cause.remedy(),
       Self::Estate(cause) => cause.remedy(),
+      Self::Teams(cause) => cause.remedy(),
       Self::Store(cause) => cause.remedy(),
       // Delegated for the same reason: `organize` knows which of its four
       // refusals happened and this does not.

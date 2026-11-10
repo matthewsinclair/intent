@@ -41,7 +41,7 @@ pub const INTENT_VER: &str = env!("CARGO_PKG_VERSION");
 /// content changes and its version does not, which is the same forcing
 /// function `SCHEMA_VERSION` has for the store -- the one that earned its
 /// existence within hours of being written.
-pub const SCHEMA_JSON_VER: u32 = 24;
+pub const SCHEMA_JSON_VER: u32 = 25;
 /// See [`SCHEMA_JSON_VER`].
 pub const SCHEMA_DDL_VER: u32 = 28;
 /// See [`SCHEMA_JSON_VER`].
@@ -54,6 +54,14 @@ pub fn faces() -> Vec<(&'static str, String)> {
     ("issue.schema.json", schema_json::<Issue>()),
     ("board.schema.json", schema_json::<Board>()),
     ("event.schema.json", schema_json::<Envelope>()),
+    (
+      "team-seats.schema.json",
+      schema_json::<crate::teams::SeatRegistry>(),
+    ),
+    (
+      "team-profile.schema.json",
+      schema_json::<crate::teams::ProfileFront>(),
+    ),
     ("ddl.sql", versioned_sql(crate::store::DDL)),
     ("schema.graphql", versioned_sdl(&crate::graphql::sdl())),
   ]
@@ -75,6 +83,8 @@ pub const SCHEMA_VER_KEYS: &[(&str, &str)] = &[
   ("issue.schema.json", "SCHEMA_JSON_VER"),
   ("board.schema.json", "SCHEMA_JSON_VER"),
   ("event.schema.json", "SCHEMA_JSON_VER"),
+  ("team-seats.schema.json", "SCHEMA_JSON_VER"),
+  ("team-profile.schema.json", "SCHEMA_JSON_VER"),
 ];
 
 /// **Each face carries its version in ITS OWN idiom, never in a companion

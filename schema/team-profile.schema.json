@@ -1,0 +1,50 @@
+{
+  "$defs": {
+    "ProfileKind": {
+      "description": "Whether a profile declares a whole roster or adds to one.",
+      "oneOf": [
+        {
+          "const": "base",
+          "description": "Declares a whole roster; a whiteboard declares exactly one.",
+          "type": "string"
+        },
+        {
+          "const": "layer",
+          "description": "Adds seats to a base, and may move the mediator.",
+          "type": "string"
+        }
+      ]
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "A profile file's frontmatter: flat, three keys.",
+  "properties": {
+    "kind": {
+      "$ref": "#/$defs/ProfileKind",
+      "description": "A base or a layer."
+    },
+    "mediator": {
+      "description": "The seat through which hv is reached. A base names one; a layer names one\nonly when it moves the mediator.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "seats": {
+      "description": "The monikers of the seats the profile declares or adds.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "kind",
+    "seats"
+  ],
+  "title": "ProfileFront",
+  "type": "object",
+  "x-intent-ver": "3.2.8",
+  "x-schema-json-ver": 25
+}

@@ -1,0 +1,77 @@
+{
+  "$defs": {
+    "Driver": {
+      "description": "Who drives a seat.",
+      "oneOf": [
+        {
+          "const": "session",
+          "description": "A Claude session started in the seat.",
+          "type": "string"
+        },
+        {
+          "const": "human",
+          "description": "hv, the human. A seat driven by the human is only ever registered.",
+          "type": "string"
+        },
+        {
+          "const": "supervisor-session",
+          "description": "The supervisor's own session, from its hub.",
+          "type": "string"
+        }
+      ]
+    },
+    "Seat": {
+      "additionalProperties": false,
+      "description": "One seat, as the terms document's seats table defines it.",
+      "properties": {
+        "driver": {
+          "$ref": "#/$defs/Driver",
+          "description": "Who drives the seat."
+        },
+        "moniker": {
+          "description": "The two-letter handle: the routing key and the board's directory name.",
+          "type": "string"
+        },
+        "name": {
+          "description": "The display name, eg Control Claude.",
+          "type": "string"
+        },
+        "remit": {
+          "description": "The default remit: one line saying what the seat is for.",
+          "type": "string"
+        },
+        "role": {
+          "description": "One word for what the seat does, eg `control`.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "moniker",
+        "name",
+        "role",
+        "driver",
+        "remit"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "The seat registry, `seats.json`: each seat once.",
+  "properties": {
+    "seats": {
+      "description": "Every seat any shipped profile may name.",
+      "items": {
+        "$ref": "#/$defs/Seat"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "seats"
+  ],
+  "title": "SeatRegistry",
+  "type": "object",
+  "x-intent-ver": "3.2.8",
+  "x-schema-json-ver": 25
+}

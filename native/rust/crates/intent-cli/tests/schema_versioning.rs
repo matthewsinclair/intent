@@ -67,11 +67,19 @@ fn marker(face: &str, key: &str) -> Option<String> {
 
 #[test]
 fn every_published_face_carries_both_version_parts() {
+  // Every committed face is keyed, and every keyed face is committed (AC-06.5):
+  // a face added or removed on one side only is what this notices. Derived
+  // from the `schema/` directory, never a count written down.
+  let mut committed: Vec<String> = std::fs::read_dir(repo_root().join("schema"))
+    .expect("the committed faces")
+    .map(|e| e.expect("entry").file_name().to_string_lossy().into_owned())
+    .collect();
+  committed.sort();
+  let mut keyed: Vec<String> = SCHEMA_VER_KEYS.iter().map(|(n, _)| n.to_string()).collect();
+  keyed.sort();
   assert_eq!(
-    SCHEMA_VER_KEYS.len(),
-    6,
-    "six published faces (AC-06.5); if a face was added or removed, this count is the thing that \
-     notices"
+    keyed, committed,
+    "the keyed faces and the committed `schema/` directory disagree"
   );
 
   let mut missing = Vec::new();
@@ -371,7 +379,10 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // recipient's.
     // 23 -> 24 is `archived_at` on the board's sent message (issue 0627), omitted
     // when null so a board with nothing archived re-emits byte for byte.
-    ("SCHEMA_JSON_VER", 24, 0x00be_863a_3328_0030),
+    // 24 -> 25 is ST0092 WP-02: `team-seats.schema.json` and
+    // `team-profile.schema.json` join the JSON contract, the seat registry and
+    // a profile's frontmatter. The DDL and SDL do not move.
+    ("SCHEMA_JSON_VER", 25, 0x924d_7f4f_69f0_6256),
   ];
 
   let mut moved = Vec::new();

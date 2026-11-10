@@ -200,7 +200,11 @@ fn entry_block(entry: &Entry) -> String {
   let mut out = format!("#### intent {}\n\n", entry.path);
 
   out.push_str(&format!("- **safety:** {}\n", safety(entry)));
-  out.push_str(&format!("- **call:** `{}`\n", call(entry)));
+  out.push_str(&format!(
+    "- **call:** `{}`{}\n",
+    call(entry),
+    call_takers(entry)
+  ));
   out.push_str(&format!("- **does:** {}\n", entry.help));
 
   let flags: Vec<&Flag> = entry.flags.iter().filter(|f| f.ships()).collect();
@@ -255,6 +259,41 @@ fn taken_by(entry: &Entry, flag: &Flag) -> String {
     .map(|verb| format!("`{verb}`"))
     .collect();
   format!(" (taken by {})", verbs.join(", "))
+}
+
+/// ` (`name` taken by `show`)`, after the call line's code span: each
+/// positional only some verbs take, with its takers (INV-11).
+fn call_takers(entry: &Entry) -> String {
+  entry
+    .args
+    .iter()
+    .filter(|a| a.kind != "subcommand")
+    .filter_map(|a| arg_takers(entry, a).map(|t| format!(" (`{}` taken by {t})", a.name)))
+    .collect()
+}
+
+/// The verbs that take a positional, on a row whose verb slot declares each
+/// verb's positionals and where some verb does not take it (INV-11), or `None`
+/// when every verb takes it. Rendered in the call line, so the guide offers no
+/// verb an argument its leaf refuses, as [`taken_by`] does for a flag.
+fn arg_takers(entry: &Entry, arg: &Arg) -> Option<String> {
+  let slot = entry.valued_slot()?;
+  let takers: Vec<&String> = slot
+    .values
+    .iter()
+    .filter(|verb| {
+      slot
+        .args_of(verb)
+        .is_none_or(|names| names.contains(&arg.name))
+    })
+    .collect();
+  (takers.len() < slot.values.len()).then(|| {
+    takers
+      .iter()
+      .map(|verb| format!("`{verb}`"))
+      .collect::<Vec<_>>()
+      .join(", ")
+  })
 }
 
 /// `read` and `mutate` are the two declared values, and an unrecognised third
@@ -316,7 +355,11 @@ fn call(entry: &Entry) -> String {
     if let Some(slot) = verb_slot(arg) {
       parts.push(slot);
     } else if arg.kind != "subcommand" {
-      parts.push(delimit(&placeholder(arg), arg));
+      let shown = delimit(&placeholder(arg), arg);
+      match arg_takers(entry, arg) {
+        Some(_) => parts.push(format!("[{shown}]")),
+        None => parts.push(shown),
+      }
     }
   }
   parts.join(" ")
@@ -871,6 +914,8 @@ mod tests {
       default: None,
       value_help: Default::default(),
       value_flags: Default::default(),
+      value_args: Default::default(),
+      value_facades: Default::default(),
       required_unless: None,
     };
     assert_eq!(delimit("x", &arg("1")), "<x>");
@@ -963,6 +1008,23 @@ mod tests {
       .find(|l| l.contains("`--named`") && l.contains("What the booking runs"))
       .expect("`estate slots` renders its `--named` flag");
     assert!(named.ends_with("(taken by `ask`, `start`)"), "{named}");
+  }
+
+  /// INV-11, ic's finding 1 on ST0092 WP-02: on a row whose verb slot declares
+  /// each verb's positionals, a positional only some verbs take names its
+  /// takers in the call line, so the guide offers no verb an argument its leaf
+  /// refuses.
+  #[test]
+  fn a_verb_slots_positional_names_the_verbs_that_take_it() {
+    let text = guide();
+    let call = text
+      .lines()
+      .find(|l| l.contains("intent wb profile <"))
+      .expect("`wb profile` renders its call line");
+    assert!(
+      call.ends_with("[<name>]` (`name` taken by `show`)"),
+      "the call line offers `name` to verbs that refuse it: {call}"
+    );
   }
 
   /// The third level of the surface has no rows of its own, so the alternation

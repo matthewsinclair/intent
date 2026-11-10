@@ -394,6 +394,20 @@ pub struct Arg {
   /// entry ships flags, and a shipped flag no verb takes.
   #[serde(default)]
   pub value_flags: std::collections::BTreeMap<String, Vec<String>>,
+  /// The positional args each verb takes, keyed by the verb, each named by the
+  /// row's own arg name (ST0092 WP-02, ic's ruling of 2026-11-10). Absent, every
+  /// verb takes every positional the row declares, as before. Present, the
+  /// spine hangs only these on the verb's leaf and the MCP tool for the verb
+  /// publishes only these, so `wb profile show` takes a name and `list` takes
+  /// none. `check_vocabularies` holds it to the checks `value_flags` meets.
+  #[serde(default)]
+  pub value_args: std::collections::BTreeMap<String, Vec<String>>,
+  /// The facade method each verb serves through on MCP, keyed by the verb
+  /// (ST0092 WP-02, ic's ruling of 2026-11-10). An exposed row with a valued
+  /// slot publishes one tool per verb, and a verb with no entry here is the
+  /// same refusal as an exposed row with no `facade`.
+  #[serde(default)]
+  pub value_facades: std::collections::BTreeMap<String, String>,
   /// What the slot means when the caller leaves it out.
   ///
   /// **Deserialized and validated, deliberately not rendered as a clap
@@ -490,6 +504,15 @@ impl Arg {
   /// every flag the entry declares.
   pub fn flags_of(&self, verb: &str) -> &[String] {
     self.value_flags.get(verb).map_or(&[], Vec::as_slice)
+  }
+
+  /// The positionals this verb takes, or `None` when the slot declares no
+  /// `value_args` and every verb takes every positional.
+  pub fn args_of(&self, verb: &str) -> Option<&[String]> {
+    if self.value_args.is_empty() {
+      return None;
+    }
+    Some(self.value_args.get(verb).map_or(&[], Vec::as_slice))
   }
 }
 
@@ -1006,6 +1029,7 @@ fn check_vocabularies(table: &Table) -> Result<(), Vec<String>> {
       }
     }
     unknown.extend(value_flag_defects(entry));
+    unknown.extend(value_arg_defects(entry));
   }
 
   // **A default on a CLOSED domain has to name a member of it.** Run with the
@@ -1168,6 +1192,94 @@ fn value_flag_defects(entry: &Entry) -> Vec<String> {
   bad
 }
 
+/// What is wrong with this entry's per-verb args and facades, one line per
+/// defect (INV-11). The same checks `value_flags` meets: only on a valued
+/// slot, every key a verb, every named arg a positional the row declares. And
+/// an exposed row with a valued slot names a facade for every verb, because
+/// each verb is its own MCP tool.
+fn value_arg_defects(entry: &Entry) -> Vec<String> {
+  let mut bad = Vec::new();
+  for arg in &entry.args {
+    let valued = arg.kind == "subcommand" && !arg.values.is_empty();
+    for (field, empty) in [
+      ("value_args", arg.value_args.is_empty()),
+      ("value_facades", arg.value_facades.is_empty()),
+    ] {
+      if !empty && !valued {
+        bad.push(format!(
+          "`{}` arg `{}` declares {field}, which only a `subcommand` arg with values can carry",
+          entry.path, arg.name
+        ));
+      }
+    }
+  }
+  let Some(slot) = entry.valued_slot() else {
+    return bad;
+  };
+  let positionals: Vec<&str> = entry
+    .args
+    .iter()
+    .filter(|a| a.kind != "subcommand")
+    .map(|a| a.name.as_str())
+    .collect();
+  let keys = slot
+    .value_args
+    .keys()
+    .map(|k| ("value_args", k))
+    .chain(slot.value_facades.keys().map(|k| ("value_facades", k)));
+  for (field, verb) in keys {
+    if !slot.values.contains(verb) {
+      bad.push(format!(
+        "`{}` {field} names `{verb}`, which is not one of its verbs ({})",
+        entry.path,
+        slot.values.join(", ")
+      ));
+    }
+  }
+  for (verb, names) in &slot.value_args {
+    for name in names {
+      if !positionals.contains(&name.as_str()) {
+        bad.push(format!(
+          "`{}` value_args gives `{verb}` the arg `{name}`, which is no positional of this entry",
+          entry.path
+        ));
+      }
+    }
+  }
+  // **TOTAL WHERE THE SLOT DECLARES ANY**, as `value_flags` is: a verb with no
+  // key would take nothing while an absent map means every positional, and a
+  // positional no verb names hangs on no leaf, so no `--help` lists it.
+  if !slot.value_args.is_empty() {
+    for verb in &slot.values {
+      if !slot.value_args.contains_key(verb) {
+        bad.push(format!(
+          "`{}` value_args has no list for its verb `{verb}`; give the verb its list, empty when it takes none",
+          entry.path
+        ));
+      }
+    }
+    for name in &positionals {
+      if !slot.value_args.values().flatten().any(|n| n == name) {
+        bad.push(format!(
+          "`{}` positional `{name}` is in no verb's value_args, so no `--help` lists it and no verb reads it",
+          entry.path
+        ));
+      }
+    }
+  }
+  if entry.exposed_on_mcp {
+    for verb in &slot.values {
+      if !slot.value_facades.contains_key(verb) {
+        bad.push(format!(
+          "`{}` is exposed on MCP with a verb slot, and value_facades names no facade for `{verb}`, so that verb's tool has nothing to serve it (INV-11)",
+          entry.path
+        ));
+      }
+    }
+  }
+  bad
+}
+
 /// Everything in a command path before its last segment; `""` for a bare name.
 fn prefix(path: &str) -> &str {
   path.rsplit_once(' ').map(|(head, _)| head).unwrap_or("")
@@ -1316,6 +1428,80 @@ mod tests {
     assert!(
       err.iter().any(|e| e.contains(&name)),
       "the refusal names the family whose declaration is missing, because the fix is one row: {err:?}"
+    );
+  }
+
+  /// INV-11: a verb slot's `value_args` and `value_facades` meet the load
+  /// checks `value_flags` meets, the two totality checks included (ic's
+  /// finding 3 on ST0092 WP-02).
+  #[test]
+  fn a_verbs_args_and_facades_are_declared_whole_and_only_once() {
+    assert!(
+      check_vocabularies(&table()).is_ok(),
+      "the committed table is conformant, or every case below passes for the wrong reason"
+    );
+    fn slot(t: &mut Table) -> &mut Arg {
+      t.families
+        .iter_mut()
+        .flat_map(|f| f.entries.iter_mut())
+        .chain(t.new_surface.iter_mut())
+        .find(|e| e.path == "wb profile")
+        .expect("`wb profile` is a row")
+        .args
+        .iter_mut()
+        .find(|a| a.kind == "subcommand")
+        .expect("its verb slot")
+    }
+    let refused = |mutate: &dyn Fn(&mut Arg), says: &str| {
+      let mut bad = table();
+      mutate(slot(&mut bad));
+      let err = check_vocabularies(&bad).expect_err(says);
+      assert!(
+        err
+          .iter()
+          .any(|e| e.contains("`wb profile`") && e.contains(says)),
+        "{says}: {err:?}"
+      );
+    };
+    refused(
+      &|s| {
+        s.value_args.remove("list");
+      },
+      "value_args has no list for its verb `list`",
+    );
+    refused(
+      &|s| {
+        s.value_args.insert("show".to_string(), vec![]);
+      },
+      "positional `name` is in no verb's value_args",
+    );
+    refused(
+      &|s| {
+        s.value_args.insert("fly".to_string(), vec![]);
+      },
+      "value_args names `fly`, which is not one of its verbs",
+    );
+    refused(
+      &|s| {
+        s.value_args
+          .entry("show".to_string())
+          .or_default()
+          .push("bogus".to_string())
+      },
+      "gives `show` the arg `bogus`",
+    );
+    refused(
+      &|s| {
+        s.value_facades.remove("terms");
+      },
+      "names no facade for `terms`",
+    );
+    refused(
+      &|s| {
+        s.value_facades
+          .insert("fly".to_string(), "wb_fly".to_string());
+      },
+      "value_facades names `fly`, which is not one of its verbs",
     );
   }
 
@@ -1535,6 +1721,8 @@ mod tests {
       default: Some(default.to_string()),
       value_help: Default::default(),
       value_flags: Default::default(),
+      value_args: Default::default(),
+      value_facades: Default::default(),
       required_unless: None,
     };
     let with = |arg: Arg| Entry {
@@ -1760,6 +1948,8 @@ mod tests {
       default: None,
       value_help: Default::default(),
       value_flags: Default::default(),
+      value_args: Default::default(),
+      value_facades: Default::default(),
       required_unless: None,
     };
 

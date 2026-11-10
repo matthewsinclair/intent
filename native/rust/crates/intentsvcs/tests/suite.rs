@@ -216,6 +216,8 @@ mod doctor_reports_a_board_row_its_file_lacks;
 mod doctor_reports_a_root_file_behind_its_template;
 #[path = "doctor_scope.rs"]
 mod doctor_scope;
+#[path = "team_profiles.rs"]
+mod team_profiles;
 
 #[path = "edit_prints_a_path_that_exists.rs"]
 mod edit_prints_a_path_that_exists;

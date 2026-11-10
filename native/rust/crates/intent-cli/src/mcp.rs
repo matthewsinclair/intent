@@ -112,6 +112,29 @@ pub fn tools(table: &Table) -> Result<Vec<Tool>, Undeclarable> {
     if !entry.exposed_on_mcp {
       continue;
     }
+    // **A VALUED VERB SLOT IS ONE TOOL PER VERB (INV-11).** Each verb is
+    // named as its path would be, served through its own facade, and takes
+    // its own args and flags alone.
+    if let Some(slot) = entry.valued_slot() {
+      for verb in &slot.values {
+        let Some(facade) = slot.value_facades.get(verb) else {
+          return Err(Undeclarable {
+            path: format!("{} {verb}", entry.path),
+            why: "the table exposes its row on MCP and value_facades names no facade to serve this verb (INV-11)".to_string(),
+          });
+        };
+        let path = format!("{} {verb}", entry.path);
+        out.push(Tool {
+          name: tool_name(&path),
+          path,
+          facade: facade.clone(),
+          read_or_mutate: entry.read_or_mutate.clone(),
+          description: description(entry, Some(verb)),
+          input_schema: schema(entry, Some(verb))?,
+        });
+      }
+      continue;
+    }
     let Some(facade) = entry.facade.as_deref() else {
       return Err(Undeclarable {
         path: entry.path.clone(),
@@ -123,8 +146,8 @@ pub fn tools(table: &Table) -> Result<Vec<Tool>, Undeclarable> {
       path: entry.path.clone(),
       facade: facade.to_string(),
       read_or_mutate: entry.read_or_mutate.clone(),
-      description: description(entry),
-      input_schema: schema(entry)?,
+      description: description(entry, None),
+      input_schema: schema(entry, None)?,
     });
   }
   Ok(out)
@@ -139,10 +162,14 @@ fn tool_name(path: &str) -> String {
 
 /// The D45 projection, through the guide's own renderer -- one home for the
 /// safety sentence, asserted by the guide's tests and reused here verbatim.
-fn description(entry: &Entry) -> String {
+fn description(entry: &Entry, verb: Option<&str>) -> String {
+  // A verb's tool says what the verb does, from the slot's `value_help`.
+  let help = verb
+    .and_then(|v| entry.valued_slot().and_then(|s| s.value_help.get(v)))
+    .unwrap_or(&entry.help);
   let head = format!(
     "{} {}",
-    entry.help.trim_end_matches('.'),
+    help.trim_end_matches('.'),
     crate::guide::safety(entry)
   );
   // **THE WHEN-AND-WHEN-NOT IS READ FROM THE ROW, NEVER WRITTEN HERE**
@@ -158,10 +185,30 @@ fn description(entry: &Entry) -> String {
 
 /// Does this arg reach the published schema? A `subcommand` slot does not:
 /// it is how the TABLE spells a third level (`todo list` fills `todo`'s verb
-/// slot), and each filling is its own tool -- publishing the slot would offer
+/// slot), and each filling is its own tool (INV-11) -- publishing the slot would offer
 /// a parameter whose every value is already a different tool's name.
 fn published_arg(arg: &Arg) -> bool {
   arg.kind != "subcommand"
+}
+
+/// Does this verb's tool take this arg? Every arg, for a row with no valued
+/// slot or no `value_args`; otherwise the ones the verb's list names (INV-11).
+fn verb_takes_arg(entry: &Entry, verb: Option<&str>, arg: &Arg) -> bool {
+  match (verb, entry.valued_slot()) {
+    (Some(v), Some(slot)) => slot
+      .args_of(v)
+      .is_none_or(|names| names.contains(&arg.name)),
+    _ => true,
+  }
+}
+
+/// Does this verb's tool take this flag? Every flag, for a row with no valued
+/// slot; otherwise the ones the verb's `value_flags` names (INV-11).
+fn verb_takes_flag(entry: &Entry, verb: Option<&str>, flag: &Flag) -> bool {
+  match (verb, entry.valued_slot()) {
+    (Some(v), Some(slot)) => slot.flags_of(v).iter().any(|s| flag.answers_to(s)),
+    _ => true,
+  }
 }
 
 /// Does this flag reach the published schema? [`Flag::ships`] is the one home
@@ -182,24 +229,24 @@ fn published_flag(flag: &Flag) -> bool {
 /// The parameter names a tool publishes -- the SAME predicates `schema()`
 /// filters by, so [`serve`]'s unknown-parameter refusal and the published
 /// schema cannot drift.
-fn published_params(entry: &Entry) -> Vec<String> {
+fn published_params(entry: &Entry, verb: Option<&str>) -> Vec<String> {
   entry
     .args
     .iter()
-    .filter(|a| published_arg(a))
+    .filter(|a| published_arg(a) && verb_takes_arg(entry, verb, a))
     .map(|a| a.name.clone())
     .chain(
       entry
         .flags
         .iter()
-        .filter(|f| published_flag(f))
+        .filter(|f| published_flag(f) && verb_takes_flag(entry, verb, f))
         .filter_map(flag_name),
     )
     .collect()
 }
 
 /// One JSON-Schema object from the row's declared args and flags.
-fn schema(entry: &Entry) -> Result<Value, Undeclarable> {
+fn schema(entry: &Entry, verb: Option<&str>) -> Result<Value, Undeclarable> {
   let refuse = |why: String| Undeclarable {
     path: entry.path.clone(),
     why,
@@ -207,7 +254,11 @@ fn schema(entry: &Entry) -> Result<Value, Undeclarable> {
   let mut properties = Map::new();
   let mut required: Vec<String> = Vec::new();
 
-  for arg in entry.args.iter().filter(|a| published_arg(a)) {
+  for arg in entry
+    .args
+    .iter()
+    .filter(|a| published_arg(a) && verb_takes_arg(entry, verb, a))
+  {
     let mut prop = Map::new();
     match arg.kind.as_str() {
       "enum" => {
@@ -310,7 +361,11 @@ fn schema(entry: &Entry) -> Result<Value, Undeclarable> {
     }
   }
 
-  for flag in entry.flags.iter().filter(|f| published_flag(f)) {
+  for flag in entry
+    .flags
+    .iter()
+    .filter(|f| published_flag(f) && verb_takes_flag(entry, verb, f))
+  {
     let name = flag_name(flag)
       .ok_or_else(|| refuse(format!("a flag on `{}` has no long spelling", entry.path)))?;
     let mut prop = Map::new();
@@ -432,7 +487,7 @@ impl ServeError {
 /// end-to-end by `tests::every_roster_path_reaches_an_arm`. A row gaining its
 /// door joins `tools()` by regeneration and this list by hand -- the gate is
 /// what makes forgetting either half a red test rather than a silent gap.
-pub const SERVED: [&str; 76] = [
+pub const SERVED: [&str; 80] = [
   "st new",
   "st start",
   "st done",
@@ -509,6 +564,10 @@ pub const SERVED: [&str; 76] = [
   "events",
   "graphql",
   "schema",
+  "wb profile list",
+  "wb profile show",
+  "wb profile validate",
+  "wb profile terms",
 ];
 
 /// Answer one tool call against an already-open facade.
@@ -531,15 +590,12 @@ pub fn serve(
   args: &Value,
 ) -> Result<Value, ServeError> {
   let table = crate::dispatch::table();
-  let entry = match crate::dispatch::entry(&table, path) {
-    Some(e) if e.exposed_on_mcp && e.facade.is_some() => e,
-    _ => {
-      return Err(ServeError::UnknownTool {
-        path: path.to_string(),
-      });
-    }
+  let Some((entry, verb)) = served_row(&table, path) else {
+    return Err(ServeError::UnknownTool {
+      path: path.to_string(),
+    });
   };
-  let mut answered = tool_answer(f, ctx, path, args, &table, entry)?;
+  let mut answered = tool_answer(f, ctx, path, args, &table, entry, verb)?;
   if entry.read_or_mutate == "mutate"
     && !path.starts_with("wb ")
     && let Value::Object(fields) = &mut answered
@@ -552,6 +608,26 @@ pub fn serve(
   Ok(answered)
 }
 
+/// The row a tool path is served from, and the verb when the path fills a
+/// valued slot (INV-11): `wb profile show` is the `wb profile` row with `show`
+/// in its slot. `None` for a path no exposed row serves.
+fn served_row<'t>(table: &'t Table, path: &'t str) -> Option<(&'t Entry, Option<&'t str>)> {
+  if let Some(e) = crate::dispatch::entry(table, path)
+    && e.exposed_on_mcp
+    && e.facade.is_some()
+    && e.valued_slot().is_none()
+  {
+    return Some((e, None));
+  }
+  let (row, verb) = path.rsplit_once(' ')?;
+  let e = crate::dispatch::entry(table, row)?;
+  let slot = e.valued_slot()?;
+  (e.exposed_on_mcp
+    && slot.values.iter().any(|v| v == verb)
+    && slot.value_facades.contains_key(verb))
+  .then_some((e, Some(verb)))
+}
+
 /// One tool call's answer, from the row [`serve`] found for it.
 fn tool_answer(
   f: &mut Facade,
@@ -560,6 +636,7 @@ fn tool_answer(
   args: &Value,
   table: &Table,
   entry: &Entry,
+  verb: Option<&str>,
 ) -> Result<Value, ServeError> {
   let empty = Map::new();
   let map: &Map<String, Value> = match args {
@@ -577,7 +654,7 @@ fn tool_answer(
   // dishonest half of the hide-classify discipline. One check here closes the
   // class for every tool at once, against the same predicates `schema()`
   // publishes by.
-  let known = published_params(entry);
+  let known = published_params(entry, verb);
   for key in map.keys() {
     if !known.iter().any(|k| k == key) {
       return Err(args_err(
@@ -1144,6 +1221,30 @@ fn tool_answer(
         )
       }
     }
+    // ----- Team Profiles (ST0092 WP-02) -----
+    // Store-free, as `schema` is: the profiles belong to the install, and
+    // each facade method delegates to `intentsvcs::teams`, the one home.
+    "wb profile list" => {
+      let profiles = f.wb_profile_list()?;
+      Ok(json!(
+        profiles
+          .iter()
+          .map(|p| json!({"name": p.name, "kind": p.front.kind, "mediator": p.front.mediator, "seats": p.front.seats}))
+          .collect::<Vec<_>>()
+      ))
+    }
+    "wb profile show" => {
+      let name = need_s(path, map, "name")?;
+      let (p, seats) = f.wb_profile_show(name)?;
+      Ok(
+        json!({"name": p.name, "kind": p.front.kind, "mediator": p.front.mediator, "seats": seats, "brief": p.brief}),
+      )
+    }
+    "wb profile validate" => {
+      let (findings, examined) = f.wb_profile_validate()?;
+      Ok(json!({"valid": findings.is_empty(), "examined": examined, "findings": findings}))
+    }
+    "wb profile terms" => Ok(json!({"terms": f.wb_profile_terms()?})),
     "doctor" => {
       // **`Scope::All` HERE, AND THE ARGUMENT IS A DEAD END RATHER THAN A
       // PREFERENCE.** `--scope` narrows because a human terminal was buried
@@ -2011,15 +2112,23 @@ mod tests {
   #[test]
   fn every_exposed_row_with_a_door_is_a_tool_and_nothing_else_is() {
     let table = dispatch::table();
-    let expected: Vec<&str> = dispatch::shipped_entries(&table)
+    // A row with a valued verb slot is one tool per verb (INV-11).
+    let expected: Vec<String> = dispatch::shipped_entries(&table)
       .into_iter()
-      .filter(|e| e.exposed_on_mcp && e.facade.is_some())
-      .map(|e| e.path.as_str())
+      .filter(|e| e.exposed_on_mcp)
+      .flat_map(|e| match e.valued_slot() {
+        Some(slot) => slot
+          .values
+          .iter()
+          .map(|v| format!("{} {v}", e.path))
+          .collect::<Vec<_>>(),
+        None if e.facade.is_some() => vec![e.path.clone()],
+        None => Vec::new(),
+      })
       .collect();
     let got: Vec<String> = all().iter().map(|t| t.path.clone()).collect();
     assert_eq!(
-      got,
-      expected.iter().map(|s| s.to_string()).collect::<Vec<_>>(),
+      got, expected,
       "the tool population and the table's declaration disagree"
     );
     assert!(
@@ -2236,14 +2345,11 @@ mod tests {
   #[test]
   fn schemas_carry_every_declared_parameter() {
     let table = dispatch::table();
-    let by_path: std::collections::BTreeMap<String, &crate::dispatch::Entry> =
-      dispatch::shipped_entries(&table)
-        .into_iter()
-        .map(|e| (e.path.clone(), e))
-        .collect();
     let mut enums = 0usize;
     for t in all() {
-      let entry = by_path[&t.path];
+      // A verb's tool is its row with the verb in its slot (INV-11).
+      let (entry, verb) = super::served_row(&table, &t.path)
+        .unwrap_or_else(|| panic!("`{}` is a tool no row serves", t.path));
       let props = t.input_schema["properties"]
         .as_object()
         .expect("schema has properties");
@@ -2253,7 +2359,11 @@ mod tests {
         .iter()
         .map(|v| v.as_str().unwrap())
         .collect();
-      for a in entry.args.iter().filter(|a| super::published_arg(a)) {
+      for a in entry
+        .args
+        .iter()
+        .filter(|a| super::published_arg(a) && super::verb_takes_arg(entry, verb, a))
+      {
         assert!(
           props.contains_key(&a.name),
           "`{}`: arg `{}` missing from the schema",
@@ -2277,7 +2387,11 @@ mod tests {
           );
         }
       }
-      for f in entry.flags.iter().filter(|f| super::published_flag(f)) {
+      for f in entry
+        .flags
+        .iter()
+        .filter(|f| super::published_flag(f) && super::verb_takes_flag(entry, verb, f))
+      {
         let name = super::flag_name(f).expect("kept flags have long spellings");
         assert!(
           props.contains_key(&name),
@@ -2652,5 +2766,98 @@ mod tests {
       todo.input_schema["properties"].get("command").is_none(),
       "todo publishes its verb slot as a parameter"
     );
+  }
+
+  /// INV-11: an exposed row with a valued verb slot publishes one tool per
+  /// verb, each taking its own `value_args` and never the slot itself. Driven
+  /// on every such row the table ships, so it holds for the next one too.
+  #[test]
+  fn a_valued_slot_publishes_one_tool_per_verb() {
+    let table = dispatch::table();
+    let tools = all();
+    let rows: Vec<&Entry> = dispatch::shipped_entries(&table)
+      .into_iter()
+      .filter(|e| e.exposed_on_mcp && e.valued_slot().is_some())
+      .collect();
+    assert!(
+      !rows.is_empty(),
+      "no exposed row has a valued slot, so this arm checks nothing"
+    );
+    for row in rows {
+      let slot = row.valued_slot().expect("filtered above");
+      for verb in &slot.values {
+        let path = format!("{} {verb}", row.path);
+        let tool = tools
+          .iter()
+          .find(|t| t.path == path)
+          .unwrap_or_else(|| panic!("`{path}` is not a tool"));
+        let props = tool.input_schema["properties"]
+          .as_object()
+          .expect("an object schema");
+        assert!(
+          props.get(&slot.name).is_none(),
+          "`{path}` publishes the verb slot `{}` as a parameter",
+          slot.name
+        );
+        let mut published: Vec<&str> = props.keys().map(String::as_str).collect();
+        published.sort_unstable();
+        // What the row declares for this verb (INV-11): its `value_args`, or
+        // every positional when the slot declares none, and its `value_flags`
+        // that reach the published schema.
+        let mut declared: Vec<String> = match slot.args_of(verb) {
+          Some(names) => names.to_vec(),
+          None => row
+            .args
+            .iter()
+            .filter(|a| a.kind != "subcommand")
+            .map(|a| a.name.clone())
+            .collect(),
+        };
+        declared.extend(
+          row
+            .flags
+            .iter()
+            .filter(|f| super::published_flag(f) && super::verb_takes_flag(row, Some(verb), f))
+            .filter_map(super::flag_name),
+        );
+        declared.sort_unstable();
+        let declared: Vec<&str> = declared.iter().map(String::as_str).collect();
+        assert_eq!(
+          published, declared,
+          "`{path}` publishes other parameters than its row declares for the verb"
+        );
+      }
+    }
+  }
+
+  /// INV-11's positive control: an exposed valued row whose verb names no
+  /// facade is refused at tool derivation, naming that verb's path.
+  #[test]
+  fn a_valued_slot_verb_with_no_facade_is_refused_by_name() {
+    let mut table = dispatch::table();
+    let mut victim = None;
+    for entry in table
+      .families
+      .iter_mut()
+      .flat_map(|f| f.entries.iter_mut())
+      .chain(table.new_surface.iter_mut())
+    {
+      if !entry.exposed_on_mcp || victim.is_some() {
+        continue;
+      }
+      let path = entry.path.clone();
+      if let Some(slot) = entry
+        .args
+        .iter_mut()
+        .find(|a| a.kind == "subcommand" && !a.values.is_empty())
+      {
+        let verb = slot.values[0].clone();
+        slot.value_facades.remove(&verb);
+        victim = Some(format!("{path} {verb}"));
+      }
+    }
+    let victim = victim.expect("planted no fixture: no exposed row has a valued slot");
+    let err = tools(&table).expect_err("a verb with no facade must refuse");
+    assert_eq!(err.path, victim, "the refusal names the verb's tool path");
   }
 }

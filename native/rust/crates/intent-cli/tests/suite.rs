@@ -362,6 +362,8 @@ mod wb_migrate_names_its_kept_copies;
 mod wb_migrate_reports_the_restamp;
 #[path = "wb_pickup_records_the_session_it_runs_in.rs"]
 mod wb_pickup_records_the_session_it_runs_in;
+#[path = "wb_profile_door.rs"]
+mod wb_profile_door;
 #[path = "wb_reads_list_live_messages.rs"]
 mod wb_reads_list_live_messages;
 #[path = "wb_register_correct.rs"]

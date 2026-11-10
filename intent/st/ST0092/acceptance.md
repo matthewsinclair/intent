@@ -119,7 +119,12 @@ _(no tests in this group)_
 
 ### WP-02 -- A Team Profile is a shipped resource: team, solo, supervisor and supervised (status: WIP)
 
-_(no tests in this group)_
+- AT-02.1 `native/rust/crates/intent-cli/tests/wb_profile_door.rs` -- covers AC-02.1 -- status: red -- Red at the base, driven by cc: the installed 3.2.8 answered `intent wb profile` with `error: unrecognized subcommand 'profile'`, exit 1, outside any project (cc's clock read 15:55:38Z on 2026-11-10 by date -u). The arm did not exist before this bank, so no run saw this arm itself fail.
+- AT-02.2 `native/rust/crates/intentsvcs/tests/team_profiles.rs` -- covers AC-02.2 -- status: red -- Red at the base: the arm drives `intentsvcs::teams`, which does not exist before this bank, and the shipped teams directory held TERMS.md alone, so the arm cannot compile there. No run saw this arm itself fail.
+- AT-02.3 `native/rust/crates/intent-cli/tests/wb_profile_door.rs` -- covers AC-02.3 -- status: red -- Red at the base, driven by cc: the installed 3.2.8 answered `intent wb profile` with `error: unrecognized subcommand 'profile'`, exit 1, outside any project (cc's clock read 15:55:38Z on 2026-11-10 by date -u). The arm did not exist before this bank, so no run saw this arm itself fail.
+- AT-02.4 `native/rust/crates/intentsvcs/tests/team_profiles.rs` -- covers AC-02.4 -- status: red -- Red at the base: the arm drives `intentsvcs::teams`, which does not exist before this bank, and the shipped teams directory held TERMS.md alone, so the arm cannot compile there. No run saw this arm itself fail.
+- AT-02.5 `native/rust/crates/intentsvcs/tests/team_profiles.rs` -- covers AC-02.5 -- status: red -- Red at the base: the arm drives `intentsvcs::teams`, which does not exist before this bank, and the shipped teams directory held TERMS.md alone, so the arm cannot compile there. No run saw this arm itself fail.
+- AT-02.6 `native/rust/crates/intent-cli/tests/wb_profile_door.rs` -- covers AC-02.6 -- status: red -- Red at the base, driven by cc: the installed 3.2.8 answered `intent wb profile` with `error: unrecognized subcommand 'profile'`, exit 1, outside any project (cc's clock read 15:55:38Z on 2026-11-10 by date -u). The arm did not exist before this bank, so no run saw this arm itself fail.
 
 ### WP-03 -- wb init reconciles a board to its profile, and is a dry run until told to apply (status: Not Started)
 

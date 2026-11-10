@@ -572,7 +572,7 @@ fn with_args(mut cmd: Command, entry: &Entry) -> Command {
       if let Some(help) = slot.value_help.get(value) {
         leaf = leaf.about(help.clone());
       }
-      leaf = positionals(leaf, entry);
+      leaf = positionals_of(leaf, entry, slot.args_of(value));
       leaf = flags(leaf, entry, Some(slot.flags_of(value)));
       cmd = cmd.subcommand(leaf);
     }
@@ -591,11 +591,20 @@ fn with_args(mut cmd: Command, entry: &Entry) -> Command {
   flags(cmd, entry, None)
 }
 
-fn positionals(mut cmd: Command, entry: &Entry) -> Command {
+fn positionals(cmd: Command, entry: &Entry) -> Command {
+  positionals_of(cmd, entry, None)
+}
+
+/// The positionals one verb takes: those its slot's `value_args` names, or
+/// every positional when `only` is `None` (INV-11).
+fn positionals_of(mut cmd: Command, entry: &Entry, only: Option<&[String]>) -> Command {
   for arg in &entry.args {
     // A valueless `subcommand` pseudo-arg describes a family's verb slot,
     // which is filled by sibling entries rather than by a positional.
     if arg.kind == "subcommand" {
+      continue;
+    }
+    if only.is_some_and(|names| !names.contains(&arg.name)) {
       continue;
     }
     // **BOTH predicates now come from the table's own type** (ic, measured

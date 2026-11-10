@@ -302,6 +302,17 @@
         "ratification": "hv, 2026-08-29, selecting the TTY form WITH explicit overrides from three options",
         "held_by": "the four modes are refused pairwise; `--path` is a documented output contract under test in docs/getting-started.md"
       }
+    },
+    {
+      "id": "INV-11",
+      "title": "A valued verb slot publishes on MCP as one tool per value, never as a parameter",
+      "target": {
+        "state": "new-surface",
+        "ratification": "ic as the dispatch table's owner, 2026-11-10, on cc's shape question for ST0092 WP-02's `wb profile`; vc let it stand the same day and asked that the table say it once",
+        "held_by": "dispatch::table()'s load checks on `value_facades` and `value_args`, and mcp.rs's expansion test with its positive control, beside a_subcommand_slot_is_not_published"
+      },
+      "v2": "not-applicable -- v2 had no MCP surface",
+      "rule": "A `subcommand` slot is how the table spells a third level, and it is never a published parameter. When a row with a valued slot (`values` non-empty) is `exposed_on_mcp`, the MCP tier publishes ONE TOOL PER VALUE, named as the path `<row path> <value>` would be, described from `value_help`, served through that value's `value_facades` entry, and taking that value's `value_args` and `value_flags` alone. A value with no facade on an exposed row is refused at tool derivation, as a row with no `facade` is. `value_facades` and `value_args` are held to the same load checks as `value_flags`: only on a valued slot, every key a value, every named arg or flag on the row. The reason is the agent's: one tool with a `verb` enum cannot say which args a verb takes, so the agent would learn it from a refusal."
     }
   ],
   "families": [
@@ -9235,6 +9246,86 @@
           "note": "**ONLY THE RECIPIENT CLEARS, AND THE RECIPIENT IS WHOEVER `--node` NAMES**, so the ownership half of the single-writer invariant stands exactly as far as the sender half does -- see `wb ask` for why that is a convention at this layer. The rows are not deleted: `state` moves live to handled with `handled_at` stamped by the store, so what was said stays readable and stops counting against the bound."
         },
         {
+          "path": "wb profile",
+          "help": "List, show and validate the Team Profiles this install ships, and print the terms they share",
+          "when_to_use": "USE IT to see which Team Profiles Intent ships, what seats and mediator each declares, and the brief a session in a seat is given. It answers from the installed Intent and needs no project, so it works in a directory that is no Intent project. DO NOT USE IT to see who is registered on this project's board: `wb status` reads the roster, and a profile is the resource a roster is declared from, not the roster itself.",
+          "args": [
+            {
+              "name": "verb",
+              "type": "subcommand",
+              "arity": "1",
+              "values": [
+                "list",
+                "show",
+                "validate",
+                "terms"
+              ],
+              "value_help": {
+                "list": "List each shipped profile, whether it is a base or a layer, its mediator and its seats. It answers from the installed Intent and needs no project",
+                "show": "Print one profile's seats, its mediator and its brief. It answers from the installed Intent and needs no project",
+                "validate": "Validate every shipped profile and the seat registry, naming the file and the field of each finding. It answers from the installed Intent and needs no project",
+                "terms": "Print the terms document every profile shares. It reads no profile, answers from the installed Intent and needs no project"
+              },
+              "value_flags": {
+                "list": [],
+                "show": [],
+                "validate": [],
+                "terms": []
+              },
+              "value_args": {
+                "list": [],
+                "show": [
+                  "name"
+                ],
+                "validate": [],
+                "terms": []
+              },
+              "value_facades": {
+                "list": "wb_profile_list",
+                "show": "wb_profile_show",
+                "validate": "wb_profile_validate",
+                "terms": "wb_profile_terms"
+              }
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "arity": "1",
+              "help": "The profile to show, as `wb profile list` names it"
+            }
+          ],
+          "flags": [],
+          "v2": "new-surface",
+          "basis": "ST0092/WP/02 info.md: a Team Profile is a shipped resource, and the installed tool lists, shows and validates the profiles the way it serves the rule library. There is no v2 antecedent.",
+          "owner_wp": "ST0092 WP-02",
+          "acceptance": "ST0092 AC-02.1, AC-02.3, AC-02.6",
+          "target": {
+            "state": "new-surface"
+          },
+          "disposition": "new-surface",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read",
+          "observed": {
+            "exit": [
+              {
+                "code": 0,
+                "when": "listed, shown or printed; validate found every profile valid"
+              },
+              {
+                "code": 1,
+                "when": "validate found a finding, or show named a profile the install does not ship (INV-04)"
+              },
+              {
+                "code": 2,
+                "when": "this build cannot answer: the install, its profiles directory or a shipped profile could not be read"
+              }
+            ],
+            "stdout": "the profile table, one profile with its brief, the terms document, or validate's summary",
+            "stderr": "`error: ...` on stderr (INV-01); validate's findings, one per line naming the file and the field"
+          },
+          "note": "**THE PROFILES BELONG TO THE INSTALL, SO NO PROJECT IS OPENED** (vc's ruling, 2026-11-10). A user-authored profile is out of ST0092, so nothing is read from the extension base. Each verb is its own MCP tool under INV-11."
+        },
+        {
           "path": "wb register",
           "help": "Register a node from its arguments, or the roster from each node's own board header",
           "when_to_use": "USE IT once per project, to put the participants into the model so a board has somewhere to live. DO NOT USE IT to migrate a board: it registers WHO the nodes are and carries no items and no messages, and the markdown beside it stays hand-authored and authoritative. The header form is idempotent by moniker: a second run adds nothing and changes nothing, an edited header included. Name one node from its arguments -- `wb register <moniker> --name \"<display name>\" --role <role>` -- where no hand-written header exists, which is every node that joins once boards are generated views: the same values again write nothing, and different values for a moniker already registered are refused. DO NOT USE IT to rename one node as another: `--correct` fixes the name and role of a node that IS this moniker, never creates one, and keeps its board, items and messages.",
@@ -11394,6 +11485,8 @@
         "name",
         "required_unless",
         "type",
+        "value_args",
+        "value_facades",
         "value_flags",
         "value_help",
         "values"
@@ -11663,6 +11756,7 @@
       "wb claim",
       "wb unclaim",
       "wb clear",
+      "wb profile",
       "wb register",
       "wb migrate",
       "index",
@@ -11845,6 +11939,7 @@
       "wb claim",
       "wb unclaim",
       "wb clear",
+      "wb profile",
       "wb register",
       "wb migrate",
       "index",
@@ -12036,6 +12131,7 @@
       "wb claim",
       "wb unclaim",
       "wb clear",
+      "wb profile",
       "wb register",
       "wb migrate",
       "index",

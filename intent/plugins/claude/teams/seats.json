@@ -1,0 +1,67 @@
+{
+  "seats": [
+    {
+      "moniker": "vc",
+      "name": "Validation Claude",
+      "role": "validation",
+      "driver": "session",
+      "remit": "Boss of the Claude team: sequencing, briefs, validation of landed and claimed work, and the one route to hv"
+    },
+    {
+      "moniker": "cc",
+      "name": "Control Claude",
+      "role": "control",
+      "driver": "session",
+      "remit": "The core: the model, its rules, and the back-end services that implement them, in whatever form they take at the time, documents and data included"
+    },
+    {
+      "moniker": "ic",
+      "name": "Interface Claude",
+      "role": "interface",
+      "driver": "session",
+      "remit": "User-facing interfaces (UI and UX) and machine-facing interfaces (REST, GraphQL and the rest)"
+    },
+    {
+      "moniker": "ac",
+      "name": "Authoring Claude",
+      "role": "authoring",
+      "driver": "session",
+      "remit": "Authoring and content creation"
+    },
+    {
+      "moniker": "dc",
+      "name": "DevX Claude",
+      "role": "devx",
+      "driver": "session",
+      "remit": "The dev-x pipeline, end to end"
+    },
+    {
+      "moniker": "hv",
+      "name": "Hypervisor",
+      "role": "hypervisor",
+      "driver": "human",
+      "remit": "Scope, sequencing, release policy, and every ratified decision"
+    },
+    {
+      "moniker": "gc",
+      "name": "Generalist Claude",
+      "role": "generalist",
+      "driver": "session",
+      "remit": "The whole project, alone: it builds and checks its own work and talks to hv directly"
+    },
+    {
+      "moniker": "sc",
+      "name": "Supervisor Claude",
+      "role": "supervisor",
+      "driver": "session",
+      "remit": "Coordination across several projects, each with its own vc: audits, briefs to each vc, and the route to hv on its own hub"
+    },
+    {
+      "moniker": "sv",
+      "name": "Supervisor Claude",
+      "role": "supervisor",
+      "driver": "supervisor-session",
+      "remit": "The supervisor's seat on a supervised project's whiteboard: findings and briefs to that project's vc, and no builds"
+    }
+  ]
+}
