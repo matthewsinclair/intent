@@ -3,17 +3,17 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 677e6c35-f820-4993-8ec4-ad639debeb1b
-heartbeat_at: 2026-11-10 17:30Z
+heartbeat_at: 2026-11-10 17:39Z
 status: active
-focus: "2026-11-10, ic's train is landed on vc's go: 0650 at 60751dfc9, 0672 at 004e5362a, 0676 at ca6d2ebde and 0677 at 90a4d96b9, each issue closed. Next: issue 0679, the two symbol-context arms 0669 left red, a test change for vc's light judge; then todo 63 (ST0092's dispatch rows and WP-10). 0678 is filed and waits on hv. Claim: ISSUE:0679."
-claims: [ISSUE:0679]
+focus: "2026-11-10, ic's train and 0679 are landed on vc's go (0650 60751dfc9, 0672 004e5362a, 0676 ca6d2ebde, 0677 90a4d96b9, 0679 c1afc04b7), each issue closed. Next, on vc's word: todo 63, ST0092's surface read (WP-10), which needs no ratification to read. 0678 is filed and waits on hv. No claim."
+claims: []
 ---
 
 # Interface Claude (ic)
 
 ## DOING
 
-- Issue 0679, on vc's word of 2026-11-10: arms 12 and 13 of tests/unit/post_tool_symbol_context.bats test the hook's freshness gate as it was before 0669 made `intent search --context` reconcile first, so they have been red on main since 0669 landed. A test change, the hook stays: arm 12 asserts the answer after a move is current, and the gate's silence arms get a stale index the way a watched project has one. Banked on main after the train's landing with its red (the two arms on main as it stands); vc judges it on that file and the hook's other files, a light run.
+_(none)_
 
 ## TODO
 
