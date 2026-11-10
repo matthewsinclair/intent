@@ -80,7 +80,7 @@ title: A Claude Team is declared by a profile: wb init sets up its board, hv is 
 - AC-07.6 A seat whose remit was never set shows the profile's default, marked as the default, in the roster table, and a seat whose remit the project set shows the project's words. -- satisfied: no (computed)
 - AC-07.7 A render refuses, before anything is written and naming the line, a README whose block markers are anything but one start followed by one end, and a first render refuses one that holds either marker. -- satisfied: no (computed)
 
-### WP-08 -- The Desk is a hat with a written contract (status: Not Started)
+### WP-08 -- The Desk is a hat with a written contract (status: WIP)
 
 - AC-08.1 The controller's duties have one template source: the coordinator's `AGENTS.md` that `intent estate init` renders and the brief a hat-wearing node is given carry the same duties text from it. -- satisfied: no (computed)
 - AC-08.2 `intent estate control take` from a Claude session bound to a node that is not its board's vc is refused with a remedy naming who may take it; with `--hv "<words>"` it is taken and the words are recorded; and a session in no project takes it as before. -- satisfied: no (computed)
@@ -141,7 +141,7 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-08 -- The Desk is a hat with a written contract (status: Not Started)
+### WP-08 -- The Desk is a hat with a written contract (status: WIP)
 
 _(no tests in this group)_
 

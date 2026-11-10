@@ -81,7 +81,7 @@ The seat names are hv's of 2026-10-21, recorded until now in Molt's roster READM
 | WP-05 | hv is reached through one node, and the tool enforces it                              | M    | Not Started |
 | WP-06 | A session is told its seat at pickup and at launch                                    | S    | Not Started |
 | WP-07 | The roster README is rendered from the profile and keeps the project's own block      | M    | Not Started |
-| WP-08 | The Desk is a hat with a written contract                                             | M    | Not Started |
+| WP-08 | The Desk is a hat with a written contract                                             | M    | WIP         |
 | WP-09 | Doctor reports a board that has left its profile                                      | S    | Not Started |
 | WP-10 | The new surface reads as one                                                          | S    | Not Started |
 | WP-11 | Every live board converges, Intent's own first                                        | L    | Not Started |

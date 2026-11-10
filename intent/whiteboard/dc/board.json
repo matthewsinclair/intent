@@ -12,7 +12,8 @@
       "ST0090/02",
       "ST0091/01",
       "ST0091/04",
-      "ISSUE:0667"
+      "ISSUE:0667",
+      "ST0092/08"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -2784,6 +2785,14 @@
       "text": "ISSUE:0667, hv rules it into 3.3.0 and it is dc's (vc, 2026-11-10). The ruled formula fix landed with ST0091 WP-03 (f18bd6945), and AT-03.3 checks it. Left: on the brew route nothing creates the log's directory, because intent bootstrap never makes the state dir; and docs/install.md:22 still says brew's var/log. Shape sent to vc: bootstrap::run makes daemon_log_under's parent, an intentsvcs arm red on the code as it is, then the fix, plus the caveat line and install.md. WAITING ON vc's go on the shape and on where the arm is recorded. Every compiled run goes in a desk slot.",
       "state": "live",
       "recorded_at": "2026-11-10T19:45:24.754Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 157,
+      "text": "ST0092 WP-08, the Desk is a hat with a written contract (vc's go on dc's shape, 2026-11-10; Q1 and Q2 ruled). Builds in tmp/wt-dc-0092-08: the duties in one template, lib/templates/estate/_DUTIES.md, which estate init's AGENTS.md and the pickup brief both carry; session_node and mediator_of in their own intentsvcs file (an undeclared board means vc; cc's profile work extends it); control take refused for a node that is not its board's mediator, unless --hv; pickup prints the hat, the duties and the asks waiting; wb status, text and json, shows the hat, live and never in wip.md (AC-08.3 as vc reworded it); estate status says the desk is orphaned when the recorded controller's session fails the pid-and-start-time liveness check, and prints the take step. Test-first, each red the code as it is, every compiled run in a desk slot. Banks after 0667.",
+      "state": "live",
+      "recorded_at": "2026-11-10T19:53:58.861Z"
     }
   ],
   "sent": [

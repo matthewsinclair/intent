@@ -2,7 +2,7 @@
 wp_id: WP-08
 title: The Desk is a hat with a written contract
 scope: M
-status: Not Started
+status: WIP
 ---
 
 # WP-08: The Desk is a hat with a written contract
