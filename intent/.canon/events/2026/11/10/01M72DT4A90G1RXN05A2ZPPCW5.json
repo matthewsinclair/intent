@@ -1,0 +1,16 @@
+{
+  "id": "01M72DT4A90G1RXN05A2ZPPCW5",
+  "ts": "2026-11-10T09:49:44.650Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 76,
+    "text": "ST0092, Claude Team profiles, rides 3.3.0 (decision 109). Raised and elaborated on hv's go of 2026-11-10 and started by hv the same day; hv looked at it in the explorer and said \"it's there now, and looks good\". Eleven packages (`intent wp list ST0092`, `intent ac gate ST0092`). WHERE IT STANDS. WP-01 is WIP: its terms document is written at intent/plugins/claude/teams/TERMS.md on hv's \"Go ahead and write WP-01\" (f6e987017), critic-prose has read it and vc has applied its eight findings (d72e40018), and none of its criteria is satisfied. NEXT, in order. (1) hv reads the document, with the six wordings WP-01's body lists for hv's eye, and ratifies it; vc records the ratification on hv's board and satisfies AC-01.1 to AC-01.5 with it. No code before that. (2) cc builds WP-02 to WP-09 and ic WP-10, every run booked with the estate's controller; vc judges each bank and claims nothing. (3) The spike runs beside it: one swarm set up by hand in the thread's form. Its first five findings are in the thread (e54f2cf92, 2f56f9224); its cold-boot test, the one that tests hv's actual pain, is still owed by that swarm's vc. The form and the findings are banked at refs/bank/vc/st0092/spike-form-v1.md. (4) The sweep, WP-11, runs after the 3.3.0 cut, on the brew-installed release, and Pipeliner's sc is confirmed with hv before any write there. The census instrument is refs/bank/vc/st0092/census-boards.zsh (a651ef150413), and its reading of 2026-11-10 is refs/bank/vc/st0092/census-20261110.txt."
+  }
+}
