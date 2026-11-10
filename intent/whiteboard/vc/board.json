@@ -2598,6 +2598,14 @@
       "text": "ST0092, Claude Team profiles, raised and elaborated on hv's go of 2026-11-10: eleven packages and their criteria, Not Started (`intent wp list ST0092`, `intent ac gate ST0092`). NEXT, in order. (1) hv reviews the elaboration: the package list, the builders vc proposed (cc WP-02 to WP-09, ic WP-10, vc WP-01 under the pen and WP-11 as director), and vc's four design calls on retirement in WP-04. (2) hv says which release carries the thread and where it sits against the held 3.2.9 train. (3) vc writes WP-01's terms document and hv ratifies it (AC-01.5); no code before that. (4) cc builds from WP-02, every run booked with the estate's controller; vc judges each bank and claims nothing. (5) The sweep, WP-11, runs only on a brew-installed release that carries WP-02 to WP-10, and Pipeliner's sc is confirmed with hv before any write there. The census instrument is refs/bank/vc/st0092/census-boards.zsh (a651ef150413), and its reading of 2026-11-10 is refs/bank/vc/st0092/census-20261110.txt.",
       "state": "live",
       "recorded_at": "2026-11-10T08:33:14.700Z"
+    },
+    {
+      "node": "vc",
+      "kind": "decision",
+      "seq": 108,
+      "text": "(hv, 2026-11-10, first-hand in prose in vc's session, read by 08:48Z on vc's date -u) THE TREE HOLDS ONLY WHAT IS LIVE OR TO BE DONE. hv, verbatim: \"We _should_ tidy things up. If issues and ST/WPs are resolved, then lets clean them out of the tree now. We should only have stuff that is live or to be done, old stuff can be dehydrated.\" So a resolved artefact's realised files leave the tree, by `intent organize --apply` once its whole preview has been read. vc's reading of the boundary: a Not Started thread is to be done and stays, listed with `intent st hydrate` before the apply; ST0056 and ST0057 are Completed and stay, because tests, the reference docs and the pre-commit guards read their files, until ST0084 relocates them; and before an apply every authored file in the removal list is checked byte for byte against tracked canon. First done on 2026-11-10: 41 closed-issue views and the trees of ST0081, ST0086 and ST0087. Closing an issue or completing a thread unlists it and leaves its files, and no step of a fold reconciles the tree, so views had gathered since 2026-10-23. This replaces the practice of 2026-10-25, when an apply's closed-issue removals were put back as an accident.",
+      "state": "live",
+      "recorded_at": "2026-11-10T08:48:16.896Z"
     }
   ],
   "sent": [
