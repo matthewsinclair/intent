@@ -1,0 +1,14 @@
+{
+  "id": "01M73NYT65D694DBP249JBW5YN",
+  "ts": "2026-11-10T21:31:21.161Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0092/AC-08.5"
+  },
+  "payload": {
+    "evidence": "vc's read of lib/templates/estate/_DUTIES.md as landed at 806a81a66: its last section, Wearing it beside a mediator's own work, carries the four sentences (a waiting ask before the wearer's own next step; the wearer's own project through the same queue, on the record; released at session end; passed to another mediator on hv's word quoted with --hv). The text says mediator where the criterion says VC, as hv decision 35 ruled the Desk is worn by a mediator."
+  }
+}

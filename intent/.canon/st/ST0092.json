@@ -521,7 +521,8 @@
       "text": "The duties say how the hat sits with a VC's own work: a waiting ask is answered before the VC's own next step, the wearer's own project books through the same queue on the record, the hat is released at session end, and it passes to another VC on hv's quoted word.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "vc's read of lib/templates/estate/_DUTIES.md as landed at 806a81a66: its last section, Wearing it beside a mediator's own work, carries the four sentences (a waiting ask before the wearer's own next step; the wearer's own project through the same queue, on the record; released at session end; passed to another mediator on hv's word quoted with --hv). The text says mediator where the criterion says VC, as hv decision 35 ruled the Desk is worn by a mediator."
       }
     },
     {
