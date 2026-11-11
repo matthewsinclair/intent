@@ -1,0 +1,15 @@
+{
+  "id": "01M75VDDA40KV17QXDPPBHVSSR",
+  "ts": "2026-11-11T17:45:11.240Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0683"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "bin/devbin prepush judges a delete-only push by the pair's currency, though it sends no commit"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M75VDCD4E3PY3SVGHYWYYX0Z",
+  "ts": "2026-11-11T17:45:10.312Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0682"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "The release gate's rust worktree is made under TMPDIR, which a host with a small /tmp cannot hold"
+  }
+}
