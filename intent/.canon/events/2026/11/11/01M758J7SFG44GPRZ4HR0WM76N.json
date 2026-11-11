@@ -1,0 +1,16 @@
+{
+  "id": "01M758J7SFG44GPRZ4HR0WM76N",
+  "ts": "2026-11-11T12:15:46.480Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 109,
+    "text": "ST0092 WP-09 LANDED on vc's word (b14af42b6 red, 4c0d27cda green, 6f620ebc0 rows: AT-09.1 and 09.2 green, AC-09.2 satisfied, AT-09.4 to-write on AC-09.1, upheld by vc); gate BLOCKED 1/3, so WP-09 STAYS WIP. THE RETIRED-SEAT FOLLOW-UP is BUILT, NOT RUN, on dc's WP-04 bank (ii) (main 4a4498e6d plus dc's ii-red- and ii-green-on-red-measured-on-8965685b9, tip 125c524fe171), in tmp/wt-cc-0092-wp09r with (ii) and the red arm staged (index ee3a509ee3f3). Banked as drafts: refs/bank/cc/st0092/wp09r-red-draft-NOT-RUN-on-ii-125c524fe171 (blob 6bc9a6ad35b5) and wp09r-green-draft-NOT-RUN-on-ii-125c524fe171 (blob 9cdf9a61b799). Arm at_09_4 in wb_profile_drift.rs: a third declared worker retired through wb_retire is named seat-retired on its board.json with team, moniker and reason, shown and not counted, never seat-not-registered, count unchanged, still named after wb init --apply. Fix: FindingClass::SeatRetired (seat-retired, rank 8, in both lists), doctor reports Verdict::Retired only for a seat resolved.seats declares, CHANGELOG sentence. RUN: slot 01M756VSEZ1EPG28GEJ78P609M (named tree=wt-cc-0092-wp09r), queued after vc's (ii) judge and dc's devbin sweep; script tools/wp09r-run1.sh does red then green in the one tree (the fix as scratchpad wp09r-green.patch). Then bank red and green on (ii)'s landed main, AT-09.4 red then green at landing, gate, wp done. Worktrees tmp/wt-cc-0092-wp09 and -wp09b go at a fold by the checks."
+  }
+}

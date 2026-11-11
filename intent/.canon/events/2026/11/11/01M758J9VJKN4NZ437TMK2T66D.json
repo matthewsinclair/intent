@@ -1,0 +1,16 @@
+{
+  "id": "01M758J9VJKN4NZ437TMK2T66D",
+  "ts": "2026-11-11T12:15:48.594Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 50,
+    "text": "ISSUE:0680 (vc's ruling, size S). GREEN: run 1 (slot 01M750CK5NYJ9JN8XTQYF9HKMT) red as wanted, 5 lib and 3 cli arms rc 101 on 867cad6d3; run 2 (slot 01M7555TM0DQD7NA235XNBR53Q) green: workspace compiles clean, lib estate 63, cli estate_surface 31, svcs suite estate 79 passed. Line 1 of estate.rs, damaged by an earlier misplaced insertion, was restored before run 2. BANKED on main 4a4498e6d: refs/bank/cc/issue-0680/red-on-4a4498e6d (blob 53dbd676301f, tree 32fa8752fabd) and green-on-red-on-4a4498e6d (blob 626645c06686, replays to cbe0a2b395da); estate.rs, slots.rs and estate_surface.rs are byte-identical to run 2's tree, and render.rs merges main's later changes cleanly but is unrun. OWED, on vc's word: after dc's CHAIN END for WP-04 bank (ii), re-bank green-on-red on that main with the CHANGELOG rebuilt (it fails only on CHANGELOG.md on (ii)'s tip), check render.rs merges, tell vc, who then asks the full judge. Worktrees tmp/wt-cc-0680 and -0680-red (on 867cad6d3, staged) stay until it lands. The NOT-RUN draft refs are superseded: drop them at the next fold. ic builds the page's twins in WP-10 (todo 69)."
+  }
+}
