@@ -20,6 +20,8 @@ const DIFFERS: &str = "seat-differs-from-profile";
 const UNREGISTERED: &str = "seat-not-registered";
 const CLOSED_VIEW: &str = "closed-pair-view";
 const NOT_THE_PROFILES: &str = "Not the profile's name";
+const RETIRED: &str = "seat-retired";
+const WHY_RETIRED: &str = "moved to another project";
 
 fn report(fx: &Fixture) -> intentsvcs::doctor::Report {
   intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None, intentsvcs::doctor::Scope::Live)
@@ -161,4 +163,62 @@ fn at_09_2_no_class_of_a_board_off_its_profile_refuses_a_commit() {
     );
   }
   assert_eq!(report(&d.fx).actionable(), d.counted_before);
+}
+
+/// ST0092 AT-09.4: a declared seat that is retired is named as retired, on its
+/// own board, with the profile and the reason, shown and never counted; it is
+/// not a declared seat that no board registers, and an apply leaves it
+/// retired, so doctor still names it after one.
+#[test]
+fn at_09_4_doctor_names_a_retired_declared_seat_as_retired() {
+  let d = drifted();
+  let resolved = Teams::new(&testkit::repo_root())
+    .resolve(&[TEAM.to_string()], None, false)
+    .expect("team resolves");
+  let retiree = resolved
+    .seats
+    .iter()
+    .map(|s| s.moniker.as_str())
+    .find(|m| {
+      ![
+        resolved.human.as_str(),
+        resolved.mediator.as_str(),
+        d.differs.as_str(),
+        d.unregistered.as_str(),
+      ]
+      .contains(m)
+    })
+    .expect("the team profile has a third seat beside the human and the mediator")
+    .to_string();
+  let mut f = d.fx.facade_on_disk();
+  f.wb_retire(&retiree, WHY_RETIRED)
+    .expect("a declared worker seat retires");
+
+  let named = |fx: &Fixture| {
+    let retired = found(fx, RETIRED);
+    assert!(
+      retired.iter().any(|(file, detail, _, counted, shown)| file
+        == &format!("intent/whiteboard/{retiree}/board.json")
+        && detail.contains(&format!("`{retiree}`"))
+        && detail.contains(&format!("`{TEAM}`"))
+        && detail.contains(WHY_RETIRED)
+        && detail.contains(&intentsvcs::model::register_form(&retiree))
+        && !counted
+        && *shown),
+      "{retired:?}"
+    );
+    let unregistered = found(fx, UNREGISTERED);
+    assert!(
+      unregistered
+        .iter()
+        .all(|(_, detail, ..)| !detail.contains(&format!("`{retiree}`"))),
+      "{unregistered:?}"
+    );
+  };
+  named(&d.fx);
+  assert_eq!(report(&d.fx).actionable(), d.counted_before);
+
+  f.wb_init(&[TEAM.to_string()], true, false)
+    .expect("the apply converges the board");
+  named(&d.fx);
 }
