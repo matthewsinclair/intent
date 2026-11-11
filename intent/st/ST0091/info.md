@@ -39,7 +39,7 @@ Concretely:
 | WP-01 | The cut runs through devbin's core, and Intent's driver retires                      | L    | Done   |
 | WP-02 | kovacs runs as the cut's remote leg, and prepush keeps only its push gates           | S    | Done   |
 | WP-03 | The tap and the macOS assets publish through the built-ins, with prepare as a shadow | S    | Done   |
-| WP-04 | The workflows fire on the candidate, and the docs describe the cut as built          | S    | WIP    |
+| WP-04 | The workflows fire on the candidate, and the docs describe the cut as built          | S    | Done   |
 
 ## Acceptance
 

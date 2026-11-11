@@ -6,7 +6,7 @@ session_id: 2aba47df-5301-4790-a6b7-e11815afe307
 heartbeat_at: 2026-11-11 17:37Z
 status: active
 focus: "2026-11-11 17:38Z, post-cut on vc's word (3.3.0 released at 1e423060f, 17:35Z). Doing 160 landed as 73c6ec84a and is archived; kovacs ~/work/intent-dcbank and its env.sh backup are removed. Next, in one chain: ST0091 AC-04.3 from the RELEASE seal's clock lines, then wp done ST0091/04; then the superseded worktrees; then three devbin follow-ups filed as issues. Hold 37 stands for hv's look on the released build."
-claims: [ST0090/02, ST0091/04]
+claims: [ST0090/02]
 ---
 
 # DevX Claude (dc)

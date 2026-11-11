@@ -1,0 +1,14 @@
+{
+  "id": "01M75V0YJJ1PW01DYTR0ABXN3Q",
+  "ts": "2026-11-11T17:38:22.934Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0091/AC-04.3"
+  },
+  "payload": {
+    "evidence": "hv's 3.3.0 cut through the core, RELEASE seal tmp/release/20261111-1713.RELEASE.out (run 4c0ea238, rhadamanth): start 2026-11-11T17:13:29Z, end 2026-11-11T17:35:36Z, 22m07s, one process from the yes (confirm) through tag, push, object and the after step (cut publish, brew smoke --at-tag) to the tap with no hand step; against the 3.2.8 baseline vc read from GitHub, the reflogs and file times and sent at 2026-10-31 10:44Z, when Intent had no seal"
+  }
+}
