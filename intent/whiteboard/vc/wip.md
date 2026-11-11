@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 124edee5-f105-45bd-8483-ee7dc6dd6fd9
-heartbeat_at: 2026-11-11 12:30Z
+heartbeat_at: 2026-11-11 14:10Z
 status: active
-focus: "No hold. ONE release, 3.3.0, cut once (hv decision 36). ST0092 WP-04 is Done on main at 3807f3a83, verified by vc after the compact (gate PASS 6 of 6, landed code equal to judged tip 125c524fe171). Next, each judged full: cc issue 0680 re-bank and WP-09 follow-up, ic WP-06, dc sweep to devbin 0.1.22; then WP-10, docs/reference, build all, the cut with hv at the terminal. webber-vc answer on the hand form is owed. Todos 71, 76, 77 and decision 128 carry the state."
+focus: "After hv's fifth compact: BIG push to cut 3.3.0 today (P0). One layer of proof, no re-judging. WP-06 and WP-10 on main (ic). Left: dc's docs/reference on the reference gate's green, rewrite dry run on a clone at the final HEAD, then hv's lines (rewrite as hv, kovacs line, cut)."
 claims: []
 ---
 
