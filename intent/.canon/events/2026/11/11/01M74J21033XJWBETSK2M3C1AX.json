@@ -1,0 +1,15 @@
+{
+  "id": "01M74J21033XJWBETSK2M3C1AX",
+  "ts": "2026-11-11T05:42:27.032Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-11, in vc's session, between about 05:30Z and 05:40Z on vc's date -u; the first and second in hv's own words, the third by selection in two menus vc put, wording of the options vc's and each choice hv's) THREE RULINGS. (1) One release, restated: \"I do not want multiple bitty releases (for the umpteenth time!). This is all goes into the next release. Get it working locally with everything in this release and then we cut the release -- once -- when its all ready. If dc needs a fix then it goes into this release.\" Nothing found while building 3.3.0 is left for a later release. (2) Issue 0678 rides 3.3.0, reversing the second ruling of decision 35: \"0678 goes into 3.3.0 too\", because it reaches any Intent project without bin/devbin and not Anvil alone. ic builds it. (3) Intent 3.3.0 declares install.links for intent and intentd on devbin 0.1.22 and keeps `intent use` and `intent install`; devbin gives a declared tool a way to keep its own use and install, which overrules devbin-vc's position that the shared core allows no such exception. hv chose \"Links, Intent keeps verbs\" and then, told devbin would not withhold its verbs, \"devbin withholds its verbs\", over \"Intent adopts devbin's verbs\" and \"No install block in 3.3.0\". The move of Intent's binaries onto devbin's version reader is not part of this: devbin-vc withdrew it, since devbin issue 0331 reads each link's line under its own name."
+  }
+}
