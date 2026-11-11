@@ -18,7 +18,7 @@ claims: [ST0092/05, ISSUE:0680]
 ## TODO
 
 - ST0092 WP-09 after WP-05 lands: doctor reports three classes (a seat whose name or role differs from its profile's, a declared seat not registered, an hv inbox view outside the mediator's pair), each shown and never counted, ids in FindingClass::as_str, remedy the wb init dry run then --apply; plus a retired declared seat (dc's WP-04: WbNode.retired, teams::Verdict::Retired { reason }), shown and not counted. No new row or flag.
-- ISSUE:0680 after WP-09 (vc, in 3.3.0, size M): measure the cause first (a session file read mid-rewrite is a hypothesis); then (1) slots::caller tells unreadable from absent and re-reads a bounded count before refusing, with a remedy that says which; (2) release is accepted from the session id its start.json recorded; (3) the desk shows a start with no end whose asker is alive.
+- ISSUE:0680 after WP-09 (vc's ruling 2026-11-11, size S, cause measured by cc: a wrapper that unsets CLAUDE_CONFIG_DIR reads $HOME/.claude, absent here, and caller() says NoSession; torn reads measured false). Build red then green: (1) slots::caller and slots::session_live tell four cases apart, each with its own remedy: sessions directory absent (the path read, and whether CLAUDE_CONFIG_DIR chose it), directory unlistable, the session's file unreadable (path and why), no file naming the session; no retry. (2) The desk shows a start with no end whose asker is alive. Release-from-start.json is dropped. (edited)
 
 ## Holds
 

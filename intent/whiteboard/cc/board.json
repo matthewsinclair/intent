@@ -2328,9 +2328,10 @@
       "node": "cc",
       "kind": "todo",
       "seq": 50,
-      "text": "ISSUE:0680 after WP-09 (vc, in 3.3.0, size M): measure the cause first (a session file read mid-rewrite is a hypothesis); then (1) slots::caller tells unreadable from absent and re-reads a bounded count before refusing, with a remedy that says which; (2) release is accepted from the session id its start.json recorded; (3) the desk shows a start with no end whose asker is alive.",
+      "text": "ISSUE:0680 after WP-09 (vc's ruling 2026-11-11, size S, cause measured by cc: a wrapper that unsets CLAUDE_CONFIG_DIR reads $HOME/.claude, absent here, and caller() says NoSession; torn reads measured false). Build red then green: (1) slots::caller and slots::session_live tell four cases apart, each with its own remedy: sessions directory absent (the path read, and whether CLAUDE_CONFIG_DIR chose it), directory unlistable, the session's file unreadable (path and why), no file naming the session; no retry. (2) The desk shows a start with no end whose asker is alive. Release-from-start.json is dropped.",
       "state": "live",
-      "recorded_at": "2026-11-11T08:13:21.107Z"
+      "recorded_at": "2026-11-11T08:13:21.107Z",
+      "edited_at": "2026-11-11T09:43:11.221Z"
     }
   ],
   "sent": [

@@ -1,0 +1,16 @@
+{
+  "id": "01M74ZTV3N3PNJYKEVCZB63EM7",
+  "ts": "2026-11-11T09:43:11.221Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 50,
+    "text": "ISSUE:0680 after WP-09 (vc's ruling 2026-11-11, size S, cause measured by cc: a wrapper that unsets CLAUDE_CONFIG_DIR reads $HOME/.claude, absent here, and caller() says NoSession; torn reads measured false). Build red then green: (1) slots::caller and slots::session_live tell four cases apart, each with its own remedy: sessions directory absent (the path read, and whether CLAUDE_CONFIG_DIR chose it), directory unlistable, the session's file unreadable (path and why), no file naming the session; no retry. (2) The desk shows a start with no end whose asker is alive. Release-from-start.json is dropped."
+  }
+}

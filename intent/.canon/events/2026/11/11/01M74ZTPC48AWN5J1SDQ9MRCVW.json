@@ -1,0 +1,15 @@
+{
+  "id": "01M74ZTPC48AWN5J1SDQ9MRCVW",
+  "ts": "2026-11-11T09:43:06.390Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.edit",
+  "subject": {
+    "type": "issue",
+    "id": "0680"
+  },
+  "payload": {
+    "bytes": 2506,
+    "title": "A slot verb run where CLAUDE_CONFIG_DIR is unset is told its session does not exist, and a refused release leaves the lane held silently"
+  }
+}
