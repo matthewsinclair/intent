@@ -483,6 +483,14 @@
       "text": "(hv, 2026-11-11, in vc's session, at about 05:50Z on vc's reading of the exchange, in hv's own word) Intent 3.3.0 packs its macOS release assets as one archive rooted at the install root, as the Linux package is: hv quoted vc's line \"devbin-vc leans towards Intent packing its macOS assets as one archive, as the Linux package already is\" and answered \"Agree\". dc builds it in the same bank as the sweep to devbin 0.1.22, whose render refuses a template that stages assets by hand. dc read that no 3.2.8 reader fetches a macOS asset by its old name.",
       "state": "live",
       "recorded_at": "2026-11-11T06:50:05.101Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 38,
+      "text": "(hv, 2026-11-11, in vc's session at hv's desk, at about 07:22Z on vc's reading of the exchange, in hv's own words) Intent's macOS archive is packed by Intent's own release handler: \"Leave it on Intent's own handler.\", in answer to vc's question whether 3.3.0 should move onto the built-in publish step devbin 0.1.22 gains for the same archive. Intent's config declares no macos.pack keys.",
+      "state": "live",
+      "recorded_at": "2026-11-11T07:56:59.300Z"
     }
   ],
   "sent": [],

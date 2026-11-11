@@ -1,0 +1,15 @@
+{
+  "id": "01M74SRCH47PV0VTM86QJ4YJBS",
+  "ts": "2026-11-11T07:56:59.300Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-11, in vc's session at hv's desk, at about 07:22Z on vc's reading of the exchange, in hv's own words) Intent's macOS archive is packed by Intent's own release handler: \"Leave it on Intent's own handler.\", in answer to vc's question whether 3.3.0 should move onto the built-in publish step devbin 0.1.22 gains for the same archive. Intent's config declares no macos.pack keys."
+  }
+}

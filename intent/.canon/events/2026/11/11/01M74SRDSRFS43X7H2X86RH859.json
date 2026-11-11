@@ -1,0 +1,15 @@
+{
+  "id": "01M74SRDSRFS43X7H2X86RH859",
+  "ts": "2026-11-11T07:57:01.260Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "JUDGEMENTS AND RULINGS OF 2026-11-11, 06:50Z to 07:56Z. (1) ST0092 WP-07 (dc), the roster README rendered from the profile: ic's read of v1 found the wb init row behind the verb, an unreadable install template exiting 1, and a failed README write that the next apply refused as hand-edited; vc upheld all three and withdrew its judge of v1 before any grant. v2 defines the one predicate FacadeError::build_cannot_answer, read once by fail, carrying the template variant and the Teams variants cc owed from WP-03, writes the README first and atomically, and takes text equal to this build's render as rendered. Full judge in slot 01M74QHVBWBYVXN08M26DKCJNC on tree 2999e4be9802: Rust 3607, bats 816, app 79 of 79, 0 failed. ic's wording delta checked warm in slot 01M74RTFDB5VE1WDMV23611EM5 on tree ac99e2502f44 (intent-cli 1296 passed, the table view equal). Landed to 1c3001fb2, WP-07 done. (2) WP-06 moves to ic whole; its five shape points are ruled, among them that MCP's wb status renames items and messages to live_items and live_messages. (3) WP-04 (dc): retired folds into board 4.1; a re-apply reinstates nothing; the red is a door file red at runtime, with the typed arms a compile red said as such. (4) WP-05 (cc): the red is the arms on main's code, not 3.2.8's behaviour; two arms land green with a note. (5) The refused background release is filed as an issue for 3.3.0."
+  }
+}
