@@ -545,3 +545,60 @@ fn every_project_is_routed_to_the_agent_guide_whatever_it_declares() {
     "the route must be an instruction to run the command, not an incidental mention"
   );
 }
+
+/// [`config`] with a `commands` block, built through the real deserialiser.
+fn config_declaring(commands: serde_json::Value) -> Config {
+  serde_json::from_value(serde_json::json!({
+    "intent_version": "3.0.0-probe",
+    "project_name": "ProbeProject",
+    "author": "Probe Author",
+    "languages": ["rust", "shell"],
+    "commands": commands,
+  }))
+  .expect("the probe config deserialises")
+}
+
+/// **A PROJECT WITHOUT `bin/devbin` NAMES ITS OWN COMMANDS** (issue 0678).
+/// The three cases come in order: `bin/devbin` where the tree has one, then the
+/// commands the project declares in its config, then the line that says none
+/// is declared. A declared command is printed only where it is declared, and
+/// `bin/devbin` wins over a declaration.
+#[test]
+fn declared_commands_render_between_devbin_and_none() {
+  let home = repo_root();
+  let build = "make all";
+  let test = "make check";
+  let declared_line = "declares its own build and test commands";
+  let devbin_line = "builds and tests through `bin/devbin`";
+  let none_line = "declares no build or test commands";
+  let both = config_declaring(serde_json::json!({ "build": build, "test": test }));
+  let test_only = config_declaring(serde_json::json!({ "test": test }));
+
+  let page = rootfiles::render(&home, "AGENTS.md", &both, &ctx()).expect("renders");
+  assert!(
+    page.contains(declared_line) && page.contains(build) && page.contains(test),
+    "the declared commands were not rendered:\n{page}"
+  );
+  assert!(
+    !page.contains(none_line) && !page.contains(devbin_line),
+    "a project declaring its commands kept another case's line:\n{page}"
+  );
+
+  let page = rootfiles::render(&home, "AGENTS.md", &test_only, &ctx()).expect("renders");
+  assert!(
+    page.contains(test) && !page.contains(build),
+    "a command not declared was rendered, or the one declared was not:\n{page}"
+  );
+
+  let page = rootfiles::render(&home, "AGENTS.md", &both, &ctx_devbin()).expect("renders");
+  assert!(
+    page.contains(devbin_line) && !page.contains(declared_line) && !page.contains(build),
+    "bin/devbin did not win over a declaration:\n{page}"
+  );
+
+  let page = rootfiles::render(&home, "AGENTS.md", &config(&["rust"]), &ctx()).expect("renders");
+  assert!(
+    page.contains(none_line) && !page.contains(declared_line),
+    "a project declaring nothing lost the none line:\n{page}"
+  );
+}

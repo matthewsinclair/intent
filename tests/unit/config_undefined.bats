@@ -65,13 +65,15 @@ teardown() {
   [[ "$output" == *"$UNWIRED_PHRASE"* ]]
 }
 
-@test "config: the refusal names the whole-family remedy, not a per-verb one" {
+@test "config: the refusal names the family's remedy, now that the family has an arm" {
   run "$INTENT_BIN" config
   # `unwired_whole_family` and `unwired` differ ONLY in their remedy, and which
-  # one fires says whether the family has a dispatch arm at all. Asserting the
-  # remedy is how this file can tell "config is unbuilt" from "config exists
-  # but this verb is missing" -- two states that would otherwise read alike.
-  [[ "$output" == *"nothing in this build provides it"* ]]
+  # one fires says whether the family has a dispatch arm at all. Issue 0678
+  # built `config set` for two keys, so the family has an arm and bare `config`
+  # is a missing verb in it: the remedy points at the family's help, and the
+  # whole-family remedy, which says nothing in this build provides it, is gone.
+  [[ "$output" == *"intent config --help"* ]]
+  [[ "$output" != *"nothing in this build provides it"* ]]
 }
 
 @test "config get: refuses at rc=2 and prints nothing on stdout" {
@@ -83,7 +85,7 @@ teardown() {
   [[ "$stderr" == *"$UNWIRED_PHRASE"* ]]
 }
 
-@test "config set: refuses at rc=2 and does not write the config file" {
+@test "config set: a key this build does not set refuses at rc=2 and does not write the config file" {
   run "$INTENT_BIN" init probe
   [ "$status" -eq 0 ]
 
@@ -98,7 +100,12 @@ teardown() {
   run --separate-stderr "$INTENT_BIN" config set project_name HIJACKED
   [ "$status" -eq 2 ]
   [ -z "$output" ]
-  [[ "$stderr" == *"$UNWIRED_PHRASE"* ]]
+  # Issue 0678 built `config set` for two keys, so the refusal is no longer the
+  # unwired one: it says this key is not built and names the keys that are.
+  [[ "$stderr" == *"error:"* ]]
+  [[ "$stderr" == *"commands.build"* ]]
+  [[ "$stderr" == *"commands.test"* ]]
+  [[ "$stderr" != *"$UNWIRED_PHRASE"* ]]
 
   local after
   after="$(shasum -a 256 "$cfg" | cut -d' ' -f1)"

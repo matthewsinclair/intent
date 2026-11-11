@@ -337,3 +337,99 @@ fn init_lists_the_config_relative_like_every_other_file() {
     "init listed a file by its absolute path, where every other line is relative to the root: {absolute:?}\n{out}"
   );
 }
+
+/// **A PROJECT WITHOUT `bin/devbin` DECLARES ITS OWN COMMANDS** (issue 0678):
+/// `intent config set commands.build|commands.test` writes them to the config,
+/// doctor reads the contract as behind until `intent agents sync` renders them,
+/// the rendered contract validates, an empty value removes one, and any other
+/// key, or a value of more than one line, is refused with nothing written.
+#[test]
+fn config_set_declares_the_commands_agents_sync_renders() {
+  let dir = empty_dir();
+  let (out, err, code) = run(&["init", "p", "--lang", "rust,shell"], dir.path());
+  assert_eq!(code, 0, "init refused: {out}{err}");
+  let config_path = dir.path().join("intent/.config/config.json");
+  let config = || -> serde_json::Value {
+    serde_json::from_str(&std::fs::read_to_string(&config_path).expect("no config"))
+      .expect("config is json")
+  };
+  let agents = || std::fs::read_to_string(dir.path().join("AGENTS.md")).expect("no AGENTS.md");
+  let untouched = std::fs::read_to_string(&config_path).expect("no config");
+  assert!(
+    config().get("commands").is_none(),
+    "a project that declared nothing carries a commands block: {untouched}"
+  );
+  let (build, test) = ("make all", "make check");
+
+  for (key, value) in [("commands.build", build), ("commands.test", test)] {
+    let (out, err, code) = run(&["config", "set", key, value], dir.path());
+    assert_eq!(code, 0, "`config set {key}` refused: {out}{err}");
+    assert!(
+      out.contains("ok:") && out.contains("wrote: intent/.config/config.json"),
+      "`config set {key}` did not report its write: {out}"
+    );
+  }
+  assert_eq!(
+    config()["commands"],
+    serde_json::json!({ "build": build, "test": test })
+  );
+
+  let (out, err, _) = run(&["doctor", "--format", "json"], dir.path());
+  assert!(
+    out.contains("root-file-behind") && out.contains("AGENTS.md"),
+    "doctor did not read the contract as behind its declared commands: {out}{err}"
+  );
+  let (out, err, code) = run(&["agents", "sync"], dir.path());
+  assert_eq!(code, 0, "agents sync refused: {out}{err}");
+  let page = agents();
+  assert!(
+    page.contains(build) && page.contains(test),
+    "agents sync did not render the declared commands:\n{page}"
+  );
+  let (out, err, _) = run(&["doctor", "--format", "json"], dir.path());
+  assert!(
+    !out.contains("root-file-behind"),
+    "doctor reads a synced contract as behind: {out}{err}"
+  );
+  let (out, err, code) = run(&["agents", "validate"], dir.path());
+  assert_eq!(
+    code, 0,
+    "the rendered contract does not validate: {out}{err}"
+  );
+
+  let (out, err, code) = run(&["config", "set", "commands.build", ""], dir.path());
+  assert_eq!(code, 0, "an empty value was refused: {out}{err}");
+  assert_eq!(config()["commands"], serde_json::json!({ "test": test }));
+  let (out, err, code) = run(&["config", "set", "commands.test", ""], dir.path());
+  assert_eq!(code, 0, "an empty value was refused: {out}{err}");
+  assert!(
+    config().get("commands").is_none(),
+    "a block with nothing declared was left behind: {}",
+    std::fs::read_to_string(&config_path).expect("no config")
+  );
+
+  let before = std::fs::read_to_string(&config_path).expect("no config");
+  let (out, err, code) = run(&["config", "set", "backup.schedule", "weekly"], dir.path());
+  assert_eq!(
+    code, 2,
+    "a key this build does not set was not refused at 2: {out}{err}"
+  );
+  assert!(
+    err.contains("error:") && err.contains("commands.build") && err.contains("commands.test"),
+    "the refusal does not name the keys this build sets: {err}"
+  );
+  let (out, err, code) = run(
+    &["config", "set", "commands.test", "make\ncheck"],
+    dir.path(),
+  );
+  assert_eq!(
+    code, 1,
+    "a value of two lines was not refused at 1: {out}{err}"
+  );
+  assert!(err.contains("error:"), "{err}");
+  assert_eq!(
+    std::fs::read_to_string(&config_path).expect("no config"),
+    before,
+    "a refused set changed the config"
+  );
+}
