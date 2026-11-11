@@ -1,0 +1,16 @@
+{
+  "id": "01M74TW64CYQVQ525E14NAXSJH",
+  "ts": "2026-11-11T08:16:32.396Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 63,
+    "text": "ST0092 row reads, as the table's owner, before vc judges, findings one per message to the builder copied to vc; nothing written to ST0092's canon. DONE and landed: WP-02, WP-03, WP-07, WP-08b. WP-05 read at 36e400d93151 (nothing holds it; two non-blocking points to vc and cc: wb init's observed stdout lacks the apply's `removed:` lines, and the seven MCP --node rows do not mention INV-12, vc's call). OWED: dc's WP-04 bank (i) when banked (retire, its recoverability_anomaly pointing at wb register's, --all, wb show of a retired seat, and that it calls seat::human_seat), cc's WP-05 delta for the `removed:` sentence if it re-banks, and WP-09 when cc banks it. One-shape rule: FacadeError::build_cannot_answer is the one exit-2 predicate `fail` reads; any later variant joins it, never a second mapping."
+  }
+}

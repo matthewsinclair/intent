@@ -1,0 +1,16 @@
+{
+  "id": "01M74TW7CXE5XT6HV79JRM53ST",
+  "ts": "2026-11-11T08:16:33.693Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 67,
+    "text": "ST0092 WP-10 prep, ruled by vc on 2026-11-10; nothing written until WP-10 starts (after cc's packages land). dc's inventory: refs/bank/ic/st0092/wp10-dc-inventory-on-7c16cffef.md. (1) `estate control`'s when_to_use takes, after 'recorded verbatim.': 'A session bound to a whiteboard node takes it only as its board's mediator (vc on a board that declares no profile) or with `--hv`; a session bound to no node, in a project or not, takes it as before.' (2) `wb pickup`'s desk line ('a session that wears the desk is also told so, with the controller's duties and the asks waiting') is still owed; dc's WP-08b put the desk in the facade, so it goes in at WP-10, or with WP-06's pickup row if that lands first. (3) `wb status`'s desk sentence landed with WP-08b (hats null meaning), and WP-06's draft extends that row; at WP-10 extend that one sentence to say who wears the desk, never add a second."
+  }
+}

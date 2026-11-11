@@ -1,0 +1,15 @@
+{
+  "id": "01M74TW8EQSA1SKVZWA2XMDP8J",
+  "ts": "2026-11-11T08:16:34.775Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ST0092 WP-10, owed in 3.3.0 (vc 2026-11-11, from dc's find): intent/st/ST0056/parity/tools/surface_check.sh refuses on main's own table (\"invariant(s) this check has no probe for and does not skip: INV-09 INV-10 INV-11\", and INV-12 arrives with WP-05) and nothing runs it, so it has been red unseen since INV-09. Each of INV-09 to INV-12 gets a probe in that check or a declared skip naming the Rust arms that hold it; then either a gate runs the check, or ic shows the Rust probes supersede it and it goes with its MODULES.md row. Tell vc which way."
+  }
+}
