@@ -1,0 +1,16 @@
+{
+  "id": "01M752EVGJANGQJN9Q165XGJEM",
+  "ts": "2026-11-11T10:29:04.147Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 50,
+    "text": "ISSUE:0680 (vc's ruling 2026-11-11, size S; cause measured: a wrapper that unsets CLAUDE_CONFIG_DIR reads $HOME/.claude, absent here). WRITTEN, NOT YET RUN, banked as refs/bank/cc/issue-0680/red-draft-NOT-RUN-on-867cad6d3 (tree 5cfa52032e71) and green-draft-NOT-RUN-on-867cad6d3 (tree 46f72e1163b1), worktrees tmp/wt-cc-0680 and tmp/wt-cc-0680-red on 867cad6d3. Shape: read_sessions refuses an absent sessions directory (EstateError::NoSessionsDir with whether CLAUDE_CONFIG_DIR chose it); status carries no_sessions_dir and calls nobody gone (a note when the variable is unset, a host Claude Code never ran on; a warning when set; exit 0 either way); prune removes nothing (quiet when unset, refused when set; it used to remove every WIP record, on intentd's tick too); slot verbs name which of four cases; session_live errors instead of answering gone; the CLI's second ORPHANED judgement is removed so it reads controller_orphaned alone; running_idle {id, by, name, lanes, started_at} lists a start with no end whose asker is alive and idle (not shell). ic builds the page's twins in WP-10 (todo 69). Next: run 1 (slot 01M750CK5NYJ9JN8XTQYF9HKMT; devbin-vc asked to pass it while cc compacts), script tools/i0680-run1.sh, red then green."
+  }
+}

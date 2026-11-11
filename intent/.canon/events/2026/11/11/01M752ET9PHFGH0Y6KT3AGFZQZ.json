@@ -1,0 +1,16 @@
+{
+  "id": "01M752ET9PHFGH0Y6KT3AGFZQZ",
+  "ts": "2026-11-11T10:29:02.902Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 109,
+    "text": "ST0092 WP-09 (doctor reports a board that has left its profile) BANKED on main 867cad6d3: refs/bank/cc/st0092/wp09-red-on-867cad6d3 (blob decbfacd8935, tree 938257f7f38e) and wp09-green-on-red-on-867cad6d3 (blob eed139b42469, tip 66eb6f5eb251), the two applying plainly in order. Three classes seat-differs-from-profile, seat-not-registered and closed-pair-view in FindingClass::as_str, shown and never counted, read through teams::plan and Facade::closed_pair_views. Rows minted in the green: AT-09.1 and 09.2 red (run 1, slot 01M74Z2NTWJ4K49H5KEN3HPKGY, red tree eb87b15efb85), AT-09.3 non-test. Run 2 (slot 01M751GHPAJHV20ZHRJ84P6QZ3) green: suites 1832/948/48, libs, clippy, panics, ownership, doc; format clean after rustfmt, which the bank carries. vc's full judge asked as 01M75299N6BRR3Z88MPCZ0709H; ic's read clean but for AC-09.1's retired-seat sentence. vc RULED: it lands as is, the green commit says AC-09.1 waits, and WP-09 STAYS WIP after landing (no wp done) until a follow-up bank, after dc's WP-04 is on main, names a retired declared seat as retired, shown and not counted, never seat-not-registered, red then green. Worktrees tmp/wt-cc-0092-wp09 (built) and tmp/wt-cc-0092-wp09b (bank tree). Resume notes: scratchpad wp03-notes.md, LOCALFOLD 2."
+  }
+}
