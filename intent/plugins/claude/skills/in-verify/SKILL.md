@@ -1,66 +1,51 @@
 ---
-description: "Verification gate: require fresh evidence before any completion claim"
+description: "Verification gate: a completion claim cites the one run that decided it"
 ---
 
 # Verification Gate
 
-Before claiming any task is complete, working, or passing, provide fresh verification evidence. No exceptions.
+A completion claim says what ran and what it showed. One run decides a change; it is not run again.
 
 ## Rules
 
-### 1. Show actual output
+### 1. Cite the run that decided it
 
-Every completion claim must include the actual command output that proves it. Do not paraphrase, summarize, or reference a prior run.
+A claim that something works names the command that proved it and quotes the line of its output that says so. "Tests pass" with nothing behind it is not a claim.
 
-BAD: "Tests pass."
-BAD: "I verified this works."
-BAD: "As shown earlier, the tests pass."
+### 2. One run, then stop
 
-GOOD: Run the command, show the output, then state the conclusion.
+The run that proved the change is the evidence. Do not run it again to show it again, after a compact or anywhere else: quote its result. Run it again only when the code it covered has changed since.
 
-### 2. Run verification in this message
+### 3. Prove the change, not the proof
 
-Verification must happen in the current message, not reference a prior message. Context compaction may have removed prior evidence.
+Run the test or check that covers the change. Nothing tests a test, and no positive control is run of a measurement. Before any further check, name what it would catch that the first did not; if you cannot, do not run it.
 
-### 3. Verify the specific change
+### 4. What "done" requires
 
-Run the specific test or check that covers your change. A whole-suite pass is less useful than a pass of the tests covering this module. Run both if practical: specific first, then broad.
+| Change type      | The one run                          |
+| ---------------- | ------------------------------------ |
+| Code change      | The tests that cover it              |
+| Config change    | The config loads without error       |
+| Build change     | The build                            |
+| Doc change       | Nothing beyond the commit's own gate |
+| Skill/agent file | It installs and lists                |
+| Bug fix          | The test that was red is now green   |
 
-### 4. Types of verification
-
-| Change Type      | Minimum Verification                              |
-| ---------------- | ------------------------------------------------- |
-| Code change      | Run relevant tests; show output                   |
-| Config change    | Show the config loads without error               |
-| Build change     | Run build; show success                           |
-| Doc change       | Confirm file exists and render check (if tooling) |
-| Skill/agent file | Install and show in list output                   |
-| Bug fix          | Show the bug is gone AND no regressions           |
-
-### 5. What "done" requires
-
-A task is done when:
-
-- Specific verification command was run in this message
-- Output is shown (not summarized)
-- Output confirms the change works
-- No new warnings or errors introduced
-
-### 6. Acceptance criteria, when the thread has one
+### 5. Acceptance criteria, when the thread has one
 
 If the steel thread carries an `acceptance.md`, "done" is bound to it:
 
-- Write Acceptance Tests **red-first** and witness them RED before building to green -- a green that never went red proves nothing. **The CLI enforces the order and cannot enforce the witnessing**: `intent at green` refuses a row that is not `red`, so `intent at red` records the failing run first, but only the verifier can say the RED was real.
-- A test-backed AC is satisfied by a green covering AT; a non-test AC by `intent ac satisfy`. The close-gate computes the verdict -- `intent ac status <id>` (or `intent ac gate`) -- never a hand-ticked box.
-- **The AT row is checked by the tool.** Cite the test **file**, repo-relative, with `--file` (`intent at new <id> <AT-id> --covers <AC-id> --file tests/unit/foo.bats`) -- not a test name, not `path::name`. Then put the AT's own id inside the test it names, because that is the link the tool can check from both ends. Where another thread cites the same file for an AT of the same id, an id line that names no thread cannot say whose arm it is over, so name your thread on that line or cite the arm's line, `--file tests/unit/foo.bats:42`, which the tool then reads alone. A non-test row (`--kind non-test --prose <text>`) records a doc or eyeball check, is set with `intent at na`, and never satisfies anything. Run `intent at lint <id>` before you claim coverage, and fix each row it names by hand with `intent at edit <id> <AT-id>`.
+- An Acceptance Test reaches green only from red, and the red is the code as it was, never a planted fault. `intent at green` refuses a row that is not `red`.
+- A test-backed AC is satisfied by a green covering AT; a non-test AC by `intent ac satisfy`. The close-gate computes the verdict: `intent ac status <id>` or `intent ac gate`.
+- Cite the test **file**, repo-relative, with `--file`, and put the AT's own id inside the test it cites.
 
 See the AC/AT five-step in `working-with-llms.md` (D11).
 
 ## Red Flags
 
-| Rationalization                       | Reality                                               |
-| ------------------------------------- | ----------------------------------------------------- |
-| "I just ran the tests above"          | Context may be compacted. Run again.                  |
-| "This is a doc-only change, no tests" | Confirm the file exists and has no syntax errors.     |
-| "The change is too small to verify"   | Small changes break things. Verification is an XS.    |
-| "I'll verify at the end"              | Verify each step. Compound errors are harder to find. |
+| Rationalization                        | Reality                                                        |
+| -------------------------------------- | -------------------------------------------------------------- |
+| "Context was compacted, so run again." | Quote the result you recorded. The code did not change.        |
+| "Another seat proved it; I'll re-run." | Its measured green is the evidence. Read it and land.          |
+| "Tests pass." (nothing shown)          | Name the run and quote its line.                               |
+| "One more check to be safe."           | Name what it catches that the first did not, or do not run it. |

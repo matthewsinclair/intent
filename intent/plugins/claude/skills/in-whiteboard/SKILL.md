@@ -98,7 +98,7 @@ A node session is started with `intent claude start <node>`, which binds it to i
 
 ## Node roles
 
-Per-project; the README is the source of truth. A common shape: a **control** node doing the heavy lifting, a **validation** node that reads landed or claimed work against the ask and its builder's evidence, and posts findings for `hv` to adjudicate (advisory only: it never mutates another node's work or blocks it), others as needed, and `hv`.
+Per-project; the README is the source of truth. A common shape: a **control** node doing the heavy lifting, a **validation** node, the mediator, that lands work on its builder's evidence by reading it against the ask, runs no suite of its own, and is measured by the time from a builder's green to main, others as needed, and `hv`.
 
 ## Protocol invariants
 
@@ -110,7 +110,8 @@ Per-project; the README is the source of truth. A common shape: a **control** no
 6. **`/compact` does NOT end a session**: status stays `active`; the next `pickup` touches the heartbeat.
 7. **You archive your own items only**; old `.history/YYYYMMDD/` trees are append-only, never reloaded.
 8. **The human is `hv`**, never named.
-9. **You commit what your verbs printed, as `/in-essentials` says**: on a board that is your own `board.json` and `wip.md`, every `<peer>/inbox.<you>.md`, and your own event files. The one exception is the re-render a new board shape forces on every board at once, which is one mechanical commit by the coordinating node or `hv`, outside this rule. `wb register` and `wb migrate` are roster acts: each prints everything it rendered on `wrote:` lines, and whoever runs it commits all of it.
+9. **You commit what your verbs printed, as `/in-essentials` says**: on a board that is your own `board.json` and `wip.md`, every `<peer>/inbox.<you>.md`, and your own event files. The one exception is the re-render a new board shape forces on every board at once, which is one mechanical commit by the coordinating node or `hv`, outside this rule. `wb register` and `wb migrate` are roster acts: each prints everything it rendered on `wrote:` lines, and whoever runs it commits all of it. A pickup or heartbeat alone is not committed: a seat's board files ride its next real commit or its fold.
+10. **Commits are serialised by git, not by messages**: each seat commits its own paths with `git commit --only <paths>`, and git's index lock orders them. No seat broadcasts a start or an end around a commit.
 
 ## Red Flags
 
@@ -124,4 +125,4 @@ Per-project; the README is the source of truth. A common shape: a **control** no
 | "The node said it's done, so it's done."                    | A "done" claim is read against the ask and the evidence its builder gives. Read it; do not run it again. |
 | "I know roughly what time it is."                           | You do not. You have no clock. Run `date -u`; a plausible stamp is fabricated, not approximate.          |
 | "I'll just edit the board file, it is right there."         | It is a rendered view. Your edit is skew doctor reports, and the next render drops it.                   |
-| "The verb returned ok, so the peer has it."                 | Stored is not delivered. A thing that must be acted on gets said twice.                                  |
+| "The verb returned ok, so the peer has it."                 | Stored is not delivered. A thing that must be acted on also goes by `SendMessage`.                       |

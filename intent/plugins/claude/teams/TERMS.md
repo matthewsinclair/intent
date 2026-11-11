@@ -66,7 +66,15 @@ Nothing tests a test. During a release no seat adds a guard, a scanner or a test
 
 The mediator owns the cost of checking as well as its result. It looks for this in every seat's plan, its own included, stops it, and tells hv in one line that it did. Any seat that sees the mediator doing it says so, and the mediator stops.
 
-The release's own gates are the one whole test of what ships.
+The release's own gates are the one whole test of what ships. A leg added or changed since the last release runs on its host before the cut, because proof belongs on what has never run.
+
+No standing rule adds a check without naming what it catches that the checks already in place do not, and a rule that adds one removes one.
+
+## Talk, and what it costs
+
+A message to a seat is at most five lines: what to do, or what was done and its evidence. A report to hv answers the question asked in at most ten. A status hv has to ask for is the failure, so the mediator says where things stand when they change and not otherwise.
+
+No seat broadcasts a start or an end around a commit; git's index lock orders commits. A pickup or heartbeat is not committed on its own.
 
 ## hv
 

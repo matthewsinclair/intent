@@ -1,6 +1,6 @@
 ---
 description: "Session finish (fold): update ST docs, wip.md, restart.md, commit cleanly. localfold = per-workstream before a compact; globalfold = project-wide before EOD"
-chains_to: ["in-whiteboard", "in-verify"]
+chains_to: ["in-whiteboard"]
 ---
 
 # Session Finish
@@ -71,7 +71,6 @@ Do NOT write new code during session finish. This step is documentation only. Co
 Before finishing, consider:
 
 - `/in-whiteboard release` -- pause this session's whiteboard node (step 1 runs it when `intent/whiteboard/` exists AND the session is actually ending; a fold before `/compact` runs `touch` instead)
-- `/in-verify` -- verify any completion claims made this session
 
 ## Red Flags
 

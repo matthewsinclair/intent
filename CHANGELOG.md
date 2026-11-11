@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **Seats prove a change once, talk less and stop judging each other's greens** (ST0093, hv's diagnosis of why Claudes yak-shave). `in-verify` asks for the one run that decided a change and forbids running it again; `in-finish` no longer chains it, so a fold before a compact runs no verification pass. The `in-whiteboard` skill's validation node lands work on its builder's evidence and runs no suite; seats commit by path with no start or end broadcast, and a bare pickup is not committed. The team terms gain "Talk, and what it costs" (five-line messages to a seat, ten-line reports to hv), and a new or changed release leg runs on its host before the cut.
+
 ## [3.3.0] - 2026-11-11
 
 ### Changed
