@@ -320,6 +320,15 @@ fn iso_ms(ms: i64) -> Option<String> {
   iso(at)
 }
 
+/// When a reading of this host was taken, from the estate's one clock, as
+/// ISO-8601 UTC with a `Z`: the reference every age in that reading is measured
+/// from, so a face computes an age from the answer and reads no clock (D42, vc
+/// decision 72). `wb pickup` and `wb status` carry one for the last-pickup age
+/// (issue 0675), as `estate status` carries its own.
+pub fn taken_at() -> String {
+  iso(clock::now()).unwrap_or_default()
+}
+
 fn iso(at: OffsetDateTime) -> Option<String> {
   at.format(time::macros::format_description!(
     "[year]-[month]-[day]T[hour]:[minute]:[second].[subsecond digits:3]Z"

@@ -8800,7 +8800,7 @@
         {
           "path": "wb status",
           "help": "List the registered nodes: role, status, heartbeat, and what each is working on",
-          "when_to_use": "USE IT to see who is on this project's board and where each node stands -- one line per node, with the focus line untruncated because that is the field a person is reading for. A retired seat is listed only with `--all`. DO NOT USE IT to read one node's items or inbox: it reports the roster and counts, and `intent wb show <node>` is the whole board. It reads rows and never walks the whiteboard directory, so it describes the model rather than the disk. Each row carries `hats`, read live from the host's desk: `hats` null means the desk could not be read, and `intent wb status` names why on stderr.",
+          "when_to_use": "USE IT to see who is on this project's board and where each node stands -- one line per node, with the focus line untruncated because that is the field a person is reading for. A retired seat is listed only with `--all`. DO NOT USE IT to read one node's items or inbox: it reports the roster and counts, and `intent wb show <node>` is the whole board. It reads rows and never walks the whiteboard directory, so it describes the model rather than the disk. Each row carries `hats`, read live from the host's desk: `hats` null means the desk could not be read, and `intent wb status` names why on stderr. Each row also carries `live_items` and `live_messages`, which count only what is live, `last_pickup`, the stamp of the node's last pickup on this machine or null, and `never_started`, true for a seat no session has run in, which prints `never started` in place of a heartbeat; the human's seat is never so marked.",
           "args": [],
           "v2": "new-surface",
           "basis": "ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. ST0069's own design.md says of itself that it is the SEARCH leg and that the coordination model keeps its inherited design in ST0056's cancelled work package, so that is the document cited here. The `intent wb` family covers the `/in-whiteboard` verbs, `status` among them. There is no v2 antecedent.",
@@ -8864,6 +8864,57 @@
           ],
           "facade": "board",
           "note": "**AN ABSENT NODE IS A REFUSAL AND NEVER AN EMPTY BOARD.** The two render almost identically -- no items, no messages -- and mean opposite things: a node with nothing to say, against a question about somebody who is not here. The refusal LISTS THE ROSTER rather than repeating the moniker back, because a typo is fixed by retyping and an unregistered node by `wb register`, which are not the same next move. **The empty sections are printed rather than skipped**, for the reason `index status` gives about unfired reasons: no `messages` heading cannot be told from a build that does not carry messages. **HANDLED MESSAGES ARE COUNTED AND NOT LISTED UNLESS `--all`** (hv, 2026-09-13): a read measured at hv's terminal was almost entirely the bodies of messages already handled, with no live message on the board, so the default answer to what a node's state is had become its archive. The count is in every answer, `handled_count` on the JSON face included, so an empty archive and a left-out one read differently; `wb clear` stays the one door that moves a message from live to handled."
+        },
+        {
+          "path": "wb brief",
+          "help": "Print a seat's brief: its team, its name, role and remit, the mediator and its route to hv, and every other seat",
+          "when_to_use": "USE IT to read what a seat is told at pickup without picking up as it: it moves no heartbeat, records no session and writes nothing, so it is safe to ask of any seat, yours or a peer's. `--launch` prints the context `intent claude start` hands a session in that seat, the profile's launch steps included. On a board that declares no Team Profile it answers with the seat's name and role, and its launch is the one `claude start` composed before profiles existed. DO NOT USE IT to start a session: `--launch` launches nothing, and `intent claude start <moniker>` is the verb that does. An unregistered moniker is refused with the roster listed, and `--launch` for the human's seat is refused, since no session is launched in it. A retired seat is refused too, naming its retirement with `wb register` as the remedy, and it is left out of the seats every other brief lists, as `wb status` leaves it out without `--all`.",
+          "args": [{ "name": "moniker", "type": "node", "arity": "1" }],
+          "v2": "new-surface",
+          "basis": "ST0092/WP/06 info.md: the launcher is a script and the brief is computed in the library, so the launcher needs a door to it that is not a pickup, which moves the heartbeat and records a session. There is no v2 antecedent.",
+          "owner_wp": "ST0092 WP-06",
+          "acceptance": "ST0092 AC-06.1, AC-06.3, AC-06.5",
+          "target": { "state": "new-surface" },
+          "disposition": "new-surface",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read",
+          "flags": [
+            {
+              "spellings": ["--launch"],
+              "type": "bool",
+              "help": "prints the launch steps; launches nothing",
+              "disposition": "keep",
+              "exposed_on_mcp": true
+            },
+            {
+              "spellings": ["--json"],
+              "type": "bool",
+              "help": "Emit as JSON instead of prose",
+              "disposition": "keep",
+              "exposed_on_mcp": false,
+              "note": "terminal-channel, as `index status --json` is: the MCP tool always answers the structured form."
+            }
+          ],
+          "facade": "seat_brief",
+          "observed": {
+            "exit": [
+              {
+                "code": 0,
+                "when": "the brief, or with `--launch` the launch context; on a board that declares no profile, the seat's name and role and the launch it had before"
+              },
+              {
+                "code": 1,
+                "when": "an unregistered moniker, the roster named; `--launch` for the human's seat"
+              },
+              {
+                "code": 2,
+                "when": "on a declared board, the installed profiles cannot be read"
+              }
+            ],
+            "stdout": "the brief, or with `--launch` the launch context; nothing is written",
+            "stderr": "`error: ...` with a remedy on a refusal (INV-01)"
+          },
+          "note": "**ONE BRIEF, FOUR FACES** (INV-09): `wb pickup`'s prose, its `--json`, MCP's pickup and this verb all read one library function, and `intent claude start` hands the session that function's launch context as an argument, so the launcher script never calls `intent`."
         },
         {
           "path": "wb ask",
@@ -9077,7 +9128,7 @@
         {
           "path": "wb pickup",
           "help": "Start a session: mark this node active, then its board and its peers' state",
-          "when_to_use": "USE IT at the start of a session -- it marks the acting node active, stamps its heartbeat, records the session and focus you name, then prints its board -- the messages still live listed, the handled ones counted in one line that names `--all` -- then `hv`'s live directives, watch-outs and decisions in full (absent when you are `hv` or there is no `hv` board), then every peer's header state with a count, by kind, of the live items it does not show. `--all` lists every message, handled included; it is for reaching the archive, not for starting a session. DO NOT USE IT to read somebody else's board: a peer comes back as its header and those counts, and `wb show <node>` reads one whole board. An unnamed session or focus keeps what the board already holds; `wb touch` is the verb that only stamps the heartbeat. On a board that declares a team, writing as the human seat is taken only from the mediator's session or from a shell with no session. It names, on a `stranded:` line, each message the node sent to a node that retired without handling it, with the `wb archive message` that takes it.",
+          "when_to_use": "USE IT at the start of a session -- it marks the acting node active, stamps its heartbeat, records the session and focus you name, then prints its board -- the messages still live listed, the handled ones counted in one line that names `--all` -- then `hv`'s live directives, watch-outs and decisions in full (absent when you are `hv` or there is no `hv` board), then every peer's header state with a count, by kind, of the live items it does not show. `--all` lists every message, handled included; it is for reaching the archive, not for starting a session. DO NOT USE IT to read somebody else's board: a peer comes back as its header and those counts, and `wb show <node>` reads one whole board. An unnamed session or focus keeps what the board already holds; `wb touch` is the verb that only stamps the heartbeat. On a board that declares a Team Profile it prints the seat's brief first, ahead of the board: the team, this seat's name, role and remit, the mediator and the route to hv, and every other seat with its remit, a seat no session has run in marked never started; `wb brief` prints the same brief without picking up. It also says how long ago this node last picked up on this machine, read before it records this one, or on a `note:` that none is recorded, as on a fresh clone; and each peer's line counts the messages that peer has not handled, labelled live. On a board that declares a team, writing as the human seat is taken only from the mediator's session or from a shell with no session. It names, on a `stranded:` line, each message the node sent to a node that retired without handling it, with the `wb archive message` that takes it.",
           "args": [],
           "v2": "new-surface",
           "basis": "ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. The `intent wb` family covers the `/in-whiteboard` verbs, `pickup` among them; there is no v2 antecedent.",
@@ -11972,6 +12023,7 @@
       "wb",
       "wb status",
       "wb show",
+      "wb brief",
       "wb ask",
       "wb announce",
       "wb add",
@@ -12158,6 +12210,7 @@
       "wb",
       "wb status",
       "wb show",
+      "wb brief",
       "wb ask",
       "wb announce",
       "wb add",
@@ -12353,6 +12406,7 @@
       "wb",
       "wb status",
       "wb show",
+      "wb brief",
       "wb ask",
       "wb announce",
       "wb add",

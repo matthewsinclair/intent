@@ -87,6 +87,12 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // field left out.
     | FacadeError::WbRecipientRetired { .. }
     | FacadeError::RosterReadmeUnreadable { .. }
+    // `wb brief --launch` for the human's seat: a seat no session is launched
+    // in, never a field left out (ST0092 WP-06).
+    | FacadeError::WbBriefHumanLaunch { .. }
+    // A retired seat's brief: a seat off the roster, never a field left out
+    // (ST0092 WP-06).
+    | FacadeError::WbSeatRetired { .. }
     | FacadeError::SqlMoreThanOneStatement
     | FacadeError::SqlNoStatement
     | FacadeError::SqlUnterminated

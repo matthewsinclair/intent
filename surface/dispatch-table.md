@@ -4146,29 +4146,30 @@ The whiteboard: read the node boards, and send between them
 - **THE FAMILY HELP SAYS WHAT THE VERBS DO IN THIS CUT, AND NOT WHAT THE MODEL WILL EVENTUALLY SERVE** (ic, ruled by vc 2026-09-12). It first read `node boards and inboxes, served from the store` while the one shipped verb registered monikers -- a reader typing `intent wb` was told the whiteboard is served and then found a roster registrar. **THE RULE CUTS BOTH WAYS AND THE SECOND CUT CAUGHT THE FIRST FIX** (ic, same day): narrowed to `the node roster in the store`, it was stale again one commit later, when `wb show` began reading whole boards -- promising LESS than the family does, which sends a reader looking elsewhere for a verb that is right there. **So this line moves with every verb group, in whichever direction the group moved it**, and it is not a decision that stays taken.
 - DECLARED AS A FAMILY FROM THE FIRST VERB, not as a root row promoted later. `index` was moved into a family after two root paths sharing a prefix made the prefix itself ambiguous (`intent index` refused, matching `index rebuild` and `index status`); a family that starts as one costs nothing now and cannot arrive at that refusal.
 
-| command       | args               | flags                                     | help                                                                                                      | disposition |
-| ------------- | ------------------ | ----------------------------------------- | --------------------------------------------------------------------------------------------------------- | ----------- |
-| `wb`          | <command>          | --                                        | The whiteboard: read the node boards, and send between them                                               | new-surface |
-| `wb status`   | --                 | --all, --json                             | List the registered nodes: role, status, heartbeat, and what each is working on                           | new-surface |
-| `wb show`     | <node>             | --all, --json                             | Read one node's board: its header, its items, the messages still live, and a count of the handled ones    | new-surface |
-| `wb ask`      | <recipient> <body> | --node, --re, --fyi                       | Send one message from the acting node into another node's board                                           | new-surface |
-| `wb announce` | <body>             | --node                                    | Send one message to every registered node but the sender                                                  | new-surface |
-| `wb add`      | <kind> <text>      | --node                                    | Add an item to the acting node's own board                                                                | new-surface |
-| `wb archive`  | <kind> [id]        | --node, --to, --handled                   | Move one of the acting node's live items to archived, or a message it sent that its recipient has handled | new-surface |
-| `wb edit`     | <kind> <id> <text> | --node, --to                              | Change the text of one of the acting node's items, live or archived, or of a message it sent              | new-surface |
-| `wb pickup`   | --                 | --node, --session, --focus, --all, --json | Start a session: mark this node active, then its board and its peers' state                               | new-surface |
-| `wb touch`    | --                 | --node                                    | Stamp the acting node's heartbeat                                                                         | new-surface |
-| `wb release`  | --                 | --node                                    | Pause the acting node, stamping when it stopped                                                           | new-surface |
-| `wb decide`   | <text>             | --node                                    | Record a decision on the acting node's own board                                                          | new-surface |
-| `wb claim`    | <id>               | --node                                    | Add a steel thread, work package or issue to the acting node's claims                                     | new-surface |
-| `wb unclaim`  | <id>               | --node                                    | Drop a steel thread, work package or issue from the acting node's claims                                  | new-surface |
-| `wb clear`    | <sender>           | --node                                    | Mark every live message one sender sent the acting node handled                                           | new-surface |
-| `wb profile`  | <verb> <name>      | --                                        | List, show and validate the Team Profiles this install ships, and print the terms they share              | new-surface |
-| `wb init`     | [profile]...       | --apply, --change                         | Bring the board to what its Team Profiles declare, and record the declaration                             | new-surface |
-| `wb remit`    | <moniker> [text]   | --default                                 | Set the remit this project gives a seat, or remove it so the seat shows its profile's default             | new-surface |
-| `wb register` | [moniker]          | --name, --role, --correct                 | Register a node from its arguments, or the roster from each node's own board header                       | new-surface |
-| `wb retire`   | <moniker>          | --reason <why>                            | Retire a node from the roster: its board and messages stay, and it is no longer a recipient               | new-surface |
-| `wb migrate`  | <node>             | --drop-uncarried                          | Carry one node's hand-authored board into the model                                                       | new-surface |
+| command       | args               | flags                                     | help                                                                                                             | disposition |
+| ------------- | ------------------ | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ----------- |
+| `wb`          | <command>          | --                                        | The whiteboard: read the node boards, and send between them                                                      | new-surface |
+| `wb status`   | --                 | --all, --json                             | List the registered nodes: role, status, heartbeat, and what each is working on                                  | new-surface |
+| `wb show`     | <node>             | --all, --json                             | Read one node's board: its header, its items, the messages still live, and a count of the handled ones           | new-surface |
+| `wb brief`    | <moniker>          | --launch, --json                          | Print a seat's brief: its team, its name, role and remit, the mediator and its route to hv, and every other seat | new-surface |
+| `wb ask`      | <recipient> <body> | --node, --re, --fyi                       | Send one message from the acting node into another node's board                                                  | new-surface |
+| `wb announce` | <body>             | --node                                    | Send one message to every registered node but the sender                                                         | new-surface |
+| `wb add`      | <kind> <text>      | --node                                    | Add an item to the acting node's own board                                                                       | new-surface |
+| `wb archive`  | <kind> [id]        | --node, --to, --handled                   | Move one of the acting node's live items to archived, or a message it sent that its recipient has handled        | new-surface |
+| `wb edit`     | <kind> <id> <text> | --node, --to                              | Change the text of one of the acting node's items, live or archived, or of a message it sent                     | new-surface |
+| `wb pickup`   | --                 | --node, --session, --focus, --all, --json | Start a session: mark this node active, then its board and its peers' state                                      | new-surface |
+| `wb touch`    | --                 | --node                                    | Stamp the acting node's heartbeat                                                                                | new-surface |
+| `wb release`  | --                 | --node                                    | Pause the acting node, stamping when it stopped                                                                  | new-surface |
+| `wb decide`   | <text>             | --node                                    | Record a decision on the acting node's own board                                                                 | new-surface |
+| `wb claim`    | <id>               | --node                                    | Add a steel thread, work package or issue to the acting node's claims                                            | new-surface |
+| `wb unclaim`  | <id>               | --node                                    | Drop a steel thread, work package or issue from the acting node's claims                                         | new-surface |
+| `wb clear`    | <sender>           | --node                                    | Mark every live message one sender sent the acting node handled                                                  | new-surface |
+| `wb profile`  | <verb> <name>      | --                                        | List, show and validate the Team Profiles this install ships, and print the terms they share                     | new-surface |
+| `wb init`     | [profile]...       | --apply, --change                         | Bring the board to what its Team Profiles declare, and record the declaration                                    | new-surface |
+| `wb remit`    | <moniker> [text]   | --default                                 | Set the remit this project gives a seat, or remove it so the seat shows its profile's default                    | new-surface |
+| `wb register` | [moniker]          | --name, --role, --correct                 | Register a node from its arguments, or the roster from each node's own board header                              | new-surface |
+| `wb retire`   | <moniker>          | --reason <why>                            | Retire a node from the roster: its board and messages stay, and it is no longer a recipient                      | new-surface |
+| `wb migrate`  | <node>             | --drop-uncarried                          | Carry one node's hand-authored board into the model                                                              | new-surface |
 
 ### `wb`
 
@@ -4201,7 +4202,7 @@ List the registered nodes: role, status, heartbeat, and what each is working on
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- read-only
-- **when to use:** USE IT to see who is on this project's board and where each node stands -- one line per node, with the focus line untruncated because that is the field a person is reading for. A retired seat is listed only with `--all`. DO NOT USE IT to read one node's items or inbox: it reports the roster and counts, and `intent wb show <node>` is the whole board. It reads rows and never walks the whiteboard directory, so it describes the model rather than the disk. Each row carries `hats`, read live from the host's desk: `hats` null means the desk could not be read, and `intent wb status` names why on stderr.
+- **when to use:** USE IT to see who is on this project's board and where each node stands -- one line per node, with the focus line untruncated because that is the field a person is reading for. A retired seat is listed only with `--all`. DO NOT USE IT to read one node's items or inbox: it reports the roster and counts, and `intent wb show <node>` is the whole board. It reads rows and never walks the whiteboard directory, so it describes the model rather than the disk. Each row carries `hats`, read live from the host's desk: `hats` null means the desk could not be read, and `intent wb status` names why on stderr. Each row also carries `live_items` and `live_messages`, which count only what is live, `last_pickup`, the stamp of the node's last pickup on this machine or null, and `never_started`, true for a seat no session has run in, which prints `never started` in place of a heartbeat; the human's seat is never so marked.
 - **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. ST0069's own design.md says of itself that it is the SEARCH leg and that the coordination model keeps its inherited design in ST0056's cancelled work package, so that is the document cited here. The `intent wb` family covers the `/in-whiteboard` verbs, `status` among them. There is no v2 antecedent.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.7
@@ -4233,6 +4234,36 @@ Read one node's board: its header, its items, the messages still live, and a cou
 - **acceptance:** AC-14.7
 - **facade:** board
 - **note:** **AN ABSENT NODE IS A REFUSAL AND NEVER AN EMPTY BOARD.** The two render almost identically -- no items, no messages -- and mean opposite things: a node with nothing to say, against a question about somebody who is not here. The refusal LISTS THE ROSTER rather than repeating the moniker back, because a typo is fixed by retyping and an unregistered node by `wb register`, which are not the same next move. **The empty sections are printed rather than skipped**, for the reason `index status` gives about unfired reasons: no `messages` heading cannot be told from a build that does not carry messages. **HANDLED MESSAGES ARE COUNTED AND NOT LISTED UNLESS `--all`** (hv, 2026-09-13): a read measured at hv's terminal was almost entirely the bodies of messages already handled, with no live message on the board, so the default answer to what a node's state is had become its archive. The count is in every answer, `handled_count` on the JSON face included, so an empty archive and a left-out one read differently; `wb clear` stays the one door that moves a message from live to handled.
+
+### `wb brief`
+
+Print a seat's brief: its team, its name, role and remit, the mediator and its route to hv, and every other seat
+
+- **v2:** new-surface
+- **Arguments:**
+  - `moniker` (node, arity `1`)
+- **Flags:**
+  - `--launch` (bool) -- prints the launch steps; launches nothing
+    - **disposition:** keep
+    - **exposed on mcp:** true
+  - `--json` (bool) -- Emit as JSON instead of prose
+    - terminal-channel, as `index status --json` is: the MCP tool always answers the structured form.
+    - **disposition:** keep
+    - **exposed on mcp:** false
+- **Exit codes:**
+  - `0` -- the brief, or with `--launch` the launch context; on a board that declares no profile, the seat's name and role and the launch it had before
+  - `1` -- an unregistered moniker, the roster named; `--launch` for the human's seat
+  - `2` -- on a declared board, the installed profiles cannot be read
+- **stdout:** the brief, or with `--launch` the launch context; nothing is written
+- **stderr:** `error: ...` with a remedy on a refusal (INV-01)
+- **Target:** `new-surface`
+- **MCP:** exposed as an agent tool -- read-only
+- **when to use:** USE IT to read what a seat is told at pickup without picking up as it: it moves no heartbeat, records no session and writes nothing, so it is safe to ask of any seat, yours or a peer's. `--launch` prints the context `intent claude start` hands a session in that seat, the profile's launch steps included. On a board that declares no Team Profile it answers with the seat's name and role, and its launch is the one `claude start` composed before profiles existed. DO NOT USE IT to start a session: `--launch` launches nothing, and `intent claude start <moniker>` is the verb that does. An unregistered moniker is refused with the roster listed, and `--launch` for the human's seat is refused, since no session is launched in it. A retired seat is refused too, naming its retirement with `wb register` as the remedy, and it is left out of the seats every other brief lists, as `wb status` leaves it out without `--all`.
+- **basis:** ST0092/WP/06 info.md: the launcher is a script and the brief is computed in the library, so the launcher needs a door to it that is not a pickup, which moves the heartbeat and records a session. There is no v2 antecedent.
+- **owner wp:** ST0092 WP-06
+- **acceptance:** ST0092 AC-06.1, AC-06.3, AC-06.5
+- **facade:** seat_brief
+- **note:** **ONE BRIEF, FOUR FACES** (INV-09): `wb pickup`'s prose, its `--json`, MCP's pickup and this verb all read one library function, and `intent claude start` hands the session that function's launch context as an argument, so the launcher script never calls `intent`.
 
 ### `wb ask`
 
@@ -4389,7 +4420,7 @@ Start a session: mark this node active, then its board and its peers' state
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- **mutates**
-- **when to use:** USE IT at the start of a session -- it marks the acting node active, stamps its heartbeat, records the session and focus you name, then prints its board -- the messages still live listed, the handled ones counted in one line that names `--all` -- then `hv`'s live directives, watch-outs and decisions in full (absent when you are `hv` or there is no `hv` board), then every peer's header state with a count, by kind, of the live items it does not show. `--all` lists every message, handled included; it is for reaching the archive, not for starting a session. DO NOT USE IT to read somebody else's board: a peer comes back as its header and those counts, and `wb show <node>` reads one whole board. An unnamed session or focus keeps what the board already holds; `wb touch` is the verb that only stamps the heartbeat. On a board that declares a team, writing as the human seat is taken only from the mediator's session or from a shell with no session. It names, on a `stranded:` line, each message the node sent to a node that retired without handling it, with the `wb archive message` that takes it.
+- **when to use:** USE IT at the start of a session -- it marks the acting node active, stamps its heartbeat, records the session and focus you name, then prints its board -- the messages still live listed, the handled ones counted in one line that names `--all` -- then `hv`'s live directives, watch-outs and decisions in full (absent when you are `hv` or there is no `hv` board), then every peer's header state with a count, by kind, of the live items it does not show. `--all` lists every message, handled included; it is for reaching the archive, not for starting a session. DO NOT USE IT to read somebody else's board: a peer comes back as its header and those counts, and `wb show <node>` reads one whole board. An unnamed session or focus keeps what the board already holds; `wb touch` is the verb that only stamps the heartbeat. On a board that declares a Team Profile it prints the seat's brief first, ahead of the board: the team, this seat's name, role and remit, the mediator and the route to hv, and every other seat with its remit, a seat no session has run in marked never started; `wb brief` prints the same brief without picking up. It also says how long ago this node last picked up on this machine, read before it records this one, or on a `note:` that none is recorded, as on a fresh clone; and each peer's line counts the messages that peer has not handled, labelled live. On a board that declares a team, writing as the human seat is taken only from the mediator's session or from a shell with no session. It names, on a `stranded:` line, each message the node sent to a node that retired without handling it, with the `wb archive message` that takes it.
 - **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. The `intent wb` family covers the `/in-whiteboard` verbs, `pickup` among them; there is no v2 antecedent.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.7

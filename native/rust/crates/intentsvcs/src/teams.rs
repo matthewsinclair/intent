@@ -137,7 +137,24 @@ pub struct Profile {
   pub brief: String,
 }
 
+/// The body of the `## ` section `heading` opens in `brief`, trimmed: every
+/// line after the heading up to the next `## ` heading. **THE ONE READER OF A
+/// PROFILE'S SECTIONS** (ST0092 WP-06, moved here from the roster README's
+/// renderer), so the README's route and a seat's brief and launch steps are cut
+/// from the profile alike.
+pub fn section(brief: &str, heading: &str) -> Option<String> {
+  let mut lines = brief.lines().skip_while(|l| l.trim_end() != heading);
+  lines.next()?;
+  let body: Vec<&str> = lines.take_while(|l| !l.starts_with("## ")).collect();
+  Some(body.join("\n").trim().to_string())
+}
+
 impl Profile {
+  /// [`section`] of this profile's brief.
+  pub fn section(&self, heading: &str) -> Option<String> {
+    section(&self.brief, heading)
+  }
+
   /// The four section headings this profile's brief carries, in file order.
   pub fn sections(&self) -> Vec<&'static str> {
     let headings: Vec<&str> = self.brief.lines().map(str::trim_end).collect();

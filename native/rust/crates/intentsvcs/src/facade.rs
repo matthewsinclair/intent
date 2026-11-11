@@ -2166,8 +2166,31 @@ pub enum FacadeError {
   /// fixed by retyping and the other by registering, which are not the same
   /// next move. The roster is small by construction, so listing it costs a line
   /// and removes the guess.
+  ///
+  /// `declared` is whether the board declares a Team Profile, where `wb init
+  /// --apply` is what registers every declared seat (ST0092 AC-06.3).
   #[error("no node `{node}` is registered in this project; the roster carries {known}")]
-  WbNodeNotRegistered { node: String, known: String },
+  WbNodeNotRegistered {
+    node: String,
+    known: String,
+    declared: bool,
+  },
+  /// `wb brief --launch` for the seat the human drives: no session is launched
+  /// in it, so it has no launch steps (ST0092 WP-06).
+  #[error("`{node}` is the human's seat, and no session is launched in it")]
+  WbBriefHumanLaunch { node: String },
+  /// `wb brief` of a retired seat, and so `claude start` of one (ST0092 WP-06):
+  /// a seat off the roster has no brief and no session is launched in it.
+  #[error(
+    "`{node}` was retired at {at} ({reason}), so it has no brief and no session is launched in it"
+  )]
+  WbSeatRetired {
+    node: String,
+    name: String,
+    role: String,
+    at: String,
+    reason: String,
+  },
   /// `wb retire` of the board's human seat (ST0092 WP-04): a human seat is
   /// only ever registered, as the terms say.
   #[error(
@@ -2690,6 +2713,19 @@ impl WbMigration {
 /// leaves out, so the omission is stated rather than invisible.
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 pub struct Pickup {
+  /// The seat's brief (ST0092 AC-06.1), printed ahead of the board: **ABSENT
+  /// ON A BOARD THAT DECLARES NO PROFILE**, whose pickup reads as it did before
+  /// the thread. [`Facade::seat_brief`] builds it, as it does `wb brief`'s.
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub brief: Option<crate::brief::SeatBrief>,
+  /// The stamp of this node's previous pickup on this machine, read before this
+  /// one wrote its own (issue 0675); `None` where the store records none, as
+  /// on a fresh clone. Its age is measured from [`Self::taken_at`].
+  pub last_pickup: Option<String>,
+  /// When this pickup was read, from the estate's one clock
+  /// ([`crate::estate::taken_at`]): **EVERY FACE MEASURES THE LAST PICKUP'S AGE
+  /// FROM IT AND READS NO CLOCK OF ITS OWN** (D42, vc decision 72).
+  pub taken_at: String,
   pub board: BoardRead,
   /// `hv`'s live items of the [`STANDING_KINDS`], in board order, and empty
   /// when `hv` holds none. **ABSENT when there is no `hv` board to read from, or
@@ -2723,6 +2759,15 @@ pub struct Pickup {
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 pub struct StatusRow {
   pub board: crate::model::Board,
+  /// Live items on the board (ST0092 WP-06): an archived one is not counted.
+  pub live_items: usize,
+  /// Messages addressed to the node that it has not handled.
+  pub live_messages: usize,
+  /// The stamp of the node's last pickup on this machine (issue 0675), or
+  /// `None` where none is recorded.
+  pub last_pickup: Option<String>,
+  /// Whether no session has ever run in the seat: [`crate::seat::never_started`].
+  pub never_started: bool,
   /// Read live from the host's desk; **null when the desk could not be read**,
   /// never shown as no hat. Why is in [`WbStatus::desk_unreadable`], which
   /// `intent wb status` prints on stderr; both faces answer the rows alone.
@@ -2745,6 +2790,9 @@ pub struct WbStranded {
 pub struct WbStatus {
   pub rows: Vec<StatusRow>,
   pub desk_unreadable: Option<String>,
+  /// When the roster was read, from the estate's one clock: each row's
+  /// last-pickup age is measured from it (D42, vc decision 72).
+  pub taken_at: String,
 }
 
 /// What a session loaded skills for against what its project declares now
@@ -2772,6 +2820,8 @@ pub struct PeerRead {
   /// Live items on this peer's board that the pickup leaves out, one entry per
   /// kind present, in the board's section order. `wb show <peer>` lists them.
   pub unshown: Vec<KindCount>,
+  /// Messages addressed to this peer that it has not handled (issue 0675).
+  pub live_messages: usize,
 }
 
 /// How many items of one kind.
@@ -2975,6 +3025,16 @@ impl crate::remedy::Remedy for FacadeError {
       Self::WbRecipientRetired { recipient, .. } => format!(
         "send it to the seat that took `{recipient}`'s work on, or bring `{recipient}` back with `{}` and send it again. Nothing was written.",
         crate::model::register_form(recipient)
+      ),
+      Self::WbNodeNotRegistered {
+        declared: true,
+        ..
+      } => "check the spelling against that roster. This board declares a Team Profile, so `intent wb init --apply` registers every seat its profiles declare, with the profile's name and role; a node no profile names is registered with `intent wb register <moniker> --name ... --role ...`".to_string(),
+      Self::WbBriefHumanLaunch { node } => format!(
+        "`intent wb brief {node}` without `--launch` prints the seat's line; a seat a session drives has launch steps"
+      ),
+      Self::WbSeatRetired { node, name, role, .. } => format!(
+        "bring it back with `intent wb register {node} --name \"{name}\" --role {role}`, which reinstates the same node, or brief the seat that took its work on"
       ),
       Self::WbNodeNotRegistered { node, .. } => format!(
         "check the spelling against that roster. A missing node is registered with `{}`, with a display name and a one-word role rather than the session name (eg `--name \"Control Claude\" --role control`); where each node's board is still a hand-authored `wip.md`, `intent wb register` with no arguments registers the roster from those headers. A node registered with the wrong name or role is fixed with `intent wb register <moniker> --name ... --role ... --correct`",
@@ -8338,6 +8398,7 @@ impl Facade {
       return Err(FacadeError::WbNodeNotRegistered {
         node: moniker.to_string(),
         known: String::new(),
+        declared: self.board_declares_a_team()?,
       });
     };
     let awaiting: Vec<WbAwaiting> = boards
@@ -9764,6 +9825,18 @@ impl Facade {
     // record, and never stored on a board (ST0092 AC-08.3).
     // A desk that cannot be read keeps its cause, once, beside the rows.
     let desk = crate::estate::host_desk().map_err(|e| e.to_string());
+    // **ONE ROW PER SEAT, AND EVERY FACE RENDERS IT** (ST0092 WP-06): the live
+    // counts, the last pickup on this machine and the never-started mark are
+    // joined here once, for the CLI, its `--json` and MCP alike.
+    let live = self.store.wb_live_counts().map_err(FacadeError::Store)?;
+    let mut last = self.store.wb_last_pickups().map_err(FacadeError::Store)?;
+    let human = crate::seat::human_seat(
+      self
+        .store
+        .wb_declaration()
+        .map_err(FacadeError::Store)?
+        .as_ref(),
+    );
     let rows = boards
       .into_iter()
       .map(|board| StatusRow {
@@ -9771,12 +9844,21 @@ impl Facade {
           .as_ref()
           .ok()
           .map(|d| crate::seat::hats(d, board.node.session_id.as_deref())),
+        live_items: board
+          .items
+          .iter()
+          .filter(|i| i.state == crate::model::WbItemState::Live)
+          .count(),
+        live_messages: live.get(&board.node.moniker).copied().unwrap_or(0),
+        last_pickup: last.remove(&board.node.moniker),
+        never_started: crate::seat::never_started(&board.node, &human),
         board,
       })
       .collect();
     Ok(WbStatus {
       rows,
       desk_unreadable: desk.err(),
+      taken_at: crate::estate::taken_at(),
     })
   }
 
@@ -9802,6 +9884,7 @@ impl Facade {
       } else {
         known.join(", ")
       },
+      declared: self.board_declares_a_team()?,
     })
   }
 
@@ -9902,6 +9985,13 @@ impl Facade {
   ) -> Result<Pickup, FacadeError> {
     self.require_writer_as(node)?;
     self.require_migrated(node)?;
+    // **READ BEFORE THIS PICKUP WRITES ITS OWN** (issue 0675), so the age is the
+    // previous read's and not this one's.
+    let last_pickup = self
+      .store
+      .wb_last_pickups()
+      .map_err(FacadeError::Store)?
+      .remove(node);
     let event = self.wb_event(
       "wb.pickup",
       node,
@@ -9961,6 +10051,7 @@ impl Facade {
           .cloned()
           .collect()
       });
+    let live = self.store.wb_live_counts().map_err(FacadeError::Store)?;
     let peers = boards
       .into_iter()
       .filter(|b| b.node.moniker != node)
@@ -9979,6 +10070,7 @@ impl Facade {
           }
         }
         PeerRead {
+          live_messages: live.get(&b.node.moniker).copied().unwrap_or(0),
           node: b.node,
           unshown,
         }
@@ -9992,7 +10084,15 @@ impl Facade {
         loaded,
         declared: declared.clone(),
       });
+    let brief = if self.board_declares_a_team()? {
+      Some(self.seat_brief(node, false)?)
+    } else {
+      None
+    };
     Ok(Pickup {
+      brief,
+      last_pickup,
+      taken_at: crate::estate::taken_at(),
       board: self.board_read_of(board, all)?,
       standing,
       peers,
@@ -11517,6 +11617,111 @@ impl Facade {
   /// things: one is a node with nothing to say, the other is a question about
   /// somebody who is not here. A reader that answered both with the same empty
   /// shape would let a typo look like a quiet colleague.
+  /// Whether this board declares a Team Profile (ST0092 WP-03).
+  fn board_declares_a_team(&self) -> Result<bool, FacadeError> {
+    Ok(
+      self
+        .store
+        .wb_declaration()
+        .map_err(FacadeError::Store)?
+        .is_some(),
+    )
+  }
+
+  /// The brief `moniker`'s seat is told (ST0092 WP-06), and with `launch` its
+  /// launch context: **THE ONE FUNCTION** `wb pickup`, its `--json`, MCP and
+  /// `wb brief` read, and `claude start` hands the session. It writes nothing.
+  ///
+  /// An unregistered moniker is refused naming the roster, and `--launch` for
+  /// the human's seat is refused, since no session is launched in it. A board
+  /// that declares no profile answers with the seat's name and role and the
+  /// launch it had before this thread, and never refuses for that.
+  pub fn seat_brief(
+    &self,
+    moniker: &str,
+    launch: bool,
+  ) -> Result<crate::brief::SeatBrief, FacadeError> {
+    let me = self.board(moniker)?.node;
+    // **A RETIRED SEAT HAS NO BRIEF** (ST0092 WP-06): it is off the roster, so
+    // its brief and its launch refuse, naming the retirement.
+    if let Some(r) = &me.retired {
+      return Err(FacadeError::WbSeatRetired {
+        node: me.moniker.clone(),
+        name: me.name.clone(),
+        role: me.role.clone(),
+        at: r.at.clone(),
+        reason: r.reason.clone(),
+      });
+    }
+    let declaration = self.store.wb_declaration().map_err(FacadeError::Store)?;
+    let human = crate::seat::human_seat(declaration.as_ref());
+    if launch && me.moniker == human {
+      return Err(FacadeError::WbBriefHumanLaunch {
+        node: me.moniker.clone(),
+      });
+    }
+    let project = self
+      .project
+      .root()
+      .file_name()
+      .map(|n| n.to_string_lossy().into_owned())
+      .unwrap_or_default();
+    let project = launch.then_some(project.as_str());
+    let Some(declaration) = declaration else {
+      return Ok(crate::brief::SeatBrief::unprofiled(
+        (
+          me.moniker.as_str(),
+          me.name.as_str(),
+          me.role.as_str(),
+          me.remit.as_deref(),
+          crate::seat::never_started(&me, &human),
+        ),
+        project,
+      ));
+    };
+    let teams = crate::teams::installed()?;
+    let resolved = teams.resolve(&[], Some(&declaration), false)?;
+    let base = teams.profile(&resolved.base)?;
+    let boards = self.boards()?;
+    let registered: Vec<crate::roster_readme::Registered<'_>> = boards
+      .iter()
+      .map(|b| {
+        (
+          b.node.moniker.as_str(),
+          b.node.name.as_str(),
+          b.node.role.as_str(),
+          b.node.remit.as_deref(),
+        )
+      })
+      .collect();
+    let mut roster = crate::roster_readme::Roster::of(&resolved, &registered, &base.brief);
+    // **A RETIRED SEAT IS LEFT OUT OF THE SEATS A BRIEF LISTS** (vc's ruling on
+    // ST0092 WP-06): it is off the roster, as `wb status` says without `--all`.
+    // Read from each node's own `retired`, here where the brief takes its seats.
+    roster.seats.retain(|s| {
+      !boards
+        .iter()
+        .any(|b| b.node.moniker == s.moniker && b.node.retired.is_some())
+    });
+    // A declared seat no node is registered for has never run either.
+    let never_started = |m: &str| {
+      boards
+        .iter()
+        .find(|b| b.node.moniker == m)
+        .map_or(m != human, |b| crate::seat::never_started(&b.node, &human))
+    };
+    crate::brief::SeatBrief::of(&me.moniker, &roster, &base, &human, never_started, project)
+      .ok_or_else(|| FacadeError::WbNodeNotRegistered {
+        node: moniker.to_string(),
+        known: registered
+          .iter()
+          .map(|(m, ..)| (*m).to_string())
+          .collect::<Vec<_>>()
+          .join(", "),
+        declared: true,
+      })
+  }
+
   pub fn board(&self, node: &str) -> Result<Board, FacadeError> {
     let boards = self.boards()?;
     if let Some(board) = boards.iter().find(|b| b.node.moniker == node) {
@@ -11536,6 +11741,7 @@ impl Facade {
           .collect::<Vec<_>>()
           .join(", ")
       },
+      declared: self.board_declares_a_team()?,
     })
   }
 

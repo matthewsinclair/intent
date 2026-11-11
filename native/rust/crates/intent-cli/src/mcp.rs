@@ -487,7 +487,7 @@ impl ServeError {
 /// end-to-end by `tests::every_roster_path_reaches_an_arm`. A row gaining its
 /// door joins `tools()` by regeneration and this list by hand -- the gate is
 /// what makes forgetting either half a red test rather than a silent gap.
-pub const SERVED: [&str; 80] = [
+pub const SERVED: [&str; 81] = [
   "st new",
   "st start",
   "st done",
@@ -550,6 +550,7 @@ pub const SERVED: [&str; 80] = [
   "index status",
   "wb status",
   "wb show",
+  "wb brief",
   "wb clear",
   "wb archive",
   "wb pickup",
@@ -1440,35 +1441,45 @@ fn tool_answer(
     // PATHS in it -- an agent deciding whether to trust a search needs to know
     // which files are not in the index, and a count cannot answer that.
     "wb status" => {
-      // The messages addressed to a node are counted from the store, which
-      // joins them with its marks: its own board carries what it sent (0612).
+      // **ONE ROW PER SEAT, JOINED IN THE LIBRARY** (ST0092 WP-06): the live
+      // counts, the last pickup and the never-started mark are the facade's,
+      // the fields the CLI's `--json` carries. Archived items and handled
+      // messages are not counted, and the counts say so in their names.
       let status = f.wb_status(opt_b(path, map, "all")?)?;
-      let mut rows = Vec::new();
-      for row in &status.rows {
-        let b = &row.board;
-        rows.push(json!({
-          "node": b.node,
-          // **THE COUNTS TRAVEL AND THE CONTENTS DO NOT.** An agent asking who
-          // is on the board should not be handed every item and message on it;
-          // `wb show` is the door for one board, and answering the roster with
-          // the whole estate would make the cheap question the expensive one.
-          "items": b.items.len(),
-          "messages": f.board_read(&b.node.moniker, true)?.messages.len(),
-          // The hats the facade read live from the host's desk, the same field
-          // the CLI's `--json` carries (ST0092 AC-08.3).
-          "hats": row.hats,
-        }));
-      }
+      let rows: Vec<Value> = status
+        .rows
+        .iter()
+        .map(|row| {
+          json!({
+            "node": row.board.node,
+            // **THE COUNTS TRAVEL AND THE CONTENTS DO NOT.** An agent asking
+            // who is on the board should not be handed every item and message
+            // on it; `wb show` is the door for one board.
+            "live_items": row.live_items,
+            "live_messages": row.live_messages,
+            "last_pickup": row.last_pickup,
+            "never_started": row.never_started,
+            // The hats the facade read live from the host's desk; null means
+            // the desk could not be read, and the CLI's stderr names why.
+            "hats": row.hats,
+          })
+        })
+        .collect();
       // **THE ANSWER IS THE BARE ARRAY OF ROWS**, the shape the CLI's `--json`
-      // answers: hats null means the desk could not be read, and the CLI's
-      // stderr names why. The cause rides here when a row per seat reshapes
-      // this answer (ST0092 WP-06).
+      // answers.
       Ok(json!(rows))
     }
     "wb show" => {
       let node = str_arg(args, "node", path)?;
       let all = opt_b(path, map, "all")?;
       Ok(json!(f.board_read(node, all)?))
+    }
+    // The brief `wb pickup` carries, from the one facade function (ST0092
+    // WP-06); a read, so it moves no heartbeat and records no session.
+    "wb brief" => {
+      let moniker = str_arg(args, "moniker", path)?;
+      let launch = opt_b(path, map, "launch")?;
+      Ok(json!(f.seat_brief(moniker, launch)?))
     }
     "wb clear" => {
       let node = str_arg(args, "node", path)?;

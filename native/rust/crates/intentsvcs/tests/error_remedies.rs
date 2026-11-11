@@ -1266,6 +1266,8 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::WbRetireNoReason { .. } => "WbRetireNoReason",
     FacadeError::WbRecipientRetired { .. } => "WbRecipientRetired",
     FacadeError::RosterReadmeUnreadable { .. } => "RosterReadmeUnreadable",
+    FacadeError::WbBriefHumanLaunch { .. } => "WbBriefHumanLaunch",
+    FacadeError::WbSeatRetired { .. } => "WbSeatRetired",
     FacadeError::NoSuchFormat { .. } => "NoSuchFormat",
     FacadeError::LossyFormat { .. } => "LossyFormat",
     FacadeError::ExportRoundTripFailed { .. } => "ExportRoundTripFailed",
@@ -1420,6 +1422,8 @@ const ALL_VARIANTS: &[&str] = &[
   "WbRetireHoldsClaims",
   "WbRecipientRetired",
   "WbRetireNoReason",
+  "WbBriefHumanLaunch",
+  "WbSeatRetired",
   "NoSuchFormat",
   "LossyFormat",
   "WriteNotAddressable", // PUT to a server-assigned id -- `mutation_create_splits_two_ways.rs`
@@ -1485,6 +1489,13 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   "WbRetireMediator",
   "WbRetireHoldsClaims",
   "WbRecipientRetired",
+  // **PROVOKED WHERE A DECLARED BOARD IS** (ST0092 WP-06). It needs a board
+  // `wb init` has declared, whose human seat `wb brief --launch` is asked of,
+  // so intent-cli's `seat_brief.rs` drives it at exit 1. A retired seat's
+  // brief needs a declared board with a seat `wb retire` took, so the same file
+  // drives `WbSeatRetired` at exit 1 too.
+  "WbBriefHumanLaunch",
+  "WbSeatRetired",
   // **PROVOKED WHERE A RENDERED ROSTER README IS** (ST0092 WP-07). Each of its
   // refusals needs a README `wb init --apply` rendered and an edit or a
   // marker over it, so `roster_readme.rs` drives them (AT-07.5, AT-07.7) and

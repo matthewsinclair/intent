@@ -65,6 +65,16 @@ pub fn human_seat(declaration: Option<&crate::model::TeamDeclaration>) -> String
   declaration.map_or_else(|| crate::model::HYPERVISOR.to_string(), |d| d.human.clone())
 }
 
+/// Whether no session has ever run in `node`'s seat (ST0092 AC-06.2): its row
+/// records no session and it is not the `human` seat, which no session drives.
+/// **READ FROM THE ABSENCE OF A RECORDED SESSION, NEVER FROM STATUS OR
+/// HEARTBEAT**: `wb register` stamps a heartbeat at registration, so a seat that
+/// never ran and one that ran and paused read alike by those. Computed at each
+/// read and stored nowhere, so it cannot be stale.
+pub fn never_started(node: &crate::model::WbNode, human: &str) -> bool {
+  node.moniker != human && node.session_id.is_none()
+}
+
 /// Where a session sits: its node and that board's mediator.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Seat {

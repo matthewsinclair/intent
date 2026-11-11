@@ -41,14 +41,31 @@ const ROUTE_TOKEN: &str = "[[ROSTER_ROUTE]]";
 /// names: the profiles declare no driver for it, and nothing is guessed.
 const UNDECLARED: &str = "not in the profiles";
 
-/// One row of the roster table.
+/// One row of the roster table, and one seat of a seat's brief (WP-06).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RosterSeat {
   pub moniker: String,
   pub name: String,
   pub role: String,
   pub driver: String,
-  pub remit: String,
+  /// The remit the project set, or the profile's default for a declared seat;
+  /// `None` for a registered node no profile names that has no remit of its
+  /// own.
+  pub remit: Option<String>,
+  /// Whether `remit` is the profile's default rather than the project's own.
+  pub default_remit: bool,
+}
+
+impl RosterSeat {
+  /// The remit as the roster table prints it: the profile's default marked so,
+  /// and an undeclared node with none said to be outside the profiles.
+  pub fn remit_cell(&self) -> String {
+    match (&self.remit, self.default_remit) {
+      (Some(remit), true) => format!("{remit} {DEFAULT_MARK}"),
+      (Some(remit), false) => remit.clone(),
+      (None, _) => UNDECLARED.to_string(),
+    }
+  }
 }
 
 /// Everything the generated part says, each from the profiles or the store.
@@ -91,7 +108,8 @@ impl Roster {
           name: seat.name.clone(),
           role: seat.role.clone(),
           driver: driver.phrase().to_string(),
-          remit: own.map_or_else(|| format!("{} {DEFAULT_MARK}", seat.remit), str::to_string),
+          remit: Some(own.map_or_else(|| seat.remit.clone(), str::to_string)),
+          default_remit: own.is_none(),
         }
       })
       .collect();
@@ -102,7 +120,8 @@ impl Roster {
           name: (*name).to_string(),
           role: (*role).to_string(),
           driver: UNDECLARED.to_string(),
-          remit: remit.unwrap_or(UNDECLARED).to_string(),
+          remit: remit.map(str::to_string),
+          default_remit: false,
         });
       }
     }
@@ -126,18 +145,10 @@ impl Roster {
       mediator: resolved.mediator.clone(),
       mediator_name,
       seats,
-      route: section(base_brief, crate::teams::SECTION_ROUTE_SEATS).unwrap_or_default(),
+      route: crate::teams::section(base_brief, crate::teams::SECTION_ROUTE_SEATS)
+        .unwrap_or_default(),
     }
   }
-}
-
-/// The body of the `## ` section `heading` opens in `brief`, trimmed: every
-/// line after the heading up to the next `## ` heading.
-fn section(brief: &str, heading: &str) -> Option<String> {
-  let mut lines = brief.lines().skip_while(|l| l.trim_end() != heading);
-  lines.next()?;
-  let body: Vec<&str> = lines.take_while(|l| !l.starts_with("## ")).collect();
-  Some(body.join("\n").trim().to_string())
 }
 
 /// The roster table, its columns padded to their widest cell as the project's
@@ -153,7 +164,7 @@ pub fn table(seats: &[RosterSeat]) -> String {
         cell(&s.name),
         cell(&s.role),
         cell(&s.driver),
-        cell(&s.remit),
+        cell(&s.remit_cell()),
       ]
     })
     .collect();
@@ -541,7 +552,8 @@ mod tests {
       name: "Validation Claude".into(),
       role: "validation".into(),
       driver: "a session".into(),
-      remit: "a | b".into(),
+      remit: Some("a | b".into()),
+      default_remit: false,
     }];
     let t = table(&seats);
     let widths: std::collections::BTreeSet<usize> = t.lines().map(|l| l.chars().count()).collect();

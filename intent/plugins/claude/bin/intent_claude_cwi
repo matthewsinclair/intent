@@ -16,12 +16,20 @@
 # (`claude_cwi` in render.rs) finds the project the way every verb does, so a
 # bare repository is refused there; reads the node from the store, so an absent
 # node is refused there with the command that registers it; and then runs this
-# script FROM the project root as `start <ws> <display name>`. What is left here
-# is the one job no verb does -- composing a session's context and exec-ing
-# claude. Until the door took that over, this script carried its own walk-up
-# for the project, its own reader of a board's header and its own copy of the
-# absent-node refusal: a second discovery, which accepted layouts the binary
-# refuses.
+# script FROM the project root as `start <ws> <display name> <launch>`. What is
+# left here is the one job no verb does -- appending the restart context and
+# exec-ing claude. Until the door took that over, this script carried its own
+# walk-up for the project, its own reader of a board's header and its own copy
+# of the absent-node refusal: a second discovery, which accepted layouts the
+# binary refuses.
+#
+# THE LAUNCH CONTEXT IS THE LIBRARY'S, AND THIS SCRIPT NEVER CALLS `intent`.
+# The door fetches the seat's brief and its launch steps from the facade and
+# passes the text as `<launch>`: on a board that declares a Team Profile, the
+# seat, its brief and the profile's launch steps; on one that declares none,
+# the text this script composed itself before. A script that called `intent`
+# would ask whichever binary is first on PATH, which need not be the one that
+# resolved the project.
 #
 # THE `ws` FAMILY IS GONE. `new`, `list`, `archive` and
 # `hygiene` managed the board as FILES; `intent wb` manages the model they were
@@ -82,21 +90,9 @@ EOF
 }
 
 # --- compose context + start -------------------------------------------------
-compose_ctx() { # $1 ws  $2 display name
-  ws="$1"
-  name="$2"
-  proj="$PROJ"
+compose_ctx() { # $1 the launch context the door passed
+  printf '%s\n\n' "$1"
   cat <<EOF
-YOU ARE: $ws ($name) -- a workstream node on the $proj whiteboard (intent/whiteboard/$ws/).
-
-On wake, do ALL of the following now, in this one turn, without waiting for further input:
-  1. Run /in-session (loads coding skills, releases the prompt gate, chains /in-whiteboard pickup).
-     If pickup did not identify you, run: /in-whiteboard pickup $ws
-  2. Read your inbox(es) under intent/whiteboard/$ws/ and act on any opening assignment.
-  3. Claim your steel threads if your assignment names any.
-  4. ULTRATHINK, then show me a detailed plan for today's work for this workstream ($ws).
-  5. Then STOP and wait for my instructions.
-
 Project restart context follows.
 --------------------------------------------------------------------------------
 EOF
@@ -106,13 +102,18 @@ EOF
 cmd_start() {
   ws="${1:-}"
   name="${2:-}"
+  launch="${3:-}"
   [ -n "$ws" ] || error "start <ws>: missing workstream id"
   # The door read the display name from the store and passes it; a run without
   # one did not come through the door, which is the only thing that checks the
   # project and the node.
   [ -n "$name" ] || error "start <ws> <name>: missing the display name, which \`intent claude start <ws>\` reads from the store and passes
   remedy: run \`intent claude start <ws>\` rather than this launcher. If that is what you ran, the \`intent\` on your PATH is older than this launcher: rebuild or reinstall it"
-  ctx="$(compose_ctx "$ws" "$name")"
+  # The launch context comes from the door too, from the brief the facade
+  # builds; a run without it did not come through a door this launcher matches.
+  [ -n "$launch" ] || error "start <ws> <name> <launch>: missing the launch context, which \`intent claude start <ws>\` reads from the store and passes
+  remedy: run \`intent claude start <ws>\` rather than this launcher. If that is what you ran, the \`intent\` on your PATH is older than this launcher: rebuild or reinstall it"
+  ctx="$(compose_ctx "$launch")"
   # THE SESSION NAME IS SET AT LAUNCH, NOT BY THE WOKEN SESSION (hv, 2026-08-27).
   # `claude -n/--name` sets the display name in the prompt box, the /resume
   # picker and the terminal title. Doing it here rather than asking the session

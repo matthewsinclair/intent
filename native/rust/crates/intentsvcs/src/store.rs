@@ -6689,6 +6689,19 @@ impl Store {
     Ok(rows.collect::<Result<_, _>>()?)
   }
 
+  /// Each node's last pickup on this machine, by moniker: the stamp of its
+  /// newest `wb.pickup` event (issue 0675). Those events are machine-scoped and
+  /// never reach canon, so a store ingested fresh from canon holds none, and a
+  /// node absent here has no pickup recorded on this machine.
+  pub fn wb_last_pickups(&self) -> Result<std::collections::BTreeMap<String, String>, StoreError> {
+    let mut stmt = self.conn.prepare(
+      "SELECT subject_id, max(ts) FROM event_log \
+       WHERE op = 'wb.pickup' AND subject_type = 'node' GROUP BY subject_id",
+    )?;
+    let rows = stmt.query_map([], |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?)))?;
+    Ok(rows.collect::<Result<_, _>>()?)
+  }
+
   /// How many LIVE items one node holds of one kind.
   pub fn wb_live_item_count(&self, node: &str, kind: &str) -> Result<usize, StoreError> {
     let n: i64 = self.conn.query_row(

@@ -4530,8 +4530,28 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
     Some(("status", m)) => {
       let f = open()?;
       let status = f.wb_status(m.get_flag("all")).map_err(fail)?;
-      let live = f.wb_live_counts().map_err(fail)?;
-      report_wb_status(&status, &live, m.get_flag("json"))
+      report_wb_status(&status, m.get_flag("json"))
+    }
+    // `intent wb brief <moniker> [--launch] [--json]` (ST0092 WP-06): a read of
+    // the brief `wb pickup` prints, which moves no heartbeat and records no
+    // session, so the launcher has a door to it that is not a pickup.
+    Some(("brief", m)) => {
+      let moniker = arg(m, "moniker")?;
+      let launch = m.get_flag("launch");
+      let f = open()?;
+      let brief = f.seat_brief(&moniker, launch).map_err(fail)?;
+      if m.get_flag("json") {
+        println!(
+          "{}",
+          serde_json::to_string_pretty(&brief).map_err(|e| Failure::Error(e.to_string()))?
+        );
+        return Ok(());
+      }
+      match &brief.launch {
+        Some(launch) => println!("{launch}"),
+        None => println!("{}", brief.text()),
+      }
+      Ok(())
     }
     Some(("show", m)) => {
       let f = open()?;
@@ -4610,6 +4630,20 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
         );
         return Ok(());
       }
+      // **THE BRIEF AND THE AGE OF THE LAST READ COME FIRST** (ST0092 AC-06.1,
+      // issue 0675): a seat reads its place before its board.
+      if let Some(brief) = &up.brief {
+        println!("{}\n", brief.text());
+      }
+      match &up.last_pickup {
+        Some(at) => println!(
+          "last pickup: {} ({at})",
+          pickup_age(&up).unwrap_or_default()
+        ),
+        None => println!(
+          "note: no pickup of {me} is recorded on this machine, so there is no age to show"
+        ),
+      }
       report_wb_board(&up.board, false, all)?;
       render_desk(&me, up.desk.as_ref());
       for s in &up.stranded {
@@ -4676,11 +4710,12 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
           format!(" -- {}", n.focus)
         };
         println!(
-          "  {} ({}) {} heartbeat {}{}",
+          "  {} ({}) {} heartbeat {}, {} live message(s){}",
           n.moniker,
           n.role,
           status_word(&n.status),
           n.heartbeat_at,
+          peer.live_messages,
           focus
         );
         if !peer.unshown.is_empty() {
@@ -5020,11 +5055,7 @@ pub(crate) fn pickup_session(flag: Option<&str>) -> Option<String> {
 /// The roster, one line per node. **THE MESSAGE COUNT IS `live`'s, READ FROM
 /// THE STORE** (issue 0612): a node's board carries what it sent, so the
 /// messages addressed to it are counted where they are joined with its marks.
-fn report_wb_status(
-  status: &intentsvcs::facade::WbStatus,
-  live: &std::collections::BTreeMap<String, usize>,
-  json: bool,
-) -> Result<(), Failure> {
+fn report_wb_status(status: &intentsvcs::facade::WbStatus, json: bool) -> Result<(), Failure> {
   // **THE HATS ARE THE FACADE'S** (ST0092 AC-08.3): read live from the host's
   // desk there, rendered here. A desk that could not be read is said once,
   // with its cause, and the roster still prints with no hat on it.
@@ -5033,14 +5064,7 @@ fn report_wb_status(
   }
   let rows = &status.rows;
   if json {
-    let rows: Vec<serde_json::Value> = rows
-      .iter()
-      .map(|r| {
-        let mut row = serde_json::json!(r.board.node);
-        row["hats"] = serde_json::json!(r.hats);
-        row
-      })
-      .collect();
+    let rows: Vec<serde_json::Value> = rows.iter().map(status_row_json).collect();
     println!(
       "{}",
       serde_json::to_string_pretty(&rows).map_err(|e| Failure::Error(e.to_string()))?
@@ -5067,18 +5091,23 @@ fn report_wb_status(
     } else {
       format!(" -- {}", n.focus)
     };
+    // **A SEAT THAT NEVER RAN SAYS SO, AND ITS REGISTRATION IS NOT PRINTED AS
+    // A HEARTBEAT** (ST0092 AC-06.2).
+    let state = if r.never_started {
+      "never started".to_string()
+    } else {
+      format!("{} heartbeat {}", status_word(&n.status), n.heartbeat_at)
+    };
+    let last = row_age(status, r)
+      .map(|age| format!(" last pickup {age}"))
+      .unwrap_or_default();
     println!(
-      "{} ({}) {} {} heartbeat {} items {} messages {}{}{}",
+      "{} ({}) {} {state}{last} live items {} live messages {}{}{}",
       n.moniker,
       n.role,
       n.name,
-      status_word(&n.status),
-      n.heartbeat_at,
-      b.items
-        .iter()
-        .filter(|i| i.state == intentsvcs::model::WbItemState::Live)
-        .count(),
-      live.get(&n.moniker).copied().unwrap_or(0),
+      r.live_items,
+      r.live_messages,
       if r
         .hats
         .as_ref()
@@ -5092,6 +5121,19 @@ fn report_wb_status(
     );
   }
   Ok(())
+}
+
+/// One `wb status` row as the CLI's `--json` and MCP answer it: the node's
+/// fields, then the row's hats, live counts, last pickup and never-started mark
+/// (ST0092 WP-06).
+pub(crate) fn status_row_json(r: &intentsvcs::facade::StatusRow) -> serde_json::Value {
+  let mut row = serde_json::json!(r.board.node);
+  row["hats"] = serde_json::json!(r.hats);
+  row["live_items"] = serde_json::json!(r.live_items);
+  row["live_messages"] = serde_json::json!(r.live_messages);
+  row["last_pickup"] = serde_json::json!(r.last_pickup);
+  row["never_started"] = serde_json::json!(r.never_started);
+  row
 }
 
 fn status_word(s: &intentsvcs::model::WbNodeStatus) -> &'static str {
@@ -10800,13 +10842,50 @@ fn estate_age(status: &serde_json::Value, row: &serde_json::Value, key: &str) ->
     // An age that cannot be computed shows the stamp itself, never a guess.
     return row[key].as_str().unwrap_or("-").to_string();
   };
-  let s = (taken - then).whole_seconds().max(0);
-  match s {
+  age_words(taken - then)
+}
+
+/// An age in the estate table's words, which a pickup's last-pickup line also
+/// uses (issue 0675), so the two say a duration one way.
+fn age_words(age: time::Duration) -> String {
+  match age.whole_seconds().max(0) {
     s if s < 60 => format!("{s}s"),
     s if s < 3600 => format!("{}m{:02}", s / 60, s % 60),
     s if s < 86400 => format!("{}h{:02}", s / 3600, s % 3600 / 60),
     s => format!("{}d{:02}h", s / 86400, s % 86400 / 3600),
   }
+}
+
+/// How long before this pickup its node's previous one was, as `<age> ago`, or
+/// the stamp itself where an age cannot be computed, never a guess (issue
+/// 0675); `None` where no previous pickup is recorded.
+///
+/// **IT TAKES THE ANSWER AND READS NO CLOCK** (D42, vc decision 72, and vc's
+/// ruling on ST0092 WP-06), as [`estate_age`] does: it can measure only what the
+/// facade returned, from the pickup's own `taken_at`.
+fn pickup_age(up: &intentsvcs::facade::Pickup) -> Option<String> {
+  use time::format_description::well_known::Rfc3339;
+  let last = up.last_pickup.as_deref()?;
+  let at = |s: &str| time::OffsetDateTime::parse(s, &Rfc3339).ok();
+  Some(match (at(&up.taken_at), at(last)) {
+    (Some(taken), Some(then)) => format!("{} ago", age_words(taken - then)),
+    _ => last.to_string(),
+  })
+}
+
+/// How long before the roster was read a row's node last picked up, as
+/// [`pickup_age`] says it, measured from the status's own `taken_at`.
+fn row_age(
+  status: &intentsvcs::facade::WbStatus,
+  row: &intentsvcs::facade::StatusRow,
+) -> Option<String> {
+  use time::format_description::well_known::Rfc3339;
+  let last = row.last_pickup.as_deref()?;
+  let at = |s: &str| time::OffsetDateTime::parse(s, &Rfc3339).ok();
+  Some(match (at(&status.taken_at), at(last)) {
+    (Some(taken), Some(then)) => format!("{} ago", age_words(taken - then)),
+    _ => last.to_string(),
+  })
 }
 
 /// The estate table's columns, in the order both faces draw them.
@@ -14508,15 +14587,24 @@ fn claude_cwi(m: &ArgMatches) -> Result<(), Failure> {
   let script = intentsvcs::install::cwi_script(&home);
   // The facade is dropped at the end of this block, so the store is closed
   // before the process is replaced rather than handed to `claude`.
-  let (root, name) = {
+  // **THE BRIEF IS THE FACADE'S, FETCHED HERE AND HANDED TO THE SCRIPT**
+  // (ST0092 WP-06): the script never calls `intent`, since the binary on PATH
+  // may not be the one that resolved this project (issue 0609). An unknown
+  // moniker and the human's seat are the facade's own refusals, before any
+  // script runs.
+  let (root, name, launch) = {
     let f = open()?;
-    let board = f.board(&ws).map_err(fail)?;
-    (f.project().root().to_path_buf(), board.node.name)
+    let brief = f.seat_brief(&ws, true).map_err(fail)?;
+    (
+      f.project().root().to_path_buf(),
+      brief.seat.name,
+      brief.launch.unwrap_or_default(),
+    )
   };
 
   exec_shipped_script(
     &script,
-    &["start".to_string(), ws, name],
+    &["start".to_string(), ws, name, launch],
     Some(root.as_path()),
     "whiteboard launcher",
   )
