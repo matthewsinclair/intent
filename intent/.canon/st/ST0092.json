@@ -95,7 +95,7 @@
       "seq": 10,
       "title": "The new surface reads as one",
       "scope": "S",
-      "status": "wip",
+      "status": "done",
       "objective": "This thread adds verbs across four packages built by one node, and each lands with its own rows in the dispatch table. ic, the table's owner, reads the finished surface whole: every help line, refusal, exit code, MCP disposition and guide entry, against the voice and the contract the rest of the tool keeps.",
       "body": "## Builder and judge\n\nic builds this package and claims `ST0092/10` in the same chain as `intent wp start ST0092/10`. vc judges it and claims nothing.\n\n## What is read, and corrected where it is wrong\n\n- **The rows.** `wb init`, `wb remit` with its `--default`, `wb retire`, `wb brief`, `wb profile list`, `wb profile show`, `wb profile validate` and `wb profile terms`, and the changed `wb ask`, `wb announce`, `wb register`, `wb pickup` and `estate control take`: each row's recoverability, its `when_to_use`, and its `exposed_on_mcp`, which follows the recoverability unless the row says why. A read is offered. A roster act, `wb init --apply` or `wb retire`, is done because someone was asked.\n- **The refusals.** Each new refusal is a typed error with a remedy that can be run as written, in the tool's own prefixes.\n- **The exit codes** agree with the contract `intent llm guide` prints.\n- **The guide.** `intent llm guide` carries every new verb and says of each whether it reads or mutates and whether it can be undone.\n- **The terminal.** Where the TUI lists board verbs, it lists these.\n\n## Depends on\n\nWP-02 to WP-09, landed.\n",
       "preamble": ""

@@ -6,7 +6,7 @@ session_id: 677e6c35-f820-4993-8ec4-ad639debeb1b
 heartbeat_at: 2026-11-11 17:41Z
 status: active
 focus: "2026-11-11 17:41Z, post-cut pickup on brew 3.3.0 (vc: the cut is done, 3.3.0 released at 1e423060f; the dev-pair PATH prefix is over). Active, no slot, nothing banked. ST0092 WP-06 stays WIP on vc's ruling: AC-06.4 closes at hv's next real `intent claude start <node>` on 3.3.0, recorded by vc by session id. WP-10 closes now on vc's rulings, its three help and guide findings filed as one issue for the next release."
-claims: [ST0092/06, ST0092/10]
+claims: [ST0092/06]
 ---
 
 # Interface Claude (ic)
@@ -14,7 +14,6 @@ claims: [ST0092/06, ST0092/10]
 ## DOING
 
 - ST0092 WP-06 LANDED (2026-11-11): red 754f9013d, green eb9e9f6c3, rows b23bd66fa (shas after hv's rewrite of main to 4410d1563; they were fe689394f, b8dffbfe0 and b12c591fa), measured green in desk slot 01M75CJJHQ3V40JH19THJ3KRFW on 9efb83598 (workspace clippy clean, intent-cli 965 passed, intentsvcs 1842 passed). AT-06.1, .2, .3 and .5 green; AT-06.4 n/a. STAYS WIP, on vc's ruling: the gate is BLOCKED on AC-06.4 alone, which needs vc to record a seat booting on an installed 3.3.0; `wp done ST0092/06` follows that record. Claim ST0092/06 held until then. (edited)
-- ST0092 WP-10 LANDED (2026-11-11) as 5b597abd9 (was cfa51c53f before hv's rewrite of main), green in the same slot stacked on WP-06's green (clippy, the new edit --browser arm, intent-cli whole, surface_check.sh with INV-09 to 12 declared skips, format). It carries the estate page reading controller_orphaned and drawing running_idle, and todos 67, 68 and 69, all executed. STAYS WIP until after the cut, on vc's ruling: AT-10.1, AT-10.2 and AT-10.3 are each a read recorded in its AT note, no new arm. Done before the landing (to record): AC-10.1's row read (every new verb has when_to_use and MCP disposition; mutations declare recoverability), AC-10.2's refusal read (voice and exit 1 consistent, nothing to correct) and AC-10.3's search (SKILL.md cites TERMS.md, the roster template cites `wb profile terms`, no table row defines a term). Owed: the help-line half of 10.2 and `intent llm guide` on an installed build for 10.1, then the three rows and `wp done ST0092/10`. (edited)
 
 ## TODO
 

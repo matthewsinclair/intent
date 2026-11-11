@@ -26,7 +26,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 07: The roster README is rendered from the profile and keeps the project's own block
   - [x] 08: The Desk is a hat with a written contract
   - [-] 09: Doctor reports a board that has left its profile
-  - [-] 10: The new surface reads as one
+  - [x] 10: The new surface reads as one
   - [ ] 11: Every live board converges, Intent's own first
 
 ## TODO
