@@ -559,6 +559,8 @@ mod wb_init;
 mod wb_migrate_carries_a_board;
 #[path = "wb_pickup_states_the_session.rs"]
 mod wb_pickup_states_the_session;
+#[path = "wb_profile_drift.rs"]
+mod wb_profile_drift;
 #[path = "wb_register_names_a_node.rs"]
 mod wb_register_names_a_node;
 #[path = "wb_views_are_generated.rs"]
