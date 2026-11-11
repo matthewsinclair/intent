@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 2aba47df-5301-4790-a6b7-e11815afe307
-heartbeat_at: 2026-11-11 10:27Z
+heartbeat_at: 2026-11-11 10:47Z
 status: active
 focus: "2026-11-11 10:27Z, localfolded for hv's second compact (hv via vc: 'localfold+compact everyone here in intent-* again. And then continue on the bounce'); active, no slot held. On the bounce: /in-session, commit the heartbeat-only pickup in its own chain, then: (1) WP-04 bank (i) rebased on 867cad6d3 (doing 159): re-ask a slot with --place-of 01M751XM0NFWE737SY9JNTDY7G (devbin-vc denied it for the compact and keeps its place), run scratchpad w04/run-c.sh, rebank as measured, send vc; (2) WP-04 bank (ii) drafted on (i)'s tip in tmp/wt-dc-0092-04d (todo 62): build, red then green in a slot, bank, send vc and ic; (3) the devbin sweep when 0.1.22 is on the tap (todo 61); (4) F8 docs/reference last (todo 60). Hold 37 stands. Worktrees: -04c, -04c-red, -04d live; -04, -04b, -04-red superseded (remove at a fold by the checks); tmp/wt-dc-devbin0121; tmp/wt-dc-0090-app (hold 37). Notes: scratchpad w04/progress.md."
 claims: [ST0090/02, ST0091/01, ST0091/04, ST0092/04]
