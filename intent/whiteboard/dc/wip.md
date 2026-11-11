@@ -6,14 +6,14 @@ session_id: 2aba47df-5301-4790-a6b7-e11815afe307
 heartbeat_at: 2026-11-10 19:34Z
 status: active
 focus: "2026-11-10, localfolded for hv's compact on hv's word direct to dc ("Fold, then compact."); dc stays active and continues on the bounce. Lane, on vc's word: (1) on vc's "verified", close 0670 and remove tmp/wt-dc-0670 in one chain (doing 155); (2) AT-01.6's release.preflight wiring once devbin-vc says devbin's release (re-cutting after 0.1.21 went red) is swept in (todo 61); (3) F8's reference pages as the last unit before the cut, after ST0092's surface lands (todo 60). dc builds no ST0092 package for now; vc revisits when cc reaches WP-05. Claims: ST0090/02, ISSUE:0670, ST0091/01-04. Worktrees: tmp/wt-dc-0670 (v2, kept until verified) and tmp/wt-dc-0090-app (hold 37)."
-claims: [ST0090/02, ST0091/01, ST0091/04, ST0092/08]
+claims: [ST0090/02, ST0091/01, ST0091/04]
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-- ST0092 WP-08, the Desk is a hat with a written contract (vc's go on dc's shape, 2026-11-10; Q1 and Q2 ruled). Builds in tmp/wt-dc-0092-08: the duties in one template, lib/templates/estate/_DUTIES.md, which estate init's AGENTS.md and the pickup brief both carry; session_node and mediator_of in their own intentsvcs file (an undeclared board means vc; cc's profile work extends it); control take refused for a node that is not its board's mediator, unless --hv; pickup prints the hat, the duties and the asks waiting; wb status, text and json, shows the hat, live and never in wip.md (AC-08.3 as vc reworded it); estate status says the desk is orphaned when the recorded controller's session fails the pid-and-start-time liveness check, and prints the take step. Test-first, each red the code as it is, every compiled run in a desk slot. Banks after 0667.
+_(none)_
 
 ## TODO
 

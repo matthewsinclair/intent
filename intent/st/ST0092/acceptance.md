@@ -80,7 +80,7 @@ title: A Claude Team is declared by a profile: wb init sets up its board, hv is 
 - AC-07.6 A seat whose remit was never set shows the profile's default, marked as the default, in the roster table, and a seat whose remit the project set shows the project's words. -- satisfied: no (computed)
 - AC-07.7 A render refuses, before anything is written and naming the line, a README whose block markers are anything but one start followed by one end, and a first render refuses one that holds either marker. -- satisfied: no (computed)
 
-### WP-08 -- The Desk is a hat with a written contract (status: WIP)
+### WP-08 -- The Desk is a hat with a written contract (status: Done)
 
 - AC-08.1 The controller's duties have one template source: the coordinator's `AGENTS.md` that `intent estate init` renders and the brief a hat-wearing node is given carry the same duties text from it. -- satisfied: yes (computed)
 - AC-08.2 `intent estate control take` from a Claude session bound to a node that is not its board's vc is refused with a remedy naming who may take it; with `--hv "<words>"` it is taken and the words are recorded; and a session in no project takes it as before. -- satisfied: yes (computed)
@@ -146,7 +146,7 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-08 -- The Desk is a hat with a written contract (status: WIP)
+### WP-08 -- The Desk is a hat with a written contract (status: Done)
 
 - AT-08.1 `native/rust/crates/intent-cli/tests/estate_surface.rs` -- covers AC-08.1, AC-08.3 -- status: green -- red at b64665225 on the code as it was, desk run 01M73J11PV8GCHWZGF7M97J64H: the mediator's pickup printed no hat, no duties and no asks waiting; green at 806a81a66, judged by vc on tree 78028952b20f (desk run 01M73MB6F43GHCQNPN4DWRDJEC)
 - AT-08.2 `native/rust/crates/intent-cli/tests/estate_surface.rs` -- covers AC-08.2 -- status: green -- red at b64665225 on the code as it was, desk run 01M73J11PV8GCHWZGF7M97J64H: cc's control take succeeded with no hv words; green at 806a81a66, judged by vc on tree 78028952b20f (desk run 01M73MB6F43GHCQNPN4DWRDJEC)
