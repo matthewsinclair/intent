@@ -321,6 +321,11 @@ pub enum FindingClass {
   /// render writes one, so it is left from before the board declared its team.
   /// Shown and never counted, as above.
   ClosedPairView,
+  /// A seat its board's declared profile names that is retired (ST0092 WP-09,
+  /// on WP-04's retirement). Named as retired so it never reads as a declared
+  /// seat no board registers; an apply leaves it retired. Shown and never
+  /// counted, as above.
+  SeatRetired,
   /// The durable store has no recent restorable snapshot -- either none has
   /// ever succeeded, or the newest is older than the configured schedule.
   ///
@@ -783,6 +788,11 @@ impl FindingClass {
         "closed-pair-view",
         "run `intent wb init` to see the views it would remove, then `intent wb init --apply` to remove them; a live message on the pair is refused by name until its recipient clears it",
       ),
+      Self::SeatRetired => (
+        8,
+        "seat-retired",
+        "nothing while it stays retired: `intent wb init --apply` leaves it retired, and the `intent wb register` command the finding names reinstates the same node",
+      ),
       Self::BackupStale => (
         8,
         "backup-stale",
@@ -1024,6 +1034,7 @@ impl FindingClass {
         | Self::SeatDiffersFromProfile
         | Self::SeatNotRegistered
         | Self::ClosedPairView
+        | Self::SeatRetired
         | Self::AttachmentDrift
         | Self::BackupStale
         | Self::StoreStale
@@ -1067,6 +1078,7 @@ impl FindingClass {
           | Self::SeatDiffersFromProfile
           | Self::SeatNotRegistered
           | Self::ClosedPairView
+          | Self::SeatRetired
           | Self::RootFileBehind
           | Self::StoreTracked
           | Self::ProseIndexDuplicated

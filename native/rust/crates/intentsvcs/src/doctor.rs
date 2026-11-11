@@ -1886,6 +1886,23 @@ fn team_drift_advisories(project: &Project, canon: &Canon) -> Vec<Finding> {
           seat.moniker, seat.name, seat.role
         ),
       )),
+      // Named as retired only where the profile declares the seat; a retired
+      // node the profile does not name is no drift from it.
+      crate::teams::Verdict::Retired { reason }
+        if resolved.seats.iter().any(|s| s.moniker == seat.moniker) =>
+      {
+        out.push(Finding::new(
+          project.relative(&project.board_json(&seat.moniker)),
+          FindingClass::SeatRetired,
+          format!(
+            "profile `{profile}` declares seat `{}` ({}, {}), and it is retired: {reason}; `{}` reinstates it",
+            seat.moniker,
+            seat.name,
+            seat.role,
+            crate::model::register_form(&seat.moniker)
+          ),
+        ));
+      }
       crate::teams::Verdict::Unchanged
       | crate::teams::Verdict::Outside
       | crate::teams::Verdict::Retired { .. }
